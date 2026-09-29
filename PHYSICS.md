@@ -186,8 +186,8 @@ both characters, not sourced Melee move data:
 Warcraft's stock attack animation begins on accepted attack startup; it is
 paused during hitlag. It does not yet align its contact pose to the active
 window. Authored clips and move-specific damage, shapes and launch angles
-remain required. The blaster remains a ranged hit check rather than a moving
-projectile.
+remain required. The blaster is now a moving projectile emitted during its
+active frame, rather than an instantaneous long-range hit check.
 
 The owner defines neutral N as jab, N plus direction as smash, and N plus
 direction while holding the walk modifier as tilt. C-stick bindings request
@@ -196,3 +196,21 @@ damage is 10 side / 8 up / 8 down. These and the ground/air blaster timing
 difference are provisional tuning. Blaster duration is captured at attack
 start, so landing cannot rewrite its recovery. Aerial normal attacks and
 charged smashes still need their own move behavior.
+
+## Moving blaster shots
+
+Each accepted blaster action emits one horizontal shot when startup ends.
+Shots advance on simulation ticks independently of the owner's attack clock,
+and persist through owner recovery or interruption. Collision sweeps the
+horizontal distance traveled during a tick, so a beam cannot skip a stationary
+fighter just because its endpoints lie on either side. Intangible or absent
+targets do not absorb a shot. Shields absorb it without freezing the distant
+shooter. Fox deals 3 damage without flinch; Falco deals 3 damage and at least
+11 frames of hitstun. These damage/stun values are provisional.
+
+Initial projectile tuning is 36 Warcraft units per frame and 30 ticks of life
+(1,080 units of travel), emitted 35 units ahead and 75 units above the fighter's
+feet. The simplified target center is 45 units above the feet, with 24 units
+of horizontal radius and 36 units of vertical tolerance. These are prototype
+collision dimensions, not reconstructed Melee hitboxes. Beam rendering reads
+simulation positions; it does not determine contact.

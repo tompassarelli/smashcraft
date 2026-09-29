@@ -33,6 +33,8 @@ boolean array heldBindingSlots
 lightning array stageLines
 int stageLineCount = 0
 lightning array blastLines
+lightning array projectileLines
+int projectileLineCount = 0
 framehandle titleFrame
 framehandle menuFrame
 framehandle hudFrame
@@ -134,6 +136,34 @@ function clearStageLines()
         DestroyLightning(stageLines[i])
     stageLineCount = 0
 
+function clearProjectileLines()
+    for i = 0 to projectileLineCount - 1
+        if projectileLines[i] != null
+            DestroyLightning(projectileLines[i])
+            projectileLines[i] = null
+    projectileLineCount = 0
+
+function renderProjectile(int index, boolean active, real x, real z, int direction, int character)
+    projectileLineCount = max(projectileLineCount, index + 1)
+    if not active
+        if projectileLines[index] != null
+            DestroyLightning(projectileLines[index])
+            projectileLines[index] = null
+        return
+    let tailX = x - direction * 65
+    if projectileLines[index] == null
+        projectileLines[index] = AddLightningEx("AFOD", false, centerX + tailX, centerY, floorHeight + z,
+            centerX + x, centerY, floorHeight + z)
+        SetLightningColor(projectileLines[index], character == 0 ? 1 : 0.3, character == 0 ? 0.2 : 0.65, character == 0 ? 0.15 : 1, 1)
+    else
+        MoveLightningEx(projectileLines[index], false, centerX + tailX, centerY, floorHeight + z,
+            centerX + x, centerY, floorHeight + z)
+
+function renderProjectiles(FighterState fighter, int offset)
+    for index = 0 to PROJECTILE_CAPACITY - 1
+        renderProjectile(offset + index, projectileActive(fighter, index), projectileXAt(fighter, index),
+            projectileZAt(fighter, index), projectileDirectionAt(fighter, index), fighter.character)
+
 function drawStage()
     clearStageLines()
     for i = 0 to surfaceCount(matchState.stageChoice) - 1
@@ -146,6 +176,7 @@ function drawStage()
             stageLineCount++
 
 function removeFighters()
+    clearProjectileLines()
     if playerFighter != null
         RemoveUnit(playerFighter.body)
         destroy playerFighter
@@ -189,6 +220,10 @@ function applyFrame()
     stepMatch(matchState, playerFighter, botFighter, playerInput, botInput, playerAttacks, botAttacks, simulationFrame)
     renderFighter(playerFighter, playerWasOut)
     renderFighter(botFighter, botWasOut)
+    renderProjectiles(playerFighter, 0)
+    renderProjectiles(botFighter, PROJECTILE_CAPACITY)
+    if matchState.phase == RESULT
+        clearProjectileLines()
     if playerFighter.attackSerial != playerPreviousAttack
         SetUnitAnimation(playerFighter.body, "attack")
     if botFighter.attackSerial != botPreviousAttack

@@ -189,8 +189,10 @@ Settings read on map startup and write on Save. A same-map disk reread is not
 supported: Warcraft returned the prior cached preload contents after the file
 had changed. The UI exposes preset selection, rebinding and Save; restoration
 is automatic next time the map starts. See wc3-melee:WURST.md for the observed
-engine boundary. Blender is installed, but animation authoring remains blocked
-on the exporter API issue in wc3-melee:ANIMATIONS.md.
+engine boundary. Blender is installed and its animated import/export API issues
+are repaired. Archer and Rifleman now have editable textured scenes; authored
+clips and in-game animation fidelity remain unfinished. Commands and the model
+version limitation are recorded in wc3-melee:ANIMATIONS.md.
 
 ## Air-dodge checkpoint
 
@@ -272,3 +274,22 @@ Next simulation gap: remaining shield escape options and move-specific tuning. A
 motion parameters remain provisional; passing protection tests does not prove
 motion fidelity. Continue the animation pipeline and two-client work already
 listed above; the overall goal remains unfinished.
+
+## Moving blaster checkpoint
+
+56/56 headless tests pass with zero warnings/errors after replacing the instant
+blaster range check with traveling shots. Focused cases cover travel delay,
+contact, missed-shot lifetime, Fox versus Falco hit response and intangibility;
+simultaneous-attack checks remain green. The adapter renders a short red/blue
+beam from each active projectile's simulation position and clears visuals when
+the match ends or fighters are replaced. Projectile speed, shape, damage and
+stun remain prototype tuning recorded in wc3-melee:PHYSICS.md.
+
+Build 210040 loaded in 22.448 seconds with the same Warcraft process. The
+native-key probe entered character → stage → match, fired U, displayed a red
+shot, and the subsequent frame showed Falco at 3%. Evidence:
+~/code/wc3-melee/worktrees/test-loop/build/projectile-probe/flight.png and
+~/code/wc3-melee/worktrees/test-loop/build/projectile-probe/after-flight.png.
+The screenshot catches emission, not a measured in-client trajectory; headless
+tests establish travel delay. The beam art remains provisional. The map build
+still reports the two known SettingsUI array-initialization warnings.

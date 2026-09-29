@@ -25,6 +25,13 @@ public constant int AIR_DODGE_LANDING_LAG = 20
 public constant int SHIELD_MIN_HOLD_FRAMES = 8
 public constant int SHIELD_RELEASE_LAG_FRAMES = 15
 public constant real WALK_SPEED_RATIO = 0.5
+public constant int PROJECTILE_CAPACITY = 16
+public constant real BLASTER_PROJECTILE_SPEED = 36
+constant int BLASTER_PROJECTILE_LIFETIME = 30
+public constant real BLASTER_PROJECTILE_HEIGHT = 75
+public constant real BLASTER_PROJECTILE_HALF_HEIGHT = 36
+public constant real BLASTER_PROJECTILE_RADIUS = 24
+public constant real BLASTER_PROJECTILE_SPAWN_OFFSET = 35
 public constant int ATTACK_NONE = 0
 public constant int ATTACK_STARTUP = 1
 public constant int ATTACK_ACTIVE = 2
@@ -59,6 +66,10 @@ public class FighterState
 	int attackDuration = 0
 	int attackSerial = 0
 	boolean attackHit = false
+	int array[PROJECTILE_CAPACITY] projectileLife
+	real array[PROJECTILE_CAPACITY] projectileX
+	real array[PROJECTILE_CAPACITY] projectileZ
+	int array[PROJECTILE_CAPACITY] projectileDirection
 	boolean out = false
 	int respawn = 0
 	boolean shield = false
@@ -186,6 +197,25 @@ public function attackPhase(FighterState f) returns int
 		return ATTACK_ACTIVE
 	return ATTACK_RECOVERY
 
+public function projectileCount(FighterState f) returns int
+	var count = 0
+	for index = 0 to PROJECTILE_CAPACITY - 1
+		if f.projectileLife[index] > 0
+			count++
+	return count
+
+public function projectileActive(FighterState f, int index) returns boolean
+	return index >= 0 and index < PROJECTILE_CAPACITY and f.projectileLife[index] > 0
+
+public function projectileXAt(FighterState f, int index) returns real
+	return f.projectileX[index]
+
+public function projectileZAt(FighterState f, int index) returns real
+	return f.projectileZ[index]
+
+public function projectileDirectionAt(FighterState f, int index) returns int
+	return f.projectileDirection[index]
+
 function attackHits(FighterState attacker, FighterState target, int style) returns boolean
 	let separation = target.x - attacker.x
 	return not target.out and not isIntangible(target) and separation * attacker.facing >= 0 and separation.abs() <= attackReach(style) and (target.z - attacker.z).abs() <= 130
@@ -207,6 +237,59 @@ function beginAttack(FighterState attacker, int style)
 	attacker.attackSerial++
 	attacker.attackHit = false
 	attacker.cooldown = attacker.attackDuration
+
+function spawnProjectile(FighterState owner)
+	for index = 0 to PROJECTILE_CAPACITY - 1
+		if owner.projectileLife[index] <= 0
+			owner.projectileDirection[index] = owner.facing
+			owner.projectileX[index] = owner.x + owner.facing * BLASTER_PROJECTILE_SPAWN_OFFSET
+			owner.projectileZ[index] = owner.z + BLASTER_PROJECTILE_HEIGHT
+			owner.projectileLife[index] = BLASTER_PROJECTILE_LIFETIME
+			return
+
+function applyProjectileHit(FighterState owner, FighterState target)
+	let damage = attackDamage(1)
+	if target.shield and target.shieldEnergy > 0
+		target.shieldEnergy = max(0, target.shieldEnergy - damage * 0.7)
+		target.shieldStun = R2I((damage * 0.45 + 2) * 200 / 201)
+		if target.shieldEnergy == 0
+			target.shield = false
+			target.shieldStun = 0
+			target.shieldHeldFrames = 0
+			target.hitstun = 40
+		return
+	target.damage += damage
+	if owner.character == 1
+		interruptJumpOrDodge(target)
+		cancelAttack(target)
+		target.hitstun = max(target.hitstun, 11)
+
+function updateProjectiles(FighterState owner, FighterState target, real targetX, real targetZ, boolean targetWasOut, boolean targetWasIntangible)
+	for index = 0 to PROJECTILE_CAPACITY - 1
+		if owner.projectileLife[index] > 0
+			let oldX = owner.projectileX[index]
+			let direction = owner.projectileDirection[index]
+			owner.projectileX[index] = oldX + direction * BLASTER_PROJECTILE_SPEED
+			owner.projectileLife[index]--
+			let crossedTarget = (targetX - oldX) * direction >= 0 and (targetX - owner.projectileX[index]) * direction <= 0
+			let nearTarget = (targetX - owner.projectileX[index]).abs() <= BLASTER_PROJECTILE_RADIUS
+			if (crossedTarget or nearTarget) and (targetZ + 45 - owner.projectileZ[index]).abs() <= BLASTER_PROJECTILE_HALF_HEIGHT and not targetWasOut and not targetWasIntangible
+				applyProjectileHit(owner, target)
+				owner.projectileLife[index] = 0
+			else if owner.projectileLife[index] <= 0
+				owner.projectileLife[index] = 0
+
+public function updateProjectilePair(FighterState first, FighterState second)
+	let firstWasOut = first.out
+	let secondWasOut = second.out
+	let firstWasIntangible = isIntangible(first)
+	let secondWasIntangible = isIntangible(second)
+	let firstX = first.x
+	let firstZ = first.z
+	let secondX = second.x
+	let secondZ = second.z
+	updateProjectiles(first, second, secondX, secondZ, secondWasOut, secondWasIntangible)
+	updateProjectiles(second, first, firstX, firstZ, firstWasOut, firstWasIntangible)
 
 function cancelAttack(FighterState fighter)
 	fighter.attackStyle = -1
@@ -293,8 +376,8 @@ public function beginAttackPair(FighterState first, FighterState second, int fir
 public function resolveAttackPair(FighterState first, FighterState second)
 	let firstStyle = first.attackStyle
 	let secondStyle = second.attackStyle
-	let firstHits = firstStyle >= 0 and attackPhase(first) == ATTACK_ACTIVE and not first.attackHit and canResolveAttack(first, second)
-	let secondHits = secondStyle >= 0 and attackPhase(second) == ATTACK_ACTIVE and not second.attackHit and canResolveAttack(second, first)
+	let firstHits = firstStyle >= 0 and attackPhase(first) == ATTACK_ACTIVE and not first.attackHit and (firstStyle == 1 or canResolveAttack(first, second))
+	let secondHits = secondStyle >= 0 and attackPhase(second) == ATTACK_ACTIVE and not second.attackHit and (secondStyle == 1 or canResolveAttack(second, first))
 	let firstGrabPriority = firstHits and firstStyle == 5 and secondStyle != 5
 	let secondGrabPriority = secondHits and secondStyle == 5 and firstStyle != 5
 	if firstHits
@@ -302,9 +385,15 @@ public function resolveAttackPair(FighterState first, FighterState second)
 	if secondHits
 		second.attackHit = true
 	if firstHits and not secondGrabPriority
-		applyAttackHit(first, second, firstStyle)
+		if firstStyle == 1
+			spawnProjectile(first)
+		else
+			applyAttackHit(first, second, firstStyle)
 	if secondHits and not firstGrabPriority
-		applyAttackHit(second, first, secondStyle)
+		if secondStyle == 1
+			spawnProjectile(second)
+		else
+			applyAttackHit(second, first, secondStyle)
 
 function canResolveAttack(FighterState attacker, FighterState target) returns boolean
 	return not target.out and attackHits(attacker, target, attacker.attackStyle)

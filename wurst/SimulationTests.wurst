@@ -74,7 +74,74 @@ function resolveStartedAttack(int style, FighterState attacker, FighterState tar
 	for frame = 1 to attackStartupFrames(style)
 		advance(attacker, 0, input, -240)
 		resolveAttackPair(attacker, target)
+		updateProjectilePair(attacker, target)
 	destroy input
+
+function spawnTestProjectile(FighterState owner, FighterState target)
+	beginAttackPair(owner, target, 1, -1)
+	owner.attackFrame = attackStartupFrames(1)
+	resolveAttackPair(owner, target)
+
+@Test function blasterTravelsBeforeItDealsDamage()
+	let game = testMatch()
+	let owner = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 400, -1)
+	let ownerInput = new InputSnapshot()
+	let targetInput = new InputSnapshot()
+	let ownerCommands = new AttackBuffer(0)
+	let targetCommands = new AttackBuffer(0)
+	runToAttackActive(game, owner, target, ownerInput, targetInput, ownerCommands, targetCommands, 1, 1)
+	target.damage.assertEquals(0.)
+	projectileCount(owner).assertEquals(1)
+	for frame = attackStartupFrames(1) + 2 to 11
+		stepMatch(game, owner, target, ownerInput, targetInput, ownerCommands, targetCommands, frame)
+	target.damage.assertEquals(0.)
+	stepMatch(game, owner, target, ownerInput, targetInput, ownerCommands, targetCommands, 12)
+	target.damage.assertEquals(3.)
+	projectileCount(owner).assertEquals(0)
+
+@Test function projectilePoolExpiresMissesAtItsRange()
+	let owner = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 5000, -1)
+	spawnTestProjectile(owner, target)
+	projectileCount(owner).assertEquals(1)
+	projectileXAt(owner, 0).assertEquals(35.)
+	projectileDirectionAt(owner, 0).assertEquals(1)
+	for frame = 1 to 29
+		updateProjectilePair(owner, target)
+	projectileCount(owner).assertEquals(1)
+	updateProjectilePair(owner, target)
+	projectileCount(owner).assertEquals(0)
+
+@Test function falcoBlasterFlinchesWhileFoxBlasterDoesNot()
+	let fox = new FighterState(0, 0, 1)
+	let falcoTarget = new FighterState(1, 100, -1)
+	spawnTestProjectile(fox, falcoTarget)
+	updateProjectilePair(fox, falcoTarget)
+	updateProjectilePair(fox, falcoTarget)
+	falcoTarget.damage.assertEquals(3.)
+	falcoTarget.hitstun.assertEquals(0)
+	let falco = new FighterState(1, 0, 1)
+	let foxTarget = new FighterState(0, 100, -1)
+	spawnTestProjectile(falco, foxTarget)
+	updateProjectilePair(falco, foxTarget)
+	updateProjectilePair(falco, foxTarget)
+	foxTarget.damage.assertEquals(3.)
+	foxTarget.hitstun.assertEquals(11)
+
+@Test function projectilePassesThroughAnIntangibleTargetWithoutConsumingIt()
+	let owner = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 400, -1)
+	target.invincible = 100
+	spawnTestProjectile(owner, target)
+	for frame = 1 to 11
+		updateProjectilePair(owner, target)
+	projectileCount(owner).assertEquals(1)
+	target.invincible = 0
+	for frame = 1 to 5
+		updateProjectilePair(owner, target)
+	target.damage.assertEquals(0.)
+	projectileCount(owner).assertEquals(1)
 
 function damageFromOneAttack(int style) returns real
 	let attacker = new FighterState(0, 0, 1)
@@ -441,6 +508,10 @@ function damageFromOneAttack(int style) returns real
 	rightCommandsA.enqueue(1, 0, 1)
 	for frame = 1 to attackStartupFrames(1) + 1
 		stepMatch(gameA, leftA, rightA, leftInputA, rightInputA, leftCommandsA, rightCommandsA, frame)
+	leftA.cooldown.assertEquals(22)
+	rightA.cooldown.assertEquals(22)
+	for frame = attackStartupFrames(1) + 2 to 40
+		stepMatch(gameA, leftA, rightA, leftInputA, rightInputA, leftCommandsA, rightCommandsA, frame)
 	leftA.damage.assertEquals(3.)
 	rightA.damage.assertEquals(3.)
 	let gameB = testMatch()
@@ -454,6 +525,8 @@ function damageFromOneAttack(int style) returns real
 	rightCommandsB.enqueue(1, 0, 1)
 	for frame = 1 to attackStartupFrames(1) + 1
 		stepMatch(gameB, rightB, leftB, rightInputB, leftInputB, rightCommandsB, leftCommandsB, frame)
+	for frame = attackStartupFrames(1) + 2 to 40
+		stepMatch(gameB, rightB, leftB, rightInputB, leftInputB, rightCommandsB, leftCommandsB, frame)
 	leftA.damage.assertEquals(3.)
 	rightA.damage.assertEquals(3.)
 	leftA.damage.assertEquals(rightA.damage)
@@ -463,8 +536,6 @@ function damageFromOneAttack(int style) returns real
 	rightA.hitstun.assertEquals(rightB.hitstun)
 	leftA.cooldown.assertEquals(leftB.cooldown)
 	rightA.cooldown.assertEquals(rightB.cooldown)
-	leftA.cooldown.assertEquals(0)
-	rightA.cooldown.assertEquals(attackDurationFrames(1) - attackStartupFrames(1))
 
 @Test function aWhiffAddsNoHitlagWhileTheOpponentsActiveMoveConnects()
 	let game = testMatch()
@@ -477,14 +548,14 @@ function damageFromOneAttack(int style) returns real
 	blaster.facing = -1
 	blasterCommands.enqueue(1, 0, 1)
 	opponentCommands.enqueue(1, 0, 1)
-	for frame = 1 to attackStartupFrames(1) + 1
+	for frame = 1 to attackStartupFrames(1) + 2
 		stepMatch(game, blaster, opponent, blasterInput, opponentInput, blasterCommands, opponentCommands, frame)
 	blaster.damage.assertEquals(3.)
 	opponent.damage.assertEquals(0.)
 	blaster.hitlag.assertEquals(0)
 	opponent.hitlag.assertEquals(0)
 	blaster.cooldown.assertEquals(0)
-	opponent.cooldown.assertEquals(attackDurationFrames(1) - attackStartupFrames(1))
+	opponent.cooldown.assertEquals(attackDurationFrames(1) - attackStartupFrames(1) - 1)
 
 @Test function successfulGrabHasPriorityOverSimultaneousStrikeInEitherOrder()
 	let gameA = testMatch()
