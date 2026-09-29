@@ -3,6 +3,7 @@ import UnitObjEditing
 import public FighterAssetInfo
 
 public constant int ARCHER_FIGHTER_ID = 'mfar'
+public constant int RIFLEMAN_FIGHTER_ID = 'mfrf'
 
 @compiletime function defineFighterAssets()
     let archer = new UnitDefinition(ARCHER_FIGHTER_ID, 'earc')
@@ -10,3 +11,8 @@ public constant int ARCHER_FIGHTER_ID = 'mfar'
     archer.setModelFile(ARCHER_MODEL_FILE)
     archer.setModelFileExtraVersions(0)
     archer.setAnimationBlendTimeseconds(0.)
+    let rifleman = new UnitDefinition(RIFLEMAN_FIGHTER_ID, 'hrif')
+    rifleman.setName("Rifleman")
+    rifleman.setModelFile(RIFLEMAN_MODEL_FILE)
+    rifleman.setModelFileExtraVersions(0)
+    rifleman.setAnimationBlendTimeseconds(0.)

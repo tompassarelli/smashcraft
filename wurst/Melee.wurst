@@ -173,7 +173,7 @@ class Fighter extends FighterState
 
     construct(player owner, int fighterType, real startX, int direction)
         super(fighterType, startX, direction)
-        body = CreateUnit(owner, fighterType == 0 ? ARCHER_FIGHTER_ID : 'hrif', centerX + startX, centerY, direction > 0 ? 0 : 180)
+        body = CreateUnit(owner, fighterType == 0 ? ARCHER_FIGHTER_ID : RIFLEMAN_FIGHTER_ID, centerX + startX, centerY, direction > 0 ? 0 : 180)
         SetUnitInvulnerable(body, true)
         SetUnitPathing(body, false)
         UnitAddAbility(body, 'Amrf')
@@ -670,22 +670,21 @@ function firstPlayerLeaves()
     matchState.forfeit(0)
 
 function playAttackAnimation(Fighter fighter)
-    if fighter.character == 0
-        if fighter.attackStyle == 0
-            SetUnitAnimationByIndex(fighter.body, ARCHER_JAB_INDEX)
-            return
-        if fighter.attackStyle == 6
-            SetUnitAnimationByIndex(fighter.body, ARCHER_FORWARD_TILT_INDEX)
-            return
-        if fighter.attackStyle == 9
-            SetUnitAnimationByIndex(fighter.body, ARCHER_FORWARD_TILT_UP_INDEX)
-            return
-        if fighter.attackStyle == 10
-            SetUnitAnimationByIndex(fighter.body, ARCHER_FORWARD_TILT_DOWN_INDEX)
-            return
-        if fighter.attackStyle == DOWN_ATTACK_STYLE
-            SetUnitAnimationByIndex(fighter.body, ARCHER_GET_UP_ATTACK_INDEX)
-            return
+    if fighter.attackStyle == 0
+        SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_JAB_INDEX : RIFLEMAN_JAB_INDEX))
+        return
+    if fighter.attackStyle == 6
+        SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_FORWARD_TILT_INDEX : RIFLEMAN_FORWARD_TILT_INDEX))
+        return
+    if fighter.attackStyle == 9
+        SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_FORWARD_TILT_UP_INDEX : RIFLEMAN_FORWARD_TILT_UP_INDEX))
+        return
+    if fighter.attackStyle == 10
+        SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_FORWARD_TILT_DOWN_INDEX : RIFLEMAN_FORWARD_TILT_DOWN_INDEX))
+        return
+    if fighter.attackStyle == DOWN_ATTACK_STYLE
+        SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_INDEX : RIFLEMAN_GET_UP_ATTACK_INDEX))
+        return
     SetUnitAnimation(fighter.body, "attack")
 
 function aerialAttackName(int style) returns string
@@ -700,51 +699,49 @@ function aerialAttackName(int style) returns string
     return "Down air!"
 
 function attackAnimationRate(Fighter fighter) returns real
-    if fighter.character != 0 or attackPhase(fighter) == ATTACK_NONE
+    if attackPhase(fighter) == ATTACK_NONE
         return 1.
     let seconds = fighter.attackDuration * FRAME_SECONDS
     if fighter.attackStyle == 0
-        return ARCHER_JAB_SECONDS / seconds
+        return (fighter.character == 0 ? ARCHER_JAB_SECONDS : RIFLEMAN_JAB_SECONDS) / seconds
     if fighter.attackStyle == 6
-        return ARCHER_FORWARD_TILT_SECONDS / seconds
+        return (fighter.character == 0 ? ARCHER_FORWARD_TILT_SECONDS : RIFLEMAN_FORWARD_TILT_SECONDS) / seconds
     if fighter.attackStyle == 9
-        return ARCHER_FORWARD_TILT_UP_SECONDS / seconds
+        return (fighter.character == 0 ? ARCHER_FORWARD_TILT_UP_SECONDS : RIFLEMAN_FORWARD_TILT_UP_SECONDS) / seconds
     if fighter.attackStyle == 10
-        return ARCHER_FORWARD_TILT_DOWN_SECONDS / seconds
+        return (fighter.character == 0 ? ARCHER_FORWARD_TILT_DOWN_SECONDS : RIFLEMAN_FORWARD_TILT_DOWN_SECONDS) / seconds
     if fighter.attackStyle == DOWN_ATTACK_STYLE
-        return ARCHER_GET_UP_ATTACK_SECONDS / seconds
+        return (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS) / seconds
     return 1.
 
 function downAnimationIndex(Fighter fighter) returns int
     if fighter.downState == DOWN_BOUND or fighter.downState == DOWN_WAIT
-        return ARCHER_KNOCKDOWN_INDEX
+        return (fighter.character == 0 ? ARCHER_KNOCKDOWN_INDEX : RIFLEMAN_KNOCKDOWN_INDEX)
     if fighter.downState == DOWN_STAND or fighter.downState == DOWN_TECH
-        return ARCHER_GET_UP_INDEX
-    return fighter.downDirection == fighter.facing ? ARCHER_ROLL_FORWARD_INDEX : ARCHER_ROLL_BACKWARD_INDEX
+        return (fighter.character == 0 ? ARCHER_GET_UP_INDEX : RIFLEMAN_GET_UP_INDEX)
+    return fighter.downDirection == fighter.facing ? (fighter.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX) : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_INDEX : RIFLEMAN_ROLL_BACKWARD_INDEX)
 
 function downAnimationRate(Fighter fighter) returns real
     if fighter.downState == DOWN_WAIT
         return 0.
-    if fighter.character != 0
-        return 1.
     if fighter.downState == DOWN_BOUND
-        return ARCHER_KNOCKDOWN_SECONDS / (DOWN_BOUND_FRAMES * FRAME_SECONDS)
+        return (fighter.character == 0 ? ARCHER_KNOCKDOWN_SECONDS : RIFLEMAN_KNOCKDOWN_SECONDS) / (DOWN_BOUND_FRAMES * FRAME_SECONDS)
     if fighter.downState == DOWN_STAND
-        return ARCHER_GET_UP_SECONDS / (DOWN_STAND_FRAMES * FRAME_SECONDS)
+        return (fighter.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS) / (DOWN_STAND_FRAMES * FRAME_SECONDS)
     if fighter.downState == DOWN_TECH
-        return ARCHER_GET_UP_SECONDS / (TECH_IN_PLACE_FRAMES * FRAME_SECONDS)
-    let seconds = fighter.downDirection == fighter.facing ? ARCHER_ROLL_FORWARD_SECONDS : ARCHER_ROLL_BACKWARD_SECONDS
+        return (fighter.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS) / (TECH_IN_PLACE_FRAMES * FRAME_SECONDS)
+    let seconds = fighter.downDirection == fighter.facing ? (fighter.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS) : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_SECONDS : RIFLEMAN_ROLL_BACKWARD_SECONDS)
     return seconds / ((fighter.downState == DOWN_TECH_ROLL ? TECH_ROLL_FRAMES : DOWN_ROLL_FRAMES) * FRAME_SECONDS)
 
 function groundDodgeAnimation(Fighter fighter) returns int
     if fighter.groundDodgeDirection == 0
-        return ARCHER_SPOT_DODGE_INDEX
-    return fighter.groundDodgeDirection == fighter.facing ? ARCHER_ROLL_FORWARD_INDEX : ARCHER_ROLL_BACKWARD_INDEX
+        return (fighter.character == 0 ? ARCHER_SPOT_DODGE_INDEX : RIFLEMAN_SPOT_DODGE_INDEX)
+    return fighter.groundDodgeDirection == fighter.facing ? (fighter.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX) : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_INDEX : RIFLEMAN_ROLL_BACKWARD_INDEX)
 
 function groundDodgeAnimationSeconds(Fighter fighter) returns real
     if fighter.groundDodgeDirection == 0
-        return ARCHER_SPOT_DODGE_SECONDS
-    return fighter.groundDodgeDirection == fighter.facing ? ARCHER_ROLL_FORWARD_SECONDS : ARCHER_ROLL_BACKWARD_SECONDS
+        return (fighter.character == 0 ? ARCHER_SPOT_DODGE_SECONDS : RIFLEMAN_SPOT_DODGE_SECONDS)
+    return fighter.groundDodgeDirection == fighter.facing ? (fighter.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS) : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_SECONDS : RIFLEMAN_ROLL_BACKWARD_SECONDS)
 
 function renderFighter(Fighter f, boolean wasOut, boolean jumped)
     if wasOut and not f.out
@@ -765,33 +762,30 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
     var animationRate = attackAnimationRate(f)
     if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
         animationRate = downAnimationRate(f)
-    else if f.character == 0 and isGroundDodging(f)
+    else if isGroundDodging(f)
         let duration = f.groundDodgeDirection == 0 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES
         animationRate = groundDodgeAnimationSeconds(f) / (duration * FRAME_SECONDS)
-    else if f.character == 0 and f.jumpAnimationRemaining > 0
-        animationRate = f.doubleJumpAnimation ? ARCHER_DOUBLE_JUMP_SECONDS / (30 * FRAME_SECONDS) : ARCHER_JUMP_SECONDS / (24 * FRAME_SECONDS)
+    else if f.jumpAnimationRemaining > 0
+        animationRate = f.doubleJumpAnimation ? (f.character == 0 ? ARCHER_DOUBLE_JUMP_SECONDS : RIFLEMAN_DOUBLE_JUMP_SECONDS) / (30 * FRAME_SECONDS) : (f.character == 0 ? ARCHER_JUMP_SECONDS : RIFLEMAN_JUMP_SECONDS) / (24 * FRAME_SECONDS)
     SetUnitTimeScale(f.body, f.hitlag > 0 or f.smashCharging ? 0 : animationRate)
     SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
     if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
         let anim = "down" + I2S(f.downState)
         if f.animation != anim
             if f.downState != DOWN_WAIT
-                if f.character == 0
-                    SetUnitAnimationByIndex(f.body, downAnimationIndex(f))
-                else
-                    SetUnitAnimation(f.body, f.downState == DOWN_BOUND ? "death" : "stand")
+                SetUnitAnimationByIndex(f.body, downAnimationIndex(f))
             f.animation = anim
     else if isTumbling(f)
         if f.animation != "tumble"
             SetUnitAnimation(f.body, "stand hit")
             f.animation = "tumble"
-    else if f.character == 0 and isGroundDodging(f)
+    else if isGroundDodging(f)
         if f.animation != "dodge"
             SetUnitAnimationByIndex(f.body, groundDodgeAnimation(f))
             f.animation = "dodge"
-    else if f.character == 0 and f.jumpAnimationRemaining > 0
+    else if f.jumpAnimationRemaining > 0
         if f.animation != "jump"
-            SetUnitAnimationByIndex(f.body, f.doubleJumpAnimation ? ARCHER_DOUBLE_JUMP_INDEX : ARCHER_JUMP_INDEX)
+            SetUnitAnimationByIndex(f.body, f.doubleJumpAnimation ? (f.character == 0 ? ARCHER_DOUBLE_JUMP_INDEX : RIFLEMAN_DOUBLE_JUMP_INDEX) : (f.character == 0 ? ARCHER_JUMP_INDEX : RIFLEMAN_JUMP_INDEX))
             f.animation = "jump"
     else if attackPhase(f) == ATTACK_NONE and f.hitstun == 0 and f.hitlag == 0
         let anim = f.grounded and totalVelocityX(f).abs() > 0.1 ? "walk" : "stand"
@@ -820,7 +814,7 @@ function renderUI()
             BlzFrameSetText(noticeFrame, playerFighter != null and playerFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
     selectionPanel.update(matchState.phase, matchState.phase == CHARACTER_MENU ? matchState.characterFor(0) : matchState.stageChoice,
         settingsPanel != null and settingsPanel.isOpen(), true, matchState.characterReady(0),
-        matchState.characterFor(0), matchState.characterFor(1), twoHumanPlayers, matchState.characterReady(1))
+        matchState.characterFor(0), twoHumanPlayers ? matchState.characterFor(1) : 1 - matchState.characterFor(0), twoHumanPlayers, matchState.characterReady(1))
     secondSelectionPanel.update(matchState.phase, matchState.phase == CHARACTER_MENU ? matchState.characterFor(1) : matchState.stageChoice,
         secondSettingsPanel != null and secondSettingsPanel.isOpen(), twoHumanPlayers, matchState.characterReady(1),
         matchState.characterFor(1), matchState.characterFor(0), true, matchState.characterReady(0))

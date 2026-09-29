@@ -15,8 +15,8 @@ if [[ $# -ne 1 || ! -f "$1" ]]; then
     exit 2
 fi
 base_map=$(realpath -- "$1")
-if [[ ! -s "$fighter_assets/ArcherFighter.mdx" || ! -s "$fighter_assets/FighterAssetInfo.wurst" ]]; then
-    printf 'Authored Archer assets are missing. Follow wc3-melee:ANIMATIONS.md to build them.\n' >&2
+if [[ ! -s "$fighter_assets/ArcherFighter.mdx" || ! -s "$fighter_assets/RiflemanFighter.mdx" || ! -s "$fighter_assets/FighterAssetInfo.wurst" ]]; then
+    printf 'Authored fighter assets are missing. Follow wc3-melee:ANIMATIONS.md to build them.\n' >&2
     exit 1
 fi
 build_id=${WC3_BUILD_ID:-$(date +%s)}
@@ -58,9 +58,12 @@ for source in FighterAssets Simulation DirectionalInput MatchRules CommandBuffer
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
 done
 cp "$fighter_assets/FighterAssetInfo.wurst" "$work_dir/wurst/FighterAssetInfo.wurst"
-fighter_model_hash=$(sha256sum "$fighter_assets/ArcherFighter.mdx" | cut -c1-12)
+fighter_model_hash=$(sha256sum "$fighter_assets/ArcherFighter.mdx" | cut -d ' ' -f1)
 fighter_model_path="war3mapImported\\ArcherFighter-$fighter_model_hash.mdx"
 cp "$fighter_assets/ArcherFighter.mdx" "$work_dir/imports/war3mapImported/ArcherFighter-$fighter_model_hash.mdx"
+rifleman_model_hash=$(sha256sum "$fighter_assets/RiflemanFighter.mdx" | cut -d ' ' -f1)
+rifleman_model_path="war3mapImported\\RiflemanFighter-$rifleman_model_hash.mdx"
+cp "$fighter_assets/RiflemanFighter.mdx" "$work_dir/imports/war3mapImported/RiflemanFighter-$rifleman_model_hash.mdx"
 
 printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\npublic constant boolean KNOCKDOWN_SCENARIO = %s\npublic constant boolean TECH_SCENARIO = %s\n' "$build_id" "$([[ "$developer_scenario" != normal ]] && echo true || echo false)" "$([[ "$developer_scenario" == tech ]] && echo true || echo false)" > "$project_dir/build/generated-BuildInfo.wurst"
 cp "$project_dir/build/generated-BuildInfo.wurst" "$work_dir/wurst/BuildInfo.wurst"
@@ -133,6 +136,8 @@ cp "$work_dir/_build/Melee_Prototype.w3x" "$output_next"
 "$packager" replace "$output_next" "$map_script"
 "$packager" extract "$output_next" "$work_dir/verified-ArcherFighter.mdx" "$fighter_model_path"
 cmp "$fighter_assets/ArcherFighter.mdx" "$work_dir/verified-ArcherFighter.mdx"
+"$packager" extract "$output_next" "$work_dir/verified-RiflemanFighter.mdx" "$rifleman_model_path"
+cmp "$fighter_assets/RiflemanFighter.mdx" "$work_dir/verified-RiflemanFighter.mdx"
 "$packager" extract "$output_next" "$work_dir/verified.w3a" war3map.w3a
 [[ -s "$work_dir/verified.w3a" ]]
 "$packager" extract "$output_next" "$work_dir/verified.lua"

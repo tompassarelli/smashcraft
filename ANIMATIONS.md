@@ -260,3 +260,35 @@ vanishing after contact as Rifleman's damage increases. No separate animated
 arrow follows Archer. Recorded evidence:
 ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/arrow-native.mp4
 and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/arrow-contact-sheet.png.
+
+## Rifleman authored actions
+
+wc3-melee:tools/animations/rifleman.py authors jab; level, up-angled and
+down-angled forward tilts; jump/double jump; forward/backward roll; spot dodge;
+knockdown; stand-up; and get-up attack on Rifleman's own skeleton. The rifle
+follows its original grip using baked arm poses; it is not an Archer skeleton
+retarget. Root displacement remains simulation-owned. Stock shooting and
+unmodified model geometry are retained, while the shell/gore geosets are hidden
+during the custom clips.
+
+The normal asset build packages both fighters and generates their clip indices,
+durations and model paths in FighterAssetInfo. Model import filenames now use
+the full SHA-256 digest; the map builder imports and checks both matching files.
+The adapter uses each fighter's generated metadata, scales duration to the
+logical move duration, and pauses playback in hitlag. These remain first-pass
+combat animations rather than a final polish claim.
+
+For the native sequence, build with WC3_SCENARIO=knockdown through
+wc3-melee:loop.sh reload, then run wc3-melee:tools/probe-fighter-clips.sh rifleman
+from default character selection with the custom preset. The fixture keeps the
+bot idle. The script records recovery, jab, three tilts, jump/double-jump,
+forward/backward roll and spot dodge. Its successful exit means the input and
+recording sequence ran; inspect the recording for the visual verdict. Restore
+normal play with wc3-melee:loop.sh reload without WC3_SCENARIO afterward.
+
+The final Rifleman model hash is
+6f56de2c8b70c3b18192317024ce69abac54ee3c3832bb2d8f92da55e12c96a3.
+Exported checks cover twelve non-looping clips, absent root translation keys,
+retained stock Attack, and custom visibility. Exported pose renders and native
+build 063805 both show the corrected directional tilts. Native observation and
+recording paths are in wc3-melee:DEVELOPMENT.md.

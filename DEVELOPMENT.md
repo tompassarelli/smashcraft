@@ -895,3 +895,40 @@ and stage screenshots and arrow-native.mp4 are under
 ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/.
 The map build retains the known SettingsUI and unused-import warnings.
 Two-client synchronization remains unverified.
+
+## Rifleman animation integration (2026-09-30)
+
+Rifleman now consumes its own authored asset and clip metadata through the same
+presentation path as Archer. The native map builder verifies both packaged MDX
+files against the asset outputs. Gameplay simulation was unchanged by this pass;
+its most recent full result remains 149/149.
+
+The first native sequence exercised all requested Rifleman action families,
+but exported pose inspection found reversed up/down tilt elevation. The
+Rifleman authoring script now corrects that sign. It also explicitly hides the
+stock shell/gore meshes in custom clips. A separate native menu observation
+found the solo bot card using Player 2's saved choice while spawning the opposite
+fighter; the first-player panel now receives the actual solo opponent choice.
+
+The input probe initially exceeded Unix socket path length and failed before
+its first key press. Its socket now uses a short process-specific path under
+~/code/wc3-melee/worktrees/test-loop/build/. Cleanup terminates a recorder even
+when a probe fails during recorder startup. The later native sequence ran to
+completion; the final corrected-asset observation follows below.
+
+Final corrected model 6f56de2c8b70c3b18192317024ce69abac54ee3c3832bb2d8f92da55e12c96a3
+loaded in build 063805, in 36.384 seconds with the existing Warcraft process.
+The native sequence was recorded at
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/rifleman-clips-20260930-063840/clips.mp4.
+The corrected-tilts sheet shows distinct strike angles; the stage screenshot
+shows Rifleman versus Archer, matching the actual solo matchup. Other native
+observations from the same action sequence show recovery, jumps and rolls
+returning to ordinary stance without a detached rifle or stray shell/gore mesh.
+These checks establish first-pass playback, not exact Melee contact/feel parity.
+The current map compilation still reports the known SettingsUI constructor and
+unused-import warnings. Two-client timing and remaining combat/art fidelity
+remain open; the overall goal is still active.
+
+Normal-play build 063954 was restored afterward and reported ready in 37.284
+seconds in the same client. Its ready marker reports SCENARIO normal. Evidence:
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/rifleman-playable-reload.log.
