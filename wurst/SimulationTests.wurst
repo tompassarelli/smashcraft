@@ -502,12 +502,56 @@ function airJumpApex(int character) returns real
 	shielder.shield.assertTrue()
 	shielder.cooldown.assertEquals(0)
 
-@Test function activeShieldStillPreventsJumpStartup()
-	let fighter = new FighterState(0, 0, 1)
-	fighter.shield = true
-	let input = new InputSnapshot()
-	input.jumpPressed = true
-	input.jumpHeld = true
-	advance(fighter, 0, input, -240)
-	fighter.jumpSquat.assertEquals(0)
-	fighter.jumps.assertEquals(2)
+@Test function jumpOutOfShieldClearsShieldThroughoutSquat()
+	for character = 0 to 1
+		let fighter = new FighterState(character, 0, 1)
+		fighter.shield = true
+		fighter.shieldHeldFrames = 1
+		let input = new InputSnapshot()
+		input.shield = true
+		input.jumpPressed = true
+		input.jumpHeld = true
+		for frame = 1 to jumpSquatFrames(character)
+			advance(fighter, 0, input, -240)
+			input.jumpPressed = false
+			fighter.shield.assertFalse()
+			fighter.shieldReleaseLag.assertEquals(0)
+			fighter.jumpSquat.assertEquals(jumpSquatFrames(character) - frame)
+		fighter.grounded.assertFalse()
+		fighter.jumps.assertEquals(1)
+		destroy input
+		destroy fighter
+
+@Test function shieldJumpIntoDirectionalDodgeLandsWithSlidingRecovery()
+	for character = 0 to 1
+		let fighter = new FighterState(character, 0, 1)
+		fighter.shield = true
+		let input = new InputSnapshot()
+		input.shield = true
+		input.jumpPressed = true
+		input.jumpHeld = true
+		for frame = 1 to jumpSquatFrames(character)
+			advance(fighter, 0, input, -240)
+			input.jumpPressed = false
+		input.airDodgePressed = true
+		input.dodgeX = 1
+		input.dodgeZ = -1
+		advance(fighter, 0, input, -240)
+		input.airDodgePressed = false
+		fighter.airDodging.assertTrue()
+		var frames = 0
+		while not fighter.grounded and frames < 20
+			advance(fighter, 0, input, -240)
+			frames++
+		fighter.grounded.assertTrue()
+		fighter.airDodging.assertFalse()
+		fighter.landingLag.assertEquals(AIR_DODGE_LANDING_LAG)
+		fighter.vx.assertGreaterThan(0.)
+		fighter.jumps.assertEquals(2)
+		let landingX = fighter.x
+		advance(fighter, 0, input, -240)
+		fighter.x.assertGreaterThan(landingX)
+		fighter.shield.assertFalse()
+		fighter.landingLag.assertEquals(AIR_DODGE_LANDING_LAG - 1)
+		destroy input
+		destroy fighter

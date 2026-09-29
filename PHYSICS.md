@@ -150,5 +150,16 @@ Cooldown and visual attack time freeze during hitlag and otherwise decrement
 before action eligibility checks; the frame that reaches zero accepts input.
 Ground steering waits for cooldown even when the visual attack timer ends
 earlier. Tests exercise these rules through the shared advance function.
-Move-specific startup/active/recovery windows remain unfinished, and the
-current inability to jump out of shield is a deliberate recorded gap.
+Move-specific startup/active/recovery windows remain unfinished.
+
+## Jump out of shield
+
+The local reference's melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c routes
+active Guard/GuardOn input to the jump check in
+melee:src/melee/ft/kinds/ftCommon/ftCo_Jump.c. Our independently authored
+transition now clears shield and enters ordinary jump squat without requiring
+shield release first. Holding the trigger cannot re-raise shield during squat.
+Shieldstun still blocks the jump. Tests cover both characters and the complete
+shield → jump → downward diagonal air dodge → sliding landing sequence.
+Shield-release-lag cancels, rolls and spot dodge remain unfinished; this is not
+a complete implementation of Melee's shield options.

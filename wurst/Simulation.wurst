@@ -209,9 +209,11 @@ function applyAttackHit(FighterState attacker, FighterState target, int style)
 	attacker.hitlag = max(attacker.hitlag, R2I(damage / 3 + 3))
 
 public function simulationJump(FighterState f)
-	if f.out or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.shieldReleaseLag > 0 or f.landingLag > 0 or f.airDodging or f.shield or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
+	if f.out or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.shieldReleaseLag > 0 or f.landingLag > 0 or f.airDodging or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
 		return
 	if f.grounded
+		f.shield = false
+		f.shieldHeldFrames = 0
 		f.jumpSquat = jumpSquatFrames(f.character)
 		f.jumpHeld = true
 	else
@@ -328,7 +330,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	f.landingLag = max(0, f.landingLag - 1)
 	f.shieldReleaseLag = max(0, f.shieldReleaseLag - 1)
 	let shieldCanStart = input.shield and f.shieldEnergy > 0 and f.hitstun <= 0 and f.grounded
-		and f.shieldStun <= 0 and f.landingLag <= 0 and f.shieldReleaseLag <= 0 and f.cooldown <= 0
+		and f.shieldStun <= 0 and f.landingLag <= 0 and f.shieldReleaseLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0
 	var wantsShield = forcedShield
 	if not forcedShield
 		if f.shield and not input.shield and f.shieldEnergy > 0 and f.shieldHeldFrames < SHIELD_MIN_HOLD_FRAMES

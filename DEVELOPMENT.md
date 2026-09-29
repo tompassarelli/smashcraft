@@ -222,10 +222,18 @@ without reversing facing during recovery. Cooldown decrements before action
 eligibility on non-hitlag frames, giving all those actions the same recovery
 boundary. Regression tests first reproduced the three illegal action cancels.
 Build 200313 reported ready in 22.890 seconds with the same Warcraft process.
-Jumping directly out of shield remains unavailable and is a known difference
-to address alongside shield escape options, not a Melee fidelity claim.
+Jump out of active shield is now implemented and covered for both characters.
+The 43-test suite includes held-trigger jump startup and the complete
+shield-jump → diagonal air dodge → sliding landing/recovery sequence.
+The new jump-out-of-shield test failed against the prior rejection, then passed
+after implementing the transition. Shieldstun still blocks it.
+Build 200554 loaded in 22.630 seconds with the same client. The native-input
+probe held Custom trigger 8, then pressed Jump without releasing the trigger;
+the captured fighter was airborne at z=149. Evidence:
+~/code/wc3-melee/worktrees/test-loop/build/shield-jump-probe/airborne.png.
+Exact wavedash distance and input feel remain unmeasured in the client.
 
-Next simulation gap: shield escape options and move-specific attack phases. Air-dodge
+Next simulation gap: remaining shield escape options and move-specific attack phases. Air-dodge
 motion parameters remain provisional; passing protection tests does not prove
 motion fidelity. Continue the animation pipeline and two-client work already
 listed above; the overall goal remains unfinished.
