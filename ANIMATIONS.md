@@ -4,8 +4,9 @@ Required initial clips from the owner: jab; forward tilt; up-angled forward
 tilt; down-angled forward tilt; jump; double jump; forward roll; backward roll;
 get-up attack. Blender 5.1.1 is installed. The first Archer jab is authored,
 exported and playing in the client. Forward/backward rolls and a spot dodge
-are now authored on the same rig. Tilts, jump/double jump and get-up attack
-remain unfinished; jab still needs visual tuning at the normal camera distance.
+are now authored on the same rig, along with jump and double jump. Tilts and
+get-up attack remain unfinished; jab and spot dodge still need visual tuning
+at the normal camera distance.
 
 Preserve editable Blender scenes and exported Warcraft model assets. Author
 on a rig compatible with the selected Warcraft fighters; do not claim that a
@@ -171,6 +172,27 @@ Spot dodge's pelvis translation uses local negative Y so the exported MDL
 translates downward on game Z (0, 0, -13 at its held pose), rather than into
 depth. Its visual cue is still subtle at the normal camera and needs stronger
 pose tuning. Correct export/playback is not a claim of finished animation art.
+
+## Jump and double jump
+
+Archer Jump lasts 24 source frames at 24fps; Double Jump lasts 30. Both are
+authored by wc3-melee:tools/animations/dodges.py in the final fighter scene.
+Jump tucks the legs; Double Jump uses the established stage-plane somersault
+axis. The packaged MDX roundtrip renders verify the poses and show no root
+translation tracks in these clips. Their generated indices remain the only
+source for runtime clip selection.
+
+The simulation emits a takeoff counter only when ground squat finishes or an
+air jump succeeds. The adapter starts the appropriate clip from that event,
+runs it over 24/30 simulation ticks, and cancels it on landing, hitstun,
+air dodge or attack. Jump key presses rejected by the simulation cannot restart
+the clip. The animation does not change jump velocity or airborne collision.
+
+Build 222152 was observed in Warcraft: ground-jump tuck, double-jump somersault,
+descent and return to normal animation. Native playback evidence is at
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/jump-client.mp4.
+A small arrow-like element remains below the jumping fighter; attachment and
+visibility need art cleanup. Native playback is verified, not final visual polish.
 
 Packaged model imports now include a hash of their MDX content in the filename.
 The generated Wurst model path and packaged archive entry use the same hash.

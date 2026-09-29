@@ -88,6 +88,8 @@ public class FighterState
 	int shieldReleaseLag = 0
 	boolean grounded = true
 	int jumps = 2
+	int jumpSerial = 0
+	boolean jumpIsDouble = false
 	int jumpSquat = 0
 	boolean jumpHeld = false
 	int dropTime = 0
@@ -384,6 +386,8 @@ public function simulationJump(FighterState f)
 		f.jumpHeld = true
 	else
 		f.vz = doubleJumpSpeed(f.character)
+		f.jumpSerial++
+		f.jumpIsDouble = true
 	f.jumps--
 
 public function simulationAirDodge(FighterState f, int horizontal, int vertical)
@@ -437,6 +441,8 @@ function canResolveAttack(FighterState attacker, FighterState target) returns bo
 	return not target.out and attackHits(attacker, target, attacker.attackStyle)
 
 public function reset(FighterState f, real startX)
+	f.jumpSerial = 0
+	f.jumpIsDouble = false
 	f.x = startX
 	f.z = 280
 	f.vx = 0
@@ -507,6 +513,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if f.jumpSquat == 0
 			f.grounded = false
 			f.vz = f.jumpHeld ? fullJumpSpeed(f.character) : shortJumpSpeed(f.character)
+			f.jumpSerial++
+			f.jumpIsDouble = false
 	if f.hitlag > 0
 		f.hitlag--
 		return

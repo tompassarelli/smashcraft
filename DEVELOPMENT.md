@@ -361,3 +361,26 @@ and the corresponding *-client.mp4 files in that directory.
 The client remained running; no multiplayer or exact native frame-alignment
 claim follows from these recordings. Remaining authored clips include the
 requested tilts, jump/double jump and get-up attack, plus Rifleman's animations.
+
+## Jump-animation checkpoint
+
+Build 222152 loaded in 22.610 seconds with the retained client. The native I
+press/release/press sequence showed the ground-jump tuck, a distinct air-jump
+somersault, and return to normal animation as the fighter descended and landed.
+Recording: ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/jump-client.mp4;
+contact sheet: ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/jump-poses.png.
+
+The shared simulation now reports actual takeoff events separately from jump
+requests. Two focused additions bring the headless suite to 67/67, zero
+warnings/errors: ground events wait for squat completion, successful air jumps
+emit a distinct event, exhausted/blocked presses do not emit, and reset clears
+the event state. The map build retains the two known SettingsUI warnings.
+Clip playback is interrupted by landing, attack, hitstun or air dodge. Native
+interruption timing beyond the observed landing remains unmeasured.
+
+Archer jump/double-jump clips are now authored and observed in-game. Remaining
+named clips are the forward-tilt variants and get-up attack; Rifleman also
+needs authored counterparts. A small detached arrow-like visual remains below
+the airborne Archer in the recording; this is a deferred presentation defect,
+not evidence of a physics fault. Inspect the asset's arrow attachment/animation
+when polishing these clips. Exact Melee feel and multiplayer remain unverified.

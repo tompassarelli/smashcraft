@@ -4,6 +4,49 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function jumpEventsFollowTakeoffAndAcceptedAirJump()
+	for character = 0 to 1
+		let fighter = new FighterState(character, 0, 1)
+		let input = new InputSnapshot()
+		input.jumpPressed = true
+		input.jumpHeld = true
+		advance(fighter, 0, input, 0)
+		fighter.jumpSerial.assertEquals(0)
+		input.jumpPressed = false
+		for frame = 2 to jumpSquatFrames(character) - 1
+			advance(fighter, 0, input, 0)
+			fighter.jumpSerial.assertEquals(0)
+		advance(fighter, 0, input, 0)
+		fighter.jumpSerial.assertEquals(1)
+		fighter.jumpIsDouble.assertFalse()
+		fighter.grounded.assertFalse()
+		advance(fighter, 0, input, 0)
+		fighter.jumpSerial.assertEquals(1)
+		input.jumpPressed = true
+		advance(fighter, 0, input, 0)
+		fighter.jumpSerial.assertEquals(2)
+		fighter.jumpIsDouble.assertTrue()
+		advance(fighter, 0, input, 0)
+		fighter.jumpSerial.assertEquals(2)
+		reset(fighter, 0)
+		fighter.jumpSerial.assertEquals(0)
+		fighter.jumpIsDouble.assertFalse()
+		destroy input
+		destroy fighter
+
+@Test function blockedJumpDoesNotProduceTakeoffEvent()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.hitstun = 10
+	input.jumpPressed = true
+	input.jumpHeld = true
+	advance(fighter, 0, input, 0)
+	fighter.jumpSerial.assertEquals(0)
+	fighter.jumps.assertEquals(2)
+	fighter.grounded.assertTrue()
+	destroy input
+	destroy fighter
+
 function testMatch() returns MatchState
 	let game = new MatchState()
 	game.confirm()

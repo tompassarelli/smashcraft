@@ -96,6 +96,8 @@ class MeleeSettingsActions extends SettingsActions
 class Fighter extends FighterState
     unit body
     string animation = ""
+    int jumpAnimationRemaining = 0
+    boolean doubleJumpAnimation = false
 
     construct(player owner, int fighterType, real startX, int direction)
         super(fighterType, startX, direction)
@@ -221,9 +223,11 @@ function applyFrame()
     let botPreviousAttack = botFighter.attackSerial
     let playerPreviousStun = playerFighter.hitstun
     let botPreviousStun = botFighter.hitstun
+    let playerPreviousJump = playerFighter.jumpSerial
+    let botPreviousJump = botFighter.jumpSerial
     stepMatch(matchState, playerFighter, botFighter, playerInput, botInput, playerAttacks, botAttacks, simulationFrame)
-    renderFighter(playerFighter, playerWasOut)
-    renderFighter(botFighter, botWasOut)
+    renderFighter(playerFighter, playerWasOut, playerFighter.jumpSerial != playerPreviousJump)
+    renderFighter(botFighter, botWasOut, botFighter.jumpSerial != botPreviousJump)
     renderProjectiles(playerFighter, 0)
     renderProjectiles(botFighter, PROJECTILE_CAPACITY)
     if matchState.phase == RESULT
@@ -487,7 +491,7 @@ function groundDodgeAnimationSeconds(Fighter fighter) returns real
         return ARCHER_SPOT_DODGE_SECONDS
     return fighter.groundDodgeDirection == fighter.facing ? ARCHER_ROLL_FORWARD_SECONDS : ARCHER_ROLL_BACKWARD_SECONDS
 
-function renderFighter(Fighter f, boolean wasOut)
+function renderFighter(Fighter f, boolean wasOut, boolean jumped)
     if wasOut and not f.out
         ShowUnit(f.body, true)
     else if not wasOut and f.out
@@ -495,18 +499,30 @@ function renderFighter(Fighter f, boolean wasOut)
     if f.out
         return
     f.place()
+    if f.grounded or f.hitstun > 0 or f.airDodging or attackPhase(f) != ATTACK_NONE
+        f.jumpAnimationRemaining = 0
+    else if jumped and not wasOut
+        f.doubleJumpAnimation = f.jumpIsDouble
+        f.jumpAnimationRemaining = f.doubleJumpAnimation ? 30 : 24
+        f.animation = ""
+    else if f.jumpAnimationRemaining > 0 and f.hitlag <= 0
+        f.jumpAnimationRemaining--
     var animationRate = f.character == 0 and f.attackStyle == 0 ? ARCHER_JAB_SECONDS / (f.attackDuration * FRAME_SECONDS) : 1.
     if f.character == 0 and isGroundDodging(f)
         let duration = f.groundDodgeDirection == 0 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES
         animationRate = groundDodgeAnimationSeconds(f) / (duration * FRAME_SECONDS)
+    else if f.character == 0 and f.jumpAnimationRemaining > 0
+        animationRate = f.doubleJumpAnimation ? ARCHER_DOUBLE_JUMP_SECONDS / (30 * FRAME_SECONDS) : ARCHER_JUMP_SECONDS / (24 * FRAME_SECONDS)
     SetUnitTimeScale(f.body, f.hitlag > 0 ? 0 : animationRate)
     SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
     if f.character == 0 and isGroundDodging(f)
         if f.animation != "dodge"
             SetUnitAnimationByIndex(f.body, groundDodgeAnimation(f))
             f.animation = "dodge"
-    else if f == playerFighter and f.jumps < 2 and playerJumpQueued
-        SetUnitAnimation(f.body, "stand")
+    else if f.character == 0 and f.jumpAnimationRemaining > 0
+        if f.animation != "jump"
+            SetUnitAnimationByIndex(f.body, f.doubleJumpAnimation ? ARCHER_DOUBLE_JUMP_INDEX : ARCHER_JUMP_INDEX)
+            f.animation = "jump"
     else if attackPhase(f) == ATTACK_NONE and f.hitstun == 0 and f.hitlag == 0
         let anim = f.grounded and f.vx.abs() > 0.1 ? "walk" : "stand"
         if f.animation != anim
