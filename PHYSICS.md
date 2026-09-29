@@ -160,8 +160,8 @@ transition now clears shield and enters ordinary jump squat without requiring
 shield release first. Holding the trigger cannot re-raise shield during squat.
 Shieldstun still blocks the jump. Tests cover both characters and the complete
 shield → jump → downward diagonal air dodge → sliding landing sequence.
-Shield-release-lag cancels, rolls and spot dodge remain unfinished; this is not
-a complete implementation of Melee's shield options.
+Shield-release-lag cancels remain unfinished. Ground dodge behavior is described
+below; this is not a complete implementation of Melee's shield options.
 
 ## Prototype attack phases
 
@@ -214,3 +214,30 @@ feet. The simplified target center is 45 units above the feet, with 24 units
 of horizontal radius and 36 units of vertical tolerance. These are prototype
 collision dimensions, not reconstructed Melee hitboxes. Beam rendering reads
 simulation positions; it does not determine contact.
+
+## Ground dodge controls
+
+While holding shield, a fresh left/right press requests a roll; a fresh down
+press requests a spot dodge. Input callbacks collect edges and the frame step
+resolves them against held shield state, so shield/direction callback order
+within that frame does not change the result. Holding direction cannot repeat
+rolls; pressing shield while direction was already held does not roll. Two
+opposite horizontal press edges cancel, and down takes priority if several
+directions arrive in one frame. These are deliberate digital-input rules.
+
+The local reference at melee:src/melee/ft/kinds/ftCommon/ftCo_Escape.c separates
+forward/backward roll relative to facing and changes facing through an
+animation event. Our simulation owns that transition instead of Warcraft's
+animation. No reference implementation is copied. Cached character pages do
+not provide verified dodge timing values; the initial ground-dodge parameters
+are provisional rather than a Melee parity claim.
+
+Roll lasts 31 frames, is intangible on frames 4–19 inclusive, and translates
+at 8 world units per frame during that window (128 units unless stopped by
+the platform edge). Spot dodge lasts 23 frames and is intangible on frames
+2–15 inclusive. The start tick is frame 1. Roll facing stays fixed during
+movement; a forward roll reverses facing at completion, while a backward
+roll preserves it. Neither move permits attacks, jumps, steering or shielding
+during its recovery. Jump takes priority over a simultaneous dodge request.
+Spot dodge does not drop through a platform. Intangibility and recovery clocks
+pause in hitlag. Dedicated dodge animations are still required.

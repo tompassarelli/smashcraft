@@ -22,6 +22,15 @@ constant int AIR_DODGE_INTANGIBLE_START = 4
 constant int AIR_DODGE_INTANGIBLE_END = 29
 constant int AIR_DODGE_ANIMATION_FRAMES = 49
 public constant int AIR_DODGE_LANDING_LAG = 20
+public constant int GROUND_ROLL_FRAMES = 31
+public constant int GROUND_ROLL_INTANGIBLE_START = 4
+public constant int GROUND_ROLL_INTANGIBLE_END = 19
+public constant int SPOT_DODGE_FRAMES = 23
+public constant int SPOT_DODGE_INTANGIBLE_START = 2
+public constant int SPOT_DODGE_INTANGIBLE_END = 15
+constant real GROUND_ROLL_SPEED = 8
+constant int GROUND_ROLL_MOVE_START = 4
+constant int GROUND_ROLL_MOVE_END = 19
 public constant int SHIELD_MIN_HOLD_FRAMES = 8
 public constant int SHIELD_RELEASE_LAG_FRAMES = 15
 public constant real WALK_SPEED_RATIO = 0.5
@@ -88,6 +97,8 @@ public class FighterState
 	int landingLag = 0
 	boolean airDodging = false
 	int airDodgeFrame = 0
+	int groundDodgeFrame = 0
+	int groundDodgeDirection = 0
 	int grabbedFrames = 0
 
 	construct(int fighterType, real startX, int direction)
@@ -102,6 +113,8 @@ public class InputSnapshot
 	boolean shield = false
 	boolean jumpPressed = false
 	boolean airDodgePressed = false
+	boolean groundDodgePressed = false
+	int groundDodgeDirection = 0
 	int dodgeX = 0
 	int dodgeZ = 0
 	boolean jumpHeld = false
@@ -165,7 +178,7 @@ public function jumpSquatFrames(int character) returns int
 	return character == 0 ? FOX_JUMP_SQUAT_FRAMES : FALCO_JUMP_SQUAT_FRAMES
 
 public function canAttack(FighterState attacker) returns boolean
-	return not attacker.out and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and attacker.jumpSquat <= 0 and attacker.cooldown <= 0 and not attacker.shield
+	return not attacker.out and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0 and not attacker.shield
 
 function attackDamage(int style) returns real
 	return style == 1 ? 3 : (style == 2 or style == 3 ? 16 : (style == 4 ? 18 : (style == 5 ? 0 : (style == 6 ? 10 : (style == 7 ? 8 : (style == 8 ? 8 : 12))))))
@@ -221,7 +234,27 @@ function attackHits(FighterState attacker, FighterState target, int style) retur
 	return not target.out and not isIntangible(target) and separation * attacker.facing >= 0 and separation.abs() <= attackReach(style) and (target.z - attacker.z).abs() <= 130
 
 public function isIntangible(FighterState f) returns boolean
-	return f.invincible > 0 or (f.airDodging and f.airDodgeFrame >= AIR_DODGE_INTANGIBLE_START and f.airDodgeFrame <= AIR_DODGE_INTANGIBLE_END)
+	let groundDodgeIntangible = f.groundDodgeFrame > 0 and (
+		(f.groundDodgeDirection == 0 and f.groundDodgeFrame >= SPOT_DODGE_INTANGIBLE_START and f.groundDodgeFrame <= SPOT_DODGE_INTANGIBLE_END)
+		or (f.groundDodgeDirection != 0 and f.groundDodgeFrame >= GROUND_ROLL_INTANGIBLE_START and f.groundDodgeFrame <= GROUND_ROLL_INTANGIBLE_END))
+	return f.invincible > 0 or groundDodgeIntangible or (f.airDodging and f.airDodgeFrame >= AIR_DODGE_INTANGIBLE_START and f.airDodgeFrame <= AIR_DODGE_INTANGIBLE_END)
+
+public function isGroundDodging(FighterState f) returns boolean
+	return f.groundDodgeFrame > 0
+
+function beginGroundDodge(FighterState f, int direction)
+	if direction < 0
+		f.groundDodgeDirection = -1
+		f.vx = 0
+	else if direction > 0
+		f.groundDodgeDirection = 1
+		f.vx = 0
+	else
+		f.groundDodgeDirection = 0
+		f.vx = 0
+	f.groundDodgeFrame = 1
+	f.shield = false
+	f.shieldHeldFrames = 0
 
 function interruptJumpOrDodge(FighterState f)
 	f.jumpSquat = 0
@@ -229,6 +262,8 @@ function interruptJumpOrDodge(FighterState f)
 	f.airDodging = false
 	f.airDodgeTime = 0
 	f.airDodgeFrame = 0
+	f.groundDodgeFrame = 0
+	f.groundDodgeDirection = 0
 
 function beginAttack(FighterState attacker, int style)
 	attacker.attackStyle = style
@@ -340,7 +375,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style)
 	attacker.hitlag = max(attacker.hitlag, R2I(damage / 3 + 3))
 
 public function simulationJump(FighterState f)
-	if f.out or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.shieldReleaseLag > 0 or f.landingLag > 0 or f.airDodging or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
+	if f.out or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.shieldReleaseLag > 0 or f.landingLag > 0 or f.airDodging or isGroundDodging(f) or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
 		return
 	if f.grounded
 		f.shield = false
@@ -364,6 +399,9 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	f.airDodgeFrame = 0
 	f.grounded = false
 	f.jumps = max(0, f.jumps - 1)
+
+function canBeginGroundDodge(FighterState f) returns boolean
+	return not f.out and f.grounded and f.hitlag <= 0 and f.hitstun <= 0 and f.shieldStun <= 0 and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0 and f.grabbedFrames <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldEnergy > 0
 
 public function beginAttackPair(FighterState first, FighterState second, int firstStyle, int secondStyle)
 	let firstEligible = firstStyle >= 0 and firstStyle <= 8 and canAttack(first) and not second.out
@@ -424,6 +462,8 @@ public function reset(FighterState f, real startX)
 	f.landingLag = 0
 	f.airDodging = false
 	f.airDodgeFrame = 0
+	f.groundDodgeFrame = 0
+	f.groundDodgeDirection = 0
 	f.grabbedFrames = 0
 	f.shieldHeldFrames = 0
 	f.shieldReleaseLag = 0
@@ -444,6 +484,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if f.respawn <= 0
 			reset(f, respawnX)
 		return
+	var groundDodgeStarted = false
 	if f.hitlag <= 0
 		f.cooldown = max(0, f.cooldown - 1)
 		if f.attackStyle >= 0
@@ -458,6 +499,9 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.jumpHeld = f.jumpHeld and input.jumpHeld
 	if input.airDodgePressed
 		simulationAirDodge(f, input.dodgeX, input.dodgeZ)
+	if input.groundDodgePressed and input.shield and not input.jumpPressed and canBeginGroundDodge(f)
+		beginGroundDodge(f, input.groundDodgeDirection)
+		groundDodgeStarted = true
 	if f.jumpSquat > 0 and f.hitlag == 0
 		f.jumpSquat--
 		if f.jumpSquat == 0
@@ -466,6 +510,15 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	if f.hitlag > 0
 		f.hitlag--
 		return
+	if f.groundDodgeFrame > 0 and not groundDodgeStarted
+		f.groundDodgeFrame++
+		let dodgeFrames = f.groundDodgeDirection == 0 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES
+		if f.groundDodgeFrame > dodgeFrames
+			if f.groundDodgeDirection == f.facing
+				f.facing = -f.facing
+			f.groundDodgeFrame = 0
+			f.groundDodgeDirection = 0
+			f.vx = 0
 	f.hitstun = max(0, f.hitstun - 1)
 	let forcedShield = f.shield and f.shieldStun > 0
 	f.shieldStun = max(0, f.shieldStun - 1)
@@ -477,7 +530,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	f.airDodgeTime = max(0, f.airDodgeTime - 1)
 	f.landingLag = max(0, f.landingLag - 1)
 	f.shieldReleaseLag = max(0, f.shieldReleaseLag - 1)
-	let shieldCanStart = input.shield and f.shieldEnergy > 0 and f.hitstun <= 0 and f.grounded
+	let shieldCanStart = input.shield and f.shieldEnergy > 0 and f.hitstun <= 0 and f.grounded and not isGroundDodging(f)
 		and f.shieldStun <= 0 and f.landingLag <= 0 and f.shieldReleaseLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0
 	var wantsShield = forcedShield
 	if not forcedShield
@@ -503,7 +556,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.shieldHeldFrames = 0
 		f.hitstun = 40
 	var direction = input.direction
-	let canSteer = f.hitstun <= 0 and not f.airDodging and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and (not f.grounded or f.cooldown <= 0)
+	let canSteer = f.hitstun <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and (not f.grounded or f.cooldown <= 0)
 	if canSteer
 		if wantsShield
 			direction = 0
@@ -516,21 +569,32 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 				f.vx = max(-characterAirSpeed(f.character), min(characterAirSpeed(f.character), f.vx))
 				if f.cooldown <= 0
 					f.facing = direction
-	if (not canSteer or direction == 0) and f.hitstun <= 0 and (not dodgeActive or f.grounded)
+	if isGroundDodging(f) and f.groundDodgeDirection != 0 and f.groundDodgeFrame >= GROUND_ROLL_MOVE_START and f.groundDodgeFrame <= GROUND_ROLL_MOVE_END
+		f.vx = GROUND_ROLL_SPEED * f.groundDodgeDirection
+	else if isGroundDodging(f)
+		f.vx = 0
+	else if (not canSteer or direction == 0) and f.hitstun <= 0 and (not dodgeActive or f.grounded)
 		let drag = f.grounded ? GROUND_TRACTION : AIR_FRICTION
 		f.vx = f.vx > 0 ? max(0, f.vx - drag) : min(0, f.vx + drag)
-	if input.down and f.grounded and f.surface >= 0 and surfacePass(stage, f.surface)
+	if input.down and f.grounded and f.surface >= 0 and surfacePass(stage, f.surface) and not isGroundDodging(f)
 		f.dropTime = 12
 		f.grounded = false
 		f.vz = -2
 	let oldX = f.x
 	let oldZ = f.z
 	f.x += f.vx
+	if isGroundDodging(f) and f.groundDodgeDirection != 0
+		f.x = max(surfaceLeft(stage, max(0, f.surface)), min(surfaceRight(stage, max(0, f.surface)), f.x))
+		if (f.groundDodgeDirection < 0 and f.x == surfaceLeft(stage, max(0, f.surface))) or (f.groundDodgeDirection > 0 and f.x == surfaceRight(stage, max(0, f.surface)))
+			f.vx = 0
 	if f.hitstun > 0
 		let decay = KNOCKBACK_DECAY_PER_FRAME * WORLD_UNITS_PER_MELEE_UNIT
 		f.vx = f.vx > 0 ? max(0, f.vx - decay) : min(0, f.vx + decay)
 		f.vz = f.vz > 0 ? max(0, f.vz - decay) : min(0, f.vz + decay)
-	if f.grounded and f.jumpSquat > 0
+	if isGroundDodging(f)
+		f.vz = 0
+		f.z = surfaceZ(stage, max(0, f.surface))
+	else if f.grounded and f.jumpSquat > 0
 		f.vz = 0
 		f.z = surfaceZ(stage, max(0, f.surface))
 	else if dodgeActive and not f.grounded
@@ -571,4 +635,6 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.attackFrame = 0
 		f.attackHit = false
 		f.cooldown = 0
+		f.groundDodgeFrame = 0
+		f.groundDodgeDirection = 0
 		return

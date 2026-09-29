@@ -1,5 +1,16 @@
 package CombatInput
 
+public constant int NO_GROUND_DODGE = 2
+
+public function groundDodgeIntent(boolean shielding, boolean leftPressed, boolean rightPressed, boolean downPressed) returns int
+    if not shielding
+        return NO_GROUND_DODGE
+    if downPressed
+        return 0
+    if leftPressed == rightPressed
+        return NO_GROUND_DODGE
+    return leftPressed ? -1 : 1
+
 public function normalAttackStyle(int horizontal, int vertical, boolean walking) returns int
     if vertical > 0
         return walking ? 7 : 2

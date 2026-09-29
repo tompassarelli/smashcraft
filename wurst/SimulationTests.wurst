@@ -377,6 +377,168 @@ function damageFromOneAttack(int style) returns real
 	fighter.airDodgeTime.assertEquals(18)
 	fighter.vx.assertEquals(5 - 2 * GROUND_TRACTION, 0.01)
 
+@Test function spotDodgeStartsAtFrameOneStaysInPlaceAndUsesProvisionalIntangibility()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.surface = 0
+	let input = new InputSnapshot()
+	input.shield = true
+	input.groundDodgePressed = true
+	input.groundDodgeDirection = 0
+	advance(fighter, 0, input, -240)
+	fighter.groundDodgeFrame.assertEquals(1)
+	isGroundDodging(fighter).assertTrue()
+	isIntangible(fighter).assertFalse()
+	fighter.x.assertEquals(0.)
+	input.groundDodgePressed = false
+	for frame = 2 to SPOT_DODGE_INTANGIBLE_START
+		advance(fighter, 0, input, -240)
+	fighter.groundDodgeFrame.assertEquals(SPOT_DODGE_INTANGIBLE_START)
+	isIntangible(fighter).assertTrue()
+	for frame = SPOT_DODGE_INTANGIBLE_START + 1 to SPOT_DODGE_INTANGIBLE_END
+		advance(fighter, 0, input, -240)
+	isIntangible(fighter).assertTrue()
+	advance(fighter, 0, input, -240)
+	isIntangible(fighter).assertFalse()
+	for frame = SPOT_DODGE_INTANGIBLE_END + 2 to SPOT_DODGE_FRAMES
+		advance(fighter, 0, input, -240)
+	fighter.groundDodgeFrame.assertEquals(SPOT_DODGE_FRAMES)
+	fighter.x.assertEquals(0.)
+	canAttack(fighter).assertFalse()
+	input.jumpPressed = true
+	let jumpsBefore = fighter.jumps
+	advance(fighter, 0, input, -240)
+	fighter.groundDodgeFrame.assertEquals(0)
+	fighter.jumps.assertEquals(jumpsBefore)
+
+@Test function rollHasBoundedLockedMotionAndForwardRollTurnsAtRecoveryEnd()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.surface = 0
+	let input = new InputSnapshot()
+	input.shield = true
+	input.groundDodgePressed = true
+	input.groundDodgeDirection = 1
+	input.direction = -1
+	advance(fighter, 0, input, -240)
+	fighter.groundDodgeFrame.assertEquals(1)
+	fighter.facing.assertEquals(1)
+	input.groundDodgePressed = false
+	advance(fighter, 0, input, -240)
+	advance(fighter, 0, input, -240)
+	fighter.groundDodgeFrame.assertEquals(GROUND_ROLL_INTANGIBLE_START - 1)
+	isIntangible(fighter).assertFalse()
+	advance(fighter, 0, input, -240)
+	isIntangible(fighter).assertTrue()
+	for frame = GROUND_ROLL_INTANGIBLE_START + 1 to GROUND_ROLL_FRAMES
+		advance(fighter, 0, input, -240)
+	fighter.x.assertEquals(128.)
+	fighter.facing.assertEquals(1)
+	fighter.grounded.assertTrue()
+	fighter.groundDodgeFrame.assertEquals(GROUND_ROLL_FRAMES)
+	canAttack(fighter).assertFalse()
+	input.jumpPressed = true
+	let jumpsBefore = fighter.jumps
+	advance(fighter, 0, input, -240)
+	fighter.groundDodgeFrame.assertEquals(0)
+	fighter.facing.assertEquals(-1)
+	fighter.jumps.assertEquals(jumpsBefore)
+
+@Test function backwardRollKeepsFacingAndRollCannotLeaveItsPlatform()
+	let fighter = new FighterState(0, 590, -1)
+	fighter.surface = 0
+	let input = new InputSnapshot()
+	input.shield = true
+	input.groundDodgePressed = true
+	input.groundDodgeDirection = 1
+	advance(fighter, 0, input, -240)
+	input.groundDodgePressed = false
+	for frame = 2 to GROUND_ROLL_FRAMES + 5
+		advance(fighter, 0, input, -240)
+	fighter.x.assertEquals(surfaceRight(0, 0))
+	fighter.grounded.assertTrue()
+	fighter.facing.assertEquals(-1)
+
+@Test function groundDodgeRejectsHitlagShieldstunLandingLagAndUnshieldedPresses()
+	let input = new InputSnapshot()
+	input.shield = true
+	input.groundDodgePressed = true
+	input.groundDodgeDirection = -1
+	let hitlagged = new FighterState(0, 0, 1)
+	hitlagged.hitlag = 1
+	advance(hitlagged, 0, input, -240)
+	hitlagged.groundDodgeFrame.assertEquals(0)
+	let shieldstunned = new FighterState(0, 0, 1)
+	shieldstunned.shieldStun = 5
+	advance(shieldstunned, 0, input, -240)
+	shieldstunned.groundDodgeFrame.assertEquals(0)
+	let landing = new FighterState(0, 0, 1)
+	landing.landingLag = 5
+	advance(landing, 0, input, -240)
+	landing.groundDodgeFrame.assertEquals(0)
+	let stunned = new FighterState(0, 0, 1)
+	stunned.hitstun = 5
+	advance(stunned, 0, input, -240)
+	stunned.groundDodgeFrame.assertEquals(0)
+	let recoveringAttack = new FighterState(0, 0, 1)
+	recoveringAttack.cooldown = 5
+	advance(recoveringAttack, 0, input, -240)
+	recoveringAttack.groundDodgeFrame.assertEquals(0)
+	let recoveringShield = new FighterState(0, 0, 1)
+	recoveringShield.shieldReleaseLag = 5
+	advance(recoveringShield, 0, input, -240)
+	recoveringShield.groundDodgeFrame.assertEquals(0)
+	let unshielded = new FighterState(0, 0, 1)
+	input.shield = false
+	advance(unshielded, 0, input, -240)
+	unshielded.groundDodgeFrame.assertEquals(0)
+
+@Test function spotDodgeDoesNotDropThroughPassThroughPlatform()
+	let fighter = new FighterState(0, -200, 1)
+	fighter.surface = 1
+	fighter.z = surfaceZ(1, 1)
+	let input = new InputSnapshot()
+	input.shield = true
+	input.down = true
+	input.groundDodgePressed = true
+	input.groundDodgeDirection = 0
+	advance(fighter, 1, input, -240)
+	fighter.grounded.assertTrue()
+	fighter.surface.assertEquals(1)
+	fighter.z.assertEquals(surfaceZ(1, 1))
+	fighter.groundDodgeFrame.assertEquals(1)
+
+@Test function jumpTakesPriorityOverAStartingGroundDodge()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	input.shield = true
+	input.groundDodgePressed = true
+	input.groundDodgeDirection = -1
+	input.jumpPressed = true
+	advance(fighter, 0, input, -240)
+	fighter.groundDodgeFrame.assertEquals(0)
+	fighter.jumps.assertEquals(1)
+	fighter.jumpSquat.assertEquals(jumpSquatFrames(0) - 1)
+
+@Test function resetAndGettingHitClearGroundDodgeState()
+	let fighter = new FighterState(1, 100, -1)
+	fighter.groundDodgeFrame = 8
+	fighter.groundDodgeDirection = -1
+	reset(fighter, 0)
+	fighter.groundDodgeFrame.assertEquals(0)
+	fighter.groundDodgeDirection.assertEquals(0)
+	fighter.groundDodgeFrame = 1
+	fighter.groundDodgeDirection = -1
+	fighter.x = 100
+	fighter.z = 0
+	fighter.grounded = true
+	fighter.surface = 0
+	fighter.invincible = 0
+	let attacker = new FighterState(0, 0, 1)
+	attacker.attackStyle = 0
+	attacker.attackFrame = attackStartupFrames(0)
+	resolveAttackPair(attacker, fighter)
+	fighter.groundDodgeFrame.assertEquals(0)
+	fighter.groundDodgeDirection.assertEquals(0)
+
 @Test function crossingPlatformFromBelowDoesNotLand()
 	let fighter = new FighterState(0, 0, 1)
 	fighter.grounded = false

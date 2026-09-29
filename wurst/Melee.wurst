@@ -27,6 +27,9 @@ boolean moveDown = false
 boolean moveUp = false
 boolean walkHeld = false
 boolean playerNormalAttackQueued = false
+boolean playerLeftPressed = false
+boolean playerRightPressed = false
+boolean playerDownPressed = false
 boolean shieldLeft = false
 boolean shieldRight = false
 boolean array held
@@ -319,6 +322,9 @@ function clearHeldInputs()
     moveUp = false
     walkHeld = false
     playerNormalAttackQueued = false
+    playerLeftPressed = false
+    playerRightPressed = false
+    playerDownPressed = false
     shieldLeft = false
     shieldRight = false
     playerJumpHeld = false
@@ -376,14 +382,20 @@ function onKeyDown()
     heldBindingSlots[action * 2 + slot] = true
     if action == MOVE_LEFT
         moveLeft = true
+        if not wasHeld and matchState.phase == MATCH
+            playerLeftPressed = true
         if matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
             choose()
     else if action == MOVE_RIGHT
         moveRight = true
+        if not wasHeld and matchState.phase == MATCH
+            playerRightPressed = true
         if matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
             choose()
     else if action == MOVE_DOWN
         moveDown = true
+        if not wasHeld and matchState.phase == MATCH
+            playerDownPressed = true
     else if action == MOVE_UP
         moveUp = true
     else if action == WALK_MODIFIER
@@ -511,7 +523,7 @@ function renderUI()
     if settingsPanel != null
         settingsPanel.update()
     if playerFighter != null
-        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | input=" + I2S(lastInputAction) + " normal=" + I2S(lastNormalStyle) + " move=" + I2S(playerFighter.attackStyle) + " frame=" + I2S(playerFighter.attackFrame) + " serial=" + I2S(playerFighter.attackSerial) + " | F6 restart")
+        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | input=" + I2S(lastInputAction) + " normal=" + I2S(lastNormalStyle) + " move=" + I2S(playerFighter.attackStyle) + " frame=" + I2S(playerFighter.attackFrame) + " serial=" + I2S(playerFighter.attackSerial) + " dodge=" + I2S(playerFighter.groundDodgeFrame) + " dir=" + I2S(playerFighter.groundDodgeDirection) + " | F6 restart")
 
 function lockArenaCamera()
     SetCameraField(CAMERA_FIELD_ROTATION, 90, 0)
@@ -553,6 +565,9 @@ function gameTick()
         playerInput.walking = walkHeld
         playerInput.down = moveDown
         playerInput.shield = shieldLeft or shieldRight
+        let groundDodge = groundDodgeIntent(playerInput.shield, playerLeftPressed, playerRightPressed, playerDownPressed)
+        playerInput.groundDodgePressed = groundDodge != NO_GROUND_DODGE
+        playerInput.groundDodgeDirection = groundDodge == NO_GROUND_DODGE ? 0 : groundDodge
         playerInput.jumpPressed = playerJumpQueued
         playerInput.jumpHeld = playerJumpHeld
         playerInput.airDodgePressed = playerAirDodgeQueued
@@ -564,6 +579,9 @@ function gameTick()
         applyFrame()
         playerAttackFacing = 0
         playerNormalAttackQueued = false
+        playerLeftPressed = false
+        playerRightPressed = false
+        playerDownPressed = false
         playerJumpQueued = false
         playerInput.jumpPressed = false
         playerAirDodgeQueued = false

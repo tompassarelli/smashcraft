@@ -312,3 +312,26 @@ Build 212201 was used for this check. An earlier instance stalled at "Waiting
 for host"; creating the map again in the retained single-player client cleared
 the immediate blockage. Its cause is unresolved and should be investigated if
 the normal restart path repeats it.
+
+## Shield rolls and spot dodge
+
+Ground dodges now share the tested simulation. Hold shield and freshly press
+left/right to roll, or down to dodge in place. Direction edges are collected
+until the frame boundary; the order of shield/direction callbacks within the
+frame does not choose the action. Held direction does not repeat a roll.
+The headless suite passed 65/65 with zero warnings/errors, covering dodge
+timing/protection, recovery, facing, platform retention and input arbitration.
+See wc3-melee:PHYSICS.md for provisional parameters and intentional differences.
+
+Build 214039 loaded in 23.153 seconds with the same Warcraft process. Native
+input entered the match and started a left roll; the subsequent image showed
+x=-368 from x=-240. A fresh-match shield/down probe showed spot dodge at frame
+9, x=-240, with the fighter faded during its protection window. Evidence:
+~/code/wc3-melee/worktrees/test-loop/build/dodge-probe/roll-left.png,
+~/code/wc3-melee/worktrees/test-loop/build/dodge-probe/recovered.png and
+~/code/wc3-melee/worktrees/test-loop/build/dodge-probe/spot-fresh.png.
+This verifies native controls and displayed state, not frame-perfect engine
+timing or multiplayer. Dedicated roll/spot-dodge clips remain unfinished;
+the current poses use stock animations. The map build still has the two known
+SettingsUI initialization warnings. The earlier host-wait stall did not recur
+in this reload or the subsequent same-build restart; its cause remains unknown.

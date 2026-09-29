@@ -1,6 +1,19 @@
 package CombatInputTests
 import CombatInput
 
+@Test function groundedDodgesRequireShieldAndFreshDirection()
+    groundDodgeIntent(false, true, false, false).assertEquals(NO_GROUND_DODGE)
+    groundDodgeIntent(false, false, false, true).assertEquals(NO_GROUND_DODGE)
+    groundDodgeIntent(true, false, false, false).assertEquals(NO_GROUND_DODGE)
+    groundDodgeIntent(true, true, false, false).assertEquals(-1)
+    groundDodgeIntent(true, false, true, false).assertEquals(1)
+    groundDodgeIntent(true, false, false, true).assertEquals(0)
+
+@Test function contradictoryRollEdgesCancelAndDownChoosesSpotDodge()
+    groundDodgeIntent(true, true, true, false).assertEquals(NO_GROUND_DODGE)
+    groundDodgeIntent(true, true, false, true).assertEquals(0)
+    groundDodgeIntent(true, false, true, true).assertEquals(0)
+
 @Test function neutralAttackIsJabAndDirectionChoosesTiltOrSmash()
     normalAttackStyle(0, 0, false).assertEquals(0)
     normalAttackStyle(0, 0, true).assertEquals(0)
