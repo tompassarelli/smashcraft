@@ -277,6 +277,53 @@ spot_pose = {
 }
 make_action("Spot Dodge", spot_pose, 23)
 
+
+def getup_pose(root_angle, tuck, sweep=0):
+    return {
+        "Bone_Root": {"rotation": root_angle, "axis": "Z"},
+        "Bone_Pelvis": {"location": (0, -7 * tuck, 0)},
+        "Bone_Chest": {"rotation": -12 * tuck},
+        "Bone_Head": {"rotation": 9 * tuck},
+        "Bone_Arm1_R": {"rotations": [("X", 25 * tuck + 60 * sweep), ("Z", -25 * sweep)]},
+        "Bone_Arm2_R": {"rotations": [("X", -42 * tuck - 35 * sweep), ("Z", -20 * sweep)]},
+        "Bone_Arm1_L": {"rotations": [("X", -25 * tuck - 60 * sweep), ("Z", 25 * sweep)]},
+        "Bone_Arm2_L": {"rotations": [("X", 42 * tuck + 35 * sweep), ("Z", 20 * sweep)]},
+        "Bone_Leg1_R": {"rotation": -30 * tuck, "axis": "Z"},
+        "Bone_Leg2_R": {"rotation": 45 * tuck, "axis": "Z"},
+        "Bone_Leg1_L": {"rotation": 30 * tuck, "axis": "Z"},
+        "Bone_Leg2_L": {"rotation": -45 * tuck, "axis": "Z"},
+    }
+
+
+make_action("Knockdown", {
+    0: getup_pose(0, 0),
+    3: getup_pose(28, 0.6),
+    7: getup_pose(78, 1),
+    10: getup_pose(90, 1),
+    12: getup_pose(90, 1),
+}, 12)
+
+make_action("Get Up", {
+    0: getup_pose(90, 1),
+    5: getup_pose(88, 1),
+    12: getup_pose(65, 0.8),
+    20: getup_pose(30, 0.45),
+    26: getup_pose(8, 0.15),
+    30: getup_pose(0, 0),
+}, 30)
+
+make_action("Get Up Attack", {
+    0: getup_pose(90, 1),
+    5: getup_pose(87, 1, -0.4),
+    10: getup_pose(82, 0.9, -0.6),
+    16: getup_pose(72, 0.75, 1),
+    18: getup_pose(66, 0.65, 1),
+    23: getup_pose(48, 0.5, 0.45),
+    30: getup_pose(18, 0.2),
+    38: getup_pose(0, 0),
+    45: getup_pose(0, 0),
+}, 45)
+
 editable = assets / "archer-fighter.blend"
 exported = assets / "archer-fighter.mdl"
 bpy.ops.wm.save_as_mainfile(filepath=str(editable))
@@ -285,4 +332,4 @@ if "FINISHED" not in result or not exported.is_file():
     raise RuntimeError(f"Archer dodge export failed: {result}")
 print("ARCHER_FIGHTER_EXPORTED", exported, exported.stat().st_size)
 print("ARCHER_FIGHTER_EDITABLE", editable, editable.stat().st_size)
-print("AUTHORED_ACTIONS", "Attack Jab, Forward Tilt, Forward Tilt Up, Forward Tilt Down, Jump, Double Jump, Roll Forward, Roll Backward, Spot Dodge")
+print("AUTHORED_ACTIONS", "Attack Jab, Forward Tilt, Forward Tilt Up, Forward Tilt Down, Jump, Double Jump, Roll Forward, Roll Backward, Spot Dodge, Knockdown, Get Up, Get Up Attack")

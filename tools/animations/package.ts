@@ -15,6 +15,9 @@ const clips = [
     ["ROLL_FORWARD", "Roll Forward"],
     ["ROLL_BACKWARD", "Roll Backward"],
     ["SPOT_DODGE", "Spot Dodge"],
+    ["KNOCKDOWN", "Knockdown"],
+    ["GET_UP", "Get Up"],
+    ["GET_UP_ATTACK", "Get Up Attack"],
 ];
 const metadata = clips.map(([key, name]) => {
     const index = model.Sequences.findIndex(sequence => sequence.Name === name);
