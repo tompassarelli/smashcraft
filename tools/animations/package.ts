@@ -19,11 +19,14 @@ const metadata = clips.map(([key, name]) => {
     if (!(seconds > 0)) throw new Error(`${name} sequence must have a positive duration`);
     return [key, index, seconds];
 });
-await Bun.write(join(assetDirectory, "ArcherFighter.mdx"), generateMDX(model));
+const modelBytes = generateMDX(model);
+const modelHash = new Bun.CryptoHasher("sha256").update(new Uint8Array(modelBytes)).digest("hex").slice(0, 12);
+const modelPath = `war3mapImported\\ArcherFighter-${modelHash}.mdx`;
+await Bun.write(join(assetDirectory, "ArcherFighter.mdx"), modelBytes);
 const constants = metadata.flatMap(([key, index, seconds]) => [
     `public constant int ARCHER_${key}_INDEX = ${index}`,
     `public constant real ARCHER_${key}_SECONDS = ${seconds.toFixed(6)}`,
 ]);
-await Bun.write(join(assetDirectory, "FighterAssetInfo.wurst"), `package FighterAssetInfo\n${constants.join("\n")}\n`);
+await Bun.write(join(assetDirectory, "FighterAssetInfo.wurst"), `package FighterAssetInfo\npublic constant string ARCHER_MODEL_FILE = ${JSON.stringify(modelPath)}\n${constants.join("\n")}\n`);
 console.log("Archer model packaged:", metadata.map(([key, index, seconds]) => `${key} ${index} ${seconds}s`).join("; "));
 console.log("Texture references:", model.Textures.map(texture => texture.Image));

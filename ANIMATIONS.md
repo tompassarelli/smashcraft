@@ -3,8 +3,9 @@
 Required initial clips from the owner: jab; forward tilt; up-angled forward
 tilt; down-angled forward tilt; jump; double jump; forward roll; backward roll;
 get-up attack. Blender 5.1.1 is installed. The first Archer jab is authored,
-exported and playing in the client. Its motion still needs visual tuning at
-the normal camera distance; the other requested clips remain unfinished.
+exported and playing in the client. Forward/backward rolls and a spot dodge
+are now authored on the same rig. Tilts, jump/double jump and get-up attack
+remain unfinished; jab still needs visual tuning at the normal camera distance.
 
 Preserve editable Blender scenes and exported Warcraft model assets. Author
 on a rig compatible with the selected Warcraft fighters; do not claim that a
@@ -34,12 +35,18 @@ The importer repair is commit 9f8ceb0 in the same checkout.
 The Archer check preserves four mesh geosets and animated pose tracks.
 The importer warns that version 1800 models load as version 1000; newer model
 features may be lost. In-game visual fidelity remains unverified.
-The first import → author → export → in-game playback check passed for jab.
+The first import → author → export → in-game playback check passed for jab,
+but later pose inspection found its imported hierarchy was incomplete.
 Tool commit 3631e24 preserves unused imported actions through Blender saves
 and preserves the original event tracks. Commit 83d0cf4 preserves Warcraft
 texture paths, material layers and replaceable team-color IDs rather than
 exporting Blender-local preview paths. These repairs live in the add-on,
 not generated-model patches.
+
+Tool commit ebdb212 repairs Parent decoding in the node parser: imported bones
+previously became independent roots. The focused Blender regression checks the
+expected hierarchy and confirms that root rotation deforms evaluated geometry.
+Archer's scene and authored clips were regenerated through the corrected importer.
 
 The add-ons are GPL tools (repository license GPL-3.0; individual source headers
 also contain GPL-2.0-or-later notices). They remain standalone local tools,
@@ -111,8 +118,8 @@ change. The full extraction command passed in about five seconds.
 nix shell nixpkgs#gcc nixpkgs#bun --command bash /home/tom/code/wc3-melee/worktrees/test-loop/tools/animations/build-assets.sh
 ```
 
-This extracts local game assets, imports a fresh Archer scene, authors the jab,
-exports MDL, and packages MDX plus generated Wurst clip metadata. Asset rebuilds
+This extracts local game assets, imports a fresh Archer scene, authors jab and
+the three evasion clips, exports MDL, and packages MDX plus generated Wurst clip metadata. Asset rebuilds
 are separate from the normal gameplay loop; wc3-melee:build.sh consumes their
 outputs without rerunning Blender. The asset command writes logs under
 ~/code/wc3-melee/worktrees/test-loop/build/animation-assets.
@@ -124,7 +131,8 @@ The clip uses frames 0–36 at 24fps, with extension at frame 4 and retraction
 by frame 18. Wurst scales its exported 1.5-second duration to the simulation's
 36 ticks at 60Hz (0.6 seconds), and pauses animation playback during hitlag.
 The clip is selected by its generated index rather than Warcraft's random
-choice among attack names. Other moves still use native animations.
+choice among attack names. Archer's ground dodges also use generated indices;
+Rifleman's moves and the remaining Archer moves still use native animations.
 
 Build 212201 loaded the custom model and played jab from the normal N input.
 Evidence: ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/jab-client.mp4
@@ -134,3 +142,38 @@ that map and creating a fresh single-player instance restored input without
 restarting the client. The cause remains undiagnosed; it was not counted as
 a successful playback check. Full model fidelity and exact visual contact
 alignment remain unverified, and the jab motion needs a stronger silhouette.
+
+## Authored Archer evasions
+
+Authoring source: wc3-melee:tools/animations/dodges.py. Final editable scene:
+~/code/wc3-melee/worktrees/test-loop/build/animation-assets/archer-fighter.blend.
+The forward/backward clips last 31 source frames (1.292 seconds at 24fps),
+and spot dodge lasts 23 frames (0.958 seconds). The adapter scales these
+durations to the simulation's 31/23 ticks at 60Hz, freezes playback in hitlag,
+and restores normal animation after recovery. The body tumbles in opposite
+directions for forward/backward rolls; spot dodge crouches in place.
+
+The full asset build passed after the importer repair, preserving eight
+original event tracks. No root translation keys occur within dodge intervals;
+gameplay displacement remains solely in Wurst. Generated metadata selects
+forward index 7, backward index 6, and spot index 8 in this model, without
+hard-coding those numbers into gameplay source. Pose renders establish mesh
+deformation; client evidence is recorded separately in wc3-melee:DEVELOPMENT.md.
+
+The roll authoring axis was corrected after a game-aligned MDX → MDL → Blender
+roundtrip render: root X turned the silhouette edge-on, while root Z produced
+the stage-plane tumble. This is specific to the imported Archer bone basis;
+do not assume another rig shares it. The native forward-roll recording now
+shows the tumble. Removing PauseUnit did not solve the wrong-axis motion, so
+the adapter retains paused, simulation-controlled bodies.
+
+Spot dodge's pelvis translation uses local negative Y so the exported MDL
+translates downward on game Z (0, 0, -13 at its held pose), rather than into
+depth. Its visual cue is still subtle at the normal camera and needs stronger
+pose tuning. Correct export/playback is not a claim of finished animation art.
+
+Packaged model imports now include a hash of their MDX content in the filename.
+The generated Wurst model path and packaged archive entry use the same hash.
+This changes resource identity when an asset changes without restarting the
+client; unchanged model content retains the same path. A fixed-name restart
+kept the previous pose, whereas the new path loaded the regenerated pose.

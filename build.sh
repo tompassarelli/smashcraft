@@ -134,8 +134,10 @@ nix shell nixpkgs#lua5_3 --command luac -p "$map_script"
 output_next="$build_output.next"
 cp "$base_map" "$output_next"
 "$packager" replace "$output_next" "$map_script"
-"$packager" replace "$output_next" "$fighter_assets/ArcherFighter.mdx" 'war3mapImported\ArcherFighter.mdx'
-"$packager" extract "$output_next" "$work_dir/verified-ArcherFighter.mdx" 'war3mapImported\ArcherFighter.mdx'
+fighter_model_hash=$(sha256sum "$fighter_assets/ArcherFighter.mdx" | cut -c1-12)
+fighter_model_path="war3mapImported\\ArcherFighter-$fighter_model_hash.mdx"
+"$packager" replace "$output_next" "$fighter_assets/ArcherFighter.mdx" "$fighter_model_path"
+"$packager" extract "$output_next" "$work_dir/verified-ArcherFighter.mdx" "$fighter_model_path"
 cmp "$fighter_assets/ArcherFighter.mdx" "$work_dir/verified-ArcherFighter.mdx"
 for extension in w3u w3t w3b w3d w3a w3h w3q; do
     object_file="$work_dir/_build/objectEditingOutput/war3map.$extension"

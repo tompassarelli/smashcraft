@@ -335,3 +335,29 @@ timing or multiplayer. Dedicated roll/spot-dodge clips remain unfinished;
 the current poses use stock animations. The map build still has the two known
 SettingsUI initialization warnings. The earlier host-wait stall did not recur
 in this reload or the subsequent same-build restart; its cause remains unknown.
+
+## Ground-dodge animation checkpoint
+
+Archer forward/backward rolls now visibly tumble in the native client. The
+adapter selects each clip once at dodge entry, uses its exported duration to
+match the simulation clock, and restores ordinary animation after recovery.
+The match help text describes shield-plus-direction controls. Headless
+simulation was unchanged in this pass; its latest result remains 65/65.
+
+Blender importer ebdb212 repairs lost parent links; its regression proves
+hierarchy and evaluated mesh deformation. A packaged MDX roundtrip exposed a
+wrong authored rotation axis, corrected in game source commit 7b86515. Imported
+MDX filenames now include their content hash so changed assets get a fresh
+resource identity while retaining the Warcraft process.
+
+Build 220900 loaded in 23.138 seconds and native recordings showed forward and
+backward tumble. Build 221221 loaded in 22.979 seconds after correcting the
+spot-dodge pelvis translation to game Z. The spot-dodge cue is still subtle
+and needs pose tuning. Evidence and videos:
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/forward-poses.png,
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/backward-poses.png,
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/spot-poses.png,
+and the corresponding *-client.mp4 files in that directory.
+The client remained running; no multiplayer or exact native frame-alignment
+claim follows from these recordings. Remaining authored clips include the
+requested tilts, jump/double jump and get-up attack, plus Rifleman's animations.

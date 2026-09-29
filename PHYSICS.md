@@ -240,4 +240,5 @@ movement; a forward roll reverses facing at completion, while a backward
 roll preserves it. Neither move permits attacks, jumps, steering or shielding
 during its recovery. Jump takes priority over a simultaneous dodge request.
 Spot dodge does not drop through a platform. Intangibility and recovery clocks
-pause in hitlag. Dedicated dodge animations are still required.
+pause in hitlag. Archer now has authored ground-dodge clips; Rifleman's clips
+remain to be authored. See wc3-melee:ANIMATIONS.md for playback and art limits.

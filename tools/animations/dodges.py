@@ -113,14 +113,14 @@ spot_pose = {
         "Bone_Leg1_L": {"rotation": 0},
     },
     2: {
-        "Bone_Pelvis": {"location": (0, 0, -5)},
+        "Bone_Pelvis": {"location": (0, -5, 0)},
         "Bone_Chest": {"rotation": -8},
         "Bone_Head": {"rotation": 5},
         "Bone_Leg1_R": {"rotation": -12},
         "Bone_Leg1_L": {"rotation": -12},
     },
     5: {
-        "Bone_Pelvis": {"location": (0, 0, -13)},
+        "Bone_Pelvis": {"location": (0, -13, 0)},
         "Bone_Chest": {"rotation": -18},
         "Bone_Head": {"rotation": 12},
         "Bone_Leg1_R": {"rotation": -30},
@@ -133,7 +133,7 @@ spot_pose = {
         "Bone_Arm2_L": {"rotation": 30},
     },
     15: {
-        "Bone_Pelvis": {"location": (0, 0, -13)},
+        "Bone_Pelvis": {"location": (0, -13, 0)},
         "Bone_Chest": {"rotation": -18},
         "Bone_Head": {"rotation": 12},
         "Bone_Leg1_R": {"rotation": -30},
@@ -146,7 +146,7 @@ spot_pose = {
         "Bone_Arm2_L": {"rotation": 30},
     },
     19: {
-        "Bone_Pelvis": {"location": (0, 0, -8)},
+        "Bone_Pelvis": {"location": (0, -8, 0)},
         "Bone_Chest": {"rotation": -8},
         "Bone_Head": {"rotation": 5},
         "Bone_Leg1_R": {"rotation": -14},
