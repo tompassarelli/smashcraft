@@ -758,8 +758,35 @@ A shield, run wc3-melee:tools/probe-ground-slide.sh. It records the client,
 exports the F7 trace and checks for ground displacement during exactly ten
 recovery ticks. A failed probe is not a simulation verdict: inspect the input
 trace to distinguish timing, bindings or interruption. Evidence:
-~/code/wc3-melee/worktrees/test-loop/build/animation-probe/wavedash-ground-slide-trace.txt
-and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/wavedash-client.mp4.
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/ground-slide-speed8-trace.txt
+and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/ground-slide-speed8.mp4.
+
+## Playable dodge-distance tuning
+
+Speed 18 world units per frame replaces the initial value 8 as independently
+chosen prototype tuning. The local reference identifies data-loaded force and
+decay parameters but does not establish their numbers. This change adds no
+input buffer and leaves the sourced jump values and ten-frame recovery intact.
+A regression starts on the ground, advances six jump ticks, then dodges down
+diagonally: it failed to land during dodge motion at speed 8 and passes at 18
+for both characters, both jump heights, and both directions. The full suite
+passes 134/134 with zero errors/warnings.
+
+Build 010423 reloaded in 24.142 seconds with the Warcraft process retained.
+wc3-melee:tools/probe-ground-slide.sh early delivered short-hop press/release
+at trace tick 0, dodge at tick 12 (0.200 seconds), and landed at tick 21,
+x=-305.241. With directions released before landing, x advanced to -333.630
+when recovery reached zero at tick 31: 28.389 world units of ground slide.
+This verifies useful landing momentum through actual controls, including a
+dodge press/release delivered together. It does not prove immediate first-airborne
+wavedashing, analog angles, exact Melee distance, or multiplayer timing.
+
+Evidence:
+- ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/air-dodge-speed-before.log
+- ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/air-dodge-speed-after.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/wavedash-speed-reload.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/ground-slide-speed18-trace.txt
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/ground-slide-speed18.mp4
 
 ## Downward attacks on platforms
 

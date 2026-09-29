@@ -1254,7 +1254,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 @Test function airDodgeChangesVelocityAndLandingRestoresJumps()
 	let fighter = new FighterState(0, 0, 1)
 	fighter.grounded = false
-	fighter.z = 10
+	fighter.z = 20
 	let input = new InputSnapshot()
 	input.airDodgePressed = true
 	input.dodgeX = 1
@@ -1262,7 +1262,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	advance(fighter, 0, input, -240)
 	(fighter.vx > 0).assertTrue()
 	(fighter.vz < 0).assertTrue()
-	fighter.vx.assertEquals(5.0912, 0.01)
+	fighter.vx.assertEquals(11.4551, 0.01)
 	var ticks = 0
 	while not fighter.grounded and ticks < 100
 		input.airDodgePressed = false
@@ -1294,13 +1294,13 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 		advance(fighter, 0, input, 0)
 		fighter.knockbackX.assertEquals(0.)
 		fighter.knockbackZ.assertEquals(0.)
-		fighter.x.assertEquals(direction * 7.2, 0.001)
-		fighter.vx.assertEquals(direction * 7.2, 0.001)
+		fighter.x.assertEquals(direction * 16.2, 0.001)
+		fighter.vx.assertEquals(direction * 16.2, 0.001)
 		fighter.z.assertEquals(300.)
 		fighter.vz.assertEquals(0.)
 		input.airDodgePressed = false
 		advance(fighter, 0, input, 0)
-		fighter.x.assertEquals(direction * 13.68, 0.001)
+		fighter.x.assertEquals(direction * 30.78, 0.001)
 		fighter.z.assertEquals(300.)
 		destroy input
 		destroy fighter
@@ -1313,7 +1313,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 			fighter.z = 300
 			simulationAirDodge(fighter, 1, direction)
 			let input = new InputSnapshot()
-			var displacement = 5.0911688
+			var displacement = 11.4551299
 			var distance = 0.
 			for frame = 1 to 26
 				advance(fighter, 0, input, 0)
@@ -1371,6 +1371,41 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 		fighter.vx.assertEquals(-characterSpeed(character), 0.001)
 		destroy input
 		destroy fighter
+
+@Test function delayedJumpAirDodgeLandsDuringMotionAndSlides()
+	for character = 0 to 1
+		for fullJump = 0 to 1
+			for direction = -1 to 1
+				if direction != 0
+					let fighter = new FighterState(character, 0, direction)
+					let input = new InputSnapshot()
+					input.jumpPressed = true
+					input.jumpHeld = true
+					for tick = 1 to 6
+						advance(fighter, 0, input, 0)
+						input.jumpPressed = false
+						input.jumpHeld = fullJump == 1
+					fighter.grounded.assertFalse()
+					input.airDodgePressed = true
+					input.dodgeX = direction
+					input.dodgeZ = -1
+					advance(fighter, 0, input, 0)
+					input.airDodgePressed = false
+					while not fighter.grounded and fighter.airDodgeTime > 0
+						advance(fighter, 0, input, 0)
+					fighter.grounded.assertTrue()
+					fighter.airDodgeTime.assertGreaterThan(0)
+					fighter.landingLag.assertEquals(10)
+					(fighter.vx * direction).assertGreaterThan(GROUND_TRACTION)
+					let landingX = fighter.x
+					let landingSpeed = fighter.vx
+					advance(fighter, 0, input, 0)
+					((fighter.x - landingX) * direction).assertGreaterThan(0.)
+					fighter.vx.assertEquals(landingSpeed - direction * GROUND_TRACTION, 0.001)
+					fighter.landingLag.assertEquals(9)
+					canAttack(fighter).assertFalse()
+					destroy input
+					destroy fighter
 
 @Test function airDodgeLandingUsesGroundFrictionEvenWhileAirTimerRemains()
 	let fighter = new FighterState(0, 0, 1)

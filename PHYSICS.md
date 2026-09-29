@@ -197,7 +197,7 @@ the same protection query used by hit detection.
 
 The frame sweep test checks both characters at each frame 1–30. Additional
 tests cover damage interrupting startup and landing ending dodge protection.
-Neutral/directional dodge motion still uses provisional speed 8 world
+Neutral/directional dodge motion now uses provisional speed 18 world
 units/frame, 0.9 decay and a 26-frame motion period. The 49-frame counter cap
 is not a custom animation asset or a claim that those provisional motion
 values match Melee.
@@ -222,6 +222,17 @@ motion timer has not expired. Tests cover cleared launch momentum, neutral and
 diagonal motion, fast swept platform contact, sliding, and the exact recovery
 boundary. Numerical speed, decay, motion duration and native feel remain
 separate calibration work.
+
+The 18-world-unit speed is an independently chosen research tuning value
+(3 times the rendering scale of 6), not a sourced Melee parameter. At the former
+speed 8, a regression starting jump from grounded, advancing six ticks total,
+then requesting a downward diagonal dodge fails to reach the ground during
+dodge motion. The same unchanged regression passes at speed 18 for both
+characters, short and full jumps, and both horizontal directions; it also
+checks retained horizontal speed and sliding during landing recovery. This
+sequence represents the approximately six-tick keyboard callback spacing
+observed in Warcraft. It adds no input buffering and does not establish native
+timing, multiplayer behavior, or numerical Melee parity.
 
 ## Jump calibration checkpoint
 

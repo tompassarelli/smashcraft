@@ -5,6 +5,11 @@ if ! command -v ydotool >/dev/null; then
 fi
 project_dir=$(cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$project_dir"
+case "${1:-descent}" in
+    descent) dodge_delay=0.25 ;;
+    early) dodge_delay=0.095 ;;
+    *) echo 'Usage: probe-ground-slide.sh [descent|early]' >&2; exit 2 ;;
+esac
 mkdir -p build/animation-probe
 export YDOTOOL_SOCKET="$PWD/build/animation-probe/wavedash-input.sock"
 ydotoold -p "$YDOTOOL_SOCKET" > build/animation-probe/wavedash-input.log 2>&1 &
@@ -31,7 +36,7 @@ check_focus
 ydotool key 49:1
 sleep 0.06
 ydotool key -d 0 49:0 65:1 23:1 23:0 65:0
-sleep 0.25
+sleep "$dodge_delay"
 ydotool key -d 0 31:1 32:1 30:1
 sleep 0.15
 ydotool key 30:0 32:0 31:0
@@ -51,7 +56,7 @@ awk -F '"' '
         split($2, field, " ")
         if (field[3] != "motion") next
         if (field[7] == 10 && field[11] == 0) {
-            landing = 1; startX = field[9]; startTick = field[1]
+            landing = 1; moved = 0; startX = field[9]; startTick = field[1]
         } else if (landing) {
             if (field[11] != 0) { landing = 0; next }
             if (field[9] != startX) moved = 1
