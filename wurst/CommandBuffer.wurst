@@ -44,13 +44,15 @@ public class AttackBuffer
         facing = direction
         targetFrame = frame
 
+    function hasPending(int frame) returns boolean
+        return style >= 0 and frame >= targetFrame and frame - targetFrame <= windowFrames
+
     function consume(int frame, boolean allowed) returns int
         consumedFacing = 0
         consumedMayCharge = false
-        if style < 0 or frame < targetFrame
-            return -1
-        if frame - targetFrame > windowFrames
-            clear()
+        if not hasPending(frame)
+            if style >= 0 and frame >= targetFrame
+                clear()
             return -1
         if not allowed
             return -1

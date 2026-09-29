@@ -7,6 +7,8 @@ import CombatInput
 public function stepMatch(MatchState game, FighterState first, FighterState second, InputSnapshot firstInput, InputSnapshot secondInput, AttackBuffer firstCommands, AttackBuffer secondCommands, int frame)
     if game.phase != MATCH
         return
+    firstInput.attackRequested = firstCommands.hasPending(frame)
+    secondInput.attackRequested = secondCommands.hasPending(frame)
     advance(first, game.stageChoice, firstInput, -240)
     advance(second, game.stageChoice, secondInput, 240)
     let firstCommand = firstCommands.consume(frame, canAttack(first))

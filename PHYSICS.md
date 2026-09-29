@@ -374,3 +374,13 @@ gravity and platform motion continue. C-stick/direct smash commands are
 immediate. These state and input rules are prototype choices, not claims of
 complete Melee state-machine parity. Simultaneous hits snapshot both charge
 amounts before applying either impact so trades retain both damage values.
+
+## Platform drop priority
+
+A current queued attack takes priority over voluntary platform dropping during
+the movement step. Action recovery also blocks the drop, so holding Down cannot
+drop through during down-smash startup/charge or down-tilt recovery. With no
+current attack or action lock, Down still drops through passable platforms.
+The command queue's actual frame window determines whether an attack is current;
+expired and future commands do not suppress movement. This is our digital-input
+priority rule. Analog shield dropping and stick-threshold fidelity remain open.

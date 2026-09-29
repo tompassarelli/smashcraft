@@ -595,8 +595,23 @@ Evidence:
 - ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/smash-client.mp4
 - ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/smash-release-observed.png
 
-Next input fix: by source inspection, Down on a pass-through platform can drop
-the fighter during movement before the queued downward normal is selected.
-Coordinate drop-through intent with same-frame attacks, retaining ordinary
-Down-only dropping. This behavior needs an executable regression and fix;
-the native charge check above used the solid main stage.
+## Downward attacks on platforms
+
+The platform-input regression first failed: Down + Attack dropped through an
+upper platform before the downward normal could be selected. Match stepping now
+passes current queued-attack intent into movement, preventing that drop. The
+ordinary action-recovery gate also prevents dropping during attack startup,
+charge, or recovery. Down alone still drops, including when the attack queue
+is empty or its command is expired or scheduled for a future frame.
+
+The full suite passes 109/109 tests with zero compiler warnings/errors.
+Build 234557 reloaded in 23.590 seconds in the retained client. In Three Bridges,
+the Archer jumped onto the left upper platform and Down + Attack started
+down-smash (move 3, frame 5) at height 170. The first native probe short-hopped
+and never reached the platform; holding Jump longer established the intended
+setup. Evidence:
+- ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/platform-attack-before.log
+- ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/platform-integrated.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/platform-reload.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/platform-client.mp4
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/platform-down-smash.png

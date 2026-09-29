@@ -4,6 +4,70 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function downOnlyDropsWhenAttackQueueIsEmptyExpiredOrFuture()
+    for mode = 0 to 2
+        let game = new MatchState()
+        game.confirm()
+        game.selectChoice(1)
+        game.confirm()
+        let first = new FighterState(0, -240, 1)
+        first.z = 170
+        first.surface = 1
+        let second = new FighterState(1, 350, -1)
+        let firstInput = new InputSnapshot()
+        firstInput.down = true
+        let secondInput = new InputSnapshot()
+        let firstCommands = new AttackBuffer(0)
+        let secondCommands = new AttackBuffer(0)
+        if mode > 0
+            firstCommands.enqueue(3, 0, mode == 1 ? 0 : 2, true)
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+        first.grounded.assertFalse()
+        first.z.assertLessThan(170.)
+        first.attackStyle.assertEquals(-1)
+        firstInput.attackRequested.assertFalse()
+        destroy firstCommands
+        destroy secondCommands
+        destroy firstInput
+        destroy secondInput
+        destroy first
+        destroy second
+        destroy game
+
+@Test function downwardNormalsTakePriorityOverDroppingThroughUpperPlatforms()
+    for style = 3 to 8
+        if style == 3 or style == 8
+            let game = new MatchState()
+            game.confirm()
+            game.selectChoice(1)
+            game.confirm()
+            let first = new FighterState(0, -240, 1)
+            first.z = 170
+            first.surface = 1
+            let second = new FighterState(1, 350, -1)
+            let firstInput = new InputSnapshot()
+            firstInput.down = true
+            firstInput.attackHeld = true
+            let secondInput = new InputSnapshot()
+            let firstCommands = new AttackBuffer(0)
+            let secondCommands = new AttackBuffer(0)
+            firstCommands.enqueue(style, 0, 1, true)
+            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+            first.grounded.assertTrue()
+            first.z.assertEquals(170.)
+            first.attackStyle.assertEquals(style)
+            for frame = 2 to 12
+                stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+                first.grounded.assertTrue()
+            first.smashCharging.assertEquals(style == 3)
+            destroy firstCommands
+            destroy secondCommands
+            destroy firstInput
+            destroy secondInput
+            destroy first
+            destroy second
+            destroy game
+
 @Test function heldNormalSmashChargesAndReleasesButDirectCommandStaysImmediate()
     for mode = 0 to 1
         let game = new MatchState()

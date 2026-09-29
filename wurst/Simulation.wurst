@@ -165,6 +165,7 @@ public class FighterState
 
 public class InputSnapshot
 	int direction = 0
+	boolean attackRequested = false
 	boolean down = false
 	boolean shield = false
 	boolean jumpPressed = false
@@ -903,7 +904,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	else if (not canSteer or direction == 0) and f.hitstun <= 0 and (not dodgeActive or f.grounded)
 		let drag = f.grounded ? GROUND_TRACTION : AIR_FRICTION
 		f.vx = f.vx > 0 ? max(0, f.vx - drag) : min(0, f.vx + drag)
-	if input.down and f.downState == DOWN_NONE and f.grounded and f.surface >= 0 and surfacePass(stage, f.surface) and not isGroundDodging(f)
+	if input.down and not input.attackRequested and f.downState == DOWN_NONE and f.grounded and f.surface >= 0 and surfacePass(stage, f.surface) and canAttack(f)
 		f.dropTime = 12
 		f.grounded = false
 		f.vz = -2
