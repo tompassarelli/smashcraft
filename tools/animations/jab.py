@@ -33,6 +33,7 @@ if upper_name not in bone_names or forearm_name not in bone_names:
 # holds through the authored duration so gameplay's contact timing is explicit.
 action = bpy.data.actions.new(name="Attack Jab")
 action.use_fake_user = True
+action["war3_non_looping"] = True
 slot = action.slots.new("OBJECT", rig.name)
 rig.animation_data_create()
 rig.animation_data.action = action
