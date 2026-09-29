@@ -414,11 +414,32 @@ function spawnTestProjectile(FighterState owner, FighterState target)
 	projectileCount(owner).assertEquals(1)
 	projectileXAt(owner, 0).assertEquals(35.)
 	projectileDirectionAt(owner, 0).assertEquals(1)
-	for frame = 1 to 29
+	for frame = 1 to 59
 		updateProjectilePair(owner, target)
 	projectileCount(owner).assertEquals(1)
 	updateProjectilePair(owner, target)
 	projectileCount(owner).assertEquals(0)
+
+@Test function projectilesCrossTheArenaAndDisappearOnContact()
+	for character = 0 to 1
+		for directionIndex = 0 to 1
+			let direction = directionIndex == 0 ? 1 : -1
+			let owner = new FighterState(character, -800. * direction, direction)
+			let target = new FighterState(1 - character, 800. * direction, -direction)
+			spawnTestProjectile(owner, target)
+			for frame = 1 to 42
+				updateProjectilePair(owner, target)
+			projectileCount(owner).assertEquals(1)
+			target.damage.assertEquals(0.)
+			for frame = 43 to 45
+				updateProjectilePair(owner, target)
+			projectileCount(owner).assertEquals(0)
+			target.damage.assertEquals(3.)
+			for frame = 1 to 20
+				updateProjectilePair(owner, target)
+			target.damage.assertEquals(3.)
+			destroy owner
+			destroy target
 
 @Test function falcoBlasterFlinchesWhileFoxBlasterDoesNot()
 	let fox = new FighterState(0, 0, 1)
@@ -1642,6 +1663,75 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	advance(fighter, 0, input, -240)
 	fighter.shieldEnergy.assertGreaterThan(energyAtRelease)
 	fighter.shieldReleaseLag.assertEquals(SHIELD_RELEASE_LAG_FRAMES - 1)
+
+@Test function shieldGrabRequiresAnUnstunnedGroundedActiveShieldAndKeepsOtherAttacksLocked()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.shield = true
+	canAttack(fighter).assertFalse()
+	canShieldGrab(fighter).assertTrue()
+	canStartAttackStyle(fighter, 5).assertTrue()
+	canStartAttackStyle(fighter, 0).assertFalse()
+	fighter.shieldStun = 1
+	canShieldGrab(fighter).assertFalse()
+	fighter.shieldStun = 0
+	fighter.hitlag = 1
+	canShieldGrab(fighter).assertFalse()
+	fighter.hitlag = 0
+	fighter.hitstun = 1
+	canShieldGrab(fighter).assertFalse()
+	fighter.hitstun = 0
+	fighter.shieldReleaseLag = 1
+	canShieldGrab(fighter).assertFalse()
+	fighter.shieldReleaseLag = 0
+	fighter.landingLag = 1
+	canShieldGrab(fighter).assertFalse()
+	fighter.landingLag = 0
+	fighter.cooldown = 1
+	canShieldGrab(fighter).assertFalse()
+	fighter.cooldown = 0
+	fighter.jumpSquat = 1
+	canShieldGrab(fighter).assertFalse()
+	fighter.jumpSquat = 0
+	fighter.grabbedFrames = 1
+	canShieldGrab(fighter).assertFalse()
+	fighter.grabbedFrames = 0
+	fighter.grounded = false
+	canShieldGrab(fighter).assertFalse()
+	fighter.grounded = true
+	fighter.out = true
+	canShieldGrab(fighter).assertFalse()
+	fighter.out = false
+	fighter.shieldEnergy = 0
+	canShieldGrab(fighter).assertFalse()
+	destroy fighter
+
+@Test function shieldGrabStartsDirectlyFromActiveGuardAndCanCatchShieldingTarget()
+	let game = testMatch()
+	let attacker = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 90, -1)
+	let attackerInput = new InputSnapshot()
+	let targetInput = new InputSnapshot()
+	let attackerCommands = new AttackBuffer(0)
+	let targetCommands = new AttackBuffer(0)
+	attackerInput.shield = true
+	targetInput.shield = true
+	attackerCommands.enqueue(5, 0, 1, false)
+	stepMatch(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, 1)
+	attacker.attackStyle.assertEquals(5)
+	attacker.shield.assertFalse()
+	attacker.shieldReleaseLag.assertEquals(0)
+	attackerInput.shield = false
+	for frame = 2 to attackStartupFrames(5) + 1
+		stepMatch(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, frame)
+	target.grabbedFrames.assertEquals(20)
+	target.shield.assertFalse()
+	destroy attackerCommands
+	destroy targetCommands
+	destroy attackerInput
+	destroy targetInput
+	destroy attacker
+	destroy target
+	destroy game
 
 @Test function shieldstunKeepsTheFighterShieldingAndBlocksActions()
 	let game = testMatch()

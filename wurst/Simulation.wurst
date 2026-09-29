@@ -36,7 +36,7 @@ public constant int SHIELD_RELEASE_LAG_FRAMES = 15
 public constant real WALK_SPEED_RATIO = 0.5
 public constant int PROJECTILE_CAPACITY = 16
 public constant real BLASTER_PROJECTILE_SPEED = 36
-constant int BLASTER_PROJECTILE_LIFETIME = 30
+constant int BLASTER_PROJECTILE_LIFETIME = 60
 public constant real BLASTER_PROJECTILE_HEIGHT = 75
 public constant real BLASTER_PROJECTILE_HALF_HEIGHT = 36
 public constant real BLASTER_PROJECTILE_RADIUS = 24
@@ -305,8 +305,17 @@ public function doubleJumpSpeed(int character) returns real
 public function jumpSquatFrames(int character) returns int
 	return character == 0 ? FOX_JUMP_SQUAT_FRAMES : FALCO_JUMP_SQUAT_FRAMES
 
+function canStartAttack(FighterState attacker) returns boolean
+	return not attacker.out and (attacker.downState == DOWN_NONE or isTumbling(attacker)) and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0
+
 public function canAttack(FighterState attacker) returns boolean
-	return not attacker.out and (attacker.downState == DOWN_NONE or isTumbling(attacker)) and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0 and not attacker.shield
+	return canStartAttack(attacker) and not attacker.shield
+
+public function canShieldGrab(FighterState attacker) returns boolean
+	return canStartAttack(attacker) and attacker.shield and attacker.grounded and attacker.shieldEnergy > 0
+
+public function canStartAttackStyle(FighterState attacker, int style) returns boolean
+	return canAttack(attacker) or (style == 5 and canShieldGrab(attacker))
 
 public function isAerialAttack(int style) returns boolean
 	return style >= AERIAL_NEUTRAL_STYLE and style <= AERIAL_DOWN_STYLE
@@ -663,6 +672,9 @@ function interruptJumpOrDodge(FighterState f)
 function beginAttack(FighterState attacker, int style, boolean mayCharge)
 	if isTumbling(attacker)
 		clearDownState(attacker)
+	if style == 5 and attacker.shield
+		attacker.shield = false
+		attacker.shieldHeldFrames = 0
 	attacker.attackStyle = style
 	attacker.attackFrame = 0
 	attacker.attackDuration = attackDurationFramesForGrounding(style, attacker.grounded)
@@ -854,8 +866,8 @@ public function beginAttackPair(FighterState first, FighterState second, int fir
 	let secondGroundAttack = secondStyle >= 0 and secondStyle <= 10 and secondStyle != 1
 	let firstAerial = isAerialAttack(firstStyle)
 	let secondAerial = isAerialAttack(secondStyle)
-	let firstEligible = (firstGroundAttack and first.grounded or firstStyle == 1 or firstAerial and not first.grounded) and canAttack(first) and not second.out
-	let secondEligible = (secondGroundAttack and second.grounded or secondStyle == 1 or secondAerial and not second.grounded) and canAttack(second) and not first.out
+	let firstEligible = (firstGroundAttack and first.grounded or firstStyle == 1 or firstAerial and not first.grounded) and canStartAttackStyle(first, firstStyle) and not second.out
+	let secondEligible = (secondGroundAttack and second.grounded or secondStyle == 1 or secondAerial and not second.grounded) and canStartAttackStyle(second, secondStyle) and not first.out
 	if firstEligible
 		beginAttack(first, firstStyle, firstMayCharge)
 	if secondEligible

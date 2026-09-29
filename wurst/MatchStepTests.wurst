@@ -4,6 +4,36 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function activeShieldConsumesGrabButRejectsOrdinaryAttackCommand()
+    let game = new MatchState()
+    game.confirm()
+    game.confirm()
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 350, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    firstInput.shield = true
+    firstCommands.enqueue(0, 0, 1, false)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    first.shield.assertTrue()
+    first.attackStyle.assertEquals(-1)
+    firstCommands.hasPending(1).assertTrue()
+    firstCommands.clear()
+    firstCommands.enqueue(5, 0, 2, false)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    first.attackStyle.assertEquals(5)
+    first.shield.assertFalse()
+    first.shieldReleaseLag.assertEquals(0)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
 @Test function downOnlyDropsWhenAttackQueueIsEmptyExpiredOrFuture()
     for mode = 0 to 2
         let game = new MatchState()
