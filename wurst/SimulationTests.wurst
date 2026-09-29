@@ -2934,3 +2934,322 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		fighter.shieldBreakFrame.assertEquals(0)
 		destroy input
 		destroy fighter
+
+function ledgeTestFighter(int character, int side) returns FighterState
+	let fighter = new FighterState(character, side * 620., -side)
+	fighter.grounded = false
+	fighter.z = -30
+	fighter.vz = -2
+	fighter.jumps = 0
+	return fighter
+
+function catchTestLedge(FighterState fighter, InputSnapshot input)
+	let other = new FighterState(1, 0, 1)
+	let otherInput = new InputSnapshot()
+	resolveLedgePair(fighter, other, 0, input, otherInput)
+	destroy otherInput
+	destroy other
+
+@Test function ledgeCatchBothCharactersAndSidesRestoresOneAirJump()
+	for character = 0 to 1
+		for sideIndex = 0 to 1
+			let side = sideIndex == 0 ? -1 : 1
+			let fighter = ledgeTestFighter(character, side)
+			let input = new InputSnapshot()
+			fighter.damage = 75
+			fighter.shieldEnergy = 12
+			fighter.knockbackX = 1
+			catchTestLedge(fighter, input)
+			fighter.ledgeState.assertEquals(LEDGE_HANG)
+			fighter.ledgeSide.assertEquals(side)
+			fighter.ledgeFrame.assertEquals(0)
+			fighter.ledgeSerial.assertEquals(1)
+			fighter.x.assertEquals(side * 642.)
+			fighter.z.assertEquals(-60.)
+			fighter.jumps.assertEquals(1)
+			fighter.knockbackX.assertEquals(0.)
+			fighter.damage.assertEquals(75.)
+			fighter.shieldEnergy.assertEquals(12.)
+			fighter.invincible.assertEquals(0)
+			isIntangible(fighter).assertTrue()
+			destroy input
+			destroy fighter
+
+@Test function ledgeEligibilityRejectsLocksWrongFacingAndOutsideRegion()
+	for mode = 0 to 13
+		let fighter = ledgeTestFighter(0, -1)
+		let input = new InputSnapshot()
+		if mode == 0
+			fighter.vz = 1
+		else if mode == 1
+			fighter.facing = -1
+		else if mode == 2
+			input.down = true
+		else if mode == 3
+			fighter.hitstun = 1
+		else if mode == 4
+			fighter.hitlag = 1
+		else if mode == 5
+			fighter.cooldown = 1
+		else if mode == 6
+			fighter.airDodging = true
+		else if mode == 7
+			fighter.shieldBreakState = SHIELD_BREAK_AIR
+		else if mode == 8
+			fighter.grabbedFrames = 1
+		else if mode == 9
+			fighter.ledgeRegrab = 1
+		else if mode == 10
+			fighter.x = -655
+		else if mode == 11
+			fighter.z = -91
+		else if mode == 12
+			fighter.z = 13
+		else
+			fighter.x = -599
+		catchTestLedge(fighter, input)
+		fighter.ledgeState.assertEquals(LEDGE_NONE)
+		destroy input
+		destroy fighter
+
+@Test function ledgeUpperPlatformsCannotBeCaught()
+	let fighter = ledgeTestFighter(1, -1)
+	let other = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.x = surfaceLeft(1, 1) - 20
+	fighter.z = surfaceZ(1, 1) - 30
+	resolveLedgePair(fighter, other, 1, input, input)
+	fighter.ledgeState.assertEquals(LEDGE_NONE)
+	destroy input
+	destroy other
+	destroy fighter
+
+@Test function ledgeContentionUsesDistanceNotArgumentOrderAndOwnerHogs()
+	for reversed = 0 to 1
+		let near = ledgeTestFighter(0, -1)
+		let far = ledgeTestFighter(1, -1)
+		let input = new InputSnapshot()
+		far.x = -640
+		if reversed == 0
+			resolveLedgePair(near, far, 0, input, input)
+		else
+			resolveLedgePair(far, near, 0, input, input)
+		near.ledgeState.assertEquals(LEDGE_HANG)
+		far.ledgeState.assertEquals(LEDGE_NONE)
+		near.ledgeIntangible = 0
+		far.x = -601
+		far.z = -1
+		resolveLedgePair(far, near, 0, input, input)
+		far.ledgeState.assertEquals(LEDGE_NONE)
+		destroy input
+		destroy near
+		destroy far
+
+@Test function ledgeTiesCatchNeitherAndOppositeEdgesAreIndependent()
+	let first = ledgeTestFighter(0, 1)
+	let second = ledgeTestFighter(1, 1)
+	let input = new InputSnapshot()
+	resolveLedgePair(first, second, 0, input, input)
+	first.ledgeState.assertEquals(LEDGE_NONE)
+	second.ledgeState.assertEquals(LEDGE_NONE)
+	second.x = -620
+	second.facing = 1
+	resolveLedgePair(first, second, 0, input, input)
+	first.ledgeState.assertEquals(LEDGE_HANG)
+	second.ledgeState.assertEquals(LEDGE_HANG)
+	destroy input
+	destroy first
+	destroy second
+
+@Test function ledgeOptionsHonorPriorityLocksAndExactRecoveryDurations()
+	for character = 0 to 1
+		for sideIndex = 0 to 1
+			for option = 0 to 6
+				let side = sideIndex == 0 ? -1 : 1
+				let fighter = ledgeTestFighter(character, side)
+				let input = new InputSnapshot()
+				catchTestLedge(fighter, input)
+				advance(fighter, 0, input, 0)
+				input.jumpPressed = option == 0
+				input.getupDirectionPressed = option == 1 or option == 2
+				input.getupDirection = option == 1 ? -side : side
+				input.ledgeVerticalPressed = option == 3 ? 1 : (option == 4 ? -1 : 0)
+				input.airDodgePressed = option == 5
+				input.getupAttackPressed = true
+				advance(fighter, 0, input, 0)
+				if option == 0 or option == 2 or option == 4
+					fighter.ledgeState.assertEquals(LEDGE_NONE)
+					fighter.ledgeRegrab.assertEquals(LEDGE_REGRAB_FRAMES)
+					isIntangible(fighter).assertFalse()
+					fighter.jumps.assertEquals(1)
+					if option == 0
+						fighter.vz.assertEquals(fullJumpSpeed(character))
+						fighter.jumpSerial.assertEquals(1)
+					else
+						fighter.vz.assertEquals(-2.)
+				else
+					let phase = option == 5 ? LEDGE_ROLL : (option == 6 ? LEDGE_ATTACK : LEDGE_CLIMB)
+					let duration = option == 5 ? LEDGE_ROLL_FRAMES : (option == 6 ? LEDGE_ATTACK_FRAMES : LEDGE_CLIMB_FRAMES)
+					fighter.ledgeState.assertEquals(phase)
+					fighter.ledgeFrame.assertEquals(0)
+					input.jumpPressed = true
+					input.shield = true
+					input.down = true
+					for tick = 1 to duration - 1
+						advance(fighter, 0, input, 0)
+						fighter.ledgeState.assertEquals(phase)
+						fighter.ledgeFrame.assertEquals(tick)
+						fighter.jumpSerial.assertEquals(0)
+						fighter.shield.assertFalse()
+						canAttack(fighter).assertFalse()
+					advance(fighter, 0, input, 0)
+					fighter.ledgeState.assertEquals(LEDGE_NONE)
+					fighter.grounded.assertTrue()
+					fighter.surface.assertEquals(0)
+					fighter.z.assertEquals(0.)
+					fighter.x.assertEquals(side * (option == 5 ? 460. : (option == 6 ? 536. : 576.)))
+					fighter.attackStyle.assertEquals(-1)
+					fighter.jumps.assertEquals(2)
+				destroy input
+				destroy fighter
+
+@Test function ledgeHangProtectionExpiresAndHitlagFreezesPhase()
+	let fighter = ledgeTestFighter(0, -1)
+	let input = new InputSnapshot()
+	catchTestLedge(fighter, input)
+	input.direction = 1
+	input.verticalDirection = 1
+	input.shield = true
+	input.attackHeld = true
+	for tick = 1 to LEDGE_INTANGIBLE_FRAMES - 1
+		advance(fighter, 0, input, 0)
+		isIntangible(fighter).assertTrue()
+		fighter.ledgeState.assertEquals(LEDGE_HANG)
+	advance(fighter, 0, input, 0)
+	isIntangible(fighter).assertFalse()
+	input.getupAttackPressed = true
+	advance(fighter, 0, input, 0)
+	fighter.ledgeState.assertEquals(LEDGE_ATTACK)
+	isIntangible(fighter).assertFalse()
+	fighter.hitlag = 2
+	for tick = 1 to 2
+		advance(fighter, 0, input, 0)
+		fighter.ledgeFrame.assertEquals(0)
+		fighter.attackFrame.assertEquals(0)
+		fighter.x.assertEquals(-642.)
+	advance(fighter, 0, input, 0)
+	fighter.ledgeFrame.assertEquals(1)
+	fighter.attackFrame.assertEquals(1)
+	destroy input
+	destroy fighter
+
+@Test function ledgeAttackHasStartupActiveWindowOneHitAndRecovery()
+	for sideIndex = 0 to 1
+		let side = sideIndex == 0 ? -1 : 1
+		let fighter = ledgeTestFighter(0, side)
+		let target = new FighterState(1, side * 470., side)
+		let input = new InputSnapshot()
+		catchTestLedge(fighter, input)
+		advance(fighter, 0, input, 0)
+		input.getupAttackPressed = true
+		advance(fighter, 0, input, 0)
+		fighter.attackStyle.assertEquals(LEDGE_ATTACK_STYLE)
+		for tick = 1 to attackStartupFrames(LEDGE_ATTACK_STYLE) - 1
+			advance(fighter, 0, input, 0)
+			resolveAttackPair(fighter, target)
+			target.damage.assertEquals(0.)
+		advance(fighter, 0, input, 0)
+		resolveAttackPair(fighter, target)
+		target.damage.assertEquals(7.)
+		resolveAttackPair(fighter, target)
+		target.damage.assertEquals(7.)
+		fighter.hitlag = 0
+		fighter.attackFrame = 19
+		attackPhase(fighter).assertEquals(ATTACK_RECOVERY)
+		destroy input
+		destroy fighter
+		destroy target
+
+@Test function ledgeHitsAndGrabsInterruptAndStockResetClearsOwnership()
+	for phase = LEDGE_HANG to LEDGE_ATTACK
+		for mode = 0 to 2
+			let fighter = ledgeTestFighter(0, -1)
+			let input = new InputSnapshot()
+			catchTestLedge(fighter, input)
+			fighter.ledgeState = phase
+			fighter.ledgeIntangible = 0
+			if mode < 2
+				let attacker = new FighterState(1, -570, -1)
+				let style = mode == 0 ? 0 : 5
+				beginAttackPair(attacker, fighter, style, -1, false, false)
+				attacker.attackFrame = attackStartupFrames(style)
+				resolveAttackPair(attacker, fighter)
+				fighter.ledgeState.assertEquals(LEDGE_NONE)
+				fighter.ledgeSide.assertEquals(0)
+				fighter.ledgeFrame.assertEquals(0)
+				fighter.ledgeIntangible.assertEquals(0)
+				fighter.ledgeRegrab.assertEquals(LEDGE_REGRAB_FRAMES)
+				if mode == 0
+					fighter.hitstun.assertGreaterThan(0)
+				else
+					fighter.grabbedFrames.assertEquals(20)
+				destroy attacker
+			else
+				fighter.z = -421
+				advance(fighter, 0, input, 0)
+				fighter.stocks.assertEquals(2)
+				fighter.ledgeState.assertEquals(LEDGE_NONE)
+				fighter.ledgeRegrab.assertEquals(0)
+			reset(fighter, 0)
+			fighter.ledgeState.assertEquals(LEDGE_NONE)
+			fighter.ledgeSerial.assertEquals(0)
+			fighter.ledgeRegrab.assertEquals(0)
+			destroy input
+			destroy fighter
+
+@Test function ledgeReleaseRegrabCooldownExpiresAfterThirtyUnfrozenTicks()
+	let fighter = ledgeTestFighter(0, -1)
+	let input = new InputSnapshot()
+	catchTestLedge(fighter, input)
+	advance(fighter, 0, input, 0)
+	input.ledgeVerticalPressed = -1
+	advance(fighter, 0, input, 0)
+	input.ledgeVerticalPressed = 0
+	for tick = 1 to LEDGE_REGRAB_FRAMES
+		fighter.x = -620
+		fighter.z = -30
+		fighter.vz = -2
+		catchTestLedge(fighter, input)
+		fighter.ledgeState.assertEquals(LEDGE_NONE)
+		advance(fighter, 0, input, 0)
+	fighter.ledgeRegrab.assertEquals(0)
+	catchTestLedge(fighter, input)
+	fighter.ledgeState.assertEquals(LEDGE_HANG)
+	fighter.ledgeSerial.assertEquals(2)
+	destroy input
+	destroy fighter
+
+@Test function ledgeProtectionBlocksStrikesAndGrabsUntilItExpires()
+	for mode = 0 to 1
+		let fighter = ledgeTestFighter(0, -1)
+		let attacker = new FighterState(1, -570, -1)
+		let input = new InputSnapshot()
+		catchTestLedge(fighter, input)
+		let style = mode == 0 ? 0 : 5
+		beginAttackPair(attacker, fighter, style, -1, false, false)
+		attacker.attackFrame = attackStartupFrames(style)
+		resolveAttackPair(attacker, fighter)
+		fighter.ledgeState.assertEquals(LEDGE_HANG)
+		fighter.damage.assertEquals(0.)
+		fighter.grabbedFrames.assertEquals(0)
+		for tick = 1 to LEDGE_INTANGIBLE_FRAMES
+			advance(fighter, 0, input, 0)
+		resolveAttackPair(attacker, fighter)
+		fighter.ledgeState.assertEquals(LEDGE_NONE)
+		if mode == 0
+			fighter.damage.assertEquals(12.)
+		else
+			fighter.grabbedFrames.assertEquals(20)
+		destroy input
+		destroy attacker
+		destroy fighter

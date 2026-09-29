@@ -262,3 +262,43 @@ import MatchStep
     stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
     first.stocks.assertEquals(0)
     second.stocks.assertEquals(0)
+
+@Test function ledgeSharedMatchStepCatchesBothSlotsThenAcceptsFreshOptions()
+    let game = new MatchState()
+    game.confirm()
+    game.confirm()
+    let first = new FighterState(0, -620, 1)
+    let second = new FighterState(1, 620, -1)
+    first.grounded = false
+    second.grounded = false
+    first.z = -30
+    second.z = -30
+    first.vz = -2
+    second.vz = -2
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    first.ledgeState.assertEquals(LEDGE_HANG)
+    second.ledgeState.assertEquals(LEDGE_HANG)
+    first.ledgeFrame.assertEquals(1)
+    second.ledgeFrame.assertEquals(1)
+    firstInput.getupAttackPressed = true
+    secondInput.ledgeVerticalPressed = 1
+    firstCommands.enqueue(0, 0, 2, false)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    first.ledgeState.assertEquals(LEDGE_ATTACK)
+    second.ledgeState.assertEquals(LEDGE_CLIMB)
+    first.attackStyle.assertEquals(LEDGE_ATTACK_STYLE)
+    first.attackSerial.assertEquals(1)
+    second.attackStyle.assertEquals(-1)
+    first.ledgeFrame.assertEquals(0)
+    second.ledgeFrame.assertEquals(0)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game

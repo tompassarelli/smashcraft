@@ -57,6 +57,23 @@ public constant int ATTACK_ACTIVE = 2
 public constant int ATTACK_RECOVERY = 3
 public constant int SMASH_MAX_CHARGE_FRAMES = 60
 public constant real SMASH_MAX_DAMAGE_MULTIPLIER = 1.3671
+public constant int LEDGE_NONE = 0
+public constant int LEDGE_HANG = 1
+public constant int LEDGE_CLIMB = 2
+public constant int LEDGE_ROLL = 3
+public constant int LEDGE_ATTACK = 4
+public constant int LEDGE_CLIMB_FRAMES = 25
+public constant int LEDGE_ROLL_FRAMES = 36
+public constant int LEDGE_ATTACK_FRAMES = 40
+public constant int LEDGE_INTANGIBLE_FRAMES = 30
+public constant int LEDGE_REGRAB_FRAMES = 30
+public constant int LEDGE_ATTACK_STYLE = 17
+public constant real LEDGE_GRAB_WIDTH = 54
+public constant real LEDGE_GRAB_BELOW = 90
+public constant real LEDGE_GRAB_ABOVE = 12
+public constant real LEDGE_HANG_OUTSET = 42
+public constant real LEDGE_HANG_DEPTH = 60
+constant int LEDGE_MOUNT_FRAMES = 12
 public constant int DOWN_NONE = 0
 public constant int DOWN_TUMBLE = 1
 public constant int DOWN_BOUND = 2
@@ -184,6 +201,12 @@ public class FighterState
 	int techLockout = 0
 	boolean techHitlagLatched = false
 	int grabbedFrames = 0
+	int ledgeState = LEDGE_NONE
+	int ledgeSide = 0
+	int ledgeFrame = 0
+	int ledgeSerial = 0
+	int ledgeIntangible = 0
+	int ledgeRegrab = 0
 
 	construct(int fighterType, real startX, int direction)
 		character = fighterType
@@ -210,6 +233,7 @@ public class InputSnapshot
 	boolean groundDodgePressed = false
 	int groundDodgeDirection = 0
 	boolean getupAttackPressed = false
+	int ledgeVerticalPressed = 0
 	boolean getupStandPressed = false
 	boolean getupDirectionPressed = false
 	int getupDirection = 0
@@ -321,6 +345,8 @@ public function jumpSquatFrames(int character) returns int
 	return character == 0 ? FOX_JUMP_SQUAT_FRAMES : FALCO_JUMP_SQUAT_FRAMES
 
 function canStartAttack(FighterState attacker) returns boolean
+	if attacker.ledgeState != LEDGE_NONE
+		return false
 	return not attacker.out and attacker.shieldBreakState == SHIELD_BREAK_NONE and (attacker.downState == DOWN_NONE or isTumbling(attacker)) and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0
 
 public function canAttack(FighterState attacker) returns boolean
@@ -347,6 +373,8 @@ public function attackLandingLag(int style) returns int
 	return style == AERIAL_DOWN_STYLE ? AERIAL_DOWN_LANDING_LAG : 0
 
 function attackDamage(int style) returns real
+	if style == LEDGE_ATTACK_STYLE
+		return 7
 	if style == DOWN_ATTACK_STYLE
 		return DOWN_ATTACK_DAMAGE
 	if style == AERIAL_NEUTRAL_STYLE
@@ -382,6 +410,8 @@ function attackReach(int style) returns real
 	return style == 1 ? 600 : (style == 2 or style == 3 ? 125 : (style == 5 ? 100 : 145))
 
 public function attackStartupFrames(int style) returns int
+	if style == LEDGE_ATTACK_STYLE
+		return 16
 	if style == AERIAL_NEUTRAL_STYLE
 		return 3
 	if style == AERIAL_FORWARD_STYLE
@@ -395,6 +425,8 @@ public function attackStartupFrames(int style) returns int
 	return style == DOWN_ATTACK_STYLE ? DOWN_ATTACK_STARTUP_FRAMES : (style == 1 ? 2 : (style == 2 or style == 3 ? 8 : (style == 4 ? 6 : (style == 5 ? 5 : (style == 6 or style == 8 or style == 9 or style == 10 ? 5 : (style == 7 ? 6 : 4))))))
 
 public function attackActiveFrames(int style) returns int
+	if style == LEDGE_ATTACK_STYLE
+		return 3
 	if style == AERIAL_NEUTRAL_STYLE or style == AERIAL_FORWARD_STYLE or style == AERIAL_BACK_STYLE
 		return 2
 	if style == AERIAL_UP_STYLE or style == AERIAL_DOWN_STYLE
@@ -405,6 +437,8 @@ public function attackDurationFrames(int style) returns int
 	return attackDurationFramesForGrounding(style, true)
 
 public function attackDurationFramesForGrounding(int style, boolean grounded) returns int
+	if style == LEDGE_ATTACK_STYLE
+		return LEDGE_ATTACK_FRAMES
 	if style == AERIAL_NEUTRAL_STYLE
 		return 25
 	if style == AERIAL_FORWARD_STYLE
@@ -450,6 +484,8 @@ public function projectileDirectionAt(FighterState f, int index) returns int
 
 function attackHits(FighterState attacker, FighterState target, int style) returns boolean
 	let separation = target.x - attacker.x
+	if style == LEDGE_ATTACK_STYLE
+		return not target.out and not isIntangible(target) and separation * attacker.facing >= 0 and separation.abs() <= 140 and (target.z - attacker.z).abs() <= 90
 	let verticalOffset = style == 9 ? 65 : (style == 10 ? -65 : 0)
 	if isAerialAttack(style)
 		let vertical = target.z - attacker.z
@@ -466,6 +502,8 @@ function attackHits(FighterState attacker, FighterState target, int style) retur
 	return not target.out and not isIntangible(target) and inFacing and separation.abs() <= attackReach(style) and (target.z - attacker.z - verticalOffset).abs() <= 130
 
 public function isIntangible(FighterState f) returns boolean
+	if f.ledgeState != LEDGE_NONE and f.ledgeIntangible > 0
+		return true
 	let groundDodgeIntangible = f.groundDodgeFrame > 0 and (
 		(f.groundDodgeDirection == 0 and f.groundDodgeFrame >= SPOT_DODGE_INTANGIBLE_START and f.groundDodgeFrame <= SPOT_DODGE_INTANGIBLE_END)
 		or (f.groundDodgeDirection != 0 and f.groundDodgeFrame >= GROUND_ROLL_INTANGIBLE_START and f.groundDodgeFrame <= GROUND_ROLL_INTANGIBLE_END))
@@ -482,6 +520,137 @@ public function isTumbling(FighterState f) returns boolean
 
 public function isFloorTeching(FighterState f) returns boolean
 	return f.downState == DOWN_TECH or f.downState == DOWN_TECH_ROLL
+
+function clearLedge(FighterState f)
+	f.ledgeState = LEDGE_NONE
+	f.ledgeSide = 0
+	f.ledgeFrame = 0
+	f.ledgeIntangible = 0
+
+function leaveLedge(FighterState f)
+	clearLedge(f)
+	f.ledgeRegrab = LEDGE_REGRAB_FRAMES
+
+function ledgeX(int stage, int side) returns real
+	return side < 0 ? surfaceLeft(stage, 0) : surfaceRight(stage, 0)
+
+function ledgeCandidate(FighterState f, int stage, InputSnapshot input) returns int
+	if not canAttack(f) or f.grounded or f.ledgeRegrab > 0 or f.attackStyle >= 0 or input.down or input.verticalDirection < 0 or totalVelocityZ(f) >= 0
+		return 0
+	let height = f.z - surfaceZ(stage, 0)
+	if height < -LEDGE_GRAB_BELOW or height > LEDGE_GRAB_ABOVE
+		return 0
+	let side = f.x < 0 ? -1 : 1
+	let outside = (f.x - ledgeX(stage, side)) * side
+	if outside < 0 or outside > LEDGE_GRAB_WIDTH or f.facing != -side
+		return 0
+	return side
+
+function ledgeDistance(FighterState f, int stage, int side) returns real
+	let dx = f.x - ledgeX(stage, side)
+	let dz = f.z - surfaceZ(stage, 0)
+	return dx * dx + dz * dz
+
+function catchLedge(FighterState f, int stage, int side)
+	clearDownState(f)
+	f.ledgeState = LEDGE_HANG
+	f.ledgeSide = side
+	f.ledgeFrame = 0
+	f.ledgeSerial++
+	f.ledgeIntangible = LEDGE_INTANGIBLE_FRAMES
+	f.x = ledgeX(stage, side) + side * LEDGE_HANG_OUTSET
+	f.z = surfaceZ(stage, 0) - LEDGE_HANG_DEPTH
+	f.facing = -side
+	f.grounded = false
+	f.surface = -1
+	f.vx = 0
+	f.vz = 0
+	f.knockbackX = 0
+	f.knockbackZ = 0
+	f.jumps = 1
+	f.dropTime = 0
+	f.lCancelWindow = 0
+	f.techWindow = 0
+	f.techHitlagLatched = false
+
+public function resolveLedgePair(FighterState first, FighterState second, int stage, InputSnapshot firstInput, InputSnapshot secondInput)
+	var firstSide = ledgeCandidate(first, stage, firstInput)
+	var secondSide = ledgeCandidate(second, stage, secondInput)
+	if second.ledgeState != LEDGE_NONE and second.ledgeSide == firstSide
+		firstSide = 0
+	if first.ledgeState != LEDGE_NONE and first.ledgeSide == secondSide
+		secondSide = 0
+	if firstSide != 0 and firstSide == secondSide
+		let firstDistance = ledgeDistance(first, stage, firstSide)
+		let secondDistance = ledgeDistance(second, stage, secondSide)
+		if firstDistance >= secondDistance
+			firstSide = 0
+		if secondDistance >= firstDistance
+			secondSide = 0
+	if firstSide != 0
+		catchLedge(first, stage, firstSide)
+	if secondSide != 0
+		catchLedge(second, stage, secondSide)
+
+function startLedgeOption(FighterState f, int state)
+	f.ledgeState = state
+	f.ledgeFrame = 0
+	if state == LEDGE_ATTACK
+		beginAttack(f, LEDGE_ATTACK_STYLE, false)
+
+function advanceLedge(FighterState f, int stage, InputSnapshot input)
+	checkBlastZone(f)
+	if f.out
+		return
+	if f.hitlag > 0
+		f.hitlag--
+		return
+	f.invincible = max(0, f.invincible - 1)
+	f.ledgeIntangible = max(0, f.ledgeIntangible - 1)
+	if f.ledgeState == LEDGE_HANG
+		// The catch tick anchors before new options can begin.
+		if f.ledgeFrame > 0
+			let intoStage = input.getupDirectionPressed and input.getupDirection == -f.ledgeSide
+			let away = input.getupDirectionPressed and input.getupDirection == f.ledgeSide
+			if input.jumpPressed
+				f.vx = -f.ledgeSide * characterAirSpeed(f.character)
+				f.vz = fullJumpSpeed(f.character)
+				f.jumpSerial++
+				f.jumpIsDouble = false
+				leaveLedge(f)
+				return
+			else if intoStage or input.ledgeVerticalPressed > 0
+				startLedgeOption(f, LEDGE_CLIMB)
+				return
+			else if away or input.ledgeVerticalPressed < 0
+				f.vx = f.ledgeSide * 2.
+				f.vz = -2
+				leaveLedge(f)
+				return
+			else if input.airDodgePressed
+				startLedgeOption(f, LEDGE_ROLL)
+				return
+			else if input.getupAttackPressed
+				startLedgeOption(f, LEDGE_ATTACK)
+				return
+		f.ledgeFrame++
+		return
+	f.ledgeFrame++
+	let progress = min(LEDGE_MOUNT_FRAMES, f.ledgeFrame) * 1. / LEDGE_MOUNT_FRAMES
+	let inset = f.ledgeState == LEDGE_ROLL ? 140. : (f.ledgeState == LEDGE_ATTACK ? 64. : 24.)
+	f.x = ledgeX(stage, f.ledgeSide) + f.ledgeSide * (LEDGE_HANG_OUTSET * (1 - progress) - inset * progress)
+	f.z = surfaceZ(stage, 0) - LEDGE_HANG_DEPTH * (1 - progress)
+	f.grounded = f.ledgeFrame >= LEDGE_MOUNT_FRAMES
+	f.surface = f.grounded ? 0 : -1
+	if f.ledgeState == LEDGE_ATTACK
+		f.attackFrame = f.ledgeFrame
+		f.cooldown = max(0, LEDGE_ATTACK_FRAMES - f.ledgeFrame)
+	let duration = f.ledgeState == LEDGE_CLIMB ? LEDGE_CLIMB_FRAMES : (f.ledgeState == LEDGE_ROLL ? LEDGE_ROLL_FRAMES : LEDGE_ATTACK_FRAMES)
+	if f.ledgeFrame >= duration
+		if f.ledgeState == LEDGE_ATTACK
+			cancelAttack(f)
+		f.jumps = 2
+		leaveLedge(f)
 
 function clearShieldBreak(FighterState f)
 	f.shieldBreakState = SHIELD_BREAK_NONE
@@ -749,6 +918,8 @@ function beginGroundDodge(FighterState f, int direction)
 	f.shieldHeldFrames = 0
 
 function interruptJumpOrDodge(FighterState f)
+	if f.ledgeState != LEDGE_NONE
+		leaveLedge(f)
 	clearShieldBreak(f)
 	f.jumpSquat = 0
 	f.jumpHeld = false
@@ -909,6 +1080,8 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	attacker.hitlag = max(attacker.hitlag, R2I(damage / 3 + 3))
 
 public function simulationJump(FighterState f)
+	if f.ledgeState != LEDGE_NONE
+		return
 	if f.out or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or (f.shieldReleaseLag > 0 and not f.grounded) or f.landingLag > 0 or f.airDodging or isGroundDodging(f) or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
 		return
 	if f.grounded
@@ -925,6 +1098,8 @@ public function simulationJump(FighterState f)
 	f.jumps--
 
 public function simulationAirDodge(FighterState f, int horizontal, int vertical)
+	if f.ledgeState != LEDGE_NONE
+		return
 	if f.out or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.grounded or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.landingLag > 0 or f.cooldown > 0 or f.airDodging or f.airDodgeTime > 0
 		return
 	let dx = horizontal == 0 ? 0 : (horizontal > 0 ? 1 : -1)
@@ -984,6 +1159,9 @@ function canResolveAttack(FighterState attacker, FighterState target) returns bo
 	return not target.out and attackHits(attacker, target, attacker.attackStyle)
 
 public function reset(FighterState f, real startX)
+	clearLedge(f)
+	f.ledgeSerial = 0
+	f.ledgeRegrab = 0
 	clearShieldBreak(f)
 	f.shieldBreakSerial = 0
 	clearDownState(f)
@@ -1047,6 +1225,11 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.respawn--
 		if f.respawn <= 0
 			reset(f, respawnX)
+		return
+	if f.hitlag <= 0
+		f.ledgeRegrab = max(0, f.ledgeRegrab - 1)
+	if f.ledgeState != LEDGE_NONE
+		advanceLedge(f, stage, input)
 		return
 	if f.shieldBreakState != SHIELD_BREAK_NONE
 		advanceShieldBreak(f, stage, input)
@@ -1241,6 +1424,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 function checkBlastZone(FighterState f)
 	if f.x <= -920 or f.x >= 920 or f.z <= -420 or f.z >= 760
 		f.out = true
+		clearLedge(f)
+		f.ledgeRegrab = 0
 		clearShieldBreak(f)
 		f.diPending = false
 		f.diLaunchSpeed = 0

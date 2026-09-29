@@ -1014,6 +1014,41 @@ and no repeat consumption. Full suite: 157/157, zero errors/warnings. Logs:
 and ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/human-direct-after.log.
 This proves the common queue/step behavior, not delivery across two clients.
 
+## Selection artwork and ledge integration (2026-09-30)
+
+The selection menu now packages ten authored textures: backdrop, metallic roster
+and player frames, action/stage art, and rendered Archer/Rifleman portraits and
+tiles. Regenerate framing with wc3-melee:tools/selection/build-art.sh and fighter
+portraits with wc3-melee:tools/animations/build-portraits.sh. The build checks
+that every imported texture matches its input. Selection uses Wurst Framehandle
+and ClosureFrames, including click focus release and fullscreen backdrop sizing.
+Returning from stage select explicitly restores the fighter tile textures.
+
+Build 072855 rendered all art in the existing client and reached its ready marker
+in 23.3 seconds. Evidence lives in
+~/code/wc3-melee/worktrees/test-loop/build/loop/20260930-072854-reload/ready.png.
+This screenshot exposed left-aligned nameplates; source now centers/repositions
+them and extends the background to fullscreen. Those last layout changes compile
+but still need a native visual check. This is a closer two-fighter adaptation,
+not a verified high-fidelity replica of the supplied reference.
+
+Ledge simulation is integrated with fresh Up/Down edges, jump/shield/attack
+options, state tracing, and provisional reused animation clips. The full suite
+passes 169/169 with no errors or warnings. The native fixture is
+WC3_SCENARIO=ledge with wc3-melee:tools/probe-ledge.sh climb (or jump, roll,
+attack, drop). Start the probe at character select. Dedicated hang/climb
+animation art remains unfinished.
+
+The native probe did NOT pass: Warcraft displayed "Waiting for host" before
+the menu accepted input, and no new trace was written. Evidence is in
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/ledge-climb/.
+Disconnecting returned the retained client to Battle.net sign-in. The cause
+of the recurring host-wait is unresolved; a ready marker alone does not prove
+the session continues accepting input. Next native work must restore a usable
+session, validate fighter clicks, stage/back texture restoration and controls
+focus, then observe the ledge fixture. Do not infer two-client synchronization
+from the headless tests or this rendering check.
+
 Build 070118 compiled and deployed with the three existing map warnings.
 Automatic restart correctly stopped after focus changed; direct F6 followed
 by Enter at the observed loading prompt completed the restart without another

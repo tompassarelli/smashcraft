@@ -34,6 +34,7 @@ boolean playerGetupStandPressed = false
 boolean playerTechPressed = false
 boolean playerLCancelPressed = false
 boolean playerMashPressed = false
+int playerLedgeVerticalPressed = 0
 lightning array stageLines
 int stageLineCount = 0
 lightning array blastLines
@@ -115,6 +116,7 @@ boolean secondDownPressed = false
 boolean secondTechPressed = false
 boolean secondLCancelPressed = false
 boolean secondMashPressed = false
+int secondLedgeVerticalPressed = 0
 boolean secondGetupAttackPressed = false
 boolean secondGetupStandPressed = false
 boolean secondJumpQueued = false
@@ -363,6 +365,7 @@ function applyFrame()
     let playerPreviousShieldBreak = playerFighter.shieldBreakSerial
     let botPreviousShieldBreak = botFighter.shieldBreakSerial
     let playerPreviousBreakState = playerFighter.shieldBreakState
+    let playerPreviousLedge = playerFighter.ledgeState
     stepMatch(matchState, playerFighter, botFighter, playerInput, twoHumanPlayers ? secondPlayerInput : botInput, playerAttacks, botAttacks, simulationFrame)
     if playerFighter.shieldBreakSerial > playerPreviousShieldBreak
         announce("Player 1's shield broke!")
@@ -370,6 +373,8 @@ function applyFrame()
         announce(twoHumanPlayers ? "Player 2's shield broke!" : "Opponent's shield broke!")
     if playerPreviousBreakState != playerFighter.shieldBreakState
         traceInput("shield-break " + I2S(playerFighter.shieldBreakState) + " z " + R2S(playerFighter.z) + " remaining " + I2S(playerFighter.shieldBreakRemaining))
+    if playerPreviousLedge != playerFighter.ledgeState
+        traceInput("ledge " + I2S(playerFighter.ledgeState) + " x " + R2S(playerFighter.x) + " z " + R2S(playerFighter.z))
     if playerFighter.jumpSerial != playerPreviousJump
         traceInput("jump " + I2S(playerFighter.jumpSerial) + " double " + (playerFighter.jumpIsDouble ? "1" : "0") + " z " + R2S(playerFighter.z))
     if playerFighter.lCancelSerial > playerPreviousLCancel
@@ -446,6 +451,15 @@ function startMatch()
     if SHIELD_BREAK_SCENARIO
         playerFighter.shieldEnergy = 1
         botFighter.x = 350
+    if LEDGE_SCENARIO
+        playerFighter.x = surfaceLeft(matchState.stageChoice, 0) - 16
+        playerFighter.z = 15
+        playerFighter.grounded = false
+        playerFighter.surface = -1
+        playerFighter.facing = 1
+        playerFighter.vz = -1
+        playerFighter.jumps = 0
+        botFighter.x = 350
 
 function choose(int participantId)
     let bindings = participantId == 0 ? playerBindings : secondBindings
@@ -503,6 +517,7 @@ function actionHeld(int action) returns boolean
 
 function clearSecondInputs()
     secondMashPressed = false
+    secondLedgeVerticalPressed = 0
     secondKeyState.clear()
     secondNormalAttackQueued = false
     secondLeftPressed = false
@@ -524,6 +539,7 @@ function clearSecondInputs()
 
 function clearHeldInputs()
     playerMashPressed = false
+    playerLedgeVerticalPressed = 0
     firstKeyState.clear()
     playerNormalAttackQueued = false
     playerLeftPressed = false
@@ -600,6 +616,11 @@ function onParticipantKeyDown(int participantId)
     else
         secondLastInputAction = action
     if not wasHeld and matchState.phase == MATCH
+        if action == MOVE_UP or action == MOVE_DOWN
+            if participantId == 0
+                playerLedgeVerticalPressed = action == MOVE_UP ? 1 : -1
+            else
+                secondLedgeVerticalPressed = action == MOVE_UP ? 1 : -1
         if participantId == 0
             playerMashPressed = true
         else
@@ -747,7 +768,7 @@ function playAttackAnimation(Fighter fighter)
     if fighter.attackStyle == 10
         SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_FORWARD_TILT_DOWN_INDEX : RIFLEMAN_FORWARD_TILT_DOWN_INDEX))
         return
-    if fighter.attackStyle == DOWN_ATTACK_STYLE
+    if fighter.attackStyle == DOWN_ATTACK_STYLE or fighter.attackStyle == LEDGE_ATTACK_STYLE
         SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_INDEX : RIFLEMAN_GET_UP_ATTACK_INDEX))
         return
     SetUnitAnimation(fighter.body, "attack")
@@ -777,6 +798,8 @@ function attackAnimationRate(Fighter fighter) returns real
         return (fighter.character == 0 ? ARCHER_FORWARD_TILT_DOWN_SECONDS : RIFLEMAN_FORWARD_TILT_DOWN_SECONDS) / seconds
     if fighter.attackStyle == DOWN_ATTACK_STYLE
         return (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS) / seconds
+    if fighter.attackStyle == LEDGE_ATTACK_STYLE
+        return (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS) / (LEDGE_ATTACK_FRAMES * FRAME_SECONDS)
     return 1.
 
 function downAnimationIndex(Fighter fighter) returns int
@@ -818,7 +841,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
     if f.out
         return
     f.place()
-    if f.grounded or f.hitstun > 0 or f.airDodging or attackPhase(f) != ATTACK_NONE or f.downState != DOWN_NONE or f.shieldBreakState != SHIELD_BREAK_NONE
+    if f.grounded or f.hitstun > 0 or f.airDodging or attackPhase(f) != ATTACK_NONE or f.downState != DOWN_NONE or f.shieldBreakState != SHIELD_BREAK_NONE or f.ledgeState != LEDGE_NONE
         f.jumpAnimationRemaining = 0
     else if jumped and not wasOut
         f.doubleJumpAnimation = f.jumpIsDouble
@@ -827,7 +850,13 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
     else if f.jumpAnimationRemaining > 0 and f.hitlag <= 0
         f.jumpAnimationRemaining--
     var animationRate = attackAnimationRate(f)
-    if f.shieldBreakState == SHIELD_BREAK_LAND
+    if f.ledgeState == LEDGE_CLIMB
+        animationRate = (f.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS) / (LEDGE_CLIMB_FRAMES * FRAME_SECONDS)
+    else if f.ledgeState == LEDGE_ROLL
+        animationRate = (f.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS) / (LEDGE_ROLL_FRAMES * FRAME_SECONDS)
+    else if f.ledgeState == LEDGE_ATTACK
+        animationRate = (f.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS) / (LEDGE_ATTACK_FRAMES * FRAME_SECONDS)
+    else if f.shieldBreakState == SHIELD_BREAK_LAND
         animationRate = (f.character == 0 ? ARCHER_KNOCKDOWN_SECONDS : RIFLEMAN_KNOCKDOWN_SECONDS) / (SHIELD_BREAK_LAND_FRAMES * FRAME_SECONDS)
     else if f.shieldBreakState == SHIELD_BREAK_STAND
         animationRate = (f.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS) / (SHIELD_BREAK_STAND_FRAMES * FRAME_SECONDS)
@@ -840,7 +869,19 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
         animationRate = f.doubleJumpAnimation ? (f.character == 0 ? ARCHER_DOUBLE_JUMP_SECONDS : RIFLEMAN_DOUBLE_JUMP_SECONDS) / (30 * FRAME_SECONDS) : (f.character == 0 ? ARCHER_JUMP_SECONDS : RIFLEMAN_JUMP_SECONDS) / (24 * FRAME_SECONDS)
     SetUnitTimeScale(f.body, f.hitlag > 0 or f.smashCharging ? 0 : animationRate)
     SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
-    if f.shieldBreakState != SHIELD_BREAK_NONE
+    if f.ledgeState != LEDGE_NONE
+        let anim = "ledge" + I2S(f.ledgeState)
+        if f.animation != anim
+            if f.ledgeState == LEDGE_CLIMB
+                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_GET_UP_INDEX : RIFLEMAN_GET_UP_INDEX)
+            else if f.ledgeState == LEDGE_ROLL
+                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX)
+            else if f.ledgeState == LEDGE_ATTACK
+                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_GET_UP_ATTACK_INDEX : RIFLEMAN_GET_UP_ATTACK_INDEX)
+            else
+                SetUnitAnimation(f.body, "stand hit")
+            f.animation = anim
+    else if f.shieldBreakState != SHIELD_BREAK_NONE
         let anim = "shieldbreak" + I2S(f.shieldBreakState)
         if f.animation != anim
             if f.shieldBreakState == SHIELD_BREAK_LAND
@@ -879,6 +920,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
 function renderUI()
     let selecting = matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
     let localSlot = GetLocalPlayer() == Player(1) and twoHumanPlayers ? 1 : 0
+    let localFighter = localSlot == 0 ? playerFighter : botFighter
     let controls = localSlot == 0 ? settingsPanel : secondSettingsPanel
     let controlsOpen = controls != null and controls.isOpen()
     if GetLocalPlayer() == Player(localSlot)
@@ -890,8 +932,10 @@ function renderUI()
         if not selecting
             BlzFrameSetText(hudFrame, "P1 " + charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "   " + shieldLabel(playerFighter) + "\n" + (twoHumanPlayers ? "P2 " : "Bot ") + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "   " + shieldLabel(botFighter) + "\n" + (matchState.stageChoice == 0 ? "Sky Deck" : "Three Bridges") + "   |cffff6666Red border = KO|r")
             BlzFrameSetText(helpFrame, matchState.phase == RESULT ? (matchState.firstRematchReady and twoHumanPlayers ? "Player 1 ready; waiting for Player 2. F6: restart" : (matchState.secondRematchReady and twoHumanPlayers ? "Player 2 ready; waiting for Player 1. F6: restart" : "Press Attack to choose your next match     F6: restart")) : "Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.")
-            if matchState.phase == MATCH and playerFighter.downState == DOWN_WAIT
+            if matchState.phase == MATCH and localFighter.downState == DOWN_WAIT
                 BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
+            else if matchState.phase == MATCH and localFighter.ledgeState == LEDGE_HANG
+                BlzFrameSetText(helpFrame, "Ledge: Up or toward stage to climb; Jump to leap; Shield to roll; Attack to strike.\nDown or away from stage lets go.")
             BlzFrameSetText(noticeFrame, playerFighter != null and playerFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
     selectionPanel.update(matchState.phase, matchState.phase == CHARACTER_MENU ? matchState.characterFor(0) : matchState.stageChoice,
         settingsPanel != null and settingsPanel.isOpen(), true, matchState.characterReady(0),
@@ -927,7 +971,7 @@ function gameTick()
             traceInput("motion air " + I2S(playerFighter.airDodgeFrame) + " landing " + I2S(playerFighter.landingLag) + " x " + R2S(playerFighter.x) + " z " + R2S(playerFighter.z))
             inputTraceLastDodge = playerFighter.airDodgeFrame
             inputTraceLastLandingLag = playerFighter.landingLag
-        if inputTraceTicks >= (SHIELD_BREAK_SCENARIO ? 600 : 300)
+        if inputTraceTicks >= (SHIELD_BREAK_SCENARIO or LEDGE_SCENARIO ? 600 : 300)
             finishInputTrace()
     if appliedBindingRevision != playerBindings.revision
         clearHeldInputs()
@@ -945,7 +989,7 @@ function gameTick()
             lastNormalStyle = style
             playerAttacks.enqueue(style, direction, simulationFrame, true)
         var botDirection = 0
-        if not twoHumanPlayers and not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not botFighter.out and not playerFighter.out
+        if not twoHumanPlayers and not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not LEDGE_SCENARIO and not botFighter.out and not playerFighter.out
             let gap = playerFighter.x - botFighter.x
             if gap.abs() > 95
                 botDirection = gap > 0 ? 1 : -1
@@ -968,6 +1012,7 @@ function gameTick()
         playerInput.techPressed = playerTechPressed
         playerInput.lCancelPressed = playerLCancelPressed
         playerInput.mashPressed = playerMashPressed
+        playerInput.ledgeVerticalPressed = playerLedgeVerticalPressed
         playerInput.getupAttackPressed = playerGetupAttackPressed
         playerInput.getupStandPressed = playerGetupStandPressed
         playerInput.getupDirection = (playerRightPressed ? 1 : 0) - (playerLeftPressed ? 1 : 0)
@@ -995,6 +1040,7 @@ function gameTick()
         secondPlayerInput.techPressed = secondTechPressed
         secondPlayerInput.lCancelPressed = secondLCancelPressed
         secondPlayerInput.mashPressed = secondMashPressed
+        secondPlayerInput.ledgeVerticalPressed = secondLedgeVerticalPressed
         secondPlayerInput.getupAttackPressed = secondGetupAttackPressed
         secondPlayerInput.getupStandPressed = secondGetupStandPressed
         secondPlayerInput.getupDirection = (secondRightPressed ? 1 : 0) - (secondLeftPressed ? 1 : 0)
@@ -1019,6 +1065,8 @@ function gameTick()
         applyFrame()
         playerMashPressed = false
         secondMashPressed = false
+        playerLedgeVerticalPressed = 0
+        secondLedgeVerticalPressed = 0
         playerAttackFacing = 0
         playerNormalAttackQueued = false
         playerLeftPressed = false
@@ -1065,7 +1113,7 @@ function gameTick()
         PreloadGenClear()
         PreloadGenStart()
         Preload("BUILD " + BUILD_ID)
-        Preload("SCENARIO " + (SHIELD_BREAK_SCENARIO ? "shield-break" : (TECH_SCENARIO ? "tech" : (KNOCKDOWN_SCENARIO ? "knockdown" : "normal"))))
+        Preload("SCENARIO " + (LEDGE_SCENARIO ? "ledge" : (SHIELD_BREAK_SCENARIO ? "shield-break" : (TECH_SCENARIO ? "tech" : (KNOCKDOWN_SCENARIO ? "knockdown" : "normal")))))
         Preload("BINDINGS " + playerBindings.bindings.encode())
         Preload("BINDINGS1 " + (twoHumanPlayers ? secondBindings.bindings.encode() : "BOT"))
         PreloadGenEnd("wc3-melee-ready.txt")

@@ -579,3 +579,60 @@ hitlag in every phase, damage/grab interruption, the two laser behaviors,
 stock loss/reset, fixed shield health and absence of break invulnerability.
 These are simulation checks; native rendering, keyboard synchronization across
 two clients, and numerical Melee parity are separate unproven claims.
+
+## Outer ledge recovery
+
+Only the two outer endpoints of solid main surface 0 can be caught. Upper
+pass-through platforms have no catchable ledges. The behavioral reference is
+melee:src/melee/ft/kinds/ftCommon/ftCo_CliffWait.c and the adjacent CliffClimb,
+CliffJump, CliffEscape and CliffAttack actions at the revision above. Their
+separate ledge options and quick/slow variants are factual context only. The
+local data field offsets do not establish actual timing or geometry values;
+none of that unlicensed implementation is copied or translated.
+
+This independently authored prototype samples catches before either fighter's
+movement on each match tick. An airborne, falling fighter must face inward
+and have its feet within 54 world units outside the endpoint and between
+90 units below and 12 above its height. Down suppresses catching. Existing
+attack/recovery, hitlag, hitstun, grabbed, dodge and shield-break locks suppress
+catching. A free ledge chooses the nearer eligible fighter by squared distance
+to the endpoint from the shared snapshot; exact ties catch neither. Existing
+owners retain the ledge throughout hanging and an ongoing climb/roll/attack.
+Both ledges resolve independently. These region, timing and contention rules
+are provisional choices, not measured Melee parameters.
+
+A catch anchors the feet 42 units outside and 60 below the endpoint, clears
+movement and launch velocity, and restores one air jump. It does not reset
+percent, shield energy, stocks or respawn protection. Catch protection lasts
+30 unfrozen ticks (including the catch tick); hanging afterward is vulnerable.
+Choosing an option never refreshes that protection. Jump, release, interruption
+and completed recovery remove it. Every departure starts a 30-unfrozen-tick
+regrab lock. Ordinary flinching damage and grabs interrupt the ledge action;
+non-flinching lasers only add damage. Stock loss clears ledge ownership and
+protection; reset also clears the catch serial and regrab clock.
+
+Fresh options are prioritized Jump, inward/Up climb, outward/Down release,
+Shield roll, then Attack. Held directions alone never choose an option. The
+catch tick only anchors, so options start on subsequent ticks. Jump launches
+inward at the character's ordinary air-speed cap and full-jump launch speed,
+keeping the restored air jump. Release starts outward at 2 world units/tick
+and downward at 2. Climb/roll/attack interpolate from the hang point to the
+platform over 12 ticks, ending respectively 24/140/64 units inward. Their
+whole actions last 25/36/40 ticks after entry; ordinary actions remain locked
+until completion. The ledge attack deals 7 damage on action ticks 16–18,
+reaches 140 units inward and 90 vertically, and uses ordinary hit/knockback
+resolution with one hit per action. Hitlag freezes the action and protection
+clocks. These trajectories, speeds, hit regions and durations are provisional;
+percent-dependent quick/slow options and animation-specific timing are absent.
+
+The adapter reads FighterState.ledgeState (LEDGE_NONE/HANG/CLIMB/ROLL/ATTACK,
+values 0–4), ledgeSide (-1 left, +1 right), ledgeFrame (0 on phase entry),
+and ledgeSerial (one increment per catch). InputSnapshot.ledgeVerticalPressed
+is a fresh Up (+1) or Down (-1) edge. The simulation reuses jumpPressed,
+getupDirectionPressed/getupDirection, airDodgePressed and getupAttackPressed
+for the other options. wc3-melee:wurst/MatchStep.wurst resolves pair catches
+before advancing either fighter; standalone simulation consumers must do the
+same. Pure Wurst checks cover both characters and sides, eligibility, upper
+platform exclusion, contention/ownership, option timing and locks, attack
+contact, protection expiry, regrab timing, hit/grab interruption and reset.
+They do not establish native animation alignment or Melee numerical parity.

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+ <defs>
+  <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#07111e"/><stop offset=".5" stop-color="#101d30"/><stop offset="1" stop-color="#050a13"/></linearGradient>
+  <linearGradient id="rail" x2="0" y2="1"><stop stop-color="#aebdca"/><stop offset=".14" stop-color="#3f5261"/><stop offset=".72" stop-color="#172332"/><stop offset="1" stop-color="#8293a0"/></linearGradient>
+  <linearGradient id="gold" x2="0" y2="1"><stop stop-color="#fff19b"/><stop offset=".3" stop-color="#ffd52e"/><stop offset="1" stop-color="#a66a09"/></linearGradient>
+  <radialGradient id="glow"><stop stop-color="#314c6c" stop-opacity=".52"/><stop offset="1" stop-color="#101d30" stop-opacity="0"/></radialGradient>
+  <pattern id="grain" width="96" height="96" patternUnits="userSpaceOnUse"><path d="M0 15L35 0M55 96L96 54M23 79L51 60" stroke="#a9c0d2" stroke-opacity=".045" stroke-width="2"/><circle cx="62" cy="24" r="2" fill="#d9e4eb" fill-opacity=".07"/></pattern>
+ </defs>
+ <rect width="1920" height="1080" fill="url(#bg)"/>
+ <ellipse cx="960" cy="610" rx="1100" ry="660" fill="url(#glow)"/>
+ <path d="M0 350L405 80H680L286 403 0 610ZM1920 210L1530 415 1920 550ZM0 920L460 710 250 1080H0ZM1920 875L1480 690 1740 1080H1920Z" fill="#24364d" opacity=".38"/>
+ <path d="M0 230H1920V246H0ZM0 902H1920V918H0" fill="url(#rail)"/>
+ <path d="M0 252H1920M0 922H1920" stroke="#dde3e8" stroke-opacity=".28" stroke-width="2"/>
+ <path d="M0 0H1920V174L1320 212H0Z" fill="#182637" opacity=".88"/>
+ <path d="M0 171H1290L1325 207H0Z" fill="url(#rail)"/>
+ <path d="M0 174H1290L1316 201H0" fill="none" stroke="#d7e0e5" stroke-opacity=".5" stroke-width="2"/>
+ <path d="M1320 174H1920V192H1341L1304 225 1289 214Z" fill="#03070d"/>
+ <path d="M1320 207H1920V220H1337L1309 244 1295 231Z" fill="url(#gold)"/>
+ <path d="M1336 175L1291 218 1308 228 1361 175Z" fill="url(#gold)" stroke="#080d16" stroke-width="6"/>
+ <text x="70" y="145" fill="#f2f4f5" font-family="DejaVu Sans, sans-serif" font-size="82" font-weight="900" font-style="italic" letter-spacing="-5">MELEE</text>
+ <circle cx="416" cy="119" r="48" fill="#111b29" stroke="#8093a3" stroke-width="5"/><circle cx="416" cy="119" r="39" fill="none" stroke="#d4dde2" stroke-opacity=".6" stroke-width="2"/>
+ <text x="416" y="134" text-anchor="middle" fill="#f3f5f6" font-family="DejaVu Sans, sans-serif" font-size="34" font-weight="900">VS</text>
+ <path d="M490 78L506 59H1254L1271 78V154L1254 172H506L490 154Z" fill="#111b29" stroke="#d0d7dd" stroke-width="7"/>
+ <path d="M507 78H1251L1261 89V143L1251 154H507L497 143V89Z" fill="#192737" stroke="#526271" stroke-width="3"/>
+ <text x="879" y="128" text-anchor="middle" fill="#f7f7f5" font-family="DejaVu Sans, sans-serif" font-size="46" font-weight="700" letter-spacing="1">2-FIGHTER SURVIVAL TEST</text>
+ <rect width="1920" height="1080" fill="url(#grain)"/>
+ <path d="M20 20H1900V1060H20Z" fill="none" stroke="#dce4e9" stroke-opacity=".2" stroke-width="3"/>
+</svg>

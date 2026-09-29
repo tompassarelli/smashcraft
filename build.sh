@@ -9,6 +9,8 @@ java=/home/tom/.wurst/wurst-runtime/bin/java
 maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps'
 build_output="$project_dir/build/wurst-map/Melee_Prototype.w3x"
 fighter_assets="$project_dir/build/animation-assets"
+selection_assets="$project_dir/build/selection-assets"
+selection_textures=(SelectionBackdrop SelectionTileFrame SelectionCardRed SelectionCardBlue SelectionAction SelectionStage ArcherPortrait RiflemanPortrait ArcherTile RiflemanTile)
 
 if [[ $# -ne 1 || ! -f "$1" ]]; then
     printf 'Usage: %s BASE_MAP.w3m|BASE_MAP.w3x\n' "$0" >&2
@@ -19,9 +21,15 @@ if [[ ! -s "$fighter_assets/ArcherFighter.mdx" || ! -s "$fighter_assets/Rifleman
     printf 'Authored fighter assets are missing. Follow wc3-melee:ANIMATIONS.md to build them.\n' >&2
     exit 1
 fi
+for texture in "${selection_textures[@]}"; do
+    [[ -s "$selection_assets/$texture.tga" ]] || {
+        printf 'Missing selection art: %s. Run wc3-melee:tools/selection/build-art.sh and wc3-melee:tools/animations/build-portraits.sh.\n' "$texture" >&2
+        exit 1
+    }
+done
 build_id=${WC3_BUILD_ID:-$(date +%s)}
 developer_scenario=${WC3_SCENARIO:-normal}
-case "$developer_scenario" in normal|knockdown|tech|shield-break) ;; *) echo 'WC3_SCENARIO must be normal, knockdown, tech or shield-break.' >&2; exit 2;; esac
+case "$developer_scenario" in normal|knockdown|tech|shield-break|ledge) ;; *) echo 'WC3_SCENARIO must be normal, knockdown, tech, shield-break or ledge.' >&2; exit 2;; esac
 if [[ ! "$build_id" =~ ^[A-Za-z0-9._-]+$ ]]; then
     printf 'WC3_BUILD_ID may contain only letters, digits, dots, underscores, and hyphens.\n' >&2
     exit 2
@@ -64,8 +72,11 @@ cp "$fighter_assets/ArcherFighter.mdx" "$work_dir/imports/war3mapImported/Archer
 rifleman_model_hash=$(sha256sum "$fighter_assets/RiflemanFighter.mdx" | cut -d ' ' -f1)
 rifleman_model_path="war3mapImported\\RiflemanFighter-$rifleman_model_hash.mdx"
 cp "$fighter_assets/RiflemanFighter.mdx" "$work_dir/imports/war3mapImported/RiflemanFighter-$rifleman_model_hash.mdx"
+for texture in "${selection_textures[@]}"; do
+    cp "$selection_assets/$texture.tga" "$work_dir/imports/war3mapImported/$texture.tga"
+done
 
-printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\npublic constant boolean KNOCKDOWN_SCENARIO = %s\npublic constant boolean TECH_SCENARIO = %s\npublic constant boolean SHIELD_BREAK_SCENARIO = %s\n' "$build_id" "$([[ "$developer_scenario" == knockdown || "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == shield-break ]] && echo true || echo false)" > "$project_dir/build/generated-BuildInfo.wurst"
+printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\npublic constant boolean KNOCKDOWN_SCENARIO = %s\npublic constant boolean TECH_SCENARIO = %s\npublic constant boolean SHIELD_BREAK_SCENARIO = %s\npublic constant boolean LEDGE_SCENARIO = %s\n' "$build_id" "$([[ "$developer_scenario" == knockdown || "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == shield-break ]] && echo true || echo false)" "$([[ "$developer_scenario" == ledge ]] && echo true || echo false)" > "$project_dir/build/generated-BuildInfo.wurst"
 cp "$project_dir/build/generated-BuildInfo.wurst" "$work_dir/wurst/BuildInfo.wurst"
 
 (
@@ -138,6 +149,10 @@ cp "$work_dir/_build/Melee_Prototype.w3x" "$output_next"
 cmp "$fighter_assets/ArcherFighter.mdx" "$work_dir/verified-ArcherFighter.mdx"
 "$packager" extract "$output_next" "$work_dir/verified-RiflemanFighter.mdx" "$rifleman_model_path"
 cmp "$fighter_assets/RiflemanFighter.mdx" "$work_dir/verified-RiflemanFighter.mdx"
+for texture in "${selection_textures[@]}"; do
+    "$packager" extract "$output_next" "$work_dir/verified-$texture.tga" "war3mapImported\\$texture.tga"
+    cmp "$selection_assets/$texture.tga" "$work_dir/verified-$texture.tga"
+done
 "$packager" extract "$output_next" "$work_dir/verified.w3a" war3map.w3a
 [[ -s "$work_dir/verified.w3a" ]]
 "$packager" extract "$output_next" "$work_dir/verified.lua"

@@ -9,6 +9,7 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
         return
     firstInput.attackRequested = firstCommands.hasPending(frame)
     secondInput.attackRequested = secondCommands.hasPending(frame)
+    resolveLedgePair(first, second, game.stageChoice, firstInput, secondInput)
     advance(first, game.stageChoice, firstInput, -240)
     advance(second, game.stageChoice, secondInput, 240)
     let firstCommand = firstCommands.consume(frame, canStartAttackStyle(first, firstCommands.style))
