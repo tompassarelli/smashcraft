@@ -14,6 +14,16 @@ constant real FALCO_TERMINAL_SPEED = 3.1 * WORLD_UNITS_PER_MELEE_UNIT
 constant real FOX_FAST_FALL_SPEED = 3.4 * WORLD_UNITS_PER_MELEE_UNIT
 constant real FALCO_FAST_FALL_SPEED = 3.5 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real SHIELD_MAX = 60
+public constant int SHIELD_BREAK_NONE = 0
+public constant int SHIELD_BREAK_AIR = 1
+public constant int SHIELD_BREAK_LAND = 2
+public constant int SHIELD_BREAK_STAND = 3
+public constant int SHIELD_BREAK_DIZZY = 4
+public constant int SHIELD_BREAK_LAND_FRAMES = 12
+public constant int SHIELD_BREAK_STAND_FRAMES = 30
+public constant real SHIELD_BREAK_RESTORED_ENERGY = 30
+constant real SHIELD_BREAK_LAUNCH_SPEED = 24
+constant int SHIELD_BREAK_MASH_REDUCTION = 3
 constant real SHIELD_DRAIN_PER_FRAME = 0.28
 constant real SHIELD_REGEN_PER_FRAME = 0.07
 constant real AIR_DODGE_SPEED = 3 * WORLD_UNITS_PER_MELEE_UNIT
@@ -146,6 +156,10 @@ public class FighterState
 	int shieldStun = 0
 	int shieldHeldFrames = 0
 	int shieldReleaseLag = 0
+	int shieldBreakState = SHIELD_BREAK_NONE
+	int shieldBreakFrame = 0
+	int shieldBreakSerial = 0
+	int shieldBreakRemaining = 0
 	boolean grounded = true
 	int jumps = 2
 	int jumpSerial = 0
@@ -191,6 +205,7 @@ public class InputSnapshot
 	boolean jumpPressed = false
 	boolean airDodgePressed = false
 	boolean techPressed = false
+	boolean mashPressed = false
 	boolean lCancelPressed = false
 	boolean groundDodgePressed = false
 	int groundDodgeDirection = 0
@@ -306,7 +321,7 @@ public function jumpSquatFrames(int character) returns int
 	return character == 0 ? FOX_JUMP_SQUAT_FRAMES : FALCO_JUMP_SQUAT_FRAMES
 
 function canStartAttack(FighterState attacker) returns boolean
-	return not attacker.out and (attacker.downState == DOWN_NONE or isTumbling(attacker)) and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0
+	return not attacker.out and attacker.shieldBreakState == SHIELD_BREAK_NONE and (attacker.downState == DOWN_NONE or isTumbling(attacker)) and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0
 
 public function canAttack(FighterState attacker) returns boolean
 	return canStartAttack(attacker) and not attacker.shield
@@ -467,6 +482,79 @@ public function isTumbling(FighterState f) returns boolean
 
 public function isFloorTeching(FighterState f) returns boolean
 	return f.downState == DOWN_TECH or f.downState == DOWN_TECH_ROLL
+
+function clearShieldBreak(FighterState f)
+	f.shieldBreakState = SHIELD_BREAK_NONE
+	f.shieldBreakFrame = 0
+	f.shieldBreakRemaining = 0
+
+public function shieldBreakDizzyFrames(real percent) returns int
+	// Prototype timing; only the inverse percent relationship is reference-backed.
+	return max(60, 240 - R2I(max(0, percent)))
+
+function beginShieldBreak(FighterState f)
+	interruptJumpOrDodge(f)
+	clearDownState(f)
+	cancelAttack(f)
+	f.shieldBreakState = SHIELD_BREAK_AIR
+	f.shieldBreakSerial++
+	f.shield = false
+	f.shieldEnergy = 0
+	f.shieldStun = 0
+	f.shieldHeldFrames = 0
+	f.shieldReleaseLag = 0
+	f.hitstun = 0
+	f.grabbedFrames = 0
+	f.landingLag = 0
+	f.lCancelWindow = 0
+	f.techWindow = 0
+	f.techLockout = 0
+	f.techHitlagLatched = false
+	f.dropTime = 0
+	f.diPending = false
+	f.diLaunchSpeed = 0
+	f.vx = 0
+	f.vz = SHIELD_BREAK_LAUNCH_SPEED
+	f.knockbackX = 0
+	f.knockbackZ = 0
+	f.grounded = false
+	f.surface = -1
+
+function advanceShieldBreak(FighterState f, int stage, InputSnapshot input)
+	if f.hitlag > 0
+		f.hitlag--
+		return
+	checkBlastZone(f)
+	if f.out
+		return
+	f.invincible = max(0, f.invincible - 1)
+	f.shieldBreakFrame++
+	if f.shieldBreakState == SHIELD_BREAK_AIR
+		let oldZ = f.z
+		f.vz = max(-characterTerminalSpeed(f.character), f.vz - characterGravity(f.character))
+		f.z += f.vz
+		let landing = landingAlongShift(f, stage, f.x, oldZ, f.x, f.z)
+		if landing >= 0
+			f.z = surfaceZ(stage, landing)
+			f.surface = landing
+			f.grounded = true
+			f.vz = 0
+			f.jumps = 2
+			f.shieldBreakState = SHIELD_BREAK_LAND
+			f.shieldBreakFrame = 0
+	else if f.shieldBreakState == SHIELD_BREAK_LAND and f.shieldBreakFrame >= SHIELD_BREAK_LAND_FRAMES
+		f.shieldBreakState = SHIELD_BREAK_STAND
+		f.shieldBreakFrame = 0
+	else if f.shieldBreakState == SHIELD_BREAK_STAND and f.shieldBreakFrame >= SHIELD_BREAK_STAND_FRAMES
+		f.shieldBreakState = SHIELD_BREAK_DIZZY
+		f.shieldBreakFrame = 0
+		f.shieldBreakRemaining = shieldBreakDizzyFrames(f.damage)
+		f.shieldEnergy = SHIELD_BREAK_RESTORED_ENERGY
+	else if f.shieldBreakState == SHIELD_BREAK_DIZZY
+		f.shieldBreakRemaining = max(0, f.shieldBreakRemaining - 1 - (input.mashPressed ? SHIELD_BREAK_MASH_REDUCTION : 0))
+		if f.shieldBreakRemaining == 0
+			clearShieldBreak(f)
+	checkBlastZone(f)
 
 function clearDownState(FighterState f)
 	f.downState = DOWN_NONE
@@ -661,6 +749,7 @@ function beginGroundDodge(FighterState f, int direction)
 	f.shieldHeldFrames = 0
 
 function interruptJumpOrDodge(FighterState f)
+	clearShieldBreak(f)
 	f.jumpSquat = 0
 	f.jumpHeld = false
 	f.airDodging = false
@@ -700,10 +789,7 @@ function applyProjectileHit(FighterState owner, FighterState target)
 		target.shieldEnergy = max(0, target.shieldEnergy - damage * 0.7)
 		target.shieldStun = R2I((damage * 0.45 + 2) * 200 / 201)
 		if target.shieldEnergy == 0
-			target.shield = false
-			target.shieldStun = 0
-			target.shieldHeldFrames = 0
-			target.hitstun = 40
+			beginShieldBreak(target)
 		return
 	target.damage += damage
 	if owner.character == 1
@@ -772,10 +858,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 		target.shieldStun = R2I((damage * 0.45 + 2) * 200 / 201)
 		attacker.hitlag = max(attacker.hitlag, R2I(damage / 3 + 3))
 		if target.shieldEnergy == 0
-			target.shield = false
-			target.shieldStun = 0
-			target.shieldHeldFrames = 0
-			target.hitstun = 40
+			beginShieldBreak(target)
 		return
 	if style == 1
 		target.damage += damage
@@ -826,7 +909,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	attacker.hitlag = max(attacker.hitlag, R2I(damage / 3 + 3))
 
 public function simulationJump(FighterState f)
-	if f.out or (f.downState != DOWN_NONE and not isTumbling(f)) or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or (f.shieldReleaseLag > 0 and not f.grounded) or f.landingLag > 0 or f.airDodging or isGroundDodging(f) or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
+	if f.out or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or (f.shieldReleaseLag > 0 and not f.grounded) or f.landingLag > 0 or f.airDodging or isGroundDodging(f) or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
 		return
 	if f.grounded
 		f.shield = false
@@ -842,7 +925,7 @@ public function simulationJump(FighterState f)
 	f.jumps--
 
 public function simulationAirDodge(FighterState f, int horizontal, int vertical)
-	if f.out or (f.downState != DOWN_NONE and not isTumbling(f)) or f.grounded or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.landingLag > 0 or f.cooldown > 0 or f.airDodging or f.airDodgeTime > 0
+	if f.out or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.grounded or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.landingLag > 0 or f.cooldown > 0 or f.airDodging or f.airDodgeTime > 0
 		return
 	let dx = horizontal == 0 ? 0 : (horizontal > 0 ? 1 : -1)
 	let dz = vertical == 0 ? 0 : (vertical > 0 ? 1 : -1)
@@ -901,6 +984,8 @@ function canResolveAttack(FighterState attacker, FighterState target) returns bo
 	return not target.out and attackHits(attacker, target, attacker.attackStyle)
 
 public function reset(FighterState f, real startX)
+	clearShieldBreak(f)
+	f.shieldBreakSerial = 0
 	clearDownState(f)
 	f.lCancelWindow = 0
 	f.lCancelSerial = 0
@@ -962,6 +1047,9 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.respawn--
 		if f.respawn <= 0
 			reset(f, respawnX)
+		return
+	if f.shieldBreakState != SHIELD_BREAK_NONE
+		advanceShieldBreak(f, stage, input)
 		return
 	// Counts include the current contact tick. A hitlag edge starts counting after the freeze.
 	if f.hitlag <= 0
@@ -1081,10 +1169,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	else
 		f.shieldEnergy = min(SHIELD_MAX, f.shieldEnergy + SHIELD_REGEN_PER_FRAME)
 	if wantsShield and f.shieldEnergy == 0
-		f.shield = false
-		f.shieldStun = 0
-		f.shieldHeldFrames = 0
-		f.hitstun = 40
+		beginShieldBreak(f)
+		return
 	var direction = input.direction
 	let canSteer = f.downState == DOWN_NONE and f.hitstun <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and not smashChargePaused and (not f.grounded or f.cooldown <= 0)
 	if canSteer
@@ -1155,6 +1241,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 function checkBlastZone(FighterState f)
 	if f.x <= -920 or f.x >= 920 or f.z <= -420 or f.z >= 760
 		f.out = true
+		clearShieldBreak(f)
 		f.diPending = false
 		f.diLaunchSpeed = 0
 		f.vx = 0

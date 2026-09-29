@@ -21,7 +21,7 @@ if [[ ! -s "$fighter_assets/ArcherFighter.mdx" || ! -s "$fighter_assets/Rifleman
 fi
 build_id=${WC3_BUILD_ID:-$(date +%s)}
 developer_scenario=${WC3_SCENARIO:-normal}
-case "$developer_scenario" in normal|knockdown|tech) ;; *) echo 'WC3_SCENARIO must be normal, knockdown or tech.' >&2; exit 2;; esac
+case "$developer_scenario" in normal|knockdown|tech|shield-break) ;; *) echo 'WC3_SCENARIO must be normal, knockdown, tech or shield-break.' >&2; exit 2;; esac
 if [[ ! "$build_id" =~ ^[A-Za-z0-9._-]+$ ]]; then
     printf 'WC3_BUILD_ID may contain only letters, digits, dots, underscores, and hyphens.\n' >&2
     exit 2
@@ -65,7 +65,7 @@ rifleman_model_hash=$(sha256sum "$fighter_assets/RiflemanFighter.mdx" | cut -d '
 rifleman_model_path="war3mapImported\\RiflemanFighter-$rifleman_model_hash.mdx"
 cp "$fighter_assets/RiflemanFighter.mdx" "$work_dir/imports/war3mapImported/RiflemanFighter-$rifleman_model_hash.mdx"
 
-printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\npublic constant boolean KNOCKDOWN_SCENARIO = %s\npublic constant boolean TECH_SCENARIO = %s\n' "$build_id" "$([[ "$developer_scenario" != normal ]] && echo true || echo false)" "$([[ "$developer_scenario" == tech ]] && echo true || echo false)" > "$project_dir/build/generated-BuildInfo.wurst"
+printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\npublic constant boolean KNOCKDOWN_SCENARIO = %s\npublic constant boolean TECH_SCENARIO = %s\npublic constant boolean SHIELD_BREAK_SCENARIO = %s\n' "$build_id" "$([[ "$developer_scenario" == knockdown || "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == shield-break ]] && echo true || echo false)" > "$project_dir/build/generated-BuildInfo.wurst"
 cp "$project_dir/build/generated-BuildInfo.wurst" "$work_dir/wurst/BuildInfo.wurst"
 
 (

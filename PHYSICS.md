@@ -506,7 +506,76 @@ priority rule. Analog shield dropping and stick-threshold fidelity remain open.
 The guard shell and HUD percentage read shieldEnergy/SHIELD_MAX; they do not
 resolve collision. The shell shrinks as energy drains, while the current
 prototype still blocks eligible contacts through its existing whole-fighter
-shield rule. Shield tilting, geometric shield pokes, analog light shielding and
-Melee's full shield-break launch/dizzy sequence remain differences. The current
-break penalty is the existing 40-frame hitstun rule. Green/yellow/red HUD colors
+shield rule. Shield tilting, geometric shield pokes and analog light shielding
+remain differences. Shield-break recovery is described below. Green/yellow/red HUD colors
 and the Warcraft spell shell are presentation choices, not reference parameters.
+
+## Shield-break recovery
+
+Shield depletion from holding guard, melee contact, and projectile contact now
+uses one independently authored forced sequence in wc3-melee:wurst/Simulation.wurst:
+upward pop, landing, standing up, then dizziness. It replaces the former
+40-frame hitstun placeholder. The factual reference is
+~/code/resources/melee at revision 0296f009f32f710495979d30772d8332af2d411a,
+specifically melee:src/melee/ft/kinds/ftCommon/ftCo_ShieldBreakFly.c,
+melee:src/melee/ft/kinds/ftCommon/ftCo_ShieldBreakDown.c,
+melee:src/melee/ft/kinds/ftCommon/ftCo_ShieldBreakStand.c and
+melee:src/melee/ft/kinds/ftCommon/ftCo_Furafura.c. The supplied factual
+observations establish upward launch, forced landing/stand, unavailable normal
+actions, shorter dizziness at higher percent, mash recovery, and restored
+shield health held fixed while dizzy. No license covering this decompiled game
+implementation was found; none of its implementation text or structure is
+copied or translated. The sequence is expressed in our existing fixed-tick
+simulation with our existing collision query.
+
+The factual page https://www.ssbwiki.com/Shield, already cached in
+wc3-melee:build/ref-Shield.txt, independently reports the pop/landing/stand/dizzy
+sequence, percent dependence, mashing, termination by flinching attacks, and
+30 HP after a Melee shield break. The cached page was consulted for facts only;
+no article prose is reused. It does not verify our timings or launch strength.
+
+The prototype choices are explicit: launch vertically at 24 Warcraft world
+units/tick with the existing character gravity and terminal speed; hold the
+landing pose for 12 ticks; stand for 30 ticks; then remain dizzy for
+`max(60, 240 - floor(max(0, percent)))` ticks, sampled on dizzy entry. Each
+fresh synchronized mash edge removes three additional remaining dizzy ticks,
+on top of that frame's normal one-tick reduction. These numbers, the minimum
+duration, and our uniform mash weight are provisional tuning, not verified
+Melee values. InputSnapshot.mashPressed admits at most one such edge per tick;
+held inputs alone are not mash edges. Mash edges before dizziness or during
+hitlag have no effect and are not banked.
+
+Shield health stays at zero through the pop/landing/stand and becomes 30 on
+dizzy entry. It stays exactly 30 through dizziness and on its expiration tick;
+normal shield drain/regeneration resumes on subsequent normal simulation ticks.
+Movement, fast falling, attacks, shielding, jumps, air dodges, ground escapes,
+platform drops, ordinary get-up actions and floor techs cannot cancel recovery.
+Landing uses the highest crossed eligible surface; it does not enter ordinary
+knockdown or gain that system's get-up intangibility. A break grants no
+invulnerability and never calls the respawn reset.
+
+Ordinary flinching melee damage, grabs and Falco's flinching laser cancel any
+break phase into their normal consequences. Fox's non-flinching laser adds
+percent without cancelling recovery or recomputing an already active dizzy
+timer. Hitlag freezes phase clocks, vertical movement and mash recovery.
+Blast-zone stock loss clears break state; real respawn restores the existing
+full shield and 90-tick invulnerability. Reset also clears the break serial.
+
+The adapter contract is FighterState.shieldBreakState (`SHIELD_BREAK_NONE=0`,
+`SHIELD_BREAK_AIR=1`, `SHIELD_BREAK_LAND=2`, `SHIELD_BREAK_STAND=3`,
+`SHIELD_BREAK_DIZZY=4`), shieldBreakFrame (elapsed unfrozen ticks in the current
+phase, zero on entry), and shieldBreakSerial (increments once per break).
+shieldBreakRemaining is the dizzy countdown; shieldBreakDizzyFrames(percent)
+exposes its initial provisional duration. Public timing constants are
+SHIELD_BREAK_LAND_FRAMES=12, SHIELD_BREAK_STAND_FRAMES=30 and
+SHIELD_BREAK_RESTORED_ENERGY=30. LAND begins on contact; each timed phase
+transitions after exactly its stated number of later unfrozen ticks. Expiration
+clears state/frame/countdown without consuming the current input as an ordinary
+action; the match's following attack-resolution phase can start a legal attack.
+
+Eight focused Wurst tests cover all depletion paths, both characters' actual
+pop trajectories and forced actions, phase boundaries, percent/mash recovery,
+hitlag in every phase, damage/grab interruption, the two laser behaviors,
+stock loss/reset, fixed shield health and absence of break invulnerability.
+These are simulation checks; native rendering, keyboard synchronization across
+two clients, and numerical Melee parity are separate unproven claims.

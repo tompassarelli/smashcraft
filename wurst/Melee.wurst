@@ -33,6 +33,7 @@ boolean playerGetupAttackPressed = false
 boolean playerGetupStandPressed = false
 boolean playerTechPressed = false
 boolean playerLCancelPressed = false
+boolean playerMashPressed = false
 lightning array stageLines
 int stageLineCount = 0
 lightning array blastLines
@@ -113,6 +114,7 @@ boolean secondRightPressed = false
 boolean secondDownPressed = false
 boolean secondTechPressed = false
 boolean secondLCancelPressed = false
+boolean secondMashPressed = false
 boolean secondGetupAttackPressed = false
 boolean secondGetupStandPressed = false
 boolean secondJumpQueued = false
@@ -168,6 +170,7 @@ class MeleeSettingsActions extends SettingsActions
 class Fighter extends FighterState
     unit body
     effect shieldEffect = null
+    effect dizzyEffect = null
     string animation = ""
     int jumpAnimationRemaining = 0
     boolean doubleJumpAnimation = false
@@ -206,6 +209,20 @@ class Fighter extends FighterState
         // AntiMagicShell's Stand bounds center is 47.6 units below its origin.
         BlzSetSpecialEffectPosition(shieldEffect, centerX + x, centerY, floorHeight + z + 50 + 47.6 * scale)
         BlzSetSpecialEffectScale(shieldEffect, scale)
+
+    function clearDizzyEffect()
+        if dizzyEffect != null
+            BlzSetSpecialEffectScale(dizzyEffect, 0.)
+            DestroyEffect(dizzyEffect)
+            dizzyEffect = null
+
+    function renderDizzy()
+        if shieldBreakState != SHIELD_BREAK_DIZZY or out or matchState.phase != MATCH
+            clearDizzyEffect()
+            return
+        if dizzyEffect == null
+            dizzyEffect = AddSpecialEffect(Abilities.thunderclapTarget, centerX + x, centerY)
+        BlzSetSpecialEffectPosition(dizzyEffect, centerX + x, centerY, floorHeight + z + 115)
 
 
 function charName(int which) returns string
@@ -293,11 +310,13 @@ function removeFighters()
     clearProjectileLines()
     if playerFighter != null
         playerFighter.clearShieldEffect()
+        playerFighter.clearDizzyEffect()
         RemoveUnit(playerFighter.body)
         destroy playerFighter
         playerFighter = null
     if botFighter != null
         botFighter.clearShieldEffect()
+        botFighter.clearDizzyEffect()
         RemoveUnit(botFighter.body)
         destroy botFighter
         botFighter = null
@@ -339,13 +358,16 @@ function applyFrame()
     let botPreviousJump = botFighter.jumpSerial
     let playerPreviousDown = playerFighter.downState
     let playerPreviousLCancel = playerFighter.lCancelSerial
-    let playerPreviousShieldEnergy = playerFighter.shieldEnergy
-    let botPreviousShieldEnergy = botFighter.shieldEnergy
+    let playerPreviousShieldBreak = playerFighter.shieldBreakSerial
+    let botPreviousShieldBreak = botFighter.shieldBreakSerial
+    let playerPreviousBreakState = playerFighter.shieldBreakState
     stepMatch(matchState, playerFighter, botFighter, playerInput, twoHumanPlayers ? secondPlayerInput : botInput, playerAttacks, botAttacks, simulationFrame)
-    if playerPreviousShieldEnergy > 0 and playerFighter.shieldEnergy == 0
+    if playerFighter.shieldBreakSerial > playerPreviousShieldBreak
         announce("Player 1's shield broke!")
-    else if botPreviousShieldEnergy > 0 and botFighter.shieldEnergy == 0
+    else if botFighter.shieldBreakSerial > botPreviousShieldBreak
         announce(twoHumanPlayers ? "Player 2's shield broke!" : "Opponent's shield broke!")
+    if playerPreviousBreakState != playerFighter.shieldBreakState
+        traceInput("shield-break " + I2S(playerFighter.shieldBreakState) + " z " + R2S(playerFighter.z) + " remaining " + I2S(playerFighter.shieldBreakRemaining))
     if playerFighter.jumpSerial != playerPreviousJump
         traceInput("jump " + I2S(playerFighter.jumpSerial) + " double " + (playerFighter.jumpIsDouble ? "1" : "0") + " z " + R2S(playerFighter.z))
     if playerFighter.lCancelSerial > playerPreviousLCancel
@@ -419,6 +441,9 @@ function startMatch()
         playerFighter.vz = -8
         playerFighter.hitstun = TECH_SCENARIO ? 60 : 30
         botFighter.x = 350
+    if SHIELD_BREAK_SCENARIO
+        playerFighter.shieldEnergy = 1
+        botFighter.x = 350
 
 function choose(int participantId)
     let bindings = participantId == 0 ? playerBindings : secondBindings
@@ -475,6 +500,7 @@ function actionHeld(int action) returns boolean
     return firstKeyState.actionHeld(action)
 
 function clearSecondInputs()
+    secondMashPressed = false
     secondKeyState.clear()
     secondNormalAttackQueued = false
     secondLeftPressed = false
@@ -495,6 +521,7 @@ function clearSecondInputs()
         botAttacks.clear()
 
 function clearHeldInputs()
+    playerMashPressed = false
     firstKeyState.clear()
     playerNormalAttackQueued = false
     playerLeftPressed = false
@@ -571,6 +598,10 @@ function onParticipantKeyDown(int participantId)
     else
         secondLastInputAction = action
     if not wasHeld and matchState.phase == MATCH
+        if participantId == 0
+            playerMashPressed = true
+        else
+            secondMashPressed = true
         if action == LEFT_TRIGGER or action == RIGHT_TRIGGER or action == GRAB
             if participantId == 0
                 playerLCancelPressed = true
@@ -777,6 +808,7 @@ function groundDodgeAnimationSeconds(Fighter fighter) returns real
 
 function renderFighter(Fighter f, boolean wasOut, boolean jumped)
     f.renderShield()
+    f.renderDizzy()
     if wasOut and not f.out
         ShowUnit(f.body, true)
     else if not wasOut and f.out
@@ -784,7 +816,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
     if f.out
         return
     f.place()
-    if f.grounded or f.hitstun > 0 or f.airDodging or attackPhase(f) != ATTACK_NONE or f.downState != DOWN_NONE
+    if f.grounded or f.hitstun > 0 or f.airDodging or attackPhase(f) != ATTACK_NONE or f.downState != DOWN_NONE or f.shieldBreakState != SHIELD_BREAK_NONE
         f.jumpAnimationRemaining = 0
     else if jumped and not wasOut
         f.doubleJumpAnimation = f.jumpIsDouble
@@ -793,7 +825,11 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
     else if f.jumpAnimationRemaining > 0 and f.hitlag <= 0
         f.jumpAnimationRemaining--
     var animationRate = attackAnimationRate(f)
-    if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
+    if f.shieldBreakState == SHIELD_BREAK_LAND
+        animationRate = (f.character == 0 ? ARCHER_KNOCKDOWN_SECONDS : RIFLEMAN_KNOCKDOWN_SECONDS) / (SHIELD_BREAK_LAND_FRAMES * FRAME_SECONDS)
+    else if f.shieldBreakState == SHIELD_BREAK_STAND
+        animationRate = (f.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS) / (SHIELD_BREAK_STAND_FRAMES * FRAME_SECONDS)
+    else if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
         animationRate = downAnimationRate(f)
     else if isGroundDodging(f)
         let duration = f.groundDodgeDirection == 0 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES
@@ -802,7 +838,17 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
         animationRate = f.doubleJumpAnimation ? (f.character == 0 ? ARCHER_DOUBLE_JUMP_SECONDS : RIFLEMAN_DOUBLE_JUMP_SECONDS) / (30 * FRAME_SECONDS) : (f.character == 0 ? ARCHER_JUMP_SECONDS : RIFLEMAN_JUMP_SECONDS) / (24 * FRAME_SECONDS)
     SetUnitTimeScale(f.body, f.hitlag > 0 or f.smashCharging ? 0 : animationRate)
     SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
-    if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
+    if f.shieldBreakState != SHIELD_BREAK_NONE
+        let anim = "shieldbreak" + I2S(f.shieldBreakState)
+        if f.animation != anim
+            if f.shieldBreakState == SHIELD_BREAK_LAND
+                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_KNOCKDOWN_INDEX : RIFLEMAN_KNOCKDOWN_INDEX)
+            else if f.shieldBreakState == SHIELD_BREAK_STAND
+                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_GET_UP_INDEX : RIFLEMAN_GET_UP_INDEX)
+            else
+                SetUnitAnimation(f.body, "stand hit")
+            f.animation = anim
+    else if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
         let anim = "down" + I2S(f.downState)
         if f.animation != anim
             if f.downState != DOWN_WAIT
@@ -879,7 +925,7 @@ function gameTick()
             traceInput("motion air " + I2S(playerFighter.airDodgeFrame) + " landing " + I2S(playerFighter.landingLag) + " x " + R2S(playerFighter.x) + " z " + R2S(playerFighter.z))
             inputTraceLastDodge = playerFighter.airDodgeFrame
             inputTraceLastLandingLag = playerFighter.landingLag
-        if inputTraceTicks >= 300
+        if inputTraceTicks >= (SHIELD_BREAK_SCENARIO ? 600 : 300)
             finishInputTrace()
     if appliedBindingRevision != playerBindings.revision
         clearHeldInputs()
@@ -897,7 +943,7 @@ function gameTick()
             lastNormalStyle = style
             playerAttacks.enqueue(style, direction, simulationFrame, true)
         var botDirection = 0
-        if not twoHumanPlayers and not KNOCKDOWN_SCENARIO and not botFighter.out and not playerFighter.out
+        if not twoHumanPlayers and not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not botFighter.out and not playerFighter.out
             let gap = playerFighter.x - botFighter.x
             if gap.abs() > 95
                 botDirection = gap > 0 ? 1 : -1
@@ -919,6 +965,7 @@ function gameTick()
         playerInput.attackHeld = actionHeld(ATTACK)
         playerInput.techPressed = playerTechPressed
         playerInput.lCancelPressed = playerLCancelPressed
+        playerInput.mashPressed = playerMashPressed
         playerInput.getupAttackPressed = playerGetupAttackPressed
         playerInput.getupStandPressed = playerGetupStandPressed
         playerInput.getupDirection = (playerRightPressed ? 1 : 0) - (playerLeftPressed ? 1 : 0)
@@ -945,6 +992,7 @@ function gameTick()
         secondPlayerInput.attackHeld = secondKeyState.actionHeld(ATTACK)
         secondPlayerInput.techPressed = secondTechPressed
         secondPlayerInput.lCancelPressed = secondLCancelPressed
+        secondPlayerInput.mashPressed = secondMashPressed
         secondPlayerInput.getupAttackPressed = secondGetupAttackPressed
         secondPlayerInput.getupStandPressed = secondGetupStandPressed
         secondPlayerInput.getupDirection = (secondRightPressed ? 1 : 0) - (secondLeftPressed ? 1 : 0)
@@ -967,6 +1015,8 @@ function gameTick()
         botInput.jumpPressed = botJumpQueued
         botInput.jumpHeld = botJumpHeld
         applyFrame()
+        playerMashPressed = false
+        secondMashPressed = false
         playerAttackFacing = 0
         playerNormalAttackQueued = false
         playerLeftPressed = false
@@ -1013,7 +1063,7 @@ function gameTick()
         PreloadGenClear()
         PreloadGenStart()
         Preload("BUILD " + BUILD_ID)
-        Preload("SCENARIO " + (TECH_SCENARIO ? "tech" : (KNOCKDOWN_SCENARIO ? "knockdown" : "normal")))
+        Preload("SCENARIO " + (SHIELD_BREAK_SCENARIO ? "shield-break" : (TECH_SCENARIO ? "tech" : (KNOCKDOWN_SCENARIO ? "knockdown" : "normal"))))
         Preload("BINDINGS " + playerBindings.bindings.encode())
         Preload("BINDINGS1 " + (twoHumanPlayers ? secondBindings.bindings.encode() : "BOT"))
         PreloadGenEnd("wc3-melee-ready.txt")

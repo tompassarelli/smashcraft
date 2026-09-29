@@ -1257,7 +1257,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	target.shieldEnergy.assertEquals(energyAfterBlock, 0.01)
 	target.shieldStun.assertEquals(7)
 
-@Test function shieldBreakStunsAndDropsShield()
+@Test function shieldBreakMeleeDropsShieldAndLaunchesWithoutDamage()
 	let game = testMatch()
 	let attacker = new FighterState(0, 0, 1)
 	let target = new FighterState(1, 100, -1)
@@ -1269,7 +1269,13 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	let targetCommands = new AttackBuffer(0)
 	runToAttackActive(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, 0, 1)
 	target.shield.assertEquals(false)
-	target.hitstun.assertEquals(40)
+	target.hitstun.assertEquals(0)
+	target.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
+	target.shieldBreakSerial.assertEquals(1)
+	target.shieldBreakFrame.assertEquals(0)
+	target.grounded.assertFalse()
+	target.vz.assertGreaterThan(0.)
+	target.damage.assertEquals(0.)
 	target.shieldEnergy.assertEquals(0.)
 
 @Test function airDodgeChangesVelocityAndLandingRestoresJumps()
@@ -2690,3 +2696,241 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 	fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
 	destroy input
 	destroy fighter
+
+function shieldBreakTestFighter(int character, real percent) returns FighterState
+	let fighter = new FighterState(character, 0, 1)
+	fighter.damage = percent
+	fighter.shieldEnergy = 0.1
+	let input = new InputSnapshot()
+	input.shield = true
+	advance(fighter, 0, input, 0)
+	destroy input
+	return fighter
+
+function landShieldBreakTest(FighterState fighter, InputSnapshot input)
+	fighter.z = 1
+	fighter.vz = -2
+	advance(fighter, 0, input, 0)
+	fighter.shieldBreakState.assertEquals(SHIELD_BREAK_LAND)
+	fighter.shieldBreakFrame.assertEquals(0)
+
+function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
+	landShieldBreakTest(fighter, input)
+	for tick = 1 to SHIELD_BREAK_LAND_FRAMES + SHIELD_BREAK_STAND_FRAMES
+		advance(fighter, 0, input, 0)
+	fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
+	fighter.shieldBreakFrame.assertEquals(0)
+
+@Test function shieldBreakDrainAndProjectileUseSamePopAndSerial()
+	let fighter = shieldBreakTestFighter(0, 0)
+	fighter.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
+	fighter.shieldBreakFrame.assertEquals(0)
+	fighter.shieldBreakSerial.assertEquals(1)
+	fighter.shield.assertFalse()
+	fighter.hitstun.assertEquals(0)
+	fighter.invincible.assertEquals(0)
+	let shooter = new FighterState(1, -30, 1)
+	let target = new FighterState(0, 0, -1)
+	target.shield = true
+	target.shieldEnergy = 1
+	shooter.projectileLife[0] = 2
+	shooter.projectileX[0] = -30
+	shooter.projectileZ[0] = 45
+	shooter.projectileDirection[0] = 1
+	updateProjectilePair(shooter, target)
+	target.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
+	target.shieldBreakSerial.assertEquals(1)
+	target.vz.assertEquals(fighter.vz)
+	target.damage.assertEquals(0.)
+	target.shieldEnergy.assertEquals(0.)
+	target.hitstun.assertEquals(0)
+	destroy target
+	destroy shooter
+	destroy fighter
+
+@Test function shieldBreakForcedSequenceRejectsActionsAndTechForBothCharacters()
+	for character = 0 to 1
+		let fighter = shieldBreakTestFighter(character, 0)
+		let target = new FighterState(1 - character, 100, -1)
+		let input = new InputSnapshot()
+		input.direction = 1
+		input.down = true
+		input.shield = true
+		input.jumpPressed = true
+		input.jumpHeld = true
+		input.airDodgePressed = true
+		input.dodgeX = 1
+		input.groundDodgePressed = true
+		input.groundDodgeDirection = 1
+		input.techPressed = true
+		input.lCancelPressed = true
+		input.getupAttackPressed = true
+		input.getupStandPressed = true
+		input.getupDirectionPressed = true
+		input.getupDirection = 1
+		input.attackHeld = true
+		var highest = 0.
+		var ticks = 0
+		while fighter.shieldBreakState == SHIELD_BREAK_AIR and ticks < 120
+			advance(fighter, 0, input, 0)
+			beginAttackPair(fighter, target, 1, -1, false, false)
+			fighter.attackStyle.assertEquals(-1)
+			fighter.x.assertEquals(0.)
+			fighter.downState.assertEquals(DOWN_NONE)
+			fighter.shield.assertFalse()
+			fighter.jumpSerial.assertEquals(0)
+			fighter.airDodging.assertFalse()
+			highest = max(highest, fighter.z)
+			ticks++
+		highest.assertGreaterThan(100.)
+		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_LAND)
+		fighter.surface.assertEquals(0)
+		fighter.grounded.assertTrue()
+		fighter.techWindow.assertEquals(0)
+		for tick = 1 to SHIELD_BREAK_LAND_FRAMES - 1
+			advance(fighter, 0, input, 0)
+			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_LAND)
+		advance(fighter, 0, input, 0)
+		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_STAND)
+		fighter.shieldBreakFrame.assertEquals(0)
+		for tick = 1 to SHIELD_BREAK_STAND_FRAMES - 1
+			advance(fighter, 0, input, 0)
+			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_STAND)
+		advance(fighter, 0, input, 0)
+		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
+		fighter.shieldEnergy.assertEquals(30.)
+		for tick = 1 to 239
+			simulationJump(fighter)
+			simulationAirDodge(fighter, 1, 0)
+			beginAttackPair(fighter, target, 5, -1, false, false)
+			advance(fighter, 0, input, 0)
+			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
+			fighter.shieldEnergy.assertEquals(30.)
+			fighter.attackStyle.assertEquals(-1)
+			fighter.groundDodgeFrame.assertEquals(0)
+			fighter.jumpSquat.assertEquals(0)
+			fighter.invincible.assertEquals(0)
+			isIntangible(fighter).assertFalse()
+		advance(fighter, 0, input, 0)
+		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
+		fighter.shieldBreakFrame.assertEquals(0)
+		fighter.shieldBreakSerial.assertEquals(1)
+		fighter.shieldEnergy.assertEquals(30.)
+		canAttack(fighter).assertTrue()
+		fighter.invincible.assertEquals(0)
+		destroy input
+		destroy target
+		destroy fighter
+
+@Test function shieldBreakDizzyPercentAndFreshMashEdgesShortenExactTickCount()
+	for mode = 0 to 2
+		let fighter = shieldBreakTestFighter(0, mode == 0 ? 100 : 0)
+		let input = new InputSnapshot()
+		dizzyShieldBreakTest(fighter, input)
+		let expected = mode == 0 ? 140 : (mode == 1 ? 237 : 60)
+		for tick = 1 to expected
+			input.mashPressed = mode == 2 or mode == 1 and tick == 1
+			advance(fighter, 0, input, 0)
+			fighter.shieldEnergy.assertEquals(30.)
+			fighter.shieldBreakState.assertEquals(tick == expected ? SHIELD_BREAK_NONE : SHIELD_BREAK_DIZZY)
+		input.mashPressed = false
+		advance(fighter, 0, input, 0)
+		fighter.shieldEnergy.assertEquals(30.07, 0.001)
+		destroy input
+		destroy fighter
+	shieldBreakDizzyFrames(1000).assertEquals(60)
+
+@Test function shieldBreakHitlagFreezesMotionPhaseAndMash()
+	for state = SHIELD_BREAK_AIR to SHIELD_BREAK_DIZZY
+		let fighter = shieldBreakTestFighter(0, 0)
+		let input = new InputSnapshot()
+		if state != SHIELD_BREAK_AIR
+			dizzyShieldBreakTest(fighter, input)
+			fighter.shieldBreakState = state
+		fighter.shieldBreakFrame = 5
+		fighter.hitlag = 3
+		let beforeZ = fighter.z
+		let beforeVz = fighter.vz
+		let remaining = fighter.shieldBreakRemaining
+		input.mashPressed = true
+		for tick = 1 to 3
+			advance(fighter, 0, input, 0)
+			fighter.shieldBreakFrame.assertEquals(5)
+			fighter.shieldBreakRemaining.assertEquals(remaining)
+			fighter.z.assertEquals(beforeZ)
+			fighter.vz.assertEquals(beforeVz)
+		advance(fighter, 0, input, 0)
+		fighter.shieldBreakFrame.assertEquals(6)
+		destroy input
+		destroy fighter
+
+@Test function shieldBreakFlinchingDamageAndGrabInterruptEveryPhase()
+	for state = SHIELD_BREAK_AIR to SHIELD_BREAK_DIZZY
+		for style = 0 to 1
+			let fighter = shieldBreakTestFighter(0, 0)
+			let input = new InputSnapshot()
+			dizzyShieldBreakTest(fighter, input)
+			fighter.shieldBreakState = state
+			let attacker = new FighterState(1, -50, 1)
+			let attack = style == 0 ? 0 : 5
+			beginAttackPair(attacker, fighter, attack, -1, false, false)
+			attacker.attackFrame = attackStartupFrames(attack)
+			resolveAttackPair(attacker, fighter)
+			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
+			fighter.shieldBreakFrame.assertEquals(0)
+			fighter.shieldBreakRemaining.assertEquals(0)
+			fighter.shieldBreakSerial.assertEquals(1)
+			if style == 0
+				fighter.damage.assertEquals(12.)
+				fighter.hitstun.assertGreaterThan(0)
+			else
+				fighter.grabbedFrames.assertEquals(20)
+			destroy attacker
+			destroy input
+			destroy fighter
+
+@Test function shieldBreakFoxLaserKeepsDizzyButFalcoLaserInterrupts()
+	for character = 0 to 1
+		let fighter = shieldBreakTestFighter(0, 0)
+		let input = new InputSnapshot()
+		dizzyShieldBreakTest(fighter, input)
+		let shooter = new FighterState(character, -30, 1)
+		shooter.projectileLife[0] = 2
+		shooter.projectileX[0] = -30
+		shooter.projectileZ[0] = 45
+		shooter.projectileDirection[0] = 1
+		updateProjectilePair(shooter, fighter)
+		fighter.damage.assertEquals(3.)
+		fighter.shieldBreakState.assertEquals(character == 0 ? SHIELD_BREAK_DIZZY : SHIELD_BREAK_NONE)
+		fighter.hitstun.assertEquals(character == 0 ? 0 : 11)
+		fighter.shieldEnergy.assertEquals(30.)
+		destroy shooter
+		destroy input
+		destroy fighter
+
+@Test function shieldBreakStockLossAndResetClearRecovery()
+	for state = SHIELD_BREAK_AIR to SHIELD_BREAK_DIZZY
+		let fighter = shieldBreakTestFighter(0, 0)
+		let input = new InputSnapshot()
+		fighter.shieldBreakState = state
+		fighter.x = 921
+		advance(fighter, 0, input, 0)
+		fighter.out.assertTrue()
+		fighter.stocks.assertEquals(2)
+		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
+		fighter.shieldBreakFrame.assertEquals(0)
+		fighter.shieldBreakRemaining.assertEquals(0)
+		for tick = 1 to 60
+			advance(fighter, 0, input, 0)
+		fighter.out.assertFalse()
+		fighter.stocks.assertEquals(2)
+		fighter.shieldBreakSerial.assertEquals(0)
+		fighter.invincible.assertEquals(90)
+		fighter.shieldEnergy.assertEquals(SHIELD_MAX)
+		fighter.shieldBreakState = state
+		fighter.shieldBreakFrame = 10
+		reset(fighter, 0)
+		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
+		fighter.shieldBreakFrame.assertEquals(0)
+		destroy input
+		destroy fighter

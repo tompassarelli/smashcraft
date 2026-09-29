@@ -956,3 +956,42 @@ wc3-melee:tools/probe-shield-visual.sh. Evidence is
 shield-raised.png, shield-low.png and shield-released.png in the same directory.
 The rendering check is not a new simulation test: the previous 149/149 result
 remains the latest full simulation run. Known map compiler warnings remain.
+
+## Shield-break recovery fixture
+
+Run `WC3_SCENARIO=shield-break ~/code/wc3-melee/worktrees/test-loop/loop.sh reload`,
+then `~/code/wc3-melee/worktrees/test-loop/tools/probe-shield-break.sh idle`
+from default character selection. The fixture gives Player 1 one shield point
+and holds the bot still; a normal shield press triggers the real break logic.
+The probe records launch, recovery, dizzy and released screenshots plus phase
+transitions in ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/shield-break-idle/.
+Reload the fixture before running the `mash` variant. Both variants must observe
+air, landing, stand-up, dizzy and release; compare their dizzy-to-release tick
+counts to check the ordinary bound-key input path. Trace duration is ten seconds
+in this fixture and remains five seconds otherwise.
+
+Both players queue fresh logical action presses at the simulation boundary,
+at most once per tick. Key repeat and a second binding for an already held action
+do not create mash presses. Simulation owns recovery and interruption; authored
+knockdown/stand-up clips and the overhead dizzy effect only display its state.
+Restore normal gameplay with `~/code/wc3-melee/worktrees/test-loop/loop.sh reload`.
+
+The shield-break simulation passes 8/8 focused tests and 156/156 full tests,
+with no compiler errors or warnings. Integrated build 065513 reloaded in
+36.323 seconds without replacing the Warcraft process. Its ordinary Shield
+key path reached AIR at trace tick 19, LAND at 54, STAND at 66, DIZZY at 96,
+and NONE at 336: exactly 240 dizzy ticks at zero damage. Screenshots show
+Archer above the platform after the pop and the overhead dizzy rings after
+standing, with shield restored to 50% (30 of 60). Native map compilation
+retains the existing SettingsUI and unused-import warnings. This single-client
+check does not establish multiplayer synchronization or exact Melee tuning.
+
+The keyboard mash check on build 065617 reached DIZZY at tick 96 and NONE
+at 330 (234 ticks). Two fresh N presses arrived at ticks 312 and 324 while
+dizzy: six ticks saved, exactly three per press. Both press/release pairs
+arrived within one game callback batch and still produced their single queued
+edge. Later presses arrived after recovery and were ordinary attacks. Screenshot
+captures precede the mash loop; most of its 20 requested presses arrived late. This
+is evidence for the two delivered recovery presses, not for 20 mash events.
+The trace and screenshots are in
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/shield-break-mash/.
