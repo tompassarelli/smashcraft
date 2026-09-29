@@ -104,6 +104,70 @@ backward_roll = {
 make_action("Roll Forward", forward_roll, 31)
 make_action("Roll Backward", backward_roll, 31)
 
+jump_poses = {
+    0: {},
+    3: {
+        "Bone_Chest": {"rotation": -5},
+        "Bone_Head": {"rotation": 5},
+        "Bone_Arm1_R": {"rotation": -24},
+        "Bone_Arm2_R": {"rotation": -30},
+        "Bone_Arm1_L": {"rotation": 24},
+        "Bone_Arm2_L": {"rotation": 30},
+        "Bone_Leg1_R": {"rotation": 32, "axis": "Z"},
+        "Bone_Leg2_R": {"rotation": -50, "axis": "Z"},
+        "Bone_Leg1_L": {"rotation": 32, "axis": "Z"},
+        "Bone_Leg2_L": {"rotation": -50, "axis": "Z"},
+    },
+    8: {
+        "Bone_Chest": {"rotation": -8},
+        "Bone_Head": {"rotation": 8},
+        "Bone_Arm1_R": {"rotation": -48},
+        "Bone_Arm2_R": {"rotation": -18},
+        "Bone_Arm1_L": {"rotation": 48},
+        "Bone_Arm2_L": {"rotation": 18},
+        "Bone_Leg1_R": {"rotation": 60, "axis": "Z"},
+        "Bone_Leg2_R": {"rotation": -95, "axis": "Z"},
+        "Bone_Leg1_L": {"rotation": 60, "axis": "Z"},
+        "Bone_Leg2_L": {"rotation": -95, "axis": "Z"},
+    },
+    14: {
+        "Bone_Chest": {"rotation": -4},
+        "Bone_Head": {"rotation": 4},
+        "Bone_Arm1_R": {"rotation": -38},
+        "Bone_Arm1_L": {"rotation": 38},
+        "Bone_Leg1_R": {"rotation": 48, "axis": "Z"},
+        "Bone_Leg2_R": {"rotation": -80, "axis": "Z"},
+        "Bone_Leg1_L": {"rotation": 48, "axis": "Z"},
+        "Bone_Leg2_L": {"rotation": -80, "axis": "Z"},
+    },
+    20: {
+        "Bone_Arm1_R": {"rotation": -12},
+        "Bone_Arm1_L": {"rotation": 12},
+        "Bone_Leg1_R": {"rotation": 25, "axis": "Z"},
+        "Bone_Leg2_R": {"rotation": -40, "axis": "Z"},
+        "Bone_Leg1_L": {"rotation": 25, "axis": "Z"},
+        "Bone_Leg2_L": {"rotation": -40, "axis": "Z"},
+    },
+    24: {},
+}
+make_action("Jump", jump_poses, 24)
+
+double_jump_phases = {
+    0: (0, 0),
+    3: (-28, 0.8),
+    7: (-85, 1),
+    12: (-170, 1),
+    17: (-250, 1),
+    22: (-320, 0.9),
+    27: (-360, 0.45),
+    30: (-360, 0),
+}
+double_jump_poses = {
+    frame: roll_pose(angle, tuck)
+    for frame, (angle, tuck) in double_jump_phases.items()
+}
+make_action("Double Jump", double_jump_poses, 30)
+
 spot_pose = {
     0: {
         "Bone_Pelvis": {"location": (0, 0, 0)},
@@ -178,4 +242,4 @@ if "FINISHED" not in result or not exported.is_file():
     raise RuntimeError(f"Archer dodge export failed: {result}")
 print("ARCHER_FIGHTER_EXPORTED", exported, exported.stat().st_size)
 print("ARCHER_FIGHTER_EDITABLE", editable, editable.stat().st_size)
-print("AUTHORED_ACTIONS", "Attack Jab, Roll Forward, Roll Backward, Spot Dodge")
+print("AUTHORED_ACTIONS", "Attack Jab, Jump, Double Jump, Roll Forward, Roll Backward, Spot Dodge")

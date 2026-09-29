@@ -7,6 +7,8 @@ const assetDirectory = join(project, "build/animation-assets");
 const model = parseMDL(await Bun.file(join(assetDirectory, "archer-fighter.mdl")).text());
 const clips = [
     ["JAB", "Attack Jab"],
+    ["JUMP", "Jump"],
+    ["DOUBLE_JUMP", "Double Jump"],
     ["ROLL_FORWARD", "Roll Forward"],
     ["ROLL_BACKWARD", "Roll Backward"],
     ["SPOT_DODGE", "Spot Dodge"],
