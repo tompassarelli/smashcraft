@@ -20,6 +20,8 @@ if [[ ! -s "$fighter_assets/ArcherFighter.mdx" || ! -s "$fighter_assets/FighterA
     exit 1
 fi
 build_id=${WC3_BUILD_ID:-$(date +%s)}
+developer_scenario=${WC3_SCENARIO:-normal}
+case "$developer_scenario" in normal|knockdown) ;; *) echo 'WC3_SCENARIO must be normal or knockdown.' >&2; exit 2;; esac
 if [[ ! "$build_id" =~ ^[A-Za-z0-9._-]+$ ]]; then
     printf 'WC3_BUILD_ID may contain only letters, digits, dots, underscores, and hyphens.\n' >&2
     exit 2
@@ -50,7 +52,7 @@ compiled_script="$work_dir/melee.lua"
 
 cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/common.j" "$project_dir/_build/common.j"
 cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/blizzard.j" "$project_dir/_build/blizzard.j"
-printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\n' "$build_id" > "$project_dir/build/generated-BuildInfo.wurst"
+printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\npublic constant boolean KNOCKDOWN_SCENARIO = %s\n' "$build_id" "$([[ "$developer_scenario" == knockdown ]] && echo true || echo false)" > "$project_dir/build/generated-BuildInfo.wurst"
 
 (
 cd "$work_dir"

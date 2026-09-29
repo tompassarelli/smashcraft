@@ -252,3 +252,32 @@ during its recovery. Jump takes priority over a simultaneous dodge request.
 Spot dodge does not drop through a platform. Intangibility and recovery clocks
 pause in hitlag. Archer now has authored ground-dodge clips; Rifleman's clips
 remain to be authored. See wc3-melee:ANIMATIONS.md for playback and art limits.
+
+## Knockdown reference observations
+
+The local reference at the revision recorded above distinguishes ground
+impact, down wait, stand-up, directional get-up rolls and get-up attack.
+melee:src/melee/ft/kinds/ftCommon/ftCo_DownBound.c decrements a waiting timer
+and eventually stands the fighter up. Its input priority checks attack,
+then roll, then stand. melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c
+accepts attack or special; melee:src/melee/ft/kinds/ftCommon/ftCo_DownStand.c
+accepts Up or shield. melee:src/melee/ft/kinds/ftCommon/ftCo_Down.c distinguishes
+forward/back relative to facing. These are factual state/input observations;
+no decompiled implementation is copied or translated. Timing values for our
+first recovery pass are provisional rather than extracted animation data.
+
+Our current prototype enters tumble at knockback magnitude 80 or above. It
+can leave tumble through an accepted air jump, air dodge or attack after
+hitstun; landing while still tumbling starts knockdown. Ground impact lasts
+12 ticks, followed by a vulnerable wait of up to 180 ticks before automatic
+stand-up. Fresh recovery presses choose attack, then roll, then stand.
+Stand-up lasts 30 ticks; roll lasts 31 and covers 128 world units, clamped to
+the current platform. Their first 8 ticks are intangible. Get-up attack lasts
+45 ticks, has 16 startup/3 active ticks, deals 7 damage once, covers both sides,
+and is intangible during startup. Recovery clocks freeze during hitlag.
+
+All these recovery timings, threshold and hit shapes are provisional.
+Instant surface impact replaces a physical bounce; floor techs, face-up/down
+variants, jab resets, and character-specific get-up data remain unfinished.
+Jump as stand-up input is a deliberate keyboard convenience. Rifleman recovery
+art is still stock; Archer get-up rolls reuse ordinary roll clips.

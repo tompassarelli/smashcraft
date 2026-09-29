@@ -30,6 +30,8 @@ boolean playerNormalAttackQueued = false
 boolean playerLeftPressed = false
 boolean playerRightPressed = false
 boolean playerDownPressed = false
+boolean playerGetupAttackPressed = false
+boolean playerGetupStandPressed = false
 boolean shieldLeft = false
 boolean shieldRight = false
 boolean array held
@@ -271,6 +273,13 @@ function startMatch()
     playerJumpQueued = false
     playerAirDodgeQueued = false
     makePreview()
+    if KNOCKDOWN_SCENARIO
+        playerFighter.downState = DOWN_TUMBLE
+        playerFighter.grounded = false
+        playerFighter.z = 80
+        playerFighter.vz = -8
+        playerFighter.hitstun = 30
+        botFighter.x = 350
 
 function choose()
     if not playerBindings.ready or (settingsPanel != null and settingsPanel.isOpen())
@@ -329,6 +338,8 @@ function clearHeldInputs()
     playerLeftPressed = false
     playerRightPressed = false
     playerDownPressed = false
+    playerGetupAttackPressed = false
+    playerGetupStandPressed = false
     shieldLeft = false
     shieldRight = false
     playerJumpHeld = false
@@ -384,6 +395,11 @@ function onKeyDown()
     if slot < 0
         return
     heldBindingSlots[action * 2 + slot] = true
+    if not wasHeld and matchState.phase == MATCH
+        if action == ATTACK or action == SPECIAL
+            playerGetupAttackPressed = true
+        if action == MOVE_UP or action == JUMP or action == LEFT_TRIGGER or action == RIGHT_TRIGGER
+            playerGetupStandPressed = true
     if action == MOVE_LEFT
         moveLeft = true
         if not wasHeld and matchState.phase == MATCH
@@ -489,6 +505,9 @@ function playAttackAnimation(Fighter fighter)
         if fighter.attackStyle == 10
             SetUnitAnimationByIndex(fighter.body, ARCHER_FORWARD_TILT_DOWN_INDEX)
             return
+        if fighter.attackStyle == DOWN_ATTACK_STYLE
+            SetUnitAnimationByIndex(fighter.body, ARCHER_GET_UP_ATTACK_INDEX)
+            return
     SetUnitAnimation(fighter.body, "attack")
 
 function attackAnimationRate(Fighter fighter) returns real
@@ -503,7 +522,28 @@ function attackAnimationRate(Fighter fighter) returns real
         return ARCHER_FORWARD_TILT_UP_SECONDS / seconds
     if fighter.attackStyle == 10
         return ARCHER_FORWARD_TILT_DOWN_SECONDS / seconds
+    if fighter.attackStyle == DOWN_ATTACK_STYLE
+        return ARCHER_GET_UP_ATTACK_SECONDS / seconds
     return 1.
+
+function downAnimationIndex(Fighter fighter) returns int
+    if fighter.downState == DOWN_BOUND or fighter.downState == DOWN_WAIT
+        return ARCHER_KNOCKDOWN_INDEX
+    if fighter.downState == DOWN_STAND
+        return ARCHER_GET_UP_INDEX
+    return fighter.downDirection == fighter.facing ? ARCHER_ROLL_FORWARD_INDEX : ARCHER_ROLL_BACKWARD_INDEX
+
+function downAnimationRate(Fighter fighter) returns real
+    if fighter.downState == DOWN_WAIT
+        return 0.
+    if fighter.character != 0
+        return 1.
+    if fighter.downState == DOWN_BOUND
+        return ARCHER_KNOCKDOWN_SECONDS / (DOWN_BOUND_FRAMES * FRAME_SECONDS)
+    if fighter.downState == DOWN_STAND
+        return ARCHER_GET_UP_SECONDS / (DOWN_STAND_FRAMES * FRAME_SECONDS)
+    let seconds = fighter.downDirection == fighter.facing ? ARCHER_ROLL_FORWARD_SECONDS : ARCHER_ROLL_BACKWARD_SECONDS
+    return seconds / (DOWN_ROLL_FRAMES * FRAME_SECONDS)
 
 function groundDodgeAnimation(Fighter fighter) returns int
     if fighter.groundDodgeDirection == 0
@@ -523,7 +563,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
     if f.out
         return
     f.place()
-    if f.grounded or f.hitstun > 0 or f.airDodging or attackPhase(f) != ATTACK_NONE
+    if f.grounded or f.hitstun > 0 or f.airDodging or attackPhase(f) != ATTACK_NONE or f.downState != DOWN_NONE
         f.jumpAnimationRemaining = 0
     else if jumped and not wasOut
         f.doubleJumpAnimation = f.jumpIsDouble
@@ -532,14 +572,29 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
     else if f.jumpAnimationRemaining > 0 and f.hitlag <= 0
         f.jumpAnimationRemaining--
     var animationRate = attackAnimationRate(f)
-    if f.character == 0 and isGroundDodging(f)
+    if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
+        animationRate = downAnimationRate(f)
+    else if f.character == 0 and isGroundDodging(f)
         let duration = f.groundDodgeDirection == 0 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES
         animationRate = groundDodgeAnimationSeconds(f) / (duration * FRAME_SECONDS)
     else if f.character == 0 and f.jumpAnimationRemaining > 0
         animationRate = f.doubleJumpAnimation ? ARCHER_DOUBLE_JUMP_SECONDS / (30 * FRAME_SECONDS) : ARCHER_JUMP_SECONDS / (24 * FRAME_SECONDS)
     SetUnitTimeScale(f.body, f.hitlag > 0 ? 0 : animationRate)
     SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
-    if f.character == 0 and isGroundDodging(f)
+    if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
+        let anim = "down" + I2S(f.downState)
+        if f.animation != anim
+            if f.downState != DOWN_WAIT
+                if f.character == 0
+                    SetUnitAnimationByIndex(f.body, downAnimationIndex(f))
+                else
+                    SetUnitAnimation(f.body, f.downState == DOWN_BOUND ? "death" : "stand")
+            f.animation = anim
+    else if isTumbling(f)
+        if f.animation != "tumble"
+            SetUnitAnimation(f.body, "stand hit")
+            f.animation = "tumble"
+    else if f.character == 0 and isGroundDodging(f)
         if f.animation != "dodge"
             SetUnitAnimationByIndex(f.body, groundDodgeAnimation(f))
             f.animation = "dodge"
@@ -574,13 +629,15 @@ function renderUI()
     else
         BlzFrameSetText(hudFrame, charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "          " + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "\n" + (matchState.stageChoice == 0 ? "Sky Deck" : "Three Bridges") + "   |cffff6666Red border = KO|r")
         BlzFrameSetText(helpFrame, matchState.phase == RESULT ? "Press Attack to choose your next match     F6: restart" : "Hold Shield, then tap Left/Right to roll or Down to dodge in place.\nF6: restart map")
+        if matchState.phase == MATCH and playerFighter.downState == DOWN_WAIT
+            BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
     BlzFrameSetText(noticeFrame, statusTime > 0 ? statusText : "")
     selectionPanel.update(matchState.phase, matchState.phase == CHARACTER_MENU ? matchState.characterChoice : matchState.stageChoice,
         settingsPanel != null and settingsPanel.isOpen())
     if settingsPanel != null
         settingsPanel.update()
     if playerFighter != null
-        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | input=" + I2S(lastInputAction) + " normal=" + I2S(lastNormalStyle) + " move=" + I2S(playerFighter.attackStyle) + " frame=" + I2S(playerFighter.attackFrame) + " serial=" + I2S(playerFighter.attackSerial) + " dodge=" + I2S(playerFighter.groundDodgeFrame) + " dir=" + I2S(playerFighter.groundDodgeDirection) + " | F6 restart")
+        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | input=" + I2S(lastInputAction) + " normal=" + I2S(lastNormalStyle) + " move=" + I2S(playerFighter.attackStyle) + " frame=" + I2S(playerFighter.attackFrame) + " serial=" + I2S(playerFighter.attackSerial) + " down=" + I2S(playerFighter.downState) + ":" + I2S(playerFighter.downFrame) + " | F6 restart")
 
 function lockArenaCamera()
     SetCameraField(CAMERA_FIELD_ROTATION, 90, 0)
@@ -606,7 +663,7 @@ function gameTick()
             lastNormalStyle = style
             playerAttacks.enqueue(style, direction, simulationFrame)
         var botDirection = 0
-        if not botFighter.out and not playerFighter.out
+        if not KNOCKDOWN_SCENARIO and not botFighter.out and not playerFighter.out
             let gap = playerFighter.x - botFighter.x
             if gap.abs() > 95
                 botDirection = gap > 0 ? 1 : -1
@@ -619,6 +676,10 @@ function gameTick()
                 attack(botFighter, playerFighter, 0)
                 botAttackDelay = 0.35
         playerInput.direction = direction
+        playerInput.getupAttackPressed = playerGetupAttackPressed
+        playerInput.getupStandPressed = playerGetupStandPressed
+        playerInput.getupDirection = (playerRightPressed ? 1 : 0) - (playerLeftPressed ? 1 : 0)
+        playerInput.getupDirectionPressed = playerInput.getupDirection != 0
         playerInput.walking = walkHeld
         playerInput.down = moveDown
         playerInput.shield = shieldLeft or shieldRight
@@ -639,6 +700,8 @@ function gameTick()
         playerLeftPressed = false
         playerRightPressed = false
         playerDownPressed = false
+        playerGetupAttackPressed = false
+        playerGetupStandPressed = false
         playerJumpQueued = false
         playerInput.jumpPressed = false
         playerAirDodgeQueued = false
@@ -656,6 +719,7 @@ function gameTick()
         PreloadGenClear()
         PreloadGenStart()
         Preload("BUILD " + BUILD_ID)
+        Preload("SCENARIO " + (KNOCKDOWN_SCENARIO ? "knockdown" : "normal"))
         Preload("BINDINGS " + playerBindings.bindings.encode())
         PreloadGenEnd("wc3-melee-ready.txt")
 

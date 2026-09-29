@@ -413,3 +413,53 @@ Evidence:
 The fixed camera remains enforced every presentation tick. Still outstanding:
 get-up/knockdown behavior and authored get-up attack, stronger jab/spot/tilt
 poses, the detached airborne arrow-like element, and multiplayer timing proof.
+
+## Recovery presentation scenario
+
+For repeatable engine checks of knockdown/get-up, build and reload with:
+
+```bash
+WC3_SCENARIO=knockdown /home/tom/code/wc3-melee/worktrees/test-loop/loop.sh reload
+```
+
+After choosing the fighter and stage, this developer-only fixture starts the
+player airborne in tumble above the platform and keeps the bot stationary.
+The normal simulation performs impact and recovery; the fixture only selects
+initial conditions and suppresses bot decisions. Fresh Attack/Special requests
+get-up attack, Up/Jump/Shield requests stand-up, and Left/Right requests a roll.
+The existing readiness file records which scenario was compiled.
+
+Restore ordinary match initial conditions and bot behavior with:
+
+```bash
+WC3_SCENARIO=normal /home/tom/code/wc3-melee/worktrees/test-loop/loop.sh reload
+```
+
+The scenario defaults to normal; unknown values fail the build. A scenario
+presentation check does not prove the organic combat route into knockdown;
+that route must also pass the headless hit/landing tests.
+
+Recovery simulation passes 77/77 headless tests with no warnings. The first
+native scenario exposed unwanted animation looping: the impact clip returned
+to its first upright pose during DOWN_WAIT, and get-up attack repeated. The
+owning exporter fix is documented in wc3-melee:ANIMATIONS.md. After regeneration,
+build 225738 reloaded in 22.690 seconds with the same Warcraft process. Its
+recording shows the held prone pose, one get-up attack, and return upright.
+Evidence: ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/getup-attack-client.mp4
+and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/getup-attack-fixed.png.
+The two preexisting SettingsUI initialization warnings remain in the map build.
+
+The same native scenario also verified Up → stand-up and Right → get-up roll;
+the Archer stayed prone before each input and finished upright. Recordings:
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/getup-stand-client.mp4
+and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/getup-roll-client.mp4.
+Normal match behavior was restored by build 225944 in 23.269 seconds; the game
+reported `SCENARIO normal` and retained its process. The client is left at
+fighter selection. Normal reload evidence:
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/recovery-normal-reload.log.
+
+Knockdown/get-up logic and the first Archer clips are implemented. Floor techs,
+face-up/down differences, jab resets, final move tuning, aerial normals,
+charged smashes, stronger art and multiplayer timing/desync proof remain open.
+The existing detached arrow-like element and two SettingsUI warnings remain
+recorded defects. The prototype is not yet the full requested fighter.

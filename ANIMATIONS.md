@@ -5,7 +5,8 @@ tilt; down-angled forward tilt; jump; double jump; forward roll; backward roll;
 get-up attack. Blender 5.1.1 is installed. The first Archer jab is authored,
 exported and playing in the client. Forward/backward rolls and a spot dodge
 are now authored on the same rig, along with jump, double jump, and three
-forward-tilt variants. Get-up attack remains unfinished; jab and spot dodge still need visual tuning
+forward-tilt variants. Knockdown, stand-up and get-up attack are also authored;
+jab and spot dodge still need visual tuning
 at the normal camera distance.
 
 Preserve editable Blender scenes and exported Warcraft model assets. Author
@@ -216,3 +217,26 @@ show distinct level, upward and downward arm positions; evidence is under
 These are first-pass animations, not finished Melee-quality motion. Rifleman
 still uses its stock attack animation. Native playback evidence and the tested
 build are recorded in wc3-melee:DEVELOPMENT.md.
+
+## Archer knockdown and get-up
+
+wc3-melee:tools/animations/dodges.py also authors Knockdown (12 source frames),
+Get Up (30), and Get Up Attack (45). The attack sweeps at frames 16–18 and
+returns upright by frame 45. As with the other clips, generated metadata
+supplies the actual model indices and durations, and Wurst scales playback
+onto simulation timing. No root translation was added. Get-up rolls currently
+reuse the existing roll clips and still need a transition from the prone pose.
+
+The full asset build and exported MDX → Blender side-view pose check passed.
+Knockdown ends prone, stand-up returns upright, and the attack has a visible
+sweep in the rendered model. Native playback observations belong in
+wc3-melee:DEVELOPMENT.md. Rifleman still uses stock animations.
+
+One-shot action export is repaired at
+~/code/mdl-exporter4/worktrees/blender5, commit 4ce7b32. The action-based path
+previously hard-coded looping, which the native recovery check exposed as a
+knockdown reset and repeating get-up attack. It now consumes the per-action
+`war3_non_looping` property and preserves imported sequence flags. The actual
+Blender export regression covers explicit true, false, default and imported
+flags. Our authored moves set that property; Stand/Walk remain looping.
+Generated model bytes are not patched. Rebuild through the normal asset command.
