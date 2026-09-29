@@ -1,0 +1,315 @@
+package Simulation
+
+constant real WORLD_UNITS_PER_MELEE_UNIT = 6
+constant real FOX_GRAVITY = 0.23 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FALCO_GRAVITY = 0.17 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FOX_AIR_SPEED = 0.83 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FALCO_AIR_SPEED = 0.83 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FOX_AIR_ACCELERATION = (0.02 + 0.06) * WORLD_UNITS_PER_MELEE_UNIT
+constant real FALCO_AIR_ACCELERATION = (0.02 + 0.05) * WORLD_UNITS_PER_MELEE_UNIT
+constant real GROUND_TRACTION = 0.08 * WORLD_UNITS_PER_MELEE_UNIT
+constant real AIR_FRICTION = 0.02 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FOX_TERMINAL_SPEED = 2.8 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FALCO_TERMINAL_SPEED = 3.1 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FOX_FAST_FALL_SPEED = 3.4 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FALCO_FAST_FALL_SPEED = 3.5 * WORLD_UNITS_PER_MELEE_UNIT
+constant real SHIELD_MAX = 60
+constant real SHIELD_DRAIN_PER_FRAME = 0.28
+constant real SHIELD_REGEN_PER_FRAME = 0.07
+constant real AIR_DODGE_SPEED = 8
+constant int AIR_DODGE_FRAMES = 26
+constant int AIR_DODGE_LANDING_LAG = 20
+constant int FOX_JUMP_SQUAT_FRAMES = 3
+constant int FALCO_JUMP_SQUAT_FRAMES = 5
+constant real FOX_FULL_JUMP_SPEED = 22.1
+constant real FALCO_FULL_JUMP_SPEED = 24.6
+constant real FOX_SHORT_JUMP_SPEED = 12.3
+constant real FALCO_SHORT_JUMP_SPEED = 12.7
+constant real FOX_DOUBLE_JUMP_SPEED = 25.2
+constant real FALCO_DOUBLE_JUMP_SPEED = 22.1
+constant real KNOCKBACK_DECAY_PER_FRAME = 0.051
+constant real KNOCKBACK_LAUNCH_SCALE = 0.03 * WORLD_UNITS_PER_MELEE_UNIT
+constant real HITSTUN_FRAMES_PER_KNOCKBACK = 0.4
+constant real DIAGONAL_UNIT = 0.7071067811865476
+
+public class FighterState
+	int character
+	int facing
+	real x
+	real z
+	real vx
+	real vz
+	real damage = 0
+	int stocks = 3
+	int hitstun = 0
+	int hitlag = 0
+	int cooldown = 0
+	int attackTime = 0
+	boolean out = false
+	int respawn = 0
+	boolean shield = false
+	real shieldEnergy = SHIELD_MAX
+	int shieldStun = 0
+	boolean grounded = true
+	int jumps = 2
+	int jumpSquat = 0
+	boolean jumpHeld = false
+	int dropTime = 0
+	int invincible = 0
+	int surface = -1
+	int airDodgeTime = 0
+	int landingLag = 0
+	boolean airDodging = false
+
+	construct(int fighterType, real startX, int direction)
+		character = fighterType
+		x = startX
+		z = 0
+		facing = direction
+
+public class InputSnapshot
+	int direction = 0
+	boolean down = false
+	boolean shield = false
+	boolean jumpPressed = false
+	boolean airDodgePressed = false
+	int dodgeX = 0
+	int dodgeZ = 0
+	boolean jumpHeld = false
+
+public function surfaceCount(int stage) returns int
+	return stage == 0 ? 1 : 3
+
+public function surfaceLeft(int stage, int index) returns real
+	if index == 0
+		return -600
+	if stage == 1 and index == 1
+		return -420
+	if stage == 1 and index == 2
+		return 110
+	return 0
+
+public function surfaceRight(int stage, int index) returns real
+	if index == 0
+		return 600
+	if stage == 1 and index == 1
+		return -110
+	if stage == 1 and index == 2
+		return 420
+	return 0
+
+public function surfaceZ(int stage, int index) returns real
+	return stage == 1 and index > 0 ? 170 : 0
+
+public function surfacePass(int stage, int index) returns boolean
+	return stage == 1 and index > 0
+
+public function characterSpeed(int character) returns real
+	return character == 0 ? 2.2 * WORLD_UNITS_PER_MELEE_UNIT : 1.5 * WORLD_UNITS_PER_MELEE_UNIT
+
+public function characterGravity(int character) returns real
+	return character == 0 ? FOX_GRAVITY : FALCO_GRAVITY
+
+public function characterTerminalSpeed(int character) returns real
+	return character == 0 ? FOX_TERMINAL_SPEED : FALCO_TERMINAL_SPEED
+
+public function characterAirSpeed(int character) returns real
+	return character == 0 ? FOX_AIR_SPEED : FALCO_AIR_SPEED
+
+public function characterAirAcceleration(int character) returns real
+	return character == 0 ? FOX_AIR_ACCELERATION : FALCO_AIR_ACCELERATION
+
+public function characterFastFallSpeed(int character) returns real
+	return character == 0 ? FOX_FAST_FALL_SPEED : FALCO_FAST_FALL_SPEED
+
+public function fullJumpSpeed(int character) returns real
+	return character == 0 ? FOX_FULL_JUMP_SPEED : FALCO_FULL_JUMP_SPEED
+
+public function shortJumpSpeed(int character) returns real
+	return character == 0 ? FOX_SHORT_JUMP_SPEED : FALCO_SHORT_JUMP_SPEED
+
+public function doubleJumpSpeed(int character) returns real
+	return character == 0 ? FOX_DOUBLE_JUMP_SPEED : FALCO_DOUBLE_JUMP_SPEED
+
+public function jumpSquatFrames(int character) returns int
+	return character == 0 ? FOX_JUMP_SQUAT_FRAMES : FALCO_JUMP_SQUAT_FRAMES
+
+public function simulationJump(FighterState f)
+	if f.out or f.hitlag > 0 or f.hitstun > 0 or f.shield or f.jumps <= 0
+		return
+	if f.grounded
+		f.jumpSquat = jumpSquatFrames(f.character)
+		f.jumpHeld = true
+	else
+		f.vz = doubleJumpSpeed(f.character)
+	f.jumps--
+
+public function simulationAirDodge(FighterState f, int horizontal, int vertical)
+	if f.out or f.grounded or f.hitlag > 0 or f.hitstun > 0 or f.airDodgeTime > 0
+		return
+	let dx = horizontal == 0 ? 0 : (horizontal > 0 ? 1 : -1)
+	let dz = vertical == 0 ? 0 : (vertical > 0 ? 1 : -1)
+	let scale = dx != 0 and dz != 0 ? DIAGONAL_UNIT : 1
+	f.vx = dx * AIR_DODGE_SPEED * scale
+	f.vz = dz * AIR_DODGE_SPEED * scale
+	f.airDodgeTime = AIR_DODGE_FRAMES
+	f.airDodging = true
+	f.grounded = false
+	f.jumps = max(0, f.jumps - 1)
+
+public function simulationAttack(FighterState attacker, FighterState target, int style)
+	if attacker.out or target.out or attacker.hitlag > 0 or attacker.hitstun > 0 or attacker.shieldStun > 0 or attacker.cooldown > 0 or attacker.shield
+		return
+	let damage = style == 1 ? 3 : (style == 2 or style == 3 ? 16 : (style == 4 ? 18 : 12))
+	let reach = style == 1 ? 600 : (style == 2 or style == 3 ? 125 : 145)
+	let separation = target.x - attacker.x
+	if target.invincible > 0 or separation * attacker.facing < 0 or separation.abs() > reach or (target.z - attacker.z).abs() > 130
+		return
+	attacker.attackTime = style == 1 ? 15 : 29
+	attacker.cooldown = style == 1 ? 15 : (style == 2 or style == 3 ? 42 : 36)
+	if target.shield and target.shieldEnergy > 0
+		target.shieldEnergy = max(0, target.shieldEnergy - damage * 0.7)
+		target.shieldStun = R2I((damage * 0.45 + 2) * 200 / 201)
+		attacker.hitlag = max(attacker.hitlag, R2I(damage / 3 + 3))
+		if target.shieldEnergy == 0
+			target.shield = false
+			target.hitstun = 40
+		return
+	if style == 1
+		target.damage += damage
+		if attacker.character == 1
+			target.hitstun = max(target.hitstun, 11)
+		return
+	let weight = target.character == 0 ? 75 : 80
+	let newPercent = R2I(target.damage) + damage
+	let knockback = (((newPercent / 10. + newPercent * damage / 20.) * 200 / (weight + 100) * 1.4 + 18) + 20)
+	target.damage += damage
+	target.grounded = false
+	target.vx = attacker.facing * knockback * KNOCKBACK_LAUNCH_SCALE * DIAGONAL_UNIT
+	target.vz = knockback * KNOCKBACK_LAUNCH_SCALE * DIAGONAL_UNIT
+	target.hitstun = R2I(knockback * HITSTUN_FRAMES_PER_KNOCKBACK)
+	target.hitlag = R2I(damage / 3 + 3)
+	attacker.hitlag = max(attacker.hitlag, R2I(damage / 3 + 3))
+
+public function reset(FighterState f, real startX)
+	f.x = startX
+	f.z = 280
+	f.vx = 0
+	f.vz = 0
+	f.damage = 0
+	f.hitstun = 0
+	f.hitlag = 0
+	f.shieldStun = 0
+	f.attackTime = 0
+	f.cooldown = 0
+	f.shield = false
+	f.shieldEnergy = SHIELD_MAX
+	f.jumpSquat = 0
+	f.jumpHeld = false
+	f.out = false
+	f.grounded = false
+	f.jumps = 2
+	f.dropTime = 0
+	f.airDodgeTime = 0
+	f.landingLag = 0
+	f.airDodging = false
+	f.invincible = 90
+
+public function advance(FighterState f, int stage, InputSnapshot input, real respawnX)
+	if f.out
+		f.respawn--
+		if f.respawn <= 0
+			reset(f, respawnX)
+		return
+	if input.jumpPressed
+		simulationJump(f)
+	if f.jumpSquat > 0
+		f.jumpHeld = input.jumpHeld
+	if input.airDodgePressed
+		simulationAirDodge(f, input.dodgeX, input.dodgeZ)
+	if f.jumpSquat > 0 and f.hitlag == 0
+		f.jumpHeld = input.jumpHeld
+		f.jumpSquat--
+		if f.jumpSquat == 0
+			f.grounded = false
+			f.vz = f.jumpHeld ? fullJumpSpeed(f.character) : shortJumpSpeed(f.character)
+	if f.hitlag > 0
+		f.hitlag--
+		return
+	f.hitstun = max(0, f.hitstun - 1)
+	f.shieldStun = max(0, f.shieldStun - 1)
+	f.cooldown = max(0, f.cooldown - 1)
+	f.attackTime = max(0, f.attackTime - 1)
+	f.invincible = max(0, f.invincible - 1)
+	f.dropTime = max(0, f.dropTime - 1)
+	f.airDodgeTime = max(0, f.airDodgeTime - 1)
+	f.landingLag = max(0, f.landingLag - 1)
+	let wantsShield = input.shield and f.shieldEnergy > 0 and f.hitstun <= 0 and f.grounded
+		and f.shieldStun <= 0 and f.landingLag <= 0
+	f.shield = wantsShield
+	f.shieldEnergy = min(SHIELD_MAX, max(0, f.shieldEnergy + (wantsShield ? -SHIELD_DRAIN_PER_FRAME : SHIELD_REGEN_PER_FRAME)))
+	if wantsShield and f.shieldEnergy == 0
+		f.shield = false
+		f.hitstun = 40
+	var direction = input.direction
+	if f.hitstun <= 0 and f.airDodgeTime <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0
+		if wantsShield
+			direction = 0
+		if direction != 0
+			f.facing = direction
+			if f.grounded
+				f.vx = characterSpeed(f.character) * direction
+			else
+				f.vx = f.vx + direction * characterAirAcceleration(f.character)
+				f.vx = max(-characterAirSpeed(f.character), min(characterAirSpeed(f.character), f.vx))
+		else
+			let drag = f.grounded ? GROUND_TRACTION : AIR_FRICTION
+			f.vx = f.vx > 0 ? max(0, f.vx - drag) : min(0, f.vx + drag)
+	if input.down and f.grounded and f.surface >= 0 and surfacePass(stage, f.surface)
+		f.dropTime = 12
+		f.grounded = false
+		f.vz = -2
+	let oldX = f.x
+	let oldZ = f.z
+	f.x += f.vx
+	if f.hitstun > 0
+		let decay = KNOCKBACK_DECAY_PER_FRAME * WORLD_UNITS_PER_MELEE_UNIT
+		f.vx = f.vx > 0 ? max(0, f.vx - decay) : min(0, f.vx + decay)
+		f.vz = f.vz > 0 ? max(0, f.vz - decay) : min(0, f.vz + decay)
+	if f.grounded and f.jumpSquat > 0
+		f.vz = 0
+		f.z = surfaceZ(stage, max(0, f.surface))
+	else if f.airDodgeTime > 0
+		f.vx = f.vx * 0.9
+		f.vz = max(-characterTerminalSpeed(f.character), f.vz - characterGravity(f.character))
+	else
+		let gravity = characterGravity(f.character)
+		f.vz = max(-characterTerminalSpeed(f.character), f.vz - gravity)
+		if input.down and f.vz < 0
+			f.vz = -characterFastFallSpeed(f.character)
+	f.z += f.vz
+	var landing = -1
+	if f.vz <= 0
+		for i = 0 to surfaceCount(stage) - 1
+			let platformZ = surfaceZ(stage, i)
+			if oldZ >= platformZ and f.z <= platformZ and not (surfacePass(stage, i) and f.dropTime > 0)
+				let fraction = oldZ == f.z ? 1 : (oldZ - platformZ) / (oldZ - f.z)
+				let crossingX = oldX + (f.x - oldX) * fraction
+				if crossingX >= surfaceLeft(stage, i) and crossingX <= surfaceRight(stage, i) and f.x >= surfaceLeft(stage, i) and f.x <= surfaceRight(stage, i)
+					if landing < 0 or platformZ > surfaceZ(stage, landing)
+						landing = i
+	f.grounded = landing >= 0
+	f.surface = landing
+	if landing >= 0
+		if f.airDodging
+			f.landingLag = AIR_DODGE_LANDING_LAG
+			f.airDodging = false
+		f.z = surfaceZ(stage, landing)
+		f.vz = 0
+		if f.jumpSquat <= 0
+			f.jumps = 2
+	if f.x <= -920 or f.x >= 920 or f.z <= -420 or f.z >= 760
+		f.out = true
+		f.respawn = 60
+		f.stocks--
+		return

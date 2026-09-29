@@ -1,0 +1,8 @@
+projectName: Melee Prototype
+wc3Patch: v3.0
+buildMapData:
+  name: Melee Prototype
+  fileName: Melee_Prototype
+  author: Tom
+  scenarioData:
+    description: Archer versus Rifleman platform fight.

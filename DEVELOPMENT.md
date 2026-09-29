@@ -89,3 +89,33 @@ passing in approximately four seconds through
 ~/code/wc3-melee/worktrees/test-loop/test.sh. VS Code's default test task calls
 that command. Frame-based refinements and sourced parameter adoption are in
 progress; this checkpoint does not prove those later changes.
+
+## Frame-based checkpoint and next work
+
+Nine Wurstunit tests passed after frame counters and the documented movement,
+shield and knockback parameters were introduced. The Warcraft adapter uses a
+1/60-second timer. Build 185558 loaded in 14.135 seconds without restarting the
+client. The new ClosureFrames selector accepted a Falco mouse click and then
+keyboard confirmation, entering stage selection and a match. Evidence:
+~/code/wc3-melee/worktrees/test-loop/build/engine-check-185558 and
+~/code/wc3-melee/worktrees/test-loop/build/loop/20260929-185557-reload.
+
+Next required work:
+
+- Move match selection/state/result rules from wc3-melee:wurst/Melee.wurst into
+  the simulation, and test character → stage → match → final-stock result.
+- Strengthen platform tests: the current below-platform test starts at x=0,
+  which is between the upper platforms; make it actually cross one. Test
+  short versus full jump, retained wavedash momentum, repeated blast-zone
+  updates, respawn and final stock explicitly.
+- Check shield minimum-hold/release recovery, air-dodge ending/helpless state,
+  and landing recovery against the documented intended rules. Current values
+  not backed by sources remain prototype tuning.
+- Replace remaining attack/key-event calls into simulation with queued inputs
+  applied on the logical frame boundary; avoid timing depending on callback
+  ordering. Keep renderer-only animation separate.
+- Use focused client checks for shield/air-dodge appearance, animations and
+  control feel after those tests. Multiplayer timing remains unverified.
+
+No active delegated runs remain at this checkpoint. The migration worker's
+capacity lease was released. The Wurst skill is active in the shared catalog.

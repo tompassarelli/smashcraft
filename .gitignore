@@ -1,0 +1,6 @@
+/build/
+/_build/
+/.lsp/
+/.clj-kondo/
+/compiled.lua.txt
+/toolchain/*.jar

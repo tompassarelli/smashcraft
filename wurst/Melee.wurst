@@ -1,0 +1,463 @@
+package Melee
+import Wurst
+import BuildInfo
+import Simulation
+import SelectionUI
+
+constant real FRAME_SECONDS = 0.016666667
+constant int CHARACTER_MENU = 0
+constant int STAGE_MENU = 1
+constant int MATCH = 2
+constant int RESULT = 3
+
+real centerX = 0
+real centerY = 0
+real floorHeight = 0
+int state = CHARACTER_MENU
+int characterChoice = 0
+int stageChoice = 0
+Fighter playerFighter = null
+Fighter botFighter = null
+timer gameTimer = null
+boolean moveLeft = false
+boolean moveRight = false
+boolean moveDown = false
+boolean shieldLeft = false
+boolean shieldRight = false
+boolean array held
+lightning array stageLines
+int stageLineCount = 0
+lightning array blastLines
+framehandle titleFrame
+framehandle menuFrame
+framehandle hudFrame
+framehandle helpFrame
+framehandle noticeFrame
+framehandle developerFrame
+string statusText = ""
+real statusTime = 0
+real botAttackDelay = 0
+boolean readyMarkerWritten = false
+boolean playerJumpQueued = false
+boolean playerJumpHeld = false
+boolean playerAirDodgeQueued = false
+int playerDodgeX = 0
+int playerDodgeZ = 0
+boolean botJumpQueued = false
+boolean botJumpHeld = false
+InputSnapshot playerInput = null
+InputSnapshot botInput = null
+SelectionPanel selectionPanel = null
+
+class MeleeSelectionActions extends SelectionActions
+    override function selectChoice(int choice)
+        if state == CHARACTER_MENU
+            characterChoice = choice
+            makePreview()
+        else if state == STAGE_MENU
+            stageChoice = choice
+            drawStage()
+
+    override function confirmSelection()
+        confirm()
+
+    override function backSelection()
+        back()
+
+
+class Fighter extends FighterState
+    unit body
+    string animation = ""
+
+    construct(player owner, int fighterType, real startX, int direction)
+        super(fighterType, startX, direction)
+        body = CreateUnit(owner, fighterType == 0 ? 'earc' : 'hrif', centerX + startX, centerY, direction > 0 ? 0 : 180)
+        SetUnitInvulnerable(body, true)
+        SetUnitPathing(body, false)
+        UnitAddAbility(body, 'Amrf')
+        UnitRemoveAbility(body, 'Amrf')
+        UnitAddAbility(body, 'Aloc')
+        PauseUnit(body, true)
+        place()
+
+    function place()
+        SetUnitX(body, centerX + x)
+        SetUnitY(body, centerY)
+        SetUnitFlyHeight(body, 1800 + z, 0)
+        BlzSetUnitFacingEx(body, facing > 0 ? 0 : 180)
+
+
+function charName(int which) returns string
+    return which == 0 ? "Fox" : "Falco"
+
+function charModel(int which) returns string
+    return which == 0 ? "Archer" : "Rifleman"
+
+function frameText(string name, real x, real y, real width, real height, real size) returns framehandle
+    let result = BlzCreateFrameByType("TEXT", name, BlzGetOriginFrame(ORIGIN_FRAME_GAME_UI, 0), "", 0)
+    BlzFrameSetAbsPoint(result, FRAMEPOINT_TOPLEFT, x, y)
+    BlzFrameSetSize(result, width, height)
+    BlzFrameSetFont(result, "Fonts\\FRIZQT__.TTF", size, 0)
+    BlzFrameSetTextAlignment(result, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT)
+    return result
+
+function drawLine(real x1, real z1, real x2, real z2, real r, real g, real b) returns lightning
+    let bolt = AddLightningEx("DRAM", false, centerX + x1, centerY, floorHeight + z1,
+        centerX + x2, centerY, floorHeight + z2)
+    SetLightningColor(bolt, r, g, b, 1)
+    return bolt
+
+function clearStageLines()
+    for i = 0 to stageLineCount - 1
+        DestroyLightning(stageLines[i])
+    stageLineCount = 0
+
+function drawStage()
+    clearStageLines()
+    for i = 0 to surfaceCount(stageChoice) - 1
+        let z = surfaceZ(stageChoice, i)
+        let pass = surfacePass(stageChoice, i)
+        for depth = 0 to 4
+            let y = z - depth * 6
+            stageLines[stageLineCount] = drawLine(surfaceLeft(stageChoice, i), y, surfaceRight(stageChoice, i), y,
+                pass ? 0.45 : 0.15, 0.85, 1)
+            stageLineCount++
+
+function removeFighters()
+    if playerFighter != null
+        RemoveUnit(playerFighter.body)
+        destroy playerFighter
+        playerFighter = null
+    if botFighter != null
+        RemoveUnit(botFighter.body)
+        destroy botFighter
+        botFighter = null
+
+function makePreview()
+    removeFighters()
+    playerFighter = new Fighter(Player(0), characterChoice, -240, 1)
+    botFighter = new Fighter(Player(1), 1 - characterChoice, 240, -1)
+    SetUnitAnimation(playerFighter.body, "stand")
+    SetUnitAnimation(botFighter.body, "stand")
+
+function announce(string message)
+    statusText = message
+    statusTime = 2
+
+function loseStock(Fighter f)
+    ShowUnit(f.body, false)
+    if f.stocks == 0
+        state = RESULT
+        statusText = f == playerFighter ? "Defeat! The opponent wins." : "Victory! You win!"
+        statusTime = 3600
+    else
+        announce(f == playerFighter ? "You lost a stock!" : "Opponent lost a stock!")
+
+function attack(Fighter attacker, Fighter target, int style)
+    if state != MATCH
+        return
+    SetUnitAnimation(attacker.body, "attack")
+    simulationAttack(attacker, target, style)
+    if target.hitstun > 0
+        SetUnitAnimation(target.body, "stand hit")
+
+function jump(Fighter f)
+    if state != MATCH
+        return
+    if f == playerFighter
+        playerJumpQueued = true
+        playerJumpHeld = true
+    else
+        botJumpQueued = true
+        botJumpHeld = true
+
+function airDodge(Fighter _f, int horizontal, int vertical)
+    if state != MATCH
+        return
+    playerAirDodgeQueued = true
+    playerDodgeX = horizontal
+    playerDodgeZ = vertical
+
+function startMatch()
+    state = MATCH
+    statusText = "GO!"
+    statusTime = 1
+    moveLeft = false
+    moveRight = false
+    moveDown = false
+    makePreview()
+
+function choose()
+    if state == CHARACTER_MENU
+        characterChoice = 1 - characterChoice
+        makePreview()
+    else if state == STAGE_MENU
+        stageChoice = 1 - stageChoice
+        drawStage()
+
+function confirm()
+    if state == CHARACTER_MENU
+        state = STAGE_MENU
+    else if state == STAGE_MENU
+        startMatch()
+    else if state == RESULT
+        state = CHARACTER_MENU
+        statusText = ""
+        statusTime = 0
+        makePreview()
+    else if state == MATCH
+        attack(playerFighter, botFighter, 0)
+
+function back()
+    if state == STAGE_MENU
+        state = CHARACTER_MENU
+    else if state == MATCH
+        attack(playerFighter, botFighter, 1)
+
+function onKeyDown()
+    let key = BlzGetTriggerPlayerKey()
+    let index = GetHandleId(key)
+    if held[index]
+        return
+    held[index] = true
+    if key == OSKEY_S
+        moveLeft = true
+        choose()
+    else if key == OSKEY_F
+        moveRight = true
+        choose()
+    else if key == OSKEY_D
+        moveDown = true
+    else if key == OSKEY_SPACE
+        jump(playerFighter)
+    else if key == OSKEY_L
+        airDodge(playerFighter, (moveRight ? 1 : 0) - (moveLeft ? 1 : 0), moveDown ? -1 : 0)
+    else if key == OSKEY_LEFT
+        choose()
+    else if key == OSKEY_RIGHT
+        choose()
+    else if key == OSKEY_I or key == OSKEY_9
+        jump(playerFighter)
+    else if key == OSKEY_N
+        confirm()
+    else if key == OSKEY_U
+        back()
+    else if key == OSKEY_H
+        playerFighter.facing = -1
+        attack(playerFighter, botFighter, 4)
+    else if key == OSKEY_M
+        playerFighter.facing = 1
+        attack(playerFighter, botFighter, 4)
+    else if key == OSKEY_J
+        attack(playerFighter, botFighter, 2)
+    else if key == OSKEY_B or key == OSKEY_OEM_2
+        attack(playerFighter, botFighter, 3)
+    else if key == OSKEY_A
+        shieldLeft = true
+    else if key == OSKEY_8
+        shieldRight = true
+    else if key == OSKEY_F6
+        RestartGame(false)
+    else if key == OSKEY_F5
+        EndGame(false)
+
+function onKeyUp()
+    let key = BlzGetTriggerPlayerKey()
+    let index = GetHandleId(key)
+    held[index] = false
+    if key == OSKEY_S
+        moveLeft = false
+    else if key == OSKEY_F
+        moveRight = false
+    else if key == OSKEY_D
+        moveDown = false
+    else if key == OSKEY_A
+        shieldLeft = false
+    else if key == OSKEY_8
+        shieldRight = false
+    else if key == OSKEY_SPACE or key == OSKEY_I or key == OSKEY_9
+        playerJumpHeld = false
+
+function registerKey(trigger eventTrigger, oskeytype key, boolean down)
+    BlzTriggerRegisterPlayerKeyEvent(eventTrigger, Player(0), key, 0, down)
+
+function setupKeys()
+    let downTrigger = CreateTrigger()
+    let upTrigger = CreateTrigger()
+    registerKey(downTrigger, OSKEY_S, true)
+    registerKey(upTrigger, OSKEY_S, false)
+    registerKey(downTrigger, OSKEY_F, true)
+    registerKey(upTrigger, OSKEY_F, false)
+    registerKey(downTrigger, OSKEY_D, true)
+    registerKey(upTrigger, OSKEY_D, false)
+    registerKey(downTrigger, OSKEY_SPACE, true)
+    registerKey(upTrigger, OSKEY_SPACE, false)
+    registerKey(downTrigger, OSKEY_L, true)
+    registerKey(upTrigger, OSKEY_L, false)
+    registerKey(downTrigger, OSKEY_LEFT, true)
+    registerKey(upTrigger, OSKEY_LEFT, false)
+    registerKey(downTrigger, OSKEY_RIGHT, true)
+    registerKey(upTrigger, OSKEY_RIGHT, false)
+    registerKey(downTrigger, OSKEY_I, true)
+    registerKey(upTrigger, OSKEY_I, false)
+    registerKey(downTrigger, OSKEY_9, true)
+    registerKey(upTrigger, OSKEY_9, false)
+    registerKey(downTrigger, OSKEY_N, true)
+    registerKey(upTrigger, OSKEY_N, false)
+    registerKey(downTrigger, OSKEY_U, true)
+    registerKey(upTrigger, OSKEY_U, false)
+    registerKey(downTrigger, OSKEY_H, true)
+    registerKey(upTrigger, OSKEY_H, false)
+    registerKey(downTrigger, OSKEY_M, true)
+    registerKey(upTrigger, OSKEY_M, false)
+    registerKey(downTrigger, OSKEY_J, true)
+    registerKey(upTrigger, OSKEY_J, false)
+    registerKey(downTrigger, OSKEY_B, true)
+    registerKey(upTrigger, OSKEY_B, false)
+    registerKey(downTrigger, OSKEY_OEM_2, true)
+    registerKey(upTrigger, OSKEY_OEM_2, false)
+    registerKey(downTrigger, OSKEY_A, true)
+    registerKey(upTrigger, OSKEY_A, false)
+    registerKey(downTrigger, OSKEY_8, true)
+    registerKey(upTrigger, OSKEY_8, false)
+    registerKey(downTrigger, OSKEY_F6, true)
+    registerKey(upTrigger, OSKEY_F6, false)
+    registerKey(downTrigger, OSKEY_F5, true)
+    registerKey(upTrigger, OSKEY_F5, false)
+    TriggerAddAction(downTrigger, function onKeyDown)
+    TriggerAddAction(upTrigger, function onKeyUp)
+
+function updateFighter(Fighter f, InputSnapshot input, real respawnX)
+    let wasOut = f.out
+    advance(f, stageChoice, input, respawnX)
+    if wasOut and not f.out
+        ShowUnit(f.body, true)
+    else if not wasOut and f.out
+        loseStock(f)
+    if f.out
+        return
+    f.place()
+    SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, f.invincible > 0 ? 140 : 255)
+    if f == playerFighter and f.jumps < 2 and playerJumpQueued
+        SetUnitAnimation(f.body, "stand")
+    else if f.attackTime == 0 and f.hitstun == 0 and f.hitlag == 0
+        let anim = f.grounded and f.vx.abs() > 40 ? "walk" : "stand"
+        if f.animation != anim
+            SetUnitAnimation(f.body, anim)
+            f.animation = anim
+    else
+        f.animation = ""
+
+function renderUI()
+    let selecting = state == CHARACTER_MENU or state == STAGE_MENU
+    BlzFrameSetVisible(titleFrame, selecting)
+    BlzFrameSetVisible(menuFrame, false)
+    BlzFrameSetVisible(hudFrame, not selecting)
+    if state == CHARACTER_MENU
+        BlzFrameSetText(titleFrame, "CHOOSE YOUR FIGHTER")
+        BlzFrameSetText(menuFrame, (characterChoice == 0 ? "|cffffd45a> " : "  ") + "FOX  -  Archer|r\n\n" + (characterChoice == 1 ? "|cffffd45a> " : "  ") + "FALCO  -  Rifleman|r\n\nYou: " + charName(characterChoice) + "     Opponent: " + charName(1 - characterChoice))
+        BlzFrameSetText(helpFrame, "S / F or Left / Right: choose     N: confirm")
+    else if state == STAGE_MENU
+        BlzFrameSetText(titleFrame, "CHOOSE A STAGE")
+        BlzFrameSetText(menuFrame, (stageChoice == 0 ? "|cffffd45a> " : "  ") + "SKY DECK|r\n\n" + (stageChoice == 1 ? "|cffffd45a> " : "  ") + "THREE BRIDGES|r\n\n" + (stageChoice == 0 ? "One wide platform. Open skies on every side." : "A main deck and two raised platforms. Jump through them; hold D to drop."))
+        BlzFrameSetText(helpFrame, "S / F or Left / Right: choose     N: fight!     U: back")
+    else
+        BlzFrameSetText(hudFrame, charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "          " + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "\n" + (stageChoice == 0 ? "Sky Deck" : "Three Bridges") + "   |cffff6666Red border = KO|r")
+        BlzFrameSetText(helpFrame, state == RESULT ? "N: choose your next match     F6: restart" : "S / F: move   D: fast fall / drop   I / 9 / Space: jump   L: air dodge   N: attack   U: special\nA / 8: shield   H / J / M / B: smash left / up / right / down")
+    BlzFrameSetText(noticeFrame, statusTime > 0 ? statusText : "")
+    selectionPanel.update(state, state == CHARACTER_MENU ? characterChoice : stageChoice)
+    if playerFighter != null
+        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | state=" + I2S(state) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | " + (playerFighter.grounded ? "ground" : "air") + " | F6 restart / F5 exit")
+
+function gameTick()
+    SetCameraPosition(centerX, centerY)
+    statusTime = max(0, statusTime - FRAME_SECONDS)
+    if state == MATCH
+        let direction = (moveRight ? 1 : 0) - (moveLeft ? 1 : 0)
+        var botDirection = 0
+        if not botFighter.out and not playerFighter.out
+            let gap = playerFighter.x - botFighter.x
+            if gap.abs() > 95
+                botDirection = gap > 0 ? 1 : -1
+            if not botFighter.grounded and botFighter.z < -30 and botFighter.vz < 0 and botFighter.jumps > 0
+                botJumpQueued = true
+            if botFighter.grounded and playerFighter.z > botFighter.z + 130
+                botJumpQueued = true
+            botAttackDelay -= FRAME_SECONDS
+            if gap.abs() < 135 and botAttackDelay <= 0
+                botFighter.facing = gap > 0 ? 1 : -1
+                attack(botFighter, playerFighter, 0)
+                botAttackDelay = 0.35
+        playerInput.direction = direction
+        playerInput.down = moveDown
+        playerInput.shield = shieldLeft or shieldRight
+        playerInput.jumpPressed = playerJumpQueued
+        playerInput.jumpHeld = playerJumpHeld
+        playerInput.airDodgePressed = playerAirDodgeQueued
+        playerInput.dodgeX = playerDodgeX
+        playerInput.dodgeZ = playerDodgeZ
+        updateFighter(playerFighter, playerInput, -240)
+        playerJumpQueued = false
+        playerInput.jumpPressed = false
+        playerAirDodgeQueued = false
+        playerDodgeX = 0
+        playerDodgeZ = 0
+        if state == MATCH
+            botInput.direction = botDirection
+            botInput.jumpPressed = botJumpQueued
+            botInput.jumpHeld = botJumpHeld
+            updateFighter(botFighter, botInput, 240)
+            botJumpQueued = false
+            botJumpHeld = false
+            botInput.jumpPressed = false
+    renderUI()
+    if not readyMarkerWritten
+        readyMarkerWritten = true
+        PreloadGenClear()
+        PreloadGenStart()
+        Preload("BUILD " + BUILD_ID)
+        PreloadGenEnd("wc3-melee-ready.txt")
+
+function initGame()
+    playerInput = new InputSnapshot()
+    botInput = new InputSnapshot()
+    let center = GetRectCenter(GetPlayableMapRect())
+    centerX = GetLocationX(center)
+    centerY = GetLocationY(center)
+    floorHeight = GetLocationZ(center) + 1800
+    RemoveLocation(center)
+    BlzHideOriginFrames(true)
+    BlzEnableSelections(false, false)
+    EnableUserControl(true)
+    FogEnable(false)
+    FogMaskEnable(false)
+    titleFrame = frameText("MeleeTitle", 0.06, 0.56, 0.68, 0.04, 0.023)
+    menuFrame = frameText("MeleeMenu", 0.06, 0.505, 0.68, 0.19, 0.017)
+    hudFrame = frameText("MeleeScore", 0.06, 0.555, 0.68, 0.06, 0.019)
+    helpFrame = frameText("MeleeHelp", 0.06, 0.095, 0.69, 0.055, 0.013)
+    noticeFrame = frameText("MeleeNotice", 0.26, 0.47, 0.42, 0.07, 0.019)
+    developerFrame = frameText("MeleeDeveloper", 0.06, 0.035, 0.72, 0.03, 0.010)
+    selectionPanel = new SelectionPanel(new MeleeSelectionActions())
+    blastLines[0] = drawLine(-920, -420, 920, -420, 1, 0.15, 0.15)
+    blastLines[1] = drawLine(-920, 760, 920, 760, 1, 0.15, 0.15)
+    blastLines[2] = drawLine(-920, -420, -920, 760, 1, 0.15, 0.15)
+    blastLines[3] = drawLine(920, -420, 920, 760, 1, 0.15, 0.15)
+    drawStage()
+    SetCameraField(CAMERA_FIELD_ROTATION, 90, 0)
+    SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, 350, 0)
+    SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, 2050, 0)
+    SetCameraField(CAMERA_FIELD_ZOFFSET, 1960, 0)
+    SetCameraField(CAMERA_FIELD_FARZ, 8000, 0)
+    CameraSetSmoothingFactor(0)
+    SetTimeOfDay(12)
+    SetTimeOfDayScale(0)
+    SetSkyModel("Environment\\Sky\\LordaeronSummerSky\\LordaeronSummerSky.mdl")
+    PanCameraToTimed(centerX, centerY, 0)
+    makePreview()
+    renderUI()
+    setupKeys()
+    gameTimer = CreateTimer()
+    TimerStart(gameTimer, FRAME_SECONDS, true, function gameTick)
+
+init
+    initGame()
