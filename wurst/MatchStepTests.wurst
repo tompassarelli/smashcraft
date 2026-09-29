@@ -4,6 +4,42 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function heldNormalSmashChargesAndReleasesButDirectCommandStaysImmediate()
+    for mode = 0 to 1
+        let game = new MatchState()
+        game.confirm()
+        game.confirm()
+        let first = new FighterState(0, 0, 1)
+        let second = new FighterState(1, 350, -1)
+        let firstInput = new InputSnapshot()
+        firstInput.attackHeld = true
+        let secondInput = new InputSnapshot()
+        let firstCommands = new AttackBuffer(0)
+        let secondCommands = new AttackBuffer(0)
+        firstCommands.enqueue(4, 1, 1, mode == 1)
+        for frame = 1 to 12
+            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+        first.smashCharging.assertEquals(mode == 1)
+        if mode == 1
+            first.smashChargeFrames.assertGreaterThan(0)
+            attackPhase(first).assertEquals(ATTACK_STARTUP)
+        else
+            first.smashChargeFrames.assertEquals(0)
+            first.attackFrame.assertGreaterThan(attackStartupFrames(4))
+        let heldFrame = first.attackFrame
+        firstInput.attackHeld = false
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 13)
+        first.smashCharging.assertFalse()
+        first.attackFrame.assertGreaterThan(heldFrame)
+        first.attackSerial.assertEquals(1)
+        destroy firstCommands
+        destroy secondCommands
+        destroy firstInput
+        destroy secondInput
+        destroy first
+        destroy second
+        destroy game
+
 @Test function airborneBackAttackKeepsFacingWhileDriftingBackwards()
     let game = new MatchState()
     game.confirm()
@@ -17,7 +53,7 @@ import MatchStep
     let secondInput = new InputSnapshot()
     let firstCommands = new AttackBuffer(0)
     let secondCommands = new AttackBuffer(0)
-    firstCommands.enqueue(4, -1, 1)
+    firstCommands.enqueue(4, -1, 1, false)
     stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
     first.attackStyle.assertEquals(AERIAL_BACK_STYLE)
     first.facing.assertEquals(1)
@@ -43,7 +79,7 @@ import MatchStep
     first.jumpSquat = 1
     first.jumpHeld = true
     firstInput.jumpHeld = true
-    firstCommands.enqueue(0, 0, 1)
+    firstCommands.enqueue(0, 0, 1, false)
     stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
     first.grounded.assertFalse()
     first.attackStyle.assertEquals(AERIAL_NEUTRAL_STYLE)
@@ -51,7 +87,7 @@ import MatchStep
     first.cooldown = 0
     first.z = 1
     first.vz = -3
-    firstCommands.enqueue(0, 0, 2)
+    firstCommands.enqueue(0, 0, 2, false)
     stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
     first.grounded.assertTrue()
     first.attackStyle.assertEquals(0)
@@ -74,7 +110,7 @@ import MatchStep
     secondInput.shield = true
     let firstCommands = new AttackBuffer(0)
     let secondCommands = new AttackBuffer(0)
-    firstCommands.enqueue(0, 0, 1)
+    firstCommands.enqueue(0, 0, 1, false)
     for frame = 1 to attackStartupFrames(0) + 1
         stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
     second.damage.assertEquals(0.)

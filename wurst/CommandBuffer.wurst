@@ -1,10 +1,10 @@
 package CommandBuffer
 
-function attackPriority(int style) returns int
+function attackPriority(int style, boolean mayCharge) returns int
     if style == 5
-        return 4
+        return 5
     if style >= 2 and style <= 4
-        return 3
+        return mayCharge ? 3 : 4
     if style >= 6
         return 2
     return style
@@ -16,6 +16,8 @@ public class AttackBuffer
     int facing = 0
     int targetFrame = -1
     int consumedFacing = 0
+    boolean mayCharge = false
+    boolean consumedMayCharge = false
 
     construct(int graceFrames)
         windowFrames = max(0, graceFrames)
@@ -25,22 +27,26 @@ public class AttackBuffer
         facing = 0
         targetFrame = -1
         consumedFacing = 0
+        mayCharge = false
+        consumedMayCharge = false
 
-    function enqueue(int attackStyle, int direction, int frame)
+    function enqueue(int attackStyle, int direction, int frame, boolean chargeAllowed)
         if attackStyle < 0 or attackStyle > 10
             return
         // Same-frame directional commands take priority over neutral attacks.
-        if targetFrame == frame and (attackPriority(style) > attackPriority(attackStyle) or (attackPriority(style) == attackPriority(attackStyle) and style > attackStyle))
+        if targetFrame == frame and (attackPriority(style, mayCharge) > attackPriority(attackStyle, chargeAllowed) or (attackPriority(style, mayCharge) == attackPriority(attackStyle, chargeAllowed) and style > attackStyle))
             return
-        if targetFrame == frame and style == attackStyle and facing != direction
+        if targetFrame == frame and style == attackStyle and mayCharge == chargeAllowed and facing != direction
             facing = 0
             return
         style = attackStyle
+        mayCharge = chargeAllowed
         facing = direction
         targetFrame = frame
 
     function consume(int frame, boolean allowed) returns int
         consumedFacing = 0
+        consumedMayCharge = false
         if style < 0 or frame < targetFrame
             return -1
         if frame - targetFrame > windowFrames
@@ -50,5 +56,6 @@ public class AttackBuffer
             return -1
         let result = style
         consumedFacing = facing
+        consumedMayCharge = mayCharge
         style = -1
         return result

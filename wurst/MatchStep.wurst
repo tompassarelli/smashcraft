@@ -17,7 +17,7 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
         first.facing = firstCommands.consumedFacing
     if second.grounded and secondStyle >= 0 and secondCommands.consumedFacing != 0
         second.facing = secondCommands.consumedFacing
-    beginAttackPair(first, second, firstStyle, secondStyle)
+    beginAttackPair(first, second, firstStyle, secondStyle, firstCommands.consumedMayCharge and firstInput.attackHeld, secondCommands.consumedMayCharge and secondInput.attackHeld)
     resolveAttackPair(first, second)
     updateProjectilePair(first, second)
     game.resolveStocks(first.stocks, second.stocks)

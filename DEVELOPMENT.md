@@ -564,3 +564,39 @@ prove recovery counts. Evidence:
 
 Autocancel windows, dedicated aerial/landing animation, charged smashes,
 DI/SDI/ASDI, character-specific move tuning, and multiplayer proof remain open.
+
+## Charged smash input
+
+Hold Attack with a direction to charge a grounded smash, then release Attack
+to strike. Walking still selects tilts; airborne commands still select aerials.
+C-stick bindings request an immediate smash even when Attack is held. The
+command queue carries charge permission with the selected command, and a
+same-frame C-stick smash takes priority over a normal smash independently of
+callback order. Expired commands cannot leave charge permission behind.
+
+The simulation reads held Attack at the frame boundary. Charge pauses the
+attack clock; the renderer freezes its current pose and shows a release prompt.
+The initial charge checkpoint and existing smash animation are provisional.
+See wc3-melee:PHYSICS.md for the damage curve and timing rules.
+
+The full suite passes 107/107 tests with zero compiler warnings/errors.
+Native build 234005 reloaded in 23.218 seconds with the client process retained.
+Holding Up + Attack displayed the charge prompt and held up-smash at frame 7.
+The shorter release probe resumed that same attack at frame 10 before a later
+bot hit interrupted recovery. The first, longer probe was interrupted while
+charging; recording the second probe without an in-input screenshot preserved
+the release observation. Damage scaling, cap, C-stick priority, interruption,
+and simultaneous charged trades are verified headlessly; native evidence covers
+the binding path, held pose/prompt, and released attack-clock progression.
+Evidence:
+- ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/smash-integrated.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/smash-reload.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/smash-held.png
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/smash-client.mp4
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/smash-release-observed.png
+
+Next input fix: by source inspection, Down on a pass-through platform can drop
+the fighter during movement before the queued downward normal is selected.
+Coordinate drop-through intent with same-frame attacks, retaining ordinary
+Down-only dropping. This behavior needs an executable regression and fix;
+the native charge check above used the solid main stage.

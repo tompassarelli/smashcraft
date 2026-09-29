@@ -216,9 +216,9 @@ function attack(Fighter attacker, Fighter target, int style)
     if matchState.phase != MATCH
         return
     if attacker == playerFighter
-        playerAttacks.enqueue(style, style == 4 ? playerAttackFacing : 0, simulationFrame + 1)
+        playerAttacks.enqueue(style, style == 4 ? playerAttackFacing : 0, simulationFrame + 1, false)
     else
-        botAttacks.enqueue(style, target.x >= attacker.x ? 1 : -1, simulationFrame)
+        botAttacks.enqueue(style, target.x >= attacker.x ? 1 : -1, simulationFrame, false)
 
 function applyFrame()
     let playerWasOut = playerFighter.out
@@ -611,7 +611,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
         animationRate = groundDodgeAnimationSeconds(f) / (duration * FRAME_SECONDS)
     else if f.character == 0 and f.jumpAnimationRemaining > 0
         animationRate = f.doubleJumpAnimation ? ARCHER_DOUBLE_JUMP_SECONDS / (30 * FRAME_SECONDS) : ARCHER_JUMP_SECONDS / (24 * FRAME_SECONDS)
-    SetUnitTimeScale(f.body, f.hitlag > 0 ? 0 : animationRate)
+    SetUnitTimeScale(f.body, f.hitlag > 0 or f.smashCharging ? 0 : animationRate)
     SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
     if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
         let anim = "down" + I2S(f.downState)
@@ -663,7 +663,7 @@ function renderUI()
         BlzFrameSetText(helpFrame, matchState.phase == RESULT ? "Press Attack to choose your next match     F6: restart" : "Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.")
         if matchState.phase == MATCH and playerFighter.downState == DOWN_WAIT
             BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
-    BlzFrameSetText(noticeFrame, statusTime > 0 ? statusText : "")
+    BlzFrameSetText(noticeFrame, playerFighter != null and playerFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
     selectionPanel.update(matchState.phase, matchState.phase == CHARACTER_MENU ? matchState.characterChoice : matchState.stageChoice,
         settingsPanel != null and settingsPanel.isOpen())
     if settingsPanel != null
@@ -693,7 +693,7 @@ function gameTick()
         if playerNormalAttackQueued
             let style = normalAttackStyle(direction, (moveUp ? 1 : 0) - (moveDown ? 1 : 0), walkHeld)
             lastNormalStyle = style
-            playerAttacks.enqueue(style, direction, simulationFrame)
+            playerAttacks.enqueue(style, direction, simulationFrame, true)
         var botDirection = 0
         if not KNOCKDOWN_SCENARIO and not botFighter.out and not playerFighter.out
             let gap = playerFighter.x - botFighter.x
@@ -708,6 +708,7 @@ function gameTick()
                 attack(botFighter, playerFighter, 0)
                 botAttackDelay = 0.35
         playerInput.direction = direction
+        playerInput.attackHeld = actionHeld(ATTACK)
         playerInput.techPressed = playerTechPressed
         playerInput.lCancelPressed = playerLCancelPressed
         playerInput.getupAttackPressed = playerGetupAttackPressed
