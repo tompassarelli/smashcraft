@@ -16,7 +16,8 @@ import MatchStep
     let firstCommands = new AttackBuffer(0)
     let secondCommands = new AttackBuffer(0)
     firstCommands.enqueue(0, 0, 1)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    for frame = 1 to attackStartupFrames(0) + 1
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
     second.damage.assertEquals(0.)
     second.shieldStun.assertGreaterThan(0)
     second.shieldEnergy.assertLessThan(60.)

@@ -146,11 +146,10 @@ release during squat latches short hop even if jump is pressed again.
 
 Provisional attack cooldown prevents another attack, jump, air dodge, shield
 startup, ground steering and facing changes. Air drift remains available.
-Cooldown and visual attack time freeze during hitlag and otherwise decrement
-before action eligibility checks; the frame that reaches zero accepts input.
-Ground steering waits for cooldown even when the visual attack timer ends
-earlier. Tests exercise these rules through the shared advance function.
-Move-specific startup/active/recovery windows remain unfinished.
+Attack time freezes during hitlag. Recovery expires before action eligibility
+checks; the frame that reaches zero accepts input. Ground steering waits for
+recovery to finish. Tests exercise these rules through the shared advance
+function.
 
 ## Jump out of shield
 
@@ -163,3 +162,37 @@ Shieldstun still blocks the jump. Tests cover both characters and the complete
 shield → jump → downward diagonal air dodge → sliding landing sequence.
 Shield-release-lag cancels, rolls and spot dodge remain unfinished; this is not
 a complete implementation of Melee's shield options.
+
+## Prototype attack phases
+
+Each accepted attack starts at frame zero. Its clock advances on subsequent
+simulation ticks and pauses during hitlag. Collision is checked during the
+active window, using the current fighter positions; startup and recovery do
+not deal damage. Each move can connect once with the opponent, including when
+the opponent shields. These are independently chosen prototype timings for
+both characters, not sourced Melee move data:
+
+| Attack | Startup ticks | Active ticks | Total ticks, excluding hitlag |
+| --- | ---: | ---: | ---: |
+| Neutral | 4 | 2 | 36 |
+| Ground blaster | 2 | 1 | 24 |
+| Air blaster | 2 | 1 | 15 |
+| Up/down directional | 8 | 3 | 42 |
+| Left/right directional | 6 | 3 | 36 |
+| Grab | 5 | 2 | 36 |
+| Side/down tilt | 5 | 2 | 28 |
+| Up tilt | 6 | 2 | 29 |
+
+Warcraft's stock attack animation begins on accepted attack startup; it is
+paused during hitlag. It does not yet align its contact pose to the active
+window. Authored clips and move-specific damage, shapes and launch angles
+remain required. The blaster remains a ranged hit check rather than a moving
+projectile.
+
+The owner defines neutral N as jab, N plus direction as smash, and N plus
+direction while holding the walk modifier as tilt. C-stick bindings request
+smashes directly. Walking currently uses half the normal ground speed; tilt
+damage is 10 side / 8 up / 8 down. These and the ground/air blaster timing
+difference are provisional tuning. Blaster duration is captured at attack
+start, so landing cannot rewrite its recovery. Aerial normal attacks and
+charged smashes still need their own move behavior.

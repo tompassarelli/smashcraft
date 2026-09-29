@@ -17,8 +17,8 @@ public class SettingsPanel
     private framehandle customButton
     private framehandle saveButton
     private framehandle closeButton
-    private framehandle array[14] labels
-    private framehandle array[28] keyButtons
+    private framehandle array[15] labels
+    private framehandle array[30] keyButtons
     private boolean visible = false
     private string lastSignature = ""
 
@@ -60,15 +60,17 @@ public class SettingsPanel
         for i = 0 to ACTION_COUNT - 1
             let action = i
             labels[i] = createTextFrame("MeleeSettingsAction" + I2S(action), GAME_UI, 430 + action)
-            labels[i].setAbsPoint(FRAMEPOINT_TOPLEFT, 0.18, 0.505 - action * 0.027)
+            labels[i].setAbsPoint(FRAMEPOINT_TOPLEFT, 0.18, 0.505 - action * 0.025)
             labels[i].setSize(0.22, 0.025)
-            keyButtons[action * 2] = makeButton("MeleeSettingsKey" + I2S(action * 2), 460 + action * 2, 0.41, 0.505 - action * 0.027, 0.095, "—")
+            keyButtons[action * 2] = makeButton("MeleeSettingsKey" + I2S(action * 2), 460 + action * 2, 0.41, 0.505 - action * 0.025, 0.095, "—")
+            keyButtons[action * 2].setSize(0.095, 0.024)
             keyButtons[action * 2].onClick(() -> begin
                 if GetTriggerPlayer() == Player(0)
                     settings.beginCapture(action, 0)
             end)
             keyButtons[action * 2].onClickReleaseFocus()
-            keyButtons[action * 2 + 1] = makeButton("MeleeSettingsKey" + I2S(action * 2 + 1), 461 + action * 2, 0.52, 0.505 - action * 0.027, 0.095, "—")
+            keyButtons[action * 2 + 1] = makeButton("MeleeSettingsKey" + I2S(action * 2 + 1), 461 + action * 2, 0.52, 0.505 - action * 0.025, 0.095, "—")
+            keyButtons[action * 2 + 1].setSize(0.095, 0.024)
             keyButtons[action * 2 + 1].onClick(() -> begin
                 if GetTriggerPlayer() == Player(0)
                     settings.beginCapture(action, 1)

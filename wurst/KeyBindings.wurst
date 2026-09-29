@@ -14,16 +14,18 @@ public constant int SMASH_LEFT = 10
 public constant int SMASH_RIGHT = 11
 public constant int SMASH_UP = 12
 public constant int SMASH_DOWN = 13
-public constant int ACTION_COUNT = 14
+public constant int WALK_MODIFIER = 14
+public constant int ACTION_COUNT = 15
+public constant int KEY_SLOT_COUNT = 30
 
 public class KeyBindings
-    private int array[28] keys
+    private int array[30] keys
 
     construct(boolean custom)
         preset(custom)
 
     function preset(boolean custom)
-        for i = 0 to 27
+        for i = 0 to KEY_SLOT_COUNT - 1
             keys[i] = 0
         keys[MOVE_LEFT * 2] = 83
         keys[MOVE_RIGHT * 2] = 70
@@ -41,6 +43,7 @@ public class KeyBindings
         keys[SMASH_UP * 2] = 74
         keys[SMASH_DOWN * 2] = 66
         keys[SMASH_DOWN * 2 + 1] = 191
+        keys[WALK_MODIFIER * 2] = 186
 
     function keyFor(int action, int slot) returns int
         if action < 0 or action >= ACTION_COUNT or slot < 0 or slot > 1
@@ -50,7 +53,7 @@ public class KeyBindings
     function actionFor(int key) returns int
         if key == 0
             return -1
-        for i = 0 to 27
+        for i = 0 to KEY_SLOT_COUNT - 1
             if keys[i] == key
                 return i div 2
         return -1
@@ -63,15 +66,15 @@ public class KeyBindings
             return false
         let index = action * 2 + slot
         if key != 0
-            for i = 0 to 27
+            for i = 0 to KEY_SLOT_COUNT - 1
                 if i != index and keys[i] == key
                     return false
         keys[index] = key
         return true
 
     function encode() returns string
-        var result = "K1"
-        for i = 0 to 27
+        var result = "K2"
+        for i = 0 to KEY_SLOT_COUNT - 1
             let number = I2S(keys[i])
             result += keys[i] < 10 ? "00" + number : (keys[i] < 100 ? "0" + number : number)
         return result
@@ -83,6 +86,8 @@ public class KeyBindings
             return "SPACE"
         if key == 191
             return "/"
+        if key == 186
+            return ";"
         if key >= 65 and key <= 90
             return "ABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(key - 65)
         if key >= 48 and key <= 57
@@ -111,22 +116,25 @@ public class KeyBindings
         if action == RIGHT_TRIGGER
             return "Right trigger"
         if action == SMASH_LEFT
-            return "Attack left"
+            return "C-stick left"
         if action == SMASH_RIGHT
-            return "Attack right"
+            return "C-stick right"
         if action == SMASH_UP
-            return "Attack up"
+            return "C-stick up"
         if action == SMASH_DOWN
-            return "Attack down"
+            return "C-stick down"
+        if action == WALK_MODIFIER
+            return "Walk / tilts"
         return "Unknown"
 
     function restore(string encoded) returns boolean
-        if encoded.length() != 86 or encoded.substring(0, 2) != "K1"
+        let previousSave = encoded.length() == 86 and encoded.substring(0, 2) == "K1"
+        if not previousSave and (encoded.length() != 92 or encoded.substring(0, 2) != "K2")
             return false
         let candidate = new KeyBindings(false)
-        for i = 0 to 27
+        for i = 0 to KEY_SLOT_COUNT - 1
             candidate.keys[i] = 0
-        for i = 0 to 27
+        for i = 0 to (previousSave ? 28 : KEY_SLOT_COUNT) - 1
             var value = 0
             for digit = 0 to 2
                 let parsed = "0123456789".indexOf(encoded.charAt(2 + i * 3 + digit))
@@ -137,7 +145,9 @@ public class KeyBindings
             if not candidate.rebind(i div 2, i mod 2, value)
                 destroy candidate
                 return false
-        for i = 0 to 27
+        if previousSave and candidate.actionFor(186) < 0
+            candidate.rebind(WALK_MODIFIER, 0, 186)
+        for i = 0 to KEY_SLOT_COUNT - 1
             keys[i] = candidate.keys[i]
         destroy candidate
         return true

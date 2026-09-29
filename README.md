@@ -25,12 +25,14 @@ Choose QWERTY or Custom, click either key slot to rebind, then Save. Saved
 controls load automatically on the next map start.
 In the custom preset: S/F move; I/9 jump; Space aims up;
 D fast-falls/drops; A/8 shield or air-dodge; L grabs; N attacks; U fires a special;
-H/J/M/B perform directional attacks. F6 reloads the map. F5 exit is unverified.
+Hold ; to walk. N with direction gives a smash, or a tilt while walking.
+H/J/M/B are C-stick smashes. Ground blaster has longer recovery than air
+blaster. F6 reloads the map. F5 exit is unverified.
 QWERTY uses 7 for right trigger and 8 for the alternate jump key.
 
 ## Current evidence
 
-Forty-three headless tests pass across simulation, input buffers, bindings,
+Fifty-two headless tests pass across simulation, input buffers, bindings,
 match rules and the shared match step. Build 194234 loaded in 23.667 seconds
 including build/restart and restored a saved, rebound key in the same client
 process. F1, preset selection, rebinding and synchronized startup loading were

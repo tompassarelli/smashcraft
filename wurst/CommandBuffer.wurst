@@ -1,5 +1,14 @@
 package CommandBuffer
 
+function attackPriority(int style) returns int
+    if style == 5
+        return 4
+    if style >= 2 and style <= 4
+        return 3
+    if style >= 6
+        return 2
+    return style
+
 // Frame numbers are logical simulation frames, never wall-clock timestamps.
 public class AttackBuffer
     int windowFrames
@@ -18,10 +27,10 @@ public class AttackBuffer
         consumedFacing = 0
 
     function enqueue(int attackStyle, int direction, int frame)
-        if attackStyle < 0 or attackStyle > 5
+        if attackStyle < 0 or attackStyle > 8
             return
         // Same-frame directional commands take priority over neutral attacks.
-        if targetFrame == frame and style > attackStyle
+        if targetFrame == frame and (attackPriority(style) > attackPriority(attackStyle) or (attackPriority(style) == attackPriority(attackStyle) and style > attackStyle))
             return
         if targetFrame == frame and style == attackStyle and facing != direction
             facing = 0

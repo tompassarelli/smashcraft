@@ -4,6 +4,7 @@ import BuildInfo
 import Simulation
 import MatchRules
 import CommandBuffer
+import CombatInput
 import MatchStep
 import SelectionUI
 import BindingSettings
@@ -23,6 +24,8 @@ boolean moveLeft = false
 boolean moveRight = false
 boolean moveDown = false
 boolean moveUp = false
+boolean walkHeld = false
+boolean playerNormalAttackQueued = false
 boolean shieldLeft = false
 boolean shieldRight = false
 boolean array held
@@ -57,6 +60,8 @@ AttackBuffer playerAttacks = new AttackBuffer(0)
 AttackBuffer botAttacks = new AttackBuffer(0)
 int simulationFrame = 0
 int playerAttackFacing = 0
+int lastInputAction = -1
+int lastNormalStyle = -1
 
 class MeleeSelectionActions extends SelectionActions
     override function selectChoice(int choice)
@@ -166,27 +171,27 @@ function loseStock(Fighter f)
     if f.stocks > 0
         announce(f == playerFighter ? "You lost a stock!" : "Opponent lost a stock!")
 
-function attack(Fighter attacker, Fighter _target, int style)
+function attack(Fighter attacker, Fighter target, int style)
     if matchState.phase != MATCH
         return
     if attacker == playerFighter
         playerAttacks.enqueue(style, style == 4 ? playerAttackFacing : 0, simulationFrame + 1)
     else
-        botAttacks.enqueue(style, 0, simulationFrame)
+        botAttacks.enqueue(style, target.x >= attacker.x ? 1 : -1, simulationFrame)
 
 function applyFrame()
     let playerWasOut = playerFighter.out
     let botWasOut = botFighter.out
-    let playerPreviousAttack = playerFighter.attackTime
-    let botPreviousAttack = botFighter.attackTime
+    let playerPreviousAttack = playerFighter.attackSerial
+    let botPreviousAttack = botFighter.attackSerial
     let playerPreviousStun = playerFighter.hitstun
     let botPreviousStun = botFighter.hitstun
     stepMatch(matchState, playerFighter, botFighter, playerInput, botInput, playerAttacks, botAttacks, simulationFrame)
     renderFighter(playerFighter, playerWasOut)
     renderFighter(botFighter, botWasOut)
-    if playerFighter.attackTime > playerPreviousAttack
+    if playerFighter.attackSerial != playerPreviousAttack
         SetUnitAnimation(playerFighter.body, "attack")
-    if botFighter.attackTime > botPreviousAttack
+    if botFighter.attackSerial != botPreviousAttack
         SetUnitAnimation(botFighter.body, "attack")
     if playerFighter.hitstun > playerPreviousStun
         SetUnitAnimation(playerFighter.body, "stand hit")
@@ -247,7 +252,7 @@ function confirm()
         statusTime = 0
         makePreview()
     else if previousPhase == MATCH
-        attack(playerFighter, botFighter, 0)
+        playerNormalAttackQueued = true
 
 function back()
     if not playerBindings.ready or (settingsPanel != null and settingsPanel.isOpen())
@@ -270,12 +275,14 @@ function bindingSlot(int action, int keyCode) returns int
 function clearHeldInputs()
     for i = 0 to 255
         held[i] = false
-    for i = 0 to 27
+    for i = 0 to KEY_SLOT_COUNT - 1
         heldBindingSlots[i] = false
     moveLeft = false
     moveRight = false
     moveDown = false
     moveUp = false
+    walkHeld = false
+    playerNormalAttackQueued = false
     shieldLeft = false
     shieldRight = false
     playerJumpHeld = false
@@ -325,6 +332,7 @@ function onKeyDown()
     let action = playerBindings.bindings.actionFor(keyCode)
     if action < 0
         return
+    lastInputAction = action
     let wasHeld = actionHeld(action)
     let slot = bindingSlot(action, keyCode)
     if slot < 0
@@ -342,6 +350,8 @@ function onKeyDown()
         moveDown = true
     else if action == MOVE_UP
         moveUp = true
+    else if action == WALK_MODIFIER
+        walkHeld = true
     else if action == JUMP
         if not wasHeld
             jump(playerFighter)
@@ -369,6 +379,8 @@ function onKeyDown()
         attack(playerFighter, botFighter, 2)
     else if action == SMASH_DOWN
         attack(playerFighter, botFighter, 3)
+    if matchState.phase == MATCH and action >= MOVE_LEFT and action <= MOVE_UP and actionHeld(ATTACK)
+        playerNormalAttackQueued = true
 
 function onKeyUp()
     let keyCode = GetHandleId(BlzGetTriggerPlayerKey())
@@ -389,6 +401,8 @@ function onKeyUp()
         moveDown = actionHeld(action)
     else if action == MOVE_UP
         moveUp = actionHeld(action)
+    else if action == WALK_MODIFIER
+        walkHeld = actionHeld(action)
     else if action == JUMP
         playerJumpHeld = actionHeld(action)
     else if action == LEFT_TRIGGER
@@ -417,10 +431,11 @@ function renderFighter(Fighter f, boolean wasOut)
     if f.out
         return
     f.place()
+    SetUnitTimeScale(f.body, f.hitlag > 0 ? 0 : 1)
     SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
     if f == playerFighter and f.jumps < 2 and playerJumpQueued
         SetUnitAnimation(f.body, "stand")
-    else if f.attackTime == 0 and f.hitstun == 0 and f.hitlag == 0
+    else if attackPhase(f) == ATTACK_NONE and f.hitstun == 0 and f.hitlag == 0
         let anim = f.grounded and f.vx.abs() > 0.1 ? "walk" : "stand"
         if f.animation != anim
             SetUnitAnimation(f.body, anim)
@@ -453,7 +468,7 @@ function renderUI()
     if settingsPanel != null
         settingsPanel.update()
     if playerFighter != null
-        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | matchState.phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | " + (playerFighter.grounded ? "ground" : "air") + " | F6 restart / F5 exit")
+        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | input=" + I2S(lastInputAction) + " normal=" + I2S(lastNormalStyle) + " move=" + I2S(playerFighter.attackStyle) + " frame=" + I2S(playerFighter.attackFrame) + " serial=" + I2S(playerFighter.attackSerial) + " | F6 restart")
 
 function gameTick()
     if appliedBindingRevision != playerBindings.revision
@@ -464,6 +479,10 @@ function gameTick()
     if matchState.phase == MATCH
         simulationFrame++
         let direction = (moveRight ? 1 : 0) - (moveLeft ? 1 : 0)
+        if playerNormalAttackQueued
+            let style = normalAttackStyle(direction, (moveUp ? 1 : 0) - (moveDown ? 1 : 0), walkHeld)
+            lastNormalStyle = style
+            playerAttacks.enqueue(style, direction, simulationFrame)
         var botDirection = 0
         if not botFighter.out and not playerFighter.out
             let gap = playerFighter.x - botFighter.x
@@ -475,10 +494,10 @@ function gameTick()
                 botJumpQueued = true
             botAttackDelay -= FRAME_SECONDS
             if gap.abs() < 135 and botAttackDelay <= 0
-                botFighter.facing = gap > 0 ? 1 : -1
                 attack(botFighter, playerFighter, 0)
                 botAttackDelay = 0.35
         playerInput.direction = direction
+        playerInput.walking = walkHeld
         playerInput.down = moveDown
         playerInput.shield = shieldLeft or shieldRight
         playerInput.jumpPressed = playerJumpQueued
@@ -491,6 +510,7 @@ function gameTick()
         botInput.jumpHeld = botJumpHeld
         applyFrame()
         playerAttackFacing = 0
+        playerNormalAttackQueued = false
         playerJumpQueued = false
         playerInput.jumpPressed = false
         playerAirDodgeQueued = false

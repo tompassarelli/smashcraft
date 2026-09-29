@@ -60,6 +60,7 @@ cd "$work_dir"
     "$project_dir/wurst/Simulation.wurst" \
     "$project_dir/wurst/MatchRules.wurst" \
     "$project_dir/wurst/CommandBuffer.wurst" \
+    "$project_dir/wurst/CombatInput.wurst" \
     "$project_dir/wurst/MatchStep.wurst" \
     "$project_dir/wurst/KeyBindings.wurst" \
     "$project_dir/wurst/BindingSettings.wurst" \

@@ -24,6 +24,11 @@ constant int AIR_DODGE_ANIMATION_FRAMES = 49
 public constant int AIR_DODGE_LANDING_LAG = 20
 public constant int SHIELD_MIN_HOLD_FRAMES = 8
 public constant int SHIELD_RELEASE_LAG_FRAMES = 15
+public constant real WALK_SPEED_RATIO = 0.5
+public constant int ATTACK_NONE = 0
+public constant int ATTACK_STARTUP = 1
+public constant int ATTACK_ACTIVE = 2
+public constant int ATTACK_RECOVERY = 3
 constant int FOX_JUMP_SQUAT_FRAMES = 3
 constant int FALCO_JUMP_SQUAT_FRAMES = 5
 constant real FOX_FULL_JUMP_SPEED = 23.46
@@ -49,7 +54,11 @@ public class FighterState
 	int hitstun = 0
 	int hitlag = 0
 	int cooldown = 0
-	int attackTime = 0
+	int attackStyle = -1
+	int attackFrame = 0
+	int attackDuration = 0
+	int attackSerial = 0
+	boolean attackHit = false
 	boolean out = false
 	int respawn = 0
 	boolean shield = false
@@ -85,6 +94,7 @@ public class InputSnapshot
 	int dodgeX = 0
 	int dodgeZ = 0
 	boolean jumpHeld = false
+	boolean walking = false
 
 public function surfaceCount(int stage) returns int
 	return stage == 0 ? 1 : 3
@@ -147,10 +157,34 @@ public function canAttack(FighterState attacker) returns boolean
 	return not attacker.out and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and attacker.jumpSquat <= 0 and attacker.cooldown <= 0 and not attacker.shield
 
 function attackDamage(int style) returns real
-	return style == 1 ? 3 : (style == 2 or style == 3 ? 16 : (style == 4 ? 18 : (style == 5 ? 0 : 12)))
+	return style == 1 ? 3 : (style == 2 or style == 3 ? 16 : (style == 4 ? 18 : (style == 5 ? 0 : (style == 6 ? 10 : (style == 7 ? 8 : (style == 8 ? 8 : 12))))))
 
 function attackReach(int style) returns real
 	return style == 1 ? 600 : (style == 2 or style == 3 ? 125 : (style == 5 ? 100 : 145))
+
+public function attackStartupFrames(int style) returns int
+	return style == 1 ? 2 : (style == 2 or style == 3 ? 8 : (style == 4 ? 6 : (style == 5 ? 5 : (style == 6 or style == 8 ? 5 : (style == 7 ? 6 : 4)))))
+
+public function attackActiveFrames(int style) returns int
+	return style == 1 ? 1 : (style == 2 or style == 3 or style == 4 ? 3 : 2)
+
+public function attackDurationFrames(int style) returns int
+	return attackDurationFramesForGrounding(style, true)
+
+public function attackDurationFramesForGrounding(int style, boolean grounded) returns int
+	return style == 1 ? (grounded ? 24 : 15) : (style == 2 or style == 3 ? 42 : (style == 6 or style == 8 ? 28 : (style == 7 ? 29 : 36)))
+
+public function attackRecoveryFrames(int style, boolean grounded) returns int
+	return attackDurationFramesForGrounding(style, grounded) - attackStartupFrames(style) - attackActiveFrames(style)
+
+public function attackPhase(FighterState f) returns int
+	if f.attackStyle < 0
+		return ATTACK_NONE
+	if f.attackFrame < attackStartupFrames(f.attackStyle)
+		return ATTACK_STARTUP
+	if f.attackFrame < attackStartupFrames(f.attackStyle) + attackActiveFrames(f.attackStyle)
+		return ATTACK_ACTIVE
+	return ATTACK_RECOVERY
 
 function attackHits(FighterState attacker, FighterState target, int style) returns boolean
 	let separation = target.x - attacker.x
@@ -166,14 +200,26 @@ function interruptJumpOrDodge(FighterState f)
 	f.airDodgeTime = 0
 	f.airDodgeFrame = 0
 
-function commitAttack(FighterState attacker, int style)
-	attacker.attackTime = style == 1 ? 15 : 29
-	attacker.cooldown = style == 1 ? 15 : (style == 2 or style == 3 ? 42 : 36)
+function beginAttack(FighterState attacker, int style)
+	attacker.attackStyle = style
+	attacker.attackFrame = 0
+	attacker.attackDuration = attackDurationFramesForGrounding(style, attacker.grounded)
+	attacker.attackSerial++
+	attacker.attackHit = false
+	attacker.cooldown = attacker.attackDuration
+
+function cancelAttack(FighterState fighter)
+	fighter.attackStyle = -1
+	fighter.attackFrame = 0
+	fighter.attackDuration = 0
+	fighter.attackHit = false
+	fighter.cooldown = 0
 
 function applyAttackHit(FighterState attacker, FighterState target, int style)
 	let damage = attackDamage(style)
 	if style == 5
 		interruptJumpOrDodge(target)
+		cancelAttack(target)
 		target.grabbedFrames = 20
 		target.shield = false
 		target.shieldStun = 0
@@ -194,9 +240,11 @@ function applyAttackHit(FighterState attacker, FighterState target, int style)
 		target.damage += damage
 		if attacker.character == 1
 			interruptJumpOrDodge(target)
+			cancelAttack(target)
 			target.hitstun = max(target.hitstun, 11)
 		return
 	interruptJumpOrDodge(target)
+	cancelAttack(target)
 	let weight = target.character == 0 ? 75 : 80
 	let newPercent = R2I(target.damage) + damage
 	let knockback = (((newPercent / 10. + newPercent * damage / 20.) * 200 / (weight + 100) * 1.4 + 18) + 20)
@@ -234,29 +282,32 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	f.grounded = false
 	f.jumps = max(0, f.jumps - 1)
 
-public function simulationAttack(FighterState attacker, FighterState target, int style)
-	if not canAttack(attacker) or target.out
-		return
-	commitAttack(attacker, style)
-	if not attackHits(attacker, target, style)
-		return
-	applyAttackHit(attacker, target, style)
+public function beginAttackPair(FighterState first, FighterState second, int firstStyle, int secondStyle)
+	let firstEligible = firstStyle >= 0 and firstStyle <= 8 and canAttack(first) and not second.out
+	let secondEligible = secondStyle >= 0 and secondStyle <= 8 and canAttack(second) and not first.out
+	if firstEligible
+		beginAttack(first, firstStyle)
+	if secondEligible
+		beginAttack(second, secondStyle)
 
-public function simulationAttackPair(FighterState first, FighterState second, int firstStyle, int secondStyle)
-	let firstEligible = firstStyle >= 0 and canAttack(first) and not second.out
-	let secondEligible = secondStyle >= 0 and canAttack(second) and not first.out
-	let firstHits = firstEligible and attackHits(first, second, firstStyle)
-	let secondHits = secondEligible and attackHits(second, first, secondStyle)
+public function resolveAttackPair(FighterState first, FighterState second)
+	let firstStyle = first.attackStyle
+	let secondStyle = second.attackStyle
+	let firstHits = firstStyle >= 0 and attackPhase(first) == ATTACK_ACTIVE and not first.attackHit and canResolveAttack(first, second)
+	let secondHits = secondStyle >= 0 and attackPhase(second) == ATTACK_ACTIVE and not second.attackHit and canResolveAttack(second, first)
 	let firstGrabPriority = firstHits and firstStyle == 5 and secondStyle != 5
 	let secondGrabPriority = secondHits and secondStyle == 5 and firstStyle != 5
-	if firstEligible
-		commitAttack(first, firstStyle)
-	if secondEligible
-		commitAttack(second, secondStyle)
+	if firstHits
+		first.attackHit = true
+	if secondHits
+		second.attackHit = true
 	if firstHits and not secondGrabPriority
 		applyAttackHit(first, second, firstStyle)
 	if secondHits and not firstGrabPriority
 		applyAttackHit(second, first, secondStyle)
+
+function canResolveAttack(FighterState attacker, FighterState target) returns boolean
+	return not target.out and attackHits(attacker, target, attacker.attackStyle)
 
 public function reset(FighterState f, real startX)
 	f.x = startX
@@ -267,7 +318,10 @@ public function reset(FighterState f, real startX)
 	f.hitstun = 0
 	f.hitlag = 0
 	f.shieldStun = 0
-	f.attackTime = 0
+	f.attackStyle = -1
+	f.attackFrame = 0
+	f.attackDuration = 0
+	f.attackHit = false
 	f.cooldown = 0
 	f.shield = false
 	f.shieldEnergy = SHIELD_MAX
@@ -303,7 +357,12 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		return
 	if f.hitlag <= 0
 		f.cooldown = max(0, f.cooldown - 1)
-		f.attackTime = max(0, f.attackTime - 1)
+		if f.attackStyle >= 0
+			f.attackFrame++
+			if f.attackFrame >= f.attackDuration
+				f.attackStyle = -1
+				f.attackFrame = 0
+				f.attackHit = false
 	if input.jumpPressed
 		simulationJump(f)
 	if f.jumpSquat > 0
@@ -362,7 +421,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if direction != 0
 			if f.grounded
 				f.facing = direction
-				f.vx = characterSpeed(f.character) * direction
+				f.vx = characterSpeed(f.character) * direction * (input.walking ? WALK_SPEED_RATIO : 1)
 			else
 				f.vx = f.vx + direction * characterAirAcceleration(f.character)
 				f.vx = max(-characterAirSpeed(f.character), min(characterAirSpeed(f.character), f.vx))
@@ -419,4 +478,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.out = true
 		f.stocks = max(0, f.stocks - 1)
 		f.respawn = f.stocks > 0 ? 60 : 0
+		f.attackStyle = -1
+		f.attackFrame = 0
+		f.attackHit = false
+		f.cooldown = 0
 		return

@@ -1,0 +1,10 @@
+package CombatInput
+
+public function normalAttackStyle(int horizontal, int vertical, boolean walking) returns int
+    if vertical > 0
+        return walking ? 7 : 2
+    if vertical < 0
+        return walking ? 8 : 3
+    if horizontal != 0
+        return walking ? 6 : 4
+    return 0

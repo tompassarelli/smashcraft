@@ -233,7 +233,42 @@ the captured fighter was airborne at z=149. Evidence:
 ~/code/wc3-melee/worktrees/test-loop/build/shield-jump-probe/airborne.png.
 Exact wavedash distance and input feel remain unmeasured in the client.
 
-Next simulation gap: remaining shield escape options and move-specific attack phases. Air-dodge
+Attack phases now use an accepted-start serial, style, frame counter and
+one-contact flag. MatchStep starts queued moves, then resolves active contacts
+from both fighters' pre-hit eligibility. Damage can cancel startup. The
+adapter starts animations from the serial, freezes playback during hitlag and
+routes bot facing through the queued command. Timing values in
+wc3-melee:PHYSICS.md are prototype tuning; authored clips, hitbox shapes,
+projectiles and character-specific move data remain unfinished.
+The 52-test suite passes with zero warnings. Tests now advance attacks through
+the shared MatchStep, including startup interruption, later contact during an
+active window, single contact across hitlag, recovery completion/reuse and
+order-independent trades. The shield-energy oracle is independent arithmetic:
+60 - 5 * 0.28 - 12 * 0.7 for the five startup/contact ticks of a neutral hit.
+
+Owner control clarification: standing N is jab, U blaster; hold ; to walk and
+use N plus direction for tilts. N plus direction without the walk modifier,
+or direct C-stick bindings, requests smashes. Normal attack intent is resolved
+from held direction/modifier state at the frame boundary, including a fresh
+direction press while N is held. C-stick wins a simultaneous normal tilt.
+These chords have no extra recovery buffer or charged-smash implementation yet.
+The walk action is rebindable. Existing K1 saved settings are read into K2 with
+their prior keys retained; ; is added unless already bound to another action.
+New saves contain all 15 actions. Ground blaster captures 24-frame duration,
+air blaster 15; both values remain prototype tuning rather than sourced parity.
+Integrated build 203053 loaded in 22.866 seconds with the same client process.
+The Controls screen restored Custom L/8/9 and displayed the new ; action at
+~/code/wc3-melee/worktrees/test-loop/build/tilt-probe/controls.png.
+The held-key probe captured input action 5, selected move 6, accepted serial 1
+and attack frame 2 at
+~/code/wc3-melee/worktrees/test-loop/build/tilt-probe/contact.png.
+This proves the native keyboard chord starts the side tilt, not that it hit:
+the earlier live probes were interrupted or did not reach contact. Headless
+tests cover tilt damage. Charged smashes and distinct aerial normals remain
+unfinished. Short synthetic key pulses are insufficient evidence of received
+input; use explicit held presses and inspect the developer input/move counters.
+
+Next simulation gap: remaining shield escape options and move-specific tuning. Air-dodge
 motion parameters remain provisional; passing protection tests does not prove
 motion fidelity. Continue the animation pipeline and two-client work already
 listed above; the overall goal remains unfinished.

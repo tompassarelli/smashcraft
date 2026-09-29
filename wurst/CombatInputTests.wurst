@@ -1,0 +1,14 @@
+package CombatInputTests
+import CombatInput
+
+@Test function neutralAttackIsJabAndDirectionChoosesTiltOrSmash()
+    normalAttackStyle(0, 0, false).assertEquals(0)
+    normalAttackStyle(0, 0, true).assertEquals(0)
+    normalAttackStyle(1, 0, true).assertEquals(6)
+    normalAttackStyle(-1, 0, true).assertEquals(6)
+    normalAttackStyle(0, 1, true).assertEquals(7)
+    normalAttackStyle(0, -1, true).assertEquals(8)
+    normalAttackStyle(1, 0, false).assertEquals(4)
+    normalAttackStyle(-1, 0, false).assertEquals(4)
+    normalAttackStyle(0, 1, false).assertEquals(2)
+    normalAttackStyle(0, -1, false).assertEquals(3)
