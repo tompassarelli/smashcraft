@@ -1,0 +1,39 @@
+package MatchRules
+
+public constant int CHARACTER_MENU = 0
+public constant int STAGE_MENU = 1
+public constant int MATCH = 2
+public constant int RESULT = 3
+
+public class MatchState
+    int phase = CHARACTER_MENU
+    int characterChoice = 0
+    int stageChoice = 0
+    int winner = -1
+
+    function selectChoice(int choice)
+        if choice < 0 or choice > 1
+            return
+        if phase == CHARACTER_MENU
+            characterChoice = choice
+        else if phase == STAGE_MENU
+            stageChoice = choice
+
+    function confirm()
+        if phase == CHARACTER_MENU
+            phase = STAGE_MENU
+        else if phase == STAGE_MENU
+            winner = -1
+            phase = MATCH
+        else if phase == RESULT
+            phase = CHARACTER_MENU
+
+    function back()
+        if phase == STAGE_MENU
+            phase = CHARACTER_MENU
+
+    function resolveStocks(int firstStocks, int secondStocks)
+        if phase != MATCH or (firstStocks > 0 and secondStocks > 0)
+            return
+        winner = firstStocks <= 0 ? (secondStocks <= 0 ? -1 : 1) : 0
+        phase = RESULT

@@ -1,0 +1,41 @@
+package MatchStepTests
+import Simulation
+import MatchRules
+import CommandBuffer
+import MatchStep
+
+@Test function shieldPressAppliesBeforeSameFrameAttack()
+    let game = new MatchState()
+    game.confirm()
+    game.confirm()
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 100, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    secondInput.shield = true
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    firstCommands.enqueue(0, 0, 1)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    second.damage.assertEquals(0.)
+    second.shieldStun.assertGreaterThan(0)
+    second.shieldEnergy.assertLessThan(60.)
+
+@Test function bothFinalStocksResolveAfterTheSameStep()
+    let game = new MatchState()
+    game.confirm()
+    game.confirm()
+    let first = new FighterState(0, -921, 1)
+    let second = new FighterState(1, 921, -1)
+    first.stocks = 1
+    second.stocks = 1
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    game.phase.assertEquals(RESULT)
+    game.winner.assertEquals(-1)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    first.stocks.assertEquals(0)
+    second.stocks.assertEquals(0)

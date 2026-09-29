@@ -6,6 +6,7 @@ public abstract class SelectionActions
     abstract function selectChoice(int choice)
     abstract function confirmSelection()
     abstract function backSelection()
+    abstract function openSettings()
 
 // One instance lives for the match session; frames and listeners are reused.
 public class SelectionPanel
@@ -13,9 +14,11 @@ public class SelectionPanel
     framehandle secondChoice
     framehandle confirmButton
     framehandle backButton
+    framehandle settingsButton
     framehandle description
     int lastState = -1
     int lastChoice = -1
+    boolean settingsOpen = false
 
     construct(SelectionActions actions)
         firstChoice = createFrame("ScriptDialogButton", GAME_UI, 0, 301)
@@ -45,35 +48,46 @@ public class SelectionPanel
         backButton = createFrame("ScriptDialogButton", GAME_UI, 0, 304)
         backButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.29, 0.41)
         backButton.setSize(0.21, 0.04)
-        backButton.setText("Back  [U]")
+        backButton.setText("Back")
         backButton.onClick(() -> begin
             if GetTriggerPlayer() == Player(0)
                 actions.backSelection()
         end)
         backButton.onClickReleaseFocus()
+        settingsButton = createFrame("ScriptDialogButton", GAME_UI, 0, 306)
+        settingsButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.52, 0.41)
+        settingsButton.setSize(0.16, 0.04)
+        settingsButton.setText("Controls  [F1]")
+        settingsButton.onClick(() -> begin
+            if GetTriggerPlayer() == Player(0)
+                actions.openSettings()
+        end)
+        settingsButton.onClickReleaseFocus()
         description = createTextFrame("MeleeSelectionDescription", GAME_UI, 305)
         description.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.06, 0.462)
         description.setSize(0.50, 0.042)
 
-    function update(int menuState, int choice)
-        if menuState == lastState and choice == lastChoice
+    function update(int menuState, int choice, boolean overlayOpen)
+        if menuState == lastState and choice == lastChoice and overlayOpen == settingsOpen
             return
         lastState = menuState
         lastChoice = choice
+        settingsOpen = overlayOpen
         let selecting = menuState == 0 or menuState == 1
-        firstChoice.setVisible(selecting)
-        secondChoice.setVisible(selecting)
-        confirmButton.setVisible(selecting)
-        backButton.setVisible(menuState == 1)
-        description.setVisible(selecting)
+        firstChoice.setVisible(selecting and not settingsOpen)
+        secondChoice.setVisible(selecting and not settingsOpen)
+        confirmButton.setVisible(selecting and not settingsOpen)
+        backButton.setVisible(menuState == 1 and not settingsOpen)
+        settingsButton.setVisible(selecting and not settingsOpen)
+        description.setVisible(selecting and not settingsOpen)
         if not selecting
             return
         let firstLabel = menuState == 0 ? "FOX / Archer" : "SKY DECK"
         let secondLabel = menuState == 0 ? "FALCO / Rifleman" : "THREE BRIDGES"
         firstChoice.setText(choice == 0 ? "|cffffd45a> " + firstLabel + "|r" : firstLabel)
         secondChoice.setText(choice == 1 ? "|cffffd45a> " + secondLabel + "|r" : secondLabel)
-        confirmButton.setText(menuState == 0 ? "Choose stage  [N]" : "Fight!  [N]")
+        confirmButton.setText(menuState == 0 ? "Choose stage" : "Fight!")
         if menuState == 0
             description.setText(choice == 0 ? "Quick on the ground. Blaster shots build damage without stopping foes." : "Higher jumps. Blaster shots interrupt foes.")
         else
-            description.setText(choice == 0 ? "One wide platform. Open skies on every side." : "A main deck and two raised platforms. Jump through; hold D to drop.")
+            description.setText(choice == 0 ? "One wide platform. Open skies on every side." : "A main deck and two raised platforms. Jump through; hold Down to drop.")

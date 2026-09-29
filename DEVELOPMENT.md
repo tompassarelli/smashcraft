@@ -46,8 +46,8 @@ them.
 
 For wavedashing, tests will specify the input sequence, jump-squat frames,
 air-dodge direction, landing transition, and retained horizontal velocity.
-The current prototype values and 0.03-second timestep are placeholders, not
-verified Melee frame data. Study the factual frame rules in
+The simulation advances at 60 logical frames per second. Distinguish sourced
+parameters from provisional move tuning. Study the factual frame rules in
 ~/code/resources/melee and record independently implemented mechanics in wc3-melee:PHYSICS.md before claiming fidelity; logical frame timing and
 Warcraft's actual input delivery cadence are separate questions.
 
@@ -100,22 +100,94 @@ keyboard confirmation, entering stage selection and a match. Evidence:
 ~/code/wc3-melee/worktrees/test-loop/build/engine-check-185558 and
 ~/code/wc3-melee/worktrees/test-loop/build/loop/20260929-185557-reload.
 
+Latest integrated checkpoint: 30/30 headless tests passed (18 simulation,
+four command-buffer, three key-binding, three match-rule and two match-step).
+Build 191513 became ready in 14.015 seconds with the same Warcraft process.
+The map uses the tested match step: advance both fighters, consume eligible
+queued commands, resolve attacks against pre-hit state, then resolve stocks.
+Shield minimum hold/release lag, air-dodge helplessness, platform crossing,
+short/full hops, attack trades and simultaneous final stocks are covered.
+L grab is implemented with provisional 100-unit reach, 20-frame hold and
+10-frame release hitstun; those are prototype tuning rather than sourced data.
+
 Next required work:
 
-- Move match selection/state/result rules from wc3-melee:wurst/Melee.wurst into
-  the simulation, and test character → stage → match → final-stock result.
-- Strengthen platform tests: the current below-platform test starts at x=0,
-  which is between the upper platforms; make it actually cross one. Test
-  short versus full jump, retained wavedash momentum, repeated blast-zone
-  updates, respawn and final stock explicitly.
-- Check shield minimum-hold/release recovery, air-dodge ending/helpless state,
-  and landing recovery against the documented intended rules. Current values
-  not backed by sources remain prototype tuning.
-- Replace remaining attack/key-event calls into simulation with queued inputs
-  applied on the logical frame boundary; avoid timing depending on callback
-  ordering. Keep renderer-only animation separate.
+- Extend the current single-human settings/match adapter when adding a second
+  human player, then validate synchronized input timing with two clients.
 - Use focused client checks for shield/air-dodge appearance, animations and
   control feel after those tests. Multiplayer timing remains unverified.
 
-No active delegated runs remain at this checkpoint. The migration worker's
-capacity lease was released. The Wurst skill is active in the shared catalog.
+The Wurst skill is active in the shared catalog.
+
+## Goal extension: authored combat animations
+
+The owner explicitly added Blender installation and animation authoring to the
+active goal. Required initial clips: jab; forward tilt; up-angled forward tilt;
+down-angled forward tilt; jump; double jump; forward roll; backward roll; and
+get-up attack. Use Warcraft assets as requested. Establish a Blender ↔ Warcraft
+model/animation import/export path and verify skeleton compatibility before
+claiming the clips can ship. Author and preserve editable animation sources,
+exported map assets, and timing metadata. Simulation owns displacement, damage,
+invulnerability and recovery; clips must align with those tested frame windows.
+Validate exported clips on the actual in-game fighter. Additional moves may
+follow; the named clips remain required even after the current simulation
+checkpoint is complete.
+
+Control correction from owner: L is grab. A/8 shield on ground and trigger air
+dodge on a fresh airborne press. Grab must enter the same queued frame-boundary
+combat path and have bounded capture/release behavior; no hidden jab fallback.
+
+Input timing policy: collect presses until the next logical frame, consume
+commands once, and resolve both fighters' attacks from pre-hit state. Default
+attack grace is zero extra frames (no universal recovery buffer); AttackBuffer
+supports an explicit configured window and tests its expiry. Same-frame action
+priority is deterministic rather than callback-order dependent. This does not
+prove network synchronization or equal physical input latency. Three match-rule
+tests and four command-buffer tests passed independently during integration.
+
+## Goal extension: player input settings and persistence
+
+Owner requests standard QWERTY and Tom's custom keymap presets, per-action
+rebinding, and persistence of player hotkey settings. L=grab is part of Tom's
+preset; A/8 are ground shield/airborne dodge. Build an in-game settings screen,
+retain/reset presets, validate conflicting bindings deliberately, and verify a
+save → map reload → restored bindings journey. Inspect Wurst's existing local
+FileIO/preload support before implementing persistence. Local settings are
+per-player preferences; translating them into actions must preserve the shared
+simulation input/synchronization boundary. Do not mutate shared match state
+based on unsynchronized local file reads. This is required goal scope, not an
+optional follow-up.
+
+Preset mapping clarification: custom key 8 represents GameCube R/right trigger
+(shield/air dodge), while standard QWERTY defaults that action to 7. Shift the
+other mapped number-row keys left for QWERTY as well: custom 9 jump → QWERTY 8.
+These are action bindings, not instructions to synthesize a keyboard R press.
+Keep player rebinding available after choosing either preset.
+
+KeyBindings supplies two tested presets, two slots per action, conflict and
+reserved-key rejection, and versioned fixed-length encoding/restoration. Three
+headless tests cover owner mappings, rebinding, and atomic malformed-save
+rejection. SettingsUI and BindingSettings now connect this to the game through
+the standard-library SaveLoadData wrapper. The compiler exports generated
+abilities, and the packager includes and verifies those bytes. Only the synced
+load callback updates the active bindings. The current adapter is Player(0)
+versus a bot; this is not a completed two-human multiplayer implementation.
+
+Observed persistence check: select Custom, add K as a second grab key, Save,
+restart through the normal F6 loop, open Controls with F1. Build 194234 restored
+the exact encoded table and showed both L and K; the whole reload took 23.667
+seconds with the same client process. The test binding was then removed by
+restoring and saving Custom. Evidence lives at
+~/code/wc3-melee/worktrees/test-loop/build/controls-probe/restored.png and
+~/code/wc3-melee/worktrees/test-loop/build/controls-probe/restored-ready.txt.
+The save file is
+~/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/MeleePrototypeBindings.pld.
+Confirm actual key-event/network behavior with two clients before claiming
+multiplayer synchronization or latency properties.
+
+Settings read on map startup and write on Save. A same-map disk reread is not
+supported: Warcraft returned the prior cached preload contents after the file
+had changed. The UI exposes preset selection, rebinding and Save; restoration
+is automatic next time the map starts. See wc3-melee:WURST.md for the observed
+engine boundary. Blender is installed, but animation authoring remains blocked
+on the exporter API issue in wc3-melee:ANIMATIONS.md.

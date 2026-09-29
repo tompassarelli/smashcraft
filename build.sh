@@ -2,8 +2,8 @@
 set -euo pipefail
 
 project_dir=$(cd -- "$(dirname -- "$0")" && pwd)
-compiler_checkout=/home/tom/code/resources/WurstScript
-stdlib_checkout=/home/tom/code/resources/WurstStdlib2
+compiler_checkout=/home/tom/code/wurst-compiler/pins/77f734e27b4d
+stdlib_checkout=/home/tom/code/wurst-stdlib/pins/4dfc8a0474bd
 compiler_jar="$project_dir/toolchain/wurstscript.jar"
 java=/home/tom/.wurst/wurst-runtime/bin/java
 maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps'
@@ -20,9 +20,9 @@ if [[ ! "$build_id" =~ ^[A-Za-z0-9._-]+$ ]]; then
     exit 2
 fi
 
-expected_compiler_commit=c34f833850cad1a13445db6f710c6af1f2a6d17b
-expected_stdlib_commit=c79452908e20c96f71cf976cc356dc951ab8cd0c
-expected_compiler_sha256=cb76320eb672f6ef4775d067623c6aaa42d16cb3b312fbbf7307d6a94890d389
+expected_compiler_commit=77f734e27b4da868bd51a90844412473bb45fd1b
+expected_stdlib_commit=4dfc8a0474bd0b9628ff79d935310c7fc92bce4a
+expected_compiler_sha256=f1056b0dbe2209ca71b528e5af74b6ba480c0e4efac5526e1d0e401ba54b2812
 actual_compiler_sha256=$(sha256sum "$compiler_jar" | cut -d ' ' -f 1)
 [[ "$actual_compiler_sha256" == "$expected_compiler_sha256" ]] || {
     printf 'Pinned Wurst compiler checksum mismatch.\n' >&2
@@ -37,7 +37,7 @@ actual_compiler_sha256=$(sha256sum "$compiler_jar" | cut -d ' ' -f 1)
     exit 1
 }
 
-mkdir -p "$project_dir/build/wurst-work" "$project_dir/build/tools" "$(dirname -- "$build_output")"
+mkdir -p "$project_dir/_build" "$project_dir/build/wurst-work" "$project_dir/build/tools" "$(dirname -- "$build_output")"
 work_dir=$(mktemp -d "$project_dir/build/wurst-work/build.XXXXXX")
 trap 'rm -rf -- "$work_dir"' EXIT
 map_script="$work_dir/war3map.lua"
@@ -47,7 +47,9 @@ cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/common.j" "$proje
 cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/blizzard.j" "$project_dir/_build/blizzard.j"
 printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\n' "$build_id" > "$project_dir/build/generated-BuildInfo.wurst"
 
-"$java" -jar "$compiler_jar" \
+(
+cd "$work_dir"
+"$java" -Xmx512m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     -lua -runcompiletimefunctions -stacktraces \
     -workspaceroot "$project_dir" \
     -lib "$stdlib_checkout" \
@@ -56,8 +58,20 @@ printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\n' "$build_id"
     "$project_dir/_build/blizzard.j" \
     "$project_dir/build/generated-BuildInfo.wurst" \
     "$project_dir/wurst/Simulation.wurst" \
+    "$project_dir/wurst/MatchRules.wurst" \
+    "$project_dir/wurst/CommandBuffer.wurst" \
+    "$project_dir/wurst/MatchStep.wurst" \
+    "$project_dir/wurst/KeyBindings.wurst" \
+    "$project_dir/wurst/BindingSettings.wurst" \
+    "$project_dir/wurst/SettingsUI.wurst" \
     "$project_dir/wurst/SelectionUI.wurst" \
     "$project_dir/wurst/Melee.wurst"
+)
+
+[[ -s "$work_dir/_build/objectEditingOutput/war3map.w3a" ]] || {
+    printf 'Compiler did not emit the generated abilities required for saved controls.\n' >&2
+    exit 1
+}
 
 packager="$project_dir/build/tools/map-pack"
 if [[ ! -x "$packager" ]]; then
@@ -112,6 +126,14 @@ nix shell nixpkgs#lua5_3 --command luac -p "$map_script"
 output_next="$build_output.next"
 cp "$base_map" "$output_next"
 "$packager" replace "$output_next" "$map_script"
+for extension in w3u w3t w3b w3d w3a w3h w3q; do
+    object_file="$work_dir/_build/objectEditingOutput/war3map.$extension"
+    if [[ -f "$object_file" ]]; then
+        "$packager" replace "$output_next" "$object_file" "war3map.$extension"
+        "$packager" extract "$output_next" "$work_dir/verified.$extension" "war3map.$extension"
+        cmp "$object_file" "$work_dir/verified.$extension"
+    fi
+done
 if "$packager" extract "$base_map" "$work_dir/war3map.wts" war3map.wts 2>/dev/null \
     && rg -q 'Just another Warcraft III map' "$work_dir/war3map.wts"; then
     sed -i 's/Just another Warcraft III map/Melee Prototype/; s/Nondescript/Archer versus Rifleman platform fight./' "$work_dir/war3map.wts"

@@ -1,0 +1,45 @@
+package CommandBuffer
+
+// Frame numbers are logical simulation frames, never wall-clock timestamps.
+public class AttackBuffer
+    int windowFrames
+    int style = -1
+    int facing = 0
+    int targetFrame = -1
+    int consumedFacing = 0
+
+    construct(int graceFrames)
+        windowFrames = max(0, graceFrames)
+
+    function clear()
+        style = -1
+        facing = 0
+        targetFrame = -1
+        consumedFacing = 0
+
+    function enqueue(int attackStyle, int direction, int frame)
+        if attackStyle < 0 or attackStyle > 5
+            return
+        // Same-frame directional commands take priority over neutral attacks.
+        if targetFrame == frame and style > attackStyle
+            return
+        if targetFrame == frame and style == attackStyle and facing != direction
+            facing = 0
+            return
+        style = attackStyle
+        facing = direction
+        targetFrame = frame
+
+    function consume(int frame, boolean allowed) returns int
+        consumedFacing = 0
+        if style < 0 or frame < targetFrame
+            return -1
+        if frame - targetFrame > windowFrames
+            clear()
+            return -1
+        if not allowed
+            return -1
+        let result = style
+        consumedFacing = facing
+        style = -1
+        return result

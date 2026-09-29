@@ -79,3 +79,19 @@ airborne fighter; because the bot attacked during input, that screenshot alone
 does not isolate jump physics. The custom final-stock result screen also ran.
 Screenshots: ~/code/wc3-melee/worktrees/test-loop/build/engine-check-183334.
 Use ydotool for gameplay keys; wtype did not reliably trigger map input here.
+
+## Saved controls checkpoint (2026-09-29)
+
+Build 194234 completed build → F6 restart → synchronized settings ready in
+23.667 seconds (build finished at 16.006 seconds). The Warcraft process stayed
+running. A saved second grab binding K appeared alongside L after restart;
+the readiness file contained the exact restored binding encoding. Evidence:
+~/code/wc3-melee/worktrees/test-loop/build/controls-probe/restored.png and
+~/code/wc3-melee/worktrees/test-loop/build/controls-probe/restored-ready.txt.
+Custom defaults were restored and saved after the probe.
+
+The readiness marker now waits for the initial synchronized binding load.
+Keyboard registration uses Warcraft virtual key codes, not the Lua backend's
+generic handle-identity indices. During that adapter defect, the built-in
+F10 → End Game → Restart Mission menu successfully loaded the corrected map
+without exiting Warcraft. The normal F6 path then passed again.

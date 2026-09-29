@@ -1,0 +1,140 @@
+package SettingsUI
+import Wurst
+import ClosureFrames
+import KeyBindings
+import BindingSettings
+
+public abstract class SettingsActions
+    abstract function closeSettings()
+
+public class SettingsPanel
+    private BindingSettings settings
+    private SettingsActions actions
+    private framehandle title
+    private framehandle help
+    private framehandle status
+    private framehandle qwertyButton
+    private framehandle customButton
+    private framehandle saveButton
+    private framehandle closeButton
+    private framehandle array[14] labels
+    private framehandle array[28] keyButtons
+    private boolean visible = false
+    private string lastSignature = ""
+
+    construct(BindingSettings settings, SettingsActions actions)
+        this.settings = settings
+        this.actions = actions
+        title = createTextFrame("MeleeSettingsTitle", GAME_UI, 410)
+        title.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.17, 0.575)
+        title.setSize(0.48, 0.035)
+        title.setText("CONTROLS")
+        help = createTextFrame("MeleeSettingsHelp", GAME_UI, 411)
+        help.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.17, 0.542)
+        help.setSize(0.48, 0.032)
+        help.setText("Choose a preset, then click a key and press its replacement.")
+        status = createTextFrame("MeleeSettingsStatus", GAME_UI, 412)
+        status.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.17, 0.105)
+        status.setSize(0.48, 0.03)
+        qwertyButton = makeButton("MeleeSettingsQwerty", 420, 0.17, 0.065, 0.105, "QWERTY")
+        qwertyButton.onClick(() -> begin
+            if GetTriggerPlayer() == Player(0)
+                settings.applyPreset(false)
+        end)
+        customButton = makeButton("MeleeSettingsCustom", 421, 0.28, 0.065, 0.105, "Custom")
+        customButton.onClick(() -> begin
+            if GetTriggerPlayer() == Player(0)
+                settings.applyPreset(true)
+        end)
+        saveButton = makeButton("MeleeSettingsSave", 422, 0.39, 0.065, 0.105, "Save")
+        saveButton.onClick(() -> begin
+            if GetTriggerPlayer() == Player(0)
+                settings.save()
+        end)
+        closeButton = makeButton("MeleeSettingsClose", 424, 0.50, 0.065, 0.105, "Back")
+        closeButton.onClick(() -> begin
+            if GetTriggerPlayer() == Player(0)
+                close()
+        end)
+        closeButton.onClickReleaseFocus()
+        for i = 0 to ACTION_COUNT - 1
+            let action = i
+            labels[i] = createTextFrame("MeleeSettingsAction" + I2S(action), GAME_UI, 430 + action)
+            labels[i].setAbsPoint(FRAMEPOINT_TOPLEFT, 0.18, 0.505 - action * 0.027)
+            labels[i].setSize(0.22, 0.025)
+            keyButtons[action * 2] = makeButton("MeleeSettingsKey" + I2S(action * 2), 460 + action * 2, 0.41, 0.505 - action * 0.027, 0.095, "—")
+            keyButtons[action * 2].onClick(() -> begin
+                if GetTriggerPlayer() == Player(0)
+                    settings.beginCapture(action, 0)
+            end)
+            keyButtons[action * 2].onClickReleaseFocus()
+            keyButtons[action * 2 + 1] = makeButton("MeleeSettingsKey" + I2S(action * 2 + 1), 461 + action * 2, 0.52, 0.505 - action * 0.027, 0.095, "—")
+            keyButtons[action * 2 + 1].onClick(() -> begin
+                if GetTriggerPlayer() == Player(0)
+                    settings.beginCapture(action, 1)
+            end)
+            keyButtons[action * 2 + 1].onClickReleaseFocus()
+        hideFrames()
+
+    private function makeButton(string name, int context, real x, real y, real width, string text) returns framehandle
+        let control = createGlueTextButton(name, GAME_UI, "ScriptDialogButton", context)
+        control.setAbsPoint(FRAMEPOINT_TOPLEFT, x, y)
+        control.setSize(width, 0.032)
+        control.setText(text)
+        control.onClickReleaseFocus()
+        return control
+
+    private function hideFrames()
+        title.setVisible(false)
+        help.setVisible(false)
+        status.setVisible(false)
+        qwertyButton.setVisible(false)
+        customButton.setVisible(false)
+        saveButton.setVisible(false)
+        closeButton.setVisible(false)
+        for i = 0 to ACTION_COUNT - 1
+            labels[i].setVisible(false)
+            keyButtons[i * 2].setVisible(false)
+            keyButtons[i * 2 + 1].setVisible(false)
+
+    function show()
+        if not settings.ready
+            return
+        visible = true
+        lastSignature = ""
+        update()
+
+    function close()
+        visible = false
+        settings.cancelCapture()
+        hideFrames()
+        actions.closeSettings()
+
+    function isOpen() returns boolean
+        return visible
+
+    function update()
+        if not visible
+            return
+        let signature = settings.bindings.encode() + settings.message + (settings.capturing ? "1" : "0") + (settings.ready ? "1" : "0")
+        if signature == lastSignature
+            return
+        lastSignature = signature
+        title.setVisible(true)
+        help.setVisible(true)
+        status.setVisible(true)
+        qwertyButton.setVisible(true)
+        customButton.setVisible(true)
+        saveButton.setVisible(true)
+        closeButton.setVisible(true)
+        status.setText(settings.message)
+        help.setText(settings.capturing ? "Press an unassigned key. Escape cancels." : "Click a binding to change it. Each action accepts two keys.")
+        for i = 0 to ACTION_COUNT - 1
+            labels[i].setVisible(true)
+            keyButtons[i * 2].setVisible(true)
+            keyButtons[i * 2 + 1].setVisible(true)
+            labels[i].setText(KeyBindings.actionName(i))
+            let first = settings.bindings.keyName(settings.bindings.keyFor(i, 0))
+            let second = settings.bindings.keyName(settings.bindings.keyFor(i, 1))
+            keyButtons[i * 2].setText((settings.capturing and settings.captureAction == i and settings.captureSlot == 0 ? "> " : "") + first)
+            keyButtons[i * 2 + 1].setText((settings.capturing and settings.captureAction == i and settings.captureSlot == 1 ? "> " : "") + second)

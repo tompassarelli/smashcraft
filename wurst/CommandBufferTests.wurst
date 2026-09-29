@@ -1,0 +1,37 @@
+package CommandBufferTests
+import CommandBuffer
+
+@Test function pressIsConsumedOnceOnItsTargetFrame()
+    let commands = new AttackBuffer(0)
+    commands.enqueue(0, 0, 10)
+    commands.consume(9, true).assertEquals(-1)
+    commands.consume(10, true).assertEquals(0)
+    commands.consume(10, true).assertEquals(-1)
+    commands.consume(11, true).assertEquals(-1)
+
+@Test function zeroGraceDoesNotStoreAnAttackThroughRecovery()
+    let commands = new AttackBuffer(0)
+    commands.enqueue(1, 0, 10)
+    commands.consume(10, false).assertEquals(-1)
+    commands.consume(11, true).assertEquals(-1)
+
+@Test function configuredBufferWaitsForRecoveryButExpires()
+    let commands = new AttackBuffer(3)
+    commands.enqueue(4, -1, 10)
+    commands.consume(10, false).assertEquals(-1)
+    commands.consume(13, true).assertEquals(4)
+    commands.consumedFacing.assertEquals(-1)
+    commands.enqueue(0, 0, 20)
+    commands.consume(24, true).assertEquals(-1)
+
+@Test function simultaneousAttackPriorityDoesNotDependOnCallbackOrder()
+    let firstOrder = new AttackBuffer(0)
+    let reverseOrder = new AttackBuffer(0)
+    firstOrder.enqueue(0, 0, 10)
+    firstOrder.enqueue(4, 1, 10)
+    reverseOrder.enqueue(4, 1, 10)
+    reverseOrder.enqueue(0, 0, 10)
+    firstOrder.consume(10, true).assertEquals(4)
+    reverseOrder.consume(10, true).assertEquals(4)
+    firstOrder.consumedFacing.assertEquals(1)
+    reverseOrder.consumedFacing.assertEquals(1)

@@ -97,15 +97,32 @@ import Simulation
 	fighter.grounded.assertTrue()
 	fighter.jumps.assertEquals(2)
 	fighter.landingLag.assertEquals(20)
-	let landingVx = fighter.vx
 	input.direction = 1
 	advance(fighter, 0, input, -240)
-	fighter.vx.assertEquals(landingVx * 0.9, 0.01)
 	fighter.landingLag.assertEquals(19)
+
+@Test function airDodgeLandingUsesGroundFrictionEvenWhileAirTimerRemains()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.grounded = true
+	fighter.airDodging = true
+	fighter.airDodgeTime = 20
+	fighter.surface = 0
+	fighter.z = 0
+	fighter.vz = 0
+	fighter.vx = 5
+	let input = new InputSnapshot()
+	advance(fighter, 0, input, -240)
+	fighter.grounded.assertTrue()
+	fighter.landingLag.assertEquals(AIR_DODGE_LANDING_LAG)
+	fighter.airDodgeTime.assertEquals(19)
+	advance(fighter, 0, input, -240)
+	fighter.airDodgeTime.assertEquals(18)
+	fighter.vx.assertEquals(5 - 2 * GROUND_TRACTION, 0.01)
 
 @Test function crossingPlatformFromBelowDoesNotLand()
 	let fighter = new FighterState(0, 0, 1)
 	fighter.grounded = false
+	fighter.x = -250
 	fighter.z = 100
 	fighter.vz = 10
 	let input = new InputSnapshot()
@@ -121,3 +138,158 @@ import Simulation
 	advance(fighter, 0, input, -240)
 	fighter.out.assertTrue()
 	fighter.stocks.assertEquals(2)
+	var ticks = 0
+	while ticks < 130
+		advance(fighter, 0, input, -240)
+		ticks++
+	fighter.stocks.assertEquals(2)
+	fighter.out.assertEquals(false)
+	fighter.out.assertEquals(false)
+	fighter.x = 920
+	advance(fighter, 0, input, -240)
+	fighter.stocks.assertEquals(1)
+	while fighter.respawn > 0
+		advance(fighter, 0, input, -240)
+	fighter.x = 920
+	advance(fighter, 0, input, -240)
+	fighter.stocks.assertEquals(0)
+	fighter.out.assertEquals(true)
+	let finalX = fighter.x
+	advance(fighter, 0, input, -240)
+	fighter.x.assertEquals(finalX)
+
+@Test function releasingShieldWaitsForMinimumHoldThenAppliesReleaseLag()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	input.shield = true
+	advance(fighter, 0, input, -240)
+	input.shield = false
+	for i = 0 to SHIELD_MIN_HOLD_FRAMES - 2
+		advance(fighter, 0, input, -240)
+		fighter.shield.assertTrue()
+	advance(fighter, 0, input, -240)
+	fighter.shield.assertFalse()
+	fighter.shieldReleaseLag.assertEquals(SHIELD_RELEASE_LAG_FRAMES)
+	let energyAtRelease = fighter.shieldEnergy
+	advance(fighter, 0, input, -240)
+	fighter.shieldEnergy.assertGreaterThan(energyAtRelease)
+	fighter.shieldReleaseLag.assertEquals(SHIELD_RELEASE_LAG_FRAMES - 1)
+
+@Test function shieldstunKeepsTheFighterShieldingAndBlocksActions()
+	let attacker = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 100, -1)
+	target.shield = true
+	simulationAttack(attacker, target, 0)
+	let stun = target.shieldStun
+	let input = new InputSnapshot()
+	input.shield = false
+	input.jumpPressed = true
+	input.direction = 1
+	advance(target, 0, input, -240)
+	target.shield.assertTrue()
+	target.shieldStun.assertEquals(stun - 1)
+	target.jumpSquat.assertEquals(0)
+	let damage = target.damage
+	simulationAttack(target, attacker, 0)
+	target.damage.assertEquals(damage)
+
+@Test function fullAndShortJumpUseDistinctLaunchSpeeds()
+	let full = new FighterState(0, 0, 1)
+	let short = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	input.jumpPressed = true
+	input.jumpHeld = true
+	advance(full, 0, input, -240)
+	advance(short, 0, input, -240)
+	input.jumpPressed = false
+	input.jumpHeld = false
+	advance(short, 0, input, -240)
+	advance(short, 0, input, -240)
+	short.vz.assertEquals(shortJumpSpeed(0) - characterGravity(0), 0.01)
+	input.jumpHeld = true
+	advance(full, 0, input, -240)
+	advance(full, 0, input, -240)
+	full.vz.assertEquals(fullJumpSpeed(0) - characterGravity(0), 0.01)
+
+@Test function attacksCommitRecoveryOnWhiffAndBlockDuringLandingLag()
+	let attacker = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 400, -1)
+	simulationAttack(attacker, target, 0)
+	attacker.cooldown.assertEquals(36)
+	attacker.attackTime.assertEquals(29)
+	attacker.landingLag = 2
+	target.x = 100
+	simulationAttack(attacker, target, 0)
+	target.damage.assertEquals(0.)
+
+@Test function simultaneousEligibleAttacksTradeInEitherOrder()
+	let leftA = new FighterState(0, 0, 1)
+	let rightA = new FighterState(1, 100, -1)
+	simulationAttackPair(leftA, rightA, 1, 1)
+	let leftB = new FighterState(0, 0, 1)
+	let rightB = new FighterState(1, 100, -1)
+	simulationAttackPair(rightB, leftB, 1, 1)
+	leftA.damage.assertEquals(3.)
+	rightA.damage.assertEquals(3.)
+	leftA.damage.assertEquals(rightA.damage)
+	leftA.damage.assertEquals(leftB.damage)
+	leftA.damage.assertEquals(rightB.damage)
+	leftA.hitstun.assertEquals(leftB.hitstun)
+	rightA.hitstun.assertEquals(rightB.hitstun)
+	leftA.cooldown.assertEquals(15)
+	rightB.cooldown.assertEquals(15)
+
+@Test function aMissedSimultaneousBlowAddsNoHitlagToItsAttacker()
+	let blaster = new FighterState(0, 0, 1)
+	let attackerFacingAway = new FighterState(1, 100, 1)
+	simulationAttackPair(blaster, attackerFacingAway, 1, 0)
+	blaster.damage.assertEquals(0.)
+	attackerFacingAway.damage.assertEquals(3.)
+	blaster.hitlag.assertEquals(0)
+	attackerFacingAway.hitlag.assertEquals(0)
+	blaster.cooldown.assertEquals(15)
+	attackerFacingAway.cooldown.assertEquals(36)
+
+@Test function successfulGrabHasPriorityOverSimultaneousStrikeInEitherOrder()
+	let grabberA = new FighterState(0, 0, 1)
+	let strikerA = new FighterState(1, 90, -1)
+	simulationAttackPair(grabberA, strikerA, 5, 1)
+	let grabberB = new FighterState(0, 0, 1)
+	let strikerB = new FighterState(1, 90, -1)
+	simulationAttackPair(strikerB, grabberB, 1, 5)
+	grabberA.damage.assertEquals(0.)
+	strikerA.damage.assertEquals(0.)
+	grabberB.damage.assertEquals(grabberA.damage)
+	strikerB.damage.assertEquals(strikerA.damage)
+	strikerA.grabbedFrames.assertEquals(20)
+	strikerB.grabbedFrames.assertEquals(strikerA.grabbedFrames)
+	grabberA.cooldown.assertEquals(36)
+	strikerA.cooldown.assertEquals(15)
+	grabberB.cooldown.assertEquals(grabberA.cooldown)
+	strikerB.cooldown.assertEquals(strikerA.cooldown)
+
+@Test function grabBreaksShieldButHasShortReachAndTimedRelease()
+	let attacker = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 90, -1)
+	target.shield = true
+	simulationAttack(attacker, target, 5)
+	target.grabbedFrames.assertEquals(20)
+	target.shield.assertFalse()
+	var input = new InputSnapshot()
+	input.jumpPressed = true
+	for i = 0 to 19
+		advance(target, 0, input, -240)
+	target.grabbedFrames.assertEquals(0)
+	target.hitstun.assertEquals(10)
+	target.jumpSquat.assertEquals(0)
+	let farTarget = new FighterState(1, 101, -1)
+	simulationAttack(attacker, farTarget, 5)
+	farTarget.grabbedFrames.assertEquals(0)
+	let invincibleTarget = new FighterState(1, 50, -1)
+	invincibleTarget.invincible = 1
+	simulationAttack(attacker, invincibleTarget, 5)
+	invincibleTarget.grabbedFrames.assertEquals(0)
+	let outTarget = new FighterState(1, 50, -1)
+	outTarget.out = true
+	simulationAttack(attacker, outTarget, 5)
+	outTarget.grabbedFrames.assertEquals(0)

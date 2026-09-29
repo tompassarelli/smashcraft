@@ -1,0 +1,33 @@
+package KeyBindingsTests
+import KeyBindings
+
+@Test function presetNumberRowsMatchTheOwnerMapping()
+    let custom = new KeyBindings(true)
+    let standard = new KeyBindings(false)
+    custom.keyFor(RIGHT_TRIGGER, 0).assertEquals(56)
+    standard.keyFor(RIGHT_TRIGGER, 0).assertEquals(55)
+    custom.keyFor(JUMP, 1).assertEquals(57)
+    standard.keyFor(JUMP, 1).assertEquals(56)
+    custom.actionFor(76).assertEquals(GRAB)
+    standard.actionFor(76).assertEquals(GRAB)
+
+@Test function rebindRejectsConflictsAndReservedKeys()
+    let bindings = new KeyBindings(true)
+    bindings.rebind(GRAB, 0, 78).assertFalse()
+    bindings.keyFor(GRAB, 0).assertEquals(76)
+    bindings.rebind(GRAB, 0, 117).assertFalse()
+    bindings.rebind(GRAB, 0, 71).assertTrue()
+    bindings.actionFor(71).assertEquals(GRAB)
+    bindings.actionFor(76).assertEquals(-1)
+
+@Test function savedBindingsRoundTripAndMalformedDataIsAtomic()
+    let source = new KeyBindings(true)
+    source.rebind(GRAB, 0, 71).assertTrue()
+    let saved = source.encode()
+    let restored = new KeyBindings(false)
+    restored.restore(saved).assertTrue()
+    restored.encode().assertEquals(saved)
+    restored.restore("K1broken").assertFalse()
+    restored.encode().assertEquals(saved)
+    restored.restore("XX" + saved.substring(2)).assertFalse()
+    restored.encode().assertEquals(saved)
