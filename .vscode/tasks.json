@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Test simulation without Warcraft",
+      "type": "process",
+      "command": "${workspaceFolder}/test.sh",
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build and reload running prototype",
+      "type": "process",
+      "command": "${workspaceFolder}/loop.sh",
+      "args": ["reload"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    }
+  ]
+}

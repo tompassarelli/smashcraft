@@ -1,0 +1,79 @@
+package SelectionUI
+import Wurst
+import ClosureFrames
+
+public abstract class SelectionActions
+    abstract function selectChoice(int choice)
+    abstract function confirmSelection()
+    abstract function backSelection()
+
+// One instance lives for the match session; frames and listeners are reused.
+public class SelectionPanel
+    framehandle firstChoice
+    framehandle secondChoice
+    framehandle confirmButton
+    framehandle backButton
+    framehandle description
+    int lastState = -1
+    int lastChoice = -1
+
+    construct(SelectionActions actions)
+        firstChoice = createFrame("ScriptDialogButton", GAME_UI, 0, 301)
+        firstChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.06, 0.525)
+        firstChoice.setSize(0.21, 0.05)
+        firstChoice.onClick(() -> begin
+            if GetTriggerPlayer() == Player(0)
+                actions.selectChoice(0)
+        end)
+        firstChoice.onClickReleaseFocus()
+        secondChoice = createFrame("ScriptDialogButton", GAME_UI, 0, 302)
+        secondChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.29, 0.525)
+        secondChoice.setSize(0.21, 0.05)
+        secondChoice.onClick(() -> begin
+            if GetTriggerPlayer() == Player(0)
+                actions.selectChoice(1)
+        end)
+        secondChoice.onClickReleaseFocus()
+        confirmButton = createFrame("ScriptDialogButton", GAME_UI, 0, 303)
+        confirmButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.06, 0.41)
+        confirmButton.setSize(0.21, 0.04)
+        confirmButton.onClick(() -> begin
+            if GetTriggerPlayer() == Player(0)
+                actions.confirmSelection()
+        end)
+        confirmButton.onClickReleaseFocus()
+        backButton = createFrame("ScriptDialogButton", GAME_UI, 0, 304)
+        backButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.29, 0.41)
+        backButton.setSize(0.21, 0.04)
+        backButton.setText("Back  [U]")
+        backButton.onClick(() -> begin
+            if GetTriggerPlayer() == Player(0)
+                actions.backSelection()
+        end)
+        backButton.onClickReleaseFocus()
+        description = createTextFrame("MeleeSelectionDescription", GAME_UI, 305)
+        description.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.06, 0.462)
+        description.setSize(0.50, 0.042)
+
+    function update(int menuState, int choice)
+        if menuState == lastState and choice == lastChoice
+            return
+        lastState = menuState
+        lastChoice = choice
+        let selecting = menuState == 0 or menuState == 1
+        firstChoice.setVisible(selecting)
+        secondChoice.setVisible(selecting)
+        confirmButton.setVisible(selecting)
+        backButton.setVisible(menuState == 1)
+        description.setVisible(selecting)
+        if not selecting
+            return
+        let firstLabel = menuState == 0 ? "FOX / Archer" : "SKY DECK"
+        let secondLabel = menuState == 0 ? "FALCO / Rifleman" : "THREE BRIDGES"
+        firstChoice.setText(choice == 0 ? "|cffffd45a> " + firstLabel + "|r" : firstLabel)
+        secondChoice.setText(choice == 1 ? "|cffffd45a> " + secondLabel + "|r" : secondLabel)
+        confirmButton.setText(menuState == 0 ? "Choose stage  [N]" : "Fight!  [N]")
+        if menuState == 0
+            description.setText(choice == 0 ? "Quick on the ground. Blaster shots build damage without stopping foes." : "Higher jumps. Blaster shots interrupt foes.")
+        else
+            description.setText(choice == 0 ? "One wide platform. Open skies on every side." : "A main deck and two raised platforms. Jump through; hold D to drop.")
