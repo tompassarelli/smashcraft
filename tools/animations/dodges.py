@@ -72,7 +72,7 @@ def make_action(name, keyframes, frame_end):
 
 def roll_pose(angle, tuck):
     return {
-        "Bone_Root": {"rotation": angle, "axis": "X"},
+        "Bone_Root": {"rotation": angle, "axis": "Z"},
         "Bone_Arm1_R": {"rotation": 35 * tuck},
         "Bone_Arm2_R": {"rotation": -72 * tuck},
         "Bone_Arm1_L": {"rotation": -35 * tuck},
