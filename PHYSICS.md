@@ -32,12 +32,12 @@ hitlag, hitstun, shield stun, and landing recovery. Warcraft schedules the
 simulation and renders its result; wall-clock jitter does not alter a single
 step's physics. Record the actual implemented rate with the simulation tests.
 
-The current port's 0.03-second tick, 1350 gravity, 100 shield energy, movement
-speeds, jump velocities, and linear damage-based knockback are prototype tuning,
-not verified Melee values. Replace these deliberately as the tested simulation
-lands. Terrain distances require an explicit world-unit scale before importing
-Melee numerical parameters. Digital direction input, simplified collision shapes,
-and Warcraft animation are intentional initial differences.
+The simulation uses 60 logical frames/second and six Warcraft world units per
+Melee distance unit. Movement, gravity, shield energy and ordinary knockback
+use the numerical baseline below. Jump launch speeds are separately tuned
+constants; their resulting apex heights have not yet been compared to the
+reference table. Digital direction input, simplified collision shapes and
+Warcraft animation remain deliberate differences.
 
 Minimum mechanics checks: press edges; short/full jump; air-jump budget; landing
 from above only; air-dodge landing momentum; shield drain/regeneration/break and
@@ -91,8 +91,8 @@ https://www.ssbwiki.com/Knockback and https://www.ssbwiki.com/Shield:
   landing with horizontal momentum is the basis for wavelanding/wavedashing
   (https://www.ssbwiki.com/Air_dodge). Numerical dodge parameters remain unsourced.
 
-These values are implementation targets. A test passing against provisional
-constants is not proof that this table has been adopted or that feel matches.
+Adoption is mechanic-specific. A test passing against provisional constants
+is not proof that the entire table has been adopted or that feel matches.
 
 For a normal non-electric, non-crouching hit, the Melee hitlag baseline is
 floor(damage / 3 + 3), so a 15-damage hit yields 8 frames. Electric and crouching
@@ -113,3 +113,19 @@ special launch angles need explicit implementation before parity claims.
 For a non-staled 12-damage hit on weight 80 at 0 pre-hit percent, growth 100,
 base 20 and ratio 1, K is 51.0666667, launch speed 1.532 and floor(0.4*K) is 20.
 These are useful independent arithmetic expectations for our Wurst tests.
+
+## Air-dodge protection checkpoint
+
+The locally cached SmashWiki Air_dodge table reports Fox and Falco intangible
+on frames 4–29 inclusive, with a 49-frame animation. The simulation now tracks
+the dodge frame separately from motion, blocks both strikes and grabs during
+that interval, and ends dodge protection on landing or interruption by a hit.
+Respawn protection is independent. The renderer lowers fighter opacity using
+the same protection query used by hit detection.
+
+The frame sweep test checks both characters at each frame 1–30. Additional
+tests cover damage interrupting startup and landing ending dodge protection.
+Neutral/directional dodge motion still uses provisional speed 8 world
+units/frame, 0.9 decay and a 26-frame motion period; landing lag remains the
+provisional 20 frames. The 49-frame counter cap is not a custom animation asset
+or a claim that those provisional motion values match Melee.

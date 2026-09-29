@@ -191,3 +191,21 @@ had changed. The UI exposes preset selection, rebinding and Save; restoration
 is automatic next time the map starts. See wc3-melee:WURST.md for the observed
 engine boundary. Blender is installed, but animation authoring remains blocked
 on the exporter API issue in wc3-melee:ANIMATIONS.md.
+
+## Air-dodge checkpoint
+
+33/33 headless tests pass after adding frames 4–29 of air-dodge intangibility
+for both characters. Damage during startup interrupts dodge movement; landing
+ends dodge protection without clearing independent respawn protection. The
+same protection query drives hit detection and fighter opacity.
+Build 195029 loaded in 23.505 seconds with the client retained. A client input
+probe captured the faded airborne fighter and normal opacity afterward at
+~/code/wc3-melee/worktrees/test-loop/build/dodge-probe/dodge.png and
+~/code/wc3-melee/worktrees/test-loop/build/dodge-probe/recovery.png.
+
+Next simulation gaps: compare full/short/double-jump apexes against the numeric
+reference using complete trajectories, reject repeated presses during jump
+squat, and settle action eligibility during attack/shield recovery. Air-dodge
+motion parameters remain provisional; passing protection tests does not prove
+motion fidelity. Continue the animation pipeline and two-client work already
+listed above; the overall goal remains unfinished.

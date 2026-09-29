@@ -417,7 +417,7 @@ function renderFighter(Fighter f, boolean wasOut)
     if f.out
         return
     f.place()
-    SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, f.invincible > 0 ? 140 : 255)
+    SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
     if f == playerFighter and f.jumps < 2 and playerJumpQueued
         SetUnitAnimation(f.body, "stand")
     else if f.attackTime == 0 and f.hitstun == 0 and f.hitlag == 0

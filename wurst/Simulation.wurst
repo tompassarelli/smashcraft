@@ -18,6 +18,9 @@ constant real SHIELD_DRAIN_PER_FRAME = 0.28
 constant real SHIELD_REGEN_PER_FRAME = 0.07
 constant real AIR_DODGE_SPEED = 8
 constant int AIR_DODGE_FRAMES = 26
+constant int AIR_DODGE_INTANGIBLE_START = 4
+constant int AIR_DODGE_INTANGIBLE_END = 29
+constant int AIR_DODGE_ANIMATION_FRAMES = 49
 public constant int AIR_DODGE_LANDING_LAG = 20
 public constant int SHIELD_MIN_HOLD_FRAMES = 8
 public constant int SHIELD_RELEASE_LAG_FRAMES = 15
@@ -64,6 +67,7 @@ public class FighterState
 	int airDodgeTime = 0
 	int landingLag = 0
 	boolean airDodging = false
+	int airDodgeFrame = 0
 	int grabbedFrames = 0
 
 	construct(int fighterType, real startX, int direction)
@@ -150,7 +154,17 @@ function attackReach(int style) returns real
 
 function attackHits(FighterState attacker, FighterState target, int style) returns boolean
 	let separation = target.x - attacker.x
-	return not target.out and target.invincible <= 0 and separation * attacker.facing >= 0 and separation.abs() <= attackReach(style) and (target.z - attacker.z).abs() <= 130
+	return not target.out and not isIntangible(target) and separation * attacker.facing >= 0 and separation.abs() <= attackReach(style) and (target.z - attacker.z).abs() <= 130
+
+public function isIntangible(FighterState f) returns boolean
+	return f.invincible > 0 or (f.airDodging and f.airDodgeFrame >= AIR_DODGE_INTANGIBLE_START and f.airDodgeFrame <= AIR_DODGE_INTANGIBLE_END)
+
+function interruptJumpOrDodge(FighterState f)
+	f.jumpSquat = 0
+	f.jumpHeld = false
+	f.airDodging = false
+	f.airDodgeTime = 0
+	f.airDodgeFrame = 0
 
 function commitAttack(FighterState attacker, int style)
 	attacker.attackTime = style == 1 ? 15 : 29
@@ -159,6 +173,7 @@ function commitAttack(FighterState attacker, int style)
 function applyAttackHit(FighterState attacker, FighterState target, int style)
 	let damage = attackDamage(style)
 	if style == 5
+		interruptJumpOrDodge(target)
 		target.grabbedFrames = 20
 		target.shield = false
 		target.shieldStun = 0
@@ -178,8 +193,10 @@ function applyAttackHit(FighterState attacker, FighterState target, int style)
 	if style == 1
 		target.damage += damage
 		if attacker.character == 1
+			interruptJumpOrDodge(target)
 			target.hitstun = max(target.hitstun, 11)
 		return
+	interruptJumpOrDodge(target)
 	let weight = target.character == 0 ? 75 : 80
 	let newPercent = R2I(target.damage) + damage
 	let knockback = (((newPercent / 10. + newPercent * damage / 20.) * 200 / (weight + 100) * 1.4 + 18) + 20)
@@ -211,6 +228,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	f.vz = dz * AIR_DODGE_SPEED * scale
 	f.airDodgeTime = AIR_DODGE_FRAMES
 	f.airDodging = true
+	f.airDodgeFrame = 0
 	f.grounded = false
 	f.jumps = max(0, f.jumps - 1)
 
@@ -260,6 +278,7 @@ public function reset(FighterState f, real startX)
 	f.airDodgeTime = 0
 	f.landingLag = 0
 	f.airDodging = false
+	f.airDodgeFrame = 0
 	f.grabbedFrames = 0
 	f.shieldHeldFrames = 0
 	f.shieldReleaseLag = 0
@@ -301,6 +320,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	f.cooldown = max(0, f.cooldown - 1)
 	f.attackTime = max(0, f.attackTime - 1)
 	f.invincible = max(0, f.invincible - 1)
+	if f.airDodging
+		f.airDodgeFrame = min(AIR_DODGE_ANIMATION_FRAMES, f.airDodgeFrame + 1)
 	f.dropTime = max(0, f.dropTime - 1)
 	let dodgeActive = f.airDodgeTime > 0
 	f.airDodgeTime = max(0, f.airDodgeTime - 1)
@@ -385,6 +406,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if f.airDodging
 			f.landingLag = AIR_DODGE_LANDING_LAG
 			f.airDodging = false
+			f.airDodgeFrame = 0
 		f.z = surfaceZ(stage, landing)
 		f.vz = 0
 		if f.jumpSquat <= 0

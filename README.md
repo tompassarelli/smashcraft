@@ -30,12 +30,17 @@ QWERTY uses 7 for right trigger and 8 for the alternate jump key.
 
 ## Current evidence
 
-Thirty headless tests pass across simulation, input buffers, bindings,
+Thirty-three headless tests pass across simulation, input buffers, bindings,
 match rules and the shared match step. Build 194234 loaded in 23.667 seconds
 including build/restart and restored a saved, rebound key in the same client
 process. F1, preset selection, rebinding and synchronized startup loading were
 observed in Warcraft. Your Custom preset was restored and saved after the test.
 The current match has one human and a bot; two-client timing remains unverified.
+
+Air dodge protects frames 4–29 and visibly fades the fighter during that
+window. Build 195029 loaded in 23.505 seconds; the client probe captured the
+fade and return to normal opacity. Dodge speed/decay and jump heights still
+need calibration; custom combat animations are unfinished.
 
 See wc3-melee:DEVELOPMENT.md for the simulation/engine split,
 wc3-melee:PHYSICS.md for sourced values and deliberate differences,

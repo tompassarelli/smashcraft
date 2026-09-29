@@ -293,3 +293,55 @@ import Simulation
 	outTarget.out = true
 	simulationAttack(attacker, outTarget, 5)
 	outTarget.grabbedFrames.assertEquals(0)
+
+@Test function airDodgeProtectsOnlyFramesFourThroughTwentyNine()
+	for character = 0 to 1
+		for frame = 1 to 30
+			let fighter = new FighterState(character, 100, -1)
+			fighter.z = 300
+			fighter.grounded = false
+			simulationAirDodge(fighter, 0, 0)
+			let input = new InputSnapshot()
+			for tick = 1 to frame
+				advance(fighter, 0, input, -240)
+			let attacker = new FighterState(0, 0, 1)
+			attacker.z = fighter.z
+			simulationAttack(attacker, fighter, 0)
+			fighter.damage.assertEquals(frame >= 4 and frame <= 29 ? 0. : 12.)
+			destroy attacker
+			destroy input
+			destroy fighter
+
+@Test function aHitDuringDodgeStartupInterruptsDodgeMovement()
+	let fighter = new FighterState(0, 100, -1)
+	fighter.z = 300
+	fighter.grounded = false
+	simulationAirDodge(fighter, 1, 0)
+	let attacker = new FighterState(1, 0, 1)
+	attacker.z = 300
+	simulationAttack(attacker, fighter, 0)
+	fighter.damage.assertEquals(12.)
+	fighter.airDodging.assertFalse()
+	fighter.airDodgeTime.assertEquals(0)
+	fighter.hitstun.assertGreaterThan(0)
+
+@Test function landingEndsDodgeProtectionWithoutRemovingRespawnProtection()
+	let fighter = new FighterState(0, 100, -1)
+	fighter.z = 30
+	fighter.grounded = false
+	simulationAirDodge(fighter, 0, 0)
+	let input = new InputSnapshot()
+	for frame = 1 to 4
+		advance(fighter, 0, input, -240)
+	fighter.z = 1
+	fighter.vz = -5
+	advance(fighter, 0, input, -240)
+	fighter.grounded.assertTrue()
+	let attacker = new FighterState(1, 0, 1)
+	simulationAttack(attacker, fighter, 0)
+	fighter.damage.assertEquals(12.)
+	let respawned = new FighterState(0, 100, -1)
+	respawned.invincible = 20
+	let otherAttacker = new FighterState(1, 0, 1)
+	simulationAttack(otherAttacker, respawned, 0)
+	respawned.damage.assertEquals(0.)
