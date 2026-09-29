@@ -669,7 +669,7 @@ function renderUI()
     if settingsPanel != null
         settingsPanel.update()
     if playerFighter != null
-        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | input=" + I2S(lastInputAction) + " normal=" + I2S(lastNormalStyle) + " move=" + I2S(playerFighter.attackStyle) + " frame=" + I2S(playerFighter.attackFrame) + " serial=" + I2S(playerFighter.attackSerial) + " down=" + I2S(playerFighter.downState) + ":" + I2S(playerFighter.downFrame) + " DI=" + I2S(playerFighter.diSerial) + ":" + I2S(R2I(playerFighter.diAngleDegrees)) + " | F6 restart")
+        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | input=" + I2S(lastInputAction) + " normal=" + I2S(lastNormalStyle) + " move=" + I2S(playerFighter.attackStyle) + " frame=" + I2S(playerFighter.attackFrame) + " serial=" + I2S(playerFighter.attackSerial) + " down=" + I2S(playerFighter.downState) + ":" + I2S(playerFighter.downFrame) + " DI=" + I2S(playerFighter.diSerial) + ":" + I2S(R2I(playerFighter.diAngleDegrees)) + " S=" + I2S(playerFighter.sdiSerial) + " A=" + I2S(playerFighter.asdiSerial) + " | F6 restart")
 
 function lockArenaCamera()
     SetCameraField(CAMERA_FIELD_ROTATION, 90, 0)
@@ -709,6 +709,8 @@ function gameTick()
                 botAttackDelay = 0.35
         playerInput.direction = direction
         playerInput.verticalDirection = (moveUp ? 1 : 0) - (moveDown ? 1 : 0)
+        playerInput.cStickX = (actionHeld(SMASH_RIGHT) ? 1 : 0) - (actionHeld(SMASH_LEFT) ? 1 : 0)
+        playerInput.cStickZ = (actionHeld(SMASH_UP) ? 1 : 0) - (actionHeld(SMASH_DOWN) ? 1 : 0)
         playerInput.attackHeld = actionHeld(ATTACK)
         playerInput.techPressed = playerTechPressed
         playerInput.lCancelPressed = playerLCancelPressed

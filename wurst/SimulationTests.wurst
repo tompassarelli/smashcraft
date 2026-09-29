@@ -709,6 +709,197 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	advance(fighter, 0, input, -240)
 	(fighter.x > 25.).assertTrue()
 
+@Test function smashDiPulsesOnNewAxisComponentsButNotOnHeldOrRemovedComponents()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.grounded = false
+	fighter.z = 400
+	fighter.hitlag = 8
+	fighter.diPending = true
+	fighter.diLaunchSpeed = 10
+	let input = new InputSnapshot()
+	input.direction = 1
+	advance(fighter, 0, input, -240)
+	fighter.x.assertEquals(SDI_DISTANCE)
+	fighter.sdiSerial.assertEquals(1)
+	advance(fighter, 0, input, -240)
+	fighter.x.assertEquals(SDI_DISTANCE)
+	fighter.sdiSerial.assertEquals(1)
+	input.verticalDirection = 1
+	advance(fighter, 0, input, -240)
+	fighter.x.assertEquals(SDI_DISTANCE + SDI_DISTANCE * 0.7071067811865476, 0.001)
+	fighter.z.assertEquals(400 + SDI_DISTANCE * 0.7071067811865476, 0.001)
+	fighter.sdiSerial.assertEquals(2)
+	input.verticalDirection = 0
+	advance(fighter, 0, input, -240)
+	fighter.sdiSerial.assertEquals(2)
+	input.direction = -1
+	advance(fighter, 0, input, -240)
+	fighter.x.assertEquals(SDI_DISTANCE * 0.7071067811865476, 0.001)
+	fighter.sdiSerial.assertEquals(3)
+	destroy input
+	destroy fighter
+
+@Test function heldDirectionBeforeTheHitDoesNotCreateAnSdiPulseAndAttackerFreezeDoesNotMove()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	input.direction = 1
+	advance(fighter, 0, input, -240)
+	fighter.sampledSdiX.assertEquals(1)
+	fighter.x = 300
+	fighter.z = 400
+	fighter.grounded = false
+	fighter.vx = 0
+	fighter.hitlag = 3
+	fighter.diPending = true
+	fighter.diLaunchSpeed = 10
+	advance(fighter, 0, input, -240)
+	fighter.x.assertEquals(300.)
+	fighter.sdiSerial.assertEquals(0)
+	let attacker = new FighterState(0, 0, 1)
+	attacker.x = 250
+	attacker.z = 400
+	attacker.grounded = false
+	attacker.hitlag = 3
+	advance(attacker, 0, input, -240)
+	attacker.x.assertEquals(250.)
+	attacker.sdiSerial.assertEquals(0)
+	destroy input
+	destroy attacker
+	destroy fighter
+
+@Test function asdiUsesCStickWhileDiStillUsesLeftStickOnOnlyTheFinalFreezeTick()
+	let fighter = new FighterState(0, 300, 1)
+	fighter.grounded = false
+	fighter.z = 400
+	fighter.hitlag = 1
+	fighter.diPending = true
+	fighter.diLaunchSpeed = 10
+	fighter.knockbackX = 10
+	fighter.sampledSdiZ = 1
+	let input = new InputSnapshot()
+	input.verticalDirection = 1
+	input.cStickX = 1
+	advance(fighter, 0, input, -240)
+	fighter.x.assertEquals(300 + ASDI_DISTANCE)
+	fighter.z.assertEquals(400.)
+	fighter.asdiSerial.assertEquals(1)
+	fighter.diSerial.assertEquals(1)
+	fighter.diAngleDegrees.assertEquals(18, 0.001)
+	fighter.sdiSerial.assertEquals(0)
+	destroy input
+	destroy fighter
+
+@Test function oneFrameHitlagAllowsAsdiButCannotProduceSdi()
+	let fighter = new FighterState(0, 300, 1)
+	fighter.grounded = false
+	fighter.z = 400
+	fighter.hitlag = 1
+	fighter.diPending = true
+	fighter.diLaunchSpeed = 10
+	fighter.knockbackX = 10
+	let input = new InputSnapshot()
+	input.direction = 1
+	advance(fighter, 0, input, -240)
+	fighter.x.assertEquals(300 + ASDI_DISTANCE)
+	fighter.sdiSerial.assertEquals(0)
+	fighter.asdiSerial.assertEquals(1)
+	destroy input
+	destroy fighter
+
+@Test function asdiShiftIntoBlastZoneCostsExactlyOneStock()
+	let fighter = new FighterState(0, 910, 1)
+	fighter.grounded = false
+	fighter.z = 400
+	fighter.hitlag = 1
+	fighter.diPending = true
+	fighter.diLaunchSpeed = 10
+	fighter.knockbackX = 10
+	let input = new InputSnapshot()
+	input.direction = 1
+	advance(fighter, 0, input, -240)
+	fighter.out.assertTrue()
+	fighter.stocks.assertEquals(2)
+	fighter.asdiSerial.assertEquals(1)
+	destroy input
+	destroy fighter
+
+@Test function forbiddenDownSdiDoesNotLandButAsdiDownSweepsOntoPlatformAndCancelsNonTumbleHitstun()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.grounded = false
+	fighter.z = 10
+	fighter.hitstun = 20
+	fighter.hitlag = 2
+	fighter.diPending = true
+	fighter.diLaunchSpeed = 10
+	let input = new InputSnapshot()
+	input.verticalDirection = -1
+	advance(fighter, 0, input, -240)
+	fighter.z.assertEquals(10.)
+	fighter.grounded.assertFalse()
+	fighter.sdiSerial.assertEquals(0)
+	advance(fighter, 0, input, -240)
+	fighter.grounded.assertTrue()
+	fighter.z.assertEquals(0.)
+	fighter.surface.assertEquals(0)
+	fighter.hitstun.assertEquals(0)
+	fighter.asdiSerial.assertEquals(1)
+	fighter.sdiSerial.assertEquals(0)
+	destroy input
+	destroy fighter
+	let airborne = new FighterState(0, 0, 1)
+	airborne.grounded = false
+	airborne.z = 400
+	airborne.hitlag = 3
+	airborne.diPending = true
+	airborne.diLaunchSpeed = 10
+	let down = new InputSnapshot()
+	down.verticalDirection = -1
+	advance(airborne, 0, down, -240)
+	airborne.z.assertEquals(400 - SDI_DISTANCE)
+	airborne.sdiSerial.assertEquals(1)
+	destroy down
+	destroy airborne
+	let grounded = new FighterState(0, 0, 1)
+	grounded.z = 0
+	grounded.hitlag = 3
+	grounded.diPending = true
+	grounded.diLaunchSpeed = 10
+	grounded.sdiWasGrounded = true
+	let upDiagonal = new InputSnapshot()
+	upDiagonal.direction = 1
+	upDiagonal.verticalDirection = 1
+	advance(grounded, 0, upDiagonal, -240)
+	grounded.x.assertEquals(SDI_DISTANCE * 0.7071067811865476, 0.001)
+	grounded.z.assertEquals(0.)
+	grounded.sdiSerial.assertEquals(1)
+	destroy upDiagonal
+	destroy grounded
+
+@Test function asdiDownLandingUsesTheExistingTumbleTechWindow()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.grounded = false
+	fighter.z = 10
+	fighter.downState = DOWN_TUMBLE
+	fighter.hitstun = 100
+	fighter.techWindow = 20
+	fighter.hitlag = 1
+	fighter.diPending = true
+	fighter.diLaunchSpeed = 10
+	fighter.knockbackX = 10
+	fighter.sampledSdiX = 1
+	let input = new InputSnapshot()
+	input.direction = 1
+	input.verticalDirection = 1
+	input.cStickZ = -1
+	advance(fighter, 0, input, -240)
+	fighter.downState.assertEquals(DOWN_TECH_ROLL)
+	fighter.grounded.assertTrue()
+	fighter.knockbackX.assertEquals(0.)
+	fighter.knockbackZ.assertEquals(0.)
+	fighter.asdiSerial.assertEquals(1)
+	destroy input
+	destroy fighter
+
 @Test function knockbackDecaysByVectorMagnitudeAndContinuesAfterHitstun()
 	let fighter = new FighterState(0, 100, 1)
 	fighter.grounded = false
@@ -767,6 +958,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	fighter.diLaunchSpeed = 10
 	fighter.diPending = true
 	fighter.hitlag = 3
+	fighter.sampledSdiZ = -1
 	let input = new InputSnapshot()
 	input.verticalDirection = -1
 	advance(fighter, 0, input, -240)

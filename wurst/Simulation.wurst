@@ -102,6 +102,8 @@ constant real HITSTUN_FRAMES_PER_KNOCKBACK = 0.4
 constant real DIAGONAL_UNIT = 0.7071067811865476
 constant real DI_MAX_ANGLE_RADIANS = 0.3141592653589793
 constant real RADIANS_TO_DEGREES = 57.29577951308232
+public constant real SDI_DISTANCE = 6 * WORLD_UNITS_PER_MELEE_UNIT
+public constant real ASDI_DISTANCE = 3 * WORLD_UNITS_PER_MELEE_UNIT
 
 public class FighterState
 	int character
@@ -120,6 +122,12 @@ public class FighterState
 	real diLaunchSpeed = 0
 	int diSerial = 0
 	real diAngleDegrees = 0
+	int sampledSdiX = 0
+	int sampledSdiZ = 0
+	boolean sdiWasGrounded = false
+	boolean sdiLaunchesUpward = false
+	int sdiSerial = 0
+	int asdiSerial = 0
 	int cooldown = 0
 	int attackStyle = -1
 	int attackFrame = 0
@@ -174,6 +182,8 @@ public class FighterState
 public class InputSnapshot
 	int direction = 0
 	int verticalDirection = 0
+	int cStickX = 0
+	int cStickZ = 0
 	boolean attackRequested = false
 	boolean down = false
 	boolean shield = false
@@ -475,6 +485,98 @@ function beginDownState(FighterState f, int state, int direction)
 		f.smashChargeAllowed = false
 		f.cooldown = DOWN_ATTACK_FRAMES
 
+function finishLanding(FighterState f, int stage, InputSnapshot input, int landing, boolean fromAsdi)
+	if f.airDodging
+		f.landingLag = AIR_DODGE_LANDING_LAG
+		f.airDodging = false
+		f.airDodgeFrame = 0
+	if isAerialAttack(f.attackStyle)
+		var recovery = attackLandingLag(f.attackStyle)
+		if f.lCancelWindow > 0
+			recovery = recovery div 2
+			f.lCancelSerial++
+		f.landingLag = max(f.landingLag, recovery)
+		cancelAttack(f)
+	f.lCancelWindow = 0
+	f.grounded = true
+	f.surface = landing
+	f.z = surfaceZ(stage, landing)
+	f.vz = 0
+	f.knockbackZ = 0
+	if f.jumpSquat <= 0
+		f.jumps = 2
+	if isTumbling(f)
+		let launchDirection = totalVelocityX(f) < 0 ? -1 : 1
+		f.hitstun = 0
+		if f.techWindow > 0
+			let techDirection = input.direction == 0 ? 0 : (input.direction < 0 ? -1 : 1)
+			f.techWindow = 0
+			beginDownState(f, techDirection == 0 ? DOWN_TECH : DOWN_TECH_ROLL, techDirection)
+		else
+			beginDownState(f, DOWN_BOUND, launchDirection)
+	else if fromAsdi
+		f.hitstun = 0
+
+function landingAlongShift(FighterState f, int stage, real oldX, real oldZ, real newX, real newZ) returns int
+	if newZ >= oldZ
+		return -1
+	var landing = -1
+	for i = 0 to surfaceCount(stage) - 1
+		let platformZ = surfaceZ(stage, i)
+		if oldZ >= platformZ and newZ <= platformZ and not (surfacePass(stage, i) and f.dropTime > 0)
+			let fraction = (oldZ - platformZ) / (oldZ - newZ)
+			let crossingX = oldX + (newX - oldX) * fraction
+			if crossingX >= surfaceLeft(stage, i) and crossingX <= surfaceRight(stage, i) and newX >= surfaceLeft(stage, i) and newX <= surfaceRight(stage, i)
+				if landing < 0 or platformZ > surfaceZ(stage, landing)
+					landing = i
+	return landing
+
+function applyHitlagShift(FighterState f, int stage, InputSnapshot input, int directionX, int directionZ, real distance, boolean fromAsdi)
+	if directionX == 0 and directionZ == 0
+		return
+	let diagonalScale = directionX != 0 and directionZ != 0 ? DIAGONAL_UNIT : 1
+	let shiftX = directionX * diagonalScale * distance
+	var shiftZ = directionZ * diagonalScale * distance
+	if f.sdiWasGrounded and not f.sdiLaunchesUpward
+		shiftZ = 0
+	if shiftX == 0 and shiftZ == 0
+		return
+	let oldX = f.x
+	let oldZ = f.z
+	let newX = oldX + shiftX
+	var newZ = oldZ + shiftZ
+	var landing = landingAlongShift(f, stage, oldX, oldZ, newX, newZ)
+	if not fromAsdi and landing >= 0 and shiftZ < 0
+		newZ = oldZ
+		landing = -1
+	f.x = newX
+	if landing >= 0
+		finishLanding(f, stage, input, landing, fromAsdi)
+	else
+		f.z = newZ
+	if f.x != oldX or f.z != oldZ
+		if fromAsdi
+			f.asdiSerial++
+		else
+			f.sdiSerial++
+	checkBlastZone(f)
+
+function applySmashDirectionalInfluence(FighterState f, int stage, InputSnapshot input, int oldX, int oldZ)
+	let newX = input.direction
+	let newZ = input.verticalDirection
+	let enteredX = newX != 0 and (oldX == 0 or (newX < 0) != (oldX < 0))
+	let enteredZ = newZ != 0 and (oldZ == 0 or (newZ < 0) != (oldZ < 0))
+	if enteredX or enteredZ
+		applyHitlagShift(f, stage, input, newX, newZ, SDI_DISTANCE, false)
+
+function applyAutomaticSmashDirectionalInfluence(FighterState f, int stage, InputSnapshot input)
+	var directionX = input.direction
+	var directionZ = input.verticalDirection
+	if input.cStickX != 0 or input.cStickZ != 0
+		directionX = input.cStickX
+		directionZ = input.cStickZ
+	applyHitlagShift(f, stage, input, directionX, directionZ, ASDI_DISTANCE, true)
+
 function startDownWait(FighterState f)
 	f.downState = DOWN_WAIT
 	f.downFrame = 0
@@ -676,6 +778,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 			cancelAttack(target)
 			target.hitstun = max(target.hitstun, 11)
 		return
+	let groundedBeforeHit = target.grounded
 	target.diPending = false
 	target.diLaunchSpeed = 0
 	interruptJumpOrDodge(target)
@@ -701,6 +804,8 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	else
 		target.knockbackX = attacker.facing * launch * DIAGONAL_UNIT
 		target.knockbackZ = launch * DIAGONAL_UNIT
+	target.sdiWasGrounded = groundedBeforeHit
+	target.sdiLaunchesUpward = target.knockbackZ > 0
 	target.diPending = true
 	target.diLaunchSpeed = launch
 	target.hitstun = R2I(knockback * HITSTUN_FRAMES_PER_KNOCKBACK)
@@ -805,6 +910,12 @@ public function reset(FighterState f, real startX)
 	f.diLaunchSpeed = 0
 	f.diSerial = 0
 	f.diAngleDegrees = 0
+	f.sampledSdiX = 0
+	f.sampledSdiZ = 0
+	f.sdiWasGrounded = false
+	f.sdiLaunchesUpward = false
+	f.sdiSerial = 0
+	f.asdiSerial = 0
 	f.shieldStun = 0
 	f.attackStyle = -1
 	f.attackFrame = 0
@@ -835,6 +946,10 @@ public function reset(FighterState f, real startX)
 	f.invincible = 90
 
 public function advance(FighterState f, int stage, InputSnapshot input, real respawnX)
+	let oldSdiX = f.sampledSdiX
+	let oldSdiZ = f.sampledSdiZ
+	f.sampledSdiX = input.direction
+	f.sampledSdiZ = input.verticalDirection
 	if f.out
 		if f.stocks <= 0
 			return
@@ -907,8 +1022,11 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			f.jumpSerial++
 			f.jumpIsDouble = false
 	if f.hitlag > 0
-		if f.hitlag == 1
+		if f.hitlag > 1 and f.diPending
+			applySmashDirectionalInfluence(f, stage, input, oldSdiX, oldSdiZ)
+		if f.hitlag == 1 and f.diPending and not f.out
 			applyDirectionalInfluence(f, input)
+			applyAutomaticSmashDirectionalInfluence(f, stage, input)
 		f.hitlag--
 		return
 	if f.groundDodgeFrame > 0 and not groundDodgeStarted
@@ -1020,35 +1138,11 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 				if crossingX >= surfaceLeft(stage, i) and crossingX <= surfaceRight(stage, i) and f.x >= surfaceLeft(stage, i) and f.x <= surfaceRight(stage, i)
 					if landing < 0 or platformZ > surfaceZ(stage, landing)
 						landing = i
-	f.grounded = landing >= 0
-	f.surface = landing
 	if landing >= 0
-		if f.airDodging
-			f.landingLag = AIR_DODGE_LANDING_LAG
-			f.airDodging = false
-			f.airDodgeFrame = 0
-		if isAerialAttack(f.attackStyle)
-			var recovery = attackLandingLag(f.attackStyle)
-			if f.lCancelWindow > 0
-				recovery = recovery div 2
-				f.lCancelSerial++
-			f.landingLag = max(f.landingLag, recovery)
-			cancelAttack(f)
-		f.lCancelWindow = 0
-		f.z = surfaceZ(stage, landing)
-		f.vz = 0
-		f.knockbackZ = 0
-		if f.jumpSquat <= 0
-			f.jumps = 2
-		if isTumbling(f)
-			let launchDirection = totalVelocityX(f) < 0 ? -1 : 1
-			f.hitstun = 0
-			if f.techWindow > 0
-				let techDirection = input.direction == 0 ? 0 : (input.direction < 0 ? -1 : 1)
-				f.techWindow = 0
-				beginDownState(f, techDirection == 0 ? DOWN_TECH : DOWN_TECH_ROLL, techDirection)
-			else
-				beginDownState(f, DOWN_BOUND, launchDirection)
+		finishLanding(f, stage, input, landing, false)
+	else
+		f.grounded = false
+		f.surface = -1
 	decayKnockback(f)
 	checkBlastZone(f)
 

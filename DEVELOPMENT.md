@@ -73,7 +73,33 @@ descent check use their sum; gravity caps only ordinary falling velocity.
 The launch vector loses magnitude along its current direction, rather than
 subtracting the same amount from both axes. DI rotates that vector, leaving
 ordinary movement alone. Detailed reset, landing, and action choices are in
-wc3-melee:PHYSICS.md. SDI and ASDI are not implemented yet.
+wc3-melee:PHYSICS.md.
+
+Directional taps during hitlag now feed SDI position shifts. Component-entry
+rules distinguish a fresh tap or newly added diagonal axis from holding a key
+or releasing one axis. The final hitlag tick uses left-stick direction for DI,
+then applies ASDI with held C-stick bindings taking priority for displacement.
+The adapter derives these axes from the player's bindings, not fixed key codes.
+The developer counters `S` and `A` report actual SDI and ASDI displacements.
+ASDI reuses ordinary landing/recovery code; a downward SDI floor crossing blocks
+that vertical shift while downward SDI in open air remains possible. Reference
+parameters and deliberate differences are in wc3-melee:PHYSICS.md.
+
+SDI/ASDI passes 123/123 headless tests with no warnings; output is retained at
+~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/sdi-asdi-full.log.
+Native build 003040 reloaded in 22.992 seconds with the process retained.
+Holding Up across hits recorded four ASDI shifts and no repeated SDI.
+A 230 ms press / 190 ms release sequence recorded SDI followed by ASDI.
+The earlier 70 ms / 60 ms sequence recorded neither; whether those pulses
+missed hitlag windows or were lost/coalesced before simulation sampling remains
+unmeasured. Measure callback delivery and frame sampling before assigning a
+cause or changing the input-buffer policy. C-stick priority and landing
+boundaries have headless coverage; native C-stick priority is not yet observed.
+Evidence:
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/asdi-held-client.mp4,
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/sdi-tap-client.mp4,
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/sdi-tap-timeline.png,
+and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/hitlag-shift-reload.log.
 
 The integrated suite passed 112/112 tests with no compiler warnings. The final
 input-timing check additionally changes Down to Up on the last frozen tick and

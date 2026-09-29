@@ -128,8 +128,35 @@ cross product against the launch direction, and squares its signed magnitude to
 set the rotation up to 18 degrees while preserving launch speed. The smooth
 keyboard approximation cannot represent analog tilt, and this response curve
 is an independent approximation rather than extracted Melee code. A neutral or
-parallel input does not change the path. Exact Melee grounded/non-tumbling
-eligibility, SDI and ASDI remain separate fidelity work.
+parallel input does not change the path.
+
+## Smash DI and ASDI
+
+The Melee reference reports a six-unit shift for each SDI pulse and a
+three-unit shift for ASDI; attacks with fewer than two hitlag frames cannot be
+SDI'd. Source: SmashWiki contributors, “Smash directional influence,” article
+revision dated 2026-09-17, retrieved 2026-09-30,
+https://www.ssbwiki.com/Smash_directional_influence (CC BY-SA 4.0). These
+mechanics and numeric facts are used as reference only; no article text or game
+code is copied.
+
+The simulation samples digital directions on each tick so a direction already
+held before impact does not create a new SDI pulse. During victim hitlag, a new
+nonzero horizontal or vertical component shifts the fighter once by 36 world
+units; a held direction does not repeat, adding a diagonal component does, and
+removing one does not. SDI is unavailable during a one-frame freeze. On the
+last hitlag tick, ASDI shifts once by 18 world units in the held left-stick
+direction, unless a C-stick direction is held; C-stick never changes DI, which
+continues to use left-stick input. Shifts use a swept top-surface check, so ASDI
+can land without tunneling through a platform. An ASDI landing cancels
+non-tumble hitstun; tumble uses the existing tech window or knockdown recovery.
+SDI cannot move down through a platform or up off a grounded, non-lifting hit.
+
+This prototype uses keyboard axes instead of analog stick thresholds and does
+not model grounded launch eligibility fully: ordinary hits currently send the
+target airborne. Shield SDI is not implemented. Native held ASDI and tapped
+SDI were observed in build 003040; short-pulse delivery and exact engine timing
+remain unmeasured. See wc3-melee:DEVELOPMENT.md for the recorded input sequences.
 
 ## Separated launch velocity
 
