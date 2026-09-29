@@ -264,8 +264,15 @@ transition now clears shield and enters ordinary jump squat without requiring
 shield release first. Holding the trigger cannot re-raise shield during squat.
 Shieldstun still blocks the jump. Tests cover both characters and the complete
 shield → jump → downward diagonal air dodge → sliding landing sequence.
-Shield-release-lag cancels remain unfinished. Ground dodge behavior is described
-below; this is not a complete implementation of Melee's shield options.
+Ground jumps also cancel shield-release recovery. In the same reference file,
+GuardOff's input handling reaches ftCo_800CB024 in ftCo_Jump.c, which checks
+jump input. Our transition clears release lag and enters the ordinary
+character-specific squat; it does not bypass shieldstun, hitlag, hitstun,
+landing recovery or attack recovery. Tests release a real held shield and
+check every remaining release-lag tick for both characters, then take off.
+Other release cancels and analog shield behavior remain outside this pass.
+Ground dodge behavior is described below; this is not a complete
+implementation of Melee's shield options.
 
 ## Prototype attack phases
 

@@ -2080,6 +2080,58 @@ function airJumpApex(int character) returns real
 		destroy input
 		destroy fighter
 
+@Test function jumpCancelsShieldReleaseIntoOrdinarySquat()
+	for character = 0 to 1
+		for remaining = 1 to SHIELD_RELEASE_LAG_FRAMES
+			let fighter = new FighterState(character, 0, 1)
+			let input = new InputSnapshot()
+			input.shield = true
+			for frame = 1 to SHIELD_MIN_HOLD_FRAMES
+				advance(fighter, 0, input, -240)
+			input.shield = false
+			advance(fighter, 0, input, -240)
+			fighter.shieldReleaseLag.assertEquals(SHIELD_RELEASE_LAG_FRAMES)
+			for frame = remaining + 1 to SHIELD_RELEASE_LAG_FRAMES
+				advance(fighter, 0, input, -240)
+			fighter.shieldReleaseLag.assertEquals(remaining)
+			input.jumpPressed = true
+			input.jumpHeld = true
+			advance(fighter, 0, input, -240)
+			fighter.shieldReleaseLag.assertEquals(0)
+			fighter.jumpSquat.assertEquals(jumpSquatFrames(character) - 1)
+			fighter.jumps.assertEquals(1)
+			input.jumpPressed = false
+			for frame = 2 to jumpSquatFrames(character)
+				advance(fighter, 0, input, -240)
+			fighter.grounded.assertFalse()
+			fighter.jumpSerial.assertEquals(1)
+			destroy input
+			destroy fighter
+
+@Test function shieldReleaseJumpStillRespectsStunAndActionRecovery()
+	for blockedState = 0 to 4
+		let fighter = new FighterState(0, 0, 1)
+		fighter.shieldReleaseLag = SHIELD_RELEASE_LAG_FRAMES
+		if blockedState == 0
+			fighter.shieldStun = 5
+		else if blockedState == 1
+			fighter.hitlag = 5
+		else if blockedState == 2
+			fighter.hitstun = 5
+		else if blockedState == 3
+			fighter.landingLag = 5
+		else
+			fighter.cooldown = 5
+		let input = new InputSnapshot()
+		input.jumpPressed = true
+		input.jumpHeld = true
+		advance(fighter, 0, input, -240)
+		fighter.jumpSquat.assertEquals(0)
+		fighter.jumps.assertEquals(2)
+		fighter.grounded.assertTrue()
+		destroy input
+		destroy fighter
+
 @Test function shieldJumpIntoDirectionalDodgeLandsWithSlidingRecovery()
 	for character = 0 to 1
 		let fighter = new FighterState(character, 0, 1)

@@ -840,3 +840,32 @@ Observed character menu has no overlapping second-player frames; F1 opens the
 controls panel with the existing saved custom bindings, and Escape closes it.
 Screenshots: two-player-menu-fixed.png, two-player-settings.png and
 two-player-settings-closed.png in the evidence directory above.
+
+## Complete solo match and shield-release jump (2026-09-30)
+
+Build 013922 completed the current two-slot adapter's solo path in the retained
+Warcraft client: choose Falco, choose Three Bridges, play, cross the blast zone
+until the player's stocks reach zero, and receive Computer wins. Attack then
+returned to character select; choosing Archer and Sky Deck started a new match
+with both fighters at three stocks. Native input sequence was F, N, F, N,
+hold S through stock losses, release S, then N, F, N, S, N. This uses the saved
+custom bindings and starts at the default character menu. Five-second stock
+screenshots and each menu checkpoint are preserved under
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/match-flow/.
+This proves the solo result/rematch path, not two-client readiness or sync.
+
+Ground jump now cancels shield-release lag, following the factual transition
+in the local reference recorded in wc3-melee:PHYSICS.md. The test releases an
+actual held shield, advances to each possible remaining recovery tick, then
+checks ordinary squat and takeoff for both fighters. Separate checks retain
+stun and action-recovery restrictions. The focused regression failed before
+the change; the full suite passed 145/145 afterward, zero warnings/errors.
+Evidence: ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/shield-release-before.log
+and ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/shield-release-after.log.
+
+Build 014842 includes the shield-release fix and reported ready after 35.342
+seconds without restarting Warcraft. The build retains the two known SettingsUI
+constructor warnings and an unused-import warning. Reload evidence:
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/shield-release-reload.log.
+Exact native shield-release cancel timing remains unmeasured; the headless tests
+prove the simulation transition at every release-recovery tick.
