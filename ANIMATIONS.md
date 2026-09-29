@@ -27,8 +27,10 @@ markers, reference pose at frame zero, and limitations on classic MDL skinning.
 The second add-on's animated export is repaired in
 ~/code/mdl-exporter4/worktrees/blender5 at commit 409e249. Its reader now uses
 Blender's layered-action API; the real Blender regression verifies exported
-translation keys at 0ms and 833ms. Animated import is still being repaired at
-the same API boundary. Registration alone does not validate import. Actual import → edit → export →
+translation keys at 0ms and 833ms. Animated import is repaired at the same API
+boundary: actual Archer and Rifleman imports both save editable Blender scenes.
+The Archer check preserves four mesh geosets and animated pose tracks.
+Actual import → edit → export →
 in-game playback remains the deciding check before choosing the pipeline.
 
 The add-ons are GPL tools (repository license GPL-3.0; individual source headers
@@ -60,6 +62,17 @@ Both models have four geosets; Archer has 33 bones/13 sequences, Rifleman has
 ~/code/wc3-melee/worktrees/test-loop/build/animation-assets.
 Set the Blender add-on resourceFolder to that directory's textures subfolder.
 Extraction does not grant redistribution rights to Blizzard assets.
+
+Save editable scenes with the repaired local add-on:
+
+```bash
+blender --background --threads 2 --python-exit-code 1 --python /home/tom/code/wc3-melee/worktrees/test-loop/tools/animations/import.py -- archer
+blender --background --threads 2 --python-exit-code 1 --python /home/tom/code/wc3-melee/worktrees/test-loop/tools/animations/import.py -- rifleman
+```
+
+Both commands passed and saved .blend files beside the extracted models.
+WC3_MDL_ADDON overrides the local add-on checkout. These scenes preserve
+existing motion; they do not yet contain the requested custom fighter clips.
 
 The C++ tool is only the CascLib foreign-library boundary; the TypeScript tool
 only converts foreign asset formats. Gameplay remains Wurst.
