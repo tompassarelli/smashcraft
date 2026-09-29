@@ -520,8 +520,8 @@ its ground/air recovery difference.
 Air drift preserves facing, so reversing direction can produce back air.
 Landing cancels an unfinished aerial into move-specific landing recovery.
 The initial aerials use stock attack animation and a move-name notice; distinct
-authored clips, character-specific tuning, multi-hit moves, autocancel windows,
-and L-cancel remain unfinished. See wc3-melee:PHYSICS.md for current tuning.
+authored clips, character-specific tuning, multi-hit moves, and autocancel windows
+remain unfinished. See wc3-melee:PHYSICS.md for current tuning.
 
 The integrated suite passes 95/95 tests with zero compiler warnings/errors.
 It covers airborne move selection, back-air facing during reverse drift, and
@@ -537,3 +537,30 @@ Evidence:
 - ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/aerial-reload.log
 - ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/aerial-back-client.mp4
 - ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/aerial-back-active.png
+
+## L-cancel integration
+
+Fresh Shield or Grab shortly before an aerial landing halves its landing
+recovery, rounded down. Holding a key does not refresh the window. The same
+Shield press still feeds tech and air-dodge intent, with state eligibility
+decided by the simulation. A successful cancel displays "L-cancel!".
+
+The full suite passes 99/99 tests with zero compiler warnings/errors. Coverage
+includes last-valid/first-expired contact, held Shield expiry, hitlag retention,
+all five recovery reductions, action lockout, tech-lockout independence,
+unaffected empty/air-dodge landings, and stock/reset clearing. Details and
+remaining reference uncertainty are in wc3-melee:PHYSICS.md.
+
+Build 232706 reloaded in 23.661 seconds with the Warcraft process retained.
+The native back-air → Shield → landing sequence displayed "L-cancel!". The
+first probe pressed Shield after contact; video established that timing miss,
+and an earlier press succeeded with the same build and unchanged simulation.
+The native check proves the binding path and success presentation; Wurst tests
+prove recovery counts. Evidence:
+- ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/lcancel-integrated.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/lcancel-reload.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/lcancel-client.mp4
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/lcancel-landed.png
+
+Autocancel windows, dedicated aerial/landing animation, charged smashes,
+DI/SDI/ASDI, character-specific move tuning, and multiplayer proof remain open.

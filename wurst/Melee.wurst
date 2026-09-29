@@ -33,6 +33,7 @@ boolean playerDownPressed = false
 boolean playerGetupAttackPressed = false
 boolean playerGetupStandPressed = false
 boolean playerTechPressed = false
+boolean playerLCancelPressed = false
 boolean shieldLeft = false
 boolean shieldRight = false
 boolean array held
@@ -229,7 +230,10 @@ function applyFrame()
     let playerPreviousJump = playerFighter.jumpSerial
     let botPreviousJump = botFighter.jumpSerial
     let playerPreviousDown = playerFighter.downState
+    let playerPreviousLCancel = playerFighter.lCancelSerial
     stepMatch(matchState, playerFighter, botFighter, playerInput, botInput, playerAttacks, botAttacks, simulationFrame)
+    if playerFighter.lCancelSerial > playerPreviousLCancel
+        announce("L-cancel!")
     if playerFighter.downState != playerPreviousDown
         if playerFighter.downState == DOWN_TECH
             announce("Tech!")
@@ -350,6 +354,7 @@ function clearHeldInputs()
     playerGetupAttackPressed = false
     playerGetupStandPressed = false
     playerTechPressed = false
+    playerLCancelPressed = false
     shieldLeft = false
     shieldRight = false
     playerJumpHeld = false
@@ -406,6 +411,8 @@ function onKeyDown()
         return
     heldBindingSlots[action * 2 + slot] = true
     if not wasHeld and matchState.phase == MATCH
+        if action == LEFT_TRIGGER or action == RIGHT_TRIGGER or action == GRAB
+            playerLCancelPressed = true
         if action == ATTACK or action == SPECIAL
             playerGetupAttackPressed = true
         if action == MOVE_UP or action == JUMP or action == LEFT_TRIGGER or action == RIGHT_TRIGGER
@@ -702,6 +709,7 @@ function gameTick()
                 botAttackDelay = 0.35
         playerInput.direction = direction
         playerInput.techPressed = playerTechPressed
+        playerInput.lCancelPressed = playerLCancelPressed
         playerInput.getupAttackPressed = playerGetupAttackPressed
         playerInput.getupStandPressed = playerGetupStandPressed
         playerInput.getupDirection = (playerRightPressed ? 1 : 0) - (playerLeftPressed ? 1 : 0)
@@ -729,6 +737,7 @@ function gameTick()
         playerGetupAttackPressed = false
         playerGetupStandPressed = false
         playerTechPressed = false
+        playerLCancelPressed = false
         playerJumpQueued = false
         playerInput.jumpPressed = false
         playerAirDodgeQueued = false

@@ -330,3 +330,23 @@ A tech clears impact hitstun and consumes its input window. Early-hitlag versus
 last-hitlag inputs, repeated/grounded presses, window/lockout boundaries,
 recovery actions, interruption and reset are tested in the same Wurst simulation
 used by the map. Wall/ceiling techs and SDI/ASDI collision are not implemented.
+
+## L-cancel
+
+The factual reference https://www.ssbwiki.com/L-canceling (cached at
+~/code/wc3-melee/worktrees/test-loop/build/ref-L-canceling.html) describes a
+seven-frame Shield/Grab input window, landing lag halved and rounded down,
+and inputs retained during hitlag. Digital Shield also feeds tech timing;
+L-cancel itself is independent of the tech lockout. No source text or outside
+implementation is incorporated.
+
+Our frame convention gives seven contact opportunities including the press
+tick: contact through +6 ticks succeeds, +7 expires. Inputs during hitlag
+remain valid through the sixth subsequent unfrozen tick. The existing window
+also freezes during hitlag; this pre-hitlag-input case and the exact input-phase
+offset have not been independently measured against Melee. Each fresh Shield
+or Grab press renews the opportunity; holding does not. Any landing consumes it,
+and stock loss/reset clears it. Only an unfinished aerial normal receives the
+reduction: neutral/forward/back/up/down recovery becomes 5/7/8/7/9 ticks under
+current prototype tuning. Empty landings and air-dodge landings are unaffected.
+Animation-specific autocancel windows and analog trigger behavior remain open.

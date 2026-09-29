@@ -81,6 +81,7 @@ public constant int AERIAL_FORWARD_LANDING_LAG = 14
 public constant int AERIAL_BACK_LANDING_LAG = 16
 public constant int AERIAL_UP_LANDING_LAG = 15
 public constant int AERIAL_DOWN_LANDING_LAG = 18
+public constant int L_CANCEL_WINDOW_FRAMES = 7
 public constant int DOWN_ATTACK_STARTUP_FRAMES = 16
 public constant int DOWN_ATTACK_ACTIVE_FRAMES = 3
 public constant real DOWN_ATTACK_DAMAGE = 7
@@ -137,6 +138,8 @@ public class FighterState
 	int surface = -1
 	int airDodgeTime = 0
 	int landingLag = 0
+	int lCancelWindow = 0
+	int lCancelSerial = 0
 	boolean airDodging = false
 	int airDodgeFrame = 0
 	int groundDodgeFrame = 0
@@ -162,6 +165,7 @@ public class InputSnapshot
 	boolean jumpPressed = false
 	boolean airDodgePressed = false
 	boolean techPressed = false
+	boolean lCancelPressed = false
 	boolean groundDodgePressed = false
 	int groundDodgeDirection = 0
 	boolean getupAttackPressed = false
@@ -685,6 +689,8 @@ function canResolveAttack(FighterState attacker, FighterState target) returns bo
 
 public function reset(FighterState f, real startX)
 	clearDownState(f)
+	f.lCancelWindow = 0
+	f.lCancelSerial = 0
 	f.techWindow = 0
 	f.techLockout = 0
 	f.techHitlagLatched = false
@@ -732,6 +738,10 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			reset(f, respawnX)
 		return
 	// Counts include the current contact tick. A hitlag edge starts counting after the freeze.
+	if f.hitlag <= 0
+		f.lCancelWindow = max(0, f.lCancelWindow - 1)
+	if input.lCancelPressed
+		f.lCancelWindow = L_CANCEL_WINDOW_FRAMES
 	if f.hitlag <= 0
 		if not f.techHitlagLatched
 			f.techWindow = max(0, f.techWindow - 1)
@@ -896,8 +906,13 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			f.airDodging = false
 			f.airDodgeFrame = 0
 		if isAerialAttack(f.attackStyle)
-			f.landingLag = max(f.landingLag, attackLandingLag(f.attackStyle))
+			var recovery = attackLandingLag(f.attackStyle)
+			if f.lCancelWindow > 0
+				recovery = recovery div 2
+				f.lCancelSerial++
+			f.landingLag = max(f.landingLag, recovery)
 			cancelAttack(f)
+		f.lCancelWindow = 0
 		f.z = surfaceZ(stage, landing)
 		f.vz = 0
 		if f.jumpSquat <= 0
@@ -916,6 +931,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 function checkBlastZone(FighterState f)
 	if f.x <= -920 or f.x >= 920 or f.z <= -420 or f.z >= 760
 		f.out = true
+		f.lCancelWindow = 0
 		f.techWindow = 0
 		f.techLockout = 0
 		f.techHitlagLatched = false
