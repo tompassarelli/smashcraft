@@ -737,6 +737,30 @@ Evidence:
 - ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/wavedash-motion-trace.txt
 - ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/wavedash-client.mp4
 
+## Native ground-slide follow-up
+
+Native ground-slide follow-up (build 005245): a short-hop release and downward
+air dodge on descent landed at tick 31, x=-276.533. With directional keys already
+released, grounded traction advanced x to -277.650, -278.288, then -278.446;
+recovery reached zero at tick 41. This establishes retained landing momentum
+and ten-tick recovery through the real input adapter. The 1.913-world-unit slide
+is small; the dodge speed remains provisional and this is not Melee-distance
+or immediate post-jumpsquat wavedash parity.
+
+Early-dodge attempts exposed the existing roughly 100 ms key-event batching:
+jump and shield could arrive together or the dodge could arrive after the
+fighter was too high for the current dodge distance. No buffer or physics
+adjustment was made to hide that limitation. The successful case used a short
+hop followed by a descending dodge. Immediate wavedash feel remains open.
+
+From the default character menu with N confirm, I jump, S/D left/down and
+A shield, run wc3-melee:tools/probe-ground-slide.sh. It records the client,
+exports the F7 trace and checks for ground displacement during exactly ten
+recovery ticks. A failed probe is not a simulation verdict: inspect the input
+trace to distinguish timing, bindings or interruption. Evidence:
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/wavedash-ground-slide-trace.txt
+and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/wavedash-client.mp4.
+
 ## Downward attacks on platforms
 
 The platform-input regression first failed: Down + Attack dropped through an
