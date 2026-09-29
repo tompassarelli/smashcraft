@@ -995,3 +995,27 @@ captures precede the mash loop; most of its 20 requested presses arrived late. T
 is evidence for the two delivered recovery presses, not for 20 mash events.
 The trace and screenshots are in
 ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/shield-break-mash/.
+
+## Human direct-attack scheduling (2026-09-30)
+
+Player 2's keyboard-triggered special, grab and C-stick attacks targeted the
+already completed simulation frame. The next game tick incremented the frame
+before consumption, so the zero-grace command buffer discarded those commands.
+Player 1 correctly targeted the following frame; normal attacks used a separate
+queued flag and were not affected. Both human slots now call the same
+queueHumanAttack function. Bot decisions made inside the current simulation
+tick continue to target that tick. No grace window was enlarged.
+
+The MatchStep regression first reproduced the old routing (Player 2 attack
+serial stayed zero while Player 1 advanced), then passed with the shared
+next-frame schedule. It covers all five direct styles, matching attack frames
+and no repeat consumption. Full suite: 157/157, zero errors/warnings. Logs:
+~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/human-direct-before.log
+and ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/human-direct-after.log.
+This proves the common queue/step behavior, not delivery across two clients.
+
+Build 070118 compiled and deployed with the three existing map warnings.
+Automatic restart correctly stopped after focus changed; direct F6 followed
+by Enter at the observed loading prompt completed the restart without another
+build. The retained client reported BUILD 070118 / SCENARIO normal in its ready
+marker. No two-client input test was performed in this pass.

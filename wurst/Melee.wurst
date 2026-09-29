@@ -343,9 +343,11 @@ function attack(Fighter attacker, Fighter target, int style)
     if matchState.phase != MATCH
         return
     if attacker == playerFighter
-        playerAttacks.enqueue(style, style == 4 ? playerAttackFacing : 0, simulationFrame + 1, false)
+        queueHumanAttack(playerAttacks, botAttacks, 0, style, style == 4 ? playerAttackFacing : 0, simulationFrame)
+    else if twoHumanPlayers
+        queueHumanAttack(playerAttacks, botAttacks, 1, style, style == 4 ? secondAttackFacing : 0, simulationFrame)
     else
-        botAttacks.enqueue(style, twoHumanPlayers ? secondAttackFacing : (target.x >= attacker.x ? 1 : -1), simulationFrame, false)
+        botAttacks.enqueue(style, target.x >= attacker.x ? 1 : -1, simulationFrame, false)
 
 function applyFrame()
     let playerWasOut = playerFighter.out

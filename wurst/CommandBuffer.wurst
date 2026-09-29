@@ -1,5 +1,11 @@
 package CommandBuffer
 
+public function queueHumanAttack(AttackBuffer first, AttackBuffer second, int slot, int style, int direction, int completedFrame)
+    if slot < 0 or slot > 1
+        return
+    let commands = slot == 0 ? first : second
+    commands.enqueue(style, direction, completedFrame + 1, false)
+
 function attackPriority(int style, boolean mayCharge) returns int
     if style == 5
         return 5

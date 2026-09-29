@@ -4,6 +4,39 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function humanDirectAttacksReachBothSlotsOnTheNextStep()
+    for style = 1 to 5
+        let game = new MatchState()
+        game.confirm()
+        game.confirm()
+        let first = new FighterState(0, -240, 1)
+        let second = new FighterState(1, 240, -1)
+        let firstInput = new InputSnapshot()
+        let secondInput = new InputSnapshot()
+        let firstCommands = new AttackBuffer(0)
+        let secondCommands = new AttackBuffer(0)
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 10)
+        queueHumanAttack(firstCommands, secondCommands, 0, style, 1, 10)
+        queueHumanAttack(firstCommands, secondCommands, 1, style, -1, 10)
+        first.attackSerial.assertEquals(0)
+        second.attackSerial.assertEquals(0)
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 11)
+        first.attackSerial.assertEquals(1)
+        second.attackSerial.assertEquals(1)
+        first.attackStyle.assertEquals(style)
+        second.attackStyle.assertEquals(style)
+        first.attackFrame.assertEquals(second.attackFrame)
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 12)
+        first.attackSerial.assertEquals(1)
+        second.attackSerial.assertEquals(1)
+        destroy firstCommands
+        destroy secondCommands
+        destroy firstInput
+        destroy secondInput
+        destroy first
+        destroy second
+        destroy game
+
 @Test function activeShieldConsumesGrabButRejectsOrdinaryAttackCommand()
     let game = new MatchState()
     game.confirm()

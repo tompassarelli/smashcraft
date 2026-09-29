@@ -15,7 +15,7 @@ stdlib revisions and artifact hash are in wc3-melee:wurst-toolchain.lock.
 The compiler jar is a local artifact at
 ~/code/wc3-melee/worktrees/test-loop/toolchain/wurstscript.jar, Java is at
 ~/.wurst/wurst-runtime/bin/java. Active compiler source is pinned at
-~/code/wurst-compiler/pins/77f734e27b4d; the standard library is pinned at
+~/code/wurst-compiler/pins/c31f228c4a43dad1bca4d4acc003b1d12a823331; the standard library is pinned at
 ~/code/wurst-stdlib/pins/4dfc8a0474bd.
 
 The current map provides character and stage selection, two Warcraft fighters,
@@ -27,23 +27,25 @@ In the custom preset: S/F move; I/9 jump; Space aims up;
 D fast-falls/drops; A/8 shield or air-dodge; L grabs; N attacks; U fires a special;
 Hold ; to walk. N with direction gives a smash, or a tilt while walking.
 H/J/M/B are C-stick smashes. Ground blaster has longer recovery than air
-blaster. F6 reloads the map. F5 exit is unverified.
+blaster. F6 reloads the map. Avoid F5: returning to the menu previously hung
+the client; use the persistent map-restart loop while developing.
 QWERTY uses 7 for right trigger and 8 for the alternate jump key.
 
 ## Current evidence
 
-Fifty-two headless tests pass across simulation, input buffers, bindings,
-match rules and the shared match step. Build 194234 loaded in 23.667 seconds
-including build/restart and restored a saved, rebound key in the same client
-process. F1, preset selection, rebinding and synchronized startup loading were
-observed in Warcraft. Your Custom preset was restored and saved after the test.
-The current match has one human and a bot; two-client timing remains unverified.
+157 headless tests pass across simulation, input buffers, bindings, match rules
+and the shared match step. The adapter supports two human slots or solo play
+against a bot. Both human slots now schedule direct attacks for the next tick;
+the regression first reproduced Player 2's discarded commands, then passed.
+Two-client synchronization and network latency remain unverified.
 
-Air dodge protects frames 4–29 and visibly fades the fighter during that
-window. Build 195029 loaded in 23.505 seconds; the client probe captured the
-fade and return to normal opacity. Full, short and double-jump apexes now match
-the numeric reference in complete trajectory tests for both characters.
-Dodge speed/decay still need calibration; custom combat animations are unfinished.
+Native checks have covered mouse character/stage selection, saved controls,
+jump/double-jump, air dodge/wavedash motion, both fighters' authored action clips,
+arrow travel/contact, guarding and shield-break launch/dizzy/mash recovery.
+The latest normal-build restoration took 34.517 seconds in the retained client.
+Headless tests establish mechanics; these focused native checks do not establish
+complete animation polish or exact Melee fidelity. Sourced movement parameters
+and provisional combat/recovery tuning are distinguished in wc3-melee:PHYSICS.md.
 
 See wc3-melee:DEVELOPMENT.md for the simulation/engine split,
 wc3-melee:PHYSICS.md for sourced values and deliberate differences,
