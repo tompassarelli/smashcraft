@@ -6,3 +6,18 @@ buildMapData:
   author: Tom
   scenarioData:
     description: Archer versus Rifleman platform fight.
+    suggestedPlayers: 1-2
+  players:
+    - id: 0
+      name: Fighter 1
+      controller: USER
+      race: HUMAN
+    - id: 1
+      name: Fighter 2
+      controller: USER
+      race: HUMAN
+  forces:
+    - name: Fighter 1
+      playerIds: [0]
+    - name: Fighter 2
+      playerIds: [1]

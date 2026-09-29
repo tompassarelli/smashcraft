@@ -808,3 +808,35 @@ setup. Evidence:
 - ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/platform-reload.log
 - ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/platform-client.mp4
 - ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/platform-down-smash.png
+
+## Two-player adapter and native lobby configuration (2026-09-30)
+
+Both human slots now share the tested key-state/pulse sampling path, with
+per-player saved controls, character readiness, rematch readiness, and Player 1
+stage selection. An absent second human retains the computer opponent; a leaving
+second player hands over to it. The combined headless suite passed 143/143.
+
+The build now uses Wurst's native map pipeline for lobby metadata, imports and
+objects, then merges the preserved base Lua initialization. The final archive
+contains SetPlayers(2). A compiler ordering/cache defect was repaired upstream
+and repinned; details are in wc3-melee:WURST.md.
+
+First integrated native reload: build 013707, 34.991 seconds total, 26.228 seconds
+from build-start to build-finish, same Warcraft process. The existing solo probe
+passed with 10 recovery ticks and a 57.108-world-unit ground slide. This is an
+input-timing observation, not a change to the simulation's configured speed.
+Native rendering exposed Player 2's panels overlapping Player 1's menu: both
+panels now start hidden on every client, before local-owner presentation.
+
+Evidence is under ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/:
+two-player-reload.log, two-player-solo-probe.log, and
+ two-player-ui-fixed-reload.log. Headless evidence is
+~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/two-player-integrated.log.
+Two-client synchronization and Player 2's actual local-file restoration remain
+unverified. Camera enforcement remains enabled every presentation tick.
+
+The UI-fixed build 013922 reloaded in 36.194 seconds with the client retained.
+Observed character menu has no overlapping second-player frames; F1 opens the
+controls panel with the existing saved custom bindings, and Escape closes it.
+Screenshots: two-player-menu-fixed.png, two-player-settings.png and
+two-player-settings-closed.png in the evidence directory above.

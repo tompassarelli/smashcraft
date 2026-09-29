@@ -2,7 +2,7 @@
 set -euo pipefail
 
 project_dir=$(cd -- "$(dirname -- "$0")" && pwd)
-compiler_checkout=/home/tom/code/wurst-compiler/pins/77f734e27b4d
+compiler_checkout=/home/tom/code/wurst-compiler/pins/c31f228c4a43dad1bca4d4acc003b1d12a823331
 stdlib_checkout=/home/tom/code/wurst-stdlib/pins/4dfc8a0474bd
 compiler_jar="$project_dir/toolchain/wurstscript.jar"
 java=/home/tom/.wurst/wurst-runtime/bin/java
@@ -27,9 +27,9 @@ if [[ ! "$build_id" =~ ^[A-Za-z0-9._-]+$ ]]; then
     exit 2
 fi
 
-expected_compiler_commit=77f734e27b4da868bd51a90844412473bb45fd1b
+expected_compiler_commit=c31f228c4a43dad1bca4d4acc003b1d12a823331
 expected_stdlib_commit=4dfc8a0474bd0b9628ff79d935310c7fc92bce4a
-expected_compiler_sha256=f1056b0dbe2209ca71b528e5af74b6ba480c0e4efac5526e1d0e401ba54b2812
+expected_compiler_sha256=9169418755f722bbbfd36f4e4f2e34241e72a0e006510040b3569eb76e4cb6ad
 actual_compiler_sha256=$(sha256sum "$compiler_jar" | cut -d ' ' -f 1)
 [[ "$actual_compiler_sha256" == "$expected_compiler_sha256" ]] || {
     printf 'Pinned Wurst compiler checksum mismatch.\n' >&2
@@ -50,37 +50,32 @@ trap 'rm -rf -- "$work_dir"' EXIT
 map_script="$work_dir/war3map.lua"
 compiled_script="$work_dir/melee.lua"
 
-cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/common.j" "$project_dir/_build/common.j"
-cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/blizzard.j" "$project_dir/_build/blizzard.j"
+mkdir -p "$work_dir/wurst" "$work_dir/_build/dependencies" "$work_dir/imports/war3mapImported"
+ln -s "$stdlib_checkout" "$work_dir/_build/dependencies/wurststdlib"
+cp "$project_dir/wurst.build" "$work_dir/wurst.build"
+cp "$project_dir/tools/map-entry.j" "$work_dir/wurst/war3map.j"
+for source in FighterAssets Simulation DirectionalInput MatchRules CommandBuffer CombatInput MatchStep KeyBindings PlayerInputState BindingSettings SettingsUI SelectionUI Melee; do
+    cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
+done
+cp "$fighter_assets/FighterAssetInfo.wurst" "$work_dir/wurst/FighterAssetInfo.wurst"
+fighter_model_hash=$(sha256sum "$fighter_assets/ArcherFighter.mdx" | cut -c1-12)
+fighter_model_path="war3mapImported\\ArcherFighter-$fighter_model_hash.mdx"
+cp "$fighter_assets/ArcherFighter.mdx" "$work_dir/imports/war3mapImported/ArcherFighter-$fighter_model_hash.mdx"
+
 printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\npublic constant boolean KNOCKDOWN_SCENARIO = %s\npublic constant boolean TECH_SCENARIO = %s\n' "$build_id" "$([[ "$developer_scenario" != normal ]] && echo true || echo false)" "$([[ "$developer_scenario" == tech ]] && echo true || echo false)" > "$project_dir/build/generated-BuildInfo.wurst"
+cp "$project_dir/build/generated-BuildInfo.wurst" "$work_dir/wurst/BuildInfo.wurst"
 
 (
 cd "$work_dir"
 "$java" -Xmx512m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
-    -lua -runcompiletimefunctions -stacktraces \
-    -workspaceroot "$project_dir" \
-    -lib "$stdlib_checkout" \
+    -build -dev -lua -noExtractMapScript -stacktraces \
+    -workspaceroot "$work_dir" -inputmap "$base_map" \
     -out "$compiled_script" \
-    "$project_dir/_build/common.j" \
-    "$project_dir/_build/blizzard.j" \
-    "$project_dir/build/generated-BuildInfo.wurst" \
-    "$fighter_assets/FighterAssetInfo.wurst" \
-    "$project_dir/wurst/FighterAssets.wurst" \
-    "$project_dir/wurst/Simulation.wurst" \
-    "$project_dir/wurst/DirectionalInput.wurst" \
-    "$project_dir/wurst/MatchRules.wurst" \
-    "$project_dir/wurst/CommandBuffer.wurst" \
-    "$project_dir/wurst/CombatInput.wurst" \
-    "$project_dir/wurst/MatchStep.wurst" \
-    "$project_dir/wurst/KeyBindings.wurst" \
-    "$project_dir/wurst/BindingSettings.wurst" \
-    "$project_dir/wurst/SettingsUI.wurst" \
-    "$project_dir/wurst/SelectionUI.wurst" \
-    "$project_dir/wurst/Melee.wurst"
+    -lib "$stdlib_checkout"
 )
 
-[[ -s "$work_dir/_build/objectEditingOutput/war3map.w3a" ]] || {
-    printf 'Compiler did not emit the generated abilities required for saved controls.\n' >&2
+[[ -s "$work_dir/_build/Melee_Prototype.w3x" ]] || {
+    printf 'Compiler did not emit the configured map.\n' >&2
     exit 1
 }
 
@@ -128,33 +123,18 @@ function main()
 end
 
 function config()
-    baseConfig()
     wurstConfig()
 end
 LUA
 
 nix shell nixpkgs#lua5_3 --command luac -p "$map_script"
 output_next="$build_output.next"
-cp "$base_map" "$output_next"
+cp "$work_dir/_build/Melee_Prototype.w3x" "$output_next"
 "$packager" replace "$output_next" "$map_script"
-fighter_model_hash=$(sha256sum "$fighter_assets/ArcherFighter.mdx" | cut -c1-12)
-fighter_model_path="war3mapImported\\ArcherFighter-$fighter_model_hash.mdx"
-"$packager" replace "$output_next" "$fighter_assets/ArcherFighter.mdx" "$fighter_model_path"
 "$packager" extract "$output_next" "$work_dir/verified-ArcherFighter.mdx" "$fighter_model_path"
 cmp "$fighter_assets/ArcherFighter.mdx" "$work_dir/verified-ArcherFighter.mdx"
-for extension in w3u w3t w3b w3d w3a w3h w3q; do
-    object_file="$work_dir/_build/objectEditingOutput/war3map.$extension"
-    if [[ -f "$object_file" ]]; then
-        "$packager" replace "$output_next" "$object_file" "war3map.$extension"
-        "$packager" extract "$output_next" "$work_dir/verified.$extension" "war3map.$extension"
-        cmp "$object_file" "$work_dir/verified.$extension"
-    fi
-done
-if "$packager" extract "$base_map" "$work_dir/war3map.wts" war3map.wts 2>/dev/null \
-    && rg -q 'Just another Warcraft III map' "$work_dir/war3map.wts"; then
-    sed -i 's/Just another Warcraft III map/Melee Prototype/; s/Nondescript/Archer versus Rifleman platform fight./' "$work_dir/war3map.wts"
-    "$packager" replace "$output_next" "$work_dir/war3map.wts" war3map.wts
-fi
+"$packager" extract "$output_next" "$work_dir/verified.w3a" war3map.w3a
+[[ -s "$work_dir/verified.w3a" ]]
 "$packager" extract "$output_next" "$work_dir/verified.lua"
 cmp "$map_script" "$work_dir/verified.lua"
 mv "$output_next" "$build_output"

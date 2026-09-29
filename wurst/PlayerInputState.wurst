@@ -1,0 +1,83 @@
+package PlayerInputState
+import KeyBindings
+import DirectionalInput
+
+// Input ownership is per synchronized participant. Press edges survive a press/release
+// delivered in one timer interval; held state is sampled independently each tick.
+public class PlayerInputState
+    private boolean array[256] keyHeld
+    private boolean array[KEY_SLOT_COUNT] bindingHeld
+    private boolean array[ACTION_COUNT] actionPressed
+    private DirectionalInput directions = new DirectionalInput()
+
+    function isKeyHeld(int keyCode) returns boolean
+        return keyCode >= 0 and keyCode <= 255 and keyHeld[keyCode]
+
+    function actionHeld(int action) returns boolean
+        if action < 0 or action >= ACTION_COUNT
+            return false
+        return bindingHeld[action * 2] or bindingHeld[action * 2 + 1]
+
+    function press(int keyCode, KeyBindings bindings) returns int
+        if keyCode < 0 or keyCode > 255 or keyHeld[keyCode]
+            return -1
+        keyHeld[keyCode] = true
+        let action = bindings.actionFor(keyCode)
+        if action < 0
+            return -1
+        let slot = bindings.keyFor(action, 0) == keyCode ? 0 : 1
+        let wasHeld = actionHeld(action)
+        bindingHeld[action * 2 + slot] = true
+        if not wasHeld
+            actionPressed[action] = true
+        updateDirection()
+        return action
+
+    function release(int keyCode, KeyBindings bindings) returns int
+        if keyCode < 0 or keyCode > 255 or not keyHeld[keyCode]
+            return -1
+        keyHeld[keyCode] = false
+        let action = bindings.actionFor(keyCode)
+        if action < 0
+            return -1
+        let slot = bindings.keyFor(action, 0) == keyCode ? 0 : 1
+        bindingHeld[action * 2 + slot] = false
+        updateDirection()
+        return action
+
+    function consumePressed(int action) returns boolean
+        if action < 0 or action >= ACTION_COUNT
+            return false
+        let result = actionPressed[action]
+        actionPressed[action] = false
+        return result
+
+    function directionX() returns int
+        return (actionHeld(MOVE_RIGHT) ? 1 : 0) - (actionHeld(MOVE_LEFT) ? 1 : 0)
+
+    function directionZ() returns int
+        return (actionHeld(MOVE_UP) ? 1 : 0) - (actionHeld(MOVE_DOWN) ? 1 : 0)
+
+    function pulsePending() returns boolean
+        return directions.pulsePending
+
+    function pulseX() returns int
+        return directions.pulseX
+
+    function pulseZ() returns int
+        return directions.pulseZ
+
+    function clearPulse()
+        directions.clearPulse()
+
+    function clear()
+        for i = 0 to 255
+            keyHeld[i] = false
+        for i = 0 to KEY_SLOT_COUNT - 1
+            bindingHeld[i] = false
+        for i = 0 to ACTION_COUNT - 1
+            actionPressed[i] = false
+        directions.clear()
+
+    private function updateDirection()
+        directions.update(directionX(), directionZ())

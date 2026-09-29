@@ -5,11 +5,12 @@ import KeyBindings
 import BindingSettings
 
 public abstract class SettingsActions
-    abstract function closeSettings()
+    abstract function closeSettings(int participantId)
 
 public class SettingsPanel
     private BindingSettings settings
     private SettingsActions actions
+    private int participantId
     private framehandle title
     private framehandle help
     private framehandle status
@@ -22,57 +23,60 @@ public class SettingsPanel
     private boolean visible = false
     private string lastSignature = ""
 
-    construct(BindingSettings settings, SettingsActions actions)
+    construct(BindingSettings settings, SettingsActions actions, int participantId)
         this.settings = settings
         this.actions = actions
-        title = createTextFrame("MeleeSettingsTitle", GAME_UI, 410)
+        this.participantId = participantId
+        let suffix = I2S(participantId)
+        let frameOffset = participantId * 100
+        title = createTextFrame("MeleeSettingsTitle" + suffix, GAME_UI, 410 + frameOffset)
         title.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.17, 0.575)
         title.setSize(0.48, 0.035)
         title.setText("CONTROLS")
-        help = createTextFrame("MeleeSettingsHelp", GAME_UI, 411)
+        help = createTextFrame("MeleeSettingsHelp" + suffix, GAME_UI, 411 + frameOffset)
         help.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.17, 0.542)
         help.setSize(0.48, 0.032)
         help.setText("Choose a preset, then click a key and press its replacement.")
-        status = createTextFrame("MeleeSettingsStatus", GAME_UI, 412)
+        status = createTextFrame("MeleeSettingsStatus" + suffix, GAME_UI, 412 + frameOffset)
         status.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.17, 0.105)
         status.setSize(0.48, 0.03)
-        qwertyButton = makeButton("MeleeSettingsQwerty", 420, 0.17, 0.065, 0.105, "QWERTY")
+        qwertyButton = makeButton("MeleeSettingsQwerty" + suffix, 420 + frameOffset, 0.17, 0.065, 0.105, "QWERTY")
         qwertyButton.onClick(() -> begin
-            if GetTriggerPlayer() == Player(0)
+            if GetTriggerPlayer() == Player(participantId)
                 settings.applyPreset(false)
         end)
-        customButton = makeButton("MeleeSettingsCustom", 421, 0.28, 0.065, 0.105, "Custom")
+        customButton = makeButton("MeleeSettingsCustom" + suffix, 421 + frameOffset, 0.28, 0.065, 0.105, "Custom")
         customButton.onClick(() -> begin
-            if GetTriggerPlayer() == Player(0)
+            if GetTriggerPlayer() == Player(participantId)
                 settings.applyPreset(true)
         end)
-        saveButton = makeButton("MeleeSettingsSave", 422, 0.39, 0.065, 0.105, "Save")
+        saveButton = makeButton("MeleeSettingsSave" + suffix, 422 + frameOffset, 0.39, 0.065, 0.105, "Save")
         saveButton.onClick(() -> begin
-            if GetTriggerPlayer() == Player(0)
+            if GetTriggerPlayer() == Player(participantId)
                 settings.save()
         end)
-        closeButton = makeButton("MeleeSettingsClose", 424, 0.50, 0.065, 0.105, "Back")
+        closeButton = makeButton("MeleeSettingsClose" + suffix, 424 + frameOffset, 0.50, 0.065, 0.105, "Back")
         closeButton.onClick(() -> begin
-            if GetTriggerPlayer() == Player(0)
+            if GetTriggerPlayer() == Player(participantId)
                 close()
         end)
         closeButton.onClickReleaseFocus()
         for i = 0 to ACTION_COUNT - 1
             let action = i
-            labels[i] = createTextFrame("MeleeSettingsAction" + I2S(action), GAME_UI, 430 + action)
+            labels[i] = createTextFrame("MeleeSettingsAction" + suffix + I2S(action), GAME_UI, 430 + frameOffset + action)
             labels[i].setAbsPoint(FRAMEPOINT_TOPLEFT, 0.18, 0.505 - action * 0.025)
             labels[i].setSize(0.22, 0.025)
-            keyButtons[action * 2] = makeButton("MeleeSettingsKey" + I2S(action * 2), 460 + action * 2, 0.41, 0.505 - action * 0.025, 0.095, "—")
+            keyButtons[action * 2] = makeButton("MeleeSettingsKey" + suffix + I2S(action * 2), 460 + frameOffset + action * 2, 0.41, 0.505 - action * 0.025, 0.095, "—")
             keyButtons[action * 2].setSize(0.095, 0.024)
             keyButtons[action * 2].onClick(() -> begin
-                if GetTriggerPlayer() == Player(0)
+                if GetTriggerPlayer() == Player(participantId)
                     settings.beginCapture(action, 0)
             end)
             keyButtons[action * 2].onClickReleaseFocus()
-            keyButtons[action * 2 + 1] = makeButton("MeleeSettingsKey" + I2S(action * 2 + 1), 461 + action * 2, 0.52, 0.505 - action * 0.025, 0.095, "—")
+            keyButtons[action * 2 + 1] = makeButton("MeleeSettingsKey" + suffix + I2S(action * 2 + 1), 461 + frameOffset + action * 2, 0.52, 0.505 - action * 0.025, 0.095, "—")
             keyButtons[action * 2 + 1].setSize(0.095, 0.024)
             keyButtons[action * 2 + 1].onClick(() -> begin
-                if GetTriggerPlayer() == Player(0)
+                if GetTriggerPlayer() == Player(participantId)
                     settings.beginCapture(action, 1)
             end)
             keyButtons[action * 2 + 1].onClickReleaseFocus()
@@ -110,12 +114,14 @@ public class SettingsPanel
         visible = false
         settings.cancelCapture()
         hideFrames()
-        actions.closeSettings()
+        actions.closeSettings(participantId)
 
     function isOpen() returns boolean
         return visible
 
     function update()
+        if GetLocalPlayer() != Player(participantId)
+            return
         if not visible
             return
         let signature = settings.bindings.encode() + settings.message + (settings.capturing ? "1" : "0") + (settings.ready ? "1" : "0")

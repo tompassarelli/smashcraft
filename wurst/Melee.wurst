@@ -10,6 +10,7 @@ import MatchStep
 import SelectionUI
 import BindingSettings
 import KeyBindings
+import PlayerInputState
 import SettingsUI
 import FighterAssets
 
@@ -22,12 +23,7 @@ MatchState matchState = new MatchState()
 Fighter playerFighter = null
 Fighter botFighter = null
 timer gameTimer = null
-boolean moveLeft = false
-boolean moveRight = false
-boolean moveDown = false
-boolean moveUp = false
-DirectionalInput playerDirections = new DirectionalInput()
-boolean walkHeld = false
+PlayerInputState firstKeyState = new PlayerInputState()
 boolean playerNormalAttackQueued = false
 boolean playerLeftPressed = false
 boolean playerRightPressed = false
@@ -36,10 +32,6 @@ boolean playerGetupAttackPressed = false
 boolean playerGetupStandPressed = false
 boolean playerTechPressed = false
 boolean playerLCancelPressed = false
-boolean shieldLeft = false
-boolean shieldRight = false
-boolean array held
-boolean array heldBindingSlots
 lightning array stageLines
 int stageLineCount = 0
 lightning array blastLines
@@ -105,8 +97,30 @@ InputSnapshot playerInput = null
 InputSnapshot botInput = null
 SelectionPanel selectionPanel = null
 SettingsPanel settingsPanel = null
-BindingSettings playerBindings = new BindingSettings()
+BindingSettings playerBindings = new BindingSettings(Player(0))
+BindingSettings secondBindings = new BindingSettings(Player(1))
+PlayerInputState secondKeyState = new PlayerInputState()
+InputSnapshot secondPlayerInput = null
+SettingsPanel secondSettingsPanel = null
+SelectionPanel secondSelectionPanel = null
+boolean twoHumanPlayers = false
+boolean hostHumanPlayer = false
+boolean secondNormalAttackQueued = false
+boolean secondLeftPressed = false
+boolean secondRightPressed = false
+boolean secondDownPressed = false
+boolean secondTechPressed = false
+boolean secondLCancelPressed = false
+boolean secondGetupAttackPressed = false
+boolean secondGetupStandPressed = false
+boolean secondJumpQueued = false
+boolean secondAirDodgeQueued = false
+int secondDodgeX = 0
+int secondDodgeZ = 0
+int secondAttackFacing = 0
+int secondLastInputAction = -1
 int appliedBindingRevision = -1
+int appliedSecondBindingRevision = -1
 AttackBuffer playerAttacks = new AttackBuffer(0)
 AttackBuffer botAttacks = new AttackBuffer(0)
 int simulationFrame = 0
@@ -115,27 +129,38 @@ int lastInputAction = -1
 int lastNormalStyle = -1
 
 class MeleeSelectionActions extends SelectionActions
-    override function selectChoice(int choice)
-        if not playerBindings.ready or settingsPanel.isOpen()
+    override function selectChoice(int participantId, int choice)
+        let bindings = participantId == 0 ? playerBindings : secondBindings
+        let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
+        if not bindings.ready or controls.isOpen()
             return
-        matchState.selectChoice(choice)
+        if matchState.phase == CHARACTER_MENU
+            matchState.selectCharacter(participantId, choice)
+        else if participantId == 0
+            matchState.selectChoice(choice)
         if matchState.phase == CHARACTER_MENU
             makePreview()
         else if matchState.phase == STAGE_MENU
             drawStage()
 
-    override function confirmSelection()
-        confirm()
+    override function confirmSelection(int participantId)
+        confirm(participantId)
 
-    override function backSelection()
-        back()
+    override function backSelection(int participantId)
+        back(participantId)
 
-    override function openSettings()
-        openSettingsScreen()
+    override function openSettings(int participantId)
+        openSettingsScreen(participantId)
 
 class MeleeSettingsActions extends SettingsActions
-    override function closeSettings()
-        clearHeldInputs()
+    int participantId
+    construct(int participantId)
+        this.participantId = participantId
+    override function closeSettings(int _participantId)
+        if participantId == 0
+            clearHeldInputs()
+        else
+            clearSecondInputs()
 
 
 class Fighter extends FighterState
@@ -238,9 +263,11 @@ function removeFighters()
         botFighter = null
 
 function makePreview()
+    clearHeldInputs()
+    clearSecondInputs()
     removeFighters()
     playerFighter = new Fighter(Player(0), matchState.characterChoice, -240, 1)
-    botFighter = new Fighter(Player(1), 1 - matchState.characterChoice, 240, -1)
+    botFighter = new Fighter(Player(1), twoHumanPlayers ? matchState.secondCharacterChoice : 1 - matchState.characterChoice, 240, -1)
     SetUnitAnimation(playerFighter.body, "stand")
     SetUnitAnimation(botFighter.body, "stand")
 
@@ -251,7 +278,7 @@ function announce(string message)
 function loseStock(Fighter f)
     ShowUnit(f.body, false)
     if f.stocks > 0
-        announce(f == playerFighter ? "You lost a stock!" : "Opponent lost a stock!")
+        announce(f == playerFighter ? "Player 1 lost a stock!" : (twoHumanPlayers ? "Player 2 lost a stock!" : "Opponent lost a stock!"))
 
 function attack(Fighter attacker, Fighter target, int style)
     if matchState.phase != MATCH
@@ -259,7 +286,7 @@ function attack(Fighter attacker, Fighter target, int style)
     if attacker == playerFighter
         playerAttacks.enqueue(style, style == 4 ? playerAttackFacing : 0, simulationFrame + 1, false)
     else
-        botAttacks.enqueue(style, target.x >= attacker.x ? 1 : -1, simulationFrame, false)
+        botAttacks.enqueue(style, twoHumanPlayers ? secondAttackFacing : (target.x >= attacker.x ? 1 : -1), simulationFrame, false)
 
 function applyFrame()
     let playerWasOut = playerFighter.out
@@ -272,7 +299,7 @@ function applyFrame()
     let botPreviousJump = botFighter.jumpSerial
     let playerPreviousDown = playerFighter.downState
     let playerPreviousLCancel = playerFighter.lCancelSerial
-    stepMatch(matchState, playerFighter, botFighter, playerInput, botInput, playerAttacks, botAttacks, simulationFrame)
+    stepMatch(matchState, playerFighter, botFighter, playerInput, twoHumanPlayers ? secondPlayerInput : botInput, playerAttacks, botAttacks, simulationFrame)
     if playerFighter.lCancelSerial > playerPreviousLCancel
         announce("L-cancel!")
     if playerFighter.downState != playerPreviousDown
@@ -303,6 +330,8 @@ function jump(Fighter f)
     if f == playerFighter
         playerJumpQueued = true
         playerJumpHeld = true
+    else if twoHumanPlayers
+        secondJumpQueued = true
     else
         botJumpQueued = true
         botJumpHeld = true
@@ -310,18 +339,26 @@ function jump(Fighter f)
 function airDodge(Fighter _f, int horizontal, int vertical)
     if matchState.phase != MATCH
         return
-    playerAirDodgeQueued = true
-    playerDodgeX = horizontal
-    playerDodgeZ = vertical
+    if _f == playerFighter
+        playerAirDodgeQueued = true
+        playerDodgeX = horizontal
+        playerDodgeZ = vertical
+    else
+        secondAirDodgeQueued = true
+        secondDodgeX = horizontal
+        secondDodgeZ = vertical
 
 function startMatch()
     statusText = "GO!"
     statusTime = 1
-    moveLeft = false
-    moveRight = false
-    moveDown = false
+    if settingsPanel != null and settingsPanel.isOpen()
+        settingsPanel.close()
+    if secondSettingsPanel != null and secondSettingsPanel.isOpen()
+        secondSettingsPanel.close()
     playerAttacks.clear()
     botAttacks.clear()
+    clearHeldInputs()
+    clearSecondInputs()
     simulationFrame = 0
     playerAttackFacing = 0
     playerJumpQueued = false
@@ -335,60 +372,82 @@ function startMatch()
         playerFighter.hitstun = TECH_SCENARIO ? 60 : 30
         botFighter.x = 350
 
-function choose()
-    if not playerBindings.ready or (settingsPanel != null and settingsPanel.isOpen())
+function choose(int participantId)
+    let bindings = participantId == 0 ? playerBindings : secondBindings
+    let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
+    if not bindings.ready or (controls != null and controls.isOpen())
         return
     if matchState.phase == CHARACTER_MENU
-        matchState.selectChoice(1 - matchState.characterChoice)
+        matchState.selectCharacter(participantId, 1 - matchState.characterFor(participantId))
         makePreview()
-    else if matchState.phase == STAGE_MENU
+    else if matchState.phase == STAGE_MENU and participantId == 0
         matchState.selectChoice(1 - matchState.stageChoice)
         drawStage()
 
-function confirm()
-    if not playerBindings.ready or (settingsPanel != null and settingsPanel.isOpen())
+function confirm(int participantId)
+    let bindings = participantId == 0 ? playerBindings : secondBindings
+    let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
+    if not bindings.ready or (controls != null and controls.isOpen())
         announce("Controls are still loading or settings are open.")
         return
     let previousPhase = matchState.phase
-    matchState.confirm()
-    if previousPhase == STAGE_MENU
-        startMatch()
+    if previousPhase == CHARACTER_MENU
+        matchState.confirmCharacter(participantId)
+        if matchState.phase == STAGE_MENU
+            drawStage()
+    else if previousPhase == STAGE_MENU
+        if matchState.confirmStage(participantId)
+            startMatch()
     else if previousPhase == RESULT
-        statusText = ""
-        statusTime = 0
-        makePreview()
+        if matchState.confirmRematch(participantId)
+            statusText = ""
+            statusTime = 0
+            makePreview()
     else if previousPhase == MATCH
-        playerNormalAttackQueued = true
+        if participantId == 0
+            playerNormalAttackQueued = true
+        else
+            secondNormalAttackQueued = true
 
-function back()
-    if not playerBindings.ready or (settingsPanel != null and settingsPanel.isOpen())
+function back(int participantId)
+    let bindings = participantId == 0 ? playerBindings : secondBindings
+    let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
+    if not bindings.ready or (controls != null and controls.isOpen())
         return
     if matchState.phase == STAGE_MENU
-        matchState.back()
+        matchState.backFor(participantId)
+        if matchState.phase == CHARACTER_MENU
+            makePreview()
+    else if matchState.phase == CHARACTER_MENU
+        matchState.backFor(participantId)
     else if matchState.phase == MATCH
-        attack(playerFighter, botFighter, 1)
+        attack(participantId == 0 ? playerFighter : botFighter, participantId == 0 ? botFighter : playerFighter, 1)
 
 function actionHeld(int action) returns boolean
-    return heldBindingSlots[action * 2] or heldBindingSlots[action * 2 + 1]
+    return firstKeyState.actionHeld(action)
 
-function bindingSlot(int action, int keyCode) returns int
-    if playerBindings.bindings.keyFor(action, 0) == keyCode
-        return 0
-    if playerBindings.bindings.keyFor(action, 1) == keyCode
-        return 1
-    return -1
+function clearSecondInputs()
+    secondKeyState.clear()
+    secondNormalAttackQueued = false
+    secondLeftPressed = false
+    secondRightPressed = false
+    secondDownPressed = false
+    secondTechPressed = false
+    secondLCancelPressed = false
+    secondGetupAttackPressed = false
+    secondGetupStandPressed = false
+    secondJumpQueued = false
+    secondAirDodgeQueued = false
+    secondDodgeX = 0
+    secondDodgeZ = 0
+    secondAttackFacing = 0
+    botJumpQueued = false
+    botJumpHeld = false
+    if botAttacks != null
+        botAttacks.clear()
 
 function clearHeldInputs()
-    playerDirections.clear()
-    for i = 0 to 255
-        held[i] = false
-    for i = 0 to KEY_SLOT_COUNT - 1
-        heldBindingSlots[i] = false
-    moveLeft = false
-    moveRight = false
-    moveDown = false
-    moveUp = false
-    walkHeld = false
+    firstKeyState.clear()
     playerNormalAttackQueued = false
     playerLeftPressed = false
     playerRightPressed = false
@@ -397,8 +456,6 @@ function clearHeldInputs()
     playerGetupStandPressed = false
     playerTechPressed = false
     playerLCancelPressed = false
-    shieldLeft = false
-    shieldRight = false
     playerJumpHeld = false
     playerJumpQueued = false
     playerAirDodgeQueued = false
@@ -408,156 +465,193 @@ function clearHeldInputs()
     if playerAttacks != null
         playerAttacks.clear()
 
-function openSettingsScreen()
+function openSettingsScreen(int participantId)
     if matchState.phase != CHARACTER_MENU and matchState.phase != STAGE_MENU
         return
-    if not playerBindings.ready or settingsPanel == null
+    let bindings = participantId == 0 ? playerBindings : secondBindings
+    let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
+    if not bindings.ready or controls == null
         announce("Controls are still loading.")
         return
-    clearHeldInputs()
-    settingsPanel.show()
-    if selectionPanel != null
-        selectionPanel.update(matchState.phase, matchState.phase == CHARACTER_MENU ? matchState.characterChoice : matchState.stageChoice, true)
+    if participantId == 0
+        clearHeldInputs()
+    else
+        clearSecondInputs()
+    controls.show()
 
-function onKeyDown()
+function onParticipantKeyDown(int participantId)
     let key = BlzGetTriggerPlayerKey()
     let keyCode = GetHandleId(key)
-    if keyCode < 0 or keyCode > 255 or held[keyCode]
+    let state = participantId == 0 ? firstKeyState : secondKeyState
+    let bindings = participantId == 0 ? playerBindings : secondBindings
+    let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
+    let fighter = participantId == 0 ? playerFighter : botFighter
+    let opponent = participantId == 0 ? botFighter : playerFighter
+    if keyCode < 0 or keyCode > 255 or state.isKeyHeld(keyCode)
         return
-    held[keyCode] = true
-    if key == OSKEY_F7
+    if participantId == 0 and key == OSKEY_F7
+        state.press(keyCode, bindings.bindings)
         startInputTrace()
         return
-    traceInput("down " + I2S(keyCode))
-    if key == OSKEY_F6
+    if participantId == 0 and key == OSKEY_F6
         RestartGame(false)
         return
-    if key == OSKEY_F5
+    if participantId == 0 and key == OSKEY_F5
         EndGame(false)
         return
-    if key == OSKEY_ESCAPE and settingsPanel != null and settingsPanel.isOpen()
-        settingsPanel.close()
+    if key == OSKEY_ESCAPE and controls != null and controls.isOpen()
+        controls.close()
         return
-    if settingsPanel != null and settingsPanel.isOpen()
-        if playerBindings.capturing
-            playerBindings.capture(keyCode)
+    if controls != null and controls.isOpen()
+        if bindings.capturing
+            bindings.capture(keyCode)
         return
     if key == OSKEY_F1
-        openSettingsScreen()
+        openSettingsScreen(participantId)
         return
-    if not playerBindings.ready
+    if participantId == 1 and not twoHumanPlayers
         return
-    let action = playerBindings.bindings.actionFor(keyCode)
-    if action < 0
+    if not bindings.ready
         return
-    lastInputAction = action
-    let wasHeld = actionHeld(action)
-    let slot = bindingSlot(action, keyCode)
-    if slot < 0
+    let action = bindings.bindings.actionFor(keyCode)
+    let wasHeld = action >= 0 and state.actionHeld(action)
+    if state.press(keyCode, bindings.bindings) < 0
         return
-    heldBindingSlots[action * 2 + slot] = true
+    if participantId == 0
+        traceInput("down " + I2S(keyCode))
+        lastInputAction = action
+    else
+        secondLastInputAction = action
     if not wasHeld and matchState.phase == MATCH
         if action == LEFT_TRIGGER or action == RIGHT_TRIGGER or action == GRAB
-            playerLCancelPressed = true
+            if participantId == 0
+                playerLCancelPressed = true
+            else
+                secondLCancelPressed = true
         if action == ATTACK or action == SPECIAL
-            playerGetupAttackPressed = true
+            if participantId == 0
+                playerGetupAttackPressed = true
+            else
+                secondGetupAttackPressed = true
         if action == MOVE_UP or action == JUMP or action == LEFT_TRIGGER or action == RIGHT_TRIGGER
-            playerGetupStandPressed = true
+            if participantId == 0
+                playerGetupStandPressed = true
+            else
+                secondGetupStandPressed = true
     if action == MOVE_LEFT
-        moveLeft = true
         if not wasHeld and matchState.phase == MATCH
-            playerLeftPressed = true
+            if participantId == 0
+                playerLeftPressed = true
+            else
+                secondLeftPressed = true
         if matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
-            choose()
+            choose(participantId)
     else if action == MOVE_RIGHT
-        moveRight = true
         if not wasHeld and matchState.phase == MATCH
-            playerRightPressed = true
+            if participantId == 0
+                playerRightPressed = true
+            else
+                secondRightPressed = true
         if matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
-            choose()
+            choose(participantId)
     else if action == MOVE_DOWN
-        moveDown = true
         if not wasHeld and matchState.phase == MATCH
-            playerDownPressed = true
-    else if action == MOVE_UP
-        moveUp = true
-    else if action == WALK_MODIFIER
-        walkHeld = true
+            if participantId == 0
+                playerDownPressed = true
+            else
+                secondDownPressed = true
     else if action == JUMP
         if not wasHeld
-            jump(playerFighter)
-        playerJumpHeld = true
+            jump(fighter)
     else if action == ATTACK
-        confirm()
+        confirm(participantId)
     else if action == SPECIAL
-        back()
+        back(participantId)
     else if action == GRAB
-        attack(playerFighter, botFighter, 5)
+        attack(fighter, opponent, 5)
     else if action == LEFT_TRIGGER or action == RIGHT_TRIGGER
-        if action == LEFT_TRIGGER
-            shieldLeft = true
-        else
-            shieldRight = true
         if not wasHeld
             if matchState.phase == MATCH
-                playerTechPressed = true
-            airDodge(playerFighter, (moveRight ? 1 : 0) - (moveLeft ? 1 : 0), (moveUp ? 1 : 0) - (moveDown ? 1 : 0))
+                if participantId == 0
+                    playerTechPressed = true
+                else
+                    secondTechPressed = true
+            airDodge(fighter, state.directionX(), state.directionZ())
     else if action == SMASH_LEFT
-        playerAttackFacing = -1
-        attack(playerFighter, botFighter, 4)
+        if participantId == 0
+            playerAttackFacing = -1
+        else
+            secondAttackFacing = -1
+        attack(fighter, opponent, 4)
     else if action == SMASH_RIGHT
-        playerAttackFacing = 1
-        attack(playerFighter, botFighter, 4)
+        if participantId == 0
+            playerAttackFacing = 1
+        else
+            secondAttackFacing = 1
+        attack(fighter, opponent, 4)
     else if action == SMASH_UP
-        attack(playerFighter, botFighter, 2)
+        attack(fighter, opponent, 2)
     else if action == SMASH_DOWN
-        attack(playerFighter, botFighter, 3)
-    if matchState.phase == MATCH and action >= MOVE_LEFT and action <= MOVE_UP and actionHeld(ATTACK)
-        playerNormalAttackQueued = true
-    playerDirections.update((actionHeld(MOVE_RIGHT) ? 1 : 0) - (actionHeld(MOVE_LEFT) ? 1 : 0), (actionHeld(MOVE_UP) ? 1 : 0) - (actionHeld(MOVE_DOWN) ? 1 : 0))
+        attack(fighter, opponent, 3)
+    if matchState.phase == MATCH and action >= MOVE_LEFT and action <= MOVE_UP and state.actionHeld(ATTACK)
+        if participantId == 0
+            playerNormalAttackQueued = true
+        else
+            secondNormalAttackQueued = true
+
+function onParticipantKeyUp(int participantId)
+    let keyCode = GetHandleId(BlzGetTriggerPlayerKey())
+    let state = participantId == 0 ? firstKeyState : secondKeyState
+    let bindings = participantId == 0 ? playerBindings : secondBindings
+    if participantId == 0
+        traceInput("up " + I2S(keyCode))
+    state.release(keyCode, bindings.bindings)
+
+function onKeyDown()
+    if GetTriggerPlayer() == Player(0) and hostHumanPlayer
+        onParticipantKeyDown(0)
+    else if GetTriggerPlayer() == Player(1) and twoHumanPlayers
+        onParticipantKeyDown(1)
 
 function onKeyUp()
-    let keyCode = GetHandleId(BlzGetTriggerPlayerKey())
-    traceInput("up " + I2S(keyCode))
-    if keyCode < 0 or keyCode > 255
-        return
-    held[keyCode] = false
-    let action = playerBindings.bindings.actionFor(keyCode)
-    if action < 0
-        return
-    let slot = bindingSlot(action, keyCode)
-    if slot >= 0
-        heldBindingSlots[action * 2 + slot] = false
-    if action == MOVE_LEFT
-        moveLeft = actionHeld(action)
-    else if action == MOVE_RIGHT
-        moveRight = actionHeld(action)
-    else if action == MOVE_DOWN
-        moveDown = actionHeld(action)
-    else if action == MOVE_UP
-        moveUp = actionHeld(action)
-    else if action == WALK_MODIFIER
-        walkHeld = actionHeld(action)
-    else if action == JUMP
-        playerJumpHeld = actionHeld(action)
-    else if action == LEFT_TRIGGER
-        shieldLeft = actionHeld(action)
-    else if action == RIGHT_TRIGGER
-        shieldRight = actionHeld(action)
-    playerDirections.update((actionHeld(MOVE_RIGHT) ? 1 : 0) - (actionHeld(MOVE_LEFT) ? 1 : 0), (actionHeld(MOVE_UP) ? 1 : 0) - (actionHeld(MOVE_DOWN) ? 1 : 0))
+    if GetTriggerPlayer() == Player(0) and hostHumanPlayer
+        onParticipantKeyUp(0)
+    else if GetTriggerPlayer() == Player(1) and twoHumanPlayers
+        onParticipantKeyUp(1)
 
-function registerKey(trigger eventTrigger, oskeytype key, boolean down)
-    BlzTriggerRegisterPlayerKeyEvent(eventTrigger, Player(0), key, 0, down)
+function registerKey(trigger eventTrigger, player participant, oskeytype key, boolean down)
+    BlzTriggerRegisterPlayerKeyEvent(eventTrigger, participant, key, 0, down)
 
 function setupKeys()
     let downTrigger = CreateTrigger()
     let upTrigger = CreateTrigger()
     for keyCode = 1 to 255
         let key = ConvertOsKeyType(keyCode)
-        registerKey(downTrigger, key, true)
-        registerKey(upTrigger, key, false)
+        if hostHumanPlayer
+            registerKey(downTrigger, Player(0), key, true)
+            registerKey(upTrigger, Player(0), key, false)
+        if twoHumanPlayers
+            registerKey(downTrigger, Player(1), key, true)
+            registerKey(upTrigger, Player(1), key, false)
     TriggerAddAction(downTrigger, function onKeyDown)
     TriggerAddAction(upTrigger, function onKeyUp)
+
+function secondPlayerLeaves()
+    if not twoHumanPlayers
+        return
+    twoHumanPlayers = false
+    matchState.unreadyCharacter(1)
+    matchState.setHumanCount(1)
+    clearSecondInputs()
+    secondBindings.capturing = false
+    announce("Player 2 left. The opponent is now controlled by the computer.")
+    if matchState.phase == CHARACTER_MENU and matchState.characterReady(0)
+        matchState.confirmCharacter(0)
+
+function firstPlayerLeaves()
+    clearHeldInputs()
+    clearSecondInputs()
+    matchState.forfeit(0)
 
 function playAttackAnimation(Fighter fighter)
     if fighter.character == 0
@@ -693,31 +787,39 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
 
 function renderUI()
     let selecting = matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
-    let controlsOpen = settingsPanel != null and settingsPanel.isOpen()
-    BlzFrameSetVisible(titleFrame, selecting and not controlsOpen)
-    BlzFrameSetVisible(menuFrame, false)
-    BlzFrameSetVisible(hudFrame, not selecting)
-    BlzFrameSetVisible(helpFrame, not controlsOpen)
-    BlzFrameSetVisible(noticeFrame, not controlsOpen)
-    if matchState.phase == CHARACTER_MENU
-        BlzFrameSetText(titleFrame, "CHOOSE YOUR FIGHTER")
-        BlzFrameSetText(menuFrame, (matchState.characterChoice == 0 ? "|cffffd45a> " : "  ") + "FOX  -  Archer|r\n\n" + (matchState.characterChoice == 1 ? "|cffffd45a> " : "  ") + "FALCO  -  Rifleman|r\n\nYou: " + charName(matchState.characterChoice) + "     Opponent: " + charName(1 - matchState.characterChoice))
-        BlzFrameSetText(helpFrame, "Choose Controls with the button or F1. Select a fighter, then press Attack to continue.")
-    else if matchState.phase == STAGE_MENU
-        BlzFrameSetText(titleFrame, "CHOOSE A STAGE")
-        BlzFrameSetText(menuFrame, (matchState.stageChoice == 0 ? "|cffffd45a> " : "  ") + "SKY DECK|r\n\n" + (matchState.stageChoice == 1 ? "|cffffd45a> " : "  ") + "THREE BRIDGES|r\n\n" + (matchState.stageChoice == 0 ? "One wide platform. Open skies on every side." : "A main deck and two raised platforms. Jump through them; hold D to drop."))
-        BlzFrameSetText(helpFrame, "Choose Controls with the button or F1. Select a stage, then press Attack to fight.")
-    else
-        BlzFrameSetText(hudFrame, charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "          " + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "\n" + (matchState.stageChoice == 0 ? "Sky Deck" : "Three Bridges") + "   |cffff6666Red border = KO|r")
-        BlzFrameSetText(helpFrame, matchState.phase == RESULT ? "Press Attack to choose your next match     F6: restart" : "Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.")
-        if matchState.phase == MATCH and playerFighter.downState == DOWN_WAIT
-            BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
-    BlzFrameSetText(noticeFrame, playerFighter != null and playerFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
-    selectionPanel.update(matchState.phase, matchState.phase == CHARACTER_MENU ? matchState.characterChoice : matchState.stageChoice,
-        settingsPanel != null and settingsPanel.isOpen())
+    let localSlot = GetLocalPlayer() == Player(1) and twoHumanPlayers ? 1 : 0
+    let controls = localSlot == 0 ? settingsPanel : secondSettingsPanel
+    let controlsOpen = controls != null and controls.isOpen()
+    let localCharacter = matchState.characterFor(localSlot)
+    if GetLocalPlayer() == Player(localSlot)
+        BlzFrameSetVisible(titleFrame, selecting and not controlsOpen)
+        BlzFrameSetVisible(menuFrame, false)
+        BlzFrameSetVisible(hudFrame, not selecting)
+        BlzFrameSetVisible(helpFrame, not controlsOpen)
+        BlzFrameSetVisible(noticeFrame, not controlsOpen)
+        if matchState.phase == CHARACTER_MENU
+            BlzFrameSetText(titleFrame, "CHOOSE YOUR FIGHTER")
+            BlzFrameSetText(menuFrame, (localCharacter == 0 ? "|cffffd45a> " : "  ") + "FOX  -  Archer|r\n\n" + (localCharacter == 1 ? "|cffffd45a> " : "  ") + "FALCO  -  Rifleman|r\n\nYou: " + charName(localCharacter) + "     " + (twoHumanPlayers ? (matchState.characterReady(localSlot) ? "Ready" : "Choose and confirm") : "Computer: " + charName(1 - localCharacter)))
+            BlzFrameSetText(helpFrame, twoHumanPlayers ? "Choose your fighter and confirm. Both players must be ready." : "Choose Controls with the button or F1. Select a fighter, then press Attack to continue.")
+        else if matchState.phase == STAGE_MENU
+            BlzFrameSetText(titleFrame, "CHOOSE A STAGE")
+            BlzFrameSetText(menuFrame, (matchState.stageChoice == 0 ? "|cffffd45a> " : "  ") + "SKY DECK|r\n\n" + (matchState.stageChoice == 1 ? "|cffffd45a> " : "  ") + "THREE BRIDGES|r\n\n" + (matchState.stageChoice == 0 ? "One wide platform. Open skies on every side." : "A main deck and two raised platforms. Jump through them; hold D to drop."))
+            BlzFrameSetText(helpFrame, "Choose Controls with the button or F1. Select a stage, then press Attack to fight.")
+        else
+            BlzFrameSetText(hudFrame, charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "          " + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "\n" + (matchState.stageChoice == 0 ? "Sky Deck" : "Three Bridges") + "   |cffff6666Red border = KO|r")
+            BlzFrameSetText(helpFrame, matchState.phase == RESULT ? (matchState.firstRematchReady and twoHumanPlayers ? "Player 1 ready; waiting for Player 2. F6: restart" : (matchState.secondRematchReady and twoHumanPlayers ? "Player 2 ready; waiting for Player 1. F6: restart" : "Press Attack to choose your next match     F6: restart")) : "Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.")
+            if matchState.phase == MATCH and playerFighter.downState == DOWN_WAIT
+                BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
+        BlzFrameSetText(noticeFrame, playerFighter != null and playerFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
+    selectionPanel.update(matchState.phase, matchState.phase == CHARACTER_MENU ? matchState.characterFor(0) : matchState.stageChoice,
+        settingsPanel != null and settingsPanel.isOpen(), true, matchState.characterReady(0))
+    secondSelectionPanel.update(matchState.phase, matchState.phase == CHARACTER_MENU ? matchState.characterFor(1) : matchState.stageChoice,
+        secondSettingsPanel != null and secondSettingsPanel.isOpen(), twoHumanPlayers, matchState.characterReady(1))
     if settingsPanel != null
         settingsPanel.update()
-    if playerFighter != null
+    if secondSettingsPanel != null
+        secondSettingsPanel.update()
+    if GetLocalPlayer() == Player(0) and playerFighter != null
         BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | input=" + I2S(lastInputAction) + " normal=" + I2S(lastNormalStyle) + " move=" + I2S(playerFighter.attackStyle) + " frame=" + I2S(playerFighter.attackFrame) + " serial=" + I2S(playerFighter.attackSerial) + " down=" + I2S(playerFighter.downState) + ":" + I2S(playerFighter.downFrame) + " DI=" + I2S(playerFighter.diSerial) + ":" + I2S(R2I(playerFighter.diAngleDegrees)) + " S=" + I2S(playerFighter.sdiSerial) + " A=" + I2S(playerFighter.asdiSerial) + " | F6 restart")
 
 function lockArenaCamera()
@@ -733,9 +835,9 @@ function lockArenaCamera()
 function gameTick()
     if inputTraceActive
         inputTraceTicks++
-        let axes = (moveRight ? 1 : 0) - (moveLeft ? 1 : 0) + 3 * ((moveUp ? 1 : 0) - (moveDown ? 1 : 0))
-        if axes != inputTraceLastAxes or playerDirections.pulsePending or inputTraceTicks % 60 == 0
-            traceInput("sample " + I2S(axes) + " pulse " + (playerDirections.pulsePending ? I2S(playerDirections.pulseX) + ":" + I2S(playerDirections.pulseZ) : "none") + " hitlag " + I2S(playerFighter.hitlag))
+        let axes = firstKeyState.directionX() + 3 * firstKeyState.directionZ()
+        if axes != inputTraceLastAxes or firstKeyState.pulsePending() or inputTraceTicks % 60 == 0
+            traceInput("sample " + I2S(axes) + " pulse " + (firstKeyState.pulsePending() ? I2S(firstKeyState.pulseX()) + ":" + I2S(firstKeyState.pulseZ()) : "none") + " hitlag " + I2S(playerFighter.hitlag))
             inputTraceLastAxes = axes
         if inputTraceLastDodge != playerFighter.airDodgeFrame or inputTraceLastLandingLag != playerFighter.landingLag
             traceInput("motion air " + I2S(playerFighter.airDodgeFrame) + " landing " + I2S(playerFighter.landingLag) + " x " + R2S(playerFighter.x) + " z " + R2S(playerFighter.z))
@@ -746,17 +848,20 @@ function gameTick()
     if appliedBindingRevision != playerBindings.revision
         clearHeldInputs()
         appliedBindingRevision = playerBindings.revision
+    if appliedSecondBindingRevision != secondBindings.revision
+        clearSecondInputs()
+        appliedSecondBindingRevision = secondBindings.revision
     lockArenaCamera()
     statusTime = max(0, statusTime - FRAME_SECONDS)
     if matchState.phase == MATCH
         simulationFrame++
-        let direction = (moveRight ? 1 : 0) - (moveLeft ? 1 : 0)
+        let direction = firstKeyState.directionX()
         if playerNormalAttackQueued
-            let style = normalAttackStyle(direction, (moveUp ? 1 : 0) - (moveDown ? 1 : 0), walkHeld)
+            let style = normalAttackStyle(direction, firstKeyState.directionZ(), firstKeyState.actionHeld(WALK_MODIFIER))
             lastNormalStyle = style
             playerAttacks.enqueue(style, direction, simulationFrame, true)
         var botDirection = 0
-        if not KNOCKDOWN_SCENARIO and not botFighter.out and not playerFighter.out
+        if not twoHumanPlayers and not KNOCKDOWN_SCENARIO and not botFighter.out and not playerFighter.out
             let gap = playerFighter.x - botFighter.x
             if gap.abs() > 95
                 botDirection = gap > 0 ? 1 : -1
@@ -769,10 +874,10 @@ function gameTick()
                 attack(botFighter, playerFighter, 0)
                 botAttackDelay = 0.35
         playerInput.direction = direction
-        playerInput.verticalDirection = (moveUp ? 1 : 0) - (moveDown ? 1 : 0)
-        playerInput.sdiPulse = playerDirections.pulsePending
-        playerInput.sdiX = playerDirections.pulseX
-        playerInput.sdiZ = playerDirections.pulseZ
+        playerInput.verticalDirection = firstKeyState.directionZ()
+        playerInput.sdiPulse = firstKeyState.pulsePending()
+        playerInput.sdiX = firstKeyState.pulseX()
+        playerInput.sdiZ = firstKeyState.pulseZ()
         playerInput.cStickX = (actionHeld(SMASH_RIGHT) ? 1 : 0) - (actionHeld(SMASH_LEFT) ? 1 : 0)
         playerInput.cStickZ = (actionHeld(SMASH_UP) ? 1 : 0) - (actionHeld(SMASH_DOWN) ? 1 : 0)
         playerInput.attackHeld = actionHeld(ATTACK)
@@ -782,17 +887,46 @@ function gameTick()
         playerInput.getupStandPressed = playerGetupStandPressed
         playerInput.getupDirection = (playerRightPressed ? 1 : 0) - (playerLeftPressed ? 1 : 0)
         playerInput.getupDirectionPressed = playerInput.getupDirection != 0
-        playerInput.walking = walkHeld
-        playerInput.down = moveDown
-        playerInput.shield = shieldLeft or shieldRight
+        playerInput.walking = firstKeyState.actionHeld(WALK_MODIFIER)
+        playerInput.down = firstKeyState.actionHeld(MOVE_DOWN)
+        playerInput.shield = firstKeyState.actionHeld(LEFT_TRIGGER) or firstKeyState.actionHeld(RIGHT_TRIGGER)
         let groundDodge = groundDodgeIntent(playerInput.shield, playerLeftPressed, playerRightPressed, playerDownPressed)
         playerInput.groundDodgePressed = groundDodge != NO_GROUND_DODGE
         playerInput.groundDodgeDirection = groundDodge == NO_GROUND_DODGE ? 0 : groundDodge
         playerInput.jumpPressed = playerJumpQueued
-        playerInput.jumpHeld = playerJumpHeld
+        playerInput.jumpHeld = firstKeyState.actionHeld(JUMP)
         playerInput.airDodgePressed = playerAirDodgeQueued
         playerInput.dodgeX = playerDodgeX
         playerInput.dodgeZ = playerDodgeZ
+        playerInput.attackHeld = actionHeld(ATTACK)
+        secondPlayerInput.direction = secondKeyState.directionX()
+        secondPlayerInput.verticalDirection = secondKeyState.directionZ()
+        secondPlayerInput.sdiPulse = secondKeyState.pulsePending()
+        secondPlayerInput.sdiX = secondKeyState.pulseX()
+        secondPlayerInput.sdiZ = secondKeyState.pulseZ()
+        secondPlayerInput.cStickX = (secondKeyState.actionHeld(SMASH_RIGHT) ? 1 : 0) - (secondKeyState.actionHeld(SMASH_LEFT) ? 1 : 0)
+        secondPlayerInput.cStickZ = (secondKeyState.actionHeld(SMASH_UP) ? 1 : 0) - (secondKeyState.actionHeld(SMASH_DOWN) ? 1 : 0)
+        secondPlayerInput.attackHeld = secondKeyState.actionHeld(ATTACK)
+        secondPlayerInput.techPressed = secondTechPressed
+        secondPlayerInput.lCancelPressed = secondLCancelPressed
+        secondPlayerInput.getupAttackPressed = secondGetupAttackPressed
+        secondPlayerInput.getupStandPressed = secondGetupStandPressed
+        secondPlayerInput.getupDirection = (secondRightPressed ? 1 : 0) - (secondLeftPressed ? 1 : 0)
+        secondPlayerInput.getupDirectionPressed = secondPlayerInput.getupDirection != 0
+        secondPlayerInput.walking = secondKeyState.actionHeld(WALK_MODIFIER)
+        secondPlayerInput.down = secondKeyState.actionHeld(MOVE_DOWN)
+        secondPlayerInput.shield = secondKeyState.actionHeld(LEFT_TRIGGER) or secondKeyState.actionHeld(RIGHT_TRIGGER)
+        let secondGroundDodge = groundDodgeIntent(secondPlayerInput.shield, secondLeftPressed, secondRightPressed, secondDownPressed)
+        secondPlayerInput.groundDodgePressed = secondGroundDodge != NO_GROUND_DODGE
+        secondPlayerInput.groundDodgeDirection = secondGroundDodge == NO_GROUND_DODGE ? 0 : secondGroundDodge
+        secondPlayerInput.jumpPressed = secondJumpQueued
+        secondPlayerInput.jumpHeld = secondKeyState.actionHeld(JUMP)
+        secondPlayerInput.airDodgePressed = secondAirDodgeQueued
+        secondPlayerInput.dodgeX = secondDodgeX
+        secondPlayerInput.dodgeZ = secondDodgeZ
+        if twoHumanPlayers and secondNormalAttackQueued
+            let style = normalAttackStyle(secondPlayerInput.direction, secondPlayerInput.verticalDirection, secondPlayerInput.walking)
+            botAttacks.enqueue(style, secondPlayerInput.direction, simulationFrame, true)
         botInput.direction = botDirection
         botInput.jumpPressed = botJumpQueued
         botInput.jumpHeld = botJumpHeld
@@ -814,10 +948,29 @@ function gameTick()
         botJumpQueued = false
         botJumpHeld = false
         botInput.jumpPressed = false
+        secondAttackFacing = 0
+        secondNormalAttackQueued = false
+        secondLeftPressed = false
+        secondRightPressed = false
+        secondDownPressed = false
+        secondGetupAttackPressed = false
+        secondGetupStandPressed = false
+        secondTechPressed = false
+        secondLCancelPressed = false
+        secondJumpQueued = false
+        secondAirDodgeQueued = false
+        secondDodgeX = 0
+        secondDodgeZ = 0
+        secondKeyState.clearPulse()
         if matchState.phase == RESULT
-            statusText = matchState.winner == 0 ? "Victory! You win!" : (matchState.winner == 1 ? "Defeat! The opponent wins." : "Draw! Both fighters are out.")
+            statusText = matchState.winner == 0 ? "Player 1 wins!" : (matchState.winner == 1 ? (twoHumanPlayers ? "Player 2 wins!" : "Computer wins!") : "Draw! Both fighters are out.")
             statusTime = 3600
-    playerDirections.clearPulse()
+    if matchState.phase != MATCH
+        clearHeldInputs()
+        clearSecondInputs()
+    else
+        firstKeyState.clearPulse()
+        secondKeyState.clearPulse()
     renderUI()
     if not readyMarkerWritten and playerBindings.ready
         readyMarkerWritten = true
@@ -826,11 +979,16 @@ function gameTick()
         Preload("BUILD " + BUILD_ID)
         Preload("SCENARIO " + (TECH_SCENARIO ? "tech" : (KNOCKDOWN_SCENARIO ? "knockdown" : "normal")))
         Preload("BINDINGS " + playerBindings.bindings.encode())
+        Preload("BINDINGS1 " + (twoHumanPlayers ? secondBindings.bindings.encode() : "BOT"))
         PreloadGenEnd("wc3-melee-ready.txt")
 
 function initGame()
+    hostHumanPlayer = GetPlayerController(Player(0)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(0)) == PLAYER_SLOT_STATE_PLAYING
+    twoHumanPlayers = hostHumanPlayer and GetPlayerController(Player(1)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(1)) == PLAYER_SLOT_STATE_PLAYING
+    matchState.setHumanCount(twoHumanPlayers ? 2 : 1)
     playerInput = new InputSnapshot()
     botInput = new InputSnapshot()
+    secondPlayerInput = new InputSnapshot()
     let center = GetRectCenter(GetPlayableMapRect())
     centerX = GetLocationX(center)
     centerY = GetLocationY(center)
@@ -847,8 +1005,10 @@ function initGame()
     helpFrame = frameText("MeleeHelp", 0.06, 0.095, 0.69, 0.055, 0.013)
     noticeFrame = frameText("MeleeNotice", 0.26, 0.47, 0.42, 0.07, 0.019)
     developerFrame = frameText("MeleeDeveloper", 0.06, 0.035, 0.72, 0.03, 0.010)
-    selectionPanel = new SelectionPanel(new MeleeSelectionActions())
-    settingsPanel = new SettingsPanel(playerBindings, new MeleeSettingsActions())
+    selectionPanel = new SelectionPanel(new MeleeSelectionActions(), 0)
+    settingsPanel = new SettingsPanel(playerBindings, new MeleeSettingsActions(0), 0)
+    secondSelectionPanel = new SelectionPanel(new MeleeSelectionActions(), 1)
+    secondSettingsPanel = new SettingsPanel(secondBindings, new MeleeSettingsActions(1), 1)
     blastLines[0] = drawLine(-920, -420, 920, -420, 1, 0.15, 0.15)
     blastLines[1] = drawLine(-920, 760, 920, 760, 1, 0.15, 0.15)
     blastLines[2] = drawLine(-920, -420, -920, 760, 1, 0.15, 0.15)
@@ -864,6 +1024,18 @@ function initGame()
     renderUI()
     setupKeys()
     playerBindings.initialize()
+    if twoHumanPlayers
+        secondBindings.initialize()
+    else
+        secondBindings.bindings.preset(false)
+        secondBindings.ready = true
+        secondBindings.revision++
+    let leaveTrigger = CreateTrigger()
+    TriggerRegisterPlayerEvent(leaveTrigger, Player(1), EVENT_PLAYER_LEAVE)
+    TriggerAddAction(leaveTrigger, function secondPlayerLeaves)
+    let hostLeaveTrigger = CreateTrigger()
+    TriggerRegisterPlayerEvent(hostLeaveTrigger, Player(0), EVENT_PLAYER_LEAVE)
+    TriggerAddAction(hostLeaveTrigger, function firstPlayerLeaves)
     gameTimer = CreateTimer()
     TimerStart(gameTimer, FRAME_SECONDS, true, function gameTick)
 

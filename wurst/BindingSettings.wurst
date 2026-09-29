@@ -6,6 +6,7 @@ import SaveLoadData
 public constant SETTINGS_FILE = "MeleePrototypeBindings"
 
 public class BindingSettings
+    private player owner
     public KeyBindings bindings = new KeyBindings(false)
     public boolean ready = false
     public boolean capturing = false
@@ -14,9 +15,12 @@ public class BindingSettings
     public int captureSlot = -1
     public string message = "Loading controls..."
 
+    construct(player owner)
+        this.owner = owner
+
     function initialize()
         bindings.preset(false)
-        Player(0).loadData(SETTINGS_FILE) (status, data) ->
+        owner.loadData(SETTINGS_FILE) (status, data) ->
             if status == SUCCESS and data != null
                 if not bindings.restore(data.getUnsafeString())
                     bindings.preset(false)
@@ -62,7 +66,7 @@ public class BindingSettings
         if not ready
             return
         capturing = false
-        Player(0).saveData(SETTINGS_FILE, bindings.encode())
+        owner.saveData(SETTINGS_FILE, bindings.encode())
         message = "Controls saved for next time."
 
     function cancelCapture()

@@ -3,10 +3,10 @@ import Wurst
 import ClosureFrames
 
 public abstract class SelectionActions
-    abstract function selectChoice(int choice)
-    abstract function confirmSelection()
-    abstract function backSelection()
-    abstract function openSettings()
+    abstract function selectChoice(int participantId, int choice)
+    abstract function confirmSelection(int participantId)
+    abstract function backSelection(int participantId)
+    abstract function openSettings(int participantId)
 
 // One instance lives for the match session; frames and listeners are reused.
 public class SelectionPanel
@@ -18,65 +18,81 @@ public class SelectionPanel
     framehandle description
     int lastState = -1
     int lastChoice = -1
+    int participantId
+    boolean lastEnabled = false
+    boolean lastReady = false
     boolean settingsOpen = false
 
-    construct(SelectionActions actions)
-        firstChoice = createFrame("ScriptDialogButton", GAME_UI, 0, 301)
+    construct(SelectionActions actions, int participantId)
+        this.participantId = participantId
+        let suffix = I2S(participantId)
+        let frameOffset = participantId * 100
+        firstChoice = createFrame("ScriptDialogButton", GAME_UI, 0, 301 + frameOffset)
         firstChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.06, 0.525)
         firstChoice.setSize(0.21, 0.05)
         firstChoice.onClick(() -> begin
-            if GetTriggerPlayer() == Player(0)
-                actions.selectChoice(0)
+            if GetTriggerPlayer() == Player(participantId)
+                actions.selectChoice(participantId, 0)
         end)
         firstChoice.onClickReleaseFocus()
-        secondChoice = createFrame("ScriptDialogButton", GAME_UI, 0, 302)
+        secondChoice = createFrame("ScriptDialogButton", GAME_UI, 0, 302 + frameOffset)
         secondChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.29, 0.525)
         secondChoice.setSize(0.21, 0.05)
         secondChoice.onClick(() -> begin
-            if GetTriggerPlayer() == Player(0)
-                actions.selectChoice(1)
+            if GetTriggerPlayer() == Player(participantId)
+                actions.selectChoice(participantId, 1)
         end)
         secondChoice.onClickReleaseFocus()
-        confirmButton = createFrame("ScriptDialogButton", GAME_UI, 0, 303)
+        confirmButton = createFrame("ScriptDialogButton", GAME_UI, 0, 303 + frameOffset)
         confirmButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.06, 0.41)
         confirmButton.setSize(0.21, 0.04)
         confirmButton.onClick(() -> begin
-            if GetTriggerPlayer() == Player(0)
-                actions.confirmSelection()
+            if GetTriggerPlayer() == Player(participantId)
+                actions.confirmSelection(participantId)
         end)
         confirmButton.onClickReleaseFocus()
-        backButton = createFrame("ScriptDialogButton", GAME_UI, 0, 304)
+        backButton = createFrame("ScriptDialogButton", GAME_UI, 0, 304 + frameOffset)
         backButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.29, 0.41)
         backButton.setSize(0.21, 0.04)
         backButton.setText("Back")
         backButton.onClick(() -> begin
-            if GetTriggerPlayer() == Player(0)
-                actions.backSelection()
+            if GetTriggerPlayer() == Player(participantId)
+                actions.backSelection(participantId)
         end)
         backButton.onClickReleaseFocus()
-        settingsButton = createFrame("ScriptDialogButton", GAME_UI, 0, 306)
+        settingsButton = createFrame("ScriptDialogButton", GAME_UI, 0, 306 + frameOffset)
         settingsButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.52, 0.41)
         settingsButton.setSize(0.16, 0.04)
         settingsButton.setText("Controls  [F1]")
         settingsButton.onClick(() -> begin
-            if GetTriggerPlayer() == Player(0)
-                actions.openSettings()
+            if GetTriggerPlayer() == Player(participantId)
+                actions.openSettings(participantId)
         end)
         settingsButton.onClickReleaseFocus()
-        description = createTextFrame("MeleeSelectionDescription", GAME_UI, 305)
+        description = createTextFrame("MeleeSelectionDescription" + suffix, GAME_UI, 305 + frameOffset)
         description.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.06, 0.462)
         description.setSize(0.50, 0.042)
+        firstChoice.setVisible(false)
+        secondChoice.setVisible(false)
+        confirmButton.setVisible(false)
+        backButton.setVisible(false)
+        settingsButton.setVisible(false)
+        description.setVisible(false)
 
-    function update(int menuState, int choice, boolean overlayOpen)
-        if menuState == lastState and choice == lastChoice and overlayOpen == settingsOpen
+    function update(int menuState, int choice, boolean overlayOpen, boolean enabled, boolean ready)
+        if menuState == lastState and choice == lastChoice and overlayOpen == settingsOpen and enabled == lastEnabled and ready == lastReady
             return
         lastState = menuState
         lastChoice = choice
         settingsOpen = overlayOpen
-        let selecting = menuState == 0 or menuState == 1
-        firstChoice.setVisible(selecting and not settingsOpen)
-        secondChoice.setVisible(selecting and not settingsOpen)
-        confirmButton.setVisible(selecting and not settingsOpen)
+        lastEnabled = enabled
+        lastReady = ready
+        if GetLocalPlayer() != Player(participantId)
+            return
+        let selecting = (menuState == 0 or menuState == 1) and enabled
+        firstChoice.setVisible(selecting and not settingsOpen and (menuState != 1 or participantId == 0))
+        secondChoice.setVisible(selecting and not settingsOpen and (menuState != 1 or participantId == 0))
+        confirmButton.setVisible(selecting and not settingsOpen and (menuState != 1 or participantId == 0))
         backButton.setVisible(menuState == 1 and not settingsOpen)
         settingsButton.setVisible(selecting and not settingsOpen)
         description.setVisible(selecting and not settingsOpen)
@@ -86,8 +102,8 @@ public class SelectionPanel
         let secondLabel = menuState == 0 ? "FALCO / Rifleman" : "THREE BRIDGES"
         firstChoice.setText(choice == 0 ? "|cffffd45a> " + firstLabel + "|r" : firstLabel)
         secondChoice.setText(choice == 1 ? "|cffffd45a> " + secondLabel + "|r" : secondLabel)
-        confirmButton.setText(menuState == 0 ? "Choose stage" : "Fight!")
+        confirmButton.setText(menuState == 0 ? (ready ? "Ready ✓" : "Confirm fighter") : "Fight!")
         if menuState == 0
-            description.setText(choice == 0 ? "Quick on the ground. Blaster shots build damage without stopping foes." : "Higher jumps. Blaster shots interrupt foes.")
+            description.setText(ready ? "You are ready. Waiting for the other fighter." : (choice == 0 ? "Quick on the ground. Blaster shots build damage without stopping foes." : "Higher jumps. Blaster shots interrupt foes."))
         else
-            description.setText(choice == 0 ? "One wide platform. Open skies on every side." : "A main deck and two raised platforms. Jump through; hold Down to drop.")
+            description.setText(participantId == 0 ? (choice == 0 ? "One wide platform. Open skies on every side." : "A main deck and two raised platforms. Jump through; hold Down to drop.") : "Player 1 chooses the stage.")

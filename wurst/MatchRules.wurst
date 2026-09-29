@@ -8,8 +8,93 @@ public constant int RESULT = 3
 public class MatchState
     int phase = CHARACTER_MENU
     int characterChoice = 0
+    int secondCharacterChoice = 1
     int stageChoice = 0
     int winner = -1
+    int humanCount = 1
+    boolean firstCharacterReady = false
+    boolean secondCharacterReady = false
+    boolean firstRematchReady = false
+    boolean secondRematchReady = false
+
+    function setHumanCount(int count)
+        humanCount = count == 2 ? 2 : 1
+        if humanCount == 1
+            secondCharacterReady = false
+            secondRematchReady = false
+
+    function characterFor(int slot) returns int
+        return slot == 1 ? secondCharacterChoice : characterChoice
+
+    function characterReady(int slot) returns boolean
+        return slot == 1 ? secondCharacterReady : firstCharacterReady
+
+    function selectCharacter(int slot, int choice)
+        if phase != CHARACTER_MENU or slot < 0 or slot > 1 or choice < 0 or choice > 1
+            return
+        if slot == 1
+            secondCharacterChoice = choice
+            secondCharacterReady = false
+        else
+            characterChoice = choice
+            firstCharacterReady = false
+
+    function confirmCharacter(int slot) returns boolean
+        if phase != CHARACTER_MENU or slot < 0 or slot >= humanCount
+            return false
+        if slot == 1
+            secondCharacterReady = true
+        else
+            firstCharacterReady = true
+        if firstCharacterReady and (humanCount == 1 or secondCharacterReady)
+            phase = STAGE_MENU
+            return true
+        return false
+
+    function unreadyCharacter(int slot)
+        if phase != CHARACTER_MENU or slot < 0 or slot >= humanCount
+            return
+        if slot == 1
+            secondCharacterReady = false
+        else
+            firstCharacterReady = false
+
+    function confirmStage(int slot) returns boolean
+        if phase != STAGE_MENU or slot != 0
+            return false
+        winner = -1
+        phase = MATCH
+        return true
+
+    function confirmRematch(int slot) returns boolean
+        if phase != RESULT or slot < 0 or slot >= humanCount
+            return false
+        if slot == 1
+            secondRematchReady = true
+        else
+            firstRematchReady = true
+        if firstRematchReady and (humanCount == 1 or secondRematchReady)
+            firstRematchReady = false
+            secondRematchReady = false
+            firstCharacterReady = false
+            secondCharacterReady = false
+            phase = CHARACTER_MENU
+            return true
+        return false
+
+    function backFor(int slot)
+        if phase == CHARACTER_MENU
+            unreadyCharacter(slot)
+            return
+        if slot == 1 and humanCount == 2 and phase == STAGE_MENU
+            phase = CHARACTER_MENU
+            firstCharacterReady = false
+            secondCharacterReady = false
+            return
+        if slot == 0 and phase == STAGE_MENU
+            phase = CHARACTER_MENU
+            firstCharacterReady = false
+            secondCharacterReady = false
 
     function selectChoice(int choice)
         if choice < 0 or choice > 1
@@ -21,19 +106,25 @@ public class MatchState
 
     function confirm()
         if phase == CHARACTER_MENU
-            phase = STAGE_MENU
+            confirmCharacter(0)
         else if phase == STAGE_MENU
-            winner = -1
-            phase = MATCH
+            confirmStage(0)
         else if phase == RESULT
-            phase = CHARACTER_MENU
+            confirmRematch(0)
 
     function back()
         if phase == STAGE_MENU
-            phase = CHARACTER_MENU
+            backFor(0)
 
     function resolveStocks(int firstStocks, int secondStocks)
         if phase != MATCH or (firstStocks > 0 and secondStocks > 0)
             return
         winner = firstStocks <= 0 ? (secondStocks <= 0 ? -1 : 1) : 0
         phase = RESULT
+
+    function forfeit(int losingSlot)
+        if losingSlot == 0 or losingSlot == 1
+            winner = 1 - losingSlot
+            phase = RESULT
+            firstRematchReady = false
+            secondRematchReady = false
