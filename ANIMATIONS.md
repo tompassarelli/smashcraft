@@ -4,8 +4,8 @@ Required initial clips from the owner: jab; forward tilt; up-angled forward
 tilt; down-angled forward tilt; jump; double jump; forward roll; backward roll;
 get-up attack. Blender 5.1.1 is installed. The first Archer jab is authored,
 exported and playing in the client. Forward/backward rolls and a spot dodge
-are now authored on the same rig, along with jump and double jump. Tilts and
-get-up attack remain unfinished; jab and spot dodge still need visual tuning
+are now authored on the same rig, along with jump, double jump, and three
+forward-tilt variants. Get-up attack remains unfinished; jab and spot dodge still need visual tuning
 at the normal camera distance.
 
 Preserve editable Blender scenes and exported Warcraft model assets. Author
@@ -119,8 +119,8 @@ change. The full extraction command passed in about five seconds.
 nix shell nixpkgs#gcc nixpkgs#bun --command bash /home/tom/code/wc3-melee/worktrees/test-loop/tools/animations/build-assets.sh
 ```
 
-This extracts local game assets, imports a fresh Archer scene, authors jab and
-the three evasion clips, exports MDL, and packages MDX plus generated Wurst clip metadata. Asset rebuilds
+This extracts local game assets, imports a fresh Archer scene, authors jab,
+evasion, jump and forward-tilt clips, exports MDL, and packages MDX plus generated Wurst clip metadata. Asset rebuilds
 are separate from the normal gameplay loop; wc3-melee:build.sh consumes their
 outputs without rerunning Blender. The asset command writes logs under
 ~/code/wc3-melee/worktrees/test-loop/build/animation-assets.
@@ -199,3 +199,20 @@ The generated Wurst model path and packaged archive entry use the same hash.
 This changes resource identity when an asset changes without restarting the
 client; unchanged model content retains the same path. A fixed-name restart
 kept the previous pose, whereas the new path loaded the regenerated pose.
+
+## Archer forward tilts
+
+The level, up-angled and down-angled forward tilts are authored in
+wc3-melee:tools/animations/dodges.py and packaged by
+wc3-melee:tools/animations/package.ts. Each uses 28 source frames, with
+extension at frame 5, a held strike through frame 7, and recovery to frame 28.
+The adapter scales exported durations to 28 simulation ticks and freezes
+playback during hitlag. Generated indices select clips independently of
+sequence ordering; simulation owns movement and hit coverage.
+
+The full asset build passed. Exported MDX → Blender side-view strike poses
+show distinct level, upward and downward arm positions; evidence is under
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/tilt-roundtrip-poses.
+These are first-pass animations, not finished Melee-quality motion. Rifleman
+still uses its stock attack animation. Native playback evidence and the tested
+build are recorded in wc3-melee:DEVELOPMENT.md.

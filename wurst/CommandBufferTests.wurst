@@ -47,3 +47,18 @@ import CommandBuffer
     second.consume(10, true).assertEquals(4)
     first.consumedFacing.assertEquals(1)
     second.consumedFacing.assertEquals(1)
+
+@Test function angledTiltsReachTheirFrameAndYieldToCStickSmashes()
+    for style = 9 to 10
+        let commands = new AttackBuffer(0)
+        commands.enqueue(style, -1, 10)
+        commands.consume(10, true).assertEquals(style)
+        commands.consumedFacing.assertEquals(-1)
+        commands.enqueue(style, -1, 11)
+        commands.enqueue(4, 1, 11)
+        commands.consume(11, true).assertEquals(4)
+        commands.enqueue(4, 1, 12)
+        commands.enqueue(style, -1, 12)
+        commands.consume(12, true).assertEquals(4)
+        commands.enqueue(11, 1, 13)
+        commands.consume(13, true).assertEquals(-1)

@@ -384,3 +384,32 @@ needs authored counterparts. A small detached arrow-like visual remains below
 the airborne Archer in the recording; this is a deferred presentation defect,
 not evidence of a physics fault. Inspect the asset's arrow attachment/animation
 when polishing these clips. Exact Melee feel and multiplayer remain unverified.
+
+## Angled forward tilts
+
+Holding Walk + Left/Right + Attack now selects forward tilt. Add Up or Down
+for its angled variant. Up/Down without horizontal input retains the existing
+up/down tilt. C-stick smashes still take priority on the same frame. The
+command queue accepts the new styles, and headless tests exercise their
+selection, timing, damage, vertical coverage, facing and range boundary.
+The aggregate suite passed 71/71 with zero compiler warnings/errors.
+
+Archer uses authored level/up/down clips, selected through generated metadata
+and scaled to move duration; hitlag pauses playback. Non-attacking animations
+now explicitly use normal playback speed rather than inheriting jab timing.
+The map build passed with the two existing SettingsUI initialization warnings.
+Build 223446 reloaded in 24.074 seconds with the same Warcraft process.
+Native recordings show accepted normal styles 6, 9 and 10 through the ordinary
+Walk/direction/Attack controls. Distinct strike poses were checked on the
+exported MDX roundtrip; differences remain subtle at normal in-game framing.
+These are prototype animations and hit shapes, not Melee parity.
+
+Evidence:
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/tilt-reload.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/tilt-flat-client.mp4
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/tilt-up-client.mp4
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/tilt-down-client.mp4
+
+The fixed camera remains enforced every presentation tick. Still outstanding:
+get-up/knockdown behavior and authored get-up attack, stronger jab/spot/tilt
+poses, the detached airborne arrow-like element, and multiplayer timing proof.

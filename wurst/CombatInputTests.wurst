@@ -25,3 +25,12 @@ import CombatInput
     normalAttackStyle(-1, 0, false).assertEquals(4)
     normalAttackStyle(0, 1, false).assertEquals(2)
     normalAttackStyle(0, -1, false).assertEquals(3)
+
+@Test function walkingDiagonalsAngleForwardTiltAndLeaveSmashSelectionUnchanged()
+    for horizontal = -1 to 1
+        if horizontal != 0
+            normalAttackStyle(horizontal, 1, true).assertEquals(9)
+            normalAttackStyle(horizontal, -1, true).assertEquals(10)
+            normalAttackStyle(horizontal, 0, true).assertEquals(6)
+            normalAttackStyle(horizontal, 1, false).assertEquals(2)
+            normalAttackStyle(horizontal, -1, false).assertEquals(3)

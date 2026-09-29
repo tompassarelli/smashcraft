@@ -27,7 +27,7 @@ public class AttackBuffer
         consumedFacing = 0
 
     function enqueue(int attackStyle, int direction, int frame)
-        if attackStyle < 0 or attackStyle > 8
+        if attackStyle < 0 or attackStyle > 10
             return
         // Same-frame directional commands take priority over neutral attacks.
         if targetFrame == frame and (attackPriority(style) > attackPriority(attackStyle) or (attackPriority(style) == attackPriority(attackStyle) and style > attackStyle))

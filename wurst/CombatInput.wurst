@@ -12,6 +12,12 @@ public function groundDodgeIntent(boolean shielding, boolean leftPressed, boolea
     return leftPressed ? -1 : 1
 
 public function normalAttackStyle(int horizontal, int vertical, boolean walking) returns int
+    if walking and horizontal != 0
+        if vertical > 0
+            return 9
+        if vertical < 0
+            return 10
+        return 6
     if vertical > 0
         return walking ? 7 : 2
     if vertical < 0

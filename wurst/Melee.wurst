@@ -476,10 +476,34 @@ function setupKeys()
     TriggerAddAction(upTrigger, function onKeyUp)
 
 function playAttackAnimation(Fighter fighter)
-    if fighter.character == 0 and fighter.attackStyle == 0
-        SetUnitAnimationByIndex(fighter.body, ARCHER_JAB_INDEX)
-    else
-        SetUnitAnimation(fighter.body, "attack")
+    if fighter.character == 0
+        if fighter.attackStyle == 0
+            SetUnitAnimationByIndex(fighter.body, ARCHER_JAB_INDEX)
+            return
+        if fighter.attackStyle == 6
+            SetUnitAnimationByIndex(fighter.body, ARCHER_FORWARD_TILT_INDEX)
+            return
+        if fighter.attackStyle == 9
+            SetUnitAnimationByIndex(fighter.body, ARCHER_FORWARD_TILT_UP_INDEX)
+            return
+        if fighter.attackStyle == 10
+            SetUnitAnimationByIndex(fighter.body, ARCHER_FORWARD_TILT_DOWN_INDEX)
+            return
+    SetUnitAnimation(fighter.body, "attack")
+
+function attackAnimationRate(Fighter fighter) returns real
+    if fighter.character != 0 or attackPhase(fighter) == ATTACK_NONE
+        return 1.
+    let seconds = fighter.attackDuration * FRAME_SECONDS
+    if fighter.attackStyle == 0
+        return ARCHER_JAB_SECONDS / seconds
+    if fighter.attackStyle == 6
+        return ARCHER_FORWARD_TILT_SECONDS / seconds
+    if fighter.attackStyle == 9
+        return ARCHER_FORWARD_TILT_UP_SECONDS / seconds
+    if fighter.attackStyle == 10
+        return ARCHER_FORWARD_TILT_DOWN_SECONDS / seconds
+    return 1.
 
 function groundDodgeAnimation(Fighter fighter) returns int
     if fighter.groundDodgeDirection == 0
@@ -507,7 +531,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
         f.animation = ""
     else if f.jumpAnimationRemaining > 0 and f.hitlag <= 0
         f.jumpAnimationRemaining--
-    var animationRate = f.character == 0 and f.attackStyle == 0 ? ARCHER_JAB_SECONDS / (f.attackDuration * FRAME_SECONDS) : 1.
+    var animationRate = attackAnimationRate(f)
     if f.character == 0 and isGroundDodging(f)
         let duration = f.groundDodgeDirection == 0 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES
         animationRate = groundDodgeAnimationSeconds(f) / (duration * FRAME_SECONDS)

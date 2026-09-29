@@ -180,7 +180,7 @@ both characters, not sourced Melee move data:
 | Up/down directional | 8 | 3 | 42 |
 | Left/right directional | 6 | 3 | 36 |
 | Grab | 5 | 2 | 36 |
-| Side/down tilt | 5 | 2 | 28 |
+| Forward tilt (flat/up-angled/down-angled), down tilt | 5 | 2 | 28 |
 | Up tilt | 6 | 2 | 29 |
 
 Warcraft's stock attack animation begins on accepted attack startup; it is
@@ -196,6 +196,16 @@ damage is 10 side / 8 up / 8 down. These and the ground/air blaster timing
 difference are provisional tuning. Blaster duration is captured at attack
 start, so landing cannot rewrite its recovery. Aerial normal attacks and
 charged smashes still need their own move behavior.
+
+Holding Walk with horizontal input selects forward tilt; adding Up or Down
+selects its angled variant. Vertical input alone keeps up/down tilt, and
+C-stick smashes retain priority over a normal tilt on the same frame.
+All three forward tilts deal 10 damage with 145 horizontal reach. Their
+vertical hit coverage is centered at 0 / +65 / -65 relative to the fighter,
+with the existing 130-unit vertical tolerance. These are prototype hit shapes,
+not measured Melee hitboxes. Launch direction still uses the shared diagonal
+knockback calculation. Headless tests cover selection, queue acceptance,
+timing, damage, vertical hits/misses, facing and the horizontal range edge.
 
 ## Moving blaster shots
 
