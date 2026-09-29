@@ -354,7 +354,7 @@ public class SelectionPanel
             firstChoicePortrait.setTexture("war3mapImported\\SelectionStage.tga", 0, true)
             secondChoicePortrait.setTexture("war3mapImported\\SelectionStage.tga", 0, true)
             selectedName.setText((participantId == 0 ? "|cffff5555P1  |r" : "|cff6699ffP2  |r") + characterName(ownCharacter))
-            selectedStatus.setText(choice == 0 ? "One wide platform · open blast zones" : "Three floating platforms · open blast zones")
+            selectedStatus.setText(choice == 0 ? "One wide platform" : "Three floating platforms")
             opponentName.setText(opponentHuman ? (participantId == 0 ? "|cff6699ffP2  |r" : "|cffff5555P1  |r") + characterName(opponentChoice) : "|cffc6cbd4BOT  |r" + characterName(opponentChoice))
             opponentStatus.setText((participantId == 0 ? characterName(ownCharacter) : characterName(opponentChoice)) + "  vs  " + (participantId == 0 ? characterName(opponentChoice) : characterName(ownCharacter)))
             if ownCharacter == 0

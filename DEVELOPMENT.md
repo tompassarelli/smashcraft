@@ -1049,6 +1049,35 @@ session, validate fighter clicks, stage/back texture restoration and controls
 focus, then observe the ledge fixture. Do not infer two-client synchronization
 from the headless tests or this rendering check.
 
+### Native follow-up
+
+Reopening the existing Steam Battle.net shortcut restored a signed-in launcher
+without credential entry. Launched Warcraft through Play, created the map in
+Single Player, and loaded selection-normal. The old client was gone; this new
+session is PID 3986327. The cause of the old host-wait remains unresolved.
+
+Mouse clicks selected Rifleman and Archer and updated both player cards.
+Controls opened by mouse; Escape closed it and N then confirmed the fighter.
+Mouse Back from stage select restored both character tile images. Mouse
+confirmation and Three Bridges selection reached a match; I jump input put
+Archer airborne at z=59. The corrected nameplates render inside their borders.
+Screenshots are in
+~/code/wc3-melee/worktrees/test-loop/build/selection-assets/:
+mouse-rifleman.png, back-restored.png, mouse-stage.png, and playable.png.
+The narrow stage description clipped, so its text now names only the platform
+layout. The backdrop still leaves scene strips at the sides on this client;
+calling the stdlib fullscreen helper did not remove them. That presentation
+issue and reference fidelity remain open.
+
+Ledge fixture build 074203 reloaded in 22.437 seconds with the same game PID.
+The climb probe passed: catch at tick 3, (-642,-60); climb entered at tick 73;
+ordinary grounded state at tick 98, (-576,0). Its trace and hang/option captures
+are in ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/ledge-climb/.
+Those files now contain the successful follow-up; the earlier host-wait image
+remains at ~/code/wc3-melee/worktrees/test-loop/build/selection-assets/current.png.
+Only catch/climb was checked natively in this pass; the other options have
+headless coverage. Dedicated hanging/climbing animation work remains necessary.
+
 Build 070118 compiled and deployed with the three existing map warnings.
 Automatic restart correctly stopped after focus changed; direct F6 followed
 by Enter at the observed loading prompt completed the restart without another
