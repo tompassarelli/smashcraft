@@ -167,6 +167,7 @@ class MeleeSettingsActions extends SettingsActions
 
 class Fighter extends FighterState
     unit body
+    effect shieldEffect = null
     string animation = ""
     int jumpAnimationRemaining = 0
     boolean doubleJumpAnimation = false
@@ -188,9 +189,32 @@ class Fighter extends FighterState
         SetUnitFlyHeight(body, 1800 + z, 0)
         BlzSetUnitFacingEx(body, facing > 0 ? 0 : 180)
 
+    function clearShieldEffect()
+        if shieldEffect != null
+            BlzSetSpecialEffectScale(shieldEffect, 0.)
+            DestroyEffect(shieldEffect)
+            shieldEffect = null
+
+    function renderShield()
+        if not shield or out or matchState.phase != MATCH
+            clearShieldEffect()
+            return
+        if shieldEffect == null
+            shieldEffect = AddSpecialEffect(Abilities.antiMagicShell, centerX + x, centerY)
+            BlzSetSpecialEffectAlpha(shieldEffect, 180)
+        let scale = 0.7 + 0.5 * shieldEnergy / SHIELD_MAX
+        // AntiMagicShell's Stand bounds center is 47.6 units below its origin.
+        BlzSetSpecialEffectPosition(shieldEffect, centerX + x, centerY, floorHeight + z + 50 + 47.6 * scale)
+        BlzSetSpecialEffectScale(shieldEffect, scale)
+
 
 function charName(int which) returns string
     return which == 0 ? "Archer" : "Rifleman"
+
+function shieldLabel(Fighter fighter) returns string
+    let percent = R2I(100 * fighter.shieldEnergy / SHIELD_MAX)
+    let color = percent <= 25 ? "|cffff6666" : (percent <= 50 ? "|cffffd64a" : "|cff8dff9a")
+    return color + "Shield " + I2S(percent) + "%|r"
 
 function charModel(int which) returns string
     return which == 0 ? "Archer" : "Rifleman"
@@ -268,10 +292,12 @@ function drawStage()
 function removeFighters()
     clearProjectileLines()
     if playerFighter != null
+        playerFighter.clearShieldEffect()
         RemoveUnit(playerFighter.body)
         destroy playerFighter
         playerFighter = null
     if botFighter != null
+        botFighter.clearShieldEffect()
         RemoveUnit(botFighter.body)
         destroy botFighter
         botFighter = null
@@ -313,7 +339,13 @@ function applyFrame()
     let botPreviousJump = botFighter.jumpSerial
     let playerPreviousDown = playerFighter.downState
     let playerPreviousLCancel = playerFighter.lCancelSerial
+    let playerPreviousShieldEnergy = playerFighter.shieldEnergy
+    let botPreviousShieldEnergy = botFighter.shieldEnergy
     stepMatch(matchState, playerFighter, botFighter, playerInput, twoHumanPlayers ? secondPlayerInput : botInput, playerAttacks, botAttacks, simulationFrame)
+    if playerPreviousShieldEnergy > 0 and playerFighter.shieldEnergy == 0
+        announce("Player 1's shield broke!")
+    else if botPreviousShieldEnergy > 0 and botFighter.shieldEnergy == 0
+        announce(twoHumanPlayers ? "Player 2's shield broke!" : "Opponent's shield broke!")
     if playerFighter.jumpSerial != playerPreviousJump
         traceInput("jump " + I2S(playerFighter.jumpSerial) + " double " + (playerFighter.jumpIsDouble ? "1" : "0") + " z " + R2S(playerFighter.z))
     if playerFighter.lCancelSerial > playerPreviousLCancel
@@ -744,6 +776,7 @@ function groundDodgeAnimationSeconds(Fighter fighter) returns real
     return fighter.groundDodgeDirection == fighter.facing ? (fighter.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS) : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_SECONDS : RIFLEMAN_ROLL_BACKWARD_SECONDS)
 
 function renderFighter(Fighter f, boolean wasOut, boolean jumped)
+    f.renderShield()
     if wasOut and not f.out
         ShowUnit(f.body, true)
     else if not wasOut and f.out
@@ -807,7 +840,7 @@ function renderUI()
         BlzFrameSetVisible(helpFrame, not selecting and not controlsOpen)
         BlzFrameSetVisible(noticeFrame, not controlsOpen)
         if not selecting
-            BlzFrameSetText(hudFrame, charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "          " + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "\n" + (matchState.stageChoice == 0 ? "Sky Deck" : "Three Bridges") + "   |cffff6666Red border = KO|r")
+            BlzFrameSetText(hudFrame, "P1 " + charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "   " + shieldLabel(playerFighter) + "\n" + (twoHumanPlayers ? "P2 " : "Bot ") + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "   " + shieldLabel(botFighter) + "\n" + (matchState.stageChoice == 0 ? "Sky Deck" : "Three Bridges") + "   |cffff6666Red border = KO|r")
             BlzFrameSetText(helpFrame, matchState.phase == RESULT ? (matchState.firstRematchReady and twoHumanPlayers ? "Player 1 ready; waiting for Player 2. F6: restart" : (matchState.secondRematchReady and twoHumanPlayers ? "Player 2 ready; waiting for Player 1. F6: restart" : "Press Attack to choose your next match     F6: restart")) : "Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.")
             if matchState.phase == MATCH and playerFighter.downState == DOWN_WAIT
                 BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
@@ -1004,7 +1037,7 @@ function initGame()
     FogMaskEnable(false)
     titleFrame = frameText("MeleeTitle", 0.06, 0.56, 0.68, 0.04, 0.023)
     menuFrame = frameText("MeleeMenu", 0.06, 0.505, 0.68, 0.19, 0.017)
-    hudFrame = frameText("MeleeScore", 0.06, 0.555, 0.68, 0.06, 0.019)
+    hudFrame = frameText("MeleeScore", 0.06, 0.555, 0.68, 0.09, 0.019)
     helpFrame = frameText("MeleeHelp", 0.06, 0.095, 0.69, 0.055, 0.013)
     noticeFrame = frameText("MeleeNotice", 0.26, 0.47, 0.42, 0.07, 0.019)
     developerFrame = frameText("MeleeDeveloper", 0.06, 0.035, 0.72, 0.03, 0.010)

@@ -932,3 +932,27 @@ remain open; the overall goal is still active.
 Normal-play build 063954 was restored afterward and reported ready in 37.284
 seconds in the same client. Its ready marker reports SCENARIO normal. Evidence:
 ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/rifleman-playable-reload.log.
+
+## Shield presentation (2026-09-30)
+
+The HUD now shows each fighter's shield strength, colored green, yellow at 50%
+and red at 25%. An active guard displays Warcraft's AntiMagicShell effect;
+its size follows shield energy. Release, break, stock loss and fighter removal
+clear the owned effect. A transition to zero energy announces the break. This
+pass changes presentation only; SHIELD_MAX is exposed for the adapter instead
+of duplicating the capacity constant.
+
+The first native check showed the shell below the platform. Reading the installed
+model's Stand bounds found its center at approximately Z=-47.6; placement now
+compensates for that offset at the current scale. Build 064457 reloaded in
+37.003 seconds, retaining the client. In the corrected recording, Archer guards
+inside the shell at 71% shield with 0% damage, then reaches shield break with
+the notice visible and the depleted resource recovering. The stock effect can
+show a brief death burst when destroyed; it no longer grants protection then.
+
+Repeat from default character selection in a normal solo match using
+wc3-melee:tools/probe-shield-visual.sh. Evidence is
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/shield-visual.mp4,
+shield-raised.png, shield-low.png and shield-released.png in the same directory.
+The rendering check is not a new simulation test: the previous 149/149 result
+remains the latest full simulation run. Known map compiler warnings remain.

@@ -500,3 +500,13 @@ current attack or action lock, Down still drops through passable platforms.
 The command queue's actual frame window determines whether an attack is current;
 expired and future commands do not suppress movement. This is our digital-input
 priority rule. Analog shield dropping and stick-threshold fidelity remain open.
+
+## Shield presentation boundary
+
+The guard shell and HUD percentage read shieldEnergy/SHIELD_MAX; they do not
+resolve collision. The shell shrinks as energy drains, while the current
+prototype still blocks eligible contacts through its existing whole-fighter
+shield rule. Shield tilting, geometric shield pokes, analog light shielding and
+Melee's full shield-break launch/dizzy sequence remain differences. The current
+break penalty is the existing 40-frame hitstun rule. Green/yellow/red HUD colors
+and the Warcraft spell shell are presentation choices, not reference parameters.
