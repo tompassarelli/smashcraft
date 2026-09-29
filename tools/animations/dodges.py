@@ -21,6 +21,32 @@ scene = bpy.context.scene
 rig = next(obj for obj in scene.objects if obj.type == "ARMATURE")
 bone_names = {bone.name for bone in rig.data.bones}
 
+# Archer's source model animates a separate arrow geoset along the Arrow bone.
+# Gameplay shots are simulated and rendered by Wurst, so omit that travelling
+# projectile geometry from the fighter while retaining the skeleton.
+arrow_geosets = []
+for mesh in (obj for obj in scene.objects if obj.type == "MESH"):
+    arrow_group = mesh.vertex_groups.get("Arrow")
+    if arrow_group is None:
+        continue
+    weighted_groups = {
+        element.group
+        for vertex in mesh.data.vertices
+        for element in vertex.groups
+        if element.weight > 0
+    }
+    if weighted_groups == {arrow_group.index}:
+        arrow_geosets.append(mesh)
+if len(arrow_geosets) != 1:
+    raise RuntimeError(f"expected one Arrow-only projectile geoset, found {len(arrow_geosets)}")
+removed_mesh_names = [mesh.name for mesh in arrow_geosets]
+for mesh in arrow_geosets:
+    mesh_data = mesh.data
+    bpy.data.objects.remove(mesh, do_unlink=True)
+    if mesh_data.users == 0:
+        bpy.data.meshes.remove(mesh_data)
+print("REMOVED_AUTHORED_PROJECTILE_GEOMETRY", removed_mesh_names)
+
 required = {
     "Bone_Root", "Bone_Pelvis", "Bone_Chest", "Bone_Head",
     "Bone_Arm1_R", "Bone_Arm2_R", "Bone_Arm1_L", "Bone_Arm2_L",

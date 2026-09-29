@@ -240,3 +240,23 @@ knockdown reset and repeating get-up attack. It now consumes the per-action
 Blender export regression covers explicit true, false, default and imported
 flags. Our authored moves set that property; Stand/Walk remain looping.
 Generated model bytes are not patched. Rebuild through the normal asset command.
+
+## Archer projectile ownership
+
+The fighter no longer includes the stock model's independently animated arrow
+geoset. wc3-melee:tools/animations/dodges.py removes the unique mesh weighted
+only to Arrow, retaining the bone. Actual shots use a separate ArrowMissile
+effect positioned by the simulation and destroyed when the shot becomes inactive.
+
+The exporter also now preserves animated and single-key geoset visibility:
+~/code/mdl-exporter4/worktrees/blender5 commits edb31e4, 3791fbf, and 40fd706.
+The actual-model roundtrip regression failed before repair and passed afterward.
+The ordinary asset build completed successfully; its final three geosets retain
+their visibility tracks. Model SHA-256:
+e9aadd07b65d01276ecc0a582ce48c340f713c17d958e1cb29a45f8b9ff44346.
+
+Native build 062042 shows the shot leaving Archer, moving toward Rifleman, and
+vanishing after contact as Rifleman's damage increases. No separate animated
+arrow follows Archer. Recorded evidence:
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/arrow-native.mp4
+and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/arrow-contact-sheet.png.

@@ -18,6 +18,7 @@ Paths below use `melee:` for ~/code/resources/melee.
 | Character movement | melee:src/melee/ft/types.h, ftCo_DatAttrs | Gravity, terminal fall velocity, fast-fall velocity, air drift, ground friction, jump velocity, and jump startup are separate character parameters. Test caps and transitions separately. |
 | Air dodge | melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c | Direction chooses a velocity of common magnitude; neutral input produces zero initial dodge velocity. Dodge velocity decays. Ground contact enters special landing. Test diagonal normalization and retained horizontal motion through landing. |
 | Shield | melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c | Shield health and analog shield strength affect shield size; held shield drains health. Our keyboard controls initially provide a full-strength digital shield. |
+| Shield grab | melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c; melee:src/melee/ft/kinds/ftCommon/ftCo_Catch.c | The active guard input handler accepts grab while shield is held and begins the catch action. Our simulation lets only grounded grab (style 5) start directly from an active, unstunned shield; it keeps hitlag, hitstun, shieldstun, landing, cooldown and other action locks in force. Starting that grab drops the shield without adding shield-release lag. Grab during shield-release lag is not implemented. |
 | Knockback | melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c; melee:src/melee/ft/types.h | Knockback magnitude/angle, damage state, and hitlag callbacks are distinct. Common data includes per-frame knockback decay; character data includes weight. Keep hitlag and hitstun separate. |
 
 Many numerical values are loaded through common/character data rather than
@@ -340,12 +341,16 @@ targets do not absorb a shot. Shields absorb it without freezing the distant
 shooter. Fox deals 3 damage without flinch; Falco deals 3 damage and at least
 11 frames of hitstun. These damage/stun values are provisional.
 
-Initial projectile tuning is 36 Warcraft units per frame and 30 ticks of life
-(1,080 units of travel), emitted 35 units ahead and 75 units above the fighter's
+Projectile tuning is 36 Warcraft units per frame and 60 ticks of life
+(2,160 units of travel), emitted 35 units ahead and 75 units above the fighter's
 feet. The simplified target center is 45 units above the feet, with 24 units
 of horizontal radius and 36 units of vertical tolerance. These are prototype
-collision dimensions, not reconstructed Melee hitboxes. Beam rendering reads
-simulation positions; it does not determine contact.
+collision dimensions, not reconstructed Melee hitboxes. The increased range
+lets a shot cross the arena rather than expire halfway through a long shot.
+Archer's arrow effect and Rifleman's beam read simulation positions and are
+removed when the simulation consumes or expires the shot; neither visual
+determines contact. The Archer fighter asset excludes its separately animated
+traveling arrow so that only the simulated projectile appears in flight.
 
 ## Ground dodge controls
 

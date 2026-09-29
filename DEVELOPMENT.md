@@ -869,3 +869,29 @@ constructor warnings and an unused-import warning. Reload evidence:
 ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/shield-release-reload.log.
 Exact native shield-release cancel timing remains unmeasured; the headless tests
 prove the simulation transition at every release-recovery tick.
+
+## Projectile, selection, and jump corrections (2026-09-30)
+
+Player-facing fighter names are Archer and Rifleman. Space remains directional
+Up; tap-jump is disabled. Dedicated custom jump keys I and 9 both produced a
+native ground jump followed by a double-jump. Reproduce from character select
+with wc3-melee:tools/probe-jump-input.sh I or the same command with 9. Trace
+records are under ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/jump-input-I/
+and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/jump-input-9/.
+
+The projectile regression covers both fighters and both directions across
+1,600 world units, removal on contact, and no repeated damage. The full suite
+passed 149/149 after increasing shot lifetime to 60 simulation ticks. Evidence:
+~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/projectile-range-after.log.
+Headless tests establish collision and lifetime, not visible arrow playback.
+
+Build 062042 loaded the repaired fighter asset and final portrait labels in
+36.345 seconds without replacing the Warcraft process. Native mouse checks
+selected Rifleman, switched back to Archer, confirmed, selected Three Bridges,
+switched to Sky Deck, and started the match. U then fired shots, proving game
+hotkeys still work after the frame clicks. The recording shows a moving arrow,
+contact with Rifleman, increased damage, and disappearance afterward. Portrait
+and stage screenshots and arrow-native.mp4 are under
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/.
+The map build retains the known SettingsUI and unused-import warnings.
+Two-client synchronization remains unverified.

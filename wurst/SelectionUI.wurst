@@ -8,102 +8,277 @@ public abstract class SelectionActions
     abstract function backSelection(int participantId)
     abstract function openSettings(int participantId)
 
-// One instance lives for the match session; frames and listeners are reused.
+function characterName(int choice) returns string
+    return choice == 0 ? "Archer" : "Rifleman"
+
+// One local view per participant. Handles are created on every client, hidden
+// immediately, then shown only to their owning player by update().
 public class SelectionPanel
+    framehandle backdrop
+    framehandle heading
+    framehandle subheading
     framehandle firstChoice
     framehandle secondChoice
+    framehandle firstChoicePortrait
+    framehandle secondChoicePortrait
+    framehandle firstChoiceName
+    framehandle secondChoiceName
+    framehandle playerOneCard
+    framehandle playerTwoCard
+    framehandle selectedPortrait
+    framehandle selectedName
+    framehandle selectedStatus
+    framehandle opponentPortrait
+    framehandle opponentName
+    framehandle opponentStatus
     framehandle confirmButton
     framehandle backButton
     framehandle settingsButton
-    framehandle description
     int lastState = -1
     int lastChoice = -1
+    int lastOwnCharacter = -1
+    int lastOpponentChoice = -1
     int participantId
     boolean lastEnabled = false
     boolean lastReady = false
+    boolean lastOpponentReady = false
+    boolean lastOpponentHuman = false
     boolean settingsOpen = false
 
     construct(SelectionActions actions, int participantId)
         this.participantId = participantId
         let suffix = I2S(participantId)
         let frameOffset = participantId * 100
-        firstChoice = createFrame("ScriptDialogButton", GAME_UI, 0, 301 + frameOffset)
-        firstChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.06, 0.525)
-        firstChoice.setSize(0.21, 0.05)
+
+        backdrop = createBackdrop("MeleeSelectBackdrop" + suffix, GAME_UI, 400 + frameOffset)
+        backdrop.setTexture("UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0, false)
+        backdrop.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.045, 0.565)
+        backdrop.setSize(0.71, 0.49)
+
+        heading = createTextFrame("MeleeSelectHeading" + suffix, GAME_UI, 401 + frameOffset)
+        heading.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.075, 0.535)
+        heading.setSize(0.65, 0.045)
+        BlzFrameSetFont(heading, "Fonts\\FRIZQT__.TTF", 0.021, 0)
+        BlzFrameSetTextAlignment(heading, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT)
+
+        subheading = createTextFrame("MeleeSelectSubheading" + suffix, GAME_UI, 402 + frameOffset)
+        subheading.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.077, 0.498)
+        subheading.setSize(0.64, 0.03)
+        BlzFrameSetFont(subheading, "Fonts\\FRIZQT__.TTF", 0.0105, 0)
+        BlzFrameSetTextAlignment(subheading, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT)
+
+        playerOneCard = createBackdrop("MeleeSelectP1Card" + suffix, GAME_UI, 403 + frameOffset)
+        playerOneCard.setTexture("UI\\Console\\Human\\TeamColor00.blp", 0, false)
+        playerOneCard.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.085, 0.315)
+        playerOneCard.setSize(0.31, 0.16)
+        playerOneCard.setAlpha(190)
+
+        playerTwoCard = createBackdrop("MeleeSelectP2Card" + suffix, GAME_UI, 404 + frameOffset)
+        playerTwoCard.setTexture("ReplaceableTextures\\TeamColor\\TeamColor01.blp", 0, false)
+        playerTwoCard.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.425, 0.315)
+        playerTwoCard.setSize(0.31, 0.16)
+        playerTwoCard.setAlpha(190)
+
+        firstChoice = createFrame("ScriptDialogButton", GAME_UI, 0, 407 + frameOffset)
+        firstChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.105, 0.455)
+        firstChoice.setSize(0.265, 0.135)
         firstChoice.onClick(() -> begin
             if GetTriggerPlayer() == Player(participantId)
                 actions.selectChoice(participantId, 0)
         end)
         firstChoice.onClickReleaseFocus()
-        secondChoice = createFrame("ScriptDialogButton", GAME_UI, 0, 302 + frameOffset)
-        secondChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.29, 0.525)
-        secondChoice.setSize(0.21, 0.05)
+
+        secondChoice = createFrame("ScriptDialogButton", GAME_UI, 0, 408 + frameOffset)
+        secondChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.43, 0.455)
+        secondChoice.setSize(0.265, 0.135)
         secondChoice.onClick(() -> begin
             if GetTriggerPlayer() == Player(participantId)
                 actions.selectChoice(participantId, 1)
         end)
         secondChoice.onClickReleaseFocus()
-        confirmButton = createFrame("ScriptDialogButton", GAME_UI, 0, 303 + frameOffset)
-        confirmButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.06, 0.41)
-        confirmButton.setSize(0.21, 0.04)
+
+        firstChoicePortrait = createBackdrop("MeleeArcherChoicePortrait" + suffix, firstChoice, 421 + frameOffset)
+        firstChoicePortrait.setTexture("ReplaceableTextures\\CommandButtons\\BTNArcher.blp", 0, false)
+        firstChoicePortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.2825, 0.444)
+        firstChoicePortrait.setSize(0.095, 0.095)
+        BlzFrameSetEnable(firstChoicePortrait, false)
+        secondChoicePortrait = createBackdrop("MeleeRiflemanChoicePortrait" + suffix, secondChoice, 422 + frameOffset)
+        secondChoicePortrait.setTexture("ReplaceableTextures\\CommandButtons\\BTNRifleman.blp", 0, false)
+        secondChoicePortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.4225, 0.444)
+        secondChoicePortrait.setSize(0.095, 0.095)
+        BlzFrameSetEnable(secondChoicePortrait, false)
+        firstChoiceName = createTextFrame("MeleeArcherChoiceName" + suffix, firstChoice, 423 + frameOffset)
+        firstChoiceName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.275, 0.347)
+        firstChoiceName.setSize(0.11, 0.025)
+        BlzFrameSetTextAlignment(firstChoiceName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
+        BlzFrameSetEnable(firstChoiceName, false)
+        secondChoiceName = createTextFrame("MeleeRiflemanChoiceName" + suffix, secondChoice, 424 + frameOffset)
+        secondChoiceName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.415, 0.347)
+        secondChoiceName.setSize(0.11, 0.025)
+        BlzFrameSetTextAlignment(secondChoiceName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
+        BlzFrameSetEnable(secondChoiceName, false)
+
+        selectedPortrait = createBackdrop("MeleeSelectedPortrait" + suffix, GAME_UI, 409 + frameOffset)
+        selectedPortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, participantId == 0 ? 0.11 : 0.45, 0.275)
+        selectedPortrait.setSize(0.12, 0.12)
+        selectedName = createTextFrame("MeleeSelectedName" + suffix, GAME_UI, 410 + frameOffset)
+        selectedName.setAbsPoint(FRAMEPOINT_TOPLEFT, participantId == 0 ? 0.235 : 0.575, 0.300)
+        selectedName.setSize(0.16, 0.042)
+        BlzFrameSetFont(selectedName, "Fonts\\FRIZQT__.TTF", 0.019, 0)
+        BlzFrameSetTextAlignment(selectedName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT)
+        selectedStatus = createTextFrame("MeleeSelectedStatus" + suffix, GAME_UI, 411 + frameOffset)
+        selectedStatus.setAbsPoint(FRAMEPOINT_TOPLEFT, participantId == 0 ? 0.235 : 0.575, 0.253)
+        selectedStatus.setSize(0.16, 0.034)
+        BlzFrameSetFont(selectedStatus, "Fonts\\FRIZQT__.TTF", 0.0105, 0)
+        BlzFrameSetTextAlignment(selectedStatus, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT)
+
+        opponentPortrait = createBackdrop("MeleeOpponentPortrait" + suffix, GAME_UI, 412 + frameOffset)
+        opponentPortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, participantId == 0 ? 0.45 : 0.11, 0.275)
+        opponentPortrait.setSize(0.12, 0.12)
+        opponentName = createTextFrame("MeleeOpponentName" + suffix, GAME_UI, 413 + frameOffset)
+        opponentName.setAbsPoint(FRAMEPOINT_TOPLEFT, participantId == 0 ? 0.575 : 0.235, 0.300)
+        opponentName.setSize(0.16, 0.042)
+        BlzFrameSetFont(opponentName, "Fonts\\FRIZQT__.TTF", 0.016, 0)
+        BlzFrameSetTextAlignment(opponentName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT)
+        opponentStatus = createTextFrame("MeleeOpponentStatus" + suffix, GAME_UI, 414 + frameOffset)
+        opponentStatus.setAbsPoint(FRAMEPOINT_TOPLEFT, participantId == 0 ? 0.575 : 0.235, 0.253)
+        opponentStatus.setSize(0.16, 0.034)
+        BlzFrameSetFont(opponentStatus, "Fonts\\FRIZQT__.TTF", 0.0095, 0)
+        BlzFrameSetTextAlignment(opponentStatus, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT)
+
+        confirmButton = createFrame("ScriptDialogButton", GAME_UI, 0, 415 + frameOffset)
+        confirmButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.105, 0.135)
+        confirmButton.setSize(0.18, 0.047)
         confirmButton.onClick(() -> begin
             if GetTriggerPlayer() == Player(participantId)
                 actions.confirmSelection(participantId)
         end)
         confirmButton.onClickReleaseFocus()
-        backButton = createFrame("ScriptDialogButton", GAME_UI, 0, 304 + frameOffset)
-        backButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.29, 0.41)
-        backButton.setSize(0.21, 0.04)
+
+        backButton = createFrame("ScriptDialogButton", GAME_UI, 0, 416 + frameOffset)
+        backButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.305, 0.135)
+        backButton.setSize(0.15, 0.047)
         backButton.setText("Back")
         backButton.onClick(() -> begin
             if GetTriggerPlayer() == Player(participantId)
                 actions.backSelection(participantId)
         end)
         backButton.onClickReleaseFocus()
-        settingsButton = createFrame("ScriptDialogButton", GAME_UI, 0, 306 + frameOffset)
-        settingsButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.52, 0.41)
-        settingsButton.setSize(0.16, 0.04)
+
+        settingsButton = createFrame("ScriptDialogButton", GAME_UI, 0, 417 + frameOffset)
+        settingsButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.475, 0.135)
+        settingsButton.setSize(0.22, 0.047)
         settingsButton.setText("Controls  [F1]")
         settingsButton.onClick(() -> begin
             if GetTriggerPlayer() == Player(participantId)
                 actions.openSettings(participantId)
         end)
         settingsButton.onClickReleaseFocus()
-        description = createTextFrame("MeleeSelectionDescription" + suffix, GAME_UI, 305 + frameOffset)
-        description.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.06, 0.462)
-        description.setSize(0.50, 0.042)
+
+        backdrop.setVisible(false)
+        heading.setVisible(false)
+        subheading.setVisible(false)
         firstChoice.setVisible(false)
         secondChoice.setVisible(false)
+        playerOneCard.setVisible(false)
+        playerTwoCard.setVisible(false)
+        selectedPortrait.setVisible(false)
+        selectedName.setVisible(false)
+        selectedStatus.setVisible(false)
+        opponentPortrait.setVisible(false)
+        opponentName.setVisible(false)
+        opponentStatus.setVisible(false)
         confirmButton.setVisible(false)
         backButton.setVisible(false)
         settingsButton.setVisible(false)
-        description.setVisible(false)
 
-    function update(int menuState, int choice, boolean overlayOpen, boolean enabled, boolean ready)
-        if menuState == lastState and choice == lastChoice and overlayOpen == settingsOpen and enabled == lastEnabled and ready == lastReady
+    function update(int menuState, int choice, boolean overlayOpen, boolean enabled, boolean ready,
+        int ownCharacter, int opponentChoice, boolean opponentHuman, boolean opponentReady)
+        if menuState == lastState and choice == lastChoice and overlayOpen == settingsOpen and enabled == lastEnabled and ready == lastReady and ownCharacter == lastOwnCharacter and opponentChoice == lastOpponentChoice and opponentHuman == lastOpponentHuman and opponentReady == lastOpponentReady
             return
         lastState = menuState
         lastChoice = choice
         settingsOpen = overlayOpen
         lastEnabled = enabled
         lastReady = ready
+        lastOwnCharacter = ownCharacter
+        lastOpponentChoice = opponentChoice
+        lastOpponentHuman = opponentHuman
+        lastOpponentReady = opponentReady
         if GetLocalPlayer() != Player(participantId)
             return
+
         let selecting = (menuState == 0 or menuState == 1) and enabled
-        firstChoice.setVisible(selecting and not settingsOpen and (menuState != 1 or participantId == 0))
-        secondChoice.setVisible(selecting and not settingsOpen and (menuState != 1 or participantId == 0))
-        confirmButton.setVisible(selecting and not settingsOpen and (menuState != 1 or participantId == 0))
-        backButton.setVisible(menuState == 1 and not settingsOpen)
-        settingsButton.setVisible(selecting and not settingsOpen)
-        description.setVisible(selecting and not settingsOpen)
-        if not selecting
+        let visible = selecting and not settingsOpen
+        backdrop.setVisible(visible)
+        heading.setVisible(visible)
+        subheading.setVisible(visible)
+        firstChoice.setVisible((menuState == 0 and visible) or (participantId == 0 and visible))
+        secondChoice.setVisible((menuState == 0 and visible) or (participantId == 0 and visible))
+        playerOneCard.setVisible(visible)
+        playerTwoCard.setVisible(visible)
+        selectedPortrait.setVisible(menuState == 0 and visible)
+        selectedName.setVisible(visible)
+        selectedStatus.setVisible(visible)
+        opponentPortrait.setVisible(menuState == 0 and visible)
+        opponentName.setVisible(visible)
+        opponentStatus.setVisible(visible)
+        confirmButton.setVisible(visible)
+        backButton.setVisible(menuState == 1 and visible)
+        settingsButton.setVisible(visible)
+        if not visible
             return
-        let firstLabel = menuState == 0 ? "FOX / Archer" : "SKY DECK"
-        let secondLabel = menuState == 0 ? "FALCO / Rifleman" : "THREE BRIDGES"
-        firstChoice.setText(choice == 0 ? "|cffffd45a> " + firstLabel + "|r" : firstLabel)
-        secondChoice.setText(choice == 1 ? "|cffffd45a> " + secondLabel + "|r" : secondLabel)
-        confirmButton.setText(menuState == 0 ? (ready ? "Ready ✓" : "Confirm fighter") : "Fight!")
+
         if menuState == 0
-            description.setText(ready ? "You are ready. Waiting for the other fighter." : (choice == 0 ? "Quick on the ground. Blaster shots build damage without stopping foes." : "Higher jumps. Blaster shots interrupt foes."))
+            heading.setText("CHOOSE YOUR FIGHTER")
+            subheading.setText("Select a fighter, then confirm. Player 1 chooses the stage.")
+            firstChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.27, 0.455)
+            secondChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.41, 0.455)
+            firstChoice.setSize(0.12, 0.135)
+            secondChoice.setSize(0.12, 0.135)
+            firstChoicePortrait.setVisible(true)
+            secondChoicePortrait.setVisible(true)
+            firstChoiceName.setVisible(true)
+            secondChoiceName.setVisible(true)
+            firstChoice.setText("")
+            secondChoice.setText("")
+            firstChoiceName.setText((choice == 0 ? "|cffffd64a> " : "") + "ARCHER|r")
+            secondChoiceName.setText((choice == 1 ? "|cffffd64a> " : "") + "RIFLEMAN|r")
+            confirmButton.setText(ready ? "READY  ✓" : "CONFIRM FIGHTER")
+            selectedName.setText((participantId == 0 ? "P1  " : "P2  ") + (choice == 0 ? "Archer" : "Rifleman"))
+            selectedStatus.setText(ready ? "|cff8dff9aREADY|r" : "|cffc6cbd4Choose your fighter|r")
+            if opponentHuman
+                opponentName.setText((participantId == 0 ? "P2  " : "P1  ") + (opponentChoice == 0 ? "Archer" : "Rifleman"))
+                opponentStatus.setText(opponentReady ? "|cff8dff9aREADY|r" : "|cffc6cbd4Choosing|r")
+            else
+                opponentName.setText("|cffc6cbd4BOT  |r" + (opponentChoice == 0 ? "Archer" : "Rifleman"))
+                opponentStatus.setText("Computer opponent")
+            if opponentChoice == 0
+                opponentPortrait.setTexture("ReplaceableTextures\\CommandButtons\\BTNArcher.blp", 0, false)
+            else
+                opponentPortrait.setTexture("ReplaceableTextures\\CommandButtons\\BTNRifleman.blp", 0, false)
+            confirmButton.setVisible(true)
         else
-            description.setText(participantId == 0 ? (choice == 0 ? "One wide platform. Open skies on every side." : "A main deck and two raised platforms. Jump through; hold Down to drop.") : "Player 1 chooses the stage.")
+            heading.setText("CHOOSE A STAGE")
+            subheading.setText("Mouse-select a stage, then start the match.")
+            firstChoicePortrait.setVisible(false)
+            secondChoicePortrait.setVisible(false)
+            firstChoiceName.setVisible(false)
+            secondChoiceName.setVisible(false)
+            firstChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.105, 0.455)
+            secondChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.43, 0.455)
+            firstChoice.setSize(0.265, 0.135)
+            secondChoice.setSize(0.265, 0.135)
+            firstChoice.setText((choice == 0 ? "|cffffd64a▶|r  " : "   ") + "SKY DECK")
+            secondChoice.setText((choice == 1 ? "|cffffd64a▶|r  " : "   ") + "THREE BRIDGES")
+            selectedName.setText((participantId == 0 ? "|cffff5555P1  |r" : "|cff6699ffP2  |r") + characterName(ownCharacter))
+            selectedStatus.setText(choice == 0 ? "One wide platform · open blast zones" : "Three floating platforms · open blast zones")
+            opponentName.setText(opponentHuman ? (participantId == 0 ? "|cff6699ffP2  |r" : "|cffff5555P1  |r") + characterName(opponentChoice) : "|cffc6cbd4BOT  |r" + characterName(opponentChoice))
+            opponentStatus.setText((participantId == 0 ? characterName(ownCharacter) : characterName(opponentChoice)) + "  vs  " + (participantId == 0 ? characterName(opponentChoice) : characterName(ownCharacter)))
+            confirmButton.setText("START MATCH")
+            confirmButton.setVisible(participantId == 0)
+        if menuState == 0
+            if choice == 0
+                selectedPortrait.setTexture("ReplaceableTextures\\CommandButtons\\BTNArcher.blp", 0, false)
+            else
+                selectedPortrait.setTexture("ReplaceableTextures\\CommandButtons\\BTNRifleman.blp", 0, false)

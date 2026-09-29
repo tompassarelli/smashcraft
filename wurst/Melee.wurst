@@ -1,5 +1,6 @@
 package Melee
 import Wurst
+import Abilities
 import BuildInfo
 import Simulation
 import DirectionalInput
@@ -36,6 +37,7 @@ lightning array stageLines
 int stageLineCount = 0
 lightning array blastLines
 lightning array projectileLines
+effect array projectileArrows
 int projectileLineCount = 0
 framehandle titleFrame
 framehandle menuFrame
@@ -188,7 +190,7 @@ class Fighter extends FighterState
 
 
 function charName(int which) returns string
-    return which == 0 ? "Fox" : "Falco"
+    return which == 0 ? "Archer" : "Rifleman"
 
 function charModel(int which) returns string
     return which == 0 ? "Archer" : "Rifleman"
@@ -217,6 +219,9 @@ function clearProjectileLines()
         if projectileLines[i] != null
             DestroyLightning(projectileLines[i])
             projectileLines[i] = null
+        if projectileArrows[i] != null
+            DestroyEffect(projectileArrows[i])
+            projectileArrows[i] = null
     projectileLineCount = 0
 
 function renderProjectile(int index, boolean active, real x, real z, int direction, int character)
@@ -225,6 +230,15 @@ function renderProjectile(int index, boolean active, real x, real z, int directi
         if projectileLines[index] != null
             DestroyLightning(projectileLines[index])
             projectileLines[index] = null
+        if projectileArrows[index] != null
+            DestroyEffect(projectileArrows[index])
+            projectileArrows[index] = null
+        return
+    if character == 0
+        if projectileArrows[index] == null
+            projectileArrows[index] = AddSpecialEffect(Abilities.arrowMissile1, centerX + x, centerY)
+            BlzSetSpecialEffectYaw(projectileArrows[index], direction > 0 ? 0. : 3.141592654)
+        BlzSetSpecialEffectPosition(projectileArrows[index], centerX + x, centerY, floorHeight + z)
         return
     let tailX = x - direction * 65
     if projectileLines[index] == null
@@ -300,6 +314,8 @@ function applyFrame()
     let playerPreviousDown = playerFighter.downState
     let playerPreviousLCancel = playerFighter.lCancelSerial
     stepMatch(matchState, playerFighter, botFighter, playerInput, twoHumanPlayers ? secondPlayerInput : botInput, playerAttacks, botAttacks, simulationFrame)
+    if playerFighter.jumpSerial != playerPreviousJump
+        traceInput("jump " + I2S(playerFighter.jumpSerial) + " double " + (playerFighter.jumpIsDouble ? "1" : "0") + " z " + R2S(playerFighter.z))
     if playerFighter.lCancelSerial > playerPreviousLCancel
         announce("L-cancel!")
     if playerFighter.downState != playerPreviousDown
@@ -790,31 +806,24 @@ function renderUI()
     let localSlot = GetLocalPlayer() == Player(1) and twoHumanPlayers ? 1 : 0
     let controls = localSlot == 0 ? settingsPanel : secondSettingsPanel
     let controlsOpen = controls != null and controls.isOpen()
-    let localCharacter = matchState.characterFor(localSlot)
     if GetLocalPlayer() == Player(localSlot)
-        BlzFrameSetVisible(titleFrame, selecting and not controlsOpen)
+        BlzFrameSetVisible(titleFrame, false)
         BlzFrameSetVisible(menuFrame, false)
         BlzFrameSetVisible(hudFrame, not selecting)
-        BlzFrameSetVisible(helpFrame, not controlsOpen)
+        BlzFrameSetVisible(helpFrame, not selecting and not controlsOpen)
         BlzFrameSetVisible(noticeFrame, not controlsOpen)
-        if matchState.phase == CHARACTER_MENU
-            BlzFrameSetText(titleFrame, "CHOOSE YOUR FIGHTER")
-            BlzFrameSetText(menuFrame, (localCharacter == 0 ? "|cffffd45a> " : "  ") + "FOX  -  Archer|r\n\n" + (localCharacter == 1 ? "|cffffd45a> " : "  ") + "FALCO  -  Rifleman|r\n\nYou: " + charName(localCharacter) + "     " + (twoHumanPlayers ? (matchState.characterReady(localSlot) ? "Ready" : "Choose and confirm") : "Computer: " + charName(1 - localCharacter)))
-            BlzFrameSetText(helpFrame, twoHumanPlayers ? "Choose your fighter and confirm. Both players must be ready." : "Choose Controls with the button or F1. Select a fighter, then press Attack to continue.")
-        else if matchState.phase == STAGE_MENU
-            BlzFrameSetText(titleFrame, "CHOOSE A STAGE")
-            BlzFrameSetText(menuFrame, (matchState.stageChoice == 0 ? "|cffffd45a> " : "  ") + "SKY DECK|r\n\n" + (matchState.stageChoice == 1 ? "|cffffd45a> " : "  ") + "THREE BRIDGES|r\n\n" + (matchState.stageChoice == 0 ? "One wide platform. Open skies on every side." : "A main deck and two raised platforms. Jump through them; hold D to drop."))
-            BlzFrameSetText(helpFrame, "Choose Controls with the button or F1. Select a stage, then press Attack to fight.")
-        else
+        if not selecting
             BlzFrameSetText(hudFrame, charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "          " + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "\n" + (matchState.stageChoice == 0 ? "Sky Deck" : "Three Bridges") + "   |cffff6666Red border = KO|r")
             BlzFrameSetText(helpFrame, matchState.phase == RESULT ? (matchState.firstRematchReady and twoHumanPlayers ? "Player 1 ready; waiting for Player 2. F6: restart" : (matchState.secondRematchReady and twoHumanPlayers ? "Player 2 ready; waiting for Player 1. F6: restart" : "Press Attack to choose your next match     F6: restart")) : "Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.")
             if matchState.phase == MATCH and playerFighter.downState == DOWN_WAIT
                 BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
-        BlzFrameSetText(noticeFrame, playerFighter != null and playerFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
+            BlzFrameSetText(noticeFrame, playerFighter != null and playerFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
     selectionPanel.update(matchState.phase, matchState.phase == CHARACTER_MENU ? matchState.characterFor(0) : matchState.stageChoice,
-        settingsPanel != null and settingsPanel.isOpen(), true, matchState.characterReady(0))
+        settingsPanel != null and settingsPanel.isOpen(), true, matchState.characterReady(0),
+        matchState.characterFor(0), matchState.characterFor(1), twoHumanPlayers, matchState.characterReady(1))
     secondSelectionPanel.update(matchState.phase, matchState.phase == CHARACTER_MENU ? matchState.characterFor(1) : matchState.stageChoice,
-        secondSettingsPanel != null and secondSettingsPanel.isOpen(), twoHumanPlayers, matchState.characterReady(1))
+        secondSettingsPanel != null and secondSettingsPanel.isOpen(), twoHumanPlayers, matchState.characterReady(1),
+        matchState.characterFor(1), matchState.characterFor(0), true, matchState.characterReady(0))
     if settingsPanel != null
         settingsPanel.update()
     if secondSettingsPanel != null
