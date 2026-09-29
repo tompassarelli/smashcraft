@@ -1275,3 +1275,284 @@ function airJumpApex(int character) returns real
 	destroy lateAttacker
 	destroy standAttacker
 	destroy standing
+
+function techTestTumbler() returns FighterState
+	let fighter = new FighterState(0, 0, 1)
+	fighter.grounded = false
+	fighter.downState = DOWN_TUMBLE
+	fighter.hitstun = 100
+	fighter.z = 300
+	return fighter
+
+function advanceTechAirTick(FighterState fighter, InputSnapshot input)
+	fighter.z = 300
+	fighter.vz = 0
+	advance(fighter, 0, input, 0)
+
+function landTechTest(FighterState fighter, int stage, int surface, InputSnapshot input)
+	fighter.z = surfaceZ(stage, surface) + 1
+	fighter.vz = -2
+	advance(fighter, stage, input, 0)
+
+@Test function techWindowIncludesPressAndTwentiethContactButNotTwentyFirst()
+	for contact = 1 to TECH_WINDOW_FRAMES + 1
+		let fighter = techTestTumbler()
+		let input = new InputSnapshot()
+		input.techPressed = true
+		input.airDodgePressed = true
+		for tick = 1 to contact - 1
+			advanceTechAirTick(fighter, input)
+			input.techPressed = false
+			input.airDodgePressed = false
+		landTechTest(fighter, 0, 0, input)
+		fighter.downState.assertEquals(contact <= TECH_WINDOW_FRAMES ? DOWN_TECH : DOWN_BOUND)
+		fighter.airDodging.assertFalse()
+		fighter.techWindow.assertEquals(0)
+		fighter.hitstun.assertEquals(0)
+		fighter.vx.assertEquals(0.)
+		fighter.vz.assertEquals(0.)
+		destroy input
+		destroy fighter
+
+@Test function techRepeatedEdgeCancelsWindowAndRestartsLockoutButHoldingDoesNot()
+	let fighter = techTestTumbler()
+	let input = new InputSnapshot()
+	input.techPressed = true
+	input.shield = true
+	advanceTechAirTick(fighter, input)
+	input.techPressed = false
+	advanceTechAirTick(fighter, input)
+	fighter.techWindow.assertEquals(TECH_WINDOW_FRAMES - 1)
+	input.techPressed = true
+	advanceTechAirTick(fighter, input)
+	fighter.techWindow.assertEquals(0)
+	fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+	input.techPressed = false
+	for elapsed = 1 to TECH_LOCKOUT_FRAMES - 1
+		advanceTechAirTick(fighter, input)
+		fighter.techWindow.assertEquals(0)
+		fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES - elapsed)
+	input.techPressed = true
+	advanceTechAirTick(fighter, input)
+	fighter.techWindow.assertEquals(TECH_WINDOW_FRAMES)
+	fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+	input.techPressed = false
+	for elapsed = 1 to TECH_LOCKOUT_FRAMES + 1
+		advanceTechAirTick(fighter, input)
+	fighter.techWindow.assertEquals(0)
+	fighter.techLockout.assertEquals(0)
+	destroy input
+	destroy fighter
+	let boundary = techTestTumbler()
+	let edge = new InputSnapshot()
+	edge.techPressed = true
+	advanceTechAirTick(boundary, edge)
+	edge.techPressed = false
+	for elapsed = 1 to TECH_LOCKOUT_FRAMES - 2
+		advanceTechAirTick(boundary, edge)
+	edge.techPressed = true
+	advanceTechAirTick(boundary, edge)
+	boundary.techWindow.assertEquals(0)
+	boundary.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+	destroy edge
+	destroy boundary
+
+@Test function groundedShieldEdgeCountsButOnlyTumbleContactCanTech()
+	let input = new InputSnapshot()
+	let held = techTestTumbler()
+	input.shield = true
+	landTechTest(held, 0, 0, input)
+	held.downState.assertEquals(DOWN_BOUND)
+	let grounded = new FighterState(0, 0, 1)
+	input.techPressed = true
+	advance(grounded, 0, input, 0)
+	grounded.techWindow.assertEquals(TECH_WINDOW_FRAMES)
+	grounded.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+	grounded.grounded = false
+	grounded.downState = DOWN_TUMBLE
+	grounded.hitstun = 50
+	landTechTest(grounded, 0, 0, input)
+	grounded.downState.assertEquals(DOWN_BOUND)
+	grounded.techWindow.assertEquals(0)
+	let ordinary = new FighterState(0, 0, 1)
+	ordinary.grounded = false
+	landTechTest(ordinary, 0, 0, input)
+	ordinary.downState.assertEquals(DOWN_NONE)
+	ordinary.grounded.assertTrue()
+	ordinary.landingLag.assertEquals(0)
+	destroy ordinary
+	destroy grounded
+	destroy held
+	destroy input
+
+@Test function techContactSelectsDirectionAndRollMovesOnlyFramesFourThroughNineteen()
+	for direction = -1 to 1
+		let fighter = techTestTumbler()
+		let input = new InputSnapshot()
+		input.techPressed = true
+		input.direction = -direction
+		advanceTechAirTick(fighter, input)
+		input.techPressed = false
+		input.direction = direction
+		landTechTest(fighter, 0, 0, input)
+		fighter.downState.assertEquals(direction == 0 ? DOWN_TECH : DOWN_TECH_ROLL)
+		fighter.downDirection.assertEquals(direction)
+		let contactX = fighter.x
+		let duration = direction == 0 ? TECH_IN_PLACE_FRAMES : TECH_ROLL_FRAMES
+		for frame = 1 to duration
+			fighter.downFrame.assertEquals(frame)
+			isIntangible(fighter).assertEquals(frame <= (direction == 0 ? TECH_INTANGIBLE_FRAMES : TECH_ROLL_INTANGIBLE_FRAMES))
+			fighter.x.assertEquals(contactX + direction * 8. * max(0, min(frame, 19) - 3))
+			canAttack(fighter).assertFalse()
+			simulationJump(fighter)
+			fighter.jumpSquat.assertEquals(0)
+			fighter.jumpSerial.assertEquals(0)
+			if frame < duration
+				advance(fighter, 0, input, 0)
+		input.jumpPressed = true
+		input.jumpHeld = true
+		advance(fighter, 0, input, 0)
+		fighter.downState.assertEquals(DOWN_NONE)
+		fighter.jumpSquat.assertEquals(jumpSquatFrames(fighter.character) - 1)
+		destroy input
+		destroy fighter
+
+@Test function techRollClampsBothEndsOfCurrentPlatform()
+	for direction = -1 to 1
+		if direction != 0
+			let fighter = techTestTumbler()
+			let input = new InputSnapshot()
+			fighter.x = direction < 0 ? surfaceLeft(1, 1) + 3 : surfaceRight(1, 1) - 3
+			input.techPressed = true
+			input.direction = direction
+			landTechTest(fighter, 1, 1, input)
+			input.techPressed = false
+			for frame = 2 to 19
+				advance(fighter, 1, input, 0)
+			fighter.x.assertEquals(direction < 0 ? surfaceLeft(1, 1) : surfaceRight(1, 1))
+			fighter.z.assertEquals(surfaceZ(1, 1))
+			fighter.surface.assertEquals(1)
+			fighter.grounded.assertTrue()
+			destroy input
+			destroy fighter
+
+@Test function hitlagTechEdgeHasOneOpportunityOrTwentyOnFinalFrozenTick()
+	for pressTick = 1 to 3
+		for contact = 1 to TECH_WINDOW_FRAMES + 1
+			let fighter = techTestTumbler()
+			let input = new InputSnapshot()
+			fighter.hitlag = 3
+			for tick = 1 to 3
+				input.techPressed = tick == pressTick
+				advance(fighter, 0, input, 0)
+			let opportunities = pressTick == 3 ? TECH_WINDOW_FRAMES : 1
+			fighter.techWindow.assertEquals(opportunities)
+			fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+			input.techPressed = false
+			for tick = 1 to contact - 1
+				advanceTechAirTick(fighter, input)
+			landTechTest(fighter, 0, 0, input)
+			fighter.downState.assertEquals(contact <= opportunities ? DOWN_TECH : DOWN_BOUND)
+			fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES - contact + 1)
+			destroy input
+			destroy fighter
+
+@Test function hitlagFreezesExistingTimersAndTechRecoveryButRetryCancelsWindow()
+	let fighter = techTestTumbler()
+	let input = new InputSnapshot()
+	input.techPressed = true
+	advanceTechAirTick(fighter, input)
+	input.techPressed = false
+	fighter.hitlag = 3
+	for tick = 1 to 3
+		advance(fighter, 0, input, 0)
+		fighter.techWindow.assertEquals(TECH_WINDOW_FRAMES)
+		fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+	landTechTest(fighter, 0, 0, input)
+	fighter.downState.assertEquals(DOWN_TECH)
+	fighter.hitlag = 2
+	for tick = 1 to 2
+		advance(fighter, 0, input, 0)
+		fighter.downFrame.assertEquals(1)
+		fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES - 1)
+	advance(fighter, 0, input, 0)
+	fighter.downFrame.assertEquals(2)
+	destroy fighter
+	let retry = techTestTumbler()
+	retry.hitlag = 3
+	input.techPressed = true
+	advance(retry, 0, input, 0)
+	input.techPressed = false
+	advance(retry, 0, input, 0)
+	input.techPressed = true
+	advance(retry, 0, input, 0)
+	retry.techWindow.assertEquals(0)
+	retry.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+	input.techPressed = false
+	landTechTest(retry, 0, 0, input)
+	retry.downState.assertEquals(DOWN_BOUND)
+	retry.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+	destroy retry
+	destroy input
+
+@Test function techVulnerableRecoveryCanBeInterruptedByMeleeOrFalcoLaser()
+	for style = 0 to 1
+		let fighter = techTestTumbler()
+		let input = new InputSnapshot()
+		input.techPressed = true
+		fighter.x = 100
+		landTechTest(fighter, 0, 0, input)
+		let attacker = new FighterState(1, 0, 1)
+		resolveStartedAttack(style, attacker, fighter)
+		updateProjectilePair(attacker, fighter)
+		fighter.damage.assertEquals(0.)
+		fighter.downFrame = TECH_INTANGIBLE_FRAMES + 1
+		let lateAttacker = new FighterState(1, 0, 1)
+		resolveStartedAttack(style, lateAttacker, fighter)
+		updateProjectilePair(lateAttacker, fighter)
+		fighter.damage.assertGreaterThan(0.)
+		isFloorTeching(fighter).assertFalse()
+		fighter.hitstun.assertGreaterThan(0)
+		destroy lateAttacker
+		destroy attacker
+		destroy input
+		destroy fighter
+
+@Test function techStateAndInputTimersClearOnResetAndStockLoss()
+	let fighter = techTestTumbler()
+	let input = new InputSnapshot()
+	input.techPressed = true
+	advanceTechAirTick(fighter, input)
+	reset(fighter, 0)
+	fighter.techWindow.assertEquals(0)
+	fighter.techLockout.assertEquals(0)
+	fighter.techHitlagLatched.assertFalse()
+	fighter.downState = DOWN_TUMBLE
+	fighter.invincible = 0
+	fighter.hitstun = 50
+	landTechTest(fighter, 0, 0, input)
+	fighter.downState.assertEquals(DOWN_TECH)
+	fighter.x = 921
+	input.techPressed = false
+	advance(fighter, 0, input, 0)
+	fighter.out.assertTrue()
+	fighter.stocks.assertEquals(2)
+	fighter.downState.assertEquals(DOWN_NONE)
+	fighter.techWindow.assertEquals(0)
+	fighter.techLockout.assertEquals(0)
+	reset(fighter, 0)
+	fighter.downState = DOWN_TECH_ROLL
+	fighter.downFrame = 12
+	fighter.downDirection = 1
+	fighter.techWindow = 10
+	fighter.techLockout = 30
+	fighter.techHitlagLatched = true
+	reset(fighter, 0)
+	fighter.downState.assertEquals(DOWN_NONE)
+	fighter.downFrame.assertEquals(0)
+	fighter.downDirection.assertEquals(0)
+	fighter.techWindow.assertEquals(0)
+	fighter.techLockout.assertEquals(0)
+	fighter.techHitlagLatched.assertFalse()
+	destroy input
+	destroy fighter

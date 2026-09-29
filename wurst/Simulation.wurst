@@ -52,6 +52,17 @@ public constant int DOWN_WAIT = 3
 public constant int DOWN_STAND = 4
 public constant int DOWN_ROLL = 5
 public constant int DOWN_ATTACK = 6
+public constant int DOWN_TECH = 7
+public constant int DOWN_TECH_ROLL = 8
+public constant int TECH_WINDOW_FRAMES = 20
+public constant int TECH_LOCKOUT_FRAMES = 40
+public constant int TECH_IN_PLACE_FRAMES = 26
+public constant int TECH_ROLL_FRAMES = 40
+public constant int TECH_INTANGIBLE_FRAMES = 20
+public constant int TECH_ROLL_INTANGIBLE_FRAMES = 34
+public constant real TECH_ROLL_DISTANCE = 128
+constant int TECH_ROLL_MOVE_START = 4
+constant int TECH_ROLL_MOVE_END = 19
 public constant real DOWN_KNOCKBACK_THRESHOLD = 80
 public constant int DOWN_BOUND_FRAMES = 12
 public constant int DOWN_WAIT_FRAMES = 180
@@ -123,6 +134,9 @@ public class FighterState
 	int downState = DOWN_NONE
 	int downFrame = 0
 	int downDirection = 0
+	int techWindow = 0
+	int techLockout = 0
+	boolean techHitlagLatched = false
 	int grabbedFrames = 0
 
 	construct(int fighterType, real startX, int direction)
@@ -137,6 +151,7 @@ public class InputSnapshot
 	boolean shield = false
 	boolean jumpPressed = false
 	boolean airDodgePressed = false
+	boolean techPressed = false
 	boolean groundDodgePressed = false
 	int groundDodgeDirection = 0
 	boolean getupAttackPressed = false
@@ -269,13 +284,17 @@ public function isIntangible(FighterState f) returns boolean
 		or (f.groundDodgeDirection != 0 and f.groundDodgeFrame >= GROUND_ROLL_INTANGIBLE_START and f.groundDodgeFrame <= GROUND_ROLL_INTANGIBLE_END))
 	let downRecoveryIntangible = (f.downState == DOWN_STAND or f.downState == DOWN_ROLL) and f.downFrame > 0 and f.downFrame <= DOWN_RECOVERY_INTANGIBLE_FRAMES
 		or (f.downState == DOWN_ATTACK and f.downFrame <= DOWN_ATTACK_STARTUP_FRAMES)
-	return f.invincible > 0 or groundDodgeIntangible or downRecoveryIntangible or (f.airDodging and f.airDodgeFrame >= AIR_DODGE_INTANGIBLE_START and f.airDodgeFrame <= AIR_DODGE_INTANGIBLE_END)
+	let techIntangible = isFloorTeching(f) and f.downFrame >= 1 and f.downFrame <= (f.downState == DOWN_TECH ? TECH_INTANGIBLE_FRAMES : TECH_ROLL_INTANGIBLE_FRAMES)
+	return f.invincible > 0 or groundDodgeIntangible or downRecoveryIntangible or techIntangible or (f.airDodging and f.airDodgeFrame >= AIR_DODGE_INTANGIBLE_START and f.airDodgeFrame <= AIR_DODGE_INTANGIBLE_END)
 
 public function isGroundDodging(FighterState f) returns boolean
 	return f.groundDodgeFrame > 0
 
 public function isTumbling(FighterState f) returns boolean
 	return f.downState == DOWN_TUMBLE
+
+public function isFloorTeching(FighterState f) returns boolean
+	return f.downState == DOWN_TECH or f.downState == DOWN_TECH_ROLL
 
 function clearDownState(FighterState f)
 	f.downState = DOWN_NONE
@@ -313,6 +332,12 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 	if f.downState == DOWN_TUMBLE
 		f.downFrame++
 		return false
+	if isFloorTeching(f)
+		f.downFrame++
+		if f.downState == DOWN_TECH_ROLL and f.downFrame >= TECH_ROLL_MOVE_START and f.downFrame <= TECH_ROLL_MOVE_END
+			f.x += f.downDirection * (TECH_ROLL_DISTANCE / (TECH_ROLL_MOVE_END - TECH_ROLL_MOVE_START + 1))
+			f.x = max(surfaceLeft(stage, f.surface), min(surfaceRight(stage, f.surface), f.x))
+		return true
 	if f.downState == DOWN_BOUND
 		if f.downFrame >= DOWN_BOUND_FRAMES
 			startDownWait(f)
@@ -412,6 +437,7 @@ function applyProjectileHit(FighterState owner, FighterState target)
 	target.damage += damage
 	if owner.character == 1
 		interruptJumpOrDodge(target)
+		clearDownState(target)
 		cancelAttack(target)
 		target.hitstun = max(target.hitstun, 11)
 
@@ -565,6 +591,9 @@ function canResolveAttack(FighterState attacker, FighterState target) returns bo
 
 public function reset(FighterState f, real startX)
 	clearDownState(f)
+	f.techWindow = 0
+	f.techLockout = 0
+	f.techHitlagLatched = false
 	f.jumpSerial = 0
 	f.jumpIsDouble = false
 	f.x = startX
@@ -614,6 +643,19 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if f.respawn <= 0
 			reset(f, respawnX)
 		return
+	// Counts include the current contact tick. A hitlag edge starts counting after the freeze.
+	if f.hitlag <= 0
+		if not f.techHitlagLatched
+			f.techWindow = max(0, f.techWindow - 1)
+			f.techLockout = max(0, f.techLockout - 1)
+		f.techHitlagLatched = false
+		if isFloorTeching(f) and f.downFrame >= (f.downState == DOWN_TECH ? TECH_IN_PLACE_FRAMES : TECH_ROLL_FRAMES)
+			clearDownState(f)
+	if input.techPressed
+		f.techWindow = f.techLockout == 0 ? (f.hitlag > 1 ? 1 : TECH_WINDOW_FRAMES) : 0
+		f.techLockout = TECH_LOCKOUT_FRAMES
+		if f.hitlag > 0
+			f.techHitlagLatched = true
 	var groundDodgeStarted = false
 	if f.hitlag <= 0
 		f.cooldown = max(0, f.cooldown - 1)
@@ -652,6 +694,9 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			f.groundDodgeDirection = 0
 			f.vx = 0
 	f.hitstun = max(0, f.hitstun - 1)
+	checkBlastZone(f)
+	if f.out
+		return
 	if advanceDownState(f, stage, input)
 		return
 	let forcedShield = f.shield and f.shieldStun > 0
@@ -764,9 +809,20 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if isTumbling(f)
 			let launchDirection = f.vx < 0 ? -1 : 1
 			f.hitstun = 0
-			beginDownState(f, DOWN_BOUND, launchDirection)
+			if f.techWindow > 0
+				let techDirection = input.direction == 0 ? 0 : (input.direction < 0 ? -1 : 1)
+				f.techWindow = 0
+				beginDownState(f, techDirection == 0 ? DOWN_TECH : DOWN_TECH_ROLL, techDirection)
+			else
+				beginDownState(f, DOWN_BOUND, launchDirection)
+	checkBlastZone(f)
+
+function checkBlastZone(FighterState f)
 	if f.x <= -920 or f.x >= 920 or f.z <= -420 or f.z >= 760
 		f.out = true
+		f.techWindow = 0
+		f.techLockout = 0
+		f.techHitlagLatched = false
 		f.stocks = max(0, f.stocks - 1)
 		f.respawn = f.stocks > 0 ? 60 : 0
 		f.attackStyle = -1
