@@ -2,6 +2,7 @@ package Melee
 import Wurst
 import BuildInfo
 import Simulation
+import DirectionalInput
 import MatchRules
 import CommandBuffer
 import CombatInput
@@ -25,6 +26,7 @@ boolean moveLeft = false
 boolean moveRight = false
 boolean moveDown = false
 boolean moveUp = false
+DirectionalInput playerDirections = new DirectionalInput()
 boolean walkHeld = false
 boolean playerNormalAttackQueued = false
 boolean playerLeftPressed = false
@@ -60,6 +62,41 @@ int playerDodgeX = 0
 int playerDodgeZ = 0
 boolean botJumpQueued = false
 boolean botJumpHeld = false
+timer inputTraceClock = null
+boolean inputTraceActive = false
+int inputTraceTicks = 0
+int inputTraceCount = 0
+int inputTraceLastAxes = 999
+string array inputTraceLines
+
+function traceInput(string entry)
+    if inputTraceActive and inputTraceCount < 256
+        inputTraceLines[inputTraceCount] = I2S(inputTraceTicks) + " " + R2S(TimerGetElapsed(inputTraceClock)) + " " + entry
+        inputTraceCount++
+
+function startInputTrace()
+    if inputTraceClock == null
+        inputTraceClock = CreateTimer()
+    inputTraceTicks = 0
+    inputTraceCount = 0
+    inputTraceLastAxes = 999
+    inputTraceActive = true
+    TimerStart(inputTraceClock, 1000, false, null)
+    traceInput("start " + BUILD_ID)
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("TRACE START " + BUILD_ID)
+    PreloadGenEnd("wc3-melee-input-start.txt")
+
+function finishInputTrace()
+    traceInput("end")
+    inputTraceActive = false
+    PauseTimer(inputTraceClock)
+    PreloadGenClear()
+    PreloadGenStart()
+    for i = 0 to inputTraceCount - 1
+        Preload(inputTraceLines[i])
+    PreloadGenEnd("wc3-melee-input-trace.txt")
 InputSnapshot playerInput = null
 InputSnapshot botInput = null
 SelectionPanel selectionPanel = null
@@ -338,6 +375,7 @@ function bindingSlot(int action, int keyCode) returns int
     return -1
 
 function clearHeldInputs()
+    playerDirections.clear()
     for i = 0 to 255
         held[i] = false
     for i = 0 to KEY_SLOT_COUNT - 1
@@ -383,6 +421,10 @@ function onKeyDown()
     if keyCode < 0 or keyCode > 255 or held[keyCode]
         return
     held[keyCode] = true
+    if key == OSKEY_F7
+        startInputTrace()
+        return
+    traceInput("down " + I2S(keyCode))
     if key == OSKEY_F6
         RestartGame(false)
         return
@@ -468,9 +510,11 @@ function onKeyDown()
         attack(playerFighter, botFighter, 3)
     if matchState.phase == MATCH and action >= MOVE_LEFT and action <= MOVE_UP and actionHeld(ATTACK)
         playerNormalAttackQueued = true
+    playerDirections.update((actionHeld(MOVE_RIGHT) ? 1 : 0) - (actionHeld(MOVE_LEFT) ? 1 : 0), (actionHeld(MOVE_UP) ? 1 : 0) - (actionHeld(MOVE_DOWN) ? 1 : 0))
 
 function onKeyUp()
     let keyCode = GetHandleId(BlzGetTriggerPlayerKey())
+    traceInput("up " + I2S(keyCode))
     if keyCode < 0 or keyCode > 255
         return
     held[keyCode] = false
@@ -496,6 +540,7 @@ function onKeyUp()
         shieldLeft = actionHeld(action)
     else if action == RIGHT_TRIGGER
         shieldRight = actionHeld(action)
+    playerDirections.update((actionHeld(MOVE_RIGHT) ? 1 : 0) - (actionHeld(MOVE_LEFT) ? 1 : 0), (actionHeld(MOVE_UP) ? 1 : 0) - (actionHeld(MOVE_DOWN) ? 1 : 0))
 
 function registerKey(trigger eventTrigger, oskeytype key, boolean down)
     BlzTriggerRegisterPlayerKeyEvent(eventTrigger, Player(0), key, 0, down)
@@ -682,6 +727,14 @@ function lockArenaCamera()
     SetCameraPosition(centerX, centerY)
 
 function gameTick()
+    if inputTraceActive
+        inputTraceTicks++
+        let axes = (moveRight ? 1 : 0) - (moveLeft ? 1 : 0) + 3 * ((moveUp ? 1 : 0) - (moveDown ? 1 : 0))
+        if axes != inputTraceLastAxes or playerDirections.pulsePending or inputTraceTicks % 60 == 0
+            traceInput("sample " + I2S(axes) + " pulse " + (playerDirections.pulsePending ? I2S(playerDirections.pulseX) + ":" + I2S(playerDirections.pulseZ) : "none") + " hitlag " + I2S(playerFighter.hitlag))
+            inputTraceLastAxes = axes
+        if inputTraceTicks >= 300
+            finishInputTrace()
     if appliedBindingRevision != playerBindings.revision
         clearHeldInputs()
         appliedBindingRevision = playerBindings.revision
@@ -709,6 +762,9 @@ function gameTick()
                 botAttackDelay = 0.35
         playerInput.direction = direction
         playerInput.verticalDirection = (moveUp ? 1 : 0) - (moveDown ? 1 : 0)
+        playerInput.sdiPulse = playerDirections.pulsePending
+        playerInput.sdiX = playerDirections.pulseX
+        playerInput.sdiZ = playerDirections.pulseZ
         playerInput.cStickX = (actionHeld(SMASH_RIGHT) ? 1 : 0) - (actionHeld(SMASH_LEFT) ? 1 : 0)
         playerInput.cStickZ = (actionHeld(SMASH_UP) ? 1 : 0) - (actionHeld(SMASH_DOWN) ? 1 : 0)
         playerInput.attackHeld = actionHeld(ATTACK)
@@ -753,6 +809,7 @@ function gameTick()
         if matchState.phase == RESULT
             statusText = matchState.winner == 0 ? "Victory! You win!" : (matchState.winner == 1 ? "Defeat! The opponent wins." : "Draw! Both fighters are out.")
             statusTime = 3600
+    playerDirections.clearPulse()
     renderUI()
     if not readyMarkerWritten and playerBindings.ready
         readyMarkerWritten = true

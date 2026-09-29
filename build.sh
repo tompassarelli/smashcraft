@@ -67,6 +67,7 @@ cd "$work_dir"
     "$fighter_assets/FighterAssetInfo.wurst" \
     "$project_dir/wurst/FighterAssets.wurst" \
     "$project_dir/wurst/Simulation.wurst" \
+    "$project_dir/wurst/DirectionalInput.wurst" \
     "$project_dir/wurst/MatchRules.wurst" \
     "$project_dir/wurst/CommandBuffer.wurst" \
     "$project_dir/wurst/CombatInput.wurst" \

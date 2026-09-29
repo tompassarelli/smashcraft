@@ -61,8 +61,8 @@ public class KeyBindings
     function rebind(int action, int slot, int key) returns boolean
         if action < 0 or action >= ACTION_COUNT or slot < 0 or slot > 1 or key < 0 or key > 255
             return false
-        // Escape and developer restart/exit remain available independently.
-        if key == 27 or key == 112 or key == 116 or key == 117
+        // Menu and developer controls remain available independently.
+        if key == 27 or key == 112 or key == 116 or key == 117 or key == 118
             return false
         let index = action * 2 + slot
         if key != 0

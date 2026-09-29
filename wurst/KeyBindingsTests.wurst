@@ -18,6 +18,7 @@ import KeyBindings
     bindings.rebind(GRAB, 0, 78).assertFalse()
     bindings.keyFor(GRAB, 0).assertEquals(76)
     bindings.rebind(GRAB, 0, 117).assertFalse()
+    bindings.rebind(GRAB, 0, 118).assertFalse()
     bindings.rebind(GRAB, 0, 71).assertTrue()
     bindings.actionFor(71).assertEquals(GRAB)
     bindings.actionFor(76).assertEquals(-1)

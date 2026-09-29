@@ -122,8 +122,6 @@ public class FighterState
 	real diLaunchSpeed = 0
 	int diSerial = 0
 	real diAngleDegrees = 0
-	int sampledSdiX = 0
-	int sampledSdiZ = 0
 	boolean sdiWasGrounded = false
 	boolean sdiLaunchesUpward = false
 	int sdiSerial = 0
@@ -182,6 +180,9 @@ public class FighterState
 public class InputSnapshot
 	int direction = 0
 	int verticalDirection = 0
+	boolean sdiPulse = false
+	int sdiX = 0
+	int sdiZ = 0
 	int cStickX = 0
 	int cStickZ = 0
 	boolean attackRequested = false
@@ -561,13 +562,9 @@ function applyHitlagShift(FighterState f, int stage, InputSnapshot input, int di
 			f.sdiSerial++
 	checkBlastZone(f)
 
-function applySmashDirectionalInfluence(FighterState f, int stage, InputSnapshot input, int oldX, int oldZ)
-	let newX = input.direction
-	let newZ = input.verticalDirection
-	let enteredX = newX != 0 and (oldX == 0 or (newX < 0) != (oldX < 0))
-	let enteredZ = newZ != 0 and (oldZ == 0 or (newZ < 0) != (oldZ < 0))
-	if enteredX or enteredZ
-		applyHitlagShift(f, stage, input, newX, newZ, SDI_DISTANCE, false)
+function applySmashDirectionalInfluence(FighterState f, int stage, InputSnapshot input)
+	if input.sdiPulse
+		applyHitlagShift(f, stage, input, input.sdiX, input.sdiZ, SDI_DISTANCE, false)
 
 function applyAutomaticSmashDirectionalInfluence(FighterState f, int stage, InputSnapshot input)
 	var directionX = input.direction
@@ -910,8 +907,6 @@ public function reset(FighterState f, real startX)
 	f.diLaunchSpeed = 0
 	f.diSerial = 0
 	f.diAngleDegrees = 0
-	f.sampledSdiX = 0
-	f.sampledSdiZ = 0
 	f.sdiWasGrounded = false
 	f.sdiLaunchesUpward = false
 	f.sdiSerial = 0
@@ -946,10 +941,6 @@ public function reset(FighterState f, real startX)
 	f.invincible = 90
 
 public function advance(FighterState f, int stage, InputSnapshot input, real respawnX)
-	let oldSdiX = f.sampledSdiX
-	let oldSdiZ = f.sampledSdiZ
-	f.sampledSdiX = input.direction
-	f.sampledSdiZ = input.verticalDirection
 	if f.out
 		if f.stocks <= 0
 			return
@@ -1023,7 +1014,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			f.jumpIsDouble = false
 	if f.hitlag > 0
 		if f.hitlag > 1 and f.diPending
-			applySmashDirectionalInfluence(f, stage, input, oldSdiX, oldSdiZ)
+			applySmashDirectionalInfluence(f, stage, input)
 		if f.hitlag == 1 and f.diPending and not f.out
 			applyDirectionalInfluence(f, input)
 			applyAutomaticSmashDirectionalInfluence(f, stage, input)

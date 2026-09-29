@@ -1,0 +1,133 @@
+package DirectionalInputTests
+import DirectionalInput
+import Simulation
+
+@Test function pressAndReleaseBeforeOneTickPreservesPulseButNotHeldDirection()
+    let direction = new DirectionalInput()
+    direction.update(1, 0)
+    direction.update(0, 0)
+    direction.heldX.assertEquals(0)
+    direction.heldZ.assertEquals(0)
+    direction.pulsePending.assertTrue()
+    direction.pulseX.assertEquals(1)
+    direction.pulseZ.assertEquals(0)
+    let fighter = new FighterState(0, 0, 1)
+    fighter.grounded = false
+    fighter.z = 400
+    fighter.hitlag = 3
+    fighter.diPending = true
+    fighter.diLaunchSpeed = 10
+    let input = new InputSnapshot()
+    input.sdiPulse = direction.pulsePending
+    input.sdiX = direction.pulseX
+    input.sdiZ = direction.pulseZ
+    advance(fighter, 0, input, -240)
+    fighter.x.assertEquals(SDI_DISTANCE)
+    fighter.sdiSerial.assertEquals(1)
+    direction.clearPulse()
+    input.sdiPulse = direction.pulsePending
+    advance(fighter, 0, input, -240)
+    advance(fighter, 0, input, -240)
+    fighter.x.assertEquals(SDI_DISTANCE)
+    fighter.sdiSerial.assertEquals(1)
+    fighter.asdiSerial.assertEquals(0)
+    destroy input
+    destroy fighter
+    destroy direction
+
+@Test function heldDirectionDoesNotRepeatAndComponentsNormalize()
+    let direction = new DirectionalInput()
+    direction.update(5, -3)
+    direction.heldX.assertEquals(1)
+    direction.heldZ.assertEquals(-1)
+    direction.pulseX.assertEquals(1)
+    direction.pulseZ.assertEquals(-1)
+    direction.clearPulse()
+    direction.update(2, -9)
+    direction.pulsePending.assertFalse()
+    direction.update(-2, -9)
+    direction.pulsePending.assertTrue()
+    direction.pulseX.assertEquals(-1)
+    direction.pulseZ.assertEquals(-1)
+    destroy direction
+
+@Test function newestComponentEntryWinsAndReleaseToCardinalDoesNotPulse()
+    let direction = new DirectionalInput()
+    direction.update(1, 0)
+    direction.update(1, 1)
+    direction.pulseX.assertEquals(1)
+    direction.pulseZ.assertEquals(1)
+    direction.update(1, 0)
+    direction.pulseZ.assertEquals(1)
+    direction.clearPulse()
+    direction.update(1, 1)
+    direction.pulsePending.assertTrue()
+    direction.clearPulse()
+    direction.update(0, 1)
+    direction.pulsePending.assertFalse()
+    direction.update(-1, 1)
+    direction.pulsePending.assertTrue()
+    direction.pulseX.assertEquals(-1)
+    direction.pulseZ.assertEquals(1)
+    destroy direction
+
+@Test function opposingKeysCancelHeldAxisWithoutErasingEarlierPulse()
+    let direction = new DirectionalInput()
+    direction.update(-1, 0)
+    direction.update(-1 + 1, 0)
+    direction.heldX.assertEquals(0)
+    direction.pulsePending.assertTrue()
+    direction.pulseX.assertEquals(-1)
+    direction.clearPulse()
+    direction.update(-1 + 1, 0)
+    direction.pulsePending.assertFalse()
+    direction.update(1, 0)
+    direction.pulsePending.assertTrue()
+    direction.pulseX.assertEquals(1)
+    destroy direction
+
+@Test function clearResetsHeldAndPulseWhileExpiryPreservesHeld()
+    let direction = new DirectionalInput()
+    direction.update(1, -1)
+    direction.clearPulse()
+    direction.heldX.assertEquals(1)
+    direction.heldZ.assertEquals(-1)
+    direction.pulsePending.assertFalse()
+    direction.pulseX.assertEquals(0)
+    direction.pulseZ.assertEquals(0)
+    direction.update(-1, 1)
+    direction.clear()
+    direction.heldX.assertEquals(0)
+    direction.heldZ.assertEquals(0)
+    direction.pulsePending.assertFalse()
+    direction.pulseX.assertEquals(0)
+    direction.pulseZ.assertEquals(0)
+    direction.update(-1, 1)
+    direction.pulsePending.assertTrue()
+    destroy direction
+
+@Test function pulseOutsideVictimHitlagExpiresBeforeFutureHit()
+    let direction = new DirectionalInput()
+    let fighter = new FighterState(0, 0, 1)
+    let input = new InputSnapshot()
+    direction.update(1, 0)
+    direction.update(0, 0)
+    input.sdiPulse = direction.pulsePending
+    input.sdiX = direction.pulseX
+    advance(fighter, 0, input, -240)
+    fighter.sdiSerial.assertEquals(0)
+    direction.clearPulse()
+    fighter.grounded = false
+    fighter.x = 300
+    fighter.z = 400
+    fighter.hitlag = 3
+    fighter.diPending = true
+    fighter.diLaunchSpeed = 10
+    input.sdiPulse = direction.pulsePending
+    input.sdiX = direction.pulseX
+    advance(fighter, 0, input, -240)
+    fighter.x.assertEquals(300.)
+    fighter.sdiSerial.assertEquals(0)
+    destroy input
+    destroy fighter
+    destroy direction

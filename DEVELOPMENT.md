@@ -90,16 +90,68 @@ SDI/ASDI passes 123/123 headless tests with no warnings; output is retained at
 Native build 003040 reloaded in 22.992 seconds with the process retained.
 Holding Up across hits recorded four ASDI shifts and no repeated SDI.
 A 230 ms press / 190 ms release sequence recorded SDI followed by ASDI.
-The earlier 70 ms / 60 ms sequence recorded neither; whether those pulses
-missed hitlag windows or were lost/coalesced before simulation sampling remains
-unmeasured. Measure callback delivery and frame sampling before assigning a
-cause or changing the input-buffer policy. C-stick priority and landing
+The earlier 70 ms / 60 ms sequence recorded neither. The callback trace below
+subsequently identified batched press/release delivery as a cause of lost taps.
+C-stick priority and landing
 boundaries have headless coverage; native C-stick priority is not yet observed.
 Evidence:
 ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/asdi-held-client.mp4,
 ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/sdi-tap-client.mp4,
 ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/sdi-tap-timeline.png,
 and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/hitlag-shift-reload.log.
+
+## Native input batching
+
+F7 records 300 presentation ticks of key callbacks and directional snapshots to
+the prefix's Warcraft III CustomMapData files `wc3-melee-input-start.txt` and
+`wc3-melee-input-trace.txt`. The trace includes tick index and an independent
+Warcraft timer's elapsed time. F7 is reserved from gameplay rebinding. Tracing
+is dormant until requested and does not alter gameplay state.
+
+Build 003649 measured 240 ticks across 4.000 native timer seconds. The full
+trace's start/end file times were 4.978 seconds apart for its 300 ticks, including
+the partial first interval. Linux injection requested eight short taps and
+four longer taps. All 24 direction key callbacks arrived, but the first five
+short down/up pairs had identical native timestamps and tick indices (0.300,
+0.500, 0.700, 0.900, 1.100 seconds). The held-only sampler saw none of them.
+Later releases and re-presses also arrived in a single batch, hiding neutral
+intervals. Delivery was quantized in roughly 100 ms increments in this native
+single-player setup; that measurement is not a multiplayer latency guarantee.
+
+The input boundary now retains the newest fresh directional component-entry
+pulse until the next tick, independently of held state. SDI consumes that pulse
+only in its valid hitlag window. Every tick clears it, including menu and
+ineligible ticks; this does not introduce delayed action buffering or reconstruct
+unknown physical hold durations. Warcraft callback delivery latency remains.
+
+Before-change evidence:
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/input-trace-before.txt
+and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/input-timing-before.log.
+
+After the fix, build 004400 reloaded in 23.337 seconds and the same native
+sequence produced twelve separate pulse samples for twelve direction presses.
+This included neutral transitions hidden inside callback batches: release and
+re-press at 1.500 seconds became a pulse at tick 91 / 1.501 seconds while the
+victim had six hitlag ticks left. No extra tick of buffering was introduced.
+The full headless suite passes 129/129, including a down/up batch generating
+one SDI pulse with neutral held state and zero ASDI, expiry before a later hit,
+direction reversal, and component-entry rules. This does not recover physical
+timestamps or remove the engine's measured callback batching.
+After-change trace:
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/input-trace-after.txt.
+
+Repeat the controlled input probe from character selection with the current
+N=Attack and Space=Up bindings (the reload command leaves that menu ready):
+
+```bash
+/home/tom/code/wc3-melee/worktrees/test-loop/loop.sh reload
+/home/tom/code/wc3-melee/worktrees/test-loop/tools/probe-input-timing.sh
+```
+
+The script emits wall-clock injection times, enters the default match, invokes
+F7, and sends eight short taps followed by four longer taps. It stops if focus
+changes and releases its scoped input daemon. Read the completed trace at
+`~/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/wc3-melee-input-trace.txt`.
 
 The integrated suite passed 112/112 tests with no compiler warnings. The final
 input-timing check additionally changes Down to Up on the last frozen tick and

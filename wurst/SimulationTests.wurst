@@ -1,5 +1,6 @@
 package SimulationTests
 import Simulation
+import DirectionalInput
 import MatchRules
 import CommandBuffer
 import MatchStep
@@ -709,6 +710,14 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	advance(fighter, 0, input, -240)
 	(fighter.x > 25.).assertTrue()
 
+function advanceDirectionalInput(FighterState fighter, InputSnapshot input, DirectionalInput direction)
+	direction.update(input.direction, input.verticalDirection)
+	input.sdiPulse = direction.pulsePending
+	input.sdiX = direction.pulseX
+	input.sdiZ = direction.pulseZ
+	direction.clearPulse()
+	advance(fighter, 0, input, -240)
+
 @Test function smashDiPulsesOnNewAxisComponentsButNotOnHeldOrRemovedComponents()
 	let fighter = new FighterState(0, 0, 1)
 	fighter.grounded = false
@@ -717,25 +726,27 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	fighter.diPending = true
 	fighter.diLaunchSpeed = 10
 	let input = new InputSnapshot()
+	let direction = new DirectionalInput()
 	input.direction = 1
-	advance(fighter, 0, input, -240)
+	advanceDirectionalInput(fighter, input, direction)
 	fighter.x.assertEquals(SDI_DISTANCE)
 	fighter.sdiSerial.assertEquals(1)
-	advance(fighter, 0, input, -240)
+	advanceDirectionalInput(fighter, input, direction)
 	fighter.x.assertEquals(SDI_DISTANCE)
 	fighter.sdiSerial.assertEquals(1)
 	input.verticalDirection = 1
-	advance(fighter, 0, input, -240)
+	advanceDirectionalInput(fighter, input, direction)
 	fighter.x.assertEquals(SDI_DISTANCE + SDI_DISTANCE * 0.7071067811865476, 0.001)
 	fighter.z.assertEquals(400 + SDI_DISTANCE * 0.7071067811865476, 0.001)
 	fighter.sdiSerial.assertEquals(2)
 	input.verticalDirection = 0
-	advance(fighter, 0, input, -240)
+	advanceDirectionalInput(fighter, input, direction)
 	fighter.sdiSerial.assertEquals(2)
 	input.direction = -1
-	advance(fighter, 0, input, -240)
+	advanceDirectionalInput(fighter, input, direction)
 	fighter.x.assertEquals(SDI_DISTANCE * 0.7071067811865476, 0.001)
 	fighter.sdiSerial.assertEquals(3)
+	destroy direction
 	destroy input
 	destroy fighter
 
@@ -744,7 +755,6 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	let input = new InputSnapshot()
 	input.direction = 1
 	advance(fighter, 0, input, -240)
-	fighter.sampledSdiX.assertEquals(1)
 	fighter.x = 300
 	fighter.z = 400
 	fighter.grounded = false
@@ -755,6 +765,8 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	advance(fighter, 0, input, -240)
 	fighter.x.assertEquals(300.)
 	fighter.sdiSerial.assertEquals(0)
+	input.sdiPulse = true
+	input.sdiX = 1
 	let attacker = new FighterState(0, 0, 1)
 	attacker.x = 250
 	attacker.z = 400
@@ -775,7 +787,6 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	fighter.diPending = true
 	fighter.diLaunchSpeed = 10
 	fighter.knockbackX = 10
-	fighter.sampledSdiZ = 1
 	let input = new InputSnapshot()
 	input.verticalDirection = 1
 	input.cStickX = 1
@@ -799,6 +810,8 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	fighter.knockbackX = 10
 	let input = new InputSnapshot()
 	input.direction = 1
+	input.sdiPulse = true
+	input.sdiX = 1
 	advance(fighter, 0, input, -240)
 	fighter.x.assertEquals(300 + ASDI_DISTANCE)
 	fighter.sdiSerial.assertEquals(0)
@@ -833,10 +846,13 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	fighter.diLaunchSpeed = 10
 	let input = new InputSnapshot()
 	input.verticalDirection = -1
+	input.sdiPulse = true
+	input.sdiZ = -1
 	advance(fighter, 0, input, -240)
 	fighter.z.assertEquals(10.)
 	fighter.grounded.assertFalse()
 	fighter.sdiSerial.assertEquals(0)
+	input.sdiPulse = false
 	advance(fighter, 0, input, -240)
 	fighter.grounded.assertTrue()
 	fighter.z.assertEquals(0.)
@@ -854,6 +870,8 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	airborne.diLaunchSpeed = 10
 	let down = new InputSnapshot()
 	down.verticalDirection = -1
+	down.sdiPulse = true
+	down.sdiZ = -1
 	advance(airborne, 0, down, -240)
 	airborne.z.assertEquals(400 - SDI_DISTANCE)
 	airborne.sdiSerial.assertEquals(1)
@@ -868,6 +886,9 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	let upDiagonal = new InputSnapshot()
 	upDiagonal.direction = 1
 	upDiagonal.verticalDirection = 1
+	upDiagonal.sdiPulse = true
+	upDiagonal.sdiX = 1
+	upDiagonal.sdiZ = 1
 	advance(grounded, 0, upDiagonal, -240)
 	grounded.x.assertEquals(SDI_DISTANCE * 0.7071067811865476, 0.001)
 	grounded.z.assertEquals(0.)
@@ -886,7 +907,6 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	fighter.diPending = true
 	fighter.diLaunchSpeed = 10
 	fighter.knockbackX = 10
-	fighter.sampledSdiX = 1
 	let input = new InputSnapshot()
 	input.direction = 1
 	input.verticalDirection = 1
@@ -958,7 +978,6 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	fighter.diLaunchSpeed = 10
 	fighter.diPending = true
 	fighter.hitlag = 3
-	fighter.sampledSdiZ = -1
 	let input = new InputSnapshot()
 	input.verticalDirection = -1
 	advance(fighter, 0, input, -240)

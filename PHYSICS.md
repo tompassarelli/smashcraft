@@ -140,11 +140,16 @@ https://www.ssbwiki.com/Smash_directional_influence (CC BY-SA 4.0). These
 mechanics and numeric facts are used as reference only; no article text or game
 code is copied.
 
-The simulation samples digital directions on each tick so a direction already
-held before impact does not create a new SDI pulse. During victim hitlag, a new
-nonzero horizontal or vertical component shifts the fighter once by 36 world
-units; a held direction does not repeat, adding a diagonal component does, and
-removing one does not. SDI is unavailable during a one-frame freeze. On the
+Keyboard callbacks retain the newest digital SDI pulse until the next simulation
+tick, separately from held directions. Entering a nonzero horizontal or vertical
+component, including reversing its sign, captures the complete direction vector.
+A press and release delivered together therefore retains its pulse without
+pretending the direction is still held. At most one pulse is used per tick;
+adding a diagonal component creates one, removing a component does not, and a
+held direction does not repeat. Every tick expires the pulse, including menus
+and ticks outside victim hitlag, so it cannot wait for a future hit. During
+victim hitlag the pulse shifts the fighter once by 36 world units. SDI is
+unavailable during a one-frame freeze. On the
 last hitlag tick, ASDI shifts once by 18 world units in the held left-stick
 direction, unless a C-stick direction is held; C-stick never changes DI, which
 continues to use left-stick input. Shifts use a swept top-surface check, so ASDI
@@ -155,8 +160,10 @@ SDI cannot move down through a platform or up off a grounded, non-lifting hit.
 This prototype uses keyboard axes instead of analog stick thresholds and does
 not model grounded launch eligibility fully: ordinary hits currently send the
 target airborne. Shield SDI is not implemented. Native held ASDI and tapped
-SDI were observed in build 003040; short-pulse delivery and exact engine timing
-remain unmeasured. See wc3-melee:DEVELOPMENT.md for the recorded input sequences.
+SDI were observed in build 003040. Native callback tracing subsequently showed
+short press/release pairs delivered together in roughly 100 ms batches. Retaining
+the pulse fixes loss between simulation ticks; it does not remove that engine
+delivery latency. See wc3-melee:DEVELOPMENT.md for the recorded input sequences.
 
 ## Separated launch velocity
 
