@@ -714,6 +714,29 @@ Evidence:
 - ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/smash-client.mp4
 - ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/smash-release-observed.png
 
+## Air-dodge motion and landing recovery
+
+Air dodge now clears prior launch momentum and applies decay before displacement
+on both axes. Both fighters receive 10 landing-recovery ticks, sourced from their
+Melee air-dodge landing tables. The suite passes 133/133 with no errors/warnings.
+Speed 8, decay 0.9 and the 26-tick motion duration remain provisional.
+
+Native build 005245 reloaded in 23.364 seconds with the Warcraft process retained.
+The first probe was interrupted by the bot before dodging. Moving the jump to
+the match-start input sequence allowed an uninterrupted dodge: trace ticks
+20–45 show equal horizontal/vertical displacement through all 26 motion ticks;
+contact at tick 59 starts landing recovery at 10, reaching zero at tick 69.
+The dodge began around height 188 and horizontal motion stopped before landing,
+so this proves diagonal motion and recovery, not a low-height wavedash slide.
+Headless tests cover retained landing momentum/traction; low-height native feel
+and multiplayer timing remain unverified. The camera lock still runs every tick.
+
+Evidence:
+- ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/air-dodge-motion.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/wavedash-reload.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/wavedash-motion-trace.txt
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/wavedash-client.mp4
+
 ## Downward attacks on platforms
 
 The platform-input regression first failed: Down + Attack dropped through an

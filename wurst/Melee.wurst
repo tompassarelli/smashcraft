@@ -67,6 +67,8 @@ boolean inputTraceActive = false
 int inputTraceTicks = 0
 int inputTraceCount = 0
 int inputTraceLastAxes = 999
+int inputTraceLastDodge = -1
+int inputTraceLastLandingLag = -1
 string array inputTraceLines
 
 function traceInput(string entry)
@@ -80,6 +82,8 @@ function startInputTrace()
     inputTraceTicks = 0
     inputTraceCount = 0
     inputTraceLastAxes = 999
+    inputTraceLastDodge = -1
+    inputTraceLastLandingLag = -1
     inputTraceActive = true
     TimerStart(inputTraceClock, 1000, false, null)
     traceInput("start " + BUILD_ID)
@@ -733,6 +737,10 @@ function gameTick()
         if axes != inputTraceLastAxes or playerDirections.pulsePending or inputTraceTicks % 60 == 0
             traceInput("sample " + I2S(axes) + " pulse " + (playerDirections.pulsePending ? I2S(playerDirections.pulseX) + ":" + I2S(playerDirections.pulseZ) : "none") + " hitlag " + I2S(playerFighter.hitlag))
             inputTraceLastAxes = axes
+        if inputTraceLastDodge != playerFighter.airDodgeFrame or inputTraceLastLandingLag != playerFighter.landingLag
+            traceInput("motion air " + I2S(playerFighter.airDodgeFrame) + " landing " + I2S(playerFighter.landingLag) + " x " + R2S(playerFighter.x) + " z " + R2S(playerFighter.z))
+            inputTraceLastDodge = playerFighter.airDodgeFrame
+            inputTraceLastLandingLag = playerFighter.landingLag
         if inputTraceTicks >= 300
             finishInputTrace()
     if appliedBindingRevision != playerBindings.revision

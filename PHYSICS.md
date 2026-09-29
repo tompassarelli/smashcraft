@@ -198,9 +198,30 @@ the same protection query used by hit detection.
 The frame sweep test checks both characters at each frame 1–30. Additional
 tests cover damage interrupting startup and landing ending dodge protection.
 Neutral/directional dodge motion still uses provisional speed 8 world
-units/frame, 0.9 decay and a 26-frame motion period; landing lag remains the
-provisional 20 frames. The 49-frame counter cap is not a custom animation asset
-or a claim that those provisional motion values match Melee.
+units/frame, 0.9 decay and a 26-frame motion period. The 49-frame counter cap
+is not a custom animation asset or a claim that those provisional motion
+values match Melee.
+
+An accepted air dodge replaces prior ordinary movement and clears both launch
+momentum components, including for neutral input. This follows the momentum
+halt described in the Melee section of https://www.ssbwiki.com/Air_dodge.
+During each airborne motion tick, the simulation multiplies both dodge velocity
+components by 0.9 before either displacement. A 45-degree input therefore
+travels along a 45-degree line until contact; neutral input stays still during
+the motion period. This integration order is our implementation choice, not a
+claim of frame-exact Melee motion. Ordinary gravity and launch decay keep their
+existing order outside dodge motion.
+
+The Landing Lag tables at https://www.ssbwiki.com/Fox_(SSBM)/Air_dodge and
+https://www.ssbwiki.com/Falco_(SSBM)/Air_dodge report 10-frame landing animations
+(retrieved 2026-09-30). Both characters now receive 10 ticks of landing recovery.
+The contact tick starts the counter at 10; each subsequent tick reduces it,
+and actions become available when it reaches zero. Landing retains horizontal
+dodge velocity; subsequent grounded ticks apply traction, even if the airborne
+motion timer has not expired. Tests cover cleared launch momentum, neutral and
+diagonal motion, fast swept platform contact, sliding, and the exact recovery
+boundary. Numerical speed, decay, motion duration and native feel remain
+separate calibration work.
 
 ## Jump calibration checkpoint
 

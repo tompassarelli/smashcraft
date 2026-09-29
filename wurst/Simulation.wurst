@@ -21,7 +21,7 @@ constant int AIR_DODGE_FRAMES = 26
 constant int AIR_DODGE_INTANGIBLE_START = 4
 constant int AIR_DODGE_INTANGIBLE_END = 29
 constant int AIR_DODGE_ANIMATION_FRAMES = 49
-public constant int AIR_DODGE_LANDING_LAG = 20
+public constant int AIR_DODGE_LANDING_LAG = 10
 public constant int GROUND_ROLL_FRAMES = 31
 public constant int GROUND_ROLL_INTANGIBLE_START = 4
 public constant int GROUND_ROLL_INTANGIBLE_END = 19
@@ -836,6 +836,8 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	let scale = dx != 0 and dz != 0 ? DIAGONAL_UNIT : 1
 	f.vx = dx * AIR_DODGE_SPEED * scale
 	f.vz = dz * AIR_DODGE_SPEED * scale
+	f.knockbackX = 0
+	f.knockbackZ = 0
 	f.airDodgeTime = AIR_DODGE_FRAMES
 	f.airDodging = true
 	f.airDodgeFrame = 0
@@ -1096,6 +1098,9 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.vz = -2
 	let oldX = f.x
 	let oldZ = f.z
+	if dodgeActive and not f.grounded
+		f.vx = f.vx * 0.9
+		f.vz = f.vz * 0.9
 	if isGroundDodging(f) and f.groundDodgeDirection != 0
 		let proposedX = f.x + totalVelocityX(f)
 		f.x = max(surfaceLeft(stage, max(0, f.surface)), min(surfaceRight(stage, max(0, f.surface)), proposedX))
@@ -1110,10 +1115,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	else if f.grounded and f.jumpSquat > 0
 		f.vz = 0
 		f.z = surfaceZ(stage, max(0, f.surface))
-	else if dodgeActive and not f.grounded
-		f.vx = f.vx * 0.9
-		f.vz = f.vz * 0.9
-	else
+	else if not dodgeActive or f.grounded
 		let gravity = characterGravity(f.character)
 		f.vz = max(-characterTerminalSpeed(f.character), f.vz - gravity)
 		if input.down and f.downState == DOWN_NONE and f.hitstun <= 0 and totalVelocityZ(f) < 0
