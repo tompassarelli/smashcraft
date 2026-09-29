@@ -1556,3 +1556,22 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 	fighter.techHitlagLatched.assertFalse()
 	destroy input
 	destroy fighter
+
+@Test function grabbedFighterStillTracksDigitalTechPressesAndLockout()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.grabbedFrames = 10
+	input.techPressed = true
+	advance(fighter, 0, input, 0)
+	fighter.techWindow.assertEquals(TECH_WINDOW_FRAMES)
+	fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+	input.techPressed = false
+	for tick = 1 to 4
+		advance(fighter, 0, input, 0)
+	fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES - 4)
+	input.techPressed = true
+	advance(fighter, 0, input, 0)
+	fighter.techWindow.assertEquals(0)
+	fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+	destroy input
+	destroy fighter

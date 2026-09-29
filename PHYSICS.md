@@ -277,7 +277,45 @@ the current platform. Their first 8 ticks are intangible. Get-up attack lasts
 and is intangible during startup. Recovery clocks freeze during hitlag.
 
 All these recovery timings, threshold and hit shapes are provisional.
-Instant surface impact replaces a physical bounce; floor techs, face-up/down
+Instant surface impact replaces a physical bounce; face-up/down
 variants, jab resets, and character-specific get-up data remain unfinished.
 Jump as stand-up input is a deliberate keyboard convenience. Rifleman recovery
 art is still stock; Archer get-up rolls reuse ordinary roll clips.
+
+## Floor-tech reference
+
+The local Melee checkout's
+melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c gates tech eligibility on
+input timing counters and common data, and
+melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveStand.c chooses forward/back by
+horizontal input relative to facing. Those data field offsets are not timing
+values. No decompiled implementation is copied.
+
+The Melee section of https://www.ssbwiki.com/Tech, retrieved 2026-09-29 and
+cached at ~/code/wc3-melee/worktrees/test-loop/build/ref-Tech.html, reports a
+20-frame digital shield-press window and a 40-frame interval between presses.
+A repeated press inside that interval cancels the current opportunity. Grounded
+shield presses also count. Pressing before the last hitlag frame leaves one
+post-hitlag opportunity; pressing on the last hitlag frame leaves 20. The
+lockout lasts 40 frames after hitlag. Most characters have six vulnerable frames
+at the end of a tech. These are factual parameters from a secondary reference,
+not extracted local binary measurements. Analog-trigger behavior is outside our
+digital keyboard controls.
+
+The first floor-tech implementation counts the press tick as opportunity 1:
+contact through +19 ticks succeeds and contact at +20 misses. Every fresh
+digital shield edge, including a grounded one, restarts the 40-tick lockout;
+a retry inside it cancels the open opportunity. Holding Shield creates no new
+edges. Input captured during early hitlag leaves one contact tick after freeze;
+an accepted press on the final frozen tick leaves the full window. A window
+opened before hitlag simply freezes in our implementation; that case has not
+been independently verified against Melee.
+
+An in-place tech lasts 26 ticks with intangibility on 1–20; a directional tech
+lasts 40 with intangibility on 1–34. These totals and the 128-unit roll path
+are initial tuning; both leave six vulnerable recovery ticks. Direction at
+contact chooses the roll, whose movement is clamped to the current platform.
+A tech clears impact hitstun and consumes its input window. Early-hitlag versus
+last-hitlag inputs, repeated/grounded presses, window/lockout boundaries,
+recovery actions, interruption and reset are tested in the same Wurst simulation
+used by the map. Wall/ceiling techs and SDI/ASDI collision are not implemented.

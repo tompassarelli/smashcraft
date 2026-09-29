@@ -630,12 +630,6 @@ public function reset(FighterState f, real startX)
 	f.invincible = 90
 
 public function advance(FighterState f, int stage, InputSnapshot input, real respawnX)
-	if f.grabbedFrames > 0
-		f.grabbedFrames--
-		if f.grabbedFrames == 0
-			f.hitstun = 10
-			f.grounded = false
-		return
 	if f.out
 		if f.stocks <= 0
 			return
@@ -656,6 +650,12 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.techLockout = TECH_LOCKOUT_FRAMES
 		if f.hitlag > 0
 			f.techHitlagLatched = true
+	if f.grabbedFrames > 0
+		f.grabbedFrames--
+		if f.grabbedFrames == 0
+			f.hitstun = 10
+			f.grounded = false
+		return
 	var groundDodgeStarted = false
 	if f.hitlag <= 0
 		f.cooldown = max(0, f.cooldown - 1)

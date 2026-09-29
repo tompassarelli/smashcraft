@@ -463,3 +463,46 @@ face-up/down differences, jab resets, final move tuning, aerial normals,
 charged smashes, stronger art and multiplayer timing/desync proof remain open.
 The existing detached arrow-like element and two SettingsUI warnings remain
 recorded defects. The prototype is not yet the full requested fighter.
+
+## Floor-tech presentation scenario
+
+```bash
+WC3_SCENARIO=tech /home/tom/code/wc3-melee/worktrees/test-loop/loop.sh reload
+```
+
+Choose the fighter and stage, then tap Shield while falling. Holding Left or
+Right at contact selects a directional tech roll; neutral input selects the
+in-place tech. The scenario starts in tumble at height 300 with enough hitstun
+to isolate the tech input from air dodge, and holds the bot still. Both Shield
+bindings feed a fresh-press event; holding a key does not keep opening windows.
+The normal match build remains the default and is restored with
+`WC3_SCENARIO=normal /home/tom/code/wc3-melee/worktrees/test-loop/loop.sh reload`.
+
+Tech presentation initially reuses Archer's get-up and roll clips at the tech
+recovery durations. Dedicated tech impact art and Rifleman recovery clips are
+still unfinished. This fixture checks controls/presentation; headless tests
+own input-window, lockout and recovery boundary claims.
+
+Floor-tech integration passes 87/87 headless tests with zero warnings/errors.
+The final regression first failed because the grabbed-state early return
+skipped digital shield input and timer aging; tech timing now runs before that
+state return. Falco projectile hitstun also correctly cancels vulnerable
+recovery. Both fixes remain in the shared simulation.
+
+In native build 230834, neutral Shield before impact displayed "Tech!" and
+completed the in-place recovery. Right + Shield displayed "Tech roll!", moved
+the fighter from x=-240 to x=-112, and returned to ordinary movement. The
+persistent client loaded that scenario in 22.793 seconds. Evidence:
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/tech-reload.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/tech-neutral-client.mp4
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/tech-roll-client.mp4
+- ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/tech-final.log
+
+Those recordings validate the ordinary bound-key path and presentation in the
+fixture. Boundary timing is proven by Wurst tests, not real-time input sleeps.
+Dedicated tech art, exact character-specific roll movement, wall/ceiling techs,
+SDI/ASDI, aerial normals, charged smashes, and multiplayer proof remain open.
+
+Restored normal match build 231056 in 23.330 seconds without restarting the
+Warcraft process. The game readiness marker reports `SCENARIO normal`.
+Evidence: ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/tech-normal-reload.log.

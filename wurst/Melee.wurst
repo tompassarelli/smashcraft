@@ -32,6 +32,7 @@ boolean playerRightPressed = false
 boolean playerDownPressed = false
 boolean playerGetupAttackPressed = false
 boolean playerGetupStandPressed = false
+boolean playerTechPressed = false
 boolean shieldLeft = false
 boolean shieldRight = false
 boolean array held
@@ -227,7 +228,13 @@ function applyFrame()
     let botPreviousStun = botFighter.hitstun
     let playerPreviousJump = playerFighter.jumpSerial
     let botPreviousJump = botFighter.jumpSerial
+    let playerPreviousDown = playerFighter.downState
     stepMatch(matchState, playerFighter, botFighter, playerInput, botInput, playerAttacks, botAttacks, simulationFrame)
+    if playerFighter.downState != playerPreviousDown
+        if playerFighter.downState == DOWN_TECH
+            announce("Tech!")
+        else if playerFighter.downState == DOWN_TECH_ROLL
+            announce("Tech roll!")
     renderFighter(playerFighter, playerWasOut, playerFighter.jumpSerial != playerPreviousJump)
     renderFighter(botFighter, botWasOut, botFighter.jumpSerial != botPreviousJump)
     renderProjectiles(playerFighter, 0)
@@ -276,9 +283,9 @@ function startMatch()
     if KNOCKDOWN_SCENARIO
         playerFighter.downState = DOWN_TUMBLE
         playerFighter.grounded = false
-        playerFighter.z = 80
+        playerFighter.z = TECH_SCENARIO ? 300 : 80
         playerFighter.vz = -8
-        playerFighter.hitstun = 30
+        playerFighter.hitstun = TECH_SCENARIO ? 60 : 30
         botFighter.x = 350
 
 function choose()
@@ -340,6 +347,7 @@ function clearHeldInputs()
     playerDownPressed = false
     playerGetupAttackPressed = false
     playerGetupStandPressed = false
+    playerTechPressed = false
     shieldLeft = false
     shieldRight = false
     playerJumpHeld = false
@@ -436,6 +444,8 @@ function onKeyDown()
         else
             shieldRight = true
         if not wasHeld
+            if matchState.phase == MATCH
+                playerTechPressed = true
             airDodge(playerFighter, (moveRight ? 1 : 0) - (moveLeft ? 1 : 0), (moveUp ? 1 : 0) - (moveDown ? 1 : 0))
     else if action == SMASH_LEFT
         playerAttackFacing = -1
@@ -529,7 +539,7 @@ function attackAnimationRate(Fighter fighter) returns real
 function downAnimationIndex(Fighter fighter) returns int
     if fighter.downState == DOWN_BOUND or fighter.downState == DOWN_WAIT
         return ARCHER_KNOCKDOWN_INDEX
-    if fighter.downState == DOWN_STAND
+    if fighter.downState == DOWN_STAND or fighter.downState == DOWN_TECH
         return ARCHER_GET_UP_INDEX
     return fighter.downDirection == fighter.facing ? ARCHER_ROLL_FORWARD_INDEX : ARCHER_ROLL_BACKWARD_INDEX
 
@@ -542,8 +552,10 @@ function downAnimationRate(Fighter fighter) returns real
         return ARCHER_KNOCKDOWN_SECONDS / (DOWN_BOUND_FRAMES * FRAME_SECONDS)
     if fighter.downState == DOWN_STAND
         return ARCHER_GET_UP_SECONDS / (DOWN_STAND_FRAMES * FRAME_SECONDS)
+    if fighter.downState == DOWN_TECH
+        return ARCHER_GET_UP_SECONDS / (TECH_IN_PLACE_FRAMES * FRAME_SECONDS)
     let seconds = fighter.downDirection == fighter.facing ? ARCHER_ROLL_FORWARD_SECONDS : ARCHER_ROLL_BACKWARD_SECONDS
-    return seconds / (DOWN_ROLL_FRAMES * FRAME_SECONDS)
+    return seconds / ((fighter.downState == DOWN_TECH_ROLL ? TECH_ROLL_FRAMES : DOWN_ROLL_FRAMES) * FRAME_SECONDS)
 
 function groundDodgeAnimation(Fighter fighter) returns int
     if fighter.groundDodgeDirection == 0
@@ -628,7 +640,7 @@ function renderUI()
         BlzFrameSetText(helpFrame, "Choose Controls with the button or F1. Select a stage, then press Attack to fight.")
     else
         BlzFrameSetText(hudFrame, charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "          " + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "\n" + (matchState.stageChoice == 0 ? "Sky Deck" : "Three Bridges") + "   |cffff6666Red border = KO|r")
-        BlzFrameSetText(helpFrame, matchState.phase == RESULT ? "Press Attack to choose your next match     F6: restart" : "Hold Shield, then tap Left/Right to roll or Down to dodge in place.\nF6: restart map")
+        BlzFrameSetText(helpFrame, matchState.phase == RESULT ? "Press Attack to choose your next match     F6: restart" : "Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.")
         if matchState.phase == MATCH and playerFighter.downState == DOWN_WAIT
             BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
     BlzFrameSetText(noticeFrame, statusTime > 0 ? statusText : "")
@@ -676,6 +688,7 @@ function gameTick()
                 attack(botFighter, playerFighter, 0)
                 botAttackDelay = 0.35
         playerInput.direction = direction
+        playerInput.techPressed = playerTechPressed
         playerInput.getupAttackPressed = playerGetupAttackPressed
         playerInput.getupStandPressed = playerGetupStandPressed
         playerInput.getupDirection = (playerRightPressed ? 1 : 0) - (playerLeftPressed ? 1 : 0)
@@ -702,6 +715,7 @@ function gameTick()
         playerDownPressed = false
         playerGetupAttackPressed = false
         playerGetupStandPressed = false
+        playerTechPressed = false
         playerJumpQueued = false
         playerInput.jumpPressed = false
         playerAirDodgeQueued = false
@@ -719,7 +733,7 @@ function gameTick()
         PreloadGenClear()
         PreloadGenStart()
         Preload("BUILD " + BUILD_ID)
-        Preload("SCENARIO " + (KNOCKDOWN_SCENARIO ? "knockdown" : "normal"))
+        Preload("SCENARIO " + (TECH_SCENARIO ? "tech" : (KNOCKDOWN_SCENARIO ? "knockdown" : "normal")))
         Preload("BINDINGS " + playerBindings.bindings.encode())
         PreloadGenEnd("wc3-melee-ready.txt")
 
