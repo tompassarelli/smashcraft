@@ -409,7 +409,7 @@ function tiltDamageAt(int style, int facing, real targetX, real targetZ) returns
 @Test function airDodgeChangesVelocityAndLandingRestoresJumps()
 	let fighter = new FighterState(0, 0, 1)
 	fighter.grounded = false
-	fighter.z = 120
+	fighter.z = 10
 	let input = new InputSnapshot()
 	input.airDodgePressed = true
 	input.dodgeX = 1
@@ -1019,7 +1019,7 @@ function airJumpApex(int character) returns real
 @Test function attackRecoveryBlocksAirDodgeThroughAdvance()
 	let fighter = new FighterState(0, 0, 1)
 	fighter.grounded = false
-	fighter.z = 120
+	fighter.z = 10
 	setRecovery(fighter, 3)
 	let input = new InputSnapshot()
 	input.airDodgePressed = true
@@ -1138,5 +1138,140 @@ function airJumpApex(int character) returns real
 		fighter.x.assertGreaterThan(landingX)
 		fighter.shield.assertFalse()
 		fighter.landingLag.assertEquals(AIR_DODGE_LANDING_LAG - 1)
-		destroy input
-		destroy fighter
+
+@Test function tumbleBlocksActionsUntilHitstunEnds()
+	let target = new FighterState(1, 100, -1)
+	let input = new InputSnapshot()
+	target.z = 400
+	target.downState = DOWN_TUMBLE
+	target.hitstun = 20
+	input.jumpPressed = true
+	advance(target, 0, input, 240)
+	target.downState.assertEquals(DOWN_TUMBLE)
+	target.jumpSerial.assertEquals(0)
+	input.jumpPressed = false
+	for frame = 0 to target.hitstun
+		advance(target, 0, input, 240)
+	(target.hitstun == 0).assertTrue()
+	input.jumpPressed = true
+	advance(target, 0, input, 240)
+	target.jumpSerial.assertEquals(1)
+	target.downState.assertEquals(DOWN_NONE)
+	destroy input
+	destroy target
+
+@Test function tumbleCanBeAirDodgedAfterHitstunButNotDuringIt()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = 100
+	fighter.downState = DOWN_TUMBLE
+	fighter.hitstun = 1
+	input.airDodgePressed = true
+	advance(fighter, 0, input, 0)
+	fighter.airDodging.assertFalse()
+	fighter.hitstun = 0
+	advance(fighter, 0, input, 0)
+	fighter.airDodging.assertTrue()
+	fighter.downState.assertEquals(DOWN_NONE)
+	destroy input
+	destroy fighter
+
+@Test function tumbleAllowsAnAttackAfterHitstunAndAttackInterruptsTumble()
+	let attacker = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 500, -1)
+	let input = new InputSnapshot()
+	let commands = new AttackBuffer(0)
+	target.grounded = false
+	target.z = 100
+	target.downState = DOWN_TUMBLE
+	target.hitstun = 0
+	commands.enqueue(0, 0, 1)
+	let otherCommands = new AttackBuffer(0)
+	let game = testMatch()
+	stepMatch(game, attacker, target, input, input, otherCommands, commands, 1)
+	target.attackStyle.assertEquals(0)
+	target.downState.assertEquals(DOWN_NONE)
+	destroy otherCommands
+	destroy commands
+	destroy input
+	destroy target
+	destroy attacker
+	destroy game
+
+@Test function tumbleLandingRunsBoundWaitAndFreshRecoveryChoices()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = 1
+	fighter.vz = -2
+	fighter.downState = DOWN_TUMBLE
+	fighter.hitstun = 1
+	advance(fighter, 0, input, 0)
+	fighter.downState.assertEquals(DOWN_BOUND)
+	fighter.grounded.assertTrue()
+	for frame = 1 to DOWN_BOUND_FRAMES
+		advance(fighter, 0, input, 0)
+	fighter.downState.assertEquals(DOWN_WAIT)
+	input.getupDirectionPressed = true
+	input.getupDirection = -1
+	advance(fighter, 0, input, 0)
+	fighter.downState.assertEquals(DOWN_ROLL)
+	fighter.downDirection.assertEquals(-1)
+	destroy input
+	destroy fighter
+
+@Test function downWaitAutostandsAndGetupAttackHasItsOwnHitbox()
+	let fighter = new FighterState(0, 0, 1)
+	let opponent = new FighterState(1, 100, -1)
+	let input = new InputSnapshot()
+	fighter.downState = DOWN_WAIT
+	fighter.downFrame = DOWN_WAIT_FRAMES - 1
+	advance(fighter, 0, input, 0)
+	fighter.downState.assertEquals(DOWN_STAND)
+	fighter.downState = DOWN_WAIT
+	fighter.downFrame = 0
+	input.getupAttackPressed = true
+	advance(fighter, 0, input, 0)
+	fighter.downState.assertEquals(DOWN_ATTACK)
+	(attackPhase(fighter) == ATTACK_STARTUP).assertTrue()
+	for frame = 1 to DOWN_ATTACK_STARTUP_FRAMES
+		advance(fighter, 0, input, 0)
+	(attackPhase(fighter) == ATTACK_ACTIVE).assertTrue()
+	for frame = 1 to DOWN_ATTACK_ACTIVE_FRAMES
+		resolveAttackPair(fighter, opponent)
+		advance(fighter, 0, input, 0)
+	opponent.damage.assertEquals(DOWN_ATTACK_DAMAGE)
+	destroy input
+	destroy opponent
+	destroy fighter
+
+@Test function downWaitIsVulnerableButEarlyGetupRecoveryIsIntangible()
+	let waiting = new FighterState(1, 100, -1)
+	let attacker = new FighterState(0, 0, 1)
+	waiting.downState = DOWN_WAIT
+	resolveStartedAttack(0, attacker, waiting)
+	waiting.damage.assertGreaterThan(0.)
+	destroy attacker
+	destroy waiting
+	let standing = new FighterState(1, 100, -1)
+	let standAttacker = new FighterState(0, 0, 1)
+	standing.downState = DOWN_STAND
+	standing.downFrame = 1
+	isIntangible(standing).assertTrue()
+	resolveStartedAttack(0, standAttacker, standing)
+	standing.damage.assertEquals(0.)
+	standing.downFrame = DOWN_RECOVERY_INTANGIBLE_FRAMES + 1
+	isIntangible(standing).assertFalse()
+	let lateAttacker = new FighterState(0, 0, 1)
+	resolveStartedAttack(0, lateAttacker, standing)
+	standing.damage.assertGreaterThan(0.)
+	standing.downState = DOWN_ROLL
+	standing.downFrame = 1
+	isIntangible(standing).assertTrue()
+	standing.downState = DOWN_ATTACK
+	standing.downFrame = DOWN_ATTACK_STARTUP_FRAMES
+	isIntangible(standing).assertTrue()
+	destroy lateAttacker
+	destroy standAttacker
+	destroy standing
