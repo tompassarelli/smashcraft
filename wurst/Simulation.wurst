@@ -183,13 +183,13 @@ public function canAttack(FighterState attacker) returns boolean
 	return not attacker.out and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0 and not attacker.shield
 
 function attackDamage(int style) returns real
-	return style == 1 ? 3 : (style == 2 or style == 3 ? 16 : (style == 4 ? 18 : (style == 5 ? 0 : (style == 6 ? 10 : (style == 7 ? 8 : (style == 8 ? 8 : 12))))))
+	return style == 1 ? 3 : (style == 2 or style == 3 ? 16 : (style == 4 ? 18 : (style == 5 ? 0 : (style == 6 or style == 9 or style == 10 ? 10 : (style == 7 ? 8 : (style == 8 ? 8 : 12))))))
 
 function attackReach(int style) returns real
 	return style == 1 ? 600 : (style == 2 or style == 3 ? 125 : (style == 5 ? 100 : 145))
 
 public function attackStartupFrames(int style) returns int
-	return style == 1 ? 2 : (style == 2 or style == 3 ? 8 : (style == 4 ? 6 : (style == 5 ? 5 : (style == 6 or style == 8 ? 5 : (style == 7 ? 6 : 4)))))
+	return style == 1 ? 2 : (style == 2 or style == 3 ? 8 : (style == 4 ? 6 : (style == 5 ? 5 : (style == 6 or style == 8 or style == 9 or style == 10 ? 5 : (style == 7 ? 6 : 4)))))
 
 public function attackActiveFrames(int style) returns int
 	return style == 1 ? 1 : (style == 2 or style == 3 or style == 4 ? 3 : 2)
@@ -198,7 +198,7 @@ public function attackDurationFrames(int style) returns int
 	return attackDurationFramesForGrounding(style, true)
 
 public function attackDurationFramesForGrounding(int style, boolean grounded) returns int
-	return style == 1 ? (grounded ? 24 : 15) : (style == 2 or style == 3 ? 42 : (style == 6 or style == 8 ? 28 : (style == 7 ? 29 : 36)))
+	return style == 1 ? (grounded ? 24 : 15) : (style == 2 or style == 3 ? 42 : (style == 6 or style == 8 or style == 9 or style == 10 ? 28 : (style == 7 ? 29 : 36)))
 
 public function attackRecoveryFrames(int style, boolean grounded) returns int
 	return attackDurationFramesForGrounding(style, grounded) - attackStartupFrames(style) - attackActiveFrames(style)
@@ -233,7 +233,8 @@ public function projectileDirectionAt(FighterState f, int index) returns int
 
 function attackHits(FighterState attacker, FighterState target, int style) returns boolean
 	let separation = target.x - attacker.x
-	return not target.out and not isIntangible(target) and separation * attacker.facing >= 0 and separation.abs() <= attackReach(style) and (target.z - attacker.z).abs() <= 130
+	let verticalOffset = style == 9 ? 65 : (style == 10 ? -65 : 0)
+	return not target.out and not isIntangible(target) and separation * attacker.facing >= 0 and separation.abs() <= attackReach(style) and (target.z - attacker.z - verticalOffset).abs() <= 130
 
 public function isIntangible(FighterState f) returns boolean
 	let groundDodgeIntangible = f.groundDodgeFrame > 0 and (
@@ -408,8 +409,8 @@ function canBeginGroundDodge(FighterState f) returns boolean
 	return not f.out and f.grounded and f.hitlag <= 0 and f.hitstun <= 0 and f.shieldStun <= 0 and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0 and f.grabbedFrames <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldEnergy > 0
 
 public function beginAttackPair(FighterState first, FighterState second, int firstStyle, int secondStyle)
-	let firstEligible = firstStyle >= 0 and firstStyle <= 8 and canAttack(first) and not second.out
-	let secondEligible = secondStyle >= 0 and secondStyle <= 8 and canAttack(second) and not first.out
+	let firstEligible = firstStyle >= 0 and firstStyle <= 10 and canAttack(first) and not second.out
+	let secondEligible = secondStyle >= 0 and secondStyle <= 10 and canAttack(second) and not first.out
 	if firstEligible
 		beginAttack(first, firstStyle)
 	if secondEligible

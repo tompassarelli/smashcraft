@@ -66,7 +66,7 @@ function setRecovery(FighterState fighter, int cooldown)
 	fighter.cooldown = cooldown
 
 @Test function allStylesExposeStartupActiveAndRecoveryFrames()
-	for style = 0 to 8
+	for style = 0 to 10
 		let fighter = new FighterState(0, 0, 1)
 		let target = new FighterState(1, 400, -1)
 		let input = new InputSnapshot()
@@ -195,6 +195,16 @@ function damageFromOneAttack(int style) returns real
 	destroy attacker
 	return damage
 
+function tiltDamageAt(int style, int facing, real targetX, real targetZ) returns real
+	let attacker = new FighterState(0, 0, facing)
+	let target = new FighterState(1, targetX, -facing)
+	target.z = targetZ
+	resolveStartedAttack(style, attacker, target)
+	let damage = target.damage
+	destroy target
+	destroy attacker
+	return damage
+
 @Test function tiltsAreLighterAndRecoverSoonerThanSmashes()
 	for style = 6 to 8
 		damageFromOneAttack(style).assertLessThan(damageFromOneAttack(4))
@@ -204,6 +214,28 @@ function damageFromOneAttack(int style) returns real
 	damageFromOneAttack(6).assertEquals(10.)
 	damageFromOneAttack(7).assertEquals(8.)
 	damageFromOneAttack(8).assertEquals(8.)
+
+@Test function angledForwardTiltsShareFlatForwardTiltTimingDamageAndRecovery()
+	for style = 9 to 10
+		attackStartupFrames(style).assertEquals(5)
+		attackActiveFrames(style).assertEquals(2)
+		attackDurationFrames(style).assertEquals(28)
+		attackRecoveryFrames(style, true).assertEquals(21)
+		damageFromOneAttack(style).assertEquals(10.)
+
+@Test function angledForwardTiltsCoverTheirVerticalOffsetAndPreserveFacingRange()
+	tiltDamageAt(9, 1, 100, 150).assertEquals(10.)
+	tiltDamageAt(9, 1, 100, -150).assertEquals(0.)
+	tiltDamageAt(10, 1, 100, -150).assertEquals(10.)
+	tiltDamageAt(10, 1, 100, 150).assertEquals(0.)
+	tiltDamageAt(6, 1, 100, 150).assertEquals(0.)
+	tiltDamageAt(6, 1, 100, -150).assertEquals(0.)
+	tiltDamageAt(9, 1, 145, 65).assertEquals(10.)
+	tiltDamageAt(10, 1, 145, -65).assertEquals(10.)
+	tiltDamageAt(9, 1, 146, 65).assertEquals(0.)
+	tiltDamageAt(10, -1, 100, -65).assertEquals(0.)
+	tiltDamageAt(6, 1, 145, 0).assertEquals(10.)
+	tiltDamageAt(6, 1, 146, 0).assertEquals(0.)
 
 @Test function walkingModifierHalvesGroundRunSpeed()
 	let runner = new FighterState(0, 0, 1)
