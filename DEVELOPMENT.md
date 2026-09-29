@@ -59,6 +59,34 @@ desynchronization. Use a short in-game check for those boundaries. A two-client
 test is required before making fairness/netcode claims; no rollback guarantee
 follows merely from deterministic simulation tests.
 
+## Directional influence integration
+
+Held Left/Right and Up/Down reach the simulation in the same frame snapshot.
+The victim's last hitlag frame samples those axes once to adjust launch angle;
+later steering does not repeatedly rotate the launch. The developer line's
+`DI=count:degrees` reports nonzero applications for the native input check.
+The control bindings remain player-configurable. Numerical and digital-input
+differences are recorded in wc3-melee:PHYSICS.md.
+
+The remaining knockback fidelity work includes separating launch velocity from
+ordinary movement: the current shared velocity fields apply independent axis
+decay and cap falling speed using character gravity. DI tests establish the
+initial angle change, not a faithful full launch trajectory. SDI and ASDI are
+also not implemented yet.
+
+The integrated suite passed 112/112 tests with no compiler warnings. The final
+input-timing check additionally changes Down to Up on the last frozen tick and
+confirms the Up result; the focused DI suite passed 3/3 after that assertion.
+Native build 000339 reloaded in 23.801 seconds with the Warcraft process retained.
+Holding Up in a normal Sky Deck match produced four recorded DI applications
+(approximately -9 degrees against the bot's diagonal launches) before stock
+loss reset the diagnostic. This proves the held-input adapter reaches DI in the
+client; it does not establish analog parity or multiplayer timing.
+Evidence: ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/di-client.mp4,
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/di-timeline.png,
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/di-reload.log,
+and ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/di-integrated.log.
+
 ## Sequence and current checkpoint
 
 1. Finish the initial Wurst port and observe it running in the existing client.

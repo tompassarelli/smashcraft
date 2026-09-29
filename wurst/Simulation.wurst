@@ -100,6 +100,8 @@ constant real KNOCKBACK_DECAY_PER_FRAME = 0.051
 constant real KNOCKBACK_LAUNCH_SCALE = 0.03 * WORLD_UNITS_PER_MELEE_UNIT
 constant real HITSTUN_FRAMES_PER_KNOCKBACK = 0.4
 constant real DIAGONAL_UNIT = 0.7071067811865476
+constant real DI_MAX_ANGLE_RADIANS = 0.3141592653589793
+constant real RADIANS_TO_DEGREES = 57.29577951308232
 
 public class FighterState
 	int character
@@ -112,6 +114,10 @@ public class FighterState
 	int stocks = 3
 	int hitstun = 0
 	int hitlag = 0
+	boolean diPending = false
+	real diLaunchSpeed = 0
+	int diSerial = 0
+	real diAngleDegrees = 0
 	int cooldown = 0
 	int attackStyle = -1
 	int attackFrame = 0
@@ -165,6 +171,7 @@ public class FighterState
 
 public class InputSnapshot
 	int direction = 0
+	int verticalDirection = 0
 	boolean attackRequested = false
 	boolean down = false
 	boolean shield = false
@@ -183,6 +190,30 @@ public class InputSnapshot
 	boolean jumpHeld = false
 	boolean walking = false
 	boolean attackHeld = false
+
+function applyDirectionalInfluence(FighterState target, InputSnapshot input)
+	if not target.diPending
+		return
+	target.diPending = false
+	if input.direction == 0 and input.verticalDirection == 0 or target.diLaunchSpeed <= 0
+		return
+	let dx = input.direction == 0 ? 0 : (input.direction > 0 ? 1 : -1)
+	let dz = input.verticalDirection == 0 ? 0 : (input.verticalDirection > 0 ? 1 : -1)
+	let inputScale = dx != 0 and dz != 0 ? DIAGONAL_UNIT : 1
+	let inputX = dx * inputScale
+	let inputZ = dz * inputScale
+	let cross = (target.vx * inputZ - target.vz * inputX) / target.diLaunchSpeed
+	if cross == 0
+		return
+	let angle = cross * cross.abs() * DI_MAX_ANGLE_RADIANS
+	let cosine = Cos(angle)
+	let sine = Sin(angle)
+	let oldVx = target.vx
+	let oldVz = target.vz
+	target.vx = oldVx * cosine - oldVz * sine
+	target.vz = oldVz * cosine + oldVx * sine
+	target.diAngleDegrees = angle * RADIANS_TO_DEGREES
+	target.diSerial++
 
 public function surfaceCount(int stage) returns int
 	return stage == 0 ? 1 : 3
@@ -541,6 +572,8 @@ function applyProjectileHit(FighterState owner, FighterState target)
 		return
 	target.damage += damage
 	if owner.character == 1
+		target.diPending = false
+		target.diLaunchSpeed = 0
 		interruptJumpOrDodge(target)
 		clearDownState(target)
 		cancelAttack(target)
@@ -586,6 +619,8 @@ function cancelAttack(FighterState fighter)
 function applyAttackHit(FighterState attacker, FighterState target, int style, int chargeFrames)
 	let damage = attackDamageWithCharge(style, chargeFrames)
 	if style == 5
+		target.diPending = false
+		target.diLaunchSpeed = 0
 		interruptJumpOrDodge(target)
 		clearDownState(target)
 		cancelAttack(target)
@@ -608,11 +643,15 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	if style == 1
 		target.damage += damage
 		if attacker.character == 1
+			target.diPending = false
+			target.diLaunchSpeed = 0
 			interruptJumpOrDodge(target)
 			clearDownState(target)
 			cancelAttack(target)
 			target.hitstun = max(target.hitstun, 11)
 		return
+	target.diPending = false
+	target.diLaunchSpeed = 0
 	interruptJumpOrDodge(target)
 	clearDownState(target)
 	cancelAttack(target)
@@ -634,6 +673,8 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	else
 		target.vx = attacker.facing * launch * DIAGONAL_UNIT
 		target.vz = launch * DIAGONAL_UNIT
+	target.diPending = true
+	target.diLaunchSpeed = launch
 	target.hitstun = R2I(knockback * HITSTUN_FRAMES_PER_KNOCKBACK)
 	if knockback >= DOWN_KNOCKBACK_THRESHOLD
 		target.downState = DOWN_TUMBLE
@@ -730,6 +771,10 @@ public function reset(FighterState f, real startX)
 	f.damage = 0
 	f.hitstun = 0
 	f.hitlag = 0
+	f.diPending = false
+	f.diLaunchSpeed = 0
+	f.diSerial = 0
+	f.diAngleDegrees = 0
 	f.shieldStun = 0
 	f.attackStyle = -1
 	f.attackFrame = 0
@@ -832,6 +877,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			f.jumpSerial++
 			f.jumpIsDouble = false
 	if f.hitlag > 0
+		if f.hitlag == 1
+			applyDirectionalInfluence(f, input)
 		f.hitlag--
 		return
 	if f.groundDodgeFrame > 0 and not groundDodgeStarted
@@ -977,6 +1024,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 function checkBlastZone(FighterState f)
 	if f.x <= -920 or f.x >= 920 or f.z <= -420 or f.z >= 760
 		f.out = true
+		f.diPending = false
+		f.diLaunchSpeed = 0
 		f.lCancelWindow = 0
 		f.techWindow = 0
 		f.techLockout = 0

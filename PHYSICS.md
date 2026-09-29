@@ -114,6 +114,25 @@ For a non-staled 12-damage hit on weight 80 at 0 pre-hit percent, growth 100,
 base 20 and ratio 1, K is 51.0666667, launch speed 1.532 and floor(0.4*K) is 20.
 These are useful independent arithmetic expectations for our Wurst tests.
 
+## Directional influence
+
+Melee reads the control stick on the last hitlag frame. A direction perpendicular
+to the launch path can rotate it by about 18 degrees; partial stick tilt weakens
+the change, and a parallel direction produces none. Source: the Melee section of
+SmashWiki's Directional influence article, retrieved 2026-09-29
+(cached at `build/ref-Directional_influence.html`).
+
+The simulation samples the keyboard's left/right/up/down axes exactly once on
+the last frozen tick. It normalizes diagonal digital input, computes the signed
+cross product against the launch direction, and squares its signed magnitude to
+set the rotation up to 18 degrees while preserving launch speed. The smooth
+keyboard approximation cannot represent analog tilt, and this response curve
+is an independent approximation rather than extracted Melee code. A neutral or
+parallel input does not change the path. The current simulation also combines launch and
+movement velocity in the same fields and gives ordinary hits simplified air
+state; exact Melee grounded/non-tumbling eligibility, SDI, ASDI, and subsequent
+knockback decay remain separate fidelity work.
+
 ## Air-dodge protection checkpoint
 
 The locally cached SmashWiki Air_dodge table reports Fox and Falco intangible

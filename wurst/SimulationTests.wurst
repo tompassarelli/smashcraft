@@ -709,6 +709,146 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	advance(fighter, 0, input, -240)
 	(fighter.x > 25.).assertTrue()
 
+@Test function directionalInfluenceReadsOnlyTheLastHitlagFrameAndPreservesLaunchSpeed()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.vx = 10
+	fighter.vz = 0
+	fighter.diLaunchSpeed = 10
+	fighter.diPending = true
+	fighter.hitlag = 3
+	input.verticalDirection = -1
+	advance(fighter, 0, input, -240)
+	fighter.diSerial.assertEquals(0)
+	advance(fighter, 0, input, -240)
+	fighter.diSerial.assertEquals(0)
+	input.verticalDirection = 1
+	advance(fighter, 0, input, -240)
+	fighter.diSerial.assertEquals(1)
+	fighter.diAngleDegrees.assertEquals(18, 0.001)
+	SquareRoot(fighter.vx * fighter.vx + fighter.vz * fighter.vz).assertEquals(10, 0.001)
+	advance(fighter, 0, input, -240)
+	fighter.diSerial.assertEquals(1)
+	destroy input
+	destroy fighter
+
+@Test function directionalInfluenceNormalizesDiagonalInputAndIgnoresParallelInput()
+	let diagonal = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	diagonal.vx = 10
+	diagonal.diLaunchSpeed = 10
+	diagonal.diPending = true
+	diagonal.hitlag = 1
+	input.direction = 1
+	input.verticalDirection = 1
+	advance(diagonal, 0, input, -240)
+	diagonal.diSerial.assertEquals(1)
+	diagonal.diAngleDegrees.assertGreaterThan(8.)
+	diagonal.diAngleDegrees.assertLessThan(10.)
+	SquareRoot(diagonal.vx * diagonal.vx + diagonal.vz * diagonal.vz).assertEquals(10, 0.001)
+	let parallel = new FighterState(0, 0, 1)
+	parallel.vx = 10
+	parallel.diLaunchSpeed = 10
+	parallel.diPending = true
+	parallel.hitlag = 1
+	input.direction = 1
+	input.verticalDirection = 0
+	advance(parallel, 0, input, -240)
+	parallel.diSerial.assertEquals(0)
+	parallel.diPending.assertFalse()
+	parallel.vx.assertEquals(10.)
+	parallel.vz.assertEquals(0.)
+	destroy parallel
+	destroy diagonal
+	destroy input
+
+@Test function directionalInfluenceOpportunityClearsOnResetStockLossAndNonKnockbackHits()
+	let fighter = new FighterState(0, 0, 1)
+	let attacker = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 100, -1)
+	let game = testMatch()
+	let attackerInput = new InputSnapshot()
+	let targetInput = new InputSnapshot()
+	let attackerCommands = new AttackBuffer(0)
+	let targetCommands = new AttackBuffer(0)
+	targetInput.shield = true
+	fighter.diPending = true
+	fighter.diLaunchSpeed = 10
+	fighter.diSerial = 2
+	fighter.diAngleDegrees = 9
+	reset(fighter, 0)
+	fighter.diPending.assertFalse()
+	fighter.diLaunchSpeed.assertEquals(0.)
+	fighter.diSerial.assertEquals(0)
+	fighter.diAngleDegrees.assertEquals(0.)
+	fighter.diPending = true
+	fighter.x = 920
+	advance(fighter, 0, targetInput, 0)
+	fighter.diPending.assertFalse()
+	fighter.diLaunchSpeed.assertEquals(0.)
+	target.diPending = true
+	target.diLaunchSpeed = 10
+	target.hitlag = 20
+	target.shield = true
+	runToAttackActive(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, 0, 1)
+	target.diPending.assertTrue()
+	target.diLaunchSpeed.assertEquals(10.)
+	target.vx.assertEquals(0.)
+	target.vz.assertEquals(0.)
+	let grabber = new FighterState(0, 0, 1)
+	let grabbed = new FighterState(1, 100, -1)
+	grabbed.diPending = true
+	grabbed.diLaunchSpeed = 10
+	beginAttackPair(grabber, grabbed, 5, -1, false, false)
+	grabber.attackFrame = attackStartupFrames(5)
+	resolveAttackPair(grabber, grabbed)
+	grabbed.grabbedFrames.assertEquals(20)
+	grabbed.diPending.assertFalse()
+	let shooter = new FighterState(0, 0, 1)
+	let shotTarget = new FighterState(0, 30, -1)
+	shotTarget.diPending = true
+	shotTarget.diLaunchSpeed = 10
+	shotTarget.vx = 10
+	shotTarget.hitlag = 1
+	let shotInput = new InputSnapshot()
+	shotInput.verticalDirection = 1
+	shooter.projectileLife[0] = 1
+	shooter.projectileDirection[0] = 1
+	shooter.projectileX[0] = 0
+	shooter.projectileZ[0] = 45
+	updateProjectilePair(shooter, shotTarget)
+	shotTarget.damage.assertEquals(3.)
+	shotTarget.diPending.assertTrue()
+	shotTarget.diSerial.assertEquals(0)
+	advance(shotTarget, 0, shotInput, -240)
+	shotTarget.diPending.assertFalse()
+	shotTarget.diSerial.assertEquals(1)
+	shotTarget.diAngleDegrees.assertEquals(18, 0.001)
+	let blockedTarget = new FighterState(1, 30, -1)
+	blockedTarget.shield = true
+	blockedTarget.diPending = true
+	blockedTarget.diLaunchSpeed = 10
+	shooter.projectileLife[0] = 1
+	shooter.projectileX[0] = 0
+	shooter.projectileZ[0] = 45
+	updateProjectilePair(shooter, blockedTarget)
+	blockedTarget.diPending.assertTrue()
+	blockedTarget.diLaunchSpeed.assertEquals(10.)
+	destroy targetCommands
+	destroy attackerCommands
+	destroy targetInput
+	destroy attackerInput
+	destroy game
+	destroy attacker
+	destroy target
+	destroy shooter
+	destroy shotTarget
+	destroy shotInput
+	destroy blockedTarget
+	destroy grabber
+	destroy grabbed
+	destroy fighter
+
 @Test function heldShieldDrainsByTheFrameRateAmount()
 	let fighter = new FighterState(0, 0, 1)
 	fighter.shieldEnergy = 0.5
@@ -738,6 +878,8 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	target.vz.assertEquals(6.5085, 0.01)
 	target.hitstun.assertEquals(20)
 	target.hitlag.assertEquals(7)
+	target.diPending.assertTrue()
+	target.diLaunchSpeed.assertGreaterThan(0.)
 	attacker.hitlag.assertEquals(7)
 	var frame = attackStartupFrames(0) + 2
 	while attacker.hitlag > 0
