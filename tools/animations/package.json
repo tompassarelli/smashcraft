@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "pngjs": "7.0.0",
+    "war3-model": "4.0.1"
+  }
+}

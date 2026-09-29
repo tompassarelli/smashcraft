@@ -4,3 +4,4 @@
 /.clj-kondo/
 /compiled.lua.txt
 /toolchain/*.jar
+/tools/animations/node_modules/

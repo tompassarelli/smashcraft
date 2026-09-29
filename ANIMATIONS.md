@@ -24,12 +24,11 @@ Both are candidate Blender MDL import/export add-ons. The second still declares
 Blender 2.80 in its metadata, so its name does not establish compatibility with
 the installed Blender. README documents sequence ranges through paired timeline
 markers, reference pose at frame zero, and limitations on classic MDL skinning.
-The second add-on registers successfully in Blender 5.1.1, but animated export
-fails: its animation reader accesses `Action.fcurves`, removed by Blender's
-layered-action API. The executable counterexample is preserved at
-~/code/wc3-melee/worktrees/test-loop/build/animation-probe/export.py.
-Repair the animation reader in an owned tool checkout before authoring clips;
-registration alone does not validate export. Actual import → edit → export →
+The second add-on's animated export is repaired in
+~/code/mdl-exporter4/worktrees/blender5 at commit 409e249. Its reader now uses
+Blender's layered-action API; the real Blender regression verifies exported
+translation keys at 0ms and 833ms. Animated import is still being repaired at
+the same API boundary. Registration alone does not validate import. Actual import → edit → export →
 in-game playback remains the deciding check before choosing the pipeline.
 
 The add-ons are GPL tools (repository license GPL-3.0; individual source headers
@@ -43,3 +42,45 @@ Its listing contains FBX and GLB variants plus License.txt, but rig/clip content
 have not been inspected. It may help with motion reference/retargeting after
 skeleton compatibility is established; Warcraft fighters remain the requested
 art direction. No assets have been copied from the archive into the map.
+
+## Installed fighter extraction
+
+Run from ~/code/wc3-melee/worktrees/test-loop:
+
+```bash
+nix shell nixpkgs#gcc nixpkgs#bun --command bash /home/tom/code/wc3-melee/worktrees/test-loop/tools/animations/extract.sh
+```
+
+Requires ImageMagick on PATH and the built CascLib static library below.
+The command extracts Archer and Rifleman from the installed game, converts MDX
+to editable MDL, and extracts seven textures to PNG. This installed version
+stores DDS textures even though the MDL texture references end in BLP.
+Both models have four geosets; Archer has 33 bones/13 sequences, Rifleman has
+30 bones/10 sequences. Outputs remain local and ignored under
+~/code/wc3-melee/worktrees/test-loop/build/animation-assets.
+Set the Blender add-on resourceFolder to that directory's textures subfolder.
+Extraction does not grant redistribution rights to Blizzard assets.
+
+The C++ tool is only the CascLib foreign-library boundary; the TypeScript tool
+only converts foreign asset formats. Gameplay remains Wurst.
+
+Dependencies:
+
+- CascLib: https://github.com/ladislav-zezula/CascLib, MIT, upstream
+  38a34665624b8775bb875274b36191b21c38d97b plus local portable-pointer repair
+  1ccab1a in ~/code/casclib/worktrees/assets. Existing copyright/license notices
+  remain in that checkout. No library source is copied into the map project.
+- war3-model 4.0.1 (4eb0da/war3-model), pngjs 7.0.0, and transitive gl-matrix
+  3.3.0: MIT; exact packages locked in wc3-melee:tools/animations/bun.lock.
+  Their license notices remain in the installed packages.
+
+Build CascLib from ~/code/casclib/worktrees/assets:
+
+```bash
+cmake -S /home/tom/code/casclib/worktrees/assets -B /home/tom/code/casclib/worktrees/assets/build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release -DCASC_BUILD_SHARED_LIB=OFF -DCASC_BUILD_STATIC_LIB=ON
+cmake --build /home/tom/code/casclib/worktrees/assets/build --parallel 2
+```
+
+Override CASC_SOURCE or WC3_STORAGE when these local checkout/install paths
+change. The full extraction command passed in about five seconds; authored
+animation playback remains unverified.
