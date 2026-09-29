@@ -26,12 +26,12 @@ public constant int SHIELD_MIN_HOLD_FRAMES = 8
 public constant int SHIELD_RELEASE_LAG_FRAMES = 15
 constant int FOX_JUMP_SQUAT_FRAMES = 3
 constant int FALCO_JUMP_SQUAT_FRAMES = 5
-constant real FOX_FULL_JUMP_SPEED = 22.1
-constant real FALCO_FULL_JUMP_SPEED = 24.6
-constant real FOX_SHORT_JUMP_SPEED = 12.3
-constant real FALCO_SHORT_JUMP_SPEED = 12.7
-constant real FOX_DOUBLE_JUMP_SPEED = 25.2
-constant real FALCO_DOUBLE_JUMP_SPEED = 22.1
+constant real FOX_FULL_JUMP_SPEED = 23.46
+constant real FALCO_FULL_JUMP_SPEED = 25.62
+constant real FOX_SHORT_JUMP_SPEED = 13.98
+constant real FALCO_SHORT_JUMP_SPEED = 12.42
+constant real FOX_DOUBLE_JUMP_SPEED = 26.496
+constant real FALCO_DOUBLE_JUMP_SPEED = 23.124
 constant real KNOCKBACK_DECAY_PER_FRAME = 0.051
 constant real KNOCKBACK_LAUNCH_SCALE = 0.03 * WORLD_UNITS_PER_MELEE_UNIT
 constant real HITSTUN_FRAMES_PER_KNOCKBACK = 0.4
@@ -209,7 +209,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style)
 	attacker.hitlag = max(attacker.hitlag, R2I(damage / 3 + 3))
 
 public function simulationJump(FighterState f)
-	if f.out or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.shieldReleaseLag > 0 or f.landingLag > 0 or f.airDodging or f.shield or f.jumps <= 0
+	if f.out or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.shieldReleaseLag > 0 or f.landingLag > 0 or f.airDodging or f.shield or f.jumpSquat > 0 or f.jumps <= 0
 		return
 	if f.grounded
 		f.jumpSquat = jumpSquatFrames(f.character)
@@ -302,11 +302,10 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	if input.jumpPressed
 		simulationJump(f)
 	if f.jumpSquat > 0
-		f.jumpHeld = input.jumpHeld
+		f.jumpHeld = f.jumpHeld and input.jumpHeld
 	if input.airDodgePressed
 		simulationAirDodge(f, input.dodgeX, input.dodgeZ)
 	if f.jumpSquat > 0 and f.hitlag == 0
-		f.jumpHeld = input.jumpHeld
 		f.jumpSquat--
 		if f.jumpSquat == 0
 			f.grounded = false

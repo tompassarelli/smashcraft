@@ -203,9 +203,15 @@ probe captured the faded airborne fighter and normal opacity afterward at
 ~/code/wc3-melee/worktrees/test-loop/build/dodge-probe/dodge.png and
 ~/code/wc3-melee/worktrees/test-loop/build/dodge-probe/recovery.png.
 
-Next simulation gaps: compare full/short/double-jump apexes against the numeric
-reference using complete trajectories, reject repeated presses during jump
-squat, and settle action eligibility during attack/shield recovery. Air-dodge
+Jump calibration now passes 36/36 headless tests: complete full/short/double
+jump trajectories match the documented apexes for both characters, repeated
+presses cannot restart squat or spend the air jump, and releasing during squat
+locks in short hop. The original Fox full-jump test measured 165.92 world units
+against the 187.68 target; calibrated launch velocity fixes the discrepancy.
+Build 195812 reported ready in 23.432 seconds with the same Warcraft process.
+This proves packaging and startup; jump feel still needs an in-client check.
+
+Next simulation gap: settle action eligibility during attack/shield recovery. Air-dodge
 motion parameters remain provisional; passing protection tests does not prove
 motion fidelity. Continue the animation pipeline and two-client work already
 listed above; the overall goal remains unfinished.

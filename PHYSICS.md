@@ -129,3 +129,15 @@ Neutral/directional dodge motion still uses provisional speed 8 world
 units/frame, 0.9 decay and a 26-frame motion period; landing lag remains the
 provisional 20 frames. The 49-frame counter cap is not a custom animation asset
 or a claim that those provisional motion values match Melee.
+
+## Jump calibration checkpoint
+
+Full, short and double jumps are tested through complete 120-frame trajectories,
+including landing. At scale six, their measured apexes match the table above
+within 0.02 world units for both characters. Launch speeds are calibrated for
+our gravity-before-displacement integration, not extracted Melee velocities:
+for n ascending steps, height = n * velocity - gravity * n * (n + 1) / 2.
+Fox uses 23.46 / 13.98 / 26.496 world units per frame; Falco uses
+25.62 / 12.42 / 23.124. Matching apexes does not establish identical trajectories
+or feel. Jump presses during squat are ignored without spending an air jump;
+release during squat latches short hop even if jump is pressed again.
