@@ -2,8 +2,9 @@
 
 Required initial clips from the owner: jab; forward tilt; up-angled forward
 tilt; down-angled forward tilt; jump; double jump; forward roll; backward roll;
-get-up attack. Blender 5.1.1 is installed and background startup passed. No custom clips
-have been authored or exported yet.
+get-up attack. Blender 5.1.1 is installed. The first Archer jab is authored,
+exported and playing in the client. Its motion still needs visual tuning at
+the normal camera distance; the other requested clips remain unfinished.
 
 Preserve editable Blender scenes and exported Warcraft model assets. Author
 on a rig compatible with the selected Warcraft fighters; do not claim that a
@@ -33,8 +34,12 @@ The importer repair is commit 9f8ceb0 in the same checkout.
 The Archer check preserves four mesh geosets and animated pose tracks.
 The importer warns that version 1800 models load as version 1000; newer model
 features may be lost. In-game visual fidelity remains unverified.
-Actual import → edit → export →
-in-game playback remains the deciding check before choosing the pipeline.
+The first import → author → export → in-game playback check passed for jab.
+Tool commit 3631e24 preserves unused imported actions through Blender saves
+and preserves the original event tracks. Commit 83d0cf4 preserves Warcraft
+texture paths, material layers and replaceable team-color IDs rather than
+exporting Blender-local preview paths. These repairs live in the add-on,
+not generated-model patches.
 
 The add-ons are GPL tools (repository license GPL-3.0; individual source headers
 also contain GPL-2.0-or-later notices). They remain standalone local tools,
@@ -75,7 +80,7 @@ blender --background --threads 2 --python-exit-code 1 --python /home/tom/code/wc
 
 Both commands passed and saved .blend files beside the extracted models.
 WC3_MDL_ADDON overrides the local add-on checkout. These scenes preserve
-existing motion; they do not yet contain the requested custom fighter clips.
+existing motion. The authored jab has a separate editable scene below.
 
 The C++ tool is only the CascLib foreign-library boundary; the TypeScript tool
 only converts foreign asset formats. Gameplay remains Wurst.
@@ -98,5 +103,34 @@ cmake --build /home/tom/code/casclib/worktrees/assets/build --parallel 2
 ```
 
 Override CASC_SOURCE or WC3_STORAGE when these local checkout/install paths
-change. The full extraction command passed in about five seconds; authored
-animation playback remains unverified.
+change. The full extraction command passed in about five seconds.
+
+## Build and play the first authored jab
+
+```bash
+nix shell nixpkgs#gcc nixpkgs#bun --command bash /home/tom/code/wc3-melee/worktrees/test-loop/tools/animations/build-assets.sh
+```
+
+This extracts local game assets, imports a fresh Archer scene, authors the jab,
+exports MDL, and packages MDX plus generated Wurst clip metadata. Asset rebuilds
+are separate from the normal gameplay loop; wc3-melee:build.sh consumes their
+outputs without rerunning Blender. The asset command writes logs under
+~/code/wc3-melee/worktrees/test-loop/build/animation-assets.
+
+Editable scene:
+~/code/wc3-melee/worktrees/test-loop/build/animation-assets/archer-jab.blend.
+Authoring source: wc3-melee:tools/animations/jab.py, a Blender API boundary.
+The clip uses frames 0–36 at 24fps, with extension at frame 4 and retraction
+by frame 18. Wurst scales its exported 1.5-second duration to the simulation's
+36 ticks at 60Hz (0.6 seconds), and pauses animation playback during hitlag.
+The clip is selected by its generated index rather than Warcraft's random
+choice among attack names. Other moves still use native animations.
+
+Build 212201 loaded the custom model and played jab from the normal N input.
+Evidence: ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/jab-client.mp4
+and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/jab-poses.png.
+The first launch became stuck in Warcraft's "Waiting for host" state. Leaving
+that map and creating a fresh single-player instance restored input without
+restarting the client. The cause remains undiagnosed; it was not counted as
+a successful playback check. Full model fidelity and exact visual contact
+alignment remain unverified, and the jab motion needs a stronger silhouette.

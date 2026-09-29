@@ -8,12 +8,17 @@ compiler_jar="$project_dir/toolchain/wurstscript.jar"
 java=/home/tom/.wurst/wurst-runtime/bin/java
 maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps'
 build_output="$project_dir/build/wurst-map/Melee_Prototype.w3x"
+fighter_assets="$project_dir/build/animation-assets"
 
 if [[ $# -ne 1 || ! -f "$1" ]]; then
     printf 'Usage: %s BASE_MAP.w3m|BASE_MAP.w3x\n' "$0" >&2
     exit 2
 fi
 base_map=$(realpath -- "$1")
+if [[ ! -s "$fighter_assets/ArcherFighter.mdx" || ! -s "$fighter_assets/FighterAssetInfo.wurst" ]]; then
+    printf 'Authored Archer assets are missing. Follow wc3-melee:ANIMATIONS.md to build them.\n' >&2
+    exit 1
+fi
 build_id=${WC3_BUILD_ID:-$(date +%s)}
 if [[ ! "$build_id" =~ ^[A-Za-z0-9._-]+$ ]]; then
     printf 'WC3_BUILD_ID may contain only letters, digits, dots, underscores, and hyphens.\n' >&2
@@ -57,6 +62,8 @@ cd "$work_dir"
     "$project_dir/_build/common.j" \
     "$project_dir/_build/blizzard.j" \
     "$project_dir/build/generated-BuildInfo.wurst" \
+    "$fighter_assets/FighterAssetInfo.wurst" \
+    "$project_dir/wurst/FighterAssets.wurst" \
     "$project_dir/wurst/Simulation.wurst" \
     "$project_dir/wurst/MatchRules.wurst" \
     "$project_dir/wurst/CommandBuffer.wurst" \
@@ -127,6 +134,9 @@ nix shell nixpkgs#lua5_3 --command luac -p "$map_script"
 output_next="$build_output.next"
 cp "$base_map" "$output_next"
 "$packager" replace "$output_next" "$map_script"
+"$packager" replace "$output_next" "$fighter_assets/ArcherFighter.mdx" 'war3mapImported\ArcherFighter.mdx'
+"$packager" extract "$output_next" "$work_dir/verified-ArcherFighter.mdx" 'war3mapImported\ArcherFighter.mdx'
+cmp "$fighter_assets/ArcherFighter.mdx" "$work_dir/verified-ArcherFighter.mdx"
 for extension in w3u w3t w3b w3d w3a w3h w3q; do
     object_file="$work_dir/_build/objectEditingOutput/war3map.$extension"
     if [[ -f "$object_file" ]]; then

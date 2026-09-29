@@ -10,6 +10,7 @@ import SelectionUI
 import BindingSettings
 import KeyBindings
 import SettingsUI
+import FighterAssets
 
 constant real FRAME_SECONDS = 0.016666667
 
@@ -95,7 +96,7 @@ class Fighter extends FighterState
 
     construct(player owner, int fighterType, real startX, int direction)
         super(fighterType, startX, direction)
-        body = CreateUnit(owner, fighterType == 0 ? 'earc' : 'hrif', centerX + startX, centerY, direction > 0 ? 0 : 180)
+        body = CreateUnit(owner, fighterType == 0 ? ARCHER_FIGHTER_ID : 'hrif', centerX + startX, centerY, direction > 0 ? 0 : 180)
         SetUnitInvulnerable(body, true)
         SetUnitPathing(body, false)
         UnitAddAbility(body, 'Amrf')
@@ -225,9 +226,9 @@ function applyFrame()
     if matchState.phase == RESULT
         clearProjectileLines()
     if playerFighter.attackSerial != playerPreviousAttack
-        SetUnitAnimation(playerFighter.body, "attack")
+        playAttackAnimation(playerFighter)
     if botFighter.attackSerial != botPreviousAttack
-        SetUnitAnimation(botFighter.body, "attack")
+        playAttackAnimation(botFighter)
     if playerFighter.hitstun > playerPreviousStun
         SetUnitAnimation(playerFighter.body, "stand hit")
     if botFighter.hitstun > botPreviousStun
@@ -458,6 +459,12 @@ function setupKeys()
     TriggerAddAction(downTrigger, function onKeyDown)
     TriggerAddAction(upTrigger, function onKeyUp)
 
+function playAttackAnimation(Fighter fighter)
+    if fighter.character == 0 and fighter.attackStyle == 0
+        SetUnitAnimationByIndex(fighter.body, ARCHER_JAB_INDEX)
+    else
+        SetUnitAnimation(fighter.body, "attack")
+
 function renderFighter(Fighter f, boolean wasOut)
     if wasOut and not f.out
         ShowUnit(f.body, true)
@@ -466,7 +473,8 @@ function renderFighter(Fighter f, boolean wasOut)
     if f.out
         return
     f.place()
-    SetUnitTimeScale(f.body, f.hitlag > 0 ? 0 : 1)
+    let animationRate = f.character == 0 and f.attackStyle == 0 ? ARCHER_JAB_SECONDS / (f.attackDuration * FRAME_SECONDS) : 1.
+    SetUnitTimeScale(f.body, f.hitlag > 0 ? 0 : animationRate)
     SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
     if f == playerFighter and f.jumps < 2 and playerJumpQueued
         SetUnitAnimation(f.body, "stand")
@@ -505,11 +513,21 @@ function renderUI()
     if playerFighter != null
         BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | input=" + I2S(lastInputAction) + " normal=" + I2S(lastNormalStyle) + " move=" + I2S(playerFighter.attackStyle) + " frame=" + I2S(playerFighter.attackFrame) + " serial=" + I2S(playerFighter.attackSerial) + " | F6 restart")
 
+function lockArenaCamera()
+    SetCameraField(CAMERA_FIELD_ROTATION, 90, 0)
+    SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, 350, 0)
+    SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, 2050, 0)
+    SetCameraField(CAMERA_FIELD_ZOFFSET, 1960, 0)
+    SetCameraField(CAMERA_FIELD_ROLL, 0, 0)
+    SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, 70, 0)
+    SetCameraField(CAMERA_FIELD_FARZ, 8000, 0)
+    SetCameraPosition(centerX, centerY)
+
 function gameTick()
     if appliedBindingRevision != playerBindings.revision
         clearHeldInputs()
         appliedBindingRevision = playerBindings.revision
-    SetCameraPosition(centerX, centerY)
+    lockArenaCamera()
     statusTime = max(0, statusTime - FRAME_SECONDS)
     if matchState.phase == MATCH
         simulationFrame++
@@ -592,11 +610,7 @@ function initGame()
     blastLines[2] = drawLine(-920, -420, -920, 760, 1, 0.15, 0.15)
     blastLines[3] = drawLine(920, -420, 920, 760, 1, 0.15, 0.15)
     drawStage()
-    SetCameraField(CAMERA_FIELD_ROTATION, 90, 0)
-    SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, 350, 0)
-    SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, 2050, 0)
-    SetCameraField(CAMERA_FIELD_ZOFFSET, 1960, 0)
-    SetCameraField(CAMERA_FIELD_FARZ, 8000, 0)
+    lockArenaCamera()
     CameraSetSmoothingFactor(0)
     SetTimeOfDay(12)
     SetTimeOfDayScale(0)

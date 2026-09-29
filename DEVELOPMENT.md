@@ -191,7 +191,7 @@ had changed. The UI exposes preset selection, rebinding and Save; restoration
 is automatic next time the map starts. See wc3-melee:WURST.md for the observed
 engine boundary. Blender is installed and its animated import/export API issues
 are repaired. Archer and Rifleman now have editable textured scenes; authored
-clips and in-game animation fidelity remain unfinished. Commands and the model
+clips and complete in-game animation fidelity remain unfinished. Commands and the model
 version limitation are recorded in wc3-melee:ANIMATIONS.md.
 
 ## Air-dodge checkpoint
@@ -293,3 +293,22 @@ shot, and the subsequent frame showed Falco at 3%. Evidence:
 The screenshot catches emission, not a measured in-client trajectory; headless
 tests establish travel delay. The beam art remains provisional. The map build
 still reports the two known SettingsUI array-initialization warnings.
+
+## Authored jab and camera lock
+
+The first Archer jab is exported from Blender and integrated through Wurst
+object definitions and map packaging. The native client recording shows N
+starting it; it needs stronger visible motion before treating its art as
+finished. See wc3-melee:ANIMATIONS.md for asset generation, tool repairs and
+remaining clip work.
+
+The owner requires a fixed arena camera. Every presentation tick now restores
+position, angle, rotation, distance, height offset, roll and field of view.
+Gameplay keys remain enabled. The in-client scroll-wheel/Page Up probe kept
+the same arena framing and subsequently entered a match with normal attack
+inputs. Evidence: ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/camera-before.png
+and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/camera-after.png.
+Build 212201 was used for this check. An earlier instance stalled at "Waiting
+for host"; creating the map again in the retained single-player client cleared
+the immediate blockage. Its cause is unresolved and should be investigated if
+the normal restart path repeats it.

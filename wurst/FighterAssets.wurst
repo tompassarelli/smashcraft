@@ -1,0 +1,12 @@
+package FighterAssets
+import UnitObjEditing
+import public FighterAssetInfo
+
+public constant int ARCHER_FIGHTER_ID = 'mfar'
+
+@compiletime function defineFighterAssets()
+    let archer = new UnitDefinition(ARCHER_FIGHTER_ID, 'earc')
+    archer.setName("Archer")
+    archer.setModelFile("war3mapImported\\ArcherFighter.mdx")
+    archer.setModelFileExtraVersions(0)
+    archer.setAnimationBlendTimeseconds(0.)
