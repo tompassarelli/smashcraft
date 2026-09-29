@@ -243,6 +243,8 @@ function applyFrame()
         clearProjectileLines()
     if playerFighter.attackSerial != playerPreviousAttack
         playAttackAnimation(playerFighter)
+        if isAerialAttack(playerFighter.attackStyle)
+            announce(aerialAttackName(playerFighter.attackStyle))
     if botFighter.attackSerial != botPreviousAttack
         playAttackAnimation(botFighter)
     if playerFighter.hitstun > playerPreviousStun
@@ -519,6 +521,17 @@ function playAttackAnimation(Fighter fighter)
             SetUnitAnimationByIndex(fighter.body, ARCHER_GET_UP_ATTACK_INDEX)
             return
     SetUnitAnimation(fighter.body, "attack")
+
+function aerialAttackName(int style) returns string
+    if style == AERIAL_NEUTRAL_STYLE
+        return "Neutral air!"
+    if style == AERIAL_FORWARD_STYLE
+        return "Forward air!"
+    if style == AERIAL_BACK_STYLE
+        return "Back air!"
+    if style == AERIAL_UP_STYLE
+        return "Up air!"
+    return "Down air!"
 
 function attackAnimationRate(Fighter fighter) returns real
     if fighter.character != 0 or attackPhase(fighter) == ATTACK_NONE

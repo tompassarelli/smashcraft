@@ -506,3 +506,34 @@ SDI/ASDI, aerial normals, charged smashes, and multiplayer proof remain open.
 Restored normal match build 231056 in 23.330 seconds without restarting the
 Warcraft process. The game readiness marker reports `SCENARIO normal`.
 Evidence: ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/tech-normal-reload.log.
+
+## Aerial attack controls
+
+Attack inputs stay queued until the simulation step. After movement resolves
+takeoff or landing, the same command selects a ground normal or an aerial:
+neutral Attack gives neutral air; horizontal input gives forward/back air
+relative to the fighter's facing; Up/Down gives up/down air. C-stick directions
+use the same airborne selection. Walk changes ground normals to tilts but does
+not introduce an airborne tilt category. Grab remains grounded; blaster retains
+its ground/air recovery difference.
+
+Air drift preserves facing, so reversing direction can produce back air.
+Landing cancels an unfinished aerial into move-specific landing recovery.
+The initial aerials use stock attack animation and a move-name notice; distinct
+authored clips, character-specific tuning, multi-hit moves, autocancel windows,
+and L-cancel remain unfinished. See wc3-melee:PHYSICS.md for current tuning.
+
+The integrated suite passes 95/95 tests with zero compiler warnings/errors.
+It covers airborne move selection, back-air facing during reverse drift, and
+attack selection on takeoff/landing frames alongside the existing mechanics.
+Native build 232215 loaded in 23.603 seconds with the same Warcraft process.
+Jump + Left + Attack displayed "Back air!", with move 14 at frame 14 and
+height 183; the Archer retained its right-facing orientation. The stock attack
+clip still points forward, so this proves input selection and retained facing,
+not finished back-air art. The later snapshot shows the fighter back at stage
+height while fighting the bot; exact landing recovery is covered headlessly.
+Evidence:
+- ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/aerial-integration.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/aerial-reload.log
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/aerial-back-client.mp4
+- ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/aerial-back-active.png

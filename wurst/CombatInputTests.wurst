@@ -1,5 +1,23 @@
 package CombatInputTests
 import CombatInput
+import Simulation
+
+@Test function airborneNormalsChooseDirectionRelativeToFacing()
+    attackStyleForGrounding(0, false, 1, 0).assertEquals(AERIAL_NEUTRAL_STYLE)
+    for facing = -1 to 1
+        if facing != 0
+            attackStyleForGrounding(4, false, facing, facing).assertEquals(AERIAL_FORWARD_STYLE)
+            attackStyleForGrounding(4, false, facing, -facing).assertEquals(AERIAL_BACK_STYLE)
+            attackStyleForGrounding(6, false, facing, -facing).assertEquals(AERIAL_BACK_STYLE)
+            attackStyleForGrounding(2, false, facing, 0).assertEquals(AERIAL_UP_STYLE)
+            attackStyleForGrounding(3, false, facing, 0).assertEquals(AERIAL_DOWN_STYLE)
+            attackStyleForGrounding(9, false, facing, facing).assertEquals(AERIAL_UP_STYLE)
+            attackStyleForGrounding(10, false, facing, facing).assertEquals(AERIAL_DOWN_STYLE)
+    attackStyleForGrounding(5, false, 1, 0).assertEquals(-1)
+    attackStyleForGrounding(1, false, 1, 0).assertEquals(1)
+    attackStyleForGrounding(-1, false, 1, 0).assertEquals(-1)
+    for style = 0 to 10
+        attackStyleForGrounding(style, true, 1, -1).assertEquals(style)
 
 @Test function groundedDodgesRequireShieldAndFreshDirection()
     groundDodgeIntent(false, true, false, false).assertEquals(NO_GROUND_DODGE)

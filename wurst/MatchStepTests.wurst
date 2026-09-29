@@ -4,6 +4,65 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function airborneBackAttackKeepsFacingWhileDriftingBackwards()
+    let game = new MatchState()
+    game.confirm()
+    game.confirm()
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 350, -1)
+    first.grounded = false
+    first.z = 200
+    let firstInput = new InputSnapshot()
+    firstInput.direction = -1
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    firstCommands.enqueue(4, -1, 1)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    first.attackStyle.assertEquals(AERIAL_BACK_STYLE)
+    first.facing.assertEquals(1)
+    first.vx.assertLessThan(0.)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
+@Test function attackSelectionUsesGroundingAfterTheMovementStep()
+    let game = new MatchState()
+    game.confirm()
+    game.confirm()
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 350, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    first.jumpSquat = 1
+    first.jumpHeld = true
+    firstInput.jumpHeld = true
+    firstCommands.enqueue(0, 0, 1)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    first.grounded.assertFalse()
+    first.attackStyle.assertEquals(AERIAL_NEUTRAL_STYLE)
+    first.attackStyle = -1
+    first.cooldown = 0
+    first.z = 1
+    first.vz = -3
+    firstCommands.enqueue(0, 0, 2)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    first.grounded.assertTrue()
+    first.attackStyle.assertEquals(0)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
 @Test function shieldPressAppliesBeforeSameFrameAttack()
     let game = new MatchState()
     game.confirm()

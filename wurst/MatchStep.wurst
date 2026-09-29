@@ -2,17 +2,20 @@ package MatchStep
 import Simulation
 import MatchRules
 import CommandBuffer
+import CombatInput
 
 public function stepMatch(MatchState game, FighterState first, FighterState second, InputSnapshot firstInput, InputSnapshot secondInput, AttackBuffer firstCommands, AttackBuffer secondCommands, int frame)
     if game.phase != MATCH
         return
     advance(first, game.stageChoice, firstInput, -240)
     advance(second, game.stageChoice, secondInput, 240)
-    let firstStyle = firstCommands.consume(frame, canAttack(first))
-    let secondStyle = secondCommands.consume(frame, canAttack(second))
-    if firstStyle >= 0 and firstCommands.consumedFacing != 0
+    let firstCommand = firstCommands.consume(frame, canAttack(first))
+    let secondCommand = secondCommands.consume(frame, canAttack(second))
+    let firstStyle = attackStyleForGrounding(firstCommand, first.grounded, first.facing, firstCommands.consumedFacing)
+    let secondStyle = attackStyleForGrounding(secondCommand, second.grounded, second.facing, secondCommands.consumedFacing)
+    if first.grounded and firstStyle >= 0 and firstCommands.consumedFacing != 0
         first.facing = firstCommands.consumedFacing
-    if secondStyle >= 0 and secondCommands.consumedFacing != 0
+    if second.grounded and secondStyle >= 0 and secondCommands.consumedFacing != 0
         second.facing = secondCommands.consumedFacing
     beginAttackPair(first, second, firstStyle, secondStyle)
     resolveAttackPair(first, second)
