@@ -552,7 +552,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	beginAttackPair(bairAttacker, bairTarget, AERIAL_BACK_STYLE, -1, false, false)
 	bairAttacker.attackFrame = attackStartupFrames(AERIAL_BACK_STYLE)
 	resolveAttackPair(bairAttacker, bairTarget)
-	bairTarget.vx.assertLessThan(0.)
+	bairTarget.knockbackX.assertLessThan(0.)
 	let dairAttacker = new FighterState(0, 0, 1)
 	let dairTarget = new FighterState(1, 0, -1)
 	dairAttacker.grounded = false
@@ -561,7 +561,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	beginAttackPair(dairAttacker, dairTarget, AERIAL_DOWN_STYLE, -1, false, false)
 	dairAttacker.attackFrame = attackStartupFrames(AERIAL_DOWN_STYLE)
 	resolveAttackPair(dairAttacker, dairTarget)
-	dairTarget.vz.assertLessThan(0.)
+	dairTarget.knockbackZ.assertLessThan(0.)
 	destroy dairTarget
 	destroy dairAttacker
 	destroy bairTarget
@@ -709,11 +709,121 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	advance(fighter, 0, input, -240)
 	(fighter.x > 25.).assertTrue()
 
+@Test function knockbackDecaysByVectorMagnitudeAndContinuesAfterHitstun()
+	let fighter = new FighterState(0, 100, 1)
+	fighter.grounded = false
+	fighter.z = 300
+	fighter.hitstun = 1
+	fighter.knockbackX = 60
+	fighter.knockbackZ = 80
+	let input = new InputSnapshot()
+	advance(fighter, 0, input, -240)
+	fighter.hitstun.assertEquals(0)
+	SquareRoot(fighter.knockbackX * fighter.knockbackX + fighter.knockbackZ * fighter.knockbackZ).assertEquals(99.694, 0.001)
+	(fighter.knockbackX / fighter.knockbackZ).assertEquals(0.75, 0.001)
+	let xAtStunEnd = fighter.x
+	advance(fighter, 0, input, -240)
+	(fighter.x > xAtStunEnd).assertTrue()
+	SquareRoot(fighter.knockbackX * fighter.knockbackX + fighter.knockbackZ * fighter.knockbackZ).assertEquals(99.388, 0.001)
+	destroy input
+	destroy fighter
+
+@Test function downwardLaunchExceedsTerminalFallCapAndFastfallUsesNetActionableDescent()
+	let falling = new FighterState(0, 0, 1)
+	falling.grounded = false
+	falling.z = 500
+	falling.hitstun = 10
+	falling.knockbackZ = -20
+	let input = new InputSnapshot()
+	input.down = true
+	advance(falling, 0, input, -240)
+	totalVelocityZ(falling).assertLessThan(-characterTerminalSpeed(falling.character))
+	falling.vz.assertEquals(-characterGravity(falling.character), 0.001)
+	let rising = new FighterState(0, 0, 1)
+	rising.grounded = false
+	rising.z = 500
+	rising.knockbackZ = 10
+	rising.hitstun = 10
+	advance(rising, 0, input, -240)
+	rising.vz.assertEquals(-characterGravity(rising.character), 0.001)
+	totalVelocityZ(rising).assertGreaterThan(0.)
+	rising.hitstun = 0
+	advance(rising, 0, input, -240)
+	rising.vz.assertEquals(-characterGravity(rising.character) * 2, 0.001)
+	totalVelocityZ(rising).assertGreaterThan(0.)
+	destroy input
+	destroy rising
+	destroy falling
+
+@Test function hitlagFreezesLaunchVectorAndDirectionalInfluenceLeavesMovementVelocityAlone()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.grounded = false
+	fighter.x = 25
+	fighter.z = 300
+	fighter.vx = 2
+	fighter.vz = 1
+	fighter.knockbackX = 10
+	fighter.knockbackZ = 0
+	fighter.diLaunchSpeed = 10
+	fighter.diPending = true
+	fighter.hitlag = 3
+	let input = new InputSnapshot()
+	input.verticalDirection = -1
+	advance(fighter, 0, input, -240)
+	fighter.x.assertEquals(25.)
+	fighter.z.assertEquals(300.)
+	fighter.knockbackX.assertEquals(10.)
+	fighter.knockbackZ.assertEquals(0.)
+	advance(fighter, 0, input, -240)
+	fighter.knockbackX.assertEquals(10.)
+	input.verticalDirection = 1
+	advance(fighter, 0, input, -240)
+	fighter.diSerial.assertEquals(1)
+	fighter.diAngleDegrees.assertEquals(18, 0.001)
+	fighter.vx.assertEquals(2.)
+	fighter.vz.assertEquals(1.)
+	SquareRoot(fighter.knockbackX * fighter.knockbackX + fighter.knockbackZ * fighter.knockbackZ).assertEquals(10, 0.001)
+	destroy input
+	destroy fighter
+
+@Test function landingAndFloorTechClearTheAppropriateKnockbackComponents()
+	let landed = new FighterState(0, 0, 1)
+	landed.grounded = false
+	landed.z = 5
+	landed.hitstun = 20
+	landed.knockbackX = 3
+	landed.knockbackZ = -10
+	let input = new InputSnapshot()
+	advance(landed, 0, input, -240)
+	landed.grounded.assertTrue()
+	landed.z.assertEquals(0.)
+	landed.knockbackZ.assertEquals(0.)
+	landed.knockbackX.assertGreaterThan(0.)
+	reset(landed, 0)
+	landed.knockbackX.assertEquals(0.)
+	landed.knockbackZ.assertEquals(0.)
+	let teched = new FighterState(0, 0, 1)
+	teched.grounded = false
+	teched.z = 1
+	teched.downState = DOWN_TUMBLE
+	teched.hitstun = 100
+	teched.techWindow = 20
+	teched.knockbackX = 3
+	teched.knockbackZ = -2
+	input.direction = 1
+	advance(teched, 0, input, -240)
+	teched.downState.assertEquals(DOWN_TECH_ROLL)
+	teched.knockbackX.assertEquals(0.)
+	teched.knockbackZ.assertEquals(0.)
+	destroy input
+	destroy teched
+	destroy landed
+
 @Test function directionalInfluenceReadsOnlyTheLastHitlagFrameAndPreservesLaunchSpeed()
 	let fighter = new FighterState(0, 0, 1)
 	let input = new InputSnapshot()
-	fighter.vx = 10
-	fighter.vz = 0
+	fighter.knockbackX = 10
+	fighter.knockbackZ = 0
 	fighter.diLaunchSpeed = 10
 	fighter.diPending = true
 	fighter.hitlag = 3
@@ -726,7 +836,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	advance(fighter, 0, input, -240)
 	fighter.diSerial.assertEquals(1)
 	fighter.diAngleDegrees.assertEquals(18, 0.001)
-	SquareRoot(fighter.vx * fighter.vx + fighter.vz * fighter.vz).assertEquals(10, 0.001)
+	SquareRoot(fighter.knockbackX * fighter.knockbackX + fighter.knockbackZ * fighter.knockbackZ).assertEquals(10, 0.001)
 	advance(fighter, 0, input, -240)
 	fighter.diSerial.assertEquals(1)
 	destroy input
@@ -735,7 +845,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 @Test function directionalInfluenceNormalizesDiagonalInputAndIgnoresParallelInput()
 	let diagonal = new FighterState(0, 0, 1)
 	let input = new InputSnapshot()
-	diagonal.vx = 10
+	diagonal.knockbackX = 10
 	diagonal.diLaunchSpeed = 10
 	diagonal.diPending = true
 	diagonal.hitlag = 1
@@ -745,9 +855,9 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	diagonal.diSerial.assertEquals(1)
 	diagonal.diAngleDegrees.assertGreaterThan(8.)
 	diagonal.diAngleDegrees.assertLessThan(10.)
-	SquareRoot(diagonal.vx * diagonal.vx + diagonal.vz * diagonal.vz).assertEquals(10, 0.001)
+	SquareRoot(diagonal.knockbackX * diagonal.knockbackX + diagonal.knockbackZ * diagonal.knockbackZ).assertEquals(10, 0.001)
 	let parallel = new FighterState(0, 0, 1)
-	parallel.vx = 10
+	parallel.knockbackX = 10
 	parallel.diLaunchSpeed = 10
 	parallel.diPending = true
 	parallel.hitlag = 1
@@ -756,8 +866,8 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	advance(parallel, 0, input, -240)
 	parallel.diSerial.assertEquals(0)
 	parallel.diPending.assertFalse()
-	parallel.vx.assertEquals(10.)
-	parallel.vz.assertEquals(0.)
+	parallel.knockbackX.assertEquals(10.)
+	parallel.knockbackZ.assertEquals(0.)
 	destroy parallel
 	destroy diagonal
 	destroy input
@@ -808,7 +918,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	let shotTarget = new FighterState(0, 30, -1)
 	shotTarget.diPending = true
 	shotTarget.diLaunchSpeed = 10
-	shotTarget.vx = 10
+	shotTarget.knockbackX = 10
 	shotTarget.hitlag = 1
 	let shotInput = new InputSnapshot()
 	shotInput.verticalDirection = 1
@@ -874,8 +984,12 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	for tick = 2 to attackStartupFrames(0) + 1
 		stepMatch(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, tick)
 	target.damage.assertEquals(12.)
-	target.vx.assertEquals(6.5085, 0.01)
-	target.vz.assertEquals(6.5085, 0.01)
+	target.vx.assertEquals(0.)
+	target.vz.assertEquals(0.)
+	target.knockbackX.assertEquals(6.5085, 0.01)
+	target.knockbackZ.assertEquals(6.5085, 0.01)
+	totalVelocityX(target).assertEquals(target.knockbackX)
+	totalVelocityZ(target).assertEquals(target.knockbackZ)
 	target.hitstun.assertEquals(20)
 	target.hitlag.assertEquals(7)
 	target.diPending.assertTrue()
@@ -889,6 +1003,8 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	target.z = 0
 	target.vx = 0
 	target.vz = 0
+	target.knockbackX = 0
+	target.knockbackZ = 0
 	target.hitstun = 0
 	let damageAfterContact = target.damage
 	stepMatch(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, frame)

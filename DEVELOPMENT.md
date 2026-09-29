@@ -68,11 +68,12 @@ later steering does not repeatedly rotate the launch. The developer line's
 The control bindings remain player-configurable. Numerical and digital-input
 differences are recorded in wc3-melee:PHYSICS.md.
 
-The remaining knockback fidelity work includes separating launch velocity from
-ordinary movement: the current shared velocity fields apply independent axis
-decay and cap falling speed using character gravity. DI tests establish the
-initial angle change, not a faithful full launch trajectory. SDI and ASDI are
-also not implemented yet.
+Launch velocity is separate from ordinary movement. Collision and the bot's
+descent check use their sum; gravity caps only ordinary falling velocity.
+The launch vector loses magnitude along its current direction, rather than
+subtracting the same amount from both axes. DI rotates that vector, leaving
+ordinary movement alone. Detailed reset, landing, and action choices are in
+wc3-melee:PHYSICS.md. SDI and ASDI are not implemented yet.
 
 The integrated suite passed 112/112 tests with no compiler warnings. The final
 input-timing check additionally changes Down to Up on the last frozen tick and
@@ -86,6 +87,18 @@ Evidence: ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/di-client.m
 ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/di-timeline.png,
 ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/di-reload.log,
 and ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/di-integrated.log.
+
+The launch-velocity split passes 116/116 headless tests without warnings,
+including vector decay after hitstun, downward launches beyond terminal speed,
+DI isolating launch from movement, fast-fall eligibility, and floor-tech cleanup.
+Native build 001654 reloaded in 23.611 seconds with the client retained. The
+normal Sky Deck recording shows repeated bot hits, DI, airborne travel, landing,
+and stock loss after leaving the platform. This checks the ordinary engine
+path; the numerical trajectory assertions remain headless evidence.
+Recording and diagnostic strip:
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/knockback-client.mp4
+and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/knockback-timeline.png.
+Reload output: ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/knockback-reload.log.
 
 ## Sequence and current checkpoint
 

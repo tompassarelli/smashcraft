@@ -635,7 +635,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
             SetUnitAnimationByIndex(f.body, f.doubleJumpAnimation ? ARCHER_DOUBLE_JUMP_INDEX : ARCHER_JUMP_INDEX)
             f.animation = "jump"
     else if attackPhase(f) == ATTACK_NONE and f.hitstun == 0 and f.hitlag == 0
-        let anim = f.grounded and f.vx.abs() > 0.1 ? "walk" : "stand"
+        let anim = f.grounded and totalVelocityX(f).abs() > 0.1 ? "walk" : "stand"
         if f.animation != anim
             SetUnitAnimation(f.body, anim)
             f.animation = anim
@@ -699,7 +699,7 @@ function gameTick()
             let gap = playerFighter.x - botFighter.x
             if gap.abs() > 95
                 botDirection = gap > 0 ? 1 : -1
-            if not botFighter.grounded and botFighter.z < -30 and botFighter.vz < 0 and botFighter.jumps > 0
+            if not botFighter.grounded and botFighter.z < -30 and totalVelocityZ(botFighter) < 0 and botFighter.jumps > 0
                 botJumpQueued = true
             if botFighter.grounded and playerFighter.z > botFighter.z + 130
                 botJumpQueued = true

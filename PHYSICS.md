@@ -128,10 +128,29 @@ cross product against the launch direction, and squares its signed magnitude to
 set the rotation up to 18 degrees while preserving launch speed. The smooth
 keyboard approximation cannot represent analog tilt, and this response curve
 is an independent approximation rather than extracted Melee code. A neutral or
-parallel input does not change the path. The current simulation also combines launch and
-movement velocity in the same fields and gives ordinary hits simplified air
-state; exact Melee grounded/non-tumbling eligibility, SDI, ASDI, and subsequent
-knockback decay remain separate fidelity work.
+parallel input does not change the path. Exact Melee grounded/non-tumbling
+eligibility, SDI and ASDI remain separate fidelity work.
+
+## Separated launch velocity
+
+Ordinary movement (`vx`, `vz`) and launch momentum (`knockbackX`, `knockbackZ`)
+are stored separately. Position uses their sum. The factual Melee baseline is
+launch speed `0.03 * knockback`, decaying by `0.051` per frame while air
+friction is disabled; falling speed still takes effect. This simulation applies
+the `0.051 * 6 = 0.306` world-unit decay to the launch vector's magnitude,
+preserving its direction, while ordinary gravity and terminal speed affect
+only `vz`. Launch decay continues after hitstun expires, and the player can
+steer ordinary movement again when hitstun reaches zero. This keeps a downward
+launch above the ordinary terminal-fall cap. The additional gravity-based
+launch adjustment introduced in Brawl is not part of this Melee target.
+
+A new ordinary hit resets movement velocity and replaces the stored launch
+vector. This is a deliberate simplification: Melee can stack launches when
+hits are sufficiently separated in time and the fighter is airborne; the
+prototype does not track that history yet. Landing removes vertical launch
+momentum and retains horizontal carry. A tumble landing that enters tech or
+knockdown recovery clears both launch components. Bounce momentum loss and
+Melee's low-knockback grounded launch rules remain unimplemented.
 
 ## Air-dodge protection checkpoint
 
