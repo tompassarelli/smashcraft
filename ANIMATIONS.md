@@ -29,7 +29,10 @@ The second add-on's animated export is repaired in
 Blender's layered-action API; the real Blender regression verifies exported
 translation keys at 0ms and 833ms. Animated import is repaired at the same API
 boundary: actual Archer and Rifleman imports both save editable Blender scenes.
+The importer repair is commit 9f8ceb0 in the same checkout.
 The Archer check preserves four mesh geosets and animated pose tracks.
+The importer warns that version 1800 models load as version 1000; newer model
+features may be lost. In-game visual fidelity remains unverified.
 Actual import → edit → export →
 in-game playback remains the deciding check before choosing the pipeline.
 
