@@ -194,8 +194,19 @@ direction while holding the walk modifier as tilt. C-stick bindings request
 smashes directly. Walking currently uses half the normal ground speed; tilt
 damage is 10 side / 8 up / 8 down. These and the ground/air blaster timing
 difference are provisional tuning. Blaster duration is captured at attack
-start, so landing cannot rewrite its recovery. Aerial normal attacks and
-charged smashes still need their own move behavior.
+start, so landing cannot rewrite its recovery. Aerial normals are now separate
+simulation styles: neutral, forward, back, up, and down. Ground normals and grab
+are rejected in the air, aerial normals are rejected on the ground, and blaster
+remains usable in either state. Air steering changes horizontal velocity while
+preserving facing, allowing a back aerial to hit and launch behind the fighter.
+Landing cancels an aerial's remaining active/recovery animation and starts its
+move-specific landing lag. Aerial hit geometry and tuning are prototype values,
+not Melee measurements: damage 7/8/8/8/9; startup 3/5/6/5/7; active 2/2/2/3/3;
+total 25/31/33/34/38 ticks; landing lag 10/14/16/15/18 ticks, in neutral,
+forward, back, up, down order. Forward and back hit only on their respective
+sides; back launches away from facing, up launches mostly upward, and down
+launches downward. Hit regions are simple rectangles around the fighter rather
+than authored hitboxes. Charged smashes still need their own move behavior.
 
 Holding Walk with horizontal input selects forward tilt; adding Up or Down
 selects its angled variant. Vertical input alone keeps up/down tilt, and

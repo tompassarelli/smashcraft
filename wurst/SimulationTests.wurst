@@ -221,8 +221,121 @@ function tiltDamageAt(int style, int facing, real targetX, real targetZ) returns
 		attackActiveFrames(style).assertEquals(2)
 		attackDurationFrames(style).assertEquals(28)
 		attackRecoveryFrames(style, true).assertEquals(21)
-		damageFromOneAttack(style).assertEquals(10.)
 
+@Test function aerialNormalsHaveDistinctPhasesAndLandingLag()
+	for style = AERIAL_NEUTRAL_STYLE to AERIAL_DOWN_STYLE
+		isAerialAttack(style).assertTrue()
+		attackStartupFrames(style).assertGreaterThan(0)
+		attackActiveFrames(style).assertGreaterThan(0)
+		attackLandingLag(style).assertGreaterThan(0)
+		(attackDurationFrames(style) > attackStartupFrames(style) + attackActiveFrames(style)).assertTrue()
+	(attackLandingLag(0) == 0).assertTrue()
+	(isAerialAttack(11)).assertFalse()
+	(isAerialAttack(17)).assertFalse()
+
+@Test function groundNormalsAndGrabCannotStartInAirButBlasterCan()
+	for style = 0 to 10
+		if style != 1
+			let fighter = new FighterState(0, 0, 1)
+			let target = new FighterState(1, 1000, -1)
+			fighter.grounded = false
+			fighter.z = 100
+			beginAttackPair(fighter, target, style, -1)
+			fighter.attackStyle.assertEquals(-1)
+			destroy target
+			destroy fighter
+	let groundTarget = new FighterState(1, 1000, -1)
+	let grounded = new FighterState(0, 0, 1)
+	beginAttackPair(grounded, groundTarget, AERIAL_NEUTRAL_STYLE, -1)
+	grounded.attackStyle.assertEquals(-1)
+	let airborne = new FighterState(0, 0, 1)
+	airborne.grounded = false
+	airborne.z = 100
+	beginAttackPair(airborne, groundTarget, 1, -1)
+	airborne.attackStyle.assertEquals(1)
+	destroy airborne
+	destroy grounded
+	destroy groundTarget
+
+function aerialDamageAt(int style, int facing, real targetX, real targetZ) returns real
+	let attacker = new FighterState(0, 0, facing)
+	let target = new FighterState(1, targetX, -facing)
+	attacker.grounded = false
+	attacker.z = 200
+	target.z = targetZ
+	beginAttackPair(attacker, target, style, -1)
+	for frame = 1 to attackStartupFrames(style)
+		attacker.attackFrame = attackStartupFrames(style)
+		resolveAttackPair(attacker, target)
+	let damage = target.damage
+	destroy target
+	destroy attacker
+	return damage
+
+@Test function aerialNormalsUseDirectionalShapesAndLaunchDirections()
+	aerialDamageAt(AERIAL_FORWARD_STYLE, 1, 120, 200).assertGreaterThan(0.)
+	aerialDamageAt(AERIAL_FORWARD_STYLE, 1, -120, 200).assertEquals(0.)
+	aerialDamageAt(AERIAL_BACK_STYLE, 1, -120, 200).assertGreaterThan(0.)
+	aerialDamageAt(AERIAL_BACK_STYLE, 1, 120, 200).assertEquals(0.)
+	aerialDamageAt(AERIAL_UP_STYLE, 1, 0, 340).assertGreaterThan(0.)
+	aerialDamageAt(AERIAL_UP_STYLE, 1, 0, 10).assertEquals(0.)
+	aerialDamageAt(AERIAL_DOWN_STYLE, 1, 0, 50).assertGreaterThan(0.)
+	aerialDamageAt(AERIAL_DOWN_STYLE, 1, 0, 191).assertEquals(0.)
+	let bairAttacker = new FighterState(0, 0, 1)
+	let bairTarget = new FighterState(1, -100, -1)
+	bairAttacker.grounded = false
+	bairAttacker.z = 200
+	bairTarget.z = 200
+	beginAttackPair(bairAttacker, bairTarget, AERIAL_BACK_STYLE, -1)
+	bairAttacker.attackFrame = attackStartupFrames(AERIAL_BACK_STYLE)
+	resolveAttackPair(bairAttacker, bairTarget)
+	bairTarget.vx.assertLessThan(0.)
+	let dairAttacker = new FighterState(0, 0, 1)
+	let dairTarget = new FighterState(1, 0, -1)
+	dairAttacker.grounded = false
+	dairAttacker.z = 200
+	dairTarget.z = 150
+	beginAttackPair(dairAttacker, dairTarget, AERIAL_DOWN_STYLE, -1)
+	dairAttacker.attackFrame = attackStartupFrames(AERIAL_DOWN_STYLE)
+	resolveAttackPair(dairAttacker, dairTarget)
+	dairTarget.vz.assertLessThan(0.)
+	destroy dairTarget
+	destroy dairAttacker
+	destroy bairTarget
+	destroy bairAttacker
+
+@Test function landingCancelsAerialActiveWindowAndAppliesMoveSpecificLag()
+	for style = AERIAL_NEUTRAL_STYLE to AERIAL_DOWN_STYLE
+		let fighter = new FighterState(0, 0, 1)
+		fighter.grounded = false
+		fighter.z = 1
+		fighter.vz = -2
+		let target = new FighterState(1, 50, -1)
+		let input = new InputSnapshot()
+		beginAttackPair(fighter, target, style, -1)
+		fighter.attackFrame = attackStartupFrames(style)
+		advance(fighter, 0, input, -240)
+		fighter.grounded.assertTrue()
+		fighter.attackStyle.assertEquals(-1)
+		fighter.attackHit.assertFalse()
+		fighter.landingLag.assertEquals(attackLandingLag(style))
+		resolveAttackPair(fighter, target)
+		target.damage.assertEquals(0.)
+		destroy input
+		destroy target
+		destroy fighter
+
+@Test function airDriftChangesVelocityWithoutTurningFighter()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.grounded = false
+	fighter.z = 100
+	let input = new InputSnapshot()
+	input.direction = -1
+	advance(fighter, 0, input, -240)
+	fighter.facing.assertEquals(1)
+	fighter.vx.assertLessThan(0.)
+	destroy input
+	destroy fighter
 @Test function angledForwardTiltsCoverTheirVerticalOffsetAndPreserveFacingRange()
 	tiltDamageAt(9, 1, 100, 150).assertEquals(10.)
 	tiltDamageAt(9, 1, 100, -150).assertEquals(0.)
@@ -1190,7 +1303,7 @@ function airJumpApex(int character) returns real
 	let otherCommands = new AttackBuffer(0)
 	let game = testMatch()
 	stepMatch(game, attacker, target, input, input, otherCommands, commands, 1)
-	target.attackStyle.assertEquals(0)
+	target.attackStyle.assertEquals(AERIAL_NEUTRAL_STYLE)
 	target.downState.assertEquals(DOWN_NONE)
 	destroy otherCommands
 	destroy commands

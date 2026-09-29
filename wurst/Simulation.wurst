@@ -71,6 +71,16 @@ public constant int DOWN_ROLL_FRAMES = 31
 public constant int DOWN_RECOVERY_INTANGIBLE_FRAMES = 8
 public constant int DOWN_ATTACK_FRAMES = 45
 public constant int DOWN_ATTACK_STYLE = 11
+public constant int AERIAL_NEUTRAL_STYLE = 12
+public constant int AERIAL_FORWARD_STYLE = 13
+public constant int AERIAL_BACK_STYLE = 14
+public constant int AERIAL_UP_STYLE = 15
+public constant int AERIAL_DOWN_STYLE = 16
+public constant int AERIAL_NEUTRAL_LANDING_LAG = 10
+public constant int AERIAL_FORWARD_LANDING_LAG = 14
+public constant int AERIAL_BACK_LANDING_LAG = 16
+public constant int AERIAL_UP_LANDING_LAG = 15
+public constant int AERIAL_DOWN_LANDING_LAG = 18
 public constant int DOWN_ATTACK_STARTUP_FRAMES = 16
 public constant int DOWN_ATTACK_ACTIVE_FRAMES = 3
 public constant real DOWN_ATTACK_DAMAGE = 7
@@ -223,22 +233,80 @@ public function jumpSquatFrames(int character) returns int
 public function canAttack(FighterState attacker) returns boolean
 	return not attacker.out and (attacker.downState == DOWN_NONE or isTumbling(attacker)) and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0 and not attacker.shield
 
+public function isAerialAttack(int style) returns boolean
+	return style >= AERIAL_NEUTRAL_STYLE and style <= AERIAL_DOWN_STYLE
+
+public function attackLandingLag(int style) returns int
+	if style == AERIAL_NEUTRAL_STYLE
+		return AERIAL_NEUTRAL_LANDING_LAG
+	if style == AERIAL_FORWARD_STYLE
+		return AERIAL_FORWARD_LANDING_LAG
+	if style == AERIAL_BACK_STYLE
+		return AERIAL_BACK_LANDING_LAG
+	if style == AERIAL_UP_STYLE
+		return AERIAL_UP_LANDING_LAG
+	return style == AERIAL_DOWN_STYLE ? AERIAL_DOWN_LANDING_LAG : 0
+
 function attackDamage(int style) returns real
-	return style == DOWN_ATTACK_STYLE ? DOWN_ATTACK_DAMAGE : (style == 1 ? 3 : (style == 2 or style == 3 ? 16 : (style == 4 ? 18 : (style == 5 ? 0 : (style == 6 or style == 9 or style == 10 ? 10 : (style == 7 ? 8 : (style == 8 ? 8 : 12)))))))
+	if style == DOWN_ATTACK_STYLE
+		return DOWN_ATTACK_DAMAGE
+	if style == AERIAL_NEUTRAL_STYLE
+		return 7
+	if style == AERIAL_FORWARD_STYLE or style == AERIAL_BACK_STYLE or style == AERIAL_UP_STYLE
+		return 8
+	if style == AERIAL_DOWN_STYLE
+		return 9
+	if style == 1
+		return 3
+	if style == 2 or style == 3
+		return 16
+	if style == 4
+		return 18
+	if style == 5
+		return 0
+	if style == 6 or style == 9 or style == 10
+		return 10
+	if style == 7 or style == 8
+		return 8
+	return 12
 
 function attackReach(int style) returns real
 	return style == 1 ? 600 : (style == 2 or style == 3 ? 125 : (style == 5 ? 100 : 145))
 
 public function attackStartupFrames(int style) returns int
+	if style == AERIAL_NEUTRAL_STYLE
+		return 3
+	if style == AERIAL_FORWARD_STYLE
+		return 5
+	if style == AERIAL_BACK_STYLE
+		return 6
+	if style == AERIAL_UP_STYLE
+		return 5
+	if style == AERIAL_DOWN_STYLE
+		return 7
 	return style == DOWN_ATTACK_STYLE ? DOWN_ATTACK_STARTUP_FRAMES : (style == 1 ? 2 : (style == 2 or style == 3 ? 8 : (style == 4 ? 6 : (style == 5 ? 5 : (style == 6 or style == 8 or style == 9 or style == 10 ? 5 : (style == 7 ? 6 : 4))))))
 
 public function attackActiveFrames(int style) returns int
+	if style == AERIAL_NEUTRAL_STYLE or style == AERIAL_FORWARD_STYLE or style == AERIAL_BACK_STYLE
+		return 2
+	if style == AERIAL_UP_STYLE or style == AERIAL_DOWN_STYLE
+		return 3
 	return style == DOWN_ATTACK_STYLE ? DOWN_ATTACK_ACTIVE_FRAMES : (style == 1 ? 1 : (style == 2 or style == 3 or style == 4 ? 3 : 2))
 
 public function attackDurationFrames(int style) returns int
 	return attackDurationFramesForGrounding(style, true)
 
 public function attackDurationFramesForGrounding(int style, boolean grounded) returns int
+	if style == AERIAL_NEUTRAL_STYLE
+		return 25
+	if style == AERIAL_FORWARD_STYLE
+		return 31
+	if style == AERIAL_BACK_STYLE
+		return 33
+	if style == AERIAL_UP_STYLE
+		return 34
+	if style == AERIAL_DOWN_STYLE
+		return 38
 	return style == DOWN_ATTACK_STYLE ? DOWN_ATTACK_FRAMES : (style == 1 ? (grounded ? 24 : 15) : (style == 2 or style == 3 ? 42 : (style == 6 or style == 8 or style == 9 or style == 10 ? 28 : (style == 7 ? 29 : 36))))
 
 public function attackRecoveryFrames(int style, boolean grounded) returns int
@@ -275,6 +343,17 @@ public function projectileDirectionAt(FighterState f, int index) returns int
 function attackHits(FighterState attacker, FighterState target, int style) returns boolean
 	let separation = target.x - attacker.x
 	let verticalOffset = style == 9 ? 65 : (style == 10 ? -65 : 0)
+	if isAerialAttack(style)
+		let vertical = target.z - attacker.z
+		if style == AERIAL_NEUTRAL_STYLE
+			return not target.out and not isIntangible(target) and separation.abs() <= 90 and vertical >= -65 and vertical <= 90
+		if style == AERIAL_FORWARD_STYLE
+			return not target.out and not isIntangible(target) and separation * attacker.facing >= 0 and separation.abs() <= 165 and vertical >= -65 and vertical <= 100
+		if style == AERIAL_BACK_STYLE
+			return not target.out and not isIntangible(target) and separation * attacker.facing <= 0 and separation.abs() <= 155 and vertical >= -65 and vertical <= 100
+		if style == AERIAL_UP_STYLE
+			return not target.out and not isIntangible(target) and separation.abs() <= 105 and vertical >= 20 and vertical <= 190
+		return not target.out and not isIntangible(target) and separation.abs() <= 95 and vertical >= -180 and vertical <= -10
 	let inFacing = style == DOWN_ATTACK_STYLE or separation * attacker.facing >= 0
 	return not target.out and not isIntangible(target) and inFacing and separation.abs() <= attackReach(style) and (target.z - attacker.z - verticalOffset).abs() <= 130
 
@@ -513,8 +592,19 @@ function applyAttackHit(FighterState attacker, FighterState target, int style)
 	let knockback = (((newPercent / 10. + newPercent * damage / 20.) * 200 / (weight + 100) * 1.4 + 18) + 20)
 	target.damage += damage
 	target.grounded = false
-	target.vx = attacker.facing * knockback * KNOCKBACK_LAUNCH_SCALE * DIAGONAL_UNIT
-	target.vz = knockback * KNOCKBACK_LAUNCH_SCALE * DIAGONAL_UNIT
+	let launch = knockback * KNOCKBACK_LAUNCH_SCALE
+	if style == AERIAL_UP_STYLE
+		target.vx = attacker.facing * launch * 0.25
+		target.vz = launch * 0.9682458
+	else if style == AERIAL_DOWN_STYLE
+		target.vx = attacker.facing * launch * 0.25
+		target.vz = -launch * 0.9682458
+	else if style == AERIAL_BACK_STYLE
+		target.vx = -attacker.facing * launch * DIAGONAL_UNIT
+		target.vz = launch * DIAGONAL_UNIT
+	else
+		target.vx = attacker.facing * launch * DIAGONAL_UNIT
+		target.vz = launch * DIAGONAL_UNIT
 	target.hitstun = R2I(knockback * HITSTUN_FRAMES_PER_KNOCKBACK)
 	if knockback >= DOWN_KNOCKBACK_THRESHOLD
 		target.downState = DOWN_TUMBLE
@@ -557,8 +647,12 @@ function canBeginGroundDodge(FighterState f) returns boolean
 	return not f.out and f.downState == DOWN_NONE and f.grounded and f.hitlag <= 0 and f.hitstun <= 0 and f.shieldStun <= 0 and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0 and f.grabbedFrames <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldEnergy > 0
 
 public function beginAttackPair(FighterState first, FighterState second, int firstStyle, int secondStyle)
-	let firstEligible = firstStyle >= 0 and firstStyle <= 10 and canAttack(first) and not second.out
-	let secondEligible = secondStyle >= 0 and secondStyle <= 10 and canAttack(second) and not first.out
+	let firstGroundAttack = firstStyle >= 0 and firstStyle <= 10 and firstStyle != 1
+	let secondGroundAttack = secondStyle >= 0 and secondStyle <= 10 and secondStyle != 1
+	let firstAerial = isAerialAttack(firstStyle)
+	let secondAerial = isAerialAttack(secondStyle)
+	let firstEligible = (firstGroundAttack and first.grounded or firstStyle == 1 or firstAerial and not first.grounded) and canAttack(first) and not second.out
+	let secondEligible = (secondGroundAttack and second.grounded or secondStyle == 1 or secondAerial and not second.grounded) and canAttack(second) and not first.out
 	if firstEligible
 		beginAttack(first, firstStyle)
 	if secondEligible
@@ -746,8 +840,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			else
 				f.vx = f.vx + direction * characterAirAcceleration(f.character)
 				f.vx = max(-characterAirSpeed(f.character), min(characterAirSpeed(f.character), f.vx))
-				if f.cooldown <= 0
-					f.facing = direction
+				// Air steering changes velocity, not facing; back aerials rely on a stable orientation.
 	if isGroundDodging(f) and f.groundDodgeDirection != 0 and f.groundDodgeFrame >= GROUND_ROLL_MOVE_START and f.groundDodgeFrame <= GROUND_ROLL_MOVE_END
 		f.vx = GROUND_ROLL_SPEED * f.groundDodgeDirection
 	else if isGroundDodging(f)
@@ -802,6 +895,9 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			f.landingLag = AIR_DODGE_LANDING_LAG
 			f.airDodging = false
 			f.airDodgeFrame = 0
+		if isAerialAttack(f.attackStyle)
+			f.landingLag = max(f.landingLag, attackLandingLag(f.attackStyle))
+			cancelAttack(f)
 		f.z = surfaceZ(stage, landing)
 		f.vz = 0
 		if f.jumpSquat <= 0
