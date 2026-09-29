@@ -45,6 +45,8 @@ public constant int ATTACK_NONE = 0
 public constant int ATTACK_STARTUP = 1
 public constant int ATTACK_ACTIVE = 2
 public constant int ATTACK_RECOVERY = 3
+public constant int SMASH_MAX_CHARGE_FRAMES = 60
+public constant real SMASH_MAX_DAMAGE_MULTIPLIER = 1.3671
 public constant int DOWN_NONE = 0
 public constant int DOWN_TUMBLE = 1
 public constant int DOWN_BOUND = 2
@@ -116,6 +118,9 @@ public class FighterState
 	int attackDuration = 0
 	int attackSerial = 0
 	boolean attackHit = false
+	boolean smashCharging = false
+	int smashChargeFrames = 0
+	boolean smashChargeAllowed = false
 	int array[PROJECTILE_CAPACITY] projectileLife
 	real array[PROJECTILE_CAPACITY] projectileX
 	real array[PROJECTILE_CAPACITY] projectileZ
@@ -176,6 +181,7 @@ public class InputSnapshot
 	int dodgeZ = 0
 	boolean jumpHeld = false
 	boolean walking = false
+	boolean attackHeld = false
 
 public function surfaceCount(int stage) returns int
 	return stage == 0 ? 1 : 3
@@ -273,6 +279,15 @@ function attackDamage(int style) returns real
 	if style == 7 or style == 8
 		return 8
 	return 12
+
+function isSmashAttack(int style) returns boolean
+	return style >= 2 and style <= 4
+
+public function smashDamageMultiplier(int chargeFrames) returns real
+	return 1 + (SMASH_MAX_DAMAGE_MULTIPLIER - 1) * max(0, min(SMASH_MAX_CHARGE_FRAMES, chargeFrames)) / SMASH_MAX_CHARGE_FRAMES
+
+function attackDamageWithCharge(int style, int chargeFrames) returns real
+	return attackDamage(style) * (isSmashAttack(style) ? smashDamageMultiplier(chargeFrames) : 1)
 
 function attackReach(int style) returns real
 	return style == 1 ? 600 : (style == 2 or style == 3 ? 125 : (style == 5 ? 100 : 145))
@@ -399,6 +414,9 @@ function beginDownState(FighterState f, int state, int direction)
 		f.attackDuration = DOWN_ATTACK_FRAMES
 		f.attackSerial++
 		f.attackHit = false
+		f.smashCharging = false
+		f.smashChargeFrames = 0
+		f.smashChargeAllowed = false
 		f.cooldown = DOWN_ATTACK_FRAMES
 
 function startDownWait(FighterState f)
@@ -487,7 +505,7 @@ function interruptJumpOrDodge(FighterState f)
 	f.groundDodgeFrame = 0
 	f.groundDodgeDirection = 0
 
-function beginAttack(FighterState attacker, int style)
+function beginAttack(FighterState attacker, int style, boolean mayCharge)
 	if isTumbling(attacker)
 		clearDownState(attacker)
 	attacker.attackStyle = style
@@ -495,6 +513,9 @@ function beginAttack(FighterState attacker, int style)
 	attacker.attackDuration = attackDurationFramesForGrounding(style, attacker.grounded)
 	attacker.attackSerial++
 	attacker.attackHit = false
+	attacker.smashCharging = false
+	attacker.smashChargeFrames = 0
+	attacker.smashChargeAllowed = isSmashAttack(style) and mayCharge
 	attacker.cooldown = attacker.attackDuration
 
 function spawnProjectile(FighterState owner)
@@ -557,9 +578,12 @@ function cancelAttack(FighterState fighter)
 	fighter.attackDuration = 0
 	fighter.attackHit = false
 	fighter.cooldown = 0
+	fighter.smashCharging = false
+	fighter.smashChargeFrames = 0
+	fighter.smashChargeAllowed = false
 
-function applyAttackHit(FighterState attacker, FighterState target, int style)
-	let damage = attackDamage(style)
+function applyAttackHit(FighterState attacker, FighterState target, int style, int chargeFrames)
+	let damage = attackDamageWithCharge(style, chargeFrames)
 	if style == 5
 		interruptJumpOrDodge(target)
 		clearDownState(target)
@@ -650,7 +674,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 function canBeginGroundDodge(FighterState f) returns boolean
 	return not f.out and f.downState == DOWN_NONE and f.grounded and f.hitlag <= 0 and f.hitstun <= 0 and f.shieldStun <= 0 and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0 and f.grabbedFrames <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldEnergy > 0
 
-public function beginAttackPair(FighterState first, FighterState second, int firstStyle, int secondStyle)
+public function beginAttackPair(FighterState first, FighterState second, int firstStyle, int secondStyle, boolean firstMayCharge, boolean secondMayCharge)
 	let firstGroundAttack = firstStyle >= 0 and firstStyle <= 10 and firstStyle != 1
 	let secondGroundAttack = secondStyle >= 0 and secondStyle <= 10 and secondStyle != 1
 	let firstAerial = isAerialAttack(firstStyle)
@@ -658,15 +682,17 @@ public function beginAttackPair(FighterState first, FighterState second, int fir
 	let firstEligible = (firstGroundAttack and first.grounded or firstStyle == 1 or firstAerial and not first.grounded) and canAttack(first) and not second.out
 	let secondEligible = (secondGroundAttack and second.grounded or secondStyle == 1 or secondAerial and not second.grounded) and canAttack(second) and not first.out
 	if firstEligible
-		beginAttack(first, firstStyle)
+		beginAttack(first, firstStyle, firstMayCharge)
 	if secondEligible
-		beginAttack(second, secondStyle)
+		beginAttack(second, secondStyle, secondMayCharge)
 
 public function resolveAttackPair(FighterState first, FighterState second)
 	let firstStyle = first.attackStyle
 	let secondStyle = second.attackStyle
 	let firstHits = firstStyle >= 0 and attackPhase(first) == ATTACK_ACTIVE and not first.attackHit and (firstStyle == 1 or canResolveAttack(first, second))
 	let secondHits = secondStyle >= 0 and attackPhase(second) == ATTACK_ACTIVE and not second.attackHit and (secondStyle == 1 or canResolveAttack(second, first))
+	let firstChargeFrames = first.smashChargeFrames
+	let secondChargeFrames = second.smashChargeFrames
 	let firstGrabPriority = firstHits and firstStyle == 5 and secondStyle != 5
 	let secondGrabPriority = secondHits and secondStyle == 5 and firstStyle != 5
 	if firstHits
@@ -677,12 +703,12 @@ public function resolveAttackPair(FighterState first, FighterState second)
 		if firstStyle == 1
 			spawnProjectile(first)
 		else
-			applyAttackHit(first, second, firstStyle)
+			applyAttackHit(first, second, firstStyle, firstChargeFrames)
 	if secondHits and not firstGrabPriority
 		if secondStyle == 1
 			spawnProjectile(second)
 		else
-			applyAttackHit(second, first, secondStyle)
+			applyAttackHit(second, first, secondStyle, secondChargeFrames)
 
 function canResolveAttack(FighterState attacker, FighterState target) returns boolean
 	return not target.out and attackHits(attacker, target, attacker.attackStyle)
@@ -708,6 +734,9 @@ public function reset(FighterState f, real startX)
 	f.attackFrame = 0
 	f.attackDuration = 0
 	f.attackHit = false
+	f.smashCharging = false
+	f.smashChargeFrames = 0
+	f.smashChargeAllowed = false
 	f.cooldown = 0
 	f.shield = false
 	f.shieldEnergy = SHIELD_MAX
@@ -761,14 +790,30 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			f.grounded = false
 		return
 	var groundDodgeStarted = false
+	var smashChargePaused = false
 	if f.hitlag <= 0
-		f.cooldown = max(0, f.cooldown - 1)
-		if f.attackStyle >= 0
-			f.attackFrame++
-			if f.attackFrame >= f.attackDuration
-				f.attackStyle = -1
-				f.attackFrame = 0
-				f.attackHit = false
+		if f.smashCharging
+			if f.grounded and input.attackHeld and f.smashChargeFrames < SMASH_MAX_CHARGE_FRAMES
+				f.smashChargeFrames++
+				smashChargePaused = true
+			else
+				f.smashCharging = false
+				f.smashChargeAllowed = false
+		else if f.grounded and f.attackStyle >= 0 and f.smashChargeAllowed and isSmashAttack(f.attackStyle) and input.attackHeld and f.attackFrame >= attackStartupFrames(f.attackStyle) - 1
+			f.smashCharging = true
+			f.smashChargeFrames = 1
+			smashChargePaused = true
+		if not smashChargePaused
+			f.cooldown = max(0, f.cooldown - 1)
+			if f.attackStyle >= 0
+				f.attackFrame++
+				if f.attackFrame >= f.attackDuration
+					f.attackStyle = -1
+					f.attackFrame = 0
+					f.attackHit = false
+					f.smashCharging = false
+					f.smashChargeFrames = 0
+					f.smashChargeAllowed = false
 	if input.jumpPressed
 		simulationJump(f)
 	if f.jumpSquat > 0
@@ -839,7 +884,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.shieldHeldFrames = 0
 		f.hitstun = 40
 	var direction = input.direction
-	let canSteer = f.downState == DOWN_NONE and f.hitstun <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and (not f.grounded or f.cooldown <= 0)
+	let canSteer = f.downState == DOWN_NONE and f.hitstun <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and not smashChargePaused and (not f.grounded or f.cooldown <= 0)
 	if canSteer
 		if wantsShield
 			direction = 0
@@ -940,6 +985,9 @@ function checkBlastZone(FighterState f)
 		f.attackStyle = -1
 		f.attackFrame = 0
 		f.attackHit = false
+		f.smashCharging = false
+		f.smashChargeFrames = 0
+		f.smashChargeAllowed = false
 		f.cooldown = 0
 		f.groundDodgeFrame = 0
 		f.groundDodgeDirection = 0

@@ -350,3 +350,27 @@ and stock loss/reset clears it. Only an unfinished aerial normal receives the
 reduction: neutral/forward/back/up/down recovery becomes 5/7/8/7/9 ticks under
 current prototype tuning. Empty landings and air-dodge landings are unaffected.
 Animation-specific autocancel windows and analog trigger behavior remain open.
+
+## Smash charge
+
+Melee smash attacks can be charged for up to 60 frames while holding attack.
+SmashWiki reports a Melee maximum damage multiplier of 1.3671× (the 1.4× figure
+is the rounded general-series value). Source: https://www.ssbwiki.com/Charge,
+retrieved 2026-09-29 and cached at
+`~/code/wc3-melee/worktrees/test-loop/build/ref-Charge.html`. The local
+reference's smash-charge data path in `melee:src/melee/ft/ftaction.c` and
+`melee:src/melee/ft/ft_0DF0.c` confirms that duration and multiplier are
+separate inputs and that damage grows with charge progress; the local
+decompilation does not supply the game-data values. No implementation text is
+copied.
+
+The prototype lets a grounded up, down, or forward smash started through the
+normal Attack binding pause just before its active frames. Holding Attack
+accumulates at most 60 logical ticks; releasing it, reaching the cap, or
+leaving the ground resumes the attack. Damage scales linearly to 1.3671× and
+feeds the ordinary knockback calculation. Hitlag pauses charge accumulation;
+fighter steering and attack/cooldown clocks pause while ordinary world timers,
+gravity and platform motion continue. C-stick/direct smash commands are
+immediate. These state and input rules are prototype choices, not claims of
+complete Melee state-machine parity. Simultaneous hits snapshot both charge
+amounts before applying either impact so trades retain both damage values.
