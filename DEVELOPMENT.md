@@ -209,9 +209,23 @@ presses cannot restart squat or spend the air jump, and releasing during squat
 locks in short hop. The original Fox full-jump test measured 165.92 world units
 against the 187.68 target; calibrated launch velocity fixes the discrepancy.
 Build 195812 reported ready in 23.432 seconds with the same Warcraft process.
-This proves packaging and startup; jump feel still needs an in-client check.
+The client probe entered character → stage → match using the attack binding,
+then held Jump and captured the airborne fighter at z=166. A subsequent frame
+showed it back at platform height under bot attack. Evidence:
+~/code/wc3-melee/worktrees/test-loop/build/jump-probe/airborne.png and
+~/code/wc3-melee/worktrees/test-loop/build/jump-probe/landed.png.
+This checks input and rendered movement, not exact in-client apex or Melee feel.
 
-Next simulation gap: settle action eligibility during attack/shield recovery. Air-dodge
+Action recovery now passes 42/42 headless tests. Jump, dodge, shield startup
+and ground steering respect attack cooldown; air drift remains available
+without reversing facing during recovery. Cooldown decrements before action
+eligibility on non-hitlag frames, giving all those actions the same recovery
+boundary. Regression tests first reproduced the three illegal action cancels.
+Build 200313 reported ready in 22.890 seconds with the same Warcraft process.
+Jumping directly out of shield remains unavailable and is a known difference
+to address alongside shield escape options, not a Melee fidelity claim.
+
+Next simulation gap: shield escape options and move-specific attack phases. Air-dodge
 motion parameters remain provisional; passing protection tests does not prove
 motion fidelity. Continue the animation pipeline and two-client work already
 listed above; the overall goal remains unfinished.

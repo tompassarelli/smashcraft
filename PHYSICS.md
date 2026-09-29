@@ -141,3 +141,14 @@ Fox uses 23.46 / 13.98 / 26.496 world units per frame; Falco uses
 25.62 / 12.42 / 23.124. Matching apexes does not establish identical trajectories
 or feel. Jump presses during squat are ignored without spending an air jump;
 release during squat latches short hop even if jump is pressed again.
+
+## Attack recovery checkpoint
+
+Provisional attack cooldown prevents another attack, jump, air dodge, shield
+startup, ground steering and facing changes. Air drift remains available.
+Cooldown and visual attack time freeze during hitlag and otherwise decrement
+before action eligibility checks; the frame that reaches zero accepts input.
+Ground steering waits for cooldown even when the visual attack timer ends
+earlier. Tests exercise these rules through the shared advance function.
+Move-specific startup/active/recovery windows remain unfinished, and the
+current inability to jump out of shield is a deliberate recorded gap.

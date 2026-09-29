@@ -30,7 +30,7 @@ QWERTY uses 7 for right trigger and 8 for the alternate jump key.
 
 ## Current evidence
 
-Thirty-six headless tests pass across simulation, input buffers, bindings,
+Forty-two headless tests pass across simulation, input buffers, bindings,
 match rules and the shared match step. Build 194234 loaded in 23.667 seconds
 including build/restart and restored a saved, rebound key in the same client
 process. F1, preset selection, rebinding and synchronized startup loading were

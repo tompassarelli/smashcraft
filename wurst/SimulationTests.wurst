@@ -416,3 +416,98 @@ function airJumpApex(int character) returns real
 		advance(fighter, 0, input, -240)
 	fighter.vz.assertEquals(shortJumpSpeed(1) - characterGravity(1), 0.01)
 	fighter.jumps.assertEquals(1)
+
+@Test function attackRecoveryBlocksJumpThroughAdvance()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.cooldown = 3
+	fighter.attackTime = 3
+	let input = new InputSnapshot()
+	input.jumpPressed = true
+	input.jumpHeld = true
+	advance(fighter, 0, input, -240)
+	fighter.jumps.assertEquals(2)
+	fighter.jumpSquat.assertEquals(0)
+	fighter.grounded.assertTrue()
+
+@Test function attackRecoveryBlocksAirDodgeThroughAdvance()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.grounded = false
+	fighter.z = 120
+	fighter.cooldown = 3
+	fighter.attackTime = 3
+	let input = new InputSnapshot()
+	input.airDodgePressed = true
+	input.dodgeX = 1
+	advance(fighter, 0, input, -240)
+	fighter.airDodging.assertFalse()
+	fighter.airDodgeTime.assertEquals(0)
+	fighter.jumps.assertEquals(2)
+
+@Test function attackRecoveryBlocksShieldThroughAdvance()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.cooldown = 3
+	fighter.attackTime = 3
+	let input = new InputSnapshot()
+	input.shield = true
+	advance(fighter, 0, input, -240)
+	fighter.shield.assertFalse()
+
+@Test function attackCommitmentBlocksGroundSteeringButKeepsAirDrift()
+	let grounded = new FighterState(0, 0, 1)
+	grounded.cooldown = 10
+	let groundInput = new InputSnapshot()
+	groundInput.direction = -1
+	advance(grounded, 0, groundInput, -240)
+	grounded.facing.assertEquals(1)
+	grounded.vx.assertEquals(0.)
+	let airborne = new FighterState(0, 0, 1)
+	airborne.grounded = false
+	airborne.z = 120
+	airborne.cooldown = 10
+	let airInput = new InputSnapshot()
+	airInput.direction = -1
+	advance(airborne, 0, airInput, -240)
+	airborne.facing.assertEquals(1)
+	airborne.vx.assertLessThan(0.)
+
+@Test function finalRecoveryFrameAllowsActionsOnTheSameSimulationTick()
+	let jumper = new FighterState(0, 0, 1)
+	jumper.cooldown = 1
+	jumper.attackTime = 1
+	let jumpInput = new InputSnapshot()
+	jumpInput.jumpPressed = true
+	jumpInput.jumpHeld = true
+	advance(jumper, 0, jumpInput, -240)
+	jumper.cooldown.assertEquals(0)
+	jumper.jumpSquat.assertEquals(jumpSquatFrames(0) - 1)
+
+	let dodger = new FighterState(0, 0, 1)
+	dodger.grounded = false
+	dodger.z = 120
+	dodger.cooldown = 1
+	dodger.attackTime = 1
+	let dodgeInput = new InputSnapshot()
+	dodgeInput.airDodgePressed = true
+	dodgeInput.dodgeX = 1
+	advance(dodger, 0, dodgeInput, -240)
+	dodger.airDodging.assertTrue()
+	dodger.cooldown.assertEquals(0)
+
+	let shielder = new FighterState(0, 0, 1)
+	shielder.cooldown = 1
+	shielder.attackTime = 1
+	let shieldInput = new InputSnapshot()
+	shieldInput.shield = true
+	advance(shielder, 0, shieldInput, -240)
+	shielder.shield.assertTrue()
+	shielder.cooldown.assertEquals(0)
+
+@Test function activeShieldStillPreventsJumpStartup()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.shield = true
+	let input = new InputSnapshot()
+	input.jumpPressed = true
+	input.jumpHeld = true
+	advance(fighter, 0, input, -240)
+	fighter.jumpSquat.assertEquals(0)
+	fighter.jumps.assertEquals(2)
