@@ -61,7 +61,13 @@ def make_action(name, keyframes, frame_end):
         for bone_name in bones:
             bone = rig.pose.bones[bone_name]
             channels = pose.get(bone_name, {})
-            bone.rotation_quaternion = quaternion(channels.get("rotation", 0), channels.get("axis", "X"))
+            if "rotations" in channels:
+                rotation = quaternion(0)
+                for axis, degrees in channels["rotations"]:
+                    rotation = rotation @ quaternion(degrees, axis)
+                bone.rotation_quaternion = rotation
+            else:
+                bone.rotation_quaternion = quaternion(channels.get("rotation", 0), channels.get("axis", "X"))
             bone.location = channels.get("location", (0.0, 0.0, 0.0))
             bone.keyframe_insert(data_path="rotation_quaternion", frame=frame, group=bone_name)
             if "location" in channels or any("location" in point.get(bone_name, {}) for point in keyframes.values()):
@@ -168,6 +174,43 @@ double_jump_poses = {
 }
 make_action("Double Jump", double_jump_poses, 30)
 
+def tilt_pose(angle, elevation, extension):
+    return {
+        "Bone_Chest": {"rotation": -5 * extension},
+        "Bone_Head": {"rotation": 4 * extension},
+        "Bone_Arm1_R": {"rotations": [("X", angle), ("Y", elevation)]},
+        "Bone_Arm2_R": {"rotations": [("X", -42 * extension), ("Y", elevation * 0.65)]},
+        "Bone_Arm1_L": {"rotation": -12 * extension},
+        "Bone_Arm2_L": {"rotation": 8 * extension},
+        "Bone_Leg1_R": {"rotation": -8 * extension},
+        "Bone_Leg2_R": {"rotation": 10 * extension},
+        "Bone_Leg1_L": {"rotation": 5 * extension},
+        "Bone_Leg2_L": {"rotation": -8 * extension},
+    }
+
+
+def make_tilt(name, arm_degrees):
+    phases = {
+        0: (0, 0.0),
+        2: (-12, 0.45),
+        5: (arm_degrees, 1),
+        7: (arm_degrees, 1),
+        11: (arm_degrees * 0.55, 0.75),
+        17: (arm_degrees * 0.2, 0.3),
+        23: (0, 0.05),
+        28: (0, 0),
+    }
+    elevation = {"Forward Tilt Up": 65, "Forward Tilt Down": -65}.get(name, 0)
+    poses = {}
+    for frame, (angle, extension) in phases.items():
+        poses[frame] = tilt_pose(angle, elevation * extension, extension)
+    make_action(name, poses, 28)
+
+
+make_tilt("Forward Tilt", 68)
+make_tilt("Forward Tilt Up", 34)
+make_tilt("Forward Tilt Down", 94)
+
 spot_pose = {
     0: {
         "Bone_Pelvis": {"location": (0, 0, 0)},
@@ -242,4 +285,4 @@ if "FINISHED" not in result or not exported.is_file():
     raise RuntimeError(f"Archer dodge export failed: {result}")
 print("ARCHER_FIGHTER_EXPORTED", exported, exported.stat().st_size)
 print("ARCHER_FIGHTER_EDITABLE", editable, editable.stat().st_size)
-print("AUTHORED_ACTIONS", "Attack Jab, Jump, Double Jump, Roll Forward, Roll Backward, Spot Dodge")
+print("AUTHORED_ACTIONS", "Attack Jab, Forward Tilt, Forward Tilt Up, Forward Tilt Down, Jump, Double Jump, Roll Forward, Roll Backward, Spot Dodge")
