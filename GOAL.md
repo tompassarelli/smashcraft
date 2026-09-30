@@ -127,6 +127,8 @@ fresh-edge handling under buffering, hitlag and releases.
 Y acts as Start/Pause: confirms selection screens and toggles a synchronized
 match pause. Combat and the match clock stop while input/network servicing
 continues; pause-time attacks must not accumulate for release on resume.
+Y also confirms a rematch after results. Reserve Y from rebinding; leave Enter
+available to Warcraft chat.
 
 Provide visible movable chips for every active human/CPU, independent fighter
 choices and mirror matches; distinct character/stage screens; retained choices

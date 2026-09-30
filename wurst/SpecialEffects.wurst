@@ -37,6 +37,12 @@ public class SpecialEffects
             previousSwipeSerial[slot] = 0
             previousHippogryphLife[slot] = 0
 
+    function setPaused(boolean paused)
+        let scale = paused ? 0. : 1.
+        for slot = 0 to 1
+            BlzSetSpecialEffectTimeScale(bears[slot], scale)
+            BlzSetSpecialEffectTimeScale(hippogryphs[slot], scale)
+
     private function apply(FighterState fighter, int slot)
         let bear = bears[slot]
         if fighter.bearLife > 0 and not fighter.out

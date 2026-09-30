@@ -1,0 +1,37 @@
+package MatchControls
+import MatchRules
+
+public constant int START_PAUSE_NONE = 0
+public constant int START_PAUSE_CONFIRM = 1
+public constant int START_PAUSE_TOGGLED = 2
+
+// Menu confirmation and in-match pausing are session controls, not fighting
+// simulation state, so replay snapshots must never restore this state.
+public class MatchControls
+	private boolean paused = false
+	private boolean array[2] startPauseHeld
+
+	function keyDown(int participantId, int phase, boolean settingsOpen) returns int
+		if participantId < 0 or participantId >= 2 or startPauseHeld[participantId]
+			return START_PAUSE_NONE
+		startPauseHeld[participantId] = true
+		if startPauseHeld[1 - participantId]
+			return START_PAUSE_NONE
+		if settingsOpen
+			return START_PAUSE_NONE
+		if phase == MATCH
+			paused = not paused
+			return START_PAUSE_TOGGLED
+		if phase == CHARACTER_MENU or phase == STAGE_MENU or phase == RESULT
+			return START_PAUSE_CONFIRM
+		return START_PAUSE_NONE
+
+	function keyUp(int participantId)
+		if participantId >= 0 and participantId < 2
+			startPauseHeld[participantId] = false
+
+	function isPaused() returns boolean
+		return paused
+
+	function resume()
+		paused = false

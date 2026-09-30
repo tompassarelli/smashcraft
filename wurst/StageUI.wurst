@@ -97,7 +97,7 @@ public class StagePanel
         chip.setTexture("war3mapImported\\StageChip.tga", 0, true)
         chip.setSize(0.040, 0.040)
         chip.setEnabled(false)
-        stageText(root, "MeleeStageHelp", 0.454, 0.230, 0.30, 0.065, 0.011, "Click a stage or move the chip.\nEither player can choose.\nLeft/Right: change stage")
+        stageText(root, "MeleeStageHelp", 0.454, 0.230, 0.30, 0.065, 0.011, "Click a stage or move the chip.\nEither player can choose.\nLeft/Right: change stage · Y: start")
         let start = stageButton(root, "MeleeStageStart", 0.545, 0.092, 0.210, 0.048, "START MATCH")
         start.onClick(() -> actions.start(GetPlayerId(GetTriggerPlayer())))
         let back = stageButton(root, "MeleeStageBack", 0.045, 0.082, 0.170, 0.037, "BACK TO FIGHTERS")

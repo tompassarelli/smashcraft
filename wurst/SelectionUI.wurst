@@ -418,7 +418,7 @@ public class SelectionPanel
         firstChoiceName.setTexture(characterNameTexture(0), 0, true)
         secondChoiceName.setTexture(characterNameTexture(1), 0, true)
         let allReady = ready and opponentReady
-        confirmLabel.setText(allReady ? "Start" : "Place your chip")
+        confirmLabel.setText(allReady ? "Start [Y]" : "Place your chip")
         settingsLabel.setText("CONTROLS  [F1]")
         playerOneTag.setText("|cffffefcfHMN|r")
         playerTwoTag.setText(opponentHuman ? "|cffd9e8ffHMN|r" : "|cffd9e8ffCPU|r")

@@ -73,6 +73,10 @@ public class CombatEffects
             emit(first)
             emit(second)
 
+    function setPaused(boolean paused)
+        for i = 0 to EFFECT_COUNT - 1
+            BlzSetSpecialEffectTimeScale(models[i], paused ? 0. : 1.)
+
     function tick()
         for i = 0 to EFFECT_COUNT - 1
             if ages[i] >= 0

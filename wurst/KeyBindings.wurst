@@ -62,7 +62,7 @@ public class KeyBindings
         if action < 0 or action >= ACTION_COUNT or slot < 0 or slot > 1 or key < 0 or key > 255
             return false
         // Menu and developer controls remain available independently.
-        if key == 27 or key == 112 or key == 116 or key == 117 or key == 118
+        if key == 27 or key == 89 or key == 112 or key == 116 or key == 117 or key == 118
             return false
         let index = action * 2 + slot
         if key != 0
@@ -143,7 +143,11 @@ public class KeyBindings
                     destroy candidate
                     return false
                 value = value * 10 + parsed
-            if not candidate.rebind(i div 2, i mod 2, value)
+            // Y is now the fixed Start/Pause key. Preserve the rest of an older
+            // saved layout while clearing only a former binding that conflicts.
+            if value == 89
+                candidate.keys[i] = 0
+            else if not candidate.rebind(i div 2, i mod 2, value)
                 destroy candidate
                 return false
         if previousSave and candidate.actionFor(80) < 0

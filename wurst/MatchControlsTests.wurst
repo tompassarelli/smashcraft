@@ -1,0 +1,52 @@
+package MatchControlsTests
+import MatchControls
+import MatchRules
+
+@Test function yConfirmsSelectionStageAndRematch()
+	let controls = new MatchControls()
+	controls.keyDown(0, CHARACTER_MENU, false).assertEquals(START_PAUSE_CONFIRM)
+	controls.keyUp(0)
+	controls.keyDown(1, STAGE_MENU, false).assertEquals(START_PAUSE_CONFIRM)
+	controls.keyUp(1)
+	controls.keyDown(0, RESULT, false).assertEquals(START_PAUSE_CONFIRM)
+	controls.isPaused().assertFalse()
+	destroy controls
+
+@Test function yPausesAndResumesOnlyOnFreshPress()
+	let controls = new MatchControls()
+	controls.keyDown(0, MATCH, false).assertEquals(START_PAUSE_TOGGLED)
+	controls.isPaused().assertTrue()
+	controls.keyDown(0, MATCH, false).assertEquals(START_PAUSE_NONE)
+	controls.isPaused().assertTrue()
+	controls.keyUp(0)
+	controls.keyDown(0, MATCH, false).assertEquals(START_PAUSE_TOGGLED)
+	controls.isPaused().assertFalse()
+	destroy controls
+
+@Test function pauseIsSharedAndSimultaneousPlayerPressDoesNotUndoIt()
+	let controls = new MatchControls()
+	controls.keyDown(0, MATCH, false).assertEquals(START_PAUSE_TOGGLED)
+	controls.keyDown(1, MATCH, false).assertEquals(START_PAUSE_NONE)
+	controls.isPaused().assertTrue()
+	controls.keyUp(0)
+	controls.keyUp(1)
+	controls.keyDown(1, MATCH, false).assertEquals(START_PAUSE_TOGGLED)
+	controls.isPaused().assertFalse()
+	destroy controls
+
+@Test function yInSettingsDoesNotConfirmOrPause()
+	let controls = new MatchControls()
+	controls.keyDown(0, CHARACTER_MENU, true).assertEquals(START_PAUSE_NONE)
+	controls.keyUp(0)
+	controls.keyDown(0, MATCH, true).assertEquals(START_PAUSE_NONE)
+	controls.isPaused().assertFalse()
+	destroy controls
+
+@Test function overlappingMenuPressesCannotConfirmTwoPhasesAtOnce()
+	let controls = new MatchControls()
+	controls.keyDown(0, CHARACTER_MENU, false).assertEquals(START_PAUSE_CONFIRM)
+	controls.keyDown(1, STAGE_MENU, false).assertEquals(START_PAUSE_NONE)
+	controls.keyUp(0)
+	controls.keyUp(1)
+	controls.keyDown(1, STAGE_MENU, false).assertEquals(START_PAUSE_CONFIRM)
+	destroy controls

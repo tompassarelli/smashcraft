@@ -5,6 +5,7 @@ import BuildInfo
 import Simulation
 import DirectionalInput
 import MatchRules
+import MatchControls
 import MatchHUD
 import CommandBuffer
 import CombatInput
@@ -30,6 +31,7 @@ real centerX = 0
 real centerY = 0
 real floorHeight = 0
 MatchState matchState = new MatchState()
+MatchControls matchControls = new MatchControls()
 Fighter playerFighter = null
 Fighter botFighter = null
 timer gameTimer = null
@@ -523,6 +525,7 @@ function airDodge(Fighter _f, int horizontal, int vertical)
         secondDodgeZ = vertical
 
 function startMatch()
+    let wasPaused = matchControls.isPaused()
     statusText = "GO!"
     statusTime = 1
     if settingsPanel != null and settingsPanel.isOpen()
@@ -536,6 +539,7 @@ function startMatch()
     clearHeldInputs()
     clearSecondInputs()
     replayRuntime.simulationFrame = 0
+    matchControls.resume()
     currentFrameInput.reset()
     replayRuntime.botAttackDelay = 0
     botJumpHeld = false
@@ -545,6 +549,8 @@ function startMatch()
     makePreview()
     initializeMatchFighters(matchState, playerFighter, botFighter)
     drawStage()
+    if wasPaused
+        pauseMatchPresentation(false)
     if KNOCKDOWN_SCENARIO
         playerFighter.downState = DOWN_TUMBLE
         playerFighter.grounded = false
@@ -703,6 +709,22 @@ function onParticipantKeyDown(int participantId)
     let opponent = participantId == 0 ? botFighter : playerFighter
     if keyCode < 0 or keyCode > 255 or state.isKeyHeld(keyCode)
         return
+    if key == OSKEY_Y
+        let controlAction = matchControls.keyDown(participantId, matchState.phase, controls != null and controls.isOpen())
+        if controlAction == START_PAUSE_TOGGLED
+            clearHeldInputs()
+            clearSecondInputs()
+            if matchControls.isPaused()
+                statusText = "Paused — press Y to resume."
+                statusTime = 3600
+                pauseMatchPresentation(true)
+            else
+                pauseMatchPresentation(false)
+                statusText = "Resumed."
+                statusTime = 1
+        else if controlAction == START_PAUSE_CONFIRM
+            confirm(participantId)
+        return
     if participantId == 0 and key == OSKEY_F5
         EndGame(false)
         return
@@ -723,8 +745,7 @@ function onParticipantKeyDown(int participantId)
     if key == OSKEY_ESCAPE and matchState.phase == STAGE_MENU
         back(participantId)
         return
-    if key == OSKEY_RETURN and (matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU)
-        confirm(participantId)
+    if matchState.phase == MATCH and matchControls.isPaused()
         return
     let action = bindings.bindings.actionFor(keyCode)
     let wasHeld = action >= 0 and state.actionHeld(action)
@@ -849,7 +870,11 @@ function onParticipantKeyDown(int participantId)
             secondNormalAttackQueued = true
 
 function onParticipantKeyUp(int participantId)
-    let keyCode = GetHandleId(BlzGetTriggerPlayerKey())
+    let key = BlzGetTriggerPlayerKey()
+    let keyCode = GetHandleId(key)
+    if key == OSKEY_Y
+        matchControls.keyUp(participantId)
+        return
     traceParticipant(participantId, "received up " + I2S(keyCode))
     let state = participantId == 0 ? firstKeyState : secondKeyState
     let bindings = participantId == 0 ? playerBindings : secondBindings
@@ -1253,6 +1278,29 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
     // On release only the playback rate changes, so the held clip resumes.
     SetUnitTimeScale(f.body, f.hitlag > 0 or f.smashCharging ? 0 : animationRate)
 
+function pauseMatchPresentation(boolean paused)
+    if playerFighter != null
+        if paused
+            SetUnitTimeScale(playerFighter.body, 0.)
+        else if not playerFighter.out
+            let jumpAnimationRemaining = playerFighter.jumpAnimationRemaining
+            renderFighter(playerFighter, false, false, false)
+            playerFighter.jumpAnimationRemaining = jumpAnimationRemaining
+    if botFighter != null
+        if paused
+            SetUnitTimeScale(botFighter.body, 0.)
+        else if not botFighter.out
+            let jumpAnimationRemaining = botFighter.jumpAnimationRemaining
+            renderFighter(botFighter, false, false, false)
+            botFighter.jumpAnimationRemaining = jumpAnimationRemaining
+    if combatEffects != null
+        combatEffects.setPaused(paused)
+    if specialEffects != null
+        specialEffects.setPaused(paused)
+    for i = 0 to projectileModelCount - 1
+        if projectileModels[i] != null
+            BlzSetSpecialEffectTimeScale(projectileModels[i], paused ? 0. : 1.)
+
 function renderUI()
     let selecting = matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
     let localSlot = GetLocalPlayer() == Player(1) and twoHumanPlayers ? 1 : 0
@@ -1269,10 +1317,10 @@ function renderUI()
         BlzFrameSetVisible(noticeFrame, not selecting and not controlsOpen)
         BlzFrameSetVisible(developerFrame, not selecting and not controlsOpen)
         if not selecting
-            BlzFrameSetText(helpFrame, matchState.phase == RESULT ? (matchState.firstRematchReady and twoHumanPlayers ? "Player 1 ready; waiting for Player 2. Ctrl+R: restart" : (matchState.secondRematchReady and twoHumanPlayers ? "Player 2 ready; waiting for Player 1. Ctrl+R: restart" : "Press Attack to choose your next match     Ctrl+R: restart")) : "Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.")
-            if matchState.phase == MATCH and localFighter.downState == DOWN_WAIT
+            BlzFrameSetText(helpFrame, matchState.phase == RESULT ? (matchState.firstRematchReady and twoHumanPlayers ? "Player 1 ready; waiting for Player 2. Press Y to choose the next match." : (matchState.secondRematchReady and twoHumanPlayers ? "Player 2 ready; waiting for Player 1. Press Y to choose the next match." : "Press Y to choose your next match.")) : (matchControls.isPaused() ? "PAUSED — Press Y to resume. Combat is frozen." : "Y: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge."))
+            if matchState.phase == MATCH and not matchControls.isPaused() and localFighter.downState == DOWN_WAIT
                 BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
-            else if matchState.phase == MATCH and localFighter.ledgeState == LEDGE_HANG
+            else if matchState.phase == MATCH and not matchControls.isPaused() and localFighter.ledgeState == LEDGE_HANG
                 BlzFrameSetText(helpFrame, "Ledge: Up or toward stage to climb; Jump to leap; Shield to roll; Attack to strike.\nDown or away from stage lets go.")
             BlzFrameSetText(noticeFrame, playerFighter != null and playerFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
     selectionPanel.update(matchState.phase, matchState.characterFor(0),
@@ -1318,10 +1366,11 @@ function gameTick()
     if appliedSecondBindingRevision != secondBindings.revision
         clearSecondInputs()
         appliedSecondBindingRevision = secondBindings.revision
-    combatEffects.tick()
+    if not matchControls.isPaused()
+        combatEffects.tick()
     lockArenaCamera()
     statusTime = max(0, statusTime - FRAME_SECONDS)
-    if matchState.phase == MATCH
+    if matchState.phase == MATCH and not matchControls.isPaused()
         let frame = replayRuntime.simulationFrame + 1
         let direction = firstKeyState.consumeMovementX()
         let verticalDirection = firstKeyState.consumeMovementZ()

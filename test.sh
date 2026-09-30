@@ -34,6 +34,8 @@ exec "$java" -Xmx512m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/wurst/StageSelectionTests.wurst" \
     "$project_dir/wurst/MatchRules.wurst" \
     "$project_dir/wurst/MatchRulesTests.wurst" \
+    "$project_dir/wurst/MatchControls.wurst" \
+    "$project_dir/wurst/MatchControlsTests.wurst" \
     "$project_dir/wurst/MatchStep.wurst" \
     "$project_dir/wurst/MatchStepTests.wurst" \
     "$project_dir/wurst/FreezeTrapTests.wurst" \

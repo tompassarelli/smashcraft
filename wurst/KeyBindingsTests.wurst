@@ -19,6 +19,7 @@ import KeyBindings
     bindings.keyFor(GRAB, 0).assertEquals(79)
     bindings.rebind(GRAB, 0, 117).assertFalse()
     bindings.rebind(GRAB, 0, 118).assertFalse()
+    bindings.rebind(GRAB, 0, 89).assertFalse()
     bindings.rebind(GRAB, 0, 71).assertTrue()
     bindings.actionFor(71).assertEquals(GRAB)
     bindings.actionFor(76).assertEquals(-1)
@@ -64,6 +65,10 @@ import KeyBindings
     restored.encode().assertEquals(saved)
     restored.restore("XX" + saved.substring(2)).assertFalse()
     restored.encode().assertEquals(saved)
+    let oldYBound = source.encode().substring(0, 2) + source.encode().substring(2, 2 + GRAB * 6) + "089" + source.encode().substring(2 + GRAB * 6 + 3)
+    restored.restore(oldYBound).assertTrue()
+    restored.keyFor(GRAB, 0).assertEquals(0)
+    restored.keyFor(JUMP, 0).assertEquals(source.keyFor(JUMP, 0))
 
 @Test function existingSavedControlsGainWalkWithoutLosingRebindings()
     let source = new KeyBindings(true)

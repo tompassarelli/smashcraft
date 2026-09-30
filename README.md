@@ -40,9 +40,13 @@ The current map provides character and stage selection, two Warcraft fighters,
 a bot opponent, floating platforms, blast zones and stocks. Mouse buttons and
 W/R + N select a fighter/stage; U goes back. Chips begin visibly in the
 active player cards; drag them onto the roster. New Match retains selections.
+Y confirms character/stage selection and chooses the next match after a result;
+Y pauses/resumes the active match. A pause freezes combat and match time while
+keeping input handling live. Enter is left to Warcraft's chat.
 F1 opens Controls before a match.
 Choose QWERTY or Custom, click either key slot to rebind, then Save. Saved
-controls load automatically on the next map start. Ctrl+T starts a developer
+controls load automatically on the next map start. Y is reserved for Start/Pause
+and cannot be rebound. Ctrl+T starts a developer
 input trace. Avoid the currently unreliable Ctrl+R restart shortcut; these chords are
 separate from player bindings. F6 and F7 remain reserved from rebinding for
 Warcraft's own shortcuts.
