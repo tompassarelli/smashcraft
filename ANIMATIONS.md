@@ -4,7 +4,11 @@
 
 Illidan is not yet selectable or installed as a playable fighter. The installed
 model imports into Blender with 234 bones, 17 geosets and 24 stock actions;
-these are source assets, not completed combat clips. The material repair in
+The authored scene now adds 81 clips, with 103 exported sequences and validated
+bindings in wc3-melee:build/illidan-animation/bindings.json. Source commits
+096f71e, 57ad0cd and 0ac1db2 preserve the original 24 actions, 17 geosets and
+24 FPS timebase. Both-facing previews cover 144 pose samples. Native playback,
+action bindings and contact alignment remain unverified. The material repair in
 mdl-exporter4 commit 966dbe81178ad1790dc06d1ec58f4792da682349 removes the
 white torso polygon in unfiltered side-view previews. Source TeamColor00
 panels remain red. Rendered checks cover alpha-over layer composition and
@@ -15,21 +19,31 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 | Required coverage | Current state |
 | --- | --- |
 | Model, textures, attached blades, both gameplay facings | Imported; repaired materials inspected from both sides; not native-verified |
-| Jab, directional/angled tilts, smashes, dash attack | Combat implemented/source-tested; authored clips missing |
-| Neutral/forward/back/up/down aerials | Combat implemented/source-tested; authored clips missing |
-| Mana Burn, parry/evasion, wing ascent, Immolate | Combat implemented/source-tested; authored clips and effects missing |
-| Grab, hold, pummel, escape, four coordinated throws | Shared rules exist; Illidan poses and contact verification missing |
-| Idle, walk/run, turns, crouch, jumps and landings | Stock motions available; full game-action mapping missing |
-| Shield, shield reactions/break, spot dodge, rolls, air dodge | Illidan clips and shared-rule integration missing |
-| Ground/air hitstun, tumble, contact-pose hitlag | Illidan reactions and freeze/resume verification missing |
-| Knockdown, techs, getup options, ledges, KO and respawn | Illidan clips and integration missing |
+| Jab, directional/angled tilts, smashes, dash attack | Combat source-tested; clips authored, game bindings missing |
+| Neutral/forward/back/up/down aerials | Combat source-tested; clips authored, game bindings missing |
+| Mana Burn, parry/evasion, wing ascent, Immolate | Combat source-tested; clips and source-derived animated wings authored; effects/integration unfinished |
+| Grab, hold, pummel, escape, four coordinated throws | Shared rules and authored poses exist; native pair alignment unverified |
+| Idle, walk/run, turns, crouch, jumps and landings | Stock/authored motions available; full game-action mapping missing |
+| Shield, shield reactions/break, spot dodge, rolls, air dodge | Clips authored; shared-rule integration missing |
+| Ground/air hitstun, tumble, contact-pose hitlag | Reactions authored; freeze/resume verification missing |
+| Knockdown, techs, getup options, ledges, KO and respawn | Clips authored; grounding checked offline; integration missing |
 | Action-frame volumes, interruptions, stock reset and replay | Provisional numerical regions and focused interruption/reset/replay checks implemented; animation alignment missing |
-| Portraits, selection, mirror match and rematch retention | Missing |
+| Portraits, selection, mirror match and rematch retention | Portrait/tile generated and inspected; selection integration missing |
 | Real-control playthrough in Warcraft | Not tested |
 
 Wings must appear and animate during recovery. Post-ascent glide remains an
 unadopted design option. Timing and damage live in combat source; new tuning
 must remain explicitly provisional, not presented as extracted Melee data.
+
+Packaging remains blocked: the first export omitted all 17 event tracks.
+mdl-exporter4:da27fd3 repairs discarded binary event timestamps and valid empty
+track output; its focused regression failed before and passes after repair.
+The saved scenes/model must be rebuilt through that repaired importer before
+claiming event preservation. Two original cloud-effect texture declarations
+are also absent from export and remain unresolved. Do not publish this model
+as native-ready. Portrait evidence:
+wc3-melee:build/selection-assets/DemonHunter-render-r6.log and
+wc3-melee:build/selection-assets/DemonHunterPortrait.png.
 
 The integrated source suite passes 360/360 with one existing unused-import
 warning: wc3-melee:build/wurst-tests/illidan-integration-all.log. Two added
