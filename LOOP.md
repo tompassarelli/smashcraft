@@ -2,7 +2,18 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-Installed: `rifleman-shot-flinch-r1`, normal scenario. Rifleman body impacts
+Installed: `recovery-controls-r1`, normal scenario. Combined recovery/jab-reset
+timings and poses, Y Start/Pause, ledge jump budget, up-special helpless fall,
+jump-squat buffered wavedash, and airborne turnaround shots. Full source suite
+passed 339/339 (one unused-import warning):
+wc3-melee:build/wurst-tests/integrated-turnaround-r1.log. Both fighter animation
+packages passed wc3-melee:build/animation-assets/fall-special-check.log.
+Build/deploy succeeded with six existing warnings:
+wc3-melee:build/recovery-controls-r1-map.log. Native behavior remains unverified;
+the previous Warcraft window 233 is no longer present. The public prototype
+release still contains `rifleman-shot-flinch-r1`, not this integration build.
+
+Previously installed: `rifleman-shot-flinch-r1`, normal scenario. Rifleman body impacts
 now add four frames of victim-only impact freeze before the existing minimum
 11-frame flinch. The neutral-special test checks attack interruption, damage
 pose selection, shooter independence and the first actionable jump tick.

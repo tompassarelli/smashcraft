@@ -1013,6 +1013,18 @@ side, while preserving horizontal momentum. A held horizontal direction still
 selects side-B. The remembered side has no timeout and clears on landing or
 reset; replay snapshots include it.
 
+## Jump-squat buffered wavedash
+
+A fresh air-dodge/shield press during jump squat queues one air dodge at
+takeoff. Subsequent nonzero movement direction during that squat updates its
+direction; releasing the direction retains the last choice. Straight left or
+right uses the shared shallow downward angle, allowing the requested 8 then
+left/right sequence without a modifier. The dodge begins before the first
+airborne physics step and uses the ordinary special landing lag. Interruption
+and reset clear the request. Queue and direction are included in snapshots.
+Both fighters and facings, late direction, interruption and snapshot handling
+pass the source tests; actual keyboard timing and slide feel remain unverified.
+
 ## Up-special aerial recovery
 
 Both current up-specials consume the aerial jump budget, and an up-special
