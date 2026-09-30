@@ -44,9 +44,13 @@ public class KeyboardInputCapture
             released = 0
         return result
 
-    // Explicit pause/new-epoch reset discards pending actions. For focus loss
-    // during play, sample neutral instead, preserving the release edges.
-    function clear()
-        held = 0
+    // Resume from current hardware holds without inventing new press edges.
+    // A new epoch may start from neutral. Focus loss during play uses sample(0)
+    // instead so its release edges reach the next committed row.
+    function reset(int heldActions) returns boolean
+        if heldActions < 0 or heldActions > INPUT_ACTION_MASK
+            return false
+        held = heldActions
         pressed = 0
         released = 0
+        return true

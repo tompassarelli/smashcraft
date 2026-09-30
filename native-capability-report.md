@@ -186,9 +186,11 @@ commits. Repeated held samples do not create new presses. Opposite keyboard
 directions cancel; C-stick actions do not affect movement axes. Its existing
 fixed-scheduler capture path clears edges only after a successful new commit,
 so application waits cannot rewrite an assigned row or discard the next tap.
-Focus neutral produces release edges; explicit pause/epoch clear discards
-uncommitted actions. Five focused tests pass, including a repeated-capture wait
-against the real scheduler: wc3-melee:build/wurst-tests/keyboard-capture-r1.log.
+Focus neutral produces release edges; explicit resume reset discards
+uncommitted actions and baselines current held keys without inventing presses.
+An epoch can reset from neutral. Six focused tests pass, including a
+repeated-capture wait against the real scheduler and a held-key resume:
+wc3-melee:build/wurst-tests/keyboard-capture-resume-r2.log.
 Sampling takes an already normalized held-action mask. Binding/key polling,
 focus/chat detection, conversion to gameplay InputSnapshot and native scheduler
 integration remain unimplemented; this does not alter the installed baseline.
