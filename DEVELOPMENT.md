@@ -34,11 +34,37 @@ trap now exist in the simulation; the remaining specials are still pending:
 | Rifleman | Side B | Bear travels forward at running speed, falls under gravity when airborne, and periodically swipes nearby opponents. |
 | Rifleman | Down B | Grounded freezing trap; victim is encased in ice for up to five seconds (300 simulation frames), with damaging hits breaking ice early. Original icy-trap effect informed by the supplied WoW image. |
 | Rifleman | Up B | Fire downward and recoil upward. The latest request emphasizes upward recovery; early-ascent protection ends before the apex. |
+| Demon Hunter | Neutral B | Mana Burn: fast flinching projectile; no mana meter/drain assumed. |
+| Demon Hunter | Side B | Short evasion/parry; close strike contact in its defined window is punished. No projectile reflection. |
+| Demon Hunter | Down B | Immolate: grounded forward shine, airborne downward spike. |
+| Demon Hunter | Up B | Animated-wing quick ascent, jump lockout and helpless fall; optional glide remains deferred. |
 
 All up-B moves should share that broad recovery/protection shape. Their exact
 startup, ascent, protection and recovery tuning remains to implement and test.
 Entity movement, hit registries, freezes, timers and allocation must be numerical
 snapshot state; native bird/bear/trap objects are presentation only.
+
+### Demon Hunter (Illidan) source coverage
+
+This is a simulation implementation boundary, not a playable-character claim.
+Character ID 2 has distinct ground/aerial hit regions and movement parameters;
+four special action IDs; and uses existing shared grab/throw, shield, dodge,
+ledge, knockback, hitlag, hitstun, stock and recovery rules. Focused tests cover
+normal contact across both facings, ground/air Immolate, projectile hitstun,
+parry interruption, wing jump consumption, and Immolate replay restoration.
+
+| Character family | Simulation source/test | Animation, roster, installed/native |
+| --- | --- | --- |
+| Ground jab, tilts, smashes, dash attack | Implemented with explicit character-2 regions; dash neutral-Attack conversion/contact covered | Illidan clips absent; native contact/poses unverified |
+| Neutral/forward/back/up/down aerial | Implemented with explicit character-2 regions and shared clocks; focused contact test | Illidan clips absent; native contact/poses unverified |
+| Mana Burn / Parry Step / Wing Ascent / Immolate | Implemented as IDs 9–12; specials tested | Clips/effects absent; roster hidden; not installed or native-verified |
+| Grabs, pummel, throws, movement, ordinary defense/recovery | Existing shared simulation applies to character 2 | Illidan-specific clips/attachments absent; native-verified only for existing roster |
+| Wings, portrait, selection chip, HUD label | No character integration in this slice | Not implemented |
+
+The move tuning is provisional original design recorded in
+wc3-melee:PHYSICS.md. Do not expose Illidan in character select until authored
+side-view animations, action-to-clip bindings, weapons/wings, portraits/UI,
+and actual installed-match behavior are complete.
 
 The trap/freeze slice passed 265/265 Wurst tests, including expiry at 300
 simulation advances during hitlag, hit interruption, KO/reset and snapshot

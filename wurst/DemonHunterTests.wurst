@@ -1,0 +1,262 @@
+package DemonHunterTests
+import Simulation
+import MatchRules
+import CommandBuffer
+import MatchStep
+import ReplayState
+
+function demonHunterMatch() returns MatchState
+	let game = new MatchState()
+	game.phase = MATCH
+	return game
+
+@Test function immolateGroundShineMirrorsAndHitsOneTargetOnce()
+	for facing = -1 to 1
+		if facing != 0
+			let illidan = new FighterState(2, 0, facing)
+			let target = new FighterState(0, facing * 70., -facing)
+			let input = new InputSnapshot()
+			input.specialPressed = true
+			input.down = true
+			startFighterSpecial(illidan, 0, input).assertTrue()
+			illidan.specialAction.assertEquals(SPECIAL_DEMONHUNTER_IMMOLATE)
+			input.specialPressed = false
+			for tick = 1 to DEMONHUNTER_IMMOLATE_STARTUP
+				advanceSpecialPair(illidan, target, 0)
+			target.damage.assertEquals(7.)
+			(target.knockbackX * facing).assertGreaterThan(0)
+			target.knockbackZ.assertEquals(0.)
+			let recordedDamage = target.damage
+			for tick = 1 to 3
+				advanceSpecialPair(illidan, target, 0)
+			target.damage.assertEquals(recordedDamage)
+			destroy input
+			destroy target
+			destroy illidan
+
+@Test function immolateAirSpecialSpikesAndUsesSingleContact()
+	let illidan = new FighterState(2, 0, -1)
+	let target = new FighterState(1, 0, 1)
+	illidan.grounded = false
+	illidan.z = 400
+	target.grounded = false
+	target.z = 400
+	let input = new InputSnapshot()
+	input.specialPressed = true
+	input.down = true
+	startFighterSpecial(illidan, 0, input).assertTrue()
+	input.specialPressed = false
+	for tick = 1 to DEMONHUNTER_IMMOLATE_STARTUP
+		advanceSpecialPair(illidan, target, 0)
+	target.damage.assertEquals(9.)
+	target.knockbackX.assertLessThan(0)
+	target.knockbackZ.assertLessThan(0)
+	let hitlag = target.hitlag
+	illidan.hitlag = 0
+	advanceSpecialPair(illidan, target, 0)
+	target.damage.assertEquals(9.)
+	target.hitlag.assertEquals(hitlag)
+	destroy input
+	destroy target
+	destroy illidan
+
+@Test function manaBurnCreatesFlinchingProjectileWithoutAManaResource()
+	let illidan = new FighterState(2, 0, 1)
+	let target = new FighterState(0, 500, -1)
+	let input = new InputSnapshot()
+	input.specialPressed = true
+	startFighterSpecial(illidan, 0, input).assertTrue()
+	illidan.specialAction.assertEquals(SPECIAL_DEMONHUNTER_MANA_BURN)
+	input.specialPressed = false
+	for tick = 1 to DEMONHUNTER_MANA_BURN_STARTUP
+		advanceSpecialPair(illidan, target, 0)
+	projectileCount(illidan).assertEquals(1)
+	projectileKindAt(illidan, 0).assertEquals(PROJECTILE_MANA_BURN)
+	target.x = projectileXAt(illidan, 0) + 20
+	updateProjectilePair(illidan, target)
+	target.damage.assertEquals(5.)
+	target.hitstun.assertGreaterThan(0)
+	target.hitlag.assertGreaterThan(0)
+	destroy input
+	destroy target
+	destroy illidan
+
+@Test function parryStepPunishesContactInItsWindowButDoesNotReflectShots()
+	let attacker = new FighterState(0, 0, 1)
+	let illidan = new FighterState(2, 90, -1)
+	let input = new InputSnapshot()
+	input.specialPressed = true
+	input.direction = -1
+	startFighterSpecial(illidan, 0, input).assertTrue()
+	input.specialPressed = false
+	for tick = 1 to DEMONHUNTER_PARRY_START
+		advanceSpecialPair(illidan, attacker, 0)
+	beginAttackPair(attacker, illidan, 0, -1, false, false)
+	attacker.attackFrame = attackStartupFrames(0)
+	resolveAttackPair(attacker, illidan)
+	attacker.hitstun.assertEquals(10)
+	attacker.hitlag.assertEquals(4)
+	attacker.attackStyle.assertEquals(-1)
+	illidan.damage.assertEquals(0.)
+	destroy input
+	destroy illidan
+	destroy attacker
+	let shooter = new FighterState(0, 0, 1)
+	let parrier = new FighterState(2, 160, -1)
+	let arrowInput = new InputSnapshot()
+	let parryInput = new InputSnapshot()
+	arrowInput.specialPressed = true
+	parryInput.specialPressed = true
+	parryInput.direction = -1
+	startFighterSpecial(shooter, 0, arrowInput).assertTrue()
+	startFighterSpecial(parrier, 0, parryInput).assertTrue()
+	arrowInput.specialPressed = false
+	parryInput.specialPressed = false
+	for tick = 1 to DEMONHUNTER_PARRY_START
+		advanceSpecialPair(parrier, shooter, 0)
+		updateProjectilePair(shooter, parrier)
+	projectileCount(shooter).assertEquals(0)
+	projectileCount(parrier).assertEquals(0)
+	parrier.damage.assertEquals(0.)
+	destroy arrowInput
+	destroy parryInput
+	destroy parrier
+	destroy shooter
+
+@Test function wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules()
+	let illidan = new FighterState(2, 0, 1)
+	let input = new InputSnapshot()
+	input.specialPressed = true
+	input.verticalDirection = 1
+	startFighterSpecial(illidan, 0, input).assertTrue()
+	illidan.jumps.assertEquals(0)
+	illidan.grounded.assertFalse()
+	illidan.specialAction.assertEquals(SPECIAL_DEMONHUNTER_WING_ASCENT)
+	input.specialPressed = false
+	for tick = 1 to DEMONHUNTER_WING_DURATION
+		let target = new FighterState(0, 500, -1)
+		advanceSpecialPair(illidan, target, 0)
+		destroy target
+	illidan.specialFall.assertTrue()
+	illidan.jumps.assertEquals(0)
+	let jumpSerial = illidan.jumpSerial
+	simulationJump(illidan)
+	illidan.jumpSerial.assertEquals(jumpSerial)
+	destroy input
+	destroy illidan
+
+@Test function demonHunterNormalActionsHaveContactInBothFacingsAndGroundAirSets()
+	for facing = -1 to 1
+		if facing != 0
+			for aerial = 0 to 1
+				for styleIndex = 0 to (aerial == 1 ? 4 : 8)
+					let groundStyle = styleIndex == 0 ? 0 : (styleIndex < 4 ? styleIndex + 1 : styleIndex + 2)
+					let style = aerial == 1 ? AERIAL_NEUTRAL_STYLE + styleIndex : groundStyle
+					let attacker = new FighterState(2, 0, facing)
+					let targetX = style == AERIAL_BACK_STYLE ? -facing * 60. : facing * 60.
+					let target = new FighterState(0, targetX, -facing)
+					if aerial == 1
+						attacker.grounded = false
+					if style == AERIAL_UP_STYLE or style == 2 or style == 7 or style == 9
+						target.z = 65
+					if style == AERIAL_DOWN_STYLE or style == 3 or style == 8 or style == 10
+						target.z = -65
+					beginAttackPair(attacker, target, style, -1, false, false)
+					attacker.attackFrame = attackStartupFrames(style)
+					attacker.cooldown = attacker.attackDuration - attacker.attackFrame
+					resolveAttackPair(attacker, target)
+					target.damage.assertGreaterThan(0.)
+					destroy target
+					destroy attacker
+
+@Test function demonHunterTapDuringDashUsesItsOwnDashAttackAction()
+	for facing = -1 to 1
+		if facing != 0
+			let illidan = new FighterState(2, 0, facing)
+			let target = new FighterState(0, facing * 70., -facing)
+			illidan.dashFrame = 1
+			illidan.dashDirection = facing
+			beginAttackPair(illidan, target, 0, -1, false, false)
+			illidan.attackStyle.assertEquals(DEMONHUNTER_DASH_ATTACK_STYLE)
+			illidan.attackFrame = attackStartupFrames(DEMONHUNTER_DASH_ATTACK_STYLE)
+			illidan.cooldown = illidan.attackDuration - illidan.attackFrame
+			resolveAttackPair(illidan, target)
+			target.damage.assertEquals(9.)
+			destroy target
+			destroy illidan
+
+@Test function demonHunterImmolateRestoresAsExactSingleHitMove()
+	let first = new FighterState(2, 0, 1)
+	let second = new FighterState(0, 70, -1)
+	let game = demonHunterMatch()
+	let commandsA = new AttackBuffer(0)
+	let commandsB = new AttackBuffer(0)
+	let runtime = new ReplayRuntimeState()
+	let snapshot = new ReplaySnapshot()
+	let inputA = new InputSnapshot()
+	let inputB = new InputSnapshot()
+	inputA.specialPressed = true
+	inputA.down = true
+	stepMatch(game, first, second, inputA, inputB, commandsA, commandsB, 1)
+	inputA.specialPressed = false
+	for frame = 2 to DEMONHUNTER_IMMOLATE_STARTUP + 2
+		stepMatch(game, first, second, inputA, inputB, commandsA, commandsB, frame)
+	snapshot.capture(first, second, game, commandsA, commandsB, runtime)
+	let expectedDamage = second.damage
+	let expected = new ReplaySnapshot()
+	for frame = DEMONHUNTER_IMMOLATE_STARTUP + 3 to DEMONHUNTER_IMMOLATE_STARTUP + 8
+		stepMatch(game, first, second, inputA, inputB, commandsA, commandsB, frame)
+	expected.capture(first, second, game, commandsA, commandsB, runtime)
+	second.damage.assertEquals(expectedDamage)
+	let replayFirst = new FighterState(2, 0, 1)
+	let replaySecond = new FighterState(0, 0, -1)
+	snapshot.restore(first, second, game, commandsA, commandsB, runtime)
+	for frame = DEMONHUNTER_IMMOLATE_STARTUP + 3 to DEMONHUNTER_IMMOLATE_STARTUP + 8
+		stepMatch(game, first, second, inputA, inputB, commandsA, commandsB, frame)
+	let actual = new ReplaySnapshot()
+	actual.capture(first, second, game, commandsA, commandsB, runtime)
+	expected.firstDifference(actual).assertEquals("")
+	snapshot.restore(replayFirst, replaySecond, game, commandsA, commandsB, runtime)
+	let restoredDamage = replaySecond.damage
+	advanceSpecialPair(replayFirst, replaySecond, 0)
+	replaySecond.damage.assertEquals(restoredDamage)
+	destroy replayFirst
+	destroy replaySecond
+	destroy actual
+	destroy expected
+	destroy snapshot
+	destroy runtime
+	destroy commandsA
+	destroy commandsB
+	destroy inputA
+	destroy inputB
+	destroy second
+	destroy first
+	destroy game
+
+@Test function hitInterruptsIllidanSpecialAndStockResetClearsSpecialState()
+	let illidan = new FighterState(2, 0, 1)
+	let attacker = new FighterState(0, 500, -1)
+	let specialInput = new InputSnapshot()
+	specialInput.specialPressed = true
+	specialInput.down = true
+	startFighterSpecial(illidan, 0, specialInput).assertTrue()
+	specialInput.specialPressed = false
+	for tick = 1 to DEMONHUNTER_IMMOLATE_STARTUP - 1
+		advanceSpecialPair(illidan, attacker, 0)
+	attacker.x = 60
+	beginAttackPair(attacker, illidan, 0, -1, false, false)
+	attacker.attackFrame = attackStartupFrames(0)
+	resolveAttackPair(attacker, illidan)
+	illidan.hitstun.assertGreaterThan(0)
+	illidan.specialAction.assertEquals(SPECIAL_NONE)
+	illidan.specialHit.assertFalse()
+	illidan.specialCooldowns[SPECIAL_DEMONHUNTER_IMMOLATE].assertGreaterThan(0)
+	reset(illidan, 0)
+	illidan.specialAction.assertEquals(SPECIAL_NONE)
+	illidan.specialFrame.assertEquals(0)
+	illidan.specialFall.assertFalse()
+	illidan.specialCooldowns[SPECIAL_DEMONHUNTER_IMMOLATE].assertEquals(0)
+	destroy specialInput
+	destroy attacker
+	destroy illidan

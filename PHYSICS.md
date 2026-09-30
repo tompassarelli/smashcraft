@@ -1131,3 +1131,35 @@ shield-energy damage but add no shieldstun or hitlag; depleting shield energy
 still uses the shared shield-break rule. Unshielded damage still breaks the
 Rifleman trap's ice, as required by that mechanic. Rifleman's projectiles retain
 their separate hit behavior. This replaces the earlier arrow-stun request.
+
+## Demon Hunter combat prototype (original provisional tuning)
+
+Character ID 2 now has explicit simulation mobility and authored contact
+regions. It uses the shared movement, shield, grab, knockback, hitlag, hitstun,
+landing, ledge, stock and replay systems. These values are a first playable
+combat prototype, not values extracted from Melee or Blizzard character data.
+Animation clips, pose alignment, HUD/selection, and installed-map behavior are
+not established by these source tests.
+
+Ground attack IDs are 0 jab, 2 up smash, 3 down smash, 4 forward smash,
+6 forward tilt, 7 up tilt, 8 down tilt, and 9/10 up/down-angled forward tilt.
+Neutral Attack during a grounded dash is converted to the dedicated ID 18 dash
+attack (4 startup, 2 active, 32 total ticks). Styles 1 and 5 remain the
+existing projectile and grab actions. The remaining attacks use shared
+`attackStartupFrames`, `attackActiveFrames`, and
+`attackDurationFramesForGrounding` tables. The five aerial IDs 12–16 likewise
+use shared action clocks. Illidan supplies distinct facing-relative regions and
+hit effects for each action; no Archer or Rifleman region is used.
+
+| Special ID | Action and provisional timing | Contact/effect |
+| --- | --- | --- |
+| 9 | Mana Burn: 8-tick startup, 25-tick recovery; 24-tick cooldown | Fires a 5-damage flinching projectile at 30 world units/tick. No mana resource is modeled or drained. |
+| 10 | Parry Step: 22 ticks; 9-unit directional evasion; 45-tick cooldown | Incoming strike during action ticks 4–9 is canceled; attacker receives 10 hitstun and 4 hitlag with a small knockback. Does not reflect projectiles. |
+| 11 | Wing Ascent: 3-tick startup within 28 total ticks; 90-tick cooldown | Quick upward launch, consumes remaining jumps, grants four ticks of protection at launch, and enters helpless fall if still airborne at completion. A post-ascent glide is not implemented. |
+| 12 | Immolate: 4-tick startup, 4-tick active window, 27 total ticks; 24-tick cooldown | One contact per action. Grounded: forward region to 140 units, 7 damage and horizontal launch. Airborne: region around/below the fighter, 9 damage and downward spike launch. |
+
+`SPECIAL_DEMONHUNTER_*` constants are the renderer/action IDs for these
+specials. Grounded/airborne contact, both facings, parry interruption, jump
+consumption, and snapshot restoration have focused Wurst coverage. This does
+not certify model animation, local presentation safety, multiplayer behavior,
+or final move tuning.
