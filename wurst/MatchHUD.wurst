@@ -77,10 +77,10 @@ public class FighterHUD
         slotLabel.setVisible(visible)
         if previousCharacter != character
             previousCharacter = character
-            portrait.setTexture(character == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga", 0, true)
-            nameLabel.setText(character == 0 ? "ARCHER" : "RIFLEMAN")
+            portrait.setTexture(character == 2 ? "war3mapImported\\DemonHunterPortrait.tga" : (character == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga"), 0, true)
+            nameLabel.setText(character == 2 ? "ILLIDAN" : (character == 0 ? "ARCHER" : "RIFLEMAN"))
             for i = 0 to 8
-                stockIcons[i].setTexture(character == 0 ? "war3mapImported\\ArcherTile.tga" : "war3mapImported\\RiflemanTile.tga", 0, true)
+                stockIcons[i].setTexture(character == 2 ? "war3mapImported\\DemonHunterTile.tga" : (character == 0 ? "war3mapImported\\ArcherTile.tga" : "war3mapImported\\RiflemanTile.tga"), 0, true)
         let tint = damage >= 150 ? "|cffff4747" : (damage >= 100 ? "|cffff9845" : (damage >= 50 ? "|cffffff98" : "|cffffffff"))
         damageLabel.setText(tint + I2S(R2I(damage)) + "." + I2S(R2I(damage * 10) mod 10) + "%|r")
         for i = 0 to 8

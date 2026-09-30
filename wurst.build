@@ -5,7 +5,7 @@ buildMapData:
   fileName: Smashcraft
   author: Tompas
   scenarioData:
-    description: Archer versus Rifleman platform fight.
+    description: Archer, Rifleman, and Illidan platform fight.
     suggestedPlayers: 1-2
   players:
     - id: 0

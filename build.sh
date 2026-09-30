@@ -13,7 +13,7 @@ demon_hunter_assets="$project_dir/build/illidan-animation"
 selection_assets="$project_dir/build/selection-assets"
 stage_assets="$project_dir/build/stage-assets"
 impact_assets="$project_dir/build/impact-assets"
-selection_textures=(ArcherName RiflemanName SelectionBackdrop SelectionTileFrame SelectionCardRed SelectionCardBlue SelectionCardGray SelectionAction StageBackdrop StageChip SelectionSkyDeck SelectionThreeBridges SelectionChipP1 SelectionChipP2 SelectionChipCPU ArcherPortrait RiflemanPortrait ArcherTile RiflemanTile MatchHUD0 MatchHUD1 MatchHUD2 MatchHUD3)
+selection_textures=(ArcherName RiflemanName DemonHunterName DemonHunterPortrait DemonHunterTile SelectionBackdrop SelectionTileFrame SelectionCardRed SelectionCardBlue SelectionCardGray SelectionAction StageBackdrop StageChip SelectionSkyDeck SelectionThreeBridges SelectionChipP1 SelectionChipP2 SelectionChipCPU ArcherPortrait RiflemanPortrait ArcherTile RiflemanTile MatchHUD0 MatchHUD1 MatchHUD2 MatchHUD3)
 
 if [[ $# -ne 1 || ! -f "$1" ]]; then
     printf 'Usage: %s BASE_MAP.w3m|BASE_MAP.w3x\n' "$0" >&2

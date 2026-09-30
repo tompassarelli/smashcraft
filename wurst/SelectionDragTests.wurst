@@ -78,3 +78,19 @@ import SelectionDrag
         drag.update(true, false, 0.480, 0.370, 0, 0, false, 1, false, true).assertEquals(1)
         drag.releasedSlot.assertEquals(slot)
         destroy drag
+
+@Test function bothChipsCanSelectAndLeaveIllidanTile()
+    selectionTile(0.660, 0.370).assertEquals(2)
+    selectionTile(0.740, 0.370).assertEquals(-1)
+    selectionTile(0.660, 0.280).assertEquals(-1)
+    for slot = 0 to 1
+        let drag = new SelectionDrag()
+        drag.selectHeldChip(slot, true)
+        drag.update(true, true, 0.660, 0.370, 0, 0, false, 1, false, true)
+        drag.update(true, false, 0.660, 0.370, 0, 0, false, 1, false, true).assertEquals(2)
+        drag.releasedSlot.assertEquals(slot)
+        drag.update(true, true, selectionChipX(slot, 2) + 0.020, 0.346, 0, 2, true, 2, true, true)
+        drag.activeSlot.assertEquals(slot)
+        drag.update(true, false, 0.300, 0.370, 0, 2, true, 2, true, true).assertEquals(0)
+        drag.releasedSlot.assertEquals(slot)
+        destroy drag

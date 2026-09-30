@@ -577,7 +577,7 @@ function choose(int participantId)
     if not bindings.ready or (controls != null and controls.isOpen())
         return
     if matchState.phase == CHARACTER_MENU
-        matchState.selectCharacter(participantId, 1 - matchState.characterFor(participantId))
+        matchState.selectCharacter(participantId, (matchState.characterFor(participantId) + 1) mod 3)
         makePreview()
     else if matchState.phase == STAGE_MENU
         matchState.selectStage(participantId, 1 - matchState.stageChoice)

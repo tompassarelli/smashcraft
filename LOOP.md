@@ -2,6 +2,18 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
+Built, not deployed: `illidan-selection-r2`. Illidan now has a third roster
+tile, human/CPU chip selection, portraits, stock icons and HUD name. Character
+cycling includes all three fighters; stage cycling still has two stages.
+Match-rule checks passed 17/17 and chip-drag checks 10/10, including Illidan
+mirror matches and retained New Match choices. Map compilation and packaged
+model/texture comparisons passed with six existing warnings:
+wc3-melee:build/illidan-selection-r2-map.log. Tests:
+wc3-melee:build/illidan-matchrules-tests.log and
+wc3-melee:build/illidan-chip-tests.log. Remaining Illidan work includes movement
+and defense pose mapping, special effects, and real-control Warcraft validation.
+Installed/public builds below are unchanged.
+
 Installed: `blue-portrait-r1`, normal scenario. Rifleman's regenerated portrait
 now has canonical blue hood/armor accents and the complete gun in frame.
 The repaired importer produced the inspected image in 328 seconds;
@@ -11,7 +23,7 @@ Normalized portrait/tile textures passed the existing silhouette-width check.
 Build/deploy and packaged-texture byte comparisons passed with six existing
 warnings: wc3-melee:build/blue-portrait-r1-map.log. Warcraft is not running;
 the installed portrait and newer gameplay still need native verification.
-Illidan remains unavailable in selection. The public prototype release is
+Illidan remains unavailable in the installed build. The public prototype release is
 unchanged and still contains `rifleman-shot-flinch-r1`.
 
 Previously installed: `recovery-controls-r1`, normal scenario. Combined recovery/jab-reset

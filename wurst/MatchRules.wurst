@@ -61,7 +61,7 @@ public class MatchState
         return slot == 1 ? secondCharacterReady : firstCharacterReady
 
     function selectCharacter(int slot, int choice)
-        if phase != CHARACTER_MENU or slot < 0 or slot >= humanCount or choice < 0 or choice > 1
+        if phase != CHARACTER_MENU or slot < 0 or slot >= humanCount or choice < 0 or choice > 2
             return
         if slot == 1
             secondCharacterChoice = choice
@@ -73,7 +73,7 @@ public class MatchState
     // In a solo match, P1 may choose the CPU's fighter independently. A
     // second human owns slot 1 whenever two humans are present.
     function selectCpuCharacter(int actorSlot, int choice)
-        if phase != CHARACTER_MENU or humanCount != 1 or actorSlot != 0 or choice < 0 or choice > 1
+        if phase != CHARACTER_MENU or humanCount != 1 or actorSlot != 0 or choice < 0 or choice > 2
             return
         secondCharacterChoice = choice
         secondCharacterReady = true

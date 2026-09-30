@@ -31,7 +31,7 @@ function onCpuSelectionRecall()
         participantPanels[0].acceptCpuRecall()
 
 function characterNameTexture(int choice) returns string
-    return choice == 0 ? "war3mapImported\\ArcherName.tga" : "war3mapImported\\RiflemanName.tga"
+    return choice == 2 ? "war3mapImported\\DemonHunterName.tga" : (choice == 0 ? "war3mapImported\\ArcherName.tga" : "war3mapImported\\RiflemanName.tga")
 
 // Native buttons sit over custom, transparent artwork. Each participant gets
 // a complete frame tree on every client; update() reveals only its local tree.
@@ -39,12 +39,15 @@ public class SelectionPanel
     framehandle backdrop
     framehandle firstTileArt
     framehandle secondTileArt
+    framehandle thirdTileArt
     framehandle firstChoicePortrait
     framehandle secondChoicePortrait
+    framehandle thirdChoicePortrait
     framehandle playerOneChip
     framehandle playerTwoChip
     framehandle firstChoiceName
     framehandle secondChoiceName
+    framehandle thirdChoiceName
     framehandle playerOneCard
     framehandle playerTwoCard
     framehandle playerThreeCard
@@ -100,6 +103,11 @@ public class SelectionPanel
         secondTileArt.setTexture("war3mapImported\\SelectionTileFrame.tga", 0, true)
         secondTileArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.440, 0.424)
         secondTileArt.setSize(0.112, 0.132)
+        thirdTileArt = createBackdrop("MeleeDemonHunterTileArt" + suffix, GAME_UI, 448 + frameOffset)
+        thirdTileArt.setTexture("war3mapImported\\SelectionTileFrame.tga", 0, true)
+        thirdTileArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.620, 0.424)
+        thirdTileArt.setSize(0.112, 0.132)
+        thirdTileArt.setEnabled(false)
 
         firstChoicePortrait = createBackdrop("MeleeArcherChoicePortrait" + suffix, GAME_UI, 421 + frameOffset)
         firstChoicePortrait.setTexture("war3mapImported\\ArcherTile.tga", 0, true)
@@ -111,6 +119,11 @@ public class SelectionPanel
         secondChoicePortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.4525, 0.411)
         secondChoicePortrait.setSize(0.087, 0.087)
         secondChoicePortrait.setEnabled(false)
+        thirdChoicePortrait = createBackdrop("MeleeDemonHunterChoicePortrait" + suffix, GAME_UI, 449 + frameOffset)
+        thirdChoicePortrait.setTexture("war3mapImported\\DemonHunterTile.tga", 0, true)
+        thirdChoicePortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.6325, 0.411)
+        thirdChoicePortrait.setSize(0.087, 0.087)
+        thirdChoicePortrait.setEnabled(false)
         playerOneChip = createBackdrop("MeleeP1Chip" + suffix, GAME_UI, 433 + frameOffset)
         playerOneChip.setTexture("war3mapImported\\SelectionChipP1.tga", 0, true)
         playerOneChip.setSize(0.040, 0.040)
@@ -128,6 +141,10 @@ public class SelectionPanel
         secondChoiceName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.444, 0.316)
         secondChoiceName.setSize(0.103, 0.018)
         secondChoiceName.setEnabled(false)
+        thirdChoiceName = createBackdrop("MeleeDemonHunterChoiceName" + suffix, GAME_UI, 450 + frameOffset)
+        thirdChoiceName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.624, 0.316)
+        thirdChoiceName.setSize(0.103, 0.018)
+        thirdChoiceName.setEnabled(false)
 
         playerOneCard = createBackdrop("MeleeSelectP1Card" + suffix, GAME_UI, 403 + frameOffset)
         playerOneCard.setTexture("war3mapImported\\SelectionCardRed.tga", 0, true)
@@ -262,12 +279,15 @@ public class SelectionPanel
         backdrop.setVisible(false)
         firstTileArt.setVisible(false)
         secondTileArt.setVisible(false)
+        thirdTileArt.setVisible(false)
         firstChoicePortrait.setVisible(false)
         secondChoicePortrait.setVisible(false)
+        thirdChoicePortrait.setVisible(false)
         playerOneChip.setVisible(false)
         playerTwoChip.setVisible(false)
         firstChoiceName.setVisible(false)
         secondChoiceName.setVisible(false)
+        thirdChoiceName.setVisible(false)
         playerOneCard.setVisible(false)
         playerTwoCard.setVisible(false)
         playerThreeCard.setVisible(false)
@@ -292,11 +312,11 @@ public class SelectionPanel
         settingsButton.setVisible(false)
 
     function acceptDrop(string data)
-        if lastState == 0 and not settingsOpen and lastEnabled and (data == "0" or data == "1")
+        if lastState == 0 and not settingsOpen and lastEnabled and (data == "0" or data == "1" or data == "2")
             actions.selectChoice(participantId, S2I(data))
 
     function acceptCpuDrop(string data)
-        if participantId == 0 and lastState == 0 and not settingsOpen and lastEnabled and (data == "0" or data == "1")
+        if participantId == 0 and lastState == 0 and not settingsOpen and lastEnabled and (data == "0" or data == "1" or data == "2")
             actions.selectCpuChoice(0, S2I(data))
 
     function acceptRecall(string data)
@@ -381,12 +401,15 @@ public class SelectionPanel
         backdrop.setVisible(visible)
         firstTileArt.setVisible(visible)
         secondTileArt.setVisible(visible)
+        thirdTileArt.setVisible(visible)
         firstChoicePortrait.setVisible(visible)
         secondChoicePortrait.setVisible(visible)
+        thirdChoicePortrait.setVisible(visible)
         playerOneChip.setVisible(false)
         playerTwoChip.setVisible(false)
         firstChoiceName.setVisible(visible)
         secondChoiceName.setVisible(visible)
+        thirdChoiceName.setVisible(visible)
         playerOneCard.setVisible(visible)
         playerTwoCard.setVisible(visible)
         playerThreeCard.setVisible(visible)
@@ -417,6 +440,7 @@ public class SelectionPanel
         playerTwoChip.setTexture(opponentHuman ? "war3mapImported\\SelectionChipP2.tga" : "war3mapImported\\SelectionChipCPU.tga", 0, true)
         firstChoiceName.setTexture(characterNameTexture(0), 0, true)
         secondChoiceName.setTexture(characterNameTexture(1), 0, true)
+        thirdChoiceName.setTexture(characterNameTexture(2), 0, true)
         let allReady = ready and opponentReady
         confirmLabel.setText(allReady ? "Start [Y]" : "Place your chip")
         settingsLabel.setText("CONTROLS  [F1]")
@@ -426,7 +450,7 @@ public class SelectionPanel
         opponentStatus.setText(opponentReady ? (opponentHuman ? (participantId == 0 ? "P2" : "P1") : "CP") : "Choose fighter")
         if ready
             selectedName.setTexture(characterNameTexture(choice), 0, true)
-            selectedPortrait.setTexture(choice == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga", 0, true)
+            selectedPortrait.setTexture(choice == 2 ? "war3mapImported\\DemonHunterPortrait.tga" : (choice == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga"), 0, true)
         if opponentReady
             opponentName.setTexture(characterNameTexture(opponentChoice), 0, true)
-            opponentPortrait.setTexture(opponentChoice == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga", 0, true)
+            opponentPortrait.setTexture(opponentChoice == 2 ? "war3mapImported\\DemonHunterPortrait.tga" : (opponentChoice == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga"), 0, true)

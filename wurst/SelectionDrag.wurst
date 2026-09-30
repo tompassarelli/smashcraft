@@ -13,10 +13,12 @@ public function selectionTile(real x, real y) returns int
         return 0
     if x >= 0.440 and x <= 0.552
         return 1
+    if x >= 0.620 and x <= 0.732
+        return 2
     return -1
 
 public function selectionChipX(int slot, int choice) returns real
-    return (choice == 0 ? 0.272 : 0.452) + (slot == 0 ? 0 : 0.051)
+    return (choice == 0 ? 0.272 : (choice == 1 ? 0.452 : 0.632)) + (slot == 0 ? 0 : 0.051)
 
 function onChip(int slot, int choice, real x, real y) returns boolean
     let dx = x - (selectionChipX(slot, choice) + 0.020)

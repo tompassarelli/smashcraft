@@ -4,8 +4,10 @@ project_dir=$(cd -- "$(dirname -- "$0")/../.." && pwd)
 source_dir="$project_dir/tools/selection/art"
 output_dir="$project_dir/build/selection-assets"
 mkdir -p "$output_dir"
-for fighter in Archer Rifleman; do
-    sed "s/FIGHTER_NAME/${fighter^^}/g" "$source_dir/FighterName.svg" > "$output_dir/${fighter}Name.svg"
+for fighter in Archer Rifleman DemonHunter; do
+    label=${fighter^^}
+    if [[ "$fighter" == DemonHunter ]]; then label=ILLIDAN; fi
+    sed "s/FIGHTER_NAME/${label}/g" "$source_dir/FighterName.svg" > "$output_dir/${fighter}Name.svg"
     magick -background none "$output_dir/${fighter}Name.svg" -depth 8 "TGA:$output_dir/${fighter}Name.tga"
 done
 for chip in P1 P2 CPU; do

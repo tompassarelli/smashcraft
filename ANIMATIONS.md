@@ -2,8 +2,9 @@
 
 ## Demon Hunter completion checklist
 
-Illidan is not yet selectable or installed as a playable fighter. The installed
-model imports into Blender with 234 bones, 17 geosets and 24 stock actions;
+Illidan selection and HUD integration are implemented in the working source;
+he is not installed or native-verified as a playable fighter. The rebuilt
+scene contains 236 bones (including emitter helpers), 17 geosets and 24 stock actions;
 The authored scene now adds 81 clips, with 103 exported sequences and validated
 bindings in wc3-melee:build/illidan-animation/bindings.json. Source commits
 096f71e, 57ad0cd and 0ac1db2 preserve the original 24 actions, 17 geosets and
@@ -19,8 +20,8 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 | Required coverage | Current state |
 | --- | --- |
 | Model, textures, attached blades, both gameplay facings | Imported; repaired materials inspected from both sides; not native-verified |
-| Jab, directional/angled tilts, smashes, dash attack | Combat source-tested; clips authored, game bindings missing |
-| Neutral/forward/back/up/down aerials | Combat source-tested; clips authored, game bindings missing |
+| Jab, directional/angled tilts, smashes, dash attack | Combat source-tested; clips authored and bound; native playback unverified |
+| Neutral/forward/back/up/down aerials | Combat source-tested; clips authored and bound; native playback unverified |
 | Mana Burn, parry/evasion, wing ascent, Immolate | Combat source-tested; clips and source-derived animated wings authored; effects/integration unfinished |
 | Grab, hold, pummel, escape, four coordinated throws | Shared rules and authored poses exist; native pair alignment unverified |
 | Idle, walk/run, turns, crouch, jumps and landings | Stock/authored motions available; full game-action mapping missing |
@@ -28,32 +29,23 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 | Ground/air hitstun, tumble, contact-pose hitlag | Reactions authored; freeze/resume verification missing |
 | Knockdown, techs, getup options, ledges, KO and respawn | Clips authored; grounding checked offline; integration missing |
 | Action-frame volumes, interruptions, stock reset and replay | Provisional numerical regions and focused interruption/reset/replay checks implemented; animation alignment missing |
-| Portraits, selection, mirror match and rematch retention | Portrait/tile generated and inspected; selection integration missing |
+| Portraits, selection, mirror match and rematch retention | Portrait/tile generated; third roster tile, human/CPU chips, HUD and rematch selection implemented; native UI unverified |
 | Real-control playthrough in Warcraft | Not tested |
 
 Wings must appear and animate during recovery. Post-ascent glide remains an
 unadopted design option. Timing and damage live in combat source; new tuning
 must remain explicitly provisional, not presented as extracted Melee data.
 
-Packaging remains blocked: the first export omitted all 17 event tracks.
-mdl-exporter4:da27fd3 repairs discarded binary event timestamps and valid empty
-track output; its focused regression failed before and passes after repair.
-The source scene was regenerated through that importer. The actual-model test
-in mdl-exporter4:754fd47 now proves all 17 events and 20 source event keys survive
-scene import and export sequence remapping:
-mdl-exporter4:build/illidan-event-roundtrip.log. The authored scene/model still
-needs rebuilding after the remaining importer repair.
-
-The missing cloud textures belong to two source PRE2 emitters:
-`BlizParticle01smoke` and `BlizParticle01fireattack`. Binary particle-emitter
-import is absent; this is not merely an unused texture-table discrepancy.
-Both have visibility curves; fireattack also has an animated width curve.
-Preserve those emitter settings, animation and texture references through the
-existing editable emitter/export path before rerunning the roughly ten-minute
-fighter export. Do not add unused texture entries just to pass packaging.
-Do not publish this model as native-ready. Portrait evidence:
-wc3-melee:build/selection-assets/DemonHunter-render-r6.log and
-wc3-melee:build/selection-assets/DemonHunterPortrait.png.
+Packaging passes after repairing binary event and particle import in
+mdl-exporter4. The rebuilt model preserves all nine texture entries and two
+source particle emitters, suppresses stock particle effects during custom
+combat clips, and exports 81 authored clips / 103 sequences. The model and
+animation constants are embedded in map builds. Combat bindings cover normal
+attacks, aerials, specials, grabs/throws and several defensive/damage states;
+movement/defensive mapping and special effects still have gaps. Native model
+fidelity, wing playback and contact alignment remain unverified.
+Evidence: wc3-melee:build/illidan-animation/export-particles-r3.log and
+wc3-melee:build/illidan-render-r1-map.log.
 
 The integrated source suite passes 360/360 with one existing unused-import
 warning: wc3-melee:build/wurst-tests/illidan-integration-all.log. Two added

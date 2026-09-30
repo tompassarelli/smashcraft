@@ -55,16 +55,16 @@ parry interruption, wing jump consumption, and Immolate replay restoration.
 
 | Character family | Simulation source/test | Animation, roster, installed/native |
 | --- | --- | --- |
-| Ground jab, tilts, smashes, dash attack | Implemented with explicit character-2 regions; dash neutral-Attack conversion/contact covered | Illidan clips absent; native contact/poses unverified |
-| Neutral/forward/back/up/down aerial | Implemented with explicit character-2 regions and shared clocks; focused contact test | Illidan clips absent; native contact/poses unverified |
-| Mana Burn / Parry Step / Wing Ascent / Immolate | Implemented as IDs 9–12; specials tested | Clips/effects absent; roster hidden; not installed or native-verified |
-| Grabs, pummel, throws, movement, ordinary defense/recovery | Existing shared simulation applies to character 2 | Illidan-specific clips/attachments absent; native verification pending |
-| Wings, portrait, selection chip, HUD label | No character integration in this slice | Not implemented |
+| Ground jab, tilts, smashes, dash attack | Implemented with explicit character-2 regions; dash neutral-Attack conversion/contact covered | Clips authored and bound; native contact/poses unverified |
+| Neutral/forward/back/up/down aerial | Implemented with explicit character-2 regions and shared clocks; focused contact test | Clips authored and bound; native contact/poses unverified |
+| Mana Burn / Parry Step / Wing Ascent / Immolate | Implemented as IDs 9–12; specials tested | Clips authored and bound; effects unfinished; not installed or native-verified |
+| Grabs, pummel, throws, movement, ordinary defense/recovery | Existing shared simulation applies to character 2 | Clips authored; partial shared-state mapping; native verification pending |
+| Wings, portrait, selection chip, HUD label | Third fighter accepted for human/CPU selection and rematches | Wings authored; portrait, chip tile and HUD integrated in source; native verification pending |
 
 The move tuning is provisional original design recorded in
-wc3-melee:PHYSICS.md. Do not expose Illidan in character select until authored
-side-view animations, action-to-clip bindings, weapons/wings, portraits/UI,
-and actual installed-match behavior are complete.
+wc3-melee:PHYSICS.md. The development roster now permits Illidan so the real
+selection-to-match path can be tested. Do not release him as complete until
+animation mapping, effects and actual installed-match behavior are verified.
 
 The trap/freeze slice passed 265/265 Wurst tests, including expiry at 300
 simulation advances during hitlag, hit interruption, KO/reset and snapshot
