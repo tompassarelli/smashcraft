@@ -49,6 +49,10 @@ the defender's escape options.
 Leaving a ledge without jumping must leave one aerial jump. Up-special recovery
 must enter the appropriate helpless fall and jump lockout; do not generalize
 that restriction to Archer's explicitly jump-cancellable neutral-special.
+An airborne horizontal tap followed by released-direction neutral-special must
+shoot toward the last tapped side without reversing movement momentum. An
+air-dodge press during jump squat followed by left/right must buffer the shallow
+downward dodge on the first airborne frame, including the default 8-key path.
 
 The proposed knockdown timing table is a comparison to verify against underlying
 data, not evidence of universal Melee durations. Ordinary dodge rolls and getup
