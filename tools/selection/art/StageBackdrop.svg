@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+ <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#17242f"/><stop offset="1" stop-color="#070c12"/></linearGradient><linearGradient id="top" x2="0" y2="1"><stop stop-color="#293847"/><stop offset="1" stop-color="#101720"/></linearGradient></defs>
+ <rect width="1920" height="1080" fill="url(#bg)"/>
+ <path d="M0 0H1920V142H720L686 163H0Z" fill="url(#top)"/>
+ <path d="M0 161H686L720 140H1920" fill="none" stroke="#d9b650" stroke-width="4"/>
+ <path d="M28 24H1892" stroke="#b4c8d9" stroke-opacity=".18" stroke-width="2"/>
+ <path d="M168 60H176V113H168Z" fill="#e6bf4a"/>
+ <text x="194" y="105" fill="#03070b" stroke="#03070b" stroke-width="4" stroke-linejoin="round" font-family="DejaVu Sans, sans-serif" font-size="48" font-weight="900" font-style="italic">STAGE SELECT</text>
+ <text x="192" y="102" fill="#f5f7fa" font-family="DejaVu Sans, sans-serif" font-size="48" font-weight="900" font-style="italic">STAGE SELECT</text>
+ <path d="M0 315L585 1080H0ZM1920 362L1260 1080H1920Z" fill="#75869b" opacity=".08"/>
+ <path d="M957 262L935 881" fill="none" stroke="#e7bf46" stroke-opacity=".3" stroke-width="3"/>
+ <path d="M0 960H1920V1080H0Z" fill="#090d14"/>
+ <path d="M0 960H1920" stroke="#b2c1cc" stroke-opacity=".22" stroke-width="3"/>
+</svg>

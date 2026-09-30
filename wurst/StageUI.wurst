@@ -1,0 +1,150 @@
+package StageUI
+import Wurst
+import ClosureFrames
+import MatchRules
+import SelectionDrag
+import StageSelection
+
+public abstract class StageActions
+    abstract function selectStage(int participantId, int choice)
+    abstract function changeStocks(int participantId, int direction)
+    abstract function changeTime(int participantId, int direction)
+    abstract function start(int participantId)
+    abstract function back(int participantId)
+
+StagePanel sharedStagePanel
+
+function onStageDrop()
+    let data = BlzGetTriggerSyncData()
+    if data == "0" or data == "1"
+        sharedStagePanel.acceptDrop(GetPlayerId(GetTriggerPlayer()), S2I(data))
+
+function stageName(int choice) returns string
+    return choice == 0 ? "Sky Deck" : "Three Bridges"
+
+function stageTexture(int choice) returns string
+    return choice == 0 ? "war3mapImported\\SelectionSkyDeck.tga" : "war3mapImported\\SelectionThreeBridges.tga"
+
+function stageText(framehandle parent, string name, real x, real y, real width, real height, real fontSize, string text) returns framehandle
+    let label = createTextFrame(name, parent, 0)
+    label.setAbsPoint(FRAMEPOINT_TOPLEFT, x, y)
+    label.setSize(width, height)
+    label.setText(text)
+    label.setEnabled(false)
+    BlzFrameSetFont(label, "Fonts\\FRIZQT__.TTF", fontSize, 0)
+    BlzFrameSetTextAlignment(label, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT)
+    return label
+
+function stageButton(framehandle parent, string _name, real x, real y, real width, real height, string text) returns framehandle
+    let control = createFrame("ScriptDialogButton", parent, 0, 0)
+    control.setAbsPoint(FRAMEPOINT_TOPLEFT, x, y)
+    control.setSize(width, height)
+    control.setText(text)
+    control.onClickReleaseFocus()
+    return control
+
+// All frame trees and event registrations are identical on every client.
+// Native frame callbacks synchronize actions; cursor motion is local art only.
+public class StagePanel
+    framehandle root
+    framehandle backdrop
+    framehandle preview
+    framehandle previewName
+    framehandle previewDescription
+    framehandle ruleLabel
+    framehandle chip
+    StageActions actions
+    StageDrag drag = new StageDrag()
+    int lastPhase = -1
+    int lastChoice = -1
+    int lastStocks = -1
+    int lastMinutes = -1
+
+    construct(StageActions actions)
+        this.actions = actions
+        sharedStagePanel = this
+        root = createFrame("FRAME", "MeleeStageRoot", GAME_UI, "", 0)
+        backdrop = createBackdrop("MeleeStageBackdrop", CONSOLE_UI, 800)
+        backdrop.setTexture("war3mapImported\\StageBackdrop.tga", 0, false)
+        backdrop.setFullscreenReference()
+        ruleLabel = stageText(root, "MeleeStageRules", 0.410, 0.584, 0.35, 0.025, 0.016, "")
+        stageText(root, "MeleeStageStockCaption", 0.470, 0.547, 0.09, 0.025, 0.011, "STOCK")
+        stageText(root, "MeleeStageTimeCaption", 0.650, 0.547, 0.09, 0.025, 0.011, "TIME")
+        let stockDown = stageButton(root, "StageStockDown", 0.425, 0.550, 0.033, 0.029, "−")
+        stockDown.onClick(() -> actions.changeStocks(GetPlayerId(GetTriggerPlayer()), -1))
+        let stockUp = stageButton(root, "StageStockUp", 0.548, 0.550, 0.033, 0.029, "+")
+        stockUp.onClick(() -> actions.changeStocks(GetPlayerId(GetTriggerPlayer()), 1))
+        let timeDown = stageButton(root, "StageTimeDown", 0.603, 0.550, 0.033, 0.029, "−")
+        timeDown.onClick(() -> actions.changeTime(GetPlayerId(GetTriggerPlayer()), -1))
+        let timeUp = stageButton(root, "StageTimeUp", 0.730, 0.550, 0.033, 0.029, "+")
+        timeUp.onClick(() -> actions.changeTime(GetPlayerId(GetTriggerPlayer()), 1))
+
+        preview = createBackdrop("MeleeStagePreview", root, 0)
+        preview.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.042, 0.445)
+        preview.setSize(0.372, 0.250)
+        preview.setEnabled(false)
+        previewName = stageText(root, "MeleeStagePreviewName", 0.045, 0.190, 0.37, 0.036, 0.022, "")
+        previewDescription = stageText(root, "MeleeStageDescription", 0.045, 0.148, 0.36, 0.050, 0.011, "")
+        stageText(root, "MeleeStageGridTitle", 0.454, 0.453, 0.30, 0.022, 0.012, "CHOOSE A STAGE")
+        for choice = 0 to 1
+            let tile = createBackdrop("MeleeStageTile" + I2S(choice), root, choice)
+            tile.setTexture(stageTexture(choice), 0, true)
+            tile.setAbsPoint(FRAMEPOINT_TOPLEFT, stageTileLeft(choice), 0.416)
+            tile.setSize(0.142, 0.118)
+            tile.setEnabled(false)
+            let tileButton = stageButton(root, "MeleeStageTileButton" + I2S(choice), stageTileLeft(choice), 0.416, 0.142, 0.118, "")
+            tileButton.setAlpha(0)
+            tileButton.onClick(() -> actions.selectStage(GetPlayerId(GetTriggerPlayer()), choice))
+            stageText(root, "MeleeStageTileName" + I2S(choice), stageTileLeft(choice), 0.290, 0.142, 0.022, 0.010, stageName(choice))
+        chip = createBackdrop("MeleeStageChip", root, 0)
+        chip.setTexture("war3mapImported\\StageChip.tga", 0, true)
+        chip.setSize(0.040, 0.040)
+        chip.setEnabled(false)
+        stageText(root, "MeleeStageHelp", 0.454, 0.230, 0.30, 0.065, 0.011, "Click a stage or move the chip.\nEither player can choose.\nLeft/Right: change stage")
+        let start = stageButton(root, "MeleeStageStart", 0.545, 0.092, 0.210, 0.048, "START MATCH")
+        start.onClick(() -> actions.start(GetPlayerId(GetTriggerPlayer())))
+        let back = stageButton(root, "MeleeStageBack", 0.045, 0.082, 0.170, 0.037, "BACK TO FIGHTERS")
+        back.onClick(() -> actions.back(GetPlayerId(GetTriggerPlayer())))
+        for slot = 0 to 1
+            let sync = CreateTrigger()
+            BlzTriggerRegisterPlayerSyncEvent(sync, Player(slot), "stage-drop", false)
+            TriggerAddAction(sync, function onStageDrop)
+        root.setVisible(false)
+        backdrop.setVisible(false)
+
+    function acceptDrop(int participantId, int choice)
+        actions.selectStage(participantId, choice)
+
+    function update(MatchState game)
+        let enabled = game.phase == STAGE_MENU and GetPlayerId(GetLocalPlayer()) < game.humanCount
+        if lastPhase != game.phase
+            root.setVisible(enabled)
+            backdrop.setVisible(enabled)
+            lastPhase = game.phase
+        if not enabled
+            drag.update(false, false, 0, 0, game.stageChoice)
+            return
+        if lastChoice != game.stageChoice
+            preview.setTexture(stageTexture(game.stageChoice), 0, true)
+            previewName.setText(stageName(game.stageChoice))
+            previewDescription.setText(game.stageChoice == 0 ? "One open platform.\nRoom to fight, nowhere to hide." : "A broad deck and two raised bridges.\nTake the high ground or fight below.")
+            lastChoice = game.stageChoice
+        if lastStocks != game.stockCount or lastMinutes != game.timeLimitMinutes
+            ruleLabel.setText(I2S(game.stockCount) + " Stock  ·  " + (game.timeLimitMinutes == 0 ? "No time limit" : I2S(game.timeLimitMinutes) + ":00"))
+            lastStocks = game.stockCount
+            lastMinutes = game.timeLimitMinutes
+        let width = I2R(BlzGetLocalClientWidth())
+        let height = I2R(BlzGetLocalClientHeight())
+        var x = stageTileLeft(game.stageChoice) + 0.071
+        var y = 0.357
+        if width > 0 and height > 0
+            let pointer = getMouseScreenPosition()
+            let pointerX = selectionPointerX(pointer.x, width, height)
+            let pointerY = selectionPointerY(pointer.y, height)
+            let dropped = drag.update(true, MOUSE_BUTTON_TYPE_LEFT.isPressed(), pointerX, pointerY, game.stageChoice)
+            if dropped >= 0
+                BlzSendSyncData("stage-drop", I2S(dropped))
+            if drag.active
+                x = pointerX
+                y = pointerY
+        chip.setAbsPoint(FRAMEPOINT_TOPLEFT, x - 0.020, y + 0.020)

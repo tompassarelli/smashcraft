@@ -8,6 +8,7 @@ import MatchStep
     for style = 1 to 5
         let game = new MatchState()
         game.selectCharacter(0, 0)
+        game.requestStageSelect(0)
         game.requestStart(0)
         let first = new FighterState(0, -240, 1)
         let second = new FighterState(1, 240, -1)
@@ -40,6 +41,7 @@ import MatchStep
 @Test function activeShieldConsumesGrabButRejectsOrdinaryAttackCommand()
     let game = new MatchState()
     game.selectCharacter(0, 0)
+    game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, 0, 1)
     let second = new FighterState(1, 350, -1)
@@ -71,6 +73,7 @@ import MatchStep
     for mode = 0 to 2
         let game = new MatchState()
         game.selectCharacter(0, 0)
+        game.requestStageSelect(0)
         game.selectStage(0, 1)
         game.requestStart(0)
         let first = new FighterState(0, -240, 1)
@@ -102,6 +105,7 @@ import MatchStep
         if style == 3 or style == 8
             let game = new MatchState()
             game.selectCharacter(0, 0)
+            game.requestStageSelect(0)
             game.selectStage(0, 1)
             game.requestStart(0)
             let first = new FighterState(0, -240, 1)
@@ -135,6 +139,7 @@ import MatchStep
     for mode = 0 to 1
         let game = new MatchState()
         game.selectCharacter(0, 0)
+        game.requestStageSelect(0)
         game.requestStart(0)
         let first = new FighterState(0, 0, 1)
         let second = new FighterState(1, 350, -1)
@@ -170,6 +175,7 @@ import MatchStep
 @Test function airborneBackAttackKeepsFacingWhileDriftingBackwards()
     let game = new MatchState()
     game.selectCharacter(0, 0)
+    game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, 0, 1)
     let second = new FighterState(1, 350, -1)
@@ -196,6 +202,7 @@ import MatchStep
 @Test function attackSelectionUsesGroundingAfterTheMovementStep()
     let game = new MatchState()
     game.selectCharacter(0, 0)
+    game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, 0, 1)
     let second = new FighterState(1, 350, -1)
@@ -238,6 +245,7 @@ import MatchStep
 @Test function shieldPressAppliesBeforeSameFrameAttack()
     let game = new MatchState()
     game.selectCharacter(0, 0)
+    game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, 0, 1)
     let second = new FighterState(1, 100, -1)
@@ -256,6 +264,7 @@ import MatchStep
 @Test function bothFinalStocksResolveAfterTheSameStep()
     let game = new MatchState()
     game.selectCharacter(0, 0)
+    game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, -921, 1)
     let second = new FighterState(1, 921, -1)
@@ -275,6 +284,7 @@ import MatchStep
 @Test function ledgeSharedMatchStepCatchesBothSlotsThenAcceptsFreshOptions()
     let game = new MatchState()
     game.selectCharacter(0, 0)
+    game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, -620, 1)
     let second = new FighterState(1, 620, -1)
@@ -304,6 +314,69 @@ import MatchStep
     second.attackStyle.assertEquals(-1)
     first.ledgeFrame.assertEquals(0)
     second.ledgeFrame.assertEquals(0)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
+@Test function configuredStocksAndLastTickKnockoutPrecedeTimeout()
+    let game = new MatchState()
+    game.selectCharacter(0, 0)
+    game.requestStageSelect(0)
+    game.setStocks(0, 1)
+    game.requestStart(0)
+    let first = new FighterState(0, -921, 1)
+    let second = new FighterState(1, 240, -1)
+    initializeMatchFighters(game, first, second)
+    first.stocks.assertEquals(1)
+    second.stocks.assertEquals(1)
+    game.remainingFrames = 1
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    game.phase.assertEquals(RESULT)
+    game.winner.assertEquals(1)
+    game.timedOut.assertFalse()
+    first.stocks.assertEquals(0)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
+@Test function sharedStepClockRunsOnlyDuringMatch()
+    let game = new MatchState()
+    let first = new FighterState(0, -240, 1)
+    let second = new FighterState(1, 240, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    game.remainingFrames.assertEquals(25200)
+    game.selectCharacter(0, 0)
+    game.requestStageSelect(0)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    game.remainingFrames.assertEquals(25200)
+    game.requestStart(0)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 3)
+    game.remainingFrames.assertEquals(25199)
+    game.remainingFrames = 1
+    first.damage = 30
+    second.damage = 10
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 4)
+    game.phase.assertEquals(RESULT)
+    game.winner.assertEquals(1)
+    game.timedOut.assertTrue()
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 5)
+    game.remainingFrames.assertEquals(0)
     destroy firstCommands
     destroy secondCommands
     destroy firstInput

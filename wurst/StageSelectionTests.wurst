@@ -1,0 +1,23 @@
+package StageSelectionTests
+import StageSelection
+
+@Test function stageGridContainsOnlyPlayableStages()
+    stageTileAt(0.48, 0.35).assertEquals(0)
+    stageTileAt(0.66, 0.35).assertEquals(1)
+    stageTileAt(0.603, 0.35).assertEquals(-1)
+    stageTileAt(0.48, 0.27).assertEquals(-1)
+    stageTileAt(0.36, 0.35).assertEquals(-1)
+
+@Test function sharedStageChipDropsOntoRealTilesOnly()
+    let drag = new StageDrag()
+    drag.update(true, true, 0.525, 0.357, 0).assertEquals(-1)
+    drag.active.assertTrue()
+    drag.update(true, true, 0.683, 0.357, 0).assertEquals(-1)
+    drag.update(true, false, 0.683, 0.357, 0).assertEquals(1)
+    drag.active.assertFalse()
+    drag.update(true, true, 0.683, 0.357, 1)
+    drag.update(true, false, 0.603, 0.35, 1).assertEquals(-1)
+    drag.update(true, true, 0.683, 0.357, 1)
+    drag.update(false, false, 0.525, 0.357, 1).assertEquals(-1)
+    drag.active.assertFalse()
+    destroy drag

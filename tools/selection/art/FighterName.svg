@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="768" height="128" viewBox="0 0 768 128">
+ <g font-family="DejaVu Sans, sans-serif" font-size="88" font-weight="900" text-anchor="middle" stroke-linejoin="round">
+  <text x="388" y="99" fill="#000" stroke="#000" stroke-width="13">FIGHTER_NAME</text>
+  <text x="384" y="93" fill="#000" stroke="#000" stroke-width="11">FIGHTER_NAME</text>
+  <text x="384" y="93" fill="#fff">FIGHTER_NAME</text>
+ </g>
+</svg>

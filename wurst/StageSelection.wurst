@@ -1,0 +1,32 @@
+package StageSelection
+
+public function stageTileLeft(int choice) returns real
+    return choice == 0 ? 0.454 : 0.612
+
+public function stageTileAt(real x, real y) returns int
+    if y < 0.298 or y > 0.416
+        return -1
+    if x >= 0.454 and x <= 0.596
+        return 0
+    if x >= 0.612 and x <= 0.754
+        return 1
+    return -1
+
+// Cursor state stays local; only a completed choice crosses the sync event.
+public class StageDrag
+    boolean active = false
+    boolean wasDown = false
+
+    function update(boolean enabled, boolean down, real x, real y, int choice) returns int
+        var dropped = -1
+        if not enabled
+            active = false
+        else if down and not wasDown
+            let dx = x - (stageTileLeft(choice) + 0.071)
+            let dy = y - 0.357
+            active = dx * dx + dy * dy <= 0.0004
+        else if active and not down
+            active = false
+            dropped = stageTileAt(x, y)
+        wasDown = down
+        return dropped

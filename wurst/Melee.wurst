@@ -5,10 +5,12 @@ import BuildInfo
 import Simulation
 import DirectionalInput
 import MatchRules
+import MatchHUD
 import CommandBuffer
 import CombatInput
 import MatchStep
 import SelectionUI
+import StageUI
 import BindingSettings
 import KeyBindings
 import PlayerInputState
@@ -42,7 +44,9 @@ effect array projectileArrows
 int projectileLineCount = 0
 framehandle titleFrame
 framehandle menuFrame
-framehandle hudFrame
+FighterHUD firstHUD
+FighterHUD secondHUD
+MatchClock matchClock
 framehandle helpFrame
 framehandle noticeFrame
 framehandle developerFrame
@@ -100,6 +104,7 @@ function finishInputTrace()
 
 InputSnapshot playerInput = null
 InputSnapshot botInput = null
+StagePanel stagePanel = null
 SelectionPanel selectionPanel = null
 SettingsPanel settingsPanel = null
 BindingSettings playerBindings = new BindingSettings(Player(0))
@@ -144,11 +149,13 @@ class MeleeSelectionActions extends SelectionActions
         matchState.selectCharacter(participantId, choice)
         makePreview()
 
-    override function selectStage(int participantId, int choice)
-        if matchState.phase != CHARACTER_MENU or participantId != 0 or settingsPanel.isOpen()
+    override function selectCpuChoice(int participantId, int choice)
+        if participantId != 0 or twoHumanPlayers or not playerBindings.ready or matchState.phase != CHARACTER_MENU
             return
-        matchState.selectStage(participantId, choice)
-        drawStage()
+        if settingsPanel != null and settingsPanel.isOpen()
+            return
+        matchState.selectCpuCharacter(participantId, choice)
+        makePreview()
 
     override function openSettings(int participantId)
         openSettingsScreen(participantId)
@@ -156,6 +163,18 @@ class MeleeSelectionActions extends SelectionActions
     override function start(int participantId)
         if matchState.phase == CHARACTER_MENU
             confirm(participantId)
+
+class MeleeStageActions extends StageActions
+    override function selectStage(int participantId, int choice)
+        matchState.selectStage(participantId, choice)
+    override function changeStocks(int participantId, int direction)
+        matchState.setStocks(participantId, matchState.stockCount + direction)
+    override function changeTime(int participantId, int direction)
+        matchState.setTimeLimit(participantId, matchState.timeLimitMinutes + direction)
+    override function start(int participantId)
+        confirm(participantId)
+    override function back(int participantId)
+        matchState.returnToCharacters(participantId)
 
 class MeleeSettingsActions extends SettingsActions
     int participantId
@@ -228,11 +247,6 @@ class Fighter extends FighterState
 
 function charName(int which) returns string
     return which == 0 ? "Archer" : "Rifleman"
-
-function shieldLabel(Fighter fighter) returns string
-    let percent = R2I(100 * fighter.shieldEnergy / SHIELD_MAX)
-    let color = percent <= 25 ? "|cffff6666" : (percent <= 50 ? "|cffffd64a" : "|cff8dff9a")
-    return color + "Shield " + I2S(percent) + "%|r"
 
 function charModel(int which) returns string
     return which == 0 ? "Archer" : "Rifleman"
@@ -327,7 +341,7 @@ function makePreview()
     clearSecondInputs()
     removeFighters()
     playerFighter = new Fighter(Player(0), matchState.characterChoice, -240, 1)
-    botFighter = new Fighter(Player(1), twoHumanPlayers ? matchState.secondCharacterChoice : 1 - matchState.characterChoice, 240, -1)
+    botFighter = new Fighter(Player(1), matchState.secondCharacterChoice, 240, -1)
     SetUnitAnimation(playerFighter.body, "stand")
     SetUnitAnimation(botFighter.body, "stand")
 
@@ -440,6 +454,8 @@ function startMatch()
     playerJumpQueued = false
     playerAirDodgeQueued = false
     makePreview()
+    initializeMatchFighters(matchState, playerFighter, botFighter)
+    drawStage()
     if KNOCKDOWN_SCENARIO
         playerFighter.downState = DOWN_TUMBLE
         playerFighter.grounded = false
@@ -468,6 +484,8 @@ function choose(int participantId)
     if matchState.phase == CHARACTER_MENU
         matchState.selectCharacter(participantId, 1 - matchState.characterFor(participantId))
         makePreview()
+    else if matchState.phase == STAGE_MENU
+        matchState.selectStage(participantId, 1 - matchState.stageChoice)
 
 function confirm(int participantId)
     let bindings = participantId == 0 ? playerBindings : secondBindings
@@ -477,6 +495,12 @@ function confirm(int participantId)
         return
     let previousPhase = matchState.phase
     if previousPhase == CHARACTER_MENU
+        if matchState.requestStageSelect(participantId)
+            if settingsPanel != null
+                settingsPanel.close()
+            if secondSettingsPanel != null
+                secondSettingsPanel.close()
+    else if previousPhase == STAGE_MENU
         if matchState.requestStart(participantId)
             startMatch()
     else if previousPhase == RESULT
@@ -497,6 +521,8 @@ function back(int participantId)
         return
     if matchState.phase == CHARACTER_MENU
         matchState.unreadyCharacter(participantId)
+    else if matchState.phase == STAGE_MENU
+        matchState.returnToCharacters(participantId)
     else if matchState.phase == MATCH
         attack(participantId == 0 ? playerFighter : botFighter, participantId == 0 ? botFighter : playerFighter, 1)
 
@@ -587,7 +613,10 @@ function onParticipantKeyDown(int participantId)
         return
     if not bindings.ready
         return
-    if key == OSKEY_RETURN and matchState.phase == CHARACTER_MENU
+    if key == OSKEY_ESCAPE and matchState.phase == STAGE_MENU
+        back(participantId)
+        return
+    if key == OSKEY_RETURN and (matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU)
         confirm(participantId)
         return
     let action = bindings.bindings.actionFor(keyCode)
@@ -630,7 +659,7 @@ function onParticipantKeyDown(int participantId)
                 playerLeftPressed = true
             else
                 secondLeftPressed = true
-        if matchState.phase == CHARACTER_MENU
+        if matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
             choose(participantId)
     else if action == MOVE_RIGHT
         if not wasHeld and matchState.phase == MATCH
@@ -638,7 +667,7 @@ function onParticipantKeyDown(int participantId)
                 playerRightPressed = true
             else
                 secondRightPressed = true
-        if matchState.phase == CHARACTER_MENU
+        if matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
             choose(participantId)
     else if action == MOVE_DOWN
         if not wasHeld and matchState.phase == MATCH
@@ -920,7 +949,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
         f.animation = ""
 
 function renderUI()
-    let selecting = matchState.phase == CHARACTER_MENU
+    let selecting = matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
     let localSlot = GetLocalPlayer() == Player(1) and twoHumanPlayers ? 1 : 0
     let localFighter = localSlot == 0 ? playerFighter : botFighter
     let controls = localSlot == 0 ? settingsPanel : secondSettingsPanel
@@ -928,12 +957,13 @@ function renderUI()
     if GetLocalPlayer() == Player(localSlot)
         BlzFrameSetVisible(titleFrame, false)
         BlzFrameSetVisible(menuFrame, false)
-        BlzFrameSetVisible(hudFrame, not selecting)
+        firstHUD.update(not selecting and not controlsOpen, playerFighter.character, playerFighter.damage, playerFighter.stocks)
+        secondHUD.update(not selecting and not controlsOpen, botFighter.character, botFighter.damage, botFighter.stocks)
+        matchClock.update(not selecting and not controlsOpen and matchState.timeLimitMinutes > 0, matchState.remainingSeconds())
         BlzFrameSetVisible(helpFrame, not selecting and not controlsOpen)
         BlzFrameSetVisible(noticeFrame, not selecting and not controlsOpen)
         BlzFrameSetVisible(developerFrame, not selecting and not controlsOpen)
         if not selecting
-            BlzFrameSetText(hudFrame, "P1 " + charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "   " + shieldLabel(playerFighter) + "\n" + (twoHumanPlayers ? "P2 " : "Bot ") + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "   " + shieldLabel(botFighter) + "\n" + (matchState.stageChoice == 0 ? "Sky Deck" : "Three Bridges"))
             BlzFrameSetText(helpFrame, matchState.phase == RESULT ? (matchState.firstRematchReady and twoHumanPlayers ? "Player 1 ready; waiting for Player 2. Ctrl+R: restart" : (matchState.secondRematchReady and twoHumanPlayers ? "Player 2 ready; waiting for Player 1. Ctrl+R: restart" : "Press Attack to choose your next match     Ctrl+R: restart")) : "Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.")
             if matchState.phase == MATCH and localFighter.downState == DOWN_WAIT
                 BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
@@ -942,10 +972,11 @@ function renderUI()
             BlzFrameSetText(noticeFrame, playerFighter != null and playerFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
     selectionPanel.update(matchState.phase, matchState.characterFor(0),
         settingsPanel != null and settingsPanel.isOpen(), true, matchState.characterReady(0),
-        twoHumanPlayers ? matchState.characterFor(1) : 1 - matchState.characterFor(0), twoHumanPlayers, matchState.characterReady(1), matchState.stageChoice)
+        matchState.characterFor(1), twoHumanPlayers, matchState.characterReady(1))
     secondSelectionPanel.update(matchState.phase, matchState.characterFor(1),
         secondSettingsPanel != null and secondSettingsPanel.isOpen(), twoHumanPlayers, matchState.characterReady(1),
-        matchState.characterFor(0), true, matchState.characterReady(0), matchState.stageChoice)
+        matchState.characterFor(0), true, matchState.characterReady(0))
+    stagePanel.update(matchState)
     if settingsPanel != null
         settingsPanel.update()
     if secondSettingsPanel != null
@@ -1102,7 +1133,7 @@ function gameTick()
         secondDodgeZ = 0
         secondKeyState.clearPulse()
         if matchState.phase == RESULT
-            statusText = matchState.winner == 0 ? "Player 1 wins!" : (matchState.winner == 1 ? (twoHumanPlayers ? "Player 2 wins!" : "Computer wins!") : "Draw! Both fighters are out.")
+            statusText = matchState.winner == 0 ? "Player 1 wins!" : (matchState.winner == 1 ? (twoHumanPlayers ? "Player 2 wins!" : "Computer wins!") : (matchState.timedOut ? "Time! Draw." : "Draw! Both fighters are out."))
             statusTime = 3600
     if matchState.phase != MATCH
         clearHeldInputs()
@@ -1122,6 +1153,7 @@ function gameTick()
         PreloadGenEnd("wc3-melee-ready.txt")
 
 function initGame()
+    DestroyTimer(GetExpiredTimer())
     hostHumanPlayer = GetPlayerController(Player(0)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(0)) == PLAYER_SLOT_STATE_PLAYING
     twoHumanPlayers = hostHumanPlayer and GetPlayerController(Player(1)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(1)) == PLAYER_SLOT_STATE_PLAYING
     matchState.setHumanCount(twoHumanPlayers ? 2 : 1)
@@ -1134,16 +1166,21 @@ function initGame()
     floorHeight = GetLocationZ(center) + 1800
     RemoveLocation(center)
     BlzHideOriginFrames(true)
+    if not loadTOCFile("war3mapImported\\SmashcraftHUD.toc")
+        print("Developer: failed to load Smashcraft HUD definitions")
     BlzEnableSelections(false, false)
     EnableUserControl(true)
     FogEnable(false)
     FogMaskEnable(false)
     titleFrame = frameText("MeleeTitle", 0.06, 0.56, 0.68, 0.04, 0.023)
     menuFrame = frameText("MeleeMenu", 0.06, 0.505, 0.68, 0.19, 0.017)
-    hudFrame = frameText("MeleeScore", 0.06, 0.555, 0.68, 0.09, 0.019)
-    helpFrame = frameText("MeleeHelp", 0.06, 0.095, 0.69, 0.055, 0.013)
+    firstHUD = new FighterHUD(0, 2)
+    secondHUD = new FighterHUD(1, 2)
+    matchClock = new MatchClock()
+    helpFrame = frameText("MeleeHelp", 0.06, 0.54, 0.58, 0.055, 0.010)
     noticeFrame = frameText("MeleeNotice", 0.26, 0.47, 0.42, 0.07, 0.019)
-    developerFrame = frameText("MeleeDeveloper", 0.06, 0.035, 0.72, 0.03, 0.010)
+    developerFrame = frameText("MeleeDeveloper", 0.06, 0.012, 0.72, 0.01, 0.007)
+    stagePanel = new StagePanel(new MeleeStageActions())
     selectionPanel = new SelectionPanel(new MeleeSelectionActions(), 0)
     settingsPanel = new SettingsPanel(playerBindings, new MeleeSettingsActions(0), 0)
     secondSelectionPanel = new SelectionPanel(new MeleeSelectionActions(), 1)
@@ -1175,4 +1212,5 @@ function initGame()
     TimerStart(gameTimer, FRAME_SECONDS, true, function gameTick)
 
 init
-    initGame()
+    // Custom frame creation and font setup require the running game UI.
+    TimerStart(CreateTimer(), 0., false, function initGame)

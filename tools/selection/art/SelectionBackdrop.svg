@@ -17,7 +17,7 @@
  <path d="M1320 174H1920V192H1341L1304 225 1289 214Z" fill="#03070d"/>
  <path d="M1320 207H1920V220H1337L1309 244 1295 231Z" fill="url(#gold)"/>
  <path d="M1336 175L1291 218 1308 228 1361 175Z" fill="url(#gold)" stroke="#080d16" stroke-width="6"/>
- <text x="70" y="145" fill="#f2f4f5" font-family="DejaVu Sans, sans-serif" font-size="82" font-weight="900" font-style="italic" letter-spacing="-5">MELEE</text>
+ <text x="65" y="137" fill="#f2f4f5" font-family="DejaVu Sans, sans-serif" font-size="49" font-weight="900" font-style="italic" letter-spacing="-2">Smashcraft</text>
  <circle cx="416" cy="119" r="48" fill="#111b29" stroke="#8093a3" stroke-width="5"/><circle cx="416" cy="119" r="39" fill="none" stroke="#d4dde2" stroke-opacity=".6" stroke-width="2"/>
  <text x="416" y="134" text-anchor="middle" fill="#f3f5f6" font-family="DejaVu Sans, sans-serif" font-size="34" font-weight="900">VS</text>
  <path d="M490 78L506 59H1254L1271 78V154L1254 172H506L490 154Z" fill="#111b29" stroke="#d0d7dd" stroke-width="7"/>

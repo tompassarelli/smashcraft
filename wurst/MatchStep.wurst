@@ -4,6 +4,10 @@ import MatchRules
 import CommandBuffer
 import CombatInput
 
+public function initializeMatchFighters(MatchState game, FighterState first, FighterState second)
+    first.stocks = game.stockCount
+    second.stocks = game.stockCount
+
 public function stepMatch(MatchState game, FighterState first, FighterState second, InputSnapshot firstInput, InputSnapshot secondInput, AttackBuffer firstCommands, AttackBuffer secondCommands, int frame)
     if game.phase != MATCH
         return
@@ -24,3 +28,4 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
     resolveAttackPair(first, second)
     updateProjectilePair(first, second)
     game.resolveStocks(first.stocks, second.stocks)
+    game.advanceClock(first.stocks, first.damage, second.stocks, second.damage)

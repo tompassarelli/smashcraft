@@ -376,6 +376,7 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 function testMatch() returns MatchState
 	let game = new MatchState()
 	game.selectCharacter(0, 0)
+	game.requestStageSelect(0)
 	game.requestStart(0)
 	return game
 

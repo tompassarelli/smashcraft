@@ -1,8 +1,10 @@
 package MatchRules
 
 public constant int CHARACTER_MENU = 0
+public constant int STAGE_MENU = 1
 public constant int MATCH = 2
 public constant int RESULT = 3
+public constant int MATCH_TICKS_PER_SECOND = 60
 
 public class MatchState
     int phase = CHARACTER_MENU
@@ -11,6 +13,10 @@ public class MatchState
     int stageChoice = 0
     int winner = -1
     int humanCount = 1
+    int stockCount = 3
+    int timeLimitMinutes = 7
+    int remainingFrames = 7 * 60 * MATCH_TICKS_PER_SECOND
+    boolean timedOut = false
     boolean firstCharacterReady = false
     boolean secondCharacterReady = false
     boolean firstRematchReady = false
@@ -38,6 +44,13 @@ public class MatchState
             characterChoice = choice
             firstCharacterReady = true
 
+    // In a solo match, P1 may choose the CPU's fighter independently. A
+    // second human owns slot 1 whenever two humans are present.
+    function selectCpuCharacter(int actorSlot, int choice)
+        if phase != CHARACTER_MENU or humanCount != 1 or actorSlot != 0 or choice < 0 or choice > 1
+            return
+        secondCharacterChoice = choice
+
     function allCharactersReady() returns boolean
         return firstCharacterReady and (humanCount == 1 or secondCharacterReady)
 
@@ -50,13 +63,36 @@ public class MatchState
             firstCharacterReady = false
 
     function selectStage(int slot, int choice)
-        if phase == CHARACTER_MENU and slot == 0 and choice >= 0 and choice <= 1
+        if phase == STAGE_MENU and slot >= 0 and slot < humanCount and choice >= 0 and choice <= 1
             stageChoice = choice
 
-    function requestStart(int slot) returns boolean
+    function requestStageSelect(int slot) returns boolean
         if phase != CHARACTER_MENU or slot < 0 or slot >= humanCount or not allCharactersReady()
             return false
+        phase = STAGE_MENU
+        return true
+
+    function returnToCharacters(int slot)
+        if phase == STAGE_MENU and slot >= 0 and slot < humanCount
+            phase = CHARACTER_MENU
+
+    function setStocks(int slot, int count)
+        if phase == STAGE_MENU and slot >= 0 and slot < humanCount and count >= 1 and count <= 9
+            stockCount = count
+
+    function setTimeLimit(int slot, int minutes)
+        if phase == STAGE_MENU and slot >= 0 and slot < humanCount and minutes >= 0 and minutes <= 10
+            timeLimitMinutes = minutes
+
+    function remainingSeconds() returns int
+        return (remainingFrames + MATCH_TICKS_PER_SECOND - 1) div MATCH_TICKS_PER_SECOND
+
+    function requestStart(int slot) returns boolean
+        if phase != STAGE_MENU or slot < 0 or slot >= humanCount or not allCharactersReady()
+            return false
         winner = -1
+        timedOut = false
+        remainingFrames = timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND
         phase = MATCH
         return true
 
@@ -80,6 +116,22 @@ public class MatchState
         if phase != MATCH or (firstStocks > 0 and secondStocks > 0)
             return
         winner = firstStocks <= 0 ? (secondStocks <= 0 ? -1 : 1) : 0
+        phase = RESULT
+
+    function advanceClock(int firstStocks, real firstDamage, int secondStocks, real secondDamage)
+        if phase != MATCH or timeLimitMinutes == 0
+            return
+        remainingFrames--
+        if remainingFrames > 0
+            return
+        remainingFrames = 0
+        timedOut = true
+        if firstStocks != secondStocks
+            winner = firstStocks > secondStocks ? 0 : 1
+        else if firstDamage != secondDamage
+            winner = firstDamage < secondDamage ? 0 : 1
+        else
+            winner = -1
         phase = RESULT
 
     function forfeit(int losingSlot)

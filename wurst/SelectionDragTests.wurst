@@ -3,30 +3,49 @@ import SelectionDrag
 
 @Test function holdMovesWithoutSelectingAndReleaseCommits()
     let drag = new SelectionDrag()
-    drag.update(true, true, 0.292, 0.346, 0, 0).assertEquals(-1)
+    drag.update(true, true, 0.292, 0.346, 0, 0, 1, false).assertEquals(-1)
     drag.active.assertTrue()
-    drag.update(true, true, 0.490, 0.370, 0, 0).assertEquals(-1)
-    drag.update(true, false, 0.490, 0.370, 0, 0).assertEquals(1)
+    drag.update(true, true, 0.490, 0.370, 0, 0, 1, false).assertEquals(-1)
+    drag.update(true, false, 0.490, 0.370, 0, 0, 1, false).assertEquals(1)
+    drag.releasedSlot.assertEquals(0)
     drag.active.assertFalse()
-    drag.update(true, false, 0.490, 0.370, 0, 0).assertEquals(-1)
+    drag.update(true, false, 0.490, 0.370, 0, 0, 1, false).assertEquals(-1)
     destroy drag
 
 @Test function outsideDropAndOtherPlayersChipDoNotSelect()
     let drag = new SelectionDrag()
-    drag.update(true, true, 0.292, 0.346, 0, 0)
-    drag.update(true, false, 0.400, 0.370, 0, 0).assertEquals(-1)
-    drag.update(true, true, 0.523, 0.346, 0, 0)
+    drag.update(true, true, 0.292, 0.346, 0, 0, 1, false)
+    drag.update(true, false, 0.400, 0.370, 0, 0, 1, false).assertEquals(-1)
+    drag.update(true, true, 0.523, 0.346, 0, 0, 1, false)
     drag.active.assertFalse()
-    drag.update(true, false, 0.490, 0.370, 0, 0).assertEquals(-1)
+    drag.update(true, false, 0.490, 0.370, 0, 0, 1, false).assertEquals(-1)
     destroy drag
 
 @Test function secondPlayersOwnChipAndOverlayCancellation()
     let drag = new SelectionDrag()
-    drag.update(true, true, 0.523, 0.346, 1, 1)
+    drag.update(true, true, 0.523, 0.346, 1, 1, 0, false)
     drag.active.assertTrue()
-    drag.update(false, true, 0.292, 0.346, 1, 1)
+    drag.update(false, true, 0.292, 0.346, 1, 1, 0, false)
     drag.active.assertFalse()
-    drag.update(true, false, 0.292, 0.346, 1, 1).assertEquals(-1)
+    drag.update(true, false, 0.292, 0.346, 1, 1, 0, false).assertEquals(-1)
+    destroy drag
+
+@Test function hostCanDragCpuChipToSameCharacterAsHuman()
+    let drag = new SelectionDrag()
+    drag.update(true, true, 0.523, 0.346, 0, 1, 1, true).assertEquals(-1)
+    drag.active.assertTrue()
+    drag.activeSlot.assertEquals(1)
+    drag.update(true, true, 0.292, 0.370, 0, 1, 1, true).assertEquals(-1)
+    drag.update(true, false, 0.292, 0.370, 0, 1, 1, true).assertEquals(0)
+    drag.releasedSlot.assertEquals(1)
+    destroy drag
+
+@Test function cpuChipCannotBeDraggedFromOtherPanelOrOutsideCharacterScreen()
+    let drag = new SelectionDrag()
+    drag.update(true, true, 0.523, 0.346, 0, 1, 1, false).assertEquals(-1)
+    drag.active.assertFalse()
+    drag.update(false, true, 0.523, 0.346, 0, 1, 1, true).assertEquals(-1)
+    drag.active.assertFalse()
     destroy drag
 
 @Test function screenPixelsMapToCenteredFourByThreeFrames()

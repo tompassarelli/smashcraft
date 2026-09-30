@@ -8,6 +8,18 @@ assets, initially Archer/Fox and Rifleman/Falco.
 
 ## Split
 
+### Current combat fidelity work
+
+- [ ] Support multiple prioritized hitboxes per move: sweetspots/sourspots (including weapon-tip sweetspots), early/late phases, per-hit damage/angle/base knockback/growth/hitlag, and explicit multihit re-hit rules. Test simultaneous overlap priority, facing, boundary contacts, and no accidental duplicate damage against multiple hurtboxes.
+- [ ] Author frame-indexed hitboxes and pose-dependent hurtboxes alongside each fighter animation. Collision and rendered animation must share simulation frame, facing, hitlag freeze, and cancellation timing. Replace provisional broad rectangles with this move data; verify contact alignment with a developer collision overlay in Warcraft.
+- [ ] Validate grounded neutral Attack (N) as jab; walking modifier (`;`) plus direction as tilt/angled forward tilt; airborne Attack as neutral/forward/back/up/down aerial. Exercise transitions at takeoff and landing, and preserve facing for back air.
+- [ ] Author distinct Archer and Rifleman animations for all five aerial normals, alongside distinct grounded jab and tilt poses. Align startup, active contact, recovery, hitlag freeze, and landing cancellation to the simulation; verify both fighters in Warcraft.
+- [ ] Trace knockback, hitlag, hitstun, knockdown/tech invulnerability, and getup attack versus directional getup rolls against the local Melee reference. Record factual source locations, exact frame conventions, and deliberate/provisional differences in wc3-melee:PHYSICS.md; add discriminating Wurst cases before claiming parity.
+
+The five aerial attack styles already exist in wc3-melee:wurst/CombatInput.wurst
+and wc3-melee:wurst/Simulation.wurst. Their hit geometry, damage and timing are
+provisional; existence of those styles does not establish animation fidelity.
+
 | Part | Owns | Checks |
 | --- | --- | --- |
 | Simulation | Fighter and match state, input snapshots, movement, platforms, blast zones, damage, hitstun, shields, stocks | Wurstunit, without Warcraft |
@@ -29,6 +41,43 @@ simulation boundary instead. Start with a few Wurst packages, not a new engine
 framework or generic entity system.
 
 ## Normal edit loop
+
+### Presentation and selection checkpoint (2026-09-30)
+
+Smashcraft branding and outlined roster/card names are packaged. Character
+Select and Stage Select are separate screens; the latter uses a compact dark
+header with a thin gold accent. Native screenshots are
+wc3-melee:build/new-branding-native.png and
+wc3-melee:build/header-new-native.png.
+
+CPU choice is stored independently and solo-host selection is authorized
+separately from human readiness. Rifleman versus Rifleman reached a native
+match (wc3-melee:build/outline-hud-native.png). CPU chip dragging has headless
+coverage, but the held chip did not follow the pointer in the native attempt
+wc3-melee:build/cpu-drag-held.png. The native input/coordinate boundary remains
+open; do not label drag-and-drop verified.
+
+The large damage percentage uses Warcraft's frame-definition font, outline,
+and shadow settings in wc3-melee:tools/selection/art/SmashcraftHUD.fdf.
+Runtime font-size requests rendered at the small default size even after
+moving custom UI initialization to elapsed game time zero. FDF styling produced
+the requested large damage display in wc3-melee:build/outline-hud-native.png.
+The cause of the runtime font setter discrepancy is not established.
+
+Portrait crops now normalize body height rather than fitting full weapon
+silhouettes. Both character cards and roster tiles were observed in the native
+build `portraits-normalized`: wc3-melee:build/normalized-select-native.png.
+The same portrait textures are used by the HUD; its new crops still need a
+native match screenshot. All 195 Wurst tests passed with zero errors/warnings
+in wc3-melee:build/wurst-tests/selection-integrated.log. The integrated build
+succeeded with four existing warnings (HUD/settings array initialization and
+an unused import). The live map contains `portraits-normalized`.
+
+Open native issues remain: Enter also opens Warcraft chat; the intermittent
+host-wait stall; mouse interaction/drag confirmation; cached native loading
+title and author despite updated map metadata. Transient host-wait during
+restart is not by itself evidence of a sustained stall. Combat fidelity tasks
+above remain unfinished.
 
 1. Change the relevant simulation rule and run its focused Wurst test.
 2. Use compiler/editor diagnostics for type and API mistakes.
@@ -1490,6 +1539,8 @@ do not populate the grid with fictitious playable stages.
 Stage selection includes clickable stock/time settings in its top strip,
 displayed together (for example, 3 Stock · 7:00). Match stock count, timer,
 timeout resolution, and synchronized settings remain implementation work.
+Four-player mode's character-selection heading is exactly
+"4-man survival test!" (case and punctuation as supplied).
 
 Build 102058 native follow-up: red boundary effects are absent; camera distance
 is 1450. Archer jab was observed at attack frame 3 with the bow retained in
@@ -1502,3 +1553,22 @@ Build 103008 verified the four-card layout in the client: red P1/HMN,
 blue CPU/CP and portrait-free gray P3/P4 N/A cards. Evidence:
 wc3-melee:build/four-cards-native.png. Reload reached a fresh input/simulation
 trace in 30.6 seconds; this does not close the intermittent later host stall.
+
+Stage flow and match rules implementation (2026-09-30): ready fighter
+selection now opens separate Stage Select. The left preview follows either
+human's synchronized choice from the two real thumbnails; the gold chip moves
+with click/keyboard selection, with local drag/drop feeding the same stage
+choice. Back returns to fighter selection without discarding choices.
+The top strip adjusts 1–9 stocks and no limit or 1–10 minutes. Defaults are
+provisional 3 stocks / 7 minutes. Both fighters receive the selected stocks
+at match start. The timer advances once per 60 Hz simulation step only in
+MATCH. Stock elimination wins precedence on the last tick; otherwise timeout
+compares remaining stocks, then lower exact damage. Equal stocks/damage draw;
+sudden death and final defaults remain tuning decisions.
+The rules/geometry suite passes 191/191 with zero warnings/errors:
+wc3-melee:build/wurst-tests/stage-flow.log. This does not prove native frame
+rendering, drag cursor motion, or two-client synchronization. Existing Enter
+chat opening remains unresolved: the inspected pinned key/frame API provides
+no key-event consumption result, and no synthetic closing input was added.
+The implementation still supports two combatants; four selection cards do
+not add third/fourth-fighter simulation.

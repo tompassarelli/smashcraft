@@ -1,7 +1,7 @@
-projectName: Melee Prototype
+projectName: Smashcraft
 wc3Patch: v3.0
 buildMapData:
-  name: Melee Prototype
+  name: Smashcraft
   fileName: Melee_Prototype
   author: Tompas
   scenarioData:

@@ -10,7 +10,7 @@ maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive
 build_output="$project_dir/build/wurst-map/Melee_Prototype.w3x"
 fighter_assets="$project_dir/build/animation-assets"
 selection_assets="$project_dir/build/selection-assets"
-selection_textures=(SelectionBackdrop SelectionTileFrame SelectionCardRed SelectionCardBlue SelectionCardGray SelectionAction SelectionSkyDeck SelectionThreeBridges SelectionChipP1 SelectionChipP2 SelectionChipCPU ArcherPortrait RiflemanPortrait ArcherTile RiflemanTile)
+selection_textures=(ArcherName RiflemanName SelectionBackdrop SelectionTileFrame SelectionCardRed SelectionCardBlue SelectionCardGray SelectionAction StageBackdrop StageChip SelectionSkyDeck SelectionThreeBridges SelectionChipP1 SelectionChipP2 SelectionChipCPU ArcherPortrait RiflemanPortrait ArcherTile RiflemanTile MatchHUD0 MatchHUD1 MatchHUD2 MatchHUD3)
 
 if [[ $# -ne 1 || ! -f "$1" ]]; then
     printf 'Usage: %s BASE_MAP.w3m|BASE_MAP.w3x\n' "$0" >&2
@@ -62,10 +62,11 @@ mkdir -p "$work_dir/wurst" "$work_dir/_build/dependencies" "$work_dir/imports/wa
 ln -s "$stdlib_checkout" "$work_dir/_build/dependencies/wurststdlib"
 cp "$project_dir/wurst.build" "$work_dir/wurst.build"
 cp "$project_dir/tools/map-entry.j" "$work_dir/wurst/war3map.j"
-for source in FighterAssets Simulation DirectionalInput MatchRules CommandBuffer CombatInput MatchStep KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI Melee; do
+for source in FighterAssets Simulation DirectionalInput MatchRules MatchHUD CommandBuffer CombatInput MatchStep KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI Melee; do
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
 done
 cp "$fighter_assets/FighterAssetInfo.wurst" "$work_dir/wurst/FighterAssetInfo.wurst"
+cp "$project_dir/tools/selection/art/SmashcraftHUD.fdf" "$project_dir/tools/selection/art/SmashcraftHUD.toc" "$work_dir/imports/war3mapImported/"
 fighter_model_hash=$(sha256sum "$fighter_assets/ArcherFighter.mdx" | cut -d ' ' -f1)
 fighter_model_path="war3mapImported\\ArcherFighter-$fighter_model_hash.mdx"
 cp "$fighter_assets/ArcherFighter.mdx" "$work_dir/imports/war3mapImported/ArcherFighter-$fighter_model_hash.mdx"

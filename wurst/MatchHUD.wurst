@@ -1,0 +1,87 @@
+package MatchHUD
+import Wurst
+
+public class MatchClock
+    framehandle label
+
+    construct()
+        label = createTextFrame("MatchClock", GAME_UI, 890)
+        label.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.65, 0.568)
+        label.setSize(0.12, 0.032)
+        label.setFont("Fonts\\FRIZQT__.TTF", 0.020, 1)
+        label.setTextAlignment(TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_RIGHT)
+        label.setEnabled(false)
+        label.setVisible(false)
+
+    function update(boolean visible, int seconds)
+        label.setVisible(visible)
+        let remainder = seconds mod 60
+        label.setText(I2S(seconds div 60) + ":" + (remainder < 10 ? "0" : "") + I2S(remainder))
+
+public class FighterHUD
+    framehandle plate
+    framehandle portrait
+    framehandle damageLabel
+    framehandle nameLabel
+    framehandle slotLabel
+    framehandle array[9] stockIcons
+    int previousCharacter = -1
+    int slot
+
+    construct(int slot, int count)
+        this.slot = slot
+        let spacing = 0.76 / count
+        let width = count > 2 ? 0.17 : 0.25
+        let x = 0.02 + spacing * (slot + 0.5) - width / 2
+        let suffix = I2S(slot)
+        plate = createBackdrop("FighterHUDPlate" + suffix, GAME_UI, 800 + slot * 20)
+        plate.setTexture("war3mapImported\\MatchHUD" + suffix + ".tga", 0, true)
+        plate.setAbsPoint(FRAMEPOINT_TOPLEFT, x, 0.084)
+        plate.setSize(width, 0.053)
+        plate.setEnabled(false)
+        portrait = createBackdrop("FighterHUDPortrait" + suffix, GAME_UI, 801 + slot * 20)
+        portrait.setAbsPoint(FRAMEPOINT_TOPLEFT, x - 0.002, 0.139)
+        portrait.setSize(width * 0.43, 0.117)
+        portrait.setEnabled(false)
+        damageLabel = createFrame("SmashcraftDamage", GAME_UI, 0, 802 + slot * 20)
+        damageLabel.setAbsPoint(FRAMEPOINT_TOPLEFT, x + width * 0.44, 0.117)
+        damageLabel.setSize(width * 0.57, 0.064)
+        if count > 2
+            damageLabel.setScale(0.77)
+        damageLabel.setTextAlignment(TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT)
+        damageLabel.setEnabled(false)
+        nameLabel = createTextFrame("FighterHUDName" + suffix, GAME_UI, 803 + slot * 20)
+        nameLabel.setAbsPoint(FRAMEPOINT_TOPLEFT, x + width * 0.37, 0.052)
+        nameLabel.setSize(width * 0.60, 0.016)
+        nameLabel.setFont("Fonts\\FRIZQT__.TTF", 0.009, 1)
+        nameLabel.setTextAlignment(TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
+        nameLabel.setEnabled(false)
+        slotLabel = createTextFrame("FighterHUDSlot" + suffix, GAME_UI, 804 + slot * 20)
+        slotLabel.setAbsPoint(FRAMEPOINT_TOPLEFT, x + 0.004, 0.050)
+        slotLabel.setSize(0.023, 0.014)
+        slotLabel.setFont("Fonts\\FRIZQT__.TTF", 0.008, 1)
+        slotLabel.setText("P" + I2S(slot + 1))
+        slotLabel.setEnabled(false)
+        for i = 0 to 8
+            stockIcons[i] = createBackdrop("FighterHUDStock" + suffix + "_" + I2S(i), GAME_UI, 805 + slot * 20 + i)
+            stockIcons[i].setAbsPoint(FRAMEPOINT_TOPLEFT, x + width * 0.38 + i * 0.013, 0.029)
+            stockIcons[i].setSize(0.012, 0.012)
+            stockIcons[i].setEnabled(false)
+        update(false, 0, 0., 0)
+
+    function update(boolean visible, int character, real damage, int stocks)
+        plate.setVisible(visible)
+        portrait.setVisible(visible)
+        damageLabel.setVisible(visible)
+        nameLabel.setVisible(visible)
+        slotLabel.setVisible(visible)
+        if previousCharacter != character
+            previousCharacter = character
+            portrait.setTexture(character == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga", 0, true)
+            nameLabel.setText(character == 0 ? "ARCHER" : "RIFLEMAN")
+            for i = 0 to 8
+                stockIcons[i].setTexture(character == 0 ? "war3mapImported\\ArcherTile.tga" : "war3mapImported\\RiflemanTile.tga", 0, true)
+        let tint = damage >= 150 ? "|cffff4747" : (damage >= 100 ? "|cffff9845" : (damage >= 50 ? "|cffffff98" : "|cffffffff"))
+        damageLabel.setText(tint + I2S(R2I(damage)) + "." + I2S(R2I(damage * 10) mod 10) + "%|r")
+        for i = 0 to 8
+            stockIcons[i].setVisible(visible and i < stocks)

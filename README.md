@@ -1,4 +1,4 @@
-# Warcraft platform fighter
+# Smashcraft
 
 Authoritative checkout: ~/code/wc3-melee/worktrees/test-loop.
 Gameplay is Wurst; the build emits Lua and packages the existing terrain map.
