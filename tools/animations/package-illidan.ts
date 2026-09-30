@@ -22,6 +22,6 @@ console.log('ILLIDAN_PACKAGE_PASS',bindings.length,'authored clips',model.Sequen
 console.log('TEXTURES',JSON.stringify(model.Textures));
 const source=await Bun.file(join(out,'source-textures.json')).json();
 for(const texture of source){
- ensure(model.Textures.some(t=>t.Image===texture.Image&&t.ReplaceableId===texture.ReplaceableId),`Missing source texture ${texture.Image}/${texture.ReplaceableId}`);
+ ensure(model.Textures.some(t=>t.Image===texture.Image&&(t.ReplaceableId ?? 0)===texture.ReplaceableId),`Missing source texture ${texture.Image}/${texture.ReplaceableId}`);
 }
 console.log('SOURCE_TEXTURES_PRESERVED',source.length);
