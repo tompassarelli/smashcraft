@@ -4,14 +4,17 @@
 
 Illidan is not yet selectable or installed as a playable fighter. The installed
 model imports into Blender with 234 bones, 17 geosets and 24 stock actions;
-these are source assets, not completed combat clips. Unfiltered side-view
-inspection still shows a white polygon over the torso. Import acceptance
-remains open until that material defect is repaired without hiding geometry.
+these are source assets, not completed combat clips. The material repair in
+mdl-exporter4 commit 966dbe81178ad1790dc06d1ec58f4792da682349 removes the
+white torso polygon in unfiltered side-view previews. Source TeamColor00
+panels remain red. Rendered checks cover alpha-over layer composition and
+black TeamGlow transparency; export checks preserve source texture paths,
+replaceable IDs and filter modes. Native model fidelity is still unverified.
 Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile.png.
 
 | Required coverage | Current state |
 | --- | --- |
-| Model, textures, attached blades, both gameplay facings | Imported; material repair incomplete; not native-verified |
+| Model, textures, attached blades, both gameplay facings | Imported; repaired materials inspected from both sides; not native-verified |
 | Jab, directional/angled tilts, smashes, dash attack | Combat implemented/source-tested; authored clips missing |
 | Neutral/forward/back/up/down aerials | Combat implemented/source-tested; authored clips missing |
 | Mana Burn, parry/evasion, wing ascent, Immolate | Combat implemented/source-tested; authored clips and effects missing |

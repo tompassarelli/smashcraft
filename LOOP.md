@@ -449,7 +449,13 @@ Pending scope: remaining special acceptance checks above, further native
 get-up acceptance and dedicated grab/hold and damage presentation. The native
 adapter still uses stock "stand hit" reactions; authored grounded/airborne
 damage clips and reliable hitlag phase restoration remain required.
-Rifleman blue portrait import now selects Blue and extracts TeamColor01, but
-the actual render remains white. The importer SD material-layer chain replaces
-the underlying team-color image connection; this needs repair in its owning
-mdl-exporter4 source before claiming the blue portrait complete.
+Rifleman blue portrait import selects Blue and extracts TeamColor01; the last
+completed portrait still rendered white. The owning material-layer repair is
+now committed as mdl-exporter4:966dbe81178ad1790dc06d1ec58f4792da682349 and
+passes rendered blend/coverage checks. The follow-up two-portrait rebuild hit
+its 240-second command limit while Blender was still processing Archer, before
+Rifleman began. That run produced no replacement portrait or map deployment.
+Regenerate the Rifleman portrait with a suitably bounded single-fighter run,
+inspect its blue clothing and full weapon framing, then package it. The import
+phase versus render phase of the timed-out run was not established because its
+redirected output remained buffered; do not call that a renderer diagnosis.
