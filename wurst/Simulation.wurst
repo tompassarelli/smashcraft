@@ -258,6 +258,35 @@ public class InputSnapshot
 	boolean walking = false
 	boolean attackHeld = false
 
+	function copyTo(InputSnapshot destination)
+		destination.direction = direction
+		destination.verticalDirection = verticalDirection
+		destination.sdiPulse = sdiPulse
+		destination.sdiX = sdiX
+		destination.sdiZ = sdiZ
+		destination.cStickX = cStickX
+		destination.cStickZ = cStickZ
+		destination.attackRequested = attackRequested
+		destination.down = down
+		destination.shield = shield
+		destination.jumpPressed = jumpPressed
+		destination.airDodgePressed = airDodgePressed
+		destination.techPressed = techPressed
+		destination.mashPressed = mashPressed
+		destination.lCancelPressed = lCancelPressed
+		destination.groundDodgePressed = groundDodgePressed
+		destination.groundDodgeDirection = groundDodgeDirection
+		destination.getupAttackPressed = getupAttackPressed
+		destination.ledgeVerticalPressed = ledgeVerticalPressed
+		destination.getupStandPressed = getupStandPressed
+		destination.getupDirectionPressed = getupDirectionPressed
+		destination.getupDirection = getupDirection
+		destination.dodgeX = dodgeX
+		destination.dodgeZ = dodgeZ
+		destination.jumpHeld = jumpHeld
+		destination.walking = walking
+		destination.attackHeld = attackHeld
+
 function applyDirectionalInfluence(FighterState target, InputSnapshot input)
 	if not target.diPending
 		return

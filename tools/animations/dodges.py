@@ -358,6 +358,8 @@ make_action("Get Up Attack", {
 
 sys.path.insert(0, str(project / "tools/animations"))
 sys.dont_write_bytecode = True
+from aerials import author_archer_aerials
+author_archer_aerials(make_action, tilt_pose)
 from ledges import author_ledges
 author_ledges(rig, "Archer")
 

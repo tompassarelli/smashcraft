@@ -5,12 +5,12 @@ compiler="$project_dir/toolchain/wurstscript.jar"
 stdlib=/home/tom/code/wurst-stdlib/pins/4dfc8a0474bd
 packager="$project_dir/build/tools/map-pack"
 if [[ $# -lt 1 || $# -gt 2 || ! -f "$1" ]]; then
-    echo 'Usage: wc3-melee:tools/netcode-probe/build.sh BASE_MAP [1|2|pose]' >&2
+    echo 'Usage: wc3-melee:tools/netcode-probe/build.sh BASE_MAP [1|2|pose|pose-controlled]' >&2
     exit 2
 fi
 base_map=$(realpath -- "$1")
 batch=${2:-1}
-case "$batch" in 1|2|pose) ;; *) echo 'Variant must be 1, 2 or pose.' >&2; exit 2;; esac
+case "$batch" in 1|2|pose|pose-controlled) ;; *) echo 'Variant must be 1, 2, pose or pose-controlled.' >&2; exit 2;; esac
 [[ $(sha256sum "$compiler" | cut -d ' ' -f1) == 9169418755f722bbbfd36f4e4f2e34241e72a0e006510040b3569eb76e4cb6ad ]]
 [[ $(git -C "$stdlib" rev-parse HEAD) == 4dfc8a0474bd0b9628ff79d935310c7fc92bce4a ]]
 [[ -x "$packager" ]]
@@ -23,11 +23,16 @@ if [[ "$batch" == pose ]]; then
     source_name=PoseProbe
     map_name=Smashcraft_Pose_Probe
 fi
+if [[ "$batch" == pose-controlled ]]; then
+    source_name=ControlledPoseProbe
+    map_name=Smashcraft_Controlled_Pose_Probe
+    nix shell nixpkgs#bun --command bun "$project_dir/tools/netcode-probe/pose-fixture.ts" "$probe_dir/imports/war3mapImported"
+fi
 mkdir -p "$probe_dir/wurst" "$probe_dir/_build/dependencies"
 ln -s "$stdlib" "$probe_dir/_build/dependencies/wurststdlib"
 cp "$project_dir/tools/netcode-probe/$source_name.wurst" "$probe_dir/wurst/"
 cp "$project_dir/tools/map-entry.j" "$probe_dir/wurst/war3map.j"
-if [[ "$batch" != pose ]]; then
+if [[ "$batch" == 1 || "$batch" == 2 ]]; then
     printf 'package ProbeInfo\npublic constant int PROBE_BATCH = %s\n' "$batch" > "$probe_dir/wurst/ProbeInfo.wurst"
 fi
 cat > "$probe_dir/wurst.build" <<YAML
@@ -78,6 +83,12 @@ cp "$probe_dir/_build/$map_name.w3x" "$probe_dir/$map_name.w3x"
 "$packager" replace "$probe_dir/$map_name.w3x" "$probe_dir/war3map.lua"
 "$packager" extract "$probe_dir/$map_name.w3x" "$probe_dir/verified.lua"
 cmp "$probe_dir/war3map.lua" "$probe_dir/verified.lua"
+if [[ "$batch" == pose-controlled ]]; then
+    for asset in PoseFixture.mdx PoseFixture.tga; do
+        "$packager" extract "$probe_dir/$map_name.w3x" "$probe_dir/verified-$asset" "war3mapImported\\$asset"
+        cmp "$probe_dir/imports/war3mapImported/$asset" "$probe_dir/verified-$asset"
+    done
+fi
 cp "$probe_dir/$map_name.w3x" "$probe_root/$map_name.w3x.next"
 mv "$probe_root/$map_name.w3x.next" "$probe_root/$map_name.w3x"
 printf 'Built %s/%s.w3x\n' "$probe_root" "$map_name"

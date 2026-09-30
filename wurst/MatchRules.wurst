@@ -6,6 +6,15 @@ public constant int MATCH = 2
 public constant int RESULT = 3
 public constant int MATCH_TICKS_PER_SECOND = 60
 
+// Mutable pacing/CPU state that affects future frame production is simulation state.
+public class ReplayRuntimeState
+    int simulationFrame = 0
+    real botAttackDelay = 0
+
+    function copyTo(ReplayRuntimeState destination)
+        destination.simulationFrame = simulationFrame
+        destination.botAttackDelay = botAttackDelay
+
 public class MatchState
     int phase = CHARACTER_MENU
     int characterChoice = 0

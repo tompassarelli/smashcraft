@@ -29,3 +29,51 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
     updateProjectilePair(first, second)
     game.resolveStocks(first.stocks, second.stocks)
     game.advanceClock(first.stocks, first.damage, second.stocks, second.damage)
+
+// One complete, immutable input row for a fighting frame. Producer-side attack
+// requests are recorded separately from the persistent simulation buffers.
+public class MatchFrameInput
+    private int frame = -1
+    private InputSnapshot first = new InputSnapshot()
+    private InputSnapshot second = new InputSnapshot()
+    private InputSnapshot firstScratch = new InputSnapshot()
+    private InputSnapshot secondScratch = new InputSnapshot()
+    private AttackBuffer firstRequests = new AttackBuffer(0)
+    private AttackBuffer secondRequests = new AttackBuffer(0)
+    private real botDelayAfterInput = 0
+
+    function reset()
+        frame = -1
+
+    function capture(int assignedFrame, InputSnapshot firstInput, InputSnapshot secondInput,
+            AttackBuffer firstAttackRequests, AttackBuffer secondAttackRequests,
+            ReplayRuntimeState runtime) returns boolean
+        if assignedFrame < 0 or frame == assignedFrame
+            return false
+        frame = assignedFrame
+        firstInput.copyTo(first)
+        secondInput.copyTo(second)
+        firstAttackRequests.copyTo(firstRequests)
+        secondAttackRequests.copyTo(secondRequests)
+        botDelayAfterInput = runtime.botAttackDelay
+        return true
+
+    function frameNumber() returns int
+        return frame
+
+    function execute(MatchState game, FighterState firstFighter, FighterState secondFighter,
+            AttackBuffer firstCommands, AttackBuffer secondCommands,
+            ReplayRuntimeState runtime, int expectedFrame) returns boolean
+        if frame != expectedFrame or expectedFrame != runtime.simulationFrame + 1
+            return false
+        first.copyTo(firstScratch)
+        second.copyTo(secondScratch)
+        if firstRequests.style >= 0
+            firstCommands.enqueue(firstRequests.style, firstRequests.facing, firstRequests.targetFrame, firstRequests.mayCharge)
+        if secondRequests.style >= 0
+            secondCommands.enqueue(secondRequests.style, secondRequests.facing, secondRequests.targetFrame, secondRequests.mayCharge)
+        runtime.botAttackDelay = botDelayAfterInput
+        stepMatch(game, firstFighter, secondFighter, firstScratch, secondScratch,
+            firstCommands, secondCommands, frame)
+        runtime.simulationFrame = frame
+        return true

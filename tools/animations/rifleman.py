@@ -78,7 +78,8 @@ def grip_arm(side, target, pole):
     aim_bone(lower.name, hand.matrix.translation.copy(), shoulder + direction*distance)
 
 
-def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0):
+def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
+         leg_r=0, knee_r=0, leg_l=0, knee_l=0):
     for name, matrix in base.items():
         rig.pose.bones[name].matrix_basis = matrix
     # Root displacement belongs entirely to simulation, including aerial clips.
@@ -86,8 +87,8 @@ def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0):
     rig.pose.bones['Bone_Root'].location = (0, 0, 0)
     turn('Bone_Chest', lean)
     for side in ('L', 'R'):
-        turn(f'Bone_Leg1_{side}', 62*tuck)
-        turn(f'Bone_Leg2_{side}', -100*tuck)
+        turn(f'Bone_Leg1_{side}', 62*tuck + (leg_r if side == 'R' else leg_l))
+        turn(f'Bone_Leg2_{side}', -100*tuck + (knee_r if side == 'R' else knee_l))
     rig.pose.bones['Bone_Pelvis'].location += Vector((0, -12*crouch, 0))
     bpy.context.view_layer.update()
     chest = rig.pose.bones['Bone_Chest'].matrix.copy()
@@ -167,6 +168,8 @@ author('Get Up', {0:prone, 5:prone, 12:{'spin':65,'tuck':.8}, 20:{'spin':30,'tuc
 author('Get Up Attack', {0:prone, 5:{**prone,'strike':-.2}, 10:{'spin':70,'tuck':.8,'strike':-.3}, 16:{'spin':45,'tuck':.65,'strike':1}, 18:{'spin':35,'tuck':.5,'strike':1}, 25:{'spin':15,'tuck':.3,'strike':.4}, 38:{}, 45:{}})
 sys.path.insert(0, str(project / "tools/animations"))
 sys.dont_write_bytecode = True
+from aerials import author_rifleman_aerials
+author_rifleman_aerials(author)
 from ledges import author_ledges
 author_ledges(rig, "Rifleman")
 

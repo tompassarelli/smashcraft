@@ -1701,3 +1701,16 @@ chat opening remains unresolved: the inspected pinned key/frame API provides
 no key-event consumption result, and no synthetic closing input was added.
 The implementation still supports two combatants; four selection cards do
 not add third/fourth-fighter simulation.
+
+Netcode checkpoint (2026-09-30): the live adapter now captures an exact-frame
+input row before numerical execution; snapshots exclude hardware sampling and
+include logical frame/CPU cooldown state. Headless suite 216/216; full map
+build passes with four existing warnings. Both fighters execute jump,
+double jump and neutral aerial in the isolated native fixture. Repaired
+exporter packages preserve unchanged authored source motion; prior buggy
+between-key output is not claimed unchanged. Current sources/evidence and the
+clip-switch pose-restoration limitation are in wc3-melee:native-capability-report.md.
+Next: bounded preallocated history, canonical field comparison/hash and replay
+oracle, then fixed scheduled input and shadow rollback. Native two-client gates
+remain open; a second licensed account/client is not yet available. No cloud
+resources have been provisioned. Full gameplay/UI backlog remains active.

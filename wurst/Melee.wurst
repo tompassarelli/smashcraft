@@ -53,7 +53,7 @@ framehandle noticeFrame
 framehandle developerFrame
 string statusText = ""
 real statusTime = 0
-real botAttackDelay = 0
+ReplayRuntimeState replayRuntime = new ReplayRuntimeState()
 boolean readyMarkerWritten = false
 boolean playerJumpQueued = false
 boolean playerJumpHeld = false
@@ -62,6 +62,10 @@ int playerDodgeX = 0
 int playerDodgeZ = 0
 boolean botJumpQueued = false
 boolean botJumpHeld = false
+// Attack callbacks write producer requests; captured rows feed the canonical buffers.
+AttackBuffer playerAttackRequests = new AttackBuffer(0)
+AttackBuffer secondAttackRequests = new AttackBuffer(0)
+MatchFrameInput currentFrameInput = new MatchFrameInput()
 timer inputTraceClock = null
 boolean inputTraceActive = false
 boolean developerRestartRequested = false
@@ -72,7 +76,6 @@ int inputTraceLastAxes = 999
 int inputTraceLastDodge = -1
 int inputTraceLastLandingLag = -1
 string array inputTraceLines
-int simulationFrame = 0
 boolean twoHumanPlayers = false
 
 function traceInput(string entry)
@@ -83,7 +86,7 @@ function traceInput(string entry)
         inputTraceDropped++
 
 function traceParticipant(int participantId, string entry)
-    traceInput("participant " + I2S(participantId) + " frame " + I2S(simulationFrame) + " phase " + I2S(matchState.phase) + " " + entry)
+    traceInput("participant " + I2S(participantId) + " frame " + I2S(replayRuntime.simulationFrame) + " phase " + I2S(matchState.phase) + " " + entry)
 
 function startInputTrace()
     if inputTraceClock == null
@@ -97,7 +100,7 @@ function startInputTrace()
     inputTraceActive = true
     TimerStart(inputTraceClock, 1000, false, null)
     traceInput("start " + BUILD_ID)
-    traceInput("humans " + (twoHumanPlayers ? "2" : "1") + " frame " + I2S(simulationFrame) + " phase " + I2S(matchState.phase))
+    traceInput("humans " + (twoHumanPlayers ? "2" : "1") + " frame " + I2S(replayRuntime.simulationFrame) + " phase " + I2S(matchState.phase))
     PreloadGenClear()
     PreloadGenStart()
     Preload("TRACE START " + BUILD_ID)
@@ -366,15 +369,15 @@ function attack(Fighter attacker, Fighter target, int style)
     if matchState.phase != MATCH
         return
     if attacker == playerFighter
-        queueHumanAttack(playerAttacks, botAttacks, 0, style, style == 4 ? playerAttackFacing : 0, simulationFrame)
+        queueHumanAttack(playerAttackRequests, secondAttackRequests, 0, style, style == 4 ? playerAttackFacing : 0, replayRuntime.simulationFrame)
     else if twoHumanPlayers
-        queueHumanAttack(playerAttacks, botAttacks, 1, style, style == 4 ? secondAttackFacing : 0, simulationFrame)
+        queueHumanAttack(playerAttackRequests, secondAttackRequests, 1, style, style == 4 ? secondAttackFacing : 0, replayRuntime.simulationFrame)
     else
-        botAttacks.enqueue(style, target.x >= attacker.x ? 1 : -1, simulationFrame, false)
+        secondAttackRequests.enqueue(style, target.x >= attacker.x ? 1 : -1, replayRuntime.simulationFrame, false)
 
-function traceFrameInput(int participantId, InputSnapshot input, AttackBuffer attacks)
-    if inputTraceActive and (input.jumpPressed or input.airDodgePressed or attacks.hasPending(simulationFrame))
-        traceParticipant(participantId, "sampled x " + I2S(input.direction) + " z " + I2S(input.verticalDirection) + " jump " + (input.jumpPressed ? "1" : "0") + " dodge " + (input.airDodgePressed ? "1" : "0") + " attack " + I2S(attacks.hasPending(simulationFrame) ? attacks.style : -1))
+function traceFrameInput(int participantId, InputSnapshot input, AttackBuffer attacks, int frame)
+    if inputTraceActive and (input.jumpPressed or input.airDodgePressed or attacks.hasPending(frame))
+        traceInput("participant " + I2S(participantId) + " frame " + I2S(frame) + " phase " + I2S(matchState.phase) + " sampled x " + I2S(input.direction) + " z " + I2S(input.verticalDirection) + " jump " + (input.jumpPressed ? "1" : "0") + " dodge " + (input.airDodgePressed ? "1" : "0") + " attack " + I2S(attacks.hasPending(frame) ? attacks.style : -1))
 
 function applyFrame()
     let playerWasOut = playerFighter.out
@@ -391,9 +394,9 @@ function applyFrame()
     let botPreviousShieldBreak = botFighter.shieldBreakSerial
     let playerPreviousBreakState = playerFighter.shieldBreakState
     let playerPreviousLedge = playerFighter.ledgeState
-    traceFrameInput(0, playerInput, playerAttacks)
-    traceFrameInput(1, twoHumanPlayers ? secondPlayerInput : botInput, botAttacks)
-    stepMatch(matchState, playerFighter, botFighter, playerInput, twoHumanPlayers ? secondPlayerInput : botInput, playerAttacks, botAttacks, simulationFrame)
+    if not currentFrameInput.execute(matchState, playerFighter, botFighter,
+            playerAttacks, botAttacks, replayRuntime, currentFrameInput.frameNumber())
+        return
     if playerFighter.shieldBreakSerial > playerPreviousShieldBreak
         announce("Player 1's shield broke!")
     else if botFighter.shieldBreakSerial > botPreviousShieldBreak
@@ -466,9 +469,14 @@ function startMatch()
         secondSettingsPanel.close()
     playerAttacks.clear()
     botAttacks.clear()
+    playerAttackRequests.clear()
+    secondAttackRequests.clear()
     clearHeldInputs()
     clearSecondInputs()
-    simulationFrame = 0
+    replayRuntime.simulationFrame = 0
+    currentFrameInput.reset()
+    replayRuntime.botAttackDelay = 0
+    botJumpHeld = false
     playerAttackFacing = 0
     playerJumpQueued = false
     playerAirDodgeQueued = false
@@ -567,6 +575,8 @@ function clearSecondInputs()
     secondAttackFacing = 0
     botJumpQueued = false
     botJumpHeld = false
+    if secondAttackRequests != null
+        secondAttackRequests.clear()
     if botAttacks != null
         botAttacks.clear()
 
@@ -588,6 +598,8 @@ function clearHeldInputs()
     playerDodgeX = 0
     playerDodgeZ = 0
     playerAttackFacing = 0
+    if playerAttackRequests != null
+        playerAttackRequests.clear()
     if playerAttacks != null
         playerAttacks.clear()
 
@@ -809,6 +821,21 @@ function firstPlayerLeaves()
     matchState.forfeit(0)
 
 function playAttackAnimation(Fighter fighter)
+    if fighter.attackStyle == AERIAL_NEUTRAL_STYLE
+        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_AERIAL_NEUTRAL_INDEX : RIFLEMAN_AERIAL_NEUTRAL_INDEX)
+        return
+    if fighter.attackStyle == AERIAL_FORWARD_STYLE
+        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_AERIAL_FORWARD_INDEX : RIFLEMAN_AERIAL_FORWARD_INDEX)
+        return
+    if fighter.attackStyle == AERIAL_BACK_STYLE
+        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_AERIAL_BACK_INDEX : RIFLEMAN_AERIAL_BACK_INDEX)
+        return
+    if fighter.attackStyle == AERIAL_UP_STYLE
+        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_AERIAL_UP_INDEX : RIFLEMAN_AERIAL_UP_INDEX)
+        return
+    if fighter.attackStyle == AERIAL_DOWN_STYLE
+        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_AERIAL_DOWN_INDEX : RIFLEMAN_AERIAL_DOWN_INDEX)
+        return
     if fighter.attackStyle == 0
         SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_JAB_INDEX : RIFLEMAN_JAB_INDEX))
         return
@@ -841,6 +868,16 @@ function attackAnimationRate(Fighter fighter) returns real
     if attackPhase(fighter) == ATTACK_NONE
         return 1.
     let seconds = fighter.attackDuration * FRAME_SECONDS
+    if fighter.attackStyle == AERIAL_NEUTRAL_STYLE
+        return (fighter.character == 0 ? ARCHER_AERIAL_NEUTRAL_SECONDS : RIFLEMAN_AERIAL_NEUTRAL_SECONDS) / seconds
+    if fighter.attackStyle == AERIAL_FORWARD_STYLE
+        return (fighter.character == 0 ? ARCHER_AERIAL_FORWARD_SECONDS : RIFLEMAN_AERIAL_FORWARD_SECONDS) / seconds
+    if fighter.attackStyle == AERIAL_BACK_STYLE
+        return (fighter.character == 0 ? ARCHER_AERIAL_BACK_SECONDS : RIFLEMAN_AERIAL_BACK_SECONDS) / seconds
+    if fighter.attackStyle == AERIAL_UP_STYLE
+        return (fighter.character == 0 ? ARCHER_AERIAL_UP_SECONDS : RIFLEMAN_AERIAL_UP_SECONDS) / seconds
+    if fighter.attackStyle == AERIAL_DOWN_STYLE
+        return (fighter.character == 0 ? ARCHER_AERIAL_DOWN_SECONDS : RIFLEMAN_AERIAL_DOWN_SECONDS) / seconds
     if fighter.attackStyle == 0
         return (fighter.character == 0 ? ARCHER_JAB_SECONDS : RIFLEMAN_JAB_SECONDS) / seconds
     if fighter.attackStyle == 6
@@ -1038,12 +1075,12 @@ function gameTick()
     lockArenaCamera()
     statusTime = max(0, statusTime - FRAME_SECONDS)
     if matchState.phase == MATCH
-        simulationFrame++
+        let frame = replayRuntime.simulationFrame + 1
         let direction = firstKeyState.directionX()
         if playerNormalAttackQueued
             let style = normalAttackStyle(direction, firstKeyState.directionZ(), firstKeyState.actionHeld(WALK_MODIFIER))
             lastNormalStyle = style
-            playerAttacks.enqueue(style, direction, simulationFrame, true)
+            playerAttackRequests.enqueue(style, direction, frame, true)
         var botDirection = 0
         if not twoHumanPlayers and not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not LEDGE_SCENARIO and not botFighter.out and not playerFighter.out
             let gap = playerFighter.x - botFighter.x
@@ -1053,10 +1090,10 @@ function gameTick()
                 botJumpQueued = true
             if botFighter.grounded and playerFighter.z > botFighter.z + 130
                 botJumpQueued = true
-            botAttackDelay -= FRAME_SECONDS
-            if gap.abs() < 135 and botAttackDelay <= 0
-                attack(botFighter, playerFighter, 0)
-                botAttackDelay = 0.35
+            replayRuntime.botAttackDelay -= FRAME_SECONDS
+            if gap.abs() < 135 and replayRuntime.botAttackDelay <= 0
+                secondAttackRequests.enqueue(0, playerFighter.x >= botFighter.x ? 1 : -1, frame, false)
+                replayRuntime.botAttackDelay = 0.35
         playerInput.direction = direction
         playerInput.verticalDirection = firstKeyState.directionZ()
         playerInput.sdiPulse = firstKeyState.pulsePending()
@@ -1114,11 +1151,18 @@ function gameTick()
         secondPlayerInput.dodgeZ = secondDodgeZ
         if twoHumanPlayers and secondNormalAttackQueued
             let style = normalAttackStyle(secondPlayerInput.direction, secondPlayerInput.verticalDirection, secondPlayerInput.walking)
-            botAttacks.enqueue(style, secondPlayerInput.direction, simulationFrame, true)
+            secondAttackRequests.enqueue(style, secondPlayerInput.direction, frame, true)
         botInput.direction = botDirection
         botInput.jumpPressed = botJumpQueued
         botInput.jumpHeld = botJumpHeld
-        applyFrame()
+        if currentFrameInput.capture(frame,
+                playerInput, twoHumanPlayers ? secondPlayerInput : botInput,
+                playerAttackRequests, secondAttackRequests, replayRuntime)
+            traceFrameInput(0, playerInput, playerAttackRequests, frame)
+            traceFrameInput(1, twoHumanPlayers ? secondPlayerInput : botInput, secondAttackRequests, frame)
+            playerAttackRequests.clear()
+            secondAttackRequests.clear()
+            applyFrame()
         playerMashPressed = false
         secondMashPressed = false
         playerLedgeVerticalPressed = 0

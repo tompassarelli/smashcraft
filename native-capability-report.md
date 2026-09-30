@@ -22,11 +22,11 @@ wc3-melee:SMASHCRAFT_NETCODE_PROPOSAL.md.
 - Gameplay map saved before the probe, restored byte-for-byte afterward, and
   reloaded to character select without restarting the Warcraft process.
   Screenshot: wc3-melee:build/netcode-probe/gameplay-restored.png.
-- Aerial animation WIP is excluded from this baseline. Existing source actions
-  survive, but exporter interpolation changes remain unresolved. Counterexample:
-  wc3-melee:tools/animations/check-aerials.ts. Upstream seam:
-  mdl-exporter4:export_mdl/classes/animation_curve_utils/get_wc3_animation_curve.py.
-  Parent retains repair responsibility; no aerial preservation/native claim.
+- Aerial animation WIP is excluded from the historical baseline. Exporter
+  interpolation was repaired in mdl-exporter4 commit 376f0c2a153d1332ae535ad4cada75cd3340ca6a.
+  Both new packages pass preservation against unchanged source scenes exported
+  with that repair; this does not preserve the former buggy between-key poses.
+  See wc3-melee:ANIMATIONS.md for the distinction and native validation limits.
 
 ## Audit: existing ownership boundaries
 
@@ -59,7 +59,7 @@ snapshot coverage. Current combat supports two fighters, not four.
 | Header declarations | Pinned common.j declares keyboard/meta/mouse polling, local-client-active, named effect animation/blend and effect time | PASS for declaration presence only |
 | A: early local polling | Both probes run; N/I/A holds/releases visible, and some poll transitions precede synchronized callbacks | SINGLE-CLIENT ONLY; network locality/physical timing unknown |
 | B: native traffic/pacing | Both 180-byte packet variants receive contiguous rows; receipt bursts observed | SHORT SINGLE-CLIENT SAMPLE; multiplayer capacity unknown |
-| C: complete snapshots/replay | Reusable numerical capture/restore plus focused movement/contact tests; full suite 214/214 | PARTIAL; adapter state/ring/hash/fault oracle pending |
+| C: complete snapshots/replay | Reusable snapshots and exact-frame input rows connected to the adapter; replay/contact tests pass | PARTIAL; bounded history/hash/fault oracle pending |
 | D: local presentation/pose recovery | Model-only effects freeze and seek within Attack; clip-change restoration did not reproduce reference pose | PARTIAL; exact recovery/local multiplayer safety unproven |
 | E: controlled fixed/hybrid comparison | No scheduled/rollback backend in gameplay yet | NOT IMPLEMENTED |
 
@@ -128,27 +128,26 @@ cases, controller injection, observer behavior and outer-engine stalls.
 ## Replay foundation implemented
 
 wc3-melee:wurst/ReplayState.wurst provides detached, reusable capture/restore
-storage for the existing two-fighter numerical state, projectile arrays, both
-normalized input snapshots, match rules, command buffers and physical-key/
-action-edge/directional-pulse state. Attacker references map into the restored
-fighter pair, so they do not point into another history's fighters. Storage is
-allocated at construction; capture/restore contain no allocations or native
-calls. This is not yet a canonical serialized snapshot format.
+storage for the existing two-fighter numerical state, projectile arrays,
+match rules, command buffers and frame/CPU cooldown state. Attacker references
+map into the restored pair. Physical keys and uncommitted edges are sampling
+state outside snapshots. Capture/restore allocate no objects or native handles.
+This is not yet a canonical serialized snapshot format.
 
-Three focused tests cover restore after mutation, a 48-frame movement/clock
-replay, and restoration into different fighter objects without repeating a
-hit from the same attack window. The integrated headless suite passed 214/214,
-zero errors/warnings; wc3-melee:build/wurst-tests/replay-integrated.log.
-This is not the requested 100,000-frame fault-injection oracle and makes no
-cross-client floating-point determinism claim.
+wc3-melee:wurst/MatchStep.wurst now records each complete frame in
+MatchFrameInput. Execution copies the immutable inputs into scratch storage,
+feeds recorded attack requests into canonical command buffers, and advances
+only the expected next frame. wc3-melee:wurst/Melee.wurst captures and executes
+that row once per existing game tick; callbacks stage requests. Match start
+resets the reusable record. There is no added network delay or prediction.
 
-Before connecting the live adapter, move or explicitly capture its additional
-queued edges (normal attack, jump, air dodge/vector, directional/getup/tech/
-L-cancel/mash/ledge inputs), simulationFrame, attack facing, and bot decision/
-cooldown state. Keep device sampling outside replay and distinguish immutable
-input records from canonical consumed-input history. Then add the bounded
-preallocated history ring, complete state comparison/hash, input-tape oracle
-and transport fault injection. Gameplay still uses its existing adapter.
+Tests cover mutation/restore, movement and clock replay, restored attacker
+identity, replaying an attack against shield using independent fighters, and
+reusing frame 1 after reset. The next work is a bounded preallocated history,
+complete state comparison/hash, input-tape oracle and transport fault injection.
+The requested 100,000-frame scenarios and cross-client arithmetic checks remain
+unimplemented. CPU decisions are recorded inputs for replay; speculative CPU
+regeneration has not been implemented.
 
 ## Observed single-client model pose run
 
@@ -185,3 +184,78 @@ vary while the reference body is frozen, so body pose alone is not a complete
 effect snapshot. Gate D remains open. The next useful probe must discriminate
 clip-selection/seek ordering against known authored clip intervals, rather
 than assume that another fixed delay solves it.
+
+## Controlled pose fixture follow-up
+
+The authored marker in wc3-melee:tools/netcode-probe/pose-fixture.ts separates
+clip-relative seconds from the model timeline. Attack spans 2000–3000ms and
+moves a marker vertically from 0 to 200; Walk spans 4000–5000ms and moves it
+horizontally. The ruler and geometry are original probe assets, with no random
+animation variants or emitters. Build variant: pose-controlled. Compilation
+passed with zero errors/warnings.
+
+| Phase | Operation | Visible marker result |
+| --- | --- | --- |
+| 0 | Select Attack, freeze | z=0; naturally frozen reference near z=60 |
+| 1 | SetTime(.3) | z=60, matching reference |
+| 2 | SetTime(2.3) | z=200, nonlooping endpoint |
+| 3 | SetTime(0) | z=0 |
+| 4 | Select Walk and SetTime(.3) together | x=0; desired seek failed |
+| 5 | SetTime(4.3), later | x≈60; looping time wraps |
+| 6 | Select Attack and SetTime(2.3) together | z=0; desired seek failed |
+| 7 | SetTime(.3), later | z=60 |
+| 8 | SetTime(.5) | z=100 |
+| 9 | SetTime(.3), backward | z=60 |
+
+This supports seconds relative to the selected clip and successful forward/
+backward seeks within that clip. It reproduces the same-callback clip-switch
+failure without Rifleman variants. It does not establish the cause or a safe
+clip-switch recovery interval; the earlier Rifleman next-callback candidate
+also failed. Gate D remains open. A single authored pose timeline or explicitly
+preselected model pools are possible next experiments, not accepted backends.
+
+Evidence: wc3-melee:build/netcode-probe/controlled-0.png through controlled-9.png,
+controlled-overview.png and controlled-markers.png. These are single-client
+visual observations, not bone-transform or two-client safety measurements.
+The original installed gameplay map was restored byte-for-byte and the running
+client returned to character select; gameplay-restored-after-controlled.png
+in the same evidence directory records that return. Warcraft was not closed.
+
+## Multiplayer test setup outstanding
+
+Tom currently has no second client/account available. Recommended final timing
+setup: a second physical PC and separately licensed account. A Windows GPU
+cloud VM with that account could first test actual replicated gameplay and
+native safety; capture inside the VM so streaming delay is not mislabeled as
+game latency. Cloud quota, supported game execution, region, cost and account
+availability must be resolved before provisioning. No VM/account was purchased
+or created. Physical button-to-visible measurements and controlled role/network
+swaps still require suitable instrumentation and remain untested.
+
+## Integrated frame-boundary validation
+
+The headless suite passes 216/216 with zero compiler errors/warnings, including
+the frame-record reset regression. Log:
+wc3-melee:build/wurst-tests/replay-frame-integrated.log.
+The full gameplay build passes and verifies packaged assets/Lua. It reports
+four existing warnings: three UI array initialization warnings and the unused
+DirectionalInput import in Melee. Log: wc3-melee:build/replay-aerials-build.log.
+
+Build replay-aerials reached both selection screens and combat in the existing
+client. Its five-second trace records attack requests consumed at their exact
+assigned frames. CPU hits confounded the first jump attempt; that trace is not
+a jump failure or a successful jump test. The existing knockdown fixture
+(disables CPU pursuit/attacks) supplies the isolated follow-up without changing
+combat tuning. Native replay and cross-client determinism are still untested.
+
+In isolated build replay-aerial-isolated, both fighters perform a ground jump,
+double jump and neutral aerial. Archer's attack is sampled and applied at
+frame 271, Rifleman's at frame 265 (style 12). No dropped trace rows; both
+five-second traces complete. Retained evidence:
+wc3-melee:tools/netcode-probe/evidence/20260930-archer-frame-input.txt and
+wc3-melee:tools/netcode-probe/evidence/20260930-rifleman-frame-input.txt.
+Screenshots in wc3-melee:build/netcode-probe/archer-aerial-isolated.png and
+rifleman-aerial-isolated.png show neutral aerial at action frames 8 and 11,
+with weapons retained. They do not establish active-frame alignment, every
+aerial clip, physical latency or multiplayer correctness. The normal
+replay-aerials map was restored afterward; client remains at character select.

@@ -381,3 +381,56 @@ quantization: Archer Stand - 5 is 3709ms after export versus 3700ms in the
 installed model. Non-ledge scene channels are unchanged by this correction;
 exact stock millisecond preservation remains an exporter follow-up, outside
 this contact fix.
+
+## Aerial clips and interpolation repair
+
+wc3-melee:tools/animations/aerials.py authors neutral, forward, back, up and down
+aerials for both rigs. The existing author scripts invoke it; generated asset
+metadata supplies clip indices/durations to the live attack renderer. Clips
+are nonlooping, include complete rotations, retain weapon grips and have no
+root travel. These are first-pass authored poses; animation-derived hurtbox
+volumes and native active-frame alignment remain outstanding.
+
+Adding alphabetically earlier actions exposed a general exporter defect:
+numeric tracks used interpolation selected from the first action, affecting
+unrelated clips. Bezier control conversion also used frame±1 evaluations
+instead of the authored curve. Upstream repair:
+mdl-exporter4 commit 376f0c2a153d1332ae535ad4cada75cd3340ca6a in
+~/code/mdl-exporter4/worktrees/blender5. GPL tooling stays standalone; no exporter
+implementation is incorporated into the Wurst map.
+
+Numeric actions now sample independently into Linear tracks. Adaptive sampling
+uses a 0.0001 criterion, bounded by integer-millisecond representation; this is
+an approximation criterion, not a universal world-space vertex-error guarantee.
+Constant transitions use the preceding millisecond; visibility/events retain
+DontInterp. Serialization produces unique timestamps and inclusive endpoints.
+The focused upstream Blender regression passes mixed interpolation, independent
+actions, quaternion motion, constant/single-key tracks, timestamps and endpoints.
+It compares evaluated source motion independently of the consumer package check.
+
+wc3-melee:tools/animations/check-aerials.ts compares the current packages against
+unchanged retained pre-aerial Blender scenes exported through the same repaired
+exporter. Required local baselines are
+wc3-melee:build/animation-assets/archer-before-aerial-repaired.mdl and
+wc3-melee:build/animation-assets/rifleman-before-aerial-repaired.mdl. Their sources
+are the corresponding *-before-aerial.blend scenes retained in that directory.
+Both fighters pass: track identities/interpolation, exact key counts/values,
+strict timestamp ordering and at most 1ms relative timestamp/duration variation
+from existing sequence-offset quantization. The independent comparison covered
+10,428 tracks. All 29 Archer and 26 Rifleman prior source actions remain unchanged.
+
+Original ArcherBeforeAerial.mdx and RiflemanBeforeAerial.mdx are retained locally.
+They fail the former exact-export comparison, recorded in
+wc3-melee:build/animation-assets/check-aerial-interpolation-old-oracle.log.
+Preserving authored motion is the accepted target; correcting the old exporter
+can change previously displayed between-key poses. No claim of unchanged old
+shipped interpolation, exact stock millisecond durations, or native animation
+fidelity follows from the passing source-preservation check.
+
+Native integration: isolated build replay-aerial-isolated executes jump,
+double jump and neutral aerial for both fighters. Screenshots at aerial frames
+8/11 show Archer's bow and Rifleman's rifle retained; input traces confirm
+style 12. Evidence and limits are in wc3-melee:native-capability-report.md.
+All five aerials per fighter compile/package, but this native check covers
+neutral aerial only, outside its active frames. Frame-perfect contact/hurtbox
+alignment and remaining clips need further validation.

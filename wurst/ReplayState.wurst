@@ -2,7 +2,6 @@ package ReplayState
 import Simulation
 import MatchRules
 import CommandBuffer
-import PlayerInputState
 
 // Reusable detached storage. Construct once before the match; capture/restore only
 // overwrite numerical fields and never create Warcraft handles or replay objects.
@@ -98,70 +97,30 @@ function copyFighter(FighterState source, FighterState destination,
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		destination.projectileDirection[i] = source.projectileDirection[i]
 
-function copyInput(InputSnapshot source, InputSnapshot destination)
-	destination.direction = source.direction
-	destination.verticalDirection = source.verticalDirection
-	destination.sdiPulse = source.sdiPulse
-	destination.sdiX = source.sdiX
-	destination.sdiZ = source.sdiZ
-	destination.cStickX = source.cStickX
-	destination.cStickZ = source.cStickZ
-	destination.attackRequested = source.attackRequested
-	destination.down = source.down
-	destination.shield = source.shield
-	destination.jumpPressed = source.jumpPressed
-	destination.airDodgePressed = source.airDodgePressed
-	destination.techPressed = source.techPressed
-	destination.mashPressed = source.mashPressed
-	destination.lCancelPressed = source.lCancelPressed
-	destination.groundDodgePressed = source.groundDodgePressed
-	destination.groundDodgeDirection = source.groundDodgeDirection
-	destination.getupAttackPressed = source.getupAttackPressed
-	destination.ledgeVerticalPressed = source.ledgeVerticalPressed
-	destination.getupStandPressed = source.getupStandPressed
-	destination.getupDirectionPressed = source.getupDirectionPressed
-	destination.getupDirection = source.getupDirection
-	destination.dodgeX = source.dodgeX
-	destination.dodgeZ = source.dodgeZ
-	destination.jumpHeld = source.jumpHeld
-	destination.walking = source.walking
-	destination.attackHeld = source.attackHeld
-
 public class ReplaySnapshot
 	FighterState first = new FighterState(0, 0, 1)
 	FighterState second = new FighterState(1, 0, -1)
-	InputSnapshot firstInput = new InputSnapshot()
-	InputSnapshot secondInput = new InputSnapshot()
 	MatchState match = new MatchState()
 	AttackBuffer firstCommands = new AttackBuffer(0)
 	AttackBuffer secondCommands = new AttackBuffer(0)
-	PlayerInputState firstKeys = new PlayerInputState()
-	PlayerInputState secondKeys = new PlayerInputState()
+	ReplayRuntimeState runtime = new ReplayRuntimeState()
 
 	function capture(FighterState liveFirst, FighterState liveSecond,
-			InputSnapshot liveFirstInput, InputSnapshot liveSecondInput,
 			MatchState liveMatch, AttackBuffer liveFirstCommands, AttackBuffer liveSecondCommands,
-			PlayerInputState liveFirstKeys, PlayerInputState liveSecondKeys)
+			ReplayRuntimeState liveRuntime)
 		copyFighter(liveFirst, first, liveFirst, liveSecond, first, second)
 		copyFighter(liveSecond, second, liveFirst, liveSecond, first, second)
-		copyInput(liveFirstInput, firstInput)
-		copyInput(liveSecondInput, secondInput)
 		liveMatch.copyTo(match)
 		liveFirstCommands.copyTo(firstCommands)
 		liveSecondCommands.copyTo(secondCommands)
-		liveFirstKeys.copyTo(firstKeys)
-		liveSecondKeys.copyTo(secondKeys)
+		liveRuntime.copyTo(runtime)
 
 	function restore(FighterState liveFirst, FighterState liveSecond,
-			InputSnapshot liveFirstInput, InputSnapshot liveSecondInput,
 			MatchState liveMatch, AttackBuffer liveFirstCommands, AttackBuffer liveSecondCommands,
-			PlayerInputState liveFirstKeys, PlayerInputState liveSecondKeys)
+			ReplayRuntimeState liveRuntime)
 		copyFighter(first, liveFirst, first, second, liveFirst, liveSecond)
 		copyFighter(second, liveSecond, first, second, liveFirst, liveSecond)
-		copyInput(firstInput, liveFirstInput)
-		copyInput(secondInput, liveSecondInput)
 		match.copyTo(liveMatch)
 		firstCommands.copyTo(liveFirstCommands)
 		secondCommands.copyTo(liveSecondCommands)
-		firstKeys.copyTo(liveFirstKeys)
-		secondKeys.copyTo(liveSecondKeys)
+		runtime.copyTo(liveRuntime)

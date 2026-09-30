@@ -77,3 +77,11 @@ recovery failure are in wc3-melee:native-capability-report.md. The per-client
 yaw difference is intentional for a future two-client local-mutation check;
 that check has not been performed. No input/pose probe establishes rollback
 feasibility or native unit prediction safety by itself.
+
+Variant `pose-controlled` builds
+wc3-melee:build/netcode-probe/Smashcraft_Controlled_Pose_Probe.w3x.
+It uses original marker/ruler geometry with known Attack and Walk intervals;
+ten automatic phases test seconds, model-timeline offsets, clip switching and
+backward seeking. Details and observed results are recorded in
+wc3-melee:native-capability-report.md. It requires the existing animation-tool
+Bun dependency for MDL/MDX packaging, but no installed fighter assets.
