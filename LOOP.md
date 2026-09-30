@@ -2,6 +2,24 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
+## Current checkpoint — two-fighter native checks, 2026-10-01
+
+Archer/Rifleman specials were exercised in the passive fixture. Observed
+damage-only arrow, multishot fan, hippogryph disengage/contact and mounted
+ascent; Rifleman shot flinch, running bear/contact, 300-frame ice freeze and
+downward-shot ascent. Rifleman Shield+O, pummel and down-throw contact/release
+also observed. Pair readability remains incomplete. Archer Shield+Attack
+dispatches grab, but the approach overshot; capture/throw remain unverified.
+Detailed evidence and limits: wc3-melee:ANIMATIONS.md.
+
+Installed for next launch: normal `special-direction-r1`, restored atomically
+from wc3-melee:build/special-direction-normal.w3x; byte comparison passed.
+Running: passive `special-direction-passive-r1`, Archer versus Rifleman,
+paused with Y after the grab attempt. Do not use Ctrl+R. Public release remains
+unchanged. No source rebuild was needed for these checks; no multiplayer
+conclusion follows. Continue with controlled Archer capture/throws and arrow
+jump cancellation, then the remaining two-fighter acceptance gaps.
+
 ## Special-direction repair — 2026-10-01
 
 Native testing found a shared input defect: a held Down, Special press, and

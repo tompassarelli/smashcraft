@@ -1,5 +1,50 @@
 # Authored fighter animation work
 
+## Archer and Rifleman native specials — 2026-10-01
+
+Single-client checks in `special-direction-passive-r1` now show:
+
+- Archer neutral arrow deals 7 damage without a victim hitstun transition.
+  Multishot visibly emits its fan after windup; this close-range attempt misses
+  after Archer passes the target. Disengage summons the hippogryph, moves Archer
+  backward and hits for 8 damage with 5 victim hitlag and 20 hitstun frames.
+- Archer Up-B visibly mounts/rises with the hippogryph and returns to the floor.
+  The trace ends the special at height 355.12 and records 4 landing frames.
+- Rifleman's shot deals 3 damage with 4 victim hitlag and 11 hitstun frames.
+  His running bear visibly contacts for 6 damage, 5 hitlag and 15 hitstun.
+- Rifleman's trap visibly entombs Archer in ice. Freeze begins at frame 1941;
+  Archer becomes actionable at frame 2241 with unchanged damage. This is 300
+  simulation frames (five logical seconds at 60 Hz), not physical latency.
+- Rifleman Up-B shows a downward projectile and upward fighter movement;
+  special 6 ends at height 425.699 before descent and 4 landing frames.
+
+Evidence: wc3-melee:build/archer-specials-native.mp4,
+wc3-melee:build/archer-specials-trace.txt,
+wc3-melee:build/archer-up-native.mp4,
+wc3-melee:build/archer-up-trace.txt,
+wc3-melee:build/rifleman-specials-native.mp4,
+wc3-melee:build/rifleman-specials-trace.txt,
+wc3-melee:build/rifleman-up-native.mp4 and
+wc3-melee:build/rifleman-up-trace.txt.
+
+Arrow jump cancellation remains unverified: the recorded jump follows the end
+of the special. Initial Up-B requests during Archer's ledge state and Rifleman's
+trap recovery do not activate; separate standing attempts establish activation.
+These checks do not establish protection timing, both facings, multishot contact,
+complete recovery acceptance, rollback presentation or multiplayer behavior.
+
+Rifleman Shield+O captures Archer at frame 2580, N starts pummel at 2605
+(9% -> 12%), and Down selects down-throw at 2641. Release at 2656 gives
+29 victim hitstun frames and raises damage to 17%. Video shows pummel/contact
+and release, but the held pair overlaps and still needs readability work.
+Evidence: wc3-melee:build/rifleman-shield-grab.mp4 and
+wc3-melee:build/rifleman-shield-grab-trace.txt (zero dropped records).
+Archer Shield+Attack selects grab style 5, but the preparatory dash overshoots
+the opponent; no capture occurs. That recording establishes dispatch only,
+not pummel or forward-throw acceptance:
+wc3-melee:build/archer-shield-grab.mp4 and
+wc3-melee:build/archer-shield-grab-trace.txt.
+
 ## Demon Hunter completion checklist
 
 Grounded Immolate contact is observed in Warcraft: one 7-damage hit with
