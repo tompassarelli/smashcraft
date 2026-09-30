@@ -1163,3 +1163,12 @@ specials. Grounded/airborne contact, both facings, parry interruption, jump
 consumption, and snapshot restoration have focused Wurst coverage. This does
 not certify model animation, local presentation safety, multiplayer behavior,
 or final move tuning.
+
+Simultaneous Immolate contacts are collected before either hit is applied,
+including the ground/air launch choice. Both fighters therefore trade when
+their active volumes overlap on the same tick; changing argument/slot order
+does not let the first hit cancel the second contact. The regression failed
+before this change and passes for both grounded and airborne mirror contacts.
+The focused character suite passes 12/12:
+wc3-melee:build/wurst-tests/illidan-trade-after-r2.log. Earlier failing evidence:
+wc3-melee:build/wurst-tests/illidan-trade-before.log.

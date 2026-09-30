@@ -72,6 +72,32 @@ function demonHunterMatch() returns MatchState
 			destroy target
 			destroy illidan
 
+@Test function simultaneousImmolatesTradeInEitherSlotOrder()
+	for airborne = 0 to 1
+		for reversed = 0 to 1
+			let left = new FighterState(2, 0, 1)
+			let right = new FighterState(2, 60, -1)
+			let input = new InputSnapshot()
+			input.specialPressed = true
+			input.down = true
+			if airborne == 1
+				left.grounded = false
+				right.grounded = false
+				left.z = 400
+				right.z = 400
+			startFighterSpecial(left, 0, input).assertTrue()
+			startFighterSpecial(right, 0, input).assertTrue()
+			for tick = 1 to DEMONHUNTER_IMMOLATE_STARTUP
+				advanceSpecialPair(reversed == 0 ? left : right, reversed == 0 ? right : left, 0)
+			let damage = airborne == 1 ? 9. : 7.
+			left.damage.assertEquals(damage)
+			right.damage.assertEquals(damage)
+			left.hitstun.assertGreaterThan(0)
+			right.hitstun.assertGreaterThan(0)
+			destroy input
+			destroy right
+			destroy left
+
 @Test function immolateAirSpecialSpikesAndUsesSingleContact()
 	let illidan = new FighterState(2, 0, -1)
 	let target = new FighterState(1, 0, 1)

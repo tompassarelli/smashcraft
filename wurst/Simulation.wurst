@@ -2156,33 +2156,39 @@ function advanceHippogryph(FighterState owner, FighterState target)
 public function advanceSpecialPair(FighterState first, FighterState second, int stage)
 	advanceSpecialAction(first)
 	advanceSpecialAction(second)
-	resolveDemonHunterSpecialContact(first, second)
-	resolveDemonHunterSpecialContact(second, first)
+	// Capture both contacts before either hit interrupts the opposing action.
+	let firstContact = demonHunterSpecialContact(first, second)
+	let secondContact = demonHunterSpecialContact(second, first)
+	let firstFacing = first.facing
+	let secondFacing = second.facing
+	if firstContact.window > 0
+		first.specialHit = true
+	if secondContact.window > 0
+		second.specialHit = true
+	if firstContact.window > 0
+		applyAttackHit(first, second, 0, firstFacing, firstContact.hitData, true)
+	if secondContact.window > 0
+		applyAttackHit(second, first, 0, secondFacing, secondContact.hitData, true)
 	advanceBear(first, second, stage)
 	advanceBear(second, first, stage)
 	advanceHippogryph(first, second)
 	advanceHippogryph(second, first)
 
-function resolveDemonHunterSpecialContact(FighterState owner, FighterState target)
+function demonHunterSpecialContact(FighterState owner, FighterState target) returns hitRegion
 	if owner.character != 2 or owner.specialAction != SPECIAL_DEMONHUNTER_IMMOLATE
-		return
+		return noHitRegion()
 	if owner.specialHit or owner.specialFrame < DEMONHUNTER_IMMOLATE_STARTUP
-		return
+		return noHitRegion()
 	if owner.specialFrame >= DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE or target.out or isIntangible(target)
-		return
+		return noHitRegion()
 	let localX = (target.x - owner.x) * owner.facing
 	let localZ = target.z - owner.z
-	let groundedShine = owner.grounded
-	let overlaps = groundedShine
-		? localX >= 0 and localX <= 140 and localZ >= -80 and localZ <= 100
-		: localX >= -70 and localX <= 70 and localZ >= -170 and localZ <= 30
-	if not overlaps
-		return
-	owner.specialHit = true
-	if groundedShine
-		applyAttackHit(owner, target, 0, owner.facing, hitEffect(7, 105, 21, 1, 0), true)
-	else
-		applyAttackHit(owner, target, 0, owner.facing, hitEffect(9, 110, 26, 0.12, -0.993), true)
+	let contact = owner.grounded
+		? hitRegion(0, 140, -80, 100, hitEffect(7, 105, 21, 1, 0), 1)
+		: hitRegion(-70, 70, -170, 30, hitEffect(9, 110, 26, 0.12, -0.993), 1)
+	if localX >= contact.minX and localX <= contact.maxX and localZ >= contact.minZ and localZ <= contact.maxZ
+		return contact
+	return noHitRegion()
 
 public function simulationJump(FighterState f)
 	if inGrabContext(f)
