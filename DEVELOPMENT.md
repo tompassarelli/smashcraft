@@ -1126,3 +1126,27 @@ Automatic restart correctly stopped after focus changed; direct F6 followed
 by Enter at the observed loading prompt completed the restart without another
 build. The retained client reported BUILD 070118 / SCENARIO normal in its ready
 marker. No two-client input test was performed in this pass.
+## Selection chips and portrait proportions (2026-09-30)
+
+wc3-melee:wurst/SelectionUI.wurst now places circular red P1 and blue P2 or
+gray CPU chips over the selected roster portraits. Slots use separate offsets
+so a shared character choice can display both chips. Decorative frames are
+disabled to preserve mouse selection. Chips hide for stage selection and the
+controls overlay. Artwork is owned by
+wc3-melee:tools/selection/art/SelectionChip.svg and imported by the map build.
+
+Roster portraits now use square frames. Full portraits are packaged at 768×1024
+to match the tall cards, using the existing Blender renders without rerendering.
+Both fighter definitions set selection scale to zero to suppress native overhead
+healthbars while retaining the custom damage/stocks HUD; in-match confirmation
+of this engine behavior remains pending.
+
+Build 080906 compiled with zero errors and the three existing warnings, and
+loaded in the retained client in 23.058 seconds. P1/CPU chips and corrected
+portrait proportions were visible, but the client then displayed “Waiting for
+host.” Chip interaction and healthbar suppression could not be verified.
+Evidence: ~/code/wc3-melee/worktrees/test-loop/build/selection-assets/chips-current.png
+and ~/code/wc3-melee/worktrees/test-loop/build/selection-assets/chips-reload.log.
+This recurrence after Ctrl+R means removing the F6 quick-save collision did
+not resolve the host stall. A ready-file receipt proves initialization, not
+continued responsiveness; do not report it as a successful interactive test.

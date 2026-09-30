@@ -23,6 +23,8 @@ public class SelectionPanel
     framehandle secondChoice
     framehandle firstChoicePortrait
     framehandle secondChoicePortrait
+    framehandle playerOneChip
+    framehandle playerTwoChip
     framehandle firstChoiceName
     framehandle secondChoiceName
     framehandle playerOneCard
@@ -107,14 +109,21 @@ public class SelectionPanel
 
         firstChoicePortrait = createBackdrop("MeleeArcherChoicePortrait" + suffix, GAME_UI, 421 + frameOffset)
         firstChoicePortrait.setTexture("war3mapImported\\ArcherTile.tga", 0, true)
-        firstChoicePortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.283, 0.411)
-        firstChoicePortrait.setSize(0.066, 0.087)
+        firstChoicePortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.2725, 0.411)
+        firstChoicePortrait.setSize(0.087, 0.087)
         firstChoicePortrait.setEnabled(false)
         secondChoicePortrait = createBackdrop("MeleeRiflemanChoicePortrait" + suffix, GAME_UI, 422 + frameOffset)
         secondChoicePortrait.setTexture("war3mapImported\\RiflemanTile.tga", 0, true)
-        secondChoicePortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.463, 0.411)
-        secondChoicePortrait.setSize(0.066, 0.087)
+        secondChoicePortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.4525, 0.411)
+        secondChoicePortrait.setSize(0.087, 0.087)
         secondChoicePortrait.setEnabled(false)
+        playerOneChip = createBackdrop("MeleeP1Chip" + suffix, GAME_UI, 433 + frameOffset)
+        playerOneChip.setTexture("war3mapImported\\SelectionChipP1.tga", 0, true)
+        playerOneChip.setSize(0.040, 0.040)
+        playerOneChip.setEnabled(false)
+        playerTwoChip = createBackdrop("MeleeP2Chip" + suffix, GAME_UI, 434 + frameOffset)
+        playerTwoChip.setSize(0.040, 0.040)
+        playerTwoChip.setEnabled(false)
         firstChoiceName = createTextFrame("MeleeArcherChoiceName" + suffix, GAME_UI, 423 + frameOffset)
         firstChoiceName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.264, 0.313)
         firstChoiceName.setSize(0.103, 0.024)
@@ -244,6 +253,8 @@ public class SelectionPanel
         secondChoice.setVisible(false)
         firstChoicePortrait.setVisible(false)
         secondChoicePortrait.setVisible(false)
+        playerOneChip.setVisible(false)
+        playerTwoChip.setVisible(false)
         firstChoiceName.setVisible(false)
         secondChoiceName.setVisible(false)
         playerOneCard.setVisible(false)
@@ -293,6 +304,8 @@ public class SelectionPanel
         secondChoice.setVisible((menuState == 0 or participantId == 0) and visible)
         firstChoicePortrait.setVisible(visible)
         secondChoicePortrait.setVisible(visible)
+        playerOneChip.setVisible(visible and menuState == 0)
+        playerTwoChip.setVisible(visible and menuState == 0)
         firstChoiceName.setVisible(visible)
         secondChoiceName.setVisible(visible)
         playerOneCard.setVisible(visible)
@@ -318,6 +331,11 @@ public class SelectionPanel
             return
 
         if menuState == 0
+            let playerOneChoice = participantId == 0 ? choice : opponentChoice
+            let playerTwoChoice = participantId == 0 ? opponentChoice : choice
+            playerOneChip.setAbsPoint(FRAMEPOINT_TOPLEFT, playerOneChoice == 0 ? 0.272 : 0.452, 0.366)
+            playerTwoChip.setAbsPoint(FRAMEPOINT_TOPLEFT, playerTwoChoice == 0 ? 0.323 : 0.503, 0.366)
+            playerTwoChip.setTexture(opponentHuman ? "war3mapImported\\SelectionChipP2.tga" : "war3mapImported\\SelectionChipCPU.tga", 0, true)
             firstChoicePortrait.setTexture("war3mapImported\\ArcherTile.tga", 0, true)
             secondChoicePortrait.setTexture("war3mapImported\\RiflemanTile.tga", 0, true)
             heading.setText("CHOOSE YOUR FIGHTER")

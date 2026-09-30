@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+ <defs>
+  <linearGradient id="rim" x1="0" y1="0" x2="0.7" y2="1"><stop stop-color="#fffde6"/><stop offset=".3" stop-color="#a2acb6"/><stop offset=".55" stop-color="#f3f5ef"/><stop offset="1" stop-color="#3c4554"/></linearGradient>
+  <linearGradient id="shine" x2="0" y2="1"><stop stop-color="#ffffff" stop-opacity=".45"/><stop offset=".5" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#000000" stop-opacity=".4"/></linearGradient>
+ </defs>
+ <circle cx="130" cy="135" r="116" fill="#03060b" fill-opacity=".65"/>
+ <circle cx="128" cy="125" r="116" fill="url(#rim)" stroke="#111620" stroke-width="5"/>
+ <circle cx="128" cy="125" r="96" fill="CHIP_COLOR" stroke="#252b35" stroke-width="5"/>
+ <circle cx="128" cy="125" r="94" fill="url(#shine)"/>
+ <path d="M48 88A87 87 0 0 1 207 86" fill="none" stroke="#fff9d8" stroke-opacity=".7" stroke-width="4"/>
+ <text x="129" y="150" text-anchor="middle" font-family="DejaVu Sans" font-weight="bold" font-size="68" fill="#fff9de" stroke="#17202d" stroke-width="6" paint-order="stroke fill">CHIP_LABEL</text>
+</svg>
