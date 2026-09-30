@@ -46,6 +46,10 @@ Resolve applicable electric and crouch-cancel modifiers rather than leaving
 them silently absent. Measure getup attack's actual hit advantage, including
 the defender's escape options.
 
+Leaving a ledge without jumping must leave one aerial jump. Up-special recovery
+must enter the appropriate helpless fall and jump lockout; do not generalize
+that restriction to Archer's explicitly jump-cancellable neutral-special.
+
 The proposed knockdown timing table is a comparison to verify against underlying
 data, not evidence of universal Melee durations. Ordinary dodge rolls and getup
 rolls are separate actions; do not inherit one action's timing into the other.
@@ -89,6 +93,8 @@ arrows are damage-only: no hitstun, hitlag, knockback or move interruption.
 This includes multishot arrows and supersedes the earlier stun request.
 
 Rifleman: recognizable Warcraft-style bullet; running/swiping bear;
+neutral-special bullet impact must briefly flinch the victim, like Falco's
+laser, distinctly from Archer's damage-only arrows;
 five-second freezing trap with visible ice entombment and defined release rules;
 downward-shot upward recovery with early protection ending before the apex.
 Finish readable kicks with cape clearance and canonical blue portraits with
@@ -118,6 +124,9 @@ Use QWER left-hand controls, U special, I jump, O grab, P walk/tilt; shield plus
 Attack or O grabs. L is not the default grab key. Finish both keyboard presets,
 rebinding and saved settings. Keep distinct jab/tilt/aerial input semantics and
 fresh-edge handling under buffering, hitlag and releases.
+Y acts as Start/Pause: confirms selection screens and toggles a synchronized
+match pause. Combat and the match clock stop while input/network servicing
+continues; pause-time attacks must not accumulate for release on resume.
 
 Provide visible movable chips for every active human/CPU, independent fighter
 choices and mirror matches; distinct character/stage screens; retained choices
