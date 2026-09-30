@@ -468,8 +468,22 @@ scratch; ordered explicit completion advances F and confirmed consumption once.
 Receipt alone never executes. The scheduler retains the last 64 completed rows,
 reuses bounded rings, rejects stale epochs and reports exhausted capture targets
 without signed wrap. Capture, receipt, read and completion allocate no objects.
-Physical-edge sampling, native service timing and gameplay conversion are absent;
-the existing synchronized-key gameplay baseline remains in use.
+Physical-edge sampling and native service timing remain absent; the gameplay
+bridge is a separate pure module described below.
+
+`wc3-melee:wurst/FixedInputPlayback.wurst` now provides the pure R=0 gameplay
+bridge: it reads the two accepted rows for exactly F, adapts them through the
+normalized `InputAdapter`, captures one detached `MatchFrameInput`, executes
+that recorded row, then marks the frame complete. Playback scratch is
+preallocated. `FixedInputPlaybackTests.wurst` adds a direct-versus-scheduled
+gameplay oracle for D=2/3/5: 128 frames per profile, comparing every canonical
+replay field after every executed frame, including initial neutral rows and
+reordered two-frame deliveries. Calling playback with a missing input prefix
+returns false and leaves the compared gameplay state unchanged. The combined
+fixed-input tests pass 9/9, with zero errors and the existing unused-import
+warning in wc3-melee:wurst/RecoveryTests.wurst. Evidence:
+wc3-melee:build/fixed-input-playback-final.log. Native input, transport and
+pacing remain outside this bridge; this is not the required long fault soak.
 
 Focused scheduler tests passed 8/8 with zero errors/warnings. The bounded oracle
 compares every executed normalized row for 600 frames under ordered single-row

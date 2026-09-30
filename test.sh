@@ -66,6 +66,8 @@ exec "$java" -Xmx512m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/wurst/InputLedgerTests.wurst" \
     "$project_dir/wurst/FixedInputSchedule.wurst" \
     "$project_dir/wurst/FixedInputScheduleTests.wurst" \
+    "$project_dir/wurst/FixedInputPlayback.wurst" \
+    "$project_dir/wurst/FixedInputPlaybackTests.wurst" \
     "$project_dir/wurst/ImpactEvents.wurst" \
     "$project_dir/wurst/DamagePose.wurst" \
     "$project_dir/wurst/DamagePoseTests.wurst" \

@@ -1,0 +1,38 @@
+package FixedInputPlayback
+import NetworkInput
+import FixedInputSchedule
+import InputAdapter
+import MatchStep
+import Simulation
+import MatchRules
+import CommandBuffer
+
+// Preallocated bridge from the common accepted-input ledger to the existing
+// gameplay step. Construct during common initialization; each call either
+// executes exactly the next confirmed frame or leaves gameplay untouched.
+public class FixedInputPlayback
+	private NetworkInput firstAccepted = new NetworkInput()
+	private NetworkInput secondAccepted = new NetworkInput()
+	private InputSnapshot firstInput = new InputSnapshot()
+	private InputSnapshot secondInput = new InputSnapshot()
+	private AttackBuffer firstRequests = new AttackBuffer(0)
+	private AttackBuffer secondRequests = new AttackBuffer(0)
+	private MatchFrameInput recorded = new MatchFrameInput()
+
+	function advanceNext(FixedInputSchedule schedule, int epoch, MatchState game,
+			FighterState first, FighterState second,
+			AttackBuffer firstCommands, AttackBuffer secondCommands,
+			ReplayRuntimeState runtime) returns boolean
+		let frame = schedule.nextFrameNumber()
+		if runtime.simulationFrame + 1 != frame or not schedule.readNext(epoch, firstAccepted, secondAccepted)
+			return false
+		adaptInput(firstAccepted, first, frame, firstInput, firstRequests)
+		adaptInput(secondAccepted, second, frame, secondInput, secondRequests)
+		if not recorded.capture(frame, firstInput, secondInput, firstRequests, secondRequests, runtime)
+			return false
+		if not recorded.execute(game, first, second, firstCommands, secondCommands, runtime, frame)
+			return false
+		return schedule.complete(epoch, frame)
+
+	function lastRecordedFrame() returns int
+		return recorded.frameNumber()

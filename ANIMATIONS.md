@@ -75,10 +75,19 @@ hold at frame 270, pummel at 295 and forward release at 360, with zero dropped
 records. Damage progresses 0 to 3 to 10. Evidence:
 wc3-melee:build/archer-grab-pose.mp4 and wc3-melee:build/archer-grab-pose-trace.txt;
 wc3-melee:build/rifleman-grab-pose.mp4 and wc3-melee:build/rifleman-grab-pose-trace.txt.
-Reverse-facing native readability and replay restoration remain unverified.
-Normal build grab-pose-r1 is installed for the next launch; the current paused
-session still runs the passive fixture. These solo checks are not multiplayer
-validation.
+Reverse-facing checks now also succeed in `archer-silhouette-passive-r1`.
+Archer captures/pummels/releases at frames 354/379/438; Rifleman at
+330/355/414. Both show the authored reach, captive pose, pummel and forward
+release, with weapons visibly separated and damage progressing 0 to 3 to 10.
+Both traces have zero dropped records. Evidence:
+wc3-melee:build/archer-grab-reverse-r2.mp4,
+wc3-melee:build/archer-grab-reverse-r2-trace.txt,
+wc3-melee:build/rifleman-grab-reverse-r2.mp4, and
+wc3-melee:build/rifleman-grab-reverse-r2-trace.txt.
+These establish the repaired hold/pummel/forward-release presentation in both
+facings against the other fighter. Mirror grabs, other throw poses in both
+facings, exact contact-volume alignment and replay restoration remain open.
+These solo checks are not multiplayer validation.
 
 ## Native buffered back air — 2026-10-01
 
@@ -115,7 +124,8 @@ and gives 25 hitstun frames. Back release at 1460 takes 13% to 20%, gives 27
 hitstun frames and launches behind the left-facing holder. Up release at 1936
 takes 23% to 29%, gives 28 hitstun frames and visibly launches vertically.
 Combined with the earlier down throw, all four Rifleman directions now have
-native selection/contact/release evidence. Hold/pummel overlap remains a gap.
+native selection/contact/release evidence. These older recordings precede the
+coordinated grab-pose repair described above.
 
 Evidence: wc3-melee:build/rifleman-forward-throw.mp4 and
 wc3-melee:build/rifleman-forward-throw-trace.txt;
@@ -147,7 +157,8 @@ wc3-melee:build/archer-down-throw.mp4 and
 wc3-melee:build/archer-down-throw-trace.txt. Each trace reports zero dropped
 records. This establishes selection, contact damage and release direction for
 these scenarios, not both-facing art acceptance or multiplayer behavior.
-Holder/victim overlap remains visible during hold and pummel.
+Holder/victim overlap is visible in these older recordings; the coordinated
+grab-pose section above records the subsequent repair and both-facing checks.
 
 Single-client checks in `special-direction-passive-r1` now show:
 

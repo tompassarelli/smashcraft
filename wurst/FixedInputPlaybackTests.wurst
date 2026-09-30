@@ -1,0 +1,169 @@
+package FixedInputPlaybackTests
+import FixedInputPlayback
+import FixedInputSchedule
+import InputAdapter
+import NetworkInput
+import InputProtocol
+import InputLedger
+import KeyBindings
+import MatchStep
+import MatchRules
+import Simulation
+import CommandBuffer
+import ReplayState
+
+class PlaybackWorld
+	FighterState first = new FighterState(0, 0, 1)
+	FighterState second = new FighterState(1, 100, -1)
+	MatchState game = new MatchState()
+	AttackBuffer firstCommands = new AttackBuffer(4)
+	AttackBuffer secondCommands = new AttackBuffer(4)
+	ReplayRuntimeState runtime = new ReplayRuntimeState()
+	ReplaySnapshot snapshot = new ReplaySnapshot()
+	private InputSnapshot firstInput = new InputSnapshot()
+	private InputSnapshot secondInput = new InputSnapshot()
+	private AttackBuffer firstRequests = new AttackBuffer(0)
+	private AttackBuffer secondRequests = new AttackBuffer(0)
+	private MatchFrameInput row = new MatchFrameInput()
+
+	construct()
+		game.phase = MATCH
+		game.timeLimitMinutes = 0
+		game.stockCount = 99
+		first.stocks = 99
+		second.stocks = 99
+
+	function execute(int frame, NetworkInput firstRow, NetworkInput secondRow)
+		adaptInput(firstRow, first, frame, firstInput, firstRequests)
+		adaptInput(secondRow, second, frame, secondInput, secondRequests)
+		row.capture(frame, firstInput, secondInput, firstRequests, secondRequests, runtime).assertTrue()
+		row.execute(game, first, second, firstCommands, secondCommands, runtime, frame).assertTrue()
+
+	function capture()
+		snapshot.capture(first, second, game, firstCommands, secondCommands, runtime)
+
+function buildTapeRow(int assignedFrame, int delay, int sender, NetworkInput row)
+	if assignedFrame <= delay
+		row.assign(0, 0, 0, 0, 0, 0, 0).assertTrue()
+		row.assignPressData(0, 0, 0, 0, false, 0, 0, 0).assertTrue()
+		row.assignThrowContributions(0, 0).assertTrue()
+		return
+	let sample = assignedFrame - delay
+	let phase = (sample * 17 + sender * 23) mod 120
+	var held = 0
+	var pressed = 0
+	var released = 0
+	if phase >= 8 and phase < 42
+		held += inputActionBit(sender == 0 ? MOVE_RIGHT : MOVE_LEFT)
+	if phase >= 70 and phase < 94
+		held += inputActionBit(JUMP)
+	if phase == 4 or phase == 55 or phase == 104
+		pressed += inputActionBit(ATTACK)
+	if phase == 8
+		pressed += inputActionBit(JUMP)
+	if phase == 64
+		pressed += inputActionBit(sender == 0 ? MOVE_UP : MOVE_DOWN)
+	if phase == 42
+		released += inputActionBit(sender == 0 ? MOVE_RIGHT : MOVE_LEFT)
+	if phase == 94
+		released += inputActionBit(JUMP)
+	let specialPressed = phase == 31
+	if specialPressed
+		pressed += inputActionBit(SPECIAL)
+	let shieldPressed = phase == 12
+	if shieldPressed
+		pressed += inputActionBit(LEFT_TRIGGER)
+	row.assign(held, pressed, released,
+		phase < 42 ? (sender == 0 ? 127 : -127) : 0,
+		phase >= 70 and phase < 94 ? 127 : 0,
+		shieldPressed ? 255 : 0, 0).assertTrue()
+	row.assignPressData(specialPressed ? (sender == 0 ? 1 : -1) : 0,
+		specialPressed ? 1 : 0,
+		shieldPressed ? (sender == 0 ? 1 : -1) : 0,
+		shieldPressed ? -1 : 0,
+		phase mod 11 == 0, phase mod 11 == 0 ? (phase mod 2 == 0 ? 1 : -1) : 0,
+		phase mod 11 == 0 ? 1 : 0,
+		phase == 64 ? (sender == 0 ? 1 : -1) : 0).assertTrue()
+	row.assignThrowContributions(phase mod 5 - 2, (phase + sender) mod 5 - 2).assertTrue()
+
+function deliver(FixedInputSchedule schedule, int sender, int epoch, int firstFrame,
+		int count, NetworkInput first, NetworkInput second, InputPacket packet)
+	packet.assign(epoch, firstFrame, count, first, second).assertTrue()
+	schedule.acceptSynchronized(sender, packet).assertEquals(INPUT_ACCEPTED)
+
+function runScheduledGameplayOracle(int delay)
+	let canonical = new PlaybackWorld()
+	let scheduled = new PlaybackWorld()
+	let schedule = new FixedInputSchedule()
+	let playback = new FixedInputPlayback()
+	let first0 = new NetworkInput()
+	let second0 = new NetworkInput()
+	let packet = new InputPacket()
+	let packetFirst = new NetworkInput()
+	let packetSecond = new NetworkInput()
+	let total = 128
+	let epoch = 700 + delay
+	schedule.beginEpoch(epoch, delay).assertTrue()
+	for frame = 1 to total
+		buildTapeRow(frame, delay, 0, first0)
+		buildTapeRow(frame, delay, 1, second0)
+		if frame <= delay
+			canonical.execute(frame, first0, second0)
+			playback.advanceNext(schedule, epoch, scheduled.game, scheduled.first, scheduled.second,
+				scheduled.firstCommands, scheduled.secondCommands, scheduled.runtime).assertTrue()
+			canonical.capture()
+			scheduled.capture()
+			canonical.snapshot.firstDifference(scheduled.snapshot).assertEquals("")
+		else
+			let firstNetworkFrame = delay + 1
+			let groupIndex = (frame - firstNetworkFrame) div 4
+			let groupStart = firstNetworkFrame + groupIndex * 4
+			let groupEnd = min(total, groupStart + 3)
+			if frame == groupEnd
+				// Send the later half of each four-row group first. Until the missing
+				// prefix arrives, accepted future rows must not open the F<=K gate.
+				let groupCount = groupEnd - groupStart + 1
+				let earlyCount = min(2, groupCount)
+				let laterCount = groupCount - earlyCount
+				if laterCount > 0
+					buildTapeRow(groupStart + earlyCount, delay, 0, packetFirst)
+					if laterCount == 2
+						buildTapeRow(groupStart + earlyCount + 1, delay, 0, packetSecond)
+					deliver(schedule, 0, epoch, groupStart + earlyCount, laterCount, packetFirst, packetSecond, packet)
+					buildTapeRow(groupStart + earlyCount, delay, 1, packetFirst)
+					if laterCount == 2
+						buildTapeRow(groupStart + earlyCount + 1, delay, 1, packetSecond)
+					deliver(schedule, 1, epoch, groupStart + earlyCount, laterCount, packetFirst, packetSecond, packet)
+					schedule.mayAdvance().assertFalse()
+					playback.advanceNext(schedule, epoch, scheduled.game, scheduled.first, scheduled.second,
+						scheduled.firstCommands, scheduled.secondCommands, scheduled.runtime).assertFalse()
+					scheduled.capture()
+					canonical.snapshot.firstDifference(scheduled.snapshot).assertEquals("")
+				buildTapeRow(groupStart, delay, 0, packetFirst)
+				if earlyCount == 2
+					buildTapeRow(groupStart + 1, delay, 0, packetSecond)
+				deliver(schedule, 0, epoch, groupStart, earlyCount, packetFirst, packetSecond, packet)
+				buildTapeRow(groupStart, delay, 1, packetFirst)
+				if earlyCount == 2
+					buildTapeRow(groupStart + 1, delay, 1, packetSecond)
+				deliver(schedule, 1, epoch, groupStart, earlyCount, packetFirst, packetSecond, packet)
+				schedule.mayAdvance().assertTrue()
+				while schedule.mayAdvance()
+					let executedFrame = schedule.nextFrameNumber()
+					buildTapeRow(executedFrame, delay, 0, first0)
+					buildTapeRow(executedFrame, delay, 1, second0)
+					canonical.execute(executedFrame, first0, second0)
+					playback.advanceNext(schedule, epoch, scheduled.game, scheduled.first, scheduled.second,
+						scheduled.firstCommands, scheduled.secondCommands, scheduled.runtime).assertTrue()
+					canonical.capture()
+					scheduled.capture()
+					canonical.snapshot.firstDifference(scheduled.snapshot).assertEquals("")
+				schedule.confirmedThrough().assertEquals(groupEnd)
+				canonical.capture()
+				scheduled.capture()
+				canonical.snapshot.firstDifference(scheduled.snapshot).assertEquals("")
+
+@Test function acceptedInputRowsDriveIdenticalGameplayWithD2D3AndD5()
+	for delay = 2 to 5
+		if delay != 4
+			runScheduledGameplayOracle(delay)
