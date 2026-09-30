@@ -1363,3 +1363,24 @@ completed 300 ticks. Recovered receipts are stored separately in that loop
 directory; the failed loop is not relabeled successful. The client is at
 character selection. Cached author presentation still says Tom. Restart
 reliability and native landing feel remain unverified; no restart fix is claimed.
+
+## Longer restart observation (2026-09-30)
+
+After the above menu recovery, build 093439 accepted a new complete trace at
+09:42:04, over two minutes after initialization. Ctrl+R was then invoked without
+any build or map-file replacement. That restarted the same build and completed
+an early trace. A second trace requested 184 seconds after continuing the
+loading screen also completed all 300 ticks, with PID 3986327 retained.
+Evidence: wc3-melee:build/landing-late-trace.txt,
+wc3-melee:build/restart-no-build-start.txt,
+wc3-melee:build/restart-no-build-continued.txt,
+wc3-melee:build/restart-no-build-early-trace.txt,
+wc3-melee:build/restart-no-build-late-trace.txt and
+wc3-melee:build/restart-no-build-late.png.
+
+This longer controlled attempt did not reproduce the stall. Inspection of the
+restart callback, participant-leave handlers, and saved-binding load did not
+establish a causal defect. Saved bindings use the stdlib's synchronized load
+callback. No speculative restart or synchronization code was changed. The
+093439 failed reload remains an open incident; stop repeating successful
+samples and preserve the next actual failure before narrowing its cause.
