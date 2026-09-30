@@ -43,7 +43,6 @@ constant int GROUND_ROLL_MOVE_START = 4
 constant int GROUND_ROLL_MOVE_END = 19
 public constant int SHIELD_MIN_HOLD_FRAMES = 8
 public constant int SHIELD_RELEASE_LAG_FRAMES = 15
-public constant real WALK_SPEED_RATIO = 0.5
 public constant int PROJECTILE_CAPACITY = 16
 public constant real BLASTER_PROJECTILE_SPEED = 36
 constant int BLASTER_PROJECTILE_LIFETIME = 60
@@ -317,6 +316,9 @@ public function surfacePass(int stage, int index) returns boolean
 
 public function characterSpeed(int character) returns real
 	return character == 0 ? 2.2 * WORLD_UNITS_PER_MELEE_UNIT : 1.5 * WORLD_UNITS_PER_MELEE_UNIT
+
+public function characterWalkSpeed(int character) returns real
+	return (character == 0 ? 1.6 : 1.4) * WORLD_UNITS_PER_MELEE_UNIT
 
 public function characterGravity(int character) returns real
 	return character == 0 ? FOX_GRAVITY : FALCO_GRAVITY
@@ -1363,7 +1365,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if direction != 0
 			if f.grounded
 				f.facing = direction
-				f.vx = characterSpeed(f.character) * direction * (input.walking ? WALK_SPEED_RATIO : 1)
+				f.vx = (input.walking ? characterWalkSpeed(f.character) : characterSpeed(f.character)) * direction
 			else
 				f.vx = f.vx + direction * characterAirAcceleration(f.character)
 				f.vx = max(-characterAirSpeed(f.character), min(characterAirSpeed(f.character), f.vx))

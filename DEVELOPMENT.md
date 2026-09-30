@@ -1309,3 +1309,27 @@ from each participant, including simultaneous attacks and different saved
 bindings. Also measure input-to-action delay there; these headless checks
 cannot establish network latency, player-two key delivery, or local-file sync.
 No client restart or deployment was needed for this simulation-only checkpoint.
+
+## Walk speed and native jump checkpoint (2026-09-30)
+
+The retained client in build 091809 advanced from character selection through
+stage selection to match, then accepted both ground jump and double jump from
+I. Evidence: wc3-melee:build/animation-probe/jump-input-I/trace.txt and
+wc3-melee:build/native-jump-match.png. The trace records takeoff at tick 3 and
+double jump at tick 25. The normal bot remained active; this is input proof,
+not an isolated native jump-height measurement.
+
+Walk movement still used half run speed, contradicting the recorded character
+baseline. The focused test first failed with Archer velocity -6.6 instead of
+-9.6 world units/frame. The simulation now uses independent character walk
+speeds: Archer 9.6 and Rifleman 8.4. The replaced half-speed test now checks
+both characters in both directions for ten ticks, displacement, and release
+back to run speed. It passes with zero compiler errors/warnings; log:
+wc3-melee:build/wurst-tests/walk-speed.log. Walking acceleration remains an
+explicit simplification in wc3-melee:PHYSICS.md.
+
+Build 093053 compiled, deployed, restarted the map and completed its fresh
+input trace in 26.763s, retaining the Warcraft process. Build warnings remain
+the three previously recorded warnings. Log:
+wc3-melee:build/walk-speed-reload.log. This proves the changed map loads and
+responds; native modifier feel and two-client timing were not measured here.

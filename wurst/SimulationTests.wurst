@@ -658,19 +658,24 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	tiltDamageAt(6, 1, 145, 0).assertEquals(10.)
 	tiltDamageAt(6, 1, 146, 0).assertEquals(0.)
 
-@Test function walkingModifierHalvesGroundRunSpeed()
-	let runner = new FighterState(0, 0, 1)
-	let input = new InputSnapshot()
-	input.direction = 1
-	advance(runner, 0, input, -240)
-	runner.vx.assertEquals(characterSpeed(0), 0.01)
-	let walker = new FighterState(0, 0, 1)
-	input.walking = true
-	advance(walker, 0, input, -240)
-	walker.vx.assertEquals(characterSpeed(0) * WALK_SPEED_RATIO, 0.01)
-	input.walking = false
-	advance(walker, 0, input, -240)
-	walker.vx.assertEquals(characterSpeed(0), 0.01)
+@Test function walkingModifierUsesCharacterWalkSpeedAndReleasesToRun()
+	for character = 0 to 1
+		for direction = -1 to 1
+			if direction != 0
+				let fighter = new FighterState(character, 0, direction)
+				let input = new InputSnapshot()
+				input.direction = direction
+				input.walking = true
+				let walkSpeed = character == 0 ? 9.6 : 8.4
+				for tick = 1 to 10
+					advance(fighter, 0, input, 0)
+					fighter.vx.assertEquals(walkSpeed * direction, 0.001)
+				fighter.x.assertEquals(10 * walkSpeed * direction, 0.001)
+				input.walking = false
+				advance(fighter, 0, input, 0)
+				fighter.vx.assertEquals((character == 0 ? 13.2 : 9.) * direction, 0.001)
+				destroy input
+				destroy fighter
 
 @Test function blasterRecoveryUsesGroundingAtAttackStart()
 	let grounded = new FighterState(0, 0, 1)

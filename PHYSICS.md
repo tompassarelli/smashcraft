@@ -315,8 +315,11 @@ active frame, rather than an instantaneous long-range hit check.
 
 The owner defines neutral N as jab, N plus direction as smash, and N plus
 direction while holding the walk modifier as tilt. C-stick bindings request
-smashes directly. Walking currently uses half the normal ground speed; tilt
-damage is 10 side / 8 up / 8 down. These and the ground/air blaster timing
+smashes directly. Walking uses the character baseline of 1.6/1.4 Melee units
+per frame (Archer/Rifleman), independently of run speed. The simulation still
+changes directly to the requested ground speed rather than modeling analog
+walk acceleration. Tilt damage is 10 side / 8 up / 8 down. These damage values
+and the ground/air blaster timing
 difference are provisional tuning. Blaster duration is captured at attack
 start, so landing cannot rewrite its recovery. Aerial normals are now separate
 simulation styles: neutral, forward, back, up, and down. Ground normals and grab
