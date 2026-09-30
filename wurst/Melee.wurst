@@ -11,6 +11,7 @@ import CommandBuffer
 import CombatInput
 import MatchStep
 import ParryScenario
+import SpikeScenario
 import SelectionUI
 import StageUI
 import BindingSettings
@@ -555,6 +556,8 @@ function startMatch()
         pauseMatchPresentation(false)
     if PARRY_SCENARIO
         initializeParryScenario(playerFighter, botFighter)
+    if SPIKE_SCENARIO
+        initializeSpikeScenario(playerFighter, botFighter, matchState.stageChoice, 1)
     if KNOCKDOWN_SCENARIO
         playerFighter.downState = DOWN_TUMBLE
         playerFighter.grounded = false
@@ -1311,7 +1314,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
         if hit or f.animation != anim
             SetUnitAnimationByIndex(f.body, damageAnimationIndex(f, reaction))
             f.animation = anim
-            traceParticipant(f == playerFighter ? 0 : 1, "damage pose " + I2S(reaction) + " hitlag " + I2S(f.hitlag) + " hitstun " + I2S(f.hitstun))
+            traceParticipant(f == playerFighter ? 0 : 1, "damage pose " + I2S(reaction) + " hitlag " + I2S(f.hitlag) + " hitstun " + I2S(f.hitstun) + " x " + R2S(f.x) + " z " + R2S(f.z) + " launch " + R2S(f.knockbackX) + ":" + R2S(f.knockbackZ))
     else if f.specialFall
         if f.animation != "specialfall"
             SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_FALL_SPECIAL_INDEX : (f.character == 0 ? ARCHER_FALL_SPECIAL_INDEX : RIFLEMAN_FALL_SPECIAL_INDEX)))
@@ -1485,7 +1488,7 @@ function gameTick()
         botInput.specialPressed = false
         botInput.verticalDirection = 0
         botInput.ledgeVerticalPressed = 0
-        if not twoHumanPlayers and not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not LEDGE_SCENARIO and not PARRY_SCENARIO and not botFighter.out
+        if not twoHumanPlayers and not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not LEDGE_SCENARIO and not PARRY_SCENARIO and not SPIKE_SCENARIO and not botFighter.out
             let recovering = chooseRecoveryInput(botFighter, matchState.stageChoice, botInput)
             let gap = playerFighter.x - botFighter.x
             if not recovering and not playerFighter.out
@@ -1643,7 +1646,7 @@ function gameTick()
         PreloadGenClear()
         PreloadGenStart()
         Preload("BUILD " + BUILD_ID)
-        Preload("SCENARIO " + (PARRY_SCENARIO ? "parry" : (LEDGE_SCENARIO ? "ledge" : (SHIELD_BREAK_SCENARIO ? "shield-break" : (TECH_SCENARIO ? "tech" : (KNOCKDOWN_SCENARIO ? "knockdown" : "normal"))))))
+        Preload("SCENARIO " + (SPIKE_SCENARIO ? "spike" : (PARRY_SCENARIO ? "parry" : (LEDGE_SCENARIO ? "ledge" : (SHIELD_BREAK_SCENARIO ? "shield-break" : (TECH_SCENARIO ? "tech" : (KNOCKDOWN_SCENARIO ? "knockdown" : "normal")))))))
         Preload("BINDINGS " + playerBindings.bindings.encode())
         Preload("BINDINGS1 " + (twoHumanPlayers ? secondBindings.bindings.encode() : "BOT"))
         PreloadGenEnd("wc3-melee-ready.txt")
@@ -1653,12 +1656,12 @@ function initGame()
     hostHumanPlayer = GetPlayerController(Player(0)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(0)) == PLAYER_SLOT_STATE_PLAYING
     twoHumanPlayers = hostHumanPlayer and GetPlayerController(Player(1)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(1)) == PLAYER_SLOT_STATE_PLAYING
     matchState.setHumanCount(twoHumanPlayers ? 2 : 1)
-    if PARRY_SCENARIO
+    if PARRY_SCENARIO or SPIKE_SCENARIO
         matchState.selectCharacter(0, 2)
         if twoHumanPlayers
-            matchState.selectCharacter(1, 0)
+            matchState.selectCharacter(1, SPIKE_SCENARIO ? 2 : 0)
         else
-            matchState.selectCpuCharacter(0, 0)
+            matchState.selectCpuCharacter(0, SPIKE_SCENARIO ? 2 : 0)
     playerInput = new InputSnapshot()
     botInput = new InputSnapshot()
     secondPlayerInput = new InputSnapshot()

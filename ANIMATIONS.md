@@ -311,8 +311,31 @@ arrive at frame 1787; frame 1788 has neutral movement and selects Immolate
 (special 12). Airborne Immolate also hits a grounded target for 9 damage,
 6 victim hitlag and 21 hitstun in
 wc3-melee:build/special-direction-native-trace.txt and
-wc3-melee:build/special-direction-native.mp4. Offstage downward trajectory
-remains unverified; this target was standing on the floor.
+wc3-melee:build/special-direction-native.mp4. That recording establishes
+contact against a grounded target, not an offstage spike.
+
+Offstage airborne Immolate now passes in `illidan-spike-controlled-r1`.
+The native mirror-match fixture starts both fighters beyond the right ledge,
+airborne with ordinary upward velocity. Physical Down+Special is sampled at
+frame 13; Immolate contacts at frame 16 for one 9-damage hit, 6 victim hitlag
+and 21 hitstun frames. The damage-pose trace records the victim at x=690,
+z=296.960 with launch components (+1.172, -9.700), confirming downward
+knockback beyond the stage edge at x=600. The recording shows the victim's
+damage pose and descent below the stage. Both fighters later lose a stock
+and respawn; no recovery inputs were supplied. The trace has zero dropped
+records. Evidence: wc3-melee:build/illidan-spike-controlled-native.mp4,
+wc3-melee:build/illidan-spike-controlled-trace.txt and
+wc3-melee:build/illidan-spike-controlled-sheet.png.
+
+Reproduce with `WC3_SCENARIO=spike` through wc3-melee:build.sh; retain the
+preselected Illidan mirror match, enable Ctrl+T on Stage Select, start, then
+press Down+Special after approximately 0.2 seconds. The fixture seeds only
+initial position, facing and airborne motion, and disables CPU decisions;
+it does not force the special, contact, damage or launch. The focused
+wc3-melee:wurst/SpikeScenarioTests.wurst check passes through the ordinary
+match step for both sides (1/1 test; wc3-melee:build/spike-scenario-test.log).
+Native acceptance here is right-facing only; left-facing appearance,
+recovery follow-ups and exact contact-volume alignment remain unverified.
 
 Normal and air-dodge landing playback is now observed in Warcraft: both show
 the authored contact crouch followed by standing. The clean passive-opponent
@@ -373,7 +396,7 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 | Model, textures, attached blades, both gameplay facings | Normal textured bodies/weapons observed in native mirror match after visibility repair; both-facing action coverage incomplete |
 | Jab, directional/angled tilts, smashes, dash attack | Jab and flat forward/down/up tilts activate and play in both facings; angled tilts, smashes and dash attack still need native checks |
 | Neutral/forward/back/up/down aerials | All five left-facing jump-squat activations and playback observed; opposite facing, contact and exact phase alignment remain pending |
-| Mana Burn, parry/evasion, wing ascent, Immolate | Native Mana Burn contact, wing ascent, ground/air Immolate contact and controlled grounded melee parry observed; offstage spike remains unverified |
+| Mana Burn, parry/evasion, wing ascent, Immolate | Native Mana Burn contact, wing ascent, ground/air Immolate including offstage spike, and controlled grounded melee parry observed; both-facing/interruption coverage remains incomplete |
 | Grab, hold, pummel, escape, four coordinated throws | Native capture/pummel/up-throw confirmed; pair readability, escape and other throw directions still pending |
 | Idle, walk/run, turns, crouch, jumps and landings | Normal and air-dodge landing playback observed; jump squat, jumps and idle fall bound; other movement transitions still incomplete |
 | Shield, shield reactions/break, spot dodge, rolls, air dodge | Shield raise/release, spot dodge, both rolls and earlier air-dodge landing observed; protection windows, shield contact/break and full air-dodge playback still pending |

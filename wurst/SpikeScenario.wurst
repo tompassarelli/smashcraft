@@ -1,0 +1,17 @@
+package SpikeScenario
+import Simulation
+
+public function initializeSpikeScenario(FighterState first, FighterState second, int stage, int side)
+    let edge = side > 0 ? surfaceRight(stage, 0) : surfaceLeft(stage, 0)
+    first.x = edge + side * 60
+    second.x = first.x + side * 30
+    first.facing = side
+    second.facing = -side
+    first.z = 300
+    second.z = 260
+    first.grounded = false
+    second.grounded = false
+    first.surface = -1
+    second.surface = -1
+    first.vz = 12
+    second.vz = 12

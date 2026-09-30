@@ -36,7 +36,7 @@ nix shell nixpkgs#bun --command bun "$project_dir/tools/effects/package.ts"
 nix shell nixpkgs#bun --command bun "$project_dir/tools/effects/trap.ts"
 build_id=${WC3_BUILD_ID:-$(date +%s)}
 developer_scenario=${WC3_SCENARIO:-normal}
-case "$developer_scenario" in normal|knockdown|tech|shield-break|ledge|parry) ;; *) echo 'WC3_SCENARIO must be normal, knockdown, tech, shield-break, ledge or parry.' >&2; exit 2;; esac
+case "$developer_scenario" in normal|knockdown|tech|shield-break|ledge|parry|spike) ;; *) echo 'WC3_SCENARIO must be normal, knockdown, tech, shield-break, ledge, parry or spike.' >&2; exit 2;; esac
 if [[ ! "$build_id" =~ ^[A-Za-z0-9._-]+$ ]]; then
     printf 'WC3_BUILD_ID may contain only letters, digits, dots, underscores, and hyphens.\n' >&2
     exit 2
@@ -69,7 +69,7 @@ mkdir -p "$work_dir/wurst" "$work_dir/_build/dependencies" "$work_dir/imports/wa
 ln -s "$stdlib_checkout" "$work_dir/_build/dependencies/wurststdlib"
 cp "$project_dir/wurst.build" "$work_dir/wurst.build"
 cp "$project_dir/tools/map-entry.j" "$work_dir/wurst/war3map.j"
-for source in FighterAssets Simulation BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput MatchStep ParryScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents DamagePose CombatEffects FrostEffects SpecialEffects Melee; do
+for source in FighterAssets Simulation BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput MatchStep ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents DamagePose CombatEffects FrostEffects SpecialEffects Melee; do
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
 done
 cp "$fighter_assets/FighterAssetInfo.wurst" "$work_dir/wurst/FighterAssetInfo.wurst"
@@ -101,7 +101,7 @@ for texture in "${selection_textures[@]}"; do
     cp "$selection_assets/$texture.tga" "$work_dir/imports/war3mapImported/$texture.tga"
 done
 
-printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\npublic constant boolean KNOCKDOWN_SCENARIO = %s\npublic constant boolean TECH_SCENARIO = %s\npublic constant boolean SHIELD_BREAK_SCENARIO = %s\npublic constant boolean LEDGE_SCENARIO = %s\npublic constant boolean PARRY_SCENARIO = %s\n' "$build_id" "$([[ "$developer_scenario" == knockdown || "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == shield-break ]] && echo true || echo false)" "$([[ "$developer_scenario" == ledge ]] && echo true || echo false)" "$([[ "$developer_scenario" == parry ]] && echo true || echo false)" > "$project_dir/build/generated-BuildInfo.wurst"
+printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\npublic constant boolean KNOCKDOWN_SCENARIO = %s\npublic constant boolean TECH_SCENARIO = %s\npublic constant boolean SHIELD_BREAK_SCENARIO = %s\npublic constant boolean LEDGE_SCENARIO = %s\npublic constant boolean PARRY_SCENARIO = %s\npublic constant boolean SPIKE_SCENARIO = %s\n' "$build_id" "$([[ "$developer_scenario" == knockdown || "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == shield-break ]] && echo true || echo false)" "$([[ "$developer_scenario" == ledge ]] && echo true || echo false)" "$([[ "$developer_scenario" == parry ]] && echo true || echo false)" "$([[ "$developer_scenario" == spike ]] && echo true || echo false)" > "$project_dir/build/generated-BuildInfo.wurst"
 cp "$project_dir/build/generated-BuildInfo.wurst" "$work_dir/wurst/BuildInfo.wurst"
 
 (
