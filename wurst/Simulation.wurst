@@ -131,6 +131,9 @@ constant real FALCO_DOUBLE_JUMP_SPEED = 23.124
 constant real KNOCKBACK_DECAY_PER_FRAME = 0.051
 constant real KNOCKBACK_LAUNCH_SCALE = 0.03 * WORLD_UNITS_PER_MELEE_UNIT
 constant real HITSTUN_FRAMES_PER_KNOCKBACK = 0.4
+public constant real ORDINARY_HIT_GROWTH_PERCENT = 100
+public constant real ORDINARY_HIT_BASE_KNOCKBACK = 20
+public constant real ORDINARY_HIT_CONTEXT_SCALE = 1
 constant real DIAGONAL_UNIT = 0.7071067811865476
 constant real DI_MAX_ANGLE_RADIANS = 0.3141592653589793
 constant real RADIANS_TO_DEGREES = 57.29577951308232
@@ -444,6 +447,21 @@ public function smashDamageMultiplier(int chargeFrames) returns real
 
 function attackDamageWithCharge(int style, int chargeFrames) returns real
 	return attackDamage(style) * (isSmashAttack(style) ? smashDamageMultiplier(chargeFrames) : 1)
+
+// Pure ordinary-hit math. Parameters are supplied per resolved hit so future
+// sweetspot/sourspot records can vary damage, growth, base knockback, or ratio.
+// Electric, crouching, staling, fixed-knockback, and capped branches are separate.
+public function ordinaryHitKnockback(real preHitPercent, real hitDamage, real victimWeight,
+		real growthPercent, real baseKnockback, real contextScale) returns real
+	let postHitPercent = R2I(max(0, preHitPercent)) + hitDamage
+	let percentGrowth = (postHitPercent / 10. + postHitPercent * hitDamage / 20.) * 200 / (victimWeight + 100) * 1.4 + 18
+	return (percentGrowth * growthPercent / 100. + baseKnockback) * contextScale
+
+public function ordinaryHitlagFrames(real hitDamage) returns int
+	return R2I(hitDamage / 3. + 3)
+
+public function ordinaryHitstunFrames(real knockback) returns int
+	return R2I(knockback * HITSTUN_FRAMES_PER_KNOCKBACK)
 
 function attackReach(int style) returns real
 	return style == 1 ? 600 : (style == 2 or style == 3 ? 125 : (style == 5 ? 100 : 145))
@@ -1094,9 +1112,9 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	interruptJumpOrDodge(target)
 	clearDownState(target)
 	cancelAttack(target)
-	let weight = target.character == 0 ? 75 : 80
-	let newPercent = R2I(target.damage) + damage
-	let knockback = (((newPercent / 10. + newPercent * damage / 20.) * 200 / (weight + 100) * 1.4 + 18) + 20)
+	let weight = target.character == 0 ? 75. : 80.
+	let knockback = ordinaryHitKnockback(target.damage, damage, weight,
+		ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, ORDINARY_HIT_CONTEXT_SCALE)
 	target.damage += damage
 	target.vx = 0
 	target.vz = 0
@@ -1118,13 +1136,13 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	target.sdiLaunchesUpward = target.knockbackZ > 0
 	target.diPending = true
 	target.diLaunchSpeed = launch
-	target.hitstun = R2I(knockback * HITSTUN_FRAMES_PER_KNOCKBACK)
+	target.hitstun = ordinaryHitstunFrames(knockback)
 	if knockback >= DOWN_KNOCKBACK_THRESHOLD
 		target.downState = DOWN_TUMBLE
 		target.downFrame = 0
 		target.downDirection = 0
-	target.hitlag = R2I(damage / 3 + 3)
-	attacker.hitlag = max(attacker.hitlag, R2I(damage / 3 + 3))
+	target.hitlag = ordinaryHitlagFrames(damage)
+	attacker.hitlag = max(attacker.hitlag, ordinaryHitlagFrames(damage))
 
 public function simulationJump(FighterState f)
 	if f.ledgeState != LEDGE_NONE

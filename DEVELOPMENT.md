@@ -4,7 +4,7 @@ The main feedback loop is Wurst tests outside Warcraft III. Compile and reload
 the map for an engine-visible change or a completed gameplay slice, not for
 every physics edit. Wurst is the authoritative gameplay source; generated Lua
 or JASS is output. This is the owner's chosen platform fighter using Warcraft
-assets, initially Archer/Fox and Rifleman/Falco.
+assets, initially Archer and Rifleman.
 
 ## Split
 
@@ -64,14 +64,15 @@ moving custom UI initialization to elapsed game time zero. FDF styling produced
 the requested large damage display in wc3-melee:build/outline-hud-native.png.
 The cause of the runtime font setter discrepancy is not established.
 
-Portrait crops now normalize body height rather than fitting full weapon
-silhouettes. Both character cards and roster tiles were observed in the native
-build `portraits-normalized`: wc3-melee:build/normalized-select-native.png.
-The same portrait textures are used by the HUD; its new crops still need a
-native match screenshot. All 195 Wurst tests passed with zero errors/warnings
-in wc3-melee:build/wurst-tests/selection-integrated.log. The integrated build
-succeeded with four existing warnings (HUD/settings array initialization and
-an unused import). The live map contains `portraits-normalized`.
+Portraits now fit complete silhouettes at equal height on square canvases;
+Rifleman's camera faces his gun more directly. The previous narrow crops were
+superseded because they clipped the weapon. Full weapons are visible in native
+Character Select (wc3-melee:build/full-weapon-native.png) and the mirror-match
+HUD (wc3-melee:build/participant-trace-match.png). All 198 Wurst tests passed
+with zero errors/warnings in
+wc3-melee:build/wurst-tests/input-trace-integrated.log, including ordinary-hit
+knockback and hitlag/hitstun rounding. The integrated map build retains four
+existing warnings (HUD/settings array initialization and an unused import).
 
 Open native issues remain: Enter also opens Warcraft chat; the intermittent
 host-wait stall; mouse interaction/drag confirmation; cached native loading
@@ -151,11 +152,46 @@ and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/hitlag-shift-relo
 
 ## Native input batching
 
-F7 records 300 presentation ticks of key callbacks and directional snapshots to
+Ctrl+T records 300 presentation ticks of key callbacks and directional snapshots to
 the prefix's Warcraft III CustomMapData files `wc3-melee-input-start.txt` and
 `wc3-melee-input-trace.txt`. The trace includes tick index and an independent
-Warcraft timer's elapsed time. F7 is reserved from gameplay rebinding. Tracing
+Warcraft timer's elapsed time. Tracing
 is dormant until requested and does not alter gameplay state.
+
+The participant trace in wc3-melee:wurst/Melee.wurst distinguishes three
+boundaries: `received` key callbacks (before mapping/rejection), `sampled`
+one-shot jump/dodge/attack requests immediately before the simulation step,
+and `applied` attack/jump serial changes after it. Each participant record names
+the zero-based player slot, simulation frame, and match phase. The header names
+the build and human count: slot 1 is the bot in a one-human session. Existing
+Player 1 `down`, `up`, and `jump` records remain for native probes. A `dropped`
+footer exposes the 256-record limit; an incomplete trace cannot establish parity.
+
+Both human attack queues target the next simulation frame. No extra network
+delay was added. Callback frame is already after Warcraft's event transport;
+it is not the physical key-press frame. A jump's applied frame also includes
+jump squat and eligibility rules. Warcraft timer seconds do not measure wall
+clock or wire latency. Matching two-client receipt/sample/application records
+would establish agreement only for those observed events; physical input delay
+needs each source's externally timed press and visible response as well.
+
+Before selecting a fixed delay, compare both human slots on two clients under
+different measured latency. Never apply a local combat prediction ahead of the
+shared simulation. Any future custom lockstep must agree on source frame and
+execution frame for both inputs, with a missing-input barrier. Adding N frames
+after synchronized receipt alone does not establish equal source latency.
+Two-client timing and desynchronization remain unverified.
+
+Native build `participant-input-frames` completed a 300-tick trace with zero
+dropped records: wc3-melee:build/participant-input-frames.txt. Rifleman's ground
+jump callback arrived on simulation frame 24, was sampled on 25, and took off
+on 29. The second jump arrived on 54 and was sampled/applied on 55. Attack
+arrived on 78 and was sampled/applied on 79 as neutral air (style 12). This
+observes next-tick consumption and separates jump squat from delivery; it is
+a solo session with a bot, not two-human latency evidence. Character Select →
+Stage Select → match ran in the retained client. The installed map contains
+this build. Enter still opens native chat; the observation closed chat with
+Escape and started the stage with Attack, without claiming an Enter fix.
 
 Build 003649 measured 240 ticks across 4.000 native timer seconds. The full
 trace's start/end file times were 4.978 seconds apart for its 300 ticks, including

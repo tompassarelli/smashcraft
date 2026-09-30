@@ -9,24 +9,14 @@ for fighter in Archer Rifleman; do
     portrait="$project_dir/build/selection-assets/${fighter}Portrait.png"
     [[ $(magick "$portrait" -format '%[fx:mean.a>0.01]' info:) == 1 ]]
 
-    # Use a matching head-to-boots frame for both fighters. Fitting the full
-    # alpha bounds shrinks Rifleman to make room for his long gun while Archer
-    # fills the image. These fixed 3:4 windows normalize the visible bodies
-    # without stretching either model; the weapon tips may crop at the edges.
-    case "$fighter" in
-        Archer)
-            portrait_crop=450x600+295+220
-            tile_crop=450x450+295+220
-            ;;
-        Rifleman)
-            portrait_crop=398x530+325+315
-            tile_crop=398x398+325+315
-            ;;
-    esac
-    magick "$portrait" -crop "$portrait_crop" +repage -resize 768x1024 \
-        -background none -gravity center -extent 768x1024 -depth 8 -compress none \
+    # Normalize full silhouette height; the portrait camera must fit weapons
+    # within the square canvas at that scale. Never crop a weapon to fit.
+    silhouette_width=$(magick "$portrait" -trim +repage -resize x960 -format '%w' info:)
+    [[ "$silhouette_width" -le 1024 ]] || { echo "$fighter portrait camera leaves the weapon outside its frame" >&2; exit 1; }
+    magick "$portrait" -trim +repage -resize x960 \
+        -background none -gravity center -extent 1024x1024 -depth 8 -compress none \
         "$project_dir/build/selection-assets/${fighter}Portrait.tga"
-    magick "$portrait" -crop "$tile_crop" +repage -resize 512x512 \
+    magick "$project_dir/build/selection-assets/${fighter}Portrait.tga" -resize 512x512 \
         -gravity center \
         -background '#152034' -extent 512x512 -alpha remove -depth 8 -compress none \
         "$project_dir/build/selection-assets/${fighter}Tile.tga"

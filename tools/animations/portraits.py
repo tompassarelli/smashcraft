@@ -67,7 +67,7 @@ for fighter in fighters:
     background.inputs["Color"].default_value = (0.8, 0.85, 1.0, 1.0)
     background.inputs["Strength"].default_value = 0.7
     target = Vector((0, 0, 55))
-    bpy.ops.object.camera_add(location=(210, -300, 115))
+    bpy.ops.object.camera_add(location=(340, -150, 115) if fighter == "Rifleman" else (210, -300, 115))
     camera = bpy.context.object
     camera.rotation_euler = (target - camera.location).to_track_quat("-Z", "Y").to_euler()
     camera.data.type = "ORTHO"

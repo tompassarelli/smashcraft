@@ -184,6 +184,32 @@ For a non-staled 12-damage hit on weight 80 at 0 pre-hit percent, growth 100,
 base 20 and ratio 1, K is 51.0666667, launch speed 1.532 and floor(0.4*K) is 20.
 These are useful independent arithmetic expectations for our Wurst tests.
 
+The local reference's `src/melee/ft/ftcoll.c` at revision
+`0296f009f32f710495979d30772d8332af2d411a` supports the percent timing fact:
+`ftColl_GetDamageCount` casts accumulated percent to an integer before the
+ordinary branch adds a fractional temporary component (`ftColl_80079AB0`, lines
+2050–2104). The same path has a separate fixed-knockback branch and caps its
+result using common data. The decompiled common-data fields do not expose
+verified growth, base, or cap values here, so this work does not infer them from
+field offsets or claim numeric parity. No reference implementation was copied.
+
+`ordinaryHitKnockback` now receives pre-hit percent, this hit's damage, victim
+weight, growth percent, base knockback, and context scale independently. The
+map currently passes the existing prototype defaults (100, 20, and 1); future
+sweetspot/sourspot hit records can provide different values without changing
+the formula. `ordinaryHitlagFrames` and `ordinaryHitstunFrames` make the normal
+hit frame conversions testable at their integer boundaries. These helpers
+cover only the documented ordinary, non-electric, non-crouching branch; the
+separate fixed-hit, cap, shield, and modifier rules remain distinct work.
+
+The same local revision's `ftCo_DownBound.c`, `ftCo_DownAttack.c`,
+`ftCo_Down.c`, and `ftCo_DownStand.c` establish separate down-wait choices for
+get-up attack, directional rolls, and standing. They do not expose reliable
+frame counts for the associated intangibility in the inspected functions.
+The local prototype's knockdown durations remain provisional below, and the
+tech-intangibility counts are sourced separately to the cited secondary data;
+neither should be described as locally measured Melee timing.
+
 ## Directional influence
 
 Melee reads the control stick on the last hitlag frame. A direction perpendicular

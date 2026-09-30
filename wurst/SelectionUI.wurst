@@ -208,8 +208,8 @@ public class SelectionPanel
         let ownCardX = participantId == 0 ? 0.055 : 0.230
         let opponentCardX = participantId == 0 ? 0.230 : 0.055
         selectedPortrait = createBackdrop("MeleeSelectedPortrait" + suffix, GAME_UI, 409 + frameOffset)
-        selectedPortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, ownCardX + 0.034, 0.245)
-        selectedPortrait.setSize(0.092, 0.123)
+        selectedPortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, ownCardX + 0.019, 0.245)
+        selectedPortrait.setSize(0.122, 0.122)
         selectedName = createBackdrop("MeleeSelectedName" + suffix, GAME_UI, 410 + frameOffset)
         selectedName.setAbsPoint(FRAMEPOINT_TOPLEFT, ownCardX + 0.008, 0.116)
         selectedName.setSize(0.144, 0.020)
@@ -220,8 +220,8 @@ public class SelectionPanel
         BlzFrameSetTextAlignment(selectedStatus, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
 
         opponentPortrait = createBackdrop("MeleeOpponentPortrait" + suffix, GAME_UI, 412 + frameOffset)
-        opponentPortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, opponentCardX + 0.034, 0.245)
-        opponentPortrait.setSize(0.092, 0.123)
+        opponentPortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, opponentCardX + 0.019, 0.245)
+        opponentPortrait.setSize(0.122, 0.122)
         opponentName = createBackdrop("MeleeOpponentName" + suffix, GAME_UI, 413 + frameOffset)
         opponentName.setAbsPoint(FRAMEPOINT_TOPLEFT, opponentCardX + 0.008, 0.116)
         opponentName.setSize(0.144, 0.020)

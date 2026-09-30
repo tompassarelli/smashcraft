@@ -66,40 +66,51 @@ boolean inputTraceActive = false
 boolean developerRestartRequested = false
 int inputTraceTicks = 0
 int inputTraceCount = 0
+int inputTraceDropped = 0
 int inputTraceLastAxes = 999
 int inputTraceLastDodge = -1
 int inputTraceLastLandingLag = -1
 string array inputTraceLines
+int simulationFrame = 0
+boolean twoHumanPlayers = false
 
 function traceInput(string entry)
     if inputTraceActive and inputTraceCount < 256
         inputTraceLines[inputTraceCount] = I2S(inputTraceTicks) + " " + R2S(TimerGetElapsed(inputTraceClock)) + " " + entry
         inputTraceCount++
+    else if inputTraceActive
+        inputTraceDropped++
+
+function traceParticipant(int participantId, string entry)
+    traceInput("participant " + I2S(participantId) + " frame " + I2S(simulationFrame) + " phase " + I2S(matchState.phase) + " " + entry)
 
 function startInputTrace()
     if inputTraceClock == null
         inputTraceClock = CreateTimer()
     inputTraceTicks = 0
     inputTraceCount = 0
+    inputTraceDropped = 0
     inputTraceLastAxes = 999
     inputTraceLastDodge = -1
     inputTraceLastLandingLag = -1
     inputTraceActive = true
     TimerStart(inputTraceClock, 1000, false, null)
     traceInput("start " + BUILD_ID)
+    traceInput("humans " + (twoHumanPlayers ? "2" : "1") + " frame " + I2S(simulationFrame) + " phase " + I2S(matchState.phase))
     PreloadGenClear()
     PreloadGenStart()
     Preload("TRACE START " + BUILD_ID)
     PreloadGenEnd("wc3-melee-input-start.txt")
 
 function finishInputTrace()
-    traceInput("end")
     inputTraceActive = false
     PauseTimer(inputTraceClock)
     PreloadGenClear()
     PreloadGenStart()
     for i = 0 to inputTraceCount - 1
         Preload(inputTraceLines[i])
+    Preload("dropped " + I2S(inputTraceDropped))
+    Preload(I2S(inputTraceTicks) + " " + R2S(TimerGetElapsed(inputTraceClock)) + " end")
     PreloadGenEnd("wc3-melee-input-trace.txt")
 
 InputSnapshot playerInput = null
@@ -113,7 +124,6 @@ PlayerInputState secondKeyState = new PlayerInputState()
 InputSnapshot secondPlayerInput = null
 SettingsPanel secondSettingsPanel = null
 SelectionPanel secondSelectionPanel = null
-boolean twoHumanPlayers = false
 boolean hostHumanPlayer = false
 boolean secondNormalAttackQueued = false
 boolean secondLeftPressed = false
@@ -135,7 +145,6 @@ int appliedBindingRevision = -1
 int appliedSecondBindingRevision = -1
 AttackBuffer playerAttacks = new AttackBuffer(0)
 AttackBuffer botAttacks = new AttackBuffer(0)
-int simulationFrame = 0
 int playerAttackFacing = 0
 int lastInputAction = -1
 int lastNormalStyle = -1
@@ -364,6 +373,10 @@ function attack(Fighter attacker, Fighter target, int style)
     else
         botAttacks.enqueue(style, target.x >= attacker.x ? 1 : -1, simulationFrame, false)
 
+function traceFrameInput(int participantId, InputSnapshot input, AttackBuffer attacks)
+    if inputTraceActive and (input.jumpPressed or input.airDodgePressed or attacks.hasPending(simulationFrame))
+        traceParticipant(participantId, "sampled x " + I2S(input.direction) + " z " + I2S(input.verticalDirection) + " jump " + (input.jumpPressed ? "1" : "0") + " dodge " + (input.airDodgePressed ? "1" : "0") + " attack " + I2S(attacks.hasPending(simulationFrame) ? attacks.style : -1))
+
 function applyFrame()
     let playerWasOut = playerFighter.out
     let botWasOut = botFighter.out
@@ -379,6 +392,8 @@ function applyFrame()
     let botPreviousShieldBreak = botFighter.shieldBreakSerial
     let playerPreviousBreakState = playerFighter.shieldBreakState
     let playerPreviousLedge = playerFighter.ledgeState
+    traceFrameInput(0, playerInput, playerAttacks)
+    traceFrameInput(1, twoHumanPlayers ? secondPlayerInput : botInput, botAttacks)
     stepMatch(matchState, playerFighter, botFighter, playerInput, twoHumanPlayers ? secondPlayerInput : botInput, playerAttacks, botAttacks, simulationFrame)
     if playerFighter.shieldBreakSerial > playerPreviousShieldBreak
         announce("Player 1's shield broke!")
@@ -390,6 +405,9 @@ function applyFrame()
         traceInput("ledge " + I2S(playerFighter.ledgeState) + " x " + R2S(playerFighter.x) + " z " + R2S(playerFighter.z))
     if playerFighter.jumpSerial != playerPreviousJump
         traceInput("jump " + I2S(playerFighter.jumpSerial) + " double " + (playerFighter.jumpIsDouble ? "1" : "0") + " z " + R2S(playerFighter.z))
+        traceParticipant(0, "applied jump " + I2S(playerFighter.jumpSerial))
+    if botFighter.jumpSerial != botPreviousJump
+        traceParticipant(1, "applied jump " + I2S(botFighter.jumpSerial))
     if playerFighter.lCancelSerial > playerPreviousLCancel
         announce("L-cancel!")
     if playerFighter.downState != playerPreviousDown
@@ -404,10 +422,12 @@ function applyFrame()
     if matchState.phase == RESULT
         clearProjectileLines()
     if playerFighter.attackSerial != playerPreviousAttack
+        traceParticipant(0, "applied attack " + I2S(playerFighter.attackSerial) + " style " + I2S(playerFighter.attackStyle))
         playAttackAnimation(playerFighter)
         if isAerialAttack(playerFighter.attackStyle)
             announce(aerialAttackName(playerFighter.attackStyle))
     if botFighter.attackSerial != botPreviousAttack
+        traceParticipant(1, "applied attack " + I2S(botFighter.attackSerial) + " style " + I2S(botFighter.attackStyle))
         playAttackAnimation(botFighter)
     if playerFighter.hitstun > playerPreviousStun
         SetUnitAnimation(playerFighter.body, "stand hit")
@@ -589,6 +609,7 @@ function openSettingsScreen(int participantId)
 function onParticipantKeyDown(int participantId)
     let key = BlzGetTriggerPlayerKey()
     let keyCode = GetHandleId(key)
+    traceParticipant(participantId, "received down " + I2S(keyCode))
     let state = participantId == 0 ? firstKeyState : secondKeyState
     let bindings = participantId == 0 ? playerBindings : secondBindings
     let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
@@ -623,6 +644,7 @@ function onParticipantKeyDown(int participantId)
     let wasHeld = action >= 0 and state.actionHeld(action)
     if state.press(keyCode, bindings.bindings) < 0
         return
+    traceParticipant(participantId, "mapped action " + I2S(action))
     if participantId == 0
         traceInput("down " + I2S(keyCode))
         lastInputAction = action
@@ -716,6 +738,7 @@ function onParticipantKeyDown(int participantId)
 
 function onParticipantKeyUp(int participantId)
     let keyCode = GetHandleId(BlzGetTriggerPlayerKey())
+    traceParticipant(participantId, "received up " + I2S(keyCode))
     let state = participantId == 0 ? firstKeyState : secondKeyState
     let bindings = participantId == 0 ? playerBindings : secondBindings
     if participantId == 0
