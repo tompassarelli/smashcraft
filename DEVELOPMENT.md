@@ -1205,3 +1205,27 @@ experimental handler was removed, leaving the previous handler intact; do not
 claim the restart defect fixed. Evidence: deferred-reload.log and
 deferred-after-trace.png in the same directory. Native-menu success is a bounded
 observation, not proof that its path cannot stall.
+
+## Minimal restart isolation (2026-09-30)
+
+wc3-melee:tools/restart-probe/build.sh creates an independent Wurst diagnostic
+map using the existing terrain/initialization glue and two-slot configuration,
+without fighter assets, UI, camera, or gameplay. The retained client PID3986327
+loaded it from Single Player. Direct Ctrl+R/RestartGame(false) observations:
+
+- Plain timer/key probe accepted Ctrl+T at simulation second29 after restart.
+- Adding SaveLoadData loaded the existing bindings successfully and accepted
+  input at second29; a subsequent restart of that variant accepted input at34.
+- Adding all 255 key-down/key-up registrations also accepted input at34.
+
+These samples did not reproduce the delayed host stall; they do not prove the
+engine or these dependencies innocent under all conditions. The earliest
+unproven boundary now includes the full-map presentation/tick workload and
+its interaction with restart. No production restart implementation changed.
+The final probe build had zero compiler warnings/errors. Evidence lives under
+~/code/wc3-melee/worktrees/test-loop/build/restart-probe/ (bindings30.txt,
+bindings-second35.txt, keys35.txt and corresponding screenshots), with the
+plain sample screenshot at
+~/code/wc3-melee/worktrees/test-loop/build/restart-probe-scripted30.png.
+The plain-late.txt copy was taken before confirming a fresh receipt and must
+not be interpreted as a later successful input observation.
