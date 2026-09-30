@@ -22,19 +22,25 @@ cleanup() {
 }
 trap cleanup EXIT
 sleep 0.6
-require_focus() { [[ $(niri msg --json focused-window | jq -r .title) == 'Warcraft III' ]]; }
+require_focus() {
+    [[ $(niri msg --json focused-window | jq -r .title) == 'Warcraft III' ]] &&
+        niri msg --json overview-state | jq -e '.is_open == false' >/dev/null
+}
 press() { require_focus; ydotool key "$1:1"; sleep 0.08; ydotool key "$1:0"; sleep 0.18; }
-trace() { require_focus; ydotool key 29:1 20:1 20:0 29:0; }
+trace() { require_focus; ydotool key 29:1 20:1; sleep 0.12; ydotool key 20:0 29:0; }
 touch "$run_dir/started"
 press 33
 press 31
 press 28
+press 1
 trace
+press 49
 require_focus
 ydotool key "$jump_key:1"
 sleep 0.18
 ydotool key "$jump_key:0"
-sleep 0.12
+sleep 0.3
+require_focus
 ydotool key "$jump_key:1"
 sleep 0.15
 ydotool key "$jump_key:0"
@@ -43,4 +49,6 @@ sleep 5
 cp "$trace_file" "$run_dir/trace.txt"
 rg -q 'jump [0-9]+ double 0 ' "$run_dir/trace.txt"
 rg -q 'jump [0-9]+ double 1 ' "$run_dir/trace.txt"
+rg -q 'dropped 0' "$run_dir/trace.txt"
+rg -q ' [0-9.]+ end"' "$run_dir/trace.txt"
 printf 'Observed ground jump and double-jump from %s in the client.\n' "${1:-I}"

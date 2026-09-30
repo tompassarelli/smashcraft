@@ -114,6 +114,15 @@ Do not type while the compositor overview is open, even if focused-window
 still names Warcraft. Check focus immediately before each input action and
 stop on a focus change.
 
+The jump probe at wc3-melee:tools/probe-jump-input.sh now advances through both
+selection screens: choose fighter, Enter to Stage Select, Escape to close native
+chat, then Attack to start the match before the two jump presses. It requires a
+fresh, complete trace with zero dropped records. This is test-driver handling
+of the still-open Enter/chat issue, not a game fix. The jump probe and
+wc3-melee:loop.sh now reject input while the compositor overview is open.
+Shell syntax checks passed; the revised jump driver still needs a native run
+from Character Select with the configured I or 9 jump binding.
+
 1. Change the relevant simulation rule and run its focused Wurst test.
 2. Use compiler/editor diagnostics for type and API mistakes.
 3. For a complete mechanic, build the map and use the running client to check

@@ -31,8 +31,9 @@ for attempt in $(seq 1 30); do
     sleep 0.05
 done
 require_focus() {
-    if [[ $(niri msg --json focused-window | jq -r .id) != "$window_id" ]]; then
-        mark 'desktop focus changed; stopped before further input'
+    if [[ $(niri msg --json focused-window | jq -r .id) != "$window_id" ]] ||
+        ! niri msg --json overview-state | jq -e '.is_open == false' >/dev/null; then
+        mark 'desktop focus changed or overview opened; stopped before further input'
         exit 1
     fi
 }
