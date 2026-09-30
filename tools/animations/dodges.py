@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 
 import bpy
-from mathutils import Euler
+from mathutils import Euler, Vector
 import addon_utils
 
 project = Path(__file__).resolve().parents[2]
@@ -19,6 +19,10 @@ preferences.textureExtension = "png"
 bpy.ops.wm.open_mainfile(filepath=str(scene_path))
 scene = bpy.context.scene
 rig = next(obj for obj in scene.objects if obj.type == "ARMATURE")
+sys.path.insert(0, str(project / "tools/animations"))
+sys.dont_write_bytecode = True
+from archer_pose import ready_pose, key_pose, key_visibility
+base = ready_pose(rig)
 bone_names = {bone.name for bone in rig.data.bones}
 
 # Archer's source model animates a separate arrow geoset along the Arrow bone.
@@ -84,6 +88,8 @@ def make_action(name, keyframes, frame_end):
 
     for frame in sorted(set(keyframes) | {0, frame_end}):
         scene.frame_set(frame)
+        for bone in rig.pose.bones:
+            bone.matrix_basis = base[bone.name]
         pose = keyframes.get(frame, keyframes[max(key for key in keyframes if key <= frame)])
         for bone_name in bones:
             bone = rig.pose.bones[bone_name]
@@ -92,13 +98,12 @@ def make_action(name, keyframes, frame_end):
                 rotation = quaternion(0)
                 for axis, degrees in channels["rotations"]:
                     rotation = rotation @ quaternion(degrees, axis)
-                bone.rotation_quaternion = rotation
+                bone.rotation_quaternion = base[bone_name].to_quaternion() @ rotation
             else:
-                bone.rotation_quaternion = quaternion(channels.get("rotation", 0), channels.get("axis", "X"))
-            bone.location = channels.get("location", (0.0, 0.0, 0.0))
-            bone.keyframe_insert(data_path="rotation_quaternion", frame=frame, group=bone_name)
-            if "location" in channels or any("location" in point.get(bone_name, {}) for point in keyframes.values()):
-                bone.keyframe_insert(data_path="location", frame=frame, group=bone_name)
+                bone.rotation_quaternion = base[bone_name].to_quaternion() @ quaternion(channels.get("rotation", 0), channels.get("axis", "X"))
+            bone.location = base[bone_name].translation + Vector(channels.get("location", (0.0, 0.0, 0.0)))
+        key_pose(rig, frame)
+    key_visibility(action, frame_end)
     scene.frame_set(0)
     return action
 

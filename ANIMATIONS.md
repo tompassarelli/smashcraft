@@ -243,6 +243,29 @@ Generated model bytes are not patched. Rebuild through the normal asset command.
 
 ## Archer projectile ownership
 
+Archer's authored poses now retain the stock held-bow pose through
+wc3-melee:tools/animations/archer_pose.py. The previous jab keyed only the
+right arm; evasions and tilts likewise omitted the left hand and bow grip.
+The packaged model consequently had no `Cylinder02` rotation in those clips,
+although stock Stand, Walk and Attack rotate that bow bone by 90 degrees.
+Its jab roundtrip rendered the bow down beside Archer's legs.
+
+Jab and the other authored body poses now offset Stand Ready, explicitly
+keying every bone's rotation and scale and every non-root translation.
+Root displacement remains simulation-owned. Non-firing visibility is also
+explicit; the bow geometry and original parent hierarchy are preserved.
+The packaged MDX check passed for the retained bow rotation in all fourteen
+custom clips, complete bone rotation tracks and absent custom root translation.
+MDX → MDL → Blender renders show the bow held in jab, all three tilts,
+jump and double jump. Sampled stock Stand, Walk and Attack poses still match
+the pre-change export. Native attack-to-movement recovery is a separate
+adapter/client check; these asset checks do not establish that recovery.
+
+The repaired Archer MDX SHA-256 is
+475ae4195dc533dcb6930e208ee52897e1c54fcb7f1f6af0d44082edb9c76372.
+Roundtrip images are under
+~/code/wc3-melee/worktrees/test-loop/build/animation-assets/bow-archer-packaged-*.png.
+
 The fighter no longer includes the stock model's independently animated arrow
 geoset. wc3-melee:tools/animations/dodges.py removes the unique mesh weighted
 only to Arrow, retaining the bone. Actual shots use a separate ArrowMissile

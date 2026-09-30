@@ -1442,3 +1442,35 @@ left native chat open in the match (wc3-melee:build/selection-enter-match.png).
 Do not treat the release result as proof of dragging: portrait-button release
 can also select. The requested ready label is now "Start" in source; that
 copy change is not yet loaded by the running client.
+
+Presentation direction from Tom: blast boundaries are invisible and just
+beyond the camera view, not colored arena walls. Remove the red lightning
+rectangle and its HUD explanation; the stage needs a solid floating-platform
+presentation rather than lightning as its finished surface. For a living
+fighter outside the viewport, show an edge-clamped player-colored circular
+indicator containing their current animated model, with an arrow pointing
+toward the fighter's off-screen location. Hide it on re-entry or KO. A static
+portrait does not meet this requirement. Native model-frame support and pose
+synchronization still need implementation and verification.
+
+Free-for-all supports the requested two-, three-, and four-player modes.
+Off-screen circle colors are assigned by player slot: P1 red, P2 blue,
+P3 yellow, P4 green. Current match/input implementation supports two fighters;
+three/four-fighter simulation, selection, HUD, and synchronized inputs remain
+required expansion, not an implemented capability.
+
+Character selection always displays all four player cards, including in
+two-player matches, following the supplied four-card reference. Active cards
+show their selected fighter portraits; unused cards remain visible and
+inactive rather than being removed. Card colors use the same P1 red / P2 blue /
+P3 yellow / P4 green slot assignment.
+Unused cards follow the supplied N/A reference: dim gray backing, N/A badge,
+and no fighter portrait. Do not populate unused slots with arbitrary fighters.
+Computer cards follow the supplied CPU reference: CPU header badge, selected
+fighter portrait/name and CP footer. No difficulty slider is required now.
+The earlier gray P2 roster chip remains separate from the card's CP footer.
+
+Match HUD follows the supplied Melee reference: bottom-aligned panel per
+active fighter, small fighter icon with × stock count above a large damage
+percentage, and player-color identification. Replace the current top-left
+plain-text fighter statistics. Technical tracing stays developer-only.

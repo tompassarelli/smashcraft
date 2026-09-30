@@ -37,7 +37,6 @@ boolean playerMashPressed = false
 int playerLedgeVerticalPressed = 0
 lightning array stageLines
 int stageLineCount = 0
-lightning array blastLines
 lightning array projectileLines
 effect array projectileArrows
 int projectileLineCount = 0
@@ -153,6 +152,10 @@ class MeleeSelectionActions extends SelectionActions
 
     override function openSettings(int participantId)
         openSettingsScreen(participantId)
+
+    override function start(int participantId)
+        if matchState.phase == CHARACTER_MENU
+            confirm(participantId)
 
 class MeleeSettingsActions extends SettingsActions
     int participantId
@@ -930,7 +933,7 @@ function renderUI()
         BlzFrameSetVisible(noticeFrame, not selecting and not controlsOpen)
         BlzFrameSetVisible(developerFrame, not selecting and not controlsOpen)
         if not selecting
-            BlzFrameSetText(hudFrame, "P1 " + charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "   " + shieldLabel(playerFighter) + "\n" + (twoHumanPlayers ? "P2 " : "Bot ") + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "   " + shieldLabel(botFighter) + "\n" + (matchState.stageChoice == 0 ? "Sky Deck" : "Three Bridges") + "   |cffff6666Red border = KO|r")
+            BlzFrameSetText(hudFrame, "P1 " + charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "   " + shieldLabel(playerFighter) + "\n" + (twoHumanPlayers ? "P2 " : "Bot ") + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "   " + shieldLabel(botFighter) + "\n" + (matchState.stageChoice == 0 ? "Sky Deck" : "Three Bridges"))
             BlzFrameSetText(helpFrame, matchState.phase == RESULT ? (matchState.firstRematchReady and twoHumanPlayers ? "Player 1 ready; waiting for Player 2. Ctrl+R: restart" : (matchState.secondRematchReady and twoHumanPlayers ? "Player 2 ready; waiting for Player 1. Ctrl+R: restart" : "Press Attack to choose your next match     Ctrl+R: restart")) : "Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.")
             if matchState.phase == MATCH and localFighter.downState == DOWN_WAIT
                 BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
@@ -953,7 +956,7 @@ function renderUI()
 function lockArenaCamera()
     SetCameraField(CAMERA_FIELD_ROTATION, 90, 0)
     SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, 350, 0)
-    SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, 2050, 0)
+    SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, 1450, 0)
     SetCameraField(CAMERA_FIELD_ZOFFSET, 1960, 0)
     SetCameraField(CAMERA_FIELD_ROLL, 0, 0)
     SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, 70, 0)
@@ -1145,10 +1148,6 @@ function initGame()
     settingsPanel = new SettingsPanel(playerBindings, new MeleeSettingsActions(0), 0)
     secondSelectionPanel = new SelectionPanel(new MeleeSelectionActions(), 1)
     secondSettingsPanel = new SettingsPanel(secondBindings, new MeleeSettingsActions(1), 1)
-    blastLines[0] = drawLine(LIGHTNING_FINGER_OF_DEATH, -920, -420, 920, -420, 1, 0.15, 0.15)
-    blastLines[1] = drawLine(LIGHTNING_FINGER_OF_DEATH, -920, 760, 920, 760, 1, 0.15, 0.15)
-    blastLines[2] = drawLine(LIGHTNING_FINGER_OF_DEATH, -920, -420, -920, 760, 1, 0.15, 0.15)
-    blastLines[3] = drawLine(LIGHTNING_FINGER_OF_DEATH, 920, -420, 920, 760, 1, 0.15, 0.15)
     drawStage()
     lockArenaCamera()
     CameraSetSmoothingFactor(0)

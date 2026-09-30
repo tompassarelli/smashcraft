@@ -23,6 +23,10 @@ scene = bpy.context.scene
 scene.render.fps = 24
 scene.render.fps_base = 1.0
 rig = next(obj for obj in scene.objects if obj.type == "ARMATURE")
+sys.path.insert(0, str(project / "tools/animations"))
+sys.dont_write_bytecode = True
+from archer_pose import ready_pose, key_pose, key_visibility
+base = ready_pose(rig)
 bone_names = {bone.name for bone in rig.data.bones}
 upper_name = "Bone_Arm1_R"
 forearm_name = "Bone_Arm2_R"
@@ -41,8 +45,8 @@ rig.animation_data.action_slot = slot
 rig.pose.bones[upper_name].rotation_mode = "QUATERNION"
 rig.pose.bones[forearm_name].rotation_mode = "QUATERNION"
 
-# Local X rotates the arm forward from Archer's relaxed side pose. The upper
-# arm leads the strike; the forearm extends it, with a quick retract.
+# Local X offsets the held-bow ready pose. The upper arm leads the strike;
+# the forearm extends it, with a quick retract.
 poses = {
     0: (0, 0),
     2: (-10, 4),
@@ -54,12 +58,15 @@ poses = {
 }
 for frame, (upper_degrees, forearm_degrees) in poses.items():
     scene.frame_set(frame)
+    for bone in rig.pose.bones:
+        bone.matrix_basis = base[bone.name]
     upper = rig.pose.bones[upper_name]
     forearm = rig.pose.bones[forearm_name]
-    upper.rotation_quaternion = Euler((upper_degrees * 0.017453292519943295, 0, 0), "XYZ").to_quaternion()
-    forearm.rotation_quaternion = Euler((forearm_degrees * 0.017453292519943295, 0, 0), "XYZ").to_quaternion()
-    upper.keyframe_insert(data_path="rotation_quaternion", frame=frame, group=upper_name)
-    forearm.keyframe_insert(data_path="rotation_quaternion", frame=frame, group=forearm_name)
+    upper.rotation_quaternion = base[upper_name].to_quaternion() @ Euler((upper_degrees * 0.017453292519943295, 0, 0), "XYZ").to_quaternion()
+    forearm.rotation_quaternion = base[forearm_name].to_quaternion() @ Euler((forearm_degrees * 0.017453292519943295, 0, 0), "XYZ").to_quaternion()
+    key_pose(rig, frame)
+
+key_visibility(action, 36)
 
 scene.frame_set(0)
 editable = assets / "archer-jab.blend"

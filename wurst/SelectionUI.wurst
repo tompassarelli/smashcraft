@@ -7,6 +7,7 @@ public abstract class SelectionActions
     abstract function selectChoice(int participantId, int choice)
     abstract function selectStage(int participantId, int choice)
     abstract function openSettings(int participantId)
+    abstract function start(int participantId)
 
 SelectionPanel array participantPanels
 
@@ -47,6 +48,7 @@ public class SelectionPanel
     framehandle confirmArt
     framehandle settingsArt
     framehandle confirmLabel
+    framehandle startButton
     framehandle settingsLabel
     framehandle settingsButton
     framehandle stageHeading
@@ -210,6 +212,15 @@ public class SelectionPanel
         confirmLabel.setSize(0.219, 0.028)
         BlzFrameSetFont(confirmLabel, "Fonts\\FRIZQT__.TTF", 0.011, 0)
         BlzFrameSetTextAlignment(confirmLabel, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
+        startButton = createFrame("ScriptDialogButton", GAME_UI, 0, 418 + frameOffset)
+        startButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.071, 0.043)
+        startButton.setSize(0.235, 0.037)
+        startButton.setAlpha(0)
+        startButton.onClick(() -> begin
+            if GetTriggerPlayer() == Player(participantId)
+                actions.start(participantId)
+        end)
+        startButton.onClickReleaseFocus()
         settingsArt = createBackdrop("MeleeSettingsArt" + suffix, GAME_UI, 427 + frameOffset)
         settingsArt.setTexture("war3mapImported\\SelectionAction.tga", 0, true)
         settingsArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.500, 0.043)
@@ -306,6 +317,7 @@ public class SelectionPanel
         confirmArt.setVisible(false)
         settingsArt.setVisible(false)
         confirmLabel.setVisible(false)
+        startButton.setVisible(false)
         settingsLabel.setVisible(false)
         settingsButton.setVisible(false)
         stageHeading.setVisible(false)
@@ -377,6 +389,7 @@ public class SelectionPanel
         confirmArt.setVisible(visible)
         settingsArt.setVisible(visible)
         confirmLabel.setVisible(visible)
+        startButton.setVisible(visible)
         settingsLabel.setVisible(visible)
         settingsButton.setVisible(visible)
         stageHeading.setVisible(visible)
