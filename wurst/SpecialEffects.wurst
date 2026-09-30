@@ -2,11 +2,13 @@ package SpecialEffects
 import Wurst
 import Units
 import Simulation
+import ImpactAssetInfo
 
 // Common initialization owns the handles; numerical state owns all contacts.
 public class SpecialEffects
     private effect array[2] bears
     private effect array[2] hippogryphs
+    private effect array[2] demonHunterAuras
     private int array[2] previousBearLife
     private int array[2] previousSwipeSerial
     private int array[2] previousHippogryphLife
@@ -21,6 +23,7 @@ public class SpecialEffects
         for slot = 0 to 1
             bears[slot] = AddSpecialEffect(Units.grizzlyBear, x, y)
             hippogryphs[slot] = AddSpecialEffect(Units.hippoGryph, x, y)
+            demonHunterAuras[slot] = AddSpecialEffect(IMPACT_ROLL_MODEL, x, y)
             BlzSetSpecialEffectAnimationBlendTime(bears[slot], 0.)
             BlzSetSpecialEffectAnimationBlendTime(hippogryphs[slot], 0.)
         clear()
@@ -33,6 +36,7 @@ public class SpecialEffects
         for slot = 0 to 1
             hide(bears[slot])
             hide(hippogryphs[slot])
+            hide(demonHunterAuras[slot])
             previousBearLife[slot] = 0
             previousSwipeSerial[slot] = 0
             previousHippogryphLife[slot] = 0
@@ -42,8 +46,28 @@ public class SpecialEffects
         for slot = 0 to 1
             BlzSetSpecialEffectTimeScale(bears[slot], scale)
             BlzSetSpecialEffectTimeScale(hippogryphs[slot], scale)
+            BlzSetSpecialEffectTimeScale(demonHunterAuras[slot], scale)
+
+    private function presentDemonHunterAura(FighterState fighter, int slot)
+        let model = demonHunterAuras[slot]
+        let immolate = fighter.specialAction == SPECIAL_DEMONHUNTER_IMMOLATE
+            and fighter.specialFrame >= DEMONHUNTER_IMMOLATE_STARTUP
+            and fighter.specialFrame < DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE
+        let parry = fighter.specialAction == SPECIAL_DEMONHUNTER_PARRY_STEP
+            and fighter.specialFrame >= DEMONHUNTER_PARRY_START
+            and fighter.specialFrame <= DEMONHUNTER_PARRY_END
+        if fighter.character != 2 or fighter.out or (not immolate and not parry)
+            hide(model)
+            return
+        // Static geometry follows the action window directly: no particle tail
+        // or replayed one-shot can imply protection/contact after it has ended.
+        BlzSetSpecialEffectPosition(model, worldX + fighter.x, worldY - 8, worldZ + fighter.z + 50)
+        BlzSetSpecialEffectColor(model, immolate ? 85 : 150, 255, immolate ? 100 : 255)
+        BlzSetSpecialEffectScale(model, immolate ? 1.4 : 0.85)
+        BlzSetSpecialEffectAlpha(model, 230)
 
     private function apply(FighterState fighter, int slot)
+        presentDemonHunterAura(fighter, slot)
         let bear = bears[slot]
         if fighter.bearLife > 0 and not fighter.out
             BlzSetSpecialEffectPosition(bear, worldX + fighter.bearX, worldY, worldZ + fighter.bearZ)

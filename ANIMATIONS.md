@@ -3,7 +3,9 @@
 ## Demon Hunter completion checklist
 
 Illidan selection and HUD integration are implemented in the working source;
-he is installed in `illidan-defense-r2`, but not native-verified as a playable fighter. The rebuilt
+he is installed in `illidan-special-vfx-r1`. Native mirror-match entry works,
+but one fighter rendered as a black silhouette with dark surrounding shapes.
+This model defect blocks playable-character completion; its cause is not diagnosed. The rebuilt
 scene contains 236 bones (including emitter helpers), 17 geosets and 24 stock actions;
 The authored scene now adds 81 clips, with 103 exported sequences and validated
 bindings in wc3-melee:build/illidan-animation/bindings.json. Source commits
@@ -22,15 +24,15 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 | Model, textures, attached blades, both gameplay facings | Imported; repaired materials inspected from both sides; not native-verified |
 | Jab, directional/angled tilts, smashes, dash attack | Combat source-tested; clips authored and bound; native playback unverified |
 | Neutral/forward/back/up/down aerials | Combat source-tested; clips authored and bound; native playback unverified |
-| Mana Burn, parry/evasion, wing ascent, Immolate | Combat source-tested; clips and source-derived animated wings authored; effects/integration unfinished |
+| Mana Burn, parry/evasion, wing ascent, Immolate | Combat source-tested; clips and source-derived animated wings authored; Mana Burn missile and active-window Immolate/parry cues connected; native verification pending |
 | Grab, hold, pummel, escape, four coordinated throws | Shared rules and authored poses exist; native pair alignment unverified |
 | Idle, walk/run, turns, crouch, jumps and landings | Jump squat, jumps and idle fall bound; other movement transitions still incomplete |
 | Shield, shield reactions/break, spot dodge, rolls, air dodge | Shield raise/hold/release, ground dodges and air dodge bound; native checks pending |
 | Ground/air hitstun, tumble, contact-pose hitlag | Reactions authored; freeze/resume verification missing |
 | Knockdown, techs, getup options, ledges, KO and respawn | Knockdown/rest, tech/getup and ledge roll/attack bound; remaining transitions/native grounding unverified |
 | Action-frame volumes, interruptions, stock reset and replay | Provisional numerical regions and focused interruption/reset/replay checks implemented; animation alignment missing |
-| Portraits, selection, mirror match and rematch retention | Portrait/tile generated; third roster tile, human/CPU chips, HUD and rematch selection implemented; native UI unverified |
-| Real-control playthrough in Warcraft | Not tested |
+| Portraits, selection, mirror match and rematch retention | Portrait/tile generated; third roster tile, human/CPU mirror selection and HUD observed in Warcraft; rematch native check pending |
+| Real-control playthrough in Warcraft | Selection-to-match observed; model defect found; moveset checks incomplete |
 
 Wings must appear and animate during recovery. Post-ascent glide remains an
 unadopted design option. Timing and damage live in combat source; new tuning

@@ -2,7 +2,26 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-Installed: `illidan-defense-r2`, normal scenario. Includes Illidan selection/HUD,
+Installed and observed running: `illidan-special-vfx-r1`. Build/deploy passed
+with six warnings: wc3-melee:build/illidan-special-vfx-r1-map.log. Mana Burn
+uses Mana Flare missile art; preallocated static Immolate/parry cues follow
+active windows. Their actual action playback has not been individually verified.
+Native roster/portraits, both chip placements, Y to stage select and Y to start
+an Illidan mirror match worked. HUD portraits/names/stock icons render and
+combat advances. Evidence: wc3-melee:build/illidan-native-mirror.png and
+wc3-melee:build/illidan-native-match.png.
+BLOCKING VISUAL DEFECT: during that match one fighter is a black silhouette
+with large dark surrounding shapes while the other is textured. Model/material
+or action visibility cause is not diagnosed. Fix this before release. Match
+was paused with Y for inspection; Warcraft window 236, X11 window 171966465.
+Do not restart via Ctrl+R. Public release remains unchanged.
+Launch input finding: visible Wayland cursor and reported X11 pointer differed.
+Setting X11 pointer within the scaled window made Play work. Battle.net window
+83886103 was 2848x1840; Play at window-relative 234,1678. Warcraft is 2880x1920,
+so screenshot coordinates at 1440x960 map to twice their values. Map polling
+needs a held mouse click (~150ms); instantaneous click missed placement.
+
+Previously installed: `illidan-defense-r2`, normal scenario. Includes Illidan selection/HUD,
 air dodge, shield raise/hold/release, jump squat, held fall, resting knockdown,
 and dedicated ledge roll/attack bindings. Air dodge playback uses the existing
 49-frame animation duration; no combat values changed. Build/deploy and asset

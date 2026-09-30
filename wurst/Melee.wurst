@@ -332,7 +332,7 @@ function renderProjectile(int index, boolean active, real x, real z, real veloci
             projectileModels[index] = null
         return
     if projectileModels[index] == null
-        let model = character == 0 ? Abilities.arrowMissile1 : Abilities.gyroCopterMissile
+        let model = character == 2 ? Abilities.manaFlareMissile : (character == 0 ? Abilities.arrowMissile1 : Abilities.gyroCopterMissile)
         projectileModels[index] = AddSpecialEffect(model, centerX + x, centerY)
         if character == 1
             BlzSetSpecialEffectScale(projectileModels[index], 0.65)
