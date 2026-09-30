@@ -4,6 +4,8 @@ import Simulation
 // Produce ordinary frame inputs; recovery never moves the fighter directly.
 public function chooseRecoveryInput(FighterState fighter, int stage, InputSnapshot input) returns boolean
     input.specialPressed = false
+    input.specialX = 0
+    input.specialZ = 0
     input.verticalDirection = 0
     input.ledgeVerticalPressed = 0
     if fighter.out
@@ -27,5 +29,7 @@ public function chooseRecoveryInput(FighterState fighter, int stage, InputSnapsh
             input.jumpHeld = true
         else if fighter.z < floor + 50
             input.specialPressed = true
+            input.specialX = input.direction
+            input.specialZ = 1
             input.verticalDirection = 1
     return true

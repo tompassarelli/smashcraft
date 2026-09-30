@@ -8,6 +8,8 @@ public class PlayerInputState
     private boolean array[256] keyHeld
     private boolean array[KEY_SLOT_COUNT] bindingHeld
     private boolean array[ACTION_COUNT] actionPressed
+    int specialX = 0
+    int specialZ = 0
     private DirectionalInput directions = new DirectionalInput()
 
     function isKeyHeld(int keyCode) returns boolean
@@ -29,6 +31,9 @@ public class PlayerInputState
         let wasHeld = actionHeld(action)
         bindingHeld[action * 2 + slot] = true
         if not wasHeld
+            if action == SPECIAL and not actionPressed[SPECIAL]
+                specialX = directionX()
+                specialZ = directionZ()
             actionPressed[action] = true
         updateDirection()
         return action
@@ -93,6 +98,8 @@ public class PlayerInputState
             bindingHeld[i] = false
         for i = 0 to ACTION_COUNT - 1
             actionPressed[i] = false
+        specialX = 0
+        specialZ = 0
         directions.clear()
 
     function copyTo(PlayerInputState destination)
@@ -102,6 +109,8 @@ public class PlayerInputState
             destination.bindingHeld[i] = bindingHeld[i]
         for i = 0 to ACTION_COUNT - 1
             destination.actionPressed[i] = actionPressed[i]
+        destination.specialX = specialX
+        destination.specialZ = specialZ
         directions.copyTo(destination.directions)
 
     private function updateDirection()

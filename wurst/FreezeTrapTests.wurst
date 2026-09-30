@@ -22,6 +22,7 @@ function freezeTrapMatch() returns MatchState
 	let archerCommands = new AttackBuffer(0)
 	riflemanInput.specialPressed = true
 	riflemanInput.down = true
+	riflemanInput.specialZ = -1
 	stepMatch(game, rifleman, archer, riflemanInput, archerInput, riflemanCommands, archerCommands, 1)
 	rifleman.freezeTrapSerial.assertEquals(1)
 	rifleman.freezeTrapX.assertEquals(-100.)
@@ -160,6 +161,7 @@ function freezeTrapMatch() returns MatchState
 	for frame = 1 to 321
 		riflemanInput.specialPressed = frame == 1
 		riflemanInput.down = true
+		riflemanInput.specialZ = -1
 		stepMatch(game, rifleman, archer, riflemanInput, archerInput,
 			riflemanCommands, archerCommands, frame)
 		runtime.simulationFrame = frame
@@ -174,6 +176,7 @@ function freezeTrapMatch() returns MatchState
 	for frame = 1 to 321
 		riflemanInput.specialPressed = frame == 1
 		riflemanInput.down = true
+		riflemanInput.specialZ = -1
 		stepMatch(game, rifleman, archer, riflemanInput, archerInput,
 			riflemanCommands, archerCommands, frame)
 		runtime.simulationFrame = frame

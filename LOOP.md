@@ -2,6 +2,35 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
+## Special-direction repair — 2026-10-01
+
+Native testing found a shared input defect: a held Down, Special press, and
+batched releases could select neutral-special after the movement edge had
+already been consumed. Capturing the direction at Special press fixes the
+owning input boundary. Both human slots record the captured axes independently
+of current movement; bot recovery supplies explicit special axes; frame-input
+copies and equality include them. Repeated unconsumed presses cannot rewrite
+the first pending special direction.
+
+Native before: wc3-melee:build/illidan-immolate-air-trace.txt selects special 9
+after batched releases. Native after:
+wc3-melee:build/special-direction-release-trace.txt receives Special down/up
+and Down up at frame 1787, then selects special 12 at frame 1788 despite
+neutral movement. Airborne Immolate additionally connects for 9 damage against
+the grounded passive opponent; offstage spike motion remains untested.
+
+Source suite: 365/366 passed initially; the added three-character test lacked
+the surface required to place Rifleman's trap. After correcting that fixture,
+the focused input suite passes 9/9, including the failing case for all three
+characters and immutable pending intent. Logs:
+wc3-melee:build/wurst-tests/special-direction-all.log and
+wc3-melee:build/wurst-tests/special-direction-input.log.
+The actual native test runs in `special-direction-passive-r1`, paused with Y.
+Normal `special-direction-r1` is built and installed for the next launch;
+byte comparison passed. Build completed with zero errors and six warnings:
+wc3-melee:build/special-direction-normal-map.log. The currently running map
+remains the paused passive scenario. Public downloadable release is unchanged.
+
 ## Current checkpoint — 2026-10-01 landing playback
 
 Installed for next launch: normal `illidan-landing-r1`, restored by atomic

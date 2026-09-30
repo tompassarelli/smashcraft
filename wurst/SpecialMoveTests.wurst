@@ -65,6 +65,7 @@ function specialMatch() returns MatchState
 	startFighterSpecial(archer, 0, input).assertTrue()
 	input.specialPressed = false
 	input.direction = 1
+	input.specialX = input.direction
 	targetCommands.enqueue(4, -1, 1, false)
 	for frame = 1 to 4
 		stepMatch(game, archer, target, input, targetInput, commands, targetCommands, frame)
@@ -126,10 +127,12 @@ function specialMatch() returns MatchState
 			shooter.z = 400
 			shooter.vx = facing * 15.
 			input.direction = -facing
+			input.specialX = input.direction
 			stepMatch(game, shooter, target, input, targetInput, commands, targetCommands, 1)
 			shooter.facing.assertEquals(facing)
 			shooter.lastAerialTapDirection.assertEquals(-facing)
 			input.direction = 0
+			input.specialX = input.direction
 			stepMatch(game, shooter, target, input, targetInput, commands, targetCommands, 2)
 			shooter.facing.assertEquals(facing)
 			(shooter.vx * facing > 0).assertTrue()
@@ -163,6 +166,7 @@ function specialMatch() returns MatchState
 		fighter.z = 300
 		input.specialPressed = true
 		input.direction = -1
+		input.specialX = input.direction
 		stepMatch(game, fighter, target, input, targetInput, commands, targetCommands, 1)
 		fighter.specialAction.assertEquals(character == 0 ? SPECIAL_ARCHER_MULTISHOT : SPECIAL_RIFLEMAN_BEAR)
 		destroy commands
@@ -185,6 +189,7 @@ function specialMatch() returns MatchState
 	fighter.z = 300
 	fighter.vx = 8
 	input.direction = -1
+	input.specialX = input.direction
 	stepMatch(game, fighter, target, input, targetInput, commands, targetCommands, 1)
 	fighter.facing.assertEquals(1)
 	fighter.lastAerialTapDirection.assertEquals(-1)
@@ -197,6 +202,7 @@ function specialMatch() returns MatchState
 	fighter.attackHit = false
 	fighter.cooldown = 0
 	input.direction = 0
+	input.specialX = input.direction
 	fighter.z = 1
 	fighter.vz = -2
 	advance(fighter, 0, input, 0)
@@ -252,6 +258,7 @@ function specialMatch() returns MatchState
 	let riflemanCommands = new AttackBuffer(0)
 	archerInput.specialPressed = true
 	archerInput.direction = 1
+	archerInput.specialX = archerInput.direction
 	stepMatch(game, archer, rifleman, archerInput, riflemanInput, archerCommands, riflemanCommands, 1)
 	archer.specialAction.assertEquals(SPECIAL_ARCHER_MULTISHOT)
 	projectileCount(archer).assertEquals(0)
@@ -280,6 +287,7 @@ function specialMatch() returns MatchState
 	let riflemanCommands = new AttackBuffer(0)
 	archerInput.specialPressed = true
 	archerInput.verticalDirection = -1
+	archerInput.specialZ = archerInput.verticalDirection
 	stepMatch(game, archer, rifleman, archerInput, riflemanInput, archerCommands, riflemanCommands, 1)
 	archer.specialAction.assertEquals(SPECIAL_ARCHER_DISENGAGE)
 	archer.vx.assertLessThan(0)
@@ -307,7 +315,9 @@ function specialMatch() returns MatchState
 	let riflemanCommands = new AttackBuffer(0)
 	archerInput.specialPressed = true
 	archerInput.verticalDirection = 1
+	archerInput.specialZ = archerInput.verticalDirection
 	archerInput.direction = -1
+	archerInput.specialX = archerInput.direction
 	stepMatch(game, archer, rifleman, archerInput, riflemanInput, archerCommands, riflemanCommands, 1)
 	archer.specialAction.assertEquals(SPECIAL_ARCHER_RECOVERY)
 	archer.grounded.assertFalse()
@@ -382,6 +392,7 @@ function specialMatch() returns MatchState
 	archer.invincible = 100
 	riflemanInput.specialPressed = true
 	riflemanInput.direction = 1
+	riflemanInput.specialX = riflemanInput.direction
 	stepMatch(game, rifleman, archer, riflemanInput, archerInput,
 		riflemanCommands, archerCommands, 1)
 	riflemanInput.specialPressed = false
@@ -393,6 +404,7 @@ function specialMatch() returns MatchState
 	rifleman.specialCooldowns[SPECIAL_RIFLEMAN_BEAR].assertGreaterThan(0)
 	riflemanInput.specialPressed = true
 	riflemanInput.direction = 0
+	riflemanInput.specialX = riflemanInput.direction
 	stepMatch(game, rifleman, archer, riflemanInput, archerInput,
 		riflemanCommands, archerCommands, 23)
 	rifleman.specialAction.assertEquals(SPECIAL_RIFLEMAN_BLASTER)
@@ -425,6 +437,7 @@ function specialMatch() returns MatchState
 	archer.z = 230
 	riflemanInput.specialPressed = true
 	riflemanInput.direction = -1
+	riflemanInput.specialX = riflemanInput.direction
 	stepMatch(game, rifleman, archer, riflemanInput, archerInput, riflemanCommands, archerCommands, 1)
 	rifleman.bearLife.assertGreaterThan(0)
 	rifleman.bearVelocityX.assertEquals(-14.)
@@ -452,6 +465,7 @@ function specialMatch() returns MatchState
 	let archerCommands = new AttackBuffer(0)
 	riflemanInput.specialPressed = true
 	riflemanInput.verticalDirection = 1
+	riflemanInput.specialZ = riflemanInput.verticalDirection
 	stepMatch(game, rifleman, archer, riflemanInput, archerInput, riflemanCommands, archerCommands, 1)
 	rifleman.grounded.assertTrue()
 	for frame = 2 to RIFLEMAN_RECOVERY_STARTUP_FRAMES + 1
@@ -490,10 +504,12 @@ function specialMatch() returns MatchState
 		fighter.jumps = 1
 		input.specialPressed = true
 		input.verticalDirection = 1
+		input.specialZ = input.verticalDirection
 		startFighterSpecial(fighter, 0, input).assertTrue()
 		fighter.jumps.assertEquals(0)
 		input.specialPressed = false
 		input.verticalDirection = 0
+		input.specialZ = input.verticalDirection
 		for frame = 1 to 38
 			fighter.cooldown = max(0, fighter.cooldown - 1)
 			fighter.specialLockFrames = max(0, fighter.specialLockFrames - 1)
@@ -506,6 +522,7 @@ function specialMatch() returns MatchState
 		input.airDodgePressed = true
 		input.dodgeX = 1
 		input.direction = 1
+		input.specialX = input.direction
 		advance(fighter, 0, input, 0)
 		fighter.specialFall.assertTrue()
 		fighter.jumpSquat.assertEquals(0)
@@ -516,12 +533,14 @@ function specialMatch() returns MatchState
 		fighter.attackStyle.assertEquals(-1)
 		input.specialPressed = true
 		input.verticalDirection = 0
+		input.specialZ = input.verticalDirection
 		startFighterSpecial(fighter, 0, input).assertFalse()
 		input.specialPressed = false
 		input.jumpPressed = false
 		input.airDodgePressed = false
 		input.dodgeX = 0
 		input.direction = 0
+		input.specialX = input.direction
 		fighter.hitstun = 2
 		cancelSpecialState(fighter)
 		fighter.specialFall.assertFalse()

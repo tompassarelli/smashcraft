@@ -71,6 +71,8 @@ function sameInputSnapshot(InputSnapshot first, InputSnapshot second) returns bo
         return false
     if first.attackRequested != second.attackRequested
         return false
+    if first.specialX != second.specialX or first.specialZ != second.specialZ
+        return false
     if first.specialPressed != second.specialPressed
         return false
     if first.down != second.down

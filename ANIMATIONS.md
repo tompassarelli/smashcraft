@@ -2,6 +2,27 @@
 
 ## Demon Hunter completion checklist
 
+Grounded Immolate contact is observed in Warcraft: one 7-damage hit with
+5 victim hitlag frames, 18 hitstun frames and a horizontal launch. Its green
+active cue and victim impact are visible. Evidence:
+wc3-melee:build/illidan-immolate-native.mp4 and
+wc3-melee:build/illidan-immolate-trace.txt.
+
+The subsequent airborne attempt exposed direction loss, not a verified spike:
+Down was held when Special pressed, but both releases arrived before the next
+step; Mana Burn was selected. The event trace is
+wc3-melee:build/illidan-immolate-air-trace.txt (frames 2544–2545).
+The input repair captures special direction at its press independently of
+current movement axes, records it in frame inputs, and preserves it in copies
+and equality checks. The repaired native trace
+wc3-melee:build/special-direction-release-trace.txt confirms all three events
+arrive at frame 1787; frame 1788 has neutral movement and selects Immolate
+(special 12). Airborne Immolate also hits a grounded target for 9 damage,
+6 victim hitlag and 21 hitstun in
+wc3-melee:build/special-direction-native-trace.txt and
+wc3-melee:build/special-direction-native.mp4. Offstage downward trajectory
+remains unverified; this target was standing on the floor.
+
 Normal and air-dodge landing playback is now observed in Warcraft: both show
 the authored contact crouch followed by standing. The clean passive-opponent
 trace records 4 normal recovery frames and 10 after air dodge, with no damage

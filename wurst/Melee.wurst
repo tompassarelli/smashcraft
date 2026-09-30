@@ -1514,6 +1514,9 @@ function gameTick()
         playerInput.ledgeVerticalPressed = playerLedgeVerticalPressed
         playerInput.getupAttackPressed = playerGetupAttackPressed
         playerInput.specialPressed = playerSpecialPressed
+        playerInput.specialX = playerSpecialPressed ? firstKeyState.specialX : 0
+        playerInput.specialZ = playerSpecialPressed ? firstKeyState.specialZ : 0
+        firstKeyState.consumePressed(SPECIAL)
         playerInput.getupStandPressed = playerGetupStandPressed
         playerInput.getupDirection = (playerRightPressed ? 1 : 0) - (playerLeftPressed ? 1 : 0)
         playerInput.getupDirectionPressed = playerInput.getupDirection != 0
@@ -1547,6 +1550,9 @@ function gameTick()
         secondPlayerInput.ledgeVerticalPressed = secondLedgeVerticalPressed
         secondPlayerInput.getupAttackPressed = secondGetupAttackPressed
         secondPlayerInput.specialPressed = secondSpecialPressed
+        secondPlayerInput.specialX = secondSpecialPressed ? secondKeyState.specialX : 0
+        secondPlayerInput.specialZ = secondSpecialPressed ? secondKeyState.specialZ : 0
+        secondKeyState.consumePressed(SPECIAL)
         secondPlayerInput.getupStandPressed = secondGetupStandPressed
         secondPlayerInput.getupDirection = (secondRightPressed ? 1 : 0) - (secondLeftPressed ? 1 : 0)
         secondPlayerInput.getupDirectionPressed = secondPlayerInput.getupDirection != 0

@@ -56,6 +56,7 @@ function demonHunterMatch() returns MatchState
 			let input = new InputSnapshot()
 			input.specialPressed = true
 			input.down = true
+			input.specialZ = -1
 			startFighterSpecial(illidan, 0, input).assertTrue()
 			illidan.specialAction.assertEquals(SPECIAL_DEMONHUNTER_IMMOLATE)
 			input.specialPressed = false
@@ -80,6 +81,7 @@ function demonHunterMatch() returns MatchState
 			let input = new InputSnapshot()
 			input.specialPressed = true
 			input.down = true
+			input.specialZ = -1
 			if airborne == 1
 				left.grounded = false
 				right.grounded = false
@@ -108,6 +110,7 @@ function demonHunterMatch() returns MatchState
 	let input = new InputSnapshot()
 	input.specialPressed = true
 	input.down = true
+	input.specialZ = -1
 	startFighterSpecial(illidan, 0, input).assertTrue()
 	input.specialPressed = false
 	for tick = 1 to DEMONHUNTER_IMMOLATE_STARTUP
@@ -151,6 +154,7 @@ function demonHunterMatch() returns MatchState
 	let input = new InputSnapshot()
 	input.specialPressed = true
 	input.direction = -1
+	input.specialX = input.direction
 	startFighterSpecial(illidan, 0, input).assertTrue()
 	input.specialPressed = false
 	for tick = 1 to DEMONHUNTER_PARRY_START
@@ -172,6 +176,7 @@ function demonHunterMatch() returns MatchState
 	arrowInput.specialPressed = true
 	parryInput.specialPressed = true
 	parryInput.direction = -1
+	parryInput.specialX = parryInput.direction
 	startFighterSpecial(shooter, 0, arrowInput).assertTrue()
 	startFighterSpecial(parrier, 0, parryInput).assertTrue()
 	arrowInput.specialPressed = false
@@ -192,6 +197,7 @@ function demonHunterMatch() returns MatchState
 	let input = new InputSnapshot()
 	input.specialPressed = true
 	input.verticalDirection = 1
+	input.specialZ = input.verticalDirection
 	startFighterSpecial(illidan, 0, input).assertTrue()
 	illidan.jumps.assertEquals(0)
 	illidan.grounded.assertFalse()
@@ -261,6 +267,7 @@ function demonHunterMatch() returns MatchState
 	let inputB = new InputSnapshot()
 	inputA.specialPressed = true
 	inputA.down = true
+	inputA.specialZ = -1
 	stepMatch(game, first, second, inputA, inputB, commandsA, commandsB, 1)
 	inputA.specialPressed = false
 	for frame = 2 to DEMONHUNTER_IMMOLATE_STARTUP + 2
@@ -304,6 +311,7 @@ function demonHunterMatch() returns MatchState
 	let specialInput = new InputSnapshot()
 	specialInput.specialPressed = true
 	specialInput.down = true
+	specialInput.specialZ = -1
 	startFighterSpecial(illidan, 0, specialInput).assertTrue()
 	specialInput.specialPressed = false
 	for tick = 1 to DEMONHUNTER_IMMOLATE_STARTUP - 1

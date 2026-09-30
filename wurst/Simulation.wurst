@@ -379,6 +379,8 @@ public class InputSnapshot
 	int cStickZ = 0
 	boolean attackRequested = false
 	boolean specialPressed = false
+	int specialX = 0
+	int specialZ = 0
 	boolean down = false
 	boolean shield = false
 	boolean jumpPressed = false
@@ -413,6 +415,8 @@ public class InputSnapshot
 		destination.cStickZ = cStickZ
 		destination.attackRequested = attackRequested
 		destination.specialPressed = specialPressed
+		destination.specialX = specialX
+		destination.specialZ = specialZ
 		destination.down = down
 		destination.shield = shield
 		destination.jumpPressed = jumpPressed
@@ -1886,33 +1890,33 @@ function startSpecialAction(FighterState owner, int action, int duration, int di
 	owner.cooldown = max(owner.cooldown, duration)
 
 function specialDirection(InputSnapshot input, int facing) returns int
-	if input.direction != 0
-		return input.direction
-	return input.verticalDirection == 0 ? facing : 0
+	if input.specialX != 0
+		return input.specialX
+	return input.specialZ == 0 ? facing : 0
 
 function requestedSpecial(FighterState owner, InputSnapshot input) returns int
 	if owner.character == 0
-		if input.verticalDirection > 0
+		if input.specialZ > 0
 			return SPECIAL_ARCHER_RECOVERY
-		if input.verticalDirection < 0 or input.down
+		if input.specialZ < 0
 			return SPECIAL_ARCHER_DISENGAGE
-		if input.direction != 0
+		if input.specialX != 0
 			return SPECIAL_ARCHER_MULTISHOT
 		return SPECIAL_ARCHER_ARROW
 	if owner.character == 1
-		if input.verticalDirection < 0 or input.down
+		if input.specialZ < 0
 			return SPECIAL_RIFLEMAN_TRAP
-		if input.verticalDirection > 0
+		if input.specialZ > 0
 			return SPECIAL_RIFLEMAN_RECOVERY
-		if input.direction != 0
+		if input.specialX != 0
 			return SPECIAL_RIFLEMAN_BEAR
 		return SPECIAL_RIFLEMAN_BLASTER
 	if owner.character == 2
-		if input.verticalDirection > 0
+		if input.specialZ > 0
 			return SPECIAL_DEMONHUNTER_WING_ASCENT
-		if input.verticalDirection < 0 or input.down
+		if input.specialZ < 0
 			return SPECIAL_DEMONHUNTER_IMMOLATE
-		if input.direction != 0
+		if input.specialX != 0
 			return SPECIAL_DEMONHUNTER_PARRY_STEP
 		return SPECIAL_DEMONHUNTER_MANA_BURN
 	return SPECIAL_NONE
@@ -1928,11 +1932,11 @@ public function startFighterSpecial(FighterState owner, int stage, InputSnapshot
 	let requested = requestedSpecial(owner, input)
 	if not specialCanStart(owner, requested)
 		return false
-	if not owner.grounded and input.direction == 0 and input.verticalDirection == 0 and not input.down and owner.lastAerialTapDirection != 0
+	if not owner.grounded and input.specialX == 0 and input.specialZ == 0 and owner.lastAerialTapDirection != 0
 		owner.facing = owner.lastAerialTapDirection
 	let moveX = specialDirection(input, owner.facing)
 	if owner.character == 0
-		if input.verticalDirection > 0
+		if input.specialZ > 0
 			startSpecialAction(owner, SPECIAL_ARCHER_RECOVERY, ARCHER_RECOVERY_FRAMES, moveX)
 			owner.hippogryphKind = 2
 			owner.hippogryphLife = ARCHER_RECOVERY_FRAMES
@@ -1947,7 +1951,7 @@ public function startFighterSpecial(FighterState owner, int stage, InputSnapshot
 			owner.jumps = 0
 			owner.specialCooldowns[SPECIAL_ARCHER_RECOVERY] = 90
 			return true
-		if input.verticalDirection < 0 or input.down
+		if input.specialZ < 0
 			startSpecialAction(owner, SPECIAL_ARCHER_DISENGAGE, ARCHER_DISENGAGE_FRAMES, moveX)
 			owner.hippogryphKind = 1
 			owner.specialHit = false
@@ -1962,7 +1966,7 @@ public function startFighterSpecial(FighterState owner, int stage, InputSnapshot
 			owner.surface = -1
 			owner.specialCooldowns[SPECIAL_ARCHER_DISENGAGE] = 75
 			return true
-		if input.direction != 0
+		if input.specialX != 0
 			startSpecialAction(owner, SPECIAL_ARCHER_MULTISHOT, 34, moveX)
 			owner.specialCooldowns[SPECIAL_ARCHER_MULTISHOT] = 40
 			return true
@@ -1971,19 +1975,19 @@ public function startFighterSpecial(FighterState owner, int stage, InputSnapshot
 		owner.specialCooldowns[SPECIAL_ARCHER_ARROW] = 8
 		return true
 	if owner.character == 1
-		if input.verticalDirection < 0 or input.down
+		if input.specialZ < 0
 			if startFreezeTrap(owner, stage)
 				startSpecialAction(owner, SPECIAL_RIFLEMAN_TRAP, 20, moveX)
 				owner.specialCooldowns[SPECIAL_RIFLEMAN_TRAP] = 90
 				return true
 			return false
-		if input.verticalDirection > 0
+		if input.specialZ > 0
 			if not owner.grounded
 				owner.jumps = 0
 			startSpecialAction(owner, SPECIAL_RIFLEMAN_RECOVERY, 34, moveX)
 			owner.specialCooldowns[SPECIAL_RIFLEMAN_RECOVERY] = 90
 			return true
-		if input.direction != 0
+		if input.specialX != 0
 			if owner.bearLife > 0
 				return false
 			startSpecialAction(owner, SPECIAL_RIFLEMAN_BEAR, 18, moveX)
