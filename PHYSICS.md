@@ -566,8 +566,11 @@ and persist through owner recovery or interruption. Collision sweeps the
 horizontal distance traveled during a tick, so a beam cannot skip a stationary
 fighter just because its endpoints lie on either side. Intangible or absent
 targets do not absorb a shot. Shields absorb it without freezing the distant
-shooter. Fox deals 3 damage without flinch; Falco deals 3 damage and at least
-11 frames of hitstun. These damage/stun values are provisional.
+shooter. Rifleman's neutral-special shot deals 3 damage, applies four frames
+of victim-only hitlag, then at least 11 frames of hitstun, interrupting an
+ordinary attack or special. This is the requested Falco-like brief flinch;
+the 11-frame value is original provisional tuning, not verified Falco parity.
+Archer arrows instead follow the damage-only rules below.
 
 Projectile tuning is 36 Warcraft units per frame and 60 ticks of life
 (2,160 units of travel), emitted 35 units ahead and 75 units above the fighter's

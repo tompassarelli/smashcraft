@@ -2496,7 +2496,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	leftA.cooldown.assertEquals(leftB.cooldown)
 	rightA.cooldown.assertEquals(rightB.cooldown)
 
-@Test function aWhiffAddsNoHitlagWhileTheOpponentsActiveMoveConnects()
+@Test function aWhiffDoesNotFreezeTheShooterWhileTheOpponentsShotFreezesItsVictim()
 	let game = testMatch()
 	let blaster = new FighterState(0, 0, 1)
 	let opponent = new FighterState(1, 100, -1)
@@ -2511,7 +2511,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 		stepMatch(game, blaster, opponent, blasterInput, opponentInput, blasterCommands, opponentCommands, frame)
 	blaster.damage.assertEquals(3.)
 	opponent.damage.assertEquals(0.)
-	blaster.hitlag.assertEquals(0)
+	blaster.hitlag.assertEquals(4)
 	opponent.hitlag.assertEquals(0)
 	blaster.cooldown.assertEquals(0)
 	opponent.cooldown.assertEquals(attackDurationFrames(1) - attackStartupFrames(1) - 1)

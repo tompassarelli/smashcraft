@@ -1416,6 +1416,7 @@ function applyProjectileHit(FighterState owner, FighterState target, int index)
 	clearDownState(target)
 	cancelAttack(target)
 	target.hitstun = max(target.hitstun, 11)
+	target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
 	cancelSpecialState(target)
 
 function updateProjectiles(FighterState owner, FighterState target, real targetX, real targetZ, boolean targetWasOut, boolean targetWasIntangible)

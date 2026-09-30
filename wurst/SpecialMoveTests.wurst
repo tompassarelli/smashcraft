@@ -4,11 +4,53 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 import ReplayState
+import DamagePose
 
 function specialMatch() returns MatchState
 	let game = new MatchState()
 	game.phase = MATCH
 	return game
+
+@Test function riflemanNeutralShotFreezesThenFlinchesItsVictimOnly()
+	let game = specialMatch()
+	let rifleman = new FighterState(1, 0, 1)
+	let target = new FighterState(0, 140, -1)
+	let input = new InputSnapshot()
+	let targetInput = new InputSnapshot()
+	let commands = new AttackBuffer(0)
+	let targetCommands = new AttackBuffer(0)
+	input.specialPressed = true
+	targetCommands.enqueue(4, -1, 1, false)
+	var frame = 1
+	while target.damage == 0 and frame <= 8
+		stepMatch(game, rifleman, target, input, targetInput, commands, targetCommands, frame)
+		input.specialPressed = false
+		frame++
+	target.damage.assertEquals(3.)
+	target.attackStyle.assertEquals(-1)
+	target.hitlag.assertEquals(4)
+	target.hitstun.assertEquals(11)
+	damagePose(target).assertEquals(DAMAGE_POSE_GROUND)
+	rifleman.hitlag.assertEquals(0)
+	targetInput.jumpPressed = true
+	targetInput.jumpHeld = true
+	for tick = 1 to 4
+		advance(target, 0, targetInput, 0)
+		target.hitstun.assertEquals(11)
+		target.jumpSquat.assertEquals(0)
+	for tick = 1 to 10
+		advance(target, 0, targetInput, 0)
+		target.jumpSquat.assertEquals(0)
+	advance(target, 0, targetInput, 0)
+	target.hitstun.assertEquals(0)
+	target.jumpSquat.assertGreaterThan(0)
+	destroy commands
+	destroy targetCommands
+	destroy input
+	destroy targetInput
+	destroy rifleman
+	destroy target
+	destroy game
 
 @Test function movingArcherArrowDealsDamageWithoutInterruptingTargetAttack()
 	let game = specialMatch()
