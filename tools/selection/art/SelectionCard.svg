@@ -1,16 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="700" height="840" viewBox="0 0 700 840">
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="875" viewBox="0 0 700 875">
  <defs>
-  <linearGradient id="metal" x2="0" y2="1"><stop stop-color="#e0e6e9"/><stop offset=".12" stop-color="#697984"/><stop offset=".22" stop-color="#111b26"/><stop offset=".87" stop-color="#0b131c"/><stop offset=".97" stop-color="#87949c"/><stop offset="1" stop-color="#e2e6e8"/></linearGradient>
-  <linearGradient id="tint" x2="0" y2="1"><stop stop-color="CARD_COLOR"/><stop offset=".68" stop-color="#111b29"/><stop offset="1" stop-color="#080d15"/></linearGradient>
-  <linearGradient id="gold" x2="0" y2="1"><stop stop-color="#fff5a2"/><stop offset=".36" stop-color="#ffd52e"/><stop offset="1" stop-color="#9e680c"/></linearGradient>
-  <pattern id="texture" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M0 12L19 0M25 48L48 25" stroke="#eef2f4" stroke-opacity=".065" stroke-width="2"/></pattern>
+  <linearGradient id="metal" x2="0" y2="1"><stop stop-color="CARD_METAL"/><stop offset=".12" stop-color="#596571"/><stop offset=".22" stop-color="#111b26"/><stop offset=".87" stop-color="#0b131c"/><stop offset="1" stop-color="CARD_METAL"/></linearGradient>
+  <linearGradient id="tint" x2="0" y2="1"><stop stop-color="CARD_COLOR"/><stop offset=".75" stop-color="#151c27"/><stop offset="1" stop-color="#080d15"/></linearGradient>
+  <pattern id="texture" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M0 12L19 0M25 48L48 25" stroke="#eef2f4" stroke-opacity=".045" stroke-width="2"/></pattern>
  </defs>
- <path d="M25 5H675L695 25V815L675 835H25L5 815V25Z" fill="#03070c" stroke="url(#gold)" stroke-width="9"/>
- <path d="M39 18H661L682 39V802L661 822H39L18 802V39Z" fill="url(#metal)" stroke="#d5dde1" stroke-width="5"/>
- <path d="M54 35H646L665 54V680H35V54Z" fill="url(#tint)" stroke="#a5b0b6" stroke-width="6"/>
- <path d="M54 35H646L665 54V680H35V54Z" fill="url(#texture)"/>
- <path d="M35 669H665V711H35Z" fill="#141d29" stroke="#d2dbe0" stroke-width="4"/>
- <path d="M58 714H642V812L626 828H74L58 812Z" fill="#0b121c" stroke="#8f9da6" stroke-width="5"/>
- <path d="M76 731H624V800H76Z" fill="#141d28" stroke="#d6e0e5" stroke-width="4"/>
- <path d="M25 29L47 9H156L102 66H25ZM675 811L653 831H544L598 774H675Z" fill="url(#gold)"/>
+ <path d="M25 5H675L695 25V850L675 870H25L5 850V25Z" fill="#03070c" stroke="CARD_EDGE" stroke-width="9"/>
+ <path d="M39 18H661L682 39V837L661 857H39L18 837V39Z" fill="url(#metal)" stroke="CARD_METAL" stroke-width="4"/>
+ <path d="M40 36H660V677H40Z" fill="url(#tint)"/>
+ <path d="M40 36H660V677H40Z" fill="url(#texture)"/>
+ <path d="M80 35H620L640 53V125H60V53Z" fill="#10151d" stroke="CARD_METAL" stroke-width="5"/>
+ <path d="M40 682H660V773H40Z" fill="#101720" stroke="CARD_METAL" stroke-width="4"/>
+ <path d="M60 787H640V839L625 854H75L60 839Z" fill="CARD_COLOR" stroke="CARD_EDGE" stroke-width="4"/>
+ <path d="M25 29L47 9H156L125 38H25ZM675 846L653 866H544L575 837H675Z" fill="CARD_EDGE"/>
 </svg>

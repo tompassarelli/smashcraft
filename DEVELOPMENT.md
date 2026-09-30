@@ -1474,3 +1474,31 @@ Match HUD follows the supplied Melee reference: bottom-aligned panel per
 active fighter, small fighter icon with × stock count above a large damage
 percentage, and player-color identification. Replace the current top-left
 plain-text fighter statistics. Technical tracing stays developer-only.
+
+Latest HUD reference supersedes the compact Melee treatment: Ultimate-style
+portraits overlap angled nameplates, large damage percentages sit beside
+portraits, and small stock icons sit underneath. Keep player-slot colors.
+
+Latest stage-selection steering supersedes the earlier same-screen stage
+tiles/direct-to-match flow. Fighter selection Start/Enter, gated by all active
+humans being ready, opens a separate stage-selection screen. Use a large
+stage preview/name on the left and a thumbnail grid on the right, following
+the supplied Ultimate reference. Either player may select and move the shared
+stage-selection chip; selection and confirmation must cross the synchronized
+input path before launching the match. Current implementation has two stages;
+do not populate the grid with fictitious playable stages.
+Stage selection includes clickable stock/time settings in its top strip,
+displayed together (for example, 3 Stock · 7:00). Match stock count, timer,
+timeout resolution, and synchronized settings remain implementation work.
+
+Build 102058 native follow-up: red boundary effects are absent; camera distance
+is 1450. Archer jab was observed at attack frame 3 with the bow retained in
+her hand (wc3-melee:build/archer-jab-native.png). Shooting/recovery inputs were
+confounded by bot damage and do not prove uninterrupted attack recovery.
+Stock poses and all 14 custom clips passed the packaged asset grip check.
+New four-card selection source/art compile and the four drag tests pass;
+native selection layout verification follows integration.
+Build 103008 verified the four-card layout in the client: red P1/HMN,
+blue CPU/CP and portrait-free gray P3/P4 N/A cards. Evidence:
+wc3-melee:build/four-cards-native.png. Reload reached a fresh input/simulation
+trace in 30.6 seconds; this does not close the intermittent later host stall.

@@ -16,9 +16,15 @@ done
 for name in SelectionBackdrop SelectionTileFrame SelectionAction SelectionSkyDeck SelectionThreeBridges; do
     magick -background none "$source_dir/$name.svg" -depth 8 "TGA:$output_dir/$name.tga"
 done
-sed -e 's/CARD_COLOR/#7d1c2d/g' -e 's/PLAYER_MARK/P1/' "$source_dir/SelectionCard.svg" > "$output_dir/SelectionCardRed.svg"
-sed -e 's/CARD_COLOR/#194d9b/g' -e 's/PLAYER_MARK/P2/' "$source_dir/SelectionCard.svg" > "$output_dir/SelectionCardBlue.svg"
-magick -background none "$output_dir/SelectionCardRed.svg" -depth 8 "TGA:$output_dir/SelectionCardRed.tga"
-magick -background none "$output_dir/SelectionCardBlue.svg" -depth 8 "TGA:$output_dir/SelectionCardBlue.tga"
-rm "$output_dir/SelectionCardRed.svg" "$output_dir/SelectionCardBlue.svg"
+for card in Red Blue Gray; do
+    case "$card" in
+        Red) color='#9c2539'; edge='#f05c69'; metal='#bbc6cf';;
+        Blue) color='#205fba'; edge='#66a5ff'; metal='#bbc6cf';;
+        Gray) color='#30353b'; edge='#555d65'; metal='#687078';;
+    esac
+    sed -e "s/CARD_COLOR/$color/g" -e "s/CARD_EDGE/$edge/g" -e "s/CARD_METAL/$metal/g" \
+        "$source_dir/SelectionCard.svg" > "$output_dir/SelectionCard$card.svg"
+    magick -background none "$output_dir/SelectionCard$card.svg" -depth 8 "TGA:$output_dir/SelectionCard$card.tga"
+    rm "$output_dir/SelectionCard$card.svg"
+done
 magick identify "$output_dir"/*.tga
