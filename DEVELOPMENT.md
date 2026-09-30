@@ -1,5 +1,9 @@
 # Development plan
 
+Current scope and delivery order are in wc3-melee:GOAL.md. The reference-grounded
+shared-combat and complete two-fighter milestone takes priority over the older
+sequencing notes below; unfinished systems are not delivered by isolated fixes.
+
 The main feedback loop is Wurst tests outside Warcraft III. Compile and reload
 the map for an engine-visible change or a completed gameplay slice, not for
 every physics edit. Wurst is the authoritative gameplay source; generated Lua
