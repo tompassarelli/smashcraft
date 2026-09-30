@@ -154,3 +154,58 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	let expected = new ReplaySnapshot()
 	expected.capture(first, second, match, firstCommands, secondCommands, runtime)
 	snapshot.firstDifference(expected).assertEquals("")
+
+@Test function recoveryProtectionMatchesExtractedEventTimes()
+	let fighter = new FighterState(0, 0, 1)
+	fighter.downState = DOWN_STAND
+	fighter.downFrame = DOWN_RECOVERY_INTANGIBLE_FRAMES
+	isIntangible(fighter).assertTrue()
+	fighter.downFrame++
+	isIntangible(fighter).assertFalse()
+
+	fighter.downState = DOWN_ROLL
+	fighter.downDirection = -1
+	fighter.downFaceUp = true
+	fighter.downFrame = DOWN_ROLL_INTANGIBLE_FRAMES_BACK_UP
+	isIntangible(fighter).assertTrue()
+	fighter.downFrame++
+	isIntangible(fighter).assertFalse()
+	fighter.downFaceUp = false
+	fighter.downFrame = DOWN_ROLL_INTANGIBLE_FRAMES_BACK_DOWN
+	isIntangible(fighter).assertTrue()
+	fighter.downFrame++
+	isIntangible(fighter).assertFalse()
+	fighter.downDirection = fighter.facing
+	fighter.downFrame = DOWN_RECOVERY_INTANGIBLE_FRAMES
+	isIntangible(fighter).assertTrue()
+	fighter.downFrame++
+	isIntangible(fighter).assertFalse()
+
+	fighter.downState = DOWN_ATTACK
+	fighter.downFaceUp = true
+	fighter.downFrame = DOWN_ATTACK_INTANGIBLE_FRAMES_UP
+	isIntangible(fighter).assertTrue()
+	fighter.downFrame++
+	isIntangible(fighter).assertFalse()
+	fighter.downFaceUp = false
+	fighter.downFrame = DOWN_ATTACK_INTANGIBLE_FRAMES_DOWN
+	isIntangible(fighter).assertTrue()
+	fighter.downFrame++
+	isIntangible(fighter).assertFalse()
+	destroy fighter
+
+@Test function groundedRiflemanBlasterHitKeepsGroundingAndImpactHitlag()
+	let owner = new FighterState(1, 0, 1)
+	let target = new FighterState(0, 20, -1)
+	owner.projectileLife[0] = 10
+	owner.projectileKind[0] = PROJECTILE_BLASTER
+	owner.projectileDirection[0] = 1
+	owner.projectileX[0] = 0
+	owner.projectileZ[0] = 45
+	owner.projectileVelocityX[0] = 30
+	updateProjectilePair(owner, target)
+	target.damage.assertEquals(3.)
+	target.hitlag.assertEquals(4)
+	target.grounded.assertTrue()
+	destroy target
+	destroy owner

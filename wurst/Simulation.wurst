@@ -130,12 +130,14 @@ public constant int DOWN_BOUND_FRAMES = 26
 public constant int DOWN_WAIT_FRAMES = 180
 public constant int DOWN_STAND_FRAMES = 30
 public constant int DOWN_ROLL_FRAMES = 35
-public constant int DOWN_RECOVERY_INTANGIBLE_FRAMES = 19
+public constant int DOWN_RECOVERY_INTANGIBLE_FRAMES = 20
+public constant int DOWN_ROLL_INTANGIBLE_FRAMES_BACK_UP = 23
+public constant int DOWN_ROLL_INTANGIBLE_FRAMES_BACK_DOWN = 20
 public constant int DOWN_DAMAGE_FRAMES = 13
 public constant real DOWN_DAMAGE_MAX_HIT_DAMAGE = 7
 public constant int DOWN_ATTACK_FRAMES = 49
-public constant int DOWN_ATTACK_INTANGIBLE_FRAMES_UP = 23
-public constant int DOWN_ATTACK_INTANGIBLE_FRAMES_DOWN = 19
+public constant int DOWN_ATTACK_INTANGIBLE_FRAMES_UP = 27
+public constant int DOWN_ATTACK_INTANGIBLE_FRAMES_DOWN = 22
 public constant int DOWN_ATTACK_STYLE = 11
 public constant int AERIAL_NEUTRAL_STYLE = 12
 public constant int AERIAL_FORWARD_STYLE = 13
@@ -788,8 +790,12 @@ public function isIntangible(FighterState f) returns boolean
 	let groundDodgeIntangible = f.groundDodgeFrame > 0 and (
 		(f.groundDodgeDirection == 0 and f.groundDodgeFrame >= SPOT_DODGE_INTANGIBLE_START and f.groundDodgeFrame <= SPOT_DODGE_INTANGIBLE_END)
 		or (f.groundDodgeDirection != 0 and f.groundDodgeFrame >= GROUND_ROLL_INTANGIBLE_START and f.groundDodgeFrame <= GROUND_ROLL_INTANGIBLE_END))
-	let downRecoveryIntangible = (f.downState == DOWN_STAND or f.downState == DOWN_ROLL) and f.downFrame > 0 and f.downFrame <= DOWN_RECOVERY_INTANGIBLE_FRAMES
-		or (f.downState == DOWN_ATTACK and f.downFrame <= (f.downFaceUp ? DOWN_ATTACK_INTANGIBLE_FRAMES_UP : DOWN_ATTACK_INTANGIBLE_FRAMES_DOWN))
+	let downRollIntangibleFrames = f.downDirection != 0 and f.downDirection != f.facing
+		? (f.downFaceUp ? DOWN_ROLL_INTANGIBLE_FRAMES_BACK_UP : DOWN_ROLL_INTANGIBLE_FRAMES_BACK_DOWN)
+		: DOWN_RECOVERY_INTANGIBLE_FRAMES
+	let downRecoveryIntangible = f.downState == DOWN_STAND and f.downFrame > 0 and f.downFrame <= DOWN_RECOVERY_INTANGIBLE_FRAMES
+		or (f.downState == DOWN_ROLL and f.downFrame > 0 and f.downFrame <= downRollIntangibleFrames)
+		or (f.downState == DOWN_ATTACK and f.downFrame > 0 and f.downFrame <= (f.downFaceUp ? DOWN_ATTACK_INTANGIBLE_FRAMES_UP : DOWN_ATTACK_INTANGIBLE_FRAMES_DOWN))
 	let techIntangible = isFloorTeching(f) and f.downFrame >= 1 and f.downFrame <= (f.downState == DOWN_TECH ? TECH_INTANGIBLE_FRAMES : TECH_ROLL_INTANGIBLE_FRAMES)
 	return f.invincible > 0 or groundDodgeIntangible or downRecoveryIntangible or techIntangible or (f.airDodging and f.airDodgeFrame >= AIR_DODGE_INTANGIBLE_START and f.airDodgeFrame <= AIR_DODGE_INTANGIBLE_END)
 
@@ -1483,8 +1489,6 @@ function applyProjectileHit(FighterState owner, FighterState target, int index)
 	cancelSpecialState(target)
 	if jabReset
 		beginDownDamage(target, target.hitstun)
-	else
-		target.grounded = false
 
 function updateProjectiles(FighterState owner, FighterState target, real targetX, real targetZ, boolean targetWasOut, boolean targetWasIntangible)
 	for index = 0 to PROJECTILE_CAPACITY - 1

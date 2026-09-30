@@ -333,13 +333,22 @@ shared values are action timing choices informed by the extracted data, not a
 claim that every Melee character shares them. The authored source starts clips
 at animation frame 0 while simulation actions count from frame 1.
 
-The Sheik `DownStand` and directional-roll event streams set body-collision
-state 2 initially and restore state 0 at animation frame 20. The get-up attack
-streams restore state 0 at frame 24 (Up) or frame 20 (Down). The extractor
-documents events `0x68`, `0x6C`, and `0x70` as body/bone collision changes with
-invincibility data. Smashcraft uses the observed Sheik intervals as 19 ticks
-for stand/roll, and 23/19 ticks for Up/Down get-up attack. These timings and
-event interpretation still need native visual/gameplay verification.
+The Sheik `DownStand` event streams set body-collision state 2 initially and
+restore state 0 at animation frame 20. `DownBackU` restores state 0 at frame
+23, while `DownBackD`, `DownFowardU`, and `DownFowardD` restore it at frame 20.
+The get-up attack streams restore state 0 after their waits: `DownAttackU`
+reaches frame 24 and then waits 3 more frames (frame 27); `DownAttackD` reaches
+frame 20 and then waits 2 more (frame 22). The extractor documents events
+`0x68`, `0x6C`, and `0x70` as body/bone collision changes with invincibility
+data.
+
+Animation frame 0 is shown on simulation recovery frame 1. A restore event at
+animation frame N therefore protects simulation frames 1 through N; frame N+1
+is the first unprotected simulation frame. Smashcraft uses 20 frames for
+stand/forward roll, 23 for a backward roll while face-up, 20 for a backward
+roll while face-down, and 27/22 for Up/Down get-up attacks. This mapping
+accounts for the `waitFor` delays and remains subject to native gameplay
+verification.
 
 The local down-damage entry checks the hit's temporary damage against
 `ftCommonData + 0x428`; the numeric table is absent from this checkout. The
