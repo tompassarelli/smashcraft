@@ -2,6 +2,24 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
+## Current checkpoint — Rifleman throw directions, 2026-10-01
+
+Both fighters now have native capture/pummel and all four throw-direction
+observations. Rifleman's new forward/back/up recordings and exact release
+frames are in wc3-melee:ANIMATIONS.md. A turn/grab attempted after overshooting
+missed; its separate failed recording is retained. Pair-pose overlap remains
+unfinished. Next work should improve coordinated hold/pummel poses rather than
+repeat successful throw activation checks.
+
+Running: passive `special-direction-passive-r1`, P1 Rifleman x=284.879,
+0%, facing right; passive Archer 29%. Paused with Y after up-throw recording.
+Normal `special-direction-r1` restored atomically from
+wc3-melee:build/special-direction-normal.w3x; installed byte comparison passed.
+Public downloadable release unchanged. No recording process or child is live.
+The old load-rifleman-passive script stopped in the native lobby this time;
+manual Start followed by screen-confirmed selection completed the load. Do not
+assume its fixed sleeps establish a loaded match or use Ctrl+R.
+
 ## Current checkpoint — Archer throw directions, 2026-10-01
 
 Native O-grab/pummel/back-, up- and down-throw sequences succeed. Together with

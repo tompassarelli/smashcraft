@@ -2,6 +2,26 @@
 
 ## Archer and Rifleman native specials — 2026-10-01
 
+Rifleman's remaining throw directions are also observed in the passive native
+match. Forward release at frame 492 takes Archer from 3% after pummel to 10%
+and gives 25 hitstun frames. Back release at 1460 takes 13% to 20%, gives 27
+hitstun frames and launches behind the left-facing holder. Up release at 1936
+takes 23% to 29%, gives 28 hitstun frames and visibly launches vertically.
+Combined with the earlier down throw, all four Rifleman directions now have
+native selection/contact/release evidence. Hold/pummel overlap remains a gap.
+
+Evidence: wc3-melee:build/rifleman-forward-throw.mp4 and
+wc3-melee:build/rifleman-forward-throw-trace.txt;
+wc3-melee:build/rifleman-back-contact.mp4 and
+wc3-melee:build/rifleman-back-contact-trace.txt;
+wc3-melee:build/rifleman-up-throw.mp4 and
+wc3-melee:build/rifleman-up-throw-trace.txt. Each trace has zero dropped records.
+The earlier wc3-melee:build/rifleman-back-throw.mp4 attempt did not capture:
+the approach overshot and the simultaneous turn/grab did not produce contact.
+Its trace establishes a missed attempt, not a successful back throw. Settling
+position/facing before grabbing produced the recorded successful sequence.
+These checks do not establish pivot grabs or both-facing visual acceptance.
+
 Archer's four throw directions have now been exercised through native controls.
 Forward is recorded below; the subsequent O-grab/pummel/directional sequences
 show the remaining releases:
