@@ -16,12 +16,14 @@ rig=next(o for o in scene.objects if o.type=='ARMATURE')
 stock=list(bpy.data.actions)
 # Preserve the imported scene timebase for every stock action.
 ready=bpy.data.actions['Stand Ready']
+rig.animation_data_create()
 rig.animation_data.action=ready
 rig.animation_data.action_slot=ready.slots[0]
 scene.frame_set(0)
 bpy.context.view_layer.update()
 base={b.name:b.matrix_basis.copy() for b in rig.pose.bones}
-meshes=[o for o in scene.objects if o.type=='MESH']
+emitters=[o for o in scene.objects if o.particle_systems]
+meshes=[o for o in scene.objects if o.type=='MESH' and not o.particle_systems]
 visibility={m.name:float(m.get(m.name,{}).get('visibility',1)) for m in meshes}
 # The source demon's wings share a geoset with its body. Duplicate only the
 # existing wing triangles and weights; retain the complete source geoset.
@@ -113,6 +115,12 @@ def author(name,keys,loop=False,ground=False):
   for f in frames:
    m[m.name]['visibility']=keys[f].get('wings',0) if m==wings else visibility[m.name]
    m.keyframe_insert(data_path=f'["{m.name}"]["visibility"]',frame=f)
+ for emitter in emitters:
+  settings=emitter.particle_systems[0].settings
+  settings.animation_data_create();settings.animation_data.action=a
+  settings.animation_data.action_slot=a.slots.new('PARTICLE',settings.name)
+  settings.mdl_particle_sys.visibility=0
+  for f in (0,last):settings.keyframe_insert(data_path='mdl_particle_sys.visibility',frame=f)
  # Imported stock curves are untouched; authored curves use linear samples.
  for layer in a.layers:
   for strip in layer.strips:

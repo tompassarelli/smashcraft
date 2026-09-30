@@ -12,16 +12,30 @@ const bindings=clips.map((clip:any)=>{
  return {...clip,index,seconds};
 });
 ensure(model.Geosets.length===18,'Expected 17 preserved geosets plus source-derived wings');
-await Bun.write(join(out,'bindings.json'),JSON.stringify(bindings,null,2));
 const bytes=generateMDX(model);const decoded=parseMDX(bytes);
 ensure(decoded.Sequences.length===model.Sequences.length,'MDX lost sequences');
 ensure(decoded.Textures.length===model.Textures.length,'MDX lost textures');
-await Bun.write(join(out,'DemonHunterFighter.mdx'),bytes);
-await Bun.write(join(out,'bindings.json'),JSON.stringify(bindings,null,2));
-console.log('ILLIDAN_PACKAGE_PASS',bindings.length,'authored clips',model.Sequences.length,'total sequences',bytes.byteLength,'bytes');
-console.log('TEXTURES',JSON.stringify(model.Textures));
 const source=await Bun.file(join(out,'source-textures.json')).json();
 for(const texture of source){
  ensure(model.Textures.some(t=>t.Image===texture.Image&&(t.ReplaceableId ?? 0)===texture.ReplaceableId),`Missing source texture ${texture.Image}/${texture.ReplaceableId}`);
 }
 console.log('SOURCE_TEXTURES_PRESERVED',source.length);
+ensure(decoded.ParticleEmitters2.length===2,'Expected both source particle emitters');
+for(const emitter of decoded.ParticleEmitters2){
+ ensure(emitter.TextureID!==undefined && decoded.Textures[emitter.TextureID]?.Image,
+  `Missing particle texture: ${emitter.Name}`);
+ const visibility=emitter.Visibility;
+ ensure(visibility!==undefined && typeof visibility!=='number',`Missing visibility track: ${emitter.Name}`);
+ if(visibility===undefined || typeof visibility==='number')throw new Error('Missing particle visibility track');
+ for(const binding of bindings){
+  const [start,end]=decoded.Sequences[binding.index].Interval;
+  const keys=visibility.Keys.filter(key=>key.Frame>=start && key.Frame<=end);
+  ensure(keys.some(key=>key.Frame===start)&&keys.some(key=>key.Frame===end),
+   `Missing particle visibility boundaries: ${emitter.Name}/${binding.name}`);
+  ensure(keys.every(key=>key.Vector[0]===0),`Stock effect in combat: ${emitter.Name}/${binding.name}`);
+ }
+}
+await Bun.write(join(out,'DemonHunterFighter.mdx'),bytes);
+await Bun.write(join(out,'bindings.json'),JSON.stringify(bindings,null,2));
+console.log('ILLIDAN_PACKAGE_PASS',bindings.length,'authored clips',model.Sequences.length,'total sequences',bytes.byteLength,'bytes');
+console.log('TEXTURES',JSON.stringify(model.Textures));
