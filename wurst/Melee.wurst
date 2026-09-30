@@ -246,7 +246,7 @@ class Fighter extends FighterState
 
     construct(player owner, int fighterType, real startX, int direction)
         super(fighterType, startX, direction)
-        body = CreateUnit(owner, fighterType == 0 ? ARCHER_FIGHTER_ID : RIFLEMAN_FIGHTER_ID, centerX + startX, centerY, direction > 0 ? 0 : 180)
+        body = CreateUnit(owner, fighterType == 2 ? DEMON_HUNTER_FIGHTER_ID : (fighterType == 0 ? ARCHER_FIGHTER_ID : RIFLEMAN_FIGHTER_ID), centerX + startX, centerY, direction > 0 ? 0 : 180)
         SetUnitInvulnerable(body, true)
         SetUnitPathing(body, false)
         UnitAddAbility(body, 'Amrf')
@@ -947,44 +947,57 @@ function firstPlayerLeaves()
     matchState.forfeit(0)
 
 function playAttackAnimation(Fighter fighter)
+    if fighter.character == 2
+        if fighter.attackStyle == 2
+            SetUnitAnimationByIndex(fighter.body, DEMON_HUNTER_UP_SMASH_INDEX)
+            return
+        if fighter.attackStyle == 3
+            SetUnitAnimationByIndex(fighter.body, DEMON_HUNTER_DOWN_SMASH_INDEX)
+            return
+        if fighter.attackStyle == 4
+            SetUnitAnimationByIndex(fighter.body, DEMON_HUNTER_FORWARD_SMASH_INDEX)
+            return
+        if fighter.attackStyle == DEMONHUNTER_DASH_ATTACK_STYLE
+            SetUnitAnimationByIndex(fighter.body, DEMON_HUNTER_DASH_ATTACK_INDEX)
+            return
     if fighter.attackStyle == AERIAL_NEUTRAL_STYLE
-        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_AERIAL_NEUTRAL_INDEX : RIFLEMAN_AERIAL_NEUTRAL_INDEX)
+        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_AERIAL_NEUTRAL_INDEX : (fighter.character == 0 ? ARCHER_AERIAL_NEUTRAL_INDEX : RIFLEMAN_AERIAL_NEUTRAL_INDEX)))
         return
     if fighter.attackStyle == AERIAL_FORWARD_STYLE
-        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_AERIAL_FORWARD_INDEX : RIFLEMAN_AERIAL_FORWARD_INDEX)
+        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_AERIAL_FORWARD_INDEX : (fighter.character == 0 ? ARCHER_AERIAL_FORWARD_INDEX : RIFLEMAN_AERIAL_FORWARD_INDEX)))
         return
     if fighter.attackStyle == AERIAL_BACK_STYLE
-        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_AERIAL_BACK_INDEX : RIFLEMAN_AERIAL_BACK_INDEX)
+        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_AERIAL_BACK_INDEX : (fighter.character == 0 ? ARCHER_AERIAL_BACK_INDEX : RIFLEMAN_AERIAL_BACK_INDEX)))
         return
     if fighter.attackStyle == AERIAL_UP_STYLE
-        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_AERIAL_UP_INDEX : RIFLEMAN_AERIAL_UP_INDEX)
+        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_AERIAL_UP_INDEX : (fighter.character == 0 ? ARCHER_AERIAL_UP_INDEX : RIFLEMAN_AERIAL_UP_INDEX)))
         return
     if fighter.attackStyle == AERIAL_DOWN_STYLE
-        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_AERIAL_DOWN_INDEX : RIFLEMAN_AERIAL_DOWN_INDEX)
+        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_AERIAL_DOWN_INDEX : (fighter.character == 0 ? ARCHER_AERIAL_DOWN_INDEX : RIFLEMAN_AERIAL_DOWN_INDEX)))
         return
     if fighter.attackStyle == 0
-        SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_JAB_INDEX : RIFLEMAN_JAB_INDEX))
+        SetUnitAnimationByIndex(fighter.body, ((fighter.character == 2 ? DEMON_HUNTER_ATTACK_JAB_INDEX : (fighter.character == 0 ? ARCHER_JAB_INDEX : RIFLEMAN_JAB_INDEX))))
         return
     if fighter.attackStyle == 5
-        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_GRAB_INDEX : RIFLEMAN_GRAB_INDEX)
+        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_GRAB_INDEX : (fighter.character == 0 ? ARCHER_GRAB_INDEX : RIFLEMAN_GRAB_INDEX)))
         return
     if fighter.attackStyle == 6
-        SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_FORWARD_TILT_INDEX : RIFLEMAN_FORWARD_TILT_INDEX))
+        SetUnitAnimationByIndex(fighter.body, ((fighter.character == 2 ? DEMON_HUNTER_FORWARD_TILT_INDEX : (fighter.character == 0 ? ARCHER_FORWARD_TILT_INDEX : RIFLEMAN_FORWARD_TILT_INDEX))))
         return
     if fighter.attackStyle == 7
-        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_UP_TILT_INDEX : RIFLEMAN_UP_TILT_INDEX)
+        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_UP_TILT_INDEX : (fighter.character == 0 ? ARCHER_UP_TILT_INDEX : RIFLEMAN_UP_TILT_INDEX)))
         return
     if fighter.attackStyle == 8
-        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_DOWN_TILT_INDEX : RIFLEMAN_DOWN_TILT_INDEX)
+        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_DOWN_TILT_INDEX : (fighter.character == 0 ? ARCHER_DOWN_TILT_INDEX : RIFLEMAN_DOWN_TILT_INDEX)))
         return
     if fighter.attackStyle == 9
-        SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_FORWARD_TILT_UP_INDEX : RIFLEMAN_FORWARD_TILT_UP_INDEX))
+        SetUnitAnimationByIndex(fighter.body, ((fighter.character == 2 ? DEMON_HUNTER_FORWARD_TILT_UP_INDEX : (fighter.character == 0 ? ARCHER_FORWARD_TILT_UP_INDEX : RIFLEMAN_FORWARD_TILT_UP_INDEX))))
         return
     if fighter.attackStyle == 10
-        SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_FORWARD_TILT_DOWN_INDEX : RIFLEMAN_FORWARD_TILT_DOWN_INDEX))
+        SetUnitAnimationByIndex(fighter.body, ((fighter.character == 2 ? DEMON_HUNTER_FORWARD_TILT_DOWN_INDEX : (fighter.character == 0 ? ARCHER_FORWARD_TILT_DOWN_INDEX : RIFLEMAN_FORWARD_TILT_DOWN_INDEX))))
         return
     if fighter.attackStyle == DOWN_ATTACK_STYLE or fighter.attackStyle == LEDGE_ATTACK_STYLE
-        SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_INDEX : RIFLEMAN_GET_UP_ATTACK_INDEX))
+        SetUnitAnimationByIndex(fighter.body, ((fighter.character == 2 ? DEMON_HUNTER_GET_UP_ATTACK_INDEX : (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_INDEX : RIFLEMAN_GET_UP_ATTACK_INDEX))))
         return
     SetUnitAnimation(fighter.body, "attack")
 
@@ -1003,70 +1016,101 @@ function attackAnimationRate(Fighter fighter) returns real
     if attackPhase(fighter) == ATTACK_NONE
         return 1.
     let seconds = fighter.attackDuration * FRAME_SECONDS
+    if fighter.character == 2
+        if fighter.attackStyle == 2
+            return DEMON_HUNTER_UP_SMASH_SECONDS / seconds
+        if fighter.attackStyle == 3
+            return DEMON_HUNTER_DOWN_SMASH_SECONDS / seconds
+        if fighter.attackStyle == 4
+            return DEMON_HUNTER_FORWARD_SMASH_SECONDS / seconds
+        if fighter.attackStyle == DEMONHUNTER_DASH_ATTACK_STYLE
+            return DEMON_HUNTER_DASH_ATTACK_SECONDS / seconds
     if fighter.attackStyle == AERIAL_NEUTRAL_STYLE
-        return (fighter.character == 0 ? ARCHER_AERIAL_NEUTRAL_SECONDS : RIFLEMAN_AERIAL_NEUTRAL_SECONDS) / seconds
+        return ((fighter.character == 2 ? DEMON_HUNTER_AERIAL_NEUTRAL_SECONDS : (fighter.character == 0 ? ARCHER_AERIAL_NEUTRAL_SECONDS : RIFLEMAN_AERIAL_NEUTRAL_SECONDS))) / seconds
     if fighter.attackStyle == AERIAL_FORWARD_STYLE
-        return (fighter.character == 0 ? ARCHER_AERIAL_FORWARD_SECONDS : RIFLEMAN_AERIAL_FORWARD_SECONDS) / seconds
+        return ((fighter.character == 2 ? DEMON_HUNTER_AERIAL_FORWARD_SECONDS : (fighter.character == 0 ? ARCHER_AERIAL_FORWARD_SECONDS : RIFLEMAN_AERIAL_FORWARD_SECONDS))) / seconds
     if fighter.attackStyle == AERIAL_BACK_STYLE
-        return (fighter.character == 0 ? ARCHER_AERIAL_BACK_SECONDS : RIFLEMAN_AERIAL_BACK_SECONDS) / seconds
+        return ((fighter.character == 2 ? DEMON_HUNTER_AERIAL_BACK_SECONDS : (fighter.character == 0 ? ARCHER_AERIAL_BACK_SECONDS : RIFLEMAN_AERIAL_BACK_SECONDS))) / seconds
     if fighter.attackStyle == AERIAL_UP_STYLE
-        return (fighter.character == 0 ? ARCHER_AERIAL_UP_SECONDS : RIFLEMAN_AERIAL_UP_SECONDS) / seconds
+        return ((fighter.character == 2 ? DEMON_HUNTER_AERIAL_UP_SECONDS : (fighter.character == 0 ? ARCHER_AERIAL_UP_SECONDS : RIFLEMAN_AERIAL_UP_SECONDS))) / seconds
     if fighter.attackStyle == AERIAL_DOWN_STYLE
-        return (fighter.character == 0 ? ARCHER_AERIAL_DOWN_SECONDS : RIFLEMAN_AERIAL_DOWN_SECONDS) / seconds
+        return ((fighter.character == 2 ? DEMON_HUNTER_AERIAL_DOWN_SECONDS : (fighter.character == 0 ? ARCHER_AERIAL_DOWN_SECONDS : RIFLEMAN_AERIAL_DOWN_SECONDS))) / seconds
     if fighter.attackStyle == 0
-        return (fighter.character == 0 ? ARCHER_JAB_SECONDS : RIFLEMAN_JAB_SECONDS) / seconds
+        return ((fighter.character == 2 ? DEMON_HUNTER_ATTACK_JAB_SECONDS : (fighter.character == 0 ? ARCHER_JAB_SECONDS : RIFLEMAN_JAB_SECONDS))) / seconds
     if fighter.attackStyle == 5
-        return (fighter.character == 0 ? ARCHER_GRAB_SECONDS : RIFLEMAN_GRAB_SECONDS) / seconds
+        return ((fighter.character == 2 ? DEMON_HUNTER_GRAB_SECONDS : (fighter.character == 0 ? ARCHER_GRAB_SECONDS : RIFLEMAN_GRAB_SECONDS))) / seconds
     if fighter.attackStyle == 6
-        return (fighter.character == 0 ? ARCHER_FORWARD_TILT_SECONDS : RIFLEMAN_FORWARD_TILT_SECONDS) / seconds
+        return ((fighter.character == 2 ? DEMON_HUNTER_FORWARD_TILT_SECONDS : (fighter.character == 0 ? ARCHER_FORWARD_TILT_SECONDS : RIFLEMAN_FORWARD_TILT_SECONDS))) / seconds
     if fighter.attackStyle == 7
-        return (fighter.character == 0 ? ARCHER_UP_TILT_SECONDS : RIFLEMAN_UP_TILT_SECONDS) / seconds
+        return ((fighter.character == 2 ? DEMON_HUNTER_UP_TILT_SECONDS : (fighter.character == 0 ? ARCHER_UP_TILT_SECONDS : RIFLEMAN_UP_TILT_SECONDS))) / seconds
     if fighter.attackStyle == 8
-        return (fighter.character == 0 ? ARCHER_DOWN_TILT_SECONDS : RIFLEMAN_DOWN_TILT_SECONDS) / seconds
+        return ((fighter.character == 2 ? DEMON_HUNTER_DOWN_TILT_SECONDS : (fighter.character == 0 ? ARCHER_DOWN_TILT_SECONDS : RIFLEMAN_DOWN_TILT_SECONDS))) / seconds
     if fighter.attackStyle == 9
-        return (fighter.character == 0 ? ARCHER_FORWARD_TILT_UP_SECONDS : RIFLEMAN_FORWARD_TILT_UP_SECONDS) / seconds
+        return ((fighter.character == 2 ? DEMON_HUNTER_FORWARD_TILT_UP_SECONDS : (fighter.character == 0 ? ARCHER_FORWARD_TILT_UP_SECONDS : RIFLEMAN_FORWARD_TILT_UP_SECONDS))) / seconds
     if fighter.attackStyle == 10
-        return (fighter.character == 0 ? ARCHER_FORWARD_TILT_DOWN_SECONDS : RIFLEMAN_FORWARD_TILT_DOWN_SECONDS) / seconds
+        return ((fighter.character == 2 ? DEMON_HUNTER_FORWARD_TILT_DOWN_SECONDS : (fighter.character == 0 ? ARCHER_FORWARD_TILT_DOWN_SECONDS : RIFLEMAN_FORWARD_TILT_DOWN_SECONDS))) / seconds
     if fighter.attackStyle == DOWN_ATTACK_STYLE
-        return (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS) / seconds
+        return ((fighter.character == 2 ? DEMON_HUNTER_GET_UP_ATTACK_SECONDS : (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS))) / seconds
     if fighter.attackStyle == LEDGE_ATTACK_STYLE
-        return (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS) / (LEDGE_ATTACK_FRAMES * FRAME_SECONDS)
+        return ((fighter.character == 2 ? DEMON_HUNTER_GET_UP_ATTACK_SECONDS : (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS))) / (LEDGE_ATTACK_FRAMES * FRAME_SECONDS)
     return 1.
 
 function downAnimationIndex(Fighter fighter) returns int
+    if fighter.character == 2
+        if fighter.downState == DOWN_TECH
+            return DEMON_HUNTER_TECH_NEUTRAL_INDEX
+        if fighter.downState == DOWN_TECH_ROLL
+            return fighter.downDirection == fighter.facing ? DEMON_HUNTER_TECH_FORWARD_INDEX : DEMON_HUNTER_TECH_BACK_INDEX
+        if fighter.downState == DOWN_ROLL
+            return fighter.downDirection == fighter.facing ? DEMON_HUNTER_GET_UP_ROLL_FORWARD_INDEX : DEMON_HUNTER_GET_UP_ROLL_BACK_INDEX
     if fighter.downState == DOWN_DAMAGE
-        return fighter.character == 0 ? ARCHER_DOWN_DAMAGE_INDEX : RIFLEMAN_DOWN_DAMAGE_INDEX
+        return (fighter.character == 2 ? DEMON_HUNTER_DOWN_DAMAGE_INDEX : (fighter.character == 0 ? ARCHER_DOWN_DAMAGE_INDEX : RIFLEMAN_DOWN_DAMAGE_INDEX))
     if fighter.downState == DOWN_BOUND or fighter.downState == DOWN_WAIT
-        return (fighter.character == 0 ? ARCHER_KNOCKDOWN_INDEX : RIFLEMAN_KNOCKDOWN_INDEX)
+        return ((fighter.character == 2 ? DEMON_HUNTER_KNOCKDOWN_INDEX : (fighter.character == 0 ? ARCHER_KNOCKDOWN_INDEX : RIFLEMAN_KNOCKDOWN_INDEX)))
     if fighter.downState == DOWN_STAND or fighter.downState == DOWN_TECH
-        return (fighter.character == 0 ? ARCHER_GET_UP_INDEX : RIFLEMAN_GET_UP_INDEX)
-    return fighter.downDirection == fighter.facing ? (fighter.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX) : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_INDEX : RIFLEMAN_ROLL_BACKWARD_INDEX)
+        return ((fighter.character == 2 ? DEMON_HUNTER_GET_UP_INDEX : (fighter.character == 0 ? ARCHER_GET_UP_INDEX : RIFLEMAN_GET_UP_INDEX)))
+    return fighter.downDirection == fighter.facing ? ((fighter.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_INDEX : (fighter.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX))) : ((fighter.character == 2 ? DEMON_HUNTER_ROLL_BACKWARD_INDEX : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_INDEX : RIFLEMAN_ROLL_BACKWARD_INDEX)))
 
 function downAnimationRate(Fighter fighter) returns real
+    if fighter.character == 2
+        if fighter.downState == DOWN_TECH
+            return DEMON_HUNTER_TECH_NEUTRAL_SECONDS / (TECH_IN_PLACE_FRAMES * FRAME_SECONDS)
+        if fighter.downState == DOWN_TECH_ROLL
+            return (fighter.downDirection == fighter.facing ? DEMON_HUNTER_TECH_FORWARD_SECONDS : DEMON_HUNTER_TECH_BACK_SECONDS) / (TECH_ROLL_FRAMES * FRAME_SECONDS)
+        if fighter.downState == DOWN_ROLL
+            return (fighter.downDirection == fighter.facing ? DEMON_HUNTER_GET_UP_ROLL_FORWARD_SECONDS : DEMON_HUNTER_GET_UP_ROLL_BACK_SECONDS) / (DOWN_ROLL_FRAMES * FRAME_SECONDS)
     if fighter.downState == DOWN_DAMAGE
-        return (fighter.character == 0 ? ARCHER_DOWN_DAMAGE_SECONDS : RIFLEMAN_DOWN_DAMAGE_SECONDS) / (DOWN_DAMAGE_FRAMES * FRAME_SECONDS)
+        return ((fighter.character == 2 ? DEMON_HUNTER_DOWN_DAMAGE_SECONDS : (fighter.character == 0 ? ARCHER_DOWN_DAMAGE_SECONDS : RIFLEMAN_DOWN_DAMAGE_SECONDS))) / (DOWN_DAMAGE_FRAMES * FRAME_SECONDS)
     if fighter.downState == DOWN_WAIT
         return 0.
     if fighter.downState == DOWN_BOUND
-        return (fighter.character == 0 ? ARCHER_KNOCKDOWN_SECONDS : RIFLEMAN_KNOCKDOWN_SECONDS) / (DOWN_BOUND_FRAMES * FRAME_SECONDS)
+        return ((fighter.character == 2 ? DEMON_HUNTER_KNOCKDOWN_SECONDS : (fighter.character == 0 ? ARCHER_KNOCKDOWN_SECONDS : RIFLEMAN_KNOCKDOWN_SECONDS))) / (DOWN_BOUND_FRAMES * FRAME_SECONDS)
     if fighter.downState == DOWN_STAND
-        return (fighter.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS) / (DOWN_STAND_FRAMES * FRAME_SECONDS)
+        return ((fighter.character == 2 ? DEMON_HUNTER_GET_UP_SECONDS : (fighter.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS))) / (DOWN_STAND_FRAMES * FRAME_SECONDS)
     if fighter.downState == DOWN_TECH
-        return (fighter.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS) / (TECH_IN_PLACE_FRAMES * FRAME_SECONDS)
-    let seconds = fighter.downDirection == fighter.facing ? (fighter.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS) : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_SECONDS : RIFLEMAN_ROLL_BACKWARD_SECONDS)
+        return ((fighter.character == 2 ? DEMON_HUNTER_GET_UP_SECONDS : (fighter.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS))) / (TECH_IN_PLACE_FRAMES * FRAME_SECONDS)
+    let seconds = fighter.downDirection == fighter.facing ? ((fighter.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_SECONDS : (fighter.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS))) : ((fighter.character == 2 ? DEMON_HUNTER_ROLL_BACKWARD_SECONDS : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_SECONDS : RIFLEMAN_ROLL_BACKWARD_SECONDS)))
     return seconds / ((fighter.downState == DOWN_TECH_ROLL ? TECH_ROLL_FRAMES : DOWN_ROLL_FRAMES) * FRAME_SECONDS)
 
 function groundDodgeAnimation(Fighter fighter) returns int
     if fighter.groundDodgeDirection == 0
-        return (fighter.character == 0 ? ARCHER_SPOT_DODGE_INDEX : RIFLEMAN_SPOT_DODGE_INDEX)
-    return fighter.groundDodgeDirection == fighter.facing ? (fighter.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX) : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_INDEX : RIFLEMAN_ROLL_BACKWARD_INDEX)
+        return ((fighter.character == 2 ? DEMON_HUNTER_SPOT_DODGE_INDEX : (fighter.character == 0 ? ARCHER_SPOT_DODGE_INDEX : RIFLEMAN_SPOT_DODGE_INDEX)))
+    return fighter.groundDodgeDirection == fighter.facing ? ((fighter.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_INDEX : (fighter.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX))) : ((fighter.character == 2 ? DEMON_HUNTER_ROLL_BACKWARD_INDEX : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_INDEX : RIFLEMAN_ROLL_BACKWARD_INDEX)))
 
 function groundDodgeAnimationSeconds(Fighter fighter) returns real
     if fighter.groundDodgeDirection == 0
-        return (fighter.character == 0 ? ARCHER_SPOT_DODGE_SECONDS : RIFLEMAN_SPOT_DODGE_SECONDS)
-    return fighter.groundDodgeDirection == fighter.facing ? (fighter.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS) : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_SECONDS : RIFLEMAN_ROLL_BACKWARD_SECONDS)
+        return ((fighter.character == 2 ? DEMON_HUNTER_SPOT_DODGE_SECONDS : (fighter.character == 0 ? ARCHER_SPOT_DODGE_SECONDS : RIFLEMAN_SPOT_DODGE_SECONDS)))
+    return fighter.groundDodgeDirection == fighter.facing ? ((fighter.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_SECONDS : (fighter.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS))) : ((fighter.character == 2 ? DEMON_HUNTER_ROLL_BACKWARD_SECONDS : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_SECONDS : RIFLEMAN_ROLL_BACKWARD_SECONDS)))
 
 function specialAnimationIndex(Fighter f) returns int
+    if f.specialAction == SPECIAL_DEMONHUNTER_MANA_BURN
+        return f.grounded ? DEMON_HUNTER_SPECIAL_NEUTRAL_INDEX : DEMON_HUNTER_SPECIAL_NEUTRAL_AIR_INDEX
+    if f.specialAction == SPECIAL_DEMONHUNTER_PARRY_STEP
+        return f.grounded ? DEMON_HUNTER_SPECIAL_SIDE_INDEX : DEMON_HUNTER_SPECIAL_SIDE_AIR_INDEX
+    if f.specialAction == SPECIAL_DEMONHUNTER_WING_ASCENT
+        return f.grounded ? DEMON_HUNTER_SPECIAL_UP_INDEX : DEMON_HUNTER_SPECIAL_UP_AIR_INDEX
+    if f.specialAction == SPECIAL_DEMONHUNTER_IMMOLATE
+        return f.grounded ? DEMON_HUNTER_SPECIAL_DOWN_INDEX : DEMON_HUNTER_SPECIAL_DOWN_AIR_INDEX
     if f.specialAction == SPECIAL_ARCHER_ARROW
         return ARCHER_SPECIAL_NEUTRAL_INDEX
     if f.specialAction == SPECIAL_ARCHER_MULTISHOT
@@ -1086,6 +1130,14 @@ function specialAnimationIndex(Fighter f) returns int
     return RIFLEMAN_SPECIAL_NEUTRAL_INDEX
 
 function specialAnimationSeconds(Fighter f) returns real
+    if f.specialAction == SPECIAL_DEMONHUNTER_MANA_BURN
+        return f.grounded ? DEMON_HUNTER_SPECIAL_NEUTRAL_SECONDS : DEMON_HUNTER_SPECIAL_NEUTRAL_AIR_SECONDS
+    if f.specialAction == SPECIAL_DEMONHUNTER_PARRY_STEP
+        return f.grounded ? DEMON_HUNTER_SPECIAL_SIDE_SECONDS : DEMON_HUNTER_SPECIAL_SIDE_AIR_SECONDS
+    if f.specialAction == SPECIAL_DEMONHUNTER_WING_ASCENT
+        return f.grounded ? DEMON_HUNTER_SPECIAL_UP_SECONDS : DEMON_HUNTER_SPECIAL_UP_AIR_SECONDS
+    if f.specialAction == SPECIAL_DEMONHUNTER_IMMOLATE
+        return f.grounded ? DEMON_HUNTER_SPECIAL_DOWN_SECONDS : DEMON_HUNTER_SPECIAL_DOWN_AIR_SECONDS
     if f.specialAction == SPECIAL_ARCHER_ARROW
         return ARCHER_SPECIAL_NEUTRAL_SECONDS
     if f.specialAction == SPECIAL_ARCHER_MULTISHOT
@@ -1106,56 +1158,58 @@ function specialAnimationSeconds(Fighter f) returns real
 
 function damageAnimationIndex(Fighter f, int pose) returns int
     if pose == DAMAGE_POSE_GROUND
-        return f.character == 0 ? ARCHER_DAMAGE_GROUND_INDEX : RIFLEMAN_DAMAGE_GROUND_INDEX
+        return (f.character == 2 ? DEMON_HUNTER_DAMAGE_GROUND_INDEX : (f.character == 0 ? ARCHER_DAMAGE_GROUND_INDEX : RIFLEMAN_DAMAGE_GROUND_INDEX))
     if pose == DAMAGE_POSE_TUMBLE
-        return f.character == 0 ? ARCHER_DAMAGE_TUMBLE_INDEX : RIFLEMAN_DAMAGE_TUMBLE_INDEX
+        return (f.character == 2 ? DEMON_HUNTER_DAMAGE_TUMBLE_INDEX : (f.character == 0 ? ARCHER_DAMAGE_TUMBLE_INDEX : RIFLEMAN_DAMAGE_TUMBLE_INDEX))
     if pose == DAMAGE_POSE_SHIELD
-        return f.character == 0 ? ARCHER_DAMAGE_SHIELD_INDEX : RIFLEMAN_DAMAGE_SHIELD_INDEX
-    return f.character == 0 ? ARCHER_DAMAGE_AIR_INDEX : RIFLEMAN_DAMAGE_AIR_INDEX
+        return (f.character == 2 ? DEMON_HUNTER_DAMAGE_SHIELD_INDEX : (f.character == 0 ? ARCHER_DAMAGE_SHIELD_INDEX : RIFLEMAN_DAMAGE_SHIELD_INDEX))
+    return (f.character == 2 ? DEMON_HUNTER_DAMAGE_AIR_INDEX : (f.character == 0 ? ARCHER_DAMAGE_AIR_INDEX : RIFLEMAN_DAMAGE_AIR_INDEX))
 
 function damageAnimationSeconds(Fighter f, int pose) returns real
     if pose == DAMAGE_POSE_GROUND
-        return f.character == 0 ? ARCHER_DAMAGE_GROUND_SECONDS : RIFLEMAN_DAMAGE_GROUND_SECONDS
+        return (f.character == 2 ? DEMON_HUNTER_DAMAGE_GROUND_SECONDS : (f.character == 0 ? ARCHER_DAMAGE_GROUND_SECONDS : RIFLEMAN_DAMAGE_GROUND_SECONDS))
     if pose == DAMAGE_POSE_TUMBLE
-        return f.character == 0 ? ARCHER_DAMAGE_TUMBLE_SECONDS : RIFLEMAN_DAMAGE_TUMBLE_SECONDS
+        return (f.character == 2 ? DEMON_HUNTER_DAMAGE_TUMBLE_SECONDS : (f.character == 0 ? ARCHER_DAMAGE_TUMBLE_SECONDS : RIFLEMAN_DAMAGE_TUMBLE_SECONDS))
     if pose == DAMAGE_POSE_SHIELD
-        return f.character == 0 ? ARCHER_DAMAGE_SHIELD_SECONDS : RIFLEMAN_DAMAGE_SHIELD_SECONDS
-    return f.character == 0 ? ARCHER_DAMAGE_AIR_SECONDS : RIFLEMAN_DAMAGE_AIR_SECONDS
+        return (f.character == 2 ? DEMON_HUNTER_DAMAGE_SHIELD_SECONDS : (f.character == 0 ? ARCHER_DAMAGE_SHIELD_SECONDS : RIFLEMAN_DAMAGE_SHIELD_SECONDS))
+    return (f.character == 2 ? DEMON_HUNTER_DAMAGE_AIR_SECONDS : (f.character == 0 ? ARCHER_DAMAGE_AIR_SECONDS : RIFLEMAN_DAMAGE_AIR_SECONDS))
 
 function grabAnimationIndex(int character, int action, boolean victim) returns int
     if action == GRAB_PUMMEL
         if victim
-            return character == 0 ? ARCHER_VICTIM_PUMMEL_INDEX : RIFLEMAN_VICTIM_PUMMEL_INDEX
-        return character == 0 ? ARCHER_PUMMEL_INDEX : RIFLEMAN_PUMMEL_INDEX
+            return (character == 2 ? DEMON_HUNTER_VICTIM_PUMMEL_INDEX : (character == 0 ? ARCHER_VICTIM_PUMMEL_INDEX : RIFLEMAN_VICTIM_PUMMEL_INDEX))
+        return (character == 2 ? DEMON_HUNTER_PUMMEL_INDEX : (character == 0 ? ARCHER_PUMMEL_INDEX : RIFLEMAN_PUMMEL_INDEX))
     if action == THROW_FORWARD
         if victim
-            return character == 0 ? ARCHER_VICTIM_THROW_FORWARD_INDEX : RIFLEMAN_VICTIM_THROW_FORWARD_INDEX
-        return character == 0 ? ARCHER_THROW_FORWARD_INDEX : RIFLEMAN_THROW_FORWARD_INDEX
+            return (character == 2 ? DEMON_HUNTER_VICTIM_THROW_FORWARD_INDEX : (character == 0 ? ARCHER_VICTIM_THROW_FORWARD_INDEX : RIFLEMAN_VICTIM_THROW_FORWARD_INDEX))
+        return (character == 2 ? DEMON_HUNTER_THROW_FORWARD_INDEX : (character == 0 ? ARCHER_THROW_FORWARD_INDEX : RIFLEMAN_THROW_FORWARD_INDEX))
     if action == THROW_BACK
         if victim
-            return character == 0 ? ARCHER_VICTIM_THROW_BACK_INDEX : RIFLEMAN_VICTIM_THROW_BACK_INDEX
-        return character == 0 ? ARCHER_THROW_BACK_INDEX : RIFLEMAN_THROW_BACK_INDEX
+            return (character == 2 ? DEMON_HUNTER_VICTIM_THROW_BACK_INDEX : (character == 0 ? ARCHER_VICTIM_THROW_BACK_INDEX : RIFLEMAN_VICTIM_THROW_BACK_INDEX))
+        return (character == 2 ? DEMON_HUNTER_THROW_BACK_INDEX : (character == 0 ? ARCHER_THROW_BACK_INDEX : RIFLEMAN_THROW_BACK_INDEX))
     if action == THROW_UP
         if victim
-            return character == 0 ? ARCHER_VICTIM_THROW_UP_INDEX : RIFLEMAN_VICTIM_THROW_UP_INDEX
-        return character == 0 ? ARCHER_THROW_UP_INDEX : RIFLEMAN_THROW_UP_INDEX
+            return (character == 2 ? DEMON_HUNTER_VICTIM_THROW_UP_INDEX : (character == 0 ? ARCHER_VICTIM_THROW_UP_INDEX : RIFLEMAN_VICTIM_THROW_UP_INDEX))
+        return (character == 2 ? DEMON_HUNTER_THROW_UP_INDEX : (character == 0 ? ARCHER_THROW_UP_INDEX : RIFLEMAN_THROW_UP_INDEX))
     if action == THROW_DOWN
         if victim
-            return character == 0 ? ARCHER_VICTIM_THROW_DOWN_INDEX : RIFLEMAN_VICTIM_THROW_DOWN_INDEX
-        return character == 0 ? ARCHER_THROW_DOWN_INDEX : RIFLEMAN_THROW_DOWN_INDEX
+            return (character == 2 ? DEMON_HUNTER_VICTIM_THROW_DOWN_INDEX : (character == 0 ? ARCHER_VICTIM_THROW_DOWN_INDEX : RIFLEMAN_VICTIM_THROW_DOWN_INDEX))
+        return (character == 2 ? DEMON_HUNTER_THROW_DOWN_INDEX : (character == 0 ? ARCHER_THROW_DOWN_INDEX : RIFLEMAN_THROW_DOWN_INDEX))
+    if character == 2
+        return victim ? DEMON_HUNTER_GRABBED_INDEX : DEMON_HUNTER_GRAB_HOLD_INDEX
     return character == 0 ? (victim ? ARCHER_GRABBED_INDEX : ARCHER_GRAB_HOLD_INDEX) : (victim ? RIFLEMAN_GRABBED_INDEX : RIFLEMAN_GRAB_HOLD_INDEX)
 
 function grabAnimationSeconds(int character, int action) returns real
     if action == GRAB_PUMMEL
-        return character == 0 ? ARCHER_PUMMEL_SECONDS : RIFLEMAN_PUMMEL_SECONDS
+        return (character == 2 ? DEMON_HUNTER_PUMMEL_SECONDS : (character == 0 ? ARCHER_PUMMEL_SECONDS : RIFLEMAN_PUMMEL_SECONDS))
     if action == THROW_FORWARD
-        return character == 0 ? ARCHER_THROW_FORWARD_SECONDS : RIFLEMAN_THROW_FORWARD_SECONDS
+        return (character == 2 ? DEMON_HUNTER_THROW_FORWARD_SECONDS : (character == 0 ? ARCHER_THROW_FORWARD_SECONDS : RIFLEMAN_THROW_FORWARD_SECONDS))
     if action == THROW_BACK
-        return character == 0 ? ARCHER_THROW_BACK_SECONDS : RIFLEMAN_THROW_BACK_SECONDS
+        return (character == 2 ? DEMON_HUNTER_THROW_BACK_SECONDS : (character == 0 ? ARCHER_THROW_BACK_SECONDS : RIFLEMAN_THROW_BACK_SECONDS))
     if action == THROW_UP
-        return character == 0 ? ARCHER_THROW_UP_SECONDS : RIFLEMAN_THROW_UP_SECONDS
+        return (character == 2 ? DEMON_HUNTER_THROW_UP_SECONDS : (character == 0 ? ARCHER_THROW_UP_SECONDS : RIFLEMAN_THROW_UP_SECONDS))
     if action == THROW_DOWN
-        return character == 0 ? ARCHER_THROW_DOWN_SECONDS : RIFLEMAN_THROW_DOWN_SECONDS
+        return (character == 2 ? DEMON_HUNTER_THROW_DOWN_SECONDS : (character == 0 ? ARCHER_THROW_DOWN_SECONDS : RIFLEMAN_THROW_DOWN_SECONDS))
     return 0.
 
 function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
@@ -1183,15 +1237,15 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
     let reaction = damagePose(f)
     var animationRate = attackAnimationRate(f)
     if f.ledgeState == LEDGE_CLIMB
-        animationRate = (f.character == 0 ? ARCHER_LEDGE_CLIMB_SECONDS : RIFLEMAN_LEDGE_CLIMB_SECONDS) / (LEDGE_CLIMB_FRAMES * FRAME_SECONDS)
+        animationRate = ((f.character == 2 ? DEMON_HUNTER_LEDGE_CLIMB_SECONDS : (f.character == 0 ? ARCHER_LEDGE_CLIMB_SECONDS : RIFLEMAN_LEDGE_CLIMB_SECONDS))) / (LEDGE_CLIMB_FRAMES * FRAME_SECONDS)
     else if f.ledgeState == LEDGE_ROLL
-        animationRate = (f.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS) / (LEDGE_ROLL_FRAMES * FRAME_SECONDS)
+        animationRate = ((f.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_SECONDS : (f.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS))) / (LEDGE_ROLL_FRAMES * FRAME_SECONDS)
     else if f.ledgeState == LEDGE_ATTACK
-        animationRate = (f.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS) / (LEDGE_ATTACK_FRAMES * FRAME_SECONDS)
+        animationRate = ((f.character == 2 ? DEMON_HUNTER_GET_UP_ATTACK_SECONDS : (f.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS))) / (LEDGE_ATTACK_FRAMES * FRAME_SECONDS)
     else if f.shieldBreakState == SHIELD_BREAK_LAND
-        animationRate = (f.character == 0 ? ARCHER_KNOCKDOWN_SECONDS : RIFLEMAN_KNOCKDOWN_SECONDS) / (SHIELD_BREAK_LAND_FRAMES * FRAME_SECONDS)
+        animationRate = ((f.character == 2 ? DEMON_HUNTER_KNOCKDOWN_SECONDS : (f.character == 0 ? ARCHER_KNOCKDOWN_SECONDS : RIFLEMAN_KNOCKDOWN_SECONDS))) / (SHIELD_BREAK_LAND_FRAMES * FRAME_SECONDS)
     else if f.shieldBreakState == SHIELD_BREAK_STAND
-        animationRate = (f.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS) / (SHIELD_BREAK_STAND_FRAMES * FRAME_SECONDS)
+        animationRate = ((f.character == 2 ? DEMON_HUNTER_GET_UP_SECONDS : (f.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS))) / (SHIELD_BREAK_STAND_FRAMES * FRAME_SECONDS)
     else if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
         animationRate = downAnimationRate(f)
     else if reaction != DAMAGE_POSE_NONE
@@ -1204,7 +1258,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
     else if f.specialAction != SPECIAL_NONE and f.hitstun == 0
         animationRate = specialAnimationSeconds(f) / (f.specialDuration * FRAME_SECONDS)
     else if f.jumpAnimationRemaining > 0
-        animationRate = f.doubleJumpAnimation ? (f.character == 0 ? ARCHER_DOUBLE_JUMP_SECONDS : RIFLEMAN_DOUBLE_JUMP_SECONDS) / (30 * FRAME_SECONDS) : (f.character == 0 ? ARCHER_JUMP_SECONDS : RIFLEMAN_JUMP_SECONDS) / (24 * FRAME_SECONDS)
+        animationRate = f.doubleJumpAnimation ? ((f.character == 2 ? DEMON_HUNTER_DOUBLE_JUMP_SECONDS : (f.character == 0 ? ARCHER_DOUBLE_JUMP_SECONDS : RIFLEMAN_DOUBLE_JUMP_SECONDS))) / (30 * FRAME_SECONDS) : ((f.character == 2 ? DEMON_HUNTER_JUMP_SECONDS : (f.character == 0 ? ARCHER_JUMP_SECONDS : RIFLEMAN_JUMP_SECONDS))) / (24 * FRAME_SECONDS)
     SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
     if inGrabContext(f)
         let victim = f.grabOwner != null
@@ -1222,21 +1276,21 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
         let anim = "ledge" + I2S(f.ledgeState)
         if f.animation != anim
             if f.ledgeState == LEDGE_CLIMB
-                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_LEDGE_CLIMB_INDEX : RIFLEMAN_LEDGE_CLIMB_INDEX)
+                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_LEDGE_CLIMB_INDEX : (f.character == 0 ? ARCHER_LEDGE_CLIMB_INDEX : RIFLEMAN_LEDGE_CLIMB_INDEX)))
             else if f.ledgeState == LEDGE_ROLL
-                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX)
+                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_INDEX : (f.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX)))
             else if f.ledgeState == LEDGE_ATTACK
-                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_GET_UP_ATTACK_INDEX : RIFLEMAN_GET_UP_ATTACK_INDEX)
+                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_GET_UP_ATTACK_INDEX : (f.character == 0 ? ARCHER_GET_UP_ATTACK_INDEX : RIFLEMAN_GET_UP_ATTACK_INDEX)))
             else
-                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_LEDGE_HANG_INDEX : RIFLEMAN_LEDGE_HANG_INDEX)
+                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_LEDGE_HANG_INDEX : (f.character == 0 ? ARCHER_LEDGE_HANG_INDEX : RIFLEMAN_LEDGE_HANG_INDEX)))
             f.animation = anim
     else if f.shieldBreakState != SHIELD_BREAK_NONE
         let anim = "shieldbreak" + I2S(f.shieldBreakState)
         if f.animation != anim
             if f.shieldBreakState == SHIELD_BREAK_LAND
-                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_KNOCKDOWN_INDEX : RIFLEMAN_KNOCKDOWN_INDEX)
+                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_KNOCKDOWN_INDEX : (f.character == 0 ? ARCHER_KNOCKDOWN_INDEX : RIFLEMAN_KNOCKDOWN_INDEX)))
             else if f.shieldBreakState == SHIELD_BREAK_STAND
-                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_GET_UP_INDEX : RIFLEMAN_GET_UP_INDEX)
+                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_GET_UP_INDEX : (f.character == 0 ? ARCHER_GET_UP_INDEX : RIFLEMAN_GET_UP_INDEX)))
             else
                 SetUnitAnimation(f.body, "stand hit")
             f.animation = anim
@@ -1254,7 +1308,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
             traceParticipant(f == playerFighter ? 0 : 1, "damage pose " + I2S(reaction) + " hitlag " + I2S(f.hitlag) + " hitstun " + I2S(f.hitstun))
     else if f.specialFall
         if f.animation != "specialfall"
-            SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_FALL_SPECIAL_INDEX : RIFLEMAN_FALL_SPECIAL_INDEX)
+            SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_FALL_SPECIAL_INDEX : (f.character == 0 ? ARCHER_FALL_SPECIAL_INDEX : RIFLEMAN_FALL_SPECIAL_INDEX)))
             f.animation = "specialfall"
     else if isGroundDodging(f)
         if f.animation != "dodge"
@@ -1267,7 +1321,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
             f.animation = anim
     else if f.jumpAnimationRemaining > 0
         if f.animation != "jump"
-            SetUnitAnimationByIndex(f.body, f.doubleJumpAnimation ? (f.character == 0 ? ARCHER_DOUBLE_JUMP_INDEX : RIFLEMAN_DOUBLE_JUMP_INDEX) : (f.character == 0 ? ARCHER_JUMP_INDEX : RIFLEMAN_JUMP_INDEX))
+            SetUnitAnimationByIndex(f.body, f.doubleJumpAnimation ? ((f.character == 2 ? DEMON_HUNTER_DOUBLE_JUMP_INDEX : (f.character == 0 ? ARCHER_DOUBLE_JUMP_INDEX : RIFLEMAN_DOUBLE_JUMP_INDEX))) : ((f.character == 2 ? DEMON_HUNTER_JUMP_INDEX : (f.character == 0 ? ARCHER_JUMP_INDEX : RIFLEMAN_JUMP_INDEX))))
             f.animation = "jump"
     else if attackPhase(f) == ATTACK_NONE and f.hitstun == 0 and f.hitlag == 0
         let anim = f.grounded and totalVelocityX(f).abs() > 0.1 ? "walk" : "stand"
