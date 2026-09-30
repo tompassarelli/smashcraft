@@ -62,6 +62,11 @@ import Simulation
             shooter.projectileDirection[0] = 1
             updateProjectilePair(shooter, target)
             shooter.hitlag.assertEquals(0)
-            target.hitlag.assertGreaterThan(0)
+            if kind == PROJECTILE_RECOIL
+                target.hitlag.assertGreaterThan(0)
+            else
+                target.hitlag.assertEquals(0)
+                target.hitstun.assertEquals(0)
+                target.shieldStun.assertEquals(0)
             destroy shooter
             destroy target

@@ -85,7 +85,8 @@ multishot fan; down-special hippogryph cover with a backward somersault and
 brief airborne hang; up-special briefly mounts the hippogryph for fast ascent.
 Finish the legible fist jab, directional tilts, extended-leg neutral air,
 Fox/Falco-like back kick and tucked-startup downward dive kick. Running/basic
-arrows must produce the requested hit reaction rather than damage alone.
+arrows are damage-only: no hitstun, hitlag, knockback or move interruption.
+This includes multishot arrows and supersedes the earlier stun request.
 
 Rifleman: recognizable Warcraft-style bullet; running/swiping bear;
 five-second freezing trap with visible ice entombment and defined release rules;

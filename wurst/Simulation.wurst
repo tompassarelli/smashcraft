@@ -1353,12 +1353,18 @@ function spawnArcherArrow(FighterState owner, int direction, real verticalSpeed,
 
 function applySpecialProjectileHit(FighterState target, int kind, int direction)
 	let damage = kind == PROJECTILE_FAN_ARROW ? 4. : (kind == PROJECTILE_RECOIL ? 5. : 7.)
+	let damageOnly = kind == PROJECTILE_ARROW or kind == PROJECTILE_FAN_ARROW
 	if target.shield and target.shieldEnergy > 0
 		target.shieldEnergy = max(0, target.shieldEnergy - damage * 0.7)
-		target.shieldStun = digitalShieldstunFrames(damage)
-		target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
+		if not damageOnly
+			target.shieldStun = digitalShieldstunFrames(damage)
+			target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
 		if target.shieldEnergy == 0
 			beginShieldBreak(target)
+		return
+	if damageOnly
+		target.damage += damage
+		target.frozenFrames = 0
 		return
 	let groundedBeforeHit = target.grounded
 	clearGrabLinks(target)

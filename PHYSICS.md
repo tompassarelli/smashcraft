@@ -1023,3 +1023,13 @@ wc3-melee:tools/animations/grab_animations.py. The animation boundary consumes
 timing from Wurst; canonical pair state owns translation and release. Native
 pose alignment, real-button use and interruption readability require the
 installed-build check and are not proved by the numerical tests.
+
+### Archer arrows: damage without interruption
+
+Owner correction: normal/running arrows and multishot arrows add damage without
+hitstun, hitlag, knockback, DI setup or interruption of attacks, grabs, ledges or
+recovery. They do not erase a reaction already in progress. Shield hits retain
+shield-energy damage but add no shieldstun or hitlag; depleting shield energy
+still uses the shared shield-break rule. Unshielded damage still breaks the
+Rifleman trap's ice, as required by that mechanic. Rifleman's projectiles retain
+their separate hit behavior. This replaces the earlier arrow-stun request.

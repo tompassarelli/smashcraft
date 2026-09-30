@@ -61,7 +61,7 @@ function catchTarget(FighterState owner, FighterState target)
                 destroy owner
                 destroy target
 
-@Test function damagingProjectilesReleaseEitherEndOfAGrab()
+@Test function onlyFlinchingProjectilesReleaseEitherEndOfAGrab()
     for victim = 0 to 1
         for kind = PROJECTILE_BLASTER to PROJECTILE_RECOIL
             let owner = new FighterState(0, 0, 1)
@@ -77,10 +77,17 @@ function catchTarget(FighterState owner, FighterState target)
             shooter.projectileDirection[0] = 1
             updateProjectilePair(owner, target)
             hit.damage.assertGreaterThan(0)
-            hit.hitstun.assertGreaterThan(0)
-            (owner.grabTarget == null).assertTrue()
-            (target.grabOwner == null).assertTrue()
-            target.grabbedFrames.assertEquals(0)
+            if kind == PROJECTILE_ARROW or kind == PROJECTILE_FAN_ARROW
+                hit.hitstun.assertEquals(0)
+                hit.hitlag.assertEquals(0)
+                (owner.grabTarget == target).assertTrue()
+                (target.grabOwner == owner).assertTrue()
+                target.grabbedFrames.assertEquals(GRAB_HOLD_FRAMES)
+            else
+                hit.hitstun.assertGreaterThan(0)
+                (owner.grabTarget == null).assertTrue()
+                (target.grabOwner == null).assertTrue()
+                target.grabbedFrames.assertEquals(0)
             destroy owner
             destroy target
 

@@ -10,7 +10,7 @@ function specialMatch() returns MatchState
 	game.phase = MATCH
 	return game
 
-@Test function movingArcherArrowInterruptsTargetAttack()
+@Test function movingArcherArrowDealsDamageWithoutInterruptingTargetAttack()
 	let game = specialMatch()
 	let archer = new FighterState(0, 0, 1)
 	let target = new FighterState(1, 140, -1)
@@ -27,8 +27,12 @@ function specialMatch() returns MatchState
 	for frame = 1 to 4
 		stepMatch(game, archer, target, input, targetInput, commands, targetCommands, frame)
 	target.damage.assertEquals(7.)
-	target.hitstun.assertGreaterThan(0)
-	target.attackStyle.assertEquals(-1)
+	target.hitstun.assertEquals(0)
+	target.hitlag.assertEquals(0)
+	target.attackStyle.assertEquals(4)
+	target.attackFrame.assertEquals(3)
+	target.knockbackX.assertEquals(0.)
+	target.knockbackZ.assertEquals(0.)
 	projectileCount(archer).assertEquals(0)
 	destroy commands
 	destroy targetCommands
@@ -401,7 +405,7 @@ function specialMatch() returns MatchState
 	owner.specialHit.assertFalse()
 	destroy owner
 
-@Test function arrowLaunchDirectionDoesNotFollowTheShootersLaterFacing()
+@Test function arrowTravelDirectionDoesNotFollowTheShootersLaterFacing()
 	let owner = new FighterState(0, -100, -1)
 	let target = new FighterState(1, 20, -1)
 	owner.projectileLife[0] = 10
@@ -412,6 +416,63 @@ function specialMatch() returns MatchState
 	owner.projectileVelocityX[0] = 30
 	updateProjectilePair(owner, target)
 	target.damage.assertGreaterThan(0.)
-	target.knockbackX.assertGreaterThan(0.)
+	owner.projectileX[0].assertEquals(30.)
+	target.knockbackX.assertEquals(0.)
 	destroy target
 	destroy owner
+
+@Test function bothArcherArrowKindsPreserveReactionMovementAndActionState()
+	for kind = PROJECTILE_ARROW to PROJECTILE_FAN_ARROW
+		let owner = new FighterState(0, -100, 1)
+		let target = new FighterState(1, 20, -1)
+		owner.projectileLife[0] = 10
+		owner.projectileKind[0] = kind
+		owner.projectileDirection[0] = 1
+		owner.projectileX[0] = 0
+		owner.projectileZ[0] = 45
+		owner.projectileVelocityX[0] = 30
+		target.grounded = false
+		target.vx = 3
+		target.vz = -4
+		target.knockbackX = 5
+		target.knockbackZ = 6
+		target.hitstun = 8
+		target.hitlag = 2
+		target.downState = DOWN_TUMBLE
+		target.downFrame = 3
+		target.frozenFrames = 20
+		updateProjectilePair(owner, target)
+		target.damage.assertEquals(kind == PROJECTILE_ARROW ? 7. : 4.)
+		target.grounded.assertFalse()
+		target.vx.assertEquals(3.)
+		target.vz.assertEquals(-4.)
+		target.knockbackX.assertEquals(5.)
+		target.knockbackZ.assertEquals(6.)
+		target.hitstun.assertEquals(8)
+		target.hitlag.assertEquals(2)
+		target.downState.assertEquals(DOWN_TUMBLE)
+		target.downFrame.assertEquals(3)
+		target.frozenFrames.assertEquals(0)
+		owner.projectileLife[0].assertEquals(0)
+		destroy owner
+		destroy target
+
+@Test function arrowsDamageShieldWithoutAddingShieldstunOrHitlag()
+	for kind = PROJECTILE_ARROW to PROJECTILE_FAN_ARROW
+		let owner = new FighterState(0, -100, 1)
+		let target = new FighterState(1, 20, -1)
+		owner.projectileLife[0] = 10
+		owner.projectileKind[0] = kind
+		owner.projectileDirection[0] = 1
+		owner.projectileX[0] = 0
+		owner.projectileZ[0] = 45
+		owner.projectileVelocityX[0] = 30
+		target.shield = true
+		updateProjectilePair(owner, target)
+		target.shield.assertTrue()
+		target.shieldEnergy.assertLessThan(SHIELD_MAX)
+		target.damage.assertEquals(0.)
+		target.shieldStun.assertEquals(0)
+		target.hitlag.assertEquals(0)
+		destroy owner
+		destroy target
