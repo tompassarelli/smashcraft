@@ -4,11 +4,49 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 import ReplayState
+import CombatInput
 
 function demonHunterMatch() returns MatchState
 	let game = new MatchState()
 	game.phase = MATCH
 	return game
+
+@Test function demonHunterGroundInputsCanHitStandingOpponents()
+	for facing = -1 to 1
+		if facing != 0
+			for variant = 0 to 8
+				let walking = variant >= 4
+				let horizontal = variant == 3 or variant == 4 or variant >= 7 ? facing : 0
+				let vertical = variant == 1 or variant == 5 or variant == 7 ? 1 : (variant == 2 or variant == 6 or variant == 8 ? -1 : 0)
+				let style = normalAttackStyle(horizontal, vertical, walking, false)
+				let attacker = new FighterState(2, 0, facing)
+				let target = new FighterState(0, facing * 60., -facing)
+				beginAttackPair(attacker, target, style, -1, false, false)
+				attacker.attackFrame = attackStartupFrames(style)
+				resolveAttackPair(attacker, target)
+				target.damage.assertGreaterThan(0.)
+				destroy target
+				destroy attacker
+
+@Test function demonHunterSharesGrabGetupAndLedgeContactRules()
+	for facing = -1 to 1
+		if facing != 0
+			for action = 0 to 2
+				let style = action == 0 ? 5 : (action == 1 ? DOWN_ATTACK_STYLE : LEDGE_ATTACK_STYLE)
+				let attacker = new FighterState(2, 0, facing)
+				let target = new FighterState(0, facing * 60., -facing)
+				attacker.attackStyle = style
+				attacker.attackFrame = attackStartupFrames(style)
+				attacker.attackDuration = attackDurationFrames(style)
+				resolveAttackPair(attacker, target)
+				if action == 0
+					(attacker.grabTarget == target).assertTrue()
+					(target.grabOwner == attacker).assertTrue()
+				else
+					target.damage.assertGreaterThan(0.)
+				reset(attacker, 0)
+				destroy target
+				destroy attacker
 
 @Test function immolateGroundShineMirrorsAndHitsOneTargetOnce()
 	for facing = -1 to 1

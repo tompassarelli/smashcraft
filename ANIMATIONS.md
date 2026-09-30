@@ -12,21 +12,28 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 | Required coverage | Current state |
 | --- | --- |
 | Model, textures, attached blades, both gameplay facings | Imported; material repair incomplete; not native-verified |
-| Jab, directional/angled tilts, smashes, dash attack | Combat implementation underway; authored clips missing |
-| Neutral/forward/back/up/down aerials | Combat implementation underway; authored clips missing |
-| Mana Burn, parry/evasion, wing ascent, Immolate | Combat implementation underway; authored clips and effects missing |
+| Jab, directional/angled tilts, smashes, dash attack | Combat implemented/source-tested; authored clips missing |
+| Neutral/forward/back/up/down aerials | Combat implemented/source-tested; authored clips missing |
+| Mana Burn, parry/evasion, wing ascent, Immolate | Combat implemented/source-tested; authored clips and effects missing |
 | Grab, hold, pummel, escape, four coordinated throws | Shared rules exist; Illidan poses and contact verification missing |
 | Idle, walk/run, turns, crouch, jumps and landings | Stock motions available; full game-action mapping missing |
 | Shield, shield reactions/break, spot dodge, rolls, air dodge | Illidan clips and shared-rule integration missing |
 | Ground/air hitstun, tumble, contact-pose hitlag | Illidan reactions and freeze/resume verification missing |
 | Knockdown, techs, getup options, ledges, KO and respawn | Illidan clips and integration missing |
-| Action-frame volumes, interruptions, stock reset and replay | Fighter-specific implementation/checks underway |
+| Action-frame volumes, interruptions, stock reset and replay | Provisional numerical regions and focused interruption/reset/replay checks implemented; animation alignment missing |
 | Portraits, selection, mirror match and rematch retention | Missing |
 | Real-control playthrough in Warcraft | Not tested |
 
 Wings must appear and animate during recovery. Post-ascent glide remains an
 unadopted design option. Timing and damage live in combat source; new tuning
 must remain explicitly provisional, not presented as extracted Melee data.
+
+The integrated source suite passes 360/360 with one existing unused-import
+warning: wc3-melee:build/wurst-tests/illidan-integration-all.log. Two added
+contact regressions first failed in
+wc3-melee:build/wurst-tests/illidan-integration-before.log: grounded attacks
+must reach a standing opponent's origin, and Illidan must retain the shared
+grab/getup/ledge attack volumes. This does not verify native controls or poses.
 
 ## Archer and Rifleman
 

@@ -766,7 +766,8 @@ function authoredHitRegion(int character, int style, int frame, int chargeFrames
 	// Character 2 has an explicit authored region for each shared ground/aerial
 	// action ID. Numeric windows are single-contact and provisional; animation
 	// assets must bind their matching action IDs before roster exposure.
-	if character == 2
+	// Grab and recovery attacks use the shared contact rules below.
+	if character == 2 and style != 5 and style != DOWN_ATTACK_STYLE and style != LEDGE_ATTACK_STYLE
 		let charge = isSmashAttack(style) ? smashDamageMultiplier(chargeFrames) : 1
 		let ground = style <= 10 or style == DEMONHUNTER_DASH_ATTACK_STYLE
 		let demonDamage = (style == 0 ? 5. : (style == 2 or style == 3 or style == 4 ? 15. : (style == 12 ? 8. : (style == 16 ? 10. : 7.)))) * charge
@@ -775,9 +776,9 @@ function authoredHitRegion(int character, int style, int frame, int chargeFrames
 			if style == 0
 				return hitRegion(0, 92, -55, 105, data, 1)
 			if style == 2
-				return hitRegion(-105, 105, 25, 195, data, 1)
+				return hitRegion(-105, 105, -30, 195, data, 1)
 			if style == 3
-				return hitRegion(-105, 105, -195, -20, data, 1)
+				return hitRegion(-105, 105, -195, 45, data, 1)
 			if style == 4
 				return hitRegion(25, 195, -75, 105, data, 1)
 			if style == DEMONHUNTER_DASH_ATTACK_STYLE
@@ -785,11 +786,11 @@ function authoredHitRegion(int character, int style, int frame, int chargeFrames
 			if style == 6
 				return hitRegion(0, 135, -80, 95, hitEffect(8, 95, 18, 0.94, 0.34), 1)
 			if style == 7
-				return hitRegion(0, 125, 25, 185, hitEffect(8, 105, 18, 0.25, 0.9682458), 1)
+				return hitRegion(0, 125, -30, 185, hitEffect(8, 105, 18, 0.25, 0.9682458), 1)
 			if style == 8
-				return hitRegion(-115, 115, -145, -5, hitEffect(7, 90, 16, DIAGONAL_UNIT, 0.3), 1)
+				return hitRegion(-115, 115, -145, 40, hitEffect(7, 90, 16, DIAGONAL_UNIT, 0.3), 1)
 			if style == 9
-				return hitRegion(0, 135, 5, 145, hitEffect(8, 100, 18, 0.88, 0.48), 1)
+				return hitRegion(0, 135, -30, 145, hitEffect(8, 100, 18, 0.88, 0.48), 1)
 			if style == 10
 				return hitRegion(0, 135, -145, 5, hitEffect(8, 100, 18, 0.88, -0.48), 1)
 			return noHitRegion()

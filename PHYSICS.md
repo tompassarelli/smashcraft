@@ -1136,7 +1136,7 @@ their separate hit behavior. This replaces the earlier arrow-stun request.
 
 Character ID 2 now has explicit simulation mobility and authored contact
 regions. It uses the shared movement, shield, grab, knockback, hitlag, hitstun,
-landing, ledge, stock and replay systems. These values are a first playable
+landing, ledge, stock and replay systems. These values are a first numerical
 combat prototype, not values extracted from Melee or Blizzard character data.
 Animation clips, pose alignment, HUD/selection, and installed-map behavior are
 not established by these source tests.

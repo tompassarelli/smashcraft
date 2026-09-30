@@ -58,7 +58,7 @@ parry interruption, wing jump consumption, and Immolate replay restoration.
 | Ground jab, tilts, smashes, dash attack | Implemented with explicit character-2 regions; dash neutral-Attack conversion/contact covered | Illidan clips absent; native contact/poses unverified |
 | Neutral/forward/back/up/down aerial | Implemented with explicit character-2 regions and shared clocks; focused contact test | Illidan clips absent; native contact/poses unverified |
 | Mana Burn / Parry Step / Wing Ascent / Immolate | Implemented as IDs 9–12; specials tested | Clips/effects absent; roster hidden; not installed or native-verified |
-| Grabs, pummel, throws, movement, ordinary defense/recovery | Existing shared simulation applies to character 2 | Illidan-specific clips/attachments absent; native-verified only for existing roster |
+| Grabs, pummel, throws, movement, ordinary defense/recovery | Existing shared simulation applies to character 2 | Illidan-specific clips/attachments absent; native verification pending |
 | Wings, portrait, selection chip, HUD label | No character integration in this slice | Not implemented |
 
 The move tuning is provisional original design recorded in
