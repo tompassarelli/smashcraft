@@ -1,37 +1,62 @@
 # Authored fighter animation work
 
-## Archer ground-attack playback discrepancy — 2026-10-01
+## Archer ground-attack readability — 2026-10-01
 
 Real inputs select jab (style 0, frame 1026), forward tilt (6, 1086), down
-tilt (8, 1145), and up tilt (7, 1199) in grab-pose-passive-r1. All four
-commands execute, with zero dropped trace records. Native readability does
-not pass: the recorded up tilt does not visibly reach the authored overhead
-pose, including inspection at all 60 recorded frames per second. Evidence:
-wc3-melee:build/archer-ground-attacks-native.mp4,
+tilt (8, 1145), and up tilt (7, 1199) in grab-pose-passive-r1, with zero
+dropped trace records. In that baseline the raised leg was difficult to
+distinguish from the head and cape.
+Evidence: wc3-melee:build/archer-ground-attacks-native.mp4,
 wc3-melee:build/archer-ground-attacks-trace.txt, and
 wc3-melee:build/archer-up-tilt-every-frame.png.
 
-Source and exported MDX contact transforms agree within 0.001 unit. The up
-tilt foot reaches z=106, above head height 84.6033; the exported skinned mesh
-also shows that overhead pose. Forward tilt foot is (44,-10,43), jab hand
-(32,-12,76), and down tilt foot approximately (43.472,-9.598,10.540).
-Evidence: wc3-melee:build/animation-assets/measure-ground-contact.log,
-wc3-melee:build/animation-assets/measure-ground-export-points.log, and
-wc3-melee:build/animation-assets/archer-export-Up-Tilt-contact.png.
-No authoring or gameplay changes were made from this observation. Native
-playback remains the unresolved boundary; a passing export is not visual
-acceptance. Next discriminating check: isolate the same unit clip from combat
-at natural and gameplay playback rates, then inspect its contact pose.
+The earlier interpretation that Warcraft failed to display the exported
+rotation was incorrect. An enlarged native comparison with a held contact
+pose in both facings clearly exposes the raised boot beside the head:
+wc3-melee:build/contact-both-facings-native.png. The low visible boot is the
+supporting leg. This establishes the contact pose, not exact live
+active-frame alignment or good readability at normal gameplay size.
 
-That isolation now reproduces the discrepancy outside combat. The dedicated
-wc3-melee:tools/netcode-probe/FighterPlaybackProbe.wurst compiles with zero
-errors/warnings and runs three copies of the gameplay Archer unit. At cycle
-54 both the 1x unit frozen after 15 callbacks and the gameplay-rate unit
-frozen after six callbacks show a low pose, not the intended overhead kick.
-Screenshot: wc3-melee:build/fighter-playback-native.png. This rules out combat
-interrupting this isolated reproduction; it does not establish why the native
-animation differs or prove exact phase from timer counts. The next boundary
-is native evaluation of the exported clip, not further pose exaggeration.
+The existing war3-model evaluator independently places the foot at approximately
+(8,-10,106) and the head at z=84.6033, matching the source and reimported model.
+Evidence: wc3-melee:build/measure-mdx-runtime.js,
+wc3-melee:build/animation-assets/measure-ground-contact.log, and
+wc3-melee:build/animation-assets/archer-export-Up-Tilt-contact.png.
+The repair separates the torso, free hand and cloth from the striking limb.
+Up Tilt moves the foot target from (8,-10,106) to (20,-10,102), opening a
+visible gap beside the head. Other contact targets, durations, gameplay root
+motion and combat data are unchanged. Source checks preserve all 54 unrelated
+Archer actions, including every grab/throw; 10,608 unrelated exported tracks
+and Rifleman MDX are unchanged. Evidence:
+wc3-melee:build/animation-assets/check-silhouette-preservation.log and
+wc3-melee:build/animation-assets/check-silhouette-package.log.
+
+Native build archer-silhouette-passive-r1 was exercised through jab,
+forward/down/up tilt in both facings. The overhead leg now separates from the
+head, and down tilt visibly lowers the torso. Right-facing dispatch frames:
+247/307/361/415; left-facing: 643/703/757/811. Both traces have zero dropped
+records. Evidence: wc3-melee:build/archer-silhouette-attacks-native.mp4,
+wc3-melee:build/archer-silhouette-attacks-trace.txt,
+wc3-melee:build/archer-silhouette-reverse-native.mp4, and
+wc3-melee:build/archer-silhouette-reverse-trace.txt. Angled forward tilts have
+source previews but were not separately exercised natively in this pass.
+The normal and passive maps build with zero errors and six warnings in
+unchanged Wurst files. These are single-client visual checks, not multiplayer
+or exact per-frame collision-volume acceptance.
+
+Native diagnostics did not support an exporter node-order repair. Renumbering
+mixed Bone/Helper IDs distorted the model; converting helpers to bones restored
+intact geometry but neither original nor parent-first order changed the pose.
+Direct parent translation and a simple rotation both displayed. No exporter
+change was made. Evidence: wc3-melee:build/node-order-native.png,
+wc3-melee:build/bone-type-native.png,
+wc3-melee:build/direct-shift-native.png, and
+wc3-melee:build/direct-rotation-native.png.
+
+wc3-melee:tools/netcode-probe/FighterPlaybackProbe.wurst retains a full
+moving clip beside a held contact pose in both facings, enlarged 2x for
+inspection. Its generated constant model is a diagnostic only; fighters must
+continue through the authored export pipeline.
 
 ## Coordinated grab poses — 2026-10-01
 

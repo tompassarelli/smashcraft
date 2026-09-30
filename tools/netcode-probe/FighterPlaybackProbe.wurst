@@ -1,6 +1,15 @@
 package FighterPlaybackProbe
 import Wurst
 import FighterAssets
+import UnitObjEditing
+import FighterContactPoseInfo
+
+@compiletime function defineContactPose()
+    let contact = new UnitDefinition('mpc1', 'earc')
+    contact.setModelFile(CONTACT_MODEL)
+    contact.setModelFileExtraVersions(0)
+    contact.setScalingValue(1.)
+    contact.setAnimationBlendTimeseconds(0.)
 
 unit array[3] models
 framehandle status
@@ -12,14 +21,9 @@ function tick()
     let frame = service mod 180
     if frame == 0
         for i = 0 to 2
-            SetUnitAnimationByIndex(models[i], ARCHER_UP_TILT_INDEX)
-            SetUnitTimeScale(models[i], i == 0 ? 1. : ARCHER_UP_TILT_SECONDS / (29. / 60.))
-    // Source contact is frame 6 at 24 FPS: .25 seconds into the clip.
-    if frame == 15
-        SetUnitTimeScale(models[0], 0.)
-    if frame == 6
-        SetUnitTimeScale(models[1], 0.)
-    status.setText("FIGHTER PLAYBACK PROBE | service " + I2S(service) + " | cycle " + I2S(frame) + "\nArcher Up Tilt index " + I2S(ARCHER_UP_TILT_INDEX) + "\nLeft: 1x, freeze at .25s. Middle: gameplay rate, freeze after 6 callbacks. Right: gameplay rate, full clip.\nEach cycle restarts after 180 callbacks. No combat simulation runs.")
+            SetUnitAnimationByIndex(models[i], i == 0 ? ARCHER_UP_TILT_INDEX : 0)
+            SetUnitTimeScale(models[i], i == 0 ? 2.5 : 0.)
+    status.setText("FIGHTER CONTACT POSE PROBE | service " + I2S(service) + " | cycle " + I2S(frame) + "\nLeft: unchanged model. Middle/right: authored contact held, opposite facings. Models enlarged 2x.\nLeft plays the full clip at the gameplay rate (2.5x). Cycle restarts after 180 callbacks. No combat runs.")
     service++
 
 function setup()
@@ -36,7 +40,10 @@ function setup()
     SetCameraField(CAMERA_FIELD_FARZ, 8000, 0)
     SetCameraPosition(centerX, centerY)
     for i = 0 to 2
-        models[i] = CreateUnit(Player(0), ARCHER_FIGHTER_ID, centerX + (i - 1) * 240, centerY, 0.)
+        models[i] = CreateUnit(Player(0), i == 0 ? ARCHER_FIGHTER_ID : 'mpc1', centerX + (i - 1) * 240, centerY, 0.)
+        SetUnitScale(models[i], 2., 2., 2.)
+        if i == 2
+            SetUnitFacing(models[i], 180.)
         SetUnitInvulnerable(models[i], true)
         SetUnitPathing(models[i], false)
         UnitAddAbility(models[i], 'Amrf')

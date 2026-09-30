@@ -34,7 +34,8 @@ for fighter in ('archer', 'rifleman'):
         bpy.context.object.rotation_euler = (.4, -.5, -.5)
         bpy.context.object.data.energy = 3
     samples = [('Attack Jab', 0), ('Attack Jab', 4), ('Attack Jab', 12),
-               ('Forward Tilt', 5), ('Up Tilt', 6), ('Down Tilt', 5)]
+               ('Forward Tilt', 5), ('Forward Tilt Up', 5),
+               ('Forward Tilt Down', 5), ('Up Tilt', 6), ('Down Tilt', 5)]
     if os.environ.get('WC3_PREVIEW_GRAB') == '1':
         samples = [('Grab', 5), ('Grab Hold', 0), ('Grabbed', 0)]
     if os.environ.get('WC3_PREVIEW_THROWS') == '1':

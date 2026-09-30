@@ -43,6 +43,7 @@ if [[ "$batch" == fighter-playback ]]; then
     mkdir -p "$probe_dir/imports/war3mapImported"
     fighter_hash=$(sha256sum "$project_dir/build/animation-assets/ArcherFighter.mdx" | cut -d ' ' -f1)
     cp "$project_dir/build/animation-assets/ArcherFighter.mdx" "$probe_dir/imports/war3mapImported/ArcherFighter-$fighter_hash.mdx"
+    nix shell nixpkgs#bun --command bun "$project_dir/tools/netcode-probe/fighter-contact-pose.ts" "$probe_dir"
 fi
 ln -s "$stdlib" "$probe_dir/_build/dependencies/wurststdlib"
 cp "$project_dir/tools/netcode-probe/$source_name.wurst" "$probe_dir/wurst/"

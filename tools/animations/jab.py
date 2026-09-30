@@ -7,7 +7,8 @@ import bpy
 
 project = Path(__file__).resolve().parents[2]
 assets = project / "build/animation-assets"
-scene_path = assets / "archer.blend"
+refresh = '--refresh-ground' in sys.argv
+scene_path = assets / ("archer-fighter.blend" if refresh else "archer.blend")
 addon_path = Path("/home/tom/code/mdl-exporter4/worktrees/blender5")
 sys.path.insert(0, str(addon_path))
 import addon_utils
@@ -25,13 +26,13 @@ rig = next(obj for obj in scene.objects if obj.type == "ARMATURE")
 sys.path.insert(0, str(project / "tools/animations"))
 sys.dont_write_bytecode = True
 from ground_attacks import author_archer_ground
-author_archer_ground(rig)
+author_archer_ground(rig, attacks_only=refresh)
 
 scene.frame_set(0)
-editable = assets / "archer-jab.blend"
+editable = assets / ("archer-fighter.blend" if refresh else "archer-jab.blend")
 bpy.ops.wm.save_as_mainfile(filepath=str(editable))
 
-exported = assets / "archer-jab.mdl"
+exported = assets / ("archer-fighter.mdl" if refresh else "archer-jab.mdl")
 result = bpy.ops.export.mdl_exporter(filepath=str(exported), use_actions=True)
 if "FINISHED" not in result or not exported.is_file():
     raise RuntimeError(f"Archer jab export failed: {result}")

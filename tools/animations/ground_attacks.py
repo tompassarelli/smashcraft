@@ -27,7 +27,7 @@ def limb(rig, upper_name, lower_name, tip_name, target, pole):
     aim(lower, tip.matrix.translation.copy(), start+direction*distance)
 
 
-def author_archer_ground(rig):
+def author_archer_ground(rig, attacks_only=False):
     scene = bpy.context.scene
     base = ready_pose(rig)
     world = {b.name: b.matrix.copy() for b in rig.pose.bones}
@@ -40,10 +40,16 @@ def author_archer_ground(rig):
         ('Forward Tilt', 5, 28, (44, -10, 43), 3),
         ('Forward Tilt Up', 5, 28, (39, -10, 67), 3),
         ('Forward Tilt Down', 5, 28, (48, -10, 23), 8),
-        ('Up Tilt', 6, 29, (8, -10, 106), 3),
+        ('Up Tilt', 6, 29, (20, -10, 102), 3),
         ('Down Tilt', 5, 28, (48, -10, 8), 22),
     ]
     for name, contact, duration, kick, crouch in clips:
+        grabbing = name.startswith('Grab')
+        if attacks_only and grabbing:
+            continue
+        existing = bpy.data.actions.get(name)
+        if existing is not None:
+            bpy.data.actions.remove(existing)
         action = bpy.data.actions.new(name)
         action.use_fake_user = True
         action['war3_non_looping'] = True
@@ -69,6 +75,18 @@ def author_archer_ground(rig):
             chest = rig.pose.bones['Bone_Chest']
             chest.rotation_quaternion = base[chest.name].to_quaternion() @ Quaternion(Vector((0, 0, 1)), radians(-8*amount))
             bpy.context.view_layer.update()
+            if not grabbing:
+                # The chest and pelvis are separate children of the root.
+                # Crouch both, then lean from the waist to expose the striking
+                # limb without moving its contact target or the fighter root.
+                lean = (-40 if name == 'Up Tilt' else 20 if name == 'Down Tilt'
+                        else 10 if name == 'Attack Jab' else -16)
+                pivot = chest.matrix.translation.copy()
+                chest.matrix = (Matrix.Translation(Vector((0, 0, -crouch*strength)))
+                                @ Matrix.Translation(pivot)
+                                @ Matrix.Rotation(radians(lean*strength), 4, 'Y')
+                                @ Matrix.Translation(-pivot) @ chest.matrix)
+                bpy.context.view_layer.update()
             # Keep the bow below and behind the punching arm, still parented
             # to its original hand. No weapon/root translation is simulated here.
             bow_start = world['Bone_Hand_L'].translation
@@ -78,6 +96,8 @@ def author_archer_ground(rig):
             hand_start = world['Hand Right Ref '].translation
             reach = (36, -5, 68) if name.startswith('Grab') else (32, -12, 76)
             hand_target = hand_start.lerp(Vector(reach), amount if kick is None else strength*.3)
+            if name == 'Up Tilt':
+                hand_target = hand_start.lerp(Vector((-18, -20, 62)), strength)
             limb(rig, 'Bone_Arm1_R', 'Bone_Arm2_R', 'Hand Right Ref ', hand_target,
                  world['Bone_Arm2_R'].translation.lerp(Vector((-10, -30, 65)), abs(amount)))
             # The stock shoulder-cloth chain inherits the upper-arm swing.
@@ -85,6 +105,10 @@ def author_archer_ground(rig):
             cloth = rig.pose.bones['Object08']
             location, orientation, scale = cloth.matrix.decompose()
             orientation = orientation.slerp(world['Object08'].to_quaternion(), strength)
+            if not grabbing:
+                # Let the long shoulder cloth trail behind the attack instead
+                # of hiding the extended thigh or forearm in the side view.
+                orientation = Quaternion(Vector((0, 1, 0)), radians(25*strength)) @ orientation
             cloth.matrix = Matrix.LocRotScale(location, orientation, scale)
             bpy.context.view_layer.update()
             if kick is not None:
