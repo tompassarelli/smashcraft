@@ -111,6 +111,137 @@ function specialMatch() returns MatchState
 	destroy rifleman
 	destroy game
 
+@Test function turnaroundNeutralShotsUseReleasedAirTapWithoutChangingMomentumOrAerialFacing()
+	for character = 0 to 1
+		for facingIndex = 0 to 1
+			let facing = facingIndex == 0 ? -1 : 1
+			let game = specialMatch()
+			let shooter = new FighterState(character, 0, facing)
+			let target = new FighterState(1 - character, 800, -facing)
+			let input = new InputSnapshot()
+			let targetInput = new InputSnapshot()
+			let commands = new AttackBuffer(0)
+			let targetCommands = new AttackBuffer(0)
+			shooter.grounded = false
+			shooter.z = 400
+			shooter.vx = facing * 15.
+			input.direction = -facing
+			stepMatch(game, shooter, target, input, targetInput, commands, targetCommands, 1)
+			shooter.facing.assertEquals(facing)
+			shooter.lastAerialTapDirection.assertEquals(-facing)
+			input.direction = 0
+			stepMatch(game, shooter, target, input, targetInput, commands, targetCommands, 2)
+			shooter.facing.assertEquals(facing)
+			(shooter.vx * facing > 0).assertTrue()
+			input.specialPressed = true
+			stepMatch(game, shooter, target, input, targetInput, commands, targetCommands, 3)
+			shooter.facing.assertEquals(-facing)
+			(shooter.vx * facing > 0).assertTrue()
+			shooter.specialAction.assertEquals(character == 0 ? SPECIAL_ARCHER_ARROW : SPECIAL_RIFLEMAN_BLASTER)
+			input.specialPressed = false
+			stepMatch(game, shooter, target, input, targetInput, commands, targetCommands, 4)
+			projectileCount(shooter).assertEquals(1)
+			projectileDirectionAt(shooter, 0).assertEquals(-facing)
+			destroy commands
+			destroy targetCommands
+			destroy input
+			destroy targetInput
+			destroy shooter
+			destroy target
+			destroy game
+
+@Test function heldAirTapDirectionStillSelectsSideSpecial()
+	for character = 0 to 1
+		let game = specialMatch()
+		let fighter = new FighterState(character, 0, 1)
+		let target = new FighterState(1 - character, 800, -1)
+		let input = new InputSnapshot()
+		let targetInput = new InputSnapshot()
+		let commands = new AttackBuffer(0)
+		let targetCommands = new AttackBuffer(0)
+		fighter.grounded = false
+		fighter.z = 300
+		input.specialPressed = true
+		input.direction = -1
+		stepMatch(game, fighter, target, input, targetInput, commands, targetCommands, 1)
+		fighter.specialAction.assertEquals(character == 0 ? SPECIAL_ARCHER_MULTISHOT : SPECIAL_RIFLEMAN_BEAR)
+		destroy commands
+		destroy targetCommands
+		destroy input
+		destroy targetInput
+		destroy fighter
+		destroy target
+		destroy game
+
+@Test function oppositeAirTapStillFacesBackAirAndClearsOnLandingAndReset()
+	let fighter = new FighterState(1, 0, 1)
+	let target = new FighterState(0, 200, -1)
+	let input = new InputSnapshot()
+	let targetInput = new InputSnapshot()
+	let game = specialMatch()
+	let commands = new AttackBuffer(0)
+	let targetCommands = new AttackBuffer(0)
+	fighter.grounded = false
+	fighter.z = 300
+	fighter.vx = 8
+	input.direction = -1
+	stepMatch(game, fighter, target, input, targetInput, commands, targetCommands, 1)
+	fighter.facing.assertEquals(1)
+	fighter.lastAerialTapDirection.assertEquals(-1)
+	beginAttackPair(fighter, target, AERIAL_BACK_STYLE, -1, false, false)
+	fighter.attackStyle.assertEquals(AERIAL_BACK_STYLE)
+	fighter.facing.assertEquals(1)
+	fighter.attackStyle = -1
+	fighter.attackFrame = 0
+	fighter.attackDuration = 0
+	fighter.attackHit = false
+	fighter.cooldown = 0
+	input.direction = 0
+	fighter.z = 1
+	fighter.vz = -2
+	advance(fighter, 0, input, 0)
+	fighter.lastAerialTapDirection.assertEquals(0)
+	fighter.grounded.assertTrue()
+	fighter.lastAerialTapDirection = -1
+	reset(fighter, 0)
+	fighter.lastAerialTapDirection.assertEquals(0)
+	destroy commands
+	destroy targetCommands
+	destroy input
+	destroy targetInput
+	destroy fighter
+	destroy target
+	destroy game
+
+@Test function aerialTapDirectionSurvivesReplaySnapshotRoundTrip()
+	let first = new FighterState(0, 0, 1)
+	let second = new FighterState(1, 100, -1)
+	let game = new MatchState()
+	let firstCommands = new AttackBuffer(0)
+	let secondCommands = new AttackBuffer(0)
+	let runtime = new ReplayRuntimeState()
+	let before = new ReplaySnapshot()
+	let after = new ReplaySnapshot()
+	let replayFirst = new FighterState(0, 0, 1)
+	let replaySecond = new FighterState(1, 0, -1)
+	first.lastAerialTapDirection = -1
+	before.capture(first, second, game, firstCommands, secondCommands, runtime)
+	first.lastAerialTapDirection = 1
+	before.restore(replayFirst, replaySecond, game, firstCommands, secondCommands, runtime)
+	replayFirst.lastAerialTapDirection.assertEquals(-1)
+	after.capture(replayFirst, replaySecond, game, firstCommands, secondCommands, runtime)
+	before.firstDifference(after).assertEquals("")
+	destroy replayFirst
+	destroy replaySecond
+	destroy before
+	destroy after
+	destroy runtime
+	destroy firstCommands
+	destroy secondCommands
+	destroy first
+	destroy second
+	destroy game
+
 @Test function archerSideSpecialWaitsThenFiresThreeAngledArrows()
 	let game = specialMatch()
 	let archer = new FighterState(0, -100, 1)

@@ -1006,6 +1006,13 @@ continue air drift without selecting fast-fall speed. Shield dodges, DI, down
 attacks and platform-drop handling retain their separate inputs. Existing
 fast-fall descent/actionability rules remain; native feel needs the new build.
 
+In the air, the latest steerable horizontal direction is remembered without
+changing ordinary facing. After releasing that direction, neutral B turns the
+fighter and fires Archer's arrow or Rifleman's shot toward that remembered
+side, while preserving horizontal momentum. A held horizontal direction still
+selects side-B. The remembered side has no timeout and clears on landing or
+reset; replay snapshots include it.
+
 ## Up-special aerial recovery
 
 Both current up-specials consume the aerial jump budget, and an up-special

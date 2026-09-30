@@ -217,6 +217,7 @@ public constant real ASDI_DISTANCE = 3 * WORLD_UNITS_PER_MELEE_UNIT
 public class FighterState
 	int character
 	int facing
+	int lastAerialTapDirection = 0
 	int dashFrame = 0
 	int dashDirection = 0
 	real x
@@ -1193,6 +1194,7 @@ function finishLanding(FighterState f, int stage, InputSnapshot input, int landi
 	f.vz = 0
 	f.knockbackZ = 0
 	f.specialFall = false
+	f.lastAerialTapDirection = 0
 	if f.jumpSquat <= 0
 		f.jumps = 2
 	if isTumbling(f)
@@ -1819,6 +1821,8 @@ public function startFighterSpecial(FighterState owner, int stage, InputSnapshot
 	let requested = requestedSpecial(owner, input)
 	if not specialCanStart(owner, requested)
 		return false
+	if not owner.grounded and input.direction == 0 and input.verticalDirection == 0 and not input.down and owner.lastAerialTapDirection != 0
+		owner.facing = owner.lastAerialTapDirection
 	let moveX = specialDirection(input, owner.facing)
 	if owner.character == 0
 		if input.verticalDirection > 0
@@ -2107,6 +2111,7 @@ public function reset(FighterState f, real startX)
 	f.jumpDodgeZ = 0
 	clearGrabLinks(f)
 	clearSpecialOnStock(f)
+	f.lastAerialTapDirection = 0
 	f.lastHitAttacker = null
 	f.lastHitAttackSerial = -1
 	f.lastHitWindow = 0
@@ -2349,6 +2354,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		return
 	var direction = input.direction
 	let canSteer = f.downState == DOWN_NONE and f.hitstun <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and not smashChargePaused and (not f.grounded or f.cooldown <= 0)
+	if canSteer and not f.grounded and direction != 0
+		f.lastAerialTapDirection = direction
 	if not canSteer or wantsShield or not f.grounded
 		clearDash(f)
 	if canSteer
