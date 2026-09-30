@@ -607,7 +607,21 @@ repairs the previous requirement to release/repress direction after impact.
 Stand-up lasts 30 ticks; roll lasts 31 and covers 128 world units, clamped to
 the current platform. Their first 8 ticks are intangible. Get-up attack lasts
 45 ticks, has 16 startup/3 active ticks, deals 7 damage once, covers both sides,
-and is intangible during startup. Recovery clocks freeze during hitlag.
+and is intangible during startup. Its hit region uses the ordinary hit formula
+with provisional base knockback 75, rather than the generic base 20. At zero
+pre-hit damage this yields knockback 98.04 against weight 75 and 97.9 against
+weight 80, or 39 hitstun ticks under the current floor(0.4 × knockback) rule.
+This move-specific value is intended to make a clean low-percent hit cause a
+knockdown and leave the attacker time to act before normal attack eligibility
+returns; it is original tuning, not a Melee move-data value. The focused test
+checks actual action eligibility for both fighters in both facing directions,
+including a successful neutral tech, plus shield and whiff outcomes. In the
+clean missed-tech case the attacker can act 34 ticks after contact and its jab
+becomes active at tick 38; the defender's earliest get-up attack becomes active
+at tick 54 (Rifleman defender) or 50 (Archer defender). These are measured
+headless simulation results with neutral DI, not a guarantee against every
+defensive input or a native-runtime measurement. Recovery and hitstun clocks
+pause together during hitlag.
 
 All these recovery timings, threshold and hit shapes are provisional.
 Instant surface impact replaces a physical bounce; face-up/down

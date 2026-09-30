@@ -2,12 +2,41 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-Latest installed build: `special-clips-r2`. Compile/package/deploy passed with
-zero errors and six warnings; log wc3-melee:build/special-clips-r2-map.log.
-The last observed running session is `171627`, the first dedicated-special-clip
-build. The clean Archer clip replacement and final somersault correction are
-installed but not yet observed running. Re-read the readiness receipt before
-making a newer native claim.
+Latest installed build: `getup-advantage-r1` (normal matches). The focused
+knockdown build `getup-advantage-check` verified a Rifleman mirror-match get-up
+hit through N: attack starts frame 73, hits frame 89 for 7 damage/39 hitstun,
+and the attacker becomes actionable at frame 123 while the victim is knocked
+down. This matches the headless 34-tick contact-to-action result. Evidence:
+wc3-melee:build/impact-assets/getup-native-trace.txt and
+wc3-melee:build/impact-assets/getup-contact.png. The fixture's opponent now
+starts in reach; the tech fixture retains its distant opponent. Exact native
+Archer and successful-tech advantage checks remain unobserved.
+
+Get-up attack now has move-specific base knockback 75, explicitly provisional;
+damage and animation timings are unchanged. Five focused tests and the full
+291/291 Wurst suite pass with zero errors/warnings, including both fighters,
+both facing directions, successful tech, shield and whiff cases. Logs:
+wc3-melee:build/wurst-tests/getup-recovery-tech.log and
+wc3-melee:build/wurst-tests/getup-recovery-full.log. Native compilation/package
+checks retain six existing warnings; logs wc3-melee:build/getup-advantage-map.log
+and wc3-melee:build/getup-advantage-normal-map.log.
+
+The earlier `special-clips-r2` session's readiness receipt and developer display
+agreed. Ctrl+R loaded it, and subsequent character/stage selection and two
+matches remained responsive. This does not close the intermittent restart defect.
+
+The r2 multishot probe completed Side+U, showed an angled arrow in flight and
+8% opponent damage. Its captures did not isolate all three arrows together;
+full spread readability remains open. Evidence:
+wc3-melee:build/impact-assets/fan-{windup,release,flight,recovery}.png and
+wc3-melee:build/impact-assets/fan-trace.txt.
+
+The r2 trap probe completed Down+U's placement from frames 13–32. Retreating
+drew the opponent through the trap; the later screenshot shows the opponent
+encased in ice, and the final capture shows release and resumed combat.
+Evidence: wc3-melee:build/impact-assets/trap-{placement,contact,held,release}.png
+and wc3-melee:build/impact-assets/trap-trace.txt. These sparse captures prove
+native hold/release presentation, not an exact five-second wall-clock duration.
 
 Dedicated body clips now cover both fighters' four specials, including separate
 ground/air Rifleman gunshot recovery. Authoring, packaging and the existing
@@ -55,9 +84,9 @@ P walk/tilts. Saved K1/K2 default bindings migrate only when their new keys
 are free; K3 preserves intentional new rebindings. Chips are visible in all
 active player/CPU cards at first load. Rematches retain placed choices.
 
-Remaining immediate native work: load the corrected Archer clips, refine mount
-alignment, verify the fan and full trap placement/freeze through real controls,
-then complete grab/hold and damage presentation and measure hit advantage. The effect pool
+Remaining immediate native work: inspect the corrected Archer final flip,
+refine mount alignment and fan readability, then complete grab/hold and damage
+presentation and measure hit advantage. The effect pool
 build emits two additional conservative array-initialization warnings alongside
 the four existing map warnings; the constructor populates both slots before
 presentation. Multiplayer pose restoration and two-client behavior remain untested.
@@ -231,10 +260,10 @@ Enter opened native chat while advancing Character Select to Stage Select;
 Escape then Attack entered the match. Retaining rematch selections fixes the
 ready-state reset but does not yet resolve this native Enter/chat focus issue.
 
-Pending scope: remaining special acceptance checks above, get-up attack
-knockback/frame advantage refinement, dedicated grab/hold and damage presentation. The
-get-up worker brief exists at wc3-melee:build/specials/getup-advantage-brief.txt;
-no worker was admitted and no get-up mechanics were changed in this slice.
+Pending scope: remaining special acceptance checks above, further native
+get-up acceptance and dedicated grab/hold and damage presentation. The native
+adapter still uses stock "stand hit" reactions; authored grounded/airborne
+damage clips and reliable hitlag phase restoration remain required.
 Rifleman blue portrait import now selects Blue and extracts TeamColor01, but
 the actual render remains white. The importer SD material-layer chain replaces
 the underlying team-color image connection; this needs repair in its owning

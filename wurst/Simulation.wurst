@@ -147,6 +147,9 @@ public constant int L_CANCEL_WINDOW_FRAMES = 7
 public constant int DOWN_ATTACK_STARTUP_FRAMES = 16
 public constant int DOWN_ATTACK_ACTIVE_FRAMES = 3
 public constant real DOWN_ATTACK_DAMAGE = 7
+// Provisional get-up attack tuning: let the attacker regain control before
+// the opponent's first active wake-up attack. See wc3-melee:PHYSICS.md.
+public constant real DOWN_ATTACK_BASE_KNOCKBACK = 75
 public constant real DOWN_ROLL_DISTANCE = 128
 constant int FOX_JUMP_SQUAT_FRAMES = 3
 constant int FALCO_JUMP_SQUAT_FRAMES = 5
@@ -673,6 +676,10 @@ function authoredHitRegion(int character, int style, int frame, int chargeFrames
 		return hitRegion(0, 110, -130, 130, hitData, 1)
 	if style == LEDGE_ATTACK_STYLE
 		return hitRegion(0, 140, -90, 90, hitData, 1)
+	if style == DOWN_ATTACK_STYLE
+		hitData = hitEffect(DOWN_ATTACK_DAMAGE, ORDINARY_HIT_GROWTH_PERCENT,
+			DOWN_ATTACK_BASE_KNOCKBACK, ordinaryHitlagFrames(DOWN_ATTACK_DAMAGE), DIAGONAL_UNIT, DIAGONAL_UNIT)
+		return hitRegion(-attackReach(style), attackReach(style), -130, 130, hitData, 1)
 	if style == AERIAL_NEUTRAL_STYLE
 		return hitRegion(-90, 90, -65, 90, hitData, 1)
 	if style == AERIAL_FORWARD_STYLE

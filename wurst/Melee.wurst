@@ -401,6 +401,10 @@ function traceSpecialAction(int participantId, Fighter f, int previousAction)
     if f.specialAction != previousAction
         traceParticipant(participantId, "special " + I2S(f.specialAction) + " action-frame " + I2S(f.specialFrame) + " x " + R2S(f.x) + " z " + R2S(f.z))
 
+function traceRecovery(int participantId, Fighter f, int previousDown, boolean previouslyActionable)
+    if inputTraceActive and (f.downState != previousDown or canAttack(f) != previouslyActionable)
+        traceParticipant(participantId, "recovery down " + I2S(f.downState) + " actionable " + (canAttack(f) ? "1" : "0") + " hitlag " + I2S(f.hitlag) + " hitstun " + I2S(f.hitstun) + " damage " + R2S(f.damage))
+
 function applyFrame()
     firstImpacts.before(playerFighter)
     secondImpacts.before(botFighter)
@@ -413,6 +417,9 @@ function applyFrame()
     let playerPreviousJump = playerFighter.jumpSerial
     let botPreviousJump = botFighter.jumpSerial
     let playerPreviousDown = playerFighter.downState
+    let botPreviousDown = botFighter.downState
+    let playerPreviouslyActionable = canAttack(playerFighter)
+    let botPreviouslyActionable = canAttack(botFighter)
     let playerPreviousLCancel = playerFighter.lCancelSerial
     let playerPreviousShieldBreak = playerFighter.shieldBreakSerial
     let botPreviousShieldBreak = botFighter.shieldBreakSerial
@@ -427,6 +434,8 @@ function applyFrame()
     secondImpacts.after(botFighter)
     traceSpecialAction(0, playerFighter, playerPreviousSpecial)
     traceSpecialAction(1, botFighter, botPreviousSpecial)
+    traceRecovery(0, playerFighter, playerPreviousDown, playerPreviouslyActionable)
+    traceRecovery(1, botFighter, botPreviousDown, botPreviouslyActionable)
     combatEffects.present(replayRuntime.simulationFrame, firstImpacts, secondImpacts)
     if playerFighter.shieldBreakSerial > playerPreviousShieldBreak
         announce("Player 1's shield broke!")
@@ -522,7 +531,7 @@ function startMatch()
         playerFighter.z = TECH_SCENARIO ? 300 : 80
         playerFighter.vz = -8
         playerFighter.hitstun = TECH_SCENARIO ? 60 : 30
-        botFighter.x = 350
+        botFighter.x = TECH_SCENARIO ? 350 : playerFighter.x + 100
     if SHIELD_BREAK_SCENARIO
         playerFighter.shieldEnergy = 1
         botFighter.x = 350
