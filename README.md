@@ -42,7 +42,7 @@ E fast-falls/drops; Q/8 shield or air-dodge; O grabs; N attacks; U fires a speci
 Shield + N or O grabs. C-stick down-air preserves normal aerial momentum.
 Attacks can be buffered for six frames, including through jump squat.
 Hold P to walk. N with direction gives a smash, or a tilt while walking.
-H/J/M/B are C-stick smashes. Ground blaster has longer recovery than air
+B (or /) is C-stick left; H is down; J is up; M is right. Ground blaster has longer recovery than air
 blaster. Avoid F5: returning to the menu previously hung
 the client; use the persistent map-restart loop while developing.
 QWERTY uses 7 for right trigger and 8 for the alternate jump key.

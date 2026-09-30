@@ -2,7 +2,16 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-Installed and observed running: `hit-timing-r1`, normal scenario. Ordinary
+Installed: `cstick-swap-r1`, normal scenario; not yet observed running.
+Both presets now use B or / for C-stick left and H for C-stick down. The
+owner's saved binding file was swapped too, preserving all other slots.
+KeyBindingsTests passed 7/7; build/deploy succeeded with the six existing
+warnings. Evidence: wc3-melee:build/wurst-tests/cstick-swap.log and
+wc3-melee:build/cstick-swap-r1-map.log. The running session retains its old
+bindings until reload. Automated game input is on hold pending coordination
+after the screen changed during testing.
+
+Latest observed running: `hit-timing-r1`, normal scenario. Ordinary
 Quit Mission → Create Game → Start Game launch succeeded; the readiness
 receipt and recorded trace both identify this build.
 wc3-melee:build/hit-timing-r1-map.log records successful build/deploy. The timing

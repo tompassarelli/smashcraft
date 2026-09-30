@@ -74,6 +74,12 @@ pummel, escape/release and four throws, plus shared movement, defense,
 damage and recovery actions. Finish CPU recovery as well as pressure and
 edgeguard behavior.
 
+While holding an opponent, fresh Attack taps request pummels with explicit
+startup/contact/recovery; holding Attack does not automatically repeat them.
+Directional input selects forward/back/up/down throws. Author coordinated
+holder/victim poses and one defined release/contact event per action; prevent
+grab-context commands from leaking into ordinary attacks after release.
+
 Archer: jump-cancellable neutral arrow; side-special wind-up followed by a
 multishot fan; down-special hippogryph cover with a backward somersault and
 brief airborne hang; up-special briefly mounts the hippogryph for fast ascent.

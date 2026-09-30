@@ -38,11 +38,11 @@ public class KeyBindings
         keys[GRAB * 2] = 79
         keys[LEFT_TRIGGER * 2] = 81
         keys[RIGHT_TRIGGER * 2] = custom ? 56 : 55
-        keys[SMASH_LEFT * 2] = 72
+        keys[SMASH_LEFT * 2] = 66
+        keys[SMASH_LEFT * 2 + 1] = 191
         keys[SMASH_RIGHT * 2] = 77
         keys[SMASH_UP * 2] = 74
-        keys[SMASH_DOWN * 2] = 66
-        keys[SMASH_DOWN * 2 + 1] = 191
+        keys[SMASH_DOWN * 2] = 72
         keys[WALK_MODIFIER * 2] = 80
 
     function keyFor(int action, int slot) returns int
