@@ -108,6 +108,10 @@ Run `bash test.sh jumpApexMatches` from
 ~/code/wc3-melee/worktrees/test-loop; evidence is
 wc3-melee:build/wurst-tests/jump-apex.log. No launch-speed changes were needed.
 
+Walking/running off a floor or dropping through a platform leaves at most one
+aerial jump. This transition removes the grounded jump once; subsequent falling
+ticks do not consume the remaining jump. Landing still restores the normal budget.
+
 Additional factual rules from https://www.ssbwiki.com/Hitstun,
 https://www.ssbwiki.com/Knockback and https://www.ssbwiki.com/Shield:
 
@@ -559,10 +563,6 @@ knockback calculation. Headless tests cover selection, queue acceptance,
 timing, damage, vertical hits/misses, facing and the horizontal range edge.
 
 ## Moving blaster shots
-
-Walking/running off a floor or dropping through a platform leaves at most one
-aerial jump. This transition removes the grounded jump once; subsequent falling
-ticks do not consume the remaining jump. Landing still restores the normal budget.
 
 Each accepted blaster action emits one horizontal shot when startup ends.
 Shots advance on simulation ticks independently of the owner's attack clock,
