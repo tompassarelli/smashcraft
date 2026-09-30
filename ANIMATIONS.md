@@ -219,6 +219,41 @@ or successful cancellation.
 
 ## Demon Hunter completion checklist
 
+Native grounded-action checks in `archer-silhouette-passive-r1` now exercise
+Illidan's jab and flat forward/down/up tilts in both facings. The first trace
+records activations at frames 247/301/355/403; the reverse trace records
+619/673/727/775. Forward and down tilt contact produce victim damage and
+hit reactions in the first sequence. Both traces have zero dropped records.
+The recordings show distinct blade/body poses, including the low sweep and
+raised-blade up tilt. This is action selection and playback evidence, not
+exact per-frame volume alignment or acceptance of angled tilts/smashes.
+Evidence: wc3-melee:build/illidan-ground-attacks-native.mp4,
+wc3-melee:build/illidan-ground-attacks-trace.txt,
+wc3-melee:build/illidan-ground-reverse-native.mp4, and
+wc3-melee:build/illidan-ground-reverse-trace.txt.
+
+Neutral/forward/back aerials also activate from jump-squat inputs in the
+left-facing check, at frames 946/1036/1132 (styles 12/13/14). Distinct airborne
+poses and return to the stage are visible, with zero dropped trace records.
+Evidence: wc3-melee:build/illidan-aerials-native.mp4 and
+wc3-melee:build/illidan-aerials-trace.txt. Contact, opposite-facing aerials,
+and exact animation phase restoration remain unverified.
+
+The follow-up left-facing up/down aerial check activates styles 15/16 at
+frames 1310/1400. Both play visibly in the air and return to standing; the
+down aerial samples neutral movement rather than movement Down. The trace
+has zero dropped records. Evidence:
+wc3-melee:build/illidan-vertical-aerials-native.mp4 and
+wc3-melee:build/illidan-vertical-aerials-trace.txt. These recordings cover all
+five aerial selections in one facing, without establishing aerial contact.
+
+Shield raise/release, spot dodge and both directional rolls are visible in
+wc3-melee:build/illidan-defense-native.mp4. The fighter changes pose, rolls
+along the stage and returns to standing; the short ground sparkle is visible.
+wc3-melee:build/illidan-defense-trace.txt records the shield/direction inputs
+with zero dropped records. This passive-opponent check does not verify the
+protection windows or shield-contact reactions.
+
 Grounded Immolate contact is observed in Warcraft: one 7-damage hit with
 5 victim hitlag frames, 18 hitstun frames and a horizontal launch. Its green
 active cue and victim impact are visible. Evidence:
@@ -297,12 +332,12 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 | Required coverage | Current state |
 | --- | --- |
 | Model, textures, attached blades, both gameplay facings | Normal textured bodies/weapons observed in native mirror match after visibility repair; both-facing action coverage incomplete |
-| Jab, directional/angled tilts, smashes, dash attack | Combat source-tested; clips authored and bound; native playback unverified |
-| Neutral/forward/back/up/down aerials | Combat source-tested; clips authored and bound; native playback unverified |
+| Jab, directional/angled tilts, smashes, dash attack | Jab and flat forward/down/up tilts activate and play in both facings; angled tilts, smashes and dash attack still need native checks |
+| Neutral/forward/back/up/down aerials | All five left-facing jump-squat activations and playback observed; opposite facing, contact and exact phase alignment remain pending |
 | Mana Burn, parry/evasion, wing ascent, Immolate | Native Mana Burn contact, wing ascent, ground/air Immolate contact and parry-step movement observed; actual parry protection and offstage spike remain unverified |
 | Grab, hold, pummel, escape, four coordinated throws | Native capture/pummel/up-throw confirmed; pair readability, escape and other throw directions still pending |
 | Idle, walk/run, turns, crouch, jumps and landings | Normal and air-dodge landing playback observed; jump squat, jumps and idle fall bound; other movement transitions still incomplete |
-| Shield, shield reactions/break, spot dodge, rolls, air dodge | Shield raise/hold/release, ground dodges and air dodge bound; native checks pending |
+| Shield, shield reactions/break, spot dodge, rolls, air dodge | Shield raise/release, spot dodge, both rolls and earlier air-dodge landing observed; protection windows, shield contact/break and full air-dodge playback still pending |
 | Ground/air hitstun, tumble, contact-pose hitlag | Reactions authored; freeze/resume verification missing |
 | Knockdown, techs, getup options, ledges, KO and respawn | Knockdown/rest, tech/getup and ledge roll/attack bound; remaining transitions/native grounding unverified |
 | Action-frame volumes, interruptions, stock reset and replay | Provisional numerical regions and focused interruption/reset/replay checks implemented; animation alignment missing |
