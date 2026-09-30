@@ -23,6 +23,16 @@ playback remains the unresolved boundary; a passing export is not visual
 acceptance. Next discriminating check: isolate the same unit clip from combat
 at natural and gameplay playback rates, then inspect its contact pose.
 
+That isolation now reproduces the discrepancy outside combat. The dedicated
+wc3-melee:tools/netcode-probe/FighterPlaybackProbe.wurst compiles with zero
+errors/warnings and runs three copies of the gameplay Archer unit. At cycle
+54 both the 1x unit frozen after 15 callbacks and the gameplay-rate unit
+frozen after six callbacks show a low pose, not the intended overhead kick.
+Screenshot: wc3-melee:build/fighter-playback-native.png. This rules out combat
+interrupting this isolated reproduction; it does not establish why the native
+animation differs or prove exact phase from timer counts. The next boundary
+is native evaluation of the exported clip, not further pose exaggeration.
+
 ## Coordinated grab poses — 2026-10-01
 
 Archer and Rifleman now share explicit hold/captive pose authoring. Captive

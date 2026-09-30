@@ -78,6 +78,18 @@ yaw difference is intentional for a future two-client local-mutation check;
 that check has not been performed. No input/pose probe establishes rollback
 feasibility or native unit prediction safety by itself.
 
+Variant `fighter-playback` uses the current generated Archer model and the
+gameplay unit definition to isolate Up Tilt from combat. Supply the original
+terrain base map, as above, not an already wrapped gameplay map. Generated
+fighter metadata and the Archer MDX must already exist. Output:
+wc3-melee:build/netcode-probe/Smashcraft_Fighter_Playback_Probe.w3x.
+The left unit runs at 1x and freezes after 15 callbacks; the middle runs at the
+gameplay rate and freezes after six; the right plays the whole clip at the
+gameplay rate. The cycle repeats after 180 callbacks. These freezes target
+the authored sixth-frame contact at 24 source FPS; callback counts do not
+prove the native animation clock reached an exact phase. No combat or input
+automation runs in this probe.
+
 Variant `pose-controlled` builds
 wc3-melee:build/netcode-probe/Smashcraft_Controlled_Pose_Probe.w3x.
 It uses original marker/ruler geometry with known Attack and Walk intervals;
