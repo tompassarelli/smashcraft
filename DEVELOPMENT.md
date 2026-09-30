@@ -1430,3 +1430,15 @@ client subsequently displayed Waiting for host again. This is another actual
 restart-stall occurrence, not a successful sustained-session proof. Evidence:
 wc3-melee:build/selection-integrated-reload.log. Drag/drop and Enter behavior
 remain unverified in the client; seven native probes now use the new flow.
+
+Native follow-up, build names-centered: recovered through Disconnect → Back
+→ Create → Start Game without replacing the Warcraft process. Both lower
+fighter labels now visually centered after moving their text frames down
+0.003 UI units (wc3-melee:build/names-centered-native.png). Enter before
+selection stayed in the menu; releasing over Rifleman selected/ readied it;
+Enter then entered Sky Deck. Two real adapter defects remain: the chip did
+not visibly follow the held cursor (wc3-melee:build/chip-held.png), and Enter
+left native chat open in the match (wc3-melee:build/selection-enter-match.png).
+Do not treat the release result as proof of dragging: portrait-button release
+can also select. The requested ready label is now "Start" in source; that
+copy change is not yet loaded by the running client.
