@@ -1,5 +1,28 @@
 # Authored fighter animation work
 
+## Archer ground-attack playback discrepancy — 2026-10-01
+
+Real inputs select jab (style 0, frame 1026), forward tilt (6, 1086), down
+tilt (8, 1145), and up tilt (7, 1199) in grab-pose-passive-r1. All four
+commands execute, with zero dropped trace records. Native readability does
+not pass: the recorded up tilt does not visibly reach the authored overhead
+pose, including inspection at all 60 recorded frames per second. Evidence:
+wc3-melee:build/archer-ground-attacks-native.mp4,
+wc3-melee:build/archer-ground-attacks-trace.txt, and
+wc3-melee:build/archer-up-tilt-every-frame.png.
+
+Source and exported MDX contact transforms agree within 0.001 unit. The up
+tilt foot reaches z=106, above head height 84.6033; the exported skinned mesh
+also shows that overhead pose. Forward tilt foot is (44,-10,43), jab hand
+(32,-12,76), and down tilt foot approximately (43.472,-9.598,10.540).
+Evidence: wc3-melee:build/animation-assets/measure-ground-contact.log,
+wc3-melee:build/animation-assets/measure-ground-export-points.log, and
+wc3-melee:build/animation-assets/archer-export-Up-Tilt-contact.png.
+No authoring or gameplay changes were made from this observation. Native
+playback remains the unresolved boundary; a passing export is not visual
+acceptance. Next discriminating check: isolate the same unit clip from combat
+at natural and gameplay playback rates, then inspect its contact pose.
+
 ## Coordinated grab poses — 2026-10-01
 
 Archer and Rifleman now share explicit hold/captive pose authoring. Captive
@@ -150,6 +173,14 @@ arrow's special state lasts three frames and has zero attack cooldown;
 the next-frame shot-to-jump source check now uses complete frame inputs rather
 than directly invoking the jump helper. Native sequential cancellation remains
 unverified; do not infer it from simultaneous input or a jump after frame three.
+
+A sequential attempt with a 25 ms injected U-to-I gap also arrived in one
+synchronized batch: both callbacks at frame 660, both actions sampled at 661,
+jump applied at 663, no arrow special started. Evidence:
+wc3-melee:build/archer-arrow-jump-sequential-native.mp4 and
+wc3-melee:build/archer-arrow-jump-sequential-trace.txt (zero dropped records).
+This documents the baseline's input batching, not a physical latency result
+or successful cancellation.
 
 ## Demon Hunter completion checklist
 
