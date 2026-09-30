@@ -2,6 +2,21 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
+Installed: `arrows-damage-only-r1`, normal scenario. Build/deploy succeeded
+with six existing warnings; wc3-melee:build/arrows-damage-only-r1-map.log.
+Archer basic/running and fan arrows now deal damage without adding hitlag,
+hitstun, knockback, shieldstun or interruption. Existing reactions and capture
+state remain intact. Full source suite passed 315/315 with no errors/warnings:
+wc3-melee:build/wurst-tests/arrows-damage-only-r2.log. Native arrow behavior
+in this build remains unverified.
+
+Latest observed running: `grab-system-r3`, normal scenario, in the fresh
+Warcraft client (window 233). Screenshot:
+wc3-melee:build/impact-assets/current-client.png. This establishes the loaded
+build, not successful pummel/throw behavior. The older stuck client was closed;
+the fresh client was left running. Automated input is awaiting coordination
+with the owner to avoid competing with play.
+
 Recovery/grab reference continuation: local Melee revision remains
 0296f009f32f710495979d30772d8332af2d411a; its original-data directory contains
 only the placeholder. Public extracted character/action data is available at
@@ -38,7 +53,8 @@ together. The timer now uses the equal-ranking profile; ranking/handicap
 adjustments remain an explicit omission. See wc3-melee:PHYSICS.md for original
 throw tuning and the exact reference scope.
 
-Installed: `grab-system-r3`, normal scenario; not yet observed running.
+Previously installed: `grab-system-r3`, normal scenario; now observed running
+as recorded above, with native grab acceptance still pending.
 Evidence: wc3-melee:build/grab-system-r3-map.log (six existing warnings).
 Archer throw limb targets and shoulder-cloth orientation were corrected after
 offline pose inspection. Authored clip exports and side/reverse previews passed;
@@ -55,7 +71,7 @@ wc3-melee:build/cstick-swap-r1-map.log. The running session retains its old
 bindings until reload. Automated game input is on hold pending coordination
 after the screen changed during testing.
 
-Latest observed running: `hit-timing-r1`, normal scenario. Ordinary
+Previously observed running: `hit-timing-r1`, normal scenario. Ordinary
 Quit Mission → Create Game → Start Game launch succeeded; the readiness
 receipt and recorded trace both identify this build.
 wc3-melee:build/hit-timing-r1-map.log records successful build/deploy. The timing
@@ -115,8 +131,8 @@ stage to match and retained selections on New Match worked in this session.
 Ground/recovery pass: Archer fist jab and directional kicks, dedicated up/down
 tilts for both fighters, speed-scaled walk playback, consistent basic-projectile
 flinch, and computer recovery through drift/jump/up-special/ledge climb.
-The prior Archer damage-only basic-shot behavior is intentionally replaced
-with 11-frame flinch; the existing special-arrow damage/launch remains unchanged.
+That historical build introduced 11-frame arrow flinch. The owner's later
+damage-only correction supersedes it in `arrows-damage-only-r1` above.
 The CPU clamps chase targets inside the stage and prioritizes recovery over
 new attack requests. Eight recovery scenarios (both fighters/sides, with/without
 a remaining jump) return to the floor without losing a stock in Wurst tests.
