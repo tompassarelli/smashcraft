@@ -1,0 +1,187 @@
+package ReplayHistoryTests
+import ReplayHistory
+import ReplayState
+import MatchStep
+import Simulation
+import MatchRules
+import CommandBuffer
+
+class TapeWorld
+    FighterState first = new FighterState(0, 0, 1)
+    FighterState second = new FighterState(1, 100, -1)
+    MatchState game = new MatchState()
+    AttackBuffer firstCommands = new AttackBuffer(4)
+    AttackBuffer secondCommands = new AttackBuffer(4)
+    ReplayRuntimeState runtime = new ReplayRuntimeState()
+    ReplaySnapshot snapshot = new ReplaySnapshot()
+
+    construct(int startingStocks)
+        game.phase = MATCH
+        game.timeLimitMinutes = 0
+        game.stockCount = startingStocks
+        first.stocks = startingStocks
+        second.stocks = startingStocks
+
+    function capture()
+        snapshot.capture(first, second, game, firstCommands, secondCommands, runtime)
+
+    function execute(MatchFrameInput row)
+        row.execute(game, first, second, firstCommands, secondCommands, runtime, row.frameNumber()).assertTrue()
+
+    function save(ReplayHistory history, int epoch, MatchFrameInput row) returns boolean
+        return history.save(epoch, row, first, second, game, firstCommands, secondCommands, runtime)
+
+    function replay(ReplayHistory history, int epoch, int fromFrame, int throughFrame) returns boolean
+        return history.replay(epoch, fromFrame, throughFrame, first, second, game, firstCommands, secondCommands, runtime)
+
+    function restore(ReplayHistory history, int epoch, int frame) returns boolean
+        return history.restore(epoch, frame, first, second, game, firstCommands, secondCommands, runtime)
+
+@Test function historyWrapEpochAndInvalidRangesAreNonDestructive()
+    let world = new TapeWorld(99)
+    let history = new ReplayHistory()
+    let row = new MatchFrameInput()
+    let input = new InputSnapshot()
+    let requests = new AttackBuffer(0)
+    let before = new ReplaySnapshot()
+    history.beginEpoch(7, 1).assertTrue()
+    for frame = 1 to 65
+        row.capture(frame, input, input, requests, requests, world.runtime).assertTrue()
+        world.save(history, 7, row).assertTrue()
+        world.save(history, 7, row).assertFalse()
+        world.execute(row)
+    history.contains(7, 1).assertFalse()
+    history.contains(7, 2).assertTrue()
+    history.contains(7, 65).assertTrue()
+    history.contains(7, 66).assertFalse()
+    before.capture(world.first, world.second, world.game, world.firstCommands, world.secondCommands, world.runtime)
+    world.restore(history, 7, 1).assertFalse()
+    world.restore(history, 6, 2).assertFalse()
+    world.restore(history, 7, 66).assertFalse()
+    world.replay(history, 7, 2, 66).assertFalse()
+    world.replay(history, 7, 1, 65).assertFalse()
+    world.replay(history, 7, 65, 64).assertFalse()
+    world.capture()
+    before.firstDifference(world.snapshot).assertEquals("")
+    history.beginEpoch(7, 1).assertFalse()
+    history.beginEpoch(6, 1).assertFalse()
+    history.contains(7, 2).assertTrue()
+    world.restore(history, 7, 2).assertTrue()
+    world.runtime.simulationFrame.assertEquals(1)
+    world.replay(history, 7, 2, 65).assertTrue()
+    world.capture()
+    before.firstDifference(world.snapshot).assertEquals("")
+    history.beginEpoch(8, 1).assertTrue()
+    history.contains(7, 65).assertFalse()
+    history.contains(8, 65).assertFalse()
+    world.restore(history, 8, 2).assertFalse()
+    world.runtime.simulationFrame = 0
+    row.reset()
+    row.capture(1, input, input, requests, requests, world.runtime).assertTrue()
+    world.save(history, 7, row).assertFalse()
+    world.save(history, 8, row).assertTrue()
+    history.contains(8, 1).assertTrue()
+
+@Test function historyRejectsSkippedFramesAndSignedCounterOverflow()
+    let world = new TapeWorld(99)
+    let history = new ReplayHistory()
+    let row = new MatchFrameInput()
+    let input = new InputSnapshot()
+    let requests = new AttackBuffer(0)
+    history.beginEpoch(-1, 1).assertFalse()
+    history.beginEpoch(0, 0).assertFalse()
+    history.beginEpoch(0, 1).assertTrue()
+    row.capture(2, input, input, requests, requests, world.runtime).assertTrue()
+    world.save(history, 0, row).assertFalse()
+    row.capture(1, input, input, requests, requests, world.runtime).assertTrue()
+    world.runtime.simulationFrame = 1
+    world.save(history, 0, row).assertFalse()
+    world.runtime.simulationFrame = 0
+    world.save(history, 0, row).assertTrue()
+    history.beginEpoch(1, 2147483646).assertTrue()
+    world.runtime.simulationFrame = 2147483645
+    row.capture(2147483646, input, input, requests, requests, world.runtime).assertTrue()
+    world.save(history, 1, row).assertTrue()
+    world.execute(row)
+    row.capture(2147483647, input, input, requests, requests, world.runtime).assertTrue()
+    world.save(history, 1, row).assertFalse()
+    history.contains(1, 2147483646).assertTrue()
+    world.restore(history, 1, 2147483646).assertTrue()
+    world.runtime.simulationFrame.assertEquals(2147483645)
+
+public function runRecordedTape(int frames, int rollbackStride, int startingStocks)
+    let canonical = new TapeWorld(startingStocks)
+    let replayed = new TapeWorld(startingStocks)
+    let history = new ReplayHistory()
+    let row = new MatchFrameInput()
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstRequests = new AttackBuffer(0)
+    let secondRequests = new AttackBuffer(0)
+    history.beginEpoch(1, 1).assertTrue()
+    var sawShieldStun = false
+    var sawHitRegistry = false
+    var sawProjectile = false
+    var sawHitlag = false
+    var sawDamage = false
+    var sawRespawn = false
+    for frame = 1 to frames
+        // A deterministic input tape, independent of either world's evolving state.
+        let phase = frame mod 192
+        firstInput.direction = phase >= 96 and phase < 120 ? -1 : (phase >= 144 and phase < 168 ? 1 : 0)
+        secondInput.direction = -firstInput.direction
+        firstInput.jumpPressed = phase == 128
+        firstInput.jumpHeld = phase >= 128 and phase < 142
+        secondInput.shield = frame <= 16
+        secondInput.techPressed = phase == 60
+        secondInput.sdiPulse = phase mod 3 == 0
+        secondInput.sdiX = phase mod 2 == 0 ? 1 : -1
+        firstRequests.clear()
+        secondRequests.clear()
+        if frame == 1 or frame == 40
+            firstRequests.enqueue(0, 1, frame, false)
+        if phase >= 80 and phase mod 32 == 16
+            firstRequests.enqueue(1, 1, frame, false)
+        if phase == 160
+            secondRequests.enqueue(6, -1, frame, false)
+        row.capture(frame, firstInput, secondInput, firstRequests, secondRequests, canonical.runtime).assertTrue()
+        replayed.save(history, 1, row).assertTrue()
+        canonical.execute(row)
+        replayed.execute(row)
+        // Reuse producer storage before rollback; history must retain its own row.
+        row.reset()
+        firstInput.direction = 1
+        firstInput.shield = true
+        row.capture(frame, firstInput, firstInput, secondRequests, firstRequests, canonical.runtime).assertTrue()
+        firstInput.shield = false
+        if frame mod rollbackStride == 0
+            replayed.replay(history, 1, max(1, frame - 5), frame).assertTrue()
+        if frame mod 64 == 0
+            replayed.replay(history, 1, frame - 63, frame).assertTrue()
+        canonical.capture()
+        replayed.capture()
+        let difference = canonical.snapshot.firstDifference(replayed.snapshot)
+        if difference != ""
+            testFail("frame " + I2S(frame) + ": " + difference)
+        sawDamage = sawDamage or canonical.second.damage > 0
+        sawRespawn = sawRespawn or (canonical.second.stocks < startingStocks and not canonical.second.out and canonical.second.invincible > 0)
+        sawShieldStun = sawShieldStun or canonical.second.shieldStun > 0
+        sawHitRegistry = sawHitRegistry or canonical.second.lastHitAttacker == canonical.first
+        sawProjectile = sawProjectile or projectileCount(canonical.first) > 0
+        sawHitlag = sawHitlag or canonical.first.hitlag > 0 or canonical.second.hitlag > 0
+    sawShieldStun.assertTrue()
+    sawHitRegistry.assertTrue()
+    sawProjectile.assertTrue()
+    sawHitlag.assertTrue()
+    canonical.first.attackSerial.assertGreaterThan(1)
+    sawDamage.assertTrue()
+    if frames >= 4096
+        canonical.second.stocks.assertLessThan(startingStocks)
+        sawRespawn.assertTrue()
+    canonical.game.phase.assertEquals(MATCH)
+
+@Test function recordedTapeMatchesIndependentRunAndRepeatedRollback()
+    runRecordedTape(1024, 1, 99)
+
+@Test function longRecordedTapeMatchesEveryFrame()
+    runRecordedTape(4096, 64, 99)

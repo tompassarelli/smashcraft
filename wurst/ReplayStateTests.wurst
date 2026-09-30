@@ -238,3 +238,27 @@ import MatchStep
     recoveredFirst.x.assertEquals(expectedFirstX)
     recoveredSecond.x.assertEquals(expectedSecondX)
     recoveredGame.remainingFrames.assertEquals(expectedClock)
+
+@Test function exactDifferencePreservesSmallRealsAndCanonicalAttackerSlots()
+    let expected = new ReplaySnapshot()
+    let actual = new ReplaySnapshot()
+    expected.first.lastHitAttacker = expected.second
+    actual.first.lastHitAttacker = actual.second
+    expected.firstDifference(actual).assertEquals("")
+    actual.first.x = 0.000001
+    expected.firstDifference(actual).assertEquals("first.x")
+    actual.first.x = expected.first.x
+    actual.first.lastHitAttacker = actual.first
+    expected.firstDifference(actual).assertEquals("first.lastHitAttacker")
+    actual.first.lastHitAttacker = actual.second
+    actual.second.projectileZ[PROJECTILE_CAPACITY - 1] = 0.000001
+    expected.firstDifference(actual).assertEquals("second.projectileZ[" + I2S(PROJECTILE_CAPACITY - 1) + "]")
+    actual.second.projectileZ[PROJECTILE_CAPACITY - 1] = 0
+    actual.match.firstRematchReady = true
+    expected.firstDifference(actual).assertEquals("match.firstRematchReady")
+    actual.match.firstRematchReady = false
+    actual.secondCommands.consumedMayCharge = true
+    expected.firstDifference(actual).assertEquals("secondCommands.consumedMayCharge")
+    actual.secondCommands.consumedMayCharge = false
+    actual.runtime.botAttackDelay = 0.000001
+    expected.firstDifference(actual).assertEquals("runtime.botAttackDelay")

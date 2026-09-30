@@ -97,6 +97,185 @@ function copyFighter(FighterState source, FighterState destination,
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		destination.projectileDirection[i] = source.projectileDirection[i]
 
+// Slot identity survives detached snapshots; foreign references are invalid state.
+function attackerSlot(FighterState attacker, FighterState first, FighterState second) returns int
+	if attacker == null
+		return -1
+	if attacker == first
+		return 0
+	if attacker == second
+		return 1
+	return -2
+
+function fighterDifference(FighterState expected, FighterState actual,
+		FighterState expectedFirst, FighterState expectedSecond,
+		FighterState actualFirst, FighterState actualSecond) returns string
+	if expected.character != actual.character
+		return "character"
+	if expected.facing != actual.facing
+		return "facing"
+	if expected.dashFrame != actual.dashFrame
+		return "dashFrame"
+	if expected.dashDirection != actual.dashDirection
+		return "dashDirection"
+	if expected.x != actual.x
+		return "x"
+	if expected.z != actual.z
+		return "z"
+	if expected.vx != actual.vx
+		return "vx"
+	if expected.vz != actual.vz
+		return "vz"
+	if expected.knockbackX != actual.knockbackX
+		return "knockbackX"
+	if expected.knockbackZ != actual.knockbackZ
+		return "knockbackZ"
+	if expected.damage != actual.damage
+		return "damage"
+	if expected.stocks != actual.stocks
+		return "stocks"
+	if expected.hitstun != actual.hitstun
+		return "hitstun"
+	if expected.hitlag != actual.hitlag
+		return "hitlag"
+	if expected.diPending != actual.diPending
+		return "diPending"
+	if expected.diLaunchSpeed != actual.diLaunchSpeed
+		return "diLaunchSpeed"
+	if expected.diSerial != actual.diSerial
+		return "diSerial"
+	if expected.diAngleDegrees != actual.diAngleDegrees
+		return "diAngleDegrees"
+	if expected.sdiWasGrounded != actual.sdiWasGrounded
+		return "sdiWasGrounded"
+	if expected.sdiLaunchesUpward != actual.sdiLaunchesUpward
+		return "sdiLaunchesUpward"
+	if expected.sdiSerial != actual.sdiSerial
+		return "sdiSerial"
+	if expected.asdiSerial != actual.asdiSerial
+		return "asdiSerial"
+	if expected.cooldown != actual.cooldown
+		return "cooldown"
+	if expected.attackStyle != actual.attackStyle
+		return "attackStyle"
+	if expected.attackFrame != actual.attackFrame
+		return "attackFrame"
+	if expected.attackDuration != actual.attackDuration
+		return "attackDuration"
+	if expected.attackSerial != actual.attackSerial
+		return "attackSerial"
+	if expected.attackHit != actual.attackHit
+		return "attackHit"
+	let expectedSlot = attackerSlot(expected.lastHitAttacker, expectedFirst, expectedSecond)
+	let actualSlot = attackerSlot(actual.lastHitAttacker, actualFirst, actualSecond)
+	if expectedSlot == -2 or actualSlot == -2 or expectedSlot != actualSlot
+		return "lastHitAttacker"
+	if expected.lastHitAttackSerial != actual.lastHitAttackSerial
+		return "lastHitAttackSerial"
+	if expected.lastHitWindow != actual.lastHitWindow
+		return "lastHitWindow"
+	if expected.smashCharging != actual.smashCharging
+		return "smashCharging"
+	if expected.smashChargeFrames != actual.smashChargeFrames
+		return "smashChargeFrames"
+	if expected.smashChargeAllowed != actual.smashChargeAllowed
+		return "smashChargeAllowed"
+	if expected.out != actual.out
+		return "out"
+	if expected.respawn != actual.respawn
+		return "respawn"
+	if expected.shield != actual.shield
+		return "shield"
+	if expected.shieldEnergy != actual.shieldEnergy
+		return "shieldEnergy"
+	if expected.shieldStun != actual.shieldStun
+		return "shieldStun"
+	if expected.shieldHeldFrames != actual.shieldHeldFrames
+		return "shieldHeldFrames"
+	if expected.shieldReleaseLag != actual.shieldReleaseLag
+		return "shieldReleaseLag"
+	if expected.shieldBreakState != actual.shieldBreakState
+		return "shieldBreakState"
+	if expected.shieldBreakFrame != actual.shieldBreakFrame
+		return "shieldBreakFrame"
+	if expected.shieldBreakSerial != actual.shieldBreakSerial
+		return "shieldBreakSerial"
+	if expected.shieldBreakRemaining != actual.shieldBreakRemaining
+		return "shieldBreakRemaining"
+	if expected.grounded != actual.grounded
+		return "grounded"
+	if expected.jumps != actual.jumps
+		return "jumps"
+	if expected.jumpSerial != actual.jumpSerial
+		return "jumpSerial"
+	if expected.jumpIsDouble != actual.jumpIsDouble
+		return "jumpIsDouble"
+	if expected.jumpSquat != actual.jumpSquat
+		return "jumpSquat"
+	if expected.jumpHeld != actual.jumpHeld
+		return "jumpHeld"
+	if expected.dropTime != actual.dropTime
+		return "dropTime"
+	if expected.invincible != actual.invincible
+		return "invincible"
+	if expected.surface != actual.surface
+		return "surface"
+	if expected.airDodgeTime != actual.airDodgeTime
+		return "airDodgeTime"
+	if expected.landingLag != actual.landingLag
+		return "landingLag"
+	if expected.lCancelWindow != actual.lCancelWindow
+		return "lCancelWindow"
+	if expected.lCancelSerial != actual.lCancelSerial
+		return "lCancelSerial"
+	if expected.airDodging != actual.airDodging
+		return "airDodging"
+	if expected.airDodgeFrame != actual.airDodgeFrame
+		return "airDodgeFrame"
+	if expected.groundDodgeFrame != actual.groundDodgeFrame
+		return "groundDodgeFrame"
+	if expected.groundDodgeDirection != actual.groundDodgeDirection
+		return "groundDodgeDirection"
+	if expected.downState != actual.downState
+		return "downState"
+	if expected.downFrame != actual.downFrame
+		return "downFrame"
+	if expected.downDirection != actual.downDirection
+		return "downDirection"
+	if expected.techWindow != actual.techWindow
+		return "techWindow"
+	if expected.techLockout != actual.techLockout
+		return "techLockout"
+	if expected.techHitlagLatched != actual.techHitlagLatched
+		return "techHitlagLatched"
+	if expected.grabbedFrames != actual.grabbedFrames
+		return "grabbedFrames"
+	if expected.ledgeState != actual.ledgeState
+		return "ledgeState"
+	if expected.ledgeSide != actual.ledgeSide
+		return "ledgeSide"
+	if expected.ledgeFrame != actual.ledgeFrame
+		return "ledgeFrame"
+	if expected.ledgeSerial != actual.ledgeSerial
+		return "ledgeSerial"
+	if expected.ledgeIntangible != actual.ledgeIntangible
+		return "ledgeIntangible"
+	if expected.ledgeRegrab != actual.ledgeRegrab
+		return "ledgeRegrab"
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		if expected.projectileLife[i] != actual.projectileLife[i]
+			return "projectileLife[" + I2S(i) + "]"
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		if expected.projectileX[i] != actual.projectileX[i]
+			return "projectileX[" + I2S(i) + "]"
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		if expected.projectileZ[i] != actual.projectileZ[i]
+			return "projectileZ[" + I2S(i) + "]"
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		if expected.projectileDirection[i] != actual.projectileDirection[i]
+			return "projectileDirection[" + I2S(i) + "]"
+	return ""
+
 public class ReplaySnapshot
 	FighterState first = new FighterState(0, 0, 1)
 	FighterState second = new FighterState(1, 0, -1)
@@ -124,3 +303,74 @@ public class ReplaySnapshot
 		firstCommands.copyTo(liveFirstCommands)
 		secondCommands.copyTo(liveSecondCommands)
 		runtime.copyTo(liveRuntime)
+
+	// Exact numerical equality, without decimal formatting or quantization. This
+	// is a field oracle within one runtime, not a cross-runtime bitwise hash.
+	function firstDifference(ReplaySnapshot actual) returns string
+		let firstField = fighterDifference(first, actual.first, first, second, actual.first, actual.second)
+		if firstField != ""
+			return "first." + firstField
+		let secondField = fighterDifference(second, actual.second, first, second, actual.first, actual.second)
+		if secondField != ""
+			return "second." + secondField
+		if match.phase != actual.match.phase
+			return "match.phase"
+		if match.characterChoice != actual.match.characterChoice
+			return "match.characterChoice"
+		if match.secondCharacterChoice != actual.match.secondCharacterChoice
+			return "match.secondCharacterChoice"
+		if match.stageChoice != actual.match.stageChoice
+			return "match.stageChoice"
+		if match.winner != actual.match.winner
+			return "match.winner"
+		if match.humanCount != actual.match.humanCount
+			return "match.humanCount"
+		if match.stockCount != actual.match.stockCount
+			return "match.stockCount"
+		if match.timeLimitMinutes != actual.match.timeLimitMinutes
+			return "match.timeLimitMinutes"
+		if match.remainingFrames != actual.match.remainingFrames
+			return "match.remainingFrames"
+		if match.timedOut != actual.match.timedOut
+			return "match.timedOut"
+		if match.firstCharacterReady != actual.match.firstCharacterReady
+			return "match.firstCharacterReady"
+		if match.secondCharacterReady != actual.match.secondCharacterReady
+			return "match.secondCharacterReady"
+		if match.firstRematchReady != actual.match.firstRematchReady
+			return "match.firstRematchReady"
+		if match.secondRematchReady != actual.match.secondRematchReady
+			return "match.secondRematchReady"
+		if firstCommands.windowFrames != actual.firstCommands.windowFrames
+			return "firstCommands.windowFrames"
+		if firstCommands.style != actual.firstCommands.style
+			return "firstCommands.style"
+		if firstCommands.facing != actual.firstCommands.facing
+			return "firstCommands.facing"
+		if firstCommands.targetFrame != actual.firstCommands.targetFrame
+			return "firstCommands.targetFrame"
+		if firstCommands.consumedFacing != actual.firstCommands.consumedFacing
+			return "firstCommands.consumedFacing"
+		if firstCommands.mayCharge != actual.firstCommands.mayCharge
+			return "firstCommands.mayCharge"
+		if firstCommands.consumedMayCharge != actual.firstCommands.consumedMayCharge
+			return "firstCommands.consumedMayCharge"
+		if secondCommands.windowFrames != actual.secondCommands.windowFrames
+			return "secondCommands.windowFrames"
+		if secondCommands.style != actual.secondCommands.style
+			return "secondCommands.style"
+		if secondCommands.facing != actual.secondCommands.facing
+			return "secondCommands.facing"
+		if secondCommands.targetFrame != actual.secondCommands.targetFrame
+			return "secondCommands.targetFrame"
+		if secondCommands.consumedFacing != actual.secondCommands.consumedFacing
+			return "secondCommands.consumedFacing"
+		if secondCommands.mayCharge != actual.secondCommands.mayCharge
+			return "secondCommands.mayCharge"
+		if secondCommands.consumedMayCharge != actual.secondCommands.consumedMayCharge
+			return "secondCommands.consumedMayCharge"
+		if runtime.simulationFrame != actual.runtime.simulationFrame
+			return "runtime.simulationFrame"
+		if runtime.botAttackDelay != actual.runtime.botAttackDelay
+			return "runtime.botAttackDelay"
+		return ""

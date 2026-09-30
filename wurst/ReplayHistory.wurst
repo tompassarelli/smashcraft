@@ -1,0 +1,82 @@
+package ReplayHistory
+import ReplayState
+import MatchStep
+import Simulation
+import MatchRules
+import CommandBuffer
+
+public constant int REPLAY_HISTORY_CAPACITY = 64
+
+// Construct in common initialization. Retained rows are private and copied once;
+// save, restore and replay allocate neither Wurst objects nor native handles.
+public class ReplayHistory
+    private ReplaySnapshot array[REPLAY_HISTORY_CAPACITY] snapshots
+    private MatchFrameInput array[REPLAY_HISTORY_CAPACITY] inputs
+    private int epoch = -1
+    private int nextFrame = 1
+    private int count = 0
+
+    construct()
+        for i = 0 to REPLAY_HISTORY_CAPACITY - 1
+            snapshots[i] = new ReplaySnapshot()
+            inputs[i] = new MatchFrameInput()
+
+    // Epochs increase across rematches; a repeated/stale reset cannot erase history.
+    function beginEpoch(int newEpoch, int firstFrame) returns boolean
+        if newEpoch <= epoch or firstFrame < 1
+            return false
+        epoch = newEpoch
+        nextFrame = firstFrame
+        count = 0
+        for i = 0 to REPLAY_HISTORY_CAPACITY - 1
+            inputs[i].reset()
+        return true
+
+    function contains(int requestedEpoch, int frame) returns boolean
+        if requestedEpoch != epoch or epoch < 0 or frame < nextFrame - count or frame >= nextFrame
+            return false
+        return inputs[frame mod REPLAY_HISTORY_CAPACITY].frameNumber() == frame
+
+    // The snapshot is before row.frameNumber(), never after its execution.
+    function save(int requestedEpoch, MatchFrameInput row,
+            FighterState first, FighterState second, MatchState game,
+            AttackBuffer firstCommands, AttackBuffer secondCommands,
+            ReplayRuntimeState runtime) returns boolean
+        if epoch < 0 or requestedEpoch != epoch or row.frameNumber() != nextFrame or runtime.simulationFrame != nextFrame - 1
+            return false
+        // Keep the signed frame counter from wrapping into a different history.
+        if nextFrame == 2147483647
+            return false
+        let slot = nextFrame mod REPLAY_HISTORY_CAPACITY
+        snapshots[slot].capture(first, second, game, firstCommands, secondCommands, runtime)
+        row.copyTo(inputs[slot])
+        nextFrame++
+        count = min(count + 1, REPLAY_HISTORY_CAPACITY)
+        return true
+
+    function restore(int requestedEpoch, int frame,
+            FighterState first, FighterState second, MatchState game,
+            AttackBuffer firstCommands, AttackBuffer secondCommands,
+            ReplayRuntimeState runtime) returns boolean
+        if not contains(requestedEpoch, frame)
+            return false
+        snapshots[frame mod REPLAY_HISTORY_CAPACITY].restore(first, second, game,
+            firstCommands, secondCommands, runtime)
+        return true
+
+    // Validate the whole inclusive interval before touching live state. This
+    // consumes recorded input only, without capture, polling or presentation.
+    function replay(int requestedEpoch, int fromFrame, int throughFrame,
+            FighterState first, FighterState second, MatchState game,
+            AttackBuffer firstCommands, AttackBuffer secondCommands,
+            ReplayRuntimeState runtime) returns boolean
+        if fromFrame > throughFrame or not contains(requestedEpoch, fromFrame) or not contains(requestedEpoch, throughFrame)
+            return false
+        for frame = fromFrame to throughFrame
+            if not contains(requestedEpoch, frame)
+                return false
+        restore(requestedEpoch, fromFrame, first, second, game, firstCommands, secondCommands, runtime)
+        for frame = fromFrame to throughFrame
+            inputs[frame mod REPLAY_HISTORY_CAPACITY].execute(game, first, second,
+                firstCommands, secondCommands, runtime, frame)
+        return true

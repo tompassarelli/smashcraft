@@ -85,3 +85,14 @@ ten automatic phases test seconds, model-timeline offsets, clip switching and
 backward seeking. Details and observed results are recorded in
 wc3-melee:native-capability-report.md. It requires the existing animation-tool
 Bun dependency for MDL/MDX packaging, but no installed fighter assets.
+
+Variant `pose-timeline` builds
+wc3-melee:build/netcode-probe/Smashcraft_Timeline_Pose_Probe.w3x. The same known
+marker motions now occupy one nonlooping Stand interval (0..5000ms). Models
+remain frozen and selected once; phases seek between the two authored motion
+segments, revisit earlier times, repeat a pose every tick, and apply multiple
+seeks in one callback. The fixture generator writes content-addressed model
+filenames and a generated Wurst path constant for both controlled variants.
+A same-filename model change was not visible after warm restart; changing its
+import identity made the expected timeline visible. Preserve this distinction
+when interpreting native experiments.

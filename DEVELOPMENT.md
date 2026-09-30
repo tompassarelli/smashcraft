@@ -1710,7 +1710,14 @@ double jump and neutral aerial in the isolated native fixture. Repaired
 exporter packages preserve unchanged authored source motion; prior buggy
 between-key output is not claimed unchanged. Current sources/evidence and the
 clip-switch pose-restoration limitation are in wc3-melee:native-capability-report.md.
-Next: bounded preallocated history, canonical field comparison/hash and replay
-oracle, then fixed scheduled input and shadow rollback. Native two-client gates
-remain open; a second licensed account/client is not yet available. No cloud
-resources have been provisioned. Full gameplay/UI backlog remains active.
+Follow-up: preallocated 64-frame history and exact canonical field comparison
+are implemented. Ordinary suite 221/221 and a separate 100,000-frame recorded
+input replay oracle pass with zero errors/warnings. The single-timeline authored
+pose fixture restores earlier marker poses; actual fighter and multiplayer
+presentation gates remain open. Details and reproduction commands are in
+wc3-melee:native-capability-report.md and wc3-melee:WURST.md.
+Next: bounded input protocol/accepted ledger, fixed scheduling and corrected-input
+fault oracle, plus canonical serialization/hash; then shadow rollback. A GPU VM
+can be the second client, pending graphics/game feasibility and a separately
+licensed account. No VM or cloud resource has been provisioned. Full gameplay/UI
+backlog remains active.

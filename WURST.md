@@ -143,3 +143,19 @@ actual game aspect ratio and text legibility in the client.
 Relevant local sources:
 ~/code/resources/WurstStdlib2/wurst/_handles/Framehandle.wurst and
 ~/code/resources/WurstStdlib2/wurst/closures/ClosureFrames.wurst.
+
+## Headless replay checks
+
+The ordinary suite excludes the long soak by package name:
+
+```bash
+bash ~/code/wc3-melee/worktrees/test-loop/test.sh
+bash ~/code/wc3-melee/worktrees/test-loop/test.sh ReplaySoak 180
+```
+
+The optional second argument sets the pinned compiler's supported per-test
+`-testTimeout` in seconds; default is 20. The separate 100,000-frame recorded
+input oracle needs the longer limit. These are headless replay checks, not
+native multiplayer measurements. Use the shared capacity runner for sustained
+local work. Latest observations and limitations are recorded in
+wc3-melee:native-capability-report.md.

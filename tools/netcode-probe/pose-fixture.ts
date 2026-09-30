@@ -4,6 +4,7 @@ import {join} from "node:path";
 
 const output = process.argv[2];
 if (!output) throw new Error("Expected probe import directory");
+const timeline = process.argv[3] === "timeline";
 const texture = new Uint8Array(26);
 texture[2] = 2;
 texture[12] = 2;
@@ -21,7 +22,7 @@ const geometry = (vertices: number[][], faces: number[], bone: number, color: nu
     Faces 1 ${faces.length} { Triangles { ${vector(faces)}, } }
     Groups 1 1 { Matrices { ${bone} }, }
     ${extent}
-    Anim { ${extent} } Anim { ${extent} } Anim { ${extent} }
+    ${Array.from({length: timeline ? 1 : 3},()=>`Anim { ${extent} }`).join(" ")}
     MaterialID 0, SelectionGroup 0,
 }`;
 const ruler: number[][] = [];
@@ -33,10 +34,12 @@ for (const z of [0,60,100,200]) {
 }
 const mdl = `Version { FormatVersion 800, }
 Model "Seek fixture" { NumGeosets 2, NumBones 2, BlendTime 0, ${extent} }
-Sequences 3 {
+Sequences ${timeline ? 1 : 3} {
+    ${timeline ? `Anim "Stand" { Interval { 0, 5000 }, NonLooping, ${extent} }` : `
     Anim "Stand" { Interval { 0, 1000 }, ${extent} }
     Anim "Attack" { Interval { 2000, 3000 }, NonLooping, ${extent} }
     Anim "Walk" { Interval { 4000, 5000 }, ${extent} }
+    `}
 }
 Textures 1 { Bitmap { Image "war3mapImported\\PoseFixture.tga", } }
 Materials 1 { Material { Layer { FilterMode None, Unshaded, TwoSided, static TextureID 0, static Alpha 1, } } }
@@ -53,11 +56,13 @@ Bone "Marker" { ObjectId 1, Parent 0, GeosetId 1, GeosetAnimId None,
 PivotPoints 2 { { 0, 0, 0 }, { 0, 0, 0 }, }
 `;
 const bytes = new Uint8Array(generateMDX(parseMDL(mdl)));
+const modelName = `PoseFixture-${new Bun.CryptoHasher("sha256").update(bytes).digest("hex")}.mdx`;
 const decoded = parseMDX(bytes.buffer);
-if (JSON.stringify(decoded.Sequences.map(s=>Array.from(s.Interval))) !== "[[0,1000],[2000,3000],[4000,5000]]") throw new Error("Fixture intervals changed");
+if (JSON.stringify(decoded.Sequences.map(s=>Array.from(s.Interval))) !== (timeline ? "[[0,5000]]" : "[[0,1000],[2000,3000],[4000,5000]]")) throw new Error("Fixture intervals changed");
 const track = decoded.Bones.find(b=>b.Name==="Marker")!.Translation!;
 if (track.Keys.length!==6 || track.Keys[3].Vector[2]!==200 || track.Keys[5].Vector[0]!==200) throw new Error("Fixture motion changed");
-await Bun.write(join(output,"PoseFixture.mdx"),bytes);
+await Bun.write(join(output,modelName),bytes);
 await Bun.write(join(output,"PoseFixture.mdl"),mdl);
 await Bun.write(join(output,"PoseFixture.tga"),texture);
-console.log("Fixture: Attack 2000..3000ms moves z=0..200; Walk 4000..5000ms moves x=0..200");
+await Bun.write(join(output,"../../wurst/PoseFixtureInfo.wurst"),`package PoseFixtureInfo\npublic constant string POSE_FIXTURE_MODEL = "war3mapImported\\\\${modelName}"\n`);
+console.log(`Fixture: ${timeline ? "single frozen Stand timeline;" : "separate clips;"} 2000..3000ms moves z=0..200; 4000..5000ms moves x=0..200`);

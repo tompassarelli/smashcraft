@@ -59,8 +59,8 @@ snapshot coverage. Current combat supports two fighters, not four.
 | Header declarations | Pinned common.j declares keyboard/meta/mouse polling, local-client-active, named effect animation/blend and effect time | PASS for declaration presence only |
 | A: early local polling | Both probes run; N/I/A holds/releases visible, and some poll transitions precede synchronized callbacks | SINGLE-CLIENT ONLY; network locality/physical timing unknown |
 | B: native traffic/pacing | Both 180-byte packet variants receive contiguous rows; receipt bursts observed | SHORT SINGLE-CLIENT SAMPLE; multiplayer capacity unknown |
-| C: complete snapshots/replay | Reusable snapshots and exact-frame input rows connected to the adapter; replay/contact tests pass | PARTIAL; bounded history/hash/fault oracle pending |
-| D: local presentation/pose recovery | Model-only effects freeze and seek within Attack; clip-change restoration did not reproduce reference pose | PARTIAL; exact recovery/local multiplayer safety unproven |
+| C: complete snapshots/replay | Preallocated 64-frame history, exact comparison and 100,000-frame recorded-input oracle pass | PARTIAL; corrected-input fault oracle, serialization/hash and native equivalence pending |
+| D: local presentation/pose recovery | Single authored timeline restores known marker poses; clip-switch candidates failed | PARTIAL; fighter pose fidelity/local multiplayer safety unproven |
 | E: controlled fixed/hybrid comparison | No scheduled/rollback backend in gameplay yet | NOT IMPLEMENTED |
 
 Initial probe compile exposed `%` (real modulo) where integer ring indices
@@ -141,13 +141,37 @@ only the expected next frame. wc3-melee:wurst/Melee.wurst captures and executes
 that row once per existing game tick; callbacks stage requests. Match start
 resets the reusable record. There is no added network delay or prediction.
 
-Tests cover mutation/restore, movement and clock replay, restored attacker
-identity, replaying an attack against shield using independent fighters, and
-reusing frame 1 after reset. The next work is a bounded preallocated history,
-complete state comparison/hash, input-tape oracle and transport fault injection.
-The requested 100,000-frame scenarios and cross-client arithmetic checks remain
-unimplemented. CPU decisions are recorded inputs for replay; speculative CPU
-regeneration has not been implemented.
+wc3-melee:wurst/ReplayHistory.wurst preallocates a 64-slot ring of snapshots
+immediately before each assigned frame and privately copied input rows. Epochs,
+ring reuse and complete replay ranges are checked before restore; unavailable
+history fails without mutating the current state. Save/restore/replay allocate
+neither Wurst objects nor native handles. Construct history in common context.
+wc3-melee:wurst/ReplayState.wurst compares every canonical field directly and
+reports the first mismatch, including exact real comparisons and attacker slot
+identity. All 79 FighterState fields and fixed projectile arrays are covered.
+
+The ordinary suite passes 221/221, zero errors/warnings, including short tapes,
+ring wrap, immutable retained input, stale epochs and signed-counter bounds.
+Log: wc3-melee:build/replay-history-integrated.log. A separately selected
+100,000-frame tape also passes, comparing independent worlds every frame after
+six-frame and full 64-frame replay every 64 frames. It exercises shield stun,
+hitlag, projectiles, hit registries, damage, KO and respawn. Log:
+wc3-melee:build/replay-history-100k.log. Reproduce with:
+
+```bash
+bash ~/code/wc3-melee/worktrees/test-loop/test.sh ReplaySoak 180
+```
+
+The first long run exhausted its 99-stock fixture after successful comparisons
+and failed the final MATCH assertion. The long fixture now starts with 100001
+stocks; short tests retain 99. No assertion or gameplay tuning changed. The
+original failure remains at wc3-melee:build/replay-history-100k-exhausted-stocks.log.
+
+This proves replay of unchanged recorded inputs in the headless runtime. It does
+not yet test corrected predictions, transport faults, an accepted-input ledger,
+fixed-delay scheduling, canonical serialization/hash or native arithmetic
+agreement. CPU decisions are recorded inputs; speculative CPU regeneration is
+not implemented. History is not connected to speculative gameplay.
 
 ## Observed single-client model pose run
 
@@ -223,14 +247,22 @@ in the same evidence directory records that return. Warcraft was not closed.
 
 ## Multiplayer test setup outstanding
 
-Tom currently has no second client/account available. Recommended final timing
-setup: a second physical PC and separately licensed account. A Windows GPU
-cloud VM with that account could first test actual replicated gameplay and
-native safety; capture inside the VM so streaming delay is not mislabeled as
-game latency. Cloud quota, supported game execution, region, cost and account
-availability must be resolved before provisioning. No VM/account was purchased
-or created. Physical button-to-visible measurements and controlled role/network
-swaps still require suitable instrumentation and remain untested.
+A GPU-accelerated VM can supply the second actual client; a second physical PC
+is not required for synchronization and protocol tests. Tom currently has no
+second account/client available. Concurrent play needs a separately licensed
+account and verified guest execution. Capture in the guest so remote-desktop
+streaming delay is not mislabeled as game latency.
+
+Read-only host inspection found AMD-V, accessible /dev/kvm, 24 logical CPUs,
+approximately 96 GiB RAM and 1.7 TiB free disk. The Radeon 890M is the sole
+exposed GPU; do not detach it from the running desktop. A local Linux guest
+with shared virtual graphics and Proton is the first feasibility candidate,
+not a verified Warcraft configuration. QEMU/libvirt tools were not on PATH.
+Windows guest graphics and any cloud GPU alternative need separate checks.
+No VM, paid resource or second account has been provisioned. A same-host VM
+shares host CPU/GPU contention and does not establish independent-machine
+performance or physical button-to-visible latency. Controlled external timing,
+role/network swaps and two-client native gates remain outstanding.
 
 ## Integrated frame-boundary validation
 
@@ -259,3 +291,37 @@ rifleman-aerial-isolated.png show neutral aerial at action frames 8 and 11,
 with weapons retained. They do not establish active-frame alignment, every
 aerial clip, physical latency or multiplayer correctness. The normal
 replay-aerials map was restored afterward; client remains at character select.
+
+## Single-timeline pose representation
+
+wc3-melee:tools/netcode-probe/TimelinePoseProbe.wurst keeps one nonlooping
+Stand clip selected and seeks into two motion segments, at 2..3 and 4..5
+seconds. Build variant pose-timeline passes with zero errors/warnings.
+
+The first run reused the earlier PoseFixture.mdx import name: every phase
+remained at the initial pose. The fixture generator now includes SHA-256 in
+model filenames and emits its Wurst import constant. With that new identity,
+the same motion data produces the expected observations below. This A/B result
+supports cached model data as the explanation for the failed first run;
+it does not establish Warcraft's complete cache invalidation contract.
+
+| Phase | Seek sequence | Observed candidate marker |
+| --- | --- | --- |
+| 1 | 2.3s | z=60, matching reference |
+| 2 | 4.3s | x≈60, z=0 |
+| 3 | 2.5s | z=100 |
+| 4 | 4.5s | x≈100, z=0 |
+| 5 | 2.3s | z=60 restored |
+| 6 | 2.3s every service callback | z=60 held |
+| 7 | 2.8s, 4.9s, 2.3s in one callback | final z=60 |
+| 8 | 2.3s | z=60 retained |
+
+Evidence: wc3-melee:build/netcode-probe/timeline-0.png through timeline-8.png
+(failed same-name run), and timeline-hashed-0.png through timeline-hashed-8.png
+(successful new-identity run). Phase numbers are printed in each capture.
+The simple authored fixture has no particles or animation variants. This
+supports the proposal's asset-authored pose-timeline candidate without native
+clip switching. It does not verify fighter skeletons/materials, per-frame
+pose fidelity, local-only mutations across two clients, handle safety, audio
+or event reconciliation. Gate D remains open; this is a candidate mechanism,
+not a deployed predictive renderer. Normal gameplay assets remain unchanged.

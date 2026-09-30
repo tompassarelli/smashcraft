@@ -58,6 +58,15 @@ public class MatchFrameInput
         botDelayAfterInput = runtime.botAttackDelay
         return true
 
+    // The history owns its destination; producer and execution scratch stay detached.
+    function copyTo(MatchFrameInput destination)
+        destination.frame = frame
+        first.copyTo(destination.first)
+        second.copyTo(destination.second)
+        firstRequests.copyTo(destination.firstRequests)
+        secondRequests.copyTo(destination.secondRequests)
+        destination.botDelayAfterInput = botDelayAfterInput
+
     function frameNumber() returns int
         return frame
 

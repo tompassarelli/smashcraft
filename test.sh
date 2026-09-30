@@ -6,12 +6,14 @@ compiler_jar="$project_dir/toolchain/wurstscript.jar"
 java=/home/tom/.wurst/wurst-runtime/bin/java
 stdlib_checkout=/home/tom/code/wurst-stdlib/pins/4dfc8a0474bd
 compiler_checkout=/home/tom/code/wurst-compiler/pins/c31f228c4a43dad1bca4d4acc003b1d12a823331
+test_timeout=${2:-20}
+[[ "$test_timeout" =~ ^[1-9][0-9]*$ ]] || { echo 'Test timeout must be positive seconds.' >&2; exit 2; }
 mkdir -p "$project_dir/_build" "$project_dir/build/wurst-tests"
 cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/common.j" "$project_dir/_build/common.j"
 cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/blizzard.j" "$project_dir/_build/blizzard.j"
 
 exec "$java" -Xmx512m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
-    -lua -runtests -testFilter "${1:-Tests}" -runcompiletimefunctions -stacktraces \
+    -lua -runtests -testFilter "${1:-Tests}" -testTimeout "$test_timeout" -runcompiletimefunctions -stacktraces \
     -workspaceroot "$project_dir" \
     -lib "$stdlib_checkout" \
     -out "$project_dir/build/wurst-tests/test.lua" \
@@ -38,4 +40,7 @@ exec "$java" -Xmx512m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/wurst/PlayerInputState.wurst" \
     "$project_dir/wurst/PlayerInputStateTests.wurst" \
     "$project_dir/wurst/ReplayState.wurst" \
-    "$project_dir/wurst/ReplayStateTests.wurst"
+    "$project_dir/wurst/ReplayStateTests.wurst" \
+    "$project_dir/wurst/ReplayHistory.wurst" \
+    "$project_dir/wurst/ReplayHistoryTests.wurst" \
+    "$project_dir/wurst/ReplaySoak.wurst"

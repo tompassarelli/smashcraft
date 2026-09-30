@@ -1,0 +1,9 @@
+package ReplaySoak
+import ReplayHistoryTests
+
+// Kept outside the ordinary "Tests" filter; the interpreter needs a larger
+// per-test budget for the explicitly requested long replay scenario.
+@Test function hundredThousandFramesMatchOracle()
+    // More stocks than frames keeps combat active through the whole soak even
+    // at the theoretical maximum of one stock loss per fighter per frame.
+    runRecordedTape(100000, 64, 100001)
