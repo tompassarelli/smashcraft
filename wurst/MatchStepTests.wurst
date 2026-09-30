@@ -217,6 +217,15 @@ import MatchStep
     firstCommands.enqueue(0, 0, 2, false)
     stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
     first.grounded.assertTrue()
+    first.landingLag.assertEquals(4)
+    first.attackStyle.assertEquals(-1)
+    for frame = 3 to 5
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+        first.attackStyle.assertEquals(-1)
+    firstCommands.hasPending(5).assertFalse()
+    firstCommands.enqueue(0, 0, 6, false)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 6)
+    first.landingLag.assertEquals(0)
     first.attackStyle.assertEquals(0)
     destroy firstCommands
     destroy secondCommands

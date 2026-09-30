@@ -32,6 +32,7 @@ constant int AIR_DODGE_INTANGIBLE_START = 4
 constant int AIR_DODGE_INTANGIBLE_END = 29
 constant int AIR_DODGE_ANIMATION_FRAMES = 49
 public constant int AIR_DODGE_LANDING_LAG = 10
+public constant int EMPTY_LANDING_LAG = 4
 public constant int GROUND_ROLL_FRAMES = 31
 public constant int GROUND_ROLL_INTANGIBLE_START = 4
 public constant int GROUND_ROLL_INTANGIBLE_END = 19
@@ -756,6 +757,8 @@ function beginDownState(FighterState f, int state, int direction)
 		f.cooldown = DOWN_ATTACK_FRAMES
 
 function finishLanding(FighterState f, int stage, InputSnapshot input, int landing, boolean fromAsdi)
+	if not f.grounded and not f.airDodging and not isAerialAttack(f.attackStyle) and f.downState == DOWN_NONE and f.hitstun <= 0 and not fromAsdi
+		f.landingLag = max(f.landingLag, EMPTY_LANDING_LAG)
 	if f.airDodging
 		f.landingLag = AIR_DODGE_LANDING_LAG
 		f.airDodging = false
@@ -1263,6 +1266,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	var groundDodgeStarted = false
 	var smashChargePaused = false
 	if f.hitlag <= 0
+		f.landingLag = max(0, f.landingLag - 1)
 		if f.smashCharging
 			if f.grounded and input.attackHeld and f.smashChargeFrames < SMASH_MAX_CHARGE_FRAMES
 				f.smashChargeFrames++
@@ -1332,7 +1336,6 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	f.dropTime = max(0, f.dropTime - 1)
 	let dodgeActive = f.airDodgeTime > 0
 	f.airDodgeTime = max(0, f.airDodgeTime - 1)
-	f.landingLag = max(0, f.landingLag - 1)
 	f.shieldReleaseLag = max(0, f.shieldReleaseLag - 1)
 	let shieldCanStart = input.shield and f.shieldEnergy > 0 and f.downState == DOWN_NONE and f.hitstun <= 0 and f.grounded and not isGroundDodging(f)
 		and f.shieldStun <= 0 and f.landingLag <= 0 and f.shieldReleaseLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0

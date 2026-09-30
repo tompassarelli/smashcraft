@@ -5,6 +5,44 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function emptyLandingRecoversOnceAfterFourTicks()
+	for character = 0 to 1
+		let fighter = new FighterState(character, 0, 1)
+		let input = new InputSnapshot()
+		fighter.grounded = false
+		fighter.z = 1
+		fighter.vz = -2
+		advance(fighter, 0, input, 0)
+		fighter.grounded.assertTrue()
+		fighter.landingLag.assertEquals(4)
+		canAttack(fighter).assertFalse()
+		for tick = 1 to 3
+			advance(fighter, 0, input, 0)
+			fighter.landingLag.assertEquals(4 - tick)
+			canAttack(fighter).assertFalse()
+		advance(fighter, 0, input, 0)
+		canAttack(fighter).assertTrue()
+		advance(fighter, 0, input, 0)
+		fighter.landingLag.assertEquals(0)
+		destroy input
+		destroy fighter
+
+@Test function jumpAcceptsTheSameLandingRecoveryBoundaryAsAttacks()
+	for recovery = 4 to 18
+		let fighter = new FighterState(0, 0, 1)
+		let input = new InputSnapshot()
+		fighter.landingLag = recovery
+		for tick = 1 to recovery - 1
+			advance(fighter, 0, input, 0)
+			canAttack(fighter).assertFalse()
+		input.jumpPressed = true
+		input.jumpHeld = true
+		advance(fighter, 0, input, 0)
+		fighter.landingLag.assertEquals(0)
+		fighter.jumpSquat.assertEquals(jumpSquatFrames(0) - 1)
+		destroy input
+		destroy fighter
+
 @Test function jumpApexMatchesDocumentedCharacterTargets()
 	for character = 0 to 1
 		for jumpKind = 0 to 2
@@ -119,8 +157,9 @@ function landLCancelTest(FighterState fighter, InputSnapshot input)
 	fighter.lCancelSerial.assertEquals(0)
 	fighter.lCancelWindow.assertEquals(0)
 	reset(fighter, 0)
+	fighter.grounded = false
 	landLCancelTest(fighter, input)
-	fighter.landingLag.assertEquals(0)
+	fighter.landingLag.assertEquals(4)
 	fighter.lCancelSerial.assertEquals(0)
 	fighter.x = 921
 	advance(fighter, 0, input, 0)
@@ -2528,7 +2567,7 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 	landTechTest(ordinary, 0, 0, input)
 	ordinary.downState.assertEquals(DOWN_NONE)
 	ordinary.grounded.assertTrue()
-	ordinary.landingLag.assertEquals(0)
+	ordinary.landingLag.assertEquals(4)
 	destroy ordinary
 	destroy grounded
 	destroy held

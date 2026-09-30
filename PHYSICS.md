@@ -47,6 +47,21 @@ respawn and final-stock result. Tests must call the simulation used by the map.
 
 ## Documented numerical baseline (NTSC Melee)
 
+Ordinary empty landings now apply four recovery ticks for either fighter.
+The independent implementation starts this only on an airborne-to-ground
+contact, so standing on a surface does not restart recovery. Air-dodge,
+aerial-attack, tumble/tech and ASDI contacts keep their separate rules.
+Landing recovery counts down before input eligibility is evaluated: jumping,
+moving and starting an attack can resume on the same expiration tick.
+Hitlag freezes the countdown. Early attack presses retain zero grace and do
+not wait through recovery. The reference fact that normal landing uses a
+character-specific interruption threshold is in
+melee:src/melee/ft/kinds/ftCommon/ftCo_Landing.c at revision
+0296f009f32f710495979d30772d8332af2d411a. Only that behavioral fact was used;
+no implementation text was copied. The four-frame values come from the table
+sources below. Light/heavy landing selection by fall speed is not modeled;
+ordinary airborne contacts use this one recovery duration.
+
 Retrieved 2026-09-29 from SmashWiki's character Stats tables. These are reported
 reference values, not measurements of our map or extracted local binary data.
 Sources: https://www.ssbwiki.com/Fox_(SSBM) and

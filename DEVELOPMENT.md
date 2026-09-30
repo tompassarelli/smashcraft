@@ -1333,3 +1333,33 @@ input trace in 26.763s, retaining the Warcraft process. Build warnings remain
 the three previously recorded warnings. Log:
 wc3-melee:build/walk-speed-reload.log. This proves the changed map loads and
 responds; native modifier feel and two-client timing were not measured here.
+
+## Empty landing recovery and stalled reload (2026-09-30)
+
+Ordinary airborne landings now apply four ticks of recovery; standing contacts
+do not restart it. The landing countdown moved before input eligibility so a
+jump is accepted on the same expiration frame as a new attack. The regression
+failed before this change (expected jump squat 2, actual 0). Tests cover both
+characters' empty contacts, countdown, no standing retrigger, recovery lengths
+4–18, and attack rejection/expiration before the first actionable frame.
+L-cancel's empty-landing fixture now explicitly starts airborne and verifies
+the unshortened four ticks. The full suite passed 173/173 with zero warnings
+or errors: wc3-melee:build/wurst-tests/landing-recovery.log.
+Reference facts and the light/heavy-landing simplification are recorded in
+wc3-melee:PHYSICS.md.
+
+Build 093439 compiled and deployed with the three existing build warnings,
+but Ctrl+R did not load it. The client showed “Waiting for host”; readiness
+still named 093053. This reproduces the intermittent stall after a previous
+successful restart; it does not establish whether it began before Ctrl+R.
+The loop timed out at 64.894s including its 19.040s build.
+Evidence: wc3-melee:build/loop/20260930-093439-reload, including stale-ready.txt;
+wc3-melee:build/landing-reload-state.png and build/landing-recovery-reload.log.
+
+Disconnect led through a loading/continue screen to native match results.
+Back → Create → Start Game → Enter recovered the map without terminating
+Warcraft PID 3986327. Readiness now names 093439 and a fresh Ctrl+T trace
+completed 300 ticks. Recovered receipts are stored separately in that loop
+directory; the failed loop is not relabeled successful. The client is at
+character selection. Cached author presentation still says Tom. Restart
+reliability and native landing feel remain unverified; no restart fix is claimed.

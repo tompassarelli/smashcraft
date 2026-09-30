@@ -27,6 +27,12 @@ to the Single Player map chooser without closing Warcraft. Recreating the map
 there recovered the selection screen. This is observed manual recovery, not a
 fix for the restart defect.
 
+The stall recurred when attempting build 093439 after successfully loading
+093053. Ctrl+R timed out with the old readiness marker still present. Native
+Disconnect → results Back → Create → Start Game recovered 093439 in the same
+client and produced a complete new trace. Failed and recovered evidence are
+kept separately under wc3-melee:build/loop/20260930-093439-reload.
+
 The 2026-09-30 comparison in wc3-melee:DEVELOPMENT.md did not reproduce the
 stall using short key presses, atomic replacement, changed map revision, or
 the exact early-trace loop. That command took 28.627s and still accepted a
