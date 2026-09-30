@@ -364,6 +364,7 @@ function specialMatch() returns MatchState
 		input.specialPressed = false
 		input.verticalDirection = 0
 		for frame = 1 to 38
+			fighter.cooldown = max(0, fighter.cooldown - 1)
 			fighter.specialLockFrames = max(0, fighter.specialLockFrames - 1)
 			advanceSpecialPair(fighter, target, 0)
 		fighter.specialAction.assertEquals(SPECIAL_NONE)
@@ -392,12 +393,13 @@ function specialMatch() returns MatchState
 		input.direction = 0
 		fighter.hitstun = 2
 		cancelSpecialState(fighter)
-		fighter.specialFall.assertTrue()
+		fighter.specialFall.assertFalse()
 		input.jumpPressed = true
 		for tick = 1 to 3
 			advance(fighter, 0, input, 0)
-		fighter.specialFall.assertTrue()
-		canAttack(fighter).assertFalse()
+		fighter.specialFall.assertFalse()
+		fighter.jumps.assertEquals(0)
+		canAttack(fighter).assertTrue()
 
 		let landing = new FighterState(character, 0, 1)
 		let landingInput = new InputSnapshot()

@@ -1011,8 +1011,10 @@ fast-fall descent/actionability rules remain; native feel needs the new build.
 Both current up-specials consume the aerial jump budget, and an up-special
 that finishes while airborne enters helpless fall. During that fall, steering
 and fast-fall remain available; jumping, air dodge, attacks and further
-specials are locked. Landing or a ledge catch clears the helpless state. A hit
-can interrupt the up-special, but does not restore jumps already spent. The
+specials are locked. Landing or a ledge catch clears the helpless state. A
+flinching hit interrupts the recovery or helpless fall, permitting actions again
+after hitstun, but does not restore jumps already spent. Damage-only arrows
+do not interrupt helplessness. The
 grounded Rifleman up-special spends the budget when its launch begins; Archer's
 move takes off immediately. These are shared initial game rules, not exact
 Melee frame timings.

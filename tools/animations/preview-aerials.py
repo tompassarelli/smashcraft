@@ -13,7 +13,10 @@ p.resourceFolder=str(assets/'textures');p.textureExtension='png'
 for fighter in ['archer','rifleman']:
     bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
     for action in list(bpy.data.actions):bpy.data.actions.remove(action)
-    getattr(bpy.ops,'import').mdl_exporter(filepath=str(assets/f'{fighter}-aerial-roundtrip.mdl'))
+    if '--editable' in sys.argv:
+        bpy.ops.wm.open_mainfile(filepath=str(assets/f'{fighter}-fighter.blend'))
+    else:
+        getattr(bpy.ops,'import').mdl_exporter(filepath=str(assets/f'{fighter}-aerial-roundtrip.mdl'))
     scene=bpy.context.scene
     rig=next(o for o in scene.objects if o.type=='ARMATURE')
     scene.render.engine='BLENDER_WORKBENCH'
