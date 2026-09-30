@@ -312,15 +312,58 @@ wc3-melee:build/wurst-tests/hit-regions-20260930-final.log. Integration passed
 `hit-regions` succeeded with the four existing warnings and was installed;
 the running client has not loaded it and native combat feel is unverified.
 
-## Knockdown reference limits
+## Grounded knockdown and jab resets
 
-The local Melee revision recorded above's `ftCo_DownBound.c`, `ftCo_DownAttack.c`,
-`ftCo_Down.c`, and `ftCo_DownStand.c` establish separate down-wait choices for
-get-up attack, directional rolls, and standing. They do not expose reliable
-frame counts for the associated intangibility in the inspected functions.
-The local prototype's knockdown durations remain provisional below, and the
-tech-intangibility counts are sourced separately to the cited secondary data;
-neither should be described as locally measured Melee timing.
+At Melee revision `0296f009f32f710495979d30772d8332af2d411a`,
+`ftCo_DownBound.c`, `ftCo_DownDamage.c`, `ftCo_Down.c`,
+`ftCo_DownStand.c`, and `ftCo_DownAttack.c` establish separate bound, wait,
+down-damage, stand, get-up attack, and directional-roll states. `DownWait`
+loads its timeout from `ftCommonData + 0x424`; the local checkout has the field
+and use site but not the source common-data table, so its numerical value is
+not established here. The simulation retains its existing 180-tick wait as
+explicit provisional tuning.
+
+The extracted Sheik actions provide `DownBoundU/D` 26-frame clips,
+`DownDamageU/D` 14-frame clips, and `DownStandU/D` 30-frame clips. The
+frame-data records give Sheik 49 ticks for each get-up attack and 35 ticks for
+each directional get-up roll. Other characters' recorded action lengths vary
+by one or more ticks. Smashcraft uses the requested shared profile: 26 bound,
+13 down-damage, 30 stand, 49 get-up attack, and 35 get-up roll ticks. These
+shared values are action timing choices informed by the extracted data, not a
+claim that every Melee character shares them. The authored source starts clips
+at animation frame 0 while simulation actions count from frame 1.
+
+The Sheik `DownStand` and directional-roll event streams set body-collision
+state 2 initially and restore state 0 at animation frame 20. The get-up attack
+streams restore state 0 at frame 24 (Up) or frame 20 (Down). The extractor
+documents events `0x68`, `0x6C`, and `0x70` as body/bone collision changes with
+invincibility data. Smashcraft uses the observed Sheik intervals as 19 ticks
+for stand/roll, and 23/19 ticks for Up/Down get-up attack. These timings and
+event interpretation still need native visual/gameplay verification.
+
+The local down-damage entry checks the hit's temporary damage against
+`ftCommonData + 0x428`; the numeric table is absent from this checkout. The
+Melee reference's jab-reset secondary description places the cutoff strictly
+below 7% damage. Smashcraft uses `damage < 7` as its reset rule and labels it
+secondary-source data rather than a locally recovered `0x428` value. A hit in
+DownBound, DownWait, or DownDamage at that damage enters the 13-tick
+DownDamage reaction. Its hitstun is retained; after the animation, remaining
+hitstun sets the down-wait timeout, and an expired timer forces stand. Damage
+of 7 or more interrupts the grounded recovery and follows ordinary launch
+resolution. Damage-only arrows do not enter DownDamage.
+
+The numerical face-up/down choice follows the sign of the launch's vertical
+component. This stable approximation selects the two reference action families;
+it does not simulate Melee's joint rotation. The update pins downed fighters to
+their selected stage surface. The decompile's collision/bounce behavior depends
+on floor collision and common data; the prototype still omits physical rebound
+and uses an immediate grounded bound. A face/rotation or rebound correction
+requires the missing common collision data and a native pose check.
+
+Get-up attack damage, hit shape, knockback, and startup remain Smashcraft move
+tuning, not character move data from Melee. The implementation now records
+down-wait remainder and face selection in replay snapshots so jab-reset and
+recovery frames restore with the same future outcome.
 
 ## Directional influence
 

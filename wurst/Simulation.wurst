@@ -115,6 +115,7 @@ public constant int DOWN_ROLL = 5
 public constant int DOWN_ATTACK = 6
 public constant int DOWN_TECH = 7
 public constant int DOWN_TECH_ROLL = 8
+public constant int DOWN_DAMAGE = 9
 public constant int TECH_WINDOW_FRAMES = 20
 public constant int TECH_LOCKOUT_FRAMES = 40
 public constant int TECH_IN_PLACE_FRAMES = 26
@@ -125,12 +126,16 @@ public constant real TECH_ROLL_DISTANCE = 128
 constant int TECH_ROLL_MOVE_START = 4
 constant int TECH_ROLL_MOVE_END = 19
 public constant real DOWN_KNOCKBACK_THRESHOLD = 80
-public constant int DOWN_BOUND_FRAMES = 12
+public constant int DOWN_BOUND_FRAMES = 26
 public constant int DOWN_WAIT_FRAMES = 180
 public constant int DOWN_STAND_FRAMES = 30
-public constant int DOWN_ROLL_FRAMES = 31
-public constant int DOWN_RECOVERY_INTANGIBLE_FRAMES = 8
-public constant int DOWN_ATTACK_FRAMES = 45
+public constant int DOWN_ROLL_FRAMES = 35
+public constant int DOWN_RECOVERY_INTANGIBLE_FRAMES = 19
+public constant int DOWN_DAMAGE_FRAMES = 13
+public constant real DOWN_DAMAGE_MAX_HIT_DAMAGE = 7
+public constant int DOWN_ATTACK_FRAMES = 49
+public constant int DOWN_ATTACK_INTANGIBLE_FRAMES_UP = 23
+public constant int DOWN_ATTACK_INTANGIBLE_FRAMES_DOWN = 19
 public constant int DOWN_ATTACK_STYLE = 11
 public constant int AERIAL_NEUTRAL_STYLE = 12
 public constant int AERIAL_FORWARD_STYLE = 13
@@ -312,6 +317,8 @@ public class FighterState
 	int downState = DOWN_NONE
 	int downFrame = 0
 	int downDirection = 0
+	int downWaitRemaining = 0
+	boolean downFaceUp = true
 	int techWindow = 0
 	int techLockout = 0
 	boolean techHitlagLatched = false
@@ -782,7 +789,7 @@ public function isIntangible(FighterState f) returns boolean
 		(f.groundDodgeDirection == 0 and f.groundDodgeFrame >= SPOT_DODGE_INTANGIBLE_START and f.groundDodgeFrame <= SPOT_DODGE_INTANGIBLE_END)
 		or (f.groundDodgeDirection != 0 and f.groundDodgeFrame >= GROUND_ROLL_INTANGIBLE_START and f.groundDodgeFrame <= GROUND_ROLL_INTANGIBLE_END))
 	let downRecoveryIntangible = (f.downState == DOWN_STAND or f.downState == DOWN_ROLL) and f.downFrame > 0 and f.downFrame <= DOWN_RECOVERY_INTANGIBLE_FRAMES
-		or (f.downState == DOWN_ATTACK and f.downFrame <= DOWN_ATTACK_STARTUP_FRAMES)
+		or (f.downState == DOWN_ATTACK and f.downFrame <= (f.downFaceUp ? DOWN_ATTACK_INTANGIBLE_FRAMES_UP : DOWN_ATTACK_INTANGIBLE_FRAMES_DOWN))
 	let techIntangible = isFloorTeching(f) and f.downFrame >= 1 and f.downFrame <= (f.downState == DOWN_TECH ? TECH_INTANGIBLE_FRAMES : TECH_ROLL_INTANGIBLE_FRAMES)
 	return f.invincible > 0 or groundDodgeIntangible or downRecoveryIntangible or techIntangible or (f.airDodging and f.airDodgeFrame >= AIR_DODGE_INTANGIBLE_START and f.airDodgeFrame <= AIR_DODGE_INTANGIBLE_END)
 
@@ -791,6 +798,24 @@ public function isGroundDodging(FighterState f) returns boolean
 
 public function isTumbling(FighterState f) returns boolean
 	return f.downState == DOWN_TUMBLE
+
+function isDownDamageState(FighterState f) returns boolean
+	return f.grounded and (f.downState == DOWN_BOUND or f.downState == DOWN_WAIT or f.downState == DOWN_DAMAGE)
+
+function beginDownDamage(FighterState f, int hitstunFrames)
+	f.downState = DOWN_DAMAGE
+	f.downFrame = 1
+	f.downWaitRemaining = max(0, hitstunFrames)
+	f.hitstun = max(0, hitstunFrames)
+	f.diPending = false
+	f.diLaunchSpeed = 0
+	f.vx = 0
+	f.vz = 0
+	f.knockbackX = 0
+	f.knockbackZ = 0
+	f.grounded = true
+	f.shield = false
+	f.shieldHeldFrames = 0
 
 public function isFloorTeching(FighterState f) returns boolean
 	return f.downState == DOWN_TECH or f.downState == DOWN_TECH_ROLL
@@ -1103,11 +1128,15 @@ function clearDownState(FighterState f)
 	f.downState = DOWN_NONE
 	f.downFrame = 0
 	f.downDirection = 0
+	f.downWaitRemaining = 0
+	f.downFaceUp = true
 
 function beginDownState(FighterState f, int state, int direction)
 	f.downState = state
 	f.downFrame = 1
 	f.downDirection = direction
+	if state != DOWN_DAMAGE
+		f.downWaitRemaining = 0
 	f.vx = 0
 	f.vz = 0
 	f.knockbackX = 0
@@ -1218,10 +1247,11 @@ function applyAutomaticSmashDirectionalInfluence(FighterState f, int stage, Inpu
 		directionZ = input.cStickZ
 	applyHitlagShift(f, stage, input, directionX, directionZ, ASDI_DISTANCE, true)
 
-function startDownWait(FighterState f)
+function startDownWait(FighterState f, int remainingFrames)
 	f.downState = DOWN_WAIT
 	f.downFrame = 0
 	f.downDirection = 0
+	f.downWaitRemaining = max(0, remainingFrames)
 
 function startDownStand(FighterState f)
 	beginDownState(f, DOWN_STAND, 0)
@@ -1240,11 +1270,29 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 		return true
 	if f.downState == DOWN_BOUND
 		if f.downFrame >= DOWN_BOUND_FRAMES
-			startDownWait(f)
+			startDownWait(f, DOWN_WAIT_FRAMES)
+			return true
 		else
 			f.downFrame++
+			f.grounded = true
+			f.z = surfaceZ(stage, max(0, f.surface))
 			return true
+	if f.downState == DOWN_DAMAGE
+		f.grounded = true
+		f.z = surfaceZ(stage, max(0, f.surface))
+		f.vz = 0
+		f.knockbackZ = 0
+		if f.downFrame >= DOWN_DAMAGE_FRAMES
+			if f.hitstun <= 0
+				startDownStand(f)
+			else
+				startDownWait(f, f.hitstun)
+		else
+			f.downFrame++
+		return true
 	if f.downState == DOWN_WAIT
+		f.grounded = true
+		f.z = surfaceZ(stage, max(0, f.surface))
 		if input.getupAttackPressed
 			beginDownState(f, DOWN_ATTACK, 0)
 		else if input.getupDirectionPressed and input.getupDirection != 0
@@ -1254,17 +1302,22 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 		else if input.getupStandPressed or input.verticalDirection > 0
 			startDownStand(f)
 		else
+			f.downWaitRemaining = max(0, f.downWaitRemaining - 1)
 			f.downFrame++
-			if f.downFrame >= DOWN_WAIT_FRAMES
+			if f.downWaitRemaining == 0
 				startDownStand(f)
 		return true
 	if f.downState == DOWN_STAND
+		f.grounded = true
+		f.z = surfaceZ(stage, max(0, f.surface))
 		if f.downFrame >= DOWN_STAND_FRAMES
 			clearDownState(f)
 		else
 			f.downFrame++
 		return true
 	if f.downState == DOWN_ROLL
+		f.grounded = true
+		f.z = surfaceZ(stage, max(0, f.surface))
 		if f.downFrame >= DOWN_ROLL_FRAMES
 			clearDownState(f)
 		else
@@ -1276,6 +1329,8 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 			f.grounded = true
 		return true
 	if f.downState == DOWN_ATTACK
+		f.grounded = true
+		f.z = surfaceZ(stage, max(0, f.surface))
 		if f.downFrame >= DOWN_ATTACK_FRAMES
 			clearDownState(f)
 		else
@@ -1366,33 +1421,39 @@ function applySpecialProjectileHit(FighterState target, int kind, int direction)
 		target.damage += damage
 		target.frozenFrames = 0
 		return
+	let jabReset = isDownDamageState(target) and damage < DOWN_DAMAGE_MAX_HIT_DAMAGE
 	let groundedBeforeHit = target.grounded
 	clearGrabLinks(target)
 	target.frozenFrames = 0
 	target.diPending = false
 	target.diLaunchSpeed = 0
 	interruptJumpOrDodge(target)
-	clearDownState(target)
+	if not jabReset
+		clearDownState(target)
 	cancelAttack(target)
 	cancelSpecialState(target)
 	target.damage += damage
-	target.vx = 0
-	target.vz = 0
-	target.grounded = false
 	let knockback = ordinaryHitKnockback(target.damage - damage, damage,
 		target.character == 0 ? 75. : 80., 85, 16, 1)
-	let launch = knockback * KNOCKBACK_LAUNCH_SCALE
-	target.knockbackX = direction * launch * 0.8
-	target.knockbackZ = launch * (kind == PROJECTILE_RECOIL ? -0.6 : 0.6)
-	target.sdiWasGrounded = groundedBeforeHit
-	target.sdiLaunchesUpward = target.knockbackZ > 0
-	target.diPending = true
-	target.diLaunchSpeed = launch
 	target.hitstun = ordinaryHitstunFrames(knockback)
-	if knockback >= DOWN_KNOCKBACK_THRESHOLD
-		target.downState = DOWN_TUMBLE
-		target.downFrame = 0
-		target.downDirection = 0
+	if jabReset
+		beginDownDamage(target, target.hitstun)
+	else
+		target.vx = 0
+		target.vz = 0
+		target.grounded = false
+		let launch = knockback * KNOCKBACK_LAUNCH_SCALE
+		target.knockbackX = direction * launch * 0.8
+		target.knockbackZ = launch * (kind == PROJECTILE_RECOIL ? -0.6 : 0.6)
+		target.sdiWasGrounded = groundedBeforeHit
+		target.sdiLaunchesUpward = target.knockbackZ > 0
+		target.diPending = true
+		target.diLaunchSpeed = launch
+		if knockback >= DOWN_KNOCKBACK_THRESHOLD
+			target.downState = DOWN_TUMBLE
+			target.downFrame = 0
+			target.downDirection = 0
+			target.downFaceUp = target.knockbackZ >= 0
 	target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
 
 function applyProjectileHit(FighterState owner, FighterState target, int index)
@@ -1407,17 +1468,23 @@ function applyProjectileHit(FighterState owner, FighterState target, int index)
 		if target.shieldEnergy == 0
 			beginShieldBreak(target)
 		return
+	let jabReset = isDownDamageState(target) and damage < DOWN_DAMAGE_MAX_HIT_DAMAGE
 	target.frozenFrames = 0
 	clearGrabLinks(target)
 	target.damage += damage
 	target.diPending = false
 	target.diLaunchSpeed = 0
 	interruptJumpOrDodge(target)
-	clearDownState(target)
+	if not jabReset
+		clearDownState(target)
 	cancelAttack(target)
 	target.hitstun = max(target.hitstun, 11)
 	target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
 	cancelSpecialState(target)
+	if jabReset
+		beginDownDamage(target, target.hitstun)
+	else
+		target.grounded = false
 
 function updateProjectiles(FighterState owner, FighterState target, real targetX, real targetZ, boolean targetWasOut, boolean targetWasIntangible)
 	for index = 0 to PROJECTILE_CAPACITY - 1
@@ -1514,6 +1581,7 @@ function releaseThrow(FighterState owner, FighterState target, InputSnapshot tar
 		target.downState = DOWN_TUMBLE
 		target.downFrame = 0
 		target.downDirection = 0
+		target.downFaceUp = target.knockbackZ >= 0
 
 function advanceGrab(FighterState owner, InputSnapshot ownerInput, InputSnapshot targetInput, boolean paused)
 	if owner.grabAction == GRAB_NONE or paused
@@ -1644,34 +1712,40 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 			beginShieldBreak(target)
 		return
 	let groundedBeforeHit = target.grounded
+	let jabReset = isDownDamageState(target) and damage < DOWN_DAMAGE_MAX_HIT_DAMAGE
 	if damage > 0
 		target.frozenFrames = 0
 	clearGrabLinks(target)
 	target.diPending = false
 	target.diLaunchSpeed = 0
 	interruptJumpOrDodge(target)
-	clearDownState(target)
+	if not jabReset
+		clearDownState(target)
 	cancelAttack(target)
 	cancelSpecialState(target)
 	let weight = target.character == 0 ? 75. : 80.
 	let knockback = ordinaryHitKnockback(target.damage, damage, weight,
 		hitData.growth, hitData.base, ORDINARY_HIT_CONTEXT_SCALE)
 	target.damage += damage
-	target.vx = 0
-	target.vz = 0
-	target.grounded = false
-	let launch = knockback * KNOCKBACK_LAUNCH_SCALE
-	target.knockbackX = facing * launch * hitData.launchX
-	target.knockbackZ = launch * hitData.launchZ
-	target.sdiWasGrounded = groundedBeforeHit
-	target.sdiLaunchesUpward = target.knockbackZ > 0
-	target.diPending = true
-	target.diLaunchSpeed = launch
 	target.hitstun = ordinaryHitstunFrames(knockback)
-	if knockback >= DOWN_KNOCKBACK_THRESHOLD
-		target.downState = DOWN_TUMBLE
-		target.downFrame = 0
-		target.downDirection = 0
+	if jabReset
+		beginDownDamage(target, target.hitstun)
+	else
+		target.vx = 0
+		target.vz = 0
+		target.grounded = false
+		let launch = knockback * KNOCKBACK_LAUNCH_SCALE
+		target.knockbackX = facing * launch * hitData.launchX
+		target.knockbackZ = launch * hitData.launchZ
+		target.sdiWasGrounded = groundedBeforeHit
+		target.sdiLaunchesUpward = target.knockbackZ > 0
+		target.diPending = true
+		target.diLaunchSpeed = launch
+		if knockback >= DOWN_KNOCKBACK_THRESHOLD
+			target.downState = DOWN_TUMBLE
+			target.downFrame = 0
+			target.downDirection = 0
+			target.downFaceUp = target.knockbackZ >= 0
 	target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
 	if directContact
 		attacker.hitlag = max(attacker.hitlag, ordinaryHitlagFrames(damage))

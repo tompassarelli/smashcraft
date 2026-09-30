@@ -78,6 +78,8 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.downState = source.downState
 	destination.downFrame = source.downFrame
 	destination.downDirection = source.downDirection
+	destination.downWaitRemaining = source.downWaitRemaining
+	destination.downFaceUp = source.downFaceUp
 	destination.techWindow = source.techWindow
 	destination.techLockout = source.techLockout
 	destination.techHitlagLatched = source.techHitlagLatched
@@ -303,6 +305,10 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "downFrame"
 	if expected.downDirection != actual.downDirection
 		return "downDirection"
+	if expected.downWaitRemaining != actual.downWaitRemaining
+		return "downWaitRemaining"
+	if expected.downFaceUp != actual.downFaceUp
+		return "downFaceUp"
 	if expected.techWindow != actual.techWindow
 		return "techWindow"
 	if expected.techLockout != actual.techLockout
