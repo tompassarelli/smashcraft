@@ -1283,3 +1283,29 @@ The final source build 091809 completed build/reload/trace in 27.213s with zero
 errors and the three existing warnings. Character selection → Three Bridges
 → match rendered all three blue platforms inside the red/pink boundary:
 ~/code/wc3-melee/worktrees/test-loop/build/blast-color-three-bridges.png.
+
+## Input frame checkpoint (2026-09-30)
+
+The adapter routes both human direct attacks through queueHumanAttack for
+completedFrame + 1. Normal attacks enter that same upcoming simulation frame
+from each participant's held input. Both queues are consumed by stepMatch.
+A suspected three-event direction-order defect was disproved: the existing
+buffer keeps conflicting directions neutral. No gameplay implementation changed.
+The added CommandBufferTests regression covers both repeated directions at
+each of the three event positions and checks that the next frame is unaffected.
+
+Focused checks passed: CommandBufferTests 9/9 and MatchStepTests 10/10, zero
+compiler errors or warnings. Commands are `bash test.sh CommandBufferTests`
+and `bash test.sh MatchStepTests` from ~/code/wc3-melee/worktrees/test-loop.
+Logs: wc3-melee:build/wurst-tests/command-timing.log and
+wc3-melee:build/wurst-tests/match-timing.log. The compiler filter is not a regex:
+the attempted combined filter matched zero tests and is not passing evidence.
+Deferred tooling issue: the pinned compiler reports success for zero matches;
+inspect the executed count until its owning test runner rejects that case.
+
+Two-client proof still requires two actual human slots in the same match,
+with both clients observing identical frame-indexed fighter state after inputs
+from each participant, including simultaneous attacks and different saved
+bindings. Also measure input-to-action delay there; these headless checks
+cannot establish network latency, player-two key delivery, or local-file sync.
+No client restart or deployment was needed for this simulation-only checkpoint.

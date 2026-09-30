@@ -1,6 +1,20 @@
 package CommandBufferTests
 import CommandBuffer
 
+@Test function repeatedConflictingDirectionsRemainNeutralInEveryOrder()
+    for repeatedDirection = -1 to 1
+        if repeatedDirection != 0
+            for oppositePosition = 0 to 2
+                let commands = new AttackBuffer(0)
+                for eventIndex = 0 to 2
+                    commands.enqueue(4, eventIndex == oppositePosition ? -repeatedDirection : repeatedDirection, 10, false)
+                commands.consume(10, true).assertEquals(4)
+                commands.consumedFacing.assertEquals(0)
+                commands.enqueue(4, repeatedDirection, 11, false)
+                commands.consume(11, true).assertEquals(4)
+                commands.consumedFacing.assertEquals(repeatedDirection)
+                destroy commands
+
 @Test function immediateCStickSmashWinsOverChargeableNormalInEitherOrder()
     for directStyle = 2 to 4
         for normalStyle = 2 to 4
