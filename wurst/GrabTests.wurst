@@ -1,0 +1,162 @@
+package GrabTests
+import Simulation
+import MatchStep
+import MatchRules
+import CommandBuffer
+import ReplayState
+
+function catchTarget(FighterState owner, FighterState target)
+    owner.surface = 0
+    target.surface = 0
+    beginAttackPair(owner, target, 5, -1, false, false)
+    owner.attackFrame = attackStartupFrames(5)
+    resolveAttackPair(owner, target)
+    resolveGrabPair(owner, target)
+    (owner.grabTarget == target).assertTrue()
+    (target.grabOwner == owner).assertTrue()
+
+@Test function grabTethersBothFightersAndExpiresEquallyInEitherSlot()
+    for order = 0 to 1
+        for facing = -1 to 1
+            if facing != 0
+                let owner = new FighterState(0, 0, facing)
+                let target = new FighterState(1, 90. * facing, -facing)
+                let ownerInput = new InputSnapshot()
+                let targetInput = new InputSnapshot()
+                let ownerCommands = new AttackBuffer(0)
+                let targetCommands = new AttackBuffer(0)
+                let game = new MatchState()
+                game.phase = MATCH
+                catchTarget(owner, target)
+                ownerInput.direction = -facing
+                ownerInput.jumpPressed = true
+                ownerInput.specialPressed = true
+                ownerInput.verticalDirection = 1
+                targetInput.direction = facing
+                targetInput.jumpPressed = true
+                let originalJumps = owner.jumps
+                simulationJump(owner)
+                owner.jumps.assertEquals(originalJumps)
+                for frame = 1 to GRAB_HOLD_FRAMES
+                    if order == 0
+                        stepMatch(game, owner, target, ownerInput, targetInput, ownerCommands, targetCommands, frame)
+                    else
+                        stepMatch(game, target, owner, targetInput, ownerInput, targetCommands, ownerCommands, frame)
+                    owner.x.assertEquals(0.)
+                    owner.facing.assertEquals(facing)
+                    target.x.assertEquals(GRAB_HOLD_DISTANCE * facing)
+                    target.z.assertEquals(owner.z)
+                    owner.jumpSquat.assertEquals(0)
+                    owner.specialAction.assertEquals(SPECIAL_NONE)
+                    target.grabbedFrames.assertEquals(GRAB_HOLD_FRAMES - frame)
+                (owner.grabTarget == null).assertTrue()
+                (target.grabOwner == null).assertTrue()
+                target.grounded.assertTrue()
+                target.hitstun.assertEquals(10)
+                destroy ownerInput
+                destroy targetInput
+                destroy ownerCommands
+                destroy targetCommands
+                destroy game
+                destroy owner
+                destroy target
+
+@Test function damagingProjectilesReleaseEitherEndOfAGrab()
+    for victim = 0 to 1
+        for kind = PROJECTILE_BLASTER to PROJECTILE_RECOIL
+            let owner = new FighterState(0, 0, 1)
+            let target = new FighterState(1, 90, -1)
+            catchTarget(owner, target)
+            let shooter = victim == 0 ? target : owner
+            let hit = victim == 0 ? owner : target
+            shooter.projectileLife[0] = 2
+            shooter.projectileKind[0] = kind
+            shooter.projectileX[0] = hit.x - 10
+            shooter.projectileZ[0] = hit.z + 45
+            shooter.projectileVelocityX[0] = 20
+            shooter.projectileDirection[0] = 1
+            updateProjectilePair(owner, target)
+            hit.damage.assertGreaterThan(0)
+            hit.hitstun.assertGreaterThan(0)
+            (owner.grabTarget == null).assertTrue()
+            (target.grabOwner == null).assertTrue()
+            target.grabbedFrames.assertEquals(0)
+            destroy owner
+            destroy target
+
+@Test function resetReleasesReciprocalGrabLinks()
+    for victim = 0 to 1
+        let owner = new FighterState(0, 0, 1)
+        let target = new FighterState(1, 90, -1)
+        catchTarget(owner, target)
+        reset(victim == 0 ? owner : target, 0)
+        (owner.grabTarget == null).assertTrue()
+        (target.grabOwner == null).assertTrue()
+        target.grabbedFrames.assertEquals(0)
+        destroy owner
+        destroy target
+
+@Test function trapReleasesReciprocalGrabLinks()
+    let owner = new FighterState(0, 0, 1)
+    let target = new FighterState(1, 90, -1)
+    catchTarget(owner, target)
+    target.freezeTrapLife = 100
+    target.freezeTrapX = owner.x
+    target.freezeTrapSurface = 0
+    advanceFreezeTrapPair(owner, target)
+    owner.frozenFrames.assertGreaterThan(0)
+    (owner.grabTarget == null).assertTrue()
+    (target.grabOwner == null).assertTrue()
+    destroy owner
+    destroy target
+
+@Test function simultaneousGrabsDoNotGiveEitherSlotOwnership()
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 90, -1)
+    beginAttackPair(first, second, 5, 5, false, false)
+    first.attackFrame = attackStartupFrames(5)
+    second.attackFrame = attackStartupFrames(5)
+    resolveAttackPair(first, second)
+    (first.grabTarget == null).assertTrue()
+    (second.grabTarget == null).assertTrue()
+    first.grabbedFrames.assertEquals(0)
+    second.grabbedFrames.assertEquals(0)
+    first.hitlag = 1
+    second.attackFrame++
+    resolveAttackPair(first, second)
+    (second.grabTarget == null).assertTrue()
+    first.grabbedFrames.assertEquals(0)
+    destroy first
+    destroy second
+
+@Test function grabSnapshotsOwnDetachedLinksAndRestoreThem()
+    let owner = new FighterState(0, 0, 1)
+    let target = new FighterState(1, 90, -1)
+    let game = new MatchState()
+    let commands = new AttackBuffer(0)
+    let otherCommands = new AttackBuffer(0)
+    let runtime = new ReplayRuntimeState()
+    let before = new ReplaySnapshot()
+    let after = new ReplaySnapshot()
+    catchTarget(owner, target)
+    before.capture(owner, target, game, commands, otherCommands, runtime)
+    (before.first.grabTarget == before.second).assertTrue()
+    (before.second.grabOwner == before.first).assertTrue()
+    reset(owner, 0)
+    before.second.grabbedFrames.assertEquals(GRAB_HOLD_FRAMES)
+    before.restore(owner, target, game, commands, otherCommands, runtime)
+    (owner.grabTarget == target).assertTrue()
+    (target.grabOwner == owner).assertTrue()
+    after.capture(owner, target, game, commands, otherCommands, runtime)
+    before.firstDifference(after).assertEquals("")
+    before.first.grabTarget = owner
+    after.first.grabTarget = target
+    before.firstDifference(after).assertEquals("first.grabTarget")
+    destroy before
+    destroy after
+    destroy owner
+    destroy target
+    destroy game
+    destroy commands
+    destroy otherCommands
+    destroy runtime

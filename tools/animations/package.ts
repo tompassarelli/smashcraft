@@ -6,6 +6,9 @@ const project = join(import.meta.dir, "../..");
 const assetDirectory = join(project, "build/animation-assets");
 
 const clips = [
+    ["GRAB", "Grab"],
+    ["GRAB_HOLD", "Grab Hold"],
+    ["GRABBED", "Grabbed"],
     ["DAMAGE_GROUND", "Damage Ground"],
     ["DAMAGE_AIR", "Damage Air"],
     ["DAMAGE_TUMBLE", "Damage Tumble"],

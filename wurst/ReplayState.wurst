@@ -82,6 +82,8 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.techLockout = source.techLockout
 	destination.techHitlagLatched = source.techHitlagLatched
 	destination.grabbedFrames = source.grabbedFrames
+	destination.grabOwner = source.grabOwner == sourceFirst ? destinationFirst : (source.grabOwner == sourceSecond ? destinationSecond : null)
+	destination.grabTarget = source.grabTarget == sourceFirst ? destinationFirst : (source.grabTarget == sourceSecond ? destinationSecond : null)
 	destination.ledgeState = source.ledgeState
 	destination.ledgeSide = source.ledgeSide
 	destination.ledgeFrame = source.ledgeFrame
@@ -304,6 +306,14 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "techHitlagLatched"
 	if expected.grabbedFrames != actual.grabbedFrames
 		return "grabbedFrames"
+	let expectedOwner = attackerSlot(expected.grabOwner, expectedFirst, expectedSecond)
+	let actualOwner = attackerSlot(actual.grabOwner, actualFirst, actualSecond)
+	if expectedOwner == -2 or actualOwner == -2 or expectedOwner != actualOwner
+		return "grabOwner"
+	let expectedTarget = attackerSlot(expected.grabTarget, expectedFirst, expectedSecond)
+	let actualTarget = attackerSlot(actual.grabTarget, actualFirst, actualSecond)
+	if expectedTarget == -2 or actualTarget == -2 or expectedTarget != actualTarget
+		return "grabTarget"
 	if expected.ledgeState != actual.ledgeState
 		return "ledgeState"
 	if expected.ledgeSide != actual.ledgeSide

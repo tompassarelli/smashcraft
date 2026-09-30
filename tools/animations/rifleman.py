@@ -80,7 +80,7 @@ def grip_arm(side, target, pole):
 
 def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
          leg_r=0, knee_r=0, leg_l=0, knee_l=0, neutral_kick=0, weapon_lift=0,
-         cape_lift=0, summon=0, weapon_pitch=0):
+         cape_lift=0, summon=0, weapon_pitch=0, grab=0):
     for name, matrix in base.items():
         rig.pose.bones[name].matrix_basis = matrix
     # Root displacement belongs entirely to simulation, including aerial clips.
@@ -127,6 +127,11 @@ def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
         # the right hand keeps the rifle visible and aimed.
         turn('Bone_Arm1_L', -58*summon)
         turn('Bone_Arm2_L', 34*summon)
+        bpy.context.view_layer.update()
+    if grab:
+        hand = rig.pose.bones['Bone_Hand_L']
+        target = hand.matrix.translation.lerp(Vector((38, -5, 68)), grab)
+        grip_arm('L', target, Vector((4, -24, 65)))
         bpy.context.view_layer.update()
     bpy.context.view_layer.update()
 
@@ -191,6 +196,11 @@ def author_timed_special(name, phases, duration):
 
 
 author('Attack Jab', {0:{}, 2:{'strike':-.12}, 4:{'strike':.65,'lean':-7}, 7:{'strike':.65,'lean':-7}, 14:{'strike':.2}, 22:{}, 36:{}})
+grip = {'grab': 1, 'weapon_pitch': 40, 'weapon_lift': -8, 'lean': 5}
+author('Grab', {0: {}, 2: {'grab': .2, 'weapon_pitch': 12}, 5: grip, 7: grip, 14: {'grab': .4, 'weapon_pitch': 15}, 24: {}, 36: {}})
+author('Grab Hold', {0: grip, 24: grip})
+grabbed = {'lean': 25, 'crouch': .5, 'weapon_pitch': 40, 'tuck': .25}
+author('Grabbed', {0: grabbed, 24: grabbed})
 for name, elevation in [('Forward Tilt',0), ('Forward Tilt Up',35), ('Forward Tilt Down',-35)]:
     author(name, {0:{}, 2:{'strike':-.2}, 5:{'strike':1,'elevation':elevation,'lean':-10}, 7:{'strike':1,'elevation':elevation,'lean':-10}, 14:{'strike':.45,'elevation':elevation}, 23:{}, 28:{}})
 author('Up Tilt', {0:{}, 2:{'crouch':.35,'weapon_pitch':25},

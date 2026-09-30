@@ -151,6 +151,8 @@ public constant real DOWN_ATTACK_DAMAGE = 7
 // the opponent's first active wake-up attack. See wc3-melee:PHYSICS.md.
 public constant real DOWN_ATTACK_BASE_KNOCKBACK = 75
 public constant real DOWN_ROLL_DISTANCE = 128
+public constant int GRAB_HOLD_FRAMES = 20
+public constant real GRAB_HOLD_DISTANCE = 50
 constant int FOX_JUMP_SQUAT_FRAMES = 3
 constant int FALCO_JUMP_SQUAT_FRAMES = 5
 constant real FOX_FULL_JUMP_SPEED = 23.46
@@ -280,6 +282,8 @@ public class FighterState
 	int techLockout = 0
 	boolean techHitlagLatched = false
 	int grabbedFrames = 0
+	FighterState grabOwner = null
+	FighterState grabTarget = null
 	int ledgeState = LEDGE_NONE
 	int ledgeSide = 0
 	int ledgeFrame = 0
@@ -487,6 +491,8 @@ public function jumpSquatFrames(int character) returns int
 	return character == 0 ? FOX_JUMP_SQUAT_FRAMES : FALCO_JUMP_SQUAT_FRAMES
 
 function canStartAttack(FighterState attacker) returns boolean
+	if attacker.grabTarget != null
+		return false
 	if attacker.frozenFrames > 0
 		return false
 	if attacker.ledgeState != LEDGE_NONE
@@ -940,6 +946,7 @@ function trapCanContact(FighterState owner, FighterState target) returns boolean
 	return owner.freezeTrapLife > 0 and owner.freezeTrapArming == 0 and not owner.out and not target.out and target.frozenFrames == 0 and target.grounded and target.surface == owner.freezeTrapSurface and not isIntangible(target) and (target.x - owner.freezeTrapX).abs() <= FREEZE_TRAP_TRIGGER_RADIUS
 
 function freezeFromTrap(FighterState target)
+	clearGrabLinks(target)
 	clearDownState(target)
 	cancelAttack(target)
 	clearLedge(target)
@@ -978,6 +985,7 @@ public function shieldBreakDizzyFrames(real percent) returns int
 	return max(60, 240 - R2I(max(0, percent)))
 
 function beginShieldBreak(FighterState f)
+	clearGrabLinks(f)
 	interruptJumpOrDodge(f)
 	clearDownState(f)
 	cancelAttack(f)
@@ -1302,6 +1310,7 @@ function applySpecialProjectileHit(FighterState owner, FighterState target, int 
 			beginShieldBreak(target)
 		return
 	let groundedBeforeHit = target.grounded
+	clearGrabLinks(target)
 	target.frozenFrames = 0
 	target.diPending = false
 	target.diLaunchSpeed = 0
@@ -1342,6 +1351,7 @@ function applyProjectileHit(FighterState owner, FighterState target, int index)
 			beginShieldBreak(target)
 		return
 	target.frozenFrames = 0
+	clearGrabLinks(target)
 	target.damage += damage
 	target.diPending = false
 	target.diLaunchSpeed = 0
@@ -1386,6 +1396,45 @@ public function updateProjectilePair(FighterState first, FighterState second)
 	updateProjectiles(first, second, secondX, secondZ, secondWasOut, secondWasIntangible)
 	updateProjectiles(second, first, firstX, firstZ, firstWasOut, firstWasIntangible)
 
+function clearGrabLinks(FighterState f)
+	let owner = f.grabOwner
+	let target = f.grabTarget
+	f.grabOwner = null
+	f.grabTarget = null
+	f.grabbedFrames = 0
+	if owner != null and owner.grabTarget == f
+		owner.grabTarget = null
+	if target != null and target.grabOwner == f
+		target.grabOwner = null
+		target.grabbedFrames = 0
+
+function resolveHeldTarget(FighterState owner)
+	let target = owner.grabTarget
+	if target == null
+		return
+	if owner.out or target.out or owner.frozenFrames > 0 or target.frozenFrames > 0 or owner.hitstun > 0 or target.grabbedFrames <= 0 or target.grabOwner != owner
+		clearGrabLinks(owner)
+		return
+	owner.vx = 0
+	owner.vz = 0
+	owner.knockbackX = 0
+	owner.knockbackZ = 0
+	target.x = owner.x + owner.facing * GRAB_HOLD_DISTANCE
+	target.z = owner.z
+	target.surface = owner.surface
+	target.grounded = owner.grounded
+	target.facing = -owner.facing
+	target.vx = 0
+	target.vz = 0
+	target.knockbackX = 0
+	target.knockbackZ = 0
+
+// Resolve after both fighters advance, so expiry never gives the second slot
+// an extra movement tick. Run again after contacts to anchor a newly caught pair.
+public function resolveGrabPair(FighterState first, FighterState second)
+	resolveHeldTarget(first)
+	resolveHeldTarget(second)
+
 function cancelAttack(FighterState fighter)
 	fighter.attackStyle = -1
 	fighter.attackFrame = 0
@@ -1401,12 +1450,23 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	if style == 5
 		if target.frozenFrames > 0
 			return
+		clearGrabLinks(attacker)
+		clearGrabLinks(target)
+		attacker.grabTarget = target
+		target.grabOwner = attacker
+		clearDash(attacker)
+		attacker.vx = 0
+		attacker.vz = 0
+		attacker.knockbackX = 0
+		attacker.knockbackZ = 0
 		target.diPending = false
 		target.diLaunchSpeed = 0
 		interruptJumpOrDodge(target)
 		clearDownState(target)
 		cancelAttack(target)
-		target.grabbedFrames = 20
+		target.grabbedFrames = GRAB_HOLD_FRAMES
+		target.hitstun = 0
+		target.hitlag = 0
 		cancelSpecialState(target)
 		target.shield = false
 		target.shieldStun = 0
@@ -1425,6 +1485,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	let groundedBeforeHit = target.grounded
 	if damage > 0
 		target.frozenFrames = 0
+	clearGrabLinks(target)
 	target.diPending = false
 	target.diLaunchSpeed = 0
 	interruptJumpOrDodge(target)
@@ -1680,6 +1741,8 @@ public function advanceSpecialPair(FighterState first, FighterState second, int 
 	advanceHippogryph(second, first)
 
 public function simulationJump(FighterState f)
+	if f.grabOwner != null or f.grabTarget != null
+		return
 	if f.ledgeState != LEDGE_NONE
 		return
 	if f.out or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or (f.shieldReleaseLag > 0 and not f.grounded) or f.landingLag > 0 or f.airDodging or isGroundDodging(f) or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
@@ -1699,6 +1762,8 @@ public function simulationJump(FighterState f)
 	f.jumps--
 
 public function simulationAirDodge(FighterState f, int horizontal, int vertical)
+	if f.grabOwner != null or f.grabTarget != null
+		return
 	if f.ledgeState != LEDGE_NONE
 		return
 	if f.out or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.grounded or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.landingLag > 0 or f.cooldown > 0 or f.airDodging or f.airDodgeTime > 0
@@ -1722,6 +1787,8 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	clearDownState(f)
 
 function canBeginGroundDodge(FighterState f) returns boolean
+	if f.grabOwner != null or f.grabTarget != null
+		return false
 	return not f.out and f.downState == DOWN_NONE and f.grounded and f.hitlag <= 0 and f.hitstun <= 0 and f.shieldStun <= 0 and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0 and f.grabbedFrames <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldEnergy > 0
 
 public function beginAttackPair(FighterState first, FighterState second, int firstStyle, int secondStyle, boolean firstMayCharge, boolean secondMayCharge)
@@ -1749,6 +1816,10 @@ public function resolveAttackPair(FighterState first, FighterState second)
 	let secondFacing = second.facing
 	let firstGrabPriority = firstHits and firstStyle == 5 and secondStyle != 5
 	let secondGrabPriority = secondHits and secondStyle == 5 and firstStyle != 5
+	if firstHits and secondHits and firstStyle == 5 and secondStyle == 5
+		recordHitRegion(first, second, firstRegion)
+		recordHitRegion(second, first, secondRegion)
+		return
 	if firstShot
 		first.attackHit = true
 	if secondShot
@@ -1769,6 +1840,7 @@ public function resolveAttackPair(FighterState first, FighterState second)
 			applyAttackHit(second, first, secondStyle, secondFacing, secondRegion.hitData)
 
 public function reset(FighterState f, real startX)
+	clearGrabLinks(f)
 	clearSpecialOnStock(f)
 	f.lastHitAttacker = null
 	f.lastHitAttackSerial = -1
@@ -1889,7 +1961,6 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.grabbedFrames--
 		if f.grabbedFrames == 0
 			f.hitstun = 10
-			f.grounded = false
 		return
 	var groundDodgeStarted = false
 	var smashChargePaused = false
@@ -1921,6 +1992,9 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 					f.smashCharging = false
 					f.smashChargeFrames = 0
 					f.smashChargeAllowed = false
+	if f.grabTarget != null
+		checkBlastZone(f)
+		return
 	if input.jumpPressed
 		simulationJump(f)
 	if f.jumpSquat > 0

@@ -2,10 +2,33 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-Installed: `ground-recovery-r2`, normal scenario. Build succeeded with the six
-existing warnings; wc3-melee:build/ground-recovery-r2-map.log. The latest observed
-running receipt still says `space-camera-r1`. Do not use Ctrl+R to load this map.
-It includes the prior, still-native-unverified camera-bounds candidate.
+Installed and observed running: `grab-hold-r1`, normal scenario. Fresh launch
+through End Game / Quit Mission / Create Game succeeded without Ctrl+R; the
+readiness receipt and trace agree. Build log: wc3-melee:build/grab-hold-r1-map.log
+(six existing warnings). The owner authorized native control; focus guards
+still stop input whenever another window is focused.
+
+Grab ownership now tethers both participants and clears on expiry, interruption,
+freeze and reset. Snapshots remap both links into detached state. GrabTests 6/6,
+SimulationTests 161/161 and ReplayStateTests 6/6 passed; the focused grab tests
+also passed after the simultaneous-grab clash correction. Both fighters have
+Grab, Grab Hold and Grabbed clips; asset preservation passed.
+
+Native Archer Q+O successfully held Rifleman four times, each for exactly 20
+simulation ticks (71–91, 125–145, 179–199, 227–247). The recording shows the
+reaching hand and bent victim together. Evidence:
+wc3-melee:build/impact-assets/grab-archer-shield-r1-trace.txt,
+wc3-melee:build/impact-assets/grab-archer-shield-r1.mp4 and
+wc3-melee:build/impact-assets/grab-archer-contact.png. Plain O entered grab
+but the earlier attempts whiffed or were interrupted. Rifleman holding,
+Q+N, reverse-facing native checks, pummels and throws remain unfinished.
+
+Space camera check: six Space holds/releases were recorded at 60 fps in this
+build. All 384 recorded frames retained the central stage surface in the same
+image rows; sampled contact sheets also show the stable arena. Evidence:
+wc3-melee:build/impact-assets/space-grab-hold-r1.mp4 and matching trace.
+This did not reproduce the previous one-frame camera excursion. Character to
+stage to match and retained selections on New Match worked in this session.
 
 Ground/recovery pass: Archer fist jab and directional kicks, dedicated up/down
 tilts for both fighters, speed-scaled walk playback, consistent basic-projectile
@@ -16,15 +39,12 @@ The CPU clamps chase targets inside the stage and prioritizes recovery over
 new attack requests. Eight recovery scenarios (both fighters/sides, with/without
 a remaining jump) return to the floor without losing a stock in Wurst tests.
 SimulationTests 161/161, SpecialMoveTests 13/13, CombatInputTests 6/6 and
-BotRecoveryTests 2/2 pass. Native checks remain pending input coordination.
+BotRecoveryTests 2/2 pass. Native ground-attack/recovery checks remain pending.
 Textured both-side Archer previews confirm the punch is exposed after keeping
 the shoulder cloth down; wc3-melee:build/animation-assets/preview-ground-textured.log.
 
-The unfinished grab-link repair was saved to
-wc3-melee:build/grab-in-progress.patch and removed from active source before
-this build. Resume with `git apply` on that exact patch, then finish projectile
-interruption cleanup, invalid-reference snapshot checks, and ownership tests.
-Do not treat that parked repair or full grabs/throws as complete.
+The old wc3-melee:build/grab-in-progress.patch has already been applied and
+completed in active source; it is stale and must not be reapplied.
 
 September 30 damage/Space checkpoint: the running `space-camera-r1` contains
 dedicated ground/air/tumble/shield damage clips and zero native animation blend
@@ -33,10 +53,10 @@ hitlag; the earlier `damage-poses-r1` recording exposed old-pose retention with
 default blending. Three DamagePoseTests pass; aerial/package preservation
 passes. See wc3-melee:ANIMATIONS.md for evidence and remaining pose checks.
 
-Space causes a captured one-frame camera excursion between normal arena views.
+Earlier Space builds caused a captured one-frame camera excursion between normal arena views.
 Setting only the quick-camera destination did not fix it. `space-camera-r2`
 is built and installed with camera target bounds collapsed to arena center,
-but is not yet verified running. The running readiness receipt still names r1.
+and that change is included in the now-running `grab-hold-r1` check above.
 Evidence: wc3-melee:build/impact-assets/space-before.mp4,
 wc3-melee:build/impact-assets/space-glitch-strip.png and
 wc3-melee:build/impact-assets/space-after.mp4. The latest build log is
@@ -47,8 +67,7 @@ the game. Stop using that shortcut for routine checks pending root repair.
 wc3-melee:wurst/Melee.wurst still directly calls RestartGame(false), and
 wc3-melee:tools/restart-probe retains the minimal reproduction. Prior small
 probes did not reproduce the intermittent full-map failure; they are not proof
-of reliability. Native input automation is awaiting coordination with the owner
-because human actions overlapped the camera recordings and menu navigation.
+of reliability. Input coordination is now authorized; retain focus guards.
 
 Previous installed build: `getup-advantage-r1` (normal matches). The focused
 knockdown build `getup-advantage-check` verified a Rifleman mirror-match get-up

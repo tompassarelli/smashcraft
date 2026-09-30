@@ -35,6 +35,8 @@ def author_archer_ground(rig):
     # One source frame maps to one logical frame through the render rate.
     clips = [
         ('Attack Jab', 4, 36, None, 0),
+        ('Grab', 5, 36, None, 0),
+        ('Grab Hold', 0, 24, None, 0),
         ('Forward Tilt', 5, 28, (44, -10, 43), 3),
         ('Forward Tilt Up', 5, 28, (39, -10, 67), 3),
         ('Forward Tilt Down', 5, 28, (48, -10, 23), 8),
@@ -49,6 +51,8 @@ def author_archer_ground(rig):
         rig.animation_data.action_slot = action.slots.new('OBJECT', rig.name)
         phases = {0: 0., 2: -.2, contact: 1., contact+2: 1.,
                   contact+7: .45, duration-6: 0., duration: 0.}
+        if name == 'Grab Hold':
+            phases = {0: 1., duration: 1.}
         previous = {}
         for frame in range(duration+1):
             scene.frame_set(frame)
@@ -72,7 +76,8 @@ def author_archer_ground(rig):
             limb(rig, 'Bone_Arm1_L', 'Bone_Arm2_L', 'Bone_Hand_L', bow_target,
                  world['Bone_Arm2_L'].translation.lerp(Vector((-10, 30, 65)), abs(amount)))
             hand_start = world['Hand Right Ref '].translation
-            hand_target = hand_start.lerp(Vector((32, -12, 76)), amount if kick is None else strength*.3)
+            reach = (36, -5, 68) if name.startswith('Grab') else (32, -12, 76)
+            hand_target = hand_start.lerp(Vector(reach), amount if kick is None else strength*.3)
             limb(rig, 'Bone_Arm1_R', 'Bone_Arm2_R', 'Hand Right Ref ', hand_target,
                  world['Bone_Arm2_R'].translation.lerp(Vector((-10, -30, 65)), abs(amount)))
             # The stock shoulder-cloth chain inherits the upper-arm swing.

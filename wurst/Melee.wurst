@@ -429,11 +429,17 @@ function applyFrame()
     let playerPreviousLedge = playerFighter.ledgeState
     let playerPreviousSpecial = playerFighter.specialAction
     let botPreviousSpecial = botFighter.specialAction
+    let playerWasHolding = playerFighter.grabTarget != null
+    let botWasHolding = botFighter.grabTarget != null
     if not currentFrameInput.execute(matchState, playerFighter, botFighter,
             playerAttacks, botAttacks, replayRuntime, currentFrameInput.frameNumber())
         return
     firstImpacts.after(playerFighter)
     secondImpacts.after(botFighter)
+    if playerWasHolding != (playerFighter.grabTarget != null)
+        traceParticipant(0, "grab-hold " + (playerFighter.grabTarget != null ? "start" : "end"))
+    if botWasHolding != (botFighter.grabTarget != null)
+        traceParticipant(1, "grab-hold " + (botFighter.grabTarget != null ? "start" : "end"))
     traceSpecialAction(0, playerFighter, playerPreviousSpecial)
     traceSpecialAction(1, botFighter, botPreviousSpecial)
     traceRecovery(0, playerFighter, playerPreviousDown, playerPreviouslyActionable)
@@ -899,6 +905,9 @@ function playAttackAnimation(Fighter fighter)
     if fighter.attackStyle == 0
         SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_JAB_INDEX : RIFLEMAN_JAB_INDEX))
         return
+    if fighter.attackStyle == 5
+        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_GRAB_INDEX : RIFLEMAN_GRAB_INDEX)
+        return
     if fighter.attackStyle == 6
         SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_FORWARD_TILT_INDEX : RIFLEMAN_FORWARD_TILT_INDEX))
         return
@@ -946,6 +955,8 @@ function attackAnimationRate(Fighter fighter) returns real
         return (fighter.character == 0 ? ARCHER_AERIAL_DOWN_SECONDS : RIFLEMAN_AERIAL_DOWN_SECONDS) / seconds
     if fighter.attackStyle == 0
         return (fighter.character == 0 ? ARCHER_JAB_SECONDS : RIFLEMAN_JAB_SECONDS) / seconds
+    if fighter.attackStyle == 5
+        return (fighter.character == 0 ? ARCHER_GRAB_SECONDS : RIFLEMAN_GRAB_SECONDS) / seconds
     if fighter.attackStyle == 6
         return (fighter.character == 0 ? ARCHER_FORWARD_TILT_SECONDS : RIFLEMAN_FORWARD_TILT_SECONDS) / seconds
     if fighter.attackStyle == 7
@@ -1093,7 +1104,14 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
     else if f.jumpAnimationRemaining > 0
         animationRate = f.doubleJumpAnimation ? (f.character == 0 ? ARCHER_DOUBLE_JUMP_SECONDS : RIFLEMAN_DOUBLE_JUMP_SECONDS) / (30 * FRAME_SECONDS) : (f.character == 0 ? ARCHER_JUMP_SECONDS : RIFLEMAN_JUMP_SECONDS) / (24 * FRAME_SECONDS)
     SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
-    if f.ledgeState != LEDGE_NONE
+    if f.grabTarget != null or f.grabbedFrames > 0
+        let anim = f.grabTarget != null ? "grab-hold" : "grabbed"
+        if f.animation != anim
+            let clip = f.grabTarget != null ? (f.character == 0 ? ARCHER_GRAB_HOLD_INDEX : RIFLEMAN_GRAB_HOLD_INDEX) : (f.character == 0 ? ARCHER_GRABBED_INDEX : RIFLEMAN_GRABBED_INDEX)
+            SetUnitAnimationByIndex(f.body, clip)
+            f.animation = anim
+        animationRate = 0
+    else if f.ledgeState != LEDGE_NONE
         let anim = "ledge" + I2S(f.ledgeState)
         if f.animation != anim
             if f.ledgeState == LEDGE_CLIMB
@@ -1148,6 +1166,8 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
             SetUnitAnimation(f.body, anim)
             f.animation = anim
     else
+        if f.animation == "grab-hold" or f.animation == "grabbed"
+            SetUnitAnimation(f.body, "stand ready")
         f.animation = ""
     // Select the victim's reaction first; retain the attacker's contact pose.
     // On release only the playback rate changes, so the held clip resumes.

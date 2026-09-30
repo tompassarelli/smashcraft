@@ -144,6 +144,9 @@ author("Special Up", {
 
 from damage import author_archer_damage
 author_archer_damage(author)
+grabbed = {'lean': 26, 'head': -12, 'draw': -12, 'release': 25,
+           'bow_arm': -20, 'hip': -8, 'crouch': 5}
+author('Grabbed', {0: grabbed, 24: grabbed}, 24)
 
 scene.frame_set(0)
 editable = assets / "archer-fighter.blend"
