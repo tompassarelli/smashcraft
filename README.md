@@ -36,7 +36,7 @@ QWERTY uses 7 for right trigger and 8 for the alternate jump key.
 
 ## Current evidence
 
-157 headless tests pass across simulation, input buffers, bindings, match rules
+The headless suites cover simulation, input buffers, bindings, match rules
 and the shared match step. The adapter supports two human slots or solo play
 against a bot. Both human slots now schedule direct attacks for the next tick;
 the regression first reproduced Player 2's discarded commands, then passed.

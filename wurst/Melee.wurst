@@ -248,8 +248,8 @@ function frameText(string name, real x, real y, real width, real height, real si
     BlzFrameSetTextAlignment(result, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT)
     return result
 
-function drawLine(real x1, real z1, real x2, real z2, real r, real g, real b) returns lightning
-    let bolt = AddLightningEx("DRAM", false, centerX + x1, centerY, floorHeight + z1,
+function drawLine(string kind, real x1, real z1, real x2, real z2, real r, real g, real b) returns lightning
+    let bolt = AddLightningEx(kind, false, centerX + x1, centerY, floorHeight + z1,
         centerX + x2, centerY, floorHeight + z2)
     SetLightningColor(bolt, r, g, b, 1)
     return bolt
@@ -306,7 +306,7 @@ function drawStage()
         let pass = surfacePass(matchState.stageChoice, i)
         for depth = 0 to 4
             let y = z - depth * 6
-            stageLines[stageLineCount] = drawLine(surfaceLeft(matchState.stageChoice, i), y, surfaceRight(matchState.stageChoice, i), y,
+            stageLines[stageLineCount] = drawLine(LIGHTNING_DRAIN_MANA, surfaceLeft(matchState.stageChoice, i), y, surfaceRight(matchState.stageChoice, i), y,
                 pass ? 0.45 : 0.15, 0.85, 1)
             stageLineCount++
 
@@ -1161,10 +1161,10 @@ function initGame()
     settingsPanel = new SettingsPanel(playerBindings, new MeleeSettingsActions(0), 0)
     secondSelectionPanel = new SelectionPanel(new MeleeSelectionActions(), 1)
     secondSettingsPanel = new SettingsPanel(secondBindings, new MeleeSettingsActions(1), 1)
-    blastLines[0] = drawLine(-920, -420, 920, -420, 1, 0.15, 0.15)
-    blastLines[1] = drawLine(-920, 760, 920, 760, 1, 0.15, 0.15)
-    blastLines[2] = drawLine(-920, -420, -920, 760, 1, 0.15, 0.15)
-    blastLines[3] = drawLine(920, -420, 920, 760, 1, 0.15, 0.15)
+    blastLines[0] = drawLine(LIGHTNING_FINGER_OF_DEATH, -920, -420, 920, -420, 1, 0.15, 0.15)
+    blastLines[1] = drawLine(LIGHTNING_FINGER_OF_DEATH, -920, 760, 920, 760, 1, 0.15, 0.15)
+    blastLines[2] = drawLine(LIGHTNING_FINGER_OF_DEATH, -920, -420, -920, 760, 1, 0.15, 0.15)
+    blastLines[3] = drawLine(LIGHTNING_FINGER_OF_DEATH, 920, -420, 920, 760, 1, 0.15, 0.15)
     drawStage()
     lockArenaCamera()
     CameraSetSmoothingFactor(0)

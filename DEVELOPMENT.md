@@ -1251,3 +1251,35 @@ fighters hanging at the left platform lip and climbing in 25 simulation ticks.
 Both traces: hang3, climb67, complete92.
 Native screenshots/traces are in the character-specific directories described
 in wc3-melee:ANIMATIONS.md. The normal map is rebuilt after the fixture check.
+
+## Restart comparison and blast-zone contrast (2026-09-30)
+
+The same retained client remained responsive in four controlled full-map
+samples. Each late check changed Archer to Rifleman with Right; screenshots
+are under ~/code/wc3-melee/worktrees/test-loop/build/restart-probe/.
+
+| Change from the previous sample | Observation |
+| --- | --- |
+| Short Ctrl+R sequence used by the loop driver; no rebuild/early trace | Selection changed after 35s (`fast-full35.png`) |
+| Atomic replacement with identical map bytes | Selection changed after 35s (`atomic-same35.png`) |
+| Rebuild with changed revision; atomic replacement; no early trace | New revision `restart-content-change`; selection changed after 35s (`content-change35.png`) |
+| Exact build/reload/early-trace command | Build 091224 completed its trace at 28.627s total, then accepted a selection change after another 30s (`exact-loop-late.png`) |
+
+None reproduced the earlier stall. Key duration, inode replacement, changed
+revision and early tracing are therefore not established sufficient causes.
+Keep the incident open, capture the next recurrence, and avoid further
+unchanged success sampling. The normal warm command remains usable with the
+existing documented intermittent limitation; no restart repair is claimed.
+
+The installed Splats/LightningData.slk identifies DRAM's texture as
+DrainManaLightning and AFOD's as LightningRed. Both platform and blast lines
+previously used DRAM, and the blast boundary appeared blue despite its red
+tint setting. Blast lines now select LIGHTNING_FINGER_OF_DEATH while platforms
+retain LIGHTNING_DRAIN_MANA. Native build 091621 showed the red/pink KO outline
+against blue platforms and entered an active match. Evidence:
+~/code/wc3-melee/worktrees/test-loop/build/blast-color-match.png.
+Simulation blast thresholds are unchanged.
+The final source build 091809 completed build/reload/trace in 27.213s with zero
+errors and the three existing warnings. Character selection → Three Bridges
+→ match rendered all three blue platforms inside the red/pink boundary:
+~/code/wc3-melee/worktrees/test-loop/build/blast-color-three-bridges.png.

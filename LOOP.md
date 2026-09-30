@@ -27,6 +27,12 @@ to the Single Player map chooser without closing Warcraft. Recreating the map
 there recovered the selection screen. This is observed manual recovery, not a
 fix for the restart defect.
 
+The 2026-09-30 comparison in wc3-melee:DEVELOPMENT.md did not reproduce the
+stall using short key presses, atomic replacement, changed map revision, or
+the exact early-trace loop. That command took 28.627s and still accepted a
+selection change after another 30s. These are successful samples, not a root
+repair; preserve a future failure before changing the driver speculatively.
+
 Changing desktop focus stops automation before subsequent input. Niri and
 Wayland screenshots use logical pixels at scale 1. Avoid X11 mouse coordinates:
 they previously disagreed with the visible Wayland cursor. Native `wlrctl`
