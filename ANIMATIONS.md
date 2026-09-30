@@ -7,6 +7,25 @@ Every fighter requires grounded/airborne damage reactions and exact hitlag pose
 holds, alongside the complete normal, aerial, special, defense and grab/throw
 coverage. Hitlag freezes the appropriate contact pose; it is not a looping clip.
 
+Both fighters now have authored Damage Ground, Damage Air, Damage Tumble and
+Damage Shield clips in wc3-melee:tools/animations/damage.py. Contact is already
+posed at frame zero; non-looping clips settle into a held reaction. Wurst selects
+ground contact during hitlag, then airborne/tumble presentation on launch.
+New damage retriggers the reaction even when the new hitstun is shorter.
+Damage selection runs after attack selection, and playback freezes afterward.
+Native unit blend time is zero: the first native recording demonstrated that
+default blending otherwise retained the old pose throughout the freeze.
+
+Three focused Wurst tests pass; the existing aerial/package preservation check
+passes for both fighters. The installed `space-camera-r1` recording shows a
+Rifleman grounded recoil held across five simulation hitlag ticks before tumble,
+and an Archer grounded recoil held across seven ticks before airborne reaction.
+Evidence: wc3-melee:build/impact-assets/space-after.mp4 and its matching trace;
+contact strips are wc3-melee:build/impact-assets/damage-r2-strip.png and
+wc3-melee:build/impact-assets/damage-archer-r2-strip.png. This verifies those
+observed contacts, not exact arbitrary animation seeking or rollback restoration.
+Shield reactions, both-facing coverage and replay pose restoration remain open.
+
 The directional-specials pass connects stock bear/hippogryph effect animations
 to numerical state. Dedicated body clips now cover neutral fire, fan wind-up,
 backward disengage, riding recovery, bear summon, trap placement and downward

@@ -2,7 +2,31 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-Latest installed build: `getup-advantage-r1` (normal matches). The focused
+September 30 damage/Space checkpoint: the running `space-camera-r1` contains
+dedicated ground/air/tumble/shield damage clips and zero native animation blend
+time. Native recordings show both fighters changing into their recoil pose for
+hitlag; the earlier `damage-poses-r1` recording exposed old-pose retention with
+default blending. Three DamagePoseTests pass; aerial/package preservation
+passes. See wc3-melee:ANIMATIONS.md for evidence and remaining pose checks.
+
+Space causes a captured one-frame camera excursion between normal arena views.
+Setting only the quick-camera destination did not fix it. `space-camera-r2`
+is built and installed with camera target bounds collapsed to arena center,
+but is not yet verified running. The running readiness receipt still names r1.
+Evidence: wc3-melee:build/impact-assets/space-before.mp4,
+wc3-melee:build/impact-assets/space-glitch-strip.png and
+wc3-melee:build/impact-assets/space-after.mp4. The latest build log is
+wc3-melee:build/space-camera-r2-map.log. No input binding changed.
+
+Ctrl+R again produced “Waiting for host” after the r1 reload; the owner recreated
+the game. Stop using that shortcut for routine checks pending root repair.
+wc3-melee:wurst/Melee.wurst still directly calls RestartGame(false), and
+wc3-melee:tools/restart-probe retains the minimal reproduction. Prior small
+probes did not reproduce the intermittent full-map failure; they are not proof
+of reliability. Native input automation is awaiting coordination with the owner
+because human actions overlapped the camera recordings and menu navigation.
+
+Previous installed build: `getup-advantage-r1` (normal matches). The focused
 knockdown build `getup-advantage-check` verified a Rifleman mirror-match get-up
 hit through N: attack starts frame 73, hits frame 89 for 7 damage/39 hitstun,
 and the attacker becomes actionable at frame 123 while the victim is knocked

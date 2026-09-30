@@ -1,0 +1,56 @@
+package DamagePoseTests
+import Simulation
+import DamagePose
+import ImpactEvents
+
+@Test function groundedContactFreezesReactionBeforeAirborneLaunch()
+    let f = new FighterState(0, 0, 1)
+    f.grounded = false
+    f.sdiWasGrounded = true
+    f.hitstun = 39
+    f.hitlag = 5
+    f.downState = DOWN_TUMBLE
+    for tick = 1 to 5
+        damagePose(f).assertEquals(DAMAGE_POSE_GROUND)
+        f.hitlag--
+    damagePose(f).assertEquals(DAMAGE_POSE_TUMBLE)
+    f.hitstun = 0
+    damagePose(f).assertEquals(DAMAGE_POSE_TUMBLE)
+    f.downState = DOWN_BOUND
+    damagePose(f).assertEquals(DAMAGE_POSE_NONE)
+    destroy f
+
+@Test function weakAirHitAndShieldUseDistinctReactions()
+    let f = new FighterState(1, 0, 1)
+    f.grounded = false
+    f.hitstun = 11
+    f.hitlag = 3
+    damagePose(f).assertEquals(DAMAGE_POSE_AIR)
+    f.hitlag = 0
+    damagePose(f).assertEquals(DAMAGE_POSE_AIR)
+    f.grounded = true
+    damagePose(f).assertEquals(DAMAGE_POSE_GROUND)
+    f.hitstun = 0
+    damagePose(f).assertEquals(DAMAGE_POSE_NONE)
+    f.shield = true
+    f.shieldStun = 4
+    damagePose(f).assertEquals(DAMAGE_POSE_SHIELD)
+    f.shieldBreakState = SHIELD_BREAK_AIR
+    damagePose(f).assertEquals(DAMAGE_POSE_NONE)
+    destroy f
+
+@Test function repeatedHitRestartsReactionEvenWithShorterHitstun()
+    let f = new FighterState(0, 0, 1)
+    let events = new ImpactEvents()
+    f.hitstun = 39
+    events.before(f)
+    f.damage += 3
+    f.hitstun = 17
+    events.after(f)
+    events.hit.assertTrue()
+    events.before(f)
+    f.hitstun--
+    events.after(f)
+    events.hit.assertFalse()
+    destroy events
+    destroy f

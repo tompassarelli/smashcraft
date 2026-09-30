@@ -18,6 +18,7 @@ import SettingsUI
 import FighterAssets
 import StageAssetInfo
 import ImpactEvents
+import DamagePose
 import CombatEffects
 import FrostEffects
 import SpecialEffects
@@ -241,6 +242,8 @@ class Fighter extends FighterState
         UnitRemoveAbility(body, 'Amrf')
         UnitAddAbility(body, 'Aloc')
         PauseUnit(body, true)
+        // A blended transition can retain the previous pose throughout hitlag.
+        SetUnitBlendTime(body, 0.)
         place()
 
     function place()
@@ -412,8 +415,6 @@ function applyFrame()
     let botWasOut = botFighter.out
     let playerPreviousAttack = playerFighter.attackSerial
     let botPreviousAttack = botFighter.attackSerial
-    let playerPreviousStun = playerFighter.hitstun
-    let botPreviousStun = botFighter.hitstun
     let playerPreviousJump = playerFighter.jumpSerial
     let botPreviousJump = botFighter.jumpSerial
     let playerPreviousDown = playerFighter.downState
@@ -457,26 +458,24 @@ function applyFrame()
             announce("Tech!")
         else if playerFighter.downState == DOWN_TECH_ROLL
             announce("Tech roll!")
-    renderFighter(playerFighter, playerWasOut, playerFighter.jumpSerial != playerPreviousJump)
-    renderFighter(botFighter, botWasOut, botFighter.jumpSerial != botPreviousJump)
+    if playerFighter.attackSerial != playerPreviousAttack
+        traceParticipant(0, "applied attack " + I2S(playerFighter.attackSerial) + " style " + I2S(playerFighter.attackStyle))
+        if attackPhase(playerFighter) != ATTACK_NONE
+            playAttackAnimation(playerFighter)
+        if isAerialAttack(playerFighter.attackStyle)
+            announce(aerialAttackName(playerFighter.attackStyle))
+    if botFighter.attackSerial != botPreviousAttack
+        traceParticipant(1, "applied attack " + I2S(botFighter.attackSerial) + " style " + I2S(botFighter.attackStyle))
+        if attackPhase(botFighter) != ATTACK_NONE
+            playAttackAnimation(botFighter)
+    renderFighter(playerFighter, playerWasOut, playerFighter.jumpSerial != playerPreviousJump, firstImpacts.hit)
+    renderFighter(botFighter, botWasOut, botFighter.jumpSerial != botPreviousJump, secondImpacts.hit)
     frostEffects.present(playerFighter, botFighter)
     specialEffects.present(playerFighter, botFighter)
     renderProjectiles(playerFighter, 0)
     renderProjectiles(botFighter, PROJECTILE_CAPACITY)
     if matchState.phase == RESULT
         clearProjectileModels()
-    if playerFighter.attackSerial != playerPreviousAttack
-        traceParticipant(0, "applied attack " + I2S(playerFighter.attackSerial) + " style " + I2S(playerFighter.attackStyle))
-        playAttackAnimation(playerFighter)
-        if isAerialAttack(playerFighter.attackStyle)
-            announce(aerialAttackName(playerFighter.attackStyle))
-    if botFighter.attackSerial != botPreviousAttack
-        traceParticipant(1, "applied attack " + I2S(botFighter.attackSerial) + " style " + I2S(botFighter.attackStyle))
-        playAttackAnimation(botFighter)
-    if playerFighter.hitstun > playerPreviousStun
-        SetUnitAnimation(playerFighter.body, "stand hit")
-    if botFighter.hitstun > botPreviousStun
-        SetUnitAnimation(botFighter.body, "stand hit")
 
 function jump(Fighter f)
     if matchState.phase != MATCH
@@ -1019,7 +1018,25 @@ function specialAnimationSeconds(Fighter f) returns real
         return RIFLEMAN_SPECIAL_NEUTRAL_AIR_SECONDS
     return RIFLEMAN_SPECIAL_NEUTRAL_SECONDS
 
-function renderFighter(Fighter f, boolean wasOut, boolean jumped)
+function damageAnimationIndex(Fighter f, int pose) returns int
+    if pose == DAMAGE_POSE_GROUND
+        return f.character == 0 ? ARCHER_DAMAGE_GROUND_INDEX : RIFLEMAN_DAMAGE_GROUND_INDEX
+    if pose == DAMAGE_POSE_TUMBLE
+        return f.character == 0 ? ARCHER_DAMAGE_TUMBLE_INDEX : RIFLEMAN_DAMAGE_TUMBLE_INDEX
+    if pose == DAMAGE_POSE_SHIELD
+        return f.character == 0 ? ARCHER_DAMAGE_SHIELD_INDEX : RIFLEMAN_DAMAGE_SHIELD_INDEX
+    return f.character == 0 ? ARCHER_DAMAGE_AIR_INDEX : RIFLEMAN_DAMAGE_AIR_INDEX
+
+function damageAnimationSeconds(Fighter f, int pose) returns real
+    if pose == DAMAGE_POSE_GROUND
+        return f.character == 0 ? ARCHER_DAMAGE_GROUND_SECONDS : RIFLEMAN_DAMAGE_GROUND_SECONDS
+    if pose == DAMAGE_POSE_TUMBLE
+        return f.character == 0 ? ARCHER_DAMAGE_TUMBLE_SECONDS : RIFLEMAN_DAMAGE_TUMBLE_SECONDS
+    if pose == DAMAGE_POSE_SHIELD
+        return f.character == 0 ? ARCHER_DAMAGE_SHIELD_SECONDS : RIFLEMAN_DAMAGE_SHIELD_SECONDS
+    return f.character == 0 ? ARCHER_DAMAGE_AIR_SECONDS : RIFLEMAN_DAMAGE_AIR_SECONDS
+
+function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
     f.renderShield()
     f.renderDizzy()
     if wasOut and not f.out
@@ -1041,6 +1058,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
         f.animation = ""
     else if f.jumpAnimationRemaining > 0 and f.hitlag <= 0
         f.jumpAnimationRemaining--
+    let reaction = damagePose(f)
     var animationRate = attackAnimationRate(f)
     if f.ledgeState == LEDGE_CLIMB
         animationRate = (f.character == 0 ? ARCHER_LEDGE_CLIMB_SECONDS : RIFLEMAN_LEDGE_CLIMB_SECONDS) / (LEDGE_CLIMB_FRAMES * FRAME_SECONDS)
@@ -1054,6 +1072,8 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
         animationRate = (f.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS) / (SHIELD_BREAK_STAND_FRAMES * FRAME_SECONDS)
     else if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
         animationRate = downAnimationRate(f)
+    else if reaction != DAMAGE_POSE_NONE
+        animationRate = damageAnimationSeconds(f, reaction) / (24 * FRAME_SECONDS)
     else if isGroundDodging(f)
         let duration = f.groundDodgeDirection == 0 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES
         animationRate = groundDodgeAnimationSeconds(f) / (duration * FRAME_SECONDS)
@@ -1061,7 +1081,6 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
         animationRate = specialAnimationSeconds(f) / (f.specialDuration * FRAME_SECONDS)
     else if f.jumpAnimationRemaining > 0
         animationRate = f.doubleJumpAnimation ? (f.character == 0 ? ARCHER_DOUBLE_JUMP_SECONDS : RIFLEMAN_DOUBLE_JUMP_SECONDS) / (30 * FRAME_SECONDS) : (f.character == 0 ? ARCHER_JUMP_SECONDS : RIFLEMAN_JUMP_SECONDS) / (24 * FRAME_SECONDS)
-    SetUnitTimeScale(f.body, f.hitlag > 0 or f.smashCharging ? 0 : animationRate)
     SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
     if f.ledgeState != LEDGE_NONE
         let anim = "ledge" + I2S(f.ledgeState)
@@ -1091,10 +1110,12 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
             if f.downState != DOWN_WAIT
                 SetUnitAnimationByIndex(f.body, downAnimationIndex(f))
             f.animation = anim
-    else if isTumbling(f)
-        if f.animation != "tumble"
-            SetUnitAnimation(f.body, "stand hit")
-            f.animation = "tumble"
+    else if reaction != DAMAGE_POSE_NONE
+        let anim = "damage" + I2S(reaction)
+        if hit or f.animation != anim
+            SetUnitAnimationByIndex(f.body, damageAnimationIndex(f, reaction))
+            f.animation = anim
+            traceParticipant(f == playerFighter ? 0 : 1, "damage pose " + I2S(reaction) + " hitlag " + I2S(f.hitlag) + " hitstun " + I2S(f.hitstun))
     else if isGroundDodging(f)
         if f.animation != "dodge"
             SetUnitAnimationByIndex(f.body, groundDodgeAnimation(f))
@@ -1115,6 +1136,9 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
             f.animation = anim
     else
         f.animation = ""
+    // Select the victim's reaction first; retain the attacker's contact pose.
+    // On release only the playback rate changes, so the held clip resumes.
+    SetUnitTimeScale(f.body, f.hitlag > 0 or f.smashCharging ? 0 : animationRate)
 
 function renderUI()
     let selecting = matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU

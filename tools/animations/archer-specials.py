@@ -142,6 +142,9 @@ author("Special Up", {
     24: {},
 }, 24)
 
+from damage import author_archer_damage
+author_archer_damage(author)
+
 scene.frame_set(0)
 editable = assets / "archer-fighter.blend"
 bpy.ops.wm.save_as_mainfile(filepath=str(editable))

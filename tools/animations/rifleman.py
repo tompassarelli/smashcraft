@@ -271,6 +271,8 @@ from aerials import author_rifleman_aerials
 author_rifleman_aerials(author)
 from ledges import author_ledges
 author_ledges(rig, "Rifleman")
+from damage import author_rifleman_damage
+author_rifleman_damage(author)
 
 scene.frame_set(0)
 bpy.ops.wm.save_as_mainfile(filepath=str(assets / 'rifleman-fighter.blend'))
