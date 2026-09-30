@@ -60,6 +60,7 @@ boolean botJumpQueued = false
 boolean botJumpHeld = false
 timer inputTraceClock = null
 boolean inputTraceActive = false
+boolean developerRestartRequested = false
 int inputTraceTicks = 0
 int inputTraceCount = 0
 int inputTraceLastAxes = 999
@@ -97,6 +98,7 @@ function finishInputTrace()
     for i = 0 to inputTraceCount - 1
         Preload(inputTraceLines[i])
     PreloadGenEnd("wc3-melee-input-trace.txt")
+
 InputSnapshot playerInput = null
 InputSnapshot botInput = null
 SelectionPanel selectionPanel = null
@@ -582,13 +584,6 @@ function onParticipantKeyDown(int participantId)
     let opponent = participantId == 0 ? botFighter : playerFighter
     if keyCode < 0 or keyCode > 255 or state.isKeyHeld(keyCode)
         return
-    if participantId == 0 and key == OSKEY_F7
-        state.press(keyCode, bindings.bindings)
-        startInputTrace()
-        return
-    if participantId == 0 and key == OSKEY_F6
-        RestartGame(false)
-        return
     if participantId == 0 and key == OSKEY_F5
         EndGame(false)
         return
@@ -724,9 +719,29 @@ function onKeyUp()
 function registerKey(trigger eventTrigger, player participant, oskeytype key, boolean down)
     BlzTriggerRegisterPlayerKeyEvent(eventTrigger, participant, key, 0, down)
 
+function registerDeveloperChord(trigger eventTrigger, oskeytype key)
+    BlzTriggerRegisterPlayerKeyEvent(eventTrigger, Player(0), key, 2, true)
+
+function onDeveloperRestart()
+    if GetTriggerPlayer() != Player(0) or not hostHumanPlayer or developerRestartRequested
+        return
+    developerRestartRequested = true
+    RestartGame(false)
+
+function onDeveloperTrace()
+    if GetTriggerPlayer() != Player(0) or not hostHumanPlayer or inputTraceActive
+        return
+    startInputTrace()
+
 function setupKeys()
     let downTrigger = CreateTrigger()
     let upTrigger = CreateTrigger()
+    let restartTrigger = CreateTrigger()
+    let traceTrigger = CreateTrigger()
+    registerDeveloperChord(restartTrigger, OSKEY_R)
+    registerDeveloperChord(traceTrigger, OSKEY_T)
+    TriggerAddAction(restartTrigger, function onDeveloperRestart)
+    TriggerAddAction(traceTrigger, function onDeveloperTrace)
     for keyCode = 1 to 255
         let key = ConvertOsKeyType(keyCode)
         if hostHumanPlayer
@@ -929,9 +944,10 @@ function renderUI()
         BlzFrameSetVisible(hudFrame, not selecting)
         BlzFrameSetVisible(helpFrame, not selecting and not controlsOpen)
         BlzFrameSetVisible(noticeFrame, not controlsOpen)
+        BlzFrameSetVisible(developerFrame, not selecting and not controlsOpen)
         if not selecting
             BlzFrameSetText(hudFrame, "P1 " + charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "   " + shieldLabel(playerFighter) + "\n" + (twoHumanPlayers ? "P2 " : "Bot ") + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "   " + shieldLabel(botFighter) + "\n" + (matchState.stageChoice == 0 ? "Sky Deck" : "Three Bridges") + "   |cffff6666Red border = KO|r")
-            BlzFrameSetText(helpFrame, matchState.phase == RESULT ? (matchState.firstRematchReady and twoHumanPlayers ? "Player 1 ready; waiting for Player 2. F6: restart" : (matchState.secondRematchReady and twoHumanPlayers ? "Player 2 ready; waiting for Player 1. F6: restart" : "Press Attack to choose your next match     F6: restart")) : "Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.")
+            BlzFrameSetText(helpFrame, matchState.phase == RESULT ? (matchState.firstRematchReady and twoHumanPlayers ? "Player 1 ready; waiting for Player 2. Ctrl+R: restart" : (matchState.secondRematchReady and twoHumanPlayers ? "Player 2 ready; waiting for Player 1. Ctrl+R: restart" : "Press Attack to choose your next match     Ctrl+R: restart")) : "Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.")
             if matchState.phase == MATCH and localFighter.downState == DOWN_WAIT
                 BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
             else if matchState.phase == MATCH and localFighter.ledgeState == LEDGE_HANG
@@ -948,7 +964,7 @@ function renderUI()
     if secondSettingsPanel != null
         secondSettingsPanel.update()
     if GetLocalPlayer() == Player(0) and playerFighter != null
-        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | input=" + I2S(lastInputAction) + " normal=" + I2S(lastNormalStyle) + " move=" + I2S(playerFighter.attackStyle) + " frame=" + I2S(playerFighter.attackFrame) + " serial=" + I2S(playerFighter.attackSerial) + " down=" + I2S(playerFighter.downState) + ":" + I2S(playerFighter.downFrame) + " DI=" + I2S(playerFighter.diSerial) + ":" + I2S(R2I(playerFighter.diAngleDegrees)) + " S=" + I2S(playerFighter.sdiSerial) + " A=" + I2S(playerFighter.asdiSerial) + " | F6 restart")
+        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | input=" + I2S(lastInputAction) + " normal=" + I2S(lastNormalStyle) + " move=" + I2S(playerFighter.attackStyle) + " frame=" + I2S(playerFighter.attackFrame) + " serial=" + I2S(playerFighter.attackSerial) + " down=" + I2S(playerFighter.downState) + ":" + I2S(playerFighter.downFrame) + " DI=" + I2S(playerFighter.diSerial) + ":" + I2S(R2I(playerFighter.diAngleDegrees)) + " S=" + I2S(playerFighter.sdiSerial) + " A=" + I2S(playerFighter.asdiSerial) + " | Ctrl+R restart")
 
 function lockArenaCamera()
     SetCameraField(CAMERA_FIELD_ROTATION, 90, 0)

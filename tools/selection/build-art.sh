@@ -4,7 +4,7 @@ project_dir=$(cd -- "$(dirname -- "$0")/../.." && pwd)
 source_dir="$project_dir/tools/selection/art"
 output_dir="$project_dir/build/selection-assets"
 mkdir -p "$output_dir"
-for name in SelectionBackdrop SelectionTileFrame SelectionAction SelectionStage; do
+for name in SelectionBackdrop SelectionTileFrame SelectionAction SelectionSkyDeck SelectionThreeBridges; do
     magick -background none "$source_dir/$name.svg" -depth 8 "TGA:$output_dir/$name.tga"
 done
 sed -e 's/CARD_COLOR/#7d1c2d/g' -e 's/PLAYER_MARK/P1/' "$source_dir/SelectionCard.svg" > "$output_dir/SelectionCardRed.svg"

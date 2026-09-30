@@ -10,7 +10,7 @@ maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive
 build_output="$project_dir/build/wurst-map/Melee_Prototype.w3x"
 fighter_assets="$project_dir/build/animation-assets"
 selection_assets="$project_dir/build/selection-assets"
-selection_textures=(SelectionBackdrop SelectionTileFrame SelectionCardRed SelectionCardBlue SelectionAction SelectionStage ArcherPortrait RiflemanPortrait ArcherTile RiflemanTile)
+selection_textures=(SelectionBackdrop SelectionTileFrame SelectionCardRed SelectionCardBlue SelectionAction SelectionSkyDeck SelectionThreeBridges ArcherPortrait RiflemanPortrait ArcherTile RiflemanTile)
 
 if [[ $# -ne 1 || ! -f "$1" ]]; then
     printf 'Usage: %s BASE_MAP.w3m|BASE_MAP.w3x\n' "$0" >&2

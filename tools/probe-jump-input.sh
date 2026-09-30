@@ -16,7 +16,7 @@ export YDOTOOL_SOCKET="$run_dir/input.sock"
 ydotoold -p "$YDOTOOL_SOCKET" > "$run_dir/input.log" 2>&1 &
 input_pid=$!
 cleanup() {
-    ydotool key "$jump_key:0" 49:0 65:0 2>/dev/null || true
+    ydotool key "$jump_key:0" 49:0 29:0 20:0 2>/dev/null || true
     kill "$input_pid" 2>/dev/null || true
     wait "$input_pid" 2>/dev/null || true
 }
@@ -24,10 +24,11 @@ trap cleanup EXIT
 sleep 0.6
 require_focus() { [[ $(niri msg --json focused-window | jq -r .title) == 'Warcraft III' ]]; }
 press() { require_focus; ydotool key "$1:1"; sleep 0.08; ydotool key "$1:0"; sleep 0.18; }
+trace() { require_focus; ydotool key 29:1 20:1 20:0 29:0; }
 touch "$run_dir/started"
 press 49
 press 49
-press 65
+trace
 require_focus
 ydotool key "$jump_key:1"
 sleep 0.18

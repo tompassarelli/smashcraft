@@ -60,7 +60,7 @@ public class SelectionPanel
         let suffix = I2S(participantId)
         let frameOffset = participantId * 100
 
-        backdrop = createBackdrop("MeleeSelectBackdrop" + suffix, GAME_UI, 400 + frameOffset)
+        backdrop = createBackdrop("MeleeSelectBackdrop" + suffix, CONSOLE_UI, 400 + frameOffset)
         backdrop.setTexture("war3mapImported\\SelectionBackdrop.tga", 0, false)
         backdrop.setFullscreenReference()
 
@@ -351,8 +351,8 @@ public class SelectionPanel
             subheading.setText("Mouse-select a stage, then start the match.")
             firstChoiceName.setText((choice == 0 ? "|cffffd64a>  |r" : "") + "SKY DECK")
             secondChoiceName.setText((choice == 1 ? "|cffffd64a>  |r" : "") + "THREE BRIDGES")
-            firstChoicePortrait.setTexture("war3mapImported\\SelectionStage.tga", 0, true)
-            secondChoicePortrait.setTexture("war3mapImported\\SelectionStage.tga", 0, true)
+            firstChoicePortrait.setTexture("war3mapImported\\SelectionSkyDeck.tga", 0, true)
+            secondChoicePortrait.setTexture("war3mapImported\\SelectionThreeBridges.tga", 0, true)
             selectedName.setText((participantId == 0 ? "|cffff5555P1  |r" : "|cff6699ffP2  |r") + characterName(ownCharacter))
             selectedStatus.setText(choice == 0 ? "One wide platform" : "Three floating platforms")
             opponentName.setText(opponentHuman ? (participantId == 0 ? "|cff6699ffP2  |r" : "|cffff5555P1  |r") + characterName(opponentChoice) : "|cffc6cbd4BOT  |r" + characterName(opponentChoice))

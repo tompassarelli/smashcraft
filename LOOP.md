@@ -10,7 +10,7 @@ With Melee Prototype already running in Warcraft III:
 ~/code/wc3-melee/worktrees/test-loop/loop.sh reload
 ```
 
-This builds and atomically replaces the installed map, sends F6, waits for the
+This builds and atomically replaces the installed map, sends Ctrl+R, waits for the
 loading screen's continue prompt, presses Enter, and verifies the new build
 number on screen. It records timestamps, the retained game PID, screenshots,
 and OCR text under ~/code/wc3-melee/worktrees/test-loop/build/loop/.
@@ -45,6 +45,10 @@ explicitly retired that testing route.
 
 ## Observations
 
+The historical observations below retain the F6/F7 shortcut labels used at
+those dates. Current developer shortcuts are Ctrl+R for map restart and Ctrl+T
+for input tracing; `loop.sh` and the focused probes use the current chords.
+
 Before Wurst migration, two automatic reloads verified changed revision text
 with the same Warcraft process: 12.834 s and 14.970 s total. Build time was
 approximately 1.0–1.1 s. These samples are retained under the loop output folder.
@@ -55,7 +59,8 @@ black screen success or terminate the client automatically after a timeout.
 Inspect the recorded screenshot and current window/process first.
 
 Wurst build and in-game timings will be recorded only after an actual run.
-The map currently needs an initial load before F6 can be used.
+The map currently needs an initial load before Ctrl+R can be used. Ctrl+T
+starts the native input trace used by focused probes.
 
 ## Wurst integration observation (2026-09-29)
 

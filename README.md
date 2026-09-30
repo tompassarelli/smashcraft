@@ -22,12 +22,15 @@ The current map provides character and stage selection, two Warcraft fighters,
 a bot opponent, floating platforms, blast zones and stocks. Mouse buttons and
 S/F + N select a fighter/stage; U goes back. F1 opens Controls before a match.
 Choose QWERTY or Custom, click either key slot to rebind, then Save. Saved
-controls load automatically on the next map start.
+controls load automatically on the next map start. Developer shortcuts are
+Ctrl+R to restart the map and Ctrl+T to start an input trace; these chords are
+separate from player bindings. F6 and F7 remain reserved from rebinding for
+Warcraft's own shortcuts.
 In the custom preset: S/F move; I/9 jump; Space aims up;
 D fast-falls/drops; A/8 shield or air-dodge; L grabs; N attacks; U fires a special;
 Hold ; to walk. N with direction gives a smash, or a tilt while walking.
 H/J/M/B are C-stick smashes. Ground blaster has longer recovery than air
-blaster. F6 reloads the map. Avoid F5: returning to the menu previously hung
+blaster. Avoid F5: returning to the menu previously hung
 the client; use the persistent map-restart loop while developing.
 QWERTY uses 7 for right trigger and 8 for the alternate jump key.
 

@@ -36,6 +36,7 @@ require_focus() {
     fi
 }
 press() { require_focus; ydotool key "$1:1" "$1:0"; }
+press_ctrl() { require_focus; ydotool key 29:1 "$1:1" "$1:0" 29:0; }
 capture() { require_focus; grim -s 1 "$run_dir/current.png"; }
 if [[ "$mode" == probe ]]; then
     capture
@@ -65,8 +66,8 @@ else
     mark 'build started'
     WC3_DEPLOY_MAP=1 WC3_BUILD_ID="$build_id" "$project_dir/build.sh" '/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps/Melee_Prototype_Base.w3m'
     mark 'build finished'
-    press 64
-    mark 'restart-map sent'
+    press_ctrl 19
+    mark 'Ctrl+R restart-map sent'
 fi
 continued=0
 deadline=$((SECONDS + 45))

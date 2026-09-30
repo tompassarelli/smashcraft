@@ -1078,6 +1078,49 @@ remains at ~/code/wc3-melee/worktrees/test-loop/build/selection-assets/current.p
 Only catch/climb was checked natively in this pass; the other options have
 headless coverage. Dedicated hanging/climbing animation work remains necessary.
 
+## Fullscreen selection and developer-key collision (2026-09-30)
+
+The selection backdrop's parent was GAME_UI, which constrained its visible
+horizontal extent to the central 4:3 area. The client reported 2880x1920 both
+at initialization and readiness, ruling out missing viewport dimensions.
+WORLD_UI anchoring alone did not expand a GAME_UI child. Creating the backdrop
+under CONSOLE_UI and calling setFullscreenReference() rendered across the full
+screen; measured backdrop width was 0.900. Evidence:
+~/code/wc3-melee/worktrees/test-loop/build/selection-assets/parent-result.png.
+Temporary frame/viewport probes were removed after that result. Developer text
+is now hidden during selection and settings so it does not overlap buttons.
+
+Sky Deck and Three Bridges now have separate authored previews: one wide
+platform versus the wide platform plus two equal-height upper platforms.
+The generator and exact import list package both; the old shared preview is
+removed. Native evidence:
+~/code/wc3-melee/worktrees/test-loop/build/selection-assets/new-stage-previews.png.
+
+F6 conflicted with Warcraft's native quick-save. During the old restart runs,
+the game's Logs/selection.log recorded four "Saving Game: DispatchSaveGame()"
+entries, preserved at
+~/code/wc3-melee/worktrees/test-loop/build/selection-assets/native-save-before.log.
+A host-wait recurred before build 074844 loaded. This establishes a competing
+native save action and a plausible explanation for the intermittent restart
+failure, not a proof that every historical host-wait had that cause.
+
+Developer restart now uses Ctrl+R, tracing Ctrl+T, through distinct Player 0
+meta=2 key events. The restart handler permits one request per map instance;
+the old F6/F7 custom handlers are absent. The loop, focused probes and current
+instructions use the new chords. Historical F6/F7 measurements above describe
+the old driver. A first native-menu restart installed the changed handler.
+
+Ctrl+R build 080119 completed in 22.823 seconds and retained PID 3986327. The
+native save log remained at four entries. Ctrl+T then produced a fresh trace
+and wc3-melee:tools/probe-jump-input.sh I passed both ground- and double-jump
+assertions. Evidence: ~/code/wc3-melee/worktrees/test-loop/build/selection-assets/ctrl-reload-one.log
+and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/jump-input-I/trace.txt.
+Headless tests remain 169/169; map compilation retains the three known warnings.
+The second warm Ctrl+R reload reached normal build 080229 in 21.989 seconds,
+again retaining the PID and four-entry save log. The client is left on that
+normal build. These two passes show the new shortcut avoids the observed save
+collision; they do not establish an unlimited-session reliability guarantee.
+
 Build 070118 compiled and deployed with the three existing map warnings.
 Automatic restart correctly stopped after focus changed; direct F6 followed
 by Enter at the observed loading prompt completed the restart without another
