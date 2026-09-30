@@ -6,12 +6,64 @@ import MatchRules
 import CommandBuffer
 
 public constant int REPLAY_HISTORY_CAPACITY = 64
+public constant int REPLAY_MAX_CORRECTION_FRAMES = 6
+public constant int REPLAY_CORRECTION_REJECTED = -1
+public constant int REPLAY_CORRECTION_UNCHANGED = 0
 
-// Construct in common initialization. Retained rows are private and copied once;
+// Detached authoritative replacements for used rows. Adding a row never edits
+// its producer; identical duplicates are harmless and conflicting ones fail.
+public class ReplayCorrections
+    private MatchFrameInput array[REPLAY_MAX_CORRECTION_FRAMES] rows
+    private int count = 0
+    private int epoch = -1
+
+    construct()
+        for i = 0 to REPLAY_MAX_CORRECTION_FRAMES - 1
+            rows[i] = new MatchFrameInput()
+
+    function beginEpoch(int newEpoch) returns boolean
+        if newEpoch <= epoch
+            return false
+        epoch = newEpoch
+        count = 0
+        return true
+
+    function epochNumber() returns int
+        return epoch
+
+    function clear()
+        count = 0
+
+    function size() returns int
+        return count
+
+    function add(MatchFrameInput row) returns boolean
+        if epoch < 0 or row.frameNumber() < 1
+            return false
+        for i = 0 to count - 1
+            if rows[i].frameNumber() == row.frameNumber()
+                return rows[i].sameAs(row)
+        if count == REPLAY_MAX_CORRECTION_FRAMES
+            return false
+        row.copyTo(rows[count])
+        count++
+        return true
+
+    function copyRow(int index, MatchFrameInput destination) returns boolean
+        if index < 0 or index >= count
+            return false
+        rows[index].copyTo(destination)
+        return true
+
+// Construct in common initialization. Used rows are private detached copies;
 // save, restore and replay allocate neither Wurst objects nor native handles.
 public class ReplayHistory
     private ReplaySnapshot array[REPLAY_HISTORY_CAPACITY] snapshots
     private MatchFrameInput array[REPLAY_HISTORY_CAPACITY] inputs
+    private boolean array[REPLAY_HISTORY_CAPACITY] speculative
+    private MatchFrameInput correctionScratch = new MatchFrameInput()
+    private int correctionWindow = 0
+    private int authoritativeThrough = 0
     private int epoch = -1
     private int nextFrame = 1
     private int count = 0
@@ -23,13 +75,19 @@ public class ReplayHistory
 
     // Epochs increase across rematches; a repeated/stale reset cannot erase history.
     function beginEpoch(int newEpoch, int firstFrame) returns boolean
-        if newEpoch <= epoch or firstFrame < 1
+        return beginEpochWithCorrections(newEpoch, firstFrame, 0)
+
+    function beginEpochWithCorrections(int newEpoch, int firstFrame, int window) returns boolean
+        if newEpoch <= epoch or firstFrame < 1 or window < 0 or window > REPLAY_MAX_CORRECTION_FRAMES
             return false
         epoch = newEpoch
         nextFrame = firstFrame
         count = 0
+        correctionWindow = window
+        authoritativeThrough = firstFrame - 1
         for i = 0 to REPLAY_HISTORY_CAPACITY - 1
             inputs[i].reset()
+            speculative[i] = false
         return true
 
     function contains(int requestedEpoch, int frame) returns boolean
@@ -42,7 +100,27 @@ public class ReplayHistory
             FighterState first, FighterState second, MatchState game,
             AttackBuffer firstCommands, AttackBuffer secondCommands,
             ReplayRuntimeState runtime) returns boolean
+        return saveRow(requestedEpoch, row, false, first, second, game, firstCommands, secondCommands, runtime)
+
+    function saveSpeculative(int requestedEpoch, MatchFrameInput row,
+            FighterState first, FighterState second, MatchState game,
+            AttackBuffer firstCommands, AttackBuffer secondCommands,
+            ReplayRuntimeState runtime) returns boolean
+        return saveRow(requestedEpoch, row, true, first, second, game, firstCommands, secondCommands, runtime)
+
+    private function advanceAuthoritative()
+        while authoritativeThrough + 1 < nextFrame and not speculative[(authoritativeThrough + 1) mod REPLAY_HISTORY_CAPACITY]
+            authoritativeThrough++
+
+    private function saveRow(int requestedEpoch, MatchFrameInput row, boolean predicted,
+            FighterState first, FighterState second, MatchState game,
+            AttackBuffer firstCommands, AttackBuffer secondCommands,
+            ReplayRuntimeState runtime) returns boolean
         if epoch < 0 or requestedEpoch != epoch or row.frameNumber() != nextFrame or runtime.simulationFrame != nextFrame - 1
+            return false
+        // Even an authoritative future row cannot bypass an unresolved earlier
+        // prediction. The retained ring size does not grant speculation distance.
+        if (predicted or authoritativeThrough < nextFrame - 1) and nextFrame - authoritativeThrough > correctionWindow
             return false
         // Keep the signed frame counter from wrapping into a different history.
         if nextFrame == 2147483647
@@ -50,8 +128,10 @@ public class ReplayHistory
         let slot = nextFrame mod REPLAY_HISTORY_CAPACITY
         snapshots[slot].capture(first, second, game, firstCommands, secondCommands, runtime)
         row.copyTo(inputs[slot])
+        speculative[slot] = predicted
         nextFrame++
         count = min(count + 1, REPLAY_HISTORY_CAPACITY)
+        advanceAuthoritative()
         return true
 
     function restore(int requestedEpoch, int frame,
@@ -80,3 +160,43 @@ public class ReplayHistory
             inputs[frame mod REPLAY_HISTORY_CAPACITY].execute(game, first, second,
                 firstCommands, secondCommands, runtime, frame)
         return true
+
+    // Returns the earliest replayed frame, zero for no mismatch, or -1 on
+    // rejection. This edits only used speculative copies, never accepted input
+    // storage. The caller must supply the live state at the saved present.
+    function correct(int requestedEpoch, ReplayCorrections corrections,
+            FighterState first, FighterState second, MatchState game,
+            AttackBuffer firstCommands, AttackBuffer secondCommands,
+            ReplayRuntimeState runtime) returns int
+        if epoch < 0 or requestedEpoch != epoch or corrections.epochNumber() != epoch or runtime.simulationFrame != nextFrame - 1
+            return REPLAY_CORRECTION_REJECTED
+        var earliest = nextFrame
+        for i = 0 to corrections.size() - 1
+            corrections.copyRow(i, correctionScratch)
+            let frame = correctionScratch.frameNumber()
+            if not contains(requestedEpoch, frame)
+                return REPLAY_CORRECTION_REJECTED
+            let slot = frame mod REPLAY_HISTORY_CAPACITY
+            if not inputs[slot].sameAs(correctionScratch)
+                if not speculative[slot] or nextFrame - frame > correctionWindow
+                    return REPLAY_CORRECTION_REJECTED
+                earliest = min(earliest, frame)
+        // Preflight every replay row before changing either history or live state.
+        for frame = earliest to nextFrame - 1
+            if not contains(requestedEpoch, frame)
+                return REPLAY_CORRECTION_REJECTED
+        for i = 0 to corrections.size() - 1
+            corrections.copyRow(i, correctionScratch)
+            let slot = correctionScratch.frameNumber() mod REPLAY_HISTORY_CAPACITY
+            if speculative[slot]
+                correctionScratch.copyTo(inputs[slot])
+                speculative[slot] = false
+        advanceAuthoritative()
+        if earliest == nextFrame
+            return REPLAY_CORRECTION_UNCHANGED
+        restore(requestedEpoch, earliest, first, second, game, firstCommands, secondCommands, runtime)
+        for frame = earliest to nextFrame - 1
+            let slot = frame mod REPLAY_HISTORY_CAPACITY
+            snapshots[slot].capture(first, second, game, firstCommands, secondCommands, runtime)
+            inputs[slot].execute(game, first, second, firstCommands, secondCommands, runtime, frame)
+        return earliest

@@ -34,6 +34,12 @@ class TapeWorld
     function replay(ReplayHistory history, int epoch, int fromFrame, int throughFrame) returns boolean
         return history.replay(epoch, fromFrame, throughFrame, first, second, game, firstCommands, secondCommands, runtime)
 
+    function saveSpeculative(ReplayHistory history, int epoch, MatchFrameInput row) returns boolean
+        return history.saveSpeculative(epoch, row, first, second, game, firstCommands, secondCommands, runtime)
+
+    function correct(ReplayHistory history, int epoch, ReplayCorrections corrections) returns int
+        return history.correct(epoch, corrections, first, second, game, firstCommands, secondCommands, runtime)
+
     function restore(ReplayHistory history, int epoch, int frame) returns boolean
         return history.restore(epoch, frame, first, second, game, firstCommands, secondCommands, runtime)
 
@@ -190,3 +196,220 @@ public function runRecordedTape(int frames, int rollbackStride, int startingStoc
 
 @Test function longRecordedTapeMatchesEveryFrame()
     runRecordedTape(4096, 64, 99)
+
+@Test function correctedPredictionsRefreshSnapshotsAcrossRingWrapAndSecondRollback()
+    let canonical = new TapeWorld(99)
+    let partiallyCorrected = new TapeWorld(99)
+    let predicted = new TapeWorld(99)
+    let canonicalHistory = new ReplayHistory()
+    let history = new ReplayHistory()
+    let corrections = new ReplayCorrections()
+    corrections.beginEpoch(9).assertTrue()
+    let row = new MatchFrameInput()
+    let wrongRow = new MatchFrameInput()
+    let retainedWitness = new MatchFrameInput()
+    MatchFrameInput array[6] actual
+    for i = 0 to 5
+        actual[i] = new MatchFrameInput()
+    let input = new InputSnapshot()
+    let neutral = new InputSnapshot()
+    let response = new InputSnapshot()
+    let requests = new AttackBuffer(0)
+    let noRequests = new AttackBuffer(0)
+    history.beginEpochWithCorrections(9, 1, 6).assertTrue()
+    canonicalHistory.beginEpoch(9, 1).assertTrue()
+    for frame = 1 to 68
+        response.direction = frame >= 65 ? 1 : 0
+        input.direction = frame == 65 ? -1 : 0
+        requests.clear()
+        if frame == 63
+            requests.enqueue(1, 1, frame, false)
+        row.capture(frame, input, response, requests, noRequests, canonical.runtime).assertTrue()
+        canonical.save(canonicalHistory, 9, row).assertTrue()
+        canonical.execute(row)
+        wrongRow.capture(frame, neutral, neutral, noRequests, noRequests, predicted.runtime).assertTrue()
+        partiallyCorrected.execute(frame == 65 ? wrongRow : row)
+        if frame >= 63
+            row.copyTo(actual[frame - 63])
+            if frame == 66 or frame == 68
+                predicted.save(history, 9, row).assertTrue()
+            else
+                predicted.saveSpeculative(history, 9, frame == 63 or frame == 65 ? wrongRow : row).assertTrue()
+        else
+            predicted.save(history, 9, row).assertTrue()
+        predicted.execute(frame == 63 or frame == 65 ? wrongRow : row)
+    canonical.capture()
+    predicted.capture()
+    (canonical.snapshot.firstDifference(predicted.snapshot) != "").assertTrue()
+    history.contains(9, 4).assertFalse()
+    history.contains(9, 5).assertTrue()
+    actual[0].copyTo(retainedWitness)
+    // Arrival order differs from frame order. An identical row does not move
+    // the rollback start; the earliest changed row does.
+    corrections.add(actual[1]).assertTrue()
+    corrections.add(actual[0]).assertTrue()
+    predicted.correct(history, 9, corrections).assertEquals(63)
+    actual[0].sameAs(retainedWitness).assertTrue()
+    partiallyCorrected.capture()
+    predicted.capture()
+    partiallyCorrected.snapshot.firstDifference(predicted.snapshot).assertEquals("")
+    corrections.clear()
+    for i = 5 downto 2
+        corrections.add(actual[i]).assertTrue()
+    predicted.correct(history, 9, corrections).assertEquals(65)
+    predicted.capture()
+    canonical.snapshot.firstDifference(predicted.snapshot).assertEquals("")
+    canonical.first.attackSerial.assertEquals(1)
+    canonical.second.damage.assertGreaterThan(0.)
+    (canonical.snapshot.firstDifference(partiallyCorrected.snapshot) != "").assertTrue()
+    // Every snapshot after the first mismatch must now restore corrected state,
+    // including frames overwritten during the second correction.
+    for frame = 64 to 68
+        predicted.restore(history, 9, frame).assertTrue()
+        canonical.restore(canonicalHistory, 9, frame).assertTrue()
+        predicted.capture()
+        canonical.capture()
+        canonical.snapshot.firstDifference(predicted.snapshot).assertEquals("")
+    predicted.replay(history, 9, 64, 68).assertTrue()
+    canonical.replay(canonicalHistory, 9, 64, 68).assertTrue()
+    predicted.capture()
+    canonical.capture()
+    canonical.snapshot.firstDifference(predicted.snapshot).assertEquals("")
+    predicted.correct(history, 9, corrections).assertEquals(REPLAY_CORRECTION_UNCHANGED)
+    predicted.capture()
+    canonical.snapshot.firstDifference(predicted.snapshot).assertEquals("")
+    row.capture(69, neutral, neutral, noRequests, noRequests, predicted.runtime).assertTrue()
+    predicted.saveSpeculative(history, 9, row).assertTrue()
+
+@Test function correctionWindowAndIdenticalConfirmationControlSpeculation()
+    let world = new TapeWorld(99)
+    let history = new ReplayHistory()
+    let corrections = new ReplayCorrections()
+    corrections.beginEpoch(2).assertTrue()
+    let first = new MatchFrameInput()
+    let second = new MatchFrameInput()
+    let third = new MatchFrameInput()
+    let input = new InputSnapshot()
+    let requests = new AttackBuffer(0)
+    first.capture(1, input, input, requests, requests, world.runtime).assertTrue()
+    history.beginEpoch(1, 1).assertTrue()
+    world.saveSpeculative(history, 1, first).assertFalse()
+    history.beginEpochWithCorrections(2, 1, 7).assertFalse()
+    history.beginEpochWithCorrections(2, 1, -1).assertFalse()
+    history.beginEpochWithCorrections(2, 1, 2).assertTrue()
+    world.saveSpeculative(history, 2, first).assertTrue()
+    world.execute(first)
+    second.capture(2, input, input, requests, requests, world.runtime).assertTrue()
+    world.saveSpeculative(history, 2, second).assertTrue()
+    world.execute(second)
+    third.capture(3, input, input, requests, requests, world.runtime).assertTrue()
+    world.saveSpeculative(history, 2, third).assertFalse()
+    world.save(history, 2, third).assertFalse()
+    corrections.add(second).assertTrue()
+    // A noncanonical live marker proves equal input causes no restore or step.
+    world.first.damage = 12.5
+    world.correct(history, 2, corrections).assertEquals(REPLAY_CORRECTION_UNCHANGED)
+    world.first.damage.assertEquals(12.5)
+    world.runtime.simulationFrame.assertEquals(2)
+    world.saveSpeculative(history, 2, third).assertFalse()
+    corrections.clear()
+    corrections.add(first).assertTrue()
+    world.correct(history, 2, corrections).assertEquals(REPLAY_CORRECTION_UNCHANGED)
+    world.first.damage.assertEquals(12.5)
+    world.saveSpeculative(history, 2, third).assertTrue()
+    world.execute(third)
+    history.beginEpochWithCorrections(3, 1, 1).assertTrue()
+    world.correct(history, 2, corrections).assertEquals(REPLAY_CORRECTION_REJECTED)
+    world.runtime.simulationFrame = 0
+    world.correct(history, 3, corrections).assertEquals(REPLAY_CORRECTION_REJECTED)
+    world.saveSpeculative(history, 3, first).assertTrue()
+    world.execute(first)
+    world.correct(history, 3, corrections).assertEquals(REPLAY_CORRECTION_REJECTED)
+    world.saveSpeculative(history, 3, second).assertFalse()
+    corrections.beginEpoch(3).assertTrue()
+    corrections.add(first).assertTrue()
+    world.correct(history, 3, corrections).assertEquals(REPLAY_CORRECTION_UNCHANGED)
+    world.saveSpeculative(history, 3, second).assertTrue()
+
+@Test function correctionPreflightRejectsWholeBatchWithoutChangingHistoryOrLiveState()
+    let world = new TapeWorld(99)
+    let history = new ReplayHistory()
+    let corrections = new ReplayCorrections()
+    corrections.beginEpoch(5).assertTrue()
+    let row = new MatchFrameInput()
+    let changed = new MatchFrameInput()
+    let input = new InputSnapshot()
+    let requests = new AttackBuffer(0)
+    let before = new ReplaySnapshot()
+    history.beginEpochWithCorrections(5, 1, 6).assertTrue()
+    for frame = 1 to 66
+        row.capture(frame, input, input, requests, requests, world.runtime).assertTrue()
+        if frame >= 64
+            world.saveSpeculative(history, 5, row).assertTrue()
+        else
+            world.save(history, 5, row).assertTrue()
+        world.execute(row)
+    before.capture(world.first, world.second, world.game, world.firstCommands, world.secondCommands, world.runtime)
+    input.jumpPressed = true
+    changed.capture(64, input, input, requests, requests, world.runtime).assertTrue()
+    corrections.add(changed).assertTrue()
+    world.correct(history, 4, corrections).assertEquals(REPLAY_CORRECTION_REJECTED)
+    // Invalid future, overwritten and authoritative-conflict rows each reject
+    // the preceding valid correction as part of the same atomic batch.
+    for caseIndex = 0 to 2
+        let badFrame = caseIndex == 0 ? 67 : (caseIndex == 1 ? 1 : 63)
+        row.capture(badFrame, input, input, requests, requests, world.runtime).assertTrue()
+        corrections.add(row).assertTrue()
+        world.correct(history, 5, corrections).assertEquals(REPLAY_CORRECTION_REJECTED)
+        world.capture()
+        before.firstDifference(world.snapshot).assertEquals("")
+        world.replay(history, 5, 64, 66).assertTrue()
+        world.capture()
+        before.firstDifference(world.snapshot).assertEquals("")
+        corrections.clear()
+        corrections.add(changed).assertTrue()
+    world.restore(history, 5, 66).assertTrue()
+    world.correct(history, 5, corrections).assertEquals(REPLAY_CORRECTION_REJECTED)
+    world.runtime.simulationFrame.assertEquals(65)
+    world.replay(history, 5, 66, 66).assertTrue()
+    world.correct(history, 5, corrections).assertEquals(64)
+    world.capture()
+    (before.firstDifference(world.snapshot) != "").assertTrue()
+    // A corrected row is authoritative now; a conflicting second value fails.
+    input.jumpPressed = false
+    row.capture(64, input, input, requests, requests, world.runtime).assertTrue()
+    corrections.clear()
+    corrections.add(row).assertTrue()
+    world.correct(history, 5, corrections).assertEquals(REPLAY_CORRECTION_REJECTED)
+
+@Test function correctionBatchCopiesRowsBoundsStorageAndRejectsConflicts()
+    let corrections = new ReplayCorrections()
+    corrections.beginEpoch(1).assertTrue()
+    let row = new MatchFrameInput()
+    let copy = new MatchFrameInput()
+    let input = new InputSnapshot()
+    let requests = new AttackBuffer(0)
+    let runtime = new ReplayRuntimeState()
+    corrections.add(row).assertFalse()
+    for frame = 1 to 6
+        row.capture(frame, input, input, requests, requests, runtime).assertTrue()
+        corrections.add(row).assertTrue()
+    corrections.size().assertEquals(6)
+    corrections.add(row).assertTrue()
+    row.capture(7, input, input, requests, requests, runtime).assertTrue()
+    corrections.add(row).assertFalse()
+    input.specialPressed = true
+    row.capture(6, input, input, requests, requests, runtime).assertTrue()
+    corrections.add(row).assertFalse()
+    corrections.copyRow(5, copy).assertTrue()
+    copy.sameAs(row).assertFalse()
+    input.specialPressed = false
+    row.reset()
+    row.capture(6, input, input, requests, requests, runtime).assertTrue()
+    copy.sameAs(row).assertTrue()
+    corrections.copyRow(-1, copy).assertFalse()
+    corrections.copyRow(6, copy).assertFalse()
+    copy.sameAs(row).assertTrue()
+    corrections.clear()
+    corrections.add(row).assertTrue()
+    corrections.size().assertEquals(1)

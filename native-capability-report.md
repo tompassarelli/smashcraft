@@ -59,7 +59,7 @@ snapshot coverage. Current combat supports two fighters, not four.
 | Header declarations | Pinned common.j declares keyboard/meta/mouse polling, local-client-active, named effect animation/blend and effect time | PASS for declaration presence only |
 | A: early local polling | Both probes run; N/I/A holds/releases visible, and some poll transitions precede synchronized callbacks | SINGLE-CLIENT ONLY; network locality/physical timing unknown |
 | B: native traffic/pacing | Both 180-byte packet variants receive contiguous rows; receipt bursts observed | SHORT SINGLE-CLIENT SAMPLE; multiplayer capacity unknown |
-| C: complete snapshots/replay | Preallocated 64-frame history, exact comparison and 100,000-frame recorded-input oracle pass | PARTIAL; corrected-input fault oracle, serialization/hash and native equivalence pending |
+| C: complete snapshots/replay | Preallocated history, exact comparison, 100,000-frame unchanged-input oracle and bounded corrected-input oracle pass | PARTIAL; transport-fault replay, serialization/hash and native equivalence pending |
 | D: local presentation/pose recovery | Single authored timeline restores known marker poses; clip-switch candidates failed | PARTIAL; fighter pose fidelity/local multiplayer safety unproven |
 | E: controlled fixed/hybrid comparison | No scheduled/rollback backend in gameplay yet | NOT IMPLEMENTED |
 
@@ -167,11 +167,54 @@ and failed the final MATCH assertion. The long fixture now starts with 100001
 stocks; short tests retain 99. No assertion or gameplay tuning changed. The
 original failure remains at wc3-melee:build/replay-history-100k-exhausted-stocks.log.
 
-This proves replay of unchanged recorded inputs in the headless runtime. It does
-not yet test corrected predictions, transport faults during gameplay replay,
-fixed-delay scheduling, canonical serialization/hash or native arithmetic
-agreement. CPU decisions are recorded inputs; speculative CPU regeneration is
-not implemented. History is not connected to speculative gameplay.
+The 100,000-frame scenario proves replay of unchanged recorded inputs in the
+headless runtime. Its result does not establish corrected-input or transport-fault
+coverage, canonical serialization/hash or native arithmetic agreement. CPU
+decisions remain recorded inputs; speculative CPU regeneration is not implemented.
+
+Corrected used-input replay is now separately implemented in
+wc3-melee:wurst/ReplayHistory.wurst. Existing beginEpoch selects R=0;
+beginEpochWithCorrections selects an immutable per-epoch window of 0–6 frames.
+The 64 retained snapshots do not expand that window. Both speculative and
+subsequent authoritative saves stop at the window boundary while an earlier
+prediction remains unresolved. save retains an authoritative row;
+saveSpeculative retains a replaceable used copy. Neither changes its producer.
+
+ReplayCorrections owns up to six detached complete-frame replacements, bound to
+one epoch. Identical duplicate additions succeed; conflicting ones fail. correct
+preflights the entire batch and replay interval against the saved present before
+editing history or live state. It rejects stale epochs, missing/overwritten/future
+rows, conflicting authoritative input and a live cursor away from the present.
+A mismatch restores immediately before the earliest differing row, replays to
+the saved present, and refreshes every affected before-frame snapshot. Supplied
+rows become authoritative; matching predictions confirm without restoring or
+stepping. The return is the earliest replayed frame, zero for unchanged input,
+or -1 for rejection. Scratch and batch storage are preallocated; correction
+creates no Wurst objects or native handles. Initialize them in common context.
+
+The focused ReplayHistoryTests suite passes 8/8 in 32 seconds, with zero errors
+and one existing unused-import warning in wc3-melee:wurst/RecoveryTests.wurst.
+Log: wc3-melee:build/corrected-replay-tests.log. Reproduce with:
+
+```bash
+bash ~/code/wc3-melee/worktrees/prediction-replay/test.sh ReplayHistoryTests
+```
+
+The new oracle executes 68 frames in independent actual, partially corrected and
+predicted worlds. Missing attack input at frame 63 and movement input at frame 65
+produce real state differences across ring wrap. Reordered replacement batches
+correct frame 63 and then frame 65; the second rollback uses snapshots refreshed
+by the first. Every affected retained snapshot and the final replay match the
+actual-input history exactly, including projectile damage. Additional cases cover
+whole-batch rejection without mutation, authoritative conflicts, identical-input
+no-op, epoch-bound rematch rejection, bounded batch copying, and R=0/1/2 admission.
+Existing 1,024- and 4,096-frame unchanged-input tapes also pass in that suite.
+
+This is a bounded pure-core correction scenario, not a new 100,000-frame fault
+soak. No native or network validation was performed. Authoritative input sourcing,
+per-player row assembly, prediction policy, scheduling, presentation and native
+integration remain outside this correction API; history is not connected to
+speculative gameplay.
 
 ## Bounded input protocol and accepted ledger
 

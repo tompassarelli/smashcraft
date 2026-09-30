@@ -54,6 +54,90 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
     game.resolveStocks(first.stocks, second.stocks)
     game.advanceClock(first.stocks, first.damage, second.stocks, second.damage)
 
+function sameInputSnapshot(InputSnapshot first, InputSnapshot second) returns boolean
+    if first.direction != second.direction
+        return false
+    if first.verticalDirection != second.verticalDirection
+        return false
+    if first.sdiPulse != second.sdiPulse
+        return false
+    if first.sdiX != second.sdiX
+        return false
+    if first.sdiZ != second.sdiZ
+        return false
+    if first.cStickX != second.cStickX
+        return false
+    if first.cStickZ != second.cStickZ
+        return false
+    if first.attackRequested != second.attackRequested
+        return false
+    if first.specialPressed != second.specialPressed
+        return false
+    if first.down != second.down
+        return false
+    if first.shield != second.shield
+        return false
+    if first.jumpPressed != second.jumpPressed
+        return false
+    if first.airDodgePressed != second.airDodgePressed
+        return false
+    if first.techPressed != second.techPressed
+        return false
+    if first.mashPressed != second.mashPressed
+        return false
+    if first.attackPressed != second.attackPressed
+        return false
+    if first.grabMashPressed != second.grabMashPressed
+        return false
+    if first.grabThrowX != second.grabThrowX
+        return false
+    if first.grabThrowZ != second.grabThrowZ
+        return false
+    if first.lCancelPressed != second.lCancelPressed
+        return false
+    if first.groundDodgePressed != second.groundDodgePressed
+        return false
+    if first.groundDodgeDirection != second.groundDodgeDirection
+        return false
+    if first.getupAttackPressed != second.getupAttackPressed
+        return false
+    if first.ledgeVerticalPressed != second.ledgeVerticalPressed
+        return false
+    if first.getupStandPressed != second.getupStandPressed
+        return false
+    if first.getupDirectionPressed != second.getupDirectionPressed
+        return false
+    if first.getupDirection != second.getupDirection
+        return false
+    if first.dodgeX != second.dodgeX
+        return false
+    if first.dodgeZ != second.dodgeZ
+        return false
+    if first.jumpHeld != second.jumpHeld
+        return false
+    if first.walking != second.walking
+        return false
+    if first.attackHeld != second.attackHeld
+        return false
+    return true
+
+function sameAttackBuffer(AttackBuffer first, AttackBuffer second) returns boolean
+    if first.windowFrames != second.windowFrames
+        return false
+    if first.style != second.style
+        return false
+    if first.facing != second.facing
+        return false
+    if first.targetFrame != second.targetFrame
+        return false
+    if first.consumedFacing != second.consumedFacing
+        return false
+    if first.mayCharge != second.mayCharge
+        return false
+    if first.consumedMayCharge != second.consumedMayCharge
+        return false
+    return true
+
 // One complete, immutable input row for a fighting frame. Producer-side attack
 // requests are recorded separately from the persistent simulation buffers.
 public class MatchFrameInput
@@ -90,6 +174,10 @@ public class MatchFrameInput
         firstRequests.copyTo(destination.firstRequests)
         secondRequests.copyTo(destination.secondRequests)
         destination.botDelayAfterInput = botDelayAfterInput
+
+    // Scratch is intentionally excluded: stepMatch may consume or rewrite it.
+    function sameAs(MatchFrameInput other) returns boolean
+        return frame == other.frame and botDelayAfterInput == other.botDelayAfterInput and sameInputSnapshot(first, other.first) and sameInputSnapshot(second, other.second) and sameAttackBuffer(firstRequests, other.firstRequests) and sameAttackBuffer(secondRequests, other.secondRequests)
 
     function frameNumber() returns int
         return frame
