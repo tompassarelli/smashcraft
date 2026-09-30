@@ -2,7 +2,16 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-Installed: `arrows-damage-only-r1`, normal scenario. Build/deploy succeeded
+Installed: `rifleman-shot-flinch-r1`, normal scenario. Rifleman body impacts
+now add four frames of victim-only impact freeze before the existing minimum
+11-frame flinch. The neutral-special test checks attack interruption, damage
+pose selection, shooter independence and the first actionable jump tick.
+Full tests passed 316/316 with zero errors/warnings:
+wc3-melee:build/wurst-tests/rifleman-shot-flinch-r2.log. Build/deploy succeeded
+with six existing warnings: wc3-melee:build/rifleman-shot-flinch-r1-map.log.
+Native flinch readability in this build remains unverified.
+
+Previously installed: `arrows-damage-only-r1`, normal scenario. Build/deploy succeeded
 with six existing warnings; wc3-melee:build/arrows-damage-only-r1-map.log.
 Archer basic/running and fan arrows now deal damage without adding hitlag,
 hitstun, knockback, shieldstun or interruption. Existing reactions and capture
