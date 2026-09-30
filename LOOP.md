@@ -2,7 +2,19 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-Installed: `recovery-controls-r1`, normal scenario. Combined recovery/jab-reset
+Installed: `blue-portrait-r1`, normal scenario. Rifleman's regenerated portrait
+now has canonical blue hood/armor accents and the complete gun in frame.
+The repaired importer produced the inspected image in 328 seconds;
+wc3-melee:build/selection-assets/Rifleman-blue-r2.log and
+wc3-melee:build/selection-assets/RiflemanPortrait.png record the result.
+Normalized portrait/tile textures passed the existing silhouette-width check.
+Build/deploy and packaged-texture byte comparisons passed with six existing
+warnings: wc3-melee:build/blue-portrait-r1-map.log. Warcraft is not running;
+the installed portrait and newer gameplay still need native verification.
+Illidan remains unavailable in selection. The public prototype release is
+unchanged and still contains `rifleman-shot-flinch-r1`.
+
+Previously installed: `recovery-controls-r1`, normal scenario. Combined recovery/jab-reset
 timings and poses, Y Start/Pause, ledge jump budget, up-special helpless fall,
 jump-squat buffered wavedash, and airborne turnaround shots. Full source suite
 passed 339/339 (one unused-import warning):
