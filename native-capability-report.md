@@ -178,8 +178,20 @@ not implemented. History is not connected to speculative gameplay.
 wc3-melee:wurst/NetworkInput.wurst retains the 15 action IDs from bindings as
 held/pressed/released masks, signed axes -127..127 and trigger values 0..255.
 Both press and release can survive a tap in one capture interval. Prediction
-copies held/axis/trigger values but clears edges. Device sampling and conversion
-to the current gameplay InputSnapshot are still separate, unimplemented seams.
+copies held/axis/trigger values but clears edges.
+
+wc3-melee:wurst/KeyboardInputCapture.wurst now accumulates fresh action-mask
+transitions into bounded press/release masks, preserving a short tap between
+commits. Repeated held samples do not create new presses. Opposite keyboard
+directions cancel; C-stick actions do not affect movement axes. Its existing
+fixed-scheduler capture path clears edges only after a successful new commit,
+so application waits cannot rewrite an assigned row or discard the next tap.
+Focus neutral produces release edges; explicit pause/epoch clear discards
+uncommitted actions. Five focused tests pass, including a repeated-capture wait
+against the real scheduler: wc3-melee:build/wurst-tests/keyboard-capture-r1.log.
+Sampling takes an already normalized held-action mask. Binding/key polling,
+focus/chat detection, conversion to gameplay InputSnapshot and native scheduler
+integration remain unimplemented; this does not alter the installed baseline.
 
 wc3-melee:wurst/InputProtocol.wurst encodes complete input records in exact
 51-byte or 78-byte ASCII packets (one/two consecutive frames). Version I1,

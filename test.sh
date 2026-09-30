@@ -54,6 +54,8 @@ exec "$java" -Xmx512m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/wurst/ReplayHistoryTests.wurst" \
     "$project_dir/wurst/ReplaySoak.wurst" \
     "$project_dir/wurst/NetworkInput.wurst" \
+    "$project_dir/wurst/KeyboardInputCapture.wurst" \
+    "$project_dir/wurst/KeyboardInputCaptureTests.wurst" \
     "$project_dir/wurst/NetworkInputTests.wurst" \
     "$project_dir/wurst/InputProtocol.wurst" \
     "$project_dir/wurst/InputProtocolTests.wurst" \

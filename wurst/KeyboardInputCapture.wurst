@@ -1,0 +1,52 @@
+package KeyboardInputCapture
+import KeyBindings
+import NetworkInput
+import FixedInputSchedule
+
+// Construct in common initialization. Sampling and capture mutate only this
+// client's preallocated numerical input storage.
+public class KeyboardInputCapture
+    private int held = 0
+    private int pressed = 0
+    private int released = 0
+    private NetworkInput scratch = new NetworkInput()
+
+    function sample(int heldActions) returns boolean
+        if heldActions < 0 or heldActions > INPUT_ACTION_MASK
+            return false
+        for action = 0 to ACTION_COUNT - 1
+            let bit = inputActionBit(action)
+            let before = (held div bit) mod 2 == 1
+            let after = (heldActions div bit) mod 2 == 1
+            if after and not before and (pressed div bit) mod 2 == 0
+                pressed += bit
+            if before and not after and (released div bit) mod 2 == 0
+                released += bit
+        held = heldActions
+        return true
+
+    private function heldValue(int action) returns int
+        return (held div inputActionBit(action)) mod 2
+
+    // Opposite keyboard directions cancel; C-stick actions never set movement
+    // axes. Multiple physical transitions coalesce to one edge of each kind.
+    function read(NetworkInput destination)
+        destination.assign(held, pressed, released,
+            127 * (heldValue(MOVE_RIGHT) - heldValue(MOVE_LEFT)),
+            127 * (heldValue(MOVE_UP) - heldValue(MOVE_DOWN)),
+            255 * heldValue(LEFT_TRIGGER), 255 * heldValue(RIGHT_TRIGGER))
+
+    function capture(FixedInputSchedule schedule, int epoch) returns int
+        read(scratch)
+        let result = schedule.captureLocal(epoch, scratch)
+        if result == FIXED_CAPTURED
+            pressed = 0
+            released = 0
+        return result
+
+    // Explicit pause/new-epoch reset discards pending actions. For focus loss
+    // during play, sample neutral instead, preserving the release edges.
+    function clear()
+        held = 0
+        pressed = 0
+        released = 0
