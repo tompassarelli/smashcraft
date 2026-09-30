@@ -2,6 +2,20 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
+## Current checkpoint — Archer throw directions, 2026-10-01
+
+Native O-grab/pummel/back-, up- and down-throw sequences succeed. Together with
+the previous forward throw, all four Archer directions have recorded activation,
+damage and release. Back crosses behind the holder; up launches vertically;
+down produces tumble, floor contact and prone recovery. Evidence and frame
+numbers are in wc3-melee:ANIMATIONS.md. Hold/pummel overlap remains an art gap.
+
+Running: passive `special-direction-passive-r1`, P1 Archer at x=-105.121,
+0%, facing right; passive Rifleman at 37%, prone after down throw. Paused with
+Y. Installed normal map remains `special-direction-r1`; no build/install change
+this turn. Continue Rifleman's remaining throw directions and pair readability;
+no child was admitted and no recording process remains live.
+
 ## Current checkpoint — Archer capture and jump path, 2026-10-01
 
 Walking corrected the failed dash approach. Archer Shield+Attack capture,

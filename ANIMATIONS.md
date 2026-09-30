@@ -2,6 +2,26 @@
 
 ## Archer and Rifleman native specials — 2026-10-01
 
+Archer's four throw directions have now been exercised through native controls.
+Forward is recorded below; the subsequent O-grab/pummel/directional sequences
+show the remaining releases:
+
+| Throw | Pummel then throw damage | Release frame | Victim reaction at release |
+| --- | --- | --- | --- |
+| Back, while facing left | 10% -> 13% -> 20% | 3168 | 26 hitstun frames; victim crosses behind holder and launches right |
+| Up, while facing right | 20% -> 23% -> 29% | 3644 | 28 hitstun frames; vertical launch |
+| Down, while facing right | 29% -> 32% -> 37% | 4031 | 32 hitstun frames and tumble; floor contact leads to downbound, then prone |
+
+Evidence: wc3-melee:build/archer-back-throw.mp4 and
+wc3-melee:build/archer-back-throw-trace.txt;
+wc3-melee:build/archer-up-throw.mp4 and
+wc3-melee:build/archer-up-throw-trace.txt;
+wc3-melee:build/archer-down-throw.mp4 and
+wc3-melee:build/archer-down-throw-trace.txt. Each trace reports zero dropped
+records. This establishes selection, contact damage and release direction for
+these scenarios, not both-facing art acceptance or multiplayer behavior.
+Holder/victim overlap remains visible during hold and pummel.
+
 Single-client checks in `special-direction-passive-r1` now show:
 
 - Archer neutral arrow deals 7 damage without a victim hitstun transition.
