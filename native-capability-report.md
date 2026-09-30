@@ -168,10 +168,41 @@ stocks; short tests retain 99. No assertion or gameplay tuning changed. The
 original failure remains at wc3-melee:build/replay-history-100k-exhausted-stocks.log.
 
 This proves replay of unchanged recorded inputs in the headless runtime. It does
-not yet test corrected predictions, transport faults, an accepted-input ledger,
+not yet test corrected predictions, transport faults during gameplay replay,
 fixed-delay scheduling, canonical serialization/hash or native arithmetic
 agreement. CPU decisions are recorded inputs; speculative CPU regeneration is
 not implemented. History is not connected to speculative gameplay.
+
+## Bounded input protocol and accepted ledger
+
+wc3-melee:wurst/NetworkInput.wurst retains the 15 action IDs from bindings as
+held/pressed/released masks, signed axes -127..127 and trigger values 0..255.
+Both press and release can survive a tap in one capture interval. Prediction
+copies held/axis/trigger values but clears edges. Device sampling and conversion
+to the current gameplay InputSnapshot are still separate, unimplemented seams.
+
+wc3-melee:wurst/InputProtocol.wurst encodes complete input records in exact
+51-byte or 78-byte ASCII packets (one/two consecutive frames). Version I1,
+reserved flags, count, epoch, frame range and field bounds are checked. Player
+identity is absent from the payload: a future native receiver must derive the
+slot from GetTriggerPlayer, register fromServer=false, and use its dedicated
+sync namespace. No receiver has been connected to the gameplay map yet.
+
+wc3-melee:wurst/InputLedger.wurst preallocates 256 frames for two competitors.
+It validates a whole batch before accepting any rows; equal duplicates succeed,
+conflicts fail. The known frontier advances only over both players' contiguous
+accepted input. Core frames start at 1, so initial neutral rows are 1..D, the
+one-based equivalent of the proposal's 0..D-1. The caller marks confirmed
+consumption in order; inputs beyond 64 future frames are rejected. Explicit
+discard requires consumed rows and must follow release of replay dependencies.
+Local pending input must never enter this accepted/common ledger directly.
+
+Focused Input tests passed 33/33 and the ordinary suite passed 236/236 before
+the subsequent gameplay-timing changes. Coverage includes codec bounds,
+short-tap edges, conservative prediction, reversed/batched delivery, gaps,
+duplicate conflicts, ring reuse and epoch/counter limits. This is headless
+protocol evidence, not a 100,000-frame fault-injected gameplay oracle, native
+throughput measurement or fixed/hybrid scheduler. Those remain outstanding.
 
 ## Observed single-client model pose run
 
@@ -263,6 +294,21 @@ No VM, paid resource or second account has been provisioned. A same-host VM
 shares host CPU/GPU contention and does not establish independent-machine
 performance or physical button-to-visible latency. Controlled external timing,
 role/network swaps and two-client native gates remain outstanding.
+
+Local host graphics feasibility: QEMU 10.2.4 and virglrenderer 1.3.0 were
+obtained through a temporary Nix shell, without changing system configuration.
+The host kernel is 6.18.51. QEMU advertises blob memory and Venus support; a
+diskless, paused KVM instance initialized with EGL on /dev/dri/renderD128,
+virtio-vga-gl, blob=true, venus=true and 512 MiB hostmem. QMP reported prelaunch
+and accepted a clean quit, with no graphics initialization error. Evidence:
+wc3-melee:build/multiplayer-setup/qemu-gpu-capabilities.log and
+wc3-melee:build/multiplayer-setup/qemu-gpu-init.log.
+This checks host device initialization only: no guest OS, guest Vulkan workload,
+Proton or Warcraft has run. The next decision-changing check is guest Vulkan
+rendering, then Warcraft startup. Shared GPU support is documented at
+https://www.qemu.org/docs/master/system/devices/virtio/virtio-gpu.html and
+https://docs.mesa3d.org/drivers/venus.html; a CPU-only VM is not the recommended
+gameplay-measurement configuration.
 
 ## Integrated frame-boundary validation
 

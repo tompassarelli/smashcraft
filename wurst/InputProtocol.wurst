@@ -1,0 +1,109 @@
+package InputProtocol
+import NetworkInput
+
+// Leave one signed counter value for the next-frame cursor.
+public constant int INPUT_LAST_FRAME = 2147483646
+public constant int INPUT_HEADER_BYTES = 24
+public constant int INPUT_RECORD_BYTES = 27
+
+function decimal(int value, int width) returns string
+    var result = I2S(value)
+    while result.length() < width
+        result = "0" + result
+    return result
+
+// Caller validates the complete packet length before any character access.
+function parseDecimal(string wire, int offset, int width) returns int
+    var value = 0
+    for i = offset to offset + width - 1
+        let digit = "0123456789".indexOf(wire.charAt(i))
+        if digit < 0 or value > 214748364 or (value == 214748364 and digit > 7)
+            return -1
+        value = value * 10 + digit
+    return value
+
+function encodeRecord(NetworkInput row) returns string
+    return decimal(row.heldMask(), 5) + decimal(row.pressedMask(), 5) + decimal(row.releasedMask(), 5) + decimal(row.axisX() + 127, 3) + decimal(row.axisZ() + 127, 3) + decimal(row.triggerLeft(), 3) + decimal(row.triggerRight(), 3)
+
+function decodeRecord(string wire, int offset, NetworkInput destination) returns boolean
+    let held = parseDecimal(wire, offset, 5)
+    let pressed = parseDecimal(wire, offset + 5, 5)
+    let released = parseDecimal(wire, offset + 10, 5)
+    let x = parseDecimal(wire, offset + 15, 3)
+    let z = parseDecimal(wire, offset + 18, 3)
+    let left = parseDecimal(wire, offset + 21, 3)
+    let right = parseDecimal(wire, offset + 24, 3)
+    if x < 0 or z < 0
+        return false
+    return destination.assign(held, pressed, released, x - 127, z - 127, left, right)
+
+// ASCII: I1 | flags(1, zero) | count(1, 1/2) | epoch(10) | first(10)
+// then count complete records: held(5), pressed(5), released(5), X+127(3),
+// Z+127(3), left trigger(3), right trigger(3). Length is exactly 51 or 78.
+// Sender identity is absent: the receive event supplies it separately.
+public class InputPacket
+    private int epoch = -1
+    private int firstFrame = 0
+    private int count = 0
+    private NetworkInput first = new NetworkInput()
+    private NetworkInput second = new NetworkInput()
+
+    function assign(int assignedEpoch, int assignedFirst, int recordCount, NetworkInput firstInput, NetworkInput secondInput) returns boolean
+        count = 0
+        if assignedEpoch < 0 or assignedFirst < 1 or assignedFirst > INPUT_LAST_FRAME or recordCount < 1 or recordCount > 2
+            return false
+        if assignedFirst > INPUT_LAST_FRAME - (recordCount - 1)
+            return false
+        firstInput.copyTo(first)
+        if recordCount == 2
+            secondInput.copyTo(second)
+        epoch = assignedEpoch
+        firstFrame = assignedFirst
+        count = recordCount
+        return true
+
+    function decode(string wire) returns boolean
+        count = 0
+        if wire.length() != 51 and wire.length() != 78
+            return false
+        if wire.substring(0, 2) != "I1" or wire.charAt(2) != "0"
+            return false
+        let records = parseDecimal(wire, 3, 1)
+        if records < 1 or records > 2 or wire.length() != INPUT_HEADER_BYTES + INPUT_RECORD_BYTES * records
+            return false
+        let decodedEpoch = parseDecimal(wire, 4, 10)
+        let decodedFirst = parseDecimal(wire, 14, 10)
+        if decodedEpoch < 0 or decodedFirst < 1 or decodedFirst > INPUT_LAST_FRAME - (records - 1)
+            return false
+        if not decodeRecord(wire, INPUT_HEADER_BYTES, first)
+            return false
+        if records == 2 and not decodeRecord(wire, INPUT_HEADER_BYTES + INPUT_RECORD_BYTES, second)
+            return false
+        epoch = decodedEpoch
+        firstFrame = decodedFirst
+        count = records
+        return true
+
+    function encode() returns string
+        if count == 0
+            return ""
+        let header = "I10" + I2S(count) + decimal(epoch, 10) + decimal(firstFrame, 10)
+        return header + encodeRecord(first) + (count == 2 ? encodeRecord(second) : "")
+
+    function epochNumber() returns int
+        return epoch
+
+    function firstFrameNumber() returns int
+        return firstFrame
+
+    function recordCount() returns int
+        return count
+
+    function copyRecord(int record, NetworkInput destination) returns boolean
+        if record < 0 or record >= count
+            return false
+        if record == 0
+            first.copyTo(destination)
+        else
+            second.copyTo(destination)
+        return true

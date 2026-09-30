@@ -1,0 +1,89 @@
+package NetworkInput
+import KeyBindings
+
+public constant int INPUT_ACTION_MASK = 32767
+
+// Bit positions are exactly the KeyBindings action IDs (0 through 14).
+public function inputActionBit(int action) returns int
+    if action < 0 or action >= ACTION_COUNT
+        return 0
+    var bit = 1
+    for i = 1 to action
+        bit *= 2
+    return bit
+
+// Reusable producer/read scratch. Accepted storage owns detached private copies.
+// Axes use [-127,127]; triggers use [0,255]. Both edges may be set for a tap
+// completed inside one capture interval, independently of the final held state.
+public class NetworkInput
+    private int held = 0
+    private int pressed = 0
+    private int released = 0
+    private int horizontal = 0
+    private int vertical = 0
+    private int leftTrigger = 0
+    private int rightTrigger = 0
+
+    function assign(int heldMask, int pressedMask, int releasedMask, int x, int z, int left, int right) returns boolean
+        if heldMask < 0 or heldMask > INPUT_ACTION_MASK or pressedMask < 0 or pressedMask > INPUT_ACTION_MASK or releasedMask < 0 or releasedMask > INPUT_ACTION_MASK
+            return false
+        if x < -127 or x > 127 or z < -127 or z > 127 or left < 0 or left > 255 or right < 0 or right > 255
+            return false
+        held = heldMask
+        pressed = pressedMask
+        released = releasedMask
+        horizontal = x
+        vertical = z
+        leftTrigger = left
+        rightTrigger = right
+        return true
+
+    function heldMask() returns int
+        return held
+
+    function pressedMask() returns int
+        return pressed
+
+    function releasedMask() returns int
+        return released
+
+    function axisX() returns int
+        return horizontal
+
+    function axisZ() returns int
+        return vertical
+
+    function triggerLeft() returns int
+        return leftTrigger
+
+    function triggerRight() returns int
+        return rightTrigger
+
+    function actionHeld(int action) returns boolean
+        let bit = inputActionBit(action)
+        return bit != 0 and (held div bit) mod 2 == 1
+
+    function actionPressed(int action) returns boolean
+        let bit = inputActionBit(action)
+        return bit != 0 and (pressed div bit) mod 2 == 1
+
+    function actionReleased(int action) returns boolean
+        let bit = inputActionBit(action)
+        return bit != 0 and (released div bit) mod 2 == 1
+
+    function copyTo(NetworkInput destination)
+        destination.held = held
+        destination.pressed = pressed
+        destination.released = released
+        destination.horizontal = horizontal
+        destination.vertical = vertical
+        destination.leftTrigger = leftTrigger
+        destination.rightTrigger = rightTrigger
+
+    function predictTo(NetworkInput destination)
+        copyTo(destination)
+        destination.pressed = 0
+        destination.released = 0
+
+    function sameAs(NetworkInput other) returns boolean
+        return held == other.held and pressed == other.pressed and released == other.released and horizontal == other.horizontal and vertical == other.vertical and leftTrigger == other.leftTrigger and rightTrigger == other.rightTrigger
