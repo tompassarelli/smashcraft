@@ -144,6 +144,11 @@ public function runRecordedTape(int frames, int rollbackStride, int startingStoc
             firstRequests.enqueue(1, 1, frame, false)
         if phase == 160
             secondRequests.enqueue(6, -1, frame, false)
+        // Exercise stock loss and respawn through recorded input, independently
+        // of whether the preceding combat sequence happens to produce a KO.
+        if frame >= 3000 and frame < 3300
+            secondInput.direction = 1
+            secondRequests.clear()
         row.capture(frame, firstInput, secondInput, firstRequests, secondRequests, canonical.runtime).assertTrue()
         replayed.save(history, 1, row).assertTrue()
         canonical.execute(row)

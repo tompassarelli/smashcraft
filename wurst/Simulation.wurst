@@ -554,7 +554,7 @@ public function smashDamageMultiplier(int chargeFrames) returns real
 	return 1 + (SMASH_MAX_DAMAGE_MULTIPLIER - 1) * max(0, min(SMASH_MAX_CHARGE_FRAMES, chargeFrames)) / SMASH_MAX_CHARGE_FRAMES
 
 // Pure ordinary-hit math. Parameters come from the selected hit region.
-// Electric, crouching, staling, fixed-knockback, and capped branches are separate.
+// Electric, crouching, fixed-knockback, and capped branches are separate.
 public function ordinaryHitKnockback(real preHitPercent, real hitDamage, real victimWeight,
 		real growthPercent, real baseKnockback, real contextScale) returns real
 	let postHitPercent = R2I(max(0, preHitPercent)) + hitDamage
@@ -562,7 +562,10 @@ public function ordinaryHitKnockback(real preHitPercent, real hitDamage, real vi
 	return (percentGrowth * growthPercent / 100. + baseKnockback) * contextScale
 
 public function ordinaryHitlagFrames(real hitDamage) returns int
-	return R2I(hitDamage / 3. + 3)
+	return hitDamage <= 0 ? 0 : min(20, R2I(hitDamage / 3. + 3))
+
+public function digitalShieldstunFrames(real hitDamage) returns int
+	return R2I((hitDamage * 0.45 + 2) * 200 / 201)
 
 public function ordinaryHitstunFrames(real knockback) returns int
 	return R2I(knockback * HITSTUN_FRAMES_PER_KNOCKBACK)
@@ -658,11 +661,11 @@ public function projectileVelocityZAt(FighterState f, int index) returns real
 public function projectileKindAt(FighterState f, int index) returns int
 	return f.projectileKind[index]
 
-tuple hitEffect(real damage, real growth, real base, int hitlag, real launchX, real launchZ)
+tuple hitEffect(real damage, real growth, real base, real launchX, real launchZ)
 tuple hitRegion(real minX, real maxX, real minZ, real maxZ, hitEffect hitData, int window)
 
 function noHitRegion() returns hitRegion
-	return hitRegion(0, 0, 0, 0, hitEffect(0, 0, 0, 0, 0, 0), 0)
+	return hitRegion(0, 0, 0, 0, hitEffect(0, 0, 0, 0, 0), 0)
 
 // Coordinates are facing-relative offsets of the victim's simulation origin.
 // Lower region indices win overlaps. Window zero means no authored contact;
@@ -672,37 +675,37 @@ function authoredHitRegion(int character, int style, int frame, int chargeFrames
 		return noHitRegion()
 	let lingering = (style == AERIAL_NEUTRAL_STYLE or style == AERIAL_BACK_STYLE) and frame >= 7
 	let damage = (lingering ? 5. : attackDamage(style)) * (isSmashAttack(style) ? smashDamageMultiplier(chargeFrames) : 1)
-	var hitData = hitEffect(damage, ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, ordinaryHitlagFrames(damage), DIAGONAL_UNIT, DIAGONAL_UNIT)
+	var hitData = hitEffect(damage, ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, DIAGONAL_UNIT, DIAGONAL_UNIT)
 	if style == 6
 		let early = frame == attackStartupFrames(style)
 		if index == 0
-			hitData = hitEffect(early ? 10 : 8, early ? 110 : 90, early ? 24 : 18, early ? 7 : 4, 0.8, 0.6)
+			hitData = hitEffect(early ? 10 : 8, early ? 110 : 90, early ? 24 : 18, 0.8, 0.6)
 			return hitRegion(90, 145, -130, 130, hitData, 1)
-		hitData = hitEffect(early ? 7 : 5, early ? 80 : 70, early ? 16 : 12, early ? 3 : 2, DIAGONAL_UNIT, DIAGONAL_UNIT)
+		hitData = hitEffect(early ? 7 : 5, early ? 80 : 70, early ? 16 : 12, DIAGONAL_UNIT, DIAGONAL_UNIT)
 		return hitRegion(0, 110, -130, 130, hitData, 1)
 	if style == LEDGE_ATTACK_STYLE
 		return hitRegion(0, 140, -90, 90, hitData, 1)
 	if style == DOWN_ATTACK_STYLE
 		hitData = hitEffect(DOWN_ATTACK_DAMAGE, ORDINARY_HIT_GROWTH_PERCENT,
-			DOWN_ATTACK_BASE_KNOCKBACK, ordinaryHitlagFrames(DOWN_ATTACK_DAMAGE), DIAGONAL_UNIT, DIAGONAL_UNIT)
+			DOWN_ATTACK_BASE_KNOCKBACK, DIAGONAL_UNIT, DIAGONAL_UNIT)
 		return hitRegion(-attackReach(style), attackReach(style), -130, 130, hitData, 1)
 	if style == AERIAL_NEUTRAL_STYLE
 		return hitRegion(-90, 90, -65, 90, hitData, 1)
 	if style == AERIAL_FORWARD_STYLE
 		return hitRegion(0, 165, -65, 100, hitData, 1)
 	if style == AERIAL_BACK_STYLE
-		hitData = hitEffect(damage, hitData.growth, hitData.base, hitData.hitlag, -DIAGONAL_UNIT, DIAGONAL_UNIT)
+		hitData = hitEffect(damage, hitData.growth, hitData.base, -DIAGONAL_UNIT, DIAGONAL_UNIT)
 		return hitRegion(-155, 0, -65, 100, hitData, 1)
 	if style == AERIAL_UP_STYLE
 		let finisher = frame == attackStartupFrames(style) + 2
-		hitData = hitEffect(finisher ? 8 : 4, finisher ? 110 : 60, finisher ? 24 : 14, finisher ? 5 : 2, 0.25, 0.9682458)
+		hitData = hitEffect(finisher ? 8 : 4, finisher ? 110 : 60, finisher ? 24 : 14, 0.25, 0.9682458)
 		return hitRegion(-105, 105, 20, 190, hitData, finisher ? 2 : 1)
 	if style == AERIAL_DOWN_STYLE
 		if character == 0
 			let diveDamage = frame < attackStartupFrames(style) + 3 ? damage : 6.
-			hitData = hitEffect(diveDamage, hitData.growth, hitData.base, ordinaryHitlagFrames(diveDamage), 0.25, -0.9682458)
+			hitData = hitEffect(diveDamage, hitData.growth, hitData.base, 0.25, -0.9682458)
 			return hitRegion(-55, 55, -180, -10, hitData, 1)
-		hitData = hitEffect(damage, hitData.growth, hitData.base, hitData.hitlag, 0.25, -0.9682458)
+		hitData = hitEffect(damage, hitData.growth, hitData.base, 0.25, -0.9682458)
 		return hitRegion(-95, 95, -180, -10, hitData, 1)
 	let verticalOffset = style == 9 ? 65. : (style == 10 ? -65. : 0.)
 	return hitRegion(style == DOWN_ATTACK_STYLE ? -attackReach(style) : 0, attackReach(style), verticalOffset - 130, verticalOffset + 130, hitData, 1)
@@ -1301,11 +1304,12 @@ function spawnArcherArrow(FighterState owner, int direction, real verticalSpeed,
 	spawnProjectileMotion(owner, kind, facing * BLASTER_PROJECTILE_SPEED, verticalSpeed,
 		kind == PROJECTILE_ARROW ? 75 : 65, serial)
 
-function applySpecialProjectileHit(FighterState owner, FighterState target, int kind, int direction)
+function applySpecialProjectileHit(FighterState target, int kind, int direction)
 	let damage = kind == PROJECTILE_FAN_ARROW ? 4. : (kind == PROJECTILE_RECOIL ? 5. : 7.)
 	if target.shield and target.shieldEnergy > 0
 		target.shieldEnergy = max(0, target.shieldEnergy - damage * 0.7)
-		target.shieldStun = R2I((damage * 0.45 + 2) * 200 / 201)
+		target.shieldStun = digitalShieldstunFrames(damage)
+		target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
 		if target.shieldEnergy == 0
 			beginShieldBreak(target)
 		return
@@ -1337,16 +1341,16 @@ function applySpecialProjectileHit(FighterState owner, FighterState target, int 
 		target.downFrame = 0
 		target.downDirection = 0
 	target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
-	owner.hitlag = max(owner.hitlag, ordinaryHitlagFrames(damage))
 
 function applyProjectileHit(FighterState owner, FighterState target, int index)
 	if owner.projectileKind[index] != PROJECTILE_BLASTER
-		applySpecialProjectileHit(owner, target, owner.projectileKind[index], owner.projectileDirection[index])
+		applySpecialProjectileHit(target, owner.projectileKind[index], owner.projectileDirection[index])
 		return
 	let damage = attackDamage(1)
 	if target.shield and target.shieldEnergy > 0
 		target.shieldEnergy = max(0, target.shieldEnergy - damage * 0.7)
-		target.shieldStun = R2I((damage * 0.45 + 2) * 200 / 201)
+		target.shieldStun = digitalShieldstunFrames(damage)
+		target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
 		if target.shieldEnergy == 0
 			beginShieldBreak(target)
 		return
@@ -1445,7 +1449,7 @@ function cancelAttack(FighterState fighter)
 	fighter.smashChargeFrames = 0
 	fighter.smashChargeAllowed = false
 
-function applyAttackHit(FighterState attacker, FighterState target, int style, int facing, hitEffect hitData)
+function applyAttackHit(FighterState attacker, FighterState target, int style, int facing, hitEffect hitData, boolean directContact)
 	let damage = hitData.damage
 	if style == 5
 		if target.frozenFrames > 0
@@ -1477,8 +1481,10 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 		return
 	if target.shield and target.shieldEnergy > 0
 		target.shieldEnergy = max(0, target.shieldEnergy - damage * 0.7)
-		target.shieldStun = R2I((damage * 0.45 + 2) * 200 / 201)
-		attacker.hitlag = max(attacker.hitlag, hitData.hitlag)
+		target.shieldStun = digitalShieldstunFrames(damage)
+		target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
+		if directContact
+			attacker.hitlag = max(attacker.hitlag, ordinaryHitlagFrames(damage))
 		if target.shieldEnergy == 0
 			beginShieldBreak(target)
 		return
@@ -1511,8 +1517,9 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 		target.downState = DOWN_TUMBLE
 		target.downFrame = 0
 		target.downDirection = 0
-	target.hitlag = max(target.hitlag, hitData.hitlag)
-	attacker.hitlag = max(attacker.hitlag, hitData.hitlag)
+	target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
+	if directContact
+		attacker.hitlag = max(attacker.hitlag, ordinaryHitlagFrames(damage))
 
 function startSpecialAction(FighterState owner, int action, int duration, int direction)
 	owner.specialAction = action
@@ -1706,7 +1713,7 @@ function advanceBear(FighterState owner, FighterState target, int stage)
 		owner.bearSwipeCooldown = RIFLEMAN_BEAR_SWIPE_INTERVAL
 		owner.bearHitSerial++
 		applyAttackHit(owner, target, 0, owner.bearVelocityX < 0 ? -1 : 1,
-			hitEffect(6, 90, 18, 4, DIAGONAL_UNIT, 0.35))
+			hitEffect(6, 90, 18, DIAGONAL_UNIT, 0.35), false)
 	if owner.bearLife <= 0 or owner.bearX < surfaceLeft(stage, 0) - 100 or owner.bearX > surfaceRight(stage, 0) + 100
 		owner.bearLife = 0
 
@@ -1726,7 +1733,7 @@ function advanceHippogryph(FighterState owner, FighterState target)
 			if (crossedTarget or (target.x - owner.hippogryphX).abs() <= 60) and (target.z - owner.hippogryphZ).abs() <= 100
 				owner.specialHit = true
 				applyAttackHit(owner, target, 0, owner.facing,
-					hitEffect(8, 100, 22, 5, DIAGONAL_UNIT, DIAGONAL_UNIT))
+					hitEffect(8, 100, 22, DIAGONAL_UNIT, DIAGONAL_UNIT), false)
 	if owner.hippogryphLife <= 0
 		owner.hippogryphKind = 0
 		if owner.specialAction == SPECIAL_ARCHER_DISENGAGE
@@ -1832,12 +1839,12 @@ public function resolveAttackPair(FighterState first, FighterState second)
 		if firstStyle == 1
 			spawnProjectile(first)
 		else
-			applyAttackHit(first, second, firstStyle, firstFacing, firstRegion.hitData)
+			applyAttackHit(first, second, firstStyle, firstFacing, firstRegion.hitData, true)
 	if secondHits and not firstGrabPriority
 		if secondStyle == 1
 			spawnProjectile(second)
 		else
-			applyAttackHit(second, first, secondStyle, secondFacing, secondRegion.hitData)
+			applyAttackHit(second, first, secondStyle, secondFacing, secondRegion.hitData, true)
 
 public function reset(FighterState f, real startX)
 	clearGrabLinks(f)
@@ -1995,6 +2002,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	if f.grabTarget != null
 		checkBlastZone(f)
 		return
+	if f.hitlag <= 0
+		f.hitstun = max(0, f.hitstun - 1)
 	if input.jumpPressed
 		simulationJump(f)
 	if f.jumpSquat > 0
@@ -2028,7 +2037,6 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			f.groundDodgeFrame = 0
 			f.groundDodgeDirection = 0
 			f.vx = 0
-	f.hitstun = max(0, f.hitstun - 1)
 	checkBlastZone(f)
 	if f.out
 		return

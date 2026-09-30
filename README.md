@@ -54,6 +54,24 @@ cancelled. Summons and projectile trajectories are numerical simulation state.
 The first summon presentation uses Warcraft bear/hippogryph models; dedicated
 rider, summon and downward-shot body animations remain unfinished.
 
+## Intentional omissions
+
+### Stale moves and freshness bonuses
+
+Smashcraft deliberately has neither stale-move penalties nor freshness bonuses.
+Repeating a move does not reduce its damage or knockback parameters, and using
+a different move does not grant a damage bonus.
+
+We consider an attack-history penalty unnecessary inconsistency. Repetitive
+play should be punishable because of the game's design: startup and recovery,
+spacing, commitment, defensive options, and opponent counterplay. If spamming
+a move is too effective, improve those interactions instead of imposing a
+hidden penalty for repetition. Move outcomes should remain predictable under
+the same combat conditions; victim percent, weight, hit region, and other
+explicit mechanics still affect the result.
+
+This is an intentional departure from Melee, not a missing feature to add later.
+
 ## Current evidence
 
 The headless suites cover simulation, input buffers, bindings, match rules

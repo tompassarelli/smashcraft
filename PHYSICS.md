@@ -196,9 +196,9 @@ For ordinary percent-based hits, the documented knockback baseline is:
 Here p is post-hit percent (Melee floors the pre-hit percentage before adding
 this frame's damage), d is move damage, w is victim weight, g is growth divided
 by 100, b is base knockback, and r is contextual scaling (1 for the initial
-ordinary case). Staling, fixed-knockback attacks, crouch modifiers, DI and
+ordinary case). Fixed-knockback attacks, crouch modifiers, DI and
 special launch angles need explicit implementation before parity claims.
-For a non-staled 12-damage hit on weight 80 at 0 pre-hit percent, growth 100,
+For a 12-damage hit on weight 80 at 0 pre-hit percent, growth 100,
 base 20 and ratio 1, K is 51.0666667, launch speed 1.532 and floor(0.4*K) is 20.
 These are useful independent arithmetic expectations for our Wurst tests.
 
@@ -220,10 +220,39 @@ hit frame conversions testable at their integer boundaries. These helpers
 cover only the documented ordinary, non-electric, non-crouching branch; the
 separate fixed-hit, cap, shield, and modifier rules remain distinct work.
 
+Smashcraft intentionally omits staling and freshness bonuses. The design
+rationale is in wc3-melee:README.md, “Intentional omissions.” Do not add a
+staling queue or projectile staleness snapshots.
+
+September 30 reference check: SmashWiki's Hitstun article identifies the
+unconditional subtraction of one frame with Ultimate, not Melee. The local
+Melee reference, revision above, initializes the damage counter from truncated
+scaled knockback in melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c and decrements
+it before the damage state's input transitions. Keep floor(0.4*K); jump and
+attack must become eligible on the same expiry tick. The focused test exposed
+and corrected our jump check occurring before the hitstun decrement.
+
+melee:src/melee/ft/ftcommon.c, ftCommon_CalcHitlag, confirms separate truncation
+stages for base duration, effect multiplier and crouch multiplier.
+melee:src/melee/ft/fighter.c caps the result using common data. SmashWiki's
+Hitlag article supplies the numeric normal rule and cap of 20. Normal hits now
+derive hitlag from damage (zero damage gives zero), including tip/weak regions;
+shield contacts pause the victim's shieldstun during hitlag, and detached
+projectiles/summons do not freeze the summoner. Electric and crouch-cancel
+gameplay are still absent and must not be claimed implemented. Their future
+victim formula is floor(c * floor(e * floor(3+d/3))), capped at 20;
+the attacker's e and c remain 1. No later-game tipper hitlag multiplier applies.
+
+Launch speed already uses 0.03*K, converted by the six-world-units scale.
+The general >=80 tumble rule remains a prototype: the reference selects
+damage states through scaled-knockback thresholds and ground/air conditions.
+Exact boundary and grounded exceptions still require verification before a
+full tumble-parity claim; a screenshot saying “exceeds 80” is not sufficient.
+
 ## Frame-authored hit regions
 
 The match now selects facing-relative rectangular regions using the current
-`attackFrame`. Regions include damage, growth, base knockback, hitlag ticks,
+`attackFrame`. Regions include damage, growth, base knockback,
 launch direction, and a numbered contact window. Lower region indices win
 overlaps: a target receives exactly one selected effect per resolution.
 Both fighters' effects and facing are copied before applying either hit, so
@@ -242,11 +271,11 @@ These are independently authored, provisional values, not Melee measurements:
 
 | Move / region / attack frames | Damage | Growth % | Base knockback | Hitlag ticks | Local launch direction (x,z) |
 | --- | ---: | ---: | ---: | ---: | --- |
-| Forward tilt tip / 5 | 10 | 110 | 24 | 7 | (0.8, 0.6) |
-| Forward tilt inner / 5 | 7 | 80 | 16 | 3 | (0.7071, 0.7071) |
-| Forward tilt tip / 6 | 8 | 90 | 18 | 4 | (0.8, 0.6) |
-| Forward tilt inner / 6 | 5 | 70 | 12 | 2 | (0.7071, 0.7071) |
-| Up aerial opening / 5–6 | 4 | 60 | 14 | 2 | (0.25, 0.9682458) |
+| Forward tilt tip / 5 | 10 | 110 | 24 | 6 | (0.8, 0.6) |
+| Forward tilt inner / 5 | 7 | 80 | 16 | 5 | (0.7071, 0.7071) |
+| Forward tilt tip / 6 | 8 | 90 | 18 | 5 | (0.8, 0.6) |
+| Forward tilt inner / 6 | 5 | 70 | 12 | 4 | (0.7071, 0.7071) |
+| Up aerial opening / 5–6 | 4 | 60 | 14 | 4 | (0.25, 0.9682458) |
 | Up aerial finisher / 7 | 8 | 110 | 24 | 5 | (0.25, 0.9682458) |
 
 Ordinary moves share window 1 across all their regions and active frames.

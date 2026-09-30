@@ -25,8 +25,8 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 			target.knockbackX.assertEquals(direction * 7.7856, 0.0001)
 			target.knockbackZ.assertEquals(5.8392, 0.0001)
 			target.hitstun.assertEquals(21)
-			target.hitlag.assertEquals(7)
-			attacker.hitlag.assertEquals(7)
+			target.hitlag.assertEquals(6)
+			attacker.hitlag.assertEquals(6)
 			destroy target
 			destroy attacker
 
@@ -42,12 +42,12 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 				let speed = frame == 5 ? 6.1776 : 4.771
 				SquareRoot(target.knockbackX * target.knockbackX + target.knockbackZ * target.knockbackZ).assertEquals(speed, 0.0001)
 				target.knockbackX.assertEquals(target.knockbackZ, 0.0001)
-				target.hitlag.assertEquals(frame == 5 ? 3 : 2)
+				target.hitlag.assertEquals(frame == 5 ? 5 : 4)
 			else
 				target.damage.assertEquals(frame == 5 ? 10. : 8.)
 				target.knockbackX.assertEquals(frame == 5 ? 7.7856 : 5.7312, 0.0001)
 				target.knockbackZ.assertEquals(frame == 5 ? 5.8392 : 4.2984, 0.0001)
-				target.hitlag.assertEquals(frame == 5 ? 7 : 4)
+				target.hitlag.assertEquals(frame == 5 ? 6 : 5)
 			destroy target
 			destroy attacker
 
@@ -77,7 +77,7 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 	let input = new InputSnapshot()
 	prepareHitRegionAttack(attacker, target, 6, 5)
 	resolveAttackPair(attacker, target)
-	for tick = 1 to 7
+	for tick = 1 to 6
 		advance(attacker, 0, input, -240)
 		resolveAttackPair(attacker, target)
 		attacker.attackFrame.assertEquals(5)
@@ -124,8 +124,8 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 	prepareHitRegionAttack(attacker, target, AERIAL_UP_STYLE, 5)
 	resolveAttackPair(attacker, target)
 	target.damage.assertEquals(4.)
-	target.hitlag.assertEquals(2)
-	for tick = 1 to 2
+	target.hitlag.assertEquals(4)
+	for tick = 1 to 4
 		advance(attacker, 0, input, -240)
 		resolveAttackPair(attacker, target)
 		attacker.attackFrame.assertEquals(5)
@@ -183,8 +183,8 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 			resolveAttackPair(second, first)
 		first.damage.assertEquals(8.)
 		second.damage.assertEquals(10.)
-		first.hitlag.assertEquals(7)
-		second.hitlag.assertEquals(7)
+		first.hitlag.assertEquals(6)
+		second.hitlag.assertEquals(6)
 		first.knockbackX.assertLessThan(0.)
 		second.knockbackX.assertGreaterThan(0.)
 		first.attackStyle.assertEquals(-1)
@@ -200,7 +200,7 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 	resolveAttackPair(attacker, target)
 	target.damage.assertEquals(0.)
 	target.shieldEnergy.assertEquals(53.)
-	attacker.hitlag.assertEquals(7)
+	attacker.hitlag.assertEquals(6)
 	attacker.hitlag = 0
 	target.shield = false
 	attacker.attackFrame = 6
@@ -2410,7 +2410,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	input.direction = 1
 	advance(target, 0, input, -240)
 	target.shield.assertTrue()
-	target.shieldStun.assertEquals(stun - 1)
+	target.shieldStun.assertEquals(stun)
 	target.jumpSquat.assertEquals(0)
 	targetCommands.enqueue(0, 0, attackStartupFrames(0) + 2, false)
 	stepMatch(game, target, attacker, input, attackerInput, targetCommands, attackerCommands, attackStartupFrames(0) + 2)
@@ -2940,11 +2940,11 @@ function airJumpApex(int character) returns real
 	fighter.grounded = false
 	fighter.z = 100
 	fighter.downState = DOWN_TUMBLE
-	fighter.hitstun = 1
+	fighter.hitstun = 2
 	input.airDodgePressed = true
 	advance(fighter, 0, input, 0)
 	fighter.airDodging.assertFalse()
-	fighter.hitstun = 0
+	fighter.hitstun.assertEquals(1)
 	advance(fighter, 0, input, 0)
 	fighter.airDodging.assertTrue()
 	fighter.downState.assertEquals(DOWN_NONE)

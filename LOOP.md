@@ -2,7 +2,21 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-Installed and observed running: `grab-hold-r1`, normal scenario. Fresh launch
+Installed: `hit-timing-r1`, normal scenario; native launch/checks pending.
+wc3-melee:build/hit-timing-r1-map.log records successful build/deploy. The timing
+pass derives normal hitlag from damage with a 20-frame cap, freezes both bodies
+on shield contact, keeps detached projectile/summon hits from freezing their
+owner, and lets jump/air dodge act on hitstun's expiry tick. The complete Wurst
+suite passed 307/307 with zero errors/warnings:
+wc3-melee:build/wurst-tests/hit-timing-full.log. Earlier failing timing fixtures
+are retained in wc3-melee:build/wurst-tests/hit-timing-expiry-before.log.
+No staling was added; its intentional omission is recorded in wc3-melee:README.md.
+Electric/crouch modifiers and exact tumble boundary remain open. The attempted
+mechanics-worker handoff failed at message delivery; the child was interrupted
+without acknowledgement or edits, its capacity lease released, and the parent
+continued directly. The delegation incident remains unrepaired.
+
+Latest observed running: `grab-hold-r1`, normal scenario. Fresh launch
 through End Game / Quit Mission / Create Game succeeded without Ctrl+R; the
 readiness receipt and trace agree. Build log: wc3-melee:build/grab-hold-r1-map.log
 (six existing warnings). The owner authorized native control; focus guards

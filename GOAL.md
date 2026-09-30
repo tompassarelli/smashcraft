@@ -6,4 +6,6 @@ Keep headless Wurst tests as the primary development loop, including input-tape 
 
 Complete character select → stage select → matches, including movement, aerials, wavedashing, shields, hitlag/hitstun, knockback, stocks, specials, animation-aligned hitboxes/hurtboxes, and the agreed visual polish. Use the local Melee reference for factual mechanics and independently authored implementation.
 
+Honor the intentional omissions in wc3-melee:README.md: no stale-move mechanic or freshness bonus. Discourage repetitive play through move design and counterplay, not attack-history damage penalties.
+
 Keep working code, commands, evidence, decisions, and remaining work durably documented in the public repository. Distinguish implemented from measured and untested. Escalate demonstrated native limitations explicitly; don’t conceal them with smoothing or assume an unproven external bridge.

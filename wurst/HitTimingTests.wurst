@@ -1,0 +1,67 @@
+package HitTimingTests
+import Simulation
+
+@Test function hitstunExpiryAllowsJumpOnTheSameTickAsAttack()
+    let fighter = new FighterState(0, 0, 1)
+    let input = new InputSnapshot()
+    fighter.surface = 0
+    fighter.hitstun = 2
+    input.jumpPressed = true
+    input.jumpHeld = true
+    advance(fighter, 0, input, 0)
+    fighter.jumpSquat.assertEquals(0)
+    canAttack(fighter).assertFalse()
+    advance(fighter, 0, input, 0)
+    fighter.hitstun.assertEquals(0)
+    fighter.jumpSquat.assertGreaterThan(0)
+    destroy input
+    destroy fighter
+
+@Test function hitlagAndShieldstunRespectMeleeIntegerBoundaries()
+    ordinaryHitlagFrames(0).assertEquals(0)
+    ordinaryHitlagFrames(2.999).assertEquals(3)
+    ordinaryHitlagFrames(3).assertEquals(4)
+    ordinaryHitlagFrames(15).assertEquals(8)
+    ordinaryHitlagFrames(100).assertEquals(20)
+    digitalShieldstunFrames(12).assertEquals(7)
+    digitalShieldstunFrames(7).assertEquals(5)
+    ordinaryHitstunFrames(100).assertEquals(40)
+
+@Test function shieldContactFreezesBothBodiesBeforeShieldstunCountsDown()
+    let attacker = new FighterState(0, 0, 1)
+    let target = new FighterState(1, 100, -1)
+    let input = new InputSnapshot()
+    target.shield = true
+    input.shield = true
+    beginAttackPair(attacker, target, 0, -1, false, false)
+    attacker.attackFrame = attackStartupFrames(0)
+    resolveAttackPair(attacker, target)
+    attacker.hitlag.assertEquals(7)
+    target.hitlag.assertEquals(7)
+    target.shieldStun.assertEquals(7)
+    for tick = 1 to 7
+        advance(target, 0, input, 240)
+        target.shieldStun.assertEquals(7)
+    advance(target, 0, input, 240)
+    target.shieldStun.assertEquals(6)
+    destroy input
+    destroy attacker
+    destroy target
+
+@Test function detachedProjectileImpactDoesNotFreezeItsShooter()
+    for shielded = 0 to 1
+        for kind = PROJECTILE_ARROW to PROJECTILE_RECOIL
+            let shooter = new FighterState(0, 0, 1)
+            let target = new FighterState(1, 100, -1)
+            target.shield = shielded == 1
+            shooter.projectileLife[0] = 2
+            shooter.projectileKind[0] = kind
+            shooter.projectileX[0] = 90
+            shooter.projectileZ[0] = 45
+            shooter.projectileVelocityX[0] = 20
+            shooter.projectileDirection[0] = 1
+            updateProjectilePair(shooter, target)
+            shooter.hitlag.assertEquals(0)
+            target.hitlag.assertGreaterThan(0)
+            destroy shooter
+            destroy target
