@@ -5,6 +5,42 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function leavingFloorWithoutJumpingLeavesExactlyOneAirJump()
+	for character = 0 to 1
+		for side = -1 to 1
+			if side != 0
+				let edge = side < 0 ? surfaceLeft(0, 0) : surfaceRight(0, 0)
+				let fighter = new FighterState(character, edge - side, side)
+				let input = new InputSnapshot()
+				fighter.surface = 0
+				input.direction = side
+				advance(fighter, 0, input, 0)
+				fighter.grounded.assertFalse()
+				fighter.jumps.assertEquals(1)
+				advance(fighter, 0, input, 0)
+				fighter.jumps.assertEquals(1)
+				simulationJump(fighter)
+				fighter.jumps.assertEquals(0)
+				let jumpSerial = fighter.jumpSerial
+				let speed = fighter.vz
+				simulationJump(fighter)
+				fighter.jumpSerial.assertEquals(jumpSerial)
+				fighter.vz.assertEquals(speed)
+				destroy input
+				destroy fighter
+
+@Test function droppingThroughPlatformLeavesExactlyOneAirJump()
+	let fighter = new FighterState(0, (surfaceLeft(1, 1) + surfaceRight(1, 1)) / 2, 1)
+	let input = new InputSnapshot()
+	fighter.surface = 1
+	fighter.z = surfaceZ(1, 1)
+	input.down = true
+	advance(fighter, 1, input, 0)
+	fighter.grounded.assertFalse()
+	fighter.jumps.assertEquals(1)
+	destroy input
+	destroy fighter
+
 function prepareHitRegionAttack(FighterState attacker, FighterState target, int style, int frame)
 	if isAerialAttack(style)
 		attacker.grounded = false

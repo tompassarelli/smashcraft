@@ -560,6 +560,10 @@ timing, damage, vertical hits/misses, facing and the horizontal range edge.
 
 ## Moving blaster shots
 
+Walking/running off a floor or dropping through a platform leaves at most one
+aerial jump. This transition removes the grounded jump once; subsequent falling
+ticks do not consume the remaining jump. Landing still restores the normal budget.
+
 Each accepted blaster action emits one horizontal shot when startup ends.
 Shots advance on simulation ticks independently of the owner's attack clock,
 and persist through owner recovery or interruption. Collision sweeps the

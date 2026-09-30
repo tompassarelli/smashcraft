@@ -2253,6 +2253,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.vx = f.vx > 0 ? max(0, f.vx - drag) : min(0, f.vx + drag)
 	if input.down and not input.attackRequested and f.downState == DOWN_NONE and f.grounded and f.surface >= 0 and surfacePass(stage, f.surface) and canAttack(f)
 		f.dropTime = 12
+		f.jumps = min(f.jumps, 1)
 		f.grounded = false
 		f.vz = -2
 	let oldX = f.x
@@ -2293,6 +2294,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	if landing >= 0
 		finishLanding(f, stage, input, landing, false)
 	else
+		if f.grounded
+			f.jumps = min(f.jumps, 1)
 		f.grounded = false
 		f.surface = -1
 		clearDash(f)
