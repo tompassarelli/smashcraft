@@ -1384,3 +1384,36 @@ establish a causal defect. Saved bindings use the stdlib's synchronized load
 callback. No speculative restart or synchronization code was changed. The
 093439 failed reload remains an open incident; stop repeating successful
 samples and preserve the next actual failure before narrowing its cause.
+
+## Owner direction: Rifleman specials and chip dragging (2026-09-30)
+
+Rifleman's requested special kit:
+
+- Neutral Special fires a clear gun projectile, approximately Falco-laser speed.
+- Side Special summons a bear with immediate fixed horizontal jog/run speed.
+  Airborne bears fall under gravity while continuing forward. A bear swipes
+  repeatedly at opponents in its path; swipe count/cadence remain tuning.
+- Up Special shoots downward for initial vertical lift, then after a short
+  delay launches Rifleman in the direction held. Direction selection is taken
+  at launch; charge duration, recoil and launch speed remain tuning.
+- Down Special places a freezing trap. Freeze duration, lifetime, activation
+  radius, damage and placement limit remain unspecified tuning.
+
+“B” names the Special action, currently U in the custom layout; it does not
+replace the physical B binding used by the C-stick layout. These moves are
+requested work, not implemented claims. Keep their movement, collision,
+lifetimes and action locks in testable Wurst logic; native units/effects render
+the bear, bullet and trap. Preserve a single synchronized frame input path.
+
+Character selection must support holding left mouse on a player chip,
+dragging it onto another character and releasing to select. Keep portrait
+click selection. A drop outside the roster leaves the choice unchanged.
+The same player ownership rules must apply to drag selection as to clicks.
+
+Follow-up selection requirements: the gray opponent chip must read P2 rather
+than CPU, keeping its gray color. Remove the per-fighter confirm step: dropping
+a chip selects and readies that participant; Enter starts only when every
+human has selected. Stage choice stays available on the selection screen so
+Enter can start directly. Tighten the character-tile name strips, remove the
+">" marker, and center the labels with symmetric top/bottom padding. Chips
+alone indicate selection. These supersede the older confirm/stage-screen flow.
