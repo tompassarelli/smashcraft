@@ -38,14 +38,21 @@ Ctrl+R to restart the map and Ctrl+T to start an input trace; these chords are
 separate from player bindings. F6 and F7 remain reserved from rebinding for
 Warcraft's own shortcuts.
 In the custom preset: W/R move; I/9 jump; Space aims up;
-E fast-falls/drops; Q/8 shield or air-dodge; L grabs; N attacks; U fires a special;
-Shield + N or L grabs. C-stick down-air preserves normal aerial momentum.
+E fast-falls/drops; Q/8 shield or air-dodge; O grabs; N attacks; U fires a special;
+Shield + N or O grabs. C-stick down-air preserves normal aerial momentum.
 Attacks can be buffered for six frames, including through jump squat.
-Hold ; to walk. N with direction gives a smash, or a tilt while walking.
+Hold P to walk. N with direction gives a smash, or a tilt while walking.
 H/J/M/B are C-stick smashes. Ground blaster has longer recovery than air
 blaster. Avoid F5: returning to the menu previously hung
 the client; use the persistent map-restart loop while developing.
 QWERTY uses 7 for right trigger and 8 for the alternate jump key.
+
+Specials use U with movement direction: neutral arrow/bullet, horizontal
+multishot/bear, Up for hippogryph/recoil recovery, and Down for Archer
+disengage or Rifleman freezing trap. Archer's neutral arrow can be jump
+cancelled. Summons and projectile trajectories are numerical simulation state.
+The first summon presentation uses Warcraft bear/hippogryph models; dedicated
+rider, summon and downward-shot body animations remain unfinished.
 
 ## Current evidence
 

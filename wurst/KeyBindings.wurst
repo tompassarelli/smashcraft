@@ -35,7 +35,7 @@ public class KeyBindings
         keys[JUMP * 2 + 1] = custom ? 57 : 56
         keys[ATTACK * 2] = 78
         keys[SPECIAL * 2] = 85
-        keys[GRAB * 2] = 76
+        keys[GRAB * 2] = 79
         keys[LEFT_TRIGGER * 2] = 81
         keys[RIGHT_TRIGGER * 2] = custom ? 56 : 55
         keys[SMASH_LEFT * 2] = 72
@@ -43,7 +43,7 @@ public class KeyBindings
         keys[SMASH_UP * 2] = 74
         keys[SMASH_DOWN * 2] = 66
         keys[SMASH_DOWN * 2 + 1] = 191
-        keys[WALK_MODIFIER * 2] = 186
+        keys[WALK_MODIFIER * 2] = 80
 
     function keyFor(int action, int slot) returns int
         if action < 0 or action >= ACTION_COUNT or slot < 0 or slot > 1
@@ -73,7 +73,7 @@ public class KeyBindings
         return true
 
     function encode() returns string
-        var result = "K2"
+        var result = "K3"
         for i = 0 to KEY_SLOT_COUNT - 1
             let number = I2S(keys[i])
             result += keys[i] < 10 ? "00" + number : (keys[i] < 100 ? "0" + number : number)
@@ -129,7 +129,8 @@ public class KeyBindings
 
     function restore(string encoded) returns boolean
         let previousSave = encoded.length() == 86 and encoded.substring(0, 2) == "K1"
-        if not previousSave and (encoded.length() != 92 or encoded.substring(0, 2) != "K2")
+        let currentSave = encoded.length() == 92 and encoded.substring(0, 2) == "K3"
+        if not previousSave and not currentSave and (encoded.length() != 92 or encoded.substring(0, 2) != "K2")
             return false
         let candidate = new KeyBindings(false)
         for i = 0 to KEY_SLOT_COUNT - 1
@@ -145,10 +146,16 @@ public class KeyBindings
             if not candidate.rebind(i div 2, i mod 2, value)
                 destroy candidate
                 return false
-        if previousSave and candidate.actionFor(186) < 0
-            candidate.rebind(WALK_MODIFIER, 0, 186)
+        if previousSave and candidate.actionFor(80) < 0
+            candidate.rebind(WALK_MODIFIER, 0, 80)
+        // Upgrade old defaults once; new saves can intentionally bind L or ;.
+        if not currentSave
+            if candidate.keyFor(GRAB, 0) == 76 and candidate.actionFor(79) < 0
+                candidate.rebind(GRAB, 0, 79)
+            if candidate.keyFor(WALK_MODIFIER, 0) == 186 and candidate.actionFor(80) < 0
+                candidate.rebind(WALK_MODIFIER, 0, 80)
         // Migrate the previous default block without moving custom bindings.
-        if candidate.keyFor(MOVE_LEFT, 0) == 83 and candidate.keyFor(MOVE_RIGHT, 0) == 70 and candidate.keyFor(MOVE_DOWN, 0) == 68 and candidate.keyFor(LEFT_TRIGGER, 0) == 65 and candidate.actionFor(81) < 0 and candidate.actionFor(87) < 0 and candidate.actionFor(69) < 0 and candidate.actionFor(82) < 0
+        if not currentSave and candidate.keyFor(MOVE_LEFT, 0) == 83 and candidate.keyFor(MOVE_RIGHT, 0) == 70 and candidate.keyFor(MOVE_DOWN, 0) == 68 and candidate.keyFor(LEFT_TRIGGER, 0) == 65 and candidate.actionFor(81) < 0 and candidate.actionFor(87) < 0 and candidate.actionFor(69) < 0 and candidate.actionFor(82) < 0
             candidate.rebind(MOVE_LEFT, 0, 87)
             candidate.rebind(MOVE_RIGHT, 0, 82)
             candidate.rebind(MOVE_DOWN, 0, 69)

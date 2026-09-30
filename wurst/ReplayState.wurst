@@ -104,6 +104,36 @@ function copyFighter(FighterState source, FighterState destination,
 		destination.projectileZ[i] = source.projectileZ[i]
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		destination.projectileDirection[i] = source.projectileDirection[i]
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		destination.projectileKind[i] = source.projectileKind[i]
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		destination.projectileVelocityX[i] = source.projectileVelocityX[i]
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		destination.projectileVelocityZ[i] = source.projectileVelocityZ[i]
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		destination.projectileSerial[i] = source.projectileSerial[i]
+	destination.specialAction = source.specialAction
+	destination.specialFrame = source.specialFrame
+	destination.specialDuration = source.specialDuration
+	destination.specialLockFrames = source.specialLockFrames
+	for i = 0 to SPECIAL_ACTION_CAPACITY - 1
+		destination.specialCooldowns[i] = source.specialCooldowns[i]
+	destination.specialDirection = source.specialDirection
+	destination.specialHit = source.specialHit
+	destination.bearLife = source.bearLife
+	destination.bearX = source.bearX
+	destination.bearZ = source.bearZ
+	destination.bearVelocityX = source.bearVelocityX
+	destination.bearVelocityZ = source.bearVelocityZ
+	destination.bearSwipeCooldown = source.bearSwipeCooldown
+	destination.bearHitSerial = source.bearHitSerial
+	destination.bearSurface = source.bearSurface
+	destination.hippogryphLife = source.hippogryphLife
+	destination.hippogryphX = source.hippogryphX
+	destination.hippogryphZ = source.hippogryphZ
+	destination.hippogryphVelocityX = source.hippogryphVelocityX
+	destination.hippogryphVelocityZ = source.hippogryphVelocityZ
+	destination.hippogryphKind = source.hippogryphKind
 
 // Slot identity survives detached snapshots; foreign references are invalid state.
 function attackerSlot(FighterState attacker, FighterState first, FighterState second) returns int
@@ -298,6 +328,61 @@ function fighterDifference(FighterState expected, FighterState actual,
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		if expected.projectileDirection[i] != actual.projectileDirection[i]
 			return "projectileDirection[" + I2S(i) + "]"
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		if expected.projectileKind[i] != actual.projectileKind[i]
+			return "projectileKind[" + I2S(i) + "]"
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		if expected.projectileVelocityX[i] != actual.projectileVelocityX[i]
+			return "projectileVelocityX[" + I2S(i) + "]"
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		if expected.projectileVelocityZ[i] != actual.projectileVelocityZ[i]
+			return "projectileVelocityZ[" + I2S(i) + "]"
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		if expected.projectileSerial[i] != actual.projectileSerial[i]
+			return "projectileSerial[" + I2S(i) + "]"
+	if expected.specialAction != actual.specialAction
+		return "specialAction"
+	if expected.specialFrame != actual.specialFrame
+		return "specialFrame"
+	if expected.specialDuration != actual.specialDuration
+		return "specialDuration"
+	if expected.specialLockFrames != actual.specialLockFrames
+		return "specialLockFrames"
+	for i = 0 to SPECIAL_ACTION_CAPACITY - 1
+		if expected.specialCooldowns[i] != actual.specialCooldowns[i]
+			return "specialCooldowns[" + I2S(i) + "]"
+	if expected.specialDirection != actual.specialDirection
+		return "specialDirection"
+	if expected.specialHit != actual.specialHit
+		return "specialHit"
+	if expected.bearLife != actual.bearLife
+		return "bearLife"
+	if expected.bearX != actual.bearX
+		return "bearX"
+	if expected.bearZ != actual.bearZ
+		return "bearZ"
+	if expected.bearVelocityX != actual.bearVelocityX
+		return "bearVelocityX"
+	if expected.bearVelocityZ != actual.bearVelocityZ
+		return "bearVelocityZ"
+	if expected.bearSwipeCooldown != actual.bearSwipeCooldown
+		return "bearSwipeCooldown"
+	if expected.bearHitSerial != actual.bearHitSerial
+		return "bearHitSerial"
+	if expected.bearSurface != actual.bearSurface
+		return "bearSurface"
+	if expected.hippogryphLife != actual.hippogryphLife
+		return "hippogryphLife"
+	if expected.hippogryphX != actual.hippogryphX
+		return "hippogryphX"
+	if expected.hippogryphZ != actual.hippogryphZ
+		return "hippogryphZ"
+	if expected.hippogryphVelocityX != actual.hippogryphVelocityX
+		return "hippogryphVelocityX"
+	if expected.hippogryphVelocityZ != actual.hippogryphVelocityZ
+		return "hippogryphVelocityZ"
+	if expected.hippogryphKind != actual.hippogryphKind
+		return "hippogryphKind"
 	return ""
 
 public class ReplaySnapshot

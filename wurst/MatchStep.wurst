@@ -16,10 +16,8 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
     resolveLedgePair(first, second, game.stageChoice, firstInput, secondInput)
     advance(first, game.stageChoice, firstInput, -240)
     advance(second, game.stageChoice, secondInput, 240)
-    if firstInput.specialPressed and firstInput.down
-        startFreezeTrap(first, game.stageChoice)
-    if secondInput.specialPressed and secondInput.down
-        startFreezeTrap(second, game.stageChoice)
+    startFighterSpecial(first, game.stageChoice, firstInput)
+    startFighterSpecial(second, game.stageChoice, secondInput)
     advanceFreezeTrapPair(first, second)
     if first.frozenFrames > 0
         firstCommands.clear()
@@ -35,6 +33,7 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
         second.facing = secondCommands.consumedFacing
     beginAttackPair(first, second, firstStyle, secondStyle, firstCommands.consumedMayCharge and firstInput.attackHeld, secondCommands.consumedMayCharge and secondInput.attackHeld)
     resolveAttackPair(first, second)
+    advanceSpecialPair(first, second, game.stageChoice)
     updateProjectilePair(first, second)
     game.resolveStocks(first.stocks, second.stocks)
     game.advanceClock(first.stocks, first.damage, second.stocks, second.damage)

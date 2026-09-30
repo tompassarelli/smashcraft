@@ -67,6 +67,13 @@ public class PlayerInputState
     function directionZ() returns int
         return (actionHeld(MOVE_UP) ? 1 : 0) - (actionHeld(MOVE_DOWN) ? 1 : 0)
 
+    function consumeMovementZ() returns int
+        let upPressed = consumePressed(MOVE_UP)
+        let downPressed = consumePressed(MOVE_DOWN)
+        if actionHeld(MOVE_UP) or actionHeld(MOVE_DOWN)
+            return directionZ()
+        return (upPressed ? 1 : 0) - (downPressed ? 1 : 0)
+
     function pulsePending() returns boolean
         return directions.pulsePending
 

@@ -49,6 +49,28 @@ constant int GROUND_ROLL_MOVE_END = 19
 public constant int SHIELD_MIN_HOLD_FRAMES = 8
 public constant int SHIELD_RELEASE_LAG_FRAMES = 15
 public constant int PROJECTILE_CAPACITY = 16
+// First-pass character-special timing and trajectories; gameplay tuning remains provisional.
+public constant int PROJECTILE_BLASTER = 0
+public constant int PROJECTILE_ARROW = 1
+public constant int PROJECTILE_FAN_ARROW = 2
+public constant int PROJECTILE_RECOIL = 3
+public constant int SPECIAL_NONE = 0
+public constant int SPECIAL_ARCHER_ARROW = 1
+public constant int SPECIAL_ARCHER_MULTISHOT = 2
+public constant int SPECIAL_ARCHER_DISENGAGE = 3
+public constant int SPECIAL_ARCHER_RECOVERY = 4
+public constant int SPECIAL_RIFLEMAN_BEAR = 5
+public constant int SPECIAL_RIFLEMAN_RECOVERY = 6
+public constant int SPECIAL_RIFLEMAN_BLASTER = 7
+public constant int SPECIAL_RIFLEMAN_TRAP = 8
+public constant int SPECIAL_ACTION_CAPACITY = 9
+public constant int ARCHER_MULTISHOT_WINDUP_FRAMES = 12
+public constant int ARCHER_DISENGAGE_FRAMES = 30
+public constant int ARCHER_RECOVERY_FRAMES = 24
+public constant int RIFLEMAN_RECOVERY_STARTUP_FRAMES = 4
+public constant int RIFLEMAN_RECOVERY_PROTECTION_END = 24
+public constant int RIFLEMAN_BEAR_LIFETIME = 100
+public constant int RIFLEMAN_BEAR_SWIPE_INTERVAL = 18
 public constant int FREEZE_TRAP_ARMING_FRAMES = 20
 public constant int FREEZE_TRAP_LIFETIME_FRAMES = 1800
 public constant int FREEZE_TRAP_FREEZE_FRAMES = 300
@@ -187,6 +209,31 @@ public class FighterState
 	real array[PROJECTILE_CAPACITY] projectileX
 	real array[PROJECTILE_CAPACITY] projectileZ
 	int array[PROJECTILE_CAPACITY] projectileDirection
+	int array[PROJECTILE_CAPACITY] projectileKind
+	real array[PROJECTILE_CAPACITY] projectileVelocityX
+	real array[PROJECTILE_CAPACITY] projectileVelocityZ
+	int array[PROJECTILE_CAPACITY] projectileSerial
+	int specialAction = SPECIAL_NONE
+	int specialFrame = 0
+	int specialDuration = 0
+	int specialLockFrames = 0
+	int array[SPECIAL_ACTION_CAPACITY] specialCooldowns
+	int specialDirection = 0
+	boolean specialHit = false
+	int bearLife = 0
+	real bearX = 0
+	real bearZ = 0
+	real bearVelocityX = 0
+	real bearVelocityZ = 0
+	int bearSwipeCooldown = 0
+	int bearHitSerial = 0
+	int bearSurface = -1
+	int hippogryphLife = 0
+	real hippogryphX = 0
+	real hippogryphZ = 0
+	real hippogryphVelocityX = 0
+	real hippogryphVelocityZ = 0
+	int hippogryphKind = 0
 	int freezeTrapLife = 0
 	int freezeTrapArming = 0
 	real freezeTrapX = 0
@@ -441,7 +488,7 @@ function canStartAttack(FighterState attacker) returns boolean
 		return false
 	if attacker.ledgeState != LEDGE_NONE
 		return false
-	return not attacker.out and attacker.shieldBreakState == SHIELD_BREAK_NONE and (attacker.downState == DOWN_NONE or isTumbling(attacker)) and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0
+	return not attacker.out and attacker.specialLockFrames <= 0 and attacker.shieldBreakState == SHIELD_BREAK_NONE and (attacker.downState == DOWN_NONE or isTumbling(attacker)) and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0
 
 public function canAttack(FighterState attacker) returns boolean
 	return canStartAttack(attacker) and not attacker.shield and attacker.frozenFrames <= 0
@@ -592,6 +639,15 @@ public function projectileZAt(FighterState f, int index) returns real
 
 public function projectileDirectionAt(FighterState f, int index) returns int
 	return f.projectileDirection[index]
+
+public function projectileVelocityXAt(FighterState f, int index) returns real
+	return f.projectileVelocityX[index]
+
+public function projectileVelocityZAt(FighterState f, int index) returns real
+	return f.projectileVelocityZ[index]
+
+public function projectileKindAt(FighterState f, int index) returns int
+	return f.projectileKind[index]
 
 tuple hitEffect(real damage, real growth, real base, int hitlag, real launchX, real launchZ)
 tuple hitRegion(real minX, real maxX, real minZ, real maxZ, hitEffect hitData, int window)
@@ -820,6 +876,46 @@ function clearOwnedFreezeTrap(FighterState f)
 	f.freezeTrapZ = 0
 	f.freezeTrapSurface = -1
 
+public function cancelSpecialState(FighterState f)
+	f.specialAction = SPECIAL_NONE
+	f.specialFrame = 0
+	f.specialDuration = 0
+	f.specialLockFrames = 0
+	// Spawned cover and bears outlive the owner's action; a mount does not.
+	if f.hippogryphKind == 2
+		f.hippogryphLife = 0
+		f.hippogryphKind = 0
+
+function clearSpecialOnStock(FighterState f)
+	cancelSpecialState(f)
+	f.specialHit = false
+	f.bearLife = 0
+	f.bearSwipeCooldown = 0
+	f.hippogryphLife = 0
+	f.hippogryphKind = 0
+	for i = 0 to SPECIAL_ACTION_CAPACITY - 1
+		f.specialCooldowns[i] = 0
+	f.specialDirection = 0
+	f.bearX = 0
+	f.bearZ = 0
+	f.bearVelocityX = 0
+	f.bearVelocityZ = 0
+	f.bearHitSerial = 0
+	f.bearSurface = -1
+	f.hippogryphX = 0
+	f.hippogryphZ = 0
+	f.hippogryphVelocityX = 0
+	f.hippogryphVelocityZ = 0
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		f.projectileLife[i] = 0
+		f.projectileX[i] = 0
+		f.projectileZ[i] = 0
+		f.projectileDirection[i] = 0
+		f.projectileKind[i] = PROJECTILE_BLASTER
+		f.projectileVelocityX[i] = 0
+		f.projectileVelocityZ[i] = 0
+		f.projectileSerial[i] = 0
+
 public function startFreezeTrap(FighterState owner, int stage) returns boolean
 	if owner.character != 1 or not owner.grounded or owner.surface < 0 or owner.freezeTrapLife > 0 or owner.freezeTrapCooldown > 0 or not canAttack(owner)
 		return false
@@ -852,6 +948,7 @@ function freezeFromTrap(FighterState target)
 	target.knockbackX = 0
 	target.knockbackZ = 0
 	target.frozenFrames = FREEZE_TRAP_FREEZE_FRAMES
+	cancelSpecialState(target)
 
 // Determine both contacts against the same pre-mutation frame, then consume
 // traps and freeze targets. Simultaneous traps therefore do not depend on P1 order.
@@ -1166,16 +1263,70 @@ function beginAttack(FighterState attacker, int style, boolean mayCharge)
 	attacker.smashChargeAllowed = isSmashAttack(style) and mayCharge
 	attacker.cooldown = attacker.attackDuration
 
-function spawnProjectile(FighterState owner)
+function spawnProjectileMotion(FighterState owner, int kind, real velocityX, real velocityZ,
+		int lifetime, int serial)
 	for index = 0 to PROJECTILE_CAPACITY - 1
 		if owner.projectileLife[index] <= 0
-			owner.projectileDirection[index] = owner.facing
-			owner.projectileX[index] = owner.x + owner.facing * BLASTER_PROJECTILE_SPAWN_OFFSET
+			owner.projectileDirection[index] = velocityX < 0 ? -1 : 1
+			owner.projectileKind[index] = kind
+			owner.projectileVelocityX[index] = velocityX
+			owner.projectileVelocityZ[index] = velocityZ
+			owner.projectileSerial[index] = serial
+			owner.projectileX[index] = owner.x + (velocityX < 0 ? -1 : 1) * BLASTER_PROJECTILE_SPAWN_OFFSET
 			owner.projectileZ[index] = owner.z + BLASTER_PROJECTILE_HEIGHT
-			owner.projectileLife[index] = BLASTER_PROJECTILE_LIFETIME
+			owner.projectileLife[index] = lifetime
 			return
 
-function applyProjectileHit(FighterState owner, FighterState target)
+function spawnProjectile(FighterState owner)
+	spawnProjectileMotion(owner, PROJECTILE_BLASTER, owner.facing * BLASTER_PROJECTILE_SPEED, 0,
+		BLASTER_PROJECTILE_LIFETIME, owner.attackSerial)
+
+function spawnArcherArrow(FighterState owner, int direction, real verticalSpeed, int kind, int serial)
+	let facing = direction == 0 ? owner.facing : (direction > 0 ? 1 : -1)
+	spawnProjectileMotion(owner, kind, facing * BLASTER_PROJECTILE_SPEED, verticalSpeed,
+		kind == PROJECTILE_ARROW ? 75 : 65, serial)
+
+function applySpecialProjectileHit(FighterState owner, FighterState target, int kind, int direction)
+	let damage = kind == PROJECTILE_FAN_ARROW ? 4. : (kind == PROJECTILE_RECOIL ? 5. : 7.)
+	if target.shield and target.shieldEnergy > 0
+		target.shieldEnergy = max(0, target.shieldEnergy - damage * 0.7)
+		target.shieldStun = R2I((damage * 0.45 + 2) * 200 / 201)
+		if target.shieldEnergy == 0
+			beginShieldBreak(target)
+		return
+	let groundedBeforeHit = target.grounded
+	target.frozenFrames = 0
+	target.diPending = false
+	target.diLaunchSpeed = 0
+	interruptJumpOrDodge(target)
+	clearDownState(target)
+	cancelAttack(target)
+	cancelSpecialState(target)
+	target.damage += damage
+	target.vx = 0
+	target.vz = 0
+	target.grounded = false
+	let knockback = ordinaryHitKnockback(target.damage - damage, damage,
+		target.character == 0 ? 75. : 80., 85, 16, 1)
+	let launch = knockback * KNOCKBACK_LAUNCH_SCALE
+	target.knockbackX = direction * launch * 0.8
+	target.knockbackZ = launch * (kind == PROJECTILE_RECOIL ? -0.6 : 0.6)
+	target.sdiWasGrounded = groundedBeforeHit
+	target.sdiLaunchesUpward = target.knockbackZ > 0
+	target.diPending = true
+	target.diLaunchSpeed = launch
+	target.hitstun = ordinaryHitstunFrames(knockback)
+	if knockback >= DOWN_KNOCKBACK_THRESHOLD
+		target.downState = DOWN_TUMBLE
+		target.downFrame = 0
+		target.downDirection = 0
+	target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
+	owner.hitlag = max(owner.hitlag, ordinaryHitlagFrames(damage))
+
+function applyProjectileHit(FighterState owner, FighterState target, int index)
+	if owner.projectileKind[index] != PROJECTILE_BLASTER
+		applySpecialProjectileHit(owner, target, owner.projectileKind[index], owner.projectileDirection[index])
+		return
 	let damage = attackDamage(1)
 	if target.shield and target.shieldEnergy > 0
 		target.shieldEnergy = max(0, target.shieldEnergy - damage * 0.7)
@@ -1192,18 +1343,27 @@ function applyProjectileHit(FighterState owner, FighterState target)
 		clearDownState(target)
 		cancelAttack(target)
 		target.hitstun = max(target.hitstun, 11)
+		cancelSpecialState(target)
 
 function updateProjectiles(FighterState owner, FighterState target, real targetX, real targetZ, boolean targetWasOut, boolean targetWasIntangible)
 	for index = 0 to PROJECTILE_CAPACITY - 1
 		if owner.projectileLife[index] > 0
 			let oldX = owner.projectileX[index]
-			let direction = owner.projectileDirection[index]
-			owner.projectileX[index] = oldX + direction * BLASTER_PROJECTILE_SPEED
+			let oldZ = owner.projectileZ[index]
+			var velocityX = owner.projectileVelocityX[index]
+			let velocityZ = owner.projectileVelocityZ[index]
+			if owner.projectileKind[index] == PROJECTILE_BLASTER and velocityX == 0
+				velocityX = owner.projectileDirection[index] * BLASTER_PROJECTILE_SPEED
+				owner.projectileVelocityX[index] = velocityX
+			owner.projectileX[index] = oldX + velocityX
+			owner.projectileZ[index] = oldZ + velocityZ
 			owner.projectileLife[index]--
+			let direction = velocityX < 0 ? -1 : 1
 			let crossedTarget = (targetX - oldX) * direction >= 0 and (targetX - owner.projectileX[index]) * direction <= 0
 			let nearTarget = (targetX - owner.projectileX[index]).abs() <= BLASTER_PROJECTILE_RADIUS
-			if (crossedTarget or nearTarget) and (targetZ + 45 - owner.projectileZ[index]).abs() <= BLASTER_PROJECTILE_HALF_HEIGHT and not targetWasOut and not targetWasIntangible
-				applyProjectileHit(owner, target)
+			let crossedHeight = targetZ + 45 >= min(oldZ, owner.projectileZ[index]) - BLASTER_PROJECTILE_HALF_HEIGHT and targetZ + 45 <= max(oldZ, owner.projectileZ[index]) + BLASTER_PROJECTILE_HALF_HEIGHT
+			if (crossedTarget or nearTarget) and crossedHeight and not targetWasOut and not targetWasIntangible
+				applyProjectileHit(owner, target, index)
 				owner.projectileLife[index] = 0
 			else if owner.projectileLife[index] <= 0
 				owner.projectileLife[index] = 0
@@ -1241,6 +1401,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 		clearDownState(target)
 		cancelAttack(target)
 		target.grabbedFrames = 20
+		cancelSpecialState(target)
 		target.shield = false
 		target.shieldStun = 0
 		target.vx = 0
@@ -1263,6 +1424,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	interruptJumpOrDodge(target)
 	clearDownState(target)
 	cancelAttack(target)
+	cancelSpecialState(target)
 	let weight = target.character == 0 ? 75. : 80.
 	let knockback = ordinaryHitKnockback(target.damage, damage, weight,
 		hitData.growth, hitData.base, ORDINARY_HIT_CONTEXT_SCALE)
@@ -1284,6 +1446,232 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 		target.downDirection = 0
 	target.hitlag = max(target.hitlag, hitData.hitlag)
 	attacker.hitlag = max(attacker.hitlag, hitData.hitlag)
+
+function startSpecialAction(FighterState owner, int action, int duration, int direction)
+	owner.specialAction = action
+	owner.specialFrame = 0
+	owner.specialDuration = duration
+	owner.specialLockFrames = duration
+	owner.specialDirection = direction < 0 ? -1 : (direction > 0 ? 1 : 0)
+	owner.attackStyle = -1
+	owner.attackFrame = 0
+	owner.attackDuration = 0
+	owner.attackHit = false
+	owner.smashCharging = false
+	owner.smashChargeFrames = 0
+	owner.smashChargeAllowed = false
+	owner.shield = false
+	owner.shieldHeldFrames = 0
+	owner.cooldown = max(owner.cooldown, duration)
+
+function specialDirection(InputSnapshot input, int facing) returns int
+	if input.direction != 0
+		return input.direction
+	return input.verticalDirection == 0 ? facing : 0
+
+function requestedSpecial(FighterState owner, InputSnapshot input) returns int
+	if owner.character == 0
+		if input.verticalDirection > 0
+			return SPECIAL_ARCHER_RECOVERY
+		if input.verticalDirection < 0 or input.down
+			return SPECIAL_ARCHER_DISENGAGE
+		if input.direction != 0
+			return SPECIAL_ARCHER_MULTISHOT
+		return SPECIAL_ARCHER_ARROW
+	if owner.character == 1
+		if input.verticalDirection < 0 or input.down
+			return SPECIAL_RIFLEMAN_TRAP
+		if input.verticalDirection > 0
+			return SPECIAL_RIFLEMAN_RECOVERY
+		if input.direction != 0
+			return SPECIAL_RIFLEMAN_BEAR
+		return SPECIAL_RIFLEMAN_BLASTER
+	return SPECIAL_NONE
+
+function specialCanStart(FighterState owner, int action) returns boolean
+	return action > SPECIAL_NONE and action < SPECIAL_ACTION_CAPACITY
+		and owner.specialCooldowns[action] <= 0 and owner.specialLockFrames <= 0
+		and owner.specialAction == SPECIAL_NONE and canAttack(owner)
+
+public function startFighterSpecial(FighterState owner, int stage, InputSnapshot input) returns boolean
+	if not input.specialPressed
+		return false
+	let requested = requestedSpecial(owner, input)
+	if not specialCanStart(owner, requested)
+		return false
+	let moveX = specialDirection(input, owner.facing)
+	if owner.character == 0
+		if input.verticalDirection > 0
+			startSpecialAction(owner, SPECIAL_ARCHER_RECOVERY, ARCHER_RECOVERY_FRAMES, moveX)
+			owner.hippogryphKind = 2
+			owner.hippogryphLife = ARCHER_RECOVERY_FRAMES
+			owner.hippogryphX = owner.x
+			owner.hippogryphZ = owner.z
+			owner.hippogryphVelocityX = moveX * 2.
+			owner.hippogryphVelocityZ = 32
+			owner.vx = moveX * 3.
+			owner.vz = 32
+			owner.grounded = false
+			owner.surface = -1
+			owner.jumps = 1
+			owner.specialCooldowns[SPECIAL_ARCHER_RECOVERY] = 90
+			return true
+		if input.verticalDirection < 0 or input.down
+			startSpecialAction(owner, SPECIAL_ARCHER_DISENGAGE, ARCHER_DISENGAGE_FRAMES, moveX)
+			owner.hippogryphKind = 1
+			owner.specialHit = false
+			owner.hippogryphLife = 18
+			owner.hippogryphX = owner.x - owner.facing * 150
+			owner.hippogryphZ = owner.z + 40
+			owner.hippogryphVelocityX = owner.facing * 32.
+			owner.hippogryphVelocityZ = 0
+			owner.vx = -owner.facing * 18.
+			owner.vz = 16
+			owner.grounded = false
+			owner.surface = -1
+			owner.specialCooldowns[SPECIAL_ARCHER_DISENGAGE] = 75
+			return true
+		if input.direction != 0
+			startSpecialAction(owner, SPECIAL_ARCHER_MULTISHOT, 34, moveX)
+			owner.specialCooldowns[SPECIAL_ARCHER_MULTISHOT] = 40
+			return true
+		startSpecialAction(owner, SPECIAL_ARCHER_ARROW, 3, moveX)
+		owner.cooldown = 0
+		owner.specialCooldowns[SPECIAL_ARCHER_ARROW] = 8
+		return true
+	if owner.character == 1
+		if input.verticalDirection < 0 or input.down
+			if startFreezeTrap(owner, stage)
+				startSpecialAction(owner, SPECIAL_RIFLEMAN_TRAP, 20, moveX)
+				owner.specialCooldowns[SPECIAL_RIFLEMAN_TRAP] = 90
+				return true
+			return false
+		if input.verticalDirection > 0
+			startSpecialAction(owner, SPECIAL_RIFLEMAN_RECOVERY, 34, moveX)
+			owner.specialCooldowns[SPECIAL_RIFLEMAN_RECOVERY] = 90
+			return true
+		if input.direction != 0
+			if owner.bearLife > 0
+				return false
+			startSpecialAction(owner, SPECIAL_RIFLEMAN_BEAR, 18, moveX)
+			owner.bearLife = RIFLEMAN_BEAR_LIFETIME
+			owner.bearX = owner.x + moveX * 45
+			owner.bearZ = owner.grounded and owner.surface >= 0 ? surfaceZ(stage, owner.surface) : owner.z
+			owner.bearVelocityX = moveX * 14.
+			owner.facing = moveX
+			owner.bearVelocityZ = owner.grounded ? 0 : owner.vz
+			owner.bearSurface = owner.grounded ? owner.surface : -1
+			owner.bearSwipeCooldown = 5
+			owner.specialCooldowns[SPECIAL_RIFLEMAN_BEAR] = 90
+			return true
+		let duration = owner.grounded ? attackDurationFramesForGrounding(1, true) : attackDurationFramesForGrounding(1, false)
+		startSpecialAction(owner, SPECIAL_RIFLEMAN_BLASTER, duration, moveX)
+		owner.specialCooldowns[SPECIAL_RIFLEMAN_BLASTER] = 8
+		return true
+	return false
+
+function advanceSpecialAction(FighterState owner)
+	if owner.specialAction == SPECIAL_NONE or owner.hitlag > 0
+		return
+	owner.specialFrame++
+	if owner.specialAction == SPECIAL_ARCHER_ARROW and owner.specialFrame == 2
+		spawnArcherArrow(owner, owner.facing, 0, PROJECTILE_ARROW, owner.attackSerial + 1)
+	if owner.specialAction == SPECIAL_RIFLEMAN_BLASTER and owner.specialFrame == 2
+		spawnProjectileMotion(owner, PROJECTILE_BLASTER, owner.facing * BLASTER_PROJECTILE_SPEED, 0,
+			BLASTER_PROJECTILE_LIFETIME, owner.attackSerial + 1)
+	if owner.specialAction == SPECIAL_ARCHER_MULTISHOT and owner.specialFrame == ARCHER_MULTISHOT_WINDUP_FRAMES
+		let direction = owner.specialDirection
+		spawnArcherArrow(owner, direction, 10, PROJECTILE_FAN_ARROW, owner.attackSerial + 1)
+		spawnArcherArrow(owner, direction, 0, PROJECTILE_FAN_ARROW, owner.attackSerial + 1)
+		spawnArcherArrow(owner, direction, -10, PROJECTILE_FAN_ARROW, owner.attackSerial + 1)
+	if owner.specialAction == SPECIAL_RIFLEMAN_RECOVERY
+		if owner.specialFrame == RIFLEMAN_RECOVERY_STARTUP_FRAMES
+			spawnProjectileMotion(owner, PROJECTILE_RECOIL, owner.facing * 2., -28., 8, owner.attackSerial + 1)
+			owner.vx = owner.specialDirection * 8.
+			owner.vz = 30
+			owner.grounded = false
+			owner.surface = -1
+		if owner.specialFrame >= RIFLEMAN_RECOVERY_STARTUP_FRAMES and owner.specialFrame <= RIFLEMAN_RECOVERY_PROTECTION_END
+			owner.invincible = max(owner.invincible, 2)
+	if owner.specialAction == SPECIAL_ARCHER_DISENGAGE and owner.specialFrame >= ARCHER_DISENGAGE_FRAMES
+		owner.specialAction = SPECIAL_NONE
+		owner.specialFrame = 0
+		owner.specialHit = false
+	if owner.specialAction == SPECIAL_ARCHER_RECOVERY and owner.specialFrame >= ARCHER_RECOVERY_FRAMES
+		owner.specialAction = SPECIAL_NONE
+		owner.specialFrame = 0
+	if owner.specialAction == SPECIAL_ARCHER_MULTISHOT and owner.specialFrame >= 34
+		owner.specialAction = SPECIAL_NONE
+		owner.specialFrame = 0
+	if owner.specialAction == SPECIAL_RIFLEMAN_BEAR and owner.specialFrame >= 18
+		owner.specialAction = SPECIAL_NONE
+		owner.specialFrame = 0
+	if owner.specialAction == SPECIAL_RIFLEMAN_RECOVERY and owner.specialFrame >= 34
+		owner.specialAction = SPECIAL_NONE
+		owner.specialFrame = 0
+	if owner.specialAction == SPECIAL_RIFLEMAN_TRAP and owner.specialFrame >= 20
+		owner.specialAction = SPECIAL_NONE
+		owner.specialFrame = 0
+	if owner.specialAction == SPECIAL_RIFLEMAN_BLASTER and owner.specialFrame >= owner.specialDuration
+		owner.specialAction = SPECIAL_NONE
+		owner.specialFrame = 0
+	if owner.specialAction == SPECIAL_ARCHER_ARROW and owner.specialFrame >= 3
+		owner.specialAction = SPECIAL_NONE
+		owner.specialFrame = 0
+
+function advanceBear(FighterState owner, FighterState target, int stage)
+	if owner.bearLife <= 0
+		return
+	owner.bearLife--
+	owner.bearX += owner.bearVelocityX
+	if owner.bearSwipeCooldown > 0
+		owner.bearSwipeCooldown--
+	if owner.bearSurface >= 0
+		owner.bearZ = surfaceZ(stage, owner.bearSurface)
+	else
+		owner.bearVelocityZ = max(-characterTerminalSpeed(owner.character), owner.bearVelocityZ - characterGravity(owner.character))
+		owner.bearZ += owner.bearVelocityZ
+		if owner.bearZ <= surfaceZ(stage, 0)
+			owner.bearZ = surfaceZ(stage, 0)
+			owner.bearVelocityZ = 0
+			owner.bearSurface = 0
+	if owner.bearSwipeCooldown <= 0 and not target.out and not isIntangible(target) and (target.x - owner.bearX).abs() <= 70 and (target.z - owner.bearZ).abs() <= 100
+		owner.bearSwipeCooldown = RIFLEMAN_BEAR_SWIPE_INTERVAL
+		owner.bearHitSerial++
+		applyAttackHit(owner, target, 0, owner.bearVelocityX < 0 ? -1 : 1,
+			hitEffect(6, 90, 18, 4, DIAGONAL_UNIT, 0.35))
+	if owner.bearLife <= 0 or owner.bearX < surfaceLeft(stage, 0) - 100 or owner.bearX > surfaceRight(stage, 0) + 100
+		owner.bearLife = 0
+
+function advanceHippogryph(FighterState owner, FighterState target)
+	if owner.hippogryphLife <= 0
+		return
+	owner.hippogryphLife--
+	if owner.hippogryphKind == 2
+		owner.hippogryphX = owner.x
+		owner.hippogryphZ = owner.z + 30
+	else
+		let oldX = owner.hippogryphX
+		owner.hippogryphX += owner.hippogryphVelocityX
+		owner.hippogryphZ += owner.hippogryphVelocityZ
+		if owner.hippogryphKind == 1 and not owner.specialHit and not target.out and not isIntangible(target)
+			let crossedTarget = (target.x - oldX) * owner.facing >= 0 and (target.x - owner.hippogryphX) * owner.facing <= 0
+			if (crossedTarget or (target.x - owner.hippogryphX).abs() <= 60) and (target.z - owner.hippogryphZ).abs() <= 100
+				owner.specialHit = true
+				applyAttackHit(owner, target, 0, owner.facing,
+					hitEffect(8, 100, 22, 5, DIAGONAL_UNIT, DIAGONAL_UNIT))
+	if owner.hippogryphLife <= 0
+		owner.hippogryphKind = 0
+		if owner.specialAction == SPECIAL_ARCHER_DISENGAGE
+			owner.specialHit = false
+
+public function advanceSpecialPair(FighterState first, FighterState second, int stage)
+	advanceSpecialAction(first)
+	advanceSpecialAction(second)
+	advanceBear(first, second, stage)
+	advanceBear(second, first, stage)
+	advanceHippogryph(first, second)
+	advanceHippogryph(second, first)
 
 public function simulationJump(FighterState f)
 	if f.ledgeState != LEDGE_NONE
@@ -1375,6 +1763,7 @@ public function resolveAttackPair(FighterState first, FighterState second)
 			applyAttackHit(second, first, secondStyle, secondFacing, secondRegion.hitData)
 
 public function reset(FighterState f, real startX)
+	clearSpecialOnStock(f)
 	f.lastHitAttacker = null
 	f.lastHitAttackSerial = -1
 	f.lastHitWindow = 0
@@ -1422,6 +1811,7 @@ public function reset(FighterState f, real startX)
 	f.smashChargeFrames = 0
 	f.smashChargeAllowed = false
 	f.cooldown = 0
+	f.specialDirection = 0
 	f.shield = false
 	f.shieldEnergy = SHIELD_MAX
 	f.jumpSquat = 0
@@ -1512,6 +1902,10 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			smashChargePaused = true
 		if not smashChargePaused
 			f.cooldown = max(0, f.cooldown - 1)
+			if f.specialLockFrames > 0
+				f.specialLockFrames--
+			for i = 1 to SPECIAL_ACTION_CAPACITY - 1
+				f.specialCooldowns[i] = max(0, f.specialCooldowns[i] - 1)
 			if f.attackStyle >= 0
 				f.attackFrame++
 				if f.attackFrame >= f.attackDuration
@@ -1667,6 +2061,7 @@ function checkBlastZone(FighterState f)
 		clearLedge(f)
 		f.ledgeRegrab = 0
 		clearShieldBreak(f)
+		clearSpecialOnStock(f)
 		clearOwnedFreezeTrap(f)
 		f.frozenFrames = 0
 		f.diPending = false

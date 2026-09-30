@@ -1,5 +1,18 @@
 # Authored fighter animation work
 
+Character completion follows the active `smashcraft-character-creation-distilled`
+skill, owned at
+nixos-config:dotfiles/agents/skills/smashcraft-character-creation-distilled/SKILL.md.
+Every fighter requires grounded/airborne damage reactions and exact hitlag pose
+holds, alongside the complete normal, aerial, special, defense and grab/throw
+coverage. Hitlag freezes the appropriate contact pose; it is not a looping clip.
+
+The directional-specials pass connects stock bear/hippogryph effect animations
+to numerical state. Archer disengage currently reuses her double-jump motion,
+and recovery uses her jump clip. Dedicated mounting, summon and downward-shot
+body poses still need authoring and native verification; the new simulation
+tests do not establish completion of those animations.
+
 Required initial clips from the owner: jab; forward tilt; up-angled forward
 tilt; down-angled forward tilt; jump; double jump; forward roll; backward roll;
 get-up attack. Blender 5.1.1 is installed. The first Archer jab is authored,

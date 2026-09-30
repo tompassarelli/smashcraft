@@ -1,0 +1,71 @@
+package SpecialEffects
+import Wurst
+import Units
+import Simulation
+
+// Common initialization owns the handles; numerical state owns all contacts.
+public class SpecialEffects
+    private effect array[2] bears
+    private effect array[2] hippogryphs
+    private int array[2] previousBearLife
+    private int array[2] previousSwipeSerial
+    private int array[2] previousHippogryphLife
+    private real worldX
+    private real worldY
+    private real worldZ
+
+    construct(real x, real y, real z)
+        worldX = x
+        worldY = y
+        worldZ = z
+        for slot = 0 to 1
+            bears[slot] = AddSpecialEffect(Units.grizzlyBear, x, y)
+            hippogryphs[slot] = AddSpecialEffect(Units.hippoGryph, x, y)
+            BlzSetSpecialEffectAnimationBlendTime(bears[slot], 0.)
+            BlzSetSpecialEffectAnimationBlendTime(hippogryphs[slot], 0.)
+        clear()
+
+    private function hide(effect model)
+        BlzSetSpecialEffectAlpha(model, 0)
+        BlzSetSpecialEffectScale(model, 0.)
+
+    function clear()
+        for slot = 0 to 1
+            hide(bears[slot])
+            hide(hippogryphs[slot])
+            previousBearLife[slot] = 0
+            previousSwipeSerial[slot] = 0
+            previousHippogryphLife[slot] = 0
+
+    private function apply(FighterState fighter, int slot)
+        let bear = bears[slot]
+        if fighter.bearLife > 0 and not fighter.out
+            BlzSetSpecialEffectPosition(bear, worldX + fighter.bearX, worldY, worldZ + fighter.bearZ)
+            BlzSetSpecialEffectYaw(bear, fighter.bearVelocityX >= 0 ? 0. : 3.141592654)
+            BlzSetSpecialEffectScale(bear, 0.8)
+            BlzSetSpecialEffectAlpha(bear, 255)
+            if fighter.bearHitSerial != previousSwipeSerial[slot]
+                BlzSetSpecialEffectAnimation(bear, "attack")
+                BlzQueueSpecialEffectAnimation(bear, "walk")
+            else if previousBearLife[slot] == 0
+                BlzSetSpecialEffectAnimation(bear, "walk")
+        else
+            hide(bear)
+        previousBearLife[slot] = fighter.bearLife
+        previousSwipeSerial[slot] = fighter.bearHitSerial
+        let hippogryph = hippogryphs[slot]
+        if fighter.hippogryphLife > 0 and not fighter.out
+            BlzSetSpecialEffectPosition(hippogryph, worldX + fighter.hippogryphX, worldY, worldZ + fighter.hippogryphZ)
+            let direction = fighter.hippogryphVelocityX == 0 ? fighter.facing : (fighter.hippogryphVelocityX > 0 ? 1 : -1)
+            BlzSetSpecialEffectYaw(hippogryph, direction > 0 ? 0. : 3.141592654)
+            BlzSetSpecialEffectScale(hippogryph, 0.7)
+            BlzSetSpecialEffectAlpha(hippogryph, 255)
+            if previousHippogryphLife[slot] == 0
+                BlzSetSpecialEffectAnimation(hippogryph, "walk")
+        else
+            hide(hippogryph)
+        previousHippogryphLife[slot] = fighter.hippogryphLife
+
+    function present(FighterState first, FighterState second)
+        apply(first, 0)
+        apply(second, 1)

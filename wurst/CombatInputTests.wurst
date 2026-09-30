@@ -8,7 +8,7 @@ import KeyBindings
 
 @Test function bothFightersCanGrabNormallyAndFromShieldWithAttackOrGrabKey()
     let bindings = new KeyBindings(false)
-    bindings.actionFor(76).assertEquals(GRAB)
+    bindings.actionFor(79).assertEquals(GRAB)
     for character = 0 to 1
         for grabInput = 0 to 2
             let game = new MatchState()

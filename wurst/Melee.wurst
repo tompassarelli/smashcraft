@@ -20,6 +20,7 @@ import StageAssetInfo
 import ImpactEvents
 import CombatEffects
 import FrostEffects
+import SpecialEffects
 
 constant real FRAME_SECONDS = 0.016666667
 
@@ -32,6 +33,7 @@ Fighter botFighter = null
 timer gameTimer = null
 CombatEffects combatEffects = null
 FrostEffects frostEffects = null
+SpecialEffects specialEffects = null
 ImpactEvents firstImpacts = new ImpactEvents()
 ImpactEvents secondImpacts = new ImpactEvents()
 PlayerInputState firstKeyState = new PlayerInputState()
@@ -308,7 +310,7 @@ function clearProjectileModels()
             projectileModels[i] = null
     projectileModelCount = 0
 
-function renderProjectile(int index, boolean active, real x, real z, int direction, int character)
+function renderProjectile(int index, boolean active, real x, real z, real velocityX, real velocityZ, int character)
     projectileModelCount = max(projectileModelCount, index + 1)
     if not active
         if projectileModels[index] != null
@@ -318,15 +320,16 @@ function renderProjectile(int index, boolean active, real x, real z, int directi
     if projectileModels[index] == null
         let model = character == 0 ? Abilities.arrowMissile1 : Abilities.gyroCopterMissile
         projectileModels[index] = AddSpecialEffect(model, centerX + x, centerY)
-        BlzSetSpecialEffectYaw(projectileModels[index], direction > 0 ? 0. : 3.141592654)
         if character == 1
             BlzSetSpecialEffectScale(projectileModels[index], 0.65)
+    BlzSetSpecialEffectYaw(projectileModels[index], velocityX >= 0 ? 0. : 3.141592654)
+    BlzSetSpecialEffectPitch(projectileModels[index], -Atan2(velocityZ, velocityX.abs()))
     BlzSetSpecialEffectPosition(projectileModels[index], centerX + x, centerY, floorHeight + z)
 
 function renderProjectiles(FighterState fighter, int offset)
     for index = 0 to PROJECTILE_CAPACITY - 1
         renderProjectile(offset + index, projectileActive(fighter, index), projectileXAt(fighter, index),
-            projectileZAt(fighter, index), projectileDirectionAt(fighter, index), fighter.character)
+            projectileZAt(fighter, index), projectileVelocityXAt(fighter, index), projectileVelocityZAt(fighter, index), fighter.character)
 
 function drawStage()
     clearStageDecks()
@@ -344,6 +347,8 @@ function drawStage()
 function removeFighters()
     if frostEffects != null
         frostEffects.clear()
+    if specialEffects != null
+        specialEffects.clear()
     if combatEffects != null
         combatEffects.clear()
     clearProjectileModels()
@@ -438,6 +443,7 @@ function applyFrame()
     renderFighter(playerFighter, playerWasOut, playerFighter.jumpSerial != playerPreviousJump)
     renderFighter(botFighter, botWasOut, botFighter.jumpSerial != botPreviousJump)
     frostEffects.present(playerFighter, botFighter)
+    specialEffects.present(playerFighter, botFighter)
     renderProjectiles(playerFighter, 0)
     renderProjectiles(botFighter, PROJECTILE_CAPACITY)
     if matchState.phase == RESULT
@@ -744,7 +750,7 @@ function onParticipantKeyDown(int participantId)
         else
             confirm(participantId)
     else if action == SPECIAL
-        if matchState.phase == MATCH and fighter.character == 1 and state.actionHeld(MOVE_DOWN)
+        if matchState.phase == MATCH
             if not wasHeld
                 if participantId == 0
                     playerSpecialPressed = true
@@ -972,7 +978,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
         SetUnitTimeScale(f.body, 0.)
         SetUnitVertexColor(f.body, 155, 210, 255, 255)
         return
-    if f.grounded or f.hitstun > 0 or f.airDodging or attackPhase(f) != ATTACK_NONE or f.downState != DOWN_NONE or f.shieldBreakState != SHIELD_BREAK_NONE or f.ledgeState != LEDGE_NONE
+    if f.grounded or f.hitstun > 0 or f.airDodging or attackPhase(f) != ATTACK_NONE or f.specialAction != SPECIAL_NONE or f.downState != DOWN_NONE or f.shieldBreakState != SHIELD_BREAK_NONE or f.ledgeState != LEDGE_NONE
         f.jumpAnimationRemaining = 0
     else if jumped and not wasOut
         f.doubleJumpAnimation = f.jumpIsDouble
@@ -1036,6 +1042,18 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
         if f.animation != "dodge"
             SetUnitAnimationByIndex(f.body, groundDodgeAnimation(f))
             f.animation = "dodge"
+    else if f.specialAction != SPECIAL_NONE and f.hitstun == 0
+        let anim = "special" + I2S(f.specialAction)
+        if f.animation != anim
+            if f.specialAction == SPECIAL_ARCHER_DISENGAGE
+                SetUnitAnimationByIndex(f.body, ARCHER_DOUBLE_JUMP_INDEX)
+            else if f.specialAction == SPECIAL_ARCHER_RECOVERY
+                SetUnitAnimationByIndex(f.body, ARCHER_JUMP_INDEX)
+            else if f.specialAction == SPECIAL_RIFLEMAN_BEAR or f.specialAction == SPECIAL_RIFLEMAN_TRAP
+                SetUnitAnimation(f.body, "stand")
+            else
+                SetUnitAnimation(f.body, "attack")
+            f.animation = anim
     else if f.jumpAnimationRemaining > 0
         if f.animation != "jump"
             SetUnitAnimationByIndex(f.body, f.doubleJumpAnimation ? (f.character == 0 ? ARCHER_DOUBLE_JUMP_INDEX : RIFLEMAN_DOUBLE_JUMP_INDEX) : (f.character == 0 ? ARCHER_JUMP_INDEX : RIFLEMAN_JUMP_INDEX))
@@ -1119,8 +1137,9 @@ function gameTick()
     if matchState.phase == MATCH
         let frame = replayRuntime.simulationFrame + 1
         let direction = firstKeyState.consumeMovementX()
+        let verticalDirection = firstKeyState.consumeMovementZ()
         if playerNormalAttackQueued
-            let style = normalAttackStyle(direction, firstKeyState.directionZ(), firstKeyState.actionHeld(WALK_MODIFIER), playerFighter.grounded and (playerFighter.shield or firstKeyState.actionHeld(LEFT_TRIGGER) or firstKeyState.actionHeld(RIGHT_TRIGGER)))
+            let style = normalAttackStyle(direction, verticalDirection, firstKeyState.actionHeld(WALK_MODIFIER), playerFighter.grounded and (playerFighter.shield or firstKeyState.actionHeld(LEFT_TRIGGER) or firstKeyState.actionHeld(RIGHT_TRIGGER)))
             lastNormalStyle = style
             playerAttackRequests.enqueue(style, direction, frame, true)
         var botDirection = 0
@@ -1137,7 +1156,7 @@ function gameTick()
                 secondAttackRequests.enqueue(0, playerFighter.x >= botFighter.x ? 1 : -1, frame, false)
                 replayRuntime.botAttackDelay = 0.35
         playerInput.direction = direction
-        playerInput.verticalDirection = firstKeyState.directionZ()
+        playerInput.verticalDirection = verticalDirection
         playerInput.sdiPulse = firstKeyState.pulsePending()
         playerInput.sdiX = firstKeyState.pulseX()
         playerInput.sdiZ = firstKeyState.pulseZ()
@@ -1166,7 +1185,7 @@ function gameTick()
         playerInput.dodgeZ = playerDodgeZ
         playerInput.attackHeld = actionHeld(ATTACK)
         secondPlayerInput.direction = secondKeyState.consumeMovementX()
-        secondPlayerInput.verticalDirection = secondKeyState.directionZ()
+        secondPlayerInput.verticalDirection = secondKeyState.consumeMovementZ()
         secondPlayerInput.sdiPulse = secondKeyState.pulsePending()
         secondPlayerInput.sdiX = secondKeyState.pulseX()
         secondPlayerInput.sdiZ = secondKeyState.pulseZ()
@@ -1306,6 +1325,7 @@ function initGame()
     PanCameraToTimed(centerX, centerY, 0)
     combatEffects = new CombatEffects(centerX, centerY, floorHeight)
     frostEffects = new FrostEffects(centerX, centerY, floorHeight)
+    specialEffects = new SpecialEffects(centerX, centerY, floorHeight)
     makePreview()
     renderUI()
     setupKeys()

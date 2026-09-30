@@ -2,19 +2,41 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-Latest installed build: `qwer-input-checkpoint`, September 30. Map compile,
-packaging and installed-byte comparison passed (zero errors, four existing
-warnings), log wc3-melee:build/qwer-input-checkpoint-map.log. Latest whole
-suite passed 272/272 with zero warnings; subsequent visible-chip gesture
-change passed 9/9 SelectionDragTests. Logs:
-wc3-melee:build/wurst-tests/qwer-control-checkpoint.log and
-wc3-melee:build/wurst-tests/visible-chips.log. Native session was still
-`grab-tap-chips` when the new map was installed; no new-build native claim.
+Latest installed build: `specials-uiop-r2`. Compile/package/deploy passed with
+zero errors and six warnings; log wc3-melee:build/specials-uiop-r2-map.log.
+The last observed running session is `specials-uiop`, so the final vertical-tap,
+bear-contact and interruption corrections are installed but not yet observed
+running. Re-read the readiness receipt before making a newer native claim.
 
-The new defaults are Q shield, W left, E down, R right. Restore migrates only
-the intact former ASDF default block when QWER is unassigned; other saved
-bindings remain intact. Chips are visible in all active player/CPU cards at
-first load and can be dragged to the roster. Rematches retain placed choices.
+September 30 directional-specials checkpoint: the whole Wurst suite passes
+287/287 with zero errors/warnings, including special movement/contact,
+projectile direction after the shooter turns, summon interruption, saved
+controls and one-frame vertical taps. Log:
+wc3-melee:build/wurst-tests/specials-integrated.log.
+
+Native build `specials-uiop` was loaded through Ctrl+R and its readiness receipt
+confirmed the new bindings. Visible human/CPU tray chips, both fighter
+selections, retained New Match choices, character-to-stage-to-match flow,
+neutral-arrow damage and an I jump were observed. Enter still opened native
+chat at stage select; Escape closed chat before N started the match. The first
+combat probe ran after a loss; the repeated probe began in MATCH. Its short
+vertical direction taps exposed a loss of direction before the tick, now fixed
+and covered in Wurst tests. Other directional-special visual results were not
+established by those captures. Evidence:
+wc3-melee:build/impact-assets/specials-live-trace.txt and
+wc3-melee:build/impact-assets/special-up.png.
+
+Current defaults: Q shield, W left, E down, R right; U special, I jump, O grab,
+P walk/tilts. Saved K1/K2 default bindings migrate only when their new keys
+are free; K3 preserves intentional new rebindings. Chips are visible in all
+active player/CPU cards at first load. Rematches retain placed choices.
+
+Remaining immediate native work: verify bear/swipe and hippogryph presentation
+through real held-direction controls, author the dedicated special body poses,
+then confirm grab/hold readability and hit advantage. The initial effect pool
+build emits two additional conservative array-initialization warnings alongside
+the four existing map warnings; the constructor populates both slots before
+presentation. Multiplayer pose restoration and two-client behavior remain untested.
 
 The current playable output and installed entry are `Smashcraft.w3x`. The old
 `Melee_Prototype.w3x` was moved out of the map browser into the ignored
