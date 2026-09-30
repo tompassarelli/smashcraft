@@ -1,0 +1,92 @@
+package InputAdapter
+import NetworkInput
+import KeyBindings
+import Simulation
+import CommandBuffer
+import CombatInput
+
+function sign(int value) returns int
+    return value < 0 ? -1 : (value > 0 ? 1 : 0)
+
+function actionEdgePair(NetworkInput row, int negative, int positive) returns int
+    let negativePressed = row.actionPressed(negative)
+    let positivePressed = row.actionPressed(positive)
+    return negativePressed == positivePressed ? 0 : (positivePressed ? 1 : -1)
+
+function movementAxis(NetworkInput row, int negative, int positive, int axis) returns int
+    // Held actions own the axis, including opposing holds which normalize to
+    // neutral. If neither direction remains held, preserve a short tap edge.
+    if row.actionHeld(negative) or row.actionHeld(positive)
+        return sign(axis)
+    if axis != 0
+        return sign(axis)
+    return actionEdgePair(row, negative, positive)
+
+function anyPressed(NetworkInput row, int first, int second, int third, int fourth, int fifth, int sixth) returns boolean
+    return row.actionPressed(first) or row.actionPressed(second) or row.actionPressed(third)
+        or row.actionPressed(fourth) or row.actionPressed(fifth) or row.actionPressed(sixth)
+
+// Converts one complete assigned input row to the existing simulation input
+// and frame-local attack requests. The caller preallocates both outputs and
+// records the request buffer beside this exact row for deterministic replay.
+// AttackBuffer owns same-frame conflict priority and canonicalizes opposing
+// forward-smash directions; no native state or input allocation is involved.
+public function adaptInput(NetworkInput row, FighterState fighter, int frame,
+        InputSnapshot destination, AttackBuffer attackRequests)
+    attackRequests.clear()
+    destination.attackRequested = false
+    destination.direction = movementAxis(row, MOVE_LEFT, MOVE_RIGHT, row.axisX())
+    destination.verticalDirection = movementAxis(row, MOVE_DOWN, MOVE_UP, row.axisZ())
+    destination.sdiPulse = row.sdiPulse()
+    destination.sdiX = row.sdiX()
+    destination.sdiZ = row.sdiZ()
+    destination.cStickX = (row.actionHeld(SMASH_RIGHT) ? 1 : 0) - (row.actionHeld(SMASH_LEFT) ? 1 : 0)
+    destination.cStickZ = (row.actionHeld(SMASH_UP) ? 1 : 0) - (row.actionHeld(SMASH_DOWN) ? 1 : 0)
+    destination.specialPressed = row.actionPressed(SPECIAL)
+    destination.specialX = destination.specialPressed ? row.specialX() : 0
+    destination.specialZ = destination.specialPressed ? row.specialZ() : 0
+    destination.down = row.actionHeld(MOVE_DOWN)
+    destination.shield = row.actionHeld(LEFT_TRIGGER) or row.actionHeld(RIGHT_TRIGGER)
+        or row.triggerLeft() > 0 or row.triggerRight() > 0
+    destination.jumpPressed = row.actionPressed(JUMP)
+    destination.jumpHeld = row.actionHeld(JUMP)
+    destination.airDodgePressed = row.actionPressed(LEFT_TRIGGER) or row.actionPressed(RIGHT_TRIGGER)
+    destination.dodgeX = destination.airDodgePressed ? row.dodgeX() : 0
+    destination.dodgeZ = destination.airDodgePressed ? row.dodgeZ() : 0
+    destination.techPressed = destination.airDodgePressed
+    destination.mashPressed = row.pressedMask() != 0
+    destination.attackPressed = row.actionPressed(ATTACK)
+    destination.grabMashPressed = anyPressed(row, ATTACK, SPECIAL, JUMP, GRAB, LEFT_TRIGGER, RIGHT_TRIGGER)
+    destination.grabThrowX = sign(row.throwX())
+    destination.grabThrowZ = sign(row.throwZ())
+    destination.lCancelPressed = row.actionPressed(GRAB) or destination.airDodgePressed
+    destination.ledgeVerticalPressed = row.ledgeVerticalPressed()
+    destination.getupAttackPressed = destination.attackPressed or
+        (destination.specialPressed and (fighter.character != 1 or destination.specialZ >= 0))
+    destination.getupStandPressed = row.actionPressed(MOVE_UP) or destination.jumpPressed or destination.airDodgePressed
+    destination.getupDirection = actionEdgePair(row, MOVE_LEFT, MOVE_RIGHT)
+    destination.getupDirectionPressed = destination.getupDirection != 0
+    destination.walking = row.actionHeld(WALK_MODIFIER)
+    destination.attackHeld = row.actionHeld(ATTACK)
+    let groundDodge = groundDodgeIntent(destination.shield,
+        row.actionPressed(MOVE_LEFT), row.actionPressed(MOVE_RIGHT), row.actionPressed(MOVE_DOWN))
+    destination.groundDodgePressed = groundDodge != NO_GROUND_DODGE
+    destination.groundDodgeDirection = groundDodge == NO_GROUND_DODGE ? 0 : groundDodge
+
+    if destination.attackPressed or
+            (destination.attackHeld and (row.actionPressed(MOVE_LEFT) or row.actionPressed(MOVE_RIGHT)
+                or row.actionPressed(MOVE_DOWN) or row.actionPressed(MOVE_UP)))
+        let shieldGrab = fighter.grounded and (fighter.shield or destination.shield)
+        attackRequests.enqueue(normalAttackStyle(destination.direction,
+            destination.verticalDirection, destination.walking, shieldGrab),
+            destination.direction, frame, true)
+    if row.actionPressed(GRAB)
+        attackRequests.enqueue(5, 0, frame, false)
+    if row.actionPressed(SMASH_LEFT)
+        attackRequests.enqueue(4, -1, frame, false)
+    if row.actionPressed(SMASH_RIGHT)
+        attackRequests.enqueue(4, 1, frame, false)
+    if row.actionPressed(SMASH_UP)
+        attackRequests.enqueue(2, 0, frame, false)
+    if row.actionPressed(SMASH_DOWN)
+        attackRequests.enqueue(3, 0, frame, false)

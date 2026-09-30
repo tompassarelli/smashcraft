@@ -4,7 +4,7 @@ import NetworkInput
 // Leave one signed counter value for the next-frame cursor.
 public constant int INPUT_LAST_FRAME = 2147483646
 public constant int INPUT_HEADER_BYTES = 24
-public constant int INPUT_RECORD_BYTES = 27
+public constant int INPUT_RECORD_BYTES = 41
 
 function decimal(int value, int width) returns string
     var result = I2S(value)
@@ -23,7 +23,14 @@ function parseDecimal(string wire, int offset, int width) returns int
     return value
 
 function encodeRecord(NetworkInput row) returns string
-    return decimal(row.heldMask(), 5) + decimal(row.pressedMask(), 5) + decimal(row.releasedMask(), 5) + decimal(row.axisX() + 127, 3) + decimal(row.axisZ() + 127, 3) + decimal(row.triggerLeft(), 3) + decimal(row.triggerRight(), 3)
+    return decimal(row.heldMask(), 5) + decimal(row.pressedMask(), 5) + decimal(row.releasedMask(), 5) + decimal(row.axisX() + 127, 3) + decimal(row.axisZ() + 127, 3) + decimal(row.triggerLeft(), 3) + decimal(row.triggerRight(), 3) + directionDigit(row.specialX()) + directionDigit(row.specialZ()) + directionDigit(row.dodgeX()) + directionDigit(row.dodgeZ()) + (row.sdiPulse() ? "1" : "0") + directionDigit(row.sdiX()) + directionDigit(row.sdiZ()) + directionDigit(row.ledgeVerticalPressed()) + decimal(row.throwX() + INPUT_THROW_CONTRIBUTION_LIMIT, 3) + decimal(row.throwZ() + INPUT_THROW_CONTRIBUTION_LIMIT, 3)
+
+function directionDigit(int direction) returns string
+    return I2S(direction + 1)
+
+function parseDirection(string wire, int offset) returns int
+    let digit = "012".indexOf(wire.charAt(offset))
+    return digit < 0 ? -2 : digit - 1
 
 function decodeRecord(string wire, int offset, NetworkInput destination) returns boolean
     let held = parseDecimal(wire, offset, 5)
@@ -35,11 +42,30 @@ function decodeRecord(string wire, int offset, NetworkInput destination) returns
     let right = parseDecimal(wire, offset + 24, 3)
     if x < 0 or z < 0
         return false
-    return destination.assign(held, pressed, released, x - 127, z - 127, left, right)
+    if not destination.assign(held, pressed, released, x - 127, z - 127, left, right)
+        return false
+    let specialX = parseDirection(wire, offset + 27)
+    let specialZ = parseDirection(wire, offset + 28)
+    let dodgeX = parseDirection(wire, offset + 29)
+    let dodgeZ = parseDirection(wire, offset + 30)
+    let sdiFlag = wire.charAt(offset + 31)
+    let sdiX = parseDirection(wire, offset + 32)
+    let sdiZ = parseDirection(wire, offset + 33)
+    let ledgeVertical = parseDirection(wire, offset + 34)
+    let throwX = parseDecimal(wire, offset + 35, 3) - INPUT_THROW_CONTRIBUTION_LIMIT
+    let throwZ = parseDecimal(wire, offset + 38, 3) - INPUT_THROW_CONTRIBUTION_LIMIT
+    if (sdiFlag != "0" and sdiFlag != "1")
+        return false
+    if not destination.assignPressData(specialX, specialZ, dodgeX, dodgeZ,
+            sdiFlag == "1", sdiX, sdiZ, ledgeVertical)
+        return false
+    return destination.assignThrowContributions(throwX, throwZ)
 
-// ASCII: I1 | flags(1, zero) | count(1, 1/2) | epoch(10) | first(10)
+// ASCII: I2 | flags(1, zero) | count(1, 1/2) | epoch(10) | first(10)
 // then count complete records: held(5), pressed(5), released(5), X+127(3),
-// Z+127(3), left trigger(3), right trigger(3). Length is exactly 51 or 78.
+// Z+127(3), triggers(3 each), Special X/Z, dodge X/Z, SDI flag/X/Z, and
+// ledge vertical (one canonical 0..2 digit each), throw X/Z sums shifted by 127
+// (three decimal digits each). Length is 65 or 106.
 // Sender identity is absent: the receive event supplies it separately.
 public class InputPacket
     private int epoch = -1
@@ -64,9 +90,9 @@ public class InputPacket
 
     function decode(string wire) returns boolean
         count = 0
-        if wire.length() != 51 and wire.length() != 78
+        if wire.length() != 65 and wire.length() != 106
             return false
-        if wire.substring(0, 2) != "I1" or wire.charAt(2) != "0"
+        if wire.substring(0, 2) != "I2" or wire.charAt(2) != "0"
             return false
         let records = parseDecimal(wire, 3, 1)
         if records < 1 or records > 2 or wire.length() != INPUT_HEADER_BYTES + INPUT_RECORD_BYTES * records
@@ -87,7 +113,7 @@ public class InputPacket
     function encode() returns string
         if count == 0
             return ""
-        let header = "I10" + I2S(count) + decimal(epoch, 10) + decimal(firstFrame, 10)
+        let header = "I20" + I2S(count) + decimal(epoch, 10) + decimal(firstFrame, 10)
         return header + encodeRecord(first) + (count == 2 ? encodeRecord(second) : "")
 
     function epochNumber() returns int

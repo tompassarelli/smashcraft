@@ -254,6 +254,13 @@ wc3-melee:build/illidan-defense-trace.txt records the shield/direction inputs
 with zero dropped records. This passive-opponent check does not verify the
 protection windows or shield-contact reactions.
 
+The normal-bot parry attempt in wc3-melee:build/illidan-parry-native.mp4 and
+wc3-melee:build/illidan-parry-trace.txt did not establish a successful parry:
+the recorded strikes did not produce the intended attacker-interruption
+signature. Keep parry protection unverified. This recording does show a stock
+loss, respawn with damage reset, and resumed movement/special actions. It does
+not prove every character state resets correctly. The trace dropped no records.
+
 Grounded Immolate contact is observed in Warcraft: one 7-damage hit with
 5 victim hitlag frames, 18 hitstun frames and a horizontal launch. Its green
 active cue and victim impact are visible. Evidence:

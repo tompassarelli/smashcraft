@@ -234,16 +234,40 @@ uncommitted actions and baselines current held keys without inventing presses.
 An epoch can reset from neutral. Six focused tests pass, including a
 repeated-capture wait against the real scheduler and a held-key resume:
 wc3-melee:build/wurst-tests/keyboard-capture-resume-r2.log.
-Sampling takes an already normalized held-action mask. Binding/key polling,
-focus/chat detection, conversion to gameplay InputSnapshot and native scheduler
-integration remain unimplemented; this does not alter the installed baseline.
+Sampling takes an already normalized held-action mask. The pure adapter from
+network rows to gameplay InputSnapshot and AttackBuffer requests is now in
+wc3-melee:wurst/InputAdapter.wurst. Binding/key polling, focus/chat detection,
+and scheduled gameplay integration remain unimplemented; this does not alter
+the installed baseline.
 
-wc3-melee:wurst/InputProtocol.wurst encodes complete input records in exact
-51-byte or 78-byte ASCII packets (one/two consecutive frames). Version I1,
-reserved flags, count, epoch, frame range and field bounds are checked. Player
+wc3-melee:wurst/InputProtocol.wurst currently encodes complete normalized input
+records in exact 65-byte or 106-byte ASCII packets (one/two consecutive frames),
+version I2. Each row carries held/pressed/released actions, quantized axes and
+triggers, first sampled Special direction, latest sampled shield-dodge vector,
+latest qualifying SDI pulse, the latest up/down ledge edge, and bounded signed
+throw-direction press sums. Reserved flags, count, epoch, frame range, action
+masks, axis bounds, and canonical direction/count fields are checked. Player
 identity is absent from the payload: a future native receiver must derive the
 slot from GetTriggerPlayer, register fromServer=false, and use its dedicated
 sync namespace. No receiver has been connected to the gameplay map yet.
+
+The sampler retains the first uncommitted Special direction, the latest
+shield-trigger direction, and the latest SDI pulse until a row is captured;
+predicted rows clear these press-only values. If polling observes opposing
+up/down ledge presses in one sample, they resolve to neutral because their
+sub-sample order is unknowable. Polling cannot recover physical ordering between
+two calls to sample(). Repeated throw-direction taps are accumulated up to
+±127 per axis before row assignment. The existing callback baseline is
+unchanged.
+
+The integrated input-focused suite passes 69/69, with zero errors and the
+existing unused-import warning in wc3-melee:wurst/RecoveryTests.wurst.
+Evidence: wc3-melee:build/normalized-input-integrated.log. Coverage includes
+press-vector retention, wire rejection/roundtrip, immutable ledger/scheduler
+behavior, action mapping and clearing reused frame-local output so neutral
+rows cannot retain a prior attack. The adapter allocates no objects per row.
+This remains pure-source evidence: the published map still uses native
+synchronized callbacks, and no new native or two-client gate has passed.
 
 wc3-melee:wurst/InputLedger.wurst preallocates 256 frames for two competitors.
 It validates a whole batch before accepting any rows; equal duplicates succeed,

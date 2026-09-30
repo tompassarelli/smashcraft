@@ -1,0 +1,157 @@
+package InputAdapterTests
+import InputAdapter
+import NetworkInput
+import Simulation
+import CommandBuffer
+import KeyBindings
+
+@Test function neutralRowClearsReusedFrameScratchWithoutRepeatingAnAttack()
+    let row = new NetworkInput()
+    let fighter = new FighterState(0, 0, 1)
+    let input = new InputSnapshot()
+    let attacks = new AttackBuffer(6)
+    row.assign(0, inputActionBit(ATTACK), 0, 0, 0, 0, 0).assertTrue()
+    adaptInput(row, fighter, 1, input, attacks)
+    attacks.hasPending(1).assertTrue()
+    input.attackRequested = true
+    row.assign(0, 0, 0, 0, 0, 0, 0).assertTrue()
+    adaptInput(row, fighter, 2, input, attacks)
+    input.attackRequested.assertFalse()
+    input.attackPressed.assertFalse()
+    attacks.hasPending(2).assertFalse()
+    destroy attacks
+    destroy input
+    destroy fighter
+    destroy row
+
+@Test function digitalTapEdgesAndQuantizedAxesBecomeMovementWithoutConfusingCStickDown()
+    let row = new NetworkInput()
+    let fighter = new FighterState(0, 0, 1)
+    let input = new InputSnapshot()
+    let attacks = new AttackBuffer(0)
+    row.assign(0, inputActionBit(MOVE_LEFT) + inputActionBit(SMASH_DOWN),
+        inputActionBit(MOVE_LEFT), 0, 0, 0, 0).assertTrue()
+    row.assignPressData(0, 0, 0, 0, false, 0, 0, 0).assertTrue()
+    adaptInput(row, fighter, 1, input, attacks)
+    input.direction.assertEquals(-1)
+    input.verticalDirection.assertEquals(0)
+    input.cStickZ.assertEquals(0)
+    input.down.assertFalse()
+    input.attackRequested.assertFalse()
+
+    row.assign(inputActionBit(SMASH_DOWN), inputActionBit(SMASH_DOWN), 0, 0, 0, 0, 0).assertTrue()
+    adaptInput(row, fighter, 2, input, attacks)
+    input.direction.assertEquals(0)
+    input.verticalDirection.assertEquals(0)
+    input.cStickZ.assertEquals(-1)
+    input.down.assertFalse()
+    attacks.consume(2, true).assertEquals(3)
+    destroy attacks
+    destroy input
+    destroy fighter
+    destroy row
+
+@Test function analogAxesRemainUsableWithoutKeyboardActionBits()
+    let row = new NetworkInput()
+    let fighter = new FighterState(0, 0, 1)
+    let input = new InputSnapshot()
+    let attacks = new AttackBuffer(0)
+    row.assign(0, 0, 0, -63, 91, 0, 0).assertTrue()
+    adaptInput(row, fighter, 1, input, attacks)
+    input.direction.assertEquals(-1)
+    input.verticalDirection.assertEquals(1)
+    row.assign(0, 0, 0, 0, 0, 1, 0).assertTrue()
+    adaptInput(row, fighter, 2, input, attacks)
+    input.shield.assertTrue()
+
+@Test function attackAndJumpShareTheExactFrameAndCStickPriorityWinsDeterministically()
+    let row = new NetworkInput()
+    let fighter = new FighterState(0, 0, 1)
+    let input = new InputSnapshot()
+    let attacks = new AttackBuffer(0)
+    row.assign(inputActionBit(JUMP) + inputActionBit(ATTACK),
+        inputActionBit(JUMP) + inputActionBit(ATTACK) + inputActionBit(SMASH_RIGHT),
+        0, 127, 0, 0, 0).assertTrue()
+    adaptInput(row, fighter, 18, input, attacks)
+    input.jumpPressed.assertTrue()
+    input.jumpHeld.assertTrue()
+    input.attackPressed.assertTrue()
+    attacks.targetFrame.assertEquals(18)
+    attacks.consume(18, true).assertEquals(4)
+    attacks.consumedFacing.assertEquals(1)
+
+@Test function shieldAttackBecomesShieldGrabAndTriggerPressRetainsDodgeAndTechIntent()
+    let row = new NetworkInput()
+    let fighter = new FighterState(0, 0, 1)
+    let input = new InputSnapshot()
+    let attacks = new AttackBuffer(0)
+    fighter.shield = true
+    row.assign(inputActionBit(ATTACK) + inputActionBit(LEFT_TRIGGER),
+        inputActionBit(ATTACK) + inputActionBit(LEFT_TRIGGER), 0, -127, 0, 255, 0).assertTrue()
+    row.assignPressData(0, 0, -1, 0, false, 0, 0, 0).assertTrue()
+    adaptInput(row, fighter, 4, input, attacks)
+    input.shield.assertTrue()
+    input.techPressed.assertTrue()
+    input.airDodgePressed.assertTrue()
+    input.dodgeX.assertEquals(-1)
+    attacks.consume(4, true).assertEquals(5)
+
+@Test function specialReleasePreservesPressDirectionAndNeutralAerialTurnaroundUsesSimulationFacing()
+    let row = new NetworkInput()
+    let fighter = new FighterState(2, 0, 1)
+    let input = new InputSnapshot()
+    let attacks = new AttackBuffer(0)
+    fighter.grounded = false
+    row.assign(0, inputActionBit(SPECIAL), inputActionBit(MOVE_DOWN), 0, 0, 0, 0).assertTrue()
+    row.assignPressData(0, -1, 0, 0, false, 0, 0, 0).assertTrue()
+    adaptInput(row, fighter, 1, input, attacks)
+    input.direction.assertEquals(0)
+    input.specialPressed.assertTrue()
+    input.specialZ.assertEquals(-1)
+    input.getupAttackPressed.assertTrue()
+    fighter.character = 1
+    adaptInput(row, fighter, 2, input, attacks)
+    input.getupAttackPressed.assertFalse()
+    fighter.character = 2
+    fighter.lastAerialTapDirection = -1
+    row.assign(0, inputActionBit(SPECIAL), 0, 0, 0, 0, 0).assertTrue()
+    row.assignPressData(0, 0, 0, 0, false, 0, 0, 0).assertTrue()
+    adaptInput(row, fighter, 3, input, attacks)
+    input.specialX.assertEquals(0)
+    input.specialZ.assertEquals(0)
+
+@Test function grabThrowMashLcancelTechAndLedgeIntentsUseFreshEdges()
+    let row = new NetworkInput()
+    let fighter = new FighterState(0, 0, 1)
+    let input = new InputSnapshot()
+    let attacks = new AttackBuffer(0)
+    row.assign(0, inputActionBit(GRAB) + inputActionBit(ATTACK) + inputActionBit(MOVE_LEFT)
+        + inputActionBit(MOVE_UP) + inputActionBit(RIGHT_TRIGGER), 0, 0, 0, 0, 0).assertTrue()
+    row.assignPressData(0, 0, -1, 0, true, 0, 1, 1).assertTrue()
+    adaptInput(row, fighter, 7, input, attacks)
+    input.attackPressed.assertTrue()
+    input.grabMashPressed.assertTrue()
+    input.mashPressed.assertTrue()
+    input.lCancelPressed.assertTrue()
+    input.techPressed.assertTrue()
+    input.grabThrowX.assertEquals(-1)
+    input.grabThrowZ.assertEquals(1)
+    input.sdiPulse.assertTrue()
+    input.sdiZ.assertEquals(1)
+    input.ledgeVerticalPressed.assertEquals(1)
+    input.getupDirection.assertEquals(-1)
+    input.getupStandPressed.assertTrue()
+    attacks.consume(7, true).assertEquals(5)
+
+@Test function walkingModifierSelectsTiltsAndSameFrameOpposingSmashesCancelTheirFacing()
+    let row = new NetworkInput()
+    let fighter = new FighterState(0, 0, 1)
+    let input = new InputSnapshot()
+    let attacks = new AttackBuffer(0)
+    row.assign(inputActionBit(ATTACK) + inputActionBit(WALK_MODIFIER) + inputActionBit(MOVE_UP),
+        inputActionBit(ATTACK) + inputActionBit(SMASH_LEFT) + inputActionBit(SMASH_RIGHT),
+        0, 0, 127, 0, 0).assertTrue()
+    adaptInput(row, fighter, 10, input, attacks)
+    input.walking.assertTrue()
+    attacks.consume(10, true).assertEquals(4)
+    attacks.consumedFacing.assertEquals(0)
