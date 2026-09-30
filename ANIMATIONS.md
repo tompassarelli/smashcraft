@@ -2,6 +2,16 @@
 
 ## Demon Hunter completion checklist
 
+Normal and air-dodge landing playback is now observed in Warcraft: both show
+the authored contact crouch followed by standing. The clean passive-opponent
+trace records 4 normal recovery frames and 10 after air dodge, with no damage
+interruptions and zero dropped trace records. Evidence:
+wc3-melee:build/illidan-landing-passive.mp4,
+wc3-melee:build/illidan-landing-passive-trace.txt,
+wc3-melee:build/illidan-normal-landing-frames.png, and
+wc3-melee:build/illidan-dodge-landing-frames.png. This does not establish
+Up-B landing, attack landing, both facings or rollback restoration.
+
 Native checks on 2026-10-01 used `illidan-passive-r1`, the existing knockdown
 scenario after both fighters returned to standing. Mana Burn activates from U,
 hits for 5 damage and produces victim hitlag/hitstun. E+U activates Immolate
@@ -53,7 +63,7 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 | Neutral/forward/back/up/down aerials | Combat source-tested; clips authored and bound; native playback unverified |
 | Mana Burn, parry/evasion, wing ascent, Immolate | Combat source-tested; clips and source-derived animated wings authored; Mana Burn missile and active-window Immolate/parry cues connected; native verification pending |
 | Grab, hold, pummel, escape, four coordinated throws | Native capture/pummel/up-throw confirmed; pair readability, escape and other throw directions still pending |
-| Idle, walk/run, turns, crouch, jumps and landings | Jump squat, jumps, idle fall and normal/special landing bound; landing native playback pending; other movement transitions still incomplete |
+| Idle, walk/run, turns, crouch, jumps and landings | Normal and air-dodge landing playback observed; jump squat, jumps and idle fall bound; other movement transitions still incomplete |
 | Shield, shield reactions/break, spot dodge, rolls, air dodge | Shield raise/hold/release, ground dodges and air dodge bound; native checks pending |
 | Ground/air hitstun, tumble, contact-pose hitlag | Reactions authored; freeze/resume verification missing |
 | Knockdown, techs, getup options, ledges, KO and respawn | Knockdown/rest, tech/getup and ledge roll/attack bound; remaining transitions/native grounding unverified |

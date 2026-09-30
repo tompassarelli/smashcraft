@@ -2,7 +2,21 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-## Current checkpoint — 2026-10-01 landing bindings
+## Current checkpoint — 2026-10-01 landing playback
+
+Installed for next launch: normal `illidan-landing-r1`, restored by atomic
+replacement from wc3-melee:build/illidan-landing-normal.w3x; byte comparison passed.
+Currently running: `illidan-landing-passive-r1`, paused with Y after a clean
+normal-jump/air-dodge landing recording. Normal contact crouch -> stand and
+air-dodge contact crouch -> stand are visible. The trace records respective
+landing recovery of 4 and 10 frames, no damage interruptions and no dropped
+records. Evidence and remaining limits are in wc3-melee:ANIMATIONS.md.
+
+The earlier active-CPU recording was interrupted by damage and desktop focus
+change. Its copied wc3-melee:build/illidan-landing-trace.txt is stale (previous
+passive grab run) and must not be used as evidence for landing.
+
+## Previous checkpoint — landing bindings
 
 Installed and observed running: normal `illidan-landing-r1`, paused with Y in
 an Illidan mirror match. Recreated through Quit Mission and normal menus.
