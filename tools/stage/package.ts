@@ -1,0 +1,74 @@
+// Foreign model-format boundary. Simulation owns all world-space platform edges.
+import { parseMDL, generateMDX, parseMDX } from "../animations/node_modules/war3-model";
+import { join } from "node:path";
+
+const output = join(import.meta.dir, "../../build/stage-assets");
+// Slate walking surface, brass lip, charcoal structural body, recessed steel.
+const colors = [[136, 151, 157], [153, 129, 78], [48, 58, 68], [77, 91, 103]];
+const texture = new Uint8Array(18 + colors.length * 4);
+texture[2] = 2;
+texture[12] = colors.length;
+texture[14] = 1;
+texture[16] = 32;
+texture[17] = 0x28;
+colors.forEach(([r, g, b], i) => texture.set([b, g, r, 255], 18 + i * 4));
+const hash = (bytes: Uint8Array) => new Bun.CryptoHasher("sha256").update(bytes).digest("hex");
+const textureName = `StagePalette-${hash(texture)}.tga`;
+const vec = (v: number[]) => `{ ${v.join(", ")} }`;
+const extent = 'MinimumExtent { -50, -60, -54 }, MaximumExtent { 50, 60, 0 }, BoundsRadius 96,';
+let geometry = "";
+let count = 0;
+function slab(top: number, bottom: number, halfWidth: number, halfDepth: number, lowerWidth: number, lowerDepth: number, material: number) {
+    const vertices = [
+        [-halfWidth,-halfDepth,top], [halfWidth,-halfDepth,top], [halfWidth,halfDepth,top], [-halfWidth,halfDepth,top],
+        [-lowerWidth,-lowerDepth,bottom], [lowerWidth,-lowerDepth,bottom], [lowerWidth,lowerDepth,bottom], [-lowerWidth,lowerDepth,bottom],
+    ];
+    const faces = [[0,1,2,3], [5,4,7,6], [4,5,1,0], [5,6,2,1], [6,7,3,2], [7,4,0,3]];
+    const normals = [[0,0,1],[0,0,-1],[0,-1,0],[1,0,0],[0,1,0],[-1,0,0]];
+    const points = faces.flatMap(f => f.map(i => vertices[i]));
+    const triangles = faces.flatMap((_, i) => [i*4,i*4+1,i*4+2,i*4,i*4+2,i*4+3]);
+    geometry += `Geoset {
+        Vertices 24 { ${points.map(v => vec(v)+",").join("\n")} }
+        Normals 24 { ${normals.flatMap(v => Array(4).fill(vec(v)+",")).join("\n")} }
+        TVertices 24 { ${Array(24).fill(vec([(material+.5)/colors.length,.5])+",").join("\n")} }
+        VertexGroup { ${Array(24).fill("0,").join(" ")} }
+        Faces 1 36 { Triangles { ${vec(triangles)}, } }
+        Groups 1 1 { Matrices { 0 }, }
+        ${extent}
+        Anim { ${extent} }
+        MaterialID 0,
+        SelectionGroup 0,
+    }\n`;
+    count++;
+}
+slab(0,-7,50,60,50,60,0);
+slab(-7,-11,50,60,50,60,1);
+slab(-11,-46,50,60,46,44,2);
+slab(-46,-54,46,44,44,40,3);
+const mdl = `Version { FormatVersion 800, }
+Model "Smashcraft floating deck" { NumGeosets ${count}, NumBones 1, BlendTime 0, ${extent} }
+Sequences 1 { Anim "Stand" { Interval { 0, 1000 }, ${extent} } }
+Textures 1 { Bitmap { Image "war3mapImported\\${textureName}", } }
+Materials 1 { Material { Layer { FilterMode None, Unshaded, static TextureID 0, static Alpha 1, } } }
+${geometry}
+Bone "Deck" { ObjectId 0, GeosetId Multiple, GeosetAnimId None, }
+PivotPoints 1 { { 0, 0, 0 }, }
+`;
+const bytes = new Uint8Array(generateMDX(parseMDL(mdl)));
+const decoded = parseMDX(bytes.buffer);
+// A normalized 100-unit deck has no geometry beyond the collision edges or above its top.
+const points = decoded.Geosets.flatMap(g => Array.from(g.Vertices));
+for (let i=0; i<points.length; i+=3) {
+    if (points[i] < -50 || points[i] > 50 || points[i+2] > 0) throw new Error("deck geometry exceeds collision plane");
+}
+const walkingFace = Array.from(decoded.Geosets[0].Vertices.slice(0, 12));
+if (JSON.stringify(walkingFace) !== JSON.stringify([-50,-60,0,50,-60,0,50,60,0,-50,60,0])) {
+    throw new Error("deck walking face must span its complete collision plane");
+}
+const modelName = `StageDeck-${hash(bytes)}.mdx`;
+await Bun.write(join(output, textureName), texture);
+await Bun.write(join(output, modelName), bytes);
+await Bun.write(join(output, "StageDeck.mdl"), mdl);
+await Bun.write(join(output, "StageAssetInfo.wurst"), `package StageAssetInfo\npublic constant string STAGE_DECK_MODEL = ${JSON.stringify(`war3mapImported\\${modelName}`)}\n`);
+await Bun.write(join(output, "imports.txt"), `${modelName}\n${textureName}\n`);
+console.log(`Stage deck: ${count} geosets; MDX roundtrip bounds x=[-50,50], z=[-54,0]; ${modelName}`);

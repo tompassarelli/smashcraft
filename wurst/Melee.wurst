@@ -16,6 +16,7 @@ import KeyBindings
 import PlayerInputState
 import SettingsUI
 import FighterAssets
+import StageAssetInfo
 
 constant real FRAME_SECONDS = 0.016666667
 
@@ -37,8 +38,8 @@ boolean playerTechPressed = false
 boolean playerLCancelPressed = false
 boolean playerMashPressed = false
 int playerLedgeVerticalPressed = 0
-lightning array stageLines
-int stageLineCount = 0
+effect array stageDecks
+int stageDeckCount = 0
 lightning array projectileLines
 effect array projectileArrows
 int projectileLineCount = 0
@@ -268,16 +269,12 @@ function frameText(string name, real x, real y, real width, real height, real si
     BlzFrameSetTextAlignment(result, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT)
     return result
 
-function drawLine(string kind, real x1, real z1, real x2, real z2, real r, real g, real b) returns lightning
-    let bolt = AddLightningEx(kind, false, centerX + x1, centerY, floorHeight + z1,
-        centerX + x2, centerY, floorHeight + z2)
-    SetLightningColor(bolt, r, g, b, 1)
-    return bolt
-
-function clearStageLines()
-    for i = 0 to stageLineCount - 1
-        DestroyLightning(stageLines[i])
-    stageLineCount = 0
+function clearStageDecks()
+    for i = 0 to stageDeckCount - 1
+        BlzSetSpecialEffectScale(stageDecks[i], 0.)
+        DestroyEffect(stageDecks[i])
+        stageDecks[i] = null
+    stageDeckCount = 0
 
 function clearProjectileLines()
     for i = 0 to projectileLineCount - 1
@@ -320,15 +317,17 @@ function renderProjectiles(FighterState fighter, int offset)
             projectileZAt(fighter, index), projectileDirectionAt(fighter, index), fighter.character)
 
 function drawStage()
-    clearStageLines()
+    clearStageDecks()
     for i = 0 to surfaceCount(matchState.stageChoice) - 1
-        let z = surfaceZ(matchState.stageChoice, i)
+        let left = surfaceLeft(matchState.stageChoice, i)
+        let right = surfaceRight(matchState.stageChoice, i)
         let pass = surfacePass(matchState.stageChoice, i)
-        for depth = 0 to 4
-            let y = z - depth * 6
-            stageLines[stageLineCount] = drawLine(LIGHTNING_DRAIN_MANA, surfaceLeft(matchState.stageChoice, i), y, surfaceRight(matchState.stageChoice, i), y,
-                pass ? 0.45 : 0.15, 0.85, 1)
-            stageLineCount++
+        let deck = AddSpecialEffect(STAGE_DECK_MODEL, centerX + (left + right) / 2, centerY)
+        BlzSetSpecialEffectPosition(deck, centerX + (left + right) / 2, centerY, floorHeight + surfaceZ(matchState.stageChoice, i))
+        // The authored walking plane spans [-50,50] at z=0; the body stays below it.
+        BlzSetSpecialEffectMatrixScale(deck, (right - left) / 100, pass ? 0.65 : 1., pass ? 0.45 : 1.)
+        stageDecks[stageDeckCount] = deck
+        stageDeckCount++
 
 function removeFighters()
     clearProjectileLines()

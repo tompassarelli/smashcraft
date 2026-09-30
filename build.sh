@@ -10,6 +10,7 @@ maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive
 build_output="$project_dir/build/wurst-map/Melee_Prototype.w3x"
 fighter_assets="$project_dir/build/animation-assets"
 selection_assets="$project_dir/build/selection-assets"
+stage_assets="$project_dir/build/stage-assets"
 selection_textures=(ArcherName RiflemanName SelectionBackdrop SelectionTileFrame SelectionCardRed SelectionCardBlue SelectionCardGray SelectionAction StageBackdrop StageChip SelectionSkyDeck SelectionThreeBridges SelectionChipP1 SelectionChipP2 SelectionChipCPU ArcherPortrait RiflemanPortrait ArcherTile RiflemanTile MatchHUD0 MatchHUD1 MatchHUD2 MatchHUD3)
 
 if [[ $# -ne 1 || ! -f "$1" ]]; then
@@ -27,6 +28,7 @@ for texture in "${selection_textures[@]}"; do
         exit 1
     }
 done
+nix shell nixpkgs#bun --command bun "$project_dir/tools/stage/package.ts"
 build_id=${WC3_BUILD_ID:-$(date +%s)}
 developer_scenario=${WC3_SCENARIO:-normal}
 case "$developer_scenario" in normal|knockdown|tech|shield-break|ledge) ;; *) echo 'WC3_SCENARIO must be normal, knockdown, tech, shield-break or ledge.' >&2; exit 2;; esac
@@ -66,6 +68,11 @@ for source in FighterAssets Simulation DirectionalInput MatchRules MatchHUD Comm
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
 done
 cp "$fighter_assets/FighterAssetInfo.wurst" "$work_dir/wurst/FighterAssetInfo.wurst"
+cp "$stage_assets/StageAssetInfo.wurst" "$work_dir/wurst/StageAssetInfo.wurst"
+mapfile -t stage_imports < "$stage_assets/imports.txt"
+for asset in "${stage_imports[@]}"; do
+    cp "$stage_assets/$asset" "$work_dir/imports/war3mapImported/$asset"
+done
 cp "$project_dir/tools/selection/art/SmashcraftHUD.fdf" "$project_dir/tools/selection/art/SmashcraftHUD.toc" "$work_dir/imports/war3mapImported/"
 fighter_model_hash=$(sha256sum "$fighter_assets/ArcherFighter.mdx" | cut -d ' ' -f1)
 fighter_model_path="war3mapImported\\ArcherFighter-$fighter_model_hash.mdx"
@@ -153,6 +160,10 @@ cmp "$fighter_assets/RiflemanFighter.mdx" "$work_dir/verified-RiflemanFighter.md
 for texture in "${selection_textures[@]}"; do
     "$packager" extract "$output_next" "$work_dir/verified-$texture.tga" "war3mapImported\\$texture.tga"
     cmp "$selection_assets/$texture.tga" "$work_dir/verified-$texture.tga"
+done
+for asset in "${stage_imports[@]}"; do
+    "$packager" extract "$output_next" "$work_dir/verified-$asset" "war3mapImported\\$asset"
+    cmp "$stage_assets/$asset" "$work_dir/verified-$asset"
 done
 "$packager" extract "$output_next" "$work_dir/verified.w3a" war3map.w3a
 [[ -s "$work_dir/verified.w3a" ]]
