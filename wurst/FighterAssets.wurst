@@ -1,9 +1,11 @@
 package FighterAssets
 import UnitObjEditing
 import public FighterAssetInfo
+import public DemonHunterAssetInfo
 
 public constant int ARCHER_FIGHTER_ID = 'mfar'
 public constant int RIFLEMAN_FIGHTER_ID = 'mfrf'
+public constant int DEMON_HUNTER_FIGHTER_ID = 'mfdh'
 
 @compiletime function defineFighterAssets()
     let archer = new UnitDefinition(ARCHER_FIGHTER_ID, 'earc')
@@ -20,3 +22,10 @@ public constant int RIFLEMAN_FIGHTER_ID = 'mfrf'
     rifleman.setScalingValue(1.)
     rifleman.setAnimationBlendTimeseconds(0.)
     rifleman.setSelectionScale(0.)
+    let demonHunter = new UnitDefinition(DEMON_HUNTER_FIGHTER_ID, 'earc')
+    demonHunter.setName("Illidan")
+    demonHunter.setModelFile(DEMON_HUNTER_MODEL_FILE)
+    demonHunter.setModelFileExtraVersions(0)
+    demonHunter.setScalingValue(1.)
+    demonHunter.setAnimationBlendTimeseconds(0.)
+    demonHunter.setSelectionScale(0.)

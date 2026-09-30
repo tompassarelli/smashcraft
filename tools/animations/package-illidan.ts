@@ -37,5 +37,14 @@ for(const emitter of decoded.ParticleEmitters2){
 }
 await Bun.write(join(out,'DemonHunterFighter.mdx'),bytes);
 await Bun.write(join(out,'bindings.json'),JSON.stringify(bindings,null,2));
+const hash=new Bun.CryptoHasher('sha256').update(new Uint8Array(bytes)).digest('hex');
+const modelPath=`war3mapImported\\DemonHunterFighter-${hash}.mdx`;
+const declarations=bindings.flatMap((binding:any)=>{
+ const key=binding.name.toUpperCase().replace(/[^A-Z0-9]+/g,'_');
+ return [`public constant int DEMON_HUNTER_${key}_INDEX = ${binding.index}`,
+  `public constant real DEMON_HUNTER_${key}_SECONDS = ${binding.seconds.toFixed(6)}`];
+});
+await Bun.write(join(out,'DemonHunterAssetInfo.wurst'),
+ `package DemonHunterAssetInfo\npublic constant string DEMON_HUNTER_MODEL_FILE = ${JSON.stringify(modelPath)}\n${declarations.join('\n')}\n`);
 console.log('ILLIDAN_PACKAGE_PASS',bindings.length,'authored clips',model.Sequences.length,'total sequences',bytes.byteLength,'bytes');
 console.log('TEXTURES',JSON.stringify(model.Textures));

@@ -9,6 +9,7 @@ java=/home/tom/.wurst/wurst-runtime/bin/java
 maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps'
 build_output="$project_dir/build/wurst-map/Smashcraft.w3x"
 fighter_assets="$project_dir/build/animation-assets"
+demon_hunter_assets="$project_dir/build/illidan-animation"
 selection_assets="$project_dir/build/selection-assets"
 stage_assets="$project_dir/build/stage-assets"
 impact_assets="$project_dir/build/impact-assets"
@@ -30,6 +31,7 @@ for texture in "${selection_textures[@]}"; do
     }
 done
 nix shell nixpkgs#bun --command bun "$project_dir/tools/stage/package.ts"
+nix shell nixpkgs#bun --command bun "$project_dir/tools/animations/package-illidan.ts"
 nix shell nixpkgs#bun --command bun "$project_dir/tools/effects/package.ts"
 nix shell nixpkgs#bun --command bun "$project_dir/tools/effects/trap.ts"
 build_id=${WC3_BUILD_ID:-$(date +%s)}
@@ -71,6 +73,7 @@ for source in FighterAssets Simulation BotRecovery DirectionalInput MatchRules M
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
 done
 cp "$fighter_assets/FighterAssetInfo.wurst" "$work_dir/wurst/FighterAssetInfo.wurst"
+cp "$demon_hunter_assets/DemonHunterAssetInfo.wurst" "$work_dir/wurst/DemonHunterAssetInfo.wurst"
 cp "$stage_assets/StageAssetInfo.wurst" "$work_dir/wurst/StageAssetInfo.wurst"
 cp "$impact_assets/ImpactAssetInfo.wurst" "$work_dir/wurst/ImpactAssetInfo.wurst"
 cp "$impact_assets/FrostAssetInfo.wurst" "$work_dir/wurst/FrostAssetInfo.wurst"
@@ -91,6 +94,9 @@ cp "$fighter_assets/ArcherFighter.mdx" "$work_dir/imports/war3mapImported/Archer
 rifleman_model_hash=$(sha256sum "$fighter_assets/RiflemanFighter.mdx" | cut -d ' ' -f1)
 rifleman_model_path="war3mapImported\\RiflemanFighter-$rifleman_model_hash.mdx"
 cp "$fighter_assets/RiflemanFighter.mdx" "$work_dir/imports/war3mapImported/RiflemanFighter-$rifleman_model_hash.mdx"
+demon_hunter_model_hash=$(sha256sum "$demon_hunter_assets/DemonHunterFighter.mdx" | cut -d ' ' -f1)
+demon_hunter_model_path="war3mapImported\\DemonHunterFighter-$demon_hunter_model_hash.mdx"
+cp "$demon_hunter_assets/DemonHunterFighter.mdx" "$work_dir/imports/war3mapImported/DemonHunterFighter-$demon_hunter_model_hash.mdx"
 for texture in "${selection_textures[@]}"; do
     cp "$selection_assets/$texture.tga" "$work_dir/imports/war3mapImported/$texture.tga"
 done
@@ -168,6 +174,8 @@ cp "$work_dir/_build/Smashcraft.w3x" "$output_next"
 cmp "$fighter_assets/ArcherFighter.mdx" "$work_dir/verified-ArcherFighter.mdx"
 "$packager" extract "$output_next" "$work_dir/verified-RiflemanFighter.mdx" "$rifleman_model_path"
 cmp "$fighter_assets/RiflemanFighter.mdx" "$work_dir/verified-RiflemanFighter.mdx"
+"$packager" extract "$output_next" "$work_dir/verified-DemonHunterFighter.mdx" "$demon_hunter_model_path"
+cmp "$demon_hunter_assets/DemonHunterFighter.mdx" "$work_dir/verified-DemonHunterFighter.mdx"
 for texture in "${selection_textures[@]}"; do
     "$packager" extract "$output_next" "$work_dir/verified-$texture.tga" "war3mapImported\\$texture.tga"
     cmp "$selection_assets/$texture.tga" "$work_dir/verified-$texture.tga"
