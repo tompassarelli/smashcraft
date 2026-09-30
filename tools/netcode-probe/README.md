@@ -108,3 +108,70 @@ filenames and a generated Wurst path constant for both controlled variants.
 A same-filename model change was not visible after warm restart; changing its
 import identity made the expected timeline visible. Preserve this distinction
 when interpreting native experiments.
+
+## Scheduled gameplay diagnostic
+
+Variant `scheduled` builds
+wc3-melee:build/netcode-probe/Smashcraft_Scheduled_Input_Probe.w3x:
+
+```bash
+bash ~/code/wc3-melee/worktrees/test-loop/tools/netcode-probe/build.sh \
+  '/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps/Melee_Prototype_Base.w3m' scheduled
+```
+
+Variant `scheduled-5` builds the same source with D=5 instead of D=3, at
+wc3-melee:build/netcode-probe/Smashcraft_Scheduled_Input_Probe_5.w3x.
+Use separate native sessions and retain each exported trace before the next
+run overwrites the diagnostic file. Neither variant changes combat tuning.
+
+This isolated experiment joins the existing keyboard sampler, fixed schedule,
+I2 protocol, direct native sync and full pure fighting simulation. It does not
+change the installed gameplay map or establish Gate A, multiplayer fairness,
+physical latency, or a production backend. It displays numerical fighter state;
+there are no fighter models or predictive visuals in this diagnostic.
+
+Both slots use the current default `KeyBindings(false)` preset: W/R left/right,
+E down, Space up, I or 8 jump, N attack, U special, O grab, Q or 7 shield,
+B or / C-stick left, M right, J up, H down, and P walk/tilt. P1 controls the
+Archer and P2 the Rifleman, initially at x=-80/+80 on stage 0 with 99 stocks
+and no time limit. Use R to approach the passive opponent, then N to attack;
+the HUD shows position, attack/special frame, damage and stocks. Reload through
+the native menus for a fresh run. The inherited P1 Ctrl+R callback invokes
+`RestartGame(false)`, whose disconnect remains unresolved; do not use it for
+this measurement. The restart callback is not a gameplay input source.
+
+One 1/60-game-second native service timer samples actual `BlzIsKeyPressed`
+state and attempts at most one gameplay frame per callback. D (3 or 5), R=0
+and epoch 1 are fixed for the run. Frames 1..D are agreed neutral; each opportunity captures F+D once
+and immediately attempts one 65-byte I2 packet through `BlzSendSyncData` on
+`SC_I`. Repeated waits preserve that capture while sampling continues to latch
+edges for the next uncaptured row. A false send result leaves the assigned row
+unchanged and shows a local fatal diagnostic; sending then stops until restart.
+There is no retry, catch-up, prediction, rollback or second reliability layer.
+
+Only registered synchronized receipt events, with identity from
+`GetTriggerPlayer`, accept network rows. The common F<=K gate never consults
+pending local input or send success. With two humans, both real rows are
+required. With exactly one human, the absent slot receives a diagnostic neutral
+row for the same frame inside that real row's accepted receive callback. The
+HUD and trace mark this solo fixture explicitly. Observers send nothing.
+Objects, keyboard handles, frames and receive/capture/playback scratch are
+preallocated in common setup. No Wurst object or native handle is allocated in
+the local polling/send path.
+
+HUD counters show S (service callbacks), F (next gameplay frame), K (contiguous
+accepted frontier), C (executed frame), local sends/failures/errors, per-slot
+receipts, common errors, and total/current/maximum waiting callbacks. Sampled
+and captured masks are local; consumed masks and fighter state come from
+accepted rows. These are game callback counts, never physical latency.
+
+F8 writes Warcraft CustomMapData `smashcraft-scheduled-input-probe.txt`.
+The first service callback writes `smashcraft-scheduled-input-probe-ready.txt`.
+The trace retains input transitions and aggregates every 60 callbacks, stops
+at 2048 records, and reports dropped records. Exclude dumps from timing windows.
+Inactive clients sample neutral (latching releases); resuming held keys creates
+new sampled presses. Chat/menu focus is not detected: test those separately,
+and do not interpret their key sampling as established usable gameplay policy.
+Short taps entirely between service callbacks remain unobservable. Native
+engine stalls may stop the sampler itself. Slot changes/disconnect recovery and
+epoch/rematch negotiation are outside this probe; restart for a fresh run.

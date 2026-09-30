@@ -1,6 +1,6 @@
 # Native capability report
 
-Updated 30 September 2026. Status is evidence-specific; no competitive backend
+Updated 1 October 2026. Status is evidence-specific; no competitive backend
 has passed native acceptance. Research/acceptance record:
 wc3-melee:SMASHCRAFT_NETCODE_PROPOSAL.md.
 
@@ -61,7 +61,7 @@ snapshot coverage. Current combat supports two fighters, not four.
 | B: native traffic/pacing | Both 180-byte packet variants receive contiguous rows; receipt bursts observed | SHORT SINGLE-CLIENT SAMPLE; multiplayer capacity unknown |
 | C: complete snapshots/replay | Preallocated history, exact comparison, 100,000-frame unchanged-input oracle and bounded corrected-input oracle pass | PARTIAL; transport-fault replay, serialization/hash and native equivalence pending |
 | D: local presentation/pose recovery | Single authored timeline restores known marker poses; clip-switch candidates failed | PARTIAL; fighter pose fidelity/local multiplayer safety unproven |
-| E: controlled fixed/hybrid comparison | No scheduled/rollback backend in gameplay yet | NOT IMPLEMENTED |
+| E: controlled fixed/hybrid comparison | Isolated numerical D=3/5 R=0 gameplay runs; regular waits in both | PARTIAL; hybrid and multiplayer pending |
 
 Initial probe compile exposed `%` (real modulo) where integer ring indices
 require `mod`, then local variable shadowing; both were corrected in source.
@@ -236,9 +236,9 @@ repeated-capture wait against the real scheduler and a held-key resume:
 wc3-melee:build/wurst-tests/keyboard-capture-resume-r2.log.
 Sampling takes an already normalized held-action mask. The pure adapter from
 network rows to gameplay InputSnapshot and AttackBuffer requests is now in
-wc3-melee:wurst/InputAdapter.wurst. Binding/key polling, focus/chat detection,
-and scheduled gameplay integration remain unimplemented; this does not alter
-the installed baseline.
+wc3-melee:wurst/InputAdapter.wurst. Binding/key polling, inactive-client neutral input and scheduled gameplay now
+run in the isolated diagnostic below. Chat/menu ownership remains unresolved;
+the installed gameplay baseline is unchanged.
 
 wc3-melee:wurst/InputProtocol.wurst currently encodes complete normalized input
 records in exact 65-byte or 106-byte ASCII packets (one/two consecutive frames),
@@ -247,9 +247,9 @@ triggers, first sampled Special direction, latest sampled shield-dodge vector,
 latest qualifying SDI pulse, the latest up/down ledge edge, and bounded signed
 throw-direction press sums. Reserved flags, count, epoch, frame range, action
 masks, axis bounds, and canonical direction/count fields are checked. Player
-identity is absent from the payload: a future native receiver must derive the
-slot from GetTriggerPlayer, register fromServer=false, and use its dedicated
-sync namespace. No receiver has been connected to the gameplay map yet.
+identity is absent from the payload. The isolated scheduled receiver derives
+the slot from GetTriggerPlayer, registers fromServer=false and uses SC_I.
+The production gameplay map still uses its synchronized-event input path.
 
 The sampler retains the first uncommitted Special direction, the latest
 shield-trigger direction, and the latest SDI pulse until a row is captured;
@@ -506,3 +506,53 @@ fixture now lands during the dive's active phase, and the dive retains the
 existing vertical contact span. The complete suite passed 259/259 with zero
 errors/warnings in wc3-melee:build/dive-dodge-integrated.log. This closes the
 aggregate regression; the native and two-client limitations above remain.
+
+
+## Scheduled numerical gameplay: native D=3 versus D=5
+
+On 1 October, both isolated maps compiled with zero errors/warnings and passed
+packaged Lua validation. Each ran on the installed client using keyboard
+polling, I2 packets over SC_I, synchronized acceptance and FixedInputPlayback
+with R=0. One human supplied input; the absent opponent received neutral rows
+only in the synchronized receive callback. No fighter models were rendered.
+This is diagnostic integration, not the released gameplay backend.
+
+| Observation | D=3 | D=5 |
+| --- | --- | --- |
+| Final service counter S | 1362 | 1445 |
+| Final completed combat frame C | 904 | 1314 |
+| Wait callbacks | 458 | 131 |
+| Longest wait run, including startup | 8 | 12 |
+| Steady combat frames per 60 service callbacks | 40 | 55 |
+| Failed sends / local errors / common errors | 0 / 0 / 0 | 0 / 0 / 0 |
+| Dropped trace records | 0 | 0 |
+
+Steady counts come from successive periodic rows after startup. They are not
+wall-clock FPS, physical latency or two-client performance. D=5 reduces waiting
+but does not eliminate it. Neither profile demonstrates uninterrupted
+one-combat-frame-per-service advancement in this sample.
+
+Both traces show sampled edges sent, accepted and consumed at their assigned
+frame. D=5 samples/sends right at S=1151 for frame 1050, receives at S=1151,
+and consumes at S=1156. D=3 sends right at S=1069 for frame 712, receives at
+S=1073 and consumes at S=1074. These establish routing, not physical response
+timing. The D=3 scripted jump arrived during attack recovery; that recording
+does not establish successful jump/aerial behavior.
+
+Tracked traces, with line endings normalized:
+
+- wc3-melee:tools/netcode-probe/evidence/20261001-scheduled-d3.txt
+- wc3-melee:tools/netcode-probe/evidence/20261001-scheduled-d5.txt
+
+Local recordings: wc3-melee:build/scheduled-input-d3-native.mp4 and
+wc3-melee:build/scheduled-input-d5-native.mp4. Build outputs:
+wc3-melee:build/netcode-probe/batch-scheduled.GYfYew and
+wc3-melee:build/netcode-probe/batch-scheduled-5.ozB3fC.
+
+Next investigation: trace every send/receive and pre-step F/K over a short
+bounded window, then correlate waits with receipt bursts. The earlier traffic
+probe observed six-callback receipt spacing; whether it fully explains these
+waits remains a hypothesis. Preserve D and immutable assigned frames while
+investigating. Do not silently raise delay or add catch-up. Gate A locality,
+two-client operation, physical timing, chat handling, local presentation safety
+and hybrid comparison remain unproven.

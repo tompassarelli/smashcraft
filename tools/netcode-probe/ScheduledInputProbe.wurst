@@ -1,0 +1,304 @@
+package ScheduledInputProbe
+import Wurst
+import ProbeInfo
+import KeyboardInputCapture
+import KeyBindings
+import NetworkInput
+import InputProtocol
+import InputLedger
+import FixedInputSchedule
+import FixedInputPlayback
+import Simulation
+import MatchRules
+import CommandBuffer
+
+constant string PREFIX = "SC_I"
+constant int EPOCH = 1
+constant int DELAY = SCHEDULED_DELAY
+constant int TRACE_CAPACITY = 2048
+FixedInputSchedule schedule
+FixedInputPlayback playback
+KeyboardInputCapture capture
+KeyBindings bindings
+InputPacket outgoing
+InputPacket incoming
+InputPacket passivePacket
+NetworkInput pending
+NetworkInput sampled
+NetworkInput neutral
+NetworkInput received
+NetworkInput firstUsed
+NetworkInput secondUsed
+FighterState first
+FighterState second
+MatchState game
+ReplayRuntimeState runtime
+AttackBuffer firstCommands
+AttackBuffer secondCommands
+oskeytype array[30] keys
+boolean array[2] competitor
+int humans = 0
+int service = 0
+int waits = 0
+int waitRun = 0
+int maximumWait = 0
+int commonErrors = 0
+int lastError = 0
+int array[2] receipts
+int array[2] receiptFrame
+int array[2] receiptHeld
+int array[2] receiptPressed
+int passiveRows = 0
+int array[2] previousUsedHeld
+framehandle header
+framehandle pollingLine
+framehandle transportLine
+framehandle firstLine
+framehandle secondLine
+framehandle detailsLine
+
+// Local numerical storage never contributes to the common advancement gate.
+int sent = 0
+int sendFailures = 0
+int localErrors = 0
+boolean localFatal = false
+int sampledHeld = 0
+int sampledPressed = 0
+int previousHeld = -1
+int previousPressed = -1
+int lastCaptured = 0
+int capturedHeld = 0
+int capturedPressed = 0
+int traceCount = 0
+int traceDropped = 0
+string array[2048] trace
+boolean dumpHeld = false
+
+function record(string message)
+    if traceCount < TRACE_CAPACITY
+        trace[traceCount] = I2S(service) + " F=" + I2S(schedule.nextFrameNumber()) + " K=" + I2S(schedule.knownThrough()) + " " + message
+        traceCount++
+    else
+        traceDropped++
+
+function failCommon(int error)
+    commonErrors++
+    lastError = error
+    record("COMMON ERROR=" + I2S(error))
+
+function receive()
+    let sender = GetPlayerId(GetTriggerPlayer())
+    if sender < 0 or sender > 1
+        failCommon(INPUT_WRONG_SENDER)
+        return
+    if not competitor[sender]
+        failCommon(INPUT_WRONG_SENDER)
+        return
+    if not incoming.decode(BlzGetTriggerSyncData()) or incoming.recordCount() != 1
+        failCommon(INPUT_MALFORMED)
+        return
+    let status = schedule.acceptSynchronized(sender, incoming)
+    if status != INPUT_ACCEPTED
+        failCommon(status)
+        return
+    receipts[sender]++
+    incoming.copyRecord(0, received)
+    if received.heldMask() != receiptHeld[sender] or received.pressedMask() != 0 or received.releasedMask() != 0
+        record("receive p=" + I2S(sender) + " row=" + I2S(incoming.firstFrameNumber()) + " held=" + I2S(received.heldMask()) + " press=" + I2S(received.pressedMask()) + " release=" + I2S(received.releasedMask()))
+    receiptFrame[sender] = incoming.firstFrameNumber()
+    receiptHeld[sender] = received.heldMask()
+    receiptPressed[sender] = received.pressedMask()
+    // Diagnostic solo fixture: derive the absent slot's same-frame neutral row
+    // only in common receive context, never from local pending knowledge.
+    if humans == 1
+        if not passivePacket.assign(EPOCH, incoming.firstFrameNumber(), 1, neutral, neutral)
+            failCommon(INPUT_MALFORMED)
+            return
+        let passiveStatus = schedule.acceptSynchronized(1 - sender, passivePacket)
+        if passiveStatus != INPUT_ACCEPTED
+            failCommon(passiveStatus)
+        else
+            passiveRows++
+
+function poll() returns int
+    if not BlzIsLocalClientActive()
+        return 0
+    var mask = 0
+    for action = 0 to ACTION_COUNT - 1
+        var down = false
+        for slot = 0 to 1
+            if bindings.keyFor(action, slot) != 0 and BlzIsKeyPressed(keys[action * 2 + slot])
+                down = true
+        if down
+            mask += inputActionBit(action)
+    return mask
+
+function sampleAndSend()
+    let localSlot = GetPlayerId(GetLocalPlayer())
+    if localSlot < 0 or localSlot > 1
+        return
+    if not competitor[localSlot] or IsPlayerObserver(GetLocalPlayer())
+        return
+    capture.sample(poll())
+    capture.read(sampled)
+    sampledHeld = sampled.heldMask()
+    sampledPressed = sampled.pressedMask()
+    if sampledHeld != previousHeld or sampledPressed != previousPressed
+        record("sample held=" + I2S(sampledHeld) + " pending-press=" + I2S(sampledPressed) + " active=" + (BlzIsLocalClientActive() ? "1" : "0"))
+        previousHeld = sampledHeld
+        previousPressed = sampledPressed
+    if localFatal
+        return
+    let result = capture.capture(schedule, EPOCH)
+    if result == FIXED_ALREADY_CAPTURED
+        return
+    if result != FIXED_CAPTURED
+        localErrors++
+        localFatal = true
+        record("LOCAL FATAL capture=" + I2S(result))
+        return
+    lastCaptured = schedule.captureTarget()
+    if not schedule.copyPending(EPOCH, lastCaptured, pending) or not outgoing.assign(EPOCH, lastCaptured, 1, pending, neutral)
+        localErrors++
+        localFatal = true
+        record("LOCAL FATAL packet construction")
+        return
+    capturedHeld = pending.heldMask()
+    capturedPressed = pending.pressedMask()
+    let wire = outgoing.encode()
+    if wire.length() != 65
+        localErrors++
+        localFatal = true
+        record("LOCAL FATAL packet length=" + I2S(wire.length()))
+        return
+    sent++
+    if not BlzSendSyncData(PREFIX, wire)
+        sendFailures++
+        localFatal = true
+        record("LOCAL FATAL send rejected row=" + I2S(lastCaptured))
+    else if capturedPressed != 0 or pending.releasedMask() != 0
+        record("send row=" + I2S(lastCaptured) + " held=" + I2S(capturedHeld) + " press=" + I2S(capturedPressed) + " release=" + I2S(pending.releasedMask()))
+
+function fighterText(FighterState fighter) returns string
+    return "x=" + R2S(fighter.x) + " z=" + R2S(fighter.z) + " atk=" + I2S(fighter.attackStyle) + ":" + I2S(fighter.attackFrame) + " special=" + I2S(fighter.specialAction) + ":" + I2S(fighter.specialFrame) + " damage=" + R2S(fighter.damage) + " stocks=" + I2S(fighter.stocks)
+
+function counters() returns string
+    return "S=" + I2S(service) + " F=" + I2S(schedule.nextFrameNumber()) + " K=" + I2S(schedule.knownThrough()) + " C=" + I2S(runtime.simulationFrame) + " sent=" + I2S(sent) + " recv=" + I2S(receipts[0]) + "/" + I2S(receipts[1]) + " fail=" + I2S(sendFailures) + " errors=" + I2S(localErrors) + "/" + I2S(commonErrors) + " waits=" + I2S(waits) + " run=" + I2S(waitRun) + " max=" + I2S(maximumWait)
+
+function dump()
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("SMASHCRAFT SCHEDULED INPUT D=" + I2S(DELAY) + " R=0 epoch=1 player=" + I2S(GetPlayerId(GetLocalPlayer())) + " humans=" + I2S(humans))
+    Preload("Counters are game callbacks, not physical latency. Solo absent-slot neutral rows are diagnostic. Gate A remains unproven.")
+    Preload(counters())
+    Preload("fighter0 " + fighterText(first))
+    Preload("fighter1 " + fighterText(second))
+    for i = 0 to traceCount - 1
+        Preload(trace[i])
+    Preload("trace-dropped=" + I2S(traceDropped) + " passive-rows=" + I2S(passiveRows))
+    PreloadGenEnd("smashcraft-scheduled-input-probe.txt")
+
+function tick()
+    service++
+    if service == 1
+        PreloadGenClear()
+        PreloadGenStart()
+        Preload("SMASHCRAFT SCHEDULED INPUT D=" + I2S(DELAY) + " R=0 humans=" + I2S(humans) + " speed-handle=" + I2S(GetHandleId(GetGameSpeed())))
+        PreloadGenEnd("smashcraft-scheduled-input-probe-ready.txt")
+        record("ready humans=" + I2S(humans) + " neutral seed rows=1.." + I2S(DELAY) + "; solo passive fixture=" + (humans == 1 ? "yes" : "no"))
+    sampleAndSend()
+    // One attempt per service callback; return immediately when the common
+    // accepted frontier is missing. No catch-up loop conceals native stalls.
+    if commonErrors == 0 and humans > 0
+        if schedule.mayAdvance()
+            let frame = schedule.nextFrameNumber()
+            if not schedule.copyAccepted(EPOCH, 0, frame, firstUsed) or not schedule.copyAccepted(EPOCH, 1, frame, secondUsed)
+                failCommon(100)
+            else if not playback.advanceNext(schedule, EPOCH, game, first, second, firstCommands, secondCommands, runtime)
+                failCommon(101)
+            else
+                waitRun = 0
+                if firstUsed.heldMask() != previousUsedHeld[0] or secondUsed.heldMask() != previousUsedHeld[1] or firstUsed.pressedMask() != 0 or secondUsed.pressedMask() != 0 or firstUsed.releasedMask() != 0 or secondUsed.releasedMask() != 0
+                    record("consume row=" + I2S(frame) + " held=" + I2S(firstUsed.heldMask()) + "/" + I2S(secondUsed.heldMask()) + " press=" + I2S(firstUsed.pressedMask()) + "/" + I2S(secondUsed.pressedMask()) + " p0 " + fighterText(first) + " p1 " + fighterText(second))
+                previousUsedHeld[0] = firstUsed.heldMask()
+                previousUsedHeld[1] = secondUsed.heldMask()
+        else
+            waits++
+            waitRun++
+            maximumWait = max(maximumWait, waitRun)
+    if service mod 60 == 0
+        record(counters() + " p0 " + fighterText(first) + " p1 " + fighterText(second))
+    header.setText("SCHEDULED INPUT D=" + I2S(DELAY) + " R=0 | S " + I2S(service) + " F " + I2S(schedule.nextFrameNumber()) + " K " + I2S(schedule.knownThrough()) + " C " + I2S(runtime.simulationFrame) + " | humans " + I2S(humans))
+    pollingLine.setText("LOCAL sampled held/press " + I2S(sampledHeld) + "/" + I2S(sampledPressed) + " | captured row " + I2S(lastCaptured) + " held/press " + I2S(capturedHeld) + "/" + I2S(capturedPressed) + "\nAccepted consumed held " + I2S(firstUsed.heldMask()) + "/" + I2S(secondUsed.heldMask()) + " press " + I2S(firstUsed.pressedMask()) + "/" + I2S(secondUsed.pressedMask()))
+    transportLine.setText("Send " + I2S(sent) + " recv " + I2S(receipts[0]) + "/" + I2S(receipts[1]) + " fail " + I2S(sendFailures) + " errors local/common " + I2S(localErrors) + "/" + I2S(commonErrors) + " code " + I2S(lastError) + "\nWait callbacks " + I2S(waits) + " current " + I2S(waitRun) + " max " + I2S(maximumWait) + " | " + (localFatal ? "LOCAL FATAL: restart" : (commonErrors > 0 ? "COMMON ERROR: restart" : "sampling active")))
+    firstLine.setText("P1 " + fighterText(first))
+    secondLine.setText("P2 " + fighterText(second))
+    detailsLine.setText("W/R move | E down | Space up | I/8 jump | N attack | U special\nO grab | Q/7 shield | B or /, M, J, H C-stick | P walk\nF8 dump | Ctrl+R restart | trace dropped " + I2S(traceDropped) + "\n" + (humans == 1 ? "DIAGNOSTIC: absent slot neutral on common receipt" : "Both human inputs required") + "\nCallback counts are not physical latency. Gate A unproven.")
+    let dumping = BlzIsKeyPressed(OSKEY_F8)
+    if dumping and not dumpHeld
+        dump()
+    dumpHeld = dumping
+
+function label(string name, int context, real y, real height) returns framehandle
+    let result = createTextFrame(name, GAME_UI, context)
+    result.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.04, y)
+    result.setSize(0.72, height)
+    return result
+
+function restart()
+    if GetTriggerPlayer() == Player(0)
+        RestartGame(false)
+
+function setup()
+    DestroyTimer(GetExpiredTimer())
+    schedule = new FixedInputSchedule()
+    playback = new FixedInputPlayback()
+    capture = new KeyboardInputCapture()
+    bindings = new KeyBindings(false)
+    outgoing = new InputPacket()
+    incoming = new InputPacket()
+    passivePacket = new InputPacket()
+    pending = new NetworkInput()
+    sampled = new NetworkInput()
+    neutral = new NetworkInput()
+    received = new NetworkInput()
+    firstUsed = new NetworkInput()
+    secondUsed = new NetworkInput()
+    first = new FighterState(0, -80, 1)
+    second = new FighterState(1, 80, -1)
+    game = new MatchState()
+    runtime = new ReplayRuntimeState()
+    firstCommands = new AttackBuffer(4)
+    secondCommands = new AttackBuffer(4)
+    game.phase = MATCH
+    game.stageChoice = 0
+    game.timeLimitMinutes = 0
+    game.stockCount = 99
+    first.stocks = 99
+    second.stocks = 99
+    for action = 0 to ACTION_COUNT - 1
+        for slot = 0 to 1
+            keys[action * 2 + slot] = ConvertOsKeyType(bindings.keyFor(action, slot))
+    if not schedule.beginEpoch(EPOCH, DELAY)
+        failCommon(102)
+    header = label("SCScheduledHeader", 911, 0.56, 0.035)
+    pollingLine = label("SCScheduledPolling", 912, 0.51, 0.055)
+    transportLine = label("SCScheduledTransport", 913, 0.44, 0.055)
+    firstLine = label("SCScheduledFirst", 914, 0.37, 0.035)
+    secondLine = label("SCScheduledSecond", 915, 0.32, 0.035)
+    detailsLine = label("SCScheduledDetails", 916, 0.26, 0.13)
+    let sync = CreateTrigger()
+    let restartKeys = CreateTrigger()
+    BlzTriggerRegisterPlayerKeyEvent(restartKeys, Player(0), OSKEY_R, 2, true)
+    TriggerAddAction(restartKeys, function restart)
+    for slot = 0 to 1
+        competitor[slot] = GetPlayerController(Player(slot)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(slot)) == PLAYER_SLOT_STATE_PLAYING and not IsPlayerObserver(Player(slot))
+        if competitor[slot]
+            humans++
+            BlzTriggerRegisterPlayerSyncEvent(sync, Player(slot), PREFIX, false)
+    game.humanCount = humans
+    TriggerAddAction(sync, function receive)
+    TimerStart(CreateTimer(), 1. / 60., true, function tick)
+
+init
+    TimerStart(CreateTimer(), 0., false, function setup)
