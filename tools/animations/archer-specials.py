@@ -4,7 +4,7 @@ import sys
 
 import addon_utils
 import bpy
-from mathutils import Euler, Vector
+from mathutils import Euler, Matrix, Vector
 
 project = Path(__file__).resolve().parents[2]
 assets = project / "build/animation-assets"
@@ -25,6 +25,8 @@ sys.dont_write_bytecode = True
 from archer_pose import ready_pose, key_pose, key_visibility
 
 base = ready_pose(rig)
+bpy.context.view_layer.update()
+grab_rest = {bone.name: bone.matrix.copy() for bone in rig.pose.bones}
 required = {
     "Bone_Root", "Bone_Pelvis", "Bone_Chest", "Bone_Head",
     "Bone_Arm1_R", "Bone_Arm2_R", "Bone_Arm1_L", "Bone_Arm2_L",
@@ -58,6 +60,30 @@ def pose(values):
         rotate(f"Bone_Leg2_{side}", z=values.get(f"knee_{side.lower()}", 0))
     pelvis = rig.pose.bones["Bone_Pelvis"]
     pelvis.location = base["Bone_Pelvis"].translation + Vector((0, -values.get("crouch", 0), 0))
+    if values.get('grab_pose', 0):
+        from ground_attacks import limb
+        strength = values['grab_pose']
+        bpy.context.view_layer.update()
+        limb(rig, 'Bone_Arm1_R', 'Bone_Arm2_R', 'Hand Right Ref ',
+             grab_rest['Hand Right Ref '].translation.lerp(
+                 Vector((values.get('reach_x', 36), -5, values.get('reach_z', 68))), strength),
+             Vector((-10, -30, 65)))
+        limb(rig, 'Bone_Arm1_L', 'Bone_Arm2_L', 'Bone_Hand_L',
+             grab_rest['Bone_Hand_L'].translation.lerp(Vector((-12, 18, 52)), strength),
+             Vector((-10, 30, 65)))
+        if values.get('kick', 0):
+            limb(rig, 'Bone_Leg1_R', 'Bone_Leg2_R', 'Bone_Foot_R',
+                 grab_rest['Bone_Foot_R'].translation.lerp(
+                     Vector((48, -10, values.get('kick_z', 43))), values['kick']),
+                 Vector((35, -25, 62)))
+        limb(rig, 'Bone_Leg1_L', 'Bone_Leg2_L', 'Bone_Foot_L',
+             grab_rest['Bone_Foot_L'].translation, Vector((35, 10, 35)))
+        # Shoulder cloth must hang from the arm, not rotate over the palm.
+        cloth = rig.pose.bones['Object08']
+        location, orientation, scale = cloth.matrix.decompose()
+        orientation = orientation.slerp(grab_rest['Object08'].to_quaternion(), strength)
+        cloth.matrix = Matrix.LocRotScale(location, orientation, scale)
+        bpy.context.view_layer.update()
 
 
 def author(name, phases, duration):
@@ -147,6 +173,9 @@ author_archer_damage(author)
 grabbed = {'lean': 26, 'head': -12, 'draw': -12, 'release': 25,
            'bow_arm': -20, 'hip': -8, 'crouch': 5}
 author('Grabbed', {0: grabbed, 24: grabbed}, 24)
+
+from grab_animations import author_grabs
+author_grabs(author, 'Archer')
 
 scene.frame_set(0)
 editable = assets / "archer-fighter.blend"

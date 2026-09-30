@@ -1729,7 +1729,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	beginAttackPair(grabber, grabbed, 5, -1, false, false)
 	grabber.attackFrame = attackStartupFrames(5)
 	resolveAttackPair(grabber, grabbed)
-	grabbed.grabbedFrames.assertEquals(20)
+	grabbed.grabbedFrames.assertEquals(grabHoldFrames(grabbed.damage))
 	grabbed.diPending.assertFalse()
 	let shooter = new FighterState(0, 0, 1)
 	let shotTarget = new FighterState(0, 30, -1)
@@ -2382,7 +2382,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	attackerInput.shield = false
 	for frame = 2 to attackStartupFrames(5) + 1
 		stepMatch(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, frame)
-	target.grabbedFrames.assertEquals(20)
+	target.grabbedFrames.assertEquals(grabHoldFrames(target.damage))
 	target.shield.assertFalse()
 	destroy attackerCommands
 	destroy targetCommands
@@ -2547,9 +2547,11 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	strikerA.damage.assertEquals(0.)
 	grabberB.damage.assertEquals(grabberA.damage)
 	strikerB.damage.assertEquals(strikerA.damage)
-	strikerA.grabbedFrames.assertEquals(20)
+	strikerA.grabbedFrames.assertEquals(grabHoldFrames(strikerA.damage))
 	strikerB.grabbedFrames.assertEquals(strikerA.grabbedFrames)
-	grabberA.cooldown.assertEquals(attackDurationFrames(5) - 5)
+	grabberA.cooldown.assertEquals(0)
+	grabberA.grabAction.assertEquals(GRAB_HOLD)
+	canAttack(grabberA).assertFalse()
 	strikerA.cooldown.assertEquals(0)
 	grabberB.cooldown.assertEquals(grabberA.cooldown)
 	strikerB.cooldown.assertEquals(strikerA.cooldown)
@@ -2564,9 +2566,9 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	let attackerCommands = new AttackBuffer(0)
 	let targetCommands = new AttackBuffer(0)
 	runToAttackActive(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, 5, 1)
-	target.grabbedFrames.assertEquals(20)
+	target.grabbedFrames.assertEquals(grabHoldFrames(target.damage))
 	target.shield.assertFalse()
-	for frame = attackStartupFrames(5) + 2 to attackStartupFrames(5) + 21
+	for frame = attackStartupFrames(5) + 2 to attackStartupFrames(5) + 1 + GRAB_HOLD_FRAMES
 		stepMatch(game, target, attacker, targetInput, attackerInput, targetCommands, attackerCommands, frame)
 	target.grabbedFrames.assertEquals(0)
 	target.hitstun.assertEquals(10)
@@ -3714,7 +3716,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 				fighter.damage.assertEquals(12.)
 				fighter.hitstun.assertGreaterThan(0)
 			else
-				fighter.grabbedFrames.assertEquals(20)
+				fighter.grabbedFrames.assertEquals(grabHoldFrames(fighter.damage))
 			destroy attacker
 			destroy input
 			destroy fighter
@@ -4022,7 +4024,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 				if mode == 0
 					fighter.hitstun.assertGreaterThan(0)
 				else
-					fighter.grabbedFrames.assertEquals(20)
+					fighter.grabbedFrames.assertEquals(grabHoldFrames(fighter.damage))
 				destroy attacker
 			else
 				fighter.z = -421
@@ -4079,7 +4081,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 		if mode == 0
 			fighter.damage.assertEquals(12.)
 		else
-			fighter.grabbedFrames.assertEquals(20)
+			fighter.grabbedFrames.assertEquals(grabHoldFrames(fighter.damage))
 		destroy input
 		destroy attacker
 		destroy fighter

@@ -32,7 +32,7 @@ function catchTarget(FighterState owner, FighterState target)
                 ownerInput.jumpPressed = true
                 ownerInput.specialPressed = true
                 ownerInput.verticalDirection = 1
-                targetInput.direction = facing
+                targetInput.direction = 0
                 targetInput.jumpPressed = true
                 let originalJumps = owner.jumps
                 simulationJump(owner)
@@ -160,3 +160,214 @@ function catchTarget(FighterState owner, FighterState target)
     destroy commands
     destroy otherCommands
     destroy runtime
+
+@Test function grabMashUsesOneButtonAndOneRememberedStickContribution()
+    let owner = new FighterState(0, 0, 1)
+    let target = new FighterState(1, 90, -1)
+    target.damage = 50
+    catchTarget(owner, target)
+    target.grabbedFrames.assertEquals(156)
+    let held = new InputSnapshot()
+    let mash = new InputSnapshot()
+    mash.grabMashPressed = true
+    mash.direction = 1
+    mash.verticalDirection = 1
+    advanceGrabPair(owner, target, held, mash, false)
+    target.grabbedFrames.assertEquals(143)
+    mash.grabMashPressed = false
+    mash.direction = 0
+    mash.verticalDirection = 0
+    advanceGrabPair(owner, target, held, mash, false)
+    target.grabbedFrames.assertEquals(142)
+    mash.direction = 1
+    mash.verticalDirection = 1
+    advanceGrabPair(owner, target, held, mash, false)
+    target.grabbedFrames.assertEquals(141)
+    mash.direction = -1
+    mash.verticalDirection = -1
+    advanceGrabPair(owner, target, held, mash, false)
+    target.grabbedFrames.assertEquals(134)
+    destroy held
+    destroy mash
+    destroy owner
+    destroy target
+
+@Test function pummelHasOneContactAndHeldAttackDoesNotRepeatOrLeak()
+    let owner = new FighterState(0, 0, 1)
+    let target = new FighterState(1, 90, -1)
+    target.damage = 100
+    catchTarget(owner, target)
+    let game = new MatchState()
+    game.phase = MATCH
+    let input = new InputSnapshot()
+    let other = new InputSnapshot()
+    let commands = new AttackBuffer(0)
+    let otherCommands = new AttackBuffer(0)
+    input.attackPressed = true
+    input.attackHeld = true
+    for frame = 1 to 45
+        commands.enqueue(0, 1, frame, false)
+        stepMatch(game, owner, target, input, other, commands, otherCommands, frame)
+        input.attackPressed = false
+        if frame < grabContactFrame(GRAB_PUMMEL)
+            target.damage.assertEquals(100.)
+        else
+            target.damage.assertEquals(103.)
+        commands.hasPending(frame).assertFalse()
+        owner.attackStyle.assertEquals(-1)
+    owner.grabAction.assertEquals(GRAB_HOLD)
+    // Damage does not recalculate the escape timer; four hitlag ticks freeze it.
+    target.grabbedFrames.assertEquals(236 - 45 + ordinaryHitlagFrames(3))
+    input.attackPressed = true
+    stepMatch(game, owner, target, input, other, commands, otherCommands, 46)
+    owner.grabAction.assertEquals(GRAB_PUMMEL)
+    owner.grabFrame.assertEquals(1)
+    destroy input
+    destroy other
+    destroy commands
+    destroy otherCommands
+    destroy game
+    destroy owner
+    destroy target
+
+@Test function throwsReleaseOnceAtContactInBothFacingsAndSlots()
+    for character = 0 to 1
+        for order = 0 to 1
+            for side = 0 to 1
+                let facing = side == 0 ? -1 : 1
+                for action = THROW_FORWARD to THROW_DOWN
+                    let owner = new FighterState(character, 0, facing)
+                    let target = new FighterState(1 - character, 90. * facing, -facing)
+                    catchTarget(owner, target)
+                    let game = new MatchState()
+                    game.phase = MATCH
+                    let input = new InputSnapshot()
+                    let other = new InputSnapshot()
+                    let commands = new AttackBuffer(0)
+                    let otherCommands = new AttackBuffer(0)
+                    input.grabThrowX = action == THROW_FORWARD ? facing : (action == THROW_BACK ? -facing : 0)
+                    input.grabThrowZ = action == THROW_UP ? 1 : (action == THROW_DOWN ? -1 : 0)
+                    for frame = 1 to grabActionDuration(action)
+                        if order == 0
+                            stepMatch(game, owner, target, input, other, commands, otherCommands, frame)
+                        else
+                            stepMatch(game, target, owner, other, input, otherCommands, commands, frame)
+                        if frame < grabContactFrame(action)
+                            (owner.grabTarget == target).assertTrue()
+                            target.damage.assertEquals(0.)
+                        else
+                            (owner.grabTarget == null).assertTrue()
+                            target.damage.assertEquals(action == THROW_UP ? 6. : (action == THROW_DOWN ? 5. : 7.))
+                        if frame == grabContactFrame(action)
+                            (target.knockbackX * facing * (action == THROW_BACK ? -1 : 1) > 0).assertTrue()
+                            (target.knockbackZ > 0).assertTrue()
+                            target.hitstun.assertGreaterThan(0)
+                        canAttack(owner).assertFalse()
+                    destroy input
+                    destroy other
+                    destroy commands
+                    destroy otherCommands
+                    destroy game
+                    destroy owner
+                    destroy target
+
+@Test function escapeConsumesQueuedActionsAndCannotTriggerSpecialOnRelease()
+    let owner = new FighterState(0, 0, 1)
+    let target = new FighterState(1, 90, -1)
+    catchTarget(owner, target)
+    target.grabbedFrames = 1
+    let game = new MatchState()
+    game.phase = MATCH
+    let input = new InputSnapshot()
+    let other = new InputSnapshot()
+    let commands = new AttackBuffer(0)
+    let otherCommands = new AttackBuffer(0)
+    commands.enqueue(0, 1, 1, false)
+    otherCommands.enqueue(0, -1, 1, false)
+    input.specialPressed = true
+    other.specialPressed = true
+    stepMatch(game, owner, target, input, other, commands, otherCommands, 1)
+    owner.grabAction.assertEquals(GRAB_ESCAPE)
+    owner.specialAction.assertEquals(SPECIAL_NONE)
+    target.specialAction.assertEquals(SPECIAL_NONE)
+    commands.hasPending(1).assertFalse()
+    otherCommands.hasPending(1).assertFalse()
+    destroy input
+    destroy other
+    destroy commands
+    destroy otherCommands
+    destroy game
+    destroy owner
+    destroy target
+
+@Test function throwAndPummelSnapshotsReplayAcrossContactWithoutDoubleDamage()
+    for action = GRAB_PUMMEL to THROW_DOWN
+        let owner = new FighterState(0, 0, 1)
+        let target = new FighterState(1, 90, -1)
+        target.damage = 50
+        catchTarget(owner, target)
+        let game = new MatchState()
+        game.phase = MATCH
+        let input = new InputSnapshot()
+        let other = new InputSnapshot()
+        let commands = new AttackBuffer(0)
+        let otherCommands = new AttackBuffer(0)
+        let runtime = new ReplayRuntimeState()
+        let before = new ReplaySnapshot()
+        let expected = new ReplaySnapshot()
+        let actual = new ReplaySnapshot()
+        input.attackPressed = action == GRAB_PUMMEL
+        input.grabThrowX = action == THROW_FORWARD ? 1 : (action == THROW_BACK ? -1 : 0)
+        input.grabThrowZ = action == THROW_UP ? 1 : (action == THROW_DOWN ? -1 : 0)
+        stepMatch(game, owner, target, input, other, commands, otherCommands, 1)
+        input.attackPressed = false
+        input.grabThrowX = 0
+        input.grabThrowZ = 0
+        other.direction = -1
+        stepMatch(game, owner, target, input, other, commands, otherCommands, 2)
+        before.capture(owner, target, game, commands, otherCommands, runtime)
+        for frame = 3 to 45
+            stepMatch(game, owner, target, input, other, commands, otherCommands, frame)
+        expected.capture(owner, target, game, commands, otherCommands, runtime)
+        before.restore(owner, target, game, commands, otherCommands, runtime)
+        for frame = 3 to 45
+            stepMatch(game, owner, target, input, other, commands, otherCommands, frame)
+        actual.capture(owner, target, game, commands, otherCommands, runtime)
+        expected.firstDifference(actual).assertEquals("")
+        destroy before
+        destroy expected
+        destroy actual
+        destroy runtime
+        destroy input
+        destroy other
+        destroy commands
+        destroy otherCommands
+        destroy game
+        destroy owner
+        destroy target
+
+@Test function stockLossClearsCaptureAndPostThrowRecoveryImmediately()
+    for release = 0 to 1
+        let owner = new FighterState(0, 0, 1)
+        let target = new FighterState(1, 90, -1)
+        catchTarget(owner, target)
+        let input = new InputSnapshot()
+        let other = new InputSnapshot()
+        if release == 1
+            input.grabThrowZ = 1
+            for frame = 1 to grabContactFrame(THROW_UP)
+                advanceGrabPair(owner, target, input, other, false)
+            (owner.grabTarget == null).assertTrue()
+            owner.grabAction.assertEquals(THROW_UP)
+        owner.x = 921
+        advance(owner, 0, input, -240)
+        owner.out.assertTrue()
+        owner.grabAction.assertEquals(GRAB_NONE)
+        owner.grabFrame.assertEquals(0)
+        (owner.grabTarget == null).assertTrue()
+        (target.grabOwner == null).assertTrue()
+        target.grabbedFrames.assertEquals(0)
+        destroy input
+        destroy other
+        destroy owner
+        destroy target

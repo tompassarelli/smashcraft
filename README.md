@@ -40,6 +40,9 @@ Warcraft's own shortcuts.
 In the custom preset: W/R move; I/9 jump; Space aims up;
 E fast-falls/drops; Q/8 shield or air-dodge; O grabs; N attacks; U fires a special;
 Shield + N or O grabs. C-stick down-air preserves normal aerial momentum.
+While holding someone, tap N to pummel or tap a movement/C-stick direction to
+throw forward, backward, up or down. Mash action buttons and alternate movement
+directions to escape a grab; holding a button does not mash.
 Attacks can be buffered for six frames, including through jump squat.
 Hold P to walk. N with direction gives a smash, or a tilt while walking.
 B (or /) is C-stick left; H is down; J is up; M is right. Ground blaster has longer recovery than air

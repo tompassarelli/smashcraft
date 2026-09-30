@@ -82,6 +82,11 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.techLockout = source.techLockout
 	destination.techHitlagLatched = source.techHitlagLatched
 	destination.grabbedFrames = source.grabbedFrames
+	destination.grabAction = source.grabAction
+	destination.grabFrame = source.grabFrame
+	destination.grabSerial = source.grabSerial
+	destination.grabMashX = source.grabMashX
+	destination.grabMashZ = source.grabMashZ
 	destination.grabOwner = source.grabOwner == sourceFirst ? destinationFirst : (source.grabOwner == sourceSecond ? destinationSecond : null)
 	destination.grabTarget = source.grabTarget == sourceFirst ? destinationFirst : (source.grabTarget == sourceSecond ? destinationSecond : null)
 	destination.ledgeState = source.ledgeState
@@ -304,6 +309,16 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "techLockout"
 	if expected.techHitlagLatched != actual.techHitlagLatched
 		return "techHitlagLatched"
+	if expected.grabAction != actual.grabAction
+		return "grabAction"
+	if expected.grabFrame != actual.grabFrame
+		return "grabFrame"
+	if expected.grabSerial != actual.grabSerial
+		return "grabSerial"
+	if expected.grabMashX != actual.grabMashX
+		return "grabMashX"
+	if expected.grabMashZ != actual.grabMashZ
+		return "grabMashZ"
 	if expected.grabbedFrames != actual.grabbedFrames
 		return "grabbedFrames"
 	let expectedOwner = attackerSlot(expected.grabOwner, expectedFirst, expectedSecond)

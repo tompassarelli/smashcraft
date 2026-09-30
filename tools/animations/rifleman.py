@@ -292,6 +292,9 @@ author_ledges(rig, "Rifleman")
 from damage import author_rifleman_damage
 author_rifleman_damage(author)
 
+from grab_animations import author_grabs
+author_grabs(lambda name, phases, duration: author(name, phases), 'Rifleman')
+
 scene.frame_set(0)
 bpy.ops.wm.save_as_mainfile(filepath=str(assets / 'rifleman-fighter.blend'))
 result = bpy.ops.export.mdl_exporter(filepath=str(assets / 'rifleman-fighter.mdl'), use_actions=True)

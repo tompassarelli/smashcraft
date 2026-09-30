@@ -11,14 +11,24 @@ public function initializeMatchFighters(MatchState game, FighterState first, Fig
 public function stepMatch(MatchState game, FighterState first, FighterState second, InputSnapshot firstInput, InputSnapshot secondInput, AttackBuffer firstCommands, AttackBuffer secondCommands, int frame)
     if game.phase != MATCH
         return
+    let firstGrab = inGrabContext(first)
+    let secondGrab = inGrabContext(second)
+    let grabPaused = first.hitlag > 0 or second.hitlag > 0
+    if firstGrab
+        firstCommands.clear()
+    if secondGrab
+        secondCommands.clear()
     firstInput.attackRequested = firstCommands.hasPending(frame) and first.frozenFrames == 0
     secondInput.attackRequested = secondCommands.hasPending(frame) and second.frozenFrames == 0
     resolveLedgePair(first, second, game.stageChoice, firstInput, secondInput)
     advance(first, game.stageChoice, firstInput, -240)
     advance(second, game.stageChoice, secondInput, 240)
     resolveGrabPair(first, second)
-    startFighterSpecial(first, game.stageChoice, firstInput)
-    startFighterSpecial(second, game.stageChoice, secondInput)
+    advanceGrabPair(first, second, firstInput, secondInput, grabPaused)
+    if not firstGrab
+        startFighterSpecial(first, game.stageChoice, firstInput)
+    if not secondGrab
+        startFighterSpecial(second, game.stageChoice, secondInput)
     advanceFreezeTrapPair(first, second)
     if first.frozenFrames > 0
         firstCommands.clear()
@@ -37,6 +47,10 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
     advanceSpecialPair(first, second, game.stageChoice)
     updateProjectilePair(first, second)
     resolveGrabPair(first, second)
+    if inGrabContext(first)
+        firstCommands.clear()
+    if inGrabContext(second)
+        secondCommands.clear()
     game.resolveStocks(first.stocks, second.stocks)
     game.advanceClock(first.stocks, first.damage, second.stocks, second.damage)
 

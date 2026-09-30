@@ -151,8 +151,42 @@ public constant real DOWN_ATTACK_DAMAGE = 7
 // the opponent's first active wake-up attack. See wc3-melee:PHYSICS.md.
 public constant real DOWN_ATTACK_BASE_KNOCKBACK = 75
 public constant real DOWN_ROLL_DISTANCE = 128
-public constant int GRAB_HOLD_FRAMES = 20
+public constant int GRAB_HOLD_FRAMES = 76
 public constant real GRAB_HOLD_DISTANCE = 50
+public constant int GRAB_NONE = 0
+public constant int GRAB_HOLD = 1
+public constant int GRAB_PUMMEL = 2
+public constant int THROW_FORWARD = 3
+public constant int THROW_BACK = 4
+public constant int THROW_UP = 5
+public constant int THROW_DOWN = 6
+public constant int GRAB_ESCAPE = 7
+
+public function grabHoldFrames(real damage) returns int
+	return (GRAB_HOLD_FRAMES + 1.6 * max(0., damage)).toInt()
+
+// Original character tuning: action frames are one-based, including entry.
+public function grabContactFrame(int action) returns int
+	if action == GRAB_PUMMEL
+		return 5
+	if action == THROW_FORWARD
+		return 12
+	if action == THROW_UP
+		return 14
+	return 16
+
+public function grabActionDuration(int action) returns int
+	if action == GRAB_PUMMEL
+		return 24
+	if action == THROW_FORWARD
+		return 30
+	if action == THROW_BACK
+		return 34
+	if action == THROW_UP
+		return 32
+	if action == THROW_DOWN
+		return 36
+	return 10
 constant int FOX_JUMP_SQUAT_FRAMES = 3
 constant int FALCO_JUMP_SQUAT_FRAMES = 5
 constant real FOX_FULL_JUMP_SPEED = 23.46
@@ -282,6 +316,11 @@ public class FighterState
 	int techLockout = 0
 	boolean techHitlagLatched = false
 	int grabbedFrames = 0
+	int grabAction = GRAB_NONE
+	int grabFrame = 0
+	int grabSerial = 0
+	int grabMashX = 0
+	int grabMashZ = 0
 	FighterState grabOwner = null
 	FighterState grabTarget = null
 	int ledgeState = LEDGE_NONE
@@ -313,6 +352,10 @@ public class InputSnapshot
 	boolean airDodgePressed = false
 	boolean techPressed = false
 	boolean mashPressed = false
+	boolean attackPressed = false
+	boolean grabMashPressed = false
+	int grabThrowX = 0
+	int grabThrowZ = 0
 	boolean lCancelPressed = false
 	boolean groundDodgePressed = false
 	int groundDodgeDirection = 0
@@ -343,6 +386,10 @@ public class InputSnapshot
 		destination.airDodgePressed = airDodgePressed
 		destination.techPressed = techPressed
 		destination.mashPressed = mashPressed
+		destination.attackPressed = attackPressed
+		destination.grabMashPressed = grabMashPressed
+		destination.grabThrowX = grabThrowX
+		destination.grabThrowZ = grabThrowZ
 		destination.lCancelPressed = lCancelPressed
 		destination.groundDodgePressed = groundDodgePressed
 		destination.groundDodgeDirection = groundDodgeDirection
@@ -491,7 +538,7 @@ public function jumpSquatFrames(int character) returns int
 	return character == 0 ? FOX_JUMP_SQUAT_FRAMES : FALCO_JUMP_SQUAT_FRAMES
 
 function canStartAttack(FighterState attacker) returns boolean
-	if attacker.grabTarget != null
+	if attacker.grabTarget != null or attacker.grabAction != GRAB_NONE
 		return false
 	if attacker.frozenFrames > 0
 		return false
@@ -1406,11 +1453,101 @@ function clearGrabLinks(FighterState f)
 	f.grabOwner = null
 	f.grabTarget = null
 	f.grabbedFrames = 0
+	f.grabAction = GRAB_NONE
+	f.grabFrame = 0
+	f.grabMashX = 0
+	f.grabMashZ = 0
 	if owner != null and owner.grabTarget == f
 		owner.grabTarget = null
+		owner.grabAction = GRAB_NONE
+		owner.grabFrame = 0
 	if target != null and target.grabOwner == f
 		target.grabOwner = null
 		target.grabbedFrames = 0
+		target.grabMashX = 0
+		target.grabMashZ = 0
+
+public function inGrabContext(FighterState f) returns boolean
+	return f.grabOwner != null or f.grabTarget != null or f.grabAction != GRAB_NONE or f.grabbedFrames > 0
+
+function beginGrabAction(FighterState owner, int action)
+	owner.grabAction = action
+	owner.grabFrame = 1
+	owner.grabSerial++
+
+function escapeGrab(FighterState owner, FighterState target)
+	clearGrabLinks(owner)
+	beginGrabAction(owner, GRAB_ESCAPE)
+	target.hitstun = 10
+
+function releaseThrow(FighterState owner, FighterState target, InputSnapshot targetInput)
+	let action = owner.grabAction
+	let damage = action == THROW_UP ? 6. : (action == THROW_DOWN ? 5. : 7.)
+	let knockback = ordinaryHitKnockback(target.damage, damage,
+		target.character == 0 ? 75. : 80., 70, action == THROW_DOWN ? 55. : 45., 1)
+	owner.grabTarget = null
+	target.grabOwner = null
+	target.grabbedFrames = 0
+	target.grabMashX = 0
+	target.grabMashZ = 0
+	target.damage += damage
+	target.vx = 0
+	target.vz = 0
+	target.grounded = false
+	target.surface = -1
+	let launch = knockback * KNOCKBACK_LAUNCH_SCALE
+	let direction = action == THROW_BACK ? -owner.facing : owner.facing
+	target.knockbackX = direction * launch * (action == THROW_UP ? 0.173648 : (action == THROW_DOWN ? 0.342020 : 0.866025))
+	target.knockbackZ = launch * (action == THROW_UP ? 0.984808 : (action == THROW_DOWN ? 0.939693 : 0.5))
+	target.diPending = true
+	target.diLaunchSpeed = launch
+	applyDirectionalInfluence(target, targetInput)
+	target.hitstun = ordinaryHitstunFrames(knockback)
+	if knockback >= DOWN_KNOCKBACK_THRESHOLD
+		target.downState = DOWN_TUMBLE
+		target.downFrame = 0
+		target.downDirection = 0
+
+function advanceGrab(FighterState owner, InputSnapshot ownerInput, InputSnapshot targetInput, boolean paused)
+	if owner.grabAction == GRAB_NONE or paused
+		return
+	let target = owner.grabTarget
+	if target != null and (owner.grabAction == GRAB_HOLD or owner.grabAction == GRAB_PUMMEL)
+		var contributions = targetInput.grabMashPressed ? 1 : 0
+		let x = targetInput.direction == 0 ? target.grabMashX : targetInput.direction
+		let z = targetInput.verticalDirection == 0 ? target.grabMashZ : targetInput.verticalDirection
+		if x != target.grabMashX or z != target.grabMashZ
+			contributions++
+		target.grabMashX = x
+		target.grabMashZ = z
+		target.grabbedFrames = max(0, target.grabbedFrames - 1 - 6 * contributions)
+		if target.grabbedFrames == 0
+			escapeGrab(owner, target)
+			return
+	if owner.grabAction == GRAB_HOLD
+		if ownerInput.attackPressed
+			beginGrabAction(owner, GRAB_PUMMEL)
+		else if ownerInput.grabThrowZ != 0
+			beginGrabAction(owner, ownerInput.grabThrowZ > 0 ? THROW_UP : THROW_DOWN)
+		else if ownerInput.grabThrowX != 0
+			beginGrabAction(owner, ownerInput.grabThrowX == owner.facing ? THROW_FORWARD : THROW_BACK)
+	else if owner.grabFrame >= grabActionDuration(owner.grabAction)
+		owner.grabAction = target == null ? GRAB_NONE : GRAB_HOLD
+		owner.grabFrame = 0
+	else
+		owner.grabFrame++
+	if target != null and owner.grabAction >= GRAB_PUMMEL and owner.grabAction <= THROW_DOWN and owner.grabFrame == grabContactFrame(owner.grabAction)
+		resolveHeldTarget(owner)
+		if owner.grabAction == GRAB_PUMMEL
+			target.damage += 3
+			owner.hitlag = ordinaryHitlagFrames(3)
+			target.hitlag = owner.hitlag
+		else
+			releaseThrow(owner, target, targetInput)
+
+public function advanceGrabPair(FighterState first, FighterState second, InputSnapshot firstInput, InputSnapshot secondInput, boolean paused)
+	advanceGrab(first, firstInput, secondInput, paused)
+	advanceGrab(second, secondInput, firstInput, paused)
 
 function resolveHeldTarget(FighterState owner)
 	let target = owner.grabTarget
@@ -1425,6 +1562,15 @@ function resolveHeldTarget(FighterState owner)
 	owner.knockbackZ = 0
 	target.x = owner.x + owner.facing * GRAB_HOLD_DISTANCE
 	target.z = owner.z
+	if owner.grabAction >= THROW_FORWARD and owner.grabAction <= THROW_DOWN
+		let progress = min(1., owner.grabFrame * 1. / grabContactFrame(owner.grabAction))
+		if owner.grabAction == THROW_BACK
+			target.x = owner.x + owner.facing * GRAB_HOLD_DISTANCE * (1 - 2 * progress)
+			target.z += 75 * (1 - (2 * progress - 1) * (2 * progress - 1))
+		else if owner.grabAction == THROW_UP
+			target.z += 65 * progress
+		else if owner.grabAction == THROW_DOWN
+			target.z += 25 * (1 - (2 * progress - 1) * (2 * progress - 1))
 	target.surface = owner.surface
 	target.grounded = owner.grounded
 	target.facing = -owner.facing
@@ -1458,6 +1604,8 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 		clearGrabLinks(target)
 		attacker.grabTarget = target
 		target.grabOwner = attacker
+		cancelAttack(attacker)
+		beginGrabAction(attacker, GRAB_HOLD)
 		clearDash(attacker)
 		attacker.vx = 0
 		attacker.vz = 0
@@ -1468,7 +1616,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 		interruptJumpOrDodge(target)
 		clearDownState(target)
 		cancelAttack(target)
-		target.grabbedFrames = GRAB_HOLD_FRAMES
+		target.grabbedFrames = grabHoldFrames(target.damage)
 		target.hitstun = 0
 		target.hitlag = 0
 		cancelSpecialState(target)
@@ -1748,7 +1896,7 @@ public function advanceSpecialPair(FighterState first, FighterState second, int 
 	advanceHippogryph(second, first)
 
 public function simulationJump(FighterState f)
-	if f.grabOwner != null or f.grabTarget != null
+	if inGrabContext(f)
 		return
 	if f.ledgeState != LEDGE_NONE
 		return
@@ -1769,7 +1917,7 @@ public function simulationJump(FighterState f)
 	f.jumps--
 
 public function simulationAirDodge(FighterState f, int horizontal, int vertical)
-	if f.grabOwner != null or f.grabTarget != null
+	if inGrabContext(f)
 		return
 	if f.ledgeState != LEDGE_NONE
 		return
@@ -1794,7 +1942,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	clearDownState(f)
 
 function canBeginGroundDodge(FighterState f) returns boolean
-	if f.grabOwner != null or f.grabTarget != null
+	if inGrabContext(f)
 		return false
 	return not f.out and f.downState == DOWN_NONE and f.grounded and f.hitlag <= 0 and f.hitstun <= 0 and f.shieldStun <= 0 and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0 and f.grabbedFrames <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldEnergy > 0
 
@@ -1913,6 +2061,7 @@ public function reset(FighterState f, real startX)
 	f.groundDodgeDirection = 0
 	f.grabbedFrames = 0
 	f.shieldHeldFrames = 0
+	f.grabSerial = 0
 	f.shieldReleaseLag = 0
 	f.shieldStun = 0
 	f.invincible = 90
@@ -1964,10 +2113,11 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.techLockout = TECH_LOCKOUT_FRAMES
 		if f.hitlag > 0
 			f.techHitlagLatched = true
-	if f.grabbedFrames > 0
-		f.grabbedFrames--
-		if f.grabbedFrames == 0
-			f.hitstun = 10
+	if inGrabContext(f)
+		if f.hitlag <= 0
+			f.invincible = max(0, f.invincible - 1)
+		f.hitlag = max(0, f.hitlag - 1)
+		checkBlastZone(f)
 		return
 	var groundDodgeStarted = false
 	var smashChargePaused = false
@@ -2144,6 +2294,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 
 function checkBlastZone(FighterState f)
 	if f.x <= -920 or f.x >= 920 or f.z <= -420 or f.z >= 760
+		clearGrabLinks(f)
 		clearDash(f)
 		f.out = true
 		clearLedge(f)

@@ -453,8 +453,8 @@ The map uses the tested match step: advance both fighters, consume eligible
 queued commands, resolve attacks against pre-hit state, then resolve stocks.
 Shield minimum hold/release lag, air-dodge helplessness, platform crossing,
 short/full hops, attack trades and simultaneous final stocks are covered.
-L grab is implemented with provisional 100-unit reach, 20-frame hold and
-10-frame release hitstun; those are prototype tuning rather than sourced data.
+Current grab/pummel/throw behavior and its reference scope are documented in
+wc3-melee:PHYSICS.md; the original fixed-duration hold has been replaced.
 
 Next required work:
 

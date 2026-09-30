@@ -1,10 +1,12 @@
 """Preview authored ground contact silhouettes from both gameplay sides."""
 from pathlib import Path
 import os
+import sys
 import bpy
 from mathutils import Matrix, Vector
 
 assets = Path(__file__).resolve().parents[2] / 'build/animation-assets'
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 for fighter in ('archer', 'rifleman'):
     if os.environ.get('WC3_PREVIEW_FIGHTER', fighter) != fighter:
         continue
@@ -35,6 +37,12 @@ for fighter in ('archer', 'rifleman'):
                ('Forward Tilt', 5), ('Up Tilt', 6), ('Down Tilt', 5)]
     if os.environ.get('WC3_PREVIEW_GRAB') == '1':
         samples = [('Grab', 5), ('Grab Hold', 0), ('Grabbed', 0)]
+    if os.environ.get('WC3_PREVIEW_THROWS') == '1':
+        from grab_animations import timing
+        samples = [(name, timing(action)[0] - 1) for name, action in
+                   [('Pummel', 'GRAB_PUMMEL'), ('Throw Forward', 'THROW_FORWARD'),
+                    ('Throw Back', 'THROW_BACK'), ('Throw Up', 'THROW_UP'),
+                    ('Throw Down', 'THROW_DOWN')]]
     for name, frame in samples:
         action = bpy.data.actions[name]
         for bone in rig.pose.bones:

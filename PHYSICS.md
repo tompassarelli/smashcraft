@@ -175,9 +175,9 @@ identify the initial velocity impulse and subsequent ground acceleration and
 friction; those behavioral facts support preserving a short tap, not copying
 its implementation or claiming our full dash model now matches Melee.
 
-Grounded Shield + normal Attack now chooses the same grab command as L for
+Grounded Shield + normal Attack now chooses the same grab command as O for
 both fighters, including pressing shield and Attack within one frame. The
-existing shield-stun/action locks still decide when the grab may begin. L
+existing shield-stun/action locks still decide when the grab may begin. O
 remains the dedicated grab binding. Neither path introduces an aerial grab.
 
 ## Hit timing and knockback
@@ -971,3 +971,55 @@ Numerical state lives in `FighterState.freezeTrapLife`, `freezeTrapArming`,
 and `frozenFrames`. Snapshot restore copies and compares these fields exactly.
 The trap and ice shell are presentation only; animation, visual timing and
 native multiplayer behavior require a loaded Warcraft build to validate.
+
+## Grab, pummel, throw and escape
+
+The capture timer now uses `floor(76 + 1.6 * damage_at_capture)` rather than
+20 frames. This is the equal-ranking Melee profile reported by
+https://www.ssbwiki.com/Grab. Smashcraft currently applies no ranking/handicap
+adjustment. That is an explicit simplification; it does not claim full Melee
+capture parity. Damage during a hold does not recalculate its initial timer.
+
+The factual input behavior was checked in melee:src/melee/ft/ftcommon.c and
+melee:src/melee/ft/kinds/ftCommon/ftCo_CaptureWait.c at
+0296f009f32f710495979d30772d8332af2d411a. Any fresh Attack/Special/Jump/Grab/
+shield-button edge supplies one mash contribution per frame. Multiple buttons
+in that frame still count once. A change to either or both remembered nonneutral
+movement-axis signs supplies a separate contribution; neutral does not erase
+the remembered sign. Each contribution removes six frames, in addition to the
+ordinary countdown. The six-frame value is corroborated by the published grab
+reference; the local common-parameter data remain unavailable. C-stick and
+walk-modifier inputs are not grab-mash buttons. No decompiled implementation
+was copied or translated.
+
+Fresh Attack has priority over direction when selecting a held action. Attack
+starts one pummel; holding it cannot repeat. Fresh movement or C-stick direction
+selects a throw relative to the holder's facing (vertical takes priority on a
+diagonal). Commands during pummel/throw recovery are discarded, not buffered
+into another action. Escape is evaluated before a new pummel/throw selection.
+Once a throw begins its victim stays committed until release or interruption.
+Ordinary attack requests are cleared throughout both ends of the grab context,
+including its final tick. Special input cannot leak through on release.
+
+Contact/release and total frame counts are one-based and owned by
+wc3-melee:wurst/Simulation.wurst (`grabContactFrame`, `grabActionDuration`).
+Pummel deals three damage once, without launch, and freezes both clips and the
+hold timer during its normal hitlag. The four throws each deal damage once at
+release and use the shared knockback/hitstun formula; throw DI uses the victim's
+input on that frame, without adding ordinary hitlag or SDI. Down throw visually
+slams to the floor and launches into an upward bounce. Character throw damage,
+angles, growth/base knockback, trajectories, action lengths and ten-frame escape
+recovery are original starting tuning, not extracted Sheik values. The existing
+simultaneous-grab clash remains an intentional alternative to port priority.
+
+Holder/victim action, frame, serial, mash signs, timer and reciprocal links are
+copied and compared in snapshots. Damage, freeze, stock/reset interruptions clear
+the pair. The original 20-frame fixtures were updated to the damage-dependent
+capture contract; successful capture now exits grab startup into the explicit
+hold action rather than retaining the whiff cooldown.
+
+Both fighters have pummel and four throw clips plus matched victim clips in
+wc3-melee:tools/animations/grab_animations.py. The animation boundary consumes
+timing from Wurst; canonical pair state owns translation and release. Native
+pose alignment, real-button use and interruption readability require the
+installed-build check and are not proved by the numerical tests.

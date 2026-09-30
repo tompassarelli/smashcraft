@@ -49,6 +49,10 @@ boolean playerGetupStandPressed = false
 boolean playerTechPressed = false
 boolean playerLCancelPressed = false
 boolean playerMashPressed = false
+boolean playerGrabMashPressed = false
+boolean playerAttackPressed = false
+int playerThrowX = 0
+int playerThrowZ = 0
 int playerLedgeVerticalPressed = 0
 effect array stageDecks
 int stageDeckCount = 0
@@ -148,6 +152,10 @@ boolean secondSpecialPressed = false
 boolean secondTechPressed = false
 boolean secondLCancelPressed = false
 boolean secondMashPressed = false
+boolean secondGrabMashPressed = false
+boolean secondAttackPressed = false
+int secondThrowX = 0
+int secondThrowZ = 0
 int secondLedgeVerticalPressed = 0
 boolean secondGetupAttackPressed = false
 boolean secondGetupStandPressed = false
@@ -431,11 +439,17 @@ function applyFrame()
     let botPreviousSpecial = botFighter.specialAction
     let playerWasHolding = playerFighter.grabTarget != null
     let botWasHolding = botFighter.grabTarget != null
+    let playerPreviousGrab = playerFighter.grabAction
+    let botPreviousGrab = botFighter.grabAction
     if not currentFrameInput.execute(matchState, playerFighter, botFighter,
             playerAttacks, botAttacks, replayRuntime, currentFrameInput.frameNumber())
         return
     firstImpacts.after(playerFighter)
     secondImpacts.after(botFighter)
+    if playerPreviousGrab != playerFighter.grabAction
+        traceParticipant(0, "grab action " + I2S(playerFighter.grabAction) + " frame " + I2S(playerFighter.grabFrame) + " serial " + I2S(playerFighter.grabSerial))
+    if botPreviousGrab != botFighter.grabAction
+        traceParticipant(1, "grab action " + I2S(botFighter.grabAction) + " frame " + I2S(botFighter.grabFrame) + " serial " + I2S(botFighter.grabSerial))
     if playerWasHolding != (playerFighter.grabTarget != null)
         traceParticipant(0, "grab-hold " + (playerFighter.grabTarget != null ? "start" : "end"))
     if botWasHolding != (botFighter.grabTarget != null)
@@ -609,6 +623,10 @@ function actionHeld(int action) returns boolean
 
 function clearSecondInputs()
     secondMashPressed = false
+    secondGrabMashPressed = false
+    secondAttackPressed = false
+    secondThrowX = 0
+    secondThrowZ = 0
     secondLedgeVerticalPressed = 0
     secondKeyState.clear()
     secondNormalAttackQueued = false
@@ -634,6 +652,10 @@ function clearSecondInputs()
 
 function clearHeldInputs()
     playerMashPressed = false
+    playerGrabMashPressed = false
+    playerAttackPressed = false
+    playerThrowX = 0
+    playerThrowZ = 0
     playerLedgeVerticalPressed = 0
     firstKeyState.clear()
     playerNormalAttackQueued = false
@@ -715,6 +737,19 @@ function onParticipantKeyDown(int participantId)
     else
         secondLastInputAction = action
     if not wasHeld and matchState.phase == MATCH
+        let mashButton = action == ATTACK or action == SPECIAL or action == JUMP or action == GRAB or action == LEFT_TRIGGER or action == RIGHT_TRIGGER
+        let throwX = action == MOVE_LEFT or action == SMASH_LEFT ? -1 : (action == MOVE_RIGHT or action == SMASH_RIGHT ? 1 : 0)
+        let throwZ = action == MOVE_DOWN or action == SMASH_DOWN ? -1 : (action == MOVE_UP or action == SMASH_UP ? 1 : 0)
+        if participantId == 0
+            playerGrabMashPressed = playerGrabMashPressed or mashButton
+            playerAttackPressed = playerAttackPressed or action == ATTACK
+            playerThrowX += throwX
+            playerThrowZ += throwZ
+        else
+            secondGrabMashPressed = secondGrabMashPressed or mashButton
+            secondAttackPressed = secondAttackPressed or action == ATTACK
+            secondThrowX += throwX
+            secondThrowZ += throwZ
         if action == MOVE_UP or action == MOVE_DOWN
             if participantId == 0
                 playerLedgeVerticalPressed = action == MOVE_UP ? 1 : -1
@@ -1058,6 +1093,42 @@ function damageAnimationSeconds(Fighter f, int pose) returns real
         return f.character == 0 ? ARCHER_DAMAGE_SHIELD_SECONDS : RIFLEMAN_DAMAGE_SHIELD_SECONDS
     return f.character == 0 ? ARCHER_DAMAGE_AIR_SECONDS : RIFLEMAN_DAMAGE_AIR_SECONDS
 
+function grabAnimationIndex(int character, int action, boolean victim) returns int
+    if action == GRAB_PUMMEL
+        if victim
+            return character == 0 ? ARCHER_VICTIM_PUMMEL_INDEX : RIFLEMAN_VICTIM_PUMMEL_INDEX
+        return character == 0 ? ARCHER_PUMMEL_INDEX : RIFLEMAN_PUMMEL_INDEX
+    if action == THROW_FORWARD
+        if victim
+            return character == 0 ? ARCHER_VICTIM_THROW_FORWARD_INDEX : RIFLEMAN_VICTIM_THROW_FORWARD_INDEX
+        return character == 0 ? ARCHER_THROW_FORWARD_INDEX : RIFLEMAN_THROW_FORWARD_INDEX
+    if action == THROW_BACK
+        if victim
+            return character == 0 ? ARCHER_VICTIM_THROW_BACK_INDEX : RIFLEMAN_VICTIM_THROW_BACK_INDEX
+        return character == 0 ? ARCHER_THROW_BACK_INDEX : RIFLEMAN_THROW_BACK_INDEX
+    if action == THROW_UP
+        if victim
+            return character == 0 ? ARCHER_VICTIM_THROW_UP_INDEX : RIFLEMAN_VICTIM_THROW_UP_INDEX
+        return character == 0 ? ARCHER_THROW_UP_INDEX : RIFLEMAN_THROW_UP_INDEX
+    if action == THROW_DOWN
+        if victim
+            return character == 0 ? ARCHER_VICTIM_THROW_DOWN_INDEX : RIFLEMAN_VICTIM_THROW_DOWN_INDEX
+        return character == 0 ? ARCHER_THROW_DOWN_INDEX : RIFLEMAN_THROW_DOWN_INDEX
+    return character == 0 ? (victim ? ARCHER_GRABBED_INDEX : ARCHER_GRAB_HOLD_INDEX) : (victim ? RIFLEMAN_GRABBED_INDEX : RIFLEMAN_GRAB_HOLD_INDEX)
+
+function grabAnimationSeconds(int character, int action) returns real
+    if action == GRAB_PUMMEL
+        return character == 0 ? ARCHER_PUMMEL_SECONDS : RIFLEMAN_PUMMEL_SECONDS
+    if action == THROW_FORWARD
+        return character == 0 ? ARCHER_THROW_FORWARD_SECONDS : RIFLEMAN_THROW_FORWARD_SECONDS
+    if action == THROW_BACK
+        return character == 0 ? ARCHER_THROW_BACK_SECONDS : RIFLEMAN_THROW_BACK_SECONDS
+    if action == THROW_UP
+        return character == 0 ? ARCHER_THROW_UP_SECONDS : RIFLEMAN_THROW_UP_SECONDS
+    if action == THROW_DOWN
+        return character == 0 ? ARCHER_THROW_DOWN_SECONDS : RIFLEMAN_THROW_DOWN_SECONDS
+    return 0.
+
 function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
     f.renderShield()
     f.renderDizzy()
@@ -1104,13 +1175,18 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
     else if f.jumpAnimationRemaining > 0
         animationRate = f.doubleJumpAnimation ? (f.character == 0 ? ARCHER_DOUBLE_JUMP_SECONDS : RIFLEMAN_DOUBLE_JUMP_SECONDS) / (30 * FRAME_SECONDS) : (f.character == 0 ? ARCHER_JUMP_SECONDS : RIFLEMAN_JUMP_SECONDS) / (24 * FRAME_SECONDS)
     SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
-    if f.grabTarget != null or f.grabbedFrames > 0
-        let anim = f.grabTarget != null ? "grab-hold" : "grabbed"
+    if inGrabContext(f)
+        let victim = f.grabOwner != null
+        let owner = victim ? f.grabOwner : f
+        let action = owner.grabAction
+        let anim = "grab" + I2S(action) + ":" + I2S(owner.grabSerial) + (victim ? ":victim" : ":holder")
         if f.animation != anim
-            let clip = f.grabTarget != null ? (f.character == 0 ? ARCHER_GRAB_HOLD_INDEX : RIFLEMAN_GRAB_HOLD_INDEX) : (f.character == 0 ? ARCHER_GRABBED_INDEX : RIFLEMAN_GRABBED_INDEX)
-            SetUnitAnimationByIndex(f.body, clip)
+            if action == GRAB_ESCAPE
+                SetUnitAnimation(f.body, "stand ready")
+            else
+                SetUnitAnimationByIndex(f.body, grabAnimationIndex(f.character, action, victim))
             f.animation = anim
-        animationRate = 0
+        animationRate = action >= GRAB_PUMMEL and action <= THROW_DOWN ? grabAnimationSeconds(f.character, action) / (grabActionDuration(action) * FRAME_SECONDS) : 0
     else if f.ledgeState != LEDGE_NONE
         let anim = "ledge" + I2S(f.ledgeState)
         if f.animation != anim
@@ -1280,6 +1356,10 @@ function gameTick()
         playerInput.techPressed = playerTechPressed
         playerInput.lCancelPressed = playerLCancelPressed
         playerInput.mashPressed = playerMashPressed
+        playerInput.grabMashPressed = playerGrabMashPressed
+        playerInput.attackPressed = playerAttackPressed
+        playerInput.grabThrowX = playerThrowX > 0 ? 1 : (playerThrowX < 0 ? -1 : 0)
+        playerInput.grabThrowZ = playerThrowZ > 0 ? 1 : (playerThrowZ < 0 ? -1 : 0)
         playerInput.ledgeVerticalPressed = playerLedgeVerticalPressed
         playerInput.getupAttackPressed = playerGetupAttackPressed
         playerInput.specialPressed = playerSpecialPressed
@@ -1309,6 +1389,10 @@ function gameTick()
         secondPlayerInput.techPressed = secondTechPressed
         secondPlayerInput.lCancelPressed = secondLCancelPressed
         secondPlayerInput.mashPressed = secondMashPressed
+        secondPlayerInput.grabMashPressed = secondGrabMashPressed
+        secondPlayerInput.attackPressed = secondAttackPressed
+        secondPlayerInput.grabThrowX = secondThrowX > 0 ? 1 : (secondThrowX < 0 ? -1 : 0)
+        secondPlayerInput.grabThrowZ = secondThrowZ > 0 ? 1 : (secondThrowZ < 0 ? -1 : 0)
         secondPlayerInput.ledgeVerticalPressed = secondLedgeVerticalPressed
         secondPlayerInput.getupAttackPressed = secondGetupAttackPressed
         secondPlayerInput.specialPressed = secondSpecialPressed
@@ -1338,7 +1422,15 @@ function gameTick()
             secondAttackRequests.clear()
             applyFrame()
         playerMashPressed = false
+        playerGrabMashPressed = false
+        playerAttackPressed = false
+        playerThrowX = 0
+        playerThrowZ = 0
         secondMashPressed = false
+        secondGrabMashPressed = false
+        secondAttackPressed = false
+        secondThrowX = 0
+        secondThrowZ = 0
         playerLedgeVerticalPressed = 0
         secondLedgeVerticalPressed = 0
         playerAttackFacing = 0

@@ -17,7 +17,16 @@ only; do not vendor the dump or decompiled code into Smashcraft.
 The owner approved starting throw motions: Archer forward pivot-kick, back
 hip toss, up rising palm, down sweep/slam; Rifleman forward stock shove, back
 heave, up lift/toss, down pull/slam. Fresh Attack taps must pummel after capture.
-Pummels, throws, escape and their coordinated poses remain unimplemented.
+Pummels, four committed throws, damage-dependent hold/mash escape and holder/victim
+clips are implemented. Wurst gameplay tests pass 312/312, including contact/release
+timing, both slots/facings, interruption, input suppression and replay across
+contact. Evidence: wc3-melee:build/wurst-tests/grab-system-all-r2.log.
+The subsequent KO cleanup correction passed GrabTests 12/12, including immediate
+release on stock loss during hold and post-throw recovery. Evidence:
+wc3-melee:build/wurst-tests/grab-stock-cleanup.log. Native grab-system behavior
+is not yet verified. On resume, the client changed from the inspected game
+menu to an active old-build match during navigation; automated input stopped
+to avoid competing with owner play. No restart or new-build launch is claimed.
 Reference ftCommon_GrabMash counts at most one eligible-button contribution
 plus one remembered-axis-sign change per call; neutral does not clear those
 signs. Fighter input maps Z into A/trigger semantics. CaptureWait decrements
@@ -25,9 +34,19 @@ the timer and processes mash before release. SmashWiki's Grab page supplies
 the six-frame contribution and damage-dependent timer formula; caches are
 wc3-melee:build/ref-Grab.html and wc3-melee:build/ref-Mashing.html. Complete
 grab-context input, pummel, throw commitment/release, mash and snapshot state
-together instead of claiming the existing 20-frame hold is finished.
+together. The timer now uses the equal-ranking profile; ranking/handicap
+adjustments remain an explicit omission. See wc3-melee:PHYSICS.md for original
+throw tuning and the exact reference scope.
 
-Installed: `cstick-swap-r1`, normal scenario; not yet observed running.
+Installed: `grab-system-r3`, normal scenario; not yet observed running.
+Evidence: wc3-melee:build/grab-system-r3-map.log (six existing warnings).
+Archer throw limb targets and shoulder-cloth orientation were corrected after
+offline pose inspection. Authored clip exports and side/reverse previews passed;
+see wc3-melee:build/animation-assets/grab-author-archer-r3.log and
+wc3-melee:build/animation-assets/grab-preview-r3.log. These gray previews do
+not establish in-game materials, pair contact alignment or release readability.
+
+Prior binding change: `cstick-swap-r1`.
 Both presets now use B or / for C-stick left and H for C-stick down. The
 owner's saved binding file was swapped too, preserving all other slots.
 KeyBindingsTests passed 7/7; build/deploy succeeded with the six existing
