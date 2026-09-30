@@ -866,7 +866,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
         f.jumpAnimationRemaining--
     var animationRate = attackAnimationRate(f)
     if f.ledgeState == LEDGE_CLIMB
-        animationRate = (f.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS) / (LEDGE_CLIMB_FRAMES * FRAME_SECONDS)
+        animationRate = (f.character == 0 ? ARCHER_LEDGE_CLIMB_SECONDS : RIFLEMAN_LEDGE_CLIMB_SECONDS) / (LEDGE_CLIMB_FRAMES * FRAME_SECONDS)
     else if f.ledgeState == LEDGE_ROLL
         animationRate = (f.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS) / (LEDGE_ROLL_FRAMES * FRAME_SECONDS)
     else if f.ledgeState == LEDGE_ATTACK
@@ -888,13 +888,13 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
         let anim = "ledge" + I2S(f.ledgeState)
         if f.animation != anim
             if f.ledgeState == LEDGE_CLIMB
-                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_GET_UP_INDEX : RIFLEMAN_GET_UP_INDEX)
+                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_LEDGE_CLIMB_INDEX : RIFLEMAN_LEDGE_CLIMB_INDEX)
             else if f.ledgeState == LEDGE_ROLL
                 SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX)
             else if f.ledgeState == LEDGE_ATTACK
                 SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_GET_UP_ATTACK_INDEX : RIFLEMAN_GET_UP_ATTACK_INDEX)
             else
-                SetUnitAnimation(f.body, "stand hit")
+                SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_LEDGE_HANG_INDEX : RIFLEMAN_LEDGE_HANG_INDEX)
             f.animation = anim
     else if f.shieldBreakState != SHIELD_BREAK_NONE
         let anim = "shieldbreak" + I2S(f.shieldBreakState)
@@ -943,7 +943,7 @@ function renderUI()
         BlzFrameSetVisible(menuFrame, false)
         BlzFrameSetVisible(hudFrame, not selecting)
         BlzFrameSetVisible(helpFrame, not selecting and not controlsOpen)
-        BlzFrameSetVisible(noticeFrame, not controlsOpen)
+        BlzFrameSetVisible(noticeFrame, not selecting and not controlsOpen)
         BlzFrameSetVisible(developerFrame, not selecting and not controlsOpen)
         if not selecting
             BlzFrameSetText(hudFrame, "P1 " + charName(playerFighter.character) + "   " + I2S(R2I(playerFighter.damage)) + "%   Stocks: " + I2S(playerFighter.stocks) + "   " + shieldLabel(playerFighter) + "\n" + (twoHumanPlayers ? "P2 " : "Bot ") + charName(botFighter.character) + "   " + I2S(R2I(botFighter.damage)) + "%   Stocks: " + I2S(botFighter.stocks) + "   " + shieldLabel(botFighter) + "\n" + (matchState.stageChoice == 0 ? "Sky Deck" : "Three Bridges") + "   |cffff6666Red border = KO|r")

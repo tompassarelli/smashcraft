@@ -292,3 +292,37 @@ Exported checks cover twelve non-looping clips, absent root translation keys,
 retained stock Attack, and custom visibility. Exported pose renders and native
 build 063805 both show the corrected directional tilts. Native observation and
 recording paths are in wc3-melee:DEVELOPMENT.md.
+
+## Dedicated ledge hang and climb
+
+wc3-melee:tools/animations/ledges.py authors Ledge Hang and Ledge Climb on
+each fighter's own skeleton, called by the existing Archer and Rifleman author
+scripts. Hang holds a raised left arm with relaxed bent legs; climb bends the
+supporting arm, lifts the knees and returns to Stand Ready. Rifleman's separate
+rifle root follows his torso and retained right-hand grip. The clips contain no
+root translation: ledge travel and collision remain simulation-owned.
+
+Hang loops over 24 source frames (1 second); climb is non-looping over 30
+frames (1.25 seconds). Generated FighterAssetInfo constants supply
+ARCHER_LEDGE_HANG_INDEX, ARCHER_LEDGE_CLIMB_INDEX/SECONDS and the matching
+RIFLEMAN constants. The render adapter selects these clips for hang/climb and
+scales climb to LEDGE_CLIMB_FRAMES. Roll and attack retain their existing clips.
+
+Both editable fighter scenes and MDX assets were regenerated directly from the
+existing source scenes, without extraction or a full asset rebuild. Packaged
+MDX checks passed for sequence durations, loop flags, absent root translation
+keys and retention of every stock sequence. Exported MDL pose renders show
+raised-arm hang and bent-knee pull-up silhouettes for both fighters. Preview
+images are local at
+~/code/wc3-melee/worktrees/test-loop/build/animation-assets/archer-ledge-hang.png,
+~/code/wc3-melee/worktrees/test-loop/build/animation-assets/archer-ledge-pull.png,
+~/code/wc3-melee/worktrees/test-loop/build/animation-assets/rifleman-ledge-hang.png
+and
+~/code/wc3-melee/worktrees/test-loop/build/animation-assets/rifleman-ledge-pull.png.
+Native Archer fixture ledge-deferred selects the new hanging pose and completes
+climb after 25 simulation ticks (entry tick 67, exit tick 92). The grip remains
+visibly above/outside the platform endpoint: reconcile the authored wrist pose
+with LEDGE_HANG_OUTSET/DEPTH before treating contact alignment as complete.
+The hang screenshot and trace are under
+~/code/wc3-melee/worktrees/test-loop/build/animation-probe/ledge-climb/.
+Rifleman native playback and intermediate climb poses remain unverified.

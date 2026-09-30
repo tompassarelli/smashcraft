@@ -1182,3 +1182,26 @@ refreshing that cached presentation has not been verified.
 Returning from results to character selection also left “Computer wins!”
 visible above the heading (recovered-selection.png in the same evidence
 directory). This nonblocking stale-result notice is recorded for the next UI fix.
+
+## Ledge clips and restart-context experiment (2026-09-30)
+
+Dedicated hang/climb animations are integrated for both fighters; export checks
+and the Archer native catch/climb observation are in wc3-melee:ANIMATIONS.md.
+The adapter now also hides noticeFrame in both selection phases, fixing the
+stale result message's owning visibility condition.
+
+Warcraft's F10 → End Game → Restart Mission path loaded the existing map and
+accepted a Ctrl+T trace started 20 seconds after the loading prompt. The trace
+completed at 08:31:18, about 25 seconds after entry. Evidence under
+~/code/wc3-melee/worktrees/test-loop/build/selection-assets/:
+native-restart-time.txt and native-restart-after26s.png. A second native-menu
+restart loaded ledge-deferred and completed the catch/climb probe.
+
+An experiment then deferred RestartGame(false) through a zero-second timer,
+allowing the synchronized key callback to return first. Build 083601 initialized
+and completed its ten-second trace in 32.141 seconds total, but had stalled by
+08:36:47. This falsifies that scheduling change as a sufficient repair. The
+experimental handler was removed, leaving the previous handler intact; do not
+claim the restart defect fixed. Evidence: deferred-reload.log and
+deferred-after-trace.png in the same directory. Native-menu success is a bounded
+observation, not proof that its path cannot stall.

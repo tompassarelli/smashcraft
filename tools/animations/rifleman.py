@@ -165,6 +165,11 @@ prone = {'spin':90,'tuck':.6}
 author('Knockdown', {0:{}, 3:{'spin':28,'tuck':.3}, 7:prone, 12:prone})
 author('Get Up', {0:prone, 5:prone, 12:{'spin':65,'tuck':.8}, 20:{'spin':30,'tuck':.45}, 26:{'spin':8,'tuck':.15}, 30:{}})
 author('Get Up Attack', {0:prone, 5:{**prone,'strike':-.2}, 10:{'spin':70,'tuck':.8,'strike':-.3}, 16:{'spin':45,'tuck':.65,'strike':1}, 18:{'spin':35,'tuck':.5,'strike':1}, 25:{'spin':15,'tuck':.3,'strike':.4}, 38:{}, 45:{}})
+sys.path.insert(0, str(project / "tools/animations"))
+sys.dont_write_bytecode = True
+from ledges import author_ledges
+author_ledges(rig, "Rifleman")
+
 scene.frame_set(0)
 bpy.ops.wm.save_as_mainfile(filepath=str(assets / 'rifleman-fighter.blend'))
 result = bpy.ops.export.mdl_exporter(filepath=str(assets / 'rifleman-fighter.mdl'), use_actions=True)

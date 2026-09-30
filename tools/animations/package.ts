@@ -18,6 +18,8 @@ const clips = [
     ["KNOCKDOWN", "Knockdown"],
     ["GET_UP", "Get Up"],
     ["GET_UP_ATTACK", "Get Up Attack"],
+    ["LEDGE_HANG", "Ledge Hang"],
+    ["LEDGE_CLIMB", "Ledge Climb"],
 ];
 const declarations: string[] = [];
 for (const fighter of ["Archer", "Rifleman"]) {

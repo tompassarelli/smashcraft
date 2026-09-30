@@ -351,6 +351,11 @@ make_action("Get Up Attack", {
     45: getup_pose(0, 0),
 }, 45)
 
+sys.path.insert(0, str(project / "tools/animations"))
+sys.dont_write_bytecode = True
+from ledges import author_ledges
+author_ledges(rig, "Archer")
+
 editable = assets / "archer-fighter.blend"
 exported = assets / "archer-fighter.mdl"
 bpy.ops.wm.save_as_mainfile(filepath=str(editable))
