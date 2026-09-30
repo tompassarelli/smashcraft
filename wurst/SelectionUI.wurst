@@ -27,8 +27,6 @@ function characterNameTexture(int choice) returns string
 // a complete frame tree on every client; update() reveals only its local tree.
 public class SelectionPanel
     framehandle backdrop
-    framehandle heading
-    framehandle subheading
     framehandle firstTileArt
     framehandle secondTileArt
     framehandle firstChoicePortrait
@@ -82,17 +80,6 @@ public class SelectionPanel
         backdrop.setTexture("war3mapImported\\SelectionBackdrop.tga", 0, false)
         backdrop.setFullscreenReference()
 
-        heading = createTextFrame("MeleeSelectHeading" + suffix, GAME_UI, 401 + frameOffset)
-        heading.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.045, 0.467)
-        heading.setSize(0.55, 0.024)
-        BlzFrameSetFont(heading, "Fonts\\FRIZQT__.TTF", 0.017, 0)
-        BlzFrameSetTextAlignment(heading, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT)
-
-        subheading = createTextFrame("MeleeSelectSubheading" + suffix, GAME_UI, 402 + frameOffset)
-        subheading.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.047, 0.442)
-        subheading.setSize(0.62, 0.017)
-        BlzFrameSetFont(subheading, "Fonts\\FRIZQT__.TTF", 0.010, 0)
-        BlzFrameSetTextAlignment(subheading, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT)
 
         firstTileArt = createBackdrop("MeleeArcherTileArt" + suffix, GAME_UI, 419 + frameOffset)
         firstTileArt.setTexture("war3mapImported\\SelectionTileFrame.tga", 0, true)
@@ -256,8 +243,6 @@ public class SelectionPanel
             TriggerAddAction(cpuDropTrigger, function onCpuSelectionDrop)
 
         backdrop.setVisible(false)
-        heading.setVisible(false)
-        subheading.setVisible(false)
         firstTileArt.setVisible(false)
         secondTileArt.setVisible(false)
         firstChoicePortrait.setVisible(false)
@@ -336,8 +321,6 @@ public class SelectionPanel
 
         let visible = menuState == 0 and enabled and not settingsOpen
         backdrop.setVisible(visible)
-        heading.setVisible(visible)
-        subheading.setVisible(visible)
         firstTileArt.setVisible(visible)
         secondTileArt.setVisible(visible)
         firstChoicePortrait.setVisible(visible)
@@ -376,8 +359,6 @@ public class SelectionPanel
         playerTwoChip.setTexture(opponentHuman ? "war3mapImported\\SelectionChipP2.tga" : "war3mapImported\\SelectionChipCPU.tga", 0, true)
         firstChoiceName.setTexture(characterNameTexture(0), 0, true)
         secondChoiceName.setTexture(characterNameTexture(1), 0, true)
-        heading.setText("CHOOSE YOUR FIGHTER")
-        subheading.setText(participantId == 0 and not opponentHuman ? "Drag either chip onto a fighter, or click a portrait. Start opens Stage Select when you are ready." : "Drag your chip onto a fighter, or click their portrait. Start opens Stage Select when everyone has chosen.")
         let allReady = ready and (not opponentHuman or opponentReady)
         confirmLabel.setText(allReady ? "Start" : "PLACE YOUR CHIP")
         settingsLabel.setText("CONTROLS  [F1]")

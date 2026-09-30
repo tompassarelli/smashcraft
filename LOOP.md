@@ -2,9 +2,24 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
+The current playable output and installed entry are `Smashcraft.w3x`. The old
+`Melee_Prototype.w3x` was moved out of the map browser into the ignored
+wc3-melee:build/map-backups directory after the renamed build was verified.
+The base fixture remains `Melee_Prototype_Base.w3m` and is still the build input.
+An already-running old-path session must return to the chooser and select
+Smashcraft before the normal restart loop can use this new filename.
+
+The September 30 `dive-dodge-cues` build passed compilation (four existing
+warnings), packaging and installed-byte comparison. Ending the prior
+`impact-cues-ui` session with the existing F5 handler reproduced the black
+return-to-menu screen, still black after Escape. Warcraft was left open.
+Screenshots are wc3-melee:build/impact-assets/checkpoint-menu-later.png and
+wc3-melee:build/impact-assets/client-input.png. Native checks of the new build
+remain pending; packaging success is not a successful launch.
+
 ## Warm loop
 
-With Melee Prototype already running in Warcraft III:
+With Smashcraft already running in Warcraft III:
 
 ```bash
 ~/code/wc3-melee/worktrees/test-loop/loop.sh reload
@@ -57,7 +72,7 @@ steam steam://rungameid/16213922543717842944
 ```
 
 In Battle.net select Warcraft III and Play. In the game choose Single Player,
-Custom Games, Melee Prototype, Create Game, then Start Game. Complete the
+Custom Games, Smashcraft, Create Game, then Start Game. Complete the
 loading prompt. Subsequent code tests use the warm loop above and do not
 revisit these menus.
 

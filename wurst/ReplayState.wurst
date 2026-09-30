@@ -39,6 +39,14 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.smashCharging = source.smashCharging
 	destination.smashChargeFrames = source.smashChargeFrames
 	destination.smashChargeAllowed = source.smashChargeAllowed
+	destination.freezeTrapLife = source.freezeTrapLife
+	destination.freezeTrapArming = source.freezeTrapArming
+	destination.freezeTrapX = source.freezeTrapX
+	destination.freezeTrapZ = source.freezeTrapZ
+	destination.freezeTrapSurface = source.freezeTrapSurface
+	destination.freezeTrapSerial = source.freezeTrapSerial
+	destination.frozenFrames = source.frozenFrames
+	destination.freezeTrapCooldown = source.freezeTrapCooldown
 	destination.out = source.out
 	destination.respawn = source.respawn
 	destination.shield = source.shield
@@ -180,6 +188,22 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "smashChargeFrames"
 	if expected.smashChargeAllowed != actual.smashChargeAllowed
 		return "smashChargeAllowed"
+	if expected.freezeTrapLife != actual.freezeTrapLife
+		return "freezeTrapLife"
+	if expected.freezeTrapArming != actual.freezeTrapArming
+		return "freezeTrapArming"
+	if expected.freezeTrapX != actual.freezeTrapX
+		return "freezeTrapX"
+	if expected.freezeTrapZ != actual.freezeTrapZ
+		return "freezeTrapZ"
+	if expected.freezeTrapSurface != actual.freezeTrapSurface
+		return "freezeTrapSurface"
+	if expected.freezeTrapSerial != actual.freezeTrapSerial
+		return "freezeTrapSerial"
+	if expected.frozenFrames != actual.frozenFrames
+		return "frozenFrames"
+	if expected.freezeTrapCooldown != actual.freezeTrapCooldown
+		return "freezeTrapCooldown"
 	if expected.out != actual.out
 		return "out"
 	if expected.respawn != actual.respawn

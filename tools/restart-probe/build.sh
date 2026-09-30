@@ -31,7 +31,7 @@ else
     rm -f "$probe_dir/wurst/KeysProbe.wurst"
 fi
 cp "$project_dir/tools/map-entry.j" "$probe_dir/wurst/war3map.j"
-sed 's/Melee Prototype/A Restart Probe/g; s/Melee_Prototype/A_Restart_Probe/g; s/Archer versus Rifleman platform fight./Minimal timer and synchronized-key restart reproduction./' "$project_dir/wurst.build" > "$probe_dir/wurst.build"
+sed 's/Smashcraft/A_Restart_Probe/g; s/Archer versus Rifleman platform fight./Minimal timer and synchronized-key restart reproduction./' "$project_dir/wurst.build" > "$probe_dir/wurst.build"
 (
     cd "$probe_dir"
     /home/tom/.wurst/wurst-runtime/bin/java -Xmx512m -XX:ActiveProcessorCount=2 -jar "$compiler" \

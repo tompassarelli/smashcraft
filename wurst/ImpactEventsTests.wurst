@@ -1,0 +1,90 @@
+package ImpactEventsTests
+import Simulation
+import ImpactEvents
+
+@Test function impactCuesDistinguishTechMissAndOrdinaryLanding()
+    let fighter = new FighterState(0, 0, 1)
+    let events = new ImpactEvents()
+    for state = DOWN_TECH to DOWN_TECH_ROLL
+        fighter.downState = DOWN_TUMBLE
+        events.before(fighter)
+        fighter.downState = state
+        events.after(fighter)
+        events.landing.assertEquals(IMPACT_TECH)
+        events.before(fighter)
+        fighter.downFrame++
+        events.after(fighter)
+        events.landing.assertEquals(IMPACT_NONE)
+    fighter.downState = DOWN_TUMBLE
+    events.before(fighter)
+    fighter.downState = DOWN_BOUND
+    events.after(fighter)
+    events.landing.assertEquals(IMPACT_MISSED_TECH)
+    events.before(fighter)
+    fighter.downState = DOWN_WAIT
+    events.after(fighter)
+    events.landing.assertEquals(IMPACT_NONE)
+    events.before(fighter)
+    fighter.downState = DOWN_NONE
+    fighter.grounded = true
+    events.after(fighter)
+    events.landing.assertEquals(IMPACT_NONE)
+    destroy events
+    destroy fighter
+
+@Test function hitFlashDoesNotRepeatThroughHitlagOrOnRespawn()
+    let fighter = new FighterState(0, 0, 1)
+    let events = new ImpactEvents()
+    events.before(fighter)
+    fighter.damage = 7
+    fighter.hitlag = 4
+    events.after(fighter)
+    events.hit.assertTrue()
+    events.before(fighter)
+    fighter.hitlag--
+    events.after(fighter)
+    events.hit.assertFalse()
+    events.before(fighter)
+    fighter.damage = 0
+    fighter.out = true
+    events.after(fighter)
+    events.hit.assertFalse()
+    destroy events
+    destroy fighter
+
+@Test function presentedImpactFrameCannotBePlayedTwice()
+    let cursor = new ImpactPresentationCursor()
+    cursor.consume(42).assertTrue()
+    cursor.consume(42).assertFalse()
+    cursor.consume(40).assertFalse()
+    cursor.consume(43).assertTrue()
+    cursor.reset()
+    cursor.consume(1).assertTrue()
+    destroy cursor
+
+@Test function dodgeDustEmitsOnEntryAndPreservesRollDirection()
+    let fighter = new FighterState(0, 0, 1)
+    let events = new ImpactEvents()
+    for direction = -1 to 1
+        fighter.groundDodgeFrame = 0
+        events.before(fighter)
+        fighter.groundDodgeFrame = 1
+        fighter.groundDodgeDirection = direction
+        events.after(fighter)
+        events.dodge.assertEquals(direction == 0 ? 1 : 2)
+        events.direction.assertEquals(direction)
+        events.before(fighter)
+        fighter.groundDodgeFrame++
+        events.after(fighter)
+        events.dodge.assertEquals(0)
+    fighter.groundDodgeFrame = 0
+    fighter.downState = DOWN_TUMBLE
+    events.before(fighter)
+    fighter.downState = DOWN_TECH_ROLL
+    fighter.downDirection = -1
+    events.after(fighter)
+    events.landing.assertEquals(IMPACT_TECH)
+    events.dodge.assertEquals(2)
+    events.direction.assertEquals(-1)
+    destroy events
+    destroy fighter

@@ -40,7 +40,7 @@ public constant int EMPTY_LANDING_LAG = 4
 public constant int GROUND_ROLL_FRAMES = 31
 public constant int GROUND_ROLL_INTANGIBLE_START = 4
 public constant int GROUND_ROLL_INTANGIBLE_END = 19
-public constant int SPOT_DODGE_FRAMES = 23
+public constant int SPOT_DODGE_FRAMES = 22
 public constant int SPOT_DODGE_INTANGIBLE_START = 2
 public constant int SPOT_DODGE_INTANGIBLE_END = 15
 constant real GROUND_ROLL_SPEED = 8
@@ -49,6 +49,11 @@ constant int GROUND_ROLL_MOVE_END = 19
 public constant int SHIELD_MIN_HOLD_FRAMES = 8
 public constant int SHIELD_RELEASE_LAG_FRAMES = 15
 public constant int PROJECTILE_CAPACITY = 16
+public constant int FREEZE_TRAP_ARMING_FRAMES = 20
+public constant int FREEZE_TRAP_LIFETIME_FRAMES = 1800
+public constant int FREEZE_TRAP_FREEZE_FRAMES = 300
+public constant int FREEZE_TRAP_COOLDOWN_FRAMES = 90
+public constant real FREEZE_TRAP_TRIGGER_RADIUS = 42
 public constant real BLASTER_PROJECTILE_SPEED = 36
 constant int BLASTER_PROJECTILE_LIFETIME = 60
 public constant real BLASTER_PROJECTILE_HEIGHT = 75
@@ -110,6 +115,8 @@ public constant int AERIAL_FORWARD_STYLE = 13
 public constant int AERIAL_BACK_STYLE = 14
 public constant int AERIAL_UP_STYLE = 15
 public constant int AERIAL_DOWN_STYLE = 16
+public constant int ARCHER_DIVE_ACTIVE_FRAMES = 20
+public constant real ARCHER_DIVE_SPEED = 24
 public constant int AERIAL_NEUTRAL_LANDING_LAG = 10
 public constant int AERIAL_FORWARD_LANDING_LAG = 14
 public constant int AERIAL_BACK_LANDING_LAG = 16
@@ -181,6 +188,14 @@ public class FighterState
 	real array[PROJECTILE_CAPACITY] projectileX
 	real array[PROJECTILE_CAPACITY] projectileZ
 	int array[PROJECTILE_CAPACITY] projectileDirection
+	int freezeTrapLife = 0
+	int freezeTrapArming = 0
+	real freezeTrapX = 0
+	real freezeTrapZ = 0
+	int freezeTrapSurface = -1
+	int freezeTrapSerial = 0
+	int frozenFrames = 0
+	int freezeTrapCooldown = 0
 	boolean out = false
 	int respawn = 0
 	boolean shield = false
@@ -238,6 +253,7 @@ public class InputSnapshot
 	int cStickX = 0
 	int cStickZ = 0
 	boolean attackRequested = false
+	boolean specialPressed = false
 	boolean down = false
 	boolean shield = false
 	boolean jumpPressed = false
@@ -267,6 +283,7 @@ public class InputSnapshot
 		destination.cStickX = cStickX
 		destination.cStickZ = cStickZ
 		destination.attackRequested = attackRequested
+		destination.specialPressed = specialPressed
 		destination.down = down
 		destination.shield = shield
 		destination.jumpPressed = jumpPressed
@@ -421,12 +438,14 @@ public function jumpSquatFrames(int character) returns int
 	return character == 0 ? FOX_JUMP_SQUAT_FRAMES : FALCO_JUMP_SQUAT_FRAMES
 
 function canStartAttack(FighterState attacker) returns boolean
+	if attacker.frozenFrames > 0
+		return false
 	if attacker.ledgeState != LEDGE_NONE
 		return false
 	return not attacker.out and attacker.shieldBreakState == SHIELD_BREAK_NONE and (attacker.downState == DOWN_NONE or isTumbling(attacker)) and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0
 
 public function canAttack(FighterState attacker) returns boolean
-	return canStartAttack(attacker) and not attacker.shield
+	return canStartAttack(attacker) and not attacker.shield and attacker.frozenFrames <= 0
 
 public function canShieldGrab(FighterState attacker) returns boolean
 	return canStartAttack(attacker) and attacker.shield and attacker.grounded and attacker.shieldEnergy > 0
@@ -499,12 +518,11 @@ function attackReach(int style) returns real
 public function attackStartupFrames(int style) returns int
 	if style == LEDGE_ATTACK_STYLE
 		return 16
-	if style == AERIAL_NEUTRAL_STYLE
+	// attackFrame zero is the start tick (reference frame one).
+	if style == AERIAL_NEUTRAL_STYLE or style == AERIAL_BACK_STYLE
 		return 3
 	if style == AERIAL_FORWARD_STYLE
 		return 5
-	if style == AERIAL_BACK_STYLE
-		return 6
 	if style == AERIAL_UP_STYLE
 		return 5
 	if style == AERIAL_DOWN_STYLE
@@ -514,11 +532,18 @@ public function attackStartupFrames(int style) returns int
 public function attackActiveFrames(int style) returns int
 	if style == LEDGE_ATTACK_STYLE
 		return 3
-	if style == AERIAL_NEUTRAL_STYLE or style == AERIAL_FORWARD_STYLE or style == AERIAL_BACK_STYLE
+	if style == AERIAL_NEUTRAL_STYLE
+		return 28
+	if style == AERIAL_BACK_STYLE
+		return 16
+	if style == AERIAL_FORWARD_STYLE
 		return 2
 	if style == AERIAL_UP_STYLE or style == AERIAL_DOWN_STYLE
 		return 3
 	return style == DOWN_ATTACK_STYLE ? DOWN_ATTACK_ACTIVE_FRAMES : (style == 1 ? 1 : (style == 2 or style == 3 or style == 4 ? 3 : 2))
+
+public function characterAttackActiveFrames(int character, int style) returns int
+	return character == 0 and style == AERIAL_DOWN_STYLE ? ARCHER_DIVE_ACTIVE_FRAMES : attackActiveFrames(style)
 
 public function attackDurationFrames(int style) returns int
 	return attackDurationFramesForGrounding(style, true)
@@ -527,11 +552,11 @@ public function attackDurationFramesForGrounding(int style, boolean grounded) re
 	if style == LEDGE_ATTACK_STYLE
 		return LEDGE_ATTACK_FRAMES
 	if style == AERIAL_NEUTRAL_STYLE
-		return 25
+		return 41
 	if style == AERIAL_FORWARD_STYLE
 		return 31
 	if style == AERIAL_BACK_STYLE
-		return 33
+		return 37
 	if style == AERIAL_UP_STYLE
 		return 34
 	if style == AERIAL_DOWN_STYLE
@@ -546,7 +571,7 @@ public function attackPhase(FighterState f) returns int
 		return ATTACK_NONE
 	if f.attackFrame < attackStartupFrames(f.attackStyle)
 		return ATTACK_STARTUP
-	if f.attackFrame < attackStartupFrames(f.attackStyle) + attackActiveFrames(f.attackStyle)
+	if f.attackFrame < attackStartupFrames(f.attackStyle) + characterAttackActiveFrames(f.character, f.attackStyle)
 		return ATTACK_ACTIVE
 	return ATTACK_RECOVERY
 
@@ -578,10 +603,11 @@ function noHitRegion() returns hitRegion
 // Coordinates are facing-relative offsets of the victim's simulation origin.
 // Lower region indices win overlaps. Window zero means no authored contact;
 // increasing positive windows explicitly permit a later hit of the same target.
-function authoredHitRegion(int style, int frame, int chargeFrames, int index) returns hitRegion
-	if style < 0 or style == 1 or frame < attackStartupFrames(style) or frame >= attackStartupFrames(style) + attackActiveFrames(style)
+function authoredHitRegion(int character, int style, int frame, int chargeFrames, int index) returns hitRegion
+	if style < 0 or style == 1 or frame < attackStartupFrames(style) or frame >= attackStartupFrames(style) + characterAttackActiveFrames(character, style)
 		return noHitRegion()
-	let damage = attackDamage(style) * (isSmashAttack(style) ? smashDamageMultiplier(chargeFrames) : 1)
+	let lingering = (style == AERIAL_NEUTRAL_STYLE or style == AERIAL_BACK_STYLE) and frame >= 7
+	let damage = (lingering ? 5. : attackDamage(style)) * (isSmashAttack(style) ? smashDamageMultiplier(chargeFrames) : 1)
 	var hitData = hitEffect(damage, ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, ordinaryHitlagFrames(damage), DIAGONAL_UNIT, DIAGONAL_UNIT)
 	if style == 6
 		let early = frame == attackStartupFrames(style)
@@ -604,6 +630,10 @@ function authoredHitRegion(int style, int frame, int chargeFrames, int index) re
 		hitData = hitEffect(finisher ? 8 : 4, finisher ? 110 : 60, finisher ? 24 : 14, finisher ? 5 : 2, 0.25, 0.9682458)
 		return hitRegion(-105, 105, 20, 190, hitData, finisher ? 2 : 1)
 	if style == AERIAL_DOWN_STYLE
+		if character == 0
+			let diveDamage = frame < attackStartupFrames(style) + 3 ? damage : 6.
+			hitData = hitEffect(diveDamage, hitData.growth, hitData.base, ordinaryHitlagFrames(diveDamage), 0.25, -0.9682458)
+			return hitRegion(-55, 55, -180, -10, hitData, 1)
 		hitData = hitEffect(damage, hitData.growth, hitData.base, hitData.hitlag, 0.25, -0.9682458)
 		return hitRegion(-95, 95, -180, -10, hitData, 1)
 	let verticalOffset = style == 9 ? 65. : (style == 10 ? -65. : 0.)
@@ -615,7 +645,7 @@ function selectHitRegion(FighterState attacker, FighterState target) returns hit
 	let localX = (target.x - attacker.x) * attacker.facing
 	let localZ = target.z - attacker.z
 	for index = 0 to (attacker.attackStyle == 6 ? 1 : 0)
-		let hitBox = authoredHitRegion(attacker.attackStyle, attacker.attackFrame, attacker.smashChargeFrames, index)
+		let hitBox = authoredHitRegion(attacker.character, attacker.attackStyle, attacker.attackFrame, attacker.smashChargeFrames, index)
 		let alreadyHit = target.lastHitAttacker == attacker and target.lastHitAttackSerial == attacker.attackSerial and target.lastHitWindow >= hitBox.window
 		if hitBox.window > 0 and not alreadyHit and localX >= hitBox.minX and localX <= hitBox.maxX and localZ >= hitBox.minZ and localZ <= hitBox.maxZ
 			return hitBox
@@ -783,6 +813,62 @@ function clearShieldBreak(FighterState f)
 	f.shieldBreakState = SHIELD_BREAK_NONE
 	f.shieldBreakFrame = 0
 	f.shieldBreakRemaining = 0
+
+function clearOwnedFreezeTrap(FighterState f)
+	f.freezeTrapLife = 0
+	f.freezeTrapArming = 0
+	f.freezeTrapX = 0
+	f.freezeTrapZ = 0
+	f.freezeTrapSurface = -1
+
+public function startFreezeTrap(FighterState owner, int stage) returns boolean
+	if owner.character != 1 or not owner.grounded or owner.surface < 0 or owner.freezeTrapLife > 0 or owner.freezeTrapCooldown > 0 or not canAttack(owner)
+		return false
+	owner.freezeTrapX = owner.x
+	owner.freezeTrapSurface = owner.surface
+	owner.freezeTrapZ = surfaceZ(stage, owner.surface)
+	owner.freezeTrapLife = FREEZE_TRAP_LIFETIME_FRAMES
+	owner.freezeTrapArming = FREEZE_TRAP_ARMING_FRAMES
+	owner.freezeTrapSerial++
+	owner.freezeTrapCooldown = FREEZE_TRAP_COOLDOWN_FRAMES
+	owner.cooldown = max(owner.cooldown, FREEZE_TRAP_COOLDOWN_FRAMES)
+	return true
+
+function trapCanContact(FighterState owner, FighterState target) returns boolean
+	return owner.freezeTrapLife > 0 and owner.freezeTrapArming == 0 and not owner.out and not target.out and target.frozenFrames == 0 and target.grounded and target.surface == owner.freezeTrapSurface and not isIntangible(target) and (target.x - owner.freezeTrapX).abs() <= FREEZE_TRAP_TRIGGER_RADIUS
+
+function freezeFromTrap(FighterState target)
+	clearDownState(target)
+	cancelAttack(target)
+	clearLedge(target)
+	target.ledgeRegrab = 0
+	target.shield = false
+	target.shieldStun = 0
+	target.shieldReleaseLag = 0
+	target.hitstun = 0
+	target.hitlag = 0
+	target.grabbedFrames = 0
+	target.vx = 0
+	target.vz = 0
+	target.knockbackX = 0
+	target.knockbackZ = 0
+	target.frozenFrames = FREEZE_TRAP_FREEZE_FRAMES
+
+// Determine both contacts against the same pre-mutation frame, then consume
+// traps and freeze targets. Simultaneous traps therefore do not depend on P1 order.
+public function advanceFreezeTrapPair(FighterState first, FighterState second)
+	let firstTriggers = trapCanContact(first, second)
+	let secondTriggers = trapCanContact(second, first)
+	let freezeSecond = firstTriggers and not (second.shield and second.shieldEnergy > 0)
+	let freezeFirst = secondTriggers and not (first.shield and first.shieldEnergy > 0)
+	if firstTriggers
+		clearOwnedFreezeTrap(first)
+	if secondTriggers
+		clearOwnedFreezeTrap(second)
+	if freezeFirst
+		freezeFromTrap(first)
+	if freezeSecond
+		freezeFromTrap(second)
 
 public function shieldBreakDizzyFrames(real percent) returns int
 	// Prototype timing; only the inverse percent relationship is reference-backed.
@@ -996,13 +1082,15 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 			startDownWait(f)
 		else
 			f.downFrame++
-		return true
+			return true
 	if f.downState == DOWN_WAIT
 		if input.getupAttackPressed
 			beginDownState(f, DOWN_ATTACK, 0)
 		else if input.getupDirectionPressed and input.getupDirection != 0
 			beginDownState(f, DOWN_ROLL, input.getupDirection)
-		else if input.getupStandPressed
+		else if input.direction != 0
+			beginDownState(f, DOWN_ROLL, input.direction < 0 ? -1 : 1)
+		else if input.getupStandPressed or input.verticalDirection > 0
 			startDownStand(f)
 		else
 			f.downFrame++
@@ -1078,6 +1166,9 @@ function beginAttack(FighterState attacker, int style, boolean mayCharge)
 	attacker.smashChargeFrames = 0
 	attacker.smashChargeAllowed = isSmashAttack(style) and mayCharge
 	attacker.cooldown = attacker.attackDuration
+	if attacker.character == 0 and style == AERIAL_DOWN_STYLE
+		attacker.vz = 0
+		attacker.knockbackZ = 0
 
 function spawnProjectile(FighterState owner)
 	for index = 0 to PROJECTILE_CAPACITY - 1
@@ -1096,6 +1187,7 @@ function applyProjectileHit(FighterState owner, FighterState target)
 		if target.shieldEnergy == 0
 			beginShieldBreak(target)
 		return
+	target.frozenFrames = 0
 	target.damage += damage
 	if owner.character == 1
 		target.diPending = false
@@ -1145,6 +1237,8 @@ function cancelAttack(FighterState fighter)
 function applyAttackHit(FighterState attacker, FighterState target, int style, int facing, hitEffect hitData)
 	let damage = hitData.damage
 	if style == 5
+		if target.frozenFrames > 0
+			return
 		target.diPending = false
 		target.diLaunchSpeed = 0
 		interruptJumpOrDodge(target)
@@ -1166,6 +1260,8 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 			beginShieldBreak(target)
 		return
 	let groundedBeforeHit = target.grounded
+	if damage > 0
+		target.frozenFrames = 0
 	target.diPending = false
 	target.diLaunchSpeed = 0
 	interruptJumpOrDodge(target)
@@ -1222,6 +1318,10 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	let scale = dx != 0 and dz != 0 ? DIAGONAL_UNIT : 1
 	f.vx = dx * AIR_DODGE_SPEED * scale
 	f.vz = dz * AIR_DODGE_SPEED * scale
+	if dx != 0 and dz == 0
+		// Horizontal digital dodges angle down; explicit vertical input stays directional.
+		f.vx = dx * AIR_DODGE_SPEED * Cos(18 * bj_DEGTORAD)
+		f.vz = -AIR_DODGE_SPEED * Sin(18 * bj_DEGTORAD)
 	f.knockbackX = 0
 	f.knockbackZ = 0
 	f.airDodgeTime = AIR_DODGE_FRAMES
@@ -1288,6 +1388,10 @@ public function reset(FighterState f, real startX)
 	f.ledgeRegrab = 0
 	clearShieldBreak(f)
 	f.shieldBreakSerial = 0
+	clearOwnedFreezeTrap(f)
+	f.freezeTrapSerial = 0
+	f.frozenFrames = 0
+	f.freezeTrapCooldown = 0
 	clearDownState(f)
 	f.lCancelWindow = 0
 	f.lCancelSerial = 0
@@ -1349,6 +1453,20 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.respawn--
 		if f.respawn <= 0
 			reset(f, respawnX)
+		return
+	let wasFrozen = f.frozenFrames > 0
+	if f.frozenFrames > 0
+		f.frozenFrames--
+	if f.freezeTrapCooldown > 0
+		f.freezeTrapCooldown--
+	if f.freezeTrapLife > 0
+		f.freezeTrapLife--
+		if f.freezeTrapArming > 0
+			f.freezeTrapArming--
+		if f.freezeTrapLife == 0
+			clearOwnedFreezeTrap(f)
+	if wasFrozen
+		checkBlastZone(f)
 		return
 	if f.hitlag <= 0
 		f.ledgeRegrab = max(0, f.ledgeRegrab - 1)
@@ -1524,8 +1642,13 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	else if not dodgeActive or f.grounded
 		let gravity = characterGravity(f.character)
 		f.vz = max(-characterTerminalSpeed(f.character), f.vz - gravity)
-		if input.down and f.downState == DOWN_NONE and f.hitstun <= 0 and totalVelocityZ(f) < 0
+		if input.down and input.direction == 0 and f.downState == DOWN_NONE and f.hitstun <= 0 and totalVelocityZ(f) < 0
 			f.vz = -characterFastFallSpeed(f.character)
+	if not f.grounded and f.character == 0 and f.attackStyle == AERIAL_DOWN_STYLE
+		if attackPhase(f) == ATTACK_STARTUP
+			f.vz = 0
+		else if attackPhase(f) == ATTACK_ACTIVE
+			f.vz = -ARCHER_DIVE_SPEED
 	f.z += totalVelocityZ(f)
 	var landing = -1
 	if totalVelocityZ(f) <= 0
@@ -1553,6 +1676,8 @@ function checkBlastZone(FighterState f)
 		clearLedge(f)
 		f.ledgeRegrab = 0
 		clearShieldBreak(f)
+		clearOwnedFreezeTrap(f)
+		f.frozenFrames = 0
 		f.diPending = false
 		f.diLaunchSpeed = 0
 		f.vx = 0

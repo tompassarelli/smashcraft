@@ -293,7 +293,7 @@ spot_pose = {
         "Bone_Arm1_R": {"rotation": 8},
         "Bone_Arm1_L": {"rotation": -8},
     },
-    23: {
+    22: {
         "Bone_Pelvis": {"location": (0, 0, 0)},
         "Bone_Chest": {"rotation": 0},
         "Bone_Head": {"rotation": 0},
@@ -307,7 +307,7 @@ spot_pose = {
         "Bone_Arm2_L": {"rotation": 0},
     },
 }
-make_action("Spot Dodge", spot_pose, 23)
+make_action("Spot Dodge", spot_pose, 22)
 
 
 def getup_pose(root_angle, tuck, sweep=0):
@@ -355,6 +355,13 @@ make_action("Get Up Attack", {
     38: getup_pose(0, 0),
     45: getup_pose(0, 0),
 }, 45)
+
+sys.path.insert(0, str(project / "tools/animations"))
+sys.dont_write_bytecode = True
+from grounding import ground_recovery
+
+for action_name, duration in (("Knockdown", 12), ("Get Up", 30), ("Get Up Attack", 45)):
+    ground_recovery(rig, bpy.data.actions[action_name], duration)
 
 sys.path.insert(0, str(project / "tools/animations"))
 sys.dont_write_bytecode = True

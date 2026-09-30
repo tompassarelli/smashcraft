@@ -17,6 +17,9 @@ import PlayerInputState
 import SettingsUI
 import FighterAssets
 import StageAssetInfo
+import ImpactEvents
+import CombatEffects
+import FrostEffects
 
 constant real FRAME_SECONDS = 0.016666667
 
@@ -27,11 +30,16 @@ MatchState matchState = new MatchState()
 Fighter playerFighter = null
 Fighter botFighter = null
 timer gameTimer = null
+CombatEffects combatEffects = null
+FrostEffects frostEffects = null
+ImpactEvents firstImpacts = new ImpactEvents()
+ImpactEvents secondImpacts = new ImpactEvents()
 PlayerInputState firstKeyState = new PlayerInputState()
 boolean playerNormalAttackQueued = false
 boolean playerLeftPressed = false
 boolean playerRightPressed = false
 boolean playerDownPressed = false
+boolean playerSpecialPressed = false
 boolean playerGetupAttackPressed = false
 boolean playerGetupStandPressed = false
 boolean playerTechPressed = false
@@ -133,6 +141,7 @@ boolean secondNormalAttackQueued = false
 boolean secondLeftPressed = false
 boolean secondRightPressed = false
 boolean secondDownPressed = false
+boolean secondSpecialPressed = false
 boolean secondTechPressed = false
 boolean secondLCancelPressed = false
 boolean secondMashPressed = false
@@ -333,6 +342,10 @@ function drawStage()
         stageDeckCount++
 
 function removeFighters()
+    if frostEffects != null
+        frostEffects.clear()
+    if combatEffects != null
+        combatEffects.clear()
     clearProjectileLines()
     if playerFighter != null
         playerFighter.clearShieldEffect()
@@ -380,6 +393,8 @@ function traceFrameInput(int participantId, InputSnapshot input, AttackBuffer at
         traceInput("participant " + I2S(participantId) + " frame " + I2S(frame) + " phase " + I2S(matchState.phase) + " sampled x " + I2S(input.direction) + " z " + I2S(input.verticalDirection) + " jump " + (input.jumpPressed ? "1" : "0") + " dodge " + (input.airDodgePressed ? "1" : "0") + " attack " + I2S(attacks.hasPending(frame) ? attacks.style : -1))
 
 function applyFrame()
+    firstImpacts.before(playerFighter)
+    secondImpacts.before(botFighter)
     let playerWasOut = playerFighter.out
     let botWasOut = botFighter.out
     let playerPreviousAttack = playerFighter.attackSerial
@@ -397,6 +412,9 @@ function applyFrame()
     if not currentFrameInput.execute(matchState, playerFighter, botFighter,
             playerAttacks, botAttacks, replayRuntime, currentFrameInput.frameNumber())
         return
+    firstImpacts.after(playerFighter)
+    secondImpacts.after(botFighter)
+    combatEffects.present(replayRuntime.simulationFrame, firstImpacts, secondImpacts)
     if playerFighter.shieldBreakSerial > playerPreviousShieldBreak
         announce("Player 1's shield broke!")
     else if botFighter.shieldBreakSerial > botPreviousShieldBreak
@@ -419,6 +437,7 @@ function applyFrame()
             announce("Tech roll!")
     renderFighter(playerFighter, playerWasOut, playerFighter.jumpSerial != playerPreviousJump)
     renderFighter(botFighter, botWasOut, botFighter.jumpSerial != botPreviousJump)
+    frostEffects.present(playerFighter, botFighter)
     renderProjectiles(playerFighter, 0)
     renderProjectiles(botFighter, PROJECTILE_CAPACITY)
     if matchState.phase == RESULT
@@ -564,6 +583,7 @@ function clearSecondInputs()
     secondLeftPressed = false
     secondRightPressed = false
     secondDownPressed = false
+    secondSpecialPressed = false
     secondTechPressed = false
     secondLCancelPressed = false
     secondGetupAttackPressed = false
@@ -588,6 +608,7 @@ function clearHeldInputs()
     playerLeftPressed = false
     playerRightPressed = false
     playerDownPressed = false
+    playerSpecialPressed = false
     playerGetupAttackPressed = false
     playerGetupStandPressed = false
     playerTechPressed = false
@@ -676,7 +697,7 @@ function onParticipantKeyDown(int participantId)
                 playerLCancelPressed = true
             else
                 secondLCancelPressed = true
-        if action == ATTACK or action == SPECIAL
+        if action == ATTACK or (action == SPECIAL and (fighter.character != 1 or not state.actionHeld(MOVE_DOWN)))
             if participantId == 0
                 playerGetupAttackPressed = true
             else
@@ -714,7 +735,14 @@ function onParticipantKeyDown(int participantId)
     else if action == ATTACK and matchState.phase != CHARACTER_MENU
         confirm(participantId)
     else if action == SPECIAL
-        back(participantId)
+        if matchState.phase == MATCH and fighter.character == 1 and state.actionHeld(MOVE_DOWN)
+            if not wasHeld
+                if participantId == 0
+                    playerSpecialPressed = true
+                else
+                    secondSpecialPressed = true
+        else
+            back(participantId)
     else if action == GRAB
         attack(fighter, opponent, 5)
     else if action == LEFT_TRIGGER or action == RIGHT_TRIGGER
@@ -931,6 +959,10 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
     if f.out
         return
     f.place()
+    if f.frozenFrames > 0
+        SetUnitTimeScale(f.body, 0.)
+        SetUnitVertexColor(f.body, 155, 210, 255, 255)
+        return
     if f.grounded or f.hitstun > 0 or f.airDodging or attackPhase(f) != ATTACK_NONE or f.downState != DOWN_NONE or f.shieldBreakState != SHIELD_BREAK_NONE or f.ledgeState != LEDGE_NONE
         f.jumpAnimationRemaining = 0
     else if jumped and not wasOut
@@ -1072,6 +1104,7 @@ function gameTick()
     if appliedSecondBindingRevision != secondBindings.revision
         clearSecondInputs()
         appliedSecondBindingRevision = secondBindings.revision
+    combatEffects.tick()
     lockArenaCamera()
     statusTime = max(0, statusTime - FRAME_SECONDS)
     if matchState.phase == MATCH
@@ -1107,6 +1140,7 @@ function gameTick()
         playerInput.mashPressed = playerMashPressed
         playerInput.ledgeVerticalPressed = playerLedgeVerticalPressed
         playerInput.getupAttackPressed = playerGetupAttackPressed
+        playerInput.specialPressed = playerSpecialPressed
         playerInput.getupStandPressed = playerGetupStandPressed
         playerInput.getupDirection = (playerRightPressed ? 1 : 0) - (playerLeftPressed ? 1 : 0)
         playerInput.getupDirectionPressed = playerInput.getupDirection != 0
@@ -1135,6 +1169,7 @@ function gameTick()
         secondPlayerInput.mashPressed = secondMashPressed
         secondPlayerInput.ledgeVerticalPressed = secondLedgeVerticalPressed
         secondPlayerInput.getupAttackPressed = secondGetupAttackPressed
+        secondPlayerInput.specialPressed = secondSpecialPressed
         secondPlayerInput.getupStandPressed = secondGetupStandPressed
         secondPlayerInput.getupDirection = (secondRightPressed ? 1 : 0) - (secondLeftPressed ? 1 : 0)
         secondPlayerInput.getupDirectionPressed = secondPlayerInput.getupDirection != 0
@@ -1172,6 +1207,7 @@ function gameTick()
         playerLeftPressed = false
         playerRightPressed = false
         playerDownPressed = false
+        playerSpecialPressed = false
         playerGetupAttackPressed = false
         playerGetupStandPressed = false
         playerTechPressed = false
@@ -1189,6 +1225,7 @@ function gameTick()
         secondLeftPressed = false
         secondRightPressed = false
         secondDownPressed = false
+        secondSpecialPressed = false
         secondGetupAttackPressed = false
         secondGetupStandPressed = false
         secondTechPressed = false
@@ -1258,6 +1295,8 @@ function initGame()
     SetTimeOfDayScale(0)
     SetSkyModel("Environment\\Sky\\LordaeronSummerSky\\LordaeronSummerSky.mdl")
     PanCameraToTimed(centerX, centerY, 0)
+    combatEffects = new CombatEffects(centerX, centerY, floorHeight)
+    frostEffects = new FrostEffects(centerX, centerY, floorHeight)
     makePreview()
     renderUI()
     setupKeys()

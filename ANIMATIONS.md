@@ -224,13 +224,17 @@ wc3-melee:tools/animations/dodges.py also authors Knockdown (12 source frames),
 Get Up (30), and Get Up Attack (45). The attack sweeps at frames 16–18 and
 returns upright by frame 45. As with the other clips, generated metadata
 supplies the actual model indices and durations, and Wurst scales playback
-onto simulation timing. No root translation was added. Get-up rolls currently
-reuse the existing roll clips and still need a transition from the prone pose.
+onto simulation timing. `grounding.py` now measures the visible skinned mesh at
+each source frame and applies the required vertical correction to child and
+attachment bones. This keeps the fighter on the stage through the knockdown,
+get-up, and get-up attack without adding a `Bone_Root` translation track.
 
-The full asset build and exported MDX → Blender side-view pose check passed.
-Knockdown ends prone, stand-up returns upright, and the attack has a visible
-sweep in the rendered model. Native playback observations belong in
-wc3-melee:DEVELOPMENT.md. Rifleman still uses stock animations.
+Both fighters now use the same authored recovery clips. The per-frame Blender
+check keeps the lowest visible vertex within 0.0001 model units of the preview
+stage height across all three clips. The rendered stage-side poses are
+wc3-melee:build/animation-assets/archer-recovery-knockdown-12.png,
+wc3-melee:build/animation-assets/archer-recovery-getup-00.png, and the matching
+`rifleman-recovery-*` images. Native playback still needs a client check.
 
 One-shot action export is repaired at
 ~/code/mdl-exporter4/worktrees/blender5, commit 4ce7b32. The action-based path
@@ -434,3 +438,83 @@ style 12. Evidence and limits are in wc3-melee:native-capability-report.md.
 All five aerials per fighter compile/package, but this native check covers
 neutral aerial only, outside its active frames. Frame-perfect contact/hurtbox
 alignment and remaining clips need further validation.
+
+## Longer neutral/back aerials and Rifleman backward kick
+
+wc3-melee:tools/animations/aerials.py now matches the neutral/back timing in
+wc3-melee:PHYSICS.md: source index 3 begins contact, neutral holds through 30
+and back through 18, with recovery ending at 41 / 37. Generated durations
+(1.708 / 1.542 seconds at 24fps) scale onto those simulation ticks. Both rigs
+use the same provisional timing; forward/up/down clips retain their old motion.
+
+Rifleman kicks with the camera-facing right leg instead of the occluded left
+leg. Its imported rest knee is bent, so positive knee rotation straightens the
+backward extension. Right thigh −100° / knee +40°, a tucked opposite leg, and
+25° torso lean expose the boot behind the body. The packaged model's right
+ankle is about 38.9 world units behind its hip during the held contact pose.
+Root travel remains absent; the rifle retains the existing baked hand grips.
+
+Both editable scenes and packaged models were regenerated. The existing
+package check passed durations, nonlooping flags, complete rotations,
+visibility and root-travel checks, plus preserved prior exported tracks.
+A separate source comparison found all 32 Archer / 29 Rifleman actions outside
+neutral/back unchanged, including the other aerials. The simulation package
+passed 150/151 tests initially; the new clock test had incorrectly placed its
+fixture beyond the blast ceiling. After correcting that fixture, the three
+new timing/late-hit/single-hit tests passed with zero compiler warnings.
+The other 150 tests, including up aerial's intentional multihit, had passed.
+
+Exported MDX → MDL → Blender previews show the extended boot from the stage
+camera and its reverse, through the late window, then retracted by index 32.
+wc3-melee:build/animation-assets/rifleman-backair-comparison.png shows the prior
+pose, new stage/reverse contact, late contact and retraction; individual views
+use wc3-melee:build/animation-assets/rifleman-backair-stage-XX.png and
+wc3-melee:build/animation-assets/rifleman-backair-reverse-XX.png. Check logs are
+wc3-melee:build/animation-assets/rebuild-backair.log,
+wc3-melee:build/animation-assets/check-backair.log and
+wc3-melee:build/wurst-tests/backair-timing-focused.log.
+
+A stricter new all-frame grip probe did not pass its 0.02-unit roundtrip
+threshold: maximum reimported wrist error was 0.492 world units during startup,
+versus source-scene error below 0.000014. The held contact's error is about
+0.0077; the last active index measures 0.086. The importer rounds numeric key
+times to whole Blender frames, which is a suspected contributor when importing
+adaptive subframe samples; exporter versus importer attribution is not yet
+isolated. This small transition discrepancy does not block the visible kick,
+but is an open tooling defect, not an exact grip-fidelity claim. The original
+failing probe remains wc3-melee:build/animation-assets/check-backair-roundtrip.py
+and its log; the diagnostic measurement is
+wc3-melee:build/animation-assets/measure-backair-roundtrip.log. No gate was
+relaxed. Native playback, frame-perfect contact and final art quality remain
+separate parent-owned checks.
+
+## Grounded recovery and neutral aerial pose
+
+`grounding.py` applies a per-frame vertical adjustment based on the visible
+exported skin, moving the pelvis/chest branches and separate attachment roots
+while leaving `Bone_Root` translation absent. The authoring run checked every
+frame of Knockdown, Get Up, and Get Up Attack for both rigs; the measured floor
+error was 0.0000 model units. This verifies authored mesh contact, not Warcraft
+unit height or the feel of the native recovery timing.
+
+The generic neutral aerial presents one forward kicking leg with the other
+bent back. Both rigs hold the kick through their longer reference-style active
+window. Exported stage-side previews, including the floor line, are
+wc3-melee:build/animation-assets/archer-aerial-neutral.png and
+wc3-melee:build/animation-assets/rifleman-aerial-neutral.png. The pose angles
+remain provisional until observed at game-camera scale.
+
+Archer Down Air now tucks both legs during its seven-frame startup, then extends
+the camera-facing leg straight down while keeping the far leg folded through
+20 active frames. The body folds over the extended leg, the bow stays on its
+hand rig, and `Bone_Root` has no translation. Total clip length remains 38
+frames; Rifleman's Down Air keeps its existing seven-startup/three-active pose.
+Stage and reverse contact previews are
+wc3-melee:build/animation-assets/archer-dair-contact-stage.png and
+wc3-melee:build/animation-assets/archer-dair-contact-reverse.png; startup and
+last-active views use the matching `archer-dair-*` names.
+
+Both Spot Dodge clips now end at frame 22, with the protected crouch pose held
+from frames 5 through 15. Archer's existing Back Air already reads as one leg
+extended backward and the other tucked in the stage-side export; it keeps its
+three-startup/16-active/37-total timing. Rifleman's Back Air is unchanged.

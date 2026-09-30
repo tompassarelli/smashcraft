@@ -7,10 +7,11 @@ stdlib_checkout=/home/tom/code/wurst-stdlib/pins/4dfc8a0474bd
 compiler_jar="$project_dir/toolchain/wurstscript.jar"
 java=/home/tom/.wurst/wurst-runtime/bin/java
 maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps'
-build_output="$project_dir/build/wurst-map/Melee_Prototype.w3x"
+build_output="$project_dir/build/wurst-map/Smashcraft.w3x"
 fighter_assets="$project_dir/build/animation-assets"
 selection_assets="$project_dir/build/selection-assets"
 stage_assets="$project_dir/build/stage-assets"
+impact_assets="$project_dir/build/impact-assets"
 selection_textures=(ArcherName RiflemanName SelectionBackdrop SelectionTileFrame SelectionCardRed SelectionCardBlue SelectionCardGray SelectionAction StageBackdrop StageChip SelectionSkyDeck SelectionThreeBridges SelectionChipP1 SelectionChipP2 SelectionChipCPU ArcherPortrait RiflemanPortrait ArcherTile RiflemanTile MatchHUD0 MatchHUD1 MatchHUD2 MatchHUD3)
 
 if [[ $# -ne 1 || ! -f "$1" ]]; then
@@ -29,6 +30,8 @@ for texture in "${selection_textures[@]}"; do
     }
 done
 nix shell nixpkgs#bun --command bun "$project_dir/tools/stage/package.ts"
+nix shell nixpkgs#bun --command bun "$project_dir/tools/effects/package.ts"
+nix shell nixpkgs#bun --command bun "$project_dir/tools/effects/trap.ts"
 build_id=${WC3_BUILD_ID:-$(date +%s)}
 developer_scenario=${WC3_SCENARIO:-normal}
 case "$developer_scenario" in normal|knockdown|tech|shield-break|ledge) ;; *) echo 'WC3_SCENARIO must be normal, knockdown, tech, shield-break or ledge.' >&2; exit 2;; esac
@@ -64,11 +67,19 @@ mkdir -p "$work_dir/wurst" "$work_dir/_build/dependencies" "$work_dir/imports/wa
 ln -s "$stdlib_checkout" "$work_dir/_build/dependencies/wurststdlib"
 cp "$project_dir/wurst.build" "$work_dir/wurst.build"
 cp "$project_dir/tools/map-entry.j" "$work_dir/wurst/war3map.j"
-for source in FighterAssets Simulation DirectionalInput MatchRules MatchHUD CommandBuffer CombatInput MatchStep KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI Melee; do
+for source in FighterAssets Simulation DirectionalInput MatchRules MatchHUD CommandBuffer CombatInput MatchStep KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents CombatEffects FrostEffects Melee; do
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
 done
 cp "$fighter_assets/FighterAssetInfo.wurst" "$work_dir/wurst/FighterAssetInfo.wurst"
 cp "$stage_assets/StageAssetInfo.wurst" "$work_dir/wurst/StageAssetInfo.wurst"
+cp "$impact_assets/ImpactAssetInfo.wurst" "$work_dir/wurst/ImpactAssetInfo.wurst"
+cp "$impact_assets/FrostAssetInfo.wurst" "$work_dir/wurst/FrostAssetInfo.wurst"
+mapfile -t impact_imports < "$impact_assets/imports.txt"
+mapfile -t frost_imports < "$impact_assets/frost-imports.txt"
+impact_imports+=("${frost_imports[@]}")
+for asset in "${impact_imports[@]}"; do
+    cp "$impact_assets/$asset" "$work_dir/imports/war3mapImported/$asset"
+done
 mapfile -t stage_imports < "$stage_assets/imports.txt"
 for asset in "${stage_imports[@]}"; do
     cp "$stage_assets/$asset" "$work_dir/imports/war3mapImported/$asset"
@@ -96,7 +107,7 @@ cd "$work_dir"
     -lib "$stdlib_checkout"
 )
 
-[[ -s "$work_dir/_build/Melee_Prototype.w3x" ]] || {
+[[ -s "$work_dir/_build/Smashcraft.w3x" ]] || {
     printf 'Compiler did not emit the configured map.\n' >&2
     exit 1
 }
@@ -151,7 +162,7 @@ LUA
 
 nix shell nixpkgs#lua5_3 --command luac -p "$map_script"
 output_next="$build_output.next"
-cp "$work_dir/_build/Melee_Prototype.w3x" "$output_next"
+cp "$work_dir/_build/Smashcraft.w3x" "$output_next"
 "$packager" replace "$output_next" "$map_script"
 "$packager" extract "$output_next" "$work_dir/verified-ArcherFighter.mdx" "$fighter_model_path"
 cmp "$fighter_assets/ArcherFighter.mdx" "$work_dir/verified-ArcherFighter.mdx"
@@ -165,6 +176,10 @@ for asset in "${stage_imports[@]}"; do
     "$packager" extract "$output_next" "$work_dir/verified-$asset" "war3mapImported\\$asset"
     cmp "$stage_assets/$asset" "$work_dir/verified-$asset"
 done
+for asset in "${impact_imports[@]}"; do
+    "$packager" extract "$output_next" "$work_dir/verified-$asset" "war3mapImported\\$asset"
+    cmp "$impact_assets/$asset" "$work_dir/verified-$asset"
+done
 "$packager" extract "$output_next" "$work_dir/verified.w3a" war3map.w3a
 [[ -s "$work_dir/verified.w3a" ]]
 "$packager" extract "$output_next" "$work_dir/verified.lua"
@@ -173,11 +188,11 @@ mv "$output_next" "$build_output"
 
 if [[ ${WC3_DEPLOY_MAP:-0} == 1 ]]; then
     mkdir -p "$maps_dir"
-    cp "$build_output" "$maps_dir/Melee_Prototype.w3x.next"
-    mv "$maps_dir/Melee_Prototype.w3x.next" "$maps_dir/Melee_Prototype.w3x"
+    cp "$build_output" "$maps_dir/Smashcraft.w3x.next"
+    mv "$maps_dir/Smashcraft.w3x.next" "$maps_dir/Smashcraft.w3x"
 fi
 
 printf 'Built %s\n' "$build_output"
 if [[ ${WC3_DEPLOY_MAP:-0} == 1 ]]; then
-    printf 'Deployed %s/Melee_Prototype.w3x\n' "$maps_dir"
+    printf 'Deployed %s/Smashcraft.w3x\n' "$maps_dir"
 fi

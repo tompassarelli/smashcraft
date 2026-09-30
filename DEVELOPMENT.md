@@ -8,6 +8,51 @@ assets, initially Archer and Rifleman.
 
 ## Split
 
+### Immediate delivery and special-move direction (30 September 2026)
+
+Finish the current playable checkpoint (grounded recovery poses, aerial
+silhouettes, dodge frame data and impact/dust cues), then connect the tested
+fixed input schedule to the transport-independent gameplay path. Prepare the
+second-client experiment alongside that work. The existing native-key baseline
+stays playable until native polling/transport/presentation gates justify a
+replacement; competitive responsiveness and fairness remain unmeasured.
+
+The owner specified these kits. The ordinary shot and Rifleman's freezing
+trap now exist in the simulation; the remaining specials are still pending:
+
+| Fighter | Special | Required behavior |
+| --- | --- | --- |
+| Archer | Neutral B | Arrow; jump-cancellable recovery. |
+| Archer | Side B | Visible wind-up, then a fan-shaped multishot; slower than neutral B. |
+| Archer | Down B | Hippogryph flies in as cover; Archer backflips over its passing position and briefly hangs airborne. |
+| Archer | Up B | Briefly mount a summoned Hippogryph for a fast upward recovery. |
+| Rifleman | Neutral B | Legible, fast gun projectile. |
+| Rifleman | Side B | Bear travels forward at running speed, falls under gravity when airborne, and periodically swipes nearby opponents. |
+| Rifleman | Down B | Grounded freezing trap; victim is encased in ice for up to five seconds (300 simulation frames), with damaging hits breaking ice early. Original icy-trap effect informed by the supplied WoW image. |
+| Rifleman | Up B | Fire downward and recoil upward. The latest request emphasizes upward recovery; early-ascent protection ends before the apex. |
+
+All up-B moves should share that broad recovery/protection shape. Their exact
+startup, ascent, protection and recovery tuning remains to implement and test.
+Entity movement, hit registries, freezes, timers and allocation must be numerical
+snapshot state; native bird/bear/trap objects are presentation only.
+
+The trap/freeze slice passed 265/265 Wurst tests, including expiry at 300
+simulation advances during hitlag, hit interruption, KO/reset and snapshot
+replay across contact and thaw. The `freeze-trap-5s` map build passed with the
+same four existing warnings. It includes original trap/ice geometry and four
+preallocated presentation handles; ice stops the visible fighter's animation.
+Evidence: wc3-melee:build/wurst-tests/freeze-trap-integrated.log and
+wc3-melee:build/freeze-trap-map.log. Native visual/readability and multiplayer
+claims still require observation; these tests do not establish those claims.
+
+The shared dodge profile is spot dodge22/protection2–15, rolls31/protection4–19,
+and air dodge49/protection4–29 with10 landing frames. Spot dodge emits low
+outward-spreading dust; rolls emit a blue-white flash and trailing dust; missed
+techs emit a heavier green-white floor burst and dust. Archer's requested down
+air is a tucked startup into a downward extended-leg plunge; her back air uses
+a Fox/Falco-like single backward kick. Neutral air defaults to an extended kick
+and bent opposite leg for humanoid fighters.
+
 ### Current combat fidelity work
 
 - [ ] Support multiple prioritized hitboxes per move: sweetspots/sourspots (including weapon-tip sweetspots), early/late phases, per-hit damage/angle/base knockback/growth/hitlag, and explicit multihit re-hit rules. Test simultaneous overlap priority, facing, boundary contacts, and no accidental duplicate damage against multiple hurtboxes.

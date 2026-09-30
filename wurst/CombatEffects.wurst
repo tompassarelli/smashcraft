@@ -1,0 +1,93 @@
+package CombatEffects
+import Wurst
+import ImpactEvents
+import ImpactAssetInfo
+
+constant int EFFECTS_PER_KIND = 8
+constant int EFFECT_COUNT = 40
+
+// All handles are created together in common initialization. Effects never
+// provide input to combat, and playback creates/destroys no native handles.
+public class CombatEffects
+    private effect array[EFFECT_COUNT] models
+    private int array[EFFECT_COUNT] ages
+    private int array[5] nextSlot
+    private real array[EFFECT_COUNT] originX
+    private real array[EFFECT_COUNT] originZ
+    private int array[EFFECT_COUNT] drift
+    private real array[EFFECT_COUNT] strength
+    private real worldX
+    private real worldY
+    private real worldZ
+    private ImpactPresentationCursor cursor = new ImpactPresentationCursor()
+
+    construct(real x, real y, real z)
+        worldX = x
+        worldY = y - 8
+        worldZ = z
+        for i = 0 to EFFECT_COUNT - 1
+            let kind = i div EFFECTS_PER_KIND
+            let path = kind == 0 ? IMPACT_HIT_MODEL : (kind == 1 ? IMPACT_TECH_MODEL : (kind == 2 ? IMPACT_MISS_MODEL : (kind == 3 ? IMPACT_DUST_MODEL : IMPACT_ROLL_MODEL)))
+            let model = AddSpecialEffect(path, x, y)
+            BlzSetSpecialEffectAlpha(model, 0)
+            BlzSetSpecialEffectScale(model, 0.)
+            models[i] = model
+            ages[i] = -1
+        for kind = 0 to 4
+            nextSlot[kind] = 0
+
+    function clear()
+        cursor.reset()
+        for i = 0 to EFFECT_COUNT - 1
+            ages[i] = -1
+            BlzSetSpecialEffectAlpha(models[i], 0)
+            BlzSetSpecialEffectScale(models[i], 0.)
+
+    private function spawn(int kind, real x, real z, int direction, real size)
+        let slot = kind * EFFECTS_PER_KIND + nextSlot[kind]
+        nextSlot[kind] = (nextSlot[kind] + 1) mod EFFECTS_PER_KIND
+        ages[slot] = 0
+        originX[slot] = x
+        originZ[slot] = z
+        drift[slot] = direction
+        strength[slot] = size
+
+    private function emit(ImpactEvents events)
+        if events.hit
+            spawn(0, events.x, events.z + 50, 0, 1.)
+        if events.landing == IMPACT_TECH and events.dodge != 2
+            spawn(1, events.x, events.z + 3, 0, 1.)
+        else if events.landing == IMPACT_MISSED_TECH
+            spawn(2, events.x, events.z + 2, 0, 1.)
+            spawn(3, events.x - 15, events.z + 3, -1, 1.)
+            spawn(3, events.x + 15, events.z + 3, 1, 1.)
+        if events.dodge == 1
+            spawn(3, events.x - 8, events.z + 2, -1, 0.65)
+            spawn(3, events.x + 8, events.z + 2, 1, 0.65)
+        else if events.dodge == 2
+            spawn(4, events.x, events.z + 12, 0, 1.)
+            spawn(3, events.x - events.direction * 15, events.z + 2, -events.direction, 0.55)
+
+    function present(int frame, ImpactEvents first, ImpactEvents second)
+        if cursor.consume(frame)
+            emit(first)
+            emit(second)
+
+    function tick()
+        for i = 0 to EFFECT_COUNT - 1
+            if ages[i] >= 0
+                let kind = i div EFFECTS_PER_KIND
+                let lifetime = kind == 0 ? 9 : (kind == 1 ? 15 : (kind == 3 ? 32 : 12))
+                let age = ages[i]
+                if age >= lifetime
+                    ages[i] = -1
+                    BlzSetSpecialEffectAlpha(models[i], 0)
+                    BlzSetSpecialEffectScale(models[i], 0.)
+                else
+                    let progress = age * 1. / lifetime
+                    let scale = kind == 3 ? 0.75 + progress * 1.1 : (kind == 2 ? 0.7 + progress * 0.5 : 1. + progress * 0.25)
+                    let fade = 1. - progress
+                    BlzSetSpecialEffectAlpha(models[i], R2I((kind == 3 ? 220 * strength[i] : 255) * fade * fade))
+                    BlzSetSpecialEffectScale(models[i], scale * strength[i])
+                    BlzSetSpecialEffectPosition(models[i], worldX + originX[i] + drift[i] * age * 1.3, worldY, worldZ + originZ[i] + (kind == 3 ? progress * 9 : 0))
+                    ages[i]++

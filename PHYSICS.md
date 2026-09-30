@@ -471,13 +471,35 @@ are rejected in the air, aerial normals are rejected on the ground, and blaster
 remains usable in either state. Air steering changes horizontal velocity while
 preserving facing, allowing a back aerial to hit and launch behind the fighter.
 Landing cancels an aerial's remaining active/recovery animation and starts its
-move-specific landing lag. Aerial hit geometry and tuning are prototype values,
-not Melee measurements: damage 7/8/8/8/9; startup 3/5/6/5/7; active 2/2/2/3/3;
-total 25/31/33/34/38 ticks; landing lag 10/14/16/15/18 ticks, in neutral,
+move-specific landing lag. Aerial hit geometry and damage remain prototype values:
+strong damage 7/8/8/8/9; startup 3/5/3/5/7; active 28/2/16/3/3;
+total 41/31/37/34/38 ticks; landing lag 10/14/16/15/18 ticks, in neutral,
 forward, back, up, down order. Forward and back hit only on their respective
 sides; back launches away from facing, up launches mostly upward, and down
 launches downward. Hit regions are simple rectangles around the fighter rather
-than authored hitboxes. Charged smashes still need their own move behavior.
+than authored hitboxes. Neutral/back timing and weak damage are detailed below.
+
+Neutral and back aerials use a shared Falco-inspired timing baseline for both
+fighters. The factual tables at https://www.ssbwiki.com/Falco_(SSBM)/Neutral_aerial
+(revision 1930482) and https://www.ssbwiki.com/Falco_(SSBM)/Back_aerial
+(revision 1651640), retrieved 2026-09-30, report clean contact on frames 4–7,
+late contact on 8–31 / 8–19, and interruption on 42 / 38. Cached pages are
+wc3-melee:build/multiplayer-setup/falco-neutral-air.html and
+wc3-melee:build/multiplayer-setup/falco-back-air.html. Only these factual numbers
+are used; no article prose or decompiled implementation is copied.
+
+The start tick is attackFrame 0, corresponding to reference frame 1. Thus both
+moves have strong contact at indices 3–6; neutral lingers at 7–30 and back at
+7–18. Completion at indices 41 / 37 permits the next action on reference
+frames 42 / 38. The authored animation recovers over this actionable duration;
+it does not reproduce the reference's longer full animation lengths (49 / 39).
+Strong damage stays 7 / 8, while late damage is provisionally 5 for either move;
+ordinary knockback and hitlag use that lower damage. Both phases retain hit
+window 1, so a strong hit cannot rehit as weak after hitlag or target reentry.
+A missed strong phase can still connect late. Up aerial's intentional separate
+finisher window remains unchanged. This is rough shared timing, not a claim of
+character-specific Fox/Falco parity; autocancel and current landing lag remain
+separate unfinished tuning.
 
 Holding Walk with horizontal input selects forward tilt; adding Up or Down
 selects its angled variant. Vertical input alone keeps up/down tilt, and
@@ -530,14 +552,18 @@ are provisional rather than a Melee parity claim.
 
 Roll lasts 31 frames, is intangible on frames 4–19 inclusive, and translates
 at 8 world units per frame during that window (128 units unless stopped by
-the platform edge). Spot dodge lasts 23 frames and is intangible on frames
+the platform edge). Spot dodge lasts 22 frames and is intangible on frames
 2–15 inclusive. The start tick is frame 1. Roll facing stays fixed during
 movement; a forward roll reverses facing at completion, while a backward
 roll preserves it. Neither move permits attacks, jumps, steering or shielding
 during its recovery. Jump takes priority over a simultaneous dodge request.
 Spot dodge does not drop through a platform. Intangibility and recovery clocks
-pause in hitlag. Archer now has authored ground-dodge clips; Rifleman's clips
-remain to be authored. See wc3-melee:ANIMATIONS.md for playback and art limits.
+pause in hitlag. The owner's common frame-data profile specifies spot dodge
+22 / protection 2–15, both rolls 31 / protection 4–19, and air dodge 49 /
+protection 4–29 with 10 landing frames for every character. Air dodge retains
+its existing helpless fall until landing after its animation completes.
+Both fighters have authored ground-dodge clips. See wc3-melee:ANIMATIONS.md
+for playback and art limits.
 
 ## Knockdown reference observations
 
@@ -556,7 +582,10 @@ Our current prototype enters tumble at knockback magnitude 80 or above. It
 can leave tumble through an accepted air jump, air dodge or attack after
 hitstun; landing while still tumbling starts knockdown. Ground impact lasts
 12 ticks, followed by a vulnerable wait of up to 180 ticks before automatic
-stand-up. Fresh recovery presses choose attack, then roll, then stand.
+stand-up. Recovery checks attack, then horizontal roll, then stand. Held
+horizontal input and held Up are accepted, including on the bound-to-wait
+transition; an attack edge on that transition is consumed immediately. This
+repairs the previous requirement to release/repress direction after impact.
 Stand-up lasts 30 ticks; roll lasts 31 and covers 128 world units, clamped to
 the current platform. Their first 8 ticks are intangible. Get-up attack lasts
 45 ticks, has 16 startup/3 active ticks, deals 7 damage once, covers both sides,
@@ -565,8 +594,35 @@ and is intangible during startup. Recovery clocks freeze during hitlag.
 All these recovery timings, threshold and hit shapes are provisional.
 Instant surface impact replaces a physical bounce; face-up/down
 variants, jab resets, and character-specific get-up data remain unfinished.
-Jump as stand-up input is a deliberate keyboard convenience. Rifleman recovery
-art is still stock; Archer get-up rolls reuse ordinary roll clips.
+Jump as stand-up input is a deliberate keyboard convenience. Both fighters
+have authored recovery clips; get-up rolls reuse ordinary roll clips.
+
+Impact presentation uses three distinct cues: a nine-frame white contact
+star for damage, a fifteen-frame floor glint for successful techs, and a
+twelve-frame green/white floor burst plus thirty-two-frame spreading dust for
+missed techs. The latter stays at the landing point as the fighter recovers.
+These are original procedural models based on the owner's visual direction;
+their display lifetimes do not alter hitlag, tech windows, or recovery timing.
+wc3-melee:wurst/ImpactEvents.wurst derives one frame's cues from numerical
+before/after state, including both fighters in a trade. The live adapter uses
+40 preallocated effects and presents each completed frame once; headless
+replay creates no effects. Reconciliation of changed speculative journals is
+still part of the unimplemented visible-rollback milestone.
+
+Spot dodges emit two small outward-moving dust puffs. Ordinary, get-up and
+tech rolls emit a compact blue-white star and one smaller puff moving opposite
+the roll. These use frame-entry events, so sustained invulnerability does not
+repeatedly create the cue.
+
+Archer's owner-directed dive down-air now stalls vertically during its seven
+startup ticks, then plunges at24 world units/tick through20 active ticks
+(indices7–26), with38 total ticks. Its first3 active ticks deal9 damage and
+the lingering kick deals6, sharing one hit registry window. The region is
+narrower horizontally (±55) while retaining the downward victim-origin range
+−180..−10; this is still provisional origin-based collision, not pose-derived
+hurtboxes. Landing cancels the move into its existing18-frame recovery (9
+with L-cancel). Hitlag freezes the plunge. Rifleman's down-air is unchanged.
+These are initial design values, not a claim of extracted Sheik frame data.
 
 ## Floor-tech reference
 
@@ -805,3 +861,45 @@ root travel. Packaged-model wrist checks establish contact at the hang point
 and through the first five climb ticks; native visual alignment remains a
 separate check. These dimensions are prototype art/gameplay tuning, not
 measured Melee values.
+
+## Default digital wavedash and fast-fall directions
+
+Owner-selected controls (2026-09-30): a horizontal-only air dodge uses an angle
+of 18 degrees below horizontal for either fighter, mirrored for left/right.
+Its initial vector has the existing 18-unit magnitude, approximately
+(+/-17.1190, -5.5623), before ordinary 0.9 air-dodge decay. This is the default,
+with no modifier or toggle. Explicit up/down/diagonal input retains its
+previous direction and normalized speed; neutral retains zero initial velocity.
+The shallow choice helps preserve horizontal landing momentum, but a dodge
+started too high may still expire before reaching the ground. It is a control
+choice, not a claim of measured globally maximum wavedash distance.
+
+Fast-fall now requires down with neutral horizontal input. Down-left/down-right
+continue air drift without selecting fast-fall speed. Shield dodges, DI, down
+attacks and platform-drop handling retain their separate inputs. Existing
+fast-fall descent/actionability rules remain; native feel needs the new build.
+
+## Rifleman freezing trap
+
+Down+B places one trap on Rifleman's current grounded surface. Placement is
+instant when the next simulation frame accepts the input; airborne placement,
+placement while shielded or action-locked, and a second live trap are ignored.
+The trap arms after 20 match frames, lasts up to 1,800 frames (30 seconds),
+and has a 90-frame placement cooldown. It triggers on an opposing grounded
+fighter on that same surface within 42 world units. These are provisional
+control and range values, not Melee or Warcraft measurements.
+
+Contact consumes the trap and holds the target in an ice state for at most 300
+simulation frames (five seconds at 60 Hz). The countdown advances during
+hitlag, so hitlag cannot stretch the cap. Movement, attacks, dodges, shield,
+jump and other action inputs are ignored while frozen. A damaging unshielded
+hit breaks the ice before applying its normal damage and launch; shielded
+damage does not break it. A shielded contact consumes the trap without freezing
+the defender. Invulnerable targets do not consume it, so it can trigger later
+if they remain in range. KO and reset clear both placed and frozen state.
+
+Numerical state lives in `FighterState.freezeTrapLife`, `freezeTrapArming`,
+`freezeTrapX/Z`, `freezeTrapSurface`, `freezeTrapSerial`, `freezeTrapCooldown`
+and `frozenFrames`. Snapshot restore copies and compares these fields exactly.
+The trap and ice shell are presentation only; animation, visual timing and
+native multiplayer behavior require a loaded Warcraft build to validate.

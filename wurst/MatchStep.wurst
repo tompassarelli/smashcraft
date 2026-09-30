@@ -11,11 +11,20 @@ public function initializeMatchFighters(MatchState game, FighterState first, Fig
 public function stepMatch(MatchState game, FighterState first, FighterState second, InputSnapshot firstInput, InputSnapshot secondInput, AttackBuffer firstCommands, AttackBuffer secondCommands, int frame)
     if game.phase != MATCH
         return
-    firstInput.attackRequested = firstCommands.hasPending(frame)
-    secondInput.attackRequested = secondCommands.hasPending(frame)
+    firstInput.attackRequested = firstCommands.hasPending(frame) and first.frozenFrames == 0
+    secondInput.attackRequested = secondCommands.hasPending(frame) and second.frozenFrames == 0
     resolveLedgePair(first, second, game.stageChoice, firstInput, secondInput)
     advance(first, game.stageChoice, firstInput, -240)
     advance(second, game.stageChoice, secondInput, 240)
+    if firstInput.specialPressed and firstInput.down
+        startFreezeTrap(first, game.stageChoice)
+    if secondInput.specialPressed and secondInput.down
+        startFreezeTrap(second, game.stageChoice)
+    advanceFreezeTrapPair(first, second)
+    if first.frozenFrames > 0
+        firstCommands.clear()
+    if second.frozenFrames > 0
+        secondCommands.clear()
     let firstCommand = firstCommands.consume(frame, canStartAttackStyle(first, firstCommands.style))
     let secondCommand = secondCommands.consume(frame, canStartAttackStyle(second, secondCommands.style))
     let firstStyle = attackStyleForGrounding(firstCommand, first.grounded, first.facing, firstCommands.consumedFacing)

@@ -2,7 +2,7 @@ projectName: Smashcraft
 wc3Patch: v3.0
 buildMapData:
   name: Smashcraft
-  fileName: Melee_Prototype
+  fileName: Smashcraft
   author: Tompas
   scenarioData:
     description: Archer versus Rifleman platform fight.

@@ -1,0 +1,202 @@
+package FreezeTrapTests
+import Simulation
+import MatchRules
+import CommandBuffer
+import MatchStep
+import ReplayState
+
+function freezeTrapMatch() returns MatchState
+	let game = new MatchState()
+	game.phase = MATCH
+	return game
+
+@Test function downSpecialPlacesGroundTrapAndArmsAgainstOpponentOnly()
+	let game = freezeTrapMatch()
+	let rifleman = new FighterState(1, -100, 1)
+	let archer = new FighterState(0, 400, -1)
+	rifleman.surface = 0
+	archer.surface = 0
+	let riflemanInput = new InputSnapshot()
+	let archerInput = new InputSnapshot()
+	let riflemanCommands = new AttackBuffer(0)
+	let archerCommands = new AttackBuffer(0)
+	riflemanInput.specialPressed = true
+	riflemanInput.down = true
+	stepMatch(game, rifleman, archer, riflemanInput, archerInput, riflemanCommands, archerCommands, 1)
+	rifleman.freezeTrapSerial.assertEquals(1)
+	rifleman.freezeTrapX.assertEquals(-100.)
+	rifleman.freezeTrapZ.assertEquals(0.)
+	rifleman.freezeTrapSurface.assertEquals(0)
+	rifleman.freezeTrapLife.assertEquals(FREEZE_TRAP_LIFETIME_FRAMES)
+	rifleman.freezeTrapArming.assertEquals(FREEZE_TRAP_ARMING_FRAMES)
+	rifleman.frozenFrames.assertEquals(0)
+	// An air Down+B is ignored and cannot fall through to a down aerial.
+	riflemanInput.specialPressed = false
+	rifleman.grounded = false
+	rifleman.surface = -1
+	riflemanInput.specialPressed = true
+	stepMatch(game, rifleman, archer, riflemanInput, archerInput, riflemanCommands, archerCommands, 2)
+	rifleman.freezeTrapSerial.assertEquals(1)
+	rifleman.attackStyle.assertEquals(-1)
+	destroy riflemanCommands
+	destroy archerCommands
+	destroy riflemanInput
+	destroy archerInput
+	destroy rifleman
+	destroy archer
+	destroy game
+
+@Test function trapConsumesOnContactButNotOwnerOrInvulnerableTarget()
+	let owner = new FighterState(1, 0, 1)
+	let target = new FighterState(0, 0, -1)
+	owner.surface = 0
+	target.surface = 0
+	owner.freezeTrapLife = 30
+	owner.freezeTrapArming = 0
+	owner.freezeTrapX = 0
+	owner.freezeTrapSurface = 0
+	target.invincible = 2
+	advanceFreezeTrapPair(owner, target)
+	owner.freezeTrapLife.assertEquals(30)
+	target.frozenFrames.assertEquals(0)
+	target.invincible = 0
+	advanceFreezeTrapPair(owner, target)
+	owner.freezeTrapLife.assertEquals(0)
+	target.frozenFrames.assertEquals(FREEZE_TRAP_FREEZE_FRAMES)
+	owner.frozenFrames.assertEquals(0)
+	destroy owner
+	destroy target
+
+@Test function shieldConsumesTrapWithoutFreezingAndHitBreaksIce()
+	let owner = new FighterState(1, 0, 1)
+	let target = new FighterState(0, 0, -1)
+	owner.surface = 0
+	target.surface = 0
+	owner.freezeTrapLife = 30
+	owner.freezeTrapX = 0
+	owner.freezeTrapSurface = 0
+	target.shield = true
+	advanceFreezeTrapPair(owner, target)
+	owner.freezeTrapLife.assertEquals(0)
+	target.frozenFrames.assertEquals(0)
+	target.shield = false
+	target.frozenFrames = 100
+	owner.x = 0
+	owner.attackStyle = 0
+	owner.attackFrame = attackStartupFrames(0)
+	owner.attackDuration = attackDurationFrames(0)
+	owner.attackHit = false
+	target.x = 100
+	resolveAttackPair(owner, target)
+	target.damage.assertGreaterThan(0)
+	target.frozenFrames.assertEquals(0)
+	destroy owner
+	destroy target
+
+@Test function freezeExpiresAfterThreeHundredFramesIncludingHitlag()
+	let target = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	target.frozenFrames = FREEZE_TRAP_FREEZE_FRAMES
+	target.hitlag = 20
+	for frame = 1 to FREEZE_TRAP_FREEZE_FRAMES - 1
+		advance(target, 0, input, -240)
+	target.frozenFrames.assertEquals(1)
+	target.hitlag.assertEquals(20)
+	advance(target, 0, input, -240)
+	target.frozenFrames.assertEquals(0)
+	target.hitlag.assertEquals(20)
+	canStartAttackStyle(target, 0).assertFalse()
+	target.hitlag = 0
+	canStartAttackStyle(target, 0).assertTrue()
+	destroy input
+	destroy target
+
+@Test function koRespawnAndResetClearTrapAndFrozenState()
+	let rifleman = new FighterState(1, 0, 1)
+	let input = new InputSnapshot()
+	rifleman.stocks = 2
+	rifleman.freezeTrapLife = 900
+	rifleman.freezeTrapArming = 12
+	rifleman.freezeTrapSerial = 3
+	rifleman.frozenFrames = 120
+	rifleman.x = 920
+	advance(rifleman, 0, input, -240)
+	rifleman.out.assertTrue()
+	rifleman.stocks.assertEquals(1)
+	rifleman.freezeTrapLife.assertEquals(0)
+	rifleman.frozenFrames.assertEquals(0)
+	for frame = 1 to 60
+		advance(rifleman, 0, input, -240)
+	rifleman.out.assertFalse()
+	rifleman.freezeTrapSerial.assertEquals(0)
+	rifleman.freezeTrapLife.assertEquals(0)
+	rifleman.freezeTrapCooldown.assertEquals(0)
+	rifleman.frozenFrames.assertEquals(0)
+	rifleman.freezeTrapLife = 900
+	rifleman.freezeTrapSerial = 1
+	rifleman.frozenFrames = 12
+	reset(rifleman, 240)
+	rifleman.freezeTrapSerial.assertEquals(0)
+	rifleman.freezeTrapLife.assertEquals(0)
+	rifleman.frozenFrames.assertEquals(0)
+	destroy input
+	destroy rifleman
+
+@Test function freezeTrapAndFreezeAreCopiedAndComparedByReplaySnapshots()
+	let game = freezeTrapMatch()
+	let rifleman = new FighterState(1, -100, 1)
+	let archer = new FighterState(0, -100, -1)
+	rifleman.surface = 0
+	archer.surface = 0
+	let riflemanInput = new InputSnapshot()
+	let archerInput = new InputSnapshot()
+	let riflemanCommands = new AttackBuffer(0)
+	let archerCommands = new AttackBuffer(0)
+	let runtime = new ReplayRuntimeState()
+	let before = new ReplaySnapshot()
+	let expected = new ReplaySnapshot()
+	let replayed = new ReplaySnapshot()
+	before.capture(rifleman, archer, game, riflemanCommands, archerCommands, runtime)
+	for frame = 1 to 321
+		riflemanInput.specialPressed = frame == 1
+		riflemanInput.down = true
+		stepMatch(game, rifleman, archer, riflemanInput, archerInput,
+			riflemanCommands, archerCommands, frame)
+		runtime.simulationFrame = frame
+		if frame == 21
+			archer.frozenFrames.assertEquals(FREEZE_TRAP_FREEZE_FRAMES)
+		if frame == 320
+			archer.frozenFrames.assertEquals(1)
+		if frame == 321
+			archer.frozenFrames.assertEquals(0)
+	expected.capture(rifleman, archer, game, riflemanCommands, archerCommands, runtime)
+	before.restore(rifleman, archer, game, riflemanCommands, archerCommands, runtime)
+	for frame = 1 to 321
+		riflemanInput.specialPressed = frame == 1
+		riflemanInput.down = true
+		stepMatch(game, rifleman, archer, riflemanInput, archerInput,
+			riflemanCommands, archerCommands, frame)
+		runtime.simulationFrame = frame
+	replayed.capture(rifleman, archer, game, riflemanCommands, archerCommands, runtime)
+	expected.firstDifference(replayed).assertEquals("")
+	// The immutable frame-input copy carries the edge used by command dispatch.
+	let row = new MatchFrameInput()
+	let copied = new MatchFrameInput()
+	riflemanInput.specialPressed = true
+	row.capture(322, riflemanInput, archerInput, riflemanCommands, archerCommands, runtime).assertTrue()
+	row.copyTo(copied)
+	copied.execute(game, rifleman, archer, riflemanCommands, archerCommands, runtime, 322).assertTrue()
+	archer.frozenFrames.assertEquals(0)
+	destroy copied
+	destroy row
+	destroy before
+	destroy expected
+	destroy replayed
+	destroy riflemanCommands
+	destroy archerCommands
+	destroy riflemanInput
+	destroy archerInput
+	destroy rifleman
+	destroy archer
+	destroy game
+	destroy runtime

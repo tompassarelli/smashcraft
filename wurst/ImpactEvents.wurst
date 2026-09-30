@@ -1,0 +1,60 @@
+package ImpactEvents
+import Simulation
+
+public constant int IMPACT_NONE = 0
+public constant int IMPACT_TECH = 1
+public constant int IMPACT_MISSED_TECH = 2
+
+// A numerical journal for one fighter's completed frame. Native presentation
+// consumes this outside simulation/replay; epoch, frame and fighter identify it.
+public class ImpactEvents
+    private real previousDamage = 0
+    private int previousDown = DOWN_NONE
+    private boolean previouslyOut = false
+    private int previousGroundDodge = 0
+    boolean hit = false
+    int landing = IMPACT_NONE
+    int dodge = 0
+    int direction = 0
+    real x = 0
+    real z = 0
+
+    function before(FighterState fighter)
+        previousDamage = fighter.damage
+        previousDown = fighter.downState
+        previouslyOut = fighter.out
+        previousGroundDodge = fighter.groundDodgeFrame
+        hit = false
+        landing = IMPACT_NONE
+        dodge = 0
+        direction = 0
+
+    function after(FighterState fighter)
+        x = fighter.x
+        z = fighter.z
+        hit = not previouslyOut and not fighter.out and fighter.damage > previousDamage
+        if not previouslyOut and not fighter.out and previousDown != fighter.downState
+            if isFloorTeching(fighter)
+                landing = IMPACT_TECH
+            else if fighter.downState == DOWN_BOUND
+                landing = IMPACT_MISSED_TECH
+            if fighter.downState == DOWN_ROLL or fighter.downState == DOWN_TECH_ROLL
+                dodge = 2
+                direction = fighter.downDirection
+        if not previouslyOut and not fighter.out and previousGroundDodge == 0 and fighter.groundDodgeFrame > 0
+            direction = fighter.groundDodgeDirection
+            dodge = direction == 0 ? 1 : 2
+
+// The current adapter presents completed frames only. Replay never calls the
+// renderer; resetting this cursor is part of beginning a new match.
+public class ImpactPresentationCursor
+    private int lastFrame = -1
+
+    function reset()
+        lastFrame = -1
+
+    function consume(int frame) returns boolean
+        if frame <= lastFrame
+            return false
+        lastFrame = frame
+        return true

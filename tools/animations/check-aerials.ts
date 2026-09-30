@@ -2,15 +2,63 @@
 import {parseMDX, parseMDL, generateMDL} from 'war3-model';
 import {join} from 'node:path';
 const assets=join(import.meta.dir,'../../build/animation-assets');
-const clips=[['Neutral',25],['Forward',31],['Back',33],['Up',34],['Down',38]] as const;
+const clips=[['Neutral',41],['Forward',31],['Back',37],['Up',34],['Down',38]] as const;
+const groundedRecovery = new Set(['Knockdown','Get Up','Get Up Attack']);
+const ArcherDair = {startup:7,active:20,duration:38};
+const changedSourceClips = (fighter:string) => new Set([
+ ...groundedRecovery,
+ 'Spot Dodge',
+ ...(fighter === 'Archer' ? ['Aerial Down'] : []),
+]);
 const preservationFailures:string[]=[];
 function ensure(ok: unknown, message: string): asserts ok {if(!ok) throw new Error(message);}
+function sampleKey(track:any, sequence:any, frame:number) {
+ const target=sequence.Interval[0]+Math.round(frame*1000/24);
+ const key=track?.Keys?.reduce((best:any,current:any)=>!best||Math.abs(current.Frame-target)<Math.abs(best.Frame-target)?current:best,null);
+ ensure(key && Math.abs(key.Frame-target)<=2,`${sequence.Name} has no key for source frame ${frame}`);
+ return key;
+}
+function sameQuaternion(a:number[],b:number[],epsilon=0.001) {
+ const len=(q:number[])=>Math.sqrt(q.reduce((sum,v)=>sum+v*v,0));
+ const dot=a.reduce((sum,v,i)=>sum+v*b[i],0)/(len(a)*len(b));
+ return Math.abs(dot)>=1-epsilon;
+}
 for(const fighter of ['Archer','Rifleman']) {
  const model=parseMDX(await Bun.file(join(assets,`${fighter}Fighter.mdx`)).arrayBuffer());
  // Compare unchanged source scenes through the same repaired exporter. The old
  // MDX used globally selected interpolation and is retained as defect evidence.
  const prior=parseMDL(await Bun.file(join(assets,`${fighter.toLowerCase()}-before-aerial-repaired.mdl`)).text());
  const root=[...model.Bones,...model.Helpers].find(b=>b.Name==='Bone_Root')!;
+ for(const name of groundedRecovery) {
+  const sequence=model.Sequences.find(s=>s.Name===name);
+  ensure(sequence && sequence.NonLooping,`${fighter} ${name} recovery clip missing/looping`);
+  const translations=root.Translation?.Keys?.filter((k:any)=>k.Frame>=sequence.Interval[0]&&k.Frame<=sequence.Interval[1])??[];
+  ensure(translations.length===0,`${fighter} ${name} moves the gameplay root`);
+ }
+ const spot=model.Sequences.find(s=>s.Name==='Spot Dodge');
+ ensure(spot && spot.NonLooping,`${fighter} Spot Dodge missing/looping`);
+ ensure(Math.abs(spot.Interval[1]-spot.Interval[0]-22*1000/24)<2,`${fighter} Spot Dodge is not 22 frames`);
+ ensure((root.Translation?.Keys?.filter((k:any)=>k.Frame>=spot.Interval[0]&&k.Frame<=spot.Interval[1])??[]).length===0,
+        `${fighter} Spot Dodge moves the gameplay root`);
+ const dodgeChest=[...model.Bones,...model.Helpers].find(b=>b.Name==='Bone_Chest')!;
+ ensure(sameQuaternion(sampleKey(dodgeChest.Rotation,spot,5).Vector,sampleKey(dodgeChest.Rotation,spot,15).Vector),
+        `${fighter} Spot Dodge does not hold its protected pose through frame 15`);
+ if(fighter==='Archer') {
+  const s=model.Sequences.find(s=>s.Name==='Aerial Down')!;
+  ensure(Math.abs(s.Interval[1]-s.Interval[0]-ArcherDair.duration*1000/24)<2,'Archer Down Air duration');
+  ensure((root.Translation?.Keys?.filter((k:any)=>k.Frame>=s.Interval[0]&&k.Frame<=s.Interval[1])??[]).length===0,
+         'Archer Down Air moves the gameplay root');
+  const thigh=[...model.Bones,...model.Helpers].find(b=>b.Name==='Bone_Leg1_R')!;
+  const folded=sampleKey(thigh.Rotation,s,0).Vector;
+  const extended=sampleKey(thigh.Rotation,s,ArcherDair.startup).Vector;
+  const held=sampleKey(thigh.Rotation,s,ArcherDair.startup+ArcherDair.active-1).Vector;
+  ensure(!sameQuaternion(folded,extended,0.02),'Archer Down Air startup is not tucked before extension');
+  ensure(sameQuaternion(extended,held), 'Archer Down Air leg retracts during the active window');
+  const tuckedLeg=[...model.Bones,...model.Helpers].find(b=>b.Name==='Bone_Leg1_L')!;
+  ensure(sameQuaternion(sampleKey(tuckedLeg.Rotation,s,ArcherDair.startup).Vector,
+                        sampleKey(tuckedLeg.Rotation,s,ArcherDair.startup+ArcherDair.active-1).Vector),
+         'Archer Down Air far leg does not remain tucked');
+ }
  for(const [kind,frames] of clips) {
   const name=`Aerial ${kind}`, s=model.Sequences.find(s=>s.Name===name)!;
   ensure(s && s.NonLooping,`${fighter} ${name} missing/looping`);
@@ -51,6 +99,10 @@ for(const fighter of ['Archer','Rifleman']) {
  for(const s of prior.Sequences) {
   const next=model.Sequences.find(n=>n.Name===s.Name)!;
   ensure(next && next.NonLooping===s.NonLooping,`${fighter} lost ${s.Name}`);
+  // Grounded recovery, spot-dodge duration, and Archer's Down Air silhouette
+  // are deliberate source changes with direct checks above. Every other prior
+  // clip remains subject to the exact preservation comparison below.
+  if(changedSourceClips(fighter).has(s.Name)) continue;
   if(Math.abs(next.Interval[1]-next.Interval[0]-s.Interval[1]+s.Interval[0])>1) preservationFailures.push(`${fighter} ${s.Name}: exported duration differs by more than 1ms`);
   const before=tracks(prior,s), after=tracks(model,next);
   ensure(JSON.stringify(Object.keys(before).sort())===JSON.stringify(Object.keys(after).sort()),`${fighter} ${s.Name}: nodes changed`);

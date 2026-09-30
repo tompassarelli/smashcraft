@@ -305,6 +305,8 @@ function landLCancelTest(FighterState fighter, InputSnapshot input)
 @Test function lCancelHalvesAerialRecoveryAndPreservesActionLockout()
 	for style = AERIAL_NEUTRAL_STYLE to AERIAL_DOWN_STYLE
 		let fighter = lCancelTestFighter(style)
+		// The dive stalls in startup; this fixture tests actual landing recovery.
+		fighter.attackFrame = attackStartupFrames(style)
 		let input = new InputSnapshot()
 		input.lCancelPressed = true
 		input.airDodgePressed = true
@@ -785,6 +787,79 @@ function tiltDamageAt(int style, int facing, real targetX, real targetZ) returns
 	(isAerialAttack(11)).assertFalse()
 	(isAerialAttack(17)).assertFalse()
 
+@Test function aerialLingeringWindowsMatchReferenceFrameBoundaries()
+	for style = AERIAL_NEUTRAL_STYLE to AERIAL_BACK_STYLE
+		if style != AERIAL_FORWARD_STYLE
+			let lastActive = style == AERIAL_NEUTRAL_STYLE ? 31 : 19
+			let interruptible = style == AERIAL_NEUTRAL_STYLE ? 42 : 38
+			for referenceFrame = 1 to interruptible - 1
+				let attacker = new FighterState(0, 0, 1)
+				let target = new FighterState(1, -60, -1)
+				prepareHitRegionAttack(attacker, target, style, referenceFrame - 1)
+				resolveAttackPair(attacker, target)
+				let expected = referenceFrame < 4 or referenceFrame > lastActive ? 0. : (referenceFrame < 8 ? (style == AERIAL_NEUTRAL_STYLE ? 7. : 8.) : 5.)
+				target.damage.assertEquals(expected)
+				if expected > 0
+					target.hitlag.assertEquals(ordinaryHitlagFrames(expected))
+				destroy target
+				destroy attacker
+
+@Test function aerialLingeringClockStartsAtZeroAndUnlocksOnReferenceFrame()
+	for style = AERIAL_NEUTRAL_STYLE to AERIAL_BACK_STYLE
+		if style != AERIAL_FORWARD_STYLE
+			let duration = style == AERIAL_NEUTRAL_STYLE ? 41 : 37
+			let lastActiveIndex = style == AERIAL_NEUTRAL_STYLE ? 30 : 18
+			let attacker = new FighterState(0, 0, 1)
+			let target = new FighterState(1, 1000, -1)
+			let input = new InputSnapshot()
+			attacker.z = 740
+			attacker.grounded = false
+			beginAttackPair(attacker, target, style, -1, false, false)
+			attacker.attackFrame.assertEquals(0)
+			for frame = 0 to duration - 1
+				attacker.attackFrame.assertEquals(frame)
+				attackPhase(attacker).assertEquals(frame < 3 ? ATTACK_STARTUP : (frame <= lastActiveIndex ? ATTACK_ACTIVE : ATTACK_RECOVERY))
+				canAttack(attacker).assertFalse()
+				advance(attacker, 0, input, -240)
+			attackPhase(attacker).assertEquals(ATTACK_NONE)
+			canAttack(attacker).assertTrue()
+			destroy input
+			destroy target
+			destroy attacker
+
+@Test function aerialLingeringTransitionRetainsSingleHitThroughFreezeAndReentry()
+	for style = AERIAL_NEUTRAL_STYLE to AERIAL_BACK_STYLE
+		if style != AERIAL_FORWARD_STYLE
+			let attacker = new FighterState(1, 0, -1)
+			let target = new FighterState(0, 60, 1)
+			let lateTarget = new FighterState(0, 60, 1)
+			let input = new InputSnapshot()
+			attacker.z = 500
+			target.z = 500
+			lateTarget.z = 500
+			prepareHitRegionAttack(attacker, target, style, 6)
+			resolveAttackPair(attacker, target)
+			let strongDamage = style == AERIAL_NEUTRAL_STYLE ? 7. : 8.
+			target.damage.assertEquals(strongDamage)
+			for tick = 1 to ordinaryHitlagFrames(strongDamage)
+				advance(attacker, 0, input, -240)
+				attacker.attackFrame.assertEquals(6)
+			advance(attacker, 0, input, -240)
+			attacker.attackFrame.assertEquals(7)
+			target.x = 1000
+			resolveAttackPair(attacker, target)
+			target.x = 60
+			resolveAttackPair(attacker, target)
+			target.damage.assertEquals(strongDamage)
+			resolveAttackPair(attacker, lateTarget)
+			lateTarget.damage.assertEquals(5.)
+			if style == AERIAL_BACK_STYLE
+				lateTarget.knockbackX.assertGreaterThan(0.)
+			destroy input
+			destroy lateTarget
+			destroy target
+			destroy attacker
+
 @Test function groundNormalsAndGrabCannotStartInAirButBlasterCan()
 	for style = 0 to 10
 		if style != 1
@@ -876,6 +951,94 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 		destroy input
 		destroy target
 		destroy fighter
+
+@Test function archerDiveStallsThenPlungesAndLandingCancelsIt()
+	let fighter = new FighterState(0, 0, 1)
+	let other = new FighterState(1, 500, -1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = 600
+	fighter.vz = 10
+	beginAttackPair(fighter, other, AERIAL_DOWN_STYLE, -1, false, false)
+	fighter.vz.assertEquals(0.)
+	for frame = 1 to 6
+		advance(fighter, 0, input, 0)
+		fighter.z.assertEquals(600.)
+	advance(fighter, 0, input, 0)
+	fighter.attackFrame.assertEquals(7)
+	fighter.z.assertEquals(576.)
+	fighter.vz.assertEquals(-24.)
+	fighter.hitlag = 2
+	advance(fighter, 0, input, 0)
+	fighter.z.assertEquals(576.)
+	fighter.attackFrame.assertEquals(7)
+	advance(fighter, 0, input, 0)
+	fighter.z = 10
+	advance(fighter, 0, input, 0)
+	fighter.grounded.assertTrue()
+	fighter.z.assertEquals(0.)
+	fighter.attackStyle.assertEquals(-1)
+	fighter.landingLag.assertEquals(18)
+	destroy input
+	destroy other
+	destroy fighter
+
+@Test function archerDiveHasOneStrongToWeakWindowAndRiflemanIsUnchanged()
+	let fighter = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 0, -1)
+	fighter.grounded = false
+	fighter.z = 300
+	target.z = 240
+	beginAttackPair(fighter, target, AERIAL_DOWN_STYLE, -1, false, false)
+	fighter.attackFrame = 7
+	resolveAttackPair(fighter, target)
+	target.damage.assertEquals(9.)
+	fighter.hitlag = 0
+	fighter.attackFrame = 26
+	resolveAttackPair(fighter, target)
+	target.damage.assertEquals(9.)
+	let lateTarget = new FighterState(1, 0, -1)
+	lateTarget.z = 240
+	resolveAttackPair(fighter, lateTarget)
+	lateTarget.damage.assertEquals(6.)
+	fighter.hitlag = 0
+	fighter.attackFrame = 27
+	attackPhase(fighter).assertEquals(ATTACK_RECOVERY)
+	let rifleman = new FighterState(1, 0, 1)
+	rifleman.grounded = false
+	rifleman.z = 300
+	rifleman.vz = 10
+	beginAttackPair(rifleman, target, AERIAL_DOWN_STYLE, -1, false, false)
+	rifleman.vz.assertEquals(10.)
+	rifleman.attackFrame = 9
+	attackPhase(rifleman).assertEquals(ATTACK_ACTIVE)
+	rifleman.attackFrame = 10
+	attackPhase(rifleman).assertEquals(ATTACK_RECOVERY)
+	destroy rifleman
+	destroy lateTarget
+	destroy target
+	destroy fighter
+
+@Test function commonGroundDodgeFrameDataAppliesToBothCharacters()
+	for character = 0 to 1
+		for direction = -1 to 1
+			let fighter = new FighterState(character, 0, 1)
+			let input = new InputSnapshot()
+			input.shield = true
+			input.groundDodgePressed = true
+			input.groundDodgeDirection = direction
+			let duration = direction == 0 ? 22 : 31
+			for frame = 1 to duration
+				advance(fighter, 0, input, 0)
+				input.groundDodgePressed = false
+				fighter.groundDodgeFrame.assertEquals(frame)
+				let expectedIntangible = direction == 0 ? frame >= 2 and frame <= 15 : frame >= 4 and frame <= 19
+				(isIntangible(fighter) == expectedIntangible).assertTrue()
+				canAttack(fighter).assertFalse()
+			advance(fighter, 0, input, 0)
+			fighter.groundDodgeFrame.assertEquals(0)
+			destroy input
+			destroy fighter
 
 @Test function airDriftChangesVelocityWithoutTurningFighter()
 	let fighter = new FighterState(0, 0, 1)
@@ -1765,16 +1928,58 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 		advance(fighter, 0, input, 0)
 		fighter.knockbackX.assertEquals(0.)
 		fighter.knockbackZ.assertEquals(0.)
-		fighter.x.assertEquals(direction * 16.2, 0.001)
-		fighter.vx.assertEquals(direction * 16.2, 0.001)
-		fighter.z.assertEquals(300.)
-		fighter.vz.assertEquals(0.)
+		fighter.x.assertEquals(direction * 15.40711556, 0.001)
+		fighter.vx.assertEquals(direction * 15.40711556, 0.001)
+		fighter.z.assertEquals(300. - direction * 5.00607531, 0.001)
+		fighter.vz.assertEquals(-direction * 5.00607531, 0.001)
 		input.airDodgePressed = false
 		advance(fighter, 0, input, 0)
-		fighter.x.assertEquals(direction * 30.78, 0.001)
-		fighter.z.assertEquals(300.)
+		fighter.x.assertEquals(direction * 29.27351957, 0.001)
+		fighter.z.assertEquals(300. - direction * 9.51154309, 0.001)
 		destroy input
 		destroy fighter
+
+@Test function horizontalAirDodgeDefaultsToShallowWavedashOnBothSides()
+	for character = 0 to 1
+		for direction = -1 to 1
+			if direction != 0
+				let fighter = new FighterState(character, 0, -direction)
+				fighter.grounded = false
+				fighter.z = 1
+				simulationAirDodge(fighter, direction, 0)
+				fighter.vx.assertEquals(direction * 17.1190173, 0.0001)
+				fighter.vz.assertEquals(-5.5623059, 0.0001)
+				(fighter.vx * fighter.vx + fighter.vz * fighter.vz).assertEquals(324., 0.001)
+				let input = new InputSnapshot()
+				advance(fighter, 0, input, 0)
+				fighter.grounded.assertTrue()
+				fighter.landingLag.assertEquals(AIR_DODGE_LANDING_LAG)
+				(fighter.vx * direction).assertGreaterThan(11.4552)
+				let landedX = fighter.x
+				advance(fighter, 0, input, 0)
+				((fighter.x - landedX) * direction).assertGreaterThan(0.)
+				destroy input
+				destroy fighter
+
+@Test function diagonalDownDoesNotTriggerFastfallButStraightDownDoes()
+	for character = 0 to 1
+		for direction = -1 to 1
+			let fighter = new FighterState(character, 0, 1)
+			fighter.grounded = false
+			fighter.z = 300
+			fighter.vz = -1
+			let input = new InputSnapshot()
+			input.down = true
+			input.verticalDirection = -1
+			input.direction = direction
+			advance(fighter, 0, input, 0)
+			if direction == 0
+				fighter.vz.assertEquals(-characterFastFallSpeed(character), 0.001)
+			else
+				fighter.vz.assertEquals(-1 - characterGravity(character), 0.001)
+				(fighter.vx * direction).assertGreaterThan(0.)
+			destroy input
+			destroy fighter
 
 @Test function diagonalAirDodgeDisplacesBothAxesWithTheSameDecayedVector()
 	for direction = -1 to 1
@@ -2784,6 +2989,52 @@ function airJumpApex(int character) returns real
 	advance(fighter, 0, input, 0)
 	fighter.downState.assertEquals(DOWN_ROLL)
 	fighter.downDirection.assertEquals(-1)
+	destroy input
+	destroy fighter
+
+@Test function heldRecoveryStartsAtBoundEndWithoutAnotherPress()
+	for direction = -1 to 1
+		let fighter = new FighterState(0, 0, 1)
+		let input = new InputSnapshot()
+		fighter.downState = DOWN_BOUND
+		fighter.downFrame = DOWN_BOUND_FRAMES - 1
+		input.direction = direction
+		input.verticalDirection = direction == 0 ? 1 : 0
+		advance(fighter, 0, input, 0)
+		fighter.downState.assertEquals(DOWN_BOUND)
+		advance(fighter, 0, input, 0)
+		fighter.downState.assertEquals(direction == 0 ? DOWN_STAND : DOWN_ROLL)
+		fighter.downDirection.assertEquals(direction)
+		destroy input
+		destroy fighter
+
+@Test function recoveryAttackOnBoundTransitionIsNotDiscarded()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.downState = DOWN_BOUND
+	fighter.downFrame = DOWN_BOUND_FRAMES
+	input.getupAttackPressed = true
+	input.direction = -1
+	input.verticalDirection = 1
+	advance(fighter, 0, input, 0)
+	fighter.downState.assertEquals(DOWN_ATTACK)
+	destroy input
+	destroy fighter
+
+@Test function hitlagStillPausesHeldKnockdownRecovery()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.downState = DOWN_BOUND
+	fighter.downFrame = DOWN_BOUND_FRAMES
+	fighter.hitlag = 2
+	input.direction = 1
+	advance(fighter, 0, input, 0)
+	fighter.downState.assertEquals(DOWN_BOUND)
+	fighter.downFrame.assertEquals(DOWN_BOUND_FRAMES)
+	advance(fighter, 0, input, 0)
+	fighter.downState.assertEquals(DOWN_BOUND)
+	advance(fighter, 0, input, 0)
+	fighter.downState.assertEquals(DOWN_ROLL)
 	destroy input
 	destroy fighter
 

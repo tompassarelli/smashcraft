@@ -161,11 +161,16 @@ for name, sign in [('Roll Forward',1), ('Roll Backward',-1)]:
     author(name, {f:{'spin':angle*sign,'tuck':tuck,'lean':-12*tuck} for f,(angle,tuck) in rolls.items()})
 author('Jump', {0:{}, 3:{'tuck':.5}, 8:{'tuck':1,'lean':-8}, 14:{'tuck':.85}, 20:{'tuck':.3}, 24:{}})
 author('Double Jump', {0:{}, 3:{'spin':-28,'tuck':.8}, 7:{'spin':-85,'tuck':1}, 12:{'spin':-170,'tuck':1}, 17:{'spin':-250,'tuck':1}, 22:{'spin':-320,'tuck':.9}, 30:{'spin':-360}})
-author('Spot Dodge', {0:{}, 2:{'tuck':.25,'crouch':.4}, 5:{'tuck':.7,'crouch':1,'lean':-25}, 15:{'tuck':.7,'crouch':1,'lean':-25}, 19:{'tuck':.3,'crouch':.5}, 23:{}})
+author('Spot Dodge', {0:{}, 2:{'tuck':.25,'crouch':.4}, 5:{'tuck':.7,'crouch':1,'lean':-25}, 15:{'tuck':.7,'crouch':1,'lean':-25}, 19:{'tuck':.3,'crouch':.5}, 22:{}})
 prone = {'spin':90,'tuck':.6}
 author('Knockdown', {0:{}, 3:{'spin':28,'tuck':.3}, 7:prone, 12:prone})
 author('Get Up', {0:prone, 5:prone, 12:{'spin':65,'tuck':.8}, 20:{'spin':30,'tuck':.45}, 26:{'spin':8,'tuck':.15}, 30:{}})
 author('Get Up Attack', {0:prone, 5:{**prone,'strike':-.2}, 10:{'spin':70,'tuck':.8,'strike':-.3}, 16:{'spin':45,'tuck':.65,'strike':1}, 18:{'spin':35,'tuck':.5,'strike':1}, 25:{'spin':15,'tuck':.3,'strike':.4}, 38:{}, 45:{}})
+sys.path.insert(0, str(project / "tools/animations"))
+sys.dont_write_bytecode = True
+from grounding import ground_recovery
+for clip, duration in [('Knockdown', 12), ('Get Up', 30), ('Get Up Attack', 45)]:
+    ground_recovery(rig, bpy.data.actions[clip], duration)
 sys.path.insert(0, str(project / "tools/animations"))
 sys.dont_write_bytecode = True
 from aerials import author_rifleman_aerials

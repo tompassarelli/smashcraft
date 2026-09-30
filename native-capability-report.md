@@ -371,3 +371,43 @@ clip switching. It does not verify fighter skeletons/materials, per-frame
 pose fidelity, local-only mutations across two clients, handle safety, audio
 or event reconciliation. Gate D remains open; this is a candidate mechanism,
 not a deployed predictive renderer. Normal gameplay assets remain unchanged.
+
+## Transport-independent fixed-delay scheduler
+
+wc3-melee:wurst/FixedInputSchedule.wurst implements R=0 over the accepted input
+ledger. Each increasing epoch chooses D=2, 3 or 5, starts F=1, and seeds neutral
+accepted rows 1..D. Preallocated pending-own storage captures F+D once; repeated
+service opportunities while waiting preserve that assigned row. Pending data
+cannot advance K. Only explicit synchronized-receive methods accept packets;
+those methods return ledger errors unchanged and require a future adapter to
+supply common delivery and authoritative sender identity.
+
+The gate is F<=K. Reading preflights both accepted rows into distinct caller
+scratch; ordered explicit completion advances F and confirmed consumption once.
+Receipt alone never executes. The scheduler retains the last 64 completed rows,
+reuses bounded rings, rejects stale epochs and reports exhausted capture targets
+without signed wrap. Capture, receipt, read and completion allocate no objects.
+Physical-edge sampling, native service timing and gameplay conversion are absent;
+the existing synchronized-key gameplay baseline remains in use.
+
+Focused scheduler tests passed 8/8 with zero errors/warnings. The bounded oracle
+compares every executed normalized row for 600 frames under ordered single-row
+and delayed/reversed/duplicated two-row batch delivery, including ring reuse.
+Other tests cover neutral delays, immutable captures during waits, pending-only
+stalls, atomic reads, packet errors, ordered completion, retention, epoch resets
+and signed capture-target bounds. Log:
+wc3-melee:build/fixed-input-schedule-focused.log.
+
+The concurrent gameplay aggregate passed 253/255, including all eight scheduler
+tests. Two SimulationTests assertions failed: L-cancel aerial recovery expected
+9 but got 0, and aerial launch direction expected a positive value but got 0.
+Those failures were returned to the gameplay owner; they are not claimed fixed
+by scheduler delivery. Log: wc3-melee:build/fixed-input-schedule-integrated.log.
+This is headless scheduler evidence, not a native/two-client gate, gameplay
+fault oracle, 100,000-frame run or netcode performance measurement.
+
+The integrated gameplay follow-up resolved those two failures: the L-cancel
+fixture now lands during the dive's active phase, and the dive retains the
+existing vertical contact span. The complete suite passed 259/259 with zero
+errors/warnings in wc3-melee:build/dive-dodge-integrated.log. This closes the
+aggregate regression; the native and two-client limitations above remain.
