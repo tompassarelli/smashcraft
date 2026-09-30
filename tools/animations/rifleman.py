@@ -220,6 +220,7 @@ author('Spot Dodge', {0:{}, 2:{'tuck':.25,'crouch':.4}, 5:{'tuck':.7,'crouch':1,
 prone = {'spin':90,'tuck':.6}
 author('Knockdown', {0:{}, 3:{'spin':28,'tuck':.3}, 7:prone, 12:prone})
 author('Down Damage', {0:prone, 2:{'spin':82,'tuck':.9,'strike':-.12}, 5:{'spin':85,'tuck':.8}, 9:{'spin':89,'tuck':.65}, 13:prone})
+author('Fall Special', {0:{'tuck':.25,'strike':-.2,'lean':12,'cape_lift':20}, 24:{'tuck':.25,'strike':-.2,'lean':12,'cape_lift':20}})
 author('Get Up', {0:prone, 5:prone, 12:{'spin':65,'tuck':.8}, 20:{'spin':30,'tuck':.45}, 26:{'spin':8,'tuck':.15}, 30:{}})
 author('Get Up Attack', {0:prone, 5:{**prone,'strike':-.2}, 10:{'spin':70,'tuck':.8,'strike':-.3}, 16:{'spin':45,'tuck':.65,'strike':1}, 18:{'spin':35,'tuck':.5,'strike':1}, 25:{'spin':15,'tuck':.3,'strike':.4}, 38:{}, 45:{}})
 

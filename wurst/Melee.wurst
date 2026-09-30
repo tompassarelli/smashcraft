@@ -1196,6 +1196,8 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
         animationRate = downAnimationRate(f)
     else if reaction != DAMAGE_POSE_NONE
         animationRate = damageAnimationSeconds(f, reaction) / (24 * FRAME_SECONDS)
+    else if f.specialFall
+        animationRate = 0.
     else if isGroundDodging(f)
         let duration = f.groundDodgeDirection == 0 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES
         animationRate = groundDodgeAnimationSeconds(f) / (duration * FRAME_SECONDS)
@@ -1250,6 +1252,10 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
             SetUnitAnimationByIndex(f.body, damageAnimationIndex(f, reaction))
             f.animation = anim
             traceParticipant(f == playerFighter ? 0 : 1, "damage pose " + I2S(reaction) + " hitlag " + I2S(f.hitlag) + " hitstun " + I2S(f.hitstun))
+    else if f.specialFall
+        if f.animation != "specialfall"
+            SetUnitAnimationByIndex(f.body, f.character == 0 ? ARCHER_FALL_SPECIAL_INDEX : RIFLEMAN_FALL_SPECIAL_INDEX)
+            f.animation = "specialfall"
     else if isGroundDodging(f)
         if f.animation != "dodge"
             SetUnitAnimationByIndex(f.body, groundDodgeAnimation(f))

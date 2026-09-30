@@ -46,6 +46,7 @@ const clips = [
     ["SPOT_DODGE", "Spot Dodge"],
     ["KNOCKDOWN", "Knockdown"],
     ["DOWN_DAMAGE", "Down Damage"],
+    ["FALL_SPECIAL", "Fall Special"],
     ["GET_UP", "Get Up"],
     ["GET_UP_ATTACK", "Get Up Attack"],
     ["LEDGE_HANG", "Ledge Hang"],

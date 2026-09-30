@@ -330,6 +330,11 @@ make_action("Down Damage", {
     13: getup_pose(90, 1),
 }, 13)
 
+make_action("Fall Special", {
+    0: getup_pose(-8, 0.25),
+    24: getup_pose(-8, 0.25),
+}, 24)
+
 make_action("Get Up Attack", {
     0: getup_pose(90, 1),
     5: getup_pose(87, 1, -0.4),
