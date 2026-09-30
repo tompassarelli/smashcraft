@@ -1,5 +1,35 @@
 # Authored fighter animation work
 
+## Demon Hunter completion checklist
+
+Illidan is not yet selectable or installed as a playable fighter. The installed
+model imports into Blender with 234 bones, 17 geosets and 24 stock actions;
+these are source assets, not completed combat clips. Unfiltered side-view
+inspection still shows a white polygon over the torso. Import acceptance
+remains open until that material defect is repaired without hiding geometry.
+Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile.png.
+
+| Required coverage | Current state |
+| --- | --- |
+| Model, textures, attached blades, both gameplay facings | Imported; material repair incomplete; not native-verified |
+| Jab, directional/angled tilts, smashes, dash attack | Combat implementation underway; authored clips missing |
+| Neutral/forward/back/up/down aerials | Combat implementation underway; authored clips missing |
+| Mana Burn, parry/evasion, wing ascent, Immolate | Combat implementation underway; authored clips and effects missing |
+| Grab, hold, pummel, escape, four coordinated throws | Shared rules exist; Illidan poses and contact verification missing |
+| Idle, walk/run, turns, crouch, jumps and landings | Stock motions available; full game-action mapping missing |
+| Shield, shield reactions/break, spot dodge, rolls, air dodge | Illidan clips and shared-rule integration missing |
+| Ground/air hitstun, tumble, contact-pose hitlag | Illidan reactions and freeze/resume verification missing |
+| Knockdown, techs, getup options, ledges, KO and respawn | Illidan clips and integration missing |
+| Action-frame volumes, interruptions, stock reset and replay | Fighter-specific implementation/checks underway |
+| Portraits, selection, mirror match and rematch retention | Missing |
+| Real-control playthrough in Warcraft | Not tested |
+
+Wings must appear and animate during recovery. Post-ascent glide remains an
+unadopted design option. Timing and damage live in combat source; new tuning
+must remain explicitly provisional, not presented as extracted Melee data.
+
+## Archer and Rifleman
+
 Ground-attack pass: Archer's jab now extends her right fist while the left hand
 holds the bow back. Her forward tilt and angled variants use extended kicks;
 up tilt raises the leg overhead and down tilt lowers into a sweeping kick.
