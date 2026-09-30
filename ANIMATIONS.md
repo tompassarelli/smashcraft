@@ -3,7 +3,7 @@
 ## Demon Hunter completion checklist
 
 Illidan selection and HUD integration are implemented in the working source;
-he is not installed or native-verified as a playable fighter. The rebuilt
+he is installed in `illidan-defense-r2`, but not native-verified as a playable fighter. The rebuilt
 scene contains 236 bones (including emitter helpers), 17 geosets and 24 stock actions;
 The authored scene now adds 81 clips, with 103 exported sequences and validated
 bindings in wc3-melee:build/illidan-animation/bindings.json. Source commits
@@ -24,10 +24,10 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 | Neutral/forward/back/up/down aerials | Combat source-tested; clips authored and bound; native playback unverified |
 | Mana Burn, parry/evasion, wing ascent, Immolate | Combat source-tested; clips and source-derived animated wings authored; effects/integration unfinished |
 | Grab, hold, pummel, escape, four coordinated throws | Shared rules and authored poses exist; native pair alignment unverified |
-| Idle, walk/run, turns, crouch, jumps and landings | Stock/authored motions available; full game-action mapping missing |
-| Shield, shield reactions/break, spot dodge, rolls, air dodge | Clips authored; shared-rule integration missing |
+| Idle, walk/run, turns, crouch, jumps and landings | Jump squat, jumps and idle fall bound; other movement transitions still incomplete |
+| Shield, shield reactions/break, spot dodge, rolls, air dodge | Shield raise/hold/release, ground dodges and air dodge bound; native checks pending |
 | Ground/air hitstun, tumble, contact-pose hitlag | Reactions authored; freeze/resume verification missing |
-| Knockdown, techs, getup options, ledges, KO and respawn | Clips authored; grounding checked offline; integration missing |
+| Knockdown, techs, getup options, ledges, KO and respawn | Knockdown/rest, tech/getup and ledge roll/attack bound; remaining transitions/native grounding unverified |
 | Action-frame volumes, interruptions, stock reset and replay | Provisional numerical regions and focused interruption/reset/replay checks implemented; animation alignment missing |
 | Portraits, selection, mirror match and rematch retention | Portrait/tile generated; third roster tile, human/CPU chips, HUD and rematch selection implemented; native UI unverified |
 | Real-control playthrough in Warcraft | Not tested |

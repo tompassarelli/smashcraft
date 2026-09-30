@@ -1239,9 +1239,9 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
     if f.ledgeState == LEDGE_CLIMB
         animationRate = ((f.character == 2 ? DEMON_HUNTER_LEDGE_CLIMB_SECONDS : (f.character == 0 ? ARCHER_LEDGE_CLIMB_SECONDS : RIFLEMAN_LEDGE_CLIMB_SECONDS))) / (LEDGE_CLIMB_FRAMES * FRAME_SECONDS)
     else if f.ledgeState == LEDGE_ROLL
-        animationRate = ((f.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_SECONDS : (f.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS))) / (LEDGE_ROLL_FRAMES * FRAME_SECONDS)
+        animationRate = ((f.character == 2 ? DEMON_HUNTER_LEDGE_ROLL_SECONDS : (f.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS))) / (LEDGE_ROLL_FRAMES * FRAME_SECONDS)
     else if f.ledgeState == LEDGE_ATTACK
-        animationRate = ((f.character == 2 ? DEMON_HUNTER_GET_UP_ATTACK_SECONDS : (f.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS))) / (LEDGE_ATTACK_FRAMES * FRAME_SECONDS)
+        animationRate = ((f.character == 2 ? DEMON_HUNTER_LEDGE_ATTACK_SECONDS : (f.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS))) / (LEDGE_ATTACK_FRAMES * FRAME_SECONDS)
     else if f.shieldBreakState == SHIELD_BREAK_LAND
         animationRate = ((f.character == 2 ? DEMON_HUNTER_KNOCKDOWN_SECONDS : (f.character == 0 ? ARCHER_KNOCKDOWN_SECONDS : RIFLEMAN_KNOCKDOWN_SECONDS))) / (SHIELD_BREAK_LAND_FRAMES * FRAME_SECONDS)
     else if f.shieldBreakState == SHIELD_BREAK_STAND
@@ -1278,9 +1278,9 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
             if f.ledgeState == LEDGE_CLIMB
                 SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_LEDGE_CLIMB_INDEX : (f.character == 0 ? ARCHER_LEDGE_CLIMB_INDEX : RIFLEMAN_LEDGE_CLIMB_INDEX)))
             else if f.ledgeState == LEDGE_ROLL
-                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_INDEX : (f.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX)))
+                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_LEDGE_ROLL_INDEX : (f.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX)))
             else if f.ledgeState == LEDGE_ATTACK
-                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_GET_UP_ATTACK_INDEX : (f.character == 0 ? ARCHER_GET_UP_ATTACK_INDEX : RIFLEMAN_GET_UP_ATTACK_INDEX)))
+                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_LEDGE_ATTACK_INDEX : (f.character == 0 ? ARCHER_GET_UP_ATTACK_INDEX : RIFLEMAN_GET_UP_ATTACK_INDEX)))
             else
                 SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_LEDGE_HANG_INDEX : (f.character == 0 ? ARCHER_LEDGE_HANG_INDEX : RIFLEMAN_LEDGE_HANG_INDEX)))
             f.animation = anim
@@ -1297,7 +1297,9 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
     else if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
         let anim = "down" + I2S(f.downState)
         if f.animation != anim or (f.downState == DOWN_DAMAGE and hit)
-            if f.downState != DOWN_WAIT
+            if f.downState == DOWN_WAIT and f.character == 2
+                SetUnitAnimationByIndex(f.body, DEMON_HUNTER_DOWN_WAIT_INDEX)
+            else if f.downState != DOWN_WAIT
                 SetUnitAnimationByIndex(f.body, downAnimationIndex(f))
             f.animation = anim
     else if reaction != DAMAGE_POSE_NONE
@@ -1319,16 +1321,43 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
         if f.animation != anim
             SetUnitAnimationByIndex(f.body, specialAnimationIndex(f))
             f.animation = anim
+    else if f.character == 2 and f.airDodging
+        if f.animation != "air-dodge"
+            SetUnitAnimationByIndex(f.body, DEMON_HUNTER_AIR_DODGE_INDEX)
+            f.animation = "air-dodge"
+        animationRate = DEMON_HUNTER_AIR_DODGE_SECONDS / (AIR_DODGE_ANIMATION_FRAMES * FRAME_SECONDS)
+    else if f.character == 2 and f.jumpSquat > 0
+        if f.animation != "jump-squat"
+            SetUnitAnimationByIndex(f.body, DEMON_HUNTER_JUMP_SQUAT_INDEX)
+            f.animation = "jump-squat"
+        animationRate = DEMON_HUNTER_JUMP_SQUAT_SECONDS / (jumpSquatFrames(f.character) * FRAME_SECONDS)
+    else if f.character == 2 and f.shield
+        let raising = f.shieldHeldFrames <= 4
+        let anim = raising ? "shield-raise" : "shield-hold"
+        if f.animation != anim
+            SetUnitAnimationByIndex(f.body, raising ? DEMON_HUNTER_SHIELD_RAISE_INDEX : DEMON_HUNTER_SHIELD_HOLD_INDEX)
+            f.animation = anim
+        animationRate = raising ? DEMON_HUNTER_SHIELD_RAISE_SECONDS / (4 * FRAME_SECONDS) : 0.
+    else if f.character == 2 and f.shieldReleaseLag > 0
+        if f.animation != "shield-release"
+            SetUnitAnimationByIndex(f.body, DEMON_HUNTER_SHIELD_RELEASE_INDEX)
+            f.animation = "shield-release"
+        animationRate = DEMON_HUNTER_SHIELD_RELEASE_SECONDS / (SHIELD_RELEASE_LAG_FRAMES * FRAME_SECONDS)
     else if f.jumpAnimationRemaining > 0
         if f.animation != "jump"
             SetUnitAnimationByIndex(f.body, f.doubleJumpAnimation ? ((f.character == 2 ? DEMON_HUNTER_DOUBLE_JUMP_INDEX : (f.character == 0 ? ARCHER_DOUBLE_JUMP_INDEX : RIFLEMAN_DOUBLE_JUMP_INDEX))) : ((f.character == 2 ? DEMON_HUNTER_JUMP_INDEX : (f.character == 0 ? ARCHER_JUMP_INDEX : RIFLEMAN_JUMP_INDEX))))
             f.animation = "jump"
     else if attackPhase(f) == ATTACK_NONE and f.hitstun == 0 and f.hitlag == 0
-        let anim = f.grounded and totalVelocityX(f).abs() > 0.1 ? "walk" : "stand"
+        let anim = f.character == 2 and not f.grounded ? "fall" : (f.grounded and totalVelocityX(f).abs() > 0.1 ? "walk" : "stand")
         if anim == "walk"
             animationRate = min(1.4, max(0.2, f.vx.abs() / characterSpeed(f.character)))
+        if anim == "fall"
+            animationRate = 0.
         if f.animation != anim
-            SetUnitAnimation(f.body, anim)
+            if anim == "fall"
+                SetUnitAnimationByIndex(f.body, DEMON_HUNTER_FALL_INDEX)
+            else
+                SetUnitAnimation(f.body, anim)
             f.animation = anim
     else
         if f.animation == "grab-hold" or f.animation == "grabbed"

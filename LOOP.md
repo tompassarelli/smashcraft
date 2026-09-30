@@ -2,6 +2,18 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
+Installed: `illidan-defense-r2`, normal scenario. Includes Illidan selection/HUD,
+air dodge, shield raise/hold/release, jump squat, held fall, resting knockdown,
+and dedicated ledge roll/attack bindings. Air dodge playback uses the existing
+49-frame animation duration; no combat values changed. Build/deploy and asset
+byte comparisons passed with six existing warnings:
+wc3-melee:build/illidan-defense-r2-map.log.
+Native verification remains pending: Battle.net window 199 remained on Play
+after pointer and virtual mouse launch attempts; no Warcraft process/window
+was observed. Evidence: wc3-melee:build/illidan-launch-second.png.
+Do not retry Ctrl+R. Remaining fighter work includes movement/landing/charge
+transitions, special effects and real-control playthrough. Public map unchanged.
+
 Built, not deployed: `illidan-selection-r2`. Illidan now has a third roster
 tile, human/CPU chip selection, portraits, stock icons and HUD name. Character
 cycling includes all three fighters; stage cycling still has two stages.
@@ -12,9 +24,9 @@ wc3-melee:build/illidan-selection-r2-map.log. Tests:
 wc3-melee:build/illidan-matchrules-tests.log and
 wc3-melee:build/illidan-chip-tests.log. Remaining Illidan work includes movement
 and defense pose mapping, special effects, and real-control Warcraft validation.
-Installed/public builds below are unchanged.
+The public build below is unchanged; the defense build above supersedes this local build.
 
-Installed: `blue-portrait-r1`, normal scenario. Rifleman's regenerated portrait
+Previously installed: `blue-portrait-r1`, normal scenario. Rifleman's regenerated portrait
 now has canonical blue hood/armor accents and the complete gun in frame.
 The repaired importer produced the inspected image in 328 seconds;
 wc3-melee:build/selection-assets/Rifleman-blue-r2.log and
@@ -23,7 +35,7 @@ Normalized portrait/tile textures passed the existing silhouette-width check.
 Build/deploy and packaged-texture byte comparisons passed with six existing
 warnings: wc3-melee:build/blue-portrait-r1-map.log. Warcraft is not running;
 the installed portrait and newer gameplay still need native verification.
-Illidan remains unavailable in the installed build. The public prototype release is
+Illidan was unavailable in that build. The public prototype release is
 unchanged and still contains `rifleman-shot-flinch-r1`.
 
 Previously installed: `recovery-controls-r1`, normal scenario. Combined recovery/jab-reset
