@@ -140,22 +140,16 @@ class MeleeSelectionActions extends SelectionActions
     override function selectChoice(int participantId, int choice)
         let bindings = participantId == 0 ? playerBindings : secondBindings
         let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
-        if not bindings.ready or controls.isOpen()
+        if not bindings.ready or controls.isOpen() or matchState.phase != CHARACTER_MENU
             return
-        if matchState.phase == CHARACTER_MENU
-            matchState.selectCharacter(participantId, choice)
-        else if participantId == 0
-            matchState.selectChoice(choice)
-        if matchState.phase == CHARACTER_MENU
-            makePreview()
-        else if matchState.phase == STAGE_MENU
-            drawStage()
+        matchState.selectCharacter(participantId, choice)
+        makePreview()
 
-    override function confirmSelection(int participantId)
-        confirm(participantId)
-
-    override function backSelection(int participantId)
-        back(participantId)
+    override function selectStage(int participantId, int choice)
+        if matchState.phase != CHARACTER_MENU or participantId != 0 or settingsPanel.isOpen()
+            return
+        matchState.selectStage(participantId, choice)
+        drawStage()
 
     override function openSettings(int participantId)
         openSettingsScreen(participantId)
@@ -471,9 +465,6 @@ function choose(int participantId)
     if matchState.phase == CHARACTER_MENU
         matchState.selectCharacter(participantId, 1 - matchState.characterFor(participantId))
         makePreview()
-    else if matchState.phase == STAGE_MENU and participantId == 0
-        matchState.selectChoice(1 - matchState.stageChoice)
-        drawStage()
 
 function confirm(int participantId)
     let bindings = participantId == 0 ? playerBindings : secondBindings
@@ -483,11 +474,7 @@ function confirm(int participantId)
         return
     let previousPhase = matchState.phase
     if previousPhase == CHARACTER_MENU
-        matchState.confirmCharacter(participantId)
-        if matchState.phase == STAGE_MENU
-            drawStage()
-    else if previousPhase == STAGE_MENU
-        if matchState.confirmStage(participantId)
+        if matchState.requestStart(participantId)
             startMatch()
     else if previousPhase == RESULT
         if matchState.confirmRematch(participantId)
@@ -505,12 +492,8 @@ function back(int participantId)
     let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
     if not bindings.ready or (controls != null and controls.isOpen())
         return
-    if matchState.phase == STAGE_MENU
-        matchState.backFor(participantId)
-        if matchState.phase == CHARACTER_MENU
-            makePreview()
-    else if matchState.phase == CHARACTER_MENU
-        matchState.backFor(participantId)
+    if matchState.phase == CHARACTER_MENU
+        matchState.unreadyCharacter(participantId)
     else if matchState.phase == MATCH
         attack(participantId == 0 ? playerFighter : botFighter, participantId == 0 ? botFighter : playerFighter, 1)
 
@@ -561,7 +544,7 @@ function clearHeldInputs()
         playerAttacks.clear()
 
 function openSettingsScreen(int participantId)
-    if matchState.phase != CHARACTER_MENU and matchState.phase != STAGE_MENU
+    if matchState.phase != CHARACTER_MENU
         return
     let bindings = participantId == 0 ? playerBindings : secondBindings
     let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
@@ -600,6 +583,9 @@ function onParticipantKeyDown(int participantId)
     if participantId == 1 and not twoHumanPlayers
         return
     if not bindings.ready
+        return
+    if key == OSKEY_RETURN and matchState.phase == CHARACTER_MENU
+        confirm(participantId)
         return
     let action = bindings.bindings.actionFor(keyCode)
     let wasHeld = action >= 0 and state.actionHeld(action)
@@ -641,7 +627,7 @@ function onParticipantKeyDown(int participantId)
                 playerLeftPressed = true
             else
                 secondLeftPressed = true
-        if matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
+        if matchState.phase == CHARACTER_MENU
             choose(participantId)
     else if action == MOVE_RIGHT
         if not wasHeld and matchState.phase == MATCH
@@ -649,7 +635,7 @@ function onParticipantKeyDown(int participantId)
                 playerRightPressed = true
             else
                 secondRightPressed = true
-        if matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
+        if matchState.phase == CHARACTER_MENU
             choose(participantId)
     else if action == MOVE_DOWN
         if not wasHeld and matchState.phase == MATCH
@@ -660,7 +646,7 @@ function onParticipantKeyDown(int participantId)
     else if action == JUMP
         if not wasHeld
             jump(fighter)
-    else if action == ATTACK
+    else if action == ATTACK and matchState.phase != CHARACTER_MENU
         confirm(participantId)
     else if action == SPECIAL
         back(participantId)
@@ -762,8 +748,6 @@ function secondPlayerLeaves()
     clearSecondInputs()
     secondBindings.capturing = false
     announce("Player 2 left. The opponent is now controlled by the computer.")
-    if matchState.phase == CHARACTER_MENU and matchState.characterReady(0)
-        matchState.confirmCharacter(0)
 
 function firstPlayerLeaves()
     clearHeldInputs()
@@ -933,7 +917,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped)
         f.animation = ""
 
 function renderUI()
-    let selecting = matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
+    let selecting = matchState.phase == CHARACTER_MENU
     let localSlot = GetLocalPlayer() == Player(1) and twoHumanPlayers ? 1 : 0
     let localFighter = localSlot == 0 ? playerFighter : botFighter
     let controls = localSlot == 0 ? settingsPanel : secondSettingsPanel
@@ -953,12 +937,12 @@ function renderUI()
             else if matchState.phase == MATCH and localFighter.ledgeState == LEDGE_HANG
                 BlzFrameSetText(helpFrame, "Ledge: Up or toward stage to climb; Jump to leap; Shield to roll; Attack to strike.\nDown or away from stage lets go.")
             BlzFrameSetText(noticeFrame, playerFighter != null and playerFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
-    selectionPanel.update(matchState.phase, matchState.phase == CHARACTER_MENU ? matchState.characterFor(0) : matchState.stageChoice,
+    selectionPanel.update(matchState.phase, matchState.characterFor(0),
         settingsPanel != null and settingsPanel.isOpen(), true, matchState.characterReady(0),
-        matchState.characterFor(0), twoHumanPlayers ? matchState.characterFor(1) : 1 - matchState.characterFor(0), twoHumanPlayers, matchState.characterReady(1))
-    secondSelectionPanel.update(matchState.phase, matchState.phase == CHARACTER_MENU ? matchState.characterFor(1) : matchState.stageChoice,
+        twoHumanPlayers ? matchState.characterFor(1) : 1 - matchState.characterFor(0), twoHumanPlayers, matchState.characterReady(1), matchState.stageChoice)
+    secondSelectionPanel.update(matchState.phase, matchState.characterFor(1),
         secondSettingsPanel != null and secondSettingsPanel.isOpen(), twoHumanPlayers, matchState.characterReady(1),
-        matchState.characterFor(1), matchState.characterFor(0), true, matchState.characterReady(0))
+        matchState.characterFor(0), true, matchState.characterReady(0), matchState.stageChoice)
     if settingsPanel != null
         settingsPanel.update()
     if secondSettingsPanel != null

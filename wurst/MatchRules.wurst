@@ -1,7 +1,6 @@
 package MatchRules
 
 public constant int CHARACTER_MENU = 0
-public constant int STAGE_MENU = 1
 public constant int MATCH = 2
 public constant int RESULT = 3
 
@@ -30,26 +29,17 @@ public class MatchState
         return slot == 1 ? secondCharacterReady : firstCharacterReady
 
     function selectCharacter(int slot, int choice)
-        if phase != CHARACTER_MENU or slot < 0 or slot > 1 or choice < 0 or choice > 1
+        if phase != CHARACTER_MENU or slot < 0 or slot >= humanCount or choice < 0 or choice > 1
             return
         if slot == 1
             secondCharacterChoice = choice
-            secondCharacterReady = false
-        else
-            characterChoice = choice
-            firstCharacterReady = false
-
-    function confirmCharacter(int slot) returns boolean
-        if phase != CHARACTER_MENU or slot < 0 or slot >= humanCount
-            return false
-        if slot == 1
             secondCharacterReady = true
         else
+            characterChoice = choice
             firstCharacterReady = true
-        if firstCharacterReady and (humanCount == 1 or secondCharacterReady)
-            phase = STAGE_MENU
-            return true
-        return false
+
+    function allCharactersReady() returns boolean
+        return firstCharacterReady and (humanCount == 1 or secondCharacterReady)
 
     function unreadyCharacter(int slot)
         if phase != CHARACTER_MENU or slot < 0 or slot >= humanCount
@@ -59,8 +49,12 @@ public class MatchState
         else
             firstCharacterReady = false
 
-    function confirmStage(int slot) returns boolean
-        if phase != STAGE_MENU or slot != 0
+    function selectStage(int slot, int choice)
+        if phase == CHARACTER_MENU and slot == 0 and choice >= 0 and choice <= 1
+            stageChoice = choice
+
+    function requestStart(int slot) returns boolean
+        if phase != CHARACTER_MENU or slot < 0 or slot >= humanCount or not allCharactersReady()
             return false
         winner = -1
         phase = MATCH
@@ -81,40 +75,6 @@ public class MatchState
             phase = CHARACTER_MENU
             return true
         return false
-
-    function backFor(int slot)
-        if phase == CHARACTER_MENU
-            unreadyCharacter(slot)
-            return
-        if slot == 1 and humanCount == 2 and phase == STAGE_MENU
-            phase = CHARACTER_MENU
-            firstCharacterReady = false
-            secondCharacterReady = false
-            return
-        if slot == 0 and phase == STAGE_MENU
-            phase = CHARACTER_MENU
-            firstCharacterReady = false
-            secondCharacterReady = false
-
-    function selectChoice(int choice)
-        if choice < 0 or choice > 1
-            return
-        if phase == CHARACTER_MENU
-            characterChoice = choice
-        else if phase == STAGE_MENU
-            stageChoice = choice
-
-    function confirm()
-        if phase == CHARACTER_MENU
-            confirmCharacter(0)
-        else if phase == STAGE_MENU
-            confirmStage(0)
-        else if phase == RESULT
-            confirmRematch(0)
-
-    function back()
-        if phase == STAGE_MENU
-            backFor(0)
 
     function resolveStocks(int firstStocks, int secondStocks)
         if phase != MATCH or (firstStocks > 0 and secondStocks > 0)

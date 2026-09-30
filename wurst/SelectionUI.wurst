@@ -1,12 +1,19 @@
 package SelectionUI
 import Wurst
 import ClosureFrames
+import SelectionDrag
 
 public abstract class SelectionActions
     abstract function selectChoice(int participantId, int choice)
-    abstract function confirmSelection(int participantId)
-    abstract function backSelection(int participantId)
+    abstract function selectStage(int participantId, int choice)
     abstract function openSettings(int participantId)
+
+SelectionPanel array participantPanels
+
+function onSelectionDrop()
+    let slot = GetPlayerId(GetTriggerPlayer())
+    if slot >= 0 and slot <= 1
+        participantPanels[slot].acceptDrop(BlzGetTriggerSyncData())
 
 function characterName(int choice) returns string
     return choice == 0 ? "Archer" : "Rifleman"
@@ -38,17 +45,22 @@ public class SelectionPanel
     framehandle playerOneTag
     framehandle playerTwoTag
     framehandle confirmArt
-    framehandle backArt
     framehandle settingsArt
     framehandle confirmLabel
-    framehandle backLabel
     framehandle settingsLabel
-    framehandle confirmButton
-    framehandle backButton
     framehandle settingsButton
+    framehandle stageHeading
+    framehandle skyStage
+    framehandle bridgesStage
+    framehandle skyStageArt
+    framehandle bridgesStageArt
+    framehandle skyStageName
+    framehandle bridgesStageName
+    SelectionActions actions
+    SelectionDrag drag = new SelectionDrag()
+    int lastStage = -1
     int lastState = -1
     int lastChoice = -1
-    int lastOwnCharacter = -1
     int lastOpponentChoice = -1
     int participantId
     boolean lastEnabled = false
@@ -59,6 +71,8 @@ public class SelectionPanel
 
     construct(SelectionActions actions, int participantId)
         this.participantId = participantId
+        this.actions = actions
+        participantPanels[participantId] = this
         let suffix = I2S(participantId)
         let frameOffset = participantId * 100
 
@@ -120,19 +134,21 @@ public class SelectionPanel
         playerOneChip = createBackdrop("MeleeP1Chip" + suffix, GAME_UI, 433 + frameOffset)
         playerOneChip.setTexture("war3mapImported\\SelectionChipP1.tga", 0, true)
         playerOneChip.setSize(0.040, 0.040)
+        playerOneChip.setLevel(10)
         playerOneChip.setEnabled(false)
         playerTwoChip = createBackdrop("MeleeP2Chip" + suffix, GAME_UI, 434 + frameOffset)
         playerTwoChip.setSize(0.040, 0.040)
+        playerTwoChip.setLevel(10)
         playerTwoChip.setEnabled(false)
         firstChoiceName = createTextFrame("MeleeArcherChoiceName" + suffix, GAME_UI, 423 + frameOffset)
-        firstChoiceName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.264, 0.313)
-        firstChoiceName.setSize(0.103, 0.024)
+        firstChoiceName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.264, 0.316)
+        firstChoiceName.setSize(0.103, 0.018)
         BlzFrameSetFont(firstChoiceName, "Fonts\\FRIZQT__.TTF", 0.0095, 0)
         BlzFrameSetTextAlignment(firstChoiceName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
         firstChoiceName.setEnabled(false)
         secondChoiceName = createTextFrame("MeleeRiflemanChoiceName" + suffix, GAME_UI, 424 + frameOffset)
-        secondChoiceName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.444, 0.313)
-        secondChoiceName.setSize(0.103, 0.024)
+        secondChoiceName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.444, 0.316)
+        secondChoiceName.setSize(0.103, 0.018)
         BlzFrameSetFont(secondChoiceName, "Fonts\\FRIZQT__.TTF", 0.0095, 0)
         BlzFrameSetTextAlignment(secondChoiceName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
         secondChoiceName.setEnabled(false)
@@ -140,11 +156,11 @@ public class SelectionPanel
         playerOneCard = createBackdrop("MeleeSelectP1Card" + suffix, GAME_UI, 403 + frameOffset)
         playerOneCard.setTexture("war3mapImported\\SelectionCardRed.tga", 0, true)
         playerOneCard.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.241, 0.274)
-        playerOneCard.setSize(0.150, 0.230)
+        playerOneCard.setSize(0.150, 0.2055)
         playerTwoCard = createBackdrop("MeleeSelectP2Card" + suffix, GAME_UI, 404 + frameOffset)
         playerTwoCard.setTexture("war3mapImported\\SelectionCardBlue.tga", 0, true)
         playerTwoCard.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.421, 0.274)
-        playerTwoCard.setSize(0.150, 0.230)
+        playerTwoCard.setSize(0.150, 0.2055)
 
         playerOneTag = createTextFrame("MeleeSelectP1Tag" + suffix, GAME_UI, 428 + frameOffset)
         playerOneTag.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.271, 0.266)
@@ -161,8 +177,8 @@ public class SelectionPanel
         selectedPortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, participantId == 0 ? 0.255 : 0.435, 0.266)
         selectedPortrait.setSize(0.122, 0.163)
         selectedName = createTextFrame("MeleeSelectedName" + suffix, GAME_UI, 410 + frameOffset)
-        selectedName.setAbsPoint(FRAMEPOINT_TOPLEFT, participantId == 0 ? 0.247 : 0.427, 0.095)
-        selectedName.setSize(0.138, 0.019)
+        selectedName.setAbsPoint(FRAMEPOINT_TOPLEFT, participantId == 0 ? 0.247 : 0.427, 0.098)
+        selectedName.setSize(0.138, 0.018)
         BlzFrameSetFont(selectedName, "Fonts\\FRIZQT__.TTF", 0.010, 0)
         BlzFrameSetTextAlignment(selectedName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
         selectedStatus = createTextFrame("MeleeSelectedStatus" + suffix, GAME_UI, 411 + frameOffset)
@@ -175,8 +191,8 @@ public class SelectionPanel
         opponentPortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, participantId == 0 ? 0.435 : 0.255, 0.266)
         opponentPortrait.setSize(0.122, 0.163)
         opponentName = createTextFrame("MeleeOpponentName" + suffix, GAME_UI, 413 + frameOffset)
-        opponentName.setAbsPoint(FRAMEPOINT_TOPLEFT, participantId == 0 ? 0.427 : 0.247, 0.095)
-        opponentName.setSize(0.138, 0.019)
+        opponentName.setAbsPoint(FRAMEPOINT_TOPLEFT, participantId == 0 ? 0.427 : 0.247, 0.098)
+        opponentName.setSize(0.138, 0.018)
         BlzFrameSetFont(opponentName, "Fonts\\FRIZQT__.TTF", 0.010, 0)
         BlzFrameSetTextAlignment(opponentName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
         opponentStatus = createTextFrame("MeleeOpponentStatus" + suffix, GAME_UI, 414 + frameOffset)
@@ -189,50 +205,20 @@ public class SelectionPanel
         confirmArt.setTexture("war3mapImported\\SelectionAction.tga", 0, true)
         confirmArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.071, 0.043)
         confirmArt.setSize(0.235, 0.037)
-        backArt = createBackdrop("MeleeBackArt" + suffix, GAME_UI, 426 + frameOffset)
-        backArt.setTexture("war3mapImported\\SelectionAction.tga", 0, true)
-        backArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.316, 0.043)
-        backArt.setSize(0.130, 0.037)
-        settingsArt = createBackdrop("MeleeSettingsArt" + suffix, GAME_UI, 427 + frameOffset)
-        settingsArt.setTexture("war3mapImported\\SelectionAction.tga", 0, true)
-        settingsArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.500, 0.043)
-        settingsArt.setSize(0.222, 0.037)
-
         confirmLabel = createTextFrame("MeleeConfirmLabel" + suffix, GAME_UI, 430 + frameOffset)
         confirmLabel.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.079, 0.039)
         confirmLabel.setSize(0.219, 0.028)
         BlzFrameSetFont(confirmLabel, "Fonts\\FRIZQT__.TTF", 0.011, 0)
         BlzFrameSetTextAlignment(confirmLabel, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-        backLabel = createTextFrame("MeleeBackLabel" + suffix, GAME_UI, 431 + frameOffset)
-        backLabel.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.320, 0.039)
-        backLabel.setSize(0.122, 0.028)
-        BlzFrameSetFont(backLabel, "Fonts\\FRIZQT__.TTF", 0.009, 0)
-        BlzFrameSetTextAlignment(backLabel, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
+        settingsArt = createBackdrop("MeleeSettingsArt" + suffix, GAME_UI, 427 + frameOffset)
+        settingsArt.setTexture("war3mapImported\\SelectionAction.tga", 0, true)
+        settingsArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.500, 0.043)
+        settingsArt.setSize(0.222, 0.037)
         settingsLabel = createTextFrame("MeleeSettingsLabel" + suffix, GAME_UI, 432 + frameOffset)
         settingsLabel.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.506, 0.039)
         settingsLabel.setSize(0.209, 0.028)
         BlzFrameSetFont(settingsLabel, "Fonts\\FRIZQT__.TTF", 0.009, 0)
         BlzFrameSetTextAlignment(settingsLabel, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-
-        confirmButton = createFrame("ScriptDialogButton", GAME_UI, 0, 415 + frameOffset)
-        confirmButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.071, 0.043)
-        confirmButton.setSize(0.235, 0.037)
-        confirmButton.setAlpha(0)
-        confirmButton.onClick(() -> begin
-            if GetTriggerPlayer() == Player(participantId)
-                actions.confirmSelection(participantId)
-        end)
-        confirmButton.onClickReleaseFocus()
-
-        backButton = createFrame("ScriptDialogButton", GAME_UI, 0, 416 + frameOffset)
-        backButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.316, 0.043)
-        backButton.setSize(0.130, 0.037)
-        backButton.setAlpha(0)
-        backButton.onClick(() -> begin
-            if GetTriggerPlayer() == Player(participantId)
-                actions.backSelection(participantId)
-        end)
-        backButton.onClickReleaseFocus()
 
         settingsButton = createFrame("ScriptDialogButton", GAME_UI, 0, 417 + frameOffset)
         settingsButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.500, 0.043)
@@ -243,6 +229,56 @@ public class SelectionPanel
                 actions.openSettings(participantId)
         end)
         settingsButton.onClickReleaseFocus()
+
+        stageHeading = createTextFrame("MeleeStageHeading" + suffix, GAME_UI, 435 + frameOffset)
+        stageHeading.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.066, 0.410)
+        stageHeading.setSize(0.142, 0.018)
+        stageHeading.setText("STAGE  ·  P1 CHOOSES")
+        BlzFrameSetFont(stageHeading, "Fonts\\FRIZQT__.TTF", 0.008, 0)
+        skyStage = createFrame("ScriptDialogButton", GAME_UI, 0, 436 + frameOffset)
+        skyStage.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.066, 0.385)
+        skyStage.setSize(0.142, 0.107)
+        skyStage.setAlpha(0)
+        skyStage.onClick(() -> begin
+            if GetTriggerPlayer() == Player(participantId)
+                actions.selectStage(participantId, 0)
+        end)
+        skyStage.onClickReleaseFocus()
+        bridgesStage = createFrame("ScriptDialogButton", GAME_UI, 0, 437 + frameOffset)
+        bridgesStage.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.066, 0.255)
+        bridgesStage.setSize(0.142, 0.107)
+        bridgesStage.setAlpha(0)
+        bridgesStage.onClick(() -> begin
+            if GetTriggerPlayer() == Player(participantId)
+                actions.selectStage(participantId, 1)
+        end)
+        bridgesStage.onClickReleaseFocus()
+        skyStageArt = createBackdrop("MeleeSkyStageArt" + suffix, GAME_UI, 438 + frameOffset)
+        skyStageArt.setTexture("war3mapImported\\SelectionSkyDeck.tga", 0, true)
+        skyStageArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.068, 0.383)
+        skyStageArt.setSize(0.138, 0.079)
+        skyStageArt.setEnabled(false)
+        bridgesStageArt = createBackdrop("MeleeBridgesStageArt" + suffix, GAME_UI, 439 + frameOffset)
+        bridgesStageArt.setTexture("war3mapImported\\SelectionThreeBridges.tga", 0, true)
+        bridgesStageArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.068, 0.253)
+        bridgesStageArt.setSize(0.138, 0.079)
+        bridgesStageArt.setEnabled(false)
+        skyStageName = createTextFrame("MeleeSkyStageName" + suffix, GAME_UI, 440 + frameOffset)
+        skyStageName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.066, 0.302)
+        skyStageName.setSize(0.142, 0.018)
+        skyStageName.setEnabled(false)
+        BlzFrameSetFont(skyStageName, "Fonts\\FRIZQT__.TTF", 0.009, 0)
+        BlzFrameSetTextAlignment(skyStageName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
+        bridgesStageName = createTextFrame("MeleeBridgesStageName" + suffix, GAME_UI, 441 + frameOffset)
+        bridgesStageName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.066, 0.172)
+        bridgesStageName.setSize(0.142, 0.018)
+        bridgesStageName.setEnabled(false)
+        BlzFrameSetFont(bridgesStageName, "Fonts\\FRIZQT__.TTF", 0.009, 0)
+        BlzFrameSetTextAlignment(bridgesStageName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
+
+        let dropTrigger = CreateTrigger()
+        BlzTriggerRegisterPlayerSyncEvent(dropTrigger, Player(participantId), "fighter-drop", false)
+        TriggerAddAction(dropTrigger, function onSelectionDrop)
 
         backdrop.setVisible(false)
         heading.setVisible(false)
@@ -268,44 +304,64 @@ public class SelectionPanel
         opponentName.setVisible(false)
         opponentStatus.setVisible(false)
         confirmArt.setVisible(false)
-        backArt.setVisible(false)
         settingsArt.setVisible(false)
         confirmLabel.setVisible(false)
-        backLabel.setVisible(false)
         settingsLabel.setVisible(false)
-        confirmButton.setVisible(false)
-        backButton.setVisible(false)
         settingsButton.setVisible(false)
+        stageHeading.setVisible(false)
+        skyStage.setVisible(false)
+        bridgesStage.setVisible(false)
+        skyStageArt.setVisible(false)
+        bridgesStageArt.setVisible(false)
+        skyStageName.setVisible(false)
+        bridgesStageName.setVisible(false)
+
+    function acceptDrop(string data)
+        if lastState == 0 and not settingsOpen and lastEnabled and (data == "0" or data == "1")
+            actions.selectChoice(participantId, S2I(data))
 
     function update(int menuState, int choice, boolean overlayOpen, boolean enabled, boolean ready,
-        int ownCharacter, int opponentChoice, boolean opponentHuman, boolean opponentReady)
-        if menuState == lastState and choice == lastChoice and overlayOpen == settingsOpen and enabled == lastEnabled and ready == lastReady and ownCharacter == lastOwnCharacter and opponentChoice == lastOpponentChoice and opponentHuman == lastOpponentHuman and opponentReady == lastOpponentReady
+        int opponentChoice, boolean opponentHuman, boolean opponentReady, int stageChoice)
+        if GetLocalPlayer() == Player(participantId)
+            let width = I2R(BlzGetLocalClientWidth())
+            let height = I2R(BlzGetLocalClientHeight())
+            if height > 0 and width > 0
+                let pointer = getMouseScreenPosition()
+                let x = selectionPointerX(pointer.x, width, height)
+                let y = selectionPointerY(pointer.y, height)
+                let dropped = drag.update(menuState == 0 and enabled and not overlayOpen,
+                    MOUSE_BUTTON_TYPE_LEFT.isPressed(), x, y, participantId, choice)
+                if dropped >= 0
+                    BlzSendSyncData("fighter-drop", I2S(dropped))
+                let ownChip = participantId == 0 ? playerOneChip : playerTwoChip
+                ownChip.setAbsPoint(FRAMEPOINT_TOPLEFT, drag.active ? x - 0.020 : selectionChipX(participantId, choice), drag.active ? y + 0.020 : 0.366)
+
+        if menuState == lastState and choice == lastChoice and overlayOpen == settingsOpen and enabled == lastEnabled and ready == lastReady and opponentChoice == lastOpponentChoice and opponentHuman == lastOpponentHuman and opponentReady == lastOpponentReady and stageChoice == lastStage
             return
         lastState = menuState
         lastChoice = choice
         settingsOpen = overlayOpen
         lastEnabled = enabled
         lastReady = ready
-        lastOwnCharacter = ownCharacter
         lastOpponentChoice = opponentChoice
         lastOpponentHuman = opponentHuman
         lastOpponentReady = opponentReady
+        lastStage = stageChoice
         if GetLocalPlayer() != Player(participantId)
             return
 
-        let selecting = (menuState == 0 or menuState == 1) and enabled
-        let visible = selecting and not settingsOpen
+        let visible = menuState == 0 and enabled and not settingsOpen
         backdrop.setVisible(visible)
         heading.setVisible(visible)
         subheading.setVisible(visible)
         firstTileArt.setVisible(visible)
         secondTileArt.setVisible(visible)
-        firstChoice.setVisible((menuState == 0 or participantId == 0) and visible)
-        secondChoice.setVisible((menuState == 0 or participantId == 0) and visible)
+        firstChoice.setVisible(visible)
+        secondChoice.setVisible(visible)
         firstChoicePortrait.setVisible(visible)
         secondChoicePortrait.setVisible(visible)
-        playerOneChip.setVisible(visible and menuState == 0)
-        playerTwoChip.setVisible(visible and menuState == 0)
+        playerOneChip.setVisible(visible)
+        playerTwoChip.setVisible(visible)
         firstChoiceName.setVisible(visible)
         secondChoiceName.setVisible(visible)
         playerOneCard.setVisible(visible)
@@ -319,80 +375,37 @@ public class SelectionPanel
         opponentName.setVisible(visible)
         opponentStatus.setVisible(visible)
         confirmArt.setVisible(visible)
-        backArt.setVisible(menuState == 1 and visible)
         settingsArt.setVisible(visible)
-        confirmLabel.setVisible(visible and (menuState == 0 or participantId == 0))
-        backLabel.setVisible(menuState == 1 and visible)
+        confirmLabel.setVisible(visible)
         settingsLabel.setVisible(visible)
-        confirmButton.setVisible(visible and (menuState == 0 or participantId == 0))
-        backButton.setVisible(menuState == 1 and visible)
         settingsButton.setVisible(visible)
+        stageHeading.setVisible(visible)
+        skyStageArt.setVisible(visible)
+        bridgesStageArt.setVisible(visible)
+        skyStageName.setVisible(visible)
+        bridgesStageName.setVisible(visible)
+        skyStage.setVisible(visible and participantId == 0)
+        bridgesStage.setVisible(visible and participantId == 0)
         if not visible
             return
 
-        if menuState == 0
-            let playerOneChoice = participantId == 0 ? choice : opponentChoice
-            let playerTwoChoice = participantId == 0 ? opponentChoice : choice
-            playerOneChip.setAbsPoint(FRAMEPOINT_TOPLEFT, playerOneChoice == 0 ? 0.272 : 0.452, 0.366)
-            playerTwoChip.setAbsPoint(FRAMEPOINT_TOPLEFT, playerTwoChoice == 0 ? 0.323 : 0.503, 0.366)
-            playerTwoChip.setTexture(opponentHuman ? "war3mapImported\\SelectionChipP2.tga" : "war3mapImported\\SelectionChipCPU.tga", 0, true)
-            firstChoicePortrait.setTexture("war3mapImported\\ArcherTile.tga", 0, true)
-            secondChoicePortrait.setTexture("war3mapImported\\RiflemanTile.tga", 0, true)
-            heading.setText("CHOOSE YOUR FIGHTER")
-            subheading.setText("Select a fighter, then confirm. Player 1 chooses the stage.")
-            firstChoiceName.setText((choice == 0 ? "|cffffd64a>  |r" : "") + "ARCHER")
-            secondChoiceName.setText((choice == 1 ? "|cffffd64a>  |r" : "") + "RIFLEMAN")
-            confirmButton.setText("")
-            confirmLabel.setText(ready ? "READY  ✓" : "CONFIRM FIGHTER")
-            backLabel.setText("BACK")
-            settingsLabel.setText("CONTROLS  [F1]")
-            playerOneTag.setText("|cffffefcfP1  HUMAN|r")
-            playerTwoTag.setText(opponentHuman ? "|cffd9e8ffP2  HUMAN|r" : "|cffd9e8ffCPU|r")
-            selectedName.setText((participantId == 0 ? "|cffff5555P1  |r" : "|cff6699ffP2  |r") + characterName(choice))
-            selectedStatus.setText(ready ? "|cff8dff9aREADY|r" : "|cffc6cbd4Choose your fighter|r")
-            if opponentHuman
-                opponentName.setText((participantId == 0 ? "|cff6699ffP2  |r" : "|cffff5555P1  |r") + characterName(opponentChoice))
-                opponentStatus.setText(opponentReady ? "|cff8dff9aREADY|r" : "|cffc6cbd4Choosing|r")
-            else
-                opponentName.setText("|cffc6cbd4BOT  |r" + characterName(opponentChoice))
-                opponentStatus.setText("Computer opponent")
-            if opponentChoice == 0
-                opponentPortrait.setTexture("war3mapImported\\ArcherPortrait.tga", 0, true)
-            else
-                opponentPortrait.setTexture("war3mapImported\\RiflemanPortrait.tga", 0, true)
-            if choice == 0
-                selectedPortrait.setTexture("war3mapImported\\ArcherPortrait.tga", 0, true)
-            else
-                selectedPortrait.setTexture("war3mapImported\\RiflemanPortrait.tga", 0, true)
-        else
-            heading.setText("CHOOSE A STAGE")
-            subheading.setText("Mouse-select a stage, then start the match.")
-            firstChoiceName.setText((choice == 0 ? "|cffffd64a>  |r" : "") + "SKY DECK")
-            secondChoiceName.setText((choice == 1 ? "|cffffd64a>  |r" : "") + "THREE BRIDGES")
-            firstChoicePortrait.setTexture("war3mapImported\\SelectionSkyDeck.tga", 0, true)
-            secondChoicePortrait.setTexture("war3mapImported\\SelectionThreeBridges.tga", 0, true)
-            selectedName.setText((participantId == 0 ? "|cffff5555P1  |r" : "|cff6699ffP2  |r") + characterName(ownCharacter))
-            selectedStatus.setText(choice == 0 ? "One wide platform" : "Three floating platforms")
-            opponentName.setText(opponentHuman ? (participantId == 0 ? "|cff6699ffP2  |r" : "|cffff5555P1  |r") + characterName(opponentChoice) : "|cffc6cbd4BOT  |r" + characterName(opponentChoice))
-            opponentStatus.setText((participantId == 0 ? characterName(ownCharacter) : characterName(opponentChoice)) + "  vs  " + (participantId == 0 ? characterName(opponentChoice) : characterName(ownCharacter)))
-            if ownCharacter == 0
-                selectedPortrait.setTexture("war3mapImported\\ArcherPortrait.tga", 0, true)
-            else
-                selectedPortrait.setTexture("war3mapImported\\RiflemanPortrait.tga", 0, true)
-            if opponentChoice == 0
-                opponentPortrait.setTexture("war3mapImported\\ArcherPortrait.tga", 0, true)
-            else
-                opponentPortrait.setTexture("war3mapImported\\RiflemanPortrait.tga", 0, true)
-            confirmButton.setText("")
-            confirmLabel.setText("START MATCH")
-            backLabel.setText("BACK")
-            settingsLabel.setText("CONTROLS  [F1]")
-            playerOneTag.setText("|cffffefcfP1  HUMAN|r")
-            playerTwoTag.setText(opponentHuman ? "|cffd9e8ffP2  HUMAN|r" : "|cffd9e8ffCPU|r")
-
-        BlzFrameSetTextAlignment(firstChoiceName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-        BlzFrameSetTextAlignment(secondChoiceName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-        BlzFrameSetTextAlignment(selectedName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-        BlzFrameSetTextAlignment(opponentName, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-        BlzFrameSetTextAlignment(selectedStatus, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-        BlzFrameSetTextAlignment(opponentStatus, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
+        let opponentChip = participantId == 0 ? playerTwoChip : playerOneChip
+        opponentChip.setAbsPoint(FRAMEPOINT_TOPLEFT, selectionChipX(1 - participantId, opponentChoice), 0.366)
+        playerTwoChip.setTexture(opponentHuman ? "war3mapImported\\SelectionChipP2.tga" : "war3mapImported\\SelectionChipCPU.tga", 0, true)
+        firstChoiceName.setText("ARCHER")
+        secondChoiceName.setText("RIFLEMAN")
+        heading.setText("CHOOSE YOUR FIGHTER")
+        subheading.setText("Drag your chip onto a fighter, or click their portrait. Enter starts when everyone has chosen.")
+        let allReady = ready and (not opponentHuman or opponentReady)
+        confirmLabel.setText(allReady ? "ENTER TO START" : "PLACE YOUR CHIP")
+        settingsLabel.setText("CONTROLS  [F1]")
+        playerOneTag.setText("|cffffefcfP1  HUMAN|r")
+        playerTwoTag.setText(opponentHuman ? "|cffd9e8ffP2  HUMAN|r" : "|cffc6cbd4P2  COMPUTER|r")
+        selectedName.setText(characterName(choice))
+        selectedStatus.setText(ready ? "|cff8dff9aREADY|r" : "|cffc6cbd4Choose your fighter|r")
+        opponentName.setText(characterName(opponentChoice))
+        opponentStatus.setText(opponentHuman ? (opponentReady ? "|cff8dff9aREADY|r" : "|cffc6cbd4Choosing|r") : "Computer opponent")
+        selectedPortrait.setTexture(choice == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga", 0, true)
+        opponentPortrait.setTexture(opponentChoice == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga", 0, true)
+        skyStageName.setText(stageChoice == 0 ? "|cffffd64aSKY DECK|r" : "SKY DECK")
+        bridgesStageName.setText(stageChoice == 1 ? "|cffffd64aTHREE BRIDGES|r" : "THREE BRIDGES")

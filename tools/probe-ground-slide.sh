@@ -18,7 +18,7 @@ record_pid=
 trace_file='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/wc3-melee-input-trace.txt'
 touch build/animation-probe/ground-slide-started
 cleanup() {
-    ydotool key 23:0 30:0 31:0 32:0 49:0 29:0 20:0 2>/dev/null || true
+    ydotool key 23:0 30:0 31:0 32:0 49:0 29:0 20:0 28:0 33:0 2>/dev/null || true
     if [[ -n "$record_pid" ]]; then kill -INT "$record_pid" 2>/dev/null || true; wait "$record_pid" 2>/dev/null || true; fi
     kill "$input_pid" 2>/dev/null || true
     wait "$input_pid" 2>/dev/null || true
@@ -31,11 +31,12 @@ press() { check_focus; ydotool key "$1:1"; sleep 0.08; ydotool key "$1:0"; sleep
 check_focus
 wf-recorder -o eDP-1 -f build/animation-probe/wavedash-client.mp4 -r 60 -F scale=1440:960 -c libx264 -p threads=2 -p preset=ultrafast > build/animation-probe/wavedash-record.log 2>&1 &
 record_pid=$!
-press 49
+press 33
+press 31
 check_focus
-ydotool key 49:1
+ydotool key 28:1
 sleep 0.06
-ydotool key -d 0 49:0 29:1 20:1 20:0 29:0 23:1 23:0
+ydotool key -d 0 28:0 29:1 20:1 20:0 29:0 23:1 23:0
 sleep "$dodge_delay"
 ydotool key -d 0 31:1 32:1 30:1
 sleep 0.15

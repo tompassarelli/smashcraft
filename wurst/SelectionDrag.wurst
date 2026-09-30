@@ -1,0 +1,39 @@
+package SelectionDrag
+
+public function selectionPointerX(real pixelX, real width, real height) returns real
+    return (pixelX - (width - height * 4 / 3) / 2) * 0.6 / height
+
+public function selectionPointerY(real pixelY, real height) returns real
+    return 0.6 - pixelY * 0.6 / height
+
+public function selectionTile(real x, real y) returns int
+    if y < 0.292 or y > 0.424
+        return -1
+    if x >= 0.260 and x <= 0.372
+        return 0
+    if x >= 0.440 and x <= 0.552
+        return 1
+    return -1
+
+public function selectionChipX(int slot, int choice) returns real
+    return (choice == 0 ? 0.272 : 0.452) + (slot == 0 ? 0 : 0.051)
+
+// This state belongs only to the local cursor. Its result must cross a player
+// sync event before changing a selected fighter.
+public class SelectionDrag
+    boolean active = false
+    boolean wasDown = false
+
+    function update(boolean enabled, boolean down, real x, real y, int slot, int choice) returns int
+        var dropped = -1
+        if not enabled
+            active = false
+        else if down and not wasDown
+            let dx = x - (selectionChipX(slot, choice) + 0.020)
+            let dy = y - 0.346
+            active = dx * dx + dy * dy <= 0.0004
+        else if active and not down
+            active = false
+            dropped = selectionTile(x, y)
+        wasDown = down
+        return dropped

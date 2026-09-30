@@ -21,6 +21,8 @@ exec "$java" -Xmx512m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/wurst/DirectionalInput.wurst" \
     "$project_dir/wurst/DirectionalInputTests.wurst" \
     "$project_dir/wurst/SimulationTests.wurst" \
+    "$project_dir/wurst/SelectionDrag.wurst" \
+    "$project_dir/wurst/SelectionDragTests.wurst" \
     "$project_dir/wurst/MatchRules.wurst" \
     "$project_dir/wurst/MatchRulesTests.wurst" \
     "$project_dir/wurst/MatchStep.wurst" \

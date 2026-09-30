@@ -11,7 +11,7 @@ ydotoold -p "$YDOTOOL_SOCKET" > build/animation-probe/shield-input.log 2>&1 &
 input_pid=$!
 record_pid=
 cleanup() {
-    ydotool key 30:0 49:0 2>/dev/null || true
+    ydotool key 30:0 49:0 28:0 31:0 33:0 2>/dev/null || true
     if [[ -n "$record_pid" ]]; then kill -TERM "$record_pid" 2>/dev/null || true; wait "$record_pid" 2>/dev/null || true; fi
     kill "$input_pid" 2>/dev/null || true
     wait "$input_pid" 2>/dev/null || true
@@ -20,9 +20,11 @@ trap cleanup EXIT
 sleep 0.6
 focus() { [[ $(niri msg --json focused-window | jq -r .title) == 'Warcraft III' ]]; }
 press() { focus; ydotool key "$1:1"; sleep 0.08; ydotool key "$1:0"; }
-press 49
+press 33
 sleep 0.25
-press 49
+press 31
+sleep 0.25
+press 28
 sleep 0.1
 focus
 wf-recorder -o eDP-1 -r 60 -F scale=1440:960 -c libx264 -p threads=2 -p preset=ultrafast -f build/animation-probe/shield-visual.mp4 > build/animation-probe/shield-record.log 2>&1 &

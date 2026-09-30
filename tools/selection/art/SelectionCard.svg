@@ -1,19 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="700" height="940" viewBox="0 0 700 940">
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="840" viewBox="0 0 700 840">
  <defs>
   <linearGradient id="metal" x2="0" y2="1"><stop stop-color="#e0e6e9"/><stop offset=".12" stop-color="#697984"/><stop offset=".22" stop-color="#111b26"/><stop offset=".87" stop-color="#0b131c"/><stop offset=".97" stop-color="#87949c"/><stop offset="1" stop-color="#e2e6e8"/></linearGradient>
   <linearGradient id="tint" x2="0" y2="1"><stop stop-color="CARD_COLOR"/><stop offset=".68" stop-color="#111b29"/><stop offset="1" stop-color="#080d15"/></linearGradient>
   <linearGradient id="gold" x2="0" y2="1"><stop stop-color="#fff5a2"/><stop offset=".36" stop-color="#ffd52e"/><stop offset="1" stop-color="#9e680c"/></linearGradient>
   <pattern id="texture" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M0 12L19 0M25 48L48 25" stroke="#eef2f4" stroke-opacity=".065" stroke-width="2"/></pattern>
  </defs>
- <path d="M25 5H675L695 25V915L675 935H25L5 915V25Z" fill="#03070c" stroke="url(#gold)" stroke-width="9"/>
- <path d="M39 18H661L682 39V901L661 922H39L18 901V39Z" fill="url(#metal)" stroke="#d5dde1" stroke-width="5"/>
+ <path d="M25 5H675L695 25V815L675 835H25L5 815V25Z" fill="#03070c" stroke="url(#gold)" stroke-width="9"/>
+ <path d="M39 18H661L682 39V802L661 822H39L18 802V39Z" fill="url(#metal)" stroke="#d5dde1" stroke-width="5"/>
  <path d="M54 35H646L665 54V680H35V54Z" fill="url(#tint)" stroke="#a5b0b6" stroke-width="6"/>
  <path d="M54 35H646L665 54V680H35V54Z" fill="url(#texture)"/>
  <path d="M35 669H665V711H35Z" fill="#141d29" stroke="#d2dbe0" stroke-width="4"/>
  <path d="M58 714H642V812L626 828H74L58 812Z" fill="#0b121c" stroke="#8f9da6" stroke-width="5"/>
  <path d="M76 731H624V800H76Z" fill="#141d28" stroke="#d6e0e5" stroke-width="4"/>
- <path d="M68 833H632V900L614 918H86L68 900Z" fill="#101925" stroke="#596b79" stroke-width="4"/>
- <path d="M81 845H619V887H81Z" fill="CARD_COLOR" opacity=".48"/>
- <path d="M25 29L47 9H156L102 66H25ZM675 911L653 931H544L598 874H675Z" fill="url(#gold)"/>
- <text x="350" y="904" text-anchor="middle" fill="#dce5eb" fill-opacity=".40" font-family="DejaVu Sans, sans-serif" font-size="100" font-style="italic" font-weight="900" letter-spacing="3">PLAYER_MARK</text>
+ <path d="M25 29L47 9H156L102 66H25ZM675 811L653 831H544L598 774H675Z" fill="url(#gold)"/>
 </svg>

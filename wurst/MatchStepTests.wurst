@@ -7,8 +7,8 @@ import MatchStep
 @Test function humanDirectAttacksReachBothSlotsOnTheNextStep()
     for style = 1 to 5
         let game = new MatchState()
-        game.confirm()
-        game.confirm()
+        game.selectCharacter(0, 0)
+        game.requestStart(0)
         let first = new FighterState(0, -240, 1)
         let second = new FighterState(1, 240, -1)
         let firstInput = new InputSnapshot()
@@ -39,8 +39,8 @@ import MatchStep
 
 @Test function activeShieldConsumesGrabButRejectsOrdinaryAttackCommand()
     let game = new MatchState()
-    game.confirm()
-    game.confirm()
+    game.selectCharacter(0, 0)
+    game.requestStart(0)
     let first = new FighterState(0, 0, 1)
     let second = new FighterState(1, 350, -1)
     let firstInput = new InputSnapshot()
@@ -70,9 +70,9 @@ import MatchStep
 @Test function downOnlyDropsWhenAttackQueueIsEmptyExpiredOrFuture()
     for mode = 0 to 2
         let game = new MatchState()
-        game.confirm()
-        game.selectChoice(1)
-        game.confirm()
+        game.selectCharacter(0, 0)
+        game.selectStage(0, 1)
+        game.requestStart(0)
         let first = new FighterState(0, -240, 1)
         first.z = 170
         first.surface = 1
@@ -101,9 +101,9 @@ import MatchStep
     for style = 3 to 8
         if style == 3 or style == 8
             let game = new MatchState()
-            game.confirm()
-            game.selectChoice(1)
-            game.confirm()
+            game.selectCharacter(0, 0)
+            game.selectStage(0, 1)
+            game.requestStart(0)
             let first = new FighterState(0, -240, 1)
             first.z = 170
             first.surface = 1
@@ -134,8 +134,8 @@ import MatchStep
 @Test function heldNormalSmashChargesAndReleasesButDirectCommandStaysImmediate()
     for mode = 0 to 1
         let game = new MatchState()
-        game.confirm()
-        game.confirm()
+        game.selectCharacter(0, 0)
+        game.requestStart(0)
         let first = new FighterState(0, 0, 1)
         let second = new FighterState(1, 350, -1)
         let firstInput = new InputSnapshot()
@@ -169,8 +169,8 @@ import MatchStep
 
 @Test function airborneBackAttackKeepsFacingWhileDriftingBackwards()
     let game = new MatchState()
-    game.confirm()
-    game.confirm()
+    game.selectCharacter(0, 0)
+    game.requestStart(0)
     let first = new FighterState(0, 0, 1)
     let second = new FighterState(1, 350, -1)
     first.grounded = false
@@ -195,8 +195,8 @@ import MatchStep
 
 @Test function attackSelectionUsesGroundingAfterTheMovementStep()
     let game = new MatchState()
-    game.confirm()
-    game.confirm()
+    game.selectCharacter(0, 0)
+    game.requestStart(0)
     let first = new FighterState(0, 0, 1)
     let second = new FighterState(1, 350, -1)
     let firstInput = new InputSnapshot()
@@ -237,8 +237,8 @@ import MatchStep
 
 @Test function shieldPressAppliesBeforeSameFrameAttack()
     let game = new MatchState()
-    game.confirm()
-    game.confirm()
+    game.selectCharacter(0, 0)
+    game.requestStart(0)
     let first = new FighterState(0, 0, 1)
     let second = new FighterState(1, 100, -1)
     let firstInput = new InputSnapshot()
@@ -255,8 +255,8 @@ import MatchStep
 
 @Test function bothFinalStocksResolveAfterTheSameStep()
     let game = new MatchState()
-    game.confirm()
-    game.confirm()
+    game.selectCharacter(0, 0)
+    game.requestStart(0)
     let first = new FighterState(0, -921, 1)
     let second = new FighterState(1, 921, -1)
     first.stocks = 1
@@ -274,8 +274,8 @@ import MatchStep
 
 @Test function ledgeSharedMatchStepCatchesBothSlotsThenAcceptsFreshOptions()
     let game = new MatchState()
-    game.confirm()
-    game.confirm()
+    game.selectCharacter(0, 0)
+    game.requestStart(0)
     let first = new FighterState(0, -620, 1)
     let second = new FighterState(1, 620, -1)
     first.grounded = false

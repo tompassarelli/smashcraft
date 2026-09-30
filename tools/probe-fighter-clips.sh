@@ -15,7 +15,7 @@ ydotoold -p "$YDOTOOL_SOCKET" > "$run_dir/input.log" 2>&1 &
 input_pid=$!
 record_pid=
 cleanup() {
-    ydotool key 49:0 33:0 31:0 32:0 57:0 39:0 23:0 30:0 2>/dev/null || true
+    ydotool key 49:0 33:0 31:0 32:0 57:0 39:0 23:0 30:0 28:0 2>/dev/null || true
     if [[ -n "$record_pid" ]]; then kill -TERM "$record_pid" 2>/dev/null || true; wait "$record_pid" 2>/dev/null || true; fi
     kill "$input_pid" 2>/dev/null || true
     wait "$input_pid" 2>/dev/null || true
@@ -29,10 +29,11 @@ mark() { printf '%s %s\n' "$(date +%s.%N)" "$1" >> "$run_dir/actions.txt"; }
 focus
 wf-recorder -o eDP-1 -f "$run_dir/clips.mp4" -r 60 -F scale=1440:960 -c libx264 -p threads=2 -p preset=ultrafast > "$run_dir/record.log" 2>&1 &
 record_pid=$!
-if [[ "$character" == rifleman ]]; then press 33; sleep 0.2; fi
-press 49
+press 33
+sleep 0.2
+if [[ "$character" == archer ]]; then press 31; sleep 0.2; fi
+press 28
 sleep 0.3
-press 49
 mark knockdown
 sleep 1.2
 mark getup-attack

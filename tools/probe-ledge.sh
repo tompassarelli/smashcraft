@@ -20,7 +20,7 @@ export YDOTOOL_SOCKET="$project_dir/build/ledge-probe.sock"
 ydotoold -p "$YDOTOOL_SOCKET" > "$run_dir/input.log" 2>&1 &
 input_pid=$!
 cleanup() {
-    ydotool key "$key:0" 49:0 29:0 20:0 2>/dev/null || true
+    ydotool key "$key:0" 49:0 29:0 20:0 28:0 31:0 33:0 2>/dev/null || true
     kill "$input_pid" 2>/dev/null || true
     wait "$input_pid" 2>/dev/null || true
 }
@@ -30,9 +30,10 @@ focus() { [[ $(niri msg --json focused-window | jq -r .title) == 'Warcraft III' 
 press() { focus; ydotool key "$1:1"; sleep 0.08; ydotool key "$1:0"; sleep 0.12; }
 trace() { focus; ydotool key 29:1 20:1 20:0 29:0; }
 touch "$run_dir/started"
-press 49
+press 33
+press 31
 trace
-press 49
+press 28
 sleep 0.5
 focus
 grim -s 1 "$run_dir/hang.png"

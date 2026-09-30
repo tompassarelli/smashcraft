@@ -1417,3 +1417,16 @@ human has selected. Stage choice stays available on the selection screen so
 Enter can start directly. Tighten the character-tile name strips, remove the
 ">" marker, and center the labels with symmetric top/bottom padding. Chips
 alone indicate selection. These supersede the older confirm/stage-screen flow.
+
+Selection implementation deployed in build 100525: shortened player cards,
+centered fighter names, gray P2 chip, drag/drop and portrait readiness, and
+same-screen stage choice. The combined map built with zero errors and three
+warnings (two SettingsUI initialization warnings and an unused import).
+The rules aggregate passed 184/185; the new floating-coordinate assertion
+was corrected to a subpixel tolerance and all four drag tests then passed.
+Native screenshot wc3-melee:build/selection-current.png shows the updated
+layout. Reload completed a fresh simulation trace in 33.3 seconds, but the
+client subsequently displayed Waiting for host again. This is another actual
+restart-stall occurrence, not a successful sustained-session proof. Evidence:
+wc3-melee:build/selection-integrated-reload.log. Drag/drop and Enter behavior
+remain unverified in the client; seven native probes now use the new flow.
