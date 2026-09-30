@@ -36,8 +36,8 @@ step's physics. Record the actual implemented rate with the simulation tests.
 The simulation uses 60 logical frames/second and six Warcraft world units per
 Melee distance unit. Movement, gravity, shield energy and ordinary knockback
 use the numerical baseline below. Jump launch speeds are separately tuned
-constants; their resulting apex heights have not yet been compared to the
-reference table. Digital direction input, simplified collision shapes and
+constants; their simulated apex heights match the six reference-table targets
+as checked below. Digital direction input, simplified collision shapes and
 Warcraft animation remain deliberate differences.
 
 Minimum mechanics checks: press edges; short/full jump; air-jump budget; landing
@@ -77,7 +77,19 @@ into a seconds-based Warcraft velocity without converting. Prefer simulation
 units with rendering scale at the boundary. Report jump heights are trajectory
 targets, not initial velocities; verify discrete integration before choosing
 launch velocities. We target 60 logical frames per second independently of
-render cadence. Initial implementation may differ until that migration lands.
+render cadence.
+
+The 2026-09-30 `jumpApexMatchesDocumentedCharacterTargets` test advances the
+actual simulation for 80 ticks per trajectory, starting jumps through input
+and measuring the maximum height above takeoff. All six cases pass within
+0.001 Melee units (0.006 Warcraft units): Archer full/short/double heights
+31.28/10.65/40.204 and Rifleman 51.5/11.58/41.778. The airborne double-jump
+fixture starts 100 world units above the platform with one jump remaining.
+This establishes isolated apex height at the documented six-to-one scale,
+not airtime parity, input latency, animated pose height, or feel under combat.
+Run `bash test.sh jumpApexMatches` from
+~/code/wc3-melee/worktrees/test-loop; evidence is
+wc3-melee:build/wurst-tests/jump-apex.log. No launch-speed changes were needed.
 
 Additional factual rules from https://www.ssbwiki.com/Hitstun,
 https://www.ssbwiki.com/Knockback and https://www.ssbwiki.com/Shield:

@@ -5,6 +5,29 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function jumpApexMatchesDocumentedCharacterTargets()
+	for character = 0 to 1
+		for jumpKind = 0 to 2
+			let fighter = new FighterState(character, 0, 1)
+			let input = new InputSnapshot()
+			if jumpKind == 2
+				fighter.grounded = false
+				fighter.z = 100
+				fighter.jumps = 1
+			let initialZ = fighter.z
+			input.jumpPressed = true
+			input.jumpHeld = jumpKind != 1
+			var apex = initialZ
+			for tick = 1 to 80
+				advance(fighter, 0, input, 0)
+				input.jumpPressed = false
+				apex = max(apex, fighter.z)
+			let expected = character == 0 ? (jumpKind == 0 ? 31.28 : (jumpKind == 1 ? 10.65 : 40.204)) : (jumpKind == 0 ? 51.5 : (jumpKind == 1 ? 11.58 : 41.778))
+			(apex - initialZ).assertEquals(expected * 6, 0.006)
+			fighter.jumpSerial.assertEquals(1)
+			destroy input
+			destroy fighter
+
 function lCancelTestFighter(int style) returns FighterState
 	let fighter = new FighterState(0, 0, 1)
 	let target = new FighterState(1, 500, -1)
