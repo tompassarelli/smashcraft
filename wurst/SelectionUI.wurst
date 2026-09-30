@@ -31,8 +31,6 @@ public class SelectionPanel
     framehandle subheading
     framehandle firstTileArt
     framehandle secondTileArt
-    framehandle firstChoice
-    framehandle secondChoice
     framehandle firstChoicePortrait
     framehandle secondChoicePortrait
     framehandle playerOneChip
@@ -104,26 +102,6 @@ public class SelectionPanel
         secondTileArt.setTexture("war3mapImported\\SelectionTileFrame.tga", 0, true)
         secondTileArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.440, 0.424)
         secondTileArt.setSize(0.112, 0.132)
-
-        firstChoice = createFrame("ScriptDialogButton", GAME_UI, 0, 407 + frameOffset)
-        firstChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.260, 0.424)
-        firstChoice.setSize(0.112, 0.132)
-        firstChoice.setAlpha(0)
-        firstChoice.onClick(() -> begin
-            if GetTriggerPlayer() == Player(participantId)
-                actions.selectChoice(participantId, 0)
-        end)
-        firstChoice.onClickReleaseFocus()
-
-        secondChoice = createFrame("ScriptDialogButton", GAME_UI, 0, 408 + frameOffset)
-        secondChoice.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.440, 0.424)
-        secondChoice.setSize(0.112, 0.132)
-        secondChoice.setAlpha(0)
-        secondChoice.onClick(() -> begin
-            if GetTriggerPlayer() == Player(participantId)
-                actions.selectChoice(participantId, 1)
-        end)
-        secondChoice.onClickReleaseFocus()
 
         firstChoicePortrait = createBackdrop("MeleeArcherChoicePortrait" + suffix, GAME_UI, 421 + frameOffset)
         firstChoicePortrait.setTexture("war3mapImported\\ArcherTile.tga", 0, true)
@@ -282,8 +260,6 @@ public class SelectionPanel
         subheading.setVisible(false)
         firstTileArt.setVisible(false)
         secondTileArt.setVisible(false)
-        firstChoice.setVisible(false)
-        secondChoice.setVisible(false)
         firstChoicePortrait.setVisible(false)
         secondChoicePortrait.setVisible(false)
         playerOneChip.setVisible(false)
@@ -364,8 +340,6 @@ public class SelectionPanel
         subheading.setVisible(visible)
         firstTileArt.setVisible(visible)
         secondTileArt.setVisible(visible)
-        firstChoice.setVisible(visible)
-        secondChoice.setVisible(visible)
         firstChoicePortrait.setVisible(visible)
         secondChoicePortrait.setVisible(visible)
         playerOneChip.setVisible(visible)

@@ -53,3 +53,31 @@ import SelectionDrag
     selectionPointerY(540, 1080).assertEquals(0.3, 0.000001)
     selectionPointerX(240, 1920, 1080).assertEquals(0., 0.000001)
     selectionPointerX(0, 1440, 1080).assertEquals(0., 0.000001)
+
+@Test function stationaryCpuChipReleaseBelongsOnlyToCpu()
+    let drag = new SelectionDrag()
+    drag.update(true, true, 0.523, 0.346, 0, 0, 1, true).assertEquals(-1)
+    drag.update(true, false, 0.523, 0.346, 0, 0, 1, true).assertEquals(1)
+    drag.releasedSlot.assertEquals(1)
+    drag.update(true, false, 0.523, 0.346, 0, 0, 1, true).assertEquals(-1)
+    destroy drag
+
+@Test function otherHumansChipDoesNotClickPortraitUnderneath()
+    let drag = new SelectionDrag()
+    drag.update(true, true, 0.523, 0.346, 0, 0, 1, false)
+    drag.update(true, false, 0.523, 0.346, 0, 0, 1, false).assertEquals(-1)
+    drag.releasedSlot.assertEquals(-1)
+    destroy drag
+
+@Test function portraitClickSelectsOwnFighterOnlyOnSameTileRelease()
+    let drag = new SelectionDrag()
+    drag.update(true, true, 0.470, 0.400, 0, 0, 1, true).assertEquals(-1)
+    drag.active.assertFalse()
+    drag.update(true, false, 0.480, 0.400, 0, 0, 1, true).assertEquals(1)
+    drag.releasedSlot.assertEquals(0)
+    drag.update(true, true, 0.470, 0.400, 0, 0, 1, true)
+    drag.update(true, false, 0.300, 0.400, 0, 0, 1, true).assertEquals(-1)
+    drag.update(true, true, 0.470, 0.400, 0, 0, 1, true)
+    drag.update(false, true, 0.470, 0.400, 0, 0, 1, true)
+    drag.update(true, false, 0.470, 0.400, 0, 0, 1, true).assertEquals(-1)
+    destroy drag

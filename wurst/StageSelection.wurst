@@ -16,17 +16,24 @@ public function stageTileAt(real x, real y) returns int
 public class StageDrag
     boolean active = false
     boolean wasDown = false
+    int pressedTile = -1
 
     function update(boolean enabled, boolean down, real x, real y, int choice) returns int
         var dropped = -1
         if not enabled
             active = false
+            pressedTile = -1
         else if down and not wasDown
             let dx = x - (stageTileLeft(choice) + 0.071)
             let dy = y - 0.357
             active = dx * dx + dy * dy <= 0.0004
-        else if active and not down
+            pressedTile = active ? -1 : stageTileAt(x, y)
+        else if wasDown and not down
+            if active
+                dropped = stageTileAt(x, y)
+            else if pressedTile >= 0 and stageTileAt(x, y) == pressedTile
+                dropped = pressedTile
             active = false
-            dropped = stageTileAt(x, y)
+            pressedTile = -1
         wasDown = down
         return dropped

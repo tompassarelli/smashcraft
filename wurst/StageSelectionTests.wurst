@@ -21,3 +21,16 @@ import StageSelection
     drag.update(false, false, 0.525, 0.357, 1).assertEquals(-1)
     drag.active.assertFalse()
     destroy drag
+
+@Test function stagePortraitClickRequiresMatchingPressAndRelease()
+    let drag = new StageDrag()
+    drag.update(true, true, 0.720, 0.390, 0).assertEquals(-1)
+    drag.active.assertFalse()
+    drag.update(true, false, 0.720, 0.390, 0).assertEquals(1)
+    drag.update(true, false, 0.720, 0.390, 0).assertEquals(-1)
+    drag.update(true, true, 0.720, 0.390, 0)
+    drag.update(true, false, 0.480, 0.390, 0).assertEquals(-1)
+    drag.update(true, true, 0.720, 0.390, 0)
+    drag.update(false, true, 0.720, 0.390, 0)
+    drag.update(true, false, 0.720, 0.390, 0).assertEquals(-1)
+    destroy drag

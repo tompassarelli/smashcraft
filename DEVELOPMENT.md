@@ -52,10 +52,10 @@ wc3-melee:build/header-new-native.png.
 
 CPU choice is stored independently and solo-host selection is authorized
 separately from human readiness. Rifleman versus Rifleman reached a native
-match (wc3-melee:build/outline-hud-native.png). CPU chip dragging has headless
-coverage, but the held chip did not follow the pointer in the native attempt
-wc3-melee:build/cpu-drag-held.png. The native input/coordinate boundary remains
-open; do not label drag-and-drop verified.
+match (wc3-melee:build/outline-hud-native.png). CPU-chip movement and release
+were later observed in the native pointer probe below. That exposed a separate
+click-through defect; the revised gesture path has headless coverage and still
+needs its native confirmation.
 
 The large damage percentage uses Warcraft's frame-definition font, outline,
 and shadow settings in wc3-melee:tools/selection/art/SmashcraftHUD.fdf.
@@ -79,6 +79,40 @@ host-wait stall; mouse interaction/drag confirmation; cached native loading
 title and author despite updated map metadata. Transient host-wait during
 restart is not by itself evidence of a sustained stall. Combat fidelity tasks
 above remain unfinished.
+
+### Selection gesture correction (2026-09-30)
+
+The pointer probe observed raw mouse (1809,774) in a 2880x1920 client, native
+frame coordinates (0.515,0.358), and held=1. These agree with the existing
+coordinate conversion. CPU chip movement and a completed Archer mirror choice
+were observed in wc3-melee:build/drag-input-moved.png and
+wc3-melee:build/drag-input-released.png. The earlier failure did not establish a
+coordinate-conversion bug.
+
+Pressing/releasing the CPU chip without moving also activated the transparent
+portrait button below it and selected that fighter for P1. Evidence:
+wc3-melee:build/chip-release-before-drag.png. Character and stage tiles now use
+one local press/release path, with chip ownership taking priority over portrait
+clicks. Completed choices use the existing synchronization events. The competing
+transparent tile buttons were removed; Start and settings buttons remain native
+frame controls. A foreign human's chip cannot act as a portrait click. Plain
+portrait clicks require press/release on the same tile; opening another screen
+cancels the gesture.
+
+All 16 selection-filtered tests passed with zero errors/warnings in
+wc3-melee:build/wurst-tests/selection-gesture.log. Build `selection-gesture`
+succeeded with the four existing warnings and was installed to the maps folder.
+The running client was still on `selection-pointer-probe` when desktop focus
+moved elsewhere; the revised behavior has not yet been checked natively.
+
+Resume native verification by loading `selection-gesture`, then: click the CPU
+chip in place while P1 has the other fighter; drag CPU to P1's fighter; drag P1
+to the other fighter; click a portrait away from either chip; proceed to Stage
+Select and check both tile click and chip drag. Confirm only the intended
+fighter changes, mirror choices remain allowed, and a chip follows while held.
+Do not type while the compositor overview is open, even if focused-window
+still names Warcraft. Check focus immediately before each input action and
+stop on a focus change.
 
 1. Change the relevant simulation rule and run its focused Wurst test.
 2. Use compiler/editor diagnostics for type and API mistakes.

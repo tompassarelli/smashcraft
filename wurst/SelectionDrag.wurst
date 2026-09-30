@@ -18,6 +18,11 @@ public function selectionTile(real x, real y) returns int
 public function selectionChipX(int slot, int choice) returns real
     return (choice == 0 ? 0.272 : 0.452) + (slot == 0 ? 0 : 0.051)
 
+function onChip(int slot, int choice, real x, real y) returns boolean
+    let dx = x - (selectionChipX(slot, choice) + 0.020)
+    let dy = y - 0.346
+    return dx * dx + dy * dy <= 0.0004
+
 // This state belongs only to the local cursor. Its result must cross a player
 // sync event before changing a selected fighter.
 public class SelectionDrag
@@ -25,6 +30,7 @@ public class SelectionDrag
     boolean wasDown = false
     int activeSlot = -1
     int releasedSlot = -1
+    int pressedTile = -1
 
     function update(boolean enabled, boolean down, real x, real y, int slot, int choice,
         int opponentChoice, boolean opponentDraggable) returns int
@@ -32,20 +38,26 @@ public class SelectionDrag
         releasedSlot = -1
         if not enabled
             active = false
-        else if down and not wasDown
-            let dx = x - (selectionChipX(slot, choice) + 0.020)
-            let dy = y - 0.346
-            active = dx * dx + dy * dy <= 0.0004
-            activeSlot = active ? slot : -1
-            if not active and opponentDraggable
-                let opponentSlot = 1 - slot
-                let opponentDx = x - (selectionChipX(opponentSlot, opponentChoice) + 0.020)
-                active = opponentDx * opponentDx + dy * dy <= 0.0004
-                activeSlot = active ? opponentSlot : -1
-        else if active and not down
-            active = false
-            dropped = selectionTile(x, y)
-            releasedSlot = activeSlot
             activeSlot = -1
+            pressedTile = -1
+        else if down and not wasDown
+            active = onChip(slot, choice, x, y)
+            activeSlot = active ? slot : -1
+            let overOpponent = onChip(1 - slot, opponentChoice, x, y)
+            if not active and overOpponent and opponentDraggable
+                active = true
+                activeSlot = 1 - slot
+            // A chip owns the whole gesture, including a release without motion.
+            pressedTile = active or overOpponent ? -1 : selectionTile(x, y)
+        else if wasDown and not down
+            if active
+                dropped = selectionTile(x, y)
+                releasedSlot = activeSlot
+            else if pressedTile >= 0 and selectionTile(x, y) == pressedTile
+                dropped = pressedTile
+                releasedSlot = slot
+            active = false
+            activeSlot = -1
+            pressedTile = -1
         wasDown = down
         return dropped
