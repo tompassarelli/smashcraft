@@ -38,10 +38,20 @@ must remain explicitly provisional, not presented as extracted Melee data.
 Packaging remains blocked: the first export omitted all 17 event tracks.
 mdl-exporter4:da27fd3 repairs discarded binary event timestamps and valid empty
 track output; its focused regression failed before and passes after repair.
-The saved scenes/model must be rebuilt through that repaired importer before
-claiming event preservation. Two original cloud-effect texture declarations
-are also absent from export and remain unresolved. Do not publish this model
-as native-ready. Portrait evidence:
+The source scene was regenerated through that importer. The actual-model test
+in mdl-exporter4:754fd47 now proves all 17 events and 20 source event keys survive
+scene import and export sequence remapping:
+mdl-exporter4:build/illidan-event-roundtrip.log. The authored scene/model still
+needs rebuilding after the remaining importer repair.
+
+The missing cloud textures belong to two source PRE2 emitters:
+`BlizParticle01smoke` and `BlizParticle01fireattack`. Binary particle-emitter
+import is absent; this is not merely an unused texture-table discrepancy.
+Both have visibility curves; fireattack also has an animated width curve.
+Preserve those emitter settings, animation and texture references through the
+existing editable emitter/export path before rerunning the roughly ten-minute
+fighter export. Do not add unused texture entries just to pass packaging.
+Do not publish this model as native-ready. Portrait evidence:
 wc3-melee:build/selection-assets/DemonHunter-render-r6.log and
 wc3-melee:build/selection-assets/DemonHunterPortrait.png.
 
