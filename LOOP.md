@@ -2,6 +2,31 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
+Recovery/grab reference continuation: local Melee revision remains
+0296f009f32f710495979d30772d8332af2d411a; its original-data directory contains
+only the placeholder. Public extracted character/action data is available at
+https://melee.theshoemaker.de/dat-dumps/Sheik.json. Local inspection cache:
+wc3-melee:build/ref-Sheik-data.json and
+wc3-melee:build/ref-Sheik-recovery-extract.jsonl. The extracted animation lengths
+are bound 26, down damage 14, stand 30, attack 50, rolls 36. These are raw clip
+lengths, not yet certified actionable durations; reconcile indexing and native
+animation termination before adopting the owner's 26/13/30/49/35 table.
+The export includes protection events and ground/air events. Use factual data
+only; do not vendor the dump or decompiled code into Smashcraft.
+
+The owner approved starting throw motions: Archer forward pivot-kick, back
+hip toss, up rising palm, down sweep/slam; Rifleman forward stock shove, back
+heave, up lift/toss, down pull/slam. Fresh Attack taps must pummel after capture.
+Pummels, throws, escape and their coordinated poses remain unimplemented.
+Reference ftCommon_GrabMash counts at most one eligible-button contribution
+plus one remembered-axis-sign change per call; neutral does not clear those
+signs. Fighter input maps Z into A/trigger semantics. CaptureWait decrements
+the timer and processes mash before release. SmashWiki's Grab page supplies
+the six-frame contribution and damage-dependent timer formula; caches are
+wc3-melee:build/ref-Grab.html and wc3-melee:build/ref-Mashing.html. Complete
+grab-context input, pummel, throw commitment/release, mash and snapshot state
+together instead of claiming the existing 20-frame hold is finished.
+
 Installed: `cstick-swap-r1`, normal scenario; not yet observed running.
 Both presets now use B or / for C-stick left and H for C-stick down. The
 owner's saved binding file was swapped too, preserving all other slots.
