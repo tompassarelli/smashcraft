@@ -1,0 +1,57 @@
+package ParryScenarioTests
+import Simulation
+import CommandBuffer
+import MatchRules
+import MatchStep
+import ParryScenario
+
+@Test function sameFrameJabParriesAtFrameFourAndNeutralSpecialTakesContact()
+    for parry = 0 to 1
+        let game = new MatchState()
+        game.phase = MATCH
+        let first = new FighterState(2, 0, 1)
+        let second = new FighterState(0, 0, -1)
+        initializeParryScenario(first, second)
+        let firstInput = new InputSnapshot()
+        let secondInput = new InputSnapshot()
+        let firstCommands = new AttackBuffer(ATTACK_BUFFER_FRAMES)
+        let secondCommands = new AttackBuffer(ATTACK_BUFFER_FRAMES)
+        // The CPU stays passive while the player waits at the starting mark.
+        for frame = 1 to 20
+            queueParryScenarioJab(firstInput, second, secondCommands, frame)
+            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+        second.attackSerial.assertEquals(0)
+        first.damage.assertEquals(0.)
+        firstInput.specialPressed = true
+        firstInput.specialX = parry
+        firstInput.direction = parry
+        queueParryScenarioJab(firstInput, second, secondCommands, 21)
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 21)
+        second.attackFrame.assertEquals(0)
+        second.attackSerial.assertEquals(1)
+        firstInput.specialPressed = false
+        firstInput.specialX = 0
+        firstInput.direction = 0
+        for frame = 22 to 24
+            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+        first.specialFrame.assertEquals(4)
+        first.damage.assertEquals(0.)
+        second.hitstun.assertEquals(0)
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 25)
+        if parry == 1
+            first.damage.assertEquals(0.)
+            first.specialAction.assertEquals(SPECIAL_NONE)
+            second.hitstun.assertEquals(10)
+            second.hitlag.assertEquals(4)
+            second.attackStyle.assertEquals(-1)
+        else
+            first.damage.assertGreaterThan(0.)
+            first.hitstun.assertGreaterThan(0)
+            second.hitstun.assertEquals(0)
+        destroy secondCommands
+        destroy firstCommands
+        destroy secondInput
+        destroy firstInput
+        destroy second
+        destroy first
+        destroy game

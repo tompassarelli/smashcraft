@@ -265,12 +265,33 @@ wc3-melee:build/illidan-defense-trace.txt records the shield/direction inputs
 with zero dropped records. This passive-opponent check does not verify the
 protection windows or shield-contact reactions.
 
-The normal-bot parry attempt in wc3-melee:build/illidan-parry-native.mp4 and
-wc3-melee:build/illidan-parry-trace.txt did not establish a successful parry:
-the recorded strikes did not produce the intended attacker-interruption
-signature. Keep parry protection unverified. This recording does show a stock
-loss, respawn with damage reset, and resumed movement/special actions. It does
-not prove every character state resets correctly. The trace dropped no records.
+The earlier normal-bot attempt in wc3-melee:build/illidan-parry-native.mp4 and
+wc3-melee:build/illidan-parry-trace.txt was inconclusive for parry protection.
+It does show a stock loss, respawn with damage reset, and resumed actions;
+it does not prove every character state resets correctly.
+
+Controlled native parry contact now passes in `illidan-parry-controlled-r1`.
+Right+Special starts Illidan's parry and an ordinary Archer jab at frame 91.
+At frame 95 the parry cancels, Archer enters the damage pose with 10 hitstun
+and 4 hitlag frames, and Illidan remains at 0%. The recording shows his forward
+step, the interrupted strike, and Archer recoiling. The unprotected comparison
+starts Neutral Special and the same jab at frame 97; contact at frame 101
+interrupts Illidan with 7 hitlag, 20 hitstun and 12 damage. Both traces report
+zero dropped records. Evidence:
+wc3-melee:build/illidan-parry-controlled-native.mp4 and
+wc3-melee:build/illidan-parry-controlled-trace.txt;
+wc3-melee:build/illidan-control-controlled-native.mp4 and
+wc3-melee:build/illidan-control-controlled-trace.txt.
+
+Reproduce with `WC3_SCENARIO=parry` through wc3-melee:build.sh. Keep the
+preselected Illidan versus Archer, start through the menus, and press
+Right+Special together. The CPU waits until that physical Special press queues
+its jab; neither fighter's contact result or action frame is forced. Load a
+fresh match for the Neutral Special comparison. Do not use Ctrl+R: its native
+disconnect remains unresolved. The paired wc3-melee:wurst/ParryScenarioTests.wurst
+test passes through the ordinary match step (1/1); the probe map also builds.
+This establishes one grounded, right-facing melee parry. Opposite-facing,
+airborne, projectile and exact protection-boundary native cases remain open.
 
 Grounded Immolate contact is observed in Warcraft: one 7-damage hit with
 5 victim hitlag frames, 18 hitstun frames and a horizontal launch. Its green
@@ -352,7 +373,7 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 | Model, textures, attached blades, both gameplay facings | Normal textured bodies/weapons observed in native mirror match after visibility repair; both-facing action coverage incomplete |
 | Jab, directional/angled tilts, smashes, dash attack | Jab and flat forward/down/up tilts activate and play in both facings; angled tilts, smashes and dash attack still need native checks |
 | Neutral/forward/back/up/down aerials | All five left-facing jump-squat activations and playback observed; opposite facing, contact and exact phase alignment remain pending |
-| Mana Burn, parry/evasion, wing ascent, Immolate | Native Mana Burn contact, wing ascent, ground/air Immolate contact and parry-step movement observed; actual parry protection and offstage spike remain unverified |
+| Mana Burn, parry/evasion, wing ascent, Immolate | Native Mana Burn contact, wing ascent, ground/air Immolate contact and controlled grounded melee parry observed; offstage spike remains unverified |
 | Grab, hold, pummel, escape, four coordinated throws | Native capture/pummel/up-throw confirmed; pair readability, escape and other throw directions still pending |
 | Idle, walk/run, turns, crouch, jumps and landings | Normal and air-dodge landing playback observed; jump squat, jumps and idle fall bound; other movement transitions still incomplete |
 | Shield, shield reactions/break, spot dodge, rolls, air dodge | Shield raise/release, spot dodge, both rolls and earlier air-dodge landing observed; protection windows, shield contact/break and full air-dodge playback still pending |

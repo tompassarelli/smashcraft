@@ -10,6 +10,7 @@ import MatchHUD
 import CommandBuffer
 import CombatInput
 import MatchStep
+import ParryScenario
 import SelectionUI
 import StageUI
 import BindingSettings
@@ -552,6 +553,8 @@ function startMatch()
     drawStage()
     if wasPaused
         pauseMatchPresentation(false)
+    if PARRY_SCENARIO
+        initializeParryScenario(playerFighter, botFighter)
     if KNOCKDOWN_SCENARIO
         playerFighter.downState = DOWN_TUMBLE
         playerFighter.grounded = false
@@ -1482,7 +1485,7 @@ function gameTick()
         botInput.specialPressed = false
         botInput.verticalDirection = 0
         botInput.ledgeVerticalPressed = 0
-        if not twoHumanPlayers and not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not LEDGE_SCENARIO and not botFighter.out
+        if not twoHumanPlayers and not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not LEDGE_SCENARIO and not PARRY_SCENARIO and not botFighter.out
             let recovering = chooseRecoveryInput(botFighter, matchState.stageChoice, botInput)
             let gap = playerFighter.x - botFighter.x
             if not recovering and not playerFighter.out
@@ -1570,6 +1573,8 @@ function gameTick()
         if twoHumanPlayers and secondNormalAttackQueued
             let style = normalAttackStyle(secondPlayerInput.direction, secondPlayerInput.verticalDirection, secondPlayerInput.walking, botFighter.grounded and (botFighter.shield or secondPlayerInput.shield))
             secondAttackRequests.enqueue(style, secondPlayerInput.direction, frame, true)
+        if PARRY_SCENARIO and not twoHumanPlayers
+            queueParryScenarioJab(playerInput, botFighter, secondAttackRequests, frame)
         if currentFrameInput.capture(frame,
                 playerInput, twoHumanPlayers ? secondPlayerInput : botInput,
                 playerAttackRequests, secondAttackRequests, replayRuntime)
@@ -1638,7 +1643,7 @@ function gameTick()
         PreloadGenClear()
         PreloadGenStart()
         Preload("BUILD " + BUILD_ID)
-        Preload("SCENARIO " + (LEDGE_SCENARIO ? "ledge" : (SHIELD_BREAK_SCENARIO ? "shield-break" : (TECH_SCENARIO ? "tech" : (KNOCKDOWN_SCENARIO ? "knockdown" : "normal")))))
+        Preload("SCENARIO " + (PARRY_SCENARIO ? "parry" : (LEDGE_SCENARIO ? "ledge" : (SHIELD_BREAK_SCENARIO ? "shield-break" : (TECH_SCENARIO ? "tech" : (KNOCKDOWN_SCENARIO ? "knockdown" : "normal"))))))
         Preload("BINDINGS " + playerBindings.bindings.encode())
         Preload("BINDINGS1 " + (twoHumanPlayers ? secondBindings.bindings.encode() : "BOT"))
         PreloadGenEnd("wc3-melee-ready.txt")
@@ -1648,6 +1653,12 @@ function initGame()
     hostHumanPlayer = GetPlayerController(Player(0)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(0)) == PLAYER_SLOT_STATE_PLAYING
     twoHumanPlayers = hostHumanPlayer and GetPlayerController(Player(1)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(1)) == PLAYER_SLOT_STATE_PLAYING
     matchState.setHumanCount(twoHumanPlayers ? 2 : 1)
+    if PARRY_SCENARIO
+        matchState.selectCharacter(0, 2)
+        if twoHumanPlayers
+            matchState.selectCharacter(1, 0)
+        else
+            matchState.selectCpuCharacter(0, 0)
     playerInput = new InputSnapshot()
     botInput = new InputSnapshot()
     secondPlayerInput = new InputSnapshot()
