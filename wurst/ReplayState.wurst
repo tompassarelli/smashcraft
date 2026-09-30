@@ -63,6 +63,9 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.jumpSerial = source.jumpSerial
 	destination.jumpIsDouble = source.jumpIsDouble
 	destination.jumpSquat = source.jumpSquat
+	destination.jumpDodgeQueued = source.jumpDodgeQueued
+	destination.jumpDodgeX = source.jumpDodgeX
+	destination.jumpDodgeZ = source.jumpDodgeZ
 	destination.jumpHeld = source.jumpHeld
 	destination.dropTime = source.dropTime
 	destination.invincible = source.invincible
@@ -276,6 +279,12 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "jumpIsDouble"
 	if expected.jumpSquat != actual.jumpSquat
 		return "jumpSquat"
+	if expected.jumpDodgeQueued != actual.jumpDodgeQueued
+		return "jumpDodgeQueued"
+	if expected.jumpDodgeX != actual.jumpDodgeX
+		return "jumpDodgeX"
+	if expected.jumpDodgeZ != actual.jumpDodgeZ
+		return "jumpDodgeZ"
 	if expected.jumpHeld != actual.jumpHeld
 		return "jumpHeld"
 	if expected.dropTime != actual.dropTime

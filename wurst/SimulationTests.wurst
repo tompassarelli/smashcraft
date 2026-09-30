@@ -5,6 +5,51 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function shieldDuringJumpSquatUsesLaterDirectionForFirstFrameWavedash()
+	for character = 0 to 1
+		for direction = -1 to 1
+			if direction != 0
+				let fighter = new FighterState(character, 0, 1)
+				let input = new InputSnapshot()
+				fighter.surface = 0
+				input.jumpPressed = true
+				input.jumpHeld = true
+				advance(fighter, 0, input, 0)
+				input.jumpPressed = false
+				input.airDodgePressed = true
+				advance(fighter, 0, input, 0)
+				fighter.jumpDodgeQueued.assertTrue()
+				input.airDodgePressed = false
+				input.direction = direction
+				for frame = 3 to jumpSquatFrames(character)
+					advance(fighter, 0, input, 0)
+					input.direction = 0
+				fighter.jumpSerial.assertEquals(1)
+				fighter.jumpDodgeQueued.assertFalse()
+				fighter.grounded.assertTrue()
+				fighter.landingLag.assertEquals(AIR_DODGE_LANDING_LAG)
+				fighter.vx.assertEquals(direction * 15.4071, 0.001)
+				destroy input
+				destroy fighter
+
+@Test function hittingJumpSquatCancelsBufferedAirDodge()
+	let attacker = new FighterState(1, 0, 1)
+	let fighter = new FighterState(0, 70, -1)
+	let input = new InputSnapshot()
+	input.jumpPressed = true
+	input.airDodgePressed = true
+	advance(fighter, 0, input, 0)
+	fighter.jumpDodgeQueued.assertTrue()
+	beginAttackPair(attacker, fighter, 0, -1, false, false)
+	attacker.attackFrame = attackStartupFrames(0)
+	resolveAttackPair(attacker, fighter)
+	fighter.hitstun.assertGreaterThan(0)
+	fighter.jumpSquat.assertEquals(0)
+	fighter.jumpDodgeQueued.assertFalse()
+	destroy input
+	destroy fighter
+	destroy attacker
+
 @Test function leavingFloorWithoutJumpingLeavesExactlyOneAirJump()
 	for character = 0 to 1
 		for side = -1 to 1

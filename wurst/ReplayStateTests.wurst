@@ -29,6 +29,9 @@ import MatchStep
     first.x = -123.5
     first.damage = 47
     first.hitlag = 3
+    first.jumpDodgeQueued = true
+    first.jumpDodgeX = -1
+    first.jumpDodgeZ = 1
     first.techWindow = 11
     first.projectileLife[3] = 27
     first.projectileX[3] = -44.25
@@ -50,6 +53,9 @@ import MatchStep
     first.x = 700
     first.damage = 0
     first.hitlag = 0
+    first.jumpDodgeQueued = false
+    first.jumpDodgeX = 0
+    first.jumpDodgeZ = 0
     first.techWindow = 0
     first.projectileLife[3] = 0
     first.projectileX[3] = 0
@@ -70,6 +76,9 @@ import MatchStep
     first.x.assertEquals(-123.5)
     first.damage.assertEquals(47)
     first.hitlag.assertEquals(3)
+    first.jumpDodgeQueued.assertTrue()
+    first.jumpDodgeX.assertEquals(-1)
+    first.jumpDodgeZ.assertEquals(1)
     first.techWindow.assertEquals(11)
     first.projectileLife[3].assertEquals(27)
     first.projectileX[3].assertEquals(-44.25)

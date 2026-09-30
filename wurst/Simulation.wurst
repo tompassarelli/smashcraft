@@ -306,6 +306,9 @@ public class FighterState
 	int jumpSerial = 0
 	boolean jumpIsDouble = false
 	int jumpSquat = 0
+	boolean jumpDodgeQueued = false
+	int jumpDodgeX = 0
+	int jumpDodgeZ = 0
 	boolean jumpHeld = false
 	int dropTime = 0
 	int invincible = 0
@@ -1372,6 +1375,9 @@ function interruptJumpOrDodge(FighterState f)
 		leaveLedge(f)
 	clearShieldBreak(f)
 	f.jumpSquat = 0
+	f.jumpDodgeQueued = false
+	f.jumpDodgeX = 0
+	f.jumpDodgeZ = 0
 	f.jumpHeld = false
 	f.airDodging = false
 	f.airDodgeTime = 0
@@ -2096,6 +2102,9 @@ public function resolveAttackPair(FighterState first, FighterState second)
 			applyAttackHit(second, first, secondStyle, secondFacing, secondRegion.hitData, true)
 
 public function reset(FighterState f, real startX)
+	f.jumpDodgeQueued = false
+	f.jumpDodgeX = 0
+	f.jumpDodgeZ = 0
 	clearGrabLinks(f)
 	clearSpecialOnStock(f)
 	f.lastHitAttacker = null
@@ -2260,7 +2269,15 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	if f.jumpSquat > 0
 		f.jumpHeld = f.jumpHeld and input.jumpHeld
 	if input.airDodgePressed
-		simulationAirDodge(f, input.dodgeX, input.dodgeZ)
+		if f.grounded and f.jumpSquat > 0
+			f.jumpDodgeQueued = true
+			f.jumpDodgeX = input.dodgeX
+			f.jumpDodgeZ = input.dodgeZ
+		else
+			simulationAirDodge(f, input.dodgeX, input.dodgeZ)
+	if f.jumpDodgeQueued and (input.direction != 0 or input.verticalDirection != 0)
+		f.jumpDodgeX = input.direction
+		f.jumpDodgeZ = input.verticalDirection
 	if input.groundDodgePressed and input.shield and not input.jumpPressed and canBeginGroundDodge(f)
 		beginGroundDodge(f, input.groundDodgeDirection)
 		groundDodgeStarted = true
@@ -2271,6 +2288,11 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			f.vz = f.jumpHeld ? fullJumpSpeed(f.character) : shortJumpSpeed(f.character)
 			f.jumpSerial++
 			f.jumpIsDouble = false
+			if f.jumpDodgeQueued
+				f.jumpDodgeQueued = false
+				simulationAirDodge(f, f.jumpDodgeX, f.jumpDodgeZ)
+				f.jumpDodgeX = 0
+				f.jumpDodgeZ = 0
 	if f.hitlag > 0
 		if f.hitlag > 1 and f.diPending
 			applySmashDirectionalInfluence(f, stage, input)
