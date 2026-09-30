@@ -8,10 +8,15 @@ holds, alongside the complete normal, aerial, special, defense and grab/throw
 coverage. Hitlag freezes the appropriate contact pose; it is not a looping clip.
 
 The directional-specials pass connects stock bear/hippogryph effect animations
-to numerical state. Archer disengage currently reuses her double-jump motion,
-and recovery uses her jump clip. Dedicated mounting, summon and downward-shot
-body poses still need authoring and native verification; the new simulation
-tests do not establish completion of those animations.
+to numerical state. Dedicated body clips now cover neutral fire, fan wind-up,
+backward disengage, riding recovery, bear summon, trap placement and downward
+gunshot/recoil. Archer authoring is in wc3-melee:tools/animations/archer-specials.py;
+Rifleman authoring is in wc3-melee:tools/animations/rifleman.py. Separate ground
+and air Rifleman shots preserve the frame-2 firing pose despite different
+recovery durations. The adapter scales generated clip durations to the current
+special's fixed duration and retains hitlag freezing. Simulation tuning is
+unchanged. Offline authoring/package checks and the existing aerial-preservation
+check pass; native pose alignment and full gameplay acceptance remain open.
 
 Required initial clips from the owner: jab; forward tilt; up-angled forward
 tilt; down-angled forward tilt; jump; double jump; forward roll; backward roll;

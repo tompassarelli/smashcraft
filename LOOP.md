@@ -2,11 +2,35 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-Latest installed build: `specials-uiop-r2`. Compile/package/deploy passed with
-zero errors and six warnings; log wc3-melee:build/specials-uiop-r2-map.log.
-The last observed running session is `specials-uiop`, so the final vertical-tap,
-bear-contact and interruption corrections are installed but not yet observed
-running. Re-read the readiness receipt before making a newer native claim.
+Latest installed build: `special-clips-r2`. Compile/package/deploy passed with
+zero errors and six warnings; log wc3-melee:build/special-clips-r2-map.log.
+The last observed running session is `171627`, the first dedicated-special-clip
+build. The clean Archer clip replacement and final somersault correction are
+installed but not yet observed running. Re-read the readiness receipt before
+making a newer native claim.
+
+Dedicated body clips now cover both fighters' four specials, including separate
+ground/air Rifleman gunshot recovery. Authoring, packaging and the existing
+aerial-preservation check passed; see
+wc3-melee:build/animation-assets/check-special-preservation-final.log.
+Re-authoring Archer replaces exact-named clips instead of creating duplicates.
+
+Native `171627` controls/traces show Archer's upward recovery and disengage,
+Rifleman's recoil recovery, and a running bear contacting the opponent for 6%.
+A trap was visible onstage, but its placement was interrupted; full freeze
+duration is not established by this session. The Archer riding silhouette is
+cluttered and needs mount alignment work. Multishot was interrupted by a KO;
+its fan appearance and the exact frame-4 downward rifle pose remain unverified.
+Evidence: wc3-melee:build/impact-assets/clips-archer-trace.txt,
+wc3-melee:build/impact-assets/clips-rifleman-trace.txt,
+wc3-melee:build/impact-assets/clips-bear-trace.txt and matching clips-*.png captures.
+
+Reload `171627` completed initialization and its five-second trace, then showed
+“Waiting for host.” Disconnect → Match Results → Create → Start Game restored
+responsiveness without relaunching Warcraft. This is recovery, not a restart
+defect repair. Evidence: wc3-melee:build/special-clips-reload.log and
+wc3-melee:build/loop/20260930-171626-reload. Enter still opens native chat when
+advancing to stage select; Escape closes it before N starts the match.
 
 September 30 directional-specials checkpoint: the whole Wurst suite passes
 287/287 with zero errors/warnings, including special movement/contact,
@@ -31,9 +55,9 @@ P walk/tilts. Saved K1/K2 default bindings migrate only when their new keys
 are free; K3 preserves intentional new rebindings. Chips are visible in all
 active player/CPU cards at first load. Rematches retain placed choices.
 
-Remaining immediate native work: verify bear/swipe and hippogryph presentation
-through real held-direction controls, author the dedicated special body poses,
-then confirm grab/hold readability and hit advantage. The initial effect pool
+Remaining immediate native work: load the corrected Archer clips, refine mount
+alignment, verify the fan and full trap placement/freeze through real controls,
+then complete grab/hold and damage presentation and measure hit advantage. The effect pool
 build emits two additional conservative array-initialization warnings alongside
 the four existing map warnings; the constructor populates both slots before
 presentation. Multiplayer pose restoration and two-client behavior remain untested.
@@ -207,8 +231,8 @@ Enter opened native chat while advancing Character Select to Stage Select;
 Escape then Attack entered the match. Retaining rematch selections fixes the
 ready-state reset but does not yet resolve this native Enter/chat focus issue.
 
-Pending scope: full bear/multishot/hippogryph/recovery specials, get-up attack
-knockback/frame advantage refinement, dedicated grab/hold presentation. The
+Pending scope: remaining special acceptance checks above, get-up attack
+knockback/frame advantage refinement, dedicated grab/hold and damage presentation. The
 get-up worker brief exists at wc3-melee:build/specials/getup-advantage-brief.txt;
 no worker was admitted and no get-up mechanics were changed in this slice.
 Rifleman blue portrait import now selects Blue and extracts TeamColor01, but

@@ -6,6 +6,11 @@ const project = join(import.meta.dir, "../..");
 const assetDirectory = join(project, "build/animation-assets");
 
 const clips = [
+    ["SPECIAL_NEUTRAL", "Special Neutral"],
+    ["SPECIAL_NEUTRAL_AIR", "Special Neutral Air"],
+    ["SPECIAL_SIDE", "Special Side"],
+    ["SPECIAL_UP", "Special Up"],
+    ["SPECIAL_DOWN", "Special Down"],
     ["AERIAL_NEUTRAL", "Aerial Neutral"],
     ["AERIAL_FORWARD", "Aerial Forward"],
     ["AERIAL_BACK", "Aerial Back"],

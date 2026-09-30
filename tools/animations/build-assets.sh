@@ -10,6 +10,8 @@ blender --background --threads 2 --python-exit-code 1 \
 blender --background --threads 2 --python-exit-code 1 \
     --python "$project_dir/tools/animations/dodges.py" > "$assets/author-dodges.log" 2>&1
 blender --background --threads 2 --python-exit-code 1 \
+    --python "$project_dir/tools/animations/archer-specials.py" > "$assets/author-archer-specials.log" 2>&1
+blender --background --threads 2 --python-exit-code 1 \
     --python "$project_dir/tools/animations/import.py" -- rifleman > "$assets/import-rifleman.log" 2>&1
 blender --background --threads 2 --python-exit-code 1 \
     --python "$project_dir/tools/animations/rifleman.py" > "$assets/author-rifleman.log" 2>&1

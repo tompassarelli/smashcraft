@@ -80,7 +80,7 @@ def grip_arm(side, target, pole):
 
 def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
          leg_r=0, knee_r=0, leg_l=0, knee_l=0, neutral_kick=0, weapon_lift=0,
-         cape_lift=0):
+         cape_lift=0, summon=0, weapon_pitch=0):
     for name, matrix in base.items():
         rig.pose.bones[name].matrix_basis = matrix
     # Root displacement belongs entirely to simulation, including aerial clips.
@@ -103,7 +103,7 @@ def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
     pivot = chest @ center_relative
     # Swing the butt forward around the two-hand grip, with separate pitch for
     # the up/down strikes. No firing or shell-ejection action is reused.
-    swing = rotation((0, 0, 1), 145*strike) @ rotation((0, 1, 0), elevation*abs(strike))
+    swing = rotation((0, 0, 1), 145*strike) @ rotation((0, 1, 0), elevation*abs(strike) + weapon_pitch)
     local_swing = chest.to_3x3().to_4x4() @ world['Bone_Chest'].to_3x3().inverted().to_4x4()
     swing = local_swing @ swing @ local_swing.inverted()
     weapon = Matrix.Translation(pivot) @ swing @ Matrix.Translation(-pivot) @ chest @ weapon_relative
@@ -121,6 +121,13 @@ def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
     for side in ('L', 'R'):
         hand = rig.pose.bones[f'Bone_Hand_{side}']
         hand.matrix = weapon @ world['Rifle01'].inverted() @ world[hand.name]
+    if summon:
+        # The weapon is rooted independently in this stock model. Let the
+        # left arm leave its two-hand grip for a clear bear/trap gesture while
+        # the right hand keeps the rifle visible and aimed.
+        turn('Bone_Arm1_L', -58*summon)
+        turn('Bone_Arm2_L', 34*summon)
+        bpy.context.view_layer.update()
     bpy.context.view_layer.update()
 
 
@@ -167,6 +174,22 @@ def author(name, keys):
     print('RIFLEMAN_CLIP' , name, frames[-1], 'frames')
 
 
+def author_timed_special(name, phases, duration):
+    """Bake a move's simulation-frame poses into its dedicated clip."""
+    frames = sorted(phases)
+    keys = {}
+    channels = set().union(*(set(values) for values in phases.values()))
+    for frame in range(duration + 1):
+        left = max(value for value in frames if value <= frame)
+        right = min(value for value in frames if value >= frame)
+        amount = 0 if left == right else (frame - left) / (right - left)
+        keys[frame] = {
+            channel: phases[left].get(channel, 0)*(1-amount) + phases[right].get(channel, 0)*amount
+            for channel in channels
+        }
+    author(name, keys)
+
+
 author('Attack Jab', {0:{}, 2:{'strike':-.12}, 4:{'strike':.65,'lean':-7}, 7:{'strike':.65,'lean':-7}, 14:{'strike':.2}, 22:{}, 36:{}})
 for name, elevation in [('Forward Tilt',0), ('Forward Tilt Up',35), ('Forward Tilt Down',-35)]:
     author(name, {0:{}, 2:{'strike':-.2}, 5:{'strike':1,'elevation':elevation,'lean':-10}, 7:{'strike':1,'elevation':elevation,'lean':-10}, 14:{'strike':.45,'elevation':elevation}, 23:{}, 28:{}})
@@ -180,6 +203,63 @@ prone = {'spin':90,'tuck':.6}
 author('Knockdown', {0:{}, 3:{'spin':28,'tuck':.3}, 7:prone, 12:prone})
 author('Get Up', {0:prone, 5:prone, 12:{'spin':65,'tuck':.8}, 20:{'spin':30,'tuck':.45}, 26:{'spin':8,'tuck':.15}, 30:{}})
 author('Get Up Attack', {0:prone, 5:{**prone,'strike':-.2}, 10:{'spin':70,'tuck':.8,'strike':-.3}, 16:{'spin':45,'tuck':.65,'strike':1}, 18:{'spin':35,'tuck':.5,'strike':1}, 25:{'spin':15,'tuck':.3,'strike':.4}, 38:{}, 45:{}})
+
+# Rifleman neutral fire shares Simulation's frame-2 projectile point in both
+# stances. Separate clip lengths preserve that point while their recovery
+# windows differ (24 grounded frames versus 15 airborne frames).
+author_timed_special('Special Neutral', {
+    0: {'strike': 0}, 1: {'strike': .12, 'lean': -3},
+    2: {'strike': -.16, 'lean': 2, 'weapon_lift': 2},
+    6: {'strike': -.08, 'lean': 1}, 14: {'strike': 0}, 24: {},
+}, 24)
+author_timed_special('Special Neutral Air', {
+    0: {'strike': 0}, 1: {'strike': .12, 'lean': -3},
+    2: {'strike': -.16, 'lean': 2, 'weapon_lift': 2},
+    4: {'strike': -.08, 'lean': 1}, 9: {'strike': 0}, 15: {},
+}, 15)
+
+# The bear launches on summon. A planted stance and lifted cape give the
+# gesture a silhouette while keeping the two-hand rifle attachment intact.
+author_timed_special('Special Side', {
+    0: {'crouch': .15, 'lean': -4, 'cape_lift': 14, 'strike': .05, 'summon': .35},
+    3: {'crouch': .75, 'lean': -10, 'leg_r': -12, 'leg_l': 10,
+        'cape_lift': 35, 'strike': .18, 'elevation': 12, 'summon': 1},
+    7: {'crouch': .58, 'lean': -8, 'leg_r': -8, 'leg_l': 7,
+        'cape_lift': 25, 'strike': .1, 'elevation': 8, 'summon': 1},
+    12: {'crouch': .25, 'lean': -3, 'cape_lift': 10, 'summon': .3}, 18: {},
+}, 18)
+
+# Down-B places the trap at the feet; the deep crouch and barrel-down angle
+# communicate placement without changing trap activation timing.
+author_timed_special('Special Down', {
+    0: {'crouch': .15, 'strike': .08, 'weapon_pitch': 55},
+    2: {'crouch': 1.5, 'lean': 13, 'leg_r': 22, 'leg_l': 18,
+        'knee_r': -26, 'knee_l': -22, 'strike': 0, 'weapon_pitch': 85, 'summon': -1},
+    7: {'crouch': 1.5, 'lean': 12, 'leg_r': 22, 'leg_l': 18,
+        'knee_r': -26, 'knee_l': -22, 'strike': 0, 'weapon_pitch': 82, 'summon': -1},
+    12: {'crouch': .85, 'lean': 6, 'leg_r': 10, 'leg_l': 8,
+         'knee_r': -12, 'knee_l': -10, 'strike': 0, 'weapon_pitch': 40, 'summon': -.4},
+    20: {},
+}, 20)
+
+# Up-B aims and fires down on logical frame 4. Recoil opens the legs and lifts
+# the cape into a readable rising pose while simulation retains root motion.
+author_timed_special('Special Up', {
+    0: {'tuck': .15, 'lean': 9, 'weapon_pitch': 70,
+        'leg_r': 10, 'leg_l': 8, 'cape_lift': 5},
+    3: {'tuck': .25, 'lean': 15, 'weapon_pitch': 82,
+        'leg_r': 18, 'leg_l': 13, 'cape_lift': 10},
+    4: {'tuck': .95, 'lean': -24, 'weapon_pitch': 82,
+        'leg_r': 72, 'leg_l': -45, 'knee_r': -80, 'knee_l': 54, 'cape_lift': 135},
+    8: {'tuck': .8, 'lean': -28, 'weapon_pitch': 45,
+        'leg_r': 85, 'leg_l': -62, 'knee_r': -78, 'knee_l': 66, 'cape_lift': 150},
+    16: {'tuck': .55, 'lean': -16, 'weapon_pitch': 18,
+         'leg_r': 58, 'leg_l': -44, 'knee_r': -58, 'knee_l': 42, 'cape_lift': 105},
+    24: {'tuck': .25, 'lean': -6, 'strike': .08,
+         'leg_r': 28, 'leg_l': -20, 'knee_r': -28, 'knee_l': 18, 'cape_lift': 45},
+    34: {},
+}, 34)
+
 sys.path.insert(0, str(project / "tools/animations"))
 sys.dont_write_bytecode = True
 from grounding import ground_recovery
