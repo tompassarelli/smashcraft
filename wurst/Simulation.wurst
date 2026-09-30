@@ -115,8 +115,7 @@ public constant int AERIAL_FORWARD_STYLE = 13
 public constant int AERIAL_BACK_STYLE = 14
 public constant int AERIAL_UP_STYLE = 15
 public constant int AERIAL_DOWN_STYLE = 16
-public constant int ARCHER_DIVE_ACTIVE_FRAMES = 20
-public constant real ARCHER_DIVE_SPEED = 24
+public constant int ARCHER_DOWN_ACTIVE_FRAMES = 20
 public constant int AERIAL_NEUTRAL_LANDING_LAG = 10
 public constant int AERIAL_FORWARD_LANDING_LAG = 14
 public constant int AERIAL_BACK_LANDING_LAG = 16
@@ -543,7 +542,7 @@ public function attackActiveFrames(int style) returns int
 	return style == DOWN_ATTACK_STYLE ? DOWN_ATTACK_ACTIVE_FRAMES : (style == 1 ? 1 : (style == 2 or style == 3 or style == 4 ? 3 : 2))
 
 public function characterAttackActiveFrames(int character, int style) returns int
-	return character == 0 and style == AERIAL_DOWN_STYLE ? ARCHER_DIVE_ACTIVE_FRAMES : attackActiveFrames(style)
+	return character == 0 and style == AERIAL_DOWN_STYLE ? ARCHER_DOWN_ACTIVE_FRAMES : attackActiveFrames(style)
 
 public function attackDurationFrames(int style) returns int
 	return attackDurationFramesForGrounding(style, true)
@@ -1166,9 +1165,6 @@ function beginAttack(FighterState attacker, int style, boolean mayCharge)
 	attacker.smashChargeFrames = 0
 	attacker.smashChargeAllowed = isSmashAttack(style) and mayCharge
 	attacker.cooldown = attacker.attackDuration
-	if attacker.character == 0 and style == AERIAL_DOWN_STYLE
-		attacker.vz = 0
-		attacker.knockbackZ = 0
 
 function spawnProjectile(FighterState owner)
 	for index = 0 to PROJECTILE_CAPACITY - 1
@@ -1644,11 +1640,6 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.vz = max(-characterTerminalSpeed(f.character), f.vz - gravity)
 		if input.down and input.direction == 0 and f.downState == DOWN_NONE and f.hitstun <= 0 and totalVelocityZ(f) < 0
 			f.vz = -characterFastFallSpeed(f.character)
-	if not f.grounded and f.character == 0 and f.attackStyle == AERIAL_DOWN_STYLE
-		if attackPhase(f) == ATTACK_STARTUP
-			f.vz = 0
-		else if attackPhase(f) == ATTACK_ACTIVE
-			f.vz = -ARCHER_DIVE_SPEED
 	f.z += totalVelocityZ(f)
 	var landing = -1
 	if totalVelocityZ(f) <= 0

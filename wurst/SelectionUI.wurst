@@ -6,6 +6,7 @@ import SelectionDrag
 public abstract class SelectionActions
     abstract function selectChoice(int participantId, int choice)
     abstract function selectCpuChoice(int participantId, int choice)
+    abstract function recallChoice(int actorId, int chipSlot)
     abstract function openSettings(int participantId)
     abstract function start(int participantId)
 
@@ -19,6 +20,15 @@ function onSelectionDrop()
 function onCpuSelectionDrop()
     if GetTriggerPlayer() == Player(0)
         participantPanels[0].acceptCpuDrop(BlzGetTriggerSyncData())
+
+function onSelectionRecall()
+    let actorId = GetPlayerId(GetTriggerPlayer())
+    if actorId >= 0 and actorId <= 1
+        participantPanels[actorId].acceptRecall(BlzGetTriggerSyncData())
+
+function onCpuSelectionRecall()
+    if GetTriggerPlayer() == Player(0)
+        participantPanels[0].acceptCpuRecall()
 
 function characterNameTexture(int choice) returns string
     return choice == 0 ? "war3mapImported\\ArcherName.tga" : "war3mapImported\\RiflemanName.tga"
@@ -72,6 +82,7 @@ public class SelectionPanel
     construct(SelectionActions actions, int participantId)
         this.participantId = participantId
         this.actions = actions
+        drag.selectHeldChip(participantId, true)
         participantPanels[participantId] = this
         let suffix = I2S(participantId)
         let frameOffset = participantId * 100
@@ -237,10 +248,16 @@ public class SelectionPanel
         let dropTrigger = CreateTrigger()
         BlzTriggerRegisterPlayerSyncEvent(dropTrigger, Player(participantId), "fighter-drop", false)
         TriggerAddAction(dropTrigger, function onSelectionDrop)
+        let recallTrigger = CreateTrigger()
+        BlzTriggerRegisterPlayerSyncEvent(recallTrigger, Player(participantId), "fighter-recall", false)
+        TriggerAddAction(recallTrigger, function onSelectionRecall)
         if participantId == 0
             let cpuDropTrigger = CreateTrigger()
             BlzTriggerRegisterPlayerSyncEvent(cpuDropTrigger, Player(0), "cpu-fighter-drop", false)
             TriggerAddAction(cpuDropTrigger, function onCpuSelectionDrop)
+            let cpuRecallTrigger = CreateTrigger()
+            BlzTriggerRegisterPlayerSyncEvent(cpuRecallTrigger, Player(0), "cpu-fighter-recall", false)
+            TriggerAddAction(cpuRecallTrigger, function onCpuSelectionRecall)
 
         backdrop.setVisible(false)
         firstTileArt.setVisible(false)
@@ -282,9 +299,40 @@ public class SelectionPanel
         if participantId == 0 and lastState == 0 and not settingsOpen and lastEnabled and (data == "0" or data == "1")
             actions.selectCpuChoice(0, S2I(data))
 
+    function acceptRecall(string data)
+        if lastState == 0 and not settingsOpen and lastEnabled and data == "1"
+            actions.recallChoice(participantId, participantId)
+
+    function acceptCpuRecall()
+        if participantId == 0 and lastState == 0 and not settingsOpen and lastEnabled
+            actions.recallChoice(0, 1)
+
+    function placeHovered()
+        if GetLocalPlayer() != Player(participantId) or lastState != 0 or settingsOpen or not lastEnabled
+            return
+        let tile = drag.placeHovered()
+        if tile < 0 or drag.releasedSlot < 0
+            return
+        if drag.releasedSlot == 1 and participantId == 0 and not lastOpponentHuman
+            if not lastOpponentReady
+                BlzSendSyncData("cpu-fighter-drop", I2S(tile))
+        else if drag.releasedSlot == participantId and not lastReady
+            BlzSendSyncData("fighter-drop", I2S(tile))
+
+    function recallHeld()
+        if GetLocalPlayer() != Player(participantId) or lastState != 0 or settingsOpen or not lastEnabled
+            return
+        let chipSlot = drag.recallHeld()
+        if chipSlot == participantId
+            BlzSendSyncData("fighter-recall", "1")
+        else if chipSlot == 1 and participantId == 0 and not lastOpponentHuman
+            BlzSendSyncData("cpu-fighter-recall", "1")
+
     function update(int menuState, int choice, boolean overlayOpen, boolean enabled, boolean ready,
         int opponentChoice, boolean opponentHuman, boolean opponentReady)
         if GetLocalPlayer() == Player(participantId)
+            if menuState == 0 and enabled and not overlayOpen and drag.heldSlot < 0
+                drag.selectHeldChip(participantId, true)
             let width = I2R(BlzGetLocalClientWidth())
             let height = I2R(BlzGetLocalClientHeight())
             if height > 0 and width > 0
@@ -293,7 +341,8 @@ public class SelectionPanel
                 let y = selectionPointerY(pointer.y, height)
                 let canDragCpu = participantId == 0 and not opponentHuman
                 let dropped = drag.update(menuState == 0 and enabled and not overlayOpen,
-                    MOUSE_BUTTON_TYPE_LEFT.isPressed(), x, y, participantId, choice, opponentChoice, canDragCpu)
+                    MOUSE_BUTTON_TYPE_LEFT.isPressed(), x, y, participantId, choice, ready, opponentChoice,
+                    opponentReady, canDragCpu)
                 if dropped >= 0
                     if drag.releasedSlot == 1 and canDragCpu
                         BlzSendSyncData("cpu-fighter-drop", I2S(dropped))
@@ -301,10 +350,19 @@ public class SelectionPanel
                         BlzSendSyncData("fighter-drop", I2S(dropped))
                 let ownChip = participantId == 0 ? playerOneChip : playerTwoChip
                 let ownDragging = drag.active and drag.activeSlot == participantId
-                ownChip.setAbsPoint(FRAMEPOINT_TOPLEFT, ownDragging ? x - 0.020 : selectionChipX(participantId, choice), ownDragging ? y + 0.020 : 0.366)
+                let ownPreview = not ready and drag.heldSlot == participantId and drag.hoverTile >= 0
+                let ownHeld = ownDragging or ownPreview
+                ownChip.setAbsPoint(FRAMEPOINT_TOPLEFT, ownHeld ? x - 0.020 : (ready ? selectionChipX(participantId, choice) : 0.115 + participantId * 0.175), ownHeld ? y + 0.020 : (ready ? 0.366 : 0.200))
+                ownChip.setVisible(menuState == 0 and enabled and not overlayOpen)
+                let visibleOpponentChip = participantId == 0 ? playerTwoChip : playerOneChip
+                visibleOpponentChip.setAbsPoint(FRAMEPOINT_TOPLEFT, opponentReady ? selectionChipX(1 - participantId, opponentChoice) : 0.115 + (1 - participantId) * 0.175, opponentReady ? 0.366 : 0.200)
+                visibleOpponentChip.setVisible(menuState == 0 and enabled and not overlayOpen)
                 if canDragCpu
                     let cpuDragging = drag.active and drag.activeSlot == 1
-                    playerTwoChip.setAbsPoint(FRAMEPOINT_TOPLEFT, cpuDragging ? x - 0.020 : selectionChipX(1, opponentChoice), cpuDragging ? y + 0.020 : 0.366)
+                    let cpuPreview = not opponentReady and drag.heldSlot == 1 and drag.hoverTile >= 0
+                    let cpuHeld = cpuDragging or cpuPreview
+                    playerTwoChip.setAbsPoint(FRAMEPOINT_TOPLEFT, cpuHeld ? x - 0.020 : (opponentReady ? selectionChipX(1, opponentChoice) : 0.290), cpuHeld ? y + 0.020 : (opponentReady ? 0.366 : 0.200))
+                    playerTwoChip.setVisible(menuState == 0 and enabled and not overlayOpen)
 
         if menuState == lastState and choice == lastChoice and overlayOpen == settingsOpen and enabled == lastEnabled and ready == lastReady and opponentChoice == lastOpponentChoice and opponentHuman == lastOpponentHuman and opponentReady == lastOpponentReady
             return
@@ -325,8 +383,8 @@ public class SelectionPanel
         secondTileArt.setVisible(visible)
         firstChoicePortrait.setVisible(visible)
         secondChoicePortrait.setVisible(visible)
-        playerOneChip.setVisible(visible)
-        playerTwoChip.setVisible(visible)
+        playerOneChip.setVisible(false)
+        playerTwoChip.setVisible(false)
         firstChoiceName.setVisible(visible)
         secondChoiceName.setVisible(visible)
         playerOneCard.setVisible(visible)
@@ -339,11 +397,11 @@ public class SelectionPanel
         playerFourFooter.setVisible(visible)
         playerOneTag.setVisible(visible)
         playerTwoTag.setVisible(visible)
-        selectedPortrait.setVisible(visible)
-        selectedName.setVisible(visible)
+        selectedPortrait.setVisible(visible and ready)
+        selectedName.setVisible(visible and ready)
         selectedStatus.setVisible(visible)
-        opponentPortrait.setVisible(visible)
-        opponentName.setVisible(visible)
+        opponentPortrait.setVisible(visible and opponentReady)
+        opponentName.setVisible(visible and opponentReady)
         opponentStatus.setVisible(visible)
         confirmArt.setVisible(visible)
         settingsArt.setVisible(visible)
@@ -359,14 +417,16 @@ public class SelectionPanel
         playerTwoChip.setTexture(opponentHuman ? "war3mapImported\\SelectionChipP2.tga" : "war3mapImported\\SelectionChipCPU.tga", 0, true)
         firstChoiceName.setTexture(characterNameTexture(0), 0, true)
         secondChoiceName.setTexture(characterNameTexture(1), 0, true)
-        let allReady = ready and (not opponentHuman or opponentReady)
-        confirmLabel.setText(allReady ? "Start" : "PLACE YOUR CHIP")
+        let allReady = ready and opponentReady
+        confirmLabel.setText(allReady ? "Start" : "Place your chip")
         settingsLabel.setText("CONTROLS  [F1]")
         playerOneTag.setText("|cffffefcfHMN|r")
         playerTwoTag.setText(opponentHuman ? "|cffd9e8ffHMN|r" : "|cffd9e8ffCPU|r")
-        selectedName.setTexture(characterNameTexture(choice), 0, true)
-        selectedStatus.setText(participantId == 0 ? "P1" : "P2")
-        opponentName.setTexture(characterNameTexture(opponentChoice), 0, true)
-        opponentStatus.setText(opponentHuman ? (participantId == 0 ? "P2" : "P1") : "CP")
-        selectedPortrait.setTexture(choice == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga", 0, true)
-        opponentPortrait.setTexture(opponentChoice == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga", 0, true)
+        selectedStatus.setText(ready ? (participantId == 0 ? "P1" : "P2") : "Choose fighter")
+        opponentStatus.setText(opponentReady ? (opponentHuman ? (participantId == 0 ? "P2" : "P1") : "CP") : "Choose fighter")
+        if ready
+            selectedName.setTexture(characterNameTexture(choice), 0, true)
+            selectedPortrait.setTexture(choice == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga", 0, true)
+        if opponentReady
+            opponentName.setTexture(characterNameTexture(opponentChoice), 0, true)
+            opponentPortrait.setTexture(opponentChoice == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga", 0, true)

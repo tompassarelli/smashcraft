@@ -497,12 +497,30 @@ frame of Knockdown, Get Up, and Get Up Attack for both rigs; the measured floor
 error was 0.0000 model units. This verifies authored mesh contact, not Warcraft
 unit height or the feel of the native recovery timing.
 
-The generic neutral aerial presents one forward kicking leg with the other
-bent back. Both rigs hold the kick through their longer reference-style active
-window. Exported stage-side previews, including the floor line, are
-wc3-melee:build/animation-assets/archer-aerial-neutral.png and
-wc3-melee:build/animation-assets/rifleman-aerial-neutral.png. The pose angles
-remain provisional until observed at game-camera scale.
+The generic neutral aerial extends the camera-facing leg horizontally in the
+stage plane, with the opposite leg bent backward. The imported Archer thigh
+basis requires rotation on three axes: the earlier Z-only lift sent the leg
+toward camera depth, foreshortening the kick. Archer raises her held bow above
+the leg, and Rifleman lifts his held rifle clear of it. Both retain contact at
+source frames 3–30 and recovery through 41. Exported MDX → MDL → Blender
+stage-side previews are wc3-melee:build/animation-assets/archer-aerial-neutral.png
+and wc3-melee:build/animation-assets/rifleman-aerial-neutral.png.
+
+Rifleman's Back Air lifts the cape above his extended boot through contact,
+then lowers it during recovery to the original drape by frame 32. Its leg pose
+and 3–18 contact / 37-frame total timing remain unchanged. Exported contact,
+late-contact and settled views use
+wc3-melee:build/animation-assets/rifleman-backair-stage-03.png,
+wc3-melee:build/animation-assets/rifleman-backair-stage-18.png and
+wc3-melee:build/animation-assets/rifleman-backair-stage-32.png.
+
+The existing aerial package check passes. Comparing the saved pre-change models
+against the new packages found exact values, counts and relative timestamps for
+6,324 Archer and 5,737 Rifleman unchanged tracks, including Rifleman's Back Air
+leg and body tracks; only the two Neutral actions and Back Air's Cape04 track
+are intentionally changed. Evidence is
+wc3-melee:build/animation-assets/rebuild-neutral-kick-final.log. These exported
+pose checks do not establish native playback or final art quality at game scale.
 
 Archer Down Air now tucks both legs during its seven-frame startup, then extends
 the camera-facing leg straight down while keeping the far leg folded through

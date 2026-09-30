@@ -23,6 +23,17 @@ function onChip(int slot, int choice, real x, real y) returns boolean
     let dy = y - 0.346
     return dx * dx + dy * dy <= 0.0004
 
+public function selectionCardSlot(real x, real y, int localSlot, boolean canChooseCpu) returns int
+    if y < 0.075 or y > 0.275
+        return -1
+    if x >= 0.055 and x <= 0.215
+        return localSlot == 0 ? 0 : -1
+    if x >= 0.230 and x <= 0.390
+        if localSlot == 1
+            return 1
+        return canChooseCpu ? 1 : -1
+    return -1
+
 // This state belongs only to the local cursor. Its result must cross a player
 // sync event before changing a selected fighter.
 public class SelectionDrag
@@ -31,33 +42,68 @@ public class SelectionDrag
     int activeSlot = -1
     int releasedSlot = -1
     int pressedTile = -1
+    int heldSlot = -1
+    int hoverTile = -1
+
+    function setHover(int tile)
+        hoverTile = tile
+
+    function selectHeldChip(int slot, boolean available)
+        if available and slot >= 0 and slot <= 1
+            heldSlot = slot
+
+    function placeHovered() returns int
+        if hoverTile < 0 or heldSlot < 0
+            return -1
+        releasedSlot = heldSlot
+        return hoverTile
+
+    function recallHeld() returns int
+        if heldSlot < 0
+            return -1
+        releasedSlot = heldSlot
+        return heldSlot
 
     function update(boolean enabled, boolean down, real x, real y, int slot, int choice,
-        int opponentChoice, boolean opponentDraggable) returns int
+        boolean ownReady, int opponentChoice, boolean opponentReady, boolean opponentDraggable) returns int
         var dropped = -1
         releasedSlot = -1
         if not enabled
             active = false
             activeSlot = -1
             pressedTile = -1
-        else if down and not wasDown
-            active = onChip(slot, choice, x, y)
-            activeSlot = active ? slot : -1
-            let overOpponent = onChip(1 - slot, opponentChoice, x, y)
-            if not active and overOpponent and opponentDraggable
-                active = true
-                activeSlot = 1 - slot
-            // A chip owns the whole gesture, including a release without motion.
-            pressedTile = active or overOpponent ? -1 : selectionTile(x, y)
-        else if wasDown and not down
-            if active
-                dropped = selectionTile(x, y)
-                releasedSlot = activeSlot
-            else if pressedTile >= 0 and selectionTile(x, y) == pressedTile
-                dropped = pressedTile
-                releasedSlot = slot
-            active = false
-            activeSlot = -1
-            pressedTile = -1
+            heldSlot = -1
+            hoverTile = -1
+        else
+            hoverTile = selectionTile(x, y)
+            if down and not wasDown
+                let cardOwner = selectionCardSlot(x, y, slot, opponentDraggable)
+                if cardOwner >= 0 and (cardOwner == slot or opponentDraggable)
+                    heldSlot = cardOwner
+                    active = true
+                    activeSlot = cardOwner
+                else
+                    let ownChipHit = ownReady and onChip(slot, choice, x, y)
+                    let opponentChipHit = opponentReady and onChip(1 - slot, opponentChoice, x, y) and opponentDraggable
+                    if ownChipHit
+                        active = true
+                        activeSlot = slot
+                    else if opponentChipHit
+                        active = true
+                        activeSlot = 1 - slot
+                    else if heldSlot >= 0 and hoverTile >= 0
+                        active = true
+                        activeSlot = heldSlot
+                pressedTile = active or heldSlot < 0 ? -1 : selectionTile(x, y)
+            if wasDown and not down
+                if active
+                    dropped = selectionTile(x, y)
+                    releasedSlot = activeSlot
+                else if pressedTile >= 0 and selectionTile(x, y) == pressedTile
+                    dropped = pressedTile
+                    releasedSlot = slot
+                active = false
+                activeSlot = -1
+                pressedTile = -1
         wasDown = down
         return dropped

@@ -54,8 +54,8 @@ contact, so standing on a surface does not restart recovery. Air-dodge,
 aerial-attack, tumble/tech and ASDI contacts keep their separate rules.
 Landing recovery counts down before input eligibility is evaluated: jumping,
 moving and starting an attack can resume on the same expiration tick.
-Hitlag freezes the countdown. Early attack presses retain zero grace and do
-not wait through recovery. The reference fact that normal landing uses a
+Hitlag freezes the countdown. Early attack presses now use the six-frame
+live command window described below. The reference fact that normal landing uses a
 character-specific interruption threshold is in
 melee:src/melee/ft/kinds/ftCommon/ftCo_Landing.c at revision
 0296f009f32f710495979d30772d8332af2d411a. Only that behavioral fact was used;
@@ -161,6 +161,23 @@ after air-dodge landing. Evidence is
 wc3-melee:build/wurst-tests/initial-dash-focused.log and
 wc3-melee:build/wurst-tests/initial-dash-full.log. Native dash-dance feel and
 keyboard delivery timing have not been validated for this change.
+
+A later S/F short-tap report exposed an adapter loss: a press and release
+between service ticks left `directionX()` neutral, so no initial dash ever
+started. `PlayerInputState.consumeMovementX()` commits that horizontal press
+once when neither direction remains held, then returns neutral on following
+ticks. Opposing held directions and opposing taps in the same commit remain
+neutral. Both players use this sampler; committed input rows retain the result
+for replay. Existing dash speed and neutral traction are unchanged. The local
+reference's `ftCo_Dash_Enter`/`ftCo_Dash_Phys` at the revision above separately
+identify the initial velocity impulse and subsequent ground acceleration and
+friction; those behavioral facts support preserving a short tap, not copying
+its implementation or claiming our full dash model now matches Melee.
+
+Grounded Shield + normal Attack now chooses the same grab command as L for
+both fighters, including pressing shield and Attack within one frame. The
+existing shield-stun/action locks still decide when the grab may begin. L
+remains the dedicated grab binding. Neither path introduces an aerial grab.
 
 ## Hit timing and knockback
 
@@ -614,15 +631,15 @@ tech rolls emit a compact blue-white star and one smaller puff moving opposite
 the roll. These use frame-entry events, so sustained invulnerability does not
 repeatedly create the cue.
 
-Archer's owner-directed dive down-air now stalls vertically during its seven
-startup ticks, then plunges at24 world units/tick through20 active ticks
-(indices7–26), with38 total ticks. Its first3 active ticks deal9 damage and
-the lingering kick deals6, sharing one hit registry window. The region is
-narrower horizontally (±55) while retaining the downward victim-origin range
-−180..−10; this is still provisional origin-based collision, not pose-derived
-hurtboxes. Landing cancels the move into its existing18-frame recovery (9
-with L-cancel). Hitlag freezes the plunge. Rifleman's down-air is unchanged.
-These are initial design values, not a claim of extracted Sheik frame data.
+Archer's down-air uses seven startup ticks and 20 active ticks (indices
+7–26), with 38 total ticks. Its first three active ticks deal 9 damage and
+the lingering kick deals 6, sharing one hit registry window. Its collision
+region remains ±55 horizontally and −180..−10 vertically. Landing cancels
+into 18-frame recovery (9 with L-cancel). The tucked startup and downward
+kick are animation only: down-air preserves ordinary aerial momentum,
+gravity, and knockback. C-stick Down does not set movement Down or force
+fast-fall; explicit straight-down movement retains separate fast-fall.
+These are provisional design values, not extracted Sheik frame data.
 
 ## Floor-tech reference
 
@@ -707,6 +724,13 @@ complete Melee state-machine parity. Simultaneous hits snapshot both charge
 amounts before applying either impact so trades retain both damage values.
 
 ## Platform drop priority
+
+Live attack commands remain eligible for six simulation frames after their
+assigned frame. They execute once when the action becomes legal, or expire;
+this adds no delay to an already legal attack. During jump squat a C-stick
+command retains its direction and resolves against airborne state at takeoff,
+so an opposite-facing horizontal command begins back-air on the first airborne
+frame. The six-frame window is a Smashcraft control choice, not Melee parity.
 
 A current queued attack takes priority over voluntary platform dropping during
 the movement step. Action recovery also blocks the drop, so holding Down cannot

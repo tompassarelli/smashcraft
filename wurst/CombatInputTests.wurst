@@ -1,6 +1,43 @@
 package CombatInputTests
 import CombatInput
 import Simulation
+import MatchStep
+import MatchRules
+import CommandBuffer
+import KeyBindings
+
+@Test function bothFightersCanGrabNormallyAndFromShieldWithAttackOrGrabKey()
+    let bindings = new KeyBindings(false)
+    bindings.actionFor(76).assertEquals(GRAB)
+    for character = 0 to 1
+        for grabInput = 0 to 2
+            let game = new MatchState()
+            game.phase = MATCH
+            let fighter = new FighterState(character, 0, 1)
+            let target = new FighterState(1 - character, 45, -1)
+            let input = new InputSnapshot()
+            let otherInput = new InputSnapshot()
+            let commands = new AttackBuffer(0)
+            let otherCommands = new AttackBuffer(0)
+            input.shield = grabInput != 0
+            fighter.shield = input.shield
+            let style = grabInput == 1 ? normalAttackStyle(0, 0, false, true) : 5
+            commands.enqueue(style, 0, 1, false)
+            stepMatch(game, fighter, target, input, otherInput, commands, otherCommands, 1)
+            fighter.attackStyle.assertEquals(5)
+            fighter.shield.assertFalse()
+            fighter.shieldReleaseLag.assertEquals(0)
+            for frame = 2 to 8
+                stepMatch(game, fighter, target, input, otherInput, commands, otherCommands, frame)
+            target.grabbedFrames.assertGreaterThan(0)
+            destroy otherCommands
+            destroy commands
+            destroy otherInput
+            destroy input
+            destroy target
+            destroy fighter
+            destroy game
+    destroy bindings
 
 @Test function airborneNormalsChooseDirectionRelativeToFacing()
     attackStyleForGrounding(0, false, 1, 0).assertEquals(AERIAL_NEUTRAL_STYLE)
@@ -33,22 +70,22 @@ import Simulation
     groundDodgeIntent(true, false, true, true).assertEquals(0)
 
 @Test function neutralAttackIsJabAndDirectionChoosesTiltOrSmash()
-    normalAttackStyle(0, 0, false).assertEquals(0)
-    normalAttackStyle(0, 0, true).assertEquals(0)
-    normalAttackStyle(1, 0, true).assertEquals(6)
-    normalAttackStyle(-1, 0, true).assertEquals(6)
-    normalAttackStyle(0, 1, true).assertEquals(7)
-    normalAttackStyle(0, -1, true).assertEquals(8)
-    normalAttackStyle(1, 0, false).assertEquals(4)
-    normalAttackStyle(-1, 0, false).assertEquals(4)
-    normalAttackStyle(0, 1, false).assertEquals(2)
-    normalAttackStyle(0, -1, false).assertEquals(3)
+    normalAttackStyle(0, 0, false, false).assertEquals(0)
+    normalAttackStyle(0, 0, true, false).assertEquals(0)
+    normalAttackStyle(1, 0, true, false).assertEquals(6)
+    normalAttackStyle(-1, 0, true, false).assertEquals(6)
+    normalAttackStyle(0, 1, true, false).assertEquals(7)
+    normalAttackStyle(0, -1, true, false).assertEquals(8)
+    normalAttackStyle(1, 0, false, false).assertEquals(4)
+    normalAttackStyle(-1, 0, false, false).assertEquals(4)
+    normalAttackStyle(0, 1, false, false).assertEquals(2)
+    normalAttackStyle(0, -1, false, false).assertEquals(3)
 
 @Test function walkingDiagonalsAngleForwardTiltAndLeaveSmashSelectionUnchanged()
     for horizontal = -1 to 1
         if horizontal != 0
-            normalAttackStyle(horizontal, 1, true).assertEquals(9)
-            normalAttackStyle(horizontal, -1, true).assertEquals(10)
-            normalAttackStyle(horizontal, 0, true).assertEquals(6)
-            normalAttackStyle(horizontal, 1, false).assertEquals(2)
-            normalAttackStyle(horizontal, -1, false).assertEquals(3)
+            normalAttackStyle(horizontal, 1, true, false).assertEquals(9)
+            normalAttackStyle(horizontal, -1, true, false).assertEquals(10)
+            normalAttackStyle(horizontal, 0, true, false).assertEquals(6)
+            normalAttackStyle(horizontal, 1, false, false).assertEquals(2)
+            normalAttackStyle(horizontal, -1, false, false).assertEquals(3)

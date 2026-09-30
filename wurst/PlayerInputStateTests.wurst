@@ -1,6 +1,7 @@
 package PlayerInputStateTests
 import PlayerInputState
 import KeyBindings
+import Simulation
 
 @Test function participantsOwnIndependentSameKeyPressAndRelease()
     let first = new PlayerInputState()
@@ -18,6 +19,51 @@ import KeyBindings
     second.release(78, secondBindings).assertEquals(ATTACK)
     second.actionHeld(ATTACK).assertFalse()
 
+@Test function shortHorizontalTapStartsDashOnceAndCoastsAfterRelease()
+    let bindings = new KeyBindings(false)
+    for character = 0 to 1
+        for direction = -1 to 1
+            if direction != 0
+                let keys = new PlayerInputState()
+                let fighter = new FighterState(character, 0, direction)
+                let input = new InputSnapshot()
+                let key = direction < 0 ? 87 : 82
+                keys.press(key, bindings)
+                keys.release(key, bindings)
+                keys.directionX().assertEquals(0)
+                input.direction = keys.consumeMovementX()
+                input.direction.assertEquals(direction)
+                advance(fighter, 0, input, -240)
+                fighter.vx.assertEquals(direction * INITIAL_DASH_SPEED, 0.001)
+                let firstX = fighter.x
+                input.direction = keys.consumeMovementX()
+                input.direction.assertEquals(0)
+                advance(fighter, 0, input, -240)
+                ((fighter.x - firstX) * direction).assertGreaterThan(0.)
+                keys.consumeMovementX().assertEquals(0)
+                destroy input
+                destroy fighter
+                destroy keys
+    destroy bindings
+
+@Test function movementTapConsumptionPreservesOppositeNeutralAndDoesNotReplayOldHolds()
+    let keys = new PlayerInputState()
+    let bindings = new KeyBindings(false)
+    keys.press(87, bindings)
+    keys.press(82, bindings)
+    keys.consumeMovementX().assertEquals(0)
+    keys.release(87, bindings)
+    keys.consumeMovementX().assertEquals(1)
+    keys.release(82, bindings)
+    keys.consumeMovementX().assertEquals(0)
+    keys.press(87, bindings)
+    keys.release(87, bindings)
+    keys.press(82, bindings)
+    keys.release(82, bindings)
+    keys.consumeMovementX().assertEquals(0)
+    destroy keys
+    destroy bindings
+
 @Test function pressAndReleaseWithinOneBatchRetainsOnlyOwnedEdge()
     let first = new PlayerInputState()
     let second = new PlayerInputState()
@@ -33,8 +79,8 @@ import KeyBindings
     let first = new PlayerInputState()
     let second = new PlayerInputState()
     let bindings = new KeyBindings(false)
-    first.press(83, bindings)
-    second.press(83, bindings)
+    first.press(87, bindings)
+    second.press(87, bindings)
     first.pulsePending().assertTrue()
     second.pulsePending().assertTrue()
     first.clear()

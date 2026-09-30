@@ -24,7 +24,10 @@ if len(fighters) != 1 or fighters[0] not in ("Archer", "Rifleman"):
 for fighter in fighters:
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete(use_global=False)
-    getattr(bpy.ops, "import").mdl_exporter(filepath=str(assets / f"{fighter.lower()}-fighter.mdl"))
+    getattr(bpy.ops, "import").mdl_exporter(
+        filepath=str(assets / f"{fighter.lower()}-fighter.mdl"),
+        setTeamColor="1" if fighter == "Rifleman" else "0",
+    )
     scene = bpy.context.scene
     rig = next(obj for obj in scene.objects if obj.type == "ARMATURE")
     action = next(action for action in bpy.data.actions if action.name.startswith("Stand Ready") and any(slot.identifier[2:] == rig.name for slot in action.slots))

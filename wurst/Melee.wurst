@@ -48,9 +48,8 @@ boolean playerMashPressed = false
 int playerLedgeVerticalPressed = 0
 effect array stageDecks
 int stageDeckCount = 0
-lightning array projectileLines
-effect array projectileArrows
-int projectileLineCount = 0
+effect array projectileModels
+int projectileModelCount = 0
 framehandle titleFrame
 framehandle menuFrame
 FighterHUD firstHUD
@@ -156,8 +155,8 @@ int secondAttackFacing = 0
 int secondLastInputAction = -1
 int appliedBindingRevision = -1
 int appliedSecondBindingRevision = -1
-AttackBuffer playerAttacks = new AttackBuffer(0)
-AttackBuffer botAttacks = new AttackBuffer(0)
+AttackBuffer playerAttacks = new AttackBuffer(ATTACK_BUFFER_FRAMES)
+AttackBuffer botAttacks = new AttackBuffer(ATTACK_BUFFER_FRAMES)
 int playerAttackFacing = 0
 int lastInputAction = -1
 int lastNormalStyle = -1
@@ -177,6 +176,20 @@ class MeleeSelectionActions extends SelectionActions
         if settingsPanel != null and settingsPanel.isOpen()
             return
         matchState.selectCpuCharacter(participantId, choice)
+        makePreview()
+
+    override function recallChoice(int actorId, int chipSlot)
+        if actorId != 0 and actorId != 1
+            return
+        if actorId == 1 and not twoHumanPlayers
+            return
+        if not matchState.characterReady(chipSlot)
+            return
+        let bindings = actorId == 0 ? playerBindings : secondBindings
+        let controls = actorId == 0 ? settingsPanel : secondSettingsPanel
+        if not bindings.ready or (controls != null and controls.isOpen())
+            return
+        matchState.recallCharacter(actorId, chipSlot)
         makePreview()
 
     override function openSettings(int participantId)
@@ -288,40 +301,27 @@ function clearStageDecks()
         stageDecks[i] = null
     stageDeckCount = 0
 
-function clearProjectileLines()
-    for i = 0 to projectileLineCount - 1
-        if projectileLines[i] != null
-            DestroyLightning(projectileLines[i])
-            projectileLines[i] = null
-        if projectileArrows[i] != null
-            DestroyEffect(projectileArrows[i])
-            projectileArrows[i] = null
-    projectileLineCount = 0
+function clearProjectileModels()
+    for i = 0 to projectileModelCount - 1
+        if projectileModels[i] != null
+            DestroyEffect(projectileModels[i])
+            projectileModels[i] = null
+    projectileModelCount = 0
 
 function renderProjectile(int index, boolean active, real x, real z, int direction, int character)
-    projectileLineCount = max(projectileLineCount, index + 1)
+    projectileModelCount = max(projectileModelCount, index + 1)
     if not active
-        if projectileLines[index] != null
-            DestroyLightning(projectileLines[index])
-            projectileLines[index] = null
-        if projectileArrows[index] != null
-            DestroyEffect(projectileArrows[index])
-            projectileArrows[index] = null
+        if projectileModels[index] != null
+            DestroyEffect(projectileModels[index])
+            projectileModels[index] = null
         return
-    if character == 0
-        if projectileArrows[index] == null
-            projectileArrows[index] = AddSpecialEffect(Abilities.arrowMissile1, centerX + x, centerY)
-            BlzSetSpecialEffectYaw(projectileArrows[index], direction > 0 ? 0. : 3.141592654)
-        BlzSetSpecialEffectPosition(projectileArrows[index], centerX + x, centerY, floorHeight + z)
-        return
-    let tailX = x - direction * 65
-    if projectileLines[index] == null
-        projectileLines[index] = AddLightningEx("AFOD", false, centerX + tailX, centerY, floorHeight + z,
-            centerX + x, centerY, floorHeight + z)
-        SetLightningColor(projectileLines[index], character == 0 ? 1 : 0.3, character == 0 ? 0.2 : 0.65, character == 0 ? 0.15 : 1, 1)
-    else
-        MoveLightningEx(projectileLines[index], false, centerX + tailX, centerY, floorHeight + z,
-            centerX + x, centerY, floorHeight + z)
+    if projectileModels[index] == null
+        let model = character == 0 ? Abilities.arrowMissile1 : Abilities.gyroCopterMissile
+        projectileModels[index] = AddSpecialEffect(model, centerX + x, centerY)
+        BlzSetSpecialEffectYaw(projectileModels[index], direction > 0 ? 0. : 3.141592654)
+        if character == 1
+            BlzSetSpecialEffectScale(projectileModels[index], 0.65)
+    BlzSetSpecialEffectPosition(projectileModels[index], centerX + x, centerY, floorHeight + z)
 
 function renderProjectiles(FighterState fighter, int offset)
     for index = 0 to PROJECTILE_CAPACITY - 1
@@ -346,7 +346,7 @@ function removeFighters()
         frostEffects.clear()
     if combatEffects != null
         combatEffects.clear()
-    clearProjectileLines()
+    clearProjectileModels()
     if playerFighter != null
         playerFighter.clearShieldEffect()
         playerFighter.clearDizzyEffect()
@@ -441,7 +441,7 @@ function applyFrame()
     renderProjectiles(playerFighter, 0)
     renderProjectiles(botFighter, PROJECTILE_CAPACITY)
     if matchState.phase == RESULT
-        clearProjectileLines()
+        clearProjectileModels()
     if playerFighter.attackSerial != playerPreviousAttack
         traceParticipant(0, "applied attack " + I2S(playerFighter.attackSerial) + " style " + I2S(playerFighter.attackStyle))
         playAttackAnimation(playerFighter)
@@ -566,7 +566,10 @@ function back(int participantId)
     if not bindings.ready or (controls != null and controls.isOpen())
         return
     if matchState.phase == CHARACTER_MENU
-        matchState.unreadyCharacter(participantId)
+        if participantId == 0
+            selectionPanel.recallHeld()
+        else
+            secondSelectionPanel.recallHeld()
     else if matchState.phase == STAGE_MENU
         matchState.returnToCharacters(participantId)
     else if matchState.phase == MATCH
@@ -732,8 +735,14 @@ function onParticipantKeyDown(int participantId)
     else if action == JUMP
         if not wasHeld
             jump(fighter)
-    else if action == ATTACK and matchState.phase != CHARACTER_MENU
-        confirm(participantId)
+    else if action == ATTACK
+        if matchState.phase == CHARACTER_MENU
+            if participantId == 0
+                selectionPanel.placeHovered()
+            else
+                secondSelectionPanel.placeHovered()
+        else
+            confirm(participantId)
     else if action == SPECIAL
         if matchState.phase == MATCH and fighter.character == 1 and state.actionHeld(MOVE_DOWN)
             if not wasHeld
@@ -1109,9 +1118,9 @@ function gameTick()
     statusTime = max(0, statusTime - FRAME_SECONDS)
     if matchState.phase == MATCH
         let frame = replayRuntime.simulationFrame + 1
-        let direction = firstKeyState.directionX()
+        let direction = firstKeyState.consumeMovementX()
         if playerNormalAttackQueued
-            let style = normalAttackStyle(direction, firstKeyState.directionZ(), firstKeyState.actionHeld(WALK_MODIFIER))
+            let style = normalAttackStyle(direction, firstKeyState.directionZ(), firstKeyState.actionHeld(WALK_MODIFIER), playerFighter.grounded and (playerFighter.shield or firstKeyState.actionHeld(LEFT_TRIGGER) or firstKeyState.actionHeld(RIGHT_TRIGGER)))
             lastNormalStyle = style
             playerAttackRequests.enqueue(style, direction, frame, true)
         var botDirection = 0
@@ -1156,7 +1165,7 @@ function gameTick()
         playerInput.dodgeX = playerDodgeX
         playerInput.dodgeZ = playerDodgeZ
         playerInput.attackHeld = actionHeld(ATTACK)
-        secondPlayerInput.direction = secondKeyState.directionX()
+        secondPlayerInput.direction = secondKeyState.consumeMovementX()
         secondPlayerInput.verticalDirection = secondKeyState.directionZ()
         secondPlayerInput.sdiPulse = secondKeyState.pulsePending()
         secondPlayerInput.sdiX = secondKeyState.pulseX()
@@ -1185,7 +1194,7 @@ function gameTick()
         secondPlayerInput.dodgeX = secondDodgeX
         secondPlayerInput.dodgeZ = secondDodgeZ
         if twoHumanPlayers and secondNormalAttackQueued
-            let style = normalAttackStyle(secondPlayerInput.direction, secondPlayerInput.verticalDirection, secondPlayerInput.walking)
+            let style = normalAttackStyle(secondPlayerInput.direction, secondPlayerInput.verticalDirection, secondPlayerInput.walking, botFighter.grounded and (botFighter.shield or secondPlayerInput.shield))
             secondAttackRequests.enqueue(style, secondPlayerInput.direction, frame, true)
         botInput.direction = botDirection
         botInput.jumpPressed = botJumpQueued

@@ -305,7 +305,6 @@ function landLCancelTest(FighterState fighter, InputSnapshot input)
 @Test function lCancelHalvesAerialRecoveryAndPreservesActionLockout()
 	for style = AERIAL_NEUTRAL_STYLE to AERIAL_DOWN_STYLE
 		let fighter = lCancelTestFighter(style)
-		// The dive stalls in startup; this fixture tests actual landing recovery.
 		fighter.attackFrame = attackStartupFrames(style)
 		let input = new InputSnapshot()
 		input.lCancelPressed = true
@@ -582,6 +581,7 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 function testMatch() returns MatchState
 	let game = new MatchState()
 	game.selectCharacter(0, 0)
+	game.selectCpuCharacter(0, 1)
 	game.requestStageSelect(0)
 	game.requestStart(0)
 	return game
@@ -952,38 +952,39 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 		destroy target
 		destroy fighter
 
-@Test function archerDiveStallsThenPlungesAndLandingCancelsIt()
-	let fighter = new FighterState(0, 0, 1)
-	let other = new FighterState(1, 500, -1)
-	let input = new InputSnapshot()
-	fighter.grounded = false
-	fighter.z = 600
-	fighter.vz = 10
-	beginAttackPair(fighter, other, AERIAL_DOWN_STYLE, -1, false, false)
-	fighter.vz.assertEquals(0.)
-	for frame = 1 to 6
-		advance(fighter, 0, input, 0)
-		fighter.z.assertEquals(600.)
-	advance(fighter, 0, input, 0)
-	fighter.attackFrame.assertEquals(7)
-	fighter.z.assertEquals(576.)
-	fighter.vz.assertEquals(-24.)
-	fighter.hitlag = 2
-	advance(fighter, 0, input, 0)
-	fighter.z.assertEquals(576.)
-	fighter.attackFrame.assertEquals(7)
-	advance(fighter, 0, input, 0)
-	fighter.z = 10
-	advance(fighter, 0, input, 0)
-	fighter.grounded.assertTrue()
-	fighter.z.assertEquals(0.)
-	fighter.attackStyle.assertEquals(-1)
-	fighter.landingLag.assertEquals(18)
-	destroy input
-	destroy other
-	destroy fighter
+@Test function cStickDownAirPreservesNormalAerialMomentumForBothFighters()
+	for character = 0 to 1
+		for verticalSign = -1 to 1
+			if verticalSign != 0
+				let fighter = new FighterState(character, 0, 1)
+				let falling = new FighterState(character, 0, 1)
+				let other = new FighterState(1 - character, 500, -1)
+				let input = new InputSnapshot()
+				let neutralInput = new InputSnapshot()
+				fighter.grounded = false
+				falling.grounded = false
+				fighter.z = 500
+				falling.z = 500
+				fighter.vz = verticalSign * 8.
+				falling.vz = fighter.vz
+				fighter.knockbackZ = 2
+				falling.knockbackZ = 2
+				input.cStickZ = -1
+				beginAttackPair(fighter, other, AERIAL_DOWN_STYLE, -1, false, false)
+				fighter.vz.assertEquals(falling.vz)
+				fighter.knockbackZ.assertEquals(falling.knockbackZ)
+				for frame = 1 to 26
+					advance(fighter, 0, input, 0)
+					advance(falling, 0, neutralInput, 0)
+					fighter.vz.assertEquals(falling.vz, 0.0001)
+					fighter.z.assertEquals(falling.z, 0.0001)
+				destroy neutralInput
+				destroy input
+				destroy other
+				destroy falling
+				destroy fighter
 
-@Test function archerDiveHasOneStrongToWeakWindowAndRiflemanIsUnchanged()
+@Test function archerDownAirHasOneStrongToWeakWindowAndRiflemanIsUnchanged()
 	let fighter = new FighterState(0, 0, 1)
 	let target = new FighterState(1, 0, -1)
 	fighter.grounded = false

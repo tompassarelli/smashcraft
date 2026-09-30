@@ -14,6 +14,23 @@ ARCHER_AERIALS = tuple(
     for kind, startup, active, duration in AERIALS
 )
 
+# Local XYZ angles measured from stage-plane joint directions on each stock rig.
+# A Z-only lift points Archer's shin into camera depth and hides the kick.
+ARCHER_NEUTRAL_ROTATIONS = {
+    'Bone_Leg1_R': (51.826, 5.088, 67.167),
+    'Bone_Leg2_R': (9.004, -0.111, 56.370),
+    'Bone_Leg1_L': (-28.482, -3.005, -61.874),
+    'Bone_Leg2_L': (-3.084, -2.057, -53.440),
+    'Bone_Arm1_L': (-17.299, -13.453, 49.832),
+    'Bone_Arm2_L': (17.561, 30.630, -47.977),
+}
+RIFLEMAN_NEUTRAL_ROTATIONS = {
+    'Bone_Leg1_R': (28.534, 1.343, 63.502),
+    'Bone_Leg2_R': (3.937, 3.037, 55.643),
+    'Bone_Leg1_L': (-26.254, -0.004, -65.921),
+    'Bone_Leg2_L': (0.951, -8.916, -43.790),
+}
+
 
 def author_archer_aerials(make_action, tilt_pose):
     def pose(kind, power):
@@ -31,6 +48,13 @@ def author_archer_aerials(make_action, tilt_pose):
             ready = 32 if 'Leg1' in name else -65
             result[name] = {'axis': 'Z', 'rotation': ready*(1-power)+angle*power}
         result['Bone_Chest'] = {'axis': 'Z', 'rotation': {'Neutral': -8, 'Forward': -15, 'Back': 20, 'Up': 28, 'Down': -25}[kind]*power}
+        if kind == 'Neutral':
+            for name, angles in ARCHER_NEUTRAL_ROTATIONS.items():
+                ready = (32 if 'Leg1' in name else -65) if 'Leg' in name else 0
+                x, y, z = angles
+                result[name] = {'rotations': [('Z', ready*(1-power)+z*power),
+                                             ('Y', y*power), ('X', x*power)]}
+            result['Bone_Chest'] = {'axis': 'Z', 'rotation': 12*power}
         return result
 
     for kind, startup, active, duration in ARCHER_AERIALS:
@@ -90,11 +114,13 @@ def author_archer_aerials(make_action, tilt_pose):
 
 def author_rifleman_aerials(author):
     contacts = {
-        'Neutral': dict(leg_r=65, knee_r=40, leg_l=-35, knee_l=-80, lean=-8, strike=.1),
+        'Neutral': dict(leg_r=63.502, knee_r=55.643, leg_l=-65.921, knee_l=-43.790,
+                        neutral_kick=1, weapon_lift=14, lean=5, strike=.1),
         'Forward': dict(leg_r=42, knee_r=-75, leg_l=25, knee_l=-65, lean=-15, strike=1),
         # Right leg is nearest the stage camera. Its rest knee is already bent;
         # positive knee rotation straightens the backward extension.
-        'Back': dict(leg_r=-100, knee_r=40, leg_l=60, knee_l=-85, lean=25, strike=-.15),
+        'Back': dict(leg_r=-100, knee_r=40, leg_l=60, knee_l=-85, lean=25, strike=-.15,
+                     cape_lift=125),
         'Up': dict(leg_r=155, knee_r=-12, leg_l=45, knee_l=-90, lean=28, strike=.25, elevation=65),
         'Down': dict(leg_r=5, knee_r=8, leg_l=-12, knee_l=8, lean=-25, strike=.2, elevation=-65),
     }

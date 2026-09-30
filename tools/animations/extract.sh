@@ -15,7 +15,7 @@ for model in units/nightelf/archer/archer units/human/rifleman/rifleman; do
     bun "$project_dir/tools/animations/convert.ts" "$output_dir/$name.mdx" "$output_dir/$name.mdl"
 done
 # This installed build stores DDS textures even when model paths end in BLP.
-for texture in Textures/Ranger Textures/star2_32 Textures/gutz Units/Human/Rifleman/Rifleman Textures/Dust3x Textures/Flame4 ReplaceableTextures/TeamColor/TeamColor00; do
+for texture in Textures/Ranger Textures/star2_32 Textures/gutz Units/Human/Rifleman/Rifleman Textures/Dust3x Textures/Flame4 ReplaceableTextures/TeamColor/TeamColor00 ReplaceableTextures/TeamColor/TeamColor01; do
     target="$output_dir/textures/$texture"
     mkdir -p "$(dirname -- "$target")"
     "$output_dir/casc-extract" "$storage" "war3.w3mod:$texture.dds" "$target.dds"

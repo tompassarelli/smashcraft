@@ -55,6 +55,15 @@ public class PlayerInputState
     function directionX() returns int
         return (actionHeld(MOVE_RIGHT) ? 1 : 0) - (actionHeld(MOVE_LEFT) ? 1 : 0)
 
+    // Commit a short horizontal tap once even if its release arrived before
+    // the tick. Opposing holds/edges remain neutral; this is not a held key.
+    function consumeMovementX() returns int
+        let leftPressed = consumePressed(MOVE_LEFT)
+        let rightPressed = consumePressed(MOVE_RIGHT)
+        if actionHeld(MOVE_LEFT) or actionHeld(MOVE_RIGHT)
+            return directionX()
+        return (rightPressed ? 1 : 0) - (leftPressed ? 1 : 0)
+
     function directionZ() returns int
         return (actionHeld(MOVE_UP) ? 1 : 0) - (actionHeld(MOVE_DOWN) ? 1 : 0)
 

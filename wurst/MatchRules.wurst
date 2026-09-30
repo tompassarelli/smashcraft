@@ -48,10 +48,11 @@ public class MatchState
         destination.secondRematchReady = secondRematchReady
 
     function setHumanCount(int count)
-        humanCount = count == 2 ? 2 : 1
-        if humanCount == 1
+        let nextCount = count == 2 ? 2 : 1
+        if humanCount != nextCount
             secondCharacterReady = false
             secondRematchReady = false
+        humanCount = nextCount
 
     function characterFor(int slot) returns int
         return slot == 1 ? secondCharacterChoice : characterChoice
@@ -75,9 +76,10 @@ public class MatchState
         if phase != CHARACTER_MENU or humanCount != 1 or actorSlot != 0 or choice < 0 or choice > 1
             return
         secondCharacterChoice = choice
+        secondCharacterReady = true
 
     function allCharactersReady() returns boolean
-        return firstCharacterReady and (humanCount == 1 or secondCharacterReady)
+        return firstCharacterReady and secondCharacterReady
 
     function unreadyCharacter(int slot)
         if phase != CHARACTER_MENU or slot < 0 or slot >= humanCount
@@ -86,6 +88,14 @@ public class MatchState
             secondCharacterReady = false
         else
             firstCharacterReady = false
+
+    function recallCharacter(int actorSlot, int chipSlot)
+        if phase != CHARACTER_MENU or actorSlot < 0 or actorSlot >= humanCount
+            return
+        if chipSlot == actorSlot
+            unreadyCharacter(chipSlot)
+        else if humanCount == 1 and actorSlot == 0 and chipSlot == 1
+            secondCharacterReady = false
 
     function selectStage(int slot, int choice)
         if phase == STAGE_MENU and slot >= 0 and slot < humanCount and choice >= 0 and choice <= 1
@@ -131,8 +141,6 @@ public class MatchState
         if firstRematchReady and (humanCount == 1 or secondRematchReady)
             firstRematchReady = false
             secondRematchReady = false
-            firstCharacterReady = false
-            secondCharacterReady = false
             phase = CHARACTER_MENU
             return true
         return false

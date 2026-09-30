@@ -1,5 +1,7 @@
 package CommandBuffer
 
+public constant int ATTACK_BUFFER_FRAMES = 6
+
 public function queueHumanAttack(AttackBuffer first, AttackBuffer second, int slot, int style, int direction, int completedFrame)
     if slot < 0 or slot > 1
         return

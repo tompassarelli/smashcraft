@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 from math import radians, sqrt
 import bpy
-from mathutils import Matrix, Quaternion, Vector
+from mathutils import Euler, Matrix, Quaternion, Vector
 import addon_utils
 
 project = Path(__file__).resolve().parents[2]
@@ -79,7 +79,8 @@ def grip_arm(side, target, pole):
 
 
 def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
-         leg_r=0, knee_r=0, leg_l=0, knee_l=0):
+         leg_r=0, knee_r=0, leg_l=0, knee_l=0, neutral_kick=0, weapon_lift=0,
+         cape_lift=0):
     for name, matrix in base.items():
         rig.pose.bones[name].matrix_basis = matrix
     # Root displacement belongs entirely to simulation, including aerial clips.
@@ -89,6 +90,13 @@ def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
     for side in ('L', 'R'):
         turn(f'Bone_Leg1_{side}', 62*tuck + (leg_r if side == 'R' else leg_l))
         turn(f'Bone_Leg2_{side}', -100*tuck + (knee_r if side == 'R' else knee_l))
+    if neutral_kick:
+        from aerials import RIFLEMAN_NEUTRAL_ROTATIONS
+        for name, (x, y, _) in RIFLEMAN_NEUTRAL_ROTATIONS.items():
+            z = {'Bone_Leg1_R': leg_r, 'Bone_Leg2_R': knee_r,
+                 'Bone_Leg1_L': leg_l, 'Bone_Leg2_L': knee_l}[name]
+            rig.pose.bones[name].matrix_basis = base[name] @ Euler(
+                (radians(x*neutral_kick), radians(y*neutral_kick), radians(z)), 'XYZ').to_matrix().to_4x4()
     rig.pose.bones['Bone_Pelvis'].location += Vector((0, -12*crouch, 0))
     bpy.context.view_layer.update()
     chest = rig.pose.bones['Bone_Chest'].matrix.copy()
@@ -99,8 +107,14 @@ def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
     local_swing = chest.to_3x3().to_4x4() @ world['Bone_Chest'].to_3x3().inverted().to_4x4()
     swing = local_swing @ swing @ local_swing.inverted()
     weapon = Matrix.Translation(pivot) @ swing @ Matrix.Translation(-pivot) @ chest @ weapon_relative
+    weapon = Matrix.Translation(Vector((0, 0, weapon_lift))) @ weapon
     rig.pose.bones['Rifle01'].matrix = weapon
     bpy.context.view_layer.update()
+    if cape_lift:
+        cape = rig.pose.bones['Cape04']
+        pivot = cape.matrix.translation.copy()
+        cape.matrix = Matrix.Translation(pivot) @ rotation((0, 1, 0), cape_lift) @ Matrix.Translation(-pivot) @ cape.matrix
+        bpy.context.view_layer.update()
     for side in ('L', 'R'):
         grip_arm(side, weapon @ grips[side], chest @ poles[side])
     # Restore hand orientation relative to the weapon after the arm solve.

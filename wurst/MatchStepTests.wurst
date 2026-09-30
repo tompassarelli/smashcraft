@@ -7,7 +7,9 @@ import MatchStep
 @Test function humanDirectAttacksReachBothSlotsOnTheNextStep()
     for style = 1 to 5
         let game = new MatchState()
+        game.setHumanCount(2)
         game.selectCharacter(0, 0)
+        game.selectCharacter(1, 1)
         game.requestStageSelect(0)
         game.requestStart(0)
         let first = new FighterState(0, -240, 1)
@@ -41,6 +43,7 @@ import MatchStep
 @Test function activeShieldConsumesGrabButRejectsOrdinaryAttackCommand()
     let game = new MatchState()
     game.selectCharacter(0, 0)
+    game.selectCpuCharacter(0, 1)
     game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, 0, 1)
@@ -73,6 +76,7 @@ import MatchStep
     for mode = 0 to 2
         let game = new MatchState()
         game.selectCharacter(0, 0)
+        game.selectCpuCharacter(0, 1)
         game.requestStageSelect(0)
         game.selectStage(0, 1)
         game.requestStart(0)
@@ -105,6 +109,7 @@ import MatchStep
         if style == 3 or style == 8
             let game = new MatchState()
             game.selectCharacter(0, 0)
+            game.selectCpuCharacter(0, 1)
             game.requestStageSelect(0)
             game.selectStage(0, 1)
             game.requestStart(0)
@@ -139,6 +144,7 @@ import MatchStep
     for mode = 0 to 1
         let game = new MatchState()
         game.selectCharacter(0, 0)
+        game.selectCpuCharacter(0, 1)
         game.requestStageSelect(0)
         game.requestStart(0)
         let first = new FighterState(0, 0, 1)
@@ -175,6 +181,7 @@ import MatchStep
 @Test function airborneBackAttackKeepsFacingWhileDriftingBackwards()
     let game = new MatchState()
     game.selectCharacter(0, 0)
+    game.selectCpuCharacter(0, 1)
     game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, 0, 1)
@@ -199,9 +206,47 @@ import MatchStep
     destroy second
     destroy game
 
+@Test function jumpSquatBuffersBackAirUntilFirstAirborneFrame()
+    for character = 0 to 1
+        for facing = -1 to 1
+            if facing != 0
+                for squatRemaining = 1 to jumpSquatFrames(character)
+                    let game = new MatchState()
+                    game.phase = MATCH
+                    let fighter = new FighterState(character, 0, facing)
+                    let target = new FighterState(1 - character, 350, -facing)
+                    let input = new InputSnapshot()
+                    let otherInput = new InputSnapshot()
+                    let commands = new AttackBuffer(ATTACK_BUFFER_FRAMES)
+                    let otherCommands = new AttackBuffer(ATTACK_BUFFER_FRAMES)
+                    fighter.jumpSquat = squatRemaining
+                    fighter.jumpHeld = true
+                    input.jumpHeld = true
+                    commands.enqueue(4, -facing, 1, false)
+                    for frame = 1 to squatRemaining
+                        stepMatch(game, fighter, target, input, otherInput, commands, otherCommands, frame)
+                        fighter.facing.assertEquals(facing)
+                        if frame < squatRemaining
+                            fighter.grounded.assertTrue()
+                            fighter.attackStyle.assertEquals(-1)
+                        else
+                            fighter.grounded.assertFalse()
+                            fighter.attackStyle.assertEquals(AERIAL_BACK_STYLE)
+                            fighter.attackFrame.assertEquals(0)
+                            fighter.attackSerial.assertEquals(1)
+                    commands.hasPending(squatRemaining + 1).assertFalse()
+                    destroy otherCommands
+                    destroy commands
+                    destroy otherInput
+                    destroy input
+                    destroy target
+                    destroy fighter
+                    destroy game
+
 @Test function attackSelectionUsesGroundingAfterTheMovementStep()
     let game = new MatchState()
     game.selectCharacter(0, 0)
+    game.selectCpuCharacter(0, 1)
     game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, 0, 1)
@@ -245,6 +290,7 @@ import MatchStep
 @Test function shieldPressAppliesBeforeSameFrameAttack()
     let game = new MatchState()
     game.selectCharacter(0, 0)
+    game.selectCpuCharacter(0, 1)
     game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, 0, 1)
@@ -264,6 +310,7 @@ import MatchStep
 @Test function bothFinalStocksResolveAfterTheSameStep()
     let game = new MatchState()
     game.selectCharacter(0, 0)
+    game.selectCpuCharacter(0, 1)
     game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, -921, 1)
@@ -284,6 +331,7 @@ import MatchStep
 @Test function ledgeSharedMatchStepCatchesBothSlotsThenAcceptsFreshOptions()
     let game = new MatchState()
     game.selectCharacter(0, 0)
+    game.selectCpuCharacter(0, 1)
     game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, -620, 1)
@@ -325,6 +373,7 @@ import MatchStep
 @Test function configuredStocksAndLastTickKnockoutPrecedeTimeout()
     let game = new MatchState()
     game.selectCharacter(0, 0)
+    game.selectCpuCharacter(0, 1)
     game.requestStageSelect(0)
     game.setStocks(0, 1)
     game.requestStart(0)
@@ -362,6 +411,7 @@ import MatchStep
     stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
     game.remainingFrames.assertEquals(25200)
     game.selectCharacter(0, 0)
+    game.selectCpuCharacter(0, 1)
     game.requestStageSelect(0)
     stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
     game.remainingFrames.assertEquals(25200)

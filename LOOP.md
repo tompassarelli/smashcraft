@@ -2,6 +2,20 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
+Latest installed build: `qwer-input-checkpoint`, September 30. Map compile,
+packaging and installed-byte comparison passed (zero errors, four existing
+warnings), log wc3-melee:build/qwer-input-checkpoint-map.log. Latest whole
+suite passed 272/272 with zero warnings; subsequent visible-chip gesture
+change passed 9/9 SelectionDragTests. Logs:
+wc3-melee:build/wurst-tests/qwer-control-checkpoint.log and
+wc3-melee:build/wurst-tests/visible-chips.log. Native session was still
+`grab-tap-chips` when the new map was installed; no new-build native claim.
+
+The new defaults are Q shield, W left, E down, R right. Restore migrates only
+the intact former ASDF default block when QWER is unassigned; other saved
+bindings remain intact. Chips are visible in all active player/CPU cards at
+first load and can be dragged to the roster. Rematches retain placed choices.
+
 The current playable output and installed entry are `Smashcraft.w3x`. The old
 `Melee_Prototype.w3x` was moved out of the map browser into the ignored
 wc3-melee:build/map-backups directory after the renamed build was verified.
@@ -14,8 +28,28 @@ warnings), packaging and installed-byte comparison. Ending the prior
 `impact-cues-ui` session with the existing F5 handler reproduced the black
 return-to-menu screen, still black after Escape. Warcraft was left open.
 Screenshots are wc3-melee:build/impact-assets/checkpoint-menu-later.png and
-wc3-melee:build/impact-assets/client-input.png. Native checks of the new build
-remain pending; packaging success is not a successful launch.
+wc3-melee:build/impact-assets/client-input.png. A subsequent graceful close and
+Battle.net relaunch restored the client; the owner navigated it to Character
+Select. The ready receipt confirms `freeze-trap-5s`/normal. Screenshot:
+wc3-melee:build/impact-assets/freeze-select.png. The minor follow-up
+`freeze-trap-5s-r2` preserves Archer's neutral shot when Down is held; it passed
+the normal build and is installed, but the running session still has the first
+freeze build. Native combat/effect checks remain pending. Relaunch recovered
+usability; it did not repair the return-to-menu defect.
+
+September 30 control follow-up: wc3-melee:build/wurst-tests/dair-buffer-rematch.log
+passes 270/270 tests. It covers L and Shield+Attack grabs, short horizontal taps,
+first-airborne-frame buffered back-air, normal down-air momentum, and retained
+character placements across rematches. The test run reported one indentation
+warning in the new down-air test; its indentation was subsequently normalized.
+The earlier `grab-tap-chips` map compiled and deployed before the down-air,
+buffer, rematch, bullet, and revised animation changes. It is not evidence for
+those later changes. Their integrated build and native checks remain pending.
+
+Rifleman's projectile now references the installed native GyroCopter missile
+instead of lightning. CASC extraction verified that model exists. An optional
+offline model preview failed in war3-model's light-chunk parser; this does not
+block Warcraft loading its own asset. Native appearance remains to be checked.
 
 ## Warm loop
 
@@ -139,3 +173,23 @@ Keyboard registration uses Warcraft virtual key codes, not the Lua backend's
 generic handle-identity indices. During that adapter defect, the built-in
 F10 → End Game → Restart Mission menu successfully loaded the corrected map
 without exiting Warcraft. The normal F6 path then passed again.
+
+Live follow-up on `grab-tap-chips`: input trace
+wc3-melee:build/impact-assets/grab-live-trace.txt contains Shield+N starting
+style 5 at simulation frame 2252 and Shield+L starting style 5 at 2306.
+The plain-L request at 2187 is sampled but not applied; the trace lacks enough
+state to identify its exact action lock. Other human input overlaps this probe,
+so this is dispatch evidence, not an isolated grab-contact acceptance test.
+Grab presentation still uses stock attack and its victim hold is rudimentary.
+Enter opened native chat while advancing Character Select to Stage Select;
+Escape then Attack entered the match. Retaining rematch selections fixes the
+ready-state reset but does not yet resolve this native Enter/chat focus issue.
+
+Pending scope: full bear/multishot/hippogryph/recovery specials, get-up attack
+knockback/frame advantage refinement, dedicated grab/hold presentation. The
+get-up worker brief exists at wc3-melee:build/specials/getup-advantage-brief.txt;
+no worker was admitted and no get-up mechanics were changed in this slice.
+Rifleman blue portrait import now selects Blue and extracts TeamColor01, but
+the actual render remains white. The importer SD material-layer chain replaces
+the underlying team-color image connection; this needs repair in its owning
+mdl-exporter4 source before claiming the blue portrait complete.

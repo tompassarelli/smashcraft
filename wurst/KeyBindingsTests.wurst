@@ -49,3 +49,36 @@ import KeyBindings
     restored.restore("K1" + source.encode().substring(2, 86)).assertTrue()
     restored.keyFor(GRAB, 0).assertEquals(186)
     restored.keyFor(WALK_MODIFIER, 0).assertEquals(0)
+
+@Test function movementBlockUsesQwerInBothPresets()
+    for preset = 0 to 1
+        let bindings = new KeyBindings(preset == 1)
+        bindings.actionFor(81).assertEquals(LEFT_TRIGGER)
+        bindings.actionFor(87).assertEquals(MOVE_LEFT)
+        bindings.actionFor(69).assertEquals(MOVE_DOWN)
+        bindings.actionFor(82).assertEquals(MOVE_RIGHT)
+        bindings.actionFor(76).assertEquals(GRAB)
+        bindings.actionFor(78).assertEquals(ATTACK)
+        destroy bindings
+
+@Test function savedDefaultMovementBlockMigratesWithoutLosingCustomAttackBinding()
+    let old = new KeyBindings(true)
+    old.rebind(MOVE_LEFT, 0, 83).assertTrue()
+    old.rebind(MOVE_RIGHT, 0, 70).assertTrue()
+    old.rebind(MOVE_DOWN, 0, 68).assertTrue()
+    old.rebind(LEFT_TRIGGER, 0, 65).assertTrue()
+    old.rebind(ATTACK, 0, 71).assertTrue()
+    let restored = new KeyBindings(false)
+    restored.restore(old.encode()).assertTrue()
+    restored.actionFor(81).assertEquals(LEFT_TRIGGER)
+    restored.actionFor(87).assertEquals(MOVE_LEFT)
+    restored.actionFor(69).assertEquals(MOVE_DOWN)
+    restored.actionFor(82).assertEquals(MOVE_RIGHT)
+    restored.actionFor(71).assertEquals(ATTACK)
+    restored.keyFor(RIGHT_TRIGGER, 0).assertEquals(56)
+    old.rebind(GRAB, 0, 81).assertTrue()
+    restored.restore(old.encode()).assertTrue()
+    restored.actionFor(81).assertEquals(GRAB)
+    restored.actionFor(83).assertEquals(MOVE_LEFT)
+    destroy restored
+    destroy old
