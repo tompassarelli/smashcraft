@@ -2,7 +2,22 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-Installed and observed running: `illidan-special-vfx-r1`. Build/deploy passed
+Installed and observed running: `illidan-visibility-r1`. Fixed combat authoring
+sampling stale mesh visibility from alternate/death actions instead of binding
+each mesh to Stand Ready. Regression failed on old Attack Jab/frame zero and
+passes all 81 rebuilt clips; original 24 actions and 17 geosets preserved.
+Logs: wc3-melee:build/illidan-visibility-before.log,
+wc3-melee:build/illidan-visibility-after.log, and
+wc3-melee:build/illidan-visibility-r1-map.log. Full export completed successfully.
+Quit Mission -> Back -> Create -> Start loaded the new build in the same client.
+Human/CPU Illidan mirror match now shows both normal textured bodies/weapons,
+without the prior black silhouette/dark geometry:
+wc3-melee:build/illidan-native-match-fixed.png. Y pause sent after capture.
+Warcraft window 236 / X11 171966465 remain the current client identifiers.
+Remaining: complete action transitions and real-controls moveset/replay checks;
+this visual regression fix is not full character acceptance. Public map unchanged.
+
+Previously installed and observed running: `illidan-special-vfx-r1`. Build/deploy passed
 with six warnings: wc3-melee:build/illidan-special-vfx-r1-map.log. Mana Burn
 uses Mana Flare missile art; preallocated static Immolate/parry cues follow
 active windows. Their actual action playback has not been individually verified.
@@ -10,7 +25,7 @@ Native roster/portraits, both chip placements, Y to stage select and Y to start
 an Illidan mirror match worked. HUD portraits/names/stock icons render and
 combat advances. Evidence: wc3-melee:build/illidan-native-mirror.png and
 wc3-melee:build/illidan-native-match.png.
-BLOCKING VISUAL DEFECT: during that match one fighter is a black silhouette
+VISUAL DEFECT (fixed in visibility-r1 above): during that match one fighter is a black silhouette
 with large dark surrounding shapes while the other is textured. Model/material
 or action visibility cause is not diagnosed. Fix this before release. Match
 was paused with Y for inspection; Warcraft window 236, X11 window 171966465.

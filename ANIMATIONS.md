@@ -3,9 +3,17 @@
 ## Demon Hunter completion checklist
 
 Illidan selection and HUD integration are implemented in the working source;
-he is installed in `illidan-special-vfx-r1`. Native mirror-match entry works,
-but one fighter rendered as a black silhouette with dark surrounding shapes.
-This model defect blocks playable-character completion; its cause is not diagnosed. The rebuilt
+he is installed in `illidan-visibility-r1`. Native mirror-match entry works.
+The previous black silhouette and surrounding dark geometry are absent in the
+recreated match, with both fighters textured in their normal bodies.
+The cause is stale mesh action-slot visibility during combat authoring: the
+skeleton used Stand Ready while the meshes retained alternate/death visibility.
+The author now samples every mesh from Stand Ready. The added scene check fails
+on the old jab at frame zero and passes all 81 rebuilt clips while preserving
+24 stock actions and 17 source geosets. Export, packaged map build and native mirror-match confirmation passed.
+Native evidence: wc3-melee:build/illidan-native-match-fixed.png.
+Evidence: wc3-melee:build/illidan-visibility-before.log and
+wc3-melee:build/illidan-visibility-after.log. The rebuilt
 scene contains 236 bones (including emitter helpers), 17 geosets and 24 stock actions;
 The authored scene now adds 81 clips, with 103 exported sequences and validated
 bindings in wc3-melee:build/illidan-animation/bindings.json. Source commits

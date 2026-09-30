@@ -24,6 +24,14 @@ bpy.context.view_layer.update()
 base={b.name:b.matrix_basis.copy() for b in rig.pose.bones}
 emitters=[o for o in scene.objects if o.particle_systems]
 meshes=[o for o in scene.objects if o.type=='MESH' and not o.particle_systems]
+# Mesh visibility has its own action slots; selecting only the skeleton leaves
+# alternate-body/death-effect values from the imported scene active.
+for mesh in meshes:
+ slot=next((s for s in ready.slots if s.identifier[2:]==mesh.name),None)
+ if slot:
+  mesh.animation_data_create();mesh.animation_data.action=ready;mesh.animation_data.action_slot=slot
+scene.frame_set(0)
+bpy.context.view_layer.update()
 visibility={m.name:float(m.get(m.name,{}).get('visibility',1)) for m in meshes}
 # The source demon's wings share a geoset with its body. Duplicate only the
 # existing wing triangles and weights; retain the complete source geoset.
