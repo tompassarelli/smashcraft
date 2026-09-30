@@ -31,3 +31,19 @@ for clip in json.loads((out/'clips.json').read_text()):
   if not a.name.startswith('Special Up'):assert visible==0,('Wing visible outside ascent',a.name)
  bpy.context.scene.frame_set(clip['frames']);assert wing[wing.name]['visibility']==0,('Wing interruption endpoint',a.name)
 print('ILLIDAN_SCENE_PASS',len(stock),'stock actions exactly preserved;',len(geometry),'source geosets exactly preserved;',len(authored)-len(stock),'authored actions;',fps,'FPS')
+# The installed model uses source-version light chunks unsupported by the
+# package encoder's decoder. Use the importing add-on's texture reader.
+import os,sys,struct
+sys.path.insert(0,os.environ.get('WC3_MDL_ADDON','/home/tom/code/mdl-exporter4/worktrees/blender5'))
+import addon_utils
+addon_utils.enable("export_mdl",default_set=True)
+from export_mdl.import_stuff.mdx_parser.parse_textures import parse_textures
+source=(project/'build/illidan-assets/demonhunter.mdx').read_bytes()
+assert source[:4]==b'MDLX'
+position=4;source_textures=[]
+while position<len(source):
+ tag=source[position:position+4];size=struct.unpack_from('<I',source,position+4)[0];position+=8
+ if tag==b'TEXS':source_textures.extend(parse_textures(source[position:position+size]))
+ position+=size
+assert source_textures
+(out/'source-textures.json').write_text(json.dumps([{'Image':t.texture_path,'ReplaceableId':t.replaceable_id} for t in source_textures],indent=2))
