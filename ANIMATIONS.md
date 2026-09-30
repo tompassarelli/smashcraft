@@ -2,6 +2,25 @@
 
 ## Demon Hunter completion checklist
 
+Native checks on 2026-10-01 used `illidan-passive-r1`, the existing knockdown
+scenario after both fighters returned to standing. Mana Burn activates from U,
+hits for 5 damage and produces victim hitlag/hitstun. E+U activates Immolate
+(special 12); R+U activates the parry step (special 10) and moves the fighter.
+Those activations do not establish Immolate contact/spike or successful parrying.
+The short green/blue-white cues still need closer visual validation.
+Earlier active-CPU footage shows Up-B ascent with visible wings.
+
+O captures the passive opponent, N pummels (damage 5 to 8), and Space selects
+up-throw (damage 8 to 14), releasing the victim with 25 hitstun frames in the
+trace. Pair poses overlap substantially at gameplay scale; readability and
+the other three throw directions remain unfinished native checks.
+Evidence: wc3-melee:build/illidan-passive-specials.mp4,
+wc3-melee:build/illidan-passive-specials-trace.txt,
+wc3-melee:build/illidan-passive-grab.mp4,
+wc3-melee:build/illidan-passive-grab-trace.txt, and
+wc3-melee:build/illidan-specials-native.mp4. Both passive traces finish with
+zero dropped trace records. These are single-client tests, not multiplayer proof.
+
 Illidan selection and HUD integration are implemented in the working source;
 he is installed in `illidan-visibility-r1`. Native mirror-match entry works.
 The previous black silhouette and surrounding dark geometry are absent in the
@@ -33,7 +52,7 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 | Jab, directional/angled tilts, smashes, dash attack | Combat source-tested; clips authored and bound; native playback unverified |
 | Neutral/forward/back/up/down aerials | Combat source-tested; clips authored and bound; native playback unverified |
 | Mana Burn, parry/evasion, wing ascent, Immolate | Combat source-tested; clips and source-derived animated wings authored; Mana Burn missile and active-window Immolate/parry cues connected; native verification pending |
-| Grab, hold, pummel, escape, four coordinated throws | Shared rules and authored poses exist; native pair alignment unverified |
+| Grab, hold, pummel, escape, four coordinated throws | Native capture/pummel/up-throw confirmed; pair readability, escape and other throw directions still pending |
 | Idle, walk/run, turns, crouch, jumps and landings | Jump squat, jumps and idle fall bound; other movement transitions still incomplete |
 | Shield, shield reactions/break, spot dodge, rolls, air dodge | Shield raise/hold/release, ground dodges and air dodge bound; native checks pending |
 | Ground/air hitstun, tumble, contact-pose hitlag | Reactions authored; freeze/resume verification missing |

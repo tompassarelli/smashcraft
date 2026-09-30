@@ -2,6 +2,25 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
+## Current checkpoint — 2026-10-01 native specials/grab
+
+Installed for the next launch: normal `illidan-visibility-r1`, restored atomically
+from wc3-melee:build/illidan-visibility-normal.w3x. Byte comparison passed;
+SHA-256 adfd7fe9dbbcd322941b91bcffe3ed67dc17174847a1a98afb5936a6a5f44fec.
+Currently running: `illidan-passive-r1`, paused with Y after native testing.
+Do not confuse the running knockdown/passive fixture with the restored file.
+
+Native traces confirm Mana Burn hit (5 damage, 4 hitlag, 13 hitstun), Immolate
+activation, parry-step activation/movement, grab capture, pummel and up-throw
+release. Recorded victim damage goes 5 -> 8 -> 14 in the grab sequence.
+The earlier recording confirms wing appearance/ascent. See the current native
+evidence and limits in wc3-melee:ANIMATIONS.md. Other throw directions, pair
+readability, Immolate hit/spike, parry protection and remaining animation
+transitions still need work. No two-client or netcode conclusion follows.
+Public release remains unchanged. Do not use Ctrl+R to recreate the match.
+
+## Previous checkpoint
+
 Installed and observed running: `illidan-visibility-r1`. Fixed combat authoring
 sampling stale mesh visibility from alternate/death actions instead of binding
 each mesh to Stand Ready. Regression failed on old Attack Jab/frame zero and
