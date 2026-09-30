@@ -1,5 +1,14 @@
 # Smashcraft
 
+An in-development, Melee-inspired platform fighter for Warcraft III, authored
+in Wurst. Archer and Rifleman fight on floating stages with jumps, air dodges,
+shields, hitstun, knockback, and stocks.
+
+This repository contains source, tests, and asset-authoring tools. Warcraft III
+models, textures, base maps, generated maps, and compiler binaries are not
+included. Building currently requires the local toolchain and an installed
+copy of Warcraft III described below; this is not yet a portable setup.
+
 Authoritative checkout: ~/code/wc3-melee/worktrees/test-loop.
 Gameplay is Wurst; the build emits Lua and packages the existing terrain map.
 
