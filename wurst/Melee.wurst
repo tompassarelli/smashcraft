@@ -243,6 +243,7 @@ class Fighter extends FighterState
     string animation = ""
     int jumpAnimationRemaining = 0
     boolean doubleJumpAnimation = false
+    real landingAnimationRate = 1.
 
     construct(player owner, int fighterType, real startX, int direction)
         super(fighterType, startX, direction)
@@ -1331,6 +1332,14 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
             SetUnitAnimationByIndex(f.body, DEMON_HUNTER_JUMP_SQUAT_INDEX)
             f.animation = "jump-squat"
         animationRate = DEMON_HUNTER_JUMP_SQUAT_SECONDS / (jumpSquatFrames(f.character) * FRAME_SECONDS)
+    else if f.character == 2 and f.grounded and f.landingLag > 0
+        if f.animation != "landing"
+            let specialLanding = f.animation == "specialfall" or f.animation == "air-dodge"
+            SetUnitAnimationByIndex(f.body, specialLanding ? DEMON_HUNTER_LAND_SPECIAL_INDEX : DEMON_HUNTER_LAND_INDEX)
+            let seconds = specialLanding ? DEMON_HUNTER_LAND_SPECIAL_SECONDS : DEMON_HUNTER_LAND_SECONDS
+            f.landingAnimationRate = seconds / (f.landingLag * FRAME_SECONDS)
+            f.animation = "landing"
+        animationRate = f.landingAnimationRate
     else if f.character == 2 and f.shield
         let raising = f.shieldHeldFrames <= 4
         let anim = raising ? "shield-raise" : "shield-hold"

@@ -53,7 +53,7 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 | Neutral/forward/back/up/down aerials | Combat source-tested; clips authored and bound; native playback unverified |
 | Mana Burn, parry/evasion, wing ascent, Immolate | Combat source-tested; clips and source-derived animated wings authored; Mana Burn missile and active-window Immolate/parry cues connected; native verification pending |
 | Grab, hold, pummel, escape, four coordinated throws | Native capture/pummel/up-throw confirmed; pair readability, escape and other throw directions still pending |
-| Idle, walk/run, turns, crouch, jumps and landings | Jump squat, jumps and idle fall bound; other movement transitions still incomplete |
+| Idle, walk/run, turns, crouch, jumps and landings | Jump squat, jumps, idle fall and normal/special landing bound; landing native playback pending; other movement transitions still incomplete |
 | Shield, shield reactions/break, spot dodge, rolls, air dodge | Shield raise/hold/release, ground dodges and air dodge bound; native checks pending |
 | Ground/air hitstun, tumble, contact-pose hitlag | Reactions authored; freeze/resume verification missing |
 | Knockdown, techs, getup options, ledges, KO and respawn | Knockdown/rest, tech/getup and ledge roll/attack bound; remaining transitions/native grounding unverified |

@@ -2,7 +2,22 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-## Current checkpoint — 2026-10-01 native specials/grab
+## Current checkpoint — 2026-10-01 landing bindings
+
+Installed and observed running: normal `illidan-landing-r1`, paused with Y in
+an Illidan mirror match. Recreated through Quit Mission and normal menus.
+Build passed with zero errors and six warnings; installed byte comparison passed.
+Evidence: wc3-melee:build/illidan-landing-r1-map.log and
+wc3-melee:build/illidan-landing-match.png.
+
+Illidan now selects the authored Land clip during landing recovery, or Land
+Special after the displayed air-dodge/special-fall state. The initial remaining
+landing recovery sets playback rate once; subsequent frames and pause/resume
+retain that rate. This is presentation-only and changes no simulation timing.
+Landing playback in motion remains unverified. The prior normal map backup is
+wc3-melee:build/illidan-visibility-normal.w3x. Public release remains unchanged.
+
+## Previous checkpoint — native specials/grab
 
 Installed for the next launch: normal `illidan-visibility-r1`, restored atomically
 from wc3-melee:build/illidan-visibility-normal.w3x. Byte comparison passed;
