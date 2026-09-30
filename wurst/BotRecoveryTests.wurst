@@ -1,0 +1,62 @@
+package BotRecoveryTests
+import Simulation
+import BotRecovery
+import MatchRules
+import MatchStep
+import CommandBuffer
+
+@Test function computerRecoversFromBothSidesWithAndWithoutJump()
+    for character = 0 to 1
+        for side = -1 to 1
+            if side != 0
+                for jumps = 0 to 1
+                    let fighter = new FighterState(character, side * 680., -side)
+                    let opponent = new FighterState(1 - character, 0, side)
+                    let input = new InputSnapshot()
+                    let opponentInput = new InputSnapshot()
+                    let commands = new AttackBuffer(0)
+                    let opponentCommands = new AttackBuffer(0)
+                    let game = new MatchState()
+                    game.phase = MATCH
+                    fighter.z = -40
+                    fighter.vz = -4
+                    fighter.grounded = false
+                    fighter.surface = -1
+                    fighter.jumps = jumps
+                    chooseRecoveryInput(fighter, 0, input).assertTrue()
+                    input.direction.assertEquals(-side)
+                    input.jumpPressed.assertEquals(jumps > 0)
+                    input.specialPressed.assertEquals(jumps == 0)
+                    for frame = 1 to 180
+                        input.direction = 0
+                        input.jumpPressed = false
+                        input.jumpHeld = false
+                        chooseRecoveryInput(fighter, 0, input)
+                        stepMatch(game, fighter, opponent, input, opponentInput, commands, opponentCommands, frame)
+                    fighter.out.assertFalse()
+                    fighter.stocks.assertEquals(3)
+                    fighter.grounded.assertTrue()
+                    (fighter.x.abs() <= 600).assertTrue()
+                    destroy input
+                    destroy opponent
+                    destroy fighter
+                    destroy opponentInput
+                    destroy commands
+                    destroy opponentCommands
+                    destroy game
+
+@Test function computerPreservesJumpDuringAscentAndClimbsLedge()
+    let fighter = new FighterState(0, 680, -1)
+    let input = new InputSnapshot()
+    fighter.grounded = false
+    fighter.vz = 10
+    fighter.z = 70
+    chooseRecoveryInput(fighter, 0, input).assertTrue()
+    input.jumpPressed.assertFalse()
+    input.specialPressed.assertFalse()
+    fighter.ledgeState = LEDGE_HANG
+    fighter.ledgeSide = 1
+    chooseRecoveryInput(fighter, 0, input).assertTrue()
+    input.ledgeVerticalPressed.assertEquals(1)
+    destroy input
+    destroy fighter

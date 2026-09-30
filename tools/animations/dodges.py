@@ -221,28 +221,6 @@ def tilt_pose(angle, elevation, extension):
     }
 
 
-def make_tilt(name, arm_degrees):
-    phases = {
-        0: (0, 0.0),
-        2: (-12, 0.45),
-        5: (arm_degrees, 1),
-        7: (arm_degrees, 1),
-        11: (arm_degrees * 0.55, 0.75),
-        17: (arm_degrees * 0.2, 0.3),
-        23: (0, 0.05),
-        28: (0, 0),
-    }
-    elevation = {"Forward Tilt Up": 65, "Forward Tilt Down": -65}.get(name, 0)
-    poses = {}
-    for frame, (angle, extension) in phases.items():
-        poses[frame] = tilt_pose(angle, elevation * extension, extension)
-    make_action(name, poses, 28)
-
-
-make_tilt("Forward Tilt", 68)
-make_tilt("Forward Tilt Up", 34)
-make_tilt("Forward Tilt Down", 94)
-
 spot_pose = {
     0: {
         "Bone_Pelvis": {"location": (0, 0, 0)},
@@ -378,4 +356,4 @@ if "FINISHED" not in result or not exported.is_file():
     raise RuntimeError(f"Archer dodge export failed: {result}")
 print("ARCHER_FIGHTER_EXPORTED", exported, exported.stat().st_size)
 print("ARCHER_FIGHTER_EDITABLE", editable, editable.stat().st_size)
-print("AUTHORED_ACTIONS", "Attack Jab, Forward Tilt, Forward Tilt Up, Forward Tilt Down, Jump, Double Jump, Roll Forward, Roll Backward, Spot Dodge, Knockdown, Get Up, Get Up Attack")
+print("AUTHORED_ACTIONS", "Attack Jab, Forward Tilt, Forward Tilt Up, Forward Tilt Down, Up Tilt, Down Tilt, Jump, Double Jump, Roll Forward, Roll Backward, Spot Dodge, Knockdown, Get Up, Get Up Attack")

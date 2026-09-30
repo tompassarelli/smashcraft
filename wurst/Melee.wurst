@@ -19,6 +19,7 @@ import FighterAssets
 import StageAssetInfo
 import ImpactEvents
 import DamagePose
+import BotRecovery
 import CombatEffects
 import FrostEffects
 import SpecialEffects
@@ -901,6 +902,12 @@ function playAttackAnimation(Fighter fighter)
     if fighter.attackStyle == 6
         SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_FORWARD_TILT_INDEX : RIFLEMAN_FORWARD_TILT_INDEX))
         return
+    if fighter.attackStyle == 7
+        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_UP_TILT_INDEX : RIFLEMAN_UP_TILT_INDEX)
+        return
+    if fighter.attackStyle == 8
+        SetUnitAnimationByIndex(fighter.body, fighter.character == 0 ? ARCHER_DOWN_TILT_INDEX : RIFLEMAN_DOWN_TILT_INDEX)
+        return
     if fighter.attackStyle == 9
         SetUnitAnimationByIndex(fighter.body, (fighter.character == 0 ? ARCHER_FORWARD_TILT_UP_INDEX : RIFLEMAN_FORWARD_TILT_UP_INDEX))
         return
@@ -941,6 +948,10 @@ function attackAnimationRate(Fighter fighter) returns real
         return (fighter.character == 0 ? ARCHER_JAB_SECONDS : RIFLEMAN_JAB_SECONDS) / seconds
     if fighter.attackStyle == 6
         return (fighter.character == 0 ? ARCHER_FORWARD_TILT_SECONDS : RIFLEMAN_FORWARD_TILT_SECONDS) / seconds
+    if fighter.attackStyle == 7
+        return (fighter.character == 0 ? ARCHER_UP_TILT_SECONDS : RIFLEMAN_UP_TILT_SECONDS) / seconds
+    if fighter.attackStyle == 8
+        return (fighter.character == 0 ? ARCHER_DOWN_TILT_SECONDS : RIFLEMAN_DOWN_TILT_SECONDS) / seconds
     if fighter.attackStyle == 9
         return (fighter.character == 0 ? ARCHER_FORWARD_TILT_UP_SECONDS : RIFLEMAN_FORWARD_TILT_UP_SECONDS) / seconds
     if fighter.attackStyle == 10
@@ -1131,6 +1142,8 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
             f.animation = "jump"
     else if attackPhase(f) == ATTACK_NONE and f.hitstun == 0 and f.hitlag == 0
         let anim = f.grounded and totalVelocityX(f).abs() > 0.1 ? "walk" : "stand"
+        if anim == "walk"
+            animationRate = min(1.4, max(0.2, f.vx.abs() / characterSpeed(f.character)))
         if f.animation != anim
             SetUnitAnimation(f.body, anim)
             f.animation = anim
@@ -1216,17 +1229,24 @@ function gameTick()
             let style = normalAttackStyle(direction, verticalDirection, firstKeyState.actionHeld(WALK_MODIFIER), playerFighter.grounded and (playerFighter.shield or firstKeyState.actionHeld(LEFT_TRIGGER) or firstKeyState.actionHeld(RIGHT_TRIGGER)))
             lastNormalStyle = style
             playerAttackRequests.enqueue(style, direction, frame, true)
-        var botDirection = 0
-        if not twoHumanPlayers and not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not LEDGE_SCENARIO and not botFighter.out and not playerFighter.out
+        botInput.direction = 0
+        botInput.jumpPressed = botJumpQueued
+        botInput.jumpHeld = botJumpHeld
+        botInput.specialPressed = false
+        botInput.verticalDirection = 0
+        botInput.ledgeVerticalPressed = 0
+        if not twoHumanPlayers and not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not LEDGE_SCENARIO and not botFighter.out
+            let recovering = chooseRecoveryInput(botFighter, matchState.stageChoice, botInput)
             let gap = playerFighter.x - botFighter.x
-            if gap.abs() > 95
-                botDirection = gap > 0 ? 1 : -1
-            if not botFighter.grounded and botFighter.z < -30 and totalVelocityZ(botFighter) < 0 and botFighter.jumps > 0
-                botJumpQueued = true
-            if botFighter.grounded and playerFighter.z > botFighter.z + 130
-                botJumpQueued = true
+            if not recovering and not playerFighter.out
+                let chaseX = min(surfaceRight(matchState.stageChoice, 0) - 40, max(surfaceLeft(matchState.stageChoice, 0) + 40, playerFighter.x))
+                if (chaseX - botFighter.x).abs() > 95
+                    botInput.direction = chaseX > botFighter.x ? 1 : -1
+                if botFighter.grounded and playerFighter.z > botFighter.z + 130
+                    botInput.jumpPressed = true
+                    botInput.jumpHeld = true
             replayRuntime.botAttackDelay -= FRAME_SECONDS
-            if gap.abs() < 135 and replayRuntime.botAttackDelay <= 0
+            if not recovering and not playerFighter.out and gap.abs() < 135 and replayRuntime.botAttackDelay <= 0
                 secondAttackRequests.enqueue(0, playerFighter.x >= botFighter.x ? 1 : -1, frame, false)
                 replayRuntime.botAttackDelay = 0.35
         playerInput.direction = direction
@@ -1289,9 +1309,6 @@ function gameTick()
         if twoHumanPlayers and secondNormalAttackQueued
             let style = normalAttackStyle(secondPlayerInput.direction, secondPlayerInput.verticalDirection, secondPlayerInput.walking, botFighter.grounded and (botFighter.shield or secondPlayerInput.shield))
             secondAttackRequests.enqueue(style, secondPlayerInput.direction, frame, true)
-        botInput.direction = botDirection
-        botInput.jumpPressed = botJumpQueued
-        botInput.jumpHeld = botJumpHeld
         if currentFrameInput.capture(frame,
                 playerInput, twoHumanPlayers ? secondPlayerInput : botInput,
                 playerAttackRequests, secondAttackRequests, replayRuntime)
@@ -1391,6 +1408,9 @@ function initGame()
     secondSelectionPanel = new SelectionPanel(new MeleeSelectionActions(), 1)
     secondSettingsPanel = new SettingsPanel(secondBindings, new MeleeSettingsActions(1), 1)
     drawStage()
+    // Native camera hotkeys run before synchronized key callbacks. Constrain
+    // their target so Space cannot pan away between simulation ticks.
+    SetCameraBounds(centerX, centerY, centerX, centerY, centerX, centerY, centerX, centerY)
     lockArenaCamera()
     CameraSetSmoothingFactor(0)
     SetTimeOfDay(12)

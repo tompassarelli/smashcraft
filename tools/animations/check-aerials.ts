@@ -1,6 +1,7 @@
 // Foreign asset check: compare the packaged clips and preserve pre-existing motion.
 import {parseMDX, parseMDL, generateMDL} from 'war3-model';
 import {join} from 'node:path';
+import {checkGroundClips, archerGroundReplacements} from './ground-check';
 const assets=join(import.meta.dir,'../../build/animation-assets');
 const clips=[['Neutral',41],['Forward',31],['Back',37],['Up',34],['Down',38]] as const;
 const groundedRecovery = new Set(['Knockdown','Get Up','Get Up Attack']);
@@ -8,7 +9,7 @@ const ArcherDair = {startup:7,active:20,duration:38};
 const changedSourceClips = (fighter:string) => new Set([
  ...groundedRecovery,
  'Spot Dodge',
- ...(fighter === 'Archer' ? ['Aerial Down'] : []),
+ ...(fighter === 'Archer' ? ['Aerial Down', ...archerGroundReplacements] : []),
 ]);
 const preservationFailures:string[]=[];
 function ensure(ok: unknown, message: string): asserts ok {if(!ok) throw new Error(message);}
@@ -25,6 +26,7 @@ function sameQuaternion(a:number[],b:number[],epsilon=0.001) {
 }
 for(const fighter of ['Archer','Rifleman']) {
  const model=parseMDX(await Bun.file(join(assets,`${fighter}Fighter.mdx`)).arrayBuffer());
+ checkGroundClips(model, fighter);
  // Compare unchanged source scenes through the same repaired exporter. The old
  // MDX used globally selected interpolation and is retained as defect evidence.
  const prior=parseMDL(await Bun.file(join(assets,`${fighter.toLowerCase()}-before-aerial-repaired.mdl`)).text());
@@ -100,7 +102,7 @@ for(const fighter of ['Archer','Rifleman']) {
   const next=model.Sequences.find(n=>n.Name===s.Name)!;
   ensure(next && next.NonLooping===s.NonLooping,`${fighter} lost ${s.Name}`);
   // Grounded recovery, spot-dodge duration, and Archer's Down Air silhouette
-  // are deliberate source changes with direct checks above. Every other prior
+  // and Archer ground strikes are deliberate source changes checked above. Every other prior
   // clip remains subject to the exact preservation comparison below.
   if(changedSourceClips(fighter).has(s.Name)) continue;
   if(Math.abs(next.Interval[1]-next.Interval[0]-s.Interval[1]+s.Interval[0])>1) preservationFailures.push(`${fighter} ${s.Name}: exported duration differs by more than 1ms`);

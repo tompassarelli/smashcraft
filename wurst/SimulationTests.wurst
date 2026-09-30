@@ -710,14 +710,14 @@ function spawnTestProjectile(FighterState owner, FighterState target)
 			destroy owner
 			destroy target
 
-@Test function falcoBlasterFlinchesWhileFoxBlasterDoesNot()
+@Test function bothFightersBasicProjectilesCauseHitstun()
 	let fox = new FighterState(0, 0, 1)
 	let falcoTarget = new FighterState(1, 100, -1)
 	spawnTestProjectile(fox, falcoTarget)
 	updateProjectilePair(fox, falcoTarget)
 	updateProjectilePair(fox, falcoTarget)
 	falcoTarget.damage.assertEquals(3.)
-	falcoTarget.hitstun.assertEquals(0)
+	falcoTarget.hitstun.assertEquals(11)
 	let falco = new FighterState(1, 0, 1)
 	let foxTarget = new FighterState(0, 100, -1)
 	spawnTestProjectile(falco, foxTarget)
@@ -1745,12 +1745,14 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	shooter.projectileZ[0] = 45
 	updateProjectilePair(shooter, shotTarget)
 	shotTarget.damage.assertEquals(3.)
-	shotTarget.diPending.assertTrue()
+	shotTarget.hitstun.assertEquals(11)
+	shotTarget.diPending.assertFalse()
+	shotTarget.diLaunchSpeed.assertEquals(0.)
 	shotTarget.diSerial.assertEquals(0)
 	advance(shotTarget, 0, shotInput, -240)
 	shotTarget.diPending.assertFalse()
-	shotTarget.diSerial.assertEquals(1)
-	shotTarget.diAngleDegrees.assertEquals(18, 0.001)
+	shotTarget.diSerial.assertEquals(0)
+	shotTarget.diAngleDegrees.assertEquals(0, 0.001)
 	let blockedTarget = new FighterState(1, 30, -1)
 	blockedTarget.shield = true
 	blockedTarget.diPending = true
@@ -3717,7 +3719,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 			destroy input
 			destroy fighter
 
-@Test function shieldBreakFoxLaserKeepsDizzyButFalcoLaserInterrupts()
+@Test function bothFightersBasicProjectilesInterruptShieldBreak()
 	for character = 0 to 1
 		let fighter = shieldBreakTestFighter(0, 0)
 		let input = new InputSnapshot()
@@ -3729,8 +3731,8 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		shooter.projectileDirection[0] = 1
 		updateProjectilePair(shooter, fighter)
 		fighter.damage.assertEquals(3.)
-		fighter.shieldBreakState.assertEquals(character == 0 ? SHIELD_BREAK_DIZZY : SHIELD_BREAK_NONE)
-		fighter.hitstun.assertEquals(character == 0 ? 0 : 11)
+		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
+		fighter.hitstun.assertEquals(11)
 		fighter.shieldEnergy.assertEquals(30.)
 		destroy shooter
 		destroy input

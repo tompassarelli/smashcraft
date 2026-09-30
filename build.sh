@@ -67,7 +67,7 @@ mkdir -p "$work_dir/wurst" "$work_dir/_build/dependencies" "$work_dir/imports/wa
 ln -s "$stdlib_checkout" "$work_dir/_build/dependencies/wurststdlib"
 cp "$project_dir/wurst.build" "$work_dir/wurst.build"
 cp "$project_dir/tools/map-entry.j" "$work_dir/wurst/war3map.j"
-for source in FighterAssets Simulation DirectionalInput MatchRules MatchHUD CommandBuffer CombatInput MatchStep KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents DamagePose CombatEffects FrostEffects SpecialEffects Melee; do
+for source in FighterAssets Simulation BotRecovery DirectionalInput MatchRules MatchHUD CommandBuffer CombatInput MatchStep KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents DamagePose CombatEffects FrostEffects SpecialEffects Melee; do
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
 done
 cp "$fighter_assets/FighterAssetInfo.wurst" "$work_dir/wurst/FighterAssetInfo.wurst"

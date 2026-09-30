@@ -1343,14 +1343,13 @@ function applyProjectileHit(FighterState owner, FighterState target, int index)
 		return
 	target.frozenFrames = 0
 	target.damage += damage
-	if owner.character == 1
-		target.diPending = false
-		target.diLaunchSpeed = 0
-		interruptJumpOrDodge(target)
-		clearDownState(target)
-		cancelAttack(target)
-		target.hitstun = max(target.hitstun, 11)
-		cancelSpecialState(target)
+	target.diPending = false
+	target.diLaunchSpeed = 0
+	interruptJumpOrDodge(target)
+	clearDownState(target)
+	cancelAttack(target)
+	target.hitstun = max(target.hitstun, 11)
+	cancelSpecialState(target)
 
 function updateProjectiles(FighterState owner, FighterState target, real targetX, real targetZ, boolean targetWasOut, boolean targetWasIntangible)
 	for index = 0 to PROJECTILE_CAPACITY - 1

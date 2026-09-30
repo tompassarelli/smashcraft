@@ -24,6 +24,8 @@ const clips = [
     ["FORWARD_TILT", "Forward Tilt"],
     ["FORWARD_TILT_UP", "Forward Tilt Up"],
     ["FORWARD_TILT_DOWN", "Forward Tilt Down"],
+    ["UP_TILT", "Up Tilt"],
+    ["DOWN_TILT", "Down Tilt"],
     ["JUMP", "Jump"],
     ["DOUBLE_JUMP", "Double Jump"],
     ["ROLL_FORWARD", "Roll Forward"],

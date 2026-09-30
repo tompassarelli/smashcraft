@@ -2,6 +2,30 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
+Installed: `ground-recovery-r2`, normal scenario. Build succeeded with the six
+existing warnings; wc3-melee:build/ground-recovery-r2-map.log. The latest observed
+running receipt still says `space-camera-r1`. Do not use Ctrl+R to load this map.
+It includes the prior, still-native-unverified camera-bounds candidate.
+
+Ground/recovery pass: Archer fist jab and directional kicks, dedicated up/down
+tilts for both fighters, speed-scaled walk playback, consistent basic-projectile
+flinch, and computer recovery through drift/jump/up-special/ledge climb.
+The prior Archer damage-only basic-shot behavior is intentionally replaced
+with 11-frame flinch; the existing special-arrow damage/launch remains unchanged.
+The CPU clamps chase targets inside the stage and prioritizes recovery over
+new attack requests. Eight recovery scenarios (both fighters/sides, with/without
+a remaining jump) return to the floor without losing a stock in Wurst tests.
+SimulationTests 161/161, SpecialMoveTests 13/13, CombatInputTests 6/6 and
+BotRecoveryTests 2/2 pass. Native checks remain pending input coordination.
+Textured both-side Archer previews confirm the punch is exposed after keeping
+the shoulder cloth down; wc3-melee:build/animation-assets/preview-ground-textured.log.
+
+The unfinished grab-link repair was saved to
+wc3-melee:build/grab-in-progress.patch and removed from active source before
+this build. Resume with `git apply` on that exact patch, then finish projectile
+interruption cleanup, invalid-reference snapshot checks, and ownership tests.
+Do not treat that parked repair or full grabs/throws as complete.
+
 September 30 damage/Space checkpoint: the running `space-camera-r1` contains
 dedicated ground/air/tumble/shield damage clips and zero native animation blend
 time. Native recordings show both fighters changing into their recoil pose for

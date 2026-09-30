@@ -193,6 +193,14 @@ def author_timed_special(name, phases, duration):
 author('Attack Jab', {0:{}, 2:{'strike':-.12}, 4:{'strike':.65,'lean':-7}, 7:{'strike':.65,'lean':-7}, 14:{'strike':.2}, 22:{}, 36:{}})
 for name, elevation in [('Forward Tilt',0), ('Forward Tilt Up',35), ('Forward Tilt Down',-35)]:
     author(name, {0:{}, 2:{'strike':-.2}, 5:{'strike':1,'elevation':elevation,'lean':-10}, 7:{'strike':1,'elevation':elevation,'lean':-10}, 14:{'strike':.45,'elevation':elevation}, 23:{}, 28:{}})
+author('Up Tilt', {0:{}, 2:{'crouch':.35,'weapon_pitch':25},
+    6:{'weapon_pitch':-95,'weapon_lift':25,'lean':-14,'cape_lift':30},
+    8:{'weapon_pitch':-95,'weapon_lift':25,'lean':-14,'cape_lift':30},
+    15:{'weapon_pitch':-45,'weapon_lift':12,'lean':-6}, 23:{}, 29:{}})
+author('Down Tilt', {0:{}, 2:{'crouch':.6,'tuck':.3,'strike':-.15},
+    5:{'crouch':2,'tuck':.75,'strike':1,'elevation':-20,'lean':15},
+    7:{'crouch':2,'tuck':.75,'strike':1,'elevation':-20,'lean':15},
+    14:{'crouch':1,'tuck':.4,'strike':.4,'lean':8}, 22:{}, 28:{}})
 rolls = {0:(0,0), 2:(-8,.55), 4:(-35,1), 8:(-95,1), 12:(-180,1), 16:(-265,1), 23:(-360,.65), 31:(-360,0)}
 for name, sign in [('Roll Forward',1), ('Roll Backward',-1)]:
     author(name, {f:{'spin':angle*sign,'tuck':tuck,'lean':-12*tuck} for f,(angle,tuck) in rolls.items()})

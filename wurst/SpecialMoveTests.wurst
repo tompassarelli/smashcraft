@@ -10,6 +10,34 @@ function specialMatch() returns MatchState
 	game.phase = MATCH
 	return game
 
+@Test function movingArcherArrowInterruptsTargetAttack()
+	let game = specialMatch()
+	let archer = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 140, -1)
+	let input = new InputSnapshot()
+	let targetInput = new InputSnapshot()
+	let commands = new AttackBuffer(0)
+	let targetCommands = new AttackBuffer(0)
+	archer.vx = characterSpeed(0)
+	input.specialPressed = true
+	startFighterSpecial(archer, 0, input).assertTrue()
+	input.specialPressed = false
+	input.direction = 1
+	targetCommands.enqueue(4, -1, 1, false)
+	for frame = 1 to 4
+		stepMatch(game, archer, target, input, targetInput, commands, targetCommands, frame)
+	target.damage.assertEquals(7.)
+	target.hitstun.assertGreaterThan(0)
+	target.attackStyle.assertEquals(-1)
+	projectileCount(archer).assertEquals(0)
+	destroy commands
+	destroy targetCommands
+	destroy input
+	destroy targetInput
+	destroy archer
+	destroy target
+	destroy game
+
 @Test function archerNeutralArrowIsImmediateAndDoesNotBlockJump()
 	let game = specialMatch()
 	let archer = new FighterState(0, -100, 1)
