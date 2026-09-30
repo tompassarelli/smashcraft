@@ -1229,3 +1229,25 @@ plain sample screenshot at
 ~/code/wc3-melee/worktrees/test-loop/build/restart-probe-scripted30.png.
 The plain-late.txt copy was taken before confirming a fresh receipt and must
 not be interpreted as a later successful input observation.
+
+The full ledge-contact map then restarted through Ctrl+R without starting an
+immediate trace. At 35 seconds, the Right key changed selection to Rifleman;
+the subsequent ten-second ledge trace and climb completed successfully. This
+also limits the earlier suspicion that full-map code alone explains every
+restart failure. Two experiment differences remain unresolved: this input
+driver holds R for 120ms (wc3-melee:loop.sh uses a much shorter key sequence),
+and the standalone probe deployment copied in place while the normal build
+atomically replaces the map. Preserve those differences when comparing the
+next reproduction; neither is an established cause. Evidence:
+~/code/wc3-melee/worktrees/test-loop/build/restart-probe/full-no-trace35.png.
+
+## Ledge contact native acceptance (2026-09-30)
+
+The authored grip now shares the simulation's 24-outward/90-down anchor for
+both fighters. Thirteen focused ledge tests pass, both MDX roundtrip contacts
+are within 0.001 world units, and the integrated map built with zero errors
+and the same three pre-existing warnings. The persistent client verified both
+fighters hanging at the left platform lip and climbing in 25 simulation ticks.
+Both traces: hang3, climb67, complete92.
+Native screenshots/traces are in the character-specific directories described
+in wc3-melee:ANIMATIONS.md. The normal map is rebuilt after the fixture check.

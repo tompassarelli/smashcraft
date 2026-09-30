@@ -320,9 +320,41 @@ images are local at
 and
 ~/code/wc3-melee/worktrees/test-loop/build/animation-assets/rifleman-ledge-pull.png.
 Native Archer fixture ledge-deferred selects the new hanging pose and completes
-climb after 25 simulation ticks (entry tick 67, exit tick 92). The grip remains
-visibly above/outside the platform endpoint: reconcile the authored wrist pose
-with LEDGE_HANG_OUTSET/DEPTH before treating contact alignment as complete.
+climb after 25 simulation ticks (entry tick 67, exit tick 92). The original grip
+was visibly above/outside the platform endpoint.
 The hang screenshot and trace are under
 ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/ledge-climb/.
-Rifleman native playback and intermediate climb poses remain unverified.
+The original observation did not cover Rifleman or intermediate climb poses.
+
+The contact correction measures the original authored wrists at
+(18.386, 7.129, 106.240) for Archer and (17.815, 12.737, 92.941) for Rifleman,
+against the former stage-plane requirement (x, z) = (42, 60). The shared hang
+anchor is now 24 world units outward and 90 downward, within both rigs' reach.
+The Blender boundary reads those dimensions and the climb path dimensions
+directly from wc3-melee:wurst/Simulation.wurst. Both fighter object definitions
+explicitly use model scale one. The support wrist stays on the endpoint through
+the first five simulation ticks of climb, then releases toward the ready pose;
+root movement remains entirely in the simulation.
+
+Both editable scenes and packaged MDX files were regenerated. MDX → MDL → Blender
+checks measured hang wrists at (24.00028, -4.46064, 89.99979) and
+(24.00056, 3.55419, 89.99972); all sampled hang and initial climb contact errors
+were below 0.001 world units in the stage plane. The generated clips retain
+their durations/loop flags and have no root translation keys. All 13 Archer
+and 10 Rifleman stock sequence names/loop flags remain; every non-ledge action
+channel matches the saved prior scene. The focused Wurst ledge suite passed
+13/13 tests. Local check evidence is in
+~/code/wc3-melee/worktrees/test-loop/build/animation-assets/check-ledge-contact.log
+and ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/ledge-contact.log.
+Native follow-up in build ledge-contact verified both Archer and Rifleman at
+the left endpoint: the supporting hand now meets the lip, and each climbs from
+(-624,-90) to (-576,0) in 25 simulation ticks. Screenshots and input traces are
+under ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/
+ledge-contact-archer/ and ledge-contact-rifleman/. This establishes the observed
+hang and completed climb, not every intermediate pose or right-edge appearance.
+
+A stock-duration comparison also found existing import/export frame
+quantization: Archer Stand - 5 is 3709ms after export versus 3700ms in the
+installed model. Non-ledge scene channels are unchanged by this correction;
+exact stock millisecond preservation remains an exporter follow-up, outside
+this contact fix.

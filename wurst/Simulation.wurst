@@ -71,9 +71,10 @@ public constant int LEDGE_ATTACK_STYLE = 17
 public constant real LEDGE_GRAB_WIDTH = 54
 public constant real LEDGE_GRAB_BELOW = 90
 public constant real LEDGE_GRAB_ABOVE = 12
-public constant real LEDGE_HANG_OUTSET = 42
-public constant real LEDGE_HANG_DEPTH = 60
-constant int LEDGE_MOUNT_FRAMES = 12
+public constant real LEDGE_HANG_OUTSET = 24
+public constant real LEDGE_HANG_DEPTH = 90
+public constant int LEDGE_MOUNT_FRAMES = 12
+public constant real LEDGE_CLIMB_INSET = 24
 public constant int DOWN_NONE = 0
 public constant int DOWN_TUMBLE = 1
 public constant int DOWN_BOUND = 2
@@ -637,7 +638,7 @@ function advanceLedge(FighterState f, int stage, InputSnapshot input)
 		return
 	f.ledgeFrame++
 	let progress = min(LEDGE_MOUNT_FRAMES, f.ledgeFrame) * 1. / LEDGE_MOUNT_FRAMES
-	let inset = f.ledgeState == LEDGE_ROLL ? 140. : (f.ledgeState == LEDGE_ATTACK ? 64. : 24.)
+	let inset = f.ledgeState == LEDGE_ROLL ? 140. : (f.ledgeState == LEDGE_ATTACK ? 64. : LEDGE_CLIMB_INSET)
 	f.x = ledgeX(stage, f.ledgeSide) + f.ledgeSide * (LEDGE_HANG_OUTSET * (1 - progress) - inset * progress)
 	f.z = surfaceZ(stage, 0) - LEDGE_HANG_DEPTH * (1 - progress)
 	f.grounded = f.ledgeFrame >= LEDGE_MOUNT_FRAMES

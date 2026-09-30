@@ -1,10 +1,24 @@
 """Blender boundary: bake in-place ledge poses on each fighter's own rig."""
 from math import radians, sqrt
+from pathlib import Path
+import re
 import bpy
 from mathutils import Matrix, Quaternion, Vector
 
 
+def ledge_dimensions():
+    source = (Path(__file__).resolve().parents[2] / 'wurst/Simulation.wurst').read_text()
+    dimensions = {}
+    for name in ('LEDGE_HANG_OUTSET', 'LEDGE_HANG_DEPTH', 'LEDGE_MOUNT_FRAMES', 'LEDGE_CLIMB_FRAMES', 'LEDGE_CLIMB_INSET'):
+        match = re.search(r'^public constant (?:real|int) ' + name + r' = ([0-9.]+)$', source, re.M)
+        if match is None:
+            raise RuntimeError(f'Expected a numeric Wurst ledge dimension: {name}')
+        dimensions[name] = float(match[1])
+    return dimensions
+
+
 def author_ledges(rig, fighter):
+    dimensions = ledge_dimensions()
     scene = bpy.context.scene
     ready = bpy.data.actions['Stand Ready']
     rig.animation_data.action = ready
@@ -17,8 +31,6 @@ def author_ledges(rig, fighter):
     world = {b.name: b.matrix.copy() for b in rig.pose.bones}
     side = 'L'
     upper, lower, hand = [rig.pose.bones[f'Bone_{part}_{side}'] for part in ('Arm1', 'Arm2', 'Hand')]
-    shoulder = world[upper.name].translation
-    length = (world[lower.name].translation-shoulder).length + (world[hand.name].translation-world[lower.name].translation).length
     chest_inverse = world['Bone_Chest'].inverted()
 
     def aim(bone, endpoint, target):
@@ -27,7 +39,7 @@ def author_ledges(rig, fighter):
         bone.matrix = Matrix.Translation(origin) @ rotation @ Matrix.Translation(-origin) @ bone.matrix
         bpy.context.view_layer.update()
 
-    def pose(reach, pull, tuck):
+    def pose(reach, pull, tuck, frame, climbing):
         for name, matrix in base.items():
             rig.pose.bones[name].matrix_basis = matrix
         rig.pose.bones['Bone_Root'].location = (0, 0, 0)
@@ -42,12 +54,21 @@ def author_ledges(rig, fighter):
             bpy.context.view_layer.update()
         start = upper.matrix.translation.copy()
         rest = hand.matrix.translation.copy()
-        hanging = start + Vector((length*.30, 0, length*(.91-.50*pull)))
-        target = rest.lerp(hanging, reach)
+        # FighterAssets fixes model scale at one. +X is inward when facing the
+        # ledge; Y retains the ready wrist's depth on the platform's wide lip.
+        progress = min(1, frame / 30 * dimensions['LEDGE_CLIMB_FRAMES'] / dimensions['LEDGE_MOUNT_FRAMES']) if climbing else 0
+        contact = Vector((dimensions['LEDGE_HANG_OUTSET'] * (1-progress) - dimensions['LEDGE_CLIMB_INSET'] * progress,
+                          world[hand.name].translation.y, dimensions['LEDGE_HANG_DEPTH'] * (1-progress)))
+        # Release after the initial pull, before root travel takes the ledge
+        # outside this rig's arm reach. Subsequent motion returns to ready.
+        grip = max(0, min(1, (12-frame)/6)) if climbing else 1
+        target = rest.lerp(contact, grip)
         elbow = lower.matrix.translation.copy()
         wrist = hand.matrix.translation.copy()
         a, b = (elbow-start).length, (wrist-elbow).length
         delta = target-start
+        if grip == 1 and not abs(a-b)+.01 <= delta.length <= a+b-.01:
+            raise RuntimeError(f'{fighter} ledge grip out of reach at frame {frame}: {delta.length} not in {abs(a-b), a+b}')
         distance = min(max(delta.length, abs(a-b)+.01), a+b-.01)
         direction = delta.normalized()
         pole = Vector((-1, -.35 if side == 'R' else .35, 0))
@@ -56,6 +77,10 @@ def author_ledges(rig, fighter):
         elbow_target = start+direction*along+pole.normalized()*sqrt(max(0,a*a-along*along))
         aim(upper, elbow, elbow_target)
         aim(lower, hand.matrix.translation.copy(), start+direction*distance)
+        if grip == 1:
+            error = (hand.matrix.translation-contact).length
+            if error > .001:
+                raise RuntimeError(f'{fighter} ledge wrist contact error at frame {frame}: {error}')
 
     for name, keys, looping in [
         ('Ledge Hang', {0:(1,0,0), 24:(1,0,0)}, True),
@@ -71,7 +96,7 @@ def author_ledges(rig, fighter):
             scene.frame_set(frame)
             left, right = max(k for k in keys if k <= frame), min(k for k in keys if k >= frame)
             t = 0 if left == right else (frame-left)/(right-left)
-            pose(*(a*(1-t)+b*t for a,b in zip(keys[left], keys[right])))
+            pose(*(a*(1-t)+b*t for a,b in zip(keys[left], keys[right])), frame, name == 'Ledge Climb')
             for bone in rig.pose.bones:
                 bone.rotation_mode = 'QUATERNION'
                 if bone.name in previous and previous[bone.name].dot(bone.rotation_quaternion) < 0:

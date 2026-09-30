@@ -601,7 +601,7 @@ owners retain the ledge throughout hanging and an ongoing climb/roll/attack.
 Both ledges resolve independently. These region, timing and contention rules
 are provisional choices, not measured Melee parameters.
 
-A catch anchors the feet 42 units outside and 60 below the endpoint, clears
+A catch anchors the feet 24 units outside and 90 below the endpoint, clears
 movement and launch velocity, and restores one air jump. It does not reset
 percent, shield energy, stocks or respawn protection. Catch protection lasts
 30 unfrozen ticks (including the catch tick); hanging afterward is vulnerable.
@@ -636,3 +636,13 @@ same. Pure Wurst checks cover both characters and sides, eligibility, upper
 platform exclusion, contention/ownership, option timing and locks, attack
 contact, protection expiry, regrab timing, hit/grab interruption and reset.
 They do not establish native animation alignment or Melee numerical parity.
+
+The hang dimensions now fit the measured reach of both fighter rigs.
+wc3-melee:tools/animations/ledges.py reads the simulation's hang offset, depth,
+mount duration, climb duration and climb inset directly when baking wrist
+contact. wc3-melee:wurst/FighterAssets.wurst fixes both model scales at one so
+model coordinates and simulation world units agree. The animation adds no
+root travel. Packaged-model wrist checks establish contact at the hang point
+and through the first five climb ticks; native visual alignment remains a
+separate check. These dimensions are prototype art/gameplay tuning, not
+measured Melee values.
