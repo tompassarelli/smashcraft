@@ -6,6 +6,7 @@ if [[ ${WC3_LOOP_DEPS:-} != 1 ]]; then
 fi
 mode=${1:-reload}
 ready_file='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/wc3-melee-ready.txt'
+trace_file="$(dirname -- "$ready_file")/wc3-melee-input-trace.txt"
 case "$mode" in reload|probe|quit) ;; *) echo 'Usage: loop.sh reload|probe|quit' >&2; exit 2;; esac
 game_pid=$(pgrep -u "$(id -u)" -f '^C:.*Warcraft III.exe' | head -1) || {
     echo 'Open Warcraft III through the existing Steam/Battle.net entry first.' >&2
@@ -70,15 +71,27 @@ else
     mark 'Ctrl+R restart-map sent'
 fi
 continued=0
+trace_requested=0
 deadline=$((SECONDS + 45))
 while (( SECONDS < deadline )); do
     kill -0 "$game_pid"
     if [[ "$mode" == reload && -f "$ready_file" ]] && rg -Fq "BUILD $build_id" "$ready_file"; then
-        capture
-        cp "$ready_file" "$run_dir/ready.txt"
-        cp "$run_dir/current.png" "$run_dir/ready.png"
-        mark "new build $build_id reported ready by game; game process retained"
-        exit
+        if (( !trace_requested )); then
+            cp "$ready_file" "$run_dir/ready.txt"
+            touch "$run_dir/trace-requested"
+            press_ctrl 20
+            trace_requested=1
+            mark "new build $build_id initialized; Ctrl+T responsiveness probe sent"
+        fi
+        if [[ -f "$trace_file" && "$trace_file" -nt "$run_dir/trace-requested" ]] &&
+            rg -Fq "start $build_id" "$trace_file" &&
+            rg -q ' [0-9.]+ end"' "$trace_file"; then
+            capture
+            cp "$trace_file" "$run_dir/trace.txt"
+            cp "$run_dir/current.png" "$run_dir/ready.png"
+            mark "new build $build_id accepted input and completed simulation trace; game process retained"
+            exit
+        fi
     fi
     if [[ "$mode" == reload ]] && (( continued )); then
         sleep 0.1
@@ -99,5 +112,6 @@ while (( SECONDS < deadline )); do
     fi
     sleep 0.15
 done
+read_screen
 mark "observation timeout; inspect $run_dir/current.png and screen.txt"
 exit 1

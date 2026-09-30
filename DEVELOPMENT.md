@@ -1150,3 +1150,35 @@ and ~/code/wc3-melee/worktrees/test-loop/build/selection-assets/chips-reload.log
 This recurrence after Ctrl+R means removing the F6 quick-save collision did
 not resolve the host stall. A ready-file receipt proves initialization, not
 continued responsiveness; do not report it as a successful interactive test.
+
+## Delayed restart stall and presentation checks (2026-09-30)
+
+The stalled build still accepted native chat input and a mouse click on
+Disconnect, but Ctrl+T produced no trace-start receipt. Disconnect reached
+Match Results; Back returned to the Single Player map chooser. Recreating the
+map recovered selection without restarting PID 3986327.
+
+wc3-melee:loop.sh now requires a fresh build-matched Ctrl+T trace with an end
+record after initialization. Build 081736 passed this initial-response check
+in 28.157 seconds, then subsequently displayed the host-wait dialog again.
+This narrows the defect to a delayed stall after initial input/simulation
+progress; it does not fix or establish the cause of the restart failure.
+Evidence: ~/code/wc3-melee/worktrees/test-loop/build/selection-assets/responsive-reload.log
+and ~/code/wc3-melee/worktrees/test-loop/build/selection-assets/chip-probe-start.png.
+
+A second Disconnect → Back → Create → Start recovered the same client again.
+Mouse selection of Rifleman moved P1 to Rifleman and CPU to Archer. Clicking
+the CPU chip over Archer then confirming entered a match as Archer, so the
+decorative chip did not block its underlying selection button. Both fighters
+had no overhead healthbars while Alt was held, with percent/stocks still
+visible. Evidence under ~/code/wc3-melee/worktrees/test-loop/build/selection-assets/:
+chips-rifleman.png and healthbars-alt.png. The subsequent five-second trace
+completed after the idle player had lost the match; it proves continued input
+and ticking, not the intended jump. Two-human chips remain untested natively.
+
+The author field is now Tompas, verified directly in packaged war3map.w3i.
+The retained client's map browser/loading credit still displayed cached Tom;
+refreshing that cached presentation has not been verified.
+Returning from results to character selection also left “Computer wins!”
+visible above the heading (recovered-selection.png in the same evidence
+directory). This nonblocking stale-result notice is recorded for the next UI fix.

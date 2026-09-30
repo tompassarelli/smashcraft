@@ -11,9 +11,21 @@ With Melee Prototype already running in Warcraft III:
 ```
 
 This builds and atomically replaces the installed map, sends Ctrl+R, waits for the
-loading screen's continue prompt, presses Enter, and verifies the new build
-number on screen. It records timestamps, the retained game PID, screenshots,
-and OCR text under ~/code/wc3-melee/worktrees/test-loop/build/loop/.
+loading screen's continue prompt, presses Enter, and waits for the new build's
+initialization receipt. It then sends Ctrl+T and requires a fresh, complete
+simulation trace bearing that build ID. Initialization alone does not prove
+the map is responsive: a host stall has occurred after that receipt. The trace
+adds five seconds for a normal map and ten for the shield-break/ledge fixtures.
+It records timestamps, the retained game PID, screenshots, and trace/OCR text
+under ~/code/wc3-melee/worktrees/test-loop/build/loop/.
+
+Current limitation: build 081736 completed that five-second trace and then
+displayed “Waiting for host.” A successful trace establishes initial input and
+simulation progress, not sustained restart reliability. The cause remains open.
+Clicking Disconnect, then Back on Match Results, returned this stalled session
+to the Single Player map chooser without closing Warcraft. Recreating the map
+there recovered the selection screen. This is observed manual recovery, not a
+fix for the restart defect.
 
 Changing desktop focus stops automation before subsequent input. Niri and
 Wayland screenshots use logical pixels at scale 1. Avoid X11 mouse coordinates:
