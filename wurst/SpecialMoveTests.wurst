@@ -97,10 +97,11 @@ function specialMatch() returns MatchState
 	stepMatch(game, archer, rifleman, archerInput, riflemanInput, archerCommands, riflemanCommands, 1)
 	projectileCount(archer).assertEquals(0)
 	archer.cooldown.assertEquals(0)
-	simulationJump(archer)
-	archer.jumpSquat.assertGreaterThan(0)
 	archerInput.specialPressed = false
+	archerInput.jumpPressed = true
+	archerInput.jumpHeld = true
 	stepMatch(game, archer, rifleman, archerInput, riflemanInput, archerCommands, riflemanCommands, 2)
+	archer.jumpSquat.assertGreaterThan(0)
 	projectileCount(archer).assertEquals(1)
 	projectileKindAt(archer, 0).assertEquals(PROJECTILE_ARROW)
 	projectileVelocityXAt(archer, 0).assertEquals(BLASTER_PROJECTILE_SPEED)

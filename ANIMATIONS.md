@@ -45,6 +45,23 @@ not pummel or forward-throw acceptance:
 wc3-melee:build/archer-shield-grab.mp4 and
 wc3-melee:build/archer-shield-grab-trace.txt.
 
+With the distance corrected using walk, Archer Shield+Attack captures at frame
+2244. N pummels (0% -> 3%); Left while facing left selects forward throw at
+2305. Release at 2316 raises Rifleman to 10% and gives 24 hitstun frames.
+Evidence: wc3-melee:build/archer-shield-grab-contact.mp4, with trace
+wc3-melee:build/archer-shield-grab-contact-trace.txt (zero dropped records).
+Hold/pummel silhouettes still overlap; the forward release is visible.
+
+The near-simultaneous arrow/jump native attempt samples both presses at frame
+2616 but starts jump only. It does not prove cancelling an active shot:
+wc3-melee:build/archer-arrow-jump-native.mp4 and
+wc3-melee:build/archer-arrow-jump-trace.txt. Current frame ordering advances
+movement/jump before starting specials, whose gate rejects jump squat. The
+arrow's special state lasts three frames and has zero attack cooldown;
+the next-frame shot-to-jump source check now uses complete frame inputs rather
+than directly invoking the jump helper. Native sequential cancellation remains
+unverified; do not infer it from simultaneous input or a jump after frame three.
+
 ## Demon Hunter completion checklist
 
 Grounded Immolate contact is observed in Warcraft: one 7-damage hit with

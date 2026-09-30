@@ -2,6 +2,25 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
+## Current checkpoint — Archer capture and jump path, 2026-10-01
+
+Walking corrected the failed dash approach. Archer Shield+Attack capture,
+pummel and forward throw now observed in Warcraft (0% -> 3% -> 10%, released
+with 24 hitstun frames). Hold/pummel readability still needs work. Recording
+and trace: wc3-melee:build/archer-shield-grab-contact.mp4 and
+wc3-melee:build/archer-shield-grab-contact-trace.txt.
+
+Simultaneous neutral Special+Jump arrives in one native batch and produces only
+jump, consistent with the current jump-before-special ordering. It does not
+prove shot cancellation. The existing next-frame arrow/jump test now goes
+through stepMatch input for both frames; it passes 1/1 with one existing warning:
+wc3-melee:build/wurst-tests/archer-arrow-jump-frame.log. Native sequential
+shot cancellation remains unverified. No gameplay source change or rebuild.
+
+Running passive Archer/Rifleman match remains paused with Y after recording
+wc3-melee:build/archer-arrow-jump-native.mp4. Normal `special-direction-r1`
+remains installed for next launch. Public downloadable release unchanged.
+
 ## Current checkpoint — two-fighter native checks, 2026-10-01
 
 Archer/Rifleman specials were exercised in the passive fixture. Observed
