@@ -4,9 +4,17 @@ An in-development, Melee-inspired platform fighter for Warcraft III, authored
 in Wurst. Archer and Rifleman fight on floating stages with jumps, air dodges,
 shields, hitstun, knockback, and stocks.
 
+**[Download the playable prototype](https://github.com/tompassarelli/smashcraft/releases/download/prototype-2026-09-30/Smashcraft.w3x)**
+— [installation, controls, and known limits](https://github.com/tompassarelli/smashcraft/releases/tag/prototype-2026-09-30).
+Requires Warcraft III 3.0. Put the map in your Warcraft III Maps folder and
+open it from Custom Games. This is an early prototype; two-client multiplayer
+verification and Demon Hunter remain unfinished. The release page identifies
+which changes are included; newer source changes may not be in that download.
+
 This repository contains source, tests, and asset-authoring tools. Warcraft III
 models, textures, base maps, generated maps, and compiler binaries are not
-included. Building currently requires the local toolchain and an installed
+included in the source tree; prebuilt maps are attached to releases.
+Building currently requires the local toolchain and an installed
 copy of Warcraft III described below; this is not yet a portable setup.
 
 Authoritative checkout: ~/code/wc3-melee/worktrees/test-loop.
@@ -15,8 +23,9 @@ Gameplay is Wurst; the build emits Lua and packages the existing terrain map.
 ## Development
 
 Run ~/code/wc3-melee/worktrees/test-loop/test.sh for headless simulation tests.
-Run ~/code/wc3-melee/worktrees/test-loop/loop.sh reload to compile, deploy and
-restart the map in the running Warcraft client. Start that client through the
+Use ~/code/wc3-melee/worktrees/test-loop/build.sh to compile the map. The
+Ctrl+R / Restart Mission path currently has an unresolved disconnect; quit
+and recreate the custom game instead. Start the client through the
 existing Steam/Battle.net shortcut, not a direct executable launch.
 
 VS Code has default test and build tasks for these commands. The compiler,
@@ -33,8 +42,8 @@ W/R + N select a fighter/stage; U goes back. Chips begin visibly in the
 active player cards; drag them onto the roster. New Match retains selections.
 F1 opens Controls before a match.
 Choose QWERTY or Custom, click either key slot to rebind, then Save. Saved
-controls load automatically on the next map start. Developer shortcuts are
-Ctrl+R to restart the map and Ctrl+T to start an input trace; these chords are
+controls load automatically on the next map start. Ctrl+T starts a developer
+input trace. Avoid the currently unreliable Ctrl+R restart shortcut; these chords are
 separate from player bindings. F6 and F7 remain reserved from rebinding for
 Warcraft's own shortcuts.
 In the custom preset: W/R move; I/9 jump; Space aims up;
@@ -47,7 +56,7 @@ Attacks can be buffered for six frames, including through jump squat.
 Hold P to walk. N with direction gives a smash, or a tilt while walking.
 B (or /) is C-stick left; H is down; J is up; M is right. Ground blaster has longer recovery than air
 blaster. Avoid F5: returning to the menu previously hung
-the client; use the persistent map-restart loop while developing.
+the client. Use Warcraft's ordinary Quit Mission and recreate the custom game.
 QWERTY uses 7 for right trigger and 8 for the alternate jump key.
 
 Specials use U with movement direction: neutral arrow/bullet, horizontal
