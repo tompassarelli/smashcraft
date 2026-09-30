@@ -697,7 +697,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	tiltDamageAt(6, 1, 145, 0).assertEquals(10.)
 	tiltDamageAt(6, 1, 146, 0).assertEquals(0.)
 
-@Test function walkingModifierUsesCharacterWalkSpeedAndReleasesToRun()
+@Test function walkingModifierUsesCharacterWalkSpeedAndReleasesToDash()
 	for character = 0 to 1
 		for direction = -1 to 1
 			if direction != 0
@@ -712,9 +712,158 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 				fighter.x.assertEquals(10 * walkSpeed * direction, 0.001)
 				input.walking = false
 				advance(fighter, 0, input, 0)
+				fighter.vx.assertEquals(11.4 * direction, 0.001)
+				fighter.dashFrame.assertEquals(1)
+				input.walking = true
+				advance(fighter, 0, input, 0)
+				fighter.vx.assertEquals(walkSpeed * direction, 0.001)
+				fighter.dashFrame.assertEquals(0)
+				destroy input
+				destroy fighter
+
+@Test function initialDashLastsTenTicksThenUsesCharacterRunSpeed()
+	for character = 0 to 1
+		for direction = -1 to 1
+			if direction != 0
+				let fighter = new FighterState(character, 0, -direction)
+				let input = new InputSnapshot()
+				input.direction = direction
+				for tick = 1 to 10
+					advance(fighter, 0, input, 0)
+					fighter.vx.assertEquals(11.4 * direction, 0.001)
+					fighter.facing.assertEquals(direction)
+				fighter.x.assertEquals(114. * direction, 0.001)
+				advance(fighter, 0, input, 0)
 				fighter.vx.assertEquals((character == 0 ? 13.2 : 9.) * direction, 0.001)
 				destroy input
 				destroy fighter
+
+@Test function initialDashReversalRestartsWindowIncludingAcrossNeutral()
+	for character = 0 to 1
+		let fighter = new FighterState(character, 0, 1)
+		let input = new InputSnapshot()
+		input.direction = 1
+		for tick = 1 to 8
+			advance(fighter, 0, input, 0)
+		input.direction = 0
+		advance(fighter, 0, input, 0)
+		fighter.vx.assertEquals(10.92, 0.001)
+		fighter.dashFrame.assertEquals(9)
+		input.direction = -1
+		advance(fighter, 0, input, 0)
+		fighter.vx.assertEquals(-11.4, 0.001)
+		fighter.facing.assertEquals(-1)
+		fighter.dashFrame.assertEquals(1)
+		for tick = 1 to 6
+			input.direction = -input.direction
+			advance(fighter, 0, input, 0)
+			fighter.vx.assertEquals(11.4 * input.direction, 0.001)
+			fighter.dashFrame.assertEquals(1)
+		destroy input
+		destroy fighter
+
+@Test function runReversalBrakesBeforeStartingANewDash()
+	for character = 0 to 1
+		for firstDirection = -1 to 1
+			if firstDirection != 0
+				let fighter = new FighterState(character, 0, firstDirection)
+				let input = new InputSnapshot()
+				input.direction = firstDirection
+				for tick = 1 to 11
+					advance(fighter, 0, input, 0)
+				input.direction = -firstDirection
+				let brakingTicks = character == 0 ? 3 : 2
+				for tick = 1 to brakingTicks
+					advance(fighter, 0, input, 0)
+					fighter.vx.assertEquals(firstDirection * max(0, (character == 0 ? 13.2 : 9.) - 4.8 * tick), 0.001)
+					fighter.facing.assertEquals(firstDirection)
+				advance(fighter, 0, input, 0)
+				fighter.vx.assertEquals(-firstDirection * 11.4, 0.001)
+				fighter.facing.assertEquals(-firstDirection)
+				fighter.dashFrame.assertEquals(1)
+				destroy input
+				destroy fighter
+
+@Test function initialDashExpirationPreventsLateInstantReversal()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	input.direction = 1
+	for tick = 1 to 10
+		advance(fighter, 0, input, 0)
+	input.direction = -1
+	advance(fighter, 0, input, 0)
+	fighter.vx.assertEquals(6.6, 0.001)
+	fighter.facing.assertEquals(1)
+	destroy input
+	destroy fighter
+
+@Test function initialDashNeutralStopAllowsFreshDash()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	input.direction = 1
+	advance(fighter, 0, input, 0)
+	input.direction = 0
+	for tick = 1 to 24
+		advance(fighter, 0, input, 0)
+	fighter.vx.assertEquals(0., 0.001)
+	fighter.dashFrame.assertEquals(0)
+	input.direction = 1
+	advance(fighter, 0, input, 0)
+	fighter.vx.assertEquals(11.4, 0.001)
+	fighter.dashFrame.assertEquals(1)
+	destroy input
+	destroy fighter
+
+@Test function initialDashHitlagFreezesThenReversalResumes()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	input.direction = 1
+	advance(fighter, 0, input, 0)
+	fighter.hitlag = 2
+	input.direction = -1
+	for tick = 1 to 2
+		advance(fighter, 0, input, 0)
+		fighter.x.assertEquals(11.4, 0.001)
+		fighter.dashFrame.assertEquals(1)
+	advance(fighter, 0, input, 0)
+	fighter.vx.assertEquals(-11.4, 0.001)
+	fighter.dashFrame.assertEquals(1)
+	fighter.hitstun = 3
+	advance(fighter, 0, input, 0)
+	fighter.dashFrame.assertEquals(0)
+	destroy input
+	destroy fighter
+
+@Test function initialDashClearsOnJumpShieldAttackAndStockReset()
+	for interruption = 0 to 3
+		let fighter = new FighterState(0, 0, 1)
+		let target = new FighterState(1, 300, -1)
+		let input = new InputSnapshot()
+		input.direction = 1
+		advance(fighter, 0, input, 0)
+		if interruption == 0
+			input.jumpPressed = true
+			input.jumpHeld = true
+			advance(fighter, 0, input, 0)
+			fighter.jumpSquat.assertEquals(2)
+		else if interruption == 1
+			input.shield = true
+			advance(fighter, 0, input, 0)
+			fighter.shield.assertTrue()
+		else if interruption == 2
+			beginAttackPair(fighter, target, 0, -1, false, false)
+			fighter.attackStyle.assertEquals(0)
+		else
+			fighter.x = 930
+			advance(fighter, 0, input, 0)
+			fighter.out.assertTrue()
+			fighter.dashFrame.assertEquals(0)
+			reset(fighter, 0)
+		fighter.dashFrame.assertEquals(0)
+		fighter.dashDirection.assertEquals(0)
+		destroy input
+		destroy target
+		destroy fighter
 
 @Test function blasterRecoveryUsesGroundingAtAttackStart()
 	let grounded = new FighterState(0, 0, 1)
@@ -1462,7 +1611,8 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 		advance(fighter, 0, input, 0)
 		fighter.landingLag.assertEquals(0)
 		canAttack(fighter).assertTrue()
-		fighter.vx.assertEquals(-characterSpeed(character), 0.001)
+		fighter.vx.assertEquals(-11.4, 0.001)
+		fighter.dashFrame.assertEquals(1)
 		destroy input
 		destroy fighter
 

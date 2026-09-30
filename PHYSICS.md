@@ -16,6 +16,7 @@ Paths below use `melee:` for ~/code/resources/melee.
 | --- | --- | --- |
 | Jump squat / short hop | melee:src/melee/ft/kinds/ftCommon/ftCo_KneeBend.c | Ground jump has startup. Releasing jump during startup selects short hop; test release versus hold with explicit frame sequences. |
 | Character movement | melee:src/melee/ft/types.h, ftCo_DatAttrs | Gravity, terminal fall velocity, fast-fall velocity, air drift, ground friction, jump velocity, and jump startup are separate character parameters. Test caps and transitions separately. |
+| Initial dash / dash dance | melee:src/melee/ft/kinds/ftCommon/ftCo_Dash.c; melee:src/melee/ft/kinds/ftCommon/ftCo_Run.c; melee:src/melee/ft/kinds/ftCommon/ftCo_TurnRun.c | Initial dash and run are distinct actions. Dash accepts early opposite-direction input; run has a separate turning action that changes momentum. Timing depends on common data and animation commands; no exact duration was extracted. |
 | Air dodge | melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c | Direction chooses a velocity of common magnitude; neutral input produces zero initial dodge velocity. Dodge velocity decays. Ground contact enters special landing. Test diagonal normalization and retained horizontal motion through landing. |
 | Shield | melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c | Shield health and analog shield strength affect shield size; held shield drains health. Our keyboard controls initially provide a full-strength digital shield. |
 | Shield grab | melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c; melee:src/melee/ft/kinds/ftCommon/ftCo_Catch.c | The active guard input handler accepts grab while shield is held and begins the catch action. Our simulation lets only grounded grab (style 5) start directly from an active, unstunned shield; it keeps hitlag, hitstun, shieldstun, landing, cooldown and other action locks in force. Starting that grab drops the shield without adding shield-release lag. Grab during shield-release lag is not implemented. |
@@ -121,6 +122,47 @@ https://www.ssbwiki.com/Knockback and https://www.ssbwiki.com/Shield:
 
 Adoption is mechanic-specific. A test passing against provisional constants
 is not proof that the entire table has been adopted or that feel matches.
+
+## Initial dash and dash dance
+
+Unmodified grounded direction now starts at the documented initial dash speed
+of 1.9 Melee units/frame (11.4 world units/frame) for both fighters. Holding
+direction for ten ticks keeps that speed; the eleventh tick uses the documented
+run speed, 2.2 for Archer or 1.5 for Rifleman. Reversing on ticks 2–10 immediately
+changes facing and velocity and restarts the ten-tick window, allowing repeated
+dash dancing. A neutral tick applies ordinary traction and advances the window,
+so a short gap between keyboard directions does not discard an early reversal.
+Stopping completely clears the movement phase.
+
+The ten-tick duration is provisional research tuning, not a sourced Melee
+duration. Initial-dash speed stays constant throughout that window; Melee's
+acceleration within dash and animation-dependent transition are not reproduced.
+At expiration, opposite direction brakes existing ordinary velocity by a
+provisional 0.8 Melee units/frame each tick without changing facing. After
+stopping, the next held-direction tick starts a fresh dash. From full run speed
+this takes three braking ticks for Archer and two for Rifleman. This is an
+independently authored approximation of run turning; its acceleration, facing
+timing and zero-speed boundary are not claims of Melee parity. No implementation
+expression from the unlicensed local reference was copied or translated.
+
+The walk modifier immediately selects the existing 1.6/1.4 walk speeds and
+clears the dash phase; releasing it starts a fresh initial dash. Jumps, shields,
+attacks, dodge actions, hitstun, ground departure, landing and stock loss/reset
+clear that phase while retaining their existing eligibility and momentum rules.
+Hitlag freezes the phase and displacement. Grounded recovery still gates motion;
+held direction starts a fresh dash on its expiration tick. Digital input has no
+analog tilt or stick-smash threshold, and initial facing changes have no separate
+turn startup. Dash attacks, crouch cancels and animation changes are outside
+this movement slice.
+
+The focused `initialDash` simulation filter passes 6/6 tests; the full suite
+passes 180/180, including walk transitions, run-turn braking, and recovery
+after air-dodge landing. Evidence is
+wc3-melee:build/wurst-tests/initial-dash-focused.log and
+wc3-melee:build/wurst-tests/initial-dash-full.log. Native dash-dance feel and
+keyboard delivery timing have not been validated for this change.
+
+## Hit timing and knockback
 
 For a normal non-electric, non-crouching hit, the Melee hitlag baseline is
 floor(damage / 3 + 3), so a 15-damage hit yields 8 frames. Electric and crouching
@@ -331,9 +373,9 @@ active frame, rather than an instantaneous long-range hit check.
 The owner defines neutral N as jab, N plus direction as smash, and N plus
 direction while holding the walk modifier as tilt. C-stick bindings request
 smashes directly. Walking uses the character baseline of 1.6/1.4 Melee units
-per frame (Archer/Rifleman), independently of run speed. The simulation still
-changes directly to the requested ground speed rather than modeling analog
-walk acceleration. Tilt damage is 10 side / 8 up / 8 down. These damage values
+per frame (Archer/Rifleman), independently of run speed. Walking changes
+directly to the requested walk speed rather than modeling analog walk
+acceleration. Tilt damage is 10 side / 8 up / 8 down. These damage values
 and the ground/air blaster timing
 difference are provisional tuning. Blaster duration is captured at attack
 start, so landing cannot rewrite its recovery. Aerial normals are now separate

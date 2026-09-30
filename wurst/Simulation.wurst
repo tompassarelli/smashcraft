@@ -8,6 +8,10 @@ constant real FALCO_AIR_SPEED = 0.83 * WORLD_UNITS_PER_MELEE_UNIT
 constant real FOX_AIR_ACCELERATION = (0.02 + 0.06) * WORLD_UNITS_PER_MELEE_UNIT
 constant real FALCO_AIR_ACCELERATION = (0.02 + 0.05) * WORLD_UNITS_PER_MELEE_UNIT
 public constant real GROUND_TRACTION = 0.08 * WORLD_UNITS_PER_MELEE_UNIT
+public constant real INITIAL_DASH_SPEED = 1.9 * WORLD_UNITS_PER_MELEE_UNIT
+// Provisional digital-input timing and braking; see wc3-melee:PHYSICS.md.
+public constant int INITIAL_DASH_FRAMES = 10
+constant real RUN_TURN_BRAKING = 0.8 * WORLD_UNITS_PER_MELEE_UNIT
 constant real AIR_FRICTION = 0.02 * WORLD_UNITS_PER_MELEE_UNIT
 constant real FOX_TERMINAL_SPEED = 2.8 * WORLD_UNITS_PER_MELEE_UNIT
 constant real FALCO_TERMINAL_SPEED = 3.1 * WORLD_UNITS_PER_MELEE_UNIT
@@ -136,6 +140,8 @@ public constant real ASDI_DISTANCE = 3 * WORLD_UNITS_PER_MELEE_UNIT
 public class FighterState
 	int character
 	int facing
+	int dashFrame = 0
+	int dashDirection = 0
 	real x
 	real z
 	real vx
@@ -320,6 +326,35 @@ public function characterSpeed(int character) returns real
 
 public function characterWalkSpeed(int character) returns real
 	return (character == 0 ? 1.6 : 1.4) * WORLD_UNITS_PER_MELEE_UNIT
+
+function clearDash(FighterState f)
+	f.dashFrame = 0
+	f.dashDirection = 0
+
+function advanceGroundMovement(FighterState f, int direction, boolean walking)
+	if walking
+		clearDash(f)
+		if direction != 0
+			f.facing = direction
+			f.vx = characterWalkSpeed(f.character) * direction
+		return
+	if direction == 0
+		if f.vx.abs() <= GROUND_TRACTION
+			clearDash(f)
+		else if f.dashFrame > 0
+			f.dashFrame = min(INITIAL_DASH_FRAMES + 1, f.dashFrame + 1)
+		return
+	if f.dashFrame >= INITIAL_DASH_FRAMES and direction != f.dashDirection and f.vx * f.dashDirection > 0
+		f.dashFrame = INITIAL_DASH_FRAMES + 1
+		f.vx = f.dashDirection * max(0, f.vx * f.dashDirection - RUN_TURN_BRAKING)
+		return
+	if f.dashFrame == 0 or direction != f.dashDirection
+		f.dashFrame = 1
+		f.dashDirection = direction
+	else
+		f.dashFrame = min(INITIAL_DASH_FRAMES + 1, f.dashFrame + 1)
+	f.facing = direction
+	f.vx = direction * (f.dashFrame <= INITIAL_DASH_FRAMES ? INITIAL_DASH_SPEED : characterSpeed(f.character))
 
 public function characterGravity(int character) returns real
 	return character == 0 ? FOX_GRAVITY : FALCO_GRAVITY
@@ -556,6 +591,7 @@ function ledgeDistance(FighterState f, int stage, int side) returns real
 	return dx * dx + dz * dz
 
 function catchLedge(FighterState f, int stage, int side)
+	clearDash(f)
 	clearDownState(f)
 	f.ledgeState = LEDGE_HANG
 	f.ledgeSide = side
@@ -757,6 +793,8 @@ function beginDownState(FighterState f, int state, int direction)
 		f.cooldown = DOWN_ATTACK_FRAMES
 
 function finishLanding(FighterState f, int stage, InputSnapshot input, int landing, boolean fromAsdi)
+	if not f.grounded
+		clearDash(f)
 	if not f.grounded and not f.airDodging and not isAerialAttack(f.attackStyle) and f.downState == DOWN_NONE and f.hitstun <= 0 and not fromAsdi
 		f.landingLag = max(f.landingLag, EMPTY_LANDING_LAG)
 	if f.airDodging
@@ -910,6 +948,7 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 	return false
 
 function beginGroundDodge(FighterState f, int direction)
+	clearDash(f)
 	if direction < 0
 		f.groundDodgeDirection = -1
 		f.vx = 0
@@ -924,6 +963,7 @@ function beginGroundDodge(FighterState f, int direction)
 	f.shieldHeldFrames = 0
 
 function interruptJumpOrDodge(FighterState f)
+	clearDash(f)
 	if f.ledgeState != LEDGE_NONE
 		leaveLedge(f)
 	clearShieldBreak(f)
@@ -936,6 +976,7 @@ function interruptJumpOrDodge(FighterState f)
 	f.groundDodgeDirection = 0
 
 function beginAttack(FighterState attacker, int style, boolean mayCharge)
+	clearDash(attacker)
 	if isTumbling(attacker)
 		clearDownState(attacker)
 	if style == 5 and attacker.shield
@@ -1091,6 +1132,7 @@ public function simulationJump(FighterState f)
 	if f.out or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or (f.shieldReleaseLag > 0 and not f.grounded) or f.landingLag > 0 or f.airDodging or isGroundDodging(f) or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
 		return
 	if f.grounded
+		clearDash(f)
 		f.shield = false
 		f.shieldHeldFrames = 0
 		f.shieldReleaseLag = 0
@@ -1165,6 +1207,7 @@ function canResolveAttack(FighterState attacker, FighterState target) returns bo
 	return not target.out and attackHits(attacker, target, attacker.attackStyle)
 
 public function reset(FighterState f, real startX)
+	clearDash(f)
 	clearLedge(f)
 	f.ledgeSerial = 0
 	f.ledgeRegrab = 0
@@ -1362,17 +1405,17 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		return
 	var direction = input.direction
 	let canSteer = f.downState == DOWN_NONE and f.hitstun <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and not smashChargePaused and (not f.grounded or f.cooldown <= 0)
+	if not canSteer or wantsShield or not f.grounded
+		clearDash(f)
 	if canSteer
 		if wantsShield
 			direction = 0
-		if direction != 0
-			if f.grounded
-				f.facing = direction
-				f.vx = (input.walking ? characterWalkSpeed(f.character) : characterSpeed(f.character)) * direction
-			else
-				f.vx = f.vx + direction * characterAirAcceleration(f.character)
-				f.vx = max(-characterAirSpeed(f.character), min(characterAirSpeed(f.character), f.vx))
-				// Air steering changes velocity, not facing; back aerials rely on a stable orientation.
+		if f.grounded
+			advanceGroundMovement(f, direction, input.walking)
+		else if direction != 0
+			f.vx = f.vx + direction * characterAirAcceleration(f.character)
+			f.vx = max(-characterAirSpeed(f.character), min(characterAirSpeed(f.character), f.vx))
+			// Air steering changes velocity, not facing; back aerials rely on a stable orientation.
 	if isGroundDodging(f) and f.groundDodgeDirection != 0 and f.groundDodgeFrame >= GROUND_ROLL_MOVE_START and f.groundDodgeFrame <= GROUND_ROLL_MOVE_END
 		f.vx = GROUND_ROLL_SPEED * f.groundDodgeDirection
 	else if isGroundDodging(f)
@@ -1424,11 +1467,13 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	else
 		f.grounded = false
 		f.surface = -1
+		clearDash(f)
 	decayKnockback(f)
 	checkBlastZone(f)
 
 function checkBlastZone(FighterState f)
 	if f.x <= -920 or f.x >= 920 or f.z <= -420 or f.z >= 760
+		clearDash(f)
 		f.out = true
 		clearLedge(f)
 		f.ledgeRegrab = 0
