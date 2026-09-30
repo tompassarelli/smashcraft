@@ -1,14 +1,14 @@
 # Smashcraft
 
 An in-development, Melee-inspired platform fighter for Warcraft III, authored
-in Wurst. Archer and Rifleman fight on floating stages with jumps, air dodges,
+in Wurst. Archer, Rifleman and Illidan fight on floating stages with jumps, air dodges,
 shields, hitstun, knockback, and stocks.
 
-**[Download the playable prototype](https://github.com/tompassarelli/smashcraft/releases/download/prototype-2026-09-30/Smashcraft.w3x)**
-— [installation, controls, and known limits](https://github.com/tompassarelli/smashcraft/releases/tag/prototype-2026-09-30).
+**[Download the playable prototype](https://github.com/tompassarelli/smashcraft/releases/download/prototype-2026-10-01/Smashcraft.w3x)**
+— [installation, controls, and known limits](https://github.com/tompassarelli/smashcraft/releases/tag/prototype-2026-10-01).
 Requires Warcraft III 3.0. Put the map in your Warcraft III Maps folder and
 open it from Custom Games. This is an early prototype; two-client multiplayer
-verification and Demon Hunter remain unfinished. The release page identifies
+verification and Demon Hunter completion remain unfinished. The release page identifies
 which changes are included; newer source changes may not be in that download.
 
 This repository contains source, tests, and asset-authoring tools. Warcraft III
