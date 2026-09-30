@@ -556,3 +556,32 @@ waits remains a hypothesis. Preserve D and immutable assigned frames while
 investigating. Do not silently raise delay or add catch-up. Gate A locality,
 two-client operation, physical timing, chat handling, local presentation safety
 and hybrid comparison remain unproven.
+
+
+### Full callback trace explains recurring fixed-delay waits
+
+The follow-up D=5/R=0 build adds complete send, receipt and pre-step gate records
+for callbacks 1..180 only. It compiled without errors/warnings, passed packaged
+Lua validation, and ran on the same single-client fixture. Evidence:
+wc3-melee:tools/netcode-probe/evidence/20261001-scheduled-d5-pacing.txt.
+Build log: wc3-melee:build/scheduled-pacing-build.log.
+
+All 29 receipt bursts in the detailed window occur at S=11,17,...,179: each gap
+is six service callbacks. Initial waits are S=6..11. Subsequent waits occur at
+S=23,35,...,179, exactly once per twelve callbacks. Every wait has F=K+1.
+For example, frame 17 is captured/sent at S=18; at S=23 the gate sees F=17,K=16
+and waits. The receive events for frames 17..22 run later at S=23. The next
+service callback, S=24, executes frame 17. No input was available to the gate
+when it made that wait decision. The first 180 callbacks finish 160 combat
+frames with 20 waits; the final S=291 dump has no send/protocol errors or trace
+drops. Startup differs from the earlier run; steady 55-per-60 pacing agrees.
+
+This locates the recurring wait at the interaction between native receipt
+batching and the once-per-service fixed-input gate. It does not identify an
+internal engine implementation, nor prove a wall-clock or multiplayer bound.
+Moving execution into receive callbacks would change the scheduling policy;
+it is not a demonstrated fix and must not bypass immutable captures or advance
+extra ticks. The next comparison remains the bounded speculative policy in
+shadow simulation, with the identical capture schedule and common advancement
+gate. Production visuals stay on the existing baseline until native safety and
+two-client gates pass. No delay or physics changes were made for this diagnosis.

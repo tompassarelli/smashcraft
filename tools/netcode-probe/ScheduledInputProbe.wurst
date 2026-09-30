@@ -16,6 +16,7 @@ constant string PREFIX = "SC_I"
 constant int EPOCH = 1
 constant int DELAY = SCHEDULED_DELAY
 constant int TRACE_CAPACITY = 2048
+constant int PACING_TRACE_CALLBACKS = 180
 FixedInputSchedule schedule
 FixedInputPlayback playback
 KeyboardInputCapture capture
@@ -103,7 +104,7 @@ function receive()
         return
     receipts[sender]++
     incoming.copyRecord(0, received)
-    if received.heldMask() != receiptHeld[sender] or received.pressedMask() != 0 or received.releasedMask() != 0
+    if service <= PACING_TRACE_CALLBACKS or received.heldMask() != receiptHeld[sender] or received.pressedMask() != 0 or received.releasedMask() != 0
         record("receive p=" + I2S(sender) + " row=" + I2S(incoming.firstFrameNumber()) + " held=" + I2S(received.heldMask()) + " press=" + I2S(received.pressedMask()) + " release=" + I2S(received.releasedMask()))
     receiptFrame[sender] = incoming.firstFrameNumber()
     receiptHeld[sender] = received.heldMask()
@@ -176,7 +177,7 @@ function sampleAndSend()
         sendFailures++
         localFatal = true
         record("LOCAL FATAL send rejected row=" + I2S(lastCaptured))
-    else if capturedPressed != 0 or pending.releasedMask() != 0
+    else if service <= PACING_TRACE_CALLBACKS or capturedPressed != 0 or pending.releasedMask() != 0
         record("send row=" + I2S(lastCaptured) + " held=" + I2S(capturedHeld) + " press=" + I2S(capturedPressed) + " release=" + I2S(pending.releasedMask()))
 
 function fighterText(FighterState fighter) returns string
@@ -210,6 +211,8 @@ function tick()
     // One attempt per service callback; return immediately when the common
     // accepted frontier is missing. No catch-up loop conceals native stalls.
     if commonErrors == 0 and humans > 0
+        if service <= PACING_TRACE_CALLBACKS
+            record("gate " + (schedule.mayAdvance() ? "advance" : "wait"))
         if schedule.mayAdvance()
             let frame = schedule.nextFrameNumber()
             if not schedule.copyAccepted(EPOCH, 0, frame, firstUsed) or not schedule.copyAccepted(EPOCH, 1, frame, secondUsed)

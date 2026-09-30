@@ -175,3 +175,11 @@ and do not interpret their key sampling as established usable gameplay policy.
 Short taps entirely between service callbacks remain unobservable. Native
 engine stalls may stop the sampler itself. Slot changes/disconnect recovery and
 epoch/rematch negotiation are outside this probe; restart for a fresh run.
+
+
+The scheduled diagnostic records every successful send, receive and pre-step
+advance/wait decision during service callbacks 1..180. After that it returns to
+edge/transition and periodic logging, keeping the 2048-entry trace bounded for
+ordinary short runs. Export with F8 after callback 180. The ordered records
+preserve whether receipt occurred before or after the gate within the same
+service-counter interval; that counter alone does not imply simultaneous events.
