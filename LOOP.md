@@ -2,7 +2,9 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-Installed: `hit-timing-r1`, normal scenario; native launch/checks pending.
+Installed and observed running: `hit-timing-r1`, normal scenario. Ordinary
+Quit Mission → Create Game → Start Game launch succeeded; the readiness
+receipt and recorded trace both identify this build.
 wc3-melee:build/hit-timing-r1-map.log records successful build/deploy. The timing
 pass derives normal hitlag from damage with a 20-frame cap, freezes both bodies
 on shield contact, keeps detached projectile/summon hits from freezing their
@@ -16,7 +18,20 @@ mechanics-worker handoff failed at message delivery; the child was interrupted
 without acknowledgement or edits, its capacity lease released, and the parent
 continued directly. The delegation incident remains unrepaired.
 
-Latest observed running: `grab-hold-r1`, normal scenario. Fresh launch
+Native Rifleman Q+O against Archer entered grab (style 5), but did not connect
+in this recording: Archer crossed behind the right-facing Rifleman. Do not
+count whiffs as a successful hold check. Evidence:
+wc3-melee:build/impact-assets/grab-rifleman-shield-hit-timing-r1.mp4,
+wc3-melee:build/impact-assets/grab-rifleman-shield-hit-timing-r1-trace.txt and
+wc3-melee:build/impact-assets/grab-rifleman-shield-contact-sheet.png.
+The same trace records body-contact hitlag of seven simulation ticks at
+frames 119–126, 164–171 and 207–214, with hitstun unchanged during each freeze.
+Shield reactions also start with seven hitlag ticks; this trace alone does
+not establish both bodies' visual freeze or shieldstun expiry ordering.
+Next native checks: successful Rifleman hold with the opponent in front,
+shield-plus-Attack, reverse facing, and the remaining timing/pose checks.
+
+Previous observed running: `grab-hold-r1`, normal scenario. Fresh launch
 through End Game / Quit Mission / Create Game succeeded without Ctrl+R; the
 readiness receipt and trace agree. Build log: wc3-melee:build/grab-hold-r1-map.log
 (six existing warnings). The owner authorized native control; focus guards
