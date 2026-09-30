@@ -1,5 +1,54 @@
 # Authored fighter animation work
 
+## Coordinated grab poses — 2026-10-01
+
+Archer and Rifleman now share explicit hold/captive pose authoring. Captive
+weapons stay beside their owners; Rifleman's pummel uses a tucked knee while
+retaining his grip. Canonical spacing, root positions, timing and damage are
+unchanged. Source comparison preserved all 47 Archer and 44 Rifleman actions
+outside the grab family, including curve handles and interpolation; package
+validation passed. Evidence: wc3-melee:build/animation-assets/check-pair-preservation.log
+and wc3-melee:build/animation-assets/check-pair-package.log.
+
+Native build grab-pose-passive-r1 was exercised with each fighter as holder
+against the other. Both right-facing holders visibly reach the captive's upper
+body with separated weapons, pummel, and release forward. Both traces record
+hold at frame 270, pummel at 295 and forward release at 360, with zero dropped
+records. Damage progresses 0 to 3 to 10. Evidence:
+wc3-melee:build/archer-grab-pose.mp4 and wc3-melee:build/archer-grab-pose-trace.txt;
+wc3-melee:build/rifleman-grab-pose.mp4 and wc3-melee:build/rifleman-grab-pose-trace.txt.
+Reverse-facing native readability and replay restoration remain unverified.
+Normal build grab-pose-r1 is installed for the next launch; the current paused
+session still runs the passive fixture. These solo checks are not multiplayer
+validation.
+
+## Native buffered back air — 2026-10-01
+
+Rifleman Jump+C-left is sampled at frame 2233 during jump squat. Both the jump
+and back air (style 14) apply at frame 2237, his first airborne frame. The
+recording shows the back-kick clip, then recovery and landing. Evidence:
+wc3-melee:build/rifleman-buffered-bair-native.mp4 and
+wc3-melee:build/rifleman-buffered-bair-trace.txt (zero dropped records).
+This proves this right-facing native buffer case; it is not both-facing
+contact/volume acceptance.
+
+Rifleman Jump+Shield+Left also buffers through jump squat: sampled at frame
+2594, takeoff/dodge resolves at 2598 and the following trace sample reports
+10 landing frames. He visibly slides left from x=284.879; during landing lag
+the recorded position reaches x=141.801. No Down input was sent. Evidence:
+wc3-melee:build/rifleman-buffered-wavedash-native.mp4 and
+wc3-melee:build/rifleman-buffered-wavedash-trace.txt (zero dropped records).
+This verifies the simultaneous-input horizontal wavedash case, not a later
+direction change inside jump squat.
+
+The numeric-key variant I+8+W also succeeds with the current custom bindings:
+8 maps to action 9, jump+dodge are sampled at 2956, takeoff occurs at 2960,
+and the next sample reports 10 landing frames. The recording shows the left
+slide (x=29.884 to -113.194 by landing-lag completion). Evidence:
+wc3-melee:build/rifleman-eight-wavedash-native.mp4 and
+wc3-melee:build/rifleman-eight-wavedash-trace.txt (zero dropped records).
+This is simultaneous input, not a later direction change during jump squat.
+
 ## Archer and Rifleman native specials — 2026-10-01
 
 Rifleman's remaining throw directions are also observed in the passive native
@@ -181,10 +230,10 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 
 | Required coverage | Current state |
 | --- | --- |
-| Model, textures, attached blades, both gameplay facings | Imported; repaired materials inspected from both sides; not native-verified |
+| Model, textures, attached blades, both gameplay facings | Normal textured bodies/weapons observed in native mirror match after visibility repair; both-facing action coverage incomplete |
 | Jab, directional/angled tilts, smashes, dash attack | Combat source-tested; clips authored and bound; native playback unverified |
 | Neutral/forward/back/up/down aerials | Combat source-tested; clips authored and bound; native playback unverified |
-| Mana Burn, parry/evasion, wing ascent, Immolate | Combat source-tested; clips and source-derived animated wings authored; Mana Burn missile and active-window Immolate/parry cues connected; native verification pending |
+| Mana Burn, parry/evasion, wing ascent, Immolate | Native Mana Burn contact, wing ascent, ground/air Immolate contact and parry-step movement observed; actual parry protection and offstage spike remain unverified |
 | Grab, hold, pummel, escape, four coordinated throws | Native capture/pummel/up-throw confirmed; pair readability, escape and other throw directions still pending |
 | Idle, walk/run, turns, crouch, jumps and landings | Normal and air-dodge landing playback observed; jump squat, jumps and idle fall bound; other movement transitions still incomplete |
 | Shield, shield reactions/break, spot dodge, rolls, air dodge | Shield raise/hold/release, ground dodges and air dodge bound; native checks pending |
@@ -192,7 +241,7 @@ Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile
 | Knockdown, techs, getup options, ledges, KO and respawn | Knockdown/rest, tech/getup and ledge roll/attack bound; remaining transitions/native grounding unverified |
 | Action-frame volumes, interruptions, stock reset and replay | Provisional numerical regions and focused interruption/reset/replay checks implemented; animation alignment missing |
 | Portraits, selection, mirror match and rematch retention | Portrait/tile generated; third roster tile, human/CPU mirror selection and HUD observed in Warcraft; rematch native check pending |
-| Real-control playthrough in Warcraft | Selection-to-match observed; model defect found; moveset checks incomplete |
+| Real-control playthrough in Warcraft | Selection/mirror entry and repaired model observed; partial specials/grab/landing checks recorded above; full moveset checks incomplete |
 
 Wings must appear and animate during recovery. Post-ascent glide remains an
 unadopted design option. Timing and damage live in combat source; new tuning

@@ -80,7 +80,7 @@ def grip_arm(side, target, pole):
 
 def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
          leg_r=0, knee_r=0, leg_l=0, knee_l=0, neutral_kick=0, weapon_lift=0,
-         cape_lift=0, summon=0, weapon_pitch=0, grab=0):
+         cape_lift=0, summon=0, weapon_pitch=0, grab=0, pummel_knee=0):
     for name, matrix in base.items():
         rig.pose.bones[name].matrix_basis = matrix
     # Root displacement belongs entirely to simulation, including aerial clips.
@@ -99,6 +99,11 @@ def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
                 (radians(x*neutral_kick), radians(y*neutral_kick), radians(z)), 'XYZ').to_matrix().to_4x4()
     rig.pose.bones['Bone_Pelvis'].location += Vector((0, -12*crouch, 0))
     bpy.context.view_layer.update()
+    if pummel_knee:
+        from ground_attacks import limb
+        limb(rig, 'Bone_Leg1_R', 'Bone_Leg2_R', 'Bone_Foot_R',
+             world['Bone_Foot_R'].translation.lerp(Vector((6, -12, 34)), pummel_knee),
+             Vector((55, -15, 55)))
     chest = rig.pose.bones['Bone_Chest'].matrix.copy()
     pivot = chest @ center_relative
     # Swing the butt forward around the two-hand grip, with separate pitch for
@@ -137,6 +142,9 @@ def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
 
 
 def author(name, keys):
+    existing = bpy.data.actions.get(name)
+    if existing is not None:
+        bpy.data.actions.remove(existing)
     action = bpy.data.actions.new(name)
     action.use_fake_user = True
     action['war3_non_looping'] = True
@@ -196,11 +204,8 @@ def author_timed_special(name, phases, duration):
 
 
 author('Attack Jab', {0:{}, 2:{'strike':-.12}, 4:{'strike':.65,'lean':-7}, 7:{'strike':.65,'lean':-7}, 14:{'strike':.2}, 22:{}, 36:{}})
-grip = {'grab': 1, 'weapon_pitch': 40, 'weapon_lift': -8, 'lean': 5}
+grip = {'grab': 1, 'weapon_pitch': 90, 'weapon_lift': 12, 'lean': 5}
 author('Grab', {0: {}, 2: {'grab': .2, 'weapon_pitch': 12}, 5: grip, 7: grip, 14: {'grab': .4, 'weapon_pitch': 15}, 24: {}, 36: {}})
-author('Grab Hold', {0: grip, 24: grip})
-grabbed = {'lean': 25, 'crouch': .5, 'weapon_pitch': 40, 'tuck': .25}
-author('Grabbed', {0: grabbed, 24: grabbed})
 for name, elevation in [('Forward Tilt',0), ('Forward Tilt Up',35), ('Forward Tilt Down',-35)]:
     author(name, {0:{}, 2:{'strike':-.2}, 5:{'strike':1,'elevation':elevation,'lean':-10}, 7:{'strike':1,'elevation':elevation,'lean':-10}, 14:{'strike':.45,'elevation':elevation}, 23:{}, 28:{}})
 author('Up Tilt', {0:{}, 2:{'crouch':.35,'weapon_pitch':25},

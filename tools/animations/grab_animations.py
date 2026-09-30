@@ -18,14 +18,20 @@ def timing(action):
 def author_grabs(author, fighter):
     archer = fighter == 'Archer'
     hold = ({'arm_r': -38, 'forearm_r': 30, 'bow_arm': -20, 'lean': 4}
-            if archer else {'grab': 1, 'weapon_pitch': 40, 'weapon_lift': -8, 'lean': 5})
+            if archer else {'grab': 1, 'weapon_pitch': 90, 'weapon_lift': 12, 'lean': 5})
     if archer:
         hold.update({'grab_pose': 1, 'reach_x': 36, 'reach_z': 68})
-    captive = ({'lean': 22, 'head': -12, 'draw': -12, 'release': 25, 'bow_arm': -20, 'hip': -8, 'crouch': 5}
-               if archer else {'lean': 25, 'crouch': .5, 'weapon_pitch': 40, 'tuck': .25})
+    # Keep the captive's weapon beside their own body. A forward ready grip
+    # crosses the holder at the simulation's 50-unit pair spacing.
+    captive = ({'lean': 10, 'head': -12, 'captive_pose': 1, 'hip': -8, 'crouch': 5}
+               if archer else {'lean': 10, 'crouch': .25, 'weapon_pitch': 90,
+                               'weapon_lift': 12, 'tuck': .12})
+    author('Grab Hold', {0: hold, 24: hold}, 24)
+    author('Grabbed', {0: captive, 24: captive}, 24)
     actions = [
         ('Pummel', 'GRAB_PUMMEL',
-         {'leg_r': 65, 'knee_r': -100, 'lean': -12} if archer else {'strike': .55, 'lean': -12, 'grab': .6, 'weapon_pitch': 10}),
+         {'leg_r': 65, 'knee_r': -100, 'lean': -12} if archer else
+         {**hold, 'pummel_knee': 1, 'lean': -12}),
         ('Throw Forward', 'THROW_FORWARD',
          {'leg_r': 85, 'knee_r': -10, 'lean': 15, 'arm_r': -55, 'forearm_r': 20} if archer else {'strike': .9, 'lean': -20, 'weapon_lift': 8, 'grab': .2}),
         ('Throw Back', 'THROW_BACK',
@@ -56,7 +62,7 @@ def author_grabs(author, fighter):
         author(name, phases, duration)
         reaction = dict(captive)
         if action == 'GRAB_PUMMEL':
-            reaction['lean'] = 48
+            reaction['lean'] = 26
         elif action == 'THROW_BACK':
             reaction.update({'spin': 135, 'leg_r': 35, 'knee_r': -55})
         elif action == 'THROW_UP':

@@ -60,6 +60,16 @@ def pose(values):
         rotate(f"Bone_Leg2_{side}", z=values.get(f"knee_{side.lower()}", 0))
     pelvis = rig.pose.bones["Bone_Pelvis"]
     pelvis.location = base["Bone_Pelvis"].translation + Vector((0, -values.get("crouch", 0), 0))
+    if values.get('captive_pose', 0):
+        from ground_attacks import limb
+        bpy.context.view_layer.update()
+        for side, tip, target, pole in [
+            ('R', 'Hand Right Ref ', (-5, -20, 62), (-15, -30, 70)),
+            ('L', 'Bone_Hand_L', (-12, 18, 52), (-10, 30, 65)),
+        ]:
+            limb(rig, f'Bone_Arm1_{side}', f'Bone_Arm2_{side}', tip,
+                 grab_rest[tip].translation.lerp(Vector(target), values['captive_pose']),
+                 Vector(pole))
     if values.get('grab_pose', 0):
         from ground_attacks import limb
         strength = values['grab_pose']
@@ -170,10 +180,6 @@ author("Special Up", {
 
 from damage import author_archer_damage
 author_archer_damage(author)
-grabbed = {'lean': 26, 'head': -12, 'draw': -12, 'release': 25,
-           'bow_arm': -20, 'hip': -8, 'crouch': 5}
-author('Grabbed', {0: grabbed, 24: grabbed}, 24)
-
 from grab_animations import author_grabs
 author_grabs(author, 'Archer')
 
