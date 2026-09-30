@@ -322,6 +322,14 @@ make_action("Get Up", {
     30: getup_pose(0, 0),
 }, 30)
 
+make_action("Down Damage", {
+    0: getup_pose(90, 1),
+    2: getup_pose(82, 1.25, -0.15),
+    5: getup_pose(85, 1.15),
+    9: getup_pose(89, 1.05),
+    13: getup_pose(90, 1),
+}, 13)
+
 make_action("Get Up Attack", {
     0: getup_pose(90, 1),
     5: getup_pose(87, 1, -0.4),
@@ -338,7 +346,7 @@ sys.path.insert(0, str(project / "tools/animations"))
 sys.dont_write_bytecode = True
 from grounding import ground_recovery
 
-for action_name, duration in (("Knockdown", 12), ("Get Up", 30), ("Get Up Attack", 45)):
+for action_name, duration in (("Knockdown", 12), ("Down Damage", 13), ("Get Up", 30), ("Get Up Attack", 45)):
     ground_recovery(rig, bpy.data.actions[action_name], duration)
 
 sys.path.insert(0, str(project / "tools/animations"))

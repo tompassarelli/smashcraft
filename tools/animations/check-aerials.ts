@@ -4,7 +4,7 @@ import {join} from 'node:path';
 import {checkGroundClips, archerGroundReplacements} from './ground-check';
 const assets=join(import.meta.dir,'../../build/animation-assets');
 const clips=[['Neutral',41],['Forward',31],['Back',37],['Up',34],['Down',38]] as const;
-const groundedRecovery = new Set(['Knockdown','Get Up','Get Up Attack']);
+const groundedRecovery = new Set(['Knockdown','Down Damage','Get Up','Get Up Attack']);
 const ArcherDair = {startup:7,active:20,duration:38};
 const changedSourceClips = (fighter:string) => new Set([
  ...groundedRecovery,

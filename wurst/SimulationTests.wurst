@@ -3150,7 +3150,7 @@ function runGetupAttackToContact(FighterState attacker, FighterState target, int
 				advance(attacker, 0, neutral, 0)
 				victimInput.getupAttackPressed = target.downState == DOWN_WAIT
 				advance(target, 0, victimInput, 0)
-				if victimWakeupActiveFrame < 0 and attackPhase(target) == ATTACK_ACTIVE and not isIntangible(target)
+				if victimWakeupActiveFrame < 0 and attackPhase(target) == ATTACK_ACTIVE
 					victimWakeupActiveFrame = frame
 				if attackerReadyFrame < 0 and canAttack(attacker)
 					attackerReadyFrame = frame
@@ -3160,9 +3160,9 @@ function runGetupAttackToContact(FighterState attacker, FighterState target, int
 			attackerReadyFrame.assertGreaterThan(0)
 			attackerActiveFrame.assertGreaterThan(attackerReadyFrame)
 			victimWakeupActiveFrame.assertGreaterThan(attackerActiveFrame)
-			attackerReadyFrame.assertEquals(34)
-			attackerActiveFrame.assertEquals(38)
-			victimWakeupActiveFrame.assertEquals(character == 0 ? 54 : 50)
+			attackerReadyFrame.assertEquals(38)
+			attackerActiveFrame.assertEquals(42)
+			victimWakeupActiveFrame.assertEquals(character == 0 ? 68 : 64)
 			destroy neutral
 			destroy victimInput
 			destroy target
@@ -3192,7 +3192,7 @@ function runGetupAttackToContact(FighterState attacker, FighterState target, int
 				if defenderReady < 0 and canAttack(target)
 					defenderReady = frame
 			landedTech.assertTrue()
-			attackerReady.assertEquals(34)
+			attackerReady.assertEquals(38)
 			defenderReady.assertGreaterThan(attackerReady)
 			destroy defender
 			destroy neutral

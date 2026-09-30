@@ -1009,6 +1009,8 @@ function attackAnimationRate(Fighter fighter) returns real
     return 1.
 
 function downAnimationIndex(Fighter fighter) returns int
+    if fighter.downState == DOWN_DAMAGE
+        return fighter.character == 0 ? ARCHER_DOWN_DAMAGE_INDEX : RIFLEMAN_DOWN_DAMAGE_INDEX
     if fighter.downState == DOWN_BOUND or fighter.downState == DOWN_WAIT
         return (fighter.character == 0 ? ARCHER_KNOCKDOWN_INDEX : RIFLEMAN_KNOCKDOWN_INDEX)
     if fighter.downState == DOWN_STAND or fighter.downState == DOWN_TECH
@@ -1016,6 +1018,8 @@ function downAnimationIndex(Fighter fighter) returns int
     return fighter.downDirection == fighter.facing ? (fighter.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX) : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_INDEX : RIFLEMAN_ROLL_BACKWARD_INDEX)
 
 function downAnimationRate(Fighter fighter) returns real
+    if fighter.downState == DOWN_DAMAGE
+        return (fighter.character == 0 ? ARCHER_DOWN_DAMAGE_SECONDS : RIFLEMAN_DOWN_DAMAGE_SECONDS) / (DOWN_DAMAGE_FRAMES * FRAME_SECONDS)
     if fighter.downState == DOWN_WAIT
         return 0.
     if fighter.downState == DOWN_BOUND
@@ -1211,7 +1215,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
             f.animation = anim
     else if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
         let anim = "down" + I2S(f.downState)
-        if f.animation != anim
+        if f.animation != anim or (f.downState == DOWN_DAMAGE and hit)
             if f.downState != DOWN_WAIT
                 SetUnitAnimationByIndex(f.body, downAnimationIndex(f))
             f.animation = anim

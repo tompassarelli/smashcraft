@@ -43,6 +43,9 @@ for fighter in ['archer','rifleman']:
     samples += [('Spot Dodge',frame,'stage',f'{fighter}-spot-dodge-{frame:02d}') for frame in (0,5,15,22)]
     if fighter=='rifleman':
         samples += [('Back',frame,view,f'rifleman-backair-{view}-{frame:02d}') for view in ('stage','reverse') for frame in (0,3,6,7,18,24,32,37)]
+    if '--down-damage' in sys.argv:
+        samples = [('Down Damage', frame, view, f'{fighter}-down-damage-{view}-{frame:02d}')
+                   for view in ('stage', 'reverse') for frame in (0, 2, 13)]
     for kind,frame,view,filename in samples:
         action=bpy.data.actions['Aerial '+kind] if kind in {'Neutral','Forward','Back','Up','Down'} else bpy.data.actions[kind]
         for b in rig.pose.bones:b.matrix_basis=Matrix.Identity(4)
