@@ -59,8 +59,8 @@ snapshot coverage. Current combat supports two fighters, not four.
 | Header declarations | Pinned common.j declares keyboard/meta/mouse polling, local-client-active, named effect animation/blend and effect time | PASS for declaration presence only |
 | A: early local polling | Both probes run; N/I/A holds/releases visible, and some poll transitions precede synchronized callbacks | SINGLE-CLIENT ONLY; network locality/physical timing unknown |
 | B: native traffic/pacing | Both 180-byte packet variants receive contiguous rows; receipt bursts observed | SHORT SINGLE-CLIENT SAMPLE; multiplayer capacity unknown |
-| C: complete snapshots/replay | Existing numerical tests are not snapshot/rollback oracle tests | NOT IMPLEMENTED |
-| D: local presentation/pose recovery | Existing unit animation playback does not prove effect seek/local safety | NOT TESTED |
+| C: complete snapshots/replay | Reusable numerical capture/restore plus focused movement/contact tests; full suite 214/214 | PARTIAL; adapter state/ring/hash/fault oracle pending |
+| D: local presentation/pose recovery | Model-only effects freeze and seek within Attack; clip-change restoration did not reproduce reference pose | PARTIAL; exact recovery/local multiplayer safety unproven |
 | E: controlled fixed/hybrid comparison | No scheduled/rollback backend in gameplay yet | NOT IMPLEMENTED |
 
 Initial probe compile exposed `%` (real modulo) where integer ring indices
@@ -87,7 +87,8 @@ button instrument or a gamepad mapper. One human slot was active; the other
 slot did not contribute input. The displayed game-speed handle was 2. This was
 the existing single-client test session, not a Battle.net/LAN comparison.
 
-Raw diagnostic files, captured with F8 before trace capacity was exhausted:
+Diagnostic files, captured with F8 before trace capacity was exhausted (only
+line endings and trailing blank lines normalized for Git):
 
 - wc3-melee:tools/netcode-probe/evidence/20260930-batch1.txt
 - wc3-melee:tools/netcode-probe/evidence/20260930-batch2.txt
@@ -123,3 +124,64 @@ estimate of transport age or the production fighting-frame delay.
 Still untested: two-client locality, induced network delay/loss, physical
 button-to-pixel time, sustained production traffic, chat/focus/modifier edge
 cases, controller injection, observer behavior and outer-engine stalls.
+
+## Replay foundation implemented
+
+wc3-melee:wurst/ReplayState.wurst provides detached, reusable capture/restore
+storage for the existing two-fighter numerical state, projectile arrays, both
+normalized input snapshots, match rules, command buffers and physical-key/
+action-edge/directional-pulse state. Attacker references map into the restored
+fighter pair, so they do not point into another history's fighters. Storage is
+allocated at construction; capture/restore contain no allocations or native
+calls. This is not yet a canonical serialized snapshot format.
+
+Three focused tests cover restore after mutation, a 48-frame movement/clock
+replay, and restoration into different fighter objects without repeating a
+hit from the same attack window. The integrated headless suite passed 214/214,
+zero errors/warnings; wc3-melee:build/wurst-tests/replay-integrated.log.
+This is not the requested 100,000-frame fault-injection oracle and makes no
+cross-client floating-point determinism claim.
+
+Before connecting the live adapter, move or explicitly capture its additional
+queued edges (normal attack, jump, air dodge/vector, directional/getup/tech/
+L-cancel/mash/ledge inputs), simulationFrame, attack facing, and bot decision/
+cooldown state. Keep device sampling outside replay and distinguish immutable
+input records from canonical consumed-input history. Then add the bounded
+preallocated history ring, complete state comparison/hash, input-tape oracle
+and transport fault injection. Gameplay still uses its existing adapter.
+
+## Observed single-client model pose run
+
+wc3-melee:tools/netcode-probe/PoseProbe.wurst creates four native model effects
+and its UI handles in common initialization. The stock Rifleman model is used;
+no predicted native units or new handles are created during the sequence.
+Build completed with zero errors/warnings. The phase sequence exercises named
+Attack/Walk selection, zero blend time, frozen playback, seeks forward/backward,
+and clip switching. Screenshots: wc3-melee:build/netcode-probe/pose-0.png through
+pose-6.png; cropped comparison wc3-melee:build/netcode-probe/pose-models.png.
+
+Observed: the naturally playing reference freezes at callback 18. On the
+already selected Attack clip, setting time to 0.3 reproduces a visibly similar
+recoil pose; 0 returns toward the initial pose; 0.5 advances it; returning to
+0.3 visibly restores the earlier recoil pose. The 300/500 values do not show
+the corresponding desired poses. This supports seconds for these tested seek
+values. It is visual evidence, not an exact bone-transform/animation-clock
+comparison. Named Walk and Attack select visibly different clips.
+
+Failed candidate: switching Walk back to Attack and immediately setting time
+to 0.3 did not reproduce the reference recoil pose. A second build also tries
+the same seek on the next native service callback for the third effect; it
+still did not reproduce that pose. Evidence:
+wc3-melee:build/netcode-probe/pose-deferred.png (S=1297, phase 6).
+The cause is not established; selection timing, animation variants and native
+time semantics need separation before choosing a presentation strategy.
+Do not call this an exact phase-restoration API or enable predicted fighters
+on the strength of the successful within-clip seeks.
+
+This does not test authored fighter models, two-client local mutation safety,
+native handle agreement, effect-emitter/audio reconciliation, or repeated
+rollback during live combat. Embedded gun-smoke particles visibly continue to
+vary while the reference body is frozen, so body pose alone is not a complete
+effect snapshot. Gate D remains open. The next useful probe must discriminate
+clip-selection/seek ordering against known authored clip intervals, rather
+than assume that another fixed delay solves it.

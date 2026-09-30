@@ -22,6 +22,22 @@ public class MatchState
     boolean firstRematchReady = false
     boolean secondRematchReady = false
 
+    function copyTo(MatchState destination)
+        destination.phase = phase
+        destination.characterChoice = characterChoice
+        destination.secondCharacterChoice = secondCharacterChoice
+        destination.stageChoice = stageChoice
+        destination.winner = winner
+        destination.humanCount = humanCount
+        destination.stockCount = stockCount
+        destination.timeLimitMinutes = timeLimitMinutes
+        destination.remainingFrames = remainingFrames
+        destination.timedOut = timedOut
+        destination.firstCharacterReady = firstCharacterReady
+        destination.secondCharacterReady = secondCharacterReady
+        destination.firstRematchReady = firstRematchReady
+        destination.secondRematchReady = secondRematchReady
+
     function setHumanCount(int count)
         humanCount = count == 2 ? 2 : 1
         if humanCount == 1

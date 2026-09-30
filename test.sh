@@ -36,4 +36,6 @@ exec "$java" -Xmx512m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/wurst/KeyBindings.wurst" \
     "$project_dir/wurst/KeyBindingsTests.wurst" \
     "$project_dir/wurst/PlayerInputState.wurst" \
-    "$project_dir/wurst/PlayerInputStateTests.wurst"
+    "$project_dir/wurst/PlayerInputStateTests.wurst" \
+    "$project_dir/wurst/ReplayState.wurst" \
+    "$project_dir/wurst/ReplayStateTests.wurst"

@@ -63,5 +63,17 @@ network impairment separately from any future application-delivery injection.
 Same-room Battle.net is not a LAN test. Keep per-client logs and exact runtime,
 graphics, game-speed, route and device settings with each observation.
 
-Presentation/seek recovery remains a separate probe. A passing input probe does
-not establish rollback feasibility or native unit prediction safety.
+Build the separate pose probe with the same command and variant `pose` instead
+of `1` or `2`. Output: wc3-melee:build/netcode-probe/Smashcraft_Pose_Probe.w3x.
+It preallocates four stock Rifleman effects, then compares a naturally played
+and frozen Attack with seconds/milliseconds seeks and a live Walk reference.
+The displayed phases run automatically every 180 service callbacks. Phase 6
+compares clip selection plus immediate seek against an additional seek one
+callback later. N restarts the sequence; Ctrl+R reloads the map.
+
+Inspect the actual pose and any embedded particles, not merely the displayed
+phase counter. Initial single-client findings and the unresolved clip-change
+recovery failure are in wc3-melee:native-capability-report.md. The per-client
+yaw difference is intentional for a future two-client local-mutation check;
+that check has not been performed. No input/pose probe establishes rollback
+feasibility or native unit prediction safety by itself.

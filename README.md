@@ -51,6 +51,13 @@ against a bot. Both human slots now schedule direct attacks for the next tick;
 the regression first reproduced Player 2's discarded commands, then passed.
 Two-client synchronization and network latency remain unverified.
 
+Current multiplayer work follows wc3-melee:GOAL.md and
+wc3-melee:SMASHCRAFT_NETCODE_PROPOSAL.md. Native input/pose probes and their
+observed limitations are recorded in wc3-melee:native-capability-report.md.
+Reusable numerical snapshots are implemented and the headless suite passes
+214/214; complete adapter replay, fault-injection tests and multiplayer gates
+remain open. Gameplay still uses the synchronized-key baseline.
+
 Native checks have covered mouse character/stage selection, saved controls,
 jump/double-jump, air dodge/wavedash motion, both fighters' authored action clips,
 arrow travel/contact, guarding and shield-break launch/dizzy/mash recovery.

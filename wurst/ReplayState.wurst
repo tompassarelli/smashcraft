@@ -1,0 +1,167 @@
+package ReplayState
+import Simulation
+import MatchRules
+import CommandBuffer
+import PlayerInputState
+
+// Reusable detached storage. Construct once before the match; capture/restore only
+// overwrite numerical fields and never create Warcraft handles or replay objects.
+function copyFighter(FighterState source, FighterState destination,
+		FighterState sourceFirst, FighterState sourceSecond,
+		FighterState destinationFirst, FighterState destinationSecond)
+	destination.character = source.character
+	destination.facing = source.facing
+	destination.dashFrame = source.dashFrame
+	destination.dashDirection = source.dashDirection
+	destination.x = source.x
+	destination.z = source.z
+	destination.vx = source.vx
+	destination.vz = source.vz
+	destination.knockbackX = source.knockbackX
+	destination.knockbackZ = source.knockbackZ
+	destination.damage = source.damage
+	destination.stocks = source.stocks
+	destination.hitstun = source.hitstun
+	destination.hitlag = source.hitlag
+	destination.diPending = source.diPending
+	destination.diLaunchSpeed = source.diLaunchSpeed
+	destination.diSerial = source.diSerial
+	destination.diAngleDegrees = source.diAngleDegrees
+	destination.sdiWasGrounded = source.sdiWasGrounded
+	destination.sdiLaunchesUpward = source.sdiLaunchesUpward
+	destination.sdiSerial = source.sdiSerial
+	destination.asdiSerial = source.asdiSerial
+	destination.cooldown = source.cooldown
+	destination.attackStyle = source.attackStyle
+	destination.attackFrame = source.attackFrame
+	destination.attackDuration = source.attackDuration
+	destination.attackSerial = source.attackSerial
+	destination.attackHit = source.attackHit
+	destination.smashCharging = source.smashCharging
+	destination.smashChargeFrames = source.smashChargeFrames
+	destination.smashChargeAllowed = source.smashChargeAllowed
+	destination.out = source.out
+	destination.respawn = source.respawn
+	destination.shield = source.shield
+	destination.shieldEnergy = source.shieldEnergy
+	destination.shieldStun = source.shieldStun
+	destination.shieldHeldFrames = source.shieldHeldFrames
+	destination.shieldReleaseLag = source.shieldReleaseLag
+	destination.shieldBreakState = source.shieldBreakState
+	destination.shieldBreakFrame = source.shieldBreakFrame
+	destination.shieldBreakSerial = source.shieldBreakSerial
+	destination.shieldBreakRemaining = source.shieldBreakRemaining
+	destination.grounded = source.grounded
+	destination.jumps = source.jumps
+	destination.jumpSerial = source.jumpSerial
+	destination.jumpIsDouble = source.jumpIsDouble
+	destination.jumpSquat = source.jumpSquat
+	destination.jumpHeld = source.jumpHeld
+	destination.dropTime = source.dropTime
+	destination.invincible = source.invincible
+	destination.surface = source.surface
+	destination.airDodgeTime = source.airDodgeTime
+	destination.landingLag = source.landingLag
+	destination.lCancelWindow = source.lCancelWindow
+	destination.lCancelSerial = source.lCancelSerial
+	destination.airDodging = source.airDodging
+	destination.airDodgeFrame = source.airDodgeFrame
+	destination.groundDodgeFrame = source.groundDodgeFrame
+	destination.groundDodgeDirection = source.groundDodgeDirection
+	destination.downState = source.downState
+	destination.downFrame = source.downFrame
+	destination.downDirection = source.downDirection
+	destination.techWindow = source.techWindow
+	destination.techLockout = source.techLockout
+	destination.techHitlagLatched = source.techHitlagLatched
+	destination.grabbedFrames = source.grabbedFrames
+	destination.ledgeState = source.ledgeState
+	destination.ledgeSide = source.ledgeSide
+	destination.ledgeFrame = source.ledgeFrame
+	destination.ledgeSerial = source.ledgeSerial
+	destination.ledgeIntangible = source.ledgeIntangible
+	destination.ledgeRegrab = source.ledgeRegrab
+	if source.lastHitAttacker == sourceFirst
+		destination.lastHitAttacker = destinationFirst
+	else if source.lastHitAttacker == sourceSecond
+		destination.lastHitAttacker = destinationSecond
+	else
+		destination.lastHitAttacker = null
+	destination.lastHitAttackSerial = source.lastHitAttackSerial
+	destination.lastHitWindow = source.lastHitWindow
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		destination.projectileLife[i] = source.projectileLife[i]
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		destination.projectileX[i] = source.projectileX[i]
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		destination.projectileZ[i] = source.projectileZ[i]
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		destination.projectileDirection[i] = source.projectileDirection[i]
+
+function copyInput(InputSnapshot source, InputSnapshot destination)
+	destination.direction = source.direction
+	destination.verticalDirection = source.verticalDirection
+	destination.sdiPulse = source.sdiPulse
+	destination.sdiX = source.sdiX
+	destination.sdiZ = source.sdiZ
+	destination.cStickX = source.cStickX
+	destination.cStickZ = source.cStickZ
+	destination.attackRequested = source.attackRequested
+	destination.down = source.down
+	destination.shield = source.shield
+	destination.jumpPressed = source.jumpPressed
+	destination.airDodgePressed = source.airDodgePressed
+	destination.techPressed = source.techPressed
+	destination.mashPressed = source.mashPressed
+	destination.lCancelPressed = source.lCancelPressed
+	destination.groundDodgePressed = source.groundDodgePressed
+	destination.groundDodgeDirection = source.groundDodgeDirection
+	destination.getupAttackPressed = source.getupAttackPressed
+	destination.ledgeVerticalPressed = source.ledgeVerticalPressed
+	destination.getupStandPressed = source.getupStandPressed
+	destination.getupDirectionPressed = source.getupDirectionPressed
+	destination.getupDirection = source.getupDirection
+	destination.dodgeX = source.dodgeX
+	destination.dodgeZ = source.dodgeZ
+	destination.jumpHeld = source.jumpHeld
+	destination.walking = source.walking
+	destination.attackHeld = source.attackHeld
+
+public class ReplaySnapshot
+	FighterState first = new FighterState(0, 0, 1)
+	FighterState second = new FighterState(1, 0, -1)
+	InputSnapshot firstInput = new InputSnapshot()
+	InputSnapshot secondInput = new InputSnapshot()
+	MatchState match = new MatchState()
+	AttackBuffer firstCommands = new AttackBuffer(0)
+	AttackBuffer secondCommands = new AttackBuffer(0)
+	PlayerInputState firstKeys = new PlayerInputState()
+	PlayerInputState secondKeys = new PlayerInputState()
+
+	function capture(FighterState liveFirst, FighterState liveSecond,
+			InputSnapshot liveFirstInput, InputSnapshot liveSecondInput,
+			MatchState liveMatch, AttackBuffer liveFirstCommands, AttackBuffer liveSecondCommands,
+			PlayerInputState liveFirstKeys, PlayerInputState liveSecondKeys)
+		copyFighter(liveFirst, first, liveFirst, liveSecond, first, second)
+		copyFighter(liveSecond, second, liveFirst, liveSecond, first, second)
+		copyInput(liveFirstInput, firstInput)
+		copyInput(liveSecondInput, secondInput)
+		liveMatch.copyTo(match)
+		liveFirstCommands.copyTo(firstCommands)
+		liveSecondCommands.copyTo(secondCommands)
+		liveFirstKeys.copyTo(firstKeys)
+		liveSecondKeys.copyTo(secondKeys)
+
+	function restore(FighterState liveFirst, FighterState liveSecond,
+			InputSnapshot liveFirstInput, InputSnapshot liveSecondInput,
+			MatchState liveMatch, AttackBuffer liveFirstCommands, AttackBuffer liveSecondCommands,
+			PlayerInputState liveFirstKeys, PlayerInputState liveSecondKeys)
+		copyFighter(first, liveFirst, first, second, liveFirst, liveSecond)
+		copyFighter(second, liveSecond, first, second, liveFirst, liveSecond)
+		copyInput(firstInput, liveFirstInput)
+		copyInput(secondInput, liveSecondInput)
+		match.copyTo(liveMatch)
+		firstCommands.copyTo(liveFirstCommands)
+		secondCommands.copyTo(liveSecondCommands)
+		firstKeys.copyTo(liveFirstKeys)
+		secondKeys.copyTo(liveSecondKeys)

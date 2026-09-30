@@ -79,5 +79,14 @@ public class PlayerInputState
             actionPressed[i] = false
         directions.clear()
 
+    function copyTo(PlayerInputState destination)
+        for i = 0 to 255
+            destination.keyHeld[i] = keyHeld[i]
+        for i = 0 to KEY_SLOT_COUNT - 1
+            destination.bindingHeld[i] = bindingHeld[i]
+        for i = 0 to ACTION_COUNT - 1
+            destination.actionPressed[i] = actionPressed[i]
+        directions.copyTo(destination.directions)
+
     private function updateDirection()
         directions.update(directionX(), directionZ())

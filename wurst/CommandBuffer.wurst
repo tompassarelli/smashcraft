@@ -36,6 +36,15 @@ public class AttackBuffer
         mayCharge = false
         consumedMayCharge = false
 
+    function copyTo(AttackBuffer destination)
+        destination.windowFrames = windowFrames
+        destination.style = style
+        destination.facing = facing
+        destination.targetFrame = targetFrame
+        destination.consumedFacing = consumedFacing
+        destination.mayCharge = mayCharge
+        destination.consumedMayCharge = consumedMayCharge
+
     function enqueue(int attackStyle, int direction, int frame, boolean chargeAllowed)
         if attackStyle < 0 or attackStyle > 10
             return

@@ -1,0 +1,184 @@
+package ReplayStateTests
+import ReplayState
+import Simulation
+import MatchRules
+import MatchStep
+import CommandBuffer
+import PlayerInputState
+import KeyBindings
+
+@Test function captureRestoreIncludesCombatPointersProjectilesAndQueuedInput()
+    let first = new FighterState(0, -90, 1)
+    let second = new FighterState(1, 90, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let match = new MatchState()
+    let firstCommands = new AttackBuffer(4)
+    let secondCommands = new AttackBuffer(4)
+    let firstKeys = new PlayerInputState()
+    let secondKeys = new PlayerInputState()
+    let bindings = new KeyBindings(false)
+    let snapshot = new ReplaySnapshot()
+
+    first.x = -123.5
+    first.damage = 47
+    first.hitlag = 3
+    first.techWindow = 11
+    first.projectileLife[3] = 27
+    first.projectileX[3] = -44.25
+    first.projectileZ[3] = 81.5
+    first.projectileDirection[3] = -1
+    first.lastHitAttacker = second
+    first.lastHitAttackSerial = 19
+    first.lastHitWindow = 2
+    firstInput.direction = -1
+    firstInput.jumpPressed = true
+    firstInput.attackHeld = true
+    secondInput.shield = true
+    match.phase = MATCH
+    match.remainingFrames = 91
+    match.winner = 1
+    firstCommands.enqueue(4, -1, 38, true)
+    secondCommands.enqueue(6, 1, 40, false)
+    firstKeys.press(78, bindings)
+    firstKeys.press(83, bindings)
+    secondKeys.press(73, bindings)
+
+    snapshot.capture(first, second, firstInput, secondInput, match,
+        firstCommands, secondCommands, firstKeys, secondKeys)
+
+    first.x = 700
+    first.damage = 0
+    first.hitlag = 0
+    first.techWindow = 0
+    first.projectileLife[3] = 0
+    first.projectileX[3] = 0
+    first.projectileZ[3] = 0
+    first.projectileDirection[3] = 0
+    first.lastHitAttacker = null
+    first.lastHitAttackSerial = -1
+    firstInput.direction = 0
+    firstInput.jumpPressed = false
+    firstInput.attackHeld = false
+    secondInput.shield = false
+    match.phase = RESULT
+    match.remainingFrames = 0
+    match.winner = -1
+    firstCommands.clear()
+    secondCommands.clear()
+    firstKeys.clear()
+    secondKeys.clear()
+
+    snapshot.restore(first, second, firstInput, secondInput, match,
+        firstCommands, secondCommands, firstKeys, secondKeys)
+
+    first.x.assertEquals(-123.5)
+    first.damage.assertEquals(47)
+    first.hitlag.assertEquals(3)
+    first.techWindow.assertEquals(11)
+    first.projectileLife[3].assertEquals(27)
+    first.projectileX[3].assertEquals(-44.25)
+    first.projectileZ[3].assertEquals(81.5)
+    first.projectileDirection[3].assertEquals(-1)
+    (first.lastHitAttacker == second).assertTrue()
+    first.lastHitAttackSerial.assertEquals(19)
+    first.lastHitWindow.assertEquals(2)
+    firstInput.direction.assertEquals(-1)
+    firstInput.jumpPressed.assertTrue()
+    firstInput.attackHeld.assertTrue()
+    secondInput.shield.assertTrue()
+    match.phase.assertEquals(MATCH)
+    match.remainingFrames.assertEquals(91)
+    match.winner.assertEquals(1)
+    firstCommands.hasPending(38).assertTrue()
+    secondCommands.hasPending(40).assertTrue()
+    firstKeys.actionHeld(ATTACK).assertTrue()
+    firstKeys.consumePressed(ATTACK).assertTrue()
+    firstKeys.pulsePending().assertTrue()
+    secondKeys.actionHeld(JUMP).assertTrue()
+
+@Test function restoreAndReplayPreservesMovementAndClock()
+    let first = new FighterState(0, -30, 1)
+    let second = new FighterState(1, 30, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let match = new MatchState()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    let firstKeys = new PlayerInputState()
+    let secondKeys = new PlayerInputState()
+    let snapshot = new ReplaySnapshot()
+    match.phase = MATCH
+    snapshot.capture(first, second, firstInput, secondInput, match,
+        firstCommands, secondCommands, firstKeys, secondKeys)
+
+    firstInput.direction = 1
+    secondInput.direction = -1
+    firstInput.jumpPressed = true
+    firstInput.jumpHeld = true
+    for frame = 0 to 47
+        firstInput.jumpPressed = frame == 0
+        stepMatch(match, first, second, firstInput, secondInput,
+            firstCommands, secondCommands, frame)
+    let expectedX = first.x
+    let expectedZ = first.z
+    let expectedVx = first.vx
+    let expectedVz = first.vz
+    let expectedStocks = first.stocks
+    let expectedDamage = first.damage
+    let expectedSecondX = second.x
+    let expectedSecondZ = second.z
+    let expectedRemaining = match.remainingFrames
+
+    snapshot.restore(first, second, firstInput, secondInput, match,
+        firstCommands, secondCommands, firstKeys, secondKeys)
+    firstInput.direction = 1
+    secondInput.direction = -1
+    firstInput.jumpHeld = true
+    for frame = 0 to 47
+        firstInput.jumpPressed = frame == 0
+        stepMatch(match, first, second, firstInput, secondInput,
+            firstCommands, secondCommands, frame)
+
+    first.x.assertEquals(expectedX)
+    first.z.assertEquals(expectedZ)
+    first.vx.assertEquals(expectedVx)
+    first.vz.assertEquals(expectedVz)
+    first.stocks.assertEquals(expectedStocks)
+    first.damage.assertEquals(expectedDamage)
+    second.x.assertEquals(expectedSecondX)
+    second.z.assertEquals(expectedSecondZ)
+    match.remainingFrames.assertEquals(expectedRemaining)
+
+@Test function restoreIntoIndependentFightersRetainsContactRegistry()
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 100, -1)
+    let inputA = new InputSnapshot()
+    let inputB = new InputSnapshot()
+    let match = new MatchState()
+    let commandsA = new AttackBuffer(0)
+    let commandsB = new AttackBuffer(0)
+    let keysA = new PlayerInputState()
+    let keysB = new PlayerInputState()
+    let snapshot = new ReplaySnapshot()
+    match.phase = MATCH
+    commandsA.enqueue(0, 0, 1, false)
+    for frame = 1 to attackStartupFrames(0) + 1
+        stepMatch(match, first, second, inputA, inputB, commandsA, commandsB, frame)
+    second.damage.assertGreaterThan(0.)
+    (second.lastHitAttacker == first).assertTrue()
+    snapshot.capture(first, second, inputA, inputB, match, commandsA, commandsB, keysA, keysB)
+    let replayFirst = new FighterState(0, 0, 1)
+    let replaySecond = new FighterState(1, 0, -1)
+    snapshot.restore(replayFirst, replaySecond, inputA, inputB, match, commandsA, commandsB, keysA, keysB)
+    (replaySecond.lastHitAttacker == replayFirst).assertTrue()
+    (replaySecond.lastHitAttacker == first).assertFalse()
+    let damage = replaySecond.damage
+    // The same active attack window must not score a second hit after restoration.
+    resolveAttackPair(replayFirst, replaySecond)
+    replaySecond.damage.assertEquals(damage)
+    first.damage = 999.
+    second.projectileLife[0] = 999
+    snapshot.restore(replayFirst, replaySecond, inputA, inputB, match, commandsA, commandsB, keysA, keysB)
+    replayFirst.damage.assertEquals(0.)
+    replaySecond.projectileLife[0].assertEquals(0)
