@@ -263,6 +263,8 @@ public class FighterState
 	int specialFrame = 0
 	int specialDuration = 0
 	int specialLockFrames = 0
+	// Up-specials end in a helpless aerial fall until landing or a ledge catch.
+	boolean specialFall = false
 	int array[SPECIAL_ACTION_CAPACITY] specialCooldowns
 	int specialDirection = 0
 	boolean specialHit = false
@@ -553,7 +555,7 @@ function canStartAttack(FighterState attacker) returns boolean
 		return false
 	if attacker.ledgeState != LEDGE_NONE
 		return false
-	return not attacker.out and attacker.specialLockFrames <= 0 and attacker.shieldBreakState == SHIELD_BREAK_NONE and (attacker.downState == DOWN_NONE or isTumbling(attacker)) and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0
+	return not attacker.out and not attacker.specialFall and attacker.specialLockFrames <= 0 and attacker.shieldBreakState == SHIELD_BREAK_NONE and (attacker.downState == DOWN_NONE or isTumbling(attacker)) and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0
 
 public function canAttack(FighterState attacker) returns boolean
 	return canStartAttack(attacker) and not attacker.shield and attacker.frozenFrames <= 0
@@ -840,7 +842,8 @@ function ledgeX(int stage, int side) returns real
 	return side < 0 ? surfaceLeft(stage, 0) : surfaceRight(stage, 0)
 
 function ledgeCandidate(FighterState f, int stage, InputSnapshot input) returns int
-	if not canAttack(f) or f.grounded or f.ledgeRegrab > 0 or f.attackStyle >= 0 or input.down or input.verticalDirection < 0 or totalVelocityZ(f) >= 0
+	let canCatchDuringSpecialFall = f.specialFall and not f.out and f.specialLockFrames <= 0 and f.hitlag <= 0 and f.hitstun <= 0 and f.shieldStun <= 0 and (f.downState == DOWN_NONE or isTumbling(f))
+	if (not canAttack(f) and not canCatchDuringSpecialFall) or f.grounded or f.ledgeRegrab > 0 or f.attackStyle >= 0 or input.down or input.verticalDirection < 0 or totalVelocityZ(f) >= 0
 		return 0
 	let height = f.z - surfaceZ(stage, 0)
 	if height < -LEDGE_GRAB_BELOW or height > LEDGE_GRAB_ABOVE
@@ -873,6 +876,7 @@ function catchLedge(FighterState f, int stage, int side)
 	f.vz = 0
 	f.knockbackX = 0
 	f.knockbackZ = 0
+	f.specialFall = false
 	f.jumps = 1
 	f.dropTime = 0
 	f.lCancelWindow = 0
@@ -982,6 +986,7 @@ public function cancelSpecialState(FighterState f)
 
 function clearSpecialOnStock(FighterState f)
 	cancelSpecialState(f)
+	f.specialFall = false
 	f.specialHit = false
 	f.bearLife = 0
 	f.bearSwipeCooldown = 0
@@ -1183,6 +1188,7 @@ function finishLanding(FighterState f, int stage, InputSnapshot input, int landi
 	f.z = surfaceZ(stage, landing)
 	f.vz = 0
 	f.knockbackZ = 0
+	f.specialFall = false
 	if f.jumpSquat <= 0
 		f.jumps = 2
 	if isTumbling(f)
@@ -1820,7 +1826,7 @@ public function startFighterSpecial(FighterState owner, int stage, InputSnapshot
 			owner.vz = 32
 			owner.grounded = false
 			owner.surface = -1
-			owner.jumps = 1
+			owner.jumps = 0
 			owner.specialCooldowns[SPECIAL_ARCHER_RECOVERY] = 90
 			return true
 		if input.verticalDirection < 0 or input.down
@@ -1854,6 +1860,8 @@ public function startFighterSpecial(FighterState owner, int stage, InputSnapshot
 				return true
 			return false
 		if input.verticalDirection > 0
+			if not owner.grounded
+				owner.jumps = 0
 			startSpecialAction(owner, SPECIAL_RIFLEMAN_RECOVERY, 34, moveX)
 			owner.specialCooldowns[SPECIAL_RIFLEMAN_RECOVERY] = 90
 			return true
@@ -1898,6 +1906,7 @@ function advanceSpecialAction(FighterState owner)
 			owner.vz = 30
 			owner.grounded = false
 			owner.surface = -1
+			owner.jumps = 0
 		if owner.specialFrame >= RIFLEMAN_RECOVERY_STARTUP_FRAMES and owner.specialFrame <= RIFLEMAN_RECOVERY_PROTECTION_END
 			owner.invincible = max(owner.invincible, 2)
 	if owner.specialAction == SPECIAL_ARCHER_DISENGAGE and owner.specialFrame >= ARCHER_DISENGAGE_FRAMES
@@ -1905,6 +1914,9 @@ function advanceSpecialAction(FighterState owner)
 		owner.specialFrame = 0
 		owner.specialHit = false
 	if owner.specialAction == SPECIAL_ARCHER_RECOVERY and owner.specialFrame >= ARCHER_RECOVERY_FRAMES
+		if not owner.grounded
+			owner.specialFall = true
+			owner.jumps = 0
 		owner.specialAction = SPECIAL_NONE
 		owner.specialFrame = 0
 	if owner.specialAction == SPECIAL_ARCHER_MULTISHOT and owner.specialFrame >= 34
@@ -1914,6 +1926,9 @@ function advanceSpecialAction(FighterState owner)
 		owner.specialAction = SPECIAL_NONE
 		owner.specialFrame = 0
 	if owner.specialAction == SPECIAL_RIFLEMAN_RECOVERY and owner.specialFrame >= 34
+		if not owner.grounded
+			owner.specialFall = true
+			owner.jumps = 0
 		owner.specialAction = SPECIAL_NONE
 		owner.specialFrame = 0
 	if owner.specialAction == SPECIAL_RIFLEMAN_TRAP and owner.specialFrame >= 20
@@ -1985,7 +2000,7 @@ public function simulationJump(FighterState f)
 		return
 	if f.ledgeState != LEDGE_NONE
 		return
-	if f.out or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or (f.shieldReleaseLag > 0 and not f.grounded) or f.landingLag > 0 or f.airDodging or isGroundDodging(f) or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
+	if f.out or f.specialFall or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or (f.shieldReleaseLag > 0 and not f.grounded) or f.landingLag > 0 or f.airDodging or isGroundDodging(f) or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
 		return
 	if f.grounded
 		clearDash(f)
@@ -2006,7 +2021,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 		return
 	if f.ledgeState != LEDGE_NONE
 		return
-	if f.out or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.grounded or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.landingLag > 0 or f.cooldown > 0 or f.airDodging or f.airDodgeTime > 0
+	if f.out or f.specialFall or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.grounded or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.landingLag > 0 or f.cooldown > 0 or f.airDodging or f.airDodgeTime > 0
 		return
 	let dx = horizontal == 0 ? 0 : (horizontal > 0 ? 1 : -1)
 	let dz = vertical == 0 ? 0 : (vertical > 0 ? 1 : -1)

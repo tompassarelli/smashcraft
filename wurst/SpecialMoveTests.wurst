@@ -345,6 +345,132 @@ function specialMatch() returns MatchState
 	destroy archer
 	destroy game
 
+@Test function aerialUpSpecialsConsumeJumpAndEndInHelplessFallUntilLandingOrLedge()
+	for character = 0 to 1
+		let game = specialMatch()
+		let fighter = new FighterState(character, 0, 1)
+		let target = new FighterState(1 - character, 500, -1)
+		let input = new InputSnapshot()
+		let targetInput = new InputSnapshot()
+		let commands = new AttackBuffer(0)
+		let targetCommands = new AttackBuffer(0)
+		fighter.grounded = false
+		fighter.z = 500
+		fighter.jumps = 1
+		input.specialPressed = true
+		input.verticalDirection = 1
+		startFighterSpecial(fighter, 0, input).assertTrue()
+		fighter.jumps.assertEquals(0)
+		input.specialPressed = false
+		input.verticalDirection = 0
+		for frame = 1 to 38
+			fighter.specialLockFrames = max(0, fighter.specialLockFrames - 1)
+			advanceSpecialPair(fighter, target, 0)
+		fighter.specialAction.assertEquals(SPECIAL_NONE)
+		fighter.specialFall.assertTrue()
+		fighter.jumps.assertEquals(0)
+		canAttack(fighter).assertFalse()
+		input.jumpPressed = true
+		input.airDodgePressed = true
+		input.dodgeX = 1
+		input.direction = 1
+		advance(fighter, 0, input, 0)
+		fighter.specialFall.assertTrue()
+		fighter.jumpSquat.assertEquals(0)
+		fighter.airDodging.assertFalse()
+		fighter.jumps.assertEquals(0)
+		fighter.attackStyle.assertEquals(-1)
+		beginAttackPair(fighter, target, AERIAL_NEUTRAL_STYLE, -1, false, false)
+		fighter.attackStyle.assertEquals(-1)
+		input.specialPressed = true
+		input.verticalDirection = 0
+		startFighterSpecial(fighter, 0, input).assertFalse()
+		input.specialPressed = false
+		input.jumpPressed = false
+		input.airDodgePressed = false
+		input.dodgeX = 0
+		input.direction = 0
+		fighter.hitstun = 2
+		cancelSpecialState(fighter)
+		fighter.specialFall.assertTrue()
+		input.jumpPressed = true
+		for tick = 1 to 3
+			advance(fighter, 0, input, 0)
+		fighter.specialFall.assertTrue()
+		canAttack(fighter).assertFalse()
+
+		let landing = new FighterState(character, 0, 1)
+		let landingInput = new InputSnapshot()
+		landing.grounded = false
+		landing.z = 1
+		landing.vz = -2
+		landing.jumps = 0
+		landing.specialFall = true
+		for tick = 1 to 5
+			advance(landing, 0, landingInput, 0)
+		landing.grounded.assertTrue()
+		landing.specialFall.assertFalse()
+		landing.jumps.assertEquals(2)
+
+		let ledge = new FighterState(character, 620, -1)
+		let ledgeInput = new InputSnapshot()
+		let otherInput = new InputSnapshot()
+		let other = new FighterState(1 - character, 0, 1)
+		ledge.grounded = false
+		ledge.z = -30
+		ledge.vz = -2
+		ledge.specialFall = true
+		ledge.jumps = 0
+		resolveLedgePair(ledge, other, 0, ledgeInput, otherInput)
+		ledge.ledgeState.assertEquals(LEDGE_HANG)
+		ledge.specialFall.assertFalse()
+
+		landing.specialFall = true
+		reset(landing, 0)
+		landing.specialFall.assertFalse()
+		destroy other
+		destroy otherInput
+		destroy ledgeInput
+		destroy ledge
+		destroy landingInput
+		destroy landing
+		destroy commands
+		destroy targetCommands
+		destroy input
+		destroy targetInput
+		destroy fighter
+		destroy target
+		destroy game
+
+@Test function specialFallStateSurvivesReplaySnapshotRoundTrip()
+	let first = new FighterState(0, 0, 1)
+	let second = new FighterState(1, 100, -1)
+	let game = new MatchState()
+	let firstCommands = new AttackBuffer(0)
+	let secondCommands = new AttackBuffer(0)
+	let runtime = new ReplayRuntimeState()
+	let before = new ReplaySnapshot()
+	let after = new ReplaySnapshot()
+	let replayFirst = new FighterState(0, 0, 1)
+	let replaySecond = new FighterState(1, 0, -1)
+	first.specialFall = true
+	before.capture(first, second, game, firstCommands, secondCommands, runtime)
+	first.specialFall = false
+	before.restore(replayFirst, replaySecond, game, firstCommands, secondCommands, runtime)
+	replayFirst.specialFall.assertTrue()
+	after.capture(replayFirst, replaySecond, game, firstCommands, secondCommands, runtime)
+	before.firstDifference(after).assertEquals("")
+	destroy replayFirst
+	destroy replaySecond
+	destroy before
+	destroy after
+	destroy runtime
+	destroy firstCommands
+	destroy secondCommands
+	destroy first
+	destroy second
+	destroy game
+
 @Test function bearRunsWithoutSwipingUntilATargetEntersItsPath()
 	let owner = new FighterState(1, -100, 1)
 	let target = new FighterState(0, 500, -1)

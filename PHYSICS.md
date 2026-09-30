@@ -1006,6 +1006,24 @@ continue air drift without selecting fast-fall speed. Shield dodges, DI, down
 attacks and platform-drop handling retain their separate inputs. Existing
 fast-fall descent/actionability rules remain; native feel needs the new build.
 
+## Up-special aerial recovery
+
+Both current up-specials consume the aerial jump budget, and an up-special
+that finishes while airborne enters helpless fall. During that fall, steering
+and fast-fall remain available; jumping, air dodge, attacks and further
+specials are locked. Landing or a ledge catch clears the helpless state. A hit
+can interrupt the up-special, but does not restore jumps already spent. The
+grounded Rifleman up-special spends the budget when its launch begins; Archer's
+move takes off immediately. These are shared initial game rules, not exact
+Melee frame timings.
+
+The local reference's `melee:src/melee/ft/kinds/ftCommon/ftCo_FallSpecial.c`
+shows an airborne fall-special entry consuming all jumps; its grounded entry
+uses a separate transition. This supports the recovery-state behavior, not our
+character-specific animation lengths or all exact interrupt timings. Numerical
+state is stored in `FighterState.specialFall` and copied by rollback snapshots.
+Rendered fall-special pose and input feel still require in-game verification.
+
 ## Rifleman freezing trap
 
 Down+B places one trap on Rifleman's current grounded surface. Placement is

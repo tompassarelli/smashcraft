@@ -125,6 +125,7 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.specialFrame = source.specialFrame
 	destination.specialDuration = source.specialDuration
 	destination.specialLockFrames = source.specialLockFrames
+	destination.specialFall = source.specialFall
 	for i = 0 to SPECIAL_ACTION_CAPACITY - 1
 		destination.specialCooldowns[i] = source.specialCooldowns[i]
 	destination.specialDirection = source.specialDirection
@@ -379,6 +380,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "specialDuration"
 	if expected.specialLockFrames != actual.specialLockFrames
 		return "specialLockFrames"
+	if expected.specialFall != actual.specialFall
+		return "specialFall"
 	for i = 0 to SPECIAL_ACTION_CAPACITY - 1
 		if expected.specialCooldowns[i] != actual.specialCooldowns[i]
 			return "specialCooldowns[" + I2S(i) + "]"
