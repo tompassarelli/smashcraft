@@ -20,6 +20,18 @@ The five aerial attack styles already exist in wc3-melee:wurst/CombatInput.wurst
 and wc3-melee:wurst/Simulation.wurst. Their hit geometry, damage and timing are
 provisional; existence of those styles does not establish animation fidelity.
 
+Frame-authored hit regions now carry per-hit damage, growth, base knockback,
+hitlag, launch direction, and explicit re-hit windows. Flat forward tilt has
+prioritized tip/inner and early/late hits; up air has an opening and finisher.
+Both contacts are captured before a trade applies, and unequal hitlag retains
+the longer freeze regardless of resolution order. All 211 tests passed and
+map build `hit-regions` was installed (four existing build warnings). This
+includes the selection-gesture correction. Native checks remain pending while
+the desktop is in use; the client still has the earlier pointer-probe map.
+The current collision target remains a single fighter origin. Pose-derived
+hurtboxes, authored animation alignment, and native feel are still required.
+Parameters and evidence are in wc3-melee:PHYSICS.md.
+
 | Part | Owns | Checks |
 | --- | --- | --- |
 | Simulation | Fighter and match state, input snapshots, movement, platforms, blast zones, damage, hitstun, shields, stocks | Wurstunit, without Warcraft |

@@ -195,14 +195,75 @@ field offsets or claim numeric parity. No reference implementation was copied.
 
 `ordinaryHitKnockback` now receives pre-hit percent, this hit's damage, victim
 weight, growth percent, base knockback, and context scale independently. The
-map currently passes the existing prototype defaults (100, 20, and 1); future
-sweetspot/sourspot hit records can provide different values without changing
-the formula. `ordinaryHitlagFrames` and `ordinaryHitstunFrames` make the normal
+map supplies growth and base from the selected hit region, with defaults of
+100 and 20 for unchanged moves and contextual scaling of 1.
+`ordinaryHitlagFrames` and `ordinaryHitstunFrames` make the normal
 hit frame conversions testable at their integer boundaries. These helpers
 cover only the documented ordinary, non-electric, non-crouching branch; the
 separate fixed-hit, cap, shield, and modifier rules remain distinct work.
 
-The same local revision's `ftCo_DownBound.c`, `ftCo_DownAttack.c`,
+## Frame-authored hit regions
+
+The match now selects facing-relative rectangular regions using the current
+`attackFrame`. Regions include damage, growth, base knockback, hitlag ticks,
+launch direction, and a numbered contact window. Lower region indices win
+overlaps: a target receives exactly one selected effect per resolution.
+Both fighters' effects and facing are copied before applying either hit, so
+trades retain their original selected regions even when a hit cancels an
+attack. Hit application retains the maximum of existing and incoming hitlag,
+so unequal trades cannot shorten one fighter's freeze depending on resolution
+order. Existing grab priority and independent projectile handling remain.
+The unchanged moves keep their previous geometry, active frames and effects.
+
+Flat forward tilt (style 6) has an inner region at local x=0–110 and a
+higher-priority tip at x=90–145, both at local z=-130–130. All bounds are
+inclusive world-unit offsets from the attacker to the victim's simulation
+origin. Facing mirrors x. Its active frames remain 5–6, total duration 28;
+the angled forward tilts retain their existing single regions and effects.
+These are independently authored, provisional values, not Melee measurements:
+
+| Move / region / attack frames | Damage | Growth % | Base knockback | Hitlag ticks | Local launch direction (x,z) |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Forward tilt tip / 5 | 10 | 110 | 24 | 7 | (0.8, 0.6) |
+| Forward tilt inner / 5 | 7 | 80 | 16 | 3 | (0.7071, 0.7071) |
+| Forward tilt tip / 6 | 8 | 90 | 18 | 4 | (0.8, 0.6) |
+| Forward tilt inner / 6 | 5 | 70 | 12 | 2 | (0.7071, 0.7071) |
+| Up aerial opening / 5–6 | 4 | 60 | 14 | 2 | (0.25, 0.9682458) |
+| Up aerial finisher / 7 | 8 | 110 | 24 | 5 | (0.25, 0.9682458) |
+
+Ordinary moves share window 1 across all their regions and active frames.
+A victim records the opposing fighter, attack serial and latest contact
+window; changing regions, leaving/re-entering the region, hitlag, and continued
+overlap cannot repeat that hit. Shield contact consumes the same window. This
+record is scoped to the current two-fighter match, not a history for multiple
+concurrent opponents. Starting another attack increments its serial. Respawn
+reset clears the victim's record.
+
+Up aerial explicitly advances from window 1 on frames 5–6 to window 2 on
+frame 7, permitting one opening hit and one finisher if the target remains
+in range. Missing the opening does not prevent a finisher. Its old bounds
+(x=-105–105, z=20–190), three active frames, total duration 34 and landing lag
+15 are retained. Hitlag freezes the authored attack clock, so the second
+window is reached after those frozen ticks rather than after a wall-clock
+delay. Each window can connect once; it does not reset every active frame.
+
+These rectangles still test a single victim origin; they are not pose-derived
+hurtboxes. Animation alignment, character-specific region tuning, and native
+combat feel remain future work. Existing clip frame clocks and recovery
+durations are preserved, but this does not establish geometric alignment.
+
+The `SimulationTests` filter passes 146/146 tests, including nine added
+resolution tests for overlap priority, mirrored launch, early/late effects,
+frame/geometry boundaries, per-target contact memory, shield contact, re-hit
+windows and trades. The compiler reports zero errors and warnings. Evidence:
+wc3-melee:build/wurst-tests/hit-regions-20260930-final.log. Integration passed
+211/211 tests in wc3-melee:build/wurst-tests/hit-regions-integrated.log. Map build
+`hit-regions` succeeded with the four existing warnings and was installed;
+the running client has not loaded it and native combat feel is unverified.
+
+## Knockdown reference limits
+
+The local Melee revision recorded above's `ftCo_DownBound.c`, `ftCo_DownAttack.c`,
 `ftCo_Down.c`, and `ftCo_DownStand.c` establish separate down-wait choices for
 get-up attack, directional rolls, and standing. They do not expose reliable
 frame counts for the associated intangibility in the inspected functions.

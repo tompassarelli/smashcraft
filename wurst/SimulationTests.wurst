@@ -5,6 +5,210 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+function prepareHitRegionAttack(FighterState attacker, FighterState target, int style, int frame)
+	if isAerialAttack(style)
+		attacker.grounded = false
+	beginAttackPair(attacker, target, style, -1, false, false)
+	attacker.attackStyle.assertEquals(style)
+	attacker.attackFrame = frame
+	attacker.cooldown = attacker.attackDuration - frame
+
+@Test function hitRegionsPrioritizeTheTipAndMirrorItsFullHitEffect()
+	for direction = -1 to 1
+		if direction != 0
+			let attacker = new FighterState(0, 0, direction)
+			let target = new FighterState(1, direction * 100., -direction)
+			prepareHitRegionAttack(attacker, target, 6, 5)
+			resolveAttackPair(attacker, target)
+			// x=100 overlaps both regions; only the higher-priority tip applies.
+			target.damage.assertEquals(10.)
+			target.knockbackX.assertEquals(direction * 7.7856, 0.0001)
+			target.knockbackZ.assertEquals(5.8392, 0.0001)
+			target.hitstun.assertEquals(21)
+			target.hitlag.assertEquals(7)
+			attacker.hitlag.assertEquals(7)
+			destroy target
+			destroy attacker
+
+@Test function hitRegionsDistinguishInnerOuterAndEarlyLateParameters()
+	for frame = 5 to 6
+		for inner = 0 to 1
+			let attacker = new FighterState(0, 0, 1)
+			let target = new FighterState(1, inner == 1 ? 50 : 120, -1)
+			prepareHitRegionAttack(attacker, target, 6, frame)
+			resolveAttackPair(attacker, target)
+			if inner == 1
+				target.damage.assertEquals(frame == 5 ? 7. : 5.)
+				let speed = frame == 5 ? 6.1776 : 4.771
+				SquareRoot(target.knockbackX * target.knockbackX + target.knockbackZ * target.knockbackZ).assertEquals(speed, 0.0001)
+				target.knockbackX.assertEquals(target.knockbackZ, 0.0001)
+				target.hitlag.assertEquals(frame == 5 ? 3 : 2)
+			else
+				target.damage.assertEquals(frame == 5 ? 10. : 8.)
+				target.knockbackX.assertEquals(frame == 5 ? 7.7856 : 5.7312, 0.0001)
+				target.knockbackZ.assertEquals(frame == 5 ? 5.8392 : 4.2984, 0.0001)
+				target.hitlag.assertEquals(frame == 5 ? 7 : 4)
+			destroy target
+			destroy attacker
+
+@Test function hitRegionsRespectActiveClockAndInclusiveGeometryBoundaries()
+	for frame = 4 to 7
+		let attacker = new FighterState(0, 0, 1)
+		let target = new FighterState(1, 145, -1)
+		target.z = 130
+		prepareHitRegionAttack(attacker, target, 6, frame)
+		resolveAttackPair(attacker, target)
+		target.damage.assertEquals(frame == 5 ? 10. : (frame == 6 ? 8. : 0.))
+		destroy target
+		destroy attacker
+	for outside = 0 to 3
+		let attacker = new FighterState(0, 0, -1)
+		let target = new FighterState(1, outside == 0 ? -146 : (outside == 1 ? 1 : -100), 1)
+		target.z = outside == 2 ? -131 : (outside == 3 ? 131 : 0)
+		prepareHitRegionAttack(attacker, target, 6, 5)
+		resolveAttackPair(attacker, target)
+		target.damage.assertEquals(0.)
+		destroy target
+		destroy attacker
+
+@Test function hitRegionsOrdinaryWindowSurvivesFreezeRegionChangesAndReentry()
+	let attacker = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 100, -1)
+	let input = new InputSnapshot()
+	prepareHitRegionAttack(attacker, target, 6, 5)
+	resolveAttackPair(attacker, target)
+	for tick = 1 to 7
+		advance(attacker, 0, input, -240)
+		resolveAttackPair(attacker, target)
+		attacker.attackFrame.assertEquals(5)
+		target.damage.assertEquals(10.)
+	target.x = 500
+	resolveAttackPair(attacker, target)
+	target.x = 50
+	advance(attacker, 0, input, -240)
+	attacker.attackFrame.assertEquals(6)
+	resolveAttackPair(attacker, target)
+	target.damage.assertEquals(10.)
+	while attacker.attackStyle >= 0
+		advance(attacker, 0, input, -240)
+	prepareHitRegionAttack(attacker, target, 6, 5)
+	resolveAttackPair(attacker, target)
+	target.damage.assertEquals(17.)
+	destroy input
+	destroy target
+	destroy attacker
+
+@Test function hitRegionsRecordOrdinaryContactsPerTarget()
+	let attacker = new FighterState(0, 0, 1)
+	let firstTarget = new FighterState(1, 100, -1)
+	let secondTarget = new FighterState(1, 50, -1)
+	prepareHitRegionAttack(attacker, firstTarget, 6, 5)
+	resolveAttackPair(attacker, firstTarget)
+	attacker.hitlag = 0
+	resolveAttackPair(attacker, secondTarget)
+	firstTarget.damage.assertEquals(10.)
+	secondTarget.damage.assertEquals(7.)
+	attacker.hitlag = 0
+	resolveAttackPair(attacker, firstTarget)
+	firstTarget.damage.assertEquals(10.)
+	destroy secondTarget
+	destroy firstTarget
+	destroy attacker
+
+@Test function hitRegionsUpAerialExplicitlyRehitsOnlyOnItsFinishingWindow()
+	let attacker = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 0, -1)
+	let input = new InputSnapshot()
+	attacker.z = 300
+	target.z = 400
+	prepareHitRegionAttack(attacker, target, AERIAL_UP_STYLE, 5)
+	resolveAttackPair(attacker, target)
+	target.damage.assertEquals(4.)
+	target.hitlag.assertEquals(2)
+	for tick = 1 to 2
+		advance(attacker, 0, input, -240)
+		resolveAttackPair(attacker, target)
+		attacker.attackFrame.assertEquals(5)
+		target.damage.assertEquals(4.)
+	advance(attacker, 0, input, -240)
+	attacker.attackFrame.assertEquals(6)
+	resolveAttackPair(attacker, target)
+	target.damage.assertEquals(4.)
+	advance(attacker, 0, input, -240)
+	attacker.attackFrame.assertEquals(7)
+	resolveAttackPair(attacker, target)
+	target.damage.assertEquals(12.)
+	target.hitlag.assertEquals(5)
+	// Finisher: 12 post-hit percent, 8 damage, 110 growth and 24 base.
+	target.knockbackX.assertEquals(2.433, 0.0001)
+	target.knockbackZ.assertEquals(9.4229681, 0.0001)
+	attacker.hitlag = 0
+	resolveAttackPair(attacker, target)
+	target.damage.assertEquals(12.)
+	advance(attacker, 0, input, -240)
+	attacker.attackFrame.assertEquals(8)
+	resolveAttackPair(attacker, target)
+	target.damage.assertEquals(12.)
+	destroy input
+	destroy target
+	destroy attacker
+
+@Test function hitRegionsFinisherCanConnectWhenTheOpeningWindowMisses()
+	let attacker = new FighterState(0, 0, -1)
+	let target = new FighterState(1, 500, 1)
+	attacker.z = 300
+	target.z = 400
+	prepareHitRegionAttack(attacker, target, AERIAL_UP_STYLE, 5)
+	resolveAttackPair(attacker, target)
+	target.damage.assertEquals(0.)
+	target.x = 0
+	attacker.attackFrame = 7
+	resolveAttackPair(attacker, target)
+	target.damage.assertEquals(8.)
+	target.knockbackX.assertLessThan(0.)
+	target.knockbackZ.assertGreaterThan(0.)
+	destroy target
+	destroy attacker
+
+@Test function hitRegionsSnapshotDifferentEffectsBeforeEitherTradeCancelsAttack()
+	for reverse = 0 to 1
+		let first = new FighterState(0, 0, 1)
+		let second = new FighterState(1, 100, -1)
+		beginAttackPair(first, second, 6, 6, false, false)
+		first.attackFrame = 5
+		second.attackFrame = 6
+		if reverse == 0
+			resolveAttackPair(first, second)
+		else
+			resolveAttackPair(second, first)
+		first.damage.assertEquals(8.)
+		second.damage.assertEquals(10.)
+		first.hitlag.assertEquals(7)
+		second.hitlag.assertEquals(7)
+		first.knockbackX.assertLessThan(0.)
+		second.knockbackX.assertGreaterThan(0.)
+		first.attackStyle.assertEquals(-1)
+		second.attackStyle.assertEquals(-1)
+		destroy second
+		destroy first
+
+@Test function hitRegionsShieldConsumesTheSelectedWindowAndHitlag()
+	let attacker = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 100, -1)
+	target.shield = true
+	prepareHitRegionAttack(attacker, target, 6, 5)
+	resolveAttackPair(attacker, target)
+	target.damage.assertEquals(0.)
+	target.shieldEnergy.assertEquals(53.)
+	attacker.hitlag.assertEquals(7)
+	attacker.hitlag = 0
+	target.shield = false
+	attacker.attackFrame = 6
+	resolveAttackPair(attacker, target)
+	target.damage.assertEquals(0.)
+	destroy target
+	destroy attacker
+
 @Test function emptyLandingRecoversOnceAfterFourTicks()
 	for character = 0 to 1
 		let fighter = new FighterState(character, 0, 1)

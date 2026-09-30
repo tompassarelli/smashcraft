@@ -169,6 +169,11 @@ public class FighterState
 	int attackDuration = 0
 	int attackSerial = 0
 	boolean attackHit = false
+	// The match has one opposing fighter; record contact on each victim, not
+	// each region, so overlapping regions share one per-target hit window.
+	FighterState lastHitAttacker = null
+	int lastHitAttackSerial = -1
+	int lastHitWindow = 0
 	boolean smashCharging = false
 	int smashChargeFrames = 0
 	boolean smashChargeAllowed = false
@@ -445,11 +450,7 @@ function isSmashAttack(int style) returns boolean
 public function smashDamageMultiplier(int chargeFrames) returns real
 	return 1 + (SMASH_MAX_DAMAGE_MULTIPLIER - 1) * max(0, min(SMASH_MAX_CHARGE_FRAMES, chargeFrames)) / SMASH_MAX_CHARGE_FRAMES
 
-function attackDamageWithCharge(int style, int chargeFrames) returns real
-	return attackDamage(style) * (isSmashAttack(style) ? smashDamageMultiplier(chargeFrames) : 1)
-
-// Pure ordinary-hit math. Parameters are supplied per resolved hit so future
-// sweetspot/sourspot records can vary damage, growth, base knockback, or ratio.
+// Pure ordinary-hit math. Parameters come from the selected hit region.
 // Electric, crouching, staling, fixed-knockback, and capped branches are separate.
 public function ordinaryHitKnockback(real preHitPercent, real hitDamage, real victimWeight,
 		real growthPercent, real baseKnockback, real contextScale) returns real
@@ -539,24 +540,63 @@ public function projectileZAt(FighterState f, int index) returns real
 public function projectileDirectionAt(FighterState f, int index) returns int
 	return f.projectileDirection[index]
 
-function attackHits(FighterState attacker, FighterState target, int style) returns boolean
-	let separation = target.x - attacker.x
+tuple hitEffect(real damage, real growth, real base, int hitlag, real launchX, real launchZ)
+tuple hitRegion(real minX, real maxX, real minZ, real maxZ, hitEffect hitData, int window)
+
+function noHitRegion() returns hitRegion
+	return hitRegion(0, 0, 0, 0, hitEffect(0, 0, 0, 0, 0, 0), 0)
+
+// Coordinates are facing-relative offsets of the victim's simulation origin.
+// Lower region indices win overlaps. Window zero means no authored contact;
+// increasing positive windows explicitly permit a later hit of the same target.
+function authoredHitRegion(int style, int frame, int chargeFrames, int index) returns hitRegion
+	if style < 0 or style == 1 or frame < attackStartupFrames(style) or frame >= attackStartupFrames(style) + attackActiveFrames(style)
+		return noHitRegion()
+	let damage = attackDamage(style) * (isSmashAttack(style) ? smashDamageMultiplier(chargeFrames) : 1)
+	var hitData = hitEffect(damage, ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, ordinaryHitlagFrames(damage), DIAGONAL_UNIT, DIAGONAL_UNIT)
+	if style == 6
+		let early = frame == attackStartupFrames(style)
+		if index == 0
+			hitData = hitEffect(early ? 10 : 8, early ? 110 : 90, early ? 24 : 18, early ? 7 : 4, 0.8, 0.6)
+			return hitRegion(90, 145, -130, 130, hitData, 1)
+		hitData = hitEffect(early ? 7 : 5, early ? 80 : 70, early ? 16 : 12, early ? 3 : 2, DIAGONAL_UNIT, DIAGONAL_UNIT)
+		return hitRegion(0, 110, -130, 130, hitData, 1)
 	if style == LEDGE_ATTACK_STYLE
-		return not target.out and not isIntangible(target) and separation * attacker.facing >= 0 and separation.abs() <= 140 and (target.z - attacker.z).abs() <= 90
-	let verticalOffset = style == 9 ? 65 : (style == 10 ? -65 : 0)
-	if isAerialAttack(style)
-		let vertical = target.z - attacker.z
-		if style == AERIAL_NEUTRAL_STYLE
-			return not target.out and not isIntangible(target) and separation.abs() <= 90 and vertical >= -65 and vertical <= 90
-		if style == AERIAL_FORWARD_STYLE
-			return not target.out and not isIntangible(target) and separation * attacker.facing >= 0 and separation.abs() <= 165 and vertical >= -65 and vertical <= 100
-		if style == AERIAL_BACK_STYLE
-			return not target.out and not isIntangible(target) and separation * attacker.facing <= 0 and separation.abs() <= 155 and vertical >= -65 and vertical <= 100
-		if style == AERIAL_UP_STYLE
-			return not target.out and not isIntangible(target) and separation.abs() <= 105 and vertical >= 20 and vertical <= 190
-		return not target.out and not isIntangible(target) and separation.abs() <= 95 and vertical >= -180 and vertical <= -10
-	let inFacing = style == DOWN_ATTACK_STYLE or separation * attacker.facing >= 0
-	return not target.out and not isIntangible(target) and inFacing and separation.abs() <= attackReach(style) and (target.z - attacker.z - verticalOffset).abs() <= 130
+		return hitRegion(0, 140, -90, 90, hitData, 1)
+	if style == AERIAL_NEUTRAL_STYLE
+		return hitRegion(-90, 90, -65, 90, hitData, 1)
+	if style == AERIAL_FORWARD_STYLE
+		return hitRegion(0, 165, -65, 100, hitData, 1)
+	if style == AERIAL_BACK_STYLE
+		hitData = hitEffect(damage, hitData.growth, hitData.base, hitData.hitlag, -DIAGONAL_UNIT, DIAGONAL_UNIT)
+		return hitRegion(-155, 0, -65, 100, hitData, 1)
+	if style == AERIAL_UP_STYLE
+		let finisher = frame == attackStartupFrames(style) + 2
+		hitData = hitEffect(finisher ? 8 : 4, finisher ? 110 : 60, finisher ? 24 : 14, finisher ? 5 : 2, 0.25, 0.9682458)
+		return hitRegion(-105, 105, 20, 190, hitData, finisher ? 2 : 1)
+	if style == AERIAL_DOWN_STYLE
+		hitData = hitEffect(damage, hitData.growth, hitData.base, hitData.hitlag, 0.25, -0.9682458)
+		return hitRegion(-95, 95, -180, -10, hitData, 1)
+	let verticalOffset = style == 9 ? 65. : (style == 10 ? -65. : 0.)
+	return hitRegion(style == DOWN_ATTACK_STYLE ? -attackReach(style) : 0, attackReach(style), verticalOffset - 130, verticalOffset + 130, hitData, 1)
+
+function selectHitRegion(FighterState attacker, FighterState target) returns hitRegion
+	if attacker.out or attacker.hitlag > 0 or target.out or isIntangible(target)
+		return noHitRegion()
+	let localX = (target.x - attacker.x) * attacker.facing
+	let localZ = target.z - attacker.z
+	for index = 0 to (attacker.attackStyle == 6 ? 1 : 0)
+		let hitBox = authoredHitRegion(attacker.attackStyle, attacker.attackFrame, attacker.smashChargeFrames, index)
+		let alreadyHit = target.lastHitAttacker == attacker and target.lastHitAttackSerial == attacker.attackSerial and target.lastHitWindow >= hitBox.window
+		if hitBox.window > 0 and not alreadyHit and localX >= hitBox.minX and localX <= hitBox.maxX and localZ >= hitBox.minZ and localZ <= hitBox.maxZ
+			return hitBox
+	return noHitRegion()
+
+function recordHitRegion(FighterState attacker, FighterState target, hitRegion hitBox)
+	attacker.attackHit = true
+	target.lastHitAttacker = attacker
+	target.lastHitAttackSerial = attacker.attackSerial
+	target.lastHitWindow = hitBox.window
 
 public function isIntangible(FighterState f) returns boolean
 	if f.ledgeState != LEDGE_NONE and f.ledgeIntangible > 0
@@ -1073,8 +1113,8 @@ function cancelAttack(FighterState fighter)
 	fighter.smashChargeFrames = 0
 	fighter.smashChargeAllowed = false
 
-function applyAttackHit(FighterState attacker, FighterState target, int style, int chargeFrames)
-	let damage = attackDamageWithCharge(style, chargeFrames)
+function applyAttackHit(FighterState attacker, FighterState target, int style, int facing, hitEffect hitData)
+	let damage = hitData.damage
 	if style == 5
 		target.diPending = false
 		target.diLaunchSpeed = 0
@@ -1092,19 +1132,9 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	if target.shield and target.shieldEnergy > 0
 		target.shieldEnergy = max(0, target.shieldEnergy - damage * 0.7)
 		target.shieldStun = R2I((damage * 0.45 + 2) * 200 / 201)
-		attacker.hitlag = max(attacker.hitlag, R2I(damage / 3 + 3))
+		attacker.hitlag = max(attacker.hitlag, hitData.hitlag)
 		if target.shieldEnergy == 0
 			beginShieldBreak(target)
-		return
-	if style == 1
-		target.damage += damage
-		if attacker.character == 1
-			target.diPending = false
-			target.diLaunchSpeed = 0
-			interruptJumpOrDodge(target)
-			clearDownState(target)
-			cancelAttack(target)
-			target.hitstun = max(target.hitstun, 11)
 		return
 	let groundedBeforeHit = target.grounded
 	target.diPending = false
@@ -1114,24 +1144,14 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	cancelAttack(target)
 	let weight = target.character == 0 ? 75. : 80.
 	let knockback = ordinaryHitKnockback(target.damage, damage, weight,
-		ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, ORDINARY_HIT_CONTEXT_SCALE)
+		hitData.growth, hitData.base, ORDINARY_HIT_CONTEXT_SCALE)
 	target.damage += damage
 	target.vx = 0
 	target.vz = 0
 	target.grounded = false
 	let launch = knockback * KNOCKBACK_LAUNCH_SCALE
-	if style == AERIAL_UP_STYLE
-		target.knockbackX = attacker.facing * launch * 0.25
-		target.knockbackZ = launch * 0.9682458
-	else if style == AERIAL_DOWN_STYLE
-		target.knockbackX = attacker.facing * launch * 0.25
-		target.knockbackZ = -launch * 0.9682458
-	else if style == AERIAL_BACK_STYLE
-		target.knockbackX = -attacker.facing * launch * DIAGONAL_UNIT
-		target.knockbackZ = launch * DIAGONAL_UNIT
-	else
-		target.knockbackX = attacker.facing * launch * DIAGONAL_UNIT
-		target.knockbackZ = launch * DIAGONAL_UNIT
+	target.knockbackX = facing * launch * hitData.launchX
+	target.knockbackZ = launch * hitData.launchZ
 	target.sdiWasGrounded = groundedBeforeHit
 	target.sdiLaunchesUpward = target.knockbackZ > 0
 	target.diPending = true
@@ -1141,8 +1161,8 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 		target.downState = DOWN_TUMBLE
 		target.downFrame = 0
 		target.downDirection = 0
-	target.hitlag = ordinaryHitlagFrames(damage)
-	attacker.hitlag = max(attacker.hitlag, ordinaryHitlagFrames(damage))
+	target.hitlag = max(target.hitlag, hitData.hitlag)
+	attacker.hitlag = max(attacker.hitlag, hitData.hitlag)
 
 public function simulationJump(FighterState f)
 	if f.ledgeState != LEDGE_NONE
@@ -1200,31 +1220,39 @@ public function beginAttackPair(FighterState first, FighterState second, int fir
 public function resolveAttackPair(FighterState first, FighterState second)
 	let firstStyle = first.attackStyle
 	let secondStyle = second.attackStyle
-	let firstHits = firstStyle >= 0 and attackPhase(first) == ATTACK_ACTIVE and not first.attackHit and (firstStyle == 1 or canResolveAttack(first, second))
-	let secondHits = secondStyle >= 0 and attackPhase(second) == ATTACK_ACTIVE and not second.attackHit and (secondStyle == 1 or canResolveAttack(second, first))
-	let firstChargeFrames = first.smashChargeFrames
-	let secondChargeFrames = second.smashChargeFrames
+	let firstRegion = selectHitRegion(first, second)
+	let secondRegion = selectHitRegion(second, first)
+	let firstShot = firstStyle == 1 and attackPhase(first) == ATTACK_ACTIVE and not first.attackHit
+	let secondShot = secondStyle == 1 and attackPhase(second) == ATTACK_ACTIVE and not second.attackHit
+	let firstHits = firstShot or firstRegion.window > 0
+	let secondHits = secondShot or secondRegion.window > 0
+	let firstFacing = first.facing
+	let secondFacing = second.facing
 	let firstGrabPriority = firstHits and firstStyle == 5 and secondStyle != 5
 	let secondGrabPriority = secondHits and secondStyle == 5 and firstStyle != 5
-	if firstHits
+	if firstShot
 		first.attackHit = true
-	if secondHits
+	if secondShot
 		second.attackHit = true
+	if firstRegion.window > 0 and not secondGrabPriority
+		recordHitRegion(first, second, firstRegion)
+	if secondRegion.window > 0 and not firstGrabPriority
+		recordHitRegion(second, first, secondRegion)
 	if firstHits and not secondGrabPriority
 		if firstStyle == 1
 			spawnProjectile(first)
 		else
-			applyAttackHit(first, second, firstStyle, firstChargeFrames)
+			applyAttackHit(first, second, firstStyle, firstFacing, firstRegion.hitData)
 	if secondHits and not firstGrabPriority
 		if secondStyle == 1
 			spawnProjectile(second)
 		else
-			applyAttackHit(second, first, secondStyle, secondChargeFrames)
-
-function canResolveAttack(FighterState attacker, FighterState target) returns boolean
-	return not target.out and attackHits(attacker, target, attacker.attackStyle)
+			applyAttackHit(second, first, secondStyle, secondFacing, secondRegion.hitData)
 
 public function reset(FighterState f, real startX)
+	f.lastHitAttacker = null
+	f.lastHitAttackSerial = -1
+	f.lastHitWindow = 0
 	clearDash(f)
 	clearLedge(f)
 	f.ledgeSerial = 0
