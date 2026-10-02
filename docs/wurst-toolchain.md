@@ -98,12 +98,25 @@ change, then passed with stale-output removal; CompiletimeNativesTest and
 shadowJar passed. wc3-melee:wurst-toolchain.lock records the consumed jar hash.
 
 The current compiler pin is
-~/code/wurst-compiler/pins/c31f228c4a43dad1bca4d4acc003b1d12a823331.
-It additionally applies configured map metadata before generating the lobby
-script and invalidates old injection caches. The original two-slot fixture
-emitted SetPlayers(1) before this repair and SetPlayers(2) afterward.
-Focused upstream checks passed: ProjectConfigBuilderTests 5/5 and
-WurstBuildConfigTests 14/14. The consumer lock records the new artifact hash.
+~/code/wurst-compiler/pins/9913e1bd300c2053637d756a11bae8c3c8ed568f,
+from https://github.com/tompassarelli/WurstScript. It combines upstream
+fa6423f9516919f05dd27f085530f20fdcd9162a with compact interpreter scalar storage,
+linked-worktree build support, explicit-filter no-match errors, and the retained
+standalone binary object-output repair. Shared test state and object lifetimes
+are unchanged. The upstream map pipeline now applies configured metadata before
+generating the lobby script and invalidates caches by compiler version, replacing
+the older local lobby-config repair. Focused adoption checks passed: 50 tests,
+including standalone object output and configured W3I/Jass/Lua map output.
+wc3-melee:wurst-toolchain.lock records the exact source commit and jar hash.
+On 2026-10-02, the active gameplay development tree passed 465/465 tests through
+its default launcher and finished Lua compilation with zero errors in 2m01s. A deployment-disabled native-profile
+build passed compilation and package checks in 1m32s, producing
+wc3-melee:build/compiler-pin-9913e1bd3/Smashcraft.w3x. It did not replace the
+installed map or restart a client.
+
+Upstream submissions:
+[scalar-storage memory fix](https://github.com/wurstscript/WurstScript/pull/1350) and
+[Gradle Git metadata fix](https://github.com/wurstscript/WurstScript/pull/1349).
 
 Keyboard bindings store Warcraft virtual key codes. Use `GetHandleId` and
 `ConvertOsKeyType` at this engine boundary: the Lua compiler replaces the
@@ -154,7 +167,10 @@ bash ~/code/wc3-melee/worktrees/test-loop/test.sh ReplaySoak 180
 ```
 
 The optional second argument sets the pinned compiler's supported per-test
-`-testTimeout` in seconds; default is 20. The separate 100,000-frame recorded
+`-testTimeout` in seconds; default is 90. The aggregate launcher uses a 2 GiB
+Java heap and two active processors, matching the measured passing suite.
+Filters are case-insensitive literal substrings of `Package.function`; an
+explicit filter matching no tests is an error. The separate 100,000-frame recorded
 input oracle needs the longer limit. These are headless replay checks, not
 native multiplayer measurements. Use the shared capacity runner for sustained
 local work. Latest observations and limitations are recorded in

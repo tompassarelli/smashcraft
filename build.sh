@@ -2,7 +2,7 @@
 set -euo pipefail
 
 project_dir=$(cd -- "$(dirname -- "$0")" && pwd)
-compiler_checkout=/home/tom/code/wurst-compiler/pins/c31f228c4a43dad1bca4d4acc003b1d12a823331
+compiler_checkout=/home/tom/code/wurst-compiler/pins/9913e1bd300c2053637d756a11bae8c3c8ed568f
 stdlib_checkout=/home/tom/code/wurst-stdlib/pins/4dfc8a0474bd
 compiler_jar="$project_dir/toolchain/wurstscript.jar"
 java=/home/tom/.wurst/wurst-runtime/bin/java
@@ -42,9 +42,9 @@ if [[ ! "$build_id" =~ ^[A-Za-z0-9._-]+$ ]]; then
     exit 2
 fi
 
-expected_compiler_commit=c31f228c4a43dad1bca4d4acc003b1d12a823331
+expected_compiler_commit=9913e1bd300c2053637d756a11bae8c3c8ed568f
 expected_stdlib_commit=4dfc8a0474bd0b9628ff79d935310c7fc92bce4a
-expected_compiler_sha256=9169418755f722bbbfd36f4e4f2e34241e72a0e006510040b3569eb76e4cb6ad
+expected_compiler_sha256=2ed2ee8cf563aedaef7e384b2e0c68f50a306144e99fa506b90935c62b64a18a
 actual_compiler_sha256=$(sha256sum "$compiler_jar" | cut -d ' ' -f 1)
 [[ "$actual_compiler_sha256" == "$expected_compiler_sha256" ]] || {
     printf 'Pinned Wurst compiler checksum mismatch.\n' >&2
