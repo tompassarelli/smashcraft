@@ -66,7 +66,7 @@ Local reference checkouts are read-only under ~/code/resources/WurstScript,
 The compiler and standard library declare Apache-2.0. Preserve applicable
 licenses and notices when distributing their artifacts or derived source.
 The Melee reference is ~/code/resources/melee; factual movement and combat
-parameters and their sources are recorded in wc3-melee:PHYSICS.md. Gameplay
+parameters and their sources are recorded in wc3-melee:docs/physics.md. Gameplay
 implementation is independent; no decompiled source has been copied.
 
 ## Generated object data
@@ -158,4 +158,4 @@ The optional second argument sets the pinned compiler's supported per-test
 input oracle needs the longer limit. These are headless replay checks, not
 native multiplayer measurements. Use the shared capacity runner for sustained
 local work. Latest observations and limitations are recorded in
-wc3-melee:native-capability-report.md.
+wc3-melee:docs/native-capability-report.md.

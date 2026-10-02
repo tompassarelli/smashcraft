@@ -1,6 +1,6 @@
 # Development plan
 
-Current scope and delivery order are in wc3-melee:GOAL.md. The reference-grounded
+Current scope and delivery order are in wc3-melee:docs/delivery-goal.md. The reference-grounded
 shared-combat and complete two-fighter milestone takes priority over the older
 sequencing notes below; unfinished systems are not delivered by isolated fixes.
 
@@ -46,25 +46,21 @@ snapshot state; native bird/bear/trap objects are presentation only.
 
 ### Demon Hunter (Illidan) source coverage
 
-This is a simulation implementation boundary, not a playable-character claim.
-Character ID 2 has distinct ground/aerial hit regions and movement parameters;
-four special action IDs; and uses existing shared grab/throw, shield, dodge,
-ledge, knockback, hitlag, hitstun, stock and recovery rules. Focused tests cover
-normal contact across both facings, ground/air Immolate, projectile hitstun,
-parry interruption, wing jump consumption, and Immolate replay restoration.
+Character ID 2 uses independently authored ground/aerial contact volumes,
+movement parameters and four specials, alongside the shared defense, damage,
+grab/throw, recovery, stock and replay rules. All 88 authored animation clips
+are bound, including movement transitions, coordinated holder/victim poses,
+smash charge/release, wings and fel cues. Body/weapon/foot bounds are baked per
+action frame; stretched recovery clips sample the corresponding authored phase.
+The model, local contact bounds and fel offsets use scale 0.8.
 
-| Character family | Simulation source/test | Animation, roster, installed/native |
-| --- | --- | --- |
-| Ground jab, tilts, smashes, dash attack | Implemented with explicit character-2 regions; dash neutral-Attack conversion/contact covered | Clips authored and bound; native contact/poses unverified |
-| Neutral/forward/back/up/down aerial | Implemented with explicit character-2 regions and shared clocks; focused contact test | Clips authored and bound; native contact/poses unverified |
-| Mana Burn / Parry Step / Wing Ascent / Immolate | Implemented as IDs 9–12; specials tested | Clips authored and bound; effects unfinished; not installed or native-verified |
-| Grabs, pummel, throws, movement, ordinary defense/recovery | Existing shared simulation applies to character 2 | Clips authored; partial shared-state mapping; native verification pending |
-| Wings, portrait, selection chip, HUD label | Third fighter accepted for human/CPU selection and rematches | Wings authored; portrait, chip tile and HUD integrated in source; native verification pending |
-
-The move tuning is provisional original design recorded in
-wc3-melee:PHYSICS.md. The development roster now permits Illidan so the real
-selection-to-match path can be tested. Do not release him as complete until
-animation mapping, effects and actual installed-match behavior are verified.
+The resized integrated source suite passes 395/395. Installed single-client
+checks now cover real attacks, aerials, specials, throws, shield break, hitlag,
+selection, mirror entry and stock/rematch behavior, including techs, get-ups
+and every ledge option. Detailed acceptance evidence is maintained in the Demon Hunter checklist
+in wc3-melee:docs/fighter-animation-work.md. Move tuning remains provisional original design in
+wc3-melee:docs/physics.md; neither source tests nor a visual playthrough establish
+Melee numerical parity or multiplayer safety.
 
 The trap/freeze slice passed 265/265 Wurst tests, including expiry at 300
 simulation advances during hitlag, hit interruption, KO/reset and snapshot
@@ -89,7 +85,7 @@ and bent opposite leg for humanoid fighters.
 - [ ] Author frame-indexed hitboxes and pose-dependent hurtboxes alongside each fighter animation. Collision and rendered animation must share simulation frame, facing, hitlag freeze, and cancellation timing. Replace provisional broad rectangles with this move data; verify contact alignment with a developer collision overlay in Warcraft.
 - [ ] Validate grounded neutral Attack (N) as jab; walking modifier (`;`) plus direction as tilt/angled forward tilt; airborne Attack as neutral/forward/back/up/down aerial. Exercise transitions at takeoff and landing, and preserve facing for back air.
 - [ ] Author distinct Archer and Rifleman animations for all five aerial normals, alongside distinct grounded jab and tilt poses. Align startup, active contact, recovery, hitlag freeze, and landing cancellation to the simulation; verify both fighters in Warcraft.
-- [ ] Trace knockback, hitlag, hitstun, knockdown/tech invulnerability, and getup attack versus directional getup rolls against the local Melee reference. Record factual source locations, exact frame conventions, and deliberate/provisional differences in wc3-melee:PHYSICS.md; add discriminating Wurst cases before claiming parity.
+- [ ] Trace knockback, hitlag, hitstun, knockdown/tech invulnerability, and getup attack versus directional getup rolls against the local Melee reference. Record factual source locations, exact frame conventions, and deliberate/provisional differences in wc3-melee:docs/physics.md; add discriminating Wurst cases before claiming parity.
 
 The five aerial attack styles already exist in wc3-melee:wurst/CombatInput.wurst
 and wc3-melee:wurst/Simulation.wurst. Their hit geometry, damage and timing are
@@ -105,7 +101,7 @@ includes the selection-gesture correction. Native checks remain pending while
 the desktop is in use; the client still has the earlier pointer-probe map.
 The current collision target remains a single fighter origin. Pose-derived
 hurtboxes, authored animation alignment, and native feel are still required.
-Parameters and evidence are in wc3-melee:PHYSICS.md.
+Parameters and evidence are in wc3-melee:docs/physics.md.
 
 Solid stage decks replace the stage lightning strips. The authored slate/brass
 model is generated by wc3-melee:tools/stage/package.ts; its top spans normalized
@@ -240,7 +236,7 @@ For wavedashing, tests will specify the input sequence, jump-squat frames,
 air-dodge direction, landing transition, and retained horizontal velocity.
 The simulation advances at 60 logical frames per second. Distinguish sourced
 parameters from provisional move tuning. Study the factual frame rules in
-~/code/resources/melee and record independently implemented mechanics in wc3-melee:PHYSICS.md before claiming fidelity; logical frame timing and
+~/code/resources/melee and record independently implemented mechanics in wc3-melee:docs/physics.md before claiming fidelity; logical frame timing and
 Warcraft's actual input delivery cadence are separate questions.
 
 ## What tests cannot settle
@@ -258,14 +254,14 @@ The victim's last hitlag frame samples those axes once to adjust launch angle;
 later steering does not repeatedly rotate the launch. The developer line's
 `DI=count:degrees` reports nonzero applications for the native input check.
 The control bindings remain player-configurable. Numerical and digital-input
-differences are recorded in wc3-melee:PHYSICS.md.
+differences are recorded in wc3-melee:docs/physics.md.
 
 Launch velocity is separate from ordinary movement. Collision and the bot's
 descent check use their sum; gravity caps only ordinary falling velocity.
 The launch vector loses magnitude along its current direction, rather than
 subtracting the same amount from both axes. DI rotates that vector, leaving
 ordinary movement alone. Detailed reset, landing, and action choices are in
-wc3-melee:PHYSICS.md.
+wc3-melee:docs/physics.md.
 
 Directional taps during hitlag now feed SDI position shifts. Component-entry
 rules distinguish a fresh tap or newly added diagonal axis from holding a key
@@ -275,7 +271,7 @@ The adapter derives these axes from the player's bindings, not fixed key codes.
 The developer counters `S` and `A` report actual SDI and ASDI displacements.
 ASDI reuses ordinary landing/recovery code; a downward SDI floor crossing blocks
 that vertical shift while downward SDI in open air remains possible. Reference
-parameters and deliberate differences are in wc3-melee:PHYSICS.md.
+parameters and deliberate differences are in wc3-melee:docs/physics.md.
 
 SDI/ASDI passes 123/123 headless tests with no warnings; output is retained at
 ~/code/wc3-melee/worktrees/test-loop/build/wurst-tests/sdi-asdi-full.log.
@@ -293,6 +289,20 @@ Evidence:
 and ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/hitlag-shift-reload.log.
 
 ## Native input batching
+
+The opt-in `shadow-d3` gameplay profile is built with
+`WC3_BUILD_ID=gameplay-shadow-d3 WC3_INPUT_PROFILE=shadow-d3` before the usual
+`build.sh BASE_MAP` command. The default `callback` profile remains unchanged.
+Shadow mode requires two human players; a one-human match reports that
+requirement and uses the standard controls. During a two-human match, local
+keyboard polling captures immutable D=3 input rows, while only synchronized
+receipt advances shared input. Fighting simulation renders accepted frames;
+prediction and replay stay in a separate numerical copy. Selection, Y pause,
+and rematch continue through their existing synchronized controls. The profile
+uses each participant's saved key bindings. It neutral-samples while Warcraft
+is locally inactive, but the supported APIs do not identify built-in chat
+focus; avoid typing in chat during a shadow-profile match. This profile remains
+an experiment until the built map is exercised by the live two-client path.
 
 Ctrl+T records 300 presentation ticks of key callbacks and directional snapshots to
 the prefix's Warcraft III CustomMapData files `wc3-melee-input-start.txt` and
@@ -449,7 +459,7 @@ route. JHCR can improve in-game iteration with JASS output, but is an optional
 accelerator; its setup must not block headless simulation work. Choose between
 backends from working builds, tests, and measured in-game behavior. Toolchain
 selection and automation are the assistant's responsibility, not an operator
-menu. See wc3-melee:WURST.md and wc3-melee:LOOP.md for source findings and prior
+menu. See wc3-melee:docs/wurst-toolchain.md and wc3-melee:docs/development-loop.md for source findings and prior
 timings.
 
 ## Headless checkpoint
@@ -480,7 +490,7 @@ queued commands, resolve attacks against pre-hit state, then resolve stocks.
 Shield minimum hold/release lag, air-dodge helplessness, platform crossing,
 short/full hops, attack trades and simultaneous final stocks are covered.
 Current grab/pummel/throw behavior and its reference scope are documented in
-wc3-melee:PHYSICS.md; the original fixed-duration hold has been replaced.
+wc3-melee:docs/physics.md; the original fixed-duration hold has been replaced.
 
 Next required work:
 
@@ -560,11 +570,11 @@ multiplayer synchronization or latency properties.
 Settings read on map startup and write on Save. A same-map disk reread is not
 supported: Warcraft returned the prior cached preload contents after the file
 had changed. The UI exposes preset selection, rebinding and Save; restoration
-is automatic next time the map starts. See wc3-melee:WURST.md for the observed
+is automatic next time the map starts. See wc3-melee:docs/wurst-toolchain.md for the observed
 engine boundary. Blender is installed and its animated import/export API issues
 are repaired. Archer and Rifleman now have editable textured scenes; authored
 clips and complete in-game animation fidelity remain unfinished. Commands and the model
-version limitation are recorded in wc3-melee:ANIMATIONS.md.
+version limitation are recorded in wc3-melee:docs/fighter-animation-work.md.
 
 ## Air-dodge checkpoint
 
@@ -612,7 +622,7 @@ one-contact flag. MatchStep starts queued moves, then resolves active contacts
 from both fighters' pre-hit eligibility. Damage can cancel startup. The
 adapter starts animations from the serial, freezes playback during hitlag and
 routes bot facing through the queued command. Timing values in
-wc3-melee:PHYSICS.md are prototype tuning; authored clips, hitbox shapes,
+wc3-melee:docs/physics.md are prototype tuning; authored clips, hitbox shapes,
 projectiles and character-specific move data remain unfinished.
 The 52-test suite passes with zero warnings. Tests now advance attacks through
 the shared MatchStep, including startup interruption, later contact during an
@@ -655,7 +665,7 @@ contact, missed-shot lifetime, Fox versus Falco hit response and intangibility;
 simultaneous-attack checks remain green. The adapter renders a short red/blue
 beam from each active projectile's simulation position and clears visuals when
 the match ends or fighters are replaced. Projectile speed, shape, damage and
-stun remain prototype tuning recorded in wc3-melee:PHYSICS.md.
+stun remain prototype tuning recorded in wc3-melee:docs/physics.md.
 
 Build 210040 loaded in 22.448 seconds with the same Warcraft process. The
 native-key probe entered character → stage → match, fired U, displayed a red
@@ -671,7 +681,7 @@ still reports the two known SettingsUI array-initialization warnings.
 The first Archer jab is exported from Blender and integrated through Wurst
 object definitions and map packaging. The native client recording shows N
 starting it; it needs stronger visible motion before treating its art as
-finished. See wc3-melee:ANIMATIONS.md for asset generation, tool repairs and
+finished. See wc3-melee:docs/fighter-animation-work.md for asset generation, tool repairs and
 remaining clip work.
 
 The owner requires a fixed arena camera. Every presentation tick now restores
@@ -693,7 +703,7 @@ until the frame boundary; the order of shield/direction callbacks within the
 frame does not choose the action. Held direction does not repeat a roll.
 The headless suite passed 65/65 with zero warnings/errors, covering dodge
 timing/protection, recovery, facing, platform retention and input arbitration.
-See wc3-melee:PHYSICS.md for provisional parameters and intentional differences.
+See wc3-melee:docs/physics.md for provisional parameters and intentional differences.
 
 Build 214039 loaded in 23.153 seconds with the same Warcraft process. Native
 input entered the match and started a left roll; the subsequent image showed
@@ -814,7 +824,7 @@ that route must also pass the headless hit/landing tests.
 Recovery simulation passes 77/77 headless tests with no warnings. The first
 native scenario exposed unwanted animation looping: the impact clip returned
 to its first upright pose during DOWN_WAIT, and get-up attack repeated. The
-owning exporter fix is documented in wc3-melee:ANIMATIONS.md. After regeneration,
+owning exporter fix is documented in wc3-melee:docs/fighter-animation-work.md. After regeneration,
 build 225738 reloaded in 22.690 seconds with the same Warcraft process. Its
 recording shows the held prone pose, one get-up attack, and return upright.
 Evidence: ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/getup-attack-client.mp4
@@ -893,7 +903,7 @@ Air drift preserves facing, so reversing direction can produce back air.
 Landing cancels an unfinished aerial into move-specific landing recovery.
 The initial aerials use stock attack animation and a move-name notice; distinct
 authored clips, character-specific tuning, multi-hit moves, and autocancel windows
-remain unfinished. See wc3-melee:PHYSICS.md for current tuning.
+remain unfinished. See wc3-melee:docs/physics.md for current tuning.
 
 The integrated suite passes 95/95 tests with zero compiler warnings/errors.
 It covers airborne move selection, back-air facing during reverse drift, and
@@ -921,7 +931,7 @@ The full suite passes 99/99 tests with zero compiler warnings/errors. Coverage
 includes last-valid/first-expired contact, held Shield expiry, hitlag retention,
 all five recovery reductions, action lockout, tech-lockout independence,
 unaffected empty/air-dodge landings, and stock/reset clearing. Details and
-remaining reference uncertainty are in wc3-melee:PHYSICS.md.
+remaining reference uncertainty are in wc3-melee:docs/physics.md.
 
 Build 232706 reloaded in 23.661 seconds with the Warcraft process retained.
 The native back-air → Shield → landing sequence displayed "L-cancel!". The
@@ -949,7 +959,7 @@ callback order. Expired commands cannot leave charge permission behind.
 The simulation reads held Attack at the frame boundary. Charge pauses the
 attack clock; the renderer freezes its current pose and shows a release prompt.
 The initial charge checkpoint and existing smash animation are provisional.
-See wc3-melee:PHYSICS.md for the damage curve and timing rules.
+See wc3-melee:docs/physics.md for the damage curve and timing rules.
 
 The full suite passes 107/107 tests with zero compiler warnings/errors.
 Native build 234005 reloaded in 23.218 seconds with the client process retained.
@@ -1072,7 +1082,7 @@ second player hands over to it. The combined headless suite passed 143/143.
 The build now uses Wurst's native map pipeline for lobby metadata, imports and
 objects, then merges the preserved base Lua initialization. The final archive
 contains SetPlayers(2). A compiler ordering/cache defect was repaired upstream
-and repinned; details are in wc3-melee:WURST.md.
+and repinned; details are in wc3-melee:docs/wurst-toolchain.md.
 
 First integrated native reload: build 013707, 34.991 seconds total, 26.228 seconds
 from build-start to build-finish, same Warcraft process. The existing solo probe
@@ -1108,7 +1118,7 @@ screenshots and each menu checkpoint are preserved under
 This proves the solo result/rematch path, not two-client readiness or sync.
 
 Ground jump now cancels shield-release lag, following the factual transition
-in the local reference recorded in wc3-melee:PHYSICS.md. The test releases an
+in the local reference recorded in wc3-melee:docs/physics.md. The test releases an
 actual held shield, advances to each possible remaining recovery tick, then
 checks ordinary squat and takeoff for both fighters. Separate checks retain
 stun and action-recovery restrictions. The focused regression failed before
@@ -1439,7 +1449,7 @@ directory). This nonblocking stale-result notice is recorded for the next UI fix
 ## Ledge clips and restart-context experiment (2026-09-30)
 
 Dedicated hang/climb animations are integrated for both fighters; export checks
-and the Archer native catch/climb observation are in wc3-melee:ANIMATIONS.md.
+and the Archer native catch/climb observation are in wc3-melee:docs/fighter-animation-work.md.
 The adapter now also hides noticeFrame in both selection phases, fixing the
 stale result message's owning visibility condition.
 
@@ -1503,7 +1513,7 @@ and the same three pre-existing warnings. The persistent client verified both
 fighters hanging at the left platform lip and climbing in 25 simulation ticks.
 Both traces: hang3, climb67, complete92.
 Native screenshots/traces are in the character-specific directories described
-in wc3-melee:ANIMATIONS.md. The normal map is rebuilt after the fixture check.
+in wc3-melee:docs/fighter-animation-work.md. The normal map is rebuilt after the fixture check.
 
 ## Restart comparison and blast-zone contrast (2026-09-30)
 
@@ -1579,7 +1589,7 @@ speeds: Archer 9.6 and Rifleman 8.4. The replaced half-speed test now checks
 both characters in both directions for ten ticks, displacement, and release
 back to run speed. It passes with zero compiler errors/warnings; log:
 wc3-melee:build/wurst-tests/walk-speed.log. Walking acceleration remains an
-explicit simplification in wc3-melee:PHYSICS.md.
+explicit simplification in wc3-melee:docs/physics.md.
 
 Build 093053 compiled, deployed, restarted the map and completed its fresh
 input trace in 26.763s, retaining the Warcraft process. Build warnings remain
@@ -1599,7 +1609,7 @@ L-cancel's empty-landing fixture now explicitly starts airborne and verifies
 the unshortened four ticks. The full suite passed 173/173 with zero warnings
 or errors: wc3-melee:build/wurst-tests/landing-recovery.log.
 Reference facts and the light/heavy-landing simplification are recorded in
-wc3-melee:PHYSICS.md.
+wc3-melee:docs/physics.md.
 
 Build 093439 compiled and deployed with the three existing build warnings,
 but Ctrl+R did not load it. The client showed “Waiting for host”; readiness
@@ -1784,15 +1794,26 @@ build passes with four existing warnings. Both fighters execute jump,
 double jump and neutral aerial in the isolated native fixture. Repaired
 exporter packages preserve unchanged authored source motion; prior buggy
 between-key output is not claimed unchanged. Current sources/evidence and the
-clip-switch pose-restoration limitation are in wc3-melee:native-capability-report.md.
+clip-switch pose-restoration limitation are in wc3-melee:docs/native-capability-report.md.
 Follow-up: preallocated 64-frame history and exact canonical field comparison
 are implemented. Ordinary suite 221/221 and a separate 100,000-frame recorded
 input replay oracle pass with zero errors/warnings. The single-timeline authored
 pose fixture restores earlier marker poses; actual fighter and multiplayer
 presentation gates remain open. Details and reproduction commands are in
-wc3-melee:native-capability-report.md and wc3-melee:WURST.md.
+wc3-melee:docs/native-capability-report.md and wc3-melee:docs/wurst-toolchain.md.
 Next: bounded input protocol/accepted ledger, fixed scheduling and corrected-input
 fault oracle, plus canonical serialization/hash; then shadow rollback. A GPU VM
 can be the second client, pending graphics/game feasibility and a separately
 licensed account. No VM or cloud resource has been provisioned. Full gameplay/UI
 backlog remains active.
+
+Two-client launcher `wc3-melee:tools/two-wc3-clients.sh` starts a private desktop
+with no automatic expiry; an explicit second argument requests a finite lifetime
+in seconds. CPU and memory limits still apply. Stop the owned launcher with
+Ctrl-C when the client is no longer needed. Reuse the separate signed-in profiles.
+Keep clients open while iterating
+maps: leave/rejoin through Warcraft's menus rather than restarting Battle.net
+or the private desktop. Restart only for a terminated/unusable owned session
+or an explicitly requested lifetime limit. A Battle.net server queue is distinct from an
+interactive authentication request. Inspect fresh UI state before asking the
+operator to sign in; launcher authentication has persisted across prior restarts.

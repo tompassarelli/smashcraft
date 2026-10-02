@@ -1,8 +1,8 @@
 # Native input/transport probe
 
 Developer-only Phase 0 experiment. Contract and outstanding gates:
-wc3-melee:SMASHCRAFT_NETCODE_PROPOSAL.md and
-wc3-melee:native-capability-report.md.
+wc3-melee:docs/netcode-proposal.md and
+wc3-melee:docs/native-capability-report.md.
 
 Build each artifact through the pinned project compiler:
 
@@ -73,7 +73,7 @@ callback later. N restarts the sequence; Ctrl+R reloads the map.
 
 Inspect the actual pose and any embedded particles, not merely the displayed
 phase counter. Initial single-client findings and the unresolved clip-change
-recovery failure are in wc3-melee:native-capability-report.md. The per-client
+recovery failure are in wc3-melee:docs/native-capability-report.md. The per-client
 yaw difference is intentional for a future two-client local-mutation check;
 that check has not been performed. No input/pose probe establishes rollback
 feasibility or native unit prediction safety by itself.
@@ -95,7 +95,7 @@ wc3-melee:build/netcode-probe/Smashcraft_Controlled_Pose_Probe.w3x.
 It uses original marker/ruler geometry with known Attack and Walk intervals;
 ten automatic phases test seconds, model-timeline offsets, clip switching and
 backward seeking. Details and observed results are recorded in
-wc3-melee:native-capability-report.md. It requires the existing animation-tool
+wc3-melee:docs/native-capability-report.md. It requires the existing animation-tool
 Bun dependency for MDL/MDX packaging, but no installed fighter assets.
 
 Variant `pose-timeline` builds

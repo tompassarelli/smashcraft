@@ -7,6 +7,111 @@ copy or translate. No license covering its decompiled gameplay code was found;
 licenses in its tools subdirectories do not cover the game. No game assets or
 implementation text are incorporated from that checkout.
 
+## Current correction checkpoint — 2026-10-01
+
+The integrated suite passes 402/402 in
+wc3-melee:build/physics-aggregate.log. The normal map builds and installs as
+`illidan-physics-complete`; build evidence is wc3-melee:build/physics-map.log.
+Native entry showed that build ID, Archer versus Rifleman, and working jump,
+aerial attack and pause controls. The trace records the accepted ground
+jump at frame 63 and aerial attack at frame 91, with zero dropped rows:
+wc3-melee:build/physics-native-controls-trace.txt. The final paused capture is
+wc3-melee:build/illidan-native/physics-controls-accepted.png. This short native
+check does not measure every collision frame or prove the numerical formulas.
+The corrections below retain the owner's shared dodge durations, 18-degree
+digital wavedash, neutral-horizontal fast-fall and deliberate lack of staling.
+Illidan retains original jump/drift tuning and 128-unit roll paths.
+
+Full Melee parity is not established. Archer/Rifleman forward-roll logical
+facing now changes at the observed frame-20 event, with entry-facing travel
+and pose retained throughout the roll (2026-10-02 correction below). Same-frame
+damage now collects in one batch before selecting the strongest launch, as
+described below. Missing common-data values leave launch stacking, ground launch
+friction, tumble/bounce details, dash transitions and shield pushback unresolved.
+Native roll-presentation and simultaneous-contact evidence remain outstanding.
+Common-parameter work requires an extracted common table or another verified
+numerical source. The public extracted-data index supplies character tables,
+but no common table. Earlier checkpoint sections record historical tuning.
+
+## Simultaneous damage contacts — 2026-10-02
+
+The pinned Melee reference's damage-log selector in melee:src/melee/ft/ftcoll.c
+evaluates contacts against accumulated temporary damage and selects the greatest
+knockback; equal values retain the earlier entry. Its ordinary formula uses
+truncated pre-frame percent plus the fractional temporary total while attack
+power belongs to the individual hit. These are factual mechanics only: the
+Wurst collection and resolution implementation is independently authored.
+
+wc3-melee:wurst/MatchStep.wurst now opens one synchronous contact batch before
+grab actions and resolves it after melee, specials, summons and projectiles.
+Every current damage path participates: throws, pummel, ordinary attacks,
+Illidan's direct special, bear swipes, hippogryph strikes, flinching lasers,
+damage-only arrows, recoil shots and mana burn. Eligible contacts are collected
+before ordinary damage can cancel another same-frame action. Each launch uses
+the whole unblocked damage total and its own power, growth, base, direction and
+sampled victim context; only the strongest installs launch, hitstun, tumble,
+SDI and pending DI. Throw DI resolves immediately when the throw wins. Equal
+launches use stable contact order, not an assertion of arbitrary order parity.
+
+Damage-only arrows retain their lack of flinch and hitlag. Lasers retain their
+existing no-launch flinch when no launching contact exists; they cannot erase
+a simultaneous stronger launch's DI or replace its hitstun. Pummel retains its
+hold and shared hitlag. Direct attacks still freeze their attacker, detached
+sources do not, and hitlag takes the maximum applicable pause. Contacts caught
+by a shield all damage that shield, including on a frame that breaks it;
+shield damage is excluded from the victim's damage total. Catch priority,
+parry, trap capture and per-window contact memory remain separate rules.
+
+The batch uses reusable value-array scratch and allocates no objects while
+stepping or replaying. It is empty at every completed frame boundary, so it
+adds no persistent snapshot fields. Standalone pair operations also collect
+and resolve a complete batch when called outside the match step.
+
+The integrated `bash test.sh Tests` run passes 423/423 with zero compiler
+errors; evidence is wc3-melee:build/two-clients/contact-batch-aggregate.log.
+Six new tests exercise reversed collection order and fractional pre-hit
+percent, mixed projectile kinds, shield depletion, direct-special trades,
+both summons, throw/pummel damage, and exact match-step snapshot restoration.
+The throw-release trap counterexample initially consumed an armed trap after
+the victim had been thrown; releasing grounding immediately repairs that
+boundary while retaining deferred launch selection. The new assertion and
+existing grab, freeze-trap, special, hit-timing and replay checks pass together.
+These checks establish numerical behavior, not native presentation or pacing;
+this change has not been built into or installed as a map.
+
+This correction does not implement launch stacking across different frames,
+whose common-data time gate remains unverified. Ground launch/friction,
+bounce and shield pushback data gaps remain unchanged; fighter tuning and the
+owner's intentional mechanics remain intact.
+
+## Roll-facing correction — 2026-10-02
+
+The pinned libmelee empirical data in wc3-melee:build/ref-libmelee-framedata.csv
+matches SHA256 8e0d811290b511902076c0011db1a0116356a7ddaa68dfa369ea4f5dcdc93777
+at revision ef679270ff95f0d42339dcdf1608282a35023349. Fox (character 1) and
+Falco (22), forward roll (action 233), first report `facing_changed=True` on
+one-based frame 20; frame 19 is false. Backward roll (234) remains false.
+Only these factual observations are used; no LGPL library helper implementation
+or unlicensed decompiled gameplay expression is incorporated.
+
+Archer/Rifleman logical facing turns on that event. A stored entry facing selects
+the movement profile, animation clip/rate and pose orientation for the whole
+dodge. The authored clips perform a somersault without a horizontal turn;
+rendered orientation therefore stays at entry facing until the clip ends.
+Authored hurt volumes use the same orientation. Snapshots, exact comparisons
+and canonical state include entry facing; interruption, reset and completion
+clear it. Illidan has no adopted Melee profile and retains his original
+completion-time turn and 128-unit travel. Durations and intangibility stay
+unchanged for all fighters, and backward rolls/spot dodges retain facing.
+
+The focused `bash test.sh rollFacing` run passes 5/5 with zero compiler errors;
+evidence is wc3-melee:build/two-clients/roll-facing-tests.log. It exercises both
+facings, frame 19/20, hitlag freeze, snapshot restore across the turn, canonical
+state sensitivity, travel totals, platform clamps, and unchanged backward/spot
+orientation. These numerical checks do not prove native clip playback. This
+change has not been built into or installed as a map; native presentation still
+needs a parent-owned build and observation.
+
 ## Observed mechanics
 
 These observations describe behavior; they do not establish numerical parity.
@@ -79,7 +184,12 @@ no article prose or implementation is reused. Cached pages are build artifacts.
 | Ground traction | 0.08 | 0.08 |
 | Air friction | 0.02 | 0.02 |
 | Air speed | 0.83 | 0.83 |
+| Separate maximum air velocity | 3.0 | 4.0 |
 | Air acceleration base + additional | 0.02 + 0.06 | 0.02 + 0.05 |
+| Jump horizontal initial contribution | 0.72 | 0.70 |
+| Ground-jump horizontal momentum multiplier | 0.83 | 1.0 |
+| Ground-jump horizontal maximum | 1.70 | 1.70 |
+| Aerial-jump horizontal replacement | 0.90 | 0.94 |
 | Gravity | 0.23 | 0.17 |
 | Terminal fall speed | 2.8 | 3.1 |
 | Fast-fall speed | 3.4 | 3.5 |
@@ -88,6 +198,17 @@ no article prose or implementation is reused. Cached pages are build artifacts.
 | Short-hop height | 10.65 | 11.58 |
 | Double-jump height | 40.204 | 41.778 |
 | Empty landing frames | 4 | 4 |
+
+The added horizontal attributes were checked against `ftCo_DatAttrs` offsets
+using complete attribute arrays near the start of the public Fox/Falco DAT
+JSON at https://melee.theshoemaker.de/dat-dumps/Fox.json and
+https://melee.theshoemaker.de/dat-dumps/Falco.json. The cached downloads are
+partial files, not complete valid JSON documents. Ground takeoff scales prior
+self velocity, adds held-direction momentum, then caps it. Aerial jump replaces
+horizontal self velocity, including zero for neutral input. Countersteering
+preserves overspeed; matching input above the drift target brakes by air friction
+and obeys the separate maximum. Existing vertical integration and all six
+isolated jump-height targets remain unchanged.
 
 Distances and velocities are Melee units and units/frame; do not insert them
 into a seconds-based Warcraft velocity without converting. Prefer simulation
@@ -187,8 +308,8 @@ remains the dedicated grab binding. Neither path introduces an aerial grab.
 ## Hit timing and knockback
 
 For a normal non-electric, non-crouching hit, the Melee hitlag baseline is
-floor(damage / 3 + 3), so a 15-damage hit yields 8 frames. Electric and crouching
-modifiers have their own rounding stages; this first slice excludes them.
+floor(floor(damage) / 3 + 3), so a 15-damage hit yields 8 frames. Electric and
+crouching modifiers have separate truncation stages in `victimHitlagFrames`.
 Source: https://www.ssbwiki.com/Hitlag. Digital shieldstun's documented expression
 is (damage * 0.45 + 2) * 200 / 201; determine integer frame accounting explicitly
 when implementing rather than treating a real-valued duration as exact frames.
@@ -198,10 +319,13 @@ For ordinary percent-based hits, the documented knockback baseline is:
     K = (((p / 10 + p * d / 20) * 200 / (w + 100) * 1.4 + 18) * g + b) * r
 
 Here p is post-hit percent (Melee floors the pre-hit percentage before adding
-this frame's damage), d is move damage, w is victim weight, g is growth divided
-by 100, b is base knockback, and r is contextual scaling (1 for the initial
-ordinary case). Fixed-knockback attacks, crouch modifiers, DI and
-special launch angles need explicit implementation before parity claims.
+this frame's fractional damage), d is integer attack power, w is victim weight,
+g is growth divided by 100, b is base knockback, and r is contextual scaling.
+Raw magnitude is capped at 2500 before crouch (2/3) or interrupted-smash-charge
+(1.2) scaling. The state is sampled before interruption clears it. With no
+staling queue, attack power is truncated scaled move damage. The fixed-power
+helper substitutes percent 10 and the declared fixed power; no current move
+declares fixed knockback. DI and special launch angles remain distinct rules.
 For a 12-damage hit on weight 80 at 0 pre-hit percent, growth 100,
 base 20 and ratio 1, K is 51.0666667, launch speed 1.532 and floor(0.4*K) is 20.
 These are useful independent arithmetic expectations for our Wurst tests.
@@ -212,8 +336,9 @@ The local reference's `src/melee/ft/ftcoll.c` at revision
 ordinary branch adds a fractional temporary component (`ftColl_80079AB0`, lines
 2050–2104). The same path has a separate fixed-knockback branch and caps its
 result using common data. The decompiled common-data fields do not expose
-verified growth, base, or cap values here, so this work does not infer them from
-field offsets or claim numeric parity. No reference implementation was copied.
+verified growth/base values here; the numerical cap of 2500 comes from the
+published Knockback reference. No values are inferred from offsets and no
+reference implementation was copied.
 
 `ordinaryHitKnockback` now receives pre-hit percent, this hit's damage, victim
 weight, growth percent, base knockback, and context scale independently. The
@@ -221,8 +346,8 @@ map supplies growth and base from the selected hit region, with defaults of
 100 and 20 for unchanged moves and contextual scaling of 1.
 `ordinaryHitlagFrames` and `ordinaryHitstunFrames` make the normal
 hit frame conversions testable at their integer boundaries. These helpers
-cover only the documented ordinary, non-electric, non-crouching branch; the
-separate fixed-hit, cap, shield, and modifier rules remain distinct work.
+include the corrected integer-power boundary, raw cap and sampled motion
+modifiers. Hitstun has a minimum of one tick for an ordinary flinching hit.
 
 Smashcraft intentionally omits staling and freshness bonuses. The design
 rationale is in wc3-melee:README.md, “Intentional omissions.” Do not add a
@@ -242,10 +367,11 @@ melee:src/melee/ft/fighter.c caps the result using common data. SmashWiki's
 Hitlag article supplies the numeric normal rule and cap of 20. Normal hits now
 derive hitlag from damage (zero damage gives zero), including tip/weak regions;
 shield contacts pause the victim's shieldstun during hitlag, and detached
-projectiles/summons do not freeze the summoner. Electric and crouch-cancel
-gameplay are still absent and must not be claimed implemented. Their future
-victim formula is floor(c * floor(e * floor(3+d/3))), capped at 20;
+projectiles/summons do not freeze the summoner. Numerical crouch state is
+replay-safe and clears on incompatible actions. The victim formula is
+floor(c * floor(e * floor(3+floor(d)/3))), capped at 20;
 the attacker's e and c remain 1. No later-game tipper hitlag multiplier applies.
+No current move is electric; testing its math does not invent an electric move.
 
 Launch speed already uses 0.03*K, converted by the six-world-units scale.
 The general >=80 tumble rule remains a prototype: the reference selects
@@ -423,17 +549,18 @@ target airborne. Shield SDI is not implemented. Native held ASDI and tapped
 SDI were observed in build 003040. Native callback tracing subsequently showed
 short press/release pairs delivered together in roughly 100 ms batches. Retaining
 the pulse fixes loss between simulation ticks; it does not remove that engine
-delivery latency. See wc3-melee:DEVELOPMENT.md for the recorded input sequences.
+delivery latency. See wc3-melee:docs/development-plan.md for the recorded input sequences.
 
 ## Separated launch velocity
 
 Ordinary movement (`vx`, `vz`) and launch momentum (`knockbackX`, `knockbackZ`)
 are stored separately. Position uses their sum. The factual Melee baseline is
-launch speed `0.03 * knockback`, decaying by `0.051` per frame while air
-friction is disabled; falling speed still takes effect. This simulation applies
+launch speed `0.03 * knockback`, decaying by `0.051` per frame independently
+of ordinary self-velocity friction; falling speed still takes effect. This simulation applies
 the `0.051 * 6 = 0.306` world-unit decay to the launch vector's magnitude,
 preserving its direction, while ordinary gravity and terminal speed affect
-only `vz`. Launch decay continues after hitstun expires, and the player can
+only `vz`. Decay occurs before displacement and freezes during hitlag. Launch
+decay continues after hitstun expires, and the player can
 steer ordinary movement again when hitstun reaches zero. This keeps a downward
 launch above the ordinary terminal-fall cap. The additional gravity-based
 launch adjustment introduced in Brawl is not part of this Melee target.
@@ -641,6 +768,17 @@ traveling arrow so that only the simulated projectile appears in flight.
 
 ## Ground dodge controls
 
+The sampled ordinary/get-up/tech travel uses numerical observations from
+libmelee revision ef679270ff95f0d42339dcdf1608282a35023349,
+https://raw.githubusercontent.com/altf4/libmelee/ef679270ff95f0d42339dcdf1608282a35023349/melee/framedata.csv,
+SHA256 8e0d811290b511902076c0011db1a0116356a7ddaa68dfa369ea4f5dcdc93777.
+The associated library is LGPL-3.0; only factual numerical samples are used,
+with no library implementation copied or translated. Signed reversals are
+preserved. These are empirical paths, not binary-exact Melee parity. Get-up
+paths depend on face-up/down and forward/backward action. Actual displacement,
+both facings, stage-edge clamping, hitlag and replay are covered by
+wc3-melee:wurst/PhysicsTests.wurst.
+
 While holding shield, a fresh left/right press requests a roll; a fresh down
 press requests a spot dodge. Input callbacks collect edges and the frame step
 resolves them against held shield state, so shield/direction callback order
@@ -656,19 +794,21 @@ animation. No reference implementation is copied. Cached character pages do
 not provide verified dodge timing values; the initial ground-dodge parameters
 are provisional rather than a Melee parity claim.
 
-Roll lasts 31 frames, is intangible on frames 4–19 inclusive, and translates
-at 8 world units per frame during that window (128 units unless stopped by
-the platform edge). Spot dodge lasts 22 frames and is intangible on frames
-2–15 inclusive. The start tick is frame 1. Roll facing stays fixed during
-movement; a forward roll reverses facing at completion, while a backward
-roll preserves it. Neither move permits attacks, jumps, steering or shielding
+Roll lasts 31 frames and is intangible on frames 4–19 inclusive. Archer and
+Rifleman use character/action-specific per-frame translation samples from
+wc3-melee:wurst/RollTravel.wurst, clamped to the platform edge. Ordinary roll
+totals are approximately 201.6 and 231 world units respectively. Illidan keeps
+the original 8-unit travel on frames 4–19 (128 units). Spot dodge lasts 22 frames and is intangible on frames
+2–15 inclusive. The start tick is frame 1. Archer/Rifleman forward rolls reverse
+logical facing on frame 20; Illidan retains his completion-time turn. Backward
+rolls preserve facing. Neither move permits attacks, jumps, steering or shielding
 during its recovery. Jump takes priority over a simultaneous dodge request.
 Spot dodge does not drop through a platform. Intangibility and recovery clocks
 pause in hitlag. The owner's common frame-data profile specifies spot dodge
 22 / protection 2–15, both rolls 31 / protection 4–19, and air dodge 49 /
 protection 4–29 with 10 landing frames for every character. Air dodge retains
 its existing helpless fall until landing after its animation completes.
-Both fighters have authored ground-dodge clips. See wc3-melee:ANIMATIONS.md
+Both fighters have authored ground-dodge clips. See wc3-melee:docs/fighter-animation-work.md
 for playback and art limits.
 
 ## Knockdown reference observations
@@ -774,8 +914,9 @@ opened before hitlag simply freezes in our implementation; that case has not
 been independently verified against Melee.
 
 An in-place tech lasts 26 ticks with intangibility on 1–20; a directional tech
-lasts 40 with intangibility on 1–34. These totals and the 128-unit roll path
-are initial tuning; both leave six vulnerable recovery ticks. Direction at
+lasts 40 with intangibility on 1–34. These totals are shared chosen tuning;
+both leave six vulnerable recovery ticks. Archer/Rifleman use 39 empirical
+motion samples and a stationary final tick; Illidan retains the 128-unit path. Direction at
 contact chooses the roll, whose movement is clamped to the current platform.
 A tech clears impact hitstun and consumes its input window. Early-hitlag versus
 last-hitlag inputs, repeated/grounded presses, window/lockout boundaries,

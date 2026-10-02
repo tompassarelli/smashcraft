@@ -29,4 +29,4 @@ F10 → End Game → Restart Mission when a scripted failure is reproduced.
 
 The source deliberately retains the same direct restart call as the prototype;
 this is a diagnostic fixture, not a fix. Current observations are recorded in
-wc3-melee:DEVELOPMENT.md.
+wc3-melee:docs/development-plan.md.

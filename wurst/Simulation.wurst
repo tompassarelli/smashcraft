@@ -9,7 +9,7 @@ constant real FOX_AIR_ACCELERATION = (0.02 + 0.06) * WORLD_UNITS_PER_MELEE_UNIT
 constant real FALCO_AIR_ACCELERATION = (0.02 + 0.05) * WORLD_UNITS_PER_MELEE_UNIT
 public constant real GROUND_TRACTION = 0.08 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real INITIAL_DASH_SPEED = 1.9 * WORLD_UNITS_PER_MELEE_UNIT
-// Provisional digital-input timing and braking; see wc3-melee:PHYSICS.md.
+// Provisional digital-input timing and braking; see wc3-melee:docs/physics.md.
 public constant int INITIAL_DASH_FRAMES = 10
 constant real RUN_TURN_BRAKING = 0.8 * WORLD_UNITS_PER_MELEE_UNIT
 constant real AIR_FRICTION = 0.02 * WORLD_UNITS_PER_MELEE_UNIT
@@ -173,7 +173,7 @@ public constant int DOWN_ATTACK_STARTUP_FRAMES = 16
 public constant int DOWN_ATTACK_ACTIVE_FRAMES = 3
 public constant real DOWN_ATTACK_DAMAGE = 7
 // Provisional get-up attack tuning: let the attacker regain control before
-// the opponent's first active wake-up attack. See wc3-melee:PHYSICS.md.
+// the opponent's first active wake-up attack. See wc3-melee:docs/physics.md.
 public constant real DOWN_ATTACK_BASE_KNOCKBACK = 75
 public constant real DOWN_ROLL_DISTANCE = 128
 public constant int GRAB_HOLD_FRAMES = 76

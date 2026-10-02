@@ -21,7 +21,7 @@ if [[ $# -ne 1 || ! -f "$1" ]]; then
 fi
 base_map=$(realpath -- "$1")
 if [[ ! -s "$fighter_assets/ArcherFighter.mdx" || ! -s "$fighter_assets/RiflemanFighter.mdx" || ! -s "$fighter_assets/FighterAssetInfo.wurst" ]]; then
-    printf 'Authored fighter assets are missing. Follow wc3-melee:ANIMATIONS.md to build them.\n' >&2
+    printf 'Authored fighter assets are missing. Follow wc3-melee:docs/fighter-animation-work.md to build them.\n' >&2
     exit 1
 fi
 for texture in "${selection_textures[@]}"; do

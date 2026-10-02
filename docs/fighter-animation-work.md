@@ -379,45 +379,91 @@ Native evidence: wc3-melee:build/illidan-native-match-fixed.png.
 Evidence: wc3-melee:build/illidan-visibility-before.log and
 wc3-melee:build/illidan-visibility-after.log. The rebuilt
 scene contains 236 bones (including emitter helpers), 17 geosets and 24 stock actions;
-The authored scene now adds 81 clips, with 103 exported sequences and validated
+At this earlier visibility milestone the authored scene added 81 clips, with 103 exported sequences and validated
 bindings in wc3-melee:build/illidan-animation/bindings.json. Source commits
 096f71e, 57ad0cd and 0ac1db2 preserve the original 24 actions, 17 geosets and
-24 FPS timebase. Both-facing previews cover 144 pose samples. Native playback,
-action bindings and contact alignment remain unverified. The material repair in
+24 FPS timebase. Both-facing previews covered 144 pose samples. Native playback,
+action bindings and contact alignment were unverified at that milestone; the
+current acceptance below supersedes those gaps. The material repair in
 mdl-exporter4 commit 966dbe81178ad1790dc06d1ec58f4792da682349 removes the
 white torso polygon in unfiltered side-view previews. Source TeamColor00
 panels remain red. Rendered checks cover alpha-over layer composition and
 black TeamGlow transparency; export checks preserve source texture paths,
-replaceable IDs and filter modes. Native model fidelity is still unverified.
+replaceable IDs and filter modes. Native model fidelity was still unverified at that milestone.
 Evidence: wc3-melee:build/illidan-assets/demonhunter-stock-stand-ready-0-profile.png.
 
 | Required coverage | Current state |
 | --- | --- |
-| Model, textures, attached blades, both gameplay facings | Normal textured bodies/weapons observed in native mirror match after visibility repair; both-facing action coverage incomplete |
-| Jab, directional/angled tilts, smashes, dash attack | Jab and flat forward/down/up tilts activate and play in both facings; angled tilts, smashes and dash attack still need native checks |
-| Neutral/forward/back/up/down aerials | All five left-facing jump-squat activations and playback observed; opposite facing, contact and exact phase alignment remain pending |
-| Mana Burn, parry/evasion, wing ascent, Immolate | Native Mana Burn contact, wing ascent, ground/air Immolate including offstage spike, and controlled grounded melee parry observed; both-facing/interruption coverage remains incomplete |
-| Grab, hold, pummel, escape, four coordinated throws | Native capture/pummel/up-throw confirmed; pair readability, escape and other throw directions still pending |
-| Idle, walk/run, turns, crouch, jumps and landings | Normal and air-dodge landing playback observed; jump squat, jumps and idle fall bound; other movement transitions still incomplete |
-| Shield, shield reactions/break, spot dodge, rolls, air dodge | Shield raise/release, spot dodge, both rolls and earlier air-dodge landing observed; protection windows, shield contact/break and full air-dodge playback still pending |
-| Ground/air hitstun, tumble, contact-pose hitlag | Reactions authored; freeze/resume verification missing |
-| Knockdown, techs, getup options, ledges, KO and respawn | Knockdown/rest, tech/getup and ledge roll/attack bound; remaining transitions/native grounding unverified |
-| Action-frame volumes, interruptions, stock reset and replay | Provisional numerical regions and focused interruption/reset/replay checks implemented; animation alignment missing |
-| Portraits, selection, mirror match and rematch retention | Portrait/tile generated; third roster tile, human/CPU mirror selection and HUD observed in Warcraft; rematch native check pending |
-| Real-control playthrough in Warcraft | Selection/mirror entry and repaired model observed; partial specials/grab/landing checks recorded above; full moveset checks incomplete |
+| Model, textures, attached blades, both gameplay facings | Rebuilt textured bodies/blades observed against Archer, Rifleman and an Illidan mirror; model, authored contact bounds and local fel cues use scale 0.8 |
+| Jab, directional/angled tilts, smashes, dash attack | Authored/bound; both-facing ground-control sequence and charged-smash releases recorded on the rebuilt map |
+| Neutral/forward/back/up/down aerials | Authored/bound; all five selections exercised in both facings; exact native collision-volume alignment is not established by the recording |
+| Mana Burn, parry/evasion, wing ascent, Immolate | Ground/air clips and fel cues bound; native projectile damage, wings, ground/air Immolate and melee parry observed across the recorded checks |
+| Grab, hold, pummel, escape, four coordinated throws | All holder/victim clips bound; native pummel and all four releases contact, including a left-facing back throw; final Illidan mirror capture/pummel/hold/escape shows distinct paired bodies and weapons, with close overlap during the hold |
+| Idle, walk/run, turns, crouch, jumps and landings | Dedicated motion history and clips bound; real-control movement/defense sequence and normal/special landing observed |
+| Shield, shield reactions/break, spot dodge, rolls, air dodge | Clips bound; ordinary shield depletion visibly pops, lands, stands, enters dizziness and returns to control; repeated native shield contacts select and hold the shield reaction for 4–6 hitlag ticks |
+| Ground/air hitstun, tumble, contact-pose hitlag | Authored damage poses; native Illidan mirror contact holds the attacker and victim, then resumes/launches; trace records eight hitlag ticks |
+| Knockdown, techs, getup options, ledges, KO and respawn | All clips bound; fourteen floor-contact families pass body/blade grounding; corrected native ledge grip, climb/jump/roll/attack, neutral/both directional techs, and get-up stand/attack/both rolls observed through real controls; offscreen KO exception below |
+| Action-frame volumes, interruptions, stock reset and replay | All 88 authored tracks bake body/blade/foot bounds; action sampling follows stretched native clip phase; focused contact, interruption, reset and replay tests pass |
+| Portraits, selection, mirror match and rematch retention | Human/CPU selection, mirror entry, HUD, stock loss/respawn and next-match roster retention/damage reset observed |
+| Real-control playthrough in Warcraft | Rebuilt map exercised through real keys, including final recovery, paired-pose, shield-contact and incoming-hit checks; normal active-CPU map restored as `illidan-native-complete` |
 
-Wings must appear and animate during recovery. Post-ascent glide remains an
-unadopted design option. Timing and damage live in combat source; new tuning
+The completion scene has 88 authored clips / 110 exported sequences, preserving
+all 24 stock actions, 17 source geosets, nine original textures, both emitters
+and the 24 FPS timebase. The added wing geoset is separate. Every authored clip
+has a presentation binding. The resized source suite passes 395/395:
+wc3-melee:build/wurst-tests/illidan-resized-all.log. Source and package checks
+remain distinct from native observation.
+
+Native completion evidence is under wc3-melee:build/illidan-native:
+completion-controls-r1.mp4, mirror-contact-r1.mp4, mirror-contact-trace.txt,
+throw-right-up-trace.txt, throw-back-left-trace.txt, throw-forward-trace.txt,
+shield-break-final.mp4 and shield-break-trace.txt. The mirror trace records
+15 damage / eight hitlag ticks on the first contact, then a second 5-damage hit
+with four hitlag ticks, and zero dropped trace rows. The corrected contact
+and release sheets show a held attacker contact pose and victim damage pose,
+followed by resumed playback and launch. Recordings are single-client evidence;
+they do not prove multiplayer synchronization or every collision frame.
+
+Final native acceptance on 2026-10-01 adds
+wc3-melee:build/illidan-native/recoveries-final.mp4 and
+wc3-melee:build/illidan-native/recovery-poses-final.jpg. Neutral tech completes
+after 26 frames, both directional techs after 40, get-up stand after 30,
+get-up attack after 49, and both get-up rolls after 35. The corresponding
+`tech-*-final-trace.txt` and `getup-*-final-trace.txt` files under
+wc3-melee:build/illidan-native each record zero dropped rows. The mirror grab
+sequence captures, pummels, holds, escapes and returns to control; evidence is
+wc3-melee:build/illidan-native/mirror-pair-escape-final.jpg and
+wc3-melee:build/illidan-native/mirror-escape-final-trace.txt.
+
+The repaired ledge hang and all four options are recorded in
+wc3-melee:build/illidan-native/ledge-options-accepted.mp4 and
+wc3-melee:build/illidan-native/ledge-options-accepted.jpg. The four
+`ledge-*-accepted-trace.txt` files under wc3-melee:build/illidan-native confirm
+the requested transitions and contain zero dropped rows. Final normal-match
+shield contact and incoming ground/air reactions are recorded in
+wc3-melee:build/illidan-native/shield-incoming-accepted.mp4, with the matching
+wc3-melee:build/illidan-native/shield-contact-accepted-trace.txt and
+wc3-melee:build/illidan-native/incoming-hit-accepted-trace.txt. Both traces have
+zero dropped rows. Build/install of the normal active-CPU map passed in
+wc3-melee:build/illidan-native/build-normal-complete.log; native entry confirms
+build `illidan-native-complete`. This closes the named character acceptance
+checks, without claiming exact Melee parity or every native collision frame.
+
+KO is an explicit shared presentation exception: the clip is selected at
+blast-zone death, but the offscreen unit is immediately hidden. Visible KO
+playback is not claimed. Post-ascent glide remains an unadopted design option.
+
+Wings appear and animate during recovery. Timing and damage live in combat source; new tuning
 must remain explicitly provisional, not presented as extracted Melee data.
 
-Packaging passes after repairing binary event and particle import in
+The earlier packaging milestone passed after repairing binary event and particle import in
 mdl-exporter4. The rebuilt model preserves all nine texture entries and two
 source particle emitters, suppresses stock particle effects during custom
-combat clips, and exports 81 authored clips / 103 sequences. The model and
+combat clips, and exported 81 authored clips / 103 sequences. The model and
 animation constants are embedded in map builds. Combat bindings cover normal
 attacks, aerials, specials, grabs/throws and several defensive/damage states;
-movement/defensive mapping and special effects still have gaps. Native model
-fidelity, wing playback and contact alignment remain unverified.
+movement/defensive mapping and special effects still had gaps at that point.
+The current completion checklist above records their subsequent coverage.
 Evidence: wc3-melee:build/illidan-animation/export-particles-r3.log and
 wc3-melee:build/illidan-render-r1-map.log.
 
@@ -645,7 +691,7 @@ original event tracks. No root translation keys occur within dodge intervals;
 gameplay displacement remains solely in Wurst. Generated metadata selects
 forward index 7, backward index 6, and spot index 8 in this model, without
 hard-coding those numbers into gameplay source. Pose renders establish mesh
-deformation; client evidence is recorded separately in wc3-melee:DEVELOPMENT.md.
+deformation; client evidence is recorded separately in wc3-melee:docs/development-plan.md.
 
 The roll authoring axis was corrected after a game-aligned MDX → MDL → Blender
 roundtrip render: root X turned the silhouette edge-on, while root Z produced
@@ -701,7 +747,7 @@ show distinct level, upward and downward arm positions; evidence is under
 ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/tilt-roundtrip-poses.
 These are first-pass animations, not finished Melee-quality motion. Rifleman
 still uses its stock attack animation. Native playback evidence and the tested
-build are recorded in wc3-melee:DEVELOPMENT.md.
+build are recorded in wc3-melee:docs/development-plan.md.
 
 ## Archer knockdown and get-up
 
@@ -803,7 +849,7 @@ The final Rifleman model hash is
 Exported checks cover twelve non-looping clips, absent root translation keys,
 retained stock Attack, and custom visibility. Exported pose renders and native
 build 063805 both show the corrected directional tilts. Native observation and
-recording paths are in wc3-melee:DEVELOPMENT.md.
+recording paths are in wc3-melee:docs/development-plan.md.
 
 ## Dedicated ledge hang and climb
 
@@ -919,7 +965,7 @@ fidelity follows from the passing source-preservation check.
 Native integration: isolated build replay-aerial-isolated executes jump,
 double jump and neutral aerial for both fighters. Screenshots at aerial frames
 8/11 show Archer's bow and Rifleman's rifle retained; input traces confirm
-style 12. Evidence and limits are in wc3-melee:native-capability-report.md.
+style 12. Evidence and limits are in wc3-melee:docs/native-capability-report.md.
 All five aerials per fighter compile/package, but this native check covers
 neutral aerial only, outside its active frames. Frame-perfect contact/hurtbox
 alignment and remaining clips need further validation.
@@ -927,7 +973,7 @@ alignment and remaining clips need further validation.
 ## Longer neutral/back aerials and Rifleman backward kick
 
 wc3-melee:tools/animations/aerials.py now matches the neutral/back timing in
-wc3-melee:PHYSICS.md: source index 3 begins contact, neutral holds through 30
+wc3-melee:docs/physics.md: source index 3 begins contact, neutral holds through 30
 and back through 18, with recovery ending at 41 / 37. Generated durations
 (1.708 / 1.542 seconds at 24fps) scale onto those simulation ticks. Both rigs
 use the same provisional timing; forward/up/down clips retain their old motion.

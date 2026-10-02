@@ -148,7 +148,7 @@ useful off-screen indicators. Verify the Space camera fix through real use.
 
 ## Prove multiplayer
 
-Follow wc3-melee:SMASHCRAFT_NETCODE_PROPOSAL.md and the user's implementation
+Follow wc3-melee:docs/netcode-proposal.md and the user's implementation
 brief. Keep one deterministic, snapshot-capable simulation with immutable
 per-frame inputs, stable interaction order, complete gameplay state and replay
 without native side effects. Finish scheduled input, shared frame advancement,
@@ -172,8 +172,8 @@ and a real supported interface; it is not an assumed fallback.
 
 ## Completion and reporting
 
-Keep the public repository current. Use wc3-melee:LOOP.md for installed and
-observed build/evidence, wc3-melee:PHYSICS.md for mechanics and intentional
+Keep the public repository current. Use wc3-melee:docs/development-loop.md for installed and
+observed build/evidence, wc3-melee:docs/physics.md for mechanics and intentional
 differences, and existing development/animation documents for remaining work.
 This goal sets current priorities over older development notes.
 

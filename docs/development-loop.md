@@ -2,11 +2,34 @@
 
 Working lane: ~/code/wc3-melee/worktrees/test-loop.
 
-## Current checkpoint — Rifleman throw directions, 2026-10-01
+## Current checkpoint — Illidan, craftsmanship and physics, 2026-10-01
+
+Illidan's 88 authored clips / 110 exported sequences are bound. Native checks
+cover attacks, specials, coordinated throws, movement/defense, damage/hitlag,
+all tech/get-up/ledge options, selection and stock/rematch behavior. His model,
+combat volumes and fel offsets use scale 0.8. Exact recordings and remaining
+limits are in wc3-melee:docs/fighter-animation-work.md. The offscreen KO clip is selected but
+immediately hidden; multiplayer and every native collision frame are unverified.
+
+The craftsmanship pass corrected second-participant names, consolidated 83
+animation selectors and removed unused helpers/repeated assignment. The physics
+pass corrected knockback/hitlag math, launch integration, air steering, jump
+momentum and sampled Archer/Rifleman roll travel. The suite passes 402/402;
+remaining parity gaps are recorded in wc3-melee:docs/physics.md.
+
+Normal active-CPU build `illidan-physics-complete` was built, installed and
+observed running with Archer/Rifleman movement and combat controls. The native
+trace has zero dropped rows. Evidence: wc3-melee:build/physics-map.log and
+wc3-melee:build/physics-native-controls-trace.txt. Public download unchanged.
+
+The entries below are historical checkpoints; their running sessions and
+unfinished-work statements describe those checkpoints, not current state.
+
+## Historical checkpoint — Rifleman throw directions, 2026-10-01
 
 Both fighters now have native capture/pummel and all four throw-direction
 observations. Rifleman's new forward/back/up recordings and exact release
-frames are in wc3-melee:ANIMATIONS.md. A turn/grab attempted after overshooting
+frames are in wc3-melee:docs/fighter-animation-work.md. A turn/grab attempted after overshooting
 missed; its separate failed recording is retained. Pair-pose overlap remains
 unfinished. Next work should improve coordinated hold/pummel poses rather than
 repeat successful throw activation checks.
@@ -26,7 +49,7 @@ Native O-grab/pummel/back-, up- and down-throw sequences succeed. Together with
 the previous forward throw, all four Archer directions have recorded activation,
 damage and release. Back crosses behind the holder; up launches vertically;
 down produces tumble, floor contact and prone recovery. Evidence and frame
-numbers are in wc3-melee:ANIMATIONS.md. Hold/pummel overlap remains an art gap.
+numbers are in wc3-melee:docs/fighter-animation-work.md. Hold/pummel overlap remains an art gap.
 
 Running: passive `special-direction-passive-r1`, P1 Archer at x=-105.121,
 0%, facing right; passive Rifleman at 37%, prone after down throw. Paused with
@@ -61,7 +84,7 @@ ascent; Rifleman shot flinch, running bear/contact, 300-frame ice freeze and
 downward-shot ascent. Rifleman Shield+O, pummel and down-throw contact/release
 also observed. Pair readability remains incomplete. Archer Shield+Attack
 dispatches grab, but the approach overshot; capture/throw remain unverified.
-Detailed evidence and limits: wc3-melee:ANIMATIONS.md.
+Detailed evidence and limits: wc3-melee:docs/fighter-animation-work.md.
 
 Installed for next launch: normal `special-direction-r1`, restored atomically
 from wc3-melee:build/special-direction-normal.w3x; byte comparison passed.
@@ -108,7 +131,7 @@ Currently running: `illidan-landing-passive-r1`, paused with Y after a clean
 normal-jump/air-dodge landing recording. Normal contact crouch -> stand and
 air-dodge contact crouch -> stand are visible. The trace records respective
 landing recovery of 4 and 10 frames, no damage interruptions and no dropped
-records. Evidence and remaining limits are in wc3-melee:ANIMATIONS.md.
+records. Evidence and remaining limits are in wc3-melee:docs/fighter-animation-work.md.
 
 The earlier active-CPU recording was interrupted by damage and desktop focus
 change. Its copied wc3-melee:build/illidan-landing-trace.txt is stale (previous
@@ -141,7 +164,7 @@ Native traces confirm Mana Burn hit (5 damage, 4 hitlag, 13 hitstun), Immolate
 activation, parry-step activation/movement, grab capture, pummel and up-throw
 release. Recorded victim damage goes 5 -> 8 -> 14 in the grab sequence.
 The earlier recording confirms wing appearance/ascent. See the current native
-evidence and limits in wc3-melee:ANIMATIONS.md. Other throw directions, pair
+evidence and limits in wc3-melee:docs/fighter-animation-work.md. Other throw directions, pair
 readability, Immolate hit/spike, parry protection and remaining animation
 transitions still need work. No two-client or netcode conclusion follows.
 Public release remains unchanged. Do not use Ctrl+R to recreate the match.
@@ -286,7 +309,7 @@ the six-frame contribution and damage-dependent timer formula; caches are
 wc3-melee:build/ref-Grab.html and wc3-melee:build/ref-Mashing.html. Complete
 grab-context input, pummel, throw commitment/release, mash and snapshot state
 together. The timer now uses the equal-ranking profile; ranking/handicap
-adjustments remain an explicit omission. See wc3-melee:PHYSICS.md for original
+adjustments remain an explicit omission. See wc3-melee:docs/physics.md for original
 throw tuning and the exact reference scope.
 
 Previously installed: `grab-system-r3`, normal scenario; now observed running
@@ -385,7 +408,7 @@ dedicated ground/air/tumble/shield damage clips and zero native animation blend
 time. Native recordings show both fighters changing into their recoil pose for
 hitlag; the earlier `damage-poses-r1` recording exposed old-pose retention with
 default blending. Three DamagePoseTests pass; aerial/package preservation
-passes. See wc3-melee:ANIMATIONS.md for evidence and remaining pose checks.
+passes. See wc3-melee:docs/fighter-animation-work.md for evidence and remaining pose checks.
 
 Earlier Space builds caused a captured one-frame camera excursion between normal arena views.
 Setting only the quick-camera destination did not fix it. `space-camera-r2`
@@ -558,7 +581,7 @@ Disconnect → results Back → Create → Start Game recovered 093439 in the sa
 client and produced a complete new trace. Failed and recovered evidence are
 kept separately under wc3-melee:build/loop/20260930-093439-reload.
 
-The 2026-09-30 comparison in wc3-melee:DEVELOPMENT.md did not reproduce the
+The 2026-09-30 comparison in wc3-melee:docs/development-plan.md did not reproduce the
 stall using short key presses, atomic replacement, changed map revision, or
 the exact early-trace loop. That command took 28.627s and still accepted a
 selection change after another 30s. These are successful samples, not a root

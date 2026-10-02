@@ -1,0 +1,43 @@
+# Player guide
+
+Requires Warcraft III 3.0. Put the map in the Warcraft III Maps folder and
+open it from Custom Games. The current prototype includes character and stage
+selection, three fighters, a bot opponent, floating platforms, blast zones,
+stocks, rematches, and configurable controls.
+
+## Menus and controls
+
+Mouse buttons and W/R + N select a fighter or stage; U goes back. Drag a
+character chip from the active player card onto the roster. New Match retains
+selections. Y confirms character/stage selection, chooses the next match after
+a result, and pauses or resumes an active match. Pausing freezes combat and
+match time while keeping input handling live. Enter is reserved for Warcraft
+chat.
+
+F1 opens Controls before a match. Choose QWERTY or Custom, click either key
+slot to rebind it, then Save. Saved controls load automatically on the next map
+start. Y is reserved for Start/Pause; F6 and F7 remain reserved for Warcraft
+shortcuts. Ctrl+T starts a developer input trace.
+
+The Custom preset uses W/R to move, I/9 to jump, Space to aim up, E to
+fast-fall or drop through platforms, Q/8 to shield or air-dodge, O to grab, N
+to attack, and U for a special. Shield + N or O grabs. While holding an
+opponent, tap N to pummel or a movement/C-stick direction to throw forward,
+backward, up, or down. Mash action buttons and alternate movement directions
+to escape a grab; holding one button does not count as mashing.
+
+Attacks buffer for six frames, including through jump squat. Hold P to walk.
+N with a direction performs a smash, or a tilt while walking. B (or /) is
+C-stick left; H is down; J is up; M is right. C-stick down-air preserves
+normal aerial momentum. QWERTY uses 7 for right trigger and 8 for the
+alternate jump key.
+
+Specials use U with a direction: neutral fires an arrow or bullet, horizontal
+uses a multishot or bear, up uses a hippogryph or recoil recovery, and down
+uses Archer's disengage or Rifleman's freezing trap. Archer's neutral arrow
+can be jump-cancelled. The current summon presentation uses Warcraft bear and
+hippogryph models.
+
+Use Warcraft's ordinary Quit Mission to leave and recreate a custom game.
+The map's Ctrl+R restart path is unreliable, and F5 has previously hung the
+client when returning to the menu.
