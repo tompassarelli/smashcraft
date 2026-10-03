@@ -41,7 +41,8 @@ It also includes retail launch stacking, damage-level selection, grounded
 movement, rebound and test-arena surface recovery. These implementations do not
 establish full parity or complete collision geometry.
 
-The assembled simulation passes 592/592 normal Wurstunit checks. The
+The last assembled simulation check passed 592/592 normal Wurstunit checks,
+before the equivalent shield-fixture deduplication documented below. The
 generated-Lua production probe passes selected grounded-friction, shield regen,
 shield damage, shield-contact accumulation and fused shieldstun boundaries,
 plus 22 composed ground-motion cases and four shield-entry overwrite cases.
