@@ -9,6 +9,13 @@ not have to research basic rules or repeatedly discover omissions.
 
 ## Delivery order
 
+The 2026-10-03 sequencing request is tracked in
+wc3-melee:docs/melee-foundation-roadmap.md: independently verify the shared Melee
+physics foundation before asserting move-category balance or tuning matchups.
+Visual cues proceed as their owning mechanics are verified. This refines the
+shared-combat work below; it does not close character, controls or multiplayer
+work, or silently revoke approved custom mechanics.
+
 1. Finish shared combat and recovery as connected, reference-grounded systems,
    starting with knockdown, techs, jab resets and getup options. Complete the
    current fighters' missing moves and interactions alongside that work.

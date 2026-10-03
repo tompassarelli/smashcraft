@@ -7,6 +7,8 @@
 - [Wurst toolchain](wurst-toolchain.md) — compiler, standard library, and engine boundaries.
 - [Delivery goal](delivery-goal.md) — current scope and completion criteria.
 - [Physics reference](physics.md) — source values, implementation, and known differences.
+- [Melee foundation roadmap](melee-foundation-roadmap.md) — GitHub milestones, dependencies, physics acceptance, balance constraints, and combat effects.
+- [Melee frame-data reference](../references/melee-frame-data/README.md) — factual JSONL intake, source conventions, coverage, and limitations.
 - [Fighter animation work](fighter-animation-work.md) — asset authoring and native pose checks.
 - [Netcode proposal](netcode-proposal.md) — synchronization and rollback design.
 - [Native capability report](native-capability-report.md) — multiplayer, timing, and animation evidence.

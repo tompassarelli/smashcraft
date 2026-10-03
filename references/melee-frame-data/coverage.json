@@ -1,0 +1,210 @@
+{
+  "record_count": 789,
+  "character_ids": 27,
+  "records_with_excluded_notes": 333,
+  "records_with_missing_values": 584,
+  "by_character": {
+    "bowser": {
+      "attacks": 22,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "captain_falcon": {
+      "attacks": 23,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "donkey_kong": {
+      "attacks": 21,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "dr._mario": {
+      "attacks": 23,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "falco": {
+      "attacks": 21,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "fox": {
+      "attacks": 20,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "ganondorf": {
+      "attacks": 19,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "ice_climbers": {
+      "attacks": 19,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "jigglypuff": {
+      "attacks": 17,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "kirby": {
+      "attacks": 20,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "link": {
+      "attacks": 21,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "luigi": {
+      "attacks": 19,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "mario": {
+      "attacks": 19,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "marth": {
+      "attacks": 17,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "mewtwo": {
+      "attacks": 18,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "mr._game_&_watch": {
+      "attacks": 16,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "ness": {
+      "attacks": 21,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "peach": {
+      "attacks": 18,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "pichu": {
+      "attacks": 18,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "pikachu": {
+      "attacks": 18,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "roy": {
+      "attacks": 16,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "samus": {
+      "attacks": 20,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "sheik": {
+      "attacks": 20,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "yoshi": {
+      "attacks": 18,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "young_link": {
+      "attacks": 20,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "zelda": {
+      "attacks": 18,
+      "grabs": 2,
+      "throws": 4,
+      "dodges": 4,
+      "misc": 1
+    },
+    "_marth": {
+      "throws": 1
+    }
+  },
+  "missing_by_field": {
+    "attacks.end": 2,
+    "attacks.total": 3,
+    "attacks.iasa": 268,
+    "attacks.ld_fl_spec": 469,
+    "attacks.stun": 90,
+    "attacks.auto_cancel_s": 372,
+    "attacks.auto_cancel_e": 372,
+    "attacks.land_lag": 342,
+    "attacks.cancel_lag": 343,
+    "attacks.percent_weak": 237,
+    "throws.start": 59,
+    "throws.end": 59,
+    "throws.total": 1,
+    "dodges.inv_end": 24,
+    "dodges.start": 23
+  }
+}

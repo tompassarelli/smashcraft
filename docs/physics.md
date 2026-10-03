@@ -1,5 +1,12 @@
 # Physics reference and implementation
 
+The next acceptance sequence and GitHub dependencies are in
+wc3-melee:docs/melee-foundation-roadmap.md. The factual frame-data intake at
+smashcraft:references/melee-frame-data/README.md supports move research; it is
+not a physics oracle, does not establish game revision, and supplies no hitbox
+geometry. Its raw `gravity` field means fast-fall speed and `stun` means
+shieldstun. No physics behavior changed as part of that intake.
+
 Wurst owns our independently authored simulation. The local Melee checkout at
 ~/code/resources/melee, revision 0296f009f32f710495979d30772d8332af2d411a,
 is a reference for factual mechanics and numerical parameters, not source to
