@@ -458,3 +458,11 @@ cycle, crossing the 64-frame history ring and retaining all event/rollback
 assertions; that focused case passed with 3.92 seconds of interpreter execution.
 The routine suite after the first split passed 462/462 in 28.8 seconds end to
 end. No end-to-end speed is claimed yet for the second split.
+
+The analog-shield fixture audit removed repeated evaluations: its 306 generated
+assertions contained 109 distinct input/expectation pairs. All 109 original
+assertion expressions and exact expectations remain unchanged, grouped into
+six arithmetic tests instead of 54 row tests. All 54 retail observations remain
+in the reference corpus. The focused check passed 6/6; evidence is
+smashcraft:build/shield-fixture-audit.log. This establishes preserved coverage,
+not a measured end-to-end speedup or completion of the broader test audit.
