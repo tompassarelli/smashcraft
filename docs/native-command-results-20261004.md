@@ -78,3 +78,10 @@ seconds). The external recording is
 native exports use run5. This confirms rapid activation retention from the
 other participant in this configuration. It is not a host/client latency or
 fairness comparison: intention and callback clocks remain unaligned.
+
+Run 6 repeated the corrected 4 ms request from A: X11 measured 20 pairs,
+4–5 ms holds, mean 4.25 ms. A sampled 2 pairs; both observers recorded
+20 orders/20 effects across 277 service rows each. External log:
+~/code/wc3-melee/worktrees/competitive-integrity-20261003/build/native-command-20261004/short-a-corrected-x11.txt.
+Native exports use run6. Both participants therefore demonstrate retention
+under the matched short-tap procedure; this remains distinct from latency parity.
