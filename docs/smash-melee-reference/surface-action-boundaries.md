@@ -344,3 +344,10 @@ interpreter; it is not a Lua/native precision acceptance result. The existing
 trace comparisons retain their stated tolerances and remain useful for update
 order. Exact runtime precision requires a reusable numeric primitive plus
 explicit operation/unit ordering and an actual emitted-Lua/native check.
+
+The integrated grab-clock and shield-phase changes passed 513/513 Wurstunit
+checks with zero errors and the existing unused-import warning
+(smashcraft:build/shield-phase-grab-aggregate.log). This includes regeneration
+through locked phases and same-tick captures, strict-negative depletion, and
+damage/drain break-entry health. Held guard drain preceding jump/dodge/release
+input, exact Lua numerical behavior, and native verification remain open.
