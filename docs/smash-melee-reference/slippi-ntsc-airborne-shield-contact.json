@@ -1,0 +1,47 @@
+{
+  "recording": {
+    "file": "air-dodge.slp",
+    "sha256": "03470afdcc37bfaf52c18ad639288a8abdd8d53a65b5f48c4395ab58acf16bd6",
+    "slippiVersion": "3.19.1",
+    "isPAL": false,
+    "stageId": 32,
+    "parser": "@slippi/slippi-js 9.1.3"
+  },
+  "contact": {
+    "frame": 409,
+    "defender": {
+      "internalCharacterId": 7,
+      "actionStateId": 181,
+      "airborne": false,
+      "x": 49.4041633605957,
+      "hitlagRemaining": 7
+    },
+    "attacker": {
+      "internalCharacterId": 15,
+      "actionStateId": 68,
+      "airborne": true,
+      "x": 52.679054260253906,
+      "y": 5.056094169616699,
+      "hitlagRemaining": 7,
+      "selfInducedAirX": 0.8331252336502075,
+      "selfInducedY": -1.600000023841858
+    }
+  },
+  "firstUnfrozenSample": {
+    "frame": 416,
+    "attacker": {
+      "actionStateId": 68,
+      "airborne": true,
+      "x": 53.573429107666016,
+      "y": 3.456094264984131,
+      "hitlagRemaining": 0,
+      "selfInducedAirX": 0.8943750262260437,
+      "selfInducedY": -1.600000023841858
+    }
+  },
+  "limits": [
+    "Slippi identifies the recording as NTSC but does not establish the disc revision.",
+    "The contact frame proves an airborne attacker and shared hitlag followed by release; it does not expose the separate shield-knockback vector.",
+    "The attacker velocity telemetry alone cannot isolate shield recoil from normal aerial motion."
+  ]
+}

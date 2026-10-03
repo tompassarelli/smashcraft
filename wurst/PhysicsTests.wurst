@@ -515,6 +515,64 @@ function recordedShieldDefenderPosition(int frame) returns real
 	destroy source
 	destroy target
 
+@Test function airborneShieldRecoilDecaysAsASeparateVectorWithoutChangingSelfVelocity()
+	let withRecoil = new FighterState(0, 0, 1)
+	let control = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	withRecoil.grounded = false
+	control.grounded = false
+	withRecoil.z = 20
+	control.z = 20
+	withRecoil.vz = 1
+	control.vz = 1
+	withRecoil.hitstun = 10
+	control.hitstun = 10
+	withRecoil.hitlag = 2
+	control.hitlag = 2
+	withRecoil.shieldRecoilX = -3
+	withRecoil.shieldRecoilZ = 4
+	advance(withRecoil, 0, input, 0)
+	advance(control, 0, input, 0)
+	(withRecoil.x - control.x).assertEquals(0., 0.0001)
+	(withRecoil.z - control.z).assertEquals(0., 0.0001)
+	withRecoil.shieldRecoilX.assertEquals(-3.)
+	withRecoil.shieldRecoilZ.assertEquals(4.)
+	advance(withRecoil, 0, input, 0)
+	advance(control, 0, input, 0)
+	(withRecoil.x - control.x).assertEquals(-2.82, 0.0001)
+	(withRecoil.z - control.z).assertEquals(3.76, 0.0001)
+	withRecoil.shieldRecoilX.assertEquals(-2.82, 0.0001)
+	withRecoil.shieldRecoilZ.assertEquals(3.76, 0.0001)
+	withRecoil.vz.assertEquals(control.vz, 0.0001)
+	advance(withRecoil, 0, input, 0)
+	advance(control, 0, input, 0)
+	(withRecoil.x - control.x).assertEquals(-5.46, 0.0001)
+	(withRecoil.z - control.z).assertEquals(7.28, 0.0001)
+	withRecoil.vz.assertEquals(control.vz, 0.0001)
+	destroy input
+	destroy withRecoil
+	destroy control
+
+@Test function shieldRecoilTransitionsFromAirVectorToGroundTangentAndBack()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.shieldRecoilX = -2
+	fighter.shieldRecoilZ = 1
+	fighter.grounded = true
+	advance(fighter, 0, input, 0)
+	fighter.shieldRecoilZ.assertEquals(0.)
+	fighter.shieldRecoilX.assertEquals(-2 + fighter.physics.traction * 1.1, 0.0001)
+	fighter.grounded = false
+	fighter.hitstun = 10
+	let beforeX = fighter.shieldRecoilX
+	fighter.shieldRecoilZ = 1
+	advance(fighter, 0, input, 0)
+	let recoilLength = SquareRoot(fighter.shieldRecoilX * fighter.shieldRecoilX + fighter.shieldRecoilZ * fighter.shieldRecoilZ)
+	let beforeLength = SquareRoot(beforeX * beforeX + 1)
+	(recoilLength - (beforeLength - 0.3)).assertEquals(0., 0.0001)
+	destroy input
+	destroy fighter
+
 @Test function combatShieldBreakUsesCharacterLaunchAttributeAfterContactFreeze()
 	for character = 0 to 2
 		let owner = new FighterState(0, 0, 1)

@@ -42,6 +42,7 @@ import MatchStep
     first.projectileDirection[3] = -1
     first.shieldPushbackX = 2.73600035905838
     first.shieldRecoilX = -1.8
+    first.shieldRecoilZ = 2.4
     first.shieldDrainResumePending = true
     first.lastHitAttacker = second
     first.lastHitAttackSerial = 19
@@ -72,6 +73,7 @@ import MatchStep
     first.projectileDirection[3] = 0
     first.shieldPushbackX = 0
     first.shieldRecoilX = 0
+    first.shieldRecoilZ = 0
     first.shieldDrainResumePending = false
     first.lastHitAttacker = null
     first.lastHitAttackSerial = -1
@@ -101,6 +103,7 @@ import MatchStep
     first.projectileDirection[3].assertEquals(-1)
     first.shieldPushbackX.assertEquals(2.73600035905838)
     first.shieldRecoilX.assertEquals(-1.8)
+    first.shieldRecoilZ.assertEquals(2.4)
     first.shieldDrainResumePending.assertTrue()
     (first.lastHitAttacker == second).assertTrue()
     first.lastHitAttackSerial.assertEquals(19)
@@ -281,6 +284,9 @@ import MatchStep
     actual.second.projectileZ[PROJECTILE_CAPACITY - 1] = 0.000001
     expected.firstDifference(actual).assertEquals("second.projectileZ[" + I2S(PROJECTILE_CAPACITY - 1) + "]")
     actual.second.projectileZ[PROJECTILE_CAPACITY - 1] = 0
+    actual.second.shieldRecoilZ = 0.000001
+    expected.firstDifference(actual).assertEquals("second.shieldRecoilZ")
+    actual.second.shieldRecoilZ = 0
     actual.match.firstRematchReady = true
     expected.firstDifference(actual).assertEquals("match.firstRematchReady")
     actual.match.firstRematchReady = false

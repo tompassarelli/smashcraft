@@ -203,6 +203,8 @@ public function grabActionDuration(int action) returns int
 		return 36
 	return 10
 constant real KNOCKBACK_DECAY_PER_FRAME = 0.051
+// Common-data value x3E8 from the cited NTSC 1.02 extraction; values are Melee units.
+constant real AIR_SHIELD_RECOIL_DECAY = 0.05 * WORLD_UNITS_PER_MELEE_UNIT
 constant real KNOCKBACK_LAUNCH_SCALE = 0.03 * WORLD_UNITS_PER_MELEE_UNIT
 constant real HITSTUN_FRAMES_PER_KNOCKBACK = 0.4
 public constant real ORDINARY_HIT_GROWTH_PERCENT = 100
@@ -281,6 +283,7 @@ public class FighterState
 	// Shield contact motion remains separate from launch velocity.
 	real shieldPushbackX = 0
 	real shieldRecoilX = 0
+	real shieldRecoilZ = 0
 	boolean shieldDrainResumePending = false
 	real damage = 0
 	int stocks = 3
@@ -568,7 +571,7 @@ public function totalVelocityX(FighterState f) returns real
 	return f.vx + f.knockbackX + f.shieldPushbackX + f.shieldRecoilX
 
 public function totalVelocityZ(FighterState f) returns real
-	return f.vz + f.knockbackZ
+	return f.vz + f.knockbackZ + f.shieldRecoilZ
 
 function decayKnockback(FighterState f)
 	if f.grounded
@@ -593,15 +596,24 @@ public function digitalShieldRecoil(real damage) returns real
 	return (integerHitPower(damage) * 0.07 + 0.02) * WORLD_UNITS_PER_MELEE_UNIT
 
 function decayShieldMotion(FighterState f)
-	if not f.grounded
-		// Airborne shield-contact decay is not identified by the available trace.
+	if f.grounded
+		let defenderDecay = f.physics.traction
+		f.shieldPushbackX = f.shieldPushbackX > 0 ? max(0, f.shieldPushbackX - defenderDecay) : min(0, f.shieldPushbackX + defenderDecay)
+		// The currently modeled ground is flat, so shield recoil has no vertical component there.
+		f.shieldRecoilZ = 0
+		let attackerDecay = f.physics.traction * 1.1
+		f.shieldRecoilX = f.shieldRecoilX > 0 ? max(0, f.shieldRecoilX - attackerDecay) : min(0, f.shieldRecoilX + attackerDecay)
+	else
+		// Airborne recoil is a vector and decays by the common per-frame amount.
 		f.shieldPushbackX = 0
-		f.shieldRecoilX = 0
-		return
-	let defenderDecay = f.physics.traction
-	f.shieldPushbackX = f.shieldPushbackX > 0 ? max(0, f.shieldPushbackX - defenderDecay) : min(0, f.shieldPushbackX + defenderDecay)
-	let attackerDecay = f.physics.traction * 1.1
-	f.shieldRecoilX = f.shieldRecoilX > 0 ? max(0, f.shieldRecoilX - attackerDecay) : min(0, f.shieldRecoilX + attackerDecay)
+		let speed = SquareRoot(f.shieldRecoilX * f.shieldRecoilX + f.shieldRecoilZ * f.shieldRecoilZ)
+		if speed < AIR_SHIELD_RECOIL_DECAY
+			f.shieldRecoilX = 0
+			f.shieldRecoilZ = 0
+		else if speed > 0
+			let scale = (speed - AIR_SHIELD_RECOIL_DECAY) / speed
+			f.shieldRecoilX *= scale
+			f.shieldRecoilZ *= scale
 
 function shieldDrainShouldResume(FighterState f, boolean forcedShield) returns boolean
 	if forcedShield
@@ -969,6 +981,7 @@ function resolveDamageContacts(FighterState target)
 	// A later hit replaces both shield-contact motion channels.
 	target.shieldPushbackX = 0
 	target.shieldRecoilX = 0
+	target.shieldRecoilZ = 0
 	target.shieldDrainResumePending = false
 	let chosen = damageContacts[winner >= 0 ? winner : flinch]
 	let jabReset = chosen.kind != CONTACT_THROW and chosen.down and chosen.data.damage < DOWN_DAMAGE_MAX_HIT_DAMAGE
@@ -1432,6 +1445,7 @@ function beginShieldBreak(FighterState f)
 	f.knockbackZ = 0
 	f.shieldPushbackX = 0
 	f.shieldRecoilX = 0
+	f.shieldRecoilZ = 0
 	f.shieldDrainResumePending = false
 	f.grounded = false
 	f.surface = -1
@@ -2504,6 +2518,7 @@ public function reset(FighterState f, real startX)
 	f.knockbackZ = 0
 	f.shieldPushbackX = 0
 	f.shieldRecoilX = 0
+	f.shieldRecoilZ = 0
 	f.shieldDrainResumePending = false
 	f.damage = 0
 	f.hitstun = 0

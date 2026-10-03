@@ -188,7 +188,7 @@ equivalence without the missing parameters and original-game comparisons.
 | Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed, sampled roll travel, persistent fast-fall state, and five recorded dash-braking updates | Revision identity, complete frame trajectories, dash/run/turn common values and transitions, walk acceleration, and original fast-fall stick-entry threshold/window |
 | Damage | Integer individual hit power, fractional same-frame total, strongest-contact selection, fixed knockback, cap, sampled crouch/smash modifiers and recorded flat-ground traction decay | Common-table confirmation, successive-frame stacking and other grounded surface conditions |
 | Hitlag/hitstun | Separate counters, electric effects carried through contact resolution, crouch arithmetic, direct/detached source pause and recorded same-frame hitlag release | Broader original-game ordered traces, revision identity and verified common values |
-| Shields | Integer shieldstun power, shield-break launch speed, recorded grounded digital defender pushback/attacker recoil and guard-drain timing | Raw common values/revision, analog/powershield branches, airborne recoil and broader paired displacement/actionability traces |
+| Shields | Integer shieldstun power, shield-break launch speed, recorded grounded digital defender pushback/attacker recoil and guard-drain timing; airborne attacker recoil now retains a separate x/z vector, decays by common +0x3E8, and is included in replay | Airborne vector initialization still needs common +0x7D4 `hit_weight_mul`; raw common identity, analog/powershield branches and broader paired displacement/actionability traces |
 | DI/recovery | Actual-vector DI normalization, grounded non-upward launch selection, existing floor tech/miss-tech/getup and sampled roll paths | Ground-bounce values, wall/ceiling collision geometry, tumble exceptions and threshold/tech traces |
 | Replay/map | Crouch and roll-entry-facing snapshot restoration; map compilation and packaging | Native connected movement/contact/recovery check of this build |
 
@@ -198,6 +198,21 @@ character dumps have unknown disc revision; the revision-identified PlCo
 common table is still unavailable. Missing values are not filled with guesses.
 Owner-approved digital dodge/fast-fall conveniences, original Illidan tuning,
 custom parry behavior and lack of staling remain explicit gameplay choices.
+
+Airborne shield recoil uses common +0x3E8 = 0.05 Melee units per frame; on
+flat-ground contact the horizontal channel uses traction × common +0x3EC = 1.1,
+and its vertical component is discarded. The values come from
+`technospider-ssbm/melee-shield-tilt` revision
+`e8c05c2a0ed3419c1f461d0a5cb11728d01aa3b1`. Its README says the data was
+extracted from the publisher's vanilla NTSC v1.02 ISO and lists PlCo SHA1
+`c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41`; that hash and the disc identity
+were not independently verified here. No implementation code was reused.
+The retained airborne shield contact in
+smashcraft:docs/smash-melee-reference/slippi-ntsc-airborne-shield-contact.json
+shows the attacker frozen through hitlag and moving again on the first release
+sample, but does not expose the shield-recoil vector. The common +0x7D4
+`hit_weight_mul` required to initialize that vector remains unavailable, so
+airborne contact initialization remains open.
 
 The next acceptance sequence and GitHub dependencies are in
 wc3-melee:docs/melee-foundation-roadmap.md. The factual frame-data intake at
