@@ -63,12 +63,12 @@ See smashcraft:docs/melee-analog-shield.md for its boundaries. The assembled
 precision check passes fourteen groups. Other formula rounding, shield geometry/powershields,
 connected/sloped ECB contacts and native trajectory checks remain open.
 
-The latest physics candidate is Smashcraft 0.0.12, build melee-physics-r26,
-source 8bb5f06a0667efeb5b4c65a7dd724be48601799f. It built with zero errors and
+The latest physics candidate is Smashcraft 0.0.12, build melee-physics-r27,
+source aae1ea87824654a48b09bba3cf13d0b74d083fd9. It built with zero errors and
 six existing warnings. SHA-256:
-a23845b7631e71695a0e24db91f9d30647d57784e52d45cd2db20e89bb06b860.
+9d894c95a09a3ebfc80def79731b9ef558dfc8cbd965c95517b87164d993861a.
 Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x.
-Build evidence: smashcraft:build/physics-map-r26.log. Deployment was disabled;
+Build evidence: smashcraft:build/physics-map-r27.log. Deployment was disabled;
 this candidate has not been installed or observed natively. Separate native
 input/contact probes do not establish its physics or presentation. The separate
 native arithmetic candidate in smashcraft:docs/native-physics-precision.md
