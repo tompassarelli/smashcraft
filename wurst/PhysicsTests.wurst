@@ -1,5 +1,166 @@
 package PhysicsTests
 import Simulation
+import ReplayState
+
+function retailCombatContact(FighterState owner, FighterState target, real knockback, real dx, real dz)
+	beginDamageContacts()
+	queueDamageContact(owner, target, hitEffect(5, 0, knockback, dx, dz, false), 1, CONTACT_LAUNCH, false, null)
+	finishDamageContacts(owner, target)
+
+@Test function retailCombatStackingStartsOnTenthMovingFrameAndFreezesInHitlag()
+	for age = 9 to 10
+		let owner = new FighterState(0, -300, 1)
+		let target = new FighterState(1, -100, -1)
+		let input = new InputSnapshot()
+		target.grounded = false
+		target.z = 300
+		retailCombatContact(owner, target, 100, 1, 0)
+		target.knockbackAgeFrames.assertEquals(0)
+		target.knockbackX.assertEquals(17.9999995977, 0.000001)
+		for frozenFrame = 1 to 3
+			advance(target, 0, input, 0)
+			target.knockbackAgeFrames.assertEquals(0)
+			target.x.assertEquals(-100.)
+		for movingFrame = 1 to age
+			advance(target, 0, input, 0)
+			target.knockbackAgeFrames.assertEquals(movingFrame)
+		let residual = target.knockbackX
+		retailCombatContact(owner, target, 20, 1, 0)
+		if age == 9
+			target.knockbackX.assertEquals(3.5999999195, 0.000001)
+		else
+			target.knockbackX.assertEquals(residual)
+		target.knockbackAgeFrames.assertEquals(0)
+		target.hitstun.assertEquals(8)
+		destroy input
+		destroy target
+		destroy owner
+
+@Test function retailCombatStackingMergesEachAxisOnceAfterStrongestContactSelection()
+	let owner = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 100, -1)
+	target.grounded = false
+	target.z = 300
+	target.knockbackX = 18
+	target.knockbackZ = -9
+	target.knockbackAgeFrames = 10
+	beginDamageContacts()
+	queueDamageContact(owner, target, hitEffect(5, 0, 100, -0.6, 0.8, false), 1, CONTACT_LAUNCH, false, null)
+	queueDamageContact(owner, target, hitEffect(5, 0, 20, 1, 0, false), 1, CONTACT_LAUNCH, false, null)
+	finishDamageContacts(owner, target)
+	target.damage.assertEquals(10.)
+	target.knockbackX.assertEquals(7.2000002414, 0.000001)
+	target.knockbackZ.assertEquals(5.3999996781, 0.000001)
+	target.damageLevel.assertEquals(3)
+	target.hitstun.assertEquals(40)
+	// A weaker same-direction axis is retained; an incoming zero cannot erase it.
+	target.knockbackAgeFrames = 10
+	retailCombatContact(owner, target, 20, 0, 1)
+	target.knockbackX.assertEquals(7.2000002414, 0.000001)
+	target.knockbackZ.assertEquals(5.3999996781, 0.000001)
+	target.knockbackAgeFrames = 10
+	retailCombatContact(owner, target, 100, -1, -1)
+	target.knockbackX.assertEquals(-10.7999993563, 0.000001)
+	target.knockbackZ.assertEquals(-12.5999999196, 0.000001)
+	destroy target
+	destroy owner
+
+@Test function retailCombatGroundTangentUsesNewContactThenTractionRatherThanAirDecay()
+	for facing = -1 to 1
+		if facing != 0
+			let owner = new FighterState(0, -100, 1)
+			let target = new FighterState(1, 0, -1)
+			let input = new InputSnapshot()
+			target.surface = 0
+			target.knockbackX = facing * 30.
+			target.knockbackAgeFrames = 10
+			retailCombatContact(owner, target, 20, facing * 1., -1)
+			target.grounded.assertTrue()
+			target.knockbackX.assertEquals(facing * 30.)
+			target.groundKnockbackX.assertEquals(facing * 3.5999999195, 0.000001)
+			for frame = 1 to 4
+				advance(target, 0, input, 0)
+			target.x.assertEquals(facing * 3.1199999195, 0.000001)
+			target.knockbackX.assertEquals(facing * 3.1199999195, 0.000001)
+			target.knockbackZ.assertEquals(0.)
+			target.damageLevel.assertEquals(0)
+			for frame = 1 to 7
+				advance(target, 0, input, 0)
+			target.knockbackX.assertEquals(0.)
+			target.groundKnockbackX.assertEquals(0.)
+			destroy input
+			destroy target
+			destroy owner
+
+@Test function retailCombatDamageLevelsUseAllThreeUnroundedScaledThresholds()
+	damageLevelForKnockback(24.999).assertEquals(0)
+	damageLevelForKnockback(25.).assertEquals(1)
+	damageLevelForKnockback(52.499).assertEquals(1)
+	damageLevelForKnockback(52.5).assertEquals(2)
+	damageLevelForKnockback(79.999).assertEquals(2)
+	damageLevelForKnockback(80.).assertEquals(3)
+	ordinaryHitstunFrames(24.999).assertEquals(9)
+	ordinaryHitstunFrames(25.).assertEquals(10)
+	ordinaryHitstunFrames(52.5).assertEquals(21)
+	ordinaryHitstunFrames(80.).assertEquals(32)
+
+@Test function retailCombatGroundBounceUsesTenDegreeThresholdAndFourFifthsVerticalSpeed()
+	for grounded = 0 to 1
+		for steep = 0 to 1
+			let owner = new FighterState(0, 0, 1)
+			let target = new FighterState(1, 100, -1)
+			target.grounded = grounded == 1
+			target.z = grounded == 1 ? 0. : 300.
+			// Unit launch directions at nine and eleven degrees below horizontal.
+			let dx = steep == 0 ? 0.987688340595 : 0.981627183448
+			let dz = steep == 0 ? -0.156434465040 : -0.190808995377
+			retailCombatContact(owner, target, 100, dx, dz)
+			target.grounded.assertFalse()
+			target.damageLevel.assertEquals(3)
+			target.downState.assertEquals(DOWN_TUMBLE)
+			// Expected multiplication results include the test interpreter's float32 rounding.
+			target.knockbackX.assertEquals(steep == 0 ? 17.7783908844 : 17.6692886353, 0.000001)
+			let expectedZ = steep == 0 ? -2.8158203078 : (grounded == 1 ? 2.7476495125 : -3.4345618400)
+			target.knockbackZ.assertEquals(expectedZ, 0.000001)
+			destroy target
+			destroy owner
+
+@Test function retailCombatReplayPreservesStackingAgeGroundTangentAndDamageLevel()
+	let state = new ReplaySnapshot()
+	let saved = new ReplaySnapshot()
+	let after = new ReplaySnapshot()
+	let input = new InputSnapshot()
+	state.first.grounded = true
+	state.first.surface = 0
+	state.first.knockbackX = 3
+	state.first.groundKnockbackX = 6
+	state.first.knockbackAgeFrames = 9
+	state.first.damageLevel = 2
+	saved.capture(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+	state.first.knockbackAgeFrames = 8
+	saved.firstDifference(state).assertEquals("first.knockbackAgeFrames")
+	state.first.knockbackAgeFrames = 9
+	state.first.damageLevel = 1
+	saved.firstDifference(state).assertEquals("first.damageLevel")
+	state.first.damageLevel = 2
+	state.first.groundKnockbackX = 5
+	saved.firstDifference(state).assertEquals("first.groundKnockbackX")
+	for replay = 0 to 1
+		saved.restore(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+		advance(state.first, 0, input, 0)
+		state.first.knockbackAgeFrames.assertEquals(10)
+		retailCombatContact(state.second, state.first, 20, -1, 0)
+		if replay == 0
+			after.capture(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+	state.firstDifference(after).assertEquals("")
+	reset(state.first, 0)
+	state.first.knockbackAgeFrames.assertEquals(-1)
+	state.first.groundKnockbackX.assertEquals(0.)
+	state.first.damageLevel.assertEquals(0)
+	destroy input
+	destroy after
+	destroy saved
+	destroy state
 
 // Factual original-game inputs from wc3-melee:docs/smash-melee-reference/physics-parameters.json.
 // This fixture exercises the production engine without adding a roster character.
@@ -347,7 +508,7 @@ function recordedGroundedDamageFirstDifference(int character, real velocityOffse
 				canAttack(target).assertTrue()
 				target.landingLag.assertEquals(0)
 			else
-				target.knockbackZ.assertEquals(aboveThreshold == 0 ? -8.6283 : -8.67828, 0.0001)
+				target.knockbackZ.assertEquals(aboveThreshold == 0 ? -8.6283 : (airborne == 0 ? 6.942624 : -8.67828), 0.0001)
 			destroy input
 			destroy target
 			destroy owner

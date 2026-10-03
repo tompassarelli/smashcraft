@@ -204,9 +204,13 @@ public function grabActionDuration(int action) returns int
 	return 10
 constant real KNOCKBACK_DECAY_PER_FRAME = 0.051
 // Common-data value x3E8 from the cited NTSC 1.02 extraction; values are Melee units.
-constant real AIR_SHIELD_RECOIL_DECAY = 0.05 * WORLD_UNITS_PER_MELEE_UNIT
-constant real KNOCKBACK_LAUNCH_SCALE = 0.03 * WORLD_UNITS_PER_MELEE_UNIT
-constant real HITSTUN_FRAMES_PER_KNOCKBACK = 0.4
+constant real AIR_SHIELD_RECOIL_DECAY = 0.05000000074505806 * WORLD_UNITS_PER_MELEE_UNIT
+constant real KNOCKBACK_LAUNCH_SCALE = 0.029999999329447746 * WORLD_UNITS_PER_MELEE_UNIT
+constant real HITSTUN_FRAMES_PER_KNOCKBACK = 0.4000000059604645
+constant int KNOCKBACK_STACKING_FRAMES = 10
+constant real GROUND_KNOCKBACK_FRICTION_MULTIPLIER = 1
+constant real GROUND_LAUNCH_BOUNCE_ANGLE = 0.1745329201221466
+constant real GROUND_LAUNCH_REBOUND = 0.800000011920929
 public constant real ORDINARY_HIT_GROWTH_PERCENT = 100
 public constant real ORDINARY_HIT_BASE_KNOCKBACK = 20
 public constant real ORDINARY_HIT_CONTEXT_SCALE = 1
@@ -280,6 +284,10 @@ public class FighterState
 	real vz
 	real knockbackX
 	real knockbackZ
+	real groundKnockbackX = 0
+	// The merge rule only distinguishes ages below ten from ages at least ten.
+	int knockbackAgeFrames = -1
+	int damageLevel = 0
 	// Shield contact motion remains separate from launch velocity.
 	real shieldPushbackX = 0
 	real shieldRecoilX = 0
@@ -575,14 +583,19 @@ public function totalVelocityZ(FighterState f) returns real
 
 function decayKnockback(FighterState f)
 	if f.grounded
-		// Flat surfaces: recorded effective decay equals traction; common +0x200 remains unextracted.
-		f.knockbackX = f.knockbackX > 0 ? max(0, f.knockbackX - f.physics.traction) : min(0, f.knockbackX + f.physics.traction)
+		if f.groundKnockbackX == 0
+			f.groundKnockbackX = f.knockbackX
+		let friction = f.physics.traction * GROUND_KNOCKBACK_FRICTION_MULTIPLIER
+		f.groundKnockbackX = f.groundKnockbackX > 0 ? max(0, f.groundKnockbackX - friction) : min(0, f.groundKnockbackX + friction)
+		f.knockbackX = f.groundKnockbackX
 		f.knockbackZ = 0
 		return
+	f.groundKnockbackX = 0
 	let speed = SquareRoot(f.knockbackX * f.knockbackX + f.knockbackZ * f.knockbackZ)
 	let decay = KNOCKBACK_DECAY_PER_FRAME * WORLD_UNITS_PER_MELEE_UNIT
 	if speed <= decay
 		f.knockbackX = 0
+		f.groundKnockbackX = 0
 		f.knockbackZ = 0
 	else if speed > 0
 		let scale = (speed - decay) / speed
@@ -786,6 +799,45 @@ public function digitalShieldstunFrames(real hitDamage) returns int
 
 public function ordinaryHitstunFrames(real knockback) returns int
 	return max(1, R2I(knockback * HITSTUN_FRAMES_PER_KNOCKBACK))
+
+public function damageLevelForKnockback(real knockback) returns int
+	let scaled = knockback * HITSTUN_FRAMES_PER_KNOCKBACK
+	if scaled >= 32
+		return 3
+	if scaled >= 21
+		return 2
+	return scaled >= 10 ? 1 : 0
+
+function mergeLaunchAxis(real existing, real incoming) returns real
+	if existing == 0
+		return incoming
+	if incoming == 0
+		return existing
+	if (existing < 0) != (incoming < 0)
+		return existing + incoming
+	return existing > 0 ? max(existing, incoming) : min(existing, incoming)
+
+function installDamageLaunch(FighterState target, real knockback, real directionX, real directionZ, boolean wasGrounded)
+	target.damageLevel = damageLevelForKnockback(knockback)
+	let launch = knockback * KNOCKBACK_LAUNCH_SCALE
+	let launchX = launch * directionX
+	var launchZ = launch * directionZ
+	target.grounded = wasGrounded and target.damageLevel < 3 and directionZ <= 0
+	if target.grounded
+		launchZ = 0
+	else if wasGrounded and target.damageLevel == 3 and directionZ < 0
+		// The floor normal is vertical on the current flat stage surfaces.
+		if Atan2(-directionZ, directionX.abs()) > GROUND_LAUNCH_BOUNCE_ANGLE
+			launchZ = -launchZ * GROUND_LAUNCH_REBOUND
+	target.groundKnockbackX = target.grounded ? launchX : 0.
+	if target.knockbackAgeFrames >= KNOCKBACK_STACKING_FRAMES
+		target.knockbackX = mergeLaunchAxis(target.knockbackX, launchX)
+		target.knockbackZ = mergeLaunchAxis(target.knockbackZ, launchZ)
+	else
+		target.knockbackX = launchX
+		target.knockbackZ = launchZ
+	target.knockbackAgeFrames = 0
+	target.diLaunchSpeed = launch
 
 function attackReach(int style) returns real
 	if style == DEMONHUNTER_DASH_ATTACK_STYLE
@@ -999,15 +1051,11 @@ function resolveDamageContacts(FighterState target)
 	else if winner >= 0
 		target.vx = 0
 		target.vz = 0
-		target.grounded = chosen.grounded and strongest < DOWN_KNOCKBACK_THRESHOLD and chosen.data.launchZ <= 0
-		let launch = strongest * KNOCKBACK_LAUNCH_SCALE
-		target.knockbackX = chosen.facing * launch * chosen.data.launchX
-		target.knockbackZ = target.grounded ? 0. : launch * chosen.data.launchZ
+		installDamageLaunch(target, strongest, chosen.facing * chosen.data.launchX, chosen.data.launchZ, chosen.grounded)
 		target.sdiWasGrounded = chosen.grounded
 		target.sdiLaunchesUpward = target.knockbackZ > 0
 		target.diPending = true
-		target.diLaunchSpeed = launch
-		if strongest >= DOWN_KNOCKBACK_THRESHOLD
+		if target.damageLevel == 3
 			target.downState = DOWN_TUMBLE
 			target.downFrame = 0
 			target.downDirection = 0
@@ -1164,6 +1212,7 @@ function beginDownDamage(FighterState f, int hitstunFrames)
 	f.vx = 0
 	f.vz = 0
 	f.knockbackX = 0
+	f.groundKnockbackX = 0
 	f.knockbackZ = 0
 	f.grounded = true
 	f.shield = false
@@ -1220,6 +1269,7 @@ function catchLedge(FighterState f, int stage, int side)
 	f.vx = 0
 	f.vz = 0
 	f.knockbackX = 0
+	f.groundKnockbackX = 0
 	f.knockbackZ = 0
 	f.specialFall = false
 	f.jumps = 1
@@ -1393,6 +1443,7 @@ function freezeFromTrap(FighterState target)
 	target.vx = 0
 	target.vz = 0
 	target.knockbackX = 0
+	target.groundKnockbackX = 0
 	target.knockbackZ = 0
 	target.frozenFrames = FREEZE_TRAP_FREEZE_FRAMES
 	cancelSpecialState(target)
@@ -1442,6 +1493,7 @@ function beginShieldBreak(FighterState f)
 	f.vx = 0
 	f.vz = f.physics.shieldBreakSpeed
 	f.knockbackX = 0
+	f.groundKnockbackX = 0
 	f.knockbackZ = 0
 	f.shieldPushbackX = 0
 	f.shieldRecoilX = 0
@@ -1504,6 +1556,7 @@ function beginDownState(FighterState f, int state, int direction)
 	f.vz = 0
 	if state != DOWN_BOUND and state != DOWN_TECH and state != DOWN_TECH_ROLL
 		f.knockbackX = 0
+		f.groundKnockbackX = 0
 	f.knockbackZ = 0
 	f.shield = false
 	f.shieldHeldFrames = 0
@@ -1963,6 +2016,7 @@ function resolveHeldTarget(FighterState owner)
 	owner.vx = 0
 	owner.vz = 0
 	owner.knockbackX = 0
+	owner.groundKnockbackX = 0
 	owner.knockbackZ = 0
 	target.x = owner.x + owner.facing * GRAB_HOLD_DISTANCE
 	target.z = owner.z
@@ -1981,6 +2035,7 @@ function resolveHeldTarget(FighterState owner)
 	target.vx = 0
 	target.vz = 0
 	target.knockbackX = 0
+	target.groundKnockbackX = 0
 	target.knockbackZ = 0
 
 // Resolve after both fighters advance, so expiry never gives the second slot
@@ -2017,6 +2072,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 		attacker.vx = 0
 		attacker.vz = 0
 		attacker.knockbackX = 0
+		attacker.groundKnockbackX = 0
 		attacker.knockbackZ = 0
 		target.diPending = false
 		target.diLaunchSpeed = 0
@@ -2032,6 +2088,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 		target.vx = 0
 		target.vz = 0
 		target.knockbackX = 0
+		target.groundKnockbackX = 0
 		target.knockbackZ = 0
 		return
 	queueDamageContact(attacker, target, hitData, facing, CONTACT_LAUNCH, directContact, null)
@@ -2409,6 +2466,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 		f.vx = dx * AIR_DODGE_SPEED * Cos(18 * bj_DEGTORAD)
 		f.vz = -AIR_DODGE_SPEED * Sin(18 * bj_DEGTORAD)
 	f.knockbackX = 0
+	f.groundKnockbackX = 0
 	f.knockbackZ = 0
 	f.airDodgeTime = AIR_DODGE_FRAMES
 	f.airDodging = true
@@ -2515,12 +2573,15 @@ public function reset(FighterState f, real startX)
 	f.vx = 0
 	f.vz = 0
 	f.knockbackX = 0
+	f.groundKnockbackX = 0
 	f.knockbackZ = 0
 	f.shieldPushbackX = 0
 	f.shieldRecoilX = 0
 	f.shieldRecoilZ = 0
 	f.shieldDrainResumePending = false
 	f.damage = 0
+	f.knockbackAgeFrames = -1
+	f.damageLevel = 0
 	f.hitstun = 0
 	f.hitlag = 0
 	f.diPending = false
@@ -2588,6 +2649,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	// Expiry resumes this frame, including input gates and state countdowns.
 	let hitlagBefore = f.hitlag
 	f.hitlag = max(0, f.hitlag - 1)
+	if f.hitlag <= 0 and f.knockbackAgeFrames >= 0
+		f.knockbackAgeFrames = min(KNOCKBACK_STACKING_FRAMES, f.knockbackAgeFrames + 1)
 	if f.hitlag <= 0
 		f.ledgeRegrab = max(0, f.ledgeRegrab - 1)
 	if f.ledgeState != LEDGE_NONE
@@ -2797,6 +2860,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if (f.groundDodgeDirection < 0 and f.x == surfaceLeft(stage, max(0, f.surface))) or (f.groundDodgeDirection > 0 and f.x == surfaceRight(stage, max(0, f.surface)))
 			f.vx = 0
 			f.knockbackX = 0
+			f.groundKnockbackX = 0
 	else
 		f.x += totalVelocityX(f) + dashEntryDisplacementAdjustment
 	if isGroundDodging(f)
@@ -2841,6 +2905,8 @@ function checkBlastZone(FighterState f)
 		clearGrabLinks(f)
 		clearDash(f)
 		f.out = true
+		f.knockbackAgeFrames = -1
+		f.damageLevel = 0
 		clearLedge(f)
 		f.ledgeRegrab = 0
 		clearShieldBreak(f)
@@ -2852,6 +2918,7 @@ function checkBlastZone(FighterState f)
 		f.vx = 0
 		f.vz = 0
 		f.knockbackX = 0
+		f.groundKnockbackX = 0
 		f.knockbackZ = 0
 		f.lCancelWindow = 0
 		f.techWindow = 0

@@ -1,5 +1,63 @@
 # Physics reference and implementation
 
+## Verified retail combat parameters — 2026-10-03
+
+Ordinary launching contacts now use the independently recorded GALE01 revision 2
+common parameters. The private reference's main.dol SHA-1 is
+`08e0bf20134dfcb260699671004527b2d6bb1a45`; the PlCo common-data root is data offset
+`0x9FC0`, with a `0x20` archive header. Original game files remain outside this
+repository. Numerical facts and behavioral observations alone inform this
+independently authored Wurst implementation. The gameplay source at
+melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c,
+melee:src/melee/ft/fighter.c and melee:src/melee/ft/ftcommon.c, revision
+`0296f009f32f710495979d30772d8332af2d411a`, supplies use-site facts; no license
+covering that gameplay implementation was found and none is copied or translated.
+
+The adopted values are +0xFC = 10 moving frames before launch merging,
++0x100 = 0.029999999329447746 launch speed per knockback unit,
++0x154 = 0.4000000059604645 hitstun frames per knockback unit, and
++0x158/+0x15C/+0x160 = 10/21/32 for the four damage reaction levels. Levels are
+selected from the unrounded scaled knockback; the stun counter truncates it,
+with a minimum of one. The fourth level selects tumble. Common flat-ground
+knockback friction +0x200 = 1 multiplies the fighter's traction.
+
+During the first nine moving frames since a launch, a new launch replaces the
+old vector. Starting on frame ten, opposite components add and same-direction
+components keep the greater magnitude, independently on each axis. The age
+freezes during hitlag and advances on the frame hitlag expires. The contact
+batch first chooses its strongest launch, then merges it once with residual
+motion. Hitstun and reaction level belong to the new winning hit. The saved age
+saturates at ten because later values do not affect this decision.
+
+A grounded, downward or horizontal hit below tumble strength stays on the
+floor. Its new tangent velocity is retained separately from the transient
+merged vector so the next ground step decays the actual new ground launch.
+An upward hit leaves the ground. A tumble-strength hit more than
+0.1745329201221466 radians (+0x1E8) below the flat floor reflects its vertical
+component upward by 0.800000011920929 (+0x1EC), retaining horizontal speed.
+Shallower downward tumble launches remain downward for ordinary collision
+resolution. Airborne targets do not receive this contact-time floor bounce.
+These rules preserve the original roster's authored weights, traction, move
+power and direction vectors; no reference fighter is added to the roster.
+
+Replay copying and exact comparison include the age, ground tangent velocity
+and damage level. Reset and stock loss clear them; launch-clearing actions also
+clear the tangent channel. Focused tests exercise the nine/ten-frame boundary,
+frozen age, axis merging, strongest-contact selection, ground traction,
+all three damage-level thresholds, nine/eleven-degree floor launches and exact
+snapshot restoration. Their synthetic expected values are arithmetic checks,
+not newly captured game traces. The existing independent grounded-damage and
+movement recordings remain part of the same physics test package.
+`bash test.sh PhysicsTests` passed **48/48**, with zero compiler errors and one
+existing unused-import warning; evidence is
+smashcraft:build/retail-combat-tests.log. Exact retention checks preserve the
+pre-contact vector rather than approximating its accumulated float32 decay.
+
+This change covers contact-time launch selection and flat-floor attenuation.
+General wall/ceiling geometry, collision-time rebounds/landing limits, analog
+input, and special damage states are separate seams. No full-combat parity or
+native game observation is claimed by these focused checks.
+
 ## Grounded digital shield correction — 2026-10-03
 
 Production contact resolution now assigns defender shield pushback and direct
