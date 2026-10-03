@@ -14,6 +14,8 @@ constant real TURN_RUN_ZERO_VELOCITY_THRESHOLD = 0.01 * WORLD_UNITS_PER_MELEE_UN
 // inject their own actor-owned command timeline; the encoded event is not a
 // universal character constant.
 public constant int INITIAL_DASH_FRAMES = 10
+// NTSC common +0x4c; only the Dash-to-Guard branch uses this early/late split.
+public constant int DASH_GUARD_EARLY_FRAMES = 20
 public constant int GROUND_ACTION_NONE = 0
 public constant int GROUND_ACTION_DASH = 1
 public constant int GROUND_ACTION_RUN = 2
@@ -22,6 +24,21 @@ public constant int GROUND_ACTION_RUN_BRAKE = 4
 public tuple groundMovementRules(int dashRunEnableFrame, int turnRunFacingCommandFrame,
 		int turnRunAnimationEndFrame, int runBrakeTurnCommandEndFrame,
 		int runBrakeAnimationEndFrame, int runBrakeMaximumFrames)
+
+public tuple dashGrabRules(int startupFrames, int totalFrames)
+
+// Explicit frame-data fixtures; original roster fighters keep the empty rules.
+public function authoredDashGrabRules() returns dashGrabRules
+	return dashGrabRules(0, 0)
+
+public function ntscFoxDashGrabRules() returns dashGrabRules
+	return dashGrabRules(11, 39)
+
+public function ntscFalcoDashGrabRules() returns dashGrabRules
+	return dashGrabRules(11, 39)
+
+public function ntscCaptainFalconDashGrabRules() returns dashGrabRules
+	return dashGrabRules(10, 39)
 
 public function authoredGroundMovementRules() returns groundMovementRules
 	// Existing Smashcraft roster timing is an authored approximation, not a
@@ -364,6 +381,9 @@ public class FighterState
 	int dashFrame = 0
 	int dashDirection = 0
 	groundMovementRules groundRules
+	dashGrabRules dashGrabTiming = authoredDashGrabRules()
+	int dashGrabWindow = 0
+	boolean dashGrabAttack = false
 	int groundAction = GROUND_ACTION_NONE
 	int groundActionFrame = 0
 	int groundRunBrakeFramesRemaining = 0
@@ -1066,6 +1086,11 @@ public function canShieldGrab(FighterState attacker) returns boolean
 	return canStartAttack(attacker) and attacker.shield and attacker.grounded and attacker.shieldEnergy > 0
 
 public function canStartAttackStyle(FighterState attacker, int style) returns boolean
+	if style == 11
+		return attacker.grounded and attacker.dashGrabTiming.startupFrames > 0 and
+			((attacker.dashFrame > 0 and canAttack(attacker)) or (attacker.shield and canShieldGrab(attacker)))
+	if style == 5 and attacker.grounded and attacker.dashFrame > 0 and attacker.dashGrabTiming.startupFrames > 0
+		return canAttack(attacker)
 	return canAttack(attacker) or (style == 5 and canShieldGrab(attacker))
 
 public function isAerialAttack(int style) returns boolean
@@ -1233,6 +1258,10 @@ public function attackRecoveryFrames(int style, boolean grounded) returns int
 public function attackPhase(FighterState f) returns int
 	if f.attackStyle < 0
 		return ATTACK_NONE
+	if f.dashGrabAttack
+		if f.attackFrame < f.dashGrabTiming.startupFrames
+			return ATTACK_STARTUP
+		return f.attackFrame == f.dashGrabTiming.startupFrames ? ATTACK_ACTIVE : ATTACK_RECOVERY
 	if f.attackFrame < attackStartupFrames(f.attackStyle)
 		return ATTACK_STARTUP
 	if f.attackFrame < attackStartupFrames(f.attackStyle) + characterAttackActiveFrames(f.character, f.attackStyle)
@@ -1517,6 +1546,10 @@ function authoredHitRegion(int character, int style, int frame, int chargeFrames
 
 function selectHitRegion(FighterState attacker, FighterState target) returns hitRegion
 	if attacker.out or attacker.hitlag > 0 or target.out or isIntangible(target)
+		return noHitRegion()
+	if attacker.dashGrabAttack
+		if attacker.attackFrame == attacker.dashGrabTiming.startupFrames
+			return hitRegion(0, attackReach(5), -130, 130, hitEffect(0, 0, 0, 0, 0, false), 1)
 		return noHitRegion()
 	let localX = (target.x - attacker.x) * attacker.facing
 	let localZ = target.z - attacker.z
@@ -1915,6 +1948,8 @@ function clearDownState(FighterState f)
 function beginDownState(FighterState f, int state, int direction)
 	f.fastFalling = false
 	f.crouching = false
+	f.dashGrabWindow = 0
+	f.dashGrabAttack = false
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
@@ -2333,23 +2368,26 @@ function interruptJumpOrDodge(FighterState f)
 	f.groundDodgeEntryFacing = 0
 
 function beginAttack(FighterState attacker, int style, boolean mayCharge)
+	let isDashGrab = style == 11
+	let resolvedStyle = isDashGrab ? 5 : style
 	attacker.surfaceRecoveryState = SURFACE_NONE
 	attacker.surfaceRecoveryFrame = 0
 	attacker.crouching = false
 	clearDash(attacker)
 	if isTumbling(attacker)
 		clearDownState(attacker)
-	if style == 5 and attacker.shield
+	if resolvedStyle == 5 and attacker.shield
 		attacker.shield = false
 		attacker.shieldHeldFrames = 0
-	attacker.attackStyle = style
+	attacker.attackStyle = resolvedStyle
+	attacker.dashGrabAttack = isDashGrab
 	attacker.attackFrame = 0
-	attacker.attackDuration = attackDurationFramesForGrounding(style, attacker.grounded)
+	attacker.attackDuration = isDashGrab ? attacker.dashGrabTiming.totalFrames : attackDurationFramesForGrounding(resolvedStyle, attacker.grounded)
 	attacker.attackSerial++
 	attacker.attackHit = false
 	attacker.smashCharging = false
 	attacker.smashChargeFrames = 0
-	attacker.smashChargeAllowed = isSmashAttack(style) and mayCharge
+	attacker.smashChargeAllowed = isSmashAttack(resolvedStyle) and mayCharge
 	attacker.cooldown = attacker.attackDuration
 
 function spawnProjectileMotion(FighterState owner, int kind, real velocityX, real velocityZ,
@@ -2586,6 +2624,7 @@ public function resolveGrabPair(FighterState first, FighterState second)
 
 function cancelAttack(FighterState fighter)
 	fighter.crouching = false
+	fighter.dashGrabAttack = false
 	fighter.attackStyle = -1
 	fighter.attackFrame = 0
 	fighter.attackDuration = 0
@@ -3048,8 +3087,8 @@ function canBeginGroundDodge(FighterState f) returns boolean
 public function beginAttackPair(FighterState first, FighterState second, int firstStyle, int secondStyle, boolean firstMayCharge, boolean secondMayCharge)
 	let firstAction = first.character == 2 and firstStyle == 0 and first.grounded and first.dashFrame > 0 ? DEMONHUNTER_DASH_ATTACK_STYLE : firstStyle
 	let secondAction = second.character == 2 and secondStyle == 0 and second.grounded and second.dashFrame > 0 ? DEMONHUNTER_DASH_ATTACK_STYLE : secondStyle
-	let firstGroundAttack = firstAction >= 0 and firstAction <= 10 and firstAction != 1 or firstAction == DEMONHUNTER_DASH_ATTACK_STYLE
-	let secondGroundAttack = secondAction >= 0 and secondAction <= 10 and secondAction != 1 or secondAction == DEMONHUNTER_DASH_ATTACK_STYLE
+	let firstGroundAttack = firstAction >= 0 and firstAction <= 11 and firstAction != 1 or firstAction == DEMONHUNTER_DASH_ATTACK_STYLE
+	let secondGroundAttack = secondAction >= 0 and secondAction <= 11 and secondAction != 1 or secondAction == DEMONHUNTER_DASH_ATTACK_STYLE
 	let firstAerial = isAerialAttack(firstAction)
 	let secondAerial = isAerialAttack(secondAction)
 	let firstEligible = (firstGroundAttack and first.grounded or firstAction == 1 or firstAerial and not first.grounded) and canStartAttackStyle(first, firstAction)
@@ -3108,6 +3147,8 @@ public function reset(FighterState f, real startX)
 	f.fastFallInputAge = FAST_FALL_INPUT_WINDOW
 	f.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
 	f.crouching = false
+	f.dashGrabWindow = 0
+	f.dashGrabAttack = false
 	f.jumpDodgeQueued = false
 	f.jumpDodgeX = 0
 	f.jumpDodgeZ = 0
@@ -3319,6 +3360,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 					f.attackStyle = -1
 					f.attackFrame = 0
 					f.attackHit = false
+					f.dashGrabAttack = false
 					f.smashCharging = false
 					f.smashChargeFrames = 0
 					f.smashChargeAllowed = false
@@ -3412,7 +3454,12 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			else if f.shield and not input.shield and f.shieldEnergy > 0
 				f.shieldReleaseLag = SHIELD_RELEASE_LAG_FRAMES
 				f.shieldHeldFrames = 0
+	let lateDashGuardEntry = wantsShield and not f.shield and f.grounded and
+		(f.groundAction == GROUND_ACTION_RUN or
+			(f.groundAction == GROUND_ACTION_DASH and f.groundActionFrame > DASH_GUARD_EARLY_FRAMES))
 	f.shield = wantsShield
+	if lateDashGuardEntry
+		f.dashGrabWindow = 3
 	let drainShield = shieldDrainShouldResume(f, forcedShield)
 	if wantsShield
 		if drainShield

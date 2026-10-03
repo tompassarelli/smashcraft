@@ -461,6 +461,25 @@ import MatchStep
     actual.first.groundTurnRunFacingCommandLatched = false
     expected.firstDifference(actual).assertEquals("first.groundTurnRunFacingCommandLatched")
 
+@Test function dashGrabActorRulesAndCatchWindowAreCanonicalReplayState()
+    let expected = new ReplaySnapshot()
+    let actual = new ReplaySnapshot()
+    expected.first.dashGrabTiming = ntscFoxDashGrabRules()
+    expected.first.dashGrabWindow = 3
+    expected.first.dashGrabAttack = true
+    actual.first.dashGrabTiming = ntscFoxDashGrabRules()
+    actual.first.dashGrabWindow = 3
+    actual.first.dashGrabAttack = true
+    expected.firstDifference(actual).assertEquals("")
+    actual.first.dashGrabWindow = 2
+    expected.firstDifference(actual).assertEquals("first.dashGrabWindow")
+    actual.first.dashGrabWindow = 3
+    actual.first.dashGrabAttack = false
+    expected.firstDifference(actual).assertEquals("first.dashGrabAttack")
+    actual.first.dashGrabAttack = true
+    actual.first.dashGrabTiming = ntscCaptainFalconDashGrabRules()
+    expected.firstDifference(actual).assertEquals("first.dashGrabTiming")
+
 @Test function everyPhysicsParameterSurvivesCaptureRestoreAndParticipatesInEquality()
     let first = new FighterState(0, 0, 1)
     let second = new FighterState(1, 100, -1)

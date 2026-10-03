@@ -23,6 +23,8 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
         secondCommands.clear()
     firstInput.attackRequested = firstCommands.hasPending(frame) and first.frozenFrames == 0
     secondInput.attackRequested = secondCommands.hasPending(frame) and second.frozenFrames == 0
+    let firstHadDashGrabWindow = first.dashGrabWindow > 0 and first.frozenFrames == 0 and first.hitlag <= 1
+    let secondHadDashGrabWindow = second.dashGrabWindow > 0 and second.frozenFrames == 0 and second.hitlag <= 1
     resolveLedgePair(first, second, game.stageChoice, firstInput, secondInput)
     advance(first, game.stageChoice, firstInput, -240)
     advance(second, game.stageChoice, secondInput, 240)
@@ -41,13 +43,27 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
         secondCommands.clear()
     let firstCommand = firstCommands.consume(frame, canStartAttackStyle(first, firstCommands.style))
     let secondCommand = secondCommands.consume(frame, canStartAttackStyle(second, secondCommands.style))
-    let firstStyle = attackStyleForGrounding(firstCommand, first.grounded, first.facing, firstCommands.consumedFacing)
-    let secondStyle = attackStyleForGrounding(secondCommand, second.grounded, second.facing, secondCommands.consumedFacing)
+    let firstDashGrabInput = first.grounded and first.dashFrame > 0 and first.dashGrabTiming.startupFrames > 0 and
+        (firstCommand == 0 or firstCommand == 5)
+    let secondDashGrabInput = second.grounded and second.dashFrame > 0 and second.dashGrabTiming.startupFrames > 0 and
+        (secondCommand == 0 or secondCommand == 5)
+    let firstCatchDash = first.dashGrabWindow > 0 and firstCommand == 5 and first.dashGrabTiming.startupFrames > 0
+    let secondCatchDash = second.dashGrabWindow > 0 and secondCommand == 5 and second.dashGrabTiming.startupFrames > 0
+    let firstStyle = firstDashGrabInput or firstCatchDash ? 11 : attackStyleForGrounding(firstCommand, first.grounded, first.facing, firstCommands.consumedFacing)
+    let secondStyle = secondDashGrabInput or secondCatchDash ? 11 : attackStyleForGrounding(secondCommand, second.grounded, second.facing, secondCommands.consumedFacing)
+    if firstCatchDash
+        first.dashGrabWindow = 0
+    if secondCatchDash
+        second.dashGrabWindow = 0
     if first.grounded and firstStyle >= 0 and firstCommands.consumedFacing != 0
         first.facing = firstCommands.consumedFacing
     if second.grounded and secondStyle >= 0 and secondCommands.consumedFacing != 0
         second.facing = secondCommands.consumedFacing
     beginAttackPair(first, second, firstStyle, secondStyle, firstCommands.consumedMayCharge and firstInput.attackHeld, secondCommands.consumedMayCharge and secondInput.attackHeld)
+    if firstHadDashGrabWindow and first.dashGrabWindow > 0 and not first.dashGrabAttack
+        first.dashGrabWindow = max(0, first.dashGrabWindow - 1)
+    if secondHadDashGrabWindow and second.dashGrabWindow > 0 and not second.dashGrabAttack
+        second.dashGrabWindow = max(0, second.dashGrabWindow - 1)
     resolveAttackPair(first, second)
     advanceSpecialPair(first, second, game.stageChoice)
     updateProjectilePair(first, second)

@@ -23,7 +23,12 @@
     "entryUseSite": "melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c ftCo_80091B9C",
     "consumeUseSite": "melee:src/melee/ft/kinds/ftCommon/ftCo_Catch.c ftCo_800D8B9C",
     "condition": "The later Dash IASA shield branch initializes this window; attack press while it remains nonzero selects CatchDash. This is distinct from the earlier dash branch's remaining-dash counter.",
-    "limit": "Production dash-grab distinction, input priority and exact entry/expiry tick ordering are not implemented or verified by this factual record."
+    "productionMapping": {
+      "runToGuard": "Any accepted Run-to-Guard entry starts a three-step CatchDash window, independent of the Run animation frame.",
+      "dashToGuard": "The simulation starts the window for Dash action frames above 20; frames through 20 do not start it.",
+      "callbackMappingVerified": false
+    },
+    "limit": "Production has explicit test-profile Dash Grab startup/total rules and a three-step CatchDash input window. The current contact reach reuses Smashcraft's shared grab region and assumes one active simulation tick. Mapping the retail animation/action boundary onto simulation callbacks, retail input priority, active frames/reach, and exact entry/expiry callback ordering remain unverified; these implementation details are not retail facts."
   },
   "records": [
     {

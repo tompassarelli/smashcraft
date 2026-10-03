@@ -503,3 +503,149 @@ import MatchStep
     destroy first
     destroy second
     destroy game
+
+@Test function dashGrabUsesTestActorTimingAndWindowIsReplayable()
+    let game = new MatchState()
+    game.phase = MATCH
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 80, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    first.dashGrabTiming = ntscFoxDashGrabRules()
+    first.groundRules = ntscFoxGroundMovementRules()
+    first.dashFrame = 5
+    first.dashDirection = 1
+    first.groundAction = GROUND_ACTION_DASH
+    first.groundActionFrame = 5
+    firstInput.direction = 1
+    firstInput.attackPressed = true
+    firstCommands.enqueue(0, 0, 1, false)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    first.attackStyle.assertEquals(5)
+    first.dashGrabAttack.assertTrue()
+    first.attackDuration.assertEquals(39)
+    first.dashGrabTiming.startupFrames.assertEquals(11)
+    firstInput.attackPressed = false
+    for frame = 2 to 11
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+        second.grabbedFrames.assertEquals(0)
+    first.attackFrame.assertEquals(10)
+    attackPhase(first).assertEquals(ATTACK_STARTUP)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 12)
+    second.grabbedFrames.assertGreaterThan(0)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
+@Test function lateDashGrabGuardEntryOpensCatchDashAndEarlyEntryDoesNot()
+    let game = new MatchState()
+    game.phase = MATCH
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 500, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    first.dashGrabTiming = ntscFoxDashGrabRules()
+    first.groundRules = ntscFoxGroundMovementRules()
+    first.dashFrame = INITIAL_DASH_FRAMES + 1
+    first.groundAction = GROUND_ACTION_RUN
+    first.groundActionFrame = 1
+    firstInput.shield = true
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    first.dashGrabWindow.assertEquals(3)
+    firstInput.attackPressed = true
+    firstCommands.enqueue(5, 0, 2, false)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    first.dashGrabAttack.assertTrue()
+    first.dashGrabWindow.assertEquals(0)
+    first.attackDuration.assertEquals(39)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
+    let expiryGame = new MatchState()
+    expiryGame.phase = MATCH
+    let expiry = new FighterState(0, 0, 1)
+    let expiryOther = new FighterState(1, 500, -1)
+    let expiryInput = new InputSnapshot()
+    let expiryOtherInput = new InputSnapshot()
+    let expiryCommands = new AttackBuffer(0)
+    let expiryOtherCommands = new AttackBuffer(0)
+    expiry.dashGrabTiming = ntscFoxDashGrabRules()
+    expiry.shield = true
+    expiry.dashGrabWindow = 3
+    expiry.hitlag = 2
+    expiryInput.shield = true
+    stepMatch(expiryGame, expiry, expiryOther, expiryInput, expiryOtherInput,
+        expiryCommands, expiryOtherCommands, 1)
+    expiry.dashGrabWindow.assertEquals(3)
+    stepMatch(expiryGame, expiry, expiryOther, expiryInput, expiryOtherInput,
+        expiryCommands, expiryOtherCommands, 2)
+    expiry.dashGrabWindow.assertEquals(2)
+    for frame = 3 to 4
+        stepMatch(expiryGame, expiry, expiryOther, expiryInput, expiryOtherInput, expiryCommands, expiryOtherCommands, frame)
+    expiry.dashGrabWindow.assertEquals(0)
+    destroy expiryCommands
+    destroy expiryOtherCommands
+    destroy expiryInput
+    destroy expiryOtherInput
+    destroy expiry
+    destroy expiryOther
+    destroy expiryGame
+
+    let earlyGame = new MatchState()
+    earlyGame.phase = MATCH
+    let early = new FighterState(0, 0, 1)
+    let earlyOther = new FighterState(1, 500, -1)
+    let earlyInput = new InputSnapshot()
+    let earlyOtherInput = new InputSnapshot()
+    let earlyCommands = new AttackBuffer(0)
+    let earlyOtherCommands = new AttackBuffer(0)
+    early.dashFrame = INITIAL_DASH_FRAMES + 1
+    early.groundAction = GROUND_ACTION_DASH
+    early.groundActionFrame = DASH_GUARD_EARLY_FRAMES
+    earlyInput.shield = true
+    stepMatch(earlyGame, early, earlyOther, earlyInput, earlyOtherInput, earlyCommands, earlyOtherCommands, 1)
+    early.dashGrabWindow.assertEquals(0)
+    destroy earlyCommands
+    destroy earlyOtherCommands
+    destroy earlyInput
+    destroy earlyOtherInput
+    destroy early
+    destroy earlyOther
+    destroy earlyGame
+
+    let dashLateGame = new MatchState()
+    dashLateGame.phase = MATCH
+    let dashLate = new FighterState(0, 0, 1)
+    let dashLateOther = new FighterState(1, 500, -1)
+    let dashLateInput = new InputSnapshot()
+    let dashLateOtherInput = new InputSnapshot()
+    let dashLateCommands = new AttackBuffer(0)
+    let dashLateOtherCommands = new AttackBuffer(0)
+    dashLate.dashGrabTiming = ntscFoxDashGrabRules()
+    dashLate.dashFrame = INITIAL_DASH_FRAMES + 1
+    dashLate.groundAction = GROUND_ACTION_DASH
+    dashLate.groundActionFrame = DASH_GUARD_EARLY_FRAMES + 1
+    dashLateInput.shield = true
+    stepMatch(dashLateGame, dashLate, dashLateOther, dashLateInput, dashLateOtherInput,
+        dashLateCommands, dashLateOtherCommands, 1)
+    dashLate.dashGrabWindow.assertEquals(3)
+    destroy dashLateCommands
+    destroy dashLateOtherCommands
+    destroy dashLateInput
+    destroy dashLateOtherInput
+    destroy dashLate
+    destroy dashLateOther
+    destroy dashLateGame
