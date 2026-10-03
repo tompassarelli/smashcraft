@@ -60,6 +60,7 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.shieldBreakSerial = source.shieldBreakSerial
 	destination.shieldBreakRemaining = source.shieldBreakRemaining
 	destination.grounded = source.grounded
+	destination.crouching = source.crouching
 	destination.jumps = source.jumps
 	destination.jumpSerial = source.jumpSerial
 	destination.jumpIsDouble = source.jumpIsDouble
@@ -79,6 +80,7 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.airDodgeFrame = source.airDodgeFrame
 	destination.groundDodgeFrame = source.groundDodgeFrame
 	destination.groundDodgeDirection = source.groundDodgeDirection
+	destination.groundDodgeEntryFacing = source.groundDodgeEntryFacing
 	destination.downState = source.downState
 	destination.downFrame = source.downFrame
 	destination.downDirection = source.downDirection
@@ -272,6 +274,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "shieldBreakSerial"
 	if expected.shieldBreakRemaining != actual.shieldBreakRemaining
 		return "shieldBreakRemaining"
+	if expected.crouching != actual.crouching
+		return "crouching"
 	if expected.grounded != actual.grounded
 		return "grounded"
 	if expected.jumps != actual.jumps
@@ -310,6 +314,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "airDodgeFrame"
 	if expected.groundDodgeFrame != actual.groundDodgeFrame
 		return "groundDodgeFrame"
+	if expected.groundDodgeEntryFacing != actual.groundDodgeEntryFacing
+		return "groundDodgeEntryFacing"
 	if expected.groundDodgeDirection != actual.groundDodgeDirection
 		return "groundDodgeDirection"
 	if expected.downState != actual.downState

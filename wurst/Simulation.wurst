@@ -1,4 +1,5 @@
 package Simulation
+import RollTravel
 
 constant real WORLD_UNITS_PER_MELEE_UNIT = 6
 constant real FOX_GRAVITY = 0.23 * WORLD_UNITS_PER_MELEE_UNIT
@@ -140,9 +141,6 @@ public constant int TECH_IN_PLACE_FRAMES = 26
 public constant int TECH_ROLL_FRAMES = 40
 public constant int TECH_INTANGIBLE_FRAMES = 20
 public constant int TECH_ROLL_INTANGIBLE_FRAMES = 34
-public constant real TECH_ROLL_DISTANCE = 128
-constant int TECH_ROLL_MOVE_START = 4
-constant int TECH_ROLL_MOVE_END = 19
 public constant real DOWN_KNOCKBACK_THRESHOLD = 80
 public constant int DOWN_BOUND_FRAMES = 26
 public constant int DOWN_WAIT_FRAMES = 180
@@ -175,7 +173,6 @@ public constant real DOWN_ATTACK_DAMAGE = 7
 // Provisional get-up attack tuning: let the attacker regain control before
 // the opponent's first active wake-up attack. See wc3-melee:docs/physics.md.
 public constant real DOWN_ATTACK_BASE_KNOCKBACK = 75
-public constant real DOWN_ROLL_DISTANCE = 128
 public constant int GRAB_HOLD_FRAMES = 76
 public constant real GRAB_HOLD_DISTANCE = 50
 public constant int GRAB_NONE = 0
@@ -214,12 +211,12 @@ public function grabActionDuration(int action) returns int
 	return 10
 constant int FOX_JUMP_SQUAT_FRAMES = 3
 constant int FALCO_JUMP_SQUAT_FRAMES = 5
-constant real FOX_FULL_JUMP_SPEED = 23.46
-constant real FALCO_FULL_JUMP_SPEED = 25.62
-constant real FOX_SHORT_JUMP_SPEED = 13.98
-constant real FALCO_SHORT_JUMP_SPEED = 12.42
-constant real FOX_DOUBLE_JUMP_SPEED = 26.496
-constant real FALCO_DOUBLE_JUMP_SPEED = 23.124
+constant real FOX_FULL_JUMP_SPEED = 3.680000066757202 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FALCO_FULL_JUMP_SPEED = 4.099999904632568 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FOX_SHORT_JUMP_SPEED = 2.0999999046325684 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FALCO_SHORT_JUMP_SPEED = 1.899999976158142 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FOX_DOUBLE_JUMP_SPEED = FOX_FULL_JUMP_SPEED * 1.2000000476837158
+constant real FALCO_DOUBLE_JUMP_SPEED = FALCO_FULL_JUMP_SPEED * 0.9399999976158142
 constant real KNOCKBACK_DECAY_PER_FRAME = 0.051
 constant real KNOCKBACK_LAUNCH_SCALE = 0.03 * WORLD_UNITS_PER_MELEE_UNIT
 constant real HITSTUN_FRAMES_PER_KNOCKBACK = 0.4
@@ -321,6 +318,7 @@ public class FighterState
 	int shieldBreakSerial = 0
 	int shieldBreakRemaining = 0
 	boolean grounded = true
+	boolean crouching = false
 	int jumps = 2
 	int jumpSerial = 0
 	boolean jumpIsDouble = false
@@ -340,6 +338,7 @@ public class FighterState
 	int airDodgeFrame = 0
 	int groundDodgeFrame = 0
 	int groundDodgeDirection = 0
+	int groundDodgeEntryFacing = 0
 	int downState = DOWN_NONE
 	int downFrame = 0
 	int downDirection = 0
@@ -445,7 +444,9 @@ function applyDirectionalInfluence(FighterState target, InputSnapshot input)
 	if not target.diPending
 		return
 	target.diPending = false
-	if input.direction == 0 and input.verticalDirection == 0 or target.diLaunchSpeed <= 0
+	let launchSpeed = SquareRoot(target.knockbackX * target.knockbackX + target.knockbackZ * target.knockbackZ)
+	// Ground knockback follows the floor tangent; DI cannot lift it off the floor.
+	if target.grounded or input.direction == 0 and input.verticalDirection == 0 or launchSpeed <= 0
 		target.diLaunchSpeed = 0
 		return
 	let dx = input.direction == 0 ? 0 : (input.direction > 0 ? 1 : -1)
@@ -453,7 +454,7 @@ function applyDirectionalInfluence(FighterState target, InputSnapshot input)
 	let inputScale = dx != 0 and dz != 0 ? DIAGONAL_UNIT : 1
 	let inputX = dx * inputScale
 	let inputZ = dz * inputScale
-	let cross = (target.knockbackX * inputZ - target.knockbackZ * inputX) / target.diLaunchSpeed
+	let cross = (target.knockbackX * inputZ - target.knockbackZ * inputX) / launchSpeed
 	if cross == 0
 		target.diLaunchSpeed = 0
 		return
@@ -467,6 +468,54 @@ function applyDirectionalInfluence(FighterState target, InputSnapshot input)
 	target.diAngleDegrees = angle * RADIANS_TO_DEGREES
 	target.diSerial++
 	target.diLaunchSpeed = 0
+
+public function airDriftVelocity(int character, real velocity, int direction) returns real
+	let target = characterAirSpeed(character)
+	let acceleration = characterAirAcceleration(character)
+	if character == 2
+		return max(-target, min(target, velocity + direction * acceleration))
+	let alongInput = velocity * direction
+	var next = alongInput > target ? max(target, alongInput - AIR_FRICTION) : min(target, alongInput + acceleration)
+	let maximum = (character == 0 ? 3. : 4.) * WORLD_UNITS_PER_MELEE_UNIT
+	next = max(-maximum, min(maximum, next))
+	return next * direction
+
+function contactKnockback(real postHitPercent, real hitDamage, real victimWeight, real growthPercent, real baseKnockback, real contextScale) returns real
+	let percentGrowth = (postHitPercent / 10. + postHitPercent * R2I(hitDamage) / 20.) * 200 / (victimWeight + 100) * 1.4 + 18
+	return min(2500., percentGrowth * growthPercent / 100. + baseKnockback) * contextScale
+
+public function fixedHitKnockback(int fixedPower, real victimWeight, real growthPercent,
+		real baseKnockback, real contextScale) returns real
+	let percentGrowth = (1. + fixedPower / 2.) * 200 / (victimWeight + 100) * 1.4 + 18
+	return min(2500., percentGrowth * growthPercent / 100. + baseKnockback) * contextScale
+
+function hitContextScale(FighterState victim) returns real
+	return (victim.crouching ? 2. / 3. : 1.) * (victim.smashCharging ? 1.2 : 1.)
+
+public function victimHitlagFrames(real hitDamage, boolean electric, boolean crouching) returns int
+	if hitDamage <= 0
+		return 0
+	let base = R2I(R2I(hitDamage) / 3. + 3)
+	let effectFrames = electric ? R2I(base * 1.5) : base
+	return min(20, crouching ? R2I(effectFrames * 2. / 3.) : effectFrames)
+
+public function isForwardGroundRoll(FighterState f) returns boolean
+	return f.groundDodgeDirection != 0 and f.groundDodgeDirection == f.groundDodgeEntryFacing
+
+public function fighterPoseFacing(FighterState f) returns int
+	return isGroundDodging(f) ? f.groundDodgeEntryFacing : f.facing
+
+function applyDownRollTravel(FighterState f, int stage)
+	if f.downState != DOWN_ROLL and f.downState != DOWN_TECH_ROLL
+		return
+	var distance = 0.
+	if f.character == 2
+		if f.downFrame >= GROUND_ROLL_MOVE_START and f.downFrame <= GROUND_ROLL_MOVE_END
+			distance = GROUND_ROLL_SPEED
+	else
+		let profile = f.downState == DOWN_TECH_ROLL ? 6 : (f.downFaceUp ? 2 : 4)
+		distance = rollTravelSample(f.character, profile + (f.downDirection == f.facing ? 0 : 1), f.downFrame)
+	f.x = max(surfaceLeft(stage, max(0, f.surface)), min(surfaceRight(stage, max(0, f.surface)), f.x + f.downDirection * distance))
 
 public function totalVelocityX(FighterState f) returns real
 	return f.vx + f.knockbackX
@@ -639,22 +688,19 @@ function isSmashAttack(int style) returns boolean
 public function smashDamageMultiplier(int chargeFrames) returns real
 	return 1 + (SMASH_MAX_DAMAGE_MULTIPLIER - 1) * max(0, min(SMASH_MAX_CHARGE_FRAMES, chargeFrames)) / SMASH_MAX_CHARGE_FRAMES
 
-// Pure ordinary-hit math. Parameters come from the selected hit region.
-// Electric, crouching, fixed-knockback, and capped branches are separate.
+// Damage retains its fraction; individual attack power is integer.
 public function ordinaryHitKnockback(real preHitPercent, real hitDamage, real victimWeight,
 		real growthPercent, real baseKnockback, real contextScale) returns real
-	let postHitPercent = R2I(max(0, preHitPercent)) + hitDamage
-	let percentGrowth = (postHitPercent / 10. + postHitPercent * hitDamage / 20.) * 200 / (victimWeight + 100) * 1.4 + 18
-	return (percentGrowth * growthPercent / 100. + baseKnockback) * contextScale
+	return contactKnockback(R2I(max(0, preHitPercent)) + hitDamage, hitDamage, victimWeight, growthPercent, baseKnockback, contextScale)
 
 public function ordinaryHitlagFrames(real hitDamage) returns int
-	return hitDamage <= 0 ? 0 : min(20, R2I(hitDamage / 3. + 3))
+	return victimHitlagFrames(hitDamage, false, false)
 
 public function digitalShieldstunFrames(real hitDamage) returns int
-	return R2I((hitDamage * 0.45 + 2) * 200 / 201)
+	return R2I((R2I(hitDamage) * 0.45 + 2) * 200 / 201)
 
 public function ordinaryHitstunFrames(real knockback) returns int
-	return R2I(knockback * HITSTUN_FRAMES_PER_KNOCKBACK)
+	return max(1, R2I(knockback * HITSTUN_FRAMES_PER_KNOCKBACK))
 
 function attackReach(int style) returns real
 	if style == DEMONHUNTER_DASH_ATTACK_STYLE
@@ -756,6 +802,117 @@ public function projectileKindAt(FighterState f, int index) returns int
 	return f.projectileKind[index]
 
 tuple hitEffect(real damage, real growth, real base, real launchX, real launchZ)
+constant int CONTACT_LAUNCH = 0
+constant int CONTACT_FLINCH = 1
+constant int CONTACT_DAMAGE_ONLY = 2
+constant int CONTACT_PUMMEL = 3
+constant int CONTACT_THROW = 4
+tuple damageContact(FighterState source, FighterState target, hitEffect data, int facing,
+	int kind, boolean direct, boolean blocked, boolean crouching, boolean grounded,
+	boolean down, real scale, InputSnapshot throwInput)
+
+// Scratch belongs to a synchronous simulation step, never to a saved world.
+// Collection and resolution allocate no objects, including during rollback.
+damageContact array damageContacts
+int damageContactCount = 0
+boolean collectingDamageContacts = false
+
+public function beginDamageContacts()
+	damageContactCount = 0
+	collectingDamageContacts = true
+
+function queueDamageContact(FighterState source, FighterState target, hitEffect data,
+		int facing, int kind, boolean direct, InputSnapshot throwInput)
+	let unblockable = kind == CONTACT_THROW or kind == CONTACT_PUMMEL
+	damageContacts[damageContactCount] = damageContact(source, target, data, facing, kind, direct,
+		not unblockable and target.shield and target.shieldEnergy > 0, target.crouching,
+		target.grounded, isDownDamageState(target), kind == CONTACT_THROW ? 1. : hitContextScale(target), throwInput)
+	damageContactCount++
+
+function resolveDamageContacts(FighterState target)
+	var totalDamage = 0.
+	var shieldDamage = 0.
+	var winner = -1
+	var strongest = -1.
+	var flinch = -1
+	for index = 0 to damageContactCount - 1
+		let contact = damageContacts[index]
+		if contact.target == target
+			if contact.blocked
+				shieldDamage += contact.data.damage * 0.7
+			else
+				totalDamage += contact.data.damage
+	let postHitPercent = R2I(max(0, target.damage)) + totalDamage
+	for index = 0 to damageContactCount - 1
+		let contact = damageContacts[index]
+		if contact.target == target
+			let damage = contact.data.damage
+			if contact.direct
+				contact.source.hitlag = max(contact.source.hitlag, ordinaryHitlagFrames(damage))
+			if contact.blocked
+				if contact.kind != CONTACT_DAMAGE_ONLY
+					target.shieldStun = max(target.shieldStun, digitalShieldstunFrames(damage))
+					target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
+			else
+				if damage > 0 and contact.kind != CONTACT_PUMMEL
+					target.frozenFrames = 0
+				if contact.kind != CONTACT_DAMAGE_ONLY and contact.kind != CONTACT_THROW
+					target.hitlag = max(target.hitlag, victimHitlagFrames(damage, false, contact.crouching))
+				if contact.kind == CONTACT_FLINCH and flinch < 0
+					flinch = index
+				if contact.kind == CONTACT_LAUNCH or contact.kind == CONTACT_THROW
+					let knockback = contactKnockback(postHitPercent, damage, target.character == 0 ? 75. : 80.,
+						contact.data.growth, contact.data.base, contact.scale)
+					// Equal-strength contacts retain the first contact's direction.
+					if knockback > strongest
+						strongest = knockback
+						winner = index
+	target.damage += totalDamage
+	if shieldDamage > 0
+		target.shieldEnergy = max(0, target.shieldEnergy - shieldDamage)
+		if target.shieldEnergy == 0
+			beginShieldBreak(target)
+	if winner < 0 and flinch < 0
+		return
+	let chosen = damageContacts[winner >= 0 ? winner : flinch]
+	let jabReset = chosen.kind != CONTACT_THROW and chosen.down and chosen.data.damage < DOWN_DAMAGE_MAX_HIT_DAMAGE
+	clearGrabLinks(target)
+	target.diPending = false
+	target.diLaunchSpeed = 0
+	interruptJumpOrDodge(target)
+	if not jabReset
+		clearDownState(target)
+	cancelAttack(target)
+	cancelSpecialState(target)
+	target.hitstun = winner >= 0 ? ordinaryHitstunFrames(strongest) : max(target.hitstun, 11)
+	if jabReset
+		beginDownDamage(target, target.hitstun)
+	else if winner >= 0
+		target.vx = 0
+		target.vz = 0
+		target.grounded = chosen.grounded and strongest < DOWN_KNOCKBACK_THRESHOLD and chosen.data.launchZ <= 0
+		let launch = strongest * KNOCKBACK_LAUNCH_SCALE
+		target.knockbackX = chosen.facing * launch * chosen.data.launchX
+		target.knockbackZ = target.grounded ? 0. : launch * chosen.data.launchZ
+		target.sdiWasGrounded = chosen.grounded
+		target.sdiLaunchesUpward = target.knockbackZ > 0
+		target.diPending = true
+		target.diLaunchSpeed = launch
+		if strongest >= DOWN_KNOCKBACK_THRESHOLD
+			target.downState = DOWN_TUMBLE
+			target.downFrame = 0
+			target.downDirection = 0
+			target.downFaceUp = target.knockbackZ >= 0
+		if chosen.kind == CONTACT_THROW
+			target.surface = -1
+			applyDirectionalInfluence(target, chosen.throwInput)
+
+public function finishDamageContacts(FighterState first, FighterState second)
+	resolveDamageContacts(first)
+	resolveDamageContacts(second)
+	damageContactCount = 0
+	collectingDamageContacts = false
+
 tuple hitRegion(real minX, real maxX, real minZ, real maxZ, hitEffect hitData, int window)
 
 function noHitRegion() returns hitRegion
@@ -1111,6 +1268,7 @@ function trapCanContact(FighterState owner, FighterState target) returns boolean
 	return owner.freezeTrapLife > 0 and owner.freezeTrapArming == 0 and not owner.out and not target.out and target.frozenFrames == 0 and target.grounded and target.surface == owner.freezeTrapSurface and not isIntangible(target) and (target.x - owner.freezeTrapX).abs() <= FREEZE_TRAP_TRIGGER_RADIUS
 
 function freezeFromTrap(FighterState target)
+	target.crouching = false
 	clearGrabLinks(target)
 	clearDownState(target)
 	cancelAttack(target)
@@ -1172,7 +1330,7 @@ function beginShieldBreak(FighterState f)
 	f.diPending = false
 	f.diLaunchSpeed = 0
 	f.vx = 0
-	f.vz = SHIELD_BREAK_LAUNCH_SPEED
+	f.vz = f.character == 2 ? SHIELD_BREAK_LAUNCH_SPEED : 3.299999952316284 * WORLD_UNITS_PER_MELEE_UNIT
 	f.knockbackX = 0
 	f.knockbackZ = 0
 	f.grounded = false
@@ -1222,6 +1380,7 @@ function clearDownState(FighterState f)
 	f.downFaceUp = true
 
 function beginDownState(FighterState f, int state, int direction)
+	f.crouching = false
 	f.downState = state
 	f.downFrame = 1
 	f.downDirection = direction
@@ -1357,9 +1516,7 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 		return false
 	if isFloorTeching(f)
 		f.downFrame++
-		if f.downState == DOWN_TECH_ROLL and f.downFrame >= TECH_ROLL_MOVE_START and f.downFrame <= TECH_ROLL_MOVE_END
-			f.x += f.downDirection * (TECH_ROLL_DISTANCE / (TECH_ROLL_MOVE_END - TECH_ROLL_MOVE_START + 1))
-			f.x = max(surfaceLeft(stage, f.surface), min(surfaceRight(stage, f.surface), f.x))
+		applyDownRollTravel(f, stage)
 		return true
 	if f.downState == DOWN_BOUND
 		if f.downFrame >= DOWN_BOUND_FRAMES
@@ -1398,6 +1555,7 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 			f.downFrame++
 			if f.downWaitRemaining == 0
 				startDownStand(f)
+		applyDownRollTravel(f, stage)
 		return true
 	if f.downState == DOWN_STAND
 		f.grounded = true
@@ -1414,9 +1572,7 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 			clearDownState(f)
 		else
 			f.downFrame++
-			if f.downFrame >= GROUND_ROLL_MOVE_START and f.downFrame <= GROUND_ROLL_MOVE_END
-				f.x += f.downDirection * (DOWN_ROLL_DISTANCE / (GROUND_ROLL_MOVE_END - GROUND_ROLL_MOVE_START + 1))
-				f.x = max(surfaceLeft(stage, max(0, f.surface)), min(surfaceRight(stage, max(0, f.surface)), f.x))
+			applyDownRollTravel(f, stage)
 			f.z = surfaceZ(stage, max(0, f.surface))
 			f.grounded = true
 		return true
@@ -1431,6 +1587,8 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 	return false
 
 function beginGroundDodge(FighterState f, int direction)
+	f.crouching = false
+	f.groundDodgeEntryFacing = f.facing
 	clearDash(f)
 	if direction < 0
 		f.groundDodgeDirection = -1
@@ -1446,6 +1604,7 @@ function beginGroundDodge(FighterState f, int direction)
 	f.shieldHeldFrames = 0
 
 function interruptJumpOrDodge(FighterState f)
+	f.crouching = false
 	clearDash(f)
 	if f.ledgeState != LEDGE_NONE
 		leaveLedge(f)
@@ -1460,8 +1619,10 @@ function interruptJumpOrDodge(FighterState f)
 	f.airDodgeFrame = 0
 	f.groundDodgeFrame = 0
 	f.groundDodgeDirection = 0
+	f.groundDodgeEntryFacing = 0
 
 function beginAttack(FighterState attacker, int style, boolean mayCharge)
+	attacker.crouching = false
 	clearDash(attacker)
 	if isTumbling(attacker)
 		clearDownState(attacker)
@@ -1501,55 +1662,11 @@ function spawnArcherArrow(FighterState owner, int direction, real verticalSpeed,
 	spawnProjectileMotion(owner, kind, facing * BLASTER_PROJECTILE_SPEED, verticalSpeed,
 		kind == PROJECTILE_ARROW ? 75 : 65, serial)
 
-function applySpecialProjectileHit(FighterState target, int kind, int direction)
+function applySpecialProjectileHit(FighterState owner, FighterState target, int kind, int direction)
 	let damage = kind == PROJECTILE_FAN_ARROW ? 4. : (kind == PROJECTILE_RECOIL or kind == PROJECTILE_MANA_BURN ? 5. : 7.)
 	let damageOnly = kind == PROJECTILE_ARROW or kind == PROJECTILE_FAN_ARROW
-	if target.shield and target.shieldEnergy > 0
-		target.shieldEnergy = max(0, target.shieldEnergy - damage * 0.7)
-		if not damageOnly
-			target.shieldStun = digitalShieldstunFrames(damage)
-			target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
-		if target.shieldEnergy == 0
-			beginShieldBreak(target)
-		return
-	if damageOnly
-		target.damage += damage
-		target.frozenFrames = 0
-		return
-	let jabReset = isDownDamageState(target) and damage < DOWN_DAMAGE_MAX_HIT_DAMAGE
-	let groundedBeforeHit = target.grounded
-	clearGrabLinks(target)
-	target.frozenFrames = 0
-	target.diPending = false
-	target.diLaunchSpeed = 0
-	interruptJumpOrDodge(target)
-	if not jabReset
-		clearDownState(target)
-	cancelAttack(target)
-	cancelSpecialState(target)
-	target.damage += damage
-	let knockback = ordinaryHitKnockback(target.damage - damage, damage,
-		target.character == 0 ? 75. : 80., 85, 16, 1)
-	target.hitstun = ordinaryHitstunFrames(knockback)
-	if jabReset
-		beginDownDamage(target, target.hitstun)
-	else
-		target.vx = 0
-		target.vz = 0
-		target.grounded = false
-		let launch = knockback * KNOCKBACK_LAUNCH_SCALE
-		target.knockbackX = direction * launch * 0.8
-		target.knockbackZ = launch * (kind == PROJECTILE_RECOIL ? -0.6 : 0.6)
-		target.sdiWasGrounded = groundedBeforeHit
-		target.sdiLaunchesUpward = target.knockbackZ > 0
-		target.diPending = true
-		target.diLaunchSpeed = launch
-		if knockback >= DOWN_KNOCKBACK_THRESHOLD
-			target.downState = DOWN_TUMBLE
-			target.downFrame = 0
-			target.downDirection = 0
-			target.downFaceUp = target.knockbackZ >= 0
-	target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
+	queueDamageContact(owner, target, hitEffect(damage, 85, 16, 0.8, kind == PROJECTILE_RECOIL ? -0.6 : 0.6), direction,
+		damageOnly ? CONTACT_DAMAGE_ONLY : CONTACT_LAUNCH, false, null)
 
 function demonHunterParryIsActive(FighterState fighter) returns boolean
 	return fighter.character == 2 and fighter.specialAction == SPECIAL_DEMONHUNTER_PARRY_STEP
@@ -1579,31 +1696,9 @@ function applyProjectileHit(FighterState owner, FighterState target, int index)
 		resolveDemonHunterParry(target, owner, -owner.projectileDirection[index])
 		return
 	if owner.projectileKind[index] != PROJECTILE_BLASTER
-		applySpecialProjectileHit(target, owner.projectileKind[index], owner.projectileDirection[index])
-		return
-	let damage = attackDamage(1)
-	if target.shield and target.shieldEnergy > 0
-		target.shieldEnergy = max(0, target.shieldEnergy - damage * 0.7)
-		target.shieldStun = digitalShieldstunFrames(damage)
-		target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
-		if target.shieldEnergy == 0
-			beginShieldBreak(target)
-		return
-	let jabReset = isDownDamageState(target) and damage < DOWN_DAMAGE_MAX_HIT_DAMAGE
-	target.frozenFrames = 0
-	clearGrabLinks(target)
-	target.damage += damage
-	target.diPending = false
-	target.diLaunchSpeed = 0
-	interruptJumpOrDodge(target)
-	if not jabReset
-		clearDownState(target)
-	cancelAttack(target)
-	target.hitstun = max(target.hitstun, 11)
-	target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
-	cancelSpecialState(target)
-	if jabReset
-		beginDownDamage(target, target.hitstun)
+		applySpecialProjectileHit(owner, target, owner.projectileKind[index], owner.projectileDirection[index])
+	else
+		queueDamageContact(owner, target, hitEffect(attackDamage(1), 0, 0, 0, 0), owner.projectileDirection[index], CONTACT_FLINCH, false, null)
 
 function updateProjectiles(FighterState owner, FighterState target, real targetX, real targetZ, boolean targetWasOut, boolean targetWasIntangible)
 	for index = 0 to PROJECTILE_CAPACITY - 1
@@ -1629,6 +1724,9 @@ function updateProjectiles(FighterState owner, FighterState target, real targetX
 				owner.projectileLife[index] = 0
 
 public function updateProjectilePair(FighterState first, FighterState second)
+	let ownsBatch = not collectingDamageContacts
+	if ownsBatch
+		beginDamageContacts()
 	let firstWasOut = first.out
 	let secondWasOut = second.out
 	let firstWasIntangible = isIntangible(first)
@@ -1639,6 +1737,8 @@ public function updateProjectilePair(FighterState first, FighterState second)
 	let secondZ = second.z
 	updateProjectiles(first, second, secondX, secondZ, secondWasOut, secondWasIntangible)
 	updateProjectiles(second, first, firstX, firstZ, firstWasOut, firstWasIntangible)
+	if ownsBatch
+		finishDamageContacts(first, second)
 
 function clearGrabLinks(FighterState f)
 	let owner = f.grabOwner
@@ -1676,31 +1776,18 @@ function escapeGrab(FighterState owner, FighterState target)
 function releaseThrow(FighterState owner, FighterState target, InputSnapshot targetInput)
 	let action = owner.grabAction
 	let damage = action == THROW_UP ? 6. : (action == THROW_DOWN ? 5. : 7.)
-	let knockback = ordinaryHitKnockback(target.damage, damage,
-		target.character == 0 ? 75. : 80., 70, action == THROW_DOWN ? 55. : 45., 1)
 	owner.grabTarget = null
 	target.grabOwner = null
 	target.grabbedFrames = 0
 	target.grabMashX = 0
 	target.grabMashZ = 0
-	target.damage += damage
-	target.vx = 0
-	target.vz = 0
+	let direction = action == THROW_BACK ? -owner.facing : owner.facing
+	queueDamageContact(owner, target, hitEffect(damage, 70, action == THROW_DOWN ? 55. : 45.,
+		action == THROW_UP ? 0.173648 : (action == THROW_DOWN ? 0.342020 : 0.866025),
+		action == THROW_UP ? 0.984808 : (action == THROW_DOWN ? 0.939693 : 0.5)), direction, CONTACT_THROW, false, targetInput)
+	// Release changes ground-contact eligibility before later trap/catch checks.
 	target.grounded = false
 	target.surface = -1
-	let launch = knockback * KNOCKBACK_LAUNCH_SCALE
-	let direction = action == THROW_BACK ? -owner.facing : owner.facing
-	target.knockbackX = direction * launch * (action == THROW_UP ? 0.173648 : (action == THROW_DOWN ? 0.342020 : 0.866025))
-	target.knockbackZ = launch * (action == THROW_UP ? 0.984808 : (action == THROW_DOWN ? 0.939693 : 0.5))
-	target.diPending = true
-	target.diLaunchSpeed = launch
-	applyDirectionalInfluence(target, targetInput)
-	target.hitstun = ordinaryHitstunFrames(knockback)
-	if knockback >= DOWN_KNOCKBACK_THRESHOLD
-		target.downState = DOWN_TUMBLE
-		target.downFrame = 0
-		target.downDirection = 0
-		target.downFaceUp = target.knockbackZ >= 0
 
 function advanceGrab(FighterState owner, InputSnapshot ownerInput, InputSnapshot targetInput, boolean paused)
 	if owner.grabAction == GRAB_NONE or paused
@@ -1733,15 +1820,18 @@ function advanceGrab(FighterState owner, InputSnapshot ownerInput, InputSnapshot
 	if target != null and owner.grabAction >= GRAB_PUMMEL and owner.grabAction <= THROW_DOWN and owner.grabFrame == grabContactFrame(owner.grabAction)
 		resolveHeldTarget(owner)
 		if owner.grabAction == GRAB_PUMMEL
-			target.damage += 3
-			owner.hitlag = ordinaryHitlagFrames(3)
-			target.hitlag = owner.hitlag
+			queueDamageContact(owner, target, hitEffect(3, 0, 0, 0, 0), owner.facing, CONTACT_PUMMEL, true, null)
 		else
 			releaseThrow(owner, target, targetInput)
 
 public function advanceGrabPair(FighterState first, FighterState second, InputSnapshot firstInput, InputSnapshot secondInput, boolean paused)
+	let ownsBatch = not collectingDamageContacts
+	if ownsBatch
+		beginDamageContacts()
 	advanceGrab(first, firstInput, secondInput, paused)
 	advanceGrab(second, secondInput, firstInput, paused)
+	if ownsBatch
+		finishDamageContacts(first, second)
 
 function resolveHeldTarget(FighterState owner)
 	let target = owner.grabTarget
@@ -1780,6 +1870,7 @@ public function resolveGrabPair(FighterState first, FighterState second)
 	resolveHeldTarget(second)
 
 function cancelAttack(FighterState fighter)
+	fighter.crouching = false
 	fighter.attackStyle = -1
 	fighter.attackFrame = 0
 	fighter.attackDuration = 0
@@ -1790,7 +1881,6 @@ function cancelAttack(FighterState fighter)
 	fighter.smashChargeAllowed = false
 
 function applyAttackHit(FighterState attacker, FighterState target, int style, int facing, hitEffect hitData, boolean directContact)
-	let damage = hitData.damage
 	if demonHunterParryIsActive(target)
 		resolveDemonHunterParry(target, attacker, -facing)
 		return
@@ -1824,55 +1914,10 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 		target.knockbackX = 0
 		target.knockbackZ = 0
 		return
-	if target.shield and target.shieldEnergy > 0
-		target.shieldEnergy = max(0, target.shieldEnergy - damage * 0.7)
-		target.shieldStun = digitalShieldstunFrames(damage)
-		target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
-		if directContact
-			attacker.hitlag = max(attacker.hitlag, ordinaryHitlagFrames(damage))
-		if target.shieldEnergy == 0
-			beginShieldBreak(target)
-		return
-	let groundedBeforeHit = target.grounded
-	let jabReset = isDownDamageState(target) and damage < DOWN_DAMAGE_MAX_HIT_DAMAGE
-	if damage > 0
-		target.frozenFrames = 0
-	clearGrabLinks(target)
-	target.diPending = false
-	target.diLaunchSpeed = 0
-	interruptJumpOrDodge(target)
-	if not jabReset
-		clearDownState(target)
-	cancelAttack(target)
-	cancelSpecialState(target)
-	let weight = target.character == 0 ? 75. : 80.
-	let knockback = ordinaryHitKnockback(target.damage, damage, weight,
-		hitData.growth, hitData.base, ORDINARY_HIT_CONTEXT_SCALE)
-	target.damage += damage
-	target.hitstun = ordinaryHitstunFrames(knockback)
-	if jabReset
-		beginDownDamage(target, target.hitstun)
-	else
-		target.vx = 0
-		target.vz = 0
-		target.grounded = false
-		let launch = knockback * KNOCKBACK_LAUNCH_SCALE
-		target.knockbackX = facing * launch * hitData.launchX
-		target.knockbackZ = launch * hitData.launchZ
-		target.sdiWasGrounded = groundedBeforeHit
-		target.sdiLaunchesUpward = target.knockbackZ > 0
-		target.diPending = true
-		target.diLaunchSpeed = launch
-		if knockback >= DOWN_KNOCKBACK_THRESHOLD
-			target.downState = DOWN_TUMBLE
-			target.downFrame = 0
-			target.downDirection = 0
-			target.downFaceUp = target.knockbackZ >= 0
-	target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
-	if directContact
-		attacker.hitlag = max(attacker.hitlag, ordinaryHitlagFrames(damage))
+	queueDamageContact(attacker, target, hitData, facing, CONTACT_LAUNCH, directContact, null)
 
 function startSpecialAction(FighterState owner, int action, int duration, int direction)
+	owner.crouching = false
 	owner.specialAction = action
 	owner.specialFrame = 0
 	owner.specialDuration = duration
@@ -2158,6 +2203,9 @@ function advanceHippogryph(FighterState owner, FighterState target)
 			owner.specialHit = false
 
 public function advanceSpecialPair(FighterState first, FighterState second, int stage)
+	let ownsBatch = not collectingDamageContacts
+	if ownsBatch
+		beginDamageContacts()
 	advanceSpecialAction(first)
 	advanceSpecialAction(second)
 	// Capture both contacts before either hit interrupts the opposing action.
@@ -2177,6 +2225,8 @@ public function advanceSpecialPair(FighterState first, FighterState second, int 
 	advanceBear(second, first, stage)
 	advanceHippogryph(first, second)
 	advanceHippogryph(second, first)
+	if ownsBatch
+		finishDamageContacts(first, second)
 
 function demonHunterSpecialContact(FighterState owner, FighterState target) returns hitRegion
 	if owner.character != 2 or owner.specialAction != SPECIAL_DEMONHUNTER_IMMOLATE
@@ -2194,7 +2244,7 @@ function demonHunterSpecialContact(FighterState owner, FighterState target) retu
 		return contact
 	return noHitRegion()
 
-public function simulationJump(FighterState f)
+public function simulationJump(FighterState f, int horizontal)
 	if inGrabContext(f)
 		return
 	if f.ledgeState != LEDGE_NONE
@@ -2202,6 +2252,7 @@ public function simulationJump(FighterState f)
 	if f.out or f.specialFall or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or (f.shieldReleaseLag > 0 and not f.grounded) or f.landingLag > 0 or f.airDodging or isGroundDodging(f) or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
 		return
 	if f.grounded
+		f.crouching = false
 		clearDash(f)
 		f.shield = false
 		f.shieldHeldFrames = 0
@@ -2209,6 +2260,8 @@ public function simulationJump(FighterState f)
 		f.jumpSquat = jumpSquatFrames(f.character)
 		f.jumpHeld = true
 	else
+		if f.character != 2
+			f.vx = horizontal * (f.character == 0 ? 0.90 : 0.94) * WORLD_UNITS_PER_MELEE_UNIT
 		f.vz = doubleJumpSpeed(f.character)
 		f.jumpSerial++
 		f.jumpIsDouble = true
@@ -2235,6 +2288,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	f.knockbackZ = 0
 	f.airDodgeTime = AIR_DODGE_FRAMES
 	f.airDodging = true
+	f.crouching = false
 	f.airDodgeFrame = 0
 	f.grounded = false
 	f.jumps = max(0, f.jumps - 1)
@@ -2260,6 +2314,9 @@ public function beginAttackPair(FighterState first, FighterState second, int fir
 		beginAttack(second, secondAction, secondMayCharge)
 
 public function resolveAttackPair(FighterState first, FighterState second)
+	let ownsBatch = not collectingDamageContacts
+	if ownsBatch
+		beginDamageContacts()
 	let firstStyle = first.attackStyle
 	let secondStyle = second.attackStyle
 	let firstRegion = selectHitRegion(first, second)
@@ -2275,6 +2332,8 @@ public function resolveAttackPair(FighterState first, FighterState second)
 	if firstHits and secondHits and firstStyle == 5 and secondStyle == 5
 		recordHitRegion(first, second, firstRegion)
 		recordHitRegion(second, first, secondRegion)
+		if ownsBatch
+			finishDamageContacts(first, second)
 		return
 	if firstShot
 		first.attackHit = true
@@ -2294,8 +2353,11 @@ public function resolveAttackPair(FighterState first, FighterState second)
 			spawnProjectile(second)
 		else
 			applyAttackHit(second, first, secondStyle, secondFacing, secondRegion.hitData, true)
+	if ownsBatch
+		finishDamageContacts(first, second)
 
 public function reset(FighterState f, real startX)
+	f.crouching = false
 	f.jumpDodgeQueued = false
 	f.jumpDodgeX = 0
 	f.jumpDodgeZ = 0
@@ -2364,6 +2426,7 @@ public function reset(FighterState f, real startX)
 	f.airDodgeFrame = 0
 	f.groundDodgeFrame = 0
 	f.groundDodgeDirection = 0
+	f.groundDodgeEntryFacing = 0
 	f.grabbedFrames = 0
 	f.shieldHeldFrames = 0
 	f.grabSerial = 0
@@ -2459,9 +2522,11 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		return
 	if f.hitlag <= 0
 		f.hitstun = max(0, f.hitstun - 1)
+	let squatBeforeInput = f.jumpSquat
+	var groundTakeoff = false
 	if input.jumpPressed
-		simulationJump(f)
-	if f.jumpSquat > 0
+		simulationJump(f, input.direction)
+	if f.jumpSquat > 0 and f.hitlag == 0 and (f.character == 2 or squatBeforeInput != 1)
 		f.jumpHeld = f.jumpHeld and input.jumpHeld
 	if input.airDodgePressed
 		if f.grounded and f.jumpSquat > 0
@@ -2476,10 +2541,14 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	if input.groundDodgePressed and input.shield and not input.jumpPressed and canBeginGroundDodge(f)
 		beginGroundDodge(f, input.groundDodgeDirection)
 		groundDodgeStarted = true
-	if f.jumpSquat > 0 and f.hitlag == 0
+	if f.jumpSquat > 0 and f.hitlag == 0 and (f.character == 2 or squatBeforeInput > 0)
 		f.jumpSquat--
 		if f.jumpSquat == 0
+			groundTakeoff = f.character != 2
 			f.grounded = false
+			if f.character != 2
+				let jumpX = f.vx * (f.character == 0 ? 0.83 : 1.) + input.direction * (f.character == 0 ? 0.72 : 0.70) * WORLD_UNITS_PER_MELEE_UNIT
+				f.vx = max(-1.7 * WORLD_UNITS_PER_MELEE_UNIT, min(1.7 * WORLD_UNITS_PER_MELEE_UNIT, jumpX))
 			f.vz = f.jumpHeld ? fullJumpSpeed(f.character) : shortJumpSpeed(f.character)
 			f.jumpSerial++
 			f.jumpIsDouble = false
@@ -2499,11 +2568,15 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	if f.groundDodgeFrame > 0 and not groundDodgeStarted
 		f.groundDodgeFrame++
 		let dodgeFrames = f.groundDodgeDirection == 0 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES
+		let turnFrame = forwardRollTurnFrame(f.character)
+		if isForwardGroundRoll(f) and f.groundDodgeFrame == turnFrame
+			f.facing = -f.groundDodgeEntryFacing
 		if f.groundDodgeFrame > dodgeFrames
-			if f.groundDodgeDirection == f.facing
-				f.facing = -f.facing
+			if isForwardGroundRoll(f) and turnFrame == 0
+				f.facing = -f.groundDodgeEntryFacing
 			f.groundDodgeFrame = 0
 			f.groundDodgeDirection = 0
+			f.groundDodgeEntryFacing = 0
 			f.vx = 0
 	checkBlastZone(f)
 	if f.out
@@ -2544,6 +2617,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		return
 	var direction = input.direction
 	let canSteer = f.downState == DOWN_NONE and f.hitstun <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and not smashChargePaused and (not f.grounded or f.cooldown <= 0)
+	f.crouching = input.down and input.direction == 0 and f.grounded and canSteer and not wantsShield and f.attackStyle < 0 and f.specialAction == SPECIAL_NONE
 	if canSteer and not f.grounded and direction != 0
 		f.lastAerialTapDirection = direction
 	if not canSteer or wantsShield or not f.grounded
@@ -2553,15 +2627,17 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			direction = 0
 		if f.grounded
 			advanceGroundMovement(f, direction, input.walking)
-		else if direction != 0
-			f.vx = f.vx + direction * characterAirAcceleration(f.character)
-			f.vx = max(-characterAirSpeed(f.character), min(characterAirSpeed(f.character), f.vx))
+		else if direction != 0 and not groundTakeoff
+			f.vx = airDriftVelocity(f.character, f.vx, direction)
 			// Air steering changes velocity, not facing; back aerials rely on a stable orientation.
-	if isGroundDodging(f) and f.groundDodgeDirection != 0 and f.groundDodgeFrame >= GROUND_ROLL_MOVE_START and f.groundDodgeFrame <= GROUND_ROLL_MOVE_END
-		f.vx = GROUND_ROLL_SPEED * f.groundDodgeDirection
+	if isGroundDodging(f) and f.groundDodgeDirection != 0
+		if f.character == 2
+			f.vx = f.groundDodgeFrame >= GROUND_ROLL_MOVE_START and f.groundDodgeFrame <= GROUND_ROLL_MOVE_END ? GROUND_ROLL_SPEED * f.groundDodgeDirection : 0
+		else
+			f.vx = f.groundDodgeDirection * rollTravelSample(f.character, isForwardGroundRoll(f) ? 0 : 1, f.groundDodgeFrame)
 	else if isGroundDodging(f)
 		f.vx = 0
-	else if (not canSteer or direction == 0) and f.hitstun <= 0 and (not dodgeActive or f.grounded)
+	else if not groundTakeoff and (not canSteer or direction == 0) and f.hitstun <= 0 and (not dodgeActive or f.grounded)
 		let drag = f.grounded ? GROUND_TRACTION : AIR_FRICTION
 		f.vx = f.vx > 0 ? max(0, f.vx - drag) : min(0, f.vx + drag)
 	if input.down and not input.attackRequested and f.downState == DOWN_NONE and f.grounded and f.surface >= 0 and surfacePass(stage, f.surface) and canAttack(f)
@@ -2571,6 +2647,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.vz = -2
 	let oldX = f.x
 	let oldZ = f.z
+	decayKnockback(f)
 	if dodgeActive and not f.grounded
 		f.vx = f.vx * 0.9
 		f.vz = f.vz * 0.9
@@ -2588,7 +2665,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	else if f.grounded and f.jumpSquat > 0
 		f.vz = 0
 		f.z = surfaceZ(stage, max(0, f.surface))
-	else if not dodgeActive or f.grounded
+	else if (not dodgeActive or f.grounded) and not groundTakeoff
 		let gravity = characterGravity(f.character)
 		f.vz = max(-characterTerminalSpeed(f.character), f.vz - gravity)
 		if input.down and input.direction == 0 and f.downState == DOWN_NONE and f.hitstun <= 0 and totalVelocityZ(f) < 0
@@ -2612,7 +2689,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.grounded = false
 		f.surface = -1
 		clearDash(f)
-	decayKnockback(f)
+	if not f.grounded
+		f.crouching = false
 	checkBlastZone(f)
 
 function checkBlastZone(FighterState f)

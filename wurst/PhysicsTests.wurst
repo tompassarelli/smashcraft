@@ -1,0 +1,498 @@
+package PhysicsTests
+import Simulation
+
+@Test function combatGroundContactThresholdKeepsLowDownwardHitsOnTheFloor()
+	for airborne = 0 to 1
+		for aboveThreshold = 0 to 1
+			let owner = new FighterState(0, 0, 1)
+			let target = new FighterState(1, 100, -1)
+			let input = new InputSnapshot()
+			target.damage = 100. + aboveThreshold
+			target.grounded = airborne == 0
+			target.surface = airborne == 0 ? 0 : -1
+			target.z = airborne == 0 ? 0. : 300.
+			contactProjectile(owner, target, 0, PROJECTILE_RECOIL)
+			updateProjectilePair(owner, target)
+			target.damage.assertEquals(105. + aboveThreshold)
+			target.hitlag.assertEquals(4)
+			target.hitstun.assertEquals(31 + aboveThreshold)
+			target.knockbackX.assertEquals(aboveThreshold == 0 ? 11.5044 : 11.57104, 0.0001)
+			target.grounded.assertEquals(airborne == 0 and aboveThreshold == 0)
+			target.downState.assertEquals(aboveThreshold == 0 ? DOWN_NONE : DOWN_TUMBLE)
+			if airborne == 0 and aboveThreshold == 0
+				target.knockbackZ.assertEquals(0.)
+				input.verticalDirection = 1
+				for frame = 1 to 4
+					advance(target, 0, input, 0)
+					target.x.assertEquals(100.)
+					target.z.assertEquals(0.)
+					target.hitstun.assertEquals(31)
+					target.knockbackX.assertEquals(11.5044, 0.0001)
+					target.grounded.assertTrue()
+				target.diSerial.assertEquals(0)
+				input.verticalDirection = 0
+				for frame = 1 to 30
+					advance(target, 0, input, 0)
+					canAttack(target).assertFalse()
+				advance(target, 0, input, 0)
+				canAttack(target).assertTrue()
+				target.landingLag.assertEquals(0)
+			else
+				target.knockbackZ.assertEquals(aboveThreshold == 0 ? -8.6283 : -8.67828, 0.0001)
+			destroy input
+			destroy target
+			destroy owner
+
+@Test function combatDiUsesActualLaunchMagnitudeForAuthoredNonUnitDirections()
+	let target = new FighterState(2, 0, 1)
+	let input = new InputSnapshot()
+	target.grounded = false
+	target.z = 300
+	target.knockbackX = 8
+	target.diLaunchSpeed = 10
+	target.diPending = true
+	target.hitlag = 1
+	input.verticalDirection = 1
+	advance(target, 0, input, 0)
+	target.diAngleDegrees.assertEquals(18, 0.0001)
+	target.knockbackX.assertEquals(7.60845213, 0.0001)
+	target.knockbackZ.assertEquals(2.47213595, 0.0001)
+	target.diPending.assertFalse()
+	destroy input
+	destroy target
+
+@Test function combatShieldDamageUsesIntegerPowerBeforeShieldstunCalculation()
+	digitalShieldstunFrames(4.).assertEquals(3)
+	digitalShieldstunFrames(4.99).assertEquals(3)
+	digitalShieldstunFrames(5.).assertEquals(4)
+	digitalShieldstunFrames(8.99).assertEquals(5)
+
+@Test function combatShieldBreakUsesCharacterLaunchAttributeAfterContactFreeze()
+	for character = 0 to 2
+		let owner = new FighterState(0, 0, 1)
+		let target = new FighterState(character, 100, -1)
+		let input = new InputSnapshot()
+		target.shield = true
+		target.shieldEnergy = 1
+		beginAttackPair(owner, target, 0, -1, false, false)
+		owner.attackFrame = attackStartupFrames(0)
+		resolveAttackPair(owner, target)
+		target.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
+		target.hitlag.assertEquals(7)
+		target.vz.assertEquals(character == 2 ? 24. : 19.7999997139, 0.0001)
+		for frame = 1 to 7
+			advance(target, 0, input, 0)
+			target.z.assertEquals(0.)
+		advance(target, 0, input, 0)
+		target.z.assertEquals((character == 2 ? 24. : 19.7999997139) - characterGravity(character), 0.0001)
+		destroy input
+		destroy target
+		destroy owner
+
+function contactProjectile(FighterState owner, FighterState target, int slot, int kind)
+	owner.projectileLife[slot] = 3
+	owner.projectileKind[slot] = kind
+	owner.projectileX[slot] = target.x - 10
+	owner.projectileZ[slot] = target.z + 45
+	owner.projectileVelocityX[slot] = 20
+	owner.projectileDirection[slot] = 1
+
+@Test function contactBatchCollectsAllDamageBeforeChoosingLaunchInEitherTraversal()
+	for reversed = 0 to 1
+		let owner = new FighterState(0, 0, 1)
+		let target = new FighterState(1, 100, -1)
+		target.damage = 10.9
+		target.crouching = true
+		beginAttackPair(owner, target, 0, -1, false, false)
+		owner.attackFrame = attackStartupFrames(0)
+		contactProjectile(owner, target, 0, PROJECTILE_RECOIL)
+		contactProjectile(owner, target, 1, PROJECTILE_ARROW)
+		contactProjectile(owner, target, 2, PROJECTILE_BLASTER)
+		beginDamageContacts()
+		if reversed == 0
+			resolveAttackPair(owner, target)
+			updateProjectilePair(owner, target)
+		else
+			updateProjectilePair(owner, target)
+			resolveAttackPair(owner, target)
+		target.damage.assertEquals(10.9)
+		finishDamageContacts(owner, target)
+		target.damage.assertEquals(37.9, 0.0001)
+		// floor(10.9)+27=37 percent, jab power 12, weight 80, crouch 2/3.
+		// The later downward recoil and zero-launch laser cannot replace the jab.
+		target.diLaunchSpeed.assertEquals(9.3946666667, 0.0001)
+		target.knockbackX.assertEquals(9.3946666667 * 0.70710678, 0.0001)
+		target.knockbackZ.assertGreaterThan(0.)
+		target.hitstun.assertEquals(20)
+		target.hitlag.assertEquals(4)
+		owner.hitlag.assertEquals(7)
+		target.diPending.assertTrue()
+		target.sdiWasGrounded.assertTrue()
+		target.crouching.assertFalse()
+		projectileCount(owner).assertEquals(0)
+		destroy owner
+		destroy target
+
+@Test function contactBatchShieldBreakBlocksEveryCollectedContact()
+	let owner = new FighterState(0, 0, 1)
+	let target = new FighterState(1, 100, -1)
+	target.shield = true
+	target.shieldEnergy = 1
+	beginAttackPair(owner, target, 0, -1, false, false)
+	owner.attackFrame = attackStartupFrames(0)
+	contactProjectile(owner, target, 0, PROJECTILE_RECOIL)
+	contactProjectile(owner, target, 1, PROJECTILE_ARROW)
+	beginDamageContacts()
+	resolveAttackPair(owner, target)
+	updateProjectilePair(owner, target)
+	finishDamageContacts(owner, target)
+	target.damage.assertEquals(0.)
+	target.shieldEnergy.assertEquals(0.)
+	target.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
+	owner.hitlag.assertEquals(7)
+	projectileCount(owner).assertEquals(0)
+	destroy owner
+	destroy target
+
+@Test function contactBatchSpecialTradesSurviveMeleeAndSummonsUseTotalDamage()
+	let first = new FighterState(0, 0, 1)
+	let second = new FighterState(2, 100, -1)
+	beginAttackPair(first, second, 0, -1, false, false)
+	first.attackFrame = attackStartupFrames(0)
+	second.specialAction = SPECIAL_DEMONHUNTER_IMMOLATE
+	second.specialDuration = DEMONHUNTER_IMMOLATE_DURATION
+	second.specialFrame = DEMONHUNTER_IMMOLATE_STARTUP - 1
+	second.specialLockFrames = 20
+	first.bearLife = 5
+	first.bearX = 100
+	first.bearZ = 0
+	first.bearSurface = 0
+	first.hippogryphLife = 5
+	first.hippogryphKind = 1
+	first.hippogryphX = 90
+	first.hippogryphZ = 0
+	first.hippogryphVelocityX = 20
+	beginDamageContacts()
+	resolveAttackPair(first, second)
+	advanceSpecialPair(first, second, 0)
+	finishDamageContacts(first, second)
+	first.damage.assertEquals(7.)
+	second.damage.assertEquals(26.)
+	second.diLaunchSpeed.assertEquals(11.936, 0.0001)
+	first.bearHitSerial.assertEquals(1)
+	first.specialHit.assertTrue()
+	second.specialHit.assertTrue()
+	destroy first
+	destroy second
+
+@Test function contactBatchThrowAndPummelIncludeDetachedDamage()
+	for pummel = 0 to 1
+		let owner = new FighterState(0, 0, 1)
+		let target = new FighterState(1, 50, -1)
+		let input = new InputSnapshot()
+		owner.grabTarget = target
+		target.grabOwner = owner
+		target.grabbedFrames = 100
+		owner.grabAction = pummel == 1 ? GRAB_PUMMEL : THROW_FORWARD
+		owner.grabFrame = grabContactFrame(owner.grabAction) - 1
+		resolveGrabPair(owner, target)
+		contactProjectile(owner, target, 0, PROJECTILE_ARROW)
+		beginDamageContacts()
+		advanceGrabPair(owner, target, input, input, false)
+		updateProjectilePair(owner, target)
+		finishDamageContacts(owner, target)
+		target.damage.assertEquals(pummel == 1 ? 10. : 14.)
+		if pummel == 1
+			(target.grabOwner == owner).assertTrue()
+			target.hitlag.assertEquals(4)
+		else
+			(target.grabOwner == null).assertTrue()
+			target.knockbackX.assertEquals(11.6028 * 0.866025, 0.0001)
+			target.knockbackZ.assertEquals(11.6028 * 0.5, 0.0001)
+			target.diPending.assertFalse()
+			target.hitstun.assertEquals(25)
+			target.hitlag.assertEquals(0)
+		destroy input
+		destroy owner
+		destroy target
+
+@Test function contactBatchThrowReleaseLeavesGroundBeforeTrapContact()
+	let owner = new FighterState(1, 0, 1)
+	let target = new FighterState(0, 50, -1)
+	let input = new InputSnapshot()
+	owner.surface = 0
+	owner.grabTarget = target
+	target.grabOwner = owner
+	target.grabbedFrames = 100
+	owner.grabAction = THROW_FORWARD
+	owner.grabFrame = grabContactFrame(THROW_FORWARD) - 1
+	resolveGrabPair(owner, target)
+	owner.freezeTrapLife = 10
+	owner.freezeTrapSurface = 0
+	owner.freezeTrapX = target.x
+	beginDamageContacts()
+	advanceGrabPair(owner, target, input, input, false)
+	advanceFreezeTrapPair(owner, target)
+	finishDamageContacts(owner, target)
+	owner.freezeTrapLife.assertEquals(10)
+	target.frozenFrames.assertEquals(0)
+	target.damage.assertEquals(7.)
+	target.grounded.assertFalse()
+	destroy input
+	destroy owner
+	destroy target
+
+@Test function rollFacingBackwardAndSpotDodgeKeepTheirOrientation()
+	for character = 0 to 2
+		for entryFacing = -1 to 1
+			if entryFacing != 0
+				for spot = 0 to 1
+					let f = new FighterState(character, 0, entryFacing)
+					let input = new InputSnapshot()
+					startObservedRoll(f, input, 1, spot == 1 ? 0 : -entryFacing)
+					let duration = spot == 1 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES
+					for frame = 2 to duration
+						advance(f, 0, input, 0)
+						f.facing.assertEquals(entryFacing)
+						fighterPoseFacing(f).assertEquals(entryFacing)
+						isForwardGroundRoll(f).assertFalse()
+					f.x.assertEquals(spot == 1 ? 0. : -entryFacing * (character < 2 ? observedRollTotal(character, 1) : 128.), 0.0001)
+					advance(f, 0, input, 0)
+					f.facing.assertEquals(entryFacing)
+					f.groundDodgeEntryFacing.assertEquals(0)
+					destroy input
+					destroy f
+
+@Test function knockbackCapsBeforeMotionModifiersAndFixedPowerIgnoresPercent()
+	ordinaryHitKnockback(999, 100, 80, 1000, 500, 1).assertEquals(2500.)
+	ordinaryHitKnockback(999, 100, 80, 1000, 500, 2. / 3.).assertEquals(2500. * (2. / 3.))
+	ordinaryHitKnockback(999, 100, 80, 1000, 500, 1.2).assertEquals(3000.)
+	fixedHitKnockback(20, 80, 100, 20, 1).assertEquals(55.1111111, 0.0001)
+	fixedHitKnockback(20, 75, 100, 20, 1).assertEquals(55.6, 0.0001)
+	fixedHitKnockback(1000, 80, 1000, 500, 1.2).assertEquals(3000.)
+	victimHitlagFrames(8.99, true, true).assertEquals(4)
+	victimHitlagFrames(8.99, true, false).assertEquals(7)
+	victimHitlagFrames(8.99, false, true).assertEquals(3)
+	victimHitlagFrames(100, true, true).assertEquals(20)
+	ordinaryHitstunFrames(0).assertEquals(1)
+
+@Test function crouchAndChargeAreSampledBeforeHitInterruptsTheAction()
+	for context = 0 to 2
+		let attacker = new FighterState(0, 0, 1)
+		let victim = new FighterState(1, 100, -1)
+		let input = new InputSnapshot()
+		input.down = context == 1
+		advance(victim, 0, input, 0)
+		victim.crouching.assertEquals(context == 1)
+		if context == 2
+			beginAttackPair(victim, attacker, 2, -1, true, false)
+			victim.smashCharging = true
+		beginAttackPair(attacker, victim, 0, -1, false, false)
+		attacker.attackFrame = attackStartupFrames(0)
+		resolveAttackPair(attacker, victim)
+		victim.damage.assertEquals(12.)
+		victim.diLaunchSpeed.assertEquals(9.192 * (context == 1 ? 2. / 3. : (context == 2 ? 1.2 : 1.)), 0.0001)
+		victim.hitlag.assertEquals(context == 1 ? 4 : 7)
+		attacker.hitlag.assertEquals(7)
+		victim.crouching.assertFalse()
+		victim.smashCharging.assertFalse()
+		destroy input
+		destroy victim
+		destroy attacker
+
+@Test function airDriftPreservesOpposedOverspeedAndBrakesSameDirection()
+	for character = 0 to 1
+		for direction = -1 to 1
+			if direction != 0
+				let f = new FighterState(character, 0, -direction)
+				let input = new InputSnapshot()
+				f.grounded = false
+				f.z = 200
+				f.vx = 12. * direction
+				input.direction = -direction
+				advance(f, 0, input, 0)
+				f.vx.assertEquals((character == 0 ? 11.52 : 11.58) * direction, 0.0001)
+				f.x.assertEquals(f.vx, 0.0001)
+				input.direction = direction
+				advance(f, 0, input, 0)
+				f.vx.assertEquals((character == 0 ? 11.40 : 11.46) * direction, 0.0001)
+				f.vx = 40. * direction
+				advance(f, 0, input, 0)
+				f.vx.assertEquals((character == 0 ? 18. : 24.) * direction)
+				destroy input
+				destroy f
+
+@Test function groundJumpUsesTakeoffInputAndAirJumpReplacesHorizontalMomentum()
+	for character = 0 to 1
+		for direction = -1 to 1
+			let f = new FighterState(character, 0, 1)
+			let input = new InputSnapshot()
+			simulationJump(f, -direction)
+			f.jumpSquat = 1
+			f.vx = 4
+			input.direction = direction
+			input.jumpHeld = true
+			advance(f, 0, input, 0)
+			let entry = (character == 0 ? 3.32 : 4.) + direction * (character == 0 ? 4.32 : 4.2)
+			f.vx.assertEquals(entry, 0.0001)
+			f.x.assertEquals(entry, 0.0001)
+			f.vx = 13
+			simulationJump(f, direction)
+			f.vx.assertEquals(direction * (character == 0 ? 5.4 : 5.64), 0.0001)
+			destroy input
+			destroy f
+	let capped = new FighterState(0, 0, 1)
+	let capInput = new InputSnapshot()
+	simulationJump(capped, 1)
+	capped.jumpSquat = 1
+	capped.vx = 30
+	capInput.direction = 1
+	advance(capped, 0, capInput, 0)
+	capped.vx.assertEquals(10.2, 0.0001)
+	let illidan = new FighterState(2, 0, 1)
+	illidan.grounded = false
+	illidan.vx = 13
+	simulationJump(illidan, -1)
+	illidan.vx.assertEquals(13.)
+	destroy illidan
+	destroy capInput
+	destroy capped
+
+function observedRollTotal(int character, int profile) returns real
+	if profile == 0
+		return character == 0 ? 201.6000022884 : 230.9999999994
+	if profile == 1
+		return character == 0 ? 201.5999794008 : 231.0000228876
+	if profile == 2
+		return character == 0 ? 201.5902462016 : 230.9888775942
+	if profile == 3
+		return character == 0 ? 200.7657279972 : 230.0440521240
+	if profile == 4
+		return character == 0 ? 201.5999822604 : 230.9999313354
+	if profile == 5
+		return character == 0 ? 201.6276168816 : 231.0316658010
+	if profile == 6
+		return character == 0 ? 233.4956817624 : 245.5145874036
+	return character == 0 ? 223.5031471260 : 255.9339351672
+
+function startObservedRoll(FighterState f, InputSnapshot input, int profile, int direction)
+	f.surface = 0
+	if profile < 2
+		input.shield = true
+		input.groundDodgePressed = true
+		input.groundDodgeDirection = direction
+	else if profile < 6
+		f.downState = DOWN_WAIT
+		f.downWaitRemaining = 100
+		f.downFaceUp = profile < 4
+		input.getupDirectionPressed = true
+		input.getupDirection = direction
+	else
+		f.grounded = false
+		f.downState = DOWN_TUMBLE
+		f.hitstun = 20
+		f.z = 1
+		f.vz = -2
+		input.techPressed = true
+		input.direction = direction
+	advance(f, 0, input, 0)
+	input.shield = false
+	input.groundDodgePressed = false
+	input.getupDirectionPressed = false
+	input.techPressed = false
+	input.direction = 0
+
+@Test function rollFacingSampledRollPathsClampAtBothStageEdgesWithoutDiscardingReversals()
+	for character = 0 to 1
+		for profile = 0 to 7
+			for direction = -1 to 1
+				if direction != 0
+					let f = new FighterState(character, 590. * direction, profile mod 2 == 0 ? direction : -direction)
+					let input = new InputSnapshot()
+					startObservedRoll(f, input, profile, direction)
+					var touchedEdge = f.x.abs() == 600
+					let duration = profile < 2 ? 31 : (profile < 6 ? 35 : 40)
+					for frame = 2 to duration
+						advance(f, 0, input, 0)
+						(f.x >= -600 and f.x <= 600).assertTrue()
+						f.grounded.assertTrue()
+						touchedEdge = touchedEdge or f.x.abs() == 600
+					touchedEdge.assertTrue()
+					if profile == 0
+						(f.x.abs() < 600).assertTrue()
+					destroy input
+					destroy f
+
+@Test function groundJumpEntryPreservesLaunchThenAppliesGravityAndDrift()
+	for character = 0 to 1
+		for full = 0 to 1
+			let f = new FighterState(character, 0, 1)
+			let input = new InputSnapshot()
+			input.jumpPressed = true
+			input.jumpHeld = full == 1
+			input.direction = 1
+			let squat = character == 0 ? 3 : 5
+			for frame = 1 to squat
+				advance(f, 0, input, 0)
+				input.jumpPressed = false
+				f.grounded.assertTrue()
+				f.z.assertEquals(0.)
+				f.jumpSerial.assertEquals(0)
+			advance(f, 0, input, 0)
+			let launch = character == 0 ? (full == 1 ? 22.08 : 12.6) : (full == 1 ? 24.6 : 11.4)
+			let horizontal = character == 0 ? 4.32 : 4.2
+			f.grounded.assertFalse()
+			f.jumpSerial.assertEquals(1)
+			f.vz.assertEquals(launch, 0.00001)
+			f.z.assertEquals(launch, 0.00001)
+			f.vx.assertEquals(horizontal, 0.00001)
+			f.x.assertEquals(horizontal, 0.00001)
+			advance(f, 0, input, 0)
+			let gravity = character == 0 ? 1.38 : 1.02
+			f.vz.assertEquals(launch - gravity, 0.00001)
+			f.z.assertEquals(2 * launch - gravity, 0.00001)
+			f.vx.assertEquals(character == 0 ? 4.8 : 4.62, 0.00001)
+			destroy input
+			destroy f
+
+@Test function aerialJumpEntryAppliesGravityImmediately()
+	for character = 0 to 1
+		let f = new FighterState(character, 0, 1)
+		let input = new InputSnapshot()
+		f.grounded = false
+		f.z = 100
+		f.vz = -10
+		f.jumps = 1
+		input.jumpPressed = true
+		input.direction = 1
+		advance(f, 0, input, 0)
+		f.vz.assertEquals(character == 0 ? 25.116 : 22.104, 0.00001)
+		f.z.assertEquals(character == 0 ? 125.116 : 122.104, 0.00001)
+		f.vx.assertEquals(character == 0 ? 5.28 : 5.52, 0.00001)
+		f.jumps.assertEquals(0)
+		f.jumpIsDouble.assertTrue()
+		destroy input
+		destroy f
+
+@Test function groundJumpReleaseOnTakeoffKeepsFullJumpAndHitlagDoesNotLatchRelease()
+	for character = 0 to 1
+		let f = new FighterState(character, 0, 1)
+		let input = new InputSnapshot()
+		input.jumpPressed = true
+		input.jumpHeld = true
+		advance(f, 0, input, 0)
+		input.jumpPressed = false
+		input.jumpHeld = false
+		f.hitlag = 2
+		advance(f, 0, input, 0)
+		advance(f, 0, input, 0)
+		f.jumpHeld.assertTrue()
+		input.jumpHeld = true
+		for frame = 2 to jumpSquatFrames(character)
+			advance(f, 0, input, 0)
+			f.grounded.assertTrue()
+		input.jumpHeld = false
+		advance(f, 0, input, 0)
+		f.vz.assertEquals(character == 0 ? 22.08 : 24.6, 0.00001)
+		destroy input
+		destroy f

@@ -21,7 +21,7 @@ import MatchStep
 				fighter.jumpDodgeQueued.assertTrue()
 				input.airDodgePressed = false
 				input.direction = direction
-				for frame = 3 to jumpSquatFrames(character)
+				for frame = 3 to jumpSquatFrames(character) + 1
 					advance(fighter, 0, input, 0)
 					input.direction = 0
 				fighter.jumpSerial.assertEquals(1)
@@ -64,11 +64,11 @@ import MatchStep
 				fighter.jumps.assertEquals(1)
 				advance(fighter, 0, input, 0)
 				fighter.jumps.assertEquals(1)
-				simulationJump(fighter)
+				simulationJump(fighter, 0)
 				fighter.jumps.assertEquals(0)
 				let jumpSerial = fighter.jumpSerial
 				let speed = fighter.vz
-				simulationJump(fighter)
+				simulationJump(fighter, 0)
 				fighter.jumpSerial.assertEquals(jumpSerial)
 				fighter.vz.assertEquals(speed)
 				destroy input
@@ -324,7 +324,7 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 		input.jumpHeld = true
 		advance(fighter, 0, input, 0)
 		fighter.landingLag.assertEquals(0)
-		fighter.jumpSquat.assertEquals(jumpSquatFrames(0) - 1)
+		fighter.jumpSquat.assertEquals(jumpSquatFrames(0))
 		destroy input
 		destroy fighter
 
@@ -625,7 +625,7 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 		advance(fighter, 0, input, 0)
 		fighter.jumpSerial.assertEquals(0)
 		input.jumpPressed = false
-		for frame = 2 to jumpSquatFrames(character) - 1
+		for frame = 2 to jumpSquatFrames(character)
 			advance(fighter, 0, input, 0)
 			fighter.jumpSerial.assertEquals(0)
 		advance(fighter, 0, input, 0)
@@ -970,6 +970,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	let target = new FighterState(1, targetX, -facing)
 	attacker.grounded = false
 	attacker.z = 200
+	target.grounded = false
 	target.z = targetZ
 	beginAttackPair(attacker, target, style, -1, false, false)
 	for frame = 1 to attackStartupFrames(style)
@@ -993,6 +994,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	let bairTarget = new FighterState(1, -100, -1)
 	bairAttacker.grounded = false
 	bairAttacker.z = 200
+	bairTarget.grounded = false
 	bairTarget.z = 200
 	beginAttackPair(bairAttacker, bairTarget, AERIAL_BACK_STYLE, -1, false, false)
 	bairAttacker.attackFrame = attackStartupFrames(AERIAL_BACK_STYLE)
@@ -1002,6 +1004,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	let dairTarget = new FighterState(1, 0, -1)
 	dairAttacker.grounded = false
 	dairAttacker.z = 200
+	dairTarget.grounded = false
 	dairTarget.z = 150
 	beginAttackPair(dairAttacker, dairTarget, AERIAL_DOWN_STYLE, -1, false, false)
 	dairAttacker.attackFrame = attackStartupFrames(AERIAL_DOWN_STYLE)
@@ -1295,7 +1298,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 			input.jumpPressed = true
 			input.jumpHeld = true
 			advance(fighter, 0, input, 0)
-			fighter.jumpSquat.assertEquals(2)
+			fighter.jumpSquat.assertEquals(3)
 		else if interruption == 1
 			input.shield = true
 			advance(fighter, 0, input, 0)
@@ -1371,12 +1374,14 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	input.jumpHeld = true
 	advance(fighter, 0, input, -240)
 	fighter.jumps.assertEquals(1)
-	fighter.jumpSquat.assertEquals(2)
+	fighter.jumpSquat.assertEquals(3)
 	fighter.z.assertEquals(0.)
 	input.jumpPressed = false
 	advance(fighter, 0, input, -240)
 	advance(fighter, 0, input, -240)
 	fighter.jumps.assertEquals(1)
+	fighter.grounded.assertTrue()
+	advance(fighter, 0, input, -240)
 	fighter.jumpSquat.assertEquals(0)
 	fighter.vz.assertEquals(22.08, 0.01)
 	advance(fighter, 0, input, -240)
@@ -1618,6 +1623,8 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	advance(fighter, 0, input, -240)
 	fighter.hitstun.assertEquals(0)
 	SquareRoot(fighter.knockbackX * fighter.knockbackX + fighter.knockbackZ * fighter.knockbackZ).assertEquals(99.694, 0.001)
+	fighter.x.assertEquals(159.8164, 0.0001)
+	fighter.z.assertEquals(378.3752, 0.0001)
 	(fighter.knockbackX / fighter.knockbackZ).assertEquals(0.75, 0.001)
 	let xAtStunEnd = fighter.x
 	advance(fighter, 0, input, -240)
@@ -1719,6 +1726,8 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 
 @Test function directionalInfluenceReadsOnlyTheLastHitlagFrameAndPreservesLaunchSpeed()
 	let fighter = new FighterState(0, 0, 1)
+	fighter.grounded = false
+	fighter.z = 300
 	let input = new InputSnapshot()
 	fighter.knockbackX = 10
 	fighter.knockbackZ = 0
@@ -1742,6 +1751,8 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 
 @Test function directionalInfluenceNormalizesDiagonalInputAndIgnoresParallelInput()
 	let diagonal = new FighterState(0, 0, 1)
+	diagonal.grounded = false
+	diagonal.z = 300
 	let input = new InputSnapshot()
 	diagonal.knockbackX = 10
 	diagonal.diLaunchSpeed = 10
@@ -1755,6 +1766,8 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	diagonal.diAngleDegrees.assertLessThan(10.)
 	SquareRoot(diagonal.knockbackX * diagonal.knockbackX + diagonal.knockbackZ * diagonal.knockbackZ).assertEquals(10, 0.001)
 	let parallel = new FighterState(0, 0, 1)
+	parallel.grounded = false
+	parallel.z = 300
 	parallel.knockbackX = 10
 	parallel.diLaunchSpeed = 10
 	parallel.diPending = true
@@ -1875,10 +1888,10 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	ordinaryHitKnockback(0, 12, 80, 100, 20, 1.2).assertEquals(61.28, 0.0001)
 	ordinaryHitKnockback(0, 12, 75, 100, 20, 1).assertGreaterThan(51.0666667)
 
-@Test function ordinaryHitFloorsOnlyPreHitPercentBeforeAddingFractionalHitDamage()
+@Test function ordinaryHitSeparatesFractionalPercentFromIntegerAttackPower()
 	let baseline = ordinaryHitKnockback(9., 1.5, 80, 100, 20, 1)
 	ordinaryHitKnockback(9.999, 1.5, 80, 100, 20, 1).assertEquals(baseline, 0.0001)
-	baseline.assertEquals(40.8583333, 0.0001)
+	baseline.assertEquals(40.45, 0.0001)
 	ordinaryHitKnockback(10., 1.5, 80, 100, 20, 1).assertGreaterThan(baseline)
 
 @Test function ordinaryHitlagAndHitstunRoundAtFrameBoundaries()
@@ -1887,7 +1900,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	ordinaryHitlagFrames(5.999).assertEquals(4)
 	ordinaryHitlagFrames(6.).assertEquals(5)
 	ordinaryHitlagFrames(15.).assertEquals(8)
-	ordinaryHitstunFrames(2.499).assertEquals(0)
+	ordinaryHitstunFrames(2.499).assertEquals(1)
 	ordinaryHitstunFrames(2.5).assertEquals(1)
 	ordinaryHitstunFrames(51.0666667).assertEquals(20)
 
@@ -2219,7 +2232,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	fighter.groundDodgeFrame.assertEquals(0)
 	fighter.jumps.assertEquals(jumpsBefore)
 
-@Test function rollHasBoundedLockedMotionAndForwardRollTurnsAtRecoveryEnd()
+@Test function rollFacingHasBoundedLockedMotionAndTurnsBeforeRecoveryEnd()
 	let fighter = new FighterState(0, 0, 1)
 	fighter.surface = 0
 	let input = new InputSnapshot()
@@ -2239,8 +2252,8 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	isIntangible(fighter).assertTrue()
 	for frame = GROUND_ROLL_INTANGIBLE_START + 1 to GROUND_ROLL_FRAMES
 		advance(fighter, 0, input, -240)
-	fighter.x.assertEquals(128.)
-	fighter.facing.assertEquals(1)
+	fighter.x.assertEquals(201.6000022884, 0.0001)
+	fighter.facing.assertEquals(-1)
 	fighter.grounded.assertTrue()
 	fighter.groundDodgeFrame.assertEquals(GROUND_ROLL_FRAMES)
 	canAttack(fighter).assertFalse()
@@ -2325,7 +2338,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	advance(fighter, 0, input, -240)
 	fighter.groundDodgeFrame.assertEquals(0)
 	fighter.jumps.assertEquals(1)
-	fighter.jumpSquat.assertEquals(jumpSquatFrames(0) - 1)
+	fighter.jumpSquat.assertEquals(jumpSquatFrames(0))
 
 @Test function resetAndGettingHitClearGroundDodgeState()
 	let fighter = new FighterState(1, 100, -1)
@@ -2510,11 +2523,13 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	input.jumpHeld = false
 	advance(short, 0, input, -240)
 	advance(short, 0, input, -240)
-	short.vz.assertEquals(shortJumpSpeed(0) - characterGravity(0), 0.01)
+	advance(short, 0, input, -240)
+	short.vz.assertEquals(12.6, 0.0001)
 	input.jumpHeld = true
 	advance(full, 0, input, -240)
 	advance(full, 0, input, -240)
-	full.vz.assertEquals(fullJumpSpeed(0) - characterGravity(0), 0.01)
+	advance(full, 0, input, -240)
+	full.vz.assertEquals(22.08, 0.0001)
 
 @Test function attacksCommitRecoveryOnWhiffAndBlockDuringLandingLag()
 	let game = testMatch()
@@ -2790,7 +2805,7 @@ function airJumpApex(int character) returns real
 		input.jumpHeld = true
 		advance(fighter, 0, input, -240)
 		advance(fighter, 0, input, -240)
-		fighter.jumpSquat.assertEquals(jumpSquatFrames(character) - 2)
+		fighter.jumpSquat.assertEquals(jumpSquatFrames(character) - 1)
 		fighter.jumps.assertEquals(1)
 		destroy input
 		destroy fighter
@@ -2805,9 +2820,9 @@ function airJumpApex(int character) returns real
 	input.jumpHeld = false
 	advance(fighter, 0, input, -240)
 	input.jumpHeld = true
-	for frame = 3 to 5
+	for frame = 3 to 6
 		advance(fighter, 0, input, -240)
-	fighter.vz.assertEquals(shortJumpSpeed(1) - characterGravity(1), 0.01)
+	fighter.vz.assertEquals(11.4, 0.0001)
 	fighter.jumps.assertEquals(1)
 
 @Test function attackRecoveryBlocksJumpThroughAdvance()
@@ -2869,7 +2884,7 @@ function airJumpApex(int character) returns real
 	jumpInput.jumpHeld = true
 	advance(jumper, 0, jumpInput, -240)
 	jumper.cooldown.assertEquals(0)
-	jumper.jumpSquat.assertEquals(jumpSquatFrames(0) - 1)
+	jumper.jumpSquat.assertEquals(jumpSquatFrames(0))
 
 	let dodger = new FighterState(0, 0, 1)
 	dodger.grounded = false
@@ -2901,12 +2916,12 @@ function airJumpApex(int character) returns real
 		input.shield = true
 		input.jumpPressed = true
 		input.jumpHeld = true
-		for frame = 1 to jumpSquatFrames(character)
+		for frame = 1 to jumpSquatFrames(character) + 1
 			advance(fighter, 0, input, -240)
 			input.jumpPressed = false
 			fighter.shield.assertFalse()
 			fighter.shieldReleaseLag.assertEquals(0)
-			fighter.jumpSquat.assertEquals(jumpSquatFrames(character) - frame)
+			fighter.jumpSquat.assertEquals(jumpSquatFrames(character) + 1 - frame)
 		fighter.grounded.assertFalse()
 		fighter.jumps.assertEquals(1)
 		destroy input
@@ -2930,10 +2945,10 @@ function airJumpApex(int character) returns real
 			input.jumpHeld = true
 			advance(fighter, 0, input, -240)
 			fighter.shieldReleaseLag.assertEquals(0)
-			fighter.jumpSquat.assertEquals(jumpSquatFrames(character) - 1)
+			fighter.jumpSquat.assertEquals(jumpSquatFrames(character))
 			fighter.jumps.assertEquals(1)
 			input.jumpPressed = false
-			for frame = 2 to jumpSquatFrames(character)
+			for frame = 2 to jumpSquatFrames(character) + 1
 				advance(fighter, 0, input, -240)
 			fighter.grounded.assertFalse()
 			fighter.jumpSerial.assertEquals(1)
@@ -2972,7 +2987,7 @@ function airJumpApex(int character) returns real
 		input.shield = true
 		input.jumpPressed = true
 		input.jumpHeld = true
-		for frame = 1 to jumpSquatFrames(character)
+		for frame = 1 to jumpSquatFrames(character) + 1
 			advance(fighter, 0, input, -240)
 			input.jumpPressed = false
 		input.airDodgePressed = true
@@ -3419,9 +3434,10 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 	destroy held
 	destroy input
 
-@Test function techContactSelectsDirectionAndRollMovesOnlyFramesFourThroughNineteen()
+@Test function illidanTechContactRetainsOriginalTravelAndProtectionFrames()
 	for direction = -1 to 1
 		let fighter = techTestTumbler()
+		fighter.character = 2
 		let input = new InputSnapshot()
 		input.techPressed = true
 		input.direction = -direction
@@ -3438,7 +3454,7 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 			isIntangible(fighter).assertEquals(frame <= (direction == 0 ? TECH_INTANGIBLE_FRAMES : TECH_ROLL_INTANGIBLE_FRAMES))
 			fighter.x.assertEquals(contactX + direction * 8. * max(0, min(frame, 19) - 3))
 			canAttack(fighter).assertFalse()
-			simulationJump(fighter)
+			simulationJump(fighter, 0)
 			fighter.jumpSquat.assertEquals(0)
 			fighter.jumpSerial.assertEquals(0)
 			if frame < duration
@@ -3447,7 +3463,7 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 		input.jumpHeld = true
 		advance(fighter, 0, input, 0)
 		fighter.downState.assertEquals(DOWN_NONE)
-		fighter.jumpSquat.assertEquals(jumpSquatFrames(fighter.character) - 1)
+		fighter.jumpSquat.assertEquals(jumpSquatFrames(fighter.character) - (fighter.character == 2 ? 1 : 0))
 		destroy input
 		destroy fighter
 
@@ -3713,7 +3729,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
 		fighter.shieldEnergy.assertEquals(30.)
 		for tick = 1 to 239
-			simulationJump(fighter)
+			simulationJump(fighter, 0)
 			simulationAirDodge(fighter, 1, 0)
 			beginAttackPair(fighter, target, 5, -1, false, false)
 			advance(fighter, 0, input, 0)

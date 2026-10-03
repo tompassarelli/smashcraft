@@ -24,6 +24,7 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
     advance(first, game.stageChoice, firstInput, -240)
     advance(second, game.stageChoice, secondInput, 240)
     resolveGrabPair(first, second)
+    beginDamageContacts()
     advanceGrabPair(first, second, firstInput, secondInput, grabPaused)
     if not firstGrab
         startFighterSpecial(first, game.stageChoice, firstInput)
@@ -46,6 +47,7 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
     resolveAttackPair(first, second)
     advanceSpecialPair(first, second, game.stageChoice)
     updateProjectilePair(first, second)
+    finishDamageContacts(first, second)
     resolveGrabPair(first, second)
     if inGrabContext(first)
         firstCommands.clear()

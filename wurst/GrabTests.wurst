@@ -35,7 +35,7 @@ function catchTarget(FighterState owner, FighterState target)
                 targetInput.direction = 0
                 targetInput.jumpPressed = true
                 let originalJumps = owner.jumps
-                simulationJump(owner)
+                simulationJump(owner, 0)
                 owner.jumps.assertEquals(originalJumps)
                 for frame = 1 to GRAB_HOLD_FRAMES
                     if order == 0

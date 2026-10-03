@@ -1,5 +1,40 @@
 # Physics reference and implementation
 
+## Physics integration — 2026-10-03
+
+The physics changes were reconciled with public `main` in
+~/code/wc3-melee/worktrees/melee-physics-public, retaining its two-fighter
+interfaces. The aggregate passed **402/402** tests with zero compiler errors
+(smashcraft:build/physics-public.log). The focused snapshot test then passed
+**1/1**, including nonzero crouch and roll-entry-facing restoration
+(smashcraft:build/physics-replay.log). The map `melee-physics-foundation-r1`
+built with zero compiler errors and six warnings; source staging, Lua syntax
+and packaged script/assets passed the existing build checks
+(smashcraft:build/physics-map.log). Native gameplay of this build remains
+unobserved. Earlier checkpoint logs below describe their named historical builds.
+
+The isolated development source passed 497/497 before this pass and 504/504
+after the combined corrections. Its unrelated networking/presentation changes
+are not part of this physics merge, and the concurrent development tree was
+not modified. Numerical agreement in these tests does not establish NTSC 1.02
+equivalence without the missing parameters and original-game comparisons.
+
+| Rule group | Implemented and checked | Still required for parity |
+| --- | --- | --- |
+| Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed and sampled roll travel | Revision identity, complete frame trajectories, dash/run/turn common values, walk acceleration and persistent fast-fall state |
+| Damage | Integer individual hit power, fractional same-frame total, strongest-contact selection, fixed knockback, cap and sampled crouch/smash modifiers | Common-table confirmation, successive-frame stacking and grounded knockback friction |
+| Hitlag/hitstun | Separate counters, electric/crouch arithmetic, direct/detached source pause and expiry boundaries | Original-game ordered traces and verified common values |
+| Shields | Integer shieldstun power, contact freeze before stun countdown, shield-break character launch speed | Shield pushback, analog branches and paired displacement/actionability traces |
+| DI/recovery | Actual-vector DI normalization, grounded non-upward launch selection, existing floor tech/miss-tech/getup and sampled roll paths | Ground-bounce values, wall/ceiling collision geometry, tumble exceptions and threshold/tech traces |
+| Replay/map | Crouch and roll-entry-facing snapshot restoration; map compilation and packaging | Native connected movement/contact/recovery check of this build |
+
+The parameter corpus and explicit missing offsets are in
+smashcraft:docs/smash-melee-reference/physics-parameters.json. Published
+character dumps have unknown disc revision; the revision-identified PlCo
+common table is still unavailable. Missing values are not filled with guesses.
+Owner-approved digital dodge/fast-fall conveniences, original Illidan tuning,
+custom parry behavior and lack of staling remain explicit gameplay choices.
+
 The next acceptance sequence and GitHub dependencies are in
 wc3-melee:docs/melee-foundation-roadmap.md. The factual frame-data intake at
 smashcraft:references/melee-frame-data/README.md supports move research; it is
@@ -13,6 +48,53 @@ is a reference for factual mechanics and numerical parameters, not source to
 copy or translate. No license covering its decompiled gameplay code was found;
 licenses in its tools subdirectories do not cover the game. No game assets or
 implementation text are incorporated from that checkout.
+
+## Combat corrections — 2026-10-03
+
+Low-knockback horizontal/downward hits on a grounded fighter now keep that
+fighter grounded and project launch onto the flat floor. Upward hits and
+tumble-strength hits still leave the ground. Grounded launch cannot be steered
+off the floor by DI. This adopts the factual floor-normal selection in
+melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c at the revision above; it does not
+adopt the still-unverified grounded friction multiplier or ground-bounce data.
+The existing 80-knockback tumble threshold remains the documented baseline.
+
+DI now normalizes against the actual launch vector instead of the pre-direction
+speed. Several custom attacks intentionally have nonunit direction vectors;
+those directions no longer reduce the maximum DI rotation below 18 degrees.
+Their authored launch speeds and directions remain unchanged. The factual
+reference is the actual-vector normalization in the same damage module.
+
+Digital shieldstun truncates incoming hit power before calculating its duration,
+matching the integer damage input of the shield contact path in
+melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c. Shield damage itself remains
+fractional. Archer and Rifleman shield breaks now launch with their mapped
+Fox/Falco character attribute, 3.299999952316284 Melee units/frame (19.7999997139
+world units/frame), instead of the original 24-world-unit tuning. Illidan keeps
+24. The factual parameter is character attribute +0x94 in the public Fox/Falco
+DAT JSON at https://melee.theshoemaker.de/dat-dumps/Fox.json and
+https://melee.theshoemaker.de/dat-dumps/Falco.json; the publisher's disc revision
+is unknown. These are independently authored mechanics, with no copied or
+translated gameplay implementation.
+
+The focused combat tests cover contact, four frozen ticks, grounded launch and
+the 31st actionable tick; 79.8916667/80.3544444 knockback cases straddle the
+tumble boundary both on the floor and in the air. Separate cases check actual
+vector DI, fractional shieldstun boundaries and shield-break contact/freeze/
+first movement. These are numerical and behavioral tests, not an independent
+game-execution oracle or a claim of full Melee parity.
+`bash test.sh combat` passed 11/11 with zero compiler errors; evidence is
+wc3-melee:build/combat-tests.log. Existing airborne DI tests now explicitly
+initialize an airborne fighter; their rotation and speed assertions are intact.
+
+Remaining combat gaps require verified common data: the cross-frame launch
+stacking gate (+0xFC), grounded knockback friction (+0x200), ground-bounce angle
+and multiplier (+0x1E8/+0x1EC), defender shield pushback
+(+0x294/+0x298/+0x2BC), and attacker pushback/decay
+(+0x3E0/+0x3E4/+0x3E8/+0x3EC). Wall/ceiling collision and bounce geometry are
+also absent from the current platform-only stage model. Existing floor tech,
+missed-tech recovery and their provisional timing are unchanged. No missing
+values were guessed, and these gaps remain open.
 
 ## Current correction checkpoint — 2026-10-01
 
@@ -149,9 +231,11 @@ step's physics. Record the actual implemented rate with the simulation tests.
 
 The simulation uses 60 logical frames/second and six Warcraft world units per
 Melee distance unit. Movement, gravity, shield energy and ordinary knockback
-use the numerical baseline below. Jump launch speeds are separately tuned
-constants; their simulated apex heights match the six reference-table targets
-as checked below. Digital direction input, simplified collision shapes and
+use the numerical baseline below. Ground-jump launch speeds now use published
+Fox/Falco DAT attributes, and aerial jumps multiply the full-jump attribute by
+the published aerial multiplier. The first ground-jump tick preserves launch
+velocity; subsequent ticks apply gravity. The six reference-table apex targets
+remain checked below. Digital direction input, simplified collision shapes and
 Warcraft animation remain deliberate differences.
 
 Minimum mechanics checks: press edges; short/full jump; air-jump budget; landing
@@ -210,12 +294,16 @@ The added horizontal attributes were checked against `ftCo_DatAttrs` offsets
 using complete attribute arrays near the start of the public Fox/Falco DAT
 JSON at https://melee.theshoemaker.de/dat-dumps/Fox.json and
 https://melee.theshoemaker.de/dat-dumps/Falco.json. The cached downloads are
-partial files, not complete valid JSON documents. Ground takeoff scales prior
+partial files, not complete valid JSON documents. The current complete intake
+is recorded in wc3-melee:docs/smash-melee-reference/physics-parameters.json; the
+publisher does not identify its disc revision. Ground takeoff scales prior
 self velocity, adds held-direction momentum, then caps it. Aerial jump replaces
 horizontal self velocity, including zero for neutral input. Countersteering
 preserves overspeed; matching input above the drift target brakes by air friction
-and obeys the separate maximum. Existing vertical integration and all six
-isolated jump-height targets remain unchanged.
+and obeys the separate maximum. Ground takeoff does not apply drift or air
+friction until the following tick. The vertical launch and first-tick ordering
+are described in the jump checkpoint below; all six isolated jump-height
+targets remain unchanged.
 
 Distances and velocities are Melee units and units/frame; do not insert them
 into a seconds-based Warcraft velocity without converting. Prefer simulation
@@ -224,17 +312,13 @@ targets, not initial velocities; verify discrete integration before choosing
 launch velocities. We target 60 logical frames per second independently of
 render cadence.
 
-The 2026-09-30 `jumpApexMatchesDocumentedCharacterTargets` test advances the
-actual simulation for 80 ticks per trajectory, starting jumps through input
-and measuring the maximum height above takeoff. All six cases pass within
-0.001 Melee units (0.006 Warcraft units): Archer full/short/double heights
-31.28/10.65/40.204 and Rifleman 51.5/11.58/41.778. The airborne double-jump
-fixture starts 100 world units above the platform with one jump remaining.
-This establishes isolated apex height at the documented six-to-one scale,
-not airtime parity, input latency, animated pose height, or feel under combat.
-Run `bash test.sh jumpApexMatches` from
-~/code/wc3-melee/worktrees/test-loop; evidence is
-wc3-melee:build/wurst-tests/jump-apex.log. No launch-speed changes were needed.
+The `completeJumpTrajectoriesMatchReferenceHeights` test advances each complete
+trajectory for 120 ticks, starting jumps through input and measuring height
+above takeoff. The six expectations remain Archer full/short/double
+31.28/10.65/40.204 and Rifleman 51.5/11.58/41.778 Melee units, within 0.02
+world units. The airborne double-jump fixture starts 100 world units above
+the platform with one jump remaining. This checks simulation trajectories and
+landing, not native timing, animated pose height, or disc-revision parity.
 
 Walking/running off a floor or dropping through a platform leaves at most one
 aerial jump. This transition removes the grounded jump once; subsequent falling
@@ -631,14 +715,38 @@ timing, multiplayer behavior, or numerical Melee parity.
 ## Jump calibration checkpoint
 
 Full, short and double jumps are tested through complete 120-frame trajectories,
-including landing. At scale six, their measured apexes match the table above
-within 0.02 world units for both characters. Launch speeds are calibrated for
-our gravity-before-displacement integration, not extracted Melee velocities:
-for n ascending steps, height = n * velocity - gravity * n * (n + 1) / 2.
-Fox uses 23.46 / 13.98 / 26.496 world units per frame; Falco uses
-25.62 / 12.42 / 23.124. Matching apexes does not establish identical trajectories
-or feel. Jump presses during squat are ignored without spending an air jump;
-release during squat latches short hop even if jump is pressed again.
+including landing. Fox full/short vertical launch attributes are
+3.680000066757202 / 2.0999999046325684 Melee units per frame; Falco uses
+4.099999904632568 / 1.899999976158142. Aerial launch is the full-jump attribute
+times 1.2000000476837158 for Fox or 0.9399999976158142 for Falco. These values
+come from the complete published DAT JSON intake in
+wc3-melee:docs/smash-melee-reference/physics-parameters.json. The publisher's
+game revision is unidentified, so these are not certified NTSC 1.02 values.
+
+Behavioral facts from melee:src/melee/ft/kinds/ftCommon/ftCo_Jump.c,
+melee:src/melee/ft/kinds/ftCommon/ftCo_JumpAerial.c, and
+melee:src/melee/ft/kinds/ftCommon/ftCo_KneeBend.c at
+0296f009f32f710495979d30772d8332af2d411a inform independently authored Wurst.
+No decompiled implementation was copied, translated, or structurally adapted;
+no gameplay-code license was established. Ground takeoff skips ordinary air
+physics on its first tick, so launch velocity supplies the first displacement.
+Aerial jump applies ordinary gravity and drift immediately. Ground jump spends
+three grounded ticks for Archer or five for Rifleman before takeoff, including
+the input tick. Release during those grounded ticks latches short hop; release
+on takeoff does not. Hitlag freezes that decision. Repeated presses during
+squat do not restart it or spend the aerial jump. Illidan retains its custom
+launch speeds, squat timing, and drift.
+
+The focused checks assert the grounded startup ticks, first two airborne
+positions and velocities, aerial launch, takeoff release, and hitlag. The full
+trajectory assertions still cover all six previous apexes and landing.
+This corrects the previously fitted ground launch speeds without claiming
+complete movement parity. Initial-dash duration, acceleration, run-turn braking,
+walk acceleration, and ordinary friction still need their complete source
+parameters and transitions. Fast-fall is currently selected by held neutral Down
+and does not yet preserve Melee's latched fast-fall state after release.
+The deliberate neutral-horizontal fast-fall control remains separate from that
+missing persistence. Those movement gaps remain open.
 
 ## Attack recovery checkpoint
 

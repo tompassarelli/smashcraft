@@ -210,7 +210,7 @@ function demonHunterMatch() returns MatchState
 	illidan.specialFall.assertTrue()
 	illidan.jumps.assertEquals(0)
 	let jumpSerial = illidan.jumpSerial
-	simulationJump(illidan)
+	simulationJump(illidan, 0)
 	illidan.jumpSerial.assertEquals(jumpSerial)
 	destroy input
 	destroy illidan

@@ -264,7 +264,7 @@ class Fighter extends FighterState
         SetUnitX(body, centerX + x)
         SetUnitY(body, centerY)
         SetUnitFlyHeight(body, 1800 + z, 0)
-        BlzSetUnitFacingEx(body, facing > 0 ? 0 : 180)
+        BlzSetUnitFacingEx(body, fighterPoseFacing(this) > 0 ? 0 : 180)
 
     function clearShieldEffect()
         if shieldEffect != null
@@ -1102,12 +1102,12 @@ function downAnimationRate(Fighter fighter) returns real
 function groundDodgeAnimation(Fighter fighter) returns int
     if fighter.groundDodgeDirection == 0
         return ((fighter.character == 2 ? DEMON_HUNTER_SPOT_DODGE_INDEX : (fighter.character == 0 ? ARCHER_SPOT_DODGE_INDEX : RIFLEMAN_SPOT_DODGE_INDEX)))
-    return fighter.groundDodgeDirection == fighter.facing ? ((fighter.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_INDEX : (fighter.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX))) : ((fighter.character == 2 ? DEMON_HUNTER_ROLL_BACKWARD_INDEX : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_INDEX : RIFLEMAN_ROLL_BACKWARD_INDEX)))
+    return isForwardGroundRoll(fighter) ? ((fighter.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_INDEX : (fighter.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX))) : ((fighter.character == 2 ? DEMON_HUNTER_ROLL_BACKWARD_INDEX : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_INDEX : RIFLEMAN_ROLL_BACKWARD_INDEX)))
 
 function groundDodgeAnimationSeconds(Fighter fighter) returns real
     if fighter.groundDodgeDirection == 0
         return ((fighter.character == 2 ? DEMON_HUNTER_SPOT_DODGE_SECONDS : (fighter.character == 0 ? ARCHER_SPOT_DODGE_SECONDS : RIFLEMAN_SPOT_DODGE_SECONDS)))
-    return fighter.groundDodgeDirection == fighter.facing ? ((fighter.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_SECONDS : (fighter.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS))) : ((fighter.character == 2 ? DEMON_HUNTER_ROLL_BACKWARD_SECONDS : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_SECONDS : RIFLEMAN_ROLL_BACKWARD_SECONDS)))
+    return isForwardGroundRoll(fighter) ? ((fighter.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_SECONDS : (fighter.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS))) : ((fighter.character == 2 ? DEMON_HUNTER_ROLL_BACKWARD_SECONDS : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_SECONDS : RIFLEMAN_ROLL_BACKWARD_SECONDS)))
 
 function specialAnimationIndex(Fighter f) returns int
     if f.specialAction == SPECIAL_DEMONHUNTER_MANA_BURN
