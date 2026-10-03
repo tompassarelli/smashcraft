@@ -26,6 +26,24 @@ after the observed X11 boundary and before the native polled input history.
 This does not yet isolate Wine handling from Warcraft servicing. The X11 clock
 was used only for same-server hold intervals, not compared to native game time.
 
+## Controlled service stall
+
+A separate run issued three 40 ms shield pulses: before a controlled process
+stop, entirely during the stop, and after continuation. X11 recorded all three
+press/release pairs with measured holds of 40 ms each (2.4 simulation frames).
+The native probe recorded only two shield press/release pairs across 50 rows,
+all combat phase 2. The middle pulse is absent from the polled history.
+
+The shell requested STOP and CONT on the exact owned Warcraft process 125.631 ms
+apart (about 7.54 simulation frames). An EXIT trap also resumed the process;
+subsequent process state confirmed it was running. This is a controlled
+whole-process service stall, not isolated rendering load, packet loss, wireless
+jitter, or a measured natural hitch. Host request timestamps do not prove the
+precise scheduling suspension interval. Native game clocks were not equated
+with host time. This result demonstrates that even a 40 ms software input can
+disappear on the current polling path during a service stall; it does not show
+that every supported engine/helper architecture must lose it.
+
 At 60 Hz, requested holds are approximately 0.24 and 2.4 simulation frames;
 neutral intervals are 4.8 frames. These are requested XTEST durations, not
 measured device or OS edge timestamps. Each pair used a separate xdotool process;
@@ -89,3 +107,5 @@ contains its final nine rows. No credentials or proprietary assets are included.
 The repeated short trial is run4 in x11-short-native-page0.txt; corresponding
 XInput2 events are in x11-short-events.txt. Select RawKeyPress/RawKeyRelease,
 detail 24, and pair their X11 timestamps; do not double-count ordinary key events.
+Controlled-stall evidence is in hitch-native-page0.txt, x11-hitch-events.txt
+and hitch-stimulus.txt. The native probe is run5.
