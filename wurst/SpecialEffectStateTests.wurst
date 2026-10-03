@@ -1,0 +1,194 @@
+package SpecialEffectStateTests
+import Wurst
+import Simulation
+import SpecialEffectState
+import MatchRules
+import MatchStep
+import ReplayState
+import ReplayHistory
+import ParticipantInputs
+import CommandBuffer
+import ParryScenario
+
+class SpecialTestWorld
+    FighterRoster world
+    MatchState game = new MatchState()
+    FrameInputs inputs = new FrameInputs()
+    ReplayRuntimeState runtime = new ReplayRuntimeState()
+    MatchFrameInput row = new MatchFrameInput()
+
+    construct(int mask)
+        world = new FighterRoster(mask)
+        game.setHumanMask(mask)
+        game.phase = MATCH
+        game.timeLimitMinutes = 0
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if world.active(slot)
+                world.fighters[slot] = new FighterState(2, -240. + slot * 150., 1)
+
+    function executeNext()
+        row.capture(runtime.simulationFrame + 1, world.mask, inputs, runtime).assertTrue()
+        row.execute(game, world, inputs, runtime, runtime.simulationFrame + 1).assertTrue()
+
+@Test function staticSpecialWindowsAndOriginalTransforms()
+    let state = new SpecialEffectState()
+    let f = new FighterState(2, 123, -1)
+    f.z = 42
+    let scale = characterModelScale(2)
+    f.specialAction = SPECIAL_DEMONHUNTER_IMMOLATE
+    f.specialFrame = DEMONHUNTER_IMMOLATE_STARTUP - 1
+    state.project(f, 3, STATIC_AURA).visible.assertFalse()
+    f.specialFrame++
+    let aura = state.project(f, 3, STATIC_AURA)
+    aura.visible.assertTrue()
+    aura.x.assertEquals(123.)
+    aura.z.assertEquals(42. + 50 * scale)
+    aura.scale.assertEquals(1.4 * scale)
+    aura.alpha.assertEquals(230)
+    aura.red.assertEquals(85)
+    aura.green.assertEquals(255)
+    aura.blue.assertEquals(100)
+    f.specialFrame = DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE
+    state.project(f, 3, STATIC_AURA).visible.assertFalse()
+    f.specialAction = SPECIAL_DEMONHUNTER_PARRY_STEP
+    for frame = DEMONHUNTER_PARRY_START - 1 to DEMONHUNTER_PARRY_END + 1
+        f.specialFrame = frame
+        state.project(f, 3, STATIC_AURA).visible.assertEquals(frame >= DEMONHUNTER_PARRY_START and frame <= DEMONHUNTER_PARRY_END)
+    f.specialFrame = DEMONHUNTER_PARRY_START
+    let parry = state.project(f, 3, STATIC_AURA)
+    parry.scale.assertEquals(0.85 * scale)
+    parry.red.assertEquals(150)
+    parry.blue.assertEquals(255)
+    f.specialAction = SPECIAL_DEMONHUNTER_WING_ASCENT
+    f.specialFrame = DEMONHUNTER_WING_STARTUP - 1
+    state.project(f, 3, STATIC_WING_TRAIL).visible.assertFalse()
+    f.specialFrame++
+    let wing = state.project(f, 3, STATIC_WING_TRAIL)
+    wing.visible.assertTrue()
+    wing.x.assertEquals(123.)
+    wing.z.assertEquals(42. + 8 * scale)
+    wing.scale.assertEquals(0.75 * scale)
+    wing.alpha.assertEquals(180)
+    wing.red.assertEquals(95)
+    wing.green.assertEquals(255)
+    wing.blue.assertEquals(125)
+    f.specialAction = SPECIAL_NONE
+    state.project(f, 3, STATIC_WING_TRAIL).visible.assertFalse()
+    state.project(null, 1, STATIC_PARRY_FLASH).visible.assertFalse()
+
+@Test function parryFlashNumericalLifetimeSnapshotAndReadOnlyProjection()
+    let fixture = new SpecialTestWorld(9)
+    let f = fixture.world.fighters[3]
+    f.parrySerial = 1
+    fixture.executeNext()
+    fixture.runtime.specials.parryAge[3].assertEquals(0)
+    let snapshot = new ReplaySnapshot()
+    let projected = new ReplaySnapshot()
+    for age = 0 to PARRY_FLASH_FRAMES
+        snapshot.capture(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+        for repeat = 0 to 3
+            for kind = STATIC_AURA to STATIC_PARRY_FLASH
+                fixture.runtime.specials.project(f, 3, kind)
+        projected.capture(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+        snapshot.firstDifference(projected).assertEquals("")
+        snapshot.firstPoseDifference(projected).assertEquals("")
+        let flash = fixture.runtime.specials.project(f, 3, STATIC_PARRY_FLASH)
+        flash.visible.assertEquals(age < PARRY_FLASH_FRAMES)
+        flash.alpha.assertEquals(R2I(255 * (1. - age / 12.)))
+        flash.scale.assertEquals((0.8 + age / 12. * 0.7) * characterModelScale(2))
+        flash.x.assertEquals(f.x + f.facing * 35. * characterModelScale(2))
+        flash.z.assertEquals(f.z + 80 * characterModelScale(2))
+        flash.red.assertEquals(160)
+        flash.green.assertEquals(255)
+        flash.blue.assertEquals(210)
+        fixture.executeNext()
+    snapshot.restore(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    fixture.runtime.specials.parryAge[3] = 4
+    projected.capture(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    snapshot.checksum().assertEquals(projected.checksum())
+    snapshot.firstPoseDifference(projected).assertEquals("specials.slot[3].parryAge")
+    projected.restore(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    fixture.runtime.specials.parryAge[3].assertEquals(4)
+    fixture.runtime.specials.parrySerial[3].assertEquals(1)
+    fixture.runtime.specials.project(fixture.world.fighters[3], 3, STATIC_PARRY_FLASH).visible.assertTrue()
+
+@Test function lateCorrectionRemovesAndRestoresParryFlashAtCompletedAge()
+    for initiallyParries = 0 to 1
+        let fixture = new SpecialTestWorld(9)
+        let defender = fixture.world.fighters[3]
+        let attacker = fixture.world.fighters[0]
+        attacker.character = 0
+        initializeParryScenario(defender, attacker)
+        let history = new ReplayHistory()
+        history.beginEpochWithCorrections(91, 1, 12).assertTrue()
+        for frame = 1 to 8
+            fixture.inputs.inputs[3].specialPressed = frame == 1
+            fixture.inputs.inputs[3].specialX = frame == 1 ? initiallyParries : 0
+            fixture.inputs.inputs[3].direction = frame == 1 ? initiallyParries : 0
+            if frame == 1
+                fixture.inputs.commands[0].enqueue(0, -1, frame, false)
+            fixture.row.capture(frame, 9, fixture.inputs, fixture.runtime).assertTrue()
+            history.saveSpeculative(91, fixture.row, fixture.world, fixture.game, fixture.inputs, fixture.runtime).assertTrue()
+            fixture.row.execute(fixture.game, fixture.world, fixture.inputs, fixture.runtime, frame).assertTrue()
+        fixture.runtime.specials.project(defender, 3, STATIC_PARRY_FLASH).visible.assertEquals(initiallyParries == 1)
+        if initiallyParries == 1
+            fixture.runtime.specials.parryAge[3].assertEquals(3)
+        let replacement = new FrameInputs()
+        replacement.inputs[3].specialPressed = true
+        replacement.inputs[3].specialX = 1 - initiallyParries
+        replacement.inputs[3].direction = 1 - initiallyParries
+        replacement.commands[0].enqueue(0, -1, 1, false)
+        let row = new MatchFrameInput()
+        row.capture(1, 9, replacement, fixture.runtime).assertTrue()
+        let corrections = new ReplayCorrections()
+        corrections.beginEpoch(91).assertTrue()
+        corrections.add(row).assertTrue()
+        history.correct(91, corrections, fixture.world, fixture.game, fixture.inputs, fixture.runtime).assertEquals(1)
+        fixture.runtime.specials.project(defender, 3, STATIC_PARRY_FLASH).visible.assertEquals(initiallyParries == 0)
+        fixture.runtime.specials.parrySerial[3].assertEquals(1 - initiallyParries)
+        fixture.runtime.specials.parryAge[3].assertEquals(initiallyParries == 0 ? 3 : PARRY_FLASH_FRAMES)
+
+@Test function sparseAndFourPlayerSpecialCatchupAndReset()
+    for maskIndex = 0 to 1
+        let mask = maskIndex == 0 ? 9 : 15
+        let sequential = new SpecialTestWorld(mask)
+        let catchup = new SpecialTestWorld(mask)
+        for frame = 1 to 8
+            for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                if sequential.world.active(slot) and frame == slot + 1
+                    sequential.world.fighters[slot].parrySerial++
+                    catchup.world.fighters[slot].parrySerial++
+            sequential.executeNext()
+            catchup.executeNext()
+            for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                if sequential.world.active(slot)
+                    for kind = STATIC_AURA to STATIC_PARRY_FLASH
+                        sequential.runtime.specials.project(sequential.world.fighters[slot], slot, kind)
+                        sequential.runtime.specials.project(sequential.world.fighters[slot], slot, kind)
+        sequential.runtime.specials.firstDifference(catchup.runtime.specials).assertEquals("")
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if sequential.world.active(slot)
+                sequential.runtime.specials.parryAge[slot].assertEquals(7 - slot)
+                let flash = sequential.runtime.specials.project(sequential.world.fighters[slot], slot, STATIC_PARRY_FLASH)
+                flash.visible.assertTrue()
+                flash.x.assertEquals(-240. + slot * 150. + 35 * characterModelScale(2))
+            else
+                sequential.runtime.specials.parrySerial[slot].assertEquals(0)
+                sequential.runtime.specials.parryAge[slot].assertEquals(PARRY_FLASH_FRAMES)
+        sequential.world.fighters[3].out = true
+        sequential.world.fighters[3].respawn = 60
+        sequential.executeNext()
+        sequential.runtime.specials.project(sequential.world.fighters[3], 3, STATIC_PARRY_FLASH).visible.assertFalse()
+        sequential.runtime.specials.parryAge[3].assertEquals(PARRY_FLASH_FRAMES)
+        catchup.game.timeLimitMinutes = 1
+        catchup.game.remainingFrames = 1
+        catchup.executeNext()
+        catchup.game.phase.assertEquals(RESULT)
+        let empty = new SpecialEffectState()
+        catchup.runtime.specials.firstDifference(empty).assertEquals("")
+        sequential.runtime.resetPoses()
+        sequential.runtime.specials.firstDifference(empty).assertEquals("")
+        sequential.game.phase = CHARACTER_MENU
+        sequential.runtime.specials.parryAge[0] = 1
+        sequential.executeNext()
+        sequential.runtime.specials.firstDifference(empty).assertEquals("")

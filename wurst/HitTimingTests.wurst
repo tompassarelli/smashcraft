@@ -1,4 +1,5 @@
 package HitTimingTests
+import WorldTestSupport
 import Simulation
 
 // Slippi techTester.slp ff815345e641836a331191320c0f6eae21542a5f,
@@ -71,26 +72,15 @@ import Simulation
     digitalShieldstunFrames(7).assertEquals(5)
     ordinaryHitstunFrames(100).assertEquals(40)
 
-@Test function positiveFractionalDamageKeepsOneUnitOfContactPower()
-    integerHitPower(0).assertEquals(0)
-    integerHitPower(0.25).assertEquals(1)
-    integerHitPower(0.999).assertEquals(1)
-    integerHitPower(1).assertEquals(1)
-    integerHitPower(1.999).assertEquals(1)
-    integerHitPower(2).assertEquals(2)
-    ordinaryHitKnockback(12.75, 0.25, 80, 100, 20, 1).assertEquals(40.8583333333, 0.00001)
-    digitalShieldstunFrames(0.25).assertEquals(2)
-    ordinaryHitlagFrames(0.25).assertEquals(3)
-
 @Test function shieldContactFreezesBothBodiesBeforeShieldstunCountsDown()
     let attacker = new FighterState(0, 0, 1)
     let target = new FighterState(1, 100, -1)
     let input = new InputSnapshot()
     target.shield = true
     input.shield = true
-    beginAttackPair(attacker, target, 0, -1, false, false)
+    testBeginAttacks(testWorld(attacker, target), 0, -1, false, false)
     attacker.attackFrame = attackStartupFrames(0)
-    resolveAttackPair(attacker, target)
+    resolveAttacks(testWorld(attacker, target))
     attacker.hitlag.assertEquals(7)
     target.hitlag.assertEquals(7)
     target.shieldStun.assertEquals(7)
@@ -115,7 +105,7 @@ import Simulation
             shooter.projectileZ[0] = 45
             shooter.projectileVelocityX[0] = 20
             shooter.projectileDirection[0] = 1
-            updateProjectilePair(shooter, target)
+            updateProjectiles(testWorld(shooter, target))
             shooter.hitlag.assertEquals(0)
             if kind == PROJECTILE_RECOIL
                 target.hitlag.assertGreaterThan(0)

@@ -69,6 +69,22 @@ public class FighterHUD
             stockIcons[i].setEnabled(false)
         update(false, 0, 0., 0)
 
+    function layout(int position, int count)
+        let spacing = 0.76 / count
+        let width = count > 2 ? 0.17 : 0.25
+        let x = 0.02 + spacing * (position + 0.5) - width / 2
+        plate.setAbsPoint(FRAMEPOINT_TOPLEFT, x, 0.084)
+        plate.setSize(width, 0.053)
+        portrait.setAbsPoint(FRAMEPOINT_TOPLEFT, x - 0.020, 0.139)
+        damageLabel.setAbsPoint(FRAMEPOINT_TOPLEFT, x + width * 0.44, 0.117)
+        damageLabel.setSize(width * 0.57, 0.064)
+        damageLabel.setScale(count > 2 ? 0.77 : 1.)
+        nameLabel.setAbsPoint(FRAMEPOINT_TOPLEFT, x + width * 0.37, 0.052)
+        nameLabel.setSize(width * 0.60, 0.016)
+        slotLabel.setAbsPoint(FRAMEPOINT_TOPLEFT, x + 0.004, 0.050)
+        for i = 0 to 8
+            stockIcons[i].setAbsPoint(FRAMEPOINT_TOPLEFT, x + width * 0.38 + i * 0.013, 0.029)
+
     function update(boolean visible, int character, real damage, int stocks)
         plate.setVisible(visible)
         portrait.setVisible(visible)

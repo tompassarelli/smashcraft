@@ -1,4 +1,5 @@
 package SpecialMoveTests
+import WorldTestSupport
 import Simulation
 import MatchRules
 import CommandBuffer
@@ -23,7 +24,7 @@ function specialMatch() returns MatchState
 	targetCommands.enqueue(4, -1, 1, false)
 	var frame = 1
 	while target.damage == 0 and frame <= 8
-		stepMatch(game, rifleman, target, input, targetInput, commands, targetCommands, frame)
+		stepMatch(game, testWorld(rifleman, target), testControls(input, targetInput, commands, targetCommands), frame)
 		input.specialPressed = false
 		frame++
 	target.damage.assertEquals(3.)
@@ -68,7 +69,7 @@ function specialMatch() returns MatchState
 	input.specialX = input.direction
 	targetCommands.enqueue(4, -1, 1, false)
 	for frame = 1 to 4
-		stepMatch(game, archer, target, input, targetInput, commands, targetCommands, frame)
+		stepMatch(game, testWorld(archer, target), testControls(input, targetInput, commands, targetCommands), frame)
 	target.damage.assertEquals(7.)
 	target.hitstun.assertEquals(0)
 	target.hitlag.assertEquals(0)
@@ -94,13 +95,13 @@ function specialMatch() returns MatchState
 	let archerCommands = new AttackBuffer(0)
 	let riflemanCommands = new AttackBuffer(0)
 	archerInput.specialPressed = true
-	stepMatch(game, archer, rifleman, archerInput, riflemanInput, archerCommands, riflemanCommands, 1)
+	stepMatch(game, testWorld(archer, rifleman), testControls(archerInput, riflemanInput, archerCommands, riflemanCommands), 1)
 	projectileCount(archer).assertEquals(0)
 	archer.cooldown.assertEquals(0)
 	archerInput.specialPressed = false
 	archerInput.jumpPressed = true
 	archerInput.jumpHeld = true
-	stepMatch(game, archer, rifleman, archerInput, riflemanInput, archerCommands, riflemanCommands, 2)
+	stepMatch(game, testWorld(archer, rifleman), testControls(archerInput, riflemanInput, archerCommands, riflemanCommands), 2)
 	archer.jumpSquat.assertGreaterThan(0)
 	projectileCount(archer).assertEquals(1)
 	projectileKindAt(archer, 0).assertEquals(PROJECTILE_ARROW)
@@ -129,21 +130,21 @@ function specialMatch() returns MatchState
 			shooter.vx = facing * 15.
 			input.direction = -facing
 			input.specialX = input.direction
-			stepMatch(game, shooter, target, input, targetInput, commands, targetCommands, 1)
+			stepMatch(game, testWorld(shooter, target), testControls(input, targetInput, commands, targetCommands), 1)
 			shooter.facing.assertEquals(facing)
 			shooter.lastAerialTapDirection.assertEquals(-facing)
 			input.direction = 0
 			input.specialX = input.direction
-			stepMatch(game, shooter, target, input, targetInput, commands, targetCommands, 2)
+			stepMatch(game, testWorld(shooter, target), testControls(input, targetInput, commands, targetCommands), 2)
 			shooter.facing.assertEquals(facing)
 			(shooter.vx * facing > 0).assertTrue()
 			input.specialPressed = true
-			stepMatch(game, shooter, target, input, targetInput, commands, targetCommands, 3)
+			stepMatch(game, testWorld(shooter, target), testControls(input, targetInput, commands, targetCommands), 3)
 			shooter.facing.assertEquals(-facing)
 			(shooter.vx * facing > 0).assertTrue()
 			shooter.specialAction.assertEquals(character == 0 ? SPECIAL_ARCHER_ARROW : SPECIAL_RIFLEMAN_BLASTER)
 			input.specialPressed = false
-			stepMatch(game, shooter, target, input, targetInput, commands, targetCommands, 4)
+			stepMatch(game, testWorld(shooter, target), testControls(input, targetInput, commands, targetCommands), 4)
 			projectileCount(shooter).assertEquals(1)
 			projectileDirectionAt(shooter, 0).assertEquals(-facing)
 			destroy commands
@@ -168,7 +169,7 @@ function specialMatch() returns MatchState
 		input.specialPressed = true
 		input.direction = -1
 		input.specialX = input.direction
-		stepMatch(game, fighter, target, input, targetInput, commands, targetCommands, 1)
+		stepMatch(game, testWorld(fighter, target), testControls(input, targetInput, commands, targetCommands), 1)
 		fighter.specialAction.assertEquals(character == 0 ? SPECIAL_ARCHER_MULTISHOT : SPECIAL_RIFLEMAN_BEAR)
 		destroy commands
 		destroy targetCommands
@@ -191,10 +192,10 @@ function specialMatch() returns MatchState
 	fighter.vx = 8
 	input.direction = -1
 	input.specialX = input.direction
-	stepMatch(game, fighter, target, input, targetInput, commands, targetCommands, 1)
+	stepMatch(game, testWorld(fighter, target), testControls(input, targetInput, commands, targetCommands), 1)
 	fighter.facing.assertEquals(1)
 	fighter.lastAerialTapDirection.assertEquals(-1)
-	beginAttackPair(fighter, target, AERIAL_BACK_STYLE, -1, false, false)
+	testBeginAttacks(testWorld(fighter, target), AERIAL_BACK_STYLE, -1, false, false)
 	fighter.attackStyle.assertEquals(AERIAL_BACK_STYLE)
 	fighter.facing.assertEquals(1)
 	fighter.attackStyle = -1
@@ -232,11 +233,11 @@ function specialMatch() returns MatchState
 	let replayFirst = new FighterState(0, 0, 1)
 	let replaySecond = new FighterState(1, 0, -1)
 	first.lastAerialTapDirection = -1
-	before.capture(first, second, game, firstCommands, secondCommands, runtime)
+	before.capture(testWorld(first, second), game, testCommands(firstCommands, secondCommands), runtime)
 	first.lastAerialTapDirection = 1
-	before.restore(replayFirst, replaySecond, game, firstCommands, secondCommands, runtime)
+	before.restore(testWorld(replayFirst, replaySecond), game, testCommands(firstCommands, secondCommands), runtime)
 	replayFirst.lastAerialTapDirection.assertEquals(-1)
-	after.capture(replayFirst, replaySecond, game, firstCommands, secondCommands, runtime)
+	after.capture(testWorld(replayFirst, replaySecond), game, testCommands(firstCommands, secondCommands), runtime)
 	before.firstDifference(after).assertEquals("")
 	destroy replayFirst
 	destroy replaySecond
@@ -260,12 +261,12 @@ function specialMatch() returns MatchState
 	archerInput.specialPressed = true
 	archerInput.direction = 1
 	archerInput.specialX = archerInput.direction
-	stepMatch(game, archer, rifleman, archerInput, riflemanInput, archerCommands, riflemanCommands, 1)
+	stepMatch(game, testWorld(archer, rifleman), testControls(archerInput, riflemanInput, archerCommands, riflemanCommands), 1)
 	archer.specialAction.assertEquals(SPECIAL_ARCHER_MULTISHOT)
 	projectileCount(archer).assertEquals(0)
 	archerInput.specialPressed = false
 	for frame = 2 to ARCHER_MULTISHOT_WINDUP_FRAMES
-		stepMatch(game, archer, rifleman, archerInput, riflemanInput, archerCommands, riflemanCommands, frame)
+		stepMatch(game, testWorld(archer, rifleman), testControls(archerInput, riflemanInput, archerCommands, riflemanCommands), frame)
 	projectileCount(archer).assertEquals(3)
 	projectileVelocityZAt(archer, 0).assertEquals(10.)
 	projectileVelocityZAt(archer, 1).assertEquals(0.)
@@ -289,14 +290,14 @@ function specialMatch() returns MatchState
 	archerInput.specialPressed = true
 	archerInput.verticalDirection = -1
 	archerInput.specialZ = archerInput.verticalDirection
-	stepMatch(game, archer, rifleman, archerInput, riflemanInput, archerCommands, riflemanCommands, 1)
+	stepMatch(game, testWorld(archer, rifleman), testControls(archerInput, riflemanInput, archerCommands, riflemanCommands), 1)
 	archer.specialAction.assertEquals(SPECIAL_ARCHER_DISENGAGE)
 	archer.vx.assertLessThan(0)
 	archer.vz.assertGreaterThan(0)
 	archer.hippogryphKind.assertEquals(1)
 	archerInput.specialPressed = false
 	for frame = 2 to 12
-		stepMatch(game, archer, rifleman, archerInput, riflemanInput, archerCommands, riflemanCommands, frame)
+		stepMatch(game, testWorld(archer, rifleman), testControls(archerInput, riflemanInput, archerCommands, riflemanCommands), frame)
 	rifleman.damage.assertGreaterThan(0)
 	destroy archerCommands
 	destroy riflemanCommands
@@ -319,7 +320,7 @@ function specialMatch() returns MatchState
 	archerInput.specialZ = archerInput.verticalDirection
 	archerInput.direction = -1
 	archerInput.specialX = archerInput.direction
-	stepMatch(game, archer, rifleman, archerInput, riflemanInput, archerCommands, riflemanCommands, 1)
+	stepMatch(game, testWorld(archer, rifleman), testControls(archerInput, riflemanInput, archerCommands, riflemanCommands), 1)
 	archer.specialAction.assertEquals(SPECIAL_ARCHER_RECOVERY)
 	archer.grounded.assertFalse()
 	archer.vz.assertGreaterThan(0)
@@ -352,20 +353,16 @@ function specialMatch() returns MatchState
 	airborneRifleman.z = 200
 	groundedInput.specialPressed = true
 	airborneInput.specialPressed = true
-	stepMatch(game, groundedRifleman, firstTarget, groundedInput, firstTargetInput,
-		groundedCommands, firstTargetCommands, 1)
-	stepMatch(game, airborneRifleman, secondTarget, airborneInput, secondTargetInput,
-		airborneCommands, secondTargetCommands, 1)
+	stepMatch(game, testWorld(groundedRifleman, firstTarget), testControls(groundedInput, firstTargetInput, groundedCommands, firstTargetCommands), 1)
+	stepMatch(game, testWorld(airborneRifleman, secondTarget), testControls(airborneInput, secondTargetInput, airborneCommands, secondTargetCommands), 1)
 	groundedRifleman.specialDuration.assertEquals(attackDurationFramesForGrounding(1, true))
 	airborneRifleman.specialDuration.assertEquals(attackDurationFramesForGrounding(1, false))
 	projectileCount(groundedRifleman).assertEquals(0)
 	projectileCount(airborneRifleman).assertEquals(0)
 	groundedInput.specialPressed = false
 	airborneInput.specialPressed = false
-	stepMatch(game, groundedRifleman, firstTarget, groundedInput, firstTargetInput,
-		groundedCommands, firstTargetCommands, 2)
-	stepMatch(game, airborneRifleman, secondTarget, airborneInput, secondTargetInput,
-		airborneCommands, secondTargetCommands, 2)
+	stepMatch(game, testWorld(groundedRifleman, firstTarget), testControls(groundedInput, firstTargetInput, groundedCommands, firstTargetCommands), 2)
+	stepMatch(game, testWorld(airborneRifleman, secondTarget), testControls(airborneInput, secondTargetInput, airborneCommands, secondTargetCommands), 2)
 	projectileCount(groundedRifleman).assertEquals(1)
 	projectileCount(airborneRifleman).assertEquals(1)
 	destroy groundedCommands
@@ -394,26 +391,22 @@ function specialMatch() returns MatchState
 	riflemanInput.specialPressed = true
 	riflemanInput.direction = 1
 	riflemanInput.specialX = riflemanInput.direction
-	stepMatch(game, rifleman, archer, riflemanInput, archerInput,
-		riflemanCommands, archerCommands, 1)
+	stepMatch(game, testWorld(rifleman, archer), testControls(riflemanInput, archerInput, riflemanCommands, archerCommands), 1)
 	riflemanInput.specialPressed = false
 	for frame = 2 to 22
-		stepMatch(game, rifleman, archer, riflemanInput, archerInput,
-			riflemanCommands, archerCommands, frame)
+		stepMatch(game, testWorld(rifleman, archer), testControls(riflemanInput, archerInput, riflemanCommands, archerCommands), frame)
 	rifleman.specialAction.assertEquals(SPECIAL_NONE)
 	rifleman.bearLife.assertGreaterThan(0)
 	rifleman.specialCooldowns[SPECIAL_RIFLEMAN_BEAR].assertGreaterThan(0)
 	riflemanInput.specialPressed = true
 	riflemanInput.direction = 0
 	riflemanInput.specialX = riflemanInput.direction
-	stepMatch(game, rifleman, archer, riflemanInput, archerInput,
-		riflemanCommands, archerCommands, 23)
+	stepMatch(game, testWorld(rifleman, archer), testControls(riflemanInput, archerInput, riflemanCommands, archerCommands), 23)
 	rifleman.specialAction.assertEquals(SPECIAL_RIFLEMAN_BLASTER)
 	rifleman.bearLife.assertGreaterThan(0)
 	projectileCount(rifleman).assertEquals(0)
 	riflemanInput.specialPressed = false
-	stepMatch(game, rifleman, archer, riflemanInput, archerInput,
-		riflemanCommands, archerCommands, 24)
+	stepMatch(game, testWorld(rifleman, archer), testControls(riflemanInput, archerInput, riflemanCommands, archerCommands), 24)
 	projectileCount(rifleman).assertEquals(1)
 	rifleman.specialCooldowns[SPECIAL_RIFLEMAN_BEAR].assertGreaterThan(0)
 	destroy riflemanCommands
@@ -439,13 +432,13 @@ function specialMatch() returns MatchState
 	riflemanInput.specialPressed = true
 	riflemanInput.direction = -1
 	riflemanInput.specialX = riflemanInput.direction
-	stepMatch(game, rifleman, archer, riflemanInput, archerInput, riflemanCommands, archerCommands, 1)
+	stepMatch(game, testWorld(rifleman, archer), testControls(riflemanInput, archerInput, riflemanCommands, archerCommands), 1)
 	rifleman.bearLife.assertGreaterThan(0)
 	rifleman.bearVelocityX.assertEquals(-14.)
 	let initialBearZ = rifleman.bearZ
 	riflemanInput.specialPressed = false
 	for frame = 2 to 7
-		stepMatch(game, rifleman, archer, riflemanInput, archerInput, riflemanCommands, archerCommands, frame)
+		stepMatch(game, testWorld(rifleman, archer), testControls(riflemanInput, archerInput, riflemanCommands, archerCommands), frame)
 	(rifleman.bearZ < initialBearZ).assertTrue()
 	archer.damage.assertGreaterThan(0)
 	destroy riflemanCommands
@@ -467,21 +460,21 @@ function specialMatch() returns MatchState
 	riflemanInput.specialPressed = true
 	riflemanInput.verticalDirection = 1
 	riflemanInput.specialZ = riflemanInput.verticalDirection
-	stepMatch(game, rifleman, archer, riflemanInput, archerInput, riflemanCommands, archerCommands, 1)
+	stepMatch(game, testWorld(rifleman, archer), testControls(riflemanInput, archerInput, riflemanCommands, archerCommands), 1)
 	rifleman.grounded.assertTrue()
 	for frame = 2 to RIFLEMAN_RECOVERY_STARTUP_FRAMES + 1
 		riflemanInput.specialPressed = false
-		stepMatch(game, rifleman, archer, riflemanInput, archerInput, riflemanCommands, archerCommands, frame)
+		stepMatch(game, testWorld(rifleman, archer), testControls(riflemanInput, archerInput, riflemanCommands, archerCommands), frame)
 	rifleman.grounded.assertFalse()
 	rifleman.vz.assertGreaterThan(0)
 	rifleman.vx.assertEquals(0.)
 	rifleman.invincible.assertGreaterThan(0)
 	(projectileCount(rifleman) > 0).assertTrue()
 	for frame = RIFLEMAN_RECOVERY_STARTUP_FRAMES + 2 to RIFLEMAN_RECOVERY_PROTECTION_END
-		stepMatch(game, rifleman, archer, riflemanInput, archerInput, riflemanCommands, archerCommands, frame)
+		stepMatch(game, testWorld(rifleman, archer), testControls(riflemanInput, archerInput, riflemanCommands, archerCommands), frame)
 	rifleman.invincible.assertGreaterThan(0)
 	for frame = RIFLEMAN_RECOVERY_PROTECTION_END + 1 to RIFLEMAN_RECOVERY_PROTECTION_END + 3
-		stepMatch(game, rifleman, archer, riflemanInput, archerInput, riflemanCommands, archerCommands, frame)
+		stepMatch(game, testWorld(rifleman, archer), testControls(riflemanInput, archerInput, riflemanCommands, archerCommands), frame)
 	rifleman.invincible.assertEquals(0)
 	destroy riflemanCommands
 	destroy archerCommands
@@ -514,7 +507,7 @@ function specialMatch() returns MatchState
 		for frame = 1 to 38
 			fighter.cooldown = max(0, fighter.cooldown - 1)
 			fighter.specialLockFrames = max(0, fighter.specialLockFrames - 1)
-			advanceSpecialPair(fighter, target, 0)
+			advanceSpecials(testWorld(fighter, target), 0)
 		fighter.specialAction.assertEquals(SPECIAL_NONE)
 		fighter.specialFall.assertTrue()
 		fighter.jumps.assertEquals(0)
@@ -530,7 +523,7 @@ function specialMatch() returns MatchState
 		fighter.airDodging.assertFalse()
 		fighter.jumps.assertEquals(0)
 		fighter.attackStyle.assertEquals(-1)
-		beginAttackPair(fighter, target, AERIAL_NEUTRAL_STYLE, -1, false, false)
+		testBeginAttacks(testWorld(fighter, target), AERIAL_NEUTRAL_STYLE, -1, false, false)
 		fighter.attackStyle.assertEquals(-1)
 		input.specialPressed = true
 		input.verticalDirection = 0
@@ -574,7 +567,7 @@ function specialMatch() returns MatchState
 		ledge.vz = -2
 		ledge.specialFall = true
 		ledge.jumps = 0
-		resolveLedgePair(ledge, other, 0, ledgeInput, otherInput)
+		resolveLedges(testWorld(ledge, other), 0, testInputs(ledgeInput, otherInput))
 		ledge.ledgeState.assertEquals(LEDGE_HANG)
 		ledge.specialFall.assertFalse()
 
@@ -607,11 +600,11 @@ function specialMatch() returns MatchState
 	let replayFirst = new FighterState(0, 0, 1)
 	let replaySecond = new FighterState(1, 0, -1)
 	first.specialFall = true
-	before.capture(first, second, game, firstCommands, secondCommands, runtime)
+	before.capture(testWorld(first, second), game, testCommands(firstCommands, secondCommands), runtime)
 	first.specialFall = false
-	before.restore(replayFirst, replaySecond, game, firstCommands, secondCommands, runtime)
+	before.restore(testWorld(replayFirst, replaySecond), game, testCommands(firstCommands, secondCommands), runtime)
 	replayFirst.specialFall.assertTrue()
-	after.capture(replayFirst, replaySecond, game, firstCommands, secondCommands, runtime)
+	after.capture(testWorld(replayFirst, replaySecond), game, testCommands(firstCommands, secondCommands), runtime)
 	before.firstDifference(after).assertEquals("")
 	destroy replayFirst
 	destroy replaySecond
@@ -633,15 +626,15 @@ function specialMatch() returns MatchState
 	owner.bearVelocityX = 14
 	owner.bearSurface = 0
 	for frame = 1 to 10
-		advanceSpecialPair(owner, target, 0)
+		advanceSpecials(testWorld(owner, target), 0)
 	owner.bearHitSerial.assertEquals(0)
 	owner.bearSwipeCooldown.assertEquals(0)
 	target.damage.assertEquals(0.)
 	target.x = owner.bearX + 40
-	advanceSpecialPair(owner, target, 0)
+	advanceSpecials(testWorld(owner, target), 0)
 	owner.bearHitSerial.assertEquals(1)
 	target.damage.assertGreaterThan(0.)
-	advanceSpecialPair(owner, target, 0)
+	advanceSpecials(testWorld(owner, target), 0)
 	owner.bearHitSerial.assertEquals(1)
 	destroy target
 	destroy owner
@@ -670,12 +663,12 @@ function specialMatch() returns MatchState
 	first.projectileKind[4] = PROJECTILE_FAN_ARROW
 	first.projectileVelocityX[4] = 31
 	first.projectileVelocityZ[4] = -10
-	snapshot.capture(first, second, game, firstCommands, secondCommands, runtime)
+	snapshot.capture(testWorld(first, second), game, testCommands(firstCommands, secondCommands), runtime)
 	first.specialAction = SPECIAL_NONE
 	first.bearLife = 0
 	first.hippogryphLife = 0
 	first.projectileLife[4] = 0
-	snapshot.restore(first, second, game, firstCommands, secondCommands, runtime)
+	snapshot.restore(testWorld(first, second), game, testCommands(firstCommands, secondCommands), runtime)
 	first.specialAction.assertEquals(SPECIAL_ARCHER_DISENGAGE)
 	first.specialFrame.assertEquals(11)
 	first.specialDuration.assertEquals(ARCHER_DISENGAGE_FRAMES)
@@ -690,11 +683,11 @@ function specialMatch() returns MatchState
 	first.projectileVelocityX[4].assertEquals(31.)
 	first.projectileVelocityZ[4].assertEquals(-10.)
 	let actual = new ReplaySnapshot()
-	actual.capture(first, second, game, firstCommands, secondCommands, runtime)
+	actual.capture(testWorld(first, second), game, testCommands(firstCommands, secondCommands), runtime)
 	snapshot.firstDifference(actual).assertEquals("")
 	first.hippogryphVelocityX = 0.25
-	actual.capture(first, second, game, firstCommands, secondCommands, runtime)
-	snapshot.firstDifference(actual).assertEquals("first.hippogryphVelocityX")
+	actual.capture(testWorld(first, second), game, testCommands(firstCommands, secondCommands), runtime)
+	snapshot.firstDifference(actual).assertEquals("fighter[0].hippogryphVelocityX")
 	destroy actual
 	destroy snapshot
 	destroy runtime
@@ -735,7 +728,7 @@ function specialMatch() returns MatchState
 	owner.projectileX[0] = 0
 	owner.projectileZ[0] = 45
 	owner.projectileVelocityX[0] = 30
-	updateProjectilePair(owner, target)
+	updateProjectiles(testWorld(owner, target))
 	target.damage.assertGreaterThan(0.)
 	owner.projectileX[0].assertEquals(30.)
 	target.knockbackX.assertEquals(0.)
@@ -762,7 +755,7 @@ function specialMatch() returns MatchState
 		target.downState = DOWN_TUMBLE
 		target.downFrame = 3
 		target.frozenFrames = 20
-		updateProjectilePair(owner, target)
+		updateProjectiles(testWorld(owner, target))
 		target.damage.assertEquals(kind == PROJECTILE_ARROW ? 7. : 4.)
 		target.grounded.assertFalse()
 		target.vx.assertEquals(3.)
@@ -789,7 +782,7 @@ function specialMatch() returns MatchState
 		owner.projectileZ[0] = 45
 		owner.projectileVelocityX[0] = 30
 		target.shield = true
-		updateProjectilePair(owner, target)
+		updateProjectiles(testWorld(owner, target))
 		target.shield.assertTrue()
 		target.shieldEnergy.assertLessThan(SHIELD_MAX)
 		target.damage.assertEquals(0.)

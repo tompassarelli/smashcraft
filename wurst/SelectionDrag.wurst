@@ -1,4 +1,5 @@
 package SelectionDrag
+import ParticipantInputs
 
 public function selectionPointerX(real pixelX, real width, real height) returns real
     return (pixelX - (width - height * 4 / 3) / 2) * 0.6 / height
@@ -18,27 +19,34 @@ public function selectionTile(real x, real y) returns int
     return -1
 
 public function selectionChipX(int slot, int choice) returns real
-    return (choice == 0 ? 0.272 : (choice == 1 ? 0.452 : 0.632)) + (slot == 0 ? 0 : 0.051)
+    return (choice == 0 ? 0.272 : (choice == 1 ? 0.452 : 0.632)) + (slot mod 2) * 0.051
+
+public function selectionChipY(int slot) returns real
+    return slot < 2 ? 0.366 : 0.326
+
+public function selectionCardX(int slot) returns real
+    return 0.055 + slot * 0.175
 
 function onChip(int slot, int choice, real x, real y) returns boolean
     let dx = x - (selectionChipX(slot, choice) + 0.020)
-    let dy = y - 0.346
+    let dy = y - (selectionChipY(slot) - 0.020)
     return dx * dx + dy * dy <= 0.0004
 
-public function selectionCardSlot(real x, real y, int localSlot, boolean canChooseCpu) returns int
-    if y < 0.075 or y > 0.275
+public function selectionCardSlot(real x, real y, int selectableMask) returns int
+    if y < 0.075 or y > 0.242
         return -1
-    if x >= 0.055 and x <= 0.215
-        return localSlot == 0 ? 0 : -1
-    if x >= 0.230 and x <= 0.390
-        if localSlot == 1
-            return 1
-        return canChooseCpu ? 1 : -1
+    for cardSlot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if x >= selectionCardX(cardSlot) and x <= selectionCardX(cardSlot) + 0.160
+            if participantIsActive(selectableMask, cardSlot)
+                return cardSlot
     return -1
 
 // This state belongs only to the local cursor. Its result must cross a player
 // sync event before changing a selected fighter.
 public class SelectionDrag
+    int selectableMask = 0
+    int array[INPUT_PARTICIPANT_CAPACITY] choices
+    boolean array[INPUT_PARTICIPANT_CAPACITY] ready
     boolean active = false
     boolean wasDown = false
     int activeSlot = -1
@@ -51,7 +59,7 @@ public class SelectionDrag
         hoverTile = tile
 
     function selectHeldChip(int slot, boolean available)
-        if available and slot >= 0 and slot <= 1
+        if available and slot >= 0 and slot < INPUT_PARTICIPANT_CAPACITY
             heldSlot = slot
 
     function placeHovered() returns int
@@ -66,8 +74,7 @@ public class SelectionDrag
         releasedSlot = heldSlot
         return heldSlot
 
-    function update(boolean enabled, boolean down, real x, real y, int slot, int choice,
-        boolean ownReady, int opponentChoice, boolean opponentReady, boolean opponentDraggable) returns int
+    function update(boolean enabled, boolean down, real x, real y, int slot) returns int
         var dropped = -1
         releasedSlot = -1
         if not enabled
@@ -79,21 +86,18 @@ public class SelectionDrag
         else
             hoverTile = selectionTile(x, y)
             if down and not wasDown
-                let cardOwner = selectionCardSlot(x, y, slot, opponentDraggable)
-                if cardOwner >= 0 and (cardOwner == slot or opponentDraggable)
+                let cardOwner = selectionCardSlot(x, y, selectableMask)
+                if cardOwner >= 0
                     heldSlot = cardOwner
                     active = true
                     activeSlot = cardOwner
                 else
-                    let ownChipHit = ownReady and onChip(slot, choice, x, y)
-                    let opponentChipHit = opponentReady and onChip(1 - slot, opponentChoice, x, y) and opponentDraggable
-                    if ownChipHit
-                        active = true
-                        activeSlot = slot
-                    else if opponentChipHit
-                        active = true
-                        activeSlot = 1 - slot
-                    else if heldSlot >= 0 and hoverTile >= 0
+                    for chip = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                        if participantIsActive(selectableMask, chip) and ready[chip] and onChip(chip, choices[chip], x, y)
+                            active = true
+                            activeSlot = chip
+                            heldSlot = chip
+                    if not active and heldSlot >= 0 and hoverTile >= 0
                         active = true
                         activeSlot = heldSlot
                 pressedTile = active or heldSlot < 0 ? -1 : selectionTile(x, y)

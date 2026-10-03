@@ -1,0 +1,43 @@
+package ShieldPresentation
+import Wurst
+import Simulation
+import ShieldPose
+import ShieldAssetInfo
+
+// Allocate once per actual participant in the synchronized match lifecycle.
+// Projection can replace a speculative shield without allocating native handles.
+public class ShieldPresentation
+    private effect model
+    private real originX
+    private real originY
+    private real originZ
+
+    construct(int slot, real x, real y, real z)
+        originX = x
+        originY = y
+        originZ = z
+        let path = slot == 0 ? SHIELD_P1_MODEL : (slot == 1 ? SHIELD_P2_MODEL : (slot == 2 ? SHIELD_P3_MODEL : SHIELD_P4_MODEL))
+        model = AddSpecialEffect(path, x, y)
+        BlzSetSpecialEffectAnimationBlendTime(model, 0.)
+        BlzSetSpecialEffectAnimation(model, "Stand")
+        BlzSetSpecialEffectTimeScale(model, 0.)
+        BlzSetSpecialEffectTime(model, 0.)
+        hide()
+
+    function hide()
+        BlzSetSpecialEffectAlpha(model, 0)
+        BlzSetSpecialEffectScale(model, 0.)
+
+    function present(FighterState fighter, boolean playing)
+        let pose = projectedShield(fighter, playing)
+        if not pose.visible
+            hide()
+            return
+        BlzSetSpecialEffectPosition(model, originX + pose.x, originY, originZ + pose.z)
+        BlzSetSpecialEffectScale(model, pose.scale)
+        BlzSetSpecialEffectAlpha(model, 255)
+
+    ondestroy
+        hide()
+        DestroyEffect(model)
+        model = null

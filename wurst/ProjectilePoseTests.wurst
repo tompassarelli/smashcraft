@@ -1,0 +1,75 @@
+package ProjectilePoseTests
+import Wurst
+import ProjectilePose
+import Simulation
+import MatchRules
+import MatchStep
+import ReplayState
+
+@Test function projectionHidesExpiredOutAndNonplayingProjectiles()
+    let fighter = new FighterState(1, 0., 1)
+    projectedProjectile(fighter, 0, true).visible.assertFalse()
+    fighter.projectileLife[0] = 20
+    projectedProjectile(fighter, 0, true).visible.assertTrue()
+    projectedProjectile(fighter, 0, false).visible.assertFalse()
+    fighter.out = true
+    projectedProjectile(fighter, 0, true).visible.assertFalse()
+    projectedProjectile(null, 0, true).visible.assertFalse()
+    fighter.out = false
+    projectedProjectile(fighter, -1, true).visible.assertFalse()
+    projectedProjectile(fighter, PROJECTILE_CAPACITY, true).visible.assertFalse()
+
+@Test function sparseRestoreReplacesSpeculativeProjectileAndFrostState()
+    let world = new FighterRoster(9)
+    world.fighters[0] = new FighterState(0, -100., 1)
+    world.fighters[3] = new FighterState(2, 100., -1)
+    let fighter = world.fighters[3]
+    let game = new MatchState()
+    game.phase = MATCH
+    let inputs = new FrameInputs()
+    let runtime = new ReplayRuntimeState()
+    let snapshot = new ReplaySnapshot()
+    let index = PROJECTILE_CAPACITY - 1
+    fighter.projectileLife[index] = 12
+    fighter.projectileX[index] = 73.
+    fighter.projectileZ[index] = 92.
+    fighter.projectileVelocityX[index] = -30.
+    fighter.projectileVelocityZ[index] = 10.
+    fighter.projectileKind[index] = PROJECTILE_MANA_BURN
+    fighter.projectileSerial[index] = 7
+    fighter.freezeTrapLife = 25
+    fighter.freezeTrapArming = 4
+    fighter.freezeTrapX = 81.
+    fighter.freezeTrapZ = 3.
+    fighter.frozenFrames = 11
+    snapshot.capture(world, game, inputs, runtime)
+    let before = projectedProjectile(fighter, index, true)
+    fighter.projectileLife[index] = 0
+    fighter.projectileX[index] = 999.
+    fighter.projectileVelocityX[index] = 30.
+    fighter.projectileSerial[index] = 8
+    fighter.projectileLife[0] = 40
+    fighter.freezeTrapLife = 0
+    fighter.freezeTrapArming = 0
+    fighter.freezeTrapX = 999.
+    fighter.frozenFrames = 0
+    projectedProjectile(fighter, index, true).visible.assertFalse()
+    projectedProjectile(fighter, 0, true).visible.assertTrue()
+    snapshot.restore(world, game, inputs, runtime)
+    let restored = projectedProjectile(fighter, index, true)
+    restored.visible.assertTrue()
+    restored.x.assertEquals(before.x)
+    restored.z.assertEquals(before.z)
+    restored.yaw.assertEquals(before.yaw)
+    restored.pitch.assertEquals(before.pitch)
+    restored.yaw.assertEquals(3.141592654)
+    (restored.pitch < 0).assertTrue()
+    projectedProjectile(fighter, 0, true).visible.assertFalse()
+    fighter.projectileSerial[index].assertEquals(7)
+    fighter.projectileKind[index].assertEquals(PROJECTILE_MANA_BURN)
+    fighter.freezeTrapLife.assertEquals(25)
+    fighter.freezeTrapArming.assertEquals(4)
+    fighter.freezeTrapX.assertEquals(81.)
+    fighter.freezeTrapZ.assertEquals(3.)
+    fighter.frozenFrames.assertEquals(11)
+    world.mask.assertEquals(9)

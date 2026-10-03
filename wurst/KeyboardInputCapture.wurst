@@ -101,17 +101,23 @@ public class KeyboardInputCapture
         read(scratch)
         let result = schedule.captureLocal(epoch, scratch)
         if result == FIXED_CAPTURED
-            pressed = 0
-            released = 0
-            specialX = 0
-            specialZ = 0
-            dodgeX = 0
-            dodgeZ = 0
-            ledgeVertical = 0
-            throwX = 0
-            throwZ = 0
-            directions.clearPulse()
+            commitCapturedEdges()
         return result
+
+    // Clear one-shot input only after another schedule has accepted this sample.
+    // Keeping the sampler as the sole edge owner also preserves latching while
+    // the simulation frontier is stalled.
+    function commitCapturedEdges()
+        pressed = 0
+        released = 0
+        specialX = 0
+        specialZ = 0
+        dodgeX = 0
+        dodgeZ = 0
+        ledgeVertical = 0
+        throwX = 0
+        throwZ = 0
+        directions.clearPulse()
 
     // Resume from current hardware holds without inventing new press edges.
     // A new epoch may start from neutral. Focus loss during play uses sample(0)

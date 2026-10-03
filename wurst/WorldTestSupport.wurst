@@ -1,0 +1,62 @@
+package WorldTestSupport
+import Simulation
+import CommandBuffer
+import ParticipantInputs
+import NetworkInput
+import MatchRules
+
+// Fixture construction only; all rules execute through the indexed production path.
+public function testWorld(FighterState first, FighterState second) returns FighterRoster
+    let world = new FighterRoster(3)
+    world.fighters[0] = first
+    world.fighters[1] = second
+    return world
+
+public function testControls(InputSnapshot first, InputSnapshot second, AttackBuffer firstCommands, AttackBuffer secondCommands) returns FrameInputs
+    let controls = new FrameInputs()
+    controls.inputs[0] = first
+    controls.inputs[1] = second
+    controls.commands[0] = firstCommands
+    controls.commands[1] = secondCommands
+    return controls
+
+public function testCommands(AttackBuffer firstCommands, AttackBuffer secondCommands) returns FrameInputs
+    let controls = new FrameInputs()
+    controls.commands[0] = firstCommands
+    controls.commands[1] = secondCommands
+    return controls
+
+public function testInputs(InputSnapshot first, InputSnapshot second) returns FrameInputs
+    let controls = new FrameInputs()
+    controls.inputs[0] = first
+    controls.inputs[1] = second
+    return controls
+
+public function testNetwork(NetworkInput first, NetworkInput second) returns ParticipantInputs
+    let rows = new ParticipantInputs()
+    first.copyTo(rows.row(0))
+    second.copyTo(rows.row(1))
+    return rows
+
+public function testBeginAttacks(FighterRoster world, int firstStyle, int secondStyle, boolean firstCharge, boolean secondCharge)
+    beginFighterAttack(world, 0, firstStyle, firstCharge)
+    beginFighterAttack(world, 1, secondStyle, secondCharge)
+
+public function testGrabFrame(FighterRoster world, FrameInputs controls, boolean paused)
+    for slot = 0 to 1
+        world.grabPaused[slot] = paused
+    advanceGrabs(world, controls)
+
+public function testStanding(int firstStocks, real firstDamage, int secondStocks, real secondDamage) returns FighterRoster
+    let world = testWorld(new FighterState(0, 0, 1), new FighterState(1, 0, -1))
+    world.fighters[0].stocks = firstStocks
+    world.fighters[0].damage = firstDamage
+    world.fighters[1].stocks = secondStocks
+    world.fighters[1].damage = secondDamage
+    return world
+
+public function testSoloMatch() returns MatchState
+    let game = new MatchState()
+    game.setParticipants(1, 2)
+    game.recallCharacter(0, 1)
+    return game

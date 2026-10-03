@@ -1,15 +1,14 @@
 package FrostEffects
 import Wurst
 import Simulation
+import ParticipantInputs
 import FrostAssetInfo
 
 // Fixed common-init handles; presentation follows numerical state and can be
 // reapplied after a restore without spawning another trap or ice shell.
 public class FrostEffects
-    private effect firstTrap
-    private effect secondTrap
-    private effect firstIce
-    private effect secondIce
+    private effect array[INPUT_PARTICIPANT_CAPACITY] traps
+    private effect array[INPUT_PARTICIPANT_CAPACITY] iceShells
     private real worldX
     private real worldY
     private real worldZ
@@ -18,10 +17,9 @@ public class FrostEffects
         worldX = x
         worldY = y
         worldZ = z
-        firstTrap = AddSpecialEffect(FROST_TRAP_MODEL, x, y)
-        secondTrap = AddSpecialEffect(FROST_TRAP_MODEL, x, y)
-        firstIce = AddSpecialEffect(FROST_ICE_MODEL, x, y)
-        secondIce = AddSpecialEffect(FROST_ICE_MODEL, x, y)
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            traps[slot] = AddSpecialEffect(FROST_TRAP_MODEL, x, y)
+            iceShells[slot] = AddSpecialEffect(FROST_ICE_MODEL, x, y)
         clear()
 
     private function hide(effect model)
@@ -29,10 +27,12 @@ public class FrostEffects
         BlzSetSpecialEffectScale(model, 0.)
 
     function clear()
-        hide(firstTrap)
-        hide(secondTrap)
-        hide(firstIce)
-        hide(secondIce)
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            hideSlot(slot)
+
+    function hideSlot(int slot)
+        hide(traps[slot])
+        hide(iceShells[slot])
 
     private function apply(FighterState fighter, effect trap, effect ice)
         if fighter.freezeTrapLife > 0 and not fighter.out
@@ -48,6 +48,5 @@ public class FrostEffects
         else
             hide(ice)
 
-    function present(FighterState first, FighterState second)
-        apply(first, firstTrap, firstIce)
-        apply(second, secondTrap, secondIce)
+    function present(FighterState fighter, int slot)
+        apply(fighter, traps[slot], iceShells[slot])

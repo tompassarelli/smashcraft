@@ -1,4 +1,5 @@
 package ImpactEventsTests
+import WorldTestSupport
 import Simulation
 import ImpactEvents
 
@@ -39,7 +40,7 @@ import ImpactEvents
     events.before(fighter)
     beginDamageContacts()
     queueDamageContact(attacker, fighter, hitEffect(7, 100, 20, 1, 0, false), 1, CONTACT_LAUNCH, true, null)
-    finishDamageContacts(attacker, fighter)
+    finishDamageContacts(testWorld(attacker, fighter))
     events.after(fighter)
     events.hit.assertTrue()
     events.before(fighter)
@@ -64,7 +65,7 @@ import ImpactEvents
         events.before(fighter)
         beginDamageContacts()
         queueDamageContact(attacker, fighter, hitEffect(7, 100, 20, 1, 0, mode > 0), 1, CONTACT_LAUNCH, true, null)
-        finishDamageContacts(attacker, fighter)
+        finishDamageContacts(testWorld(attacker, fighter))
         events.after(fighter)
         events.hit.assertEquals(mode != 2)
         events.electric.assertEquals(mode == 1)
@@ -85,7 +86,7 @@ import ImpactEvents
     beginDamageContacts()
     queueDamageContact(attacker, fighter, hitEffect(7, 100, 100, 1, 0, true), 1, CONTACT_LAUNCH, true, null)
     queueDamageContact(attacker, fighter, hitEffect(20, 0, 1, 1, 0, false), 1, CONTACT_LAUNCH, true, null)
-    finishDamageContacts(attacker, fighter)
+    finishDamageContacts(testWorld(attacker, fighter))
     events.after(fighter)
     events.hit.assertTrue()
     events.electric.assertTrue()
@@ -104,7 +105,7 @@ import ImpactEvents
     events.before(fighter)
     beginDamageContacts()
     queueDamageContact(attacker, fighter, hitEffect(3, 0, 0, 0, 0, false), 1, CONTACT_DAMAGE_ONLY, false, null)
-    finishDamageContacts(attacker, fighter)
+    finishDamageContacts(testWorld(attacker, fighter))
     events.after(fighter)
     events.hit.assertTrue()
     fighter.hitstun.assertEquals(0)
@@ -168,5 +169,34 @@ import ImpactEvents
     events.landing.assertEquals(IMPACT_TECH)
     events.dodge.assertEquals(2)
     events.direction.assertEquals(-1)
+    destroy events
+    destroy fighter
+
+@Test function shieldReactionRestartsOnlyOnNewContact()
+    let fighter = new FighterState(2, 0, 1)
+    let events = new ImpactEvents()
+    fighter.shield = true
+    events.before(fighter)
+    fighter.shieldEnergy -= 0.1
+    events.after(fighter)
+    events.shieldHit.assertFalse()
+    events.before(fighter)
+    fighter.shieldVisualSerial++
+    fighter.shieldEnergy -= 5
+    fighter.shieldStun = 10
+    fighter.hitlag = 5
+    events.after(fighter)
+    events.shieldHit.assertTrue()
+    for tick = 1 to 4
+        events.before(fighter)
+        fighter.hitlag--
+        events.after(fighter)
+        events.shieldHit.assertFalse()
+    events.before(fighter)
+    fighter.shieldVisualSerial++
+    fighter.shieldEnergy -= 3
+    fighter.hitlag = 4
+    events.after(fighter)
+    events.shieldHit.assertTrue()
     destroy events
     destroy fighter

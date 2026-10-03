@@ -1,0 +1,54 @@
+package SummonPresentation
+import Wurst
+import SummonState
+import SummonOriginalClipInfo
+
+// Common initialization allocates the pool. Rendering only projects completed state.
+public class SummonPresentation
+    private effect array[SUMMON_CLIP_CAPACITY] clips
+    private int count
+    private int visible = -1
+    private real originX
+    private real originY
+    private real originZ
+
+    construct(int summon, real x, real y, real z)
+        originX = x
+        originY = y
+        originZ = z
+        count = summonClipCount(summon)
+        for index = 0 to count - 1
+            let clip = summonClip(summon, index)
+            let model = AddSpecialEffect(clip.modelPath, x, y)
+            clips[index] = model
+            BlzSetSpecialEffectAnimationBlendTime(model, 0.)
+            BlzSetSpecialEffectAnimation(model, "Stand")
+            BlzSetSpecialEffectTimeScale(model, 0.)
+            BlzSetSpecialEffectAlpha(model, 0)
+            BlzSetSpecialEffectScale(model, 0.)
+
+    function hide()
+        if visible >= 0
+            BlzSetSpecialEffectAlpha(clips[visible], 0)
+            BlzSetSpecialEffectScale(clips[visible], 0.)
+            visible = -1
+
+    function present(SummonProjection pose)
+        if not pose.visible or pose.clipIndex < 0 or pose.clipIndex >= count
+            hide()
+            return
+        if visible != pose.clipIndex
+            hide()
+            visible = pose.clipIndex
+        let model = clips[visible]
+        BlzSetSpecialEffectPosition(model, originX + pose.x, originY, originZ + pose.z)
+        BlzSetSpecialEffectYaw(model, pose.yaw)
+        BlzSetSpecialEffectScale(model, pose.scale)
+        BlzSetSpecialEffectTime(model, pose.seconds)
+        BlzSetSpecialEffectAlpha(model, 255)
+
+    ondestroy
+        for index = 0 to count - 1
+            BlzSetSpecialEffectAlpha(clips[index], 0)
+            BlzSetSpecialEffectScale(clips[index], 0.)
+            DestroyEffect(clips[index])

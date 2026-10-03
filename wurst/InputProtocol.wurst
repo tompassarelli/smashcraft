@@ -3,70 +3,134 @@ import NetworkInput
 
 // Leave one signed counter value for the next-frame cursor.
 public constant int INPUT_LAST_FRAME = 2147483646
-public constant int INPUT_HEADER_BYTES = 24
-public constant int INPUT_RECORD_BYTES = 41
+public constant int INPUT_HEADER_BYTES = 15
+public constant int INPUT_MIN_RECORD_BYTES = 1
+public constant int INPUT_MAX_RECORD_BYTES = 21
+constant string INPUT_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
 
-function decimal(int value, int width) returns string
-    var result = I2S(value)
-    while result.length() < width
-        result = "0" + result
+function compact(int value, int width) returns string
+    var result = ""
+    var remaining = value
+    for i = 1 to width
+        result = INPUT_ALPHABET.charAt(remaining mod 64) + result
+        remaining = remaining div 64
     return result
 
-// Caller validates the complete packet length before any character access.
-function parseDecimal(string wire, int offset, int width) returns int
+function parseCompact(string wire, int offset, int width) returns int
+    if offset < 0 or offset + width > wire.length()
+        return -1
     var value = 0
     for i = offset to offset + width - 1
-        let digit = "0123456789".indexOf(wire.charAt(i))
-        if digit < 0 or value > 214748364 or (value == 214748364 and digit > 7)
+        let digit = INPUT_ALPHABET.indexOf(wire.charAt(i))
+        if digit < 0 or value > 33554431
             return -1
-        value = value * 10 + digit
+        value = value * 64 + digit
     return value
 
+// Zero maps to zero, negatives to odd digits, positives to even digits.
+function signedDigit(int value) returns int
+    return value < 0 ? -2 * value - 1 : 2 * value
+
+function signedValue(int digit) returns int
+    return digit mod 2 == 1 ? -(digit + 1) div 2 : digit div 2
+
 function encodeRecord(NetworkInput row) returns string
-    return decimal(row.heldMask(), 5) + decimal(row.pressedMask(), 5) + decimal(row.releasedMask(), 5) + decimal(row.axisX() + 127, 3) + decimal(row.axisZ() + 127, 3) + decimal(row.triggerLeft(), 3) + decimal(row.triggerRight(), 3) + directionDigit(row.specialX()) + directionDigit(row.specialZ()) + directionDigit(row.dodgeX()) + directionDigit(row.dodgeZ()) + (row.sdiPulse() ? "1" : "0") + directionDigit(row.sdiX()) + directionDigit(row.sdiZ()) + directionDigit(row.ledgeVerticalPressed()) + decimal(row.throwX() + INPUT_THROW_CONTRIBUTION_LIMIT, 3) + decimal(row.throwZ() + INPUT_THROW_CONTRIBUTION_LIMIT, 3)
+    var flags = 0
+    var body = ""
+    if row.heldMask() != 0
+        flags += 1
+        body += compact(row.heldMask(), 3)
+    if row.pressedMask() != 0 or row.releasedMask() != 0
+        flags += 2
+        body += compact(row.pressedMask(), 3) + compact(row.releasedMask(), 3)
+    let axes = signedDigit(row.axisX()) * 255 + signedDigit(row.axisZ())
+    if axes != 0
+        flags += 4
+        body += compact(axes, 3)
+    let triggers = row.triggerLeft() * 256 + row.triggerRight()
+    if triggers != 0
+        flags += 8
+        body += compact(triggers, 3)
+    // NetworkInput permits SDI iff its vector is nonzero, so the vector also
+    // carries the pulse flag without losing any valid NetworkInput state.
+    let metadata = signedDigit(row.specialX()) + 3 * signedDigit(row.specialZ())
+        + 9 * signedDigit(row.dodgeX()) + 27 * signedDigit(row.dodgeZ())
+        + 81 * signedDigit(row.sdiX()) + 243 * signedDigit(row.sdiZ())
+        + 729 * signedDigit(row.ledgeVerticalPressed())
+    if metadata != 0
+        flags += 16
+        body += compact(metadata, 2)
+    let throws = signedDigit(row.throwX()) * 255 + signedDigit(row.throwZ())
+    if throws != 0
+        flags += 32
+        body += compact(throws, 3)
+    return compact(flags, 1) + body
 
-function directionDigit(int direction) returns string
-    return I2S(direction + 1)
+// Return the next record offset, or -1. No absent group inherits prior state.
+function decodeRecord(string wire, int offset, NetworkInput destination) returns int
+    let flags = parseCompact(wire, offset, 1)
+    if flags < 0
+        return -1
+    var cursor = offset + 1
+    var held = 0
+    var pressed = 0
+    var released = 0
+    var axes = 0
+    var triggers = 0
+    var metadata = 0
+    var throws = 0
+    if flags mod 2 == 1
+        held = parseCompact(wire, cursor, 3)
+        cursor += 3
+        if held <= 0 or held > INPUT_ACTION_MASK
+            return -1
+    if (flags div 2) mod 2 == 1
+        pressed = parseCompact(wire, cursor, 3)
+        released = parseCompact(wire, cursor + 3, 3)
+        cursor += 6
+        if pressed < 0 or pressed > INPUT_ACTION_MASK or released < 0 or released > INPUT_ACTION_MASK or (pressed == 0 and released == 0)
+            return -1
+    if (flags div 4) mod 2 == 1
+        axes = parseCompact(wire, cursor, 3)
+        cursor += 3
+        if axes <= 0 or axes > 65024
+            return -1
+    if (flags div 8) mod 2 == 1
+        triggers = parseCompact(wire, cursor, 3)
+        cursor += 3
+        if triggers <= 0 or triggers > 65535
+            return -1
+    if (flags div 16) mod 2 == 1
+        metadata = parseCompact(wire, cursor, 2)
+        cursor += 2
+        if metadata <= 0 or metadata > 2186
+            return -1
+    if (flags div 32) mod 2 == 1
+        throws = parseCompact(wire, cursor, 3)
+        cursor += 3
+        if throws <= 0 or throws > 65024
+            return -1
+    if not destination.assign(held, pressed, released, signedValue(axes div 255), signedValue(axes mod 255), triggers div 256, triggers mod 256)
+        return -1
+    let sdiX = signedValue((metadata div 81) mod 3)
+    let sdiZ = signedValue((metadata div 243) mod 3)
+    if not destination.assignPressData(signedValue(metadata mod 3), signedValue((metadata div 3) mod 3),
+            signedValue((metadata div 9) mod 3), signedValue((metadata div 27) mod 3),
+            sdiX != 0 or sdiZ != 0, sdiX, sdiZ, signedValue(metadata div 729))
+        return -1
+    // assign derives throw contributions from pressed bits; the wire owns the
+    // accumulated values, including explicitly zero contributions.
+    if not destination.assignThrowContributions(signedValue(throws div 255), signedValue(throws mod 255))
+        return -1
+    return cursor
 
-function parseDirection(string wire, int offset) returns int
-    let digit = "012".indexOf(wire.charAt(offset))
-    return digit < 0 ? -2 : digit - 1
+public function inputPacketSizeInRange(int bytes, int records) returns boolean
+    return records >= 1 and records <= 2 and bytes >= INPUT_HEADER_BYTES + INPUT_MIN_RECORD_BYTES * records and bytes <= INPUT_HEADER_BYTES + INPUT_MAX_RECORD_BYTES * records
 
-function decodeRecord(string wire, int offset, NetworkInput destination) returns boolean
-    let held = parseDecimal(wire, offset, 5)
-    let pressed = parseDecimal(wire, offset + 5, 5)
-    let released = parseDecimal(wire, offset + 10, 5)
-    let x = parseDecimal(wire, offset + 15, 3)
-    let z = parseDecimal(wire, offset + 18, 3)
-    let left = parseDecimal(wire, offset + 21, 3)
-    let right = parseDecimal(wire, offset + 24, 3)
-    if x < 0 or z < 0
-        return false
-    if not destination.assign(held, pressed, released, x - 127, z - 127, left, right)
-        return false
-    let specialX = parseDirection(wire, offset + 27)
-    let specialZ = parseDirection(wire, offset + 28)
-    let dodgeX = parseDirection(wire, offset + 29)
-    let dodgeZ = parseDirection(wire, offset + 30)
-    let sdiFlag = wire.charAt(offset + 31)
-    let sdiX = parseDirection(wire, offset + 32)
-    let sdiZ = parseDirection(wire, offset + 33)
-    let ledgeVertical = parseDirection(wire, offset + 34)
-    let throwX = parseDecimal(wire, offset + 35, 3) - INPUT_THROW_CONTRIBUTION_LIMIT
-    let throwZ = parseDecimal(wire, offset + 38, 3) - INPUT_THROW_CONTRIBUTION_LIMIT
-    if (sdiFlag != "0" and sdiFlag != "1")
-        return false
-    if not destination.assignPressData(specialX, specialZ, dodgeX, dodgeZ,
-            sdiFlag == "1", sdiX, sdiZ, ledgeVertical)
-        return false
-    return destination.assignThrowContributions(throwX, throwZ)
-
-// ASCII: I2 | flags(1, zero) | count(1, 1/2) | epoch(10) | first(10)
-// then count complete records: held(5), pressed(5), released(5), X+127(3),
-// Z+127(3), triggers(3 each), Special X/Z, dodge X/Z, SDI flag/X/Z, and
-// ledge vertical (one canonical 0..2 digit each), throw X/Z sums shifted by 127
-// (three decimal digits each). Length is 65 or 106.
-// Sender identity is absent: the receive event supplies it separately.
+// I3 | count (1/2) | epoch (6) | first frame (6), all integers base64.
+// Each absolute row starts with six presence bits: held, edges, axes, triggers,
+// press metadata, throw totals. Present groups must be nonzero. No packet or
+// row depends on a predecessor. Sender identity comes from the receive event.
 public class InputPacket
     private int epoch = -1
     private int firstFrame = 0
@@ -90,20 +154,23 @@ public class InputPacket
 
     function decode(string wire) returns boolean
         count = 0
-        if wire.length() != 65 and wire.length() != 106
+        if wire.length() < INPUT_HEADER_BYTES + INPUT_MIN_RECORD_BYTES or wire.length() > INPUT_HEADER_BYTES + 2 * INPUT_MAX_RECORD_BYTES
             return false
-        if wire.substring(0, 2) != "I2" or wire.charAt(2) != "0"
+        if wire.substring(0, 2) != "I3"
             return false
-        let records = parseDecimal(wire, 3, 1)
-        if records < 1 or records > 2 or wire.length() != INPUT_HEADER_BYTES + INPUT_RECORD_BYTES * records
+        let records = parseCompact(wire, 2, 1)
+        if not inputPacketSizeInRange(wire.length(), records)
             return false
-        let decodedEpoch = parseDecimal(wire, 4, 10)
-        let decodedFirst = parseDecimal(wire, 14, 10)
+        let decodedEpoch = parseCompact(wire, 3, 6)
+        let decodedFirst = parseCompact(wire, 9, 6)
         if decodedEpoch < 0 or decodedFirst < 1 or decodedFirst > INPUT_LAST_FRAME - (records - 1)
             return false
-        if not decodeRecord(wire, INPUT_HEADER_BYTES, first)
+        var cursor = decodeRecord(wire, INPUT_HEADER_BYTES, first)
+        if cursor < 0
             return false
-        if records == 2 and not decodeRecord(wire, INPUT_HEADER_BYTES + INPUT_RECORD_BYTES, second)
+        if records == 2
+            cursor = decodeRecord(wire, cursor, second)
+        if cursor != wire.length()
             return false
         epoch = decodedEpoch
         firstFrame = decodedFirst
@@ -113,7 +180,7 @@ public class InputPacket
     function encode() returns string
         if count == 0
             return ""
-        let header = "I20" + I2S(count) + decimal(epoch, 10) + decimal(firstFrame, 10)
+        let header = "I3" + compact(count, 1) + compact(epoch, 6) + compact(firstFrame, 6)
         return header + encodeRecord(first) + (count == 2 ? encodeRecord(second) : "")
 
     function epochNumber() returns int
