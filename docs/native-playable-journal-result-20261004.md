@@ -86,9 +86,12 @@ Custom hosting/FLO may improve delivery; it cannot by itself supply missing
 capture timestamps or repair simulation frame assignment.
 
 Finite-source prediction failures → paired F600/F601 trace → source-starvation
-path unresolved → reproduce with a missing next row and inspect prediction's
-first failure → fix the owning admission/prediction boundary → do not hide the
-failure by manufacturing later inputs.
+path: the caller checked the rollback horizon without requiring the next local
+row → `mayAdvanceSpeculativeFor(localPlayer)` now also requires accepted or
+pending input for that exact frame → 22/22 focused ShadowInput tests pass,
+including absence, a later row that must not substitute, and resume on the exact
+row → native verification still pending. This source fix is **not** in frozen
+0.0.18; the recorded native failure remains valid for that candidate.
 
 Character design may use deterministic 60 Hz logical frame units provisionally.
 Do not commit to a latency-sensitive competitive promise or choose frame data

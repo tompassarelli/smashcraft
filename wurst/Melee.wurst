@@ -602,7 +602,7 @@ function shadowInputTick()
         shadowTraceMaxReplayDepth = max(shadowTraceMaxReplayDepth, replayDepth)
     // Replay stays numerical. Persistent visuals project only the completed state;
     // event effects, audio, result state and HUD remain confirmed.
-    if matchState.phase == MATCH and shadowSchedule.mayAdvanceSpeculative()
+    if matchState.phase == MATCH and shadowSchedule.mayAdvanceSpeculativeFor(GetPlayerId(GetLocalPlayer()))
         if shadowPlayback.advanceSpeculative(shadowSchedule, shadowInputEpoch,
             GetPlayerId(GetLocalPlayer()), shadowMatch, shadowWorld, shadowInputs, shadowRuntime, shadowHistory)
             if inputTraceActive

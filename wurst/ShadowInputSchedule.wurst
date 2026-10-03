@@ -152,13 +152,19 @@ public class ShadowInputSchedule
 		return epoch >= 0 and nextSpeculativeFrame <= INPUT_LAST_FRAME
 			and nextSpeculativeFrame <= accepted.knownThrough() + rollbackWindow
 
+	function mayAdvanceSpeculativeFor(int localPlayer) returns boolean
+		if not isActive(localPlayer) or not mayAdvanceSpeculative()
+			return false
+		return accepted.copyAccepted(epoch, localPlayer, nextSpeculativeFrame, localPreflight)
+			or pendingFrames[nextSpeculativeFrame mod SHADOW_PENDING_CAPACITY] == nextSpeculativeFrame
+
 	// Accepted input wins. Otherwise the local participant may use its private
 	// immutable row; only remote participants are predicted, with press/release
 	// edges and press-only metadata removed by NetworkInput.predictTo.
 	function resolveSpeculative(int requestedEpoch, int localPlayer,
 			ParticipantInputs inputs) returns boolean
 		if epoch < 0 or requestedEpoch != epoch or not isActive(localPlayer)
-				or inputs == null or not mayAdvanceSpeculative()
+				or inputs == null or not mayAdvanceSpeculativeFor(localPlayer)
 				or preparedSpeculativeFrame != 0
 			return false
 		let frame = nextSpeculativeFrame
