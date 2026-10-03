@@ -105,7 +105,9 @@ retain independently authored stats and moves; Fox/Falco test profiles are
 measurement fixtures and never select the playable roster's design.
 
 Record verified facts, unresolved data, observed implementation behavior, and
-intentional choices separately. Preserve previously approved no-staling/no-
+intentional choices separately. The no-staling decision is authoritative in
+smashcraft:docs/gameplay-design.md and is excluded from the missing-work list.
+Preserve previously approved no-staling/no-
 freshness, shared dodge timings, digital wavedash direction, and original
 specials until an owner decision changes them. Those exceptions prevent an
 unqualified whole-game parity claim; they do not excuse incorrect shared rules.

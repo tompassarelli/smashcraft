@@ -15,3 +15,11 @@ under the same combat conditions; victim percent, weight, hit region, and
 other explicit mechanics still affect the result.
 
 This is an intentional departure from Melee, not a missing feature.
+
+Owner decision reaffirmed 2026-10-04: **skip Melee's stale-move mechanic**,
+including its freshness bonus, for the physics foundation and subsequent
+character balancing. Do not implement a recent-move queue, history-based damage
+or knockback multipliers, or projectile staleness snapshots. This omission is
+accepted scope, not a fidelity defect or a deferred implementation task.
+Independent Melee comparisons must state that this modifier is omitted; all
+other shared formula requirements remain open until verified.

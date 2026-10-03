@@ -711,8 +711,10 @@ with zero compiler errors (smashcraft:build/physics-fractional-power.log).
 These checks establish the conversion and existing formula behavior, not
 independent NTSC 1.02 frame-trace or native-game parity.
 
-Smashcraft intentionally omits staling and freshness bonuses. The design
-rationale is in wc3-melee:README.md, “Intentional omissions.” Do not add a
+Smashcraft intentionally omits staling and freshness bonuses. The source-owned
+design
+decision is in smashcraft:docs/gameplay-design.md, “Stale moves and freshness
+bonuses,” reaffirmed by the owner on 2026-10-04. Do not add a
 staling queue or projectile staleness snapshots.
 
 September 30 reference check: SmashWiki's Hitstun article identifies the
