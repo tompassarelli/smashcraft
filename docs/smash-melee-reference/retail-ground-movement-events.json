@@ -13,6 +13,9 @@
     "0x68": 3
   },
   "dashShieldGrabWindow": {
+    "file": "PlCo.dat",
+    "fileSha256": "63841336337eb5a7366b06ccc60ea4bd37c3604ab56e19939d78b9aa9cdd234c",
+    "verification": "Read through the archive's ftLoadCommonData root and its common-table indirection; the resolved layout and file hash match the previously verified retail parameter corpus.",
     "commonOffset": "0x68",
     "type": "float32",
     "bits": "0x40400000",
