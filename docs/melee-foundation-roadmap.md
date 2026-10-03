@@ -27,12 +27,22 @@ belongs to deliberate character design, not automatic reference-data intake.
 
 ## What is established now
 
+The local retail source is now identified as GALE01 revision 2 (NTSC 1.02).
+Its executable SHA-1 matches the pinned decompile's expected retail executable,
+and its PlCo SHA-1 matches the published shield-table extraction. The ISO and
+extracted proprietary files remain in private storage outside every repository;
+only independently recorded numerical facts enter the reference corpus.
+
 Current source evidence is in smashcraft:docs/physics.md: actor-owned parameters
-and test-only Melee rigs, recorded fall/jump and grounded-damage comparisons,
-and a paired grounded digital-shield contact. The final shield correction
-passed 427/427 tests and the r7 map built and installed; native r7 play remains
-unobserved. Shared dash/run rules, bounce/tech coverage, airborne shield recoil,
-raw common-table values and NTSC 1.02 revision identity still prevent M1 closure.
+and test-only Melee rigs, recorded fall/jump, dash entry, grounded damage and
+floor-recovery comparisons, and a paired grounded digital-shield contact.
+Retail launch stacking, damage-level selection and grounded rebound are being
+integrated alongside grounded movement and surface recovery. These newly
+integrated pieces still require their assembled check and a new map build.
+The last installed physics candidate is r7; native r7 play remains unobserved.
+Collision/tech coverage, remaining shared rules and native verification still
+prevent M1 closure. Identifying the retail disc does not identify the revision
+of previously acquired Slippi recordings.
 
 Baseline inspected: `fed4b8c9e9b6be8a6e9d5efda3949ae979a4ffe0`.
 wc3-melee:docs/physics.md records useful arithmetic, trajectory, and state tests,
