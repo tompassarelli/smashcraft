@@ -93,6 +93,7 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.lastReflectedSurface = source.lastReflectedSurface
 	destination.surfaceContactSerial = source.surfaceContactSerial
 	destination.surfaceContactKind = source.surfaceContactKind
+	destination.surfaceContactApproachSpeed = source.surfaceContactApproachSpeed
 	destination.surfaceContactX = source.surfaceContactX
 	destination.surfaceContactZ = source.surfaceContactZ
 	destination.surfaceContactNormalX = source.surfaceContactNormalX
@@ -367,6 +368,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "surfaceContactSerial"
 	if expected.surfaceContactKind != actual.surfaceContactKind
 		return "surfaceContactKind"
+	if expected.surfaceContactApproachSpeed != actual.surfaceContactApproachSpeed
+		return "surfaceContactApproachSpeed"
 	if expected.surfaceContactX != actual.surfaceContactX
 		return "surfaceContactX"
 	if expected.surfaceContactZ != actual.surfaceContactZ

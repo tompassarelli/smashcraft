@@ -162,6 +162,8 @@ public constant real SURFACE_REFLECT_ATTENUATION = 0.800000011920929
 public constant int SURFACE_REFLECT_COOLDOWN_FRAMES = 3
 public constant int SURFACE_TECH_STARTUP_FRAMES = 5
 public constant int SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES = 14
+// PlCo.dat +0x164 max_grounded_kb_on_landing, converted to map units.
+public constant real MAX_GROUNDED_KNOCKBACK_ON_LANDING = 8.300000190734863 * WORLD_UNITS_PER_MELEE_UNIT
 public constant int TECH_WINDOW_FRAMES = 20
 public constant int TECH_LOCKOUT_FRAMES = 40
 public constant int TECH_IN_PLACE_FRAMES = 26
@@ -444,6 +446,7 @@ public class FighterState
 	int lastReflectedSurface = -1
 	int surfaceContactSerial = 0
 	int surfaceContactKind = SURFACE_NONE
+	real surfaceContactApproachSpeed = 0
 	real surfaceContactX = 0
 	real surfaceContactZ = 0
 	real surfaceContactNormalX = 0
@@ -711,11 +714,9 @@ function shieldDrainShouldResume(FighterState f, boolean forcedShield) returns b
 	return true
 
 public function surfaceCount(int stage) returns int
-	return stage == 0 or stage == 2 ? 1 : 3
+	return stage == 0 ? 1 : (stage == 1 ? 3 : 0)
 
 public function surfaceLeft(int stage, int index) returns real
-	if stage == 2 and index == 0
-		return -240
 	if index == 0
 		return -600
 	if stage == 1 and index == 1
@@ -725,8 +726,6 @@ public function surfaceLeft(int stage, int index) returns real
 	return 0
 
 public function surfaceRight(int stage, int index) returns real
-	if stage == 2 and index == 0
-		return 240
 	if index == 0
 		return 600
 	if stage == 1 and index == 1
@@ -741,47 +740,78 @@ public function surfaceZ(int stage, int index) returns real
 public function surfacePass(int stage, int index) returns boolean
 	return stage == 1 and index > 0
 
-// Stage 2 is an explicit, test-only bounded arena. Playable stages keep their
-// authored geometry unchanged; the same production advance path consumes this
-// segment table when a collision fixture requests it.
+// Segment extents follow tools/stage/package.ts. Raised pass decks expose their
+// two side faces from the walking plane to z=-46 and the inset [-44,44]
+// underside at z=-54; the main deck exposes its underside while its outer edge
+// remains open for runoffs. Pass decks use the renderer's 0.45 vertical scale.
 public function solidSurfaceCount(int stage) returns int
-	return stage == 2 ? 3 : 0
+	return stage == 0 ? 1 : (stage == 1 ? 7 : 0)
+
+function solidSurfaceDeck(int stage, int index) returns int
+	if stage == 0 or index == 0
+		return 0
+	return 1 + (index - 1) div 3
+
+function solidSurfaceFace(int stage, int index) returns int
+	if stage == 0 or index == 0
+		return 2
+	return (index - 1) mod 3
 
 public function solidSurfaceKind(int stage, int index) returns int
-	if stage != 2
+	if index < 0 or index >= solidSurfaceCount(stage)
 		return SURFACE_NONE
-	return index < 2 ? SURFACE_WALL : SURFACE_CEILING
+	return solidSurfaceFace(stage, index) < 2 ? SURFACE_WALL : SURFACE_CEILING
 
 public function solidSurfaceCoordinate(int stage, int index) returns real
-	if stage != 2
+	if index < 0 or index >= solidSurfaceCount(stage)
 		return 0
-	if index == 0
-		return -240
-	if index == 1
-		return 240
-	return 240
+	let deck = solidSurfaceDeck(stage, index)
+	let face = solidSurfaceFace(stage, index)
+	if face == 0
+		return surfaceLeft(stage, deck)
+	if face == 1
+		return surfaceRight(stage, deck)
+	return surfaceZ(stage, deck) - deckThickness(stage, deck)
 
 public function solidSurfaceMinimum(int stage, int index) returns real
-	if stage != 2
+	if index < 0 or index >= solidSurfaceCount(stage)
 		return 0
-	return index < 2 ? 0 : -240
+	let deck = solidSurfaceDeck(stage, index)
+	let face = solidSurfaceFace(stage, index)
+	if face < 2
+		return surfaceZ(stage, deck) - 46 * deckDepthScale(stage, deck)
+	let center = (surfaceLeft(stage, deck) + surfaceRight(stage, deck)) / 2
+	let halfWidth = (surfaceRight(stage, deck) - surfaceLeft(stage, deck)) * 0.44
+	return center - halfWidth
 
 public function solidSurfaceMaximum(int stage, int index) returns real
-	if stage != 2
+	if index < 0 or index >= solidSurfaceCount(stage)
 		return 0
-	return index < 2 ? 240 : 240
+	let deck = solidSurfaceDeck(stage, index)
+	let face = solidSurfaceFace(stage, index)
+	if face < 2
+		return surfaceZ(stage, deck)
+	let center = (surfaceLeft(stage, deck) + surfaceRight(stage, deck)) / 2
+	let halfWidth = (surfaceRight(stage, deck) - surfaceLeft(stage, deck)) * 0.44
+	return center + halfWidth
 
 public function solidSurfaceNormalX(int stage, int index) returns real
-	if stage == 2 and index == 0
+	if index >= 0 and index < solidSurfaceCount(stage) and solidSurfaceFace(stage, index) == 0
 		return 1
-	if stage == 2 and index == 1
+	if index >= 0 and index < solidSurfaceCount(stage) and solidSurfaceFace(stage, index) == 1
 		return -1
 	return 0
 
 public function solidSurfaceNormalZ(int stage, int index) returns real
-	if stage == 2 and index == 2
+	if index >= 0 and index < solidSurfaceCount(stage) and solidSurfaceFace(stage, index) == 2
 		return -1
 	return 0
+
+function deckDepthScale(int stage, int deck) returns real
+	return surfacePass(stage, deck) ? 0.45 : 1.
+
+function deckThickness(int stage, int deck) returns real
+	return 54 * deckDepthScale(stage, deck)
 
 public function characterSpeed(int character) returns real
 	return authoredPhysics(character).runSpeed
@@ -1743,6 +1773,7 @@ function beginDownState(FighterState f, int state, int direction)
 
 function finishLanding(FighterState f, int stage, InputSnapshot input, int landing, boolean fromAsdi)
 	f.fastFalling = false
+	let wasGrounded = f.grounded
 	if not f.grounded
 		clearDash(f)
 	if not f.grounded and not f.airDodging and not isAerialAttack(f.attackStyle) and f.downState == DOWN_NONE and f.hitstun <= 0 and not fromAsdi
@@ -1764,6 +1795,10 @@ function finishLanding(FighterState f, int stage, InputSnapshot input, int landi
 	f.z = surfaceZ(stage, landing)
 	f.vz = 0
 	f.knockbackZ = 0
+	if not wasGrounded and f.groundKnockbackX == 0
+		f.groundKnockbackX = max(-MAX_GROUNDED_KNOCKBACK_ON_LANDING,
+			min(MAX_GROUNDED_KNOCKBACK_ON_LANDING, f.knockbackX))
+		f.knockbackX = f.groundKnockbackX
 	f.specialFall = false
 	f.lastAerialTapDirection = 0
 	if f.jumpSquat <= 0
@@ -1827,6 +1862,7 @@ function resolveSolidSurfaceContact(FighterState f, int stage, int index, real o
 	f.surfaceContactZ = contactZ
 	f.surfaceContactNormalX = nx
 	f.surfaceContactNormalZ = nz
+	f.surfaceContactApproachSpeed = max(0, -(totalVelocityX(f) * nx + totalVelocityZ(f) * nz))
 	var eventKind = solidSurfaceKind(stage, index)
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
@@ -1884,10 +1920,30 @@ function resolveSolidSurfaceContacts(FighterState f, int stage, real oldX, real 
 	if not touched
 		f.lastReflectedSurface = -1
 
-function advanceSurfaceRecovery(FighterState f, InputSnapshot input)
+function advanceSurfaceRecovery(FighterState f, InputSnapshot input) returns boolean
 	if f.hitlag > 0
-		return
+		return false
 	if f.surfaceRecoveryState == SURFACE_TECH_WALL or f.surfaceRecoveryState == SURFACE_TECH_CEILING
+		// A wall jump is available while this test rig remains at the contacted
+		// side, independent of the actor-authored tech animation's unknown end.
+		if f.surfaceRecoveryState == SURFACE_TECH_WALL
+			and (f.x - f.surfaceContactX).abs() < 0.001
+			and input.jumpPressed and f.surfacePhysics.canWallJump
+			and input.direction * f.surfaceContactNormalX > 0
+			and f.surfaceContactApproachSpeed >= f.surfacePhysics.wallJumpMinimumApproach
+			f.vx = f.surfaceContactNormalX * f.surfacePhysics.wallJumpHorizontalSpeed
+			f.vz = f.surfacePhysics.wallJumpVerticalSpeed
+			f.knockbackX = 0
+			f.groundKnockbackX = 0
+			f.knockbackZ = 0
+			f.shieldPushbackX = 0
+			f.shieldRecoilX = 0
+			f.shieldRecoilZ = 0
+			f.facing = f.surfaceContactNormalX > 0 ? 1 : -1
+			f.jumpSerial++
+			f.jumpIsDouble = false
+			f.surfaceRecoveryVelocityApplied = true
+			return true
 		if f.surfaceRecoveryFrame < SURFACE_TECH_STARTUP_FRAMES
 			f.surfaceRecoveryFrame++
 		else if not f.surfaceRecoveryVelocityApplied
@@ -1896,6 +1952,7 @@ function advanceSurfaceRecovery(FighterState f, InputSnapshot input)
 			else
 				f.vx = input.direction * f.surfacePhysics.passiveCeilingSpeed
 			f.surfaceRecoveryVelocityApplied = true
+	return false
 
 function applyHitlagShift(FighterState f, int stage, InputSnapshot input, int directionX, int directionZ, real distance, boolean fromAsdi)
 	if directionX == 0 and directionZ == 0
@@ -2753,6 +2810,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	f.lastReflectedSurface = -1
 	f.surfaceReflectCooldown = 0
 	f.surfaceContactKind = SURFACE_NONE
+	f.surfaceContactApproachSpeed = 0
 	f.surfaceContactX = 0
 	f.surfaceContactZ = 0
 	f.surfaceContactNormalX = 0
@@ -2851,6 +2909,7 @@ public function reset(FighterState f, real startX)
 	f.lastReflectedSurface = -1
 	f.surfaceReflectCooldown = 0
 	f.surfaceContactKind = SURFACE_NONE
+	f.surfaceContactApproachSpeed = 0
 	f.surfaceContactX = 0
 	f.surfaceContactZ = 0
 	f.surfaceContactNormalX = 0
@@ -2979,7 +3038,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.techLockout = TECH_LOCKOUT_FRAMES
 		if f.hitlag > 0
 			f.techHitlagLatched = true
-	advanceSurfaceRecovery(f, input)
+	let wallJumped = advanceSurfaceRecovery(f, input)
 	if hitlagBefore > 0 and f.diPending
 		if f.hitlag > 0
 			applySmashDirectionalInfluence(f, stage, input)
@@ -3031,7 +3090,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	let squatBeforeInput = f.jumpSquat
 	// Illidan retains his entry-frame squat countdown and immediate jump physics.
 	var groundTakeoff = false
-	if input.jumpPressed
+	if input.jumpPressed and not wallJumped
 		simulationJump(f, input.direction)
 	if f.jumpSquat > 0 and f.hitlag == 0 and (f.character == 2 or squatBeforeInput != 1)
 		f.jumpHeld = f.jumpHeld and input.jumpHeld

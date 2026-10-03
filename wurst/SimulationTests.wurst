@@ -1651,6 +1651,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	fighter.grounded.assertTrue()
 	// Nine-degree DI followed by grounded traction on the ASDI release tick.
 	fighter.knockbackX.assertEquals(9.396883416680215, 0.00001)
+	fighter.groundKnockbackX.assertEquals(9.396883416680215, 0.00001)
 	fighter.knockbackZ.assertEquals(0.)
 	fighter.asdiSerial.assertEquals(1)
 	destroy input
@@ -4250,20 +4251,51 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 		destroy attacker
 		destroy fighter
 
-@Test function retailSurfaceThresholdReflectsCombinedVelocityAtWallAndReportsContact()
-	let fighter = new FighterState(0, -235, 1)
+@Test function retailAuthoredPlayableDeckSurfacesMatchPackagedModelBounds()
+	solidSurfaceCount(0).assertEquals(1)
+	solidSurfaceCount(1).assertEquals(7)
+	solidSurfaceCount(2).assertEquals(0)
+	solidSurfaceKind(0, 0).assertEquals(SURFACE_CEILING)
+	solidSurfaceCoordinate(0, 0).assertEquals(-54)
+	solidSurfaceMinimum(0, 0).assertEquals(-528)
+	solidSurfaceMaximum(0, 0).assertEquals(528)
+	solidSurfaceKind(1, 0).assertEquals(SURFACE_CEILING)
+	solidSurfaceCoordinate(1, 1).assertEquals(-420)
+	solidSurfaceMinimum(1, 1).assertEquals(149.3, 0.001)
+	solidSurfaceMaximum(1, 1).assertEquals(170)
+	solidSurfaceCoordinate(1, 3).assertEquals(145.7, 0.001)
+	solidSurfaceMinimum(1, 3).assertEquals(-401.4, 0.001)
+	solidSurfaceMaximum(1, 3).assertEquals(-128.6, 0.001)
+	solidSurfaceNormalZ(1, 3).assertEquals(-1)
+
+@Test function retailPlayableMainDeckEdgesRemainOpenForRunoffs()
+	let fighter = new FighterState(0, 599, 1)
+	let input = new InputSnapshot()
+	fighter.surface = 0
+	fighter.grounded = true
+	fighter.vx = 2
+	fighter.dashFrame = 1
+	fighter.dashDirection = 1
+	advance(fighter, 0, input, 0)
+	fighter.x.assertGreaterThan(600)
+	fighter.grounded.assertFalse()
+	destroy input
+	destroy fighter
+
+@Test function retailSurfaceThresholdReflectsCombinedVelocityAtPlayableWallAndReportsContact()
+	let fighter = new FighterState(0, -415, 1)
 	let input = new InputSnapshot()
 	fighter.grounded = false
-	fighter.z = 80
+	fighter.z = 160
 	fighter.hitstun = 8
 	fighter.vx = 2
 	fighter.knockbackX = -12
-	advance(fighter, 2, input, 0)
-	fighter.x.assertEquals(-240)
+	advance(fighter, 1, input, 0)
+	fighter.x.assertEquals(-420)
 	fighter.surfaceContactSerial.assertEquals(1)
 	fighter.surfaceContactKind.assertEquals(SURFACE_WALL)
-	fighter.surfaceContactX.assertEquals(-240)
-	(fighter.surfaceContactZ < 80 and fighter.surfaceContactZ > 79).assertTrue()
+	fighter.surfaceContactX.assertEquals(-420)
+	(fighter.surfaceContactZ < 160 and fighter.surfaceContactZ > 159).assertTrue()
 	fighter.surfaceContactNormalX.assertEquals(1)
 	fighter.surfaceContactNormalZ.assertEquals(0)
 	fighter.vx.assertEquals(0)
@@ -4274,31 +4306,31 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	destroy fighter
 
 @Test function retailSurfaceReflectionUsesStrictOneUnitKnockbackGate()
-	let fighter = new FighterState(0, -235, 1)
+	let fighter = new FighterState(0, -415, 1)
 	let input = new InputSnapshot()
 	fighter.grounded = false
-	fighter.z = 80
+	fighter.z = 160
 	fighter.hitstun = 8
 	fighter.knockbackX = -(SURFACE_REFLECT_SPEED_THRESHOLD + 0.305)
-	advance(fighter, 2, input, 0)
-	fighter.x.assertEquals(-240)
+	advance(fighter, 1, input, 0)
+	fighter.x.assertEquals(-420)
 	fighter.surfaceContactSerial.assertEquals(1)
 	fighter.knockbackX.assertEquals(0, 0.0001)
 	destroy input
 	destroy fighter
 
 @Test function retailCeilingReflectionReportsTheSurfaceNormal()
-	let fighter = new FighterState(0, 0, 1)
+	let fighter = new FighterState(0, -265, 1)
 	let input = new InputSnapshot()
 	fighter.grounded = false
-	fighter.z = 235
+	fighter.z = 140
 	fighter.hitstun = 8
 	fighter.knockbackZ = 12
-	advance(fighter, 2, input, 0)
-	fighter.z.assertEquals(240)
+	advance(fighter, 1, input, 0)
+	fighter.z.assertEquals(145.7, 0.001)
 	fighter.surfaceContactKind.assertEquals(SURFACE_CEILING)
-	fighter.surfaceContactX.assertEquals(0)
-	fighter.surfaceContactZ.assertEquals(240)
+	fighter.surfaceContactX.assertEquals(-265)
+	fighter.surfaceContactZ.assertEquals(145.7, 0.001)
 	fighter.surfaceContactNormalX.assertEquals(0)
 	fighter.surfaceContactNormalZ.assertEquals(-1)
 	fighter.knockbackZ.assertLessThan(0)
@@ -4306,25 +4338,25 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	destroy fighter
 
 @Test function retailWallTechUsesTheSeparateOriginalFighterSurfaceProfile()
-	let fighter = new FighterState(0, -235, 1)
+	let fighter = new FighterState(0, -415, 1)
 	let input = new InputSnapshot()
 	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
 	fighter.grounded = false
-	fighter.z = 80
+	fighter.z = 160
 	fighter.hitstun = 8
 	fighter.downState = DOWN_TUMBLE
 	fighter.techWindow = 3
 	fighter.knockbackX = -8
-	advance(fighter, 2, input, 0)
+	advance(fighter, 1, input, 0)
 	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
 	fighter.surfaceContactKind.assertEquals(SURFACE_TECH_WALL)
 	fighter.hitstun.assertEquals(0)
 	fighter.downState.assertEquals(DOWN_NONE)
 	fighter.invincible.assertEquals(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES)
 	for tick = 1 to SURFACE_TECH_STARTUP_FRAMES
-		advance(fighter, 2, input, 0)
+		advance(fighter, 1, input, 0)
 	fighter.vx.assertEquals(2.88, 0.001)
-	fighter.x.assertGreaterThan(-240)
+	fighter.x.assertGreaterThan(-420)
 	fighter.invincible.assertLessThan(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES)
 	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
 	fighter.surfaceRecoveryFrame.assertEquals(SURFACE_TECH_STARTUP_FRAMES)
@@ -4332,24 +4364,107 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	destroy input
 	destroy fighter
 
-@Test function retailCeilingTechTransitionsThroughProductionAdvance()
-	let fighter = new FighterState(0, 0, 1)
+@Test function retailWallTechJumpRequiresMinimumApproachSpeed()
+	let fighter = new FighterState(0, -419.5, 1)
 	let input = new InputSnapshot()
 	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
 	fighter.grounded = false
-	fighter.z = 235
+	fighter.z = 160
+	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
+	fighter.techWindow = 3
+	fighter.knockbackX = -2.5
+	fighter.jumps = 0
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+	fighter.surfaceContactApproachSpeed.assertLessThan(fighter.surfacePhysics.wallJumpMinimumApproach)
+	input.jumpPressed = true
+	input.direction = 1
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryVelocityApplied.assertFalse()
+	fighter.jumpSerial.assertEquals(0)
+	(fighter.vz < fighter.surfacePhysics.wallJumpVerticalSpeed).assertTrue()
+	destroy input
+	destroy fighter
+
+@Test function retailWallTechJumpUsesTheActorImpulseAndApproachGate()
+	let fighter = new FighterState(0, -415, 1)
+	let input = new InputSnapshot()
+	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+	fighter.grounded = false
+	fighter.z = 160
+	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
+	fighter.techWindow = 3
+	fighter.knockbackX = -8
+	fighter.jumps = 0
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+	input.jumpPressed = true
+	input.direction = 1
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryVelocityApplied.assertTrue()
+	(fighter.vx > 8.).assertTrue()
+	(fighter.vz > 17.).assertTrue()
+	fighter.knockbackX.assertEquals(0)
+	fighter.knockbackZ.assertEquals(0)
+	fighter.jumpSerial.assertEquals(1)
+	fighter.facing.assertEquals(1)
+	destroy input
+	destroy fighter
+
+@Test function retailLandingCapsGroundKnockbackAtDecodedCommonValue()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = 10
+	fighter.knockbackX = 100
+	fighter.knockbackZ = -20
+	advance(fighter, 0, input, 0)
+	fighter.grounded.assertTrue()
+	fighter.surface.assertEquals(0)
+	fighter.groundKnockbackX.assertEquals(MAX_GROUNDED_KNOCKBACK_ON_LANDING)
+	fighter.knockbackX.assertEquals(MAX_GROUNDED_KNOCKBACK_ON_LANDING)
+	MAX_GROUNDED_KNOCKBACK_ON_LANDING.assertEquals(49.80000114440918, 0.00001)
+	destroy input
+	destroy fighter
+
+@Test function retailAsdiLandingUsesTheSameGroundKnockbackCap()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = 10
+	fighter.hitlag = 1
+	fighter.diPending = true
+	fighter.diLaunchSpeed = 10
+	fighter.knockbackX = 100
+	input.cStickZ = -1
+	advance(fighter, 0, input, 0)
+	fighter.grounded.assertTrue()
+	fighter.asdiSerial.assertEquals(1)
+	fighter.groundKnockbackX.assertEquals(MAX_GROUNDED_KNOCKBACK_ON_LANDING - fighter.physics.traction)
+	fighter.knockbackX.assertEquals(fighter.groundKnockbackX)
+	destroy input
+	destroy fighter
+
+@Test function retailCeilingTechTransitionsThroughProductionAdvance()
+	let fighter = new FighterState(0, -265, 1)
+	let input = new InputSnapshot()
+	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+	fighter.grounded = false
+	fighter.z = 140
 	fighter.hitstun = 8
 	fighter.downState = DOWN_TUMBLE
 	fighter.techWindow = 3
 	fighter.knockbackZ = 8
 	input.direction = 1
-	advance(fighter, 2, input, 0)
+	advance(fighter, 1, input, 0)
 	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_CEILING)
 	fighter.surfaceContactKind.assertEquals(SURFACE_TECH_CEILING)
 	fighter.hitstun.assertEquals(0)
 	fighter.downState.assertEquals(DOWN_NONE)
 	for tick = 1 to SURFACE_TECH_STARTUP_FRAMES + 1
-		advance(fighter, 2, input, 0)
+		advance(fighter, 1, input, 0)
 	fighter.vx.assertGreaterThan(0)
 	destroy input
 	destroy fighter
@@ -4398,6 +4513,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	first.surfaceRecoveryVelocityApplied = true
 	first.surfaceContactSerial = 4
 	first.surfaceContactKind = SURFACE_CEILING
+	first.surfaceContactApproachSpeed = 5.5
 	first.surfaceContactX = 12
 	first.surfaceContactZ = 240
 	first.surfaceContactNormalX = 0
@@ -4405,12 +4521,14 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	snapshot.capture(first, second, match, firstCommands, secondCommands, runtime)
 	first.surfaceContactSerial = 0
 	first.surfaceContactKind = SURFACE_NONE
+	first.surfaceContactApproachSpeed = 0
 	first.surfaceRecoveryState = SURFACE_NONE
 	first.surfaceRecoveryFrame = 0
 	first.surfaceRecoveryVelocityApplied = false
 	snapshot.restore(first, second, match, firstCommands, secondCommands, runtime)
 	first.surfaceContactSerial.assertEquals(4)
 	first.surfaceContactKind.assertEquals(SURFACE_CEILING)
+	first.surfaceContactApproachSpeed.assertEquals(5.5)
 	first.surfaceContactX.assertEquals(12)
 	first.surfaceContactZ.assertEquals(240)
 	first.surfaceContactNormalX.assertEquals(0)
