@@ -44,18 +44,19 @@ establish full parity or complete collision geometry.
 Latest shield precision integration: 62/62 relevant Wurstunit checks pass, plus
 the generated-Lua production probe passes exact grounded-friction, shield regen,
 shield damage, shield-contact accumulation and fused shieldstun boundaries.
-The interpreter alone cannot prove emitted-Lua precision. Airborne knockback
-operation order has now been checked in the retail executable and requires
-fused per-axis subtraction after retail trigonometry; production still uses
-radial rescaling. Other formula rounding, analog shields, powershields,
+The interpreter alone cannot prove emitted-Lua precision. Production airborne
+launch and recoil now use retail scalar directions, fused per-axis subtraction,
+and independently derived squared-speed cutoffs for the fixed retail decays.
+Their emitted-Lua comparisons pass; the cutoff derivation is documented in
+smashcraft:docs/melee-air-cutoff.md. Other formula rounding, analog shields, powershields,
 connected/sloped ECB contacts and native trajectory checks remain open.
 
-The latest physics candidate is Smashcraft 0.0.12, build melee-physics-r17,
-source 1f38702b84ca21edd7f08ad29e40746aa73c32ed. It built with zero errors and
+The latest physics candidate is Smashcraft 0.0.12, build melee-physics-r23,
+source ed1eccc897d92a9dc36b0065a3240ade641bf451. It built with zero errors and
 six existing warnings. SHA-256:
-91d0ce296088fcda1912fa6e2eef4af5a9b1d36c239184f4d0831568217a1087.
+88bc173e89060b60ec5c5d3d3654053c7739ecc03d9fe693ff87876719d705ba.
 Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x.
-Build evidence: smashcraft:build/physics-map-r17.log. Deployment was disabled;
+Build evidence: smashcraft:build/physics-map-r23.log. Deployment was disabled;
 this candidate has not been installed or observed natively. Separate native
 input/contact probes do not establish its physics or presentation.
 
