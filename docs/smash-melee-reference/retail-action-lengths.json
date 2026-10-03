@@ -1,0 +1,542 @@
+{
+  "target": "Melee NTSC 1.02 (GALE01 revision 2)",
+  "kind": "Independently recorded numerical animation frame counts",
+  "sourceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "layoutSource": "melee:src/melee/lb/lbanim.h FigaTree.frames (+0x08)",
+  "useSite": "melee:src/melee/lb/lbanim.c lbAnim_8001E8F8",
+  "verification": "Every animation name, archive offset and byte length matched the retail Fighter_WaitAnimData entry; the public record retains only identifiers, hashes and numeric frame counts.",
+  "limit": "Animation frame count is not automatically an actionable simulation duration. Entry frame processing, animation rate, IASA and command events determine the state boundary separately.",
+  "fighters": [
+    {
+      "fighter": "Fox",
+      "animationFile": "PlFxAJ.dat",
+      "animationSha256": "a9f3865a0c085b321876543900625d7d54dfef5fe2438ea8068f6221073a6c7d",
+      "fighterFile": "PlFx.dat",
+      "fighterSha256": "846b075d3379de041ecfb5504f5442484c23783422a0851851c96489d697b690",
+      "actions": [
+        {
+          "animationId": 11,
+          "action": "TurnRun",
+          "assetAction": "TurnRun",
+          "animationFrames": 20
+        },
+        {
+          "animationId": 12,
+          "action": "Dash",
+          "assetAction": "Dash",
+          "animationFrames": 22
+        },
+        {
+          "animationId": 13,
+          "action": "Run",
+          "assetAction": "Run",
+          "animationFrames": 20
+        },
+        {
+          "animationId": 14,
+          "action": "RunBrake",
+          "assetAction": "RunBrake",
+          "animationFrames": 18
+        },
+        {
+          "animationId": 41,
+          "action": "EscapeN",
+          "assetAction": "EscapeN",
+          "animationFrames": 23
+        },
+        {
+          "animationId": 42,
+          "action": "EscapeF",
+          "assetAction": "EscapeF",
+          "animationFrames": 32
+        },
+        {
+          "animationId": 43,
+          "action": "EscapeB",
+          "assetAction": "EscapeB",
+          "animationFrames": 32
+        },
+        {
+          "animationId": 44,
+          "action": "EscapeAir",
+          "assetAction": "EscapeAir",
+          "animationFrames": 50
+        },
+        {
+          "animationId": 183,
+          "action": "DownBoundU",
+          "assetAction": "DownBoundU",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 185,
+          "action": "DownDamageU",
+          "assetAction": "DownDamageU",
+          "animationFrames": 14
+        },
+        {
+          "animationId": 186,
+          "action": "DownStandU",
+          "assetAction": "DownStandU",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 188,
+          "action": "DownFowardU",
+          "assetAction": "DownFowardU",
+          "animationFrames": 36
+        },
+        {
+          "animationId": 189,
+          "action": "DownBackU",
+          "assetAction": "DownBackU",
+          "animationFrames": 36
+        },
+        {
+          "animationId": 191,
+          "action": "DownBoundD",
+          "assetAction": "DownBoundD",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 193,
+          "action": "DownDamageD",
+          "assetAction": "DownDamageD",
+          "animationFrames": 14
+        },
+        {
+          "animationId": 194,
+          "action": "DownStandD",
+          "assetAction": "DownStandD",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 196,
+          "action": "DownFowardD",
+          "assetAction": "DownFowardD",
+          "animationFrames": 36
+        },
+        {
+          "animationId": 197,
+          "action": "DownBackD",
+          "assetAction": "DownBackD",
+          "animationFrames": 36
+        },
+        {
+          "animationId": 199,
+          "action": "Passive",
+          "assetAction": "Passive",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 200,
+          "action": "PassiveStandF",
+          "assetAction": "PassiveStandF",
+          "animationFrames": 40
+        },
+        {
+          "animationId": 201,
+          "action": "PassiveStandB",
+          "assetAction": "PassiveStandB",
+          "animationFrames": 40
+        },
+        {
+          "animationId": 202,
+          "action": "PassiveWall",
+          "assetAction": "PassiveWall",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 203,
+          "action": "PassiveWallJump",
+          "assetAction": "PassiveWallJump",
+          "animationFrames": 40
+        },
+        {
+          "animationId": 204,
+          "action": "PassiveCeil",
+          "assetAction": "PassiveCeil",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 288,
+          "action": "ShieldBreakDownU",
+          "assetAction": "DownBoundU",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 289,
+          "action": "ShieldBreakDownD",
+          "assetAction": "DownBoundD",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 290,
+          "action": "ShieldBreakStandU",
+          "assetAction": "DownStandU",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 291,
+          "action": "ShieldBreakStandD",
+          "assetAction": "DownStandD",
+          "animationFrames": 30
+        }
+      ]
+    },
+    {
+      "fighter": "Falco",
+      "animationFile": "PlFcAJ.dat",
+      "animationSha256": "42a018073edad4d88255c3c2c38709ba71337712a70f594656040bc62ba30960",
+      "fighterFile": "PlFc.dat",
+      "fighterSha256": "c3c21545bff00fc1d0926f0fb3913cefedbbb7f4af1b928d2e73eed6cff5188c",
+      "actions": [
+        {
+          "animationId": 11,
+          "action": "TurnRun",
+          "assetAction": "TurnRun",
+          "animationFrames": 20
+        },
+        {
+          "animationId": 12,
+          "action": "Dash",
+          "assetAction": "Dash",
+          "animationFrames": 22
+        },
+        {
+          "animationId": 13,
+          "action": "Run",
+          "assetAction": "Run",
+          "animationFrames": 20
+        },
+        {
+          "animationId": 14,
+          "action": "RunBrake",
+          "assetAction": "RunBrake",
+          "animationFrames": 18
+        },
+        {
+          "animationId": 41,
+          "action": "EscapeN",
+          "assetAction": "EscapeN",
+          "animationFrames": 23
+        },
+        {
+          "animationId": 42,
+          "action": "EscapeF",
+          "assetAction": "EscapeF",
+          "animationFrames": 32
+        },
+        {
+          "animationId": 43,
+          "action": "EscapeB",
+          "assetAction": "EscapeB",
+          "animationFrames": 32
+        },
+        {
+          "animationId": 44,
+          "action": "EscapeAir",
+          "assetAction": "EscapeAir",
+          "animationFrames": 50
+        },
+        {
+          "animationId": 183,
+          "action": "DownBoundU",
+          "assetAction": "DownBoundU",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 185,
+          "action": "DownDamageU",
+          "assetAction": "DownDamageU",
+          "animationFrames": 14
+        },
+        {
+          "animationId": 186,
+          "action": "DownStandU",
+          "assetAction": "DownStandU",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 188,
+          "action": "DownFowardU",
+          "assetAction": "DownFowardU",
+          "animationFrames": 36
+        },
+        {
+          "animationId": 189,
+          "action": "DownBackU",
+          "assetAction": "DownBackU",
+          "animationFrames": 36
+        },
+        {
+          "animationId": 191,
+          "action": "DownBoundD",
+          "assetAction": "DownBoundD",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 193,
+          "action": "DownDamageD",
+          "assetAction": "DownDamageD",
+          "animationFrames": 14
+        },
+        {
+          "animationId": 194,
+          "action": "DownStandD",
+          "assetAction": "DownStandD",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 196,
+          "action": "DownFowardD",
+          "assetAction": "DownFowardD",
+          "animationFrames": 36
+        },
+        {
+          "animationId": 197,
+          "action": "DownBackD",
+          "assetAction": "DownBackD",
+          "animationFrames": 36
+        },
+        {
+          "animationId": 199,
+          "action": "Passive",
+          "assetAction": "Passive",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 200,
+          "action": "PassiveStandF",
+          "assetAction": "PassiveStandF",
+          "animationFrames": 40
+        },
+        {
+          "animationId": 201,
+          "action": "PassiveStandB",
+          "assetAction": "PassiveStandB",
+          "animationFrames": 40
+        },
+        {
+          "animationId": 202,
+          "action": "PassiveWall",
+          "assetAction": "PassiveWall",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 203,
+          "action": "PassiveWallJump",
+          "assetAction": "PassiveWallJump",
+          "animationFrames": 40
+        },
+        {
+          "animationId": 204,
+          "action": "PassiveCeil",
+          "assetAction": "PassiveCeil",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 288,
+          "action": "ShieldBreakDownU",
+          "assetAction": "DownBoundU",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 289,
+          "action": "ShieldBreakDownD",
+          "assetAction": "DownBoundD",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 290,
+          "action": "ShieldBreakStandU",
+          "assetAction": "DownStandU",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 291,
+          "action": "ShieldBreakStandD",
+          "assetAction": "DownStandD",
+          "animationFrames": 30
+        }
+      ]
+    },
+    {
+      "fighter": "Captain Falcon",
+      "animationFile": "PlCaAJ.dat",
+      "animationSha256": "a9a0ccc2382a2f02d5423675469719488540dd119a14577712c97348f70e1c1a",
+      "fighterFile": "PlCa.dat",
+      "fighterSha256": "4cf61a52737d464df9298fd15573345fb3b9a15c79ab47dce4fd2e3e707917af",
+      "actions": [
+        {
+          "animationId": 11,
+          "action": "TurnRun",
+          "assetAction": "TurnRun",
+          "animationFrames": 22
+        },
+        {
+          "animationId": 12,
+          "action": "Dash",
+          "assetAction": "Dash",
+          "animationFrames": 29
+        },
+        {
+          "animationId": 13,
+          "action": "Run",
+          "assetAction": "Run",
+          "animationFrames": 20
+        },
+        {
+          "animationId": 14,
+          "action": "RunBrake",
+          "assetAction": "RunBrake",
+          "animationFrames": 28
+        },
+        {
+          "animationId": 41,
+          "action": "EscapeN",
+          "assetAction": "EscapeN",
+          "animationFrames": 33
+        },
+        {
+          "animationId": 42,
+          "action": "EscapeF",
+          "assetAction": "EscapeF",
+          "animationFrames": 32
+        },
+        {
+          "animationId": 43,
+          "action": "EscapeB",
+          "assetAction": "EscapeB",
+          "animationFrames": 32
+        },
+        {
+          "animationId": 44,
+          "action": "EscapeAir",
+          "assetAction": "EscapeAir",
+          "animationFrames": 50
+        },
+        {
+          "animationId": 183,
+          "action": "DownBoundU",
+          "assetAction": "DownBoundU",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 185,
+          "action": "DownDamageU",
+          "assetAction": "DownDamageU",
+          "animationFrames": 14
+        },
+        {
+          "animationId": 186,
+          "action": "DownStandU",
+          "assetAction": "DownStandU",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 188,
+          "action": "DownFowardU",
+          "assetAction": "DownFowardU",
+          "animationFrames": 36
+        },
+        {
+          "animationId": 189,
+          "action": "DownBackU",
+          "assetAction": "DownBackU",
+          "animationFrames": 36
+        },
+        {
+          "animationId": 191,
+          "action": "DownBoundD",
+          "assetAction": "DownBoundD",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 193,
+          "action": "DownDamageD",
+          "assetAction": "DownDamageD",
+          "animationFrames": 14
+        },
+        {
+          "animationId": 194,
+          "action": "DownStandD",
+          "assetAction": "DownStandD",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 196,
+          "action": "DownFowardD",
+          "assetAction": "DownFowardD",
+          "animationFrames": 36
+        },
+        {
+          "animationId": 197,
+          "action": "DownBackD",
+          "assetAction": "DownBackD",
+          "animationFrames": 36
+        },
+        {
+          "animationId": 199,
+          "action": "Passive",
+          "assetAction": "Passive",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 200,
+          "action": "PassiveStandF",
+          "assetAction": "PassiveStandF",
+          "animationFrames": 40
+        },
+        {
+          "animationId": 201,
+          "action": "PassiveStandB",
+          "assetAction": "PassiveStandB",
+          "animationFrames": 40
+        },
+        {
+          "animationId": 202,
+          "action": "PassiveWall",
+          "assetAction": "PassiveWall",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 203,
+          "action": "PassiveWallJump",
+          "assetAction": "PassiveWallJump",
+          "animationFrames": 40
+        },
+        {
+          "animationId": 204,
+          "action": "PassiveCeil",
+          "assetAction": "PassiveCeil",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 288,
+          "action": "ShieldBreakDownU",
+          "assetAction": "DownBoundU",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 289,
+          "action": "ShieldBreakDownD",
+          "assetAction": "DownBoundD",
+          "animationFrames": 26
+        },
+        {
+          "animationId": 290,
+          "action": "ShieldBreakStandU",
+          "assetAction": "DownStandU",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 291,
+          "action": "ShieldBreakStandD",
+          "assetAction": "DownStandD",
+          "animationFrames": 30
+        }
+      ]
+    }
+  ]
+}

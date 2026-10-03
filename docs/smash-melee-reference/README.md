@@ -98,3 +98,11 @@ notes contains complete verbatim note lines, including original Notes prefixes a
 Website context is https://meleeframedata.com/. Game revision is unknown. One-based game-frame numbering is website context, not independently verified from the paste; no subtraction or endlag derivation was performed. Structured fields are a transcription, not a complete move simulator.
 
 Checked 26 characters, 769 moves, all 5622 nonblank source lines classified, no unrecognized source lines, and all eight displayed stats per character. Checked JSON/JSONL parsing, exact source-field line correspondence, Falcon nair's disjoint-hit note, Fox forward-air notes, blank throw startup, plain/slash damage, and Fox's reported 2.8 fall-speed value.
+
+smashcraft:docs/smash-melee-reference/retail-action-lengths.json records selected
+retail animation lengths for Fox, Falco and Captain Falcon. Each numeric header
+was matched to its fighter animation-table entry by name, archive offset and
+byte length. Shield-break landing/stand entries reuse the down-bound/stand
+animations. These frame counts do not by themselves settle action lockouts:
+entry-frame processing, rate, command events and interrupt rules still apply.
+The independently authored decoder and all animation binaries remain private.
