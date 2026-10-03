@@ -637,12 +637,22 @@ animation frame 12 for Fox/Falco and 16 for Captain Falcon; the separate common
 early dash-input gate is 20. TurnRun sets its second command variable at frame
 9. RunBrake sets its first variable at frame 0 and clears it at frame 15.
 These are animation timeline facts, not independently observed simulation
-ticks. Production still needs distinct Dash, Run, TurnRun and RunBrake action
-rules, actor-owned command timing, input priority, and paired boundary traces.
-Current opposite-direction run motion uses actor acceleration and changes
-facing after velocity crosses zero; that does not prove the TurnRun command
-gate. No gameplay implementation from the unlicensed local reference was
-copied or translated.
+ticks. Production needs distinct Dash, Run, TurnRun and RunBrake action rules,
+actor-owned command timing, input priority, and paired boundary traces.
+Opposite-direction run motion changes facing only after velocity crosses zero;
+that does not prove the TurnRun command gate. No gameplay implementation from
+the unlicensed local reference was copied or translated.
+
+The simulation now records a separate ground action state and actor-owned
+command clock. Explicit NTSC test rigs use Dash-to-Run command frames 12
+(Fox/Falco) and 16 (Captain Falcon), TurnRun facing-command frame 9, and the
+RunBrake opposite-input command window through frame 14, closing at frame 15.
+These values come from the recorded retail animation events above. Original
+Smashcraft fighters retain authored ground timing (currently 10/9/15); this is
+not asserted as retail parity. Event-to-simulation-tick conversion, Dash
+opposite-input priority, run-entry delay, and RunBrake end conditions still
+need paired retail traces. Replay capture and equality include the active
+ground action, command clock, and actor rule values.
 
 The walk modifier immediately selects the existing 1.6/1.4 walk speeds and
 clears the dash phase; releasing it starts a fresh initial dash. Jumps, shields,

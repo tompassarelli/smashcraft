@@ -1208,6 +1208,82 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 				destroy input
 				destroy fighter
 
+@Test function retailDashRunCommandUsesTheActorsEncodedEnableFrame()
+	for rig = 0 to 2
+		let fighter = new FighterState(0, 0, 1)
+		let input = new InputSnapshot()
+		if rig == 0
+			fighter.groundRules = ntscFoxGroundMovementRules()
+		else if rig == 1
+			fighter.groundRules = ntscFalcoGroundMovementRules()
+		else
+			fighter.groundRules = ntscCaptainFalconGroundMovementRules()
+		input.direction = 1
+		advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_DASH)
+		let enableFrame = rig == 2 ? 16 : 12
+		for frame = 1 to enableFrame - 1
+			advance(fighter, 0, input, 0)
+			fighter.groundAction.assertEquals(GROUND_ACTION_DASH)
+			fighter.groundActionFrame.assertEquals(frame)
+		advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_RUN)
+		fighter.groundActionFrame.assertEquals(0)
+		destroy input
+		destroy fighter
+
+@Test function turnRunWaitsForRetailFacingCommandBoundary()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.groundRules = ntscFoxGroundMovementRules()
+	fighter.groundAction = GROUND_ACTION_DASH
+	fighter.groundActionFrame = 4
+	fighter.dashFrame = INITIAL_DASH_FRAMES + 1
+	fighter.dashDirection = 1
+	fighter.vx = 6.0
+	input.direction = -1
+	advance(fighter, 0, input, 0)
+	fighter.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
+	fighter.groundActionFrame.assertEquals(0)
+	fighter.facing.assertEquals(1)
+	for frame = 1 to 8
+		advance(fighter, 0, input, 0)
+		fighter.facing.assertEquals(1)
+	advance(fighter, 0, input, 0)
+	fighter.groundAction.assertEquals(GROUND_ACTION_RUN)
+	fighter.groundActionFrame.assertEquals(0)
+	fighter.facing.assertEquals(-1)
+	destroy input
+	destroy fighter
+
+@Test function runBrakeTurnInputClosesAtTheActorsFrameFifteenCommand()
+	let allowed = new FighterState(0, 0, 1)
+	let denied = new FighterState(0, 100, 1)
+	let input = new InputSnapshot()
+	allowed.groundRules = ntscFoxGroundMovementRules()
+	allowed.groundAction = GROUND_ACTION_RUN_BRAKE
+	allowed.groundActionFrame = 13
+	allowed.dashFrame = INITIAL_DASH_FRAMES + 1
+	allowed.dashDirection = 1
+	allowed.vx = 9
+	denied.groundRules = ntscFoxGroundMovementRules()
+	denied.groundAction = GROUND_ACTION_RUN_BRAKE
+	denied.groundActionFrame = 14
+	denied.dashFrame = INITIAL_DASH_FRAMES + 1
+	denied.dashDirection = 1
+	denied.vx = 9
+	input.direction = -1
+	advance(allowed, 0, input, 0)
+	allowed.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
+	allowed.groundActionFrame.assertEquals(0)
+	advance(denied, 0, input, 0)
+	denied.groundAction.assertEquals(GROUND_ACTION_RUN_BRAKE)
+	denied.groundActionFrame.assertEquals(15)
+	denied.facing.assertEquals(1)
+	destroy input
+	destroy denied
+	destroy allowed
+
 @Test function initialDashReversalRestartsWindowIncludingAcrossNeutral()
 	for character = 0 to 1
 		let fighter = new FighterState(character, 0, 1)
@@ -1260,8 +1336,9 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 		let fighter = new FighterState(character, 0, 1)
 		let input = new InputSnapshot()
 		input.direction = 1
-		for tick = 1 to 10
+		for tick = 1 to 11
 			advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_RUN)
 		input.direction = -1
 		advance(fighter, 0, input, 0)
 		fighter.vx.assertEquals((character == 0 ? 12.48 : 8.28), 0.001)
@@ -1276,6 +1353,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	fighter.vx = 6
 	fighter.dashFrame = 1
 	fighter.dashDirection = 1
+	fighter.groundAction = GROUND_ACTION_DASH
 	fighter.physics.runSpeed = 2.5 * 6
 	advance(fighter, 0, input, 0)
 	fighter.vx.assertEquals(1.12 * 6, 0.0001)
@@ -1317,6 +1395,8 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 		advance(fighter, 0, input, 0)
 		fighter.x.assertEquals(100., 0.001)
 		fighter.dashFrame.assertEquals(1)
+		fighter.groundAction.assertEquals(GROUND_ACTION_DASH)
+		fighter.groundActionFrame.assertEquals(0)
 	advance(fighter, 0, input, 0)
 	fighter.vx.assertEquals(-11.4, 0.001)
 	fighter.dashFrame.assertEquals(1)

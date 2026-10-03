@@ -63,6 +63,9 @@ import MatchStep
     first.hitVisualSerial = 7
     first.hitVisualElectric = true
     first.shieldVisualSerial = 3
+    first.groundRules = ntscCaptainFalconGroundMovementRules()
+    first.groundAction = GROUND_ACTION_TURN_RUN
+    first.groundActionFrame = 8
     first.hitlag = 3
     first.shieldBreakState = SHIELD_BREAK_DIZZY
     first.shieldBreakRemaining = 389.75
@@ -102,6 +105,9 @@ import MatchStep
     first.hitVisualSerial = 0
     first.hitVisualElectric = false
     first.shieldVisualSerial = 0
+    first.groundRules = authoredGroundMovementRules()
+    first.groundAction = GROUND_ACTION_NONE
+    first.groundActionFrame = 0
     first.shieldBreakState = SHIELD_BREAK_NONE
     first.shieldBreakRemaining = 0.
     first.crouching = false
@@ -139,6 +145,11 @@ import MatchStep
     first.hitVisualSerial.assertEquals(7)
     first.hitVisualElectric.assertTrue()
     first.shieldVisualSerial.assertEquals(3)
+    first.groundRules.dashRunEnableFrame.assertEquals(16)
+    first.groundRules.turnRunFacingCommandFrame.assertEquals(9)
+    first.groundRules.runBrakeTurnCommandEndFrame.assertEquals(15)
+    first.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
+    first.groundActionFrame.assertEquals(8)
     first.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
     first.shieldBreakRemaining.assertEquals(389.75)
     first.crouching.assertTrue()
@@ -349,6 +360,31 @@ import MatchStep
     actual.secondCommands.consumedMayCharge = false
     actual.runtime.botAttackDelay = 0.000001
     expected.firstDifference(actual).assertEquals("runtime.botAttackDelay")
+
+@Test function groundActionCommandClockAndActorRulesAreCanonicalReplayState()
+    let expected = new ReplaySnapshot()
+    let actual = new ReplaySnapshot()
+    expected.first.groundRules = ntscCaptainFalconGroundMovementRules()
+    expected.first.groundAction = GROUND_ACTION_TURN_RUN
+    expected.first.groundActionFrame = 8
+    actual.first.groundRules = ntscCaptainFalconGroundMovementRules()
+    actual.first.groundAction = GROUND_ACTION_TURN_RUN
+    actual.first.groundActionFrame = 8
+    expected.firstDifference(actual).assertEquals("")
+    actual.first.groundActionFrame = 9
+    expected.firstDifference(actual).assertEquals("first.groundActionFrame")
+    actual.first.groundActionFrame = 8
+    actual.first.groundAction = GROUND_ACTION_RUN_BRAKE
+    expected.firstDifference(actual).assertEquals("first.groundAction")
+    actual.first.groundAction = GROUND_ACTION_TURN_RUN
+    actual.first.groundRules = ntscFoxGroundMovementRules()
+    expected.firstDifference(actual).assertEquals("first.groundRules")
+    actual.first.groundRules = ntscCaptainFalconGroundMovementRules()
+    actual.first.groundRules.turnRunFacingCommandFrame = 10
+    expected.firstDifference(actual).assertEquals("first.groundRules")
+    actual.first.groundRules = ntscCaptainFalconGroundMovementRules()
+    actual.first.groundRules.runBrakeTurnCommandEndFrame = 14
+    expected.firstDifference(actual).assertEquals("first.groundRules")
 
 @Test function everyPhysicsParameterSurvivesCaptureRestoreAndParticipatesInEquality()
     let first = new FighterState(0, 0, 1)

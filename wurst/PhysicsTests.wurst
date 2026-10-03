@@ -334,6 +334,7 @@ function recordedFalcoDashFirstDifference(int hostCharacter, real initialSpeed) 
 	belowTarget.vx = 0.9 * 6
 	belowTarget.dashFrame = INITIAL_DASH_FRAMES + 1
 	belowTarget.dashDirection = 1
+	belowTarget.groundAction = GROUND_ACTION_RUN
 	let input = new InputSnapshot()
 	input.direction = 1
 	advance(belowTarget, 0, input, 0)
@@ -344,6 +345,7 @@ function recordedFalcoDashFirstDifference(int hostCharacter, real initialSpeed) 
 	overspeed.vx = 1.9 * 6
 	overspeed.dashFrame = INITIAL_DASH_FRAMES + 1
 	overspeed.dashDirection = 1
+	overspeed.groundAction = GROUND_ACTION_RUN
 	advance(overspeed, 0, input, 0)
 	overspeed.vx.assertEquals(1.82 * 6, 0.00001)
 	destroy input
@@ -356,6 +358,7 @@ function recordedFalcoDashFirstDifference(int hostCharacter, real initialSpeed) 
 	f.vx = 1. * 6
 	f.dashFrame = INITIAL_DASH_FRAMES + 1
 	f.dashDirection = 1
+	f.groundAction = GROUND_ACTION_TURN_RUN
 	let input = new InputSnapshot()
 	input.direction = -1
 	for tick = 1 to 8

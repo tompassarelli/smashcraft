@@ -15,6 +15,12 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.lastAerialTapDirection = source.lastAerialTapDirection
 	destination.dashFrame = source.dashFrame
 	destination.dashDirection = source.dashDirection
+	destination.groundRules = groundMovementRules(
+		source.groundRules.dashRunEnableFrame,
+		source.groundRules.turnRunFacingCommandFrame,
+		source.groundRules.runBrakeTurnCommandEndFrame)
+	destination.groundAction = source.groundAction
+	destination.groundActionFrame = source.groundActionFrame
 	destination.x = source.x
 	destination.z = source.z
 	destination.positionDeltaX = source.positionDeltaX
@@ -207,6 +213,12 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "dashFrame"
 	if expected.dashDirection != actual.dashDirection
 		return "dashDirection"
+	if expected.groundRules != actual.groundRules
+		return "groundRules"
+	if expected.groundAction != actual.groundAction
+		return "groundAction"
+	if expected.groundActionFrame != actual.groundActionFrame
+		return "groundActionFrame"
 	if expected.x != actual.x
 		return "x"
 	if expected.z != actual.z

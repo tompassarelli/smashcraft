@@ -8,8 +8,31 @@ public constant real INITIAL_DASH_SPEED = 1.899999976158142 * WORLD_UNITS_PER_ME
 constant real WALK_ACCEL_TAPER_GAIN = 0.5
 constant real RUN_ACCEL_TAPER_GAIN = 0.4000000059604645
 constant real RUN_DASH_TURN_FRICTION_MULTIPLIER = 1
-// Animation-state duration remains a simulation approximation, not a PlCo value.
+// The original roster keeps authored movement timing. NTSC reference fixtures
+// inject their own actor-owned command timeline; the encoded event is not a
+// universal character constant.
 public constant int INITIAL_DASH_FRAMES = 10
+public constant int GROUND_ACTION_NONE = 0
+public constant int GROUND_ACTION_DASH = 1
+public constant int GROUND_ACTION_RUN = 2
+public constant int GROUND_ACTION_TURN_RUN = 3
+public constant int GROUND_ACTION_RUN_BRAKE = 4
+public tuple groundMovementRules(int dashRunEnableFrame, int turnRunFacingCommandFrame,
+		int runBrakeTurnCommandEndFrame)
+
+public function authoredGroundMovementRules() returns groundMovementRules
+	// Existing Smashcraft roster timing is an authored approximation, not a
+	// retail-derived value.
+	return groundMovementRules(INITIAL_DASH_FRAMES, 9, 15)
+
+public function ntscFoxGroundMovementRules() returns groundMovementRules
+	return groundMovementRules(12, 9, 15)
+
+public function ntscFalcoGroundMovementRules() returns groundMovementRules
+	return groundMovementRules(12, 9, 15)
+
+public function ntscCaptainFalconGroundMovementRules() returns groundMovementRules
+	return groundMovementRules(16, 9, 15)
 // Shared ground acceleration defaults for original Smashcraft fighters. The
 // Falco reference rig supplies its separately sourced values in tests only.
 constant real GROUND_ACCELERATION_MULTIPLIER = 0.1
@@ -331,6 +354,9 @@ public class FighterState
 	int lastAerialTapDirection = 0
 	int dashFrame = 0
 	int dashDirection = 0
+	groundMovementRules groundRules
+	int groundAction = GROUND_ACTION_NONE
+	int groundActionFrame = 0
 	real x
 	real z
 	// Last completed movement step, sampled by synchronous contact resolution.
@@ -491,6 +517,7 @@ public class FighterState
 	construct(int fighterType, real startX, int direction)
 		character = fighterType
 		physics = authoredPhysics(fighterType)
+		groundRules = authoredGroundMovementRules()
 		surfacePhysics = noSurfaceRecoveryPhysics()
 		x = startX
 		z = 0
@@ -824,6 +851,12 @@ public function characterSpeed(int character) returns real
 function clearDash(FighterState f)
 	f.dashFrame = 0
 	f.dashDirection = 0
+	f.groundAction = GROUND_ACTION_NONE
+	f.groundActionFrame = 0
+
+function groundActionClockLimit(FighterState f) returns int
+	return max(max(f.groundRules.dashRunEnableFrame, f.groundRules.turnRunFacingCommandFrame),
+		f.groundRules.runBrakeTurnCommandEndFrame) + 1
 
 function advanceGroundMovement(FighterState f, int direction, boolean walking) returns boolean
 	if walking
@@ -838,35 +871,76 @@ function advanceGroundMovement(FighterState f, int direction, boolean walking) r
 				walkAcceleration *= (1 - walkVelocityAlongTarget / walkTargetSpeed) * WALK_ACCEL_TAPER_GAIN
 			f.vx = groundMovementVelocity(f.vx, walkAcceleration, walkTargetVelocity, f.physics.traction, f.physics.groundSpeedCap)
 		return false
+	if f.groundAction != GROUND_ACTION_NONE and f.groundAction != GROUND_ACTION_DASH
+		f.groundActionFrame = min(groundActionClockLimit(f), f.groundActionFrame + 1)
+	if direction != 0 and f.groundAction == GROUND_ACTION_RUN_BRAKE
+		if direction == f.dashDirection
+			f.groundAction = GROUND_ACTION_RUN
+			f.groundActionFrame = 0
+		else if f.groundActionFrame < f.groundRules.runBrakeTurnCommandEndFrame
+			f.groundAction = GROUND_ACTION_TURN_RUN
+			f.groundActionFrame = 0
+		else
+			// RunBrake's actor-owned command window has closed. Neutral braking
+			// continues until the action ends or the fighter reaches rest.
+			f.vx = f.vx > 0 ? max(0, f.vx - f.physics.traction) : min(0, f.vx + f.physics.traction)
+			if f.vx.abs() <= f.physics.traction
+				clearDash(f)
+			return false
 	if direction == 0
+		if f.groundAction == GROUND_ACTION_RUN
+			f.groundAction = GROUND_ACTION_RUN_BRAKE
+			f.groundActionFrame = 0
 		if f.vx.abs() <= f.physics.traction * RUN_DASH_TURN_FRICTION_MULTIPLIER
 			clearDash(f)
 		else if f.dashFrame > 0
 			f.dashFrame = min(INITIAL_DASH_FRAMES + 1, f.dashFrame + 1)
+			if f.groundAction == GROUND_ACTION_DASH
+				f.groundActionFrame = min(groundActionClockLimit(f), f.groundActionFrame + 1)
 		return false
 	if f.dashFrame == 0 or direction != f.dashDirection
-		if f.dashFrame >= INITIAL_DASH_FRAMES and f.vx * f.dashDirection > 0
+		if f.groundAction == GROUND_ACTION_RUN or f.groundAction == GROUND_ACTION_TURN_RUN
 			// Run turning uses the ordinary dash acceleration toward the new
-			// target. Facing changes only after ground velocity crosses zero.
-			f.dashFrame = INITIAL_DASH_FRAMES + 1
+			// target. The retail command at frame 9 delays facing until the
+			// velocity has crossed zero; the timing is per actor.
+			if f.groundAction != GROUND_ACTION_TURN_RUN
+				f.groundAction = GROUND_ACTION_TURN_RUN
+				f.groundActionFrame = 0
 		else
 			f.dashFrame = 1
 			f.dashDirection = direction
+			f.groundAction = GROUND_ACTION_DASH
+			f.groundActionFrame = 0
 			f.facing = direction
 			f.vx = direction * min(f.physics.dashSpeed, f.physics.groundSpeedCap)
 			return true
 	else
 		f.dashFrame = min(INITIAL_DASH_FRAMES + 1, f.dashFrame + 1)
+		if f.groundAction == GROUND_ACTION_DASH
+			f.groundActionFrame = min(groundActionClockLimit(f), f.groundActionFrame + 1)
+	if f.groundAction == GROUND_ACTION_DASH and direction == f.dashDirection
+		if f.groundActionFrame >= f.groundRules.dashRunEnableFrame
+			f.groundAction = GROUND_ACTION_RUN
+			f.groundActionFrame = 0
+	else if f.groundAction == GROUND_ACTION_RUN and direction == 0
+		f.groundAction = GROUND_ACTION_RUN_BRAKE
+		f.groundActionFrame = 0
 	let runTarget = f.physics.runSpeed
 	let targetVelocity = direction * runTarget
 	var acceleration = (f.physics.groundAccelerationMultiplier + f.physics.groundAccelerationBase) * WORLD_UNITS_PER_MELEE_UNIT * direction
-	if f.dashFrame > INITIAL_DASH_FRAMES and targetVelocity != 0
+	if f.groundAction == GROUND_ACTION_RUN and targetVelocity != 0
 		let velocityAlongTarget = f.vx * direction
 		if velocityAlongTarget > 0 and velocityAlongTarget < runTarget
 			acceleration *= (1 - velocityAlongTarget / runTarget) * RUN_ACCEL_TAPER_GAIN
 	f.vx = groundMovementVelocity(f.vx, acceleration, targetVelocity,
 		f.physics.traction * RUN_DASH_TURN_FRICTION_MULTIPLIER, f.physics.groundSpeedCap)
-	if f.vx * direction > 0
+	if f.groundAction == GROUND_ACTION_TURN_RUN and
+		f.groundActionFrame >= f.groundRules.turnRunFacingCommandFrame and f.vx * direction >= 0
+		f.facing = direction
+		f.dashDirection = direction
+		f.groundAction = GROUND_ACTION_RUN
+		f.groundActionFrame = 0
+	else if f.groundAction != GROUND_ACTION_TURN_RUN and f.vx * direction > 0
 		f.facing = direction
 		f.dashDirection = direction
 	return false
