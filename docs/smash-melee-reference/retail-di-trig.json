@@ -1,0 +1,198 @@
+{
+  "source": {
+    "sha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+    "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a"
+  },
+  "execution": {
+    "qemu": "/nix/store/7fbvcx0hwmaxv2jafvc1g6d6zg5fgm8i-qemu-10.2.4/bin/qemu-ppc",
+    "version": "qemu-ppc version 10.2.4\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "cpu": "750",
+    "bun": "1.3.13",
+    "r2": "0x804df9e0",
+    "r13": "0x804db6a0",
+    "addresses": {
+      "atan2f": "0x80022c30",
+      "cosf": "0x80326240",
+      "sinf": "0x803263d4",
+      "initialize": "0x80326578"
+    },
+    "exitCode": 0,
+    "byteCount": 220
+  },
+  "checks": {
+    "zeroAngleCosOneSinZero": true
+  },
+  "limitations": [
+    "Original scalar routines executed under QEMU PPC750; not hardware measurements.",
+    "No Gekko reciprocal-square-root estimate or full-game behavior equivalence claim.",
+    "Linux default floating-point state; this loader does not run GameCube OS startup.",
+    "Only the listed trigonometric scalar inputs are observed. This does not execute directional influence or establish its input/state selection."
+  ],
+  "results": [
+    {
+      "kind": "angle",
+      "angle": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "cos": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "sin": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "kind": "angle",
+      "angle": {
+        "bits": "0x40490fdb",
+        "value": 3.1415927410125732
+      },
+      "cos": {
+        "bits": "0xbf800000",
+        "value": -1
+      },
+      "sin": {
+        "bits": "0xb3bbbd2e",
+        "value": -8.742277657347586e-8
+      }
+    },
+    {
+      "kind": "angle",
+      "angle": {
+        "bits": "0xc0490fdb",
+        "value": -3.1415927410125732
+      },
+      "cos": {
+        "bits": "0xbf800000",
+        "value": -1
+      },
+      "sin": {
+        "bits": "0x33bbbd2e",
+        "value": 8.742277657347586e-8
+      }
+    },
+    {
+      "kind": "angle",
+      "angle": {
+        "bits": "0x405d2b0a",
+        "value": 3.455751895904541
+      },
+      "cos": {
+        "bits": "0xbf737871",
+        "value": -0.9510565400123596
+      },
+      "sin": {
+        "bits": "0xbe9e377a",
+        "value": -0.30901700258255005
+      }
+    },
+    {
+      "kind": "angle",
+      "angle": {
+        "bits": "0xc05d2b0a",
+        "value": -3.455751895904541
+      },
+      "cos": {
+        "bits": "0xbf737871",
+        "value": -0.9510565400123596
+      },
+      "sin": {
+        "bits": "0x3e9e377a",
+        "value": 0.30901700258255005
+      }
+    },
+    {
+      "kind": "angle",
+      "angle": {
+        "bits": "0x4055dca7",
+        "value": 3.34159255027771
+      },
+      "cos": {
+        "bits": "0xbf7ae5a5",
+        "value": -0.9800665974617004
+      },
+      "sin": {
+        "bits": "0xbe4b6ff2",
+        "value": -0.1986692249774933
+      }
+    },
+    {
+      "kind": "angle",
+      "angle": {
+        "bits": "0xc055dca7",
+        "value": -3.34159255027771
+      },
+      "cos": {
+        "bits": "0xbf7ae5a5",
+        "value": -0.9800665974617004
+      },
+      "sin": {
+        "bits": "0x3e4b6ff2",
+        "value": 0.1986692249774933
+      }
+    },
+    {
+      "kind": "angle",
+      "angle": {
+        "bits": "0x3ff1463a",
+        "value": 1.884955644607544
+      },
+      "cos": {
+        "bits": "0xbe9e377b",
+        "value": -0.30901703238487244
+      },
+      "sin": {
+        "bits": "0x3f737870",
+        "value": 0.9510564804077148
+      }
+    },
+    {
+      "kind": "angle",
+      "angle": {
+        "bits": "0xbff1463a",
+        "value": -1.884955644607544
+      },
+      "cos": {
+        "bits": "0xbe9e377b",
+        "value": -0.30901703238487244
+      },
+      "sin": {
+        "bits": "0xbf737870",
+        "value": -0.9510564804077148
+      }
+    },
+    {
+      "kind": "angle",
+      "angle": {
+        "bits": "0x3ea0d97c",
+        "value": 0.3141592741012573
+      },
+      "cos": {
+        "bits": "0x3f737871",
+        "value": 0.9510565400123596
+      },
+      "sin": {
+        "bits": "0x3e9e377b",
+        "value": 0.30901703238487244
+      }
+    },
+    {
+      "kind": "angle",
+      "angle": {
+        "bits": "0xbea0d97c",
+        "value": -0.3141592741012573
+      },
+      "cos": {
+        "bits": "0x3f737871",
+        "value": 0.9510565400123596
+      },
+      "sin": {
+        "bits": "0xbe9e377b",
+        "value": -0.30901703238487244
+      }
+    }
+  ]
+}
