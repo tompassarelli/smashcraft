@@ -89,6 +89,8 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.shieldBreakState = source.shieldBreakState
 	destination.shieldBreakFrame = source.shieldBreakFrame
 	destination.shieldBreakSerial = source.shieldBreakSerial
+	destination.shieldBreakDownFrames = source.shieldBreakDownFrames
+	destination.shieldBreakStandFrames = source.shieldBreakStandFrames
 	destination.shieldBreakRemaining = source.shieldBreakRemaining
 	destination.grounded = source.grounded
 	destination.crouching = source.crouching
@@ -370,6 +372,10 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "shieldBreakFrame"
 	if expected.shieldBreakSerial != actual.shieldBreakSerial
 		return "shieldBreakSerial"
+	if expected.shieldBreakDownFrames != actual.shieldBreakDownFrames
+		return "shieldBreakDownFrames"
+	if expected.shieldBreakStandFrames != actual.shieldBreakStandFrames
+		return "shieldBreakStandFrames"
 	if expected.shieldBreakRemaining != actual.shieldBreakRemaining
 		return "shieldBreakRemaining"
 	if expected.crouching != actual.crouching

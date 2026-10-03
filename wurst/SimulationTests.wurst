@@ -4027,6 +4027,60 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 	fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
 	fighter.shieldBreakFrame.assertEquals(0)
 
+@Test function shieldBreakRetailRigUsesItsOwnAnimationCompletionClocks()
+	for host = 0 to 1
+		let fighter = shieldBreakTestFighter(host, 100)
+		let input = new InputSnapshot()
+		fighter.shieldBreakDownFrames = 26
+		fighter.shieldBreakStandFrames = 30
+		landShieldBreakTest(fighter, input)
+		for tick = 1 to 25
+			advance(fighter, 0, input, 0)
+			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_LAND)
+		advance(fighter, 0, input, 0)
+		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_STAND)
+		fighter.shieldBreakFrame.assertEquals(0)
+		for tick = 1 to 29
+			advance(fighter, 0, input, 0)
+			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_STAND)
+		advance(fighter, 0, input, 0)
+		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
+		fighter.shieldBreakRemaining.assertEquals(390.)
+		destroy input
+		destroy fighter
+
+@Test function shieldBreakDizzyExpiryAllowsJumpOnItsCompletionTick()
+	for host = 0 to 1
+		let fighter = shieldBreakTestFighter(host, 400)
+		let input = new InputSnapshot()
+		dizzyShieldBreakTest(fighter, input)
+		for tick = 1 to 89
+			advance(fighter, 0, input, 0)
+			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
+			fighter.jumpSquat.assertEquals(0)
+		input.jumpPressed = true
+		input.jumpHeld = true
+		advance(fighter, 0, input, 0)
+		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
+		fighter.jumpSquat.assertEquals(fighter.physics.jumpSquatFrames)
+		fighter.shieldEnergy.assertEquals(30.07, 0.0001)
+		destroy input
+		destroy fighter
+
+@Test function shieldBreakHitlagKeepsRegenerationAndBlastZoneChecksActive()
+	let fighter = shieldBreakTestFighter(0, 0)
+	let input = new InputSnapshot()
+	fighter.hitlag = 3
+	advance(fighter, 0, input, 0)
+	fighter.shieldBreakFrame.assertEquals(0)
+	fighter.shieldEnergy.assertEquals(0.07, 0.0001)
+	fighter.x = 921
+	advance(fighter, 0, input, 0)
+	fighter.out.assertTrue()
+	fighter.stocks.assertEquals(2)
+	destroy input
+	destroy fighter
+
 @Test function shieldBreakDrainAndProjectileUseSamePopAndSerial()
 	let fighter = shieldBreakTestFighter(0, 0)
 	fighter.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
@@ -4104,7 +4158,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_STAND)
 		advance(fighter, 0, input, 0)
 		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
-		fighter.shieldEnergy.assertEquals(30.)
+		fighter.shieldEnergy.assertEquals(30.07, 0.0001)
 		let dizzyTicks = R2I(fighter.shieldBreakRemaining)
 		for tick = 1 to dizzyTicks - 1
 			simulationJump(fighter, 0)
@@ -4112,7 +4166,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 			beginAttackPair(fighter, target, 5, -1, false, false)
 			advance(fighter, 0, input, 0)
 			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
-			fighter.shieldEnergy.assertEquals(30.)
+			fighter.shieldEnergy.assertEquals(30.07, 0.0001)
 			fighter.attackStyle.assertEquals(-1)
 			fighter.groundDodgeFrame.assertEquals(0)
 			fighter.jumpSquat.assertEquals(0)
@@ -4122,8 +4176,9 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
 		fighter.shieldBreakFrame.assertEquals(0)
 		fighter.shieldBreakSerial.assertEquals(1)
-		fighter.shieldEnergy.assertEquals(30.)
-		canAttack(fighter).assertTrue()
+		fighter.shieldEnergy.assertEquals(30.07, 0.0001)
+		fighter.jumpSquat.assertEquals(fighter.physics.jumpSquatFrames)
+		canAttack(fighter).assertFalse()
 		fighter.invincible.assertEquals(0)
 		destroy input
 		destroy target
@@ -4138,11 +4193,11 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		for tick = 1 to expected
 			input.mashPressed = mode == 2 or mode == 1 and tick == 1
 			advance(fighter, 0, input, 0)
-			fighter.shieldEnergy.assertEquals(30.)
+			fighter.shieldEnergy.assertEquals(30.07, 0.0001)
 			fighter.shieldBreakState.assertEquals(tick == expected ? SHIELD_BREAK_NONE : SHIELD_BREAK_DIZZY)
 		input.mashPressed = false
 		advance(fighter, 0, input, 0)
-		fighter.shieldEnergy.assertEquals(30.07, 0.001)
+		fighter.shieldEnergy.assertEquals(30.14, 0.0001)
 		destroy input
 		destroy fighter
 	shieldBreakDizzyFrames(100.).assertEquals(390.)
@@ -4222,7 +4277,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		fighter.damage.assertEquals(3.)
 		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
 		fighter.hitstun.assertEquals(11)
-		fighter.shieldEnergy.assertEquals(30.)
+		fighter.shieldEnergy.assertEquals(30.07, 0.0001)
 		destroy shooter
 		destroy input
 		destroy fighter

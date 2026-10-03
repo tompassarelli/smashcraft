@@ -466,6 +466,8 @@ public class FighterState
 	int shieldBreakState = SHIELD_BREAK_NONE
 	int shieldBreakFrame = 0
 	int shieldBreakSerial = 0
+	int shieldBreakDownFrames = SHIELD_BREAK_LAND_FRAMES
+	int shieldBreakStandFrames = SHIELD_BREAK_STAND_FRAMES
 	real shieldBreakRemaining = 0
 	boolean grounded = true
 	boolean crouching = false
@@ -1860,10 +1862,11 @@ function beginShieldBreak(FighterState f)
 	f.surface = -1
 
 function advanceShieldBreak(FighterState f, int stage, InputSnapshot input)
-	if f.hitlag > 0
-		return
 	checkBlastZone(f)
 	if f.out
+		return
+	if f.hitlag > 0
+		f.shieldEnergy = min(SHIELD_MAX, f.shieldEnergy + SHIELD_REGEN_PER_FRAME)
 		return
 	f.invincible = max(0, f.invincible - 1)
 	f.shieldBreakFrame++
@@ -1880,19 +1883,22 @@ function advanceShieldBreak(FighterState f, int stage, InputSnapshot input)
 			f.jumps = 2
 			f.shieldBreakState = SHIELD_BREAK_LAND
 			f.shieldBreakFrame = 0
-	else if f.shieldBreakState == SHIELD_BREAK_LAND and f.shieldBreakFrame >= SHIELD_BREAK_LAND_FRAMES
+	else if f.shieldBreakState == SHIELD_BREAK_LAND and f.shieldBreakFrame >= f.shieldBreakDownFrames
 		f.shieldBreakState = SHIELD_BREAK_STAND
 		f.shieldBreakFrame = 0
-	else if f.shieldBreakState == SHIELD_BREAK_STAND and f.shieldBreakFrame >= SHIELD_BREAK_STAND_FRAMES
+	else if f.shieldBreakState == SHIELD_BREAK_STAND and f.shieldBreakFrame >= f.shieldBreakStandFrames
 		f.shieldBreakState = SHIELD_BREAK_DIZZY
 		f.shieldBreakFrame = 0
 		f.shieldBreakRemaining = shieldBreakDizzyFrames(f.damage)
 		f.shieldEnergy = SHIELD_BREAK_RESTORED_ENERGY
 	else if f.shieldBreakState == SHIELD_BREAK_DIZZY
+		f.shieldEnergy = SHIELD_BREAK_RESTORED_ENERGY
 		f.shieldBreakRemaining = max(0., f.shieldBreakRemaining - SHIELD_BREAK_FRAME_DECAY
 			- (input.mashPressed ? SHIELD_BREAK_MASH_STRENGTH : 0.))
 		if f.shieldBreakRemaining <= 0
 			clearShieldBreak(f)
+	if f.shieldBreakState != SHIELD_BREAK_NONE
+		f.shieldEnergy = min(SHIELD_MAX, f.shieldEnergy + SHIELD_REGEN_PER_FRAME)
 	checkBlastZone(f)
 
 function clearDownState(FighterState f)
@@ -3240,7 +3246,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		return
 	if f.shieldBreakState != SHIELD_BREAK_NONE
 		advanceShieldBreak(f, stage, input)
-		return
+		if f.shieldBreakState != SHIELD_BREAK_NONE or f.out
+			return
 	// Counts include the current contact tick. A hitlag edge starts counting after the freeze.
 	if f.hitlag <= 0
 		f.lCancelWindow = max(0, f.lCancelWindow - 1)

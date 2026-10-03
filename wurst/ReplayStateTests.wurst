@@ -78,6 +78,8 @@ import MatchStep
     first.hitlag = 3
     first.shieldBreakState = SHIELD_BREAK_DIZZY
     first.shieldBreakRemaining = 389.75
+    first.shieldBreakDownFrames = 26
+    first.shieldBreakStandFrames = 31
     first.crouching = true
     first.fastFalling = true
     first.groundDodgeEntryFacing = -1
@@ -129,6 +131,8 @@ import MatchStep
     first.groundTurnRunPausePending = false
     first.shieldBreakState = SHIELD_BREAK_NONE
     first.shieldBreakRemaining = 0.
+    first.shieldBreakDownFrames = 12
+    first.shieldBreakStandFrames = 30
     first.crouching = false
     first.fastFalling = false
     first.groundDodgeEntryFacing = 0
@@ -184,6 +188,8 @@ import MatchStep
     first.groundTurnRunPausePending.assertTrue()
     first.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
     first.shieldBreakRemaining.assertEquals(389.75)
+    first.shieldBreakDownFrames.assertEquals(26)
+    first.shieldBreakStandFrames.assertEquals(31)
     first.crouching.assertTrue()
     first.fastFalling.assertTrue()
     first.groundDodgeEntryFacing.assertEquals(-1)

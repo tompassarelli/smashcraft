@@ -236,3 +236,38 @@ The assembled suite passed 497/497 with zero errors and the existing unused
 import warning (smashcraft:build/recovery-edge-aggregate.log). These checks
 establish the modeled flat-surface transition, not full retail ECB shapes,
 connected/sloped terrain, independent retail departure traces or native timing.
+
+## Shield-break pose and release ordering
+
+ShieldBreakDown and ShieldBreakStand enter at animation frame zero without an
+extra advance. The selected retail rigs use DownBound clips of 26 frames and
+DownStand clips of 30 frames, recorded in
+smashcraft:docs/smash-melee-reference/retail-action-lengths.json. The engine now
+accepts actor-owned shield-break down/stand lengths and snapshots them in replay.
+Original fighter defaults retain their authored 12/30 poses; the retail rig
+supplies 26/30 and verifies the last locked tick and both exact transitions.
+
+melee:src/melee/ft/kinds/ftCommon/ftCo_Furafura.c restores shield health to common
++0x280 (30) in the animation callback, subtracts the timer/mash amounts and
+enters ordinary ground state when the timer expires. The later input callback
+can jump on that same tick. melee:src/melee/ft/fighter.c:Fighter_procCollResolve
+then regenerates health by common +0x27C (0.07) when guard is inactive, including
+hitlag. Fighter_ChangeMotionState clears the guard-active flag; consequently a
+dizzy frame ends at 30.07, not an indefinitely fixed 30. The source's collision
+phase also checks blast zones during hitlag.
+
+Smashcraft's completion-jump case failed before correction (expected squat 3,
+actual 0). Completion now resumes ordinary input processing. Shield-break
+regeneration runs during its locked states and hitlag; dizziness restores health
+before regeneration. Existing assertions that preserved the previous fixed
+health/end-tick lock were updated to these sourced outcomes. Actor pose checks
+passed and the snapshot roundtrip passed; assembled and native evidence for
+the final release/regeneration changes remains pending.
+
+The assembled release/regeneration changes subsequently passed 500/500 normal
+tests with zero errors and the existing unused-import warning
+(smashcraft:build/shieldbreak-ordering-aggregate.log). The added hitlag case
+checks regeneration while the animation remains paused, then verifies stock
+loss beyond a side blast zone before hitlag expires. Native observation is
+still outstanding; the normal Lua-number arithmetic has not been shown to
+match PowerPC binary32 operation-by-operation rounding.
