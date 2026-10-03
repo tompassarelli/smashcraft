@@ -37,3 +37,22 @@ contact test must replay the original F5 defense after delivery at F9 without
 retargeting it. Live clock alignment must bound offset/drift uncertainty,
 identify permitted boundary ambiguity, and define common pause/resume semantics.
 Until those gates pass, keep competitive HOLD and avoid an end-to-end bound.
+
+## Executable capture-time boundary rule
+
+wc3-melee:tools/netcode-probe/InputFrameOracle.wurst implements the experiment's
+60 Hz half-open rule using externally supplied elapsed seconds plus nanoseconds
+and fixed delay. It preserves nanosecond precision without overflowing Warcraft's
+signed integers; negative elapsed values and an overflowing final frame fail.
+It does not use a map service cursor or receipt time.
+
+At 16,666,666 ns the expected frame is 1; at 16,666,667 ns it is 2. Truncating
+the latter timestamp to whole microseconds before assignment would incorrectly
+place it in frame 1. Split elapsed time at the foreign clock boundary rather
+than passing absolute SDL nanoseconds into Warcraft integer fields. This rule
+still requires a predeclared epoch, bounded clock alignment and a chosen pause
+policy before it can be a production contract.
+
+Run wc3-melee:tools/netcode-probe/test-frame-tagged-records.sh for the focused
+tag-retention and capture-frame boundary tests. These tests establish arithmetic
+and retention logic; they do not prove live helper-to-map assignment.
