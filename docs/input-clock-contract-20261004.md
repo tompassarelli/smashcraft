@@ -10,9 +10,9 @@ not close competitive input integrity.
 Pinned Rust SDL3 0.20.0 exposes u64 timestamps on gamepad button down/up and
 axis events. Its bundled SDL3 headers document event timestamps as nanoseconds
 populated using SDL_GetTicksNS; that clock is time since SDL initialization.
-It is not a shared clock across helper processes or machines. Current companion
-logs these events, then samples final pad state; it does not retain each event
-for map ingress. Logging Instant elapsed time at dequeue is not an independent
+It is not a shared clock across helper processes or machines. At the initial
+inspection, the companion logged events then sampled final pad state, without
+retaining each event for map ingress. Logging Instant elapsed time at dequeue is not an independent
 physical event timestamp. Earlier OS/device latency remains outside that record.
 
 ## Bounded next experiment
@@ -56,3 +56,25 @@ policy before it can be a production contract.
 Run wc3-melee:tools/netcode-probe/test-frame-tagged-records.sh for the focused
 tag-retention and capture-frame boundary tests. These tests establish arithmetic
 and retention logic; they do not prove live helper-to-map assignment.
+
+## Companion retention fix and remaining upstream boundary
+
+As of source commit 3608881, the companion maps each selected SDL event in queue
+order instead of mapping only the final pad sample. It streams original SDL
+timestamps, event IDs and linked logical transitions in TSV. Ten library tests
+and two Linux focus tests passed; same-batch taps, axis excursion/return, other
+controller filtering, shared jump/shield sources and neutral recovery are covered.
+The helper binary built successfully, enumerated the attached Xbox One S on
+/dev/input/event1, and completed a three-second observation-only idle run.
+That idle run contains no stimulus and proves neither physical latency nor tap
+preservation. Private runtime logs are in
+~/code/wc3-melee/worktrees/competitive-integrity-20261003/build/controller-event-history-20261004.
+
+Keyboard delivery still crosses Warcraft polling, so this is not the complete
+map ingress fix. Capture timestamps and helper dequeue/submission timestamps
+have distinct epochs; no delay is calculated by subtracting them. The next
+decisive test must stall the helper while delivering a known event sequence and
+compare retained events/timestamps with an independent producer clock. It must
+establish what SDL's backend retains and when it assigns its timestamp, before
+using that timestamp as the player's intended frame. Live common-clock alignment,
+map delivery and presentation remain open.
