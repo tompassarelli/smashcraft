@@ -4073,7 +4073,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 	fighter.hitlag = 3
 	advance(fighter, 0, input, 0)
 	fighter.shieldBreakFrame.assertEquals(0)
-	fighter.shieldEnergy.assertEquals(0.07, 0.0001)
+	fighter.shieldEnergy.assertEquals(0.14, 0.0001)
 	fighter.x = 921
 	advance(fighter, 0, input, 0)
 	fighter.out.assertTrue()

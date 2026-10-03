@@ -1649,9 +1649,25 @@ The numeric common source is verified GALE01 revision 2 (PlCo SHA-1
 in this repository. The decompiled source is used for numerical facts and
 field behavior only.
 
-Shield health stays at zero through the pop/landing/stand and becomes 30 on
-dizzy entry. It stays exactly 30 through dizziness and on its expiration tick;
-normal shield drain/regeneration resumes on subsequent normal simulation ticks.
+Shield regeneration runs once after input transitions and contact collection,
+before contact damage resolves. The source callback order is animation, input,
+grab collision, attack collision, then collision resolution; regeneration begins
+the last of these. The factual source is melee:src/melee/ft/fighter.c at the
+revision above. An active fighter without guard gains 0.07000000029802322 per
+tick, capped at 60, including hitlag, ledges, grabs, down states and wall-tech
+startup. A guard-to-grab input or capture clearing guard therefore permits
+regeneration that tick. Continuing guard does not. Smashcraft's custom trap
+freeze also retains regeneration; that extension has no retail counterpart.
+
+Shield-break pop/landing/stand use the same regeneration phase. Dizzy entry and
+each unfrozen dizzy animation tick restore 30 before regeneration, leaving
+30.07 after the frame, including expiration if no new guard starts. Hitlag
+pauses that reset but not regeneration. The shared standalone actor step and
+production match step compose the same motion and regeneration phases; the
+match delays regeneration until both fighters' contact collection is complete.
+Inactive (`out`) fighters do not regenerate. Melee's separate sleeping flag is
+not modeled, so this is not a claim of complete sleeping-state parity. These
+rules establish logical ordering, not exact binary32 arithmetic parity.
 Movement, fast falling, attacks, shielding, jumps, air dodges, ground escapes,
 platform drops, ordinary get-up actions and floor techs cannot cancel recovery.
 Landing uses the highest crossed eligible surface; it does not enter ordinary
@@ -1674,8 +1690,8 @@ shieldBreakDizzyFrames(percent) exposes its initial sourced duration. Public tim
 SHIELD_BREAK_LAND_FRAMES=12, SHIELD_BREAK_STAND_FRAMES=30 and
 SHIELD_BREAK_RESTORED_ENERGY=30. LAND begins on contact; each timed phase
 transitions after exactly its stated number of later unfrozen ticks. Expiration
-clears state/frame/countdown without consuming the current input as an ordinary
-action; the match's following attack-resolution phase can start a legal attack.
+clears state/frame/countdown and permits otherwise legal actions on that same
+simulation tick.
 
 Eight focused Wurst tests cover all depletion paths, both characters' actual
 pop trajectories and forced actions, phase boundaries, percent/mash recovery,

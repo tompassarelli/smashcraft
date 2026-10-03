@@ -1899,7 +1899,6 @@ function advanceShieldBreak(FighterState f, int stage, InputSnapshot input)
 	if f.out
 		return
 	if f.hitlag > 0
-		f.shieldEnergy = min(SHIELD_MAX, f.shieldEnergy + SHIELD_REGEN_PER_FRAME)
 		return
 	f.invincible = max(0, f.invincible - 1)
 	f.shieldBreakFrame++
@@ -1930,8 +1929,6 @@ function advanceShieldBreak(FighterState f, int stage, InputSnapshot input)
 			- (input.mashPressed ? SHIELD_BREAK_MASH_STRENGTH : 0.))
 		if f.shieldBreakRemaining <= 0
 			clearShieldBreak(f)
-	if f.shieldBreakState != SHIELD_BREAK_NONE
-		f.shieldEnergy = min(SHIELD_MAX, f.shieldEnergy + SHIELD_REGEN_PER_FRAME)
 	checkBlastZone(f)
 
 function clearDownState(FighterState f)
@@ -3247,6 +3244,15 @@ public function reset(FighterState f, real startX)
 	f.invincible = 90
 
 public function advance(FighterState f, int stage, InputSnapshot input, real respawnX)
+	advanceFighterMotion(f, stage, input, respawnX)
+	regenerateShield(f)
+
+// Match steps call this after input transitions and contact collection, before damage resolution.
+public function regenerateShield(FighterState f)
+	if not f.out and not f.shield and f.shieldEnergy < SHIELD_MAX
+		f.shieldEnergy = min(SHIELD_MAX, f.shieldEnergy + SHIELD_REGEN_PER_FRAME)
+
+public function advanceFighterMotion(FighterState f, int stage, InputSnapshot input, real respawnX)
 	f.positionDeltaX = 0
 	f.positionDeltaZ = 0
 	if f.out
@@ -3464,8 +3470,6 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	if wantsShield
 		if drainShield
 			f.shieldEnergy = max(0, f.shieldEnergy - SHIELD_DRAIN_PER_FRAME)
-	else
-		f.shieldEnergy = min(SHIELD_MAX, f.shieldEnergy + SHIELD_REGEN_PER_FRAME)
 	if wantsShield and f.shieldEnergy == 0
 		beginShieldBreak(f)
 		return

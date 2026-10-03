@@ -4,6 +4,155 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function shieldRegenMatchContinuesDuringStoppedActions()
+    for state = 0 to 5
+        let game = new MatchState()
+        game.phase = MATCH
+        let first = new FighterState(0, 0, 1)
+        let second = new FighterState(1, 500, -1)
+        let firstInput = new InputSnapshot()
+        let secondInput = new InputSnapshot()
+        let firstCommands = new AttackBuffer(0)
+        let secondCommands = new AttackBuffer(0)
+        first.shieldEnergy = 20
+        if state == 0
+            first.hitlag = 4
+        else if state == 1
+            first.ledgeState = LEDGE_HANG
+            first.ledgeSide = -1
+            first.hitlag = 4
+        else if state == 2
+            first.grabTarget = second
+            second.grabOwner = first
+            first.grabAction = GRAB_HOLD
+            second.grabbedFrames = 20
+            first.hitlag = 4
+            second.hitlag = 4
+            second.shieldEnergy = 20
+        else if state == 3
+            first.surfaceRecoveryState = SURFACE_TECH_WALL
+            first.surfaceRecoveryFrame = 0
+        else if state == 4
+            first.frozenFrames = 4
+        else
+            first.downState = DOWN_WAIT
+            first.downWaitRemaining = 20
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+        first.shieldEnergy.assertEquals(20.07, 0.0001)
+        if state == 2
+            second.shieldEnergy.assertEquals(20.07, 0.0001)
+            (first.grabTarget == second).assertTrue()
+        first.shieldEnergy = 59.98
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+        first.shieldEnergy.assertEquals(60.)
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 3)
+        first.shieldEnergy.assertEquals(60.)
+        destroy firstCommands
+        destroy secondCommands
+        destroy firstInput
+        destroy secondInput
+        destroy first
+        destroy second
+        destroy game
+
+@Test function shieldRegenMatchUsesGuardStateAfterGrabInput()
+    let game = new MatchState()
+    game.phase = MATCH
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 500, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    first.shield = true
+    second.shield = true
+    first.shieldEnergy = 20
+    second.shieldEnergy = 20
+    firstInput.shield = true
+    secondInput.shield = true
+    firstCommands.enqueue(5, 0, 1, false)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    first.attackStyle.assertEquals(5)
+    first.shield.assertFalse()
+    first.shieldEnergy.assertEquals(19.79, 0.0001)
+    second.shield.assertTrue()
+    second.shieldEnergy.assertEquals(19.72, 0.0001)
+    first.hitlag = 3
+    second.hitlag = 3
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    first.shieldEnergy.assertEquals(19.86, 0.0001)
+    second.shieldEnergy.assertEquals(19.72, 0.0001)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
+@Test function shieldRegenMatchFollowsDizzyRestoreExactlyOnce()
+    let game = new MatchState()
+    game.phase = MATCH
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 500, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    first.shieldEnergy = 10
+    first.shieldBreakState = SHIELD_BREAK_STAND
+    first.shieldBreakFrame = first.shieldBreakStandFrames - 1
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    first.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
+    first.shieldEnergy.assertEquals(30.07, 0.0001)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    first.shieldEnergy.assertEquals(30.07, 0.0001)
+    first.shieldBreakRemaining = 1
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 3)
+    first.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
+    first.shieldEnergy.assertEquals(30.07, 0.0001)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 4)
+    first.shieldEnergy.assertEquals(30.14, 0.0001)
+    first.out = true
+    first.respawn = 10
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 5)
+    first.shieldEnergy.assertEquals(30.14, 0.0001)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
+@Test function shieldRegenMatchSeesGuardClearedByCapture()
+    let game = new MatchState()
+    game.phase = MATCH
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 90, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    first.surface = 0
+    second.surface = 0
+    second.shield = true
+    second.shieldEnergy = 20
+    secondInput.shield = true
+    beginAttackPair(first, second, 5, -1, false, false)
+    first.attackFrame = attackStartupFrames(5) - 1
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    (second.grabOwner == first).assertTrue()
+    second.shield.assertFalse()
+    second.shieldEnergy.assertEquals(19.79, 0.0001)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
 @Test function practiceMatchMovesJumpsAttacksAndRespawnsWithoutOpponent()
     for character = 0 to 2
         let game = new MatchState()

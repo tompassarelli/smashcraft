@@ -26,8 +26,8 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
     let firstHadDashGrabWindow = first.dashGrabWindow > 0 and first.frozenFrames == 0 and first.hitlag <= 1
     let secondHadDashGrabWindow = second.dashGrabWindow > 0 and second.frozenFrames == 0 and second.hitlag <= 1
     resolveLedgePair(first, second, game.stageChoice, firstInput, secondInput)
-    advance(first, game.stageChoice, firstInput, -240)
-    advance(second, game.stageChoice, secondInput, 240)
+    advanceFighterMotion(first, game.stageChoice, firstInput, -240)
+    advanceFighterMotion(second, game.stageChoice, secondInput, 240)
     let grabPaused = first.hitlag > 0 or second.hitlag > 0
     resolveGrabPair(first, second)
     beginDamageContacts()
@@ -67,6 +67,8 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
     resolveAttackPair(first, second)
     advanceSpecialPair(first, second, game.stageChoice)
     updateProjectilePair(first, second)
+    regenerateShield(first)
+    regenerateShield(second)
     finishDamageContacts(first, second)
     resolveGrabPair(first, second)
     if inGrabContext(first)
