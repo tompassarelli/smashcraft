@@ -27,9 +27,9 @@ public tuple groundMovementRules(int dashRunEnableFrame, int turnRunFacingComman
 
 public tuple dashGrabRules(int startupFrames, int totalFrames)
 
-// Explicit frame-data fixtures; original roster fighters keep the empty rules.
+// The authored roster retains its existing grab timing; test rigs override it.
 public function authoredDashGrabRules() returns dashGrabRules
-	return dashGrabRules(0, 0)
+	return dashGrabRules(attackStartupFrames(5), attackDurationFramesForGrounding(5, true))
 
 public function ntscFoxDashGrabRules() returns dashGrabRules
 	return dashGrabRules(11, 39)

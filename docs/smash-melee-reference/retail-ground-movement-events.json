@@ -28,7 +28,7 @@
       "dashToGuard": "The simulation starts the window for Dash action frames above 20; frames through 20 do not start it.",
       "callbackMappingVerified": false
     },
-    "limit": "Production has explicit test-profile Dash Grab startup/total rules and a three-step CatchDash input window. The current contact reach reuses Smashcraft's shared grab region and assumes one active simulation tick. Mapping the retail animation/action boundary onto simulation callbacks, retail input priority, active frames/reach, and exact entry/expiry callback ordering remain unverified; these implementation details are not retail facts."
+    "limit": "The simulation defaults playable fighters to their current authored grab startup/total values and exposes separate NTSC test-profile values; it also models a three-step CatchDash input window. The current contact reach reuses Smashcraft's shared grab region and assumes one active simulation tick. Mapping the retail animation/action boundary onto simulation callbacks, retail input priority, active frames/reach, and exact entry/expiry callback ordering remain unverified; these implementation details are not retail facts."
   },
   "records": [
     {

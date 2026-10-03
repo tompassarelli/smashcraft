@@ -520,8 +520,7 @@ import MatchStep
     first.groundAction = GROUND_ACTION_DASH
     first.groundActionFrame = 5
     firstInput.direction = 1
-    firstInput.attackPressed = true
-    firstCommands.enqueue(0, 0, 1, false)
+    firstCommands.enqueue(5, 0, 1, false)
     stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
     first.attackStyle.assertEquals(5)
     first.dashGrabAttack.assertTrue()
@@ -535,6 +534,45 @@ import MatchStep
     attackPhase(first).assertEquals(ATTACK_STARTUP)
     stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 12)
     second.grabbedFrames.assertGreaterThan(0)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
+@Test function ordinaryDashAttackStaysAnAttackWhileGrabIntentStartsDashGrab()
+    let game = new MatchState()
+    game.phase = MATCH
+    let first = new FighterState(0, -240, 1)
+    let second = new FighterState(1, 240, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    first.dashFrame = INITIAL_DASH_FRAMES + 1
+    first.dashDirection = 1
+    first.groundAction = GROUND_ACTION_DASH
+    first.groundActionFrame = 5
+    second.dashFrame = INITIAL_DASH_FRAMES + 1
+    second.dashDirection = -1
+    second.groundAction = GROUND_ACTION_DASH
+    second.groundActionFrame = 5
+    firstInput.direction = 1
+    firstInput.attackPressed = true
+    secondInput.direction = -1
+    firstCommands.enqueue(0, 0, 1, false)
+    secondCommands.enqueue(5, 0, 1, false)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    first.attackStyle.assertEquals(0)
+    first.dashGrabAttack.assertFalse()
+    first.dashGrabTiming.startupFrames.assertEquals(attackStartupFrames(5))
+    first.dashGrabTiming.totalFrames.assertEquals(attackDurationFramesForGrounding(5, true))
+    second.attackStyle.assertEquals(5)
+    second.dashGrabAttack.assertTrue()
+    second.dashGrabTiming.startupFrames.assertEquals(attackStartupFrames(5))
+    second.attackDuration.assertEquals(attackDurationFramesForGrounding(5, true))
     destroy firstCommands
     destroy secondCommands
     destroy firstInput
