@@ -2,8 +2,10 @@
 
 wc3-melee:docs/smash-melee-reference/physics-parameters.json records 78 Fox/Falco
 movement and recovery values, 14 common values reported by the decompile's
-annotations, and explicit unresolved common-data groups. This is a factual
-reference corpus, not a claim of full NTSC 1.02 parity or a simulation oracle.
+annotations, and 74 selected retail common values across 28 gameplay groups.
+It also records nine additional common shield and wall-recovery fields and five
+Captain Falcon wall-recovery attributes. It remains a partial factual
+reference, not a complete common table or a simulation oracle.
 
 On 2026-10-03, the complete public Fox and Falco DAT JSON documents were fetched
 from https://melee.theshoemaker.de/dat-dumps/Fox.json and
@@ -17,8 +19,9 @@ without pretending they were extracted from a locally verified disc.
 
 The publisher's https://melee.theshoemaker.de/%21README.md describes unmodified
 character files, but neither the inspected README nor the JSON identifies the
-disc revision. **Their game revision remains unknown.** The target remains
-NTSC 1.02; matching a few familiar values does not establish that identity.
+disc revision. Their source revision remains unknown. The selected Fox/Falco
+values are now separately verified against the owner-supplied GALE01 revision 2
+DAT files below; this does not retroactively identify the publisher's source.
 
 Field meanings and structure-relative offsets use
 melee:src/melee/ft/types.h at revision
@@ -42,19 +45,20 @@ is supplementary and supplies no independent binary extraction here. Its
 embedded legacy header has older names, including hitlag labels at offsets
 that differ from the primary decompile's current hitlag use sites.
 
-The inspected public directory indexes contain character dumps, not a common
-PlCo.dat parameter JSON. The inspected data extractors and modding-tool source
-trees yielded no revision-identified common-value table. Neither the local
-reference checkouts nor the checked Dolphin configuration paths supplied a
-usable game dump. The corpus does not fill missing common values from plausible
-constants, infer them from field names, or label preexisting prototype values
-as recovered data. A locally owned, revision-identified PlCo.dat or a factual
-dump of its common attribute table is still needed for those exact values.
+The owner supplied a USA v1.02 disc image; its extracted game files and
+executable remain private and outside repositories. The disc header identifies
+GALE01 revision 2. The local `main.dol` SHA-1 matches the pinned decompile's
+GALE01 build hash, and `PlCo.dat` SHA-1 matches the earlier publisher claim.
+The corpus records hashes for each extracted DAT and retains only selected
+named numeric fields. It records the resolved `ftLoadCommonData` root and that
+the root pointer slot is relocation-backed; no pointer values, raw tables,
+scripts, artwork, or executable data are included.
 
-Common `reportedValues` are the decompile's GALE01 `datvalue` annotations;
-their original float bits and disc revision were not independently checked.
-Each unresolved group lists exact structure offsets and a primary use-site
-path. The 78 character values and 14 reported common values were checked for
-JSON parsing, source-value equality, unique offsets, valid source fields and
-binary32 representability. No engine test or native-game trajectory was run by
-this data-intake task.
+Each retained common gameplay group lists its structure offsets, fields,
+float32 bit patterns or integer values, known units and use-site path.
+Previously reported common annotations were also checked against the retail
+file. All 39 selected Fox and 39 Falco attributes match the retail DAT values;
+Captain Falcon, Jigglypuff and Sheik traction was independently read from their
+retail DATs. This confirms these files' revision and values, not full engine
+behavior. No engine test or native-game trajectory was run by this data-intake
+task.
