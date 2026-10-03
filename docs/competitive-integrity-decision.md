@@ -49,6 +49,16 @@ All frame conversions below use 16.666667 ms/frame. They describe observations, 
 
 ## Timing interpretation and clock alignment
 
+Update, 4 October: the retained two-client online candidate completed a scripted
+fight, result-to-selection rematch and second fight with matching sampled
+confirmed checksums. Further native tests observed all 20 short Q press/release
+pairs at X11 (4–5 ms holds) but only three pairs in the combat polling history.
+A controlled service stall also omitted a 40 ms tap while retaining the
+before/after taps. See [smashcraft:docs/native-session-20261004.md](native-session-20261004.md)
+and [smashcraft:docs/native-rapid-taps-20261004.md](native-rapid-taps-20261004.md).
+These narrow the current implementation's input-preservation failure without
+establishing an unavoidable engine limit. Competitive recommendation stays HOLD.
+
 The headless oracle is the authored corpus's fixed frame index, independent of the schedule's eventual choice. Four logical frames of delayed delivery are **not** a measured 66.67 ms native packet delay.
 
 Retained native trials identify each injected event by trial/edge and bracket submission with the same Linux monotonic clock used to anchor both captures. The first changed captured frame estimates visible response; approximately 16.4 ms capture spacing limits temporal precision. Native game time is a separate clock and may pause; it is not substituted for host wall time. No cross-machine latency is calculated by subtracting unsynchronized clocks. Controller hardware, OS service before injection, physical scanout and human perception are bypassed.
