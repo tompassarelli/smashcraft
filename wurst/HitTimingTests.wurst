@@ -27,6 +27,17 @@ import Simulation
     digitalShieldstunFrames(7).assertEquals(5)
     ordinaryHitstunFrames(100).assertEquals(40)
 
+@Test function positiveFractionalDamageKeepsOneUnitOfContactPower()
+    integerHitPower(0).assertEquals(0)
+    integerHitPower(0.25).assertEquals(1)
+    integerHitPower(0.999).assertEquals(1)
+    integerHitPower(1).assertEquals(1)
+    integerHitPower(1.999).assertEquals(1)
+    integerHitPower(2).assertEquals(2)
+    ordinaryHitKnockback(12.75, 0.25, 80, 100, 20, 1).assertEquals(40.8583333333, 0.00001)
+    digitalShieldstunFrames(0.25).assertEquals(2)
+    ordinaryHitlagFrames(0.25).assertEquals(3)
+
 @Test function shieldContactFreezesBothBodiesBeforeShieldstunCountsDown()
     let attacker = new FighterState(0, 0, 1)
     let target = new FighterState(1, 100, -1)

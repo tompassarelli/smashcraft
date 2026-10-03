@@ -414,7 +414,8 @@ this frame's fractional damage), d is integer attack power, w is victim weight,
 g is growth divided by 100, b is base knockback, and r is contextual scaling.
 Raw magnitude is capped at 2500 before crouch (2/3) or interrupted-smash-charge
 (1.2) scaling. The state is sampled before interruption clears it. With no
-staling queue, attack power is truncated scaled move damage. The fixed-power
+staling queue, attack power is truncated scaled move damage, with a minimum
+of one for positive damage below one. Zero damage retains zero power. The fixed-power
 helper substitutes percent 10 and the declared fixed power; no current move
 declares fixed knockback. DI and special launch angles remain distinct rules.
 For a 12-damage hit on weight 80 at 0 pre-hit percent, growth 100,
@@ -439,6 +440,18 @@ map supplies growth and base from the selected hit region, with defaults of
 hit frame conversions testable at their integer boundaries. These helpers
 include the corrected integer-power boundary, raw cap and sampled motion
 modifiers. Hitstun has a minimum of one tick for an ordinary flinching hit.
+
+The fractional-power boundary follows the factual conversion in
+melee:src/melee/ft/ftcoll.c (`getEnvDmg`, hurt/attacker/shield contact counters)
+at revision 0296f009f32f710495979d30772d8332af2d411a. The damage percentage
+itself is not rounded up. `integerHitPower` owns this conversion for knockback,
+hitlag and digital shieldstun. A 0.25-damage hit at 12.75 pre-hit percent on
+weight 80, growth 100 and base 20 produces 40.8583333333 knockback and two
+shieldstun ticks. Previously the zero-power conversion produced a different
+launch and only one shieldstun tick. The focused timing check passed **5/5**
+with zero compiler errors (smashcraft:build/physics-fractional-power.log).
+These checks establish the conversion and existing formula behavior, not
+independent NTSC 1.02 frame-trace or native-game parity.
 
 Smashcraft intentionally omits staling and freshness bonuses. The design
 rationale is in wc3-melee:README.md, “Intentional omissions.” Do not add a

@@ -481,8 +481,11 @@ public function airDriftVelocity(int character, real velocity, int direction) re
 	next = max(-maximum, min(maximum, next))
 	return next * direction
 
+public function integerHitPower(real hitDamage) returns int
+	return hitDamage > 0 ? max(1, R2I(hitDamage)) : 0
+
 function contactKnockback(real postHitPercent, real hitDamage, real victimWeight, real growthPercent, real baseKnockback, real contextScale) returns real
-	let percentGrowth = (postHitPercent / 10. + postHitPercent * R2I(hitDamage) / 20.) * 200 / (victimWeight + 100) * 1.4 + 18
+	let percentGrowth = (postHitPercent / 10. + postHitPercent * integerHitPower(hitDamage) / 20.) * 200 / (victimWeight + 100) * 1.4 + 18
 	return min(2500., percentGrowth * growthPercent / 100. + baseKnockback) * contextScale
 
 public function fixedHitKnockback(int fixedPower, real victimWeight, real growthPercent,
@@ -496,7 +499,7 @@ function hitContextScale(FighterState victim) returns real
 public function victimHitlagFrames(real hitDamage, boolean electric, boolean crouching) returns int
 	if hitDamage <= 0
 		return 0
-	let base = R2I(R2I(hitDamage) / 3. + 3)
+	let base = R2I(integerHitPower(hitDamage) / 3. + 3)
 	let effectFrames = electric ? R2I(base * 1.5) : base
 	return min(20, crouching ? R2I(effectFrames * 2. / 3.) : effectFrames)
 
@@ -698,7 +701,7 @@ public function ordinaryHitlagFrames(real hitDamage) returns int
 	return victimHitlagFrames(hitDamage, false, false)
 
 public function digitalShieldstunFrames(real hitDamage) returns int
-	return R2I((R2I(hitDamage) * 0.45 + 2) * 200 / 201)
+	return R2I((integerHitPower(hitDamage) * 0.45 + 2) * 200 / 201)
 
 public function ordinaryHitstunFrames(real knockback) returns int
 	return max(1, R2I(knockback * HITSTUN_FRAMES_PER_KNOCKBACK))
