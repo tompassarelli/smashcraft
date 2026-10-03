@@ -412,3 +412,34 @@ public function runRecordedTape(int frames, int rollbackStride, int startingStoc
     corrections.clear()
     corrections.add(row).assertTrue()
     corrections.size().assertEquals(1)
+
+@Test function replayFramePreservesDirectionalInfluenceMagnitudeAndDistinguishesCorrections()
+    let world = new TapeWorld(3)
+    let original = new MatchFrameInput()
+    let copied = new MatchFrameInput()
+    let changed = new MatchFrameInput()
+    let input = new InputSnapshot()
+    let neutral = new InputSnapshot()
+    let requests = new AttackBuffer(0)
+    input.diStickValid = true
+    input.diStickX = 0.25
+    input.diStickZ = 0.5
+    original.capture(1, input, neutral, requests, requests, world.runtime).assertTrue()
+    original.copyTo(copied)
+    input.diStickZ = 1
+    changed.capture(1, input, neutral, requests, requests, world.runtime).assertTrue()
+    original.sameAs(changed).assertFalse()
+    original.sameAs(copied).assertTrue()
+    world.first.grounded = false
+    world.first.z = 300
+    world.first.knockbackX = 6
+    world.first.hitlag = 1
+    world.first.diPending = true
+    world.execute(copied)
+    world.first.diAngleDegrees.assertEquals(4.5, 0.00001)
+    world.first.diSerial.assertEquals(1)
+    input.diStickZ = 0.5
+    input.diStickValid = false
+    changed.reset()
+    changed.capture(1, input, neutral, requests, requests, world.runtime).assertTrue()
+    original.sameAs(changed).assertFalse()

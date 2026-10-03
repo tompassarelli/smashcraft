@@ -37,6 +37,13 @@ public function adaptInput(NetworkInput row, FighterState fighter, int frame,
     destination.attackRequested = false
     destination.direction = movementAxis(row, MOVE_LEFT, MOVE_RIGHT, row.axisX())
     destination.verticalDirection = movementAxis(row, MOVE_DOWN, MOVE_UP, row.axisZ())
+    destination.diStickValid = true
+    destination.diStickX = row.axisX() / 127.
+    destination.diStickZ = row.axisZ() / 127.
+    let stickLength = SquareRoot(destination.diStickX * destination.diStickX + destination.diStickZ * destination.diStickZ)
+    if stickLength > 1.
+        destination.diStickX /= stickLength
+        destination.diStickZ /= stickLength
     destination.sdiPulse = row.sdiPulse()
     destination.sdiX = row.sdiX()
     destination.sdiZ = row.sdiZ()

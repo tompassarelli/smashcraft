@@ -2164,3 +2164,47 @@ input is preserved, and projectile powershield timing/reflection is implemented
 separately; ordinary melee powershield contacts and native verification remain
 open. Digital formula precision does not establish those behaviors. See
 smashcraft:docs/melee-powershield.md.
+
+## Independently observed directional influence arithmetic
+
+The production DI helper reconstructs the launch from its angle and magnitude,
+with a signed squared cross-product rotation capped by the supplied unit stick
+and the common 18-degree coefficient. It rounds to binary32 and uses the shared
+independently authored trig approximations. Nonzero parallel input still passes
+through polar reconstruction; neutral input and sufficiently small launch vectors
+retain their components. Grounded eligibility remains the existing Smashcraft
+rule and has not been independently verified against the original routine.
+
+smashcraft:docs/smash-melee-reference/retail-di-vector.json retains 56 numeric
+observations, exact input/output bits, source hashes, original routine addresses,
+runtime revision and licensing/extraction limitations. Original NTSC 1.02 code
+ran in the unchanged Melee Unlocked Gekko interpreter at revision
+4bb37070e4311169259dadaeed06a156523e5c7d, with a private host adapter and exact
+licensed paired-single service excerpts. It executed 13,959 instructions and 72
+paired-single loads and stores after original trig initialization. This is not a
+Linux portability repair, complete game execution or hardware measurement. The
+private harness, ELF, extracted binary and game data remain outside repositories.
+Only numerical facts enter this independently authored implementation.
+
+The existing rotation arithmetic mismatched 39 of 56 vectors (33 of 48 cases
+representable by the discrete input path), using emitted Lua and diagnostic
+host math.sin/math.cos bindings for the old native calls. The repaired production
+helper matches all 56 exactly, including zero signs, under the existing emitted
+Lua precision check. The observations distinguish several rounding mistakes but
+do not uniquely identify all possible intermediate evaluation sequences. This
+bounded claim does not establish controller polling, physical deadzones,
+grounded DI eligibility, hitlag scheduling, collision or full-match parity.
+Evidence: smashcraft:build/di-before.log and smashcraft:build/di-after.log.
+The focused directionalInfluence filter passes 5/5 tests, including adapter
+magnitude through hitlag release, replay snapshot independence and correction
+equality, and existing discrete DI behavior (smashcraft:build/di-connected.log).
+
+Network input preserves DI magnitude by dividing each captured signed byte axis
+by 127, then normalizing radially only when length exceeds one. This is
+Smashcraft's input boundary, not a claim about original GameCube polling or
+quantization. Full keyboard diagonals retain unit length. Explicit DI components
+and their validity flag travel with frame snapshots and participate in replay
+input equality; directly constructed snapshots retain discrete direction fallback.
+No new persistent fighter state is introduced. Movement, SDI and tilt capture
+keep their existing input rules. Original Warcraft characters retain authored
+statistics; stale moves and freshness bonuses remain deliberately excluded.

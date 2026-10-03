@@ -320,7 +320,6 @@ public constant real ORDINARY_HIT_GROWTH_PERCENT = 100
 public constant real ORDINARY_HIT_BASE_KNOCKBACK = 20
 public constant real ORDINARY_HIT_CONTEXT_SCALE = 1
 constant real DIAGONAL_UNIT = 0.7071067811865476
-constant real DI_MAX_ANGLE_RADIANS = 0.3141592653589793
 constant real RADIANS_TO_DEGREES = 57.29577951308232
 public constant real SDI_DISTANCE = 6 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real ASDI_DISTANCE = 3 * WORLD_UNITS_PER_MELEE_UNIT
@@ -596,6 +595,9 @@ public class FighterState
 public class InputSnapshot
 	int direction = 0
 	int verticalDirection = 0
+	boolean diStickValid = false
+	real diStickX = 0
+	real diStickZ = 0
 	boolean sdiPulse = false
 	int sdiX = 0
 	int sdiZ = 0
@@ -635,6 +637,9 @@ public class InputSnapshot
 	function copyTo(InputSnapshot destination)
 		destination.direction = direction
 		destination.verticalDirection = verticalDirection
+		destination.diStickValid = diStickValid
+		destination.diStickX = diStickX
+		destination.diStickZ = diStickZ
 		destination.sdiPulse = sdiPulse
 		destination.sdiX = sdiX
 		destination.sdiZ = sdiZ
@@ -671,34 +676,47 @@ public class InputSnapshot
 		destination.walking = walking
 		destination.attackHeld = attackHeld
 
+public tuple directionalInfluenceResult(real velocityX, real velocityZ, real angleRadians)
+
+// Launch components are in Melee units; stick components are normalized. The signed squared cross
+// product gives the rotation fraction; rounding and fused angle reconstruction
+// are checked against wc3-melee:docs/smash-melee-reference/retail-di-vector.json.
+public function directionalInfluenceVector(real x, real z, real stickX, real stickZ) returns directionalInfluenceResult
+	let horizontal = x.roundToFloat32()
+	let vertical = z.roundToFloat32()
+	let inputX = stickX.roundToFloat32()
+	let inputZ = stickZ.roundToFloat32()
+	let square = fusedMultiplyAddFloat32(horizontal, horizontal, (vertical * vertical).roundToFloat32())
+	if square < 0.000009999999747378752 or inputX == 0 and inputZ == 0
+		return directionalInfluenceResult(horizontal, vertical, 0.)
+	let speed = SquareRoot(square).roundToFloat32()
+	let cross = -fusedMultiplyAddFloat32(vertical, inputX, -(horizontal * inputZ).roundToFloat32())
+	let fraction = ((cross * cross).roundToFloat32() / square).roundToFloat32()
+	let degrees = (fraction * 18.).roundToFloat32() * (cross < 0 ? -1 : 1)
+	let offset = (degrees * 0.01745329238474369).roundToFloat32()
+	let angle = fusedMultiplyAddFloat32(degrees, 0.01745329238474369, meleeAtan2(vertical, horizontal))
+	return directionalInfluenceResult((speed * meleeCos(angle)).roundToFloat32(), (speed * meleeSin(angle)).roundToFloat32(), offset)
+
 function applyDirectionalInfluence(FighterState target, InputSnapshot input)
 	if not target.diPending
 		return
 	target.diPending = false
-	let launchSpeed = SquareRoot(target.knockbackX * target.knockbackX + target.knockbackZ * target.knockbackZ)
+	target.diLaunchSpeed = 0
 	// Ground knockback follows the floor tangent; DI cannot lift it off the floor.
-	if target.grounded or input.direction == 0 and input.verticalDirection == 0 or launchSpeed <= 0
-		target.diLaunchSpeed = 0
+	if target.grounded
 		return
 	let dx = input.direction == 0 ? 0 : (input.direction > 0 ? 1 : -1)
 	let dz = input.verticalDirection == 0 ? 0 : (input.verticalDirection > 0 ? 1 : -1)
 	let inputScale = dx != 0 and dz != 0 ? DIAGONAL_UNIT : 1
-	let inputX = dx * inputScale
-	let inputZ = dz * inputScale
-	let cross = (target.knockbackX * inputZ - target.knockbackZ * inputX) / launchSpeed
-	if cross == 0
-		target.diLaunchSpeed = 0
-		return
-	let angle = cross * cross.abs() * DI_MAX_ANGLE_RADIANS
-	let cosine = Cos(angle)
-	let sine = Sin(angle)
-	let oldVx = target.knockbackX
-	let oldVz = target.knockbackZ
-	target.knockbackX = oldVx * cosine - oldVz * sine
-	target.knockbackZ = oldVz * cosine + oldVx * sine
-	target.diAngleDegrees = angle * RADIANS_TO_DEGREES
-	target.diSerial++
-	target.diLaunchSpeed = 0
+	let inputX = input.diStickValid ? input.diStickX : dx * inputScale
+	let inputZ = input.diStickValid ? input.diStickZ : dz * inputScale
+	let result = directionalInfluenceVector(target.knockbackX / WORLD_UNITS_PER_MELEE_UNIT,
+		target.knockbackZ / WORLD_UNITS_PER_MELEE_UNIT, inputX, inputZ)
+	target.knockbackX = result.velocityX * WORLD_UNITS_PER_MELEE_UNIT
+	target.knockbackZ = result.velocityZ * WORLD_UNITS_PER_MELEE_UNIT
+	if result.angleRadians != 0
+		target.diAngleDegrees = result.angleRadians * RADIANS_TO_DEGREES
+		target.diSerial++
 
 function airDriftVelocity(FighterState f, real velocity, int direction) returns real
 	let target = f.physics.airSpeed

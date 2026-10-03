@@ -86,6 +86,8 @@ function sameInputSnapshot(InputSnapshot first, InputSnapshot second) returns bo
         return false
     if first.verticalDirection != second.verticalDirection
         return false
+    if first.diStickValid != second.diStickValid or first.diStickX != second.diStickX or first.diStickZ != second.diStickZ
+        return false
     if first.sdiPulse != second.sdiPulse
         return false
     if first.sdiX != second.sdiX

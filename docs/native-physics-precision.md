@@ -59,3 +59,12 @@ models, controls or stage-contact observation. Passing would close the runtime
 arithmetic boundary for these cases; it would not establish complete formulas,
 collision geometry, action clocks, visual effects or playable-match acceptance.
 Do not occupy or restart peer-owned clients to obtain this result.
+
+The next build adds DIRECTIONAL_INFLUENCE_BINARY32_EXACT_PASS for 56 original
+DI vectors, plus DIRECTIONAL_INFLUENCE_MISMATCH_COUNT=0 and
+DIRECTIONAL_INFLUENCE_DISCRETE_MISMATCH_COUNT=0. It therefore requires fifteen
+passing groups and MESSAGES 18. These requirements apply to the next candidate;
+the old candidate and hash above do not contain this group. No new map hash or
+native execution is claimed here. The emitted-Lua check observes all 56 matching
+vectors; see smashcraft:docs/smash-melee-reference/retail-di-vector.json for the
+original execution boundary and limitations.

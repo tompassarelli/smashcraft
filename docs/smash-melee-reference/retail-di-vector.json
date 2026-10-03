@@ -1,0 +1,1503 @@
+{
+  "id": "retail-ntsc-1.02-directional-influence-vector",
+  "source": {
+    "revision": "0296f009f32f710495979d30772d8332af2d411a",
+    "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+    "commonDataSha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41"
+  },
+  "runtime": {
+    "repositoryRevision": "4bb37070e4311169259dadaeed06a156523e5c7d",
+    "interpreter": "port/runtime/ppc/interp.cpp, unchanged",
+    "license": "SPDX GPL-2.0-or-later",
+    "host": "Linux x86-64; Clang 21; FMA enabled",
+    "pairedSingle": {
+      "gqr0": "0x00000000 (float type)",
+      "loadCount": 72,
+      "storeCount": 72
+    }
+  },
+  "execution": {
+    "trigInitializer": "0x80326578 (called once before DI cases)",
+    "diRoutine": "0x8008E5A4",
+    "diReturn": "0x8008E710",
+    "returnPatches": [],
+    "interpretedInstructions": 13959,
+    "caseCount": 56
+  },
+  "commonParameters": {
+    "maximumAngleDegrees": 18
+  },
+  "implementationBoundary": {
+    "opcodeInterpreter": {
+      "path": "melee-unlocked:port/runtime/ppc/interp.cpp",
+      "entryLine": 486,
+      "revision": "4bb37070e4311169259dadaeed06a156523e5c7d",
+      "sourceChanged": false
+    },
+    "pairedSingleRuntime": {
+      "path": "melee-unlocked:port/runtime/ppc/ppc_runtime.cpp",
+      "extractedLines": "594-708",
+      "license": "SPDX GPL-2.0-or-later",
+      "extraction": "Private generated translation unit preserves this source excerpt and ppc_estimates.inc; only psq_load/psq_store symbol names are changed to count dispatch calls.",
+      "revision": "4bb37070e4311169259dadaeed06a156523e5c7d"
+    },
+    "headlessAdapter": {
+      "path": "Private file interpreter-host.cpp; not tracked in either project",
+      "provides": [
+        "DOL/common-backed RAM loading and ELF wrapper execution",
+        "retail r2/r13 values copied from startup instructions",
+        "GQR0 initialized to float mode 0",
+        "minimal logging and symbol-name host functions",
+        "PPC RAM access, return-to-host boundary, interpreter dispatch into loaded RAM"
+      ],
+      "omits": [
+        "Windows game host, real MMIO and locked-cache devices",
+        "host event delivery, frame/retrace timing, and OS startup",
+        "general compiled-function dispatch; all loaded RAM addresses run through interpreter"
+      ]
+    }
+  },
+  "checks": {
+    "retailInputsVerified": true,
+    "commonDataVerified": true,
+    "allFourIndependentTrigComparisonsBitExact": true
+  },
+  "scalarChecks": [
+    {
+      "input": {
+        "y": 0,
+        "x": 1
+      },
+      "actual": {
+        "angle": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "cos": {
+          "bits": "0x3f800000",
+          "value": 1
+        },
+        "sin": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      },
+      "matchedPriorScalarRunnerBits": true
+    },
+    {
+      "input": {
+        "y": 1,
+        "x": 0
+      },
+      "actual": {
+        "angle": {
+          "bits": "0x3fc90fdb",
+          "value": 1.5707963705062866
+        },
+        "cos": {
+          "bits": "0xb36f0965",
+          "value": -5.5655068109672357e-8
+        },
+        "sin": {
+          "bits": "0x3f800000",
+          "value": 1
+        }
+      },
+      "matchedPriorScalarRunnerBits": true
+    },
+    {
+      "input": {
+        "y": 3,
+        "x": 4
+      },
+      "actual": {
+        "angle": {
+          "bits": "0x3f24bc7e",
+          "value": 0.6435011625289917
+        },
+        "cos": {
+          "bits": "0x3f4ccccc",
+          "value": 0.7999999523162842
+        },
+        "sin": {
+          "bits": "0x3f19999b",
+          "value": 0.6000000834465027
+        }
+      },
+      "matchedPriorScalarRunnerBits": true
+    },
+    {
+      "input": {
+        "y": 4,
+        "x": 3
+      },
+      "actual": {
+        "angle": {
+          "bits": "0x3f6d6338",
+          "value": 0.9272952079772949
+        },
+        "cos": {
+          "bits": "0x3f19999a",
+          "value": 0.6000000238418579
+        },
+        "sin": {
+          "bits": "0x3f4ccccd",
+          "value": 0.800000011920929
+        }
+      },
+      "matchedPriorScalarRunnerBits": true
+    }
+  ],
+  "results": [
+    {
+      "input": {
+        "x": 1,
+        "z": 0,
+        "stickX": 0,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3f800000",
+          "value": 1
+        },
+        "velocityZ": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      },
+      "inputBits": {
+        "x": "0x3f800000",
+        "z": "0x00000000",
+        "stickX": "0x00000000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 1,
+        "z": 0,
+        "stickX": 1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3f800000",
+          "value": 1
+        },
+        "velocityZ": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      },
+      "inputBits": {
+        "x": "0x3f800000",
+        "z": "0x00000000",
+        "stickX": "0x3f800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 1,
+        "z": 0,
+        "stickX": -1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3f800000",
+          "value": 1
+        },
+        "velocityZ": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      },
+      "inputBits": {
+        "x": "0x3f800000",
+        "z": "0x00000000",
+        "stickX": "0xbf800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 1,
+        "z": 0,
+        "stickX": 0,
+        "stickZ": 1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3f737871",
+          "value": 0.9510565400123596
+        },
+        "velocityZ": {
+          "bits": "0x3e9e377b",
+          "value": 0.30901703238487244
+        }
+      },
+      "inputBits": {
+        "x": "0x3f800000",
+        "z": "0x00000000",
+        "stickX": "0x00000000",
+        "stickZ": "0x3f800000"
+      }
+    },
+    {
+      "input": {
+        "x": 1,
+        "z": 0,
+        "stickX": 0,
+        "stickZ": -1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3f737871",
+          "value": 0.9510565400123596
+        },
+        "velocityZ": {
+          "bits": "0xbe9e377b",
+          "value": -0.30901703238487244
+        }
+      },
+      "inputBits": {
+        "x": "0x3f800000",
+        "z": "0x00000000",
+        "stickX": "0x00000000",
+        "stickZ": "0xbf800000"
+      }
+    },
+    {
+      "input": {
+        "x": 1,
+        "z": 0,
+        "stickX": 0.7071067811865476,
+        "stickZ": 0.7071067811865476
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3f7cd925",
+          "value": 0.9876883625984192
+        },
+        "velocityZ": {
+          "bits": "0x3e20305b",
+          "value": 0.15643446147441864
+        }
+      },
+      "inputBits": {
+        "x": "0x3f800000",
+        "z": "0x00000000",
+        "stickX": "0x3f3504f3",
+        "stickZ": "0x3f3504f3"
+      }
+    },
+    {
+      "input": {
+        "x": 1,
+        "z": 0,
+        "stickX": 0.25,
+        "stickZ": 0.5
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3f7f35f9",
+          "value": 0.9969173073768616
+        },
+        "velocityZ": {
+          "bits": "0x3da0af2a",
+          "value": 0.07845909893512726
+        }
+      },
+      "inputBits": {
+        "x": "0x3f800000",
+        "z": "0x00000000",
+        "stickX": "0x3e800000",
+        "stickZ": "0x3f000000"
+      }
+    },
+    {
+      "input": {
+        "x": -1,
+        "z": 0,
+        "stickX": 0,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xbf800000",
+          "value": -1
+        },
+        "velocityZ": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      },
+      "inputBits": {
+        "x": "0xbf800000",
+        "z": "0x00000000",
+        "stickX": "0x00000000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": -1,
+        "z": 0,
+        "stickX": 1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xbf800000",
+          "value": -1
+        },
+        "velocityZ": {
+          "bits": "0xb3bbbd2e",
+          "value": -8.742277657347586e-8
+        }
+      },
+      "inputBits": {
+        "x": "0xbf800000",
+        "z": "0x00000000",
+        "stickX": "0x3f800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": -1,
+        "z": 0,
+        "stickX": -1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xbf800000",
+          "value": -1
+        },
+        "velocityZ": {
+          "bits": "0xb3bbbd2e",
+          "value": -8.742277657347586e-8
+        }
+      },
+      "inputBits": {
+        "x": "0xbf800000",
+        "z": "0x00000000",
+        "stickX": "0xbf800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": -1,
+        "z": 0,
+        "stickX": 0,
+        "stickZ": 1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xbf737872",
+          "value": -0.9510565996170044
+        },
+        "velocityZ": {
+          "bits": "0x3e9e3774",
+          "value": 0.3090168237686157
+        }
+      },
+      "inputBits": {
+        "x": "0xbf800000",
+        "z": "0x00000000",
+        "stickX": "0x00000000",
+        "stickZ": "0x3f800000"
+      }
+    },
+    {
+      "input": {
+        "x": -1,
+        "z": 0,
+        "stickX": 0,
+        "stickZ": -1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xbf737871",
+          "value": -0.9510565400123596
+        },
+        "velocityZ": {
+          "bits": "0xbe9e377a",
+          "value": -0.30901700258255005
+        }
+      },
+      "inputBits": {
+        "x": "0xbf800000",
+        "z": "0x00000000",
+        "stickX": "0x00000000",
+        "stickZ": "0xbf800000"
+      }
+    },
+    {
+      "input": {
+        "x": -1,
+        "z": 0,
+        "stickX": 0.7071067811865476,
+        "stickZ": 0.7071067811865476
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xbf7cd925",
+          "value": -0.9876883625984192
+        },
+        "velocityZ": {
+          "bits": "0x3e20305a",
+          "value": 0.15643444657325745
+        }
+      },
+      "inputBits": {
+        "x": "0xbf800000",
+        "z": "0x00000000",
+        "stickX": "0x3f3504f3",
+        "stickZ": "0x3f3504f3"
+      }
+    },
+    {
+      "input": {
+        "x": -1,
+        "z": 0,
+        "stickX": 0.25,
+        "stickZ": 0.5
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xbf7f35fa",
+          "value": -0.9969173669815063
+        },
+        "velocityZ": {
+          "bits": "0x3da0af22",
+          "value": 0.07845903933048248
+        }
+      },
+      "inputBits": {
+        "x": "0xbf800000",
+        "z": "0x00000000",
+        "stickX": "0x3e800000",
+        "stickZ": "0x3f000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 1,
+        "stickX": 0,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "velocityZ": {
+          "bits": "0x3f800000",
+          "value": 1
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x3f800000",
+        "stickX": "0x00000000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 1,
+        "stickX": 1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3e9e3779",
+          "value": 0.30901697278022766
+        },
+        "velocityZ": {
+          "bits": "0x3f737871",
+          "value": 0.9510565400123596
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x3f800000",
+        "stickX": "0x3f800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 1,
+        "stickX": -1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xbe9e377b",
+          "value": -0.30901703238487244
+        },
+        "velocityZ": {
+          "bits": "0x3f737870",
+          "value": 0.9510564804077148
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x3f800000",
+        "stickX": "0xbf800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 1,
+        "stickX": 0,
+        "stickZ": 1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xb36f0965",
+          "value": -5.5655068109672357e-8
+        },
+        "velocityZ": {
+          "bits": "0x3f800000",
+          "value": 1
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x3f800000",
+        "stickX": "0x00000000",
+        "stickZ": "0x3f800000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 1,
+        "stickX": 0,
+        "stickZ": -1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xb36f0965",
+          "value": -5.5655068109672357e-8
+        },
+        "velocityZ": {
+          "bits": "0x3f800000",
+          "value": 1
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x3f800000",
+        "stickX": "0x00000000",
+        "stickZ": "0xbf800000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 1,
+        "stickX": 0.7071067811865476,
+        "stickZ": 0.7071067811865476
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3e203055",
+          "value": 0.15643437206745148
+        },
+        "velocityZ": {
+          "bits": "0x3f7cd925",
+          "value": 0.9876883625984192
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x3f800000",
+        "stickX": "0x3f3504f3",
+        "stickZ": "0x3f3504f3"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 1,
+        "stickX": 0.25,
+        "stickZ": 0.5
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3ca0d6c3",
+          "value": 0.01963365636765957
+        },
+        "velocityZ": {
+          "bits": "0x3f7ff35e",
+          "value": 0.9998072385787964
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x3f800000",
+        "stickX": "0x3e800000",
+        "stickZ": "0x3f000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": -1,
+        "stickX": 0,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "velocityZ": {
+          "bits": "0xbf800000",
+          "value": -1
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0xbf800000",
+        "stickX": "0x00000000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": -1,
+        "stickX": 1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3e9e3779",
+          "value": 0.30901697278022766
+        },
+        "velocityZ": {
+          "bits": "0xbf737871",
+          "value": -0.9510565400123596
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0xbf800000",
+        "stickX": "0x3f800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": -1,
+        "stickX": -1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xbe9e377b",
+          "value": -0.30901703238487244
+        },
+        "velocityZ": {
+          "bits": "0xbf737870",
+          "value": -0.9510564804077148
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0xbf800000",
+        "stickX": "0xbf800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": -1,
+        "stickX": 0,
+        "stickZ": 1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xb36f0965",
+          "value": -5.5655068109672357e-8
+        },
+        "velocityZ": {
+          "bits": "0xbf800000",
+          "value": -1
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0xbf800000",
+        "stickX": "0x00000000",
+        "stickZ": "0x3f800000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": -1,
+        "stickX": 0,
+        "stickZ": -1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xb36f0965",
+          "value": -5.5655068109672357e-8
+        },
+        "velocityZ": {
+          "bits": "0xbf800000",
+          "value": -1
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0xbf800000",
+        "stickX": "0x00000000",
+        "stickZ": "0xbf800000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": -1,
+        "stickX": 0.7071067811865476,
+        "stickZ": 0.7071067811865476
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3e203055",
+          "value": 0.15643437206745148
+        },
+        "velocityZ": {
+          "bits": "0xbf7cd925",
+          "value": -0.9876883625984192
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0xbf800000",
+        "stickX": "0x3f3504f3",
+        "stickZ": "0x3f3504f3"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": -1,
+        "stickX": 0.25,
+        "stickZ": 0.5
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3ca0d6c3",
+          "value": 0.01963365636765957
+        },
+        "velocityZ": {
+          "bits": "0xbf7ff35e",
+          "value": -0.9998072385787964
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0xbf800000",
+        "stickX": "0x3e800000",
+        "stickZ": "0x3f000000"
+      }
+    },
+    {
+      "input": {
+        "x": 3,
+        "z": 4,
+        "stickX": 0,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x40400000",
+          "value": 3
+        },
+        "velocityZ": {
+          "bits": "0x40800000",
+          "value": 4
+        }
+      },
+      "inputBits": {
+        "x": "0x40400000",
+        "z": "0x40800000",
+        "stickX": "0x00000000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 3,
+        "z": 4,
+        "stickX": 1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x406f4208",
+          "value": 3.738405227661133
+        },
+        "velocityZ": {
+          "bits": "0x40547fa4",
+          "value": 3.3202905654907227
+        }
+      },
+      "inputBits": {
+        "x": "0x40400000",
+        "z": "0x40800000",
+        "stickX": "0x3f800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 3,
+        "z": 4,
+        "stickX": -1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x400901a5",
+          "value": 2.1407253742218018
+        },
+        "velocityZ": {
+          "bits": "0x409097f6",
+          "value": 4.518549919128418
+        }
+      },
+      "inputBits": {
+        "x": "0x40400000",
+        "z": "0x40800000",
+        "stickX": "0xbf800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 3,
+        "z": 4,
+        "stickX": 0,
+        "stickZ": 1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x4021e1d5",
+          "value": 2.5294086933135986
+        },
+        "velocityZ": {
+          "bits": "0x408a0436",
+          "value": 4.313014030456543
+        }
+      },
+      "inputBits": {
+        "x": "0x40400000",
+        "z": "0x40800000",
+        "stickX": "0x00000000",
+        "stickZ": "0x3f800000"
+      }
+    },
+    {
+      "input": {
+        "x": 3,
+        "z": 4,
+        "stickX": 0,
+        "stickZ": -1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x405baa26",
+          "value": 3.432260036468506
+        },
+        "velocityZ": {
+          "bits": "0x4068b230",
+          "value": 3.635875701904297
+        }
+      },
+      "inputBits": {
+        "x": "0x40400000",
+        "z": "0x40800000",
+        "stickX": "0x00000000",
+        "stickZ": "0xbf800000"
+      }
+    },
+    {
+      "input": {
+        "x": 3,
+        "z": 4,
+        "stickX": 0.7071067811865476,
+        "stickZ": 0.7071067811865476
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x40419ace",
+          "value": 3.025073528289795
+        },
+        "velocityZ": {
+          "bits": "0x407ec9e1",
+          "value": 3.981071710586548
+        }
+      },
+      "inputBits": {
+        "x": "0x40400000",
+        "z": "0x40800000",
+        "stickX": "0x3f3504f3",
+        "stickZ": "0x3f3504f3"
+      }
+    },
+    {
+      "input": {
+        "x": 3,
+        "z": 4,
+        "stickX": 0.25,
+        "stickZ": 0.5
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x403f31de",
+          "value": 2.9874186515808105
+        },
+        "velocityZ": {
+          "bits": "0x40804d0c",
+          "value": 4.009405136108398
+        }
+      },
+      "inputBits": {
+        "x": "0x40400000",
+        "z": "0x40800000",
+        "stickX": "0x3e800000",
+        "stickZ": "0x3f000000"
+      }
+    },
+    {
+      "input": {
+        "x": -3,
+        "z": 4,
+        "stickX": 0,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xc0400000",
+          "value": -3
+        },
+        "velocityZ": {
+          "bits": "0x40800000",
+          "value": 4
+        }
+      },
+      "inputBits": {
+        "x": "0xc0400000",
+        "z": "0x40800000",
+        "stickX": "0x00000000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": -3,
+        "z": 4,
+        "stickX": 1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xc00901a6",
+          "value": -2.140725612640381
+        },
+        "velocityZ": {
+          "bits": "0x409097f6",
+          "value": 4.518549919128418
+        }
+      },
+      "inputBits": {
+        "x": "0xc0400000",
+        "z": "0x40800000",
+        "stickX": "0x3f800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": -3,
+        "z": 4,
+        "stickX": -1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xc06f4209",
+          "value": -3.738405466079712
+        },
+        "velocityZ": {
+          "bits": "0x40547fa1",
+          "value": 3.3202898502349854
+        }
+      },
+      "inputBits": {
+        "x": "0xc0400000",
+        "z": "0x40800000",
+        "stickX": "0xbf800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": -3,
+        "z": 4,
+        "stickX": 0,
+        "stickZ": 1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xc021e1d5",
+          "value": -2.5294086933135986
+        },
+        "velocityZ": {
+          "bits": "0x408a0437",
+          "value": 4.313014507293701
+        }
+      },
+      "inputBits": {
+        "x": "0xc0400000",
+        "z": "0x40800000",
+        "stickX": "0x00000000",
+        "stickZ": "0x3f800000"
+      }
+    },
+    {
+      "input": {
+        "x": -3,
+        "z": 4,
+        "stickX": 0,
+        "stickZ": -1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xc05baa28",
+          "value": -3.432260513305664
+        },
+        "velocityZ": {
+          "bits": "0x4068b22e",
+          "value": 3.6358752250671387
+        }
+      },
+      "inputBits": {
+        "x": "0xc0400000",
+        "z": "0x40800000",
+        "stickX": "0x00000000",
+        "stickZ": "0xbf800000"
+      }
+    },
+    {
+      "input": {
+        "x": -3,
+        "z": 4,
+        "stickX": 0.7071067811865476,
+        "stickZ": 0.7071067811865476
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xbfd2ca46",
+          "value": -1.6467978954315186
+        },
+        "velocityZ": {
+          "bits": "0x4097129e",
+          "value": 4.721022605895996
+        }
+      },
+      "inputBits": {
+        "x": "0xc0400000",
+        "z": "0x40800000",
+        "stickX": "0x3f3504f3",
+        "stickZ": "0x3f3504f3"
+      }
+    },
+    {
+      "input": {
+        "x": -3,
+        "z": 4,
+        "stickX": 0.25,
+        "stickZ": 0.5
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0xc02b5298",
+          "value": -2.6769161224365234
+        },
+        "velocityZ": {
+          "bits": "0x40872333",
+          "value": 4.223046779632568
+        }
+      },
+      "inputBits": {
+        "x": "0xc0400000",
+        "z": "0x40800000",
+        "stickX": "0x3e800000",
+        "stickZ": "0x3f000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0.001,
+        "z": 0.002,
+        "stickX": 0,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3a83126f",
+          "value": 0.0010000000474974513
+        },
+        "velocityZ": {
+          "bits": "0x3b03126f",
+          "value": 0.0020000000949949026
+        }
+      },
+      "inputBits": {
+        "x": "0x3a83126f",
+        "z": "0x3b03126f",
+        "stickX": "0x00000000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0.001,
+        "z": 0.002,
+        "stickX": 1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3a83126f",
+          "value": 0.0010000000474974513
+        },
+        "velocityZ": {
+          "bits": "0x3b03126f",
+          "value": 0.0020000000949949026
+        }
+      },
+      "inputBits": {
+        "x": "0x3a83126f",
+        "z": "0x3b03126f",
+        "stickX": "0x3f800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0.001,
+        "z": 0.002,
+        "stickX": -1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3a83126f",
+          "value": 0.0010000000474974513
+        },
+        "velocityZ": {
+          "bits": "0x3b03126f",
+          "value": 0.0020000000949949026
+        }
+      },
+      "inputBits": {
+        "x": "0x3a83126f",
+        "z": "0x3b03126f",
+        "stickX": "0xbf800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0.001,
+        "z": 0.002,
+        "stickX": 0,
+        "stickZ": 1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3a83126f",
+          "value": 0.0010000000474974513
+        },
+        "velocityZ": {
+          "bits": "0x3b03126f",
+          "value": 0.0020000000949949026
+        }
+      },
+      "inputBits": {
+        "x": "0x3a83126f",
+        "z": "0x3b03126f",
+        "stickX": "0x00000000",
+        "stickZ": "0x3f800000"
+      }
+    },
+    {
+      "input": {
+        "x": 0.001,
+        "z": 0.002,
+        "stickX": 0,
+        "stickZ": -1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3a83126f",
+          "value": 0.0010000000474974513
+        },
+        "velocityZ": {
+          "bits": "0x3b03126f",
+          "value": 0.0020000000949949026
+        }
+      },
+      "inputBits": {
+        "x": "0x3a83126f",
+        "z": "0x3b03126f",
+        "stickX": "0x00000000",
+        "stickZ": "0xbf800000"
+      }
+    },
+    {
+      "input": {
+        "x": 0.001,
+        "z": 0.002,
+        "stickX": 0.7071067811865476,
+        "stickZ": 0.7071067811865476
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3a83126f",
+          "value": 0.0010000000474974513
+        },
+        "velocityZ": {
+          "bits": "0x3b03126f",
+          "value": 0.0020000000949949026
+        }
+      },
+      "inputBits": {
+        "x": "0x3a83126f",
+        "z": "0x3b03126f",
+        "stickX": "0x3f3504f3",
+        "stickZ": "0x3f3504f3"
+      }
+    },
+    {
+      "input": {
+        "x": 0.001,
+        "z": 0.002,
+        "stickX": 0.25,
+        "stickZ": 0.5
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x3a83126f",
+          "value": 0.0010000000474974513
+        },
+        "velocityZ": {
+          "bits": "0x3b03126f",
+          "value": 0.0020000000949949026
+        }
+      },
+      "inputBits": {
+        "x": "0x3a83126f",
+        "z": "0x3b03126f",
+        "stickX": "0x3e800000",
+        "stickZ": "0x3f000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 0,
+        "stickX": 0,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "velocityZ": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x00000000",
+        "stickX": "0x00000000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 0,
+        "stickX": 1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "velocityZ": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x00000000",
+        "stickX": "0x3f800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 0,
+        "stickX": -1,
+        "stickZ": 0
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "velocityZ": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x00000000",
+        "stickX": "0xbf800000",
+        "stickZ": "0x00000000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 0,
+        "stickX": 0,
+        "stickZ": 1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "velocityZ": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x00000000",
+        "stickX": "0x00000000",
+        "stickZ": "0x3f800000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 0,
+        "stickX": 0,
+        "stickZ": -1
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "velocityZ": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x00000000",
+        "stickX": "0x00000000",
+        "stickZ": "0xbf800000"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 0,
+        "stickX": 0.7071067811865476,
+        "stickZ": 0.7071067811865476
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "velocityZ": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x00000000",
+        "stickX": "0x3f3504f3",
+        "stickZ": "0x3f3504f3"
+      }
+    },
+    {
+      "input": {
+        "x": 0,
+        "z": 0,
+        "stickX": 0.25,
+        "stickZ": 0.5
+      },
+      "output": {
+        "velocityX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "velocityZ": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      },
+      "inputBits": {
+        "x": "0x00000000",
+        "z": "0x00000000",
+        "stickX": "0x3e800000",
+        "stickZ": "0x3f000000"
+      }
+    }
+  ],
+  "limitations": [
+    "Unchanged retail DI and trig initializer code ran in Melee Unlocked’s Gekko interpreter. Its opcode source was compiled unchanged; paired-single load/store services came from an exact private extraction of that same revision’s runtime implementation, with only symbol names changed for dispatch counting. The repository itself was not edited, and this does not repair or claim Linux portability for the shipped port.",
+    "The host was x86-64 Linux with FMA. The project interpreter models the port’s PPC/Jit64 floating-point semantics; this is not a GameCube hardware capture or proof of every hardware rounding detail.",
+    "Each case supplies synthetic velocity X/Z and stick X/Z fields in a minimal fighter-state block. This does not execute grounded DI eligibility, controller polling, hitlag timing, collision, or a complete match.",
+    "No original DOL or PlCo.dat bytes are included in this JSON."
+  ]
+}
