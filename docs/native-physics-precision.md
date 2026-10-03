@@ -11,12 +11,12 @@ Run the builder through the machine-capacity helper with the private terrain
 map as its argument. It does not install a map or control a Warcraft client.
 
 The current candidate is a one-player diagnostic map, Smashcraft 0.0.13,
-simulation source f0da50b97b0ef655cd5f5b65677f4057dc7a773f:
-~/code/wc3-melee/worktrees/melee-physics-public/build/physics-probe/native.aOMjxI/Smashcraft 0.0.13.w3x.
-SHA-256: 878026e0963606418dd3b2dbe3f4e9839beb437b4563d047c4ea1a9a5eee10b4.
+simulation source 36f99e92f24d8a59d7d1b6951583b9104fd2a300:
+~/code/wc3-melee/worktrees/melee-physics-public/build/physics-probe/native.bJd0hy/Smashcraft 0.0.13.w3x.
+SHA-256: 25e9dbe3eb67e24356a8ab3f2c9fb86a39084b4441e4bae1ca12e59c7eb608c7.
 The build reports zero errors and four standard-library unused-variable
 warnings; packaged Lua syntax and script roundtrip pass. Evidence:
-smashcraft:build/native-physics-di-build.log. This candidate has not been
+smashcraft:build/native-melee-powershield.log. This candidate has not been
 installed or run natively.
 
 On map initialization, the same authored comparisons used by the emitted-Lua
@@ -56,7 +56,8 @@ four shield-entry overwrite cases. The additional groups check 23 original
 hitstun duration/damage-level observations and 50 launch magnitudes with 150
 context adjustments, 52 capped hitlag outputs, and 54 analog shield rows.
 The analog group covers pressure, drain, stun, damage, shared size scaling and
-pushback arithmetic; it does not test geometric shielding or physical input.
+pushback arithmetic, including twelve ordinary/perfect pushback outputs. It
+does not test geometric shielding, complete contact response or physical input.
 The fixtures execute production calculations inside Warcraft, without live fighter
 models, controls or stage-contact observation. Passing would close the runtime
 arithmetic boundary for these cases; it would not establish complete formulas,

@@ -72,12 +72,12 @@ contacts preserve shield health and match twelve original ordinary/perfect
 pushback outputs; post-contact action timing remains open. Other formula rounding, shield geometry/powershields,
 connected/sloped ECB contacts and native trajectory checks remain open.
 
-The latest physics candidate is Smashcraft 0.0.12, build physics-f0da50b,
-source f0da50b97b0ef655cd5f5b65677f4057dc7a773f. It built with zero errors and
+The latest physics candidate is Smashcraft 0.0.12, build physics-36f99e9,
+source 36f99e92f24d8a59d7d1b6951583b9104fd2a300. It built with zero errors and
 six existing warnings. SHA-256:
-b2c0be9e90e0929d8d6089c36894e44cd9629da0fc5f19314de2d2f0c330d5c8.
+f7759db309873fdb1bc6307c2565b2ad19bf21e1adb3bfe0708d2e54b5bbc682.
 Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x.
-Build evidence: smashcraft:build/di-map-integration.log. Deployment was disabled;
+Build evidence: smashcraft:build/melee-powershield-map.log. Deployment was disabled;
 this candidate has not been installed or observed natively. Separate native
 input/contact probes do not establish its physics or presentation. The separate
 native arithmetic candidate in smashcraft:docs/native-physics-precision.md
