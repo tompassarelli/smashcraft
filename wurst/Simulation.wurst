@@ -786,12 +786,14 @@ public function digitalShieldDamage(real damage) returns real
 
 function decayShieldMotion(FighterState f)
 	if f.grounded
-		let defenderDecay = f.physics.traction
-		f.shieldPushbackX = f.shieldPushbackX > 0 ? max(0, f.shieldPushbackX - defenderDecay) : min(0, f.shieldPushbackX + defenderDecay)
+		let defenderDecay = roundMeleeWorldValue(f.physics.traction)
+		let defenderSpeed = roundMeleeWorldValue(f.shieldPushbackX)
+		f.shieldPushbackX = roundMeleeWorldValue(defenderSpeed > 0 ? max(0, defenderSpeed - defenderDecay) : min(0, defenderSpeed + defenderDecay))
 		// The currently modeled ground is flat, so shield recoil has no vertical component there.
 		f.shieldRecoilZ = 0
-		let attackerDecay = f.physics.traction * SHIELD_RECOIL_GROUND_FRICTION_MULTIPLIER
-		f.shieldRecoilX = f.shieldRecoilX > 0 ? max(0, f.shieldRecoilX - attackerDecay) : min(0, f.shieldRecoilX + attackerDecay)
+		let attackerDecay = roundMeleeWorldValue(defenderDecay * SHIELD_RECOIL_GROUND_FRICTION_MULTIPLIER)
+		let attackerSpeed = roundMeleeWorldValue(f.shieldRecoilX)
+		f.shieldRecoilX = roundMeleeWorldValue(attackerSpeed > 0 ? max(0, attackerSpeed - attackerDecay) : min(0, attackerSpeed + attackerDecay))
 	else
 		// Airborne recoil is a vector and decays by the common per-frame amount.
 		f.shieldPushbackX = 0
@@ -1440,6 +1442,8 @@ function resolveDamageContacts(FighterState target)
 	if shieldDamage > 0
 		target.shieldEnergy = (target.shieldEnergy - digitalShieldDamage(shieldDamage)).roundToFloat32()
 	if shieldPushback > 0 and target.grounded
+		// Shield contact replaces the defender's self ground speed.
+		target.vx = 0
 		target.shieldPushbackX = shieldDirection * shieldPushback
 		target.shieldDrainResumePending = true
 	if shieldDamage > 0
@@ -3561,7 +3565,10 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 		f.x = addMeleeWorldValues(f.x, f.knockbackX)
 		f.x = addMeleeWorldValues(f.x, f.shieldRecoilX)
 	else
-		f.x += totalVelocityX(f) + dashEntryDisplacementAdjustment
+		let groundMovement = addMeleeWorldValues(f.vx + dashEntryDisplacementAdjustment, f.shieldPushbackX)
+		f.x = addMeleeWorldValues(f.x, groundMovement)
+		f.x = addMeleeWorldValues(f.x, f.knockbackX)
+		f.x = addMeleeWorldValues(f.x, f.shieldRecoilX)
 	if isGroundDodging(f)
 		f.vz = 0
 		f.z = surfaceZ(stage, max(0, f.surface))

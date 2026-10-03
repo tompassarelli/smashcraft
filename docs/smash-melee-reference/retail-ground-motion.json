@@ -1,0 +1,1242 @@
+{
+  "id": "retail-ntsc-1.02-flat-ground-motion",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "execution": {
+    "cpu": "QEMU PPC750",
+    "defenderDrag": "0x8007C930",
+    "groundSpeedSum": "0x8006BBC8",
+    "launchDrag": "0x8007CCA0",
+    "recoilMultiplier": "0x8006BB88",
+    "recoilDrag": "0x8007CE4C",
+    "scalarPositionAdd": "0x8006BDA8",
+    "returnPatches": [
+      "0x8006BBA0",
+      "0x8006BBF8",
+      "0x8006BDC4"
+    ],
+    "exitCode": 0,
+    "byteCount": 1408
+  },
+  "facts": {
+    "positionOrder": [
+      "self movement (includes defender pushback)",
+      "launch",
+      "attacker recoil"
+    ],
+    "recoilGroundMultiplier": 1.100000023841858,
+    "groundSurfaceMultiplier": 1,
+    "rounding": "binary32 nearest ties to even after each arithmetic operation"
+  },
+  "limitations": [
+    "Original arithmetic blocks execute separately; these are composed arithmetic observations, not a full original update or hardware trajectory.",
+    "Position composition repeats the original scalar horizontal add in the order observed at 0x8006BD98..0x8006BDD4; paired-single vector addition is not executed under QEMU.",
+    "Defender cases use ordinary traction and no simultaneous independent self movement; faster-than-walk friction branches, slopes, state clocks and collisions are outside scope.",
+    "Inputs supply existing velocity channels; shield contact initialization and analog shields are outside scope.",
+    "Numeric equality does not distinguish signed zero. No original executable bytes are included."
+  ],
+  "results": [
+    {
+      "kind": "position",
+      "before": {
+        "position": {
+          "bits": "0xc2700000",
+          "value": -60
+        },
+        "self": {
+          "bits": "0x3e800000",
+          "value": 0.25
+        },
+        "launch": {
+          "bits": "0x3f419b34",
+          "value": 0.7562744617462158
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0xbe99999a",
+          "value": -0.30000001192092896
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x3f2d2053",
+          "value": 0.6762744784355164
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0xbe591688",
+          "value": -0.2120000123977661
+        },
+        "position": {
+          "bits": "0xc26d2496",
+          "value": -59.285728454589844
+        }
+      }
+    },
+    {
+      "kind": "position",
+      "before": {
+        "position": {
+          "bits": "0x3dcccccd",
+          "value": 0.10000000149011612
+        },
+        "self": {
+          "bits": "0x3e800000",
+          "value": 0.25
+        },
+        "launch": {
+          "bits": "0x3f419b34",
+          "value": 0.7562744617462158
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0xbe99999a",
+          "value": -0.30000001192092896
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x3f2d2053",
+          "value": 0.6762744784355164
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0xbe591688",
+          "value": -0.2120000123977661
+        },
+        "position": {
+          "bits": "0x3f50744a",
+          "value": 0.8142744302749634
+        }
+      }
+    },
+    {
+      "kind": "position",
+      "before": {
+        "position": {
+          "bits": "0x42700000",
+          "value": 60
+        },
+        "self": {
+          "bits": "0x3e800000",
+          "value": 0.25
+        },
+        "launch": {
+          "bits": "0x3f419b34",
+          "value": 0.7562744617462158
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0xbe99999a",
+          "value": -0.30000001192092896
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x3f2d2053",
+          "value": 0.6762744784355164
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0xbe591688",
+          "value": -0.2120000123977661
+        },
+        "position": {
+          "bits": "0x4272db6a",
+          "value": 60.714271545410156
+        }
+      }
+    },
+    {
+      "kind": "defender",
+      "before": {
+        "position": {
+          "bits": "0x41a0fcd6",
+          "value": 20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0x3ee978d7",
+          "value": 0.45600005984306335
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x3ec08314",
+          "value": 0.3760000467300415
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "position": {
+          "bits": "0x41a3fee2",
+          "value": 20.499454498291016
+        }
+      }
+    },
+    {
+      "kind": "defender",
+      "before": {
+        "position": {
+          "bits": "0x41a0fcd6",
+          "value": 20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0x3db851ec",
+          "value": 0.09000000357627869
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x3c23d710",
+          "value": 0.01000000536441803
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "position": {
+          "bits": "0x41a11151",
+          "value": 20.133455276489258
+        }
+      }
+    },
+    {
+      "kind": "defender",
+      "before": {
+        "position": {
+          "bits": "0x41a0fcd6",
+          "value": 20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "position": {
+          "bits": "0x41a0fcd6",
+          "value": 20.123455047607422
+        }
+      }
+    },
+    {
+      "kind": "defender",
+      "before": {
+        "position": {
+          "bits": "0x41a0fcd6",
+          "value": 20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0x3c23d70a",
+          "value": 0.009999999776482582
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "position": {
+          "bits": "0x41a0fcd6",
+          "value": 20.123455047607422
+        }
+      }
+    },
+    {
+      "kind": "attacker",
+      "before": {
+        "position": {
+          "bits": "0x41a0fcd6",
+          "value": 20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0x3e99999a",
+          "value": 0.30000001192092896
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x3e591688",
+          "value": 0.2120000123977661
+        },
+        "position": {
+          "bits": "0x41a2af03",
+          "value": 20.3354549407959
+        }
+      }
+    },
+    {
+      "kind": "attacker",
+      "before": {
+        "position": {
+          "bits": "0x41a0fcd6",
+          "value": 20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0x3db43959",
+          "value": 0.08800000697374344
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x32000000",
+          "value": 7.450580596923828e-9
+        },
+        "position": {
+          "bits": "0x41a0fcd6",
+          "value": 20.123455047607422
+        }
+      }
+    },
+    {
+      "kind": "attacker",
+      "before": {
+        "position": {
+          "bits": "0x41a0fcd6",
+          "value": 20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "position": {
+          "bits": "0x41a0fcd6",
+          "value": 20.123455047607422
+        }
+      }
+    },
+    {
+      "kind": "attacker",
+      "before": {
+        "position": {
+          "bits": "0x41a0fcd6",
+          "value": 20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0x3c23d70a",
+          "value": 0.009999999776482582
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "position": {
+          "bits": "0x41a0fcd6",
+          "value": 20.123455047607422
+        }
+      }
+    },
+    {
+      "kind": "position",
+      "before": {
+        "position": {
+          "bits": "0xc2700000",
+          "value": -60
+        },
+        "self": {
+          "bits": "0xbe800000",
+          "value": -0.25
+        },
+        "launch": {
+          "bits": "0xbf419b34",
+          "value": -0.7562744617462158
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0x3e99999a",
+          "value": 0.30000001192092896
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0xbf2d2053",
+          "value": -0.6762744784355164
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x3e591688",
+          "value": 0.2120000123977661
+        },
+        "position": {
+          "bits": "0xc272db6a",
+          "value": -60.714271545410156
+        }
+      }
+    },
+    {
+      "kind": "position",
+      "before": {
+        "position": {
+          "bits": "0x3dcccccd",
+          "value": 0.10000000149011612
+        },
+        "self": {
+          "bits": "0xbe800000",
+          "value": -0.25
+        },
+        "launch": {
+          "bits": "0xbf419b34",
+          "value": -0.7562744617462158
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0x3e99999a",
+          "value": 0.30000001192092896
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0xbf2d2053",
+          "value": -0.6762744784355164
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x3e591688",
+          "value": 0.2120000123977661
+        },
+        "position": {
+          "bits": "0xbf1d4118",
+          "value": -0.6142745018005371
+        }
+      }
+    },
+    {
+      "kind": "position",
+      "before": {
+        "position": {
+          "bits": "0x42700000",
+          "value": 60
+        },
+        "self": {
+          "bits": "0xbe800000",
+          "value": -0.25
+        },
+        "launch": {
+          "bits": "0xbf419b34",
+          "value": -0.7562744617462158
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0x3e99999a",
+          "value": 0.30000001192092896
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0xbf2d2053",
+          "value": -0.6762744784355164
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x3e591688",
+          "value": 0.2120000123977661
+        },
+        "position": {
+          "bits": "0x426d2496",
+          "value": 59.285728454589844
+        }
+      }
+    },
+    {
+      "kind": "defender",
+      "before": {
+        "position": {
+          "bits": "0xc1a0fcd6",
+          "value": -20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0xbee978d7",
+          "value": -0.45600005984306335
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0xbec08314",
+          "value": -0.3760000467300415
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "position": {
+          "bits": "0xc1a3fee2",
+          "value": -20.499454498291016
+        }
+      }
+    },
+    {
+      "kind": "defender",
+      "before": {
+        "position": {
+          "bits": "0xc1a0fcd6",
+          "value": -20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0xbdb851ec",
+          "value": -0.09000000357627869
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0xbc23d710",
+          "value": -0.01000000536441803
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "position": {
+          "bits": "0xc1a11151",
+          "value": -20.133455276489258
+        }
+      }
+    },
+    {
+      "kind": "defender",
+      "before": {
+        "position": {
+          "bits": "0xc1a0fcd6",
+          "value": -20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0xbda3d70a",
+          "value": -0.07999999821186066
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "position": {
+          "bits": "0xc1a0fcd6",
+          "value": -20.123455047607422
+        }
+      }
+    },
+    {
+      "kind": "defender",
+      "before": {
+        "position": {
+          "bits": "0xc1a0fcd6",
+          "value": -20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0xbc23d70a",
+          "value": -0.009999999776482582
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "position": {
+          "bits": "0xc1a0fcd6",
+          "value": -20.123455047607422
+        }
+      }
+    },
+    {
+      "kind": "attacker",
+      "before": {
+        "position": {
+          "bits": "0xc1a0fcd6",
+          "value": -20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0xbe99999a",
+          "value": -0.30000001192092896
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0xbe591688",
+          "value": -0.2120000123977661
+        },
+        "position": {
+          "bits": "0xc1a2af03",
+          "value": -20.3354549407959
+        }
+      }
+    },
+    {
+      "kind": "attacker",
+      "before": {
+        "position": {
+          "bits": "0xc1a0fcd6",
+          "value": -20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0xbdb43959",
+          "value": -0.08800000697374344
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0xb2000000",
+          "value": -7.450580596923828e-9
+        },
+        "position": {
+          "bits": "0xc1a0fcd6",
+          "value": -20.123455047607422
+        }
+      }
+    },
+    {
+      "kind": "attacker",
+      "before": {
+        "position": {
+          "bits": "0xc1a0fcd6",
+          "value": -20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0xbdb43958",
+          "value": -0.08799999952316284
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "position": {
+          "bits": "0xc1a0fcd6",
+          "value": -20.123455047607422
+        }
+      }
+    },
+    {
+      "kind": "attacker",
+      "before": {
+        "position": {
+          "bits": "0xc1a0fcd6",
+          "value": -20.123455047607422
+        },
+        "self": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoil": {
+          "bits": "0xbc23d70a",
+          "value": -0.009999999776482582
+        },
+        "traction": {
+          "bits": "0x3da3d70a",
+          "value": 0.07999999821186066
+        }
+      },
+      "after": {
+        "pushback": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launch": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilDecay": {
+          "bits": "0x3db43958",
+          "value": 0.08799999952316284
+        },
+        "recoil": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "position": {
+          "bits": "0xc1a0fcd6",
+          "value": -20.123455047607422
+        }
+      }
+    }
+  ],
+  "guardEntries": [
+    {
+      "previousGroundSpeed": {
+        "bits": "0x3fe00000",
+        "value": 1.75
+      },
+      "selectedPushback": {
+        "bits": "0x3ee978d7",
+        "value": 0.45600005984306335
+      },
+      "directionParameter": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "afterGroundSpeed": {
+        "bits": "0xbee978d7",
+        "value": -0.45600005984306335
+      }
+    },
+    {
+      "previousGroundSpeed": {
+        "bits": "0x3fe00000",
+        "value": 1.75
+      },
+      "selectedPushback": {
+        "bits": "0x3ee978d7",
+        "value": 0.45600005984306335
+      },
+      "directionParameter": {
+        "bits": "0xbf800000",
+        "value": -1
+      },
+      "afterGroundSpeed": {
+        "bits": "0x3ee978d7",
+        "value": 0.45600005984306335
+      }
+    },
+    {
+      "previousGroundSpeed": {
+        "bits": "0xbfe00000",
+        "value": -1.75
+      },
+      "selectedPushback": {
+        "bits": "0x3ee978d7",
+        "value": 0.45600005984306335
+      },
+      "directionParameter": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "afterGroundSpeed": {
+        "bits": "0xbee978d7",
+        "value": -0.45600005984306335
+      }
+    },
+    {
+      "previousGroundSpeed": {
+        "bits": "0xbfe00000",
+        "value": -1.75
+      },
+      "selectedPushback": {
+        "bits": "0x3ee978d7",
+        "value": 0.45600005984306335
+      },
+      "directionParameter": {
+        "bits": "0xbf800000",
+        "value": -1
+      },
+      "afterGroundSpeed": {
+        "bits": "0x3ee978d7",
+        "value": 0.45600005984306335
+      }
+    }
+  ],
+  "guardEntryExecution": {
+    "entry": "0x800930B0",
+    "store": "0x800930CC",
+    "returnPatch": "0x800930D0",
+    "scope": "Original direction selection and overwrite store, supplied selected pushback; contact magnitude calculation not executed."
+  }
+}
