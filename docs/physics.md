@@ -1,5 +1,27 @@
 # Physics reference and implementation
 
+## Analog shield pressure and hitlag observations — 2026-10-04
+
+The existing analog trigger bytes now preserve shield strength through input,
+guard drain, contact damage/stun/pushback, relative visual size and replay.
+Digital clicks remain full strength; analog pressure activates at byte 77.
+The 54 original pressure/health/contact rows match production emitted Lua.
+Four connected tests cover input thresholds, minimum hold, contact freezes and
+replay restoration. Details and boundaries:
+smashcraft:docs/melee-analog-shield.md. Shield geometry/pokes/tilt, powershields,
+physical analog capture and native verification remain open.
+
+The original capped hitlag calculation also matches 52 ordinary/electric and
+crouching observations without a production formula change; see
+smashcraft:docs/melee-hitlag-scalars.md. Ordinary/fixed launch matches 50
+magnitudes and 150 context adjustments, and hitstun matches 23 duration/level
+observations. These scalar checks do not establish ordered gameplay traces.
+The assembled emitted-Lua probe passes fourteen groups with zero errors or
+warnings; the normal simulation suite passes 592/592 with one existing
+unused-import warning. Evidence:
+smashcraft:build/analog-precision-integration.log and
+smashcraft:build/analog-normal-integration.log.
+
 ## Flat-ground displacement and shield-motion arithmetic — 2026-10-04
 
 Ordinary flat-ground displacement now rounds self movement, launch and attacker

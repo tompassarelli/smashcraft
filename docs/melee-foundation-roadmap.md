@@ -41,7 +41,7 @@ It also includes retail launch stacking, damage-level selection, grounded
 movement, rebound and test-arena surface recovery. These implementations do not
 establish full parity or complete collision geometry.
 
-The assembled simulation passes 534/534 normal Wurstunit checks. The
+The assembled simulation passes 592/592 normal Wurstunit checks. The
 generated-Lua production probe passes selected grounded-friction, shield regen,
 shield damage, shield-contact accumulation and fused shieldstun boundaries,
 plus 22 composed ground-motion cases and four shield-entry overwrite cases.
@@ -55,8 +55,12 @@ the earlier fixture's incorrect vertical recoil composition has been repaired.
 Ordinary/fixed launch arithmetic now matches 50 original outputs and 150
 crouch/charge adjustments exactly in emitted Lua; the previous calculation
 failed 34/50 magnitude comparisons. Existing hitstun duration and damage levels
-match 23 original boundary observations without a formula change. The assembled
-precision check passes twelve groups. Other formula rounding, analog shields, powershields,
+match 23 original boundary observations without a formula change. Capped hitlag
+matches 52 original ordinary/electric/crouching observations. Analog pressure
+now reaches drain, contact damage/stun/pushback, relative visual size and replay,
+with 54 original numeric rows matching emitted Lua and four connected tests.
+See smashcraft:docs/melee-analog-shield.md for its boundaries. The assembled
+precision check passes fourteen groups. Other formula rounding, shield geometry/powershields,
 connected/sloped ECB contacts and native trajectory checks remain open.
 
 The latest physics candidate is Smashcraft 0.0.12, build melee-physics-r26,

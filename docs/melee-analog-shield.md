@@ -37,6 +37,12 @@ input/guard/contact/replay tests pass (58/58), with zero compiler errors and
 one existing unused-import warning. The fixed compiler and standard-library
 pins are unchanged. No existing test or gate was weakened.
 
+After integration, the emitted-Lua comparison matches all 54 numeric rows
+and passes all fourteen precision groups with zero compiler errors or warnings.
+The normal suite passes 592/592. Evidence:
+smashcraft:build/analog-precision-integration.log and
+smashcraft:build/analog-normal-integration.log.
+
 Still open: geometric shield coverage/pokes/tilt, powershields, physical analog
 controller capture, ordered original guard-state traces, and native Warcraft
 verification. Current contacts still use the existing whole-fighter guard rule;
