@@ -4610,7 +4610,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.downState = DOWN_TUMBLE
 	fighter.techWindow = 3
 	fighter.knockbackX = 8
-	fighter.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
+	fighter.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES - 1
 	advance(fighter, 1, input, 0)
 	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
 	fighter.surfaceWallJumpQueued.assertFalse()
