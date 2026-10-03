@@ -5,6 +5,12 @@ open it from Custom Games. The current prototype includes character and stage
 selection, three fighters, a bot opponent, floating platforms, blast zones,
 stocks, rematches, and configurable controls.
 
+For solo practice, place only your own fighter chip and press Y, then choose
+a stage and press Y again. Leave the CPU chip unplaced. Practice has no timer
+or opponent, and falling off the stage respawns you without ending the session.
+Press Y to pause, then Escape to return to fighter selection. Place the CPU
+chip before starting when you want a bot match instead.
+
 ## Menus and controls
 
 Mouse buttons and W/R + N select a fighter or stage; U goes back. Drag a
