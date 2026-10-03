@@ -1294,6 +1294,18 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	advance(allowed, 0, input, 0)
 	allowed.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
 	allowed.groundActionFrame.assertEquals(14)
+	allowed.groundTurnRunEntryFacing.assertEquals(1)
+	allowed.groundTurnRunFacingCommandLatched.assertTrue()
+	for frame = 1 to 15
+		advance(allowed, 0, input, 0)
+		if allowed.facing == 1
+			allowed.groundActionFrame.assertEquals(14)
+	allowed.facing.assertEquals(-1)
+	for frame = 1 to 20
+		if allowed.groundAction == GROUND_ACTION_TURN_RUN
+			advance(allowed, 0, input, 0)
+	allowed.groundAction.assertEquals(GROUND_ACTION_RUN)
+	allowed.groundActionFrame.assertEquals(0)
 	advance(denied, 0, input, 0)
 	denied.groundAction.assertEquals(GROUND_ACTION_RUN_BRAKE)
 	denied.groundActionFrame.assertEquals(15)
@@ -1361,6 +1373,70 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	destroy aboveThreshold
 	destroy atThreshold
 	destroy withinThreshold
+
+@Test function turnRunCompletesToWaitUnlessForwardIsHeld()
+	for directionIndex = 0 to 1
+		let fighter = new FighterState(0, 0, -1)
+		let input = new InputSnapshot()
+		input.direction = directionIndex
+		fighter.groundRules = ntscFoxGroundMovementRules()
+		fighter.groundAction = GROUND_ACTION_TURN_RUN
+		fighter.groundActionFrame = 19
+		fighter.groundTurnRunEntryFacing = 1
+		fighter.groundTurnRunFacingCommandLatched = true
+		fighter.dashFrame = INITIAL_DASH_FRAMES + 1
+		fighter.dashDirection = -1
+		fighter.vx = -3
+		advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_NONE)
+		fighter.groundActionFrame.assertEquals(0)
+		destroy input
+		destroy fighter
+
+@Test function retailRunBrakeEndsAtClipOrMaximumFrameCount()
+	for rig = 0 to 2
+		let fighter = new FighterState(0, 0, 1)
+		let input = new InputSnapshot()
+		if rig == 0
+			fighter.groundRules = ntscFoxGroundMovementRules()
+		else if rig == 1
+			fighter.groundRules = ntscFalcoGroundMovementRules()
+		else
+			fighter.groundRules = ntscCaptainFalconGroundMovementRules()
+		let clipEnd = rig == 2 ? 28 : 18
+		fighter.groundAction = GROUND_ACTION_RUN_BRAKE
+		fighter.groundRunBrakeFramesRemaining = fighter.groundRules.runBrakeMaximumFrames
+		fighter.dashFrame = INITIAL_DASH_FRAMES + 1
+		fighter.dashDirection = 1
+		fighter.vx = 0.4
+		input.direction = 1
+		for frame = 1 to clipEnd - 1
+			advance(fighter, 0, input, 0)
+			fighter.groundAction.assertEquals(GROUND_ACTION_RUN_BRAKE)
+			fighter.groundRunBrakeFramesRemaining.assertEquals(30 - frame)
+		advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_NONE)
+		fighter.groundRunBrakeFramesRemaining.assertEquals(0)
+		destroy input
+		destroy fighter
+	let capped = new FighterState(0, 0, 1)
+	let capInput = new InputSnapshot()
+	capped.groundRules = ntscFoxGroundMovementRules()
+	capped.groundRules.runBrakeAnimationEndFrame = 40
+	capped.groundAction = GROUND_ACTION_RUN_BRAKE
+	capped.groundRunBrakeFramesRemaining = 30
+	capped.dashFrame = INITIAL_DASH_FRAMES + 1
+	capped.dashDirection = 1
+	capped.vx = 0.4
+	capInput.direction = 1
+	for frame = 1 to 29
+		advance(capped, 0, capInput, 0)
+		capped.groundAction.assertEquals(GROUND_ACTION_RUN_BRAKE)
+	advance(capped, 0, capInput, 0)
+	capped.groundAction.assertEquals(GROUND_ACTION_NONE)
+	capped.groundRunBrakeFramesRemaining.assertEquals(0)
+	destroy capInput
+	destroy capped
 
 @Test function initialDashReversalRestartsWindowIncludingAcrossNeutral()
 	for character = 0 to 1

@@ -71,6 +71,7 @@ import MatchStep
     first.groundRules = ntscCaptainFalconGroundMovementRules()
     first.groundAction = GROUND_ACTION_TURN_RUN
     first.groundActionFrame = 8
+    first.groundRunBrakeFramesRemaining = 12
     first.groundTurnRunEntryFacing = 1
     first.groundTurnRunFacingCommandLatched = true
     first.hitlag = 3
@@ -121,6 +122,7 @@ import MatchStep
     first.groundRules = authoredGroundMovementRules()
     first.groundAction = GROUND_ACTION_NONE
     first.groundActionFrame = 0
+    first.groundRunBrakeFramesRemaining = 0
     first.groundTurnRunEntryFacing = 0
     first.groundTurnRunFacingCommandLatched = false
     first.shieldBreakState = SHIELD_BREAK_NONE
@@ -170,8 +172,11 @@ import MatchStep
     first.groundRules.turnRunFacingCommandFrame.assertEquals(9)
     first.groundRules.turnRunAnimationEndFrame.assertEquals(22)
     first.groundRules.runBrakeTurnCommandEndFrame.assertEquals(15)
+    first.groundRules.runBrakeAnimationEndFrame.assertEquals(28)
+    first.groundRules.runBrakeMaximumFrames.assertEquals(30)
     first.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
     first.groundActionFrame.assertEquals(8)
+    first.groundRunBrakeFramesRemaining.assertEquals(12)
     first.groundTurnRunEntryFacing.assertEquals(1)
     first.groundTurnRunFacingCommandLatched.assertTrue()
     first.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
@@ -404,17 +409,22 @@ import MatchStep
     expected.first.groundRules = ntscCaptainFalconGroundMovementRules()
     expected.first.groundAction = GROUND_ACTION_TURN_RUN
     expected.first.groundActionFrame = 8
+    expected.first.groundRunBrakeFramesRemaining = 12
     expected.first.groundTurnRunEntryFacing = 1
     expected.first.groundTurnRunFacingCommandLatched = true
     actual.first.groundRules = ntscCaptainFalconGroundMovementRules()
     actual.first.groundAction = GROUND_ACTION_TURN_RUN
     actual.first.groundActionFrame = 8
+    actual.first.groundRunBrakeFramesRemaining = 12
     actual.first.groundTurnRunEntryFacing = 1
     actual.first.groundTurnRunFacingCommandLatched = true
     expected.firstDifference(actual).assertEquals("")
     actual.first.groundActionFrame = 9
     expected.firstDifference(actual).assertEquals("first.groundActionFrame")
     actual.first.groundActionFrame = 8
+    actual.first.groundRunBrakeFramesRemaining = 11
+    expected.firstDifference(actual).assertEquals("first.groundRunBrakeFramesRemaining")
+    actual.first.groundRunBrakeFramesRemaining = 12
     actual.first.groundAction = GROUND_ACTION_RUN_BRAKE
     expected.firstDifference(actual).assertEquals("first.groundAction")
     actual.first.groundAction = GROUND_ACTION_TURN_RUN
@@ -425,6 +435,12 @@ import MatchStep
     expected.firstDifference(actual).assertEquals("first.groundRules")
     actual.first.groundRules = ntscCaptainFalconGroundMovementRules()
     actual.first.groundRules.runBrakeTurnCommandEndFrame = 14
+    expected.firstDifference(actual).assertEquals("first.groundRules")
+    actual.first.groundRules = ntscCaptainFalconGroundMovementRules()
+    actual.first.groundRules.runBrakeAnimationEndFrame = 27
+    expected.firstDifference(actual).assertEquals("first.groundRules")
+    actual.first.groundRules = ntscCaptainFalconGroundMovementRules()
+    actual.first.groundRules.runBrakeMaximumFrames = 29
     expected.firstDifference(actual).assertEquals("first.groundRules")
     actual.first.groundRules = ntscCaptainFalconGroundMovementRules()
     actual.first.groundRules.turnRunAnimationEndFrame = 21

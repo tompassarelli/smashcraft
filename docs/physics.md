@@ -656,11 +656,15 @@ flips facing, then the remaining animation frames run before the action returns
 to Run. RunBrake's command check does not make forward input enter Run;
 opposite input can enter TurnRun at RunBrake's current animation frame. Original
 Smashcraft fighters keep authored timing (currently 11/9/20/15); this is not
-asserted as retail parity.
+asserted as retail parity. NTSC RunBrake ends when its animation clip ends or
+its 30-frame fighter countdown expires, whichever comes first. The recorded
+clip lengths are 18 frames for Fox/Falco and 28 for Captain Falcon. TurnRun
+completion enters Run only while forward input remains held; otherwise it
+returns to Wait.
 Exact event-to-simulation-tick scheduling, Dash opposite-input priority,
-animation rate interactions, run-entry delay, and RunBrake end conditions
-still need paired retail traces. Replay capture and equality include all
-ground-action clocks and actor rule values.
+animation rate interactions, and run-entry delay still need paired retail
+traces. Replay capture and equality include all ground-action clocks, the
+RunBrake countdown, and actor rule values.
 
 The walk modifier immediately selects the existing 1.6/1.4 walk speeds and
 clears the dash phase; releasing it starts a fresh initial dash. Jumps, shields,

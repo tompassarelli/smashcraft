@@ -23,9 +23,12 @@ function copyFighter(FighterState source, FighterState destination,
 		source.groundRules.dashRunEnableFrame,
 		source.groundRules.turnRunFacingCommandFrame,
 		source.groundRules.turnRunAnimationEndFrame,
-		source.groundRules.runBrakeTurnCommandEndFrame)
+		source.groundRules.runBrakeTurnCommandEndFrame,
+		source.groundRules.runBrakeAnimationEndFrame,
+		source.groundRules.runBrakeMaximumFrames)
 	destination.groundAction = source.groundAction
 	destination.groundActionFrame = source.groundActionFrame
+	destination.groundRunBrakeFramesRemaining = source.groundRunBrakeFramesRemaining
 	destination.groundTurnRunEntryFacing = source.groundTurnRunEntryFacing
 	destination.groundTurnRunFacingCommandLatched = source.groundTurnRunFacingCommandLatched
 	destination.x = source.x
@@ -236,6 +239,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "groundAction"
 	if expected.groundActionFrame != actual.groundActionFrame
 		return "groundActionFrame"
+	if expected.groundRunBrakeFramesRemaining != actual.groundRunBrakeFramesRemaining
+		return "groundRunBrakeFramesRemaining"
 	if expected.groundTurnRunEntryFacing != actual.groundTurnRunEntryFacing
 		return "groundTurnRunEntryFacing"
 	if expected.groundTurnRunFacingCommandLatched != actual.groundTurnRunFacingCommandLatched
