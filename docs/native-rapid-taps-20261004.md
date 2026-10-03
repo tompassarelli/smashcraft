@@ -17,6 +17,14 @@ assigned targets, simulation progress and presentation state in native game time
 | --- | --- | --- | --- | --- |
 | Requested 4 ms hold, 80 ms neutral interval | 20 | 114 | 2 / 2 | Combat throughout |
 | Requested 40 ms hold, 80 ms neutral interval | 20 | 159 | 20 / 20 | Combat throughout |
+| Repeated short trial with XInput2 raw observation | 20 | 115 | 3 / 3 | Combat throughout |
+
+The repeated short trial observed all 20 Q presses and 20 releases at the
+Xwayland raw-event boundary. Paired X11 timestamps measure actual holds of
+4–5 ms, mean 4.3 ms (0.24–0.30 simulation frames). Thus the missing pairs lie
+after the observed X11 boundary and before the native polled input history.
+This does not yet isolate Wine handling from Warcraft servicing. The X11 clock
+was used only for same-server hold intervals, not compared to native game time.
 
 At 60 Hz, requested holds are approximately 0.24 and 2.4 simulation frames;
 neutral intervals are 4.8 frames. These are requested XTEST durations, not
@@ -78,3 +86,6 @@ Private authored diagnostics:
 contains short-page0.txt, long-page0.txt and long-page1.txt. Run2 is short; run3
 is long. Count pressed/released bit 256 in the B rows. The second long page
 contains its final nine rows. No credentials or proprietary assets are included.
+The repeated short trial is run4 in x11-short-native-page0.txt; corresponding
+XInput2 events are in x11-short-events.txt. Select RawKeyPress/RawKeyRelease,
+detail 24, and pair their X11 timestamps; do not double-count ordinary key events.
