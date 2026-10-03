@@ -76,3 +76,9 @@ already did so. The production collision case verifies friction against opposing
 stick input, followed by a jump interrupt restoring normal drift. All seven
 WallTech cases passed. Complete priority among simultaneous interrupt inputs
 remains unverified.
+
+The assembled primary tree at `872a370` passed the normal `Tests` filter:
+490/490, zero compiler errors and one existing unused-import warning. Evidence:
+smashcraft:build/physics-r10-aggregate.log. This includes the ceiling and wall
+completion/input cases and deterministic replay checks, but excludes the ongoing
+RunBrake follow-up and does not establish native or independent trace parity.
