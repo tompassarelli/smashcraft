@@ -380,3 +380,26 @@ native test fixture; it does not launch Warcraft or initialize the map UI.
 This closes those numerical operations, not the full precision gap. Other
 movement/launch operations, PowerPC fused-operation order, world-unit conversion
 boundaries, complete contact geometry, and native trajectory checks remain open.
+
+Retail shield damage accumulates unscaled contacts before applying the shared
+factor once. The digital factor is the binary32 value 0.699999988079071,
+derived from the retail lightshield endpoint 0.30000001192092896. Selected
+endpoints are recorded in smashcraft:docs/smash-melee-reference/retail-shield-damage-endpoints.json.
+The production contact accumulator now follows that order and rounds both the
+sum and scaled damage to binary32. A pair of contacts with damage 9 and 1 takes
+shield health from 8 to exactly 1; scaling each contact first gives a different
+binary32 result. That focused case failed before the change and passes 1/1
+afterward (smashcraft:build/shield-sum-before.log and
+smashcraft:build/shield-sum-after.log). The generated-Lua probe failed on the
+nine-damage scalar before the change and now passes the scalar and production
+contact-sum checks (smashcraft:build/shield-damage-lua-before.log and
+smashcraft:build/shield-damage-lua-after.log), with zero compile errors/warnings.
+
+The private revision-identified executable also confirms fused single-precision
+subtractions for both airborne knockback axes, following atan2f and cosf/sinf.
+The current radial rescaling is mathematically equivalent but does not preserve
+that operation order. Instruction-kind checks and the decay value are retained
+in smashcraft:docs/smash-melee-reference/retail-air-decay-operations.json.
+Airborne precision remains open pending a reusable fused arithmetic primitive,
+matching trigonometric results, and trajectory verification. No executable
+bytes or proprietary assets are retained in these records.

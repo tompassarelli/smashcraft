@@ -609,6 +609,20 @@ function recordedGroundedDamageFirstDifference(int character, real velocityOffse
 	digitalShieldPushback(1000.).assertEquals(2. * 6, 0.0001)
 	digitalShieldRecoil(4.).assertEquals(0.3 * 6, 0.0001)
 
+@Test function retailShieldDamageScalesTheAccumulatedContactsOnce()
+	let attacker = new FighterState(0, 0, 1)
+	let defender = new FighterState(1, 100, -1)
+	defender.shield = true
+	defender.shieldEnergy = 8
+	beginDamageContacts()
+	queueDamageContact(attacker, defender, hitEffect(9, 0, 0, 0, 0, false), 1, CONTACT_DAMAGE_ONLY, false, null)
+	queueDamageContact(attacker, defender, hitEffect(1, 0, 0, 0, 0, false), 1, CONTACT_DAMAGE_ONLY, false, null)
+	finishDamageContacts(attacker, defender)
+	defender.shieldEnergy.assertEquals(1.)
+	defender.shield.assertTrue()
+	destroy defender
+	destroy attacker
+
 function recordedShieldAttackerPosition(int frame) returns real
 	if frame < 4
 		return 38.56430435180664

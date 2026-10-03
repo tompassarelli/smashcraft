@@ -83,7 +83,7 @@ constant real SHIELD_DRAIN_PER_FRAME = SHIELD_DRAIN_BASE * SHIELD_DRAIN_FULL_SHI
 constant real SHIELD_REGEN_PER_FRAME = 0.07000000029802322
 constant real SHIELD_DAMAGE_SCALE = 1.
 constant real SHIELD_DAMAGE_BASE = 0.
-constant real SHIELD_DIGITAL_DAMAGE_FACTOR = 0.7
+constant real SHIELD_DIGITAL_DAMAGE_FACTOR = 0.699999988079071
 constant real SHIELD_STUN_DAMAGE_FACTOR = 0.3
 constant real SHIELD_STUN_MULTIPLIER = 1.5
 constant real SHIELD_STUN_BASE = 2.
@@ -756,7 +756,7 @@ public function digitalShieldRecoil(real damage) returns real
 	return (integerHitPower(damage) * SHIELD_RECOIL_DAMAGE_FACTOR + SHIELD_RECOIL_BASE) * WORLD_UNITS_PER_MELEE_UNIT
 
 public function digitalShieldDamage(real damage) returns real
-	return damage * SHIELD_DIGITAL_DAMAGE_FACTOR * SHIELD_DAMAGE_SCALE + SHIELD_DAMAGE_BASE
+	return (damage * SHIELD_DIGITAL_DAMAGE_FACTOR * SHIELD_DAMAGE_SCALE + SHIELD_DAMAGE_BASE).roundToFloat32()
 
 function decayShieldMotion(FighterState f)
 	if f.grounded
@@ -1358,7 +1358,7 @@ function resolveDamageContacts(FighterState target)
 		if contact.target == target
 			if contact.blocked
 				blockedContact = true
-				shieldDamage += digitalShieldDamage(contact.data.damage)
+				shieldDamage = (shieldDamage + contact.data.damage).roundToFloat32()
 			else
 				totalDamage += contact.data.damage
 	let postHitPercent = R2I(max(0, target.damage)) + totalDamage
@@ -1409,7 +1409,7 @@ function resolveDamageContacts(FighterState target)
 	if blockedContact
 		target.shieldVisualSerial++
 	if shieldDamage > 0
-		target.shieldEnergy = (target.shieldEnergy - shieldDamage).roundToFloat32()
+		target.shieldEnergy = (target.shieldEnergy - digitalShieldDamage(shieldDamage)).roundToFloat32()
 	if shieldPushback > 0 and target.grounded
 		target.shieldPushbackX = shieldDirection * shieldPushback
 		target.shieldDrainResumePending = true

@@ -17,5 +17,21 @@ init
         BJDebugMsg("SHIELD_REGEN_BINARY32_EXACT_PASS")
     else
         BJDebugMsg("SHIELD_REGEN_BINARY32_EXACT_FAIL")
+    if digitalShieldDamage(9.) == 6.299999713897705
+        BJDebugMsg("SHIELD_DAMAGE_BINARY32_EXACT_PASS")
+    else
+        BJDebugMsg("SHIELD_DAMAGE_BINARY32_EXACT_FAIL")
+    let attacker = new FighterState(1, 100, -1)
+    fighter.shield = true
+    fighter.shieldEnergy = 8
+    beginDamageContacts()
+    queueDamageContact(attacker, fighter, hitEffect(9, 0, 0, 0, 0, false), 1, CONTACT_DAMAGE_ONLY, false, null)
+    queueDamageContact(attacker, fighter, hitEffect(1, 0, 0, 0, 0, false), 1, CONTACT_DAMAGE_ONLY, false, null)
+    finishDamageContacts(attacker, fighter)
+    if fighter.shieldEnergy == 1.
+        BJDebugMsg("SHIELD_CONTACT_SUM_BINARY32_EXACT_PASS")
+    else
+        BJDebugMsg("SHIELD_CONTACT_SUM_BINARY32_EXACT_FAIL")
+    destroy attacker
     destroy input
     destroy fighter

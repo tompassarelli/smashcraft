@@ -1,0 +1,39 @@
+{
+  "id": "retail-ntsc-1.02-shield-damage-endpoints",
+  "sourceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "source": "melee:src/melee/ft/fighter.c",
+  "commonDataSha256": "63841336337eb5a7366b06ccc60ea4bd37c3604ab56e19939d78b9aa9cdd234c",
+  "root": "ftLoadCommonData (pointer indirection)",
+  "values": [
+    {
+      "offset": "0x2DC",
+      "field": "x2DC",
+      "value": 0.10000000149011612,
+      "bits": "0x3dcccccd"
+    },
+    {
+      "offset": "0x2E0",
+      "field": "x2E0",
+      "value": 0.30000001192092896,
+      "bits": "0x3e99999a"
+    }
+  ],
+  "digitalShield": {
+    "lightshieldAmount": 1,
+    "damageFactor": 0.699999988079071,
+    "contactOrder": "Accumulate unscaled shield-contact damage, then apply the shared damage factor once, then subtract from shield health.",
+    "example": {
+      "contactDamage": [
+        9,
+        1
+      ],
+      "initialHealth": 8,
+      "scaledDamage": 7,
+      "finalHealth": 1
+    }
+  },
+  "limitations": [
+    "Analog shield input and powershield branches remain unimplemented.",
+    "This records values and operation order, not native map behavior."
+  ]
+}

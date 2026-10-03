@@ -32,7 +32,8 @@ BJDebugMsg = function(message)
     print(message)
 end
 init_NumericalPrecisionProbe()
-assert(results.GROUNDED_BINARY32_EXACT_PASS and results.SHIELD_REGEN_BINARY32_EXACT_PASS,
+assert(results.GROUNDED_BINARY32_EXACT_PASS and results.SHIELD_REGEN_BINARY32_EXACT_PASS
+    and results.SHIELD_DAMAGE_BINARY32_EXACT_PASS and results.SHIELD_CONTACT_SUM_BINARY32_EXACT_PASS,
     'Missing numerical precision result')
 LUA
 nix shell nixpkgs#lua5_3 --command lua "$output_dir/run-precision.lua" "$project_dir" \

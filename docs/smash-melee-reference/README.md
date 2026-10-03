@@ -18,6 +18,13 @@ exact binary32 values and the newly recovered movement, launch-stacking,
 tumble, bounce and grounded-friction constants. This comparison verifies the
 selected values rather than every behavior of the source game.
 
+Additional targeted retail facts are in
+smashcraft:docs/smash-melee-reference/retail-shield-damage-endpoints.json and
+smashcraft:docs/smash-melee-reference/retail-air-decay-operations.json. The first
+records shield-damage endpoints and accumulation order. The second identifies
+single-precision fused operations in airborne knockback decay; it does not
+establish matching trigonometric outputs or a native trajectory.
+
 The recorded Falco fall fixture is in
 smashcraft:docs/smash-melee-reference/slippi-ntsc-falco-fall.json. Its ten
 neutral fall positions come from a public Slippi recording rather than the
