@@ -219,8 +219,8 @@ public class SelectionPanel
         opponentName.setAbsPoint(FRAMEPOINT_TOPLEFT, opponentCardX + 0.008, 0.116)
         opponentName.setSize(0.144, 0.020)
         opponentStatus = createTextFrame("MeleeOpponentStatus" + suffix, GAME_UI, 414 + frameOffset)
-        opponentStatus.setAbsPoint(FRAMEPOINT_TOPLEFT, opponentCardX + 0.014, 0.093)
-        opponentStatus.setSize(0.132, 0.014)
+        opponentStatus.setAbsPoint(FRAMEPOINT_TOPLEFT, opponentCardX + 0.014, 0.105)
+        opponentStatus.setSize(0.132, 0.028)
         BlzFrameSetFont(opponentStatus, "Fonts\\FRIZQT__.TTF", 0.011, 0)
         BlzFrameSetTextAlignment(opponentStatus, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
 
@@ -441,13 +441,13 @@ public class SelectionPanel
         firstChoiceName.setTexture(characterNameTexture(0), 0, true)
         secondChoiceName.setTexture(characterNameTexture(1), 0, true)
         thirdChoiceName.setTexture(characterNameTexture(2), 0, true)
-        let allReady = ready and opponentReady
-        confirmLabel.setText(allReady ? "Start [Y]" : "Place your chip")
+        let allReady = ready and (opponentReady or not opponentHuman)
+        confirmLabel.setText(allReady ? (opponentReady ? "Start [Y]" : "Practice [Y]") : "Place your chip")
         settingsLabel.setText("CONTROLS  [F1]")
         playerOneTag.setText("|cffffefcfHMN|r")
         playerTwoTag.setText(opponentHuman ? "|cffd9e8ffHMN|r" : "|cffd9e8ffCPU|r")
         selectedStatus.setText(ready ? (participantId == 0 ? "P1" : "P2") : "Choose fighter")
-        opponentStatus.setText(opponentReady ? (opponentHuman ? (participantId == 0 ? "P2" : "P1") : "CP") : "Choose fighter")
+        opponentStatus.setText(opponentReady ? (opponentHuman ? (participantId == 0 ? "P2" : "P1") : "CP") : (opponentHuman ? "Choose fighter" : "Choose an opponent\nto fight"))
         if ready
             selectedName.setTexture(characterNameTexture(choice), 0, true)
             selectedPortrait.setTexture(choice == 2 ? "war3mapImported\\DemonHunterPortrait.tga" : (choice == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga"), 0, true)

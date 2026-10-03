@@ -59,6 +59,7 @@ public class StagePanel
     int lastChoice = -1
     int lastStocks = -1
     int lastMinutes = -1
+    boolean lastPractice = false
 
     construct(StageActions actions)
         this.actions = actions
@@ -126,10 +127,11 @@ public class StagePanel
             previewName.setText(stageName(game.stageChoice))
             previewDescription.setText(game.stageChoice == 0 ? "One open platform.\nRoom to fight, nowhere to hide." : "A broad deck and two raised bridges.\nTake the high ground or fight below.")
             lastChoice = game.stageChoice
-        if lastStocks != game.stockCount or lastMinutes != game.timeLimitMinutes
-            ruleLabel.setText(I2S(game.stockCount) + " Stock  ·  " + (game.timeLimitMinutes == 0 ? "No time limit" : I2S(game.timeLimitMinutes) + ":00"))
+        if lastStocks != game.stockCount or lastMinutes != game.timeLimitMinutes or lastPractice != game.practiceSelected()
+            ruleLabel.setText(game.practiceSelected() ? "Practice · No time limit" : I2S(game.stockCount) + " Stock  ·  " + (game.timeLimitMinutes == 0 ? "No time limit" : I2S(game.timeLimitMinutes) + ":00"))
             lastStocks = game.stockCount
             lastMinutes = game.timeLimitMinutes
+            lastPractice = game.practiceSelected()
         let width = I2R(BlzGetLocalClientWidth())
         let height = I2R(BlzGetLocalClientHeight())
         var x = stageTileLeft(game.stageChoice) + 0.071

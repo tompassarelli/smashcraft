@@ -6,11 +6,15 @@ import CombatInput
 
 public function initializeMatchFighters(MatchState game, FighterState first, FighterState second)
     first.stocks = game.stockCount
-    second.stocks = game.stockCount
+    second.stocks = game.practice ? 0 : game.stockCount
+    second.out = game.practice
 
 public function stepMatch(MatchState game, FighterState first, FighterState second, InputSnapshot firstInput, InputSnapshot secondInput, AttackBuffer firstCommands, AttackBuffer secondCommands, int frame)
     if game.phase != MATCH
         return
+    let firstWasOut = first.out
+    if game.practice
+        secondCommands.clear()
     let firstGrab = inGrabContext(first)
     let secondGrab = inGrabContext(second)
     if firstGrab
@@ -53,6 +57,9 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
         firstCommands.clear()
     if inGrabContext(second)
         secondCommands.clear()
+    if game.practice and first.out and not firstWasOut
+        first.stocks = game.stockCount
+        first.respawn = 60
     game.resolveStocks(first.stocks, second.stocks)
     game.advanceClock(first.stocks, first.damage, second.stocks, second.damage)
 

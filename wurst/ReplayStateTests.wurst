@@ -5,6 +5,36 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function practiceMatchReplayRestoresModeAndDetectsDifference()
+    let game = new MatchState()
+    game.selectCharacter(0, 0)
+    game.requestStageSelect(0)
+    game.requestStart(0)
+    let first = new FighterState(0, -240, 1)
+    let second = new FighterState(1, 240, -1)
+    initializeMatchFighters(game, first, second)
+    let commands = new AttackBuffer(0)
+    let otherCommands = new AttackBuffer(0)
+    let runtime = new ReplayRuntimeState()
+    let snapshot = new ReplaySnapshot()
+    let actual = new ReplaySnapshot()
+    snapshot.capture(first, second, game, commands, otherCommands, runtime)
+    game.practice = false
+    actual.capture(first, second, game, commands, otherCommands, runtime)
+    snapshot.firstDifference(actual).assertEquals("match.practice")
+    snapshot.restore(first, second, game, commands, otherCommands, runtime)
+    game.practice.assertTrue()
+    actual.capture(first, second, game, commands, otherCommands, runtime)
+    snapshot.firstDifference(actual).assertEquals("")
+    destroy actual
+    destroy snapshot
+    destroy runtime
+    destroy otherCommands
+    destroy commands
+    destroy second
+    destroy first
+    destroy game
+
 @Test function rematchCanReuseFirstFrameRecord()
     let row = new MatchFrameInput()
     let firstInput = new InputSnapshot()

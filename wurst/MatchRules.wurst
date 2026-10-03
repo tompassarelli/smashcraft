@@ -26,6 +26,7 @@ public class MatchState
     int timeLimitMinutes = 7
     int remainingFrames = 7 * 60 * MATCH_TICKS_PER_SECOND
     boolean timedOut = false
+    boolean practice = false
     boolean firstCharacterReady = false
     boolean secondCharacterReady = false
     boolean firstRematchReady = false
@@ -42,6 +43,7 @@ public class MatchState
         destination.timeLimitMinutes = timeLimitMinutes
         destination.remainingFrames = remainingFrames
         destination.timedOut = timedOut
+        destination.practice = practice
         destination.firstCharacterReady = firstCharacterReady
         destination.secondCharacterReady = secondCharacterReady
         destination.firstRematchReady = firstRematchReady
@@ -79,7 +81,10 @@ public class MatchState
         secondCharacterReady = true
 
     function allCharactersReady() returns boolean
-        return firstCharacterReady and secondCharacterReady
+        return firstCharacterReady and (humanCount == 1 or secondCharacterReady)
+
+    function practiceSelected() returns boolean
+        return humanCount == 1 and not secondCharacterReady
 
     function unreadyCharacter(int slot)
         if phase != CHARACTER_MENU or slot < 0 or slot >= humanCount
@@ -127,8 +132,16 @@ public class MatchState
             return false
         winner = -1
         timedOut = false
-        remainingFrames = timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND
+        practice = practiceSelected()
+        remainingFrames = practice ? 0 : timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND
         phase = MATCH
+        return true
+
+    function leavePractice(int slot) returns boolean
+        if phase != MATCH or not practice or slot != 0
+            return false
+        phase = CHARACTER_MENU
+        practice = false
         return true
 
     function confirmRematch(int slot) returns boolean
@@ -146,13 +159,13 @@ public class MatchState
         return false
 
     function resolveStocks(int firstStocks, int secondStocks)
-        if phase != MATCH or (firstStocks > 0 and secondStocks > 0)
+        if phase != MATCH or practice or (firstStocks > 0 and secondStocks > 0)
             return
         winner = firstStocks <= 0 ? (secondStocks <= 0 ? -1 : 1) : 0
         phase = RESULT
 
     function advanceClock(int firstStocks, real firstDamage, int secondStocks, real secondDamage)
-        if phase != MATCH or timeLimitMinutes == 0
+        if phase != MATCH or practice or timeLimitMinutes == 0
             return
         remainingFrames--
         if remainingFrames > 0

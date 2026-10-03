@@ -2488,8 +2488,8 @@ public function beginAttackPair(FighterState first, FighterState second, int fir
 	let secondGroundAttack = secondAction >= 0 and secondAction <= 10 and secondAction != 1 or secondAction == DEMONHUNTER_DASH_ATTACK_STYLE
 	let firstAerial = isAerialAttack(firstAction)
 	let secondAerial = isAerialAttack(secondAction)
-	let firstEligible = (firstGroundAttack and first.grounded or firstAction == 1 or firstAerial and not first.grounded) and canStartAttackStyle(first, firstAction) and not second.out
-	let secondEligible = (secondGroundAttack and second.grounded or secondAction == 1 or secondAerial and not second.grounded) and canStartAttackStyle(second, secondAction) and not first.out
+	let firstEligible = (firstGroundAttack and first.grounded or firstAction == 1 or firstAerial and not first.grounded) and canStartAttackStyle(first, firstAction)
+	let secondEligible = (secondGroundAttack and second.grounded or secondAction == 1 or secondAerial and not second.grounded) and canStartAttackStyle(second, secondAction)
 	if firstEligible
 		beginAttack(first, firstAction, firstMayCharge)
 	if secondEligible

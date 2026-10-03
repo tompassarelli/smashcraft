@@ -397,7 +397,7 @@ function announce(string message)
 
 function loseStock(Fighter f)
     ShowUnit(f.body, false)
-    if f.stocks > 0
+    if f.stocks > 0 and not matchState.practice
         announce(f == playerFighter ? "Player 1 lost a stock!" : (twoHumanPlayers ? "Player 2 lost a stock!" : "Opponent lost a stock!"))
 
 function attack(Fighter attacker, Fighter target, int style)
@@ -551,6 +551,7 @@ function startMatch()
     playerAirDodgeQueued = false
     makePreview()
     initializeMatchFighters(matchState, playerFighter, botFighter)
+    ShowUnit(botFighter.body, not matchState.practice)
     drawStage()
     if wasPaused
         pauseMatchPresentation(false)
@@ -751,6 +752,13 @@ function onParticipantKeyDown(int participantId)
         return
     if key == OSKEY_ESCAPE and matchState.phase == STAGE_MENU
         back(participantId)
+        return
+    if key == OSKEY_ESCAPE and matchControls.isPaused() and matchState.leavePractice(participantId)
+        matchControls.resume()
+        statusText = ""
+        statusTime = 0
+        makePreview()
+        pauseMatchPresentation(false)
         return
     if matchState.phase == MATCH and matchControls.isPaused()
         return
@@ -1415,8 +1423,8 @@ function renderUI()
         BlzFrameSetVisible(titleFrame, false)
         BlzFrameSetVisible(menuFrame, false)
         firstHUD.update(not selecting and not controlsOpen, playerFighter.character, playerFighter.damage, playerFighter.stocks)
-        secondHUD.update(not selecting and not controlsOpen, botFighter.character, botFighter.damage, botFighter.stocks)
-        matchClock.update(not selecting and not controlsOpen and matchState.timeLimitMinutes > 0, matchState.remainingSeconds())
+        secondHUD.update(not selecting and not controlsOpen and not matchState.practice, botFighter.character, botFighter.damage, botFighter.stocks)
+        matchClock.update(not selecting and not controlsOpen and not matchState.practice and matchState.timeLimitMinutes > 0, matchState.remainingSeconds())
         BlzFrameSetVisible(helpFrame, not selecting and not controlsOpen)
         BlzFrameSetVisible(noticeFrame, not selecting and not controlsOpen)
         BlzFrameSetVisible(developerFrame, not selecting and not controlsOpen)
@@ -1426,6 +1434,8 @@ function renderUI()
                 BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
             else if matchState.phase == MATCH and not matchControls.isPaused() and localFighter.ledgeState == LEDGE_HANG
                 BlzFrameSetText(helpFrame, "Ledge: Up or toward stage to climb; Jump to leap; Shield to roll; Attack to strike.\nDown or away from stage lets go.")
+            if matchState.practice and matchControls.isPaused()
+                BlzFrameSetText(helpFrame, "Practice paused. Y: resume. Esc: choose fighters.")
             BlzFrameSetText(noticeFrame, playerFighter != null and playerFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
     selectionPanel.update(matchState.phase, matchState.characterFor(0),
         settingsPanel != null and settingsPanel.isOpen(), true, matchState.characterReady(0),
@@ -1488,7 +1498,7 @@ function gameTick()
         botInput.specialPressed = false
         botInput.verticalDirection = 0
         botInput.ledgeVerticalPressed = 0
-        if not twoHumanPlayers and not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not LEDGE_SCENARIO and not PARRY_SCENARIO and not SPIKE_SCENARIO and not botFighter.out
+        if not twoHumanPlayers and not matchState.practice and not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not LEDGE_SCENARIO and not PARRY_SCENARIO and not SPIKE_SCENARIO and not botFighter.out
             let recovering = chooseRecoveryInput(botFighter, matchState.stageChoice, botInput)
             let gap = playerFighter.x - botFighter.x
             if not recovering and not playerFighter.out
@@ -1576,7 +1586,7 @@ function gameTick()
         if twoHumanPlayers and secondNormalAttackQueued
             let style = normalAttackStyle(secondPlayerInput.direction, secondPlayerInput.verticalDirection, secondPlayerInput.walking, botFighter.grounded and (botFighter.shield or secondPlayerInput.shield))
             secondAttackRequests.enqueue(style, secondPlayerInput.direction, frame, true)
-        if PARRY_SCENARIO and not twoHumanPlayers
+        if PARRY_SCENARIO and not twoHumanPlayers and not matchState.practice
             queueParryScenarioJab(playerInput, botFighter, secondAttackRequests, frame)
         if currentFrameInput.capture(frame,
                 playerInput, twoHumanPlayers ? secondPlayerInput : botInput,

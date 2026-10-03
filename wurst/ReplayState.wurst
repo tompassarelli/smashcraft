@@ -513,6 +513,8 @@ public class ReplaySnapshot
 			return "match.winner"
 		if match.humanCount != actual.match.humanCount
 			return "match.humanCount"
+		if match.practice != actual.match.practice
+			return "match.practice"
 		if match.stockCount != actual.match.stockCount
 			return "match.stockCount"
 		if match.timeLimitMinutes != actual.match.timeLimitMinutes

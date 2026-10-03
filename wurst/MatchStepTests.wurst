@@ -4,6 +4,75 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function practiceMatchMovesJumpsAttacksAndRespawnsWithoutOpponent()
+    for character = 0 to 2
+        let game = new MatchState()
+        game.selectCharacter(0, character)
+        game.requestStageSelect(0).assertTrue()
+        game.setStocks(0, 1)
+        game.setTimeLimit(0, 1)
+        game.requestStart(0).assertTrue()
+        let first = new FighterState(character, -240, 1)
+        let second = new FighterState(1, 240, -1)
+        initializeMatchFighters(game, first, second)
+        let input = new InputSnapshot()
+        let otherInput = new InputSnapshot()
+        let commands = new AttackBuffer(0)
+        let otherCommands = new AttackBuffer(0)
+        second.out.assertTrue()
+        second.stocks.assertEquals(0)
+        commands.enqueue(0, 0, 1, false)
+        otherCommands.enqueue(0, 0, 1, false)
+        stepMatch(game, first, second, input, otherInput, commands, otherCommands, 1)
+        first.attackSerial.assertEquals(1)
+        second.attackSerial.assertEquals(0)
+        for frame = 2 to 90
+            stepMatch(game, first, second, input, otherInput, commands, otherCommands, frame)
+        input.direction = 1
+        for frame = 91 to 100
+            stepMatch(game, first, second, input, otherInput, commands, otherCommands, frame)
+        first.x.assertGreaterThan(-240.)
+        input.jumpPressed = true
+        input.jumpHeld = true
+        stepMatch(game, first, second, input, otherInput, commands, otherCommands, 101)
+        input.jumpPressed = false
+        for frame = 102 to 112
+            stepMatch(game, first, second, input, otherInput, commands, otherCommands, frame)
+        first.grounded.assertFalse()
+        first.z.assertGreaterThan(0.)
+        input.jumpHeld = false
+        var walkFrame = 113
+        while not first.out and walkFrame < 500
+            stepMatch(game, first, second, input, otherInput, commands, otherCommands, walkFrame)
+            walkFrame++
+        first.out.assertTrue()
+        first.stocks.assertEquals(1)
+        first.respawn.assertEquals(60)
+        game.phase.assertEquals(MATCH)
+        input.direction = 0
+        for respawnFrame = walkFrame to walkFrame + 59
+            stepMatch(game, first, second, input, otherInput, commands, otherCommands, respawnFrame)
+        first.out.assertFalse()
+        first.x.assertEquals(-240.)
+        first.damage.assertEquals(0.)
+        input.direction = 1
+        stepMatch(game, first, second, input, otherInput, commands, otherCommands, walkFrame + 60)
+        first.x.assertGreaterThan(-240.)
+        game.phase.assertEquals(MATCH)
+        game.remainingFrames.assertEquals(0)
+        game.timedOut.assertFalse()
+        second.out.assertTrue()
+        second.x.assertEquals(240.)
+        second.jumpSerial.assertEquals(0)
+        second.attackSerial.assertEquals(0)
+        destroy otherCommands
+        destroy commands
+        destroy otherInput
+        destroy input
+        destroy second
+        destroy first
+        destroy game
+
 @Test function humanDirectAttacksReachBothSlotsOnTheNextStep()
     for style = 1 to 5
         let game = new MatchState()
