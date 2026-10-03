@@ -24,3 +24,35 @@ this exact candidate in both Maps/00-Smashcraft folders, warm leave/rejoin,
 then verify controls, combat, stock loss, results and rematch. No human match,
 physical-controller response, visible correction or live frame integrity is
 claimed from compilation.
+
+
+## Native online entry and first action trace
+
+Both retained Warcraft III 3.0.0.24268 clients installed the exact hash above,
+joined sc-playable-0013, and reached selection, stage selection and the fight.
+The lobby displayed four slots under one Players group. Ready markers identify
+BUILD 1791057726, shadow-d0-r24 / pool-predicted. HUMANS 3 and FIGHTERS 3 in
+those markers are bitmasks (slots 0/1), not counts of three people. Trace reports
+two humans: slot 0 Rifleman, slot 1 Illidan, slots 2/3 empty.
+
+After an initial idle trace, a second trace was started using Ctrl+T. The driver
+waited for a new native trace-start file before concurrently injecting movement,
+attack, jump and shield holds on both private X displays. This is software input,
+not physical controller latency or a completed human fight. Both exported traces
+have zero dropped rows and agree at all six recorded confirmed frame/checksum
+pairs: 5800, 5862, 5923, 5982, 6042 and 6101. Agreement of these bounded hashes
+is not a full-state or every-frame equality proof.
+
+Each records 300 callbacks over roughly 4.99 Warcraft timer seconds. Local
+corrections occur; maximum replay depth observed is 11 frames on A and 12 on B.
+No rejected rows, speculative-step failures or rollback-window blocks appear
+in the recorded summary intervals. Do not convert callback ages or Warcraft
+clock duration into physical response time or a guaranteed wall-clock bound.
+Visible/audio correction, damage exchange, stock loss, results and rematch are
+still unaccepted. Evidence: wc3-melee:docs/native-playable-0013-evidence-20261004.
+
+Warm leave returned directly to Custom Games on this iteration; a driver that
+expected chat stopped without sending further input. Its predicate must accept
+observed Custom Games or chat before selecting the next branch. Neither session
+was restarted and no sign-in occurred. Ending state: both retained clients are
+in the running 0.0.13 fight. Preserve that state for the next native gate.
