@@ -9,7 +9,18 @@
     "0x48": 3,
     "0x4c": 20,
     "0x54": 0.75,
-    "0x58": 0.625
+    "0x58": 0.625,
+    "0x68": 3
+  },
+  "dashShieldGrabWindow": {
+    "commonOffset": "0x68",
+    "type": "float32",
+    "bits": "0x40400000",
+    "frames": 3,
+    "entryUseSite": "melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c ftCo_80091B9C",
+    "consumeUseSite": "melee:src/melee/ft/kinds/ftCommon/ftCo_Catch.c ftCo_800D8B9C",
+    "condition": "The later Dash IASA shield branch initializes this window; attack press while it remains nonzero selects CatchDash. This is distinct from the earlier dash branch's remaining-dash counter.",
+    "limit": "Production dash-grab distinction, input priority and exact entry/expiry tick ordering are not implemented or verified by this factual record."
   },
   "records": [
     {
