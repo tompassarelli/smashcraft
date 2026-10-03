@@ -159,5 +159,26 @@
         }
       ]
     }
-  ]
+  ],
+  "sources": {
+    "repository": "https://github.com/doldecomp/melee",
+    "revision": "0296f009f32f710495979d30772d8332af2d411a",
+    "license": "No gameplay implementation license established; numerical facts and field-layout observations only. No gameplay code copied or translated.",
+    "paths": [
+      "melee:src/melee/ft/types.h",
+      "melee:src/melee/ft/ftaction.c",
+      "melee:src/melee/lb/types.h",
+      "melee:src/melee/lb/lbcommand.c",
+      "melee:src/melee/ft/kinds/ftCommon/ftCo_Dash.c",
+      "melee:src/melee/ft/kinds/ftCommon/ftCo_Run.c",
+      "melee:src/melee/ft/kinds/ftCommon/ftCo_RunBrake.c"
+    ],
+    "retailHashes": {
+      "PlCo.dat": "63841336337eb5a7366b06ccc60ea4bd37c3604ab56e19939d78b9aa9cdd234c",
+      "PlFx.dat": "846b075d3379de041ecfb5504f5442484c23783422a0851851c96489d697b690",
+      "PlFc.dat": "c3c21545bff00fc1d0926f0fb3913cefedbbb7f4af1b928d2e73eed6cff5188c",
+      "PlCa.dat": "4cf61a52737d464df9298fd15573345fb3b9a15c79ab47dce4fd2e3e707917af"
+    }
+  },
+  "limit": "These facts do not verify INITIAL_DASH_FRAMES=10. Run-enable, reversal windows, braking commands and action end are separate gates; animation-frame-to-simulation-tick mapping and input priority remain required."
 }
