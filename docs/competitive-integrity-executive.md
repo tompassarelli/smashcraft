@@ -34,3 +34,10 @@ Map scheduling/buffering, the Rust helper and supported native interfaces remain
 Acceptance requires independent expected-frame boundaries and pause rules; no unexplained missing/duplicated/retargeted events or confirmed-state disagreement in the declared envelope; native contact correction in both roles; and separate presentation acceptance. Existing local response targets remain median ≤33 ms, p95 ≤50 ms, p99 ≤83 ms, without recurring unexplained >100 ms responses. A first 1,000-transition native corpus is a release gate, not a proof of universal bounds.
 
 Full evidence, failure classifications, reproduction instructions and remaining gates: wc3-melee:docs/competitive-integrity-decision.md. Complete ongoing goal: wc3-melee:docs/online-delivery-goal.md. Tracking: GitHub #21 within #16–#20. Automated development is off-monitor; no owner controller test is requested now.
+
+
+## Capture update — 4 October 2026
+
+The competitive verdict remains **HOLD**. Native numerical rollback repairs the tested F5 defense delivered four logical frames late; live correct original-frame assignment remains unverified. A controlled Linux SDL cold-start test retained 10/10 edges, but compressed 35.615065 ms of producer spacing to 0.019056 ms in capture timestamps. Warm stopped trials preserved spacing. This is a measured capture-library defect, not an established Warcraft/Battle.net limit or a measured native wrong-frame outcome. Warm-up is not a repair. Source repair and exact sdl3-src dependency consumption remain pending the Tom-owned fork decision because SDL upstream prohibits AI contributions. Physical response, common-clock/pause rules, visible/audio recovery and actual human fights remain open.
+
+Evidence: [capture-clock investigation](https://github.com/tompassarelli/smashcraft/blob/main/docs/sdl-linux-capture-clock-20261004.md), [retained counterexample](https://github.com/tompassarelli/smashcraft/blob/main/docs/controller-event-retention-20261004.md).

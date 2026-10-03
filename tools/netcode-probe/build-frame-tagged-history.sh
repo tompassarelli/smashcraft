@@ -5,11 +5,13 @@ compiler_checkout=/home/tom/code/wurst-compiler/pins/9913e1bd300c2053637d756a11b
 compiler="$project_dir/toolchain/wurstscript.jar"
 stdlib=/home/tom/code/wurst-stdlib/pins/4dfc8a0474bd
 packager="$project_dir/build/tools/map-pack"
-if [[ $# -ne 1 || ! -f "$1" ]]; then
-    echo 'Usage: wc3-melee:tools/netcode-probe/build-frame-tagged-history.sh PRIVATE_BASE_MAP' >&2
+if [[ $# -lt 1 || $# -gt 2 || ! -f "$1" ]]; then
+    echo 'Usage: wc3-melee:tools/netcode-probe/build-frame-tagged-history.sh PRIVATE_BASE_MAP [0.0.N]' >&2
     exit 2
 fi
 base_map=$(realpath -- "$1")
+version=${2:-0.0.9}
+[[ "$version" =~ ^0\.0\.[0-9]+$ ]] || { echo 'Expected a 0.0.N pre-release version.' >&2; exit 2; }
 expected_compiler_sha256=$(sed -n 's/^compilerArtifactSha256 = "\([0-9a-f]*\)"$/\1/p' "$project_dir/wurst-toolchain.lock")
 [[ $(sha256sum "$compiler" | cut -d ' ' -f1) == "$expected_compiler_sha256" ]]
 [[ $(git -C "$compiler_checkout" rev-parse HEAD) == 9913e1bd300c2053637d756a11bae8c3c8ed568f ]]
@@ -20,7 +22,7 @@ mkdir -p "$probe_root"
 probe_dir=$(mktemp -d "$probe_root/build.XXXXXX")
 mkdir -p "$probe_dir/wurst" "$probe_dir/_build/dependencies"
 build_id=$(date -u +%Y%m%dT%H%M%S%N)
-map_name='Smashcraft 0.0.9'
+map_name="Smashcraft $version"
 printf 'package ProbeInfo\npublic constant string TAGGED_BUILD = "%s"\n' "$build_id" > "$probe_dir/wurst/ProbeInfo.wurst"
 ln -s "$stdlib" "$probe_dir/_build/dependencies/wurststdlib"
 cp "$project_dir/tools/netcode-probe/FrameTaggedRecord.wurst" "$project_dir/tools/netcode-probe/FrameTaggedSyncProbe.wurst" "$probe_dir/wurst/"
