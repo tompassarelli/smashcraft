@@ -193,6 +193,18 @@
           "action": "ShieldBreakStandD",
           "assetAction": "DownStandD",
           "animationFrames": 30
+        },
+        {
+          "animationId": 242,
+          "action": "Catch",
+          "assetAction": "Catch",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 243,
+          "action": "CatchDash",
+          "assetAction": "CatchDash",
+          "animationFrames": 40
         }
       ]
     },
@@ -382,6 +394,18 @@
           "action": "ShieldBreakStandD",
           "assetAction": "DownStandD",
           "animationFrames": 30
+        },
+        {
+          "animationId": 242,
+          "action": "Catch",
+          "assetAction": "Catch",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 243,
+          "action": "CatchDash",
+          "assetAction": "CatchDash",
+          "animationFrames": 40
         }
       ]
     },
@@ -571,6 +595,18 @@
           "action": "ShieldBreakStandD",
           "assetAction": "DownStandD",
           "animationFrames": 30
+        },
+        {
+          "animationId": 242,
+          "action": "Catch",
+          "assetAction": "Catch",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 243,
+          "action": "CatchDash",
+          "assetAction": "CatchDash",
+          "animationFrames": 40
         }
       ]
     }
