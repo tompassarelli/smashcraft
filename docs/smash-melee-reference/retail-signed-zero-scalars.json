@@ -26,7 +26,7 @@
     "Original scalar routines executed under QEMU PPC750; not hardware measurements.",
     "No Gekko reciprocal-square-root estimate or full-game behavior equivalence claim.",
     "Linux default floating-point state; this loader does not run GameCube OS startup.",
-    "These outputs expose a known missing signed-zero branch in the current MeleeScalarMath implementation."
+    "Zero-result comparisons must include the IEEE sign; numeric equality alone is insufficient."
   ],
   "results": [
     {
