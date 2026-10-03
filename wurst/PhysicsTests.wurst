@@ -174,6 +174,7 @@ function falcoReferencePhysics() returns fighterPhysics
 		4.099999904632568 * 6 * 0.9399999976158142,
 		1., 0.699999988079071 * 6, 1.7000000476837158 * 6,
 		0.9399999976158142 * 6, 3.299999952316284 * 6,
+		0.20000000298023224, 0.10000000149011612,
 		0.10000000149011612, 0.019999999552965164, 3. * 6)
 
 function recordedFalcoFallPosition(int sample) returns real
@@ -306,6 +307,66 @@ function recordedFalcoDashFirstDifference(int hostCharacter, real initialSpeed) 
 @Test function recordedFalcoDashEntryUsesWalkSelfVelocityForEntryDisplacement()
 	for hostCharacter = 0 to 1
 		recordedFalcoDashEntryMatches(hostCharacter).assertTrue()
+
+// The test-only reference rig uses PlFc.dat movement values from the locally
+// identified NTSC 1.02 extraction; it never changes playable fighter defaults.
+@Test function retailWalkUsesCharacterAccelerationAndCommonTaper()
+	for hostCharacter = 0 to 1
+		let f = new FighterState(hostCharacter, 0, 1)
+		f.physics = falcoReferencePhysics()
+		let input = new InputSnapshot()
+		input.direction = 1
+		input.walking = true
+		advance(f, 0, input, 0)
+		f.vx.assertEquals(1.8, 0.00001)
+		advance(f, 0, input, 0)
+		f.vx.assertEquals(2.5071428, 0.00001)
+		advance(f, 0, input, 0)
+		f.vx.assertEquals(3.1385202, 0.00001)
+		advance(f, 0, input, 0)
+		f.vx.assertEquals(3.7022507, 0.00001)
+		destroy input
+		destroy f
+
+@Test function retailRunTapersBelowTargetAndBrakesOverspeedByCharacterFriction()
+	let belowTarget = new FighterState(0, 0, 1)
+	belowTarget.physics = falcoReferencePhysics()
+	belowTarget.vx = 0.9 * 6
+	belowTarget.dashFrame = INITIAL_DASH_FRAMES + 1
+	belowTarget.dashDirection = 1
+	let input = new InputSnapshot()
+	input.direction = 1
+	advance(belowTarget, 0, input, 0)
+	belowTarget.vx.assertEquals(5.5152, 0.00001)
+
+	let overspeed = new FighterState(0, 100, 1)
+	overspeed.physics = falcoReferencePhysics()
+	overspeed.vx = 1.9 * 6
+	overspeed.dashFrame = INITIAL_DASH_FRAMES + 1
+	overspeed.dashDirection = 1
+	advance(overspeed, 0, input, 0)
+	overspeed.vx.assertEquals(1.82 * 6, 0.00001)
+	destroy input
+	destroy belowTarget
+	destroy overspeed
+
+@Test function retailRunTurnPreservesFacingUntilGroundVelocityCrosses()
+	let f = new FighterState(0, 0, 1)
+	f.physics = falcoReferencePhysics()
+	f.vx = 1. * 6
+	f.dashFrame = INITIAL_DASH_FRAMES + 1
+	f.dashDirection = 1
+	let input = new InputSnapshot()
+	input.direction = -1
+	for tick = 1 to 8
+		advance(f, 0, input, 0)
+	f.vx.assertEquals(0.24, 0.00001)
+	f.facing.assertEquals(1)
+	advance(f, 0, input, 0)
+	f.vx.assertEquals(-0.48, 0.00001)
+	f.facing.assertEquals(-1)
+	destroy input
+	destroy f
 
 @Test function recordedNtscFalcoJumpHasFiveGroundedFramesThenRawTakeoff()
 	for hostCharacter = 0 to 1

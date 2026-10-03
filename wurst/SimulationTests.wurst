@@ -1159,18 +1159,17 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 				let input = new InputSnapshot()
 				input.direction = direction
 				input.walking = true
-				let walkSpeed = character == 0 ? 9.6 : 8.4
 				for tick = 1 to 10
 					advance(fighter, 0, input, 0)
-					fighter.vx.assertEquals(walkSpeed * direction, 0.001)
-				fighter.x.assertEquals(10 * walkSpeed * direction, 0.001)
+					(fighter.vx * direction).assertGreaterThan(0.)
+					(fighter.vx * direction).assertLessThan(fighter.physics.walkSpeed)
 				input.walking = false
 				advance(fighter, 0, input, 0)
 				fighter.vx.assertEquals(11.4 * direction, 0.001)
 				fighter.dashFrame.assertEquals(1)
 				input.walking = true
 				advance(fighter, 0, input, 0)
-				fighter.vx.assertEquals(walkSpeed * direction, 0.001)
+				(fighter.vx * direction).assertGreaterThan(0.)
 				fighter.dashFrame.assertEquals(0)
 				destroy input
 				destroy fighter
@@ -1220,7 +1219,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 		destroy input
 		destroy fighter
 
-@Test function runReversalBrakesBeforeStartingANewDash()
+@Test function runTurnUsesCharacterDashAccelerationBeforeChangingFacing()
 	for character = 0 to 1
 		for firstDirection = -1 to 1
 			if firstDirection != 0
@@ -1230,15 +1229,16 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 				for tick = 1 to 11
 					advance(fighter, 0, input, 0)
 				input.direction = -firstDirection
-				let brakingTicks = character == 0 ? 3 : 2
-				for tick = 1 to brakingTicks
+				let speed = character == 0 ? 13.2 : 9.
+				for tick = 1 to 4
 					advance(fighter, 0, input, 0)
-					fighter.vx.assertEquals(firstDirection * max(0, (character == 0 ? 13.2 : 9.) - 4.8 * tick), 0.001)
+					fighter.vx.assertEquals(firstDirection * (speed - 0.72 * tick), 0.001)
 					fighter.facing.assertEquals(firstDirection)
-				advance(fighter, 0, input, 0)
-				fighter.vx.assertEquals(-firstDirection * 11.4, 0.001)
+				for tick = 5 to 19
+					advance(fighter, 0, input, 0)
+				(fighter.vx * firstDirection).assertLessThan(0.)
 				fighter.facing.assertEquals(-firstDirection)
-				fighter.dashFrame.assertEquals(1)
+				fighter.dashFrame.assertEquals(INITIAL_DASH_FRAMES + 1)
 				destroy input
 				destroy fighter
 
@@ -1251,7 +1251,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 			advance(fighter, 0, input, 0)
 		input.direction = -1
 		advance(fighter, 0, input, 0)
-		fighter.vx.assertEquals((character == 0 ? 8.4 : 4.2), 0.001)
+		fighter.vx.assertEquals((character == 0 ? 12.48 : 8.28), 0.001)
 		fighter.facing.assertEquals(1)
 		destroy input
 		destroy fighter
@@ -1268,9 +1268,9 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	fighter.vx.assertEquals(1.12 * 6, 0.0001)
 	for tick = 1 to 12
 		advance(fighter, 0, input, 0)
-	fighter.vx.assertEquals(2.5 * 6, 0.0001)
+	fighter.vx.assertEquals(12.668, 0.0001)
 	fighter.physics.runSpeed = 4. * 6
-	fighter.vx = 3. * 6 - 0.1
+	fighter.vx = 3. * 6 + 0.2
 	advance(fighter, 0, input, 0)
 	fighter.vx.assertEquals(3. * 6, 0.0001)
 	destroy input

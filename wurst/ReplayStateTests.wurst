@@ -351,7 +351,7 @@ import MatchStep
     let expected = new ReplaySnapshot()
     let actual = new ReplaySnapshot()
     // Distinct from every roster default, so restore cannot silently reinitialize tuning.
-    first.physics = fighterPhysics(101, 2, 17, 23, 0.7, 6, 0.3, 25, 0.9, 13, 15, 8, 7, 26, 14, 29, 0.6, 5, 12, 7, 21, 0.11, 0.03, 28)
+    first.physics = fighterPhysics(101, 2, 17, 23, 0.7, 6, 0.3, 25, 0.9, 13, 15, 8, 7, 26, 14, 29, 0.6, 5, 12, 7, 21, 0.17, 0.08, 0.11, 0.03, 28)
     let assigned = first.physics
     expected.capture(first, second, match, firstCommands, secondCommands, runtime)
     first.physics = demonHunterPhysics()
@@ -393,6 +393,12 @@ import MatchStep
     expected.firstDifference(actual).assertEquals("first.physics")
     actual.first.physics = assigned
     actual.first.physics.walkSpeed += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.walkAccelerationMultiplier += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.walkAccelerationBase += 1
     expected.firstDifference(actual).assertEquals("first.physics")
     actual.first.physics = assigned
     actual.first.physics.jumpSquatFrames += 1
