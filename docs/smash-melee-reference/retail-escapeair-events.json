@@ -1,0 +1,90 @@
+{
+  "game": "Super Smash Bros. Melee NTSC 1.02 (GALE01, disc revision 2)",
+  "kind": "retail fighter animation command facts",
+  "frameClock": "Animation timeline frame encoded by synchronous and asynchronous timer commands. This records command timeline frames, not a claim about the first ordinary physics update tick.",
+  "sources": {
+    "retailData": {
+      "Fox": {
+        "file": "PlFx.dat",
+        "sha256": "846b075d3379de041ecfb5504f5442484c23783422a0851851c96489d697b690"
+      },
+      "Falco": {
+        "file": "PlFc.dat",
+        "sha256": "c3c21545bff00fc1d0926f0fb3913cefedbbb7f4af1b928d2e73eed6cff5188c"
+      },
+      "Captain Falcon": {
+        "file": "PlCa.dat",
+        "sha256": "4cf61a52737d464df9298fd15573345fb3b9a15c79ab47dce4fd2e3e707917af"
+      }
+    },
+    "decompile": {
+      "repository": "https://github.com/doldecomp/melee",
+      "revision": "0296f009f32f710495979d30772d8332af2d411a",
+      "license": "No gameplay implementation license established in the inspected checkout.",
+      "scope": "State and animation identifiers, command field layouts, and execution semantics used to interpret independently extracted retail numbers. No gameplay implementation copied or translated.",
+      "paths": [
+        "src/melee/ft/ftmotionstates.c",
+        "src/melee/ft/kinds/ftCommon/forward.h",
+        "src/melee/ft/fighter.c",
+        "src/melee/ft/ftaction.c",
+        "src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c",
+        "src/melee/lb/lbcommand.c",
+        "src/melee/lb/types.h"
+      ]
+    }
+  },
+  "indexing": {
+    "motionState": {
+      "name": "EscapeAir",
+      "id": 236
+    },
+    "animation": {
+      "submotionName": "ftCo_SM_EscapeAir",
+      "id": 44,
+      "retailAnimationNames": {
+        "Fox": "PlyFox5K_Share_ACTION_EscapeAir_figatree",
+        "Falco": "PlyFalco5K_Share_ACTION_EscapeAir_figatree",
+        "Captain Falcon": "PlyCaptain5K_Share_ACTION_EscapeAir_figatree"
+      }
+    },
+    "mapping": "Motion state 236 selects submotion/animation ID 44; the Fighter_WaitAnimData table is indexed by anim_id. The command pointer and events below were read from entry 44, not entry 236."
+  },
+  "fighters": {
+    "Fox": {
+      "events": [
+        {
+          "frame": 30,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 1,
+          "meaning": "cmd_vars[0] = 1"
+        }
+      ]
+    },
+    "Falco": {
+      "events": [
+        {
+          "frame": 30,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 1,
+          "meaning": "cmd_vars[0] = 1"
+        }
+      ]
+    },
+    "Captain Falcon": {
+      "events": [
+        {
+          "frame": 30,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 1,
+          "meaning": "cmd_vars[0] = 1"
+        }
+      ]
+    }
+  },
+  "physicsConnection": "The common EscapeAir physics callback skips its normal velocity decay when cmd_vars[0] is nonzero and takes the ft_80084DB0 path instead. This establishes the authored event frame and branch condition; conversion to an ordinary physics update number is intentionally left to scheduler evidence.",
+  "verification": {
+    "retailChecks": "The animation entry is relocation-backed in each retail DAT. The independently recorded event frame, variable index and value were checked against the private command streams; no raw command words or command pointers are retained here.",
+    "eventStreamTermination": "The privately inspected stream terminates after its recorded state-variable event.",
+    "externalBinaries": "The ISO and extracted game files remain in private local storage and are not included in this repository."
+  }
+}
