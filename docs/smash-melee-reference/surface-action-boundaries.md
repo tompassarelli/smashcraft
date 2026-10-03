@@ -106,3 +106,13 @@ can flip facing. The current boolean command latch treats a past-command entry
 as already paused. The existing frame-14 fixture checks eventual facing, but
 does not isolate that first callback. This remains a movement timing discrepancy
 to resolve before asserting retail action-clock parity.
+
+The past-command TurnRun entry discrepancy is now fixed with a separate pending
+pause state. Entry at frame 14 advances to 15 and pauses on the first subsequent
+animation callback; only a later callback evaluates the velocity condition and
+flips facing. The new production-transition case discriminates these callbacks,
+and replay capture retains the pending phase. Focused TurnRun checks passed 4/4;
+the assembled normal suite passed 493/493 with zero errors and the existing
+unused-import warning (smashcraft:build/physics-turn-pause-aggregate.log).
+This fix is not present in the previously built 0.0.5 map. Independent retail
+frame traces and native action-clock verification remain open.

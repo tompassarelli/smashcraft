@@ -31,6 +31,7 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.groundRunBrakeFramesRemaining = source.groundRunBrakeFramesRemaining
 	destination.groundTurnRunEntryFacing = source.groundTurnRunEntryFacing
 	destination.groundTurnRunFacingCommandLatched = source.groundTurnRunFacingCommandLatched
+	destination.groundTurnRunPausePending = source.groundTurnRunPausePending
 	destination.x = source.x
 	destination.z = source.z
 	destination.positionDeltaX = source.positionDeltaX
@@ -245,6 +246,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "groundTurnRunEntryFacing"
 	if expected.groundTurnRunFacingCommandLatched != actual.groundTurnRunFacingCommandLatched
 		return "groundTurnRunFacingCommandLatched"
+	if expected.groundTurnRunPausePending != actual.groundTurnRunPausePending
+		return "groundTurnRunPausePending"
 	if expected.x != actual.x
 		return "x"
 	if expected.z != actual.z

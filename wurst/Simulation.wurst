@@ -369,6 +369,7 @@ public class FighterState
 	int groundRunBrakeFramesRemaining = 0
 	int groundTurnRunEntryFacing = 0
 	boolean groundTurnRunFacingCommandLatched = false
+	boolean groundTurnRunPausePending = false
 	real x
 	real z
 	// Last completed movement step, sampled by synchronous contact resolution.
@@ -870,6 +871,7 @@ function clearDash(FighterState f)
 	f.groundRunBrakeFramesRemaining = 0
 	f.groundTurnRunEntryFacing = 0
 	f.groundTurnRunFacingCommandLatched = false
+	f.groundTurnRunPausePending = false
 
 function groundActionClockLimit(FighterState f) returns int
 	return max(max(f.groundRules.dashRunEnableFrame, f.groundRules.turnRunAnimationEndFrame),
@@ -890,6 +892,7 @@ function startTurnRun(FighterState f, int animationFrame)
 	// A nonzero animation start at/past frame 9 enters with the facing command
 	// phase active; the paused animation still waits for its velocity condition.
 	f.groundTurnRunFacingCommandLatched = animationFrame >= f.groundRules.turnRunFacingCommandFrame
+	f.groundTurnRunPausePending = f.groundTurnRunFacingCommandLatched
 	f.groundRunBrakeFramesRemaining = 0
 
 function advanceGroundActionClock(FighterState f, int direction)
@@ -904,6 +907,10 @@ function advanceGroundActionClock(FighterState f, int direction)
 		if runBrakeHasRecordedEndRules(f) and (f.groundActionFrame >= f.groundRules.runBrakeAnimationEndFrame or f.groundRunBrakeFramesRemaining <= 0)
 			clearDash(f)
 	else if f.groundAction == GROUND_ACTION_TURN_RUN
+		if f.groundTurnRunPausePending
+			f.groundActionFrame = min(f.groundRules.turnRunAnimationEndFrame, f.groundActionFrame + 1)
+			f.groundTurnRunPausePending = false
+			return
 		if f.groundTurnRunFacingCommandLatched and f.facing == f.groundTurnRunEntryFacing
 			// The command pauses TurnRun; a later animation update changes facing
 			// only after ground velocity crosses zero.

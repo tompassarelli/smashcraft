@@ -1299,7 +1299,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	for frame = 1 to 15
 		advance(allowed, 0, input, 0)
 		if allowed.facing == 1
-			allowed.groundActionFrame.assertEquals(14)
+			allowed.groundActionFrame.assertEquals(15)
 	allowed.facing.assertEquals(-1)
 	for frame = 1 to 20
 		if allowed.groundAction == GROUND_ACTION_TURN_RUN
@@ -1313,6 +1313,31 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	destroy input
 	destroy denied
 	destroy allowed
+
+@Test function turnRunPastCommandEntryPausesBeforeItsFacingFlip()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.groundRules = ntscFoxGroundMovementRules()
+	fighter.groundAction = GROUND_ACTION_RUN_BRAKE
+	fighter.groundActionFrame = 13
+	fighter.dashFrame = INITIAL_DASH_FRAMES + 1
+	fighter.dashDirection = 1
+	fighter.vx = 0.1
+	input.direction = -1
+	advance(fighter, 0, input, 0)
+	fighter.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
+	fighter.groundActionFrame.assertEquals(14)
+	fighter.groundTurnRunPausePending.assertTrue()
+	fighter.facing.assertEquals(1)
+	advance(fighter, 0, input, 0)
+	fighter.groundActionFrame.assertEquals(15)
+	fighter.groundTurnRunPausePending.assertFalse()
+	fighter.facing.assertEquals(1)
+	advance(fighter, 0, input, 0)
+	fighter.groundActionFrame.assertEquals(15)
+	fighter.facing.assertEquals(-1)
+	destroy input
+	destroy fighter
 
 @Test function runBrakeForwardInputDoesNotSkipToRun()
 	let fighter = new FighterState(0, 0, 1)

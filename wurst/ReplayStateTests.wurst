@@ -74,6 +74,7 @@ import MatchStep
     first.groundRunBrakeFramesRemaining = 12
     first.groundTurnRunEntryFacing = 1
     first.groundTurnRunFacingCommandLatched = true
+    first.groundTurnRunPausePending = true
     first.hitlag = 3
     first.shieldBreakState = SHIELD_BREAK_DIZZY
     first.shieldBreakRemaining = 389.75
@@ -125,6 +126,7 @@ import MatchStep
     first.groundRunBrakeFramesRemaining = 0
     first.groundTurnRunEntryFacing = 0
     first.groundTurnRunFacingCommandLatched = false
+    first.groundTurnRunPausePending = false
     first.shieldBreakState = SHIELD_BREAK_NONE
     first.shieldBreakRemaining = 0.
     first.crouching = false
@@ -179,6 +181,7 @@ import MatchStep
     first.groundRunBrakeFramesRemaining.assertEquals(12)
     first.groundTurnRunEntryFacing.assertEquals(1)
     first.groundTurnRunFacingCommandLatched.assertTrue()
+    first.groundTurnRunPausePending.assertTrue()
     first.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
     first.shieldBreakRemaining.assertEquals(389.75)
     first.crouching.assertTrue()
