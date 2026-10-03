@@ -2,6 +2,11 @@
 
 pub mod output;
 
+use sdl3::{
+    event::Event,
+    gamepad::{Axis, Button},
+    joystick::JoystickId,
+};
 use std::collections::BTreeSet;
 
 pub const LEFT_THRESHOLD: i16 = 7000;
@@ -85,6 +90,123 @@ pub struct Transition {
     pub pressed: bool,
 }
 
+/// One mapped SDL Gamepad event, retaining SDL's own event timestamp.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CapturedInput {
+    pub capture_ns: u64,
+    pub control: Control,
+    pub value: InputValue,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Control {
+    Axis(Axis),
+    Button(Button),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InputValue {
+    Axis(i16),
+    Button(bool),
+}
+
+/// Select only mapped gamepad input from the configured SDL instance ID.
+/// Other pads and non-input notifications remain outside the logical history.
+pub fn selected_input(event: &Event, selected: JoystickId) -> Option<CapturedInput> {
+    match event {
+        Event::GamepadAxisMotion {
+            timestamp,
+            which,
+            axis,
+            value,
+        } if *which == selected => Some(CapturedInput {
+            capture_ns: *timestamp,
+            control: Control::Axis(*axis),
+            value: InputValue::Axis(*value),
+        }),
+        Event::GamepadButtonDown {
+            timestamp,
+            which,
+            button,
+        } if *which == selected => Some(CapturedInput {
+            capture_ns: *timestamp,
+            control: Control::Button(*button),
+            value: InputValue::Button(true),
+        }),
+        Event::GamepadButtonUp {
+            timestamp,
+            which,
+            button,
+        } if *which == selected => Some(CapturedInput {
+            capture_ns: *timestamp,
+            control: Control::Button(*button),
+            value: InputValue::Button(false),
+        }),
+        _ => None,
+    }
+}
+
+/// Per-event normalized state. Applying each queue item separately preserves
+/// short button taps and axis excursions even when SDL returns them in a batch.
+#[derive(Default)]
+pub struct EventMapper {
+    sample: Sample,
+    mapper: Mapper,
+}
+
+impl EventMapper {
+    /// Establish a fresh baseline without emitting presses. This is used after
+    /// startup, focus loss, disconnect, or remapping; callers should pass the
+    /// current SDL state and accept input only after the mapper arms neutrally.
+    pub fn resync(&mut self, sample: &Sample, eligible: bool) -> Vec<Transition> {
+        self.sample = sample.clone();
+        self.mapper.update(Some(&self.sample), eligible)
+    }
+
+    pub fn disarm(&mut self) -> Vec<Transition> {
+        self.sample = Sample::default();
+        self.mapper.update(None, false)
+    }
+
+    pub fn armed(&self) -> bool {
+        self.mapper.armed()
+    }
+
+    pub fn apply(&mut self, event: CapturedInput, eligible: bool) -> Vec<Transition> {
+        if !eligible || !self.mapper.armed() {
+            return self.disarm();
+        }
+        match (event.control, event.value) {
+            (Control::Axis(Axis::LeftX), InputValue::Axis(value)) => self.sample.left_x = value,
+            (Control::Axis(Axis::LeftY), InputValue::Axis(value)) => self.sample.left_y = value,
+            (Control::Axis(Axis::RightX), InputValue::Axis(value)) => self.sample.right_x = value,
+            (Control::Axis(Axis::RightY), InputValue::Axis(value)) => self.sample.right_y = value,
+            (Control::Axis(Axis::TriggerLeft), InputValue::Axis(value)) => {
+                self.sample.left_trigger = value
+            }
+            (Control::Axis(Axis::TriggerRight), InputValue::Axis(value)) => {
+                self.sample.right_trigger = value
+            }
+            (Control::Button(Button::South), InputValue::Button(value)) => self.sample.a = value,
+            (Control::Button(Button::East), InputValue::Button(value)) => self.sample.b = value,
+            (Control::Button(Button::West), InputValue::Button(value)) => self.sample.x = value,
+            (Control::Button(Button::North), InputValue::Button(value)) => self.sample.y = value,
+            (Control::Button(Button::LeftShoulder), InputValue::Button(value)) => {
+                self.sample.lb = value
+            }
+            (Control::Button(Button::RightShoulder), InputValue::Button(value)) => {
+                self.sample.rb = value
+            }
+            (Control::Button(Button::Start), InputValue::Button(value)) => {
+                self.sample.start = value
+            }
+            // Ignore future SDL controls until Smashcraft defines a mapping.
+            _ => return Vec::new(),
+        }
+        self.mapper.update(Some(&self.sample), true)
+    }
+}
+
 /// One selected controller. Loss of eligibility or connection clears its actions;
 /// held inputs cannot reactivate until a neutral sample arrives while eligible.
 #[derive(Default)]
@@ -159,6 +281,7 @@ impl Mapper {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sdl3::joystick::JoystickId;
     fn tick(map: &mut Mapper, sample: &Sample) -> Vec<Transition> {
         map.update(Some(sample), true)
     }
@@ -279,5 +402,144 @@ mod tests {
         assert_eq!(Action::Right.key(), 'r');
         assert_eq!(Action::CLeft.key(), 'b');
         assert_eq!(Action::CDown.key(), 'h');
+    }
+
+    fn button(timestamp: u64, which: u32, button: Button, down: bool) -> Event {
+        if down {
+            Event::GamepadButtonDown {
+                timestamp,
+                which: JoystickId::from(which),
+                button,
+            }
+        } else {
+            Event::GamepadButtonUp {
+                timestamp,
+                which: JoystickId::from(which),
+                button,
+            }
+        }
+    }
+
+    fn axis(timestamp: u64, which: u32, axis: Axis, value: i16) -> Event {
+        Event::GamepadAxisMotion {
+            timestamp,
+            which: JoystickId::from(which),
+            axis,
+            value,
+        }
+    }
+
+    fn capture(mapper: &mut EventMapper, event: &Event, selected: u32) -> Vec<Transition> {
+        selected_input(event, JoystickId::from(selected))
+            .map(|input| mapper.apply(input, true))
+            .unwrap_or_default()
+    }
+
+    #[test]
+    fn same_batch_button_down_and_up_remain_two_ordered_edges() {
+        let mut mapper = EventMapper::default();
+        mapper.resync(&Sample::default(), true);
+        let down = button(10, 1, Button::South, true);
+        let up = button(11, 1, Button::South, false);
+        assert_eq!(
+            selected_input(&down, JoystickId::from(1))
+                .unwrap()
+                .capture_ns,
+            10
+        );
+        assert_eq!(
+            capture(&mut mapper, &down, 1),
+            vec![edge(Action::Attack, true)]
+        );
+        assert_eq!(
+            capture(&mut mapper, &up, 1),
+            vec![edge(Action::Attack, false)]
+        );
+    }
+
+    #[test]
+    fn axis_excursion_and_return_in_one_batch_remain_two_edges() {
+        let mut mapper = EventMapper::default();
+        mapper.resync(&Sample::default(), true);
+        let out = axis(20, 1, Axis::LeftX, 20_000);
+        let home = axis(21, 1, Axis::LeftX, 0);
+        assert_eq!(
+            capture(&mut mapper, &out, 1),
+            vec![edge(Action::Right, true)]
+        );
+        assert_eq!(
+            capture(&mut mapper, &home, 1),
+            vec![edge(Action::Right, false)]
+        );
+    }
+
+    #[test]
+    fn unrelated_gamepad_events_do_not_enter_selected_history() {
+        let mut mapper = EventMapper::default();
+        mapper.resync(&Sample::default(), true);
+        let event = button(30, 2, Button::South, true);
+        assert!(selected_input(&event, JoystickId::from(1)).is_none());
+        assert!(capture(&mut mapper, &event, 1).is_empty());
+        let selected_event = button(31, 1, Button::South, true);
+        assert_eq!(
+            capture(&mut mapper, &selected_event, 1),
+            vec![edge(Action::Attack, true)]
+        );
+    }
+
+    #[test]
+    fn overlapping_jump_and_shield_sources_keep_the_union_held() {
+        let mut mapper = EventMapper::default();
+        mapper.resync(&Sample::default(), true);
+        assert_eq!(
+            capture(&mut mapper, &button(1, 1, Button::East, true), 1),
+            vec![edge(Action::Jump, true)]
+        );
+        assert!(capture(&mut mapper, &button(2, 1, Button::North, true), 1).is_empty());
+        assert!(capture(&mut mapper, &button(3, 1, Button::East, false), 1).is_empty());
+        assert_eq!(
+            capture(&mut mapper, &button(4, 1, Button::North, false), 1),
+            vec![edge(Action::Jump, false)]
+        );
+        assert_eq!(
+            capture(&mut mapper, &axis(5, 1, Axis::TriggerLeft, 20_000), 1),
+            vec![edge(Action::Shield, true)]
+        );
+        assert!(capture(&mut mapper, &axis(6, 1, Axis::TriggerRight, 20_000), 1).is_empty());
+        assert!(capture(&mut mapper, &axis(7, 1, Axis::TriggerLeft, 0), 1).is_empty());
+        assert_eq!(
+            capture(&mut mapper, &axis(8, 1, Axis::TriggerRight, 0), 1),
+            vec![edge(Action::Shield, false)]
+        );
+    }
+
+    #[test]
+    fn focus_loss_and_disconnect_require_a_fresh_neutral_baseline() {
+        let mut mapper = EventMapper::default();
+        mapper.resync(&Sample::default(), true);
+        let press = button(1, 1, Button::South, true);
+        assert_eq!(
+            capture(&mut mapper, &press, 1),
+            vec![edge(Action::Attack, true)]
+        );
+        assert_eq!(mapper.disarm(), vec![edge(Action::Attack, false)]);
+        assert!(capture(&mut mapper, &button(2, 1, Button::South, false), 1).is_empty());
+        mapper.resync(
+            &Sample {
+                a: true,
+                ..Sample::default()
+            },
+            true,
+        );
+        assert!(!mapper.armed());
+        assert!(capture(&mut mapper, &button(3, 1, Button::South, true), 1).is_empty());
+        mapper.resync(&Sample::default(), true);
+        assert!(mapper.armed());
+        assert_eq!(
+            capture(&mut mapper, &button(4, 1, Button::South, true), 1),
+            vec![edge(Action::Attack, true)]
+        );
+        assert_eq!(mapper.disarm(), vec![edge(Action::Attack, false)]);
+        assert!(capture(&mut mapper, &button(5, 1, Button::South, true), 1).is_empty());
     }
 }

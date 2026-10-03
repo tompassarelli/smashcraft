@@ -16,8 +16,9 @@ use std::{
     time::{Duration, Instant},
 };
 use wc3_controller::{
-    Mapper, Sample,
+    EventMapper, Sample,
     output::{KeyboardOutput, Output},
+    selected_input,
 };
 
 #[derive(Default)]
@@ -122,8 +123,70 @@ fn sample(pad: &Gamepad) -> Sample {
     }
 }
 
+fn event_control(input: wc3_controller::CapturedInput) -> (&'static str, String) {
+    use wc3_controller::{Control, InputValue};
+    match (input.control, input.value) {
+        (Control::Axis(axis), InputValue::Axis(value)) => ("axis", format!("{axis:?}={value}")),
+        (Control::Button(button), InputValue::Button(value)) => {
+            ("button", format!("{button:?}={value}"))
+        }
+        _ => ("unknown", "unknown".into()),
+    }
+}
+
+fn clock_ns(start: Instant) -> u128 {
+    start.elapsed().as_nanos()
+}
+
+fn next_event_id(next: &mut u64) -> u64 {
+    *next = next.checked_add(1).expect("controller event ID exhausted");
+    *next
+}
+
+fn event_timestamp(event: &Event) -> u64 {
+    match event {
+        Event::GamepadRemoved { timestamp, .. } | Event::GamepadRemapped { timestamp, .. } => {
+            *timestamp
+        }
+        _ => 0,
+    }
+}
+
+fn history_event(
+    id: u64,
+    capture_ns: u64,
+    dequeue_ns: u128,
+    control: &str,
+    value: &str,
+    disposition: &str,
+) {
+    println!("event\t{id}\t{capture_ns}\t{dequeue_ns}\t\t{control}\t{value}\t\t\t{disposition}");
+}
+
+fn history_transition(
+    id: u64,
+    capture_ns: u64,
+    dequeue_ns: u128,
+    submit_ns: Option<u128>,
+    control: &str,
+    value: &str,
+    action: wc3_controller::Action,
+    pressed: bool,
+    disposition: &str,
+) {
+    let submit_ns = submit_ns.map_or_else(String::new, |value| value.to_string());
+    println!(
+        "transition\t{id}\t{capture_ns}\t{dequeue_ns}\t{submit_ns}\t{control}\t{value}\t{action:?}\t{pressed}\t{disposition}"
+    );
+}
+
 fn run() -> Result<(), String> {
     let o = options()?;
+    macro_rules! listing {
+        ($($arg:tt)*) => {
+            if o.seconds.is_some() { eprintln!($($arg)*); } else { println!($($arg)*); }
+        };
+    }
     #[cfg(target_os = "linux")]
     let mut gate = if o.emit || o.check_focus {
         Some(focus::Gate::new(focus::Target {
@@ -159,7 +222,7 @@ fn run() -> Result<(), String> {
     let mut events = sdl.event_pump().map_err(|e| e.to_string())?;
     events.pump_events();
     let ids = gamepads.gamepads().map_err(|e| e.to_string())?;
-    println!(
+    listing!(
         "mode={} SDL={} gamepads={}",
         if o.emit {
             "keyboard-output"
@@ -171,7 +234,7 @@ fn run() -> Result<(), String> {
     );
     for id in &ids {
         let pad = gamepads.open(*id).map_err(|e| e.to_string())?;
-        println!(
+        listing!(
             "gamepad id={id} name={:?} path={:?} vendor={:?} product={:?}\nmapping={:?}\nnormalized={:?}",
             pad.name(),
             pad.path(),
@@ -203,30 +266,33 @@ fn run() -> Result<(), String> {
     ctrlc::set_handler(move || signal_running.store(false, Ordering::Relaxed))
         .map_err(|e| e.to_string())?;
     let start = Instant::now();
-    let mut mapper = Mapper::default();
-    let mut last_sample = None;
+    println!(
+        "record\tevent_id\tcapture_ns\tdequeue_ns\tsubmit_ns\tcontrol\tvalue\taction\tpressed\tdisposition"
+    );
+    println!(
+        "# capture_ns is SDL's event timestamp since SDL initialization; dequeue_ns and submit_ns are process-monotonic since watch start"
+    );
+    let mut mapper = EventMapper::default();
+    let mut next_id = 0;
+    let startup_events = events.poll_iter().count();
+    let initial = sample(&pad);
+    mapper.resync(&initial, true);
     let mut last_eligibility = None;
     let mut last_error: Option<String> = None;
-    let mut last_armed = false;
     println!(
-        "selected={id}; release all mapped controls to arm; observation transitions are previews only"
+        "# selected={id}; discarded_startup_events={startup_events}; release all mapped controls to arm; transitions are previews only unless --emit"
     );
     while running.load(Ordering::Relaxed) && start.elapsed() < Duration::from_secs(seconds) {
-        for event in events.poll_iter() {
-            match event {
-                Event::GamepadAxisMotion { .. }
-                | Event::GamepadButtonDown { .. }
-                | Event::GamepadButtonUp { .. }
-                | Event::GamepadAdded { .. }
-                | Event::GamepadRemoved { .. }
-                | Event::GamepadRemapped { .. } => {
-                    println!("t_us={} sdl_event={event:?}", start.elapsed().as_micros())
+        let dequeued: Vec<_> = events
+            .poll_iter()
+            .map(|event| {
+                let dequeued_ns = clock_ns(start);
+                if matches!(&event, Event::Quit { .. }) {
+                    running.store(false, Ordering::Relaxed);
                 }
-                Event::Quit { .. } => running.store(false, Ordering::Relaxed),
-                _ => {}
-            }
-        }
-        let current = pad.connected().then(|| sample(&pad));
+                (event, dequeued_ns)
+            })
+            .collect();
         let mut eligible = true;
         #[cfg(target_os = "linux")]
         if let Some(gate) = &mut gate {
@@ -246,8 +312,21 @@ fn run() -> Result<(), String> {
         }
         #[cfg(not(target_os = "linux"))]
         let _ = (&mut eligible, &mut last_error);
+        let recovering = last_eligibility == Some(false);
+        if !eligible || recovering || !mapper.armed() {
+            let release = if eligible && pad.connected() {
+                mapper.resync(&sample(&pad), true)
+            } else {
+                mapper.disarm()
+            };
+            for transition in release {
+                if let Some(keyboard) = &mut keyboard {
+                    keyboard.apply(transition)?;
+                }
+            }
+        }
         if last_eligibility != Some(eligible) {
-            println!(
+            eprintln!(
                 "t_us={} {}={eligible}",
                 start.elapsed().as_micros(),
                 if o.emit {
@@ -258,40 +337,148 @@ fn run() -> Result<(), String> {
             );
             last_eligibility = Some(eligible);
         }
-        if current != last_sample {
-            println!(
-                "t_us={} normalized={current:?}",
-                start.elapsed().as_micros()
-            );
-            last_sample = current.clone();
-        }
-        for transition in mapper.update(current.as_ref(), eligible) {
-            if let Some(keyboard) = &mut keyboard {
-                keyboard.apply(transition)?;
+        for (event, dequeued_ns) in dequeued {
+            if let Some(input) = selected_input(&event, id) {
+                let event_id = next_event_id(&mut next_id);
+                let (control, value) = event_control(input);
+                let suppression = recovering || !eligible;
+                let transitions = if suppression {
+                    mapper.disarm()
+                } else {
+                    mapper.apply(input, true)
+                };
+                let disposition = if suppression {
+                    "suppressed"
+                } else {
+                    "observed"
+                };
+                history_event(
+                    event_id,
+                    input.capture_ns,
+                    dequeued_ns,
+                    control,
+                    &value,
+                    disposition,
+                );
+                let mut event_eligible = !suppression;
+                for transition in transitions {
+                    if event_eligible {
+                        let still_eligible = {
+                            #[cfg(target_os = "linux")]
+                            {
+                                match &mut gate {
+                                    Some(gate) => match gate.eligible() {
+                                        Ok(value) => value,
+                                        Err(error) => {
+                                            if last_error.as_ref() != Some(&error) {
+                                                eprintln!("eligibility unavailable: {error}");
+                                            }
+                                            last_error = Some(error);
+                                            false
+                                        }
+                                    },
+                                    None => true,
+                                }
+                            }
+                            #[cfg(not(target_os = "linux"))]
+                            {
+                                true
+                            }
+                        };
+                        if !still_eligible {
+                            event_eligible = false;
+                            last_eligibility = Some(false);
+                            for release in mapper.disarm() {
+                                if let Some(keyboard) = &mut keyboard {
+                                    keyboard.apply(release)?;
+                                }
+                            }
+                            history_transition(
+                                event_id,
+                                input.capture_ns,
+                                dequeued_ns,
+                                None,
+                                control,
+                                &value,
+                                transition.action,
+                                transition.pressed,
+                                "suppressed-focus",
+                            );
+                            continue;
+                        }
+                        let submit_ns = o.emit.then(|| clock_ns(start));
+                        if let Some(keyboard) = &mut keyboard {
+                            keyboard.apply(transition)?;
+                        }
+                        history_transition(
+                            event_id,
+                            input.capture_ns,
+                            dequeued_ns,
+                            submit_ns,
+                            control,
+                            &value,
+                            transition.action,
+                            transition.pressed,
+                            if o.emit { "submitted" } else { "preview" },
+                        );
+                    } else {
+                        history_transition(
+                            event_id,
+                            input.capture_ns,
+                            dequeued_ns,
+                            None,
+                            control,
+                            &value,
+                            transition.action,
+                            transition.pressed,
+                            "suppressed",
+                        );
+                    }
+                }
+            } else if matches!(&event, Event::GamepadRemoved { which, .. } if *which == id) {
+                let event_id = next_event_id(&mut next_id);
+                let release = mapper.disarm();
+                history_event(
+                    event_id,
+                    event_timestamp(&event),
+                    dequeued_ns,
+                    "device",
+                    "removed",
+                    "disconnected",
+                );
+                for transition in release {
+                    if let Some(keyboard) = &mut keyboard {
+                        keyboard.apply(transition)?;
+                    }
+                }
+            } else if matches!(&event, Event::GamepadRemapped { which, .. } if *which == id) {
+                let event_id = next_event_id(&mut next_id);
+                let release = mapper.disarm();
+                history_event(
+                    event_id,
+                    event_timestamp(&event),
+                    dequeued_ns,
+                    "device",
+                    "remapped",
+                    "rearm-required",
+                );
+                for transition in release {
+                    if let Some(keyboard) = &mut keyboard {
+                        keyboard.apply(transition)?;
+                    }
+                }
             }
-            println!(
-                "t_us={} {}={transition:?}",
-                start.elapsed().as_micros(),
-                if o.emit { "submitted" } else { "preview" }
-            );
-        }
-        if mapper.armed() != last_armed {
-            println!(
-                "t_us={} armed={}",
-                start.elapsed().as_micros(),
-                mapper.armed()
-            );
-            last_armed = mapper.armed();
         }
         std::thread::sleep(Duration::from_millis(4));
     }
-    for transition in mapper.update(None, false) {
+    for transition in mapper.disarm() {
         if let Some(keyboard) = &mut keyboard {
             keyboard.apply(transition)?;
         }
-        println!(
-            "t_us={} shutdown={transition:?}",
-            start.elapsed().as_micros()
+        eprintln!(
+            "# shutdown\t{}\t{}",
+            transition.action.key(),
+            transition.pressed
         );
     }
     if let Some(keyboard) = &mut keyboard {
