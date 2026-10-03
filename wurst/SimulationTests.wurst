@@ -5,6 +5,7 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 import ReplayState
+import Binary32
 
 constant real TEST_MELEE_WORLD_SCALE = 6
 
@@ -1786,7 +1787,9 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	input.cStickX = 1
 	advance(fighter, 0, input, -240)
 	fighter.x.assertEquals(300 + ASDI_DISTANCE + totalVelocityX(fighter))
-	fighter.z.assertEquals(400 + totalVelocityZ(fighter))
+	let afterSelf = ((400. / 6).roundToFloat32() + (fighter.vz / 6).roundToFloat32()).roundToFloat32()
+	let afterLaunch = (afterSelf + (fighter.knockbackZ / 6).roundToFloat32()).roundToFloat32()
+	fighter.z.assertEquals(afterLaunch * 6)
 	fighter.knockbackX.assertEquals(9.21954187, 0.001)
 	fighter.knockbackZ.assertEquals(2.99561074, 0.001)
 	fighter.asdiSerial.assertEquals(1)
@@ -4884,7 +4887,8 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.surfaceRecoveryFrame.assertEquals(WALL_TECH_STARTUP_FRAMES)
 	fighter.surfaceRecoveryVelocityApplied.assertTrue()
 	fighter.vx.assertEquals(-fighter.surfacePhysics.wallJumpHorizontalSpeed + fighter.physics.airFriction)
-	fighter.vz.assertEquals(fighter.surfacePhysics.wallJumpVerticalSpeed - fighter.physics.gravity)
+	let expectedVertical = ((fighter.surfacePhysics.wallJumpVerticalSpeed / 6).roundToFloat32() - (fighter.physics.gravity / 6).roundToFloat32()).roundToFloat32() * 6
+	fighter.vz.assertEquals(expectedVertical)
 	fighter.jumpSerial.assertEquals(1)
 	fighter.facing.assertEquals(-1)
 	destroy input
@@ -4913,7 +4917,8 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	advance(fighter, 1, input, 0)
 	fighter.surfaceRecoveryVelocityApplied.assertTrue()
 	fighter.vx.assertEquals(-fighter.surfacePhysics.wallJumpHorizontalSpeed + fighter.physics.airFriction)
-	fighter.vz.assertEquals(fighter.surfacePhysics.wallJumpVerticalSpeed - fighter.physics.gravity)
+	let expectedVertical = ((fighter.surfacePhysics.wallJumpVerticalSpeed / 6).roundToFloat32() - (fighter.physics.gravity / 6).roundToFloat32()).roundToFloat32() * 6
+	fighter.vz.assertEquals(expectedVertical)
 	fighter.jumpSerial.assertEquals(1)
 	destroy input
 	destroy fighter

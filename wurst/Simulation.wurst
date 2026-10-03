@@ -6,6 +6,14 @@ public constant real WORLD_UNITS_PER_MELEE_UNIT = 6
 
 function roundMeleeWorldValue(real value) returns real
 	return (value / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32() * WORLD_UNITS_PER_MELEE_UNIT
+
+function addMeleeWorldValues(real value, real displacement) returns real
+	// Authored stationary surfaces need exact zero-displacement identity.
+	if displacement == 0
+		return value
+	let left = (value / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
+	let right = (displacement / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
+	return (left + right).roundToFloat32() * WORLD_UNITS_PER_MELEE_UNIT
 public constant real GROUND_TRACTION = 0.07999999821186066 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real INITIAL_DASH_SPEED = 1.899999976158142 * WORLD_UNITS_PER_MELEE_UNIT
 // Shared coefficients extracted from the locally identified NTSC 1.02 PlCo.dat.
@@ -1909,8 +1917,8 @@ function advanceShieldBreak(FighterState f, int stage, InputSnapshot input)
 	f.shieldBreakFrame++
 	if f.shieldBreakState == SHIELD_BREAK_AIR
 		let oldZ = f.z
-		f.vz = max(-f.physics.terminalSpeed, f.vz - f.physics.gravity)
-		f.z += f.vz
+		f.vz = max(-f.physics.terminalSpeed, addMeleeWorldValues(f.vz, -f.physics.gravity))
+		f.z = addMeleeWorldValues(f.z, f.vz)
 		let landing = landingAlongShift(f, stage, f.x, oldZ, f.x, f.z)
 		if landing >= 0
 			f.z = surfaceZ(stage, landing)
@@ -3544,8 +3552,10 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 		if f.fastFalling
 			f.vz = -f.physics.fastFallSpeed
 		else
-			f.vz = max(-f.physics.terminalSpeed, f.vz - gravity)
-	f.z += totalVelocityZ(f)
+			f.vz = max(-f.physics.terminalSpeed, addMeleeWorldValues(f.vz, -gravity))
+	f.z = addMeleeWorldValues(f.z, f.vz)
+	f.z = addMeleeWorldValues(f.z, f.knockbackZ)
+	f.z = addMeleeWorldValues(f.z, f.shieldRecoilZ)
 	resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input)
 	var landing = -1
 	if totalVelocityZ(f) <= 0

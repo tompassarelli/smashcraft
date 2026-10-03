@@ -1,5 +1,28 @@
 # Physics reference and implementation
 
+## Recorded vertical precision — 2026-10-04
+
+Ordinary gravity subtraction now rounds both operands and the result in Melee
+units. Vertical position adds self velocity, then launch velocity, then attacker
+shield recoil, rounding each addition separately. Shield-break falling uses
+the same gravity and position arithmetic. Zero displacement preserves authored
+stationary surface coordinates exactly. Original fighter stats remain authored.
+
+The emitted-Lua probe generated from
+smashcraft:docs/smash-melee-reference/slippi-ntsc-falco-fall.json failed on its
+first recorded frame before the repair and passes all ten exact positions on
+both original fighter hosts afterward. Only recorded gravity and terminal speed
+are injected; these are test rigs, not roster changes. Evidence:
+smashcraft:build/gravity-lua-before.log and smashcraft:build/gravity-lua-after.log.
+
+The probe uses the compiler-owned Lua native fixture pinned separately by
+`luaTestRuntimeCommit` in smashcraft:wurst-toolchain.lock. Its SquareRoot repair
+does not change the compiler artifact and does not establish Warcraft native
+square-root precision. Shared scalar approximations and their bounded proof
+are documented in smashcraft:docs/melee-scalar-math.md; integration into airborne
+decay, Gekko square-root cutoff behavior, horizontal position order, and native
+trajectory verification remain open.
+
 ## Verified retail combat parameters — 2026-10-03
 
 Ordinary launching contacts now use the independently recorded GALE01 revision 2

@@ -1,0 +1,283 @@
+{
+  "id": "retail-ntsc-1.02-trig-numeric-coefficients",
+  "sourceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "scope": "Numerical approximation coefficients and range boundaries only; no code or executable bytes.",
+  "atan": {
+    "oddPolynomialAscending": [
+      {
+        "value": 1,
+        "bits": "0x3f800000"
+      },
+      {
+        "value": -0.3333333134651184,
+        "bits": "0xbeaaaaaa"
+      },
+      {
+        "value": 0.1999988704919815,
+        "bits": "0x3e4ccc81"
+      },
+      {
+        "value": -0.14281649887561798,
+        "bits": "0xbe123e7d"
+      },
+      {
+        "value": 0.11041180044412613,
+        "bits": "0x3de21f95"
+      },
+      {
+        "value": -0.08459755778312683,
+        "bits": "0xbdad417c"
+      },
+      {
+        "value": 0.04714243486523628,
+        "bits": "0x3d41186d"
+      }
+    ],
+    "directRegionMaximum": 0.4142135679721832,
+    "reciprocalRegionMinimum": 2.4142136573791504,
+    "segmentLowerBounds": [
+      0.4142135679721832,
+      0.534511148929596,
+      0.8206787705421448,
+      1.218503475189209,
+      1.870868444442749
+    ],
+    "segments": [
+      {
+        "denominatorOffsetHigh": {
+          "value": 2.414212942123413,
+          "bits": "0x401a8277"
+        },
+        "denominatorOffsetLow": {
+          "value": 5.620000251838064e-7,
+          "bits": "0x3516dc59"
+        },
+        "numeratorHigh": {
+          "value": 6.828420162200928,
+          "bits": "0x40da826b"
+        },
+        "numeratorLow": {
+          "value": 0.0000071350000325764995,
+          "bits": "0x36ef692f"
+        },
+        "angleHigh": {
+          "value": 0.3926900029182434,
+          "bits": "0x3ec90eaa"
+        },
+        "angleLow": {
+          "value": 0.000009081698408408556,
+          "bits": "0x37185d99"
+        }
+      },
+      {
+        "denominatorOffsetHigh": {
+          "value": 1.4966057538986206,
+          "bits": "0x3fbf90c7"
+        },
+        "denominatorOffsetLow": {
+          "value": 0,
+          "bits": "0x00000000"
+        },
+        "numeratorHigh": {
+          "value": 3.239828109741211,
+          "bits": "0x404f5958"
+        },
+        "numeratorLow": {
+          "value": 8.200000252145401e-7,
+          "bits": "0x355c1df9"
+        },
+        "angleHigh": {
+          "value": 0.5890486240386963,
+          "bits": "0x3f16cbe4"
+        },
+        "angleLow": {
+          "value": 2.3000000126671694e-8,
+          "bits": "0x32c59189"
+        }
+      },
+      {
+        "denominatorOffsetHigh": {
+          "value": 1,
+          "bits": "0x3f800000"
+        },
+        "denominatorOffsetLow": {
+          "value": 0,
+          "bits": "0x00000000"
+        },
+        "numeratorHigh": {
+          "value": 2,
+          "bits": "0x40000000"
+        },
+        "numeratorLow": {
+          "value": 0,
+          "bits": "0x00000000"
+        },
+        "angleHigh": {
+          "value": 0.7853981256484985,
+          "bits": "0x3f490fda"
+        },
+        "angleLow": {
+          "value": 6.30000016599297e-8,
+          "bits": "0x33874a9e"
+        }
+      },
+      {
+        "denominatorOffsetHigh": {
+          "value": 0.6681786179542542,
+          "bits": "0x3f2b0dc1"
+        },
+        "denominatorOffsetLow": {
+          "value": 0,
+          "bits": "0x00000000"
+        },
+        "numeratorHigh": {
+          "value": 1.4464620351791382,
+          "bits": "0x3fb925ab"
+        },
+        "numeratorLow": {
+          "value": 6.299999881775875e-7,
+          "bits": "0x35291d45"
+        },
+        "angleHigh": {
+          "value": 0.9817469716072083,
+          "bits": "0x3f7b53c5"
+        },
+        "angleLow": {
+          "value": 7.040000014058023e-7,
+          "bits": "0x353cfa83"
+        }
+      },
+      {
+        "denominatorOffsetHigh": {
+          "value": 0.4142135679721832,
+          "bits": "0x3ed413cd"
+        },
+        "denominatorOffsetLow": {
+          "value": 0,
+          "bits": "0x00000000"
+        },
+        "numeratorHigh": {
+          "value": 1.1715729236602783,
+          "bits": "0x3f95f61a"
+        },
+        "numeratorLow": {
+          "value": 0,
+          "bits": "0x00000000"
+        },
+        "angleHigh": {
+          "value": 1.1780970096588135,
+          "bits": "0x3f96cbe2"
+        },
+        "angleLow": {
+          "value": 2.499999993688107e-7,
+          "bits": "0x348637bd"
+        }
+      }
+    ]
+  },
+  "sinCos": {
+    "polynomialInterleaved": [
+      {
+        "value": 0.00000352876168108196,
+        "bits": "0x366ccfaa"
+      },
+      {
+        "value": 3.0897470537638583e-7,
+        "bits": "0x34a5e129"
+      },
+      {
+        "value": -0.0003259365039411932,
+        "bits": "0xb9aae275"
+      },
+      {
+        "value": -0.0000365723499271553,
+        "bits": "0xb8196543"
+      },
+      {
+        "value": 0.015854323282837868,
+        "bits": "0x3c81e0ed"
+      },
+      {
+        "value": 0.002490393118932843,
+        "bits": "0x3b2335dd"
+      },
+      {
+        "value": -0.3084251284599304,
+        "bits": "0xbe9de9e6"
+      },
+      {
+        "value": -0.08074551075696945,
+        "bits": "0xbda55de7"
+      },
+      {
+        "value": 1,
+        "bits": "0x3f800000"
+      },
+      {
+        "value": 0.7853981852531433,
+        "bits": "0x3f490fdb"
+      }
+    ],
+    "quadrantSinCos": [
+      {
+        "value": 0,
+        "bits": "0x00000000"
+      },
+      {
+        "value": 1,
+        "bits": "0x3f800000"
+      },
+      {
+        "value": 1,
+        "bits": "0x3f800000"
+      },
+      {
+        "value": 0,
+        "bits": "0x00000000"
+      },
+      {
+        "value": 0,
+        "bits": "0x00000000"
+      },
+      {
+        "value": -1,
+        "bits": "0xbf800000"
+      },
+      {
+        "value": -1,
+        "bits": "0xbf800000"
+      },
+      {
+        "value": 0,
+        "bits": "0x00000000"
+      }
+    ],
+    "normalizedAngleCorrections": [
+      {
+        "value": 0.25,
+        "bits": "0x3e800000"
+      },
+      {
+        "value": 0.0232393741607666,
+        "bits": "0x3cbe6080"
+      },
+      {
+        "value": 1.7055572243407369e-7,
+        "bits": "0x34372200"
+      },
+      {
+        "value": 1.8673649432310313e-11,
+        "bits": "0x2da44152"
+      }
+    ],
+    "smallNormalizedAngleLimit": 0.0003452669770922512,
+    "quadrantIndexScale": 0.6366197466850281,
+    "pi": 3.1415927410125732,
+    "halfPi": 1.5707963705062866
+  },
+  "limitations": [
+    "Numeric constants alone do not prove evaluation order or algorithm equivalence.",
+    "All approximation behavior requires scalar execution comparison."
+  ]
+}
