@@ -19,7 +19,11 @@ Smashcraft fighters use an explicitly authored shield circle centered at local
 offset `(0, 45)` with base radius `60` world units. These are original
 Smashcraft tuning values, not copied Melee character geometry. Its current
 reflector radius is `base radius × shieldSizeMultiplier × 0.75`; `0.75` is the
-common reflector-size factor at `+0x2A8`. Projectile travel is tested against
+common reflector-size value at `+0x2A8`. The dependence on shield health and
+pressure remains unverified: the original setup stores `0.75` directly in a
+bone-attached reflector descriptor, so its final world radius also requires
+the original joint-scale and collision path. The current authored-circle
+mapping is not an established retail geometry formula. Projectile travel is tested against
 the swept circle in the simulation's x/z plane. Reflection transfers ownership
 to the defender and applies the observed common damage multiplier `0.5` and
 speed multiplier `0.699999988079071`. It keeps the source projectile's authored
@@ -43,3 +47,11 @@ files from private storage and keeps its original-containing ELF and outputs
 under `~/.local/share/smashcraft-melee-reference/powershield-clock-runner`.
 The tool uses symbol/ABI addresses only and does not publish executable bytes
 or decompiled implementation.
+
+The assembled implementation passed 549 normal simulation checks and fourteen
+emitted-Lua precision groups. The playable map built from source `c0d092a`
+(with an unused test import and indentation cleaned up) with deployment
+disabled. Evidence: `smashcraft:build/powershield-map-integration.log`.
+Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x.
+SHA-256: `c402c3e231cc29350ba28350ab176587eddac4fc816c52eb57f71bd30785ec0b`.
+It has not been installed or observed natively.

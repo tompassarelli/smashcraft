@@ -3,7 +3,6 @@ import Simulation
 import ReplayState
 import CommandBuffer
 import MatchRules
-import MatchStep
 import ImpactEvents
 
 @Test function fullTriggerWithinObservedWindowStartsAndExpiresReflectState()
@@ -70,13 +69,13 @@ import ImpactEvents
 	events.before(defender)
 	updateProjectilePair(shooter, defender)
 	events.after(defender)
-    projectileActive(shooter, 0).assertFalse()
-    projectileActive(defender, 0).assertTrue()
-    projectileDirectionAt(defender, 0).assertEquals(-1)
-    projectileVelocityXAt(defender, 0).assertEquals(-42.)
-    projectileDamageMultiplierAt(defender, 0).assertEquals(SHIELD_PROJECTILE_DAMAGE_MULTIPLIER)
-    projectileVisualFamilyAt(defender, 0).assertEquals(0)
-    projectileXAt(defender, 0).assertEquals(10.)
+	projectileActive(shooter, 0).assertFalse()
+	projectileActive(defender, 0).assertTrue()
+	projectileDirectionAt(defender, 0).assertEquals(-1)
+	projectileVelocityXAt(defender, 0).assertEquals(-42.)
+	projectileDamageMultiplierAt(defender, 0).assertEquals(SHIELD_PROJECTILE_DAMAGE_MULTIPLIER)
+	projectileVisualFamilyAt(defender, 0).assertEquals(0)
+	projectileXAt(defender, 0).assertEquals(10.)
 	events.shieldReflect.assertTrue()
 	events.shieldHit.assertFalse()
 	events.before(defender)
