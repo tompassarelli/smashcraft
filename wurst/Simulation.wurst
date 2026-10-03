@@ -25,20 +25,20 @@ public tuple groundMovementRules(int dashRunEnableFrame, int turnRunFacingComman
 		int turnRunAnimationEndFrame, int runBrakeTurnCommandEndFrame,
 		int runBrakeAnimationEndFrame, int runBrakeMaximumFrames)
 
-public tuple dashGrabRules(int startupFrames, int totalFrames)
+public tuple dashGrabRules(int startupFrames, int activeFrames, int totalFrames)
 
 // The authored roster retains its existing grab timing; test rigs override it.
 public function authoredDashGrabRules() returns dashGrabRules
-	return dashGrabRules(attackStartupFrames(5), attackDurationFramesForGrounding(5, true))
+	return dashGrabRules(attackStartupFrames(5), 1, attackDurationFramesForGrounding(5, true))
 
 public function ntscFoxDashGrabRules() returns dashGrabRules
-	return dashGrabRules(11, 40)
+	return dashGrabRules(10, 2, 40)
 
 public function ntscFalcoDashGrabRules() returns dashGrabRules
-	return dashGrabRules(11, 40)
+	return dashGrabRules(10, 2, 40)
 
 public function ntscCaptainFalconDashGrabRules() returns dashGrabRules
-	return dashGrabRules(10, 40)
+	return dashGrabRules(9, 2, 40)
 
 public function authoredGroundMovementRules() returns groundMovementRules
 	// Existing Smashcraft roster timing is an authored approximation, not a
@@ -1261,7 +1261,7 @@ public function attackPhase(FighterState f) returns int
 	if f.dashGrabAttack
 		if f.attackFrame < f.dashGrabTiming.startupFrames
 			return ATTACK_STARTUP
-		return f.attackFrame == f.dashGrabTiming.startupFrames ? ATTACK_ACTIVE : ATTACK_RECOVERY
+		return f.attackFrame < f.dashGrabTiming.startupFrames + f.dashGrabTiming.activeFrames ? ATTACK_ACTIVE : ATTACK_RECOVERY
 	if f.attackFrame < attackStartupFrames(f.attackStyle)
 		return ATTACK_STARTUP
 	if f.attackFrame < attackStartupFrames(f.attackStyle) + characterAttackActiveFrames(f.character, f.attackStyle)
@@ -1550,7 +1550,7 @@ function selectHitRegion(FighterState attacker, FighterState target) returns hit
 	let localX = (target.x - attacker.x) * attacker.facing
 	let localZ = target.z - attacker.z
 	if attacker.dashGrabAttack
-		if attacker.attackFrame == attacker.dashGrabTiming.startupFrames and localX >= 0 and localX <= attackReach(5) and localZ >= -130 and localZ <= 130
+		if attacker.attackFrame >= attacker.dashGrabTiming.startupFrames and attacker.attackFrame < attacker.dashGrabTiming.startupFrames + attacker.dashGrabTiming.activeFrames and localX >= 0 and localX <= attackReach(5) and localZ >= -130 and localZ <= 130
 			return hitRegion(0, attackReach(5), -130, 130, hitEffect(0, 0, 0, 0, 0, false), 1)
 		return noHitRegion()
 	for index = 0 to (attacker.attackStyle == 6 ? 1 : 0)

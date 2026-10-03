@@ -300,3 +300,30 @@ SHA256 a18fb26577cb7a38b827b40f363f14710b2d2480946b8f7b07363dac48fcf25e.
 Build evidence: smashcraft:build/physics-map-r14.log. Deployment was disabled;
 this candidate has not been installed or observed natively. The concurrent
 input workstream retains the authenticated clients for its 0.0.9 probe.
+
+## Grab event clock
+
+smashcraft:docs/smash-melee-reference/retail-grab-events.json independently
+records Catch and CatchDash command timings for all three selected retail rigs.
+Standing catch capsules are created at timeline frame 6 and cleared at 8.
+Fox/Falco dash capsules are created at 11 and cleared at 13; Captain Falcon's
+are created at 10 and cleared at 12. All have two active timeline frames.
+The recorded radius/offset integers are bone-local facts, not world-space reach.
+
+melee:src/melee/ft/fighter.c:Fighter_ChangeMotionState requests animation frame
+zero and processes the action script during entry. The action-script timer
+starts at zero; melee:src/melee/ft/ftaction.c:ftAction_80073240 subtracts the
+unit animation rate before processing the first wait. Consequently an encoded
+wait of 11 leaves 10 subsequent ticks before capsule creation. CatchDash adds
+no further entry advance. The retail rig now uses first active tick 10 for
+Fox/Falco and 9 for Captain Falcon, with two active ticks. The original authored
+roster retains its existing startup and one-tick dash-grab window. Animation
+completion remains 40 subsequent ticks: the first HSD animation interpretation
+holds frame zero, and subsequent interpretations advance until the clip end.
+
+The production-entry cases verify startup before tick 10, first contact at 10,
+contact on the second active tick, no contact on the following tick, and the
+last locked/completion boundary at 39/40. Replay includes active duration.
+Focused cases passed 6/6 with zero errors and the existing unused-import warning
+(smashcraft:build/grab-event-timing-tests.log). These are source-mapped numerical
+checks; independent retail replay/native grab traces remain outstanding.

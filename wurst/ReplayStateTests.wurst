@@ -477,6 +477,8 @@ import MatchStep
     actual.first.dashGrabAttack = false
     expected.firstDifference(actual).assertEquals("first.dashGrabAttack")
     actual.first.dashGrabAttack = true
+    actual.first.dashGrabTiming = dashGrabRules(10, 1, 40)
+    expected.firstDifference(actual).assertEquals("first.dashGrabTiming")
     actual.first.dashGrabTiming = ntscCaptainFalconDashGrabRules()
     expected.firstDifference(actual).assertEquals("first.dashGrabTiming")
 

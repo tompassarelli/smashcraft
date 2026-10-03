@@ -1,0 +1,348 @@
+{
+  "target": "Melee NTSC 1.02 (GALE01 revision 2)",
+  "sourceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "kind": "Independently recorded numerical grab command timeline facts",
+  "verification": "Animation names match selected table entries; bounded command streams terminated; no raw commands or proprietary assets retained.",
+  "frameClock": "Encoded animation timeline, not yet a production tick convention",
+  "geometryLimit": "Bone-local offsets and radius do not establish world-space reach without animation and collision capsule transforms.",
+  "records": [
+    {
+      "fighter": "Fox",
+      "file": "PlFx.dat",
+      "fileSha256": "846b075d3379de041ecfb5504f5442484c23783422a0851851c96489d697b690",
+      "animationId": 242,
+      "action": "Catch",
+      "events": [
+        {
+          "frame": 6,
+          "event": "hitboxCreate",
+          "id": 0,
+          "element": 8,
+          "bone": 0,
+          "radiusEncoded": 1000,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 1800,
+            "x": 2200
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 6,
+          "event": "hitboxCreate",
+          "id": 1,
+          "element": 8,
+          "bone": 0,
+          "radiusEncoded": 700,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 1800,
+            "x": 1200
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 8,
+          "event": "hitboxesClear"
+        }
+      ],
+      "activeTimeline": {
+        "startInclusive": 6,
+        "endExclusive": 8,
+        "frames": 2
+      }
+    },
+    {
+      "fighter": "Fox",
+      "file": "PlFx.dat",
+      "fileSha256": "846b075d3379de041ecfb5504f5442484c23783422a0851851c96489d697b690",
+      "animationId": 243,
+      "action": "CatchDash",
+      "events": [
+        {
+          "frame": 11,
+          "event": "hitboxCreate",
+          "id": 0,
+          "element": 8,
+          "bone": 0,
+          "radiusEncoded": 1000,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 1500,
+            "x": 2000
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 11,
+          "event": "hitboxCreate",
+          "id": 1,
+          "element": 8,
+          "bone": 0,
+          "radiusEncoded": 800,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 1800,
+            "x": 800
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 11,
+          "event": "hitboxCreate",
+          "id": 2,
+          "element": 8,
+          "bone": 0,
+          "radiusEncoded": 800,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 1800,
+            "x": -200
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 13,
+          "event": "hitboxesClear"
+        }
+      ],
+      "activeTimeline": {
+        "startInclusive": 11,
+        "endExclusive": 13,
+        "frames": 2
+      }
+    },
+    {
+      "fighter": "Falco",
+      "file": "PlFc.dat",
+      "fileSha256": "c3c21545bff00fc1d0926f0fb3913cefedbbb7f4af1b928d2e73eed6cff5188c",
+      "animationId": 242,
+      "action": "Catch",
+      "events": [
+        {
+          "frame": 6,
+          "event": "hitboxCreate",
+          "id": 0,
+          "element": 8,
+          "bone": 1,
+          "radiusEncoded": 1000,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 1800,
+            "x": 2200
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 6,
+          "event": "hitboxCreate",
+          "id": 1,
+          "element": 8,
+          "bone": 1,
+          "radiusEncoded": 700,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 1800,
+            "x": 1200
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 8,
+          "event": "hitboxesClear"
+        }
+      ],
+      "activeTimeline": {
+        "startInclusive": 6,
+        "endExclusive": 8,
+        "frames": 2
+      }
+    },
+    {
+      "fighter": "Falco",
+      "file": "PlFc.dat",
+      "fileSha256": "c3c21545bff00fc1d0926f0fb3913cefedbbb7f4af1b928d2e73eed6cff5188c",
+      "animationId": 243,
+      "action": "CatchDash",
+      "events": [
+        {
+          "frame": 11,
+          "event": "hitboxCreate",
+          "id": 0,
+          "element": 8,
+          "bone": 1,
+          "radiusEncoded": 1000,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 1500,
+            "x": 2000
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 11,
+          "event": "hitboxCreate",
+          "id": 1,
+          "element": 8,
+          "bone": 1,
+          "radiusEncoded": 800,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 1800,
+            "x": 800
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 11,
+          "event": "hitboxCreate",
+          "id": 2,
+          "element": 8,
+          "bone": 1,
+          "radiusEncoded": 800,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 1800,
+            "x": -200
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 13,
+          "event": "hitboxesClear"
+        }
+      ],
+      "activeTimeline": {
+        "startInclusive": 11,
+        "endExclusive": 13,
+        "frames": 2
+      }
+    },
+    {
+      "fighter": "Captain Falcon",
+      "file": "PlCa.dat",
+      "fileSha256": "4cf61a52737d464df9298fd15573345fb3b9a15c79ab47dce4fd2e3e707917af",
+      "animationId": 242,
+      "action": "Catch",
+      "events": [
+        {
+          "frame": 6,
+          "event": "hitboxCreate",
+          "id": 0,
+          "element": 8,
+          "bone": 0,
+          "radiusEncoded": 1000,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 2600,
+            "x": 1800
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 6,
+          "event": "hitboxCreate",
+          "id": 1,
+          "element": 8,
+          "bone": 0,
+          "radiusEncoded": 1000,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 2600,
+            "x": 600
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 8,
+          "event": "hitboxesClear"
+        }
+      ],
+      "activeTimeline": {
+        "startInclusive": 6,
+        "endExclusive": 8,
+        "frames": 2
+      }
+    },
+    {
+      "fighter": "Captain Falcon",
+      "file": "PlCa.dat",
+      "fileSha256": "4cf61a52737d464df9298fd15573345fb3b9a15c79ab47dce4fd2e3e707917af",
+      "animationId": 243,
+      "action": "CatchDash",
+      "events": [
+        {
+          "frame": 10,
+          "event": "hitboxCreate",
+          "id": 0,
+          "element": 8,
+          "bone": 0,
+          "radiusEncoded": 1000,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 2400,
+            "x": 2200
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 10,
+          "event": "hitboxCreate",
+          "id": 1,
+          "element": 8,
+          "bone": 0,
+          "radiusEncoded": 1000,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 2400,
+            "x": 600
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 10,
+          "event": "hitboxCreate",
+          "id": 2,
+          "element": 8,
+          "bone": 0,
+          "radiusEncoded": 1000,
+          "offsetEncoded": {
+            "z": 0,
+            "y": 2400,
+            "x": -600
+          },
+          "grounded": true,
+          "aerial": true
+        },
+        {
+          "frame": 12,
+          "event": "hitboxesClear"
+        }
+      ],
+      "activeTimeline": {
+        "startInclusive": 10,
+        "endExclusive": 12,
+        "frames": 2
+      }
+    }
+  ],
+  "layoutSources": [
+    "melee:src/melee/lb/types.h spawn_hitbox_0 through spawn_hitbox_4",
+    "melee:src/melee/ft/ftaction.c ftAction_803C06E8 and ftAction_803C0870"
+  ],
+  "captureUseSite": "melee:src/melee/ft/ftcoll.c ftColl_80078A2C checks enabled HitElement_Catch capsules"
+}

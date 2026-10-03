@@ -26,7 +26,7 @@ function copyFighter(FighterState source, FighterState destination,
 		source.groundRules.runBrakeTurnCommandEndFrame,
 		source.groundRules.runBrakeAnimationEndFrame,
 		source.groundRules.runBrakeMaximumFrames)
-	destination.dashGrabTiming = dashGrabRules(source.dashGrabTiming.startupFrames, source.dashGrabTiming.totalFrames)
+	destination.dashGrabTiming = dashGrabRules(source.dashGrabTiming.startupFrames, source.dashGrabTiming.activeFrames, source.dashGrabTiming.totalFrames)
 	destination.dashGrabWindow = source.dashGrabWindow
 	destination.dashGrabAttack = source.dashGrabAttack
 	destination.groundAction = source.groundAction
@@ -242,6 +242,7 @@ function fighterDifference(FighterState expected, FighterState actual,
 	if expected.groundRules != actual.groundRules
 		return "groundRules"
 	if expected.dashGrabTiming.startupFrames != actual.dashGrabTiming.startupFrames or
+		expected.dashGrabTiming.activeFrames != actual.dashGrabTiming.activeFrames or
 		expected.dashGrabTiming.totalFrames != actual.dashGrabTiming.totalFrames
 		return "dashGrabTiming"
 	if expected.dashGrabWindow != actual.dashGrabWindow
