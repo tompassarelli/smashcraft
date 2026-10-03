@@ -1337,7 +1337,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
         if f.animation != "jump-squat"
             SetUnitAnimationByIndex(f.body, DEMON_HUNTER_JUMP_SQUAT_INDEX)
             f.animation = "jump-squat"
-        animationRate = DEMON_HUNTER_JUMP_SQUAT_SECONDS / (jumpSquatFrames(f.character) * FRAME_SECONDS)
+        animationRate = DEMON_HUNTER_JUMP_SQUAT_SECONDS / (f.physics.jumpSquatFrames * FRAME_SECONDS)
     else if f.character == 2 and f.grounded and f.landingLag > 0
         if f.animation != "landing"
             let specialLanding = f.animation == "specialfall" or f.animation == "air-dodge"
@@ -1365,7 +1365,7 @@ function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
     else if attackPhase(f) == ATTACK_NONE and f.hitstun == 0 and f.hitlag == 0
         let anim = f.character == 2 and not f.grounded ? "fall" : (f.grounded and totalVelocityX(f).abs() > 0.1 ? "walk" : "stand")
         if anim == "walk"
-            animationRate = min(1.4, max(0.2, f.vx.abs() / characterSpeed(f.character)))
+            animationRate = min(1.4, max(0.2, f.vx.abs() / f.physics.runSpeed))
         if anim == "fall"
             animationRate = 0.
         if f.animation != anim

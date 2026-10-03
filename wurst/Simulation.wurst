@@ -2,22 +2,11 @@ package Simulation
 import RollTravel
 
 constant real WORLD_UNITS_PER_MELEE_UNIT = 6
-constant real FOX_GRAVITY = 0.23000000417232513 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FALCO_GRAVITY = 0.17000000178813934 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FOX_AIR_SPEED = 0.8299999833106995 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FALCO_AIR_SPEED = 0.8299999833106995 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FOX_AIR_ACCELERATION = (0.019999999552965164 + 0.05999999865889549) * WORLD_UNITS_PER_MELEE_UNIT
-constant real FALCO_AIR_ACCELERATION = (0.019999999552965164 + 0.05000000074505806) * WORLD_UNITS_PER_MELEE_UNIT
 public constant real GROUND_TRACTION = 0.07999999821186066 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real INITIAL_DASH_SPEED = 1.899999976158142 * WORLD_UNITS_PER_MELEE_UNIT
 // Provisional digital-input timing and braking; see wc3-melee:docs/physics.md.
 public constant int INITIAL_DASH_FRAMES = 10
 constant real RUN_TURN_BRAKING = 0.8 * WORLD_UNITS_PER_MELEE_UNIT
-constant real AIR_FRICTION = 0.019999999552965164 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FOX_TERMINAL_SPEED = 2.799999952316284 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FALCO_TERMINAL_SPEED = 3.0999999046325684 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FOX_FAST_FALL_SPEED = 3.4000000953674316 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FALCO_FAST_FALL_SPEED = 3.5 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real SHIELD_MAX = 60
 public constant int SHIELD_BREAK_NONE = 0
 public constant int SHIELD_BREAK_AIR = 1
@@ -27,7 +16,6 @@ public constant int SHIELD_BREAK_DIZZY = 4
 public constant int SHIELD_BREAK_LAND_FRAMES = 12
 public constant int SHIELD_BREAK_STAND_FRAMES = 30
 public constant real SHIELD_BREAK_RESTORED_ENERGY = 30
-constant real SHIELD_BREAK_LAUNCH_SPEED = 24
 constant int SHIELD_BREAK_MASH_REDUCTION = 3
 constant real SHIELD_DRAIN_PER_FRAME = 0.28
 constant real SHIELD_REGEN_PER_FRAME = 0.07
@@ -209,14 +197,6 @@ public function grabActionDuration(int action) returns int
 	if action == THROW_DOWN
 		return 36
 	return 10
-constant int FOX_JUMP_SQUAT_FRAMES = 3
-constant int FALCO_JUMP_SQUAT_FRAMES = 5
-constant real FOX_FULL_JUMP_SPEED = 3.680000066757202 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FALCO_FULL_JUMP_SPEED = 4.099999904632568 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FOX_SHORT_JUMP_SPEED = 2.0999999046325684 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FALCO_SHORT_JUMP_SPEED = 1.899999976158142 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FOX_DOUBLE_JUMP_SPEED = FOX_FULL_JUMP_SPEED * 1.2000000476837158
-constant real FALCO_DOUBLE_JUMP_SPEED = FALCO_FULL_JUMP_SPEED * 0.9399999976158142
 constant real KNOCKBACK_DECAY_PER_FRAME = 0.051
 constant real KNOCKBACK_LAUNCH_SCALE = 0.03 * WORLD_UNITS_PER_MELEE_UNIT
 constant real HITSTUN_FRAMES_PER_KNOCKBACK = 0.4
@@ -229,8 +209,56 @@ constant real RADIANS_TO_DEGREES = 57.29577951308232
 public constant real SDI_DISTANCE = 6 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real ASDI_DISTANCE = 3 * WORLD_UNITS_PER_MELEE_UNIT
 
+// Actor-owned tuning, in world units per simulation frame. Character identity
+// selects moves and presentation; these values are copied by value in replays.
+public tuple fighterPhysics(real weight, real gravity, real terminalSpeed, real fastFallSpeed,
+		real airAcceleration, real airSpeed, real airFriction, real airCap,
+		real traction, real dashSpeed, real runSpeed, real walkSpeed,
+		int jumpSquatFrames, real fullJumpSpeed, real shortJumpSpeed, real aerialJumpSpeed,
+		real jumpMomentum, real jumpHorizontalSpeed, real jumpHorizontalCap,
+		real aerialJumpHorizontalSpeed, real shieldBreakSpeed)
+
+public function archerPhysics() returns fighterPhysics
+	return fighterPhysics(75, 0.23000000417232513 * WORLD_UNITS_PER_MELEE_UNIT,
+		2.799999952316284 * WORLD_UNITS_PER_MELEE_UNIT, 3.4000000953674316 * WORLD_UNITS_PER_MELEE_UNIT,
+		(0.019999999552965164 + 0.05999999865889549) * WORLD_UNITS_PER_MELEE_UNIT,
+		0.8299999833106995 * WORLD_UNITS_PER_MELEE_UNIT, 0.019999999552965164 * WORLD_UNITS_PER_MELEE_UNIT, 3. * WORLD_UNITS_PER_MELEE_UNIT,
+		GROUND_TRACTION, INITIAL_DASH_SPEED, 2.2 * WORLD_UNITS_PER_MELEE_UNIT, 1.6 * WORLD_UNITS_PER_MELEE_UNIT,
+		3, 3.680000066757202 * WORLD_UNITS_PER_MELEE_UNIT, 2.0999999046325684 * WORLD_UNITS_PER_MELEE_UNIT,
+		3.680000066757202 * WORLD_UNITS_PER_MELEE_UNIT * 1.2000000476837158,
+		0.8299999833106995, 0.72 * WORLD_UNITS_PER_MELEE_UNIT, 1.7 * WORLD_UNITS_PER_MELEE_UNIT,
+		0.8999999761581421 * WORLD_UNITS_PER_MELEE_UNIT, 3.299999952316284 * WORLD_UNITS_PER_MELEE_UNIT)
+
+public function riflemanPhysics() returns fighterPhysics
+	return fighterPhysics(80, 0.17000000178813934 * WORLD_UNITS_PER_MELEE_UNIT,
+		3.0999999046325684 * WORLD_UNITS_PER_MELEE_UNIT, 3.5 * WORLD_UNITS_PER_MELEE_UNIT,
+		(0.019999999552965164 + 0.05000000074505806) * WORLD_UNITS_PER_MELEE_UNIT,
+		0.8299999833106995 * WORLD_UNITS_PER_MELEE_UNIT, 0.019999999552965164 * WORLD_UNITS_PER_MELEE_UNIT, 4. * WORLD_UNITS_PER_MELEE_UNIT,
+		GROUND_TRACTION, INITIAL_DASH_SPEED, 1.5 * WORLD_UNITS_PER_MELEE_UNIT, 1.4 * WORLD_UNITS_PER_MELEE_UNIT,
+		5, 4.099999904632568 * WORLD_UNITS_PER_MELEE_UNIT, 1.899999976158142 * WORLD_UNITS_PER_MELEE_UNIT,
+		4.099999904632568 * WORLD_UNITS_PER_MELEE_UNIT * 0.9399999976158142,
+		1., 0.70 * WORLD_UNITS_PER_MELEE_UNIT, 1.7 * WORLD_UNITS_PER_MELEE_UNIT,
+		0.9399999976158142 * WORLD_UNITS_PER_MELEE_UNIT, 3.299999952316284 * WORLD_UNITS_PER_MELEE_UNIT)
+
+public function demonHunterPhysics() returns fighterPhysics
+	return fighterPhysics(80, 0.19 * WORLD_UNITS_PER_MELEE_UNIT,
+		3.0 * WORLD_UNITS_PER_MELEE_UNIT, 3.45 * WORLD_UNITS_PER_MELEE_UNIT,
+		0.075 * WORLD_UNITS_PER_MELEE_UNIT, 0.88 * WORLD_UNITS_PER_MELEE_UNIT,
+		0.019999999552965164 * WORLD_UNITS_PER_MELEE_UNIT, 0.88 * WORLD_UNITS_PER_MELEE_UNIT,
+		GROUND_TRACTION, INITIAL_DASH_SPEED, 1.85 * WORLD_UNITS_PER_MELEE_UNIT, 1.55 * WORLD_UNITS_PER_MELEE_UNIT,
+		4, 24.2, 13.2, 25.5, 1., 0., 0., 0., 24.)
+
+// Defaults for the original roster, never a reference-character selector.
+public function authoredPhysics(int character) returns fighterPhysics
+	if character == 0
+		return archerPhysics()
+	if character == 1
+		return riflemanPhysics()
+	return demonHunterPhysics()
+
 public class FighterState
 	int character
+	fighterPhysics physics
 	int facing
 	int lastAerialTapDirection = 0
 	int dashFrame = 0
@@ -365,6 +393,7 @@ public class FighterState
 
 	construct(int fighterType, real startX, int direction)
 		character = fighterType
+		physics = authoredPhysics(fighterType)
 		x = startX
 		z = 0
 		facing = direction
@@ -470,14 +499,15 @@ function applyDirectionalInfluence(FighterState target, InputSnapshot input)
 	target.diSerial++
 	target.diLaunchSpeed = 0
 
-public function airDriftVelocity(int character, real velocity, int direction) returns real
-	let target = characterAirSpeed(character)
-	let acceleration = characterAirAcceleration(character)
-	if character == 2
-		return max(-target, min(target, velocity + direction * acceleration))
+function airDriftVelocity(FighterState f, real velocity, int direction) returns real
+	let target = f.physics.airSpeed
+	let acceleration = f.physics.airAcceleration
+	// Illidan retains his authored immediate drift cap.
+	if f.character == 2
+		return max(-f.physics.airCap, min(f.physics.airCap, velocity + direction * acceleration))
 	let alongInput = velocity * direction
-	var next = alongInput > target ? max(target, alongInput - AIR_FRICTION) : min(target, alongInput + acceleration)
-	let maximum = (character == 0 ? 3. : 4.) * WORLD_UNITS_PER_MELEE_UNIT
+	var next = alongInput > target ? max(target, alongInput - f.physics.airFriction) : min(target, alongInput + acceleration)
+	let maximum = f.physics.airCap
 	next = max(-maximum, min(maximum, next))
 	return next * direction
 
@@ -530,7 +560,7 @@ public function totalVelocityZ(FighterState f) returns real
 function decayKnockback(FighterState f)
 	if f.grounded
 		// Flat surfaces: recorded effective decay equals traction; common +0x200 remains unextracted.
-		f.knockbackX = f.knockbackX > 0 ? max(0, f.knockbackX - GROUND_TRACTION) : min(0, f.knockbackX + GROUND_TRACTION)
+		f.knockbackX = f.knockbackX > 0 ? max(0, f.knockbackX - f.physics.traction) : min(0, f.knockbackX + f.physics.traction)
 		f.knockbackZ = 0
 		return
 	let speed = SquareRoot(f.knockbackX * f.knockbackX + f.knockbackZ * f.knockbackZ)
@@ -571,10 +601,7 @@ public function surfacePass(int stage, int index) returns boolean
 	return stage == 1 and index > 0
 
 public function characterSpeed(int character) returns real
-	return character == 0 ? 2.2 * WORLD_UNITS_PER_MELEE_UNIT : (character == 1 ? 1.5 : 1.85) * WORLD_UNITS_PER_MELEE_UNIT
-
-public function characterWalkSpeed(int character) returns real
-	return (character == 0 ? 1.6 : (character == 1 ? 1.4 : 1.55)) * WORLD_UNITS_PER_MELEE_UNIT
+	return authoredPhysics(character).runSpeed
 
 function clearDash(FighterState f)
 	f.dashFrame = 0
@@ -585,10 +612,10 @@ function advanceGroundMovement(FighterState f, int direction, boolean walking)
 		clearDash(f)
 		if direction != 0
 			f.facing = direction
-			f.vx = characterWalkSpeed(f.character) * direction
+			f.vx = f.physics.walkSpeed * direction
 		return
 	if direction == 0
-		if f.vx.abs() <= GROUND_TRACTION
+		if f.vx.abs() <= f.physics.traction
 			clearDash(f)
 		else if f.dashFrame > 0
 			f.dashFrame = min(INITIAL_DASH_FRAMES + 1, f.dashFrame + 1)
@@ -603,34 +630,22 @@ function advanceGroundMovement(FighterState f, int direction, boolean walking)
 	else
 		f.dashFrame = min(INITIAL_DASH_FRAMES + 1, f.dashFrame + 1)
 	f.facing = direction
-	f.vx = direction * (f.dashFrame <= INITIAL_DASH_FRAMES ? INITIAL_DASH_SPEED : characterSpeed(f.character))
+	f.vx = direction * (f.dashFrame <= INITIAL_DASH_FRAMES ? f.physics.dashSpeed : f.physics.runSpeed)
 
 public function characterGravity(int character) returns real
-	return character == 0 ? FOX_GRAVITY : (character == 1 ? FALCO_GRAVITY : 0.19 * WORLD_UNITS_PER_MELEE_UNIT)
+	return authoredPhysics(character).gravity
 
 public function characterTerminalSpeed(int character) returns real
-	return character == 0 ? FOX_TERMINAL_SPEED : (character == 1 ? FALCO_TERMINAL_SPEED : 3.0 * WORLD_UNITS_PER_MELEE_UNIT)
-
-public function characterAirSpeed(int character) returns real
-	return character == 0 ? FOX_AIR_SPEED : (character == 1 ? FALCO_AIR_SPEED : 0.88 * WORLD_UNITS_PER_MELEE_UNIT)
-
-public function characterAirAcceleration(int character) returns real
-	return character == 0 ? FOX_AIR_ACCELERATION : (character == 1 ? FALCO_AIR_ACCELERATION : 0.075 * WORLD_UNITS_PER_MELEE_UNIT)
+	return authoredPhysics(character).terminalSpeed
 
 public function characterFastFallSpeed(int character) returns real
-	return character == 0 ? FOX_FAST_FALL_SPEED : (character == 1 ? FALCO_FAST_FALL_SPEED : 3.45 * WORLD_UNITS_PER_MELEE_UNIT)
+	return authoredPhysics(character).fastFallSpeed
 
 public function fullJumpSpeed(int character) returns real
-	return character == 0 ? FOX_FULL_JUMP_SPEED : (character == 1 ? FALCO_FULL_JUMP_SPEED : 24.2)
-
-public function shortJumpSpeed(int character) returns real
-	return character == 0 ? FOX_SHORT_JUMP_SPEED : (character == 1 ? FALCO_SHORT_JUMP_SPEED : 13.2)
-
-public function doubleJumpSpeed(int character) returns real
-	return character == 0 ? FOX_DOUBLE_JUMP_SPEED : (character == 1 ? FALCO_DOUBLE_JUMP_SPEED : 25.5)
+	return authoredPhysics(character).fullJumpSpeed
 
 public function jumpSquatFrames(int character) returns int
-	return character == 0 ? FOX_JUMP_SQUAT_FRAMES : (character == 1 ? FALCO_JUMP_SQUAT_FRAMES : 4)
+	return authoredPhysics(character).jumpSquatFrames
 
 function canStartAttack(FighterState attacker) returns boolean
 	if attacker.grabTarget != null or attacker.grabAction != GRAB_NONE
@@ -874,7 +889,7 @@ function resolveDamageContacts(FighterState target)
 				if contact.kind == CONTACT_FLINCH and flinch < 0
 					flinch = index
 				if contact.kind == CONTACT_LAUNCH or contact.kind == CONTACT_THROW
-					let knockback = contactKnockback(postHitPercent, damage, target.character == 0 ? 75. : 80.,
+					let knockback = contactKnockback(postHitPercent, damage, target.physics.weight,
 						contact.data.growth, contact.data.base, contact.scale)
 					// Equal-strength contacts retain the first contact's direction.
 					if knockback > strongest
@@ -1175,8 +1190,8 @@ function advanceLedge(FighterState f, int stage, InputSnapshot input)
 			let intoStage = input.getupDirectionPressed and input.getupDirection == -f.ledgeSide
 			let away = input.getupDirectionPressed and input.getupDirection == f.ledgeSide
 			if input.jumpPressed
-				f.vx = -f.ledgeSide * characterAirSpeed(f.character)
-				f.vz = fullJumpSpeed(f.character)
+				f.vx = -f.ledgeSide * f.physics.airSpeed
+				f.vz = f.physics.fullJumpSpeed
 				f.jumpSerial++
 				f.jumpIsDouble = false
 				leaveLedge(f)
@@ -1348,7 +1363,7 @@ function beginShieldBreak(FighterState f)
 	f.diPending = false
 	f.diLaunchSpeed = 0
 	f.vx = 0
-	f.vz = f.character == 2 ? SHIELD_BREAK_LAUNCH_SPEED : 3.299999952316284 * WORLD_UNITS_PER_MELEE_UNIT
+	f.vz = f.physics.shieldBreakSpeed
 	f.knockbackX = 0
 	f.knockbackZ = 0
 	f.grounded = false
@@ -1364,7 +1379,7 @@ function advanceShieldBreak(FighterState f, int stage, InputSnapshot input)
 	f.shieldBreakFrame++
 	if f.shieldBreakState == SHIELD_BREAK_AIR
 		let oldZ = f.z
-		f.vz = max(-characterTerminalSpeed(f.character), f.vz - characterGravity(f.character))
+		f.vz = max(-f.physics.terminalSpeed, f.vz - f.physics.gravity)
 		f.z += f.vz
 		let landing = landingAlongShift(f, stage, f.x, oldZ, f.x, f.z)
 		if landing >= 0
@@ -2187,7 +2202,7 @@ function advanceBear(FighterState owner, FighterState target, int stage)
 	if owner.bearSurface >= 0
 		owner.bearZ = surfaceZ(stage, owner.bearSurface)
 	else
-		owner.bearVelocityZ = max(-characterTerminalSpeed(owner.character), owner.bearVelocityZ - characterGravity(owner.character))
+		owner.bearVelocityZ = max(-owner.physics.terminalSpeed, owner.bearVelocityZ - owner.physics.gravity)
 		owner.bearZ += owner.bearVelocityZ
 		if owner.bearZ <= surfaceZ(stage, 0)
 			owner.bearZ = surfaceZ(stage, 0)
@@ -2279,12 +2294,13 @@ public function simulationJump(FighterState f, int horizontal)
 		f.shield = false
 		f.shieldHeldFrames = 0
 		f.shieldReleaseLag = 0
-		f.jumpSquat = jumpSquatFrames(f.character)
+		f.jumpSquat = f.physics.jumpSquatFrames
 		f.jumpHeld = true
 	else
+		// Illidan keeps horizontal momentum on his aerial jump.
 		if f.character != 2
-			f.vx = horizontal * (f.character == 0 ? 0.8999999761581421 : 0.9399999976158142) * WORLD_UNITS_PER_MELEE_UNIT
-		f.vz = doubleJumpSpeed(f.character)
+			f.vx = horizontal * f.physics.aerialJumpHorizontalSpeed
+		f.vz = f.physics.aerialJumpSpeed
 		f.jumpSerial++
 		f.jumpIsDouble = true
 		clearDownState(f)
@@ -2557,6 +2573,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	if f.hitlag <= 0
 		f.hitstun = max(0, f.hitstun - 1)
 	let squatBeforeInput = f.jumpSquat
+	// Illidan retains his entry-frame squat countdown and immediate jump physics.
 	var groundTakeoff = false
 	if input.jumpPressed
 		simulationJump(f, input.direction)
@@ -2581,9 +2598,9 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			groundTakeoff = f.character != 2
 			f.grounded = false
 			if f.character != 2
-				let jumpX = f.vx * (f.character == 0 ? 0.8299999833106995 : 1.) + input.direction * (f.character == 0 ? 0.72 : 0.70) * WORLD_UNITS_PER_MELEE_UNIT
-				f.vx = max(-1.7 * WORLD_UNITS_PER_MELEE_UNIT, min(1.7 * WORLD_UNITS_PER_MELEE_UNIT, jumpX))
-			f.vz = f.jumpHeld ? fullJumpSpeed(f.character) : shortJumpSpeed(f.character)
+				let jumpX = f.vx * f.physics.jumpMomentum + input.direction * f.physics.jumpHorizontalSpeed
+				f.vx = max(-f.physics.jumpHorizontalCap, min(f.physics.jumpHorizontalCap, jumpX))
+			f.vz = f.jumpHeld ? f.physics.fullJumpSpeed : f.physics.shortJumpSpeed
 			f.jumpSerial++
 			f.jumpIsDouble = false
 			if f.jumpDodgeQueued
@@ -2656,7 +2673,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if f.grounded
 			advanceGroundMovement(f, direction, input.walking)
 		else if direction != 0 and not groundTakeoff
-			f.vx = airDriftVelocity(f.character, f.vx, direction)
+			f.vx = airDriftVelocity(f, f.vx, direction)
 			// Air steering changes velocity, not facing; back aerials rely on a stable orientation.
 	if isGroundDodging(f) and f.groundDodgeDirection != 0
 		if f.character == 2
@@ -2666,7 +2683,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	else if isGroundDodging(f)
 		f.vx = 0
 	else if not groundTakeoff and (not canSteer or direction == 0) and f.hitstun <= 0 and (not dodgeActive or f.grounded)
-		let drag = f.grounded ? GROUND_TRACTION : AIR_FRICTION
+		let drag = f.grounded ? f.physics.traction : f.physics.airFriction
 		f.vx = f.vx > 0 ? max(0, f.vx - drag) : min(0, f.vx + drag)
 	if input.down and not input.attackRequested and f.downState == DOWN_NONE and f.grounded and f.surface >= 0 and surfacePass(stage, f.surface) and canAttack(f)
 		f.dropTime = 12
@@ -2694,13 +2711,13 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.vz = 0
 		f.z = surfaceZ(stage, max(0, f.surface))
 	else if (not dodgeActive or f.grounded) and not groundTakeoff
-		let gravity = characterGravity(f.character)
+		let gravity = f.physics.gravity
 		if not f.grounded and input.down and input.direction == 0 and f.downState == DOWN_NONE and f.hitstun <= 0 and f.vz < 0
 			f.fastFalling = true
 		if f.fastFalling
-			f.vz = -characterFastFallSpeed(f.character)
+			f.vz = -f.physics.fastFallSpeed
 		else
-			f.vz = max(-characterTerminalSpeed(f.character), f.vz - gravity)
+			f.vz = max(-f.physics.terminalSpeed, f.vz - gravity)
 	f.z += totalVelocityZ(f)
 	var landing = -1
 	if totalVelocityZ(f) <= 0

@@ -280,3 +280,93 @@ import MatchStep
     actual.secondCommands.consumedMayCharge = false
     actual.runtime.botAttackDelay = 0.000001
     expected.firstDifference(actual).assertEquals("runtime.botAttackDelay")
+
+@Test function everyPhysicsParameterSurvivesCaptureRestoreAndParticipatesInEquality()
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 100, -1)
+    let match = new MatchState()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    let runtime = new ReplayRuntimeState()
+    let expected = new ReplaySnapshot()
+    let actual = new ReplaySnapshot()
+    // Distinct from every roster default, so restore cannot silently reinitialize tuning.
+    first.physics = fighterPhysics(101, 2, 17, 23, 0.7, 6, 0.3, 25, 0.9, 13, 15, 8, 7, 26, 14, 29, 0.6, 5, 12, 7, 21)
+    let assigned = first.physics
+    expected.capture(first, second, match, firstCommands, secondCommands, runtime)
+    first.physics = demonHunterPhysics()
+    expected.restore(first, second, match, firstCommands, secondCommands, runtime)
+    (first.physics == assigned).assertTrue()
+    actual.capture(first, second, match, firstCommands, secondCommands, runtime)
+    expected.firstDifference(actual).assertEquals("")
+    actual.first.physics.weight += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.gravity += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.terminalSpeed += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.fastFallSpeed += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.airAcceleration += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.airSpeed += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.airFriction += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.airCap += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.traction += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.dashSpeed += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.runSpeed += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.walkSpeed += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.jumpSquatFrames += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.fullJumpSpeed += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.shortJumpSpeed += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.aerialJumpSpeed += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.jumpMomentum += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.jumpHorizontalSpeed += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.jumpHorizontalCap += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.aerialJumpHorizontalSpeed += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    actual.first.physics.shieldBreakSpeed += 1
+    expected.firstDifference(actual).assertEquals("first.physics")
+    actual.first.physics = assigned
+    destroy first
+    destroy second
+    destroy match
+    destroy firstCommands
+    destroy secondCommands
+    destroy runtime
+    destroy expected
+    destroy actual

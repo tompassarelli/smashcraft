@@ -792,20 +792,20 @@ function spawnTestProjectile(FighterState owner, FighterState target)
 			destroy target
 
 @Test function bothFightersBasicProjectilesCauseHitstun()
-	let fox = new FighterState(0, 0, 1)
-	let falcoTarget = new FighterState(1, 100, -1)
-	spawnTestProjectile(fox, falcoTarget)
-	updateProjectilePair(fox, falcoTarget)
-	updateProjectilePair(fox, falcoTarget)
-	falcoTarget.damage.assertEquals(3.)
-	falcoTarget.hitstun.assertEquals(11)
-	let falco = new FighterState(1, 0, 1)
-	let foxTarget = new FighterState(0, 100, -1)
-	spawnTestProjectile(falco, foxTarget)
-	updateProjectilePair(falco, foxTarget)
-	updateProjectilePair(falco, foxTarget)
-	foxTarget.damage.assertEquals(3.)
-	foxTarget.hitstun.assertEquals(11)
+	let archer = new FighterState(0, 0, 1)
+	let riflemanTarget = new FighterState(1, 100, -1)
+	spawnTestProjectile(archer, riflemanTarget)
+	updateProjectilePair(archer, riflemanTarget)
+	updateProjectilePair(archer, riflemanTarget)
+	riflemanTarget.damage.assertEquals(3.)
+	riflemanTarget.hitstun.assertEquals(11)
+	let rifleman = new FighterState(1, 0, 1)
+	let archerTarget = new FighterState(0, 100, -1)
+	spawnTestProjectile(rifleman, archerTarget)
+	updateProjectilePair(rifleman, archerTarget)
+	updateProjectilePair(rifleman, archerTarget)
+	archerTarget.damage.assertEquals(3.)
+	archerTarget.hitstun.assertEquals(11)
 
 @Test function projectilePassesThroughAnIntangibleTargetWithoutConsumingIt()
 	let owner = new FighterState(0, 0, 1)
@@ -3441,6 +3441,7 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 	for direction = -1 to 1
 		let fighter = techTestTumbler()
 		fighter.character = 2
+		fighter.physics = demonHunterPhysics()
 		let input = new InputSnapshot()
 		input.techPressed = true
 		input.direction = -direction
@@ -3554,7 +3555,7 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 	destroy retry
 	destroy input
 
-@Test function techVulnerableRecoveryCanBeInterruptedByMeleeOrFalcoLaser()
+@Test function techVulnerableRecoveryCanBeInterruptedByMeleeOrRiflemanShot()
 	for style = 0 to 1
 		let fighter = techTestTumbler()
 		let input = new InputSnapshot()

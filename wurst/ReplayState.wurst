@@ -9,6 +9,7 @@ function copyFighter(FighterState source, FighterState destination,
 		FighterState sourceFirst, FighterState sourceSecond,
 		FighterState destinationFirst, FighterState destinationSecond)
 	destination.character = source.character
+	destination.physics = source.physics
 	destination.facing = source.facing
 	destination.lastAerialTapDirection = source.lastAerialTapDirection
 	destination.dashFrame = source.dashFrame
@@ -167,6 +168,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		FighterState actualFirst, FighterState actualSecond) returns string
 	if expected.character != actual.character
 		return "character"
+	if expected.physics != actual.physics
+		return "physics"
 	if expected.facing != actual.facing
 		return "facing"
 	if expected.lastAerialTapDirection != actual.lastAerialTapDirection
