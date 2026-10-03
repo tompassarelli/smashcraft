@@ -1,0 +1,459 @@
+{
+  "id": "retail-ntsc-1.02-shield-joint",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "commonDataSha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "execution": {
+    "cpu": "QEMU PPC750",
+    "scaleRoutine": "0x80091D58",
+    "reflectorCreation": "0x8007B23C",
+    "returnPatches": [],
+    "exitCode": 0,
+    "byteCount": 608
+  },
+  "limitations": [
+    "Synthetic static joint and fighter memory; no animation clock or guard entry ordering.",
+    "The reflector descriptor is authored from recorded common values, not produced by the complete GuardReflect entry routine.",
+    "No final collision matrix, projectile contact, GameCube hardware or Warcraft native execution.",
+    "No original bytes or decompiled implementation published."
+  ],
+  "results": [
+    {
+      "kind": 0,
+      "health": 60,
+      "strength": 0,
+      "initialSize": 1,
+      "scaleX": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "scaleY": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "scaleZ": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 60,
+      "strength": 0,
+      "initialSize": 2,
+      "scaleX": {
+        "bits": "0x40000000",
+        "value": 2
+      },
+      "scaleY": {
+        "bits": "0x40000000",
+        "value": 2
+      },
+      "scaleZ": {
+        "bits": "0x40000000",
+        "value": 2
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 60,
+      "strength": 0.3,
+      "initialSize": 1,
+      "scaleX": {
+        "bits": "0x3f5f5c2a",
+        "value": 0.8725000619888306
+      },
+      "scaleY": {
+        "bits": "0x3f5f5c2a",
+        "value": 0.8725000619888306
+      },
+      "scaleZ": {
+        "bits": "0x3f5f5c2a",
+        "value": 0.8725000619888306
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 60,
+      "strength": 0.3,
+      "initialSize": 2,
+      "scaleX": {
+        "bits": "0x3fdf5c2a",
+        "value": 1.7450001239776611
+      },
+      "scaleY": {
+        "bits": "0x3fdf5c2a",
+        "value": 1.7450001239776611
+      },
+      "scaleZ": {
+        "bits": "0x3fdf5c2a",
+        "value": 1.7450001239776611
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 60,
+      "strength": 1,
+      "initialSize": 1,
+      "scaleX": {
+        "bits": "0x3f133334",
+        "value": 0.5750000476837158
+      },
+      "scaleY": {
+        "bits": "0x3f133334",
+        "value": 0.5750000476837158
+      },
+      "scaleZ": {
+        "bits": "0x3f133334",
+        "value": 0.5750000476837158
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 60,
+      "strength": 1,
+      "initialSize": 2,
+      "scaleX": {
+        "bits": "0x3f933334",
+        "value": 1.1500000953674316
+      },
+      "scaleY": {
+        "bits": "0x3f933334",
+        "value": 1.1500000953674316
+      },
+      "scaleZ": {
+        "bits": "0x3f933334",
+        "value": 1.1500000953674316
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 30,
+      "strength": 0,
+      "initialSize": 1,
+      "scaleX": {
+        "bits": "0x3f133334",
+        "value": 0.5750000476837158
+      },
+      "scaleY": {
+        "bits": "0x3f133334",
+        "value": 0.5750000476837158
+      },
+      "scaleZ": {
+        "bits": "0x3f133334",
+        "value": 0.5750000476837158
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 30,
+      "strength": 0,
+      "initialSize": 2,
+      "scaleX": {
+        "bits": "0x3f933334",
+        "value": 1.1500000953674316
+      },
+      "scaleY": {
+        "bits": "0x3f933334",
+        "value": 1.1500000953674316
+      },
+      "scaleZ": {
+        "bits": "0x3f933334",
+        "value": 1.1500000953674316
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 30,
+      "strength": 0.3,
+      "initialSize": 1,
+      "scaleX": {
+        "bits": "0x3f02e148",
+        "value": 0.5112500190734863
+      },
+      "scaleY": {
+        "bits": "0x3f02e148",
+        "value": 0.5112500190734863
+      },
+      "scaleZ": {
+        "bits": "0x3f02e148",
+        "value": 0.5112500190734863
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 30,
+      "strength": 0.3,
+      "initialSize": 2,
+      "scaleX": {
+        "bits": "0x3f82e148",
+        "value": 1.0225000381469727
+      },
+      "scaleY": {
+        "bits": "0x3f82e148",
+        "value": 1.0225000381469727
+      },
+      "scaleZ": {
+        "bits": "0x3f82e148",
+        "value": 1.0225000381469727
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 30,
+      "strength": 1,
+      "initialSize": 1,
+      "scaleX": {
+        "bits": "0x3eb9999a",
+        "value": 0.36250001192092896
+      },
+      "scaleY": {
+        "bits": "0x3eb9999a",
+        "value": 0.36250001192092896
+      },
+      "scaleZ": {
+        "bits": "0x3eb9999a",
+        "value": 0.36250001192092896
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 30,
+      "strength": 1,
+      "initialSize": 2,
+      "scaleX": {
+        "bits": "0x3f39999a",
+        "value": 0.7250000238418579
+      },
+      "scaleY": {
+        "bits": "0x3f39999a",
+        "value": 0.7250000238418579
+      },
+      "scaleZ": {
+        "bits": "0x3f39999a",
+        "value": 0.7250000238418579
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 1,
+      "strength": 0,
+      "initialSize": 1,
+      "scaleX": {
+        "bits": "0x3e281b4f",
+        "value": 0.1641666740179062
+      },
+      "scaleY": {
+        "bits": "0x3e281b4f",
+        "value": 0.1641666740179062
+      },
+      "scaleZ": {
+        "bits": "0x3e281b4f",
+        "value": 0.1641666740179062
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 1,
+      "strength": 0,
+      "initialSize": 2,
+      "scaleX": {
+        "bits": "0x3ea81b4f",
+        "value": 0.3283333480358124
+      },
+      "scaleY": {
+        "bits": "0x3ea81b4f",
+        "value": 0.3283333480358124
+      },
+      "scaleZ": {
+        "bits": "0x3ea81b4f",
+        "value": 0.3283333480358124
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 1,
+      "strength": 0.3,
+      "initialSize": 1,
+      "scaleX": {
+        "bits": "0x3e25ee41",
+        "value": 0.16204167902469635
+      },
+      "scaleY": {
+        "bits": "0x3e25ee41",
+        "value": 0.16204167902469635
+      },
+      "scaleZ": {
+        "bits": "0x3e25ee41",
+        "value": 0.16204167902469635
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 1,
+      "strength": 0.3,
+      "initialSize": 2,
+      "scaleX": {
+        "bits": "0x3ea5ee41",
+        "value": 0.3240833580493927
+      },
+      "scaleY": {
+        "bits": "0x3ea5ee41",
+        "value": 0.3240833580493927
+      },
+      "scaleZ": {
+        "bits": "0x3ea5ee41",
+        "value": 0.3240833580493927
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 1,
+      "strength": 1,
+      "initialSize": 1,
+      "scaleX": {
+        "bits": "0x3e20da74",
+        "value": 0.15708333253860474
+      },
+      "scaleY": {
+        "bits": "0x3e20da74",
+        "value": 0.15708333253860474
+      },
+      "scaleZ": {
+        "bits": "0x3e20da74",
+        "value": 0.15708333253860474
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 0,
+      "health": 1,
+      "strength": 1,
+      "initialSize": 2,
+      "scaleX": {
+        "bits": "0x3ea0da74",
+        "value": 0.3141666650772095
+      },
+      "scaleY": {
+        "bits": "0x3ea0da74",
+        "value": 0.3141666650772095
+      },
+      "scaleZ": {
+        "bits": "0x3ea0da74",
+        "value": 0.3141666650772095
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    },
+    {
+      "kind": 14,
+      "health": 1,
+      "strength": 0,
+      "initialSize": 2,
+      "scaleX": {
+        "bits": "0x40000000",
+        "value": 2
+      },
+      "scaleY": {
+        "bits": "0x40000000",
+        "value": 2
+      },
+      "scaleZ": {
+        "bits": "0x40000000",
+        "value": 2
+      },
+      "reflectorLocalRadius": {
+        "bits": "0x3f400000",
+        "value": 0.75
+      },
+      "sameJoint": true
+    }
+  ]
+}

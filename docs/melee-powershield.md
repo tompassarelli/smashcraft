@@ -19,11 +19,20 @@ Smashcraft fighters use an explicitly authored shield circle centered at local
 offset `(0, 45)` with base radius `60` world units. These are original
 Smashcraft tuning values, not copied Melee character geometry. Its current
 reflector radius is `base radius × shieldSizeMultiplier × 0.75`; `0.75` is the
-common reflector-size value at `+0x2A8`. The dependence on shield health and
-pressure remains unverified: the original setup stores `0.75` directly in a
-bone-attached reflector descriptor, so its final world radius also requires
-the original joint-scale and collision path. The current authored-circle
-mapping is not an established retail geometry formula. Projectile travel is tested against
+common reflector-size value at `+0x2A8`. Original joint-scaling and reflector
+creation routines now confirm the health/pressure dependence: they attach the
+reflector to the same uniformly scaled shield joint. Nineteen synthetic cases
+execute both complete routines without return patches. For unit base size and
+health 60, strength 0 gives joint scale 1, strength 0.3 gives
+0.8725000619888306, and strength 1 gives 0.5750000476837158. The reflector's
+local radius stays 0.75. Doubling the base size doubles the joint scale.
+The original kind-14 branch keeps its base size independent of health/pressure;
+it is reference evidence, not a requirement to add that fighter to Smashcraft.
+See `smashcraft:docs/smash-melee-reference/retail-shield-joint.json` and
+`smashcraft:tools/physics-probe/observe-shield-joint.mjs`.
+Final collision matrices, joint animation/placement and guard-entry ordering
+remain unobserved, so this does not establish complete world-geometry parity.
+Projectile travel is tested against
 the swept circle in the simulation's x/z plane. Reflection transfers ownership
 to the defender and applies the observed common damage multiplier `0.5` and
 speed multiplier `0.699999988079071`. It keeps the source projectile's authored
@@ -48,10 +57,12 @@ under `~/.local/share/smashcraft-melee-reference/powershield-clock-runner`.
 The tool uses symbol/ABI addresses only and does not publish executable bytes
 or decompiled implementation.
 
-The assembled implementation passed 549 normal simulation checks and fourteen
+The first assembled implementation passed 549 normal simulation checks and fourteen
 emitted-Lua precision groups. The playable map built from source `c0d092a`
 (with an unused test import and indentation cleaned up) with deployment
 disabled. Evidence: `smashcraft:build/powershield-map-integration.log`.
-Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x.
+That historical map occupied ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x
+and has since been replaced by the DI-integrated candidate documented in
+`smashcraft:docs/melee-foundation-roadmap.md`.
 SHA-256: `c402c3e231cc29350ba28350ab176587eddac4fc816c52eb57f71bd30785ec0b`.
 It has not been installed or observed natively.
