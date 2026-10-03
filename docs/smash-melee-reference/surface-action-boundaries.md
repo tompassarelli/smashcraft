@@ -140,3 +140,24 @@ and passed afterward on both original hosts. Roll, down-damage and getup-attack
 end conventions are separate and are not certified by this fix. The focused
 completion case and existing RecoveryTests passed; broader assembled checks and
 native verification remain pending for this change.
+
+## Getup roll and attack completion
+
+The private archive reader additionally resolved DownAttackU/D for Fox, Falco
+and Captain Falcon: all six clips contain 50 animation frames. Their numeric
+records were added to smashcraft:docs/smash-melee-reference/retail-action-lengths.json
+after matching the existing source hashes and animation table/archive links.
+The corresponding getup-roll clips contain 36 frames. Entry in
+melee:src/melee/ft/kinds/ftCommon/ftCo_Down.c and
+melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c explicitly advances animation
+once; their end boundaries therefore occur 35 and 49 subsequent ticks after
+entry, respectively. Both animation callbacks enter ordinary ground state
+before the input phase.
+
+Roll and getup-attack completion now join stand completion in the pre-input
+phase. The existing first-actionable-frame case covers all three entries on
+both original hosts; it verifies the last locked frame and a jump on completion.
+All nine getup-filter cases passed, including existing contact/frame-advantage
+checks (smashcraft:build/getup-actions-completion.log). This does not certify
+full retail protection events, collision repositioning, independent frame traces
+or native behavior. The changes have not yet been packaged into a new map.

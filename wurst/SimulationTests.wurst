@@ -4656,26 +4656,34 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	destroy input
 	destroy fighter
 
-@Test function retailDownStandCompletionAllowsInputOnItsAnimationEndTick()
+@Test function retailGetupCompletionAllowsInputOnItsAnimationEndTick()
 	for character = 0 to 1
-		let fighter = new FighterState(character, 0, 1)
-		let input = new InputSnapshot()
-		fighter.downState = DOWN_WAIT
-		fighter.downWaitRemaining = 200
-		input.getupStandPressed = true
-		advance(fighter, 0, input, 0)
-		fighter.downState.assertEquals(DOWN_STAND)
-		input.getupStandPressed = false
-		for frame = 1 to 29
+		for recovery = 0 to 2
+			let fighter = new FighterState(character, 0, 1)
+			let input = new InputSnapshot()
+			fighter.downState = DOWN_WAIT
+			fighter.downWaitRemaining = 200
+			input.getupStandPressed = recovery == 0
+			input.getupDirectionPressed = recovery == 1
+			input.getupDirection = 1
+			input.getupAttackPressed = recovery == 2
 			advance(fighter, 0, input, 0)
-			fighter.downState.assertEquals(DOWN_STAND)
-		input.jumpPressed = true
-		input.jumpHeld = true
-		advance(fighter, 0, input, 0)
-		fighter.downState.assertEquals(DOWN_NONE)
-		fighter.jumpSquat.assertGreaterThan(0)
-		destroy input
-		destroy fighter
+			let state = recovery == 0 ? DOWN_STAND : (recovery == 1 ? DOWN_ROLL : DOWN_ATTACK)
+			let endTick = recovery == 0 ? 30 : (recovery == 1 ? 35 : 49)
+			fighter.downState.assertEquals(state)
+			input.getupStandPressed = false
+			input.getupDirectionPressed = false
+			input.getupAttackPressed = false
+			for frame = 1 to endTick - 1
+				advance(fighter, 0, input, 0)
+				fighter.downState.assertEquals(state)
+			input.jumpPressed = true
+			input.jumpHeld = true
+			advance(fighter, 0, input, 0)
+			fighter.downState.assertEquals(DOWN_NONE)
+			fighter.jumpSquat.assertGreaterThan(0)
+			destroy input
+			destroy fighter
 
 @Test function retailWallTechUsesTheSeparateOriginalFighterSurfaceProfile()
 	let fighter = new FighterState(0, -425, 1)

@@ -2252,21 +2252,15 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 	if f.downState == DOWN_ROLL
 		f.grounded = true
 		f.z = surfaceZ(stage, max(0, f.surface))
-		if f.downFrame >= DOWN_ROLL_FRAMES
-			clearDownState(f)
-		else
-			f.downFrame++
-			applyDownRollTravel(f, stage)
-			f.z = surfaceZ(stage, max(0, f.surface))
-			f.grounded = true
+		f.downFrame++
+		applyDownRollTravel(f, stage)
+		f.z = surfaceZ(stage, max(0, f.surface))
+		f.grounded = true
 		return true
 	if f.downState == DOWN_ATTACK
 		f.grounded = true
 		f.z = surfaceZ(stage, max(0, f.surface))
-		if f.downFrame >= DOWN_ATTACK_FRAMES
-			clearDownState(f)
-		else
-			f.downFrame++
+		f.downFrame++
 		return true
 	return false
 
@@ -3235,6 +3229,10 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if isFloorTeching(f) and f.downFrame >= (f.downState == DOWN_TECH ? TECH_IN_PLACE_FRAMES : TECH_ROLL_FRAMES)
 			clearDownState(f)
 		else if f.downState == DOWN_STAND and f.downFrame >= DOWN_STAND_FRAMES
+			clearDownState(f)
+		else if f.downState == DOWN_ROLL and f.downFrame >= DOWN_ROLL_FRAMES
+			clearDownState(f)
+		else if f.downState == DOWN_ATTACK and f.downFrame >= DOWN_ATTACK_FRAMES
 			clearDownState(f)
 	if input.techPressed
 		f.techWindow = f.techLockout == 0 ? (hitlagBefore > 1 ? 1 : TECH_WINDOW_FRAMES) : 0

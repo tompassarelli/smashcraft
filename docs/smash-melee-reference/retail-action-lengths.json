@@ -81,6 +81,12 @@
           "animationFrames": 30
         },
         {
+          "animationId": 187,
+          "action": "DownAttackU",
+          "assetAction": "DownAttackU",
+          "animationFrames": 50
+        },
+        {
           "animationId": 188,
           "action": "DownFowardU",
           "assetAction": "DownFowardU",
@@ -109,6 +115,12 @@
           "action": "DownStandD",
           "assetAction": "DownStandD",
           "animationFrames": 30
+        },
+        {
+          "animationId": 195,
+          "action": "DownAttackD",
+          "assetAction": "DownAttackD",
+          "animationFrames": 50
         },
         {
           "animationId": 196,
@@ -258,6 +270,12 @@
           "animationFrames": 30
         },
         {
+          "animationId": 187,
+          "action": "DownAttackU",
+          "assetAction": "DownAttackU",
+          "animationFrames": 50
+        },
+        {
           "animationId": 188,
           "action": "DownFowardU",
           "assetAction": "DownFowardU",
@@ -286,6 +304,12 @@
           "action": "DownStandD",
           "assetAction": "DownStandD",
           "animationFrames": 30
+        },
+        {
+          "animationId": 195,
+          "action": "DownAttackD",
+          "assetAction": "DownAttackD",
+          "animationFrames": 50
         },
         {
           "animationId": 196,
@@ -435,6 +459,12 @@
           "animationFrames": 30
         },
         {
+          "animationId": 187,
+          "action": "DownAttackU",
+          "assetAction": "DownAttackU",
+          "animationFrames": 50
+        },
+        {
           "animationId": 188,
           "action": "DownFowardU",
           "assetAction": "DownFowardU",
@@ -463,6 +493,12 @@
           "action": "DownStandD",
           "assetAction": "DownStandD",
           "animationFrames": 30
+        },
+        {
+          "animationId": 195,
+          "action": "DownAttackD",
+          "assetAction": "DownAttackD",
+          "animationFrames": 50
         },
         {
           "animationId": 196,
