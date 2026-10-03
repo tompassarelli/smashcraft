@@ -1,6 +1,6 @@
 # Controller reuse decision — 3 October 2026
 
-Use a Rust core with **SDL3 for controller discovery, normalization, hotplugging and supported device protocols**. Keep Tauri optional and outside the input delivery loop. Initially keep the existing AntiMicroX profile usable as the observed digital baseline. The first Rust experiment should deliver the same keys through the existing X11/XWayland path, using an established XTest binding. Do not translate the cited C# program or implement a GameCube USB decoder: SDL3 already contains the latter capability.
+Use a Rust core with **SDL3 for controller discovery, normalization, hotplugging and supported device protocols**, **enigo for keyboard delivery**, and native platform APIs for foreground game identity. The companion must work on macOS, Windows and Linux. Keep Tauri outside the input delivery loop and retain the existing AntiMicroX profile as the observed digital baseline. The [cross-platform decision](controller-platforms.md) specifies the Windows, macOS and Linux output paths and required native trials. Use the C# project as a behavioral reference; SDL3 already supplies GameCube adapter handling.
 
 This recommendation concerns input acquisition and local key delivery. None of the inspected projects supplies a ready-made continuous-analog bridge into this Warcraft map. Reading an analog axis on Linux does not make it available to Wurst, and neither controller support nor Slippi reuse establishes Warcraft engine or multiplayer latency.
 
@@ -42,7 +42,7 @@ SDL has a dedicated [Steam Deck driver](https://github.com/libsdl-org/SDL/blob/4
 
 ## Output and focus boundary
 
-For the currently used Warcraft under Proton/XWayland, retain **XTest on the correct X display**, through a maintained Rust X11 binding such as `x11rb`'s `xtest_fake_input`. XTest sends input through that X server; it is not an injection API for arbitrary native Wayland clients. Conversely, SDL's ability to read a controller does not solve desktop injection or focus.
+For the currently used Warcraft under Proton/XWayland, retain **XTest on the correct X display** through enigo's maintained X11 backend; `x11rb` remains a native API reference. XTest sends input through that X server; it is not an injection API for arbitrary native Wayland clients. Conversely, SDL's ability to read a controller does not solve desktop injection or focus.
 
 Arm only for the exact intended Warcraft window/instance, corroborated with the compositor's actual active-window state on the current desktop. An X11 title/process-exists match alone is insufficient when a Wayland-native window, overview, or lock screen can own input. Two clients also require explicit target identity; a shared game title does not choose a participant. On loss of eligibility or disconnect, clear owned held actions and require a defined neutral/rearm transition. Keep references/counts for shared actions: releasing LT must not release shield while RT remains held; releasing B must not cancel a still-held Y/up jump source. Coordinate with the existing keyboard path rather than assuming independent keys cannot overlap.
 
@@ -52,7 +52,7 @@ The owned code should therefore be small: action bindings and thresholds, held-s
 
 ## Smallest discriminating executable experiment
 
-Build one UI-less Rust experiment using SDL3 plus XTest, then run it under the controlled native test sessions. No clients, focus, mapper or devices were changed during this research.
+Build one UI-less Rust experiment using SDL3 plus enigo on the existing X11 path, then run it under the controlled native test sessions. No clients, focus, mapper or devices were changed during this research.
 
 1. Enumerate the wired Xbox through SDL; record identity, selected mapping and normalized axes/buttons. Enable background acquisition. Use the current Warcraft keyboard preset and the requested bindings above.
 2. Run only one mapper output path at a time. Target the already-running intended client. Log controller events, action transitions, focus eligibility and emitted key transitions with a monotonic clock. Preserve the current game-side capture/trace for correlation.
