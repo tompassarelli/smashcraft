@@ -1,5 +1,12 @@
 # Smash Melee reference data
 
+Physics parameters are recorded separately in
+[the parameter corpus](physics-parameters.json) and
+[its source notes](physics-parameters.md). They include 78 extracted Fox/Falco
+values, 14 common-data annotations and 27 unresolved common-data groups.
+Character dump revision is unknown; missing values remain explicit rather than
+being filled with prototype constants.
+
 The owner's copy-paste snapshot of all 26 character pages from
 [Melee Frame Data](https://meleeframedata.com/), captured 2026-10-03, is retained
 with its structured conversions:
