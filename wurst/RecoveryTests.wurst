@@ -212,6 +212,25 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	destroy target
 	destroy attacker
 
+@Test function downDamageCompletionChecksGetupInputWithoutWaitingAnotherTick()
+	for host = 0 to 1
+		let attacker = new FighterState(0, 0, 1)
+		let target = new FighterState(host, 50, -1)
+		let input = new InputSnapshot()
+		target.damage = 80
+		weakRecoveryHit(1, attacker, target)
+		while target.hitlag > 1
+			advance(target, 0, input, -240)
+		for tick = 1 to DOWN_DAMAGE_FRAMES - 1
+			advance(target, 0, input, -240)
+			target.downState.assertEquals(DOWN_DAMAGE)
+		input.getupAttackPressed = true
+		advance(target, 0, input, -240)
+		target.downState.assertEquals(DOWN_ATTACK)
+		destroy input
+		destroy target
+		destroy attacker
+
 @Test function downDamageEndsInStandWhenItsHitstunExpiresDuringTheAnimation()
 	let fighter = new FighterState(0, 0, 1)
 	let input = new InputSnapshot()

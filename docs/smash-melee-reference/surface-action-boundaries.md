@@ -161,3 +161,22 @@ All nine getup-filter cases passed, including existing contact/frame-advantage
 checks (smashcraft:build/getup-actions-completion.log). This does not certify
 full retail protection events, collision repositioning, independent frame traces
 or native behavior. The changes have not yet been packaged into a new map.
+
+## Grounded damage completion input
+
+DownBound enters at animation frame zero without an extra advance; its selected
+26-frame clips retain the existing 26-subsequent-tick boundary. DownDamage enters
+through melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c:ftCo_8008DCE0, which advances
+animation once; its selected 14-frame clips retain the existing 13-tick boundary.
+These facts do not justify changing either duration.
+
+melee:src/melee/ft/kinds/ftCommon/ftCo_DownDamage.c transitions to DownWait when
+the clip ends with remaining damage time. The fighter's later input callback
+then uses the new state's getup checks. Smashcraft previously returned immediately
+after that transition and lost getup input on the completion tick. It now checks
+getup input that tick while preserving the newly initialized wait timer when
+there is no input. The new case enters grounded damage through an actual hit,
+checks every locked tick, and requests getup attack on completion on both hosts.
+RecoveryTests passed 14/14, zero errors and one existing unused-import warning;
+evidence: smashcraft:build/down-damage-completion.log. Native execution and the
+broader remaining recovery/collision claims are still open.
