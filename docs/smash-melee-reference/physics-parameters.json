@@ -1,0 +1,1030 @@
+{
+  "target": "Melee NTSC 1.02 (GALE01 revision 2)",
+  "retrieved": "2026-10-03",
+  "status": "factual reference intake; binary revision and complete common table unresolved",
+  "frameSemantics": "60 logical simulation frames per second; frame parameters are per-frame, not per-second; a frame count alone does not establish callback countdown order",
+  "offsetSemantics": {
+    "character": "byte displacement from ftCo_DatAttrs / the character attributes structure; not the absolute DAT-file offset",
+    "common": "byte displacement from ftCommonData, reached through ftLoadCommonData; not the absolute PlCo.dat-file offset"
+  },
+  "sources": {
+    "decompile": {
+      "revision": "0296f009f32f710495979d30772d8332af2d411a",
+      "url": "https://github.com/doldecomp/melee/tree/0296f009f32f710495979d30772d8332af2d411a",
+      "path": "melee:src/melee/ft/types.h",
+      "rights": "No gameplay implementation license established. Only numerical facts, field identifiers and layout observations retained; no implementation copied or translated."
+    },
+    "datPublisher": {
+      "url": "https://melee.theshoemaker.de/%21README.md",
+      "gameRevision": null,
+      "limitation": "Publisher calls these unmodified character DAT dumps but does not identify the disc region/revision in the inspected README or JSON. Values must not be promoted to verified NTSC 1.02 extraction."
+    }
+  },
+  "characters": {
+    "Fox": {
+      "sourceUrl": "https://melee.theshoemaker.de/dat-dumps/Fox.json",
+      "sourceSha256": "4533034a5db1b2d7949763b196f5a9cb2361b567da8ba6f8ad7c5a898a55e98f",
+      "sourceBytes": 1442739,
+      "sourceFile": "PlFx.dat",
+      "sourceRoot": "ftDataFox",
+      "attributesOffsetReportedByPublisher": 14068,
+      "sourceAttributeCount": 97,
+      "gameRevision": null,
+      "verification": "Complete JSON parsed; selected numeric values round-trip exactly as IEEE-754 binary32 (max_jumps is integer). No DAT binary or disc identity was checked.",
+      "values": [
+        {
+          "offset": "0x000",
+          "field": "walk_accel_mul",
+          "value": 0.20000000298023224,
+          "units": "Melee units/frame^2 per stick unit",
+          "sourcePointer": "/nodes/0/data/attributes/0/value"
+        },
+        {
+          "offset": "0x004",
+          "field": "walk_accel_base",
+          "value": 0.10000000149011612,
+          "units": "Melee units/frame^2",
+          "sourcePointer": "/nodes/0/data/attributes/1/value"
+        },
+        {
+          "offset": "0x008",
+          "field": "walk_max_vel",
+          "value": 1.600000023841858,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/2/value"
+        },
+        {
+          "offset": "0x018",
+          "field": "ground_friction",
+          "value": 0.07999999821186066,
+          "units": "Melee units/frame^2",
+          "sourcePointer": "/nodes/0/data/attributes/6/value"
+        },
+        {
+          "offset": "0x01C",
+          "field": "dash_initial_velocity",
+          "value": 1.899999976158142,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/7/value"
+        },
+        {
+          "offset": "0x020",
+          "field": "dash_accel_mul",
+          "value": 0.10000000149011612,
+          "units": "Melee units/frame^2 per stick unit",
+          "sourcePointer": "/nodes/0/data/attributes/8/value"
+        },
+        {
+          "offset": "0x024",
+          "field": "dash_accel_base",
+          "value": 0.019999999552965164,
+          "units": "Melee units/frame^2",
+          "sourcePointer": "/nodes/0/data/attributes/9/value"
+        },
+        {
+          "offset": "0x028",
+          "field": "dash_max_velocity",
+          "value": 2.200000047683716,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/10/value"
+        },
+        {
+          "offset": "0x030",
+          "field": "max_run_brake_frames",
+          "value": 30,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/12/value"
+        },
+        {
+          "offset": "0x034",
+          "field": "ground_max_horizontal_velocity",
+          "value": 3,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/13/value"
+        },
+        {
+          "offset": "0x038",
+          "field": "jump_startup_time",
+          "value": 3,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/14/value"
+        },
+        {
+          "offset": "0x03C",
+          "field": "jump_h_initial_velocity",
+          "value": 0.7200000286102295,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/15/value"
+        },
+        {
+          "offset": "0x040",
+          "field": "jump_v_initial_velocity",
+          "value": 3.680000066757202,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/16/value"
+        },
+        {
+          "offset": "0x044",
+          "field": "ground_to_air_jump_momentum_multiplier",
+          "value": 0.8299999833106995,
+          "units": "dimensionless",
+          "sourcePointer": "/nodes/0/data/attributes/17/value"
+        },
+        {
+          "offset": "0x048",
+          "field": "jump_h_max_velocity",
+          "value": 1.7000000476837158,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/18/value"
+        },
+        {
+          "offset": "0x04C",
+          "field": "hop_v_initial_velocity",
+          "value": 2.0999999046325684,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/19/value"
+        },
+        {
+          "offset": "0x050",
+          "field": "air_jump_v_multiplier",
+          "value": 1.2000000476837158,
+          "units": "dimensionless",
+          "sourcePointer": "/nodes/0/data/attributes/20/value"
+        },
+        {
+          "offset": "0x054",
+          "field": "air_jump_h_multiplier",
+          "value": 0.8999999761581421,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/21/value"
+        },
+        {
+          "offset": "0x058",
+          "field": "max_jumps",
+          "value": 2,
+          "units": "count",
+          "sourcePointer": "/nodes/0/data/attributes/22/value"
+        },
+        {
+          "offset": "0x05C",
+          "field": "gravity",
+          "value": 0.23000000417232513,
+          "units": "Melee units/frame^2",
+          "sourcePointer": "/nodes/0/data/attributes/23/value"
+        },
+        {
+          "offset": "0x060",
+          "field": "terminal_velocity",
+          "value": 2.799999952316284,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/24/value"
+        },
+        {
+          "offset": "0x064",
+          "field": "air_drift_stick_mul",
+          "value": 0.05999999865889549,
+          "units": "Melee units/frame^2 per stick unit",
+          "sourcePointer": "/nodes/0/data/attributes/25/value"
+        },
+        {
+          "offset": "0x068",
+          "field": "aerial_drift_base",
+          "value": 0.019999999552965164,
+          "units": "Melee units/frame^2",
+          "sourcePointer": "/nodes/0/data/attributes/26/value"
+        },
+        {
+          "offset": "0x06C",
+          "field": "air_drift_max",
+          "value": 0.8299999833106995,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/27/value"
+        },
+        {
+          "offset": "0x070",
+          "field": "aerial_friction",
+          "value": 0.019999999552965164,
+          "units": "Melee units/frame^2",
+          "sourcePointer": "/nodes/0/data/attributes/28/value"
+        },
+        {
+          "offset": "0x074",
+          "field": "fast_fall_velocity",
+          "value": 3.4000000953674316,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/29/value"
+        },
+        {
+          "offset": "0x078",
+          "field": "air_max_horizontal_velocity",
+          "value": 3,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/30/value"
+        },
+        {
+          "offset": "0x084",
+          "field": "standing_turn_frames",
+          "value": 4,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/33/value"
+        },
+        {
+          "offset": "0x088",
+          "field": "weight",
+          "value": 75,
+          "units": "weight units",
+          "sourcePointer": "/nodes/0/data/attributes/34/value"
+        },
+        {
+          "offset": "0x090",
+          "field": "initial_shield_size",
+          "value": 14.375,
+          "units": "Melee units",
+          "sourcePointer": "/nodes/0/data/attributes/36/value"
+        },
+        {
+          "offset": "0x094",
+          "field": "shield_break_initial_velocity",
+          "value": 3.299999952316284,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/37/value"
+        },
+        {
+          "offset": "0x0A8",
+          "field": "ledge_jump_horizontal_velocity",
+          "value": 1.100000023841858,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/42/value"
+        },
+        {
+          "offset": "0x0AC",
+          "field": "ledge_jump_vertical_velocity",
+          "value": 4,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/43/value"
+        },
+        {
+          "offset": "0x0E4",
+          "field": "normal_landing_lag",
+          "value": 4,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/57/value"
+        },
+        {
+          "offset": "0x0E8",
+          "field": "landingairn_lag",
+          "value": 15,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/58/value"
+        },
+        {
+          "offset": "0x0EC",
+          "field": "landingairf_lag",
+          "value": 22,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/59/value"
+        },
+        {
+          "offset": "0x0F0",
+          "field": "landingairb_lag",
+          "value": 20,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/60/value"
+        },
+        {
+          "offset": "0x0F4",
+          "field": "landingairhi_lag",
+          "value": 18,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/61/value"
+        },
+        {
+          "offset": "0x0F8",
+          "field": "landingairlw_lag",
+          "value": 18,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/62/value"
+        }
+      ]
+    },
+    "Falco": {
+      "sourceUrl": "https://melee.theshoemaker.de/dat-dumps/Falco.json",
+      "sourceSha256": "5db4392df8e9fe288bb31eaea1d8f2191df1d893b7812b9b50b171934ce43e79",
+      "sourceBytes": 1449307,
+      "sourceFile": "PlFc.dat",
+      "sourceRoot": "ftDataFalco",
+      "attributesOffsetReportedByPublisher": 14276,
+      "sourceAttributeCount": 97,
+      "gameRevision": null,
+      "verification": "Complete JSON parsed; selected numeric values round-trip exactly as IEEE-754 binary32 (max_jumps is integer). No DAT binary or disc identity was checked.",
+      "values": [
+        {
+          "offset": "0x000",
+          "field": "walk_accel_mul",
+          "value": 0.20000000298023224,
+          "units": "Melee units/frame^2 per stick unit",
+          "sourcePointer": "/nodes/0/data/attributes/0/value"
+        },
+        {
+          "offset": "0x004",
+          "field": "walk_accel_base",
+          "value": 0.10000000149011612,
+          "units": "Melee units/frame^2",
+          "sourcePointer": "/nodes/0/data/attributes/1/value"
+        },
+        {
+          "offset": "0x008",
+          "field": "walk_max_vel",
+          "value": 1.399999976158142,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/2/value"
+        },
+        {
+          "offset": "0x018",
+          "field": "ground_friction",
+          "value": 0.07999999821186066,
+          "units": "Melee units/frame^2",
+          "sourcePointer": "/nodes/0/data/attributes/6/value"
+        },
+        {
+          "offset": "0x01C",
+          "field": "dash_initial_velocity",
+          "value": 1.899999976158142,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/7/value"
+        },
+        {
+          "offset": "0x020",
+          "field": "dash_accel_mul",
+          "value": 0.10000000149011612,
+          "units": "Melee units/frame^2 per stick unit",
+          "sourcePointer": "/nodes/0/data/attributes/8/value"
+        },
+        {
+          "offset": "0x024",
+          "field": "dash_accel_base",
+          "value": 0.019999999552965164,
+          "units": "Melee units/frame^2",
+          "sourcePointer": "/nodes/0/data/attributes/9/value"
+        },
+        {
+          "offset": "0x028",
+          "field": "dash_max_velocity",
+          "value": 1.5,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/10/value"
+        },
+        {
+          "offset": "0x030",
+          "field": "max_run_brake_frames",
+          "value": 30,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/12/value"
+        },
+        {
+          "offset": "0x034",
+          "field": "ground_max_horizontal_velocity",
+          "value": 3,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/13/value"
+        },
+        {
+          "offset": "0x038",
+          "field": "jump_startup_time",
+          "value": 5,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/14/value"
+        },
+        {
+          "offset": "0x03C",
+          "field": "jump_h_initial_velocity",
+          "value": 0.699999988079071,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/15/value"
+        },
+        {
+          "offset": "0x040",
+          "field": "jump_v_initial_velocity",
+          "value": 4.099999904632568,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/16/value"
+        },
+        {
+          "offset": "0x044",
+          "field": "ground_to_air_jump_momentum_multiplier",
+          "value": 1,
+          "units": "dimensionless",
+          "sourcePointer": "/nodes/0/data/attributes/17/value"
+        },
+        {
+          "offset": "0x048",
+          "field": "jump_h_max_velocity",
+          "value": 1.7000000476837158,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/18/value"
+        },
+        {
+          "offset": "0x04C",
+          "field": "hop_v_initial_velocity",
+          "value": 1.899999976158142,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/19/value"
+        },
+        {
+          "offset": "0x050",
+          "field": "air_jump_v_multiplier",
+          "value": 0.9399999976158142,
+          "units": "dimensionless",
+          "sourcePointer": "/nodes/0/data/attributes/20/value"
+        },
+        {
+          "offset": "0x054",
+          "field": "air_jump_h_multiplier",
+          "value": 0.9399999976158142,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/21/value"
+        },
+        {
+          "offset": "0x058",
+          "field": "max_jumps",
+          "value": 2,
+          "units": "count",
+          "sourcePointer": "/nodes/0/data/attributes/22/value"
+        },
+        {
+          "offset": "0x05C",
+          "field": "gravity",
+          "value": 0.17000000178813934,
+          "units": "Melee units/frame^2",
+          "sourcePointer": "/nodes/0/data/attributes/23/value"
+        },
+        {
+          "offset": "0x060",
+          "field": "terminal_velocity",
+          "value": 3.0999999046325684,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/24/value"
+        },
+        {
+          "offset": "0x064",
+          "field": "air_drift_stick_mul",
+          "value": 0.05000000074505806,
+          "units": "Melee units/frame^2 per stick unit",
+          "sourcePointer": "/nodes/0/data/attributes/25/value"
+        },
+        {
+          "offset": "0x068",
+          "field": "aerial_drift_base",
+          "value": 0.019999999552965164,
+          "units": "Melee units/frame^2",
+          "sourcePointer": "/nodes/0/data/attributes/26/value"
+        },
+        {
+          "offset": "0x06C",
+          "field": "air_drift_max",
+          "value": 0.8299999833106995,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/27/value"
+        },
+        {
+          "offset": "0x070",
+          "field": "aerial_friction",
+          "value": 0.019999999552965164,
+          "units": "Melee units/frame^2",
+          "sourcePointer": "/nodes/0/data/attributes/28/value"
+        },
+        {
+          "offset": "0x074",
+          "field": "fast_fall_velocity",
+          "value": 3.5,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/29/value"
+        },
+        {
+          "offset": "0x078",
+          "field": "air_max_horizontal_velocity",
+          "value": 4,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/30/value"
+        },
+        {
+          "offset": "0x084",
+          "field": "standing_turn_frames",
+          "value": 4,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/33/value"
+        },
+        {
+          "offset": "0x088",
+          "field": "weight",
+          "value": 80,
+          "units": "weight units",
+          "sourcePointer": "/nodes/0/data/attributes/34/value"
+        },
+        {
+          "offset": "0x090",
+          "field": "initial_shield_size",
+          "value": 12.5,
+          "units": "Melee units",
+          "sourcePointer": "/nodes/0/data/attributes/36/value"
+        },
+        {
+          "offset": "0x094",
+          "field": "shield_break_initial_velocity",
+          "value": 3.299999952316284,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/37/value"
+        },
+        {
+          "offset": "0x0A8",
+          "field": "ledge_jump_horizontal_velocity",
+          "value": 1,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/42/value"
+        },
+        {
+          "offset": "0x0AC",
+          "field": "ledge_jump_vertical_velocity",
+          "value": 3.9000000953674316,
+          "units": "Melee units/frame",
+          "sourcePointer": "/nodes/0/data/attributes/43/value"
+        },
+        {
+          "offset": "0x0E4",
+          "field": "normal_landing_lag",
+          "value": 4,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/57/value"
+        },
+        {
+          "offset": "0x0E8",
+          "field": "landingairn_lag",
+          "value": 15,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/58/value"
+        },
+        {
+          "offset": "0x0EC",
+          "field": "landingairf_lag",
+          "value": 22,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/59/value"
+        },
+        {
+          "offset": "0x0F0",
+          "field": "landingairb_lag",
+          "value": 20,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/60/value"
+        },
+        {
+          "offset": "0x0F4",
+          "field": "landingairhi_lag",
+          "value": 18,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/61/value"
+        },
+        {
+          "offset": "0x0F8",
+          "field": "landingairlw_lag",
+          "value": 18,
+          "units": "frames",
+          "sourcePointer": "/nodes/0/data/attributes/62/value"
+        }
+      ]
+    }
+  },
+  "common": {
+    "reportedValues": [
+      {
+        "offset": "0x000",
+        "field": "horizontal_stick_deadzone",
+        "value": 0.28,
+        "units": "stick units",
+        "source": "melee:src/melee/ft/types.h:79",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      },
+      {
+        "offset": "0x004",
+        "field": "vertical_stick_deadzone",
+        "value": 0.28,
+        "units": "stick units",
+        "source": "melee:src/melee/ft/types.h:82",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      },
+      {
+        "offset": "0x008",
+        "field": "horizontal_stick_smash_deadzone",
+        "value": 0.25,
+        "units": "stick units",
+        "source": "melee:src/melee/ft/types.h:85",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      },
+      {
+        "offset": "0x00C",
+        "field": "vertical_stick_smash_deadzone",
+        "value": 0.25,
+        "units": "stick units",
+        "source": "melee:src/melee/ft/types.h:99",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      },
+      {
+        "offset": "0x010",
+        "field": "analog_shoulder_deadzone",
+        "value": 0.3,
+        "units": "trigger units",
+        "source": "melee:src/melee/ft/types.h:102",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      },
+      {
+        "offset": "0x014",
+        "field": "z_press_analog_value",
+        "value": 0.35,
+        "units": "trigger units",
+        "source": "melee:src/melee/ft/types.h:105",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      },
+      {
+        "offset": "0x018",
+        "field": "shield_press_threshold",
+        "value": 0.25,
+        "units": "trigger units",
+        "source": "melee:src/melee/ft/types.h:108",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      },
+      {
+        "offset": "0x024",
+        "field": "walk_stick_threshold",
+        "value": 0.18,
+        "units": "stick units",
+        "source": "melee:src/melee/ft/types.h:118",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      },
+      {
+        "offset": "0x060",
+        "field": "run_dash_turn_friction_multiplier",
+        "value": 1,
+        "units": "dimensionless",
+        "source": "melee:src/melee/ft/types.h:151",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      },
+      {
+        "offset": "0x06C",
+        "field": "friction_when_above_walk_speed",
+        "value": 2,
+        "units": "dimensionless",
+        "source": "melee:src/melee/ft/types.h:165",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      },
+      {
+        "offset": "0x070",
+        "field": "tap_jump_threshold",
+        "value": 0.6625,
+        "units": "stick units",
+        "source": "melee:src/melee/ft/types.h:169",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      },
+      {
+        "offset": "0x074",
+        "field": "tap_jump_window",
+        "value": 4,
+        "units": "frames",
+        "source": "melee:src/melee/ft/types.h:175",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      },
+      {
+        "offset": "0x080",
+        "field": "relaxed_tap_jump_threshold",
+        "value": 0.5625,
+        "units": "stick units",
+        "source": "melee:src/melee/ft/types.h:185",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      },
+      {
+        "offset": "0x474",
+        "field": "teeter_walk_threshold",
+        "value": 0.75,
+        "units": "stick units",
+        "source": "melee:src/melee/ft/types.h:440",
+        "verification": "GALE01 PlCo.dat value reported in source annotation; raw binary value and disc revision not independently checked"
+      }
+    ],
+    "unresolved": [
+      {
+        "mechanic": "walk acceleration taper",
+        "offsets": [
+          "0x030"
+        ],
+        "value": null,
+        "units": "dimensionless",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Walk.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "dash transition and reverse windows",
+        "offsets": [
+          "0x038",
+          "0x03C",
+          "0x040",
+          "0x044",
+          "0x048",
+          "0x04C",
+          "0x054",
+          "0x058"
+        ],
+        "value": null,
+        "units": "mixed stick thresholds, frame counts and momentum coefficient",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Dash.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "run acceleration taper and speed scaling",
+        "offsets": [
+          "0x05C",
+          "0x440"
+        ],
+        "value": null,
+        "units": "dimensionless",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Run.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "launch stacking time gate",
+        "offsets": [
+          "0x0FC"
+        ],
+        "value": null,
+        "units": "frames since previous hit; replacement before gate, component selection/addition after",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "knockback weight scaling and curve",
+        "offsets": [
+          "0x0F4",
+          "0x0F8",
+          "0x110",
+          "0x114",
+          "0x118",
+          "0x11C",
+          "0x120"
+        ],
+        "value": null,
+        "units": "mixed curve coefficients",
+        "source": "melee:src/melee/ft/ftcoll.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "knockback minimum and cap",
+        "offsets": [
+          "0x104",
+          "0x108"
+        ],
+        "value": null,
+        "units": "knockback units",
+        "source": "melee:src/melee/ft/ftcoll.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "crouch knockback multiplier",
+        "offsets": [
+          "0x124"
+        ],
+        "value": null,
+        "units": "dimensionless",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "Sakurai angle and interpolation thresholds",
+        "offsets": [
+          "0x144",
+          "0x148",
+          "0x14C",
+          "0x150"
+        ],
+        "value": null,
+        "units": "0x144 radians; 0x148 degrees; 0x14C/0x150 knockback units",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "hitstun scaling and damage reaction thresholds",
+        "offsets": [
+          "0x154",
+          "0x158",
+          "0x15C",
+          "0x160"
+        ],
+        "value": null,
+        "units": "0x154 frames/knockback unit; thresholds on scaled knockback",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "grounded launch speed cap on landing",
+        "offsets": [
+          "0x164"
+        ],
+        "value": null,
+        "units": "Melee units/frame",
+        "source": "melee:src/melee/ft/types.h",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "hitlag cap, damage coefficient, base, crouch factor and electric factor",
+        "offsets": [
+          "0x194",
+          "0x198",
+          "0x19C",
+          "0x1A0",
+          "0x1A4"
+        ],
+        "value": null,
+        "units": "0x194/0x19C frames; 0x198 frames/damage; 0x1A0/0x1A4 dimensionless",
+        "source": "melee:src/melee/ft/ftcommon.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "DI maximum rotation",
+        "offsets": [
+          "0x1A8"
+        ],
+        "value": null,
+        "units": "degrees",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "ASDI magnitude",
+        "offsets": [
+          "0x4BC"
+        ],
+        "value": null,
+        "units": "Melee units",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "bounce eligibility speed, decay and timer",
+        "offsets": [
+          "0x1B0",
+          "0x1BC",
+          "0x1C0"
+        ],
+        "value": null,
+        "units": "0x1B0 Melee units/frame; 0x1BC dimensionless; 0x1C0 frames",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_FlyReflect.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "tumble collision speed threshold",
+        "offsets": [
+          "0x1C8"
+        ],
+        "value": null,
+        "units": "Melee units/frame",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "ground launch friction multiplier",
+        "offsets": [
+          "0x200"
+        ],
+        "value": null,
+        "units": "dimensionless",
+        "source": "melee:src/melee/ft/fighter.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "air launch decay",
+        "offsets": [
+          "0x204"
+        ],
+        "value": null,
+        "units": "Melee units/frame^2",
+        "source": "melee:src/melee/ft/fighter.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "shield starting energy and decay/regeneration",
+        "offsets": [
+          "0x260",
+          "0x278",
+          "0x27C"
+        ],
+        "value": null,
+        "units": "0x260 shield energy; 0x278/0x27C shield energy/frame",
+        "source": "melee:src/melee/ft/fighter.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "shield damage scaling",
+        "offsets": [
+          "0x284",
+          "0x288"
+        ],
+        "value": null,
+        "units": "0x284 shield energy/damage; 0x288 shield energy",
+        "source": "melee:src/melee/ft/fighter.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "shieldstun duration",
+        "offsets": [
+          "0x28C",
+          "0x290",
+          "0x2E4",
+          "0x2E8"
+        ],
+        "value": null,
+        "units": "0x28C frames/damage; 0x290 frames; 0x2E4/0x2E8 dimensionless lightshield endpoints",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "defender shield pushback",
+        "offsets": [
+          "0x294",
+          "0x298",
+          "0x2BC"
+        ],
+        "value": null,
+        "units": "0x294 Melee units/frame^2; 0x298 Melee units/frame; 0x2BC dimensionless",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "attacker shield pushback",
+        "offsets": [
+          "0x3E0",
+          "0x3E4",
+          "0x3E8",
+          "0x3EC"
+        ],
+        "value": null,
+        "units": "0x3E0 Melee units/frame/damage; 0x3E4 Melee units/frame; 0x3E8 Melee units/frame^2; 0x3EC dimensionless",
+        "source": "melee:src/melee/ft/fighter.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "air dodge impulse and decay",
+        "offsets": [
+          "0x338",
+          "0x33C"
+        ],
+        "value": null,
+        "units": "0x338 Melee units/frame; 0x33C dimensionless",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "down-wait timeout and jab-reset damage threshold",
+        "offsets": [
+          "0x424",
+          "0x428"
+        ],
+        "value": null,
+        "units": "0x424 frames; 0x428 damage",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_DownBound.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "SDI threshold, window and displacement",
+        "offsets": [
+          "0x4B0",
+          "0x4B4",
+          "0x4B8"
+        ],
+        "value": null,
+        "units": "0x4B0 stick units; 0x4B4 frames; 0x4B8 Melee units",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c",
+        "missing": "No revision-identified PlCo.dat parameter table obtained; field/use-site existence is not a numerical value."
+      },
+      {
+        "mechanic": "grounded downward-launch bounce",
+        "offsets": [
+          "0x1E8",
+          "0x1EC"
+        ],
+        "value": null,
+        "units": "0x1E8 radians; 0x1EC dimensionless",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c:346",
+        "missing": "No revision-identified PlCo.dat parameter table obtained."
+      },
+      {
+        "mechanic": "tech input window, lockout and roll threshold",
+        "offsets": [
+          "0x01C",
+          "0x250",
+          "0x254"
+        ],
+        "value": null,
+        "units": "0x01C/0x250 frames; 0x254 stick units",
+        "source": "melee:src/melee/ft/kinds/ftCommon/ftCo_DownAttack.c:87 and melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveStand.c:26",
+        "missing": "No revision-identified PlCo.dat parameter table obtained."
+      }
+    ]
+  }
+}
