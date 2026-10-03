@@ -66,3 +66,15 @@ Private X11 logs:
 ~/code/wc3-melee/worktrees/competitive-integrity-20261003/build/native-command-20261004/{short,hitch}-x11.txt.
 Native exports remain in each prefix's Warcraft III/CustomMapData, filenames
 smashcraft-command-20261003T164627759078070-p{0,1}-run{3,4}-pageN.txt.
+
+## Corrected rapid taps from participant B
+
+Run 5 reversed the injecting participant to B (slot 1) and explicitly set
+xdotool keydown/keyup `--delay 0`. XInput2 measured all 20 pairs, holds 4–5 ms,
+mean 4.4 ms (0.24–0.30 frames). B sampled 2 press/release pairs; both observers
+recorded 20 orders and 20 effects, with 279 service rows each (4.65 simulation
+seconds). The external recording is
+~/code/wc3-melee/worktrees/competitive-integrity-20261003/build/native-command-20261004/short-b-x11.txt;
+native exports use run5. This confirms rapid activation retention from the
+other participant in this configuration. It is not a host/client latency or
+fairness comparison: intention and callback clocks remain unaligned.
