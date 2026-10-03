@@ -14,6 +14,12 @@ simulation. The recording identifies NTSC but does not identify the disc
 revision or export velocity/counter fields. It supports a bounded gravity and
 position-integration comparison, not complete NTSC 1.02 physics acceptance.
 
+smashcraft:docs/smash-melee-reference/slippi-ntsc-falco-jump.json adds a
+grounded held-jump entry trace: five grounded squat frames followed by takeoff,
+including recorded grounded flags and self velocity. Its NTSC recording also
+leaves disc revision unresolved. It covers this transition through production
+input ordering, not the full jump, air dodge or landing sequence.
+
 The owner's copy-paste snapshot of all 26 character pages from
 [Melee Frame Data](https://meleeframedata.com/), captured 2026-10-03, is retained
 with its structured conversions:

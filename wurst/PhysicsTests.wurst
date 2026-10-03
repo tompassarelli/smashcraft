@@ -44,6 +44,29 @@ function recordedFalcoFallFirstDifference(real initialVelocity) returns int
 @Test function recordedFalcoFallDetectsPerturbedVelocityAtTheFirstFrame()
 	recordedFalcoFallFirstDifference(0.06).assertEquals(-59)
 
+function recordedFalcoJumpFirstDifference(int jumpInputFrame) returns int
+	let f = new FighterState(1, 5.241994857788086 * 6, 1)
+	let input = new InputSnapshot()
+	var firstDifference = 0
+	for frame = 25 to 30
+		input.jumpPressed = frame == jumpInputFrame
+		input.jumpHeld = true
+		advance(f, 0, input, 0)
+		let grounded = frame < 30
+		let height = grounded ? 0. : (4.100100040435791 - 0.00009999999747378752) * 6
+		let velocity = grounded ? 0. : 4.099999904632568 * 6
+		if firstDifference == 0 and (f.grounded != grounded or (f.jumpSquat > 0) != grounded or (f.z - height).abs() > 0.0001 or (f.vz - velocity).abs() > 0.0001)
+			firstDifference = frame
+	destroy input
+	destroy f
+	return firstDifference
+
+@Test function recordedNtscFalcoJumpHasFiveGroundedFramesThenRawTakeoff()
+	recordedFalcoJumpFirstDifference(25).assertEquals(0)
+
+@Test function recordedFalcoJumpDetectsDelayedInputOnItsOriginalFrame()
+	recordedFalcoJumpFirstDifference(26).assertEquals(25)
+
 @Test function fastFallPersistsAfterReleaseAndAerialStartupButClearsOnLandingAndJump()
 	for character = 0 to 1
 		let f = new FighterState(character, 0, 1)

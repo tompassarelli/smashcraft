@@ -525,6 +525,28 @@ Both comparison tests passed, including first-frame detection of the deliberatel
 perturbed velocity. The existing `recorded` filter passed **5/5**, with zero
 compiler errors and one existing warning (smashcraft:build/physics-slippi-fall.log).
 
+The second independent recording excerpt,
+smashcraft:docs/smash-melee-reference/slippi-ntsc-falco-jump.json, captures
+neutral held jump on original frames 25 through 30 in `wavedash-1.slp`.
+Frames 25–29 are grounded squat; frame 30 is airborne, with recorded self
+velocity 4.099999904632568 Melee units/frame. The test starts from the recorded
+grounded position and zero velocity on frame 24, presses jump on frame 25,
+holds it throughout and runs the production `advance` path. Height is measured
+above the recorded grounded origin, subtracting its collision epsilon. This
+preserves displacement and velocity while using the simulation's floor origin.
+No unexported jump-squat countdown is treated as an observed field.
+
+The comparison returns the first differing original frame; moving the input
+one frame later must report frame 25. The source's protocol 3.19.0 exports
+grounded flags and velocities, but its NTSC flag does not establish disc
+revision or an unmodified gameplay build. The next recorded frame introduces
+analog steering and trigger input, outside this neutral-entry fixture. Whole
+jump trajectories, short hops, dodge/landing and native Warcraft execution
+remain unverified by this excerpt.
+The `recorded` filter passed **7/7**, including the jump comparison and the
+delayed-input counterexample, with zero compiler errors and the existing
+unused-import warning (smashcraft:build/physics-slippi-jump.log).
+
 Launch speed already uses 0.03*K, converted by the six-world-units scale.
 The general >=80 tumble rule remains a prototype: the reference selects
 damage states through scaled-knockback thresholds and ground/air conditions.
