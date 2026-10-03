@@ -1,0 +1,22 @@
+package NativePhysicsReport
+import Wurst
+import ClosureTimers
+import NativePhysicsSource
+
+int messages = 0
+boolean failed = false
+
+public function reportPhysicsProbe(string message)
+	messages++
+	if message.length() >= 5 and message.substring(message.length() - 5, message.length()) == "_FAIL"
+		failed = true
+	Preload(message)
+	BJDebugMsg(message)
+
+init
+	PreloadGenStart()
+	doAfter(0.01) ->
+		Preload("SOURCE " + PHYSICS_SOURCE)
+		Preload("MESSAGES " + I2S(messages))
+		Preload(failed ? "NATIVE_PHYSICS_FAIL" : "NATIVE_PHYSICS_COMPLETED")
+		PreloadGenEnd("smashcraft-native-physics-precision.txt")
