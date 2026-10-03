@@ -48,15 +48,18 @@ The interpreter alone cannot prove emitted-Lua precision. Production airborne
 launch and recoil now use retail scalar directions, fused per-axis subtraction,
 and independently derived squared-speed cutoffs for the fixed retail decays.
 Their emitted-Lua comparisons pass; the cutoff derivation is documented in
-smashcraft:docs/melee-air-cutoff.md. Other formula rounding, analog shields, powershields,
+smashcraft:docs/melee-air-cutoff.md. Below-cutoff recoil retains its vertical
+component and clears vertical launch, matching four original branch executions;
+the earlier fixture's incorrect vertical recoil composition has been repaired.
+Other formula rounding, analog shields, powershields,
 connected/sloped ECB contacts and native trajectory checks remain open.
 
-The latest physics candidate is Smashcraft 0.0.12, build melee-physics-r23,
-source ed1eccc897d92a9dc36b0065a3240ade641bf451. It built with zero errors and
+The latest physics candidate is Smashcraft 0.0.12, build melee-physics-r24,
+source bff1f3a41f026f6a50ca72a28b3c42e4b4182782. It built with zero errors and
 six existing warnings. SHA-256:
-88bc173e89060b60ec5c5d3d3654053c7739ecc03d9fe693ff87876719d705ba.
+18390e44e96428643f6b344666c4dc061ce60c54942f8c2879eb68e462d06a55.
 Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x.
-Build evidence: smashcraft:build/physics-map-r23.log. Deployment was disabled;
+Build evidence: smashcraft:build/physics-map-r24.log. Deployment was disabled;
 this candidate has not been installed or observed natively. Separate native
 input/contact probes do not establish its physics or presentation.
 
