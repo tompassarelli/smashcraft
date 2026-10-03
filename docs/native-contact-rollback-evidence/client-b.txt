@@ -1,0 +1,25 @@
+NATIVE_CONTACT_ROLLBACK v=1 candidate=0.0.10 epoch=9910 local_slot=1
+scope=scripted production-simulation; no physical input or visible fighter-response acceptance
+application=after speculative F8; delivery phase F9; network receive times are observer-local Warcraft timer ms
+counts rows=8 invalid=0 native_poll_reads=3762 native_sends=8
+transient_after_F8 damage=12.000 checksum=518163:538593
+correction earliest_frame=5 known_through=8 corrected_damage=0.000 shield_stun=7 checksum_F8=383160:327045
+canonical damage_F8=0.000 checksum_F8=383160:327045
+confirmed damage_F8=0.000 checksum_F8=383160:327045
+corrected_vs_canonical_at_F8=
+corrected_vs_confirmed_at_F8=
+canonical_full_F8=SmashcraftReplay2|participantMask=3|fighter[0].character=0|fighter[0].physics.weight=+6:11534336:0|fighter[0].physics.gravity=+0:25501368:0|fighter[0].physics.terminalSpeed=+4:3355440:0|fighter[0].physics.fastFallSpeed=+4:18454936:0|fighter[
+corrected_full_F8=SmashcraftReplay2|participantMask=3|fighter[0].character=0|fighter[0].physics.weight=+6:11534336:0|fighter[0].physics.gravity=+0:25501368:0|fighter[0].physics.terminalSpeed=+4:3355440:0|fighter[0].physics.fastFallSpeed=+4:18454936:0|fighter[
+confirmed_full_F8=SmashcraftReplay2|participantMask=3|fighter[0].character=0|fighter[0].physics.weight=+6:11534336:0|fighter[0].physics.gravity=+0:25501368:0|fighter[0].physics.terminalSpeed=+4:3355440:0|fighter[0].physics.fastFallSpeed=+4:18454936:0|fighter[
+F9_original_remote_row_matches=1
+shifted_F9 shield_damage=12.000 checksum=513792:288903
+shifted_vs_F5_canonical=fighter[0].x
+FRAME_TAGS id elapsed_us intended_frame shield_held receipt_game_ms accepted_frame
+REMOTE V1|900001|000000|000001|0; receive_game_ms=62703.855 accepted_frame=1
+REMOTE V1|900002|016667|000002|0; receive_game_ms=62703.855 accepted_frame=2
+REMOTE V1|900003|033334|000003|0; receive_game_ms=62703.855 accepted_frame=3
+REMOTE V1|900004|050001|000004|0; receive_game_ms=62703.855 accepted_frame=4
+REMOTE V1|900005|066668|000005|1; receive_game_ms=62703.855 accepted_frame=5
+REMOTE V1|900006|083335|000006|1; receive_game_ms=62703.855 accepted_frame=6
+REMOTE V1|900007|100002|000007|0; receive_game_ms=62703.855 accepted_frame=7
+REMOTE V1|900008|116669|000008|0; receive_game_ms=62703.855 accepted_frame=8

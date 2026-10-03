@@ -8,9 +8,11 @@ cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/common.j" "$proje
 cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/blizzard.j" "$project_dir/_build/blizzard.j"
 exec /home/tom/.wurst/wurst-runtime/bin/java -Xmx512m -XX:ActiveProcessorCount=2 \
     -jar "$project_dir/toolchain/wurstscript.jar" -lua -runtests \
-    -testFilter FrameTaggedRecordTests -testTimeout 90 -runcompiletimefunctions \
+    -testFilter "${1:-Tests}" -testTimeout 90 -runcompiletimefunctions \
     -stacktraces -workspaceroot "$project_dir" -lib "$stdlib" \
     -out "$project_dir/build/wurst-tests/frame-tagged-record-tests.lua" \
     "$project_dir/_build/common.j" "$project_dir/_build/blizzard.j" \
     "$project_dir/tools/netcode-probe/FrameTaggedRecord.wurst" \
-    "$project_dir/tools/netcode-probe/FrameTaggedRecordTests.wurst"
+    "$project_dir/tools/netcode-probe/FrameTaggedRecordTests.wurst" \
+    "$project_dir/tools/netcode-probe/InputFrameOracle.wurst" \
+    "$project_dir/tools/netcode-probe/InputFrameOracleTests.wurst"
