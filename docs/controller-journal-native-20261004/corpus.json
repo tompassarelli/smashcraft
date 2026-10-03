@@ -1,0 +1,88 @@
+{
+  "source": "warm-helper.tsv first ten Attack transitions; replayed journal, not live gameplay capture",
+  "epoch_sdl_ns": 566824783,
+  "frame_rule": "1 + floor((capture_ns - epoch_sdl_ns) * 60 / 1000000000), D=0",
+  "clock_alignment": "SDL-local journal only; no alignment to Warcraft timers or other clients",
+  "events": [
+    {
+      "id": 1,
+      "elapsed_ns": 0,
+      "elapsed_us": 0,
+      "frame": 1,
+      "pressed": true,
+      "wire": "V1|000001|000000|000001|1;"
+    },
+    {
+      "id": 2,
+      "elapsed_ns": 4184418,
+      "elapsed_us": 4184,
+      "frame": 1,
+      "pressed": false,
+      "wire": "V1|000002|004184|000001|0;"
+    },
+    {
+      "id": 3,
+      "elapsed_ns": 69439418,
+      "elapsed_us": 69439,
+      "frame": 5,
+      "pressed": true,
+      "wire": "V1|000003|069439|000005|1;"
+    },
+    {
+      "id": 4,
+      "elapsed_ns": 74096418,
+      "elapsed_us": 74096,
+      "frame": 5,
+      "pressed": false,
+      "wire": "V1|000004|074096|000005|0;"
+    },
+    {
+      "id": 5,
+      "elapsed_ns": 139269418,
+      "elapsed_us": 139269,
+      "frame": 9,
+      "pressed": true,
+      "wire": "V1|000005|139269|000009|1;"
+    },
+    {
+      "id": 6,
+      "elapsed_ns": 143880418,
+      "elapsed_us": 143880,
+      "frame": 9,
+      "pressed": false,
+      "wire": "V1|000006|143880|000009|0;"
+    },
+    {
+      "id": 7,
+      "elapsed_ns": 209034418,
+      "elapsed_us": 209034,
+      "frame": 13,
+      "pressed": true,
+      "wire": "V1|000007|209034|000013|1;"
+    },
+    {
+      "id": 8,
+      "elapsed_ns": 213662418,
+      "elapsed_us": 213662,
+      "frame": 13,
+      "pressed": false,
+      "wire": "V1|000008|213662|000013|0;"
+    },
+    {
+      "id": 9,
+      "elapsed_ns": 278869418,
+      "elapsed_us": 278869,
+      "frame": 17,
+      "pressed": true,
+      "wire": "V1|000009|278869|000017|1;"
+    },
+    {
+      "id": 10,
+      "elapsed_ns": 283509418,
+      "elapsed_us": 283509,
+      "frame": 18,
+      "pressed": false,
+      "wire": "V1|000010|283509|000018|0;"
+    }
+  ]
+}

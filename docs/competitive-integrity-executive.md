@@ -41,3 +41,11 @@ Full evidence, failure classifications, reproduction instructions and remaining 
 The competitive verdict remains **HOLD**. Native numerical rollback repairs the tested F5 defense delivered four logical frames late; live correct original-frame assignment remains unverified. A controlled Linux SDL cold-start test retained 10/10 edges, but compressed 35.615065 ms of producer spacing to 0.019056 ms in capture timestamps. Warm stopped trials preserved spacing. This is a measured capture-library defect, not an established Warcraft/Battle.net limit or a measured native wrong-frame outcome. Warm-up is not a repair. Source repair and exact sdl3-src dependency consumption remain pending the Tom-owned fork decision because SDL upstream prohibits AI contributions. Physical response, common-clock/pause rules, visible/audio recovery and actual human fights remain open.
 
 Evidence: [capture-clock investigation](https://github.com/tompassarelli/smashcraft/blob/main/docs/sdl-linux-capture-clock-20261004.md), [retained counterexample](https://github.com/tompassarelli/smashcraft/blob/main/docs/controller-event-retention-20261004.md).
+
+
+Native journal replay now passes on 0.0.11: ten original warm SDL Attack edges
+per sender survive the tested editbox/poll/sync path during a controlled
+250.956681 ms process stop. Both observers receive both exact ten-row streams;
+all counters are zero. This is replayed journal transport, not live capture,
+common-clock assignment, combat or physical response acceptance. Details:
+wc3-melee:docs/native-controller-tag-candidate-20261004.md.
