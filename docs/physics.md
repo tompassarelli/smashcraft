@@ -23,7 +23,7 @@ equivalence without the missing parameters and original-game comparisons.
 | --- | --- | --- |
 | Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed, sampled roll travel and persistent fast-fall state | Revision identity, complete frame trajectories, dash/run/turn common values, walk acceleration and original fast-fall stick-entry threshold/window |
 | Damage | Integer individual hit power, fractional same-frame total, strongest-contact selection, fixed knockback, cap and sampled crouch/smash modifiers | Common-table confirmation, successive-frame stacking and grounded knockback friction |
-| Hitlag/hitstun | Separate counters, electric/crouch arithmetic, direct/detached source pause and expiry boundaries | Original-game ordered traces and verified common values |
+| Hitlag/hitstun | Separate counters, electric effects carried through contact resolution, crouch arithmetic, direct/detached source pause and expiry boundaries | Original-game ordered traces and verified common values |
 | Shields | Integer shieldstun power, contact freeze before stun countdown, shield-break character launch speed | Shield pushback, analog branches and paired displacement/actionability traces |
 | DI/recovery | Actual-vector DI normalization, grounded non-upward launch selection, existing floor tech/miss-tech/getup and sampled roll paths | Ground-bounce values, wall/ceiling collision geometry, tumble exceptions and threshold/tech traces |
 | Replay/map | Crouch and roll-entry-facing snapshot restoration; map compilation and packaging | Native connected movement/contact/recovery check of this build |
@@ -476,6 +476,54 @@ replay-safe and clears on incompatible actions. The victim formula is
 floor(c * floor(e * floor(3+floor(d)/3))), capped at 20;
 the attacker's e and c remain 1. No later-game tipper hitlag multiplier applies.
 No current move is electric; testing its math does not invent an electric move.
+
+Electric effects now travel in the production `hitEffect` contact data. The
+largest eligible hurt-contact damage supplies integer hitlag power, while the
+strongest launch selects its electric effect. Strictly greater knockback wins;
+equal-strength launches retain the first effect. Shields and the direct
+attacker keep ordinary hitlag, and detached contacts leave their source
+unfrozen. Existing move definitions remain ordinary. The sampled crouch state
+continues to apply after the electric truncation stage. Contact scratch is
+consumed synchronously and introduces no persistent snapshot state.
+
+These independently implemented selection facts come from
+melee:src/melee/ft/ftcoll.c and melee:src/melee/ft/fighter.c at revision
+0296f009f32f710495979d30772d8332af2d411a. Four focused production-contact tests
+cover direct/detached contacts, shield timing, crouch/electric truncation,
+strongest-element versus largest-damage selection, reversed batches and ties.
+The assembled aggregate with fractional-power correction passed **409/409**,
+zero compiler errors and one existing warning
+(smashcraft:build/physics-electric-aggregate.log). Numeric common-table
+confirmation and original-game hitlag traces remain outstanding.
+
+## Recorded neutral-fall comparison
+
+smashcraft:docs/smash-melee-reference/slippi-ntsc-falco-fall.json retains ten
+recorded Falco positions, neutral inputs and source identity from the public
+Slippi fixture `ntsc.slp` at repository revision
+ff815345e641836a331191320c0f6eae21542a5f. Original frames -59 through -50 are
+compared through the production `advance` path, starting at the recorded
+position on frame -60 with the declared zero-velocity fall-entry condition.
+Expected positions are directly transcribed from the recording. The comparison
+returns the first differing original frame; a deliberately altered initial
+velocity must be detected on frame -59.
+
+The source records `isPAL = false`, but does not identify the NTSC disc revision.
+Its old protocol does not export velocities, grounded flags, hitlag or hitstun
+counters. Zero initial self velocity is a declared entry condition tested by
+the next recorded displacement, not a sampled oracle field. The comparison
+covers neutral airborne gravity and position integration before floor contact.
+Landing, terminal speed, knockback, action startup and full revision-specific
+parity remain outside this trace. The position tolerance is 0.0001 world units
+(about 0.0000167 Melee units), accounting for recorded per-frame binary32
+rounding versus test/runtime arithmetic.
+
+The LGPL-3.0-or-later Slippi parser 9.1.3 was executed unmodified only as a local
+intake tool. No parser implementation or binary recording is included in the
+map or these references; the retained excerpt is numerical telemetry.
+Both comparison tests passed, including first-frame detection of the deliberately
+perturbed velocity. The existing `recorded` filter passed **5/5**, with zero
+compiler errors and one existing warning (smashcraft:build/physics-slippi-fall.log).
 
 Launch speed already uses 0.03*K, converted by the six-world-units scale.
 The general >=80 tumble rule remains a prototype: the reference selects

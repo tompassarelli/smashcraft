@@ -1,6 +1,49 @@
 package PhysicsTests
 import Simulation
 
+function recordedFalcoFallPosition(int sample) returns real
+	if sample == 0
+		return 9.872425079345703
+	if sample == 1
+		return 9.532424926757812
+	if sample == 2
+		return 9.022424697875977
+	if sample == 3
+		return 8.342424392700195
+	if sample == 4
+		return 7.492424488067627
+	if sample == 5
+		return 6.472424507141113
+	if sample == 6
+		return 5.282424449920654
+	if sample == 7
+		return 3.922424554824829
+	if sample == 8
+		return 2.3924245834350586
+	return 0.6924247741699219
+
+function recordedFalcoFallFirstDifference(real initialVelocity) returns int
+	let f = new FighterState(1, -360, 1)
+	let input = new InputSnapshot()
+	f.grounded = false
+	f.surface = -1
+	f.z = 10.042425155639648 * 6
+	f.vz = initialVelocity
+	var firstDifference = 0
+	for sample = 0 to 9
+		advance(f, 0, input, 0)
+		if firstDifference == 0 and (f.grounded or (f.z - recordedFalcoFallPosition(sample) * 6).abs() > 0.0001 or f.x != -360)
+			firstDifference = -59 + sample
+	destroy input
+	destroy f
+	return firstDifference
+
+@Test function recordedNtscFalcoNeutralFallMatchesTenIndependentPositions()
+	recordedFalcoFallFirstDifference(0).assertEquals(0)
+
+@Test function recordedFalcoFallDetectsPerturbedVelocityAtTheFirstFrame()
+	recordedFalcoFallFirstDifference(0.06).assertEquals(-59)
+
 @Test function fastFallPersistsAfterReleaseAndAerialStartupButClearsOnLandingAndJump()
 	for character = 0 to 1
 		let f = new FighterState(character, 0, 1)

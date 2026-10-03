@@ -1,0 +1,151 @@
+{
+  "id": "slippi-ntsc-falco-neutral-fall",
+  "source": "https://raw.githubusercontent.com/project-slippi/slippi-js/ff815345e641836a331191320c0f6eae21542a5f/slp/ntsc.slp",
+  "sourceRevision": "ff815345e641836a331191320c0f6eae21542a5f",
+  "sourceSha256": "6111b9530ffc5e90a213b03fe092d96d0095769f09f87f2c2ca760ac46e4ef30",
+  "sourceBytes": 30399,
+  "parser": {
+    "package": "@slippi/slippi-js",
+    "version": "9.1.3",
+    "license": "LGPL-3.0-or-later",
+    "scope": "Executed unmodified as a local intake tool. No parser implementation or recording binary incorporated into the map."
+  },
+  "recording": {
+    "slpVersion": "1.7.1",
+    "isPAL": false,
+    "gameRevision": null,
+    "stageId": 32,
+    "playerIndex": 0
+  },
+  "units": "Melee units and logical frames; world positions multiply by six",
+  "scope": "Ten unobstructed neutral fall frames. Does not verify landing, knockback, terminal speed, input entry or NTSC disc revision. Old protocol does not export velocity, grounded flags or hitlag/hitstun counters.",
+  "initial": {
+    "frame": -60,
+    "character": 22,
+    "action": 324,
+    "x": -60,
+    "y": 10.042425155639648,
+    "percent": 0,
+    "joystickX": 0,
+    "joystickY": 0,
+    "buttons": 0
+  },
+  "initialSelfVelocityY": 0,
+  "initialVelocityBasis": "Declared fall-entry condition, rather than sampled velocity (not exported in this recording). The recorded next-frame displacement tests this condition.",
+  "samples": [
+    {
+      "frame": -59,
+      "character": 22,
+      "action": 29,
+      "x": -60,
+      "y": 9.872425079345703,
+      "percent": 0,
+      "joystickX": 0,
+      "joystickY": 0,
+      "buttons": 0
+    },
+    {
+      "frame": -58,
+      "character": 22,
+      "action": 29,
+      "x": -60,
+      "y": 9.532424926757812,
+      "percent": 0,
+      "joystickX": 0,
+      "joystickY": 0,
+      "buttons": 0
+    },
+    {
+      "frame": -57,
+      "character": 22,
+      "action": 29,
+      "x": -60,
+      "y": 9.022424697875977,
+      "percent": 0,
+      "joystickX": 0,
+      "joystickY": 0,
+      "buttons": 0
+    },
+    {
+      "frame": -56,
+      "character": 22,
+      "action": 29,
+      "x": -60,
+      "y": 8.342424392700195,
+      "percent": 0,
+      "joystickX": 0,
+      "joystickY": 0,
+      "buttons": 0
+    },
+    {
+      "frame": -55,
+      "character": 22,
+      "action": 29,
+      "x": -60,
+      "y": 7.492424488067627,
+      "percent": 0,
+      "joystickX": 0,
+      "joystickY": 0,
+      "buttons": 0
+    },
+    {
+      "frame": -54,
+      "character": 22,
+      "action": 29,
+      "x": -60,
+      "y": 6.472424507141113,
+      "percent": 0,
+      "joystickX": 0,
+      "joystickY": 0,
+      "buttons": 0
+    },
+    {
+      "frame": -53,
+      "character": 22,
+      "action": 29,
+      "x": -60,
+      "y": 5.282424449920654,
+      "percent": 0,
+      "joystickX": 0,
+      "joystickY": 0,
+      "buttons": 0
+    },
+    {
+      "frame": -52,
+      "character": 22,
+      "action": 29,
+      "x": -60,
+      "y": 3.922424554824829,
+      "percent": 0,
+      "joystickX": 0,
+      "joystickY": 0,
+      "buttons": 0
+    },
+    {
+      "frame": -51,
+      "character": 22,
+      "action": 29,
+      "x": -60,
+      "y": 2.3924245834350586,
+      "percent": 0,
+      "joystickX": 0,
+      "joystickY": 0,
+      "buttons": 0
+    },
+    {
+      "frame": -50,
+      "character": 22,
+      "action": 29,
+      "x": -60,
+      "y": 0.6924247741699219,
+      "percent": 0,
+      "joystickX": 0,
+      "joystickY": 0,
+      "buttons": 0
+    }
+  ],
+  "tolerance": {
+    "positionWorldUnits": 0.0001,
+    "reason": "Recorded positions round at each binary32 update; Wurst interpreter and generated Lua arithmetic differ. This is about 0.0000167 Melee units and cannot hide an omitted gravity tick."
+  }
+}
