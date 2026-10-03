@@ -116,3 +116,11 @@ the assembled normal suite passed 493/493 with zero errors and the existing
 unused-import warning (smashcraft:build/physics-turn-pause-aggregate.log).
 This fix is not present in the previously built 0.0.5 map. Independent retail
 frame traces and native action-clock verification remain open.
+
+Candidate 0.0.6 includes the TurnRun first-pause fix. It built at `abe2d7b`,
+build ID `melee-physics-r12`, with zero errors and six warnings; evidence:
+smashcraft:build/physics-map-r12.log. Map:
+smashcraft:build/wurst-map/Smashcraft 0.0.6.w3x. SHA-256:
+`ef9a52f70fac081935da57e72b5299b972ab6a7e0d7706411809ffcda8ceb7a8`.
+Deployment was disabled to preserve the peer candidate. Native observation,
+independent traces and remaining dash input-priority rules are still open.
