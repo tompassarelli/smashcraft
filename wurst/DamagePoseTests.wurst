@@ -41,11 +41,14 @@ import ImpactEvents
 
 @Test function repeatedHitRestartsReactionEvenWithShorterHitstun()
     let f = new FighterState(0, 0, 1)
+    let attacker = new FighterState(1, -100, 1)
     let events = new ImpactEvents()
     f.hitstun = 39
     events.before(f)
-    f.damage += 3
-    f.hitstun = 17
+    beginDamageContacts()
+    queueDamageContact(attacker, f, hitEffect(3, 0, 20, 1, 0, false), 1, CONTACT_LAUNCH, true, null)
+    finishDamageContacts(attacker, f)
+    (f.hitstun > 0 and f.hitstun < 39).assertTrue()
     events.after(f)
     events.hit.assertTrue()
     events.before(f)
@@ -53,4 +56,5 @@ import ImpactEvents
     events.after(f)
     events.hit.assertFalse()
     destroy events
+    destroy attacker
     destroy f

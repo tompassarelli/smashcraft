@@ -34,10 +34,12 @@ import ImpactEvents
 
 @Test function hitFlashDoesNotRepeatThroughHitlagOrOnRespawn()
     let fighter = new FighterState(0, 0, 1)
+    let attacker = new FighterState(1, -100, 1)
     let events = new ImpactEvents()
     events.before(fighter)
-    fighter.damage = 7
-    fighter.hitlag = 4
+    beginDamageContacts()
+    queueDamageContact(attacker, fighter, hitEffect(7, 100, 20, 1, 0, false), 1, CONTACT_LAUNCH, true, null)
+    finishDamageContacts(attacker, fighter)
     events.after(fighter)
     events.hit.assertTrue()
     events.before(fighter)
@@ -50,7 +52,65 @@ import ImpactEvents
     events.after(fighter)
     events.hit.assertFalse()
     destroy events
+    destroy attacker
     destroy fighter
+
+@Test function contactCuesDistinguishOrdinaryElectricAndBlockedHits()
+    for mode = 0 to 2
+        let attacker = new FighterState(0, -100, 1)
+        let fighter = new FighterState(1, 0, -1)
+        let events = new ImpactEvents()
+        fighter.shield = mode == 2
+        events.before(fighter)
+        beginDamageContacts()
+        queueDamageContact(attacker, fighter, hitEffect(7, 100, 20, 1, 0, mode > 0), 1, CONTACT_LAUNCH, true, null)
+        finishDamageContacts(attacker, fighter)
+        events.after(fighter)
+        events.hit.assertEquals(mode != 2)
+        events.electric.assertEquals(mode == 1)
+        events.shieldHit.assertEquals(mode == 2)
+        events.before(fighter)
+        events.after(fighter)
+        events.hit.assertFalse()
+        events.shieldHit.assertFalse()
+        destroy events
+        destroy fighter
+        destroy attacker
+
+@Test function hitCueUsesTheStrongestContactEffectRatherThanLastContactOrDamageDelta()
+    let attacker = new FighterState(0, -100, 1)
+    let fighter = new FighterState(1, 0, -1)
+    let events = new ImpactEvents()
+    events.before(fighter)
+    beginDamageContacts()
+    queueDamageContact(attacker, fighter, hitEffect(7, 100, 100, 1, 0, true), 1, CONTACT_LAUNCH, true, null)
+    queueDamageContact(attacker, fighter, hitEffect(20, 0, 1, 1, 0, false), 1, CONTACT_LAUNCH, true, null)
+    finishDamageContacts(attacker, fighter)
+    events.after(fighter)
+    events.hit.assertTrue()
+    events.electric.assertTrue()
+    events.before(fighter)
+    fighter.damage += 1
+    events.after(fighter)
+    events.hit.assertFalse()
+    destroy events
+    destroy fighter
+    destroy attacker
+
+@Test function damageOnlyContactStillHasOneHitCueWithoutInventingHitstun()
+    let attacker = new FighterState(0, -100, 1)
+    let fighter = new FighterState(1, 0, -1)
+    let events = new ImpactEvents()
+    events.before(fighter)
+    beginDamageContacts()
+    queueDamageContact(attacker, fighter, hitEffect(3, 0, 0, 0, 0, false), 1, CONTACT_DAMAGE_ONLY, false, null)
+    finishDamageContacts(attacker, fighter)
+    events.after(fighter)
+    events.hit.assertTrue()
+    fighter.hitstun.assertEquals(0)
+    destroy events
+    destroy fighter
+    destroy attacker
 
 @Test function presentedImpactFrameCannotBePlayedTwice()
     let cursor = new ImpactPresentationCursor()

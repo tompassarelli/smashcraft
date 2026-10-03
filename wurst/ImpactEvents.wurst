@@ -8,45 +8,123 @@ public constant int IMPACT_MISSED_TECH = 2
 // A numerical journal for one fighter's completed frame. Native presentation
 // consumes this outside simulation/replay; epoch, frame and fighter identify it.
 public class ImpactEvents
-    private real previousDamage = 0
     private int previousDown = DOWN_NONE
     private boolean previouslyOut = false
     private int previousGroundDodge = 0
     private int previousSurfaceContactSerial = 0
+    private int previousHitVisualSerial = 0
+    private int previousShieldVisualSerial = 0
+    private boolean previouslyGrounded = true
+    private int previousJumpSerial = 0
+    private boolean previouslyAirDodging = false
+    private int previousShieldBreak = SHIELD_BREAK_NONE
+    private int previousDashFrame = 0
+    private real previousX = 0
+    private real previousZ = 0
+    private real previousVelocityX = 0
+    private int previousDownFrame = 0
     boolean hit = false
+    boolean electric = false
+    boolean shieldHit = false
+    boolean shieldBreak = false
+    boolean ordinaryLanding = false
+    boolean movementDust = false
+    boolean runningDust = false
+    boolean launchTrail = false
+    boolean dodgeTrail = false
+    boolean airDodge = false
+    boolean respawn = false
+    int jump = 0
+    real jumpOriginX = 0
+    real jumpOriginZ = 0
+    int koDirectionX = 0
+    int koDirectionZ = 0
     int landing = IMPACT_NONE
     int dodge = 0
     int direction = 0
     real x = 0
     real z = 0
     int surface = SURFACE_NONE
+    boolean surfaceMissedTech = false
     real contactX = 0
     real contactZ = 0
     real normalX = 0
     real normalZ = 0
 
     function before(FighterState fighter)
-        previousDamage = fighter.damage
         previousDown = fighter.downState
         previouslyOut = fighter.out
         previousGroundDodge = fighter.groundDodgeFrame
         previousSurfaceContactSerial = fighter.surfaceContactSerial
+        previousHitVisualSerial = fighter.hitVisualSerial
+        previousShieldVisualSerial = fighter.shieldVisualSerial
+        previouslyGrounded = fighter.grounded
+        previousJumpSerial = fighter.jumpSerial
+        previouslyAirDodging = fighter.airDodging
+        previousShieldBreak = fighter.shieldBreakState
+        previousDashFrame = fighter.dashFrame
+        previousX = fighter.x
+        previousZ = fighter.z
+        previousVelocityX = fighter.vx
+        previousDownFrame = fighter.downFrame
         hit = false
+        electric = false
+        shieldHit = false
+        shieldBreak = false
+        ordinaryLanding = false
+        movementDust = false
+        runningDust = false
+        launchTrail = false
+        dodgeTrail = false
+        airDodge = false
+        respawn = false
+        jump = 0
+        koDirectionX = 0
+        koDirectionZ = 0
         landing = IMPACT_NONE
         dodge = 0
         direction = 0
         surface = SURFACE_NONE
+        surfaceMissedTech = false
 
     function after(FighterState fighter)
         x = fighter.x
         z = fighter.z
+        direction = fighter.x < previousX ? -1 : (fighter.x > previousX ? 1 : fighter.facing)
+        respawn = previouslyOut and not fighter.out
+        if not previouslyOut and fighter.out
+            if fighter.x <= -920 or fighter.x >= 920
+                koDirectionX = fighter.x < 0 ? -1 : 1
+            else
+                koDirectionZ = fighter.z < 0 ? -1 : 1
         if fighter.surfaceContactSerial != previousSurfaceContactSerial
             surface = fighter.surfaceContactKind
             contactX = fighter.surfaceContactX
             contactZ = fighter.surfaceContactZ
             normalX = fighter.surfaceContactNormalX
             normalZ = fighter.surfaceContactNormalZ
-        hit = not previouslyOut and not fighter.out and fighter.damage > previousDamage
+            surfaceMissedTech = (surface == SURFACE_WALL or surface == SURFACE_CEILING) and isTumbling(fighter)
+        hit = not previouslyOut and not fighter.out and fighter.hitVisualSerial != previousHitVisualSerial
+        electric = hit and fighter.hitVisualElectric
+        shieldHit = not previouslyOut and not fighter.out and fighter.shieldVisualSerial != previousShieldVisualSerial
+        shieldBreak = not previouslyOut and not fighter.out and previousShieldBreak == SHIELD_BREAK_NONE and fighter.shieldBreakState != SHIELD_BREAK_NONE
+        ordinaryLanding = not previouslyOut and not fighter.out and not previouslyGrounded and fighter.grounded and fighter.downState == DOWN_NONE
+        if not previouslyOut and not fighter.out and fighter.jumpSerial != previousJumpSerial
+            jump = fighter.jumpIsDouble ? 2 : (previouslyGrounded ? 1 : 3)
+            jumpOriginX = previousX
+            jumpOriginZ = previousZ
+        airDodge = not previouslyOut and not fighter.out and not previouslyAirDodging and fighter.airDodging
+        if not previouslyOut and not fighter.out and fighter.hitlag == 0
+            let moved = (fighter.x - previousX).abs() > 0.1 or (fighter.z - previousZ).abs() > 0.1
+            if fighter.grounded and fighter.downState == DOWN_NONE and not isGroundDodging(fighter)
+                movementDust = fighter.dashFrame == 1 and previousDashFrame != 1
+                    or (moved and (previousVelocityX * fighter.vx < 0 or previousVelocityX.abs() > fighter.vx.abs() + 0.1))
+                runningDust = moved and fighter.vx.abs() > fighter.physics.walkSpeed
+            dodgeTrail = moved and (fighter.groundDodgeFrame > previousGroundDodge and fighter.groundDodgeFrame mod 4 == 0
+                or (fighter.downState == DOWN_ROLL or fighter.downState == DOWN_TECH_ROLL) and fighter.downFrame > previousDownFrame and fighter.downFrame mod 4 == 0)
+            launchTrail = not fighter.grounded and isTumbling(fighter) and moved
+                and fighter.downFrame > previousDownFrame and fighter.downFrame mod 3 == 0
+                and fighter.knockbackX.abs() + fighter.knockbackZ.abs() > WORLD_UNITS_PER_MELEE_UNIT
         if not previouslyOut and not fighter.out and previousDown != fighter.downState
             if isFloorTeching(fighter)
                 landing = IMPACT_TECH

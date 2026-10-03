@@ -60,6 +60,9 @@ import MatchStep
     first.positionDeltaX = 0.125
     first.positionDeltaZ = -0.25
     first.damage = 47
+    first.hitVisualSerial = 7
+    first.hitVisualElectric = true
+    first.shieldVisualSerial = 3
     first.hitlag = 3
     first.shieldBreakState = SHIELD_BREAK_DIZZY
     first.shieldBreakRemaining = 389.75
@@ -96,6 +99,9 @@ import MatchStep
     first.positionDeltaZ = 0
     first.damage = 0
     first.hitlag = 0
+    first.hitVisualSerial = 0
+    first.hitVisualElectric = false
+    first.shieldVisualSerial = 0
     first.shieldBreakState = SHIELD_BREAK_NONE
     first.shieldBreakRemaining = 0.
     first.crouching = false
@@ -130,6 +136,9 @@ import MatchStep
     first.positionDeltaZ.assertEquals(-0.25)
     first.damage.assertEquals(47)
     first.hitlag.assertEquals(3)
+    first.hitVisualSerial.assertEquals(7)
+    first.hitVisualElectric.assertTrue()
+    first.shieldVisualSerial.assertEquals(3)
     first.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
     first.shieldBreakRemaining.assertEquals(389.75)
     first.crouching.assertTrue()

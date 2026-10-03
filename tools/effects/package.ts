@@ -48,10 +48,23 @@ const dust: Shape[] = [];
 for (const [x,z,r] of [[-23,15,17],[-7,20,23],[16,18,20],[31,12,14],[1,31,16]]) {
     dust.push({points:[[x-r,z-r*.8],[x+r,z-r*.8],[x+r,z+r*.8],[x-r,z+r*.8]],tile:3,soft:true});
 }
-const models: [string,Shape[]][] = [["Hit",rays(16,47,44)], ["Tech",rays(8,60,22)], ["Miss",miss], ["Dust",dust], ["Roll",rays(8,33,30)]];
+const electric: Shape[] = [];
+for (let side = -1; side <= 1; side += 2) {
+    for (const z of [-28, 0, 28]) {
+        electric.push({points:[[side*12,z-3],[side*34,z+14],[side*28,z+3],[side*58,z+18],[side*36,z-10],[side*42,z-1]],tile:1});
+    }
+}
+const ring: Shape[] = [];
+for (let i = 0; i < 24; i++) {
+    const a=i*Math.PI/12, b=(i+1)*Math.PI/12;
+    ring.push({points:[[34*Math.cos(a),13*Math.sin(a)],[42*Math.cos(a),17*Math.sin(a)],
+        [42*Math.cos(b),17*Math.sin(b)],[34*Math.cos(b),13*Math.sin(b)]],tile:0});
+}
+const models: [string,Shape[]][] = [["Hit",rays(16,47,44)], ["Tech",rays(8,60,22)], ["Miss",miss], ["Dust",dust], ["Roll",rays(8,33,30)],
+    ["Electric",electric], ["Shield",rays(10,38,38)], ["Jump",ring], ["KO",rays(20,85,85)], ["Respawn",rays(8,45,65)]];
 const imports = [textureName];
 let info = "package ImpactAssetInfo\n";
-let preview = '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="210"><defs><radialGradient id="dust"><stop stop-color="white"/><stop offset=".55" stop-color="white" stop-opacity=".65"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient></defs><rect width="1000" height="210" fill="#18202c"/>';
+let preview = `<svg xmlns="http://www.w3.org/2000/svg" width="${models.length*200}" height="210"><defs><radialGradient id="dust"><stop stop-color="white"/><stop offset=".55" stop-color="white" stop-opacity=".65"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient></defs><rect width="${models.length*200}" height="210" fill="#18202c"/>`;
 for (const [index,[name,shapes]] of models.entries()) {
     const geometry = shapes.map(({points,tile,soft}, id) => {
         const n = points.length;
@@ -103,4 +116,4 @@ await Bun.write(join(output,textureName),texture);
 await Bun.write(join(output,"ImpactAssetInfo.wurst"),info);
 await Bun.write(join(output,"imports.txt"),imports.join("\n")+"\n");
 await Bun.write(join(output,"preview.svg"),preview+"</svg>");
-console.log("Five original impact models: MDX roundtrip geometry passed; static poses, adapter-driven fade/expansion.");
+console.log(`${models.length} original impact models: MDX roundtrip geometry passed; static poses, adapter-driven fade/expansion.`);
