@@ -1,5 +1,46 @@
 # Physics reference and implementation
 
+## Original fighter tuning and reference test rigs — 2026-10-03
+
+Melee physics verification concerns shared equations and state rules. It does
+not require Archer to be Fox or Rifleman to be Falco. The owner clarified that
+Smashcraft's fighters are original characters; any borrowed individual value,
+such as jump squat, is a separate design choice. Historical source mappings
+below describe prior work, not a continuing whole-character design requirement.
+
+smashcraft:wurst/Simulation.wurst now gives each actor a `fighterPhysics` value
+with weight, gravity, terminal/fast-fall speeds, drift and friction/caps,
+ground speeds/traction, jump parameters and shield-break speed. Shared physics
+uses those actor parameters. Named Archer, Rifleman and Demon Hunter defaults
+preserve current numerical tuning; this separation makes no new balance choice.
+Character identity continues to select authored moves and presentation. Approved
+Illidan movement conveniences remain explicit behavior, and roll/move data are
+still their authored, separate mechanics.
+
+The Falco parameter rig exists only in smashcraft:wurst/PhysicsTests.wurst.
+Recorded fall/jump comparisons explicitly assign the original-game values to
+both Archer and Rifleman host actors. They no longer rely on Rifleman's defaults
+happening to match. Tests also exercise different gravity, jump timing/speeds
+and damage-contact weight on the same host identity. Parameters are copied by
+value in replay snapshots, participate in replay equality, and survive respawn.
+An older test which changed only character ID now assigns its intended Demon
+Hunter parameters explicitly.
+
+The integrated suite passed **423/423**, zero errors and one existing unused-
+import warning (smashcraft:build/physics-parameters-tests.log). The source merge
+adds no further simulation changes beyond that checked commit. Original-game
+reference revision gaps, broader physics cases and native gameplay remain
+unresolved; a correct test rig enables those checks and does not itself prove
+the entire Melee physics foundation.
+
+Map `melee-physics-foundation-r6` built with zero errors and six existing
+warnings; Lua syntax and packaged script/assets checks passed
+(smashcraft:build/physics-map-r6.log). It was installed under the unique filename
+`Smashcraft_Melee_Physics_r6.w3x` in
+`~/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps`
+and compared byte-for-byte with the build. Existing candidates and concurrent
+clients remain preserved. Native r6 gameplay has not been observed.
+
 ## Recorded grounded damage correction — 2026-10-03
 
 The production simulation now resumes physics, input gates and state countdowns
