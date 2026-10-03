@@ -1,5 +1,7 @@
 # Cross-platform companion: reuse decision
 
+Implementation and native acceptance are tracked in [#18](https://github.com/tompassarelli/smashcraft/issues/18), within wc3-melee:docs/online-delivery.md and roadmap [#16](https://github.com/tompassarelli/smashcraft/issues/16). The owner accepted this direction; native platform and continuous analog checks remain open.
+
 3 October 2026. This extends the [controller input research](controller-prior-art.md) for **macOS, Windows and Linux**. The recommendation is **Rust + SDL3 acquisition, enigo keyboard delivery, and small native adapters for foreground identity and launch discovery**. Tauri remains an optional settings/launcher UI. This revises the earlier Linux-only output recommendation: start with enigo's existing X11 backend instead of independently assembling XTest calls, while keeping XTest as the same underlying mechanism.
 
 The deciding evidence is broader than the C# example: SDL's device drivers; Microsoft's XInput/GameInput and SendInput contracts; Apple's foreground/Accessibility APIs; enigo's actual platform implementations; local W3Champions launch/input code; and local Slippi/Dolphin source snapshots plus Melee Unlocked. Each solves a different boundary. **XInput reads controllers; SendInput generates desktop input. Neither is an analog interface into a Warcraft map.** Cross-platform compilation and OS event submission are not native-game acceptance.
