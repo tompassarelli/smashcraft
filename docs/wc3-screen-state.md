@@ -57,3 +57,38 @@ This is roughly **3.4× faster menu observation**, saving about 1.5 seconds per
 classification on this machine. It is **not** a measured 5–10× development-loop
 speedup. No live GUI action or authentication was attempted in this benchmark.
 The native map-entry boundary remains unresolved independently of this result.
+
+## Wait for an observed menu
+
+`wc3-melee:tools/wc3-wait-state RUN_DIR EXPECTED_STATE TIMEOUT_SECONDS` replaces
+a guessed readiness sleep with periodic observation. It accepts the exact live
+private run directory, one of `main-menu`, `single-player`, `create-game`, and a
+1–120 second timeout. It resolves the canonical private-desktop launcher through
+`agents`, captures a fresh unique file synchronously, and runs the classifier.
+
+Only an observed expected state returns zero. A disconnected dialog, unknown
+screen, failed capture or failed OCR stops with nonzero. Other recognized menus
+remain pending. Expiry returns 124; elapsed time never implies readiness. The
+Linux uptime clock bounds capture and OCR attempts; each iteration waits 100 ms
+before observing again. This is polling, **not native event-driven readiness**.
+Captures remain in the private run's unique `wait-state.*` directory for review.
+
+```sh
+nix shell nixpkgs#tesseract nixpkgs#imagemagick --command \
+  ~/code/wc3-melee/worktrees/wc3-screen-speed-20261003/tools/wc3-wait-state \
+  /run/user/1000/private-desktop.EXACT_RUN create-game 15
+```
+
+The nearest focused check is:
+
+```sh
+nix shell nixpkgs#socat --command \
+  ~/code/wc3-melee/worktrees/wc3-screen-speed-20261003/tools/test-wc3-wait-state.sh
+```
+
+That fixture check passed for a main-menu → Create Game observation, immediate
+blocking disconnect, and timeout while another known menu remains visible. It
+also requires each capture destination to be absent before writing. Capture
+and OCR are substituted in these orchestration tests; they do not establish
+live VNC capture or successful native navigation. ShellCheck passed. The earlier
+retained-image benchmark remains the evidence for actual menu OCR.

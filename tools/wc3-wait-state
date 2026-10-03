@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+[[ $# == 3 ]] || { echo 'Usage: wc3-melee:tools/wc3-wait-state RUN_DIR EXPECTED_STATE TIMEOUT_SECONDS' >&2; exit 2; }
+run_dir=$(realpath -- "$1")
+expected=$2
+budget=$3
+case "$run_dir" in "/run/user/$(id -u)"/private-desktop.*) ;; *) echo 'Expected an exact private desktop run directory.' >&2; exit 2 ;; esac
+[[ -O "$run_dir" && -f "$run_dir/active" && -S "$run_dir/runtime/wayland-0" ]] || { echo 'Private desktop is not live.' >&2; exit 1; }
+case "$expected" in main-menu|single-player|create-game) ;; *) echo 'Unsupported expected menu state.' >&2; exit 2 ;; esac
+if [[ ! "$budget" =~ ^[1-9][0-9]{0,2}$ ]] || (( budget > 120 )); then echo 'Timeout must be 1..120 seconds.' >&2; exit 2; fi
+launcher="$(dirname "$(agents path off-monitor-development-distilled)")/scripts/private-desktop.sh"
+observer="$(dirname "$0")/wc3-screen-state"
+frames=$(mktemp -d "$run_dir/wait-state.XXXXXX")
+printf 'Captures: %s\n' "$frames" >&2
+clock_now() { local uptime rest; read -r uptime rest < /proc/uptime; now=${uptime/./}; }
+clock_now
+deadline=$((now + budget * 100))
+count=0
+expired() { echo "timeout: expected $expected"; exit 124; }
+remaining_time() {
+  clock_now
+  remaining=$((deadline-now))
+  (( remaining > 0 )) || expired
+  printf -v duration '%d.%02ds' "$((remaining / 100))" "$((remaining % 100))"
+}
+while :; do
+  remaining_time
+  ((count+=1))
+  frame="$frames/$count.png"
+  # Unique absent paths and synchronous completion prevent stale capture reuse.
+  [[ ! -e "$frame" ]]
+  status=0
+  timeout "$duration" "$launcher" capture "$run_dir" "$frame" >/dev/null 2>&1 || status=$?
+  remaining_time
+  (( status != 124 )) || expired
+  (( status == 0 )) && [[ -s "$frame" ]] || { echo 'capture-failed'; exit 1; }
+  status=0
+  state=$(timeout "$duration" "$observer" "$frame") || status=$?
+  remaining_time
+  (( status != 124 )) || expired
+  (( status == 0 )) || { echo "observation-failed: ${state:-no-state}"; exit 1; }
+  printf 'Observed: %s\n' "$state" >&2
+  [[ "$state" != disconnected ]] || { echo 'blocked: disconnected'; exit 1; }
+  if [[ "$state" == "$expected" ]]; then
+    printf 'ready: %s capture=%s\n' "$state" "$frame"
+    exit 0
+  fi
+  case "$state" in main-menu|single-player|create-game) ;; *) echo "observation-failed: $state"; exit 1 ;; esac
+  # Periodic observation, not a native event callback.
+  sleep 0.1
+done
+expired
