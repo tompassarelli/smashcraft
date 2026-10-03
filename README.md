@@ -33,6 +33,13 @@ Warcraft III terrain map as the required `.w3m` or `.w3x` argument. See
 
 ## Project notes
 
+Pre-release maps are named **Smashcraft 0.0.N** in both Warcraft and the filename.
+Increment only the last number in `wc3-melee:map-version` for the next pre-release.
+The default artifact is `wc3-melee:build/wurst-map/Smashcraft 0.0.N.w3x`.
+`WC3_DEPLOY_MAP=1` installs one current map into Warcraft's flat
+`Maps/00-Smashcraft` folder and moves prior Smashcraft files from that folder to
+`wc3-melee:build/map-archive` outside the game's map browser. No Dev/Release folders.
+
 - [Gameplay and controls](docs/player-guide.md)
 - [Delivery goal and current sequence](docs/delivery-goal.md)
 - [Physics references and implementation](docs/physics.md)

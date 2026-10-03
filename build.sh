@@ -2,12 +2,19 @@
 set -euo pipefail
 
 project_dir=$(cd -- "$(dirname -- "$0")" && pwd)
+map_version=$(cat "$project_dir/map-version")
+[[ "$map_version" =~ ^0\.0\.(0|[1-9][0-9]*)$ ]] || {
+    echo 'wc3-melee:map-version must contain a version of the form 0.0.N (no leading zeroes).' >&2
+    exit 2
+}
+map_name="Smashcraft $map_version"
+map_filename="$map_name.w3x"
 compiler_checkout=/home/tom/code/wurst-compiler/pins/9913e1bd300c2053637d756a11bae8c3c8ed568f
 stdlib_checkout=/home/tom/code/wurst-stdlib/pins/4dfc8a0474bd
 compiler_jar="$project_dir/toolchain/wurstscript.jar"
 java=/home/tom/.wurst/wurst-runtime/bin/java
-maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps'
-build_output="$project_dir/build/wurst-map/Smashcraft.w3x"
+maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps/00-Smashcraft'
+build_output="$project_dir/build/wurst-map/$map_filename"
 fighter_assets="$project_dir/build/animation-assets"
 demon_hunter_assets="$project_dir/build/illidan-animation"
 selection_assets="$project_dir/build/selection-assets"
@@ -68,6 +75,11 @@ compiled_script="$work_dir/melee.lua"
 mkdir -p "$work_dir/wurst" "$work_dir/_build/dependencies" "$work_dir/imports/war3mapImported"
 ln -s "$stdlib_checkout" "$work_dir/_build/dependencies/wurststdlib"
 cp "$project_dir/wurst.build" "$work_dir/wurst.build"
+[[ $(rg -c '^  name: ' "$work_dir/wurst.build") == 1 ]] || {
+    echo 'Expected one buildMapData name in wc3-melee:wurst.build.' >&2
+    exit 1
+}
+sed -i "s/^  name: .*/  name: $map_name/" "$work_dir/wurst.build"
 cp "$project_dir/tools/map-entry.j" "$work_dir/wurst/war3map.j"
 for source in FighterAssets Simulation RollTravel BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput MatchStep ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents DamagePose CombatEffects FrostEffects SpecialEffects Melee; do
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
@@ -196,11 +208,17 @@ mv "$output_next" "$build_output"
 
 if [[ ${WC3_DEPLOY_MAP:-0} == 1 ]]; then
     mkdir -p "$maps_dir"
-    cp "$build_output" "$maps_dir/Smashcraft.w3x.next"
-    mv "$maps_dir/Smashcraft.w3x.next" "$maps_dir/Smashcraft.w3x"
+    cp "$build_output" "$maps_dir/$map_filename.next"
+    mkdir -p "$project_dir/build/map-archive"
+    map_archive=$(mktemp -d "$project_dir/build/map-archive/deploy.XXXXXX")
+    shopt -s nullglob
+    for installed_map in "$maps_dir"/Smashcraft*.w3x; do
+        mv -- "$installed_map" "$map_archive/"
+    done
+    mv "$maps_dir/$map_filename.next" "$maps_dir/$map_filename"
 fi
 
 printf 'Built %s\n' "$build_output"
 if [[ ${WC3_DEPLOY_MAP:-0} == 1 ]]; then
-    printf 'Deployed %s/Smashcraft.w3x\n' "$maps_dir"
+    printf 'Deployed %s/%s\n' "$maps_dir" "$map_filename"
 fi
