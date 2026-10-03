@@ -84,7 +84,7 @@ constant real SHIELD_REGEN_PER_FRAME = 0.07000000029802322
 constant real SHIELD_DAMAGE_SCALE = 1.
 constant real SHIELD_DAMAGE_BASE = 0.
 constant real SHIELD_DIGITAL_DAMAGE_FACTOR = 0.699999988079071
-constant real SHIELD_STUN_DAMAGE_FACTOR = 0.3
+constant real SHIELD_STUN_DAMAGE_FACTOR = 0.30000001192092896
 constant real SHIELD_STUN_MULTIPLIER = 1.5
 constant real SHIELD_STUN_BASE = 2.
 constant real SHIELD_PUSHBACK_BASE = 0.20000000298023224
@@ -745,7 +745,8 @@ function decayKnockback(FighterState f)
 		f.knockbackZ *= scale
 
 public function digitalShieldstunDuration(real damage) returns real
-	return integerHitPower(damage) * SHIELD_STUN_DAMAGE_FACTOR * SHIELD_STUN_MULTIPLIER + SHIELD_STUN_BASE
+	let scaledPower = (integerHitPower(damage) * SHIELD_STUN_DAMAGE_FACTOR).roundToFloat32()
+	return fusedMultiplyAddFloat32(scaledPower, SHIELD_STUN_MULTIPLIER, SHIELD_STUN_BASE)
 
 public function digitalShieldPushback(real damage) returns real
 	return min(SHIELD_PUSHBACK_CAP,

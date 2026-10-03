@@ -35,5 +35,27 @@
   "limitations": [
     "Analog shield input and powershield branches remain unimplemented.",
     "This records values and operation order, not native map behavior."
-  ]
+  ],
+  "shieldstun": {
+    "function": "ftCo_80092ED8",
+    "address": "0x80092ED8",
+    "digitalDamageFactor": 0.30000001192092896,
+    "operations": [
+      {
+        "address": "0x80092F1C",
+        "operation": "binary32 multiplication",
+        "expression": "integer hit power times digital damage factor"
+      },
+      {
+        "address": "0x80092F20",
+        "operation": "binary32 fused multiply-add",
+        "expression": "rounded power times 1.5 plus 2; one final rounding"
+      }
+    ],
+    "example": {
+      "hitPower": 3,
+      "duration": 3.3500001430511475,
+      "separateRoundingDuration": 3.3499999046325684
+    }
+  }
 }

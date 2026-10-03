@@ -21,6 +21,10 @@ init
         BJDebugMsg("SHIELD_DAMAGE_BINARY32_EXACT_PASS")
     else
         BJDebugMsg("SHIELD_DAMAGE_BINARY32_EXACT_FAIL")
+    if digitalShieldstunDuration(9.) == 6.050000190734863 and digitalShieldstunDuration(3.) == 3.3500001430511475
+        BJDebugMsg("SHIELD_STUN_BINARY32_EXACT_PASS")
+    else
+        BJDebugMsg("SHIELD_STUN_BINARY32_EXACT_FAIL")
     let attacker = new FighterState(1, 100, -1)
     fighter.shield = true
     fighter.shieldEnergy = 8

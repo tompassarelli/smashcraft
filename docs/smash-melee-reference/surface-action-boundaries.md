@@ -403,3 +403,17 @@ in smashcraft:docs/smash-melee-reference/retail-air-decay-operations.json.
 Airborne precision remains open pending a reusable fused arithmetic primitive,
 matching trigonometric results, and trajectory verification. No executable
 bytes or proprietary assets are retained in these records.
+
+Digital shieldstun now uses the retail binary32 damage factor followed by a
+rounded power multiplication and a fused multiply-add. The revision-identified
+instructions at 0x80092F1C and 0x80092F20 confirm those two arithmetic boundaries.
+For three damage, the duration is 3.3500001430511475; rounding the last multiply
+and add separately gives 3.3499999046325684. These facts are retained in
+smashcraft:docs/smash-melee-reference/retail-shield-damage-endpoints.json.
+The reusable pure Wurst fused primitive accepts finite binary32 operands,
+preserves the exact product in integer limbs, and rounds once. Its eight focused
+checks passed both in the interpreter and emitted Lua before publication to
+the Apache-2.0 stdlib fork at bb1e0458db5a372ba2a6928112452785e435d01a.
+The project lock and build/test/probe consumers select that immutable pin.
+The integrated shield suite passes 62/62 (smashcraft:build/shield-fused-integration.log).
+Airborne trigonometric matching and native formula behavior remain open.

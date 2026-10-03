@@ -1992,3 +1992,10 @@ source is smashcraft:tools/physics-probe/NumericalPrecisionProbe.wurst.
 This is partial precision coverage. Other formulas and their PowerPC operation
 ordering still require migration and comparison. The probe does not establish
 Warcraft timing, rendering, or native map startup.
+
+Digital shield damage sums raw contacts before applying the retail binary32
+factor once. Shieldstun rounds integer power times 0.30000001192092896 before
+the fused multiplication by 1.5 and addition of 2. The standard-library pin now
+provides fusedMultiplyAddFloat32 for this single-round operation. Analog shield
+input, powershields, and native verification remain open; digital formula
+precision does not establish those behaviors.

@@ -623,6 +623,10 @@ function recordedGroundedDamageFirstDifference(int character, real velocityOffse
 	destroy defender
 	destroy attacker
 
+@Test function retailShieldstunRetainsItsFusedRoundingBoundary()
+	digitalShieldstunDuration(3.).assertEquals(3.3500001430511475)
+	digitalShieldstunDuration(9.).assertEquals(6.050000190734863)
+
 function recordedShieldAttackerPosition(int frame) returns real
 	if frame < 4
 		return 38.56430435180664
