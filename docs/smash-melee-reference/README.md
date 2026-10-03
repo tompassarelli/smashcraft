@@ -19,6 +19,14 @@ tumble, bounce and grounded-friction constants. This comparison verifies the
 selected values rather than every behavior of the source game.
 
 Additional targeted retail facts are in
+smashcraft:docs/smash-melee-reference/retail-air-recoil-cutoff-state.json, which
+records four executions of the original below-cutoff stores: vertical launch
+and horizontal recoil clear, while vertical recoil persists. The eighteen-vector
+boundary corpus composes separately verified classification with those state
+facts; it is not a complete original-function trace. See
+smashcraft:docs/melee-air-cutoff.md for the comparison scope.
+
+Other targeted retail facts are in
 smashcraft:docs/smash-melee-reference/retail-shield-damage-endpoints.json and
 smashcraft:docs/smash-melee-reference/retail-air-decay-operations.json. The first
 records shield-damage endpoints and accumulation order. The second identifies

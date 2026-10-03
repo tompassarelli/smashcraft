@@ -43,20 +43,24 @@ function positiveAtan(real magnitude) returns real
     let residual = (high + low).roundToFloat32()
     return ((atanPolynomial(residual) + segment.angleLow).roundToFloat32() + segment.angleHigh).roundToFloat32()
 
-/** Finite binary32 vector angle; the zero vector returns positive half pi. */
+function hasNegativeSign(real value) returns boolean
+    // IEEE reciprocal distinguishes the zeros that choose atan2's quadrant.
+    return value < 0. or (value == 0. and 1. / value < 0.)
+
+/** Finite binary32 vector angle; zero vectors use the vertical zero's sign. */
 public function meleeAtan2(real y, real x) returns real
     let horizontal = x.roundToFloat32()
     let vertical = y.roundToFloat32()
     if horizontal == 0.
-        if vertical < 0.
+        if hasNegativeSign(vertical)
             return -HALF_PI
         return HALF_PI
     let ratio = (vertical / horizontal).roundToFloat32()
     var angle = positiveAtan(ratio.abs())
-    if ratio < 0.
+    if hasNegativeSign(ratio)
         angle = -angle
     if horizontal < 0.
-        if vertical < 0.
+        if hasNegativeSign(vertical)
             return (angle - PI).roundToFloat32()
         return (angle + PI).roundToFloat32()
     return angle

@@ -23,9 +23,22 @@ after individual reductions and additions is observable and intentional.
 
 The supported sine/cosine domain is finite angles within
 `[-float32(pi), float32(pi)]`, including angles returned by `meleeAtan2`.
-`meleeAtan2` accepts finite vectors and returns positive half pi for `(0, 0)`.
-Signed-zero distinctions and nonfinite inputs are outside the verified claim;
+`meleeAtan2` accepts finite vectors; zero vectors use the vertical zero's sign
+to choose positive or negative half pi. Nonfinite inputs are outside the claim;
 this is not a general replacement for all platform trigonometric functions.
+
+The subsequent original-routine fixture
+smashcraft:docs/smash-melee-reference/retail-signed-zero-scalars.json exposes a
+branch discrepancy: atan2(-0, -1) returns negative float32(pi), whereas the
+previous implementation selected positive pi. Their sine residues have
+opposite signs. atan2(-0, +0) also selects negative half pi. The implementation
+now preserves the zero's sign when selecting the quadrant. The fourteen-case
+generated Wurst fixture checks forty actual emitted-Lua outputs against the
+original routines, including zero-result signs through IEEE reciprocal.
+It failed on the negative-zero angle before repair and passes afterward.
+Evidence: smashcraft:build/signed-zero-before.log and
+smashcraft:build/signed-zero-after.log. This verifies these scalar cases,
+not all signed-zero behavior in the remaining physics formulas or native Warcraft.
 
 The 16 recorded input cases cover cardinal axes, ordinary vectors, diagonals in
 all four quadrants, a small vector angle, and direct axis angles. They yield 43

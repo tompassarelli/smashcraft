@@ -1,5 +1,101 @@
 # Physics reference and implementation
 
+## Airborne recoil cutoff state correction — 2026-10-04
+
+The original below-cutoff recoil branch clears horizontal attacker recoil and
+vertical launch, retaining vertical attacker recoil and horizontal launch.
+Four private executions of its unchanged comparison/stores confirm these
+numeric state effects. Production now applies launch decay before recoil decay
+and preserves this retail interaction, while skipping an empty recoil vector.
+The numerical facts and scope are in
+smashcraft:docs/smash-melee-reference/retail-air-recoil-cutoff-state.json and
+smashcraft:docs/melee-air-cutoff.md.
+
+The previous cutoff fixture incorrectly composed both recoil axes as zero
+below the boundary; it did not execute the original cutoff stores. Its
+classification proof remains valid. Corrected emitted-Lua comparisons failed
+on recoil boundary case 9 before repair and pass all eighteen boundary cases
+plus four cross-channel cases afterward. Evidence:
+smashcraft:build/recoil-cutoff-state-before.log and
+smashcraft:build/recoil-cutoff-state-after.log. PhysicsTests pass 64/64 with zero
+errors and one existing warning; evidence is
+smashcraft:build/recoil-cutoff-state-physics-tests.log. Native gameplay remains unverified.
+
+## Exact airborne below-cutoff-or-decay decision — 2026-10-04
+
+Airborne launch and attacker recoil now compare their binary32 squared speed
+with a derived boundary instead of invoking Warcraft SquareRoot. The original
+three-refinement arithmetic, IBM's estimate accuracy contract, and exact integer
+boundary inequalities establish the same below-cutoff-or-decay decision for the two
+fixed retail constants under round-to-nearest. The derivation and its scope are
+in smashcraft:docs/melee-air-cutoff.md.
+
+Eighteen vectors around both boundaries match the original refinement block
+and scalar routines in emitted Lua. Below-cutoff state composition was corrected
+as described above; the earlier check did not establish the recoil stores. The original
+refinement runs privately under QEMU with only its return boundary patched.
+The error argument covers permissible estimate variation separately; it does
+not assume that QEMU's estimate equals Gekko's. The previous host-Lua square
+root also passed these cases; the replacement removes the native dependency
+for this rule. PhysicsTests pass 64/64. Other square-root uses and native map
+verification remain unfinished.
+
+## Airborne attacker recoil arithmetic — 2026-10-04
+
+The retail recoil branch at 0x8006BA98 calls atan2f; 0x8006BA9C rounds the
+vertical square and 0x8006BAA8 fuses the horizontal square-plus-sum. Cosine and
+sine calls at 0x8006BB24/0x8006BB40 feed axis `fnmsubs` at
+0x8006BB34/0x8006BB50, both loading common +0x3E8. These numeric operation
+facts identify the same direction/subtraction pattern as airborne launch decay.
+Production now shares that calculation, with the separate recoil decay
+0.05000000074505806 Melee units.
+
+smashcraft:docs/smash-melee-reference/retail-air-recoil-decrement.json records
+eleven above-cutoff vectors from original scalar execution and independently
+authored PPC subtraction. The emitted-Lua production probe failed on the first
+recoil case before repair and passes all 22 recoil axes afterward, alongside
+the 22 launch axes and 22 resulting horizontal positions. Evidence:
+smashcraft:build/air-recoil-before.log and smashcraft:build/air-recoil-after.log.
+This is not execution of the original gameplay routine. The below-cutoff decision
+uses the verified derived boundary above; native recoil remains unverified.
+
+## Airborne horizontal position order — 2026-10-04
+
+Ordinary airborne horizontal position now adds self velocity, launch velocity,
+then attacker shield recoil separately, rounding each addition in Melee units.
+Airborne defender shield pushback is already cleared before this phase.
+Grounded motion, sampled ground rolls, and recovery displacement remain on
+their existing paths and need separate source-order verification.
+
+The emitted-Lua axis probe also checks eleven resulting horizontal positions
+from initial Melee x = -60 and self velocity = 0.25, using the independently
+recorded launch-axis outputs. Expected additions use IEEE binary32 arithmetic,
+not a recorded full-game position trace. The first case failed before the
+position repair; all eleven pass afterward. Evidence:
+smashcraft:build/air-position-before.log and smashcraft:build/air-position-after.log.
+This does not establish native collision or trajectory fidelity.
+
+## Airborne knockback axis arithmetic — 2026-10-04
+
+Airborne launch decay now converts the velocity operands to binary32 Melee
+units, rounds the vertical square, uses one fused horizontal square-plus-sum,
+and compares the rounded speed with the retail decay using strict less-than.
+Above the cutoff it computes the direction using the independently authored
+Melee scalar approximation and subtracts each decay component with one fused
+rounding. It preserves the original tiny cardinal-axis residues instead of
+forcing those axes to zero through radial rescaling.
+
+smashcraft:docs/smash-melee-reference/retail-air-axis-decrement.json records
+eleven above-cutoff vectors. Their direction values come from original scalar
+routines executed under QEMU PPC750; their final axes come from independently
+authored PPC `fnmsubs` arithmetic. This does not execute the original gameplay
+function. The production emitted-Lua probe failed on case zero before the
+repair and passes all 22 exact axis outputs afterward. Evidence:
+smashcraft:build/air-decay-before.log and smashcraft:build/air-decay-after.log.
+
+The cutoff uses the derived squared-speed boundary described above. Native
+trajectories remain unverified.
+
 ## Recorded vertical precision — 2026-10-04
 
 Ordinary gravity subtraction now rounds both operands and the result in Melee
@@ -19,8 +115,8 @@ The probe uses the compiler-owned Lua native fixture pinned separately by
 `luaTestRuntimeCommit` in smashcraft:wurst-toolchain.lock. Its SquareRoot repair
 does not change the compiler artifact and does not establish Warcraft native
 square-root precision. Shared scalar approximations and their bounded proof
-are documented in smashcraft:docs/melee-scalar-math.md; integration into airborne
-decay, Gekko square-root cutoff behavior, horizontal position order, and native
+are documented in smashcraft:docs/melee-scalar-math.md; Gekko square-root cutoff
+behavior, horizontal position order, and native
 trajectory verification remain open.
 
 ## Verified retail combat parameters — 2026-10-03

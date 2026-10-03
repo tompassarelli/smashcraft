@@ -3,6 +3,7 @@ import RollTravel
 import ParticipantInputs
 import CommandBuffer
 import Binary32
+import MeleeScalarMath
 
 public constant real WORLD_UNITS_PER_MELEE_UNIT = 6
 
@@ -773,6 +774,29 @@ public function totalVelocityX(FighterState f) returns real
 public function totalVelocityZ(FighterState f) returns real
 	return f.vz + f.knockbackZ + f.shieldRecoilZ
 
+tuple airMotion(real x, real z, boolean belowCutoff)
+
+function retailAirDecaySquaredCutoff(real decay) returns real
+	// Both fixed retail decays lie in [1/32, 1/16), with binary32 spacing 2^-28.
+	// Their squared rounding midpoints round upward; see the exact boundary corpus.
+	let spacing = 0.0000000037252902984619140625
+	let previous = (decay - spacing).roundToFloat32()
+	return fusedMultiplyAddFloat32(decay, previous, spacing * spacing * 0.25)
+
+constant real AIR_KNOCKBACK_SQUARED_CUTOFF = retailAirDecaySquaredCutoff(KNOCKBACK_DECAY_PER_FRAME.roundToFloat32())
+constant real AIR_RECOIL_SQUARED_CUTOFF = retailAirDecaySquaredCutoff((AIR_SHIELD_RECOIL_DECAY / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32())
+
+function decayedAirMotion(real worldX, real worldZ, real decay, real squaredCutoff) returns airMotion
+	let horizontal = (worldX / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
+	let vertical = (worldZ / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
+	let verticalSquare = (vertical * vertical).roundToFloat32()
+	let speedSquare = fusedMultiplyAddFloat32(horizontal, horizontal, verticalSquare)
+	if speedSquare < squaredCutoff
+		return airMotion(0, 0, true)
+	let angle = meleeAtan2(vertical, horizontal)
+	return airMotion(fusedMultiplyAddFloat32(-decay, meleeCos(angle), horizontal) * WORLD_UNITS_PER_MELEE_UNIT,
+		fusedMultiplyAddFloat32(-decay, meleeSin(angle), vertical) * WORLD_UNITS_PER_MELEE_UNIT, false)
+
 function decayKnockback(FighterState f)
 	if f.grounded
 		if f.groundKnockbackX == 0
@@ -783,16 +807,9 @@ function decayKnockback(FighterState f)
 		f.knockbackZ = 0
 		return
 	f.groundKnockbackX = 0
-	let speed = SquareRoot(f.knockbackX * f.knockbackX + f.knockbackZ * f.knockbackZ)
-	let decay = KNOCKBACK_DECAY_PER_FRAME * WORLD_UNITS_PER_MELEE_UNIT
-	if speed <= decay
-		f.knockbackX = 0
-		f.groundKnockbackX = 0
-		f.knockbackZ = 0
-	else if speed > 0
-		let scale = (speed - decay) / speed
-		f.knockbackX *= scale
-		f.knockbackZ *= scale
+	let motion = decayedAirMotion(f.knockbackX, f.knockbackZ, KNOCKBACK_DECAY_PER_FRAME.roundToFloat32(), AIR_KNOCKBACK_SQUARED_CUTOFF)
+	f.knockbackX = motion.x
+	f.knockbackZ = motion.z
 
 public function digitalShieldstunDuration(real damage) returns real
 	let scaledPower = (integerHitPower(damage) * SHIELD_STUN_DAMAGE_FACTOR).roundToFloat32()
@@ -820,14 +837,17 @@ function decayShieldMotion(FighterState f)
 	else
 		// Airborne recoil is a vector and decays by the common per-frame amount.
 		f.shieldPushbackX = 0
-		let speed = SquareRoot(f.shieldRecoilX * f.shieldRecoilX + f.shieldRecoilZ * f.shieldRecoilZ)
-		if speed < AIR_SHIELD_RECOIL_DECAY
+		if f.shieldRecoilX == 0 and f.shieldRecoilZ == 0
+			return
+		let decay = (AIR_SHIELD_RECOIL_DECAY / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
+		let motion = decayedAirMotion(f.shieldRecoilX, f.shieldRecoilZ, decay, AIR_RECOIL_SQUARED_CUTOFF)
+		if motion.belowCutoff
+			// Retail cutoff clears vertical launch, retaining vertical recoil.
 			f.shieldRecoilX = 0
-			f.shieldRecoilZ = 0
-		else if speed > 0
-			let scale = (speed - AIR_SHIELD_RECOIL_DECAY) / speed
-			f.shieldRecoilX *= scale
-			f.shieldRecoilZ *= scale
+			f.knockbackZ = 0
+		else
+			f.shieldRecoilX = motion.x
+			f.shieldRecoilZ = motion.z
 
 function shieldDrainShouldResume(FighterState f, boolean forcedShield) returns boolean
 	if forcedShield
@@ -3678,8 +3698,8 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 		f.vz = -2
 	let oldX = f.x
 	let oldZ = f.z
-	decayShieldMotion(f)
 	decayKnockback(f)
+	decayShieldMotion(f)
 	if dodgeActive and not f.grounded
 		f.vx = f.vx * AIR_DODGE_DECAY
 		f.vz = f.vz * AIR_DODGE_DECAY
@@ -3690,6 +3710,10 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 			f.vx = 0
 			f.knockbackX = 0
 			f.groundKnockbackX = 0
+	else if not f.grounded
+		f.x = addMeleeWorldValues(f.x, f.vx)
+		f.x = addMeleeWorldValues(f.x, f.knockbackX)
+		f.x = addMeleeWorldValues(f.x, f.shieldRecoilX)
 	else
 		f.x += totalVelocityX(f) + dashEntryDisplacementAdjustment
 	if isGroundDodging(f)

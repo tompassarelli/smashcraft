@@ -1629,7 +1629,7 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 			for frame = 1 to 3
 				expectedX *= 0.8999999761581421
 				expectedZ *= 0.8999999761581421
-				expectedPositionX += expectedX
+				expectedPositionX = ((expectedPositionX / 6).roundToFloat32() + (expectedX / 6).roundToFloat32()).roundToFloat32() * 6
 				expectedPositionZ = ((expectedPositionZ / 6).roundToFloat32() + (expectedZ / 6).roundToFloat32()).roundToFloat32() * 6
 				advance(f, 0, input, 0)
 				f.vx.assertEquals(expectedX, 0.00001)
@@ -1666,7 +1666,7 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 				input.airDodgePressed = false
 				f.airDodgeFrame.assertEquals(frame)
 			let directionZ = mode == 1 ? 1 : -1
-			let beforeX = mode == 0 ? 0. : 112.79427337646484
+			let beforeX = mode == 0 ? 0. : 112.79426574707031
 			let beforeZ = mode == 0 ? 300. : (mode == 1 ? 412.7943115234375 : 187.20565795898438)
 			let beforeVX = mode == 0 ? 0. : 0.6194844245910645
 			let beforeVZ = mode == 0 ? 0. : directionZ * 0.6194844245910645
@@ -1681,7 +1681,8 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 			f.airDodgeFrame.assertEquals(30)
 			f.vx.assertEquals(nextVX, 0.00001)
 			f.vz.assertEquals(nextVZ, 0.00001)
-			f.x.assertEquals(beforeX + nextVX, 0.00001)
+			let nextX = ((beforeX / 6).roundToFloat32() + (nextVX / 6).roundToFloat32()).roundToFloat32() * 6
+			f.x.assertEquals(nextX, 0.00001)
 			let nextZ = ((beforeZ / 6).roundToFloat32() + (nextVZ / 6).roundToFloat32()).roundToFloat32() * 6
 			f.z.assertEquals(nextZ, 0.00001)
 			f.airDodging.assertTrue()

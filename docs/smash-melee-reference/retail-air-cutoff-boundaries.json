@@ -1,0 +1,660 @@
+{
+  "source": {
+    "path": "~/.local/share/smashcraft-melee-reference/ntsc-1.02/main.dol",
+    "sha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+    "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a"
+  },
+  "execution": {
+    "qemu": "QEMU 10.2.4",
+    "version": "qemu-ppc version 10.2.4\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "cpu": "750",
+    "bun": "1.3.13",
+    "entry": "0x8006BAB4",
+    "lastOriginalInstruction": "0x8006BAF4",
+    "returnPatch": "0x8006BAF8",
+    "exitCode": 0,
+    "byteCount": 576
+  },
+  "checks": {
+    "roundedRootMatchesAllCases": true,
+    "vectorSquaredNormMatchesInputs": true,
+    "naiveRoundedDecaySquareDisagreements": 2
+  },
+  "thresholds": [
+    {
+      "decay": 0.050999999046325684,
+      "previous": 0.050999995321035385,
+      "midpoint": 0.050999997183680534,
+      "midpointSquare": 0.0026009997127354224,
+      "above": 0.0026009997818619013,
+      "below": 0.0026009995490312576,
+      "lowerRelativeMargin": 3.1469470517026515e-8,
+      "upperRelativeMargin": 1.3288444064269122e-8,
+      "belowRemainsBelowUnderError": true,
+      "aboveRemainsAboveUnderError": true,
+      "derivedThreshold": 0.0026009997818619013
+    },
+    {
+      "decay": 0.05000000074505806,
+      "previous": 0.04999999701976776,
+      "midpoint": 0.04999999888241291,
+      "midpointSquare": 0.0024999998882412923,
+      "above": 0.0024999999441206455,
+      "below": 0.002499999711290002,
+      "lowerRelativeMargin": 3.53902602640011e-8,
+      "upperRelativeMargin": 1.1175871034163624e-8,
+      "belowRemainsBelowUnderError": true,
+      "aboveRemainsAboveUnderError": true,
+      "derivedThreshold": 0.0024999999441206455
+    }
+  ],
+  "limitations": [
+    "Original three-refinement instruction block executed under QEMU PPC750; not hardware measurements.",
+    "The hardware estimate is covered separately by an error-bound argument, not emulator identity.",
+    "Only the return boundary was patched; original floating arithmetic and constants are unchanged.",
+    "Linux default floating-point state; this loader does not run GameCube OS startup.",
+    "Square/sum and axis subtraction are independently authored PPC arithmetic; only the original refinement block and scalar routines execute original code.",
+    "The bound proves the below-cutoff-or-decay decision for the two fixed retail constants, not every rounded square-root output or all physics.",
+    "Below-cutoff axis values compose the observed root classification with separately executed state-update facts: launch clears both axes; recoil clears horizontal recoil and vertical launch while retaining vertical recoil. They are not captures of the complete update function."
+  ],
+  "results": [
+    {
+      "squared": {
+        "bits": "0x3b2a7585",
+        "value": 0.0026009988505393267
+      },
+      "decay": {
+        "bits": "0x3d50e560",
+        "value": 0.050999999046325684
+      },
+      "root": {
+        "bits": "0x3d50e55d",
+        "value": 0.05099998787045479
+      },
+      "x": {
+        "bits": "0x3d50e557",
+        "value": 0.050999965518713
+      },
+      "y": {
+        "bits": "0x384c1672",
+        "value": 0.0000486582939629443
+      },
+      "belowCutoff": true,
+      "afterX": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "afterY": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b2a7586",
+        "value": 0.0026009990833699703
+      },
+      "decay": {
+        "bits": "0x3d50e560",
+        "value": 0.050999999046325684
+      },
+      "root": {
+        "bits": "0x3d50e55e",
+        "value": 0.05099999159574509
+      },
+      "x": {
+        "bits": "0x3d50e557",
+        "value": 0.050999965518713
+      },
+      "y": {
+        "bits": "0x3855e326",
+        "value": 0.000050994705816265196
+      },
+      "belowCutoff": true,
+      "afterX": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "afterY": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b2a7587",
+        "value": 0.002600999316200614
+      },
+      "decay": {
+        "bits": "0x3d50e560",
+        "value": 0.050999999046325684
+      },
+      "root": {
+        "bits": "0x3d50e55e",
+        "value": 0.05099999159574509
+      },
+      "x": {
+        "bits": "0x3d50e557",
+        "value": 0.050999965518713
+      },
+      "y": {
+        "bits": "0x385f41d8",
+        "value": 0.000053228664910420775
+      },
+      "belowCutoff": true,
+      "afterX": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "afterY": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b2a7588",
+        "value": 0.0026009995490312576
+      },
+      "decay": {
+        "bits": "0x3d50e560",
+        "value": 0.050999999046325684
+      },
+      "root": {
+        "bits": "0x3d50e55f",
+        "value": 0.050999995321035385
+      },
+      "x": {
+        "bits": "0x3d50e557",
+        "value": 0.050999965518713
+      },
+      "y": {
+        "bits": "0x38683fd8",
+        "value": 0.00005537256947718561
+      },
+      "belowCutoff": true,
+      "afterX": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "afterY": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b2a7589",
+        "value": 0.0026009997818619013
+      },
+      "decay": {
+        "bits": "0x3d50e560",
+        "value": 0.050999999046325684
+      },
+      "root": {
+        "bits": "0x3d50e560",
+        "value": 0.050999999046325684
+      },
+      "x": {
+        "bits": "0x3d50e557",
+        "value": 0.050999965518713
+      },
+      "y": {
+        "bits": "0x3870e7fa",
+        "value": 0.00005743650399381295
+      },
+      "belowCutoff": false,
+      "afterX": {
+        "bits": "0xaec49c00",
+        "value": -8.94075924406934e-11
+      },
+      "afterY": {
+        "bits": "0xad05ae70",
+        "value": -7.598907614259076e-12
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b2a758a",
+        "value": 0.002601000014692545
+      },
+      "decay": {
+        "bits": "0x3d50e560",
+        "value": 0.050999999046325684
+      },
+      "root": {
+        "bits": "0x3d50e560",
+        "value": 0.050999999046325684
+      },
+      "x": {
+        "bits": "0x3d50e557",
+        "value": 0.050999965518713
+      },
+      "y": {
+        "bits": "0x38794331",
+        "value": 0.00005942880306974985
+      },
+      "belowCutoff": false,
+      "afterX": {
+        "bits": "0xaec49c00",
+        "value": -8.94075924406934e-11
+      },
+      "afterY": {
+        "bits": "0x2caf4ac0",
+        "value": 4.982098067429774e-12
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b2a758b",
+        "value": 0.0026010002475231886
+      },
+      "decay": {
+        "bits": "0x3d50e560",
+        "value": 0.050999999046325684
+      },
+      "root": {
+        "bits": "0x3d50e561",
+        "value": 0.05100000277161598
+      },
+      "x": {
+        "bits": "0x3d50e557",
+        "value": 0.050999965518713
+      },
+      "y": {
+        "bits": "0x3880ac7e",
+        "value": 0.00006135644798632711
+      },
+      "belowCutoff": false,
+      "afterX": {
+        "bits": "0x314ac080",
+        "value": 2.9504292342608096e-9
+      },
+      "afterY": {
+        "bits": "0x2bd2a000",
+        "value": 1.496580637194711e-12
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b2a758c",
+        "value": 0.0026010004803538322
+      },
+      "decay": {
+        "bits": "0x3d50e560",
+        "value": 0.050999999046325684
+      },
+      "root": {
+        "bits": "0x3d50e562",
+        "value": 0.05100000649690628
+      },
+      "x": {
+        "bits": "0x3d50e557",
+        "value": 0.050999965518713
+      },
+      "y": {
+        "bits": "0x388497d9",
+        "value": 0.00006322534318314865
+      },
+      "belowCutoff": false,
+      "afterX": {
+        "bits": "0x31cdd2f0",
+        "value": 5.990266060962313e-9
+      },
+      "afterY": {
+        "bits": "0x2c399880",
+        "value": 2.6374735728751375e-12
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b2a758d",
+        "value": 0.002601000713184476
+      },
+      "decay": {
+        "bits": "0x3d50e560",
+        "value": 0.050999999046325684
+      },
+      "root": {
+        "bits": "0x3d50e562",
+        "value": 0.05100000649690628
+      },
+      "x": {
+        "bits": "0x3d50e557",
+        "value": 0.050999965518713
+      },
+      "y": {
+        "bits": "0x38886663",
+        "value": 0.00006504056364065036
+      },
+      "belowCutoff": false,
+      "afterX": {
+        "bits": "0x321b22d0",
+        "value": 9.030102887663816e-9
+      },
+      "afterY": {
+        "bits": "0x2d6544a0",
+        "value": 1.3032380730138016e-11
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b23d706",
+        "value": 0.002499999012798071
+      },
+      "decay": {
+        "bits": "0x3d4ccccd",
+        "value": 0.05000000074505806
+      },
+      "root": {
+        "bits": "0x3d4cccca",
+        "value": 0.049999989569187164
+      },
+      "x": {
+        "bits": "0x3d4cccc4",
+        "value": 0.049999967217445374
+      },
+      "y": {
+        "bits": "0x3848c296",
+        "value": 0.000047864938096608967
+      },
+      "belowCutoff": true,
+      "afterX": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "afterY": {
+        "bits": "0x3848c296",
+        "value": 0.000047864938096608967
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b23d707",
+        "value": 0.0024999992456287146
+      },
+      "decay": {
+        "bits": "0x3d4ccccd",
+        "value": 0.05000000074505806
+      },
+      "root": {
+        "bits": "0x3d4ccccb",
+        "value": 0.04999999329447746
+      },
+      "x": {
+        "bits": "0x3d4cccc4",
+        "value": 0.049999967217445374
+      },
+      "y": {
+        "bits": "0x3852b6ed",
+        "value": 0.00005023826452088542
+      },
+      "belowCutoff": true,
+      "afterX": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "afterY": {
+        "bits": "0x3852b6ed",
+        "value": 0.00005023826452088542
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b23d708",
+        "value": 0.002499999478459358
+      },
+      "decay": {
+        "bits": "0x3d4ccccd",
+        "value": 0.05000000074505806
+      },
+      "root": {
+        "bits": "0x3d4ccccb",
+        "value": 0.04999999329447746
+      },
+      "x": {
+        "bits": "0x3d4cccc4",
+        "value": 0.049999967217445374
+      },
+      "y": {
+        "bits": "0x385c3830",
+        "value": 0.00005250441608950496
+      },
+      "belowCutoff": true,
+      "afterX": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "afterY": {
+        "bits": "0x385c3830",
+        "value": 0.00005250441608950496
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b23d709",
+        "value": 0.002499999711290002
+      },
+      "decay": {
+        "bits": "0x3d4ccccd",
+        "value": 0.05000000074505806
+      },
+      "root": {
+        "bits": "0x3d4ccccc",
+        "value": 0.04999999701976776
+      },
+      "x": {
+        "bits": "0x3d4cccc4",
+        "value": 0.049999967217445374
+      },
+      "y": {
+        "bits": "0x386554b0",
+        "value": 0.00005467672599479556
+      },
+      "belowCutoff": true,
+      "afterX": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "afterY": {
+        "bits": "0x386554b0",
+        "value": 0.00005467672599479556
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b23d70a",
+        "value": 0.0024999999441206455
+      },
+      "decay": {
+        "bits": "0x3d4ccccd",
+        "value": 0.05000000074505806
+      },
+      "root": {
+        "bits": "0x3d4ccccd",
+        "value": 0.05000000074505806
+      },
+      "x": {
+        "bits": "0x3d4cccc4",
+        "value": 0.049999967217445374
+      },
+      "y": {
+        "bits": "0x386e17fe",
+        "value": 0.00005676596629200503
+      },
+      "belowCutoff": false,
+      "afterX": {
+        "bits": "0xb04cccc4",
+        "value": -7.45057571194252e-10
+      },
+      "afterY": {
+        "bits": "0xac21ec66",
+        "value": -2.301070358562418e-12
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b23d70b",
+        "value": 0.002500000176951289
+      },
+      "decay": {
+        "bits": "0x3d4ccccd",
+        "value": 0.05000000074505806
+      },
+      "root": {
+        "bits": "0x3d4ccccd",
+        "value": 0.05000000074505806
+      },
+      "x": {
+        "bits": "0x3d4cccc4",
+        "value": 0.049999967217445374
+      },
+      "y": {
+        "bits": "0x38768b9e",
+        "value": 0.00005878099909750745
+      },
+      "belowCutoff": false,
+      "afterX": {
+        "bits": "0x3119999c",
+        "value": 2.2351747119842003e-9
+      },
+      "afterY": {
+        "bits": "0x2c75904c",
+        "value": 3.489669490874814e-12
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b23d70c",
+        "value": 0.002500000409781933
+      },
+      "decay": {
+        "bits": "0x3d4ccccd",
+        "value": 0.05000000074505806
+      },
+      "root": {
+        "bits": "0x3d4cccce",
+        "value": 0.05000000447034836
+      },
+      "x": {
+        "bits": "0x3d4cccc4",
+        "value": 0.049999967217445374
+      },
+      "y": {
+        "bits": "0x387eb77d",
+        "value": 0.000060729205870302394
+      },
+      "belowCutoff": false,
+      "afterX": {
+        "bits": "0x3119999c",
+        "value": 2.2351747119842003e-9
+      },
+      "afterY": {
+        "bits": "0xaa47aac0",
+        "value": -1.77339913587371e-13
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b23d70d",
+        "value": 0.0025000006426125765
+      },
+      "decay": {
+        "bits": "0x3d4ccccd",
+        "value": 0.05000000074505806
+      },
+      "root": {
+        "bits": "0x3d4ccccf",
+        "value": 0.05000000819563866
+      },
+      "x": {
+        "bits": "0x3d4cccc4",
+        "value": 0.049999967217445374
+      },
+      "y": {
+        "bits": "0x38835127",
+        "value": 0.00006261682574404404
+      },
+      "belowCutoff": false,
+      "afterX": {
+        "bits": "0x31b33334",
+        "value": 5.2154067731180476e-9
+      },
+      "afterY": {
+        "bits": "0x2d22c90e",
+        "value": 9.253276964105162e-12
+      }
+    },
+    {
+      "squared": {
+        "bits": "0x3b23d70e",
+        "value": 0.00250000087544322
+      },
+      "decay": {
+        "bits": "0x3d4ccccd",
+        "value": 0.05000000074505806
+      },
+      "root": {
+        "bits": "0x3d4ccccf",
+        "value": 0.05000000819563866
+      },
+      "x": {
+        "bits": "0x3d4cccc4",
+        "value": 0.049999967217445374
+      },
+      "y": {
+        "bits": "0x388728e5",
+        "value": 0.00006444918835768476
+      },
+      "belowCutoff": false,
+      "afterX": {
+        "bits": "0x320cccce",
+        "value": 8.195639722430315e-9
+      },
+      "afterY": {
+        "bits": "0x2cde35c7",
+        "value": 6.315589978073133e-12
+      }
+    }
+  ],
+  "id": "retail-air-square-root-cutoff-boundaries",
+  "errorArgument": {
+    "instructionReference": "https://www.ibm.com/docs/en/aix/7.2.0?topic=set-frsqrte-floating-reciprocal-square-root-estimate-instruction",
+    "maximumInitialRelativeError": 0.03125,
+    "refinements": 3,
+    "doubleUnitRoundoff": 1.1102230246251565e-16,
+    "perRefinementRoundingAllowance": 8.881784197001252e-16,
+    "conservativeRelativeBounds": [
+      0.00149,
+      0.00000334,
+      1.674e-11
+    ],
+    "finalRelativeErrorBound": 2e-11,
+    "boundaryComparisons": "Exact integer cross-products with E = 1/50000000000; below*(1+E)^2 < midpoint^2 and above*(1-E)^2 > midpoint^2."
+  },
+  "operationFacts": {
+    "launch": {
+      "estimate": "0x8006B948",
+      "refinements": [
+        "0x8006B95C",
+        "0x8006B96C",
+        "0x8006B97C"
+      ],
+      "singleRounding": "0x8006B988"
+    },
+    "recoil": {
+      "estimate": "0x8006BAB4",
+      "refinements": [
+        "0x8006BAC8",
+        "0x8006BAD8",
+        "0x8006BAE8"
+      ],
+      "singleRounding": "0x8006BAF4"
+    },
+    "doubleConstants": [
+      0.5,
+      3
+    ]
+  },
+  "cutoffStateReference": "smashcraft:docs/smash-melee-reference/retail-air-recoil-cutoff-state.json"
+}
