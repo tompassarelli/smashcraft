@@ -12,7 +12,7 @@ mkdir -p "$project_dir/build/physics-probe"
 build_dir=$(mktemp -d "$project_dir/build/physics-probe/native.XXXXXX")
 mkdir -p "$build_dir/wurst" "$build_dir/_build/dependencies"
 bun=${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}
-for generator in generate-air-cutoff-probe generate-signed-zero-probe generate-recorded-fall-probe generate-air-decrement-probe; do
+for generator in generate-air-cutoff-probe generate-signed-zero-probe generate-recorded-fall-probe generate-air-decrement-probe generate-ground-motion-probe; do
 	"$bun" "$project_dir/tools/physics-probe/$generator.mjs"
 done
 for package in Simulation RollTravel MeleeScalarMath; do
@@ -23,7 +23,8 @@ for probe in "$project_dir/tools/physics-probe/NumericalPrecisionProbe.wurst" \
 	"$project_dir/build/physics-probe/RecordedFallPrecisionProbe.wurst" \
 	"$project_dir/build/physics-probe/AirDecrementPrecisionProbe.wurst" \
 	"$project_dir/build/physics-probe/SignedZeroPrecisionProbe.wurst" \
-	"$project_dir/build/physics-probe/AirCutoffPrecisionProbe.wurst"; do
+	"$project_dir/build/physics-probe/AirCutoffPrecisionProbe.wurst" \
+	"$project_dir/build/physics-probe/GroundMotionPrecisionProbe.wurst"; do
 	# Authored test sources use one report boundary in the native map.
 	awk '/^package / { print; print "import NativePhysicsReport"; next } { gsub(/BJDebugMsg\(/, "reportPhysicsProbe("); print }' "$probe" > "$build_dir/wurst/$(basename -- "$probe")"
 done

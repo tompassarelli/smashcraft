@@ -1,5 +1,25 @@
 # Physics reference and implementation
 
+## Flat-ground displacement and shield-motion arithmetic — 2026-10-04
+
+Ordinary flat-ground displacement now rounds self movement, launch and attacker
+recoil additions separately in that order. Digital defender and attacker ground
+decrements also round their operands, friction product and results. A shield
+contact replaces prior self ground speed rather than adding pushback to it.
+Original fighter tuning and the no-staling/no-freshness decision remain intact.
+
+The independently observed corpus in
+smashcraft:docs/smash-melee-reference/retail-ground-motion.json contains 22
+composed original arithmetic cases and four original shield-entry store cases.
+The production emitted-Lua comparison reported 30 mismatches before repair
+and passes afterward; see smashcraft:docs/melee-ground-motion.md for operation
+addresses, comparison details and limitations. The integrated normal Tests
+filter passes 534/534, zero errors and one existing unused-import warning:
+smashcraft:build/ground-motion-integration-tests.log. This does not prove slopes,
+faster-than-walk friction branches, shield contact magnitudes, full original
+trajectories or native gameplay. The native arithmetic diagnostic builder now
+includes these cases; its runtime acceptance remains open.
+
 ## Airborne recoil cutoff state correction — 2026-10-04
 
 The original below-cutoff recoil branch clears horizontal attacker recoil and

@@ -48,3 +48,8 @@ models, controls or stage-contact observation. Passing would close the runtime
 arithmetic boundary for these cases; it would not establish complete formulas,
 collision geometry, action clocks, visual effects or playable-match acceptance.
 Do not occupy or restart peer-owned clients to obtain this result.
+
+The builder now also includes GroundMotionPrecisionProbe for the subsequent
+grounded motion correction. A rebuilt candidate requires MESSAGES 10 and
+GROUND_MOTION_BINARY32_EXACT_PASS in addition to the nine records above.
+The first candidate described above remains historical and lacks these cases.
