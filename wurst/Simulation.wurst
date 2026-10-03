@@ -32,13 +32,13 @@ public function authoredDashGrabRules() returns dashGrabRules
 	return dashGrabRules(attackStartupFrames(5), attackDurationFramesForGrounding(5, true))
 
 public function ntscFoxDashGrabRules() returns dashGrabRules
-	return dashGrabRules(11, 39)
+	return dashGrabRules(11, 40)
 
 public function ntscFalcoDashGrabRules() returns dashGrabRules
-	return dashGrabRules(11, 39)
+	return dashGrabRules(11, 40)
 
 public function ntscCaptainFalconDashGrabRules() returns dashGrabRules
-	return dashGrabRules(10, 39)
+	return dashGrabRules(10, 40)
 
 public function authoredGroundMovementRules() returns groundMovementRules
 	// Existing Smashcraft roster timing is an authored approximation, not a
@@ -1547,12 +1547,12 @@ function authoredHitRegion(int character, int style, int frame, int chargeFrames
 function selectHitRegion(FighterState attacker, FighterState target) returns hitRegion
 	if attacker.out or attacker.hitlag > 0 or target.out or isIntangible(target)
 		return noHitRegion()
-	if attacker.dashGrabAttack
-		if attacker.attackFrame == attacker.dashGrabTiming.startupFrames
-			return hitRegion(0, attackReach(5), -130, 130, hitEffect(0, 0, 0, 0, 0, false), 1)
-		return noHitRegion()
 	let localX = (target.x - attacker.x) * attacker.facing
 	let localZ = target.z - attacker.z
+	if attacker.dashGrabAttack
+		if attacker.attackFrame == attacker.dashGrabTiming.startupFrames and localX >= 0 and localX <= attackReach(5) and localZ >= -130 and localZ <= 130
+			return hitRegion(0, attackReach(5), -130, 130, hitEffect(0, 0, 0, 0, 0, false), 1)
+		return noHitRegion()
 	for index = 0 to (attacker.attackStyle == 6 ? 1 : 0)
 		let hitBox = authoredHitRegion(attacker.character, attacker.attackStyle, attacker.attackFrame, attacker.smashChargeFrames, index)
 		let alreadyHit = target.lastHitAttacker == attacker and target.lastHitAttackSerial == attacker.attackSerial and target.lastHitWindow >= hitBox.window

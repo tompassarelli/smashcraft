@@ -271,3 +271,24 @@ checks regeneration while the animation remains paused, then verifies stock
 loss beyond a side blast zone before hitlag expires. Native observation is
 still outstanding; the normal Lua-number arithmetic has not been shown to
 match PowerPC binary32 operation-by-operation rounding.
+
+## Dash-grab completion and contact bounds
+
+The independently recorded CatchDash clips for Fox, Falco and Captain Falcon
+are all 40 frames (smashcraft:docs/smash-melee-reference/retail-action-lengths.json).
+The entry in melee:src/melee/ft/kinds/ftCommon/ftCo_Catch.c starts at frame zero
+without an extra animation advance; completion waits for the animation tracks.
+The retail test rigs therefore use 40 subsequent ticks, replacing the website's
+39-frame total. Original fighters retain their authored grab timing.
+
+A production-entry whiff test exposed a missing position check in dash-grab
+contact selection: the active tick could capture a target anywhere. Contact now
+requires the target to be inside the existing authored forward grab region.
+The same case verifies no capture, the last locked tick (39), and a jump on the
+completion tick (40). Focused dash-grab/contact/replay checks passed 5/5.
+Startup, retail active-window geometry, and exact retail callback mapping remain
+unverified; the 40-frame rig does not establish those claims.
+
+The assembled dash-grab changes passed 505/505 tests with zero errors and the
+existing unused-import warning (smashcraft:build/dash-integration-aggregate.log).
+Native behavior remains unobserved.
