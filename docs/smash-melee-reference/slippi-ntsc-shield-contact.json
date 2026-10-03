@@ -19,6 +19,33 @@
     "defenderPlayerIndex": 1
   },
   "units": "Melee units and logical frames; multiply positions and velocities by six in the simulation.",
+  "defenderTractionReference": {
+    "character": "Jigglypuff",
+    "url": "https://melee.theshoemaker.de/dat-dumps/Jigglypuff.json",
+    "accessed": "2026-10-03",
+    "sourceSha256": "7aa910bb6f1e71c62282b369ff8b627b341674c2b02ff6668220f2da33d00caf",
+    "sourceBytes": 1438494,
+    "jsonPointer": "/nodes/0/data/attributes/6/value",
+    "structureOffset": "0x18",
+    "value": 0.09000000357627869,
+    "walkMaximumValue": 0.699999988079071,
+    "walkMaximumPointer": "/nodes/0/data/attributes/2/value",
+    "gameRevision": null,
+    "scope": "Numerical facts only; no DAT binary or game content retained. Initial defender pushback 0.456 is below this walk maximum, so the ordinary traction branch applies. Do not infer a 1.125 common multiplier using a different character's 0.08 traction."
+  },
+  "attackerTractionReference": {
+    "character": "Sheik",
+    "url": "https://melee.theshoemaker.de/dat-dumps/Sheik.json",
+    "accessed": "2026-10-03",
+    "sourceSha256": "634e571601c3f06fabcec2712c549bb48b9ea347efffaab6c100545bba2ac485",
+    "sourceBytes": 1376864,
+    "jsonPointer": "/nodes/0/data/attributes/6/value",
+    "structureOffset": "0x18",
+    "value": 0.07999999821186066,
+    "sampledGroundRecoilMultiplier": 1.1,
+    "gameRevision": null,
+    "scope": "Numerical facts only; observed effective recoil decay 0.088 agrees with this traction times 1.1. No raw revision-identified common multiplier is claimed."
+  },
   "contact": {
     "frame": 10525,
     "damage": 4,

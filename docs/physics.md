@@ -1,5 +1,70 @@
 # Physics reference and implementation
 
+## Grounded digital shield correction — 2026-10-03
+
+Production contact resolution now assigns defender shield pushback and direct
+grounded-attacker recoil to separate motion channels. Held movement and launch
+knockback retain their own values. Both shield channels freeze during hitlag,
+then resume on its zero frame; defender motion decays by the actor's traction,
+and grounded attacker recoil uses the sampled 1.1 traction factor. A later
+clean hit, shield break or respawn clears the interrupted shield motion.
+Replay snapshots copy and compare both channels and the shield-drain transition.
+
+The paired reference below passes through the actual contact queue and
+production `advance`, assigning Jigglypuff traction to the defender and Sheik
+traction to the attacker across all Archer/Rifleman host combinations. It
+checks contact health/stun/freeze, nine successive positions, guard-transition
+drain timing, contact direction, detached sources and a perturbed recoil that
+is detected at the first released frame. Position tolerance is 0.001 world
+units; contact speed and shield-health tolerance is 0.0001. The final focused
+shield suite passed **45/45** and the final aggregate passed **427/427**, zero
+errors and one existing unused-import warning
+(smashcraft:build/physics-shield-tests.log). The integrated Wurst sources are
+identical to that checked final result; no redundant aggregate was run.
+
+This verifies one grounded digital-contact case, not complete shielding parity.
+Airborne attacker recoil remains unsupported and these grounded channels clear
+on leaving the floor. Analog/powershield rules, raw common-table/revision
+identity, cap/stacking cases, broader contact/actionability comparisons and
+native play remain required. The cap of two Melee units follows the published
+formula but is not exercised by this recording. Original playable fighter
+stats and moves were not retuned by this change.
+
+## Paired digital shield reference — 2026-10-03
+
+smashcraft:docs/smash-melee-reference/slippi-ntsc-shield-contact.json retains
+twelve original states around Sheik's jab against Jigglypuff's full digital
+shield on Final Destination, frames 10523–10534 of the public `air_dodge.slp`
+fixture. Both inputs are neutral horizontally. The retained numerical fields
+match the original parser output; the independent pasted frame-data entry
+reports four damage and three shieldstun frames for the jab.
+
+Contact frame 10525 reports four hitlag frames. Both actors remain stationary
+through 10528, then move on frame 10529 when hitlag reaches zero. The defender
+starts with ground speed 0.45600005984306335 Melee units/frame and decays by
+approximately 0.09 each released step. The attacker moves by approximately
+−0.212, −0.124 and −0.036 units on its first three released steps. Slippi's
+exported self-induced speeds omit that separate attacker recoil velocity, so
+the attacker's positions are the relevant evidence. GuardSetOff occupies
+released frames 10529–10531; Guard resumes at 10532, while ordinary held drain
+resumes at 10533.
+
+The published factual formulas at https://www.ssbwiki.com/Shield#Shield_pushback
+give digital defender pushback `min(2, (integerDamage * 0.09 + 0.4) * 0.6)` and
+attacker recoil `integerDamage * 0.07 + 0.02`. This four-damage contact agrees
+with defender speed 0.456 and initial attacker recoil 0.3. The recorded
+attacker decay is 0.088; the decompile's layout identifies a separate attacker
+ground-friction multiplier at +0x3EC. Raw common values and game revision are
+still unresolved. The published Jigglypuff DAT JSON independently supplies
+traction 0.09000000357627869 and walk maximum 0.699999988079071. Defender
+pushback starts below that walk maximum and decays by ordinary actor traction;
+using Fox/Falco traction 0.08 and compensating with a 1.125 multiplier would
+produce a passing trace with the wrong shared rule. The fixture must assign
+the observation's actual character parameters. This recording identifies
+NTSC, not a verified NTSC 1.02
+disc or unmodified gameplay build. Analog shielding, powershields, defender
+cap behavior and airborne attacker recoil are outside this excerpt.
+
 ## Original fighter tuning and reference test rigs — 2026-10-03
 
 Melee physics verification concerns shared equations and state rules. It does
@@ -114,7 +179,7 @@ equivalence without the missing parameters and original-game comparisons.
 | Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed, sampled roll travel and persistent fast-fall state | Revision identity, complete frame trajectories, dash/run/turn common values, walk acceleration and original fast-fall stick-entry threshold/window |
 | Damage | Integer individual hit power, fractional same-frame total, strongest-contact selection, fixed knockback, cap, sampled crouch/smash modifiers and recorded flat-ground traction decay | Common-table confirmation, successive-frame stacking and other grounded surface conditions |
 | Hitlag/hitstun | Separate counters, electric effects carried through contact resolution, crouch arithmetic, direct/detached source pause and recorded same-frame hitlag release | Broader original-game ordered traces, revision identity and verified common values |
-| Shields | Integer shieldstun power, contact freeze before stun countdown, shield-break character launch speed | Shield pushback, analog branches and paired displacement/actionability traces |
+| Shields | Integer shieldstun power, shield-break launch speed, recorded grounded digital defender pushback/attacker recoil and guard-drain timing | Raw common values/revision, analog/powershield branches, airborne recoil and broader paired displacement/actionability traces |
 | DI/recovery | Actual-vector DI normalization, grounded non-upward launch selection, existing floor tech/miss-tech/getup and sampled roll paths | Ground-bounce values, wall/ceiling collision geometry, tumble exceptions and threshold/tech traces |
 | Replay/map | Crouch and roll-entry-facing snapshot restoration; map compilation and packaging | Native connected movement/contact/recovery check of this build |
 
