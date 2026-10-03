@@ -189,3 +189,20 @@ requests getup attack with one versus two wait ticks remaining: expiry starts
 stand, while the preceding tick accepts attack. RecoveryTests passed 15/15,
 zero errors and the existing unused-import warning; evidence:
 smashcraft:build/down-wait-expiry.log.
+
+The assembled recovery changes passed 496/496 normal tests with zero errors
+and the existing unused-import warning
+(smashcraft:build/recovery-ordering-aggregate-fixed.log). The first aggregate
+exposed four getup fixtures that seeded DownWait with an expired default timer;
+they now initialize the intended remaining duration, retaining their combat
+assertions. This aggregate verifies the integrated simulation cases, not native
+callback timing, rendering, collision geometry or complete Melee parity.
+
+Candidate 0.0.7 packages these recovery fixes at source commit ab15900,
+build ID `melee-physics-r13`. It built with zero errors and six warnings;
+evidence: smashcraft:build/physics-map-r13.log. Map:
+smashcraft:build/wurst-map/Smashcraft 0.0.7.w3x. SHA-256:
+`18f7352bd10b33a0ff0cfdc98cd0dde73627acc64bac67bcd0b584374c3f34d4`.
+Deployment remained disabled to preserve the concurrent native-input session.
+This candidate has not been observed natively and does not include the pending
+dash/guard/grab changes or star/screen death implementation.
