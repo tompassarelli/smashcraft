@@ -205,6 +205,7 @@ public function grabActionDuration(int action) returns int
 constant real KNOCKBACK_DECAY_PER_FRAME = 0.051
 // Common-data value x3E8 from the cited NTSC 1.02 extraction; values are Melee units.
 constant real AIR_SHIELD_RECOIL_DECAY = 0.05000000074505806 * WORLD_UNITS_PER_MELEE_UNIT
+constant real SHIELD_HIT_WEIGHT_MULTIPLIER = 0.25
 constant real KNOCKBACK_LAUNCH_SCALE = 0.029999999329447746 * WORLD_UNITS_PER_MELEE_UNIT
 constant real HITSTUN_FRAMES_PER_KNOCKBACK = 0.4000000059604645
 constant int KNOCKBACK_STACKING_FRAMES = 10
@@ -280,6 +281,9 @@ public class FighterState
 	int dashDirection = 0
 	real x
 	real z
+	// Last completed movement step, sampled by synchronous contact resolution.
+	real positionDeltaX = 0
+	real positionDeltaZ = 0
 	real vx
 	real vz
 	real knockbackX
@@ -946,7 +950,8 @@ public constant int CONTACT_PUMMEL = 3
 public constant int CONTACT_THROW = 4
 tuple damageContact(FighterState source, FighterState target, hitEffect data, int facing,
 	int kind, boolean direct, boolean blocked, boolean crouching, boolean grounded,
-	boolean down, real scale, InputSnapshot throwInput)
+	boolean sourceGrounded, real sourceDeltaX, real sourceDeltaZ,
+	real targetDeltaX, real targetDeltaZ, boolean down, real scale, InputSnapshot throwInput)
 
 // Scratch belongs to a synchronous simulation step, never to a saved world.
 // Collection and resolution allocate no objects, including during rollback.
@@ -963,8 +968,20 @@ public function queueDamageContact(FighterState source, FighterState target, hit
 	let unblockable = kind == CONTACT_THROW or kind == CONTACT_PUMMEL
 	damageContacts[damageContactCount] = damageContact(source, target, data, facing, kind, direct,
 		not unblockable and target.shield and target.shieldEnergy > 0, target.crouching,
-		target.grounded, isDownDamageState(target), kind == CONTACT_THROW ? 1. : hitContextScale(target), throwInput)
+		target.grounded, source.grounded, source.positionDeltaX, source.positionDeltaZ,
+		target.positionDeltaX, target.positionDeltaZ, isDownDamageState(target),
+		kind == CONTACT_THROW ? 1. : hitContextScale(target), throwInput)
 	damageContactCount++
+
+function shieldRecoilAxis(real attackerDelta, real defenderDelta) returns real
+	if attackerDelta * defenderDelta >= 0
+		return defenderDelta - attackerDelta
+	return defenderDelta
+
+function applyAirborneShieldRecoil(damageContact contact)
+	let weightRatio = min(contact.target.physics.weight / contact.source.physics.weight, 1.) * SHIELD_HIT_WEIGHT_MULTIPLIER
+	contact.source.shieldRecoilX += shieldRecoilAxis(contact.sourceDeltaX, contact.targetDeltaX) * weightRatio
+	contact.source.shieldRecoilZ += shieldRecoilAxis(contact.sourceDeltaZ, contact.targetDeltaZ) * weightRatio
 
 function resolveDamageContacts(FighterState target)
 	var totalDamage = 0.
@@ -997,8 +1014,11 @@ function resolveDamageContacts(FighterState target)
 					shieldPushback = max(shieldPushback, digitalShieldPushback(damage))
 					if digitalShieldPushback(damage) == shieldPushback
 						shieldDirection = contact.facing
-					if contact.direct and contact.source.grounded
-						contact.source.shieldRecoilX = -contact.facing * max(contact.source.shieldRecoilX.abs(), digitalShieldRecoil(damage))
+					if contact.direct
+						if contact.sourceGrounded
+							contact.source.shieldRecoilX = -contact.facing * max(contact.source.shieldRecoilX.abs(), digitalShieldRecoil(damage))
+						else
+							applyAirborneShieldRecoil(contact)
 			else
 				if damage > 0 and contact.kind != CONTACT_PUMMEL
 					target.frozenFrames = 0
@@ -2570,6 +2590,8 @@ public function reset(FighterState f, real startX)
 	f.jumpIsDouble = false
 	f.x = startX
 	f.z = 280
+	f.positionDeltaX = 0
+	f.positionDeltaZ = 0
 	f.vx = 0
 	f.vz = 0
 	f.knockbackX = 0
@@ -2625,6 +2647,8 @@ public function reset(FighterState f, real startX)
 	f.invincible = 90
 
 public function advance(FighterState f, int stage, InputSnapshot input, real respawnX)
+	f.positionDeltaX = 0
+	f.positionDeltaZ = 0
 	if f.out
 		if f.stocks <= 0
 			return
@@ -2899,6 +2923,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	if not f.grounded
 		f.crouching = false
 	checkBlastZone(f)
+	f.positionDeltaX = f.x - oldX
+	f.positionDeltaZ = f.z - oldZ
 
 function checkBlastZone(FighterState f)
 	if f.x <= -920 or f.x >= 920 or f.z <= -420 or f.z >= 760

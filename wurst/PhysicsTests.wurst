@@ -714,6 +714,86 @@ function recordedShieldDefenderPosition(int frame) returns real
 	destroy withRecoil
 	destroy control
 
+@Test function airborneShieldContactInitializesStackedWeightScaledRelativeRecoil()
+	let attacker = new FighterState(0, 0, 1)
+	let defender = new FighterState(1, 100, -1)
+	let attackerInput = new InputSnapshot()
+	let defenderInput = new InputSnapshot()
+	attacker.grounded = false
+	defender.grounded = false
+	attacker.surface = -1
+	defender.surface = -1
+	attacker.z = 100
+	defender.z = 100
+	attacker.hitstun = 20
+	defender.hitstun = 20
+	attacker.physics.airFriction = 0
+	defender.physics.airFriction = 0
+	defender.physics.gravity = attacker.physics.gravity
+	attacker.physics.weight = 100
+	defender.physics.weight = 50
+	attacker.vx = 2
+	attacker.vz = 0
+	defender.vx = 3
+	defender.vz = 0
+	defender.shield = true
+	advance(attacker, 0, attackerInput, 0)
+	advance(defender, 0, defenderInput, 0)
+	attacker.positionDeltaX.assertEquals(2., 0.0001)
+	defender.positionDeltaX.assertEquals(3., 0.0001)
+	beginDamageContacts()
+	queueDamageContact(attacker, defender, hitEffect(4, 0, 0, 0, 0, false), 1,
+		CONTACT_FLINCH, true, null)
+	queueDamageContact(attacker, defender, hitEffect(4, 0, 0, 0, 0, false), 1,
+		CONTACT_FLINCH, true, null)
+	finishDamageContacts(attacker, defender)
+	// Same-sign horizontal motion subtracts the attacker's step; sub-1 weight ratio is .5.
+	// Two contacts stack additively before any subsequent-frame decay.
+	attacker.shieldRecoilX.assertEquals(2 * (3 - 2) * 0.125, 0.0001)
+	attacker.shieldRecoilZ.assertEquals(0., 0.0001)
+	destroy attacker
+	destroy defender
+	destroy attackerInput
+	destroy defenderInput
+
+	let oppositeAttacker = new FighterState(0, 0, 1)
+	let oppositeDefender = new FighterState(1, 100, -1)
+	let oppositeAttackerInput = new InputSnapshot()
+	let oppositeDefenderInput = new InputSnapshot()
+	oppositeAttacker.grounded = false
+	oppositeDefender.grounded = false
+	oppositeAttacker.surface = -1
+	oppositeDefender.surface = -1
+	oppositeAttacker.z = 100
+	oppositeDefender.z = 100
+	oppositeAttacker.hitstun = 20
+	oppositeDefender.hitstun = 20
+	oppositeAttacker.physics.airFriction = 0
+	oppositeDefender.physics.airFriction = 0
+	oppositeAttacker.physics.gravity = oppositeDefender.physics.gravity
+	oppositeAttacker.physics.weight = 100
+	oppositeDefender.physics.weight = 150
+	oppositeAttacker.vx = -2
+	oppositeDefender.vx = 3
+	oppositeAttacker.vz = 2
+	oppositeDefender.vz = -1
+	oppositeDefender.shield = true
+	advance(oppositeAttacker, 0, oppositeAttackerInput, 0)
+	advance(oppositeDefender, 0, oppositeDefenderInput, 0)
+	oppositeAttacker.positionDeltaX.assertEquals(-2., 0.0001)
+	oppositeDefender.positionDeltaX.assertEquals(3., 0.0001)
+	beginDamageContacts()
+	queueDamageContact(oppositeAttacker, oppositeDefender, hitEffect(4, 0, 0, 0, 0, false), 1,
+		CONTACT_FLINCH, true, null)
+	finishDamageContacts(oppositeAttacker, oppositeDefender)
+	// Opposite-sign motion uses only defender movement; heavier defender clamps ratio to 1.
+	oppositeAttacker.shieldRecoilX.assertEquals(3 * 0.25, 0.0001)
+	oppositeAttacker.shieldRecoilZ.assertEquals(oppositeDefender.positionDeltaZ * 0.25, 0.0001)
+	destroy oppositeAttackerInput
+	destroy oppositeDefenderInput
+	destroy oppositeAttacker
+	destroy oppositeDefender
+
 @Test function shieldRecoilTransitionsFromAirVectorToGroundTangentAndBack()
 	let fighter = new FighterState(0, 0, 1)
 	let input = new InputSnapshot()

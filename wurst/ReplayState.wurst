@@ -16,6 +16,8 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.dashDirection = source.dashDirection
 	destination.x = source.x
 	destination.z = source.z
+	destination.positionDeltaX = source.positionDeltaX
+	destination.positionDeltaZ = source.positionDeltaZ
 	destination.vx = source.vx
 	destination.vz = source.vz
 	destination.knockbackX = source.knockbackX
@@ -189,6 +191,10 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "x"
 	if expected.z != actual.z
 		return "z"
+	if expected.positionDeltaX != actual.positionDeltaX
+		return "positionDeltaX"
+	if expected.positionDeltaZ != actual.positionDeltaZ
+		return "positionDeltaZ"
 	if expected.vx != actual.vx
 		return "vx"
 	if expected.vz != actual.vz

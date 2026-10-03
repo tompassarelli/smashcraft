@@ -57,6 +57,8 @@ import MatchStep
     let snapshot = new ReplaySnapshot()
 
     first.x = -123.5
+    first.positionDeltaX = 0.125
+    first.positionDeltaZ = -0.25
     first.damage = 47
     first.hitlag = 3
     first.crouching = true
@@ -88,6 +90,8 @@ import MatchStep
     snapshot.capture(first, second, match, firstCommands, secondCommands, runtime)
 
     first.x = 700
+    first.positionDeltaX = 0
+    first.positionDeltaZ = 0
     first.damage = 0
     first.hitlag = 0
     first.crouching = false
@@ -118,6 +122,8 @@ import MatchStep
     snapshot.restore(first, second, match, firstCommands, secondCommands, runtime)
 
     first.x.assertEquals(-123.5)
+    first.positionDeltaX.assertEquals(0.125)
+    first.positionDeltaZ.assertEquals(-0.25)
     first.damage.assertEquals(47)
     first.hitlag.assertEquals(3)
     first.crouching.assertTrue()
@@ -317,6 +323,9 @@ import MatchStep
     actual.second.shieldRecoilZ = 0.000001
     expected.firstDifference(actual).assertEquals("second.shieldRecoilZ")
     actual.second.shieldRecoilZ = 0
+    actual.second.positionDeltaZ = 0.000001
+    expected.firstDifference(actual).assertEquals("second.positionDeltaZ")
+    actual.second.positionDeltaZ = 0
     actual.match.firstRematchReady = true
     expected.firstDifference(actual).assertEquals("match.firstRematchReady")
     actual.match.firstRematchReady = false

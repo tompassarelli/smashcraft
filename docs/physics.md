@@ -246,31 +246,43 @@ equivalence without the missing parameters and original-game comparisons.
 | Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed, sampled roll travel, persistent fast-fall state, and five recorded dash-braking updates | Revision identity, complete frame trajectories, dash/run/turn common values and transitions, walk acceleration, and original fast-fall stick-entry threshold/window |
 | Damage | Integer individual hit power, fractional same-frame total, strongest-contact selection, fixed knockback, cap, sampled crouch/smash modifiers and recorded flat-ground traction decay | Common-table confirmation, successive-frame stacking and other grounded surface conditions |
 | Hitlag/hitstun | Separate counters, electric effects carried through contact resolution, crouch arithmetic, direct/detached source pause and recorded same-frame hitlag release | Broader original-game ordered traces, revision identity and verified common values |
-| Shields | Integer shieldstun power, shield-break launch speed, recorded grounded digital defender pushback/attacker recoil and guard-drain timing; airborne attacker recoil now retains a separate x/z vector, decays by common +0x3E8, and is included in replay | Airborne vector initialization still needs common +0x7D4 `hit_weight_mul`; raw common identity, analog/powershield branches and broader paired displacement/actionability traces |
+| Shields | Integer shieldstun power, shield-break launch speed, recorded grounded digital defender pushback/attacker recoil and guard-drain timing; airborne attacker recoil initializes from common +0x7D4 `hit_weight_mul`, retains a separate x/z vector, decays by common +0x3E8, and is included in replay | Analog/powershield branches and broader paired displacement/actionability traces |
 | DI/recovery | Actual-vector DI normalization, grounded non-upward launch selection, existing floor tech/miss-tech/getup and sampled roll paths | Ground-bounce values, wall/ceiling collision geometry, tumble exceptions and threshold/tech traces |
 | Replay/map | Crouch and roll-entry-facing snapshot restoration; map compilation and packaging | Native connected movement/contact/recovery check of this build |
 
 The parameter corpus and explicit missing offsets are in
-smashcraft:docs/smash-melee-reference/physics-parameters.json. Published
-character dumps have unknown disc revision; the revision-identified PlCo
-common table is still unavailable. Missing values are not filled with guesses.
+smashcraft:docs/smash-melee-reference/physics-parameters.json. The local retail
+NTSC 1.02 reference identifies main DOL SHA1
+`08e0bf20134dfcb260699671004527b2d6bb1a45` and PlCo SHA1
+`c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41`; common +0x7D4, +0x3E8 and
++0x3EC are now confirmed from that table. Published character dumps still lack
+disc-revision metadata, and other missing values are not filled by guesses.
 Owner-approved digital dodge/fast-fall conveniences, original Illidan tuning,
 custom parry behavior and lack of staling remain explicit gameplay choices.
+
+Airborne shield contact adds a per-axis relative-motion term scaled by
+`min(defender weight / attacker weight, 1) × hit_weight_mul`; common +0x7D4
+sets `hit_weight_mul` to 0.25. Same-direction movement subtracts the attacker's
+step from the defender's; opposing movement uses the defender's step. This is
+covered by a production-step contact test, including both weight-ratio ranges
+and accumulation. The retained Slippi airborne contact still does not expose
+the recoil vector, so the formula is source-derived rather than directly
+validated against that trace.
 
 Airborne shield recoil uses common +0x3E8 = 0.05 Melee units per frame; on
 flat-ground contact the horizontal channel uses traction × common +0x3EC = 1.1,
 and its vertical component is discarded. The values come from
 `technospider-ssbm/melee-shield-tilt` revision
-`e8c05c2a0ed3419c1f461d0a5cb11728d01aa3b1`. Its README says the data was
-extracted from the publisher's vanilla NTSC v1.02 ISO and lists PlCo SHA1
-`c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41`; that hash and the disc identity
-were not independently verified here. No implementation code was reused.
+`e8c05c2a0ed3419c1f461d0a5cb11728d01aa3b1`. Its listed PlCo SHA1 matches the
+locally inspected retail NTSC 1.02 common table. The airborne multiplier is
+also present at +0x7D4; only numerical parameters and the decompile use-site
+were used as reference, not implementation code.
 The retained airborne shield contact in
 smashcraft:docs/smash-melee-reference/slippi-ntsc-airborne-shield-contact.json
 shows the attacker frozen through hitlag and moving again on the first release
-sample, but does not expose the shield-recoil vector. The common +0x7D4
-`hit_weight_mul` required to initialize that vector remains unavailable, so
-airborne contact initialization remains open.
+sample, but does not expose the shield-recoil vector. The common-derived
+initialization and resulting displacement therefore remain unverified by this
+trace.
 
 The next acceptance sequence and GitHub dependencies are in
 wc3-melee:docs/melee-foundation-roadmap.md. The factual frame-data intake at

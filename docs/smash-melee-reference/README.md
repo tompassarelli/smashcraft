@@ -55,7 +55,9 @@ ground speed but omits the separate attacker recoil velocity; the attacker's
 position trace supplies that comparison. The shield's return to Guard is a
 separate frame from resumed held drain. Recorded effective friction supports
 this flat-floor case; the disc revision, raw common table, defender cap,
-analog/powershield branches and airborne attacker recoil remain unresolved.
+analog/powershield branches remain unresolved. Airborne attacker recoil is
+implemented from the revision-identified common table and decompile use-site;
+the retained trace does not expose that vector for direct comparison.
 The excerpt contains numerical telemetry and no player/account metadata.
 
 The owner's copy-paste snapshot of all 26 character pages from
