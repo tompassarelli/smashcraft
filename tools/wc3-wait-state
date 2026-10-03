@@ -8,7 +8,7 @@ case "$run_dir" in "/run/user/$(id -u)"/private-desktop.*) ;; *) echo 'Expected 
 [[ -O "$run_dir" && -f "$run_dir/active" && -S "$run_dir/runtime/wayland-0" ]] || { echo 'Private desktop is not live.' >&2; exit 1; }
 case "$expected" in main-menu|single-player|create-game) ;; *) echo 'Unsupported expected menu state.' >&2; exit 2 ;; esac
 if [[ ! "$budget" =~ ^[1-9][0-9]{0,2}$ ]] || (( budget > 120 )); then echo 'Timeout must be 1..120 seconds.' >&2; exit 2; fi
-launcher="$(dirname "$(agents path off-monitor-development-distilled)")/scripts/private-desktop.sh"
+launcher="$(dirname "$(agents path private-desktop-development-distilled)")/scripts/private-desktop.sh"
 observer="$(dirname "$0")/wc3-screen-state"
 frames=$(mktemp -d "$run_dir/wait-state.XXXXXX")
 printf 'Captures: %s\n' "$frames" >&2
