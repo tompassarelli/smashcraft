@@ -1,5 +1,23 @@
 # Physics reference and implementation
 
+## Exact airborne zero-or-decay cutoff — 2026-10-04
+
+Airborne launch and attacker recoil now compare their binary32 squared speed
+with a derived boundary instead of invoking Warcraft SquareRoot. The original
+three-refinement arithmetic, IBM's estimate accuracy contract, and exact integer
+boundary inequalities establish the same zero-or-decay decision for the two
+fixed retail constants under round-to-nearest. The derivation and its scope are
+in smashcraft:docs/melee-air-cutoff.md.
+
+Eighteen vectors around both boundaries match the original refinement block
+and scalar routines in emitted Lua, including all resulting axes. The original
+refinement runs privately under QEMU with only its return boundary patched.
+The error argument covers permissible estimate variation separately; it does
+not assume that QEMU's estimate equals Gekko's. The previous host-Lua square
+root also passed these cases; the replacement removes the native dependency
+for this rule. PhysicsTests pass 64/64. Other square-root uses and native map
+verification remain unfinished.
+
 ## Airborne attacker recoil arithmetic — 2026-10-04
 
 The retail recoil branch at 0x8006BA98 calls atan2f; 0x8006BA9C rounds the
@@ -16,8 +34,8 @@ authored PPC subtraction. The emitted-Lua production probe failed on the first
 recoil case before repair and passes all 22 recoil axes afterward, alongside
 the 22 launch axes and 22 resulting horizontal positions. Evidence:
 smashcraft:build/air-recoil-before.log and smashcraft:build/air-recoil-after.log.
-This is not execution of the original gameplay routine. The cutoff still needs
-Gekko estimate/refinement verification; native recoil remains unverified.
+This is not execution of the original gameplay routine. The zero-or-decay cutoff
+uses the verified derived boundary above; native recoil remains unverified.
 
 ## Airborne horizontal position order — 2026-10-04
 
@@ -53,8 +71,7 @@ function. The production emitted-Lua probe failed on case zero before the
 repair and passes all 22 exact axis outputs afterward. Evidence:
 smashcraft:build/air-decay-before.log and smashcraft:build/air-decay-after.log.
 
-The cutoff still uses Warcraft's SquareRoot followed by binary32 rounding.
-Gekko estimate/refinement equivalence at that cutoff is unverified. Native
+The cutoff uses the derived squared-speed boundary described above. Native
 trajectories remain unverified.
 
 ## Recorded vertical precision — 2026-10-04

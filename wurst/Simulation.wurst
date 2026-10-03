@@ -734,13 +734,22 @@ public function totalVelocityZ(FighterState f) returns real
 
 tuple airMotion(real x, real z)
 
-function decayedAirMotion(real worldX, real worldZ, real decay) returns airMotion
+function retailAirDecaySquaredCutoff(real decay) returns real
+	// Both fixed retail decays lie in [1/32, 1/16), with binary32 spacing 2^-28.
+	// Their squared rounding midpoints round upward; see the exact boundary corpus.
+	let spacing = 0.0000000037252902984619140625
+	let previous = (decay - spacing).roundToFloat32()
+	return fusedMultiplyAddFloat32(decay, previous, spacing * spacing * 0.25)
+
+constant real AIR_KNOCKBACK_SQUARED_CUTOFF = retailAirDecaySquaredCutoff(KNOCKBACK_DECAY_PER_FRAME.roundToFloat32())
+constant real AIR_RECOIL_SQUARED_CUTOFF = retailAirDecaySquaredCutoff((AIR_SHIELD_RECOIL_DECAY / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32())
+
+function decayedAirMotion(real worldX, real worldZ, real decay, real squaredCutoff) returns airMotion
 	let horizontal = (worldX / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
 	let vertical = (worldZ / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
 	let verticalSquare = (vertical * vertical).roundToFloat32()
 	let speedSquare = fusedMultiplyAddFloat32(horizontal, horizontal, verticalSquare)
-	let speed = SquareRoot(speedSquare).roundToFloat32()
-	if speed < decay
+	if speedSquare < squaredCutoff
 		return airMotion(0, 0)
 	let angle = meleeAtan2(vertical, horizontal)
 	return airMotion(fusedMultiplyAddFloat32(-decay, meleeCos(angle), horizontal) * WORLD_UNITS_PER_MELEE_UNIT,
@@ -756,7 +765,7 @@ function decayKnockback(FighterState f)
 		f.knockbackZ = 0
 		return
 	f.groundKnockbackX = 0
-	let motion = decayedAirMotion(f.knockbackX, f.knockbackZ, KNOCKBACK_DECAY_PER_FRAME.roundToFloat32())
+	let motion = decayedAirMotion(f.knockbackX, f.knockbackZ, KNOCKBACK_DECAY_PER_FRAME.roundToFloat32(), AIR_KNOCKBACK_SQUARED_CUTOFF)
 	f.knockbackX = motion.x
 	f.knockbackZ = motion.z
 
@@ -787,7 +796,7 @@ function decayShieldMotion(FighterState f)
 		// Airborne recoil is a vector and decays by the common per-frame amount.
 		f.shieldPushbackX = 0
 		let decay = (AIR_SHIELD_RECOIL_DECAY / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
-		let motion = decayedAirMotion(f.shieldRecoilX, f.shieldRecoilZ, decay)
+		let motion = decayedAirMotion(f.shieldRecoilX, f.shieldRecoilZ, decay, AIR_RECOIL_SQUARED_CUTOFF)
 		f.shieldRecoilX = motion.x
 		f.shieldRecoilZ = motion.z
 
