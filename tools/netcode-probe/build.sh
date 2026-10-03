@@ -43,7 +43,7 @@ if [[ "$batch" == scheduled || "$batch" == scheduled-5 ]]; then
         map_name=Smashcraft_Scheduled_Input_Probe_5
     fi
     printf 'package ProbeInfo\npublic constant int SCHEDULED_DELAY = %s\n' "$scheduled_delay" > "$probe_dir/wurst/ProbeInfo.wurst"
-    for package in KeyboardInputCapture KeyBindings DirectionalInput NetworkInput InputProtocol InputLedger FixedInputSchedule FixedInputPlayback InputAdapter MatchStep MatchRules Simulation CommandBuffer CombatInput ReplayHistory ReplayState; do
+    for package in KeyboardInputCapture KeyBindings DirectionalInput NetworkInput InputProtocol InputLedger FixedInputSchedule FixedInputPlayback InputAdapter MatchStep MatchRules Simulation MeleeScalarMath RollTravel CommandBuffer CombatInput ReplayHistory ReplayState; do
         cp "$project_dir/wurst/$package.wurst" "$probe_dir/wurst/"
     done
 fi

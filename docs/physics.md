@@ -1,5 +1,28 @@
 # Physics reference and implementation
 
+## Airborne knockback axis arithmetic — 2026-10-04
+
+Airborne launch decay now converts the velocity operands to binary32 Melee
+units, rounds the vertical square, uses one fused horizontal square-plus-sum,
+and compares the rounded speed with the retail decay using strict less-than.
+Above the cutoff it computes the direction using the independently authored
+Melee scalar approximation and subtracts each decay component with one fused
+rounding. It preserves the original tiny cardinal-axis residues instead of
+forcing those axes to zero through radial rescaling.
+
+smashcraft:docs/smash-melee-reference/retail-air-axis-decrement.json records
+eleven above-cutoff vectors. Their direction values come from original scalar
+routines executed under QEMU PPC750; their final axes come from independently
+authored PPC `fnmsubs` arithmetic. This does not execute the original gameplay
+function. The production emitted-Lua probe failed on case zero before the
+repair and passes all 22 exact axis outputs afterward. Evidence:
+smashcraft:build/air-decay-before.log and smashcraft:build/air-decay-after.log.
+
+The cutoff still uses Warcraft's SquareRoot followed by binary32 rounding.
+Gekko estimate/refinement equivalence at that cutoff is unverified. Airborne
+attacker shield-recoil decay still uses radial scaling and remains separate
+unfinished work. Native trajectories remain unverified.
+
 ## Recorded vertical precision — 2026-10-04
 
 Ordinary gravity subtraction now rounds both operands and the result in Melee
@@ -19,8 +42,8 @@ The probe uses the compiler-owned Lua native fixture pinned separately by
 `luaTestRuntimeCommit` in smashcraft:wurst-toolchain.lock. Its SquareRoot repair
 does not change the compiler artifact and does not establish Warcraft native
 square-root precision. Shared scalar approximations and their bounded proof
-are documented in smashcraft:docs/melee-scalar-math.md; integration into airborne
-decay, Gekko square-root cutoff behavior, horizontal position order, and native
+are documented in smashcraft:docs/melee-scalar-math.md; Gekko square-root cutoff
+behavior, horizontal position order, and native
 trajectory verification remain open.
 
 ## Verified retail combat parameters — 2026-10-03

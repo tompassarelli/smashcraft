@@ -1,6 +1,7 @@
 package Simulation
 import RollTravel
 import Binary32
+import MeleeScalarMath
 
 public constant real WORLD_UNITS_PER_MELEE_UNIT = 6
 
@@ -741,16 +742,20 @@ function decayKnockback(FighterState f)
 		f.knockbackZ = 0
 		return
 	f.groundKnockbackX = 0
-	let speed = SquareRoot(f.knockbackX * f.knockbackX + f.knockbackZ * f.knockbackZ)
-	let decay = KNOCKBACK_DECAY_PER_FRAME * WORLD_UNITS_PER_MELEE_UNIT
-	if speed <= decay
+	let horizontal = (f.knockbackX / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
+	let vertical = (f.knockbackZ / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
+	let verticalSquare = (vertical * vertical).roundToFloat32()
+	let speedSquare = fusedMultiplyAddFloat32(horizontal, horizontal, verticalSquare)
+	let speed = SquareRoot(speedSquare).roundToFloat32()
+	let decay = KNOCKBACK_DECAY_PER_FRAME.roundToFloat32()
+	if speed < decay
 		f.knockbackX = 0
 		f.groundKnockbackX = 0
 		f.knockbackZ = 0
 	else if speed > 0
-		let scale = (speed - decay) / speed
-		f.knockbackX *= scale
-		f.knockbackZ *= scale
+		let angle = meleeAtan2(vertical, horizontal)
+		f.knockbackX = fusedMultiplyAddFloat32(-decay, meleeCos(angle), horizontal) * WORLD_UNITS_PER_MELEE_UNIT
+		f.knockbackZ = fusedMultiplyAddFloat32(-decay, meleeSin(angle), vertical) * WORLD_UNITS_PER_MELEE_UNIT
 
 public function digitalShieldstunDuration(real damage) returns real
 	let scaledPower = (integerHitPower(damage) * SHIELD_STUN_DAMAGE_FACTOR).roundToFloat32()
