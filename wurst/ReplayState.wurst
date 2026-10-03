@@ -20,6 +20,9 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.vz = source.vz
 	destination.knockbackX = source.knockbackX
 	destination.knockbackZ = source.knockbackZ
+	destination.shieldPushbackX = source.shieldPushbackX
+	destination.shieldRecoilX = source.shieldRecoilX
+	destination.shieldDrainResumePending = source.shieldDrainResumePending
 	destination.damage = source.damage
 	destination.stocks = source.stocks
 	destination.hitstun = source.hitstun
@@ -190,6 +193,12 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "knockbackX"
 	if expected.knockbackZ != actual.knockbackZ
 		return "knockbackZ"
+	if expected.shieldPushbackX != actual.shieldPushbackX
+		return "shieldPushbackX"
+	if expected.shieldRecoilX != actual.shieldRecoilX
+		return "shieldRecoilX"
+	if expected.shieldDrainResumePending != actual.shieldDrainResumePending
+		return "shieldDrainResumePending"
 	if expected.damage != actual.damage
 		return "damage"
 	if expected.stocks != actual.stocks

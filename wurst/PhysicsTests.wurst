@@ -307,6 +307,145 @@ function recordedGroundedDamageFirstDifference(int character, real velocityOffse
 	digitalShieldstunFrames(5.).assertEquals(4)
 	digitalShieldstunFrames(8.99).assertEquals(5)
 
+function recordedShieldAttackerPosition(int frame) returns real
+	if frame < 4
+		return 38.56430435180664
+	if frame == 4
+		return 38.35230255126953
+	if frame == 5
+		return 38.228302001953125
+	return 38.19230270385742
+
+function recordedShieldDefenderPosition(int frame) returns real
+	if frame < 4
+		return 45.46552276611328
+	if frame == 4
+		return 45.83152389526367
+	if frame == 5
+		return 46.10752487182617
+	if frame == 6
+		return 46.29352569580078
+	if frame == 7
+		return 46.3895263671875
+	if frame == 8
+		return 46.39552688598633
+	return 46.39552688598633
+
+@Test function recordedNtscDigitalShieldContactMatchesPairedPushbackAndGroundedRecoil()
+	for sourceCharacter = 0 to 1
+		for targetCharacter = 0 to 1
+			let source = new FighterState(sourceCharacter, 38.56430435180664 * 6, 1)
+			let target = new FighterState(targetCharacter, 45.46552276611328 * 6, -1)
+			let sourceInput = new InputSnapshot()
+			let targetInput = new InputSnapshot()
+			// Puff's published ground-friction attribute supplies the defender decay.
+			target.physics.traction = 0.09000000357627869 * 6
+			source.physics.traction = 0.07999999821186066 * 6
+			target.shield = true
+			target.shieldEnergy = 43.90003204345703
+			targetInput.shield = true
+			// The recorded held-shield drain happens on the contact tick before impact.
+			advance(source, 0, sourceInput, 0)
+			advance(target, 0, targetInput, 0)
+			beginDamageContacts()
+			queueDamageContact(source, target, hitEffect(4, 0, 0, 0, 0, false), 1,
+				CONTACT_FLINCH, true, null)
+			finishDamageContacts(source, target)
+			target.shieldEnergy.assertEquals(40.82003402709961, 0.0001)
+			target.shieldStun.assertEquals(3)
+			target.hitlag.assertEquals(4)
+			source.hitlag.assertEquals(4)
+			target.shieldPushbackX.assertEquals(0.45600005984306335 * 6, 0.0001)
+			source.shieldRecoilX.assertEquals(-0.3 * 6, 0.0001)
+			for frame = 1 to 9
+				advance(source, 0, sourceInput, 0)
+				advance(target, 0, targetInput, 0)
+				source.x.assertEquals(recordedShieldAttackerPosition(frame) * 6, 0.001)
+				target.x.assertEquals(recordedShieldDefenderPosition(frame) * 6, 0.001)
+				target.hitlag.assertEquals(max(0, 4 - frame))
+				if frame < 4
+					target.shieldEnergy.assertEquals(40.82003402709961, 0.0001)
+				else if frame <= 7
+					target.shieldEnergy.assertEquals(40.82003402709961, 0.0001)
+				else
+					target.shieldEnergy.assertEquals(40.82003402709961 - 0.28 * (frame - 7), 0.0001)
+			destroy sourceInput
+			destroy targetInput
+			destroy source
+			destroy target
+
+@Test function detachedAndAirborneContactsDoNotInventAttackerGroundRecoil()
+	for direct = 0 to 1
+		let source = new FighterState(0, 0, 1)
+		let target = new FighterState(1, 10, -1)
+		let sourceInput = new InputSnapshot()
+		source.grounded = direct == 0
+		target.shield = true
+		beginDamageContacts()
+		queueDamageContact(source, target, hitEffect(4, 0, 0, 0, 0, false), 1,
+			CONTACT_FLINCH, direct == 1, null)
+		finishDamageContacts(source, target)
+		source.shieldRecoilX.assertEquals(0.)
+		destroy sourceInput
+		destroy source
+		destroy target
+	for facing = -1 to 1
+		if facing != 0
+			let source = new FighterState(0, 0, facing)
+			let target = new FighterState(1, 10, -facing)
+			target.shield = true
+			beginDamageContacts()
+			queueDamageContact(source, target, hitEffect(4, 0, 0, 0, 0, false), facing,
+				CONTACT_FLINCH, true, null)
+			finishDamageContacts(source, target)
+			target.shieldPushbackX.assertEquals(facing * 0.45600005984306335 * 6, 0.0001)
+			source.shieldRecoilX.assertEquals(-facing * 0.3 * 6, 0.0001)
+			destroy source
+			destroy target
+
+@Test function laterCleanHitReplacesRemainingShieldRecoil()
+	let attacker = new FighterState(0, 0, 1)
+	let defender = new FighterState(1, 10, -1)
+	defender.shield = true
+	beginDamageContacts()
+	queueDamageContact(attacker, defender, hitEffect(4, 0, 0, 0, 0, false), 1,
+		CONTACT_FLINCH, true, null)
+	finishDamageContacts(attacker, defender)
+	attacker.shieldRecoilX.assertEquals(-0.3 * 6, 0.0001)
+	defender.shield = false
+	beginDamageContacts()
+	queueDamageContact(defender, attacker, hitEffect(5, 0, 20, 1, 0, false), -1,
+		CONTACT_LAUNCH, false, null)
+	finishDamageContacts(attacker, defender)
+	attacker.shieldRecoilX.assertEquals(0.)
+	attacker.knockbackX.assertEquals(-3.6, 0.0001)
+	destroy attacker
+	destroy defender
+
+@Test function recordedShieldContactDetectsPerturbedRecoilOnFirstReleaseFrame()
+	let source = new FighterState(0, 38.56430435180664 * 6, 1)
+	let target = new FighterState(1, 45.46552276611328 * 6, -1)
+	let sourceInput = new InputSnapshot()
+	let targetInput = new InputSnapshot()
+	target.shield = true
+	targetInput.shield = true
+	beginDamageContacts()
+	queueDamageContact(source, target, hitEffect(4, 0, 0, 0, 0, false), 1,
+		CONTACT_FLINCH, true, null)
+	finishDamageContacts(source, target)
+	source.shieldRecoilX += 0.06 * 6
+	for frame = 1 to 3
+		advance(source, 0, sourceInput, 0)
+		advance(target, 0, targetInput, 0)
+		source.x.assertEquals(38.56430435180664 * 6, 0.001)
+	advance(source, 0, sourceInput, 0)
+	advance(target, 0, targetInput, 0)
+	(source.x - recordedShieldAttackerPosition(4) * 6).assertEquals(0.06 * 6, 0.001)
+	destroy sourceInput
+	destroy targetInput
+	destroy source
+	destroy target
+
 @Test function combatShieldBreakUsesCharacterLaunchAttributeAfterContactFreeze()
 	for character = 0 to 2
 		let owner = new FighterState(0, 0, 1)

@@ -269,6 +269,10 @@ public class FighterState
 	real vz
 	real knockbackX
 	real knockbackZ
+	// Shield contact motion remains separate from launch velocity.
+	real shieldPushbackX = 0
+	real shieldRecoilX = 0
+	boolean shieldDrainResumePending = false
 	real damage = 0
 	int stocks = 3
 	int hitstun = 0
@@ -552,7 +556,7 @@ function applyDownRollTravel(FighterState f, int stage)
 	f.x = max(surfaceLeft(stage, max(0, f.surface)), min(surfaceRight(stage, max(0, f.surface)), f.x + f.downDirection * distance))
 
 public function totalVelocityX(FighterState f) returns real
-	return f.vx + f.knockbackX
+	return f.vx + f.knockbackX + f.shieldPushbackX + f.shieldRecoilX
 
 public function totalVelocityZ(FighterState f) returns real
 	return f.vz + f.knockbackZ
@@ -572,6 +576,31 @@ function decayKnockback(FighterState f)
 		let scale = (speed - decay) / speed
 		f.knockbackX *= scale
 		f.knockbackZ *= scale
+
+public function digitalShieldPushback(real damage) returns real
+	return min(2., (integerHitPower(damage) * 0.09 + 0.4) * 0.6) * WORLD_UNITS_PER_MELEE_UNIT
+
+public function digitalShieldRecoil(real damage) returns real
+	return (integerHitPower(damage) * 0.07 + 0.02) * WORLD_UNITS_PER_MELEE_UNIT
+
+function decayShieldMotion(FighterState f)
+	if not f.grounded
+		// Airborne shield-contact decay is not identified by the available trace.
+		f.shieldPushbackX = 0
+		f.shieldRecoilX = 0
+		return
+	let defenderDecay = f.physics.traction
+	f.shieldPushbackX = f.shieldPushbackX > 0 ? max(0, f.shieldPushbackX - defenderDecay) : min(0, f.shieldPushbackX + defenderDecay)
+	let attackerDecay = f.physics.traction * 1.1
+	f.shieldRecoilX = f.shieldRecoilX > 0 ? max(0, f.shieldRecoilX - attackerDecay) : min(0, f.shieldRecoilX + attackerDecay)
+
+function shieldDrainShouldResume(FighterState f, boolean forcedShield) returns boolean
+	if forcedShield
+		return false
+	if f.shieldDrainResumePending
+		f.shieldDrainResumePending = false
+		return false
+	return true
 
 public function surfaceCount(int stage) returns int
 	return stage == 0 ? 1 : 3
@@ -861,6 +890,8 @@ function resolveDamageContacts(FighterState target)
 	var flinch = -1
 	var hurtContact = -1
 	var hitlagDamage = 0.
+	var shieldPushback = 0.
+	var shieldDirection = 1
 	for index = 0 to damageContactCount - 1
 		let contact = damageContacts[index]
 		if contact.target == target
@@ -879,6 +910,11 @@ function resolveDamageContacts(FighterState target)
 				if contact.kind != CONTACT_DAMAGE_ONLY
 					target.shieldStun = max(target.shieldStun, digitalShieldstunFrames(damage))
 					target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
+					shieldPushback = max(shieldPushback, digitalShieldPushback(damage))
+					if digitalShieldPushback(damage) == shieldPushback
+						shieldDirection = contact.facing
+					if contact.direct and contact.source.grounded
+						contact.source.shieldRecoilX = -contact.facing * max(contact.source.shieldRecoilX.abs(), digitalShieldRecoil(damage))
 			else
 				if damage > 0 and contact.kind != CONTACT_PUMMEL
 					target.frozenFrames = 0
@@ -902,10 +938,18 @@ function resolveDamageContacts(FighterState target)
 	target.damage += totalDamage
 	if shieldDamage > 0
 		target.shieldEnergy = max(0, target.shieldEnergy - shieldDamage)
+	if shieldPushback > 0 and target.grounded
+		target.shieldPushbackX = shieldDirection * shieldPushback
+		target.shieldDrainResumePending = true
+	if shieldDamage > 0
 		if target.shieldEnergy == 0
 			beginShieldBreak(target)
 	if winner < 0 and flinch < 0
 		return
+	// A later hit replaces both shield-contact motion channels.
+	target.shieldPushbackX = 0
+	target.shieldRecoilX = 0
+	target.shieldDrainResumePending = false
 	let chosen = damageContacts[winner >= 0 ? winner : flinch]
 	let jabReset = chosen.kind != CONTACT_THROW and chosen.down and chosen.data.damage < DOWN_DAMAGE_MAX_HIT_DAMAGE
 	clearGrabLinks(target)
@@ -1366,6 +1410,9 @@ function beginShieldBreak(FighterState f)
 	f.vz = f.physics.shieldBreakSpeed
 	f.knockbackX = 0
 	f.knockbackZ = 0
+	f.shieldPushbackX = 0
+	f.shieldRecoilX = 0
+	f.shieldDrainResumePending = false
 	f.grounded = false
 	f.surface = -1
 
@@ -2431,6 +2478,9 @@ public function reset(FighterState f, real startX)
 	f.vz = 0
 	f.knockbackX = 0
 	f.knockbackZ = 0
+	f.shieldPushbackX = 0
+	f.shieldRecoilX = 0
+	f.shieldDrainResumePending = false
 	f.damage = 0
 	f.hitstun = 0
 	f.hitlag = 0
@@ -2652,8 +2702,9 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 				f.shieldReleaseLag = SHIELD_RELEASE_LAG_FRAMES
 				f.shieldHeldFrames = 0
 	f.shield = wantsShield
+	let drainShield = shieldDrainShouldResume(f, forcedShield)
 	if wantsShield
-		if not forcedShield
+		if drainShield
 			f.shieldEnergy = max(0, f.shieldEnergy - SHIELD_DRAIN_PER_FRAME)
 	else
 		f.shieldEnergy = min(SHIELD_MAX, f.shieldEnergy + SHIELD_REGEN_PER_FRAME)
@@ -2692,6 +2743,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.vz = -2
 	let oldX = f.x
 	let oldZ = f.z
+	decayShieldMotion(f)
 	decayKnockback(f)
 	if dodgeActive and not f.grounded
 		f.vx = f.vx * 0.9

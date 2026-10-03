@@ -40,6 +40,9 @@ import MatchStep
     first.projectileX[3] = -44.25
     first.projectileZ[3] = 81.5
     first.projectileDirection[3] = -1
+    first.shieldPushbackX = 2.73600035905838
+    first.shieldRecoilX = -1.8
+    first.shieldDrainResumePending = true
     first.lastHitAttacker = second
     first.lastHitAttackSerial = 19
     first.lastHitWindow = 2
@@ -67,6 +70,9 @@ import MatchStep
     first.projectileX[3] = 0
     first.projectileZ[3] = 0
     first.projectileDirection[3] = 0
+    first.shieldPushbackX = 0
+    first.shieldRecoilX = 0
+    first.shieldDrainResumePending = false
     first.lastHitAttacker = null
     first.lastHitAttackSerial = -1
     match.phase = RESULT
@@ -93,6 +99,9 @@ import MatchStep
     first.projectileX[3].assertEquals(-44.25)
     first.projectileZ[3].assertEquals(81.5)
     first.projectileDirection[3].assertEquals(-1)
+    first.shieldPushbackX.assertEquals(2.73600035905838)
+    first.shieldRecoilX.assertEquals(-1.8)
+    first.shieldDrainResumePending.assertTrue()
     (first.lastHitAttacker == second).assertTrue()
     first.lastHitAttackSerial.assertEquals(19)
     first.lastHitWindow.assertEquals(2)
