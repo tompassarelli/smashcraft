@@ -72,6 +72,8 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.grounded = source.grounded
 	destination.crouching = source.crouching
 	destination.fastFalling = source.fastFalling
+	destination.fastFallDownHeld = source.fastFallDownHeld
+	destination.fastFallInputAge = source.fastFallInputAge
 	destination.jumps = source.jumps
 	destination.jumpSerial = source.jumpSerial
 	destination.jumpIsDouble = source.jumpIsDouble
@@ -307,6 +309,10 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "shieldBreakRemaining"
 	if expected.crouching != actual.crouching
 		return "crouching"
+	if expected.fastFallDownHeld != actual.fastFallDownHeld
+		return "fastFallDownHeld"
+	if expected.fastFallInputAge != actual.fastFallInputAge
+		return "fastFallInputAge"
 	if expected.fastFalling != actual.fastFalling
 		return "fastFalling"
 	if expected.grounded != actual.grounded

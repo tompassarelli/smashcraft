@@ -1419,3 +1419,141 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 	f.vz.assertEquals(-2.)
 	destroy f
 	destroy input
+
+@Test function retailAerialFastFallRequiresDownAtMostThreeFramesBeforeDescent()
+	for lead = 0 to 5
+		let f = new FighterState(1, 0, 1)
+		f.physics = falcoReferencePhysics()
+		f.grounded = false
+		f.z = 300
+		f.vz = (lead - 0.5) * f.physics.gravity
+		let input = new InputSnapshot()
+		input.down = true
+		for frame = 0 to lead
+			advance(f, 0, input, 0)
+		f.fastFalling.assertEquals(lead < 4)
+		if lead < 4
+			f.vz.assertEquals(-21.)
+		else
+			input.down = false
+			advance(f, 0, input, 0)
+			input.down = true
+			advance(f, 0, input, 0)
+			f.fastFalling.assertTrue()
+			f.vz.assertEquals(-21.)
+		destroy input
+		destroy f
+
+@Test function retailAerialFastFallInputAgesDuringHitlagThroughItsExpiryFrame()
+	for freeze = 4 to 5
+		let f = new FighterState(1, 0, 1)
+		f.physics = falcoReferencePhysics()
+		f.grounded = false
+		f.z = 300
+		f.vz = -1
+		f.hitlag = freeze
+		let input = new InputSnapshot()
+		input.down = true
+		for frame = 1 to freeze - 1
+			advance(f, 0, input, 0)
+			f.z.assertEquals(300.)
+			f.fastFalling.assertFalse()
+		advance(f, 0, input, 0)
+		f.fastFalling.assertEquals(freeze == 4)
+		f.vz.assertEquals(freeze == 4 ? -21. : -2.020000010728836, 0.000001)
+		destroy input
+		destroy f
+
+@Test function retailAerialFastFallDiagonalRestrictionDoesNotRefreshHeldDown()
+	for diagonalFrames = 3 to 4
+		let f = new FighterState(1, 0, 1)
+		f.physics = falcoReferencePhysics()
+		f.grounded = false
+		f.z = 300
+		f.vz = -1
+		let input = new InputSnapshot()
+		input.down = true
+		input.direction = 1
+		for frame = 1 to diagonalFrames
+			advance(f, 0, input, 0)
+			f.fastFalling.assertFalse()
+		input.direction = 0
+		advance(f, 0, input, 0)
+		f.fastFalling.assertEquals(diagonalFrames == 3)
+		destroy input
+		destroy f
+
+@Test function retailAerialFastFallReplayRestoresFreshnessAndConsumedInput()
+	let state = new ReplaySnapshot()
+	let saved = new ReplaySnapshot()
+	let after = new ReplaySnapshot()
+	let f = state.first
+	f.physics = falcoReferencePhysics()
+	f.grounded = false
+	f.z = 300
+	f.vz = 2.5 * f.physics.gravity
+	let input = new InputSnapshot()
+	input.down = true
+	for frame = 0 to 2
+		advance(f, 0, input, 0)
+	f.fastFallInputAge.assertEquals(2)
+	f.fastFallDownHeld.assertTrue()
+	saved.capture(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+	f.fastFallInputAge = 4
+	state.firstDifference(saved).assertEquals("first.fastFallInputAge")
+	saved.restore(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+	f.fastFallDownHeld = false
+	state.firstDifference(saved).assertEquals("first.fastFallDownHeld")
+	for replay = 0 to 1
+		saved.restore(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+		advance(f, 0, input, 0)
+		f.fastFalling.assertTrue()
+		f.fastFallInputAge.assertEquals(4)
+		if replay == 0
+			after.capture(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+	state.firstDifference(after).assertEquals("")
+	reset(f, 0)
+	f.fastFallDownHeld.assertFalse()
+	f.fastFallInputAge.assertEquals(4)
+	destroy input
+	destroy after
+	destroy saved
+	destroy state
+
+@Test function retailAerialDodgeUsesExtractedForceAndDecayForEveryDigitalDirection()
+	for horizontal = -1 to 1
+		for vertical = -1 to 1
+			let f = new FighterState(1, 0, 1)
+			f.physics = falcoReferencePhysics()
+			f.grounded = false
+			f.z = 300
+			let input = new InputSnapshot()
+			simulationAirDodge(f, horizontal, vertical)
+			var expectedX = horizontal * (vertical == 0 ? 17.6896506589 : 13.1521857265)
+			var expectedZ = horizontal == 0 ? vertical * 18.5999994278 : (vertical == 0 ? -5.7477159186 : vertical * 13.1521857265)
+			f.vx.assertEquals(expectedX, 0.00001)
+			f.vz.assertEquals(expectedZ, 0.00001)
+			var expectedPositionX = 0.
+			var expectedPositionZ = 300.
+			for frame = 1 to 3
+				expectedX *= 0.8999999761581421
+				expectedZ *= 0.8999999761581421
+				expectedPositionX += expectedX
+				expectedPositionZ += expectedZ
+				advance(f, 0, input, 0)
+				f.vx.assertEquals(expectedX, 0.00001)
+				f.vz.assertEquals(expectedZ, 0.00001)
+				f.x.assertEquals(expectedPositionX, 0.00001)
+				f.z.assertEquals(expectedPositionZ, 0.00001)
+			f.hitlag = 3
+			for frame = 1 to 2
+				advance(f, 0, input, 0)
+				f.airDodgeFrame.assertEquals(3)
+				f.x.assertEquals(expectedPositionX, 0.00001)
+				f.z.assertEquals(expectedPositionZ, 0.00001)
+			advance(f, 0, input, 0)
+			f.airDodgeFrame.assertEquals(4)
+			f.vx.assertEquals(expectedX * 0.8999999761581421, 0.00001)
+			f.vz.assertEquals(expectedZ * 0.8999999761581421, 0.00001)
+			destroy input
+			destroy f

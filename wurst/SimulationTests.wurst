@@ -28,7 +28,7 @@ import MatchStep
 				fighter.jumpDodgeQueued.assertFalse()
 				fighter.grounded.assertTrue()
 				fighter.landingLag.assertEquals(AIR_DODGE_LANDING_LAG)
-				fighter.vx.assertEquals(direction * 15.4071, 0.001)
+				fighter.vx.assertEquals(direction * 15.92068517, 0.001)
 				destroy input
 				destroy fighter
 
@@ -2026,7 +2026,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	advance(fighter, 0, input, -240)
 	(fighter.vx > 0).assertTrue()
 	(fighter.vz < 0).assertTrue()
-	fighter.vx.assertEquals(11.4551, 0.01)
+	fighter.vx.assertEquals(11.83696684, 0.01)
 	var ticks = 0
 	while not fighter.grounded and ticks < 100
 		input.airDodgePressed = false
@@ -2058,14 +2058,14 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 		advance(fighter, 0, input, 0)
 		fighter.knockbackX.assertEquals(0.)
 		fighter.knockbackZ.assertEquals(0.)
-		fighter.x.assertEquals(direction * 15.40711556, 0.001)
-		fighter.vx.assertEquals(direction * 15.40711556, 0.001)
-		fighter.z.assertEquals(300. - direction * 5.00607531, 0.001)
-		fighter.vz.assertEquals(-direction * 5.00607531, 0.001)
+		fighter.x.assertEquals(direction * 15.92068517, 0.001)
+		fighter.vx.assertEquals(direction * 15.92068517, 0.001)
+		fighter.z.assertEquals(300. - direction * 5.17294419, 0.001)
+		fighter.vz.assertEquals(-direction * 5.17294419, 0.001)
 		input.airDodgePressed = false
 		advance(fighter, 0, input, 0)
-		fighter.x.assertEquals(direction * 29.27351957, 0.001)
-		fighter.z.assertEquals(300. - direction * 9.51154309, 0.001)
+		fighter.x.assertEquals(direction * 30.24930145, 0.001)
+		fighter.z.assertEquals(300. - direction * 9.82859384, 0.001)
 		destroy input
 		destroy fighter
 
@@ -2077,9 +2077,9 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 				fighter.grounded = false
 				fighter.z = 1
 				simulationAirDodge(fighter, direction, 0)
-				fighter.vx.assertEquals(direction * 17.1190173, 0.0001)
-				fighter.vz.assertEquals(-5.5623059, 0.0001)
-				(fighter.vx * fighter.vx + fighter.vz * fighter.vz).assertEquals(324., 0.001)
+				fighter.vx.assertEquals(direction * 17.68965066, 0.0001)
+				fighter.vz.assertEquals(-5.74771592, 0.0001)
+				(fighter.vx * fighter.vx + fighter.vz * fighter.vz).assertEquals(345.95997871, 0.001)
 				let input = new InputSnapshot()
 				advance(fighter, 0, input, 0)
 				fighter.grounded.assertTrue()
@@ -2119,7 +2119,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 			fighter.z = 300
 			simulationAirDodge(fighter, 1, direction)
 			let input = new InputSnapshot()
-			var displacement = 11.4551299
+			var displacement = 11.83696684
 			var distance = 0.
 			for frame = 1 to 26
 				advance(fighter, 0, input, 0)
@@ -2128,7 +2128,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 				fighter.z.assertEquals(300 + direction * distance, 0.001)
 				fighter.vx.assertEquals(displacement, 0.001)
 				fighter.vz.assertEquals(direction * displacement, 0.001)
-				displacement *= 0.9
+				displacement *= 0.8999999761581421
 			destroy input
 			destroy fighter
 

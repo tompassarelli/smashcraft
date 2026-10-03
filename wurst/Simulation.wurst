@@ -41,7 +41,10 @@ constant real SHIELD_PUSHBACK_MULTIPLIER = 0.6000000238418579
 constant real SHIELD_RECOIL_DAMAGE_FACTOR = 0.07000000029802322
 constant real SHIELD_RECOIL_BASE = 0.019999999552965164
 constant real SHIELD_RECOIL_GROUND_FRICTION_MULTIPLIER = 1.100000023841858
-constant real AIR_DODGE_SPEED = 3 * WORLD_UNITS_PER_MELEE_UNIT
+constant real AIR_DODGE_SPEED = 3.0999999046325684 * WORLD_UNITS_PER_MELEE_UNIT
+constant real AIR_DODGE_DECAY = 0.8999999761581421
+constant real FAST_FALL_DOWN_THRESHOLD = 0.6625000238418579
+constant int FAST_FALL_INPUT_WINDOW = 4
 constant int AIR_DODGE_FRAMES = 26
 constant int AIR_DODGE_INTANGIBLE_START = 4
 constant int AIR_DODGE_INTANGIBLE_END = 29
@@ -393,6 +396,8 @@ public class FighterState
 	boolean grounded = true
 	boolean crouching = false
 	boolean fastFalling = false
+	boolean fastFallDownHeld = false
+	int fastFallInputAge = FAST_FALL_INPUT_WINDOW
 	int jumps = 2
 	int jumpSerial = 0
 	boolean jumpIsDouble = false
@@ -2585,6 +2590,8 @@ public function resolveAttackPair(FighterState first, FighterState second)
 
 public function reset(FighterState f, real startX)
 	f.fastFalling = false
+	f.fastFallDownHeld = false
+	f.fastFallInputAge = FAST_FALL_INPUT_WINDOW
 	f.crouching = false
 	f.jumpDodgeQueued = false
 	f.jumpDodgeX = 0
@@ -2695,6 +2702,10 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	if wasFrozen
 		checkBlastZone(f)
 		return
+	// Direction freshness is input time, including hitlag; ages beyond the window are equivalent.
+	let downHeld = (input.down ? 1. : 0.) >= FAST_FALL_DOWN_THRESHOLD
+	f.fastFallInputAge = downHeld ? (f.fastFallDownHeld ? min(FAST_FALL_INPUT_WINDOW, f.fastFallInputAge + 1) : 0) : FAST_FALL_INPUT_WINDOW
+	f.fastFallDownHeld = downHeld
 	// Expiry resumes this frame, including input gates and state countdowns.
 	let hitlagBefore = f.hitlag
 	f.hitlag = max(0, f.hitlag - 1)
@@ -2901,8 +2912,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	decayShieldMotion(f)
 	decayKnockback(f)
 	if dodgeActive and not f.grounded
-		f.vx = f.vx * 0.9
-		f.vz = f.vz * 0.9
+		f.vx = f.vx * AIR_DODGE_DECAY
+		f.vz = f.vz * AIR_DODGE_DECAY
 	if isGroundDodging(f) and f.groundDodgeDirection != 0
 		let proposedX = f.x + totalVelocityX(f)
 		f.x = max(surfaceLeft(stage, max(0, f.surface)), min(surfaceRight(stage, max(0, f.surface)), proposedX))
@@ -2920,8 +2931,9 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.z = surfaceZ(stage, max(0, f.surface))
 	else if (not dodgeActive or f.grounded) and not groundTakeoff
 		let gravity = f.physics.gravity
-		if not f.grounded and input.down and input.direction == 0 and f.downState == DOWN_NONE and f.hitstun <= 0 and f.vz < 0
+		if not f.grounded and not f.fastFalling and downHeld and f.fastFallInputAge < FAST_FALL_INPUT_WINDOW and input.direction == 0 and f.downState == DOWN_NONE and f.hitstun <= 0 and f.vz < 0
 			f.fastFalling = true
+			f.fastFallInputAge = FAST_FALL_INPUT_WINDOW
 		if f.fastFalling
 			f.vz = -f.physics.fastFallSpeed
 		else

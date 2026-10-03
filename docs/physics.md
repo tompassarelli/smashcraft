@@ -243,7 +243,7 @@ equivalence without the missing parameters and original-game comparisons.
 
 | Rule group | Implemented and checked | Still required for parity |
 | --- | --- | --- |
-| Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed, sampled roll travel, persistent fast-fall state, and five recorded dash-braking updates | Revision identity, complete frame trajectories, dash/run/turn common values and transitions, walk acceleration, and original fast-fall stick-entry threshold/window |
+| Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed, sampled roll travel, persistent fast-fall state, and five recorded dash-braking updates | Revision identity, complete frame trajectories, dash/run/turn common values and transitions, walk acceleration, and retail EscapeAir command timing |
 | Damage | Integer individual hit power, fractional same-frame total, strongest-contact selection, fixed knockback, cap, sampled crouch/smash modifiers and recorded flat-ground traction decay | Common-table confirmation, successive-frame stacking and other grounded surface conditions |
 | Hitlag/hitstun | Separate counters, electric effects carried through contact resolution, crouch arithmetic, direct/detached source pause and recorded same-frame hitlag release | Broader original-game ordered traces, revision identity and verified common values |
 | Shields | Integer shieldstun power, shield-break launch speed, recorded grounded digital defender pushback/attacker recoil and guard-drain timing; airborne attacker recoil initializes from common +0x7D4 `hit_weight_mul`, retains a separate x/z vector, decays by common +0x3E8, and is included in replay | Analog/powershield branches and broader paired displacement/actionability traces |
@@ -1016,16 +1016,20 @@ the same protection query used by hit detection.
 
 The frame sweep test checks both characters at each frame 1–30. Additional
 tests cover damage interrupting startup and landing ending dodge protection.
-Neutral/directional dodge motion now uses provisional speed 18 world
-units/frame, 0.9 decay and a 26-frame motion period. The 49-frame counter cap
-is not a custom animation asset or a claim that those provisional motion
-values match Melee.
+Neutral/directional dodge force now uses retail common +0x338 =
+3.0999999046325684 Melee units/frame (18.59999942779541 world units/frame),
+with +0x33C = 0.8999999761581421 decay. The 26-tick motion cutoff remains
+provisional: melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c switches from
+decay to ordinary airborne physics through action command variable zero.
+Its event time has not been independently extracted from the verified retail
+EscapeAir script. The 49-frame cap and 4–29 protection remain sourced to the
+version-unidentified frame table, not verified retail command timing.
 
 An accepted air dodge replaces prior ordinary movement and clears both launch
 momentum components, including for neutral input. This follows the momentum
 halt described in the Melee section of https://www.ssbwiki.com/Air_dodge.
 During each airborne motion tick, the simulation multiplies both dodge velocity
-components by 0.9 before either displacement. A 45-degree input therefore
+components by the extracted decay before either displacement. A 45-degree input therefore
 travels along a 45-degree line until contact; neutral input stays still during
 the motion period. This integration order is our implementation choice, not a
 claim of frame-exact Melee motion. Ordinary gravity and launch decay keep their
@@ -1108,12 +1112,34 @@ and the motion-state fast-fall preservation flag at revision
 0296f009f32f710495979d30772d8332af2d411a. Wurst implementation is independently
 authored; no decompiled implementation is copied or translated.
 
-The approved held-Down, neutral-horizontal digital entry remains. Melee's
-original stick threshold at common +0x88 and fresh-input window at +0x8C
-still require numerical extraction. Descending knockback alone cannot trigger
+The approved neutral-horizontal digital restriction remains. Retail common
++0x88 = 0.6625000238418579 is the downward stick threshold and integer
++0x8C = 4 requires input age strictly below four frames. Digital Down has
+magnitude one. The input tick has age zero; three further held ticks remain
+eligible, while the fifth tick is too late. Freshness ages during hitlag and
+is tested on the expiry tick. A diagonal Down hold ages the same input, so
+releasing horizontal movement does not create a new Down press. Acceptance
+consumes the window; release followed by another press refreshes it. The saved
+held state and age are copied and compared in replay, and reset clears both.
+The age saturates at four because larger values have identical eligibility. Descending knockback alone cannot trigger
 fast-fall while self velocity is rising; rising knockback does not prevent
 activation while self velocity is descending. This separates knockback motion
 from the character's gravity-driven fall.
+
+The retail aerial checks use the explicit Falco factual rig through the
+production engine. They cover early versus fresh Down at the apex, the age
+three/four boundary during hitlag, diagonal-to-neutral input, replay restoration,
+and every digital dodge direction with frozen and resumed motion. Existing
+air-dodge displacement expectations were corrected for the extracted force;
+the neutral vector remains zero and the original roster attributes are unchanged.
+Focused filters passed retailAerial 5/5, dodge 30/30, and fast 9/9 with zero
+compiler errors and the existing unused-import warning. Evidence is
+wc3-melee:build/retail-aerial-tests.log, wc3-melee:build/retail-dodge-tests.log,
+and wc3-melee:build/retail-fastfall-tests.log. These checks do not establish
+native behavior or the unresolved EscapeAir action-event timing.
+Retail values and private file identity are recorded in
+wc3-melee:docs/smash-melee-reference/physics-parameters.json. These are numerical
+and behavioral facts; no decompiled implementation was copied or translated.
 
 ## Raw movement parameter precision
 
@@ -1643,8 +1669,8 @@ measured Melee values.
 
 Owner-selected controls (2026-09-30): a horizontal-only air dodge uses an angle
 of 18 degrees below horizontal for either fighter, mirrored for left/right.
-Its initial vector has the existing 18-unit magnitude, approximately
-(+/-17.1190, -5.5623), before ordinary 0.9 air-dodge decay. This is the default,
+Its initial vector uses the retail 18.59999942779541-world-unit magnitude,
+approximately (+/-17.68965066, -5.74771592), before retail air-dodge decay. This is the default,
 with no modifier or toggle. Explicit up/down/diagonal input retains its
 previous direction and normalized speed; neutral retains zero initial velocity.
 The shallow choice helps preserve horizontal landing momentum, but a dodge
