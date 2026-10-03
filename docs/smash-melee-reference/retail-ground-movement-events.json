@@ -1,0 +1,163 @@
+{
+  "target": "Melee NTSC 1.02 (GALE01 revision 2)",
+  "sourceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "kind": "Independent retail numerical movement event facts",
+  "frameClock": "Encoded animation timeline; production tick mapping remains unverified",
+  "verification": "Animation names matched table IDs; bounded event streams terminated. No pointers, raw commands or game assets included.",
+  "commonValues": {
+    "0x44": 4,
+    "0x48": 3,
+    "0x4c": 20,
+    "0x54": 0.75,
+    "0x58": 0.625
+  },
+  "records": [
+    {
+      "fighter": "Fox",
+      "file": "PlFx.dat",
+      "action": "TurnRun",
+      "animationId": 11,
+      "events": [
+        {
+          "frame": 9,
+          "cmdVarIndex": 1,
+          "cmdVarValue": 1
+        }
+      ]
+    },
+    {
+      "fighter": "Fox",
+      "file": "PlFx.dat",
+      "action": "Dash",
+      "animationId": 12,
+      "events": [
+        {
+          "frame": 0,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 0
+        },
+        {
+          "frame": 12,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 1
+        }
+      ]
+    },
+    {
+      "fighter": "Fox",
+      "file": "PlFx.dat",
+      "action": "RunBrake",
+      "animationId": 14,
+      "events": [
+        {
+          "frame": 0,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 1
+        },
+        {
+          "frame": 15,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 0
+        }
+      ]
+    },
+    {
+      "fighter": "Falco",
+      "file": "PlFc.dat",
+      "action": "TurnRun",
+      "animationId": 11,
+      "events": [
+        {
+          "frame": 9,
+          "cmdVarIndex": 1,
+          "cmdVarValue": 1
+        }
+      ]
+    },
+    {
+      "fighter": "Falco",
+      "file": "PlFc.dat",
+      "action": "Dash",
+      "animationId": 12,
+      "events": [
+        {
+          "frame": 0,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 0
+        },
+        {
+          "frame": 12,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 1
+        }
+      ]
+    },
+    {
+      "fighter": "Falco",
+      "file": "PlFc.dat",
+      "action": "RunBrake",
+      "animationId": 14,
+      "events": [
+        {
+          "frame": 0,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 1
+        },
+        {
+          "frame": 15,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 0
+        }
+      ]
+    },
+    {
+      "fighter": "Captain Falcon",
+      "file": "PlCa.dat",
+      "action": "TurnRun",
+      "animationId": 11,
+      "events": [
+        {
+          "frame": 9,
+          "cmdVarIndex": 1,
+          "cmdVarValue": 1
+        }
+      ]
+    },
+    {
+      "fighter": "Captain Falcon",
+      "file": "PlCa.dat",
+      "action": "Dash",
+      "animationId": 12,
+      "events": [
+        {
+          "frame": 0,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 0
+        },
+        {
+          "frame": 16,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 1
+        }
+      ]
+    },
+    {
+      "fighter": "Captain Falcon",
+      "file": "PlCa.dat",
+      "action": "RunBrake",
+      "animationId": 14,
+      "events": [
+        {
+          "frame": 0,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 1
+        },
+        {
+          "frame": 15,
+          "cmdVarIndex": 0,
+          "cmdVarValue": 0
+        }
+      ]
+    }
+  ]
+}
