@@ -35,3 +35,17 @@ smashcraft-frame-tagged-1-p0.txt and smashcraft-frame-tagged-1-p1.txt.
 Reproduction: exact probe, two participants, frozen234-byte corpus, verify STOP,
 type corpus, verify STOP, CONT in finally; allow sync receipts, click Save/stop;
 compare L and R wire rows per sender against independent corpus.
+
+## Same-client native service-to-sync interval
+
+Within each observer's own Warcraft timer, local polling preceded its own
+synchronized receipt by346.923 game-ms for A and372.070 game-ms for B
+(20.82 and22.32 nominal60Hz frames). All nine rows in each client's batch shared
+one send observation and one receipt time: these are two batch observations,
+not18 independent latency samples. This is not host wall time, physical input
+latency, visible response, or a transport-only measurement. Sequential process
+stops and native lockstep/service behavior were not independently isolated.
+No Wi-Fi, server, or engine root cause is established. Preservation success
+does not establish acceptably fast delivery; native prediction/correction must
+be measured separately. Stage calculations retained privately at
+~/code/wc3-melee/worktrees/competitive-integrity-20261003/build/native-command-20261004/frame-tagged-native-stage-gaps.json.
