@@ -1,16 +1,38 @@
 # Physics reference and implementation
 
-## Exact airborne zero-or-decay cutoff — 2026-10-04
+## Airborne recoil cutoff state correction — 2026-10-04
+
+The original below-cutoff recoil branch clears horizontal attacker recoil and
+vertical launch, retaining vertical attacker recoil and horizontal launch.
+Four private executions of its unchanged comparison/stores confirm these
+numeric state effects. Production now applies launch decay before recoil decay
+and preserves this retail interaction, while skipping an empty recoil vector.
+The numerical facts and scope are in
+smashcraft:docs/smash-melee-reference/retail-air-recoil-cutoff-state.json and
+smashcraft:docs/melee-air-cutoff.md.
+
+The previous cutoff fixture incorrectly composed both recoil axes as zero
+below the boundary; it did not execute the original cutoff stores. Its
+classification proof remains valid. Corrected emitted-Lua comparisons failed
+on recoil boundary case 9 before repair and pass all eighteen boundary cases
+plus four cross-channel cases afterward. Evidence:
+smashcraft:build/recoil-cutoff-state-before.log and
+smashcraft:build/recoil-cutoff-state-after.log. PhysicsTests pass 64/64 with zero
+errors and one existing warning; evidence is
+smashcraft:build/recoil-cutoff-state-physics-tests.log. Native gameplay remains unverified.
+
+## Exact airborne below-cutoff-or-decay decision — 2026-10-04
 
 Airborne launch and attacker recoil now compare their binary32 squared speed
 with a derived boundary instead of invoking Warcraft SquareRoot. The original
 three-refinement arithmetic, IBM's estimate accuracy contract, and exact integer
-boundary inequalities establish the same zero-or-decay decision for the two
+boundary inequalities establish the same below-cutoff-or-decay decision for the two
 fixed retail constants under round-to-nearest. The derivation and its scope are
 in smashcraft:docs/melee-air-cutoff.md.
 
 Eighteen vectors around both boundaries match the original refinement block
-and scalar routines in emitted Lua, including all resulting axes. The original
+and scalar routines in emitted Lua. Below-cutoff state composition was corrected
+as described above; the earlier check did not establish the recoil stores. The original
 refinement runs privately under QEMU with only its return boundary patched.
 The error argument covers permissible estimate variation separately; it does
 not assume that QEMU's estimate equals Gekko's. The previous host-Lua square
@@ -34,7 +56,7 @@ authored PPC subtraction. The emitted-Lua production probe failed on the first
 recoil case before repair and passes all 22 recoil axes afterward, alongside
 the 22 launch axes and 22 resulting horizontal positions. Evidence:
 smashcraft:build/air-recoil-before.log and smashcraft:build/air-recoil-after.log.
-This is not execution of the original gameplay routine. The zero-or-decay cutoff
+This is not execution of the original gameplay routine. The below-cutoff decision
 uses the verified derived boundary above; native recoil remains unverified.
 
 ## Airborne horizontal position order — 2026-10-04

@@ -732,7 +732,7 @@ public function totalVelocityX(FighterState f) returns real
 public function totalVelocityZ(FighterState f) returns real
 	return f.vz + f.knockbackZ + f.shieldRecoilZ
 
-tuple airMotion(real x, real z)
+tuple airMotion(real x, real z, boolean belowCutoff)
 
 function retailAirDecaySquaredCutoff(real decay) returns real
 	// Both fixed retail decays lie in [1/32, 1/16), with binary32 spacing 2^-28.
@@ -750,10 +750,10 @@ function decayedAirMotion(real worldX, real worldZ, real decay, real squaredCuto
 	let verticalSquare = (vertical * vertical).roundToFloat32()
 	let speedSquare = fusedMultiplyAddFloat32(horizontal, horizontal, verticalSquare)
 	if speedSquare < squaredCutoff
-		return airMotion(0, 0)
+		return airMotion(0, 0, true)
 	let angle = meleeAtan2(vertical, horizontal)
 	return airMotion(fusedMultiplyAddFloat32(-decay, meleeCos(angle), horizontal) * WORLD_UNITS_PER_MELEE_UNIT,
-		fusedMultiplyAddFloat32(-decay, meleeSin(angle), vertical) * WORLD_UNITS_PER_MELEE_UNIT)
+		fusedMultiplyAddFloat32(-decay, meleeSin(angle), vertical) * WORLD_UNITS_PER_MELEE_UNIT, false)
 
 function decayKnockback(FighterState f)
 	if f.grounded
@@ -795,10 +795,17 @@ function decayShieldMotion(FighterState f)
 	else
 		// Airborne recoil is a vector and decays by the common per-frame amount.
 		f.shieldPushbackX = 0
+		if f.shieldRecoilX == 0 and f.shieldRecoilZ == 0
+			return
 		let decay = (AIR_SHIELD_RECOIL_DECAY / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
 		let motion = decayedAirMotion(f.shieldRecoilX, f.shieldRecoilZ, decay, AIR_RECOIL_SQUARED_CUTOFF)
-		f.shieldRecoilX = motion.x
-		f.shieldRecoilZ = motion.z
+		if motion.belowCutoff
+			// Retail cutoff clears vertical launch, retaining vertical recoil.
+			f.shieldRecoilX = 0
+			f.knockbackZ = 0
+		else
+			f.shieldRecoilX = motion.x
+			f.shieldRecoilZ = motion.z
 
 function shieldDrainShouldResume(FighterState f, boolean forcedShield) returns boolean
 	if forcedShield
@@ -3537,8 +3544,8 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 		f.vz = -2
 	let oldX = f.x
 	let oldZ = f.z
-	decayShieldMotion(f)
 	decayKnockback(f)
+	decayShieldMotion(f)
 	if dodgeActive and not f.grounded
 		f.vx = f.vx * AIR_DODGE_DECAY
 		f.vz = f.vz * AIR_DODGE_DECAY

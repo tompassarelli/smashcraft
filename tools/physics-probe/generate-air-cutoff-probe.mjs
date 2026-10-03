@@ -1,6 +1,7 @@
 // Foreign fixture boundary: original refinement observations become production checks.
 const project = new URL('../../', import.meta.url);
 const facts = await Bun.file(new URL('docs/smash-melee-reference/retail-air-cutoff-boundaries.json', project)).json();
+const cutoffState = await Bun.file(new URL('docs/smash-melee-reference/retail-air-recoil-cutoff-state.json', project)).json();
 let errorBound = 1 / 32;
 for (const upperBound of [.00149, .00000334, .00000000001674]) {
     if (!(1.5 * errorBound ** 2 + .5 * errorBound ** 3 + 8 * 2 ** -53 < upperBound)) {
@@ -48,6 +49,27 @@ for (const [index, row] of facts.results.entries()) {
         `    if fighter${index}.${axis}X != ${literal(row.afterX.value)} * 6 or fighter${index}.${axis}Z != ${literal(row.afterY.value)} * 6`,
         `        BJDebugMsg("AIR_CUTOFF_${index}_FAIL")`,
         `    destroy input${index}`, `    destroy fighter${index}`);
+}
+for (const [index, row] of cutoffState.results.entries()) {
+    const fighter = `stateFighter${index}`, control = `stateControl${index}`, input = `stateInput${index}`;
+    lines.push(`    let ${fighter} = new FighterState(0, 0, 1)`,
+        `    let ${control} = new FighterState(0, 0, 1)`, `    let ${input} = new InputSnapshot()`);
+    for (const actor of [fighter, control]) {
+        lines.push(`    ${actor}.grounded = false`, `    ${actor}.surface = -1`,
+            `    ${actor}.z = 300`, `    ${actor}.physics.gravity = 0`, `    ${actor}.hitstun = 5`,
+            `    ${actor}.knockbackX = ${literal(row.before.launchX.value)} * 6`,
+            `    ${actor}.knockbackZ = ${literal(row.before.launchY.value)} * 6`);
+    }
+    lines.push(`    ${fighter}.shieldRecoilX = ${literal(row.before.recoilX.value)} * 6`,
+        `    ${fighter}.shieldRecoilZ = ${literal(row.before.recoilY.value)} * 6`,
+        `    advance(${fighter}, 0, ${input}, 0)`, `    advance(${control}, 0, ${input}, 0)`,
+        `    if ${fighter}.knockbackZ != ${literal(row.after.launchY.value)} * 6 or ${fighter}.knockbackX != ${control}.knockbackX`,
+        `        BJDebugMsg("AIR_RECOIL_CUTOFF_LAUNCH_${index}_FAIL")`,
+        `    if ${fighter}.shieldRecoilX != ${literal(row.after.recoilX.value)} * 6 or ${fighter}.shieldRecoilZ != ${literal(row.after.recoilY.value)} * 6`,
+        `        BJDebugMsg("AIR_RECOIL_CUTOFF_STATE_${index}_FAIL")`,
+        `    if ${control}.knockbackZ == 0 and ${literal(row.before.launchY.value)} != 0`,
+        `        BJDebugMsg("AIR_RECOIL_CUTOFF_EMPTY_GUARD_${index}_FAIL")`,
+        `    destroy ${input}`, `    destroy ${fighter}`, `    destroy ${control}`);
 }
 lines.push('    BJDebugMsg("AIR_CUTOFF_BINARY32_EXACT_PASS")', '');
 await Bun.write(new URL('build/physics-probe/AirCutoffPrecisionProbe.wurst', project), lines.join('\n'));

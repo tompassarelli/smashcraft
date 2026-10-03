@@ -1,7 +1,7 @@
 # Airborne decay cutoff
 
 Production compares the rounded squared speed with a derived binary32 boundary,
-instead of calling Warcraft SquareRoot. This preserves Melee's zero-or-decay
+instead of calling Warcraft SquareRoot. This preserves Melee's below-cutoff-or-decay
 decision for its fixed 0.051 launch and 0.05 recoil constants. It does not replace
 all square roots or establish full native physics fidelity.
 
@@ -38,7 +38,8 @@ bound. The generator verifies this with exact integer cross-products:
 
 Here E = 1/50000000000. Since square root is monotonic and the bound applies
 to every positive finite binary32 squared speed, farther inputs cannot cross
-the cutoff either. Zero takes the zero branch directly.
+the cutoff either. Zero squared speed is below the boundary; an empty recoil
+vector skips recoil processing entirely.
 
 Both decays lie in [1/32,1/16), with spacing U = 2^-28.
 The identity `M² = d×p + U²/4` permits one binary32 fused multiply-add.
@@ -54,15 +55,41 @@ eighteen vectors around the boundaries. Independently authored PPC square/sum
 arithmetic supplies the input; the unchanged original refinement block executes
 under QEMU PPC750, with only its return boundary patched in a private executable.
 Original scalar routines and authored fused subtraction supply the nonzero
-axes. This is not execution of the complete original gameplay function.
+axes above the cutoff. Below-cutoff state updates come from the separately
+executed branch described below. This is not execution of the complete original gameplay function.
 The error argument covers permissible hardware estimate variation separately;
 it does not claim that QEMU reproduces the Gekko estimate itself.
 
 smashcraft:tools/physics-probe/generate-air-cutoff-probe.mjs checks the bound and
 exact boundary inequalities, then generates production movement assertions from
-the corpus. All eighteen vector results pass in emitted Lua before and after
-the replacement; the prior host-Lua SquareRoot matched these cases already.
+the corpus. The original eighteen-vector comparison passed before and after
+the square-root replacement, with incorrectly composed vertical recoil values
+below the cutoff. That evidence established classification and nonzero decay,
+but did not establish the state stores performed by the cutoff branch.
 The replacement removes this rule's dependence on the native SquareRoot result.
-Evidence: smashcraft:build/air-cutoff-before.log and
-smashcraft:build/air-cutoff-after.log. Native map execution and the other physics
-rules remain separately unverified.
+
+## State updates below the cutoff
+
+smashcraft:docs/smash-melee-reference/retail-air-recoil-cutoff-state.json records
+four executions of the original post-root comparison and below-cutoff stores,
+starting at 0x8006BAF8 with supplied rounded roots strictly below retail recoil
+decay. The only return patch is at 0x8006BB58. A synthetic common pointer supplies
+the reference decay; original comparison, branch, zero constant and state stores
+remain unchanged. This tests the branch, not the complete update function.
+
+The stores at 0x8006BB14 and 0x8006BB18 clear vertical launch and horizontal
+attacker recoil respectively. Horizontal launch and vertical attacker recoil
+remain unchanged. Thus launch's below-cutoff branch clears both launch axes,
+but recoil's below-cutoff branch has a cross-channel effect. Production keeps
+this retail behavior for the requested starting physics foundation. It updates
+launch before recoil and skips empty recoil vectors, avoiding accidental
+suppression of ordinary launches.
+
+The boundary corpus now composes root classification with these observed
+state-update facts. The emitted-Lua comparison failed on recoil boundary case
+9 before the state repair and passes all eighteen boundary cases afterward.
+Four additional production comparisons check the original recoil state stores
+and launch suppression against a control fighter without recoil. These also
+pass; evidence is smashcraft:build/recoil-cutoff-state-before.log and
+smashcraft:build/recoil-cutoff-state-after.log. No native reproduction of the
+invisible-ceiling effect or full-function equivalence is claimed.

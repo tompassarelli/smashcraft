@@ -1,0 +1,201 @@
+{
+  "id": "retail-ntsc-1.02-air-recoil-cutoff-state",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "decay": 0.05000000074505806,
+  "execution": {
+    "cpu": "QEMU PPC750",
+    "entry": "0x8006BAF8",
+    "lastOriginalStore": "0x8006BB18",
+    "returnPatch": "0x8006BB58",
+    "exitCode": 0,
+    "byteCount": 192
+  },
+  "observedStores": [
+    {
+      "address": "0x8006BB14",
+      "channel": "vertical launch",
+      "value": 0
+    },
+    {
+      "address": "0x8006BB18",
+      "channel": "horizontal attacker recoil",
+      "value": 0
+    }
+  ],
+  "limitations": [
+    "Only the post-root comparison and below-cutoff state-update block executed; not a complete gameplay function or hardware trace.",
+    "The wrapper supplies rounded roots already strictly below decay and a synthetic common-table pointer containing the reference decay.",
+    "Original branch, comparison, zero constant, and state stores remain unchanged. No original executable bytes are included in this numerical corpus."
+  ],
+  "results": [
+    {
+      "root": {
+        "bits": "0x3ccccccd",
+        "value": 0.02500000037252903
+      },
+      "before": {
+        "launchX": {
+          "bits": "0x40000000",
+          "value": 2
+        },
+        "launchY": {
+          "bits": "0x40400000",
+          "value": 3
+        },
+        "recoilX": {
+          "bits": "0x3ca3d70a",
+          "value": 0.019999999552965164
+        },
+        "recoilY": {
+          "bits": "0x3c23d70a",
+          "value": 0.009999999776482582
+        }
+      },
+      "after": {
+        "launchX": {
+          "bits": "0x40000000",
+          "value": 2
+        },
+        "launchY": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilY": {
+          "bits": "0x3c23d70a",
+          "value": 0.009999999776482582
+        }
+      }
+    },
+    {
+      "root": {
+        "bits": "0x3ccccccd",
+        "value": 0.02500000037252903
+      },
+      "before": {
+        "launchX": {
+          "bits": "0xc0000000",
+          "value": -2
+        },
+        "launchY": {
+          "bits": "0xc0400000",
+          "value": -3
+        },
+        "recoilX": {
+          "bits": "0xbca3d70a",
+          "value": -0.019999999552965164
+        },
+        "recoilY": {
+          "bits": "0xbc23d70a",
+          "value": -0.009999999776482582
+        }
+      },
+      "after": {
+        "launchX": {
+          "bits": "0xc0000000",
+          "value": -2
+        },
+        "launchY": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilY": {
+          "bits": "0xbc23d70a",
+          "value": -0.009999999776482582
+        }
+      }
+    },
+    {
+      "root": {
+        "bits": "0x3c23d70a",
+        "value": 0.009999999776482582
+      },
+      "before": {
+        "launchX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launchY": {
+          "bits": "0x40e00000",
+          "value": 7
+        },
+        "recoilX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilY": {
+          "bits": "0x3c23d70a",
+          "value": 0.009999999776482582
+        }
+      },
+      "after": {
+        "launchX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "launchY": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilY": {
+          "bits": "0x3c23d70a",
+          "value": 0.009999999776482582
+        }
+      }
+    },
+    {
+      "root": {
+        "bits": "0x3ccccccd",
+        "value": 0.02500000037252903
+      },
+      "before": {
+        "launchX": {
+          "bits": "0x40000000",
+          "value": 2
+        },
+        "launchY": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilX": {
+          "bits": "0x3ca3d70a",
+          "value": 0.019999999552965164
+        },
+        "recoilY": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      },
+      "after": {
+        "launchX": {
+          "bits": "0x40000000",
+          "value": 2
+        },
+        "launchY": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilX": {
+          "bits": "0x00000000",
+          "value": 0
+        },
+        "recoilY": {
+          "bits": "0x00000000",
+          "value": 0
+        }
+      }
+    }
+  ]
+}

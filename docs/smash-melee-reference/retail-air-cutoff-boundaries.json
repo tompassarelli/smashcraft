@@ -54,7 +54,8 @@
     "Only the return boundary was patched; original floating arithmetic and constants are unchanged.",
     "Linux default floating-point state; this loader does not run GameCube OS startup.",
     "Square/sum and axis subtraction are independently authored PPC arithmetic; only the original refinement block and scalar routines execute original code.",
-    "The bound proves the zero-versus-decay decision for the two fixed retail constants, not every rounded square-root output or all physics."
+    "The bound proves the below-cutoff-or-decay decision for the two fixed retail constants, not every rounded square-root output or all physics.",
+    "Below-cutoff axis values compose the observed root classification with separately executed state-update facts: launch clears both axes; recoil clears horizontal recoil and vertical launch while retaining vertical recoil. They are not captures of the complete update function."
   ],
   "results": [
     {
@@ -363,8 +364,8 @@
         "value": 0
       },
       "afterY": {
-        "bits": "0x00000000",
-        "value": 0
+        "bits": "0x3848c296",
+        "value": 0.000047864938096608967
       }
     },
     {
@@ -394,8 +395,8 @@
         "value": 0
       },
       "afterY": {
-        "bits": "0x00000000",
-        "value": 0
+        "bits": "0x3852b6ed",
+        "value": 0.00005023826452088542
       }
     },
     {
@@ -425,8 +426,8 @@
         "value": 0
       },
       "afterY": {
-        "bits": "0x00000000",
-        "value": 0
+        "bits": "0x385c3830",
+        "value": 0.00005250441608950496
       }
     },
     {
@@ -456,8 +457,8 @@
         "value": 0
       },
       "afterY": {
-        "bits": "0x00000000",
-        "value": 0
+        "bits": "0x386554b0",
+        "value": 0.00005467672599479556
       }
     },
     {
@@ -654,5 +655,6 @@
       0.5,
       3
     ]
-  }
+  },
+  "cutoffStateReference": "smashcraft:docs/smash-melee-reference/retail-air-recoil-cutoff-state.json"
 }
