@@ -327,3 +327,20 @@ last locked/completion boundary at 39/40. Replay includes active duration.
 Focused cases passed 6/6 with zero errors and the existing unused-import warning
 (smashcraft:build/grab-event-timing-tests.log). These are source-mapped numerical
 checks; independent retail replay/native grab traces remain outstanding.
+
+## Numerical oracle boundary
+
+The recorded grounded-hit example subtracts traction 0.07999999821186066 from
+knockback 0.7562744617462158. Binary64 arithmetic yields
+0.6762744635343552; binary32 rounding yields 0.6762744784355164, exactly the
+recorded velocity (smashcraft:docs/smash-melee-reference/slippi-ntsc-grounded-damage.json).
+This is a discriminating counterexample for runtime arithmetic precision.
+
+The pinned compiler's ILconstReal stores Java float and rounds interpreter
+operations to binary32. Its Lua backend emits ordinary real literals and
+arithmetic. Thus a Wurstunit exact-equality check can pass without establishing
+the emitted Lua behavior. The new grounded-step exact check passed in the
+interpreter; it is not a Lua/native precision acceptance result. The existing
+trace comparisons retain their stated tolerances and remain useful for update
+order. Exact runtime precision requires a reusable numeric primitive plus
+explicit operation/unit ordering and an actual emitted-Lua/native check.

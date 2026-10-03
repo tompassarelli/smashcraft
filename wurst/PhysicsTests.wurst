@@ -1699,3 +1699,14 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 	destroy after
 	destroy saved
 	destroy state
+
+@Test function groundedKnockbackRetainsRecordedBinary32VelocityExactly()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.physics.traction = 0.07999999821186066 * 6
+	fighter.knockbackX = 0.7562744617462158 * 6
+	fighter.hitstun = 10
+	advance(fighter, 0, input, 0)
+	(fighter.knockbackX == 0.6762744784355164 * 6).assertTrue()
+	destroy input
+	destroy fighter
