@@ -56,3 +56,25 @@ expected chat stopped without sending further input. Its predicate must accept
 observed Custom Games or chat before selecting the next branch. Neither session
 was restarted and no sign-in occurred. Ending state: both retained clients are
 in the running 0.0.13 fight. Preserve that state for the next native gate.
+
+
+## Automated result and rematch flow
+
+An intentional walk-off with Left+Down held for 15 seconds reached RESULT while
+3:24 remained on the clock. The result trace identifies phase 3 at frame 12984
+on both clients; recorded confirmed checkpoint hashes match. This is a stock-loss
+flow exercise, not evidence of a played combat exchange, physical latency or a
+human match. Exact individual stock-loss timestamps were not recorded.
+
+Client A's Y changed the visible rematch prompt from 0/2 to 1/2 ready. Client B's
+Y returned both to character selection. Both rematch traces identify phase 0,
+with two humans and original identities retained. The host could then reach
+Stage Select and start a second fight, verified by the native fight HUD.
+Original PIDs 2069007 and 1912370 remain live; no restart or authentication.
+Ending state is the second 0.0.13 fight. Result/rematch trace files are retained
+under wc3-melee:docs/native-playable-0013-evidence-20261004.
+
+Accepted scope: automated online entry, intentional stock-loss result path and
+two-party rematch readiness/return/start. Still open: controlled damaging combat,
+actual two-person fights, visual/audio correction, physical response, fair live
+frame assignment, 3/4-player trials, slot changes and ten human matches.
