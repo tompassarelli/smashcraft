@@ -7,6 +7,24 @@ This roadmap sequences the shared-mechanics work in
 wc3-melee:docs/delivery-goal.md. Controls, character completion, and multiplayer
 remain requested work; this does not declare them finished or replace their goal.
 
+## Shared physics and original fighters — owner clarification, 2026-10-03
+
+Melee fidelity applies to the shared equations, integration and state rules.
+Smashcraft's playable fighters are original characters with independently
+chosen parameters. A historical Archer→Fox or Rifleman→Falco association is
+not a requirement to copy either fighter's complete movement, weight, moves,
+rolls or balance. Individual borrowed values, such as a jump-squat duration,
+are separate design choices.
+
+Reference verification uses a test-only actor with explicit original-game
+parameters through the same production physics engine. A Falco test rig can
+check gravity, jump timing and weight without making Rifleman a Falco clone.
+Reference cases must assign their parameters explicitly rather than rely on
+a playable fighter's defaults matching the source. Character identity still
+selects Smashcraft moves and presentation; its parameters are chosen separately.
+Keep current playable numerical tuning during this separation; future tuning
+belongs to deliberate character design, not automatic reference-data intake.
+
 ## What is established now
 
 Baseline inspected: `fed4b8c9e9b6be8a6e9d5efda3949ae979a4ffe0`.
@@ -60,11 +78,11 @@ Native GitHub sub-issues and blocking dependencies are attached; the table also 
 ## Meaning of a clean foundation
 
 Use NTSC 1.02, 60 logical steps/second, and explicit Melee-to-Warcraft distance
-conversion. Compare a Melee reference configuration in the **same production
-simulation**, using named original character parameters where needed. Do not
-create a second simulator that only proves itself. Warcraft fighters retain
-explicitly original move data; Fox/Falco reference profiles are measurement
-fixtures, not a claim that Archer/Rifleman are literal ports.
+conversion. Compare a test-only Melee reference configuration in the **same
+production simulation**, assigning named original-game parameters explicitly.
+Do not create a second simulator that only proves itself. Warcraft fighters
+retain independently authored stats and moves; Fox/Falco test profiles are
+measurement fixtures and never select the playable roster's design.
 
 Record verified facts, unresolved data, observed implementation behavior, and
 intentional choices separately. Preserve previously approved no-staling/no-
