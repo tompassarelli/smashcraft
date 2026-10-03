@@ -87,13 +87,10 @@ constant real SHIELD_BREAK_MIN_FRAMES = 90.
 constant real SHIELD_BREAK_FRAME_DECAY = 1.
 constant real SHIELD_BREAK_MASH_STRENGTH = 3.
 constant real SHIELD_DRAIN_BASE = 0.14000000059604645
-constant real SHIELD_DRAIN_FULL_SHIELD_SCALE = 2.
-constant real SHIELD_DRAIN_PER_FRAME = SHIELD_DRAIN_BASE * SHIELD_DRAIN_FULL_SHIELD_SCALE
+constant real SHIELD_TRIGGER_THRESHOLD = 0.30000001192092896
 constant real SHIELD_REGEN_PER_FRAME = 0.07000000029802322
 constant real SHIELD_DAMAGE_SCALE = 1.
 constant real SHIELD_DAMAGE_BASE = 0.
-constant real SHIELD_DIGITAL_DAMAGE_FACTOR = 0.699999988079071
-constant real SHIELD_STUN_DAMAGE_FACTOR = 0.30000001192092896
 constant real SHIELD_STUN_MULTIPLIER = 1.5
 constant real SHIELD_STUN_BASE = 2.
 constant real SHIELD_PUSHBACK_BASE = 0.20000000298023224
@@ -492,6 +489,7 @@ public class FighterState
 	boolean out = false
 	int respawn = 0
 	boolean shield = false
+	real shieldStrength = 1
 	real shieldEnergy = SHIELD_MAX
 	int shieldStun = 0
 	int shieldHeldFrames = 0
@@ -587,6 +585,7 @@ public class InputSnapshot
 	int specialZ = 0
 	boolean down = false
 	boolean shield = false
+	real shieldStrength = 1
 	boolean jumpPressed = false
 	boolean airDodgePressed = false
 	boolean techPressed = false
@@ -623,6 +622,7 @@ public class InputSnapshot
 		destination.specialZ = specialZ
 		destination.down = down
 		destination.shield = shield
+		destination.shieldStrength = shieldStrength
 		destination.jumpPressed = jumpPressed
 		destination.airDodgePressed = airDodgePressed
 		destination.techPressed = techPressed
@@ -791,20 +791,54 @@ function decayKnockback(FighterState f)
 	f.knockbackX = motion.x
 	f.knockbackZ = motion.z
 
-public function digitalShieldstunDuration(real damage) returns real
-	let scaledPower = (integerHitPower(damage) * SHIELD_STUN_DAMAGE_FACTOR).roundToFloat32()
+public function analogShieldActive(int pressure) returns boolean
+	return (pressure / 255.).roundToFloat32() >= SHIELD_TRIGGER_THRESHOLD
+
+public function analogShieldStrength(int pressure) returns real
+	let normalized = (pressure / 255.).roundToFloat32()
+	return max(0., ((normalized - SHIELD_TRIGGER_THRESHOLD).roundToFloat32() /
+		(1. - SHIELD_TRIGGER_THRESHOLD).roundToFloat32()).roundToFloat32())
+
+function shieldInterpolation(real strength, real light, real digital) returns real
+	return fusedMultiplyAddFloat32(strength, (digital - light).roundToFloat32(), light)
+
+public function shieldDrain(real strength) returns real
+	return (SHIELD_DRAIN_BASE * shieldInterpolation(strength, 0.10000000149011612, 2.)).roundToFloat32()
+
+public function shieldstunDuration(real damage, real strength) returns real
+	let factor = (1. - shieldInterpolation(strength, 0.05000000074505806, 0.699999988079071)).roundToFloat32()
+	let scaledPower = (integerHitPower(damage) * factor).roundToFloat32()
 	return fusedMultiplyAddFloat32(scaledPower, SHIELD_STUN_MULTIPLIER, SHIELD_STUN_BASE)
 
+public function digitalShieldstunDuration(real damage) returns real
+	return shieldstunDuration(damage, 1.)
+
+public function shieldPushback(real damage, real strength) returns real
+	let speed = (shieldstunDuration(damage, strength) * SHIELD_PUSHBACK_BASE).roundToFloat32()
+	return min(SHIELD_PUSHBACK_CAP, (speed * SHIELD_PUSHBACK_MULTIPLIER).roundToFloat32()) * WORLD_UNITS_PER_MELEE_UNIT
+
 public function digitalShieldPushback(real damage) returns real
-	return min(SHIELD_PUSHBACK_CAP,
-		digitalShieldstunDuration(damage) * SHIELD_PUSHBACK_BASE * SHIELD_PUSHBACK_MULTIPLIER)
-		* WORLD_UNITS_PER_MELEE_UNIT
+	return shieldPushback(damage, 1.)
 
 public function digitalShieldRecoil(real damage) returns real
 	return (integerHitPower(damage) * SHIELD_RECOIL_DAMAGE_FACTOR + SHIELD_RECOIL_BASE) * WORLD_UNITS_PER_MELEE_UNIT
 
 public function digitalShieldDamage(real damage) returns real
-	return (damage * SHIELD_DIGITAL_DAMAGE_FACTOR * SHIELD_DAMAGE_SCALE + SHIELD_DAMAGE_BASE).roundToFloat32()
+	return shieldContactDamage(damage, 1.)
+
+public function shieldContactDamage(real damage, real strength) returns real
+	let factor = (1. - shieldInterpolation(strength, 0.10000000149011612, 0.30000001192092896)).roundToFloat32()
+	return fusedMultiplyAddFloat32((damage * factor).roundToFloat32(), SHIELD_DAMAGE_SCALE, SHIELD_DAMAGE_BASE)
+
+public function shieldSizeMultiplier(real health, real strength) returns real
+	let healthRatio = (health / SHIELD_MAX).roundToFloat32()
+	let pressureScale = shieldInterpolation(strength, 1., 0.5)
+	return fusedMultiplyAddFloat32((1. - 0.15000000596046448).roundToFloat32(),
+		(healthRatio * pressureScale).roundToFloat32(), 0.15000000596046448)
+
+public function shieldVisualScale(FighterState f) returns real
+	let authoredScale = 0.7 + 0.5 * f.shieldEnergy / SHIELD_MAX
+	return authoredScale * shieldSizeMultiplier(f.shieldEnergy, f.shieldStrength) / shieldSizeMultiplier(f.shieldEnergy, 1.)
 
 function decayShieldMotion(FighterState f)
 	if f.grounded
@@ -1206,7 +1240,10 @@ public function ordinaryHitlagFrames(real hitDamage) returns int
 	return victimHitlagFrames(hitDamage, false, false)
 
 public function digitalShieldstunFrames(real hitDamage) returns int
-	return R2I(digitalShieldstunDuration(hitDamage) * 200 / 201)
+	return shieldstunFrames(hitDamage, 1.)
+
+public function shieldstunFrames(real hitDamage, real strength) returns int
+	return R2I(shieldstunDuration(hitDamage, strength) * 200 / 201)
 
 public function ordinaryHitstunFrames(real knockback) returns int
 	return max(1, R2I(knockback * HITSTUN_FRAMES_PER_KNOCKBACK))
@@ -1423,10 +1460,10 @@ function resolveDamageContacts(FighterState target)
 				contact.source.hitlag = max(contact.source.hitlag, ordinaryHitlagFrames(damage))
 			if contact.blocked
 				if contact.kind != CONTACT_DAMAGE_ONLY
-					target.shieldStun = max(target.shieldStun, digitalShieldstunFrames(damage))
+					target.shieldStun = max(target.shieldStun, shieldstunFrames(damage, target.shieldStrength))
 					target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
-					shieldPushback = max(shieldPushback, digitalShieldPushback(damage))
-					if digitalShieldPushback(damage) == shieldPushback
+					shieldPushback = max(shieldPushback, shieldPushback(damage, target.shieldStrength))
+					if shieldPushback(damage, target.shieldStrength) == shieldPushback
 						shieldDirection = contact.facing
 					if contact.direct
 						if contact.sourceGrounded
@@ -1463,7 +1500,7 @@ function resolveDamageContacts(FighterState target)
 	if blockedContact
 		target.shieldVisualSerial++
 	if shieldDamage > 0
-		target.shieldEnergy = (target.shieldEnergy - digitalShieldDamage(shieldDamage)).roundToFloat32()
+		target.shieldEnergy = (target.shieldEnergy - shieldContactDamage(shieldDamage, target.shieldStrength)).roundToFloat32()
 	if shieldPushback > 0 and target.grounded
 		// Shield contact replaces the defender's self ground speed.
 		target.vx = 0
@@ -3283,6 +3320,7 @@ public function reset(FighterState f, real startX)
 	f.specialDirection = 0
 	f.shield = false
 	f.shieldEnergy = SHIELD_MAX
+	f.shieldStrength = 1
 	f.jumpSquat = 0
 	f.jumpHeld = false
 	f.out = false
@@ -3357,7 +3395,9 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 			return
 	// Only the guard present at the animation boundary drains; input may enter or leave guard later.
 	if f.hitlag <= 0 and f.shield and shieldDrainShouldResume(f, f.shieldStun > 0)
-		f.shieldEnergy = (f.shieldEnergy - SHIELD_DRAIN_PER_FRAME).roundToFloat32()
+		if input.shield
+			f.shieldStrength = input.shieldStrength
+		f.shieldEnergy = (f.shieldEnergy - shieldDrain(f.shieldStrength)).roundToFloat32()
 		if f.shieldEnergy < 0
 			f.shieldEnergy = 0
 			beginShieldBreak(f)
@@ -3532,6 +3572,8 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 		(f.groundAction == GROUND_ACTION_RUN or
 			(f.groundAction == GROUND_ACTION_DASH and f.groundActionFrame > DASH_GUARD_EARLY_FRAMES))
 	f.shield = wantsShield
+	if wantsShield and input.shield and not forcedShield and not f.shieldDrainResumePending
+		f.shieldStrength = input.shieldStrength
 	if lateDashGuardEntry
 		f.dashGrabWindow = 3
 	var direction = input.direction

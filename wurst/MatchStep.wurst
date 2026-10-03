@@ -106,6 +106,8 @@ function sameInputSnapshot(InputSnapshot first, InputSnapshot second) returns bo
         return false
     if first.shield != second.shield
         return false
+    if first.shieldStrength != second.shieldStrength
+        return false
     if first.jumpPressed != second.jumpPressed
         return false
     if first.airDodgePressed != second.airDodgePressed

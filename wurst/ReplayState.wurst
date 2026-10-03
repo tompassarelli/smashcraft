@@ -85,6 +85,7 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.out = source.out
 	destination.respawn = source.respawn
 	destination.shield = source.shield
+	destination.shieldStrength = source.shieldStrength
 	destination.shieldEnergy = source.shieldEnergy
 	destination.shieldStun = source.shieldStun
 	destination.shieldHeldFrames = source.shieldHeldFrames
@@ -369,6 +370,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "respawn"
 	if expected.shield != actual.shield
 		return "shield"
+	if expected.shieldStrength != actual.shieldStrength
+		return "shieldStrength"
 	if expected.shieldEnergy != actual.shieldEnergy
 		return "shieldEnergy"
 	if expected.shieldStun != actual.shieldStun

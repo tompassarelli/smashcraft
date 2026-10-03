@@ -60,7 +60,7 @@ import KeyBindings
     adaptInput(row, fighter, 1, input, attacks)
     input.direction.assertEquals(-1)
     input.verticalDirection.assertEquals(1)
-    row.assign(0, 0, 0, 0, 0, 1, 0).assertTrue()
+    row.assign(0, 0, 0, 0, 0, 77, 0).assertTrue()
     adaptInput(row, fighter, 2, input, attacks)
     input.shield.assertTrue()
 

@@ -1,0 +1,1888 @@
+{
+  "id": "retail-ntsc-1.02-analog-shield",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "commonDataSha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "execution": {
+    "cpu": "QEMU PPC750",
+    "guardUpdate": "0x800925A4",
+    "stun": "0x80092ED8",
+    "sizeEntry": "0x80091D7C",
+    "damageEntry": "0x8006D27C",
+    "pushbackEntry": "0x80093080",
+    "returnPatches": [
+      "0x80091dbc",
+      "0x8006d2d8",
+      "0x800930d0"
+    ],
+    "exitCode": 0,
+    "byteCount": 2592
+  },
+  "commonValues": {
+    "0x10": 0.30000001192092896,
+    "0x260": 60,
+    "0x264": 0.15000000596046448,
+    "0x268": 8,
+    "0x278": 0.14000000059604645,
+    "0x284": 1,
+    "0x288": 0,
+    "0x28c": 1.5,
+    "0x290": 2,
+    "0x294": 0.20000000298023224,
+    "0x298": 2,
+    "0x2bc": 0.6000000238418579,
+    "0x2d4": 1,
+    "0x2d8": 0.5,
+    "0x2dc": 0.10000000149011612,
+    "0x2e0": 0.30000001192092896,
+    "0x2e4": 0.05000000074505806,
+    "0x2e8": 0.699999988079071,
+    "0x2ec": 0.10000000149011612,
+    "0x2f0": 2
+  },
+  "limitations": [
+    "Synthetic fighter fields; complete nonbreaking guard update and stun function, scalar-only size/contact fragments with explicit return patches before unrelated consumers. No powershield branch.",
+    "Pressure below the common threshold retains previous strength in the guard update; activation/release selection is outside this routine.",
+    "Unit shield base isolates shared size scaling; no retail fighter body or shield dimensions are adopted.",
+    "QEMU PPC750 with Linux default floating-point state, not GameCube or Warcraft native execution.",
+    "No original executable bytes or decompiled implementation are published. Staling/freshness intentionally omitted by Smashcraft design."
+  ],
+  "results": [
+    {
+      "pressure": 0,
+      "health": 60,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x426f84b6",
+        "value": 59.879600524902344
+      },
+      "stunDuration": {
+        "bits": "0x40a35c29",
+        "value": 5.105000019073486
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f547ae2",
+        "value": 0.8300000429153442
+      },
+      "healthAfterDamage": {
+        "bits": "0x426628f6",
+        "value": 57.540000915527344
+      },
+      "pushback": {
+        "bits": "0x3f1cd35b",
+        "value": 0.6126000285148621
+      }
+    },
+    {
+      "pressure": 0,
+      "health": 60,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x426f84b6",
+        "value": 59.879600524902344
+      },
+      "stunDuration": {
+        "bits": "0x4145999a",
+        "value": 12.350000381469727
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f547ae2",
+        "value": 0.8300000429153442
+      },
+      "healthAfterDamage": {
+        "bits": "0x424f3333",
+        "value": 51.79999923706055
+      },
+      "pushback": {
+        "bits": "0x3fbdb22e",
+        "value": 1.4820001125335693
+      }
+    },
+    {
+      "pressure": 0,
+      "health": 60,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x426f84b6",
+        "value": 59.879600524902344
+      },
+      "stunDuration": {
+        "bits": "0x42043334",
+        "value": 33.05000305175781
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f547ae2",
+        "value": 0.8300000429153442
+      },
+      "healthAfterDamage": {
+        "bits": "0x420d999a",
+        "value": 35.400001525878906
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 0,
+      "health": 30,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x41ef096c",
+        "value": 29.879600524902344
+      },
+      "stunDuration": {
+        "bits": "0x40a35c29",
+        "value": 5.105000019073486
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3efae148",
+        "value": 0.49000000953674316
+      },
+      "healthAfterDamage": {
+        "bits": "0x41dc51ec",
+        "value": 27.540000915527344
+      },
+      "pushback": {
+        "bits": "0x3f1cd35b",
+        "value": 0.6126000285148621
+      }
+    },
+    {
+      "pressure": 0,
+      "health": 30,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x41ef096c",
+        "value": 29.879600524902344
+      },
+      "stunDuration": {
+        "bits": "0x4145999a",
+        "value": 12.350000381469727
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3efae148",
+        "value": 0.49000000953674316
+      },
+      "healthAfterDamage": {
+        "bits": "0x41ae6666",
+        "value": 21.799999237060547
+      },
+      "pushback": {
+        "bits": "0x3fbdb22e",
+        "value": 1.4820001125335693
+      }
+    },
+    {
+      "pressure": 0,
+      "health": 30,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x41ef096c",
+        "value": 29.879600524902344
+      },
+      "stunDuration": {
+        "bits": "0x42043334",
+        "value": 33.05000305175781
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3efae148",
+        "value": 0.49000000953674316
+      },
+      "healthAfterDamage": {
+        "bits": "0x40accccc",
+        "value": 5.399999618530273
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 0,
+      "health": 1,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f612d77",
+        "value": 0.8795999884605408
+      },
+      "stunDuration": {
+        "bits": "0x40a35c29",
+        "value": 5.105000019073486
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e253491",
+        "value": 0.1613333374261856
+      },
+      "healthAfterDamage": {
+        "bits": "0xbfbae148",
+        "value": -1.4600000381469727
+      },
+      "pushback": {
+        "bits": "0x3f1cd35b",
+        "value": 0.6126000285148621
+      }
+    },
+    {
+      "pressure": 0,
+      "health": 1,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f612d77",
+        "value": 0.8795999884605408
+      },
+      "stunDuration": {
+        "bits": "0x4145999a",
+        "value": 12.350000381469727
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e253491",
+        "value": 0.1613333374261856
+      },
+      "healthAfterDamage": {
+        "bits": "0xc0e66666",
+        "value": -7.199999809265137
+      },
+      "pushback": {
+        "bits": "0x3fbdb22e",
+        "value": 1.4820001125335693
+      }
+    },
+    {
+      "pressure": 0,
+      "health": 1,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f612d77",
+        "value": 0.8795999884605408
+      },
+      "stunDuration": {
+        "bits": "0x42043334",
+        "value": 33.05000305175781
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e253491",
+        "value": 0.1613333374261856
+      },
+      "healthAfterDamage": {
+        "bits": "0xc1bccccd",
+        "value": -23.600000381469727
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 76,
+      "health": 60,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e989899",
+        "value": 0.2980392277240753
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x426f84b6",
+        "value": 59.879600524902344
+      },
+      "stunDuration": {
+        "bits": "0x40a35c29",
+        "value": 5.105000019073486
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f547ae2",
+        "value": 0.8300000429153442
+      },
+      "healthAfterDamage": {
+        "bits": "0x426628f6",
+        "value": 57.540000915527344
+      },
+      "pushback": {
+        "bits": "0x3f1cd35b",
+        "value": 0.6126000285148621
+      }
+    },
+    {
+      "pressure": 76,
+      "health": 60,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e989899",
+        "value": 0.2980392277240753
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x426f84b6",
+        "value": 59.879600524902344
+      },
+      "stunDuration": {
+        "bits": "0x4145999a",
+        "value": 12.350000381469727
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f547ae2",
+        "value": 0.8300000429153442
+      },
+      "healthAfterDamage": {
+        "bits": "0x424f3333",
+        "value": 51.79999923706055
+      },
+      "pushback": {
+        "bits": "0x3fbdb22e",
+        "value": 1.4820001125335693
+      }
+    },
+    {
+      "pressure": 76,
+      "health": 60,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e989899",
+        "value": 0.2980392277240753
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x426f84b6",
+        "value": 59.879600524902344
+      },
+      "stunDuration": {
+        "bits": "0x42043334",
+        "value": 33.05000305175781
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f547ae2",
+        "value": 0.8300000429153442
+      },
+      "healthAfterDamage": {
+        "bits": "0x420d999a",
+        "value": 35.400001525878906
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 76,
+      "health": 30,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e989899",
+        "value": 0.2980392277240753
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x41ef096c",
+        "value": 29.879600524902344
+      },
+      "stunDuration": {
+        "bits": "0x40a35c29",
+        "value": 5.105000019073486
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3efae148",
+        "value": 0.49000000953674316
+      },
+      "healthAfterDamage": {
+        "bits": "0x41dc51ec",
+        "value": 27.540000915527344
+      },
+      "pushback": {
+        "bits": "0x3f1cd35b",
+        "value": 0.6126000285148621
+      }
+    },
+    {
+      "pressure": 76,
+      "health": 30,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e989899",
+        "value": 0.2980392277240753
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x41ef096c",
+        "value": 29.879600524902344
+      },
+      "stunDuration": {
+        "bits": "0x4145999a",
+        "value": 12.350000381469727
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3efae148",
+        "value": 0.49000000953674316
+      },
+      "healthAfterDamage": {
+        "bits": "0x41ae6666",
+        "value": 21.799999237060547
+      },
+      "pushback": {
+        "bits": "0x3fbdb22e",
+        "value": 1.4820001125335693
+      }
+    },
+    {
+      "pressure": 76,
+      "health": 30,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e989899",
+        "value": 0.2980392277240753
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x41ef096c",
+        "value": 29.879600524902344
+      },
+      "stunDuration": {
+        "bits": "0x42043334",
+        "value": 33.05000305175781
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3efae148",
+        "value": 0.49000000953674316
+      },
+      "healthAfterDamage": {
+        "bits": "0x40accccc",
+        "value": 5.399999618530273
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 76,
+      "health": 1,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e989899",
+        "value": 0.2980392277240753
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f612d77",
+        "value": 0.8795999884605408
+      },
+      "stunDuration": {
+        "bits": "0x40a35c29",
+        "value": 5.105000019073486
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e253491",
+        "value": 0.1613333374261856
+      },
+      "healthAfterDamage": {
+        "bits": "0xbfbae148",
+        "value": -1.4600000381469727
+      },
+      "pushback": {
+        "bits": "0x3f1cd35b",
+        "value": 0.6126000285148621
+      }
+    },
+    {
+      "pressure": 76,
+      "health": 1,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e989899",
+        "value": 0.2980392277240753
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f612d77",
+        "value": 0.8795999884605408
+      },
+      "stunDuration": {
+        "bits": "0x4145999a",
+        "value": 12.350000381469727
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e253491",
+        "value": 0.1613333374261856
+      },
+      "healthAfterDamage": {
+        "bits": "0xc0e66666",
+        "value": -7.199999809265137
+      },
+      "pushback": {
+        "bits": "0x3fbdb22e",
+        "value": 1.4820001125335693
+      }
+    },
+    {
+      "pressure": 76,
+      "health": 1,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e989899",
+        "value": 0.2980392277240753
+      },
+      "strength": {
+        "bits": "0x3ecccccd",
+        "value": 0.4000000059604645
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f612d77",
+        "value": 0.8795999884605408
+      },
+      "stunDuration": {
+        "bits": "0x42043334",
+        "value": 33.05000305175781
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e253491",
+        "value": 0.1613333374261856
+      },
+      "healthAfterDamage": {
+        "bits": "0xc1bccccd",
+        "value": -23.600000381469727
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 77,
+      "health": 60,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e9a9a9b",
+        "value": 0.3019607961177826
+      },
+      "strength": {
+        "bits": "0x3b379300",
+        "value": 0.0028011202812194824
+      },
+      "healthAfterDrain": {
+        "bits": "0x426ff0e7",
+        "value": 59.98525619506836
+      },
+      "stunDuration": {
+        "bits": "0x40c889ae",
+        "value": 6.266806602478027
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f7fb1fb",
+        "value": 0.9988095164299011
+      },
+      "healthAfterDamage": {
+        "bits": "0x426534ec",
+        "value": 57.30168151855469
+      },
+      "pushback": {
+        "bits": "0x3f40842d",
+        "value": 0.7520168423652649
+      }
+    },
+    {
+      "pressure": 77,
+      "health": 60,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e9a9a9b",
+        "value": 0.3019607961177826
+      },
+      "strength": {
+        "bits": "0x3b379300",
+        "value": 0.0028011202812194824
+      },
+      "healthAfterDrain": {
+        "bits": "0x426ff0e7",
+        "value": 59.98525619506836
+      },
+      "stunDuration": {
+        "bits": "0x4181c811",
+        "value": 16.222688674926758
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f7fb1fb",
+        "value": 0.9988095164299011
+      },
+      "healthAfterDamage": {
+        "bits": "0x424c05bd",
+        "value": 51.0056037902832
+      },
+      "pushback": {
+        "bits": "0x3ff92e36",
+        "value": 1.9467227458953857
+      }
+    },
+    {
+      "pressure": 77,
+      "health": 60,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e9a9a9b",
+        "value": 0.3019607961177826
+      },
+      "strength": {
+        "bits": "0x3b379300",
+        "value": 0.0028011202812194824
+      },
+      "healthAfterDrain": {
+        "bits": "0x426ff0e7",
+        "value": 59.98525619506836
+      },
+      "stunDuration": {
+        "bits": "0x4232ac1a",
+        "value": 44.668067932128906
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f7fb1fb",
+        "value": 0.9988095164299011
+      },
+      "healthAfterDamage": {
+        "bits": "0x42041136",
+        "value": 33.016807556152344
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 77,
+      "health": 30,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e9a9a9b",
+        "value": 0.3019607961177826
+      },
+      "strength": {
+        "bits": "0x3b379300",
+        "value": 0.0028011202812194824
+      },
+      "healthAfterDrain": {
+        "bits": "0x41efe1cd",
+        "value": 29.985254287719727
+      },
+      "stunDuration": {
+        "bits": "0x40c889ae",
+        "value": 6.266806602478027
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f130c31",
+        "value": 0.574404776096344
+      },
+      "healthAfterDamage": {
+        "bits": "0x41da69d8",
+        "value": 27.301681518554688
+      },
+      "pushback": {
+        "bits": "0x3f40842d",
+        "value": 0.7520168423652649
+      }
+    },
+    {
+      "pressure": 77,
+      "health": 30,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e9a9a9b",
+        "value": 0.3019607961177826
+      },
+      "strength": {
+        "bits": "0x3b379300",
+        "value": 0.0028011202812194824
+      },
+      "healthAfterDrain": {
+        "bits": "0x41efe1cd",
+        "value": 29.985254287719727
+      },
+      "stunDuration": {
+        "bits": "0x4181c811",
+        "value": 16.222688674926758
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f130c31",
+        "value": 0.574404776096344
+      },
+      "healthAfterDamage": {
+        "bits": "0x41a80b7a",
+        "value": 21.005603790283203
+      },
+      "pushback": {
+        "bits": "0x3ff92e36",
+        "value": 1.9467227458953857
+      }
+    },
+    {
+      "pressure": 77,
+      "health": 30,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e9a9a9b",
+        "value": 0.3019607961177826
+      },
+      "strength": {
+        "bits": "0x3b379300",
+        "value": 0.0028011202812194824
+      },
+      "healthAfterDrain": {
+        "bits": "0x41efe1cd",
+        "value": 29.985254287719727
+      },
+      "stunDuration": {
+        "bits": "0x4232ac1a",
+        "value": 44.668067932128906
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f130c31",
+        "value": 0.574404776096344
+      },
+      "healthAfterDamage": {
+        "bits": "0x40411360",
+        "value": 3.0168075561523438
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 77,
+      "health": 1,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e9a9a9b",
+        "value": 0.3019607961177826
+      },
+      "strength": {
+        "bits": "0x3b379300",
+        "value": 0.0028011202812194824
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f7c39aa",
+        "value": 0.9852548837661743
+      },
+      "stunDuration": {
+        "bits": "0x40c889ae",
+        "value": 6.266806602478027
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e28161b",
+        "value": 0.16414682567119598
+      },
+      "healthAfterDamage": {
+        "bits": "0xbfd96286",
+        "value": -1.6983191967010498
+      },
+      "pushback": {
+        "bits": "0x3f40842d",
+        "value": 0.7520168423652649
+      }
+    },
+    {
+      "pressure": 77,
+      "health": 1,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e9a9a9b",
+        "value": 0.3019607961177826
+      },
+      "strength": {
+        "bits": "0x3b379300",
+        "value": 0.0028011202812194824
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f7c39aa",
+        "value": 0.9852548837661743
+      },
+      "stunDuration": {
+        "bits": "0x4181c811",
+        "value": 16.222688674926758
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e28161b",
+        "value": 0.16414682567119598
+      },
+      "healthAfterDamage": {
+        "bits": "0xc0ffd21a",
+        "value": -7.994397163391113
+      },
+      "pushback": {
+        "bits": "0x3ff92e36",
+        "value": 1.9467227458953857
+      }
+    },
+    {
+      "pressure": 77,
+      "health": 1,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3e9a9a9b",
+        "value": 0.3019607961177826
+      },
+      "strength": {
+        "bits": "0x3b379300",
+        "value": 0.0028011202812194824
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f7c39aa",
+        "value": 0.9852548837661743
+      },
+      "stunDuration": {
+        "bits": "0x4232ac1a",
+        "value": 44.668067932128906
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e28161b",
+        "value": 0.16414682567119598
+      },
+      "healthAfterDamage": {
+        "bits": "0xc1cfdd94",
+        "value": -25.983192443847656
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 128,
+      "health": 60,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f008081",
+        "value": 0.501960813999176
+      },
+      "strength": {
+        "bits": "0x3e93b84c",
+        "value": 0.28851544857025146
+      },
+      "healthAfterDrain": {
+        "bits": "0x426fa314",
+        "value": 59.90925598144531
+      },
+      "stunDuration": {
+        "bits": "0x40adcb82",
+        "value": 5.431092262268066
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f609c0a",
+        "value": 0.8773809671401978
+      },
+      "healthAfterDamage": {
+        "bits": "0x4265e477",
+        "value": 57.47311019897461
+      },
+      "pushback": {
+        "bits": "0x3f26d7da",
+        "value": 0.6517311334609985
+      }
+    },
+    {
+      "pressure": 128,
+      "health": 60,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f008081",
+        "value": 0.501960813999176
+      },
+      "strength": {
+        "bits": "0x3e93b84c",
+        "value": 0.28851544857025146
+      },
+      "healthAfterDrain": {
+        "bits": "0x426fa314",
+        "value": 59.90925598144531
+      },
+      "stunDuration": {
+        "bits": "0x4156fdda",
+        "value": 13.436975479125977
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f609c0a",
+        "value": 0.8773809671401978
+      },
+      "healthAfterDamage": {
+        "bits": "0x424e4ee1",
+        "value": 51.577030181884766
+      },
+      "pushback": {
+        "bits": "0x3fce6457",
+        "value": 1.612437129020691
+      }
+    },
+    {
+      "pressure": 128,
+      "health": 60,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f008081",
+        "value": 0.501960813999176
+      },
+      "strength": {
+        "bits": "0x3e93b84c",
+        "value": 0.28851544857025146
+      },
+      "healthAfterDrain": {
+        "bits": "0x426fa314",
+        "value": 59.90925598144531
+      },
+      "stunDuration": {
+        "bits": "0x42113e64",
+        "value": 36.31092834472656
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f609c0a",
+        "value": 0.8773809671401978
+      },
+      "healthAfterDamage": {
+        "bits": "0x420aeca4",
+        "value": 34.73109436035156
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 128,
+      "health": 30,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f008081",
+        "value": 0.501960813999176
+      },
+      "strength": {
+        "bits": "0x3e93b84c",
+        "value": 0.28851544857025146
+      },
+      "healthAfterDrain": {
+        "bits": "0x41ef4627",
+        "value": 29.90925407409668
+      },
+      "stunDuration": {
+        "bits": "0x40adcb82",
+        "value": 5.431092262268066
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f038138",
+        "value": 0.5136904716491699
+      },
+      "healthAfterDamage": {
+        "bits": "0x41dbc8ee",
+        "value": 27.47311019897461
+      },
+      "pushback": {
+        "bits": "0x3f26d7da",
+        "value": 0.6517311334609985
+      }
+    },
+    {
+      "pressure": 128,
+      "health": 30,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f008081",
+        "value": 0.501960813999176
+      },
+      "strength": {
+        "bits": "0x3e93b84c",
+        "value": 0.28851544857025146
+      },
+      "healthAfterDrain": {
+        "bits": "0x41ef4627",
+        "value": 29.90925407409668
+      },
+      "stunDuration": {
+        "bits": "0x4156fdda",
+        "value": 13.436975479125977
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f038138",
+        "value": 0.5136904716491699
+      },
+      "healthAfterDamage": {
+        "bits": "0x41ac9dc2",
+        "value": 21.577030181884766
+      },
+      "pushback": {
+        "bits": "0x3fce6457",
+        "value": 1.612437129020691
+      }
+    },
+    {
+      "pressure": 128,
+      "health": 30,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f008081",
+        "value": 0.501960813999176
+      },
+      "strength": {
+        "bits": "0x3e93b84c",
+        "value": 0.28851544857025146
+      },
+      "healthAfterDrain": {
+        "bits": "0x41ef4627",
+        "value": 29.90925407409668
+      },
+      "stunDuration": {
+        "bits": "0x42113e64",
+        "value": 36.31092834472656
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f038138",
+        "value": 0.5136904716491699
+      },
+      "healthAfterDamage": {
+        "bits": "0x4097651c",
+        "value": 4.73109245300293
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 128,
+      "health": 1,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f008081",
+        "value": 0.501960813999176
+      },
+      "strength": {
+        "bits": "0x3e93b84c",
+        "value": 0.28851544857025146
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f68c4ee",
+        "value": 0.9092549085617065
+      },
+      "stunDuration": {
+        "bits": "0x40adcb82",
+        "value": 5.431092262268066
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e260394",
+        "value": 0.16212302446365356
+      },
+      "healthAfterDamage": {
+        "bits": "0xbfc37128",
+        "value": -1.526890754699707
+      },
+      "pushback": {
+        "bits": "0x3f26d7da",
+        "value": 0.6517311334609985
+      }
+    },
+    {
+      "pressure": 128,
+      "health": 1,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f008081",
+        "value": 0.501960813999176
+      },
+      "strength": {
+        "bits": "0x3e93b84c",
+        "value": 0.28851544857025146
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f68c4ee",
+        "value": 0.9092549085617065
+      },
+      "stunDuration": {
+        "bits": "0x4156fdda",
+        "value": 13.436975479125977
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e260394",
+        "value": 0.16212302446365356
+      },
+      "healthAfterDamage": {
+        "bits": "0xc0ed88f6",
+        "value": -7.422968864440918
+      },
+      "pushback": {
+        "bits": "0x3fce6457",
+        "value": 1.612437129020691
+      }
+    },
+    {
+      "pressure": 128,
+      "health": 1,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f008081",
+        "value": 0.501960813999176
+      },
+      "strength": {
+        "bits": "0x3e93b84c",
+        "value": 0.28851544857025146
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f68c4ee",
+        "value": 0.9092549085617065
+      },
+      "stunDuration": {
+        "bits": "0x42113e64",
+        "value": 36.31092834472656
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e260394",
+        "value": 0.16212302446365356
+      },
+      "healthAfterDamage": {
+        "bits": "0xc1c226b9",
+        "value": -24.26890754699707
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 200,
+      "health": 60,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f48c8c9",
+        "value": 0.7843137383460999
+      },
+      "strength": {
+        "bits": "0x3f311ed6",
+        "value": 0.6918767690658569
+      },
+      "healthAfterDrain": {
+        "bits": "0x426f3535",
+        "value": 59.80195999145508
+      },
+      "stunDuration": {
+        "bits": "0x40880a54",
+        "value": 4.251260757446289
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f34b94c",
+        "value": 0.7059524059295654
+      },
+      "healthAfterDamage": {
+        "bits": "0x4266dc4a",
+        "value": 57.715126037597656
+      },
+      "pushback": {
+        "bits": "0x3f029947",
+        "value": 0.5101513266563416
+      }
+    },
+    {
+      "pressure": 200,
+      "health": 60,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f48c8c9",
+        "value": 0.7843137383460999
+      },
+      "strength": {
+        "bits": "0x3f311ed6",
+        "value": 0.6918767690658569
+      },
+      "healthAfterDrain": {
+        "bits": "0x426f3535",
+        "value": 59.80195999145508
+      },
+      "stunDuration": {
+        "bits": "0x41181136",
+        "value": 9.504201889038086
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f34b94c",
+        "value": 0.7059524059295654
+      },
+      "healthAfterDamage": {
+        "bits": "0x425188f7",
+        "value": 52.38375473022461
+      },
+      "pushback": {
+        "bits": "0x3f91fc0b",
+        "value": 1.140504240989685
+      }
+    },
+    {
+      "pressure": 200,
+      "health": 60,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f48c8c9",
+        "value": 0.7843137383460999
+      },
+      "strength": {
+        "bits": "0x3f311ed6",
+        "value": 0.6918767690658569
+      },
+      "healthAfterDrain": {
+        "bits": "0x426f3535",
+        "value": 59.80195999145508
+      },
+      "stunDuration": {
+        "bits": "0x41c419d1",
+        "value": 24.512605667114258
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f34b94c",
+        "value": 0.7059524059295654
+      },
+      "healthAfterDamage": {
+        "bits": "0x42149ae4",
+        "value": 37.15126037597656
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 200,
+      "health": 30,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f48c8c9",
+        "value": 0.7843137383460999
+      },
+      "strength": {
+        "bits": "0x3f311ed6",
+        "value": 0.6918767690658569
+      },
+      "healthAfterDrain": {
+        "bits": "0x41ee6a6a",
+        "value": 29.801959991455078
+      },
+      "stunDuration": {
+        "bits": "0x40880a54",
+        "value": 4.251260757446289
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3edb1fb2",
+        "value": 0.42797619104385376
+      },
+      "healthAfterDamage": {
+        "bits": "0x41ddb894",
+        "value": 27.715126037597656
+      },
+      "pushback": {
+        "bits": "0x3f029947",
+        "value": 0.5101513266563416
+      }
+    },
+    {
+      "pressure": 200,
+      "health": 30,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f48c8c9",
+        "value": 0.7843137383460999
+      },
+      "strength": {
+        "bits": "0x3f311ed6",
+        "value": 0.6918767690658569
+      },
+      "healthAfterDrain": {
+        "bits": "0x41ee6a6a",
+        "value": 29.801959991455078
+      },
+      "stunDuration": {
+        "bits": "0x41181136",
+        "value": 9.504201889038086
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3edb1fb2",
+        "value": 0.42797619104385376
+      },
+      "healthAfterDamage": {
+        "bits": "0x41b311ee",
+        "value": 22.38375473022461
+      },
+      "pushback": {
+        "bits": "0x3f91fc0b",
+        "value": 1.140504240989685
+      }
+    },
+    {
+      "pressure": 200,
+      "health": 30,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f48c8c9",
+        "value": 0.7843137383460999
+      },
+      "strength": {
+        "bits": "0x3f311ed6",
+        "value": 0.6918767690658569
+      },
+      "healthAfterDrain": {
+        "bits": "0x41ee6a6a",
+        "value": 29.801959991455078
+      },
+      "stunDuration": {
+        "bits": "0x41c419d1",
+        "value": 24.512605667114258
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3edb1fb2",
+        "value": 0.42797619104385376
+      },
+      "healthAfterDamage": {
+        "bits": "0x40e4d720",
+        "value": 7.1512603759765625
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 200,
+      "health": 1,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f48c8c9",
+        "value": 0.7843137383460999
+      },
+      "strength": {
+        "bits": "0x3f311ed6",
+        "value": 0.6918767690658569
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f4d4d4d",
+        "value": 0.8019607663154602
+      },
+      "stunDuration": {
+        "bits": "0x40880a54",
+        "value": 4.251260757446289
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e231698",
+        "value": 0.15926587581634521
+      },
+      "healthAfterDamage": {
+        "bits": "0xbfa476c0",
+        "value": -1.2848739624023438
+      },
+      "pushback": {
+        "bits": "0x3f029947",
+        "value": 0.5101513266563416
+      }
+    },
+    {
+      "pressure": 200,
+      "health": 1,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f48c8c9",
+        "value": 0.7843137383460999
+      },
+      "strength": {
+        "bits": "0x3f311ed6",
+        "value": 0.6918767690658569
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f4d4d4d",
+        "value": 0.8019607663154602
+      },
+      "stunDuration": {
+        "bits": "0x41181136",
+        "value": 9.504201889038086
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e231698",
+        "value": 0.15926587581634521
+      },
+      "healthAfterDamage": {
+        "bits": "0xc0d3b84a",
+        "value": -6.616246223449707
+      },
+      "pushback": {
+        "bits": "0x3f91fc0b",
+        "value": 1.140504240989685
+      }
+    },
+    {
+      "pressure": 200,
+      "health": 1,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f48c8c9",
+        "value": 0.7843137383460999
+      },
+      "strength": {
+        "bits": "0x3f311ed6",
+        "value": 0.6918767690658569
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f4d4d4d",
+        "value": 0.8019607663154602
+      },
+      "stunDuration": {
+        "bits": "0x41c419d1",
+        "value": 24.512605667114258
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e231698",
+        "value": 0.15926587581634521
+      },
+      "healthAfterDamage": {
+        "bits": "0xc1aeca38",
+        "value": -21.848739624023438
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      }
+    },
+    {
+      "pressure": 255,
+      "health": 60,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "strength": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "healthAfterDrain": {
+        "bits": "0x426ee148",
+        "value": 59.720001220703125
+      },
+      "stunDuration": {
+        "bits": "0x40566667",
+        "value": 3.3500001430511475
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f133334",
+        "value": 0.5750000476837158
+      },
+      "healthAfterDamage": {
+        "bits": "0x4267999a",
+        "value": 57.900001525878906
+      },
+      "pushback": {
+        "bits": "0x3ecdd2f3",
+        "value": 0.4020000398159027
+      }
+    },
+    {
+      "pressure": 255,
+      "health": 60,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "strength": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "healthAfterDrain": {
+        "bits": "0x426ee148",
+        "value": 59.720001220703125
+      },
+      "stunDuration": {
+        "bits": "0x40d00000",
+        "value": 6.5
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f133334",
+        "value": 0.5750000476837158
+      },
+      "healthAfterDamage": {
+        "bits": "0x42540000",
+        "value": 53
+      },
+      "pushback": {
+        "bits": "0x3f47ae16",
+        "value": 0.7800000905990601
+      }
+    },
+    {
+      "pressure": 255,
+      "health": 60,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "strength": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "healthAfterDrain": {
+        "bits": "0x426ee148",
+        "value": 59.720001220703125
+      },
+      "stunDuration": {
+        "bits": "0x41780000",
+        "value": 15.5
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3f133334",
+        "value": 0.5750000476837158
+      },
+      "healthAfterDamage": {
+        "bits": "0x421c0000",
+        "value": 39
+      },
+      "pushback": {
+        "bits": "0x3fee147c",
+        "value": 1.8600001335144043
+      }
+    },
+    {
+      "pressure": 255,
+      "health": 30,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "strength": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "healthAfterDrain": {
+        "bits": "0x41edc28f",
+        "value": 29.719999313354492
+      },
+      "stunDuration": {
+        "bits": "0x40566667",
+        "value": 3.3500001430511475
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3eb9999a",
+        "value": 0.36250001192092896
+      },
+      "healthAfterDamage": {
+        "bits": "0x41df3333",
+        "value": 27.899999618530273
+      },
+      "pushback": {
+        "bits": "0x3ecdd2f3",
+        "value": 0.4020000398159027
+      }
+    },
+    {
+      "pressure": 255,
+      "health": 30,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "strength": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "healthAfterDrain": {
+        "bits": "0x41edc28f",
+        "value": 29.719999313354492
+      },
+      "stunDuration": {
+        "bits": "0x40d00000",
+        "value": 6.5
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3eb9999a",
+        "value": 0.36250001192092896
+      },
+      "healthAfterDamage": {
+        "bits": "0x41b80000",
+        "value": 23
+      },
+      "pushback": {
+        "bits": "0x3f47ae16",
+        "value": 0.7800000905990601
+      }
+    },
+    {
+      "pressure": 255,
+      "health": 30,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "strength": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "healthAfterDrain": {
+        "bits": "0x41edc28f",
+        "value": 29.719999313354492
+      },
+      "stunDuration": {
+        "bits": "0x41780000",
+        "value": 15.5
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3eb9999a",
+        "value": 0.36250001192092896
+      },
+      "healthAfterDamage": {
+        "bits": "0x41100000",
+        "value": 9
+      },
+      "pushback": {
+        "bits": "0x3fee147c",
+        "value": 1.8600001335144043
+      }
+    },
+    {
+      "pressure": 255,
+      "health": 1,
+      "damage": 3,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "strength": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f3851ec",
+        "value": 0.7200000286102295
+      },
+      "stunDuration": {
+        "bits": "0x40566667",
+        "value": 3.3500001430511475
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e20da74",
+        "value": 0.15708333253860474
+      },
+      "healthAfterDamage": {
+        "bits": "0xbf8ccccc",
+        "value": -1.0999999046325684
+      },
+      "pushback": {
+        "bits": "0x3ecdd2f3",
+        "value": 0.4020000398159027
+      }
+    },
+    {
+      "pressure": 255,
+      "health": 1,
+      "damage": 10,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "strength": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f3851ec",
+        "value": 0.7200000286102295
+      },
+      "stunDuration": {
+        "bits": "0x40d00000",
+        "value": 6.5
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e20da74",
+        "value": 0.15708333253860474
+      },
+      "healthAfterDamage": {
+        "bits": "0xc0c00000",
+        "value": -6
+      },
+      "pushback": {
+        "bits": "0x3f47ae16",
+        "value": 0.7800000905990601
+      }
+    },
+    {
+      "pressure": 255,
+      "health": 1,
+      "damage": 30,
+      "previousStrength": 0.4,
+      "pressureNormalized": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "strength": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "healthAfterDrain": {
+        "bits": "0x3f3851ec",
+        "value": 0.7200000286102295
+      },
+      "stunDuration": {
+        "bits": "0x41780000",
+        "value": 15.5
+      },
+      "sizeWithUnitBase": {
+        "bits": "0x3e20da74",
+        "value": 0.15708333253860474
+      },
+      "healthAfterDamage": {
+        "bits": "0xc1a00000",
+        "value": -20
+      },
+      "pushback": {
+        "bits": "0x3fee147c",
+        "value": 1.8600001335144043
+      }
+    }
+  ]
+}

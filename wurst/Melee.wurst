@@ -279,7 +279,7 @@ class Fighter extends FighterState
         if shieldEffect == null
             shieldEffect = AddSpecialEffect(Abilities.antiMagicShell, centerX + x, centerY)
             BlzSetSpecialEffectAlpha(shieldEffect, 180)
-        let scale = 0.7 + 0.5 * shieldEnergy / SHIELD_MAX
+        let scale = shieldVisualScale(this)
         // AntiMagicShell's Stand bounds center is 47.6 units below its origin.
         BlzSetSpecialEffectPosition(shieldEffect, centerX + x, centerY, floorHeight + z + 50 + 47.6 * scale)
         BlzSetSpecialEffectScale(shieldEffect, scale)
