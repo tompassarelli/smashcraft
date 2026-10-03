@@ -2134,7 +2134,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 			let input = new InputSnapshot()
 			var displacement = 11.83696684
 			var distance = 0.
-			for frame = 1 to 26
+			for frame = 1 to 29
 				advance(fighter, 0, input, 0)
 				distance += displacement
 				fighter.x.assertEquals(distance, 0.001)

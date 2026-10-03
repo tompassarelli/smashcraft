@@ -243,7 +243,7 @@ equivalence without the missing parameters and original-game comparisons.
 
 | Rule group | Implemented and checked | Still required for parity |
 | --- | --- | --- |
-| Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed, sampled roll travel, persistent fast-fall state, and five recorded dash-braking updates | Revision identity, complete frame trajectories, dash/run/turn common values and transitions, walk acceleration, and retail EscapeAir command timing |
+| Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed, sampled roll travel, persistent fast-fall state, and five recorded dash-braking updates | Revision identity, complete frame trajectories, dash/run/turn common values and transitions, walk acceleration, and full EscapeAir animation/fall-special transition parity |
 | Damage | Integer individual hit power, fractional same-frame total, strongest-contact selection, fixed knockback, cap, sampled crouch/smash modifiers and recorded flat-ground traction decay | Common-table confirmation, successive-frame stacking and other grounded surface conditions |
 | Hitlag/hitstun | Separate counters, electric effects carried through contact resolution, crouch arithmetic, direct/detached source pause and recorded same-frame hitlag release | Broader original-game ordered traces, revision identity and verified common values |
 | Shields | Integer shieldstun power, shield-break launch speed, recorded grounded digital defender pushback/attacker recoil and guard-drain timing; airborne attacker recoil initializes from common +0x7D4 `hit_weight_mul`, retains a separate x/z vector, decays by common +0x3E8, and is included in replay | Analog/powershield branches and broader paired displacement/actionability traces |
@@ -1018,12 +1018,49 @@ The frame sweep test checks both characters at each frame 1–30. Additional
 tests cover damage interrupting startup and landing ending dodge protection.
 Neutral/directional dodge force now uses retail common +0x338 =
 3.0999999046325684 Melee units/frame (18.59999942779541 world units/frame),
-with +0x33C = 0.8999999761581421 decay. The 26-tick motion cutoff remains
-provisional: melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c switches from
-decay to ordinary airborne physics through action command variable zero.
-Its event time has not been independently extracted from the verified retail
-EscapeAir script. The 49-frame cap and 4–29 protection remain sourced to the
-version-unidentified frame table, not verified retail command timing.
+with +0x33C = 0.8999999761581421 decay. Retail motion state 236 selects
+submotion/animation 44, ACTION_EscapeAir_figatree. The verified Fox, Falco and
+Captain Falcon scripts write command variable zero to one at animation frame
+30, recorded in wc3-melee:docs/smash-melee-reference/retail-escapeair-events.json.
+The simulation applies decay for 29 moving ticks and ordinary gravity plus
+air drift from tick 30. The 49-frame animation cap remains sourced to the
+version-unidentified frame table; this change does not establish full
+animation-end/fall-special transition parity.
+
+The update-number conversion uses a static callback/counter trace at Melee
+revision 0296f009f32f710495979d30772d8332af2d411a, independently of the retail
+command-word extraction. Fighter_ChangeMotionState requests animation zero;
+the first animation evaluation consumes first-play without advancing and
+processes commands at frame zero. EscapeAir entry then calls the animation and
+command update once more, reaching frame one before its first physics step.
+Subsequent unfrozen animation callbacks precede input and physics. The
+asynchronous timer targets frame 30, and its command write occurs before that
+frame's physics callback. This is 29 decay steps, not 30.
+
+| Moving update | Animation frame before physics | Physics |
+| --- | --- | --- |
+| Entry | 1, following setup at 0 | Multiply velocity by retail decay |
+| 29 | 29 | Last decay step |
+| 30 | 30; command variable zero becomes one | Gravity, fast-fall eligibility and air drift |
+
+The trace uses melee:src/melee/ft/fighter.c (state setup and callback phases),
+melee:src/melee/ft/ftanim.c (animation then command processing),
+melee:src/sysdolphin/baselib/aobj.c (first-play evaluation),
+melee:src/melee/lb/lbcommand.c (absolute-frame timer), and
+melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c (entry and physics selection).
+No implementation was copied or translated. This is source-derived scheduling
+evidence, not a captured original-game trajectory. Hitlag freezes the action
+clock and resumes this boundary on expiry; existing snapshot fields already
+preserve the phase. Tests exercise neutral and both diagonal vertical
+directions, all three steering inputs, the exact 29/30 boundary, hitlag, and
+restore/replay through the boundary using the factual Falco rig. The original
+roster and approved 18-degree horizontal convenience are unchanged.
+The focused dodge filter passed 32/32 with zero compiler errors and one
+existing unused-import warning; evidence is
+wc3-melee:build/retail-dodge-switch-tests.log. The long-displacement expectations
+use independently calculated binary32 accumulation, matching the pinned Wurst
+interpreter arithmetic; tolerances were retained. Native trajectory comparison
+and the full animation-end transition remain outside this result.
 
 An accepted air dodge replaces prior ordinary movement and clears both launch
 momentum components, including for neutral input. This follows the momentum
@@ -1136,7 +1173,8 @@ Focused filters passed retailAerial 5/5, dodge 30/30, and fast 9/9 with zero
 compiler errors and the existing unused-import warning. Evidence is
 wc3-melee:build/retail-aerial-tests.log, wc3-melee:build/retail-dodge-tests.log,
 and wc3-melee:build/retail-fastfall-tests.log. These checks do not establish
-native behavior or the unresolved EscapeAir action-event timing.
+native behavior. The EscapeAir switch timing was subsequently corrected
+using the command facts and callback trace described above.
 Retail values and private file identity are recorded in
 wc3-melee:docs/smash-melee-reference/physics-parameters.json. These are numerical
 and behavioral facts; no decompiled implementation was copied or translated.

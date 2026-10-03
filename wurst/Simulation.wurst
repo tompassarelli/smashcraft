@@ -48,7 +48,8 @@ constant real AIR_DODGE_SPEED = 3.0999999046325684 * WORLD_UNITS_PER_MELEE_UNIT
 constant real AIR_DODGE_DECAY = 0.8999999761581421
 constant real FAST_FALL_DOWN_THRESHOLD = 0.6625000238418579
 constant int FAST_FALL_INPUT_WINDOW = 4
-constant int AIR_DODGE_FRAMES = 26
+// EscapeAir processes animation frame one before entry physics; frame 30 resumes air physics.
+constant int AIR_DODGE_DECAY_FRAMES = 29
 constant int AIR_DODGE_INTANGIBLE_START = 4
 constant int AIR_DODGE_INTANGIBLE_END = 29
 public constant int AIR_DODGE_ANIMATION_FRAMES = 49
@@ -2739,7 +2740,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	f.knockbackX = 0
 	f.groundKnockbackX = 0
 	f.knockbackZ = 0
-	f.airDodgeTime = AIR_DODGE_FRAMES
+	f.airDodgeTime = AIR_DODGE_DECAY_FRAMES
 	f.airDodging = true
 	f.crouching = false
 	f.airDodgeFrame = 0
@@ -3118,7 +3119,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		return
 	var direction = input.direction
 	var dashEntryDisplacementAdjustment = 0.
-	let canSteer = f.downState == DOWN_NONE and f.hitstun <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and not smashChargePaused and (not f.grounded or f.cooldown <= 0)
+	let canSteer = f.downState == DOWN_NONE and f.hitstun <= 0 and (not f.airDodging or not dodgeActive) and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and not smashChargePaused and (not f.grounded or f.cooldown <= 0)
 	f.crouching = input.down and input.direction == 0 and f.grounded and canSteer and not wantsShield and f.attackStyle < 0 and f.specialAction == SPECIAL_NONE
 	if canSteer and not f.grounded and direction != 0
 		f.lastAerialTapDirection = direction
