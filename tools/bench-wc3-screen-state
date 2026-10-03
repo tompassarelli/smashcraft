@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+[[ $# == 1 && -d "$1" ]] || { echo 'Usage: wc3-melee:tools/bench-wc3-screen-state FIXTURE_DIR' >&2; exit 2; }
+fixture_dir=$1
+observer="$(dirname "$0")/wc3-screen-state"
+files=(a-before a-after-key a-after-custom-click a-relative-click)
+expected=(main-menu single-player create-game disconnected)
+printf 'sample\tfixture\tmode\telapsed_ms\tstate\n'
+# Alternate order to avoid giving either mode all first reads.
+for sample in 1 2 3; do
+  modes=(full compact)
+  (( sample % 2 )) || modes=(compact full)
+  for i in "${!files[@]}"; do
+    for mode in "${modes[@]}"; do
+      start=$(date +%s%N)
+      state=$("$observer" "$fixture_dir/${files[i]}.png" "$mode")
+      stop=$(date +%s%N)
+      [[ "$state" == "${expected[i]}" ]] || { echo "Unexpected state for ${files[i]}: $state" >&2; exit 1; }
+      printf '%s\t%s\t%s\t%s\t%s\n' "$sample" "${files[i]}" "$mode" "$(((stop-start)/1000000))" "$state"
+    done
+  done
+done
