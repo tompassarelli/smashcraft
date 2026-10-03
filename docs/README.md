@@ -6,6 +6,7 @@
 - [Development setup and loop](development-loop.md) — build, reload, and test workflow.
 - [Wurst toolchain](wurst-toolchain.md) — compiler, standard library, and engine boundaries.
 - [Delivery goal](delivery-goal.md) — current scope and completion criteria.
+- [Online play and companion delivery](online-delivery.md) — low-latency ownership, cross-platform controller direction, GitHub milestones and acceptance limits.
 - [Physics reference](physics.md) — source values, implementation, and known differences.
 - [Melee foundation roadmap](melee-foundation-roadmap.md) — GitHub milestones, dependencies, physics acceptance, balance constraints, and combat effects.
 - [Melee frame-data reference](../references/melee-frame-data/README.md) — factual JSONL intake, source conventions, coverage, and limitations.
