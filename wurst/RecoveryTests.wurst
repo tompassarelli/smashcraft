@@ -213,6 +213,25 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	destroy target
 	destroy attacker
 
+@Test function downDamageCompletionChecksGetupInputWithoutWaitingAnotherTick()
+	for host = 0 to 1
+		let attacker = new FighterState(0, 0, 1)
+		let target = new FighterState(host, 50, -1)
+		let input = new InputSnapshot()
+		target.damage = 80
+		weakRecoveryHit(1, attacker, target)
+		while target.hitlag > 1
+			advance(target, 0, input, -240)
+		for tick = 1 to DOWN_DAMAGE_FRAMES - 1
+			advance(target, 0, input, -240)
+			target.downState.assertEquals(DOWN_DAMAGE)
+		input.getupAttackPressed = true
+		advance(target, 0, input, -240)
+		target.downState.assertEquals(DOWN_ATTACK)
+		destroy input
+		destroy target
+		destroy attacker
+
 @Test function downDamageEndsInStandWhenItsHitstunExpiresDuringTheAnimation()
 	let fighter = new FighterState(0, 0, 1)
 	let input = new InputSnapshot()
@@ -229,6 +248,20 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	fighter.downFrame.assertEquals(1)
 	destroy input
 	destroy fighter
+
+@Test function proneWaitExpiryStartsStandBeforeGetupInput()
+	for remaining = 1 to 2
+		let fighter = new FighterState(0, 0, 1)
+		let input = new InputSnapshot()
+		fighter.surface = 0
+		fighter.grounded = true
+		fighter.downState = DOWN_WAIT
+		fighter.downWaitRemaining = remaining
+		input.getupAttackPressed = true
+		advance(fighter, 0, input, -240)
+		fighter.downState.assertEquals(remaining == 1 ? DOWN_STAND : DOWN_ATTACK)
+		destroy input
+		destroy fighter
 
 @Test function replaySnapshotRetainsFaceAndDownDamageRecoveryTimers()
 	let first = new FighterState(0, -90, 1)
@@ -310,3 +343,53 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	target.grounded.assertTrue()
 	destroy target
 	destroy owner
+
+@Test function floorRecoverySkidLeavesPlatformWithoutKeepingTheGroundedPose()
+	for host = 0 to 1
+		for stage = 0 to 1
+			for side = 0 to 1
+				for recovery = 0 to 2
+					let direction = side == 0 ? -1 : 1
+					let deck = stage == 0 ? 0 : 1
+					let edge = direction < 0 ? surfaceLeft(stage, deck) : surfaceRight(stage, deck)
+					let fighter = new FighterState(host, edge - direction * 30, direction)
+					let input = new InputSnapshot()
+					fighter.physics = floorRecoveryReferencePhysics()
+					fighter.grounded = false
+					fighter.surface = -1
+					fighter.z = surfaceZ(stage, deck) + 1
+					fighter.vz = -2
+					fighter.knockbackX = direction * 18.
+					fighter.downState = DOWN_TUMBLE
+					fighter.hitstun = 20
+					input.techPressed = recovery > 0
+					input.direction = recovery == 2 ? direction : 0
+					advance(fighter, stage, input, 0)
+					fighter.downState.assertEquals(recovery == 0 ? DOWN_BOUND : (recovery == 1 ? DOWN_TECH : DOWN_TECH_ROLL))
+					fighter.surface.assertEquals(deck)
+					fighter.grounded.assertTrue()
+					input.techPressed = false
+					let contactX = fighter.x
+					let contactZ = fighter.z
+					advance(fighter, stage, input, 0)
+					if recovery == 2
+						fighter.x.assertEquals(edge)
+						fighter.grounded.assertTrue()
+						fighter.downState.assertEquals(DOWN_TECH_ROLL)
+						fighter.surface.assertEquals(deck)
+					else
+						((fighter.x - edge) * direction > 0).assertTrue()
+						fighter.grounded.assertFalse()
+						fighter.downState.assertEquals(DOWN_NONE)
+						fighter.surface.assertEquals(-1)
+						fighter.jumps.assertEquals(1)
+						(fighter.knockbackX * direction > 0).assertTrue()
+					fighter.positionDeltaX.assertEquals(fighter.x - contactX)
+					fighter.z.assertEquals(contactZ)
+					advance(fighter, stage, input, 0)
+					if recovery == 2
+						fighter.z.assertEquals(contactZ)
+					else
+						(fighter.z < contactZ).assertTrue()
+					destroy input
+					destroy fighter

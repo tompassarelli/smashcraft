@@ -11,6 +11,7 @@ import ImpactState
 import SpecialEffectState
 import BotRecovery
 
+boolean array hadDashGrabWindow
 boolean array wasGrabbed
 boolean array beforeOut
 int array beforeJump
@@ -72,6 +73,7 @@ public function stepMatch(MatchState game, FighterRoster world, FrameInputs cont
         if world.active(slot)
             let f = world.fighters[slot]
             beforeOut[slot] = f.out
+            hadDashGrabWindow[slot] = f.dashGrabWindow > 0 and f.frozenFrames == 0 and f.hitlag <= 1
             wasGrabbed[slot] = inGrabContext(f)
             if wasGrabbed[slot]
                 controls.commands[slot].clear()
@@ -79,7 +81,7 @@ public function stepMatch(MatchState game, FighterRoster world, FrameInputs cont
     resolveLedges(world, game.stageChoice, controls)
     for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
         if world.active(slot)
-            advance(world.fighters[slot], game.stageChoice, controls.inputs[slot], matchSpawnX(slot))
+            advanceFighterMotion(world.fighters[slot], game.stageChoice, controls.inputs[slot], matchSpawnX(slot))
     captureGrabPauses(world)
     resolveGrabs(world)
     beginDamageContacts()
@@ -95,13 +97,22 @@ public function stepMatch(MatchState game, FighterRoster world, FrameInputs cont
             if f.frozenFrames > 0
                 commands.clear()
             let command = commands.consume(frame, canStartAttackStyle(f, commands.style))
-            let style = attackStyleForGrounding(command, f.grounded, f.facing, commands.consumedFacing)
+            let dashGrabInput = f.grounded and f.dashFrame > 0 and f.dashGrabTiming.startupFrames > 0 and command == 5
+            let catchDash = f.dashGrabWindow > 0 and command == 5 and f.dashGrabTiming.startupFrames > 0
+            let style = dashGrabInput or catchDash ? 11 : attackStyleForGrounding(command, f.grounded, f.facing, commands.consumedFacing)
+            if catchDash
+                f.dashGrabWindow = 0
             if f.grounded and style >= 0 and commands.consumedFacing != 0
                 f.facing = commands.consumedFacing
             beginFighterAttack(world, slot, style, commands.consumedMayCharge and controls.inputs[slot].attackHeld)
+            if hadDashGrabWindow[slot] and f.dashGrabWindow > 0 and not f.dashGrabAttack
+                f.dashGrabWindow = max(0, f.dashGrabWindow - 1)
     resolveAttacks(world)
     advanceSpecials(world, game.stageChoice)
     updateProjectiles(world)
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if world.active(slot)
+            regenerateShield(world.fighters[slot])
     finishDamageContacts(world)
     resolveGrabs(world)
     for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1

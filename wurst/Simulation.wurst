@@ -2,21 +2,78 @@ package Simulation
 import RollTravel
 import ParticipantInputs
 import CommandBuffer
+import Binary32
 
 public constant real WORLD_UNITS_PER_MELEE_UNIT = 6
+
+function roundMeleeWorldValue(real value) returns real
+	return (value / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32() * WORLD_UNITS_PER_MELEE_UNIT
+
+function addMeleeWorldValues(real value, real displacement) returns real
+	// Authored stationary surfaces need exact zero-displacement identity.
+	if displacement == 0
+		return value
+	let left = (value / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
+	let right = (displacement / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
+	return (left + right).roundToFloat32() * WORLD_UNITS_PER_MELEE_UNIT
 public constant real GROUND_TRACTION = 0.07999999821186066 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real INITIAL_DASH_SPEED = 1.899999976158142 * WORLD_UNITS_PER_MELEE_UNIT
 // Shared coefficients extracted from the locally identified NTSC 1.02 PlCo.dat.
 constant real WALK_ACCEL_TAPER_GAIN = 0.5
 constant real RUN_ACCEL_TAPER_GAIN = 0.4000000059604645
 constant real RUN_DASH_TURN_FRICTION_MULTIPLIER = 1
-// Animation-state duration remains a simulation approximation, not a PlCo value.
+// TurnRun's velocity test is encoded in Melee units; world velocity is scaled.
+constant real TURN_RUN_ZERO_VELOCITY_THRESHOLD = 0.01 * WORLD_UNITS_PER_MELEE_UNIT
+// The original roster keeps authored movement timing. NTSC reference fixtures
+// inject their own actor-owned command timeline; the encoded event is not a
+// universal character constant.
 public constant int INITIAL_DASH_FRAMES = 10
+// NTSC common +0x4c; only the Dash-to-Guard branch uses this early/late split.
+public constant int DASH_GUARD_EARLY_FRAMES = 20
+public constant int GROUND_ACTION_NONE = 0
+public constant int GROUND_ACTION_DASH = 1
+public constant int GROUND_ACTION_RUN = 2
+public constant int GROUND_ACTION_TURN_RUN = 3
+public constant int GROUND_ACTION_RUN_BRAKE = 4
+public tuple groundMovementRules(int dashRunEnableFrame, int turnRunFacingCommandFrame,
+		int turnRunAnimationEndFrame, int runBrakeTurnCommandEndFrame,
+		int runBrakeAnimationEndFrame, int runBrakeMaximumFrames)
+
+public tuple dashGrabRules(int startupFrames, int activeFrames, int totalFrames)
+
+// The authored roster retains its existing grab timing; test rigs override it.
+public function authoredDashGrabRules() returns dashGrabRules
+	return dashGrabRules(attackStartupFrames(5), 1, attackDurationFramesForGrounding(5, true))
+
+public function ntscFoxDashGrabRules() returns dashGrabRules
+	return dashGrabRules(10, 2, 40)
+
+public function ntscFalcoDashGrabRules() returns dashGrabRules
+	return dashGrabRules(10, 2, 40)
+
+public function ntscCaptainFalconDashGrabRules() returns dashGrabRules
+	return dashGrabRules(9, 2, 40)
+
+public function authoredGroundMovementRules() returns groundMovementRules
+	// Existing Smashcraft roster timing is an authored approximation, not a
+	// retail-derived value.
+	return groundMovementRules(INITIAL_DASH_FRAMES + 1, 9, 20, 15, 0, 0)
+
+public function ntscFoxGroundMovementRules() returns groundMovementRules
+	return groundMovementRules(12, 9, 20, 15, 18, 30)
+
+public function ntscFalcoGroundMovementRules() returns groundMovementRules
+	return groundMovementRules(12, 9, 20, 15, 18, 30)
+
+public function ntscCaptainFalconGroundMovementRules() returns groundMovementRules
+	return groundMovementRules(16, 9, 22, 15, 28, 30)
 // Shared ground acceleration defaults for original Smashcraft fighters. The
 // Falco reference rig supplies its separately sourced values in tests only.
 constant real GROUND_ACCELERATION_MULTIPLIER = 0.1
 constant real GROUND_ACCELERATION_BASE = 0.02
 constant real GROUND_SPEED_CAP = 3 * WORLD_UNITS_PER_MELEE_UNIT
+// NTSC 1.02 common +0x4F0; upward knockback, not ordinary jump velocity.
+public constant real TOP_KO_MINIMUM_UPWARD_KNOCKBACK = 2.4000000953674316 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real SHIELD_MAX = 60.
 public constant int SHIELD_BREAK_NONE = 0
 public constant int SHIELD_BREAK_AIR = 1
@@ -36,8 +93,8 @@ constant real SHIELD_DRAIN_PER_FRAME = SHIELD_DRAIN_BASE * SHIELD_DRAIN_FULL_SHI
 constant real SHIELD_REGEN_PER_FRAME = 0.07000000029802322
 constant real SHIELD_DAMAGE_SCALE = 1.
 constant real SHIELD_DAMAGE_BASE = 0.
-constant real SHIELD_DIGITAL_DAMAGE_FACTOR = 0.7
-constant real SHIELD_STUN_DAMAGE_FACTOR = 0.3
+constant real SHIELD_DIGITAL_DAMAGE_FACTOR = 0.699999988079071
+constant real SHIELD_STUN_DAMAGE_FACTOR = 0.30000001192092896
 constant real SHIELD_STUN_MULTIPLIER = 1.5
 constant real SHIELD_STUN_BASE = 2.
 constant real SHIELD_PUSHBACK_BASE = 0.20000000298023224
@@ -162,8 +219,9 @@ public constant int SURFACE_TECH_CEILING = 4
 public constant real SURFACE_REFLECT_SPEED_THRESHOLD = 1. * WORLD_UNITS_PER_MELEE_UNIT
 public constant real SURFACE_REFLECT_ATTENUATION = 0.800000011920929
 public constant int SURFACE_REFLECT_COOLDOWN_FRAMES = 3
-public constant int SURFACE_TECH_STARTUP_FRAMES = 5
+public constant int WALL_TECH_STARTUP_FRAMES = 5
 public constant int SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES = 14
+public constant int WALL_TECH_JUMP_INPUT_WINDOW_FRAMES = 20
 // PlCo.dat +0x164 max_grounded_kb_on_landing, converted to map units.
 public constant real MAX_GROUNDED_KNOCKBACK_ON_LANDING = 8.300000190734863 * WORLD_UNITS_PER_MELEE_UNIT
 public constant int TECH_WINDOW_FRAMES = 20
@@ -360,10 +418,25 @@ public class FighterState
 	int character
 	fighterPhysics physics
 	surfaceRecoveryPhysics surfacePhysics
+	// Actor command timing; NTSC Fox/Falco use 14, Captain Falcon uses 11.
+	int ceilingTechImpulseFrame = 14
+	int ceilingTechAnimationEndFrame = 26
+	int wallTechAnimationEndFrame = 26
+	int wallJumpTechAnimationEndFrame = 40
 	int facing
 	int lastAerialTapDirection = 0
 	int dashFrame = 0
 	int dashDirection = 0
+	groundMovementRules groundRules
+	dashGrabRules dashGrabTiming = authoredDashGrabRules()
+	int dashGrabWindow = 0
+	boolean dashGrabAttack = false
+	int groundAction = GROUND_ACTION_NONE
+	int groundActionFrame = 0
+	int groundRunBrakeFramesRemaining = 0
+	int groundTurnRunEntryFacing = 0
+	boolean groundTurnRunFacingCommandLatched = false
+	boolean groundTurnRunPausePending = false
 	real x
 	real z
 	// Last completed movement step, sampled by synchronous contact resolution.
@@ -464,12 +537,15 @@ public class FighterState
 	int shieldBreakState = SHIELD_BREAK_NONE
 	int shieldBreakFrame = 0
 	int shieldBreakSerial = 0
+	int shieldBreakDownFrames = SHIELD_BREAK_LAND_FRAMES
+	int shieldBreakStandFrames = SHIELD_BREAK_STAND_FRAMES
 	real shieldBreakRemaining = 0
 	boolean grounded = true
 	boolean crouching = false
 	boolean fastFalling = false
 	boolean fastFallDownHeld = false
 	int fastFallInputAge = FAST_FALL_INPUT_WINDOW
+	int jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
 	int jumps = 2
 	int jumpSerial = 0
 	boolean jumpIsDouble = false
@@ -484,6 +560,7 @@ public class FighterState
 	int surfaceRecoveryState = SURFACE_NONE
 	int surfaceRecoveryFrame = 0
 	boolean surfaceRecoveryVelocityApplied = false
+	boolean surfaceWallJumpQueued = false
 	int surfaceReflectCooldown = 0
 	int lastReflectedSurface = -1
 	int surfaceContactSerial = 0
@@ -528,6 +605,7 @@ public class FighterState
 	construct(int fighterType, real startX, int direction)
 		character = fighterType
 		physics = authoredPhysics(fighterType)
+		groundRules = authoredGroundMovementRules()
 		surfacePhysics = noSurfaceRecoveryPhysics()
 		x = startX
 		z = 0
@@ -699,8 +777,8 @@ function decayKnockback(FighterState f)
 	if f.grounded
 		if f.groundKnockbackX == 0
 			f.groundKnockbackX = f.knockbackX
-		let friction = f.physics.traction * GROUND_KNOCKBACK_FRICTION_MULTIPLIER
-		f.groundKnockbackX = f.groundKnockbackX > 0 ? max(0, f.groundKnockbackX - friction) : min(0, f.groundKnockbackX + friction)
+		let friction = roundMeleeWorldValue(f.physics.traction * GROUND_KNOCKBACK_FRICTION_MULTIPLIER)
+		f.groundKnockbackX = roundMeleeWorldValue(f.groundKnockbackX > 0 ? max(0, f.groundKnockbackX - friction) : min(0, f.groundKnockbackX + friction))
 		f.knockbackX = f.groundKnockbackX
 		f.knockbackZ = 0
 		return
@@ -717,7 +795,8 @@ function decayKnockback(FighterState f)
 		f.knockbackZ *= scale
 
 public function digitalShieldstunDuration(real damage) returns real
-	return integerHitPower(damage) * SHIELD_STUN_DAMAGE_FACTOR * SHIELD_STUN_MULTIPLIER + SHIELD_STUN_BASE
+	let scaledPower = (integerHitPower(damage) * SHIELD_STUN_DAMAGE_FACTOR).roundToFloat32()
+	return fusedMultiplyAddFloat32(scaledPower, SHIELD_STUN_MULTIPLIER, SHIELD_STUN_BASE)
 
 public function digitalShieldPushback(real damage) returns real
 	return min(SHIELD_PUSHBACK_CAP,
@@ -728,7 +807,7 @@ public function digitalShieldRecoil(real damage) returns real
 	return (integerHitPower(damage) * SHIELD_RECOIL_DAMAGE_FACTOR + SHIELD_RECOIL_BASE) * WORLD_UNITS_PER_MELEE_UNIT
 
 public function digitalShieldDamage(real damage) returns real
-	return damage * SHIELD_DIGITAL_DAMAGE_FACTOR * SHIELD_DAMAGE_SCALE + SHIELD_DAMAGE_BASE
+	return (damage * SHIELD_DIGITAL_DAMAGE_FACTOR * SHIELD_DAMAGE_SCALE + SHIELD_DAMAGE_BASE).roundToFloat32()
 
 function decayShieldMotion(FighterState f)
 	if f.grounded
@@ -864,6 +943,73 @@ public function characterSpeed(int character) returns real
 function clearDash(FighterState f)
 	f.dashFrame = 0
 	f.dashDirection = 0
+	f.groundAction = GROUND_ACTION_NONE
+	f.groundActionFrame = 0
+	f.groundRunBrakeFramesRemaining = 0
+	f.groundTurnRunEntryFacing = 0
+	f.groundTurnRunFacingCommandLatched = false
+	f.groundTurnRunPausePending = false
+
+function groundActionClockLimit(FighterState f) returns int
+	return max(max(f.groundRules.dashRunEnableFrame, f.groundRules.turnRunAnimationEndFrame),
+		max(f.groundRules.runBrakeTurnCommandEndFrame, f.groundRules.runBrakeAnimationEndFrame))
+
+function runBrakeHasRecordedEndRules(FighterState f) returns boolean
+	return f.groundRules.runBrakeAnimationEndFrame > 0 and f.groundRules.runBrakeMaximumFrames > 0
+
+function startRunBrake(FighterState f)
+	f.groundAction = GROUND_ACTION_RUN_BRAKE
+	f.groundActionFrame = 0
+	f.groundRunBrakeFramesRemaining = f.groundRules.runBrakeMaximumFrames
+
+function startTurnRun(FighterState f, int animationFrame)
+	f.groundAction = GROUND_ACTION_TURN_RUN
+	f.groundActionFrame = animationFrame
+	f.groundTurnRunEntryFacing = f.facing
+	// A nonzero animation start at/past frame 9 enters with the facing command
+	// phase active; the paused animation still waits for its velocity condition.
+	f.groundTurnRunFacingCommandLatched = animationFrame >= f.groundRules.turnRunFacingCommandFrame
+	f.groundTurnRunPausePending = f.groundTurnRunFacingCommandLatched
+	f.groundRunBrakeFramesRemaining = 0
+
+function advanceGroundActionClock(FighterState f, int direction)
+	if f.groundAction == GROUND_ACTION_RUN
+		f.groundActionFrame = min(groundActionClockLimit(f), f.groundActionFrame + 1)
+	else if f.groundAction == GROUND_ACTION_RUN_BRAKE
+		if runBrakeHasRecordedEndRules(f)
+			if f.groundRunBrakeFramesRemaining <= 0
+				f.groundRunBrakeFramesRemaining = f.groundRules.runBrakeMaximumFrames
+			f.groundRunBrakeFramesRemaining = max(0, f.groundRunBrakeFramesRemaining - 1)
+		f.groundActionFrame = min(groundActionClockLimit(f), f.groundActionFrame + 1)
+		if runBrakeHasRecordedEndRules(f) and (f.groundActionFrame >= f.groundRules.runBrakeAnimationEndFrame or f.groundRunBrakeFramesRemaining <= 0)
+			clearDash(f)
+	else if f.groundAction == GROUND_ACTION_TURN_RUN
+		if f.groundTurnRunPausePending
+			f.groundActionFrame = min(f.groundRules.turnRunAnimationEndFrame, f.groundActionFrame + 1)
+			f.groundTurnRunPausePending = false
+			return
+		if f.groundTurnRunFacingCommandLatched and f.facing == f.groundTurnRunEntryFacing
+			// The command pauses TurnRun; a later animation update changes facing
+			// only after ground velocity crosses zero.
+			if f.vx * f.groundTurnRunEntryFacing <= TURN_RUN_ZERO_VELOCITY_THRESHOLD
+				f.facing = -f.groundTurnRunEntryFacing
+				f.dashDirection = f.facing
+				return
+			else
+				return
+		if f.groundActionFrame < f.groundRules.turnRunAnimationEndFrame
+			let previousFrame = f.groundActionFrame
+			f.groundActionFrame = min(f.groundRules.turnRunAnimationEndFrame, f.groundActionFrame + 1)
+			if previousFrame < f.groundRules.turnRunFacingCommandFrame and f.groundActionFrame >= f.groundRules.turnRunFacingCommandFrame
+				f.groundTurnRunFacingCommandLatched = true
+			if f.groundActionFrame >= f.groundRules.turnRunAnimationEndFrame
+				if direction == f.facing
+					f.groundAction = GROUND_ACTION_RUN
+					f.groundActionFrame = 0
+					f.groundTurnRunEntryFacing = 0
+					f.groundTurnRunFacingCommandLatched = false
+				else
+					clearDash(f)
 
 function advanceGroundMovement(FighterState f, int direction, boolean walking) returns boolean
 	if walking
@@ -878,35 +1024,70 @@ function advanceGroundMovement(FighterState f, int direction, boolean walking) r
 				walkAcceleration *= (1 - walkVelocityAlongTarget / walkTargetSpeed) * WALK_ACCEL_TAPER_GAIN
 			f.vx = groundMovementVelocity(f.vx, walkAcceleration, walkTargetVelocity, f.physics.traction, f.physics.groundSpeedCap)
 		return false
+	let previousGroundAction = f.groundAction
+	advanceGroundActionClock(f, direction)
+	if previousGroundAction == GROUND_ACTION_RUN_BRAKE and f.groundAction == GROUND_ACTION_NONE
+		return false
+	if previousGroundAction == GROUND_ACTION_TURN_RUN and f.groundAction == GROUND_ACTION_NONE
+		return false
+	if direction != 0 and f.groundAction == GROUND_ACTION_RUN_BRAKE
+		if direction * f.facing < 0 and f.groundActionFrame < f.groundRules.runBrakeTurnCommandEndFrame
+			startTurnRun(f, f.groundActionFrame)
+			// Retail RunBrake starts TurnRun at the current animation frame.
+		else
+			// RunBrake's actor-owned command window has closed. Neutral braking
+			// continues until the action ends or the fighter reaches rest.
+			f.vx = f.vx > 0 ? max(0, f.vx - f.physics.traction) : min(0, f.vx + f.physics.traction)
+			if f.vx.abs() <= f.physics.traction and not runBrakeHasRecordedEndRules(f)
+				clearDash(f)
+			return false
 	if direction == 0
-		if f.vx.abs() <= f.physics.traction * RUN_DASH_TURN_FRICTION_MULTIPLIER
+		if f.groundAction == GROUND_ACTION_RUN
+			startRunBrake(f)
+		if f.vx.abs() <= f.physics.traction * RUN_DASH_TURN_FRICTION_MULTIPLIER and
+			(f.groundAction != GROUND_ACTION_RUN_BRAKE or not runBrakeHasRecordedEndRules(f))
 			clearDash(f)
 		else if f.dashFrame > 0
 			f.dashFrame = min(INITIAL_DASH_FRAMES + 1, f.dashFrame + 1)
+			if f.groundAction == GROUND_ACTION_DASH
+				f.groundActionFrame = min(groundActionClockLimit(f), f.groundActionFrame + 1)
 		return false
 	if f.dashFrame == 0 or direction != f.dashDirection
-		if f.dashFrame >= INITIAL_DASH_FRAMES and f.vx * f.dashDirection > 0
+		if f.groundAction == GROUND_ACTION_RUN or f.groundAction == GROUND_ACTION_TURN_RUN
 			// Run turning uses the ordinary dash acceleration toward the new
-			// target. Facing changes only after ground velocity crosses zero.
-			f.dashFrame = INITIAL_DASH_FRAMES + 1
+			// target. The retail command at frame 9 delays facing until the
+			// velocity has crossed zero; the timing is per actor.
+			if f.groundAction != GROUND_ACTION_TURN_RUN
+				startTurnRun(f, 0)
 		else
 			f.dashFrame = 1
 			f.dashDirection = direction
+			f.groundAction = GROUND_ACTION_DASH
+			// Dash entry explicitly advances its animation once before physics.
+			f.groundActionFrame = 1
 			f.facing = direction
 			f.vx = direction * min(f.physics.dashSpeed, f.physics.groundSpeedCap)
 			return true
 	else
 		f.dashFrame = min(INITIAL_DASH_FRAMES + 1, f.dashFrame + 1)
+		if f.groundAction == GROUND_ACTION_DASH
+			f.groundActionFrame = min(groundActionClockLimit(f), f.groundActionFrame + 1)
+	if f.groundAction == GROUND_ACTION_DASH and direction == f.dashDirection
+		if f.groundActionFrame >= f.groundRules.dashRunEnableFrame
+			f.groundAction = GROUND_ACTION_RUN
+			f.groundActionFrame = 0
+	else if f.groundAction == GROUND_ACTION_RUN and direction == 0
+		startRunBrake(f)
 	let runTarget = f.physics.runSpeed
 	let targetVelocity = direction * runTarget
 	var acceleration = (f.physics.groundAccelerationMultiplier + f.physics.groundAccelerationBase) * WORLD_UNITS_PER_MELEE_UNIT * direction
-	if f.dashFrame > INITIAL_DASH_FRAMES and targetVelocity != 0
+	if f.groundAction == GROUND_ACTION_RUN and targetVelocity != 0
 		let velocityAlongTarget = f.vx * direction
 		if velocityAlongTarget > 0 and velocityAlongTarget < runTarget
 			acceleration *= (1 - velocityAlongTarget / runTarget) * RUN_ACCEL_TAPER_GAIN
 	f.vx = groundMovementVelocity(f.vx, acceleration, targetVelocity,
 		f.physics.traction * RUN_DASH_TURN_FRICTION_MULTIPLIER, f.physics.groundSpeedCap)
-	if f.vx * direction > 0
+	if f.groundAction != GROUND_ACTION_TURN_RUN and f.vx * direction > 0
 		f.facing = direction
 		f.dashDirection = direction
 	return false
@@ -941,6 +1122,10 @@ public function jumpSquatFrames(int character) returns int
 	return authoredPhysics(character).jumpSquatFrames
 
 function canStartAttack(FighterState attacker) returns boolean
+	if attacker.surfaceRecoveryState == SURFACE_TECH_CEILING
+		return false
+	if attacker.surfaceRecoveryState == SURFACE_TECH_WALL and attacker.surfaceRecoveryFrame < WALL_TECH_STARTUP_FRAMES
+		return false
 	if attacker.grabTarget != null or attacker.grabAction != GRAB_NONE
 		return false
 	if attacker.frozenFrames > 0
@@ -953,9 +1138,14 @@ public function canAttack(FighterState attacker) returns boolean
 	return canStartAttack(attacker) and not attacker.shield and attacker.frozenFrames <= 0
 
 public function canShieldGrab(FighterState attacker) returns boolean
-	return canStartAttack(attacker) and attacker.shield and attacker.grounded and attacker.shieldEnergy > 0
+	return canStartAttack(attacker) and attacker.shield and attacker.grounded and not attacker.shieldDrainResumePending
 
 public function canStartAttackStyle(FighterState attacker, int style) returns boolean
+	if style == 11
+		return attacker.grounded and attacker.dashGrabTiming.startupFrames > 0 and
+			((attacker.dashFrame > 0 and canAttack(attacker)) or (attacker.shield and canShieldGrab(attacker)))
+	if style == 5 and attacker.grounded and attacker.dashFrame > 0 and attacker.dashGrabTiming.startupFrames > 0
+		return canAttack(attacker)
 	return canAttack(attacker) or (style == 5 and canShieldGrab(attacker))
 
 public function isAerialAttack(int style) returns boolean
@@ -1123,6 +1313,10 @@ public function attackRecoveryFrames(int style, boolean grounded) returns int
 public function attackPhase(FighterState f) returns int
 	if f.attackStyle < 0
 		return ATTACK_NONE
+	if f.dashGrabAttack
+		if f.attackFrame < f.dashGrabTiming.startupFrames
+			return ATTACK_STARTUP
+		return f.attackFrame < f.dashGrabTiming.startupFrames + f.dashGrabTiming.activeFrames ? ATTACK_ACTIVE : ATTACK_RECOVERY
 	if f.attackFrame < attackStartupFrames(f.attackStyle)
 		return ATTACK_STARTUP
 	if f.attackFrame < attackStartupFrames(f.attackStyle) + characterAttackActiveFrames(f.character, f.attackStyle)
@@ -1182,7 +1376,7 @@ public function queueDamageContact(FighterState source, FighterState target, hit
 		int facing, int kind, boolean direct, InputSnapshot throwInput)
 	let unblockable = kind == CONTACT_THROW or kind == CONTACT_PUMMEL
 	damageContacts[damageContactCount] = damageContact(source, target, data, facing, kind, direct,
-		not unblockable and target.shield and target.shieldEnergy > 0, target.crouching,
+		not unblockable and target.shield, target.crouching,
 		target.grounded, source.grounded, source.positionDeltaX, source.positionDeltaZ,
 		target.positionDeltaX, target.positionDeltaZ, isDownDamageState(target),
 		kind == CONTACT_THROW ? 1. : hitContextScale(target), throwInput)
@@ -1215,7 +1409,7 @@ function resolveDamageContacts(FighterState target)
 		if contact.target == target
 			if contact.blocked
 				blockedContact = true
-				shieldDamage += digitalShieldDamage(contact.data.damage)
+				shieldDamage = (shieldDamage + contact.data.damage).roundToFloat32()
 			else
 				totalDamage += contact.data.damage
 	let postHitPercent = R2I(max(0, target.damage)) + totalDamage
@@ -1266,12 +1460,13 @@ function resolveDamageContacts(FighterState target)
 	if blockedContact
 		target.shieldVisualSerial++
 	if shieldDamage > 0
-		target.shieldEnergy = max(0, target.shieldEnergy - shieldDamage)
+		target.shieldEnergy = (target.shieldEnergy - digitalShieldDamage(shieldDamage)).roundToFloat32()
 	if shieldPushback > 0 and target.grounded
 		target.shieldPushbackX = shieldDirection * shieldPushback
 		target.shieldDrainResumePending = true
 	if shieldDamage > 0
-		if target.shieldEnergy == 0
+		if target.shieldEnergy < 0
+			target.shieldEnergy = SHIELD_BREAK_RESTORED_ENERGY
 			beginShieldBreak(target)
 	if winner < 0 and flinch < 0
 		return
@@ -1411,6 +1606,10 @@ function selectHitRegion(FighterState attacker, FighterState target) returns hit
 		return noHitRegion()
 	let localX = (target.x - attacker.x) * attacker.facing
 	let localZ = target.z - attacker.z
+	if attacker.dashGrabAttack
+		if attacker.attackFrame >= attacker.dashGrabTiming.startupFrames and attacker.attackFrame < attacker.dashGrabTiming.startupFrames + attacker.dashGrabTiming.activeFrames and localX >= 0 and localX <= attackReach(5) and localZ >= -130 and localZ <= 130
+			return hitRegion(0, attackReach(5), -130, 130, hitEffect(0, 0, 0, 0, 0, false), 1)
+		return noHitRegion()
 	for index = 0 to (attacker.attackStyle == 6 ? 1 : 0)
 		let hitBox = authoredHitRegion(attacker.character, attacker.attackStyle, attacker.attackFrame, attacker.smashChargeFrames, index)
 		let alreadyHit = alreadyHitRegion(attacker, target, hitBox.window)
@@ -1462,7 +1661,8 @@ public function isIntangible(FighterState f) returns boolean
 		or (f.downState == DOWN_ROLL and f.downFrame > 0 and f.downFrame <= downRollIntangibleFrames)
 		or (f.downState == DOWN_ATTACK and f.downFrame > 0 and f.downFrame <= (f.downFaceUp ? DOWN_ATTACK_INTANGIBLE_FRAMES_UP : DOWN_ATTACK_INTANGIBLE_FRAMES_DOWN))
 	let techIntangible = isFloorTeching(f) and f.downFrame >= 1 and f.downFrame <= (f.downState == DOWN_TECH ? TECH_INTANGIBLE_FRAMES : TECH_ROLL_INTANGIBLE_FRAMES)
-	return f.invincible > 0 or groundDodgeIntangible or downRecoveryIntangible or techIntangible or (f.airDodging and f.airDodgeFrame >= AIR_DODGE_INTANGIBLE_START and f.airDodgeFrame <= AIR_DODGE_INTANGIBLE_END)
+	let ceilingTechIntangible = f.surfaceRecoveryState == SURFACE_TECH_CEILING and f.surfaceRecoveryFrame < f.ceilingTechImpulseFrame
+	return f.invincible > 0 or groundDodgeIntangible or downRecoveryIntangible or techIntangible or ceilingTechIntangible or (f.airDodging and f.airDodgeFrame >= AIR_DODGE_INTANGIBLE_START and f.airDodgeFrame <= AIR_DODGE_INTANGIBLE_END)
 
 public function isGroundDodging(FighterState f) returns boolean
 	return f.groundDodgeFrame > 0
@@ -1477,6 +1677,7 @@ function beginDownDamage(FighterState f, int hitstunFrames)
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
+	f.surfaceWallJumpQueued = false
 	f.downState = DOWN_DAMAGE
 	f.downFrame = 1
 	f.downWaitRemaining = max(0, hitstunFrames)
@@ -1754,7 +1955,7 @@ public function advanceFreezeTraps(FighterRoster world)
 			if nearest >= 0
 				trapTriggers[ownerSlot] = true
 				let target = world.fighters[nearest]
-				trapFreezes[nearest] = trapFreezes[nearest] or not (target.shield and target.shieldEnergy > 0)
+				trapFreezes[nearest] = trapFreezes[nearest] or not target.shield
 	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
 		if world.active(slot) and trapTriggers[slot]
 			clearOwnedFreezeTrap(world.fighters[slot])
@@ -1773,7 +1974,6 @@ function beginShieldBreak(FighterState f)
 	f.shieldBreakState = SHIELD_BREAK_AIR
 	f.shieldBreakSerial++
 	f.shield = false
-	f.shieldEnergy = 0
 	f.shieldStun = 0
 	f.shieldHeldFrames = 0
 	f.shieldReleaseLag = 0
@@ -1800,17 +2000,17 @@ function beginShieldBreak(FighterState f)
 	f.surface = -1
 
 function advanceShieldBreak(FighterState f, int stage, InputSnapshot input)
-	if f.hitlag > 0
-		return
 	checkBlastZone(f)
 	if f.out
+		return
+	if f.hitlag > 0
 		return
 	f.invincible = max(0, f.invincible - 1)
 	f.shieldBreakFrame++
 	if f.shieldBreakState == SHIELD_BREAK_AIR
 		let oldZ = f.z
-		f.vz = max(-f.physics.terminalSpeed, f.vz - f.physics.gravity)
-		f.z += f.vz
+		f.vz = max(-f.physics.terminalSpeed, addMeleeWorldValues(f.vz, -f.physics.gravity))
+		f.z = addMeleeWorldValues(f.z, f.vz)
 		let landing = landingAlongShift(f, stage, f.x, oldZ, f.x, f.z)
 		if landing >= 0
 			f.z = surfaceZ(stage, landing)
@@ -1820,15 +2020,16 @@ function advanceShieldBreak(FighterState f, int stage, InputSnapshot input)
 			f.jumps = 2
 			f.shieldBreakState = SHIELD_BREAK_LAND
 			f.shieldBreakFrame = 0
-	else if f.shieldBreakState == SHIELD_BREAK_LAND and f.shieldBreakFrame >= SHIELD_BREAK_LAND_FRAMES
+	else if f.shieldBreakState == SHIELD_BREAK_LAND and f.shieldBreakFrame >= f.shieldBreakDownFrames
 		f.shieldBreakState = SHIELD_BREAK_STAND
 		f.shieldBreakFrame = 0
-	else if f.shieldBreakState == SHIELD_BREAK_STAND and f.shieldBreakFrame >= SHIELD_BREAK_STAND_FRAMES
+	else if f.shieldBreakState == SHIELD_BREAK_STAND and f.shieldBreakFrame >= f.shieldBreakStandFrames
 		f.shieldBreakState = SHIELD_BREAK_DIZZY
 		f.shieldBreakFrame = 0
 		f.shieldBreakRemaining = shieldBreakDizzyFrames(f.damage)
 		f.shieldEnergy = SHIELD_BREAK_RESTORED_ENERGY
 	else if f.shieldBreakState == SHIELD_BREAK_DIZZY
+		f.shieldEnergy = SHIELD_BREAK_RESTORED_ENERGY
 		f.shieldBreakRemaining = max(0., f.shieldBreakRemaining - SHIELD_BREAK_FRAME_DECAY
 			- (input.mashPressed ? SHIELD_BREAK_MASH_STRENGTH : 0.))
 		if f.shieldBreakRemaining <= 0
@@ -1844,13 +2045,17 @@ function clearDownState(FighterState f)
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
+	f.surfaceWallJumpQueued = false
 
 function beginDownState(FighterState f, int state, int direction)
 	f.fastFalling = false
 	f.crouching = false
+	f.dashGrabWindow = 0
+	f.dashGrabAttack = false
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
+	f.surfaceWallJumpQueued = false
 	f.downState = state
 	f.downFrame = 1
 	f.downDirection = direction
@@ -1943,7 +2148,20 @@ function contactInSolidSurfaceSpan(int stage, int index, real x, real z) returns
 	let along = solidSurfaceKind(stage, index) == SURFACE_WALL ? z : x
 	return along >= solidSurfaceMinimum(stage, index) and along <= solidSurfaceMaximum(stage, index)
 
-function resolveSolidSurfaceContact(FighterState f, int stage, int index, real oldX, real oldZ) returns boolean
+function wallTechJumpInputIsRecent(FighterState f, InputSnapshot input) returns boolean
+	return f.jumpInputAge < WALL_TECH_JUMP_INPUT_WINDOW_FRAMES or input.jumpPressed or input.verticalDirection > 0
+
+function clearMotionForSurfaceTech(FighterState f)
+	f.vx = 0
+	f.vz = 0
+	f.knockbackX = 0
+	f.knockbackZ = 0
+	f.groundKnockbackX = 0
+	f.shieldPushbackX = 0
+	f.shieldRecoilX = 0
+	f.shieldRecoilZ = 0
+
+function resolveSolidSurfaceContact(FighterState f, int stage, int index, real oldX, real oldZ, InputSnapshot input) returns boolean
 	if solidSurfaceKind(stage, index) == SURFACE_NONE
 		return false
 	let nx = solidSurfaceNormalX(stage, index)
@@ -1972,14 +2190,18 @@ function resolveSolidSurfaceContact(FighterState f, int stage, int index, real o
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
+	f.surfaceWallJumpQueued = false
 	if f.surfaceReflectCooldown == 0 and f.techWindow > 0 and (f.hitstun > 0 or isTumbling(f))
 		eventKind = solidSurfaceKind(stage, index) == SURFACE_WALL ? SURFACE_TECH_WALL : SURFACE_TECH_CEILING
 		f.techWindow = 0
 		f.hitstun = 0
 		clearDownState(f)
 		f.surfaceRecoveryState = eventKind
-		f.surfaceRecoveryFrame = 1
+		f.surfaceRecoveryFrame = 0
 		f.surfaceRecoveryVelocityApplied = false
+		if eventKind == SURFACE_TECH_WALL
+			f.surfaceWallJumpQueued = wallTechJumpInputIsRecent(f, input)
+		clearMotionForSurfaceTech(f)
 		if eventKind == SURFACE_TECH_WALL
 			f.invincible = max(f.invincible, SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES)
 		f.facing = nx < 0 ? -1 : (nx > 0 ? 1 : f.facing)
@@ -2017,10 +2239,10 @@ function resolveSolidSurfaceContact(FighterState f, int stage, int index, real o
 			f.knockbackZ -= inwardKbSpeed * nz
 	return true
 
-function resolveSolidSurfaceContacts(FighterState f, int stage, real oldX, real oldZ)
+function resolveSolidSurfaceContacts(FighterState f, int stage, real oldX, real oldZ, InputSnapshot input)
 	var touched = false
 	for i = 0 to solidSurfaceCount(stage) - 1
-		if resolveSolidSurfaceContact(f, stage, i, oldX, oldZ)
+		if resolveSolidSurfaceContact(f, stage, i, oldX, oldZ, input)
 			touched = true
 	if not touched
 		f.lastReflectedSurface = -1
@@ -2028,35 +2250,37 @@ function resolveSolidSurfaceContacts(FighterState f, int stage, real oldX, real 
 function advanceSurfaceRecovery(FighterState f, InputSnapshot input) returns boolean
 	if f.hitlag > 0
 		return false
-	if f.surfaceRecoveryState == SURFACE_TECH_WALL or f.surfaceRecoveryState == SURFACE_TECH_CEILING
-		// A wall jump is available while this test rig remains at the contacted
-		// side, independent of the actor-authored tech animation's unknown end.
-		if f.surfaceRecoveryState == SURFACE_TECH_WALL
-			and (f.x - f.surfaceContactX).abs() < 0.001
-			and input.jumpPressed and f.surfacePhysics.canWallJump
-			and input.direction * f.surfaceContactNormalX > 0
-			and f.surfaceContactApproachSpeed >= f.surfacePhysics.wallJumpMinimumApproach
-			f.vx = f.surfaceContactNormalX * f.surfacePhysics.wallJumpHorizontalSpeed
-			f.vz = f.surfacePhysics.wallJumpVerticalSpeed
-			f.knockbackX = 0
-			f.groundKnockbackX = 0
-			f.knockbackZ = 0
-			f.shieldPushbackX = 0
-			f.shieldRecoilX = 0
-			f.shieldRecoilZ = 0
-			f.facing = f.surfaceContactNormalX > 0 ? 1 : -1
-			f.jumpSerial++
-			f.jumpIsDouble = false
+	if f.surfaceRecoveryState == SURFACE_TECH_CEILING
+		f.surfaceRecoveryFrame++
+		if f.surfaceRecoveryFrame == f.ceilingTechImpulseFrame and not f.surfaceRecoveryVelocityApplied
+			f.vx = input.direction * f.surfacePhysics.passiveCeilingSpeed
 			f.surfaceRecoveryVelocityApplied = true
-			return true
-		if f.surfaceRecoveryFrame < SURFACE_TECH_STARTUP_FRAMES
+		if f.surfaceRecoveryFrame >= f.ceilingTechAnimationEndFrame
+			f.surfaceRecoveryState = SURFACE_NONE
+			f.surfaceRecoveryFrame = 0
+		return false
+	if f.surfaceRecoveryState == SURFACE_TECH_WALL
+		if f.surfaceRecoveryFrame >= WALL_TECH_STARTUP_FRAMES
 			f.surfaceRecoveryFrame++
-		else if not f.surfaceRecoveryVelocityApplied
-			if f.surfaceRecoveryState == SURFACE_TECH_WALL
-				f.vx = f.surfaceContactNormalX * f.surfacePhysics.passiveWallSpeed
+			let animationEnd = f.surfaceWallJumpQueued ? f.wallJumpTechAnimationEndFrame : f.wallTechAnimationEndFrame
+			if f.surfaceRecoveryFrame >= WALL_TECH_STARTUP_FRAMES + animationEnd
+				f.surfaceRecoveryState = SURFACE_NONE
+				f.surfaceRecoveryFrame = 0
+			return false
+		f.surfaceWallJumpQueued = f.surfaceWallJumpQueued or wallTechJumpInputIsRecent(f, input)
+		f.surfaceRecoveryFrame++
+		if f.surfaceRecoveryFrame == WALL_TECH_STARTUP_FRAMES
+			if f.surfaceWallJumpQueued
+				f.vx = f.surfaceContactNormalX * f.surfacePhysics.wallJumpHorizontalSpeed
+				f.vz = f.surfacePhysics.wallJumpVerticalSpeed
+				f.facing = f.surfaceContactNormalX > 0 ? 1 : -1
+				f.jumpSerial++
+				f.jumpIsDouble = false
 			else
-				f.vx = input.direction * f.surfacePhysics.passiveCeilingSpeed
+				f.vx = f.surfaceContactNormalX * f.surfacePhysics.passiveWallSpeed
 			f.surfaceRecoveryVelocityApplied = true
+			return f.surfaceWallJumpQueued
+		return false
 	return false
 
 function applyHitlagShift(FighterState f, int stage, InputSnapshot input, int directionX, int directionZ, real distance, boolean fromAsdi)
@@ -2079,7 +2303,7 @@ function applyHitlagShift(FighterState f, int stage, InputSnapshot input, int di
 		landing = -1
 	f.x = newX
 	f.z = newZ
-	resolveSolidSurfaceContacts(f, stage, oldX, oldZ)
+	resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input)
 	if landing >= 0
 		finishLanding(f, stage, input, landing, fromAsdi)
 	if f.x != oldX or f.z != oldZ
@@ -2110,8 +2334,32 @@ function startDownWait(FighterState f, int remainingFrames)
 function startDownStand(FighterState f)
 	beginDownState(f, DOWN_STAND, 0)
 
+function resolveDownGroundContact(FighterState f, int stage)
+	var deck = f.surface
+	if deck < 0 or deck >= surfaceCount(stage)
+		for i = 0 to surfaceCount(stage) - 1
+			if f.z == surfaceZ(stage, i) and f.x >= surfaceLeft(stage, i) and f.x <= surfaceRight(stage, i)
+				deck = i
+	if deck >= 0 and deck < surfaceCount(stage)
+		if f.downState == DOWN_ROLL or f.downState == DOWN_TECH_ROLL or f.downState == DOWN_ATTACK
+			f.x = max(surfaceLeft(stage, deck), min(surfaceRight(stage, deck), f.x))
+		if f.x >= surfaceLeft(stage, deck) and f.x <= surfaceRight(stage, deck)
+			f.surface = deck
+			f.z = surfaceZ(stage, deck)
+			return
+	if f.downState == DOWN_ATTACK
+		cancelAttack(f)
+	clearDownState(f)
+	f.grounded = false
+	f.surface = -1
+	f.jumps = min(f.jumps, 1)
+	f.vx = max(-f.physics.airSpeed, min(f.physics.airSpeed, f.vx))
+	f.groundKnockbackX = 0
+	clearDash(f)
+
 function advanceDownState(FighterState f, int stage, InputSnapshot input) returns boolean
 	let leavingBound = f.downState == DOWN_BOUND and f.downFrame >= DOWN_BOUND_FRAMES
+	let leavingDamage = f.downState == DOWN_DAMAGE and f.downFrame >= DOWN_DAMAGE_FRAMES
 	if f.downState == DOWN_NONE
 		return false
 	if f.downState == DOWN_TUMBLE
@@ -2140,14 +2388,21 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 		if f.downFrame >= DOWN_DAMAGE_FRAMES
 			if f.hitstun <= 0
 				startDownStand(f)
+				return true
 			else
 				startDownWait(f, f.hitstun)
 		else
 			f.downFrame++
-		return true
+			return true
 	if f.downState == DOWN_WAIT
 		f.grounded = true
 		f.z = surfaceZ(stage, max(0, f.surface))
+		if not leavingBound and not leavingDamage
+			f.downWaitRemaining = max(0, f.downWaitRemaining - 1)
+			f.downFrame++
+			if f.downWaitRemaining == 0
+				startDownStand(f)
+				return true
 		if input.getupAttackPressed
 			beginDownState(f, DOWN_ATTACK, 0)
 		else if input.getupDirectionPressed and input.getupDirection != 0
@@ -2156,39 +2411,25 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 			beginDownState(f, DOWN_ROLL, input.direction < 0 ? -1 : 1)
 		else if input.getupStandPressed or input.verticalDirection > 0
 			startDownStand(f)
-		else if not leavingBound
-			f.downWaitRemaining = max(0, f.downWaitRemaining - 1)
-			f.downFrame++
-			if f.downWaitRemaining == 0
-				startDownStand(f)
 		applyDownRollTravel(f, stage)
 		return true
 	if f.downState == DOWN_STAND
 		f.grounded = true
 		f.z = surfaceZ(stage, max(0, f.surface))
-		if f.downFrame >= DOWN_STAND_FRAMES
-			clearDownState(f)
-		else
-			f.downFrame++
+		f.downFrame++
 		return true
 	if f.downState == DOWN_ROLL
 		f.grounded = true
 		f.z = surfaceZ(stage, max(0, f.surface))
-		if f.downFrame >= DOWN_ROLL_FRAMES
-			clearDownState(f)
-		else
-			f.downFrame++
-			applyDownRollTravel(f, stage)
-			f.z = surfaceZ(stage, max(0, f.surface))
-			f.grounded = true
+		f.downFrame++
+		applyDownRollTravel(f, stage)
+		f.z = surfaceZ(stage, max(0, f.surface))
+		f.grounded = true
 		return true
 	if f.downState == DOWN_ATTACK
 		f.grounded = true
 		f.z = surfaceZ(stage, max(0, f.surface))
-		if f.downFrame >= DOWN_ATTACK_FRAMES
-			clearDownState(f)
-		else
-			f.downFrame++
+		f.downFrame++
 		return true
 	return false
 
@@ -2229,21 +2470,26 @@ function interruptJumpOrDodge(FighterState f)
 	f.groundDodgeEntryFacing = 0
 
 function beginAttack(FighterState attacker, int style, boolean mayCharge)
+	let isDashGrab = style == 11
+	let resolvedStyle = isDashGrab ? 5 : style
+	attacker.surfaceRecoveryState = SURFACE_NONE
+	attacker.surfaceRecoveryFrame = 0
 	attacker.crouching = false
 	clearDash(attacker)
 	if isTumbling(attacker)
 		clearDownState(attacker)
-	if style == 5 and attacker.shield
+	if resolvedStyle == 5 and attacker.shield
 		attacker.shield = false
 		attacker.shieldHeldFrames = 0
-	attacker.attackStyle = style
+	attacker.attackStyle = resolvedStyle
+	attacker.dashGrabAttack = isDashGrab
 	attacker.attackFrame = 0
-	attacker.attackDuration = attackDurationFramesForGrounding(style, attacker.grounded)
+	attacker.attackDuration = isDashGrab ? attacker.dashGrabTiming.totalFrames : attackDurationFramesForGrounding(resolvedStyle, attacker.grounded)
 	attacker.attackSerial++
 	attacker.attackHit = false
 	attacker.smashCharging = false
 	attacker.smashChargeFrames = 0
-	attacker.smashChargeAllowed = isSmashAttack(style) and mayCharge
+	attacker.smashChargeAllowed = isSmashAttack(resolvedStyle) and mayCharge
 	attacker.cooldown = attacker.attackDuration
 
 function spawnProjectileMotion(FighterState owner, int kind, real velocityX, real velocityZ,
@@ -2491,6 +2737,7 @@ public function resolveGrabs(FighterRoster world)
 
 function cancelAttack(FighterState fighter)
 	fighter.crouching = false
+	fighter.dashGrabAttack = false
 	fighter.attackStyle = -1
 	fighter.attackFrame = 0
 	fighter.attackDuration = 0
@@ -2543,6 +2790,8 @@ function startSpecialAction(FighterState owner, int action, int duration, int di
 		for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
 			owner.specialHitTargets[slot] = null
 
+	owner.surfaceRecoveryState = SURFACE_NONE
+	owner.surfaceRecoveryFrame = 0
 	owner.fastFalling = false
 	owner.crouching = false
 	owner.specialAction = action
@@ -2889,12 +3138,18 @@ function demonHunterSpecialContact(FighterState owner, FighterState target) retu
 	return noHitRegion()
 
 public function simulationJump(FighterState f, int horizontal)
+	if f.surfaceRecoveryState == SURFACE_TECH_CEILING
+		return
+	if f.surfaceRecoveryState == SURFACE_TECH_WALL and f.surfaceRecoveryFrame < WALL_TECH_STARTUP_FRAMES
+		return
 	if inGrabContext(f)
 		return
 	if f.ledgeState != LEDGE_NONE
 		return
 	if f.out or f.specialFall or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or (f.shieldReleaseLag > 0 and not f.grounded) or f.landingLag > 0 or f.airDodging or isGroundDodging(f) or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
 		return
+	f.surfaceRecoveryState = SURFACE_NONE
+	f.surfaceRecoveryFrame = 0
 	f.fastFalling = false
 	if f.grounded
 		f.crouching = false
@@ -2915,6 +3170,10 @@ public function simulationJump(FighterState f, int horizontal)
 	f.jumps--
 
 public function simulationAirDodge(FighterState f, int horizontal, int vertical)
+	if f.surfaceRecoveryState == SURFACE_TECH_CEILING
+		return
+	if f.surfaceRecoveryState == SURFACE_TECH_WALL and f.surfaceRecoveryFrame < WALL_TECH_STARTUP_FRAMES
+		return
 	if inGrabContext(f)
 		return
 	if f.ledgeState != LEDGE_NONE
@@ -2944,6 +3203,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
+	f.surfaceWallJumpQueued = false
 	f.lastReflectedSurface = -1
 	f.surfaceReflectCooldown = 0
 	f.surfaceContactKind = SURFACE_NONE
@@ -2956,12 +3216,12 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 function canBeginGroundDodge(FighterState f) returns boolean
 	if inGrabContext(f)
 		return false
-	return not f.out and f.downState == DOWN_NONE and f.grounded and f.hitlag <= 0 and f.hitstun <= 0 and f.shieldStun <= 0 and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0 and f.grabbedFrames <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldEnergy > 0
+	return not f.out and f.downState == DOWN_NONE and f.grounded and f.hitlag <= 0 and f.hitstun <= 0 and f.shieldStun <= 0 and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0 and f.grabbedFrames <= 0 and not f.airDodging and not isGroundDodging(f) and (f.shield or f.shieldEnergy > 0)
 
 public function beginFighterAttack(FighterRoster world, int slot, int style, boolean mayCharge)
 	let fighter = world.fighters[slot]
 	let action = fighter.character == 2 and style == 0 and fighter.grounded and fighter.dashFrame > 0 ? DEMONHUNTER_DASH_ATTACK_STYLE : style
-	let groundAttack = action >= 0 and action <= 10 and action != 1 or action == DEMONHUNTER_DASH_ATTACK_STYLE
+	let groundAttack = action >= 0 and action <= 11 and action != 1 or action == DEMONHUNTER_DASH_ATTACK_STYLE
 	let aerial = isAerialAttack(action)
 	if (groundAttack and fighter.grounded or action == 1 or aerial and not fighter.grounded) and canStartAttackStyle(fighter, action)
 		beginAttack(fighter, action, mayCharge)
@@ -3043,7 +3303,10 @@ public function reset(FighterState f, real startX)
 	f.fastFalling = false
 	f.fastFallDownHeld = false
 	f.fastFallInputAge = FAST_FALL_INPUT_WINDOW
+	f.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
 	f.crouching = false
+	f.dashGrabWindow = 0
+	f.dashGrabAttack = false
 	f.jumpDodgeQueued = false
 	f.jumpDodgeX = 0
 	f.jumpDodgeZ = 0
@@ -3073,6 +3336,7 @@ public function reset(FighterState f, real startX)
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
+	f.surfaceWallJumpQueued = false
 	f.lastReflectedSurface = -1
 	f.surfaceReflectCooldown = 0
 	f.surfaceContactKind = SURFACE_NONE
@@ -3147,6 +3411,15 @@ public function reset(FighterState f, real startX)
 	f.invincible = 90
 
 public function advance(FighterState f, int stage, InputSnapshot input, real respawnX)
+	advanceFighterMotion(f, stage, input, respawnX)
+	regenerateShield(f)
+
+// Match steps call this after input transitions and contact collection, before damage resolution.
+public function regenerateShield(FighterState f)
+	if not f.out and not f.shield and f.shieldEnergy < SHIELD_MAX
+		f.shieldEnergy = min(SHIELD_MAX, (f.shieldEnergy + SHIELD_REGEN_PER_FRAME).roundToFloat32())
+
+public function advanceFighterMotion(FighterState f, int stage, InputSnapshot input, real respawnX)
 	f.positionDeltaX = 0
 	f.positionDeltaZ = 0
 	if f.out
@@ -3156,6 +3429,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if f.respawn <= 0
 			reset(f, respawnX)
 		return
+	f.jumpInputAge = input.jumpPressed ? 0 : min(WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, f.jumpInputAge + 1)
 	let wasFrozen = f.frozenFrames > 0
 	if f.frozenFrames > 0
 		f.frozenFrames--
@@ -3186,7 +3460,16 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		return
 	if f.shieldBreakState != SHIELD_BREAK_NONE
 		advanceShieldBreak(f, stage, input)
-		return
+		if f.shieldBreakState != SHIELD_BREAK_NONE or f.out
+			return
+	// Only the guard present at the animation boundary drains; input may enter or leave guard later.
+	if f.hitlag <= 0 and f.shield and shieldDrainShouldResume(f, f.shieldStun > 0)
+		f.shieldEnergy = (f.shieldEnergy - SHIELD_DRAIN_PER_FRAME).roundToFloat32()
+		if f.shieldEnergy < 0
+			f.shieldEnergy = 0
+			beginShieldBreak(f)
+			checkBlastZone(f)
+			return
 	// Counts include the current contact tick. A hitlag edge starts counting after the freeze.
 	if f.hitlag <= 0
 		f.lCancelWindow = max(0, f.lCancelWindow - 1)
@@ -3200,12 +3483,19 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.techHitlagLatched = false
 		if isFloorTeching(f) and f.downFrame >= (f.downState == DOWN_TECH ? TECH_IN_PLACE_FRAMES : TECH_ROLL_FRAMES)
 			clearDownState(f)
+		else if f.downState == DOWN_STAND and f.downFrame >= DOWN_STAND_FRAMES
+			clearDownState(f)
+		else if f.downState == DOWN_ROLL and f.downFrame >= DOWN_ROLL_FRAMES
+			clearDownState(f)
+		else if f.downState == DOWN_ATTACK and f.downFrame >= DOWN_ATTACK_FRAMES
+			clearDownState(f)
 	if input.techPressed
 		f.techWindow = f.techLockout == 0 ? (hitlagBefore > 1 ? 1 : TECH_WINDOW_FRAMES) : 0
 		f.techLockout = TECH_LOCKOUT_FRAMES
 		if f.hitlag > 0
 			f.techHitlagLatched = true
 	let wallJumped = advanceSurfaceRecovery(f, input)
+	let wallTechStartup = f.surfaceRecoveryState == SURFACE_TECH_WALL and f.surfaceRecoveryFrame < WALL_TECH_STARTUP_FRAMES
 	if hitlagBefore > 0 and f.diPending
 		if f.hitlag > 0
 			applySmashDirectionalInfluence(f, stage, input)
@@ -3213,6 +3503,11 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			applyDirectionalInfluence(f, input)
 			applyAutomaticSmashDirectionalInfluence(f, stage, input)
 	if f.out
+		return
+	if wallTechStartup
+		if f.hitlag <= 0
+			f.invincible = max(0, f.invincible - 1)
+		checkBlastZone(f)
 		return
 	if inGrabContext(f)
 		if f.hitlag <= 0
@@ -3246,6 +3541,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 					f.attackStyle = -1
 					f.attackFrame = 0
 					f.attackHit = false
+					f.dashGrabAttack = false
 					f.smashCharging = false
 					f.smashChargeFrames = 0
 					f.smashChargeAllowed = false
@@ -3308,7 +3604,13 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	checkBlastZone(f)
 	if f.out
 		return
+	let downOldX = f.x
+	let downOldZ = f.z
 	if advanceDownState(f, stage, input)
+		resolveDownGroundContact(f, stage)
+		f.positionDeltaX = f.x - downOldX
+		f.positionDeltaZ = f.z - downOldZ
+		checkBlastZone(f)
 		return
 	let forcedShield = f.shield and f.shieldStun > 0
 	f.shieldStun = max(0, f.shieldStun - 1)
@@ -3319,33 +3621,30 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	let dodgeActive = f.airDodgeTime > 0
 	f.airDodgeTime = max(0, f.airDodgeTime - 1)
 	f.shieldReleaseLag = max(0, f.shieldReleaseLag - 1)
-	let shieldCanStart = input.shield and f.shieldEnergy > 0 and f.downState == DOWN_NONE and f.hitstun <= 0 and f.grounded and not isGroundDodging(f)
+	let shieldCanStart = input.shield and (f.shield or f.shieldEnergy > 0) and f.downState == DOWN_NONE and f.hitstun <= 0 and f.grounded and not isGroundDodging(f)
 		and f.shieldStun <= 0 and f.landingLag <= 0 and f.shieldReleaseLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0
 	var wantsShield = forcedShield
 	if not forcedShield
-		if f.shield and not input.shield and f.shieldEnergy > 0 and f.shieldHeldFrames < SHIELD_MIN_HOLD_FRAMES
+		if f.shield and not input.shield and f.shieldHeldFrames < SHIELD_MIN_HOLD_FRAMES
 			wantsShield = true
 			f.shieldHeldFrames++
 		else
 			wantsShield = shieldCanStart
 			if wantsShield
 				f.shieldHeldFrames++
-			else if f.shield and not input.shield and f.shieldEnergy > 0
+			else if f.shield and not input.shield
 				f.shieldReleaseLag = SHIELD_RELEASE_LAG_FRAMES
 				f.shieldHeldFrames = 0
+	let lateDashGuardEntry = wantsShield and not f.shield and f.grounded and
+		(f.groundAction == GROUND_ACTION_RUN or
+			(f.groundAction == GROUND_ACTION_DASH and f.groundActionFrame > DASH_GUARD_EARLY_FRAMES))
 	f.shield = wantsShield
-	let drainShield = shieldDrainShouldResume(f, forcedShield)
-	if wantsShield
-		if drainShield
-			f.shieldEnergy = max(0, f.shieldEnergy - SHIELD_DRAIN_PER_FRAME)
-	else
-		f.shieldEnergy = min(SHIELD_MAX, f.shieldEnergy + SHIELD_REGEN_PER_FRAME)
-	if wantsShield and f.shieldEnergy == 0
-		beginShieldBreak(f)
-		return
+	if lateDashGuardEntry
+		f.dashGrabWindow = 3
 	var direction = input.direction
 	var dashEntryDisplacementAdjustment = 0.
 	let canSteer = f.downState == DOWN_NONE and f.hitstun <= 0 and (not f.airDodging or not dodgeActive) and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and not smashChargePaused and (not f.grounded or f.cooldown <= 0)
+		and f.surfaceRecoveryState != SURFACE_TECH_WALL
 	f.crouching = input.down and input.direction == 0 and f.grounded and canSteer and not wantsShield and f.attackStyle < 0 and f.specialAction == SPECIAL_NONE
 	if canSteer and not f.grounded and direction != 0
 		f.lastAerialTapDirection = direction
@@ -3407,9 +3706,11 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if f.fastFalling
 			f.vz = -f.physics.fastFallSpeed
 		else
-			f.vz = max(-f.physics.terminalSpeed, f.vz - gravity)
-	f.z += totalVelocityZ(f)
-	resolveSolidSurfaceContacts(f, stage, oldX, oldZ)
+			f.vz = max(-f.physics.terminalSpeed, addMeleeWorldValues(f.vz, -gravity))
+	f.z = addMeleeWorldValues(f.z, f.vz)
+	f.z = addMeleeWorldValues(f.z, f.knockbackZ)
+	f.z = addMeleeWorldValues(f.z, f.shieldRecoilZ)
+	resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input)
 	var landing = -1
 	if totalVelocityZ(f) <= 0
 		for i = 0 to surfaceCount(stage) - 1
@@ -3435,7 +3736,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	f.positionDeltaZ = f.z - oldZ
 
 function checkBlastZone(FighterState f)
-	if f.x <= -920 or f.x >= 920 or f.z <= -420 or f.z >= 760
+	let topEligible = f.grounded or f.frozenFrames > 0 or f.knockbackZ > TOP_KO_MINIMUM_UPWARD_KNOCKBACK
+	if f.x < -920 or f.x > 920 or f.z < -420 or (f.z > 760 and topEligible)
 		f.crouching = false
 		clearGrabLinks(f)
 		clearDash(f)

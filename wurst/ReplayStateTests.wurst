@@ -56,6 +56,7 @@ import MatchStep
     let secondCommands = new AttackBuffer(4)
     let runtime = new ReplayRuntimeState()
     let snapshot = new ReplaySnapshot()
+    let actual = new ReplaySnapshot()
 
     first.x = -123.5
     first.positionDeltaX = 0.125
@@ -64,15 +65,30 @@ import MatchStep
     first.hitVisualSerial = 7
     first.hitVisualElectric = true
     first.shieldVisualSerial = 3
+    first.ceilingTechImpulseFrame = 11
+    first.ceilingTechAnimationEndFrame = 29
+    first.wallTechAnimationEndFrame = 27
+    first.wallJumpTechAnimationEndFrame = 41
+    first.groundRules = ntscCaptainFalconGroundMovementRules()
+    first.groundAction = GROUND_ACTION_TURN_RUN
+    first.groundActionFrame = 8
+    first.groundRunBrakeFramesRemaining = 12
+    first.groundTurnRunEntryFacing = 1
+    first.groundTurnRunFacingCommandLatched = true
+    first.groundTurnRunPausePending = true
     first.hitlag = 3
     first.shieldBreakState = SHIELD_BREAK_DIZZY
     first.shieldBreakRemaining = 389.75
+    first.shieldBreakDownFrames = 26
+    first.shieldBreakStandFrames = 31
     first.crouching = true
     first.fastFalling = true
     first.groundDodgeEntryFacing = -1
     first.jumpDodgeQueued = true
     first.jumpDodgeX = -1
     first.jumpDodgeZ = 1
+    first.jumpInputAge = 7
+    first.surfaceWallJumpQueued = true
     first.techWindow = 11
     first.projectileLife[3] = 27
     first.projectileX[3] = -44.25
@@ -103,14 +119,29 @@ import MatchStep
     first.hitVisualSerial = 0
     first.hitVisualElectric = false
     first.shieldVisualSerial = 0
+    first.ceilingTechImpulseFrame = 14
+    first.ceilingTechAnimationEndFrame = 26
+    first.wallTechAnimationEndFrame = 26
+    first.wallJumpTechAnimationEndFrame = 40
+    first.groundRules = authoredGroundMovementRules()
+    first.groundAction = GROUND_ACTION_NONE
+    first.groundActionFrame = 0
+    first.groundRunBrakeFramesRemaining = 0
+    first.groundTurnRunEntryFacing = 0
+    first.groundTurnRunFacingCommandLatched = false
+    first.groundTurnRunPausePending = false
     first.shieldBreakState = SHIELD_BREAK_NONE
     first.shieldBreakRemaining = 0.
+    first.shieldBreakDownFrames = 12
+    first.shieldBreakStandFrames = 30
     first.crouching = false
     first.fastFalling = false
     first.groundDodgeEntryFacing = 0
     first.jumpDodgeQueued = false
     first.jumpDodgeX = 0
     first.jumpDodgeZ = 0
+    first.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
+    first.surfaceWallJumpQueued = false
     first.techWindow = 0
     first.projectileLife[3] = 0
     first.projectileX[3] = 0
@@ -140,14 +171,45 @@ import MatchStep
     first.hitVisualSerial.assertEquals(7)
     first.hitVisualElectric.assertTrue()
     first.shieldVisualSerial.assertEquals(3)
+    first.ceilingTechImpulseFrame.assertEquals(11)
+    first.ceilingTechAnimationEndFrame.assertEquals(29)
+    first.wallTechAnimationEndFrame.assertEquals(27)
+    first.wallJumpTechAnimationEndFrame.assertEquals(41)
+    first.groundRules.dashRunEnableFrame.assertEquals(16)
+    first.groundRules.turnRunFacingCommandFrame.assertEquals(9)
+    first.groundRules.turnRunAnimationEndFrame.assertEquals(22)
+    first.groundRules.runBrakeTurnCommandEndFrame.assertEquals(15)
+    first.groundRules.runBrakeAnimationEndFrame.assertEquals(28)
+    first.groundRules.runBrakeMaximumFrames.assertEquals(30)
+    first.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
+    first.groundActionFrame.assertEquals(8)
+    first.groundRunBrakeFramesRemaining.assertEquals(12)
+    first.groundTurnRunEntryFacing.assertEquals(1)
+    first.groundTurnRunFacingCommandLatched.assertTrue()
+    first.groundTurnRunPausePending.assertTrue()
     first.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
     first.shieldBreakRemaining.assertEquals(389.75)
+    first.shieldBreakDownFrames.assertEquals(26)
+    first.shieldBreakStandFrames.assertEquals(31)
     first.crouching.assertTrue()
     first.fastFalling.assertTrue()
     first.groundDodgeEntryFacing.assertEquals(-1)
     first.jumpDodgeQueued.assertTrue()
     first.jumpDodgeX.assertEquals(-1)
     first.jumpDodgeZ.assertEquals(1)
+    first.jumpInputAge.assertEquals(7)
+    first.surfaceWallJumpQueued.assertTrue()
+    actual.capture(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
+    snapshot.firstDifference(actual).assertEquals("")
+    first.surfaceWallJumpQueued = false
+    actual.capture(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
+    snapshot.firstDifference(actual).assertEquals("fighter[0].surfaceWallJumpQueued")
+    first.surfaceWallJumpQueued = true
+    first.jumpInputAge = 8
+    actual.capture(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
+    snapshot.firstDifference(actual).assertEquals("fighter[0].jumpInputAge")
+    first.jumpInputAge = 7
+    destroy actual
     first.techWindow.assertEquals(11)
     first.projectileLife[3].assertEquals(27)
     first.projectileX[3].assertEquals(-44.25)
@@ -343,6 +405,76 @@ import MatchStep
     actual.controls.commands[1].consumedMayCharge = false
     actual.runtime.botAttackDelays[1] = 0.000001
     expected.firstDifference(actual).assertEquals("runtime.botAttackDelays[1]")
+
+@Test function groundActionCommandClockAndActorRulesAreCanonicalReplayState()
+    let expected = new ReplaySnapshot()
+    let actual = new ReplaySnapshot()
+    expected.world.fighters[0].groundRules = ntscCaptainFalconGroundMovementRules()
+    expected.world.fighters[0].groundAction = GROUND_ACTION_TURN_RUN
+    expected.world.fighters[0].groundActionFrame = 8
+    expected.world.fighters[0].groundRunBrakeFramesRemaining = 12
+    expected.world.fighters[0].groundTurnRunEntryFacing = 1
+    expected.world.fighters[0].groundTurnRunFacingCommandLatched = true
+    actual.world.fighters[0].groundRules = ntscCaptainFalconGroundMovementRules()
+    actual.world.fighters[0].groundAction = GROUND_ACTION_TURN_RUN
+    actual.world.fighters[0].groundActionFrame = 8
+    actual.world.fighters[0].groundRunBrakeFramesRemaining = 12
+    actual.world.fighters[0].groundTurnRunEntryFacing = 1
+    actual.world.fighters[0].groundTurnRunFacingCommandLatched = true
+    expected.firstDifference(actual).assertEquals("")
+    actual.world.fighters[0].groundActionFrame = 9
+    expected.firstDifference(actual).assertEquals("fighter[0].groundActionFrame")
+    actual.world.fighters[0].groundActionFrame = 8
+    actual.world.fighters[0].groundRunBrakeFramesRemaining = 11
+    expected.firstDifference(actual).assertEquals("fighter[0].groundRunBrakeFramesRemaining")
+    actual.world.fighters[0].groundRunBrakeFramesRemaining = 12
+    actual.world.fighters[0].groundAction = GROUND_ACTION_RUN_BRAKE
+    expected.firstDifference(actual).assertEquals("fighter[0].groundAction")
+    actual.world.fighters[0].groundAction = GROUND_ACTION_TURN_RUN
+    actual.world.fighters[0].groundRules = ntscFoxGroundMovementRules()
+    expected.firstDifference(actual).assertEquals("fighter[0].groundRules")
+    actual.world.fighters[0].groundRules = ntscCaptainFalconGroundMovementRules()
+    actual.world.fighters[0].groundRules.turnRunFacingCommandFrame = 10
+    expected.firstDifference(actual).assertEquals("fighter[0].groundRules")
+    actual.world.fighters[0].groundRules = ntscCaptainFalconGroundMovementRules()
+    actual.world.fighters[0].groundRules.runBrakeTurnCommandEndFrame = 14
+    expected.firstDifference(actual).assertEquals("fighter[0].groundRules")
+    actual.world.fighters[0].groundRules = ntscCaptainFalconGroundMovementRules()
+    actual.world.fighters[0].groundRules.runBrakeAnimationEndFrame = 27
+    expected.firstDifference(actual).assertEquals("fighter[0].groundRules")
+    actual.world.fighters[0].groundRules = ntscCaptainFalconGroundMovementRules()
+    actual.world.fighters[0].groundRules.runBrakeMaximumFrames = 29
+    expected.firstDifference(actual).assertEquals("fighter[0].groundRules")
+    actual.world.fighters[0].groundRules = ntscCaptainFalconGroundMovementRules()
+    actual.world.fighters[0].groundRules.turnRunAnimationEndFrame = 21
+    expected.firstDifference(actual).assertEquals("fighter[0].groundRules")
+    actual.world.fighters[0].groundRules = ntscCaptainFalconGroundMovementRules()
+    actual.world.fighters[0].groundTurnRunEntryFacing = -1
+    expected.firstDifference(actual).assertEquals("fighter[0].groundTurnRunEntryFacing")
+    actual.world.fighters[0].groundTurnRunEntryFacing = 1
+    actual.world.fighters[0].groundTurnRunFacingCommandLatched = false
+    expected.firstDifference(actual).assertEquals("fighter[0].groundTurnRunFacingCommandLatched")
+
+@Test function dashGrabActorRulesAndCatchWindowAreCanonicalReplayState()
+    let expected = new ReplaySnapshot()
+    let actual = new ReplaySnapshot()
+    expected.world.fighters[0].dashGrabTiming = ntscFoxDashGrabRules()
+    expected.world.fighters[0].dashGrabWindow = 3
+    expected.world.fighters[0].dashGrabAttack = true
+    actual.world.fighters[0].dashGrabTiming = ntscFoxDashGrabRules()
+    actual.world.fighters[0].dashGrabWindow = 3
+    actual.world.fighters[0].dashGrabAttack = true
+    expected.firstDifference(actual).assertEquals("")
+    actual.world.fighters[0].dashGrabWindow = 2
+    expected.firstDifference(actual).assertEquals("fighter[0].dashGrabWindow")
+    actual.world.fighters[0].dashGrabWindow = 3
+    actual.world.fighters[0].dashGrabAttack = false
+    expected.firstDifference(actual).assertEquals("fighter[0].dashGrabAttack")
+    actual.world.fighters[0].dashGrabAttack = true
+    actual.world.fighters[0].dashGrabTiming = dashGrabRules(10, 1, 40)
+    expected.firstDifference(actual).assertEquals("fighter[0].dashGrabTiming")
+    actual.world.fighters[0].dashGrabTiming = ntscCaptainFalconDashGrabRules()
+    expected.firstDifference(actual).assertEquals("fighter[0].dashGrabTiming")
 
 @Test function everyPhysicsParameterSurvivesCaptureRestoreAndParticipatesInEquality()
     let first = new FighterState(0, 0, 1)

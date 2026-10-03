@@ -3,6 +3,7 @@ import Simulation
 import MatchStep
 import ReplayState
 import WorldTestSupport
+import Binary32
 
 function retailCombatContact(FighterState owner, FighterState target, real knockback, real dx, real dz)
 	beginDamageContacts()
@@ -336,6 +337,7 @@ function recordedFalcoDashFirstDifference(int hostCharacter, real initialSpeed) 
 	belowTarget.vx = 0.9 * 6
 	belowTarget.dashFrame = INITIAL_DASH_FRAMES + 1
 	belowTarget.dashDirection = 1
+	belowTarget.groundAction = GROUND_ACTION_RUN
 	let input = new InputSnapshot()
 	input.direction = 1
 	advance(belowTarget, 0, input, 0)
@@ -346,6 +348,7 @@ function recordedFalcoDashFirstDifference(int hostCharacter, real initialSpeed) 
 	overspeed.vx = 1.9 * 6
 	overspeed.dashFrame = INITIAL_DASH_FRAMES + 1
 	overspeed.dashDirection = 1
+	overspeed.groundAction = GROUND_ACTION_RUN
 	advance(overspeed, 0, input, 0)
 	overspeed.vx.assertEquals(1.82 * 6, 0.00001)
 	destroy input
@@ -358,15 +361,18 @@ function recordedFalcoDashFirstDifference(int hostCharacter, real initialSpeed) 
 	f.vx = 1. * 6
 	f.dashFrame = INITIAL_DASH_FRAMES + 1
 	f.dashDirection = 1
+	f.groundAction = GROUND_ACTION_TURN_RUN
+	f.groundTurnRunEntryFacing = 1
 	let input = new InputSnapshot()
 	input.direction = -1
-	for tick = 1 to 8
+	for tick = 1 to 9
 		advance(f, 0, input, 0)
-	f.vx.assertEquals(0.24, 0.00001)
+	f.vx.assertEquals(-0.48, 0.00001)
 	f.facing.assertEquals(1)
 	advance(f, 0, input, 0)
-	f.vx.assertEquals(-0.48, 0.00001)
+	f.vx.assertEquals(-1.2, 0.00001)
 	f.facing.assertEquals(-1)
+	f.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
 	destroy input
 	destroy f
 
@@ -605,6 +611,24 @@ function recordedGroundedDamageFirstDifference(int character, real velocityOffse
 	digitalShieldPushback(4.).assertEquals(0.45600005984306335 * 6, 0.0001)
 	digitalShieldPushback(1000.).assertEquals(2. * 6, 0.0001)
 	digitalShieldRecoil(4.).assertEquals(0.3 * 6, 0.0001)
+
+@Test function retailShieldDamageScalesTheAccumulatedContactsOnce()
+	let attacker = new FighterState(0, 0, 1)
+	let defender = new FighterState(1, 100, -1)
+	defender.shield = true
+	defender.shieldEnergy = 8
+	beginDamageContacts()
+	queueDamageContact(attacker, defender, hitEffect(9, 0, 0, 0, 0, false), 1, CONTACT_DAMAGE_ONLY, false, null)
+	queueDamageContact(attacker, defender, hitEffect(1, 0, 0, 0, 0, false), 1, CONTACT_DAMAGE_ONLY, false, null)
+	finishDamageContacts(testWorld(attacker, defender))
+	defender.shieldEnergy.assertEquals(1.)
+	defender.shield.assertTrue()
+	destroy defender
+	destroy attacker
+
+@Test function retailShieldstunRetainsItsFusedRoundingBoundary()
+	digitalShieldstunDuration(3.).assertEquals(3.3500001430511475)
+	digitalShieldstunDuration(9.).assertEquals(6.050000190734863)
 
 function recordedShieldAttackerPosition(int frame) returns real
 	if frame < 4
@@ -963,7 +987,7 @@ function contactProjectile(FighterState owner, FighterState target, int slot, in
 	updateProjectiles(testWorld(owner, target))
 	finishDamageContacts(testWorld(owner, target))
 	target.damage.assertEquals(0.)
-	target.shieldEnergy.assertEquals(0.)
+	target.shieldEnergy.assertEquals(30.)
 	target.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
 	owner.hitlag.assertEquals(7)
 	projectileCount(owner).assertEquals(0)
@@ -1410,18 +1434,18 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 	let first = new FighterState(0, 0, 1)
 	let second = new FighterState(0, 0, 1)
 	let input = new InputSnapshot()
-	first.physics.gravity = 1
-	second.physics.gravity = 2
+	first.physics.gravity = 1.5
+	second.physics.gravity = 3
 	first.grounded = false
 	second.grounded = false
-	first.z = 100
-	second.z = 100
+	first.z = 96
+	second.z = 96
 	advance(first, 0, input, 0)
 	advance(second, 0, input, 0)
-	first.z.assertEquals(99.)
-	second.z.assertEquals(98.)
-	first.vz.assertEquals(-1.)
-	second.vz.assertEquals(-2.)
+	first.z.assertEquals(94.5)
+	second.z.assertEquals(93.)
+	first.vz.assertEquals(-1.5)
+	second.vz.assertEquals(-3.)
 	first.grounded = true
 	second.grounded = true
 	first.z = 0
@@ -1596,13 +1620,17 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 			var expectedZ = horizontal == 0 ? vertical * 18.5999994278 : (vertical == 0 ? -5.7477159186 : vertical * 13.1521857265)
 			f.vx.assertEquals(expectedX, 0.00001)
 			f.vz.assertEquals(expectedZ, 0.00001)
+			// The launch check above permits approximate native trig; the decay
+			// and position checks start from that actual launch velocity.
+			expectedX = f.vx
+			expectedZ = f.vz
 			var expectedPositionX = 0.
 			var expectedPositionZ = 300.
 			for frame = 1 to 3
 				expectedX *= 0.8999999761581421
 				expectedZ *= 0.8999999761581421
 				expectedPositionX += expectedX
-				expectedPositionZ += expectedZ
+				expectedPositionZ = ((expectedPositionZ / 6).roundToFloat32() + (expectedZ / 6).roundToFloat32()).roundToFloat32() * 6
 				advance(f, 0, input, 0)
 				f.vx.assertEquals(expectedX, 0.00001)
 				f.vz.assertEquals(expectedZ, 0.00001)
@@ -1639,7 +1667,7 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 				f.airDodgeFrame.assertEquals(frame)
 			let directionZ = mode == 1 ? 1 : -1
 			let beforeX = mode == 0 ? 0. : 112.79427337646484
-			let beforeZ = mode == 0 ? 300. : (mode == 1 ? 412.7943115234375 : 187.20570373535156)
+			let beforeZ = mode == 0 ? 300. : (mode == 1 ? 412.7943115234375 : 187.20565795898438)
 			let beforeVX = mode == 0 ? 0. : 0.6194844245910645
 			let beforeVZ = mode == 0 ? 0. : directionZ * 0.6194844245910645
 			f.x.assertEquals(beforeX, 0.00001)
@@ -1654,7 +1682,8 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 			f.vx.assertEquals(nextVX, 0.00001)
 			f.vz.assertEquals(nextVZ, 0.00001)
 			f.x.assertEquals(beforeX + nextVX, 0.00001)
-			f.z.assertEquals(beforeZ + nextVZ, 0.00001)
+			let nextZ = ((beforeZ / 6).roundToFloat32() + (nextVZ / 6).roundToFloat32()).roundToFloat32() * 6
+			f.z.assertEquals(nextZ, 0.00001)
 			f.airDodging.assertTrue()
 			canAttack(f).assertFalse()
 			destroy input
@@ -1880,3 +1909,14 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 					destroy input
 					destroy saved
 					destroy state
+
+@Test function groundedKnockbackRetainsRecordedBinary32VelocityExactly()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.physics.traction = 0.07999999821186066 * 6
+	fighter.knockbackX = 0.7562744617462158 * 6
+	fighter.hitstun = 10
+	advance(fighter, 0, input, 0)
+	(fighter.knockbackX == 0.6762744784355164 * 6).assertTrue()
+	destroy input
+	destroy fighter

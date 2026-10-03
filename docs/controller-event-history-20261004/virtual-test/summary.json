@@ -1,0 +1,205 @@
+{
+  "selected_virtual_gamepad_id": 2,
+  "cold_first_input_during_stop": {
+    "stop_requested_monotonic_ns": 465096414566467,
+    "continue_requested_monotonic_ns": 465096664813294,
+    "verified_stopped_state_before_continue": "T",
+    "stopped_duration_ms": 250.246827,
+    "helper_pid": 2421555,
+    "helper_exit_code": 0,
+    "source_event_rows": 10
+  },
+  "warm_250ms_stop_input": {
+    "stop_requested_monotonic_ns": 465099079720277,
+    "continue_requested_monotonic_ns": 465099330033928,
+    "verified_stopped_state_before_continue": "T",
+    "stopped_duration_ms": 250.313651,
+    "helper_pid": 2421587,
+    "helper_exit_code": 0,
+    "source_event_rows": 10
+  },
+  "warm_baseline_source_event_rows": 35,
+  "warm_total_event_rows": 45,
+  "warm_total_transition_rows": 44,
+  "phase_comparisons": [
+    {
+      "phase": "cold-first-input-during-stop",
+      "producer_events": 10,
+      "helper_events": 10,
+      "event_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "exact_order_and_values_match": true,
+      "all_producer_events_observed_in_order": true,
+      "unexpected_helper_events": [],
+      "producer_press_or_excursion_duration": {
+        "min_ms": 4.587,
+        "median_ms": 4.62,
+        "max_ms": 4.691
+      },
+      "SDL_capture_press_or_excursion_duration": {
+        "min_ms": 0.0,
+        "median_ms": 0.002,
+        "max_ms": 0.01
+      },
+      "SDL_minus_producer_duration_delta": {
+        "min_ms": -4.687,
+        "median_ms": -4.616,
+        "max_ms": -4.587
+      },
+      "observed_expected_action_presses": 10
+    },
+    {
+      "phase": "warm-baseline-4_5ms-taps",
+      "producer_events": 24,
+      "helper_events": 24,
+      "event_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24
+      ],
+      "exact_order_and_values_match": true,
+      "all_producer_events_observed_in_order": true,
+      "unexpected_helper_events": [],
+      "producer_press_or_excursion_duration": {
+        "min_ms": 4.643,
+        "median_ms": 4.671,
+        "max_ms": 4.788
+      },
+      "SDL_capture_press_or_excursion_duration": {
+        "min_ms": 4.184,
+        "median_ms": 4.633,
+        "max_ms": 4.661
+      },
+      "SDL_minus_producer_duration_delta": {
+        "min_ms": -0.459,
+        "median_ms": -0.054,
+        "max_ms": -0.017
+      },
+      "observed_expected_action_presses": 24
+    },
+    {
+      "phase": "warm-baseline-axis",
+      "producer_events": 10,
+      "helper_events": 11,
+      "event_ids": [
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35
+      ],
+      "exact_order_and_values_match": false,
+      "all_producer_events_observed_in_order": true,
+      "unexpected_helper_events": [
+        {
+          "event_id": 25,
+          "control": "axis",
+          "value": "LeftX=0",
+          "capture_ns": 1339128201
+        }
+      ],
+      "producer_press_or_excursion_duration": {
+        "min_ms": 16.108,
+        "median_ms": 16.187,
+        "max_ms": 16.311
+      },
+      "SDL_capture_press_or_excursion_duration": {
+        "min_ms": 16.129,
+        "median_ms": 16.181,
+        "max_ms": 16.187
+      },
+      "SDL_minus_producer_duration_delta": {
+        "min_ms": -0.133,
+        "median_ms": -0.056,
+        "max_ms": 0.075
+      },
+      "observed_expected_action_presses": 10
+    },
+    {
+      "phase": "warm-250ms-stop-input",
+      "producer_events": 10,
+      "helper_events": 10,
+      "event_ids": [
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45
+      ],
+      "exact_order_and_values_match": true,
+      "all_producer_events_observed_in_order": true,
+      "unexpected_helper_events": [],
+      "producer_press_or_excursion_duration": {
+        "min_ms": 4.567,
+        "median_ms": 4.628,
+        "max_ms": 4.65
+      },
+      "SDL_capture_press_or_excursion_duration": {
+        "min_ms": 4.594,
+        "median_ms": 4.628,
+        "max_ms": 4.659
+      },
+      "SDL_minus_producer_duration_delta": {
+        "min_ms": -0.002,
+        "median_ms": 0.002,
+        "max_ms": 0.027
+      },
+      "observed_expected_action_presses": 10
+    }
+  ],
+  "kernel_observer": {
+    "clock": "both producer and evdev observer explicitly use CLOCK_MONOTONIC",
+    "producer_input_events": 54,
+    "evdev_input_events": 54,
+    "all_producer_events_observed_in_order": true,
+    "unexpected_evdev_events": 0,
+    "producer_write_to_evdev_timestamp_ms": {
+      "min_ms": 0.021,
+      "median_ms": 0.067,
+      "max_ms": 0.225
+    }
+  },
+  "clock_note": "Producer timestamps use CLOCK_MONOTONIC; SDL capture_ns uses SDL's own event timestamp origin. Compare intervals and event order only, never subtract the origins."
+}

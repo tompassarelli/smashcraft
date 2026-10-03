@@ -42,6 +42,23 @@ permissions or an unsupported adapter mode; no driver or permission changes are
 performed. Unplugging clears actions. Reconnecting creates a new SDL instance ID;
 select it in a fresh run rather than silently switching to another controller.
 
+In `--watch-seconds` runs, stdout is a streaming TSV event history with columns
+`record, event_id, capture_ns, dequeue_ns, submit_ns, control, value, action,
+pressed, disposition`. A source event row is emitted for every button or axis
+event from the selected SDL gamepad; transition rows repeat its event ID and
+retain SDL's original `capture_ns`. Event IDs increase in selected event dequeue
+order. `capture_ns` is SDL's timestamp in nanoseconds since SDL initialization;
+`dequeue_ns` is the helper's monotonic time since watch start when it reads the
+event; `submit_ns` is sampled immediately before keyboard delivery (empty for
+source-only rows). SDL time and helper monotonic time have separate origins and
+must not be subtracted across those clocks. Rows stream directly to stdout, so
+the helper does not retain an unbounded in-memory history. Startup queue items
+are counted and discarded before the neutral baseline; after focus loss, events
+in the recovery batch are recorded as suppressed while a fresh state is used
+to rearm. This fixes event collapse in the helper. It does not prove keyboard
+delivery preserves a tap or that Warcraft's map-level polling assigns it to the
+intended simulation frame.
+
 ## Xbox mapping
 
 | Control | Action / logical key |

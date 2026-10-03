@@ -81,6 +81,12 @@
           "animationFrames": 30
         },
         {
+          "animationId": 187,
+          "action": "DownAttackU",
+          "assetAction": "DownAttackU",
+          "animationFrames": 50
+        },
+        {
           "animationId": 188,
           "action": "DownFowardU",
           "assetAction": "DownFowardU",
@@ -109,6 +115,12 @@
           "action": "DownStandD",
           "assetAction": "DownStandD",
           "animationFrames": 30
+        },
+        {
+          "animationId": 195,
+          "action": "DownAttackD",
+          "assetAction": "DownAttackD",
+          "animationFrames": 50
         },
         {
           "animationId": 196,
@@ -181,6 +193,18 @@
           "action": "ShieldBreakStandD",
           "assetAction": "DownStandD",
           "animationFrames": 30
+        },
+        {
+          "animationId": 242,
+          "action": "Catch",
+          "assetAction": "Catch",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 243,
+          "action": "CatchDash",
+          "assetAction": "CatchDash",
+          "animationFrames": 40
         }
       ]
     },
@@ -258,6 +282,12 @@
           "animationFrames": 30
         },
         {
+          "animationId": 187,
+          "action": "DownAttackU",
+          "assetAction": "DownAttackU",
+          "animationFrames": 50
+        },
+        {
           "animationId": 188,
           "action": "DownFowardU",
           "assetAction": "DownFowardU",
@@ -286,6 +316,12 @@
           "action": "DownStandD",
           "assetAction": "DownStandD",
           "animationFrames": 30
+        },
+        {
+          "animationId": 195,
+          "action": "DownAttackD",
+          "assetAction": "DownAttackD",
+          "animationFrames": 50
         },
         {
           "animationId": 196,
@@ -358,6 +394,18 @@
           "action": "ShieldBreakStandD",
           "assetAction": "DownStandD",
           "animationFrames": 30
+        },
+        {
+          "animationId": 242,
+          "action": "Catch",
+          "assetAction": "Catch",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 243,
+          "action": "CatchDash",
+          "assetAction": "CatchDash",
+          "animationFrames": 40
         }
       ]
     },
@@ -435,6 +483,12 @@
           "animationFrames": 30
         },
         {
+          "animationId": 187,
+          "action": "DownAttackU",
+          "assetAction": "DownAttackU",
+          "animationFrames": 50
+        },
+        {
           "animationId": 188,
           "action": "DownFowardU",
           "assetAction": "DownFowardU",
@@ -463,6 +517,12 @@
           "action": "DownStandD",
           "assetAction": "DownStandD",
           "animationFrames": 30
+        },
+        {
+          "animationId": 195,
+          "action": "DownAttackD",
+          "assetAction": "DownAttackD",
+          "animationFrames": 50
         },
         {
           "animationId": 196,
@@ -535,6 +595,18 @@
           "action": "ShieldBreakStandD",
           "assetAction": "DownStandD",
           "animationFrames": 30
+        },
+        {
+          "animationId": 242,
+          "action": "Catch",
+          "assetAction": "Catch",
+          "animationFrames": 30
+        },
+        {
+          "animationId": 243,
+          "action": "CatchDash",
+          "assetAction": "CatchDash",
+          "animationFrames": 40
         }
       ]
     }

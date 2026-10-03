@@ -1,5 +1,28 @@
 # Physics reference and implementation
 
+## Recorded vertical precision — 2026-10-04
+
+Ordinary gravity subtraction now rounds both operands and the result in Melee
+units. Vertical position adds self velocity, then launch velocity, then attacker
+shield recoil, rounding each addition separately. Shield-break falling uses
+the same gravity and position arithmetic. Zero displacement preserves authored
+stationary surface coordinates exactly. Original fighter stats remain authored.
+
+The emitted-Lua probe generated from
+smashcraft:docs/smash-melee-reference/slippi-ntsc-falco-fall.json failed on its
+first recorded frame before the repair and passes all ten exact positions on
+both original fighter hosts afterward. Only recorded gravity and terminal speed
+are injected; these are test rigs, not roster changes. Evidence:
+smashcraft:build/gravity-lua-before.log and smashcraft:build/gravity-lua-after.log.
+
+The probe uses the compiler-owned Lua native fixture pinned separately by
+`luaTestRuntimeCommit` in smashcraft:wurst-toolchain.lock. Its SquareRoot repair
+does not change the compiler artifact and does not establish Warcraft native
+square-root precision. Shared scalar approximations and their bounded proof
+are documented in smashcraft:docs/melee-scalar-math.md; integration into airborne
+decay, Gekko square-root cutoff behavior, horizontal position order, and native
+trajectory verification remain open.
+
 ## Verified retail combat parameters — 2026-10-03
 
 Ordinary launching contacts now use the independently recorded GALE01 revision 2
@@ -589,6 +612,22 @@ https://www.ssbwiki.com/Knockback and https://www.ssbwiki.com/Shield:
 Adoption is mechanic-specific. A test passing against provisional constants
 is not proof that the entire table has been adopted or that feel matches.
 
+## Top blast-zone eligibility checkpoint
+
+Production top-boundary death now requires position strictly above the boundary
+and either grounded state, an active frozen state, or upward knockback strictly
+greater than 2.4000000953674316 Melee units/frame. Ordinary jump velocity does
+not meet the launch requirement. Production tests cover jump-only ascent, the
+exact launch threshold, a qualifying launch, and contact exactly at the top
+boundary. Numerical facts are in
+smashcraft:docs/smash-melee-reference/retail-death-parameters.json.
+This does not verify the complete death state machine: Melee's special forced
+top-death flag (including its Jigglypuff shield-break case), star/screen selection,
+camera constraints and death/respawn phase clocks remain open. Side and bottom
+comparisons now also require strict crossing; the six-test blast-zone group
+passes boundary-adjacent cases and the existing stock/ASDI cases. Frozen-state
+release ordering is still unverified.
+
 ## Initial dash and dash dance
 
 Grounded directional entry still assigns the authored initial dash speed of
@@ -621,12 +660,34 @@ animation frame 12 for Fox/Falco and 16 for Captain Falcon; the separate common
 early dash-input gate is 20. TurnRun sets its second command variable at frame
 9. RunBrake sets its first variable at frame 0 and clears it at frame 15.
 These are animation timeline facts, not independently observed simulation
-ticks. Production still needs distinct Dash, Run, TurnRun and RunBrake action
-rules, actor-owned command timing, input priority, and paired boundary traces.
-Current opposite-direction run motion uses actor acceleration and changes
-facing after velocity crosses zero; that does not prove the TurnRun command
-gate. No gameplay implementation from the unlicensed local reference was
-copied or translated.
+ticks. Production needs distinct Dash, Run, TurnRun and RunBrake action rules,
+actor-owned command timing, input priority, and paired boundary traces.
+Opposite-direction run motion changes facing only after velocity crosses zero;
+that does not prove the TurnRun command gate. No gameplay implementation from
+the unlicensed local reference was copied or translated.
+
+The simulation now records a separate ground action state and actor-owned
+command clock. Dash entry consumes its first animation update before movement.
+Explicit NTSC test rigs use Dash-to-Run command frames 12 (Fox/Falco) and 16
+(Captain Falcon), TurnRun's facing command at frame 9 and animation end at
+frame 20 (Fox/Falco) or 22 (Captain Falcon), plus the RunBrake opposite-input
+command window through frame 14, closing at frame 15. The command events and
+animation lengths come from the retail records above. TurnRun freezes at its
+frame-9 command until velocity along its entry-facing direction is at most
+0.01 Melee units (0.06 simulation world units); a subsequent action update
+flips facing, then the remaining animation frames run before the action returns
+to Run. RunBrake's command check does not make forward input enter Run;
+opposite input can enter TurnRun at RunBrake's current animation frame. Original
+Smashcraft fighters keep authored timing (currently 11/9/20/15); this is not
+asserted as retail parity. NTSC RunBrake ends when its animation clip ends or
+its 30-frame fighter countdown expires, whichever comes first. The recorded
+clip lengths are 18 frames for Fox/Falco and 28 for Captain Falcon. TurnRun
+completion enters Run only while forward input remains held; otherwise it
+returns to Wait.
+Exact event-to-simulation-tick scheduling, Dash opposite-input priority,
+animation rate interactions, and run-entry delay still need paired retail
+traces. Replay capture and equality include all ground-action clocks, the
+RunBrake countdown, and actor rule values.
 
 The walk modifier immediately selects the existing 1.6/1.4 walk speeds and
 clears the dash phase; releasing it starts a fresh initial dash. Jumps, shields,
@@ -1611,9 +1672,52 @@ The numeric common source is verified GALE01 revision 2 (PlCo SHA-1
 in this repository. The decompiled source is used for numerical facts and
 field behavior only.
 
-Shield health stays at zero through the pop/landing/stand and becomes 30 on
-dizzy entry. It stays exactly 30 through dizziness and on its expiration tick;
-normal shield drain/regeneration resumes on subsequent normal simulation ticks.
+Shield regeneration runs once after input transitions and contact collection,
+before contact damage resolves. The source callback order is animation, input,
+grab collision, attack collision, then collision resolution; regeneration begins
+the last of these. The factual source is melee:src/melee/ft/fighter.c at the
+revision above. An active fighter without guard gains 0.07000000029802322 per
+tick, capped at 60, including hitlag, ledges, grabs, down states and wall-tech
+startup. A guard-to-grab input or capture clearing guard therefore permits
+regeneration that tick. Continuing guard does not. Smashcraft's custom trap
+freeze also retains regeneration; that extension has no retail counterpart.
+
+Shield-break pop/landing/stand use the same regeneration phase. Dizzy entry and
+each unfrozen dizzy animation tick restore 30 before regeneration, leaving
+30.07 after the frame, including expiration if no new guard starts. Hitlag
+pauses that reset but not regeneration. The shared standalone actor step and
+production match step compose the same motion and regeneration phases; the
+match delays regeneration until both fighters' contact collection is complete.
+Inactive (`out`) fighters do not regenerate. Melee's separate sleeping flag is
+not modeled, so this is not a claim of complete sleeping-state parity. These
+rules establish logical ordering, not exact binary32 arithmetic parity.
+
+Shield depletion requires health strictly below zero; reaching exactly zero
+keeps guard active, including for another hit during hitlag. Continuing drain
+can then break it on the next action tick. A drain-caused break sets health to
+zero before that frame's regeneration, leaving 0.07. A damage-caused break sets
+health to the common restoration value 30 during contact resolution, after
+regeneration has already run; its first later non-guard frame reaches 30.07.
+The common break transition preserves that caller-selected health. These facts
+come from melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c,
+melee:src/melee/ft/fighter.c and
+melee:src/melee/ft/kinds/ftCommon/ftCo_ShieldBreakFly.c at the revision above.
+
+Held guard drains at the active animation boundary before jump, ground dodge,
+release or grab inputs. A resulting break preempts those inputs; reaching
+exactly zero instead still permits a legal exit, followed by regeneration.
+Ordinary guard input entry initializes guard without draining on that tick;
+the following active animation tick supplies its first held drain. Hitlag
+pauses drain. Shieldstun and its return-to-guard completion tick do not drain;
+guard inputs become available on that completion tick, with drain resuming on
+the following tick if guard remains active. The source entry call processes
+animation commands, but does not invoke GuardOn's animation callback; the
+GuardOn/Guard callbacks own drain, and GuardSetOff's callback owns return to
+guard. This distinction is sourced from melee:src/melee/ft/ftanim.c and
+melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c at the revision above. Powershield
+and analog light-shield state transitions remain outside this digital-guard
+model.
+
 Movement, fast falling, attacks, shielding, jumps, air dodges, ground escapes,
 platform drops, ordinary get-up actions and floor techs cannot cancel recovery.
 Landing uses the highest crossed eligible surface; it does not enter ordinary
@@ -1636,8 +1740,8 @@ shieldBreakDizzyFrames(percent) exposes its initial sourced duration. Public tim
 SHIELD_BREAK_LAND_FRAMES=12, SHIELD_BREAK_STAND_FRAMES=30 and
 SHIELD_BREAK_RESTORED_ENERGY=30. LAND begins on contact; each timed phase
 transitions after exactly its stated number of later unfrozen ticks. Expiration
-clears state/frame/countdown without consuming the current input as an ordinary
-action; the match's following attack-resolution phase can start a legal attack.
+clears state/frame/countdown and permits otherwise legal actions on that same
+simulation tick.
 
 Eight focused Wurst tests cover all depletion paths, both characters' actual
 pop trajectories and forced actions, phase boundaries, percent/mash recovery,
@@ -1896,3 +2000,25 @@ before this change and passes for both grounded and airborne mirror contacts.
 The focused character suite passes 12/12:
 wc3-melee:build/wurst-tests/illidan-trade-after-r2.log. Earlier failing evidence:
 wc3-melee:build/wurst-tests/illidan-trade-before.log.
+
+### Binary32 arithmetic boundary
+
+The standard-library pin in smashcraft:wurst-toolchain.lock now includes the
+pure Wurst Binary32 package from the Tom-owned Apache-2.0 fork. The shared engine
+rounds grounded knockback decay in Melee units and rounds shield-health updates
+to binary32. A generated-Lua production probe, not just the binary32 compiler
+interpreter, verifies the recorded first traction subtraction and regeneration
+from 20 to 20.06999969482422. Run
+`bash ~/code/wc3-melee/main/tools/physics-probe/check-numerical-precision.sh` from this checkout;
+source is smashcraft:tools/physics-probe/NumericalPrecisionProbe.wurst.
+
+This is partial precision coverage. Other formulas and their PowerPC operation
+ordering still require migration and comparison. The probe does not establish
+Warcraft timing, rendering, or native map startup.
+
+Digital shield damage sums raw contacts before applying the retail binary32
+factor once. Shieldstun rounds integer power times 0.30000001192092896 before
+the fused multiplication by 1.5 and addition of 2. The standard-library pin now
+provides fusedMultiplyAddFloat32 for this single-round operation. Analog shield
+input, powershields, and native verification remain open; digital formula
+precision does not establish those behaviors.

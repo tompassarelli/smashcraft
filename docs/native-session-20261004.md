@@ -29,7 +29,7 @@ human controller trial.
 | Confirmed state samples | Both clients report the same six frame/checksum pairs below | Sampled checksums agree; not an exhaustive full-state comparison |
 | Prediction correction | A reports corrections/replayed frames; B does too, with different speculative histories | Actual native rollback activity; visual/audio correctness remains unverified |
 | Result | Controlled held-left input causes ring-outs; traces reach phase 3 | One scripted match ends; not a competitive playtest |
-| Rematch | Native help changes from 0/2 ready to 1/2 after A's Y; B's Y returns to character selection, confirmed by a fresh phase-0 trace | Result-to-selection transition in the retained online session; second fight still pending |
+| Rematch | Native help changes from 0/2 ready to 1/2 after A's Y; B's Y returns to character selection, confirmed by a fresh phase-0 trace; a subsequent trace reaches combat and applies an attack | Second scripted fight started in the retained online session; not accepted responsive human play |
 
 First combat capture: 300 callbacks, approximately 4.997 native-game seconds.
 Trace-buffer overflow count is zero on both clients. That is **not** a count
@@ -43,6 +43,11 @@ of lost physical or OS input events.
 | 157 | 373997:436935 |
 | 217 | 757781:373800 |
 | 277 | 920272:935482 |
+
+The rematch combat trace spans another 300 callbacks, approximately 4.990
+native-game seconds. Both clients agree at confirmed frames 36, 103, 164, 221
+and 284, with checksums respectively 414386:666825, 883616:31653,
+414329:551791, 928694:185066 and 46714:715139.
 
 A's first one-second echo summary contains 35 samples, native-clock minimum
 83.374 ms, mean 214.985 ms, maximum 433.411 ms. This is map send-to-self-echo
@@ -65,7 +70,8 @@ Ring-outs exercise RESULT; Y on each human exercises rematch readiness.
 
 Private archived traces are in
 ~/code/wc3-melee/worktrees/competitive-integrity-20261003/build/native-session-20261004/:
-first-combat-a.txt, first-combat-b.txt, ringout-a.txt and ringout-b.txt.
+first-combat-a.txt, first-combat-b.txt, ringout-a.txt, ringout-b.txt,
+rematch-combat-a.txt and rematch-combat-b.txt.
 These are authored map diagnostics, not authentication logs. Use the shared
 confirmed frame identity to compare checksums; do not equate speculative frames
 or calculate delays from unsynchronized clocks.

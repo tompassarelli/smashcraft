@@ -1,0 +1,18 @@
+{
+  "purpose": "Independent frame-tag retention oracle; no cross-machine clock claim",
+  "epoch": "Declared before stimulus; relative timestamps in microseconds",
+  "rule": "1 + floor(elapsed_us * 60 / 1000000), fixed delay 0",
+  "records": [
+    {"id":1,"elapsed_us":0,"frame":1,"action":1},
+    {"id":2,"elapsed_us":16666,"frame":1,"action":0},
+    {"id":3,"elapsed_us":16667,"frame":2,"action":1},
+    {"id":4,"elapsed_us":33333,"frame":2,"action":0},
+    {"id":5,"elapsed_us":33334,"frame":3,"action":1},
+    {"id":6,"elapsed_us":66666,"frame":4,"action":0},
+    {"id":7,"elapsed_us":66667,"frame":5,"action":1},
+    {"id":8,"elapsed_us":83333,"frame":5,"action":0},
+    {"id":9,"elapsed_us":83334,"frame":6,"action":1}
+  ],
+  "delivery": "After a verified 250 ms map-process stall; tags must remain unchanged",
+  "limits": "Synthetic timestamps and action values; preservation only, not physical capture or production combat"
+}

@@ -1,0 +1,58 @@
+{
+  "id": "retail-ntsc-1.02-air-knockback-operation-order",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "sourceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "source": "melee:src/melee/ft/fighter.c",
+  "function": "Fighter_procUpdate",
+  "units": "Melee units; world-space conversion is outside these operations",
+  "decay": 0.050999999046325684,
+  "angle": {
+    "operation": "atan2f",
+    "address": "0x80022c30",
+    "arguments": [
+      "vertical knockback",
+      "horizontal knockback"
+    ]
+  },
+  "speedSquared": [
+    {
+      "address": "0x8006b930",
+      "operation": "multiply",
+      "precision": "binary32",
+      "rounding": "nearest, ties to even",
+      "expression": "vertical knockback squared"
+    },
+    {
+      "address": "0x8006b938",
+      "operation": "fused multiply-add",
+      "precision": "binary32",
+      "rounding": "nearest, ties to even",
+      "expression": "horizontal knockback squared plus rounded vertical square"
+    }
+  ],
+  "cutoff": "Zero both axes when the rounded square-root speed is strictly less than decay.",
+  "axes": [
+    {
+      "address": "0x8006b9c8",
+      "operation": "fused negative multiply-subtract",
+      "precision": "binary32",
+      "rounding": "nearest, ties to even",
+      "axis": "horizontal",
+      "direction": "cosf(angle)",
+      "expression": "old axis minus decay times direction; one final rounding"
+    },
+    {
+      "address": "0x8006b9e4",
+      "operation": "fused negative multiply-subtract",
+      "precision": "binary32",
+      "rounding": "nearest, ties to even",
+      "axis": "vertical",
+      "direction": "sinf(angle)",
+      "expression": "old axis minus decay times direction; one final rounding"
+    }
+  ],
+  "limitations": [
+    "The trigonometric output values and square-root approximation are not verified by this instruction-kind check.",
+    "No native Smashcraft trajectory is established."
+  ]
+}

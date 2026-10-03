@@ -9,7 +9,26 @@
     "0x48": 3,
     "0x4c": 20,
     "0x54": 0.75,
-    "0x58": 0.625
+    "0x58": 0.625,
+    "0x68": 3
+  },
+  "dashShieldGrabWindow": {
+    "file": "PlCo.dat",
+    "fileSha256": "63841336337eb5a7366b06ccc60ea4bd37c3604ab56e19939d78b9aa9cdd234c",
+    "verification": "Read through the archive's ftLoadCommonData root and its common-table indirection; the resolved layout and file hash match the previously verified retail parameter corpus.",
+    "commonOffset": "0x68",
+    "type": "float32",
+    "bits": "0x40400000",
+    "frames": 3,
+    "entryUseSite": "melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c ftCo_80091B9C",
+    "consumeUseSite": "melee:src/melee/ft/kinds/ftCommon/ftCo_Catch.c ftCo_800D8B9C",
+    "condition": "The later Dash IASA shield branch initializes this window; attack press while it remains nonzero selects CatchDash. This is distinct from the earlier dash branch's remaining-dash counter.",
+    "productionMapping": {
+      "runToGuard": "Any accepted Run-to-Guard entry starts a three-step CatchDash window, independent of the Run animation frame.",
+      "dashToGuard": "The simulation starts the window for Dash action frames above 20; frames through 20 do not start it.",
+      "callbackMappingVerified": false
+    },
+    "limit": "Playable fighters retain authored startup/total values and one active tick; NTSC test rigs use independently recorded CatchDash event timing with two active ticks, mapped through entry script processing (retail-grab-events.json). Contact reach still uses Smashcrafts authored grab region. Retail geometry, full input priority, exact guard-window callback ordering, and independent replay/native confirmation remain unverified."
   },
   "records": [
     {

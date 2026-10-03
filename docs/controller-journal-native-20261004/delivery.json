@@ -1,0 +1,16 @@
+{
+  "clock": "same-host monotonic; no alignment to SDL epoch or Warcraft timers",
+  "controlled_stop_ns": 250956681,
+  "clients": [
+    {
+      "client": "a",
+      "injection_finished_ns": 39238516,
+      "verified_stopped": true
+    },
+    {
+      "client": "b",
+      "injection_finished_ns": 76499406,
+      "verified_stopped": true
+    }
+  ]
+}

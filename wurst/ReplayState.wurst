@@ -14,10 +14,30 @@ function copyFighter(FighterState source, FighterState destination, FighterRoste
 	destination.character = source.character
 	destination.physics = source.physics
 	destination.surfacePhysics = source.surfacePhysics
+	destination.ceilingTechImpulseFrame = source.ceilingTechImpulseFrame
+	destination.ceilingTechAnimationEndFrame = source.ceilingTechAnimationEndFrame
+	destination.wallTechAnimationEndFrame = source.wallTechAnimationEndFrame
+	destination.wallJumpTechAnimationEndFrame = source.wallJumpTechAnimationEndFrame
 	destination.facing = source.facing
 	destination.lastAerialTapDirection = source.lastAerialTapDirection
 	destination.dashFrame = source.dashFrame
 	destination.dashDirection = source.dashDirection
+	destination.groundRules = groundMovementRules(
+		source.groundRules.dashRunEnableFrame,
+		source.groundRules.turnRunFacingCommandFrame,
+		source.groundRules.turnRunAnimationEndFrame,
+		source.groundRules.runBrakeTurnCommandEndFrame,
+		source.groundRules.runBrakeAnimationEndFrame,
+		source.groundRules.runBrakeMaximumFrames)
+	destination.dashGrabTiming = dashGrabRules(source.dashGrabTiming.startupFrames, source.dashGrabTiming.activeFrames, source.dashGrabTiming.totalFrames)
+	destination.dashGrabWindow = source.dashGrabWindow
+	destination.dashGrabAttack = source.dashGrabAttack
+	destination.groundAction = source.groundAction
+	destination.groundActionFrame = source.groundActionFrame
+	destination.groundRunBrakeFramesRemaining = source.groundRunBrakeFramesRemaining
+	destination.groundTurnRunEntryFacing = source.groundTurnRunEntryFacing
+	destination.groundTurnRunFacingCommandLatched = source.groundTurnRunFacingCommandLatched
+	destination.groundTurnRunPausePending = source.groundTurnRunPausePending
 	destination.x = source.x
 	destination.z = source.z
 	destination.positionDeltaX = source.positionDeltaX
@@ -126,12 +146,15 @@ function copyFighter(FighterState source, FighterState destination, FighterRoste
 	destination.shieldBreakState = source.shieldBreakState
 	destination.shieldBreakFrame = source.shieldBreakFrame
 	destination.shieldBreakSerial = source.shieldBreakSerial
+	destination.shieldBreakDownFrames = source.shieldBreakDownFrames
+	destination.shieldBreakStandFrames = source.shieldBreakStandFrames
 	destination.shieldBreakRemaining = source.shieldBreakRemaining
 	destination.grounded = source.grounded
 	destination.crouching = source.crouching
 	destination.fastFalling = source.fastFalling
 	destination.fastFallDownHeld = source.fastFallDownHeld
 	destination.fastFallInputAge = source.fastFallInputAge
+	destination.jumpInputAge = source.jumpInputAge
 	destination.jumps = source.jumps
 	destination.jumpSerial = source.jumpSerial
 	destination.jumpIsDouble = source.jumpIsDouble
@@ -146,6 +169,7 @@ function copyFighter(FighterState source, FighterState destination, FighterRoste
 	destination.surfaceRecoveryState = source.surfaceRecoveryState
 	destination.surfaceRecoveryFrame = source.surfaceRecoveryFrame
 	destination.surfaceRecoveryVelocityApplied = source.surfaceRecoveryVelocityApplied
+	destination.surfaceWallJumpQueued = source.surfaceWallJumpQueued
 	destination.surfaceReflectCooldown = source.surfaceReflectCooldown
 	destination.lastReflectedSurface = source.lastReflectedSurface
 	destination.surfaceContactSerial = source.surfaceContactSerial
@@ -194,6 +218,14 @@ function fighterDifference(FighterState expected, FighterState actual, FighterRo
 		return "physics"
 	if expected.surfacePhysics != actual.surfacePhysics
 		return "surfacePhysics"
+	if expected.ceilingTechImpulseFrame != actual.ceilingTechImpulseFrame
+		return "ceilingTechImpulseFrame"
+	if expected.ceilingTechAnimationEndFrame != actual.ceilingTechAnimationEndFrame
+		return "ceilingTechAnimationEndFrame"
+	if expected.wallTechAnimationEndFrame != actual.wallTechAnimationEndFrame
+		return "wallTechAnimationEndFrame"
+	if expected.wallJumpTechAnimationEndFrame != actual.wallJumpTechAnimationEndFrame
+		return "wallJumpTechAnimationEndFrame"
 	if expected.facing != actual.facing
 		return "facing"
 	if expected.lastAerialTapDirection != actual.lastAerialTapDirection
@@ -202,6 +234,28 @@ function fighterDifference(FighterState expected, FighterState actual, FighterRo
 		return "dashFrame"
 	if expected.dashDirection != actual.dashDirection
 		return "dashDirection"
+	if expected.groundRules != actual.groundRules
+		return "groundRules"
+	if expected.dashGrabTiming.startupFrames != actual.dashGrabTiming.startupFrames or
+		expected.dashGrabTiming.activeFrames != actual.dashGrabTiming.activeFrames or
+		expected.dashGrabTiming.totalFrames != actual.dashGrabTiming.totalFrames
+		return "dashGrabTiming"
+	if expected.dashGrabWindow != actual.dashGrabWindow
+		return "dashGrabWindow"
+	if expected.dashGrabAttack != actual.dashGrabAttack
+		return "dashGrabAttack"
+	if expected.groundAction != actual.groundAction
+		return "groundAction"
+	if expected.groundActionFrame != actual.groundActionFrame
+		return "groundActionFrame"
+	if expected.groundRunBrakeFramesRemaining != actual.groundRunBrakeFramesRemaining
+		return "groundRunBrakeFramesRemaining"
+	if expected.groundTurnRunEntryFacing != actual.groundTurnRunEntryFacing
+		return "groundTurnRunEntryFacing"
+	if expected.groundTurnRunFacingCommandLatched != actual.groundTurnRunFacingCommandLatched
+		return "groundTurnRunFacingCommandLatched"
+	if expected.groundTurnRunPausePending != actual.groundTurnRunPausePending
+		return "groundTurnRunPausePending"
 	if expected.x != actual.x
 		return "x"
 	if expected.z != actual.z
@@ -405,6 +459,10 @@ function fighterDifference(FighterState expected, FighterState actual, FighterRo
 		return "shieldBreakFrame"
 	if expected.shieldBreakSerial != actual.shieldBreakSerial
 		return "shieldBreakSerial"
+	if expected.shieldBreakDownFrames != actual.shieldBreakDownFrames
+		return "shieldBreakDownFrames"
+	if expected.shieldBreakStandFrames != actual.shieldBreakStandFrames
+		return "shieldBreakStandFrames"
 	if expected.shieldBreakRemaining != actual.shieldBreakRemaining
 		return "shieldBreakRemaining"
 	if expected.crouching != actual.crouching
@@ -413,6 +471,8 @@ function fighterDifference(FighterState expected, FighterState actual, FighterRo
 		return "fastFallDownHeld"
 	if expected.fastFallInputAge != actual.fastFallInputAge
 		return "fastFallInputAge"
+	if expected.jumpInputAge != actual.jumpInputAge
+		return "jumpInputAge"
 	if expected.fastFalling != actual.fastFalling
 		return "fastFalling"
 	if expected.grounded != actual.grounded
@@ -449,6 +509,8 @@ function fighterDifference(FighterState expected, FighterState actual, FighterRo
 		return "surfaceRecoveryFrame"
 	if expected.surfaceRecoveryVelocityApplied != actual.surfaceRecoveryVelocityApplied
 		return "surfaceRecoveryVelocityApplied"
+	if expected.surfaceWallJumpQueued != actual.surfaceWallJumpQueued
+		return "surfaceWallJumpQueued"
 	if expected.surfaceReflectCooldown != actual.surfaceReflectCooldown
 		return "surfaceReflectCooldown"
 	if expected.lastReflectedSurface != actual.lastReflectedSurface
@@ -789,6 +851,27 @@ public function canonicalChecksum(string text) returns string
 	return I2S(first) + ":" + I2S(second)
 
 function canonicalFighter(CanonicalWriter writer, string prefix, FighterState fighter, FighterRoster world)
+	canonicalInt(writer, prefix + ".ceilingTechImpulseFrame", fighter.ceilingTechImpulseFrame)
+	canonicalInt(writer, prefix + ".ceilingTechAnimationEndFrame", fighter.ceilingTechAnimationEndFrame)
+	canonicalInt(writer, prefix + ".wallTechAnimationEndFrame", fighter.wallTechAnimationEndFrame)
+	canonicalInt(writer, prefix + ".wallJumpTechAnimationEndFrame", fighter.wallJumpTechAnimationEndFrame)
+	canonicalInt(writer, prefix + ".dashGrabWindow", fighter.dashGrabWindow)
+	canonicalInt(writer, prefix + ".groundAction", fighter.groundAction)
+	canonicalInt(writer, prefix + ".groundActionFrame", fighter.groundActionFrame)
+	canonicalInt(writer, prefix + ".groundRunBrakeFramesRemaining", fighter.groundRunBrakeFramesRemaining)
+	canonicalInt(writer, prefix + ".groundTurnRunEntryFacing", fighter.groundTurnRunEntryFacing)
+	canonicalInt(writer, prefix + ".groundRules.dashRunEnableFrame", fighter.groundRules.dashRunEnableFrame)
+	canonicalInt(writer, prefix + ".groundRules.turnRunFacingCommandFrame", fighter.groundRules.turnRunFacingCommandFrame)
+	canonicalInt(writer, prefix + ".groundRules.turnRunAnimationEndFrame", fighter.groundRules.turnRunAnimationEndFrame)
+	canonicalInt(writer, prefix + ".groundRules.runBrakeTurnCommandEndFrame", fighter.groundRules.runBrakeTurnCommandEndFrame)
+	canonicalInt(writer, prefix + ".groundRules.runBrakeAnimationEndFrame", fighter.groundRules.runBrakeAnimationEndFrame)
+	canonicalInt(writer, prefix + ".groundRules.runBrakeMaximumFrames", fighter.groundRules.runBrakeMaximumFrames)
+	canonicalInt(writer, prefix + ".dashGrabTiming.startupFrames", fighter.dashGrabTiming.startupFrames)
+	canonicalInt(writer, prefix + ".dashGrabTiming.activeFrames", fighter.dashGrabTiming.activeFrames)
+	canonicalInt(writer, prefix + ".dashGrabTiming.totalFrames", fighter.dashGrabTiming.totalFrames)
+	canonicalBoolean(writer, prefix + ".dashGrabAttack", fighter.dashGrabAttack)
+	canonicalBoolean(writer, prefix + ".groundTurnRunFacingCommandLatched", fighter.groundTurnRunFacingCommandLatched)
+	canonicalBoolean(writer, prefix + ".groundTurnRunPausePending", fighter.groundTurnRunPausePending)
 	canonicalInt(writer, prefix + "." + "character", fighter.character)
 	canonicalRealField(writer, prefix + ".physics.weight", fighter.physics.weight)
 	canonicalRealField(writer, prefix + ".physics.gravity", fighter.physics.gravity)

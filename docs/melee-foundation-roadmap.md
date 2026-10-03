@@ -33,29 +33,37 @@ and its PlCo SHA-1 matches the published shield-table extraction. The ISO and
 extracted proprietary files remain in private storage outside every repository;
 only independently recorded numerical facts enter the reference corpus.
 
-Current source evidence is in smashcraft:docs/physics.md: actor-owned parameters
-and test-only Melee rigs, recorded fall/jump, dash entry, grounded damage and
-floor-recovery comparisons, and a paired grounded digital-shield contact.
-Retail launch stacking, damage-level selection, grounded rebound, grounded
-movement and test-arena surface recovery are integrated. The assembled r8
-source suite passed 451/451 before the grounded-movement and surface additions;
-after those additions, PhysicsTests passed 59/59 and SimulationTests passed
-174/174. The r8 map built successfully and was installed with matching SHA-256
-31c2e5e862c3cd222ccc05289f5f03ff77ba06b93cc9c85c59796eb53b407790.
-It predates those latest additions. Native play remains unobserved.
+Current implementation and reference limits are recorded in smashcraft:docs/physics.md
+and smashcraft:docs/smash-melee-reference/surface-action-boundaries.md. Production
+source includes actor-owned parameters and test-only Melee rigs, recorded
+fall/jump, dash-entry, grounded-damage, floor-recovery and shield-contact cases.
+It also includes retail launch stacking, damage-level selection, grounded
+movement, rebound and test-arena surface recovery. These implementations do not
+establish full parity or complete collision geometry.
+
+Latest shield precision integration: 62/62 relevant Wurstunit checks pass, plus
+the generated-Lua production probe passes exact grounded-friction, shield regen,
+shield damage, shield-contact accumulation and fused shieldstun boundaries.
+The interpreter alone cannot prove emitted-Lua precision. Airborne knockback
+operation order has now been checked in the retail executable and requires
+fused per-axis subtraction after retail trigonometry; production still uses
+radial rescaling. Other formula rounding, analog shields, powershields,
+connected/sloped ECB contacts and native trajectory checks remain open.
+
+The latest physics candidate is Smashcraft 0.0.12, build melee-physics-r17,
+source 1f38702b84ca21edd7f08ad29e40746aa73c32ed. It built with zero errors and
+six existing warnings. SHA-256:
+91d0ce296088fcda1912fa6e2eef4af5a9b1d36c239184f4d0831568217a1087.
+Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x.
+Build evidence: smashcraft:build/physics-map-r17.log. Deployment was disabled;
+this candidate has not been installed or observed natively. Separate native
+input/contact probes do not establish its physics or presentation.
+
 Collision/tech coverage, remaining shared rules and native verification still
 prevent M1 closure. Identifying the retail disc does not identify the revision
-of previously acquired Slippi recordings.
-
-Baseline inspected: `fed4b8c9e9b6be8a6e9d5efda3949ae979a4ffe0`.
-wc3-melee:docs/physics.md records useful arithmetic, trajectory, and state tests,
-but explicitly says full Melee parity is not established. Provisional dash/run
-transitions, common-data gaps, launch stacking, grounded knockback, tumble/bounce
-rules, shield pushback, and native presentation remain unresolved. Historical
-passing test counts are not a fresh observation and do not close these gaps.
-wc3-melee:wurst/ImpactEvents.wurst and wc3-melee:wurst/CombatEffects.wurst already
-connect floor tech/missed-tech and dodge events to effects; exact Melee visual
-timing and wall/ceiling coverage have not been proved.
+of previously acquired Slippi recordings. VFX implementation and its native
+acceptance remain separate from the formula checks. Staling and freshness
+bonuses remain the deliberate omission in smashcraft:docs/gameplay-design.md.
 
 ## The ladder and its completion evidence
 

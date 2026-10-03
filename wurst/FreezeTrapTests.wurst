@@ -121,7 +121,7 @@ function freezeTrapMatch() returns MatchState
 	rifleman.freezeTrapArming = 12
 	rifleman.freezeTrapSerial = 3
 	rifleman.frozenFrames = 120
-	rifleman.x = 920
+	rifleman.x = 920.001
 	advance(rifleman, 0, input, -240)
 	rifleman.out.assertTrue()
 	rifleman.stocks.assertEquals(1)

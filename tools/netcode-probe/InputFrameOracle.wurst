@@ -1,0 +1,22 @@
+package InputFrameOracle
+
+public constant int INVALID_CAPTURE_FRAME = -1
+public constant int LAST_CAPTURE_FRAME = 2147483646
+
+// External elapsed time since a predeclared epoch, split before entering WC3's
+// signed integer boundary. This neither aligns clocks nor selects a pause rule.
+public function captureFrameFromElapsed(int seconds, int nanoseconds, int delay) returns int
+    if seconds < 0 or nanoseconds < 0 or nanoseconds >= 1000000000 or delay < 0
+        return INVALID_CAPTURE_FRAME
+    if seconds > (LAST_CAPTURE_FRAME - 1) div 60
+        return INVALID_CAPTURE_FRAME
+    let base = 1 + seconds * 60
+    // floor(ns * 60 / 1e9) = floor(ns * 3 / 50e6); split to avoid overflow.
+    let fractional = (nanoseconds div 50000000) * 3
+        + ((nanoseconds mod 50000000) * 3) div 50000000
+    if fractional > LAST_CAPTURE_FRAME - base
+        return INVALID_CAPTURE_FRAME
+    let frame = base + fractional
+    if delay > LAST_CAPTURE_FRAME - frame
+        return INVALID_CAPTURE_FRAME
+    return frame + delay

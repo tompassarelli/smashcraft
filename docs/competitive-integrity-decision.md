@@ -49,6 +49,16 @@ All frame conversions below use 16.666667 ms/frame. They describe observations, 
 
 ## Timing interpretation and clock alignment
 
+Update, 4 October: the retained two-client online candidate completed a scripted
+fight, result-to-selection rematch and second fight with matching sampled
+confirmed checksums. Further native tests observed all 20 short Q press/release
+pairs at X11 (4–5 ms holds) but only three pairs in the combat polling history.
+A controlled service stall also omitted a 40 ms tap while retaining the
+before/after taps. See [smashcraft:docs/native-session-20261004.md](native-session-20261004.md)
+and [smashcraft:docs/native-rapid-taps-20261004.md](native-rapid-taps-20261004.md).
+These narrow the current implementation's input-preservation failure without
+establishing an unavoidable engine limit. Competitive recommendation stays HOLD.
+
 The headless oracle is the authored corpus's fixed frame index, independent of the schedule's eventual choice. Four logical frames of delayed delivery are **not** a measured 66.67 ms native packet delay.
 
 Retained native trials identify each injected event by trial/edge and bracket submission with the same Linux monotonic clock used to anchor both captures. The first changed captured frame estimates visible response; approximately 16.4 ms capture spacing limits temporal precision. Native game time is a separate clock and may pause; it is not substituted for host wall time. No cross-machine latency is calculated by subtracting unsynchronized clocks. Controller hardware, OS service before injection, physical scanout and human perception are bypassed.
@@ -75,6 +85,7 @@ No source path shown explicitly skips numbered simulation rows. Confirmed and re
 | Approach | Supported benefit / delta | Cost and decisive next gate |
 | --- | --- | --- |
 | Current map on Battle.net | Frame-tagged input and bounded numerical correction already work for tested recorded rows. Lowest change cost. | Capture/frame contract and visible native correction remain blocking. Measure those before a competitive promise. |
+| Native selected-unit ability commands | Measured activation retention: both online observers received20/20 measured4–5ms taps while local polling captured2/20; a queued tap during a controlled process stall also survived. | See wc3-melee:docs/native-command-results-20261004.md. Does not expose independently correct original intention timestamps/frames, releases or analog axes. Retention alone does not make callback-arrival tagging fair. |
 | Map capture/scheduling changes | Can change row/edge representation, buffering and explicit pause/resume semantics. Alternative service APIs may help only if they actually run earlier/during the relevant stall. | Existing native editbox trial rendered glyphs around14 ms while synchronized callbacks averaged~106 ms; callbacks were1–9 timer rows later, so that callback route is not an established early service. Sprite update callback probe exists but its native advantage is untested. |
 | Rust helper plus ordinary keyboard mapping | Broad controller acquisition, timestamped external observations, focus/launch and edge queueing are available. Does not automatically deliver original event IDs/frames to Wurst. | Requires a supported bridge and clock contract. A small candidate is an externally timestamped sequence encoded into native local editbox text, then read after script service resumes. Native text before synchronized callbacks is demonstrated, **text preservation during the relevant stall is not**. Test that seam before selecting it; focus, text bounds and usability remain costs. Local Preloader ingestion was also considered: same-file caching blocks an assumed overwrite/reload channel. Immutable sequence files remain an unverified alternative, with file access, freshness and cost requiring native proof. Neither candidate is a selected production bridge. |
 | Official FLO/W3Champions hosting | Different nodes/routes and host policy may improve RTT distribution, batching or equalization. Public protocol exposes node choice and ping-equalizer fields. No measured Smashcraft delta yet. | Current custom-map admission and same-build matched native trial required. Historical custom-lobby UI did not forward the equalizer option in its inspected create request. Equalization can add delay; it is not rollback or lost-edge reconstruction. |

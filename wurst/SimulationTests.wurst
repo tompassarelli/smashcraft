@@ -6,6 +6,7 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 import ReplayState
+import Binary32
 
 constant real TEST_MELEE_WORLD_SCALE = 6
 
@@ -590,7 +591,7 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 	let stockTarget = new FighterState(1, 100, -1)
 	let stockInput = new InputSnapshot()
 	prepareSmashCharge(stockFighter, stockTarget, stockInput, 2)
-	stockFighter.x = 920
+	stockFighter.x = 920.001
 	stockInput.attackHeld = false
 	advance(stockFighter, 0, stockInput, -240)
 	stockFighter.out.assertTrue()
@@ -1209,6 +1210,261 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 				destroy input
 				destroy fighter
 
+@Test function retailDashRunCommandUsesTheActorsEncodedEnableFrame()
+	for rig = 0 to 2
+		let fighter = new FighterState(0, 0, 1)
+		let input = new InputSnapshot()
+		if rig == 0
+			fighter.groundRules = ntscFoxGroundMovementRules()
+		else if rig == 1
+			fighter.groundRules = ntscFalcoGroundMovementRules()
+		else
+			fighter.groundRules = ntscCaptainFalconGroundMovementRules()
+		input.direction = 1
+		advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_DASH)
+		fighter.groundActionFrame.assertEquals(1)
+		let enableFrame = rig == 2 ? 16 : 12
+		for frame = 2 to enableFrame - 1
+			advance(fighter, 0, input, 0)
+			fighter.groundAction.assertEquals(GROUND_ACTION_DASH)
+			fighter.groundActionFrame.assertEquals(frame)
+		advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_RUN)
+		fighter.groundActionFrame.assertEquals(0)
+		destroy input
+		destroy fighter
+
+@Test function turnRunWaitsForRetailFacingCommandBoundary()
+	for rig = 0 to 1
+		let fighter = new FighterState(0, 0, 1)
+		let input = new InputSnapshot()
+		fighter.groundRules = rig == 0 ? ntscFoxGroundMovementRules() : ntscCaptainFalconGroundMovementRules()
+		let turnRunEndFrame = rig == 0 ? 20 : 22
+		fighter.groundAction = GROUND_ACTION_RUN
+		fighter.groundActionFrame = 4
+		fighter.dashFrame = INITIAL_DASH_FRAMES + 1
+		fighter.dashDirection = 1
+		fighter.vx = 13.2
+		input.direction = -1
+		advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
+		fighter.groundActionFrame.assertEquals(0)
+		fighter.facing.assertEquals(1)
+		for frame = 1 to 9
+			advance(fighter, 0, input, 0)
+		fighter.facing.assertEquals(1)
+		fighter.groundActionFrame.assertEquals(9)
+		// The frame-9 command freezes TurnRun while momentum still follows the
+		// old facing. Crossing zero needs a later animation update to flip.
+		for frame = 1 to 9
+			advance(fighter, 0, input, 0)
+			fighter.facing.assertEquals(1)
+			fighter.groundActionFrame.assertEquals(9)
+		advance(fighter, 0, input, 0)
+		fighter.facing.assertEquals(-1)
+		fighter.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
+		fighter.groundActionFrame.assertEquals(9)
+		for frame = 10 to turnRunEndFrame - 1
+			advance(fighter, 0, input, 0)
+			fighter.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
+			fighter.groundActionFrame.assertEquals(frame)
+		advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_RUN)
+		fighter.groundActionFrame.assertEquals(0)
+		fighter.facing.assertEquals(-1)
+		destroy input
+		destroy fighter
+
+@Test function runBrakeTurnInputClosesAtTheActorsFrameFifteenCommand()
+	let allowed = new FighterState(0, 0, 1)
+	let denied = new FighterState(0, 100, 1)
+	let input = new InputSnapshot()
+	allowed.groundRules = ntscFoxGroundMovementRules()
+	allowed.groundAction = GROUND_ACTION_RUN_BRAKE
+	allowed.groundActionFrame = 13
+	allowed.dashFrame = INITIAL_DASH_FRAMES + 1
+	allowed.dashDirection = 1
+	allowed.vx = 9
+	denied.groundRules = ntscFoxGroundMovementRules()
+	denied.groundAction = GROUND_ACTION_RUN_BRAKE
+	denied.groundActionFrame = 14
+	denied.dashFrame = INITIAL_DASH_FRAMES + 1
+	denied.dashDirection = 1
+	denied.vx = 9
+	input.direction = -1
+	advance(allowed, 0, input, 0)
+	allowed.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
+	allowed.groundActionFrame.assertEquals(14)
+	allowed.groundTurnRunEntryFacing.assertEquals(1)
+	allowed.groundTurnRunFacingCommandLatched.assertTrue()
+	for frame = 1 to 15
+		advance(allowed, 0, input, 0)
+		if allowed.facing == 1
+			allowed.groundActionFrame.assertEquals(15)
+	allowed.facing.assertEquals(-1)
+	for frame = 1 to 20
+		if allowed.groundAction == GROUND_ACTION_TURN_RUN
+			advance(allowed, 0, input, 0)
+	allowed.groundAction.assertEquals(GROUND_ACTION_RUN)
+	allowed.groundActionFrame.assertEquals(0)
+	advance(denied, 0, input, 0)
+	denied.groundAction.assertEquals(GROUND_ACTION_RUN_BRAKE)
+	denied.groundActionFrame.assertEquals(15)
+	denied.facing.assertEquals(1)
+	destroy input
+	destroy denied
+	destroy allowed
+
+@Test function turnRunPastCommandEntryPausesBeforeItsFacingFlip()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.groundRules = ntscFoxGroundMovementRules()
+	fighter.groundAction = GROUND_ACTION_RUN_BRAKE
+	fighter.groundActionFrame = 13
+	fighter.dashFrame = INITIAL_DASH_FRAMES + 1
+	fighter.dashDirection = 1
+	fighter.vx = 0.1
+	input.direction = -1
+	advance(fighter, 0, input, 0)
+	fighter.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
+	fighter.groundActionFrame.assertEquals(14)
+	fighter.groundTurnRunPausePending.assertTrue()
+	fighter.facing.assertEquals(1)
+	advance(fighter, 0, input, 0)
+	fighter.groundActionFrame.assertEquals(15)
+	fighter.groundTurnRunPausePending.assertFalse()
+	fighter.facing.assertEquals(1)
+	advance(fighter, 0, input, 0)
+	fighter.groundActionFrame.assertEquals(15)
+	fighter.facing.assertEquals(-1)
+	destroy input
+	destroy fighter
+
+@Test function runBrakeForwardInputDoesNotSkipToRun()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.groundRules = ntscFoxGroundMovementRules()
+	fighter.groundAction = GROUND_ACTION_RUN_BRAKE
+	fighter.groundActionFrame = 0
+	fighter.dashFrame = INITIAL_DASH_FRAMES + 1
+	fighter.dashDirection = 1
+	fighter.vx = 9
+	input.direction = 1
+	advance(fighter, 0, input, 0)
+	fighter.groundAction.assertEquals(GROUND_ACTION_RUN_BRAKE)
+	fighter.groundActionFrame.assertEquals(1)
+	fighter.facing.assertEquals(1)
+	destroy input
+	destroy fighter
+
+@Test function turnRunUsesRetailVelocityThresholdInWorldUnits()
+	let withinThreshold = new FighterState(0, 0, 1)
+	let atThreshold = new FighterState(0, 0, 1)
+	let aboveThreshold = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	input.direction = -1
+	withinThreshold.groundAction = GROUND_ACTION_TURN_RUN
+	withinThreshold.groundActionFrame = 9
+	withinThreshold.groundTurnRunEntryFacing = 1
+	withinThreshold.groundTurnRunFacingCommandLatched = true
+	withinThreshold.dashFrame = INITIAL_DASH_FRAMES + 1
+	withinThreshold.dashDirection = 1
+	atThreshold.groundAction = GROUND_ACTION_TURN_RUN
+	atThreshold.groundActionFrame = 9
+	atThreshold.groundTurnRunEntryFacing = 1
+	atThreshold.groundTurnRunFacingCommandLatched = true
+	atThreshold.dashFrame = INITIAL_DASH_FRAMES + 1
+	atThreshold.dashDirection = 1
+	aboveThreshold.groundAction = GROUND_ACTION_TURN_RUN
+	aboveThreshold.groundActionFrame = 9
+	aboveThreshold.groundTurnRunEntryFacing = 1
+	aboveThreshold.groundTurnRunFacingCommandLatched = true
+	aboveThreshold.dashFrame = INITIAL_DASH_FRAMES + 1
+	aboveThreshold.dashDirection = 1
+	withinThreshold.vx = 0.03
+	atThreshold.vx = 0.06
+	aboveThreshold.vx = 0.07
+	advance(withinThreshold, 0, input, 0)
+	advance(atThreshold, 0, input, 0)
+	advance(aboveThreshold, 0, input, 0)
+	// 0.03 world units is greater than the old 0.01 comparison but less than
+	// 0.01 Melee units converted at six world units per Melee unit.
+	withinThreshold.facing.assertEquals(-1)
+	withinThreshold.groundActionFrame.assertEquals(9)
+	atThreshold.facing.assertEquals(-1)
+	atThreshold.groundActionFrame.assertEquals(9)
+	aboveThreshold.facing.assertEquals(1)
+	aboveThreshold.groundActionFrame.assertEquals(9)
+	destroy input
+	destroy aboveThreshold
+	destroy atThreshold
+	destroy withinThreshold
+
+@Test function turnRunCompletesToWaitUnlessForwardIsHeld()
+	for directionIndex = 0 to 1
+		let fighter = new FighterState(0, 0, -1)
+		let input = new InputSnapshot()
+		input.direction = directionIndex
+		fighter.groundRules = ntscFoxGroundMovementRules()
+		fighter.groundAction = GROUND_ACTION_TURN_RUN
+		fighter.groundActionFrame = 19
+		fighter.groundTurnRunEntryFacing = 1
+		fighter.groundTurnRunFacingCommandLatched = true
+		fighter.dashFrame = INITIAL_DASH_FRAMES + 1
+		fighter.dashDirection = -1
+		fighter.vx = -3
+		advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_NONE)
+		fighter.groundActionFrame.assertEquals(0)
+		destroy input
+		destroy fighter
+
+@Test function retailRunBrakeEndsAtClipOrMaximumFrameCount()
+	for rig = 0 to 2
+		let fighter = new FighterState(0, 0, 1)
+		let input = new InputSnapshot()
+		if rig == 0
+			fighter.groundRules = ntscFoxGroundMovementRules()
+		else if rig == 1
+			fighter.groundRules = ntscFalcoGroundMovementRules()
+		else
+			fighter.groundRules = ntscCaptainFalconGroundMovementRules()
+		let clipEnd = rig == 2 ? 28 : 18
+		fighter.groundAction = GROUND_ACTION_RUN_BRAKE
+		fighter.groundRunBrakeFramesRemaining = fighter.groundRules.runBrakeMaximumFrames
+		fighter.dashFrame = INITIAL_DASH_FRAMES + 1
+		fighter.dashDirection = 1
+		fighter.vx = 0.4
+		input.direction = 1
+		for frame = 1 to clipEnd - 1
+			advance(fighter, 0, input, 0)
+			fighter.groundAction.assertEquals(GROUND_ACTION_RUN_BRAKE)
+			fighter.groundRunBrakeFramesRemaining.assertEquals(30 - frame)
+		advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_NONE)
+		fighter.groundRunBrakeFramesRemaining.assertEquals(0)
+		destroy input
+		destroy fighter
+	let capped = new FighterState(0, 0, 1)
+	let capInput = new InputSnapshot()
+	capped.groundRules = ntscFoxGroundMovementRules()
+	capped.groundRules.runBrakeAnimationEndFrame = 40
+	capped.groundAction = GROUND_ACTION_RUN_BRAKE
+	capped.groundRunBrakeFramesRemaining = 30
+	capped.dashFrame = INITIAL_DASH_FRAMES + 1
+	capped.dashDirection = 1
+	capped.vx = 0.4
+	capInput.direction = 1
+	for frame = 1 to 29
+		advance(capped, 0, capInput, 0)
+		capped.groundAction.assertEquals(GROUND_ACTION_RUN_BRAKE)
+	advance(capped, 0, capInput, 0)
+	capped.groundAction.assertEquals(GROUND_ACTION_NONE)
+	capped.groundRunBrakeFramesRemaining.assertEquals(0)
+	destroy capInput
+	destroy capped
+
 @Test function initialDashReversalRestartsWindowIncludingAcrossNeutral()
 	for character = 0 to 1
 		let fighter = new FighterState(character, 0, 1)
@@ -1250,6 +1506,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 					fighter.facing.assertEquals(firstDirection)
 				for tick = 5 to 19
 					advance(fighter, 0, input, 0)
+				advance(fighter, 0, input, 0)
 				(fighter.vx * firstDirection).assertLessThan(0.)
 				fighter.facing.assertEquals(-firstDirection)
 				fighter.dashFrame.assertEquals(INITIAL_DASH_FRAMES + 1)
@@ -1261,8 +1518,9 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 		let fighter = new FighterState(character, 0, 1)
 		let input = new InputSnapshot()
 		input.direction = 1
-		for tick = 1 to 10
+		for tick = 1 to 11
 			advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_RUN)
 		input.direction = -1
 		advance(fighter, 0, input, 0)
 		fighter.vx.assertEquals((character == 0 ? 12.48 : 8.28), 0.001)
@@ -1277,6 +1535,8 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	fighter.vx = 6
 	fighter.dashFrame = 1
 	fighter.dashDirection = 1
+	fighter.groundAction = GROUND_ACTION_DASH
+	fighter.groundActionFrame = 1
 	fighter.physics.runSpeed = 2.5 * 6
 	advance(fighter, 0, input, 0)
 	fighter.vx.assertEquals(1.12 * 6, 0.0001)
@@ -1318,6 +1578,8 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 		advance(fighter, 0, input, 0)
 		fighter.x.assertEquals(100., 0.001)
 		fighter.dashFrame.assertEquals(1)
+		fighter.groundAction.assertEquals(GROUND_ACTION_DASH)
+		fighter.groundActionFrame.assertEquals(1)
 	advance(fighter, 0, input, 0)
 	fighter.vx.assertEquals(-11.4, 0.001)
 	fighter.dashFrame.assertEquals(1)
@@ -1526,7 +1788,9 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	input.cStickX = 1
 	advance(fighter, 0, input, -240)
 	fighter.x.assertEquals(300 + ASDI_DISTANCE + totalVelocityX(fighter))
-	fighter.z.assertEquals(400 + totalVelocityZ(fighter))
+	let afterSelf = ((400. / 6).roundToFloat32() + (fighter.vz / 6).roundToFloat32()).roundToFloat32()
+	let afterLaunch = (afterSelf + (fighter.knockbackZ / 6).roundToFloat32()).roundToFloat32()
+	fighter.z.assertEquals(afterLaunch * 6)
 	fighter.knockbackX.assertEquals(9.21954187, 0.001)
 	fighter.knockbackZ.assertEquals(2.99561074, 0.001)
 	fighter.asdiSerial.assertEquals(1)
@@ -1851,7 +2115,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	fighter.diSerial.assertEquals(0)
 	fighter.diAngleDegrees.assertEquals(0.)
 	fighter.diPending = true
-	fighter.x = 920
+	fighter.x = 920.001
 	advance(fighter, 0, targetInput, 0)
 	fighter.diPending.assertFalse()
 	fighter.diLaunchSpeed.assertEquals(0.)
@@ -1927,6 +2191,8 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	input.shield = true
 	advance(fighter, 0, input, -240)
 	fighter.shield.assertEquals(true)
+	fighter.shieldEnergy.assertEquals(0.5)
+	advance(fighter, 0, input, -240)
 	fighter.shieldEnergy.assertEquals(0.22, 0.001)
 
 @Test function ordinaryHitFormulaUsesIndependentPerHitParameters()
@@ -2005,7 +2271,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	let targetCommands = new AttackBuffer(0)
 	runToAttackActive(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, 0, 1)
 	target.damage.assertEquals(0.)
-	let energyAfterBlock = 60 - 5 * 0.28 - 12 * 0.7
+	let energyAfterBlock = 60 - 4 * 0.28 - 12 * 0.7
 	target.shieldEnergy.assertEquals(energyAfterBlock, 0.01)
 	target.shieldStun.assertEquals(7)
 
@@ -2028,7 +2294,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	target.grounded.assertFalse()
 	target.vz.assertGreaterThan(0.)
 	target.damage.assertEquals(0.)
-	target.shieldEnergy.assertEquals(0.)
+	target.shieldEnergy.assertEquals(30.)
 
 @Test function airDodgeChangesVelocityAndLandingRestoresJumps()
 	let fighter = new FighterState(0, 0, 1)
@@ -2437,18 +2703,76 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	fighter.stocks.assertEquals(2)
 	fighter.out.assertEquals(false)
 	fighter.out.assertEquals(false)
-	fighter.x = 920
+	fighter.x = 920.001
 	advance(fighter, 0, input, -240)
 	fighter.stocks.assertEquals(1)
 	while fighter.respawn > 0
 		advance(fighter, 0, input, -240)
-	fighter.x = 920
+	fighter.x = 920.001
 	advance(fighter, 0, input, -240)
 	fighter.stocks.assertEquals(0)
 	fighter.out.assertEquals(true)
 	let finalX = fighter.x
 	advance(fighter, 0, input, -240)
 	fighter.x.assertEquals(finalX)
+
+@Test function topBlastZoneRequiresLaunchKnockbackRatherThanJumpSpeed()
+	for mode = 0 to 2
+		let fighter = new FighterState(0, 0, 1)
+		let input = new InputSnapshot()
+		fighter.grounded = false
+		fighter.z = 761
+		fighter.vz = 30
+		fighter.knockbackZ = mode == 0 ? 0 : (mode == 1 ? TOP_KO_MINIMUM_UPWARD_KNOCKBACK : TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 0.001)
+		advance(fighter, 0, input, 0)
+		fighter.out.assertEquals(mode == 2)
+		fighter.stocks.assertEquals(mode == 2 ? 2 : 3)
+		destroy input
+		destroy fighter
+
+@Test function topBlastZoneBoundaryDoesNotConsumeAStockUntilCrossed()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = 760
+	fighter.vz = -50
+	fighter.knockbackZ = TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 1
+	advance(fighter, 0, input, 0)
+	fighter.out.assertFalse()
+	fighter.stocks.assertEquals(3)
+	destroy input
+	destroy fighter
+
+@Test function blastZoneSideBoundariesRequireStrictCrossing()
+	for direction = -1 to 1
+		if direction != 0
+			let fighter = new FighterState(0, direction * 920., direction)
+			let input = new InputSnapshot()
+			fighter.grounded = false
+			fighter.z = 400
+			advance(fighter, 0, input, 0)
+			fighter.out.assertFalse()
+			fighter.x = direction * 920.001
+			advance(fighter, 0, input, 0)
+			fighter.out.assertTrue()
+			fighter.stocks.assertEquals(2)
+			destroy input
+			destroy fighter
+
+@Test function blastZoneBottomBoundaryRequiresStrictCrossing()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = -420
+	fighter.vz = 50
+	advance(fighter, 0, input, 0)
+	fighter.out.assertFalse()
+	fighter.z = -420.001
+	advance(fighter, 0, input, 0)
+	fighter.out.assertTrue()
+	fighter.stocks.assertEquals(2)
+	destroy input
+	destroy fighter
 
 @Test function releasingShieldWaitsForMinimumHoldThenAppliesReleaseLag()
 	let fighter = new FighterState(0, 0, 1)
@@ -2505,6 +2829,8 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	canShieldGrab(fighter).assertFalse()
 	fighter.out = false
 	fighter.shieldEnergy = 0
+	canShieldGrab(fighter).assertTrue()
+	fighter.shield = false
 	canShieldGrab(fighter).assertFalse()
 	destroy fighter
 
@@ -3194,10 +3520,12 @@ function airJumpApex(int character) returns real
 	let input = new InputSnapshot()
 	fighter.downState = DOWN_WAIT
 	fighter.downFrame = DOWN_WAIT_FRAMES - 1
+	fighter.downWaitRemaining = 1
 	advance(fighter, 0, input, 0)
 	fighter.downState.assertEquals(DOWN_STAND)
 	fighter.downState = DOWN_WAIT
 	fighter.downFrame = 0
+	fighter.downWaitRemaining = DOWN_WAIT_FRAMES
 	input.getupAttackPressed = true
 	advance(fighter, 0, input, 0)
 	fighter.downState.assertEquals(DOWN_ATTACK)
@@ -3219,6 +3547,7 @@ function runGetupAttackToContact(FighterState attacker, FighterState target, int
 	attacker.surface = 0
 	attacker.downState = DOWN_WAIT
 	attacker.downFrame = 0
+	attacker.downWaitRemaining = DOWN_WAIT_FRAMES
 	target.facing = -direction
 	target.x = attacker.x + direction * distance
 	target.z = 0
@@ -3685,6 +4014,7 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 function shieldBreakTestFighter(int character, real percent) returns FighterState
 	let fighter = new FighterState(character, 0, 1)
 	fighter.damage = percent
+	fighter.shield = true
 	fighter.shieldEnergy = 0.1
 	let input = new InputSnapshot()
 	input.shield = true
@@ -3705,6 +4035,60 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		advance(fighter, 0, input, 0)
 	fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
 	fighter.shieldBreakFrame.assertEquals(0)
+
+@Test function shieldBreakRetailRigUsesItsOwnAnimationCompletionClocks()
+	for host = 0 to 1
+		let fighter = shieldBreakTestFighter(host, 100)
+		let input = new InputSnapshot()
+		fighter.shieldBreakDownFrames = 26
+		fighter.shieldBreakStandFrames = 30
+		landShieldBreakTest(fighter, input)
+		for tick = 1 to 25
+			advance(fighter, 0, input, 0)
+			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_LAND)
+		advance(fighter, 0, input, 0)
+		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_STAND)
+		fighter.shieldBreakFrame.assertEquals(0)
+		for tick = 1 to 29
+			advance(fighter, 0, input, 0)
+			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_STAND)
+		advance(fighter, 0, input, 0)
+		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
+		fighter.shieldBreakRemaining.assertEquals(390.)
+		destroy input
+		destroy fighter
+
+@Test function shieldBreakDizzyExpiryAllowsJumpOnItsCompletionTick()
+	for host = 0 to 1
+		let fighter = shieldBreakTestFighter(host, 400)
+		let input = new InputSnapshot()
+		dizzyShieldBreakTest(fighter, input)
+		for tick = 1 to 89
+			advance(fighter, 0, input, 0)
+			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
+			fighter.jumpSquat.assertEquals(0)
+		input.jumpPressed = true
+		input.jumpHeld = true
+		advance(fighter, 0, input, 0)
+		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
+		fighter.jumpSquat.assertEquals(fighter.physics.jumpSquatFrames)
+		fighter.shieldEnergy.assertEquals(30.07, 0.0001)
+		destroy input
+		destroy fighter
+
+@Test function shieldBreakHitlagKeepsRegenerationAndBlastZoneChecksActive()
+	let fighter = shieldBreakTestFighter(0, 0)
+	let input = new InputSnapshot()
+	fighter.hitlag = 3
+	advance(fighter, 0, input, 0)
+	fighter.shieldBreakFrame.assertEquals(0)
+	fighter.shieldEnergy.assertEquals(0.14, 0.0001)
+	fighter.x = 921
+	advance(fighter, 0, input, 0)
+	fighter.out.assertTrue()
+	fighter.stocks.assertEquals(2)
+	destroy input
+	destroy fighter
 
 @Test function shieldBreakDrainAndProjectileUseSamePopAndSerial()
 	let fighter = shieldBreakTestFighter(0, 0)
@@ -3727,7 +4111,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 	target.shieldBreakSerial.assertEquals(1)
 	target.vz.assertEquals(fighter.vz)
 	target.damage.assertEquals(0.)
-	target.shieldEnergy.assertEquals(0.)
+	target.shieldEnergy.assertEquals(30.)
 	target.hitstun.assertEquals(0)
 	destroy target
 	destroy shooter
@@ -3783,7 +4167,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_STAND)
 		advance(fighter, 0, input, 0)
 		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
-		fighter.shieldEnergy.assertEquals(30.)
+		fighter.shieldEnergy.assertEquals(30.07, 0.0001)
 		let dizzyTicks = R2I(fighter.shieldBreakRemaining)
 		for tick = 1 to dizzyTicks - 1
 			simulationJump(fighter, 0)
@@ -3791,7 +4175,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 			testBeginAttacks(testWorld(fighter, target), 5, -1, false, false)
 			advance(fighter, 0, input, 0)
 			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
-			fighter.shieldEnergy.assertEquals(30.)
+			fighter.shieldEnergy.assertEquals(30.07, 0.0001)
 			fighter.attackStyle.assertEquals(-1)
 			fighter.groundDodgeFrame.assertEquals(0)
 			fighter.jumpSquat.assertEquals(0)
@@ -3801,8 +4185,9 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
 		fighter.shieldBreakFrame.assertEquals(0)
 		fighter.shieldBreakSerial.assertEquals(1)
-		fighter.shieldEnergy.assertEquals(30.)
-		canAttack(fighter).assertTrue()
+		fighter.shieldEnergy.assertEquals(30.07, 0.0001)
+		fighter.jumpSquat.assertEquals(fighter.physics.jumpSquatFrames)
+		canAttack(fighter).assertFalse()
 		fighter.invincible.assertEquals(0)
 		destroy input
 		destroy target
@@ -3817,11 +4202,11 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		for tick = 1 to expected
 			input.mashPressed = mode == 2 or mode == 1 and tick == 1
 			advance(fighter, 0, input, 0)
-			fighter.shieldEnergy.assertEquals(30.)
+			fighter.shieldEnergy.assertEquals(30.07, 0.0001)
 			fighter.shieldBreakState.assertEquals(tick == expected ? SHIELD_BREAK_NONE : SHIELD_BREAK_DIZZY)
 		input.mashPressed = false
 		advance(fighter, 0, input, 0)
-		fighter.shieldEnergy.assertEquals(30.07, 0.001)
+		fighter.shieldEnergy.assertEquals(30.14, 0.0001)
 		destroy input
 		destroy fighter
 	shieldBreakDizzyFrames(100.).assertEquals(390.)
@@ -3901,7 +4286,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		fighter.damage.assertEquals(3.)
 		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
 		fighter.hitstun.assertEquals(11)
-		fighter.shieldEnergy.assertEquals(30.)
+		fighter.shieldEnergy.assertEquals(30.07, 0.0001)
 		destroy shooter
 		destroy input
 		destroy fighter
@@ -4338,7 +4723,86 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	destroy input
 	destroy fighter
 
+@Test function retailGetupCompletionAllowsInputOnItsAnimationEndTick()
+	for character = 0 to 1
+		for recovery = 0 to 2
+			let fighter = new FighterState(character, 0, 1)
+			let input = new InputSnapshot()
+			fighter.downState = DOWN_WAIT
+			fighter.downWaitRemaining = 200
+			input.getupStandPressed = recovery == 0
+			input.getupDirectionPressed = recovery == 1
+			input.getupDirection = 1
+			input.getupAttackPressed = recovery == 2
+			advance(fighter, 0, input, 0)
+			let state = recovery == 0 ? DOWN_STAND : (recovery == 1 ? DOWN_ROLL : DOWN_ATTACK)
+			let endTick = recovery == 0 ? 30 : (recovery == 1 ? 35 : 49)
+			fighter.downState.assertEquals(state)
+			input.getupStandPressed = false
+			input.getupDirectionPressed = false
+			input.getupAttackPressed = false
+			for frame = 1 to endTick - 1
+				advance(fighter, 0, input, 0)
+				fighter.downState.assertEquals(state)
+			input.jumpPressed = true
+			input.jumpHeld = true
+			advance(fighter, 0, input, 0)
+			fighter.downState.assertEquals(DOWN_NONE)
+			fighter.jumpSquat.assertGreaterThan(0)
+			destroy input
+			destroy fighter
+
 @Test function retailWallTechUsesTheSeparateOriginalFighterSurfaceProfile()
+	let fighter = new FighterState(0, -425, 1)
+	let input = new InputSnapshot()
+	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+	fighter.grounded = false
+	fighter.z = 160
+	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
+	fighter.techWindow = 3
+	fighter.vx = 2
+	fighter.vz = 3
+	fighter.knockbackX = 8
+	fighter.knockbackZ = -2
+	fighter.groundKnockbackX = 4
+	fighter.shieldPushbackX = 2
+	fighter.shieldRecoilX = 1.5
+	fighter.shieldRecoilZ = 1
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+	fighter.surfaceContactKind.assertEquals(SURFACE_TECH_WALL)
+	fighter.hitstun.assertEquals(0)
+	fighter.downState.assertEquals(DOWN_NONE)
+	fighter.invincible.assertEquals(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES)
+	fighter.surfaceRecoveryFrame.assertEquals(0)
+	fighter.vx.assertEquals(0)
+	fighter.vz.assertEquals(0)
+	fighter.knockbackX.assertEquals(0)
+	fighter.knockbackZ.assertEquals(0)
+	fighter.groundKnockbackX.assertEquals(0)
+	fighter.shieldPushbackX.assertEquals(0)
+	fighter.shieldRecoilX.assertEquals(0)
+	fighter.shieldRecoilZ.assertEquals(0)
+	for tick = 1 to WALL_TECH_STARTUP_FRAMES
+		canAttack(fighter).assertFalse()
+		let jumpsBefore = fighter.jumps
+		simulationJump(fighter, 1)
+		simulationAirDodge(fighter, 1, 0)
+		fighter.jumps.assertEquals(jumpsBefore)
+		fighter.airDodging.assertFalse()
+		advance(fighter, 1, input, 0)
+	canAttack(fighter).assertTrue()
+	fighter.vx.assertEquals(-2.88, 0.001)
+	fighter.x.assertLessThan(-420)
+	fighter.invincible.assertLessThan(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+	fighter.surfaceRecoveryFrame.assertEquals(WALL_TECH_STARTUP_FRAMES)
+	fighter.surfaceRecoveryVelocityApplied.assertTrue()
+	destroy input
+	destroy fighter
+
+@Test function retailWallTechUsesFrictionUntilAnAerialActionInterrupts()
 	let fighter = new FighterState(0, -425, 1)
 	let input = new InputSnapshot()
 	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
@@ -4349,26 +4813,56 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.techWindow = 3
 	fighter.knockbackX = 8
 	advance(fighter, 1, input, 0)
-	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
-	fighter.surfaceContactKind.assertEquals(SURFACE_TECH_WALL)
-	fighter.hitstun.assertEquals(0)
-	fighter.downState.assertEquals(DOWN_NONE)
-	fighter.invincible.assertEquals(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES)
-	for tick = 1 to SURFACE_TECH_STARTUP_FRAMES
+	for tick = 1 to WALL_TECH_STARTUP_FRAMES
 		advance(fighter, 1, input, 0)
-	fighter.vx.assertEquals(-2.88, 0.001)
-	fighter.x.assertLessThan(-420)
-	fighter.invincible.assertLessThan(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES)
+	let velocityBefore = fighter.vx
+	input.direction = 1
+	advance(fighter, 1, input, 0)
+	fighter.vx.assertEquals(velocityBefore + fighter.physics.airFriction, 0.0001)
 	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
-	fighter.surfaceRecoveryFrame.assertEquals(SURFACE_TECH_STARTUP_FRAMES)
-	fighter.surfaceRecoveryVelocityApplied.assertTrue()
+	simulationJump(fighter, 1)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_NONE)
+	let jumpVelocity = fighter.vx
+	input.direction = -1
+	advance(fighter, 1, input, 0)
+	fighter.vx.assertLessThan(jumpVelocity - fighter.physics.airFriction)
 	destroy input
 	destroy fighter
 
-@Test function retailWallTechJumpRequiresMinimumApproachSpeed()
+@Test function retailWallTechCompletesAfterItsPausedStartupAndSelectedAnimation()
+	for jumpRig = 0 to 1
+		let fighter = new FighterState(0, -425, 1)
+		let input = new InputSnapshot()
+		fighter.grounded = false
+		fighter.z = 160
+		fighter.hitstun = 8
+		fighter.downState = DOWN_TUMBLE
+		fighter.techWindow = 3
+		fighter.knockbackX = 8
+		input.verticalDirection = jumpRig
+		advance(fighter, 1, input, 0)
+		fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+		for tick = 1 to WALL_TECH_STARTUP_FRAMES
+			advance(fighter, 1, input, 0)
+		// Keep the animation-boundary case airborne, independent of landing.
+		fighter.physics.gravity = 0
+		fighter.vz = 0
+		input.verticalDirection = 0
+		let animationEnd = jumpRig == 0 ? 26 : 40
+		for frame = 1 to animationEnd - 1
+			advance(fighter, 1, input, 0)
+			fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+			fighter.surfaceRecoveryFrame.assertEquals(WALL_TECH_STARTUP_FRAMES + frame)
+		advance(fighter, 1, input, 0)
+		fighter.surfaceRecoveryState.assertEquals(SURFACE_NONE)
+		destroy input
+		destroy fighter
+
+@Test function retailWallTechJumpLatchesBufferedInputWithoutOrdinaryTraitOrSpeedGate()
 	let fighter = new FighterState(0, -420.5, 1)
 	let input = new InputSnapshot()
 	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+	fighter.surfacePhysics.canWallJump = false
 	fighter.grounded = false
 	fighter.z = 160
 	fighter.hitstun = 8
@@ -4380,15 +4874,57 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
 	fighter.surfaceContactApproachSpeed.assertLessThan(fighter.surfacePhysics.wallJumpMinimumApproach)
 	input.jumpPressed = true
-	input.direction = -1
+	input.direction = 1
 	advance(fighter, 1, input, 0)
+	input.jumpPressed = false
+	input.direction = 0
+	fighter.surfaceRecoveryFrame.assertEquals(1)
+	fighter.surfaceWallJumpQueued.assertTrue()
+	for tick = 2 to WALL_TECH_STARTUP_FRAMES - 1
+		advance(fighter, 1, input, 0)
 	fighter.surfaceRecoveryVelocityApplied.assertFalse()
-	fighter.jumpSerial.assertEquals(0)
-	(fighter.vz < fighter.surfacePhysics.wallJumpVerticalSpeed).assertTrue()
+	(fighter.vx == 0 and fighter.vz == 0).assertTrue()
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryFrame.assertEquals(WALL_TECH_STARTUP_FRAMES)
+	fighter.surfaceRecoveryVelocityApplied.assertTrue()
+	fighter.vx.assertEquals(-fighter.surfacePhysics.wallJumpHorizontalSpeed + fighter.physics.airFriction)
+	let expectedVertical = ((fighter.surfacePhysics.wallJumpVerticalSpeed / 6).roundToFloat32() - (fighter.physics.gravity / 6).roundToFloat32()).roundToFloat32() * 6
+	fighter.vz.assertEquals(expectedVertical)
+	fighter.jumpSerial.assertEquals(1)
+	fighter.facing.assertEquals(-1)
 	destroy input
 	destroy fighter
 
-@Test function retailWallTechJumpUsesTheActorImpulseAndApproachGate()
+@Test function retailWallTechSelectsJumpFromRecentInputAgeAtContact()
+	let fighter = new FighterState(0, -420.5, 1)
+	let input = new InputSnapshot()
+	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+	fighter.surfacePhysics.canWallJump = false
+	fighter.surfacePhysics.wallJumpMinimumApproach = 100
+	fighter.grounded = false
+	fighter.z = 160
+	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
+	fighter.techWindow = 3
+	fighter.knockbackX = 2.5
+	fighter.jumps = 0
+	fighter.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES - 2
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+	fighter.surfaceWallJumpQueued.assertTrue()
+	for tick = 1 to WALL_TECH_STARTUP_FRAMES - 1
+		advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryVelocityApplied.assertFalse()
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryVelocityApplied.assertTrue()
+	fighter.vx.assertEquals(-fighter.surfacePhysics.wallJumpHorizontalSpeed + fighter.physics.airFriction)
+	let expectedVertical = ((fighter.surfacePhysics.wallJumpVerticalSpeed / 6).roundToFloat32() - (fighter.physics.gravity / 6).roundToFloat32()).roundToFloat32() * 6
+	fighter.vz.assertEquals(expectedVertical)
+	fighter.jumpSerial.assertEquals(1)
+	destroy input
+	destroy fighter
+
+@Test function retailWallTechSelectsJumpFromUpStickAtContact()
 	let fighter = new FighterState(0, -425, 1)
 	let input = new InputSnapshot()
 	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
@@ -4398,19 +4934,32 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.downState = DOWN_TUMBLE
 	fighter.techWindow = 3
 	fighter.knockbackX = 8
-	fighter.jumps = 0
+	fighter.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
+	input.verticalDirection = 1
 	advance(fighter, 1, input, 0)
 	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
-	input.jumpPressed = true
-	input.direction = -1
+	fighter.surfaceWallJumpQueued.assertTrue()
+	destroy input
+	destroy fighter
+
+@Test function retailWallTechJumpInputAgeExpiresAtTheTwentyFrameBoundary()
+	let fighter = new FighterState(0, -425, 1)
+	let input = new InputSnapshot()
+	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+	fighter.grounded = false
+	fighter.z = 160
+	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
+	fighter.techWindow = 3
+	fighter.knockbackX = 8
+	fighter.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES - 1
 	advance(fighter, 1, input, 0)
-	fighter.surfaceRecoveryVelocityApplied.assertTrue()
-	(fighter.vx < -8.).assertTrue()
-	(fighter.vz > 17.).assertTrue()
-	fighter.knockbackX.assertEquals(0)
-	fighter.knockbackZ.assertEquals(0)
-	fighter.jumpSerial.assertEquals(1)
-	fighter.facing.assertEquals(-1)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+	fighter.surfaceWallJumpQueued.assertFalse()
+	for tick = 1 to WALL_TECH_STARTUP_FRAMES
+		advance(fighter, 1, input, 0)
+	fighter.jumpSerial.assertEquals(0)
+	fighter.vx.assertEquals(-2.88, 0.001)
 	destroy input
 	destroy fighter
 
@@ -4443,7 +4992,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	advance(fighter, 0, input, 0)
 	fighter.grounded.assertTrue()
 	fighter.asdiSerial.assertEquals(1)
-	fighter.groundKnockbackX.assertEquals(MAX_GROUNDED_KNOCKBACK_ON_LANDING - fighter.physics.traction)
+	fighter.groundKnockbackX.assertEquals(8.220000267028809 * WORLD_UNITS_PER_MELEE_UNIT)
 	fighter.knockbackX.assertEquals(fighter.groundKnockbackX)
 	destroy input
 	destroy fighter
@@ -4464,9 +5013,81 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.surfaceContactKind.assertEquals(SURFACE_TECH_CEILING)
 	fighter.hitstun.assertEquals(0)
 	fighter.downState.assertEquals(DOWN_NONE)
-	for tick = 1 to SURFACE_TECH_STARTUP_FRAMES + 1
+	fighter.surfaceRecoveryFrame.assertEquals(0)
+	let contactZ = fighter.z
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryFrame.assertEquals(1)
+	fighter.z.assertLessThan(contactZ)
+	destroy input
+	destroy fighter
+
+@Test function retailCeilingTechProtectsUntilItsOneShotActorImpulse()
+	for rig = 0 to 1
+		let fighter = new FighterState(0, -265, 1)
+		let input = new InputSnapshot()
+		fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+		fighter.ceilingTechImpulseFrame = rig == 0 ? 14 : 11
+		fighter.physics.airAcceleration = 0
+		fighter.physics.airFriction = 0
+		fighter.grounded = false
+		fighter.z = 140
+		fighter.hitstun = 8
+		fighter.downState = DOWN_TUMBLE
+		fighter.techWindow = 3
+		fighter.knockbackZ = 8
 		advance(fighter, 1, input, 0)
-	fighter.vx.assertGreaterThan(0)
+		fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_CEILING)
+		isIntangible(fighter).assertTrue()
+		let impulseFrame = rig == 0 ? 14 : 11
+		for frame = 1 to impulseFrame - 1
+			advance(fighter, 1, input, 0)
+			fighter.vx.assertEquals(0)
+			fighter.surfaceRecoveryVelocityApplied.assertFalse()
+			isIntangible(fighter).assertTrue()
+		fighter.hitlag = 2
+		advance(fighter, 1, input, 0)
+		fighter.surfaceRecoveryFrame.assertEquals(impulseFrame - 1)
+		isIntangible(fighter).assertTrue()
+		input.direction = -1
+		advance(fighter, 1, input, 0)
+		fighter.vx.assertEquals(-12.)
+		fighter.surfaceRecoveryVelocityApplied.assertTrue()
+		isIntangible(fighter).assertFalse()
+		input.direction = 0
+		advance(fighter, 1, input, 0)
+		fighter.vx.assertEquals(-12.)
+		destroy input
+		destroy fighter
+
+@Test function retailCeilingTechLocksActionsUntilAnimationCompletes()
+	let fighter = new FighterState(0, -265, 1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = 140
+	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
+	fighter.techWindow = 3
+	fighter.knockbackZ = 8
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_CEILING)
+	// Keep this action-boundary case airborne; landing is a separate exit.
+	fighter.physics.gravity = 0
+	fighter.vz = 0
+	let jumps = fighter.jumps
+	for frame = 1 to 25
+		canAttack(fighter).assertFalse()
+		simulationJump(fighter, 0)
+		simulationAirDodge(fighter, 0, -1)
+		fighter.jumps.assertEquals(jumps)
+		fighter.airDodging.assertFalse()
+		advance(fighter, 1, input, 0)
+		fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_CEILING)
+		fighter.surfaceRecoveryFrame.assertEquals(frame)
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_NONE)
+	canAttack(fighter).assertTrue()
+	simulationAirDodge(fighter, 0, -1)
+	fighter.airDodging.assertTrue()
 	destroy input
 	destroy fighter
 
@@ -4497,7 +5118,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	SURFACE_REFLECT_SPEED_THRESHOLD.assertEquals(6.)
 	SURFACE_REFLECT_ATTENUATION.assertEquals(0.800000011920929)
 	SURFACE_REFLECT_COOLDOWN_FRAMES.assertEquals(3)
-	SURFACE_TECH_STARTUP_FRAMES.assertEquals(5)
+	WALL_TECH_STARTUP_FRAMES.assertEquals(5)
 	SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES.assertEquals(14)
 
 @Test function surfaceContactNormalAndPositionSurviveReplayCaptureAndRestore()
@@ -4510,7 +5131,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	let snapshot = new ReplaySnapshot()
 	first.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
 	first.surfaceRecoveryState = SURFACE_TECH_WALL
-	first.surfaceRecoveryFrame = SURFACE_TECH_STARTUP_FRAMES
+	first.surfaceRecoveryFrame = WALL_TECH_STARTUP_FRAMES
 	first.surfaceRecoveryVelocityApplied = true
 	first.surfaceContactSerial = 4
 	first.surfaceContactKind = SURFACE_CEILING
@@ -4535,7 +5156,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	first.surfaceContactNormalX.assertEquals(0)
 	first.surfaceContactNormalZ.assertEquals(-1)
 	first.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
-	first.surfaceRecoveryFrame.assertEquals(SURFACE_TECH_STARTUP_FRAMES)
+	first.surfaceRecoveryFrame.assertEquals(WALL_TECH_STARTUP_FRAMES)
 	first.surfaceRecoveryVelocityApplied.assertTrue()
 	first.surfacePhysics.passiveWallSpeed.assertEquals(3.)
 	first.surfacePhysics.wallJumpHorizontalSpeed.assertEquals(8.399999856948852)

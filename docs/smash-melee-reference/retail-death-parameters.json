@@ -1,0 +1,55 @@
+{
+  "target": "Melee NTSC 1.02 (GALE01 revision 2)",
+  "sourceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "file": "PlCo.dat",
+  "sha256": "63841336337eb5a7366b06ccc60ea4bd37c3604ab56e19939d78b9aa9cdd234c",
+  "kind": "Independent retail numerical death parameters",
+  "values": [
+    {
+      "offset": "0x4F0",
+      "value": 2.4000000953674316,
+      "units": "Melee upward knockback velocity per frame",
+      "comparison": "strict greater-than",
+      "source": "melee:src/melee/ft/ft_0D31.c ftCo_800D3158"
+    },
+    {
+      "offset": "0x520",
+      "value": 16,
+      "units": "integer threshold against random integer 1..100",
+      "source": "melee:src/melee/ft/ft_0D31.c ftCo_800D3158",
+      "limit": "Camera/player flags precede selection; not a guarantee of screen KOs for exactly 16 percent of all deaths."
+    }
+  ],
+  "cinematicParameters": {
+    "source": "melee:src/melee/ft/ft_0D31.c; field types from melee:src/melee/ft/types.h",
+    "verification": "SHA256 matched; archive ftLoadCommonData root resolved through pointer indirection; integer versus binary32 reads follow source field types.",
+    "units": "Unscaled Melee values; camera-relative coordinates require an explicit Warcraft presentation mapping.",
+    "values": [
+      {"offset":"0x500","name":"directionalDeathWait","type":"int","value":60},
+      {"offset":"0x504","name":"starInitialWait","type":"int","value":1},
+      {"offset":"0x508","name":"starTravelFrames","type":"int","value":130},
+      {"offset":"0x50C","name":"starPostStockWait","type":"int","value":45},
+      {"offset":"0x510","name":"starDepthTravel","type":"float","value":-350},
+      {"offset":"0x514","name":"starCameraTopMultiplier","type":"float","value":0.6000000238418579},
+      {"offset":"0x51C","name":"starFrozenRotationRadians","type":"float","value":-0.1745329201221466},
+      {"offset":"0x524","name":"screenInitialWait","type":"int","value":1},
+      {"offset":"0x528","name":"screenApproachFrames","type":"int","value":50},
+      {"offset":"0x52C","name":"screenImpactWait","type":"int","value":3},
+      {"offset":"0x530","name":"screenFallFrames","type":"int","value":40},
+      {"offset":"0x534","name":"screenPostStockWait","type":"int","value":35},
+      {"offset":"0x538","name":"screenStartX","type":"float","value":0},
+      {"offset":"0x53C","name":"screenStartY","type":"float","value":66.66000366210938},
+      {"offset":"0x540","name":"screenStartZ","type":"float","value":-100},
+      {"offset":"0x544","name":"screenEndX","type":"float","value":0},
+      {"offset":"0x548","name":"screenEndY","type":"float","value":-15},
+      {"offset":"0x54C","name":"screenEndZ","type":"float","value":-50},
+      {"offset":"0x550","name":"screenFallInitialVerticalSpeed","type":"float","value":1},
+      {"offset":"0x554","name":"screenFallGravity","type":"float","value":0.20000000298023224},
+      {"offset":"0x558","name":"screenFallTerminalSpeed","type":"float","value":1.7000000476837158},
+      {"offset":"0x55C","name":"screenFallDepthSpeed","type":"float","value":-1},
+      {"offset":"0x560","name":"screenFrozenRotationRadians","type":"float","value":-0.1745329201221466}
+    ],
+    "limit": "Independent numerical facts, not implemented cinematic or death-phase parity. Star and screen stock decrement occurs after travel/fall, unlike immediate directional stock loss."
+  },
+  "publication": "Numeric facts only; no game binaries, command streams or extracted artwork."
+}

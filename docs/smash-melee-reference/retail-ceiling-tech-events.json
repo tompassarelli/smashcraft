@@ -1,0 +1,88 @@
+{
+  "target": "Melee NTSC 1.02 (GALE01 revision 2)",
+  "sourceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "kind": "Independent retail ceiling-tech protection and horizontal-impulse event facts",
+  "frameClock": "Encoded animation timeline; production tick mapping remains unverified",
+  "verification": "Animation names matched table IDs; bounded event streams terminated. No pointers, raw commands or game assets included.",
+  "records": [
+    {
+      "fighter": "Fox",
+      "file": "PlFx.dat",
+      "action": "PassiveCeil",
+      "animationId": 204,
+      "events": [
+        {
+          "frame": 0,
+          "globalHurtState": 2
+        },
+        {
+          "frame": 14,
+          "globalHurtState": 0
+        },
+        {
+          "frame": 14,
+          "throwFlag": 3
+        }
+      ]
+    },
+    {
+      "fighter": "Falco",
+      "file": "PlFc.dat",
+      "action": "PassiveCeil",
+      "animationId": 204,
+      "events": [
+        {
+          "frame": 0,
+          "globalHurtState": 2
+        },
+        {
+          "frame": 14,
+          "globalHurtState": 0
+        },
+        {
+          "frame": 14,
+          "throwFlag": 3
+        }
+      ]
+    },
+    {
+      "fighter": "Captain Falcon",
+      "file": "PlCa.dat",
+      "action": "PassiveCeil",
+      "animationId": 204,
+      "events": [
+        {
+          "frame": 0,
+          "globalHurtState": 2
+        },
+        {
+          "frame": 11,
+          "globalHurtState": 0
+        },
+        {
+          "frame": 11,
+          "throwFlag": 3
+        }
+      ]
+    }
+  ],
+  "sources": {
+    "repository": "https://github.com/doldecomp/melee",
+    "revision": "0296f009f32f710495979d30772d8332af2d411a",
+    "license": "Numerical facts and use-site observations only; no gameplay implementation license established or code copied.",
+    "paths": [
+      "melee:src/melee/ft/types.h",
+      "melee:src/melee/ft/ftaction.c",
+      "melee:src/melee/lb/types.h",
+      "melee:src/melee/lb/lbcommand.c",
+      "melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveCeil.c"
+    ],
+    "retailHashes": {
+      "PlFx.dat": "846b075d3379de041ecfb5504f5442484c23783422a0851851c96489d697b690",
+      "PlFc.dat": "c3c21545bff00fc1d0926f0fb3913cefedbbb7f4af1b928d2e73eed6cff5188c",
+      "PlCa.dat": "4cf61a52737d464df9298fd15573345fb3b9a15c79ab47dce4fd2e3e707917af"
+    }
+  },
+  "connection": "PassiveCeil consumes the one-shot throw flag 3 in its animation callback and selects horizontal self velocity from current horizontal stick input times the actor passive-ceiling velocity. Animation advances before command dispatch and the animation callback. Initial motion-state entry processes frame zero; PassiveCeil has no extra entry animation advance.",
+  "protection": "Global hurt state 2 is applied at animation frame 0 and restored to state 0 at the impulse event: frame14 Fox/Falco, frame11 Captain Falcon. This command-driven protection is separate from wall-tech common timed protection."
+}
