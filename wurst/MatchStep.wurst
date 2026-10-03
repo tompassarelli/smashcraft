@@ -13,7 +13,6 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
         return
     let firstGrab = inGrabContext(first)
     let secondGrab = inGrabContext(second)
-    let grabPaused = first.hitlag > 0 or second.hitlag > 0
     if firstGrab
         firstCommands.clear()
     if secondGrab
@@ -23,6 +22,7 @@ public function stepMatch(MatchState game, FighterState first, FighterState seco
     resolveLedgePair(first, second, game.stageChoice, firstInput, secondInput)
     advance(first, game.stageChoice, firstInput, -240)
     advance(second, game.stageChoice, secondInput, 240)
+    let grabPaused = first.hitlag > 0 or second.hitlag > 0
     resolveGrabPair(first, second)
     beginDamageContacts()
     advanceGrabPair(first, second, firstInput, secondInput, grabPaused)

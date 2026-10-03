@@ -81,7 +81,7 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	weakRecoveryHit(1, attacker, target)
 	target.downState.assertEquals(DOWN_DAMAGE)
 	let damageFrame = target.downFrame
-	for tick = 1 to 4
+	for tick = 1 to 3
 		advance(target, 0, input, -240)
 		target.downFrame.assertEquals(damageFrame)
 		target.grounded.assertTrue()

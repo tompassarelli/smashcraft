@@ -34,7 +34,7 @@ function specialMatch() returns MatchState
 	rifleman.hitlag.assertEquals(0)
 	targetInput.jumpPressed = true
 	targetInput.jumpHeld = true
-	for tick = 1 to 4
+	for tick = 1 to 3
 		advance(target, 0, targetInput, 0)
 		target.hitstun.assertEquals(11)
 		target.jumpSquat.assertEquals(0)

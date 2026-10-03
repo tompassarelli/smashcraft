@@ -241,7 +241,7 @@ function recordedGroundedDamageFirstDifference(int character, real velocityOffse
 			if airborne == 0 and aboveThreshold == 0
 				target.knockbackZ.assertEquals(0.)
 				input.verticalDirection = 1
-				for frame = 1 to 4
+				for frame = 1 to 3
 					advance(target, 0, input, 0)
 					target.x.assertEquals(100.)
 					target.z.assertEquals(0.)
@@ -274,8 +274,8 @@ function recordedGroundedDamageFirstDifference(int character, real velocityOffse
 	input.verticalDirection = 1
 	advance(target, 0, input, 0)
 	target.diAngleDegrees.assertEquals(18, 0.0001)
-	target.knockbackX.assertEquals(7.60845213, 0.0001)
-	target.knockbackZ.assertEquals(2.47213595, 0.0001)
+	target.knockbackX.assertEquals(7.31742804, 0.0001)
+	target.knockbackZ.assertEquals(2.37757675, 0.0001)
 	target.diPending.assertFalse()
 	destroy input
 	destroy target
@@ -299,7 +299,7 @@ function recordedGroundedDamageFirstDifference(int character, real velocityOffse
 		target.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
 		target.hitlag.assertEquals(7)
 		target.vz.assertEquals(character == 2 ? 24. : 19.7999997139, 0.0001)
-		for frame = 1 to 7
+		for frame = 1 to 6
 			advance(target, 0, input, 0)
 			target.z.assertEquals(0.)
 		advance(target, 0, input, 0)
@@ -704,7 +704,6 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 		input.jumpHeld = false
 		f.hitlag = 2
 		advance(f, 0, input, 0)
-		advance(f, 0, input, 0)
 		f.jumpHeld.assertTrue()
 		input.jumpHeld = true
 		for frame = 2 to jumpSquatFrames(character)
@@ -737,7 +736,7 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 				target.crouching.assertFalse()
 				owner.hitlag.assertEquals(direct == 1 ? 5 : 0)
 				canAttack(owner).assertEquals(direct == 0)
-				for frame = 1 to pause
+				for frame = 1 to pause - 1
 					advance(target, 0, input, 0)
 					target.hitlag.assertEquals(pause - frame)
 					target.hitstun.assertEquals(stun)
@@ -769,7 +768,7 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 		target.hitlag.assertEquals(5)
 		target.shieldStun.assertEquals(5)
 		owner.hitlag.assertEquals(direct == 1 ? 5 : 0)
-		for frame = 1 to 5
+		for frame = 1 to 4
 			advance(target, 0, input, 0)
 			target.shieldStun.assertEquals(5)
 		advance(target, 0, input, 0)

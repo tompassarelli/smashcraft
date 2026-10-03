@@ -1,6 +1,50 @@
 package HitTimingTests
 import Simulation
 
+// Slippi techTester.slp ff815345e641836a331191320c0f6eae21542a5f,
+// frames 3432–3445: NTSC recording, disc revision unknown. Only release
+// timing is compared here; grounded knockback displacement has its own fixture.
+@Test function recordedGroundedDamageResumesOnHitlagExpiry()
+    let fighter = new FighterState(0, -11.548782348632812 * 6., 1)
+    let input = new InputSnapshot()
+    fighter.surface = 0
+    fighter.hitlag = 4
+    fighter.hitstun = 10
+    fighter.knockbackX = 0.7562744617462158 * 6.
+    input.down = true
+    input.verticalDirection = -1
+    let contactX = fighter.x
+    for frame = 3433 to 3445
+        advance(fighter, 0, input, 0)
+        fighter.hitlag.assertEquals(max(0, 3436 - frame))
+        fighter.hitstun.assertEquals(frame < 3436 ? 10 : 3445 - frame)
+        if frame < 3436
+            fighter.x.assertEquals(contactX)
+        else if frame == 3436
+            (fighter.x > contactX).assertTrue()
+        canAttack(fighter).assertEquals(frame == 3445)
+    destroy input
+    destroy fighter
+
+@Test function hitlagReleaseAllowsJumpWhenHitstunExpiresOnThatFrame()
+    let fighter = new FighterState(0, 0, 1)
+    let input = new InputSnapshot()
+    fighter.surface = 0
+    fighter.hitlag = 2
+    fighter.hitstun = 1
+    input.jumpPressed = true
+    input.jumpHeld = true
+    advance(fighter, 0, input, 0)
+    fighter.hitlag.assertEquals(1)
+    fighter.hitstun.assertEquals(1)
+    fighter.jumpSquat.assertEquals(0)
+    advance(fighter, 0, input, 0)
+    fighter.hitlag.assertEquals(0)
+    fighter.hitstun.assertEquals(0)
+    fighter.jumpSquat.assertGreaterThan(0)
+    destroy input
+    destroy fighter
+
 @Test function hitstunExpiryAllowsJumpOnTheSameTickAsAttack()
     let fighter = new FighterState(0, 0, 1)
     let input = new InputSnapshot()
@@ -50,7 +94,7 @@ import Simulation
     attacker.hitlag.assertEquals(7)
     target.hitlag.assertEquals(7)
     target.shieldStun.assertEquals(7)
-    for tick = 1 to 7
+    for tick = 1 to 6
         advance(target, 0, input, 240)
         target.shieldStun.assertEquals(7)
     advance(target, 0, input, 240)

@@ -1166,7 +1166,6 @@ function advanceLedge(FighterState f, int stage, InputSnapshot input)
 	if f.out
 		return
 	if f.hitlag > 0
-		f.hitlag--
 		return
 	f.invincible = max(0, f.invincible - 1)
 	f.ledgeIntangible = max(0, f.ledgeIntangible - 1)
@@ -1357,7 +1356,6 @@ function beginShieldBreak(FighterState f)
 
 function advanceShieldBreak(FighterState f, int stage, InputSnapshot input)
 	if f.hitlag > 0
-		f.hitlag--
 		return
 	checkBlastZone(f)
 	if f.out
@@ -2482,6 +2480,9 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	if wasFrozen
 		checkBlastZone(f)
 		return
+	// Expiry resumes this frame, including input gates and state countdowns.
+	let hitlagBefore = f.hitlag
+	f.hitlag = max(0, f.hitlag - 1)
 	if f.hitlag <= 0
 		f.ledgeRegrab = max(0, f.ledgeRegrab - 1)
 	if f.ledgeState != LEDGE_NONE
@@ -2503,14 +2504,21 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if isFloorTeching(f) and f.downFrame >= (f.downState == DOWN_TECH ? TECH_IN_PLACE_FRAMES : TECH_ROLL_FRAMES)
 			clearDownState(f)
 	if input.techPressed
-		f.techWindow = f.techLockout == 0 ? (f.hitlag > 1 ? 1 : TECH_WINDOW_FRAMES) : 0
+		f.techWindow = f.techLockout == 0 ? (hitlagBefore > 1 ? 1 : TECH_WINDOW_FRAMES) : 0
 		f.techLockout = TECH_LOCKOUT_FRAMES
 		if f.hitlag > 0
 			f.techHitlagLatched = true
+	if hitlagBefore > 0 and f.diPending
+		if f.hitlag > 0
+			applySmashDirectionalInfluence(f, stage, input)
+		else if not f.out
+			applyDirectionalInfluence(f, input)
+			applyAutomaticSmashDirectionalInfluence(f, stage, input)
+	if f.out
+		return
 	if inGrabContext(f)
 		if f.hitlag <= 0
 			f.invincible = max(0, f.invincible - 1)
-		f.hitlag = max(0, f.hitlag - 1)
 		checkBlastZone(f)
 		return
 	var groundDodgeStarted = false
@@ -2584,12 +2592,6 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 				f.jumpDodgeX = 0
 				f.jumpDodgeZ = 0
 	if f.hitlag > 0
-		if f.hitlag > 1 and f.diPending
-			applySmashDirectionalInfluence(f, stage, input)
-		if f.hitlag == 1 and f.diPending and not f.out
-			applyDirectionalInfluence(f, input)
-			applyAutomaticSmashDirectionalInfluence(f, stage, input)
-		f.hitlag--
 		return
 	if f.groundDodgeFrame > 0 and not groundDodgeStarted
 		f.groundDodgeFrame++

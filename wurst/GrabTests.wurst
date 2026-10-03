@@ -223,8 +223,8 @@ function catchTarget(FighterState owner, FighterState target)
         commands.hasPending(frame).assertFalse()
         owner.attackStyle.assertEquals(-1)
     owner.grabAction.assertEquals(GRAB_HOLD)
-    // Damage does not recalculate the escape timer; four hitlag ticks freeze it.
-    target.grabbedFrames.assertEquals(236 - 45 + ordinaryHitlagFrames(3))
+    // Damage does not recalculate the escape timer; three full frozen frames precede the release frame.
+    target.grabbedFrames.assertEquals(236 - 45 + ordinaryHitlagFrames(3) - 1)
     input.attackPressed = true
     stepMatch(game, owner, target, input, other, commands, otherCommands, 46)
     owner.grabAction.assertEquals(GRAB_PUMMEL)

@@ -158,7 +158,7 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 	let input = new InputSnapshot()
 	prepareHitRegionAttack(attacker, target, 6, 5)
 	resolveAttackPair(attacker, target)
-	for tick = 1 to 6
+	for tick = 1 to 5
 		advance(attacker, 0, input, -240)
 		resolveAttackPair(attacker, target)
 		attacker.attackFrame.assertEquals(5)
@@ -206,7 +206,7 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 	resolveAttackPair(attacker, target)
 	target.damage.assertEquals(4.)
 	target.hitlag.assertEquals(4)
-	for tick = 1 to 4
+	for tick = 1 to 3
 		advance(attacker, 0, input, -240)
 		resolveAttackPair(attacker, target)
 		attacker.attackFrame.assertEquals(5)
@@ -420,7 +420,7 @@ function landLCancelTest(FighterState fighter, InputSnapshot input)
 		input.lCancelPressed = true
 		advance(fighter, 0, input, 0)
 		input.lCancelPressed = false
-		for tick = 2 to 4
+		for tick = 2 to 3
 			advance(fighter, 0, input, 0)
 			fighter.lCancelWindow.assertEquals(7)
 		for tick = 1 to age - 1
@@ -533,7 +533,7 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 	fighter.invincible = 10
 	fighter.dropTime = 10
 	fighter.hitlag = 3
-	for tick = 1 to 3
+	for tick = 1 to 2
 		advance(fighter, 0, input, -240)
 	fighter.smashChargeFrames.assertEquals(1)
 	fighter.attackFrame.assertEquals(attackFrame)
@@ -922,7 +922,7 @@ function tiltDamageAt(int style, int facing, real targetX, real targetZ) returns
 			resolveAttackPair(attacker, target)
 			let strongDamage = style == AERIAL_NEUTRAL_STYLE ? 7. : 8.
 			target.damage.assertEquals(strongDamage)
-			for tick = 1 to ordinaryHitlagFrames(strongDamage)
+			for tick = 1 to ordinaryHitlagFrames(strongDamage) - 1
 				advance(attacker, 0, input, -240)
 				attacker.attackFrame.assertEquals(6)
 			advance(attacker, 0, input, -240)
@@ -1274,7 +1274,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	advance(fighter, 0, input, 0)
 	fighter.hitlag = 2
 	input.direction = -1
-	for tick = 1 to 2
+	for tick = 1 to 1
 		advance(fighter, 0, input, 0)
 		fighter.x.assertEquals(11.4, 0.001)
 		fighter.dashFrame.assertEquals(1)
@@ -1398,8 +1398,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	advance(fighter, 0, input, -240)
 	fighter.x.assertEquals(25.)
 	advance(fighter, 0, input, -240)
-	fighter.x.assertEquals(25.)
-	advance(fighter, 0, input, -240)
+	fighter.hitlag.assertEquals(0)
 	(fighter.x > 25.).assertTrue()
 
 function advanceDirectionalInput(FighterState fighter, InputSnapshot input, DirectionalInput direction)
@@ -1471,7 +1470,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	destroy attacker
 	destroy fighter
 
-@Test function asdiUsesCStickWhileDiStillUsesLeftStickOnOnlyTheFinalFreezeTick()
+@Test function asdiUsesCStickWhileDiStillUsesLeftStickOnTheReleaseFrame()
 	let fighter = new FighterState(0, 300, 1)
 	fighter.grounded = false
 	fighter.z = 400
@@ -1483,8 +1482,10 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	input.verticalDirection = 1
 	input.cStickX = 1
 	advance(fighter, 0, input, -240)
-	fighter.x.assertEquals(300 + ASDI_DISTANCE)
-	fighter.z.assertEquals(400.)
+	fighter.x.assertEquals(300 + ASDI_DISTANCE + totalVelocityX(fighter))
+	fighter.z.assertEquals(400 + totalVelocityZ(fighter))
+	fighter.knockbackX.assertEquals(9.21954187, 0.001)
+	fighter.knockbackZ.assertEquals(2.99561074, 0.001)
 	fighter.asdiSerial.assertEquals(1)
 	fighter.diSerial.assertEquals(1)
 	fighter.diAngleDegrees.assertEquals(18, 0.001)
@@ -1505,7 +1506,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	input.sdiPulse = true
 	input.sdiX = 1
 	advance(fighter, 0, input, -240)
-	fighter.x.assertEquals(300 + ASDI_DISTANCE)
+	fighter.x.assertEquals(300 + ASDI_DISTANCE + totalVelocityX(fighter))
 	fighter.sdiSerial.assertEquals(0)
 	fighter.asdiSerial.assertEquals(1)
 	destroy input
@@ -1661,7 +1662,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	destroy rising
 	destroy falling
 
-@Test function hitlagFreezesLaunchVectorAndDirectionalInfluenceLeavesMovementVelocityAlone()
+@Test function hitlagFreezesLaunchVectorThenReleaseResumesSelfVelocityAndDecay()
 	let fighter = new FighterState(0, 0, 1)
 	fighter.grounded = false
 	fighter.x = 25
@@ -1686,9 +1687,9 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	advance(fighter, 0, input, -240)
 	fighter.diSerial.assertEquals(1)
 	fighter.diAngleDegrees.assertEquals(18, 0.001)
-	fighter.vx.assertEquals(2.)
-	fighter.vz.assertEquals(1.)
-	SquareRoot(fighter.knockbackX * fighter.knockbackX + fighter.knockbackZ * fighter.knockbackZ).assertEquals(10, 0.001)
+	fighter.vx.assertEquals(2 - 0.019999999552965164 * 6)
+	fighter.vz.assertEquals(1 - characterGravity(0))
+	SquareRoot(fighter.knockbackX * fighter.knockbackX + fighter.knockbackZ * fighter.knockbackZ).assertEquals(9.694, 0.001)
 	destroy input
 	destroy fighter
 
@@ -1744,7 +1745,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	advance(fighter, 0, input, -240)
 	fighter.diSerial.assertEquals(1)
 	fighter.diAngleDegrees.assertEquals(18, 0.001)
-	SquareRoot(fighter.knockbackX * fighter.knockbackX + fighter.knockbackZ * fighter.knockbackZ).assertEquals(10, 0.001)
+	SquareRoot(fighter.knockbackX * fighter.knockbackX + fighter.knockbackZ * fighter.knockbackZ).assertEquals(9.694, 0.001)
 	advance(fighter, 0, input, -240)
 	fighter.diSerial.assertEquals(1)
 	destroy input
@@ -1765,7 +1766,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	diagonal.diSerial.assertEquals(1)
 	diagonal.diAngleDegrees.assertGreaterThan(8.)
 	diagonal.diAngleDegrees.assertLessThan(10.)
-	SquareRoot(diagonal.knockbackX * diagonal.knockbackX + diagonal.knockbackZ * diagonal.knockbackZ).assertEquals(10, 0.001)
+	SquareRoot(diagonal.knockbackX * diagonal.knockbackX + diagonal.knockbackZ * diagonal.knockbackZ).assertEquals(9.694, 0.001)
 	let parallel = new FighterState(0, 0, 1)
 	parallel.grounded = false
 	parallel.z = 300
@@ -1778,7 +1779,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	advance(parallel, 0, input, -240)
 	parallel.diSerial.assertEquals(0)
 	parallel.diPending.assertFalse()
-	parallel.knockbackX.assertEquals(10.)
+	parallel.knockbackX.assertEquals(10 - 0.051 * 6)
 	parallel.knockbackZ.assertEquals(0.)
 	destroy parallel
 	destroy diagonal
@@ -2286,9 +2287,11 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	input.groundDodgePressed = true
 	input.groundDodgeDirection = -1
 	let hitlagged = new FighterState(0, 0, 1)
-	hitlagged.hitlag = 1
+	hitlagged.hitlag = 2
 	advance(hitlagged, 0, input, -240)
 	hitlagged.groundDodgeFrame.assertEquals(0)
+	advance(hitlagged, 0, input, -240)
+	hitlagged.groundDodgeFrame.assertEquals(1)
 	let shieldstunned = new FighterState(0, 0, 1)
 	shieldstunned.shieldStun = 5
 	advance(shieldstunned, 0, input, -240)
@@ -3134,8 +3137,7 @@ function airJumpApex(int character) returns real
 	fighter.downState.assertEquals(DOWN_BOUND)
 	fighter.downFrame.assertEquals(DOWN_BOUND_FRAMES)
 	advance(fighter, 0, input, 0)
-	fighter.downState.assertEquals(DOWN_BOUND)
-	advance(fighter, 0, input, 0)
+	fighter.hitlag.assertEquals(0)
 	fighter.downState.assertEquals(DOWN_ROLL)
 	destroy input
 	destroy fighter
@@ -3221,9 +3223,9 @@ function runGetupAttackToContact(FighterState attacker, FighterState target, int
 			attackerReadyFrame.assertGreaterThan(0)
 			attackerActiveFrame.assertGreaterThan(attackerReadyFrame)
 			victimWakeupActiveFrame.assertGreaterThan(attackerActiveFrame)
-			attackerReadyFrame.assertEquals(38)
-			attackerActiveFrame.assertEquals(42)
-			victimWakeupActiveFrame.assertEquals(character == 0 ? 68 : 64)
+			attackerReadyFrame.assertEquals(37)
+			attackerActiveFrame.assertEquals(41)
+			victimWakeupActiveFrame.assertEquals(character == 0 ? 67 : 63)
 			destroy neutral
 			destroy victimInput
 			destroy target
@@ -3253,7 +3255,7 @@ function runGetupAttackToContact(FighterState attacker, FighterState target, int
 				if defenderReady < 0 and canAttack(target)
 					defenderReady = frame
 			landedTech.assertTrue()
-			attackerReady.assertEquals(38)
+			attackerReady.assertEquals(37)
 			defenderReady.assertGreaterThan(attackerReady)
 			destroy defender
 			destroy neutral
@@ -3487,22 +3489,28 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 			destroy input
 			destroy fighter
 
-@Test function hitlagTechEdgeHasOneOpportunityOrTwentyOnFinalFrozenTick()
+@Test function hitlagTechEdgeHasOneOpportunityOrTwentyOnReleaseFrame()
 	for pressTick = 1 to 3
 		for contact = 1 to TECH_WINDOW_FRAMES + 1
 			let fighter = techTestTumbler()
 			let input = new InputSnapshot()
 			fighter.hitlag = 3
-			for tick = 1 to 3
+			for tick = 1 to 2
 				input.techPressed = tick == pressTick
 				advance(fighter, 0, input, 0)
 			let opportunities = pressTick == 3 ? TECH_WINDOW_FRAMES : 1
-			fighter.techWindow.assertEquals(opportunities)
-			fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
-			input.techPressed = false
-			for tick = 1 to contact - 1
+			input.techPressed = pressTick == 3
+			if contact == 1
+				landTechTest(fighter, 0, 0, input)
+			else
 				advanceTechAirTick(fighter, input)
-			landTechTest(fighter, 0, 0, input)
+				fighter.techWindow.assertEquals(opportunities)
+				fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+			input.techPressed = false
+			for tick = 2 to contact - 1
+				advanceTechAirTick(fighter, input)
+			if contact > 1
+				landTechTest(fighter, 0, 0, input)
 			fighter.downState.assertEquals(contact <= opportunities ? DOWN_TECH : DOWN_BOUND)
 			fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES - contact + 1)
 			destroy input
@@ -3515,14 +3523,14 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 	advanceTechAirTick(fighter, input)
 	input.techPressed = false
 	fighter.hitlag = 3
-	for tick = 1 to 3
+	for tick = 1 to 2
 		advance(fighter, 0, input, 0)
 		fighter.techWindow.assertEquals(TECH_WINDOW_FRAMES)
 		fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
 	landTechTest(fighter, 0, 0, input)
 	fighter.downState.assertEquals(DOWN_TECH)
 	fighter.hitlag = 2
-	for tick = 1 to 2
+	for tick = 1 to 1
 		advance(fighter, 0, input, 0)
 		fighter.downFrame.assertEquals(1)
 		fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES - 1)
@@ -3542,7 +3550,7 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 	input.techPressed = false
 	landTechTest(retry, 0, 0, input)
 	retry.downState.assertEquals(DOWN_BOUND)
-	retry.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+	retry.techLockout.assertEquals(TECH_LOCKOUT_FRAMES - 1)
 	destroy retry
 	destroy input
 
@@ -3783,7 +3791,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		let beforeVz = fighter.vz
 		let remaining = fighter.shieldBreakRemaining
 		input.mashPressed = true
-		for tick = 1 to 3
+		for tick = 1 to 2
 			advance(fighter, 0, input, 0)
 			fighter.shieldBreakFrame.assertEquals(5)
 			fighter.shieldBreakRemaining.assertEquals(remaining)
@@ -4062,7 +4070,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.ledgeState.assertEquals(LEDGE_ATTACK)
 	isIntangible(fighter).assertFalse()
 	fighter.hitlag = 2
-	for tick = 1 to 2
+	for tick = 1 to 1
 		advance(fighter, 0, input, 0)
 		fighter.ledgeFrame.assertEquals(0)
 		fighter.attackFrame.assertEquals(0)
