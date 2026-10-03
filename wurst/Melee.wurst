@@ -61,6 +61,7 @@ int playerLedgeVerticalPressed = 0
 effect array stageDecks
 int stageDeckCount = 0
 effect array projectileModels
+int array projectileModelFamilies
 int projectileModelCount = 0
 framehandle titleFrame
 framehandle menuFrame
@@ -325,19 +326,25 @@ function clearProjectileModels()
         if projectileModels[i] != null
             DestroyEffect(projectileModels[i])
             projectileModels[i] = null
+        projectileModelFamilies[i] = -1
     projectileModelCount = 0
 
-function renderProjectile(int index, boolean active, real x, real z, real velocityX, real velocityZ, int character)
+function renderProjectile(int index, boolean active, real x, real z, real velocityX, real velocityZ, int visualFamily)
     projectileModelCount = max(projectileModelCount, index + 1)
     if not active
         if projectileModels[index] != null
             DestroyEffect(projectileModels[index])
             projectileModels[index] = null
+        projectileModelFamilies[index] = -1
         return
+    if projectileModels[index] != null and projectileModelFamilies[index] != visualFamily
+        DestroyEffect(projectileModels[index])
+        projectileModels[index] = null
     if projectileModels[index] == null
-        let model = character == 2 ? Abilities.manaFlareMissile : (character == 0 ? Abilities.arrowMissile1 : Abilities.gyroCopterMissile)
+        let model = visualFamily == 2 ? Abilities.manaFlareMissile : (visualFamily == 0 ? Abilities.arrowMissile1 : Abilities.gyroCopterMissile)
         projectileModels[index] = AddSpecialEffect(model, centerX + x, centerY)
-        if character == 1
+        projectileModelFamilies[index] = visualFamily
+        if visualFamily == 1
             BlzSetSpecialEffectScale(projectileModels[index], 0.65)
     BlzSetSpecialEffectYaw(projectileModels[index], velocityX >= 0 ? 0. : 3.141592654)
     BlzSetSpecialEffectPitch(projectileModels[index], -Atan2(velocityZ, velocityX.abs()))
@@ -346,7 +353,7 @@ function renderProjectile(int index, boolean active, real x, real z, real veloci
 function renderProjectiles(FighterState fighter, int offset)
     for index = 0 to PROJECTILE_CAPACITY - 1
         renderProjectile(offset + index, projectileActive(fighter, index), projectileXAt(fighter, index),
-            projectileZAt(fighter, index), projectileVelocityXAt(fighter, index), projectileVelocityZAt(fighter, index), fighter.character)
+            projectileZAt(fighter, index), projectileVelocityXAt(fighter, index), projectileVelocityZAt(fighter, index), projectileVisualFamilyAt(fighter, index))
 
 function drawStage()
     clearStageDecks()

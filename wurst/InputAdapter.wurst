@@ -46,9 +46,12 @@ public function adaptInput(NetworkInput row, FighterState fighter, int frame,
     destination.specialX = destination.specialPressed ? row.specialX() : 0
     destination.specialZ = destination.specialPressed ? row.specialZ() : 0
     destination.down = row.actionHeld(MOVE_DOWN)
-    destination.shield = row.actionHeld(LEFT_TRIGGER) or row.actionHeld(RIGHT_TRIGGER)
+    destination.shieldPressed = row.actionPressed(LEFT_TRIGGER) or row.actionPressed(RIGHT_TRIGGER)
+    destination.shieldTriggerActive = row.actionHeld(LEFT_TRIGGER) or row.actionHeld(RIGHT_TRIGGER)
+        or destination.shieldPressed or row.triggerLeft() > 0 or row.triggerRight() > 0
+    destination.shield = row.actionHeld(LEFT_TRIGGER) or row.actionHeld(RIGHT_TRIGGER) or destination.shieldPressed
         or analogShieldActive(row.triggerLeft()) or analogShieldActive(row.triggerRight())
-    destination.shieldStrength = row.actionHeld(LEFT_TRIGGER) or row.actionHeld(RIGHT_TRIGGER) ? 1. :
+    destination.shieldStrength = row.actionHeld(LEFT_TRIGGER) or row.actionHeld(RIGHT_TRIGGER) or destination.shieldPressed ? 1. :
         analogShieldStrength(row.triggerLeft() > row.triggerRight() ? row.triggerLeft() : row.triggerRight())
     destination.jumpPressed = row.actionPressed(JUMP)
     destination.jumpHeld = row.actionHeld(JUMP)

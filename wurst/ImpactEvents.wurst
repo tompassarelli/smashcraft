@@ -14,6 +14,7 @@ public class ImpactEvents
     private int previousSurfaceContactSerial = 0
     private int previousHitVisualSerial = 0
     private int previousShieldVisualSerial = 0
+    private int previousShieldReflectVisualSerial = 0
     private boolean previouslyGrounded = true
     private int previousJumpSerial = 0
     private boolean previouslyAirDodging = false
@@ -26,6 +27,7 @@ public class ImpactEvents
     boolean hit = false
     boolean electric = false
     boolean shieldHit = false
+    boolean shieldReflect = false
     boolean shieldBreak = false
     boolean ordinaryLanding = false
     boolean movementDust = false
@@ -58,6 +60,7 @@ public class ImpactEvents
         previousSurfaceContactSerial = fighter.surfaceContactSerial
         previousHitVisualSerial = fighter.hitVisualSerial
         previousShieldVisualSerial = fighter.shieldVisualSerial
+        previousShieldReflectVisualSerial = fighter.shieldReflectVisualSerial
         previouslyGrounded = fighter.grounded
         previousJumpSerial = fighter.jumpSerial
         previouslyAirDodging = fighter.airDodging
@@ -70,6 +73,7 @@ public class ImpactEvents
         hit = false
         electric = false
         shieldHit = false
+        shieldReflect = false
         shieldBreak = false
         ordinaryLanding = false
         movementDust = false
@@ -107,6 +111,7 @@ public class ImpactEvents
         hit = not previouslyOut and not fighter.out and fighter.hitVisualSerial != previousHitVisualSerial
         electric = hit and fighter.hitVisualElectric
         shieldHit = not previouslyOut and not fighter.out and fighter.shieldVisualSerial != previousShieldVisualSerial
+        shieldReflect = not previouslyOut and not fighter.out and fighter.shieldReflectVisualSerial != previousShieldReflectVisualSerial
         shieldBreak = not previouslyOut and not fighter.out and previousShieldBreak == SHIELD_BREAK_NONE and fighter.shieldBreakState != SHIELD_BREAK_NONE
         ordinaryLanding = not previouslyOut and not fighter.out and not previouslyGrounded and fighter.grounded and fighter.downState == DOWN_NONE
         if not previouslyOut and not fighter.out and fighter.jumpSerial != previousJumpSerial

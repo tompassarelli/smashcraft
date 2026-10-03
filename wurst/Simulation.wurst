@@ -74,6 +74,18 @@ constant real GROUND_SPEED_CAP = 3 * WORLD_UNITS_PER_MELEE_UNIT
 // NTSC 1.02 common +0x4F0; upward knockback, not ordinary jump velocity.
 public constant real TOP_KO_MINIMUM_UPWARD_KNOCKBACK = 2.4000000953674316 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real SHIELD_MAX = 60.
+// Common input/reflector counters observed in NTSC 1.02. The authored shield
+// geometry below belongs to Smashcraft fighters and is independently tunable.
+public constant int SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES = 2
+public constant int SHIELD_REFLECTOR_ACTIVE_FRAMES = 2
+public constant real SHIELD_REFLECTOR_RADIUS_FACTOR = 0.75
+public constant real SHIELD_PROJECTILE_DAMAGE_MULTIPLIER = 0.5
+public constant real SHIELD_PROJECTILE_SPEED_MULTIPLIER = 0.699999988079071
+public tuple fighterShieldGeometry(real centerX, real centerZ, real radius)
+
+public function authoredShieldGeometry() returns fighterShieldGeometry
+	return fighterShieldGeometry(0, 45, 60)
+
 public constant int SHIELD_BREAK_NONE = 0
 public constant int SHIELD_BREAK_AIR = 1
 public constant int SHIELD_BREAK_LAND = 2
@@ -418,10 +430,15 @@ public class FighterState
 	real shieldRecoilX = 0
 	real shieldRecoilZ = 0
 	boolean shieldDrainResumePending = false
+	boolean shieldTriggerWasActive = false
+	int shieldTriggerAge = SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
+	int shieldReflectFrames = 0
+	fighterShieldGeometry shieldGeometry = authoredShieldGeometry()
 	real damage = 0
 	int hitVisualSerial = 0
 	boolean hitVisualElectric = false
 	int shieldVisualSerial = 0
+	int shieldReflectVisualSerial = 0
 	int stocks = 3
 	int hitstun = 0
 	int hitlag = 0
@@ -452,9 +469,12 @@ public class FighterState
 	real array[PROJECTILE_CAPACITY] projectileZ
 	int array[PROJECTILE_CAPACITY] projectileDirection
 	int array[PROJECTILE_CAPACITY] projectileKind
+	int array[PROJECTILE_CAPACITY] projectileVisualFamily
 	real array[PROJECTILE_CAPACITY] projectileVelocityX
 	real array[PROJECTILE_CAPACITY] projectileVelocityZ
 	int array[PROJECTILE_CAPACITY] projectileSerial
+	real array[PROJECTILE_CAPACITY] projectileDamageMultiplier
+	boolean array[PROJECTILE_CAPACITY] projectileNewlyReflected
 	int specialAction = SPECIAL_NONE
 	int specialFrame = 0
 	int specialDuration = 0
@@ -570,6 +590,8 @@ public class FighterState
 		x = startX
 		z = 0
 		facing = direction
+		for i = 0 to PROJECTILE_CAPACITY - 1
+			projectileDamageMultiplier[i] = 1
 
 public class InputSnapshot
 	int direction = 0
@@ -585,6 +607,8 @@ public class InputSnapshot
 	int specialZ = 0
 	boolean down = false
 	boolean shield = false
+	boolean shieldPressed = false
+	boolean shieldTriggerActive = false
 	real shieldStrength = 1
 	boolean jumpPressed = false
 	boolean airDodgePressed = false
@@ -622,6 +646,8 @@ public class InputSnapshot
 		destination.specialZ = specialZ
 		destination.down = down
 		destination.shield = shield
+		destination.shieldPressed = shieldPressed
+		destination.shieldTriggerActive = shieldTriggerActive
 		destination.shieldStrength = shieldStrength
 		destination.jumpPressed = jumpPressed
 		destination.airDodgePressed = airDodgePressed
@@ -872,6 +898,15 @@ function shieldDrainShouldResume(FighterState f, boolean forcedShield) returns b
 		f.shieldDrainResumePending = false
 		return false
 	return true
+
+function advanceShieldInputClocks(FighterState f, InputSnapshot input)
+	if f.shieldReflectFrames > 0
+		f.shieldReflectFrames--
+	if input.shieldTriggerActive
+		f.shieldTriggerAge = f.shieldTriggerWasActive ? min(SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, f.shieldTriggerAge + 1) : 0
+	else
+		f.shieldTriggerAge = SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
+	f.shieldTriggerWasActive = input.shieldTriggerActive
 
 public function surfaceCount(int stage) returns int
 	return stage == 0 ? 1 : (stage == 1 ? 3 : 0)
@@ -1387,8 +1422,14 @@ public function projectileVelocityXAt(FighterState f, int index) returns real
 public function projectileVelocityZAt(FighterState f, int index) returns real
 	return f.projectileVelocityZ[index]
 
+public function projectileDamageMultiplierAt(FighterState f, int index) returns real
+	return f.projectileDamageMultiplier[index]
+
 public function projectileKindAt(FighterState f, int index) returns int
 	return f.projectileKind[index]
+
+public function projectileVisualFamilyAt(FighterState f, int index) returns int
+	return f.projectileVisualFamily[index]
 
 public tuple hitEffect(real damage, real growth, real base, real launchX, real launchZ, boolean electric)
 public constant int CONTACT_LAUNCH = 0
@@ -1708,6 +1749,7 @@ function beginDownDamage(FighterState f, int hitstunFrames)
 	f.grounded = true
 	f.shield = false
 	f.shieldHeldFrames = 0
+	f.shieldReflectFrames = 0
 
 public function isFloorTeching(FighterState f) returns boolean
 	return f.downState == DOWN_TECH or f.downState == DOWN_TECH_ROLL
@@ -1897,9 +1939,12 @@ function clearSpecialOnStock(FighterState f)
 		f.projectileZ[i] = 0
 		f.projectileDirection[i] = 0
 		f.projectileKind[i] = PROJECTILE_BLASTER
+		f.projectileVisualFamily[i] = f.character
 		f.projectileVelocityX[i] = 0
 		f.projectileVelocityZ[i] = 0
 		f.projectileSerial[i] = 0
+		f.projectileDamageMultiplier[i] = 1
+		f.projectileNewlyReflected[i] = false
 
 public function startFreezeTrap(FighterState owner, int stage) returns boolean
 	if owner.character != 1 or not owner.grounded or owner.surface < 0 or owner.freezeTrapLife > 0 or owner.freezeTrapCooldown > 0 or not canAttack(owner)
@@ -2061,6 +2106,7 @@ function beginDownState(FighterState f, int state, int direction)
 	f.knockbackZ = 0
 	f.shield = false
 	f.shieldHeldFrames = 0
+	f.shieldReflectFrames = 0
 	f.grounded = true
 	if state == DOWN_ATTACK
 		f.attackStyle = DOWN_ATTACK_STYLE
@@ -2449,6 +2495,9 @@ function interruptJumpOrDodge(FighterState f)
 	if f.ledgeState != LEDGE_NONE
 		leaveLedge(f)
 	clearShieldBreak(f)
+	f.shieldTriggerWasActive = false
+	f.shieldTriggerAge = SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
+	f.shieldReflectFrames = 0
 	f.jumpSquat = 0
 	f.jumpDodgeQueued = false
 	f.jumpDodgeX = 0
@@ -2473,6 +2522,7 @@ function beginAttack(FighterState attacker, int style, boolean mayCharge)
 	if resolvedStyle == 5 and attacker.shield
 		attacker.shield = false
 		attacker.shieldHeldFrames = 0
+		attacker.shieldReflectFrames = 0
 	attacker.attackStyle = resolvedStyle
 	attacker.dashGrabAttack = isDashGrab
 	attacker.attackFrame = 0
@@ -2490,9 +2540,12 @@ function spawnProjectileMotion(FighterState owner, int kind, real velocityX, rea
 		if owner.projectileLife[index] <= 0
 			owner.projectileDirection[index] = velocityX < 0 ? -1 : 1
 			owner.projectileKind[index] = kind
+			owner.projectileVisualFamily[index] = owner.character
 			owner.projectileVelocityX[index] = velocityX
 			owner.projectileVelocityZ[index] = velocityZ
 			owner.projectileSerial[index] = serial
+			owner.projectileDamageMultiplier[index] = 1
+			owner.projectileNewlyReflected[index] = false
 			owner.projectileX[index] = owner.x + (velocityX < 0 ? -1 : 1) * BLASTER_PROJECTILE_SPAWN_OFFSET
 			owner.projectileZ[index] = owner.z + BLASTER_PROJECTILE_HEIGHT
 			owner.projectileLife[index] = lifetime
@@ -2507,10 +2560,11 @@ function spawnArcherArrow(FighterState owner, int direction, real verticalSpeed,
 	spawnProjectileMotion(owner, kind, facing * BLASTER_PROJECTILE_SPEED, verticalSpeed,
 		kind == PROJECTILE_ARROW ? 75 : 65, serial)
 
-function applySpecialProjectileHit(FighterState owner, FighterState target, int kind, int direction)
+function applySpecialProjectileHit(FighterState owner, FighterState target, int kind, int direction, real damageMultiplier)
 	let damage = kind == PROJECTILE_FAN_ARROW ? 4. : (kind == PROJECTILE_RECOIL or kind == PROJECTILE_MANA_BURN ? 5. : 7.)
+	let scaledDamage = (damage * damageMultiplier).roundToFloat32()
 	let damageOnly = kind == PROJECTILE_ARROW or kind == PROJECTILE_FAN_ARROW
-	queueDamageContact(owner, target, hitEffect(damage, 85, 16, 0.8, kind == PROJECTILE_RECOIL ? -0.6 : 0.6, false), direction,
+	queueDamageContact(owner, target, hitEffect(scaledDamage, 85, 16, 0.8, kind == PROJECTILE_RECOIL ? -0.6 : 0.6, false), direction,
 		damageOnly ? CONTACT_DAMAGE_ONLY : CONTACT_LAUNCH, false, null)
 
 function demonHunterParryIsActive(FighterState fighter) returns boolean
@@ -2541,13 +2595,50 @@ function applyProjectileHit(FighterState owner, FighterState target, int index)
 		resolveDemonHunterParry(target, owner, -owner.projectileDirection[index])
 		return
 	if owner.projectileKind[index] != PROJECTILE_BLASTER
-		applySpecialProjectileHit(owner, target, owner.projectileKind[index], owner.projectileDirection[index])
+		applySpecialProjectileHit(owner, target, owner.projectileKind[index], owner.projectileDirection[index], owner.projectileDamageMultiplier[index])
 	else
-		queueDamageContact(owner, target, hitEffect(attackDamage(1), 0, 0, 0, 0, false), owner.projectileDirection[index], CONTACT_FLINCH, false, null)
+		let damage = (attackDamage(1) * owner.projectileDamageMultiplier[index]).roundToFloat32()
+		queueDamageContact(owner, target, hitEffect(damage, 0, 0, 0, 0, false), owner.projectileDirection[index], CONTACT_FLINCH, false, null)
+
+function shieldReflectorRadius(FighterState target) returns real
+	return target.shieldGeometry.radius * shieldSizeMultiplier(target.shieldEnergy, target.shieldStrength) * SHIELD_REFLECTOR_RADIUS_FACTOR
+
+function shieldReflectorIntersects(FighterState target, real oldX, real oldZ, real newX, real newZ) returns boolean
+	let centerX = target.x + target.facing * target.shieldGeometry.centerX
+	let centerZ = target.z + target.shieldGeometry.centerZ
+	let deltaX = newX - oldX
+	let deltaZ = newZ - oldZ
+	let lengthSquared = deltaX * deltaX + deltaZ * deltaZ
+	let projection = lengthSquared == 0 ? 0 : max(0, min(1, ((centerX - oldX) * deltaX + (centerZ - oldZ) * deltaZ) / lengthSquared))
+	let closestX = oldX + projection * deltaX
+	let closestZ = oldZ + projection * deltaZ
+	let offsetX = centerX - closestX
+	let offsetZ = centerZ - closestZ
+	let radius = shieldReflectorRadius(target)
+	return offsetX * offsetX + offsetZ * offsetZ <= radius * radius
+
+function reflectProjectile(FighterState owner, FighterState target, int sourceIndex) returns boolean
+	for index = 0 to PROJECTILE_CAPACITY - 1
+		if target.projectileLife[index] <= 0
+			target.projectileX[index] = owner.projectileX[sourceIndex]
+			target.projectileZ[index] = owner.projectileZ[sourceIndex]
+			target.projectileVelocityX[index] = (-owner.projectileVelocityX[sourceIndex] * SHIELD_PROJECTILE_SPEED_MULTIPLIER).roundToFloat32()
+			target.projectileVelocityZ[index] = (owner.projectileVelocityZ[sourceIndex] * SHIELD_PROJECTILE_SPEED_MULTIPLIER).roundToFloat32()
+			target.projectileDirection[index] = target.projectileVelocityX[index] < 0 ? -1 : 1
+			target.projectileKind[index] = owner.projectileKind[sourceIndex]
+			target.projectileVisualFamily[index] = owner.projectileVisualFamily[sourceIndex]
+			target.projectileSerial[index] = owner.projectileSerial[sourceIndex]
+			target.projectileDamageMultiplier[index] = (owner.projectileDamageMultiplier[sourceIndex] * SHIELD_PROJECTILE_DAMAGE_MULTIPLIER).roundToFloat32()
+			target.projectileLife[index] = owner.projectileLife[sourceIndex]
+			target.projectileNewlyReflected[index] = true
+			owner.projectileLife[sourceIndex] = 0
+			target.shieldReflectVisualSerial++
+			return true
+	return false
 
 function updateProjectiles(FighterState owner, FighterState target, real targetX, real targetZ, boolean targetWasOut, boolean targetWasIntangible)
 	for index = 0 to PROJECTILE_CAPACITY - 1
-		if owner.projectileLife[index] > 0
+		if owner.projectileLife[index] > 0 and not owner.projectileNewlyReflected[index]
 			let oldX = owner.projectileX[index]
 			let oldZ = owner.projectileZ[index]
 			var velocityX = owner.projectileVelocityX[index]
@@ -2562,7 +2653,10 @@ function updateProjectiles(FighterState owner, FighterState target, real targetX
 			let crossedTarget = (targetX - oldX) * direction >= 0 and (targetX - owner.projectileX[index]) * direction <= 0
 			let nearTarget = (targetX - owner.projectileX[index]).abs() <= BLASTER_PROJECTILE_RADIUS
 			let crossedHeight = targetZ + 45 >= min(oldZ, owner.projectileZ[index]) - BLASTER_PROJECTILE_HALF_HEIGHT and targetZ + 45 <= max(oldZ, owner.projectileZ[index]) + BLASTER_PROJECTILE_HALF_HEIGHT
-			if (crossedTarget or nearTarget) and crossedHeight and not targetWasOut and not targetWasIntangible
+			let reflectorContact = target.shieldReflectFrames > 0 and shieldReflectorIntersects(target, oldX, oldZ, owner.projectileX[index], owner.projectileZ[index])
+			if reflectorContact and not targetWasOut and not targetWasIntangible and reflectProjectile(owner, target, index)
+				owner.projectileLife[index] = 0
+			else if (crossedTarget or nearTarget) and crossedHeight and not targetWasOut and not targetWasIntangible
 				applyProjectileHit(owner, target, index)
 				owner.projectileLife[index] = 0
 			else if owner.projectileLife[index] <= 0
@@ -2582,6 +2676,9 @@ public function updateProjectilePair(FighterState first, FighterState second)
 	let secondZ = second.z
 	updateProjectiles(first, second, secondX, secondZ, secondWasOut, secondWasIntangible)
 	updateProjectiles(second, first, firstX, firstZ, firstWasOut, firstWasIntangible)
+	for index = 0 to PROJECTILE_CAPACITY - 1
+		first.projectileNewlyReflected[index] = false
+		second.projectileNewlyReflected[index] = false
 	if ownsBatch
 		finishDamageContacts(first, second)
 
@@ -3295,6 +3392,9 @@ public function reset(FighterState f, real startX)
 	f.shieldRecoilX = 0
 	f.shieldRecoilZ = 0
 	f.shieldDrainResumePending = false
+	f.shieldTriggerWasActive = false
+	f.shieldTriggerAge = SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
+	f.shieldReflectFrames = 0
 	f.damage = 0
 	f.knockbackAgeFrames = -1
 	f.damageLevel = 0
@@ -3521,6 +3621,7 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 				f.jumpDodgeZ = 0
 	if f.hitlag > 0
 		return
+	advanceShieldInputClocks(f, input)
 	if f.groundDodgeFrame > 0 and not groundDodgeStarted
 		f.groundDodgeFrame++
 		let dodgeFrames = f.groundDodgeDirection == 0 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES
@@ -3554,7 +3655,7 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 	let dodgeActive = f.airDodgeTime > 0
 	f.airDodgeTime = max(0, f.airDodgeTime - 1)
 	f.shieldReleaseLag = max(0, f.shieldReleaseLag - 1)
-	let shieldCanStart = input.shield and (f.shield or f.shieldEnergy > 0) and f.downState == DOWN_NONE and f.hitstun <= 0 and f.grounded and not isGroundDodging(f)
+	let shieldCanStart = (input.shield or input.shieldPressed) and (f.shield or f.shieldEnergy > 0) and f.downState == DOWN_NONE and f.hitstun <= 0 and f.grounded and not isGroundDodging(f)
 		and f.shieldStun <= 0 and f.landingLag <= 0 and f.shieldReleaseLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0
 	var wantsShield = forcedShield
 	if not forcedShield
@@ -3572,6 +3673,9 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 		(f.groundAction == GROUND_ACTION_RUN or
 			(f.groundAction == GROUND_ACTION_DASH and f.groundActionFrame > DASH_GUARD_EARLY_FRAMES))
 	f.shield = wantsShield
+	if wantsShield and input.shieldPressed and f.shieldTriggerAge < SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
+		and f.shieldHeldFrames <= SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES and input.shieldStrength >= 1 and not forcedShield
+		f.shieldReflectFrames = SHIELD_REFLECTOR_ACTIVE_FRAMES
 	if wantsShield and input.shield and not forcedShield and not f.shieldDrainResumePending
 		f.shieldStrength = input.shieldStrength
 	if lateDashGuardEntry

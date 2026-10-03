@@ -1,0 +1,47 @@
+{
+  "id": "retail-ntsc-1.02-powershield-reflector-clock",
+  "game": "Super Smash Bros. Melee",
+  "revision": "NTSC 1.02",
+  "executable_sha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "common_data_sha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
+  "reference_revision": "0296f009f32f710495979d30772d8332af2d411a",
+  "common_values": {
+    "powershield_input_window_frames": 2,
+    "reflector_counter_initial": 1,
+    "reflector_radius_factor": 0.75,
+    "reflected_projectile_damage_multiplier": 0.5,
+    "reflected_projectile_speed_multiplier": 0.699999988079071,
+    "secondary_guard_reflect_counter_initial": 3
+  },
+  "state_execution": {
+    "cpu": "QEMU PPC750",
+    "callback_address": "0x80093BC0",
+    "calls": 2,
+    "return_patches": ["0x80093C44", "0x80093C7C"],
+    "exit_code": 0,
+    "byte_count": 32,
+    "samples": [
+      {
+        "callback": 1,
+        "reflector_flag_byte": "0x00000010",
+        "guard_callback_flags": "0x00000060",
+        "reflector_counter": 0,
+        "secondary_counter": 3
+      },
+      {
+        "callback": 2,
+        "reflector_flag_byte": "0x00000000",
+        "guard_callback_flags": "0x00000020",
+        "reflector_counter": -1,
+        "secondary_counter": 3
+      }
+    ]
+  },
+  "observed": "The reflector flag remains set after the first GuardReflect animation callback and is clear after the second, when the counter moves from zero to -1.",
+  "limitations": [
+    "The fighter and game-object memory are synthetic. The callback was stopped after its timer and flag updates, before unrelated expiry side effects.",
+    "The execution observes the reflector clock, not projectile collision or melee shield-contact results.",
+    "QEMU PPC750 execution is not GameCube hardware or native Warcraft execution.",
+    "No original executable bytes or decompiled implementation are included."
+  ]
+}

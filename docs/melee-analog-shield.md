@@ -43,9 +43,11 @@ The normal suite passes 592/592. Evidence:
 smashcraft:build/analog-precision-integration.log and
 smashcraft:build/analog-normal-integration.log.
 
-Still open: geometric shield coverage/pokes/tilt, powershields, physical analog
-controller capture, ordered original guard-state traces, and native Warcraft
-verification. Current contacts still use the existing whole-fighter guard rule;
+Still open: geometric shield coverage/pokes/tilt, ordinary melee powershield
+contacts, physical analog controller capture, ordered original guard-state
+traces, and native Warcraft verification. Projectile powershield timing and
+reflection are tracked separately in smashcraft:docs/melee-powershield.md.
+Current melee contacts still use the existing whole-fighter guard rule;
 visual size does not establish collision coverage. Existing keyboard producer
 rows use digital guard and full trigger bytes. A future physical analog
 producer must preserve independent digital-click bits and pressure bytes;

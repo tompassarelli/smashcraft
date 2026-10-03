@@ -31,6 +31,7 @@ exec "$java" -Xmx2048m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/wurst/PhysicsTests.wurst" \
     "$project_dir/wurst/AnalogShieldTests.wurst" \
     "$project_dir/wurst/AnalogShieldObservedTests.wurst" \
+    "$project_dir/wurst/PowershieldTests.wurst" \
     "$project_dir/wurst/DirectionalInput.wurst" \
     "$project_dir/wurst/DirectionalInputTests.wurst" \
     "$project_dir/wurst/SimulationTests.wurst" \

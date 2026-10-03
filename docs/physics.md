@@ -8,8 +8,10 @@ Digital clicks remain full strength; analog pressure activates at byte 77.
 The 54 original pressure/health/contact rows match production emitted Lua.
 Four connected tests cover input thresholds, minimum hold, contact freezes and
 replay restoration. Details and boundaries:
-smashcraft:docs/melee-analog-shield.md. Shield geometry/pokes/tilt, powershields,
-physical analog capture and native verification remain open.
+smashcraft:docs/melee-analog-shield.md. Projectile powershield input timing and
+reflection are now implemented against an authored SmashCraft shield circle;
+ordinary melee shield geometry/pokes/tilt, physical analog capture and native
+verification remain open. See smashcraft:docs/melee-powershield.md.
 
 The original capped hitlag calculation also matches 52 ordinary/electric and
 crouching observations without a production formula change; see
@@ -407,7 +409,7 @@ equivalence without the missing parameters and original-game comparisons.
 | Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed, sampled roll travel, persistent fast-fall state, and five recorded dash-braking updates | Revision identity, complete frame trajectories, dash/run/turn common values and transitions, walk acceleration, and full EscapeAir animation/fall-special transition parity |
 | Damage | Integer individual hit power, fractional same-frame total, strongest-contact selection, fixed knockback, cap, sampled crouch/smash modifiers and recorded flat-ground traction decay | Common-table confirmation, successive-frame stacking and other grounded surface conditions |
 | Hitlag/hitstun | Separate counters, electric effects carried through contact resolution, crouch arithmetic, direct/detached source pause and recorded same-frame hitlag release | Broader original-game ordered traces, revision identity and verified common values |
-| Shields | Integer shieldstun power, shield-break launch speed, recorded grounded digital defender pushback/attacker recoil and guard-drain timing; airborne attacker recoil initializes from common +0x7D4 `hit_weight_mul`, retains a separate x/z vector, decays by common +0x3E8, and is included in replay | Analog/powershield branches and broader paired displacement/actionability traces |
+| Shields | Integer shieldstun power, shield-break launch speed, recorded grounded digital defender pushback/attacker recoil and guard-drain timing; airborne attacker recoil initializes from common +0x7D4 `hit_weight_mul`, retains a separate x/z vector, decays by common +0x3E8, and is included in replay; bounded powershield timer plus swept-circle projectile reflection, replayed source visual family and reflection cue | Ordinary melee powershield contacts, shield geometry/pokes/tilt, physical analog capture and broader paired displacement/actionability traces |
 | DI/recovery | Actual-vector DI normalization, grounded non-upward launch selection, existing floor tech/miss-tech/getup and sampled roll paths | Ground-bounce values, wall/ceiling collision geometry, tumble exceptions and threshold/tech traces |
 | Replay/map | Crouch and roll-entry-facing snapshot restoration; map compilation and packaging | Native connected movement/contact/recovery check of this build |
 
@@ -2158,5 +2160,7 @@ Digital shield damage sums raw contacts before applying the retail binary32
 factor once. Shieldstun rounds integer power times 0.30000001192092896 before
 the fused multiplication by 1.5 and addition of 2. The standard-library pin now
 provides fusedMultiplyAddFloat32 for this single-round operation. Analog shield
-input, powershields, and native verification remain open; digital formula
-precision does not establish those behaviors.
+input is preserved, and projectile powershield timing/reflection is implemented
+separately; ordinary melee powershield contacts and native verification remain
+open. Digital formula precision does not establish those behaviors. See
+smashcraft:docs/melee-powershield.md.

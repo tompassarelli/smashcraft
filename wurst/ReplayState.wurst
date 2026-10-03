@@ -54,6 +54,7 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.hitVisualSerial = source.hitVisualSerial
 	destination.hitVisualElectric = source.hitVisualElectric
 	destination.shieldVisualSerial = source.shieldVisualSerial
+	destination.shieldReflectVisualSerial = source.shieldReflectVisualSerial
 	destination.stocks = source.stocks
 	destination.hitstun = source.hitstun
 	destination.hitlag = source.hitlag
@@ -86,6 +87,10 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.respawn = source.respawn
 	destination.shield = source.shield
 	destination.shieldStrength = source.shieldStrength
+	destination.shieldTriggerWasActive = source.shieldTriggerWasActive
+	destination.shieldTriggerAge = source.shieldTriggerAge
+	destination.shieldReflectFrames = source.shieldReflectFrames
+	destination.shieldGeometry = source.shieldGeometry
 	destination.shieldEnergy = source.shieldEnergy
 	destination.shieldStun = source.shieldStun
 	destination.shieldHeldFrames = source.shieldHeldFrames
@@ -175,12 +180,17 @@ function copyFighter(FighterState source, FighterState destination,
 		destination.projectileDirection[i] = source.projectileDirection[i]
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		destination.projectileKind[i] = source.projectileKind[i]
+		destination.projectileVisualFamily[i] = source.projectileVisualFamily[i]
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		destination.projectileVelocityX[i] = source.projectileVelocityX[i]
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		destination.projectileVelocityZ[i] = source.projectileVelocityZ[i]
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		destination.projectileSerial[i] = source.projectileSerial[i]
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		destination.projectileDamageMultiplier[i] = source.projectileDamageMultiplier[i]
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		destination.projectileNewlyReflected[i] = source.projectileNewlyReflected[i]
 	destination.specialAction = source.specialAction
 	destination.specialFrame = source.specialFrame
 	destination.specialDuration = source.specialDuration
@@ -300,6 +310,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "hitVisualElectric"
 	if expected.shieldVisualSerial != actual.shieldVisualSerial
 		return "shieldVisualSerial"
+	if expected.shieldReflectVisualSerial != actual.shieldReflectVisualSerial
+		return "shieldReflectVisualSerial"
 	if expected.stocks != actual.stocks
 		return "stocks"
 	if expected.hitstun != actual.hitstun
@@ -370,6 +382,14 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "respawn"
 	if expected.shield != actual.shield
 		return "shield"
+	if expected.shieldTriggerWasActive != actual.shieldTriggerWasActive
+		return "shieldTriggerWasActive"
+	if expected.shieldTriggerAge != actual.shieldTriggerAge
+		return "shieldTriggerAge"
+	if expected.shieldReflectFrames != actual.shieldReflectFrames
+		return "shieldReflectFrames"
+	if expected.shieldGeometry != actual.shieldGeometry
+		return "shieldGeometry"
 	if expected.shieldStrength != actual.shieldStrength
 		return "shieldStrength"
 	if expected.shieldEnergy != actual.shieldEnergy
@@ -533,6 +553,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		if expected.projectileKind[i] != actual.projectileKind[i]
 			return "projectileKind[" + I2S(i) + "]"
+		if expected.projectileVisualFamily[i] != actual.projectileVisualFamily[i]
+			return "projectileVisualFamily[" + I2S(i) + "]"
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		if expected.projectileVelocityX[i] != actual.projectileVelocityX[i]
 			return "projectileVelocityX[" + I2S(i) + "]"
@@ -542,6 +564,12 @@ function fighterDifference(FighterState expected, FighterState actual,
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		if expected.projectileSerial[i] != actual.projectileSerial[i]
 			return "projectileSerial[" + I2S(i) + "]"
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		if expected.projectileDamageMultiplier[i] != actual.projectileDamageMultiplier[i]
+			return "projectileDamageMultiplier[" + I2S(i) + "]"
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		if expected.projectileNewlyReflected[i] != actual.projectileNewlyReflected[i]
+			return "projectileNewlyReflected[" + I2S(i) + "]"
 	if expected.specialAction != actual.specialAction
 		return "specialAction"
 	if expected.specialFrame != actual.specialFrame

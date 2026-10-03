@@ -5,7 +5,7 @@ import ImpactAssetInfo
 import Simulation
 
 constant int EFFECTS_PER_KIND = 8
-constant int EFFECT_KIND_COUNT = 10
+constant int EFFECT_KIND_COUNT = 11
 constant int EFFECT_COUNT = EFFECTS_PER_KIND * EFFECT_KIND_COUNT
 
 // All handles are created together in common initialization. Effects never
@@ -50,6 +50,8 @@ public class CombatEffects
                 path = IMPACT_KO_MODEL
             else if kind == 9
                 path = IMPACT_RESPAWN_MODEL
+            else if kind == 10
+                path = IMPACT_SHIELD_MODEL
             let model = AddSpecialEffect(path, x, y)
             BlzSetSpecialEffectAlpha(model, 0)
             BlzSetSpecialEffectScale(model, 0.)
@@ -87,6 +89,8 @@ public class CombatEffects
             spawn(events.electric ? 5 : 0, events.x, events.z + 50, 0, 1.)
         if events.shieldHit
             spawn(6, events.x, events.z + 50, 0, 1.)
+        if events.shieldReflect
+            spawn(10, events.x, events.z + 50, 0, 1.5)
         if events.shieldBreak
             spawn(6, events.x, events.z + 50, 0, 2.)
         if events.landing == IMPACT_TECH
@@ -139,7 +143,7 @@ public class CombatEffects
         for i = 0 to EFFECT_COUNT - 1
             if ages[i] >= 0
                 let kind = i div EFFECTS_PER_KIND
-                let lifetime = kind == 0 or kind == 5 or kind == 6 ? 9 : (kind == 1 ? 15 : (kind == 3 ? 32 : (kind == 8 ? 24 : 12)))
+                let lifetime = kind == 0 or kind == 5 or kind == 6 or kind == 10 ? 9 : (kind == 1 ? 15 : (kind == 3 ? 32 : (kind == 8 ? 24 : 12)))
                 let age = ages[i]
                 if age >= lifetime
                     ages[i] = -1
