@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Foreign OCR boundary: the English Warcraft 3.0 menu at 2560x1440.
+[[ $# -ge 1 && $# -le 2 ]] || { echo 'Usage: wc3-melee:tools/wc3-screen-state IMAGE [compact|full]' >&2; exit 2; }
+input=$1
+mode=${2:-compact}
+[[ -f "$input" && ( "$mode" == compact || "$mode" == full ) ]] || exit 2
+geometry=$(magick identify -format '%wx%h' "$input")
+[[ "$geometry" == 2560x1440 ]] || { echo "unsupported-geometry: $geometry"; exit 1; }
+# Bound threaded OCR variability and avoid consuming cores for small labels.
+export OMP_THREAD_LIMIT=1
+if [[ "$mode" == compact ]]; then
+  text=$(magick "$input" \
+    \( +clone -crop 450x260+1850+490 +repage \) \
+    \( -clone 0 -crop 500x90+90+140 +repage \) \
+    \( -clone 0 -crop 700x80+950+370 +repage \) \
+    -delete 0 -background black -gravity west -append \
+    -fx '(r>0.667 && g>0.588)?0:1' png:- |
+    tesseract stdin stdout --psm 11 2>/dev/null)
+else
+  text=$(magick "$input" -fx '(r>0.667 && g>0.588)?0:1' png:- |
+    tesseract stdin stdout --psm 11 2>/dev/null)
+fi
+text=${text^^}
+# Blocking dialog takes precedence over the menu behind it.
+case "$text" in
+  *DISCONNECT*) echo disconnected ;;
+  *CREATE\ GAME*) echo create-game ;;
+  *CUSTOM\ GAMES*) echo single-player ;;
+  *SINGLE\ PLAYER*MULTIPLAYER*) echo main-menu ;;
+  *) echo unknown; exit 1 ;;
+esac
