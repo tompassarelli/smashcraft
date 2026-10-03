@@ -90,3 +90,19 @@ Compilation reported zero errors and six warnings; evidence is retained in
 smashcraft:build/physics-map-r10.log. Automatic deployment was disabled to
 preserve the peer's current native candidate. This build excludes the pending
 RunBrake follow-up and has not been observed in Warcraft.
+
+The RunBrake follow-up integrated as `da63988`; the assembled tree passed
+492/492 normal tests (smashcraft:build/physics-r11-aggregate.log). Candidate
+0.0.5 built at `b0aaf04`, build ID `melee-physics-r11`, with zero errors and six
+warnings (smashcraft:build/physics-map-r11.log). Map:
+smashcraft:build/wurst-map/Smashcraft 0.0.5.w3x. SHA-256:
+`ddb778d5287a00ddfcf9d9aa5c518403c1766fac627d9bdace17800c1a1309f9`.
+Deployment remained disabled and native observation is still outstanding.
+
+TurnRun entered after its facing-command frame needs a separate first-pause
+boundary check. The source initializes its pause marker to zero on entry; its
+first animation callback observing the command pauses, and a subsequent callback
+can flip facing. The current boolean command latch treats a past-command entry
+as already paused. The existing frame-14 fixture checks eventual facing, but
+does not isolate that first callback. This remains a movement timing discrepancy
+to resolve before asserting retail action-clock parity.
