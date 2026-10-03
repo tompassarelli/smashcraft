@@ -234,4 +234,5 @@ main and raised platforms, missed tech, in-place tech and rolling tech. The
 rolling variant remains supported at the endpoint; the other variants fall.
 The assembled suite passed 497/497 with zero errors and the existing unused
 import warning (smashcraft:build/recovery-edge-aggregate.log). These checks
-establish the modeled flat-surface transition, not full retail ECB shapes,+connected/sloped terrain, independent retail departure traces or native timing.
+establish the modeled flat-surface transition, not full retail ECB shapes,
+connected/sloped terrain, independent retail departure traces or native timing.
