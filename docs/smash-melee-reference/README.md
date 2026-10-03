@@ -36,6 +36,15 @@ porting Captain Falcon. It does not identify the disc revision or independently
 extract the grounded common multiplier at +0x200. Floor collision epsilon is
 normalized; only horizontal displacement is compared.
 
+wc3-melee:docs/smash-melee-reference/slippi-ntsc-floor-recovery.json retains
+post-impact in-place tech frames 203–210 and missed-tech frames 955–958 from
+the same recording. Both skids retain horizontal knockback and subtract the
+actor's traction before displacement; the tech reaches zero without reversing.
+Production recovery tests apply this bounded traction profile to both original
+fighter hosts. Collision geometry, disc revision, recovery completion and
+platform departure remain unproven; action-specific miscellaneous values are
+not interpreted as hitstun. No player metadata or implementation is retained.
+
 smashcraft:docs/smash-melee-reference/slippi-ntsc-shield-contact.json retains
 a paired digital-shield contact from `air_dodge.slp`, frames 10523–10534.
 Sheik's 4-damage jab produces four frames of hitlag, three released shieldstun

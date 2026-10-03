@@ -5,6 +5,106 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+// Test-only grounded-motion profile; no character or move data enters the roster.
+function floorRecoveryReferencePhysics() returns fighterPhysics
+	var physics = archerPhysics()
+	physics.traction = 0.07999999821186066 * 6
+	return physics
+
+function recordedFloorRecoveryPosition(boolean tech, int sample) returns real
+	if tech
+		if sample == 1
+			return -42.34517288208008
+		if sample == 2
+			return -42.67805099487305
+		if sample == 3
+			return -42.930931091308594
+		if sample == 4
+			return -43.10380935668945
+		if sample == 5
+			return -43.196685791015625
+		return -43.209564208984375
+	if sample == 1
+		return -38.086673736572266
+	if sample == 2
+		return -38.44503402709961
+	return -38.72339630126953
+
+function recordedFloorRecoveryKnockback(boolean tech, int sample) returns real
+	if tech
+		if sample == 1
+			return -0.41287824511528015
+		if sample == 2
+			return -0.3328782618045807
+		if sample == 3
+			return -0.2528782784938812
+		if sample == 4
+			return -0.17287829518318176
+		if sample == 5
+			return -0.0928783044219017
+		if sample == 6
+			return -0.012878312729299068
+		return 0
+	if sample == 1
+		return -0.4383614957332611
+	if sample == 2
+		return -0.35836151242256165
+	return -0.2783615291118622
+
+function recordedFloorRecoveryFirstDifference(int character, boolean tech, real velocityOffset) returns int
+	let fighter = new FighterState(character, (tech ? -41.93229293823242 : -37.648311614990234) * 6, 1)
+	fighter.physics = floorRecoveryReferencePhysics()
+	fighter.downState = tech ? DOWN_TECH : DOWN_BOUND
+	fighter.downFrame = 1
+	fighter.knockbackX = (tech ? -0.492878258228302 : -0.5183614492416382) * 6 + velocityOffset
+	fighter.damage = tech ? 25 : 42.5
+	let input = new InputSnapshot()
+	input.shield = true
+	input.direction = tech ? 0 : -1
+	var firstDifference = 0
+	for sample = 1 to (tech ? 7 : 3)
+		advance(fighter, 0, input, 0)
+		if firstDifference == 0 and ((fighter.x - recordedFloorRecoveryPosition(tech, sample) * 6).abs() > 0.0001
+			or (fighter.knockbackX - recordedFloorRecoveryKnockback(tech, sample) * 6).abs() > 0.00001
+			or not fighter.grounded or fighter.vx != 0 or fighter.knockbackZ != 0 or fighter.hitlag != 0
+			or fighter.downState != (tech ? DOWN_TECH : DOWN_BOUND) or fighter.downFrame != sample + 1
+			or fighter.damage != (tech ? 25 : 42.5) or fighter.shield or canAttack(fighter))
+			firstDifference = (tech ? 203 : 955) + sample
+	destroy input
+	destroy fighter
+	return firstDifference
+
+@Test function recordedFloorRecoverySkidsMatchTechAndMissedTechOnBothOriginalHosts()
+	for character = 0 to 1
+		recordedFloorRecoveryFirstDifference(character, true, 0).assertEquals(0)
+		recordedFloorRecoveryFirstDifference(character, false, 0).assertEquals(0)
+
+@Test function recordedFloorRecoveryDetectsWrongKnockbackOnItsFirstFrame()
+	recordedFloorRecoveryFirstDifference(0, true, 0.06).assertEquals(204)
+	recordedFloorRecoveryFirstDifference(0, false, 0.06).assertEquals(956)
+
+@Test function floorRecoveryEntryPreservesResidualHorizontalKnockback()
+	for character = 0 to 1
+		for recovery = 0 to 2
+			let fighter = new FighterState(character, 0, 1)
+			let input = new InputSnapshot()
+			fighter.physics = floorRecoveryReferencePhysics()
+			fighter.grounded = false
+			fighter.surface = -1
+			fighter.z = 1
+			fighter.vz = -2
+			fighter.knockbackX = -0.5 * 6
+			fighter.hitstun = 20
+			fighter.downState = DOWN_TUMBLE
+			input.techPressed = recovery > 0
+			input.direction = recovery == 2 ? -1 : 0
+			advance(fighter, 0, input, 0)
+			fighter.grounded.assertTrue()
+			fighter.downState.assertEquals(recovery == 0 ? DOWN_BOUND : (recovery == 1 ? DOWN_TECH : DOWN_TECH_ROLL))
+			fighter.knockbackX.assertEquals((-0.5 + 0.051) * 6, 0.00001)
+			destroy input
+			destroy fighter
+
 function weakRecoveryHit(int direction, FighterState attacker, FighterState target)
 	attacker.facing = direction
 	target.facing = -direction

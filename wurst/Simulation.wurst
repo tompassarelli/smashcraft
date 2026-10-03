@@ -1487,7 +1487,8 @@ function beginDownState(FighterState f, int state, int direction)
 		f.downWaitRemaining = 0
 	f.vx = 0
 	f.vz = 0
-	f.knockbackX = 0
+	if state != DOWN_BOUND and state != DOWN_TECH and state != DOWN_TECH_ROLL
+		f.knockbackX = 0
 	f.knockbackZ = 0
 	f.shield = false
 	f.shieldHeldFrames = 0
@@ -1614,6 +1615,9 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 	if f.downState == DOWN_TUMBLE
 		f.downFrame++
 		return false
+	if isFloorTeching(f) or f.downState == DOWN_BOUND
+		decayKnockback(f)
+		f.x += f.knockbackX
 	if isFloorTeching(f)
 		f.downFrame++
 		applyDownRollTravel(f, stage)
