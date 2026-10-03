@@ -7,6 +7,11 @@ contact rules from source commit
 claim presentation or physical-controller acceptance.
 
 Build using the pinned compiler/stdlib and the private physics terrain fixture:
+The builder reads simulation source from the exact commit above, not the current
+map source. The standalone entry point is
+wc3-melee:tools/netcode-probe/NativeContactRollbackProbe.wurst; it is deliberately
+outside wc3-melee:wurst so ordinary map builds do not import its pending-branch
+dependencies. Retain that commit locally when reproducing the historical probe.
 
 ```sh
 smashcraft:tools/netcode-probe/build-native-contact-rollback.sh \
@@ -49,13 +54,17 @@ Each observer exports
 `Warcraft III/CustomMapData/smashcraft-contact-rollback-20261004-p{0,1}.txt`.
 The export includes the original event wires and observer-local receipt timer
 values; transient F8 damage; reconciliation frame; corrected, direct-canonical,
-and confirmed F8 damage, checksums, full snapshots and first-difference
+and confirmed F8 damage, checksums, attempted full snapshots and first-difference
 comparisons; original F5 row equality; and a direct counterfactual with shield
 first pressed at F9. Expected diagnostic indicators are a correction beginning
 at F5, temporary speculative damage removed by correction, empty corrected to
 canonical and corrected to confirmed F8 differences, a preserved original F5
 row, and damage in the F9-shield counterfactual. The native run must verify
 these indicators; building the map does not.
+
+In the completed native run, Preload truncated long serialized snapshots. Those
+export lines are incomplete; only the full in-memory comparisons and checksums
+are accepted. See wc3-melee:docs/native-contact-rollback-result-20261004.md.
 
 This scenario executes production simulation code inside Warcraft and carries
 actual native sync callbacks. It deliberately applies an externally authored

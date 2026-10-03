@@ -3,8 +3,7 @@ set -euo pipefail
 project_dir=$(cd -- "$(dirname -- "$0")/../.." && pwd)
 base_map=${1:?Usage: build-native-contact-rollback.sh PRIVATE_BASE_MAP.w3m}
 base_map=$(realpath -- "$base_map")
-version=$(cat "$project_dir/map-version")
-[[ "$version" == 0.0.10 ]] || { echo 'Probe candidate must be Smashcraft 0.0.10.' >&2; exit 2; }
+version=0.0.10
 map_name="Smashcraft $version"
 private_root=/home/tom/.local/share/smashcraft-build-inputs/native-contact-rollback-20261004
 mkdir -p "$private_root"
@@ -18,10 +17,13 @@ java=/home/tom/.wurst/wurst-runtime/bin/java
 [[ $(git -C "$stdlib" rev-parse HEAD) == 4dfc8a0474bd0b9628ff79d935310c7fc92bce4a ]]
 [[ -x "$packager" && -s "$base_map" ]]
 mkdir -p "$build_dir/wurst" "$build_dir/_build/dependencies"
+# Reproduce the measured simulation, independently of newer production physics.
+simulation_commit=62b1a88ae077935b73cdbb457a7f12d86b4421db
+git -C "$project_dir" cat-file -e "$simulation_commit^{commit}"
 for source in BotRecovery CombatInput CommandBuffer DamagePose FighterPose FixedInputSchedule IllidanMotion ImpactEvents ImpactState InputAdapter InputLedger InputProtocol KeyBindings MatchRules MatchStep NetworkInput ParticipantInputs ReplayHistory ReplayState RollTravel ShadowInputPlayback ShadowInputSchedule Simulation SpecialEffectState SummonPose SummonState WorldTestSupport; do
-	cp "$project_dir/wurst/$source.wurst" "$build_dir/wurst/$source.wurst"
+	git -C "$project_dir" show "$simulation_commit:wurst/$source.wurst" > "$build_dir/wurst/$source.wurst"
 done
-cp "$project_dir/wurst/NativeContactRollbackProbe.wurst" "$build_dir/wurst/"
+cp "$project_dir/tools/netcode-probe/NativeContactRollbackProbe.wurst" "$build_dir/wurst/"
 cp "$project_dir/tools/netcode-probe/FrameTaggedRecord.wurst" "$build_dir/wurst/"
 cp "$project_dir/tools/map-entry.j" "$build_dir/wurst/war3map.j"
 cp /home/tom/code/wc3-melee/worktrees/production-netcode-integration-20261004/build/animation-assets/FighterAssetInfo.wurst "$build_dir/wurst/"
