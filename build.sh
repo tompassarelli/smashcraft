@@ -14,9 +14,11 @@ stdlib_checkout=/home/tom/code/wurst-stdlib/pins/bb1e0458db5a
 compiler_jar="$project_dir/toolchain/wurstscript.jar"
 java=/home/tom/.wurst/wurst-runtime/bin/java
 maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps/00-Smashcraft'
-build_output=$(realpath -m -- "${WC3_BUILD_OUTPUT:-$project_dir/build/wurst-map/$map_filename}")
-[[ "$build_output" == "$project_dir/build/"*.w3x ]] || { echo 'WC3_BUILD_OUTPUT must be a .w3x path under wc3-melee:build/.' >&2; exit 2; }
 private_assets=${WC3_PRIVATE_ASSETS:?Set WC3_PRIVATE_ASSETS to the private prepared clip directory.}
+private_build_root=$(realpath -m -- "$private_assets/build")
+case "$private_build_root" in "$project_dir"|"$project_dir"/*) echo 'Private build inputs must be outside the checkout.' >&2; exit 2;; esac
+build_output=$(realpath -m -- "${WC3_BUILD_OUTPUT:-$private_build_root/$map_filename}")
+[[ "$build_output" == "$private_build_root/"*.w3x ]] || { echo 'WC3_BUILD_OUTPUT must be a .w3x path under the private build directory.' >&2; exit 2; }
 original_clips="$private_assets/original-clips-static-lights"
 summon_clips="$private_assets/summon-original-clips"
 fighter_assets="$project_dir/build/animation-assets"
@@ -92,8 +94,9 @@ actual_compiler_sha256=$(sha256sum "$compiler_jar" | cut -d ' ' -f 1)
     exit 1
 }
 
-mkdir -p "$project_dir/_build" "$project_dir/build/wurst-work" "$project_dir/build/tools" "$(dirname -- "$build_output")"
-work_dir=$(mktemp -d "$project_dir/build/wurst-work/build.XXXXXX")
+mkdir -p "$project_dir/_build" "$project_dir/build/tools" "$(dirname -- "$build_output")"
+mkdir -p "$private_build_root"
+work_dir=$(mktemp -d "$private_build_root/work.XXXXXX")
 trap 'rm -rf -- "$work_dir"' EXIT
 map_script="$work_dir/war3map.lua"
 compiled_script="$work_dir/melee.lua"
@@ -276,8 +279,8 @@ mv "$output_next" "$build_output"
 if [[ ${WC3_DEPLOY_MAP:-0} == 1 ]]; then
     mkdir -p "$maps_dir"
     cp "$build_output" "$maps_dir/$map_filename.next"
-    mkdir -p "$project_dir/build/map-archive"
-    map_archive=$(mktemp -d "$project_dir/build/map-archive/deploy.XXXXXX")
+    mkdir -p "$private_build_root/map-archive"
+    map_archive=$(mktemp -d "$private_build_root/map-archive/deploy.XXXXXX")
     shopt -s nullglob
     for installed_map in "$maps_dir"/Smashcraft*.w3x; do
         mv -- "$installed_map" "$map_archive/"
