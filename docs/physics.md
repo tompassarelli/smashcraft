@@ -1,5 +1,21 @@
 # Physics reference and implementation
 
+## Airborne horizontal position order — 2026-10-04
+
+Ordinary airborne horizontal position now adds self velocity, launch velocity,
+then attacker shield recoil separately, rounding each addition in Melee units.
+Airborne defender shield pushback is already cleared before this phase.
+Grounded motion, sampled ground rolls, and recovery displacement remain on
+their existing paths and need separate source-order verification.
+
+The emitted-Lua axis probe also checks eleven resulting horizontal positions
+from initial Melee x = -60 and self velocity = 0.25, using the independently
+recorded launch-axis outputs. Expected additions use IEEE binary32 arithmetic,
+not a recorded full-game position trace. The first case failed before the
+position repair; all eleven pass afterward. Evidence:
+smashcraft:build/air-position-before.log and smashcraft:build/air-position-after.log.
+This does not establish native collision or trajectory fidelity.
+
 ## Airborne knockback axis arithmetic — 2026-10-04
 
 Airborne launch decay now converts the velocity operands to binary32 Melee

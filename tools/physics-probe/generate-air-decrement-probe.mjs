@@ -13,12 +13,15 @@ for (const [index, row] of reference.results.entries()) {
         `    fighter${index}.surface = -1`,
         `    fighter${index}.z = 300`,
         `    fighter${index}.physics.gravity = 0`,
+        `    fighter${index}.vx = 1.5`,
         `    fighter${index}.hitstun = 5`,
         `    fighter${index}.knockbackX = ${literal(row.x.value)} * 6`,
         `    fighter${index}.knockbackZ = ${literal(row.y.value)} * 6`,
         `    advance(fighter${index}, 0, input${index}, 0)`,
         `    if fighter${index}.knockbackX != ${literal(row.afterX.value)} * 6 or fighter${index}.knockbackZ != ${literal(row.afterY.value)} * 6`,
         `        BJDebugMsg("AIR_DECREMENT_CASE_${index}_FAIL")`,
+        `    if fighter${index}.x != ${literal(Math.fround(Math.fround(-60 + 0.25) + row.afterX.value))} * 6`,
+        `        BJDebugMsg("AIR_POSITION_CASE_${index}_FAIL")`,
         `    destroy input${index}`, `    destroy fighter${index}`);
 }
 lines.push('    BJDebugMsg("AIR_DECREMENT_BINARY32_EXACT_PASS")', '');

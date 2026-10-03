@@ -3541,6 +3541,10 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 			f.vx = 0
 			f.knockbackX = 0
 			f.groundKnockbackX = 0
+	else if not f.grounded
+		f.x = addMeleeWorldValues(f.x, f.vx)
+		f.x = addMeleeWorldValues(f.x, f.knockbackX)
+		f.x = addMeleeWorldValues(f.x, f.shieldRecoilX)
 	else
 		f.x += totalVelocityX(f) + dashEntryDisplacementAdjustment
 	if isGroundDodging(f)
