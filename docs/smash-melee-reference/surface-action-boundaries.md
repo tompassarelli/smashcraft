@@ -35,3 +35,13 @@ not yet enforce its full input lock. Wall facing uses the outward stage normal;
 its facing and signed impulse require reconciliation with the observations above.
 The existing startup, impulse and protection tests do not prove these missing
 action boundaries. Native recovery observation remains open.
+
+The subsequent ceiling-boundary implementation advances the clock beyond the
+impulse, enters ordinary fall at the actor's configured animation end (26 in
+the recorded profiles), and blocks attacks, specials, jumps and air dodges until
+that transition. Air drift remains enabled: the ceiling physics callback uses
+ordinary airborne drift and gravity. Three focused CeilingTech cases passed,
+including production collision entry and the 25/26 action boundary. This closes
+the modeled ceiling completion/input-lock discrepancy; independent frame traces,
+ECB attachment/repositioning and native execution remain unverified. Wall action
+completion and interrupts still require implementation.

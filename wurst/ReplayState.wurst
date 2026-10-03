@@ -12,6 +12,7 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.physics = source.physics
 	destination.surfacePhysics = source.surfacePhysics
 	destination.ceilingTechImpulseFrame = source.ceilingTechImpulseFrame
+	destination.ceilingTechAnimationEndFrame = source.ceilingTechAnimationEndFrame
 	destination.facing = source.facing
 	destination.lastAerialTapDirection = source.lastAerialTapDirection
 	destination.dashFrame = source.dashFrame
@@ -213,6 +214,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "surfacePhysics"
 	if expected.ceilingTechImpulseFrame != actual.ceilingTechImpulseFrame
 		return "ceilingTechImpulseFrame"
+	if expected.ceilingTechAnimationEndFrame != actual.ceilingTechAnimationEndFrame
+		return "ceilingTechAnimationEndFrame"
 	if expected.facing != actual.facing
 		return "facing"
 	if expected.lastAerialTapDirection != actual.lastAerialTapDirection

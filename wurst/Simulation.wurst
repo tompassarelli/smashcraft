@@ -353,6 +353,7 @@ public class FighterState
 	surfaceRecoveryPhysics surfacePhysics
 	// Actor command timing; NTSC Fox/Falco use 14, Captain Falcon uses 11.
 	int ceilingTechImpulseFrame = 14
+	int ceilingTechAnimationEndFrame = 26
 	int facing
 	int lastAerialTapDirection = 0
 	int dashFrame = 0
@@ -1002,6 +1003,8 @@ public function jumpSquatFrames(int character) returns int
 	return authoredPhysics(character).jumpSquatFrames
 
 function canStartAttack(FighterState attacker) returns boolean
+	if attacker.surfaceRecoveryState == SURFACE_TECH_CEILING
+		return false
 	if attacker.grabTarget != null or attacker.grabAction != GRAB_NONE
 		return false
 	if attacker.frozenFrames > 0
@@ -2061,10 +2064,13 @@ function advanceSurfaceRecovery(FighterState f, InputSnapshot input) returns boo
 	if f.hitlag > 0
 		return false
 	if f.surfaceRecoveryState == SURFACE_TECH_CEILING
-		f.surfaceRecoveryFrame = min(f.ceilingTechImpulseFrame, f.surfaceRecoveryFrame + 1)
+		f.surfaceRecoveryFrame++
 		if f.surfaceRecoveryFrame == f.ceilingTechImpulseFrame and not f.surfaceRecoveryVelocityApplied
 			f.vx = input.direction * f.surfacePhysics.passiveCeilingSpeed
 			f.surfaceRecoveryVelocityApplied = true
+		if f.surfaceRecoveryFrame >= f.ceilingTechAnimationEndFrame
+			f.surfaceRecoveryState = SURFACE_NONE
+			f.surfaceRecoveryFrame = 0
 		return false
 	if f.surfaceRecoveryState == SURFACE_TECH_WALL
 		if f.surfaceRecoveryFrame >= WALL_TECH_STARTUP_FRAMES
@@ -2883,6 +2889,8 @@ function demonHunterSpecialContact(FighterState owner, FighterState target) retu
 	return noHitRegion()
 
 public function simulationJump(FighterState f, int horizontal)
+	if f.surfaceRecoveryState == SURFACE_TECH_CEILING
+		return
 	if inGrabContext(f)
 		return
 	if f.ledgeState != LEDGE_NONE
@@ -2909,6 +2917,8 @@ public function simulationJump(FighterState f, int horizontal)
 	f.jumps--
 
 public function simulationAirDodge(FighterState f, int horizontal, int vertical)
+	if f.surfaceRecoveryState == SURFACE_TECH_CEILING
+		return
 	if inGrabContext(f)
 		return
 	if f.ledgeState != LEDGE_NONE
