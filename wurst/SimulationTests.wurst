@@ -3512,10 +3512,12 @@ function airJumpApex(int character) returns real
 	let input = new InputSnapshot()
 	fighter.downState = DOWN_WAIT
 	fighter.downFrame = DOWN_WAIT_FRAMES - 1
+	fighter.downWaitRemaining = 1
 	advance(fighter, 0, input, 0)
 	fighter.downState.assertEquals(DOWN_STAND)
 	fighter.downState = DOWN_WAIT
 	fighter.downFrame = 0
+	fighter.downWaitRemaining = DOWN_WAIT_FRAMES
 	input.getupAttackPressed = true
 	advance(fighter, 0, input, 0)
 	fighter.downState.assertEquals(DOWN_ATTACK)
@@ -3537,6 +3539,7 @@ function runGetupAttackToContact(FighterState attacker, FighterState target, int
 	attacker.surface = 0
 	attacker.downState = DOWN_WAIT
 	attacker.downFrame = 0
+	attacker.downWaitRemaining = DOWN_WAIT_FRAMES
 	target.facing = -direction
 	target.x = attacker.x + direction * distance
 	target.z = 0
