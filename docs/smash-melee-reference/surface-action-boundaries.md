@@ -292,3 +292,11 @@ unverified; the 40-frame rig does not establish those claims.
 The assembled dash-grab changes passed 505/505 tests with zero errors and the
 existing unused-import warning (smashcraft:build/dash-integration-aggregate.log).
 Native behavior remains unobserved.
+
+The integrated source checkpoint 058d8c5 built Smashcraft 0.0.8 with build ID
+melee-physics-r14, zero errors and six warnings. The local candidate is
+~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.8.w3x;
+SHA256 a18fb26577cb7a38b827b40f363f14710b2d2480946b8f7b07363dac48fcf25e.
+Build evidence: smashcraft:build/physics-map-r14.log. Deployment was disabled;
+this candidate has not been installed or observed natively. The concurrent
+input workstream retains the authenticated clients for its 0.0.9 probe.
