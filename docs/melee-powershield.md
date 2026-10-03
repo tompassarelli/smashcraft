@@ -7,13 +7,35 @@ window starts the GuardReflect timer. The input age and reflector timer are
 copied and compared by replay; the input row retains its press edge and trigger
 activity.
 
-The retail reflector counter at common `+0x2A4` starts at 1. A bounded
+The retail reflector counter at common `+0x2A4` starts at 1. Complete
 execution of the original callback `0x80093BC0` left the reflector flag set
 after callback one (counter 0) and cleared it during callback two (counter
 -1). Smashcraft keeps two active contact samples from the shield press: the
 entry tick and the tick after the first callback. This observed timer result is
 recorded in
 `smashcraft:docs/smash-melee-reference/retail-powershield-clock.json`.
+The observer now executes five complete callbacks without return patches,
+including the ordinary shield-descriptor creation at reflector expiry.
+The secondary counter at `+0x2B4` starts at 3: its flag remains after callbacks
+one through three and clears on callback four. A separate entry flag clears on
+callback one. The earlier patched callback observation did not expose those
+later updates; it is superseded by the complete callback corpus.
+
+Smashcraft retains a separate four-sample melee powershield timer alongside
+the two-sample projectile reflector. During that melee window, blocked contacts
+preserve shield health and use the unmodified defender pushback speed before
+the existing cap; ordinary contacts apply the common `+0x2BC` multiplier
+0.6000000238418579. Shieldstun, hitlag and attacker recoil retain the ordinary
+contact path. Success emits one shield-success flash through the impact journal.
+The timer is copied, compared and reset with the other replayed fighter state.
+Twelve original scalar contact observations cover ordinary/perfect flags,
+strengths 0.4 and 1, and powers 3, 10 and 30. A full-strength power-10 contact
+has the same 6.5 stun duration in both cases, but defender pushback is
+0.7800000905990601 ordinarily and 1.3000000715255737 when perfect, in Melee
+units. The original contact accumulator preserves its seed on perfect contacts.
+See `smashcraft:docs/smash-melee-reference/retail-powershield-contact.json`.
+These are isolated original branches with return patches before presentation
+and full state-entry consumers, not a complete gameplay contact trace.
 
 Smashcraft fighters use an explicitly authored shield circle centered at local
 offset `(0, 45)` with base radius `60` world units. These are original
@@ -46,9 +68,18 @@ not been executed here. The two-frame input age follows the observed common
 integer and the reference ABI description. Projectile behavior is covered by
 focused deterministic simulation tests, not by a native Melee or Warcraft
 collision trace. Native tuning of the authored shield center/radius remains
-open. Powershield effects on ordinary melee shield contacts, ordinary shield
-pokes/tilt, and the secondary counter at `+0x2B4` remain unimplemented or
-unverified; ordinary melee contacts keep the existing shield path.
+open. Complete melee powershield actionability, the post-contact counter at
+`+0x2B8`, ordinary shield pokes/tilt and full input/collision scheduling remain
+unimplemented or unverified. The observed post-contact setup starts a counter
+of 4 and clears its timer; no action-timing behavior is inferred from those
+stores alone.
+
+The melee-contact integration passes six focused powershield tests and the
+assembled 553/553 simulation checks. All fifteen emitted-Lua precision groups
+pass, including twelve new ordinary/perfect pushback outputs in the existing
+shield group. Evidence: `smashcraft:build/melee-powershield-focused.log`,
+`smashcraft:build/melee-powershield-assembled.log` and
+`smashcraft:build/melee-powershield-precision.log`.
 
 The numerical probe
 `smashcraft:tools/physics-probe/observe-powershield-clock.mjs` loads the retail

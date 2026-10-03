@@ -1,5 +1,5 @@
 // Independently authored loader. The original executable and execution output
-// stay in private storage; this records only state after two retail callbacks.
+// stay in private storage; this records five complete retail callbacks.
 import { mkdirSync, chmodSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
@@ -35,12 +35,18 @@ const commonSecondaryFrames = dat.readFloatBE(commonOffset + 0x2b4);
 const commonReflectRadius = dat.readFloatBE(commonOffset + 0x2a8);
 const commonReflectDamageMultiplier = dat.readFloatBE(commonOffset + 0x2ac);
 const commonReflectSpeedMultiplier = dat.readFloatBE(commonOffset + 0x2b0);
-// The callback's only external call is the expiry side effect. Return immediately
-// after the observed reflector flag is cleared, before that unrelated callback.
-for (const address of [0x80093c44, 0x80093c7c]) original.writeUInt32BE(0x4e800020, address - base);
 const entry = 0x81000000, state = entry + 0x20000, gobj = entry + 0x28000, stack = entry + 0x3f000;
-const wrapper = Buffer.alloc(0x40000), code = [], outputStride = 16;
+const wrapper = Buffer.alloc(0x40000), code = [], outputStride = 20, callbackCount = 5;
+const ftData = entry + 0x2a000, attributes = entry + 0x2a100, bones = entry + 0x2a200, joint = entry + 0x2a300;
 wrapper.writeUInt32BE(state, gobj - entry + 0x2c);
+wrapper.writeUInt32BE(ftData, state - entry + 0x10c);
+wrapper.writeUInt32BE(attributes, ftData - entry + 8);
+wrapper.writeUInt32BE(bones, state - entry + 0x5e8);
+wrapper.writeUInt32BE(joint, bones - entry);
+wrapper.writeUInt8(0x10, state - entry + 0x2218);
+wrapper.writeUInt8(0x70, state - entry + 0x221c);
+wrapper.writeFloatBE(commonReflectFrames, state - entry + 0x2354);
+wrapper.writeFloatBE(commonSecondaryFrames, state - entry + 0x2358);
 const emit = word => code.push(word >>> 0);
 function dform(op, rt, ra, d) { emit((op << 26) | (rt << 21) | (ra << 16) | (d & 65535)); }
 function imm(reg, value) { dform(15, reg, 0, value >>> 16); emit((24 << 26) | (reg << 21) | (reg << 16) | (value & 65535)); }
@@ -48,13 +54,7 @@ function call(address) { imm(12, address); emit(0x7d8903a6); emit(0x4e800421); }
 function syscallWrite(address, bytes) { dform(14, 0, 0, 4); dform(14, 3, 0, 1); imm(4, address); dform(14, 5, 0, bytes); emit(0x44000002); }
 const data = entry + 0x30000;
 imm(1, stack); imm(2, r2); imm(13, r13); imm(31, state); imm(30, data);
-for (let sample = 0; sample < 2; sample++) {
-    // GuardReflect setup: reflecting and three active guard callback flags;
-    // common +0x2A4 and +0x2B4 initialize the two callback counters.
-    wrapper.writeUInt8(0x10, state - entry + 0x2218);
-    wrapper.writeUInt8(0x70, state - entry + 0x221c);
-    wrapper.writeFloatBE(commonReflectFrames, state - entry + 0x2354);
-    wrapper.writeFloatBE(commonSecondaryFrames, state - entry + 0x2358);
+for (let sample = 0; sample < callbackCount; sample++) {
     imm(3, gobj); call(0x80093bc0);
     // Emit reflect bit, animation flags, and both counters after each callback.
     imm(28, state + 0x2218);
@@ -64,8 +64,9 @@ for (let sample = 0; sample < 2; sample++) {
     dform(36, 5, 30, sample * outputStride + 4);
     dform(52, 2, 30, sample * outputStride + 8);
     dform(52, 3, 30, sample * outputStride + 12);
+    dform(34, 0, 28, 2); dform(36, 0, 30, sample * outputStride + 16);
 }
-syscallWrite(data, 2 * outputStride);
+syscallWrite(data, callbackCount * outputStride);
 dform(14, 0, 0, 1); dform(14, 3, 0, 0); emit(0x44000002);
 code.forEach((word, i) => wrapper.writeUInt32BE(word, i * 4));
 const originalOffset = 0x1000, wrapperOffset = originalOffset + original.length;
@@ -83,25 +84,26 @@ const [binary, stderr, exitCode] = await Promise.all([new Response(proc.stdout).
 await Bun.write(root + '/execution-stderr.txt', stderr);
 if (exitCode !== 0) throw Error(`Original execution failed (${exitCode}): ${stderr}`);
 const bytes = Buffer.from(binary);
-if (bytes.length !== 2 * outputStride) throw Error(`Unexpected output: ${bytes.length}`);
+if (bytes.length !== callbackCount * outputStride) throw Error(`Unexpected output: ${bytes.length}`);
 await Bun.write(root + '/numerical-output.bin', bytes);
-const samples = Array.from({ length: 2 }, (_, i) => ({
+const samples = Array.from({ length: callbackCount }, (_, i) => ({
     callback: i + 1,
     reflectorFlagByte: '0x' + bytes.readUInt32BE(i * outputStride).toString(16).padStart(8, '0'),
     guardCallbackFlagByte: '0x' + bytes.readUInt32BE(i * outputStride + 4).toString(16).padStart(8, '0'),
     reflectorFramesRemaining: bytes.readFloatBE(i * outputStride + 8),
-    secondaryFramesRemaining: bytes.readFloatBE(i * outputStride + 12)
+    secondaryFramesRemaining: bytes.readFloatBE(i * outputStride + 12),
+    shieldCallbackFlagByte: '0x' + bytes.readUInt32BE(i * outputStride + 16).toString(16).padStart(8, '0')
 }));
 const facts = {
     id: 'retail-ntsc-1.02-powershield-reflector-clock', executableSha1, commonDataSha1,
     referenceRevision: '0296f009f32f710495979d30772d8332af2d411a',
-    execution: { cpu: 'QEMU PPC750', callback: '0x80093BC0', callbackCount: 2,
-        returnPatches: ['0x80093C44', '0x80093C7C'], exitCode, byteCount: bytes.length },
+    execution: { cpu: 'QEMU PPC750', callback: '0x80093BC0', callbackCount,
+        returnPatches: [], exitCode, byteCount: bytes.length },
     commonValues: { inputWindow: commonInputWindow, reflectorFrames: commonReflectFrames, secondaryFrames: commonSecondaryFrames,
         reflectorRadius: commonReflectRadius, reflectorDamageMultiplier: commonReflectDamageMultiplier,
         reflectorSpeedMultiplier: commonReflectSpeedMultiplier }, samples,
-    conclusion: 'The reflector bit remains active after callback 1 and is cleared during callback 2; the reported reflector-active callback window is two callbacks from entry.',
-    limitations: ['Synthetic Fighter and GObj memory; state callback only; no collision or original-character geometry.', 'The return patches stop after timer/flag updates and before unrelated expiry side effects.', 'QEMU PPC750, not GameCube or Warcraft native execution.', 'No original executable bytes or decompiled implementation are published.']
+    conclusion: 'The reflector bit remains active after callback 1 and clears during callback 2, which installs the ordinary shield descriptor. The secondary flag 0x20 remains through callback 3 and clears during callback 4. These are callback observations, not a full match contact-order trace.',
+    limitations: ['Synthetic Fighter, GObj, attributes and bone memory; complete callback and ordinary shield creation only; no collision or original-character geometry.', 'Complete GuardReflect entry, animation and collision scheduling are not executed.', 'QEMU PPC750, not GameCube or Warcraft native execution.', 'No original executable bytes or decompiled implementation are published.']
 };
 await Bun.write(root + '/facts.json', JSON.stringify(facts, null, 2) + '\n');
 console.log(JSON.stringify({ facts: root + '/facts.json', samples, exitCode }));

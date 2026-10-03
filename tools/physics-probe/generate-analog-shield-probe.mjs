@@ -20,7 +20,13 @@ for (const [index, row] of corpus.results.entries()) {
         lines.push(`    if ${expression} != ${real(expected)}`, '        failures++',
             `        BJDebugMsg("ANALOG_SHIELD_${index}_${name}_MISMATCH")`);
 }
+const perfectCorpus = await Bun.file(new URL('docs/smash-melee-reference/retail-powershield-contact.json', project)).json();
+for (const [index, row] of perfectCorpus.results.entries()) {
+    const expression = `shieldContactPushback(${real(row.damage)}, ${real(Math.fround(row.strength))}, ${row.perfect}) / WORLD_UNITS_PER_MELEE_UNIT`;
+    lines.push(`    if ${expression} != ${real(row.pushback.value)}`, '        failures++',
+        `        BJDebugMsg("POWERSHIELD_PUSHBACK_${index}_MISMATCH")`);
+}
 lines.push('    if failures != 0', '        BJDebugMsg("ANALOG_SHIELD_BINARY32_EXACT_FAIL")',
     '    else', '        BJDebugMsg("ANALOG_SHIELD_BINARY32_EXACT_PASS")', '');
 await Bun.write(new URL('build/physics-probe/AnalogShieldPrecisionProbe.wurst', project), lines.join('\n'));
-console.log(`Analog shield: ${corpus.results.length} original pressure/drain/stun/size/damage/pushback rows`);
+console.log(`Analog shield: ${corpus.results.length} pressure rows and ${perfectCorpus.results.length} ordinary/perfect contact pushback observations`);

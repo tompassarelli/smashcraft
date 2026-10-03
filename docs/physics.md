@@ -9,7 +9,12 @@ The 54 original pressure/health/contact rows match production emitted Lua.
 Four connected tests cover input thresholds, minimum hold, contact freezes and
 replay restoration. Details and boundaries:
 smashcraft:docs/melee-analog-shield.md. Projectile powershield input timing and
-reflection are now implemented against an authored SmashCraft shield circle;
+reflection are now implemented against an authored SmashCraft shield circle.
+Melee perfect contacts also preserve shield health, use the observed unmodified
+defender pushback with the same cap/stun, and emit a success flash. Their
+four-sample timer is replayed; full callback ordering and post-contact
+actionability still need verification. Twelve ordinary/perfect contact pushback
+observations match emitted Lua alongside the existing 54 analog rows;
 ordinary melee shield geometry/pokes/tilt, physical analog capture and native
 verification remain open. See smashcraft:docs/melee-powershield.md.
 
@@ -2161,8 +2166,9 @@ factor once. Shieldstun rounds integer power times 0.30000001192092896 before
 the fused multiplication by 1.5 and addition of 2. The standard-library pin now
 provides fusedMultiplyAddFloat32 for this single-round operation. Analog shield
 input is preserved, and projectile powershield timing/reflection is implemented
-separately; ordinary melee powershield contacts and native verification remain
-open. Digital formula precision does not establish those behaviors. See
+separately. Melee perfect contacts now preserve shield health and use the
+observed defender pushback; post-contact action timing and native verification
+remain open. Digital formula precision does not establish those behaviors. See
 smashcraft:docs/melee-powershield.md.
 
 ## Independently observed directional influence arithmetic

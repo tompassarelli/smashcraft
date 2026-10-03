@@ -15,11 +15,18 @@ import ImpactEvents
 	advance(fighter, 0, input, 0)
 	fighter.shield.assertTrue()
 	fighter.shieldReflectFrames.assertEquals(SHIELD_REFLECTOR_ACTIVE_FRAMES)
+	fighter.shieldPerfectFrames.assertEquals(4)
 	input.shieldPressed = false
 	advance(fighter, 0, input, 0)
 	fighter.shieldReflectFrames.assertEquals(1)
+	fighter.shieldPerfectFrames.assertEquals(3)
 	advance(fighter, 0, input, 0)
 	fighter.shieldReflectFrames.assertEquals(0)
+	fighter.shieldPerfectFrames.assertEquals(2)
+	advance(fighter, 0, input, 0)
+	fighter.shieldPerfectFrames.assertEquals(1)
+	advance(fighter, 0, input, 0)
+	fighter.shieldPerfectFrames.assertEquals(0)
 	destroy input
 	destroy fighter
 
@@ -111,6 +118,7 @@ import ImpactEvents
 	first.shieldTriggerWasActive = true
 	first.shieldTriggerAge = 1
 	first.shieldReflectFrames = 1
+	first.shieldPerfectFrames = 3
 	first.shieldGeometry = fighterShieldGeometry(12, 34, 56)
 	first.projectileLife[2] = 8
 	first.projectileVisualFamily[2] = 0
@@ -128,12 +136,16 @@ import ImpactEvents
 	first.shieldTriggerWasActive.assertTrue()
 	first.shieldTriggerAge.assertEquals(1)
 	first.shieldReflectFrames.assertEquals(1)
+	first.shieldPerfectFrames.assertEquals(3)
 	first.shieldGeometry.centerX.assertEquals(12.)
 	first.shieldGeometry.centerZ.assertEquals(34.)
 	first.shieldGeometry.radius.assertEquals(56.)
 	first.projectileDamageMultiplier[2].assertEquals(0.5)
 	first.projectileVisualFamily[2].assertEquals(0)
 	first.projectileNewlyReflected[2].assertTrue()
+	first.shieldPerfectFrames = 2
+	actual.capture(first, second, game, commands, otherCommands, runtime)
+	snapshot.firstDifference(actual).assertEquals("first.shieldPerfectFrames")
 	destroy actual
 	destroy snapshot
 	destroy runtime
@@ -142,3 +154,36 @@ import ImpactEvents
 	destroy game
 	destroy second
 	destroy first
+
+@Test function perfectShieldPushbackMatchesOriginalContactObservations()
+	shieldContactPushback(3, 0.4, true).assertEquals(1.0210000276565552 * WORLD_UNITS_PER_MELEE_UNIT)
+	shieldContactPushback(10, 0.4, true).assertEquals(2. * WORLD_UNITS_PER_MELEE_UNIT)
+	shieldContactPushback(30, 0.4, true).assertEquals(2. * WORLD_UNITS_PER_MELEE_UNIT)
+	shieldContactPushback(3, 1., true).assertEquals(0.6700000166893005 * WORLD_UNITS_PER_MELEE_UNIT)
+	shieldContactPushback(10, 1., true).assertEquals(1.3000000715255737 * WORLD_UNITS_PER_MELEE_UNIT)
+	shieldContactPushback(30, 1., true).assertEquals(2. * WORLD_UNITS_PER_MELEE_UNIT)
+
+@Test function meleePerfectContactPreservesShieldHealthAndOrdinaryContactResumesAfterExpiry()
+	let attacker = new FighterState(0, -100, 1)
+	let target = new FighterState(1, 0, -1)
+	target.shield = true
+	target.shieldPerfectFrames = 1
+	beginDamageContacts()
+	queueDamageContact(attacker, target, hitEffect(10, 100, 20, 1, 1, false), 1, CONTACT_LAUNCH, true, null)
+	finishDamageContacts(attacker, target)
+	target.damage.assertEquals(0.)
+	target.shieldEnergy.assertEquals(60.)
+	target.shieldStun.assertEquals(6)
+	target.shieldPushbackX.assertEquals(1.3000000715255737 * WORLD_UNITS_PER_MELEE_UNIT)
+	target.shieldReflectVisualSerial.assertEquals(1)
+	target.shieldVisualSerial.assertEquals(0)
+	target.shieldPerfectFrames = 0
+	beginDamageContacts()
+	queueDamageContact(attacker, target, hitEffect(10, 100, 20, 1, 1, false), 1, CONTACT_LAUNCH, true, null)
+	finishDamageContacts(attacker, target)
+	target.shieldEnergy.assertEquals(53.)
+	target.shieldPushbackX.assertEquals(0.7800000905990601 * WORLD_UNITS_PER_MELEE_UNIT)
+	target.shieldReflectVisualSerial.assertEquals(1)
+	target.shieldVisualSerial.assertEquals(1)
+	destroy target
+	destroy attacker

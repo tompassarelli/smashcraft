@@ -78,6 +78,7 @@ public constant real SHIELD_MAX = 60.
 // geometry below belongs to Smashcraft fighters and is independently tunable.
 public constant int SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES = 2
 public constant int SHIELD_REFLECTOR_ACTIVE_FRAMES = 2
+public constant int SHIELD_PERFECT_ACTIVE_FRAMES = 4
 public constant real SHIELD_REFLECTOR_RADIUS_FACTOR = 0.75
 public constant real SHIELD_PROJECTILE_DAMAGE_MULTIPLIER = 0.5
 public constant real SHIELD_PROJECTILE_SPEED_MULTIPLIER = 0.699999988079071
@@ -432,6 +433,7 @@ public class FighterState
 	boolean shieldTriggerWasActive = false
 	int shieldTriggerAge = SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
 	int shieldReflectFrames = 0
+	int shieldPerfectFrames = 0
 	fighterShieldGeometry shieldGeometry = authoredShieldGeometry()
 	real damage = 0
 	int hitVisualSerial = 0
@@ -858,8 +860,11 @@ public function digitalShieldstunDuration(real damage) returns real
 	return shieldstunDuration(damage, 1.)
 
 public function shieldPushback(real damage, real strength) returns real
+	return shieldContactPushback(damage, strength, false)
+
+public function shieldContactPushback(real damage, real strength, boolean perfect) returns real
 	let speed = (shieldstunDuration(damage, strength) * SHIELD_PUSHBACK_BASE).roundToFloat32()
-	return min(SHIELD_PUSHBACK_CAP, (speed * SHIELD_PUSHBACK_MULTIPLIER).roundToFloat32()) * WORLD_UNITS_PER_MELEE_UNIT
+	return min(SHIELD_PUSHBACK_CAP, perfect ? speed : (speed * SHIELD_PUSHBACK_MULTIPLIER).roundToFloat32()) * WORLD_UNITS_PER_MELEE_UNIT
 
 public function digitalShieldPushback(real damage) returns real
 	return shieldPushback(damage, 1.)
@@ -920,6 +925,8 @@ function shieldDrainShouldResume(FighterState f, boolean forcedShield) returns b
 function advanceShieldInputClocks(FighterState f, InputSnapshot input)
 	if f.shieldReflectFrames > 0
 		f.shieldReflectFrames--
+	if f.shieldPerfectFrames > 0
+		f.shieldPerfectFrames--
 	if input.shieldTriggerActive
 		f.shieldTriggerAge = f.shieldTriggerWasActive ? min(SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, f.shieldTriggerAge + 1) : 0
 	else
@@ -1502,12 +1509,14 @@ function resolveDamageContacts(FighterState target)
 	var hitlagDamage = 0.
 	var shieldPushback = 0.
 	var shieldDirection = 1
+	let perfectShield = target.shieldPerfectFrames > 0
 	for index = 0 to damageContactCount - 1
 		let contact = damageContacts[index]
 		if contact.target == target
 			if contact.blocked
 				blockedContact = true
-				shieldDamage = (shieldDamage + contact.data.damage).roundToFloat32()
+				if not perfectShield
+					shieldDamage = (shieldDamage + contact.data.damage).roundToFloat32()
 			else
 				totalDamage = (totalDamage + contact.data.damage.roundToFloat32()).roundToFloat32()
 	let postHitPercent = (R2I(max(0, target.damage.roundToFloat32())) + totalDamage).roundToFloat32()
@@ -1521,8 +1530,8 @@ function resolveDamageContacts(FighterState target)
 				if contact.kind != CONTACT_DAMAGE_ONLY
 					target.shieldStun = max(target.shieldStun, shieldstunFrames(damage, target.shieldStrength))
 					target.hitlag = max(target.hitlag, ordinaryHitlagFrames(damage))
-					shieldPushback = max(shieldPushback, shieldPushback(damage, target.shieldStrength))
-					if shieldPushback(damage, target.shieldStrength) == shieldPushback
+					shieldPushback = max(shieldPushback, shieldContactPushback(damage, target.shieldStrength, perfectShield))
+					if shieldContactPushback(damage, target.shieldStrength, perfectShield) == shieldPushback
 						shieldDirection = contact.facing
 					if contact.direct
 						if contact.sourceGrounded
@@ -1557,7 +1566,10 @@ function resolveDamageContacts(FighterState target)
 			target.hitlag = max(target.hitlag, victimHitlagFrames(hitlagDamage, effectContact.data.electric, effectContact.crouching))
 	target.damage = (target.damage.roundToFloat32() + totalDamage).roundToFloat32()
 	if blockedContact
-		target.shieldVisualSerial++
+		if perfectShield
+			target.shieldReflectVisualSerial++
+		else
+			target.shieldVisualSerial++
 	if shieldDamage > 0
 		target.shieldEnergy = (target.shieldEnergy - shieldContactDamage(shieldDamage, target.shieldStrength)).roundToFloat32()
 	if shieldPushback > 0 and target.grounded
@@ -1768,6 +1780,7 @@ function beginDownDamage(FighterState f, int hitstunFrames)
 	f.shield = false
 	f.shieldHeldFrames = 0
 	f.shieldReflectFrames = 0
+	f.shieldPerfectFrames = 0
 
 public function isFloorTeching(FighterState f) returns boolean
 	return f.downState == DOWN_TECH or f.downState == DOWN_TECH_ROLL
@@ -2125,6 +2138,7 @@ function beginDownState(FighterState f, int state, int direction)
 	f.shield = false
 	f.shieldHeldFrames = 0
 	f.shieldReflectFrames = 0
+	f.shieldPerfectFrames = 0
 	f.grounded = true
 	if state == DOWN_ATTACK
 		f.attackStyle = DOWN_ATTACK_STYLE
@@ -2516,6 +2530,7 @@ function interruptJumpOrDodge(FighterState f)
 	f.shieldTriggerWasActive = false
 	f.shieldTriggerAge = SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
 	f.shieldReflectFrames = 0
+	f.shieldPerfectFrames = 0
 	f.jumpSquat = 0
 	f.jumpDodgeQueued = false
 	f.jumpDodgeX = 0
@@ -2541,6 +2556,7 @@ function beginAttack(FighterState attacker, int style, boolean mayCharge)
 		attacker.shield = false
 		attacker.shieldHeldFrames = 0
 		attacker.shieldReflectFrames = 0
+		attacker.shieldPerfectFrames = 0
 	attacker.attackStyle = resolvedStyle
 	attacker.dashGrabAttack = isDashGrab
 	attacker.attackFrame = 0
@@ -3413,6 +3429,7 @@ public function reset(FighterState f, real startX)
 	f.shieldTriggerWasActive = false
 	f.shieldTriggerAge = SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
 	f.shieldReflectFrames = 0
+	f.shieldPerfectFrames = 0
 	f.damage = 0
 	f.knockbackAgeFrames = -1
 	f.damageLevel = 0
@@ -3694,6 +3711,7 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 	if wantsShield and input.shieldPressed and f.shieldTriggerAge < SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
 		and f.shieldHeldFrames <= SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES and input.shieldStrength >= 1 and not forcedShield
 		f.shieldReflectFrames = SHIELD_REFLECTOR_ACTIVE_FRAMES
+		f.shieldPerfectFrames = SHIELD_PERFECT_ACTIVE_FRAMES
 	if wantsShield and input.shield and not forcedShield and not f.shieldDrainResumePending
 		f.shieldStrength = input.shieldStrength
 	if lateDashGuardEntry

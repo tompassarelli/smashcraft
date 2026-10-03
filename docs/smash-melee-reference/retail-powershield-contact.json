@@ -1,0 +1,280 @@
+{
+  "id": "retail-ntsc-1.02-powershield-contact",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "commonDataSha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "execution": {
+    "cpu": "QEMU PPC750",
+    "contactBranch": "0x80076DFC",
+    "stun": "0x80092ED8",
+    "pushback": "0x80093080",
+    "postContactSetup": "0x80094138",
+    "returnPatches": [
+      "0x80076e3c",
+      "0x80076e5c",
+      "0x800930d0"
+    ],
+    "exitCode": 0,
+    "byteCount": 384
+  },
+  "limitations": [
+    "Synthetic fields and isolated contact registration/pushback fragments, stopping before effect and full state-entry consumers.",
+    "No collision geometry, successful powershield selection, contact ordering, actionability or native execution.",
+    "The post-contact setup is called separately for observation; it is not counted as complete contact execution.",
+    "No original executable bytes or decompiled implementation published."
+  ],
+  "results": [
+    {
+      "perfect": false,
+      "strength": 0.4,
+      "damage": 3,
+      "shieldDamageSeed": 7,
+      "extraShieldDamage": 2,
+      "shieldDamageAccumulated": 12,
+      "stunDuration": {
+        "bits": "0x40a35c29",
+        "value": 5.105000019073486
+      },
+      "pushback": {
+        "bits": "0x3f1cd35b",
+        "value": 0.6126000285148621
+      },
+      "postContactCounter": 4,
+      "postContactTimer": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "perfect": false,
+      "strength": 0.4,
+      "damage": 10,
+      "shieldDamageSeed": 7,
+      "extraShieldDamage": 2,
+      "shieldDamageAccumulated": 19,
+      "stunDuration": {
+        "bits": "0x4145999a",
+        "value": 12.350000381469727
+      },
+      "pushback": {
+        "bits": "0x3fbdb22e",
+        "value": 1.4820001125335693
+      },
+      "postContactCounter": 4,
+      "postContactTimer": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "perfect": false,
+      "strength": 0.4,
+      "damage": 30,
+      "shieldDamageSeed": 7,
+      "extraShieldDamage": 2,
+      "shieldDamageAccumulated": 39,
+      "stunDuration": {
+        "bits": "0x42043334",
+        "value": 33.05000305175781
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      },
+      "postContactCounter": 4,
+      "postContactTimer": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "perfect": false,
+      "strength": 1,
+      "damage": 3,
+      "shieldDamageSeed": 7,
+      "extraShieldDamage": 2,
+      "shieldDamageAccumulated": 12,
+      "stunDuration": {
+        "bits": "0x40566667",
+        "value": 3.3500001430511475
+      },
+      "pushback": {
+        "bits": "0x3ecdd2f3",
+        "value": 0.4020000398159027
+      },
+      "postContactCounter": 4,
+      "postContactTimer": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "perfect": false,
+      "strength": 1,
+      "damage": 10,
+      "shieldDamageSeed": 7,
+      "extraShieldDamage": 2,
+      "shieldDamageAccumulated": 19,
+      "stunDuration": {
+        "bits": "0x40d00000",
+        "value": 6.5
+      },
+      "pushback": {
+        "bits": "0x3f47ae16",
+        "value": 0.7800000905990601
+      },
+      "postContactCounter": 4,
+      "postContactTimer": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "perfect": false,
+      "strength": 1,
+      "damage": 30,
+      "shieldDamageSeed": 7,
+      "extraShieldDamage": 2,
+      "shieldDamageAccumulated": 39,
+      "stunDuration": {
+        "bits": "0x41780000",
+        "value": 15.5
+      },
+      "pushback": {
+        "bits": "0x3fee147c",
+        "value": 1.8600001335144043
+      },
+      "postContactCounter": 4,
+      "postContactTimer": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "perfect": true,
+      "strength": 0.4,
+      "damage": 3,
+      "shieldDamageSeed": 7,
+      "extraShieldDamage": 2,
+      "shieldDamageAccumulated": 7,
+      "stunDuration": {
+        "bits": "0x40a35c29",
+        "value": 5.105000019073486
+      },
+      "pushback": {
+        "bits": "0x3f82b021",
+        "value": 1.0210000276565552
+      },
+      "postContactCounter": 4,
+      "postContactTimer": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "perfect": true,
+      "strength": 0.4,
+      "damage": 10,
+      "shieldDamageSeed": 7,
+      "extraShieldDamage": 2,
+      "shieldDamageAccumulated": 7,
+      "stunDuration": {
+        "bits": "0x4145999a",
+        "value": 12.350000381469727
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      },
+      "postContactCounter": 4,
+      "postContactTimer": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "perfect": true,
+      "strength": 0.4,
+      "damage": 30,
+      "shieldDamageSeed": 7,
+      "extraShieldDamage": 2,
+      "shieldDamageAccumulated": 7,
+      "stunDuration": {
+        "bits": "0x42043334",
+        "value": 33.05000305175781
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      },
+      "postContactCounter": 4,
+      "postContactTimer": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "perfect": true,
+      "strength": 1,
+      "damage": 3,
+      "shieldDamageSeed": 7,
+      "extraShieldDamage": 2,
+      "shieldDamageAccumulated": 7,
+      "stunDuration": {
+        "bits": "0x40566667",
+        "value": 3.3500001430511475
+      },
+      "pushback": {
+        "bits": "0x3f2b851f",
+        "value": 0.6700000166893005
+      },
+      "postContactCounter": 4,
+      "postContactTimer": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "perfect": true,
+      "strength": 1,
+      "damage": 10,
+      "shieldDamageSeed": 7,
+      "extraShieldDamage": 2,
+      "shieldDamageAccumulated": 7,
+      "stunDuration": {
+        "bits": "0x40d00000",
+        "value": 6.5
+      },
+      "pushback": {
+        "bits": "0x3fa66667",
+        "value": 1.3000000715255737
+      },
+      "postContactCounter": 4,
+      "postContactTimer": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    },
+    {
+      "perfect": true,
+      "strength": 1,
+      "damage": 30,
+      "shieldDamageSeed": 7,
+      "extraShieldDamage": 2,
+      "shieldDamageAccumulated": 7,
+      "stunDuration": {
+        "bits": "0x41780000",
+        "value": 15.5
+      },
+      "pushback": {
+        "bits": "0x40000000",
+        "value": 2
+      },
+      "postContactCounter": 4,
+      "postContactTimer": {
+        "bits": "0x00000000",
+        "value": 0
+      }
+    }
+  ]
+}

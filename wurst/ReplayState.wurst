@@ -90,6 +90,7 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.shieldTriggerWasActive = source.shieldTriggerWasActive
 	destination.shieldTriggerAge = source.shieldTriggerAge
 	destination.shieldReflectFrames = source.shieldReflectFrames
+	destination.shieldPerfectFrames = source.shieldPerfectFrames
 	destination.shieldGeometry = source.shieldGeometry
 	destination.shieldEnergy = source.shieldEnergy
 	destination.shieldStun = source.shieldStun
@@ -388,6 +389,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "shieldTriggerAge"
 	if expected.shieldReflectFrames != actual.shieldReflectFrames
 		return "shieldReflectFrames"
+	if expected.shieldPerfectFrames != actual.shieldPerfectFrames
+		return "shieldPerfectFrames"
 	if expected.shieldGeometry != actual.shieldGeometry
 		return "shieldGeometry"
 	if expected.shieldStrength != actual.shieldStrength

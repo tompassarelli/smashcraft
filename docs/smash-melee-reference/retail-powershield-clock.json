@@ -1,47 +1,71 @@
 {
   "id": "retail-ntsc-1.02-powershield-reflector-clock",
-  "game": "Super Smash Bros. Melee",
-  "revision": "NTSC 1.02",
-  "executable_sha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
-  "common_data_sha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
-  "reference_revision": "0296f009f32f710495979d30772d8332af2d411a",
-  "common_values": {
-    "powershield_input_window_frames": 2,
-    "reflector_counter_initial": 1,
-    "reflector_radius_factor": 0.75,
-    "reflected_projectile_damage_multiplier": 0.5,
-    "reflected_projectile_speed_multiplier": 0.699999988079071,
-    "secondary_guard_reflect_counter_initial": 3
-  },
-  "state_execution": {
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "commonDataSha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "execution": {
     "cpu": "QEMU PPC750",
-    "callback_address": "0x80093BC0",
-    "calls": 2,
-    "return_patches": ["0x80093C44", "0x80093C7C"],
-    "exit_code": 0,
-    "byte_count": 32,
-    "samples": [
-      {
-        "callback": 1,
-        "reflector_flag_byte": "0x00000010",
-        "guard_callback_flags": "0x00000060",
-        "reflector_counter": 0,
-        "secondary_counter": 3
-      },
-      {
-        "callback": 2,
-        "reflector_flag_byte": "0x00000000",
-        "guard_callback_flags": "0x00000020",
-        "reflector_counter": -1,
-        "secondary_counter": 3
-      }
-    ]
+    "callback": "0x80093BC0",
+    "callbackCount": 5,
+    "returnPatches": [],
+    "exitCode": 0,
+    "byteCount": 100
   },
-  "observed": "The reflector flag remains set after the first GuardReflect animation callback and is clear after the second, when the counter moves from zero to -1.",
+  "commonValues": {
+    "inputWindow": 2,
+    "reflectorFrames": 1,
+    "secondaryFrames": 3,
+    "reflectorRadius": 0.75,
+    "reflectorDamageMultiplier": 0.5,
+    "reflectorSpeedMultiplier": 0.699999988079071
+  },
+  "samples": [
+    {
+      "callback": 1,
+      "reflectorFlagByte": "0x00000010",
+      "guardCallbackFlagByte": "0x00000060",
+      "reflectorFramesRemaining": 0,
+      "secondaryFramesRemaining": 2,
+      "shieldCallbackFlagByte": "0x00000000"
+    },
+    {
+      "callback": 2,
+      "reflectorFlagByte": "0x00000000",
+      "guardCallbackFlagByte": "0x00000020",
+      "reflectorFramesRemaining": -1,
+      "secondaryFramesRemaining": 1,
+      "shieldCallbackFlagByte": "0x00000001"
+    },
+    {
+      "callback": 3,
+      "reflectorFlagByte": "0x00000000",
+      "guardCallbackFlagByte": "0x00000020",
+      "reflectorFramesRemaining": -1,
+      "secondaryFramesRemaining": 0,
+      "shieldCallbackFlagByte": "0x00000001"
+    },
+    {
+      "callback": 4,
+      "reflectorFlagByte": "0x00000000",
+      "guardCallbackFlagByte": "0x00000000",
+      "reflectorFramesRemaining": -1,
+      "secondaryFramesRemaining": -1,
+      "shieldCallbackFlagByte": "0x00000001"
+    },
+    {
+      "callback": 5,
+      "reflectorFlagByte": "0x00000000",
+      "guardCallbackFlagByte": "0x00000000",
+      "reflectorFramesRemaining": -1,
+      "secondaryFramesRemaining": -1,
+      "shieldCallbackFlagByte": "0x00000001"
+    }
+  ],
+  "conclusion": "The reflector bit remains active after callback 1 and clears during callback 2, which installs the ordinary shield descriptor. The secondary flag 0x20 remains through callback 3 and clears during callback 4. These are callback observations, not a full match contact-order trace.",
   "limitations": [
-    "The fighter and game-object memory are synthetic. The callback was stopped after its timer and flag updates, before unrelated expiry side effects.",
-    "The execution observes the reflector clock, not projectile collision or melee shield-contact results.",
-    "QEMU PPC750 execution is not GameCube hardware or native Warcraft execution.",
-    "No original executable bytes or decompiled implementation are included."
+    "Synthetic Fighter, GObj, attributes and bone memory; complete callback and ordinary shield creation only; no collision or original-character geometry.",
+    "Complete GuardReflect entry, animation and collision scheduling are not executed.",
+    "QEMU PPC750, not GameCube or Warcraft native execution.",
+    "No original executable bytes or decompiled implementation are published."
   ]
 }
