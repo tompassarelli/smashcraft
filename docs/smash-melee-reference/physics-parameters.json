@@ -711,6 +711,14 @@
     ],
     "unresolved": [
       {
+        "mechanic": "fast-fall stick threshold and fresh-input window",
+        "offsets": ["0x088", "0x08C"],
+        "value": null,
+        "units": "0x088 stick units; 0x08C frames",
+        "source": "melee:src/melee/ft/ftcommon.c:ftCommon_CheckFallFast",
+        "missing": "No revision-identified PlCo.dat parameter table obtained. Approved digital entry remains separate from the implemented self-descent check and persistent state."
+      },
+      {
         "mechanic": "walk acceleration taper",
         "offsets": [
           "0x030"

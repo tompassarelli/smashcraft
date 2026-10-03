@@ -16,7 +16,7 @@ constant real RUN_TURN_BRAKING = 0.8 * WORLD_UNITS_PER_MELEE_UNIT
 constant real AIR_FRICTION = 0.02 * WORLD_UNITS_PER_MELEE_UNIT
 constant real FOX_TERMINAL_SPEED = 2.8 * WORLD_UNITS_PER_MELEE_UNIT
 constant real FALCO_TERMINAL_SPEED = 3.1 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FOX_FAST_FALL_SPEED = 3.4 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FOX_FAST_FALL_SPEED = 3.4000000953674316 * WORLD_UNITS_PER_MELEE_UNIT
 constant real FALCO_FAST_FALL_SPEED = 3.5 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real SHIELD_MAX = 60
 public constant int SHIELD_BREAK_NONE = 0
@@ -319,6 +319,7 @@ public class FighterState
 	int shieldBreakRemaining = 0
 	boolean grounded = true
 	boolean crouching = false
+	boolean fastFalling = false
 	int jumps = 2
 	int jumpSerial = 0
 	boolean jumpIsDouble = false
@@ -1095,6 +1096,7 @@ function ledgeDistance(FighterState f, int stage, int side) returns real
 	return dx * dx + dz * dz
 
 function catchLedge(FighterState f, int stage, int side)
+	f.fastFalling = false
 	clearDash(f)
 	clearDownState(f)
 	f.ledgeState = LEDGE_HANG
@@ -1268,6 +1270,7 @@ function trapCanContact(FighterState owner, FighterState target) returns boolean
 	return owner.freezeTrapLife > 0 and owner.freezeTrapArming == 0 and not owner.out and not target.out and target.frozenFrames == 0 and target.grounded and target.surface == owner.freezeTrapSurface and not isIntangible(target) and (target.x - owner.freezeTrapX).abs() <= FREEZE_TRAP_TRIGGER_RADIUS
 
 function freezeFromTrap(FighterState target)
+	target.fastFalling = false
 	target.crouching = false
 	clearGrabLinks(target)
 	clearDownState(target)
@@ -1380,6 +1383,7 @@ function clearDownState(FighterState f)
 	f.downFaceUp = true
 
 function beginDownState(FighterState f, int state, int direction)
+	f.fastFalling = false
 	f.crouching = false
 	f.downState = state
 	f.downFrame = 1
@@ -1405,6 +1409,7 @@ function beginDownState(FighterState f, int state, int direction)
 		f.cooldown = DOWN_ATTACK_FRAMES
 
 function finishLanding(FighterState f, int stage, InputSnapshot input, int landing, boolean fromAsdi)
+	f.fastFalling = false
 	if not f.grounded
 		clearDash(f)
 	if not f.grounded and not f.airDodging and not isAerialAttack(f.attackStyle) and f.downState == DOWN_NONE and f.hitstun <= 0 and not fromAsdi
@@ -1604,6 +1609,7 @@ function beginGroundDodge(FighterState f, int direction)
 	f.shieldHeldFrames = 0
 
 function interruptJumpOrDodge(FighterState f)
+	f.fastFalling = false
 	f.crouching = false
 	clearDash(f)
 	if f.ledgeState != LEDGE_NONE
@@ -1917,6 +1923,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	queueDamageContact(attacker, target, hitData, facing, CONTACT_LAUNCH, directContact, null)
 
 function startSpecialAction(FighterState owner, int action, int duration, int direction)
+	owner.fastFalling = false
 	owner.crouching = false
 	owner.specialAction = action
 	owner.specialFrame = 0
@@ -2251,6 +2258,7 @@ public function simulationJump(FighterState f, int horizontal)
 		return
 	if f.out or f.specialFall or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or (f.shieldReleaseLag > 0 and not f.grounded) or f.landingLag > 0 or f.airDodging or isGroundDodging(f) or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
 		return
+	f.fastFalling = false
 	if f.grounded
 		f.crouching = false
 		clearDash(f)
@@ -2275,6 +2283,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 		return
 	if f.out or f.specialFall or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.grounded or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.landingLag > 0 or f.cooldown > 0 or f.airDodging or f.airDodgeTime > 0
 		return
+	f.fastFalling = false
 	let dx = horizontal == 0 ? 0 : (horizontal > 0 ? 1 : -1)
 	let dz = vertical == 0 ? 0 : (vertical > 0 ? 1 : -1)
 	let scale = dx != 0 and dz != 0 ? DIAGONAL_UNIT : 1
@@ -2357,6 +2366,7 @@ public function resolveAttackPair(FighterState first, FighterState second)
 		finishDamageContacts(first, second)
 
 public function reset(FighterState f, real startX)
+	f.fastFalling = false
 	f.crouching = false
 	f.jumpDodgeQueued = false
 	f.jumpDodgeX = 0
@@ -2667,9 +2677,12 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.z = surfaceZ(stage, max(0, f.surface))
 	else if (not dodgeActive or f.grounded) and not groundTakeoff
 		let gravity = characterGravity(f.character)
-		f.vz = max(-characterTerminalSpeed(f.character), f.vz - gravity)
-		if input.down and input.direction == 0 and f.downState == DOWN_NONE and f.hitstun <= 0 and totalVelocityZ(f) < 0
+		if not f.grounded and input.down and input.direction == 0 and f.downState == DOWN_NONE and f.hitstun <= 0 and f.vz < 0
+			f.fastFalling = true
+		if f.fastFalling
 			f.vz = -characterFastFallSpeed(f.character)
+		else
+			f.vz = max(-characterTerminalSpeed(f.character), f.vz - gravity)
 	f.z += totalVelocityZ(f)
 	var landing = -1
 	if totalVelocityZ(f) <= 0

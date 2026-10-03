@@ -1633,7 +1633,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	destroy input
 	destroy fighter
 
-@Test function downwardLaunchExceedsTerminalFallCapAndFastfallUsesNetActionableDescent()
+@Test function downwardLaunchExceedsTerminalFallCapAndFastfallUsesSelfDescent()
 	let falling = new FighterState(0, 0, 1)
 	falling.grounded = false
 	falling.z = 500
@@ -1647,14 +1647,15 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	let rising = new FighterState(0, 0, 1)
 	rising.grounded = false
 	rising.z = 500
-	rising.knockbackZ = 10
+	rising.knockbackZ = 40
 	rising.hitstun = 10
 	advance(rising, 0, input, -240)
 	rising.vz.assertEquals(-characterGravity(rising.character), 0.001)
 	totalVelocityZ(rising).assertGreaterThan(0.)
 	rising.hitstun = 0
 	advance(rising, 0, input, -240)
-	rising.vz.assertEquals(-characterGravity(rising.character) * 2, 0.001)
+	rising.vz.assertEquals(-20.40000057220459, 0.000001)
+	rising.fastFalling.assertTrue()
 	totalVelocityZ(rising).assertGreaterThan(0.)
 	destroy input
 	destroy rising

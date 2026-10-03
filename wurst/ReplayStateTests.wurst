@@ -30,6 +30,7 @@ import MatchStep
     first.damage = 47
     first.hitlag = 3
     first.crouching = true
+    first.fastFalling = true
     first.groundDodgeEntryFacing = -1
     first.jumpDodgeQueued = true
     first.jumpDodgeX = -1
@@ -56,6 +57,7 @@ import MatchStep
     first.damage = 0
     first.hitlag = 0
     first.crouching = false
+    first.fastFalling = false
     first.groundDodgeEntryFacing = 0
     first.jumpDodgeQueued = false
     first.jumpDodgeX = 0
@@ -81,6 +83,7 @@ import MatchStep
     first.damage.assertEquals(47)
     first.hitlag.assertEquals(3)
     first.crouching.assertTrue()
+    first.fastFalling.assertTrue()
     first.groundDodgeEntryFacing.assertEquals(-1)
     first.jumpDodgeQueued.assertTrue()
     first.jumpDodgeX.assertEquals(-1)

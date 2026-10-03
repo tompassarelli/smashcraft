@@ -1,6 +1,59 @@
 package PhysicsTests
 import Simulation
 
+@Test function fastFallPersistsAfterReleaseAndAerialStartupButClearsOnLandingAndJump()
+	for character = 0 to 1
+		let f = new FighterState(character, 0, 1)
+		let other = new FighterState(1, 1000, -1)
+		let input = new InputSnapshot()
+		f.grounded = false
+		f.z = 300
+		f.vz = -1
+		input.down = true
+		advance(f, 0, input, 0)
+		f.fastFalling.assertTrue()
+		input.down = false
+		input.direction = 1
+		advance(f, 0, input, 0)
+		f.vz.assertEquals(character == 0 ? -20.40000057220459 : -21., 0.000001)
+		beginAttackPair(f, other, AERIAL_NEUTRAL_STYLE, -1, false, false)
+		advance(f, 0, input, 0)
+		f.fastFalling.assertTrue()
+		f.vz.assertEquals(character == 0 ? -20.40000057220459 : -21., 0.000001)
+		f.z = 1
+		advance(f, 0, input, 0)
+		f.grounded.assertTrue()
+		f.fastFalling.assertFalse()
+		f.grounded = false
+		f.z = 200
+		f.fastFalling = true
+		f.cooldown = 0
+		f.landingLag = 0
+		simulationJump(f, 0)
+		f.fastFalling.assertFalse()
+		f.vz.assertGreaterThan(0.)
+		destroy input
+		destroy other
+		destroy f
+
+@Test function fastFallRequiresDescendingSelfVelocityAndAirDodgeClearsIt()
+	let f = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	f.grounded = false
+	f.z = 300
+	f.vz = 1
+	f.knockbackZ = -5
+	input.down = true
+	advance(f, 0, input, 0)
+	f.fastFalling.assertFalse()
+	f.vz.assertEquals(-0.38, 0.00001)
+	advance(f, 0, input, 0)
+	f.fastFalling.assertTrue()
+	simulationAirDodge(f, 0, 0)
+	f.fastFalling.assertFalse()
+	destroy input
+	destroy f
+
 @Test function combatGroundContactThresholdKeepsLowDownwardHitsOnTheFloor()
 	for airborne = 0 to 1
 		for aboveThreshold = 0 to 1

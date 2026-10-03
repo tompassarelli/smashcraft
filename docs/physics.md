@@ -21,7 +21,7 @@ equivalence without the missing parameters and original-game comparisons.
 
 | Rule group | Implemented and checked | Still required for parity |
 | --- | --- | --- |
-| Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed and sampled roll travel | Revision identity, complete frame trajectories, dash/run/turn common values, walk acceleration and persistent fast-fall state |
+| Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed, sampled roll travel and persistent fast-fall state | Revision identity, complete frame trajectories, dash/run/turn common values, walk acceleration and original fast-fall stick-entry threshold/window |
 | Damage | Integer individual hit power, fractional same-frame total, strongest-contact selection, fixed knockback, cap and sampled crouch/smash modifiers | Common-table confirmation, successive-frame stacking and grounded knockback friction |
 | Hitlag/hitstun | Separate counters, electric/crouch arithmetic, direct/detached source pause and expiry boundaries | Original-game ordered traces and verified common values |
 | Shields | Integer shieldstun power, contact freeze before stun countdown, shield-break character launch speed | Shield pushback, analog branches and paired displacement/actionability traces |
@@ -743,10 +743,36 @@ trajectory assertions still cover all six previous apexes and landing.
 This corrects the previously fitted ground launch speeds without claiming
 complete movement parity. Initial-dash duration, acceleration, run-turn braking,
 walk acceleration, and ordinary friction still need their complete source
-parameters and transitions. Fast-fall is currently selected by held neutral Down
-and does not yet preserve Melee's latched fast-fall state after release.
-The deliberate neutral-horizontal fast-fall control remains separate from that
-missing persistence. Those movement gaps remain open.
+parameters and transitions. Fast-fall persistence was subsequently corrected
+as described below. Those other movement gaps remain open.
+
+## Fast-fall persistence
+
+The aggregate passed **404/404**, with zero compiler errors and one existing
+unused-import warning (smashcraft:build/physics-fastfall.log). Tests cover
+release, steering, aerial startup, landing, accepted jump/air dodge, self
+velocity versus knockback, and snapshot restoration. Native behavior remains
+unobserved.
+
+Fast-fall activates while airborne with descending self velocity, before the
+ordinary gravity step. Once active, releasing Down or steering horizontally
+does not cancel it; aerial attack startup preserves it. Landing, an accepted
+jump or air dodge, a flinching hit, ledge catch and reset clear it. Snapshots
+capture and compare the flag. Fox uses the published attribute
+3.4000000953674316 Melee units/frame; Rifleman uses Falco's 3.5.
+
+These state facts come from melee:src/melee/ft/ftcommon.c
+(`ftCommon_CheckFallFast`), melee:src/melee/ft/kinds/ftCommon/ftCo_AttackAir.c
+and the motion-state fast-fall preservation flag at revision
+0296f009f32f710495979d30772d8332af2d411a. Wurst implementation is independently
+authored; no decompiled implementation is copied or translated.
+
+The approved held-Down, neutral-horizontal digital entry remains. Melee's
+original stick threshold at common +0x88 and fresh-input window at +0x8C
+still require numerical extraction. Descending knockback alone cannot trigger
+fast-fall while self velocity is rising; rising knockback does not prevent
+activation while self velocity is descending. This separates knockback motion
+from the character's gravity-driven fall.
 
 ## Attack recovery checkpoint
 
