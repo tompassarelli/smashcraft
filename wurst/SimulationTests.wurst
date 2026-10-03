@@ -1373,6 +1373,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	fighter.dashFrame = 1
 	fighter.dashDirection = 1
 	fighter.groundAction = GROUND_ACTION_DASH
+	fighter.groundActionFrame = 1
 	fighter.physics.runSpeed = 2.5 * 6
 	advance(fighter, 0, input, 0)
 	fighter.vx.assertEquals(1.12 * 6, 0.0001)
