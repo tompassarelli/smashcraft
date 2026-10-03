@@ -72,9 +72,11 @@ preservation. Private runtime logs are in
 
 Keyboard delivery still crosses Warcraft polling, so this is not the complete
 map ingress fix. Capture timestamps and helper dequeue/submission timestamps
-have distinct epochs; no delay is calculated by subtracting them. The next
-decisive test must stall the helper while delivering a known event sequence and
-compare retained events/timestamps with an independent producer clock. It must
-establish what SDL's backend retains and when it assigns its timestamp, before
-using that timestamp as the player's intended frame. Live common-clock alignment,
+have distinct epochs; no delay is calculated by subtracting them. The controlled
+Linux virtual-controller test is now complete: all ten edges survived each
+verified 250 ms helper stop, but the fresh helper compressed its first batch's
+capture intervals. A warmed helper preserved them. Exact results and raw logs:
+wc3-melee:docs/controller-event-retention-20261004.md. The pinned library clock
+conversion must be repaired and the same counterexample rechecked before cold
+capture timestamps are used for frame assignment. Live common-clock alignment,
 map delivery and presentation remain open.

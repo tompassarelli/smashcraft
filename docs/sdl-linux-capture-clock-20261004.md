@@ -22,7 +22,8 @@ it reduces the offset and clamps the mapped time to now.
 Therefore the timestamp is expressed in SDL's clock domain but its initial
 alignment is based on a received event. It is not independently established as
 the exact occurrence time relative to SDL initialization. A first-read backlog
-could enter that calibration; the effect on this helper is still unmeasured.
+could enter that calibration. The controlled virtual-device test now measures
+first-batch timestamp compression; see the result below.
 Relative kernel intervals may survive while absolute frame assignment remains
 wrong. A warmed retention test alone does not close that question.
 
@@ -53,9 +54,33 @@ any alignment uncertainty rather than inferring an absolute latency.
 
 Symptom to investigate: intact event IDs/edges but timestamps aligned to a late
 first read. Cause confidence: the calibration rule is established by source;
-its material effect on the current helper is inferred until measured. Category:
+its first-batch interval distortion is now measured. Category:
 library clock conversion behavior, not a Warcraft or Battle.net constraint.
 If reproduced, repair or calibrate the owning capture-clock boundary using an
 independent clock observation; do not retarget events to dequeue time. Any
 chosen intervention must be checked on the actual intended backend and remain
 separate from map common-frame alignment and native presentation acceptance.
+
+## Completed counterexample and repair boundary
+
+wc3-melee:docs/controller-event-retention-20261004.md records verified cold and
+warm 250 ms stops. Ten cold edges span 35.615065 ms in the producer clock but
+0.019056 ms in SDL capture time (2.1369 versus 0.00114 nominal 60 Hz frames).
+Each individual tap was approximately 4.6 ms at the producer; SDL reported
+0–0.010 ms. All original edges/order survived. Warm stopped tap intervals
+matched. These are within-clock interval comparisons, not an absolute latency
+calculation or a measured native authoritative wrong-frame outcome.
+
+Read-only inspection of SDL release-3.4.16, commit
+fa2c02bb6e21974a89ea9824bc53c9932abe5f9c, identifies the first-event offset plus
+future clamp as the source-level cause matching the counterexample. The exact
+repaired path remains unproved. An unexplained extra neutral axis event caused
+no action and remains a separate, deferred observation.
+
+SDL's upstream AGENTS.md prohibits LLM-generated contributions. No SDL source
+was edited and no upstream report/PR was submitted. The owner decision requested
+on 2026-10-04 is whether to repair a Tom-owned zlib-licensed fork without an
+upstream contribution. The source package is also a real consumption boundary:
+sdl3-src exports its bundled SDL directory and revision at compile time. A source
+repair needs an exact updated package/pin and the retained helper reproduction;
+editing the Cargo registry or warming the helper does not close the defect.

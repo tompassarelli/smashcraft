@@ -4,7 +4,7 @@ import ClosureFrames
 import FrameTaggedRecord
 import ProbeInfo
 
-constant int TEXT_CAP = 240
+constant int TEXT_CAP = 320
 constant int LOG_CAP = 32
 constant string SYNC_PREFIX = "FT1"
 framehandle inputBox
@@ -132,7 +132,7 @@ function start()
     inputBox.setFocus(GetLocalPlayer(), true)
     TimerStart(nativeClock, 3600., false, null)
     recording = true
-    statusLine.setText("Append F1|id6|elapsed_us6|frame6|action0or1; records. This probe transports tags; it does not apply game input.")
+    statusLine.setText("Append V1|id6|elapsed_us6|frame6|action0or1; records. This probe transports tags; it does not apply game input.")
 
 class SyncSaveListener extends FrameHandleListener
     override function onEvent()
