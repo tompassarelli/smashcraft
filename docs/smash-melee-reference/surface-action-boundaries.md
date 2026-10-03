@@ -180,3 +180,12 @@ checks every locked tick, and requests getup attack on completion on both hosts.
 RecoveryTests passed 14/14, zero errors and one existing unused-import warning;
 evidence: smashcraft:build/down-damage-completion.log. Native execution and the
 broader remaining recovery/collision claims are still open.
+
+DownWait also decrements its timer in the animation callback and starts stand
+on expiry before its input callback runs. Smashcraft previously prioritized
+getup input over that expiry. The timer now advances first on existing wait
+ticks; a newly entered wait still keeps its entry timer. The boundary case
+requests getup attack with one versus two wait ticks remaining: expiry starts
+stand, while the preceding tick accepts attack. RecoveryTests passed 15/15,
+zero errors and the existing unused-import warning; evidence:
+smashcraft:build/down-wait-expiry.log.

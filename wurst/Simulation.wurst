@@ -2231,6 +2231,12 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 	if f.downState == DOWN_WAIT
 		f.grounded = true
 		f.z = surfaceZ(stage, max(0, f.surface))
+		if not leavingBound and not leavingDamage
+			f.downWaitRemaining = max(0, f.downWaitRemaining - 1)
+			f.downFrame++
+			if f.downWaitRemaining == 0
+				startDownStand(f)
+				return true
 		if input.getupAttackPressed
 			beginDownState(f, DOWN_ATTACK, 0)
 		else if input.getupDirectionPressed and input.getupDirection != 0
@@ -2239,11 +2245,6 @@ function advanceDownState(FighterState f, int stage, InputSnapshot input) return
 			beginDownState(f, DOWN_ROLL, input.direction < 0 ? -1 : 1)
 		else if input.getupStandPressed or input.verticalDirection > 0
 			startDownStand(f)
-		else if not leavingBound and not leavingDamage
-			f.downWaitRemaining = max(0, f.downWaitRemaining - 1)
-			f.downFrame++
-			if f.downWaitRemaining == 0
-				startDownStand(f)
 		applyDownRollTravel(f, stage)
 		return true
 	if f.downState == DOWN_STAND
