@@ -36,10 +36,13 @@ only independently recorded numerical facts enter the reference corpus.
 Current source evidence is in smashcraft:docs/physics.md: actor-owned parameters
 and test-only Melee rigs, recorded fall/jump, dash entry, grounded damage and
 floor-recovery comparisons, and a paired grounded digital-shield contact.
-Retail launch stacking, damage-level selection and grounded rebound are being
-integrated alongside grounded movement and surface recovery. These newly
-integrated pieces still require their assembled check and a new map build.
-The last installed physics candidate is r7; native r7 play remains unobserved.
+Retail launch stacking, damage-level selection, grounded rebound, grounded
+movement and test-arena surface recovery are integrated. The assembled r8
+source suite passed 451/451 before the grounded-movement and surface additions;
+after those additions, PhysicsTests passed 59/59 and SimulationTests passed
+174/174. The r8 map built successfully and was installed with matching SHA-256
+31c2e5e862c3cd222ccc05289f5f03ff77ba06b93cc9c85c59796eb53b407790.
+It predates those latest additions. Native play remains unobserved.
 Collision/tech coverage, remaining shared rules and native verification still
 prevent M1 closure. Identifying the retail disc does not identify the revision
 of previously acquired Slippi recordings.
@@ -397,3 +400,22 @@ Acceptance:
 - [ ] Matchup notes distinguish mechanical guarantees, scenario coverage and human observations.
 - [ ] Regression checks retain the M1 mechanics envelope and detect unintended effects on move-category commitments.
 - [ ] Subsequent tuning issues cite specific data/play evidence rather than reopening foundational uncertainty without a counterexample.
+
+### Routine test feedback and tuning freedom
+
+The full assembled source suite took approximately 46 seconds. A focused
+PhysicsTests run took 11.3 seconds. Compiler measurement for SimulationTests
+showed parsing 2.68 seconds, typechecking 3.52 seconds, intermediate translation
+0.62 seconds, test execution 4.32 seconds, and Lua translation 1.28 seconds.
+Compilation is a material fixed cost; these observations do not isolate JVM
+startup or establish Java itself as the cause. Set `WC3_TEST_MEASURE=1` when a
+phase measurement changes the next optimization; routine runs need no timing
+report. Use named focused filters during edits and the aggregate at integration.
+
+Tests must preserve observable shared physics, action boundaries and replay
+behavior. Independently recorded Melee rigs retain their exact numerical
+expectations. Original-fighter tuning is changeable: short hops must rise less
+than full hops, and angled variants share the flat move's timing, without
+freezing arbitrary heights or damage values. This first focused audit does not
+claim the entire suite has been audited. Redundant cases, literal-only checks,
+provisional move timing and slow repeated simulations still need review.

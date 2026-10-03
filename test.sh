@@ -12,8 +12,13 @@ mkdir -p "$project_dir/_build" "$project_dir/build/wurst-tests"
 cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/common.j" "$project_dir/_build/common.j"
 cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/blizzard.j" "$project_dir/_build/blizzard.j"
 
+test_measure_args=()
+if [[ "${WC3_TEST_MEASURE:-0}" == 1 ]]; then
+    test_measure_args=(-measure)
+fi
+
 exec "$java" -Xmx2048m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
-    -lua -runtests -testFilter "${1:-Tests}" -testTimeout "$test_timeout" -runcompiletimefunctions -stacktraces \
+    -lua "${test_measure_args[@]}" -runtests -testFilter "${1:-Tests}" -testTimeout "$test_timeout" -runcompiletimefunctions -stacktraces \
     -workspaceroot "$project_dir" \
     -lib "$stdlib_checkout" \
     -out "$project_dir/build/wurst-tests/test.lua" \
