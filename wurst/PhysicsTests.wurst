@@ -966,7 +966,7 @@ function contactProjectile(FighterState owner, FighterState target, int slot, in
 	updateProjectilePair(owner, target)
 	finishDamageContacts(owner, target)
 	target.damage.assertEquals(0.)
-	target.shieldEnergy.assertEquals(0.)
+	target.shieldEnergy.assertEquals(30.)
 	target.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
 	owner.hitlag.assertEquals(7)
 	projectileCount(owner).assertEquals(0)

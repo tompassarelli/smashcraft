@@ -1083,7 +1083,7 @@ public function canAttack(FighterState attacker) returns boolean
 	return canStartAttack(attacker) and not attacker.shield and attacker.frozenFrames <= 0
 
 public function canShieldGrab(FighterState attacker) returns boolean
-	return canStartAttack(attacker) and attacker.shield and attacker.grounded and attacker.shieldEnergy > 0
+	return canStartAttack(attacker) and attacker.shield and attacker.grounded
 
 public function canStartAttackStyle(FighterState attacker, int style) returns boolean
 	if style == 11
@@ -1321,7 +1321,7 @@ public function queueDamageContact(FighterState source, FighterState target, hit
 		int facing, int kind, boolean direct, InputSnapshot throwInput)
 	let unblockable = kind == CONTACT_THROW or kind == CONTACT_PUMMEL
 	damageContacts[damageContactCount] = damageContact(source, target, data, facing, kind, direct,
-		not unblockable and target.shield and target.shieldEnergy > 0, target.crouching,
+		not unblockable and target.shield, target.crouching,
 		target.grounded, source.grounded, source.positionDeltaX, source.positionDeltaZ,
 		target.positionDeltaX, target.positionDeltaZ, isDownDamageState(target),
 		kind == CONTACT_THROW ? 1. : hitContextScale(target), throwInput)
@@ -1405,12 +1405,13 @@ function resolveDamageContacts(FighterState target)
 	if blockedContact
 		target.shieldVisualSerial++
 	if shieldDamage > 0
-		target.shieldEnergy = max(0, target.shieldEnergy - shieldDamage)
+		target.shieldEnergy -= shieldDamage
 	if shieldPushback > 0 and target.grounded
 		target.shieldPushbackX = shieldDirection * shieldPushback
 		target.shieldDrainResumePending = true
 	if shieldDamage > 0
-		if target.shieldEnergy == 0
+		if target.shieldEnergy < 0
+			target.shieldEnergy = SHIELD_BREAK_RESTORED_ENERGY
 			beginShieldBreak(target)
 	if winner < 0 and flinch < 0
 		return
@@ -1846,8 +1847,8 @@ function freezeFromTrap(FighterState target)
 public function advanceFreezeTrapPair(FighterState first, FighterState second)
 	let firstTriggers = trapCanContact(first, second)
 	let secondTriggers = trapCanContact(second, first)
-	let freezeSecond = firstTriggers and not (second.shield and second.shieldEnergy > 0)
-	let freezeFirst = secondTriggers and not (first.shield and first.shieldEnergy > 0)
+	let freezeSecond = firstTriggers and not second.shield
+	let freezeFirst = secondTriggers and not first.shield
 	if firstTriggers
 		clearOwnedFreezeTrap(first)
 	if secondTriggers
@@ -1868,7 +1869,6 @@ function beginShieldBreak(FighterState f)
 	f.shieldBreakState = SHIELD_BREAK_AIR
 	f.shieldBreakSerial++
 	f.shield = false
-	f.shieldEnergy = 0
 	f.shieldStun = 0
 	f.shieldHeldFrames = 0
 	f.shieldReleaseLag = 0
@@ -3446,18 +3446,18 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 	let dodgeActive = f.airDodgeTime > 0
 	f.airDodgeTime = max(0, f.airDodgeTime - 1)
 	f.shieldReleaseLag = max(0, f.shieldReleaseLag - 1)
-	let shieldCanStart = input.shield and f.shieldEnergy > 0 and f.downState == DOWN_NONE and f.hitstun <= 0 and f.grounded and not isGroundDodging(f)
+	let shieldCanStart = input.shield and (f.shield or f.shieldEnergy > 0) and f.downState == DOWN_NONE and f.hitstun <= 0 and f.grounded and not isGroundDodging(f)
 		and f.shieldStun <= 0 and f.landingLag <= 0 and f.shieldReleaseLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0
 	var wantsShield = forcedShield
 	if not forcedShield
-		if f.shield and not input.shield and f.shieldEnergy > 0 and f.shieldHeldFrames < SHIELD_MIN_HOLD_FRAMES
+		if f.shield and not input.shield and f.shieldHeldFrames < SHIELD_MIN_HOLD_FRAMES
 			wantsShield = true
 			f.shieldHeldFrames++
 		else
 			wantsShield = shieldCanStart
 			if wantsShield
 				f.shieldHeldFrames++
-			else if f.shield and not input.shield and f.shieldEnergy > 0
+			else if f.shield and not input.shield
 				f.shieldReleaseLag = SHIELD_RELEASE_LAG_FRAMES
 				f.shieldHeldFrames = 0
 	let lateDashGuardEntry = wantsShield and not f.shield and f.grounded and
@@ -3469,8 +3469,9 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 	let drainShield = shieldDrainShouldResume(f, forcedShield)
 	if wantsShield
 		if drainShield
-			f.shieldEnergy = max(0, f.shieldEnergy - SHIELD_DRAIN_PER_FRAME)
-	if wantsShield and f.shieldEnergy == 0
+			f.shieldEnergy -= SHIELD_DRAIN_PER_FRAME
+	if wantsShield and f.shieldEnergy < 0
+		f.shieldEnergy = 0
 		beginShieldBreak(f)
 		return
 	var direction = input.direction

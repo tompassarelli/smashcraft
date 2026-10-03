@@ -4,6 +4,78 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function shieldBreakBoundaryDrainRequiresStrictlyNegativeHealth()
+    let game = new MatchState()
+    game.phase = MATCH
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 500, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    first.shield = true
+    first.shieldEnergy = 0.14000000059604645 * 2
+    firstInput.shield = true
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    first.shieldEnergy.assertEquals(0.)
+    first.shield.assertTrue()
+    first.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    first.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
+    first.shield.assertFalse()
+    first.shieldEnergy.assertEquals(0.07, 0.0001)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
+@Test function shieldBreakBoundaryDamageAtZeroStillGuardsThenRestoresThirty()
+    let game = new MatchState()
+    game.phase = MATCH
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 100, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    first.projectileLife[0] = 2
+    first.projectileX[0] = 90
+    first.projectileZ[0] = 45
+    first.projectileVelocityX[0] = 20
+    first.projectileDirection[0] = 1
+    first.projectileKind[0] = PROJECTILE_ARROW
+    second.shield = true
+    second.shieldEnergy = digitalShieldDamage(7.)
+    second.hitlag = 4
+    secondInput.shield = true
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    second.shieldEnergy.assertEquals(0.)
+    second.shield.assertTrue()
+    second.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
+    second.damage.assertEquals(0.)
+    first.projectileLife[0] = 2
+    first.projectileX[0] = 90
+    first.projectileZ[0] = 45
+    first.projectileVelocityX[0] = 20
+    first.projectileDirection[0] = 1
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    second.shield.assertFalse()
+    second.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
+    second.shieldEnergy.assertEquals(30.)
+    second.damage.assertEquals(0.)
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 3)
+    second.shieldEnergy.assertEquals(30.07, 0.0001)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
 @Test function shieldRegenMatchContinuesDuringStoppedActions()
     for state = 0 to 5
         let game = new MatchState()

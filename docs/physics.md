@@ -1668,6 +1668,24 @@ match delays regeneration until both fighters' contact collection is complete.
 Inactive (`out`) fighters do not regenerate. Melee's separate sleeping flag is
 not modeled, so this is not a claim of complete sleeping-state parity. These
 rules establish logical ordering, not exact binary32 arithmetic parity.
+
+Shield depletion requires health strictly below zero; reaching exactly zero
+keeps guard active, including for another hit during hitlag. Continuing drain
+can then break it on the next action tick. A drain-caused break sets health to
+zero before that frame's regeneration, leaving 0.07. A damage-caused break sets
+health to the common restoration value 30 during contact resolution, after
+regeneration has already run; its first later non-guard frame reaches 30.07.
+The common break transition preserves that caller-selected health. These facts
+come from melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c,
+melee:src/melee/ft/fighter.c and
+melee:src/melee/ft/kinds/ftCommon/ftCo_ShieldBreakFly.c at the revision above.
+
+The broader guard-animation/input seam remains incomplete: Smashcraft processes
+jump, dodge and release choices before held drain, while the reference guard
+animation callback drains before its input callback. This correction establishes
+regeneration and depletion boundaries, not parity for those drain-versus-exit
+transitions.
+
 Movement, fast falling, attacks, shielding, jumps, air dodges, ground escapes,
 platform drops, ordinary get-up actions and floor techs cannot cancel recovery.
 Landing uses the highest crossed eligible surface; it does not enter ordinary
