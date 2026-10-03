@@ -1,0 +1,98 @@
+package FrameTaggedRecord
+
+public constant int RECORD_BYTES = 26
+public constant int LEDGER_CAPACITY = 16
+public constant int RECORD_ADDED = 1
+public constant int RECORD_DUPLICATE = 2
+public constant int RECORD_CONFLICT = -1
+public constant int RECORD_INVALID = 0
+public constant int RECORD_OVERFLOW = -2
+
+function fixedDecimal(string value, int offset, int width) returns int
+    var result = 0
+    for i = offset to offset + width - 1
+        let digit = "0123456789".indexOf(value.charAt(i))
+        if digit < 0
+            return -1
+        result = result * 10 + digit
+    return result
+
+public class TaggedEvent
+    private string wire = ""
+    private int eventId = -1
+    private int elapsedUs = -1
+    private int intendedFrame = -1
+    private int action = -1
+
+    function decode(string value) returns boolean
+        if value.length() != RECORD_BYTES or value.substring(0, 3) != "V1|"
+            return false
+        if value.charAt(9) != "|" or value.charAt(16) != "|" or value.charAt(23) != "|" or value.charAt(25) != ";"
+            return false
+        let id = fixedDecimal(value, 3, 6)
+        let elapsed = fixedDecimal(value, 10, 6)
+        let frame = fixedDecimal(value, 17, 6)
+        let state = fixedDecimal(value, 24, 1)
+        if id < 0 or elapsed < 0 or frame < 0 or (state != 0 and state != 1)
+            return false
+        wire = value
+        eventId = id
+        elapsedUs = elapsed
+        intendedFrame = frame
+        action = state
+        return true
+
+    function id() returns int
+        return eventId
+
+    function elapsedMicroseconds() returns int
+        return elapsedUs
+
+    function frame() returns int
+        return intendedFrame
+
+    function state() returns int
+        return action
+
+    function exactWire() returns string
+        return wire
+
+public class EventLedger
+    private int count = 0
+    private int duplicates = 0
+    private int conflicts = 0
+    private int overflow = 0
+    private string array[16] ids
+    private string array[16] wires
+    private TaggedEvent candidate = new TaggedEvent()
+
+    function observe(string wire) returns int
+        if not candidate.decode(wire)
+            return RECORD_INVALID
+        let id = I2S(candidate.id())
+        for i = 0 to count - 1
+            if ids[i] == id
+                if wires[i] == wire
+                    duplicates++
+                    return RECORD_DUPLICATE
+                conflicts++
+                return RECORD_CONFLICT
+        if count >= LEDGER_CAPACITY
+            overflow++
+            return RECORD_OVERFLOW
+        ids[count] = id
+        wires[count] = wire
+        count++
+        return RECORD_ADDED
+
+    function size() returns int
+        return count
+
+    function duplicateCount() returns int
+        return duplicates
+
+    function conflictCount() returns int
+        return conflicts
+
+    function overflowCount() returns int
+        return overflow
