@@ -27,6 +27,13 @@ belongs to deliberate character design, not automatic reference-data intake.
 
 ## What is established now
 
+Current source evidence is in smashcraft:docs/physics.md: actor-owned parameters
+and test-only Melee rigs, recorded fall/jump and grounded-damage comparisons,
+and a paired grounded digital-shield contact. The final shield correction
+passed 427/427 tests and the r7 map built and installed; native r7 play remains
+unobserved. Shared dash/run rules, bounce/tech coverage, airborne shield recoil,
+raw common-table values and NTSC 1.02 revision identity still prevent M1 closure.
+
 Baseline inspected: `fed4b8c9e9b6be8a6e9d5efda3949ae979a4ffe0`.
 wc3-melee:docs/physics.md records useful arithmetic, trajectory, and state tests,
 but explicitly says full Melee parity is not established. Provisional dash/run

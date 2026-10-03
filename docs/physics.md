@@ -30,6 +30,15 @@ native play remain required. The cap of two Melee units follows the published
 formula but is not exercised by this recording. Original playable fighter
 stats and moves were not retuned by this change.
 
+Map `melee-physics-foundation-r7` built with zero errors and six existing
+warnings; Lua syntax and packaged script/assets checks passed
+(smashcraft:build/physics-map-r7.log). The 16,092,788-byte artifact has SHA-256
+`1e6adac28e3933d75fcd3c047536b7a4f96d5d9b5e56622f78a97515368c8a95`.
+It is installed as `Smashcraft_Melee_Physics_r7.w3x` in
+`~/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps`,
+compared byte-for-byte with the build. Existing candidates and concurrent
+clients remain preserved. Native r7 gameplay has not been observed.
+
 ## Paired digital shield reference — 2026-10-03
 
 smashcraft:docs/smash-melee-reference/slippi-ntsc-shield-contact.json retains
