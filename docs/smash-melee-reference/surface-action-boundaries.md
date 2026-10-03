@@ -68,3 +68,11 @@ both selections through completion, retaining each state until the final frame;
 the six WallTech cases passed. These modeled completion boundaries do not prove
 collision positioning, facing, post-startup interrupt priority or independent
 retail frame-trace parity.
+
+Post-startup wall physics now rejects ordinary drift acceleration and retains
+aerial friction, matching the observed PassiveWall physics callback. Successful
+attack, special and aerial-jump entries leave surface recovery; air-dodge entry
+already did so. The production collision case verifies friction against opposing
+stick input, followed by a jump interrupt restoring normal drift. All seven
+WallTech cases passed. Complete priority among simultaneous interrupt inputs
+remains unverified.

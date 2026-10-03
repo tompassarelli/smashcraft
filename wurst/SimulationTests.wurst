@@ -4605,6 +4605,33 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	destroy input
 	destroy fighter
 
+@Test function retailWallTechUsesFrictionUntilAnAerialActionInterrupts()
+	let fighter = new FighterState(0, -425, 1)
+	let input = new InputSnapshot()
+	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+	fighter.grounded = false
+	fighter.z = 160
+	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
+	fighter.techWindow = 3
+	fighter.knockbackX = 8
+	advance(fighter, 1, input, 0)
+	for tick = 1 to WALL_TECH_STARTUP_FRAMES
+		advance(fighter, 1, input, 0)
+	let velocityBefore = fighter.vx
+	input.direction = 1
+	advance(fighter, 1, input, 0)
+	fighter.vx.assertEquals(velocityBefore + fighter.physics.airFriction, 0.0001)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+	simulationJump(fighter, 1)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_NONE)
+	let jumpVelocity = fighter.vx
+	input.direction = -1
+	advance(fighter, 1, input, 0)
+	fighter.vx.assertLessThan(jumpVelocity - fighter.physics.airFriction)
+	destroy input
+	destroy fighter
+
 @Test function retailWallTechCompletesAfterItsPausedStartupAndSelectedAnimation()
 	for jumpRig = 0 to 1
 		let fighter = new FighterState(0, -425, 1)

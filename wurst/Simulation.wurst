@@ -2271,6 +2271,8 @@ function interruptJumpOrDodge(FighterState f)
 	f.groundDodgeEntryFacing = 0
 
 function beginAttack(FighterState attacker, int style, boolean mayCharge)
+	attacker.surfaceRecoveryState = SURFACE_NONE
+	attacker.surfaceRecoveryFrame = 0
 	attacker.crouching = false
 	clearDash(attacker)
 	if isTumbling(attacker)
@@ -2570,6 +2572,8 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	queueDamageContact(attacker, target, hitData, facing, CONTACT_LAUNCH, directContact, null)
 
 function startSpecialAction(FighterState owner, int action, int duration, int direction)
+	owner.surfaceRecoveryState = SURFACE_NONE
+	owner.surfaceRecoveryFrame = 0
 	owner.fastFalling = false
 	owner.crouching = false
 	owner.specialAction = action
@@ -2909,6 +2913,8 @@ public function simulationJump(FighterState f, int horizontal)
 		return
 	if f.out or f.specialFall or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or (f.shieldReleaseLag > 0 and not f.grounded) or f.landingLag > 0 or f.airDodging or isGroundDodging(f) or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
 		return
+	f.surfaceRecoveryState = SURFACE_NONE
+	f.surfaceRecoveryFrame = 0
 	f.fastFalling = false
 	if f.grounded
 		f.crouching = false
@@ -3344,6 +3350,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	var direction = input.direction
 	var dashEntryDisplacementAdjustment = 0.
 	let canSteer = f.downState == DOWN_NONE and f.hitstun <= 0 and (not f.airDodging or not dodgeActive) and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and not smashChargePaused and (not f.grounded or f.cooldown <= 0)
+		and f.surfaceRecoveryState != SURFACE_TECH_WALL
 	f.crouching = input.down and input.direction == 0 and f.grounded and canSteer and not wantsShield and f.attackStyle < 0 and f.specialAction == SPECIAL_NONE
 	if canSteer and not f.grounded and direction != 0
 		f.lastAerialTapDirection = direction
