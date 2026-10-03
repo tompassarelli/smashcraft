@@ -351,3 +351,27 @@ checks with zero errors and the existing unused-import warning
 through locked phases and same-tick captures, strict-negative depletion, and
 damage/drain break-entry health. Held guard drain preceding jump/dodge/release
 input, exact Lua numerical behavior, and native verification remain open.
+
+The scalar production probe reproduced GROUNDED_BINARY32_EXACT_FAIL under
+Lua 5.3.6 before the correction (smashcraft:build/physics-probe/runtime-before.log).
+The standard-library fork now provides pure Wurst real.roundToFloat32(), pinned
+at 2cd84edbafaf4abce2fe370f38b32f8f0d5848a6 from
+https://github.com/tompassarelli/WurstStdlib2. Its five focused checks passed both
+in the compiler interpreter and emitted Lua; the Apache-2.0 source license is
+retained in the fork. The project lock and both build/test consumers select
+this immutable library pin.
+
+Grounded knockback friction/subtraction now round in Melee units before
+converting back to world units. Shield-health regeneration, held drain, and
+contact subtraction round their scalar results to binary32. The unchanged
+Lua production probe now reports GROUNDED_BINARY32_EXACT_PASS, and regeneration
+from 20 reports SHIELD_REGEN_BINARY32_EXACT_PASS (20.06999969482422).
+Evidence: smashcraft:build/binary32-lua-precision.log; compilation had zero
+errors/warnings. Reproduce with bash ~/code/wc3-melee/main/tools/physics-probe/check-numerical-precision.sh
+from the project checkout. The probe executes the generated production advance
+function with scalar dependency initialization and the compiler's existing
+native test fixture; it does not launch Warcraft or initialize the map UI.
+
+This closes those numerical operations, not the full precision gap. Other
+movement/launch operations, PowerPC fused-operation order, world-unit conversion
+boundaries, complete contact geometry, and native trajectory checks remain open.

@@ -1,7 +1,11 @@
 package Simulation
 import RollTravel
+import Binary32
 
 public constant real WORLD_UNITS_PER_MELEE_UNIT = 6
+
+function roundMeleeWorldValue(real value) returns real
+	return (value / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32() * WORLD_UNITS_PER_MELEE_UNIT
 public constant real GROUND_TRACTION = 0.07999999821186066 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real INITIAL_DASH_SPEED = 1.899999976158142 * WORLD_UNITS_PER_MELEE_UNIT
 // Shared coefficients extracted from the locally identified NTSC 1.02 PlCo.dat.
@@ -723,8 +727,8 @@ function decayKnockback(FighterState f)
 	if f.grounded
 		if f.groundKnockbackX == 0
 			f.groundKnockbackX = f.knockbackX
-		let friction = f.physics.traction * GROUND_KNOCKBACK_FRICTION_MULTIPLIER
-		f.groundKnockbackX = f.groundKnockbackX > 0 ? max(0, f.groundKnockbackX - friction) : min(0, f.groundKnockbackX + friction)
+		let friction = roundMeleeWorldValue(f.physics.traction * GROUND_KNOCKBACK_FRICTION_MULTIPLIER)
+		f.groundKnockbackX = roundMeleeWorldValue(f.groundKnockbackX > 0 ? max(0, f.groundKnockbackX - friction) : min(0, f.groundKnockbackX + friction))
 		f.knockbackX = f.groundKnockbackX
 		f.knockbackZ = 0
 		return
@@ -1405,7 +1409,7 @@ function resolveDamageContacts(FighterState target)
 	if blockedContact
 		target.shieldVisualSerial++
 	if shieldDamage > 0
-		target.shieldEnergy -= shieldDamage
+		target.shieldEnergy = (target.shieldEnergy - shieldDamage).roundToFloat32()
 	if shieldPushback > 0 and target.grounded
 		target.shieldPushbackX = shieldDirection * shieldPushback
 		target.shieldDrainResumePending = true
@@ -3250,7 +3254,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 // Match steps call this after input transitions and contact collection, before damage resolution.
 public function regenerateShield(FighterState f)
 	if not f.out and not f.shield and f.shieldEnergy < SHIELD_MAX
-		f.shieldEnergy = min(SHIELD_MAX, f.shieldEnergy + SHIELD_REGEN_PER_FRAME)
+		f.shieldEnergy = min(SHIELD_MAX, (f.shieldEnergy + SHIELD_REGEN_PER_FRAME).roundToFloat32())
 
 public function advanceFighterMotion(FighterState f, int stage, InputSnapshot input, real respawnX)
 	f.positionDeltaX = 0
@@ -3297,7 +3301,7 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 			return
 	// Only the guard present at the animation boundary drains; input may enter or leave guard later.
 	if f.hitlag <= 0 and f.shield and shieldDrainShouldResume(f, f.shieldStun > 0)
-		f.shieldEnergy -= SHIELD_DRAIN_PER_FRAME
+		f.shieldEnergy = (f.shieldEnergy - SHIELD_DRAIN_PER_FRAME).roundToFloat32()
 		if f.shieldEnergy < 0
 			f.shieldEnergy = 0
 			beginShieldBreak(f)

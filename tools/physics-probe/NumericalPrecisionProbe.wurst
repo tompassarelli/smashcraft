@@ -1,0 +1,21 @@
+package NumericalPrecisionProbe
+import Simulation
+
+init
+    let fighter = new FighterState(0, 0, 1)
+    let input = new InputSnapshot()
+    fighter.physics.traction = 0.07999999821186066 * 6
+    fighter.knockbackX = 0.7562744617462158 * 6
+    fighter.hitstun = 10
+    fighter.shieldEnergy = 20
+    advance(fighter, 0, input, 0)
+    if fighter.knockbackX == 0.6762744784355164 * 6
+        BJDebugMsg("GROUNDED_BINARY32_EXACT_PASS")
+    else
+        BJDebugMsg("GROUNDED_BINARY32_EXACT_FAIL")
+    if fighter.shieldEnergy == 20.06999969482422
+        BJDebugMsg("SHIELD_REGEN_BINARY32_EXACT_PASS")
+    else
+        BJDebugMsg("SHIELD_REGEN_BINARY32_EXACT_FAIL")
+    destroy input
+    destroy fighter

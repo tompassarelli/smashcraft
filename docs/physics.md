@@ -1977,3 +1977,18 @@ before this change and passes for both grounded and airborne mirror contacts.
 The focused character suite passes 12/12:
 wc3-melee:build/wurst-tests/illidan-trade-after-r2.log. Earlier failing evidence:
 wc3-melee:build/wurst-tests/illidan-trade-before.log.
+
+### Binary32 arithmetic boundary
+
+The standard-library pin in smashcraft:wurst-toolchain.lock now includes the
+pure Wurst Binary32 package from the Tom-owned Apache-2.0 fork. The shared engine
+rounds grounded knockback decay in Melee units and rounds shield-health updates
+to binary32. A generated-Lua production probe, not just the binary32 compiler
+interpreter, verifies the recorded first traction subtraction and regeneration
+from 20 to 20.06999969482422. Run
+`bash ~/code/wc3-melee/main/tools/physics-probe/check-numerical-precision.sh` from this checkout;
+source is smashcraft:tools/physics-probe/NumericalPrecisionProbe.wurst.
+
+This is partial precision coverage. Other formulas and their PowerPC operation
+ordering still require migration and comparison. The probe does not establish
+Warcraft timing, rendering, or native map startup.

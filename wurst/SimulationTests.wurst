@@ -4986,7 +4986,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	advance(fighter, 0, input, 0)
 	fighter.grounded.assertTrue()
 	fighter.asdiSerial.assertEquals(1)
-	fighter.groundKnockbackX.assertEquals(MAX_GROUNDED_KNOCKBACK_ON_LANDING - fighter.physics.traction)
+	fighter.groundKnockbackX.assertEquals(8.220000267028809 * WORLD_UNITS_PER_MELEE_UNIT)
 	fighter.knockbackX.assertEquals(fighter.groundKnockbackX)
 	destroy input
 	destroy fighter
