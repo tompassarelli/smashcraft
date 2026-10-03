@@ -797,9 +797,9 @@ public function solidSurfaceMaximum(int stage, int index) returns real
 
 public function solidSurfaceNormalX(int stage, int index) returns real
 	if index >= 0 and index < solidSurfaceCount(stage) and solidSurfaceFace(stage, index) == 0
-		return 1
-	if index >= 0 and index < solidSurfaceCount(stage) and solidSurfaceFace(stage, index) == 1
 		return -1
+	if index >= 0 and index < solidSurfaceCount(stage) and solidSurfaceFace(stage, index) == 1
+		return 1
 	return 0
 
 public function solidSurfaceNormalZ(int stage, int index) returns real
