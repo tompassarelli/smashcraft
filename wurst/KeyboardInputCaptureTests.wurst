@@ -1,6 +1,7 @@
 package KeyboardInputCaptureTests
 import KeyboardInputCapture
 import NetworkInput
+import ParticipantInputs
 import KeyBindings
 import FixedInputSchedule
 
@@ -8,7 +9,7 @@ import FixedInputSchedule
     let sampler = new KeyboardInputCapture()
     let row = new NetworkInput()
     let schedule = new FixedInputSchedule()
-    schedule.beginEpoch(1, 3).assertTrue()
+    schedule.beginEpoch(1, 3, 3).assertTrue()
     sampler.sample(inputActionBit(JUMP)).assertTrue()
     sampler.sample(inputActionBit(JUMP)).assertTrue()
     sampler.sample(0).assertTrue()
@@ -27,9 +28,9 @@ import FixedInputSchedule
 @Test function keyboardCaptureWaitKeepsNextTapWithoutRewritingAssignedInput()
     let sampler = new KeyboardInputCapture()
     let schedule = new FixedInputSchedule()
-    let first = new NetworkInput()
-    let second = new NetworkInput()
-    schedule.beginEpoch(1, 3).assertTrue()
+    let inputs = new ParticipantInputs()
+    let first = inputs.row(0)
+    schedule.beginEpoch(1, 3, 3).assertTrue()
     sampler.capture(schedule, 1).assertEquals(FIXED_CAPTURED)
     sampler.sample(inputActionBit(ATTACK)).assertTrue()
     sampler.sample(0).assertTrue()
@@ -38,7 +39,7 @@ import FixedInputSchedule
     schedule.copyPending(1, 4, first).assertTrue()
     first.pressedMask().assertEquals(0)
     schedule.knownThrough().assertEquals(3)
-    schedule.readNext(1, first, second).assertTrue()
+    schedule.readNext(1, inputs).assertTrue()
     schedule.complete(1, 1).assertTrue()
     sampler.capture(schedule, 1).assertEquals(FIXED_CAPTURED)
     schedule.copyPending(1, 5, first).assertTrue()
@@ -82,7 +83,7 @@ import FixedInputSchedule
     let sampler = new KeyboardInputCapture()
     let schedule = new FixedInputSchedule()
     let row = new NetworkInput()
-    schedule.beginEpoch(1, 3).assertTrue()
+    schedule.beginEpoch(1, 3, 3).assertTrue()
     sampler.sample(inputActionBit(ATTACK)).assertTrue()
     sampler.capture(schedule, 1).assertEquals(FIXED_CAPTURED)
     sampler.sample(inputActionBit(ATTACK)).assertTrue()

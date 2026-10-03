@@ -25,8 +25,26 @@ exec "$java" -Xmx2048m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/_build/common.j" \
     "$project_dir/_build/blizzard.j" \
     "$project_dir/wurst/Simulation.wurst" \
+    "$project_dir/wurst/WorldTestSupport.wurst" \
+    "$project_dir/wurst/FourPlayerWorldTests.wurst" \
     "$project_dir/wurst/RollTravel.wurst" \
     "$project_dir/wurst/PhysicsTests.wurst" \
+    "$project_dir/wurst/FrameIntegrityExperiment.wurst" \
+    "$project_dir/wurst/IllidanMotion.wurst" \
+    "$project_dir/build/animation-assets/FighterAssetInfo.wurst" \
+    "$project_dir/build/illidan-animation/DemonHunterAssetInfo.wurst" \
+    "$project_dir/wurst/FighterPose.wurst" \
+    "$project_dir/wurst/FighterPoseTests.wurst" \
+    "$project_dir/build/original-clips-static-lights/wurst/FighterOriginalClipInfo.wurst" \
+    "$project_dir/build/model-sounds/wurst/ModelSoundInfo.wurst" \
+    "$project_dir/wurst/ConfirmedModelSounds.wurst" \
+    "$project_dir/wurst/ModelSoundPresentation.wurst" \
+    "$project_dir/wurst/ConfirmedModelSoundsTests.wurst" \
+    "$project_dir/wurst/ShieldPose.wurst" \
+    "$project_dir/wurst/ShieldPoseTests.wurst" \
+    "$project_dir/wurst/ProjectilePose.wurst" \
+    "$project_dir/wurst/ProjectilePoseTests.wurst" \
+    "$project_dir/wurst/IllidanMotionTests.wurst" \
     "$project_dir/wurst/DirectionalInput.wurst" \
     "$project_dir/wurst/DirectionalInputTests.wurst" \
     "$project_dir/wurst/SimulationTests.wurst" \
@@ -73,13 +91,28 @@ exec "$java" -Xmx2048m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/wurst/NetworkInputTests.wurst" \
     "$project_dir/wurst/InputProtocol.wurst" \
     "$project_dir/wurst/InputProtocolTests.wurst" \
+    "$project_dir/wurst/InputBatch.wurst" \
+    "$project_dir/wurst/InputBatchTests.wurst" \
+    "$project_dir/wurst/ParticipantInputs.wurst" \
     "$project_dir/wurst/InputLedger.wurst" \
     "$project_dir/wurst/InputLedgerTests.wurst" \
     "$project_dir/wurst/FixedInputSchedule.wurst" \
     "$project_dir/wurst/FixedInputScheduleTests.wurst" \
     "$project_dir/wurst/FixedInputPlayback.wurst" \
     "$project_dir/wurst/FixedInputPlaybackTests.wurst" \
+    "$project_dir/wurst/ShadowInputSchedule.wurst" \
+    "$project_dir/wurst/ShadowInputScheduleTests.wurst" \
+    "$project_dir/wurst/ShadowInputPlayback.wurst" \
+    "$project_dir/wurst/ShadowInputPlaybackTests.wurst" \
     "$project_dir/wurst/ImpactEvents.wurst" \
+    "$project_dir/wurst/ImpactState.wurst" \
+    "$project_dir/wurst/ImpactStateTests.wurst" \
+    "$project_dir/wurst/SpecialEffectState.wurst" \
+    "$project_dir/build/summon-original-clips/wurst/SummonOriginalClipInfo.wurst" \
+    "$project_dir/wurst/SummonPose.wurst" \
+    "$project_dir/wurst/SummonState.wurst" \
+    "$project_dir/wurst/SummonStateTests.wurst" \
+    "$project_dir/wurst/SpecialEffectStateTests.wurst" \
     "$project_dir/wurst/DamagePose.wurst" \
     "$project_dir/wurst/DamagePoseTests.wurst" \
     "$project_dir/wurst/ImpactEventsTests.wurst"

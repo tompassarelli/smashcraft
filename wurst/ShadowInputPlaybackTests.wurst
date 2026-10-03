@@ -1,0 +1,448 @@
+package ShadowInputPlaybackTests
+import WorldTestSupport
+import ShadowInputSchedule
+import ShadowInputPlayback
+import ReplayHistory
+import ReplayState
+import MatchRules
+import Simulation
+import CommandBuffer
+import NetworkInput
+import InputProtocol
+import InputLedger
+import KeyBindings
+import MatchStep
+import ParticipantInputs
+
+class ShadowPlaybackWorld
+	FighterState first = new FighterState(0, -100, 1)
+	FighterState second = new FighterState(0, 100, -1)
+	MatchState game = new MatchState()
+	AttackBuffer firstCommands = new AttackBuffer(4)
+	AttackBuffer secondCommands = new AttackBuffer(4)
+	ReplayRuntimeState runtime = new ReplayRuntimeState()
+	ReplaySnapshot snapshot = new ReplaySnapshot()
+
+	construct()
+		game.setHumanCount(2)
+		game.phase = MATCH
+		game.timeLimitMinutes = 0
+		game.stockCount = 99
+		first.stocks = 99
+		second.stocks = 99
+
+	function capture()
+		snapshot.capture(testWorld(first, second), game, testCommands(firstCommands, secondCommands), runtime)
+
+function shadowPlaybackNeutral(NetworkInput row)
+	row.assign(0, 0, 0, 0, 0, 0, 0).assertTrue()
+	row.assignPressData(0, 0, 0, 0, false, 0, 0, 0).assertTrue()
+	row.assignThrowContributions(0, 0).assertTrue()
+
+function shadowPlaybackDeliver(ShadowInputSchedule schedule, int sender, int epoch, int frame,
+		NetworkInput input, InputPacket packet)
+	packet.assign(epoch, frame, 1, input, input).assertTrue()
+	schedule.acceptSynchronized(sender, packet).assertEquals(INPUT_ACCEPTED)
+
+@Test function lateHeldInputRePredictsTailAndAcceptedReleaseStopsIt()
+	for localPlayer = 0 to 1
+		let epoch = 930 + localPlayer
+		let schedule = new ShadowInputSchedule()
+		let playback = new ShadowInputPlayback()
+		let history = new ReplayHistory()
+		let world = new ShadowPlaybackWorld()
+		let confirmed = new ShadowPlaybackWorld()
+		let confirmedHistory = new ReplayHistory()
+		let sample = new NetworkInput()
+		let hold = new NetworkInput()
+		let release = new NetworkInput()
+		let predicted = new NetworkInput()
+		let used = new NetworkInput()
+		let local = new NetworkInput()
+		let row = new MatchFrameInput()
+		let packet = new InputPacket()
+		let remote = 1 - localPlayer
+		schedule.beginEpoch(epoch, 0, 9, 3).assertTrue()
+		playback.beginEpoch(epoch).assertTrue()
+		history.beginEpochWithCorrections(epoch, 1, 9).assertTrue()
+		confirmedHistory.beginEpoch(epoch, 1).assertTrue()
+		for frame = 1 to 9
+			shadowPlaybackNeutral(sample)
+			if frame == 2
+				sample.assign(0, inputActionBit(SPECIAL), 0, 0, 0, 0, 0).assertTrue()
+				sample.assignPressData(-1, 1, 0, 0, true, 1, 0, 0).assertTrue()
+				sample.assignThrowContributions(1, -1).assertTrue()
+			schedule.captureLocal(epoch, sample).assertEquals(SHADOW_CAPTURED)
+			playback.advanceSpeculative(schedule, epoch, localPlayer, world.game, testWorld(world.first, world.second), testCommands(world.firstCommands, world.secondCommands), world.runtime, history).assertTrue()
+		let remoteFighter = remote == 0 ? world.first : world.second
+		remoteFighter.shield.assertFalse()
+		hold.assign(inputActionBit(LEFT_TRIGGER), inputActionBit(LEFT_TRIGGER), 0, 0, 0, 255, 0).assertTrue()
+		hold.assignPressData(0, 0, 0, 0, true, 1, 0, 0).assertTrue()
+		hold.assignThrowContributions(1, -1).assertTrue()
+		shadowPlaybackNeutral(sample)
+		shadowPlaybackDeliver(schedule, localPlayer, epoch, 1, sample, packet)
+		shadowPlaybackDeliver(schedule, remote, epoch, 1, hold, packet)
+		playback.reconcile(schedule, epoch, localPlayer, testWorld(world.first, world.second), world.game, testCommands(world.firstCommands, world.secondCommands), world.runtime, history).assertEquals(1)
+		assertTrue(remoteFighter.shield, "Held shield must survive corrected prediction tail")
+		history.isSpeculative(epoch, 1).assertFalse()
+		hold.predictTo(predicted)
+		for frame = 2 to 9
+			history.isSpeculative(epoch, frame).assertTrue()
+			history.copyInputRow(epoch, frame, row).assertTrue()
+			row.copyNetworkRow(remote, used).assertTrue()
+			used.sameAs(predicted).assertTrue()
+			row.copyNetworkRow(localPlayer, used).assertTrue()
+			schedule.copyPending(epoch, frame, local).assertTrue()
+			used.sameAs(local).assertTrue()
+		// The next newly resolved row must continue from the rebuilt present.
+		schedule.captureLocal(epoch, sample).assertEquals(SHADOW_CAPTURED)
+		playback.advanceSpeculative(schedule, epoch, localPlayer, world.game, testWorld(world.first, world.second), testCommands(world.firstCommands, world.secondCommands), world.runtime, history).assertTrue()
+		history.copyInputRow(epoch, 10, row).assertTrue()
+		row.copyNetworkRow(remote, used).assertTrue()
+		used.sameAs(predicted).assertTrue()
+		// An accepted remote row beyond the common prefix breaks the held chain.
+		release.assign(0, 0, inputActionBit(LEFT_TRIGGER), 0, 0, 0, 0).assertTrue()
+		shadowPlaybackDeliver(schedule, remote, epoch, 3, release, packet)
+		schedule.knownThrough().assertEquals(1)
+		playback.reconcile(schedule, epoch, localPlayer, testWorld(world.first, world.second), world.game, testCommands(world.firstCommands, world.secondCommands), world.runtime, history).assertEquals(3)
+		remoteFighter.shield.assertFalse()
+		history.isSpeculative(epoch, 3).assertTrue()
+		history.copyInputRow(epoch, 3, row).assertTrue()
+		row.copyNetworkRow(remote, used).assertTrue()
+		used.sameAs(release).assertTrue()
+		for frame = 4 to 10
+			history.isSpeculative(epoch, frame).assertTrue()
+			history.copyInputRow(epoch, frame, row).assertTrue()
+			row.copyNetworkRow(remote, used).assertTrue()
+			used.sameAs(sample).assertTrue()
+		// Confirmation preserves the accepted edge and converges with a fresh run.
+		for frame = 2 to 10
+			schedule.copyPending(epoch, frame, local).assertTrue()
+			shadowPlaybackDeliver(schedule, localPlayer, epoch, frame, local, packet)
+			if frame != 3
+				shadowPlaybackDeliver(schedule, remote, epoch, frame, frame == 2 ? predicted : sample, packet)
+		playback.reconcile(schedule, epoch, localPlayer, testWorld(world.first, world.second), world.game, testCommands(world.firstCommands, world.secondCommands), world.runtime, history).assertEquals(REPLAY_CORRECTION_UNCHANGED)
+		while schedule.mayAdvanceConfirmed()
+			playback.advanceConfirmed(schedule, epoch, confirmed.game, testWorld(confirmed.first, confirmed.second), testCommands(confirmed.firstCommands, confirmed.secondCommands), confirmed.runtime, confirmedHistory).assertTrue()
+		confirmed.capture()
+		world.capture()
+		world.snapshot.firstDifference(confirmed.snapshot).assertEquals("")
+		for frame = 1 to 10
+			history.isSpeculative(epoch, frame).assertFalse()
+			history.replay(epoch, frame, 10, testWorld(world.first, world.second), world.game, testCommands(world.firstCommands, world.secondCommands), world.runtime).assertTrue()
+			world.capture()
+			world.snapshot.firstDifference(confirmed.snapshot).assertEquals("")
+
+@Test function lateJumpCorrectionReAdaptsLaterAttackAgainstAirState()
+	let epoch = 920
+	let schedule = new ShadowInputSchedule()
+	let playback = new ShadowInputPlayback()
+	let speculativeHistory = new ReplayHistory()
+	let confirmedHistory = new ReplayHistory()
+	let speculative = new ShadowPlaybackWorld()
+	let confirmed = new ShadowPlaybackWorld()
+	let sample = new NetworkInput()
+	let acceptedFirst = new NetworkInput()
+	let acceptedSecond = new NetworkInput()
+	let packet = new InputPacket()
+	schedule.beginEpoch(epoch, 2, SHADOW_DEFAULT_ROLLBACK_WINDOW, 3).assertTrue()
+	playback.beginEpoch(epoch).assertTrue()
+	playback.epochNumber().assertEquals(epoch)
+	speculativeHistory.beginEpochWithCorrections(epoch, 1, SHADOW_DEFAULT_ROLLBACK_WINDOW).assertTrue()
+	confirmedHistory.beginEpoch(epoch, 1).assertTrue()
+	shadowPlaybackNeutral(sample)
+	shadowPlaybackNeutral(acceptedFirst)
+	acceptedSecond.assign(0, inputActionBit(ATTACK), 0, 0, 0, 0, 0).assertTrue()
+	shadowPlaybackDeliver(schedule, 0, epoch, 7, acceptedFirst, packet)
+	shadowPlaybackDeliver(schedule, 1, epoch, 7, acceptedSecond, packet)
+	for frame = 1 to 7
+		schedule.captureLocal(epoch, sample).assertEquals(SHADOW_CAPTURED)
+		schedule.speculativeFrame().assertEquals(frame)
+		speculative.runtime.simulationFrame.assertEquals(frame - 1)
+		playback.advanceSpeculative(schedule, epoch, 0, speculative.game, testWorld(speculative.first, speculative.second), testCommands(speculative.firstCommands, speculative.secondCommands), speculative.runtime, speculativeHistory).assertTrue()
+		while schedule.mayAdvanceConfirmed()
+			playback.advanceConfirmed(schedule, epoch, confirmed.game, testWorld(confirmed.first, confirmed.second), testCommands(confirmed.firstCommands, confirmed.secondCommands), confirmed.runtime, confirmedHistory).assertTrue()
+	speculative.second.attackStyle.assertEquals(0)
+	speculative.second.grounded.assertTrue()
+	let jump = new NetworkInput()
+	jump.assign(inputActionBit(JUMP), inputActionBit(JUMP), 0, 0, 0, 0, 0).assertTrue()
+	for frame = 3 to 6
+		shadowPlaybackNeutral(acceptedFirst)
+		if frame == 3
+			shadowPlaybackDeliver(schedule, 1, epoch, frame, jump, packet)
+		else
+			shadowPlaybackDeliver(schedule, 1, epoch, frame, acceptedFirst, packet)
+		shadowPlaybackDeliver(schedule, 0, epoch, frame, acceptedFirst, packet)
+	schedule.knownThrough().assertEquals(7)
+	playback.reconcile(schedule, epoch, 0, testWorld(speculative.first, speculative.second), speculative.game, testCommands(speculative.firstCommands, speculative.secondCommands), speculative.runtime, speculativeHistory).assertEquals(3)
+	speculative.second.grounded.assertFalse()
+	speculative.second.attackStyle.assertEquals(AERIAL_NEUTRAL_STYLE)
+	while schedule.mayAdvanceConfirmed()
+		playback.advanceConfirmed(schedule, epoch, confirmed.game, testWorld(confirmed.first, confirmed.second), testCommands(confirmed.firstCommands, confirmed.secondCommands), confirmed.runtime, confirmedHistory).assertTrue()
+	confirmed.capture()
+	speculative.capture()
+	speculative.snapshot.firstDifference(confirmed.snapshot).assertEquals("")
+	playback.reconcile(schedule, epoch, 0, testWorld(speculative.first, speculative.second), speculative.game, testCommands(speculative.firstCommands, speculative.secondCommands), speculative.runtime, speculativeHistory).assertEquals(REPLAY_CORRECTION_UNCHANGED)
+
+@Test function matchingLatePredictionConfirmsWithoutReplaying()
+	let epoch = 921
+	let schedule = new ShadowInputSchedule()
+	let playback = new ShadowInputPlayback()
+	let history = new ReplayHistory()
+	let world = new ShadowPlaybackWorld()
+	let sample = new NetworkInput()
+	let actual = new NetworkInput()
+	let packet = new InputPacket()
+	schedule.beginEpoch(epoch, 2, SHADOW_DEFAULT_ROLLBACK_WINDOW, 3).assertTrue()
+	playback.beginEpoch(epoch).assertTrue()
+	history.beginEpochWithCorrections(epoch, 1, SHADOW_DEFAULT_ROLLBACK_WINDOW).assertTrue()
+	shadowPlaybackNeutral(sample)
+	shadowPlaybackNeutral(actual)
+	for frame = 1 to 8
+		schedule.captureLocal(epoch, sample).assertEquals(SHADOW_CAPTURED)
+		playback.advanceSpeculative(schedule, epoch, 0, world.game, testWorld(world.first, world.second), testCommands(world.firstCommands, world.secondCommands), world.runtime, history).assertTrue()
+	world.runtime.simulationFrame.assertEquals(8)
+	shadowPlaybackDeliver(schedule, 0, epoch, 3, actual, packet)
+	shadowPlaybackDeliver(schedule, 1, epoch, 3, actual, packet)
+	schedule.knownThrough().assertEquals(3)
+	playback.reconcile(schedule, epoch, 0, testWorld(world.first, world.second), world.game, testCommands(world.firstCommands, world.secondCommands), world.runtime, history).assertEquals(REPLAY_CORRECTION_UNCHANGED)
+	world.runtime.simulationFrame.assertEquals(8)
+	schedule.captureLocal(epoch, sample).assertEquals(SHADOW_CAPTURED)
+	playback.advanceSpeculative(schedule, epoch, 0, world.game, testWorld(world.first, world.second), testCommands(world.firstCommands, world.secondCommands), world.runtime, history).assertTrue()
+	world.runtime.simulationFrame.assertEquals(9)
+
+@Test function twelveLateRowsReplayAtFullDepthAndRebuildEverySnapshot()
+	let epoch = 922
+	let schedule = new ShadowInputSchedule()
+	let playback = new ShadowInputPlayback()
+	let speculativeHistory = new ReplayHistory()
+	let confirmedHistory = new ReplayHistory()
+	let speculative = new ShadowPlaybackWorld()
+	let confirmed = new ShadowPlaybackWorld()
+	let sample = new NetworkInput()
+	let actual = new NetworkInput()
+	let packet = new InputPacket()
+	schedule.beginEpoch(epoch, 3, 12, 3).assertTrue()
+	playback.beginEpoch(epoch).assertTrue()
+	speculativeHistory.beginEpochWithCorrections(epoch, 1, schedule.rollbackFrames()).assertTrue()
+	confirmedHistory.beginEpoch(epoch, 1).assertTrue()
+	shadowPlaybackNeutral(sample)
+	for frame = 1 to 15
+		schedule.captureLocal(epoch, sample).assertEquals(SHADOW_CAPTURED)
+		playback.advanceSpeculative(schedule, epoch, 0, speculative.game, testWorld(speculative.first, speculative.second), testCommands(speculative.firstCommands, speculative.secondCommands), speculative.runtime, speculativeHistory).assertTrue()
+	schedule.mayAdvanceSpeculative().assertFalse()
+	speculative.runtime.simulationFrame.assertEquals(15)
+	for frame = 4 to 15
+		shadowPlaybackNeutral(actual)
+		if frame == 4
+			actual.assign(inputActionBit(JUMP), inputActionBit(JUMP), 0, 0, 0, 0, 0).assertTrue()
+		else if frame == 5
+			actual.assign(0, inputActionBit(ATTACK), 0, 0, 0, 0, 0).assertTrue()
+		shadowPlaybackDeliver(schedule, 0, epoch, frame, sample, packet)
+		shadowPlaybackDeliver(schedule, 1, epoch, frame, actual, packet)
+	schedule.knownThrough().assertEquals(15)
+	playback.reconcile(schedule, epoch, 0, testWorld(speculative.first, speculative.second), speculative.game, testCommands(speculative.firstCommands, speculative.secondCommands), speculative.runtime, speculativeHistory).assertEquals(4)
+	speculative.second.grounded.assertFalse()
+	speculative.second.attackStyle.assertEquals(AERIAL_NEUTRAL_STYLE)
+	while schedule.mayAdvanceConfirmed()
+		playback.advanceConfirmed(schedule, epoch, confirmed.game, testWorld(confirmed.first, confirmed.second), testCommands(confirmed.firstCommands, confirmed.secondCommands), confirmed.runtime, confirmedHistory).assertTrue()
+	confirmed.capture()
+	speculative.capture()
+	speculative.snapshot.firstDifference(confirmed.snapshot).assertEquals("")
+	for frame = 4 to 15
+		speculativeHistory.isSpeculative(epoch, frame).assertFalse()
+		speculativeHistory.replay(epoch, frame, 15, testWorld(speculative.first, speculative.second), speculative.game, testCommands(speculative.firstCommands, speculative.secondCommands), speculative.runtime).assertTrue()
+		speculative.capture()
+		speculative.snapshot.firstDifference(confirmed.snapshot).assertEquals("")
+	playback.reconcile(schedule, epoch, 0, testWorld(speculative.first, speculative.second), speculative.game, testCommands(speculative.firstCommands, speculative.secondCommands), speculative.runtime, speculativeHistory).assertEquals(REPLAY_CORRECTION_UNCHANGED)
+	schedule.mayAdvanceSpeculative().assertTrue()
+
+@Test function twentyFourLateRowsRePredictAndRebuildEverySnapshot()
+	let epoch = 940
+	let schedule = new ShadowInputSchedule()
+	let playback = new ShadowInputPlayback()
+	let history = new ReplayHistory()
+	let confirmedHistory = new ReplayHistory()
+	let world = new ShadowPlaybackWorld()
+	let confirmed = new ShadowPlaybackWorld()
+	let neutral = new NetworkInput()
+	let held = new NetworkInput()
+	let predicted = new NetworkInput()
+	let used = new NetworkInput()
+	let row = new MatchFrameInput()
+	let packet = new InputPacket()
+	schedule.beginEpoch(epoch, 0, 24, 3).assertTrue()
+	playback.beginEpoch(epoch).assertTrue()
+	history.beginEpochWithCorrections(epoch, 1, 24).assertTrue()
+	confirmedHistory.beginEpoch(epoch, 1).assertTrue()
+	shadowPlaybackNeutral(neutral)
+	for frame = 1 to 24
+		schedule.captureLocal(epoch, neutral).assertEquals(SHADOW_CAPTURED)
+		playback.advanceSpeculative(schedule, epoch, 0, world.game, testWorld(world.first, world.second), testCommands(world.firstCommands, world.secondCommands), world.runtime, history).assertTrue()
+	schedule.mayAdvanceSpeculative().assertFalse()
+	playback.advanceSpeculative(schedule, epoch, 0, world.game, testWorld(world.first, world.second), testCommands(world.firstCommands, world.secondCommands), world.runtime, history).assertFalse()
+	world.runtime.simulationFrame.assertEquals(24)
+	held.assign(inputActionBit(LEFT_TRIGGER), inputActionBit(LEFT_TRIGGER), 0, 0, 0, 255, 0).assertTrue()
+	shadowPlaybackDeliver(schedule, 0, epoch, 1, neutral, packet)
+	shadowPlaybackDeliver(schedule, 1, epoch, 1, held, packet)
+	playback.reconcile(schedule, epoch, 0, testWorld(world.first, world.second), world.game, testCommands(world.firstCommands, world.secondCommands), world.runtime, history).assertEquals(1)
+	world.second.shield.assertTrue()
+	held.predictTo(predicted)
+	for frame = 1 to 24
+		history.isSpeculative(epoch, frame).assertEquals(frame > 1)
+		history.copyInputRow(epoch, frame, row).assertTrue()
+		row.copyNetworkRow(0, used).assertTrue()
+		used.sameAs(neutral).assertTrue()
+		row.copyNetworkRow(1, used).assertTrue()
+		used.sameAs(frame == 1 ? held : predicted).assertTrue()
+	for frame = 2 to 24
+		shadowPlaybackDeliver(schedule, 0, epoch, frame, neutral, packet)
+		shadowPlaybackDeliver(schedule, 1, epoch, frame, neutral, packet)
+	schedule.knownThrough().assertEquals(24)
+	playback.reconcile(schedule, epoch, 0, testWorld(world.first, world.second), world.game, testCommands(world.firstCommands, world.secondCommands), world.runtime, history).assertEquals(2)
+	world.second.shield.assertFalse()
+	while schedule.mayAdvanceConfirmed()
+		playback.advanceConfirmed(schedule, epoch, confirmed.game, testWorld(confirmed.first, confirmed.second), testCommands(confirmed.firstCommands, confirmed.secondCommands), confirmed.runtime, confirmedHistory).assertTrue()
+	confirmed.capture()
+	world.capture()
+	world.snapshot.firstDifference(confirmed.snapshot).assertEquals("")
+	for frame = 1 to 24
+		history.isSpeculative(epoch, frame).assertFalse()
+		history.replay(epoch, frame, 24, testWorld(world.first, world.second), world.game, testCommands(world.firstCommands, world.secondCommands), world.runtime).assertTrue()
+		world.capture()
+		world.snapshot.firstDifference(confirmed.snapshot).assertEquals("")
+	schedule.captureLocal(epoch, neutral).assertEquals(SHADOW_CAPTURED)
+	playback.advanceSpeculative(schedule, epoch, 0, world.game, testWorld(world.first, world.second), testCommands(world.firstCommands, world.secondCommands), world.runtime, history).assertTrue()
+	world.runtime.simulationFrame.assertEquals(25)
+
+@Test function lobbyComputersReplayFromCorrectedHumansWithoutNetworkSenders()
+    // One human with three CPUs, and sparse two-human/one-CPU occupancy.
+    for variant = 0 to 1
+        let humans = variant == 0 ? 8 : 9
+        let computers = variant == 0 ? 7 : 4
+        let mask = humans + computers
+        let epoch = 970 + variant
+        let schedule = new ShadowInputSchedule()
+        let playback = new ShadowInputPlayback()
+        let history = new ReplayHistory()
+        let confirmedHistory = new ReplayHistory()
+        let game = new MatchState()
+        let confirmedGame = new MatchState()
+        game.setParticipants(humans, computers)
+        game.phase = MATCH
+        game.timeLimitMinutes = 0
+        game.copyTo(confirmedGame)
+        let world = new FighterRoster(mask)
+        let confirmed = new FighterRoster(mask)
+        let controls = new FrameInputs()
+        let confirmedControls = new FrameInputs()
+        let runtime = new ReplayRuntimeState()
+        let confirmedRuntime = new ReplayRuntimeState()
+        for slot = 0 to 3
+            if game.fighterActive(slot)
+                world.fighters[slot] = new FighterState(slot mod 3, matchSpawnX(slot), slot mod 2 == 0 ? 1 : -1)
+                confirmed.fighters[slot] = new FighterState(slot mod 3, matchSpawnX(slot), slot mod 2 == 0 ? 1 : -1)
+        let sample = new NetworkInput()
+        let changed = new NetworkInput()
+        let packet = new InputPacket()
+        let expected = new ReplaySnapshot()
+        let actual = new ReplaySnapshot()
+        shadowPlaybackNeutral(sample)
+        changed.assign(inputActionBit(MOVE_RIGHT), inputActionBit(MOVE_RIGHT), 0, 0, 0, 0, 0).assertTrue()
+        schedule.beginEpoch(epoch, 0, 24, humans).assertTrue()
+        playback.beginEpoch(epoch).assertTrue()
+        history.beginEpochWithCorrections(epoch, 1, 24).assertTrue()
+        confirmedHistory.beginEpoch(epoch, 1).assertTrue()
+        for frame = 1 to 8
+            schedule.captureLocal(epoch, sample).assertEquals(SHADOW_CAPTURED)
+            playback.advanceSpeculative(schedule, epoch, 3, game, world, controls, runtime, history).assertTrue()
+        // Neither computers nor empty slots need to submit a packet.
+        for frame = 1 to 8
+            for slot = 0 to 3
+                if game.humanActive(slot)
+                    shadowPlaybackDeliver(schedule, slot, epoch, frame, slot == 0 ? changed : sample, packet)
+        schedule.knownThrough().assertEquals(8)
+        let correction = playback.reconcile(schedule, epoch, 3, world, game, controls, runtime, history)
+        if variant == 0
+            correction.assertEquals(REPLAY_CORRECTION_UNCHANGED)
+        else
+            correction.assertEquals(1)
+        while schedule.mayAdvanceConfirmed()
+            playback.advanceConfirmed(schedule, epoch, confirmedGame, confirmed, confirmedControls, confirmedRuntime, confirmedHistory).assertTrue()
+        expected.capture(confirmed, confirmedGame, confirmedControls, confirmedRuntime)
+        actual.capture(world, game, controls, runtime)
+        actual.firstDifference(expected).assertEquals("")
+        assertTrue(world.fighters[2].x != matchSpawnX(2) or world.fighters[2].attackSerial > 0, "Computer must move or attack")
+        history.replay(epoch, 1, 8, world, game, controls, runtime).assertTrue()
+        actual.capture(world, game, controls, runtime)
+        actual.firstDifference(expected).assertEquals("")
+
+@Test function slotModeCpuAndEmptyOwnersStillConfirmAndReplayWithoutPhantomSenders()
+    for variant = 0 to 3
+        let humans = variant < 2 ? 9 : 1
+        let epoch = 990 + variant
+        let schedule = new ShadowInputSchedule()
+        let playback = new ShadowInputPlayback()
+        let history = new ReplayHistory()
+        let confirmedHistory = new ReplayHistory()
+        let game = new MatchState()
+        let confirmedGame = new MatchState()
+        game.setParticipants(humans, 6)
+        game.cycleSlotMode(0, 0).assertTrue()
+        if variant mod 2 == 1
+            game.cycleSlotMode(0, 0).assertTrue()
+        if variant < 2
+            game.selectCharacter(3, 0)
+        game.requestStageSelect(0).assertTrue()
+        game.requestStart(0).assertTrue()
+        game.timeLimitMinutes = 0
+        game.copyTo(confirmedGame)
+        let mask = game.fighterMask()
+        let world = new FighterRoster(mask)
+        let confirmed = new FighterRoster(mask)
+        let controls = new FrameInputs()
+        let confirmedControls = new FrameInputs()
+        let runtime = new ReplayRuntimeState()
+        let confirmedRuntime = new ReplayRuntimeState()
+        for slot = 0 to 3
+            if game.fighterActive(slot)
+                world.fighters[slot] = new FighterState(slot mod 3, matchSpawnX(slot), slot mod 2 == 0 ? 1 : -1)
+                confirmed.fighters[slot] = new FighterState(slot mod 3, matchSpawnX(slot), slot mod 2 == 0 ? 1 : -1)
+        let sample = new NetworkInput()
+        let changed = new NetworkInput()
+        let copied = new NetworkInput()
+        let packet = new InputPacket()
+        let row = new MatchFrameInput()
+        let expected = new ReplaySnapshot()
+        let actual = new ReplaySnapshot()
+        shadowPlaybackNeutral(sample)
+        changed.assign(inputActionBit(MOVE_RIGHT), inputActionBit(MOVE_RIGHT), 0, 0, 0, 0, 0).assertTrue()
+        schedule.beginEpoch(epoch, 0, 24, humans).assertTrue()
+        playback.beginEpoch(epoch).assertTrue()
+        history.beginEpochWithCorrections(epoch, 1, 24).assertTrue()
+        confirmedHistory.beginEpoch(epoch, 1).assertTrue()
+        for frame = 1 to 8
+            schedule.captureLocal(epoch, sample).assertEquals(SHADOW_CAPTURED)
+            playback.advanceSpeculative(schedule, epoch, 0, game, world, controls, runtime, history).assertTrue()
+        for frame = 1 to 8
+            shadowPlaybackDeliver(schedule, 0, epoch, frame, sample, packet)
+            if variant < 2
+                shadowPlaybackDeliver(schedule, 3, epoch, frame, changed, packet)
+        schedule.knownThrough().assertEquals(8)
+        let correction = playback.reconcile(schedule, epoch, 0, world, game, controls, runtime, history)
+        correction.assertEquals(variant < 2 ? 1 : REPLAY_CORRECTION_UNCHANGED)
+        history.copyInputRow(epoch, 1, row).assertTrue()
+        row.copyNetworkRow(0, copied).assertTrue()
+        copied.sameAs(sample).assertTrue()
+        row.copyNetworkRow(1, copied).assertFalse()
+        while schedule.mayAdvanceConfirmed()
+            playback.advanceConfirmed(schedule, epoch, confirmedGame, confirmed, confirmedControls, confirmedRuntime, confirmedHistory).assertTrue()
+        expected.capture(confirmed, confirmedGame, confirmedControls, confirmedRuntime)
+        actual.capture(world, game, controls, runtime)
+        actual.firstDifference(expected).assertEquals("")
+        history.replay(epoch, 1, 8, world, game, controls, runtime).assertTrue()
+        actual.capture(world, game, controls, runtime)
+        actual.firstDifference(expected).assertEquals("")
+        game.humanMask.assertEquals(humans)
+        game.humanFighterActive(0).assertFalse()
+        game.computerActive(0).assertEquals(variant mod 2 == 0)

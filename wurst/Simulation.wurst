@@ -1,5 +1,7 @@
 package Simulation
 import RollTravel
+import ParticipantInputs
+import CommandBuffer
 
 public constant real WORLD_UNITS_PER_MELEE_UNIT = 6
 public constant real GROUND_TRACTION = 0.07999999821186066 * WORLD_UNITS_PER_MELEE_UNIT
@@ -257,6 +259,39 @@ constant real RADIANS_TO_DEGREES = 57.29577951308232
 public constant real SDI_DISTANCE = 6 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real ASDI_DISTANCE = 3 * WORLD_UNITS_PER_MELEE_UNIT
 
+// Slot identities are stable for a match epoch, including sparse rosters.
+public class FighterRoster
+	int mask
+	boolean array[INPUT_PARTICIPANT_CAPACITY] grabPaused
+	FighterState array[INPUT_PARTICIPANT_CAPACITY] fighters
+
+	construct(int participantMask)
+		mask = participantMask
+
+	function active(int slot) returns boolean
+		return participantIsActive(mask, slot)
+
+	function slotOf(FighterState fighter) returns int
+		if fighter == null
+			return -1
+		for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+			if active(slot) and fighters[slot] == fighter
+				return slot
+		return -2
+
+	function remap(FighterState fighter, FighterRoster destination) returns FighterState
+		let slot = slotOf(fighter)
+		return slot >= 0 ? destination.fighters[slot] : null
+
+public class FrameInputs
+	InputSnapshot array[INPUT_PARTICIPANT_CAPACITY] inputs
+	AttackBuffer array[INPUT_PARTICIPANT_CAPACITY] commands
+
+	construct()
+		for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+			inputs[slot] = new InputSnapshot()
+			commands[slot] = new AttackBuffer(0)
+
 // Actor-owned tuning, in world units per simulation frame. Character identity
 // selects moves and presentation; these values are copied by value in replays.
 public tuple fighterPhysics(real weight, real gravity, real terminalSpeed, real fastFallSpeed,
@@ -368,8 +403,11 @@ public class FighterState
 	int attackDuration = 0
 	int attackSerial = 0
 	boolean attackHit = false
-	// The match has one opposing fighter; record contact on each victim, not
-	// each region, so overlapping regions share one per-target hit window.
+	// The latest contact supports diagnostics; the registry owns hit eligibility.
+	FighterState array[INPUT_PARTICIPANT_CAPACITY] hitAttackers
+	int array[INPUT_PARTICIPANT_CAPACITY] hitSerials
+	int array[INPUT_PARTICIPANT_CAPACITY] hitWindows
+	FighterState array[INPUT_PARTICIPANT_CAPACITY] specialHitTargets
 	FighterState lastHitAttacker = null
 	int lastHitAttackSerial = -1
 	int lastHitWindow = 0
@@ -384,6 +422,7 @@ public class FighterState
 	real array[PROJECTILE_CAPACITY] projectileVelocityX
 	real array[PROJECTILE_CAPACITY] projectileVelocityZ
 	int array[PROJECTILE_CAPACITY] projectileSerial
+	int parrySerial = 0
 	int specialAction = SPECIAL_NONE
 	int specialFrame = 0
 	int specialDuration = 0
@@ -594,6 +633,9 @@ function applyDirectionalInfluence(FighterState target, InputSnapshot input)
 	target.diAngleDegrees = angle * RADIANS_TO_DEGREES
 	target.diSerial++
 	target.diLaunchSpeed = 0
+
+public function characterModelScale(int character) returns real
+	return character == 2 ? 0.8 : 1.
 
 function airDriftVelocity(FighterState f, real velocity, int direction) returns real
 	let target = f.physics.airSpeed
@@ -963,7 +1005,7 @@ function isSmashAttack(int style) returns boolean
 public function smashDamageMultiplier(int chargeFrames) returns real
 	return 1 + (SMASH_MAX_DAMAGE_MULTIPLIER - 1) * max(0, min(SMASH_MAX_CHARGE_FRAMES, chargeFrames)) / SMASH_MAX_CHARGE_FRAMES
 
-// Damage retains its fraction; individual attack power is integer.
+// Damage retains its fraction; attack power is integer even without staling.
 public function ordinaryHitKnockback(real preHitPercent, real hitDamage, real victimWeight,
 		real growthPercent, real baseKnockback, real contextScale) returns real
 	return contactKnockback(R2I(max(0, preHitPercent)) + hitDamage, hitDamage, victimWeight, growthPercent, baseKnockback, contextScale)
@@ -1267,9 +1309,10 @@ function resolveDamageContacts(FighterState target)
 			target.surface = -1
 			applyDirectionalInfluence(target, chosen.throwInput)
 
-public function finishDamageContacts(FighterState first, FighterState second)
-	resolveDamageContacts(first)
-	resolveDamageContacts(second)
+public function finishDamageContacts(FighterRoster world)
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(slot)
+			resolveDamageContacts(world.fighters[slot])
 	damageContactCount = 0
 	collectingDamageContacts = false
 
@@ -1370,16 +1413,41 @@ function selectHitRegion(FighterState attacker, FighterState target) returns hit
 	let localZ = target.z - attacker.z
 	for index = 0 to (attacker.attackStyle == 6 ? 1 : 0)
 		let hitBox = authoredHitRegion(attacker.character, attacker.attackStyle, attacker.attackFrame, attacker.smashChargeFrames, index)
-		let alreadyHit = target.lastHitAttacker == attacker and target.lastHitAttackSerial == attacker.attackSerial and target.lastHitWindow >= hitBox.window
+		let alreadyHit = alreadyHitRegion(attacker, target, hitBox.window)
 		if hitBox.window > 0 and not alreadyHit and localX >= hitBox.minX and localX <= hitBox.maxX and localZ >= hitBox.minZ and localZ <= hitBox.maxZ
 			return hitBox
 	return noHitRegion()
+
+function alreadyHitRegion(FighterState attacker, FighterState target, int window) returns boolean
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if target.hitAttackers[slot] == attacker and target.hitSerials[slot] == attacker.attackSerial and target.hitWindows[slot] >= window
+			return true
+	return false
+
+function specialAlreadyHit(FighterState owner, FighterState target) returns boolean
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if owner.specialHitTargets[slot] == target
+			return true
+	return false
+
+function recordSpecialHit(FighterState owner, FighterState target)
+	owner.specialHit = true
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if owner.specialHitTargets[slot] == null or owner.specialHitTargets[slot] == target
+			owner.specialHitTargets[slot] = target
+			return
 
 function recordHitRegion(FighterState attacker, FighterState target, hitRegion hitBox)
 	attacker.attackHit = true
 	target.lastHitAttacker = attacker
 	target.lastHitAttackSerial = attacker.attackSerial
 	target.lastHitWindow = hitBox.window
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if target.hitAttackers[slot] == null or target.hitAttackers[slot] == attacker
+			target.hitAttackers[slot] = attacker
+			target.hitSerials[slot] = attacker.attackSerial
+			target.hitWindows[slot] = hitBox.window
+			return
 
 public function isIntangible(FighterState f) returns boolean
 	if f.ledgeState != LEDGE_NONE and f.ledgeIntangible > 0
@@ -1459,6 +1527,8 @@ function ledgeDistance(FighterState f, int stage, int side) returns real
 	return dx * dx + dz * dz
 
 function catchLedge(FighterState f, int stage, int side)
+	f.crouching = false
+
 	f.fastFalling = false
 	clearDash(f)
 	clearDownState(f)
@@ -1484,24 +1554,28 @@ function catchLedge(FighterState f, int stage, int side)
 	f.techWindow = 0
 	f.techHitlagLatched = false
 
-public function resolveLedgePair(FighterState first, FighterState second, int stage, InputSnapshot firstInput, InputSnapshot secondInput)
-	var firstSide = ledgeCandidate(first, stage, firstInput)
-	var secondSide = ledgeCandidate(second, stage, secondInput)
-	if second.ledgeState != LEDGE_NONE and second.ledgeSide == firstSide
-		firstSide = 0
-	if first.ledgeState != LEDGE_NONE and first.ledgeSide == secondSide
-		secondSide = 0
-	if firstSide != 0 and firstSide == secondSide
-		let firstDistance = ledgeDistance(first, stage, firstSide)
-		let secondDistance = ledgeDistance(second, stage, secondSide)
-		if firstDistance >= secondDistance
-			firstSide = 0
-		if secondDistance >= firstDistance
-			secondSide = 0
-	if firstSide != 0
-		catchLedge(first, stage, firstSide)
-	if secondSide != 0
-		catchLedge(second, stage, secondSide)
+public function resolveLedges(FighterRoster world, int stage, FrameInputs controls)
+	// Tied nearest candidates both fail, preserving simultaneous two-fighter catches.
+	for sideIndex = 0 to 1
+		let side = sideIndex == 0 ? -1 : 1
+		var occupied = false
+		var best = -1
+		var distance = 0.
+		var tied = false
+		for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+			if world.active(slot)
+				let f = world.fighters[slot]
+				occupied = occupied or (f.ledgeState != LEDGE_NONE and f.ledgeSide == side)
+				if ledgeCandidate(f, stage, controls.inputs[slot]) == side
+					let candidate = ledgeDistance(f, stage, side)
+					if best < 0 or candidate < distance
+						best = slot
+						distance = candidate
+						tied = false
+					else if candidate == distance
+						tied = true
+		if not occupied and best >= 0 and not tied
+			catchLedge(world.fighters[best], stage, side)
 
 function startLedgeOption(FighterState f, int state)
 	f.ledgeState = state
@@ -1620,6 +1694,7 @@ public function startFreezeTrap(FighterState owner, int stage) returns boolean
 	if owner.character != 1 or not owner.grounded or owner.surface < 0 or owner.freezeTrapLife > 0 or owner.freezeTrapCooldown > 0 or not canAttack(owner)
 		return false
 	owner.freezeTrapX = owner.x
+	owner.crouching = false
 	owner.freezeTrapSurface = owner.surface
 	owner.freezeTrapZ = surfaceZ(stage, owner.surface)
 	owner.freezeTrapLife = FREEZE_TRAP_LIFETIME_FRAMES
@@ -1656,19 +1731,36 @@ function freezeFromTrap(FighterState target)
 
 // Determine both contacts against the same pre-mutation frame, then consume
 // traps and freeze targets. Simultaneous traps therefore do not depend on P1 order.
-public function advanceFreezeTrapPair(FighterState first, FighterState second)
-	let firstTriggers = trapCanContact(first, second)
-	let secondTriggers = trapCanContact(second, first)
-	let freezeSecond = firstTriggers and not (second.shield and second.shieldEnergy > 0)
-	let freezeFirst = secondTriggers and not (first.shield and first.shieldEnergy > 0)
-	if firstTriggers
-		clearOwnedFreezeTrap(first)
-	if secondTriggers
-		clearOwnedFreezeTrap(second)
-	if freezeFirst
-		freezeFromTrap(first)
-	if freezeSecond
-		freezeFromTrap(second)
+boolean array trapTriggers
+boolean array trapFreezes
+
+public function advanceFreezeTraps(FighterRoster world)
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		trapTriggers[slot] = false
+		trapFreezes[slot] = false
+	for ownerSlot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(ownerSlot)
+			let owner = world.fighters[ownerSlot]
+			var nearest = -1
+			var distance = 0.
+			for targetSlot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+				if world.active(targetSlot) and targetSlot != ownerSlot
+					let target = world.fighters[targetSlot]
+					if trapCanContact(owner, target)
+						let candidate = (target.x - owner.freezeTrapX).abs()
+						if nearest < 0 or candidate < distance
+							nearest = targetSlot
+							distance = candidate
+			if nearest >= 0
+				trapTriggers[ownerSlot] = true
+				let target = world.fighters[nearest]
+				trapFreezes[nearest] = trapFreezes[nearest] or not (target.shield and target.shieldEnergy > 0)
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(slot) and trapTriggers[slot]
+			clearOwnedFreezeTrap(world.fighters[slot])
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(slot) and trapFreezes[slot]
+			freezeFromTrap(world.fighters[slot])
 
 public function shieldBreakDizzyFrames(real percent) returns real
 	return max(0., SHIELD_BREAK_BASE_PERCENT - percent) + SHIELD_BREAK_MIN_FRAMES
@@ -2202,6 +2294,7 @@ function resolveDemonHunterParry(FighterState defender, FighterState attacker, i
 	attacker.vz = 0
 	attacker.knockbackX = awayDirection * 9.
 	attacker.knockbackZ = 4.
+	defender.parrySerial++
 	defender.specialAction = SPECIAL_NONE
 	defender.specialFrame = 0
 	defender.specialLockFrames = 0
@@ -2215,45 +2308,45 @@ function applyProjectileHit(FighterState owner, FighterState target, int index)
 	else
 		queueDamageContact(owner, target, hitEffect(attackDamage(1), 0, 0, 0, 0, false), owner.projectileDirection[index], CONTACT_FLINCH, false, null)
 
-function updateProjectiles(FighterState owner, FighterState target, real targetX, real targetZ, boolean targetWasOut, boolean targetWasIntangible)
-	for index = 0 to PROJECTILE_CAPACITY - 1
-		if owner.projectileLife[index] > 0
-			let oldX = owner.projectileX[index]
-			let oldZ = owner.projectileZ[index]
-			var velocityX = owner.projectileVelocityX[index]
-			let velocityZ = owner.projectileVelocityZ[index]
-			if owner.projectileKind[index] == PROJECTILE_BLASTER and velocityX == 0
-				velocityX = owner.projectileDirection[index] * BLASTER_PROJECTILE_SPEED
-				owner.projectileVelocityX[index] = velocityX
-			owner.projectileX[index] = oldX + velocityX
-			owner.projectileZ[index] = oldZ + velocityZ
-			owner.projectileLife[index]--
-			let direction = velocityX < 0 ? -1 : 1
-			let crossedTarget = (targetX - oldX) * direction >= 0 and (targetX - owner.projectileX[index]) * direction <= 0
-			let nearTarget = (targetX - owner.projectileX[index]).abs() <= BLASTER_PROJECTILE_RADIUS
-			let crossedHeight = targetZ + 45 >= min(oldZ, owner.projectileZ[index]) - BLASTER_PROJECTILE_HALF_HEIGHT and targetZ + 45 <= max(oldZ, owner.projectileZ[index]) + BLASTER_PROJECTILE_HALF_HEIGHT
-			if (crossedTarget or nearTarget) and crossedHeight and not targetWasOut and not targetWasIntangible
-				applyProjectileHit(owner, target, index)
-				owner.projectileLife[index] = 0
-			else if owner.projectileLife[index] <= 0
-				owner.projectileLife[index] = 0
-
-public function updateProjectilePair(FighterState first, FighterState second)
+public function updateProjectiles(FighterRoster world)
 	let ownsBatch = not collectingDamageContacts
 	if ownsBatch
 		beginDamageContacts()
-	let firstWasOut = first.out
-	let secondWasOut = second.out
-	let firstWasIntangible = isIntangible(first)
-	let secondWasIntangible = isIntangible(second)
-	let firstX = first.x
-	let firstZ = first.z
-	let secondX = second.x
-	let secondZ = second.z
-	updateProjectiles(first, second, secondX, secondZ, secondWasOut, secondWasIntangible)
-	updateProjectiles(second, first, firstX, firstZ, firstWasOut, firstWasIntangible)
+	for ownerSlot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(ownerSlot)
+			let owner = world.fighters[ownerSlot]
+			for index = 0 to PROJECTILE_CAPACITY - 1
+				if owner.projectileLife[index] > 0
+					let oldX = owner.projectileX[index]
+					let oldZ = owner.projectileZ[index]
+					var velocityX = owner.projectileVelocityX[index]
+					let velocityZ = owner.projectileVelocityZ[index]
+					if owner.projectileKind[index] == PROJECTILE_BLASTER and velocityX == 0
+						velocityX = owner.projectileDirection[index] * BLASTER_PROJECTILE_SPEED
+						owner.projectileVelocityX[index] = velocityX
+					owner.projectileX[index] = oldX + velocityX
+					owner.projectileZ[index] = oldZ + velocityZ
+					owner.projectileLife[index]--
+					let direction = velocityX < 0 ? -1 : 1
+					var nearest = -1
+					var distance = 0.
+					for targetSlot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+						if world.active(targetSlot) and targetSlot != ownerSlot
+							let target = world.fighters[targetSlot]
+							let crossed = (target.x - oldX) * direction >= 0 and (target.x - owner.projectileX[index]) * direction <= 0
+							let near = (target.x - owner.projectileX[index]).abs() <= BLASTER_PROJECTILE_RADIUS
+							let height = target.z + 45 >= min(oldZ, owner.projectileZ[index]) - BLASTER_PROJECTILE_HALF_HEIGHT and target.z + 45 <= max(oldZ, owner.projectileZ[index]) + BLASTER_PROJECTILE_HALF_HEIGHT
+							let candidate = (target.x - oldX).abs()
+							if (crossed or near) and height and not target.out and not isIntangible(target) and (nearest < 0 or candidate < distance)
+								nearest = targetSlot
+								distance = candidate
+					if nearest >= 0
+						applyProjectileHit(owner, world.fighters[nearest], index)
+						owner.projectileLife[index] = 0
+					else if owner.projectileLife[index] <= 0
+						owner.projectileLife[index] = 0
 	if ownsBatch
-		finishDamageContacts(first, second)
+		finishDamageContacts(world)
 
 function clearGrabLinks(FighterState f)
 	let owner = f.grabOwner
@@ -2339,14 +2432,23 @@ function advanceGrab(FighterState owner, InputSnapshot ownerInput, InputSnapshot
 		else
 			releaseThrow(owner, target, targetInput)
 
-public function advanceGrabPair(FighterState first, FighterState second, InputSnapshot firstInput, InputSnapshot secondInput, boolean paused)
+public function advanceGrabs(FighterRoster world, FrameInputs controls)
 	let ownsBatch = not collectingDamageContacts
 	if ownsBatch
 		beginDamageContacts()
-	advanceGrab(first, firstInput, secondInput, paused)
-	advanceGrab(second, secondInput, firstInput, paused)
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(slot)
+			let owner = world.fighters[slot]
+			let targetSlot = world.slotOf(owner.grabTarget)
+			let targetInput = targetSlot >= 0 ? controls.inputs[targetSlot] : controls.inputs[slot]
+			let paused = world.grabPaused[slot] or (targetSlot >= 0 and world.grabPaused[targetSlot])
+			advanceGrab(owner, controls.inputs[slot], targetInput, paused)
 	if ownsBatch
-		finishDamageContacts(first, second)
+		finishDamageContacts(world)
+
+public function captureGrabPauses(FighterRoster world)
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		world.grabPaused[slot] = world.active(slot) and world.fighters[slot].hitlag > 0
 
 function resolveHeldTarget(FighterState owner)
 	let target = owner.grabTarget
@@ -2382,9 +2484,10 @@ function resolveHeldTarget(FighterState owner)
 
 // Resolve after both fighters advance, so expiry never gives the second slot
 // an extra movement tick. Run again after contacts to anchor a newly caught pair.
-public function resolveGrabPair(FighterState first, FighterState second)
-	resolveHeldTarget(first)
-	resolveHeldTarget(second)
+public function resolveGrabs(FighterRoster world)
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(slot)
+			resolveHeldTarget(world.fighters[slot])
 
 function cancelAttack(FighterState fighter)
 	fighter.crouching = false
@@ -2436,6 +2539,10 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 	queueDamageContact(attacker, target, hitData, facing, CONTACT_LAUNCH, directContact, null)
 
 function startSpecialAction(FighterState owner, int action, int duration, int direction)
+	if action == SPECIAL_ARCHER_DISENGAGE or action == SPECIAL_DEMONHUNTER_IMMOLATE
+		for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+			owner.specialHitTargets[slot] = null
+
 	owner.fastFalling = false
 	owner.crouching = false
 	owner.specialAction = action
@@ -2676,7 +2783,7 @@ function advanceSpecialAction(FighterState owner)
 		owner.specialAction = SPECIAL_NONE
 		owner.specialFrame = 0
 
-function advanceBear(FighterState owner, FighterState target, int stage)
+function advanceBear(FighterState owner, FighterRoster world, int ownerSlot, int stage)
 	if owner.bearLife <= 0
 		return
 	owner.bearLife--
@@ -2692,15 +2799,22 @@ function advanceBear(FighterState owner, FighterState target, int stage)
 			owner.bearZ = surfaceZ(stage, 0)
 			owner.bearVelocityZ = 0
 			owner.bearSurface = 0
-	if owner.bearSwipeCooldown <= 0 and not target.out and not isIntangible(target) and (target.x - owner.bearX).abs() <= 70 and (target.z - owner.bearZ).abs() <= 100
-		owner.bearSwipeCooldown = RIFLEMAN_BEAR_SWIPE_INTERVAL
-		owner.bearHitSerial++
-		applyAttackHit(owner, target, 0, owner.bearVelocityX < 0 ? -1 : 1,
-			hitEffect(6, 90, 18, DIAGONAL_UNIT, 0.35, false), false)
+	if owner.bearSwipeCooldown <= 0
+		var hit = false
+		for targetSlot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+			if world.active(targetSlot) and targetSlot != ownerSlot
+				let target = world.fighters[targetSlot]
+				if not target.out and not isIntangible(target) and (target.x - owner.bearX).abs() <= 70 and (target.z - owner.bearZ).abs() <= 100
+					hit = true
+					applyAttackHit(owner, target, 0, owner.bearVelocityX < 0 ? -1 : 1,
+						hitEffect(6, 90, 18, DIAGONAL_UNIT, 0.35, false), false)
+		if hit
+			owner.bearSwipeCooldown = RIFLEMAN_BEAR_SWIPE_INTERVAL
+			owner.bearHitSerial++
 	if owner.bearLife <= 0 or owner.bearX < surfaceLeft(stage, 0) - 100 or owner.bearX > surfaceRight(stage, 0) + 100
 		owner.bearLife = 0
 
-function advanceHippogryph(FighterState owner, FighterState target)
+function advanceHippogryph(FighterState owner, FighterRoster world, int ownerSlot)
 	if owner.hippogryphLife <= 0
 		return
 	owner.hippogryphLife--
@@ -2711,47 +2825,57 @@ function advanceHippogryph(FighterState owner, FighterState target)
 		let oldX = owner.hippogryphX
 		owner.hippogryphX += owner.hippogryphVelocityX
 		owner.hippogryphZ += owner.hippogryphVelocityZ
-		if owner.hippogryphKind == 1 and not owner.specialHit and not target.out and not isIntangible(target)
-			let crossedTarget = (target.x - oldX) * owner.facing >= 0 and (target.x - owner.hippogryphX) * owner.facing <= 0
-			if (crossedTarget or (target.x - owner.hippogryphX).abs() <= 60) and (target.z - owner.hippogryphZ).abs() <= 100
-				owner.specialHit = true
-				applyAttackHit(owner, target, 0, owner.facing,
-					hitEffect(8, 100, 22, DIAGONAL_UNIT, DIAGONAL_UNIT, false), false)
+		for targetSlot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+			if world.active(targetSlot) and targetSlot != ownerSlot
+				let target = world.fighters[targetSlot]
+				if owner.hippogryphKind == 1 and not specialAlreadyHit(owner, target) and not target.out and not isIntangible(target)
+					let crossedTarget = (target.x - oldX) * owner.facing >= 0 and (target.x - owner.hippogryphX) * owner.facing <= 0
+					if (crossedTarget or (target.x - owner.hippogryphX).abs() <= 60) and (target.z - owner.hippogryphZ).abs() <= 100
+						recordSpecialHit(owner, target)
+						applyAttackHit(owner, target, 0, owner.facing,
+							hitEffect(8, 100, 22, DIAGONAL_UNIT, DIAGONAL_UNIT, false), false)
 	if owner.hippogryphLife <= 0
 		owner.hippogryphKind = 0
 		if owner.specialAction == SPECIAL_ARCHER_DISENGAGE
 			owner.specialHit = false
 
-public function advanceSpecialPair(FighterState first, FighterState second, int stage)
+hitRegion array specialContacts
+int array contactFacings
+
+public function advanceSpecials(FighterRoster world, int stage)
 	let ownsBatch = not collectingDamageContacts
 	if ownsBatch
 		beginDamageContacts()
-	advanceSpecialAction(first)
-	advanceSpecialAction(second)
-	// Capture both contacts before either hit interrupts the opposing action.
-	let firstContact = demonHunterSpecialContact(first, second)
-	let secondContact = demonHunterSpecialContact(second, first)
-	let firstFacing = first.facing
-	let secondFacing = second.facing
-	if firstContact.window > 0
-		first.specialHit = true
-	if secondContact.window > 0
-		second.specialHit = true
-	if firstContact.window > 0
-		applyAttackHit(first, second, 0, firstFacing, firstContact.hitData, true)
-	if secondContact.window > 0
-		applyAttackHit(second, first, 0, secondFacing, secondContact.hitData, true)
-	advanceBear(first, second, stage)
-	advanceBear(second, first, stage)
-	advanceHippogryph(first, second)
-	advanceHippogryph(second, first)
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(slot)
+			advanceSpecialAction(world.fighters[slot])
+	for ownerSlot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(ownerSlot)
+			let owner = world.fighters[ownerSlot]
+			contactFacings[ownerSlot] = owner.facing
+			for targetSlot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+				if world.active(targetSlot) and targetSlot != ownerSlot
+					specialContacts[ownerSlot * INPUT_PARTICIPANT_CAPACITY + targetSlot] = demonHunterSpecialContact(owner, world.fighters[targetSlot])
+	for ownerSlot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(ownerSlot)
+			let owner = world.fighters[ownerSlot]
+			for targetSlot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+				if world.active(targetSlot) and targetSlot != ownerSlot
+					let contact = specialContacts[ownerSlot * INPUT_PARTICIPANT_CAPACITY + targetSlot]
+					if contact.window > 0
+						recordSpecialHit(owner, world.fighters[targetSlot])
+						applyAttackHit(owner, world.fighters[targetSlot], 0, contactFacings[ownerSlot], contact.hitData, true)
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(slot)
+			advanceBear(world.fighters[slot], world, slot, stage)
+			advanceHippogryph(world.fighters[slot], world, slot)
 	if ownsBatch
-		finishDamageContacts(first, second)
+		finishDamageContacts(world)
 
 function demonHunterSpecialContact(FighterState owner, FighterState target) returns hitRegion
 	if owner.character != 2 or owner.specialAction != SPECIAL_DEMONHUNTER_IMMOLATE
 		return noHitRegion()
-	if owner.specialHit or owner.specialFrame < DEMONHUNTER_IMMOLATE_STARTUP
+	if specialAlreadyHit(owner, target) or owner.specialFrame < DEMONHUNTER_IMMOLATE_STARTUP
 		return noHitRegion()
 	if owner.specialFrame >= DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE or target.out or isIntangible(target)
 		return noHitRegion()
@@ -2834,62 +2958,86 @@ function canBeginGroundDodge(FighterState f) returns boolean
 		return false
 	return not f.out and f.downState == DOWN_NONE and f.grounded and f.hitlag <= 0 and f.hitstun <= 0 and f.shieldStun <= 0 and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0 and f.grabbedFrames <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldEnergy > 0
 
-public function beginAttackPair(FighterState first, FighterState second, int firstStyle, int secondStyle, boolean firstMayCharge, boolean secondMayCharge)
-	let firstAction = first.character == 2 and firstStyle == 0 and first.grounded and first.dashFrame > 0 ? DEMONHUNTER_DASH_ATTACK_STYLE : firstStyle
-	let secondAction = second.character == 2 and secondStyle == 0 and second.grounded and second.dashFrame > 0 ? DEMONHUNTER_DASH_ATTACK_STYLE : secondStyle
-	let firstGroundAttack = firstAction >= 0 and firstAction <= 10 and firstAction != 1 or firstAction == DEMONHUNTER_DASH_ATTACK_STYLE
-	let secondGroundAttack = secondAction >= 0 and secondAction <= 10 and secondAction != 1 or secondAction == DEMONHUNTER_DASH_ATTACK_STYLE
-	let firstAerial = isAerialAttack(firstAction)
-	let secondAerial = isAerialAttack(secondAction)
-	let firstEligible = (firstGroundAttack and first.grounded or firstAction == 1 or firstAerial and not first.grounded) and canStartAttackStyle(first, firstAction)
-	let secondEligible = (secondGroundAttack and second.grounded or secondAction == 1 or secondAerial and not second.grounded) and canStartAttackStyle(second, secondAction)
-	if firstEligible
-		beginAttack(first, firstAction, firstMayCharge)
-	if secondEligible
-		beginAttack(second, secondAction, secondMayCharge)
+public function beginFighterAttack(FighterRoster world, int slot, int style, boolean mayCharge)
+	let fighter = world.fighters[slot]
+	let action = fighter.character == 2 and style == 0 and fighter.grounded and fighter.dashFrame > 0 ? DEMONHUNTER_DASH_ATTACK_STYLE : style
+	let groundAttack = action >= 0 and action <= 10 and action != 1 or action == DEMONHUNTER_DASH_ATTACK_STYLE
+	let aerial = isAerialAttack(action)
+	if (groundAttack and fighter.grounded or action == 1 or aerial and not fighter.grounded) and canStartAttackStyle(fighter, action)
+		beginAttack(fighter, action, mayCharge)
 
-public function resolveAttackPair(FighterState first, FighterState second)
+hitRegion array attackContacts
+int array attackStyles
+boolean array attackShots
+boolean array grabClashed
+int array grabChoices
+boolean array grabbedThisPhase
+
+public function resolveAttacks(FighterRoster world)
 	let ownsBatch = not collectingDamageContacts
 	if ownsBatch
 		beginDamageContacts()
-	let firstStyle = first.attackStyle
-	let secondStyle = second.attackStyle
-	let firstRegion = selectHitRegion(first, second)
-	let secondRegion = selectHitRegion(second, first)
-	let firstShot = firstStyle == 1 and attackPhase(first) == ATTACK_ACTIVE and not first.attackHit
-	let secondShot = secondStyle == 1 and attackPhase(second) == ATTACK_ACTIVE and not second.attackHit
-	let firstHits = firstShot or firstRegion.window > 0
-	let secondHits = secondShot or secondRegion.window > 0
-	let firstFacing = first.facing
-	let secondFacing = second.facing
-	let firstGrabPriority = firstHits and firstStyle == 5 and secondStyle != 5
-	let secondGrabPriority = secondHits and secondStyle == 5 and firstStyle != 5
-	if firstHits and secondHits and firstStyle == 5 and secondStyle == 5
-		recordHitRegion(first, second, firstRegion)
-		recordHitRegion(second, first, secondRegion)
-		if ownsBatch
-			finishDamageContacts(first, second)
-		return
-	if firstShot
-		first.attackHit = true
-	if secondShot
-		second.attackHit = true
-	if firstRegion.window > 0 and not secondGrabPriority
-		recordHitRegion(first, second, firstRegion)
-	if secondRegion.window > 0 and not firstGrabPriority
-		recordHitRegion(second, first, secondRegion)
-	if firstHits and not secondGrabPriority
-		if firstStyle == 1
-			spawnProjectile(first)
-		else
-			applyAttackHit(first, second, firstStyle, firstFacing, firstRegion.hitData, true)
-	if secondHits and not firstGrabPriority
-		if secondStyle == 1
-			spawnProjectile(second)
-		else
-			applyAttackHit(second, first, secondStyle, secondFacing, secondRegion.hitData, true)
+	// Select every contact before grabs or parries can interrupt an attacker.
+	for source = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(source)
+			let f = world.fighters[source]
+			attackStyles[source] = f.attackStyle
+			attackShots[source] = f.attackStyle == 1 and attackPhase(f) == ATTACK_ACTIVE and not f.attackHit
+			contactFacings[source] = f.facing
+			grabClashed[source] = false
+			grabChoices[source] = -1
+			grabbedThisPhase[source] = false
+			for target = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+				if world.active(target) and target != source
+					attackContacts[source * INPUT_PARTICIPANT_CAPACITY + target] = selectHitRegion(f, world.fighters[target])
+	// Mutual catches clash; competing catches choose the nearest available victim,
+	// then slot order. Every fighter can belong to at most one grab link.
+	for source = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(source) and attackStyles[source] == 5
+			for target = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+				if world.active(target) and target != source and attackStyles[target] == 5
+					let forward = attackContacts[source * INPUT_PARTICIPANT_CAPACITY + target]
+					let backward = attackContacts[target * INPUT_PARTICIPANT_CAPACITY + source]
+					if forward.window > 0 and backward.window > 0
+						grabClashed[source] = true
+						grabClashed[target] = true
+						recordHitRegion(world.fighters[source], world.fighters[target], forward)
+	for source = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(source) and attackStyles[source] == 5 and not grabClashed[source] and not grabbedThisPhase[source]
+			var best = -1
+			var distance = 0.
+			for target = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+				if world.active(target) and target != source and not grabbedThisPhase[target] and grabChoices[target] < 0
+					let contact = attackContacts[source * INPUT_PARTICIPANT_CAPACITY + target]
+					let victim = world.fighters[target]
+					let candidate = (victim.x - world.fighters[source].x).abs()
+					if contact.window > 0 and victim.frozenFrames == 0 and not inGrabContext(victim) and (best < 0 or candidate < distance)
+						best = target
+						distance = candidate
+			if best >= 0
+				grabChoices[source] = best
+				grabbedThisPhase[best] = true
+	for source = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(source) and grabChoices[source] >= 0
+			let target = grabChoices[source]
+			let contact = attackContacts[source * INPUT_PARTICIPANT_CAPACITY + target]
+			recordHitRegion(world.fighters[source], world.fighters[target], contact)
+			applyAttackHit(world.fighters[source], world.fighters[target], 5, contactFacings[source], contact.hitData, true)
+	for source = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(source) and not grabbedThisPhase[source]
+			let f = world.fighters[source]
+			if attackShots[source]
+				f.attackHit = true
+				spawnProjectile(f)
+			else if attackStyles[source] != 5
+				for target = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+					if world.active(target) and target != source
+						let contact = attackContacts[source * INPUT_PARTICIPANT_CAPACITY + target]
+						if contact.window > 0
+							recordHitRegion(f, world.fighters[target], contact)
+							applyAttackHit(f, world.fighters[target], attackStyles[source], contactFacings[source], contact.hitData, true)
 	if ownsBatch
-		finishDamageContacts(first, second)
+		finishDamageContacts(world)
 
 public function reset(FighterState f, real startX)
 	f.fastFalling = false
@@ -2901,10 +3049,16 @@ public function reset(FighterState f, real startX)
 	f.jumpDodgeZ = 0
 	clearGrabLinks(f)
 	clearSpecialOnStock(f)
+	f.parrySerial = 0
 	f.lastAerialTapDirection = 0
 	f.lastHitAttacker = null
 	f.lastHitAttackSerial = -1
 	f.lastHitWindow = 0
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		f.hitAttackers[slot] = null
+		f.hitSerials[slot] = 0
+		f.hitWindows[slot] = 0
+		f.specialHitTargets[slot] = null
 	clearDash(f)
 	clearLedge(f)
 	f.ledgeSerial = 0
@@ -3282,6 +3436,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 
 function checkBlastZone(FighterState f)
 	if f.x <= -920 or f.x >= 920 or f.z <= -420 or f.z >= 760
+		f.crouching = false
 		clearGrabLinks(f)
 		clearDash(f)
 		f.out = true
@@ -3315,5 +3470,6 @@ function checkBlastZone(FighterState f)
 		f.cooldown = 0
 		f.groundDodgeFrame = 0
 		f.groundDodgeDirection = 0
+		f.groundDodgeEntryFacing = 0
 		clearDownState(f)
 		return

@@ -1,17 +1,29 @@
 package SpecialEffects
 import Wurst
 import Units
+import Abilities
 import Simulation
+import ParticipantInputs
 import ImpactAssetInfo
+import ImpactEvents
+import SpecialEffectState
+import SummonState
+import SummonPresentation
+import SummonOriginalClipInfo
 
 // Common initialization owns the handles; numerical state owns all contacts.
 public class SpecialEffects
-    private effect array[2] bears
-    private effect array[2] hippogryphs
-    private effect array[2] demonHunterAuras
-    private int array[2] previousBearLife
-    private int array[2] previousSwipeSerial
-    private int array[2] previousHippogryphLife
+    private SummonPresentation array[INPUT_PARTICIPANT_CAPACITY] bears
+    private effect array[INPUT_PARTICIPANT_CAPACITY] hippogryphs
+    private effect array[INPUT_PARTICIPANT_CAPACITY] demonHunterAuras
+    private effect array[INPUT_PARTICIPANT_CAPACITY] felFlames
+    private effect array[INPUT_PARTICIPANT_CAPACITY] manaHands
+    private effect array[INPUT_PARTICIPANT_CAPACITY] wingTrails
+    private effect array[INPUT_PARTICIPANT_CAPACITY] parryFlashes
+    private int array[INPUT_PARTICIPANT_CAPACITY] previousSpecial
+    private int array[INPUT_PARTICIPANT_CAPACITY] previousSpecialFrame
+    private ImpactPresentationCursor array[INPUT_PARTICIPANT_CAPACITY] confirmedCursors
+    private int array[INPUT_PARTICIPANT_CAPACITY] previousHippogryphLife
     private real worldX
     private real worldY
     private real worldZ
@@ -20,11 +32,18 @@ public class SpecialEffects
         worldX = x
         worldY = y
         worldZ = z
-        for slot = 0 to 1
-            bears[slot] = AddSpecialEffect(Units.grizzlyBear, x, y)
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            confirmedCursors[slot] = new ImpactPresentationCursor()
+            bears[slot] = new SummonPresentation(SUMMON_BEAR, x, y, z)
             hippogryphs[slot] = AddSpecialEffect(Units.hippoGryph, x, y)
             demonHunterAuras[slot] = AddSpecialEffect(IMPACT_ROLL_MODEL, x, y)
-            BlzSetSpecialEffectAnimationBlendTime(bears[slot], 0.)
+            felFlames[slot] = AddSpecialEffect(Abilities.immolationTarget, x, y)
+            manaHands[slot] = AddSpecialEffect(Abilities.manaBurnTarget, x, y)
+            wingTrails[slot] = AddSpecialEffect(IMPACT_DUST_MODEL, x, y)
+            parryFlashes[slot] = AddSpecialEffect(IMPACT_TECH_MODEL, x, y)
+            BlzSetSpecialEffectTimeScale(demonHunterAuras[slot], 0.)
+            BlzSetSpecialEffectTimeScale(wingTrails[slot], 0.)
+            BlzSetSpecialEffectTimeScale(parryFlashes[slot], 0.)
             BlzSetSpecialEffectAnimationBlendTime(hippogryphs[slot], 0.)
         clear()
 
@@ -33,56 +52,80 @@ public class SpecialEffects
         BlzSetSpecialEffectScale(model, 0.)
 
     function clear()
-        for slot = 0 to 1
-            hide(bears[slot])
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            confirmedCursors[slot].reset()
+            bears[slot].hide()
             hide(hippogryphs[slot])
             hide(demonHunterAuras[slot])
-            previousBearLife[slot] = 0
-            previousSwipeSerial[slot] = 0
+            hide(felFlames[slot])
+            hide(manaHands[slot])
+            hide(wingTrails[slot])
+            hide(parryFlashes[slot])
+            previousSpecial[slot] = SPECIAL_NONE
+            previousSpecialFrame[slot] = 0
             previousHippogryphLife[slot] = 0
 
     function setPaused(boolean paused)
         let scale = paused ? 0. : 1.
-        for slot = 0 to 1
-            BlzSetSpecialEffectTimeScale(bears[slot], scale)
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
             BlzSetSpecialEffectTimeScale(hippogryphs[slot], scale)
-            BlzSetSpecialEffectTimeScale(demonHunterAuras[slot], scale)
+            BlzSetSpecialEffectTimeScale(felFlames[slot], scale)
+            BlzSetSpecialEffectTimeScale(manaHands[slot], scale)
 
-    private function presentDemonHunterAura(FighterState fighter, int slot)
-        let model = demonHunterAuras[slot]
-        let immolate = fighter.specialAction == SPECIAL_DEMONHUNTER_IMMOLATE
-            and fighter.specialFrame >= DEMONHUNTER_IMMOLATE_STARTUP
-            and fighter.specialFrame < DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE
-        let parry = fighter.specialAction == SPECIAL_DEMONHUNTER_PARRY_STEP
-            and fighter.specialFrame >= DEMONHUNTER_PARRY_START
-            and fighter.specialFrame <= DEMONHUNTER_PARRY_END
-        if fighter.character != 2 or fighter.out or (not immolate and not parry)
+    private function show(effect model, FighterState fighter, real x, real z, real size, int alpha)
+        let scale = characterModelScale(fighter.character)
+        BlzSetSpecialEffectPosition(model, worldX + fighter.x + x * scale, worldY - 8, worldZ + fighter.z + z * scale)
+        BlzSetSpecialEffectScale(model, size * scale)
+        BlzSetSpecialEffectAlpha(model, alpha)
+        BlzSetSpecialEffectTimeScale(model, fighter.hitlag > 0 or fighter.frozenFrames > 0 ? 0. : 1.)
+
+    private function presentConfirmedParticles(FighterState f, int slot)
+        let action = f.specialAction
+        // Event identity is (match, completed frame, fighter, action). The
+        // shared cursor rejects replayed frames before any native restart.
+        let entered = action != previousSpecial[slot] or f.specialFrame < previousSpecialFrame[slot]
+        let flames = felFlames[slot]
+        let hand = manaHands[slot]
+        if f.character == 2 and not f.out
+            if entered
+                if action == SPECIAL_DEMONHUNTER_IMMOLATE
+                    BlzSetSpecialEffectTime(flames, 0.)
+                else if action == SPECIAL_DEMONHUNTER_MANA_BURN
+                    BlzSetSpecialEffectTime(hand, 0.)
+            if action == SPECIAL_DEMONHUNTER_IMMOLATE and f.specialFrame >= DEMONHUNTER_IMMOLATE_STARTUP and f.specialFrame < DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE
+                show(flames, f, 0, 25, 1.15, 255)
+            else
+                hide(flames)
+            if action == SPECIAL_DEMONHUNTER_MANA_BURN and f.specialFrame <= DEMONHUNTER_MANA_BURN_STARTUP
+                show(hand, f, f.facing * 45., 90, 0.75, 255)
+            else
+                hide(hand)
+        else
+            hide(flames)
+            hide(hand)
+        previousSpecial[slot] = action
+        previousSpecialFrame[slot] = f.specialFrame
+
+    private function applyStatic(effect model, StaticSpecialPose pose)
+        if not pose.visible
             hide(model)
             return
-        // Static geometry follows the action window directly: no particle tail
-        // or replayed one-shot can imply protection/contact after it has ended.
-        BlzSetSpecialEffectPosition(model, worldX + fighter.x, worldY - 8, worldZ + fighter.z + 50)
-        BlzSetSpecialEffectColor(model, immolate ? 85 : 150, 255, immolate ? 100 : 255)
-        BlzSetSpecialEffectScale(model, immolate ? 1.4 : 0.85)
-        BlzSetSpecialEffectAlpha(model, 230)
+        BlzSetSpecialEffectPosition(model, worldX + pose.x, worldY - 8, worldZ + pose.z)
+        BlzSetSpecialEffectColor(model, pose.red, pose.green, pose.blue)
+        BlzSetSpecialEffectScale(model, pose.scale)
+        BlzSetSpecialEffectAlpha(model, pose.alpha)
 
-    private function apply(FighterState fighter, int slot)
-        presentDemonHunterAura(fighter, slot)
-        let bear = bears[slot]
-        if fighter.bearLife > 0 and not fighter.out
-            BlzSetSpecialEffectPosition(bear, worldX + fighter.bearX, worldY, worldZ + fighter.bearZ)
-            BlzSetSpecialEffectYaw(bear, fighter.bearVelocityX >= 0 ? 0. : 3.141592654)
-            BlzSetSpecialEffectScale(bear, 0.8)
-            BlzSetSpecialEffectAlpha(bear, 255)
-            if fighter.bearHitSerial != previousSwipeSerial[slot]
-                BlzSetSpecialEffectAnimation(bear, "attack")
-                BlzQueueSpecialEffectAnimation(bear, "walk")
-            else if previousBearLife[slot] == 0
-                BlzSetSpecialEffectAnimation(bear, "walk")
-        else
-            hide(bear)
-        previousBearLife[slot] = fighter.bearLife
-        previousSwipeSerial[slot] = fighter.bearHitSerial
+    // Completed selected replay state has no confirmed-frame cursor.
+    function presentStatic(SpecialEffectState state, FighterState fighter, int slot)
+        applyStatic(demonHunterAuras[slot], state.project(fighter, slot, STATIC_AURA))
+        applyStatic(wingTrails[slot], state.project(fighter, slot, STATIC_WING_TRAIL))
+        applyStatic(parryFlashes[slot], state.project(fighter, slot, STATIC_PARRY_FLASH))
+
+    function presentSummons(SummonState state, FighterState fighter, int slot)
+        bears[slot].present(state.projectBear(fighter, slot))
+
+    private function applyConfirmedAnimated(FighterState fighter, int slot)
+        presentConfirmedParticles(fighter, slot)
         let hippogryph = hippogryphs[slot]
         if fighter.hippogryphLife > 0 and not fighter.out
             BlzSetSpecialEffectPosition(hippogryph, worldX + fighter.hippogryphX, worldY, worldZ + fighter.hippogryphZ)
@@ -96,6 +139,6 @@ public class SpecialEffects
             hide(hippogryph)
         previousHippogryphLife[slot] = fighter.hippogryphLife
 
-    function present(FighterState first, FighterState second)
-        apply(first, 0)
-        apply(second, 1)
+    function presentConfirmedAnimated(int frame, FighterState fighter, int slot)
+        if confirmedCursors[slot].consume(frame)
+            applyConfirmedAnimated(fighter, slot)

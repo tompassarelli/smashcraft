@@ -14,13 +14,17 @@ stdlib_checkout=/home/tom/code/wurst-stdlib/pins/4dfc8a0474bd
 compiler_jar="$project_dir/toolchain/wurstscript.jar"
 java=/home/tom/.wurst/wurst-runtime/bin/java
 maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps/00-Smashcraft'
-build_output="$project_dir/build/wurst-map/$map_filename"
+build_output=$(realpath -m -- "${WC3_BUILD_OUTPUT:-$project_dir/build/wurst-map/$map_filename}")
+[[ "$build_output" == "$project_dir/build/"*.w3x ]] || { echo 'WC3_BUILD_OUTPUT must be a .w3x path under wc3-melee:build/.' >&2; exit 2; }
+private_assets=${WC3_PRIVATE_ASSETS:?Set WC3_PRIVATE_ASSETS to the private prepared clip directory.}
+original_clips="$private_assets/original-clips-static-lights"
+summon_clips="$private_assets/summon-original-clips"
 fighter_assets="$project_dir/build/animation-assets"
 demon_hunter_assets="$project_dir/build/illidan-animation"
 selection_assets="$project_dir/build/selection-assets"
 stage_assets="$project_dir/build/stage-assets"
 impact_assets="$project_dir/build/impact-assets"
-selection_textures=(ArcherName RiflemanName DemonHunterName DemonHunterPortrait DemonHunterTile SelectionBackdrop SelectionTileFrame SelectionCardRed SelectionCardBlue SelectionCardGray SelectionAction StageBackdrop StageChip SelectionSkyDeck SelectionThreeBridges SelectionChipP1 SelectionChipP2 SelectionChipCPU ArcherPortrait RiflemanPortrait ArcherTile RiflemanTile MatchHUD0 MatchHUD1 MatchHUD2 MatchHUD3)
+selection_textures=(ArcherName RiflemanName DemonHunterName DemonHunterPortrait DemonHunterTile SelectionBackdrop SelectionTileFrame SelectionCardRed SelectionCardBlue SelectionCardYellow SelectionCardGreen SelectionCardGray SelectionAction StageBackdrop StageChip SelectionSkyDeck SelectionThreeBridges SelectionChipP1 SelectionChipP2 SelectionChipP3 SelectionChipP4 SelectionChipCPU ArcherPortrait RiflemanPortrait ArcherTile RiflemanTile MatchHUD0 MatchHUD1 MatchHUD2 MatchHUD3)
 
 if [[ $# -ne 1 || ! -f "$1" ]]; then
     printf 'Usage: %s BASE_MAP.w3m|BASE_MAP.w3x\n' "$0" >&2
@@ -44,6 +48,28 @@ nix shell nixpkgs#bun --command bun "$project_dir/tools/effects/trap.ts"
 build_id=${WC3_BUILD_ID:-$(date +%s)}
 developer_scenario=${WC3_SCENARIO:-normal}
 case "$developer_scenario" in normal|knockdown|tech|shield-break|ledge|parry|spike) ;; *) echo 'WC3_SCENARIO must be normal, knockdown, tech, shield-break, ledge, parry or spike.' >&2; exit 2;; esac
+input_profile=${WC3_INPUT_PROFILE:-callback}
+case "$input_profile" in callback|shadow-d3|shadow-d3-batch2|shadow-d3-r12|shadow-d0-r12|shadow-d1-r12|shadow-d0-r24) ;; *) echo 'Unknown WC3_INPUT_PROFILE.' >&2; exit 2;; esac
+input_delay=3
+input_rollback=6
+shadow_input=false
+[[ "$input_profile" == callback ]] || shadow_input=true
+case "$input_profile" in shadow-d0-*) input_delay=0 ;; shadow-d1-*) input_delay=1 ;; esac
+case "$input_profile" in *-r12) input_rollback=12 ;; *-r24) input_rollback=24 ;; esac
+response_probe=${WC3_RESPONSE_SERVICE_PROBE:-0}
+case "$response_probe" in 0|1) ;; *) echo 'WC3_RESPONSE_SERVICE_PROBE must be 0 or 1.' >&2; exit 2;; esac
+presentation=${WC3_PRESENTATION:-native}
+case "$presentation" in native|pool-confirmed|pool-predicted) ;; *) echo 'WC3_PRESENTATION must be native, pool-confirmed or pool-predicted.' >&2; exit 2;; esac
+if [[ "$presentation" != native ]]; then
+    [[ "$input_profile" == shadow-d*-r12 || "$input_profile" == shadow-d0-r24 ]] || { echo 'Pool presentation requires an R12 or R24 shadow input profile.' >&2; exit 2; }
+    [[ -s "$original_clips/wurst/FighterOriginalClipInfo.wurst" ]] || { echo 'Export original clips before building pool presentation.' >&2; exit 1; }
+    while IFS=$'\t' read -r source expected_hash; do
+        [[ $(sha256sum "$project_dir/$source" | cut -d ' ' -f1) == "$expected_hash" ]] || {
+            printf 'Original clips are stale for wc3-melee:%s. Export them again.\n' "$source" >&2
+            exit 1
+        }
+    done < <(jq -r '.records[] | [.source, .sourceSha256] | @tsv' "$original_clips/original-clips-evidence.json")
+fi
 if [[ ! "$build_id" =~ ^[A-Za-z0-9._-]+$ ]]; then
     printf 'WC3_BUILD_ID may contain only letters, digits, dots, underscores, and hyphens.\n' >&2
     exit 2
@@ -73,6 +99,11 @@ map_script="$work_dir/war3map.lua"
 compiled_script="$work_dir/melee.lua"
 
 mkdir -p "$work_dir/wurst" "$work_dir/_build/dependencies" "$work_dir/imports/war3mapImported"
+cp "$summon_clips/wurst/SummonOriginalClipInfo.wurst" "$work_dir/wurst/SummonOriginalClipInfo.wurst"
+mapfile -t summon_imports < <(jq -r ' .records[].clips[].filename' "$summon_clips/summon-clips-evidence.json")
+for asset in "${summon_imports[@]}"; do
+    cp "$summon_clips/imports/war3mapImported/$asset" "$work_dir/imports/war3mapImported/$asset"
+done
 ln -s "$stdlib_checkout" "$work_dir/_build/dependencies/wurststdlib"
 cp "$project_dir/wurst.build" "$work_dir/wurst.build"
 [[ $(rg -c '^  name: ' "$work_dir/wurst.build") == 1 ]] || {
@@ -81,17 +112,44 @@ cp "$project_dir/wurst.build" "$work_dir/wurst.build"
 }
 sed -i "s/^  name: .*/  name: $map_name/" "$work_dir/wurst.build"
 cp "$project_dir/tools/map-entry.j" "$work_dir/wurst/war3map.j"
-for source in FighterAssets Simulation RollTravel BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput MatchStep ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents DamagePose CombatEffects FrostEffects SpecialEffects Melee; do
+for source in ConfirmedModelSounds ModelSoundPresentation FighterAssets Simulation RollTravel IllidanMotion FighterPose BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput NetworkInput InputAdapter MatchStep ReplayState ReplayHistory KeyboardInputCapture InputProtocol InputBatch ParticipantInputs InputLedger FixedInputSchedule ShadowInputSchedule ShadowInputPlayback ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents ImpactState SpecialEffectState SummonPose SummonState SummonPresentation DamagePose CombatEffects FrostEffects ProjectilePose ProjectilePresentation ShieldPose ShieldPresentation SpecialEffects ResponseServiceProbe Melee; do
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
 done
+cp "$project_dir/build/model-sounds/wurst/ModelSoundInfo.wurst" "$work_dir/wurst/ModelSoundInfo.wurst"
 cp "$fighter_assets/FighterAssetInfo.wurst" "$work_dir/wurst/FighterAssetInfo.wurst"
+cp "$project_dir/wurst/FighterPoolPresentation.wurst" "$work_dir/wurst/FighterPoolPresentation.wurst"
+if [[ "$presentation" != native ]]; then
+    cp "$original_clips/wurst/FighterOriginalClipInfo.wurst" "$work_dir/wurst/FighterOriginalClipInfo.wurst"
+    cp "$original_clips/imports/war3mapImported/"*.mdx "$work_dir/imports/war3mapImported/"
+else
+    cat > "$work_dir/wurst/FighterOriginalClipInfo.wurst" <<'WURST'
+package FighterOriginalClipInfo
+public constant int ORIGINAL_CLIP_CAPACITY = 1
+public constant string ORIGINAL_LIGHT_ACTIVE_ANIMATION = "Stand"
+public constant string ORIGINAL_LIGHT_INACTIVE_ANIMATION = "Death"
+public constant real ORIGINAL_LIGHT_GATE_SECONDS = 0.5
+public tuple fighterOriginalClip(boolean valid, string modelPath, real startSeconds, real endSeconds, boolean looping)
+public function originalClipCount(int character) returns int
+    return 0
+public function originalLightCount(int character) returns int
+    return -1
+public function originalLightPath(int character) returns string
+    return ""
+public function originalClip(int character, int sequenceIndex) returns fighterOriginalClip
+    return fighterOriginalClip(false, "", 0., 0., false)
+public function originalClipNamed(int character, string name) returns int
+    return -1
+WURST
+fi
 cp "$demon_hunter_assets/DemonHunterAssetInfo.wurst" "$work_dir/wurst/DemonHunterAssetInfo.wurst"
 cp "$stage_assets/StageAssetInfo.wurst" "$work_dir/wurst/StageAssetInfo.wurst"
 cp "$impact_assets/ImpactAssetInfo.wurst" "$work_dir/wurst/ImpactAssetInfo.wurst"
 cp "$impact_assets/FrostAssetInfo.wurst" "$work_dir/wurst/FrostAssetInfo.wurst"
+cp "$impact_assets/ShieldAssetInfo.wurst" "$work_dir/wurst/ShieldAssetInfo.wurst"
 mapfile -t impact_imports < "$impact_assets/imports.txt"
 mapfile -t frost_imports < "$impact_assets/frost-imports.txt"
-impact_imports+=("${frost_imports[@]}")
+mapfile -t shield_imports < "$impact_assets/shield-imports.txt"
+impact_imports+=("${frost_imports[@]}" "${shield_imports[@]}")
 for asset in "${impact_imports[@]}"; do
     cp "$impact_assets/$asset" "$work_dir/imports/war3mapImported/$asset"
 done
@@ -113,12 +171,17 @@ for texture in "${selection_textures[@]}"; do
     cp "$selection_assets/$texture.tga" "$work_dir/imports/war3mapImported/$texture.tga"
 done
 
-printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\npublic constant boolean KNOCKDOWN_SCENARIO = %s\npublic constant boolean TECH_SCENARIO = %s\npublic constant boolean SHIELD_BREAK_SCENARIO = %s\npublic constant boolean LEDGE_SCENARIO = %s\npublic constant boolean PARRY_SCENARIO = %s\npublic constant boolean SPIKE_SCENARIO = %s\n' "$build_id" "$([[ "$developer_scenario" == knockdown || "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == shield-break ]] && echo true || echo false)" "$([[ "$developer_scenario" == ledge ]] && echo true || echo false)" "$([[ "$developer_scenario" == parry ]] && echo true || echo false)" "$([[ "$developer_scenario" == spike ]] && echo true || echo false)" > "$project_dir/build/generated-BuildInfo.wurst"
-cp "$project_dir/build/generated-BuildInfo.wurst" "$work_dir/wurst/BuildInfo.wurst"
+printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\npublic constant boolean SHADOW_INPUT_PROFILE = %s\npublic constant boolean SHADOW_INPUT_BATCH2 = %s\npublic constant int SHADOW_INPUT_DELAY = %s\npublic constant int SHADOW_INPUT_ROLLBACK = %s\npublic constant boolean KNOCKDOWN_SCENARIO = %s\npublic constant boolean TECH_SCENARIO = %s\npublic constant boolean SHIELD_BREAK_SCENARIO = %s\npublic constant boolean LEDGE_SCENARIO = %s\npublic constant boolean PARRY_SCENARIO = %s\npublic constant boolean SPIKE_SCENARIO = %s\n' "$build_id" "$shadow_input" "$([[ "$input_profile" == shadow-d3-batch2 ]] && echo true || echo false)" "$input_delay" "$input_rollback" "$([[ "$developer_scenario" == knockdown || "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == shield-break ]] && echo true || echo false)" "$([[ "$developer_scenario" == ledge ]] && echo true || echo false)" "$([[ "$developer_scenario" == parry ]] && echo true || echo false)" "$([[ "$developer_scenario" == spike ]] && echo true || echo false)" > "$work_dir/wurst/BuildInfo.wurst"
+printf 'public constant string INPUT_PROFILE = "%s"\npublic constant string PRESENTATION_PROFILE = "%s"\npublic constant boolean POOL_PRESENTATION = %s\npublic constant boolean PREDICTED_PRESENTATION = %s\n' "$input_profile" "$presentation" "$([[ "$presentation" != native ]] && echo true || echo false)" "$([[ "$presentation" == pool-predicted ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
+printf 'public constant boolean RESPONSE_SERVICE_PROBE = %s\n' "$([[ "$response_probe" == 1 ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
+cp "$work_dir/wurst/BuildInfo.wurst" "$build_output.BuildInfo.wurst"
+if [[ "$build_output" == "$project_dir/build/wurst-map/$map_filename" ]]; then
+    cp "$work_dir/wurst/BuildInfo.wurst" "$project_dir/build/generated-BuildInfo.wurst"
+fi
 
 (
 cd "$work_dir"
-"$java" -Xmx512m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
+"$java" -Xmx1024m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     -build -dev -lua -noExtractMapScript -stacktraces \
     -workspaceroot "$work_dir" -inputmap "$base_map" \
     -out "$compiled_script" \
@@ -195,6 +258,10 @@ done
 for asset in "${stage_imports[@]}"; do
     "$packager" extract "$output_next" "$work_dir/verified-$asset" "war3mapImported\\$asset"
     cmp "$stage_assets/$asset" "$work_dir/verified-$asset"
+done
+for asset in "${summon_imports[@]}"; do
+    "$packager" extract "$output_next" "$work_dir/verified-$asset" "war3mapImported\\$asset"
+    cmp "$summon_clips/imports/war3mapImported/$asset" "$work_dir/verified-$asset"
 done
 for asset in "${impact_imports[@]}"; do
     "$packager" extract "$output_next" "$work_dir/verified-$asset" "war3mapImported\\$asset"

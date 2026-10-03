@@ -1,4 +1,5 @@
 package RecoveryTests
+import WorldTestSupport
 import Simulation
 import ReplayState
 import MatchRules
@@ -115,9 +116,9 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	target.downFrame = 20
 	target.downWaitRemaining = 100
 	target.downFaceUp = false
-	beginAttackPair(attacker, target, 6, -1, false, false)
+	testBeginAttacks(testWorld(attacker, target), 6, -1, false, false)
 	attacker.attackFrame = attackStartupFrames(6) + 1
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 
 @Test function downboundAndGetupActionsUseTheirOwnFrameCounts()
 	let fighter = new FighterState(0, 0, 1)
@@ -203,9 +204,9 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	let target = new FighterState(1, 50, -1)
 	target.downState = DOWN_WAIT
 	target.downWaitRemaining = 100
-	beginAttackPair(attacker, target, 6, -1, false, false)
+	testBeginAttacks(testWorld(attacker, target), 6, -1, false, false)
 	attacker.attackFrame = attackStartupFrames(6)
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(7.)
 	(target.downState != DOWN_DAMAGE).assertTrue()
 	target.grounded.assertFalse()
@@ -241,18 +242,18 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	first.downFrame = 8
 	first.downWaitRemaining = 13
 	first.downFaceUp = false
-	snapshot.capture(first, second, match, firstCommands, secondCommands, runtime)
+	snapshot.capture(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
 	first.downState = DOWN_NONE
 	first.downFrame = 0
 	first.downWaitRemaining = 0
 	first.downFaceUp = true
-	snapshot.restore(first, second, match, firstCommands, secondCommands, runtime)
+	snapshot.restore(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
 	first.downState.assertEquals(DOWN_DAMAGE)
 	first.downFrame.assertEquals(8)
 	first.downWaitRemaining.assertEquals(13)
 	first.downFaceUp.assertFalse()
 	let expected = new ReplaySnapshot()
-	expected.capture(first, second, match, firstCommands, secondCommands, runtime)
+	expected.capture(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
 	snapshot.firstDifference(expected).assertEquals("")
 
 @Test function recoveryProtectionMatchesExtractedEventTimes()
@@ -303,7 +304,7 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	owner.projectileX[0] = 0
 	owner.projectileZ[0] = 45
 	owner.projectileVelocityX[0] = 30
-	updateProjectilePair(owner, target)
+	updateProjectiles(testWorld(owner, target))
 	target.damage.assertEquals(3.)
 	target.hitlag.assertEquals(4)
 	target.grounded.assertTrue()

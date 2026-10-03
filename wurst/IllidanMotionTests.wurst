@@ -1,0 +1,98 @@
+package IllidanMotionTests
+import Simulation
+import IllidanMotion
+
+@Test function illidanMotionFollowsDashBrakeCrouchAndFastFall()
+    let f = new FighterState(2, 0, 1)
+    let input = new InputSnapshot()
+    let motion = new IllidanMotion()
+    input.direction = 1
+    advance(f, 0, input, 0)
+    motion.advance(f, input)
+    motion.motion.assertEquals(ILLIDAN_DASH)
+    for tick = 1 to INITIAL_DASH_FRAMES
+        advance(f, 0, input, 0)
+        motion.advance(f, input)
+    motion.motion.assertEquals(ILLIDAN_RUN)
+    input.direction = -1
+    advance(f, 0, input, 0)
+    motion.advance(f, input)
+    motion.motion.assertEquals(ILLIDAN_TURN)
+    input.direction = 0
+    input.down = true
+    for tick = 1 to 40
+        advance(f, 0, input, 0)
+        motion.advance(f, input)
+    motion.motion.assertEquals(ILLIDAN_CROUCH)
+    input.down = false
+    advance(f, 0, input, 0)
+    input.down = true
+    f.grounded = false
+    f.z = 400
+    f.vz = -1
+    advance(f, 0, input, 0)
+    motion.advance(f, input)
+    motion.motion.assertEquals(ILLIDAN_FAST_FALL)
+    destroy motion
+    destroy input
+    destroy f
+
+@Test function illidanTransitionsDoNotAdvanceDuringHitlag()
+    let f = new FighterState(2, 0, 1)
+    let input = new InputSnapshot()
+    let motion = new IllidanMotion()
+    motion.advance(f, input)
+    f.ledgeState = LEDGE_HANG
+    f.grounded = false
+    motion.advance(f, input)
+    motion.ledgeCatchRemaining.assertEquals(6)
+    f.hitlag = 4
+    for tick = 1 to 4
+        motion.advance(f, input)
+        motion.ledgeCatchRemaining.assertEquals(6)
+    f.hitlag = 0
+    motion.advance(f, input)
+    motion.ledgeCatchRemaining.assertEquals(5)
+    f.ledgeState = LEDGE_NONE
+    f.jumpSerial++
+    motion.advance(f, input)
+    motion.ledgeJump.assertTrue()
+    f.grounded = true
+    motion.advance(f, input)
+    motion.ledgeJump.assertFalse()
+    destroy motion
+    destroy input
+    destroy f
+
+@Test function illidanEscapeIsDistinctFromThrowAndRespawnCanBeInterrupted()
+    let f = new FighterState(2, 0, 1)
+    let owner = new FighterState(2, 50, -1)
+    let input = new InputSnapshot()
+    let motion = new IllidanMotion()
+    f.grabOwner = owner
+    motion.advance(f, input)
+    f.grabOwner = null
+    f.hitstun = 10
+    owner.grabAction = THROW_FORWARD
+    motion.advance(f, input)
+    motion.escapeRemaining.assertEquals(0)
+    f.grabOwner = owner
+    motion.advance(f, input)
+    f.grabOwner = null
+    owner.grabAction = GRAB_ESCAPE
+    motion.advance(f, input)
+    motion.escapeRemaining.assertEquals(10)
+    f.hitstun = 0
+    f.out = true
+    motion.advance(f, input)
+    f.out = false
+    f.grounded = false
+    motion.advance(f, input)
+    motion.respawnRemaining.assertEquals(24)
+    input.direction = 1
+    motion.advance(f, input)
+    motion.respawnRemaining.assertEquals(0)
+    destroy motion
+    destroy input
+    destroy owner
+    destroy f

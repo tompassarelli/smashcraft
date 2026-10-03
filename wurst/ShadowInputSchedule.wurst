@@ -1,0 +1,210 @@
+package ShadowInputSchedule
+import NetworkInput
+import ParticipantInputs
+import FixedInputSchedule
+import InputProtocol
+import ReplayHistory
+
+public constant int SHADOW_CAPTURED = 0
+public constant int SHADOW_ALREADY_CAPTURED = 1
+public constant int SHADOW_WRONG_EPOCH = 2
+public constant int SHADOW_FRAME_EXHAUSTED = 3
+public constant int SHADOW_PENDING_FULL = 4
+public constant int SHADOW_WINDOW_FULL = 5
+
+public constant int SHADOW_DEFAULT_ROLLBACK_WINDOW = 6
+public constant int SHADOW_PENDING_CAPACITY = 256
+
+// The common accepted ledger owns synchronized rows and the confirmed cursor.
+// This class keeps speculative/local-only rows detached from that common state.
+public class ShadowInputSchedule
+	private FixedInputSchedule accepted = new FixedInputSchedule()
+	private NetworkInput array[SHADOW_PENDING_CAPACITY] pending
+	private int array[SHADOW_PENDING_CAPACITY] pendingFrames
+	private ParticipantInputs previous = new ParticipantInputs()
+	private NetworkInput localPreflight = new NetworkInput()
+	private int epoch = -1
+	private int delay = 0
+	private int rollbackWindow = 0
+	private int nextSpeculativeFrame = 1
+	private int nextConfirmedFrame = 1
+	private int preparedSpeculativeFrame = 0
+	private boolean preparedRowIsSpeculative = false
+	private int preparedConfirmedFrame = 0
+
+	construct()
+		for i = 0 to SHADOW_PENDING_CAPACITY - 1
+			pending[i] = new NetworkInput()
+			pendingFrames[i] = -1
+		for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+			previous.row(slot).assign(0, 0, 0, 0, 0, 0, 0)
+
+	// D and R are selected once for the epoch; the replay store bounds R.
+	function beginEpoch(int newEpoch, int fixedDelay, int window, int participants) returns boolean
+		if newEpoch <= epoch or fixedCaptureTarget(1, fixedDelay) == 0
+				or window < 1 or window > REPLAY_MAX_CORRECTION_FRAMES
+			return false
+		if not accepted.beginEpoch(newEpoch, fixedDelay, participants)
+			return false
+		epoch = newEpoch
+		delay = fixedDelay
+		rollbackWindow = window
+		nextSpeculativeFrame = 1
+		nextConfirmedFrame = 1
+		preparedSpeculativeFrame = 0
+		preparedRowIsSpeculative = false
+		preparedConfirmedFrame = 0
+		for i = 0 to SHADOW_PENDING_CAPACITY - 1
+			pendingFrames[i] = -1
+		for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+			previous.row(slot).assign(0, 0, 0, 0, 0, 0, 0)
+		return true
+
+	function participantMask() returns int
+		return accepted.participantMask()
+
+	function isActive(int sender) returns boolean
+		return accepted.isActive(sender)
+
+	function epochNumber() returns int
+		return epoch
+
+	function delayFrames() returns int
+		return delay
+
+	function rollbackFrames() returns int
+		return rollbackWindow
+
+	function knownThrough() returns int
+		return accepted.knownThrough()
+
+	function firstAcceptedFrame() returns int
+		return accepted.firstRetained()
+
+	function speculativeFrame() returns int
+		return nextSpeculativeFrame
+
+	function confirmedFrame() returns int
+		return min(accepted.knownThrough(), nextSpeculativeFrame - 1)
+
+	function nextConfirmedFrame() returns int
+		return nextConfirmedFrame
+
+	function captureTarget() returns int
+		if epoch < 0 or nextSpeculativeFrame > INPUT_LAST_FRAME - delay
+			return 0
+		return nextSpeculativeFrame + delay
+
+	// Local sampling is assigned only to F+D. It never changes K or either
+	// advancement cursor, and a repeated poll cannot rewrite an assigned row.
+	function captureLocal(int requestedEpoch, NetworkInput sample) returns int
+		if epoch < 0 or requestedEpoch != epoch
+			return SHADOW_WRONG_EPOCH
+		let target = captureTarget()
+		if target == 0
+			return SHADOW_FRAME_EXHAUSTED
+		let slot = target mod SHADOW_PENDING_CAPACITY
+		if pendingFrames[slot] == target
+			return SHADOW_ALREADY_CAPTURED
+		if pendingFrames[slot] != -1
+			return SHADOW_PENDING_FULL
+		sample.copyTo(pending[slot])
+		pendingFrames[slot] = target
+		return SHADOW_CAPTURED
+
+	function acceptSynchronized(int sender, InputPacket packet) returns int
+		return accepted.acceptSynchronized(sender, packet)
+
+	function receiveSynchronized(int sender, string wire) returns int
+		return accepted.receiveSynchronized(sender, wire)
+
+	function mayAdvanceSpeculative() returns boolean
+		return epoch >= 0 and nextSpeculativeFrame <= INPUT_LAST_FRAME
+			and nextSpeculativeFrame <= accepted.knownThrough() + rollbackWindow
+
+	// Accepted input wins. Otherwise the local participant may use its private
+	// immutable row; only remote participants are predicted, with press/release
+	// edges and press-only metadata removed by NetworkInput.predictTo.
+	function resolveSpeculative(int requestedEpoch, int localPlayer,
+			ParticipantInputs inputs) returns boolean
+		if epoch < 0 or requestedEpoch != epoch or not isActive(localPlayer)
+				or inputs == null or not mayAdvanceSpeculative()
+				or preparedSpeculativeFrame != 0
+			return false
+		let frame = nextSpeculativeFrame
+		let localSlot = frame mod SHADOW_PENDING_CAPACITY
+		if not accepted.copyAccepted(epoch, localPlayer, frame, localPreflight) and pendingFrames[localSlot] != frame
+			return false
+		var rowIsSpeculative = false
+		for slotIndex = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+			if isActive(slotIndex)
+				let destination = inputs.row(slotIndex)
+				if not accepted.copyAccepted(epoch, slotIndex, frame, destination)
+					rowIsSpeculative = true
+					if slotIndex == localPlayer
+						pending[localSlot].copyTo(destination)
+					else
+						previous.row(slotIndex).predictTo(destination)
+				destination.copyTo(previous.row(slotIndex))
+		preparedSpeculativeFrame = frame
+		preparedRowIsSpeculative = rowIsSpeculative
+		return true
+
+	function resolvedRowIsSpeculative(int frame) returns boolean
+		return preparedSpeculativeFrame == frame and preparedRowIsSpeculative
+
+	// Caller invokes this only after the speculative row has been recorded and
+	// executed. The private local row is retained until common K confirms it.
+	function completeSpeculative(int requestedEpoch, int frame) returns boolean
+		if requestedEpoch != epoch or frame != nextSpeculativeFrame or preparedSpeculativeFrame != frame
+			return false
+		preparedSpeculativeFrame = 0
+		preparedRowIsSpeculative = false
+		nextSpeculativeFrame++
+		return true
+
+	function mayAdvanceConfirmed() returns boolean
+		return epoch >= 0 and nextConfirmedFrame <= confirmedFrame()
+
+	function readConfirmed(int requestedEpoch, ParticipantInputs inputs) returns boolean
+		if requestedEpoch != epoch or inputs == null or preparedConfirmedFrame != 0 or not mayAdvanceConfirmed()
+			return false
+		let frame = nextConfirmedFrame
+		if not accepted.readNext(epoch, inputs)
+			return false
+		preparedConfirmedFrame = frame
+		return true
+
+	// Confirmed state advances only after caller executes the accepted rows in a
+	// distinct confirmed world. Completion advances the common ledger's cursor.
+	function completeConfirmed(int requestedEpoch, int frame) returns boolean
+		if requestedEpoch != epoch or frame != nextConfirmedFrame or preparedConfirmedFrame != frame
+			return false
+		if not accepted.complete(epoch, frame)
+			return false
+		preparedConfirmedFrame = 0
+		nextConfirmedFrame++
+		let oldFrame = frame - REPLAY_HISTORY_CAPACITY
+		if oldFrame >= 1
+			let slot = oldFrame mod SHADOW_PENDING_CAPACITY
+			pendingFrames[slot] = -1
+		return true
+
+	function copyAccepted(int requestedEpoch, int playerSlot, int frame, NetworkInput destination) returns boolean
+		return accepted.copyAccepted(requestedEpoch, playerSlot, frame, destination)
+
+	function rememberResolvedInput(int playerSlot, NetworkInput row) returns boolean
+		if not isActive(playerSlot)
+			return false
+		row.copyTo(previous.row(playerSlot))
+		return true
+
+	function copyPending(int requestedEpoch, int frame, NetworkInput destination) returns boolean
+		if requestedEpoch != epoch or frame < 1 or frame > INPUT_LAST_FRAME
+			return false
+		let slot = frame mod SHADOW_PENDING_CAPACITY
+		if pendingFrames[slot] != frame
+			return false
+		pending[slot].copyTo(destination)
+		return true
+

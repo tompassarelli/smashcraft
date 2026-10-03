@@ -1,0 +1,61 @@
+package SpecialEffectState
+import Wurst
+import Simulation
+import ParticipantInputs
+
+public constant int PARRY_FLASH_FRAMES = 12
+public constant int STATIC_AURA = 0
+public constant int STATIC_WING_TRAIL = 1
+public constant int STATIC_PARRY_FLASH = 2
+
+public tuple StaticSpecialPose(boolean visible, real x, real z, real scale, int alpha, int red, int green, int blue)
+
+// Only event history is stored here. Action windows and transforms use the
+// selected fighter directly, and projection never consumes or advances time.
+public class SpecialEffectState
+    int array[INPUT_PARTICIPANT_CAPACITY] parrySerial
+    int array[INPUT_PARTICIPANT_CAPACITY] parryAge
+
+    construct()
+        clear()
+
+    function clear()
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            parrySerial[slot] = 0
+            parryAge[slot] = PARRY_FLASH_FRAMES
+
+    function copyTo(SpecialEffectState destination)
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            destination.parrySerial[slot] = parrySerial[slot]
+            destination.parryAge[slot] = parryAge[slot]
+
+    function firstDifference(SpecialEffectState actual) returns string
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            let prefix = "slot[" + I2S(slot) + "]."
+            if parrySerial[slot] != actual.parrySerial[slot]
+                return prefix + "parrySerial"
+            if parryAge[slot] != actual.parryAge[slot]
+                return prefix + "parryAge"
+        return ""
+
+    function advance(FighterState fighter, int slot)
+        if fighter.character != 2 or fighter.out
+            parryAge[slot] = PARRY_FLASH_FRAMES
+        else if fighter.parrySerial > parrySerial[slot]
+            parryAge[slot] = 0
+        else if parryAge[slot] < PARRY_FLASH_FRAMES
+            parryAge[slot]++
+        parrySerial[slot] = fighter.parrySerial
+
+    function project(FighterState fighter, int slot, int kind) returns StaticSpecialPose
+        if fighter == null or fighter.character != 2 or fighter.out
+            return StaticSpecialPose(false, 0., 0., 0., 0, 0, 0, 0)
+        let scale = characterModelScale(fighter.character)
+        if kind == STATIC_AURA
+            let immolate = fighter.specialAction == SPECIAL_DEMONHUNTER_IMMOLATE and fighter.specialFrame >= DEMONHUNTER_IMMOLATE_STARTUP and fighter.specialFrame < DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE
+            let parry = fighter.specialAction == SPECIAL_DEMONHUNTER_PARRY_STEP and fighter.specialFrame >= DEMONHUNTER_PARRY_START and fighter.specialFrame <= DEMONHUNTER_PARRY_END
+            return StaticSpecialPose(immolate or parry, fighter.x, fighter.z + 50 * scale, (immolate ? 1.4 : 0.85) * scale, 230, immolate ? 85 : 150, 255, immolate ? 100 : 255)
+        if kind == STATIC_WING_TRAIL
+            return StaticSpecialPose(fighter.specialAction == SPECIAL_DEMONHUNTER_WING_ASCENT and fighter.specialFrame >= DEMONHUNTER_WING_STARTUP, fighter.x, fighter.z + 8 * scale, 0.75 * scale, 180, 95, 255, 125)
+        let progress = parryAge[slot] / 12.
+        return StaticSpecialPose(parryAge[slot] < PARRY_FLASH_FRAMES, fighter.x + fighter.facing * 35. * scale, fighter.z + 80 * scale, (0.8 + progress * 0.7) * scale, R2I(255 * (1. - progress)), 160, 255, 210)

@@ -50,3 +50,17 @@ import MatchRules
 	controls.keyUp(1)
 	controls.keyDown(1, STAGE_MENU, false).assertEquals(START_PAUSE_CONFIRM)
 	destroy controls
+
+@Test function allFourSlotsShareOnePauseLatch()
+	let controls = new MatchControls()
+	controls.keyDown(3, MATCH, false).assertEquals(START_PAUSE_TOGGLED)
+	controls.isPaused().assertTrue()
+	controls.keyDown(2, MATCH, false).assertEquals(START_PAUSE_NONE)
+	controls.keyUp(3)
+	controls.keyUp(2)
+	controls.keyDown(2, MATCH, false).assertEquals(START_PAUSE_TOGGLED)
+	controls.isPaused().assertFalse()
+	controls.keyUp(2)
+	controls.keyDown(3, RESULT, false).assertEquals(START_PAUSE_CONFIRM)
+	controls.keyDown(4, MATCH, false).assertEquals(START_PAUSE_NONE)
+	destroy controls
