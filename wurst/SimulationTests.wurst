@@ -2449,6 +2449,33 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	advance(fighter, 0, input, -240)
 	fighter.x.assertEquals(finalX)
 
+@Test function topBlastZoneRequiresLaunchKnockbackRatherThanJumpSpeed()
+	for mode = 0 to 2
+		let fighter = new FighterState(0, 0, 1)
+		let input = new InputSnapshot()
+		fighter.grounded = false
+		fighter.z = 761
+		fighter.vz = 30
+		fighter.knockbackZ = mode == 0 ? 0 : (mode == 1 ? TOP_KO_MINIMUM_UPWARD_KNOCKBACK : TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 0.001)
+		advance(fighter, 0, input, 0)
+		fighter.out.assertEquals(mode == 2)
+		fighter.stocks.assertEquals(mode == 2 ? 2 : 3)
+		destroy input
+		destroy fighter
+
+@Test function topBlastZoneBoundaryDoesNotConsumeAStockUntilCrossed()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = 760
+	fighter.vz = -50
+	fighter.knockbackZ = TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 1
+	advance(fighter, 0, input, 0)
+	fighter.out.assertFalse()
+	fighter.stocks.assertEquals(3)
+	destroy input
+	destroy fighter
+
 @Test function releasingShieldWaitsForMinimumHoldThenAppliesReleaseLag()
 	let fighter = new FighterState(0, 0, 1)
 	let input = new InputSnapshot()

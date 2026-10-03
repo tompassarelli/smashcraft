@@ -1,0 +1,24 @@
+{
+  "target": "Melee NTSC 1.02 (GALE01 revision 2)",
+  "sourceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "file": "PlCo.dat",
+  "sha256": "63841336337eb5a7366b06ccc60ea4bd37c3604ab56e19939d78b9aa9cdd234c",
+  "kind": "Independent retail numerical death parameters",
+  "values": [
+    {
+      "offset": "0x4F0",
+      "value": 2.4000000953674316,
+      "units": "Melee upward knockback velocity per frame",
+      "comparison": "strict greater-than",
+      "source": "melee:src/melee/ft/ft_0D31.c ftCo_800D3158"
+    },
+    {
+      "offset": "0x520",
+      "value": 16,
+      "units": "integer threshold against random integer 1..100",
+      "source": "melee:src/melee/ft/ft_0D31.c ftCo_800D3158",
+      "limit": "Camera/player flags precede selection; not a guarantee of screen KOs for exactly 16 percent of all deaths."
+    }
+  ],
+  "publication": "Numeric facts only; no game binaries, command streams or extracted artwork."
+}

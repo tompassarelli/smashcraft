@@ -15,6 +15,8 @@ public constant int INITIAL_DASH_FRAMES = 10
 constant real GROUND_ACCELERATION_MULTIPLIER = 0.1
 constant real GROUND_ACCELERATION_BASE = 0.02
 constant real GROUND_SPEED_CAP = 3 * WORLD_UNITS_PER_MELEE_UNIT
+// NTSC 1.02 common +0x4F0; upward knockback, not ordinary jump velocity.
+public constant real TOP_KO_MINIMUM_UPWARD_KNOCKBACK = 2.4000000953674316 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real SHIELD_MAX = 60.
 public constant int SHIELD_BREAK_NONE = 0
 public constant int SHIELD_BREAK_AIR = 1
@@ -3281,7 +3283,8 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	f.positionDeltaZ = f.z - oldZ
 
 function checkBlastZone(FighterState f)
-	if f.x <= -920 or f.x >= 920 or f.z <= -420 or f.z >= 760
+	let topEligible = f.grounded or f.frozenFrames > 0 or f.knockbackZ > TOP_KO_MINIMUM_UPWARD_KNOCKBACK
+	if f.x <= -920 or f.x >= 920 or f.z <= -420 or (f.z > 760 and topEligible)
 		clearGrabLinks(f)
 		clearDash(f)
 		f.out = true
