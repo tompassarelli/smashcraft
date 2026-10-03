@@ -41,9 +41,10 @@ It also includes retail launch stacking, damage-level selection, grounded
 movement, rebound and test-arena surface recovery. These implementations do not
 establish full parity or complete collision geometry.
 
-Latest shield precision integration: 62/62 relevant Wurstunit checks pass, plus
-the generated-Lua production probe passes exact grounded-friction, shield regen,
-shield damage, shield-contact accumulation and fused shieldstun boundaries.
+The assembled simulation passes 534/534 normal Wurstunit checks. The
+generated-Lua production probe passes selected grounded-friction, shield regen,
+shield damage, shield-contact accumulation and fused shieldstun boundaries,
+plus 22 composed ground-motion cases and four shield-entry overwrite cases.
 The interpreter alone cannot prove emitted-Lua precision. Production airborne
 launch and recoil now use retail scalar directions, fused per-axis subtraction,
 and independently derived squared-speed cutoffs for the fixed retail decays.
@@ -54,14 +55,17 @@ the earlier fixture's incorrect vertical recoil composition has been repaired.
 Other formula rounding, analog shields, powershields,
 connected/sloped ECB contacts and native trajectory checks remain open.
 
-The latest physics candidate is Smashcraft 0.0.12, build melee-physics-r24,
-source bff1f3a41f026f6a50ca72a28b3c42e4b4182782. It built with zero errors and
+The latest physics candidate is Smashcraft 0.0.12, build melee-physics-r25,
+source 34af25f88198268f053f411cecdc839d3c7f6f12. It built with zero errors and
 six existing warnings. SHA-256:
-18390e44e96428643f6b344666c4dc061ce60c54942f8c2879eb68e462d06a55.
+84dd6e766a446daa1cd773c271431ab8276aeeff001bcf22f3a0708bba084687.
 Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x.
-Build evidence: smashcraft:build/physics-map-r24.log. Deployment was disabled;
+Build evidence: smashcraft:build/physics-map-r25.log. Deployment was disabled;
 this candidate has not been installed or observed natively. Separate native
-input/contact probes do not establish its physics or presentation.
+input/contact probes do not establish its physics or presentation. The separate
+native arithmetic candidate in smashcraft:docs/native-physics-precision.md
+packages the existing comparison cases for Warcraft execution and remains
+unobserved natively.
 
 Collision/tech coverage, remaining shared rules and native verification still
 prevent M1 closure. Identifying the retail disc does not identify the revision
