@@ -3,6 +3,7 @@ import NetworkInput
 import ParticipantInputs
 import FixedInputSchedule
 import InputProtocol
+import InputLedger
 import ReplayHistory
 
 public constant int SHADOW_CAPTURED = 0
@@ -11,6 +12,10 @@ public constant int SHADOW_WRONG_EPOCH = 2
 public constant int SHADOW_FRAME_EXHAUSTED = 3
 public constant int SHADOW_PENDING_FULL = 4
 public constant int SHADOW_WINDOW_FULL = 5
+public constant int SHADOW_CAPTURE_CONFLICT = 6
+public constant int SHADOW_OUT_OF_HISTORY = 7
+public constant int SHADOW_TOO_FAR_AHEAD = 8
+public constant int SHADOW_INVALID_SAMPLE = 9
 
 public constant int SHADOW_DEFAULT_ROLLBACK_WINDOW = 6
 public constant int SHADOW_PENDING_CAPACITY = 256
@@ -112,6 +117,31 @@ public class ShadowInputSchedule
 		pendingFrames[slot] = target
 		return SHADOW_CAPTURED
 
+	// The producer supplies the final frame, including intentional delay. Capture
+	// never retargets to the service callback's cursor or advances common state.
+	// Bound storage by the accepted ledger's retained and future frame support.
+	function captureLocalAt(int requestedEpoch, int frame, NetworkInput sample) returns int
+		if epoch < 0 or requestedEpoch != epoch
+			return SHADOW_WRONG_EPOCH
+		if frame < 1 or frame > INPUT_LAST_FRAME
+			return SHADOW_FRAME_EXHAUSTED
+		if sample == null
+			return SHADOW_INVALID_SAMPLE
+		if frame < accepted.firstRetained()
+			return SHADOW_OUT_OF_HISTORY
+		if frame - (nextConfirmedFrame - 1) > INPUT_FUTURE_LIMIT
+			return SHADOW_TOO_FAR_AHEAD
+		if frame - accepted.firstRetained() >= SHADOW_PENDING_CAPACITY
+			return SHADOW_PENDING_FULL
+		let slot = frame mod SHADOW_PENDING_CAPACITY
+		if pendingFrames[slot] == frame
+			return pending[slot].sameAs(sample) ? SHADOW_ALREADY_CAPTURED : SHADOW_CAPTURE_CONFLICT
+		if pendingFrames[slot] != -1
+			return SHADOW_PENDING_FULL
+		sample.copyTo(pending[slot])
+		pendingFrames[slot] = frame
+		return SHADOW_CAPTURED
+
 	function acceptSynchronized(int sender, InputPacket packet) returns int
 		return accepted.acceptSynchronized(sender, packet)
 
@@ -207,4 +237,3 @@ public class ShadowInputSchedule
 			return false
 		pending[slot].copyTo(destination)
 		return true
-

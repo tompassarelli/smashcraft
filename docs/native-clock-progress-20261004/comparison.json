@@ -1,0 +1,634 @@
+{
+  "build": "20261003T212333969582051",
+  "observed_stop_to_resume_request_ms": 250.636512,
+  "clients": [
+    {
+      "slot": 0,
+      "markers": 50,
+      "callbacks": 300,
+      "native_total_ms": 4999.756,
+      "host_spacing_median_ms": 96.902774,
+      "host_spacing_p95_ms": 145.799351,
+      "host_spacing_p99_ms": 160.394022,
+      "host_spacing_max_ms": 160.394022,
+      "native_spacing_min_ms": 99.85399999999981,
+      "native_spacing_max_ms": 100.09800000000001,
+      "intervals": [
+        {
+          "sequence": 1,
+          "host_first_observed_spacing_ms": 6.303169,
+          "native_spacing_ms": 99.854,
+          "current_visibility_bracket_ms": 3.196954
+        },
+        {
+          "sequence": 2,
+          "host_first_observed_spacing_ms": 3.198217,
+          "native_spacing_ms": 100.097,
+          "current_visibility_bracket_ms": 3.357966
+        },
+        {
+          "sequence": 3,
+          "host_first_observed_spacing_ms": 142.655906,
+          "native_spacing_ms": 99.85399999999998,
+          "current_visibility_bracket_ms": 3.202835
+        },
+        {
+          "sequence": 4,
+          "host_first_observed_spacing_ms": 17.124096,
+          "native_spacing_ms": 100.09700000000004,
+          "current_visibility_bracket_ms": 3.806025
+        },
+        {
+          "sequence": 5,
+          "host_first_observed_spacing_ms": 125.058554,
+          "native_spacing_ms": 100.09800000000001,
+          "current_visibility_bracket_ms": 3.15727
+        },
+        {
+          "sequence": 6,
+          "host_first_observed_spacing_ms": 97.579305,
+          "native_spacing_ms": 99.85399999999993,
+          "current_visibility_bracket_ms": 3.160016
+        },
+        {
+          "sequence": 7,
+          "host_first_observed_spacing_ms": 96.993918,
+          "native_spacing_ms": 100.0970000000001,
+          "current_visibility_bracket_ms": 3.375278
+        },
+        {
+          "sequence": 8,
+          "host_first_observed_spacing_ms": 113.532589,
+          "native_spacing_ms": 99.85399999999993,
+          "current_visibility_bracket_ms": 3.367945
+        },
+        {
+          "sequence": 9,
+          "host_first_observed_spacing_ms": 77.946693,
+          "native_spacing_ms": 100.09699999999998,
+          "current_visibility_bracket_ms": 3.073734
+        },
+        {
+          "sequence": 10,
+          "host_first_observed_spacing_ms": 128.837549,
+          "native_spacing_ms": 99.85400000000004,
+          "current_visibility_bracket_ms": 3.275402
+        },
+        {
+          "sequence": 11,
+          "host_first_observed_spacing_ms": 78.092676,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 2.873739
+        },
+        {
+          "sequence": 12,
+          "host_first_observed_spacing_ms": 160.394022,
+          "native_spacing_ms": 100.09699999999998,
+          "current_visibility_bracket_ms": 2.888177
+        },
+        {
+          "sequence": 13,
+          "host_first_observed_spacing_ms": 49.159585,
+          "native_spacing_ms": 99.85400000000004,
+          "current_visibility_bracket_ms": 2.822053
+        },
+        {
+          "sequence": 14,
+          "host_first_observed_spacing_ms": 160.115881,
+          "native_spacing_ms": 100.09699999999998,
+          "current_visibility_bracket_ms": 3.236779
+        },
+        {
+          "sequence": 15,
+          "host_first_observed_spacing_ms": 31.227547,
+          "native_spacing_ms": 99.85400000000004,
+          "current_visibility_bracket_ms": 2.86831
+        },
+        {
+          "sequence": 16,
+          "host_first_observed_spacing_ms": 98.423004,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 3.14099
+        },
+        {
+          "sequence": 17,
+          "host_first_observed_spacing_ms": 93.537238,
+          "native_spacing_ms": 100.09699999999998,
+          "current_visibility_bracket_ms": 3.282394
+        },
+        {
+          "sequence": 18,
+          "host_first_observed_spacing_ms": 96.179565,
+          "native_spacing_ms": 99.85400000000004,
+          "current_visibility_bracket_ms": 2.819148
+        },
+        {
+          "sequence": 19,
+          "host_first_observed_spacing_ms": 112.228718,
+          "native_spacing_ms": 100.09699999999998,
+          "current_visibility_bracket_ms": 2.930085
+        },
+        {
+          "sequence": 20,
+          "host_first_observed_spacing_ms": 99.774103,
+          "native_spacing_ms": 99.85400000000004,
+          "current_visibility_bracket_ms": 3.165015
+        },
+        {
+          "sequence": 21,
+          "host_first_observed_spacing_ms": 110.210521,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 2.770216
+        },
+        {
+          "sequence": 22,
+          "host_first_observed_spacing_ms": 78.06774,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.928582
+        },
+        {
+          "sequence": 23,
+          "host_first_observed_spacing_ms": 129.631425,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 3.09864
+        },
+        {
+          "sequence": 24,
+          "host_first_observed_spacing_ms": 78.897394,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.794762
+        },
+        {
+          "sequence": 25,
+          "host_first_observed_spacing_ms": 145.799351,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 2.817645
+        },
+        {
+          "sequence": 26,
+          "host_first_observed_spacing_ms": 48.017697,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 2.864522
+        },
+        {
+          "sequence": 27,
+          "host_first_observed_spacing_ms": 112.470521,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.845907
+        },
+        {
+          "sequence": 28,
+          "host_first_observed_spacing_ms": 94.832544,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 3.075067
+        },
+        {
+          "sequence": 29,
+          "host_first_observed_spacing_ms": 96.896807,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.768031
+        },
+        {
+          "sequence": 30,
+          "host_first_observed_spacing_ms": 94.890011,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 2.6232
+        },
+        {
+          "sequence": 31,
+          "host_first_observed_spacing_ms": 115.219628,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 2.691068
+        },
+        {
+          "sequence": 32,
+          "host_first_observed_spacing_ms": 96.168044,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.623281
+        },
+        {
+          "sequence": 33,
+          "host_first_observed_spacing_ms": 94.939914,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 2.636986
+        },
+        {
+          "sequence": 34,
+          "host_first_observed_spacing_ms": 96.059431,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.507124
+        },
+        {
+          "sequence": 35,
+          "host_first_observed_spacing_ms": 111.991875,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 2.554582
+        },
+        {
+          "sequence": 36,
+          "host_first_observed_spacing_ms": 97.770133,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 2.597703
+        },
+        {
+          "sequence": 37,
+          "host_first_observed_spacing_ms": 94.49969,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.691729
+        },
+        {
+          "sequence": 38,
+          "host_first_observed_spacing_ms": 96.60411,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 2.504308
+        },
+        {
+          "sequence": 39,
+          "host_first_observed_spacing_ms": 110.941158,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.671481
+        },
+        {
+          "sequence": 40,
+          "host_first_observed_spacing_ms": 95.432798,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 2.433045
+        },
+        {
+          "sequence": 41,
+          "host_first_observed_spacing_ms": 96.475139,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 2.467068
+        },
+        {
+          "sequence": 42,
+          "host_first_observed_spacing_ms": 97.193363,
+          "native_spacing_ms": 100.09699999999975,
+          "current_visibility_bracket_ms": 2.41457
+        },
+        {
+          "sequence": 43,
+          "host_first_observed_spacing_ms": 97.083027,
+          "native_spacing_ms": 99.85400000000027,
+          "current_visibility_bracket_ms": 2.582675
+        },
+        {
+          "sequence": 44,
+          "host_first_observed_spacing_ms": 112.488525,
+          "native_spacing_ms": 100.09699999999975,
+          "current_visibility_bracket_ms": 2.353034
+        },
+        {
+          "sequence": 45,
+          "host_first_observed_spacing_ms": 95.072483,
+          "native_spacing_ms": 99.85400000000027,
+          "current_visibility_bracket_ms": 2.395293
+        },
+        {
+          "sequence": 46,
+          "host_first_observed_spacing_ms": 95.124751,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 2.382339
+        },
+        {
+          "sequence": 47,
+          "host_first_observed_spacing_ms": 96.163295,
+          "native_spacing_ms": 100.09699999999975,
+          "current_visibility_bracket_ms": 2.271261
+        },
+        {
+          "sequence": 48,
+          "host_first_observed_spacing_ms": 111.064951,
+          "native_spacing_ms": 99.85400000000027,
+          "current_visibility_bracket_ms": 2.263116
+        },
+        {
+          "sequence": 49,
+          "host_first_observed_spacing_ms": 96.908741,
+          "native_spacing_ms": 100.09699999999975,
+          "current_visibility_bracket_ms": 2.368504
+        },
+        {
+          "sequence": 50,
+          "host_first_observed_spacing_ms": 97.377157,
+          "native_spacing_ms": 99.85400000000027,
+          "current_visibility_bracket_ms": 2.214375
+        }
+      ]
+    },
+    {
+      "slot": 1,
+      "markers": 50,
+      "callbacks": 300,
+      "native_total_ms": 4999.756,
+      "host_spacing_median_ms": 99.5103105,
+      "host_spacing_p95_ms": 151.377293,
+      "host_spacing_p99_ms": 258.83512,
+      "host_spacing_max_ms": 258.83512,
+      "native_spacing_min_ms": 99.85399999999981,
+      "native_spacing_max_ms": 100.09800000000001,
+      "intervals": [
+        {
+          "sequence": 1,
+          "host_first_observed_spacing_ms": 6.235112,
+          "native_spacing_ms": 99.854,
+          "current_visibility_bracket_ms": 3.725063
+        },
+        {
+          "sequence": 2,
+          "host_first_observed_spacing_ms": 2.946686,
+          "native_spacing_ms": 100.097,
+          "current_visibility_bracket_ms": 3.459716
+        },
+        {
+          "sequence": 3,
+          "host_first_observed_spacing_ms": 9.092651,
+          "native_spacing_ms": 99.85399999999998,
+          "current_visibility_bracket_ms": 3.62179
+        },
+        {
+          "sequence": 4,
+          "host_first_observed_spacing_ms": 0.025368,
+          "native_spacing_ms": 100.09700000000004,
+          "current_visibility_bracket_ms": 3.647158
+        },
+        {
+          "sequence": 5,
+          "host_first_observed_spacing_ms": 3.100884,
+          "native_spacing_ms": 100.09800000000001,
+          "current_visibility_bracket_ms": 3.626929
+        },
+        {
+          "sequence": 6,
+          "host_first_observed_spacing_ms": 14.671204,
+          "native_spacing_ms": 99.85399999999993,
+          "current_visibility_bracket_ms": 3.464936
+        },
+        {
+          "sequence": 7,
+          "host_first_observed_spacing_ms": 76.073246,
+          "native_spacing_ms": 100.0970000000001,
+          "current_visibility_bracket_ms": 3.869523
+        },
+        {
+          "sequence": 8,
+          "host_first_observed_spacing_ms": 110.346344,
+          "native_spacing_ms": 99.85399999999993,
+          "current_visibility_bracket_ms": 3.518146
+        },
+        {
+          "sequence": 9,
+          "host_first_observed_spacing_ms": 87.336561,
+          "native_spacing_ms": 100.09699999999998,
+          "current_visibility_bracket_ms": 3.6698
+        },
+        {
+          "sequence": 10,
+          "host_first_observed_spacing_ms": 125.756581,
+          "native_spacing_ms": 99.85400000000004,
+          "current_visibility_bracket_ms": 3.736615
+        },
+        {
+          "sequence": 11,
+          "host_first_observed_spacing_ms": 258.83512,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 3.78743
+        },
+        {
+          "sequence": 12,
+          "host_first_observed_spacing_ms": 3.035442,
+          "native_spacing_ms": 100.09699999999998,
+          "current_visibility_bracket_ms": 3.79835
+        },
+        {
+          "sequence": 13,
+          "host_first_observed_spacing_ms": 2.824417,
+          "native_spacing_ms": 99.85400000000004,
+          "current_visibility_bracket_ms": 3.306089
+        },
+        {
+          "sequence": 14,
+          "host_first_observed_spacing_ms": 174.188394,
+          "native_spacing_ms": 100.09699999999998,
+          "current_visibility_bracket_ms": 3.755219
+        },
+        {
+          "sequence": 15,
+          "host_first_observed_spacing_ms": 20.426308,
+          "native_spacing_ms": 99.85400000000004,
+          "current_visibility_bracket_ms": 3.4078
+        },
+        {
+          "sequence": 16,
+          "host_first_observed_spacing_ms": 89.839766,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 3.162429
+        },
+        {
+          "sequence": 17,
+          "host_first_observed_spacing_ms": 110.285651,
+          "native_spacing_ms": 100.09699999999998,
+          "current_visibility_bracket_ms": 3.258239
+        },
+        {
+          "sequence": 18,
+          "host_first_observed_spacing_ms": 91.274713,
+          "native_spacing_ms": 99.85400000000004,
+          "current_visibility_bracket_ms": 3.383875
+        },
+        {
+          "sequence": 19,
+          "host_first_observed_spacing_ms": 120.193838,
+          "native_spacing_ms": 100.09699999999998,
+          "current_visibility_bracket_ms": 3.094102
+        },
+        {
+          "sequence": 20,
+          "host_first_observed_spacing_ms": 76.912708,
+          "native_spacing_ms": 99.85400000000004,
+          "current_visibility_bracket_ms": 3.145488
+        },
+        {
+          "sequence": 21,
+          "host_first_observed_spacing_ms": 135.973087,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 3.056041
+        },
+        {
+          "sequence": 22,
+          "host_first_observed_spacing_ms": 64.596463,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 3.143916
+        },
+        {
+          "sequence": 23,
+          "host_first_observed_spacing_ms": 151.377293,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 3.317841
+        },
+        {
+          "sequence": 24,
+          "host_first_observed_spacing_ms": 73.285317,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.944332
+        },
+        {
+          "sequence": 25,
+          "host_first_observed_spacing_ms": 143.10103,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 2.947136
+        },
+        {
+          "sequence": 26,
+          "host_first_observed_spacing_ms": 61.526466,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 3.065278
+        },
+        {
+          "sequence": 27,
+          "host_first_observed_spacing_ms": 93.931617,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.894098
+        },
+        {
+          "sequence": 28,
+          "host_first_observed_spacing_ms": 99.645773,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 2.855646
+        },
+        {
+          "sequence": 29,
+          "host_first_observed_spacing_ms": 99.821944,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.897765
+        },
+        {
+          "sequence": 30,
+          "host_first_observed_spacing_ms": 102.967762,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 3.079835
+        },
+        {
+          "sequence": 31,
+          "host_first_observed_spacing_ms": 97.150292,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 2.745319
+        },
+        {
+          "sequence": 32,
+          "host_first_observed_spacing_ms": 98.854904,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.761189
+        },
+        {
+          "sequence": 33,
+          "host_first_observed_spacing_ms": 102.352971,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 2.731523
+        },
+        {
+          "sequence": 34,
+          "host_first_observed_spacing_ms": 100.980342,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.733366
+        },
+        {
+          "sequence": 35,
+          "host_first_observed_spacing_ms": 95.163043,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 2.620716
+        },
+        {
+          "sequence": 36,
+          "host_first_observed_spacing_ms": 99.791677,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 2.689295
+        },
+        {
+          "sequence": 37,
+          "host_first_observed_spacing_ms": 101.797772,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.675088
+        },
+        {
+          "sequence": 38,
+          "host_first_observed_spacing_ms": 101.669562,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 2.670018
+        },
+        {
+          "sequence": 39,
+          "host_first_observed_spacing_ms": 100.796508,
+          "native_spacing_ms": 100.09700000000021,
+          "current_visibility_bracket_ms": 2.823586
+        },
+        {
+          "sequence": 40,
+          "host_first_observed_spacing_ms": 98.448513,
+          "native_spacing_ms": 99.85399999999981,
+          "current_visibility_bracket_ms": 2.577264
+        },
+        {
+          "sequence": 41,
+          "host_first_observed_spacing_ms": 101.202829,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 2.499098
+        },
+        {
+          "sequence": 42,
+          "host_first_observed_spacing_ms": 99.568059,
+          "native_spacing_ms": 100.09699999999975,
+          "current_visibility_bracket_ms": 2.553731
+        },
+        {
+          "sequence": 43,
+          "host_first_observed_spacing_ms": 99.415062,
+          "native_spacing_ms": 99.85400000000027,
+          "current_visibility_bracket_ms": 2.709081
+        },
+        {
+          "sequence": 44,
+          "host_first_observed_spacing_ms": 101.122589,
+          "native_spacing_ms": 100.09699999999975,
+          "current_visibility_bracket_ms": 2.397829
+        },
+        {
+          "sequence": 45,
+          "host_first_observed_spacing_ms": 99.452562,
+          "native_spacing_ms": 99.85400000000027,
+          "current_visibility_bracket_ms": 2.368684
+        },
+        {
+          "sequence": 46,
+          "host_first_observed_spacing_ms": 99.753346,
+          "native_spacing_ms": 100.09799999999996,
+          "current_visibility_bracket_ms": 2.496273
+        },
+        {
+          "sequence": 47,
+          "host_first_observed_spacing_ms": 100.547812,
+          "native_spacing_ms": 100.09699999999975,
+          "current_visibility_bracket_ms": 2.331945
+        },
+        {
+          "sequence": 48,
+          "host_first_observed_spacing_ms": 100.060321,
+          "native_spacing_ms": 99.85400000000027,
+          "current_visibility_bracket_ms": 2.320545
+        },
+        {
+          "sequence": 49,
+          "host_first_observed_spacing_ms": 98.963577,
+          "native_spacing_ms": 100.09699999999975,
+          "current_visibility_bracket_ms": 2.343738
+        },
+        {
+          "sequence": 50,
+          "host_first_observed_spacing_ms": 101.881519,
+          "native_spacing_ms": 99.85400000000027,
+          "current_visibility_bracket_ms": 2.267394
+        }
+      ]
+    }
+  ]
+}
