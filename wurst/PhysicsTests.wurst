@@ -359,15 +359,17 @@ function recordedFalcoDashFirstDifference(int hostCharacter, real initialSpeed) 
 	f.dashFrame = INITIAL_DASH_FRAMES + 1
 	f.dashDirection = 1
 	f.groundAction = GROUND_ACTION_TURN_RUN
+	f.groundTurnRunEntryFacing = 1
 	let input = new InputSnapshot()
 	input.direction = -1
-	for tick = 1 to 8
+	for tick = 1 to 9
 		advance(f, 0, input, 0)
-	f.vx.assertEquals(0.24, 0.00001)
+	f.vx.assertEquals(-0.48, 0.00001)
 	f.facing.assertEquals(1)
 	advance(f, 0, input, 0)
-	f.vx.assertEquals(-0.48, 0.00001)
+	f.vx.assertEquals(-1.2, 0.00001)
 	f.facing.assertEquals(-1)
+	f.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
 	destroy input
 	destroy f
 

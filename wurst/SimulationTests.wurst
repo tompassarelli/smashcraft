@@ -1221,8 +1221,9 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 		input.direction = 1
 		advance(fighter, 0, input, 0)
 		fighter.groundAction.assertEquals(GROUND_ACTION_DASH)
+		fighter.groundActionFrame.assertEquals(1)
 		let enableFrame = rig == 2 ? 16 : 12
-		for frame = 1 to enableFrame - 1
+		for frame = 2 to enableFrame - 1
 			advance(fighter, 0, input, 0)
 			fighter.groundAction.assertEquals(GROUND_ACTION_DASH)
 			fighter.groundActionFrame.assertEquals(frame)
@@ -1233,28 +1234,45 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 		destroy fighter
 
 @Test function turnRunWaitsForRetailFacingCommandBoundary()
-	let fighter = new FighterState(0, 0, 1)
-	let input = new InputSnapshot()
-	fighter.groundRules = ntscFoxGroundMovementRules()
-	fighter.groundAction = GROUND_ACTION_DASH
-	fighter.groundActionFrame = 4
-	fighter.dashFrame = INITIAL_DASH_FRAMES + 1
-	fighter.dashDirection = 1
-	fighter.vx = 6.0
-	input.direction = -1
-	advance(fighter, 0, input, 0)
-	fighter.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
-	fighter.groundActionFrame.assertEquals(0)
-	fighter.facing.assertEquals(1)
-	for frame = 1 to 8
+	for rig = 0 to 1
+		let fighter = new FighterState(0, 0, 1)
+		let input = new InputSnapshot()
+		fighter.groundRules = rig == 0 ? ntscFoxGroundMovementRules() : ntscCaptainFalconGroundMovementRules()
+		let turnRunEndFrame = rig == 0 ? 20 : 22
+		fighter.groundAction = GROUND_ACTION_RUN
+		fighter.groundActionFrame = 4
+		fighter.dashFrame = INITIAL_DASH_FRAMES + 1
+		fighter.dashDirection = 1
+		fighter.vx = 13.2
+		input.direction = -1
 		advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
+		fighter.groundActionFrame.assertEquals(0)
 		fighter.facing.assertEquals(1)
-	advance(fighter, 0, input, 0)
-	fighter.groundAction.assertEquals(GROUND_ACTION_RUN)
-	fighter.groundActionFrame.assertEquals(0)
-	fighter.facing.assertEquals(-1)
-	destroy input
-	destroy fighter
+		for frame = 1 to 9
+			advance(fighter, 0, input, 0)
+		fighter.facing.assertEquals(1)
+		fighter.groundActionFrame.assertEquals(9)
+		// The frame-9 command freezes TurnRun while momentum still follows the
+		// old facing. Crossing zero needs a later animation update to flip.
+		for frame = 1 to 9
+			advance(fighter, 0, input, 0)
+			fighter.facing.assertEquals(1)
+			fighter.groundActionFrame.assertEquals(9)
+		advance(fighter, 0, input, 0)
+		fighter.facing.assertEquals(-1)
+		fighter.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
+		fighter.groundActionFrame.assertEquals(9)
+		for frame = 10 to turnRunEndFrame - 1
+			advance(fighter, 0, input, 0)
+			fighter.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
+			fighter.groundActionFrame.assertEquals(frame)
+		advance(fighter, 0, input, 0)
+		fighter.groundAction.assertEquals(GROUND_ACTION_RUN)
+		fighter.groundActionFrame.assertEquals(0)
+		fighter.facing.assertEquals(-1)
+		destroy input
+		destroy fighter
 
 @Test function runBrakeTurnInputClosesAtTheActorsFrameFifteenCommand()
 	let allowed = new FighterState(0, 0, 1)
@@ -1325,6 +1343,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 					fighter.facing.assertEquals(firstDirection)
 				for tick = 5 to 19
 					advance(fighter, 0, input, 0)
+				advance(fighter, 0, input, 0)
 				(fighter.vx * firstDirection).assertLessThan(0.)
 				fighter.facing.assertEquals(-firstDirection)
 				fighter.dashFrame.assertEquals(INITIAL_DASH_FRAMES + 1)
@@ -1396,7 +1415,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 		fighter.x.assertEquals(100., 0.001)
 		fighter.dashFrame.assertEquals(1)
 		fighter.groundAction.assertEquals(GROUND_ACTION_DASH)
-		fighter.groundActionFrame.assertEquals(0)
+		fighter.groundActionFrame.assertEquals(1)
 	advance(fighter, 0, input, 0)
 	fighter.vx.assertEquals(-11.4, 0.001)
 	fighter.dashFrame.assertEquals(1)
