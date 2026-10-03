@@ -41,8 +41,10 @@ It also includes retail launch stacking, damage-level selection, grounded
 movement, rebound and test-arena surface recovery. These implementations do not
 establish full parity or complete collision geometry.
 
-The last assembled simulation check passed 592/592 normal Wurstunit checks,
-before the equivalent shield-fixture deduplication documented below. The
+The latest assembled simulation check passed 551/551 normal Wurstunit checks,
+after the equivalent shield-fixture deduplication documented below and the
+projectile powershield and fractional DI input changes. The earlier aggregate
+passed 592/592 before that deduplication. The
 generated-Lua production probe passes selected grounded-friction, shield regen,
 shield damage, shield-contact accumulation and fused shieldstun boundaries,
 plus 22 composed ground-motion cases and four shield-entry overwrite cases.
@@ -61,15 +63,20 @@ matches 52 original ordinary/electric/crouching observations. Analog pressure
 now reaches drain, contact damage/stun/pushback, relative visual size and replay,
 with 54 original numeric rows matching emitted Lua and four connected tests.
 See smashcraft:docs/melee-analog-shield.md for its boundaries. The assembled
-precision check passes fourteen groups. Other formula rounding, shield geometry/powershields,
+precision check passes fifteen groups. The DI group matches all 56 original
+vectors exactly, including zero signs; the previous formula mismatched 39/56.
+Fractional DI input survives adapter conversion, snapshot copying and replay
+correction. Projectile powershield reflection is implemented; its world
+geometry, full input/callback ordering and ordinary melee contact effects
+remain unverified. Other formula rounding, shield geometry/powershields,
 connected/sloped ECB contacts and native trajectory checks remain open.
 
-The latest physics candidate is Smashcraft 0.0.12, build melee-physics-r27,
-source aae1ea87824654a48b09bba3cf13d0b74d083fd9. It built with zero errors and
+The latest physics candidate is Smashcraft 0.0.12, build physics-f0da50b,
+source f0da50b97b0ef655cd5f5b65677f4057dc7a773f. It built with zero errors and
 six existing warnings. SHA-256:
-9d894c95a09a3ebfc80def79731b9ef558dfc8cbd965c95517b87164d993861a.
+b2c0be9e90e0929d8d6089c36894e44cd9629da0fc5f19314de2d2f0c330d5c8.
 Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x.
-Build evidence: smashcraft:build/physics-map-r27.log. Deployment was disabled;
+Build evidence: smashcraft:build/di-map-integration.log. Deployment was disabled;
 this candidate has not been installed or observed natively. Separate native
 input/contact probes do not establish its physics or presentation. The separate
 native arithmetic candidate in smashcraft:docs/native-physics-precision.md

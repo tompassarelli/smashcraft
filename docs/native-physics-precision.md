@@ -11,12 +11,12 @@ Run the builder through the machine-capacity helper with the private terrain
 map as its argument. It does not install a map or control a Warcraft client.
 
 The current candidate is a one-player diagnostic map, Smashcraft 0.0.13,
-simulation source aae1ea87824654a48b09bba3cf13d0b74d083fd9:
-~/code/wc3-melee/worktrees/melee-physics-public/build/physics-probe/native.9PajFS/Smashcraft 0.0.13.w3x.
-SHA-256: 34a76dbd5fa40c3a7852294a83f177792077ea3c06bd02a531fd7dfe74c6cb49.
+simulation source f0da50b97b0ef655cd5f5b65677f4057dc7a773f:
+~/code/wc3-melee/worktrees/melee-physics-public/build/physics-probe/native.aOMjxI/Smashcraft 0.0.13.w3x.
+SHA-256: 878026e0963606418dd3b2dbe3f4e9839beb437b4563d047c4ea1a9a5eee10b4.
 The build reports zero errors and four standard-library unused-variable
 warnings; packaged Lua syntax and script roundtrip pass. Evidence:
-smashcraft:build/native-physics-analog-build.log. This candidate has not been
+smashcraft:build/native-physics-di-build.log. This candidate has not been
 installed or run natively.
 
 On map initialization, the same authored comparisons used by the emitted-Lua
@@ -28,7 +28,9 @@ commit, not a claim about native equivalence. NATIVE_PHYSICS_COMPLETED means
 the report finished; acceptance also requires all expected comparison results.
 
 For the current candidate, require a fresh export from the observed map load,
-the source marker above, MESSAGES 15, LAUNCH_MAGNITUDE_MISMATCH_COUNT=0, no failure records, and all fourteen passing groups:
+the source marker above, MESSAGES 18, LAUNCH_MAGNITUDE_MISMATCH_COUNT=0,
+DIRECTIONAL_INFLUENCE_MISMATCH_COUNT=0,
+DIRECTIONAL_INFLUENCE_DISCRETE_MISMATCH_COUNT=0, no failure records, and all fifteen passing groups:
 
 - GROUNDED_BINARY32_EXACT_PASS
 - SHIELD_REGEN_BINARY32_EXACT_PASS
@@ -44,6 +46,7 @@ the source marker above, MESSAGES 15, LAUNCH_MAGNITUDE_MISMATCH_COUNT=0, no fail
 - LAUNCH_MAGNITUDE_BINARY32_EXACT_PASS
 - HITLAG_SCALARS_EXACT_PASS
 - ANALOG_SHIELD_BINARY32_EXACT_PASS
+- DIRECTIONAL_INFLUENCE_BINARY32_EXACT_PASS
 
 The fixtures cover recorded fall positions, grounded launch friction, selected
 shield arithmetic, airborne launch/recoil decay and position additions, signed
@@ -60,11 +63,7 @@ arithmetic boundary for these cases; it would not establish complete formulas,
 collision geometry, action clocks, visual effects or playable-match acceptance.
 Do not occupy or restart peer-owned clients to obtain this result.
 
-The next build adds DIRECTIONAL_INFLUENCE_BINARY32_EXACT_PASS for 56 original
-DI vectors, plus DIRECTIONAL_INFLUENCE_MISMATCH_COUNT=0 and
-DIRECTIONAL_INFLUENCE_DISCRETE_MISMATCH_COUNT=0. It therefore requires fifteen
-passing groups and MESSAGES 18. These requirements apply to the next candidate;
-the old candidate and hash above do not contain this group. No new map hash or
-native execution is claimed here. The emitted-Lua check observes all 56 matching
+The current candidate includes 56 original DI vectors. The emitted-Lua check
+observes all 56 matching
 vectors; see smashcraft:docs/smash-melee-reference/retail-di-vector.json for the
 original execution boundary and limitations.
