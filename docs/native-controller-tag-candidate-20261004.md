@@ -27,3 +27,44 @@ Existing 0.0.9 native measurements apply only to their original candidate/hash,
 with the original 240-byte cap. This candidate's larger cap and controller-sourced
 corpus require their own native check. Export filenames still use run/slot;
 copy earlier exports before overwriting them during a new trial.
+
+
+## Completed native journal replay
+
+Both retained, distinct-account online clients loaded the exact candidate above
+on Warcraft III 3.0.0.24268, Linux/GE-Proton. No client restart or login occurred.
+Each appended the same ten Attack transitions from the first ten warm-helper
+journal entries in wc3-melee:docs/controller-event-history-20261004/virtual-test/warm-helper.tsv.
+The declared epoch is the first selected SDL capture timestamp, 566824783 ns.
+Frames are independently calculated as 1 + floor(elapsed_ns * 60 / 1000000000),
+D=0. Serialized elapsed microseconds truncate the source nanoseconds; frame tags
+use the original nanoseconds. This epoch is not aligned to either live game.
+
+Both game processes were verified stopped before and after text delivery;
+stop-request to resume-request measured 250.956681 ms (15.0574 nominal frames)
+on the same host monotonic clock. Both resumed in finally. An initial stop-state
+check ran before signal delivery was observed and aborted before typing; both
+were resumed. The successful procedure polls actual stopped state, bounded by
+one second, rather than assuming kill() means the stop already completed.
+
+Each client exported ten local rows and twenty synchronized receipt rows.
+Exact per-record comparison matches all ten source records locally and all ten
+from each sender at each observer: zero lost, changed or reordered records.
+All invalid/duplicate/conflict/rewrite/overflow counters are zero.
+Evidence: wc3-melee:docs/controller-journal-native-20261004/{corpus.json,
+delivery.json,client-a.txt,client-b.txt,comparison.json}.
+The combined LOCAL_FINAL export is truncated by native Preload; individually
+exported wire rows are complete and are the comparison authority.
+
+This proves preservation for a replayed controller journal through the tested
+editbox/poll/sync path under this controlled process stop. It bypasses physical
+capture and live controller-to-game delivery, does not apply inputs to combat,
+and does not establish correct common-frame assignment, presentation latency,
+a shared pause rule, or a competitive latency bound. There are ten unique
+journal events replayed by two senders, not twenty independent physical samples.
+No cross-clock latency is calculated. The SDL cold-start defect remains open.
+
+Retained ending state: both clients in the completed 0.0.11 probe, saved/stopped
+recording; both processes remain alive. Earlier 0.0.9 exports were copied privately
+before overwrite. Maps/00-Smashcraft now contains only the installed 0.0.11;
+0.0.10 is privately archived, not deleted from recovery storage.

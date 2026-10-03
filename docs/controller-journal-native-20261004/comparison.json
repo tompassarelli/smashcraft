@@ -1,0 +1,14 @@
+{
+  "a": {
+    "local_exact": 10,
+    "sender_0_exact": 10,
+    "sender_1_exact": 10,
+    "counters": "counters invalid=0 local_duplicates=0 local_conflicts=0 out_of_order=0 rewrites=0 overflow=0 received_duplicate_p0=0 received_conflict_p0=0 received_duplicate_p1=0 received_conflict_p1=0"
+  },
+  "b": {
+    "local_exact": 10,
+    "sender_0_exact": 10,
+    "sender_1_exact": 10,
+    "counters": "counters invalid=0 local_duplicates=0 local_conflicts=0 out_of_order=0 rewrites=0 overflow=0 received_duplicate_p0=0 received_conflict_p0=0 received_duplicate_p1=0 received_conflict_p1=0"
+  }
+}
