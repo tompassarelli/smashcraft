@@ -45,3 +45,10 @@ including production collision entry and the 25/26 action boundary. This closes
 the modeled ceiling completion/input-lock discrepancy; independent frame traces,
 ECB attachment/repositioning and native execution remain unverified. Wall action
 completion and interrupts still require implementation.
+
+The public attack, jump and air-dodge entry points now reject ordinary actions
+during wall startup as well as the per-frame early return. The real-contact
+wall fixture checks this lock on every startup tick and attack availability at
+expiry; all five WallTech cases passed. Buffered wall-jump selection still uses
+the separate recovery input path. Full post-startup interrupt priority and
+animation completion remain open.

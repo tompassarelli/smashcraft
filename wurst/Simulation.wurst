@@ -1005,6 +1005,8 @@ public function jumpSquatFrames(int character) returns int
 function canStartAttack(FighterState attacker) returns boolean
 	if attacker.surfaceRecoveryState == SURFACE_TECH_CEILING
 		return false
+	if attacker.surfaceRecoveryState == SURFACE_TECH_WALL and attacker.surfaceRecoveryFrame < WALL_TECH_STARTUP_FRAMES
+		return false
 	if attacker.grabTarget != null or attacker.grabAction != GRAB_NONE
 		return false
 	if attacker.frozenFrames > 0
@@ -2891,6 +2893,8 @@ function demonHunterSpecialContact(FighterState owner, FighterState target) retu
 public function simulationJump(FighterState f, int horizontal)
 	if f.surfaceRecoveryState == SURFACE_TECH_CEILING
 		return
+	if f.surfaceRecoveryState == SURFACE_TECH_WALL and f.surfaceRecoveryFrame < WALL_TECH_STARTUP_FRAMES
+		return
 	if inGrabContext(f)
 		return
 	if f.ledgeState != LEDGE_NONE
@@ -2918,6 +2922,8 @@ public function simulationJump(FighterState f, int horizontal)
 
 public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	if f.surfaceRecoveryState == SURFACE_TECH_CEILING
+		return
+	if f.surfaceRecoveryState == SURFACE_TECH_WALL and f.surfaceRecoveryFrame < WALL_TECH_STARTUP_FRAMES
 		return
 	if inGrabContext(f)
 		return
