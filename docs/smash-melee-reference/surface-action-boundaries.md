@@ -349,8 +349,13 @@ The integrated grab-clock and shield-phase changes passed 513/513 Wurstunit
 checks with zero errors and the existing unused-import warning
 (smashcraft:build/shield-phase-grab-aggregate.log). This includes regeneration
 through locked phases and same-tick captures, strict-negative depletion, and
-damage/drain break-entry health. Held guard drain preceding jump/dodge/release
-input, exact Lua numerical behavior, and native verification remain open.
+damage/drain break-entry health. The subsequent held-guard suite passes 60/60,
+including drain before jump/dodge/release inputs. The numerical integration
+aggregate passed 515/516; its ASDI landing expectation used world-scaled
+subtraction rather than the retail binary32 subtraction in Melee units.
+The exact expected value is now 8.220000267028809 Melee units, and that focused
+case passes 1/1 (smashcraft:build/binary32-asdi-focused.log). Native verification
+and precision of the remaining operations remain open.
 
 The scalar production probe reproduced GROUNDED_BINARY32_EXACT_FAIL under
 Lua 5.3.6 before the correction (smashcraft:build/physics-probe/runtime-before.log).
