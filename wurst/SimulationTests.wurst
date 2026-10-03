@@ -589,7 +589,7 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 	let stockTarget = new FighterState(1, 100, -1)
 	let stockInput = new InputSnapshot()
 	prepareSmashCharge(stockFighter, stockTarget, stockInput, 2)
-	stockFighter.x = 920
+	stockFighter.x = 920.001
 	stockInput.attackHeld = false
 	advance(stockFighter, 0, stockInput, -240)
 	stockFighter.out.assertTrue()
@@ -1850,7 +1850,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	fighter.diSerial.assertEquals(0)
 	fighter.diAngleDegrees.assertEquals(0.)
 	fighter.diPending = true
-	fighter.x = 920
+	fighter.x = 920.001
 	advance(fighter, 0, targetInput, 0)
 	fighter.diPending.assertFalse()
 	fighter.diLaunchSpeed.assertEquals(0.)
@@ -2436,12 +2436,12 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	fighter.stocks.assertEquals(2)
 	fighter.out.assertEquals(false)
 	fighter.out.assertEquals(false)
-	fighter.x = 920
+	fighter.x = 920.001
 	advance(fighter, 0, input, -240)
 	fighter.stocks.assertEquals(1)
 	while fighter.respawn > 0
 		advance(fighter, 0, input, -240)
-	fighter.x = 920
+	fighter.x = 920.001
 	advance(fighter, 0, input, -240)
 	fighter.stocks.assertEquals(0)
 	fighter.out.assertEquals(true)
@@ -2473,6 +2473,37 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	advance(fighter, 0, input, 0)
 	fighter.out.assertFalse()
 	fighter.stocks.assertEquals(3)
+	destroy input
+	destroy fighter
+
+@Test function blastZoneSideBoundariesRequireStrictCrossing()
+	for direction = -1 to 1
+		if direction != 0
+			let fighter = new FighterState(0, direction * 920., direction)
+			let input = new InputSnapshot()
+			fighter.grounded = false
+			fighter.z = 400
+			advance(fighter, 0, input, 0)
+			fighter.out.assertFalse()
+			fighter.x = direction * 920.001
+			advance(fighter, 0, input, 0)
+			fighter.out.assertTrue()
+			fighter.stocks.assertEquals(2)
+			destroy input
+			destroy fighter
+
+@Test function blastZoneBottomBoundaryRequiresStrictCrossing()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = -420
+	fighter.vz = 50
+	advance(fighter, 0, input, 0)
+	fighter.out.assertFalse()
+	fighter.z = -420.001
+	advance(fighter, 0, input, 0)
+	fighter.out.assertTrue()
+	fighter.stocks.assertEquals(2)
 	destroy input
 	destroy fighter
 

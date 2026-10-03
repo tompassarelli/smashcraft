@@ -3284,7 +3284,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 
 function checkBlastZone(FighterState f)
 	let topEligible = f.grounded or f.frozenFrames > 0 or f.knockbackZ > TOP_KO_MINIMUM_UPWARD_KNOCKBACK
-	if f.x <= -920 or f.x >= 920 or f.z <= -420 or (f.z > 760 and topEligible)
+	if f.x < -920 or f.x > 920 or f.z < -420 or (f.z > 760 and topEligible)
 		clearGrabLinks(f)
 		clearDash(f)
 		f.out = true

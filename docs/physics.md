@@ -600,8 +600,10 @@ boundary. Numerical facts are in
 smashcraft:docs/smash-melee-reference/retail-death-parameters.json.
 This does not verify the complete death state machine: Melee's special forced
 top-death flag (including its Jigglypuff shield-break case), star/screen selection,
-camera constraints, death/respawn phase clocks, and side/bottom exact boundary
-comparisons remain open. Frozen-state release ordering is also unverified.
+camera constraints and death/respawn phase clocks remain open. Side and bottom
+comparisons now also require strict crossing; the six-test blast-zone group
+passes boundary-adjacent cases and the existing stock/ASDI cases. Frozen-state
+release ordering is still unverified.
 
 ## Initial dash and dash dance
 
