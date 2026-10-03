@@ -419,3 +419,16 @@ than full hops, and angled variants share the flat move's timing, without
 freezing arbitrary heights or damage values. This first focused audit does not
 claim the entire suite has been audited. Redundant cases, literal-only checks,
 provisional move timing and slow repeated simulations still need review.
+
+After grounded movement/surface integration, the aggregate passed 463/463.
+Its measured test execution was 34.26 seconds. The 4,096-frame replay alone
+passed with 17.37 seconds of interpreter execution and is now in ReplaySoak,
+outside the routine Tests filter. Its assertions and scenario are unchanged;
+shorter replay/rollback regressions remain in the routine suite.
+
+The 1,024-frame every-frame rollback scenario is also retained unchanged in
+ReplaySoak. Its routine counterpart now runs one complete 192-frame input
+cycle, crossing the 64-frame history ring and retaining all event/rollback
+assertions; that focused case passed with 3.92 seconds of interpreter execution.
+The routine suite after the first split passed 462/462 in 28.8 seconds end to
+end. No end-to-end speed is claimed yet for the second split.

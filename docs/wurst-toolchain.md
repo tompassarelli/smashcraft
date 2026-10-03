@@ -159,10 +159,15 @@ Relevant local sources:
 
 ## Headless replay checks
 
-The ordinary suite excludes the long soak by package name:
+The ordinary suite excludes the 1,024-frame repeated rollback, 4,096-frame
+replay and 100,000-frame soak
+by package name. Run the 4,096-frame case on its own for replay integration;
+use the full soak only when that longer scenario is needed:
 
 ```bash
 bash ~/code/wc3-melee/worktrees/test-loop/test.sh
+bash ~/code/wc3-melee/worktrees/test-loop/test.sh longRecordedTape
+bash ~/code/wc3-melee/worktrees/test-loop/test.sh repeatedLongRollbackTape
 bash ~/code/wc3-melee/worktrees/test-loop/test.sh ReplaySoak 180
 ```
 

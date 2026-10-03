@@ -192,10 +192,9 @@ public function runRecordedTape(int frames, int rollbackStride, int startingStoc
     canonical.game.phase.assertEquals(MATCH)
 
 @Test function recordedTapeMatchesIndependentRunAndRepeatedRollback()
-    runRecordedTape(1024, 1, 99)
-
-@Test function longRecordedTapeMatchesEveryFrame()
-    runRecordedTape(4096, 64, 99)
+    // One complete input cycle crosses the history ring and checks every recorded
+    // combat event above; longer repetitions remain in ReplaySoak.
+    runRecordedTape(192, 1, 99)
 
 @Test function correctedPredictionsRefreshSnapshotsAcrossRingWrapAndSecondRollback()
     let canonical = new TapeWorld(99)
