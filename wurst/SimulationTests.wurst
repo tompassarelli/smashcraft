@@ -3769,7 +3769,8 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		advance(fighter, 0, input, 0)
 		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
 		fighter.shieldEnergy.assertEquals(30.)
-		for tick = 1 to 239
+		let dizzyTicks = R2I(fighter.shieldBreakRemaining)
+		for tick = 1 to dizzyTicks - 1
 			simulationJump(fighter, 0)
 			simulationAirDodge(fighter, 1, 0)
 			beginAttackPair(fighter, target, 5, -1, false, false)
@@ -3797,7 +3798,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		let fighter = shieldBreakTestFighter(0, mode == 0 ? 100 : 0)
 		let input = new InputSnapshot()
 		dizzyShieldBreakTest(fighter, input)
-		let expected = mode == 0 ? 140 : (mode == 1 ? 237 : 60)
+		let expected = mode == 0 ? 390 : (mode == 1 ? 487 : 123)
 		for tick = 1 to expected
 			input.mashPressed = mode == 2 or mode == 1 and tick == 1
 			advance(fighter, 0, input, 0)
@@ -3808,7 +3809,19 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		fighter.shieldEnergy.assertEquals(30.07, 0.001)
 		destroy input
 		destroy fighter
-	shieldBreakDizzyFrames(1000).assertEquals(60)
+	shieldBreakDizzyFrames(100.).assertEquals(390.)
+	shieldBreakDizzyFrames(100.25).assertEquals(389.75, 0.0001)
+	shieldBreakDizzyFrames(400.).assertEquals(90.)
+	shieldBreakDizzyFrames(1000.).assertEquals(90.)
+	let fractional = shieldBreakTestFighter(0, 100.25)
+	let fractionalInput = new InputSnapshot()
+	dizzyShieldBreakTest(fractional, fractionalInput)
+	fractional.shieldBreakRemaining.assertEquals(389.75, 0.0001)
+	fractionalInput.mashPressed = true
+	advance(fractional, 0, fractionalInput, 0)
+	fractional.shieldBreakRemaining.assertEquals(385.75, 0.0001)
+	destroy fractionalInput
+	destroy fractional
 
 @Test function shieldBreakHitlagFreezesMotionPhaseAndMash()
 	for state = SHIELD_BREAK_AIR to SHIELD_BREAK_DIZZY

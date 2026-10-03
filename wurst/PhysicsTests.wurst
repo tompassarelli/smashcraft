@@ -532,10 +532,16 @@ function recordedGroundedDamageFirstDifference(int character, real velocityOffse
 	destroy target
 
 @Test function combatShieldDamageUsesIntegerPowerBeforeShieldstunCalculation()
+	digitalShieldstunDuration(4.).assertEquals(3.8, 0.0001)
+	digitalShieldstunDuration(4.99).assertEquals(3.8, 0.0001)
 	digitalShieldstunFrames(4.).assertEquals(3)
 	digitalShieldstunFrames(4.99).assertEquals(3)
 	digitalShieldstunFrames(5.).assertEquals(4)
 	digitalShieldstunFrames(8.99).assertEquals(5)
+	digitalShieldDamage(4.).assertEquals(2.8, 0.0001)
+	digitalShieldPushback(4.).assertEquals(0.45600005984306335 * 6, 0.0001)
+	digitalShieldPushback(1000.).assertEquals(2. * 6, 0.0001)
+	digitalShieldRecoil(4.).assertEquals(0.3 * 6, 0.0001)
 
 function recordedShieldAttackerPosition(int frame) returns real
 	if frame < 4

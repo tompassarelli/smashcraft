@@ -469,7 +469,7 @@ function applyFrame()
     else if botFighter.shieldBreakSerial > botPreviousShieldBreak
         announce(twoHumanPlayers ? "Player 2's shield broke!" : "Opponent's shield broke!")
     if playerPreviousBreakState != playerFighter.shieldBreakState
-        traceInput("shield-break " + I2S(playerFighter.shieldBreakState) + " z " + R2S(playerFighter.z) + " remaining " + I2S(playerFighter.shieldBreakRemaining))
+        traceInput("shield-break " + I2S(playerFighter.shieldBreakState) + " z " + R2S(playerFighter.z) + " remaining " + R2S(playerFighter.shieldBreakRemaining))
     if playerPreviousLedge != playerFighter.ledgeState
         traceInput("ledge " + I2S(playerFighter.ledgeState) + " x " + R2S(playerFighter.x) + " z " + R2S(playerFighter.z))
     if playerFighter.jumpSerial != playerPreviousJump

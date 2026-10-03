@@ -1513,16 +1513,29 @@ sequence, percent dependence, mashing, termination by flinching attacks, and
 30 HP after a Melee shield break. The cached page was consulted for facts only;
 no article prose is reused. It does not verify our timings or launch strength.
 
-The prototype choices are explicit: launch vertically at 24 Warcraft world
-units/tick with the existing character gravity and terminal speed; hold the
-landing pose for 12 ticks; stand for 30 ticks; then remain dizzy for
-`max(60, 240 - floor(max(0, percent)))` ticks, sampled on dizzy entry. Each
-fresh synchronized mash edge removes three additional remaining dizzy ticks,
-on top of that frame's normal one-tick reduction. These numbers, the minimum
-duration, and our uniform mash weight are provisional tuning, not verified
-Melee values. InputSnapshot.mashPressed admits at most one such edge per tick;
-held inputs alone are not mash edges. Mash edges before dizziness or during
-hitlag have no effect and are not banked.
+Verified retail common values set shield maximum to 60, held digital drain to
+0.14 times the full-shield factor 2 (0.28 per logical frame), regeneration to
+0.07 per frame, and post-break restoration to 30. The digital shield-damage
+and shieldstun rules use integer hit power. Raw stun is
+`integerDamage * 0.3 * 1.5 + 2`; action ticks are
+`floor(rawStun * 200 / 201)`. Defender pushback is
+`min(2, rawStun * 0.2 * 0.6)`, while grounded direct-attacker recoil is
+`integerDamage * 0.07 + 0.02`. The common grounded recoil-friction multiplier
+is 1.1; airborne recoil decays by 0.05 per frame.
+
+The sourced dizzy duration is the real-valued `max(0, 400 - percent) + 90`,
+sampled on entry. Each unfrozen action tick removes 1; a fresh synchronized
+mash edge removes an additional 3. The fractional remainder stays in replayed
+state. InputSnapshot.mashPressed admits at most one such edge per tick; held
+inputs alone are not mash edges. Mash edges before dizziness or during hitlag
+have no effect and are not banked. Analog light-shield interpolation remains
+unsupported. The authored 12-tick landing pose and 30-tick stand pose remain
+prototype animation lengths and are not inferred from these common values.
+
+The numeric common source is verified GALE01 revision 2 (PlCo SHA-1
+`c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41`); no proprietary binary is retained
+in this repository. The decompiled source is used for numerical facts and
+field behavior only.
 
 Shield health stays at zero through the pop/landing/stand and becomes 30 on
 dizzy entry. It stays exactly 30 through dizziness and on its expiration tick;
@@ -1544,8 +1557,8 @@ The adapter contract is FighterState.shieldBreakState (`SHIELD_BREAK_NONE=0`,
 `SHIELD_BREAK_AIR=1`, `SHIELD_BREAK_LAND=2`, `SHIELD_BREAK_STAND=3`,
 `SHIELD_BREAK_DIZZY=4`), shieldBreakFrame (elapsed unfrozen ticks in the current
 phase, zero on entry), and shieldBreakSerial (increments once per break).
-shieldBreakRemaining is the dizzy countdown; shieldBreakDizzyFrames(percent)
-exposes its initial provisional duration. Public timing constants are
+shieldBreakRemaining is the real-valued dizzy countdown;
+shieldBreakDizzyFrames(percent) exposes its initial sourced duration. Public timing constants are
 SHIELD_BREAK_LAND_FRAMES=12, SHIELD_BREAK_STAND_FRAMES=30 and
 SHIELD_BREAK_RESTORED_ENERGY=30. LAND begins on contact; each timed phase
 transitions after exactly its stated number of later unfrozen ticks. Expiration

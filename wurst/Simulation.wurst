@@ -12,7 +12,7 @@ constant real GROUND_ACCELERATION_MULTIPLIER = 0.1
 constant real GROUND_ACCELERATION_BASE = 0.02
 constant real GROUND_SPEED_CAP = 3 * WORLD_UNITS_PER_MELEE_UNIT
 constant real RUN_TURN_BRAKING = 0.8 * WORLD_UNITS_PER_MELEE_UNIT
-public constant real SHIELD_MAX = 60
+public constant real SHIELD_MAX = 60.
 public constant int SHIELD_BREAK_NONE = 0
 public constant int SHIELD_BREAK_AIR = 1
 public constant int SHIELD_BREAK_LAND = 2
@@ -20,10 +20,27 @@ public constant int SHIELD_BREAK_STAND = 3
 public constant int SHIELD_BREAK_DIZZY = 4
 public constant int SHIELD_BREAK_LAND_FRAMES = 12
 public constant int SHIELD_BREAK_STAND_FRAMES = 30
-public constant real SHIELD_BREAK_RESTORED_ENERGY = 30
-constant int SHIELD_BREAK_MASH_REDUCTION = 3
-constant real SHIELD_DRAIN_PER_FRAME = 0.28
-constant real SHIELD_REGEN_PER_FRAME = 0.07
+public constant real SHIELD_BREAK_RESTORED_ENERGY = 30.
+constant real SHIELD_BREAK_BASE_PERCENT = 400.
+constant real SHIELD_BREAK_MIN_FRAMES = 90.
+constant real SHIELD_BREAK_FRAME_DECAY = 1.
+constant real SHIELD_BREAK_MASH_STRENGTH = 3.
+constant real SHIELD_DRAIN_BASE = 0.14000000059604645
+constant real SHIELD_DRAIN_FULL_SHIELD_SCALE = 2.
+constant real SHIELD_DRAIN_PER_FRAME = SHIELD_DRAIN_BASE * SHIELD_DRAIN_FULL_SHIELD_SCALE
+constant real SHIELD_REGEN_PER_FRAME = 0.07000000029802322
+constant real SHIELD_DAMAGE_SCALE = 1.
+constant real SHIELD_DAMAGE_BASE = 0.
+constant real SHIELD_DIGITAL_DAMAGE_FACTOR = 0.7
+constant real SHIELD_STUN_DAMAGE_FACTOR = 0.3
+constant real SHIELD_STUN_MULTIPLIER = 1.5
+constant real SHIELD_STUN_BASE = 2.
+constant real SHIELD_PUSHBACK_BASE = 0.20000000298023224
+constant real SHIELD_PUSHBACK_CAP = 2.
+constant real SHIELD_PUSHBACK_MULTIPLIER = 0.6000000238418579
+constant real SHIELD_RECOIL_DAMAGE_FACTOR = 0.07000000029802322
+constant real SHIELD_RECOIL_BASE = 0.019999999552965164
+constant real SHIELD_RECOIL_GROUND_FRICTION_MULTIPLIER = 1.100000023841858
 constant real AIR_DODGE_SPEED = 3 * WORLD_UNITS_PER_MELEE_UNIT
 constant int AIR_DODGE_FRAMES = 26
 constant int AIR_DODGE_INTANGIBLE_START = 4
@@ -372,7 +389,7 @@ public class FighterState
 	int shieldBreakState = SHIELD_BREAK_NONE
 	int shieldBreakFrame = 0
 	int shieldBreakSerial = 0
-	int shieldBreakRemaining = 0
+	real shieldBreakRemaining = 0
 	boolean grounded = true
 	boolean crouching = false
 	boolean fastFalling = false
@@ -606,11 +623,19 @@ function decayKnockback(FighterState f)
 		f.knockbackX *= scale
 		f.knockbackZ *= scale
 
+public function digitalShieldstunDuration(real damage) returns real
+	return integerHitPower(damage) * SHIELD_STUN_DAMAGE_FACTOR * SHIELD_STUN_MULTIPLIER + SHIELD_STUN_BASE
+
 public function digitalShieldPushback(real damage) returns real
-	return min(2., (integerHitPower(damage) * 0.09 + 0.4) * 0.6) * WORLD_UNITS_PER_MELEE_UNIT
+	return min(SHIELD_PUSHBACK_CAP,
+		digitalShieldstunDuration(damage) * SHIELD_PUSHBACK_BASE * SHIELD_PUSHBACK_MULTIPLIER)
+		* WORLD_UNITS_PER_MELEE_UNIT
 
 public function digitalShieldRecoil(real damage) returns real
-	return (integerHitPower(damage) * 0.07 + 0.02) * WORLD_UNITS_PER_MELEE_UNIT
+	return (integerHitPower(damage) * SHIELD_RECOIL_DAMAGE_FACTOR + SHIELD_RECOIL_BASE) * WORLD_UNITS_PER_MELEE_UNIT
+
+public function digitalShieldDamage(real damage) returns real
+	return damage * SHIELD_DIGITAL_DAMAGE_FACTOR * SHIELD_DAMAGE_SCALE + SHIELD_DAMAGE_BASE
 
 function decayShieldMotion(FighterState f)
 	if f.grounded
@@ -618,7 +643,7 @@ function decayShieldMotion(FighterState f)
 		f.shieldPushbackX = f.shieldPushbackX > 0 ? max(0, f.shieldPushbackX - defenderDecay) : min(0, f.shieldPushbackX + defenderDecay)
 		// The currently modeled ground is flat, so shield recoil has no vertical component there.
 		f.shieldRecoilZ = 0
-		let attackerDecay = f.physics.traction * 1.1
+		let attackerDecay = f.physics.traction * SHIELD_RECOIL_GROUND_FRICTION_MULTIPLIER
 		f.shieldRecoilX = f.shieldRecoilX > 0 ? max(0, f.shieldRecoilX - attackerDecay) : min(0, f.shieldRecoilX + attackerDecay)
 	else
 		// Airborne recoil is a vector and decays by the common per-frame amount.
@@ -799,7 +824,7 @@ public function ordinaryHitlagFrames(real hitDamage) returns int
 	return victimHitlagFrames(hitDamage, false, false)
 
 public function digitalShieldstunFrames(real hitDamage) returns int
-	return R2I((integerHitPower(hitDamage) * 0.45 + 2) * 200 / 201)
+	return R2I(digitalShieldstunDuration(hitDamage) * 200 / 201)
 
 public function ordinaryHitstunFrames(real knockback) returns int
 	return max(1, R2I(knockback * HITSTUN_FRAMES_PER_KNOCKBACK))
@@ -997,7 +1022,7 @@ function resolveDamageContacts(FighterState target)
 		let contact = damageContacts[index]
 		if contact.target == target
 			if contact.blocked
-				shieldDamage += contact.data.damage * 0.7
+				shieldDamage += digitalShieldDamage(contact.data.damage)
 			else
 				totalDamage += contact.data.damage
 	let postHitPercent = R2I(max(0, target.damage)) + totalDamage
@@ -1484,9 +1509,8 @@ public function advanceFreezeTrapPair(FighterState first, FighterState second)
 	if freezeSecond
 		freezeFromTrap(second)
 
-public function shieldBreakDizzyFrames(real percent) returns int
-	// Prototype timing; only the inverse percent relationship is reference-backed.
-	return max(60, 240 - R2I(max(0, percent)))
+public function shieldBreakDizzyFrames(real percent) returns real
+	return max(0., SHIELD_BREAK_BASE_PERCENT - percent) + SHIELD_BREAK_MIN_FRAMES
 
 function beginShieldBreak(FighterState f)
 	clearGrabLinks(f)
@@ -1552,8 +1576,9 @@ function advanceShieldBreak(FighterState f, int stage, InputSnapshot input)
 		f.shieldBreakRemaining = shieldBreakDizzyFrames(f.damage)
 		f.shieldEnergy = SHIELD_BREAK_RESTORED_ENERGY
 	else if f.shieldBreakState == SHIELD_BREAK_DIZZY
-		f.shieldBreakRemaining = max(0, f.shieldBreakRemaining - 1 - (input.mashPressed ? SHIELD_BREAK_MASH_REDUCTION : 0))
-		if f.shieldBreakRemaining == 0
+		f.shieldBreakRemaining = max(0., f.shieldBreakRemaining - SHIELD_BREAK_FRAME_DECAY
+			- (input.mashPressed ? SHIELD_BREAK_MASH_STRENGTH : 0.))
+		if f.shieldBreakRemaining <= 0
 			clearShieldBreak(f)
 	checkBlastZone(f)
 
