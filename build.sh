@@ -52,6 +52,12 @@ developer_scenario=${WC3_SCENARIO:-normal}
 case "$developer_scenario" in normal|knockdown|tech|shield-break|ledge|parry|spike) ;; *) echo 'WC3_SCENARIO must be normal, knockdown, tech, shield-break, ledge, parry or spike.' >&2; exit 2;; esac
 input_profile=${WC3_INPUT_PROFILE:-callback}
 case "$input_profile" in callback|shadow-d3|shadow-d3-batch2|shadow-d3-r12|shadow-d0-r12|shadow-d1-r12|shadow-d0-r24) ;; *) echo 'Unknown WC3_INPUT_PROFILE.' >&2; exit 2;; esac
+input_source=${WC3_INPUT_SOURCE:-keyboard}
+case "$input_source" in keyboard|journal) ;; *) echo 'WC3_INPUT_SOURCE must be keyboard or journal.' >&2; exit 2;; esac
+if [[ "$input_source" == journal && "$input_profile" == callback ]]; then
+    echo 'WC3_INPUT_SOURCE=journal requires a shadow input profile.' >&2
+    exit 2
+fi
 input_delay=3
 input_rollback=6
 shadow_input=false
@@ -115,7 +121,7 @@ cp "$project_dir/wurst.build" "$work_dir/wurst.build"
 }
 sed -i "s/^  name: .*/  name: $map_name/" "$work_dir/wurst.build"
 cp "$project_dir/tools/map-entry.j" "$work_dir/wurst/war3map.j"
-for source in ConfirmedModelSounds ModelSoundPresentation FighterAssets Simulation MeleeScalarMath RollTravel IllidanMotion FighterPose BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput NetworkInput InputAdapter MatchStep ReplayState ReplayHistory KeyboardInputCapture InputProtocol InputBatch ParticipantInputs InputLedger FixedInputSchedule ShadowInputSchedule ShadowInputPlayback ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents ImpactState SpecialEffectState SummonPose SummonState SummonPresentation DamagePose CombatEffects FrostEffects ProjectilePose ProjectilePresentation ShieldPose ShieldPresentation SpecialEffects ResponseServiceProbe Melee; do
+for source in ConfirmedModelSounds ModelSoundPresentation FighterAssets Simulation MeleeScalarMath RollTravel IllidanMotion FighterPose BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput NetworkInput InputAdapter MatchStep ReplayState ReplayHistory KeyboardInputCapture InputProtocol InputBatch ParticipantInputs InputLedger FixedInputSchedule ShadowInputSchedule ShadowInputPlayback JournalInputSource ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents ImpactState SpecialEffectState SummonPose SummonState SummonPresentation DamagePose CombatEffects FrostEffects ProjectilePose ProjectilePresentation ShieldPose ShieldPresentation SpecialEffects ResponseServiceProbe Melee; do
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
 done
 cp "$project_dir/build/model-sounds/wurst/ModelSoundInfo.wurst" "$work_dir/wurst/ModelSoundInfo.wurst"
@@ -176,6 +182,7 @@ done
 
 printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\npublic constant boolean SHADOW_INPUT_PROFILE = %s\npublic constant boolean SHADOW_INPUT_BATCH2 = %s\npublic constant int SHADOW_INPUT_DELAY = %s\npublic constant int SHADOW_INPUT_ROLLBACK = %s\npublic constant boolean KNOCKDOWN_SCENARIO = %s\npublic constant boolean TECH_SCENARIO = %s\npublic constant boolean SHIELD_BREAK_SCENARIO = %s\npublic constant boolean LEDGE_SCENARIO = %s\npublic constant boolean PARRY_SCENARIO = %s\npublic constant boolean SPIKE_SCENARIO = %s\n' "$build_id" "$shadow_input" "$([[ "$input_profile" == shadow-d3-batch2 ]] && echo true || echo false)" "$input_delay" "$input_rollback" "$([[ "$developer_scenario" == knockdown || "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == shield-break ]] && echo true || echo false)" "$([[ "$developer_scenario" == ledge ]] && echo true || echo false)" "$([[ "$developer_scenario" == parry ]] && echo true || echo false)" "$([[ "$developer_scenario" == spike ]] && echo true || echo false)" > "$work_dir/wurst/BuildInfo.wurst"
 printf 'public constant string INPUT_PROFILE = "%s"\npublic constant string PRESENTATION_PROFILE = "%s"\npublic constant boolean POOL_PRESENTATION = %s\npublic constant boolean PREDICTED_PRESENTATION = %s\n' "$input_profile" "$presentation" "$([[ "$presentation" != native ]] && echo true || echo false)" "$([[ "$presentation" == pool-predicted ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
+printf 'public constant boolean JOURNAL_INPUT_SOURCE = %s\n' "$([[ "$input_source" == journal ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
 printf 'public constant boolean RESPONSE_SERVICE_PROBE = %s\n' "$([[ "$response_probe" == 1 ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
 cp "$work_dir/wurst/BuildInfo.wurst" "$build_output.BuildInfo.wurst"
 if [[ "$build_output" == "$project_dir/build/wurst-map/$map_filename" ]]; then

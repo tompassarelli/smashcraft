@@ -43,6 +43,8 @@ import CombatEffects
 import FrostEffects
 import SpecialEffects
 import ResponseServiceProbe
+import JournalInputSource
+import FileIO
 
 constant int SHADOW_CONFIRMED_CATCHUP_LIMIT = 6
 real centerX = 0
@@ -78,11 +80,14 @@ boolean shadowInputActive = false
 int shadowInputEpoch = 0
 int shadowLastCaptureTarget = 0
 boolean shadowLocalSendFailed = false
+boolean journalInputFailed = false
 trigger broadKeyDownTrigger = null
 trigger broadKeyUpTrigger = null
 ShadowInputSchedule shadowSchedule = null
 ShadowInputPlayback shadowPlayback = null
 KeyboardInputCapture shadowCapture = null
+JournalInputSource journalInput = null
+File journalInputFile = null
 InputBatch shadowBatch = null
 InputPacket shadowOutgoing = null
 InputPacket shadowIncoming = null
@@ -435,7 +440,65 @@ function sendShadowBatch()
                 shadowTraceBatchWaitMaxSeconds = max(shadowTraceBatchWaitMaxSeconds, seconds)
     shadowBatch.sent()
 
+function failJournalInput(string reason)
+	if journalInputFailed
+		return
+	journalInputFailed = true
+	statusText = "Controller input stopped. Restart the match."
+	statusTime = 3600
+	if inputTraceActive
+		traceInput("journal stopped " + reason + " sequence " + I2S(journalInput.sequenceNumber()) + " frame " + I2S(journalInput.expectedFrame()))
+
+function serviceJournalInput()
+	if journalInputFailed
+		return
+	let slot = GetPlayerId(GetLocalPlayer())
+	if not matchState.humanFighterActive(slot)
+		return
+	for readIndex = 1 to 16
+		journalInputFile.filename = journalInput.filename()
+		let wire = journalInputFile.readAsString(localPlayer)
+		if wire == ""
+			return
+		let latest = min(INPUT_LAST_FRAME, shadowSchedule.nextConfirmedFrame() - 1 + INPUT_FUTURE_LIMIT)
+		let decoded = journalInput.decode(wire, latest)
+		if decoded == JOURNAL_WAIT
+			return
+		if decoded != JOURNAL_READY
+			failJournalInput("invalid or noncontiguous I3 row")
+			return
+		if not journalInput.copyRow(shadowPending)
+			failJournalInput("row validation state was lost")
+			return
+		let frame = journalInput.packetFrame()
+		if RESPONSE_SERVICE_PROBE
+			responseProbePoll(shadowPending.heldMask(), shadowPending.pressedMask(), shadowPending.releasedMask(), frame)
+		let captured = shadowSchedule.captureLocalAt(shadowInputEpoch, frame, shadowPending)
+		if captured == SHADOW_TOO_FAR_AHEAD or captured == SHADOW_PENDING_FULL
+			return
+		if captured != SHADOW_CAPTURED and captured != SHADOW_ALREADY_CAPTURED
+			failJournalInput("original frame could not be admitted")
+			return
+		if not inputPacketSizeInRange(wire.length(), 1) or not BlzSendSyncData("SC_GP", wire)
+			shadowLocalSendFailed = true
+			failJournalInput("synchronized input submission failed")
+			return
+		if inputTraceActive
+			shadowTraceLocalCaptures++
+			shadowTraceLocalSends++
+			shadowTraceSentRows++
+			shadowTraceSingletons++
+			recordShadowTraceSend(shadowInputEpoch, frame)
+			traceInput("journal sent sequence " + I2S(journalInput.sequenceNumber()) + " frame " + I2S(frame))
+		if not journalInput.sent()
+			shadowLocalSendFailed = true
+			failJournalInput("journal cursor could not advance after send")
+			return
+
 function shadowCaptureLocalInput()
+	if JOURNAL_INPUT_SOURCE
+		serviceJournalInput()
+		return
     if inputTraceActive
         shadowTraceLocalPolls++
     // Poll neutral while paused or locally inactive. This latches releases;
@@ -504,7 +567,11 @@ function shadowInputTick()
     if matchState.phase != MATCH
         sendShadowBatch()
         return
-    shadowCaptureLocalInput()
+    if JOURNAL_INPUT_SOURCE
+        if not matchControls.isPaused()
+            serviceJournalInput()
+    else
+        shadowCaptureLocalInput()
     if matchControls.isPaused()
         return
     var confirmedSteps = 0
@@ -891,7 +958,15 @@ function beginShadowEpoch() returns boolean
     shadowRuntime.simulationFrame = 0
     for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
         shadowRuntime.botAttackDelays[slot] = 0
-    shadowCapture.reset(shadowPollLocal())
+    if JOURNAL_INPUT_SOURCE
+        shadowCapture.reset(0)
+    else
+        shadowCapture.reset(shadowPollLocal())
+    journalInputFailed = false
+    if JOURNAL_INPUT_SOURCE
+        let localSlot = GetPlayerId(GetLocalPlayer())
+        if not journalInput.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot, SHADOW_INPUT_DELAY)
+            failJournalInput("epoch could not be initialized")
     currentFrameInput.reset()
     return true
 
@@ -957,6 +1032,16 @@ function startMatch()
         if not shadowInputActive
             statusText = "The players could not connect. Restart the match."
             statusTime = 3600
+        else if JOURNAL_INPUT_SOURCE
+            let slot = GetPlayerId(GetLocalPlayer())
+            PreloadGenClear()
+            PreloadGenStart()
+            Preload("SMASHCRAFT JOURNAL v=1 build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot))
+            Preload("input=" + INPUT_PROFILE + " delay=" + I2S(SHADOW_INPUT_DELAY) + " rollback=" + I2S(SHADOW_INPUT_ROLLBACK) + " first_frame=" + I2S(1 + SHADOW_INPUT_DELAY))
+            Preload("filename=smashcraft-journal-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-s" + I2S(slot) + "-n{SEQUENCE}.pld")
+            Preload("packet=one canonical I3 singleton per original frame; include neutral rows; no sparse events")
+            Preload("transport=SC_GP; files are immutable; absent next filename is retried; sequence advances after local capture and successful submission")
+            PreloadGenEnd("smashcraft-journal-ready-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-p" + I2S(slot) + ".txt")
     if POOL_PRESENTATION and shadowInputActive
         modelSounds.beginEpoch(shadowInputEpoch)
         modelSoundPresentation.setOrigin(centerX, centerY, floorHeight)
@@ -1471,6 +1556,9 @@ function initializeShadowInput()
     shadowSchedule = new ShadowInputSchedule()
     shadowPlayback = new ShadowInputPlayback()
     shadowCapture = new KeyboardInputCapture()
+    if JOURNAL_INPUT_SOURCE
+        journalInput = new JournalInputSource()
+        journalInputFile = new File("")
     shadowBatch = new InputBatch()
     shadowOutgoing = new InputPacket()
     shadowIncoming = new InputPacket()

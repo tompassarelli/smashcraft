@@ -1,0 +1,55 @@
+package InputJournalCorpus
+import Wurstunit
+import NetworkInput
+import InputProtocol
+import KeyBindings
+
+@Test function exportAuthoredPlayableRowsThroughProductionProtocol()
+    let source = new NetworkInput()
+    let scratch = new NetworkInput()
+    let packet = new InputPacket()
+    let decoded = new InputPacket()
+    for epoch = 1 to 2
+        for slot = 0 to 1
+            var previousHeld = 0
+            for frame = 1 to 600
+                var held = 0
+                var axis = 0
+                var triggerAmount = 0
+                if frame <= 80
+                    held = inputActionBit(slot == 0 ? MOVE_RIGHT : MOVE_LEFT)
+                    axis = slot == 0 ? 127 : -127
+                else if frame >= 91 and frame <= 300
+                    if slot == 0 and (frame - 91) mod 20 == 0
+                        held = inputActionBit(ATTACK)
+                    else if slot == 1 and frame <= 110
+                        held = inputActionBit(LEFT_TRIGGER)
+                        triggerAmount = 255
+                else if frame >= 301 and frame <= 450 and slot == 1
+                    held = inputActionBit(MOVE_RIGHT)
+                    axis = 127
+                else if frame >= 451 and frame <= 500 and slot == 0
+                    held = inputActionBit(LEFT_TRIGGER)
+                    triggerAmount = 255
+                var pressed = 0
+                var released = 0
+                for action = 0 to ACTION_COUNT - 1
+                    let bit = inputActionBit(action)
+                    let down = (held div bit) mod 2 == 1
+                    let wasDown = (previousHeld div bit) mod 2 == 1
+                    if down and not wasDown
+                        pressed += bit
+                    else if wasDown and not down
+                        released += bit
+                source.assign(held, pressed, released, axis, 0, triggerAmount, 0).assertTrue()
+                source.assignPressData(0, 0, 0, 0, false, 0, 0, 0).assertTrue()
+                source.assignThrowContributions(0, 0).assertTrue()
+                packet.assign(epoch, frame, 1, source, source).assertTrue()
+                let wire = packet.encode()
+                decoded.decode(wire).assertTrue()
+                decoded.epochNumber().assertEquals(epoch)
+                decoded.firstFrameNumber().assertEquals(frame)
+                decoded.copyRecord(0, scratch).assertTrue()
+                scratch.sameAs(source).assertTrue()
+                println("JOURNAL_CORPUS " + I2S(epoch) + " " + I2S(slot) + " " + I2S(frame) + " " + wire)
+                previousHeld = held

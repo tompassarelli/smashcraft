@@ -1,0 +1,41 @@
+package JournalInputSourceTests
+import JournalInputSource
+import InputProtocol
+import NetworkInput
+import KeyBindings
+
+@Test function immutableSingletonRowsKeepEpochSlotAndOriginalFrameCursor()
+	let source = new JournalInputSource()
+	let packet = new InputPacket()
+	let row = new NetworkInput()
+	let copied = new NetworkInput()
+	source.beginEpoch("candidate", 91, 2, 3).assertTrue()
+	source.expectedFrame().assertEquals(4)
+	source.filename().assertEquals("smashcraft-journal-candidate-e91-s2-n1.pld")
+	row.assign(inputActionBit(LEFT_TRIGGER), inputActionBit(LEFT_TRIGGER), 0, 0, 0, 255, 0).assertTrue()
+	packet.assign(91, 4, 1, row, row).assertTrue()
+	source.decode(packet.encode(), 3).assertEquals(JOURNAL_WAIT)
+	source.sequenceNumber().assertEquals(1)
+	source.decode(packet.encode(), 4).assertEquals(JOURNAL_READY)
+	source.copyRow(copied).assertTrue()
+	copied.sameAs(row).assertTrue()
+	source.sent().assertTrue()
+	source.sequenceNumber().assertEquals(2)
+	source.expectedFrame().assertEquals(5)
+	source.filename().assertEquals("smashcraft-journal-candidate-e91-s2-n2.pld")
+	source.decode(packet.encode(), 5).assertEquals(JOURNAL_INVALID)
+	source.sequenceNumber().assertEquals(2)
+
+@Test function journalRejectsWrongEpochNonContiguousAndBundledPackets()
+	let source = new JournalInputSource()
+	let packet = new InputPacket()
+	let row = new NetworkInput()
+	source.beginEpoch("candidate", 92, 0, 0).assertTrue()
+	packet.assign(93, 1, 1, row, row).assertTrue()
+	source.decode(packet.encode(), 64).assertEquals(JOURNAL_INVALID)
+	packet.assign(92, 2, 1, row, row).assertTrue()
+	source.decode(packet.encode(), 64).assertEquals(JOURNAL_INVALID)
+	packet.assign(92, 1, 2, row, row).assertTrue()
+	source.decode(packet.encode(), 64).assertEquals(JOURNAL_INVALID)
+	source.decode("", 64).assertEquals(JOURNAL_WAIT)
+	source.sequenceNumber().assertEquals(1)
