@@ -27,6 +27,14 @@ The supported sine/cosine domain is finite angles within
 Signed-zero distinctions and nonfinite inputs are outside the verified claim;
 this is not a general replacement for all platform trigonometric functions.
 
+The subsequent original-routine fixture
+smashcraft:docs/smash-melee-reference/retail-signed-zero-scalars.json exposes a
+confirmed missing branch: atan2(-0, -1) returns negative float32(pi), whereas
+the current implementation selects positive pi. Their sine residues have
+opposite signs. atan2(-0, +0) also selects negative half pi. These fourteen
+original scalar cases are the next regression input; they are not a passing
+production comparison. Signed-zero fidelity remains required unfinished work.
+
 The 16 recorded input cases cover cardinal axes, ordinary vectors, diagonals in
 all four quadrants, a small vector angle, and direct axis angles. They yield 43
 function outputs. All 16 focused Wurst tests and all 43 exact numeric comparisons
