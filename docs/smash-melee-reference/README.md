@@ -29,6 +29,17 @@ porting Captain Falcon. It does not identify the disc revision or independently
 extract the grounded common multiplier at +0x200. Floor collision epsilon is
 normalized; only horizontal displacement is compared.
 
+smashcraft:docs/smash-melee-reference/slippi-ntsc-shield-contact.json retains
+a paired digital-shield contact from `air_dodge.slp`, frames 10523–10534.
+Sheik's 4-damage jab produces four frames of hitlag, three released shieldstun
+frames, defender pushback and attacker recoil. The source exports defender
+ground speed but omits the separate attacker recoil velocity; the attacker's
+position trace supplies that comparison. The shield's return to Guard is a
+separate frame from resumed held drain. Recorded effective friction supports
+this flat-floor case; the disc revision, raw common table, defender cap,
+analog/powershield branches and airborne attacker recoil remain unresolved.
+The excerpt contains numerical telemetry and no player/account metadata.
+
 The owner's copy-paste snapshot of all 26 character pages from
 [Melee Frame Data](https://meleeframedata.com/), captured 2026-10-03, is retained
 with its structured conversions:

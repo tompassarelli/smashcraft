@@ -1,6 +1,19 @@
 package PhysicsTests
 import Simulation
 
+// Factual original-game inputs from wc3-melee:docs/smash-melee-reference/physics-parameters.json.
+// This fixture exercises the production engine without adding a roster character.
+function falcoReferencePhysics() returns fighterPhysics
+	return fighterPhysics(80, 0.17000000178813934 * 6,
+		3.0999999046325684 * 6, 3.5 * 6,
+		(0.019999999552965164 + 0.05000000074505806) * 6,
+		0.8299999833106995 * 6, 0.019999999552965164 * 6, 4. * 6,
+		0.07999999821186066 * 6, 1.899999976158142 * 6, 1.5 * 6, 1.399999976158142 * 6,
+		5, 4.099999904632568 * 6, 1.899999976158142 * 6,
+		4.099999904632568 * 6 * 0.9399999976158142,
+		1., 0.699999988079071 * 6, 1.7000000476837158 * 6,
+		0.9399999976158142 * 6, 3.299999952316284 * 6)
+
 function recordedFalcoFallPosition(int sample) returns real
 	if sample == 0
 		return 9.872425079345703
@@ -22,8 +35,9 @@ function recordedFalcoFallPosition(int sample) returns real
 		return 2.3924245834350586
 	return 0.6924247741699219
 
-function recordedFalcoFallFirstDifference(real initialVelocity) returns int
-	let f = new FighterState(1, -360, 1)
+function recordedFalcoFallFirstDifference(int hostCharacter, real initialVelocity) returns int
+	let f = new FighterState(hostCharacter, -360, 1)
+	f.physics = falcoReferencePhysics()
 	let input = new InputSnapshot()
 	f.grounded = false
 	f.surface = -1
@@ -39,13 +53,15 @@ function recordedFalcoFallFirstDifference(real initialVelocity) returns int
 	return firstDifference
 
 @Test function recordedNtscFalcoNeutralFallMatchesTenIndependentPositions()
-	recordedFalcoFallFirstDifference(0).assertEquals(0)
+	for hostCharacter = 0 to 1
+		recordedFalcoFallFirstDifference(hostCharacter, 0).assertEquals(0)
 
 @Test function recordedFalcoFallDetectsPerturbedVelocityAtTheFirstFrame()
-	recordedFalcoFallFirstDifference(0.06).assertEquals(-59)
+	recordedFalcoFallFirstDifference(0, 0.06).assertEquals(-59)
 
-function recordedFalcoJumpFirstDifference(int jumpInputFrame) returns int
-	let f = new FighterState(1, 5.241994857788086 * 6, 1)
+function recordedFalcoJumpFirstDifference(int hostCharacter, int jumpInputFrame) returns int
+	let f = new FighterState(hostCharacter, 5.241994857788086 * 6, 1)
+	f.physics = falcoReferencePhysics()
 	let input = new InputSnapshot()
 	var firstDifference = 0
 	for frame = 25 to 30
@@ -62,14 +78,17 @@ function recordedFalcoJumpFirstDifference(int jumpInputFrame) returns int
 	return firstDifference
 
 @Test function recordedNtscFalcoJumpHasFiveGroundedFramesThenRawTakeoff()
-	recordedFalcoJumpFirstDifference(25).assertEquals(0)
+	for hostCharacter = 0 to 1
+		recordedFalcoJumpFirstDifference(hostCharacter, 25).assertEquals(0)
 
 @Test function recordedFalcoJumpDetectsDelayedInputOnItsOriginalFrame()
-	recordedFalcoJumpFirstDifference(26).assertEquals(25)
+	recordedFalcoJumpFirstDifference(0, 26).assertEquals(25)
 
 @Test function groundedKnockbackMatchesRecordedFirstReleasedDisplacement()
 	for character = 0 to 1
 		let f = new FighterState(character, -11.548782348632812 * 6, 1)
+		// Captain Falcon observation: only the observed traction is required here.
+		f.physics.traction = 0.07999999821186066 * 6
 		let input = new InputSnapshot()
 		f.knockbackX = 0.7562744617462158 * 6
 		f.hitstun = 10
@@ -142,6 +161,8 @@ function recordedGroundedDamageVelocity(int sample) returns real
 
 function recordedGroundedDamageFirstDifference(int character, real velocityOffset) returns int
 	let f = new FighterState(character, -11.548782348632812 * 6, 1)
+	// Shared grounded-damage rule with the observation's traction, not a full character rig.
+	f.physics.traction = 0.07999999821186066 * 6
 	let input = new InputSnapshot()
 	f.knockbackX = 0.7562744617462158 * 6 + velocityOffset
 	f.hitlag = 4
@@ -285,6 +306,145 @@ function recordedGroundedDamageFirstDifference(int character, real velocityOffse
 	digitalShieldstunFrames(4.99).assertEquals(3)
 	digitalShieldstunFrames(5.).assertEquals(4)
 	digitalShieldstunFrames(8.99).assertEquals(5)
+
+function recordedShieldAttackerPosition(int frame) returns real
+	if frame < 4
+		return 38.56430435180664
+	if frame == 4
+		return 38.35230255126953
+	if frame == 5
+		return 38.228302001953125
+	return 38.19230270385742
+
+function recordedShieldDefenderPosition(int frame) returns real
+	if frame < 4
+		return 45.46552276611328
+	if frame == 4
+		return 45.83152389526367
+	if frame == 5
+		return 46.10752487182617
+	if frame == 6
+		return 46.29352569580078
+	if frame == 7
+		return 46.3895263671875
+	if frame == 8
+		return 46.39552688598633
+	return 46.39552688598633
+
+@Test function recordedNtscDigitalShieldContactMatchesPairedPushbackAndGroundedRecoil()
+	for sourceCharacter = 0 to 1
+		for targetCharacter = 0 to 1
+			let source = new FighterState(sourceCharacter, 38.56430435180664 * 6, 1)
+			let target = new FighterState(targetCharacter, 45.46552276611328 * 6, -1)
+			let sourceInput = new InputSnapshot()
+			let targetInput = new InputSnapshot()
+			// Puff's published ground-friction attribute supplies the defender decay.
+			target.physics.traction = 0.09000000357627869 * 6
+			source.physics.traction = 0.07999999821186066 * 6
+			target.shield = true
+			target.shieldEnergy = 43.90003204345703
+			targetInput.shield = true
+			// The recorded held-shield drain happens on the contact tick before impact.
+			advance(source, 0, sourceInput, 0)
+			advance(target, 0, targetInput, 0)
+			beginDamageContacts()
+			queueDamageContact(source, target, hitEffect(4, 0, 0, 0, 0, false), 1,
+				CONTACT_FLINCH, true, null)
+			finishDamageContacts(source, target)
+			target.shieldEnergy.assertEquals(40.82003402709961, 0.0001)
+			target.shieldStun.assertEquals(3)
+			target.hitlag.assertEquals(4)
+			source.hitlag.assertEquals(4)
+			target.shieldPushbackX.assertEquals(0.45600005984306335 * 6, 0.0001)
+			source.shieldRecoilX.assertEquals(-0.3 * 6, 0.0001)
+			for frame = 1 to 9
+				advance(source, 0, sourceInput, 0)
+				advance(target, 0, targetInput, 0)
+				source.x.assertEquals(recordedShieldAttackerPosition(frame) * 6, 0.001)
+				target.x.assertEquals(recordedShieldDefenderPosition(frame) * 6, 0.001)
+				target.hitlag.assertEquals(max(0, 4 - frame))
+				if frame < 4
+					target.shieldEnergy.assertEquals(40.82003402709961, 0.0001)
+				else if frame <= 7
+					target.shieldEnergy.assertEquals(40.82003402709961, 0.0001)
+				else
+					target.shieldEnergy.assertEquals(40.82003402709961 - 0.28 * (frame - 7), 0.0001)
+			destroy sourceInput
+			destroy targetInput
+			destroy source
+			destroy target
+
+@Test function detachedAndAirborneContactsDoNotInventAttackerGroundRecoil()
+	for direct = 0 to 1
+		let source = new FighterState(0, 0, 1)
+		let target = new FighterState(1, 10, -1)
+		let sourceInput = new InputSnapshot()
+		source.grounded = direct == 0
+		target.shield = true
+		beginDamageContacts()
+		queueDamageContact(source, target, hitEffect(4, 0, 0, 0, 0, false), 1,
+			CONTACT_FLINCH, direct == 1, null)
+		finishDamageContacts(source, target)
+		source.shieldRecoilX.assertEquals(0.)
+		destroy sourceInput
+		destroy source
+		destroy target
+	for facing = -1 to 1
+		if facing != 0
+			let source = new FighterState(0, 0, facing)
+			let target = new FighterState(1, 10, -facing)
+			target.shield = true
+			beginDamageContacts()
+			queueDamageContact(source, target, hitEffect(4, 0, 0, 0, 0, false), facing,
+				CONTACT_FLINCH, true, null)
+			finishDamageContacts(source, target)
+			target.shieldPushbackX.assertEquals(facing * 0.45600005984306335 * 6, 0.0001)
+			source.shieldRecoilX.assertEquals(-facing * 0.3 * 6, 0.0001)
+			destroy source
+			destroy target
+
+@Test function laterCleanHitReplacesRemainingShieldRecoil()
+	let attacker = new FighterState(0, 0, 1)
+	let defender = new FighterState(1, 10, -1)
+	defender.shield = true
+	beginDamageContacts()
+	queueDamageContact(attacker, defender, hitEffect(4, 0, 0, 0, 0, false), 1,
+		CONTACT_FLINCH, true, null)
+	finishDamageContacts(attacker, defender)
+	attacker.shieldRecoilX.assertEquals(-0.3 * 6, 0.0001)
+	defender.shield = false
+	beginDamageContacts()
+	queueDamageContact(defender, attacker, hitEffect(5, 0, 20, 1, 0, false), -1,
+		CONTACT_LAUNCH, false, null)
+	finishDamageContacts(attacker, defender)
+	attacker.shieldRecoilX.assertEquals(0.)
+	attacker.knockbackX.assertEquals(-3.6, 0.0001)
+	destroy attacker
+	destroy defender
+
+@Test function recordedShieldContactDetectsPerturbedRecoilOnFirstReleaseFrame()
+	let source = new FighterState(0, 38.56430435180664 * 6, 1)
+	let target = new FighterState(1, 45.46552276611328 * 6, -1)
+	let sourceInput = new InputSnapshot()
+	let targetInput = new InputSnapshot()
+	target.shield = true
+	targetInput.shield = true
+	beginDamageContacts()
+	queueDamageContact(source, target, hitEffect(4, 0, 0, 0, 0, false), 1,
+		CONTACT_FLINCH, true, null)
+	finishDamageContacts(source, target)
+	source.shieldRecoilX += 0.06 * 6
+	for frame = 1 to 3
+		advance(source, 0, sourceInput, 0)
+		advance(target, 0, targetInput, 0)
+		source.x.assertEquals(38.56430435180664 * 6, 0.001)
+	advance(source, 0, sourceInput, 0)
+	advance(target, 0, targetInput, 0)
+	(source.x - recordedShieldAttackerPosition(4) * 6).assertEquals(0.06 * 6, 0.001)
+	destroy sourceInput
+	destroy targetInput
+	destroy source
+	destroy target
 
 @Test function combatShieldBreakUsesCharacterLaunchAttributeAfterContactFreeze()
 	for character = 0 to 2
@@ -808,3 +968,80 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 		owner.hitlag.assertEquals(0)
 		destroy target
 		destroy owner
+
+@Test function sameCharacterUsesAssignedGravityAndJumpParameters()
+	let first = new FighterState(0, 0, 1)
+	let second = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	first.physics.gravity = 1
+	second.physics.gravity = 2
+	first.grounded = false
+	second.grounded = false
+	first.z = 100
+	second.z = 100
+	advance(first, 0, input, 0)
+	advance(second, 0, input, 0)
+	first.z.assertEquals(99.)
+	second.z.assertEquals(98.)
+	first.vz.assertEquals(-1.)
+	second.vz.assertEquals(-2.)
+	first.grounded = true
+	second.grounded = true
+	first.z = 0
+	second.z = 0
+	first.physics.jumpSquatFrames = 2
+	second.physics.jumpSquatFrames = 4
+	first.physics.fullJumpSpeed = 15
+	second.physics.fullJumpSpeed = 20
+	input.jumpPressed = true
+	input.jumpHeld = true
+	advance(first, 0, input, 0)
+	advance(second, 0, input, 0)
+	input.jumpPressed = false
+	for frame = 1 to 2
+		advance(first, 0, input, 0)
+		advance(second, 0, input, 0)
+	first.grounded.assertFalse()
+	first.z.assertEquals(15.)
+	first.vz.assertEquals(15.)
+	second.grounded.assertTrue()
+	second.jumpSquat.assertEquals(2)
+	for frame = 1 to 2
+		advance(second, 0, input, 0)
+	second.z.assertEquals(20.)
+	second.vz.assertEquals(20.)
+	destroy first
+	destroy second
+	destroy input
+
+@Test function sameCharacterUsesAssignedWeightForActualDamageContact()
+	for sample = 0 to 1
+		let owner = new FighterState(0, 0, 1)
+		let target = new FighterState(0, 100, -1)
+		target.physics.weight = sample == 0 ? 50 : 150
+		beginAttackPair(owner, target, 0, -1, false, false)
+		owner.attackFrame = attackStartupFrames(0)
+		resolveAttackPair(owner, target)
+		target.damage.assertEquals(12.)
+		// Jab at 12 percent: ((12/10 + 12*12/20)*200/(weight+100)*1.4+18)+20.
+		target.diLaunchSpeed.assertEquals(sample == 0 ? 9.6624 : 8.53344, 0.00001)
+		destroy owner
+		destroy target
+
+@Test function stockRespawnRetainsAssignedPhysics()
+	let f = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	f.physics = falcoReferencePhysics()
+	f.physics.gravity = 2
+	let assigned = f.physics
+	f.out = true
+	f.stocks = 2
+	f.respawn = 1
+	advance(f, 0, input, -100)
+	f.out.assertFalse()
+	(f.physics == assigned).assertTrue()
+	f.character.assertEquals(0)
+	advance(f, 0, input, -100)
+	f.vz.assertEquals(-2.)
+	destroy f
+	destroy input
