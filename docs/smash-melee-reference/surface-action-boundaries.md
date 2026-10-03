@@ -20,11 +20,15 @@ startup, aerial actions can interrupt; ceiling recovery does not share that
 interrupt policy. Wall physics applies aerial friction without ordinary steering
 acceleration while this action remains active.
 
-Wall entry sets facing opposite the passed collision direction. The passed
-direction is -1 on right-wall contact and +1 on left-wall contact. Horizontal
-impulse uses that facing multiplied by the signed actor attribute. Verify the
-attribute sign together with the stage normal convention before changing the
-impulse; outward displacement alone does not establish facing parity.
+Wall entry sets facing opposite the passed collision direction. The source's
+RightWallHug means a right-facing surface contacted by the fighter's left ECB
+point, not a wall on the fighter's right. This is explicit in
+melee:src/melee/mp/mpcoll.c and in the negative-X impact branch of
+melee:src/melee/ft/ftCo_800C7CA0.c. PassiveWall passes -1 there and sets facing
+to +1; LeftWallHug gives the opposite pair. Thus entry facing and horizontal
+impulse point outward, matching Smashcraft's normal convention. The recorded
+actor attributes are positive (0.5 and approximately 1.4 MU/frame). No facing
+or horizontal-impulse sign correction is required for those profiles.
 
 ## Open production discrepancies
 
@@ -35,6 +39,10 @@ not yet enforce its full input lock. Wall facing uses the outward stage normal;
 its facing and signed impulse require reconciliation with the observations above.
 The existing startup, impulse and protection tests do not prove these missing
 action boundaries. Native recovery observation remains open.
+
+The previously suspected facing discrepancy above was resolved by following
+the wall collision flag to its ECB point and impact direction, as described
+above. Collision repositioning remains unverified.
 
 The subsequent ceiling-boundary implementation advances the clock beyond the
 impulse, enters ordinary fall at the actor's configured animation end (26 in
