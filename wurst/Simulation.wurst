@@ -732,6 +732,20 @@ public function totalVelocityX(FighterState f) returns real
 public function totalVelocityZ(FighterState f) returns real
 	return f.vz + f.knockbackZ + f.shieldRecoilZ
 
+tuple airMotion(real x, real z)
+
+function decayedAirMotion(real worldX, real worldZ, real decay) returns airMotion
+	let horizontal = (worldX / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
+	let vertical = (worldZ / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
+	let verticalSquare = (vertical * vertical).roundToFloat32()
+	let speedSquare = fusedMultiplyAddFloat32(horizontal, horizontal, verticalSquare)
+	let speed = SquareRoot(speedSquare).roundToFloat32()
+	if speed < decay
+		return airMotion(0, 0)
+	let angle = meleeAtan2(vertical, horizontal)
+	return airMotion(fusedMultiplyAddFloat32(-decay, meleeCos(angle), horizontal) * WORLD_UNITS_PER_MELEE_UNIT,
+		fusedMultiplyAddFloat32(-decay, meleeSin(angle), vertical) * WORLD_UNITS_PER_MELEE_UNIT)
+
 function decayKnockback(FighterState f)
 	if f.grounded
 		if f.groundKnockbackX == 0
@@ -742,20 +756,9 @@ function decayKnockback(FighterState f)
 		f.knockbackZ = 0
 		return
 	f.groundKnockbackX = 0
-	let horizontal = (f.knockbackX / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
-	let vertical = (f.knockbackZ / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
-	let verticalSquare = (vertical * vertical).roundToFloat32()
-	let speedSquare = fusedMultiplyAddFloat32(horizontal, horizontal, verticalSquare)
-	let speed = SquareRoot(speedSquare).roundToFloat32()
-	let decay = KNOCKBACK_DECAY_PER_FRAME.roundToFloat32()
-	if speed < decay
-		f.knockbackX = 0
-		f.groundKnockbackX = 0
-		f.knockbackZ = 0
-	else if speed > 0
-		let angle = meleeAtan2(vertical, horizontal)
-		f.knockbackX = fusedMultiplyAddFloat32(-decay, meleeCos(angle), horizontal) * WORLD_UNITS_PER_MELEE_UNIT
-		f.knockbackZ = fusedMultiplyAddFloat32(-decay, meleeSin(angle), vertical) * WORLD_UNITS_PER_MELEE_UNIT
+	let motion = decayedAirMotion(f.knockbackX, f.knockbackZ, KNOCKBACK_DECAY_PER_FRAME.roundToFloat32())
+	f.knockbackX = motion.x
+	f.knockbackZ = motion.z
 
 public function digitalShieldstunDuration(real damage) returns real
 	let scaledPower = (integerHitPower(damage) * SHIELD_STUN_DAMAGE_FACTOR).roundToFloat32()
@@ -783,14 +786,10 @@ function decayShieldMotion(FighterState f)
 	else
 		// Airborne recoil is a vector and decays by the common per-frame amount.
 		f.shieldPushbackX = 0
-		let speed = SquareRoot(f.shieldRecoilX * f.shieldRecoilX + f.shieldRecoilZ * f.shieldRecoilZ)
-		if speed < AIR_SHIELD_RECOIL_DECAY
-			f.shieldRecoilX = 0
-			f.shieldRecoilZ = 0
-		else if speed > 0
-			let scale = (speed - AIR_SHIELD_RECOIL_DECAY) / speed
-			f.shieldRecoilX *= scale
-			f.shieldRecoilZ *= scale
+		let decay = (AIR_SHIELD_RECOIL_DECAY / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
+		let motion = decayedAirMotion(f.shieldRecoilX, f.shieldRecoilZ, decay)
+		f.shieldRecoilX = motion.x
+		f.shieldRecoilZ = motion.z
 
 function shieldDrainShouldResume(FighterState f, boolean forcedShield) returns boolean
 	if forcedShield

@@ -1,5 +1,24 @@
 # Physics reference and implementation
 
+## Airborne attacker recoil arithmetic — 2026-10-04
+
+The retail recoil branch at 0x8006BA98 calls atan2f; 0x8006BA9C rounds the
+vertical square and 0x8006BAA8 fuses the horizontal square-plus-sum. Cosine and
+sine calls at 0x8006BB24/0x8006BB40 feed axis `fnmsubs` at
+0x8006BB34/0x8006BB50, both loading common +0x3E8. These numeric operation
+facts identify the same direction/subtraction pattern as airborne launch decay.
+Production now shares that calculation, with the separate recoil decay
+0.05000000074505806 Melee units.
+
+smashcraft:docs/smash-melee-reference/retail-air-recoil-decrement.json records
+eleven above-cutoff vectors from original scalar execution and independently
+authored PPC subtraction. The emitted-Lua production probe failed on the first
+recoil case before repair and passes all 22 recoil axes afterward, alongside
+the 22 launch axes and 22 resulting horizontal positions. Evidence:
+smashcraft:build/air-recoil-before.log and smashcraft:build/air-recoil-after.log.
+This is not execution of the original gameplay routine. The cutoff still needs
+Gekko estimate/refinement verification; native recoil remains unverified.
+
 ## Airborne horizontal position order — 2026-10-04
 
 Ordinary airborne horizontal position now adds self velocity, launch velocity,
@@ -35,9 +54,8 @@ repair and passes all 22 exact axis outputs afterward. Evidence:
 smashcraft:build/air-decay-before.log and smashcraft:build/air-decay-after.log.
 
 The cutoff still uses Warcraft's SquareRoot followed by binary32 rounding.
-Gekko estimate/refinement equivalence at that cutoff is unverified. Airborne
-attacker shield-recoil decay still uses radial scaling and remains separate
-unfinished work. Native trajectories remain unverified.
+Gekko estimate/refinement equivalence at that cutoff is unverified. Native
+trajectories remain unverified.
 
 ## Recorded vertical precision — 2026-10-04
 
