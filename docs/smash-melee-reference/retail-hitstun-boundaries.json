@@ -1,0 +1,373 @@
+{
+  "id": "retail-ntsc-1.02-hitstun-scaled-boundaries",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "multiplier": 0.4000000059604645,
+  "thresholds": [
+    10,
+    21,
+    32
+  ],
+  "execution": {
+    "cpu": "QEMU PPC750",
+    "entry": "0x8008DD5C",
+    "multiply": "0x8008DD6C",
+    "truncate": "0x8008DD70",
+    "durationStore": "0x8008DD90",
+    "returnPatch": "0x8008DDF0",
+    "exitCode": 0,
+    "byteCount": 368
+  },
+  "limitations": [
+    "Selected original hitstun multiplication, duration conversion/minimum and damage-level branch execute unchanged; not full damage initialization or hardware gameplay.",
+    "The synthetic common table supplies previously verified multiplier and thresholds. No original executable bytes are included.",
+    "Finite nonnegative binary32 inputs; no claim about hitlag, reaction animation choice, release clocks or native Warcraft."
+  ],
+  "results": [
+    {
+      "knockback": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "scaled": {
+        "bits": "0x00000000",
+        "value": 0
+      },
+      "frames": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "damageLevel": 0
+    },
+    {
+      "knockback": {
+        "bits": "0x42f6e979",
+        "value": 123.45600128173828
+      },
+      "scaled": {
+        "bits": "0x42458794",
+        "value": 49.38240051269531
+      },
+      "frames": {
+        "bits": "0x42440000",
+        "value": 49
+      },
+      "damageLevel": 3
+    },
+    {
+      "knockback": {
+        "bits": "0x401fffff",
+        "value": 2.499999761581421
+      },
+      "scaled": {
+        "bits": "0x3f7fffff",
+        "value": 0.9999999403953552
+      },
+      "frames": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "damageLevel": 0
+    },
+    {
+      "knockback": {
+        "bits": "0x40200000",
+        "value": 2.5
+      },
+      "scaled": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "frames": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "damageLevel": 0
+    },
+    {
+      "knockback": {
+        "bits": "0x40200001",
+        "value": 2.500000238418579
+      },
+      "scaled": {
+        "bits": "0x3f800001",
+        "value": 1.0000001192092896
+      },
+      "frames": {
+        "bits": "0x3f800000",
+        "value": 1
+      },
+      "damageLevel": 0
+    },
+    {
+      "knockback": {
+        "bits": "0x40efffff",
+        "value": 7.499999523162842
+      },
+      "scaled": {
+        "bits": "0x403fffff",
+        "value": 2.999999761581421
+      },
+      "frames": {
+        "bits": "0x40000000",
+        "value": 2
+      },
+      "damageLevel": 0
+    },
+    {
+      "knockback": {
+        "bits": "0x40f00000",
+        "value": 7.5
+      },
+      "scaled": {
+        "bits": "0x40400000",
+        "value": 3
+      },
+      "frames": {
+        "bits": "0x40400000",
+        "value": 3
+      },
+      "damageLevel": 0
+    },
+    {
+      "knockback": {
+        "bits": "0x40f00001",
+        "value": 7.500000476837158
+      },
+      "scaled": {
+        "bits": "0x40400001",
+        "value": 3.000000238418579
+      },
+      "frames": {
+        "bits": "0x40400000",
+        "value": 3
+      },
+      "damageLevel": 0
+    },
+    {
+      "knockback": {
+        "bits": "0x41c7ffff",
+        "value": 24.999998092651367
+      },
+      "scaled": {
+        "bits": "0x411fffff",
+        "value": 9.999999046325684
+      },
+      "frames": {
+        "bits": "0x41100000",
+        "value": 9
+      },
+      "damageLevel": 0
+    },
+    {
+      "knockback": {
+        "bits": "0x41c80000",
+        "value": 25
+      },
+      "scaled": {
+        "bits": "0x41200000",
+        "value": 10
+      },
+      "frames": {
+        "bits": "0x41200000",
+        "value": 10
+      },
+      "damageLevel": 1
+    },
+    {
+      "knockback": {
+        "bits": "0x41c80001",
+        "value": 25.000001907348633
+      },
+      "scaled": {
+        "bits": "0x41200001",
+        "value": 10.000000953674316
+      },
+      "frames": {
+        "bits": "0x41200000",
+        "value": 10
+      },
+      "damageLevel": 1
+    },
+    {
+      "knockback": {
+        "bits": "0x4251ffff",
+        "value": 52.499996185302734
+      },
+      "scaled": {
+        "bits": "0x41a7ffff",
+        "value": 20.999998092651367
+      },
+      "frames": {
+        "bits": "0x41a00000",
+        "value": 20
+      },
+      "damageLevel": 1
+    },
+    {
+      "knockback": {
+        "bits": "0x42520000",
+        "value": 52.5
+      },
+      "scaled": {
+        "bits": "0x41a80000",
+        "value": 21
+      },
+      "frames": {
+        "bits": "0x41a80000",
+        "value": 21
+      },
+      "damageLevel": 2
+    },
+    {
+      "knockback": {
+        "bits": "0x42520001",
+        "value": 52.500003814697266
+      },
+      "scaled": {
+        "bits": "0x41a80001",
+        "value": 21.000001907348633
+      },
+      "frames": {
+        "bits": "0x41a80000",
+        "value": 21
+      },
+      "damageLevel": 2
+    },
+    {
+      "knockback": {
+        "bits": "0x429fffff",
+        "value": 79.99999237060547
+      },
+      "scaled": {
+        "bits": "0x41ffffff",
+        "value": 31.999998092651367
+      },
+      "frames": {
+        "bits": "0x41f80000",
+        "value": 31
+      },
+      "damageLevel": 2
+    },
+    {
+      "knockback": {
+        "bits": "0x42a00000",
+        "value": 80
+      },
+      "scaled": {
+        "bits": "0x42000000",
+        "value": 32
+      },
+      "frames": {
+        "bits": "0x42000000",
+        "value": 32
+      },
+      "damageLevel": 3
+    },
+    {
+      "knockback": {
+        "bits": "0x42a00001",
+        "value": 80.00000762939453
+      },
+      "scaled": {
+        "bits": "0x42000001",
+        "value": 32.000003814697266
+      },
+      "frames": {
+        "bits": "0x42000000",
+        "value": 32
+      },
+      "damageLevel": 3
+    },
+    {
+      "knockback": {
+        "bits": "0x42aeffff",
+        "value": 87.49999237060547
+      },
+      "scaled": {
+        "bits": "0x420bffff",
+        "value": 34.999996185302734
+      },
+      "frames": {
+        "bits": "0x42080000",
+        "value": 34
+      },
+      "damageLevel": 3
+    },
+    {
+      "knockback": {
+        "bits": "0x42af0000",
+        "value": 87.5
+      },
+      "scaled": {
+        "bits": "0x420c0000",
+        "value": 35
+      },
+      "frames": {
+        "bits": "0x420c0000",
+        "value": 35
+      },
+      "damageLevel": 3
+    },
+    {
+      "knockback": {
+        "bits": "0x42af0001",
+        "value": 87.50000762939453
+      },
+      "scaled": {
+        "bits": "0x420c0001",
+        "value": 35.000003814697266
+      },
+      "frames": {
+        "bits": "0x420c0000",
+        "value": 35
+      },
+      "damageLevel": 3
+    },
+    {
+      "knockback": {
+        "bits": "0x451c3fff",
+        "value": 2499.999755859375
+      },
+      "scaled": {
+        "bits": "0x4479ffff",
+        "value": 999.9999389648438
+      },
+      "frames": {
+        "bits": "0x4479c000",
+        "value": 999
+      },
+      "damageLevel": 3
+    },
+    {
+      "knockback": {
+        "bits": "0x451c4000",
+        "value": 2500
+      },
+      "scaled": {
+        "bits": "0x447a0000",
+        "value": 1000
+      },
+      "frames": {
+        "bits": "0x447a0000",
+        "value": 1000
+      },
+      "damageLevel": 3
+    },
+    {
+      "knockback": {
+        "bits": "0x451c4001",
+        "value": 2500.000244140625
+      },
+      "scaled": {
+        "bits": "0x447a0002",
+        "value": 1000.0001220703125
+      },
+      "frames": {
+        "bits": "0x447a0000",
+        "value": 1000
+      },
+      "damageLevel": 3
+    }
+  ]
+}

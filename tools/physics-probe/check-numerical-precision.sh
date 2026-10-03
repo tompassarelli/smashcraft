@@ -11,6 +11,7 @@ mkdir -p "$output_dir"
 "${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}" "$project_dir/tools/physics-probe/generate-recorded-fall-probe.mjs"
 "${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}" "$project_dir/tools/physics-probe/generate-air-decrement-probe.mjs"
 "${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}" "$project_dir/tools/physics-probe/generate-ground-motion-probe.mjs"
+"${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}" "$project_dir/tools/physics-probe/generate-hitstun-probe.mjs"
 /home/tom/.wurst/wurst-runtime/bin/java -Xmx2048m -XX:ActiveProcessorCount=2 \
     -jar "$project_dir/toolchain/wurstscript.jar" -lua -runcompiletimefunctions -stacktraces \
     -workspaceroot "$project_dir" -lib "$stdlib_root" -out "$output_dir/precision.lua" \
@@ -19,6 +20,7 @@ mkdir -p "$output_dir"
     "$project_dir/wurst/Simulation.wurst" "$project_dir/wurst/RollTravel.wurst" \
     "$project_dir/wurst/MeleeScalarMath.wurst" \
     "$project_dir/tools/physics-probe/NumericalPrecisionProbe.wurst" \
+    "$output_dir/HitstunPrecisionProbe.wurst" \
     "$output_dir/GroundMotionPrecisionProbe.wurst" \
     "$output_dir/RecordedFallPrecisionProbe.wurst" "$output_dir/AirDecrementPrecisionProbe.wurst" \
     "$output_dir/SignedZeroPrecisionProbe.wurst" "$output_dir/AirCutoffPrecisionProbe.wurst"
@@ -48,11 +50,12 @@ init_AirDecrementPrecisionProbe()
 init_SignedZeroPrecisionProbe()
 init_AirCutoffPrecisionProbe()
 init_GroundMotionPrecisionProbe()
+init_HitstunPrecisionProbe()
 assert(results.GROUNDED_BINARY32_EXACT_PASS and results.SHIELD_REGEN_BINARY32_EXACT_PASS
     and results.SHIELD_DAMAGE_BINARY32_EXACT_PASS and results.SHIELD_CONTACT_SUM_BINARY32_EXACT_PASS
     and results.SHIELD_STUN_BINARY32_EXACT_PASS and results.RECORDED_FALL_TEN_FRAMES_BINARY32_EXACT_PASS
     and results.AIR_DECREMENT_BINARY32_EXACT_PASS and results.SIGNED_ZERO_SCALARS_EXACT_PASS
-    and results.AIR_CUTOFF_BINARY32_EXACT_PASS and results.GROUND_MOTION_BINARY32_EXACT_PASS,
+    and results.HITSTUN_BOUNDARIES_EXACT_PASS and results.AIR_CUTOFF_BINARY32_EXACT_PASS and results.GROUND_MOTION_BINARY32_EXACT_PASS,
     'Missing numerical precision result')
 LUA
 nix shell nixpkgs#lua5_3 --command lua "$output_dir/run-precision.lua" "$project_dir" \
