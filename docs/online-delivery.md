@@ -34,6 +34,14 @@ and platform-specific trials.
 
 The roadmap is [#16](https://github.com/tompassarelli/smashcraft/issues/16).
 
+The immediate priority is [#21](https://github.com/tompassarelli/smashcraft/issues/21):
+the bounded competitive input-integrity decision, due 3 October 2026 at
+15:15:25 UTC / 23:15:25 Taipei. See
+wc3-melee:docs/competitive-integrity-decision.md for evidence, the HOLD
+recommendation and exact release gates, and wc3-melee:docs/online-delivery-goal.md
+for the full consolidated goal. Controller/launcher features do not reset or
+extend the investigation clock.
+
 1. [#17](https://github.com/tompassarelli/smashcraft/issues/17): complete an
    actual two-client fight, KO/results and rematch on the same candidate;
    incorporate current verified physics into rollback/replay. Then measure
@@ -68,8 +76,10 @@ Retained native evidence includes matching sampled confirmed states, attacks
 from both humans, a real contact/hitlag/hitstun window and a results-to-combat
 rematch transition. It does not yet establish a completed combat round, current
 candidate latency acceptance, physical-controller acceptance, native support on
-all three platforms or ten completed matches. Client A's launcher was last
-observed offline; this is not repaired by repeatedly restarting the game.
+all three platforms or ten completed matches. Client A's signed-in launcher
+successfully recovered the real main menu through its Play button on 3 October.
+An empty Options/Exit Game shell is the recorded post-login failure; retain the
+launcher and use the Warcraft-specific recovery skill rather than direct execution.
 
 Update the owning issue at meaningful executable checkpoints. Builds, synthetic
 host turns, controller enumeration and source inspection each prove only their

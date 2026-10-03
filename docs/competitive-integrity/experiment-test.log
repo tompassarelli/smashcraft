@@ -1,0 +1,29 @@
+Running tests
+Filter 'FrameIntegrityExperiment' matched 7 test(s):
+  FrameIntegrityExperiment.fourFrameLateReorderedCombatRowsReplayToCanonicalForBothRoles
+  FrameIntegrityExperiment.keyboardSamplerCannotObserveACompleteTapBetweenPolls
+  FrameIntegrityExperiment.captureRowCoalescesRepeatedSameActionPressAndReleaseBits
+  FrameIntegrityExperiment.progressCursorDoesNotCatchUpToIndependentContinuousFrameClock
+  FrameIntegrityExperiment.fourFrameShieldShiftChangesRealJabContactAndDamage
+  FrameIntegrityExperiment.fourFrameLateShieldContactCorrectionMatchesDirectCanonicalOutcome
+  FrameIntegrityExperiment.sameWallOpportunityGetsDifferentTagsAfterOneScheduleFallsFourAdvancesBehind
+Running FrameIntegrityExperiment.wurst:227 - fourFrameLateReorderedCombatRowsReplayToCanonicalForBothRoles..
+	OK!
+Running FrameIntegrityExperiment.wurst:231 - keyboardSamplerCannotObserveACompleteTapBetweenPolls..
+	OK!
+Running FrameIntegrityExperiment.wurst:244 - captureRowCoalescesRepeatedSameActionPressAndReleaseBits..
+	OK!
+Running FrameIntegrityExperiment.wurst:260 - progressCursorDoesNotCatchUpToIndependentContinuousFrameClock..
+	OK!
+Running FrameIntegrityExperiment.wurst:276 - fourFrameShieldShiftChangesRealJabContactAndDamage..
+	OK!
+Running FrameIntegrityExperiment.wurst:296 - fourFrameLateShieldContactCorrectionMatchesDirectCanonicalOutcome..
+	OK!
+Running FrameIntegrityExperiment.wurst:352 - sameWallOpportunityGetsDifferentTagsAfterOneScheduleFallsFourAdvancesBehind..
+	OK!
+Tests succeeded: 7/7
+>> All tests have passed successfully!
+Finished running tests
+compilation finished (errors: 0, warnings: 11)
+
+Warnings: 10 pre-existing warnings in production and pre-existing test sources, plus one unused local variable in FrameIntegrityExperiment.wurst. No compile errors.
