@@ -589,9 +589,7 @@ https://www.ssbwiki.com/Knockback and https://www.ssbwiki.com/Shield:
 Adoption is mechanic-specific. A test passing against provisional constants
 is not proof that the entire table has been adopted or that feel matches.
 
-## Initial dash and dash dance
-
-### Top blast-zone eligibility checkpoint
+## Top blast-zone eligibility checkpoint
 
 Production top-boundary death now requires position strictly above the boundary
 and either grounded state, an active frozen state, or upward knockback strictly
@@ -605,7 +603,7 @@ top-death flag (including its Jigglypuff shield-break case), star/screen selecti
 camera constraints, death/respawn phase clocks, and side/bottom exact boundary
 comparisons remain open. Frozen-state release ordering is also unverified.
 
-### Ground movement
+## Initial dash and dash dance
 
 Grounded directional entry still assigns the authored initial dash speed of
 1.9 Melee units/frame (11.4 world units/frame). Each following held-direction
