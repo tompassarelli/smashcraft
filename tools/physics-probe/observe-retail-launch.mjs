@@ -83,7 +83,7 @@ segment(1,wrapperOffset,entry,wrapper.length,0x100000);
 original.copy(elf,originalOffset);wrapper.copy(elf,wrapperOffset);
 const elfPath=root+'/private-original.elf';
 await Bun.write(elfPath,elf);chmodSync(elfPath,0o700);
-const proc=Bun.spawn([qemu,'-cpu','750',elfPath],{stdout:'pipe',stderr:'pipe'});
+const proc=Bun.spawn([qemu,'-cpu','750',elfPath],{cwd:root,stdout:'pipe',stderr:'pipe'});
 const [binary,stderr,exitCode]=await Promise.all([new Response(proc.stdout).arrayBuffer(),new Response(proc.stderr).text(),proc.exited]);
 await Bun.write(root+'/execution-stderr.txt',stderr);
 if(exitCode!==0) throw Error(`Original execution failed (${exitCode}): ${stderr}`);
@@ -97,4 +97,3 @@ const results=rows.map((row,i)=>({...row,pre:field(i*stride).value,damage:field(
 const facts={id:'retail-ntsc-1.02-launch-magnitude',executableSha1:sha1,commonDataSha1:datSha1,referenceRevision:'0296f009f32f710495979d30772d8332af2d411a',execution:{cpu:'QEMU PPC750',entry:'0x80079AB0',return:'0x80079C6C',contextEntry:'0x8008D930',contextReturn:'0x8008DA48',returnPatches:[],exitCode,byteCount:output.length},commonValues:Object.fromEntries([0xf4,0xf8,0x108,0x110,0x114,0x118,0x11c,0x120,0x124,0x7c4].map(o=>['0x'+o.toString(16),dat.readFloatBE(commonFileOffset+o)])),limitations:['Complete scalar routine executes with synthetic fighter and hit structures and retail common data; caller state selection, contact collection, and full gameplay are not executed.','Context routine uses ordinary or crouch action state, charge state 2 or 0, scale 1, zero armor and otherwise zeroed fighter fields. Combined crouch/charge is a synthetic arithmetic fixture, not an assertion that gameplay reaches that state.','Three multiplier arguments are neutral. Staling and freshness are deliberately omitted by Smashcraft design.','QEMU PPC750 with Linux default floating-point state, not GameCube hardware.','The uint hit-power input is supplied independently; this does not verify retail damage-to-power conversion. No original executable bytes are included.'],results};
 await Bun.write(root+'/facts.json',JSON.stringify(facts,null,2)+'\n');
 console.log(JSON.stringify({facts:root+'/facts.json',cases:results.length,exitCode}));
-

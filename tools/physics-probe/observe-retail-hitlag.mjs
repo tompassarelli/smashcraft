@@ -68,7 +68,7 @@ segment(1,wrapperOffset,entry,wrapper.length,0x100000);
 original.copy(elf,originalOffset);wrapper.copy(elf,wrapperOffset);
 const elfPath=root+'/private-original.elf';
 await Bun.write(elfPath,elf);chmodSync(elfPath,0o700);
-const proc=Bun.spawn([qemu,'-cpu','750',elfPath],{stdout:'pipe',stderr:'pipe'});
+const proc=Bun.spawn([qemu,'-cpu','750',elfPath],{cwd:root,stdout:'pipe',stderr:'pipe'});
 const [binary,stderr,exitCode]=await Promise.all([new Response(proc.stdout).arrayBuffer(),new Response(proc.stderr).text(),proc.exited]);
 await Bun.write(root+'/execution-stderr.txt',stderr);
 if(exitCode!==0) throw Error(`Original execution failed (${exitCode}): ${stderr}`);
