@@ -8,6 +8,8 @@ public constant real INITIAL_DASH_SPEED = 1.899999976158142 * WORLD_UNITS_PER_ME
 constant real WALK_ACCEL_TAPER_GAIN = 0.5
 constant real RUN_ACCEL_TAPER_GAIN = 0.4000000059604645
 constant real RUN_DASH_TURN_FRICTION_MULTIPLIER = 1
+// TurnRun's velocity test is encoded in Melee units; world velocity is scaled.
+constant real TURN_RUN_ZERO_VELOCITY_THRESHOLD = 0.01 * WORLD_UNITS_PER_MELEE_UNIT
 // The original roster keeps authored movement timing. NTSC reference fixtures
 // inject their own actor-owned command timeline; the encoded event is not a
 // universal character constant.
@@ -872,18 +874,20 @@ function advanceGroundActionClock(FighterState f)
 	if f.groundAction == GROUND_ACTION_RUN or f.groundAction == GROUND_ACTION_RUN_BRAKE
 		f.groundActionFrame = min(groundActionClockLimit(f), f.groundActionFrame + 1)
 	else if f.groundAction == GROUND_ACTION_TURN_RUN
-		if not f.groundTurnRunFacingCommandLatched
-			f.groundActionFrame = min(f.groundRules.turnRunFacingCommandFrame, f.groundActionFrame + 1)
-			if f.groundActionFrame >= f.groundRules.turnRunFacingCommandFrame
-				f.groundTurnRunFacingCommandLatched = true
-		else if f.facing == f.groundTurnRunEntryFacing
+		if f.groundTurnRunFacingCommandLatched and f.facing == f.groundTurnRunEntryFacing
 			// The command pauses TurnRun; a later animation update changes facing
 			// only after ground velocity crosses zero.
-			if f.vx * f.groundTurnRunEntryFacing <= 0.01
+			if f.vx * f.groundTurnRunEntryFacing <= TURN_RUN_ZERO_VELOCITY_THRESHOLD
 				f.facing = -f.groundTurnRunEntryFacing
 				f.dashDirection = f.facing
-		else
+				return
+			else
+				return
+		if f.groundActionFrame < f.groundRules.turnRunAnimationEndFrame
+			let previousFrame = f.groundActionFrame
 			f.groundActionFrame = min(f.groundRules.turnRunAnimationEndFrame, f.groundActionFrame + 1)
+			if previousFrame < f.groundRules.turnRunFacingCommandFrame and f.groundActionFrame >= f.groundRules.turnRunFacingCommandFrame
+				f.groundTurnRunFacingCommandLatched = true
 			if f.groundActionFrame >= f.groundRules.turnRunAnimationEndFrame
 				f.groundAction = GROUND_ACTION_RUN
 				f.groundActionFrame = 0
@@ -905,12 +909,9 @@ function advanceGroundMovement(FighterState f, int direction, boolean walking) r
 		return false
 	advanceGroundActionClock(f)
 	if direction != 0 and f.groundAction == GROUND_ACTION_RUN_BRAKE
-		if direction == f.dashDirection
-			f.groundAction = GROUND_ACTION_RUN
-			f.groundActionFrame = 0
-		else if f.groundActionFrame < f.groundRules.runBrakeTurnCommandEndFrame
+		if direction * f.facing < 0 and f.groundActionFrame < f.groundRules.runBrakeTurnCommandEndFrame
 			f.groundAction = GROUND_ACTION_TURN_RUN
-			f.groundActionFrame = 0
+			// Retail RunBrake starts TurnRun at the current animation frame.
 		else
 			// RunBrake's actor-owned command window has closed. Neutral braking
 			// continues until the action ends or the fighter reaches rest.

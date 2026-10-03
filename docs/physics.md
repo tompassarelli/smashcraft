@@ -651,9 +651,12 @@ frame 20 (Fox/Falco) or 22 (Captain Falcon), plus the RunBrake opposite-input
 command window through frame 14, closing at frame 15. The command events and
 animation lengths come from the retail records above. TurnRun freezes at its
 frame-9 command until velocity along its entry-facing direction is at most
-0.01; a subsequent action update flips facing, then the remaining animation
-frames run before the action returns to Run. Original Smashcraft fighters keep
-authored timing (currently 11/9/20/15); this is not asserted as retail parity.
+0.01 Melee units (0.06 simulation world units); a subsequent action update
+flips facing, then the remaining animation frames run before the action returns
+to Run. RunBrake's command check does not make forward input enter Run;
+opposite input can enter TurnRun at RunBrake's current animation frame. Original
+Smashcraft fighters keep authored timing (currently 11/9/20/15); this is not
+asserted as retail parity.
 Exact event-to-simulation-tick scheduling, Dash opposite-input priority,
 animation rate interactions, run-entry delay, and RunBrake end conditions
 still need paired retail traces. Replay capture and equality include all

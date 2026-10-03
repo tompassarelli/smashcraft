@@ -1293,7 +1293,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	input.direction = -1
 	advance(allowed, 0, input, 0)
 	allowed.groundAction.assertEquals(GROUND_ACTION_TURN_RUN)
-	allowed.groundActionFrame.assertEquals(0)
+	allowed.groundActionFrame.assertEquals(14)
 	advance(denied, 0, input, 0)
 	denied.groundAction.assertEquals(GROUND_ACTION_RUN_BRAKE)
 	denied.groundActionFrame.assertEquals(15)
@@ -1301,6 +1301,66 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	destroy input
 	destroy denied
 	destroy allowed
+
+@Test function runBrakeForwardInputDoesNotSkipToRun()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.groundRules = ntscFoxGroundMovementRules()
+	fighter.groundAction = GROUND_ACTION_RUN_BRAKE
+	fighter.groundActionFrame = 0
+	fighter.dashFrame = INITIAL_DASH_FRAMES + 1
+	fighter.dashDirection = 1
+	fighter.vx = 9
+	input.direction = 1
+	advance(fighter, 0, input, 0)
+	fighter.groundAction.assertEquals(GROUND_ACTION_RUN_BRAKE)
+	fighter.groundActionFrame.assertEquals(1)
+	fighter.facing.assertEquals(1)
+	destroy input
+	destroy fighter
+
+@Test function turnRunUsesRetailVelocityThresholdInWorldUnits()
+	let withinThreshold = new FighterState(0, 0, 1)
+	let atThreshold = new FighterState(0, 0, 1)
+	let aboveThreshold = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	input.direction = -1
+	withinThreshold.groundAction = GROUND_ACTION_TURN_RUN
+	withinThreshold.groundActionFrame = 9
+	withinThreshold.groundTurnRunEntryFacing = 1
+	withinThreshold.groundTurnRunFacingCommandLatched = true
+	withinThreshold.dashFrame = INITIAL_DASH_FRAMES + 1
+	withinThreshold.dashDirection = 1
+	atThreshold.groundAction = GROUND_ACTION_TURN_RUN
+	atThreshold.groundActionFrame = 9
+	atThreshold.groundTurnRunEntryFacing = 1
+	atThreshold.groundTurnRunFacingCommandLatched = true
+	atThreshold.dashFrame = INITIAL_DASH_FRAMES + 1
+	atThreshold.dashDirection = 1
+	aboveThreshold.groundAction = GROUND_ACTION_TURN_RUN
+	aboveThreshold.groundActionFrame = 9
+	aboveThreshold.groundTurnRunEntryFacing = 1
+	aboveThreshold.groundTurnRunFacingCommandLatched = true
+	aboveThreshold.dashFrame = INITIAL_DASH_FRAMES + 1
+	aboveThreshold.dashDirection = 1
+	withinThreshold.vx = 0.03
+	atThreshold.vx = 0.06
+	aboveThreshold.vx = 0.07
+	advance(withinThreshold, 0, input, 0)
+	advance(atThreshold, 0, input, 0)
+	advance(aboveThreshold, 0, input, 0)
+	// 0.03 world units is greater than the old 0.01 comparison but less than
+	// 0.01 Melee units converted at six world units per Melee unit.
+	withinThreshold.facing.assertEquals(-1)
+	withinThreshold.groundActionFrame.assertEquals(9)
+	atThreshold.facing.assertEquals(-1)
+	atThreshold.groundActionFrame.assertEquals(9)
+	aboveThreshold.facing.assertEquals(1)
+	aboveThreshold.groundActionFrame.assertEquals(9)
+	destroy input
+	destroy aboveThreshold
+	destroy atThreshold
+	destroy withinThreshold
 
 @Test function initialDashReversalRestartsWindowIncludingAcrossNeutral()
 	for character = 0 to 1
