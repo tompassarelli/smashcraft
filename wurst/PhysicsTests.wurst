@@ -100,6 +100,23 @@ function recordedFalcoDashSpeed(int sample) returns real
 		return -1.5799999237060547
 	return -1.4999998807907104
 
+function recordedFalcoDashEntryMatches(int hostCharacter) returns boolean
+	let f = new FighterState(hostCharacter, 38.61000061035156 * 6, -1)
+	f.physics = falcoReferencePhysics()
+	f.vx = -0.1899999976158142 * 6
+	let input = new InputSnapshot()
+	input.direction = -1
+	advance(f, 0, input, 0)
+	let entryMatches = (f.x - 38.42000198364258 * 6).abs() <= 0.0006
+		and (f.vx + 1.9000000953674316 * 6).abs() <= 0.00006
+		and f.dashFrame == 1
+	advance(f, 0, input, 0)
+	let nextFrameMatches = (f.x - 36.60000228881836 * 6).abs() <= 0.0006
+		and (f.vx + 1.8200000524520874 * 6).abs() <= 0.00006
+	destroy input
+	destroy f
+	return entryMatches and nextFrameMatches
+
 function recordedFalcoDashFirstDifference(int hostCharacter, real initialSpeed) returns int
 	let f = new FighterState(hostCharacter, 38.42000198364258 * 6, -1)
 	f.physics = falcoReferencePhysics()
@@ -124,6 +141,10 @@ function recordedFalcoDashFirstDifference(int hostCharacter, real initialSpeed) 
 
 @Test function recordedFalcoDashDetectsPerturbedOverspeedAtItsFirstFrame()
 	recordedFalcoDashFirstDifference(0, -1.8400000953674316).assertEquals(-33)
+
+@Test function recordedFalcoDashEntryUsesWalkSelfVelocityForEntryDisplacement()
+	for hostCharacter = 0 to 1
+		recordedFalcoDashEntryMatches(hostCharacter).assertTrue()
 
 @Test function recordedNtscFalcoJumpHasFiveGroundedFramesThenRawTakeoff()
 	for hostCharacter = 0 to 1

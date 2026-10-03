@@ -60,9 +60,10 @@ import MatchStep
 				fighter.surface = 0
 				input.direction = side
 				advance(fighter, 0, input, 0)
-				fighter.grounded.assertFalse()
-				fighter.jumps.assertEquals(1)
+				fighter.grounded.assertTrue()
+				fighter.jumps.assertEquals(2)
 				advance(fighter, 0, input, 0)
+				fighter.grounded.assertFalse()
 				fighter.jumps.assertEquals(1)
 				simulationJump(fighter, 0)
 				fighter.jumps.assertEquals(0)
@@ -1293,7 +1294,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	destroy fighter
 
 @Test function initialDashHitlagFreezesThenReversalResumes()
-	let fighter = new FighterState(0, 0, 1)
+	let fighter = new FighterState(0, 100, 1)
 	let input = new InputSnapshot()
 	input.direction = 1
 	advance(fighter, 0, input, 0)
@@ -1301,7 +1302,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	input.direction = -1
 	for tick = 1 to 1
 		advance(fighter, 0, input, 0)
-		fighter.x.assertEquals(11.4, 0.001)
+		fighter.x.assertEquals(100., 0.001)
 		fighter.dashFrame.assertEquals(1)
 	advance(fighter, 0, input, 0)
 	fighter.vx.assertEquals(-11.4, 0.001)
@@ -1424,6 +1425,9 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	fighter.x.assertEquals(25.)
 	advance(fighter, 0, input, -240)
 	fighter.hitlag.assertEquals(0)
+	fighter.x.assertEquals(25.)
+	fighter.vx.assertEquals(INITIAL_DASH_SPEED, 0.001)
+	advance(fighter, 0, input, -240)
 	(fighter.x > 25.).assertTrue()
 
 function advanceDirectionalInput(FighterState fighter, InputSnapshot input, DirectionalInput direction)

@@ -645,29 +645,29 @@ function clearDash(FighterState f)
 	f.dashFrame = 0
 	f.dashDirection = 0
 
-function advanceGroundMovement(FighterState f, int direction, boolean walking)
+function advanceGroundMovement(FighterState f, int direction, boolean walking) returns boolean
 	if walking
 		clearDash(f)
 		if direction != 0
 			f.facing = direction
 			f.vx = f.physics.walkSpeed * direction
-		return
+		return false
 	if direction == 0
 		if f.vx.abs() <= f.physics.traction
 			clearDash(f)
 		else if f.dashFrame > 0
 			f.dashFrame = min(INITIAL_DASH_FRAMES + 1, f.dashFrame + 1)
-		return
+		return false
 	if f.dashFrame >= INITIAL_DASH_FRAMES and direction != f.dashDirection and f.vx * f.dashDirection > 0
 		f.dashFrame = INITIAL_DASH_FRAMES + 1
 		f.vx = f.dashDirection * max(0, f.vx * f.dashDirection - RUN_TURN_BRAKING)
-		return
+		return false
 	if f.dashFrame == 0 or direction != f.dashDirection
 		f.dashFrame = 1
 		f.dashDirection = direction
 		f.facing = direction
 		f.vx = direction * min(f.physics.dashSpeed, f.physics.groundSpeedCap)
-		return
+		return true
 	else
 		f.dashFrame = min(INITIAL_DASH_FRAMES + 1, f.dashFrame + 1)
 	f.facing = direction
@@ -679,6 +679,7 @@ function advanceGroundMovement(FighterState f, int direction, boolean walking)
 		let acceleration = f.physics.groundAccelerationMultiplier + f.physics.groundAccelerationBase
 		speed = min(runTarget, speed + acceleration * WORLD_UNITS_PER_MELEE_UNIT)
 	f.vx = direction * max(0, min(f.physics.groundSpeedCap, speed))
+	return false
 
 public function characterGravity(int character) returns real
 	return authoredPhysics(character).gravity
@@ -2735,6 +2736,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		beginShieldBreak(f)
 		return
 	var direction = input.direction
+	var dashEntryDisplacementAdjustment = 0.
 	let canSteer = f.downState == DOWN_NONE and f.hitstun <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and not smashChargePaused and (not f.grounded or f.cooldown <= 0)
 	f.crouching = input.down and input.direction == 0 and f.grounded and canSteer and not wantsShield and f.attackStyle < 0 and f.specialAction == SPECIAL_NONE
 	if canSteer and not f.grounded and direction != 0
@@ -2745,7 +2747,10 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if wantsShield
 			direction = 0
 		if f.grounded
-			advanceGroundMovement(f, direction, input.walking)
+			let previousGroundVelocity = f.vx
+			if advanceGroundMovement(f, direction, input.walking)
+				// Dash entry stores new ground velocity after this frame's displacement.
+				dashEntryDisplacementAdjustment = previousGroundVelocity - f.vx
 		else if direction != 0 and not groundTakeoff
 			f.vx = airDriftVelocity(f, f.vx, direction)
 			// Air steering changes velocity, not facing; back aerials rely on a stable orientation.
@@ -2778,7 +2783,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			f.vx = 0
 			f.knockbackX = 0
 	else
-		f.x += totalVelocityX(f)
+		f.x += totalVelocityX(f) + dashEntryDisplacementAdjustment
 	if isGroundDodging(f)
 		f.vz = 0
 		f.z = surfaceZ(stage, max(0, f.surface))

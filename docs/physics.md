@@ -517,13 +517,15 @@ defaults of 0.1, 0.02 and 3 Melee units/frame for those three values; these are
 Smashcraft tuning choices and are not imported Falco/Fox character stats.
 
 The test-only Falco rig injects the independently recorded values 0.1, 0.02
-and 3. A frame-by-frame test seeds the already-active dash at frame -34 from
-`wavedash-1.slp` and matches all five subsequent positions and velocities on
-both Archer and Rifleman hosts. A deliberately perturbed initial velocity is
-detected at the first sample. This confirms the shared ground movement path for
-the recorded overspeed-braking branch; the recording does not verify dash entry,
-under-target acceleration, run transitions, turning, analog-stick scaling or
-the disc revision.
+and 3. A frame-by-frame test begins at frame -35 in Walk with ground velocity
+-0.19, then records Dash at frame -34 with position advanced by -0.19 while
+ground velocity has changed to -1.9. Frame -33 advances by -1.82. Tests match
+this entry sequence and the next five overspeed-braking positions and velocities
+on both Archer and Rifleman hosts; deliberately perturbed starting velocities
+are detected at the first sample. This confirms the shared entry displacement
+ordering and the recorded overspeed-braking branch. The recording does not
+verify under-target acceleration, run transitions, turning, analog-stick
+scaling or the disc revision.
 
 Dash-window duration, early opposite-direction behavior, neutral handling and
 run-turn braking remain explicit provisional action rules. The ten-tick phase
