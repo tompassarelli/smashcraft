@@ -549,3 +549,97 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 		f.vz.assertEquals(character == 0 ? 22.08 : 24.6, 0.00001)
 		destroy input
 		destroy f
+
+@Test function electricContactPreservesAttackerAndVictimPauseBoundaries()
+	for electric = 0 to 1
+		for crouching = 0 to 1
+			for direct = 0 to 1
+				let owner = new FighterState(0, 0, 1)
+				let target = new FighterState(1, 100, -1)
+				let input = new InputSnapshot()
+				target.crouching = crouching == 1
+				beginDamageContacts()
+				queueDamageContact(owner, target, hitEffect(8.99, 0, 50, 1, 0, electric == 1), 1, CONTACT_LAUNCH, direct == 1, null)
+				target.damage.assertEquals(0.)
+				target.hitlag.assertEquals(0)
+				finishDamageContacts(owner, target)
+				let pause = electric == 1 ? (crouching == 1 ? 4 : 7) : (crouching == 1 ? 3 : 5)
+				let stun = crouching == 1 ? 13 : 20
+				target.damage.assertEquals(8.99, 0.00001)
+				target.hitlag.assertEquals(pause)
+				target.hitstun.assertEquals(stun)
+				target.crouching.assertFalse()
+				owner.hitlag.assertEquals(direct == 1 ? 5 : 0)
+				canAttack(owner).assertEquals(direct == 0)
+				for frame = 1 to pause
+					advance(target, 0, input, 0)
+					target.hitlag.assertEquals(pause - frame)
+					target.hitstun.assertEquals(stun)
+					target.x.assertEquals(100.)
+					canAttack(target).assertFalse()
+				for frame = 1 to stun - 1
+					advance(target, 0, input, 0)
+					canAttack(target).assertFalse()
+				advance(target, 0, input, 0)
+				canAttack(target).assertTrue()
+				for frame = 1 to 5
+					advance(owner, 0, input, 0)
+					canAttack(owner).assertEquals(direct == 0 or frame == 5)
+				destroy input
+				destroy target
+				destroy owner
+
+@Test function electricContactShieldUsesOrdinaryFreezeBeforeShieldstun()
+	for direct = 0 to 1
+		let owner = new FighterState(0, 0, 1)
+		let target = new FighterState(1, 100, -1)
+		let input = new InputSnapshot()
+		target.shield = true
+		input.shield = true
+		beginDamageContacts()
+		queueDamageContact(owner, target, hitEffect(8.99, 0, 50, 1, 0, true), 1, CONTACT_LAUNCH, direct == 1, null)
+		finishDamageContacts(owner, target)
+		target.damage.assertEquals(0.)
+		target.hitlag.assertEquals(5)
+		target.shieldStun.assertEquals(5)
+		owner.hitlag.assertEquals(direct == 1 ? 5 : 0)
+		for frame = 1 to 5
+			advance(target, 0, input, 0)
+			target.shieldStun.assertEquals(5)
+		advance(target, 0, input, 0)
+		target.shieldStun.assertEquals(4)
+		destroy input
+		destroy target
+		destroy owner
+
+@Test function electricContactBatchUsesStrongestLaunchEffectAndLargestDamage()
+	for electricWinner = 0 to 1
+		for reversed = 0 to 1
+			let owner = new FighterState(0, 0, 1)
+			let target = new FighterState(1, 100, -1)
+			beginDamageContacts()
+			for entry = 0 to 1
+				let strongest = entry == reversed
+				queueDamageContact(owner, target, hitEffect(strongest ? 3. : 12., 0, strongest ? 60. : 20., 1, 0,
+					strongest == (electricWinner == 1)), strongest ? 1 : -1, CONTACT_LAUNCH, true, null)
+			finishDamageContacts(owner, target)
+			target.damage.assertEquals(15.)
+			target.knockbackX.assertEquals(10.8, 0.00001)
+			target.hitlag.assertEquals(electricWinner == 1 ? 10 : 7)
+			owner.hitlag.assertEquals(7)
+			destroy target
+			destroy owner
+
+@Test function electricContactBatchTiedLaunchKeepsFirstEffect()
+	for electricFirst = 0 to 1
+		let owner = new FighterState(0, 0, 1)
+		let target = new FighterState(1, 100, -1)
+		beginDamageContacts()
+		queueDamageContact(owner, target, hitEffect(3, 0, 50, 1, 0, electricFirst == 1), 1, CONTACT_LAUNCH, false, null)
+		queueDamageContact(owner, target, hitEffect(12, 0, 50, 1, 0, electricFirst == 0), -1, CONTACT_LAUNCH, false, null)
+		finishDamageContacts(owner, target)
+		target.knockbackX.assertEquals(9.)
+		target.hitlag.assertEquals(electricFirst == 1 ? 10 : 7)
+		owner.hitlag.assertEquals(0)
+		destroy target
+		destroy owner

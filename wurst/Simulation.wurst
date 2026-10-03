@@ -805,12 +805,12 @@ public function projectileVelocityZAt(FighterState f, int index) returns real
 public function projectileKindAt(FighterState f, int index) returns int
 	return f.projectileKind[index]
 
-tuple hitEffect(real damage, real growth, real base, real launchX, real launchZ)
-constant int CONTACT_LAUNCH = 0
-constant int CONTACT_FLINCH = 1
-constant int CONTACT_DAMAGE_ONLY = 2
-constant int CONTACT_PUMMEL = 3
-constant int CONTACT_THROW = 4
+public tuple hitEffect(real damage, real growth, real base, real launchX, real launchZ, boolean electric)
+public constant int CONTACT_LAUNCH = 0
+public constant int CONTACT_FLINCH = 1
+public constant int CONTACT_DAMAGE_ONLY = 2
+public constant int CONTACT_PUMMEL = 3
+public constant int CONTACT_THROW = 4
 tuple damageContact(FighterState source, FighterState target, hitEffect data, int facing,
 	int kind, boolean direct, boolean blocked, boolean crouching, boolean grounded,
 	boolean down, real scale, InputSnapshot throwInput)
@@ -825,7 +825,7 @@ public function beginDamageContacts()
 	damageContactCount = 0
 	collectingDamageContacts = true
 
-function queueDamageContact(FighterState source, FighterState target, hitEffect data,
+public function queueDamageContact(FighterState source, FighterState target, hitEffect data,
 		int facing, int kind, boolean direct, InputSnapshot throwInput)
 	let unblockable = kind == CONTACT_THROW or kind == CONTACT_PUMMEL
 	damageContacts[damageContactCount] = damageContact(source, target, data, facing, kind, direct,
@@ -839,6 +839,8 @@ function resolveDamageContacts(FighterState target)
 	var winner = -1
 	var strongest = -1.
 	var flinch = -1
+	var hurtContact = -1
+	var hitlagDamage = 0.
 	for index = 0 to damageContactCount - 1
 		let contact = damageContacts[index]
 		if contact.target == target
@@ -861,7 +863,9 @@ function resolveDamageContacts(FighterState target)
 				if damage > 0 and contact.kind != CONTACT_PUMMEL
 					target.frozenFrames = 0
 				if contact.kind != CONTACT_DAMAGE_ONLY and contact.kind != CONTACT_THROW
-					target.hitlag = max(target.hitlag, victimHitlagFrames(damage, false, contact.crouching))
+					hitlagDamage = max(hitlagDamage, damage)
+					if hurtContact < 0
+						hurtContact = index
 				if contact.kind == CONTACT_FLINCH and flinch < 0
 					flinch = index
 				if contact.kind == CONTACT_LAUNCH or contact.kind == CONTACT_THROW
@@ -871,6 +875,10 @@ function resolveDamageContacts(FighterState target)
 					if knockback > strongest
 						strongest = knockback
 						winner = index
+	if hurtContact >= 0
+		// The strongest launch supplies the effect; the largest damage supplies hitlag power.
+		let effectContact = damageContacts[winner >= 0 ? winner : (flinch >= 0 ? flinch : hurtContact)]
+		target.hitlag = max(target.hitlag, victimHitlagFrames(hitlagDamage, effectContact.data.electric, effectContact.crouching))
 	target.damage += totalDamage
 	if shieldDamage > 0
 		target.shieldEnergy = max(0, target.shieldEnergy - shieldDamage)
@@ -920,7 +928,7 @@ public function finishDamageContacts(FighterState first, FighterState second)
 tuple hitRegion(real minX, real maxX, real minZ, real maxZ, hitEffect hitData, int window)
 
 function noHitRegion() returns hitRegion
-	return hitRegion(0, 0, 0, 0, hitEffect(0, 0, 0, 0, 0), 0)
+	return hitRegion(0, 0, 0, 0, hitEffect(0, 0, 0, 0, 0, false), 0)
 
 // Coordinates are facing-relative offsets of the victim's simulation origin.
 // Lower region indices win overlaps. Window zero means no authored contact;
@@ -936,7 +944,7 @@ function authoredHitRegion(int character, int style, int frame, int chargeFrames
 		let charge = isSmashAttack(style) ? smashDamageMultiplier(chargeFrames) : 1
 		let ground = style <= 10 or style == DEMONHUNTER_DASH_ATTACK_STYLE
 		let demonDamage = (style == 0 ? 5. : (style == 2 or style == 3 or style == 4 ? 15. : (style == 12 ? 8. : (style == 16 ? 10. : 7.)))) * charge
-		let data = hitEffect(demonDamage, 100, style == 2 or style == 3 or style == 4 ? 28 : 18, DIAGONAL_UNIT, DIAGONAL_UNIT)
+		let data = hitEffect(demonDamage, 100, style == 2 or style == 3 or style == 4 ? 28 : 18, DIAGONAL_UNIT, DIAGONAL_UNIT, false)
 		if ground
 			if style == 0
 				return hitRegion(0, 92, -55, 105, data, 1)
@@ -947,62 +955,62 @@ function authoredHitRegion(int character, int style, int frame, int chargeFrames
 			if style == 4
 				return hitRegion(25, 195, -75, 105, data, 1)
 			if style == DEMONHUNTER_DASH_ATTACK_STYLE
-				return hitRegion(0, 150, -70, 115, hitEffect(9, 95, 20, 0.92, 0.39), 1)
+				return hitRegion(0, 150, -70, 115, hitEffect(9, 95, 20, 0.92, 0.39, false), 1)
 			if style == 6
-				return hitRegion(0, 135, -80, 95, hitEffect(8, 95, 18, 0.94, 0.34), 1)
+				return hitRegion(0, 135, -80, 95, hitEffect(8, 95, 18, 0.94, 0.34, false), 1)
 			if style == 7
-				return hitRegion(0, 125, -30, 185, hitEffect(8, 105, 18, 0.25, 0.9682458), 1)
+				return hitRegion(0, 125, -30, 185, hitEffect(8, 105, 18, 0.25, 0.9682458, false), 1)
 			if style == 8
-				return hitRegion(-115, 115, -145, 40, hitEffect(7, 90, 16, DIAGONAL_UNIT, 0.3), 1)
+				return hitRegion(-115, 115, -145, 40, hitEffect(7, 90, 16, DIAGONAL_UNIT, 0.3, false), 1)
 			if style == 9
-				return hitRegion(0, 135, -30, 145, hitEffect(8, 100, 18, 0.88, 0.48), 1)
+				return hitRegion(0, 135, -30, 145, hitEffect(8, 100, 18, 0.88, 0.48, false), 1)
 			if style == 10
-				return hitRegion(0, 135, -145, 5, hitEffect(8, 100, 18, 0.88, -0.48), 1)
+				return hitRegion(0, 135, -145, 5, hitEffect(8, 100, 18, 0.88, -0.48, false), 1)
 			return noHitRegion()
 		if style == AERIAL_NEUTRAL_STYLE
-			return hitRegion(-115, 115, -45, 100, hitEffect(7, 95, 16, DIAGONAL_UNIT, DIAGONAL_UNIT), 1)
+			return hitRegion(-115, 115, -45, 100, hitEffect(7, 95, 16, DIAGONAL_UNIT, DIAGONAL_UNIT, false), 1)
 		if style == AERIAL_FORWARD_STYLE
-			return hitRegion(0, 175, -55, 115, hitEffect(8, 100, 18, 0.94, 0.34), 1)
+			return hitRegion(0, 175, -55, 115, hitEffect(8, 100, 18, 0.94, 0.34, false), 1)
 		if style == AERIAL_BACK_STYLE
-			return hitRegion(-175, 0, -55, 115, hitEffect(8, 100, 18, -0.94, 0.34), 1)
+			return hitRegion(-175, 0, -55, 115, hitEffect(8, 100, 18, -0.94, 0.34, false), 1)
 		if style == AERIAL_UP_STYLE
-			return hitRegion(-115, 115, 10, 205, hitEffect(8, 105, 19, 0.22, 0.975), 1)
+			return hitRegion(-115, 115, 10, 205, hitEffect(8, 105, 19, 0.22, 0.975, false), 1)
 		if style == AERIAL_DOWN_STYLE
-			return hitRegion(-105, 105, -190, -10, hitEffect(9, 100, 20, 0.16, -0.987), 1)
+			return hitRegion(-105, 105, -190, -10, hitEffect(9, 100, 20, 0.16, -0.987, false), 1)
 		return noHitRegion()
 	let lingering = (style == AERIAL_NEUTRAL_STYLE or style == AERIAL_BACK_STYLE) and frame >= 7
 	let damage = (lingering ? 5. : attackDamage(style)) * (isSmashAttack(style) ? smashDamageMultiplier(chargeFrames) : 1)
-	var hitData = hitEffect(damage, ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, DIAGONAL_UNIT, DIAGONAL_UNIT)
+	var hitData = hitEffect(damage, ORDINARY_HIT_GROWTH_PERCENT, ORDINARY_HIT_BASE_KNOCKBACK, DIAGONAL_UNIT, DIAGONAL_UNIT, false)
 	if style == 6
 		let early = frame == attackStartupFrames(style)
 		if index == 0
-			hitData = hitEffect(early ? 10 : 8, early ? 110 : 90, early ? 24 : 18, 0.8, 0.6)
+			hitData = hitEffect(early ? 10 : 8, early ? 110 : 90, early ? 24 : 18, 0.8, 0.6, false)
 			return hitRegion(90, 145, -130, 130, hitData, 1)
-		hitData = hitEffect(early ? 7 : 5, early ? 80 : 70, early ? 16 : 12, DIAGONAL_UNIT, DIAGONAL_UNIT)
+		hitData = hitEffect(early ? 7 : 5, early ? 80 : 70, early ? 16 : 12, DIAGONAL_UNIT, DIAGONAL_UNIT, false)
 		return hitRegion(0, 110, -130, 130, hitData, 1)
 	if style == LEDGE_ATTACK_STYLE
 		return hitRegion(0, 140, -90, 90, hitData, 1)
 	if style == DOWN_ATTACK_STYLE
 		hitData = hitEffect(DOWN_ATTACK_DAMAGE, ORDINARY_HIT_GROWTH_PERCENT,
-			DOWN_ATTACK_BASE_KNOCKBACK, DIAGONAL_UNIT, DIAGONAL_UNIT)
+			DOWN_ATTACK_BASE_KNOCKBACK, DIAGONAL_UNIT, DIAGONAL_UNIT, false)
 		return hitRegion(-attackReach(style), attackReach(style), -130, 130, hitData, 1)
 	if style == AERIAL_NEUTRAL_STYLE
 		return hitRegion(-90, 90, -65, 90, hitData, 1)
 	if style == AERIAL_FORWARD_STYLE
 		return hitRegion(0, 165, -65, 100, hitData, 1)
 	if style == AERIAL_BACK_STYLE
-		hitData = hitEffect(damage, hitData.growth, hitData.base, -DIAGONAL_UNIT, DIAGONAL_UNIT)
+		hitData = hitEffect(damage, hitData.growth, hitData.base, -DIAGONAL_UNIT, DIAGONAL_UNIT, false)
 		return hitRegion(-155, 0, -65, 100, hitData, 1)
 	if style == AERIAL_UP_STYLE
 		let finisher = frame == attackStartupFrames(style) + 2
-		hitData = hitEffect(finisher ? 8 : 4, finisher ? 110 : 60, finisher ? 24 : 14, 0.25, 0.9682458)
+		hitData = hitEffect(finisher ? 8 : 4, finisher ? 110 : 60, finisher ? 24 : 14, 0.25, 0.9682458, false)
 		return hitRegion(-105, 105, 20, 190, hitData, finisher ? 2 : 1)
 	if style == AERIAL_DOWN_STYLE
 		if character == 0
 			let diveDamage = frame < attackStartupFrames(style) + 3 ? damage : 6.
-			hitData = hitEffect(diveDamage, hitData.growth, hitData.base, 0.25, -0.9682458)
+			hitData = hitEffect(diveDamage, hitData.growth, hitData.base, 0.25, -0.9682458, false)
 			return hitRegion(-55, 55, -180, -10, hitData, 1)
-		hitData = hitEffect(damage, hitData.growth, hitData.base, 0.25, -0.9682458)
+		hitData = hitEffect(damage, hitData.growth, hitData.base, 0.25, -0.9682458, false)
 		return hitRegion(-95, 95, -180, -10, hitData, 1)
 	let verticalOffset = style == 9 ? 65. : (style == 10 ? -65. : 0.)
 	return hitRegion(style == DOWN_ATTACK_STYLE ? -attackReach(style) : 0, attackReach(style), verticalOffset - 130, verticalOffset + 130, hitData, 1)
@@ -1674,7 +1682,7 @@ function spawnArcherArrow(FighterState owner, int direction, real verticalSpeed,
 function applySpecialProjectileHit(FighterState owner, FighterState target, int kind, int direction)
 	let damage = kind == PROJECTILE_FAN_ARROW ? 4. : (kind == PROJECTILE_RECOIL or kind == PROJECTILE_MANA_BURN ? 5. : 7.)
 	let damageOnly = kind == PROJECTILE_ARROW or kind == PROJECTILE_FAN_ARROW
-	queueDamageContact(owner, target, hitEffect(damage, 85, 16, 0.8, kind == PROJECTILE_RECOIL ? -0.6 : 0.6), direction,
+	queueDamageContact(owner, target, hitEffect(damage, 85, 16, 0.8, kind == PROJECTILE_RECOIL ? -0.6 : 0.6, false), direction,
 		damageOnly ? CONTACT_DAMAGE_ONLY : CONTACT_LAUNCH, false, null)
 
 function demonHunterParryIsActive(FighterState fighter) returns boolean
@@ -1707,7 +1715,7 @@ function applyProjectileHit(FighterState owner, FighterState target, int index)
 	if owner.projectileKind[index] != PROJECTILE_BLASTER
 		applySpecialProjectileHit(owner, target, owner.projectileKind[index], owner.projectileDirection[index])
 	else
-		queueDamageContact(owner, target, hitEffect(attackDamage(1), 0, 0, 0, 0), owner.projectileDirection[index], CONTACT_FLINCH, false, null)
+		queueDamageContact(owner, target, hitEffect(attackDamage(1), 0, 0, 0, 0, false), owner.projectileDirection[index], CONTACT_FLINCH, false, null)
 
 function updateProjectiles(FighterState owner, FighterState target, real targetX, real targetZ, boolean targetWasOut, boolean targetWasIntangible)
 	for index = 0 to PROJECTILE_CAPACITY - 1
@@ -1793,7 +1801,7 @@ function releaseThrow(FighterState owner, FighterState target, InputSnapshot tar
 	let direction = action == THROW_BACK ? -owner.facing : owner.facing
 	queueDamageContact(owner, target, hitEffect(damage, 70, action == THROW_DOWN ? 55. : 45.,
 		action == THROW_UP ? 0.173648 : (action == THROW_DOWN ? 0.342020 : 0.866025),
-		action == THROW_UP ? 0.984808 : (action == THROW_DOWN ? 0.939693 : 0.5)), direction, CONTACT_THROW, false, targetInput)
+		action == THROW_UP ? 0.984808 : (action == THROW_DOWN ? 0.939693 : 0.5), false), direction, CONTACT_THROW, false, targetInput)
 	// Release changes ground-contact eligibility before later trap/catch checks.
 	target.grounded = false
 	target.surface = -1
@@ -1829,7 +1837,7 @@ function advanceGrab(FighterState owner, InputSnapshot ownerInput, InputSnapshot
 	if target != null and owner.grabAction >= GRAB_PUMMEL and owner.grabAction <= THROW_DOWN and owner.grabFrame == grabContactFrame(owner.grabAction)
 		resolveHeldTarget(owner)
 		if owner.grabAction == GRAB_PUMMEL
-			queueDamageContact(owner, target, hitEffect(3, 0, 0, 0, 0), owner.facing, CONTACT_PUMMEL, true, null)
+			queueDamageContact(owner, target, hitEffect(3, 0, 0, 0, 0, false), owner.facing, CONTACT_PUMMEL, true, null)
 		else
 			releaseThrow(owner, target, targetInput)
 
@@ -2186,7 +2194,7 @@ function advanceBear(FighterState owner, FighterState target, int stage)
 		owner.bearSwipeCooldown = RIFLEMAN_BEAR_SWIPE_INTERVAL
 		owner.bearHitSerial++
 		applyAttackHit(owner, target, 0, owner.bearVelocityX < 0 ? -1 : 1,
-			hitEffect(6, 90, 18, DIAGONAL_UNIT, 0.35), false)
+			hitEffect(6, 90, 18, DIAGONAL_UNIT, 0.35, false), false)
 	if owner.bearLife <= 0 or owner.bearX < surfaceLeft(stage, 0) - 100 or owner.bearX > surfaceRight(stage, 0) + 100
 		owner.bearLife = 0
 
@@ -2206,7 +2214,7 @@ function advanceHippogryph(FighterState owner, FighterState target)
 			if (crossedTarget or (target.x - owner.hippogryphX).abs() <= 60) and (target.z - owner.hippogryphZ).abs() <= 100
 				owner.specialHit = true
 				applyAttackHit(owner, target, 0, owner.facing,
-					hitEffect(8, 100, 22, DIAGONAL_UNIT, DIAGONAL_UNIT), false)
+					hitEffect(8, 100, 22, DIAGONAL_UNIT, DIAGONAL_UNIT, false), false)
 	if owner.hippogryphLife <= 0
 		owner.hippogryphKind = 0
 		if owner.specialAction == SPECIAL_ARCHER_DISENGAGE
@@ -2248,8 +2256,8 @@ function demonHunterSpecialContact(FighterState owner, FighterState target) retu
 	let localX = (target.x - owner.x) * owner.facing
 	let localZ = target.z - owner.z
 	let contact = owner.grounded
-		? hitRegion(0, 140, -80, 100, hitEffect(7, 105, 21, 1, 0), 1)
-		: hitRegion(-70, 70, -170, 30, hitEffect(9, 110, 26, 0.12, -0.993), 1)
+		? hitRegion(0, 140, -80, 100, hitEffect(7, 105, 21, 1, 0, false), 1)
+		: hitRegion(-70, 70, -170, 30, hitEffect(9, 110, 26, 0.12, -0.993, false), 1)
 	if localX >= contact.minX and localX <= contact.maxX and localZ >= contact.minZ and localZ <= contact.maxZ
 		return contact
 	return noHitRegion()
