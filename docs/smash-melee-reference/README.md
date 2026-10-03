@@ -10,11 +10,13 @@ wall-recovery values, plus five Captain Falcon wall-recovery fields, are
 recorded as separate targeted checks.
 
 [ntsc-common-shield-values.json](ntsc-common-shield-values.json) adds a
-publisher-claimed NTSC 1.02 extraction of common shield recoil decay (0.05)
+published NTSC 1.02 extraction of common shield recoil decay (0.05)
 and shield ground-friction multiplier (1.1). Its pinned source and exact file
-hash are recorded there. The publisher's `PlCo.dat` SHA-1 was not independently
-verified, and this partial extraction does not supply the remaining movement,
-launch-stacking, tumble, bounce, or general grounded-friction constants.
+hash are recorded there. The owner-supplied retail PlCo SHA-1 now independently
+matches the publisher's claim; the parameter corpus records the corresponding
+exact binary32 values and the newly recovered movement, launch-stacking,
+tumble, bounce and grounded-friction constants. This comparison verifies the
+selected values rather than every behavior of the source game.
 
 The recorded Falco fall fixture is in
 smashcraft:docs/smash-melee-reference/slippi-ntsc-falco-fall.json. Its ten

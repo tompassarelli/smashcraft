@@ -1,6 +1,6 @@
 {
-  "target": "Melee NTSC 1.02 (publisher-claimed; disc identity not independently verified)",
-  "status": "partial factual common-data extraction",
+  "target": "Melee NTSC 1.02 (publisher claim independently matched to GALE01 revision 2 retail)",
+  "status": "partial factual common-data extraction; selected values independently verified",
   "source": {
     "repository": "technospider-ssbm/melee-shield-tilt",
     "revision": "e8c05c2a0ed3419c1f461d0a5cb11728d01aa3b1",
@@ -13,7 +13,7 @@
     "commonStructLengthBytes": 2072,
     "publisherRevisionClaim": "The source README says values were extracted from the publisher's own vanilla v1.02 ISO.",
     "publisherPlCoSha1Claim": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
-    "verificationLimit": "The ISO and PlCo.dat were not available for independent hashing. The publisher SHA-1 is a claim, not locally verified disc/revision evidence. Decimal JSON values are retained as published; original binary32 bit patterns were not independently checked.",
+    "verificationLimit": "The owner's GALE01 revision 2 executable matches the pinned decompile's retail SHA-1, and the local PlCo.dat SHA-1 matches the publisher claim. Publisher decimal JSON values remain unchanged here; exact independently extracted binary32 values are recorded in smashcraft:docs/smash-melee-reference/physics-parameters.json. This comparison does not verify all shield behavior or identify the publisher's original disc.",
     "rights": "No source-code license was established. This file retains numerical facts and provenance only; no code or assets are copied or translated."
   },
   "values": [
