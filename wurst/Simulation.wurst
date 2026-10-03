@@ -6,6 +6,11 @@ public constant real GROUND_TRACTION = 0.07999999821186066 * WORLD_UNITS_PER_MEL
 public constant real INITIAL_DASH_SPEED = 1.899999976158142 * WORLD_UNITS_PER_MELEE_UNIT
 // Provisional digital-input timing and braking; see wc3-melee:docs/physics.md.
 public constant int INITIAL_DASH_FRAMES = 10
+// Shared ground acceleration defaults for original Smashcraft fighters. The
+// Falco reference rig supplies its separately sourced values in tests only.
+constant real GROUND_ACCELERATION_MULTIPLIER = 0.1
+constant real GROUND_ACCELERATION_BASE = 0.02
+constant real GROUND_SPEED_CAP = 3 * WORLD_UNITS_PER_MELEE_UNIT
 constant real RUN_TURN_BRAKING = 0.8 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real SHIELD_MAX = 60
 public constant int SHIELD_BREAK_NONE = 0
@@ -216,7 +221,8 @@ public tuple fighterPhysics(real weight, real gravity, real terminalSpeed, real 
 		real traction, real dashSpeed, real runSpeed, real walkSpeed,
 		int jumpSquatFrames, real fullJumpSpeed, real shortJumpSpeed, real aerialJumpSpeed,
 		real jumpMomentum, real jumpHorizontalSpeed, real jumpHorizontalCap,
-		real aerialJumpHorizontalSpeed, real shieldBreakSpeed)
+		real aerialJumpHorizontalSpeed, real shieldBreakSpeed,
+		real groundAccelerationMultiplier, real groundAccelerationBase, real groundSpeedCap)
 
 public function archerPhysics() returns fighterPhysics
 	return fighterPhysics(75, 0.23000000417232513 * WORLD_UNITS_PER_MELEE_UNIT,
@@ -227,7 +233,8 @@ public function archerPhysics() returns fighterPhysics
 		3, 3.680000066757202 * WORLD_UNITS_PER_MELEE_UNIT, 2.0999999046325684 * WORLD_UNITS_PER_MELEE_UNIT,
 		3.680000066757202 * WORLD_UNITS_PER_MELEE_UNIT * 1.2000000476837158,
 		0.8299999833106995, 0.72 * WORLD_UNITS_PER_MELEE_UNIT, 1.7 * WORLD_UNITS_PER_MELEE_UNIT,
-		0.8999999761581421 * WORLD_UNITS_PER_MELEE_UNIT, 3.299999952316284 * WORLD_UNITS_PER_MELEE_UNIT)
+		0.8999999761581421 * WORLD_UNITS_PER_MELEE_UNIT, 3.299999952316284 * WORLD_UNITS_PER_MELEE_UNIT,
+		GROUND_ACCELERATION_MULTIPLIER, GROUND_ACCELERATION_BASE, GROUND_SPEED_CAP)
 
 public function riflemanPhysics() returns fighterPhysics
 	return fighterPhysics(80, 0.17000000178813934 * WORLD_UNITS_PER_MELEE_UNIT,
@@ -238,7 +245,8 @@ public function riflemanPhysics() returns fighterPhysics
 		5, 4.099999904632568 * WORLD_UNITS_PER_MELEE_UNIT, 1.899999976158142 * WORLD_UNITS_PER_MELEE_UNIT,
 		4.099999904632568 * WORLD_UNITS_PER_MELEE_UNIT * 0.9399999976158142,
 		1., 0.70 * WORLD_UNITS_PER_MELEE_UNIT, 1.7 * WORLD_UNITS_PER_MELEE_UNIT,
-		0.9399999976158142 * WORLD_UNITS_PER_MELEE_UNIT, 3.299999952316284 * WORLD_UNITS_PER_MELEE_UNIT)
+		0.9399999976158142 * WORLD_UNITS_PER_MELEE_UNIT, 3.299999952316284 * WORLD_UNITS_PER_MELEE_UNIT,
+		GROUND_ACCELERATION_MULTIPLIER, GROUND_ACCELERATION_BASE, GROUND_SPEED_CAP)
 
 public function demonHunterPhysics() returns fighterPhysics
 	return fighterPhysics(80, 0.19 * WORLD_UNITS_PER_MELEE_UNIT,
@@ -246,7 +254,8 @@ public function demonHunterPhysics() returns fighterPhysics
 		0.075 * WORLD_UNITS_PER_MELEE_UNIT, 0.88 * WORLD_UNITS_PER_MELEE_UNIT,
 		0.019999999552965164 * WORLD_UNITS_PER_MELEE_UNIT, 0.88 * WORLD_UNITS_PER_MELEE_UNIT,
 		GROUND_TRACTION, INITIAL_DASH_SPEED, 1.85 * WORLD_UNITS_PER_MELEE_UNIT, 1.55 * WORLD_UNITS_PER_MELEE_UNIT,
-		4, 24.2, 13.2, 25.5, 1., 0., 0., 0., 24.)
+		4, 24.2, 13.2, 25.5, 1., 0., 0., 0., 24.,
+		GROUND_ACCELERATION_MULTIPLIER, GROUND_ACCELERATION_BASE, GROUND_SPEED_CAP)
 
 // Defaults for the original roster, never a reference-character selector.
 public function authoredPhysics(int character) returns fighterPhysics
@@ -656,10 +665,20 @@ function advanceGroundMovement(FighterState f, int direction, boolean walking)
 	if f.dashFrame == 0 or direction != f.dashDirection
 		f.dashFrame = 1
 		f.dashDirection = direction
+		f.facing = direction
+		f.vx = direction * min(f.physics.dashSpeed, f.physics.groundSpeedCap)
+		return
 	else
 		f.dashFrame = min(INITIAL_DASH_FRAMES + 1, f.dashFrame + 1)
 	f.facing = direction
-	f.vx = direction * (f.dashFrame <= INITIAL_DASH_FRAMES ? f.physics.dashSpeed : f.physics.runSpeed)
+	let runTarget = min(f.physics.runSpeed, f.physics.groundSpeedCap)
+	var speed = f.vx * direction
+	if speed > runTarget
+		speed = max(runTarget, speed - f.physics.traction)
+	else
+		let acceleration = f.physics.groundAccelerationMultiplier + f.physics.groundAccelerationBase
+		speed = min(runTarget, speed + acceleration * WORLD_UNITS_PER_MELEE_UNIT)
+	f.vx = direction * max(0, min(f.physics.groundSpeedCap, speed))
 
 public function characterGravity(int character) returns real
 	return authoredPhysics(character).gravity

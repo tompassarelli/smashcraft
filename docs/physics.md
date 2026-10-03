@@ -185,7 +185,7 @@ equivalence without the missing parameters and original-game comparisons.
 
 | Rule group | Implemented and checked | Still required for parity |
 | --- | --- | --- |
-| Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed, sampled roll travel and persistent fast-fall state | Revision identity, complete frame trajectories, dash/run/turn common values, walk acceleration and original fast-fall stick-entry threshold/window |
+| Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed, sampled roll travel, persistent fast-fall state, and five recorded dash-braking updates | Revision identity, complete frame trajectories, dash/run/turn common values and transitions, walk acceleration, and original fast-fall stick-entry threshold/window |
 | Damage | Integer individual hit power, fractional same-frame total, strongest-contact selection, fixed knockback, cap, sampled crouch/smash modifiers and recorded flat-ground traction decay | Common-table confirmation, successive-frame stacking and other grounded surface conditions |
 | Hitlag/hitstun | Separate counters, electric effects carried through contact resolution, crouch arithmetic, direct/detached source pause and recorded same-frame hitlag release | Broader original-game ordered traces, revision identity and verified common values |
 | Shields | Integer shieldstun power, shield-break launch speed, recorded grounded digital defender pushback/attacker recoil and guard-drain timing | Raw common values/revision, analog/powershield branches, airborne recoil and broader paired displacement/actionability traces |
@@ -506,25 +506,32 @@ is not proof that the entire table has been adopted or that feel matches.
 
 ## Initial dash and dash dance
 
-Unmodified grounded direction now starts at the documented initial dash speed
-of 1.9 Melee units/frame (11.4 world units/frame) for both fighters. Holding
-direction for ten ticks keeps that speed; the eleventh tick uses the documented
-run speed, 2.2 for Archer or 1.5 for Rifleman. Reversing on ticks 2–10 immediately
-changes facing and velocity and restarts the ten-tick window, allowing repeated
-dash dancing. A neutral tick applies ordinary traction and advances the window,
-so a short gap between keyboard directions does not discard an early reversal.
-Stopping completely clears the movement phase.
+Grounded directional entry still assigns the authored initial dash speed of
+1.9 Melee units/frame (11.4 world units/frame). Each following held-direction
+tick now updates velocity instead of holding that value for the entire
+provisional ten-tick phase. Velocity above the fighter's run target brakes by
+that fighter's traction. Velocity below the target accelerates by the
+fighter-owned ground acceleration multiplier plus base, then clamps at the run
+target and ground speed cap. The original roster currently shares authored
+defaults of 0.1, 0.02 and 3 Melee units/frame for those three values; these are
+Smashcraft tuning choices and are not imported Falco/Fox character stats.
 
-The ten-tick duration is provisional research tuning, not a sourced Melee
-duration. Initial-dash speed stays constant throughout that window; Melee's
-acceleration within dash and animation-dependent transition are not reproduced.
-At expiration, opposite direction brakes existing ordinary velocity by a
-provisional 0.8 Melee units/frame each tick without changing facing. After
-stopping, the next held-direction tick starts a fresh dash. From full run speed
-this takes three braking ticks for Archer and two for Rifleman. This is an
-independently authored approximation of run turning; its acceleration, facing
-timing and zero-speed boundary are not claims of Melee parity. No implementation
-expression from the unlicensed local reference was copied or translated.
+The test-only Falco rig injects the independently recorded values 0.1, 0.02
+and 3. A frame-by-frame test seeds the already-active dash at frame -34 from
+`wavedash-1.slp` and matches all five subsequent positions and velocities on
+both Archer and Rifleman hosts. A deliberately perturbed initial velocity is
+detected at the first sample. This confirms the shared ground movement path for
+the recorded overspeed-braking branch; the recording does not verify dash entry,
+under-target acceleration, run transitions, turning, analog-stick scaling or
+the disc revision.
+
+Dash-window duration, early opposite-direction behavior, neutral handling and
+run-turn braking remain explicit provisional action rules. The ten-tick phase
+no longer holds dash speed; duration and animation-dependent transition still
+lack original comparison. At expiration, opposite direction brakes ordinary
+velocity by a provisional 0.8 Melee units/frame each tick without changing
+facing. These transition rules are not claims of Melee parity. No gameplay
+implementation from the unlicensed local reference was copied or translated.
 
 The walk modifier immediately selects the existing 1.6/1.4 walk speeds and
 clears the dash phase; releasing it starts a fresh initial dash. Jumps, shields,
@@ -536,11 +543,11 @@ analog tilt or stick-smash threshold, and initial facing changes have no separat
 turn startup. Dash attacks, crouch cancels and animation changes are outside
 this movement slice.
 
-The focused `initialDash` simulation filter passes 6/6 tests; the full suite
-passes 180/180, including walk transitions, run-turn braking, and recovery
-after air-dodge landing. Evidence is
-wc3-melee:build/wurst-tests/initial-dash-focused.log and
-wc3-melee:build/wurst-tests/initial-dash-full.log. Native dash-dance feel and
+The focused `initialDash` simulation filter passes 6/6 tests, the under-target
+acceleration/cap check passes 1/1, and the aggregate suite passes 430/430. The
+independent recorded-dash comparison passes on both host identities and the
+perturbed-input case fails at the expected first frame. The aggregate output is
+wc3-melee:build/wurst-tests/shared-dash-full.log. Native dash-dance feel and
 keyboard delivery timing have not been validated for this change.
 
 A later S/F short-tap report exposed an adapter loss: a press and release

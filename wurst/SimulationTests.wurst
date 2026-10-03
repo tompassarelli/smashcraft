@@ -1174,20 +1174,24 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 				destroy input
 				destroy fighter
 
-@Test function initialDashLastsTenTicksThenUsesCharacterRunSpeed()
+@Test function initialDashEntryTransitionsTowardActorRunSpeed()
 	for character = 0 to 1
 		for direction = -1 to 1
 			if direction != 0
 				let fighter = new FighterState(character, 0, -direction)
 				let input = new InputSnapshot()
 				input.direction = direction
-				for tick = 1 to 10
+				advance(fighter, 0, input, 0)
+				fighter.vx.assertEquals(11.4 * direction, 0.001)
+				var expectedSpeed = 11.4
+				for tick = 2 to 10
 					advance(fighter, 0, input, 0)
-					fighter.vx.assertEquals(11.4 * direction, 0.001)
+					expectedSpeed = character == 0 ? min(13.2, expectedSpeed + 0.72) : max(9., expectedSpeed - GROUND_TRACTION)
+					fighter.vx.assertEquals(expectedSpeed * direction, 0.001)
 					fighter.facing.assertEquals(direction)
-				fighter.x.assertEquals(114. * direction, 0.001)
 				advance(fighter, 0, input, 0)
 				fighter.vx.assertEquals((character == 0 ? 13.2 : 9.) * direction, 0.001)
+				fighter.dashFrame.assertEquals(INITIAL_DASH_FRAMES + 1)
 				destroy input
 				destroy fighter
 
@@ -1200,7 +1204,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 			advance(fighter, 0, input, 0)
 		input.direction = 0
 		advance(fighter, 0, input, 0)
-		fighter.vx.assertEquals(10.92, 0.001)
+		fighter.vx.assertEquals((character == 0 ? 13.2 : 9.) - GROUND_TRACTION, 0.001)
 		fighter.dashFrame.assertEquals(9)
 		input.direction = -1
 		advance(fighter, 0, input, 0)
@@ -1238,15 +1242,36 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 				destroy fighter
 
 @Test function initialDashExpirationPreventsLateInstantReversal()
+	for character = 0 to 1
+		let fighter = new FighterState(character, 0, 1)
+		let input = new InputSnapshot()
+		input.direction = 1
+		for tick = 1 to 10
+			advance(fighter, 0, input, 0)
+		input.direction = -1
+		advance(fighter, 0, input, 0)
+		fighter.vx.assertEquals((character == 0 ? 8.4 : 4.2), 0.001)
+		fighter.facing.assertEquals(1)
+		destroy input
+		destroy fighter
+
+@Test function underTargetGroundVelocityUsesActorAccelerationAndRunCap()
 	let fighter = new FighterState(0, 0, 1)
 	let input = new InputSnapshot()
 	input.direction = 1
-	for tick = 1 to 10
-		advance(fighter, 0, input, 0)
-	input.direction = -1
+	fighter.vx = 6
+	fighter.dashFrame = 1
+	fighter.dashDirection = 1
+	fighter.physics.runSpeed = 2.5 * 6
 	advance(fighter, 0, input, 0)
-	fighter.vx.assertEquals(6.6, 0.001)
-	fighter.facing.assertEquals(1)
+	fighter.vx.assertEquals(1.12 * 6, 0.0001)
+	for tick = 1 to 12
+		advance(fighter, 0, input, 0)
+	fighter.vx.assertEquals(2.5 * 6, 0.0001)
+	fighter.physics.runSpeed = 4. * 6
+	fighter.vx = 3. * 6 - 0.1
+	advance(fighter, 0, input, 0)
+	fighter.vx.assertEquals(3. * 6, 0.0001)
 	destroy input
 	destroy fighter
 

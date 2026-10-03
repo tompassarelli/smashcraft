@@ -12,7 +12,8 @@ function falcoReferencePhysics() returns fighterPhysics
 		5, 4.099999904632568 * 6, 1.899999976158142 * 6,
 		4.099999904632568 * 6 * 0.9399999976158142,
 		1., 0.699999988079071 * 6, 1.7000000476837158 * 6,
-		0.9399999976158142 * 6, 3.299999952316284 * 6)
+		0.9399999976158142 * 6, 3.299999952316284 * 6,
+		0.10000000149011612, 0.019999999552965164, 3. * 6)
 
 function recordedFalcoFallPosition(int sample) returns real
 	if sample == 0
@@ -76,6 +77,53 @@ function recordedFalcoJumpFirstDifference(int hostCharacter, int jumpInputFrame)
 	destroy input
 	destroy f
 	return firstDifference
+
+function recordedFalcoDashPosition(int sample) returns real
+	if sample == 0
+		return 36.60000228881836
+	if sample == 1
+		return 34.86000061035156
+	if sample == 2
+		return 33.20000076293945
+	if sample == 3
+		return 31.6200008392334
+	return 30.1200008392334
+
+function recordedFalcoDashSpeed(int sample) returns real
+	if sample == 0
+		return -1.8200000524520874
+	if sample == 1
+		return -1.7400000095367432
+	if sample == 2
+		return -1.659999966621399
+	if sample == 3
+		return -1.5799999237060547
+	return -1.4999998807907104
+
+function recordedFalcoDashFirstDifference(int hostCharacter, real initialSpeed) returns int
+	let f = new FighterState(hostCharacter, 38.42000198364258 * 6, -1)
+	f.physics = falcoReferencePhysics()
+	f.vx = initialSpeed * 6
+	f.dashFrame = 5
+	f.dashDirection = -1
+	let input = new InputSnapshot()
+	input.direction = -1
+	var firstDifference = 0
+	for sample = 0 to 4
+		advance(f, 0, input, 0)
+		if firstDifference == 0 and ((f.x - recordedFalcoDashPosition(sample) * 6).abs() > 0.0006
+			or (f.vx - recordedFalcoDashSpeed(sample) * 6).abs() > 0.00006)
+			firstDifference = -33 + sample
+	destroy input
+	destroy f
+	return firstDifference
+
+@Test function recordedFalcoDashOverspeedBrakingMatchesBothOriginalFighterHosts()
+	for hostCharacter = 0 to 1
+		recordedFalcoDashFirstDifference(hostCharacter, -1.9000000953674316).assertEquals(0)
+
+@Test function recordedFalcoDashDetectsPerturbedOverspeedAtItsFirstFrame()
+	recordedFalcoDashFirstDifference(0, -1.8400000953674316).assertEquals(-33)
 
 @Test function recordedNtscFalcoJumpHasFiveGroundedFramesThenRawTakeoff()
 	for hostCharacter = 0 to 1
