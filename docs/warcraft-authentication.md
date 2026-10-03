@@ -53,3 +53,11 @@ Prior evidence records same-account concurrent sign-in coinciding with host evic
 ## Notification availability
 
 No exposed email connector, sendmail/msmtp executable, running Proton Bridge, or local SMTP listener is available. Existing encrypted mail state was untouched. Automatic email is not configured and no email was sent. This remains an explicit deliverable, not a completed claim.
+
+## Verified reconnect result
+
+A already had AutoLogin and RememberAccountName enabled. On scoped recovery of its unusable TCP connection at 15:26 UTC, cached login data was found, then Battle.net explicitly rejected the saved token. The launcher deleted it, reported ERROR_TOKEN_NOT_FOUND (49), and entered LoginCredential. The reason for server rejection is not logged; it cannot be attributed to VPN change conclusively. Interactive authentication is now a real blocker, not a request to repeat login as a speculative fix. No further restart or sign-in attempt was made.
+
+## Executable transport check
+
+Run `wc3-melee:tools/wc3-auth-transport LAUNCHER_PID` before Play/recovery. It inspects only the selected Battle.net browser process. It refused the still-stale B socket because its source address is absent. Syntax check passed. A source-present result is expressly not authenticated readiness; inspect current launcher auth events and a verified real main menu separately. This tool reads actual socket/address state; it does not estimate authentication from elapsed time, launch timestamps or an account label.

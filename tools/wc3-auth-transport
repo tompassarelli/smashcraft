@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Operating-system boundary: inspect one retained Battle.net process's TCP sockets.
+[[ $# == 1 && $1 =~ ^[1-9][0-9]*$ ]] || { echo 'Usage: wc3-melee:tools/wc3-auth-transport LAUNCHER_PID' >&2; exit 2; }
+launcher_pid=$1
+[[ -r /proc/$launcher_pid/comm ]] || { echo 'launcher-missing'; exit 1; }
+[[ $(</proc/$launcher_pid/comm) == CrBrowserMain ]] || { echo 'unexpected-process'; exit 1; }
+addresses=$(ip -o -4 address show | awk '{split($4,a,"/"); print a[1]}')
+sockets=$(ss -Htnp 'dport = :1119' | awk -v p="pid=$launcher_pid," 'index($0,p)')
+[[ -n $sockets ]] || { echo 'authentication-transport-absent: do not launch'; exit 1; }
+stale=0
+while read -r state recv send local_endpoint remainder; do
+  source_address=${local_endpoint%:*}
+  found=0
+  while IFS= read -r address; do [[ $source_address == "$address" ]] && found=1; done <<< "$addresses"
+  (( found == 1 )) || stale=1
+done <<< "$sockets"
+(( stale == 0 )) || { echo 'stale-authentication-transport: source address removed; do not launch or request password'; exit 1; }
+echo 'transport-source-present: authentication still requires explicit launcher evidence'
