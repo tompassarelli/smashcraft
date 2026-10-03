@@ -206,3 +206,32 @@ smashcraft:build/wurst-map/Smashcraft 0.0.7.w3x. SHA-256:
 Deployment remained disabled to preserve the concurrent native-input session.
 This candidate has not been observed natively and does not include the pending
 dash/guard/grab changes or star/screen death implementation.
+
+## Floor recovery leaving support
+
+DownBound, Passive, DownWait and DownStand run the ordinary floor-support
+collision path; losing support enters Fall. Down rolls, PassiveStand and
+DownAttack use the constrained floor path. Sources:
+melee:src/melee/ft/kinds/ftCommon/ftCo_DownBound.c,
+melee:src/melee/ft/kinds/ftCommon/ftCo_Passive.c,
+melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveStand.c,
+melee:src/melee/ft/ft_081B.c and melee:src/melee/mp/mpcoll.c.
+The support result ultimately comes from mpColl_8004ACE4's touching-floor
+boolean; ft_80082708's enum/local names alone are misleading for that result.
+
+Smashcraft previously returned after recovery motion without resolving support.
+It now checks the current flat surface after recovery motion, transitions
+unconstrained skids to ordinary fall when they cross its endpoint, and preserves
+rolling/attacking recovery's edge constraint. Departure keeps remaining
+horizontal knockback, consumes the ground jump, and resumes aerial gravity on
+the next tick. Recovery also records its actual displacement and checks blast
+zones after motion. Initial support can be acquired from a coincident floor
+when no surface identifier has yet been set.
+
+The production landing/retained-knockback case failed before the fix because
+grounded remained true beyond an edge. It now covers both hosts, both sides,
+main and raised platforms, missed tech, in-place tech and rolling tech. The
+rolling variant remains supported at the endpoint; the other variants fall.
+The assembled suite passed 497/497 with zero errors and the existing unused
+import warning (smashcraft:build/recovery-edge-aggregate.log). These checks
+establish the modeled flat-surface transition, not full retail ECB shapes,+connected/sloped terrain, independent retail departure traces or native timing.

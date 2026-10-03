@@ -2191,6 +2191,29 @@ function startDownWait(FighterState f, int remainingFrames)
 function startDownStand(FighterState f)
 	beginDownState(f, DOWN_STAND, 0)
 
+function resolveDownGroundContact(FighterState f, int stage)
+	var deck = f.surface
+	if deck < 0 or deck >= surfaceCount(stage)
+		for i = 0 to surfaceCount(stage) - 1
+			if f.z == surfaceZ(stage, i) and f.x >= surfaceLeft(stage, i) and f.x <= surfaceRight(stage, i)
+				deck = i
+	if deck >= 0 and deck < surfaceCount(stage)
+		if f.downState == DOWN_ROLL or f.downState == DOWN_TECH_ROLL or f.downState == DOWN_ATTACK
+			f.x = max(surfaceLeft(stage, deck), min(surfaceRight(stage, deck), f.x))
+		if f.x >= surfaceLeft(stage, deck) and f.x <= surfaceRight(stage, deck)
+			f.surface = deck
+			f.z = surfaceZ(stage, deck)
+			return
+	if f.downState == DOWN_ATTACK
+		cancelAttack(f)
+	clearDownState(f)
+	f.grounded = false
+	f.surface = -1
+	f.jumps = min(f.jumps, 1)
+	f.vx = max(-f.physics.airSpeed, min(f.physics.airSpeed, f.vx))
+	f.groundKnockbackX = 0
+	clearDash(f)
+
 function advanceDownState(FighterState f, int stage, InputSnapshot input) returns boolean
 	let leavingBound = f.downState == DOWN_BOUND and f.downFrame >= DOWN_BOUND_FRAMES
 	let leavingDamage = f.downState == DOWN_DAMAGE and f.downFrame >= DOWN_DAMAGE_FRAMES
@@ -3351,7 +3374,13 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	checkBlastZone(f)
 	if f.out
 		return
+	let downOldX = f.x
+	let downOldZ = f.z
 	if advanceDownState(f, stage, input)
+		resolveDownGroundContact(f, stage)
+		f.positionDeltaX = f.x - downOldX
+		f.positionDeltaZ = f.z - downOldZ
+		checkBlastZone(f)
 		return
 	let forcedShield = f.shield and f.shieldStun > 0
 	f.shieldStun = max(0, f.shieldStun - 1)
