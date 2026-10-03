@@ -124,3 +124,19 @@ smashcraft:build/wurst-map/Smashcraft 0.0.6.w3x. SHA-256:
 `ef9a52f70fac081935da57e72b5299b972ab6a7e0d7706411809ffcda8ceb7a8`.
 Deployment was disabled to preserve the peer candidate. Native observation,
 independent traces and remaining dash input-priority rules are still open.
+
+## Getup stand completion ordering
+
+melee:src/melee/ft/kinds/ftCommon/ftCo_DownStand.c transitions to ordinary ground
+state in its animation callback when tracks finish; the input phase follows that
+callback. The selected retail profiles' DownStand clips are 30 frames in
+smashcraft:docs/smash-melee-reference/retail-action-lengths.json.
+
+Smashcraft previously cleared DOWN_STAND after processing jump input and returned
+without ordinary input handling, adding a locked tick. Completion now runs in
+the existing pre-input recovery phase, alongside floor-tech completion. A
+production getup entry followed by a jump on tick 30 failed before the change
+and passed afterward on both original hosts. Roll, down-damage and getup-attack
+end conventions are separate and are not certified by this fix. The focused
+completion case and existing RecoveryTests passed; broader assembled checks and
+native verification remain pending for this change.

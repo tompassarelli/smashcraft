@@ -4656,6 +4656,27 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	destroy input
 	destroy fighter
 
+@Test function retailDownStandCompletionAllowsInputOnItsAnimationEndTick()
+	for character = 0 to 1
+		let fighter = new FighterState(character, 0, 1)
+		let input = new InputSnapshot()
+		fighter.downState = DOWN_WAIT
+		fighter.downWaitRemaining = 200
+		input.getupStandPressed = true
+		advance(fighter, 0, input, 0)
+		fighter.downState.assertEquals(DOWN_STAND)
+		input.getupStandPressed = false
+		for frame = 1 to 29
+			advance(fighter, 0, input, 0)
+			fighter.downState.assertEquals(DOWN_STAND)
+		input.jumpPressed = true
+		input.jumpHeld = true
+		advance(fighter, 0, input, 0)
+		fighter.downState.assertEquals(DOWN_NONE)
+		fighter.jumpSquat.assertGreaterThan(0)
+		destroy input
+		destroy fighter
+
 @Test function retailWallTechUsesTheSeparateOriginalFighterSurfaceProfile()
 	let fighter = new FighterState(0, -425, 1)
 	let input = new InputSnapshot()
