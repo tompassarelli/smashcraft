@@ -4484,28 +4484,45 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.hitstun = 8
 	fighter.downState = DOWN_TUMBLE
 	fighter.techWindow = 3
+	fighter.vx = 2
+	fighter.vz = 3
 	fighter.knockbackX = 8
+	fighter.knockbackZ = -2
+	fighter.groundKnockbackX = 4
+	fighter.shieldPushbackX = 2
+	fighter.shieldRecoilX = 1.5
+	fighter.shieldRecoilZ = 1
 	advance(fighter, 1, input, 0)
 	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
 	fighter.surfaceContactKind.assertEquals(SURFACE_TECH_WALL)
 	fighter.hitstun.assertEquals(0)
 	fighter.downState.assertEquals(DOWN_NONE)
 	fighter.invincible.assertEquals(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES)
-	for tick = 1 to SURFACE_TECH_STARTUP_FRAMES
+	fighter.surfaceRecoveryFrame.assertEquals(0)
+	fighter.vx.assertEquals(0)
+	fighter.vz.assertEquals(0)
+	fighter.knockbackX.assertEquals(0)
+	fighter.knockbackZ.assertEquals(0)
+	fighter.groundKnockbackX.assertEquals(0)
+	fighter.shieldPushbackX.assertEquals(0)
+	fighter.shieldRecoilX.assertEquals(0)
+	fighter.shieldRecoilZ.assertEquals(0)
+	for tick = 1 to WALL_TECH_STARTUP_FRAMES
 		advance(fighter, 1, input, 0)
 	fighter.vx.assertEquals(-2.88, 0.001)
 	fighter.x.assertLessThan(-420)
 	fighter.invincible.assertLessThan(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES)
 	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
-	fighter.surfaceRecoveryFrame.assertEquals(SURFACE_TECH_STARTUP_FRAMES)
+	fighter.surfaceRecoveryFrame.assertEquals(WALL_TECH_STARTUP_FRAMES)
 	fighter.surfaceRecoveryVelocityApplied.assertTrue()
 	destroy input
 	destroy fighter
 
-@Test function retailWallTechJumpRequiresMinimumApproachSpeed()
+@Test function retailWallTechJumpLatchesBufferedInputWithoutOrdinaryTraitOrSpeedGate()
 	let fighter = new FighterState(0, -420.5, 1)
 	let input = new InputSnapshot()
 	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+	fighter.surfacePhysics.canWallJump = false
 	fighter.grounded = false
 	fighter.z = 160
 	fighter.hitstun = 8
@@ -4517,15 +4534,55 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
 	fighter.surfaceContactApproachSpeed.assertLessThan(fighter.surfacePhysics.wallJumpMinimumApproach)
 	input.jumpPressed = true
-	input.direction = -1
+	input.direction = 1
 	advance(fighter, 1, input, 0)
+	input.jumpPressed = false
+	input.direction = 0
+	fighter.surfaceRecoveryFrame.assertEquals(1)
+	fighter.surfaceWallJumpQueued.assertTrue()
+	for tick = 2 to WALL_TECH_STARTUP_FRAMES - 1
+		advance(fighter, 1, input, 0)
 	fighter.surfaceRecoveryVelocityApplied.assertFalse()
-	fighter.jumpSerial.assertEquals(0)
-	(fighter.vz < fighter.surfacePhysics.wallJumpVerticalSpeed).assertTrue()
+	(fighter.vx == 0 and fighter.vz == 0).assertTrue()
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryFrame.assertEquals(WALL_TECH_STARTUP_FRAMES)
+	fighter.surfaceRecoveryVelocityApplied.assertTrue()
+	fighter.vx.assertEquals(-fighter.surfacePhysics.wallJumpHorizontalSpeed + fighter.physics.airFriction)
+	fighter.vz.assertEquals(fighter.surfacePhysics.wallJumpVerticalSpeed - fighter.physics.gravity)
+	fighter.jumpSerial.assertEquals(1)
+	fighter.facing.assertEquals(-1)
 	destroy input
 	destroy fighter
 
-@Test function retailWallTechJumpUsesTheActorImpulseAndApproachGate()
+@Test function retailWallTechSelectsJumpFromRecentInputAgeAtContact()
+	let fighter = new FighterState(0, -420.5, 1)
+	let input = new InputSnapshot()
+	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+	fighter.surfacePhysics.canWallJump = false
+	fighter.surfacePhysics.wallJumpMinimumApproach = 100
+	fighter.grounded = false
+	fighter.z = 160
+	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
+	fighter.techWindow = 3
+	fighter.knockbackX = 2.5
+	fighter.jumps = 0
+	fighter.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES - 2
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+	fighter.surfaceWallJumpQueued.assertTrue()
+	for tick = 1 to WALL_TECH_STARTUP_FRAMES - 1
+		advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryVelocityApplied.assertFalse()
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryVelocityApplied.assertTrue()
+	fighter.vx.assertEquals(-fighter.surfacePhysics.wallJumpHorizontalSpeed + fighter.physics.airFriction)
+	fighter.vz.assertEquals(fighter.surfacePhysics.wallJumpVerticalSpeed - fighter.physics.gravity)
+	fighter.jumpSerial.assertEquals(1)
+	destroy input
+	destroy fighter
+
+@Test function retailWallTechSelectsJumpFromUpStickAtContact()
 	let fighter = new FighterState(0, -425, 1)
 	let input = new InputSnapshot()
 	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
@@ -4535,19 +4592,32 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.downState = DOWN_TUMBLE
 	fighter.techWindow = 3
 	fighter.knockbackX = 8
-	fighter.jumps = 0
+	fighter.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
+	input.verticalDirection = 1
 	advance(fighter, 1, input, 0)
 	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
-	input.jumpPressed = true
-	input.direction = -1
+	fighter.surfaceWallJumpQueued.assertTrue()
+	destroy input
+	destroy fighter
+
+@Test function retailWallTechJumpInputAgeExpiresAtTheTwentyFrameBoundary()
+	let fighter = new FighterState(0, -425, 1)
+	let input = new InputSnapshot()
+	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+	fighter.grounded = false
+	fighter.z = 160
+	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
+	fighter.techWindow = 3
+	fighter.knockbackX = 8
+	fighter.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
 	advance(fighter, 1, input, 0)
-	fighter.surfaceRecoveryVelocityApplied.assertTrue()
-	(fighter.vx < -8.).assertTrue()
-	(fighter.vz > 17.).assertTrue()
-	fighter.knockbackX.assertEquals(0)
-	fighter.knockbackZ.assertEquals(0)
-	fighter.jumpSerial.assertEquals(1)
-	fighter.facing.assertEquals(-1)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+	fighter.surfaceWallJumpQueued.assertFalse()
+	for tick = 1 to WALL_TECH_STARTUP_FRAMES
+		advance(fighter, 1, input, 0)
+	fighter.jumpSerial.assertEquals(0)
+	fighter.vx.assertEquals(-2.88, 0.001)
 	destroy input
 	destroy fighter
 
@@ -4601,9 +4671,11 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.surfaceContactKind.assertEquals(SURFACE_TECH_CEILING)
 	fighter.hitstun.assertEquals(0)
 	fighter.downState.assertEquals(DOWN_NONE)
-	for tick = 1 to SURFACE_TECH_STARTUP_FRAMES + 1
-		advance(fighter, 1, input, 0)
-	fighter.vx.assertGreaterThan(0)
+	fighter.surfaceRecoveryFrame.assertEquals(0)
+	let contactZ = fighter.z
+	advance(fighter, 1, input, 0)
+	fighter.surfaceRecoveryFrame.assertEquals(0)
+	fighter.z.assertLessThan(contactZ)
 	destroy input
 	destroy fighter
 
@@ -4634,7 +4706,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	SURFACE_REFLECT_SPEED_THRESHOLD.assertEquals(6.)
 	SURFACE_REFLECT_ATTENUATION.assertEquals(0.800000011920929)
 	SURFACE_REFLECT_COOLDOWN_FRAMES.assertEquals(3)
-	SURFACE_TECH_STARTUP_FRAMES.assertEquals(5)
+	WALL_TECH_STARTUP_FRAMES.assertEquals(5)
 	SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES.assertEquals(14)
 
 @Test function surfaceContactNormalAndPositionSurviveReplayCaptureAndRestore()
@@ -4647,7 +4719,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	let snapshot = new ReplaySnapshot()
 	first.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
 	first.surfaceRecoveryState = SURFACE_TECH_WALL
-	first.surfaceRecoveryFrame = SURFACE_TECH_STARTUP_FRAMES
+	first.surfaceRecoveryFrame = WALL_TECH_STARTUP_FRAMES
 	first.surfaceRecoveryVelocityApplied = true
 	first.surfaceContactSerial = 4
 	first.surfaceContactKind = SURFACE_CEILING
@@ -4672,7 +4744,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	first.surfaceContactNormalX.assertEquals(0)
 	first.surfaceContactNormalZ.assertEquals(-1)
 	first.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
-	first.surfaceRecoveryFrame.assertEquals(SURFACE_TECH_STARTUP_FRAMES)
+	first.surfaceRecoveryFrame.assertEquals(WALL_TECH_STARTUP_FRAMES)
 	first.surfaceRecoveryVelocityApplied.assertTrue()
 	first.surfacePhysics.passiveWallSpeed.assertEquals(3.)
 	first.surfacePhysics.wallJumpHorizontalSpeed.assertEquals(8.399999856948852)

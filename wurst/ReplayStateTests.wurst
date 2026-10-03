@@ -55,6 +55,7 @@ import MatchStep
     let secondCommands = new AttackBuffer(4)
     let runtime = new ReplayRuntimeState()
     let snapshot = new ReplaySnapshot()
+    let actual = new ReplaySnapshot()
 
     first.x = -123.5
     first.positionDeltaX = 0.125
@@ -75,6 +76,8 @@ import MatchStep
     first.jumpDodgeQueued = true
     first.jumpDodgeX = -1
     first.jumpDodgeZ = 1
+    first.jumpInputAge = 7
+    first.surfaceWallJumpQueued = true
     first.techWindow = 11
     first.projectileLife[3] = 27
     first.projectileX[3] = -44.25
@@ -116,6 +119,8 @@ import MatchStep
     first.jumpDodgeQueued = false
     first.jumpDodgeX = 0
     first.jumpDodgeZ = 0
+    first.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
+    first.surfaceWallJumpQueued = false
     first.techWindow = 0
     first.projectileLife[3] = 0
     first.projectileX[3] = 0
@@ -158,6 +163,19 @@ import MatchStep
     first.jumpDodgeQueued.assertTrue()
     first.jumpDodgeX.assertEquals(-1)
     first.jumpDodgeZ.assertEquals(1)
+    first.jumpInputAge.assertEquals(7)
+    first.surfaceWallJumpQueued.assertTrue()
+    actual.capture(first, second, match, firstCommands, secondCommands, runtime)
+    snapshot.firstDifference(actual).assertEquals("")
+    first.surfaceWallJumpQueued = false
+    actual.capture(first, second, match, firstCommands, secondCommands, runtime)
+    snapshot.firstDifference(actual).assertEquals("first.surfaceWallJumpQueued")
+    first.surfaceWallJumpQueued = true
+    first.jumpInputAge = 8
+    actual.capture(first, second, match, firstCommands, secondCommands, runtime)
+    snapshot.firstDifference(actual).assertEquals("first.jumpInputAge")
+    first.jumpInputAge = 7
+    destroy actual
     first.techWindow.assertEquals(11)
     first.projectileLife[3].assertEquals(27)
     first.projectileX[3].assertEquals(-44.25)

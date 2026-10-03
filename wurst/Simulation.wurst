@@ -185,8 +185,9 @@ public constant int SURFACE_TECH_CEILING = 4
 public constant real SURFACE_REFLECT_SPEED_THRESHOLD = 1. * WORLD_UNITS_PER_MELEE_UNIT
 public constant real SURFACE_REFLECT_ATTENUATION = 0.800000011920929
 public constant int SURFACE_REFLECT_COOLDOWN_FRAMES = 3
-public constant int SURFACE_TECH_STARTUP_FRAMES = 5
+public constant int WALL_TECH_STARTUP_FRAMES = 5
 public constant int SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES = 14
+public constant int WALL_TECH_JUMP_INPUT_WINDOW_FRAMES = 20
 // PlCo.dat +0x164 max_grounded_kb_on_landing, converted to map units.
 public constant real MAX_GROUNDED_KNOCKBACK_ON_LANDING = 8.300000190734863 * WORLD_UNITS_PER_MELEE_UNIT
 public constant int TECH_WINDOW_FRAMES = 20
@@ -459,6 +460,7 @@ public class FighterState
 	boolean fastFalling = false
 	boolean fastFallDownHeld = false
 	int fastFallInputAge = FAST_FALL_INPUT_WINDOW
+	int jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
 	int jumps = 2
 	int jumpSerial = 0
 	boolean jumpIsDouble = false
@@ -473,6 +475,7 @@ public class FighterState
 	int surfaceRecoveryState = SURFACE_NONE
 	int surfaceRecoveryFrame = 0
 	boolean surfaceRecoveryVelocityApplied = false
+	boolean surfaceWallJumpQueued = false
 	int surfaceReflectCooldown = 0
 	int lastReflectedSurface = -1
 	int surfaceContactSerial = 0
@@ -1485,6 +1488,7 @@ function beginDownDamage(FighterState f, int hitstunFrames)
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
+	f.surfaceWallJumpQueued = false
 	f.downState = DOWN_DAMAGE
 	f.downFrame = 1
 	f.downWaitRemaining = max(0, hitstunFrames)
@@ -1828,6 +1832,7 @@ function clearDownState(FighterState f)
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
+	f.surfaceWallJumpQueued = false
 
 function beginDownState(FighterState f, int state, int direction)
 	f.fastFalling = false
@@ -1835,6 +1840,7 @@ function beginDownState(FighterState f, int state, int direction)
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
+	f.surfaceWallJumpQueued = false
 	f.downState = state
 	f.downFrame = 1
 	f.downDirection = direction
@@ -1927,7 +1933,20 @@ function contactInSolidSurfaceSpan(int stage, int index, real x, real z) returns
 	let along = solidSurfaceKind(stage, index) == SURFACE_WALL ? z : x
 	return along >= solidSurfaceMinimum(stage, index) and along <= solidSurfaceMaximum(stage, index)
 
-function resolveSolidSurfaceContact(FighterState f, int stage, int index, real oldX, real oldZ) returns boolean
+function wallTechJumpInputIsRecent(FighterState f, InputSnapshot input) returns boolean
+	return f.jumpInputAge < WALL_TECH_JUMP_INPUT_WINDOW_FRAMES or input.jumpPressed or input.verticalDirection > 0
+
+function clearMotionForSurfaceTech(FighterState f)
+	f.vx = 0
+	f.vz = 0
+	f.knockbackX = 0
+	f.knockbackZ = 0
+	f.groundKnockbackX = 0
+	f.shieldPushbackX = 0
+	f.shieldRecoilX = 0
+	f.shieldRecoilZ = 0
+
+function resolveSolidSurfaceContact(FighterState f, int stage, int index, real oldX, real oldZ, InputSnapshot input) returns boolean
 	if solidSurfaceKind(stage, index) == SURFACE_NONE
 		return false
 	let nx = solidSurfaceNormalX(stage, index)
@@ -1956,14 +1975,18 @@ function resolveSolidSurfaceContact(FighterState f, int stage, int index, real o
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
+	f.surfaceWallJumpQueued = false
 	if f.surfaceReflectCooldown == 0 and f.techWindow > 0 and (f.hitstun > 0 or isTumbling(f))
 		eventKind = solidSurfaceKind(stage, index) == SURFACE_WALL ? SURFACE_TECH_WALL : SURFACE_TECH_CEILING
 		f.techWindow = 0
 		f.hitstun = 0
 		clearDownState(f)
 		f.surfaceRecoveryState = eventKind
-		f.surfaceRecoveryFrame = 1
+		f.surfaceRecoveryFrame = 0
 		f.surfaceRecoveryVelocityApplied = false
+		if eventKind == SURFACE_TECH_WALL
+			f.surfaceWallJumpQueued = wallTechJumpInputIsRecent(f, input)
+		clearMotionForSurfaceTech(f)
 		if eventKind == SURFACE_TECH_WALL
 			f.invincible = max(f.invincible, SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES)
 		f.facing = nx < 0 ? -1 : (nx > 0 ? 1 : f.facing)
@@ -2001,10 +2024,10 @@ function resolveSolidSurfaceContact(FighterState f, int stage, int index, real o
 			f.knockbackZ -= inwardKbSpeed * nz
 	return true
 
-function resolveSolidSurfaceContacts(FighterState f, int stage, real oldX, real oldZ)
+function resolveSolidSurfaceContacts(FighterState f, int stage, real oldX, real oldZ, InputSnapshot input)
 	var touched = false
 	for i = 0 to solidSurfaceCount(stage) - 1
-		if resolveSolidSurfaceContact(f, stage, i, oldX, oldZ)
+		if resolveSolidSurfaceContact(f, stage, i, oldX, oldZ, input)
 			touched = true
 	if not touched
 		f.lastReflectedSurface = -1
@@ -2012,35 +2035,23 @@ function resolveSolidSurfaceContacts(FighterState f, int stage, real oldX, real 
 function advanceSurfaceRecovery(FighterState f, InputSnapshot input) returns boolean
 	if f.hitlag > 0
 		return false
-	if f.surfaceRecoveryState == SURFACE_TECH_WALL or f.surfaceRecoveryState == SURFACE_TECH_CEILING
-		// A wall jump is available while this test rig remains at the contacted
-		// side, independent of the actor-authored tech animation's unknown end.
-		if f.surfaceRecoveryState == SURFACE_TECH_WALL
-			and (f.x - f.surfaceContactX).abs() < 0.001
-			and input.jumpPressed and f.surfacePhysics.canWallJump
-			and input.direction * f.surfaceContactNormalX > 0
-			and f.surfaceContactApproachSpeed >= f.surfacePhysics.wallJumpMinimumApproach
-			f.vx = f.surfaceContactNormalX * f.surfacePhysics.wallJumpHorizontalSpeed
-			f.vz = f.surfacePhysics.wallJumpVerticalSpeed
-			f.knockbackX = 0
-			f.groundKnockbackX = 0
-			f.knockbackZ = 0
-			f.shieldPushbackX = 0
-			f.shieldRecoilX = 0
-			f.shieldRecoilZ = 0
-			f.facing = f.surfaceContactNormalX > 0 ? 1 : -1
-			f.jumpSerial++
-			f.jumpIsDouble = false
-			f.surfaceRecoveryVelocityApplied = true
-			return true
-		if f.surfaceRecoveryFrame < SURFACE_TECH_STARTUP_FRAMES
-			f.surfaceRecoveryFrame++
-		else if not f.surfaceRecoveryVelocityApplied
-			if f.surfaceRecoveryState == SURFACE_TECH_WALL
-				f.vx = f.surfaceContactNormalX * f.surfacePhysics.passiveWallSpeed
+	if f.surfaceRecoveryState == SURFACE_TECH_WALL
+		if f.surfaceRecoveryFrame >= WALL_TECH_STARTUP_FRAMES
+			return false
+		f.surfaceWallJumpQueued = f.surfaceWallJumpQueued or wallTechJumpInputIsRecent(f, input)
+		f.surfaceRecoveryFrame++
+		if f.surfaceRecoveryFrame == WALL_TECH_STARTUP_FRAMES
+			if f.surfaceWallJumpQueued
+				f.vx = f.surfaceContactNormalX * f.surfacePhysics.wallJumpHorizontalSpeed
+				f.vz = f.surfacePhysics.wallJumpVerticalSpeed
+				f.facing = f.surfaceContactNormalX > 0 ? 1 : -1
+				f.jumpSerial++
+				f.jumpIsDouble = false
 			else
-				f.vx = input.direction * f.surfacePhysics.passiveCeilingSpeed
+				f.vx = f.surfaceContactNormalX * f.surfacePhysics.passiveWallSpeed
 			f.surfaceRecoveryVelocityApplied = true
+			return f.surfaceWallJumpQueued
+		return false
 	return false
 
 function applyHitlagShift(FighterState f, int stage, InputSnapshot input, int directionX, int directionZ, real distance, boolean fromAsdi)
@@ -2063,7 +2074,7 @@ function applyHitlagShift(FighterState f, int stage, InputSnapshot input, int di
 		landing = -1
 	f.x = newX
 	f.z = newZ
-	resolveSolidSurfaceContacts(f, stage, oldX, oldZ)
+	resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input)
 	if landing >= 0
 		finishLanding(f, stage, input, landing, fromAsdi)
 	if f.x != oldX or f.z != oldZ
@@ -2896,6 +2907,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
+	f.surfaceWallJumpQueued = false
 	f.lastReflectedSurface = -1
 	f.surfaceReflectCooldown = 0
 	f.surfaceContactKind = SURFACE_NONE
@@ -2971,6 +2983,7 @@ public function reset(FighterState f, real startX)
 	f.fastFalling = false
 	f.fastFallDownHeld = false
 	f.fastFallInputAge = FAST_FALL_INPUT_WINDOW
+	f.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
 	f.crouching = false
 	f.jumpDodgeQueued = false
 	f.jumpDodgeX = 0
@@ -2995,6 +3008,7 @@ public function reset(FighterState f, real startX)
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
+	f.surfaceWallJumpQueued = false
 	f.lastReflectedSurface = -1
 	f.surfaceReflectCooldown = 0
 	f.surfaceContactKind = SURFACE_NONE
@@ -3078,6 +3092,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if f.respawn <= 0
 			reset(f, respawnX)
 		return
+	f.jumpInputAge = input.jumpPressed ? 0 : min(WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, f.jumpInputAge + 1)
 	let wasFrozen = f.frozenFrames > 0
 	if f.frozenFrames > 0
 		f.frozenFrames--
@@ -3128,6 +3143,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		if f.hitlag > 0
 			f.techHitlagLatched = true
 	let wallJumped = advanceSurfaceRecovery(f, input)
+	let wallTechStartup = f.surfaceRecoveryState == SURFACE_TECH_WALL and f.surfaceRecoveryFrame < WALL_TECH_STARTUP_FRAMES
 	if hitlagBefore > 0 and f.diPending
 		if f.hitlag > 0
 			applySmashDirectionalInfluence(f, stage, input)
@@ -3135,6 +3151,11 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			applyDirectionalInfluence(f, input)
 			applyAutomaticSmashDirectionalInfluence(f, stage, input)
 	if f.out
+		return
+	if wallTechStartup
+		if f.hitlag <= 0
+			f.invincible = max(0, f.invincible - 1)
+		checkBlastZone(f)
 		return
 	if inGrabContext(f)
 		if f.hitlag <= 0
@@ -3331,7 +3352,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		else
 			f.vz = max(-f.physics.terminalSpeed, f.vz - gravity)
 	f.z += totalVelocityZ(f)
-	resolveSolidSurfaceContacts(f, stage, oldX, oldZ)
+	resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input)
 	var landing = -1
 	if totalVelocityZ(f) <= 0
 		for i = 0 to surfaceCount(stage) - 1

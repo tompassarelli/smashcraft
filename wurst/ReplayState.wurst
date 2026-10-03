@@ -84,6 +84,7 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.fastFalling = source.fastFalling
 	destination.fastFallDownHeld = source.fastFallDownHeld
 	destination.fastFallInputAge = source.fastFallInputAge
+	destination.jumpInputAge = source.jumpInputAge
 	destination.jumps = source.jumps
 	destination.jumpSerial = source.jumpSerial
 	destination.jumpIsDouble = source.jumpIsDouble
@@ -98,6 +99,7 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.surfaceRecoveryState = source.surfaceRecoveryState
 	destination.surfaceRecoveryFrame = source.surfaceRecoveryFrame
 	destination.surfaceRecoveryVelocityApplied = source.surfaceRecoveryVelocityApplied
+	destination.surfaceWallJumpQueued = source.surfaceWallJumpQueued
 	destination.surfaceReflectCooldown = source.surfaceReflectCooldown
 	destination.lastReflectedSurface = source.lastReflectedSurface
 	destination.surfaceContactSerial = source.surfaceContactSerial
@@ -349,6 +351,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "fastFallDownHeld"
 	if expected.fastFallInputAge != actual.fastFallInputAge
 		return "fastFallInputAge"
+	if expected.jumpInputAge != actual.jumpInputAge
+		return "jumpInputAge"
 	if expected.fastFalling != actual.fastFalling
 		return "fastFalling"
 	if expected.grounded != actual.grounded
@@ -381,6 +385,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "surfaceRecoveryFrame"
 	if expected.surfaceRecoveryVelocityApplied != actual.surfaceRecoveryVelocityApplied
 		return "surfaceRecoveryVelocityApplied"
+	if expected.surfaceWallJumpQueued != actual.surfaceWallJumpQueued
+		return "surfaceWallJumpQueued"
 	if expected.surfaceReflectCooldown != actual.surfaceReflectCooldown
 		return "surfaceReflectCooldown"
 	if expected.lastReflectedSurface != actual.lastReflectedSurface
