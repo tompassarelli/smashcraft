@@ -10,6 +10,7 @@ function copyFighter(FighterState source, FighterState destination,
 		FighterState destinationFirst, FighterState destinationSecond)
 	destination.character = source.character
 	destination.physics = source.physics
+	destination.surfacePhysics = source.surfacePhysics
 	destination.facing = source.facing
 	destination.lastAerialTapDirection = source.lastAerialTapDirection
 	destination.dashFrame = source.dashFrame
@@ -85,6 +86,17 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.dropTime = source.dropTime
 	destination.invincible = source.invincible
 	destination.surface = source.surface
+	destination.surfaceRecoveryState = source.surfaceRecoveryState
+	destination.surfaceRecoveryFrame = source.surfaceRecoveryFrame
+	destination.surfaceRecoveryVelocityApplied = source.surfaceRecoveryVelocityApplied
+	destination.surfaceReflectCooldown = source.surfaceReflectCooldown
+	destination.lastReflectedSurface = source.lastReflectedSurface
+	destination.surfaceContactSerial = source.surfaceContactSerial
+	destination.surfaceContactKind = source.surfaceContactKind
+	destination.surfaceContactX = source.surfaceContactX
+	destination.surfaceContactZ = source.surfaceContactZ
+	destination.surfaceContactNormalX = source.surfaceContactNormalX
+	destination.surfaceContactNormalZ = source.surfaceContactNormalZ
 	destination.airDodgeTime = source.airDodgeTime
 	destination.landingLag = source.landingLag
 	destination.lCancelWindow = source.lCancelWindow
@@ -181,6 +193,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "character"
 	if expected.physics != actual.physics
 		return "physics"
+	if expected.surfacePhysics != actual.surfacePhysics
+		return "surfacePhysics"
 	if expected.facing != actual.facing
 		return "facing"
 	if expected.lastAerialTapDirection != actual.lastAerialTapDirection
@@ -339,6 +353,28 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "invincible"
 	if expected.surface != actual.surface
 		return "surface"
+	if expected.surfaceRecoveryState != actual.surfaceRecoveryState
+		return "surfaceRecoveryState"
+	if expected.surfaceRecoveryFrame != actual.surfaceRecoveryFrame
+		return "surfaceRecoveryFrame"
+	if expected.surfaceRecoveryVelocityApplied != actual.surfaceRecoveryVelocityApplied
+		return "surfaceRecoveryVelocityApplied"
+	if expected.surfaceReflectCooldown != actual.surfaceReflectCooldown
+		return "surfaceReflectCooldown"
+	if expected.lastReflectedSurface != actual.lastReflectedSurface
+		return "lastReflectedSurface"
+	if expected.surfaceContactSerial != actual.surfaceContactSerial
+		return "surfaceContactSerial"
+	if expected.surfaceContactKind != actual.surfaceContactKind
+		return "surfaceContactKind"
+	if expected.surfaceContactX != actual.surfaceContactX
+		return "surfaceContactX"
+	if expected.surfaceContactZ != actual.surfaceContactZ
+		return "surfaceContactZ"
+	if expected.surfaceContactNormalX != actual.surfaceContactNormalX
+		return "surfaceContactNormalX"
+	if expected.surfaceContactNormalZ != actual.surfaceContactNormalZ
+		return "surfaceContactNormalZ"
 	if expected.airDodgeTime != actual.airDodgeTime
 		return "airDodgeTime"
 	if expected.landingLag != actual.landingLag

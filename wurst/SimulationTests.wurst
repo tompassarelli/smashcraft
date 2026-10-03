@@ -4,6 +4,17 @@ import DirectionalInput
 import MatchRules
 import CommandBuffer
 import MatchStep
+import ReplayState
+
+constant real TEST_MELEE_WORLD_SCALE = 6
+
+// Reference-only fighter values; playable profiles stay actor-authored.
+function meleeCaptainFalconSurfaceRecoveryPhysics() returns surfaceRecoveryPhysics
+	return surfaceRecoveryPhysics(0.5 * TEST_MELEE_WORLD_SCALE,
+		1.399999976158142 * TEST_MELEE_WORLD_SCALE,
+		3.0999999046325684 * TEST_MELEE_WORLD_SCALE,
+		2 * TEST_MELEE_WORLD_SCALE,
+		0.5 * TEST_MELEE_WORLD_SCALE, true)
 
 @Test function shieldDuringJumpSquatUsesLaterDirectionForFirstFrameWavedash()
 	for character = 0 to 1
@@ -4236,3 +4247,185 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 		destroy input
 		destroy attacker
 		destroy fighter
+
+@Test function retailSurfaceThresholdReflectsCombinedVelocityAtWallAndReportsContact()
+	let fighter = new FighterState(0, -235, 1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = 80
+	fighter.hitstun = 8
+	fighter.vx = 2
+	fighter.knockbackX = -12
+	advance(fighter, 2, input, 0)
+	fighter.x.assertEquals(-240)
+	fighter.surfaceContactSerial.assertEquals(1)
+	fighter.surfaceContactKind.assertEquals(SURFACE_WALL)
+	fighter.surfaceContactX.assertEquals(-240)
+	(fighter.surfaceContactZ < 80 and fighter.surfaceContactZ > 79).assertTrue()
+	fighter.surfaceContactNormalX.assertEquals(1)
+	fighter.surfaceContactNormalZ.assertEquals(0)
+	fighter.vx.assertEquals(0)
+	(fighter.knockbackX > 7 and fighter.knockbackX < 8).assertTrue()
+	fighter.knockbackZ.assertEquals(-1.104, 0.001)
+	fighter.facing.assertEquals(1)
+	destroy input
+	destroy fighter
+
+@Test function retailSurfaceReflectionUsesStrictOneUnitKnockbackGate()
+	let fighter = new FighterState(0, -235, 1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = 80
+	fighter.hitstun = 8
+	fighter.knockbackX = -(SURFACE_REFLECT_SPEED_THRESHOLD + 0.305)
+	advance(fighter, 2, input, 0)
+	fighter.x.assertEquals(-240)
+	fighter.surfaceContactSerial.assertEquals(1)
+	fighter.knockbackX.assertEquals(0, 0.0001)
+	destroy input
+	destroy fighter
+
+@Test function retailCeilingReflectionReportsTheSurfaceNormal()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = 235
+	fighter.hitstun = 8
+	fighter.knockbackZ = 12
+	advance(fighter, 2, input, 0)
+	fighter.z.assertEquals(240)
+	fighter.surfaceContactKind.assertEquals(SURFACE_CEILING)
+	fighter.surfaceContactX.assertEquals(0)
+	fighter.surfaceContactZ.assertEquals(240)
+	fighter.surfaceContactNormalX.assertEquals(0)
+	fighter.surfaceContactNormalZ.assertEquals(-1)
+	fighter.knockbackZ.assertLessThan(0)
+	destroy input
+	destroy fighter
+
+@Test function retailWallTechUsesTheSeparateOriginalFighterSurfaceProfile()
+	let fighter = new FighterState(0, -235, 1)
+	let input = new InputSnapshot()
+	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+	fighter.grounded = false
+	fighter.z = 80
+	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
+	fighter.techWindow = 3
+	fighter.knockbackX = -8
+	advance(fighter, 2, input, 0)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+	fighter.surfaceContactKind.assertEquals(SURFACE_TECH_WALL)
+	fighter.hitstun.assertEquals(0)
+	fighter.downState.assertEquals(DOWN_NONE)
+	fighter.invincible.assertEquals(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES)
+	for tick = 1 to SURFACE_TECH_STARTUP_FRAMES
+		advance(fighter, 2, input, 0)
+	fighter.vx.assertEquals(2.88, 0.001)
+	fighter.x.assertGreaterThan(-240)
+	fighter.invincible.assertLessThan(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+	fighter.surfaceRecoveryFrame.assertEquals(SURFACE_TECH_STARTUP_FRAMES)
+	fighter.surfaceRecoveryVelocityApplied.assertTrue()
+	destroy input
+	destroy fighter
+
+@Test function retailCeilingTechTransitionsThroughProductionAdvance()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+	fighter.grounded = false
+	fighter.z = 235
+	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
+	fighter.techWindow = 3
+	fighter.knockbackZ = 8
+	input.direction = 1
+	advance(fighter, 2, input, 0)
+	fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_CEILING)
+	fighter.surfaceContactKind.assertEquals(SURFACE_TECH_CEILING)
+	fighter.hitstun.assertEquals(0)
+	fighter.downState.assertEquals(DOWN_NONE)
+	for tick = 1 to SURFACE_TECH_STARTUP_FRAMES + 1
+		advance(fighter, 2, input, 0)
+	fighter.vx.assertGreaterThan(0)
+	destroy input
+	destroy fighter
+
+@Test function techInputDuringHitlagKeepsTheOneTickWindowUntilMotionResumes()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.hitlag = 3
+	input.techPressed = true
+	advance(fighter, 0, input, 0)
+	fighter.techWindow.assertEquals(1)
+	fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+	input.techPressed = false
+	advance(fighter, 0, input, 0)
+	fighter.techWindow.assertEquals(1)
+	fighter.techLockout.assertEquals(TECH_LOCKOUT_FRAMES)
+	advance(fighter, 0, input, 0)
+	fighter.techWindow.assertEquals(1)
+	advance(fighter, 0, input, 0)
+	fighter.techWindow.assertEquals(0)
+	destroy input
+	destroy fighter
+
+@Test function retailSharedRecoveryValuesMatchTheDecodedCommonTable()
+	TECH_WINDOW_FRAMES.assertEquals(20)
+	TECH_LOCKOUT_FRAMES.assertEquals(40)
+	DOWN_WAIT_FRAMES.assertEquals(220)
+	DOWN_DAMAGE_RESET_THRESHOLD.assertEquals(7.)
+	SURFACE_REFLECT_SPEED_THRESHOLD.assertEquals(6.)
+	SURFACE_REFLECT_ATTENUATION.assertEquals(0.800000011920929)
+	SURFACE_REFLECT_COOLDOWN_FRAMES.assertEquals(3)
+	SURFACE_TECH_STARTUP_FRAMES.assertEquals(5)
+	SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES.assertEquals(14)
+
+@Test function surfaceContactNormalAndPositionSurviveReplayCaptureAndRestore()
+	let first = new FighterState(0, 0, 1)
+	let second = new FighterState(1, 0, -1)
+	let match = new MatchState()
+	let firstCommands = new AttackBuffer(0)
+	let secondCommands = new AttackBuffer(0)
+	let runtime = new ReplayRuntimeState()
+	let snapshot = new ReplaySnapshot()
+	first.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+	first.surfaceRecoveryState = SURFACE_TECH_WALL
+	first.surfaceRecoveryFrame = SURFACE_TECH_STARTUP_FRAMES
+	first.surfaceRecoveryVelocityApplied = true
+	first.surfaceContactSerial = 4
+	first.surfaceContactKind = SURFACE_CEILING
+	first.surfaceContactX = 12
+	first.surfaceContactZ = 240
+	first.surfaceContactNormalX = 0
+	first.surfaceContactNormalZ = -1
+	snapshot.capture(first, second, match, firstCommands, secondCommands, runtime)
+	first.surfaceContactSerial = 0
+	first.surfaceContactKind = SURFACE_NONE
+	first.surfaceRecoveryState = SURFACE_NONE
+	first.surfaceRecoveryFrame = 0
+	first.surfaceRecoveryVelocityApplied = false
+	snapshot.restore(first, second, match, firstCommands, secondCommands, runtime)
+	first.surfaceContactSerial.assertEquals(4)
+	first.surfaceContactKind.assertEquals(SURFACE_CEILING)
+	first.surfaceContactX.assertEquals(12)
+	first.surfaceContactZ.assertEquals(240)
+	first.surfaceContactNormalX.assertEquals(0)
+	first.surfaceContactNormalZ.assertEquals(-1)
+	first.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+	first.surfaceRecoveryFrame.assertEquals(SURFACE_TECH_STARTUP_FRAMES)
+	first.surfaceRecoveryVelocityApplied.assertTrue()
+	first.surfacePhysics.passiveWallSpeed.assertEquals(3.)
+	first.surfacePhysics.wallJumpHorizontalSpeed.assertEquals(8.399999856948852)
+	first.surfacePhysics.wallJumpVerticalSpeed.assertEquals(18.59999942779541)
+	first.surfacePhysics.passiveCeilingSpeed.assertEquals(12.)
+	first.surfacePhysics.wallJumpMinimumApproach.assertEquals(3.)
+	first.surfacePhysics.canWallJump.assertTrue()
+	destroy snapshot
+	destroy runtime
+	destroy secondCommands
+	destroy firstCommands
+	destroy match
+	destroy second
+	destroy first

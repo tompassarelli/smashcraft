@@ -151,6 +151,16 @@ public constant int DOWN_ATTACK = 6
 public constant int DOWN_TECH = 7
 public constant int DOWN_TECH_ROLL = 8
 public constant int DOWN_DAMAGE = 9
+public constant int SURFACE_NONE = 0
+public constant int SURFACE_WALL = 1
+public constant int SURFACE_CEILING = 2
+public constant int SURFACE_TECH_WALL = 3
+public constant int SURFACE_TECH_CEILING = 4
+public constant real SURFACE_REFLECT_SPEED_THRESHOLD = 1. * WORLD_UNITS_PER_MELEE_UNIT
+public constant real SURFACE_REFLECT_ATTENUATION = 0.800000011920929
+public constant int SURFACE_REFLECT_COOLDOWN_FRAMES = 3
+public constant int SURFACE_TECH_STARTUP_FRAMES = 5
+public constant int SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES = 14
 public constant int TECH_WINDOW_FRAMES = 20
 public constant int TECH_LOCKOUT_FRAMES = 40
 public constant int TECH_IN_PLACE_FRAMES = 26
@@ -159,14 +169,14 @@ public constant int TECH_INTANGIBLE_FRAMES = 20
 public constant int TECH_ROLL_INTANGIBLE_FRAMES = 34
 public constant real DOWN_KNOCKBACK_THRESHOLD = 80
 public constant int DOWN_BOUND_FRAMES = 26
-public constant int DOWN_WAIT_FRAMES = 180
+public constant int DOWN_WAIT_FRAMES = 220
 public constant int DOWN_STAND_FRAMES = 30
 public constant int DOWN_ROLL_FRAMES = 35
 public constant int DOWN_RECOVERY_INTANGIBLE_FRAMES = 20
 public constant int DOWN_ROLL_INTANGIBLE_FRAMES_BACK_UP = 23
 public constant int DOWN_ROLL_INTANGIBLE_FRAMES_BACK_DOWN = 20
 public constant int DOWN_DAMAGE_FRAMES = 13
-public constant real DOWN_DAMAGE_MAX_HIT_DAMAGE = 7
+public constant real DOWN_DAMAGE_RESET_THRESHOLD = 7
 public constant int DOWN_ATTACK_FRAMES = 49
 public constant int DOWN_ATTACK_INTANGIBLE_FRAMES_UP = 27
 public constant int DOWN_ATTACK_INTANGIBLE_FRAMES_DOWN = 22
@@ -255,6 +265,15 @@ public tuple fighterPhysics(real weight, real gravity, real terminalSpeed, real 
 		real walkAccelerationMultiplier, real walkAccelerationBase,
 		real groundAccelerationMultiplier, real groundAccelerationBase, real groundSpeedCap)
 
+// Surface-action properties remain separate from Smashcraft's original
+// movement tuple; the retail rig can supply them without retuning playables.
+public tuple surfaceRecoveryPhysics(real passiveWallSpeed, real wallJumpHorizontalSpeed,
+		real wallJumpVerticalSpeed, real passiveCeilingSpeed, real wallJumpMinimumApproach,
+		boolean canWallJump)
+
+public function noSurfaceRecoveryPhysics() returns surfaceRecoveryPhysics
+	return surfaceRecoveryPhysics(0, 0, 0, 0, 0, false)
+
 public function archerPhysics() returns fighterPhysics
 	return fighterPhysics(75, 0.23000000417232513 * WORLD_UNITS_PER_MELEE_UNIT,
 		2.799999952316284 * WORLD_UNITS_PER_MELEE_UNIT, 3.4000000953674316 * WORLD_UNITS_PER_MELEE_UNIT,
@@ -302,6 +321,7 @@ public function authoredPhysics(int character) returns fighterPhysics
 public class FighterState
 	int character
 	fighterPhysics physics
+	surfaceRecoveryPhysics surfacePhysics
 	int facing
 	int lastAerialTapDirection = 0
 	int dashFrame = 0
@@ -416,6 +436,17 @@ public class FighterState
 	int dropTime = 0
 	int invincible = 0
 	int surface = -1
+	int surfaceRecoveryState = SURFACE_NONE
+	int surfaceRecoveryFrame = 0
+	boolean surfaceRecoveryVelocityApplied = false
+	int surfaceReflectCooldown = 0
+	int lastReflectedSurface = -1
+	int surfaceContactSerial = 0
+	int surfaceContactKind = SURFACE_NONE
+	real surfaceContactX = 0
+	real surfaceContactZ = 0
+	real surfaceContactNormalX = 0
+	real surfaceContactNormalZ = 0
 	int airDodgeTime = 0
 	int landingLag = 0
 	int lCancelWindow = 0
@@ -451,6 +482,7 @@ public class FighterState
 	construct(int fighterType, real startX, int direction)
 		character = fighterType
 		physics = authoredPhysics(fighterType)
+		surfacePhysics = noSurfaceRecoveryPhysics()
 		x = startX
 		z = 0
 		facing = direction
@@ -678,9 +710,11 @@ function shieldDrainShouldResume(FighterState f, boolean forcedShield) returns b
 	return true
 
 public function surfaceCount(int stage) returns int
-	return stage == 0 ? 1 : 3
+	return stage == 0 or stage == 2 ? 1 : 3
 
 public function surfaceLeft(int stage, int index) returns real
+	if stage == 2 and index == 0
+		return -240
 	if index == 0
 		return -600
 	if stage == 1 and index == 1
@@ -690,6 +724,8 @@ public function surfaceLeft(int stage, int index) returns real
 	return 0
 
 public function surfaceRight(int stage, int index) returns real
+	if stage == 2 and index == 0
+		return 240
 	if index == 0
 		return 600
 	if stage == 1 and index == 1
@@ -703,6 +739,48 @@ public function surfaceZ(int stage, int index) returns real
 
 public function surfacePass(int stage, int index) returns boolean
 	return stage == 1 and index > 0
+
+// Stage 2 is an explicit, test-only bounded arena. Playable stages keep their
+// authored geometry unchanged; the same production advance path consumes this
+// segment table when a collision fixture requests it.
+public function solidSurfaceCount(int stage) returns int
+	return stage == 2 ? 3 : 0
+
+public function solidSurfaceKind(int stage, int index) returns int
+	if stage != 2
+		return SURFACE_NONE
+	return index < 2 ? SURFACE_WALL : SURFACE_CEILING
+
+public function solidSurfaceCoordinate(int stage, int index) returns real
+	if stage != 2
+		return 0
+	if index == 0
+		return -240
+	if index == 1
+		return 240
+	return 240
+
+public function solidSurfaceMinimum(int stage, int index) returns real
+	if stage != 2
+		return 0
+	return index < 2 ? 0 : -240
+
+public function solidSurfaceMaximum(int stage, int index) returns real
+	if stage != 2
+		return 0
+	return index < 2 ? 240 : 240
+
+public function solidSurfaceNormalX(int stage, int index) returns real
+	if stage == 2 and index == 0
+		return 1
+	if stage == 2 and index == 1
+		return -1
+	return 0
+
+public function solidSurfaceNormalZ(int stage, int index) returns real
+	if stage == 2 and index == 2
+		return -1
+	return 0
 
 public function characterSpeed(int character) returns real
 	return authoredPhysics(character).runSpeed
@@ -1117,7 +1195,7 @@ function resolveDamageContacts(FighterState target)
 	target.shieldRecoilZ = 0
 	target.shieldDrainResumePending = false
 	let chosen = damageContacts[winner >= 0 ? winner : flinch]
-	let jabReset = chosen.kind != CONTACT_THROW and chosen.down and chosen.data.damage < DOWN_DAMAGE_MAX_HIT_DAMAGE
+	let jabReset = chosen.kind != CONTACT_THROW and chosen.down and chosen.data.damage < DOWN_DAMAGE_RESET_THRESHOLD
 	clearGrabLinks(target)
 	target.diPending = false
 	target.diLaunchSpeed = 0
@@ -1284,6 +1362,9 @@ function isDownDamageState(FighterState f) returns boolean
 	return f.grounded and (f.downState == DOWN_BOUND or f.downState == DOWN_WAIT or f.downState == DOWN_DAMAGE)
 
 function beginDownDamage(FighterState f, int hitstunFrames)
+	f.surfaceRecoveryState = SURFACE_NONE
+	f.surfaceRecoveryFrame = 0
+	f.surfaceRecoveryVelocityApplied = false
 	f.downState = DOWN_DAMAGE
 	f.downFrame = 1
 	f.downWaitRemaining = max(0, hitstunFrames)
@@ -1624,10 +1705,16 @@ function clearDownState(FighterState f)
 	f.downDirection = 0
 	f.downWaitRemaining = 0
 	f.downFaceUp = true
+	f.surfaceRecoveryState = SURFACE_NONE
+	f.surfaceRecoveryFrame = 0
+	f.surfaceRecoveryVelocityApplied = false
 
 function beginDownState(FighterState f, int state, int direction)
 	f.fastFalling = false
 	f.crouching = false
+	f.surfaceRecoveryState = SURFACE_NONE
+	f.surfaceRecoveryFrame = 0
+	f.surfaceRecoveryVelocityApplied = false
 	f.downState = state
 	f.downFrame = 1
 	f.downDirection = direction
@@ -1706,6 +1793,109 @@ function landingAlongShift(FighterState f, int stage, real oldX, real oldZ, real
 					landing = i
 	return landing
 
+function surfaceSignedDistance(int stage, int index, real x, real z) returns real
+	if solidSurfaceKind(stage, index) == SURFACE_WALL
+		return (x - solidSurfaceCoordinate(stage, index)) * solidSurfaceNormalX(stage, index)
+	return (z - solidSurfaceCoordinate(stage, index)) * solidSurfaceNormalZ(stage, index)
+
+function contactInSolidSurfaceSpan(int stage, int index, real x, real z) returns boolean
+	let along = solidSurfaceKind(stage, index) == SURFACE_WALL ? z : x
+	return along >= solidSurfaceMinimum(stage, index) and along <= solidSurfaceMaximum(stage, index)
+
+function resolveSolidSurfaceContact(FighterState f, int stage, int index, real oldX, real oldZ) returns boolean
+	if solidSurfaceKind(stage, index) == SURFACE_NONE
+		return false
+	let nx = solidSurfaceNormalX(stage, index)
+	let nz = solidSurfaceNormalZ(stage, index)
+	let oldDistance = surfaceSignedDistance(stage, index, oldX, oldZ)
+	let newDistance = surfaceSignedDistance(stage, index, f.x, f.z)
+	if oldDistance < 0 or newDistance >= 0
+		return false
+	let fraction = oldDistance / (oldDistance - newDistance)
+	let contactX = oldX + (f.x - oldX) * fraction
+	let contactZ = oldZ + (f.z - oldZ) * fraction
+	if not contactInSolidSurfaceSpan(stage, index, contactX, contactZ)
+		return false
+	let coordinate = solidSurfaceCoordinate(stage, index)
+	if solidSurfaceKind(stage, index) == SURFACE_WALL
+		f.x = coordinate
+	else
+		f.z = coordinate
+	f.surfaceContactSerial++
+	f.surfaceContactX = contactX
+	f.surfaceContactZ = contactZ
+	f.surfaceContactNormalX = nx
+	f.surfaceContactNormalZ = nz
+	var eventKind = solidSurfaceKind(stage, index)
+	f.surfaceRecoveryState = SURFACE_NONE
+	f.surfaceRecoveryFrame = 0
+	f.surfaceRecoveryVelocityApplied = false
+	if f.surfaceReflectCooldown == 0 and f.techWindow > 0 and (f.hitstun > 0 or isTumbling(f))
+		eventKind = solidSurfaceKind(stage, index) == SURFACE_WALL ? SURFACE_TECH_WALL : SURFACE_TECH_CEILING
+		f.techWindow = 0
+		f.hitstun = 0
+		clearDownState(f)
+		f.surfaceRecoveryState = eventKind
+		f.surfaceRecoveryFrame = 1
+		f.surfaceRecoveryVelocityApplied = false
+		if eventKind == SURFACE_TECH_WALL
+			f.invincible = max(f.invincible, SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES)
+		f.facing = nx < 0 ? -1 : (nx > 0 ? 1 : f.facing)
+	f.surfaceContactKind = eventKind
+	let inwardKnockback = -(f.knockbackX * nx + f.knockbackZ * nz)
+	let surfaceKey = stage * 4 + index
+	if eventKind == SURFACE_TECH_WALL or eventKind == SURFACE_TECH_CEILING
+		let inwardSelfSpeed = f.vx * nx + f.vz * nz
+		let inwardKbSpeed = f.knockbackX * nx + f.knockbackZ * nz
+		if inwardSelfSpeed < 0
+			f.vx -= inwardSelfSpeed * nx
+			f.vz -= inwardSelfSpeed * nz
+		if inwardKbSpeed < 0
+			f.knockbackX -= inwardKbSpeed * nx
+			f.knockbackZ -= inwardKbSpeed * nz
+	else if f.surfaceReflectCooldown == 0 and surfaceKey != f.lastReflectedSurface and inwardKnockback > SURFACE_REFLECT_SPEED_THRESHOLD
+		let combinedX = f.vx + f.knockbackX
+		let combinedZ = f.vz + f.knockbackZ
+		let inwardSpeed = combinedX * nx + combinedZ * nz
+		f.knockbackX = (combinedX - 2 * inwardSpeed * nx) * SURFACE_REFLECT_ATTENUATION
+		f.knockbackZ = (combinedZ - 2 * inwardSpeed * nz) * SURFACE_REFLECT_ATTENUATION
+		f.vx = 0
+		f.vz = 0
+		f.facing = f.knockbackX < 0 ? -1 : 1
+		f.lastReflectedSurface = surfaceKey
+		f.surfaceReflectCooldown = SURFACE_REFLECT_COOLDOWN_FRAMES
+	else
+		let inwardSelfSpeed = f.vx * nx + f.vz * nz
+		let inwardKbSpeed = f.knockbackX * nx + f.knockbackZ * nz
+		if inwardSelfSpeed < 0
+			f.vx -= inwardSelfSpeed * nx
+			f.vz -= inwardSelfSpeed * nz
+		if inwardKbSpeed < 0
+			f.knockbackX -= inwardKbSpeed * nx
+			f.knockbackZ -= inwardKbSpeed * nz
+	return true
+
+function resolveSolidSurfaceContacts(FighterState f, int stage, real oldX, real oldZ)
+	var touched = false
+	for i = 0 to solidSurfaceCount(stage) - 1
+		if resolveSolidSurfaceContact(f, stage, i, oldX, oldZ)
+			touched = true
+	if not touched
+		f.lastReflectedSurface = -1
+
+function advanceSurfaceRecovery(FighterState f, InputSnapshot input)
+	if f.hitlag > 0
+		return
+	if f.surfaceRecoveryState == SURFACE_TECH_WALL or f.surfaceRecoveryState == SURFACE_TECH_CEILING
+		if f.surfaceRecoveryFrame < SURFACE_TECH_STARTUP_FRAMES
+			f.surfaceRecoveryFrame++
+		else if not f.surfaceRecoveryVelocityApplied
+			if f.surfaceRecoveryState == SURFACE_TECH_WALL
+				f.vx = f.surfaceContactNormalX * f.surfacePhysics.passiveWallSpeed
+			else
+				f.vx = input.direction * f.surfacePhysics.passiveCeilingSpeed
+			f.surfaceRecoveryVelocityApplied = true
+
 function applyHitlagShift(FighterState f, int stage, InputSnapshot input, int directionX, int directionZ, real distance, boolean fromAsdi)
 	if directionX == 0 and directionZ == 0
 		return
@@ -1725,10 +1915,10 @@ function applyHitlagShift(FighterState f, int stage, InputSnapshot input, int di
 		newZ = oldZ
 		landing = -1
 	f.x = newX
+	f.z = newZ
+	resolveSolidSurfaceContacts(f, stage, oldX, oldZ)
 	if landing >= 0
 		finishLanding(f, stage, input, landing, fromAsdi)
-	else
-		f.z = newZ
 	if f.x != oldX or f.z != oldZ
 		if fromAsdi
 			f.asdiSerial++
@@ -2556,6 +2746,16 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	f.grounded = false
 	f.jumps = max(0, f.jumps - 1)
 	clearDownState(f)
+	f.surfaceRecoveryState = SURFACE_NONE
+	f.surfaceRecoveryFrame = 0
+	f.surfaceRecoveryVelocityApplied = false
+	f.lastReflectedSurface = -1
+	f.surfaceReflectCooldown = 0
+	f.surfaceContactKind = SURFACE_NONE
+	f.surfaceContactX = 0
+	f.surfaceContactZ = 0
+	f.surfaceContactNormalX = 0
+	f.surfaceContactNormalZ = 0
 
 function canBeginGroundDodge(FighterState f) returns boolean
 	if inGrabContext(f)
@@ -2644,6 +2844,16 @@ public function reset(FighterState f, real startX)
 	f.frozenFrames = 0
 	f.freezeTrapCooldown = 0
 	clearDownState(f)
+	f.surfaceRecoveryState = SURFACE_NONE
+	f.surfaceRecoveryFrame = 0
+	f.surfaceRecoveryVelocityApplied = false
+	f.lastReflectedSurface = -1
+	f.surfaceReflectCooldown = 0
+	f.surfaceContactKind = SURFACE_NONE
+	f.surfaceContactX = 0
+	f.surfaceContactZ = 0
+	f.surfaceContactNormalX = 0
+	f.surfaceContactNormalZ = 0
 	f.lCancelWindow = 0
 	f.lCancelSerial = 0
 	f.techWindow = 0
@@ -2756,6 +2966,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 	if input.lCancelPressed
 		f.lCancelWindow = L_CANCEL_WINDOW_FRAMES
 	if f.hitlag <= 0
+		f.surfaceReflectCooldown = max(0, f.surfaceReflectCooldown - 1)
 		if not f.techHitlagLatched
 			f.techWindow = max(0, f.techWindow - 1)
 			f.techLockout = max(0, f.techLockout - 1)
@@ -2767,6 +2978,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		f.techLockout = TECH_LOCKOUT_FRAMES
 		if f.hitlag > 0
 			f.techHitlagLatched = true
+	advanceSurfaceRecovery(f, input)
 	if hitlagBefore > 0 and f.diPending
 		if f.hitlag > 0
 			applySmashDirectionalInfluence(f, stage, input)
@@ -2970,6 +3182,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 		else
 			f.vz = max(-f.physics.terminalSpeed, f.vz - gravity)
 	f.z += totalVelocityZ(f)
+	resolveSolidSurfaceContacts(f, stage, oldX, oldZ)
 	var landing = -1
 	if totalVelocityZ(f) <= 0
 		for i = 0 to surfaceCount(stage) - 1

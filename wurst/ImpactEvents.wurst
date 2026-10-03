@@ -12,26 +12,40 @@ public class ImpactEvents
     private int previousDown = DOWN_NONE
     private boolean previouslyOut = false
     private int previousGroundDodge = 0
+    private int previousSurfaceContactSerial = 0
     boolean hit = false
     int landing = IMPACT_NONE
     int dodge = 0
     int direction = 0
     real x = 0
     real z = 0
+    int surface = SURFACE_NONE
+    real contactX = 0
+    real contactZ = 0
+    real normalX = 0
+    real normalZ = 0
 
     function before(FighterState fighter)
         previousDamage = fighter.damage
         previousDown = fighter.downState
         previouslyOut = fighter.out
         previousGroundDodge = fighter.groundDodgeFrame
+        previousSurfaceContactSerial = fighter.surfaceContactSerial
         hit = false
         landing = IMPACT_NONE
         dodge = 0
         direction = 0
+        surface = SURFACE_NONE
 
     function after(FighterState fighter)
         x = fighter.x
         z = fighter.z
+        if fighter.surfaceContactSerial != previousSurfaceContactSerial
+            surface = fighter.surfaceContactKind
+            contactX = fighter.surfaceContactX
+            contactZ = fighter.surfaceContactZ
+            normalX = fighter.surfaceContactNormalX
+            normalZ = fighter.surfaceContactNormalZ
         hit = not previouslyOut and not fighter.out and fighter.damage > previousDamage
         if not previouslyOut and not fighter.out and previousDown != fighter.downState
             if isFloorTeching(fighter)
