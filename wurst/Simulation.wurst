@@ -528,6 +528,11 @@ public function totalVelocityZ(FighterState f) returns real
 	return f.vz + f.knockbackZ
 
 function decayKnockback(FighterState f)
+	if f.grounded
+		// Flat surfaces: recorded effective decay equals traction; common +0x200 remains unextracted.
+		f.knockbackX = f.knockbackX > 0 ? max(0, f.knockbackX - GROUND_TRACTION) : min(0, f.knockbackX + GROUND_TRACTION)
+		f.knockbackZ = 0
+		return
 	let speed = SquareRoot(f.knockbackX * f.knockbackX + f.knockbackZ * f.knockbackZ)
 	let decay = KNOCKBACK_DECAY_PER_FRAME * WORLD_UNITS_PER_MELEE_UNIT
 	if speed <= decay

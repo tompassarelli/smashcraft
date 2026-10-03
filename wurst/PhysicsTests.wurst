@@ -67,6 +67,106 @@ function recordedFalcoJumpFirstDifference(int jumpInputFrame) returns int
 @Test function recordedFalcoJumpDetectsDelayedInputOnItsOriginalFrame()
 	recordedFalcoJumpFirstDifference(26).assertEquals(25)
 
+@Test function groundedKnockbackMatchesRecordedFirstReleasedDisplacement()
+	for character = 0 to 1
+		let f = new FighterState(character, -11.548782348632812 * 6, 1)
+		let input = new InputSnapshot()
+		f.knockbackX = 0.7562744617462158 * 6
+		f.hitstun = 10
+		input.down = true
+		input.verticalDirection = -1
+		advance(f, 0, input, 0)
+		f.knockbackX.assertEquals(0.6762744784355164 * 6, 0.00001)
+		f.x.assertEquals(-10.87250804901123 * 6, 0.0001)
+		f.hitstun.assertEquals(9)
+		f.grounded.assertTrue()
+		destroy input
+		destroy f
+
+@Test function groundedKnockbackTractionClampsBothDirectionsWithoutReversing()
+	for direction = -1 to 1
+		let f = new FighterState(0, 0, 1)
+		let input = new InputSnapshot()
+		f.knockbackX = direction * 0.04 * 6
+		f.hitstun = 10
+		advance(f, 0, input, 0)
+		f.knockbackX.assertEquals(0.)
+		f.x.assertEquals(0.)
+		f.grounded.assertTrue()
+		destroy input
+		destroy f
+
+function recordedGroundedDamagePosition(int sample) returns real
+	if sample < 4
+		return -11.548782348632812
+	if sample == 4
+		return -10.87250804901123
+	if sample == 5
+		return -10.276233673095703
+	if sample == 6
+		return -9.75995922088623
+	if sample == 7
+		return -9.323684692382812
+	if sample == 8
+		return -8.96741008758545
+	if sample == 9
+		return -8.69113540649414
+	if sample == 10
+		return -8.494860649108887
+	if sample == 11
+		return -8.378585815429688
+	return -8.342310905456543
+
+function recordedGroundedDamageVelocity(int sample) returns real
+	if sample < 4
+		return 0.7562744617462158
+	if sample == 4
+		return 0.6762744784355164
+	if sample == 5
+		return 0.5962744951248169
+	if sample == 6
+		return 0.5162745118141174
+	if sample == 7
+		return 0.43627455830574036
+	if sample == 8
+		return 0.3562745749950409
+	if sample == 9
+		return 0.27627459168434143
+	if sample == 10
+		return 0.19627460837364197
+	if sample == 11
+		return 0.11627461761236191
+	if sample == 12
+		return 0.03627462312579155
+	return 0
+
+function recordedGroundedDamageFirstDifference(int character, real velocityOffset) returns int
+	let f = new FighterState(character, -11.548782348632812 * 6, 1)
+	let input = new InputSnapshot()
+	f.knockbackX = 0.7562744617462158 * 6 + velocityOffset
+	f.hitlag = 4
+	f.hitstun = 10
+	f.damage = 11
+	input.down = true
+	input.verticalDirection = -1
+	var firstDifference = 0
+	for sample = 1 to 13
+		advance(f, 0, input, 0)
+		let hitlag = max(0, 4 - sample)
+		let hitstun = sample < 4 ? 10 : 13 - sample
+		if firstDifference == 0 and ((f.x - recordedGroundedDamagePosition(sample) * 6).abs() > 0.0001 or (f.knockbackX - recordedGroundedDamageVelocity(sample) * 6).abs() > 0.00001 or f.hitlag != hitlag or f.hitstun != hitstun or not f.grounded or f.knockbackZ != 0 or f.vx != 0 or f.damage != 11 or canAttack(f) != (sample == 13) or f.crouching != (sample == 13))
+			firstDifference = 3432 + sample
+	destroy input
+	destroy f
+	return firstDifference
+
+@Test function recordedNtscGroundedDamageMatchesFreezeReleaseTractionAndActionability()
+	for character = 0 to 1
+		recordedGroundedDamageFirstDifference(character, 0).assertEquals(0)
+
+@Test function recordedGroundedDamageDetectsPerturbedKnockbackOnTheFirstFrame()
+	recordedGroundedDamageFirstDifference(0, 0.06).assertEquals(3433)
+
 @Test function fastFallPersistsAfterReleaseAndAerialStartupButClearsOnLandingAndJump()
 	for character = 0 to 1
 		let f = new FighterState(character, 0, 1)
