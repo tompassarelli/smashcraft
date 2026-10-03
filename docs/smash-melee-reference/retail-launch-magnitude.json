@@ -1,0 +1,2037 @@
+{
+  "id": "retail-ntsc-1.02-launch-magnitude",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "commonDataSha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "execution": {
+    "cpu": "QEMU PPC750",
+    "entry": "0x80079AB0",
+    "return": "0x80079C6C",
+    "contextEntry": "0x8008D930",
+    "contextReturn": "0x8008DA48",
+    "returnPatches": [],
+    "exitCode": 0,
+    "byteCount": 2400
+  },
+  "commonValues": {
+    "0xf4": 0.009999999776482582,
+    "0xf8": 2,
+    "0x108": 2500,
+    "0x110": 0.10000000149011612,
+    "0x114": 0.05000000074505806,
+    "0x118": 10,
+    "0x11c": 1.399999976158142,
+    "0x120": 18,
+    "0x124": 0.6666666865348816,
+    "0x7c4": 1.2000000476837158
+  },
+  "limitations": [
+    "Complete scalar routine executes with synthetic fighter and hit structures and retail common data; caller state selection, contact collection, and full gameplay are not executed.",
+    "Context routine uses ordinary or crouch action state, charge state 2 or 0, scale 1, zero armor and otherwise zeroed fighter fields. Combined crouch/charge is a synthetic arithmetic fixture, not an assertion that gameplay reaches that state.",
+    "Three multiplier arguments are neutral. Staling and freshness are deliberately omitted by Smashcraft design.",
+    "QEMU PPC750 with Linux default floating-point state, not GameCube hardware.",
+    "The uint hit-power input is supplied independently; this does not verify retail damage-to-power conversion. No original executable bytes are included."
+  ],
+  "results": [
+    {
+      "kind": "ordinary",
+      "pre": 0,
+      "damage": 4,
+      "weight": 75,
+      "growth": 100,
+      "base": 20,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x421fae14",
+        "value": 39.91999816894531
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41d4e81b",
+            "value": 26.613332748413086
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x423f9db2",
+            "value": 47.90399932861328
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x41ff7cee",
+            "value": 31.93600082397461
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 39.900001525878906,
+      "damage": 16.799999237060547,
+      "weight": 75,
+      "growth": 88,
+      "base": 18,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42d1197a",
+        "value": 104.54975891113281
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x428b6652",
+            "value": 69.69984436035156
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x42faeb60",
+            "value": 125.459716796875
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x42a74796",
+            "value": 83.63981628417969
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 97.98999786376953,
+      "damage": 13,
+      "weight": 75,
+      "growth": 105,
+      "base": 30,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x433b7ffe",
+        "value": 187.49996948242188
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x42f9fffe",
+            "value": 124.99998474121094
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x4360fffe",
+            "value": 224.99996948242188
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x4315ffff",
+            "value": 149.99998474121094
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 199.5,
+      "damage": 0.8999999761581421,
+      "weight": 75,
+      "growth": 73,
+      "base": 7,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x425ca65f",
+        "value": 55.162471771240234
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x42131995",
+            "value": 36.77498245239258
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x428463d3",
+            "value": 66.1949691772461
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x4230851a",
+            "value": 44.129981994628906
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 0,
+      "damage": 0,
+      "weight": 75,
+      "growth": 0,
+      "base": 20,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x41a00000",
+        "value": 20
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41555556",
+            "value": 13.333333969116211
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x41c00000",
+            "value": 24
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x41800001",
+            "value": 16.000001907348633
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 999,
+      "damage": 40,
+      "weight": 75,
+      "growth": 200,
+      "base": 90,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x451c4000",
+        "value": 2500
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x44d05556",
+            "value": 1666.666748046875
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x453b8000",
+            "value": 3000
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x44fa0001",
+            "value": 2000.0001220703125
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 75,
+      "growth": 100,
+      "base": 20,
+      "fixed": 1,
+      "scale": 1,
+      "expected": {
+        "bits": "0x4221999a",
+        "value": 40.400001525878906
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41d77778",
+            "value": 26.933334350585938
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x4241eb86",
+            "value": 48.480003356933594
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x420147af",
+            "value": 32.320003509521484
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 75,
+      "growth": 100,
+      "base": 20,
+      "fixed": 20,
+      "scale": 1,
+      "expected": {
+        "bits": "0x425e6666",
+        "value": 55.599998474121094
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x42144444",
+            "value": 37.06666564941406
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x428570a4",
+            "value": 66.72000122070312
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x4231eb85",
+            "value": 44.47999954223633
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 75,
+      "growth": 100,
+      "base": 20,
+      "fixed": 97,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42ea6666",
+        "value": 117.19999694824219
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x429c4444",
+            "value": 78.13333129882812
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x430ca3d7",
+            "value": 140.63999938964844
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x42bb851f",
+            "value": 93.76000213623047
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 75,
+      "growth": 1000,
+      "base": 500,
+      "fixed": 1000,
+      "scale": 1,
+      "expected": {
+        "bits": "0x451c4000",
+        "value": 2500
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x44d05556",
+            "value": 1666.666748046875
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x453b8000",
+            "value": 3000
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x44fa0001",
+            "value": 2000.0001220703125
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 0,
+      "damage": 4,
+      "weight": 80,
+      "growth": 100,
+      "base": 20,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x421f7778",
+        "value": 39.866668701171875
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41d49f4b",
+            "value": 26.57777976989746
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x423f5c2a",
+            "value": 47.840003967285156
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x41ff258e",
+            "value": 31.89333724975586
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 39.900001525878906,
+      "damage": 16.799999237060547,
+      "weight": 80,
+      "growth": 88,
+      "base": 18,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42cd2bd4",
+        "value": 102.58560180664062
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x4288c7e3",
+            "value": 68.3904037475586
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x42f63499",
+            "value": 123.10272979736328
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x42a42311",
+            "value": 82.06848907470703
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 97.98999786376953,
+      "damage": 13,
+      "weight": 80,
+      "growth": 105,
+      "base": 30,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x4337a667",
+        "value": 183.65000915527344
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x42f4dddf",
+            "value": 122.43334197998047
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x435c6149",
+            "value": 220.38002014160156
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x4312eb86",
+            "value": 146.92001342773438
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 199.5,
+      "damage": 0.8999999761581421,
+      "weight": 80,
+      "growth": 73,
+      "base": 7,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x4258c22f",
+        "value": 54.189632415771484
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x42108175",
+            "value": 36.12642288208008
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x42820e1d",
+            "value": 65.0275650024414
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x422d6826",
+            "value": 43.351707458496094
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 0,
+      "damage": 0,
+      "weight": 80,
+      "growth": 0,
+      "base": 20,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x41a00000",
+        "value": 20
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41555556",
+            "value": 13.333333969116211
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x41c00000",
+            "value": 24
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x41800001",
+            "value": 16.000001907348633
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 999,
+      "damage": 40,
+      "weight": 80,
+      "growth": 200,
+      "base": 90,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x451c4000",
+        "value": 2500
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x44d05556",
+            "value": 1666.666748046875
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x453b8000",
+            "value": 3000
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x44fa0001",
+            "value": 2000.0001220703125
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 80,
+      "growth": 100,
+      "base": 20,
+      "fixed": 1,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42215556",
+        "value": 40.333335876464844
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41d71c73",
+            "value": 26.888891220092773
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x4241999b",
+            "value": 48.40000534057617
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x42011112",
+            "value": 32.26667022705078
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 80,
+      "growth": 100,
+      "base": 20,
+      "fixed": 20,
+      "scale": 1,
+      "expected": {
+        "bits": "0x425c71c7",
+        "value": 55.11111068725586
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x4212f685",
+            "value": 36.74074172973633
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x42844445",
+            "value": 66.13333892822266
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x42305b06",
+            "value": 44.088890075683594
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 80,
+      "growth": 100,
+      "base": 20,
+      "fixed": 97,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42e60001",
+        "value": 115.00000762939453
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x42995556",
+            "value": 76.66667175292969
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x430a0001",
+            "value": 138.00001525878906
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x42b80001",
+            "value": 92.00000762939453
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 80,
+      "growth": 1000,
+      "base": 500,
+      "fixed": 1000,
+      "scale": 1,
+      "expected": {
+        "bits": "0x451c4000",
+        "value": 2500
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x44d05556",
+            "value": 1666.666748046875
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x453b8000",
+            "value": 3000
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x44fa0001",
+            "value": 2000.0001220703125
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 0,
+      "damage": 4,
+      "weight": 100,
+      "growth": 100,
+      "base": 20,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x421eb852",
+        "value": 39.68000030517578
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41d3a06e",
+            "value": 26.45333480834961
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x423e76c9",
+            "value": 47.61600112915039
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x41fdf3b8",
+            "value": 31.744003295898438
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 39.900001525878906,
+      "damage": 16.799999237060547,
+      "weight": 100,
+      "growth": 88,
+      "base": 18,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42bf6c0d",
+        "value": 95.7110366821289
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x427f3abc",
+            "value": 63.80735778808594
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x42e5b4dd",
+            "value": 114.8532485961914
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x4299233e",
+            "value": 76.56883239746094
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 97.98999786376953,
+      "damage": 13,
+      "weight": 100,
+      "growth": 105,
+      "base": 30,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x432a2ccc",
+        "value": 170.17498779296875
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x42e2e666",
+            "value": 113.44999694824219
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x434c35c2",
+            "value": 204.20999145507812
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x430823d7",
+            "value": 136.13999938964844
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 199.5,
+      "damage": 0.8999999761581421,
+      "weight": 100,
+      "growth": 73,
+      "base": 7,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x424b237f",
+        "value": 50.784664154052734
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x42076d00",
+            "value": 33.8564453125
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x4273c433",
+            "value": 60.94160079956055
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x422282cd",
+            "value": 40.62773513793945
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 0,
+      "damage": 0,
+      "weight": 100,
+      "growth": 0,
+      "base": 20,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x41a00000",
+        "value": 20
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41555556",
+            "value": 13.333333969116211
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x41c00000",
+            "value": 24
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x41800001",
+            "value": 16.000001907348633
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 999,
+      "damage": 40,
+      "weight": 100,
+      "growth": 200,
+      "base": 90,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x451c4000",
+        "value": 2500
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x44d05556",
+            "value": 1666.666748046875
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x453b8000",
+            "value": 3000
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x44fa0001",
+            "value": 2000.0001220703125
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 100,
+      "growth": 100,
+      "base": 20,
+      "fixed": 1,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42206666",
+        "value": 40.099998474121094
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41d5ddde",
+            "value": 26.733333587646484
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x42407ae1",
+            "value": 48.119998931884766
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x420051ec",
+            "value": 32.08000183105469
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 100,
+      "growth": 100,
+      "base": 20,
+      "fixed": 20,
+      "scale": 1,
+      "expected": {
+        "bits": "0x4255999a",
+        "value": 53.400001525878906
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x420e6667",
+            "value": 35.60000228881836
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x428028f6",
+            "value": 64.08000183105469
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x422ae149",
+            "value": 42.72000503540039
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 100,
+      "growth": 100,
+      "base": 20,
+      "fixed": 97,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42d69999",
+        "value": 107.29999542236328
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x428f1111",
+            "value": 71.53333282470703
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x4300c28f",
+            "value": 128.75999450683594
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x42abae15",
+            "value": 85.84000396728516
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 100,
+      "growth": 1000,
+      "base": 500,
+      "fixed": 1000,
+      "scale": 1,
+      "expected": {
+        "bits": "0x451c4000",
+        "value": 2500
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x44d05556",
+            "value": 1666.666748046875
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x453b8000",
+            "value": 3000
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x44fa0001",
+            "value": 2000.0001220703125
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 0,
+      "damage": 4,
+      "weight": 110,
+      "growth": 100,
+      "base": 20,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x421e6666",
+        "value": 39.599998474121094
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41d33333",
+            "value": 26.399999618530273
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x423e147b",
+            "value": 47.52000045776367
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x41fd70a4",
+            "value": 31.68000030517578
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 39.900001525878906,
+      "damage": 16.799999237060547,
+      "weight": 110,
+      "growth": 88,
+      "base": 18,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42b98794",
+        "value": 92.76480102539062
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x42775f70",
+            "value": 61.84320068359375
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x42dea2b2",
+            "value": 111.31776428222656
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x42946c77",
+            "value": 74.21184539794922
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 97.98999786376953,
+      "damage": 13,
+      "weight": 110,
+      "growth": 105,
+      "base": 30,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x43246665",
+        "value": 164.3999786376953
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x42db3332",
+            "value": 109.59999084472656
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x434547ad",
+            "value": 197.2799835205078
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x4303851e",
+            "value": 131.51998901367188
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 199.5,
+      "damage": 0.8999999761581421,
+      "weight": 110,
+      "growth": 73,
+      "base": 7,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42454d34",
+        "value": 49.32539367675781
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x420388ce",
+            "value": 32.88359832763672
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x426cc30c",
+            "value": 59.19047546386719
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x421dd75e",
+            "value": 39.46031951904297
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 0,
+      "damage": 0,
+      "weight": 110,
+      "growth": 0,
+      "base": 20,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x41a00000",
+        "value": 20
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41555556",
+            "value": 13.333333969116211
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x41c00000",
+            "value": 24
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x41800001",
+            "value": 16.000001907348633
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 999,
+      "damage": 40,
+      "weight": 110,
+      "growth": 200,
+      "base": 90,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x451c4000",
+        "value": 2500
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x44d05556",
+            "value": 1666.666748046875
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x453b8000",
+            "value": 3000
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x44fa0001",
+            "value": 2000.0001220703125
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 110,
+      "growth": 100,
+      "base": 20,
+      "fixed": 1,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42200000",
+        "value": 40
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41d55556",
+            "value": 26.666667938232422
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x42400000",
+            "value": 48
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x42000001",
+            "value": 32.000003814697266
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 110,
+      "growth": 100,
+      "base": 20,
+      "fixed": 20,
+      "scale": 1,
+      "expected": {
+        "bits": "0x4252aaaa",
+        "value": 52.666664123535156
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x420c71c7",
+            "value": 35.11111068725586
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x427ccccd",
+            "value": 63.20000076293945
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x42288889",
+            "value": 42.13333511352539
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 110,
+      "growth": 100,
+      "base": 20,
+      "fixed": 97,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42cfffff",
+        "value": 103.99999237060547
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x428aaaaa",
+            "value": 69.33332824707031
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x42f99999",
+            "value": 124.79999542236328
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x42a66666",
+            "value": 83.19999694824219
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 110,
+      "growth": 1000,
+      "base": 500,
+      "fixed": 1000,
+      "scale": 1,
+      "expected": {
+        "bits": "0x451c4000",
+        "value": 2500
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x44d05556",
+            "value": 1666.666748046875
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x453b8000",
+            "value": 3000
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x44fa0001",
+            "value": 2000.0001220703125
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 0,
+      "damage": 4,
+      "weight": 97.30000305175781,
+      "growth": 100,
+      "base": 20,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x421ecfdc",
+        "value": 39.70298767089844
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41d3bfd0",
+            "value": 26.468658447265625
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x423e9308",
+            "value": 47.643585205078125
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x41fe1961",
+            "value": 31.762392044067383
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 39.900001525878906,
+      "damage": 16.799999237060547,
+      "weight": 97.30000305175781,
+      "growth": 88,
+      "base": 18,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42c11d8f",
+        "value": 96.55773162841797
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x4280be60",
+            "value": 64.371826171875
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x42e7bd13",
+            "value": 115.8692855834961
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x429a7e0d",
+            "value": 77.2461929321289
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 97.98999786376953,
+      "damage": 13,
+      "weight": 97.30000305175781,
+      "growth": 105,
+      "base": 30,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x432bd5a9",
+        "value": 171.83460998535156
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x42e51ce2",
+            "value": 114.55641174316406
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x434e3398",
+            "value": 206.2015380859375
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x430977bb",
+            "value": 137.4676971435547
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 199.5,
+      "damage": 0.8999999761581421,
+      "weight": 97.30000305175781,
+      "growth": 73,
+      "base": 7,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x424cd0ee",
+        "value": 51.20403289794922
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x42088b4a",
+            "value": 34.136024475097656
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x4275c785",
+            "value": 61.44484329223633
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x4223da59",
+            "value": 40.96323013305664
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 0,
+      "damage": 0,
+      "weight": 97.30000305175781,
+      "growth": 0,
+      "base": 20,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x41a00000",
+        "value": 20
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41555556",
+            "value": 13.333333969116211
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x41c00000",
+            "value": 24
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x41800001",
+            "value": 16.000001907348633
+          }
+        }
+      ]
+    },
+    {
+      "kind": "ordinary",
+      "pre": 999,
+      "damage": 40,
+      "weight": 97.30000305175781,
+      "growth": 200,
+      "base": 90,
+      "fixed": 0,
+      "scale": 1,
+      "expected": {
+        "bits": "0x451c4000",
+        "value": 2500
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x44d05556",
+            "value": 1666.666748046875
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x453b8000",
+            "value": 3000
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x44fa0001",
+            "value": 2000.0001220703125
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 97.30000305175781,
+      "growth": 100,
+      "base": 20,
+      "fixed": 1,
+      "scale": 1,
+      "expected": {
+        "bits": "0x422083d4",
+        "value": 40.12873840332031
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x41d6051b",
+            "value": 26.752492904663086
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x42409e32",
+            "value": 48.15448760986328
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x42006977",
+            "value": 32.10299301147461
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 97.30000305175781,
+      "growth": 100,
+      "base": 20,
+      "fixed": 20,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42567167",
+        "value": 53.61074447631836
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x420ef645",
+            "value": 35.74049758911133
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x4280aa71",
+            "value": 64.33289337158203
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x422b8ded",
+            "value": 42.88859939575195
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 97.30000305175781,
+      "growth": 100,
+      "base": 20,
+      "fixed": 97,
+      "scale": 1,
+      "expected": {
+        "bits": "0x42d87f28",
+        "value": 108.24835205078125
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x429054c6",
+            "value": 72.16557312011719
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x4301e5e5",
+            "value": 129.8980255126953
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x42ad3288",
+            "value": 86.59869384765625
+          }
+        }
+      ]
+    },
+    {
+      "kind": "fixed",
+      "pre": 50.5,
+      "damage": 11.199999809265137,
+      "weight": 97.30000305175781,
+      "growth": 1000,
+      "base": 500,
+      "fixed": 1000,
+      "scale": 1,
+      "expected": {
+        "bits": "0x451c4000",
+        "value": 2500
+      },
+      "contexts": [
+        {
+          "crouching": true,
+          "charging": false,
+          "expected": {
+            "bits": "0x44d05556",
+            "value": 1666.666748046875
+          }
+        },
+        {
+          "crouching": false,
+          "charging": true,
+          "expected": {
+            "bits": "0x453b8000",
+            "value": 3000
+          }
+        },
+        {
+          "crouching": true,
+          "charging": true,
+          "expected": {
+            "bits": "0x44fa0001",
+            "value": 2000.0001220703125
+          }
+        }
+      ]
+    }
+  ]
+}

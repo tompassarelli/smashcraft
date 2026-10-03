@@ -687,19 +687,41 @@ function airDriftVelocity(FighterState f, real velocity, int direction) returns 
 	return next * direction
 
 public function integerHitPower(real hitDamage) returns int
-	return hitDamage > 0 ? max(1, R2I(hitDamage)) : 0
+	let damage = hitDamage.roundToFloat32()
+	return damage > 0 ? max(1, R2I(damage)) : 0
+
+function launchWeightFactor(real victimWeight) returns real
+	let weight = (victimWeight.roundToFloat32() * 0.009999999776482582).roundToFloat32()
+	let fraction = ((weight * 2).roundToFloat32() / (weight + 1).roundToFloat32()).roundToFloat32()
+	return (2 - fraction).roundToFloat32()
+
+function scaledLaunchGrowth(real contribution, real victimWeight, real growthPercent, real baseKnockback) returns real
+	let weighted = (contribution * launchWeightFactor(victimWeight)).roundToFloat32()
+	let growth = fusedMultiplyAddFloat32(1.399999976158142, weighted, 18.)
+	let multiplier = (growthPercent.roundToFloat32() * 0.009999999776482582).roundToFloat32()
+	return min(2500., fusedMultiplyAddFloat32(multiplier, growth, baseKnockback.roundToFloat32()))
 
 function contactKnockback(real postHitPercent, real hitDamage, real victimWeight, real growthPercent, real baseKnockback, real contextScale) returns real
-	let percentGrowth = (postHitPercent / 10. + postHitPercent * integerHitPower(hitDamage) / 20.) * 200 / (victimWeight + 100) * 1.4 + 18
-	return min(2500., percentGrowth * growthPercent / 100. + baseKnockback) * contextScale
+	let percent = postHitPercent.roundToFloat32()
+	let powered = (percent * integerHitPower(hitDamage)).roundToFloat32()
+	let damageGrowth = (powered * 0.05000000074505806).roundToFloat32()
+	let contribution = fusedMultiplyAddFloat32(0.10000000149011612, percent, damageGrowth)
+	return (scaledLaunchGrowth(contribution, victimWeight, growthPercent, baseKnockback) * contextScale.roundToFloat32()).roundToFloat32()
 
 public function fixedHitKnockback(int fixedPower, real victimWeight, real growthPercent,
 		real baseKnockback, real contextScale) returns real
-	let percentGrowth = (1. + fixedPower / 2.) * 200 / (victimWeight + 100) * 1.4 + 18
-	return min(2500., percentGrowth * growthPercent / 100. + baseKnockback) * contextScale
+	let power = (fixedPower * 10.).roundToFloat32()
+	let damageGrowth = (power * 0.05000000074505806).roundToFloat32()
+	let contribution = fusedMultiplyAddFloat32(10., 0.10000000149011612, damageGrowth)
+	return (scaledLaunchGrowth(contribution, victimWeight, growthPercent, baseKnockback) * contextScale.roundToFloat32()).roundToFloat32()
 
-function hitContextScale(FighterState victim) returns real
-	return (victim.crouching ? 2. / 3. : 1.) * (victim.smashCharging ? 1.2 : 1.)
+public function hitContextKnockback(real knockback, boolean crouching, boolean smashCharging) returns real
+	var result = knockback.roundToFloat32()
+	if crouching
+		result = (result * 0.6666666865348816).roundToFloat32()
+	if smashCharging
+		result = (result * 1.2000000476837158).roundToFloat32()
+	return result
 
 public function victimHitlagFrames(real hitDamage, boolean electric, boolean crouching) returns int
 	if hitDamage <= 0
@@ -1178,7 +1200,7 @@ public function smashDamageMultiplier(int chargeFrames) returns real
 // Damage retains its fraction; individual attack power is integer.
 public function ordinaryHitKnockback(real preHitPercent, real hitDamage, real victimWeight,
 		real growthPercent, real baseKnockback, real contextScale) returns real
-	return contactKnockback(R2I(max(0, preHitPercent)) + hitDamage, hitDamage, victimWeight, growthPercent, baseKnockback, contextScale)
+	return contactKnockback((R2I(max(0, preHitPercent.roundToFloat32())) + hitDamage.roundToFloat32()).roundToFloat32(), hitDamage, victimWeight, growthPercent, baseKnockback, contextScale)
 
 public function ordinaryHitlagFrames(real hitDamage) returns int
 	return victimHitlagFrames(hitDamage, false, false)
@@ -1340,7 +1362,7 @@ public constant int CONTACT_THROW = 4
 tuple damageContact(FighterState source, FighterState target, hitEffect data, int facing,
 	int kind, boolean direct, boolean blocked, boolean crouching, boolean grounded,
 	boolean sourceGrounded, real sourceDeltaX, real sourceDeltaZ,
-	real targetDeltaX, real targetDeltaZ, boolean down, real scale, InputSnapshot throwInput)
+	real targetDeltaX, real targetDeltaZ, boolean down, boolean smashCharging, InputSnapshot throwInput)
 
 // Scratch belongs to a synchronous simulation step, never to a saved world.
 // Collection and resolution allocate no objects, including during rollback.
@@ -1359,7 +1381,7 @@ public function queueDamageContact(FighterState source, FighterState target, hit
 		not unblockable and target.shield, target.crouching,
 		target.grounded, source.grounded, source.positionDeltaX, source.positionDeltaZ,
 		target.positionDeltaX, target.positionDeltaZ, isDownDamageState(target),
-		kind == CONTACT_THROW ? 1. : hitContextScale(target), throwInput)
+		target.smashCharging, throwInput)
 	damageContactCount++
 
 function shieldRecoilAxis(real attackerDelta, real defenderDelta) returns real
@@ -1391,8 +1413,8 @@ function resolveDamageContacts(FighterState target)
 				blockedContact = true
 				shieldDamage = (shieldDamage + contact.data.damage).roundToFloat32()
 			else
-				totalDamage += contact.data.damage
-	let postHitPercent = R2I(max(0, target.damage)) + totalDamage
+				totalDamage = (totalDamage + contact.data.damage.roundToFloat32()).roundToFloat32()
+	let postHitPercent = (R2I(max(0, target.damage.roundToFloat32())) + totalDamage).roundToFloat32()
 	for index = 0 to damageContactCount - 1
 		let contact = damageContacts[index]
 		if contact.target == target
@@ -1423,8 +1445,9 @@ function resolveDamageContacts(FighterState target)
 				if contact.kind == CONTACT_FLINCH and flinch < 0
 					flinch = index
 				if contact.kind == CONTACT_LAUNCH or contact.kind == CONTACT_THROW
-					let knockback = contactKnockback(postHitPercent, damage, target.physics.weight,
-						contact.data.growth, contact.data.base, contact.scale)
+					let magnitude = contactKnockback(postHitPercent, damage, target.physics.weight,
+						contact.data.growth, contact.data.base, 1.)
+					let knockback = contact.kind == CONTACT_THROW ? magnitude : hitContextKnockback(magnitude, contact.crouching, contact.smashCharging)
 					// Equal-strength contacts retain the first contact's direction.
 					if knockback > strongest
 						strongest = knockback
@@ -1436,7 +1459,7 @@ function resolveDamageContacts(FighterState target)
 		if hurtContact >= 0
 			// The strongest launch supplies the effect; the largest damage supplies hitlag power.
 			target.hitlag = max(target.hitlag, victimHitlagFrames(hitlagDamage, effectContact.data.electric, effectContact.crouching))
-	target.damage += totalDamage
+	target.damage = (target.damage.roundToFloat32() + totalDamage).roundToFloat32()
 	if blockedContact
 		target.shieldVisualSerial++
 	if shieldDamage > 0
