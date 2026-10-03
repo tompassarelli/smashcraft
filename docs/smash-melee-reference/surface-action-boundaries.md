@@ -52,3 +52,11 @@ wall fixture checks this lock on every startup tick and attack availability at
 expiry; all five WallTech cases passed. Buffered wall-jump selection still uses
 the separate recovery input path. Full post-startup interrupt priority and
 animation completion remain open.
+
+Wall recovery now advances beyond startup, with the paused startup excluded from
+the animation clock. The actor-owned wall and wall-jump clip limits default to
+26 and 40, matching the three recorded profiles. A real-contact fixture exercises
+both selections through completion, retaining each state until the final frame;
+the six WallTech cases passed. These modeled completion boundaries do not prove
+collision positioning, facing, post-startup interrupt priority or independent
+retail frame-trace parity.

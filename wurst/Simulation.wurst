@@ -356,6 +356,8 @@ public class FighterState
 	// Actor command timing; NTSC Fox/Falco use 14, Captain Falcon uses 11.
 	int ceilingTechImpulseFrame = 14
 	int ceilingTechAnimationEndFrame = 26
+	int wallTechAnimationEndFrame = 26
+	int wallJumpTechAnimationEndFrame = 40
 	int facing
 	int lastAerialTapDirection = 0
 	int dashFrame = 0
@@ -2077,6 +2079,11 @@ function advanceSurfaceRecovery(FighterState f, InputSnapshot input) returns boo
 		return false
 	if f.surfaceRecoveryState == SURFACE_TECH_WALL
 		if f.surfaceRecoveryFrame >= WALL_TECH_STARTUP_FRAMES
+			f.surfaceRecoveryFrame++
+			let animationEnd = f.surfaceWallJumpQueued ? f.wallJumpTechAnimationEndFrame : f.wallTechAnimationEndFrame
+			if f.surfaceRecoveryFrame >= WALL_TECH_STARTUP_FRAMES + animationEnd
+				f.surfaceRecoveryState = SURFACE_NONE
+				f.surfaceRecoveryFrame = 0
 			return false
 		f.surfaceWallJumpQueued = f.surfaceWallJumpQueued or wallTechJumpInputIsRecent(f, input)
 		f.surfaceRecoveryFrame++

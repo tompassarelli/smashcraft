@@ -4605,6 +4605,35 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	destroy input
 	destroy fighter
 
+@Test function retailWallTechCompletesAfterItsPausedStartupAndSelectedAnimation()
+	for jumpRig = 0 to 1
+		let fighter = new FighterState(0, -425, 1)
+		let input = new InputSnapshot()
+		fighter.grounded = false
+		fighter.z = 160
+		fighter.hitstun = 8
+		fighter.downState = DOWN_TUMBLE
+		fighter.techWindow = 3
+		fighter.knockbackX = 8
+		input.verticalDirection = jumpRig
+		advance(fighter, 1, input, 0)
+		fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+		for tick = 1 to WALL_TECH_STARTUP_FRAMES
+			advance(fighter, 1, input, 0)
+		// Keep the animation-boundary case airborne, independent of landing.
+		fighter.physics.gravity = 0
+		fighter.vz = 0
+		input.verticalDirection = 0
+		let animationEnd = jumpRig == 0 ? 26 : 40
+		for frame = 1 to animationEnd - 1
+			advance(fighter, 1, input, 0)
+			fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_WALL)
+			fighter.surfaceRecoveryFrame.assertEquals(WALL_TECH_STARTUP_FRAMES + frame)
+		advance(fighter, 1, input, 0)
+		fighter.surfaceRecoveryState.assertEquals(SURFACE_NONE)
+		destroy input
+		destroy fighter
+
 @Test function retailWallTechJumpLatchesBufferedInputWithoutOrdinaryTraitOrSpeedGate()
 	let fighter = new FighterState(0, -420.5, 1)
 	let input = new InputSnapshot()
