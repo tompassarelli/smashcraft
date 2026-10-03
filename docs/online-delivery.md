@@ -37,7 +37,7 @@ The roadmap is [#16](https://github.com/tompassarelli/smashcraft/issues/16).
 The immediate priority is [#21](https://github.com/tompassarelli/smashcraft/issues/21):
 the bounded competitive input-integrity decision, due 3 October 2026 at
 15:15:25 UTC / 23:15:25 Taipei. See
-wc3-melee:docs/competitive-integrity-decision.md for evidence, the current HOLD
+wc3-melee:docs/competitive-integrity-decision.md for evidence, the HOLD
 recommendation and exact release gates, and wc3-melee:docs/online-delivery-goal.md
 for the full consolidated goal. Controller/launcher features do not reset or
 extend the investigation clock.

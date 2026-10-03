@@ -1,0 +1,132 @@
+{
+  "source": "/home/tom/code/wc3-melee/worktrees/test-loop/build/two-clients/competitive-integrity-20261003/primary-after-queue.png",
+  "fresh_capture": false,
+  "source_mtime_ns": 1791036316653606305,
+  "physical_size": [
+    2880,
+    1920
+  ],
+  "logical_scale": 2.0,
+  "regions": [
+    {
+      "physical_region": [
+        2050,
+        725,
+        2390,
+        775
+      ],
+      "words": [
+        {
+          "text": "SINGLE",
+          "confidence": 91.991615,
+          "physical_box": [
+            2114,
+            740,
+            99,
+            20
+          ],
+          "logical_box": [
+            1057.0,
+            370.0,
+            49.5,
+            10.0
+          ]
+        },
+        {
+          "text": "PLAYER",
+          "confidence": 91.350845,
+          "physical_box": [
+            2223,
+            740,
+            100,
+            20
+          ],
+          "logical_box": [
+            1111.5,
+            370.0,
+            50.0,
+            10.0
+          ]
+        }
+      ]
+    },
+    {
+      "physical_region": [
+        2050,
+        940,
+        2390,
+        990
+      ],
+      "words": [
+        {
+          "text": "MULTIPLAYER",
+          "confidence": 91.466003,
+          "physical_box": [
+            2123,
+            955,
+            190,
+            20
+          ],
+          "logical_box": [
+            1061.5,
+            477.5,
+            95.0,
+            10.0
+          ]
+        }
+      ]
+    },
+    {
+      "physical_region": [
+        2050,
+        1155,
+        2390,
+        1205
+      ],
+      "words": [
+        {
+          "text": "REPLAY",
+          "confidence": 91.784004,
+          "physical_box": [
+            2168,
+            1171,
+            101,
+            20
+          ],
+          "logical_box": [
+            1084.0,
+            585.5,
+            50.5,
+            10.0
+          ]
+        }
+      ]
+    },
+    {
+      "physical_region": [
+        2050,
+        1370,
+        2390,
+        1420
+      ],
+      "words": [
+        {
+          "text": "OPTIONS",
+          "confidence": 90.278458,
+          "physical_box": [
+            2153,
+            1386,
+            130,
+            20
+          ],
+          "logical_box": [
+            1076.5,
+            693.0,
+            65.0,
+            10.0
+          ]
+        }
+      ]
+    }
+  ]
+}
