@@ -40,3 +40,24 @@ Private stimulus and signal timestamps:
 ~/code/wc3-melee/worktrees/competitive-integrity-20261003/build/native-command-20261004/timestamp-stimulus.json.
 Exports: each prefix's Warcraft III/CustomMapData/
 smashcraft-timestamp-20261003T174305492238305-p{0,1}-run1.txt.
+
+## Five records through 250 ms verified stops
+
+Run3 reused the same loaded candidate without restart. Both processes were
+observed in /proc stopped state before injection and again before resume.
+A remained stopped for at least250.835 ms; B250.368 ms, measured from stopped
+observation to resume request (about15 nominal60Hz frames). Each received five
+distinct id:host-monotonic-ns records at approximately40ms requested spacing,
+95 ASCII characters total. LOCAL_FINAL exactly matched all95 expected characters
+on both clients. Each observer exported194 callbacks,97 per participant,
+overflow0; each participant's final callback string also exactly matched its
+expected payload on both observers. Extra callbacks include setup/reset events;
+they are not194 independent input records.
+
+This strengthens preservation evidence across a longer controlled interruption.
+It does not measure common-clock accuracy, event-to-frame assignment, transport
+throughput or visible fighter response. The earlier short-stop caveats remain.
+Private stimulus:
+~/code/wc3-melee/worktrees/competitive-integrity-20261003/build/native-command-20261004/timestamp-long-stimulus.json.
+Native files use the same build and p{0,1}-run3.txt. Both original processes
+remained live after the trial.
