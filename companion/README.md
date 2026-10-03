@@ -72,11 +72,21 @@ controller use of the same key still requires native testing.
 The **Niri plus X11/XWayland** eligibility adapter uses a selected
 live Warcraft PID, its exact X11 focus window/display, and its Niri window ID.
 The PID's command line must identify Warcraft III.exe; its process start time
-must remain unchanged. `_NET_WM_PID`, actual X11 input focus, and Niri's focused
-window ID/PID must all agree. Niri overview must be closed. Missing/failed replies
-are ineligible, and no old successful observation is reused. If Niri reports a
-proxy PID, the exact game/window relationship is not established and output is
-refused. A title or process-existing check alone never grants eligibility.
+must remain unchanged. `_NET_WM_PID` and Niri's focused window ID must agree with
+the selected target. Niri overview must be closed. Missing/failed replies are
+ineligible, and no old successful observation is reused.
+
+For xwayland-satellite, Niri reports the bridge's PID. The adapter verifies its
+executable and process birth, then uses XRes to require that this exact PID owns
+the selected display's window manager. The selected Niri window must uniquely
+match the game's current X11 class and title among that bridge's windows. The
+exact game XID must also be the current `_NET_ACTIVE_WINDOW`. Ordinary X11 focus
+must address the game; if it is `PointerRoot`, the root pointer's child must be
+the game instead. Keep the pointer over the game for this Wine focus mode.
+Compositor focus is checked again after the X11 observations. A stale active
+window, matching title alone, duplicate native identity, or unrecognized proxy
+never grants eligibility. Direct Niri game PIDs and private labwc retain their
+ordinary exact-X11-focus requirement.
 
 After selecting the actual IDs in a controlled Niri game session, with one
 mapper responsible for delivery, replace the example values:
@@ -122,6 +132,14 @@ been physically tested; SDL handles those protocols without a custom decoder.
 Continuous analog delivery into Warcraft, Tauri and packaging remain separate.
 
 ## Observed evidence
+
+The Niri bridge repair passed seven tests (five mapping/rearm tests and two
+focused identity/recipient tests) and rebuilt successfully. Read-only native
+checking established the bridge's XRes ownership and returned false while
+Chrome was focused. The parent trial then reported true for the selected
+Warcraft window after focusing it and moving the pointer over it. Neither check
+opened keyboard output; game consumption and physical-controller delivery are
+separate acceptance steps.
 
 Linux x86_64: `cargo test` passed all five tests covering the requested bindings,
 overlapping triggers/jump sources, focus/disconnect release and neutral rearm.
