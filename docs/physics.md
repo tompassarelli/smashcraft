@@ -774,6 +774,20 @@ fast-fall while self velocity is rising; rising knockback does not prevent
 activation while self velocity is descending. This separates knockback motion
 from the character's gravity-driven fall.
 
+## Raw movement parameter precision
+
+Gravity, terminal speeds, drift speed/acceleration/friction, ground traction,
+initial dash speed and aerial-jump horizontal velocity now retain the complete
+published binary32 values in source, alongside the already sourced jump and
+fast-fall values. Their factual source is
+smashcraft:docs/smash-melee-reference/physics-parameters.json. Shared Fox/Falco
+fields agree numerically. This avoids relying on shortened decimal spellings
+when emitting Lua, whose number arithmetic differs from the Wurst headless
+interpreter's binary32 arithmetic. It does not establish identical arithmetic
+rounding to the original game, complete movement transitions or disc revision.
+The aggregate passed **404/404**, zero compiler errors and the existing
+unused-import warning (smashcraft:build/physics-raw-movement.log).
+
 ## Attack recovery checkpoint
 
 Provisional attack cooldown prevents another attack, jump, air dodge, shield

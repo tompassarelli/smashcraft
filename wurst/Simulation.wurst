@@ -2,20 +2,20 @@ package Simulation
 import RollTravel
 
 constant real WORLD_UNITS_PER_MELEE_UNIT = 6
-constant real FOX_GRAVITY = 0.23 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FALCO_GRAVITY = 0.17 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FOX_AIR_SPEED = 0.83 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FALCO_AIR_SPEED = 0.83 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FOX_AIR_ACCELERATION = (0.02 + 0.06) * WORLD_UNITS_PER_MELEE_UNIT
-constant real FALCO_AIR_ACCELERATION = (0.02 + 0.05) * WORLD_UNITS_PER_MELEE_UNIT
-public constant real GROUND_TRACTION = 0.08 * WORLD_UNITS_PER_MELEE_UNIT
-public constant real INITIAL_DASH_SPEED = 1.9 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FOX_GRAVITY = 0.23000000417232513 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FALCO_GRAVITY = 0.17000000178813934 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FOX_AIR_SPEED = 0.8299999833106995 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FALCO_AIR_SPEED = 0.8299999833106995 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FOX_AIR_ACCELERATION = (0.019999999552965164 + 0.05999999865889549) * WORLD_UNITS_PER_MELEE_UNIT
+constant real FALCO_AIR_ACCELERATION = (0.019999999552965164 + 0.05000000074505806) * WORLD_UNITS_PER_MELEE_UNIT
+public constant real GROUND_TRACTION = 0.07999999821186066 * WORLD_UNITS_PER_MELEE_UNIT
+public constant real INITIAL_DASH_SPEED = 1.899999976158142 * WORLD_UNITS_PER_MELEE_UNIT
 // Provisional digital-input timing and braking; see wc3-melee:docs/physics.md.
 public constant int INITIAL_DASH_FRAMES = 10
 constant real RUN_TURN_BRAKING = 0.8 * WORLD_UNITS_PER_MELEE_UNIT
-constant real AIR_FRICTION = 0.02 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FOX_TERMINAL_SPEED = 2.8 * WORLD_UNITS_PER_MELEE_UNIT
-constant real FALCO_TERMINAL_SPEED = 3.1 * WORLD_UNITS_PER_MELEE_UNIT
+constant real AIR_FRICTION = 0.019999999552965164 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FOX_TERMINAL_SPEED = 2.799999952316284 * WORLD_UNITS_PER_MELEE_UNIT
+constant real FALCO_TERMINAL_SPEED = 3.0999999046325684 * WORLD_UNITS_PER_MELEE_UNIT
 constant real FOX_FAST_FALL_SPEED = 3.4000000953674316 * WORLD_UNITS_PER_MELEE_UNIT
 constant real FALCO_FAST_FALL_SPEED = 3.5 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real SHIELD_MAX = 60
@@ -2269,7 +2269,7 @@ public function simulationJump(FighterState f, int horizontal)
 		f.jumpHeld = true
 	else
 		if f.character != 2
-			f.vx = horizontal * (f.character == 0 ? 0.90 : 0.94) * WORLD_UNITS_PER_MELEE_UNIT
+			f.vx = horizontal * (f.character == 0 ? 0.8999999761581421 : 0.9399999976158142) * WORLD_UNITS_PER_MELEE_UNIT
 		f.vz = doubleJumpSpeed(f.character)
 		f.jumpSerial++
 		f.jumpIsDouble = true
@@ -2557,7 +2557,7 @@ public function advance(FighterState f, int stage, InputSnapshot input, real res
 			groundTakeoff = f.character != 2
 			f.grounded = false
 			if f.character != 2
-				let jumpX = f.vx * (f.character == 0 ? 0.83 : 1.) + input.direction * (f.character == 0 ? 0.72 : 0.70) * WORLD_UNITS_PER_MELEE_UNIT
+				let jumpX = f.vx * (f.character == 0 ? 0.8299999833106995 : 1.) + input.direction * (f.character == 0 ? 0.72 : 0.70) * WORLD_UNITS_PER_MELEE_UNIT
 				f.vx = max(-1.7 * WORLD_UNITS_PER_MELEE_UNIT, min(1.7 * WORLD_UNITS_PER_MELEE_UNIT, jumpX))
 			f.vz = f.jumpHeld ? fullJumpSpeed(f.character) : shortJumpSpeed(f.character)
 			f.jumpSerial++
