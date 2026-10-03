@@ -1,0 +1,46 @@
+{
+  "target": "Melee NTSC 1.02 (publisher-claimed; disc identity not independently verified)",
+  "status": "partial factual common-data extraction",
+  "source": {
+    "repository": "technospider-ssbm/melee-shield-tilt",
+    "revision": "e8c05c2a0ed3419c1f461d0a5cb11728d01aa3b1",
+    "url": "https://github.com/technospider-ssbm/melee-shield-tilt/tree/e8c05c2a0ed3419c1f461d0a5cb11728d01aa3b1",
+    "file": "data/common.json",
+    "rawUrl": "https://raw.githubusercontent.com/technospider-ssbm/melee-shield-tilt/e8c05c2a0ed3419c1f461d0a5cb11728d01aa3b1/data/common.json",
+    "sha256": "0167779ffba971041bb3cb2f5cd8840ae06128e8dfb0a61aec08eb1ef7fe1fac",
+    "bytes": 2586,
+    "rootSymbol": "ftLoadCommonData",
+    "commonStructLengthBytes": 2072,
+    "publisherRevisionClaim": "The source README says values were extracted from the publisher's own vanilla v1.02 ISO.",
+    "publisherPlCoSha1Claim": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
+    "verificationLimit": "The ISO and PlCo.dat were not available for independent hashing. The publisher SHA-1 is a claim, not locally verified disc/revision evidence. Decimal JSON values are retained as published; original binary32 bit patterns were not independently checked.",
+    "rights": "No source-code license was established. This file retains numerical facts and provenance only; no code or assets are copied or translated."
+  },
+  "values": [
+    {
+      "offset": "0x3E8",
+      "field": "shield_knockback_frame_decay",
+      "value": 0.05,
+      "units": "Melee velocity units/frame removed from the recoil vector magnitude per update",
+      "sourcePointer": "/x3E8_shield_knockback_frame_decay",
+      "interpretation": "Publisher labels this as the shield knockback frame decay common parameter. The source's NTSC 1.02 provenance is asserted by its README, not independently verified here."
+    },
+    {
+      "offset": "0x3EC",
+      "field": "shield_ground_friction_multiplier",
+      "value": 1.1,
+      "units": "dimensionless multiplier",
+      "sourcePointer": "/x3EC_shield_ground_friction_multiplier",
+      "interpretation": "Publisher labels this as the shield ground-friction multiplier. It is not a substitute for the separately missing general grounded-knockback friction parameter at common offset 0x200."
+    }
+  ],
+  "notProvidedByThisExtraction": [
+    "run_accel_taper_gain at common offset 0x05C",
+    "common dash/ground friction value at common offset 0x060",
+    "damage launch stacking gate at common offset 0x0FC",
+    "tumble thresholds at common offsets 0x154, 0x158, 0x15C, and 0x160",
+    "grounded knockback friction multiplier at common offset 0x200",
+    "bounce angle and multiplier at common offsets 0x1E8 and 0x1EC",
+    "dash windows and transition thresholds"
+  ]
+}
