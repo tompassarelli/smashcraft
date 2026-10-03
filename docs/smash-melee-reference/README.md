@@ -20,6 +20,15 @@ including recorded grounded flags and self velocity. Its NTSC recording also
 leaves disc revision unresolved. It covers this transition through production
 input ordering, not the full jump, air dodge or landing sequence.
 
+smashcraft:docs/smash-melee-reference/slippi-ntsc-grounded-damage.json retains
+a grounded damage trace from `techTester.slp`: contact frame 3432 and thirteen
+following frames, including hitlag, damage-state countdown, positions and
+knockback velocities. Published Captain Falcon traction matches the existing
+Fox/Falco traction. This supports a shared flat-ground damage comparison without
+porting Captain Falcon. It does not identify the disc revision or independently
+extract the grounded common multiplier at +0x200. Floor collision epsilon is
+normalized; only horizontal displacement is compared.
+
 The owner's copy-paste snapshot of all 26 character pages from
 [Melee Frame Data](https://meleeframedata.com/), captured 2026-10-03, is retained
 with its structured conversions:
