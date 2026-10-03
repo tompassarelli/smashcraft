@@ -1,5 +1,54 @@
 # Physics reference and implementation
 
+## Recorded grounded damage correction — 2026-10-03
+
+The production simulation now resumes physics, input gates and state countdowns
+on the frame hitlag reaches zero. The previous branch decremented to zero and
+returned, adding one frozen frame. The boundary is shared by ordinary damage,
+grab pause, ledge and shield-break progression; release DI/ASDI occurs before
+resumed physics. Existing exact freeze-frame expectations were updated to that
+boundary without changing their numerical tolerances.
+
+Grounded knockback on the current flat surfaces now decays by ground traction,
+clamps to zero without reversing, and has zero vertical knockback. Airborne
+knockback retains radial decay of 0.051 Melee units/frame. The earlier code
+applied airborne decay to both states.
+
+smashcraft:docs/smash-melee-reference/slippi-ntsc-grounded-damage.json records
+Captain Falcon's grounded damage state on frames 3432–3445 of the public
+Slippi `techTester.slp` fixture. Frame 3436 has zero hitlag, hitstun countdown 9
+and resumed displacement. Before repair our countdown remained 10. The first
+released knockback velocity should be 4.05764687 world units/frame; the old
+ground decay produced approximately 4.23164677. Published Captain Falcon
+traction +0x18 is 0.07999999821186066, exactly matching the extracted Fox/Falco
+profiles used for this shared-rule comparison.
+
+The full production fixture compares thirteen successive states: frozen frames,
+release, horizontal displacement/velocity, hitstun expiry and crouch/actionability.
+It detects deliberately perturbed knockback on original frame 3433. Position
+tolerance is 0.0001 world units and velocity tolerance is 0.00001; floor origin
+is normalized. The fourteen retained states and traction were checked against
+their original intake fields. The assembled suite passed **419/419**, zero
+compiler errors and one existing unused-import warning
+(smashcraft:build/physics-grounded-release-aggregate.log).
+
+This is a bounded recorded comparison, not full NTSC 1.02 acceptance. The source
+is NTSC but its disc revision and modification status are unknown. It begins
+after accepted launch, so it does not verify the move's damage/weight formula,
+DI/SDI, tumble, shields or whole-character movement. Common multiplier +0x200
+has not been independently extracted; the recording supports the effective
+traction product for this flat-floor case. Sloped surfaces, wall/ceiling bounces,
+remaining common values and native gameplay remain unresolved. Independently
+authored Wurst uses factual observations, with no copied gameplay implementation.
+
+Map `melee-physics-foundation-r5` built with zero errors and six existing
+warnings. Existing Lua syntax and packaged script/assets checks passed
+(smashcraft:build/physics-map-r5.log). The unique candidate was installed as
+`~/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps/Smashcraft_Melee_Physics_r5.w3x`
+and compared byte-for-byte with the build. Earlier candidates remain available.
+The two existing Warcraft clients/private desktops belong to concurrent work;
+they were preserved. Native r5 gameplay has not been observed.
+
 ## Physics integration — 2026-10-03
 
 The physics changes were reconciled with public `main` in
@@ -22,8 +71,8 @@ equivalence without the missing parameters and original-game comparisons.
 | Rule group | Implemented and checked | Still required for parity |
 | --- | --- | --- |
 | Movement | Extracted jump speeds, full squat duration, ground/aerial entry ordering, takeoff momentum, air drift/overspeed, sampled roll travel and persistent fast-fall state | Revision identity, complete frame trajectories, dash/run/turn common values, walk acceleration and original fast-fall stick-entry threshold/window |
-| Damage | Integer individual hit power, fractional same-frame total, strongest-contact selection, fixed knockback, cap and sampled crouch/smash modifiers | Common-table confirmation, successive-frame stacking and grounded knockback friction |
-| Hitlag/hitstun | Separate counters, electric effects carried through contact resolution, crouch arithmetic, direct/detached source pause and expiry boundaries | Original-game ordered traces and verified common values |
+| Damage | Integer individual hit power, fractional same-frame total, strongest-contact selection, fixed knockback, cap, sampled crouch/smash modifiers and recorded flat-ground traction decay | Common-table confirmation, successive-frame stacking and other grounded surface conditions |
+| Hitlag/hitstun | Separate counters, electric effects carried through contact resolution, crouch arithmetic, direct/detached source pause and recorded same-frame hitlag release | Broader original-game ordered traces, revision identity and verified common values |
 | Shields | Integer shieldstun power, contact freeze before stun countdown, shield-break character launch speed | Shield pushback, analog branches and paired displacement/actionability traces |
 | DI/recovery | Actual-vector DI normalization, grounded non-upward launch selection, existing floor tech/miss-tech/getup and sampled roll paths | Ground-bounce values, wall/ceiling collision geometry, tumble exceptions and threshold/tech traces |
 | Replay/map | Crouch and roll-entry-facing snapshot restoration; map compilation and packaging | Native connected movement/contact/recovery check of this build |
