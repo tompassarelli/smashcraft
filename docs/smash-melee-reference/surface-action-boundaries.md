@@ -82,3 +82,11 @@ The assembled primary tree at `872a370` passed the normal `Tests` filter:
 smashcraft:build/physics-r10-aggregate.log. This includes the ceiling and wall
 completion/input cases and deterministic replay checks, but excludes the ongoing
 RunBrake follow-up and does not establish native or independent trace parity.
+
+The normal 0.0.4 map built at primary `bd88afe`, build ID `melee-physics-r10`:
+smashcraft:build/wurst-map/Smashcraft 0.0.4.w3x. SHA-256:
+`1f5287970d30cb12c7ccf4a7c78a12f50be5afb7d14392fc7228354cd9f6a262`.
+Compilation reported zero errors and six warnings; evidence is retained in
+smashcraft:build/physics-map-r10.log. Automatic deployment was disabled to
+preserve the peer's current native candidate. This build excludes the pending
+RunBrake follow-up and has not been observed in Warcraft.
