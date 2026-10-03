@@ -4,6 +4,142 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function heldShieldOrderDepletionPrecedesEveryGuardExit()
+    for boundary = 0 to 1
+        for action = 0 to 3
+            let game = new MatchState()
+            game.phase = MATCH
+            let first = new FighterState(0, 0, 1)
+            let second = new FighterState(1, 500, -1)
+            let firstInput = new InputSnapshot()
+            let secondInput = new InputSnapshot()
+            let firstCommands = new AttackBuffer(0)
+            let secondCommands = new AttackBuffer(0)
+            first.shield = true
+            first.shieldHeldFrames = SHIELD_MIN_HOLD_FRAMES
+            first.shieldEnergy = boundary == 0 ? 0.1 : 0.14000000059604645 * 2
+            firstInput.shield = action != 2
+            firstInput.jumpPressed = action == 0
+            firstInput.jumpHeld = action == 0
+            firstInput.groundDodgePressed = action == 1
+            firstInput.groundDodgeDirection = 1
+            if action == 3
+                firstCommands.enqueue(5, 0, 1, false)
+            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+            first.shield.assertFalse()
+            first.shieldEnergy.assertEquals(0.07, 0.0001)
+            if boundary == 0
+                first.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
+                first.jumpSquat.assertEquals(0)
+                first.groundDodgeFrame.assertEquals(0)
+                first.shieldReleaseLag.assertEquals(0)
+                first.attackStyle.assertEquals(-1)
+            else
+                first.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
+                if action == 0
+                    first.jumpSquat.assertGreaterThan(0)
+                else if action == 1
+                    first.groundDodgeFrame.assertEquals(1)
+                else if action == 2
+                    first.shieldReleaseLag.assertEquals(SHIELD_RELEASE_LAG_FRAMES)
+                else
+                    first.attackStyle.assertEquals(5)
+            destroy firstCommands
+            destroy secondCommands
+            destroy firstInput
+            destroy secondInput
+            destroy first
+            destroy second
+            destroy game
+
+@Test function heldShieldOrderEntryDoesNotDrainUntilNextAnimationTick()
+    let game = new MatchState()
+    game.phase = MATCH
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 500, -1)
+    let firstInput = new InputSnapshot()
+    let secondInput = new InputSnapshot()
+    let firstCommands = new AttackBuffer(0)
+    let secondCommands = new AttackBuffer(0)
+    first.shieldEnergy = 0.1
+    second.shield = true
+    second.shieldEnergy = 20
+    firstInput.shield = true
+    secondInput.shield = true
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    first.shield.assertTrue()
+    first.shieldEnergy.assertEquals(0.1, 0.0001)
+    second.shieldEnergy.assertEquals(19.72, 0.0001)
+    firstInput.jumpPressed = true
+    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    first.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
+    first.jumpSquat.assertEquals(0)
+    first.shieldEnergy.assertEquals(0.07, 0.0001)
+    second.shieldEnergy.assertEquals(19.44, 0.0001)
+    destroy firstCommands
+    destroy secondCommands
+    destroy firstInput
+    destroy secondInput
+    destroy first
+    destroy second
+    destroy game
+
+@Test function heldShieldOrderHitlagAndShieldstunResumeBeforeActionInputs()
+    for action = 0 to 1
+        let game = new MatchState()
+        game.phase = MATCH
+        let first = new FighterState(0, 0, 1)
+        let second = new FighterState(1, 500, -1)
+        let firstInput = new InputSnapshot()
+        let secondInput = new InputSnapshot()
+        let firstCommands = new AttackBuffer(0)
+        let secondCommands = new AttackBuffer(0)
+        first.shield = true
+        second.shield = true
+        first.shieldEnergy = 20
+        second.shieldEnergy = 20
+        first.shieldStun = 2
+        second.shieldStun = 2
+        first.shieldDrainResumePending = true
+        second.shieldDrainResumePending = true
+        first.hitlag = 3
+        second.hitlag = 3
+        firstInput.shield = true
+        secondInput.shield = true
+        firstInput.jumpPressed = action == 0
+        for frame = 1 to 4
+            if action == 1
+                firstCommands.enqueue(5, 0, frame, false)
+            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+            first.shield.assertTrue()
+            first.jumpSquat.assertEquals(0)
+            first.attackStyle.assertEquals(-1)
+            first.shieldEnergy.assertEquals(20.)
+            second.shieldEnergy.assertEquals(20.)
+        first.shieldDrainResumePending.assertTrue()
+        if action == 1
+            firstCommands.enqueue(5, 0, 5, false)
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 5)
+        first.shield.assertFalse()
+        first.shieldDrainResumePending.assertFalse()
+        first.shieldEnergy.assertEquals(20.07, 0.0001)
+        second.shieldDrainResumePending.assertFalse()
+        second.shieldEnergy.assertEquals(20.)
+        if action == 0
+            first.jumpSquat.assertGreaterThan(0)
+        else
+            first.attackStyle.assertEquals(5)
+        firstInput.jumpPressed = false
+        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 6)
+        second.shieldEnergy.assertEquals(19.72, 0.0001)
+        destroy firstCommands
+        destroy secondCommands
+        destroy firstInput
+        destroy secondInput
+        destroy first
+        destroy second
+        destroy game
+
 @Test function shieldBreakBoundaryDrainRequiresStrictlyNegativeHealth()
     let game = new MatchState()
     game.phase = MATCH

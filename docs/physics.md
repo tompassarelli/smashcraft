@@ -1680,11 +1680,20 @@ come from melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c,
 melee:src/melee/ft/fighter.c and
 melee:src/melee/ft/kinds/ftCommon/ftCo_ShieldBreakFly.c at the revision above.
 
-The broader guard-animation/input seam remains incomplete: Smashcraft processes
-jump, dodge and release choices before held drain, while the reference guard
-animation callback drains before its input callback. This correction establishes
-regeneration and depletion boundaries, not parity for those drain-versus-exit
-transitions.
+Held guard drains at the active animation boundary before jump, ground dodge,
+release or grab inputs. A resulting break preempts those inputs; reaching
+exactly zero instead still permits a legal exit, followed by regeneration.
+Ordinary guard input entry initializes guard without draining on that tick;
+the following active animation tick supplies its first held drain. Hitlag
+pauses drain. Shieldstun and its return-to-guard completion tick do not drain;
+guard inputs become available on that completion tick, with drain resuming on
+the following tick if guard remains active. The source entry call processes
+animation commands, but does not invoke GuardOn's animation callback; the
+GuardOn/Guard callbacks own drain, and GuardSetOff's callback owns return to
+guard. This distinction is sourced from melee:src/melee/ft/ftanim.c and
+melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c at the revision above. Powershield
+and analog light-shield state transitions remain outside this digital-guard
+model.
 
 Movement, fast falling, attacks, shielding, jumps, air dodges, ground escapes,
 platform drops, ordinary get-up actions and floor techs cannot cancel recovery.

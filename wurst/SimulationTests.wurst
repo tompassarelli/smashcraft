@@ -2187,6 +2187,8 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	input.shield = true
 	advance(fighter, 0, input, -240)
 	fighter.shield.assertEquals(true)
+	fighter.shieldEnergy.assertEquals(0.5)
+	advance(fighter, 0, input, -240)
 	fighter.shieldEnergy.assertEquals(0.22, 0.001)
 
 @Test function ordinaryHitFormulaUsesIndependentPerHitParameters()
@@ -2265,7 +2267,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	let targetCommands = new AttackBuffer(0)
 	runToAttackActive(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, 0, 1)
 	target.damage.assertEquals(0.)
-	let energyAfterBlock = 60 - 5 * 0.28 - 12 * 0.7
+	let energyAfterBlock = 60 - 4 * 0.28 - 12 * 0.7
 	target.shieldEnergy.assertEquals(energyAfterBlock, 0.01)
 	target.shieldStun.assertEquals(7)
 
@@ -4008,6 +4010,7 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 function shieldBreakTestFighter(int character, real percent) returns FighterState
 	let fighter = new FighterState(character, 0, 1)
 	fighter.damage = percent
+	fighter.shield = true
 	fighter.shieldEnergy = 0.1
 	let input = new InputSnapshot()
 	input.shield = true

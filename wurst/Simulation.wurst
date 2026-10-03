@@ -1083,7 +1083,7 @@ public function canAttack(FighterState attacker) returns boolean
 	return canStartAttack(attacker) and not attacker.shield and attacker.frozenFrames <= 0
 
 public function canShieldGrab(FighterState attacker) returns boolean
-	return canStartAttack(attacker) and attacker.shield and attacker.grounded
+	return canStartAttack(attacker) and attacker.shield and attacker.grounded and not attacker.shieldDrainResumePending
 
 public function canStartAttackStyle(FighterState attacker, int style) returns boolean
 	if style == 11
@@ -3079,7 +3079,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 function canBeginGroundDodge(FighterState f) returns boolean
 	if inGrabContext(f)
 		return false
-	return not f.out and f.downState == DOWN_NONE and f.grounded and f.hitlag <= 0 and f.hitstun <= 0 and f.shieldStun <= 0 and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0 and f.grabbedFrames <= 0 and not f.airDodging and not isGroundDodging(f) and f.shieldEnergy > 0
+	return not f.out and f.downState == DOWN_NONE and f.grounded and f.hitlag <= 0 and f.hitstun <= 0 and f.shieldStun <= 0 and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0 and f.grabbedFrames <= 0 and not f.airDodging and not isGroundDodging(f) and (f.shield or f.shieldEnergy > 0)
 
 public function beginAttackPair(FighterState first, FighterState second, int firstStyle, int secondStyle, boolean firstMayCharge, boolean secondMayCharge)
 	let firstAction = first.character == 2 and firstStyle == 0 and first.grounded and first.dashFrame > 0 ? DEMONHUNTER_DASH_ATTACK_STYLE : firstStyle
@@ -3295,6 +3295,14 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 		advanceShieldBreak(f, stage, input)
 		if f.shieldBreakState != SHIELD_BREAK_NONE or f.out
 			return
+	// Only the guard present at the animation boundary drains; input may enter or leave guard later.
+	if f.hitlag <= 0 and f.shield and shieldDrainShouldResume(f, f.shieldStun > 0)
+		f.shieldEnergy -= SHIELD_DRAIN_PER_FRAME
+		if f.shieldEnergy < 0
+			f.shieldEnergy = 0
+			beginShieldBreak(f)
+			checkBlastZone(f)
+			return
 	// Counts include the current contact tick. A hitlag edge starts counting after the freeze.
 	if f.hitlag <= 0
 		f.lCancelWindow = max(0, f.lCancelWindow - 1)
@@ -3466,14 +3474,6 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 	f.shield = wantsShield
 	if lateDashGuardEntry
 		f.dashGrabWindow = 3
-	let drainShield = shieldDrainShouldResume(f, forcedShield)
-	if wantsShield
-		if drainShield
-			f.shieldEnergy -= SHIELD_DRAIN_PER_FRAME
-	if wantsShield and f.shieldEnergy < 0
-		f.shieldEnergy = 0
-		beginShieldBreak(f)
-		return
 	var direction = input.direction
 	var dashEntryDisplacementAdjustment = 0.
 	let canSteer = f.downState == DOWN_NONE and f.hitstun <= 0 and (not f.airDodging or not dodgeActive) and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and not smashChargePaused and (not f.grounded or f.cooldown <= 0)
