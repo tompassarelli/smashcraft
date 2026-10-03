@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat >&2 <<'EOF'
+Usage: tools/wc3-procedure RUN_DIR STATE RECIPE
+       tools/wc3-procedure --validate STATE RECIPE
+RUN_DIR is the exact private-desktop run directory. STATE is the caller's
+asserted current game state. Procedures are short, named input chains. A sent
+chain is never reported as game success; verify the resulting state yourself.
+EOF
+  exit 2
+}
+[[ ($# == 2 && "$1" == --validate) || $# == 3 ]] || usage
+if [[ "$1" == --validate ]]; then mode=validate; state=$2; recipe=$3; run_dir=; else mode=run; run_dir=$1; state=$2; recipe=$3; fi
+[[ "$state" =~ ^[a-z0-9][a-z0-9_-]{0,39}$ && "$recipe" =~ ^[a-z0-9][a-z0-9_-]{0,63}$ ]] || usage
+
+if [[ "$mode" == run ]]; then
+  uid=$(id -u)
+  case "$run_dir" in "/run/user/$uid"/private-desktop.*) ;; *) echo 'Refusing a run directory outside this user private desktops.' >&2; exit 1 ;; esac
+  [[ -d "$run_dir" && -f "$run_dir/display" && -f "$run_dir/xauthority" && -S "$run_dir/runtime/wayland-0" ]] || { echo 'Private desktop identity is incomplete or no longer live.' >&2; exit 1; }
+fi
+chain="$(cd -- "$(dirname -- "$0")/wc3-procedures" && pwd)/$recipe.chain"
+[[ -f "$chain" && ! -L "$chain" ]] || { echo "Unknown procedure: $recipe" >&2; exit 2; }
+
+declare -a actions=() held=() keys=()
+total_ms=0 lines=0 declared_state=''
+while IFS=$'\t ' read -r op arg ms extra || [[ -n "${op:-}" ]]; do
+  [[ -z "${op:-}" ]] && continue
+  if [[ "$op" == \#* ]]; then
+    if [[ "$op" == '#' && "$arg" == caller-state && -z "$declared_state" ]]; then declared_state=$ms; fi
+    continue
+  fi
+  [[ -z "${extra:-}" ]] || { echo "Malformed recipe line: $op $arg $ms $extra" >&2; exit 2; }
+  case "$op" in
+    tap|hold)
+      [[ "${arg:-}" =~ ^[a-zA-Z0-9_]+$ && "${ms:-}" =~ ^[1-9][0-9]{0,3}$ ]] || { echo "Invalid $op action." >&2; exit 2; }
+      (( ms <= 1500 )) || { echo 'A key action is capped at 1500 ms.' >&2; exit 2; }
+      keys=("$arg")
+      ;;
+    chord)
+      [[ "${arg:-}" =~ ^[a-zA-Z0-9_]+\+[a-zA-Z0-9_]+$ && "${ms:-}" =~ ^[1-9][0-9]{0,3}$ ]] || { echo 'Invalid chord action.' >&2; exit 2; }
+      (( ms <= 1500 )) || { echo 'A chord is capped at 1500 ms.' >&2; exit 2; }
+      IFS=+ read -r -a keys <<< "$arg"
+      ;;
+    wait)
+      [[ "${arg:-}" =~ ^[1-9][0-9]{0,3}$ && -z "${ms:-}" ]] || { echo 'wait requires one duration in milliseconds.' >&2; exit 2; }
+      (( arg <= 1500 )) || { echo 'A wait is capped at 1500 ms.' >&2; exit 2; }
+      printf -v delay '%d.%03d' "$((arg / 1000))" "$((arg % 1000))"
+      actions+=(sleep "$delay")
+      (( total_ms += arg, lines += 1 ))
+      ;;
+    *) echo "Unsupported recipe operation: $op" >&2; exit 2 ;;
+  esac
+  if [[ "$op" == tap || "$op" == hold || "$op" == chord ]]; then
+    printf -v delay '%d.%03d' "$((ms / 1000))" "$((ms % 1000))"
+    for key in "${keys[@]}"; do actions+=(keydown "$key"); held+=("$key"); done
+    actions+=(sleep "$delay")
+    for ((i=${#keys[@]}-1; i>=0; i--)); do actions+=(keyup "${keys[i]}"); done
+    (( total_ms += ms, lines += 1 ))
+  fi
+  (( lines <= 40 && total_ms <= 8000 )) || { echo 'Procedure limit exceeded (40 actions / 8 seconds).' >&2; exit 2; }
+done < "$chain"
+(( lines > 0 )) || { echo 'Procedure is empty.' >&2; exit 2; }
+[[ "$declared_state" == "$state" ]] || { printf 'Procedure %s requires state %s; caller supplied %s.\n' "$recipe" "${declared_state:-<missing>}" "$state" >&2; exit 1; }
+printf 'Procedure: %s | required caller state: %s | actions: %d | input span: %d ms\n' "$recipe" "$state" "$lines" "$total_ms"
+if [[ "$mode" == validate ]]; then echo 'Recipe validation only; no display accessed and no input sent.'; exit 0; fi
+command -v xdotool >/dev/null 2>&1 || { echo 'xdotool is required in this shell (for example: nix shell nixpkgs#xdotool).' >&2; exit 1; }
+DISPLAY="$(<"$run_dir/display")"
+XAUTHORITY="$(<"$run_dir/xauthority")"
+export DISPLAY XAUTHORITY
+[[ -n "$DISPLAY" ]] || { echo 'Private X display is empty.' >&2; exit 1; }
+active_window() { xdotool getactivewindow getwindowname 2>/dev/null || true; }
+require_game() {
+  local title
+  title=$(active_window)
+  [[ "$title" == 'Warcraft III' ]] || { printf 'Focus changed or unexpected private window (%q); stopping.\n' "$title" >&2; return 1; }
+}
+require_game
+cleanup() { local key; for key in "${held[@]}"; do xdotool keyup "$key" >/dev/null 2>&1 || true; done; }
+trap cleanup EXIT INT TERM HUP
+# Batch all events into one XTEST client invocation; keep this under 8 seconds.
+xdotool "${actions[@]}"
+require_game
+held=()
+echo 'Chain sent. Verify the resulting game state before selecting another procedure.'
