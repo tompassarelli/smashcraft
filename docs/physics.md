@@ -614,11 +614,19 @@ scaling or the disc revision.
 
 Dash-window duration, early opposite-direction behavior, neutral handling and
 run-turn braking remain explicit provisional action rules. The ten-tick phase
-no longer holds dash speed; duration and animation-dependent transition still
-lack original comparison. At expiration, opposite direction brakes ordinary
-velocity by a provisional 0.8 Melee units/frame each tick without changing
-facing. These transition rules are not claims of Melee parity. No gameplay
-implementation from the unlicensed local reference was copied or translated.
+no longer holds dash speed. The retail event facts in
+smashcraft:docs/smash-melee-reference/retail-ground-movement-events.json now
+contradict using that single cutoff for all transitions: Dash enables Run at
+animation frame 12 for Fox/Falco and 16 for Captain Falcon; the separate common
+early dash-input gate is 20. TurnRun sets its second command variable at frame
+9. RunBrake sets its first variable at frame 0 and clears it at frame 15.
+These are animation timeline facts, not independently observed simulation
+ticks. Production still needs distinct Dash, Run, TurnRun and RunBrake action
+rules, actor-owned command timing, input priority, and paired boundary traces.
+Current opposite-direction run motion uses actor acceleration and changes
+facing after velocity crosses zero; that does not prove the TurnRun command
+gate. No gameplay implementation from the unlicensed local reference was
+copied or translated.
 
 The walk modifier immediately selects the existing 1.6/1.4 walk speeds and
 clears the dash phase; releasing it starts a fresh initial dash. Jumps, shields,
