@@ -351,6 +351,8 @@ public class FighterState
 	int character
 	fighterPhysics physics
 	surfaceRecoveryPhysics surfacePhysics
+	// Actor command timing; NTSC Fox/Falco use 14, Captain Falcon uses 11.
+	int ceilingTechImpulseFrame = 14
 	int facing
 	int lastAerialTapDirection = 0
 	int dashFrame = 0
@@ -1473,7 +1475,8 @@ public function isIntangible(FighterState f) returns boolean
 		or (f.downState == DOWN_ROLL and f.downFrame > 0 and f.downFrame <= downRollIntangibleFrames)
 		or (f.downState == DOWN_ATTACK and f.downFrame > 0 and f.downFrame <= (f.downFaceUp ? DOWN_ATTACK_INTANGIBLE_FRAMES_UP : DOWN_ATTACK_INTANGIBLE_FRAMES_DOWN))
 	let techIntangible = isFloorTeching(f) and f.downFrame >= 1 and f.downFrame <= (f.downState == DOWN_TECH ? TECH_INTANGIBLE_FRAMES : TECH_ROLL_INTANGIBLE_FRAMES)
-	return f.invincible > 0 or groundDodgeIntangible or downRecoveryIntangible or techIntangible or (f.airDodging and f.airDodgeFrame >= AIR_DODGE_INTANGIBLE_START and f.airDodgeFrame <= AIR_DODGE_INTANGIBLE_END)
+	let ceilingTechIntangible = f.surfaceRecoveryState == SURFACE_TECH_CEILING and f.surfaceRecoveryFrame < f.ceilingTechImpulseFrame
+	return f.invincible > 0 or groundDodgeIntangible or downRecoveryIntangible or techIntangible or ceilingTechIntangible or (f.airDodging and f.airDodgeFrame >= AIR_DODGE_INTANGIBLE_START and f.airDodgeFrame <= AIR_DODGE_INTANGIBLE_END)
 
 public function isGroundDodging(FighterState f) returns boolean
 	return f.groundDodgeFrame > 0
@@ -2034,6 +2037,12 @@ function resolveSolidSurfaceContacts(FighterState f, int stage, real oldX, real 
 
 function advanceSurfaceRecovery(FighterState f, InputSnapshot input) returns boolean
 	if f.hitlag > 0
+		return false
+	if f.surfaceRecoveryState == SURFACE_TECH_CEILING
+		f.surfaceRecoveryFrame = min(f.ceilingTechImpulseFrame, f.surfaceRecoveryFrame + 1)
+		if f.surfaceRecoveryFrame == f.ceilingTechImpulseFrame and not f.surfaceRecoveryVelocityApplied
+			f.vx = input.direction * f.surfacePhysics.passiveCeilingSpeed
+			f.surfaceRecoveryVelocityApplied = true
 		return false
 	if f.surfaceRecoveryState == SURFACE_TECH_WALL
 		if f.surfaceRecoveryFrame >= WALL_TECH_STARTUP_FRAMES

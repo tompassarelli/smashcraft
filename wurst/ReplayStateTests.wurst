@@ -64,6 +64,7 @@ import MatchStep
     first.hitVisualSerial = 7
     first.hitVisualElectric = true
     first.shieldVisualSerial = 3
+    first.ceilingTechImpulseFrame = 11
     first.groundRules = ntscCaptainFalconGroundMovementRules()
     first.groundAction = GROUND_ACTION_TURN_RUN
     first.groundActionFrame = 8
@@ -108,6 +109,7 @@ import MatchStep
     first.hitVisualSerial = 0
     first.hitVisualElectric = false
     first.shieldVisualSerial = 0
+    first.ceilingTechImpulseFrame = 14
     first.groundRules = authoredGroundMovementRules()
     first.groundAction = GROUND_ACTION_NONE
     first.groundActionFrame = 0
@@ -150,6 +152,7 @@ import MatchStep
     first.hitVisualSerial.assertEquals(7)
     first.hitVisualElectric.assertTrue()
     first.shieldVisualSerial.assertEquals(3)
+    first.ceilingTechImpulseFrame.assertEquals(11)
     first.groundRules.dashRunEnableFrame.assertEquals(16)
     first.groundRules.turnRunFacingCommandFrame.assertEquals(9)
     first.groundRules.runBrakeTurnCommandEndFrame.assertEquals(15)

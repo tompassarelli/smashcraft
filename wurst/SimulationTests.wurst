@@ -4674,10 +4674,48 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.surfaceRecoveryFrame.assertEquals(0)
 	let contactZ = fighter.z
 	advance(fighter, 1, input, 0)
-	fighter.surfaceRecoveryFrame.assertEquals(0)
+	fighter.surfaceRecoveryFrame.assertEquals(1)
 	fighter.z.assertLessThan(contactZ)
 	destroy input
 	destroy fighter
+
+@Test function retailCeilingTechProtectsUntilItsOneShotActorImpulse()
+	for rig = 0 to 1
+		let fighter = new FighterState(0, -265, 1)
+		let input = new InputSnapshot()
+		fighter.surfacePhysics = meleeCaptainFalconSurfaceRecoveryPhysics()
+		fighter.ceilingTechImpulseFrame = rig == 0 ? 14 : 11
+		fighter.physics.airAcceleration = 0
+		fighter.physics.airFriction = 0
+		fighter.grounded = false
+		fighter.z = 140
+		fighter.hitstun = 8
+		fighter.downState = DOWN_TUMBLE
+		fighter.techWindow = 3
+		fighter.knockbackZ = 8
+		advance(fighter, 1, input, 0)
+		fighter.surfaceRecoveryState.assertEquals(SURFACE_TECH_CEILING)
+		isIntangible(fighter).assertTrue()
+		let impulseFrame = rig == 0 ? 14 : 11
+		for frame = 1 to impulseFrame - 1
+			advance(fighter, 1, input, 0)
+			fighter.vx.assertEquals(0)
+			fighter.surfaceRecoveryVelocityApplied.assertFalse()
+			isIntangible(fighter).assertTrue()
+		fighter.hitlag = 2
+		advance(fighter, 1, input, 0)
+		fighter.surfaceRecoveryFrame.assertEquals(impulseFrame - 1)
+		isIntangible(fighter).assertTrue()
+		input.direction = -1
+		advance(fighter, 1, input, 0)
+		fighter.vx.assertEquals(-12.)
+		fighter.surfaceRecoveryVelocityApplied.assertTrue()
+		isIntangible(fighter).assertFalse()
+		input.direction = 0
+		advance(fighter, 1, input, 0)
+		fighter.vx.assertEquals(-12.)
+		destroy input
+		destroy fighter
 
 @Test function techInputDuringHitlagKeepsTheOneTickWindowUntilMotionResumes()
 	let fighter = new FighterState(0, 0, 1)

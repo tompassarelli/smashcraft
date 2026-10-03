@@ -25,11 +25,19 @@ and numeric facts; it does not reproduce game code or assets.
 
 - Ceiling tech does not use the wall's shared five-frame hang. Its action
   begins at animation rate one and normal physics proceeds.
-- Ceiling horizontal motion is applied when that character's animation emits
-  the throw-flag-B3 command. That command's per-character animation frame is
-  not yet recorded here, so the simulation currently leaves this authored
-  ceiling impulse unapplied. Treat ceiling-impulse timing and exact behavior
-  as open; do not infer it from the five-frame wall timer.
+- Ceiling horizontal motion is applied once when that character's animation
+  emits the throw-flag-B3 command: frame 14 for Fox/Falco, frame 11 for Captain
+  Falcon. At that event, current horizontal input selects the actor's ceiling
+  impulse. The same timeline makes the fighter intangible on entry and
+  vulnerable at the impulse event. Numerical facts and hashes are in
+  smashcraft:docs/smash-melee-reference/retail-ceiling-tech-events.json.
+- Production records an actor-owned ceiling event frame and its one-shot
+  consumption in replay state. The two production ceiling tests pass both
+  reference event frames, their protection boundary, the absence of wall hang,
+  current-input selection, one-shot consumption and hitlag pause/resume.
+- These checks do not establish full recovery parity. Animation-end/IASA
+  behavior, ECB repositioning, wall impulse facing/sign, and native paired
+  trajectories still require verification.
 
 Sources: `melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c`,
 `ftCo_PassiveCeil.c`, `ftCo_PassiveCeil.h`, `melee:src/melee/ft/ftaction.c`,
