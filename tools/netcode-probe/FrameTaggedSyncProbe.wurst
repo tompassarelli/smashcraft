@@ -1,0 +1,176 @@
+package FrameTaggedSyncProbe
+import Wurst
+import ClosureFrames
+import FrameTaggedRecord
+import ProbeInfo
+
+constant int TEXT_CAP = 240
+constant int LOG_CAP = 32
+constant string SYNC_PREFIX = "FT1"
+framehandle inputBox
+framehandle statusLine
+EventLedger localLedger
+EventLedger receivedZero
+EventLedger receivedOne
+TaggedEvent parsed
+string previousText = ""
+string array[32] localRows
+string array[32] receiveRows
+int localCount = 0
+int receivedCount = 0
+int scanOffset = 0
+int invalidCount = 0
+int rewriteCount = 0
+int overflowCount = 0
+int outOfOrderCount = 0
+int lastIntendedFrame = -1
+int run = 0
+boolean recording = false
+boolean inputInvalidated = false
+timer nativeClock
+
+function gameMs() returns string
+    return R2S(TimerGetElapsed(nativeClock) * 1000.)
+
+function outcomeName(int outcome) returns string
+    if outcome == RECORD_ADDED
+        return "new"
+    if outcome == RECORD_DUPLICATE
+        return "duplicate"
+    if outcome == RECORD_CONFLICT
+        return "conflict"
+    if outcome == RECORD_OVERFLOW
+        return "ledger_overflow"
+    return "invalid"
+
+function localPoll()
+    if not recording
+        return
+    let text = inputBox.getText()
+    if inputInvalidated
+        return
+    if text.length() < previousText.length() or (previousText.length() > 0 and text.substring(0, previousText.length()) != previousText)
+        rewriteCount++
+        inputInvalidated = true
+        statusLine.setText("Input changed before its consumed prefix. Append-only capture required.")
+        return
+    previousText = text
+    while localCount < LOG_CAP
+        let delimiterPos = text.indexOf(";", scanOffset)
+        if delimiterPos < 0
+            return
+        let wire = text.substring(scanOffset, delimiterPos + 1)
+        scanOffset = delimiterPos + 1
+        let valid = parsed.decode(wire)
+        let result = valid ? localLedger.observe(wire) : RECORD_INVALID
+        if not valid
+            invalidCount++
+        else
+            if parsed.frame() < lastIntendedFrame
+                outOfOrderCount++
+            lastIntendedFrame = parsed.frame()
+        if localCount >= LOG_CAP
+            overflowCount++
+            return
+        var sendResult = false
+        if result == RECORD_ADDED
+            sendResult = GetLocalPlayer().sendSyncData(SYNC_PREFIX, wire)
+        localRows[localCount] = "L " + I2S(localCount) + " sample_game_ms=" + gameMs() + " slot=" + I2S(GetPlayerId(GetLocalPlayer())) + " result=" + outcomeName(result) + " send_ok=" + (sendResult ? "1" : "0") + " wire=" + wire
+        localCount++
+    overflowCount++
+
+function receiveSync()
+    let slot = GetPlayerId(GetTriggerPlayer())
+    let wire = BlzGetTriggerSyncData()
+    var result = RECORD_INVALID
+    if slot == 0
+        result = receivedZero.observe(wire)
+    else if slot == 1
+        result = receivedOne.observe(wire)
+    if receivedCount >= LOG_CAP
+        overflowCount++
+        return
+    receiveRows[receivedCount] = "R " + I2S(receivedCount) + " receive_game_ms=" + gameMs() + " sender=" + I2S(slot) + " result=" + outcomeName(result) + " wire=" + wire
+    receivedCount++
+
+function save()
+    recording = false
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("FRAME_TAGGED v=1 build=" + TAGGED_BUILD + " run=" + I2S(run) + " local_slot=" + I2S(GetPlayerId(GetLocalPlayer())) + " local_rows=" + I2S(localCount) + " receive_rows=" + I2S(receivedCount))
+    Preload("counters invalid=" + I2S(invalidCount) + " local_duplicates=" + I2S(localLedger.duplicateCount()) + " local_conflicts=" + I2S(localLedger.conflictCount()) + " out_of_order=" + I2S(outOfOrderCount) + " rewrites=" + I2S(rewriteCount) + " overflow=" + I2S(overflowCount) + " received_duplicate_p0=" + I2S(receivedZero.duplicateCount()) + " received_conflict_p0=" + I2S(receivedZero.conflictCount()) + " received_duplicate_p1=" + I2S(receivedOne.duplicateCount()) + " received_conflict_p1=" + I2S(receivedOne.conflictCount()))
+    Preload("epoch=external; record_time=elapsed_us; frame=externally assigned; game_ms is Warcraft timer and is never compared to epoch")
+    Preload("LOCAL_FINAL " + inputBox.getText())
+    let finalText = inputBox.getText()
+    Preload("LOCAL_PENDING " + (scanOffset < finalText.length() ? finalText.substring(scanOffset) : ""))
+    Preload("LOCAL_READ serial sample_game_ms player result send_ok exact_wire")
+    for i = 0 to localCount - 1
+        Preload(localRows[i])
+    Preload("SYNC_RECEIVE serial callback_game_ms sender result exact_wire")
+    for i = 0 to receivedCount - 1
+        Preload(receiveRows[i])
+    PreloadGenEnd("smashcraft-frame-tagged-" + I2S(run) + "-p" + I2S(GetPlayerId(GetLocalPlayer())) + ".txt")
+    statusLine.setText("Saved this client's local reads and both synchronized receive streams.")
+
+function start()
+    localLedger = new EventLedger()
+    receivedZero = new EventLedger()
+    receivedOne = new EventLedger()
+    parsed = new TaggedEvent()
+    localCount = 0
+    receivedCount = 0
+    scanOffset = 0
+    invalidCount = 0
+    rewriteCount = 0
+    overflowCount = 0
+    outOfOrderCount = 0
+    inputInvalidated = false
+    lastIntendedFrame = -1
+    previousText = ""
+    run++
+    inputBox.setText(GetLocalPlayer(), "")
+    inputBox.setFocus(GetLocalPlayer(), true)
+    TimerStart(nativeClock, 3600., false, null)
+    recording = true
+    statusLine.setText("Append F1|id6|elapsed_us6|frame6|action0or1; records. This probe transports tags; it does not apply game input.")
+
+class SyncSaveListener extends FrameHandleListener
+    override function onEvent()
+        save()
+
+function setup()
+    DestroyTimer(GetExpiredTimer())
+    BlzHideOriginFrames(true)
+    nativeClock = CreateTimer()
+    localLedger = new EventLedger()
+    receivedZero = new EventLedger()
+    receivedOne = new EventLedger()
+    parsed = new TaggedEvent()
+    inputBox = createFrame("EDITBOX", "FrameTaggedInput", GAME_UI, "EscMenuEditBoxTemplate", 900)
+    inputBox.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.04, 0.55)
+    inputBox.setSize(0.72, 0.05)
+    inputBox.setTextSizeLimit(TEXT_CAP)
+    let status = createGlueTextButton("FrameTaggedSave", GAME_UI, "ScriptDialogButton", 901)
+    status.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.04, 0.43)
+    status.setSize(0.16, 0.04)
+    status.setText("Save / stop")
+    status.onClickReleaseFocus()
+    status.onClick(new SyncSaveListener())
+    statusLine = createTextFrame("FrameTaggedStatus", GAME_UI, 902)
+    statusLine.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.04, 0.49)
+    statusLine.setSize(0.90, 0.05)
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("FRAME_TAGGED_READY v=1 build=" + TAGGED_BUILD + " slot=" + I2S(GetPlayerId(GetLocalPlayer())))
+    Preload("local timer poll then BlzSendSyncData prefix=FT1; no combat application")
+    PreloadGenEnd("smashcraft-frame-tagged-" + TAGGED_BUILD + "-p" + I2S(GetPlayerId(GetLocalPlayer())) + "-ready.txt")
+    let receiver = CreateTrigger()
+    BlzTriggerRegisterPlayerSyncEvent(receiver, Player(0), SYNC_PREFIX, false)
+    BlzTriggerRegisterPlayerSyncEvent(receiver, Player(1), SYNC_PREFIX, false)
+    TriggerAddAction(receiver, function receiveSync)
+    let pollTimer = CreateTimer()
+    TimerStart(pollTimer, 1. / 60., true, function localPoll)
+    start()
+
+init
+    TimerStart(CreateTimer(), 0., false, function setup)
