@@ -41,9 +41,15 @@ It also includes retail launch stacking, damage-level selection, grounded
 movement, rebound and test-arena surface recovery. These implementations do not
 establish full parity or complete collision geometry.
 
-The latest assembled simulation check passed 566/566 normal Wurstunit checks,
-after ordinary melee capsule contacts and damage-only surface-rebound eligibility
-were integrated. The previous check passed 561/561 after shield-fixture
+The latest assembled simulation check passed 571/571 normal Wurstunit checks,
+after airborne weak-damage landing bands, tumble-only surface recovery and
+digital tumble exit were integrated. A subsequent independent NTSC replay
+check passed for tumble exit and same-frame horizontal drift on both simulation
+hosts; the recording does not identify retail revision. Seven original NTSC
+1.02 tech-timer gate executions confirm the existing 20/40 limits and their
+strict/inclusive boundaries, but do not establish input aging through hitlag.
+Evidence is retained in smashcraft:docs/smash-melee-reference/surface-action-boundaries.md.
+The prior contact integration passed 566/566; the earlier check passed 561/561 after shield-fixture
 deduplication; the earlier aggregate passed 592/592 before that deduplication. The
 generated-Lua production probe passes selected grounded-friction, shield regen,
 shield damage, shield-contact accumulation and fused shieldstun boundaries,
@@ -89,12 +95,12 @@ Ordinary movement with residual knockback no longer starts a damage rebound.
 The retail DamageFly/DamageFall/FlyReflect distinctions remain unverified in
 the current single-tumble-state model. Evidence: smashcraft:build/contact-assembled.log.
 
-The latest physics candidate is Smashcraft 0.0.14, build physics-melee-contact,
-source 3f43d76812a20103499e91a2b9d869e1e2133358. It built with zero errors and
+The latest physics candidate is Smashcraft 0.0.16, build physics-tumble-exit,
+source c3e0269de4e07cf89ec7759afab2aa56f5fd0a86. It built with zero errors and
 six existing warnings. SHA-256:
-570608243c8c25b0ada247f28b1df7720379de7db3e21f87ddcef37bfed5aae8.
-Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.14.w3x.
-Build evidence: smashcraft:build/contact-map.log. Deployment was disabled;
+0a435ea41c8260bbd4b5a6309c6d29d8e512909239ed23c6cd52553137c66115.
+Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.16.w3x.
+Build evidence: smashcraft:build/tumble-exit-map.log. Deployment was disabled;
 this candidate has not been installed or observed natively. Separate native
 input/contact probes do not establish its physics or presentation. The separate
 native arithmetic candidate in smashcraft:docs/native-physics-precision.md

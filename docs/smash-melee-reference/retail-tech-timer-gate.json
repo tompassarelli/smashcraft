@@ -1,0 +1,70 @@
+{
+  "id": "retail-ntsc-1.02-tech-timer-gate",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "commonDataSha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "commonValues": [
+    {
+      "offset": "0x250",
+      "name": "inputAgeExclusiveLimit",
+      "value": 20
+    },
+    {
+      "offset": "0x01C",
+      "name": "previousPressIntervalInclusiveMinimum",
+      "value": 40
+    }
+  ],
+  "execution": {
+    "entry": "0x800986B0",
+    "cpu": "QEMU PPC750",
+    "exitCode": 0,
+    "stub": {
+      "address": "0x800C5240",
+      "result": false,
+      "meaning": "CPU/item exclusion supplied false"
+    }
+  },
+  "limitations": [
+    "Original timer comparisons and return execute unchanged with synthetic fighter/input counters.",
+    "Input capture, counter advancement through hitlag, collision and action entry are not executed.",
+    "QEMU PPC750 is not GameCube hardware; original binaries remain outside repositories."
+  ],
+  "results": [
+    {
+      "age": 0,
+      "previousPressInterval": 255,
+      "eligible": true
+    },
+    {
+      "age": 19,
+      "previousPressInterval": 40,
+      "eligible": true
+    },
+    {
+      "age": 20,
+      "previousPressInterval": 40,
+      "eligible": false
+    },
+    {
+      "age": 19,
+      "previousPressInterval": 39,
+      "eligible": false
+    },
+    {
+      "age": 0,
+      "previousPressInterval": 39,
+      "eligible": false
+    },
+    {
+      "age": 0,
+      "previousPressInterval": 40,
+      "eligible": true
+    },
+    {
+      "age": 255,
+      "previousPressInterval": 255,
+      "eligible": false
+    }
+  ]
+}

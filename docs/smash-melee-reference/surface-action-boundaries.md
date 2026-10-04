@@ -92,7 +92,25 @@ zero errors and the existing unused-import warning; evidence:
 smashcraft:build/tumble-exit-trace.log. Production code and the 0.0.16 map are
 unchanged by this additional frame check.
 
-## Wall and ceiling eligibility
+## Retail tech timer eligibility
+
+smashcraft:docs/smash-melee-reference/retail-tech-timer-gate.json records seven
+executions of the unchanged NTSC 1.02 timer gate at 0x800986B0. Input age 19
+with prior-press interval 40 succeeds; age 20 fails. Interval 39 fails even on
+a fresh press, whereas interval 40 succeeds. The retail common fields are
+float +0x250 = 20 and integer +0x01C = 40. These observations confirm the
+existing production window and lockout constants, including strict/inclusive
+boundaries; no gameplay coefficient change is required.
+
+The independently authored loader is smashcraft:tools/physics-probe/observe-tech-gate.mjs.
+Its synthetic fighter supplies the two counters and its CPU/item exclusion
+call returns false. Original timer comparisons and return execute unchanged
+under QEMU PPC750. Counter advancement, input capture, hitlag, collision and
+action entry are not executed. In particular, the production treatment of a
+window opened before hitlag is not certified by this scalar gate. The source
+and executable hashes identify NTSC 1.02; no proprietary bytes are retained.
+
+## Damage-flight surface eligibility
 
 Weak airborne Damage also does not select wall/ceiling recovery. At the
 recorded reference revision, its collision callback handles grounding;
