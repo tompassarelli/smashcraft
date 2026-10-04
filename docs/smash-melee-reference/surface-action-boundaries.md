@@ -62,6 +62,15 @@ This establishes the digital projection of the rule. Analog input magnitudes,
 full retail callback priority, independent executable/frame-trace parity and
 native behavior remain unverified. The 0.0.15 map predates this correction.
 
+Source checkpoint `c3e0269de4e07cf89ec7759afab2aa56f5fd0a86` built
+Smashcraft 0.0.16 with build ID `physics-tumble-exit`, zero errors and six
+existing warnings (smashcraft:build/tumble-exit-map.log). It includes both
+digital tumble exit and weak-damage surface eligibility. Candidate:
+~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.16.w3x.
+SHA256: `0a435ea41c8260bbd4b5a6309c6d29d8e512909239ed23c6cd52553137c66115`.
+Deployment remains disabled while concurrent input work owns the clients;
+native observation is outstanding.
+
 ## Wall and ceiling eligibility
 
 Weak airborne Damage also does not select wall/ceiling recovery. At the
