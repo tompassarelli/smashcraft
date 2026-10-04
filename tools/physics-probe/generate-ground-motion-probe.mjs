@@ -21,16 +21,18 @@ for (const [index, row] of corpus.results.entries()) {
     lines.push(`    destroy ${input}`, `    destroy ${f}`);
 }
 for (const [index, row] of corpus.guardEntries.entries()) {
-    const f = `guard${index}`, attacker = `attacker${index}`;
+    const f = `guard${index}`, attacker = `attacker${index}`, world = `world${index}`;
     const facing = Math.sign(row.afterGroundSpeed.value);
     lines.push(`    let ${f} = new FighterState(0, 0, 1)`, `    let ${attacker} = new FighterState(1, -100, 1)`,
+        `    let ${world} = new FighterRoster(3)`,
+        `    ${world}.fighters[0] = ${f}`, `    ${world}.fighters[1] = ${attacker}`,
         `    ${f}.vx = ${literal(row.previousGroundSpeed.value)} * 6`, `    ${f}.shield = true`,
         '    beginDamageContacts()',
         `    queueDamageContact(${attacker}, ${f}, hitEffect(4, 0, 0, 0, 0, false), ${facing}, CONTACT_LAUNCH, true, null)`,
-        `    finishDamageContacts(${attacker}, ${f})`,
+        `    finishDamageContacts(${world})`,
         `    if ${f}.vx != 0 or totalVelocityX(${f}) != ${f}.shieldPushbackX`,
         '        failures++', `        BJDebugMsg("GROUND_SHIELD_ENTRY_${index}_MISMATCH")`,
-        `    destroy ${attacker}`, `    destroy ${f}`);
+        `    destroy ${world}`, `    destroy ${attacker}`, `    destroy ${f}`);
 }
 lines.push('    if failures != 0', '        BJDebugMsg("GROUND_MOTION_BINARY32_EXACT_FAIL")',
     '    else', '        BJDebugMsg("GROUND_MOTION_BINARY32_EXACT_PASS")', '');
