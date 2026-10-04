@@ -435,3 +435,39 @@ The consumer’s focused input-protocol checks pass 7/7 with zero errors and nin
 existing warnings. Native direct-sync and selection-encoding revalidation is
 pending; these checks do not yet establish corrected native protocol integrity
 or alter the measured latency verdict.
+
+
+## Corrected native transport comparison: 0.0.32
+
+Corrected candidate SHA256 `b84ce176e7655bf8561d0456c6fd093bb8dd2f785ca4a09b0096a09c71b46e5e`,
+source checkpoint `b7d7000`, compiler `6b129956f6e7cf9582510f26b99d305526bf3ded`.
+Both retained clients ran the same match, humans slots 0/1 (mask 3), no additional
+players. Build required WC3_RESPONSE_SERVICE_PROBE=1. The earlier 0.0.32 candidate
+without that flag supplied no transport evidence. Stage-menu entry alone did
+not activate the probe; actual MATCH was observed on both clients first.
+
+All twelve receipts report 120/120 values, zero missing, bad values, duplicates
+or send failures; all sixty own echoes arrived. This closes the bounded native
+minimum-integer serialization regression. Own-echo game-clock timing:
+
+| Rate / transport | A mean / maximum | B mean / maximum |
+| --- | ---: | ---: |
+| 30 Hz direct sync | 80 / 99 ms | 75 / 99 ms |
+| 30 Hz GameCache + selection marker | 80 / 99 ms | 75 / 98 ms |
+| 30 Hz selection digits | 102 / 221 ms | 99 / 215 ms |
+| 60 Hz direct sync | 114 / 209 ms | 108 / 209 ms |
+| 60 Hz GameCache + selection marker | 721 / 2,023 ms | 743 / 2,148 ms |
+| 60 Hz selection digits | 4,759 / 9,420 ms | 4,880 / 9,544 ms |
+
+The corrected short-window comparison favors direct sync at 60 Hz. Selection
+and GameCache results vary materially from 0.0.31; these sequential short arms
+do not identify the cause of that variation or establish sustained capacity.
+No alternative has demonstrated a reliably faster path. These measurements
+are transport echoes, not physical controller-to-screen response. The collector
+captured all twelve receipts over 32.541 host seconds; it was started before
+the trigger, so that span includes setup. Evidence:
+wc3-melee:docs/native-journal-packet-comparison-20261004/transports0032/.
+
+Next diagnostic separates changing preload script execution from the origin of
+the value sent on the wire. Full responsive companion-to-fight acceptance remains
+open; physics/VFX ownership is now under this root and peer listeners are stopped.

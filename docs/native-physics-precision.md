@@ -3,9 +3,9 @@
 smashcraft:tools/physics-probe/build-native-precision.sh packages the production
 Simulation, RollTravel and MeleeScalarMath sources with the existing numerical
 comparison fixtures. It uses the locked compiler and standard library and
-rejects uncommitted changes to those three simulation packages. All generated
-sources and map outputs remain inside the owning worktree's build directory.
-The private terrain input remains outside the repository.
+rejects uncommitted changes to those three simulation packages. Authored generated fixture sources remain inside the owning worktree’s build
+directory. Map intermediates and candidates remain in private build storage
+outside the repository, alongside the private terrain input.
 
 Run the builder through the machine-capacity helper with the private terrain
 map and an explicitly coordinated version (0.0.N) as its arguments. The builder
@@ -80,3 +80,14 @@ The current candidate includes 56 original DI vectors. The emitted-Lua check
 observes all 56 matching
 vectors; see smashcraft:docs/smash-melee-reference/retail-di-vector.json for the
 original execution boundary and limitations.
+
+
+The current-source arithmetic candidate is Smashcraft 0.0.33, source
+`7fd7c9debc50fa455167587a98aa6c0b48cb54fa`, built with compiler
+`6b129956f6e7cf9582510f26b99d305526bf3ded`. Candidate:
+~/.local/share/smashcraft-build-inputs/native-physics-activation-20261004/native.A4CCF6/Smashcraft 0.0.33.w3x.
+SHA256: `197e0d4148c0f0680bc5b6b6513b836fbdc90505a36eea3a2f24d4e86e28036c`.
+Compilation reports zero errors and four warnings; Lua syntax and packaged-script
+comparison pass. Native execution is pending. Both stale diagnostic contact
+calls now use the production fighter roster API. Current acceptance uses the
+same sixteen groups and nineteen messages above, with this new source marker.

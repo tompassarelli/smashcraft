@@ -1,0 +1,55 @@
+{
+  "build": "netcode-0032",
+  "records": [
+    {
+      "receipt": "a-r0-a0",
+      "observedSeconds": 13.457
+    },
+    {
+      "receipt": "b-r0-a0",
+      "observedSeconds": 13.478
+    },
+    {
+      "receipt": "b-r0-a1",
+      "observedSeconds": 15.507
+    },
+    {
+      "receipt": "a-r0-a1",
+      "observedSeconds": 15.629
+    },
+    {
+      "receipt": "b-r0-a2",
+      "observedSeconds": 17.668
+    },
+    {
+      "receipt": "a-r0-a2",
+      "observedSeconds": 17.79
+    },
+    {
+      "receipt": "a-r1-a0",
+      "observedSeconds": 18.801
+    },
+    {
+      "receipt": "b-r1-a0",
+      "observedSeconds": 18.821
+    },
+    {
+      "receipt": "a-r1-a1",
+      "observedSeconds": 21.947
+    },
+    {
+      "receipt": "b-r1-a1",
+      "observedSeconds": 21.968
+    },
+    {
+      "receipt": "a-r1-a2",
+      "observedSeconds": 32.521
+    },
+    {
+      "receipt": "b-r1-a2",
+      "observedSeconds": 32.541
+    }
+  ],
+  "receipts": 12,
+  "wallSeconds": 32.641
+}
