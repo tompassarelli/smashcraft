@@ -136,3 +136,66 @@ archived privately; no helper or virtual controller remains active.
 Bounded native traces, producer/kernel timestamps and capture metadata:
 wc3-melee:docs/journal0043-evidence-20261004/. Full helper logs remain at
 wc3-melee:build/journal-tap43-native/.
+
+## 0.0.44–0.0.45: channel startup and failed warming
+
+Both candidates received both startup markers on the production SC_GP channel
+before any journal reads, at callback 25/native 0.423 seconds. This establishes
+registration and callback delivery at startup; it does not diagnose garbage
+collection or rule out later integration costs.
+
+In 0.0.44, both observers applied both players’ ordinary 5 ms attack at original
+frame 19, callback 162/native 2.700 seconds. Confirmation stopped at frame 20
+(prediction 45), with 21 production receipts and two startup receipts per trace.
+The second tap was retained at frame 97 during a 249.865263 ms helper stop but
+was not applied within the trace. Helpers published through frame 300 and exited
+0/0. This proves the first tap’s original-frame application, not usable sustained
+latency or recovery. Artifact SHA256:
+aa7ea32e304307d95f30fd1f72ec5c2c3806bde3090c0d36466ce45a548bb74f.
+Evidence: wc3-melee:docs/journal0044-evidence-20261004/.
+
+0.0.45 warmed 65 canonical symbol scripts before input servicing. Both clients
+applied the frame-19 attack at callback 173/native 2.883 seconds. Confirmation
+stopped at frame 24 (prediction 49); 25 production receipts plus two startup
+receipts were recorded. The frame-97 tap, retained during a 249.951663 ms helper
+stop, was not applied. Helpers again published 300 frames and exited 0/0. Neither
+trial reported rejected input, speculative failures or dropped trace rows.
+Artifact SHA256:
+1dc89e76782eca9fb153832aa6d3b5d2c52d4144a8a78ad8b71d10c643373ac3.
+Evidence: wc3-melee:docs/journal0045-evidence-20261004/.
+
+Warming did not repair performance and its source/CLI was retired. The
+next owning repair encodes data through immutable file presence, so every
+present file executes exactly the same script bytes. Native34 motivates that
+choice; only its matched native trial can decide this integration’s performance.
+The responsive keyboard/digital mapper remains the delivered 0.0.40 path.
+
+## 0.0.46: constant script also failed
+
+The publisher encoded six-bit I4 symbols (seven-bit ACK symbols) through
+immutable file presence and committed a ready marker last. Every present file
+contained the same three-line script returning `1`. Focused Rust journal checks
+passed7/7, the helper rebuilt, and the native map compiled. The experiment’s
+source patch and exact map remain privately archived; the failed representation
+was removed from the live tree after this native result.
+
+Both clients received both SC_GP startup markers before journal reads. Helpers
+retained5ms attack edges at originalframes19 and97, the latter during a
+249.892723ms helper stop; both published through300 and exited0/0. Each native
+trace recorded300callbacks/native4.999s, but only the two startup callbacks and
+zero production receipts. Both confirmations stayedframe0 and predictions25.
+Neither attack was applied. No rejected rows, speculative failures or dropped
+trace rows were reported. This is a failed native integration, despite passing
+protocol checks. It does not prove a cause or invalidate all identical-script
+techniques; it rejects this representation at the tested workload.
+
+Artifact SHA256:
+605ef5bf552b9e04393076e13ddde5b63bd75c9f183f8a65aad6df48b7bba3ee.
+Evidence: wc3-melee:docs/journal0046-evidence-20261004/.
+Private source counterexample:
+~/.local/share/smashcraft-build-inputs/production-netcode-20261004/archive/journal46-source/constant-presence.patch.
+
+Helpers and virtual controller were reaped. The unusable46 games were terminated
+by verified exact PID;40 was restored in both mapfolders. Return to the usable
+keyboard/digital-controller result; no further transport survey is admitted by
+this failed attempt. Full original-frame journal delivery remains incomplete.

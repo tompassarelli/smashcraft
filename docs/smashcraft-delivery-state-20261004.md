@@ -10,19 +10,19 @@ continued play. An intentional walk-off exercised stock loss and the result
 screen. Both players acknowledged rematch, returned to selection and entered a
 second fight. Further response and mapper trials used subsequent fights.
 Both retained clients remain signed in. No companion writer is running.
-The subsequent experimental 0.0.41–0.0.43 journal trials are recorded at
+The subsequent experimental 0.0.41–0.0.46 journal trials are recorded at
 wc3-melee:docs/journal-pause-checkpoint-20261004.md. None established usable
 original-frame journal gameplay. In 0.0.43 both helpers retained 5 ms taps,
 including one during a 250 ms helper stop, but the native traces received no
 production input and confirmation stayed at simulation frame 0. Both clients
 then left through ordinary score/browser screens without restart. Exact
-0.0.40 bytes are restored in both map folders; journal43 is archived privately.
+0.0.40 bytes were restored after journal43; journal43 is archived privately.
 The earlier recovery from journal42 accepted a 200 ms movement hold, changing
 Archer x from -240 to -135. No further latency claim follows from that recovery.
 A fresh two-client 0.0.40 fight was restored after journal43. Native screens
 showed Archer/Rifleman and build playable-0040 on both clients; Archer moved
 from x=-240 to x=27 and started attack serial 1. This closes map restoration,
-not a new latency or original-frame guarantee. The fight is retained paused.
+not a new latency or original-frame guarantee. That fight was retained paused before the later journal44/45 experiments.
 A separate fresh 0.0.40 match after the 0.0.41 recovery accepted movement, and
 both clients completed ordinary Quit Mission to their score screens. The later
 F5 requests did not establish those exits.
@@ -80,8 +80,8 @@ Private map:
 ~/.local/share/smashcraft-build-inputs/production-netcode-20261004/build/Smashcraft 0.0.40.w3x
 
 SHA256: 13f0ba7f6a78eff1c7f71e14f2c398ebeb38c6f24b06aad9b2540f4f7eaa1f17.
-Both clients' Maps/00-Smashcraft folders contain these exact bytes. Previous
-maps are archived privately. Source: fa681100fc429735720325bf479f5bcd6944f25d,
+These exact bytes remain privately available; the current test installation is
+recorded at the latest checkpoint below. Previous maps are archived privately. Source: fa681100fc429735720325bf479f5bcd6944f25d,
 with map-version 0.0.40. Build completed and its capacity lease was released.
 
 Build configuration: WC3_INPUT_PROFILE=shadow-d0-r24,
@@ -134,3 +134,35 @@ pause/resume and timely original-frame application remain open. The 0.0.40
 artifact remains available independently of this diagnostic's unfinished leave.
 Issues 3/4/21 remain closed for their delivered scopes; this bounded gameplay
 check does not justify closing broader acceptance issues.
+
+## Latest integration checkpoint: journal46
+
+Journal44/45 passed production-channel startup before disk reads and applied
+the first 5 ms tap at original frame19. Application took native2.700/2.883s;
+confirmation stalled at20/24 and a frame97 tap retained during a250ms helper
+stop did not reach gameplay. Warming65 symbol scripts failed and was removed.
+
+Journal46 uses identical script bytes in every present file and encodes values
+through immutable file presence; the ready marker publishes last. Rust journal
+checks passed7/7 and the helper rebuilt. The map compiled with the existing
+toolchain and its capacity lease released. Both clients loaded the same46
+artifact and passed both SC_GP startup receipts before reads. The matched native
+tap/stall trial failed: zero production receipts across300callbacks, confirmation0,
+and neither retainedtap19 nortap97 applied. This representation was removed
+from the live source; source/map/evidence are retained for the counterexample.
+
+Private artifact:
+~/.local/share/smashcraft-build-inputs/production-netcode-20261004/build/Smashcraft 0.0.46.w3x
+SHA256605ef5bf552b9e04393076e13ddde5b63bd75c9f183f8a65aad6df48b7bba3ee.
+
+The journal45 match did not complete ordinary Quit Mission after keyboard and
+verified-coordinate attempts. Its exact unusable game processes were terminated;
+retained launcher Play recovered both clients online without a new sign-in.
+No claim that journal caused the leave failure is made. Playable40 remains the
+delivered keyboard/digital-controller scope. Broader acceptance remains open.
+
+After the failed46 trial, both helpers/pad were reaped and both unusable game
+processes were terminated by verified exact PID. Exact40 bytes were restored
+to both mapfolders; launcher recovery is in progress. There is no journal
+performance pass. The delivered scope remains usable keyboard/digital control,
+with full original-frame capture and remaining acceptance explicitly open.

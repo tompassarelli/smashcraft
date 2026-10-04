@@ -677,3 +677,35 @@ the playable 0.0.40 artifact was restored. The experiment remains unfinished;
 no general transport survey or repeated green checks block usable delivery.
 Details: wc3-melee:docs/journal-pause-checkpoint-20261004.md.
 Evidence: wc3-melee:docs/journal0043-evidence-20261004/.
+
+### Journal44/45 integration checkpoint (4 October 2026)
+
+Both clients received both startup messages on SC_GP before journal file reads.
+The first 5 ms tap was applied at its original frame 19, but only at native
+2.700 s (44) or 2.883 s (45); confirmation stalled at frame 20/24. A frame-97
+tap captured during a 250 ms helper stop did not reach gameplay in either
+300-callback trace. Warming 65 canonical scripts in45 did not fix this.
+This establishes working startup and one original-frame application, while
+sustained journal input remains unusable. It does not change the playable40
+digital mapper verdict. Detailed results and exact artifact hashes:
+wc3-melee:docs/journal-pause-checkpoint-20261004.md.
+
+The next selected repair uses identical script text for every present file and
+encodes packet bits by file presence, preserving ready-last atomic publication.
+This follows native34’s script-text discriminator; its performance remains
+unmeasured until the matched native check. No new transport survey is needed.
+
+### Constant-script journal46 verdict
+
+The matched two-client trial rejected the selected presence-bit representation.
+Rust7/7 and mapbuildpassed, and both startup markers arrived before journal
+reads. Helpers retainedtap19 andtap97 through a249.893ms stop. Both native
+traces then receivedzero production packets across300callbacks; confirmation
+stayed0. Both taps were unapplied. The failed source representation was retired
+and archived privately, with bounded evidence retained at
+wc3-melee:docs/journal0046-evidence-20261004/.
+
+Direct sync with the delivered keyboard/digital mapper remains the usable
+choice. Original-frame short-tap/stall retention through FileIO is not delivered.
+No observed finding justifies treating the previously responsive mapper as
+regressed or continuing another broad transport inventory before usable play.

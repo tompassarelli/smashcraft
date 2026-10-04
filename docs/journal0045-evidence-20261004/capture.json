@@ -1,0 +1,10 @@
+{
+  "epoch_monotonic_ns": 519903206279847,
+  "helper_exit_codes": [
+    0,
+    0
+  ],
+  "stall_ms": 249.951663,
+  "helper_sha256": "b49e93f2dfdf14dfba67558719e2cf1500cadfd3f6950b99d5b415d3139e2b19",
+  "scope": "Two readers of one virtual kernel device; frame300 finite capture; no physical hardware latency or pause/resume claim"
+}

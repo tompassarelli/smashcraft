@@ -155,6 +155,9 @@ StagePanel stagePanel = null
 
 timer inputTraceClock = null
 boolean inputTraceActive = false
+int shadowTraceRawSyncEvents = 0
+int journalTransportReadyMask = 0
+boolean journalTransportStartSent = false
 boolean developerRestartRequested = false
 int inputTraceTicks = 0
 int inputTraceCount = 0
@@ -324,6 +327,7 @@ function startInputTrace()
     for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
         shadowTraceAccepted[slot] = 0
     shadowTraceRejected = 0
+    shadowTraceRawSyncEvents = 0
     shadowTraceWaitTicks = 0
     shadowTraceConfirmedSteps = 0
     shadowTraceSpeculativeSteps = 0
@@ -645,6 +649,13 @@ function commitJournalPauseAtFrame()
 
 function serviceJournalInput()
 	if journalInputFailed
+		return
+	if RESPONSE_SERVICE_PROBE and not journalTransportStartSent
+		journalTransportStartSent = true
+		startInputTrace()
+		let accepted = BlzSendSyncData("SC_GP", "J4" + I2S(shadowInputEpoch))
+		traceInput("journal transport start accepted " + (accepted ? "1" : "0"))
+	if RESPONSE_SERVICE_PROBE and journalTransportReadyMask != matchState.humanMask
 		return
 	if nativeOrderProbeActive()
 		return
@@ -1162,8 +1173,22 @@ function shadowPollLocal() returns int
     return heldActions
 
 function receiveShadowInput()
+    shadowTraceRawSyncEvents++
     let sender = GetPlayerId(GetTriggerPlayer())
     let wire = BlzGetTriggerSyncData()
+    if JOURNAL_INPUT_SOURCE and RESPONSE_SERVICE_PROBE and wire == "J4" + I2S(shadowInputEpoch)
+        if matchState.humanActive(sender) and not participantIsActive(journalTransportReadyMask, sender)
+            var bit = 1
+            for slot = 1 to sender
+                bit *= 2
+            journalTransportReadyMask += bit
+            traceInput("journal transport start received sender " + I2S(sender))
+            if journalTransportReadyMask == matchState.humanMask
+                PreloadGenClear()
+                PreloadGenStart()
+                Preload("build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(GetPlayerId(GetLocalPlayer())) + " received-mask=" + I2S(journalTransportReadyMask) + " before-journal-reads=yes")
+                PreloadGenEnd("smashcraft-journal-transport-ready-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-p" + I2S(GetPlayerId(GetLocalPlayer())) + ".txt")
+        return
     nativePreloadProbeObserveSync(sender, wire)
     if nativePreloadProbeReceive(sender, wire)
         return
@@ -1341,6 +1366,8 @@ function beginShadowEpoch() returns boolean
     else
         shadowCapture.reset(shadowPollLocal())
     journalInputFailed = false
+    journalTransportReadyMask = 0
+    journalTransportStartSent = false
     journalPausePending = false
     journalPauseAckReceived = false
     journalPauseCommitSent = false
@@ -1879,6 +1906,7 @@ function traceTick()
                         traceInput("local presentation " + PRESENTATION_PROFILE + " participant " + I2S(slot) + " admitted " + (pool.admitted() ? "1" : "0") + " missing-selections " + I2S(pool.missingSelections))
                     traceInput("participant " + I2S(slot) + " received-packets " + I2S(shadowTraceAccepted[slot]) + " received-rows " + I2S(shadowTraceReceivedRows[slot]) + " key-down " + I2S(shadowTraceKeyDown[slot]) + " key-up " + I2S(shadowTraceKeyUp[slot]))
             traceInput("common K " + I2S(shadowSchedule.knownThrough()) + " confirmed " + I2S(shadowSchedule.nextConfirmedFrame() - 1) + " R " + I2S(shadowSchedule.rollbackFrames()))
+            traceInput("raw sync events since trace start " + I2S(shadowTraceRawSyncEvents) + " journal-start-mask " + I2S(journalTransportReadyMask))
             traceInput("local callbacks " + I2S(inputTraceTicks) + " F " + I2S(shadowSchedule.speculativeFrame()) + " rejected " + I2S(shadowTraceRejected) + " no-confirmed " + I2S(shadowTraceWaitTicks) + " confirmed-steps " + I2S(shadowTraceConfirmedSteps) + " speculative-steps " + I2S(shadowTraceSpeculativeSteps) + " failed " + I2S(shadowTraceSpeculativeFailures) + " corrections " + I2S(shadowTraceCorrections) + " replayed-frames " + I2S(shadowTraceReplayedFrames) + " max-replay-depth " + I2S(shadowTraceMaxReplayDepth))
             traceInput("local target " + I2S(shadowSchedule.captureTarget()) + " polls " + I2S(shadowTraceLocalPolls) + " captures " + I2S(shadowTraceLocalCaptures) + " sent-packets " + I2S(shadowTraceLocalSends) + " same-target " + I2S(shadowTraceSameTargetSkips) + " window-blocks " + I2S(shadowTraceWindowBlocks))
             traceInput("local sent-rows " + I2S(shadowTraceSentRows) + " singleton-packets " + I2S(shadowTraceSingletons) + " batch-pending " + I2S(shadowBatch.recordCount()))
