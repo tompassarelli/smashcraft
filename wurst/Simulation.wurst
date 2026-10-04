@@ -79,6 +79,7 @@ public constant real SHIELD_MAX = 60.
 public constant int SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES = 2
 public constant int SHIELD_REFLECTOR_ACTIVE_FRAMES = 2
 public constant int SHIELD_PERFECT_ACTIVE_FRAMES = 4
+public constant int SHIELD_PERFECT_POST_CONTACT_FRAMES = 4
 public constant real SHIELD_REFLECTOR_RADIUS_FACTOR = 0.75
 public constant real SHIELD_PROJECTILE_DAMAGE_MULTIPLIER = 0.5
 public constant real SHIELD_PROJECTILE_SPEED_MULTIPLIER = 0.699999988079071
@@ -434,6 +435,7 @@ public class FighterState
 	int shieldTriggerAge = SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
 	int shieldReflectFrames = 0
 	int shieldPerfectFrames = 0
+	int shieldPerfectActionFrames = 0
 	fighterShieldGeometry shieldGeometry = authoredShieldGeometry()
 	real damage = 0
 	int hitVisualSerial = 0
@@ -1228,7 +1230,9 @@ function canStartAttack(FighterState attacker) returns boolean
 		return false
 	if attacker.ledgeState != LEDGE_NONE
 		return false
-	return not attacker.out and not attacker.specialFall and attacker.specialLockFrames <= 0 and attacker.shieldBreakState == SHIELD_BREAK_NONE and (attacker.downState == DOWN_NONE or isTumbling(attacker)) and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and attacker.shieldReleaseLag <= 0 and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0
+	let shieldDropAllowsAttack = attacker.shieldReleaseLag <= 0 or
+		(attacker.grounded and not attacker.shield and attacker.shieldPerfectActionFrames > 0)
+	return not attacker.out and not attacker.specialFall and attacker.specialLockFrames <= 0 and attacker.shieldBreakState == SHIELD_BREAK_NONE and (attacker.downState == DOWN_NONE or isTumbling(attacker)) and attacker.grabbedFrames <= 0 and attacker.hitlag <= 0 and attacker.hitstun <= 0 and attacker.shieldStun <= 0 and shieldDropAllowsAttack and attacker.landingLag <= 0 and not attacker.airDodging and not isGroundDodging(attacker) and attacker.jumpSquat <= 0 and attacker.cooldown <= 0
 
 public function canAttack(FighterState attacker) returns boolean
 	return canStartAttack(attacker) and not attacker.shield and attacker.frozenFrames <= 0
@@ -1568,6 +1572,8 @@ function resolveDamageContacts(FighterState target)
 	if blockedContact
 		if perfectShield
 			target.shieldReflectVisualSerial++
+			target.shieldPerfectActionFrames = SHIELD_PERFECT_POST_CONTACT_FRAMES
+			target.shieldHeldFrames = SHIELD_MIN_HOLD_FRAMES
 		else
 			target.shieldVisualSerial++
 	if shieldDamage > 0
@@ -1781,6 +1787,7 @@ function beginDownDamage(FighterState f, int hitstunFrames)
 	f.shieldHeldFrames = 0
 	f.shieldReflectFrames = 0
 	f.shieldPerfectFrames = 0
+	f.shieldPerfectActionFrames = 0
 
 public function isFloorTeching(FighterState f) returns boolean
 	return f.downState == DOWN_TECH or f.downState == DOWN_TECH_ROLL
@@ -2139,6 +2146,7 @@ function beginDownState(FighterState f, int state, int direction)
 	f.shieldHeldFrames = 0
 	f.shieldReflectFrames = 0
 	f.shieldPerfectFrames = 0
+	f.shieldPerfectActionFrames = 0
 	f.grounded = true
 	if state == DOWN_ATTACK
 		f.attackStyle = DOWN_ATTACK_STYLE
@@ -2531,6 +2539,7 @@ function interruptJumpOrDodge(FighterState f)
 	f.shieldTriggerAge = SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
 	f.shieldReflectFrames = 0
 	f.shieldPerfectFrames = 0
+	f.shieldPerfectActionFrames = 0
 	f.jumpSquat = 0
 	f.jumpDodgeQueued = false
 	f.jumpDodgeX = 0
@@ -2546,6 +2555,10 @@ function interruptJumpOrDodge(FighterState f)
 function beginAttack(FighterState attacker, int style, boolean mayCharge)
 	let isDashGrab = style == 11
 	let resolvedStyle = isDashGrab ? 5 : style
+	attacker.shieldReleaseLag = 0
+	attacker.shieldPerfectActionFrames = 0
+	attacker.shieldReflectFrames = 0
+	attacker.shieldPerfectFrames = 0
 	attacker.surfaceRecoveryState = SURFACE_NONE
 	attacker.surfaceRecoveryFrame = 0
 	attacker.crouching = false
@@ -2555,8 +2568,6 @@ function beginAttack(FighterState attacker, int style, boolean mayCharge)
 	if resolvedStyle == 5 and attacker.shield
 		attacker.shield = false
 		attacker.shieldHeldFrames = 0
-		attacker.shieldReflectFrames = 0
-		attacker.shieldPerfectFrames = 0
 	attacker.attackStyle = resolvedStyle
 	attacker.dashGrabAttack = isDashGrab
 	attacker.attackFrame = 0
@@ -3430,6 +3441,7 @@ public function reset(FighterState f, real startX)
 	f.shieldTriggerAge = SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
 	f.shieldReflectFrames = 0
 	f.shieldPerfectFrames = 0
+	f.shieldPerfectActionFrames = 0
 	f.damage = 0
 	f.knockbackAgeFrames = -1
 	f.damageLevel = 0
@@ -3707,6 +3719,12 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 	let lateDashGuardEntry = wantsShield and not f.shield and f.grounded and
 		(f.groundAction == GROUND_ACTION_RUN or
 			(f.groundAction == GROUND_ACTION_DASH and f.groundActionFrame > DASH_GUARD_EARLY_FRAMES))
+	if wantsShield and not f.shield
+		f.shieldPerfectActionFrames = 0
+	else if wantsShield and not forcedShield and f.shieldPerfectActionFrames > 0
+		f.shieldPerfectActionFrames--
+	else if not wantsShield and f.shieldReleaseLag <= 0
+		f.shieldPerfectActionFrames = 0
 	f.shield = wantsShield
 	if wantsShield and input.shieldPressed and f.shieldTriggerAge < SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
 		and f.shieldHeldFrames <= SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES and input.shieldStrength >= 1 and not forcedShield

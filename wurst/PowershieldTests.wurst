@@ -119,6 +119,7 @@ import ImpactEvents
 	first.shieldTriggerAge = 1
 	first.shieldReflectFrames = 1
 	first.shieldPerfectFrames = 3
+	first.shieldPerfectActionFrames = 4
 	first.shieldGeometry = fighterShieldGeometry(12, 34, 56)
 	first.projectileLife[2] = 8
 	first.projectileVisualFamily[2] = 0
@@ -137,6 +138,7 @@ import ImpactEvents
 	first.shieldTriggerAge.assertEquals(1)
 	first.shieldReflectFrames.assertEquals(1)
 	first.shieldPerfectFrames.assertEquals(3)
+	first.shieldPerfectActionFrames.assertEquals(4)
 	first.shieldGeometry.centerX.assertEquals(12.)
 	first.shieldGeometry.centerZ.assertEquals(34.)
 	first.shieldGeometry.radius.assertEquals(56.)
@@ -146,6 +148,10 @@ import ImpactEvents
 	first.shieldPerfectFrames = 2
 	actual.capture(first, second, game, commands, otherCommands, runtime)
 	snapshot.firstDifference(actual).assertEquals("first.shieldPerfectFrames")
+	first.shieldPerfectFrames = 3
+	first.shieldPerfectActionFrames = 3
+	actual.capture(first, second, game, commands, otherCommands, runtime)
+	snapshot.firstDifference(actual).assertEquals("first.shieldPerfectActionFrames")
 	destroy actual
 	destroy snapshot
 	destroy runtime
@@ -185,5 +191,41 @@ import ImpactEvents
 	target.shieldPushbackX.assertEquals(0.7800000905990601 * WORLD_UNITS_PER_MELEE_UNIT)
 	target.shieldReflectVisualSerial.assertEquals(1)
 	target.shieldVisualSerial.assertEquals(1)
+	destroy target
+	destroy attacker
+
+@Test function perfectContactAllowsAttackDuringDropAndHoldingGuardConsumesTheWindow()
+	let attacker = new FighterState(0, -100, 1)
+	let target = new FighterState(1, 0, -1)
+	let input = new InputSnapshot()
+	for heldTicks = 0 to 4
+		reset(target, 0)
+		target.grounded = true
+		target.z = surfaceZ(0, 0)
+		target.shield = true
+		target.shieldPerfectFrames = 1
+		beginDamageContacts()
+		queueDamageContact(attacker, target, hitEffect(10, 100, 20, 1, 1, false), 1, CONTACT_LAUNCH, true, null)
+		finishDamageContacts(attacker, target)
+		target.shieldPerfectActionFrames.assertEquals(4)
+		input.shield = true
+		while target.hitlag > 0 or target.shieldStun > 0
+			canAttack(target).assertFalse()
+			advance(target, 0, input, 0)
+			target.shieldPerfectActionFrames.assertEquals(4)
+		for tick = 1 to heldTicks
+			advance(target, 0, input, 0)
+		target.shieldPerfectActionFrames.assertEquals(4 - heldTicks)
+		input.shield = false
+		advance(target, 0, input, 0)
+		target.shield.assertFalse()
+		target.shieldReleaseLag.assertEquals(SHIELD_RELEASE_LAG_FRAMES)
+		canAttack(target).assertEquals(heldTicks < 4)
+		if heldTicks < 4
+			beginAttackPair(target, attacker, 0, -1, true, false)
+			target.attackStyle.assertEquals(0)
+			target.shieldReleaseLag.assertEquals(0)
+			target.shieldPerfectActionFrames.assertEquals(0)
+	destroy input
 	destroy target
 	destroy attacker

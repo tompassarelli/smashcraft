@@ -74,6 +74,30 @@ unimplemented or unverified. The observed post-contact setup starts a counter
 of 4 and clears its timer; no action-timing behavior is inferred from those
 stores alone.
 
+The post-contact counter is now retained separately from the perfect-contact
+window. Five original cases (counter 0 through 4) execute the counter branches
+from GuardOn, Guard and GuardReflect, and the GuardOff action-selection prefix.
+Held guard decrements a positive counter once; the shield-drop prefix preserves
+it. A positive counter selects the side-special input check followed by the
+additional action-check chain; zero skips to the ordinary remaining checks.
+The observer stops before those selected consumers, so it does not prove that
+a requested original attack succeeds or establish full callback ordering.
+See `smashcraft:docs/smash-melee-reference/retail-powershield-actions.json` and
+`smashcraft:tools/physics-probe/observe-powershield-actions.mjs`.
+
+Production preserves this counter through hitlag and shieldstun, consumes it
+while guard remains held, and retains it when dropping shield. A successful
+perfect contact also clears the minimum-hold restriction, matching the observed
+post-contact setup's zero minimum-guard timer. During shield drop, a positive
+counter allows attack checks without clearing movement recovery. Beginning an
+attack clears the guard clocks and drop recovery. Replay copies and compares
+the new counter. Complete original input/attack trajectories and native
+action-timing verification remain open.
+The action-window integration passes seven focused powershield tests and
+554/554 assembled simulation checks. Evidence:
+`smashcraft:build/powershield-actions-focused.log` and
+`smashcraft:build/powershield-actions-assembled.log`.
+
 The melee-contact integration passes six focused powershield tests and the
 assembled 553/553 simulation checks. All fifteen emitted-Lua precision groups
 pass, including twelve new ordinary/perfect pushback outputs in the existing

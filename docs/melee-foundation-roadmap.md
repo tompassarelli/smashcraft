@@ -41,7 +41,7 @@ It also includes retail launch stacking, damage-level selection, grounded
 movement, rebound and test-arena surface recovery. These implementations do not
 establish full parity or complete collision geometry.
 
-The latest assembled simulation check passed 553/553 normal Wurstunit checks,
+The latest assembled simulation check passed 554/554 normal Wurstunit checks,
 after the equivalent shield-fixture deduplication documented below and the
 projectile/melee powershield and fractional DI input changes. The earlier aggregate
 passed 592/592 before that deduplication. The
@@ -69,7 +69,11 @@ Fractional DI input survives adapter conversion, snapshot copying and replay
 correction. Projectile powershield reflection is implemented; its world
 geometry and full input/callback ordering remain unverified. Melee perfect
 contacts preserve shield health and match twelve original ordinary/perfect
-pushback outputs; post-contact action timing remains open. Other formula rounding, shield geometry/powershields,
+pushback outputs. The post-contact counter is now replayed, pauses through
+hitlag/shieldstun, decreases while guard stays held and enables attack checks
+during shield drop. Five original counter/gate fragments establish the bounded
+rule; complete input/attack trajectories and native action timing remain open.
+Other formula rounding, shield geometry/powershields,
 connected/sloped ECB contacts and native trajectory checks remain open.
 
 The latest physics candidate is Smashcraft 0.0.12, build physics-36f99e9,

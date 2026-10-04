@@ -1,0 +1,72 @@
+{
+  "id": "retail-ntsc-1.02-powershield-action-gate",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "commonDataSha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "execution": {
+    "cpu": "QEMU PPC750",
+    "entries": [
+      "0x800927BC",
+      "0x80092ADC",
+      "0x80093F98",
+      "0x80092D10"
+    ],
+    "returnPatches": [
+      "0x800927d4",
+      "0x80092af4",
+      "0x80093fb0",
+      "0x80092d24",
+      "0x80092de4"
+    ],
+    "exitCode": 0,
+    "byteCount": 80
+  },
+  "limitations": [
+    "Synthetic fighter/GObj fields and isolated counter/gate fragments, not complete input callbacks.",
+    "GuardOff observations stop before the selected action helper. They prove which check is next, not that any requested attack succeeds.",
+    "Animation clock, minimum guard timer and hitlag/shieldstun callback ordering remain outside this probe.",
+    "No original executable bytes or decompiled implementation published."
+  ],
+  "results": [
+    {
+      "counter": 0,
+      "guardOnAfterHeldTick": 0,
+      "guardAfterHeldTick": 0,
+      "guardReflectAfterHeldTick": 0,
+      "guardOffCounter": 0,
+      "guardOffNextInputCheckCall": "0x8009980C"
+    },
+    {
+      "counter": 1,
+      "guardOnAfterHeldTick": 0,
+      "guardAfterHeldTick": 0,
+      "guardReflectAfterHeldTick": 0,
+      "guardOffCounter": 1,
+      "guardOffNextInputCheckCall": "0x80096540"
+    },
+    {
+      "counter": 2,
+      "guardOnAfterHeldTick": 1,
+      "guardAfterHeldTick": 1,
+      "guardReflectAfterHeldTick": 1,
+      "guardOffCounter": 2,
+      "guardOffNextInputCheckCall": "0x80096540"
+    },
+    {
+      "counter": 3,
+      "guardOnAfterHeldTick": 2,
+      "guardAfterHeldTick": 2,
+      "guardReflectAfterHeldTick": 2,
+      "guardOffCounter": 3,
+      "guardOffNextInputCheckCall": "0x80096540"
+    },
+    {
+      "counter": 4,
+      "guardOnAfterHeldTick": 3,
+      "guardAfterHeldTick": 3,
+      "guardReflectAfterHeldTick": 3,
+      "guardOffCounter": 4,
+      "guardOffNextInputCheckCall": "0x80096540"
+    }
+  ]
+}
