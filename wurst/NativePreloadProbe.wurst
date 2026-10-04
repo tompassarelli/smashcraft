@@ -37,7 +37,6 @@ boolean array submitted
 boolean array echoSeen
 timer probeClock = null
 timer probeDriver = null
-File probeFile = null
 
 function suffix(int value) returns string
     return I2S(value + 1000).substring(1, 4)
@@ -49,21 +48,26 @@ function armPrefix(int arm) returns string
         return "D0D"
     if arm == 2
         return "D0E"
-    return "D0F"
-
-function expectedArmValue(int arm, int seq) returns string
     if arm == 3
+        return "D0F"
+    return "D0G"
+
+function expectedReadValue(int arm, int seq) returns string
+    if arm == 2 or arm == 3
         return constantValue()
     return expectedValue(seq)
 
-function changingFilename(int seq) returns string
-    return "smashcraft-fileio-changing-" + BUILD_ID + "-s" + I2S(sourceSlot) + "-n" + suffix(seq) + ".pld"
+function sourceMethod(int arm) returns string
+    if arm == 0
+        return "generated-changing-no-file"
+    if arm == 2
+        return "direct-Preloader-fresh-constant"
+    if arm == 3
+        return "direct-Preloader-fresh-comment-varying-constant-tooltip"
+    return "direct-Preloader-fresh-changing"
 
-function preloaderChangingFilename(int seq) returns string
-    return "smashcraft-preloader-changing-" + BUILD_ID + "-s" + I2S(sourceSlot) + "-n" + suffix(seq) + ".pld"
-
-function constantFilename(int seq) returns string
-    return "smashcraft-fileio-constant-" + BUILD_ID + "-s" + I2S(sourceSlot) + "-n" + suffix(seq) + ".pld"
+function fixtureFilename(int arm, int seq) returns string
+    return "smashcraft-preloader-source-" + BUILD_ID + "-s" + I2S(sourceSlot) + "-p" + I2S(GetPlayerId(localPlayer)) + "-a" + I2S(arm) + "-n" + suffix(seq) + ".pld"
 
 function sampleIndex(int arm, int value) returns int
     return arm * FILEIO_PROBE_SAMPLES + value
@@ -72,16 +76,14 @@ function writeArmReceipt(int arm, boolean start)
     let slot = GetPlayerId(localPlayer)
     PreloadGenClear()
     PreloadGenStart()
-    Preload("build=" + BUILD_ID + " receipt=fileio-discriminator " + (start ? "begin" : "end"))
+    Preload("build=" + BUILD_ID + " receipt=preloader-source-discriminator " + (start ? "begin" : "end"))
     Preload("slot=" + I2S(slot) + " arm=" + I2S(arm) + " native-game-seconds=" + R2S(TimerGetElapsed(probeClock)))
+    Preload("source-method=" + sourceMethod(arm) + " returned-string=" + (arm == 4 ? "sent" : (arm == 0 ? "none" : "verified-discarded")))
+    Preload("expected-read=" + (arm == 0 ? "none" : (arm == 2 or arm == 3 ? constantValue() : "D0B+NNN+10zeroes")) + " expected-wire=" + armPrefix(arm) + "+NNN+D0B+NNN+10zeroes")
     if start
-        Preload("fixture-slot=" + I2S(sourceSlot) + " fixture-arm=" + I2S(arm) + " samples=300 offered-hz=30 payload-bytes=22 changing=" + (arm == 3 ? "no" : "yes"))
-        if arm == 1
-            Preload("fixture-path-pattern=" + changingFilename(0).substring(0, changingFilename(0).length() - 7) + "NNN.pld content=D0B+NNN+10zeroes")
-        else if arm == 2
-            Preload("fixture-path-pattern=" + preloaderChangingFilename(0).substring(0, preloaderChangingFilename(0).length() - 7) + "NNN.pld content=D0B+NNN+10zeroes")
-        else if arm == 3
-            Preload("fixture-path-pattern=" + constantFilename(0).substring(0, constantFilename(0).length() - 7) + "NNN.pld content=D0B0000000000000")
+        Preload("fixture-slot=" + I2S(sourceSlot) + " fixture-sender=" + I2S(slot) + " fixture-arm=" + I2S(arm) + " samples=300 offered-hz=30 payload-bytes=22 wire-changing=yes")
+        if arm != 0
+            Preload("fixture-path-pattern=" + fixtureFilename(arm, 0).substring(0, fixtureFilename(arm, 0).length() - 7) + "NNN.pld")
         PreloadGenEnd("smashcraft-fileio-probe-" + BUILD_ID + "-s" + I2S(slot) + "-a" + I2S(arm) + "-begin.txt")
     else
         Preload("attempts=" + I2S(attempts[arm]) + " sent=" + I2S(sent[arm]) + " echoed=" + I2S(received[arm]) + " missing=" + I2S(sent[arm] - received[arm]) + " bad-payload=" + I2S(missingPayload[arm]) + " local-read-errors=" + I2S(errors) + " send-failures=" + I2S(sendFailures) + " duplicates=" + I2S(duplicates) + " drain-callbacks=" + I2S(drainCallbacks[arm]))
@@ -100,7 +102,7 @@ function finishArm()
     armSpan[currentArm] = TimerGetElapsed(probeClock) - armStartedAt[currentArm]
     drainCallbacks[currentArm] = drainTicks
     writeArmReceipt(currentArm, false)
-    if currentArm < 3
+    if currentArm < 4
         beginArm(currentArm + 1)
     else
         active = false
@@ -110,16 +112,10 @@ function finishArm()
 function readArmValue(int seq) returns string
     if currentArm == 0
         return expectedValue(seq)
-    if currentArm == 1
-        probeFile.filename = changingFilename(seq)
-        return probeFile.readAsString(localPlayer)
-    if currentArm == 2
-        Preloader(preloaderChangingFilename(seq))
-        let value = BlzGetAbilityTooltip(FILE_IO_ABIL_ID, 0)
-        BlzSetAbilityTooltip(FILE_IO_ABIL_ID, " ", 0)
-        return value
-    probeFile.filename = constantFilename(seq)
-    return probeFile.readAsString(localPlayer)
+    Preloader(fixtureFilename(currentArm, seq))
+    let value = BlzGetAbilityTooltip(FILE_IO_ABIL_ID, 0)
+    BlzSetAbilityTooltip(FILE_IO_ABIL_ID, " ", 0)
+    return value
 
 function probeTick()
     if not active
@@ -130,10 +126,12 @@ function probeTick()
         let readStarted = TimerGetElapsed(probeClock)
         let value = readArmValue(sequence - 1)
         readSeconds[currentArm] += TimerGetElapsed(probeClock) - readStarted
-        readCount[currentArm]++
-        if value != expectedArmValue(currentArm, sequence - 1)
+        if currentArm != 0
+            readCount[currentArm]++
+        if value != expectedReadValue(currentArm, sequence - 1)
             errors++
-        let wire = armPrefix(currentArm) + suffix(sequence - 1) + value
+        let wireValue = currentArm == 4 ? value : expectedValue(sequence - 1)
+        let wire = armPrefix(currentArm) + suffix(sequence - 1) + wireValue
         let index = sampleIndex(currentArm, sequence - 1)
         sendTime[index] = TimerGetElapsed(probeClock)
         let sendStarted = TimerGetElapsed(probeClock)
@@ -156,11 +154,11 @@ public function nativePreloadProbeReceive(int sender, string wire) returns boole
     if wire.length() < 6
         return false
     let prefix = wire.substring(0, 3)
-    if prefix != "D0C" and prefix != "D0D" and prefix != "D0E" and prefix != "D0F"
+    if prefix != "D0C" and prefix != "D0D" and prefix != "D0E" and prefix != "D0F" and prefix != "D0G"
         return false
     if not active
         return true
-    let arm = prefix == "D0C" ? 0 : (prefix == "D0D" ? 1 : (prefix == "D0E" ? 2 : 3))
+    let arm = prefix == "D0C" ? 0 : (prefix == "D0D" ? 1 : (prefix == "D0E" ? 2 : (prefix == "D0F" ? 3 : 4)))
     let seq = S2I(wire.substring(3, 6))
     if sender == GetPlayerId(localPlayer) and seq >= 0 and seq < FILEIO_PROBE_SAMPLES
         let index = sampleIndex(arm, seq)
@@ -173,7 +171,7 @@ public function nativePreloadProbeReceive(int sender, string wire) returns boole
             echoSamples[arm]++
             echoSeconds[arm] += age
             echoMax[arm] = max(echoMax[arm], age)
-            if wire.substring(6, wire.length()) != expectedArmValue(arm, seq)
+            if wire.substring(6, wire.length()) != expectedValue(seq)
                 missingPayload[arm]++
     return true
 
@@ -184,7 +182,7 @@ function beginProbe()
     errors = 0
     sendFailures = 0
     duplicates = 0
-    for arm = 0 to 3
+    for arm = 0 to 4
         attempts[arm] = 0
         sent[arm] = 0
         received[arm] = 0
@@ -215,7 +213,6 @@ public function nativePreloadProbeRequestStart()
 public function nativePreloadProbeSetup(int humanMask)
     probeClock = CreateTimer()
     probeDriver = CreateTimer()
-    probeFile = new File("")
     sourceSlot = participantIsActive(humanMask, 2) ? 2 : 0
     if not participantIsActive(humanMask, sourceSlot)
         for slot = 0 to 3
