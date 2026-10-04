@@ -66,6 +66,17 @@ isolated collision classifications, not shield/body priority or pose geometry.
 Production melee selection still tests an authored rectangle against the victim
 origin, then classifies every eligible contact as blocked when shielding.
 Independent shield intersections and exposed-body pokes remain missing.
+Twelve further cases enter the original dispatch fragment at `0x80079050`,
+after shielding eligibility. The original collision helper and its result
+branch execute unchanged. Contact cases reach `0x80079080`, before shield
+response; misses reach `0x800790B4`, before the body-check path. Return stops
+at those locations and their following instruction preserve the caller's
+return address; response consumers are not executed. The selections agree
+with the twelve isolated collision cases. See
+smashcraft:docs/smash-melee-reference/retail-shield-selection.json and
+smashcraft:tools/physics-probe/observe-shield-selection.mjs. These observations
+support separate shield-first contact selection, while complete eligibility,
+body collision, contact response and same-frame ordering remain unverified.
 Projectile travel is tested against
 the swept circle in the simulation's x/z plane. Reflection transfers ownership
 to the defender and applies the observed common damage multiplier `0.5` and
