@@ -27,8 +27,8 @@ wc3-melee:docs/editbox-ingress-native-20261005/README.md.
 | Does sampled, eligible shield input enter local prediction without waiting for sync? | Demonstrated: 12/12 presses in the capture callback on 0.0.40. Logical state, not physical pixels or all moves. | [#28, completed](https://github.com/tompassarelli/smashcraft/issues/28) |
 | Can late original-frame input repair the combat outcome? | Demonstrated for the native F5 shield corpus: damage 12 becomes 0, shieldstun 7, canonical and confirmed states agree. | [#29, completed](https://github.com/tompassarelli/smashcraft/issues/29) |
 | Have selection/GameCache beaten direct sync? | No in the corrected bounded 60 Hz comparison; direct sync is the selected baseline. | [#30, completed comparison](https://github.com/tompassarelli/smashcraft/issues/30) |
-| Can short inputs disappear or merge? | Yes. Playable polling can miss a complete tap between samples; observed edges can coalesce before a row is committed. | [#26, open; known failure](https://github.com/tompassarelli/smashcraft/issues/26) |
-| Is every acquired input assigned to its intended frame despite delayed service? | Not established by the playable path. Assignment uses simulation progress, not original event time. | [#25, open](https://github.com/tompassarelli/smashcraft/issues/25) |
+| Can short inputs disappear or merge? | Playable 0.0.40 can miss/coalesce inputs. The new candidate retained all three 5 ms taps through the tested helper/game stalls; lifecycle acceptance remains open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
+| Is every acquired input assigned to its intended frame despite delayed service? | The candidate applied all tested taps at independently predicted frames 19/97/157 on both clients. Pause and separate-machine clock alignment remain open; 0.0.40 still assigns by local progress. | [#25, partial](https://github.com/tompassarelli/smashcraft/issues/25) |
 | What physical response and 3–5-frame variation should a player expect? | No current-build physical response distribution or supported ceiling is established. | [#27, open](https://github.com/tompassarelli/smashcraft/issues/27) |
 | Can two clients fight and rematch? | Observed on 0.0.40; full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |
 
@@ -139,7 +139,7 @@ original descriptions remain accessible. Those closures are not completion.
 | #11 Category balance rules | Consolidated into #12; contextual comparisons and violation check remain. |
 | #12 Move data/balance/tuning | Open; owns former #10/#11/#15 plus timing-and-reach analysis. |
 | #13 Effect event correctness | Consolidated into #14; full verified trigger/reference/lifecycle scope remains. |
-| #14 Visible effects | Open; common grab/charge/ledge cues added and focused checks pass; native appearance and star/screen KO work remain. |
+| #14 Visible effects | Partial; common grab/charge/ledge cues and star/screen KO implemented. Two-client KO observation and pause/resume pass recorded in wc3-melee:docs/ko-native-20261005/README.md; broader appearance/replay acceptance remains. |
 | #15 Measured roster tuning | Consolidated into #12; no completed before/after tuning plus playable evaluation. |
 | #16 Online roadmap | Open; original-frame input, human play, platforms, hosting and broader-player work remain. |
 | #17 Two-client integration | Partial: playable journey and bounded agreement delivered; human play, response distribution and full feedback recovery remain. |
@@ -148,7 +148,7 @@ original descriptions remain accessible. Those closures are not completion.
 | #20 2–4 players / ten matches | Consolidated into #17; the full requested match corpus remains required. |
 | #21 Timeboxed integrity decision | Already completed as a HOLD decision, not a positive readiness result. |
 | #25 Intended frames | Open; canonical owner for frame assignment, clock and pause semantics. |
-| #26 Input retention | Open; known loss limitation and next repair. |
+| #26 Input retention | Partial; candidate's 300-frame tap/stall corpus passes. Pause/focus lifecycle is the current repair; playable 0.0.40's polling limitation remains. |
 | #27 Response/variation | Open; canonical owner for first-tick/visible timing, tails and recovery. |
 | #28 After-capture shield prediction | Completed bounded evidence, registered during this review. |
 | #29 Native tagged defense rollback | Completed bounded evidence, registered during this review. |
@@ -188,9 +188,10 @@ delivery branch or making all research claims prerequisites for merging it.
 
 ## The next rungs
 
-1. **#26: stop losing inputs on the intended playable path.** Reuse the known
-   tap/stall counterexample and account for acquired events at map history and
-   consumption without growing backlog. A passing long hold cannot close it.
+1. **#26: finish lifecycle integration of the passing input candidate.** The
+   300-frame tap/stall counterexample is closed for this candidate. Complete
+   pause/focus behavior and replace the playable input path after its usable
+   journey passes; do not repeat the successful corpus merely for confidence.
 2. **#25: preserve the chosen frame contract.** Define active-match clock and
    pause behavior, then compare independent expected/assigned/applied frames.
    Do not turn a continuous-clock experiment into a silent product decision.
