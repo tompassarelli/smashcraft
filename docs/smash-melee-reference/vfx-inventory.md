@@ -101,7 +101,9 @@ pause during flight/drop, resume, and start a new match while a body is visible.
 Side/bottom KOs should retain bursts. A final-stock match-ending KO should clear
 immediately. Numerical fixture: the focused tests in
 wc3-melee:wurst/ImpactStateTests.wurst place an airborne tumbling fighter at
-z=761 with upward knockback TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 10; native fixture integration remains parent-owned.
+z=761 with upward knockback TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 10. Build with
+`WC3_SCENARIO=ko` to apply that fixture to all active fighters at match start;
+Archer and Rifleman exercise opposite selection parity.
 
 Source check: 23/23 tests pass with the pinned compiler, zero errors and nine
 indentation and unused-code warnings. The wc3-melee:test.sh Impact source set was extended
@@ -111,3 +113,13 @@ wc3-melee:build/ko-source-tests.log. This covers projection phases/lifetimes for
 all three fighter models, read-only repeated projection, pool reset, and a real
 accepted top KO through snapshot restore/re-execution without duplicate bodies.
 It does not establish native animation or camera acceptance.
+
+Integrated native checkpoint: source `0507dbd`, diagnostic `ko-20261005`,
+keyboard/shadow-d0-r24/pool-predicted, compiled and packaged with zero errors
+and 27 existing warnings. Both retained online clients loaded the same candidate
+and reached the fight with the KO fixture. The attempted video capture failed
+because the installed FFmpeg lacks x11grab; no cinematic appearance verdict
+follows from this run. Use compositor recording for the next clip.
+Private artifact:
+~/.local/share/smashcraft-build-inputs/playable-integration-20261005/build/ko-20261005.w3x,
+SHA256 `4f77cf28d711f8b73d2f40f425e6e92d52b3a202298f3bc94de280b351a15406`.

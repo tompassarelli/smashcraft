@@ -69,10 +69,41 @@ append, consumed-prefix removal, capacity and focus under the actual producer.
 ## Source checks
 
 Pinned Rust journal tests pass 9/9 and the helper builds. The new Wurst ingress
-class compiles to Lua with zero errors/warnings. A full-game source check passed
-the corrected typechecking seam, then stopped at object injection because that
-standalone command had no map input. Parent map packaging is still required;
-no successful full map build or native acceptance is claimed here.
+class compiles to Lua with zero errors/warnings. The integrated map at source
+`2248e78` compiles and packages successfully with the pinned toolchain (zero
+errors, 27 existing warnings). The full build also includes the confirmed KO
+renderer. Native input acceptance failed in the first integrated trial below.
+
+Private candidate:
+~/.local/share/smashcraft-build-inputs/playable-integration-20261005/build/editbox-20261005.w3x.
+SHA256: `2a986994cf17f6364aa05bf9ffeebb84f723f6c858aeab64bf2dfc76e1a7ed44`.
 
 Helper SHA256:
 `e70b54cc3e20146c456a9bb97df097972a55f0c82c1b9e31de800513fd472259`.
+
+## First integrated native trial
+
+Both retained online clients loaded `editbox-20261005`; both received both
+production-channel startup markers. The existing virtual-controller driver
+produced 5 ms taps at 0.3, 1.6 and 2.6 seconds, half-stick motion from 0.6 to
+1.1 seconds, a verified 250.013 ms helper stop and a 249.935 ms game stop.
+
+The helper's text call became too slow: median packet emission was 219.587 ms
+for A (145 completed emissions) and 219.932 ms for B (150). Many neutral packets
+were only nine characters including the delimiter; the largest observed call
+was 761.933 ms. A had published through frame 291 when the driver's 25-second
+completion wait expired; B reached 300. Helpers were resumed/reaped and the
+virtual device destroyed. This is a measured helper-emission bottleneck, not a
+Warcraft sync latency result or an engine throughput limit.
+
+The initial five-native-second traces contain zero admitted/sent rows and zero
+confirmed frames. Later native observation showed the stopped-input message;
+the initial trace had already ended, so it does not contain that rejection's
+cause. Do not attribute the rejection to slow emission alone. The owning next
+repairs are the helper's text-emission boundary and capturing the map's first
+rejection independently of the short trace window.
+
+Evidence stays in the integration lane's
+wc3-melee:build/native-editbox-20261005/ (producer/kernel logs, both helper logs,
+both map traces and compositor video). Neither end-to-end retention nor gameplay
+response passed. Playable 0.0.40 and the open #25–#27 claims remain unchanged.

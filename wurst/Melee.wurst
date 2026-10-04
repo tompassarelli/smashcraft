@@ -518,6 +518,13 @@ function failJournalInput(string reason)
 	statusTime = 3600
 	if inputTraceActive
 		traceInput("journal stopped " + reason + " sequence " + I2S(journalInput.sequenceNumber()) + " frame " + I2S(journalInput.expectedFrame()))
+	if RESPONSE_SERVICE_PROBE
+		let slot = GetPlayerId(GetLocalPlayer())
+		PreloadGenClear()
+		PreloadGenStart()
+		Preload("build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot))
+		Preload("reason=" + reason + " sequence=" + I2S(journalInput.sequenceNumber()) + " frame=" + I2S(journalInput.expectedFrame()))
+		PreloadGenEnd("smashcraft-journal-failure-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-p" + I2S(slot) + ".txt")
 
 function writeJournalControl(boolean wantPaused)
 	if journalInput == null or journalPausePending
@@ -726,7 +733,7 @@ function serviceJournalInput()
 		if decoded == JOURNAL_WAIT
 			return
 		if decoded != JOURNAL_READY
-			failJournalInput("invalid or noncontiguous I4 row")
+			failJournalInput("invalid or noncontiguous I4 row: " + wire)
 			return
 		if RESPONSE_SERVICE_PROBE and journalInput.sequenceNumber() == 1 and not inputTraceActive
 			startInputTrace()
