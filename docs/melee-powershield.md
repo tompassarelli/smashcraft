@@ -92,6 +92,22 @@ smashcraft:docs/smash-melee-reference/retail-shield-selection.json and
 smashcraft:tools/physics-probe/observe-shield-selection.mjs. These observations
 support separate shield-first contact selection, while complete eligibility,
 body collision, contact response and same-frame ordering remain unverified.
+The production swept-shield predicate now calls a shared capsule/circle
+intersection function. Twenty-six original `0x80007BCC` observations compare
+against that function: twelve stationary cases, eight segments in both endpoint
+orders, and six hit-radius scale cases. A segment from x=-5 to x=5 at y=3
+contacts the radius-2 shield with hit radius 1; one binary32 step higher misses.
+Both endpoint orders agree. Hit scale 0.5 accepts distance 2.5 and rejects 3;
+hit scale 2 accepts distance 4. All executions use identity joint geometry and
+cached shield position, with no original instruction patches.
+Facts: smashcraft:docs/smash-melee-reference/retail-shield-capsule.json.
+Observer: smashcraft:tools/physics-probe/observe-shield-capsule.mjs.
+The existing projectile path continues to supply capsule radius zero; the
+refactor does not choose physical hitbox shapes for the authored melee moves.
+Eleven focused powershield checks pass, including the three grouped original
+collision comparisons. Evidence: smashcraft:build/capsule-shield-focused.log.
+These selected classifications do not establish general float32 collision
+arithmetic parity, final joint transforms, hurt-capsule behavior or native proof.
 Projectile travel is tested against
 the swept circle in the simulation's x/z plane. Reflection transfers ownership
 to the defender and applies the observed common damage multiplier `0.5` and

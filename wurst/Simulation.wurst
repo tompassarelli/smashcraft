@@ -2649,9 +2649,8 @@ function applyProjectileHit(FighterState owner, FighterState target, int index, 
 		let damage = (attackDamage(1) * owner.projectileDamageMultiplier[index]).roundToFloat32()
 		collectDamageContact(owner, target, hitEffect(damage, 0, 0, 0, 0, false), owner.projectileDirection[index], CONTACT_FLINCH, false, null, shieldContact)
 
-function shieldCircleIntersects(FighterState target, real oldX, real oldZ, real newX, real newZ, real radiusFactor) returns boolean
-	let centerX = target.x + target.facing * target.shieldGeometry.centerX
-	let centerZ = target.z + target.shieldGeometry.centerZ
+public function capsuleCircleIntersects(real oldX, real oldZ, real newX, real newZ,
+		real capsuleRadius, real centerX, real centerZ, real circleRadius) returns boolean
 	let deltaX = newX - oldX
 	let deltaZ = newZ - oldZ
 	let lengthSquared = deltaX * deltaX + deltaZ * deltaZ
@@ -2660,8 +2659,14 @@ function shieldCircleIntersects(FighterState target, real oldX, real oldZ, real 
 	let closestZ = oldZ + projection * deltaZ
 	let offsetX = centerX - closestX
 	let offsetZ = centerZ - closestZ
-	let radius = target.shieldGeometry.radius * shieldSizeMultiplier(target.shieldEnergy, target.shieldStrength) * radiusFactor
+	let radius = capsuleRadius + circleRadius
 	return offsetX * offsetX + offsetZ * offsetZ <= radius * radius
+
+function shieldCircleIntersects(FighterState target, real oldX, real oldZ, real newX, real newZ, real radiusFactor) returns boolean
+	let centerX = target.x + target.facing * target.shieldGeometry.centerX
+	let centerZ = target.z + target.shieldGeometry.centerZ
+	let radius = target.shieldGeometry.radius * shieldSizeMultiplier(target.shieldEnergy, target.shieldStrength) * radiusFactor
+	return capsuleCircleIntersects(oldX, oldZ, newX, newZ, 0., centerX, centerZ, radius)
 
 function reflectProjectile(FighterState owner, FighterState target, int sourceIndex) returns boolean
 	for index = 0 to PROJECTILE_CAPACITY - 1

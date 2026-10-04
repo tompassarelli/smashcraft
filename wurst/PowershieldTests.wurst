@@ -257,3 +257,35 @@ import ImpactEvents
 	destroy input
 	destroy target
 	destroy attacker
+
+@Test function originalStationaryCapsuleShieldBoundaries()
+	capsuleCircleIntersects(0., 0., 0., 0., 1., 0., 0., 1.).assertEquals(true)
+	capsuleCircleIntersects(2., 0., 2., 0., 1., 0., 0., 1.).assertEquals(true)
+	capsuleCircleIntersects(2.999999761581421, 0., 2.999999761581421, 0., 1., 0., 0., 1.).assertEquals(false)
+	capsuleCircleIntersects(3., 0., 3., 0., 1., 0., 0., 1.).assertEquals(false)
+	capsuleCircleIntersects(3.000000238418579, 0., 3.000000238418579, 0., 1., 0., 0., 1.).assertEquals(false)
+	capsuleCircleIntersects(4., 0., 4., 0., 1., 0., 0., 1.).assertEquals(false)
+	capsuleCircleIntersects(0., 0., 0., 0., 1., 0., 0., 2.).assertEquals(true)
+	capsuleCircleIntersects(2., 0., 2., 0., 1., 0., 0., 2.).assertEquals(true)
+	capsuleCircleIntersects(2.999999761581421, 0., 2.999999761581421, 0., 1., 0., 0., 2.).assertEquals(true)
+	capsuleCircleIntersects(3., 0., 3., 0., 1., 0., 0., 2.).assertEquals(true)
+	capsuleCircleIntersects(3.000000238418579, 0., 3.000000238418579, 0., 1., 0., 0., 2.).assertEquals(false)
+	capsuleCircleIntersects(4., 0., 4., 0., 1., 0., 0., 2.).assertEquals(false)
+
+@Test function originalSweptCapsuleShieldBoundaries()
+	capsuleCircleIntersects(-5., 0., 5., 0., 1., 0., 0., 2.).assertEquals(true)
+	capsuleCircleIntersects(5., 0., -5., 0., 1., 0., 0., 2.).assertEquals(true)
+	capsuleCircleIntersects(-5., 3., 5., 3., 1., 0., 0., 2.).assertEquals(true)
+	capsuleCircleIntersects(5., 3., -5., 3., 1., 0., 0., 2.).assertEquals(true)
+	capsuleCircleIntersects(-5., 3.000000238418579, 5., 3.000000238418579, 1., 0., 0., 2.).assertEquals(false)
+	capsuleCircleIntersects(5., 3.000000238418579, -5., 3.000000238418579, 1., 0., 0., 2.).assertEquals(false)
+	capsuleCircleIntersects(-5., 4., 5., 4., 1., 0., 0., 2.).assertEquals(false)
+	capsuleCircleIntersects(5., 4., -5., 4., 1., 0., 0., 2.).assertEquals(false)
+
+@Test function originalScaledCapsuleShieldBoundaries()
+	capsuleCircleIntersects(2.5, 0., 2.5, 0., 0.5, 0., 0., 2.).assertEquals(true)
+	capsuleCircleIntersects(3., 0., 3., 0., 0.5, 0., 0., 2.).assertEquals(false)
+	capsuleCircleIntersects(4., 0., 4., 0., 0.5, 0., 0., 2.).assertEquals(false)
+	capsuleCircleIntersects(2.5, 0., 2.5, 0., 2., 0., 0., 2.).assertEquals(true)
+	capsuleCircleIntersects(3., 0., 3., 0., 2., 0., 0., 2.).assertEquals(true)
+	capsuleCircleIntersects(4., 0., 4., 0., 2., 0., 0., 2.).assertEquals(true)
