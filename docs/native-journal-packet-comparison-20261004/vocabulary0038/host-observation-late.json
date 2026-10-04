@@ -1,0 +1,128 @@
+{
+  "build": "netcode-0038",
+  "records": [
+    {
+      "receipt": "a-a0-begin",
+      "observedSeconds": 0.0,
+      "fileMtimeUnix": 1791092815.474079
+    },
+    {
+      "receipt": "a-a0-end",
+      "observedSeconds": 0.0,
+      "fileMtimeUnix": 1791092821.3752944
+    },
+    {
+      "receipt": "a-a1-begin",
+      "observedSeconds": 0.001,
+      "fileMtimeUnix": 1791092821.416072
+    },
+    {
+      "receipt": "a-a1-end",
+      "observedSeconds": 0.001,
+      "fileMtimeUnix": 1791092842.1700478
+    },
+    {
+      "receipt": "a-a2-begin",
+      "observedSeconds": 0.001,
+      "fileMtimeUnix": 1791092842.2094872
+    },
+    {
+      "receipt": "b-a0-begin",
+      "observedSeconds": 0.002,
+      "fileMtimeUnix": 1791092815.0291288
+    },
+    {
+      "receipt": "b-a0-end",
+      "observedSeconds": 0.002,
+      "fileMtimeUnix": 1791092820.892031
+    },
+    {
+      "receipt": "b-a1-begin",
+      "observedSeconds": 0.002,
+      "fileMtimeUnix": 1791092820.9317207
+    },
+    {
+      "receipt": "b-a1-end",
+      "observedSeconds": 0.002,
+      "fileMtimeUnix": 1791092841.4633574
+    },
+    {
+      "receipt": "b-a2-begin",
+      "observedSeconds": 0.002,
+      "fileMtimeUnix": 1791092841.5038257
+    },
+    {
+      "receipt": "b-a2-end",
+      "observedSeconds": 88.484,
+      "fileMtimeUnix": 1791093036.0458064
+    },
+    {
+      "receipt": "b-a3-begin",
+      "observedSeconds": 88.586,
+      "fileMtimeUnix": 1791093036.085524
+    },
+    {
+      "receipt": "a-a2-end",
+      "observedSeconds": 90.012,
+      "fileMtimeUnix": 1791093037.5178018
+    },
+    {
+      "receipt": "a-a3-begin",
+      "observedSeconds": 90.012,
+      "fileMtimeUnix": 1791093037.5588017
+    },
+    {
+      "receipt": "b-a3-end",
+      "observedSeconds": 94.803,
+      "fileMtimeUnix": 1791093042.3147824
+    },
+    {
+      "receipt": "b-a4-begin",
+      "observedSeconds": 94.803,
+      "fileMtimeUnix": 1791093042.3529012
+    },
+    {
+      "receipt": "a-a3-end",
+      "observedSeconds": 96.328,
+      "fileMtimeUnix": 1791093043.8040147
+    },
+    {
+      "receipt": "a-a4-begin",
+      "observedSeconds": 96.329,
+      "fileMtimeUnix": 1791093043.8437824
+    },
+    {
+      "receipt": "b-a4-end",
+      "observedSeconds": 115.663,
+      "fileMtimeUnix": 1791093063.139007
+    },
+    {
+      "receipt": "b-a5-begin",
+      "observedSeconds": 115.663,
+      "fileMtimeUnix": 1791093063.1785948
+    },
+    {
+      "receipt": "a-a4-end",
+      "observedSeconds": 116.374,
+      "fileMtimeUnix": 1791093063.918889
+    },
+    {
+      "receipt": "a-a5-begin",
+      "observedSeconds": 116.476,
+      "fileMtimeUnix": 1791093063.9568665
+    },
+    {
+      "receipt": "a-a5-end",
+      "observedSeconds": 236.22,
+      "fileMtimeUnix": 1791093183.698448
+    },
+    {
+      "receipt": "b-a5-end",
+      "observedSeconds": 239.185,
+      "fileMtimeUnix": 1791093186.673494
+    }
+  ],
+  "receipts": 24,
+  "pages": 83,
+  "wallSeconds": 240.101
+}

@@ -504,7 +504,7 @@ function serviceJournalInput()
 		return
 	if nativeOrderProbeActive()
 		return
-	if nativePreloadProbeActive() or nativeTransportProbeActive()
+	if nativePreloadProbeActive() or nativePreloadProbeStartPending() or nativeTransportProbeActive()
 		return
 	if transportIsolationPhase == 1 or transportIsolationPhase == 2
 		return
@@ -1014,6 +1014,7 @@ function shadowPollLocal() returns int
 function receiveShadowInput()
     let sender = GetPlayerId(GetTriggerPlayer())
     let wire = BlzGetTriggerSyncData()
+    nativePreloadProbeObserveSync(sender, wire)
     if nativePreloadProbeReceive(sender, wire)
         return
     if not shadowInputActive or not matchState.humanActive(sender)

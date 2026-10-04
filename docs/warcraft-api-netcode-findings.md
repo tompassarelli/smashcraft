@@ -546,3 +546,26 @@ not a production arithmetic fix. Six common capture/throw, charge/ready, and
 ledge catch/recovery cues are integrated at `30ac333`; focused Impact checks
 pass21/21. Native appearance/pause/replay remains unobserved. This work runs
 alongside netcode under one root; peer mailbox listeners remain shut down.
+
+
+## Native38 completed export and practical acceptance
+
+All24 receipts and120 sample pages are retained. Every arm sent300/client,
+but all six arms recorded zero own echoes and zero peer packets, including
+both generated controls. The run supplies no valid vocabulary latency or
+receiver-integrity verdict. A local start request preceded synchronized entry
+by181.327 host seconds. The vocabulary30 phase publication span was about
+195 seconds; vocabulary60 about120–123 seconds, including sending/drain.
+Native timer spans and host publication spans diverge. Initial collector
+timeout and heavy directory scans are retained as confounds; the collector now
+checks exact expected paths. Do not integrate a live vocabulary writer on this
+evidence. Existing separate-prefix transport control now distinguishes the
+SC_GP receive boundary from general synchronization failure.
+Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/vocabulary0038/.
+
+The operator clarified that intended input frames and responsive viable play
+are primary. Physical33/50/83ms percentiles guide measurement; they are not
+rigid substitutes for input correctness or playable acceptance. Comprehensive
+current state: wc3-melee:docs/smashcraft-delivery-state-20261004.md. Upstream
+Binary32 explicit operand repair e3714f629113ee682353c3244065fee3e7d9ae16
+passed15/15 and is published; consumer/native integration remains pending.

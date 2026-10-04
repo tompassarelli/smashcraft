@@ -111,3 +111,15 @@ and fresh filenames. CandidateSHA256
 Startup markers distinguish local request, sync reception, and reset completion;
 the developer F5 exit handler now leaves a separate marker. All markers precede
 timed samples. Source `fc26d79`; built before later physics/VFX integrations.
+
+
+Native38 finished all24 receipts and120 sample pages, but all arms recorded
+zero own/peer receipt, including generated controls. No performance verdict.
+Source39 next runs only the generated30Hz arm to establish rawSC_GP delivery.
+It counts receiver entries before parsing and suspends normal journal reads
+from local start request through the synchronized probe. Startup logs include
+accepted/rejected start send. This is a harness isolation experiment, not a
+production fix. Existing38 fixture paths are retained (no file arm runs); it
+is explicitly not a fresh-path or cold-cache vocabulary comparison. Expect
+four begin/end receipts and20 sample pages, not the prior six-arm totals.
+The first rawSC_GP event writes one marker and can perturb that sample.

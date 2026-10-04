@@ -8,7 +8,12 @@ import VocabularyIngress
 import VocabularyProbeCorpus
 
 constant string FILEIO_PROBE_START_PREFIX = "SC_PP_START"
+constant int LAST_PROBE_ARM = 0
+constant string FIXTURE_BUILD_ID = "netcode-0038"
 boolean active = false
+boolean startPending = false
+int rawSyncEvents = 0
+int vocabularySyncEvents = 0
 int currentArm = 0
 int sequence = 0
 int sourceSlot = -1
@@ -49,7 +54,7 @@ function suffix(int value) returns string
     return I2S(value + 1000).substring(1, 4)
 
 function fixtureBase(int arm, int seq) returns string
-    return "smashcraft-vocabulary-" + BUILD_ID + "-s" + I2S(sourceSlot) + "-p" + I2S(GetPlayerId(localPlayer)) + "-a" + I2S(arm) + "-n" + suffix(seq)
+    return "smashcraft-vocabulary-" + FIXTURE_BUILD_ID + "-s" + I2S(sourceSlot) + "-p" + I2S(GetPlayerId(localPlayer)) + "-a" + I2S(arm) + "-n" + suffix(seq)
 
 function sampleIndex(int arm, int value) returns int
     return arm * VOCABULARY_PROBE_SAMPLES + value
@@ -68,10 +73,12 @@ function writeArmReceipt(int arm, boolean start)
     Preload("build=" + BUILD_ID + " receipt=vocabulary-ingress " + (start ? "begin" : "end"))
     Preload("slot=" + I2S(slot) + " arm=" + I2S(arm) + " native-game-seconds=" + R2S(TimerGetElapsed(probeClock)))
     Preload("source-method=" + sourceMethod(arm) + " offered-hz=" + I2S(vocabularyProbeRate(arm)) + " records-per-packet=" + I2S(vocabularyProbeRows(arm)) + " samples=300")
+    Preload("fixture-build=" + FIXTURE_BUILD_ID + " retained-process-prior-run=yes paths-reused=yes last-arm=" + I2S(LAST_PROBE_ARM))
     Preload("explicit-prewarm=no vocabulary-content-reused=" + (arm == 5 ? "yes-from-arm2" : "no-earlier-vocabulary-arm") + " epoch=36 original-frames=yes")
     if start
         Preload("fixture-source=" + I2S(sourceSlot) + " fixture-sender=" + I2S(slot) + " fixture-first-base=" + fixtureBase(arm, 0))
     else
+        Preload("raw-SC_GP-events=" + I2S(rawSyncEvents) + " vocabulary-prefix-events=" + I2S(vocabularySyncEvents))
         Preload("attempts=" + I2S(attempts[arm]) + " sent=" + I2S(sent[arm]) + " echoed=" + I2S(received[arm]) + " missing=" + I2S(sent[arm] - received[arm]) + " local-read-errors=" + I2S(readErrors[arm]) + " bad-records=" + I2S(recordErrors[arm]))
         Preload("send-failures=" + I2S(sendFailures[arm]) + " duplicates=" + I2S(duplicates[arm]) + " peer-packets=" + I2S(peerPackets[arm]) + " peer-errors=" + I2S(peerErrors[arm]) + " drain-callbacks=" + I2S(drainCallbacks[arm]))
         Preload("native-read-seconds=" + R2S(readSeconds[arm]) + " sends-bytes=" + I2S(bytesSent[arm]) + " send-call-seconds=" + R2S(sendSeconds[arm]))
@@ -102,13 +109,13 @@ function finishArm()
     armSpan[currentArm] = TimerGetElapsed(probeClock) - armStartedAt[currentArm]
     drainCallbacks[currentArm] = drainTicks
     writeArmReceipt(currentArm, false)
-    if currentArm < 5
+    if currentArm < LAST_PROBE_ARM
         beginArm(currentArm + 1)
     else
         active = false
         PauseTimer(probeDriver)
         // Export after all timed arms so file writes cannot perturb an arm.
-        for arm = 0 to 5
+        for arm = 0 to LAST_PROBE_ARM
             writeSamples(arm)
         PauseTimer(probeClock)
 
@@ -167,6 +174,21 @@ function validRecords(int sender, int arm, int seq, string value) returns boolea
 public function nativePreloadProbeActive() returns boolean
     return active
 
+public function nativePreloadProbeStartPending() returns boolean
+    return startPending
+
+public function nativePreloadProbeObserveSync(int sender, string wire)
+    if not active and not startPending
+        return
+    rawSyncEvents++
+    if wire.length() >= 3 and wire.substring(0, 3) == "D0V"
+        vocabularySyncEvents++
+    if rawSyncEvents == 1
+        PreloadGenClear()
+        PreloadGenStart()
+        Preload("build=" + BUILD_ID + " startup=first-SC_GP-event sender=" + I2S(sender) + " bytes=" + I2S(wire.length()) + " prefix=" + wire.substring(0, min(7, wire.length())))
+        PreloadGenEnd("smashcraft-vocabulary-start-" + BUILD_ID + "-s" + I2S(GetPlayerId(localPlayer)) + "-first-SC_GP-event.txt")
+
 public function nativePreloadProbeReceive(int sender, string wire) returns boolean
     if wire.length() < 7 or wire.substring(0, 3) != "D0V"
         return false
@@ -209,6 +231,9 @@ function beginProbe()
         return
     writeStartBoundary("sync-received")
     active = true
+    startPending = false
+    rawSyncEvents = 0
+    vocabularySyncEvents = 0
     for arm = 0 to 5
         attempts[arm] = 0
         sent[arm] = 0
@@ -241,9 +266,14 @@ function beginProbe()
     beginArm(0)
 
 public function nativePreloadProbeRequestStart()
-    if not active
+    if not active and not startPending
+        startPending = true
         writeStartBoundary("local-request")
-        BlzSendSyncData(FILEIO_PROBE_START_PREFIX, "1")
+        if BlzSendSyncData(FILEIO_PROBE_START_PREFIX, "1")
+            writeStartBoundary("start-send-accepted")
+        else
+            startPending = false
+            writeStartBoundary("start-send-rejected")
 
 public function nativePreloadProbeSetup(int humanMask)
     probeClock = CreateTimer()
