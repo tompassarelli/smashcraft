@@ -1,0 +1,95 @@
+{
+  "build": "editbox-start-20261005",
+  "map_sha256": "314d72009f8e260f836ebc6f7dfb8d0eff6088855a3d482c9d782e1ee1edc5c3",
+  "helper_sha256": "ea6e7311e5a787cf08beeeb951cd799f01323ff3c643da9e5464098d8a36f6cb",
+  "pause_next_frame": 76,
+  "frozen_confirmed_frame": 75,
+  "clients": [
+    {
+      "slot": 0,
+      "published_frames": 600,
+      "confirmed_frame": 600,
+      "checksum": "432553:258417",
+      "mapped_events": [
+        {
+          "monotonic_ns": 547554605217000,
+          "frame": 19,
+          "held": 32,
+          "pressed": 32,
+          "released": 0
+        },
+        {
+          "monotonic_ns": 547554610428000,
+          "frame": 19,
+          "held": 0,
+          "pressed": 0,
+          "released": 32
+        },
+        {
+          "monotonic_ns": 547568089089000,
+          "frame": 85,
+          "held": 0,
+          "pressed": 0,
+          "released": 0
+        },
+        {
+          "monotonic_ns": 547568389265000,
+          "frame": 103,
+          "held": 32,
+          "pressed": 32,
+          "released": 0
+        },
+        {
+          "monotonic_ns": 547568394363000,
+          "frame": 103,
+          "held": 0,
+          "pressed": 0,
+          "released": 32
+        }
+      ]
+    },
+    {
+      "slot": 1,
+      "published_frames": 600,
+      "confirmed_frame": 600,
+      "checksum": "432553:258417",
+      "mapped_events": [
+        {
+          "monotonic_ns": 547554605217000,
+          "frame": 19,
+          "held": 32,
+          "pressed": 32,
+          "released": 0
+        },
+        {
+          "monotonic_ns": 547554610428000,
+          "frame": 19,
+          "held": 0,
+          "pressed": 0,
+          "released": 32
+        },
+        {
+          "monotonic_ns": 547568089089000,
+          "frame": 84,
+          "held": 0,
+          "pressed": 0,
+          "released": 0
+        },
+        {
+          "monotonic_ns": 547568389265000,
+          "frame": 102,
+          "held": 32,
+          "pressed": 32,
+          "released": 0
+        },
+        {
+          "monotonic_ns": 547568394363000,
+          "frame": 102,
+          "held": 0,
+          "pressed": 0,
+          "released": 32
+        }
+      ]
+    }
+  ]
+}

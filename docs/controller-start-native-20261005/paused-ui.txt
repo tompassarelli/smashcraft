@@ -1,0 +1,21 @@
+0:0
+
+ARCHER RIFLEMAN
+
+
+PAUSED — Press Start to resume. Combat Is frozen.
+
+- 0.0%
+
+P1 . ARCHER
+
+6:59
+
+Resume: Start
+
+0.0%
+
+RIFLEMAN
+
+Developer test: editbox-start-20261005 | player=1 | phase=2 | x=-240 z=0 | input=- 1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+

@@ -1,0 +1,32 @@
+{
+  "build": "editbox-start-20261005",
+  "epoch_monotonic_ns": 547554304919334,
+  "helper_sha256": "ea6e7311e5a787cf08beeeb951cd799f01323ff3c643da9e5464098d8a36f6cb",
+  "helper_exit_codes": [
+    0,
+    0
+  ],
+  "events": [
+    {
+      "event": "Start-down",
+      "monotonic_ns": 547555405141623
+    },
+    {
+      "event": "Start-up",
+      "monotonic_ns": 547555525321724
+    },
+    {
+      "event": "native-paused",
+      "monotonic_ns": 547567462050535
+    },
+    {
+      "event": "Start-down",
+      "monotonic_ns": 547567817768381
+    },
+    {
+      "event": "Start-up",
+      "monotonic_ns": 547567937963250
+    }
+  ],
+  "scope": "Two native clients, 600 original frames per player, 5ms taps before/during/after controller Start pause plus an attack held across resume; focused editbox remains input owner. Not physical latency or whole-window focus-loss acceptance."
+}
