@@ -1,0 +1,8 @@
+{
+  "candidate": "0.0.52",
+  "sha256": "675b85a38a5c326eddcdfb9a39d9e084fc3da046aef2d261bc411706688cf51f",
+  "scope": "Existing SelectionPanel/SelectionDrag/MatchState, shared frame creation, local mouse polling, native sync choices, simple footman recreation. No gameplay, rollback, binding loading or controller reads.",
+  "result": "Both choices received, revision3 body identities matched; both clients received subsequent synchronized Start callback at tick7650. No disconnect observed.",
+  "next_action": "Add full fighter state construction, custom fighter unit types and exact body setup to reduced reproduction before restoring full integration.",
+  "controller_performance_verdict": null
+}

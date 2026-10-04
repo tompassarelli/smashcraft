@@ -1,6 +1,21 @@
 # Smashcraft delivery state — 4 October 2026
 
-Latest decision: native JASS50/51 still disconnect during fighter selection,
+Latest diagnostic: reduced native JASS52 passed both fighter selections and
+unit recreation, then both clients received the synchronized Start callback at
+tick7650 with matching choices and unit identities. It retains the existing
+selection UI/local mouse/sync logic but omits gameplay, rollback, saved bindings
+and controller reads. Evidence: wc3-melee:docs/selection0052-evidence-20261004/.
+Reduced native53 also passed full fighter state construction, custom unit types
+and exact body setup. Both clients received a later synchronized Start callback
+at tick11348 with matching choices and body identities. The initial callback
+click missed its target; an OCR-guided click reached it. The missing receipt was
+a harness failure, not a map failure. Evidence:
+wc3-melee:docs/selection0053-evidence-20261004/.
+These passes rule out the selection/body setup alone as sufficient to reproduce
+the full integration's disconnect. They do not establish controller performance.
+No further full-map native candidate is admitted without an owning repair.
+
+Previous full integration: native JASS50/51 disconnect during fighter selection,
 before controller helpers start. Shared fighter choices and unit identities
 matched. Unit-reference cleanup did not fix the failure. Both candidates are
 rejected and archived privately. The published Lua source, exact compiler JAR

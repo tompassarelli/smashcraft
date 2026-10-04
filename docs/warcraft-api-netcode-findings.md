@@ -29,6 +29,19 @@ compiler artifact and playable40 map are restored; the desync cause is open.
 Evidence and limits appear below and in
 wc3-melee:docs/smashcraft-delivery-state-20261004.md.
 
+Reduced native JASS52 passed the existing selection UI, local mouse polling,
+synchronized choices and basic unit recreation on both clients. Both received
+the subsequent synchronized Start callback at tick7650, with matching choices
+and body identities. This excludes those steps alone as sufficient to reproduce
+the full-map disconnect. Reduced53 also passed with actual fighter state,
+custom unit types and exact body setup; both received the later synchronized
+Start callback at tick11348 with matching choices and body identities. An
+initial click missed its target; a corrected click established the callback,
+so the initial missing receipt is not a product failure. These checks precede
+controller reads and carry no input-performance verdict. Numerical evidence:
+wc3-melee:docs/selection0052-evidence-20261004/ and
+wc3-melee:docs/selection0053-evidence-20261004/.
+
 **Populated preload-file ingestion reproduces the seconds-long backlog.**
 The same two Warcraft III 3.0 clients ran exact Smashcraft 0.0.24, build
 `netcode-0024`, SHA256

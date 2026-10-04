@@ -1,0 +1,108 @@
+package SelectionRecreationProbe
+import Wurst
+import SelectionUI
+import MatchRules
+import FighterAssets
+import Simulation
+import SelectionProbeInfo
+
+MatchState state = null
+SelectionPanel array panels
+unit array bodies
+FighterState array fighters
+int revision = 0
+int ticks = 0
+
+function recordSelection(string phase)
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("build=" + SELECTION_PROBE_ID + " phase=" + phase + " revision=" + I2S(revision) + " ticks=" + I2S(ticks))
+    for slot = 0 to 3
+        Preload("slot=" + I2S(slot) + " choice=" + I2S(state.characterFor(slot)) + " selected=" + (state.characterReady(slot) ? "1" : "0") + " body=" + I2S(bodies[slot] == null ? 0 : GetHandleId(bodies[slot])))
+    PreloadGenEnd("smashcraft-" + SELECTION_PROBE_ID + "-p" + I2S(GetPlayerId(GetLocalPlayer())) + "-r" + I2S(revision) + "-" + phase + ".txt")
+
+function recreateBodies()
+    revision++
+    recordSelection("before")
+    for slot = 0 to 3
+        if bodies[slot] != null
+            RemoveUnit(bodies[slot])
+            bodies[slot] = null
+        if fighters[slot] != null
+            destroy fighters[slot]
+            fighters[slot] = null
+    for slot = 0 to 3
+        if state.fighterActive(slot)
+            let choice = state.characterFor(slot)
+            let startX = -240. + slot * 240.
+            fighters[slot] = new FighterState(choice, startX, startX < 0 ? 1 : -1)
+            bodies[slot] = CreateUnit(Player(slot), choice == 2 ? DEMON_HUNTER_FIGHTER_ID : (choice == 0 ? ARCHER_FIGHTER_ID : RIFLEMAN_FIGHTER_ID), startX, 0., 0.)
+            SetUnitInvulnerable(bodies[slot], true)
+            SetUnitPathing(bodies[slot], false)
+            UnitAddAbility(bodies[slot], 'Amrf')
+            UnitRemoveAbility(bodies[slot], 'Amrf')
+            UnitAddAbility(bodies[slot], 'Aloc')
+            PauseUnit(bodies[slot], true)
+            SetUnitBlendTime(bodies[slot], 0.)
+            SetUnitX(bodies[slot], startX)
+            SetUnitY(bodies[slot], 0.)
+            SetUnitFlyHeight(bodies[slot], 1800., 0.)
+            BlzSetUnitFacingEx(bodies[slot], startX < 0 ? 0. : 180.)
+            SetUnitAnimation(bodies[slot], "stand")
+    recordSelection("after")
+
+class ProbeActions extends SelectionActions
+    override function selectChoice(int slot, int choice)
+        state.selectCharacter(slot, choice)
+        recreateBodies()
+
+    override function selectCpuChoice(int actor, int slot, int choice)
+        state.selectCpuCharacter(actor, slot, choice)
+        recreateBodies()
+
+    override function cycleMode(int actor, int slot)
+        state.cycleSlotMode(actor, slot)
+        recreateBodies()
+
+    override function recallChoice(int actor, int slot)
+        state.recallCharacter(actor, slot)
+        recreateBodies()
+
+    override function openSettings(int slot)
+        skip
+
+    override function start(int slot)
+        recordSelection("start")
+
+function updateSelection()
+    ticks++
+    for slot = 0 to 3
+        panels[slot].update(state, false)
+    if ticks == 600
+        recordSelection("alive")
+
+function startSelection()
+    DestroyTimer(GetExpiredTimer())
+    state = new MatchState()
+    var humans = 0
+    var bit = 1
+    for slot = 0 to 3
+        if GetPlayerController(Player(slot)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(slot)) == PLAYER_SLOT_STATE_PLAYING
+            humans += bit
+        bit *= 2
+    state.setParticipants(humans, 0)
+    BlzHideOriginFrames(true)
+    loadTOCFile("war3mapImported\\SmashcraftHUD.toc")
+    BlzEnableSelections(false, false)
+    FogEnable(false)
+    FogMaskEnable(false)
+    for slot = 0 to 3
+        panels[slot] = new SelectionPanel(new ProbeActions(), slot)
+    recreateBodies()
+    let updateTimer = CreateTimer()
+    TimerStart(updateTimer, 1. / 60., true, function updateSelection)
+    recordSelection("ready")
+
+init
+    let startTimer = CreateTimer()
+    TimerStart(startTimer, 0.1, false, function startSelection)
