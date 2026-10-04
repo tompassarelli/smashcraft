@@ -1,5 +1,18 @@
 # Smashcraft delivery state — 4 October 2026
 
+Latest continuation: the one-packet preload check received both real packets
+and both post-read markers, reaching confirmed frame2 on both clients. Receipt
+took801.025/817.627ms; adding preload start/end calls still took631.836/698.486ms.
+This rules out a permanently missing receiver in that bounded Lua check and
+rejects moving submission to the next callback as the repair. Source generation
+is not fixed. Details: wc3-melee:docs/journal-read-boundary-20261004/README.md.
+
+Exact40 has again been restored in a running two-client fight after these checks.
+The next implementation is a local keyboard-state mailbox carrying the same
+timestamped I4 and pause records, acknowledged through game file output. The
+accepted implementation owner is /root/keyboard_ingress; /root retains native
+integration and the delivery verdict. No native mailbox success is claimed.
+
 **Playable delivery: exact0.0.40. Experimental controller59 is rejected.**
 The game already passed the two-client gameplay journey described below.
 Its keyboard and digital controller-mapper path remains the usable delivery.
@@ -169,7 +182,7 @@ artifact remains available independently of this diagnostic's unfinished leave.
 Issues 3/4/21 remain closed for their delivered scopes; this bounded gameplay
 check does not justify closing broader acceptance issues.
 
-## Latest integration checkpoint: journal46
+## Historical integration checkpoint: journal46
 
 Journal44/45 passed production-channel startup before disk reads and applied
 the first 5 ms tap at original frame19. Application took native2.700/2.883s;

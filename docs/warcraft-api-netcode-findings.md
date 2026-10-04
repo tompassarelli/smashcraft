@@ -7,6 +7,16 @@ deadline was 08:38:38 Taipei on 4 October; it was missed and has not reset.
 
 ## Current deciding evidence
 
+The bounded one-packet read check now shows delayed delivery rather than a
+permanently dead receiver: both clients received the packet and fixed markers,
+confirming frame2, with own-receipt ages801.025/817.627ms. Sending on the next
+callback did not avoid the delay. Adding the normal preload start/end calls
+also failed to repair it (631.836/698.486ms). The same compiled Lua map was used
+for both checks; this does not establish eventual delivery for native JASS59.
+Evidence and the selected local keyboard-state ingress implementation:
+wc3-melee:docs/journal-read-boundary-20261004/README.md. That replacement has no
+native performance verdict yet; exact40 remains the playable delivery.
+
 **Usable game:0.0.40, restored in a two-client fight. Failed controller experiment:59.** Internal diagnostic
 numbers41–59 are not successive delivered game releases. Release status and
 experimental run identity are tracked separately from now on.
