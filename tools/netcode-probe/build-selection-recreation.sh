@@ -41,7 +41,7 @@ while pending:
 print('Staged', len(seen), 'source packages')
 PY
 "$packager" extract "$base_map" "$probe_dir/base.lua" war3map.lua
-"$python" "$private_root/archive/native-jass51/lua-bootstrap-to-jass.py" "$probe_dir/base.lua" "$probe_dir/wurst/war3map.j"
+"$python" "$project_dir/tools/lua-bootstrap-to-jass.py" "$probe_dir/base.lua" "$probe_dir/wurst/war3map.j"
 ln -s "$stdlib" "$probe_dir/_build/dependencies/wurststdlib"
 cp "$project_dir/wurst.build" "$probe_dir/wurst.build"
 sed -i "s/^  name: .*/  name: Smashcraft 0.0.$version/; s/^    description: .*/    description: Character-selection diagnostic./" "$probe_dir/wurst.build"
