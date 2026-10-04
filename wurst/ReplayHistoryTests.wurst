@@ -1,4 +1,5 @@
 package ReplayHistoryTests
+import WorldTestSupport
 import ReplayHistory
 import ReplayState
 import MatchStep
@@ -15,7 +16,14 @@ class TapeWorld
     ReplayRuntimeState runtime = new ReplayRuntimeState()
     ReplaySnapshot snapshot = new ReplaySnapshot()
 
+    FighterRoster fighters = new FighterRoster(3)
+    FrameInputs controls = new FrameInputs()
+
     construct(int startingStocks)
+        fighters.fighters[0] = first
+        fighters.fighters[1] = second
+        controls.commands[0] = firstCommands
+        controls.commands[1] = secondCommands
         game.phase = MATCH
         game.timeLimitMinutes = 0
         game.stockCount = startingStocks
@@ -23,25 +31,25 @@ class TapeWorld
         second.stocks = startingStocks
 
     function capture()
-        snapshot.capture(first, second, game, firstCommands, secondCommands, runtime)
+        snapshot.capture(fighters, game, controls, runtime)
 
     function execute(MatchFrameInput row)
-        row.execute(game, first, second, firstCommands, secondCommands, runtime, row.frameNumber()).assertTrue()
+        row.execute(game, fighters, controls, runtime, row.frameNumber()).assertTrue()
 
     function save(ReplayHistory history, int epoch, MatchFrameInput row) returns boolean
-        return history.save(epoch, row, first, second, game, firstCommands, secondCommands, runtime)
+        return history.save(epoch, row, fighters, game, controls, runtime)
 
     function replay(ReplayHistory history, int epoch, int fromFrame, int throughFrame) returns boolean
-        return history.replay(epoch, fromFrame, throughFrame, first, second, game, firstCommands, secondCommands, runtime)
+        return history.replay(epoch, fromFrame, throughFrame, fighters, game, controls, runtime)
 
     function saveSpeculative(ReplayHistory history, int epoch, MatchFrameInput row) returns boolean
-        return history.saveSpeculative(epoch, row, first, second, game, firstCommands, secondCommands, runtime)
+        return history.saveSpeculative(epoch, row, fighters, game, controls, runtime)
 
     function correct(ReplayHistory history, int epoch, ReplayCorrections corrections) returns int
-        return history.correct(epoch, corrections, first, second, game, firstCommands, secondCommands, runtime)
+        return history.correct(epoch, corrections, fighters, game, controls, runtime)
 
     function restore(ReplayHistory history, int epoch, int frame) returns boolean
-        return history.restore(epoch, frame, first, second, game, firstCommands, secondCommands, runtime)
+        return history.restore(epoch, frame, fighters, game, controls, runtime)
 
 @Test function historyWrapEpochAndInvalidRangesAreNonDestructive()
     let world = new TapeWorld(99)
@@ -52,7 +60,7 @@ class TapeWorld
     let before = new ReplaySnapshot()
     history.beginEpoch(7, 1).assertTrue()
     for frame = 1 to 65
-        row.capture(frame, input, input, requests, requests, world.runtime).assertTrue()
+        row.capture(frame, 3, testControls(input, input, requests, requests), world.runtime).assertTrue()
         world.save(history, 7, row).assertTrue()
         world.save(history, 7, row).assertFalse()
         world.execute(row)
@@ -60,7 +68,7 @@ class TapeWorld
     history.contains(7, 2).assertTrue()
     history.contains(7, 65).assertTrue()
     history.contains(7, 66).assertFalse()
-    before.capture(world.first, world.second, world.game, world.firstCommands, world.secondCommands, world.runtime)
+    before.capture(testWorld(world.first, world.second), world.game, testCommands(world.controls.commands[0], world.controls.commands[1]), world.runtime)
     world.restore(history, 7, 1).assertFalse()
     world.restore(history, 6, 2).assertFalse()
     world.restore(history, 7, 66).assertFalse()
@@ -83,7 +91,7 @@ class TapeWorld
     world.restore(history, 8, 2).assertFalse()
     world.runtime.simulationFrame = 0
     row.reset()
-    row.capture(1, input, input, requests, requests, world.runtime).assertTrue()
+    row.capture(1, 3, testControls(input, input, requests, requests), world.runtime).assertTrue()
     world.save(history, 7, row).assertFalse()
     world.save(history, 8, row).assertTrue()
     history.contains(8, 1).assertTrue()
@@ -97,19 +105,19 @@ class TapeWorld
     history.beginEpoch(-1, 1).assertFalse()
     history.beginEpoch(0, 0).assertFalse()
     history.beginEpoch(0, 1).assertTrue()
-    row.capture(2, input, input, requests, requests, world.runtime).assertTrue()
+    row.capture(2, 3, testControls(input, input, requests, requests), world.runtime).assertTrue()
     world.save(history, 0, row).assertFalse()
-    row.capture(1, input, input, requests, requests, world.runtime).assertTrue()
+    row.capture(1, 3, testControls(input, input, requests, requests), world.runtime).assertTrue()
     world.runtime.simulationFrame = 1
     world.save(history, 0, row).assertFalse()
     world.runtime.simulationFrame = 0
     world.save(history, 0, row).assertTrue()
     history.beginEpoch(1, 2147483646).assertTrue()
     world.runtime.simulationFrame = 2147483645
-    row.capture(2147483646, input, input, requests, requests, world.runtime).assertTrue()
+    row.capture(2147483646, 3, testControls(input, input, requests, requests), world.runtime).assertTrue()
     world.save(history, 1, row).assertTrue()
     world.execute(row)
-    row.capture(2147483647, input, input, requests, requests, world.runtime).assertTrue()
+    row.capture(2147483647, 3, testControls(input, input, requests, requests), world.runtime).assertTrue()
     world.save(history, 1, row).assertFalse()
     history.contains(1, 2147483646).assertTrue()
     world.restore(history, 1, 2147483646).assertTrue()
@@ -124,6 +132,8 @@ public function runRecordedTape(int frames, int rollbackStride, int startingStoc
     let secondInput = new InputSnapshot()
     let firstRequests = new AttackBuffer(0)
     let secondRequests = new AttackBuffer(0)
+    let produced = testControls(firstInput, secondInput, firstRequests, secondRequests)
+    let reused = testControls(firstInput, firstInput, secondRequests, firstRequests)
     history.beginEpoch(1, 1).assertTrue()
     var sawShieldStun = false
     var sawHitRegistry = false
@@ -155,7 +165,7 @@ public function runRecordedTape(int frames, int rollbackStride, int startingStoc
         if frame >= 3000 and frame < 3300
             secondInput.direction = 1
             secondRequests.clear()
-        row.capture(frame, firstInput, secondInput, firstRequests, secondRequests, canonical.runtime).assertTrue()
+        row.capture(frame, 3, produced, canonical.runtime).assertTrue()
         replayed.save(history, 1, row).assertTrue()
         canonical.execute(row)
         replayed.execute(row)
@@ -163,7 +173,7 @@ public function runRecordedTape(int frames, int rollbackStride, int startingStoc
         row.reset()
         firstInput.direction = 1
         firstInput.shield = true
-        row.capture(frame, firstInput, firstInput, secondRequests, firstRequests, canonical.runtime).assertTrue()
+        row.capture(frame, 3, reused, canonical.runtime).assertTrue()
         firstInput.shield = false
         if frame mod rollbackStride == 0
             replayed.replay(history, 1, max(1, frame - 5), frame).assertTrue()
@@ -223,10 +233,10 @@ public function runRecordedTape(int frames, int rollbackStride, int startingStoc
         requests.clear()
         if frame == 63
             requests.enqueue(1, 1, frame, false)
-        row.capture(frame, input, response, requests, noRequests, canonical.runtime).assertTrue()
+        row.capture(frame, 3, testControls(input, response, requests, noRequests), canonical.runtime).assertTrue()
         canonical.save(canonicalHistory, 9, row).assertTrue()
         canonical.execute(row)
-        wrongRow.capture(frame, neutral, neutral, noRequests, noRequests, predicted.runtime).assertTrue()
+        wrongRow.capture(frame, 3, testControls(neutral, neutral, noRequests, noRequests), predicted.runtime).assertTrue()
         partiallyCorrected.execute(frame == 65 ? wrongRow : row)
         if frame >= 63
             row.copyTo(actual[frame - 63])
@@ -277,7 +287,7 @@ public function runRecordedTape(int frames, int rollbackStride, int startingStoc
     predicted.correct(history, 9, corrections).assertEquals(REPLAY_CORRECTION_UNCHANGED)
     predicted.capture()
     canonical.snapshot.firstDifference(predicted.snapshot).assertEquals("")
-    row.capture(69, neutral, neutral, noRequests, noRequests, predicted.runtime).assertTrue()
+    row.capture(69, 3, testControls(neutral, neutral, noRequests, noRequests), predicted.runtime).assertTrue()
     predicted.saveSpeculative(history, 9, row).assertTrue()
 
 @Test function correctionWindowAndIdenticalConfirmationControlSpeculation()
@@ -290,18 +300,18 @@ public function runRecordedTape(int frames, int rollbackStride, int startingStoc
     let third = new MatchFrameInput()
     let input = new InputSnapshot()
     let requests = new AttackBuffer(0)
-    first.capture(1, input, input, requests, requests, world.runtime).assertTrue()
+    first.capture(1, 3, testControls(input, input, requests, requests), world.runtime).assertTrue()
     history.beginEpoch(1, 1).assertTrue()
     world.saveSpeculative(history, 1, first).assertFalse()
-    history.beginEpochWithCorrections(2, 1, 7).assertFalse()
+    history.beginEpochWithCorrections(2, 1, REPLAY_MAX_CORRECTION_FRAMES + 1).assertFalse()
     history.beginEpochWithCorrections(2, 1, -1).assertFalse()
     history.beginEpochWithCorrections(2, 1, 2).assertTrue()
     world.saveSpeculative(history, 2, first).assertTrue()
     world.execute(first)
-    second.capture(2, input, input, requests, requests, world.runtime).assertTrue()
+    second.capture(2, 3, testControls(input, input, requests, requests), world.runtime).assertTrue()
     world.saveSpeculative(history, 2, second).assertTrue()
     world.execute(second)
-    third.capture(3, input, input, requests, requests, world.runtime).assertTrue()
+    third.capture(3, 3, testControls(input, input, requests, requests), world.runtime).assertTrue()
     world.saveSpeculative(history, 2, third).assertFalse()
     world.save(history, 2, third).assertFalse()
     corrections.add(second).assertTrue()
@@ -342,22 +352,22 @@ public function runRecordedTape(int frames, int rollbackStride, int startingStoc
     let before = new ReplaySnapshot()
     history.beginEpochWithCorrections(5, 1, 6).assertTrue()
     for frame = 1 to 66
-        row.capture(frame, input, input, requests, requests, world.runtime).assertTrue()
+        row.capture(frame, 3, testControls(input, input, requests, requests), world.runtime).assertTrue()
         if frame >= 64
             world.saveSpeculative(history, 5, row).assertTrue()
         else
             world.save(history, 5, row).assertTrue()
         world.execute(row)
-    before.capture(world.first, world.second, world.game, world.firstCommands, world.secondCommands, world.runtime)
+    before.capture(testWorld(world.first, world.second), world.game, testCommands(world.controls.commands[0], world.controls.commands[1]), world.runtime)
     input.jumpPressed = true
-    changed.capture(64, input, input, requests, requests, world.runtime).assertTrue()
+    changed.capture(64, 3, testControls(input, input, requests, requests), world.runtime).assertTrue()
     corrections.add(changed).assertTrue()
     world.correct(history, 4, corrections).assertEquals(REPLAY_CORRECTION_REJECTED)
     // Invalid future, overwritten and authoritative-conflict rows each reject
     // the preceding valid correction as part of the same atomic batch.
     for caseIndex = 0 to 2
         let badFrame = caseIndex == 0 ? 67 : (caseIndex == 1 ? 1 : 63)
-        row.capture(badFrame, input, input, requests, requests, world.runtime).assertTrue()
+        row.capture(badFrame, 3, testControls(input, input, requests, requests), world.runtime).assertTrue()
         corrections.add(row).assertTrue()
         world.correct(history, 5, corrections).assertEquals(REPLAY_CORRECTION_REJECTED)
         world.capture()
@@ -376,7 +386,7 @@ public function runRecordedTape(int frames, int rollbackStride, int startingStoc
     (before.firstDifference(world.snapshot) != "").assertTrue()
     // A corrected row is authoritative now; a conflicting second value fails.
     input.jumpPressed = false
-    row.capture(64, input, input, requests, requests, world.runtime).assertTrue()
+    row.capture(64, 3, testControls(input, input, requests, requests), world.runtime).assertTrue()
     corrections.clear()
     corrections.add(row).assertTrue()
     world.correct(history, 5, corrections).assertEquals(REPLAY_CORRECTION_REJECTED)
@@ -390,56 +400,25 @@ public function runRecordedTape(int frames, int rollbackStride, int startingStoc
     let requests = new AttackBuffer(0)
     let runtime = new ReplayRuntimeState()
     corrections.add(row).assertFalse()
-    for frame = 1 to 6
-        row.capture(frame, input, input, requests, requests, runtime).assertTrue()
+    for frame = 1 to REPLAY_MAX_CORRECTION_FRAMES
+        row.capture(frame, 3, testControls(input, input, requests, requests), runtime).assertTrue()
         corrections.add(row).assertTrue()
-    corrections.size().assertEquals(6)
+    corrections.size().assertEquals(REPLAY_MAX_CORRECTION_FRAMES)
     corrections.add(row).assertTrue()
-    row.capture(7, input, input, requests, requests, runtime).assertTrue()
+    row.capture(REPLAY_MAX_CORRECTION_FRAMES + 1, 3, testControls(input, input, requests, requests), runtime).assertTrue()
     corrections.add(row).assertFalse()
     input.specialPressed = true
-    row.capture(6, input, input, requests, requests, runtime).assertTrue()
+    row.capture(REPLAY_MAX_CORRECTION_FRAMES, 3, testControls(input, input, requests, requests), runtime).assertTrue()
     corrections.add(row).assertFalse()
-    corrections.copyRow(5, copy).assertTrue()
+    corrections.copyRow(REPLAY_MAX_CORRECTION_FRAMES - 1, copy).assertTrue()
     copy.sameAs(row).assertFalse()
     input.specialPressed = false
     row.reset()
-    row.capture(6, input, input, requests, requests, runtime).assertTrue()
+    row.capture(REPLAY_MAX_CORRECTION_FRAMES, 3, testControls(input, input, requests, requests), runtime).assertTrue()
     copy.sameAs(row).assertTrue()
     corrections.copyRow(-1, copy).assertFalse()
-    corrections.copyRow(6, copy).assertFalse()
+    corrections.copyRow(REPLAY_MAX_CORRECTION_FRAMES, copy).assertFalse()
     copy.sameAs(row).assertTrue()
     corrections.clear()
     corrections.add(row).assertTrue()
     corrections.size().assertEquals(1)
-
-@Test function replayFramePreservesDirectionalInfluenceMagnitudeAndDistinguishesCorrections()
-    let world = new TapeWorld(3)
-    let original = new MatchFrameInput()
-    let copied = new MatchFrameInput()
-    let changed = new MatchFrameInput()
-    let input = new InputSnapshot()
-    let neutral = new InputSnapshot()
-    let requests = new AttackBuffer(0)
-    input.diStickValid = true
-    input.diStickX = 0.25
-    input.diStickZ = 0.5
-    original.capture(1, input, neutral, requests, requests, world.runtime).assertTrue()
-    original.copyTo(copied)
-    input.diStickZ = 1
-    changed.capture(1, input, neutral, requests, requests, world.runtime).assertTrue()
-    original.sameAs(changed).assertFalse()
-    original.sameAs(copied).assertTrue()
-    world.first.grounded = false
-    world.first.z = 300
-    world.first.knockbackX = 6
-    world.first.hitlag = 1
-    world.first.diPending = true
-    world.execute(copied)
-    world.first.diAngleDegrees.assertEquals(4.5, 0.00001)
-    world.first.diSerial.assertEquals(1)
-    input.diStickZ = 0.5
-    input.diStickValid = false
-    changed.reset()
-    changed.capture(1, input, neutral, requests, requests, world.runtime).assertTrue()
-    original.sameAs(changed).assertFalse()

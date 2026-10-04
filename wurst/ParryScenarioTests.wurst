@@ -1,4 +1,5 @@
 package ParryScenarioTests
+import WorldTestSupport
 import Simulation
 import CommandBuffer
 import MatchRules
@@ -19,25 +20,25 @@ import ParryScenario
         // The CPU stays passive while the player waits at the starting mark.
         for frame = 1 to 20
             queueParryScenarioJab(firstInput, second, secondCommands, frame)
-            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+            stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
         second.attackSerial.assertEquals(0)
         first.damage.assertEquals(0.)
         firstInput.specialPressed = true
         firstInput.specialX = parry
         firstInput.direction = parry
         queueParryScenarioJab(firstInput, second, secondCommands, 21)
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 21)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 21)
         second.attackFrame.assertEquals(0)
         second.attackSerial.assertEquals(1)
         firstInput.specialPressed = false
         firstInput.specialX = 0
         firstInput.direction = 0
         for frame = 22 to 24
-            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+            stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
         first.specialFrame.assertEquals(4)
         first.damage.assertEquals(0.)
         second.hitstun.assertEquals(0)
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 25)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 25)
         if parry == 1
             first.damage.assertEquals(0.)
             first.specialAction.assertEquals(SPECIAL_NONE)

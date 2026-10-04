@@ -1,0 +1,330 @@
+package ResponseServiceProbe
+import Wurst
+import BuildInfo
+
+constant int ROW_LIMIT = 2700
+constant int PAGE_ROWS = 150
+constant int EDGE_PAIR_LIMIT = 64
+// A response run retains original-frame transport timestamps across trace
+// summary windows. 8192 rows cover a full 2700-callback capture with headroom.
+constant int TRANSPORT_LIMIT = 8192
+boolean recording = false
+boolean exporting = false
+boolean edgeStampMode = false
+int previousHeld = -1
+int edgePairs = 0
+int edgeDropped = 0
+int pendingEdgeRow = -1
+int rows = 0
+int row = -1
+int run = 0
+int page = 0
+int polls = 0
+int captures = 0
+int advances = 0
+int presentations = 0
+timer nativeClock = null
+timer exportTimer = null
+framehandle serviceMarker = null
+real array[2700] entryMs
+real array[2700] pollMs
+real array[2700] captureMs
+real array[2700] advanceMs
+real array[2700] presentMs
+int array[2700] frameBefore
+int array[2700] frameAfter
+int array[2700] fBefore
+int array[2700] fAfter
+int array[2700] known
+int array[2700] target
+int array[2700] held
+int array[2700] pressed
+int array[2700] released
+int array[2700] captureResult
+int array[2700] phase
+int array[2700] confirmedShield
+int array[2700] predictedShield
+int array[2700] poseSerial
+int array[2700] correction
+real array[2700] fileReadMs
+int array[2700] fileReads
+int array[2700] fileBytes
+real array[2700] sendCallMs
+int array[2700] sendCalls
+int transportSent = 0
+int transportReceived = 0
+int transportUnmatched = 0
+int transportDropped = 0
+int transportOrderCount = 0
+int array[8192] transportEpoch
+int array[8192] transportFrame
+real array[8192] transportSendMs
+real array[8192] transportReceiveMs
+int array[8192] transportOrderSlot
+
+public function responseProbeRecording() returns boolean
+    return RESPONSE_SERVICE_PROBE and recording
+
+public function responseProbeSetup()
+    if not RESPONSE_SERVICE_PROBE
+        return
+    nativeClock = CreateTimer()
+    exportTimer = CreateTimer()
+    serviceMarker = createTextFrame("ResponseServiceMarker", GAME_UI, 966)
+    serviceMarker.setText("|cffff00ffI|r")
+    serviceMarker.setSize(0.012, 0.016)
+    serviceMarker.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.04, 0.595)
+    serviceMarker.setVisible(false)
+    // Populate Lua tables before measurement; recording only overwrites slots.
+    for i = 0 to ROW_LIMIT - 1
+        entryMs[i] = 0
+        pollMs[i] = 0
+        captureMs[i] = 0
+        advanceMs[i] = 0
+        presentMs[i] = 0
+        frameBefore[i] = 0
+        frameAfter[i] = 0
+        fBefore[i] = 0
+        fAfter[i] = 0
+        known[i] = 0
+        target[i] = 0
+        held[i] = 0
+        pressed[i] = 0
+        released[i] = 0
+        captureResult[i] = 0
+        phase[i] = 0
+        confirmedShield[i] = 0
+        predictedShield[i] = 0
+        poseSerial[i] = 0
+        correction[i] = 0
+        fileReadMs[i] = 0
+        fileReads[i] = 0
+        fileBytes[i] = 0
+        sendCallMs[i] = 0
+        sendCalls[i] = 0
+    for i = 0 to TRANSPORT_LIMIT - 1
+        transportEpoch[i] = -1
+        transportFrame[i] = 0
+        transportSendMs[i] = -1
+        transportReceiveMs[i] = -1
+        transportOrderSlot[i] = -1
+
+function start(boolean stampEdges)
+    if not RESPONSE_SERVICE_PROBE or exporting
+        return
+    edgeStampMode = stampEdges
+    previousHeld = -1
+    edgePairs = 0
+    edgeDropped = 0
+    pendingEdgeRow = -1
+    recording = true
+    rows = 0
+    row = -1
+    polls = 0
+    captures = 0
+    advances = 0
+    presentations = 0
+    transportSent = 0
+    transportReceived = 0
+    transportUnmatched = 0
+    transportDropped = 0
+    transportOrderCount = 0
+    for i = 0 to TRANSPORT_LIMIT - 1
+        transportEpoch[i] = -1
+        transportFrame[i] = 0
+        transportSendMs[i] = -1
+        transportReceiveMs[i] = -1
+        transportOrderSlot[i] = -1
+    run++
+    // Native game time is not host monotonic time. Correlate the visible
+    // service marker with movie timestamps to investigate host stalls.
+    TimerStart(nativeClock, 120., false, null)
+    serviceMarker.setVisible(true)
+
+public function responseProbeStart()
+    start(false)
+
+public function responseProbeStartEdges()
+    start(true)
+
+public function responseProbeBegin(int frame, int speculative, int knownThrough, int matchPhase)
+    row = -1
+    pendingEdgeRow = -1
+    if not responseProbeRecording()
+        return
+    if rows == ROW_LIMIT
+        recording = false
+        return
+    row = rows
+    rows++
+    entryMs[row] = TimerGetElapsed(nativeClock) * 1000.
+    frameBefore[row] = frame
+    fBefore[row] = speculative
+    known[row] = knownThrough
+    phase[row] = matchPhase
+    pollMs[row] = -1
+    captureMs[row] = -1
+    advanceMs[row] = -1
+    presentMs[row] = -1
+    frameAfter[row] = -1
+    fAfter[row] = -1
+    target[row] = -1
+    held[row] = -1
+    pressed[row] = -1
+    released[row] = -1
+    captureResult[row] = -1
+    confirmedShield[row] = -1
+    predictedShield[row] = -1
+    poseSerial[row] = -1
+    correction[row] = -1
+    fileReadMs[row] = 0
+    fileReads[row] = 0
+    fileBytes[row] = 0
+    sendCallMs[row] = 0
+    sendCalls[row] = 0
+
+public function responseProbeFileRead(real elapsedMs, int byteCount)
+    if row < 0
+        return
+    fileReads[row]++
+    fileReadMs[row] += elapsedMs
+    fileBytes[row] += byteCount
+
+public function responseProbeClockMs() returns real
+    if not responseProbeRecording()
+        return -1
+    return TimerGetElapsed(nativeClock) * 1000.
+
+public function responseProbeSendCall(real elapsedMs)
+    if row < 0
+        return
+    sendCalls[row]++
+    sendCallMs[row] += elapsedMs
+
+public function responseProbeSendCallFinish(real startMs)
+    if startMs >= 0
+        responseProbeSendCall(responseProbeClockMs() - startMs)
+
+public function responseProbeTransportSend(int epoch, int frame)
+    if not responseProbeRecording()
+        return
+    let slot = frame mod TRANSPORT_LIMIT
+    transportEpoch[slot] = epoch
+    transportFrame[slot] = frame
+    transportSendMs[slot] = TimerGetElapsed(nativeClock) * 1000.
+    transportReceiveMs[slot] = -1
+    transportSent++
+    if transportOrderCount < TRANSPORT_LIMIT
+        transportOrderSlot[transportOrderCount] = slot
+        transportOrderCount++
+    else
+        transportDropped++
+
+public function responseProbeTransportReceive(int epoch, int frame)
+    if not responseProbeRecording()
+        return
+    let slot = frame mod TRANSPORT_LIMIT
+    if transportEpoch[slot] != epoch or transportFrame[slot] != frame or transportSendMs[slot] < 0
+        transportUnmatched++
+        return
+    if transportReceiveMs[slot] < 0
+        transportReceiveMs[slot] = TimerGetElapsed(nativeClock) * 1000.
+        transportReceived++
+
+function stampEdge(string stage)
+    if not responseProbeRecording() or not edgeStampMode or exporting or row < 0
+        return
+    let localSlot = GetPlayerId(GetLocalPlayer())
+    let nativeMs = TimerGetElapsed(nativeClock) * 1000.
+    let active = BlzIsLocalClientActive() ? 1 : 0
+    // Two writes per edge intentionally perturb service; only clean mode is
+    // suitable for performance acceptance. File arrival supplies host time.
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("EDGE v=1 build=" + BUILD_ID + " local=" + I2S(localSlot) + " run=" + I2S(run) + " row=" + I2S(row) + " stage=" + stage + " held=" + I2S(held[row]) + " pressed=" + I2S(pressed[row]) + " released=" + I2S(released[row]) + " active=" + I2S(active) + " native_ms=" + R2S(nativeMs))
+    PreloadGenEnd("smashcraft-edge-p" + I2S(localSlot) + "-run" + I2S(run) + "-row" + I2S(row) + "-" + stage + ".txt")
+
+public function responseProbePoll(int mask, int pressMask, int releaseMask, int assignedTarget)
+    if row < 0
+        return
+    polls++
+    pollMs[row] = TimerGetElapsed(nativeClock) * 1000.
+    held[row] = mask
+    pressed[row] = pressMask
+    released[row] = releaseMask
+    target[row] = assignedTarget
+    if edgeStampMode and responseProbeRecording()
+        if previousHeld >= 0 and mask != previousHeld
+            if edgePairs < EDGE_PAIR_LIMIT
+                edgePairs++
+                pendingEdgeRow = row
+                stampEdge("poll")
+            else
+                edgeDropped++
+        previousHeld = mask
+
+public function responseProbeCapture(int result)
+    if row < 0
+        return
+    captures++
+    captureMs[row] = TimerGetElapsed(nativeClock) * 1000.
+    captureResult[row] = result
+
+public function responseProbeAdvance(int frame, int speculative, int reconciliation)
+    if row < 0
+        return
+    advances++
+    advanceMs[row] = TimerGetElapsed(nativeClock) * 1000.
+    frameAfter[row] = frame
+    fAfter[row] = speculative
+    correction[row] = reconciliation
+
+public function responseProbePresent(boolean confirmed, boolean predicted, int serial)
+    if row < 0
+        return
+    presentations++
+    presentMs[row] = TimerGetElapsed(nativeClock) * 1000.
+    confirmedShield[row] = confirmed ? 1 : 0
+    predictedShield[row] = predicted ? 1 : 0
+    poseSerial[row] = serial
+    // Separate grid cells survive native low-resolution rasterization before
+    // desktop upscaling. Adjacent positions in a single narrow strip alias.
+    serviceMarker.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.04 + (row mod 32) * 0.0032, 0.595 - ((row div 32) mod 4) * 0.01)
+    if pendingEdgeRow == row
+        stampEdge("present")
+        pendingEdgeRow = -1
+
+function dumpPage()
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("RS v=3 build=" + BUILD_ID + " local=" + I2S(GetPlayerId(GetLocalPlayer())) + " run=" + I2S(run) + " page=" + I2S(page) + " rows=" + I2S(rows) + " mode=" + (edgeStampMode ? "edge-stamp" : "clean") + " edge_pairs=" + I2S(edgePairs) + " edge_limit=" + I2S(EDGE_PAIR_LIMIT) + " edge_dropped=" + I2S(edgeDropped))
+    Preload("counts poll=" + I2S(polls) + " capture_attempt=" + I2S(captures) + " advance=" + I2S(advances) + " present=" + I2S(presentations))
+    Preload("transport sent_frames=" + I2S(transportSent) + " received_frames=" + I2S(transportReceived) + " unmatched_receipts=" + I2S(transportUnmatched) + " dropped_from_export=" + I2S(transportDropped) + " retained=" + I2S(transportOrderCount))
+    Preload("clock=native-game-ms not-host-wall; row=zero-based-service; marker_x=0.04+(row%32)*0.0032 y=0.595-((row/32)%4)*0.01")
+    Preload("A row entry_ms poll_ms capture_ms advance_ms present_ms frame_before frame_after F_before F_after K_before target")
+    Preload("B row held pressed released capture_result phase confirmed_shield predicted_shield pose_serial correction")
+    Preload("C row journal_read_count journal_read_bytes journal_read_ms sync_send_count sync_send_ms")
+    Preload("D epoch frame sync_send_ms local_echo_ms echo_age_ms; echo=-1 means not observed before export")
+    for i = page * PAGE_ROWS to min(rows, (page + 1) * PAGE_ROWS) - 1
+        Preload("A " + I2S(i) + " " + R2S(entryMs[i]) + " " + R2S(pollMs[i]) + " " + R2S(captureMs[i]) + " " + R2S(advanceMs[i]) + " " + R2S(presentMs[i]) + " " + I2S(frameBefore[i]) + " " + I2S(frameAfter[i]) + " " + I2S(fBefore[i]) + " " + I2S(fAfter[i]) + " " + I2S(known[i]) + " " + I2S(target[i]))
+        Preload("B " + I2S(i) + " " + I2S(held[i]) + " " + I2S(pressed[i]) + " " + I2S(released[i]) + " " + I2S(captureResult[i]) + " " + I2S(phase[i]) + " " + I2S(confirmedShield[i]) + " " + I2S(predictedShield[i]) + " " + I2S(poseSerial[i]) + " " + I2S(correction[i]))
+        Preload("C " + I2S(i) + " " + I2S(fileReads[i]) + " " + I2S(fileBytes[i]) + " " + R2S(fileReadMs[i]) + " " + I2S(sendCalls[i]) + " " + R2S(sendCallMs[i]))
+    for i = page * PAGE_ROWS to min(transportOrderCount, (page + 1) * PAGE_ROWS) - 1
+        let slot = transportOrderSlot[i]
+        let receiveMs = transportReceiveMs[slot]
+        Preload("D " + I2S(transportEpoch[slot]) + " " + I2S(transportFrame[slot]) + " " + R2S(transportSendMs[slot]) + " " + R2S(receiveMs) + " " + R2S(receiveMs >= 0 ? receiveMs - transportSendMs[slot] : -1))
+    PreloadGenEnd("smashcraft-response-p" + I2S(GetPlayerId(GetLocalPlayer())) + "-run" + I2S(run) + "-page" + I2S(page) + ".txt")
+    page++
+    if page * PAGE_ROWS >= max(rows, transportOrderCount)
+        exporting = false
+        PauseTimer(exportTimer)
+
+public function responseProbeDump()
+    if not RESPONSE_SERVICE_PROBE or exporting or run == 0
+        return
+    recording = false
+    row = -1
+    pendingEdgeRow = -1
+    exporting = true
+    page = 0
+    TimerStart(exportTimer, 0.1, true, function dumpPage)

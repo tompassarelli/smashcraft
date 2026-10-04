@@ -49,3 +49,13 @@ per sender survive the tested editbox/poll/sync path during a controlled
 all counters are zero. This is replayed journal transport, not live capture,
 common-clock assignment, combat or physical response acceptance. Details:
 wc3-melee:docs/native-controller-tag-candidate-20261004.md.
+
+Native immutable-file ingress now corrects a current-production combat exchange
+on both online clients in 0.0.16. Eight authored original-frame rows published
+while B was verified stopped yield sixteen exact observer receipts, zero invalid
+rows, correction from F5, damage 12→0 and shieldstun 7. Corrected full snapshots
+match canonical and confirmed simulation; shifting the defense to F9 instead
+leaves 12 damage. This is one scripted exchange, not live physical capture or
+continuous playable prediction/presentation acceptance. Competitive **HOLD**
+remains pending capture-clock repair, common-frame/pause rules and playable
+recovery. Evidence: wc3-melee:docs/native-file-contact-rollback-result-20261004.md.

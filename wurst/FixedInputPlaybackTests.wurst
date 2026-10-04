@@ -1,4 +1,5 @@
 package FixedInputPlaybackTests
+import WorldTestSupport
 import FixedInputPlayback
 import FixedInputSchedule
 import InputAdapter
@@ -27,6 +28,7 @@ class PlaybackWorld
 	private MatchFrameInput row = new MatchFrameInput()
 
 	construct()
+		game.setHumanCount(2)
 		game.phase = MATCH
 		game.timeLimitMinutes = 0
 		game.stockCount = 99
@@ -36,11 +38,11 @@ class PlaybackWorld
 	function execute(int frame, NetworkInput firstRow, NetworkInput secondRow)
 		adaptInput(firstRow, first, frame, firstInput, firstRequests)
 		adaptInput(secondRow, second, frame, secondInput, secondRequests)
-		row.capture(frame, firstInput, secondInput, firstRequests, secondRequests, runtime).assertTrue()
-		row.execute(game, first, second, firstCommands, secondCommands, runtime, frame).assertTrue()
+		row.capture(frame, 3, testControls(firstInput, secondInput, firstRequests, secondRequests), runtime).assertTrue()
+		row.execute(game, testWorld(first, second), testCommands(firstCommands, secondCommands), runtime, frame).assertTrue()
 
 	function capture()
-		snapshot.capture(first, second, game, firstCommands, secondCommands, runtime)
+		snapshot.capture(testWorld(first, second), game, testCommands(firstCommands, secondCommands), runtime)
 
 function buildTapeRow(int assignedFrame, int delay, int sender, NetworkInput row)
 	if assignedFrame <= delay
@@ -103,14 +105,13 @@ function runScheduledGameplayOracle(int delay)
 	let packetSecond = new NetworkInput()
 	let total = 128
 	let epoch = 700 + delay
-	schedule.beginEpoch(epoch, delay).assertTrue()
+	schedule.beginEpoch(epoch, delay, 3).assertTrue()
 	for frame = 1 to total
 		buildTapeRow(frame, delay, 0, first0)
 		buildTapeRow(frame, delay, 1, second0)
 		if frame <= delay
 			canonical.execute(frame, first0, second0)
-			playback.advanceNext(schedule, epoch, scheduled.game, scheduled.first, scheduled.second,
-				scheduled.firstCommands, scheduled.secondCommands, scheduled.runtime).assertTrue()
+			playback.advanceNext(schedule, epoch, scheduled.game, testWorld(scheduled.first, scheduled.second), testCommands(scheduled.firstCommands, scheduled.secondCommands), scheduled.runtime).assertTrue()
 			canonical.capture()
 			scheduled.capture()
 			canonical.snapshot.firstDifference(scheduled.snapshot).assertEquals("")
@@ -135,8 +136,7 @@ function runScheduledGameplayOracle(int delay)
 						buildTapeRow(groupStart + earlyCount + 1, delay, 1, packetSecond)
 					deliver(schedule, 1, epoch, groupStart + earlyCount, laterCount, packetFirst, packetSecond, packet)
 					schedule.mayAdvance().assertFalse()
-					playback.advanceNext(schedule, epoch, scheduled.game, scheduled.first, scheduled.second,
-						scheduled.firstCommands, scheduled.secondCommands, scheduled.runtime).assertFalse()
+					playback.advanceNext(schedule, epoch, scheduled.game, testWorld(scheduled.first, scheduled.second), testCommands(scheduled.firstCommands, scheduled.secondCommands), scheduled.runtime).assertFalse()
 					scheduled.capture()
 					canonical.snapshot.firstDifference(scheduled.snapshot).assertEquals("")
 				buildTapeRow(groupStart, delay, 0, packetFirst)
@@ -153,8 +153,7 @@ function runScheduledGameplayOracle(int delay)
 					buildTapeRow(executedFrame, delay, 0, first0)
 					buildTapeRow(executedFrame, delay, 1, second0)
 					canonical.execute(executedFrame, first0, second0)
-					playback.advanceNext(schedule, epoch, scheduled.game, scheduled.first, scheduled.second,
-						scheduled.firstCommands, scheduled.secondCommands, scheduled.runtime).assertTrue()
+					playback.advanceNext(schedule, epoch, scheduled.game, testWorld(scheduled.first, scheduled.second), testCommands(scheduled.firstCommands, scheduled.secondCommands), scheduled.runtime).assertTrue()
 					canonical.capture()
 					scheduled.capture()
 					canonical.snapshot.firstDifference(scheduled.snapshot).assertEquals("")

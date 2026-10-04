@@ -1,0 +1,121 @@
+package ShadowInputPlayback
+import ShadowInputSchedule
+import NetworkInput
+import ParticipantInputs
+import MatchStep
+import ReplayHistory
+import Simulation
+import MatchRules
+import CommandBuffer
+
+public class ShadowInputPlayback
+    private ParticipantInputs inputs = new ParticipantInputs()
+    private MatchFrameInput row = new MatchFrameInput()
+    private MatchFrameInput confirmedRow = new MatchFrameInput()
+    private MatchFrameInput correctionRow = new MatchFrameInput()
+    private ParticipantInputs actual = new ParticipantInputs()
+    private ReplayCorrections corrections = new ReplayCorrections()
+    private int epoch = -1
+
+    function epochNumber() returns int
+        return epoch
+
+    function beginEpoch(int newEpoch) returns boolean
+        if not corrections.beginEpoch(newEpoch)
+            return false
+        epoch = newEpoch
+        return true
+
+    // The service owner samples and sends before calling this method. Resolution
+    // uses the assigned row only; it never polls, sends or mutates presentation.
+    function advanceSpeculative(ShadowInputSchedule schedule, int requestedEpoch, int localPlayer,
+            MatchState game, FighterRoster world, FrameInputs controls,
+            ReplayRuntimeState runtime, ReplayHistory history) returns boolean
+        if schedule.participantMask() != game.humanMask or requestedEpoch != epoch
+            return false
+        if schedule.speculativeFrame() != runtime.simulationFrame + 1
+            return false
+        let frame = schedule.speculativeFrame()
+        if not schedule.resolveSpeculative(requestedEpoch, localPlayer, inputs)
+            return false
+        if not row.captureNetworkInputs(frame, inputs, world, game.humanMask)
+            return false
+        if schedule.resolvedRowIsSpeculative(frame)
+            if not history.saveSpeculative(requestedEpoch, row, world, game, controls, runtime)
+                return false
+        else
+            if not history.save(requestedEpoch, row, world, game, controls, runtime)
+                return false
+        if not row.execute(game, world, controls, runtime, frame)
+            return false
+        if not schedule.completeSpeculative(requestedEpoch, frame)
+            return false
+        return true
+
+    // Run the confirmed copy in distinct caller-owned state. Its cursor never
+    // passes min(K,F-1), even when the speculative state is ahead.
+    function advanceConfirmed(ShadowInputSchedule schedule, int requestedEpoch,
+            MatchState game, FighterRoster world, FrameInputs controls,
+            ReplayRuntimeState runtime, ReplayHistory history) returns boolean
+        if schedule.participantMask() != game.humanMask or requestedEpoch != epoch or schedule.nextConfirmedFrame() != runtime.simulationFrame + 1
+            return false
+        let frame = schedule.nextConfirmedFrame()
+        if not schedule.readConfirmed(requestedEpoch, inputs)
+            return false
+        if not confirmedRow.captureNetworkInputs(frame, inputs, world, game.humanMask)
+            return false
+        if not history.save(requestedEpoch, confirmedRow, world, game, controls, runtime)
+            return false
+        if not confirmedRow.execute(game, world, controls, runtime, frame)
+            return false
+        return schedule.completeConfirmed(requestedEpoch, frame)
+
+    // Rebuild remote predictions in frame order from the corrected prefix.
+    // Accepted and local rows keep their edges; only predicted continuations
+    // strip press/release metadata. Replay adapts them against rebuilt snapshots.
+    function reconcile(ShadowInputSchedule schedule, int requestedEpoch, int localPlayer,
+            FighterRoster world, MatchState game, FrameInputs controls,
+            ReplayRuntimeState runtime, ReplayHistory history) returns int
+        if schedule.participantMask() != game.humanMask or requestedEpoch != epoch or schedule.epochNumber() != epoch or not game.humanActive(localPlayer)
+            return REPLAY_CORRECTION_REJECTED
+        corrections.clear()
+        let firstFrame = max(history.firstRetainedFrame(), schedule.firstAcceptedFrame())
+        let lastFrame = history.lastRecordedFrame()
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            actual.row(slot).assign(0, 0, 0, 0, 0, 0, 0)
+        if firstFrame <= lastFrame
+            for frame = firstFrame to lastFrame
+                if not history.copyInputRow(epoch, frame, correctionRow) or correctionRow.participantMask() != world.mask
+                    return REPLAY_CORRECTION_REJECTED
+                if correctionRow.hasNetworkRows()
+                    if history.isSpeculative(epoch, frame)
+                        var allAccepted = true
+                        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                            if game.humanActive(slot)
+                                let accepted = schedule.copyAccepted(epoch, slot, frame, actual.row(slot))
+                                allAccepted = allAccepted and accepted
+                                if not accepted
+                                    if localPlayer == slot
+                                        correctionRow.copyNetworkRow(slot, actual.row(slot))
+                                    else
+                                        actual.row(slot).predictTo(actual.row(slot))
+                        correctionRow.replaceNetworkRows(actual)
+                        if allAccepted
+                            if not corrections.add(correctionRow)
+                                return REPLAY_CORRECTION_REJECTED
+                        else
+                            if not corrections.addSpeculative(correctionRow)
+                                return REPLAY_CORRECTION_REJECTED
+                    else
+                        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                            if game.humanActive(slot)
+                                correctionRow.copyNetworkRow(slot, actual.row(slot))
+        let result = history.correct(epoch, corrections, world, game, controls, runtime)
+        if result == REPLAY_CORRECTION_REJECTED
+            return result
+        if history.copyInputRow(epoch, lastFrame, correctionRow) and correctionRow.hasNetworkRows()
+            for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                if game.humanActive(slot)
+                    correctionRow.copyNetworkRow(slot, actual.row(slot))
+                    schedule.rememberResolvedInput(slot, actual.row(slot))
+        return result

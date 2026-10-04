@@ -1,13 +1,14 @@
 package SelectionDragTests
 import SelectionDrag
+import ParticipantInputs
 
 @Test function hoveringShowsHeldChipButDoesNotPlaceIt()
     let drag = new SelectionDrag()
-    drag.update(true, false, 0.300, 0.370, 0, 0, false, 1, false, false)
+    updateDrag(drag, true, false, 0.300, 0.370, 0, 0, false, 1, false, false)
     drag.hoverTile.assertEquals(0)
     drag.placeHovered().assertEquals(-1)
     drag.selectHeldChip(0, true)
-    drag.update(true, false, 0.300, 0.370, 0, 0, false, 1, false, false)
+    updateDrag(drag, true, false, 0.300, 0.370, 0, 0, false, 1, false, false)
     drag.placeHovered().assertEquals(0)
     drag.releasedSlot.assertEquals(0)
     destroy drag
@@ -15,8 +16,8 @@ import SelectionDrag
 @Test function clickPlacesAndRecallTargetsTheHeldChip()
     let drag = new SelectionDrag()
     drag.selectHeldChip(0, true)
-    drag.update(true, true, 0.300, 0.370, 0, 0, false, 1, false, false)
-    drag.update(true, false, 0.300, 0.370, 0, 0, false, 1, false, false).assertEquals(0)
+    updateDrag(drag, true, true, 0.300, 0.370, 0, 0, false, 1, false, false)
+    updateDrag(drag, true, false, 0.300, 0.370, 0, 0, false, 1, false, false).assertEquals(0)
     drag.releasedSlot.assertEquals(0)
     drag.recallHeld().assertEquals(0)
     drag.releasedSlot.assertEquals(0)
@@ -25,42 +26,43 @@ import SelectionDrag
 @Test function selectedChipCanBeDraggedToAnotherPortrait()
     let drag = new SelectionDrag()
     drag.selectHeldChip(0, true)
-    drag.update(true, true, 0.300, 0.370, 0, 0, true, 1, false, false)
-    drag.update(true, true, 0.480, 0.370, 0, 0, true, 1, false, false).assertEquals(-1)
-    drag.update(true, false, 0.480, 0.370, 0, 0, true, 1, false, false).assertEquals(1)
+    updateDrag(drag, true, true, 0.300, 0.370, 0, 0, true, 1, false, false)
+    updateDrag(drag, true, true, 0.480, 0.370, 0, 0, true, 1, false, false).assertEquals(-1)
+    updateDrag(drag, true, false, 0.480, 0.370, 0, 0, true, 1, false, false).assertEquals(1)
     drag.releasedSlot.assertEquals(0)
     destroy drag
 
 @Test function cpuCanChooseSamePortraitAsHuman()
     let drag = new SelectionDrag()
     drag.selectHeldChip(1, true)
-    drag.update(true, true, 0.300, 0.370, 0, 0, false, 1, false, true)
-    drag.update(true, false, 0.300, 0.370, 0, 0, false, 1, false, true).assertEquals(0)
+    updateDrag(drag, true, true, 0.300, 0.370, 0, 0, false, 1, false, true)
+    updateDrag(drag, true, false, 0.300, 0.370, 0, 0, false, 1, false, true).assertEquals(0)
     drag.releasedSlot.assertEquals(1)
     destroy drag
 
 @Test function onlyAnPlacedOpponentChipCanBeDragged()
     let drag = new SelectionDrag()
-    drag.update(true, true, 0.523, 0.346, 0, 0, false, 1, false, true)
+    updateDrag(drag, true, true, 0.523, 0.346, 0, 0, false, 1, false, true)
     drag.active.assertFalse()
-    drag.update(true, false, 0.490, 0.370, 0, 0, false, 1, false, true).assertEquals(-1)
+    updateDrag(drag, true, false, 0.490, 0.370, 0, 0, false, 1, false, true).assertEquals(-1)
     destroy drag
 
 @Test function disabledPanelClearsHoverAndHeldChip()
     let drag = new SelectionDrag()
     drag.selectHeldChip(0, true)
-    drag.update(false, false, 0.300, 0.370, 0, 0, false, 1, false, false)
+    updateDrag(drag, false, false, 0.300, 0.370, 0, 0, false, 1, false, false)
     drag.hoverTile.assertEquals(-1)
     drag.placeHovered().assertEquals(-1)
     destroy drag
 
 @Test function selectingCpuCardChangesWhichChipAppearsOnHover()
-    selectionCardSlot(0.300, 0.160, 0, true).assertEquals(1)
-    selectionCardSlot(0.300, 0.160, 0, false).assertEquals(-1)
-    selectionCardSlot(0.120, 0.160, 0, false).assertEquals(0)
-    selectionCardSlot(0.120, 0.160, 1, true).assertEquals(-1)
-    selectionCardSlot(0.300, 0.160, 1, true).assertEquals(1)
-    selectionCardSlot(0.300, 0.310, 0, true).assertEquals(-1)
+    selectionCardSlot(0.300, 0.160, 3).assertEquals(1)
+    selectionCardSlot(0.300, 0.160, 1).assertEquals(-1)
+    selectionCardSlot(0.120, 0.160, 1).assertEquals(0)
+    selectionCardSlot(0.120, 0.160, 3).assertEquals(0)
+    selectionCardSlot(0.120, 0.160, 2).assertEquals(-1)
+    selectionCardSlot(0.300, 0.160, 3).assertEquals(1)
+    selectionCardSlot(0.300, 0.310, 3).assertEquals(-1)
 
 @Test function screenPixelsMapToCenteredFourByThreeFrames()
     selectionPointerX(960, 1920, 1080).assertEquals(0.4, 0.000001)
@@ -72,10 +74,10 @@ import SelectionDrag
     for slot = 0 to 1
         let drag = new SelectionDrag()
         drag.selectHeldChip(0, true)
-        drag.update(true, true, 0.135 + slot * 0.175, 0.180, 0, 0, false, 1, false, true).assertEquals(-1)
+        updateDrag(drag, true, true, 0.135 + slot * 0.175, 0.180, 0, 0, false, 1, false, true).assertEquals(-1)
         drag.active.assertTrue()
         drag.activeSlot.assertEquals(slot)
-        drag.update(true, false, 0.480, 0.370, 0, 0, false, 1, false, true).assertEquals(1)
+        updateDrag(drag, true, false, 0.480, 0.370, 0, 0, false, 1, false, true).assertEquals(1)
         drag.releasedSlot.assertEquals(slot)
         destroy drag
 
@@ -86,11 +88,59 @@ import SelectionDrag
     for slot = 0 to 1
         let drag = new SelectionDrag()
         drag.selectHeldChip(slot, true)
-        drag.update(true, true, 0.660, 0.370, 0, 0, false, 1, false, true)
-        drag.update(true, false, 0.660, 0.370, 0, 0, false, 1, false, true).assertEquals(2)
+        updateDrag(drag, true, true, 0.660, 0.370, 0, 0, false, 1, false, true)
+        updateDrag(drag, true, false, 0.660, 0.370, 0, 0, false, 1, false, true).assertEquals(2)
         drag.releasedSlot.assertEquals(slot)
-        drag.update(true, true, selectionChipX(slot, 2) + 0.020, 0.346, 0, 2, true, 2, true, true)
+        updateDrag(drag, true, true, selectionChipX(slot, 2) + 0.020, 0.346, 0, 2, true, 2, true, true)
         drag.activeSlot.assertEquals(slot)
-        drag.update(true, false, 0.300, 0.370, 0, 2, true, 2, true, true).assertEquals(0)
+        updateDrag(drag, true, false, 0.300, 0.370, 0, 2, true, 2, true, true).assertEquals(0)
         drag.releasedSlot.assertEquals(slot)
         destroy drag
+
+@Test function thirdAndFourthCardsRetainLocalOwnership()
+    selectionCardSlot(0.480, 0.200, 4).assertEquals(2)
+    selectionCardSlot(0.650, 0.200, 8).assertEquals(3)
+    selectionCardSlot(0.480, 0.200, 8).assertEquals(-1)
+    selectionCardSlot(0.120, 0.200, 9).assertEquals(0)
+    let drag = new SelectionDrag()
+    drag.selectHeldChip(3, true)
+    drag.setHover(2)
+    drag.placeHovered().assertEquals(2)
+    drag.releasedSlot.assertEquals(3)
+    destroy drag
+
+function updateDrag(SelectionDrag drag, boolean enabled, boolean down, real x, real y, int slot, int choice,
+        boolean ownReady, int opponentChoice, boolean opponentReady, boolean opponentDraggable) returns int
+    var bit = 1
+    drag.selectableMask = 0
+    for index = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        drag.ready[index] = false
+        if index == slot or (opponentDraggable and index == (slot == 0 ? 1 : 0))
+            drag.selectableMask += bit
+        bit *= 2
+    drag.choices[slot] = choice
+    drag.ready[slot] = ownReady
+    let opponent = slot == 0 ? 1 : 0
+    drag.choices[opponent] = opponentChoice
+    drag.ready[opponent] = opponentReady
+    return drag.update(enabled, down, x, y, slot)
+
+@Test function everyComputerCardAndPlacedChipKeepsItsActualSlot()
+    let drag = new SelectionDrag()
+    drag.selectableMask = 15
+    for slot = 0 to 3
+        selectionCardSlot(selectionCardX(slot) + 0.08, 0.2, 15).assertEquals(slot)
+        drag.choices[slot] = slot mod 3
+        drag.ready[slot] = true
+    for slot = 1 to 3
+        drag.update(true, true, selectionChipX(slot, slot mod 3) + 0.020, selectionChipY(slot) - 0.020, 0)
+        drag.activeSlot.assertEquals(slot)
+        drag.update(true, false, 0.660, 0.400, 0).assertEquals(2)
+        drag.releasedSlot.assertEquals(slot)
+    selectionCardSlot(selectionCardX(2) + 0.08, 0.2, 9).assertEquals(-1)
+    destroy drag
+
+@Test function slotModeLabelsDoNotPickUpFighterCards()
+    for slot = 0 to 3
+        selectionCardSlot(selectionCardX(slot) + 0.08, 0.26, 15).assertEquals(-1)
+        selectionCardSlot(selectionCardX(slot) + 0.08, 0.20, 15).assertEquals(slot)

@@ -1,0 +1,86 @@
+{
+  "2": {
+    "a": {
+      "pages": 18,
+      "service_rows": 2683,
+      "sent_frames": 586,
+      "first_sent_frame": 1.0,
+      "last_sent_frame": 586.0,
+      "received_frames": 552,
+      "echo_native_ms": {
+        "median": 3920.867,
+        "p95": 5490.769,
+        "maximum": 5685.453
+      },
+      "last_confirmed": 522.0,
+      "native_recording_span_ms": 44689.084,
+      "max_sync_calls_per_callback": 1.0,
+      "max_read_bytes_per_callback": 26.0,
+      "phases": [
+        2.0
+      ]
+    },
+    "b": {
+      "pages": 18,
+      "service_rows": 2683,
+      "sent_frames": 586,
+      "first_sent_frame": 1.0,
+      "last_sent_frame": 586.0,
+      "received_frames": 522,
+      "echo_native_ms": {
+        "median": 5041.93,
+        "p95": 6570.725,
+        "maximum": 6787.338
+      },
+      "last_confirmed": 522.0,
+      "native_recording_span_ms": 44689.084,
+      "max_sync_calls_per_callback": 1.0,
+      "max_read_bytes_per_callback": 26.0,
+      "phases": [
+        2.0
+      ]
+    }
+  },
+  "9": {
+    "a": {
+      "pages": 14,
+      "service_rows": 2066,
+      "sent_frames": 420,
+      "first_sent_frame": 601.0,
+      "last_sent_frame": 1020.0,
+      "received_frames": 402,
+      "echo_native_ms": {
+        "median": 5114.44,
+        "p95": 6872.131,
+        "maximum": 7038.758
+      },
+      "last_confirmed": 971.0,
+      "native_recording_span_ms": 34408.261,
+      "max_sync_calls_per_callback": 1.0,
+      "max_read_bytes_per_callback": 31.0,
+      "phases": [
+        2.0
+      ]
+    },
+    "b": {
+      "pages": 14,
+      "service_rows": 2066,
+      "sent_frames": 420,
+      "first_sent_frame": 601.0,
+      "last_sent_frame": 1020.0,
+      "received_frames": 400,
+      "echo_native_ms": {
+        "median": 5131.531,
+        "p95": 7444.427,
+        "maximum": 7611.053
+      },
+      "last_confirmed": 971.0,
+      "native_recording_span_ms": 34408.261,
+      "max_sync_calls_per_callback": 1.0,
+      "max_read_bytes_per_callback": 31.0,
+      "phases": [
+        2.0
+      ]
+    }
+  }
+}

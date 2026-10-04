@@ -1,0 +1,43 @@
+package InputBatch
+import NetworkInput
+import InputProtocol
+
+// At most two immutable consecutive captures await one transport submission.
+public class InputBatch
+    private int epoch = -1
+    private int firstFrame = 0
+    private int count = 0
+    private NetworkInput first = new NetworkInput()
+    private NetworkInput second = new NetworkInput()
+
+    function beginEpoch(int newEpoch)
+        epoch = newEpoch
+        count = 0
+        firstFrame = 0
+
+    function append(int capturedEpoch, int frame, NetworkInput row) returns boolean
+        if capturedEpoch != epoch or frame < 1 or frame > INPUT_LAST_FRAME or count == 2
+            return false
+        if count == 1 and frame != firstFrame + 1
+            return false
+        if count == 0
+            firstFrame = frame
+            row.copyTo(first)
+        else
+            row.copyTo(second)
+        count++
+        return true
+
+    function recordCount() returns int
+        return count
+
+    function firstFrameNumber() returns int
+        return firstFrame
+
+    function prepare(InputPacket packet) returns boolean
+        return count > 0 and packet.assign(epoch, firstFrame, count, first, second)
+
+    // Clear only after successful submission. Failure remains visible to caller.
+    function sent()
+        count = 0
+        firstFrame = 0

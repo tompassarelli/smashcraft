@@ -80,3 +80,20 @@ wc3-melee:docs/controller-event-retention-20261004.md. The pinned library clock
 conversion must be repaired and the same counterexample rechecked before cold
 capture timestamps are used for frame assignment. Live common-clock alignment,
 map delivery and presentation remain open.
+
+## Explicit local-frame storage and native catch-up
+
+ShadowInputSchedule now provides captureLocalAt(epoch, finalFrame, sample).
+It stores an already-assigned frame without changing the speculative or confirmed
+cursor. Exact repeats are idempotent, changed repeats conflict, and retained/future
+ledger limits reject unsupported rows without overwriting pending storage. This
+is a storage API, not an implementation of the epoch or capture-time rule.
+Existing captureLocal polling behavior remains unchanged. Focused scheduler
+verification passed 14/14, including backlog retention, metadata conflicts,
+retention/ring boundaries and the maximum supported five-frame delay seed.
+
+The native 0.0.17 clock test observed B's delayed 100 ms timer interval followed
+by two 100 ms intervals arriving about 3 ms apart after a verified 250.637 ms
+process stop. A continued producing markers during B's stop. Neither recovery
+callback time nor an uncalibrated native timer supplies a continuous common
+capture epoch. See wc3-melee:docs/native-clock-progress-result-20261004.md.

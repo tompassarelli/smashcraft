@@ -1,0 +1,206 @@
+package ImpactStateTests
+import Wurst
+import Simulation
+import ImpactEvents
+import ImpactState
+import MatchRules
+import MatchStep
+import ReplayState
+import ReplayHistory
+import ParticipantInputs
+
+class ImpactTestWorld
+    FighterRoster world
+    MatchState game = new MatchState()
+    FrameInputs inputs = new FrameInputs()
+    ReplayRuntimeState runtime = new ReplayRuntimeState()
+    MatchFrameInput row = new MatchFrameInput()
+
+    construct(int mask)
+        world = new FighterRoster(mask)
+        game.setHumanMask(mask)
+        game.phase = MATCH
+        game.timeLimitMinutes = 0
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if world.active(slot)
+                world.fighters[slot] = new FighterState(0, -240. + slot * 150., 1)
+
+    function captureNext()
+        row.capture(runtime.simulationFrame + 1, world.mask, inputs, runtime).assertTrue()
+
+    function execute()
+        row.execute(game, world, inputs, runtime, runtime.simulationFrame + 1).assertTrue()
+
+    function dodge(int slot, boolean pressed)
+        inputs.inputs[slot].groundDodgePressed = pressed
+        inputs.inputs[slot].groundDodgeDirection = 0
+        inputs.inputs[slot].shield = pressed
+
+@Test function impactProjectionPreservesFormulasLifetimeAndIsReadOnly()
+    let pool = new ImpactState()
+    let saved = new ImpactState()
+    let events = new ImpactEvents()
+    events.x = 100
+    events.z = 20
+    events.hit = true
+    events.landing = IMPACT_TECH
+    pool.emit(events, 0)
+    events.hit = false
+    events.landing = IMPACT_MISSED_TECH
+    events.dodge = 2
+    events.direction = -1
+    pool.emit(events, 0)
+    events.hit = true
+    events.electric = true
+    events.shieldHit = true
+    events.jump = 2
+    events.koDirectionX = 1
+    events.respawn = true
+    events.landing = IMPACT_NONE
+    events.dodge = 0
+    pool.emit(events, 0)
+    pool.copyTo(saved)
+    for i = 0 to IMPACT_COUNT - 1
+        pool.project(i)
+        pool.project(i)
+    pool.firstDifference(saved).assertEquals("")
+    pool.project(0).alpha.assertEquals(255)
+    pool.project(0).x.assertEquals(100.)
+    pool.project(0).z.assertEquals(70.)
+    pool.project(16).scale.assertEquals(0.7)
+    pool.project(24).x.assertEquals(85.)
+    pool.project(26).scale.assertEquals(0.75 * 0.55)
+    pool.project(32).z.assertEquals(32.)
+    for age = 1 to 32
+        pool.advance()
+        for kind = 0 to IMPACT_KIND_COUNT - 1
+            let i = kind * IMPACTS_PER_KIND
+            pool.project(i).visible.assertEquals(age < impactLifetime(kind))
+        if age == 4
+            let dust = pool.project(24)
+            dust.x.assertEquals(85. - 4 * 1.3)
+            dust.z.assertEquals(23. + 4. / 32 * 9)
+            dust.alpha.assertEquals(R2I(220 * (1. - 4. / 32) * (1. - 4. / 32)))
+    pool.clear()
+    let empty = new ImpactState()
+    pool.firstDifference(empty).assertEquals("")
+
+@Test function impactSnapshotRestoresPoolAndPointersOutsideGameplayChecksum()
+    let fixture = new ImpactTestWorld(9)
+    let events = new ImpactEvents()
+    events.dodge = 1
+    events.x = 77
+    fixture.runtime.impacts.emit(events, 0)
+    for frame = 1 to 5
+        fixture.runtime.impacts.advance()
+    let saved = new ReplaySnapshot()
+    let changed = new ReplaySnapshot()
+    saved.capture(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    let dust = fixture.runtime.impacts.project(24)
+    events.dodge = 2
+    events.direction = -1
+    fixture.runtime.impacts.emit(events, 0)
+    changed.capture(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    changed.checksum().assertEquals(saved.checksum())
+    (saved.firstPoseDifference(changed) != "").assertTrue()
+    saved.restore(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    changed.capture(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    saved.firstPoseDifference(changed).assertEquals("")
+    let restored = fixture.runtime.impacts.project(24)
+    restored.x.assertEquals(dust.x)
+    restored.z.assertEquals(dust.z)
+    restored.alpha.assertEquals(dust.alpha)
+    fixture.runtime.impacts.project(32).visible.assertFalse()
+    fixture.runtime.impacts.nextSlot[3].assertEquals(2)
+    fixture.runtime.impacts.nextSlot[4].assertEquals(0)
+    fixture.runtime.impacts.ages[24].assertEquals(5)
+
+@Test function correctionRemovesPredictedImpactAndRestoresAcceptedAge()
+    let fixture = new ImpactTestWorld(9)
+    let history = new ReplayHistory()
+    history.beginEpochWithCorrections(81, 1, 12).assertTrue()
+    for frame = 1 to 5
+        fixture.dodge(0, frame == 1)
+        fixture.dodge(3, frame == 2)
+        fixture.captureNext()
+        if frame == 1
+            history.save(81, fixture.row, fixture.world, fixture.game, fixture.inputs, fixture.runtime).assertTrue()
+        else
+            history.saveSpeculative(81, fixture.row, fixture.world, fixture.game, fixture.inputs, fixture.runtime).assertTrue()
+        fixture.execute()
+    fixture.runtime.impacts.nextSlot[3].assertEquals(4)
+    fixture.runtime.impacts.ages[24].assertEquals(4)
+    fixture.runtime.impacts.ages[26].assertEquals(3)
+    let corrected = new MatchFrameInput()
+    let neutral = new FrameInputs()
+    corrected.capture(2, 9, neutral, fixture.runtime).assertTrue()
+    let corrections = new ReplayCorrections()
+    corrections.beginEpoch(81).assertTrue()
+    corrections.add(corrected).assertTrue()
+    history.correct(81, corrections, fixture.world, fixture.game, fixture.inputs, fixture.runtime).assertEquals(2)
+    fixture.runtime.impacts.nextSlot[3].assertEquals(2)
+    fixture.runtime.impacts.ages[24].assertEquals(4)
+    fixture.runtime.impacts.project(26).visible.assertFalse()
+    fixture.runtime.impacts.project(27).visible.assertFalse()
+    fixture.runtime.impacts.project(24).x.assertEquals(-248. - 4 * 1.3)
+
+@Test function sparseAndFourPlayerCatchupMatchSequentialProjection()
+    for maskIndex = 0 to 1
+        let mask = maskIndex == 0 ? 9 : 15
+        let sequential = new ImpactTestWorld(mask)
+        let catchup = new ImpactTestWorld(mask)
+        for frame = 1 to 8
+            for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                if sequential.world.active(slot)
+                    sequential.dodge(slot, frame == 1)
+                    catchup.dodge(slot, frame == 1)
+            sequential.captureNext()
+            sequential.execute()
+            for i = 0 to IMPACT_COUNT - 1
+                sequential.runtime.impacts.project(i)
+                sequential.runtime.impacts.project(i)
+            catchup.captureNext()
+            catchup.execute()
+        sequential.runtime.impacts.firstDifference(catchup.runtime.impacts).assertEquals("")
+        for i = 0 to IMPACT_COUNT - 1
+            let a = sequential.runtime.impacts.project(i)
+            let b = catchup.runtime.impacts.project(i)
+            a.visible.assertEquals(b.visible)
+            a.x.assertEquals(b.x)
+            a.alpha.assertEquals(b.alpha)
+        var index = 24
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if sequential.world.active(slot)
+                sequential.runtime.impacts.originX[index].assertEquals(-248. + slot * 150.)
+                sequential.runtime.impacts.originX[index + 1].assertEquals(-232. + slot * 150.)
+                sequential.runtime.impacts.ages[index].assertEquals(7)
+                index += 2
+
+@Test function impactCapacityReuseAndResetAreDeterministic()
+    let pool = new ImpactState()
+    let events = new ImpactEvents()
+    events.hit = true
+    for i = 0 to 9
+        events.x = i * 10.
+        pool.emit(events, 0)
+    pool.nextSlot[0].assertEquals(2)
+    pool.originX[0].assertEquals(80.)
+    pool.originX[1].assertEquals(90.)
+    pool.originX[2].assertEquals(20.)
+    let fixture = new ImpactTestWorld(15)
+    pool.copyTo(fixture.runtime.impacts)
+    fixture.game.timeLimitMinutes = 1
+    fixture.game.remainingFrames = 1
+    fixture.captureNext()
+    fixture.execute()
+    fixture.game.phase.assertEquals(RESULT)
+    let empty = new ImpactState()
+    fixture.runtime.impacts.firstDifference(empty).assertEquals("")
+    pool.copyTo(fixture.runtime.impacts)
+    fixture.runtime.resetPoses()
+    fixture.runtime.impacts.firstDifference(empty).assertEquals("")
+    pool.copyTo(fixture.runtime.impacts)
+    fixture.game.phase = CHARACTER_MENU
+    fixture.captureNext()
+    fixture.execute()
+    fixture.runtime.impacts.firstDifference(empty).assertEquals("")

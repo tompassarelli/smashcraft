@@ -1,115 +1,10 @@
 package RecoveryTests
+import WorldTestSupport
 import Simulation
 import ReplayState
 import MatchRules
 import CommandBuffer
 import MatchStep
-
-@Test function recordedTumbleExitAppliesDriftOnTheTransitionFrame()
-	for host = 0 to 1
-		let fighter = new FighterState(host, 1.2414255142211914 * 6, 1)
-		let input = new InputSnapshot()
-		fighter.grounded = false
-		fighter.surface = -1
-		fighter.z = 11.447086334228516 * 6
-		fighter.vz = -2.9000000953674316 * 6
-		fighter.knockbackX = 0.000000038275018710010045 * 6
-		fighter.knockbackZ = 0.5517960786819458 * 6
-		fighter.downState = DOWN_TUMBLE
-		// Supplied observed full-stick drift; this case does not certify actor attributes.
-		fighter.physics.airAcceleration = 0.05999999865889549 * 6
-		input.direction = -1
-		advance(fighter, 0, input, 0)
-		fighter.downState.assertEquals(DOWN_NONE)
-		fighter.vx.assertEquals(-0.05999999865889549 * 6, 0.00001)
-		fighter.x.assertEquals(1.1814255714416504 * 6, 0.0001)
-		advance(fighter, 0, input, 0)
-		fighter.downState.assertEquals(DOWN_NONE)
-		fighter.vx.assertEquals(-0.11999999731779099 * 6, 0.00001)
-		fighter.x.assertEquals(1.0614255666732788 * 6, 0.0001)
-		destroy input
-		destroy fighter
-
-@Test function tumbleExitRequiresFreshHorizontalInputAfterHitstun()
-	let fighter = new FighterState(0, 0, 1)
-	let input = new InputSnapshot()
-	fighter.grounded = false
-	fighter.z = 300
-	fighter.downState = DOWN_TUMBLE
-	fighter.hitstun = 2
-	input.direction = 1
-	advance(fighter, 0, input, 0)
-	fighter.downState.assertEquals(DOWN_TUMBLE)
-	advance(fighter, 0, input, 0)
-	fighter.hitstun.assertEquals(0)
-	fighter.downState.assertEquals(DOWN_TUMBLE)
-	input.direction = -1
-	advance(fighter, 0, input, 0)
-	fighter.downState.assertEquals(DOWN_NONE)
-	fighter.vx.assertLessThan(0.)
-	destroy input
-	destroy fighter
-
-@Test function tumbleExitInputHistoryIsCopiedAndReset()
-	let fighter = new FighterState(0, 0, 1)
-	let copied = new FighterState(0, 0, 1)
-	let match = new MatchState()
-	let firstCommands = new AttackBuffer(0)
-	let secondCommands = new AttackBuffer(1)
-	let runtime = new ReplayRuntimeState()
-	let snapshot = new ReplaySnapshot()
-	fighter.previousHorizontalDirection = -1
-	snapshot.capture(fighter, copied, match, firstCommands, secondCommands, runtime)
-	fighter.previousHorizontalDirection = 1
-	snapshot.restore(fighter, copied, match, firstCommands, secondCommands, runtime)
-	fighter.previousHorizontalDirection.assertEquals(-1)
-	reset(fighter, 0)
-	fighter.previousHorizontalDirection.assertEquals(0)
-	destroy snapshot
-	destroy runtime
-	destroy secondCommands
-	destroy firstCommands
-	destroy match
-	destroy copied
-	destroy fighter
-
-@Test function airborneDamageLandingMatchesOriginalInclusiveSpeedBranches()
-	airborneDamageLandingReaction(0.).assertEquals(DAMAGE_LANDING_RETAIN_STUN)
-	airborneDamageLandingReaction(0.4999999701976776).assertEquals(DAMAGE_LANDING_RETAIN_STUN)
-	airborneDamageLandingReaction(0.5).assertEquals(DAMAGE_LANDING_NORMAL)
-	airborneDamageLandingReaction(0.5000000596046448).assertEquals(DAMAGE_LANDING_NORMAL)
-	airborneDamageLandingReaction(4.999999523162842).assertEquals(DAMAGE_LANDING_NORMAL)
-	airborneDamageLandingReaction(5.).assertEquals(DAMAGE_LANDING_KNOCKDOWN)
-	airborneDamageLandingReaction(5.000000476837158).assertEquals(DAMAGE_LANDING_KNOCKDOWN)
-	airborneDamageLandingReaction(8.).assertEquals(DAMAGE_LANDING_KNOCKDOWN)
-
-@Test function airborneDamageLandingSelectsRetainedStunLandingLagAndKnockdown()
-	for reaction = 0 to 2
-		let fighter = new FighterState(0, 0, 1)
-		let input = new InputSnapshot()
-		fighter.grounded = false
-		fighter.surface = -1
-		fighter.z = 1
-		fighter.vz = -2
-		fighter.hitstun = 20
-		fighter.damageLevel = 2
-		fighter.knockbackX = (reaction == 0 ? 0.3 : (reaction == 1 ? 1.1 : 6.1)) * 6
-		input.techPressed = reaction == 2
-		advance(fighter, 0, input, 0)
-		fighter.grounded.assertTrue()
-		fighter.hitstun.assertEquals(reaction == 0 ? 19 : 0)
-		fighter.landingLag.assertEquals(reaction == 1 ? EMPTY_LANDING_LAG : 0)
-		fighter.downState.assertEquals(reaction == 2 ? DOWN_BOUND : DOWN_NONE)
-		canAttack(fighter).assertFalse()
-		if reaction == 1
-			input.jumpPressed = true
-			for tick = 1 to EMPTY_LANDING_LAG - 1
-				advance(fighter, 0, input, 0)
-				fighter.jumpSquat.assertEquals(0)
-			advance(fighter, 0, input, 0)
-			fighter.jumpSquat.assertGreaterThan(0)
-		destroy input
-		destroy fighter
 
 // Test-only grounded-motion profile; no character or move data enters the roster.
 function floorRecoveryReferencePhysics() returns fighterPhysics
@@ -221,9 +116,9 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	target.downFrame = 20
 	target.downWaitRemaining = 100
 	target.downFaceUp = false
-	beginAttackPair(attacker, target, 6, -1, false, false)
+	testBeginAttacks(testWorld(attacker, target), 6, -1, false, false)
 	attacker.attackFrame = attackStartupFrames(6) + 1
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 
 @Test function downboundAndGetupActionsUseTheirOwnFrameCounts()
 	let fighter = new FighterState(0, 0, 1)
@@ -309,9 +204,9 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	let target = new FighterState(1, 50, -1)
 	target.downState = DOWN_WAIT
 	target.downWaitRemaining = 100
-	beginAttackPair(attacker, target, 6, -1, false, false)
+	testBeginAttacks(testWorld(attacker, target), 6, -1, false, false)
 	attacker.attackFrame = attackStartupFrames(6)
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(7.)
 	(target.downState != DOWN_DAMAGE).assertTrue()
 	target.grounded.assertFalse()
@@ -380,18 +275,18 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	first.downFrame = 8
 	first.downWaitRemaining = 13
 	first.downFaceUp = false
-	snapshot.capture(first, second, match, firstCommands, secondCommands, runtime)
+	snapshot.capture(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
 	first.downState = DOWN_NONE
 	first.downFrame = 0
 	first.downWaitRemaining = 0
 	first.downFaceUp = true
-	snapshot.restore(first, second, match, firstCommands, secondCommands, runtime)
+	snapshot.restore(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
 	first.downState.assertEquals(DOWN_DAMAGE)
 	first.downFrame.assertEquals(8)
 	first.downWaitRemaining.assertEquals(13)
 	first.downFaceUp.assertFalse()
 	let expected = new ReplaySnapshot()
-	expected.capture(first, second, match, firstCommands, secondCommands, runtime)
+	expected.capture(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
 	snapshot.firstDifference(expected).assertEquals("")
 
 @Test function recoveryProtectionMatchesExtractedEventTimes()
@@ -442,7 +337,7 @@ function weakRecoveryHit(int direction, FighterState attacker, FighterState targ
 	owner.projectileX[0] = 0
 	owner.projectileZ[0] = 45
 	owner.projectileVelocityX[0] = 30
-	updateProjectilePair(owner, target)
+	updateProjectiles(testWorld(owner, target))
 	target.damage.assertEquals(3.)
 	target.hitlag.assertEquals(4)
 	target.grounded.assertTrue()

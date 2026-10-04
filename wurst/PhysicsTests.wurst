@@ -1,12 +1,14 @@
 package PhysicsTests
 import Simulation
+import MatchStep
 import ReplayState
+import WorldTestSupport
 import Binary32
 
 function retailCombatContact(FighterState owner, FighterState target, real knockback, real dx, real dz)
 	beginDamageContacts()
 	queueDamageContact(owner, target, hitEffect(5, 0, knockback, dx, dz, false), 1, CONTACT_LAUNCH, false, null)
-	finishDamageContacts(owner, target)
+	finishDamageContacts(testWorld(owner, target))
 
 @Test function retailCombatStackingStartsOnTenthMovingFrameAndFreezesInHitlag()
 	for age = 9 to 10
@@ -48,7 +50,7 @@ function retailCombatContact(FighterState owner, FighterState target, real knock
 	beginDamageContacts()
 	queueDamageContact(owner, target, hitEffect(5, 0, 100, -0.6, 0.8, false), 1, CONTACT_LAUNCH, false, null)
 	queueDamageContact(owner, target, hitEffect(5, 0, 20, 1, 0, false), 1, CONTACT_LAUNCH, false, null)
-	finishDamageContacts(owner, target)
+	finishDamageContacts(testWorld(owner, target))
 	target.damage.assertEquals(10.)
 	target.knockbackX.assertEquals(7.2000002414, 0.000001)
 	target.knockbackZ.assertEquals(5.3999996781, 0.000001)
@@ -131,33 +133,33 @@ function retailCombatContact(FighterState owner, FighterState target, real knock
 	let saved = new ReplaySnapshot()
 	let after = new ReplaySnapshot()
 	let input = new InputSnapshot()
-	state.first.grounded = true
-	state.first.surface = 0
-	state.first.knockbackX = 3
-	state.first.groundKnockbackX = 6
-	state.first.knockbackAgeFrames = 9
-	state.first.damageLevel = 2
-	saved.capture(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
-	state.first.knockbackAgeFrames = 8
-	saved.firstDifference(state).assertEquals("first.knockbackAgeFrames")
-	state.first.knockbackAgeFrames = 9
-	state.first.damageLevel = 1
-	saved.firstDifference(state).assertEquals("first.damageLevel")
-	state.first.damageLevel = 2
-	state.first.groundKnockbackX = 5
-	saved.firstDifference(state).assertEquals("first.groundKnockbackX")
+	state.world.fighters[0].grounded = true
+	state.world.fighters[0].surface = 0
+	state.world.fighters[0].knockbackX = 3
+	state.world.fighters[0].groundKnockbackX = 6
+	state.world.fighters[0].knockbackAgeFrames = 9
+	state.world.fighters[0].damageLevel = 2
+	saved.capture(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
+	state.world.fighters[0].knockbackAgeFrames = 8
+	saved.firstDifference(state).assertEquals("fighter[0].knockbackAgeFrames")
+	state.world.fighters[0].knockbackAgeFrames = 9
+	state.world.fighters[0].damageLevel = 1
+	saved.firstDifference(state).assertEquals("fighter[0].damageLevel")
+	state.world.fighters[0].damageLevel = 2
+	state.world.fighters[0].groundKnockbackX = 5
+	saved.firstDifference(state).assertEquals("fighter[0].groundKnockbackX")
 	for replay = 0 to 1
-		saved.restore(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
-		advance(state.first, 0, input, 0)
-		state.first.knockbackAgeFrames.assertEquals(10)
-		retailCombatContact(state.second, state.first, 20, -1, 0)
+		saved.restore(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
+		advance(state.world.fighters[0], 0, input, 0)
+		state.world.fighters[0].knockbackAgeFrames.assertEquals(10)
+		retailCombatContact(state.world.fighters[1], state.world.fighters[0], 20, -1, 0)
 		if replay == 0
-			after.capture(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+			after.capture(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
 	state.firstDifference(after).assertEquals("")
-	reset(state.first, 0)
-	state.first.knockbackAgeFrames.assertEquals(-1)
-	state.first.groundKnockbackX.assertEquals(0.)
-	state.first.damageLevel.assertEquals(0)
+	reset(state.world.fighters[0], 0)
+	state.world.fighters[0].knockbackAgeFrames.assertEquals(-1)
+	state.world.fighters[0].groundKnockbackX.assertEquals(0.)
+	state.world.fighters[0].damageLevel.assertEquals(0)
 	destroy input
 	destroy after
 	destroy saved
@@ -500,7 +502,7 @@ function recordedGroundedDamageFirstDifference(int character, real velocityOffse
 		input.direction = 1
 		advance(f, 0, input, 0)
 		f.vz.assertEquals(character == 0 ? -20.40000057220459 : -21., 0.000001)
-		beginAttackPair(f, other, AERIAL_NEUTRAL_STYLE, -1, false, false)
+		testBeginAttacks(testWorld(f, other), AERIAL_NEUTRAL_STYLE, -1, false, false)
 		advance(f, 0, input, 0)
 		f.fastFalling.assertTrue()
 		f.vz.assertEquals(character == 0 ? -20.40000057220459 : -21., 0.000001)
@@ -549,7 +551,7 @@ function recordedGroundedDamageFirstDifference(int character, real velocityOffse
 			target.surface = airborne == 0 ? 0 : -1
 			target.z = airborne == 0 ? 0. : 300.
 			contactProjectile(owner, target, 0, PROJECTILE_RECOIL)
-			updateProjectilePair(owner, target)
+			updateProjectiles(testWorld(owner, target))
 			target.damage.assertEquals(105. + aboveThreshold)
 			target.hitlag.assertEquals(4)
 			target.hitstun.assertEquals(31 + aboveThreshold)
@@ -618,7 +620,7 @@ function recordedGroundedDamageFirstDifference(int character, real velocityOffse
 	beginDamageContacts()
 	queueDamageContact(attacker, defender, hitEffect(9, 0, 0, 0, 0, false), 1, CONTACT_DAMAGE_ONLY, false, null)
 	queueDamageContact(attacker, defender, hitEffect(1, 0, 0, 0, 0, false), 1, CONTACT_DAMAGE_ONLY, false, null)
-	finishDamageContacts(attacker, defender)
+	finishDamageContacts(testWorld(attacker, defender))
 	defender.shieldEnergy.assertEquals(1.)
 	defender.shield.assertTrue()
 	destroy defender
@@ -671,7 +673,7 @@ function recordedShieldDefenderPosition(int frame) returns real
 			beginDamageContacts()
 			queueDamageContact(source, target, hitEffect(4, 0, 0, 0, 0, false), 1,
 				CONTACT_FLINCH, true, null)
-			finishDamageContacts(source, target)
+			finishDamageContacts(testWorld(source, target))
 			target.shieldEnergy.assertEquals(40.82003402709961, 0.0001)
 			target.shieldStun.assertEquals(3)
 			target.hitlag.assertEquals(4)
@@ -705,7 +707,7 @@ function recordedShieldDefenderPosition(int frame) returns real
 		beginDamageContacts()
 		queueDamageContact(source, target, hitEffect(4, 0, 0, 0, 0, false), 1,
 			CONTACT_FLINCH, direct == 1, null)
-		finishDamageContacts(source, target)
+		finishDamageContacts(testWorld(source, target))
 		source.shieldRecoilX.assertEquals(0.)
 		destroy sourceInput
 		destroy source
@@ -718,7 +720,7 @@ function recordedShieldDefenderPosition(int frame) returns real
 			beginDamageContacts()
 			queueDamageContact(source, target, hitEffect(4, 0, 0, 0, 0, false), facing,
 				CONTACT_FLINCH, true, null)
-			finishDamageContacts(source, target)
+			finishDamageContacts(testWorld(source, target))
 			target.shieldPushbackX.assertEquals(facing * 0.45600005984306335 * 6, 0.0001)
 			source.shieldRecoilX.assertEquals(-facing * 0.3 * 6, 0.0001)
 			destroy source
@@ -731,13 +733,13 @@ function recordedShieldDefenderPosition(int frame) returns real
 	beginDamageContacts()
 	queueDamageContact(attacker, defender, hitEffect(4, 0, 0, 0, 0, false), 1,
 		CONTACT_FLINCH, true, null)
-	finishDamageContacts(attacker, defender)
+	finishDamageContacts(testWorld(attacker, defender))
 	attacker.shieldRecoilX.assertEquals(-0.3 * 6, 0.0001)
 	defender.shield = false
 	beginDamageContacts()
 	queueDamageContact(defender, attacker, hitEffect(5, 0, 20, 1, 0, false), -1,
 		CONTACT_LAUNCH, false, null)
-	finishDamageContacts(attacker, defender)
+	finishDamageContacts(testWorld(attacker, defender))
 	attacker.shieldRecoilX.assertEquals(0.)
 	attacker.knockbackX.assertEquals(-3.6, 0.0001)
 	destroy attacker
@@ -753,7 +755,7 @@ function recordedShieldDefenderPosition(int frame) returns real
 	beginDamageContacts()
 	queueDamageContact(source, target, hitEffect(4, 0, 0, 0, 0, false), 1,
 		CONTACT_FLINCH, true, null)
-	finishDamageContacts(source, target)
+	finishDamageContacts(testWorld(source, target))
 	source.shieldRecoilX += 0.06 * 6
 	for frame = 1 to 3
 		advance(source, 0, sourceInput, 0)
@@ -837,7 +839,7 @@ function recordedShieldDefenderPosition(int frame) returns real
 		CONTACT_FLINCH, true, null)
 	queueDamageContact(attacker, defender, hitEffect(4, 0, 0, 0, 0, false), 1,
 		CONTACT_FLINCH, true, null)
-	finishDamageContacts(attacker, defender)
+	finishDamageContacts(testWorld(attacker, defender))
 	// Same-sign horizontal motion subtracts the attacker's step; sub-1 weight ratio is .5.
 	// Two contacts stack additively before any subsequent-frame decay.
 	attacker.shieldRecoilX.assertEquals(2 * (3 - 2) * 0.125, 0.0001)
@@ -876,7 +878,7 @@ function recordedShieldDefenderPosition(int frame) returns real
 	beginDamageContacts()
 	queueDamageContact(oppositeAttacker, oppositeDefender, hitEffect(4, 0, 0, 0, 0, false), 1,
 		CONTACT_FLINCH, true, null)
-	finishDamageContacts(oppositeAttacker, oppositeDefender)
+	finishDamageContacts(testWorld(oppositeAttacker, oppositeDefender))
 	// Opposite-sign motion uses only defender movement; heavier defender clamps ratio to 1.
 	oppositeAttacker.shieldRecoilX.assertEquals(3 * 0.25, 0.0001)
 	oppositeAttacker.shieldRecoilZ.assertEquals(oppositeDefender.positionDeltaZ * 0.25, 0.0001)
@@ -908,13 +910,14 @@ function recordedShieldDefenderPosition(int frame) returns real
 @Test function combatShieldBreakUsesCharacterLaunchAttributeAfterContactFreeze()
 	for character = 0 to 2
 		let owner = new FighterState(0, 0, 1)
-		let target = new FighterState(character, 50, -1)
+		let target = new FighterState(character, 85, -1)
 		let input = new InputSnapshot()
+		owner.grounded = true
 		target.shield = true
 		target.shieldEnergy = 1
-		beginAttackPair(owner, target, 0, -1, false, false)
+		testBeginAttacks(testWorld(owner, target), 0, -1, false, false)
 		owner.attackFrame = attackStartupFrames(0)
-		resolveAttackPair(owner, target)
+		resolveAttacks(testWorld(owner, target))
 		target.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
 		target.hitlag.assertEquals(7)
 		target.vz.assertEquals(character == 2 ? 24. : 19.7999997139, 0.0001)
@@ -941,20 +944,20 @@ function contactProjectile(FighterState owner, FighterState target, int slot, in
 		let target = new FighterState(1, 100, -1)
 		target.damage = 10.9
 		target.crouching = true
-		beginAttackPair(owner, target, 0, -1, false, false)
+		testBeginAttacks(testWorld(owner, target), 0, -1, false, false)
 		owner.attackFrame = attackStartupFrames(0)
 		contactProjectile(owner, target, 0, PROJECTILE_RECOIL)
 		contactProjectile(owner, target, 1, PROJECTILE_ARROW)
 		contactProjectile(owner, target, 2, PROJECTILE_BLASTER)
 		beginDamageContacts()
 		if reversed == 0
-			resolveAttackPair(owner, target)
-			updateProjectilePair(owner, target)
+			resolveAttacks(testWorld(owner, target))
+			updateProjectiles(testWorld(owner, target))
 		else
-			updateProjectilePair(owner, target)
-			resolveAttackPair(owner, target)
+			updateProjectiles(testWorld(owner, target))
+			resolveAttacks(testWorld(owner, target))
 		target.damage.assertEquals(10.9)
-		finishDamageContacts(owner, target)
+		finishDamageContacts(testWorld(owner, target))
 		target.damage.assertEquals(37.9, 0.0001)
 		// floor(10.9)+27=37 percent, jab power 12, weight 80, crouch 2/3.
 		// The later downward recoil and zero-launch laser cannot replace the jab.
@@ -971,19 +974,21 @@ function contactProjectile(FighterState owner, FighterState target, int slot, in
 		destroy owner
 		destroy target
 
+
 @Test function contactBatchShieldBreakBlocksEveryCollectedContact()
 	let owner = new FighterState(0, 0, 1)
-	let target = new FighterState(1, 50, -1)
+	let target = new FighterState(1, 85, -1)
+	owner.grounded = true
 	target.shield = true
 	target.shieldEnergy = 1
-	beginAttackPair(owner, target, 0, -1, false, false)
+	testBeginAttacks(testWorld(owner, target), 0, -1, false, false)
 	owner.attackFrame = attackStartupFrames(0)
 	contactProjectile(owner, target, 0, PROJECTILE_RECOIL)
 	contactProjectile(owner, target, 1, PROJECTILE_ARROW)
 	beginDamageContacts()
-	resolveAttackPair(owner, target)
-	updateProjectilePair(owner, target)
-	finishDamageContacts(owner, target)
+	resolveAttacks(testWorld(owner, target))
+	updateProjectiles(testWorld(owner, target))
+	finishDamageContacts(testWorld(owner, target))
 	target.damage.assertEquals(0.)
 	target.shieldEnergy.assertEquals(30.)
 	target.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
@@ -995,7 +1000,7 @@ function contactProjectile(FighterState owner, FighterState target, int slot, in
 @Test function contactBatchSpecialTradesSurviveMeleeAndSummonsUseTotalDamage()
 	let first = new FighterState(0, 0, 1)
 	let second = new FighterState(2, 100, -1)
-	beginAttackPair(first, second, 0, -1, false, false)
+	testBeginAttacks(testWorld(first, second), 0, -1, false, false)
 	first.attackFrame = attackStartupFrames(0)
 	second.specialAction = SPECIAL_DEMONHUNTER_IMMOLATE
 	second.specialDuration = DEMONHUNTER_IMMOLATE_DURATION
@@ -1011,9 +1016,9 @@ function contactProjectile(FighterState owner, FighterState target, int slot, in
 	first.hippogryphZ = 0
 	first.hippogryphVelocityX = 20
 	beginDamageContacts()
-	resolveAttackPair(first, second)
-	advanceSpecialPair(first, second, 0)
-	finishDamageContacts(first, second)
+	resolveAttacks(testWorld(first, second))
+	advanceSpecials(testWorld(first, second), 0)
+	finishDamageContacts(testWorld(first, second))
 	first.damage.assertEquals(7.)
 	second.damage.assertEquals(26.)
 	second.diLaunchSpeed.assertEquals(11.936, 0.0001)
@@ -1033,12 +1038,12 @@ function contactProjectile(FighterState owner, FighterState target, int slot, in
 		target.grabbedFrames = 100
 		owner.grabAction = pummel == 1 ? GRAB_PUMMEL : THROW_FORWARD
 		owner.grabFrame = grabContactFrame(owner.grabAction) - 1
-		resolveGrabPair(owner, target)
+		resolveGrabs(testWorld(owner, target))
 		contactProjectile(owner, target, 0, PROJECTILE_ARROW)
 		beginDamageContacts()
-		advanceGrabPair(owner, target, input, input, false)
-		updateProjectilePair(owner, target)
-		finishDamageContacts(owner, target)
+		testGrabFrame(testWorld(owner, target), testInputs(input, input), false)
+		updateProjectiles(testWorld(owner, target))
+		finishDamageContacts(testWorld(owner, target))
 		target.damage.assertEquals(pummel == 1 ? 10. : 14.)
 		if pummel == 1
 			(target.grabOwner == owner).assertTrue()
@@ -1064,14 +1069,14 @@ function contactProjectile(FighterState owner, FighterState target, int slot, in
 	target.grabbedFrames = 100
 	owner.grabAction = THROW_FORWARD
 	owner.grabFrame = grabContactFrame(THROW_FORWARD) - 1
-	resolveGrabPair(owner, target)
+	resolveGrabs(testWorld(owner, target))
 	owner.freezeTrapLife = 10
 	owner.freezeTrapSurface = 0
 	owner.freezeTrapX = target.x
 	beginDamageContacts()
-	advanceGrabPair(owner, target, input, input, false)
-	advanceFreezeTrapPair(owner, target)
-	finishDamageContacts(owner, target)
+	testGrabFrame(testWorld(owner, target), testInputs(input, input), false)
+	advanceFreezeTraps(testWorld(owner, target))
+	finishDamageContacts(testWorld(owner, target))
 	owner.freezeTrapLife.assertEquals(10)
 	target.frozenFrames.assertEquals(0)
 	target.damage.assertEquals(7.)
@@ -1123,11 +1128,11 @@ function contactProjectile(FighterState owner, FighterState target, int slot, in
 		advance(victim, 0, input, 0)
 		victim.crouching.assertEquals(context == 1)
 		if context == 2
-			beginAttackPair(victim, attacker, 2, -1, true, false)
+			testBeginAttacks(testWorld(victim, attacker), 2, -1, true, false)
 			victim.smashCharging = true
-		beginAttackPair(attacker, victim, 0, -1, false, false)
+		testBeginAttacks(testWorld(attacker, victim), 0, -1, false, false)
 		attacker.attackFrame = attackStartupFrames(0)
-		resolveAttackPair(attacker, victim)
+		resolveAttacks(testWorld(attacker, victim))
 		victim.damage.assertEquals(12.)
 		victim.diLaunchSpeed.assertEquals(9.192 * (context == 1 ? 2. / 3. : (context == 2 ? 1.2 : 1.)), 0.0001)
 		victim.hitlag.assertEquals(context == 1 ? 4 : 7)
@@ -1346,7 +1351,7 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 				queueDamageContact(owner, target, hitEffect(8.99, 0, 50, 1, 0, electric == 1), 1, CONTACT_LAUNCH, direct == 1, null)
 				target.damage.assertEquals(0.)
 				target.hitlag.assertEquals(0)
-				finishDamageContacts(owner, target)
+				finishDamageContacts(testWorld(owner, target))
 				let pause = electric == 1 ? (crouching == 1 ? 4 : 7) : (crouching == 1 ? 3 : 5)
 				let stun = crouching == 1 ? 13 : 20
 				target.damage.assertEquals(8.99, 0.00001)
@@ -1382,7 +1387,7 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 		input.shield = true
 		beginDamageContacts()
 		queueDamageContact(owner, target, hitEffect(8.99, 0, 50, 1, 0, true), 1, CONTACT_LAUNCH, direct == 1, null)
-		finishDamageContacts(owner, target)
+		finishDamageContacts(testWorld(owner, target))
 		target.damage.assertEquals(0.)
 		target.hitlag.assertEquals(5)
 		target.shieldStun.assertEquals(5)
@@ -1406,7 +1411,7 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 				let strongest = entry == reversed
 				queueDamageContact(owner, target, hitEffect(strongest ? 3. : 12., 0, strongest ? 60. : 20., 1, 0,
 					strongest == (electricWinner == 1)), strongest ? 1 : -1, CONTACT_LAUNCH, true, null)
-			finishDamageContacts(owner, target)
+			finishDamageContacts(testWorld(owner, target))
 			target.damage.assertEquals(15.)
 			target.knockbackX.assertEquals(10.8, 0.00001)
 			target.hitlag.assertEquals(electricWinner == 1 ? 10 : 7)
@@ -1421,7 +1426,7 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 		beginDamageContacts()
 		queueDamageContact(owner, target, hitEffect(3, 0, 50, 1, 0, electricFirst == 1), 1, CONTACT_LAUNCH, false, null)
 		queueDamageContact(owner, target, hitEffect(12, 0, 50, 1, 0, electricFirst == 0), -1, CONTACT_LAUNCH, false, null)
-		finishDamageContacts(owner, target)
+		finishDamageContacts(testWorld(owner, target))
 		target.knockbackX.assertEquals(9.)
 		target.hitlag.assertEquals(electricFirst == 1 ? 10 : 7)
 		owner.hitlag.assertEquals(0)
@@ -1478,9 +1483,9 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 		let owner = new FighterState(0, 0, 1)
 		let target = new FighterState(0, 100, -1)
 		target.physics.weight = sample == 0 ? 50 : 150
-		beginAttackPair(owner, target, 0, -1, false, false)
+		testBeginAttacks(testWorld(owner, target), 0, -1, false, false)
 		owner.attackFrame = attackStartupFrames(0)
-		resolveAttackPair(owner, target)
+		resolveAttacks(testWorld(owner, target))
 		target.damage.assertEquals(12.)
 		// Jab at 12 percent: ((12/10 + 12*12/20)*200/(weight+100)*1.4+18)+20.
 		target.diLaunchSpeed.assertEquals(sample == 0 ? 9.6624 : 8.53344, 0.00001)
@@ -1572,7 +1577,7 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 	let state = new ReplaySnapshot()
 	let saved = new ReplaySnapshot()
 	let after = new ReplaySnapshot()
-	let f = state.first
+	let f = state.world.fighters[0]
 	f.physics = falcoReferencePhysics()
 	f.grounded = false
 	f.z = 300
@@ -1583,19 +1588,19 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 		advance(f, 0, input, 0)
 	f.fastFallInputAge.assertEquals(2)
 	f.fastFallDownHeld.assertTrue()
-	saved.capture(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+	saved.capture(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
 	f.fastFallInputAge = 4
-	state.firstDifference(saved).assertEquals("first.fastFallInputAge")
-	saved.restore(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+	state.firstDifference(saved).assertEquals("fighter[0].fastFallInputAge")
+	saved.restore(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
 	f.fastFallDownHeld = false
-	state.firstDifference(saved).assertEquals("first.fastFallDownHeld")
+	state.firstDifference(saved).assertEquals("fighter[0].fastFallDownHeld")
 	for replay = 0 to 1
-		saved.restore(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+		saved.restore(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
 		advance(f, 0, input, 0)
 		f.fastFalling.assertTrue()
 		f.fastFallInputAge.assertEquals(4)
 		if replay == 0
-			after.capture(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+			after.capture(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
 	state.firstDifference(after).assertEquals("")
 	reset(f, 0)
 	f.fastFallDownHeld.assertFalse()
@@ -1692,7 +1697,7 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 	let state = new ReplaySnapshot()
 	let saved = new ReplaySnapshot()
 	let after = new ReplaySnapshot()
-	let f = state.first
+	let f = state.world.fighters[0]
 	f.physics = falcoReferencePhysics()
 	f.grounded = false
 	f.z = 300
@@ -1704,10 +1709,10 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 	f.airDodgeFrame.assertEquals(29)
 	f.z.assertEquals(300.)
 	f.hitlag = 3
-	saved.capture(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+	saved.capture(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
 	input.direction = 1
 	for replay = 0 to 1
-		saved.restore(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+		saved.restore(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
 		for frame = 1 to 2
 			advance(f, 0, input, 0)
 			f.airDodgeFrame.assertEquals(29)
@@ -1718,12 +1723,196 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 		f.x.assertEquals(0.4200000018, 0.00001)
 		f.z.assertEquals(298.9799999893, 0.00001)
 		if replay == 0
-			after.capture(state.first, state.second, state.match, state.firstCommands, state.secondCommands, state.runtime)
+			after.capture(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
 	state.firstDifference(after).assertEquals("")
 	destroy input
 	destroy after
 	destroy saved
 	destroy state
+
+@Test function contactBatchMatchStepRestoresAndReplaysMixedDamageExactly()
+	let state = new ReplaySnapshot()
+	let before = new ReplaySnapshot()
+	let after = new ReplaySnapshot()
+	let input = new InputSnapshot()
+	state.match.setParticipants(1, 2)
+	state.match.selectCharacter(0, 0)
+	state.match.selectCpuCharacter(0, state.match.cpuSlot(), 1)
+	state.match.requestStageSelect(0)
+	state.match.requestStart(0)
+	state.world.fighters[0].x = 0
+	state.world.fighters[1].x = 100
+	state.world.fighters[0].facing = 1
+	testBeginAttacks(testWorld(state.world.fighters[0], state.world.fighters[1]), 0, -1, false, false)
+	state.world.fighters[0].attackFrame = attackStartupFrames(0) - 1
+	contactProjectile(state.world.fighters[0], state.world.fighters[1], 0, PROJECTILE_RECOIL)
+	contactProjectile(state.world.fighters[0], state.world.fighters[1], 1, PROJECTILE_BLASTER)
+	before.capture(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
+	for replay = 0 to 1
+		stepMatch(state.match, testWorld(state.world.fighters[0], state.world.fighters[1]), testControls(input, input, state.controls.commands[0], state.controls.commands[1]), 1)
+		state.world.fighters[1].damage.assertEquals(20.)
+		state.world.fighters[1].diLaunchSpeed.assertEquals(10.76, 0.0001)
+		state.world.fighters[1].diPending.assertTrue()
+		if replay == 0
+			after.capture(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
+			before.restore(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
+	state.firstDifference(after).assertEquals("")
+	state.canonicalState().assertEquals(after.canonicalState())
+	destroy input
+	destroy state
+	destroy before
+	destroy after
+
+
+@Test function rollFacingFrame20KeepsEntryPoseTravelAndReplayState()
+	for character = 0 to 2
+		for entryFacing = -1 to 1
+			if entryFacing != 0
+				let state = new ReplaySnapshot()
+				let saved = new ReplaySnapshot()
+				let afterTurn = new ReplaySnapshot()
+				let input = new InputSnapshot()
+				let f = state.world.fighters[0]
+				f.character = character
+
+				f.physics = authoredPhysics(character)
+				f.facing = entryFacing
+				startObservedRoll(f, input, 0, entryFacing)
+				for frame = 2 to 19
+					advance(f, 0, input, 0)
+				f.facing.assertEquals(entryFacing)
+				f.groundDodgeEntryFacing.assertEquals(entryFacing)
+				fighterPoseFacing(f).assertEquals(entryFacing)
+				isForwardGroundRoll(f).assertTrue()
+				f.hitlag = 2
+				advance(f, 0, input, 0)
+				f.hitlag.assertEquals(1)
+				f.groundDodgeFrame.assertEquals(19)
+				f.facing.assertEquals(entryFacing)
+				saved.capture(testWorld(f, state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
+				for replay = 0 to 1
+					let before = f.x
+					advance(f, 0, input, 0)
+					f.groundDodgeFrame.assertEquals(20)
+					f.facing.assertEquals(character < 2 ? -entryFacing : entryFacing)
+					fighterPoseFacing(f).assertEquals(entryFacing)
+					isForwardGroundRoll(f).assertTrue()
+					let travel20 = character == 0 ? 9.6163101198 : (character == 1 ? 11.0186805726 : 0.)
+					(f.x - before).assertEquals(entryFacing * travel20, 0.0001)
+					if replay == 0
+						afterTurn.capture(testWorld(f, state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
+						saved.restore(testWorld(f, state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
+				state.firstDifference(afterTurn).assertEquals("")
+				state.canonicalState().assertEquals(afterTurn.canonicalState())
+				let canonical = state.canonicalState()
+				f.groundDodgeEntryFacing = -entryFacing
+				state.firstDifference(afterTurn).assertEquals("fighter[0].groundDodgeEntryFacing")
+				(state.canonicalState() != canonical).assertTrue()
+				afterTurn.restore(testWorld(f, state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
+				for frame = 21 to 31
+					advance(f, 0, input, 0)
+					fighterPoseFacing(f).assertEquals(entryFacing)
+					isForwardGroundRoll(f).assertTrue()
+				f.x.assertEquals(entryFacing * (character < 2 ? observedRollTotal(character, 0) : 128.), 0.0001)
+				canAttack(f).assertFalse()
+				advance(f, 0, input, 0)
+				f.facing.assertEquals(-entryFacing)
+				fighterPoseFacing(f).assertEquals(-entryFacing)
+				f.groundDodgeEntryFacing.assertEquals(0)
+				canAttack(f).assertTrue()
+				startObservedRoll(f, input, 0, -entryFacing)
+				reset(f, 0)
+				f.groundDodgeEntryFacing.assertEquals(0)
+				destroy input
+				destroy afterTurn
+				destroy saved
+				destroy state
+
+
+@Test function crouchStateRestoresAndClearsOnActionChanges()
+	let state = new ReplaySnapshot()
+	let restored = new ReplaySnapshot()
+	let input = new InputSnapshot()
+	input.down = true
+	advance(state.world.fighters[0], 0, input, 0)
+	state.world.fighters[0].crouching.assertTrue()
+	restored.capture(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
+	state.world.fighters[0].crouching = false
+	restored.restore(testWorld(state.world.fighters[0], state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
+	state.world.fighters[0].crouching.assertTrue()
+	state.firstDifference(restored).assertEquals("")
+	testBeginAttacks(testWorld(state.world.fighters[0], state.world.fighters[1]), 0, -1, false, false)
+	state.world.fighters[0].crouching.assertFalse()
+	reset(state.world.fighters[0], 0)
+	state.world.fighters[0].grounded = true
+	state.world.fighters[0].z = 0
+	advance(state.world.fighters[0], 0, input, 0)
+	state.world.fighters[0].crouching.assertTrue()
+	simulationJump(state.world.fighters[0], 1)
+	state.world.fighters[0].crouching.assertFalse()
+	reset(state.world.fighters[0], 0)
+	state.world.fighters[0].grounded = true
+	state.world.fighters[0].z = 0
+	advance(state.world.fighters[0], 0, input, 0)
+	state.world.fighters[0].crouching.assertTrue()
+	input.shield = true
+	advance(state.world.fighters[0], 0, input, 0)
+	state.world.fighters[0].crouching.assertFalse()
+	destroy input
+	destroy restored
+	destroy state
+
+
+@Test function rollFacingSampledRollsMoveThroughActualEntryFreezeReplayAndRecovery()
+	for character = 0 to 1
+		for profile = 0 to 7
+			for facing = -1 to 1
+				if facing != 0
+					let state = new ReplaySnapshot()
+					let saved = new ReplaySnapshot()
+					let input = new InputSnapshot()
+					let f = state.world.fighters[0]
+					f.character = character
+
+					f.physics = authoredPhysics(character)
+					f.facing = facing
+					let direction = profile mod 2 == 0 ? facing : -facing
+					let duration = profile < 2 ? 31 : (profile < 6 ? 35 : 40)
+					startObservedRoll(f, input, profile, direction)
+					if profile < 2
+						f.x.assertEquals(0.)
+					else
+						assertTrue((f.x * direction > 0), "roll entry character=" + I2S(character) + " profile=" + I2S(profile) + " facing=" + I2S(facing) + " x=" + R2S(f.x))
+					for frame = 2 to 10
+						advance(f, 0, input, 0)
+						if profile < 2 and frame == 6
+							f.x.assertEquals(0.)
+						if profile < 2 and frame == 9
+							let ninth = profile == 0 ? (character == 0 ? 69.12 : 79.2) : (character == 0 ? 23.04 : 26.4)
+							f.x.assertEquals(direction * ninth, 0.0001)
+					let frozenX = f.x
+					f.hitlag = 2
+					advance(f, 0, input, 0)
+					f.hitlag.assertEquals(1)
+					f.x.assertEquals(frozenX)
+					(profile < 2 ? f.groundDodgeFrame : f.downFrame).assertEquals(10)
+					saved.capture(testWorld(f, state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
+					for replay = 0 to 1
+						for frame = 11 to duration
+							let before = f.x
+							advance(f, 0, input, 0)
+							if profile >= 6 and frame == 40
+								f.x.assertEquals(before)
+						f.x.assertEquals(direction * observedRollTotal(character, profile), 0.0001)
+						canAttack(f).assertFalse()
+						if replay == 0
+							saved.restore(testWorld(f, state.world.fighters[1]), state.match, testCommands(state.controls.commands[0], state.controls.commands[1]), state.runtime)
+					advance(f, 0, input, 0)
+					assertTrue(canAttack(f), "roll release character=" + I2S(character) + " profile=" + I2S(profile) + " facing=" + I2S(facing))
+					f.facing.assertEquals(profile == 0 ? -facing : facing)
+					destroy input
+					destroy saved
+					destroy state
 
 @Test function groundedKnockbackRetainsRecordedBinary32VelocityExactly()
 	let fighter = new FighterState(0, 0, 1)

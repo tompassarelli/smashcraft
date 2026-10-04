@@ -1,0 +1,20 @@
+{
+  "a": {
+    "pages": 18,
+    "service_rows": 2700,
+    "last_confirmed": 600.0,
+    "sent_frames": 0,
+    "received_frames": 0,
+    "echo_native_ms": null,
+    "pressed_attack_frames": []
+  },
+  "b": {
+    "pages": 18,
+    "service_rows": 2700,
+    "last_confirmed": 600.0,
+    "sent_frames": 0,
+    "received_frames": 0,
+    "echo_native_ms": null,
+    "pressed_attack_frames": []
+  }
+}

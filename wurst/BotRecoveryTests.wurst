@@ -1,4 +1,5 @@
 package BotRecoveryTests
+import WorldTestSupport
 import Simulation
 import BotRecovery
 import MatchRules
@@ -32,7 +33,7 @@ import CommandBuffer
                         input.jumpPressed = false
                         input.jumpHeld = false
                         chooseRecoveryInput(fighter, 0, input)
-                        stepMatch(game, fighter, opponent, input, opponentInput, commands, opponentCommands, frame)
+                        stepMatch(game, testWorld(fighter, opponent), testControls(input, opponentInput, commands, opponentCommands), frame)
                     fighter.out.assertFalse()
                     fighter.stocks.assertEquals(3)
                     fighter.grounded.assertTrue()

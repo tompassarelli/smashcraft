@@ -2,10 +2,13 @@ package SelectionUI
 import Wurst
 import ClosureFrames
 import SelectionDrag
+import MatchRules
+import ParticipantInputs
 
 public abstract class SelectionActions
     abstract function selectChoice(int participantId, int choice)
-    abstract function selectCpuChoice(int participantId, int choice)
+    abstract function selectCpuChoice(int participantId, int cpu, int choice)
+    abstract function cycleMode(int actorId, int fighterSlot)
     abstract function recallChoice(int actorId, int chipSlot)
     abstract function openSettings(int participantId)
     abstract function start(int participantId)
@@ -14,443 +17,225 @@ SelectionPanel array participantPanels
 
 function onSelectionDrop()
     let slot = GetPlayerId(GetTriggerPlayer())
-    if slot >= 0 and slot <= 1
-        participantPanels[slot].acceptDrop(BlzGetTriggerSyncData())
+    if slot >= 0 and slot < INPUT_PARTICIPANT_CAPACITY
+        participantPanels[slot].acceptDrop(BlzGetTriggerSyncData(), false)
 
 function onCpuSelectionDrop()
-    if GetTriggerPlayer() == Player(0)
-        participantPanels[0].acceptCpuDrop(BlzGetTriggerSyncData())
+    let slot = GetPlayerId(GetTriggerPlayer())
+    if slot >= 0 and slot < INPUT_PARTICIPANT_CAPACITY
+        participantPanels[slot].acceptDrop(BlzGetTriggerSyncData(), true)
 
 function onSelectionRecall()
-    let actorId = GetPlayerId(GetTriggerPlayer())
-    if actorId >= 0 and actorId <= 1
-        participantPanels[actorId].acceptRecall(BlzGetTriggerSyncData())
-
-function onCpuSelectionRecall()
-    if GetTriggerPlayer() == Player(0)
-        participantPanels[0].acceptCpuRecall()
+    let slot = GetPlayerId(GetTriggerPlayer())
+    if slot >= 0 and slot < INPUT_PARTICIPANT_CAPACITY
+        participantPanels[slot].acceptRecall(BlzGetTriggerSyncData())
 
 function characterNameTexture(int choice) returns string
     return choice == 2 ? "war3mapImported\\DemonHunterName.tga" : (choice == 0 ? "war3mapImported\\ArcherName.tga" : "war3mapImported\\RiflemanName.tga")
 
-// Native buttons sit over custom, transparent artwork. Each participant gets
-// a complete frame tree on every client; update() reveals only its local tree.
+function characterPortrait(int choice, boolean tile) returns string
+    let name = choice == 2 ? "DemonHunter" : (choice == 0 ? "Archer" : "Rifleman")
+    return "war3mapImported\\" + name + (tile ? "Tile.tga" : "Portrait.tga")
+
+function selectionArt(framehandle parent, string name, string texture, real x, real y, real width, real height) returns framehandle
+    let art = createBackdrop(name, parent, 0)
+    art.setTexture(texture, 0, true)
+    art.setAbsPoint(FRAMEPOINT_TOPLEFT, x, y)
+    art.setSize(width, height)
+    art.setEnabled(false)
+    return art
+
+function selectionText(framehandle parent, string name, real x, real y, real width, real height, real size) returns framehandle
+    let label = createTextFrame(name, parent, 0)
+    label.setAbsPoint(FRAMEPOINT_TOPLEFT, x, y)
+    label.setSize(width, height)
+    label.setFont("Fonts\\FRIZQT__.TTF", size, 0)
+    label.setTextAlignment(TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
+    label.setEnabled(false)
+    return label
+
+// Each client allocates the same frame trees. Only visibility and cursor art
+// vary locally; completed choices are checked again by the synchronized owner.
 public class SelectionPanel
+    framehandle root
     framehandle backdrop
-    framehandle firstTileArt
-    framehandle secondTileArt
-    framehandle thirdTileArt
-    framehandle firstChoicePortrait
-    framehandle secondChoicePortrait
-    framehandle thirdChoicePortrait
-    framehandle playerOneChip
-    framehandle playerTwoChip
-    framehandle firstChoiceName
-    framehandle secondChoiceName
-    framehandle thirdChoiceName
-    framehandle playerOneCard
-    framehandle playerTwoCard
-    framehandle playerThreeCard
-    framehandle playerFourCard
-    framehandle playerThreeTag
-    framehandle playerFourTag
-    framehandle playerThreeFooter
-    framehandle playerFourFooter
-    framehandle selectedPortrait
-    framehandle selectedName
-    framehandle selectedStatus
-    framehandle opponentPortrait
-    framehandle opponentName
-    framehandle opponentStatus
-    framehandle playerOneTag
-    framehandle playerTwoTag
-    framehandle confirmArt
-    framehandle settingsArt
     framehandle confirmLabel
-    framehandle startButton
-    framehandle settingsLabel
-    framehandle settingsButton
+    framehandle array[INPUT_PARTICIPANT_CAPACITY] cards
+    framehandle array[INPUT_PARTICIPANT_CAPACITY] portraits
+    framehandle array[INPUT_PARTICIPANT_CAPACITY] names
+    framehandle array[INPUT_PARTICIPANT_CAPACITY] modeButtons
+    framehandle array[INPUT_PARTICIPANT_CAPACITY] tags
+    framehandle array[INPUT_PARTICIPANT_CAPACITY] statuses
+    framehandle array[INPUT_PARTICIPANT_CAPACITY] chips
     SelectionActions actions
     SelectionDrag drag = new SelectionDrag()
-    int lastState = -1
-    int lastChoice = -1
-    int lastOpponentChoice = -1
+    MatchState game = null
     int participantId
-    boolean lastEnabled = false
-    boolean lastReady = false
-    boolean lastOpponentReady = false
-    boolean lastOpponentHuman = false
     boolean settingsOpen = false
 
     construct(SelectionActions actions, int participantId)
         this.participantId = participantId
         this.actions = actions
-        drag.selectHeldChip(participantId, true)
         participantPanels[participantId] = this
         let suffix = I2S(participantId)
-        let frameOffset = participantId * 100
-
-        backdrop = createBackdrop("MeleeSelectBackdrop" + suffix, CONSOLE_UI, 400 + frameOffset)
+        root = createFrame("FRAME", "MeleeSelectRoot" + suffix, GAME_UI, "", 0)
+        backdrop = createBackdrop("MeleeSelectBackdrop" + suffix, CONSOLE_UI, 400 + participantId)
         backdrop.setTexture("war3mapImported\\SelectionBackdrop.tga", 0, false)
         backdrop.setFullscreenReference()
-
-
-        firstTileArt = createBackdrop("MeleeArcherTileArt" + suffix, GAME_UI, 419 + frameOffset)
-        firstTileArt.setTexture("war3mapImported\\SelectionTileFrame.tga", 0, true)
-        firstTileArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.260, 0.424)
-        firstTileArt.setSize(0.112, 0.132)
-        secondTileArt = createBackdrop("MeleeRiflemanTileArt" + suffix, GAME_UI, 420 + frameOffset)
-        secondTileArt.setTexture("war3mapImported\\SelectionTileFrame.tga", 0, true)
-        secondTileArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.440, 0.424)
-        secondTileArt.setSize(0.112, 0.132)
-        thirdTileArt = createBackdrop("MeleeDemonHunterTileArt" + suffix, GAME_UI, 448 + frameOffset)
-        thirdTileArt.setTexture("war3mapImported\\SelectionTileFrame.tga", 0, true)
-        thirdTileArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.620, 0.424)
-        thirdTileArt.setSize(0.112, 0.132)
-        thirdTileArt.setEnabled(false)
-
-        firstChoicePortrait = createBackdrop("MeleeArcherChoicePortrait" + suffix, GAME_UI, 421 + frameOffset)
-        firstChoicePortrait.setTexture("war3mapImported\\ArcherTile.tga", 0, true)
-        firstChoicePortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.2725, 0.411)
-        firstChoicePortrait.setSize(0.087, 0.087)
-        firstChoicePortrait.setEnabled(false)
-        secondChoicePortrait = createBackdrop("MeleeRiflemanChoicePortrait" + suffix, GAME_UI, 422 + frameOffset)
-        secondChoicePortrait.setTexture("war3mapImported\\RiflemanTile.tga", 0, true)
-        secondChoicePortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.4525, 0.411)
-        secondChoicePortrait.setSize(0.087, 0.087)
-        secondChoicePortrait.setEnabled(false)
-        thirdChoicePortrait = createBackdrop("MeleeDemonHunterChoicePortrait" + suffix, GAME_UI, 449 + frameOffset)
-        thirdChoicePortrait.setTexture("war3mapImported\\DemonHunterTile.tga", 0, true)
-        thirdChoicePortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.6325, 0.411)
-        thirdChoicePortrait.setSize(0.087, 0.087)
-        thirdChoicePortrait.setEnabled(false)
-        playerOneChip = createBackdrop("MeleeP1Chip" + suffix, GAME_UI, 433 + frameOffset)
-        playerOneChip.setTexture("war3mapImported\\SelectionChipP1.tga", 0, true)
-        playerOneChip.setSize(0.040, 0.040)
-        playerOneChip.setLevel(10)
-        playerOneChip.setEnabled(false)
-        playerTwoChip = createBackdrop("MeleeP2Chip" + suffix, GAME_UI, 434 + frameOffset)
-        playerTwoChip.setSize(0.040, 0.040)
-        playerTwoChip.setLevel(10)
-        playerTwoChip.setEnabled(false)
-        firstChoiceName = createBackdrop("MeleeArcherChoiceName" + suffix, GAME_UI, 423 + frameOffset)
-        firstChoiceName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.264, 0.316)
-        firstChoiceName.setSize(0.103, 0.018)
-        firstChoiceName.setEnabled(false)
-        secondChoiceName = createBackdrop("MeleeRiflemanChoiceName" + suffix, GAME_UI, 424 + frameOffset)
-        secondChoiceName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.444, 0.316)
-        secondChoiceName.setSize(0.103, 0.018)
-        secondChoiceName.setEnabled(false)
-        thirdChoiceName = createBackdrop("MeleeDemonHunterChoiceName" + suffix, GAME_UI, 450 + frameOffset)
-        thirdChoiceName.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.624, 0.316)
-        thirdChoiceName.setSize(0.103, 0.018)
-        thirdChoiceName.setEnabled(false)
-
-        playerOneCard = createBackdrop("MeleeSelectP1Card" + suffix, GAME_UI, 403 + frameOffset)
-        playerOneCard.setTexture("war3mapImported\\SelectionCardRed.tga", 0, true)
-        playerOneCard.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.055, 0.275)
-        playerOneCard.setSize(0.160, 0.200)
-        playerTwoCard = createBackdrop("MeleeSelectP2Card" + suffix, GAME_UI, 404 + frameOffset)
-        playerTwoCard.setTexture("war3mapImported\\SelectionCardBlue.tga", 0, true)
-        playerTwoCard.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.230, 0.275)
-        playerTwoCard.setSize(0.160, 0.200)
-        playerThreeCard = createBackdrop("MeleeSelectP3Card" + suffix, GAME_UI, 442 + frameOffset)
-        playerThreeCard.setTexture("war3mapImported\\SelectionCardGray.tga", 0, true)
-        playerThreeCard.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.405, 0.275)
-        playerThreeCard.setSize(0.160, 0.200)
-        playerFourCard = createBackdrop("MeleeSelectP4Card" + suffix, GAME_UI, 443 + frameOffset)
-        playerFourCard.setTexture("war3mapImported\\SelectionCardGray.tga", 0, true)
-        playerFourCard.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.580, 0.275)
-        playerFourCard.setSize(0.160, 0.200)
-
-        playerOneTag = createTextFrame("MeleeSelectP1Tag" + suffix, GAME_UI, 428 + frameOffset)
-        playerOneTag.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.069, 0.267)
-        playerOneTag.setSize(0.132, 0.019)
-        BlzFrameSetFont(playerOneTag, "Fonts\\FRIZQT__.TTF", 0.010, 0)
-        BlzFrameSetTextAlignment(playerOneTag, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-        playerTwoTag = createTextFrame("MeleeSelectP2Tag" + suffix, GAME_UI, 429 + frameOffset)
-        playerTwoTag.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.244, 0.267)
-        playerTwoTag.setSize(0.132, 0.019)
-        BlzFrameSetFont(playerTwoTag, "Fonts\\FRIZQT__.TTF", 0.010, 0)
-        BlzFrameSetTextAlignment(playerTwoTag, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-        playerThreeTag = createTextFrame("MeleeSelectP3Tag" + suffix, GAME_UI, 444 + frameOffset)
-        playerThreeTag.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.419, 0.267)
-        playerThreeTag.setSize(0.132, 0.019)
-        playerThreeTag.setText("|cff8e949bN/A|r")
-        BlzFrameSetFont(playerThreeTag, "Fonts\\FRIZQT__.TTF", 0.010, 0)
-        BlzFrameSetTextAlignment(playerThreeTag, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-        playerFourTag = createTextFrame("MeleeSelectP4Tag" + suffix, GAME_UI, 445 + frameOffset)
-        playerFourTag.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.594, 0.267)
-        playerFourTag.setSize(0.132, 0.019)
-        playerFourTag.setText("|cff8e949bN/A|r")
-        BlzFrameSetFont(playerFourTag, "Fonts\\FRIZQT__.TTF", 0.010, 0)
-        BlzFrameSetTextAlignment(playerFourTag, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-        playerThreeFooter = createTextFrame("MeleeSelectP3Footer" + suffix, GAME_UI, 446 + frameOffset)
-        playerThreeFooter.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.419, 0.093)
-        playerThreeFooter.setSize(0.132, 0.014)
-        playerThreeFooter.setText("|cffaaa05fP3|r")
-        BlzFrameSetFont(playerThreeFooter, "Fonts\\FRIZQT__.TTF", 0.011, 0)
-        BlzFrameSetTextAlignment(playerThreeFooter, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-        playerFourFooter = createTextFrame("MeleeSelectP4Footer" + suffix, GAME_UI, 447 + frameOffset)
-        playerFourFooter.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.594, 0.093)
-        playerFourFooter.setSize(0.132, 0.014)
-        playerFourFooter.setText("|cff659574P4|r")
-        BlzFrameSetFont(playerFourFooter, "Fonts\\FRIZQT__.TTF", 0.011, 0)
-        BlzFrameSetTextAlignment(playerFourFooter, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-
-        let ownCardX = participantId == 0 ? 0.055 : 0.230
-        let opponentCardX = participantId == 0 ? 0.230 : 0.055
-        selectedPortrait = createBackdrop("MeleeSelectedPortrait" + suffix, GAME_UI, 409 + frameOffset)
-        selectedPortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, ownCardX + 0.019, 0.245)
-        selectedPortrait.setSize(0.122, 0.122)
-        selectedName = createBackdrop("MeleeSelectedName" + suffix, GAME_UI, 410 + frameOffset)
-        selectedName.setAbsPoint(FRAMEPOINT_TOPLEFT, ownCardX + 0.008, 0.116)
-        selectedName.setSize(0.144, 0.020)
-        selectedStatus = createTextFrame("MeleeSelectedStatus" + suffix, GAME_UI, 411 + frameOffset)
-        selectedStatus.setAbsPoint(FRAMEPOINT_TOPLEFT, ownCardX + 0.014, 0.093)
-        selectedStatus.setSize(0.132, 0.014)
-        BlzFrameSetFont(selectedStatus, "Fonts\\FRIZQT__.TTF", 0.011, 0)
-        BlzFrameSetTextAlignment(selectedStatus, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-
-        opponentPortrait = createBackdrop("MeleeOpponentPortrait" + suffix, GAME_UI, 412 + frameOffset)
-        opponentPortrait.setAbsPoint(FRAMEPOINT_TOPLEFT, opponentCardX + 0.019, 0.245)
-        opponentPortrait.setSize(0.122, 0.122)
-        opponentName = createBackdrop("MeleeOpponentName" + suffix, GAME_UI, 413 + frameOffset)
-        opponentName.setAbsPoint(FRAMEPOINT_TOPLEFT, opponentCardX + 0.008, 0.116)
-        opponentName.setSize(0.144, 0.020)
-        opponentStatus = createTextFrame("MeleeOpponentStatus" + suffix, GAME_UI, 414 + frameOffset)
-        opponentStatus.setAbsPoint(FRAMEPOINT_TOPLEFT, opponentCardX + 0.014, 0.105)
-        opponentStatus.setSize(0.132, 0.028)
-        BlzFrameSetFont(opponentStatus, "Fonts\\FRIZQT__.TTF", 0.011, 0)
-        BlzFrameSetTextAlignment(opponentStatus, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-
-        confirmArt = createBackdrop("MeleeConfirmArt" + suffix, GAME_UI, 425 + frameOffset)
-        confirmArt.setTexture("war3mapImported\\SelectionAction.tga", 0, true)
-        confirmArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.071, 0.043)
-        confirmArt.setSize(0.235, 0.037)
-        confirmLabel = createTextFrame("MeleeConfirmLabel" + suffix, GAME_UI, 430 + frameOffset)
-        confirmLabel.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.079, 0.039)
-        confirmLabel.setSize(0.219, 0.028)
-        BlzFrameSetFont(confirmLabel, "Fonts\\FRIZQT__.TTF", 0.011, 0)
-        BlzFrameSetTextAlignment(confirmLabel, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-        startButton = createFrame("ScriptDialogButton", GAME_UI, 0, 418 + frameOffset)
-        startButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.071, 0.043)
-        startButton.setSize(0.235, 0.037)
-        startButton.setAlpha(0)
-        startButton.onClick(() -> begin
+        for choice = 0 to 2
+            let x = 0.260 + choice * 0.180
+            let name = suffix + "_" + I2S(choice)
+            selectionArt(root, "MeleeTile" + name, "war3mapImported\\SelectionTileFrame.tga", x, 0.424, 0.112, 0.132)
+            selectionArt(root, "MeleeTilePortrait" + name, characterPortrait(choice, true), x + 0.0125, 0.411, 0.087, 0.087)
+            selectionArt(root, "MeleeTileName" + name, characterNameTexture(choice), x + 0.004, 0.316, 0.103, 0.018)
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            let x = selectionCardX(slot)
+            let name = suffix + "_" + I2S(slot)
+            cards[slot] = selectionArt(root, "MeleeCard" + name, "war3mapImported\\SelectionCardGray.tga", x, 0.275, 0.160, 0.200)
+            tags[slot] = selectionText(root, "MeleeTag" + name, x + 0.014, 0.267, 0.132, 0.019, 0.010)
+            let fighterSlot = slot
+            let mode = createFrame("ScriptDialogButton", root, 0, 0)
+            mode.setAbsPoint(FRAMEPOINT_TOPLEFT, x + 0.014, 0.270)
+            mode.setSize(0.132, 0.027)
+            mode.setAlpha(0)
+            mode.setLevel(1)
+            tags[slot].setLevel(2)
+            mode.onClick(() -> begin
+                if GetTriggerPlayer() == Player(participantId)
+                    actions.cycleMode(participantId, fighterSlot)
+            end)
+            mode.onClickReleaseFocus()
+            modeButtons[slot] = mode
+            portraits[slot] = selectionArt(root, "MeleePortrait" + name, characterPortrait(0, false), x + 0.019, 0.245, 0.122, 0.122)
+            names[slot] = selectionArt(root, "MeleeName" + name, characterNameTexture(0), x + 0.008, 0.116, 0.144, 0.020)
+            statuses[slot] = selectionText(root, "MeleeStatus" + name, x + 0.014, 0.093, 0.132, 0.014, 0.011)
+            chips[slot] = selectionArt(root, "MeleeChip" + name, "war3mapImported\\SelectionChipP" + I2S(slot + 1) + ".tga", x + 0.060, 0.200, 0.040, 0.040)
+            chips[slot].setLevel(10)
+        selectionArt(root, "MeleeConfirmArt" + suffix, "war3mapImported\\SelectionAction.tga", 0.071, 0.043, 0.235, 0.037)
+        confirmLabel = selectionText(root, "MeleeConfirmLabel" + suffix, 0.079, 0.039, 0.219, 0.028, 0.011)
+        let start = createFrame("ScriptDialogButton", root, 0, 0)
+        start.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.071, 0.043)
+        start.setSize(0.235, 0.037)
+        start.setAlpha(0)
+        start.onClick(() -> begin
             if GetTriggerPlayer() == Player(participantId)
                 actions.start(participantId)
         end)
-        startButton.onClickReleaseFocus()
-        settingsArt = createBackdrop("MeleeSettingsArt" + suffix, GAME_UI, 427 + frameOffset)
-        settingsArt.setTexture("war3mapImported\\SelectionAction.tga", 0, true)
-        settingsArt.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.500, 0.043)
-        settingsArt.setSize(0.222, 0.037)
-        settingsLabel = createTextFrame("MeleeSettingsLabel" + suffix, GAME_UI, 432 + frameOffset)
-        settingsLabel.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.506, 0.039)
-        settingsLabel.setSize(0.209, 0.028)
-        BlzFrameSetFont(settingsLabel, "Fonts\\FRIZQT__.TTF", 0.009, 0)
-        BlzFrameSetTextAlignment(settingsLabel, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER)
-
-        settingsButton = createFrame("ScriptDialogButton", GAME_UI, 0, 417 + frameOffset)
-        settingsButton.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.500, 0.043)
-        settingsButton.setSize(0.222, 0.037)
-        settingsButton.setAlpha(0)
-        settingsButton.onClick(() -> begin
+        start.onClickReleaseFocus()
+        selectionArt(root, "MeleeSettingsArt" + suffix, "war3mapImported\\SelectionAction.tga", 0.510, 0.043, 0.235, 0.037)
+        let settingsLabel = selectionText(root, "MeleeSettingsLabel" + suffix, 0.518, 0.039, 0.219, 0.028, 0.011)
+        settingsLabel.setText("CONTROLS  [F1]")
+        let settings = createFrame("ScriptDialogButton", root, 0, 0)
+        settings.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.510, 0.043)
+        settings.setSize(0.235, 0.037)
+        settings.setAlpha(0)
+        settings.onClick(() -> begin
             if GetTriggerPlayer() == Player(participantId)
                 actions.openSettings(participantId)
         end)
-        settingsButton.onClickReleaseFocus()
-
-        let dropTrigger = CreateTrigger()
-        BlzTriggerRegisterPlayerSyncEvent(dropTrigger, Player(participantId), "fighter-drop", false)
-        TriggerAddAction(dropTrigger, function onSelectionDrop)
-        let recallTrigger = CreateTrigger()
-        BlzTriggerRegisterPlayerSyncEvent(recallTrigger, Player(participantId), "fighter-recall", false)
-        TriggerAddAction(recallTrigger, function onSelectionRecall)
-        if participantId == 0
-            let cpuDropTrigger = CreateTrigger()
-            BlzTriggerRegisterPlayerSyncEvent(cpuDropTrigger, Player(0), "cpu-fighter-drop", false)
-            TriggerAddAction(cpuDropTrigger, function onCpuSelectionDrop)
-            let cpuRecallTrigger = CreateTrigger()
-            BlzTriggerRegisterPlayerSyncEvent(cpuRecallTrigger, Player(0), "cpu-fighter-recall", false)
-            TriggerAddAction(cpuRecallTrigger, function onCpuSelectionRecall)
-
+        settings.onClickReleaseFocus()
+        let drop = CreateTrigger()
+        BlzTriggerRegisterPlayerSyncEvent(drop, Player(participantId), "fighter-drop", false)
+        TriggerAddAction(drop, function onSelectionDrop)
+        let cpuDrop = CreateTrigger()
+        BlzTriggerRegisterPlayerSyncEvent(cpuDrop, Player(participantId), "cpu-fighter-drop", false)
+        TriggerAddAction(cpuDrop, function onCpuSelectionDrop)
+        let recall = CreateTrigger()
+        BlzTriggerRegisterPlayerSyncEvent(recall, Player(participantId), "fighter-recall", false)
+        TriggerAddAction(recall, function onSelectionRecall)
+        root.setVisible(false)
         backdrop.setVisible(false)
-        firstTileArt.setVisible(false)
-        secondTileArt.setVisible(false)
-        thirdTileArt.setVisible(false)
-        firstChoicePortrait.setVisible(false)
-        secondChoicePortrait.setVisible(false)
-        thirdChoicePortrait.setVisible(false)
-        playerOneChip.setVisible(false)
-        playerTwoChip.setVisible(false)
-        firstChoiceName.setVisible(false)
-        secondChoiceName.setVisible(false)
-        thirdChoiceName.setVisible(false)
-        playerOneCard.setVisible(false)
-        playerTwoCard.setVisible(false)
-        playerThreeCard.setVisible(false)
-        playerFourCard.setVisible(false)
-        playerThreeTag.setVisible(false)
-        playerFourTag.setVisible(false)
-        playerThreeFooter.setVisible(false)
-        playerFourFooter.setVisible(false)
-        playerOneTag.setVisible(false)
-        playerTwoTag.setVisible(false)
-        selectedPortrait.setVisible(false)
-        selectedName.setVisible(false)
-        selectedStatus.setVisible(false)
-        opponentPortrait.setVisible(false)
-        opponentName.setVisible(false)
-        opponentStatus.setVisible(false)
-        confirmArt.setVisible(false)
-        settingsArt.setVisible(false)
-        confirmLabel.setVisible(false)
-        startButton.setVisible(false)
-        settingsLabel.setVisible(false)
-        settingsButton.setVisible(false)
 
-    function acceptDrop(string data)
-        if lastState == 0 and not settingsOpen and lastEnabled and (data == "0" or data == "1" or data == "2")
+    function acceptDrop(string data, boolean cpu)
+        if game == null or game.phase != CHARACTER_MENU or settingsOpen or not game.humanActive(participantId)
+            return
+        if cpu
+            if StringLength(data) == 2
+                let cpuSlot = S2I(SubString(data, 0, 1))
+                let choice = S2I(SubString(data, 1, 2))
+                if data == I2S(cpuSlot) + I2S(choice) and game.canChooseComputer(participantId, cpuSlot) and choice >= 0 and choice <= 2
+                    actions.selectCpuChoice(participantId, cpuSlot, choice)
+        else if data == "0" or data == "1" or data == "2"
             actions.selectChoice(participantId, S2I(data))
 
-    function acceptCpuDrop(string data)
-        if participantId == 0 and lastState == 0 and not settingsOpen and lastEnabled and (data == "0" or data == "1" or data == "2")
-            actions.selectCpuChoice(0, S2I(data))
-
     function acceptRecall(string data)
-        if lastState == 0 and not settingsOpen and lastEnabled and data == "1"
-            actions.recallChoice(participantId, participantId)
-
-    function acceptCpuRecall()
-        if participantId == 0 and lastState == 0 and not settingsOpen and lastEnabled
-            actions.recallChoice(0, 1)
+        if game == null or game.phase != CHARACTER_MENU or settingsOpen or not game.humanActive(participantId)
+            return
+        if data == "0" or data == "1" or data == "2" or data == "3"
+            actions.recallChoice(participantId, S2I(data))
 
     function placeHovered()
-        if GetLocalPlayer() != Player(participantId) or lastState != 0 or settingsOpen or not lastEnabled
+        if GetLocalPlayer() != Player(participantId) or game == null or game.phase != CHARACTER_MENU or settingsOpen or not game.humanActive(participantId)
             return
         let tile = drag.placeHovered()
-        if tile < 0 or drag.releasedSlot < 0
-            return
-        if drag.releasedSlot == 1 and participantId == 0 and not lastOpponentHuman
-            if not lastOpponentReady
-                BlzSendSyncData("cpu-fighter-drop", I2S(tile))
-        else if drag.releasedSlot == participantId and not lastReady
-            BlzSendSyncData("fighter-drop", I2S(tile))
+        if tile >= 0
+            sendDrop(tile)
+
+    private function sendDrop(int choice)
+        if drag.releasedSlot == participantId and game.humanFighterActive(participantId)
+            BlzSendSyncData("fighter-drop", I2S(choice))
+        else if game.canChooseComputer(participantId, drag.releasedSlot)
+            BlzSendSyncData("cpu-fighter-drop", I2S(drag.releasedSlot) + I2S(choice))
 
     function recallHeld()
-        if GetLocalPlayer() != Player(participantId) or lastState != 0 or settingsOpen or not lastEnabled
+        if GetLocalPlayer() != Player(participantId) or game == null or game.phase != CHARACTER_MENU or settingsOpen or not game.humanActive(participantId)
             return
-        let chipSlot = drag.recallHeld()
-        if chipSlot == participantId
-            BlzSendSyncData("fighter-recall", "1")
-        else if chipSlot == 1 and participantId == 0 and not lastOpponentHuman
-            BlzSendSyncData("cpu-fighter-recall", "1")
+        let chip = drag.recallHeld()
+        if chip >= 0
+            BlzSendSyncData("fighter-recall", I2S(chip))
 
-    function update(int menuState, int choice, boolean overlayOpen, boolean enabled, boolean ready,
-        int opponentChoice, boolean opponentHuman, boolean opponentReady)
-        if GetLocalPlayer() == Player(participantId)
-            if menuState == 0 and enabled and not overlayOpen and drag.heldSlot < 0
-                drag.selectHeldChip(participantId, true)
-            let width = I2R(BlzGetLocalClientWidth())
-            let height = I2R(BlzGetLocalClientHeight())
-            if height > 0 and width > 0
-                let pointer = getMouseScreenPosition()
-                let x = selectionPointerX(pointer.x, width, height)
-                let y = selectionPointerY(pointer.y, height)
-                let canDragCpu = participantId == 0 and not opponentHuman
-                let dropped = drag.update(menuState == 0 and enabled and not overlayOpen,
-                    MOUSE_BUTTON_TYPE_LEFT.isPressed(), x, y, participantId, choice, ready, opponentChoice,
-                    opponentReady, canDragCpu)
-                if dropped >= 0
-                    if drag.releasedSlot == 1 and canDragCpu
-                        BlzSendSyncData("cpu-fighter-drop", I2S(dropped))
-                    else
-                        BlzSendSyncData("fighter-drop", I2S(dropped))
-                let ownChip = participantId == 0 ? playerOneChip : playerTwoChip
-                let ownDragging = drag.active and drag.activeSlot == participantId
-                let ownPreview = not ready and drag.heldSlot == participantId and drag.hoverTile >= 0
-                let ownHeld = ownDragging or ownPreview
-                ownChip.setAbsPoint(FRAMEPOINT_TOPLEFT, ownHeld ? x - 0.020 : (ready ? selectionChipX(participantId, choice) : 0.115 + participantId * 0.175), ownHeld ? y + 0.020 : (ready ? 0.366 : 0.200))
-                ownChip.setVisible(menuState == 0 and enabled and not overlayOpen)
-                let visibleOpponentChip = participantId == 0 ? playerTwoChip : playerOneChip
-                visibleOpponentChip.setAbsPoint(FRAMEPOINT_TOPLEFT, opponentReady ? selectionChipX(1 - participantId, opponentChoice) : 0.115 + (1 - participantId) * 0.175, opponentReady ? 0.366 : 0.200)
-                visibleOpponentChip.setVisible(menuState == 0 and enabled and not overlayOpen)
-                if canDragCpu
-                    let cpuDragging = drag.active and drag.activeSlot == 1
-                    let cpuPreview = not opponentReady and drag.heldSlot == 1 and drag.hoverTile >= 0
-                    let cpuHeld = cpuDragging or cpuPreview
-                    playerTwoChip.setAbsPoint(FRAMEPOINT_TOPLEFT, cpuHeld ? x - 0.020 : (opponentReady ? selectionChipX(1, opponentChoice) : 0.290), cpuHeld ? y + 0.020 : (opponentReady ? 0.366 : 0.200))
-                    playerTwoChip.setVisible(menuState == 0 and enabled and not overlayOpen)
-
-        if menuState == lastState and choice == lastChoice and overlayOpen == settingsOpen and enabled == lastEnabled and ready == lastReady and opponentChoice == lastOpponentChoice and opponentHuman == lastOpponentHuman and opponentReady == lastOpponentReady
-            return
-        lastState = menuState
-        lastChoice = choice
+    function update(MatchState state, boolean overlayOpen)
+        game = state
         settingsOpen = overlayOpen
-        lastEnabled = enabled
-        lastReady = ready
-        lastOpponentChoice = opponentChoice
-        lastOpponentHuman = opponentHuman
-        lastOpponentReady = opponentReady
         if GetLocalPlayer() != Player(participantId)
             return
-
-        let visible = menuState == 0 and enabled and not settingsOpen
+        let visible = game.phase == CHARACTER_MENU and game.humanActive(participantId) and not settingsOpen
+        root.setVisible(visible)
         backdrop.setVisible(visible)
-        firstTileArt.setVisible(visible)
-        secondTileArt.setVisible(visible)
-        thirdTileArt.setVisible(visible)
-        firstChoicePortrait.setVisible(visible)
-        secondChoicePortrait.setVisible(visible)
-        thirdChoicePortrait.setVisible(visible)
-        playerOneChip.setVisible(false)
-        playerTwoChip.setVisible(false)
-        firstChoiceName.setVisible(visible)
-        secondChoiceName.setVisible(visible)
-        thirdChoiceName.setVisible(visible)
-        playerOneCard.setVisible(visible)
-        playerTwoCard.setVisible(visible)
-        playerThreeCard.setVisible(visible)
-        playerFourCard.setVisible(visible)
-        playerThreeTag.setVisible(visible)
-        playerFourTag.setVisible(visible)
-        playerThreeFooter.setVisible(visible)
-        playerFourFooter.setVisible(visible)
-        playerOneTag.setVisible(visible)
-        playerTwoTag.setVisible(visible)
-        selectedPortrait.setVisible(visible and ready)
-        selectedName.setVisible(visible and ready)
-        selectedStatus.setVisible(visible)
-        opponentPortrait.setVisible(visible and opponentReady)
-        opponentName.setVisible(visible and opponentReady)
-        opponentStatus.setVisible(visible)
-        confirmArt.setVisible(visible)
-        settingsArt.setVisible(visible)
-        confirmLabel.setVisible(visible)
-        startButton.setVisible(visible)
-        settingsLabel.setVisible(visible)
-        settingsButton.setVisible(visible)
         if not visible
+            drag.update(false, false, 0, 0, participantId)
             return
-
-        let opponentChip = participantId == 0 ? playerTwoChip : playerOneChip
-        opponentChip.setAbsPoint(FRAMEPOINT_TOPLEFT, selectionChipX(1 - participantId, opponentChoice), 0.366)
-        playerTwoChip.setTexture(opponentHuman ? "war3mapImported\\SelectionChipP2.tga" : "war3mapImported\\SelectionChipCPU.tga", 0, true)
-        firstChoiceName.setTexture(characterNameTexture(0), 0, true)
-        secondChoiceName.setTexture(characterNameTexture(1), 0, true)
-        thirdChoiceName.setTexture(characterNameTexture(2), 0, true)
-        let allReady = ready and (opponentReady or not opponentHuman)
-        confirmLabel.setText(allReady ? (opponentReady ? "Start [Y]" : "Practice [Y]") : "Place your chip")
-        settingsLabel.setText("CONTROLS  [F1]")
-        playerOneTag.setText("|cffffefcfHMN|r")
-        playerTwoTag.setText(opponentHuman ? "|cffd9e8ffHMN|r" : "|cffd9e8ffCPU|r")
-        selectedStatus.setText(ready ? (participantId == 0 ? "P1" : "P2") : "Choose fighter")
-        opponentStatus.setText(opponentReady ? (opponentHuman ? (participantId == 0 ? "P2" : "P1") : "CP") : (opponentHuman ? "Choose fighter" : "Choose an opponent\nto fight"))
-        if ready
-            selectedName.setTexture(characterNameTexture(choice), 0, true)
-            selectedPortrait.setTexture(choice == 2 ? "war3mapImported\\DemonHunterPortrait.tga" : (choice == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga"), 0, true)
-        if opponentReady
-            opponentName.setTexture(characterNameTexture(opponentChoice), 0, true)
-            opponentPortrait.setTexture(opponentChoice == 2 ? "war3mapImported\\DemonHunterPortrait.tga" : (opponentChoice == 0 ? "war3mapImported\\ArcherPortrait.tga" : "war3mapImported\\RiflemanPortrait.tga"), 0, true)
+        if drag.heldSlot < 0
+            drag.selectHeldChip(participantId, game.humanFighterActive(participantId))
+        var x = 0.
+        var y = 0.
+        let width = I2R(BlzGetLocalClientWidth())
+        let height = I2R(BlzGetLocalClientHeight())
+        if width > 0 and height > 0
+            let pointer = getMouseScreenPosition()
+            x = selectionPointerX(pointer.x, width, height)
+            y = selectionPointerY(pointer.y, height)
+            drag.selectableMask = 0
+            var bit = 1
+            for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                drag.choices[slot] = game.characterFor(slot)
+                drag.ready[slot] = game.characterReady(slot)
+                if (slot == participantId and game.humanFighterActive(slot)) or game.canChooseComputer(participantId, slot)
+                    drag.selectableMask += bit
+                bit *= 2
+            if not participantIsActive(drag.selectableMask, drag.heldSlot)
+                drag.heldSlot = -1
+            if not participantIsActive(drag.selectableMask, drag.activeSlot)
+                drag.active = false
+                drag.activeSlot = -1
+            let dropped = drag.update(true, MOUSE_BUTTON_TYPE_LEFT.isPressed(), x, y, participantId)
+            if dropped >= 0
+                sendDrop(dropped)
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            let active = game.fighterActive(slot)
+            let ready = game.characterReady(slot)
+            let color = slot == 0 ? "Red" : (slot == 1 ? "Blue" : (slot == 2 ? "Yellow" : "Green"))
+            cards[slot].setTexture("war3mapImported\\SelectionCard" + (active ? color : "Gray") + ".tga", 0, true)
+            tags[slot].setText(active ? (game.humanFighterActive(slot) ? "HMN" : "CPU") : "EMPTY")
+            modeButtons[slot].setEnabled(game.canCycleSlotMode(participantId, slot))
+            portraits[slot].setVisible(active and ready)
+            names[slot].setVisible(active and ready)
+            statuses[slot].setText(game.humanFighterActive(slot) and not game.humanPresent(slot) ? "No player" : (active and not ready ? "Choose fighter" : "P" + I2S(slot + 1)))
+            if ready
+                portraits[slot].setTexture(characterPortrait(game.characterFor(slot), false), 0, true)
+                names[slot].setTexture(characterNameTexture(game.characterFor(slot)), 0, true)
+            chips[slot].setVisible(active)
+            chips[slot].setTexture("war3mapImported\\SelectionChip" + (game.humanFighterActive(slot) ? "P" + I2S(slot + 1) : "CPU") + ".tga", 0, true)
+            let held = (drag.active and drag.activeSlot == slot) or (not ready and drag.heldSlot == slot and drag.hoverTile >= 0)
+            chips[slot].setAbsPoint(FRAMEPOINT_TOPLEFT, held ? x - 0.020 : (ready ? selectionChipX(slot, game.characterFor(slot)) : selectionCardX(slot) + 0.060), held ? y + 0.020 : (ready ? selectionChipY(slot) : 0.200))
+        confirmLabel.setText(game.hasUnassignedHuman() ? "Choose CPU or EMPTY" : (game.allCharactersReady() ? "Start [Y]" : (game.fighterMask() == 0 ? "Add a fighter" : "Place your chip")))

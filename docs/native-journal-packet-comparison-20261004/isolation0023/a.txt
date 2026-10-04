@@ -1,0 +1,16 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=netcode-0023 epoch=1 timing=native-game-seconds" )
+	call Preload( "fileio-reads=240 bytes=0 read-seconds=0.000" )
+	call Preload( "journal-sequence-first=1 last=1 changes=1" )
+	call Preload( "phase=FileIO-present bytes=16 sent=60 received=60 missing=0" )
+	call Preload( "phase-age-samples=60 mean-seconds=0.111 max-seconds=0.166 duplicates=0" )
+	call Preload( "phase=FileIO-skipped bytes=16 sent=60 received=60 missing=0" )
+	call Preload( "phase-age-samples=60 mean-seconds=0.097 max-seconds=0.124 duplicates=0" )
+	call Preload( "diagnostic-unexpected-packets=0" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

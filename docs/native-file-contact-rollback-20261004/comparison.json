@@ -1,0 +1,34 @@
+{
+  "build": "20261003T210905424561942",
+  "observed_stop_to_resume_request_ms": 251.286784,
+  "nominal_60hz_frames": 15.077207040000001,
+  "unique_authored_rows": 8,
+  "observer_rows": 16,
+  "clients": [
+    {
+      "slot": 0,
+      "exact_rows": 8,
+      "invalid": 0,
+      "original_frame_errors": 0,
+      "transient_damage": 12,
+      "corrected_damage": 0,
+      "shield_stun": 7,
+      "checksum_F8": "650897:604915",
+      "full_state_first_differences_empty": true,
+      "retargeted_F9_damage": 12
+    },
+    {
+      "slot": 1,
+      "exact_rows": 8,
+      "invalid": 0,
+      "original_frame_errors": 0,
+      "transient_damage": 12,
+      "corrected_damage": 0,
+      "shield_stun": 7,
+      "checksum_F8": "650897:604915",
+      "full_state_first_differences_empty": true,
+      "retargeted_F9_damage": 12
+    }
+  ],
+  "scope": "one scripted production exchange; external authored frame corpus, not physical capture or presentation latency"
+}

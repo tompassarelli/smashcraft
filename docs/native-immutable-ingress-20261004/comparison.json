@@ -1,0 +1,18 @@
+[
+  {
+    "slot": 0,
+    "expected_exact_receipts": 8,
+    "matched_exact_receipts": 8,
+    "initial_missing_read_empty": true,
+    "first_successful_retry": "RETRY slot=0 attempt=1 game_ms=250.244 file=smashcraft-ingress-20261003T203950917701952-retry.pld data=V1|000001|000000|000001|1; expected=V1|000001|000000|000001|1;",
+    "header": "IMMUTABLE_FILE_INGRESS v=1 build=20261003T203950917701952 version=0.0.14 slot=0 phase=complete callbacks=40 retry_attempts=40 unique_files_read=3 unique_matches=3 retry_delivered=1 sync_received=8"
+  },
+  {
+    "slot": 1,
+    "expected_exact_receipts": 8,
+    "matched_exact_receipts": 8,
+    "initial_missing_read_empty": true,
+    "first_successful_retry": "RETRY slot=1 attempt=2 game_ms=500.244 file=smashcraft-ingress-20261003T203950917701952-retry.pld data=V1|000001|000000|000001|1; expected=V1|000001|000000|000001|1;",
+    "header": "IMMUTABLE_FILE_INGRESS v=1 build=20261003T203950917701952 version=0.0.14 slot=1 phase=complete callbacks=40 retry_attempts=40 unique_files_read=3 unique_matches=3 retry_delivered=1 sync_received=8"
+  }
+]

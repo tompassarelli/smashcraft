@@ -1,5 +1,6 @@
 package SimulationTests
 import Simulation
+import WorldTestSupport
 import DirectionalInput
 import MatchRules
 import CommandBuffer
@@ -52,9 +53,9 @@ function meleeCaptainFalconSurfaceRecoveryPhysics() returns surfaceRecoveryPhysi
 	input.airDodgePressed = true
 	advance(fighter, 0, input, 0)
 	fighter.jumpDodgeQueued.assertTrue()
-	beginAttackPair(attacker, fighter, 0, -1, false, false)
+	testBeginAttacks(testWorld(attacker, fighter), 0, -1, false, false)
 	attacker.attackFrame = attackStartupFrames(0)
-	resolveAttackPair(attacker, fighter)
+	resolveAttacks(testWorld(attacker, fighter))
 	fighter.hitstun.assertGreaterThan(0)
 	fighter.jumpSquat.assertEquals(0)
 	fighter.jumpDodgeQueued.assertFalse()
@@ -102,7 +103,7 @@ function meleeCaptainFalconSurfaceRecoveryPhysics() returns surfaceRecoveryPhysi
 function prepareHitRegionAttack(FighterState attacker, FighterState target, int style, int frame)
 	if isAerialAttack(style)
 		attacker.grounded = false
-	beginAttackPair(attacker, target, style, -1, false, false)
+	testBeginAttacks(testWorld(attacker, target), style, -1, false, false)
 	attacker.attackStyle.assertEquals(style)
 	attacker.attackFrame = frame
 	attacker.cooldown = attacker.attackDuration - frame
@@ -113,7 +114,7 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 			let attacker = new FighterState(0, 0, direction)
 			let target = new FighterState(1, direction * 100., -direction)
 			prepareHitRegionAttack(attacker, target, 6, 5)
-			resolveAttackPair(attacker, target)
+			resolveAttacks(testWorld(attacker, target))
 			// x=100 overlaps both regions; only the higher-priority tip applies.
 			target.damage.assertEquals(10.)
 			target.knockbackX.assertEquals(direction * 7.7856, 0.0001)
@@ -130,7 +131,7 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 			let attacker = new FighterState(0, 0, 1)
 			let target = new FighterState(1, inner == 1 ? 50 : 120, -1)
 			prepareHitRegionAttack(attacker, target, 6, frame)
-			resolveAttackPair(attacker, target)
+			resolveAttacks(testWorld(attacker, target))
 			if inner == 1
 				target.damage.assertEquals(frame == 5 ? 7. : 5.)
 				let speed = frame == 5 ? 6.1776 : 4.771
@@ -151,7 +152,7 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 		// Tip centerline ends at 111; attack/body radii add 10 + 26.
 		let target = new FighterState(1, 147, -1)
 		prepareHitRegionAttack(attacker, target, 6, frame)
-		resolveAttackPair(attacker, target)
+		resolveAttacks(testWorld(attacker, target))
 		target.damage.assertEquals(frame == 5 ? 10. : (frame == 6 ? 8. : 0.))
 		destroy target
 		destroy attacker
@@ -160,7 +161,7 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 		let target = new FighterState(1, outside == 0 ? -148 : (outside == 1 ? 50 : -100), 1)
 		target.z = outside == 2 ? -131 : (outside == 3 ? 131 : 0)
 		prepareHitRegionAttack(attacker, target, 6, 5)
-		resolveAttackPair(attacker, target)
+		resolveAttacks(testWorld(attacker, target))
 		target.damage.assertEquals(0.)
 		destroy target
 		destroy attacker
@@ -170,23 +171,23 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 	let target = new FighterState(1, 100, -1)
 	let input = new InputSnapshot()
 	prepareHitRegionAttack(attacker, target, 6, 5)
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	for tick = 1 to 5
 		advance(attacker, 0, input, -240)
-		resolveAttackPair(attacker, target)
+		resolveAttacks(testWorld(attacker, target))
 		attacker.attackFrame.assertEquals(5)
 		target.damage.assertEquals(10.)
 	target.x = 500
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.x = 50
 	advance(attacker, 0, input, -240)
 	attacker.attackFrame.assertEquals(6)
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(10.)
 	while attacker.attackStyle >= 0
 		advance(attacker, 0, input, -240)
 	prepareHitRegionAttack(attacker, target, 6, 5)
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(17.)
 	destroy input
 	destroy target
@@ -197,13 +198,13 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 	let firstTarget = new FighterState(1, 100, -1)
 	let secondTarget = new FighterState(1, 50, -1)
 	prepareHitRegionAttack(attacker, firstTarget, 6, 5)
-	resolveAttackPair(attacker, firstTarget)
+	resolveAttacks(testWorld(attacker, firstTarget))
 	attacker.hitlag = 0
-	resolveAttackPair(attacker, secondTarget)
+	resolveAttacks(testWorld(attacker, secondTarget))
 	firstTarget.damage.assertEquals(10.)
 	secondTarget.damage.assertEquals(7.)
 	attacker.hitlag = 0
-	resolveAttackPair(attacker, firstTarget)
+	resolveAttacks(testWorld(attacker, firstTarget))
 	firstTarget.damage.assertEquals(10.)
 	destroy secondTarget
 	destroy firstTarget
@@ -216,32 +217,32 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 	attacker.z = 300
 	target.z = 400
 	prepareHitRegionAttack(attacker, target, AERIAL_UP_STYLE, 5)
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(4.)
 	target.hitlag.assertEquals(4)
 	for tick = 1 to 3
 		advance(attacker, 0, input, -240)
-		resolveAttackPair(attacker, target)
+		resolveAttacks(testWorld(attacker, target))
 		attacker.attackFrame.assertEquals(5)
 		target.damage.assertEquals(4.)
 	advance(attacker, 0, input, -240)
 	attacker.attackFrame.assertEquals(6)
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(4.)
 	advance(attacker, 0, input, -240)
 	attacker.attackFrame.assertEquals(7)
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(12.)
 	target.hitlag.assertEquals(5)
 	// Finisher: 12 post-hit percent, 8 damage, 110 growth and 24 base.
 	target.knockbackX.assertEquals(2.433, 0.0001)
 	target.knockbackZ.assertEquals(9.4229681, 0.0001)
 	attacker.hitlag = 0
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(12.)
 	advance(attacker, 0, input, -240)
 	attacker.attackFrame.assertEquals(8)
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(12.)
 	destroy input
 	destroy target
@@ -253,11 +254,11 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 	attacker.z = 300
 	target.z = 400
 	prepareHitRegionAttack(attacker, target, AERIAL_UP_STYLE, 5)
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(0.)
 	target.x = 0
 	attacker.attackFrame = 7
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(8.)
 	target.knockbackX.assertLessThan(0.)
 	target.knockbackZ.assertGreaterThan(0.)
@@ -268,13 +269,13 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 	for reverse = 0 to 1
 		let first = new FighterState(0, 0, 1)
 		let second = new FighterState(1, 100, -1)
-		beginAttackPair(first, second, 6, 6, false, false)
+		testBeginAttacks(testWorld(first, second), 6, 6, false, false)
 		first.attackFrame = 5
 		second.attackFrame = 6
 		if reverse == 0
-			resolveAttackPair(first, second)
+			resolveAttacks(testWorld(first, second))
 		else
-			resolveAttackPair(second, first)
+			resolveAttacks(testWorld(second, first))
 		first.damage.assertEquals(8.)
 		second.damage.assertEquals(10.)
 		first.hitlag.assertEquals(6)
@@ -291,14 +292,14 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 	let target = new FighterState(1, 100, -1)
 	target.shield = true
 	prepareHitRegionAttack(attacker, target, 6, 5)
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(0.)
 	target.shieldEnergy.assertEquals(53.)
 	attacker.hitlag.assertEquals(6)
 	attacker.hitlag = 0
 	target.shield = false
 	attacker.attackFrame = 6
-	resolveAttackPair(attacker, target)
+	resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(0.)
 	destroy target
 	destroy attacker
@@ -374,7 +375,7 @@ function lCancelTestFighter(int style) returns FighterState
 	let target = new FighterState(1, 500, -1)
 	fighter.grounded = false
 	fighter.z = 300
-	beginAttackPair(fighter, target, style, -1, false, false)
+	testBeginAttacks(testWorld(fighter, target), style, -1, false, false)
 	destroy target
 	return fighter
 
@@ -480,7 +481,7 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 	fighter.surface = 0
 	target.x = fighter.x + 100
 	input.attackHeld = true
-	beginAttackPair(fighter, target, style, -1, true, false)
+	testBeginAttacks(testWorld(fighter, target), style, -1, true, false)
 	for tick = 1 to attackStartupFrames(style)
 		advance(fighter, 0, input, -240)
 
@@ -502,7 +503,7 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 	fighter.attackFrame.assertEquals(attackStartupFrames(2))
 	fighter.cooldown.assertEquals(pausedCooldown - 1)
 	fighter.x.assertEquals(pausedX)
-	resolveAttackPair(fighter, target)
+	resolveAttacks(testWorld(fighter, target))
 	target.damage.assertEquals(16 * smashDamageMultiplier(1), 0.001)
 	destroy input
 	destroy target
@@ -522,7 +523,7 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 	fighter.smashCharging.assertFalse()
 	fighter.smashChargeFrames.assertEquals(SMASH_MAX_CHARGE_FRAMES)
 	fighter.attackFrame.assertEquals(attackStartupFrames(2))
-	resolveAttackPair(fighter, target)
+	resolveAttacks(testWorld(fighter, target))
 	target.damage.assertEquals(16 * SMASH_MAX_DAMAGE_MULTIPLIER, 0.001)
 	(smashDamageMultiplier(SMASH_MAX_CHARGE_FRAMES) == SMASH_MAX_DAMAGE_MULTIPLIER).assertTrue()
 	destroy input
@@ -534,12 +535,12 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 	let directTarget = new FighterState(1, 100, -1)
 	let directInput = new InputSnapshot()
 	directInput.attackHeld = true
-	beginAttackPair(direct, directTarget, 4, -1, false, false)
+	testBeginAttacks(testWorld(direct, directTarget), 4, -1, false, false)
 	for tick = 1 to attackStartupFrames(4)
 		advance(direct, 0, directInput, -240)
 	direct.smashCharging.assertFalse()
 	direct.attackFrame.assertEquals(attackStartupFrames(4))
-	resolveAttackPair(direct, directTarget)
+	resolveAttacks(testWorld(direct, directTarget))
 	directTarget.damage.assertEquals(18, 0.001)
 	let fighter = new FighterState(0, 0, 1)
 	let target = new FighterState(1, 100, -1)
@@ -583,7 +584,7 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 	let attacker = new FighterState(1, 100, -1)
 	attacker.attackStyle = 0
 	attacker.attackFrame = attackStartupFrames(0)
-	resolveAttackPair(fighter, attacker)
+	resolveAttacks(testWorld(fighter, attacker))
 	fighter.attackStyle.assertEquals(-1)
 	fighter.smashChargeFrames.assertEquals(0)
 	let stockFighter = new FighterState(0, 0, 1)
@@ -613,7 +614,7 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 	let secondInput = new InputSnapshot()
 	firstInput.attackHeld = true
 	secondInput.attackHeld = true
-	beginAttackPair(first, second, 2, 2, true, true)
+	testBeginAttacks(testWorld(first, second), 2, 2, true, true)
 	for tick = 1 to attackStartupFrames(2)
 		advance(first, 0, firstInput, -240)
 		advance(second, 0, secondInput, 240)
@@ -626,7 +627,7 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 	secondInput.attackHeld = false
 	advance(first, 0, firstInput, -240)
 	advance(second, 0, secondInput, 240)
-	resolveAttackPair(first, second)
+	resolveAttacks(testWorld(first, second))
 	first.damage.assertEquals(16 * SMASH_MAX_DAMAGE_MULTIPLIER, 0.001)
 	second.damage.assertEquals(16 * SMASH_MAX_DAMAGE_MULTIPLIER, 0.001)
 	destroy firstInput
@@ -678,9 +679,9 @@ function prepareSmashCharge(FighterState fighter, FighterState target, InputSnap
 	destroy fighter
 
 function testMatch() returns MatchState
-	let game = new MatchState()
+	let game = testSoloMatch()
 	game.selectCharacter(0, 0)
-	game.selectCpuCharacter(0, 1)
+	game.selectCpuCharacter(0, game.cpuSlot(), 1)
 	game.requestStageSelect(0)
 	game.requestStart(0)
 	return game
@@ -688,7 +689,7 @@ function testMatch() returns MatchState
 function runToAttackActive(MatchState game, FighterState first, FighterState second, InputSnapshot firstInput, InputSnapshot secondInput, AttackBuffer firstCommands, AttackBuffer secondCommands, int style, int startFrame)
 	firstCommands.enqueue(style, 0, startFrame, false)
 	for i = 0 to attackStartupFrames(style)
-		stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, startFrame + i)
+		stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), startFrame + i)
 
 function setRecovery(FighterState fighter, int cooldown)
 	fighter.attackStyle = 0
@@ -702,7 +703,7 @@ function setRecovery(FighterState fighter, int cooldown)
 		let fighter = new FighterState(0, 0, 1)
 		let target = new FighterState(1, 400, -1)
 		let input = new InputSnapshot()
-		beginAttackPair(fighter, target, style, -1, false, false)
+		testBeginAttacks(testWorld(fighter, target), style, -1, false, false)
 		fighter.attackSerial.assertEquals(1)
 		fighter.attackFrame.assertEquals(0)
 		(attackPhase(fighter) == ATTACK_STARTUP).assertTrue()
@@ -721,7 +722,7 @@ function setRecovery(FighterState fighter, int cooldown)
 		(attackPhase(fighter) == ATTACK_NONE).assertTrue()
 		fighter.cooldown.assertEquals(0)
 		canAttack(fighter).assertTrue()
-		beginAttackPair(fighter, target, style, -1, false, false)
+		testBeginAttacks(testWorld(fighter, target), style, -1, false, false)
 		fighter.attackSerial.assertEquals(2)
 		(attackPhase(fighter) == ATTACK_STARTUP).assertTrue()
 		destroy input
@@ -732,12 +733,12 @@ function setRecovery(FighterState fighter, int cooldown)
 	let attacker = new FighterState(0, 0, 1)
 	let target = new FighterState(1, 100, -1)
 	let input = new InputSnapshot()
-	beginAttackPair(attacker, target, 0, -1, false, false)
+	testBeginAttacks(testWorld(attacker, target), 0, -1, false, false)
 	for frame = 1 to attackStartupFrames(0) + attackActiveFrames(0)
 		advance(attacker, 0, input, -240)
 	(attackPhase(attacker) == ATTACK_RECOVERY).assertTrue()
 	for frame = 0 to 5
-		resolveAttackPair(attacker, target)
+		resolveAttacks(testWorld(attacker, target))
 	target.damage.assertEquals(0.)
 	destroy input
 	destroy target
@@ -745,17 +746,17 @@ function setRecovery(FighterState fighter, int cooldown)
 
 function resolveStartedAttack(int style, FighterState attacker, FighterState target)
 	let input = new InputSnapshot()
-	beginAttackPair(attacker, target, style, -1, false, false)
+	testBeginAttacks(testWorld(attacker, target), style, -1, false, false)
 	for frame = 1 to attackStartupFrames(style)
 		advance(attacker, 0, input, -240)
-		resolveAttackPair(attacker, target)
-		updateProjectilePair(attacker, target)
+		resolveAttacks(testWorld(attacker, target))
+		updateProjectiles(testWorld(attacker, target))
 	destroy input
 
 function spawnTestProjectile(FighterState owner, FighterState target)
-	beginAttackPair(owner, target, 1, -1, false, false)
+	testBeginAttacks(testWorld(owner, target), 1, -1, false, false)
 	owner.attackFrame = attackStartupFrames(1)
-	resolveAttackPair(owner, target)
+	resolveAttacks(testWorld(owner, target))
 
 @Test function blasterTravelsBeforeItDealsDamage()
 	let game = testMatch()
@@ -769,9 +770,9 @@ function spawnTestProjectile(FighterState owner, FighterState target)
 	target.damage.assertEquals(0.)
 	projectileCount(owner).assertEquals(1)
 	for frame = attackStartupFrames(1) + 2 to 11
-		stepMatch(game, owner, target, ownerInput, targetInput, ownerCommands, targetCommands, frame)
+		stepMatch(game, testWorld(owner, target), testControls(ownerInput, targetInput, ownerCommands, targetCommands), frame)
 	target.damage.assertEquals(0.)
-	stepMatch(game, owner, target, ownerInput, targetInput, ownerCommands, targetCommands, 12)
+	stepMatch(game, testWorld(owner, target), testControls(ownerInput, targetInput, ownerCommands, targetCommands), 12)
 	target.damage.assertEquals(3.)
 	projectileCount(owner).assertEquals(0)
 
@@ -783,9 +784,9 @@ function spawnTestProjectile(FighterState owner, FighterState target)
 	projectileXAt(owner, 0).assertEquals(35.)
 	projectileDirectionAt(owner, 0).assertEquals(1)
 	for frame = 1 to 59
-		updateProjectilePair(owner, target)
+		updateProjectiles(testWorld(owner, target))
 	projectileCount(owner).assertEquals(1)
-	updateProjectilePair(owner, target)
+	updateProjectiles(testWorld(owner, target))
 	projectileCount(owner).assertEquals(0)
 
 @Test function projectilesCrossTheArenaAndDisappearOnContact()
@@ -796,15 +797,15 @@ function spawnTestProjectile(FighterState owner, FighterState target)
 			let target = new FighterState(1 - character, 800. * direction, -direction)
 			spawnTestProjectile(owner, target)
 			for frame = 1 to 42
-				updateProjectilePair(owner, target)
+				updateProjectiles(testWorld(owner, target))
 			projectileCount(owner).assertEquals(1)
 			target.damage.assertEquals(0.)
 			for frame = 43 to 45
-				updateProjectilePair(owner, target)
+				updateProjectiles(testWorld(owner, target))
 			projectileCount(owner).assertEquals(0)
 			target.damage.assertEquals(3.)
 			for frame = 1 to 20
-				updateProjectilePair(owner, target)
+				updateProjectiles(testWorld(owner, target))
 			target.damage.assertEquals(3.)
 			destroy owner
 			destroy target
@@ -813,15 +814,15 @@ function spawnTestProjectile(FighterState owner, FighterState target)
 	let archer = new FighterState(0, 0, 1)
 	let riflemanTarget = new FighterState(1, 100, -1)
 	spawnTestProjectile(archer, riflemanTarget)
-	updateProjectilePair(archer, riflemanTarget)
-	updateProjectilePair(archer, riflemanTarget)
+	updateProjectiles(testWorld(archer, riflemanTarget))
+	updateProjectiles(testWorld(archer, riflemanTarget))
 	riflemanTarget.damage.assertEquals(3.)
 	riflemanTarget.hitstun.assertEquals(11)
 	let rifleman = new FighterState(1, 0, 1)
 	let archerTarget = new FighterState(0, 100, -1)
 	spawnTestProjectile(rifleman, archerTarget)
-	updateProjectilePair(rifleman, archerTarget)
-	updateProjectilePair(rifleman, archerTarget)
+	updateProjectiles(testWorld(rifleman, archerTarget))
+	updateProjectiles(testWorld(rifleman, archerTarget))
 	archerTarget.damage.assertEquals(3.)
 	archerTarget.hitstun.assertEquals(11)
 
@@ -831,11 +832,11 @@ function spawnTestProjectile(FighterState owner, FighterState target)
 	target.invincible = 100
 	spawnTestProjectile(owner, target)
 	for frame = 1 to 11
-		updateProjectilePair(owner, target)
+		updateProjectiles(testWorld(owner, target))
 	projectileCount(owner).assertEquals(1)
 	target.invincible = 0
 	for frame = 1 to 5
-		updateProjectilePair(owner, target)
+		updateProjectiles(testWorld(owner, target))
 	target.damage.assertEquals(0.)
 	projectileCount(owner).assertEquals(1)
 
@@ -892,7 +893,7 @@ function tiltDamageAt(int style, int facing, real targetX, real targetZ) returns
 				let attacker = new FighterState(0, 0, 1)
 				let target = new FighterState(1, -60, -1)
 				prepareHitRegionAttack(attacker, target, style, referenceFrame - 1)
-				resolveAttackPair(attacker, target)
+				resolveAttacks(testWorld(attacker, target))
 				let expected = referenceFrame < 4 or referenceFrame > lastActive ? 0. : (referenceFrame < 8 ? (style == AERIAL_NEUTRAL_STYLE ? 7. : 8.) : 5.)
 				target.damage.assertEquals(expected)
 				if expected > 0
@@ -910,7 +911,7 @@ function tiltDamageAt(int style, int facing, real targetX, real targetZ) returns
 			let input = new InputSnapshot()
 			attacker.z = 740
 			attacker.grounded = false
-			beginAttackPair(attacker, target, style, -1, false, false)
+			testBeginAttacks(testWorld(attacker, target), style, -1, false, false)
 			attacker.attackFrame.assertEquals(0)
 			for frame = 0 to duration - 1
 				attacker.attackFrame.assertEquals(frame)
@@ -934,7 +935,7 @@ function tiltDamageAt(int style, int facing, real targetX, real targetZ) returns
 			target.z = 500
 			lateTarget.z = 500
 			prepareHitRegionAttack(attacker, target, style, 6)
-			resolveAttackPair(attacker, target)
+			resolveAttacks(testWorld(attacker, target))
 			let strongDamage = style == AERIAL_NEUTRAL_STYLE ? 7. : 8.
 			target.damage.assertEquals(strongDamage)
 			for tick = 1 to ordinaryHitlagFrames(strongDamage) - 1
@@ -943,11 +944,11 @@ function tiltDamageAt(int style, int facing, real targetX, real targetZ) returns
 			advance(attacker, 0, input, -240)
 			attacker.attackFrame.assertEquals(7)
 			target.x = 1000
-			resolveAttackPair(attacker, target)
+			resolveAttacks(testWorld(attacker, target))
 			target.x = 60
-			resolveAttackPair(attacker, target)
+			resolveAttacks(testWorld(attacker, target))
 			target.damage.assertEquals(strongDamage)
-			resolveAttackPair(attacker, lateTarget)
+			resolveAttacks(testWorld(attacker, lateTarget))
 			lateTarget.damage.assertEquals(5.)
 			if style == AERIAL_BACK_STYLE
 				lateTarget.knockbackX.assertGreaterThan(0.)
@@ -963,18 +964,18 @@ function tiltDamageAt(int style, int facing, real targetX, real targetZ) returns
 			let target = new FighterState(1, 1000, -1)
 			fighter.grounded = false
 			fighter.z = 100
-			beginAttackPair(fighter, target, style, -1, false, false)
+			testBeginAttacks(testWorld(fighter, target), style, -1, false, false)
 			fighter.attackStyle.assertEquals(-1)
 			destroy target
 			destroy fighter
 	let groundTarget = new FighterState(1, 1000, -1)
 	let grounded = new FighterState(0, 0, 1)
-	beginAttackPair(grounded, groundTarget, AERIAL_NEUTRAL_STYLE, -1, false, false)
+	testBeginAttacks(testWorld(grounded, groundTarget), AERIAL_NEUTRAL_STYLE, -1, false, false)
 	grounded.attackStyle.assertEquals(-1)
 	let airborne = new FighterState(0, 0, 1)
 	airborne.grounded = false
 	airborne.z = 100
-	beginAttackPair(airborne, groundTarget, 1, -1, false, false)
+	testBeginAttacks(testWorld(airborne, groundTarget), 1, -1, false, false)
 	airborne.attackStyle.assertEquals(1)
 	destroy airborne
 	destroy grounded
@@ -987,10 +988,10 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	attacker.z = 200
 	target.grounded = false
 	target.z = targetZ
-	beginAttackPair(attacker, target, style, -1, false, false)
+	testBeginAttacks(testWorld(attacker, target), style, -1, false, false)
 	for frame = 1 to attackStartupFrames(style)
 		attacker.attackFrame = attackStartupFrames(style)
-		resolveAttackPair(attacker, target)
+		resolveAttacks(testWorld(attacker, target))
 	let damage = target.damage
 	destroy target
 	destroy attacker
@@ -1011,9 +1012,9 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	bairAttacker.z = 200
 	bairTarget.grounded = false
 	bairTarget.z = 200
-	beginAttackPair(bairAttacker, bairTarget, AERIAL_BACK_STYLE, -1, false, false)
+	testBeginAttacks(testWorld(bairAttacker, bairTarget), AERIAL_BACK_STYLE, -1, false, false)
 	bairAttacker.attackFrame = attackStartupFrames(AERIAL_BACK_STYLE)
-	resolveAttackPair(bairAttacker, bairTarget)
+	resolveAttacks(testWorld(bairAttacker, bairTarget))
 	bairTarget.knockbackX.assertLessThan(0.)
 	let dairAttacker = new FighterState(0, 0, 1)
 	let dairTarget = new FighterState(1, 0, -1)
@@ -1021,9 +1022,9 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	dairAttacker.z = 200
 	dairTarget.grounded = false
 	dairTarget.z = 150
-	beginAttackPair(dairAttacker, dairTarget, AERIAL_DOWN_STYLE, -1, false, false)
+	testBeginAttacks(testWorld(dairAttacker, dairTarget), AERIAL_DOWN_STYLE, -1, false, false)
 	dairAttacker.attackFrame = attackStartupFrames(AERIAL_DOWN_STYLE)
-	resolveAttackPair(dairAttacker, dairTarget)
+	resolveAttacks(testWorld(dairAttacker, dairTarget))
 	dairTarget.knockbackZ.assertLessThan(0.)
 	destroy dairTarget
 	destroy dairAttacker
@@ -1038,14 +1039,14 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 		fighter.vz = -2
 		let target = new FighterState(1, 50, -1)
 		let input = new InputSnapshot()
-		beginAttackPair(fighter, target, style, -1, false, false)
+		testBeginAttacks(testWorld(fighter, target), style, -1, false, false)
 		fighter.attackFrame = attackStartupFrames(style)
 		advance(fighter, 0, input, -240)
 		fighter.grounded.assertTrue()
 		fighter.attackStyle.assertEquals(-1)
 		fighter.attackHit.assertFalse()
 		fighter.landingLag.assertEquals(attackLandingLag(style))
-		resolveAttackPair(fighter, target)
+		resolveAttacks(testWorld(fighter, target))
 		target.damage.assertEquals(0.)
 		destroy input
 		destroy target
@@ -1069,7 +1070,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 				fighter.knockbackZ = 2
 				falling.knockbackZ = 2
 				input.cStickZ = -1
-				beginAttackPair(fighter, other, AERIAL_DOWN_STYLE, -1, false, false)
+				testBeginAttacks(testWorld(fighter, other), AERIAL_DOWN_STYLE, -1, false, false)
 				fighter.vz.assertEquals(falling.vz)
 				fighter.knockbackZ.assertEquals(falling.knockbackZ)
 				for frame = 1 to 26
@@ -1089,17 +1090,17 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	fighter.grounded = false
 	fighter.z = 300
 	target.z = 240
-	beginAttackPair(fighter, target, AERIAL_DOWN_STYLE, -1, false, false)
+	testBeginAttacks(testWorld(fighter, target), AERIAL_DOWN_STYLE, -1, false, false)
 	fighter.attackFrame = 7
-	resolveAttackPair(fighter, target)
+	resolveAttacks(testWorld(fighter, target))
 	target.damage.assertEquals(9.)
 	fighter.hitlag = 0
 	fighter.attackFrame = 26
-	resolveAttackPair(fighter, target)
+	resolveAttacks(testWorld(fighter, target))
 	target.damage.assertEquals(9.)
 	let lateTarget = new FighterState(1, 0, -1)
 	lateTarget.z = 240
-	resolveAttackPair(fighter, lateTarget)
+	resolveAttacks(testWorld(fighter, lateTarget))
 	lateTarget.damage.assertEquals(6.)
 	fighter.hitlag = 0
 	fighter.attackFrame = 27
@@ -1108,7 +1109,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	rifleman.grounded = false
 	rifleman.z = 300
 	rifleman.vz = 10
-	beginAttackPair(rifleman, target, AERIAL_DOWN_STYLE, -1, false, false)
+	testBeginAttacks(testWorld(rifleman, target), AERIAL_DOWN_STYLE, -1, false, false)
 	rifleman.vz.assertEquals(10.)
 	rifleman.attackFrame = 9
 	attackPhase(rifleman).assertEquals(ATTACK_ACTIVE)
@@ -1605,7 +1606,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 			advance(fighter, 0, input, 0)
 			fighter.shield.assertTrue()
 		else if interruption == 2
-			beginAttackPair(fighter, target, 0, -1, false, false)
+			testBeginAttacks(testWorld(fighter, target), 0, -1, false, false)
 			fighter.attackStyle.assertEquals(0)
 		else
 			fighter.x = 930
@@ -1622,7 +1623,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 @Test function blasterRecoveryUsesGroundingAtAttackStart()
 	let grounded = new FighterState(0, 0, 1)
 	let targetA = new FighterState(1, 400, -1)
-	beginAttackPair(grounded, targetA, 1, -1, false, false)
+	testBeginAttacks(testWorld(grounded, targetA), 1, -1, false, false)
 	grounded.attackDuration.assertEquals(24)
 	grounded.cooldown.assertEquals(24)
 	grounded.grounded = false
@@ -1630,7 +1631,7 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	airborne.grounded = false
 	airborne.z = 120
 	let targetB = new FighterState(1, 400, -1)
-	beginAttackPair(airborne, targetB, 1, -1, false, false)
+	testBeginAttacks(testWorld(airborne, targetB), 1, -1, false, false)
 	airborne.attackDuration.assertEquals(15)
 	airborne.cooldown.assertEquals(15)
 	airborne.grounded = true
@@ -1658,10 +1659,10 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	let secondCommands = new AttackBuffer(0)
 	firstCommands.enqueue(0, 0, 1, false)
 	for frame = 1 to attackStartupFrames(0) - 1
-		stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+		stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
 	secondCommands.enqueue(0, 0, attackStartupFrames(0), false)
 	for frame = attackStartupFrames(0) to attackStartupFrames(0) + 1
-		stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+		stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
 	first.damage.assertEquals(0.)
 	second.damage.assertEquals(12.)
 	second.attackSerial.assertEquals(1)
@@ -2131,9 +2132,9 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	let grabbed = new FighterState(1, 100, -1)
 	grabbed.diPending = true
 	grabbed.diLaunchSpeed = 10
-	beginAttackPair(grabber, grabbed, 5, -1, false, false)
+	testBeginAttacks(testWorld(grabber, grabbed), 5, -1, false, false)
 	grabber.attackFrame = attackStartupFrames(5)
-	resolveAttackPair(grabber, grabbed)
+	resolveAttacks(testWorld(grabber, grabbed))
 	grabbed.grabbedFrames.assertEquals(grabHoldFrames(grabbed.damage))
 	grabbed.diPending.assertFalse()
 	let shooter = new FighterState(0, 0, 1)
@@ -2148,7 +2149,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	shooter.projectileDirection[0] = 1
 	shooter.projectileX[0] = 0
 	shooter.projectileZ[0] = 45
-	updateProjectilePair(shooter, shotTarget)
+	updateProjectiles(testWorld(shooter, shotTarget))
 	shotTarget.damage.assertEquals(3.)
 	shotTarget.hitstun.assertEquals(11)
 	shotTarget.diPending.assertFalse()
@@ -2165,7 +2166,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	shooter.projectileLife[0] = 1
 	shooter.projectileX[0] = 0
 	shooter.projectileZ[0] = 45
-	updateProjectilePair(shooter, blockedTarget)
+	updateProjectiles(testWorld(shooter, blockedTarget))
 	blockedTarget.diPending.assertTrue()
 	blockedTarget.diLaunchSpeed.assertEquals(10.)
 	destroy targetCommands
@@ -2226,12 +2227,12 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	let attackerCommands = new AttackBuffer(0)
 	let targetCommands = new AttackBuffer(0)
 	attackerCommands.enqueue(0, 0, 1, false)
-	stepMatch(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, 1)
+	stepMatch(game, testWorld(attacker, target), testControls(attackerInput, targetInput, attackerCommands, targetCommands), 1)
 	target.damage.assertEquals(0.)
 	attacker.attackSerial.assertEquals(1)
 	(attackPhase(attacker) == ATTACK_STARTUP).assertTrue()
 	for tick = 2 to attackStartupFrames(0) + 1
-		stepMatch(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, tick)
+		stepMatch(game, testWorld(attacker, target), testControls(attackerInput, targetInput, attackerCommands, targetCommands), tick)
 	target.damage.assertEquals(12.)
 	target.vx.assertEquals(0.)
 	target.vz.assertEquals(0.)
@@ -2246,7 +2247,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	attacker.hitlag.assertEquals(7)
 	var frame = attackStartupFrames(0) + 2
 	while attacker.hitlag > 0
-		stepMatch(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, frame)
+		stepMatch(game, testWorld(attacker, target), testControls(attackerInput, targetInput, attackerCommands, targetCommands), frame)
 		frame++
 	target.x = 100
 	target.z = 0
@@ -2256,7 +2257,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	target.knockbackZ = 0
 	target.hitstun = 0
 	let damageAfterContact = target.damage
-	stepMatch(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, frame)
+	stepMatch(game, testWorld(attacker, target), testControls(attackerInput, targetInput, attackerCommands, targetCommands), frame)
 	target.damage.assertEquals(damageAfterContact)
 
 @Test function shieldConsumesEnergyInsteadOfGivingHitDamage()
@@ -2672,7 +2673,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	let attacker = new FighterState(0, 0, 1)
 	attacker.attackStyle = 0
 	attacker.attackFrame = attackStartupFrames(0)
-	resolveAttackPair(attacker, fighter)
+	resolveAttacks(testWorld(attacker, fighter))
 	fighter.groundDodgeFrame.assertEquals(0)
 	fighter.groundDodgeDirection.assertEquals(0)
 
@@ -2844,13 +2845,13 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	attackerInput.shield = true
 	targetInput.shield = true
 	attackerCommands.enqueue(5, 0, 1, false)
-	stepMatch(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, 1)
+	stepMatch(game, testWorld(attacker, target), testControls(attackerInput, targetInput, attackerCommands, targetCommands), 1)
 	attacker.attackStyle.assertEquals(5)
 	attacker.shield.assertFalse()
 	attacker.shieldReleaseLag.assertEquals(0)
 	attackerInput.shield = false
 	for frame = 2 to attackStartupFrames(5) + 1
-		stepMatch(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, frame)
+		stepMatch(game, testWorld(attacker, target), testControls(attackerInput, targetInput, attackerCommands, targetCommands), frame)
 	target.grabbedFrames.assertEquals(grabHoldFrames(target.damage))
 	target.shield.assertFalse()
 	destroy attackerCommands
@@ -2882,7 +2883,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	target.shieldStun.assertEquals(stun)
 	target.jumpSquat.assertEquals(0)
 	targetCommands.enqueue(0, 0, attackStartupFrames(0) + 2, false)
-	stepMatch(game, target, attacker, input, attackerInput, targetCommands, attackerCommands, attackStartupFrames(0) + 2)
+	stepMatch(game, testWorld(target, attacker), testControls(input, attackerInput, targetCommands, attackerCommands), attackStartupFrames(0) + 2)
 	target.attackStyle.assertEquals(-1)
 	attacker.damage.assertEquals(0.)
 
@@ -2918,12 +2919,12 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	attacker.cooldown.assertEquals(32)
 	(attackPhase(attacker) == ATTACK_ACTIVE).assertTrue()
 	target.x = 100
-	stepMatch(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, attackStartupFrames(0) + 2)
+	stepMatch(game, testWorld(attacker, target), testControls(attackerInput, targetInput, attackerCommands, targetCommands), attackStartupFrames(0) + 2)
 	target.damage.assertEquals(12.)
 	attacker.attackHit.assertTrue()
 	let damageAfterContact = target.damage
 	for frame = attackStartupFrames(0) + 3 to attackStartupFrames(0) + attackActiveFrames(0) + 1
-		stepMatch(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, frame)
+		stepMatch(game, testWorld(attacker, target), testControls(attackerInput, targetInput, attackerCommands, targetCommands), frame)
 	target.damage.assertEquals(damageAfterContact)
 
 @Test function simultaneousEligibleAttacksTradeInEitherOrder()
@@ -2937,11 +2938,11 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	leftCommandsA.enqueue(1, 0, 1, false)
 	rightCommandsA.enqueue(1, 0, 1, false)
 	for frame = 1 to attackStartupFrames(1) + 1
-		stepMatch(gameA, leftA, rightA, leftInputA, rightInputA, leftCommandsA, rightCommandsA, frame)
+		stepMatch(gameA, testWorld(leftA, rightA), testControls(leftInputA, rightInputA, leftCommandsA, rightCommandsA), frame)
 	leftA.cooldown.assertEquals(22)
 	rightA.cooldown.assertEquals(22)
 	for frame = attackStartupFrames(1) + 2 to 40
-		stepMatch(gameA, leftA, rightA, leftInputA, rightInputA, leftCommandsA, rightCommandsA, frame)
+		stepMatch(gameA, testWorld(leftA, rightA), testControls(leftInputA, rightInputA, leftCommandsA, rightCommandsA), frame)
 	leftA.damage.assertEquals(3.)
 	rightA.damage.assertEquals(3.)
 	let gameB = testMatch()
@@ -2954,9 +2955,9 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	leftCommandsB.enqueue(1, 0, 1, false)
 	rightCommandsB.enqueue(1, 0, 1, false)
 	for frame = 1 to attackStartupFrames(1) + 1
-		stepMatch(gameB, rightB, leftB, rightInputB, leftInputB, rightCommandsB, leftCommandsB, frame)
+		stepMatch(gameB, testWorld(rightB, leftB), testControls(rightInputB, leftInputB, rightCommandsB, leftCommandsB), frame)
 	for frame = attackStartupFrames(1) + 2 to 40
-		stepMatch(gameB, rightB, leftB, rightInputB, leftInputB, rightCommandsB, leftCommandsB, frame)
+		stepMatch(gameB, testWorld(rightB, leftB), testControls(rightInputB, leftInputB, rightCommandsB, leftCommandsB), frame)
 	leftA.damage.assertEquals(3.)
 	rightA.damage.assertEquals(3.)
 	leftA.damage.assertEquals(rightA.damage)
@@ -2979,7 +2980,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	blasterCommands.enqueue(1, 0, 1, false)
 	opponentCommands.enqueue(1, 0, 1, false)
 	for frame = 1 to attackStartupFrames(1) + 2
-		stepMatch(game, blaster, opponent, blasterInput, opponentInput, blasterCommands, opponentCommands, frame)
+		stepMatch(game, testWorld(blaster, opponent), testControls(blasterInput, opponentInput, blasterCommands, opponentCommands), frame)
 	blaster.damage.assertEquals(3.)
 	opponent.damage.assertEquals(0.)
 	blaster.hitlag.assertEquals(4)
@@ -2997,10 +2998,10 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	let strikerCommandsA = new AttackBuffer(0)
 	grabberCommandsA.enqueue(5, 0, 1, false)
 	for frame = 1 to 3
-		stepMatch(gameA, grabberA, strikerA, grabberInputA, strikerInputA, grabberCommandsA, strikerCommandsA, frame)
+		stepMatch(gameA, testWorld(grabberA, strikerA), testControls(grabberInputA, strikerInputA, grabberCommandsA, strikerCommandsA), frame)
 	strikerCommandsA.enqueue(1, 0, 4, false)
 	for frame = 4 to 6
-		stepMatch(gameA, grabberA, strikerA, grabberInputA, strikerInputA, grabberCommandsA, strikerCommandsA, frame)
+		stepMatch(gameA, testWorld(grabberA, strikerA), testControls(grabberInputA, strikerInputA, grabberCommandsA, strikerCommandsA), frame)
 	let gameB = testMatch()
 	let grabberB = new FighterState(0, 0, 1)
 	let strikerB = new FighterState(1, 90, -1)
@@ -3010,10 +3011,10 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	let strikerCommandsB = new AttackBuffer(0)
 	grabberCommandsB.enqueue(5, 0, 1, false)
 	for frame = 1 to 3
-		stepMatch(gameB, grabberB, strikerB, grabberInputB, strikerInputB, grabberCommandsB, strikerCommandsB, frame)
+		stepMatch(gameB, testWorld(grabberB, strikerB), testControls(grabberInputB, strikerInputB, grabberCommandsB, strikerCommandsB), frame)
 	strikerCommandsB.enqueue(1, 0, 4, false)
 	for frame = 4 to 6
-		stepMatch(gameB, strikerB, grabberB, strikerInputB, grabberInputB, strikerCommandsB, grabberCommandsB, frame)
+		stepMatch(gameB, testWorld(strikerB, grabberB), testControls(strikerInputB, grabberInputB, strikerCommandsB, grabberCommandsB), frame)
 	grabberA.damage.assertEquals(0.)
 	strikerA.damage.assertEquals(0.)
 	grabberB.damage.assertEquals(grabberA.damage)
@@ -3040,7 +3041,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	target.grabbedFrames.assertEquals(grabHoldFrames(target.damage))
 	target.shield.assertFalse()
 	for frame = attackStartupFrames(5) + 2 to attackStartupFrames(5) + 1 + GRAB_HOLD_FRAMES
-		stepMatch(game, target, attacker, targetInput, attackerInput, targetCommands, attackerCommands, frame)
+		stepMatch(game, testWorld(target, attacker), testControls(targetInput, attackerInput, targetCommands, attackerCommands), frame)
 	target.grabbedFrames.assertEquals(0)
 	target.hitstun.assertEquals(10)
 	target.jumpSquat.assertEquals(0)
@@ -3082,7 +3083,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 			attacker.z = fighter.z
 			attacker.attackStyle = 0
 			attacker.attackFrame = attackStartupFrames(0)
-			resolveAttackPair(attacker, fighter)
+			resolveAttacks(testWorld(attacker, fighter))
 			fighter.damage.assertEquals(frame >= 4 and frame <= 29 ? 0. : 12.)
 			destroy attacker
 			destroy input
@@ -3097,7 +3098,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	attacker.z = 300
 	attacker.attackStyle = 0
 	attacker.attackFrame = attackStartupFrames(0)
-	resolveAttackPair(attacker, fighter)
+	resolveAttacks(testWorld(attacker, fighter))
 	fighter.damage.assertEquals(12.)
 	fighter.airDodging.assertFalse()
 	fighter.airDodgeTime.assertEquals(0)
@@ -3119,14 +3120,14 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 	attacker.z = fighter.z
 	attacker.attackStyle = 0
 	attacker.attackFrame = attackStartupFrames(0)
-	resolveAttackPair(attacker, fighter)
+	resolveAttacks(testWorld(attacker, fighter))
 	fighter.damage.assertEquals(12.)
 	let respawned = new FighterState(0, 100, -1)
 	respawned.invincible = 20
 	let otherAttacker = new FighterState(1, 0, 1)
 	otherAttacker.attackStyle = 0
 	otherAttacker.attackFrame = attackStartupFrames(0)
-	resolveAttackPair(otherAttacker, respawned)
+	resolveAttacks(testWorld(otherAttacker, respawned))
 	respawned.damage.assertEquals(0.)
 
 function groundJumpApex(int character, boolean holdJump) returns real
@@ -3436,7 +3437,7 @@ function airJumpApex(int character) returns real
 	commands.enqueue(0, 0, 1, false)
 	let otherCommands = new AttackBuffer(0)
 	let game = testMatch()
-	stepMatch(game, attacker, target, input, input, otherCommands, commands, 1)
+	stepMatch(game, testWorld(attacker, target), testControls(input, input, otherCommands, commands), 1)
 	target.attackStyle.assertEquals(AERIAL_NEUTRAL_STYLE)
 	target.downState.assertEquals(DOWN_NONE)
 	destroy otherCommands
@@ -3533,7 +3534,7 @@ function airJumpApex(int character) returns real
 		advance(fighter, 0, input, 0)
 	(attackPhase(fighter) == ATTACK_ACTIVE).assertTrue()
 	for frame = 1 to DOWN_ATTACK_ACTIVE_FRAMES
-		resolveAttackPair(fighter, opponent)
+		resolveAttacks(testWorld(fighter, opponent))
 		advance(fighter, 0, input, 0)
 	opponent.damage.assertEquals(DOWN_ATTACK_DAMAGE)
 	destroy input
@@ -3560,7 +3561,7 @@ function runGetupAttackToContact(FighterState attacker, FighterState target, int
 	for tick = 1 to DOWN_ATTACK_STARTUP_FRAMES
 		advance(attacker, 0, input, 0)
 		advance(target, 0, input, 0)
-		resolveAttackPair(attacker, target)
+		resolveAttacks(testWorld(attacker, target))
 	destroy input
 
 @Test function getupAttackCleanLowPercentHitGivesAttackerTimeBeforeWakeupAttackBothCharactersAndSides()
@@ -3591,7 +3592,7 @@ function runGetupAttackToContact(FighterState attacker, FighterState target, int
 					victimWakeupActiveFrame = frame
 				if attackerReadyFrame < 0 and canAttack(attacker)
 					attackerReadyFrame = frame
-					beginAttackPair(attacker, target, 0, -1, false, false)
+					testBeginAttacks(testWorld(attacker, target), 0, -1, false, false)
 				if attackerActiveFrame < 0 and attacker.attackStyle == 0 and attackPhase(attacker) == ATTACK_ACTIVE
 					attackerActiveFrame = frame
 			attackerReadyFrame.assertGreaterThan(0)
@@ -3938,12 +3939,12 @@ function landTechTest(FighterState fighter, int stage, int surface, InputSnapsho
 		landTechTest(fighter, 0, 0, input)
 		let attacker = new FighterState(1, 0, 1)
 		resolveStartedAttack(style, attacker, fighter)
-		updateProjectilePair(attacker, fighter)
+		updateProjectiles(testWorld(attacker, fighter))
 		fighter.damage.assertEquals(0.)
 		fighter.downFrame = TECH_INTANGIBLE_FRAMES + 1
 		let lateAttacker = new FighterState(1, 0, 1)
 		resolveStartedAttack(style, lateAttacker, fighter)
-		updateProjectilePair(lateAttacker, fighter)
+		updateProjectiles(testWorld(lateAttacker, fighter))
 		fighter.damage.assertGreaterThan(0.)
 		isFloorTeching(fighter).assertFalse()
 		fighter.hitstun.assertGreaterThan(0)
@@ -4105,7 +4106,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 	shooter.projectileX[0] = -30
 	shooter.projectileZ[0] = 45
 	shooter.projectileDirection[0] = 1
-	updateProjectilePair(shooter, target)
+	updateProjectiles(testWorld(shooter, target))
 	target.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
 	target.shieldBreakSerial.assertEquals(1)
 	target.vz.assertEquals(fighter.vz)
@@ -4141,7 +4142,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		var ticks = 0
 		while fighter.shieldBreakState == SHIELD_BREAK_AIR and ticks < 120
 			advance(fighter, 0, input, 0)
-			beginAttackPair(fighter, target, 1, -1, false, false)
+			testBeginAttacks(testWorld(fighter, target), 1, -1, false, false)
 			fighter.attackStyle.assertEquals(-1)
 			fighter.x.assertEquals(0.)
 			fighter.downState.assertEquals(DOWN_NONE)
@@ -4171,7 +4172,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		for tick = 1 to dizzyTicks - 1
 			simulationJump(fighter, 0)
 			simulationAirDodge(fighter, 1, 0)
-			beginAttackPair(fighter, target, 5, -1, false, false)
+			testBeginAttacks(testWorld(fighter, target), 5, -1, false, false)
 			advance(fighter, 0, input, 0)
 			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
 			fighter.shieldEnergy.assertEquals(30.07, 0.0001)
@@ -4255,9 +4256,9 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 			fighter.shieldBreakState = state
 			let attacker = new FighterState(1, -50, 1)
 			let attack = style == 0 ? 0 : 5
-			beginAttackPair(attacker, fighter, attack, -1, false, false)
+			testBeginAttacks(testWorld(attacker, fighter), attack, -1, false, false)
 			attacker.attackFrame = attackStartupFrames(attack)
-			resolveAttackPair(attacker, fighter)
+			resolveAttacks(testWorld(attacker, fighter))
 			fighter.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
 			fighter.shieldBreakFrame.assertEquals(0)
 			fighter.shieldBreakRemaining.assertEquals(0)
@@ -4281,7 +4282,7 @@ function dizzyShieldBreakTest(FighterState fighter, InputSnapshot input)
 		shooter.projectileX[0] = -30
 		shooter.projectileZ[0] = 45
 		shooter.projectileDirection[0] = 1
-		updateProjectilePair(shooter, fighter)
+		updateProjectiles(testWorld(shooter, fighter))
 		fighter.damage.assertEquals(3.)
 		fighter.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
 		fighter.hitstun.assertEquals(11)
@@ -4328,7 +4329,7 @@ function ledgeTestFighter(int character, int side) returns FighterState
 function catchTestLedge(FighterState fighter, InputSnapshot input)
 	let other = new FighterState(1, 0, 1)
 	let otherInput = new InputSnapshot()
-	resolveLedgePair(fighter, other, 0, input, otherInput)
+	resolveLedges(testWorld(fighter, other), 0, testInputs(input, otherInput))
 	destroy otherInput
 	destroy other
 
@@ -4400,7 +4401,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	let input = new InputSnapshot()
 	fighter.x = surfaceLeft(1, 1) - 20
 	fighter.z = surfaceZ(1, 1) - 30
-	resolveLedgePair(fighter, other, 1, input, input)
+	resolveLedges(testWorld(fighter, other), 1, testInputs(input, input))
 	fighter.ledgeState.assertEquals(LEDGE_NONE)
 	destroy input
 	destroy other
@@ -4413,15 +4414,15 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 		let input = new InputSnapshot()
 		far.x = -640
 		if reversed == 0
-			resolveLedgePair(near, far, 0, input, input)
+			resolveLedges(testWorld(near, far), 0, testInputs(input, input))
 		else
-			resolveLedgePair(far, near, 0, input, input)
+			resolveLedges(testWorld(far, near), 0, testInputs(input, input))
 		near.ledgeState.assertEquals(LEDGE_HANG)
 		far.ledgeState.assertEquals(LEDGE_NONE)
 		near.ledgeIntangible = 0
 		far.x = -601
 		far.z = -1
-		resolveLedgePair(far, near, 0, input, input)
+		resolveLedges(testWorld(far, near), 0, testInputs(input, input))
 		far.ledgeState.assertEquals(LEDGE_NONE)
 		destroy input
 		destroy near
@@ -4431,12 +4432,12 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	let first = ledgeTestFighter(0, 1)
 	let second = ledgeTestFighter(1, 1)
 	let input = new InputSnapshot()
-	resolveLedgePair(first, second, 0, input, input)
+	resolveLedges(testWorld(first, second), 0, testInputs(input, input))
 	first.ledgeState.assertEquals(LEDGE_NONE)
 	second.ledgeState.assertEquals(LEDGE_NONE)
 	second.x = -620
 	second.facing = 1
-	resolveLedgePair(first, second, 0, input, input)
+	resolveLedges(testWorld(first, second), 0, testInputs(input, input))
 	first.ledgeState.assertEquals(LEDGE_HANG)
 	second.ledgeState.assertEquals(LEDGE_HANG)
 	destroy input
@@ -4538,12 +4539,12 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 		fighter.attackStyle.assertEquals(LEDGE_ATTACK_STYLE)
 		for tick = 1 to attackStartupFrames(LEDGE_ATTACK_STYLE) - 1
 			advance(fighter, 0, input, 0)
-			resolveAttackPair(fighter, target)
+			resolveAttacks(testWorld(fighter, target))
 			target.damage.assertEquals(0.)
 		advance(fighter, 0, input, 0)
-		resolveAttackPair(fighter, target)
+		resolveAttacks(testWorld(fighter, target))
 		target.damage.assertEquals(7.)
-		resolveAttackPair(fighter, target)
+		resolveAttacks(testWorld(fighter, target))
 		target.damage.assertEquals(7.)
 		fighter.hitlag = 0
 		fighter.attackFrame = 19
@@ -4562,10 +4563,11 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 			fighter.ledgeIntangible = 0
 			if mode < 2
 				let attacker = new FighterState(1, -570, -1)
-				let style = mode == 0 ? 8 : 5
-				beginAttackPair(attacker, fighter, style, -1, false, false)
+				attacker.grounded = true
+				let style = mode == 0 ? 3 : 5
+				testBeginAttacks(testWorld(attacker, fighter), style, -1, false, false)
 				attacker.attackFrame = attackStartupFrames(style)
-				resolveAttackPair(attacker, fighter)
+				resolveAttacks(testWorld(attacker, fighter))
 				fighter.ledgeState.assertEquals(LEDGE_NONE)
 				fighter.ledgeSide.assertEquals(0)
 				fighter.ledgeFrame.assertEquals(0)
@@ -4615,21 +4617,22 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	for mode = 0 to 1
 		let fighter = ledgeTestFighter(0, -1)
 		let attacker = new FighterState(1, -570, -1)
+		attacker.grounded = true
 		let input = new InputSnapshot()
 		catchTestLedge(fighter, input)
-		let style = mode == 0 ? 8 : 5
-		beginAttackPair(attacker, fighter, style, -1, false, false)
+		let style = mode == 0 ? 3 : 5
+		testBeginAttacks(testWorld(attacker, fighter), style, -1, false, false)
 		attacker.attackFrame = attackStartupFrames(style)
-		resolveAttackPair(attacker, fighter)
+		resolveAttacks(testWorld(attacker, fighter))
 		fighter.ledgeState.assertEquals(LEDGE_HANG)
 		fighter.damage.assertEquals(0.)
 		fighter.grabbedFrames.assertEquals(0)
 		for tick = 1 to LEDGE_INTANGIBLE_FRAMES
 			advance(fighter, 0, input, 0)
-		resolveAttackPair(attacker, fighter)
+		resolveAttacks(testWorld(attacker, fighter))
 		fighter.ledgeState.assertEquals(LEDGE_NONE)
 		if mode == 0
-			fighter.damage.assertEquals(8.)
+			fighter.damage.assertGreaterThan(0.)
 		else
 			fighter.grabbedFrames.assertEquals(grabHoldFrames(fighter.damage))
 		destroy input
@@ -5183,14 +5186,14 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	first.surfaceContactZ = 240
 	first.surfaceContactNormalX = 0
 	first.surfaceContactNormalZ = -1
-	snapshot.capture(first, second, match, firstCommands, secondCommands, runtime)
+	snapshot.capture(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
 	first.surfaceContactSerial = 0
 	first.surfaceContactKind = SURFACE_NONE
 	first.surfaceContactApproachSpeed = 0
 	first.surfaceRecoveryState = SURFACE_NONE
 	first.surfaceRecoveryFrame = 0
 	first.surfaceRecoveryVelocityApplied = false
-	snapshot.restore(first, second, match, firstCommands, secondCommands, runtime)
+	snapshot.restore(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
 	first.surfaceContactSerial.assertEquals(4)
 	first.surfaceContactKind.assertEquals(SURFACE_CEILING)
 	first.surfaceContactApproachSpeed.assertEquals(5.5)

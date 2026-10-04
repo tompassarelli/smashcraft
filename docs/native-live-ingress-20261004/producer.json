@@ -1,0 +1,205 @@
+{
+  "build": "20261003T205320798376516",
+  "epoch_ns": 470843134706967,
+  "ready": [
+    "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"LIVE_INGRESS_READY v=1 build=20261003T205320798376516 version=0.0.15 slot=0 poll_hz=60 record_bytes=26 first_sequence=1 last_sequence=10\" )\n\tcall Preload( \"files=smashcraft-live-ingress-<BUILD>-000001.pld through -000010.pld; absent read does not advance the sequence cursor; publisher frame/time are preserved\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+    "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"LIVE_INGRESS_READY v=1 build=20261003T205320798376516 version=0.0.15 slot=1 poll_hz=60 record_bytes=26 first_sequence=1 last_sequence=10\" )\n\tcall Preload( \"files=smashcraft-live-ingress-<BUILD>-000001.pld through -000010.pld; absent read does not advance the sequence cursor; publisher frame/time are preserved\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+  ],
+  "records": [
+    {
+      "id": 1,
+      "capture_ns": 470843154768002,
+      "elapsed_ns": 20061035,
+      "expected_frame": 2,
+      "wire": "V1|000001|020061|000002|1;",
+      "publication_brackets_ns": [
+        [
+          470843155962543,
+          470843156220618
+        ],
+        [
+          470843157014297,
+          470843157163156
+        ]
+      ],
+      "stopped": false
+    },
+    {
+      "id": 2,
+      "capture_ns": 470843204769847,
+      "elapsed_ns": 70062880,
+      "expected_frame": 5,
+      "wire": "V1|000002|070062|000005|0;",
+      "publication_brackets_ns": [
+        [
+          470843206477010,
+          470843206678718
+        ],
+        [
+          470843207316435,
+          470843207427072
+        ]
+      ],
+      "stopped": false
+    },
+    {
+      "id": 3,
+      "capture_ns": 470843254767744,
+      "elapsed_ns": 120060777,
+      "expected_frame": 8,
+      "wire": "V1|000003|120060|000008|1;",
+      "publication_brackets_ns": [
+        [
+          470843256456032,
+          470843256651468
+        ],
+        [
+          470843257290307,
+          470843257425340
+        ]
+      ],
+      "stopped": false
+    },
+    {
+      "id": 4,
+      "capture_ns": 470843304765451,
+      "elapsed_ns": 170058484,
+      "expected_frame": 11,
+      "wire": "V1|000004|170058|000011|0;",
+      "publication_brackets_ns": [
+        [
+          470843306574656,
+          470843306746418
+        ],
+        [
+          470843307291420,
+          470843307387410
+        ]
+      ],
+      "stopped": false
+    },
+    {
+      "id": 5,
+      "capture_ns": 470843414765284,
+      "elapsed_ns": 280058317,
+      "expected_frame": 17,
+      "wire": "V1|000005|280058|000017|1;",
+      "publication_brackets_ns": [
+        [
+          470843417686033,
+          470843417894224
+        ],
+        [
+          470843418656504,
+          470843418814180
+        ]
+      ],
+      "stopped": true
+    },
+    {
+      "id": 6,
+      "capture_ns": 470843484762681,
+      "elapsed_ns": 350055714,
+      "expected_frame": 22,
+      "wire": "V1|000006|350055|000022|0;",
+      "publication_brackets_ns": [
+        [
+          470843486741142,
+          470843486946167
+        ],
+        [
+          470843487592530,
+          470843487713587
+        ]
+      ],
+      "stopped": true
+    },
+    {
+      "id": 7,
+      "capture_ns": 470843684767314,
+      "elapsed_ns": 550060347,
+      "expected_frame": 34,
+      "wire": "V1|000007|550060|000034|1;",
+      "publication_brackets_ns": [
+        [
+          470843687692232,
+          470843687899801
+        ],
+        [
+          470843688501730,
+          470843688609462
+        ]
+      ],
+      "stopped": false
+    },
+    {
+      "id": 8,
+      "capture_ns": 470843734768548,
+      "elapsed_ns": 600061581,
+      "expected_frame": 37,
+      "wire": "V1|000008|600061|000037|0;",
+      "publication_brackets_ns": [
+        [
+          470843736503583,
+          470843736730288
+        ],
+        [
+          470843737373325,
+          470843737474565
+        ]
+      ],
+      "stopped": false
+    },
+    {
+      "id": 9,
+      "capture_ns": 470843834766467,
+      "elapsed_ns": 700059500,
+      "expected_frame": 43,
+      "wire": "V1|000009|700059|000043|1;",
+      "publication_brackets_ns": [
+        [
+          470843836452750,
+          470843836626115
+        ],
+        [
+          470843837307173,
+          470843837419363
+        ]
+      ],
+      "stopped": false
+    },
+    {
+      "id": 10,
+      "capture_ns": 470843884765035,
+      "elapsed_ns": 750058068,
+      "expected_frame": 46,
+      "wire": "V1|000010|750058|000046|0;",
+      "publication_brackets_ns": [
+        [
+          470843886466808,
+          470843886618582
+        ],
+        [
+          470843887149098,
+          470843887249676
+        ]
+      ],
+      "stopped": false
+    }
+  ],
+  "signals": [
+    {
+      "action": "stop_request",
+      "ns": 470843354828671
+    },
+    {
+      "action": "stop_observed",
+      "ns": 470843356345327
+    },
+    {
+      "action": "resume_request",
+      "ns": 470843607649149
+    }
+  ],
+  "oracle": "frame=1+floor((capture_ns-E)*60/1e9); D=0; half-open intervals; serialized us truncates but frame uses ns"
+}

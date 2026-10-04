@@ -1,0 +1,42 @@
+{
+  "a": {
+    "pages": 18,
+    "service_rows": 2657,
+    "last_confirmed": 594.0,
+    "sent_frames": 600,
+    "received_frames": 600,
+    "echo_native_ms": {
+      "median": 3413.3675,
+      "p95": 6070.066,
+      "maximum": 6320.008
+    },
+    "max_sync_calls_per_callback": 1.0,
+    "header": [
+      "\tcall Preload( \"RS v=3 build=netcode-0022 local=0 run=1 page=0 rows=2657 mode=clean edge_pairs=0 edge_limit=64 edge_dropped=0\" )",
+      "\tcall Preload( \"counts poll=600 capture_attempt=0 advance=2657 present=2657\" )",
+      "\tcall Preload( \"transport sent_frames=600 received_frames=600 unmatched_receipts=0 dropped_from_export=0 retained=600\" )",
+      "\tcall Preload( \"clock=native-game-ms not-host-wall; row=zero-based-service; marker_x=0.04+(row%32)*0.0032 y=0.595-((row/32)%4)*0.01\" )",
+      "\tcall Preload( \"A row entry_ms poll_ms capture_ms advance_ms present_ms frame_before frame_after F_before F_after K_before target\" )"
+    ]
+  },
+  "b": {
+    "pages": 18,
+    "service_rows": 2657,
+    "last_confirmed": 594.0,
+    "sent_frames": 600,
+    "received_frames": 594,
+    "echo_native_ms": {
+      "median": 4814.087,
+      "p95": 5572.127,
+      "maximum": 7777.078
+    },
+    "max_sync_calls_per_callback": 1.0,
+    "header": [
+      "\tcall Preload( \"RS v=3 build=netcode-0022 local=1 run=1 page=0 rows=2657 mode=clean edge_pairs=0 edge_limit=64 edge_dropped=0\" )",
+      "\tcall Preload( \"counts poll=600 capture_attempt=0 advance=2657 present=2657\" )",
+      "\tcall Preload( \"transport sent_frames=600 received_frames=594 unmatched_receipts=0 dropped_from_export=0 retained=600\" )",
+      "\tcall Preload( \"clock=native-game-ms not-host-wall; row=zero-based-service; marker_x=0.04+(row%32)*0.0032 y=0.595-((row/32)%4)*0.01\" )",
+      "\tcall Preload( \"A row entry_ms poll_ms capture_ms advance_ms present_ms frame_before frame_after F_before F_after K_before target\" )"
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+package SummonPose
+import Wurst
+import SummonOriginalClipInfo
+
+// A native animation queue is represented by a clip, elapsed time, and successor.
+public class SummonPose
+    boolean active = false
+    int clipIndex = -1
+    int queuedClip = -1
+    real clipTime = 0.
+
+    function clear()
+        active = false
+        clipIndex = -1
+        queuedClip = -1
+        clipTime = 0.
+
+    function select(int clip, int next)
+        active = true
+        clipIndex = clip
+        queuedClip = next
+        clipTime = 0.
+
+    function advance(int summon, real seconds)
+        if not active
+            return
+        clipTime += seconds
+        let clip = summonClip(summon, clipIndex)
+        let duration = clip.endSeconds - clip.startSeconds
+        if queuedClip >= 0 and clipTime >= duration
+            clipTime -= duration
+            clipIndex = queuedClip
+            queuedClip = -1
+        let selected = summonClip(summon, clipIndex)
+        let selectedDuration = selected.endSeconds - selected.startSeconds
+        if selectedDuration > 0.
+            if selected.looping
+                clipTime -= I2R(R2I(clipTime / selectedDuration)) * selectedDuration
+            else
+                clipTime = min(clipTime, selectedDuration)
+        else
+            clipTime = 0.
+
+    function copyTo(SummonPose destination)
+        destination.active = active
+        destination.clipIndex = clipIndex
+        destination.queuedClip = queuedClip
+        destination.clipTime = clipTime
+
+    function firstDifference(SummonPose actual) returns string
+        if active != actual.active
+            return "active"
+        if clipIndex != actual.clipIndex
+            return "clipIndex"
+        if queuedClip != actual.queuedClip
+            return "queuedClip"
+        if clipTime != actual.clipTime
+            return "clipTime"
+        return ""
