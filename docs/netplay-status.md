@@ -20,6 +20,14 @@ retention pass for #26, not physical response latency or complete acceptance of
 failed attempt, fixture repair and raw evidence:
 wc3-melee:docs/editbox-ingress-native-20261005/README.md.
 
+**Controller pause checkpoint:** Start now travels in the controller's ordered
+input stream. Both clients paused at the same boundary and resumed through all
+600 input frames, ending at matching checksum `432553:258417`. This replaces
+the failed F8 route, which dropped incoming text while held. Concurrent keyboard
+interference and whole-window focus remain open. Resumed helper clocks differed
+by 7.1 ms, so this is not a cross-machine alignment guarantee. Evidence and exact
+scope: wc3-melee:docs/controller-start-native-20261005/README.md.
+
 ## The specific answers and their owners
 
 | Question / claim | Verdict | Canonical issue |

@@ -7,7 +7,8 @@ pause barrier stopped at next frame 76: both native traces held confirmed frame
 75. After resume, both drained traces confirmed frame 600 with checksum
 `432553:258417` and zero dropped trace rows.
 
-Implementation: `4b03816f5924deafe81db9695e6fc3cfa8aae274`.
+Implementation: `69bfbf9` (integrated from
+`4b03816f5924deafe81db9695e6fc3cfa8aae274`, identical gameplay/helper source).
 Map `editbox-start-20261005`, SHA256
 `314d72009f8e260f836ebc6f7dfb8d0eff6088855a3d482c9d782e1ee1edc5c3`.
 Helper SHA256
@@ -25,7 +26,7 @@ stale control sequence. No gameplay rows are reconstructed or discarded.
 ## Stimulus and scope
 
 One virtual kernel controller fed both helpers. An independent kernel reader
-recorded the physical event timestamps. The driver supplied a 5 ms Attack tap
+recorded the kernel event timestamps. The driver supplied a 5 ms Attack tap
 before pause (frame 19), a tap while paused, Attack held across resume, its
 release, then a fresh 5 ms tap. Helper logs show that paused presses were omitted,
 the held-through-resume release generated no held/pressed/released gameplay
