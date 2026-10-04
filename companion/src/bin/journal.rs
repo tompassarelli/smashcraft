@@ -23,8 +23,8 @@ mod linux {
         collections::{BTreeMap, BTreeSet, VecDeque},
         env,
         fs::{self, OpenOptions},
-        io::{self, Write},
-        os::fd::AsRawFd,
+        io::{self, Read, Write},
+        os::{fd::AsRawFd, unix::fs::MetadataExt},
         path::{Path, PathBuf},
         sync::{
             Arc,
@@ -881,6 +881,160 @@ mod linux {
         parse_control(contents).map(Some)
     }
 
+    // Realtime and monotonic normally slew together. A changed relation,
+    // including host suspend, invalidates this session's conversion.
+    const CLOCK_RELATION_TOLERANCE_NS: u128 = 100_000;
+
+    #[derive(Clone, Copy, Debug)]
+    struct ControlClock {
+        offset_ns: i128,
+        uncertainty_ns: u128,
+        timestamp_resolution_ns: u128,
+    }
+
+    impl ControlClock {
+        fn sample(timestamp_resolution_ns: u128) -> io::Result<Self> {
+            let before = monotonic_ns()?;
+            let realtime = clock_ns(libc::CLOCK_REALTIME)?;
+            let after = monotonic_ns()?;
+            Ok(Self {
+                offset_ns: realtime as i128 - ((before + after) / 2) as i128,
+                uncertainty_ns: (after - before).div_ceil(2),
+                timestamp_resolution_ns,
+            })
+        }
+
+        fn new(directory: &Path) -> io::Result<Self> {
+            let directory = fs::File::open(directory)?;
+            let mut stat = std::mem::MaybeUninit::<libc::statfs>::uninit();
+            // SAFETY: the fd is live and stat points to enough writable storage.
+            if unsafe { libc::fstatfs(directory.as_raw_fd(), stat.as_mut_ptr()) } != 0 {
+                return Err(io::Error::last_os_error());
+            }
+            // SAFETY: successful fstatfs initialized stat.
+            let kind = unsafe { stat.assume_init() }.f_type;
+            // Local btrfs, XFS and tmpfs store subsecond timestamps.
+            // Unknown/coarse/network filesystems do not share this contract.
+            if !matches!(kind, 0x9123683e | 0x58465342 | 0x01021994) {
+                return Err(io::Error::other(format!("unsupported control timestamp filesystem {kind:#x}")));
+            }
+            let mut resolution = libc::timespec { tv_sec: 0, tv_nsec: 0 };
+            // SAFETY: resolution is a writable timespec.
+            if unsafe { libc::clock_getres(libc::CLOCK_REALTIME_COARSE, &mut resolution) } != 0 {
+                return Err(io::Error::last_os_error());
+            }
+            // File mtime may use the kernel coarse clock even when its stored
+            // field has nanosecond precision.
+            let resolution = resolution.tv_sec as u128 * 1_000_000_000 + resolution.tv_nsec as u128;
+            Self::sample(resolution.max(1))
+        }
+
+        fn validate(self, current: Self) -> Result<(), String> {
+            if self.offset_ns.abs_diff(current.offset_ns)
+                > self.uncertainty_ns + current.uncertainty_ns + CLOCK_RELATION_TOLERANCE_NS
+            {
+                return Err("realtime/monotonic clock relation changed; resume timestamp cannot be reconstructed".into());
+            }
+            Ok(())
+        }
+
+        fn uncertainty(self) -> u128 {
+            self.uncertainty_ns + self.timestamp_resolution_ns + CLOCK_RELATION_TOLERANCE_NS
+        }
+
+        fn publication(self, realtime_ns: u128, read_ns: u128) -> Result<u128, String> {
+            let epoch = (realtime_ns as i128).checked_sub(self.offset_ns)
+                .filter(|epoch| *epoch >= 0).ok_or("control publication predates monotonic clock")? as u128;
+            if epoch > read_ns {
+                return Err("control publication timestamp is in the future".into());
+            }
+            Ok(epoch)
+        }
+    }
+
+    struct PublishedControl {
+        command: ControlCommand,
+        epoch_ns: u128,
+        read_ns: u128,
+        uncertainty_ns: u128,
+    }
+
+    struct ControlRead {
+        publication: Option<PublishedControl>,
+        // Absence proves that older paused events cannot belong to a future
+        // publication. An incomplete file retains all pending input.
+        discard_before_ns: u128,
+    }
+
+    fn same_control_file(a: &fs::Metadata, b: &fs::Metadata) -> bool {
+        (a.dev(), a.ino(), a.len(), a.mtime(), a.mtime_nsec(), a.ctime(), a.ctime_nsec())
+            == (b.dev(), b.ino(), b.len(), b.mtime(), b.mtime_nsec(), b.ctime(), b.ctime_nsec())
+    }
+
+    fn read_control(path: &Path, clock: ControlClock) -> Result<ControlRead, String> {
+        let before_ns = monotonic_ns().map_err(|e| e.to_string())?;
+        let current = ControlClock::sample(clock.timestamp_resolution_ns).map_err(|e| e.to_string())?;
+        clock.validate(current)?;
+        let mut file = match fs::File::open(path) {
+            Ok(file) => file,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {
+                return Ok(ControlRead {
+                    publication: None,
+                    discard_before_ns: before_ns.saturating_sub(clock.uncertainty() + current.uncertainty_ns),
+                });
+            }
+            Err(error) => return Err(format!("open journal control: {error}")),
+        };
+        let before = file.metadata().map_err(|e| e.to_string())?;
+        let mut contents = String::new();
+        file.read_to_string(&mut contents).map_err(|e| e.to_string())?;
+        let after = file.metadata().map_err(|e| e.to_string())?;
+        let named = fs::metadata(path).map_err(|e| e.to_string())?;
+        let read_ns = monotonic_ns().map_err(|e| e.to_string())?;
+        clock.validate(ControlClock::sample(clock.timestamp_resolution_ns).map_err(|e| e.to_string())?)?;
+        let mut result = ControlRead { publication: None, discard_before_ns: 0 };
+        if !same_control_file(&before, &after) || !same_control_file(&after, &named)
+            || after.len() != contents.len() as u64
+        {
+            return Ok(result);
+        }
+        if let Some(command) = control_if_complete(&contents)? {
+            let modified = after.modified().map_err(|e| e.to_string())?
+                .duration_since(UNIX_EPOCH).map_err(|e| e.to_string())?.as_nanos();
+            result.publication = Some(PublishedControl {
+                command,
+                epoch_ns: clock.publication(modified, read_ns)?,
+                read_ns,
+                uncertainty_ns: clock.uncertainty() + current.uncertainty_ns,
+            });
+        }
+        Ok(result)
+    }
+
+    #[derive(Default)]
+    struct PendingInput {
+        events: VecDeque<(evdev::InputEvent, bool, bool)>,
+    }
+
+    impl PendingInput {
+        fn push(&mut self, event: evdev::InputEvent, start_before: bool, start_after: bool) -> Result<(), String> {
+            if self.events.len() >= 65_536 {
+                return Err("unpublished control retained 65536 input events; helper stopped without discarding input".into());
+            }
+            self.events.push_back((event, start_before, start_after));
+            Ok(())
+        }
+
+        fn pop(&mut self, paused: bool, discard_before_ns: u128) -> Result<Option<(evdev::InputEvent, bool, bool)>, String> {
+            if let Some((event, _, _)) = self.events.front() {
+                if !paused || event_ns(event)? < discard_before_ns {
+                    return Ok(self.events.pop_front());
+                }
+            }
+            Ok(None)
+        }
+    }
+
     fn parse_control(contents: &str) -> Result<ControlCommand, String> {
         let mut fields = BTreeMap::<String, String>::new();
         for token in contents.split_whitespace() {
@@ -1060,13 +1214,109 @@ mod linux {
         );
     }
 
+    #[cfg(test)]
+    fn timed_button(ns: u128, down: bool) -> evdev::InputEvent {
+        libc::input_event {
+            time: libc::timeval { tv_sec: (ns / 1_000_000_000) as _, tv_usec: ((ns % 1_000_000_000) / 1000) as _ },
+            type_: evdev::EventType::KEY.0,
+            code: Key::BTN_SOUTH.0,
+            value: i32::from(down),
+        }.into()
+    }
+
+    #[test]
+    fn resume_publication_precedes_events_and_delayed_control_dequeue() {
+        let dir = env::temp_dir().join(format!("resume-clock-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("resume.txt");
+        let clock = ControlClock::new(&dir).unwrap();
+        let mut queue = PendingInput::default();
+        let mut input = FocusInput {
+            eligible: true, armed: true, gameplay_armed: false,
+            physical: State::default(), accept_since_ns: 0,
+        };
+        // A held paused button and an incompletely published command both
+        // precede a genuine new tap; no intermediate drain may discard it.
+        let held = timed_button(monotonic_ns().unwrap(), true);
+        queue.push(held, false, false).unwrap();
+        let prefix = "function PreloadFiles takes nothing returns nothing\ncall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=test epoch=1 slot=0 sequence=3 state=RESUME frame=91\" )\n";
+        fs::write(&path, prefix).unwrap();
+        let incomplete = read_control(&path, clock).unwrap();
+        assert!(incomplete.publication.is_none());
+        assert!(queue.pop(true, incomplete.discard_before_ns).unwrap().is_none());
+        thread::sleep(Duration::from_millis(5));
+        OpenOptions::new().append(true).open(&path).unwrap().write_all(b"endfunction\n").unwrap();
+        let original = read_control(&path, clock).unwrap().publication.unwrap();
+        thread::sleep(Duration::from_millis(20));
+        queue.push(timed_button(monotonic_ns().unwrap(), false), false, false).unwrap();
+        thread::sleep(Duration::from_millis(20));
+        let down = timed_button(monotonic_ns().unwrap(), true);
+        queue.push(down, false, false).unwrap();
+        thread::sleep(Duration::from_millis(5));
+        let up = timed_button(monotonic_ns().unwrap(), false);
+        queue.push(up, false, false).unwrap();
+        // The already-drained events remain queued while the helper cannot
+        // service the completed command.
+        thread::sleep(Duration::from_millis(80));
+        let delayed = read_control(&path, clock).unwrap().publication.unwrap();
+        assert_eq!(original.epoch_ns, delayed.epoch_ns);
+        assert!(delayed.read_ns - delayed.epoch_ns >= 100_000_000);
+        assert!(delayed.uncertainty_ns < 10_000_000);
+        let segment = FrameSegment { epoch_ns: delayed.epoch_ns, first_frame: 91 };
+        let mut state = State::default();
+        let mut edges = BTreeMap::new();
+        let mut snapshots = BTreeMap::new();
+        let mut accepted = Vec::new();
+        while let Some((event, before, after)) = queue.pop(false, 0).unwrap() {
+            if input.accepts_in_segment(&[None; 6], event, before, after, true, segment).unwrap() {
+                accepted.push(event);
+                apply_event(&[None; 6], &mut state, event, &mut edges, &mut snapshots, 91, segment, false).unwrap();
+            }
+        }
+        assert_eq!(accepted, vec![down, up]);
+        let press_frame = frame_at(event_ns(&down).unwrap(), segment).unwrap();
+        let release_frame = frame_at(event_ns(&up).unwrap(), segment).unwrap();
+        assert_ne!(edges[&press_frame].pressed & ATTACK, 0);
+        assert_ne!(edges[&release_frame].released & ATTACK, 0);
+        assert_eq!(action_state(state), 0);
+        fs::remove_file(path).unwrap();
+        fs::remove_dir(dir).unwrap();
+    }
+
+    #[test]
+    fn resume_clock_rejects_steps_and_future_publications() {
+        let clock = ControlClock { offset_ns: 1_000_000_000, uncertainty_ns: 20, timestamp_resolution_ns: 1_000_000 };
+        assert!(clock.validate(ControlClock { offset_ns: clock.offset_ns + 2_000_000, ..clock }).is_err());
+        assert!(clock.publication(1_000_000_101, 100).is_err());
+        assert_eq!(clock.publication(1_000_000_100, 100).unwrap(), 100);
+    }
+
+    #[test]
+    fn resume_boundary_rearms_neutral_before_first_press_and_uses_half_open_frames() {
+        let segment = FrameSegment { epoch_ns: 1_000_000_000, first_frame: 91 };
+        assert!(frame_at(segment.epoch_ns - 1, segment).is_err());
+        assert_eq!(frame_at(segment.epoch_ns, segment).unwrap(), 91);
+        assert_eq!(frame_at(segment.epoch_ns + 16_666_666, segment).unwrap(), 91);
+        assert_eq!(frame_at(segment.epoch_ns + 16_666_667, segment).unwrap(), 92);
+        let mut input = FocusInput {
+            eligible: true, armed: true, gameplay_armed: false,
+            physical: State::default(), accept_since_ns: 0,
+        };
+        assert!(input.accepts_in_segment(&[None; 6], timed_button(segment.epoch_ns, true), false, false, true, segment).unwrap());
+        assert_eq!(input.accept_since_ns, segment.epoch_ns);
+    }
+
     fn monotonic_ns() -> io::Result<u128> {
+        clock_ns(libc::CLOCK_MONOTONIC)
+    }
+
+    fn clock_ns(clock: libc::clockid_t) -> io::Result<u128> {
         let mut ts = libc::timespec {
             tv_sec: 0,
             tv_nsec: 0,
         };
-        // SAFETY: ts is a valid writable timespec and CLOCK_MONOTONIC has no additional preconditions.
-        if unsafe { libc::clock_gettime(libc::CLOCK_MONOTONIC, &mut ts) } != 0 {
+        // SAFETY: ts is writable; callers supply Linux realtime or monotonic clock IDs.
+        if unsafe { libc::clock_gettime(clock, &mut ts) } != 0 {
             return Err(io::Error::last_os_error());
         }
         Ok(ts.tv_sec as u128 * 1_000_000_000 + ts.tv_nsec as u128)
@@ -1437,6 +1687,24 @@ mod linux {
                 return Ok(false);
             }
             Ok(current)
+        }
+
+        fn accepts_in_segment(
+            &mut self,
+            ranges: &[Option<evdev::AbsInfo>; 6],
+            event: evdev::InputEvent,
+            start_before: bool,
+            start_after: bool,
+            capturing: bool,
+            segment: FrameSegment,
+        ) -> Result<bool, String> {
+            let gameplay = capturing && event_ns(&event)? >= segment.epoch_ns;
+            if gameplay {
+                // Use physical state before this event and the publication
+                // boundary. Dequeue time must not erase retained input.
+                self.rearm(segment.epoch_ns, start_before, true);
+            }
+            self.accepts(ranges, event, start_after, gameplay)
         }
 
         fn rearm(&mut self, now: u128, start_held: bool, gameplay: bool) {
@@ -2220,6 +2488,8 @@ mod linux {
             physical,
             accept_since_ns: o.epoch_ns,
         };
+        let control_clock = ControlClock::new(&o.out).map_err(|e| e.to_string())?;
+        let mut pending_input = PendingInput::default();
         let mut paused = false;
         let mut prepared = false;
         let mut stop_capture = false;
@@ -2275,6 +2545,7 @@ mod linux {
                 Err(error) => return Err(format!("evdev read: {error}")),
             };
             for event in events {
+                let start_before = start_held;
                 let was_armed = focus_input.armed;
                 if o.editbox_display.is_some() {
                     if let Some(wire) = pause_request_wire(
@@ -2296,60 +2567,22 @@ mod linux {
                             .map_err(|error| format!("controller pause request: {error}"))?;
                     }
                 }
-                let accepts =
-                    focus_input.accepts(&axes, event, start_held, !paused && !stop_capture)?;
-                if accepts {
-                    apply_event(
-                        &axes,
-                        &mut state,
-                        event,
-                        &mut edges,
-                        &mut snapshots,
-                        next_frame,
-                        segment,
-                        o.trace,
-                    )?;
-                } else if o.trace
-                    && matches!(
-                        event.destructure(),
-                        EventSummary::Key(..) | EventSummary::AbsoluteAxis(..)
-                    )
-                {
-                    eprintln!(
-                        "suppressed mono_ns={} reason=focus-pause-or-neutral",
-                        event_ns(&event)?
-                    );
-                }
-            }
-            focus_input.rearm(focus_now, start_held, !paused && !stop_capture);
-            if before_armed != (focus_input.armed, focus_input.gameplay_armed) {
-                eprintln!(
-                    "input_armed={} gameplay_armed={} mono_ns={focus_now}",
-                    focus_input.armed, focus_input.gameplay_armed
-                );
+                pending_input.push(event, start_before, start_held)?;
             }
             let command_path = control_path(&o.out, &o.build, o.epoch, o.slot, control_sequence);
-            let command = match fs::read_to_string(&command_path) {
-                Ok(contents) => {
-                    let command = control_if_complete(&contents)?;
-                    if let Some(command) = command.as_ref() {
-                        if command.build != o.build
-                            || command.epoch != o.epoch
-                            || command.slot != o.slot
-                            || command.sequence != control_sequence
-                        {
-                            return Err(
-                                "journal control identity does not match the active session".into(),
-                            );
-                        }
-                    }
-                    command
+            let control_read = read_control(&command_path, control_clock)?;
+            let command = control_read.publication;
+            if let Some(publication) = command.as_ref() {
+                let command = &publication.command;
+                if command.build != o.build || command.epoch != o.epoch
+                    || command.slot != o.slot || command.sequence != control_sequence
+                {
+                    return Err("journal control identity does not match the active session".into());
                 }
-                Err(error) if error.kind() == io::ErrorKind::NotFound => None,
-                Err(error) => return Err(format!("read journal control command: {error}")),
-            };
+            }
             let mut pause_after_seal = None;
-            if let Some(command) = command {
+            if let Some(publication) = command {
+                let command = publication.command;
                 if command.state == ControlState::PausePrepare && !paused {
                     pause_after_seal = Some(command);
                 } else if command.state == ControlState::PauseCommit && paused && prepared {
@@ -2387,7 +2620,7 @@ mod linux {
                         ));
                     }
                     segment = FrameSegment {
-                        epoch_ns: now,
+                        epoch_ns: publication.epoch_ns,
                         first_frame: next_frame,
                     };
                     state = State::default();
@@ -2397,6 +2630,7 @@ mod linux {
                     snapshots.clear();
                     pending.clear();
                     paused = false;
+                    focus_input.gameplay_armed = false;
                     submit_control_ack(
                         &o.out,
                         &o.build,
@@ -2410,14 +2644,53 @@ mod linux {
                     .map_err(|e| e.to_string())?;
                     if o.trace {
                         eprintln!(
-                            "control sequence={} state=RESUME frame={} epoch_ns={now}",
-                            command.sequence, next_frame
+                            "control sequence={} state=RESUME frame={} epoch_ns={} read_ns={} uncertainty_ns={} timestamp_resolution_ns={}",
+                            command.sequence, next_frame, publication.epoch_ns, publication.read_ns,
+                            publication.uncertainty_ns, control_clock.timestamp_resolution_ns
                         );
                     }
                     control_sequence += 1;
                 } else if command.state != ControlState::PauseCommit {
                     return Err("journal pause/resume commands are out of order".into());
                 }
+            }
+            while let Some((event, start_before, event_start_held)) =
+                pending_input.pop(paused, control_read.discard_before_ns)?
+            {
+                let accepts = focus_input.accepts_in_segment(
+                    &axes, event, start_before, event_start_held, !paused && !stop_capture, segment,
+                )?;
+                if accepts {
+                    apply_event(
+                        &axes,
+                        &mut state,
+                        event,
+                        &mut edges,
+                        &mut snapshots,
+                        next_frame,
+                        segment,
+                        o.trace,
+                    )?;
+                } else if o.trace
+                    && matches!(
+                        event.destructure(),
+                        EventSummary::Key(..) | EventSummary::AbsoluteAxis(..)
+                    )
+                {
+                    eprintln!(
+                        "suppressed mono_ns={} reason=focus-pause-or-neutral",
+                        event_ns(&event)?
+                    );
+                }
+            }
+            if pending_input.events.is_empty() {
+                focus_input.rearm(focus_now, start_held, !paused && !stop_capture);
+            }
+            if before_armed != (focus_input.armed, focus_input.gameplay_armed) {
+                eprintln!(
+                    "input_armed={} gameplay_armed={} mono_ns={focus_now}",
+                    focus_input.armed, focus_input.gameplay_armed
+                );
             }
             if !paused && !stop_capture && now >= segment.epoch_ns {
                 let mut completed_through = (((now - segment.epoch_ns) * HZ / 1_000_000_000)
