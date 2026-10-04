@@ -1,38 +1,36 @@
 # Smashcraft delivery state — 4 October 2026
 
-Latest diagnostic: reduced native JASS52 passed both fighter selections and
-unit recreation, then both clients received the synchronized Start callback at
-tick7650 with matching choices and unit identities. It retains the existing
-selection UI/local mouse/sync logic but omits gameplay, rollback, saved bindings
-and controller reads. Evidence: wc3-melee:docs/selection0052-evidence-20261004/.
-Reduced native53 also passed full fighter state construction, custom unit types
-and exact body setup. Both clients received a later synchronized Start callback
-at tick11348 with matching choices and body identities. The initial callback
-click missed its target; an OCR-guided click reached it. The missing receipt was
-a harness failure, not a map failure. Evidence:
-wc3-melee:docs/selection0053-evidence-20261004/.
-These passes rule out the selection/body setup alone as sufficient to reproduce
-the full integration's disconnect. They do not establish controller performance.
-No further full-map native candidate is admitted without an owning repair.
+**Playable delivery: exact0.0.40. Experimental controller59 is rejected.**
+The game already passed the two-client gameplay journey described below.
+Its keyboard and digital controller-mapper path remains the usable delivery.
+Original-frame controller retention through game stalls is unfinished; it is
+not a condition for recognizing this bounded playable result and is not claimed.
 
-After these reductions, both clients left normally and loaded the exact40
-artifact in [TEST] sc40-landed. Fresh readiness files identify playable-0040 on
-both. They entered a fight; A moved from x-240 to0 and accepted attack serial1.
-Both now show PAUSED at6:30; Y resumes. A's small developer text required
-cropped/upscaled OCR; the earlier full-screen serial matcher missed the text,
-so its timeout is not an input failure. This closes restoration, not a new
-latency or short-tap guarantee. No helper, build, capacity job or UI wait remains.
+The numbered41–59 artifacts include internal diagnostic maps, not nineteen
+completed game releases. Future internal diagnostics use separate run IDs and
+names; the release status always identifies the one usable player build.
 
-Previous full integration: native JASS50/51 disconnect during fighter selection,
-before controller helpers start. Shared fighter choices and unit identities
-matched. Unit-reference cleanup did not fix the failure. Both candidates are
-rejected and archived privately. The published Lua source, exact compiler JAR
-and playable40 artifact are restored. Original-frame controller retention and
-the broader acceptance work remain incomplete. Advisory response targets do
-not replace the usable-gameplay decision.
+This pass isolated a pre-input disconnect to the order diagnostic setup. The
+order probe now lives under wc3-melee:tools/netcode-probe/ and is absent from
+gameplay startup. Full58 passed selection but stopped in a diagnostic checksum.
+The canonical writer now hashes bounded fragments with separate native JASS
+operation budgets; the existing fast-fall checksum/rollback test passed1/1.
+Full59 then passed selection, match startup and both pre-read ready messages.
+Both helpers retained the normal5ms tap at originalframe19 and the tap during
+an approximately250ms helper stop at frame97, and exited0 after300frames.
+However each native client sent32 paired packets/64rows and recorded zero
+receipts, leaving confirmation atframe0. This is a failed replacement, not a
+controller latency or original-frame application success. No more experimental
+builds are part of this delivery pass. Exact40 is being restored on both retained
+clients; authenticated sessions are preserved.
 
-Failure evidence: wc3-melee:docs/journal0050-evidence-20261004/ and
-wc3-melee:docs/journal0051-evidence-20261004/.
+Evidence: wc3-melee:docs/selection0054-evidence-20261004/ through
+wc3-melee:docs/selection0057-evidence-20261004/,
+wc3-melee:docs/journal0058-evidence-20261004/ and
+wc3-melee:docs/journal0059-evidence-20261004/. The retained counterexample is
+specifically delivery stopping after populated file reads despite accepted
+submissions and successful pre-read ready-message exchange. Its next owning
+repair is deferred from this landing pass, not replaced by another survey.
 
 ## Usable checkpoint: 0.0.40
 

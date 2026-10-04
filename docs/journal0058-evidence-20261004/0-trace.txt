@@ -1,0 +1,19 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "0 0.000 start journal-0058 input shadow-d0-r24 presentation pool-predicted" )
+	call Preload( "0 0.000 humans 2 frame 0 phase 2" )
+	call Preload( "1 0.017 sample 0 pulse none hitlag 0" )
+	call Preload( "1 0.017 motion air 0 landing 0 x -240.000 z 0.000" )
+	call Preload( "60 1.000 sample 0 pulse none hitlag 0" )
+	call Preload( "120 2.000 sample 0 pulse none hitlag 0" )
+	call Preload( "180 3.000 sample 0 pulse none hitlag 0" )
+	call Preload( "240 4.000 sample 0 pulse none hitlag 0" )
+	call Preload( "300 5.000 sample 0 pulse none hitlag 0" )
+	call Preload( "dropped 0" )
+	call Preload( "301 5.017 end" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

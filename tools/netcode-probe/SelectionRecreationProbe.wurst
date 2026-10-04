@@ -5,20 +5,24 @@ import MatchRules
 import FighterAssets
 import Simulation
 import SelectionProbeInfo
+import BindingSettings
+import NativeOrderProbe
 
 MatchState state = null
 SelectionPanel array panels
 unit array bodies
 FighterState array fighters
+BindingSettings array bindings
 int revision = 0
 int ticks = 0
+boolean bindingsReadyRecorded = false
 
 function recordSelection(string phase)
     PreloadGenClear()
     PreloadGenStart()
     Preload("build=" + SELECTION_PROBE_ID + " phase=" + phase + " revision=" + I2S(revision) + " ticks=" + I2S(ticks))
     for slot = 0 to 3
-        Preload("slot=" + I2S(slot) + " choice=" + I2S(state.characterFor(slot)) + " selected=" + (state.characterReady(slot) ? "1" : "0") + " body=" + I2S(bodies[slot] == null ? 0 : GetHandleId(bodies[slot])))
+        Preload("slot=" + I2S(slot) + " choice=" + I2S(state.characterFor(slot)) + " selected=" + (state.characterReady(slot) ? "1" : "0") + " body=" + I2S(bodies[slot] == null ? 0 : GetHandleId(bodies[slot])) + " bindings-ready=" + (bindings[slot].ready ? "1" : "0"))
     PreloadGenEnd("smashcraft-" + SELECTION_PROBE_ID + "-p" + I2S(GetPlayerId(GetLocalPlayer())) + "-r" + I2S(revision) + "-" + phase + ".txt")
 
 function recreateBodies()
@@ -53,8 +57,9 @@ function recreateBodies()
 
 class ProbeActions extends SelectionActions
     override function selectChoice(int slot, int choice)
-        state.selectCharacter(slot, choice)
-        recreateBodies()
+        if bindings[slot].ready
+            state.selectCharacter(slot, choice)
+            recreateBodies()
 
     override function selectCpuChoice(int actor, int slot, int choice)
         state.selectCpuCharacter(actor, slot, choice)
@@ -76,8 +81,14 @@ class ProbeActions extends SelectionActions
 
 function updateSelection()
     ticks++
+    var allReady = true
     for slot = 0 to 3
         panels[slot].update(state, false)
+        if state.humanActive(slot) and not bindings[slot].ready
+            allReady = false
+    if allReady and not bindingsReadyRecorded
+        bindingsReadyRecorded = true
+        recordSelection("bindings-ready")
     if ticks == 600
         recordSelection("alive")
 
@@ -97,8 +108,17 @@ function startSelection()
     FogEnable(false)
     FogMaskEnable(false)
     for slot = 0 to 3
+        bindings[slot] = new BindingSettings(Player(slot))
         panels[slot] = new SelectionPanel(new ProbeActions(), slot)
     recreateBodies()
+    nativeOrderProbeSetup(state.humanMask)
+    for slot = 0 to 3
+        if state.humanActive(slot)
+            bindings[slot].initialize()
+        else
+            bindings[slot].bindings.preset(false)
+            bindings[slot].ready = true
+            bindings[slot].revision++
     let updateTimer = CreateTimer()
     TimerStart(updateTimer, 1. / 60., true, function updateSelection)
     recordSelection("ready")

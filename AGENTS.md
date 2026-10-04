@@ -43,6 +43,9 @@ layout checks where supported, then verify native hit targets, keyboard-focus
 release, draw order and widescreen behavior. Keep local presentation separate
 from synchronized gameplay and create shared handles consistently.
 
-Publish pre-release maps as Smashcraft 0.0.N; increment only N. Install one
+Publish playable pre-release maps as Smashcraft 0.0.N; increment only N.
+Internal diagnostics use distinct run IDs and names without advancing the
+player release counter. Always identify the current playable artifact separately
+from an experimental candidate; a diagnostic pass does not replace that release. Install one
 current candidate under Maps/00-Smashcraft. Keep proprietary game assets and
 base maps privately outside repository trees. Preserve peer work in owned lanes.

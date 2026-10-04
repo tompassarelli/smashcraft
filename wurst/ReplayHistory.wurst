@@ -1,4 +1,5 @@
 package ReplayHistory
+import Execute
 import ReplayState
 import MatchStep
 import Simulation
@@ -81,8 +82,10 @@ public class ReplayHistory
 
     construct()
         for i = 0 to REPLAY_HISTORY_CAPACITY - 1
-            snapshots[i] = new ReplaySnapshot()
-            inputs[i] = new MatchFrameInput()
+            // Each detached slot has its own JASS operation budget.
+            execute() ->
+                snapshots[i] = new ReplaySnapshot()
+                inputs[i] = new MatchFrameInput()
 
     // Epochs increase across rematches; a repeated/stale reset cannot erase history.
     function beginEpoch(int newEpoch, int firstFrame) returns boolean

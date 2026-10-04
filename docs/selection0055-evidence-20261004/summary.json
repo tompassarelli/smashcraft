@@ -1,0 +1,8 @@
+{
+  "candidate": "0.0.55",
+  "sha256": "a91fb9956576c395144e750a85278a7843cc22d6ebdec2214eeafb951482fd12",
+  "scope": "Reduced54 plus NativeOrderProbe, NativePreloadProbe, NativeTransportProbe and ResponseServiceProbe setup. No controller reads.",
+  "result": "Desync at turn91 after identical first selection and body IDs. Presence tags match; birth tags differ by2; tempest checksum differs. A disconnected; B continued.",
+  "conclusion": "The added diagnostic setup group is sufficient to reproduce the selection disconnect on the reduced54 foundation. Individual owning cause is not isolated.",
+  "controller_performance_verdict": null
+}

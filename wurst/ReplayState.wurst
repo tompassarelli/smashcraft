@@ -1,4 +1,5 @@
 package ReplayState
+import Execute
 import Simulation
 import MatchRules
 import ImpactState
@@ -845,6 +846,14 @@ class CanonicalWriter
 			return
 		if not valid
 			return
+		if isLua
+			hashFragment(fragment)
+		else
+			// Each bounded fragment has a fresh JASS operation budget.
+			execute() ->
+				hashFragment(fragment)
+
+	private function hashFragment(string fragment)
 		for i = 0 to fragment.length() - 1
 			let character = fragment.charAt(i)
 			let decoded = character.toChar()

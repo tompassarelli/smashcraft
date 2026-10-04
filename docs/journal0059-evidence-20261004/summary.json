@@ -1,0 +1,7 @@
+{
+  "candidate": "0.0.59",
+  "sha256": "62c495c19b710fb3d8d300423bbb42cbbf7a404d601c4c58acc4b897b0f84310",
+  "result": "Both entered fight and exchanged preflight. Helpers retained normal 5ms tap at frame19 and stopped-helper tap at frame97; helpers exited0 after300frames. Native consumed/sent32 paired packets covering64frames per sender but recorded zero receipts, confirmedframe0, speculativeF25, and pending64.",
+  "verdict": "Rejected as playable replacement. Selection and diagnostic checksum startup repairs passed; sustained controller delivery still fails. No controller latency or original-frame application guarantee.",
+  "next_owning_boundary": "Delivery stops after populated file reads; determine why SC_GP receipts disappear despite accepted sends and successful pre-read J4 receipts. Preserve failing counterexample; do not repeat transport inventory."
+}

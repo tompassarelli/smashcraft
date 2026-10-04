@@ -47,7 +47,6 @@ import JournalInputSource
 import VocabularyIngress
 import JournalPauseBarrier
 import FileIO
-import NativeOrderProbe
 import NativePreloadProbe
 import NativeTransportProbe
 
@@ -656,8 +655,6 @@ function serviceJournalInput()
 		let accepted = BlzSendSyncData("SC_GP", "J4" + I2S(shadowInputEpoch))
 		traceInput("journal transport start accepted " + (accepted ? "1" : "0"))
 	if RESPONSE_SERVICE_PROBE and journalTransportReadyMask != matchState.humanMask
-		return
-	if nativeOrderProbeActive()
 		return
 	if nativePreloadProbeActive() or nativePreloadProbeStartPending() or nativeTransportProbeActive()
 		return
@@ -1698,9 +1695,6 @@ function onDeveloperTrace()
         return
     startInputTrace()
 
-function onNativeOrderProbeStart()
-    nativeOrderProbeStart()
-
 function onNativePreloadProbeStart()
     if GetTriggerPlayer() != GetLocalPlayer() or not shadowInputActive or transportIsolationPhase != 0 or inputTraceActive
         return
@@ -1712,16 +1706,12 @@ function onNativeTransportProbeStart()
 
 function setupKeys()
     if RESPONSE_SERVICE_PROBE and JOURNAL_INPUT_SOURCE
-        nativeOrderProbeSetup(matchState.humanMask)
         nativePreloadProbeSetup(matchState.humanMask)
         nativeTransportProbeSetup(matchState.humanMask)
-        let nativeOrderStart = CreateTrigger()
         let nativePreloadStart = CreateTrigger()
         let nativeTransportStart = CreateTrigger()
-        registerDeveloperChord(nativeOrderStart, OSKEY_O)
         registerDeveloperChord(nativePreloadStart, OSKEY_P)
         registerDeveloperChord(nativeTransportStart, OSKEY_N)
-        TriggerAddAction(nativeOrderStart, function onNativeOrderProbeStart)
         TriggerAddAction(nativePreloadStart, function onNativePreloadProbeStart)
         TriggerAddAction(nativeTransportStart, function onNativeTransportProbeStart)
     let transportIsolationStart = CreateTrigger()

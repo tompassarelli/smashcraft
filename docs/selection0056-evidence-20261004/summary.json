@@ -1,0 +1,8 @@
+{
+  "candidate": "0.0.56",
+  "sha256": "9baa353b0cacb0c43576366daa46d37822352a1528b065f0304f773a9cdc7c3c",
+  "scope": "Reduced54 plus NativeOrderProbe and NativePreloadProbe setup.",
+  "result": "Selection disconnect reproduced after identical first choice/body IDs at tick98.",
+  "conclusion": "This pair is sufficient to reproduce the disconnect; next57 isolates NativeOrderProbe.",
+  "controller_performance_verdict": null
+}

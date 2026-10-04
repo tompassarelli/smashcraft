@@ -7,40 +7,27 @@ deadline was 08:38:38 Taipei on 4 October; it was missed and has not reset.
 
 ## Current deciding evidence
 
-Exact 0.0.40 remains the delivered two-client gameplay checkpoint: movement,
-combat, pause/resume, stock loss, results and rematch have been observed. Its
-keyboard input path also serves the digital controller mapper that the operator
-reported responsive. It does not retain arbitrary controller edges through
-service stalls. Original-frame controller delivery remains unfinished.
+**Usable game:0.0.40. Failed controller experiment:59.** Internal diagnostic
+numbers41–59 are not successive delivered game releases. Release status and
+experimental run identity are tracked separately from now on.
 
-The matched 0.0.31 test separates the wrapper from populated Preloader
-execution: changing FileIO averaged 3,170/3,064 ms and direct changing Preloader
-3,050/2,800 ms (A/B), while generated changing values averaged 86/68 ms and
-fresh constant-content FileIO 85/81 ms. Every arm delivered 300/300 with zero
-reported integrity errors. This remains bounded transport evidence, not physical
-button-to-pixel timing. No alternative has beaten the usable direct-sync baseline.
+The two-client gameplay result below remains delivered. The responsive keyboard
+path serves the digital controller mapper reported usable by the operator.
+Arbitrary original-frame controller edges through service stalls remain open.
 
-The minimum-integer serialization defect was repaired and activated; it is no
-longer pending. Journal44–46 failed native input delivery. Native JASS47–51
-repaired startup but exposed a pre-input selection desync. Candidate50 matched
-choices and unit identities before disconnect; candidate51's unit-reference
-cleanup did not fix it. Both candidates are rejected. The exact Lua source,
-compiler artifact and playable40 map are restored; the desync cause is open.
-Evidence and limits appear below and in
-wc3-melee:docs/smashcraft-delivery-state-20261004.md.
+Selection isolation54 passed saved controls, while55/56/57 reproduced the
+pre-input disconnect;57 had only the order diagnostic setup added. Moving this
+probe out of gameplay closed selection in full58/59. Full58 then exposed native
+checksum thread exhaustion. Fragment-bounded hashing passed the existing
+checksum/rollback test and allowed59 to complete both pre-read ready messages.
 
-Reduced native JASS52 passed the existing selection UI, local mouse polling,
-synchronized choices and basic unit recreation on both clients. Both received
-the subsequent synchronized Start callback at tick7650, with matching choices
-and body identities. This excludes those steps alone as sufficient to reproduce
-the full-map disconnect. Reduced53 also passed with actual fighter state,
-custom unit types and exact body setup; both received the later synchronized
-Start callback at tick11348 with matching choices and body identities. An
-initial click missed its target; a corrected click established the callback,
-so the initial missing receipt is not a product failure. These checks precede
-controller reads and carry no input-performance verdict. Numerical evidence:
-wc3-melee:docs/selection0052-evidence-20261004/ and
-wc3-melee:docs/selection0053-evidence-20261004/.
+59 retained both helper taps at originalframes19 and97 (second during~250ms
+helper stop), but both native clients sent32 packets/64rows and received none
+in the trace; confirmation remained0. Reject59 as the gameplay replacement.
+Keep the exact counterexample for the owning post-read delivery repair.
+Evidence is in wc3-melee:docs/journal0059-evidence-20261004/; controller
+latency, original-frame application and pause/stall guarantees are not proven.
+No alternative has beaten the delivered direct-sync baseline.
 
 **Populated preload-file ingestion reproduces the seconds-long backlog.**
 The same two Warcraft III 3.0 clients ran exact Smashcraft 0.0.24, build

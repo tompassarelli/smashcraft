@@ -2,7 +2,7 @@
 set -euo pipefail
 project_dir=$(cd -- "$(dirname -- "$0")/../.." && pwd)
 private_root="$HOME/.local/share/smashcraft-build-inputs/production-netcode-20261004"
-version=${1:-53}
+version=${1:-57}
 [[ "$version" =~ ^[1-9][0-9]*$ ]]
 compiler=/home/tom/code/wurst-compiler/worktrees/jass-map-language-20261004/de.peeeq.wurstscript/build/libs/wurstscript.jar
 stdlib=/home/tom/code/wurst-stdlib/pins/e3714f629113
@@ -15,6 +15,7 @@ asset_map="$private_root/build/Smashcraft 0.0.40.w3x"
 probe_dir=$(mktemp -d "$private_root/build/selection$version.XXXXXX")
 mkdir -p "$probe_dir/wurst" "$probe_dir/_build/dependencies"
 printf 'package SelectionProbeInfo\npublic constant string SELECTION_PROBE_ID = "selection-%04d"\n' "$version" > "$probe_dir/wurst/SelectionProbeInfo.wurst"
+printf 'package BuildInfo\npublic constant string BUILD_ID = "selection-%04d"\npublic constant boolean RESPONSE_SERVICE_PROBE = true\n' "$version" > "$probe_dir/wurst/BuildInfo.wurst"
 cp "$private_root/summon-original-clips/wurst/SummonOriginalClipInfo.wurst" "$probe_dir/wurst/"
 cp "$project_dir/build/animation-assets/FighterAssetInfo.wurst" "$probe_dir/wurst/"
 cp "$project_dir/build/illidan-animation/DemonHunterAssetInfo.wurst" "$probe_dir/wurst/"
@@ -33,6 +34,8 @@ while pending:
     shutil.copyfile(path, work / 'wurst' / path.name)
     for package in re.findall(r'^import (\w+)', path.read_text(), re.M):
         dependency = repo / 'wurst' / (package + '.wurst')
+        if not dependency.exists():
+            dependency = repo / 'tools/netcode-probe' / (package + '.wurst')
         if dependency.exists():
             pending.append(dependency)
 print('Staged', len(seen), 'source packages')
