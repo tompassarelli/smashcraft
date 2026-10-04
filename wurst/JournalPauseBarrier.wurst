@@ -1,0 +1,4 @@
+package JournalPauseBarrier
+
+public function journalPauseBarrierFrame(int first, int second, int third, int fourth) returns int
+	return max(first, max(second, max(third, fourth)))

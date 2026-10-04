@@ -98,6 +98,8 @@ exec "$java" -Xmx2048m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/wurst/InputProtocolTests.wurst" \
     "$project_dir/wurst/JournalInputSource.wurst" \
     "$project_dir/wurst/JournalInputSourceTests.wurst" \
+    "$project_dir/wurst/JournalPauseBarrier.wurst" \
+    "$project_dir/wurst/JournalPauseBarrierTests.wurst" \
     "$project_dir/wurst/InputBatch.wurst" \
     "$project_dir/wurst/InputBatchTests.wurst" \
     "$project_dir/wurst/ParticipantInputs.wurst" \

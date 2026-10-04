@@ -44,6 +44,7 @@ import FrostEffects
 import SpecialEffects
 import ResponseServiceProbe
 import JournalInputSource
+import JournalPauseBarrier
 import FileIO
 import NativeOrderProbe
 import NativePreloadProbe
@@ -85,6 +86,17 @@ int shadowInputEpoch = 0
 int shadowLastCaptureTarget = 0
 boolean shadowLocalSendFailed = false
 boolean journalInputFailed = false
+boolean journalPausePending = false
+boolean journalPauseAckReceived = false
+boolean journalPauseTarget = false
+boolean journalPauseCommitSent = false
+boolean journalPausePrepareComplete = false
+int journalPauseAckFrame = 0
+trigger journalControlSync = null
+boolean array journalControlAckSeen
+int array journalControlAckFrameBySlot
+int array journalControlAckSeqBySlot
+int array journalControlAckStateBySlot
 trigger broadKeyDownTrigger = null
 trigger broadKeyUpTrigger = null
 ShadowInputSchedule shadowSchedule = null
@@ -499,6 +511,138 @@ function failJournalInput(string reason)
 	if inputTraceActive
 		traceInput("journal stopped " + reason + " sequence " + I2S(journalInput.sequenceNumber()) + " frame " + I2S(journalInput.expectedFrame()))
 
+function writeJournalControl(boolean wantPaused)
+	if journalInput == null or journalPausePending
+		return
+	let slot = GetPlayerId(GetLocalPlayer())
+	let sequence = journalInput.controlSequenceNumber()
+	let controlName = "smashcraft-journal-control-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-s" + I2S(slot) + "-n" + I2S(sequence) + ".txt"
+	PreloadGenClear()
+	PreloadGenStart()
+	Preload("SMASHCRAFT JOURNAL CONTROL v=1 build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot) + " sequence=" + I2S(sequence) + " state=" + (wantPaused ? "PAUSE" : "RESUME") + " frame=" + I2S(journalInput.expectedFrame()))
+	PreloadGenEnd(controlName)
+	if not journalInput.controlRequestSent()
+		failJournalInput("could not sequence pause request")
+		return
+	for participant = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		journalControlAckSeen[participant] = false
+		journalControlAckFrameBySlot[participant] = 0
+		journalControlAckStateBySlot[participant] = 0
+	journalPauseAckReceived = false
+	journalPauseCommitSent = false
+	journalPausePrepareComplete = false
+	journalPauseAckFrame = 0
+	journalPausePending = true
+	journalPauseAckReceived = false
+	journalPauseTarget = wantPaused
+	statusText = wantPaused ? "Pausing…" : "Resuming…"
+	statusTime = 3600
+
+function serviceJournalPauseAck()
+	if not journalPausePending or journalPauseAckReceived
+		return
+	let localPlayer = GetLocalPlayer()
+	let sequence = journalInput.controlSequenceNumber()
+	journalInputFile.filename = journalInput.controlAckFilename()
+	let wire = journalInputFile.readAsString(localPlayer)
+	let expectedState = journalPauseTarget ? (journalPauseCommitSent ? "PAUSE" : "PREPARE") : "RESUME"
+	if not journalInput.acceptControlAck(wire, expectedState)
+		return
+	let slot = GetPlayerId(localPlayer)
+	let stateCode = expectedState == "PREPARE" ? "Q" : (expectedState == "PAUSE" ? "P" : "R")
+	let syncWire = "JC1" + journalPad10(shadowInputEpoch) + I2S(slot) + journalPad10(sequence) + stateCode + journalPad10(journalInput.controlAckFrame())
+	if not BlzSendSyncData("SC_JC", syncWire)
+		failJournalInput("pause acknowledgment could not be synchronized")
+
+function sendJournalPauseCommit()
+	if not journalPausePending or not journalPauseTarget or journalPauseCommitSent or not journalPausePrepareComplete
+		return
+	let slot = GetPlayerId(GetLocalPlayer())
+	let sequence = journalInput.controlSequenceNumber()
+	let controlName = "smashcraft-journal-control-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-s" + I2S(slot) + "-n" + I2S(sequence) + ".txt"
+	PreloadGenClear()
+	PreloadGenStart()
+	Preload("SMASHCRAFT JOURNAL CONTROL v=1 build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot) + " sequence=" + I2S(sequence) + " state=PAUSE_COMMIT frame=" + I2S(journalPauseAckFrame))
+	PreloadGenEnd(controlName)
+	if not journalInput.controlRequestSent()
+		failJournalInput("could not sequence pause barrier")
+		return
+	for participant = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		journalControlAckSeen[participant] = false
+		journalControlAckFrameBySlot[participant] = 0
+		journalControlAckStateBySlot[participant] = 0
+	journalPauseAckReceived = false
+	journalPauseCommitSent = true
+	journalPausePrepareComplete = false
+
+function journalPad10(int value) returns string
+	var text = I2S(value)
+	while text.length() < 10
+		text = "0" + text
+	return text
+
+function receiveJournalControlAck()
+	let sender = GetTriggerPlayer()
+	let wire = BlzGetTriggerSyncData()
+	if wire.length() != 35 or wire.substring(0, 3) != "JC1"
+		return
+	let epoch = S2I(wire.substring(3, 13))
+	let slot = S2I(wire.substring(13, 14))
+	let sequence = S2I(wire.substring(14, 24))
+	let stateCode = wire.substring(24, 25)
+	let frame = S2I(wire.substring(25, 35))
+	if epoch != shadowInputEpoch or slot != GetPlayerId(sender) or frame <= 0
+		return
+	let state = stateCode == "Q" ? 1 : (stateCode == "P" ? 2 : (stateCode == "R" ? 3 : 0))
+	let expectedState = journalPauseTarget ? (journalPauseCommitSent ? 2 : 1) : 3
+	if state == 0 or state != expectedState or not journalPausePending
+		return
+	if sequence != journalControlAckSeqBySlot[slot] + 1
+		failJournalInput("pause acknowledgments arrived out of sequence")
+		return
+	journalControlAckSeqBySlot[slot] = sequence
+	journalControlAckSeen[slot] = true
+	journalControlAckFrameBySlot[slot] = frame
+	journalControlAckStateBySlot[slot] = state
+	var complete = true
+	for participant = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if matchState.humanActive(participant)
+			if not journalControlAckSeen[participant]
+				complete = false
+			else if journalControlAckStateBySlot[participant] != state
+				complete = false
+	if complete
+		let commonFrame = journalPauseBarrierFrame(journalControlAckFrameBySlot[0], journalControlAckFrameBySlot[1], journalControlAckFrameBySlot[2], journalControlAckFrameBySlot[3])
+		if state != 1
+			for participant = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+				if matchState.humanActive(participant) and journalControlAckFrameBySlot[participant] != commonFrame
+					failJournalInput("players acknowledged different pause frames")
+					return
+		if state == 1
+			journalPauseAckFrame = commonFrame
+			journalPausePrepareComplete = true
+		else
+			journalPauseAckReceived = true
+			journalPauseAckFrame = commonFrame
+		if inputTraceActive
+			traceInput("all journal controllers acknowledged state " + (state == 1 ? "PREPARE" : (state == 2 ? "PAUSE" : "RESUME")) + " frame " + I2S(commonFrame))
+
+function commitJournalPauseAtFrame()
+	if not journalPausePending or not journalPauseAckReceived
+		return
+	let nextFrame = shadowSchedule.nextConfirmedFrame()
+	if nextFrame < journalPauseAckFrame
+		return
+	if nextFrame > journalPauseAckFrame
+		failJournalInput("pause acknowledgment arrived after its frame boundary")
+		return
+	matchControls.setPaused(journalPauseTarget)
+	pauseMatchPresentation(journalPauseTarget)
+	statusText = journalPauseTarget ? "Paused — press Y to resume." : "Resumed."
+	statusTime = journalPauseTarget ? 3600 : 1
+	journalPausePending = false
+	journalPauseAckReceived = false
+
 function serviceJournalInput()
 	if journalInputFailed
 		return
@@ -673,6 +817,7 @@ function shadowInputTick()
     var confirmedSteps = 0
     while matchState.phase == MATCH and shadowSchedule.mayAdvanceConfirmed()
             and confirmedSteps < SHADOW_CONFIRMED_CATCHUP_LIMIT
+            and (not journalPauseAckReceived or shadowSchedule.nextConfirmedFrame() < journalPauseAckFrame)
         if not stepConfirmedShadowFrame()
             statusText = "The match could not advance. Restart the match."
             statusTime = 3600
@@ -1191,6 +1336,16 @@ function beginShadowEpoch() returns boolean
     else
         shadowCapture.reset(shadowPollLocal())
     journalInputFailed = false
+    journalPausePending = false
+    journalPauseAckReceived = false
+    journalPauseCommitSent = false
+    journalPausePrepareComplete = false
+    journalPauseAckFrame = 0
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		journalControlAckSeen[slot] = false
+		journalControlAckSeqBySlot[slot] = 0
+		journalControlAckFrameBySlot[slot] = 0
+		journalControlAckStateBySlot[slot] = 0
     if JOURNAL_INPUT_SOURCE
         let localSlot = GetPlayerId(GetLocalPlayer())
         if not journalInput.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot, SHADOW_INPUT_DELAY)
@@ -1262,6 +1417,10 @@ function startMatch()
             statusTime = 3600
         else if JOURNAL_INPUT_SOURCE
             let slot = GetPlayerId(GetLocalPlayer())
+            journalPausePending = false
+            journalPauseAckReceived = false
+            journalPauseCommitSent = false
+            journalPausePrepareComplete = false
             PreloadGenClear()
             PreloadGenStart()
             Preload("SMASHCRAFT JOURNAL v=1 build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot))
@@ -1269,6 +1428,7 @@ function startMatch()
             Preload("filename=smashcraft-journal-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-s" + I2S(slot) + "-n{SEQUENCE}.pld")
             Preload("packet=canonical I4; records=1 or 2 consecutive original frames; include neutral rows; no sparse events")
             Preload("transport=SC_GP; files are immutable; absent next filename is retried; sequence advances after local capture and successful submission")
+            Preload("pause=sequenced control request; companion ACK names the next input frame; simulation pauses or resumes only at that acknowledged confirmed frame")
             PreloadGenEnd("smashcraft-journal-ready-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-p" + I2S(slot) + ".txt")
     if POOL_PRESENTATION and shadowInputActive
         modelSounds.beginEpoch(shadowInputEpoch)
@@ -1383,12 +1543,19 @@ function onParticipantKeyDown(int slot)
     if keyCode < 0 or keyCode > 255 or state.isKeyHeld(keyCode)
         return
     if key == OSKEY_Y
-        let controlAction = matchControls.keyDown(slot, matchState.phase, controls != null and controls.isOpen())
-        if controlAction == START_PAUSE_TOGGLED
-            clearAllInputs()
-            pauseMatchPresentation(matchControls.isPaused())
-            statusText = matchControls.isPaused() ? "Paused — press Y to resume." : "Resumed."
-            statusTime = matchControls.isPaused() ? 3600 : 1
+		if JOURNAL_INPUT_SOURCE and shadowInputActive and journalPausePending
+			return
+		let controlAction = JOURNAL_INPUT_SOURCE and shadowInputActive and matchState.phase == MATCH
+			? matchControls.keyDownDeferred(slot, matchState.phase, controls != null and controls.isOpen())
+			: matchControls.keyDown(slot, matchState.phase, controls != null and controls.isOpen())
+		if controlAction == START_PAUSE_TOGGLED
+			if JOURNAL_INPUT_SOURCE and shadowInputActive and matchState.phase == MATCH
+				writeJournalControl(not matchControls.isPaused())
+			else
+				clearAllInputs()
+				pauseMatchPresentation(matchControls.isPaused())
+				statusText = matchControls.isPaused() ? "Paused — press Y to resume." : "Resumed."
+				statusTime = matchControls.isPaused() ? 3600 : 1
         else if controlAction == START_PAUSE_CONFIRM
             confirm(slot)
         return
@@ -1783,7 +1950,10 @@ function gameTick()
             participant.appliedBindingRevision = participant.bindings.revision
     statusTime = max(0, statusTime - FRAME_SECONDS)
     if shadowInputActive
+		serviceJournalPauseAck()
         shadowInputTick()
+		sendJournalPauseCommit()
+		commitJournalPauseAtFrame()
     else if matchState.phase == MATCH and not matchControls.isPaused()
         callbackMatchTick()
     if matchState.phase != MATCH
@@ -1841,6 +2011,12 @@ function initializeShadowInput()
         if matchState.humanActive(slot)
             BlzTriggerRegisterPlayerSyncEvent(sync, Player(slot), "SC_GP", false)
     TriggerAddAction(sync, function receiveShadowInput)
+    if JOURNAL_INPUT_SOURCE
+		journalControlSync = CreateTrigger()
+		for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+			if matchState.humanActive(slot)
+				BlzTriggerRegisterPlayerSyncEvent(journalControlSync, Player(slot), "SC_JC", false)
+		TriggerAddAction(journalControlSync, function receiveJournalControlAck)
 
 function initGame()
     DestroyTimer(GetExpiredTimer())

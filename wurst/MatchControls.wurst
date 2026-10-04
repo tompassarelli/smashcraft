@@ -12,17 +12,33 @@ public class MatchControls
 	private boolean paused = false
 	private boolean array[INPUT_PARTICIPANT_CAPACITY] startPauseHeld
 
-	function keyDown(int participantId, int phase, boolean settingsOpen) returns int
+	private function acceptStartKey(int participantId, int phase, boolean settingsOpen) returns boolean
 		if participantId < 0 or participantId >= INPUT_PARTICIPANT_CAPACITY or startPauseHeld[participantId]
-			return START_PAUSE_NONE
+			return false
 		startPauseHeld[participantId] = true
 		for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
 			if slot != participantId and startPauseHeld[slot] and phase != RESULT
-				return START_PAUSE_NONE
+				return false
 		if settingsOpen
+			return false
+		return true
+
+	function keyDown(int participantId, int phase, boolean settingsOpen) returns int
+		if not acceptStartKey(participantId, phase, settingsOpen)
 			return START_PAUSE_NONE
 		if phase == MATCH
 			paused = not paused
+			return START_PAUSE_TOGGLED
+		if phase == CHARACTER_MENU or phase == STAGE_MENU or phase == RESULT
+			return START_PAUSE_CONFIRM
+		return START_PAUSE_NONE
+
+	// Journal-mode callers wait for the capture helper to acknowledge the frame
+	// boundary before changing paused state. Keyboard-mode callers keep keyDown.
+	function keyDownDeferred(int participantId, int phase, boolean settingsOpen) returns int
+		if not acceptStartKey(participantId, phase, settingsOpen)
+			return START_PAUSE_NONE
+		if phase == MATCH
 			return START_PAUSE_TOGGLED
 		if phase == CHARACTER_MENU or phase == STAGE_MENU or phase == RESULT
 			return START_PAUSE_CONFIRM
@@ -37,3 +53,6 @@ public class MatchControls
 
 	function resume()
 		paused = false
+
+	function setPaused(boolean value)
+		paused = value

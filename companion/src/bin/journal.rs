@@ -82,6 +82,30 @@ mod linux {
         trace: bool,
     }
 
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    struct FrameSegment {
+        epoch_ns: u128,
+        first_frame: u32,
+    }
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum ControlState {
+        PausePrepare,
+        PauseCommit,
+        Paused,
+        Resumed,
+    }
+
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    struct ControlCommand {
+        build: String,
+        epoch: u32,
+        slot: u32,
+        sequence: u32,
+        state: ControlState,
+        requested_frame: u32,
+    }
+
     fn usage() -> &'static str {
         "wc3-journal --device /dev/input/eventN --out DIR --ready-file PATH --epoch-monotonic-ns NS [--first-frame N] [--stop-frame N] [--trace]\n\
          Assigns Linux kernel CLOCK_MONOTONIC input_event times to half-open 60 Hz frames. The capture segment starts at the explicit host monotonic epoch; first-frame defaults to 1."
@@ -146,7 +170,11 @@ mod linux {
             slot,
             delay,
             epoch_ns,
-            first_frame: values.get("--first-frame").map(|s| s.parse().map_err(|_| "invalid --first-frame")).transpose()?.unwrap_or(1),
+            first_frame: values
+                .get("--first-frame")
+                .map(|s| s.parse().map_err(|_| "invalid --first-frame"))
+                .transpose()?
+                .unwrap_or(1),
             stop_frame: values
                 .get("--stop-frame")
                 .map(|s| s.parse().map_err(|_| "invalid --stop-frame"))
@@ -199,11 +227,121 @@ mod linux {
         Ok((build, epoch, slot, delay))
     }
 
+    fn parse_control(contents: &str) -> Result<ControlCommand, String> {
+        let mut fields = BTreeMap::<String, String>::new();
+        for token in contents.split_whitespace() {
+            let token = token.trim_matches('"');
+            if let Some((key, value)) = token.split_once('=') {
+                fields.insert(key.into(), value.into());
+            }
+        }
+        let value = |key: &str| {
+            fields
+                .get(key)
+                .ok_or_else(|| format!("control command lacks {key}"))
+        };
+        if value("v")? != "1" {
+            return Err("unsupported journal control version".into());
+        }
+        let number = |key: &str| {
+            value(key)?
+                .parse::<u32>()
+                .map_err(|_| format!("invalid {key} in control command"))
+        };
+        let state = match value("state")?.as_str() {
+            "PAUSE" => ControlState::PausePrepare,
+            "PAUSE_COMMIT" => ControlState::PauseCommit,
+            "RESUME" => ControlState::Resumed,
+            _ => return Err("invalid journal control state".into()),
+        };
+        let requested_frame = number("frame")?;
+        if requested_frame == 0 || requested_frame > LAST_FRAME {
+            return Err("control frame is outside the supported range".into());
+        }
+        Ok(ControlCommand {
+            build: value("build")?.clone(),
+            epoch: number("epoch")?,
+            slot: number("slot")?,
+            sequence: number("sequence")?,
+            state,
+            requested_frame,
+        })
+    }
+
     #[test]
     fn reads_native_preload_readiness() {
         let receipt = "function PreloadFiles takes nothing returns nothing\n\tcall Preload( \"SMASHCRAFT JOURNAL v=1 build=netcode-0022 epoch=1 slot=3\" )\n\tcall Preload( \"input=shadow-d0-r24 delay=0 rollback=24 first_frame=1\" )\nendfunction\n";
-        assert_eq!(parse_ready(receipt).unwrap(), ("netcode-0022".into(), 1, 3, 0));
+        assert_eq!(
+            parse_ready(receipt).unwrap(),
+            ("netcode-0022".into(), 1, 3, 0)
+        );
         assert!(parse_ready(&receipt.replace("first_frame=1", "first_frame=2")).is_err());
+    }
+
+    #[test]
+    fn reads_sequenced_pause_and_resume_control_receipts() {
+        let pause = "function PreloadFiles takes nothing returns nothing\ncall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable epoch=7 slot=2 sequence=3 state=PAUSE frame=91\" )\nendfunction";
+        assert_eq!(
+            parse_control(pause).unwrap(),
+            ControlCommand {
+                build: "playable".into(),
+                epoch: 7,
+                slot: 2,
+                sequence: 3,
+                state: ControlState::PausePrepare,
+                requested_frame: 91,
+            }
+        );
+        let resume = pause.replace("sequence=3 state=PAUSE", "sequence=4 state=RESUME");
+        assert_eq!(parse_control(&resume).unwrap().state, ControlState::Resumed);
+        assert!(parse_control(&pause.replace("frame=91", "frame=0")).is_err());
+    }
+
+    #[test]
+    fn resumed_segment_excludes_the_entire_pause_gap() {
+        let initial = FrameSegment {
+            epoch_ns: 1_000_000_000,
+            first_frame: 1,
+        };
+        let before_pause = frame_at(2_000_000_000, initial).unwrap();
+        assert_eq!(before_pause, 61);
+        let resumed = FrameSegment {
+            epoch_ns: 302_000_000_000,
+            first_frame: 61,
+        };
+        assert_eq!(frame_at(302_250_000_000, resumed).unwrap(), 76);
+        assert_eq!(frame_at(302_000_000_000, resumed).unwrap(), before_pause);
+    }
+
+    #[test]
+    fn queued_short_press_keeps_its_original_frames_across_a_250ms_service_stall() {
+        let segment = FrameSegment {
+            epoch_ns: 10_000_000_000,
+            first_frame: 1,
+        };
+        let button_down_ns = 10_015_000_000;
+        let button_up_ns = 10_035_000_000;
+        // Both kernel events are processed together after the 250ms delay;
+        // frame assignment still uses the original event timestamps.
+        let delayed_service_now_ns = 10_285_000_000;
+        assert!(delayed_service_now_ns - button_up_ns >= 250_000_000);
+        assert_eq!(frame_at(button_down_ns, segment).unwrap(), 1);
+        assert_eq!(frame_at(button_up_ns, segment).unwrap(), 3);
+    }
+
+    #[test]
+    fn resume_starts_neutral_and_never_replays_held_pause_state() {
+        let paused_state = State {
+            sources: 1 << 0,
+            ..State::default()
+        };
+        assert_ne!(action_state(paused_state), 0);
+        let resumed_state = State::default();
+        assert_eq!(action_state(resumed_state), 0);
+        assert_eq!(
+            encode_row(resumed_state, 0, Edges::default()),
+            compact(0, 1)
+        );
     }
 
     fn monotonic_ns() -> io::Result<u128> {
@@ -393,13 +531,14 @@ mod linux {
             .map_err(|_| "negative evdev CLOCK_MONOTONIC timestamp".into())
     }
 
-    fn frame_at(t: u128, epoch_ns: u128, delay: u32, first_frame: u32) -> Result<u32, String> {
-        if t < epoch_ns {
+    fn frame_at(t: u128, segment: FrameSegment) -> Result<u32, String> {
+        if t < segment.epoch_ns {
             return Err(format!(
-                "event at {t} predates declared capture epoch {epoch_ns}"
+                "event at {t} predates declared capture segment {}",
+                segment.epoch_ns
             ));
         }
-        let f = first_frame as u128 + ((t - epoch_ns) * HZ / 1_000_000_000) + delay as u128;
+        let f = segment.first_frame as u128 + ((t - segment.epoch_ns) * HZ / 1_000_000_000);
         if f > LAST_FRAME as u128 {
             return Err("frame counter exhausted".into());
         }
@@ -441,9 +580,7 @@ mod linux {
         edges: &mut BTreeMap<u32, Edges>,
         snapshots: &mut BTreeMap<u32, State>,
         earliest_unwritten: u32,
-        epoch_ns: u128,
-        delay: u32,
-        first_frame: u32,
+        segment: FrameSegment,
         trace: bool,
     ) -> Result<(), String> {
         let summary = event.destructure();
@@ -476,7 +613,7 @@ mod linux {
             return Ok(());
         }
         let timestamp = event_ns(&event)?;
-        let frame = frame_at(timestamp, epoch_ns, delay, first_frame)?;
+        let frame = frame_at(timestamp, segment)?;
         if frame < earliest_unwritten {
             return Err(format!(
                 "late kernel event belongs to frame {frame}, already-published cursor is {earliest_unwritten}; original frame retained and journal stopped"
@@ -544,10 +681,14 @@ mod linux {
             e.sdi_y = after_y;
         }
         for (bit, x, y) in [
-            (MOVE_LEFT, -1, 0), (MOVE_RIGHT, 1, 0),
-            (MOVE_DOWN, 0, -1), (MOVE_UP, 0, 1),
-            (SMASH_LEFT, -1, 0), (SMASH_RIGHT, 1, 0),
-            (SMASH_DOWN, 0, -1), (SMASH_UP, 0, 1),
+            (MOVE_LEFT, -1, 0),
+            (MOVE_RIGHT, 1, 0),
+            (MOVE_DOWN, 0, -1),
+            (MOVE_UP, 0, 1),
+            (SMASH_LEFT, -1, 0),
+            (SMASH_RIGHT, 1, 0),
+            (SMASH_DOWN, 0, -1),
+            (SMASH_UP, 0, 1),
         ] {
             if edge.pressed & bit != 0 {
                 e.throw_x = (e.throw_x + x).clamp(-127, 127);
@@ -601,6 +742,56 @@ mod linux {
         Ok(())
     }
 
+    fn control_path(dir: &Path, build: &str, epoch: u32, slot: u32, sequence: u32) -> PathBuf {
+        dir.join(format!(
+            "smashcraft-journal-control-{build}-e{epoch}-s{slot}-n{sequence}.txt"
+        ))
+    }
+
+    fn publish_control_ack(
+        dir: &Path,
+        build: &str,
+        epoch: u32,
+        slot: u32,
+        sequence: u32,
+        state: ControlState,
+        frame: u32,
+    ) -> io::Result<()> {
+        let target = dir.join(format!(
+            "smashcraft-journal-ack-{build}-e{epoch}-s{slot}-n{sequence}.pld"
+        ));
+        if target.exists() {
+            return Err(io::Error::new(
+                io::ErrorKind::AlreadyExists,
+                "journal control acknowledgment already exists",
+            ));
+        }
+        let state = match state {
+            ControlState::PausePrepare => "PREPARE",
+            ControlState::PauseCommit => "COMMIT",
+            ControlState::Paused => "PAUSE",
+            ControlState::Resumed => "RESUME",
+        };
+        let temp = dir.join(format!(
+            ".journal-ack-{epoch}-{slot}-{sequence}-{}.tmp",
+            std::process::id()
+        ));
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&temp)?;
+        writeln!(file, "function PreloadFiles takes nothing returns nothing")?;
+        writeln!(
+            file,
+            "call BlzSetAbilityTooltip('$wsl', \"ACK1|{sequence}|{state}|{frame}\", 0)"
+        )?;
+        writeln!(file, "endfunction")?;
+        drop(file);
+        fs::hard_link(&temp, &target)?;
+        fs::remove_file(temp)?;
+        Ok(())
+    }
+
     fn run() -> Result<(), String> {
         let o = options()?;
         if o.epoch == 0 || o.slot > 3 || o.delay > 64 {
@@ -616,7 +807,7 @@ mod linux {
             .map_err(|e| format!("set EVIOCSCLOCKID(CLOCK_MONOTONIC): {e}"))?;
         set_nonblocking(&device).map_err(|e| format!("set evdev nonblocking mode: {e}"))?;
         eprintln!(
-            "source={} name={:?} clock=CLOCK_MONOTONIC epoch_ns={} frame_rule=first+floor((t-E)*60/1e9)+delay first={} delay={} pause_policy=continuous-no-pause (experimental)",
+            "source={} name={:?} clock=CLOCK_MONOTONIC epoch_ns={} frame_rule=segment_frame+floor((t-segment_epoch)*60/1e9) first={} delay={} pause_policy=sequenced-map-control",
             o.device.display(),
             device.name(),
             o.epoch_ns,
@@ -676,6 +867,14 @@ mod linux {
         let mut snapshots = BTreeMap::<u32, State>::new();
         let mut previous = action_state(state);
         let mut next_frame = o.first_frame + o.delay;
+        let mut segment = FrameSegment {
+            epoch_ns: o.epoch_ns,
+            first_frame: next_frame,
+        };
+        let mut control_sequence = 1;
+        let mut paused = false;
+        let mut prepared = false;
+        let mut pause_barrier = None::<u32>;
         let mut pending = Vec::<String>::new();
         loop {
             // Only seal intervals completed before this queue drain. Taking
@@ -687,23 +886,120 @@ mod linux {
                 Err(error) => return Err(format!("evdev read: {error}")),
             };
             for event in events {
-                apply_event(
-                    &axes,
-                    &mut state,
-                    event,
-                    &mut edges,
-                    &mut snapshots,
-                    next_frame,
-                    o.epoch_ns,
-                    o.delay,
-                    o.first_frame,
-                    o.trace,
-                )?;
+                if !paused {
+                    apply_event(
+                        &axes,
+                        &mut state,
+                        event,
+                        &mut edges,
+                        &mut snapshots,
+                        next_frame,
+                        segment,
+                        o.trace,
+                    )?;
+                }
             }
-            if now >= o.epoch_ns {
-                let completed_through = ((((now - o.epoch_ns) * HZ) / 1_000_000_000)
-                    + u128::from(o.delay) + u128::from(o.first_frame) - 1)
-                    .min(LAST_FRAME as u128) as u32;
+            let command_path = control_path(&o.out, &o.build, o.epoch, o.slot, control_sequence);
+            let command = match fs::read_to_string(&command_path) {
+                Ok(contents) => {
+                    let command = parse_control(&contents)?;
+                    if command.build != o.build
+                        || command.epoch != o.epoch
+                        || command.slot != o.slot
+                        || command.sequence != control_sequence
+                    {
+                        return Err(
+                            "journal control identity does not match the active session".into()
+                        );
+                    }
+                    Some(command)
+                }
+                Err(error) if error.kind() == io::ErrorKind::NotFound => None,
+                Err(error) => return Err(format!("read journal control command: {error}")),
+            };
+            let mut pause_after_seal = None;
+            if let Some(command) = command {
+                if command.state == ControlState::PausePrepare && !paused {
+                    pause_after_seal = Some(command);
+                } else if command.state == ControlState::PauseCommit && paused && prepared {
+                    if command.requested_frame < next_frame {
+                        return Err(format!(
+                            "pause barrier {} precedes helper frontier {next_frame}",
+                            command.requested_frame
+                        ));
+                    }
+                    paused = false;
+                    prepared = false;
+                    pause_barrier = Some(command.requested_frame);
+                    segment = FrameSegment {
+                        epoch_ns: now,
+                        first_frame: next_frame,
+                    };
+                    state = State::default();
+                    row_state = State::default();
+                    previous = 0;
+                    edges.clear();
+                    snapshots.clear();
+                    pending.clear();
+                    if o.trace {
+                        eprintln!(
+                            "control sequence={} state=PAUSE_COMMIT target={} frontier={} epoch_ns={now}",
+                            command.sequence, command.requested_frame, next_frame
+                        );
+                    }
+                    control_sequence += 1;
+                } else if command.state == ControlState::Resumed && paused && !prepared {
+                    if command.requested_frame != next_frame {
+                        return Err(format!(
+                            "resume requested frame {} does not match paused cursor {next_frame}",
+                            command.requested_frame
+                        ));
+                    }
+                    segment = FrameSegment {
+                        epoch_ns: now,
+                        first_frame: next_frame,
+                    };
+                    state = State::default();
+                    row_state = State::default();
+                    previous = 0;
+                    edges.clear();
+                    snapshots.clear();
+                    pending.clear();
+                    paused = false;
+                    publish_control_ack(
+                        &o.out,
+                        &o.build,
+                        o.epoch,
+                        o.slot,
+                        command.sequence,
+                        command.state,
+                        next_frame,
+                    )
+                    .map_err(|e| e.to_string())?;
+                    if o.trace {
+                        eprintln!(
+                            "control sequence={} state=RESUME frame={} epoch_ns={now}",
+                            command.sequence, next_frame
+                        );
+                    }
+                    control_sequence += 1;
+                } else if command.state != ControlState::PauseCommit {
+                    return Err("journal pause/resume commands are out of order".into());
+                }
+            }
+            if !paused && now >= segment.epoch_ns {
+                let mut completed_through = (((now - segment.epoch_ns) * HZ / 1_000_000_000)
+                    + u128::from(segment.first_frame)
+                    - 1)
+                .min(LAST_FRAME as u128) as u32;
+                if pause_after_seal.is_some() {
+                    if let Some(last_assigned) = edges.keys().chain(snapshots.keys()).max() {
+                        completed_through = completed_through.max(*last_assigned);
+                    }
+                }
+                if let Some(barrier) = pause_barrier {
+                    completed_through = completed_through.min(barrier - 1);
+                }
                 while next_frame <= completed_through {
                     if o.stop_frame.is_some_and(|stop| next_frame > stop) {
                         return Ok(());
@@ -731,6 +1027,74 @@ mod linux {
                         return Ok(());
                     }
                     next_frame += 1;
+                }
+                if let Some(command) = pause_after_seal {
+                    if !pending.is_empty() {
+                        publish(
+                            &o.out,
+                            &o.build,
+                            o.epoch,
+                            o.slot,
+                            next_frame - pending.len() as u32,
+                            &pending,
+                        )
+                        .map_err(|e| e.to_string())?;
+                        pending.clear();
+                    }
+                    paused = true;
+                    prepared = true;
+                    publish_control_ack(
+                        &o.out,
+                        &o.build,
+                        o.epoch,
+                        o.slot,
+                        command.sequence,
+                        ControlState::PausePrepare,
+                        next_frame,
+                    )
+                    .map_err(|e| e.to_string())?;
+                    if o.trace {
+                        eprintln!(
+                            "control sequence={} state=PREPARE frame={} epoch_ns={now}",
+                            command.sequence, next_frame
+                        );
+                    }
+                    control_sequence += 1;
+                }
+                if pause_barrier.is_some_and(|barrier| next_frame >= barrier) {
+                    let barrier = pause_barrier.take().unwrap();
+                    if next_frame != barrier {
+                        return Err("pause barrier cursor advanced past its requested frame".into());
+                    }
+                    if !pending.is_empty() {
+                        publish(
+                            &o.out,
+                            &o.build,
+                            o.epoch,
+                            o.slot,
+                            next_frame - pending.len() as u32,
+                            &pending,
+                        )
+                        .map_err(|e| e.to_string())?;
+                        pending.clear();
+                    }
+                    paused = true;
+                    publish_control_ack(
+                        &o.out,
+                        &o.build,
+                        o.epoch,
+                        o.slot,
+                        control_sequence - 1,
+                        ControlState::Paused,
+                        barrier,
+                    )
+                    .map_err(|e| e.to_string())?;
+                    if o.trace {
+                        eprintln!(
+                            "control sequence={} state=PAUSE frame={barrier} epoch_ns={now}",
+                            control_sequence - 1
+                        );
+                    }
                 }
             }
             thread::sleep(Duration::from_millis(1));
