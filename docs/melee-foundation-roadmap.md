@@ -41,10 +41,10 @@ It also includes retail launch stacking, damage-level selection, grounded
 movement, rebound and test-arena surface recovery. These implementations do not
 establish full parity or complete collision geometry.
 
-The latest assembled simulation check passed 561/561 normal Wurstunit checks,
-after the equivalent shield-fixture deduplication documented below and the
-projectile/melee powershield and fractional DI input changes. The earlier aggregate
-passed 592/592 before that deduplication. The
+The latest assembled simulation check passed 566/566 normal Wurstunit checks,
+after ordinary melee capsule contacts and damage-only surface-rebound eligibility
+were integrated. The previous check passed 561/561 after shield-fixture
+deduplication; the earlier aggregate passed 592/592 before that deduplication. The
 generated-Lua production probe passes selected grounded-friction, shield regen,
 shield damage, shield-contact accumulation and fused shieldstun boundaries,
 plus 22 composed ground-motion cases and four shield-entry overwrite cases.
@@ -78,12 +78,23 @@ rule; complete input/attack trajectories and native action timing remain open.
 Other formula rounding, shield geometry/powershields,
 connected/sloped ECB contacts and native trajectory checks remain open.
 
-The latest physics candidate is Smashcraft 0.0.12, build physics-shield-scale,
-source 949343a9755dd5399b4834e77b61b58e5107debb. It built with zero errors and
+Ordinary strikes now classify capsule contact with the shield circle separately
+from contact with an independently authored body capsule. Held guard can be
+poked, and a strike can reach the shield before reaching the body. Fighter
+stats, damage and action timing are retained; contact reach uses explicit
+provisional custom strike paths rather than victim-origin rectangles. Grab,
+summon and special queries still have simplified geometry. The new body shapes
+are pose-independent, and this is not retail hitbox/hurtbox reconstruction.
+Ordinary movement with residual knockback no longer starts a damage rebound.
+The retail DamageFly/DamageFall/FlyReflect distinctions remain unverified in
+the current single-tumble-state model. Evidence: smashcraft:build/contact-assembled.log.
+
+The latest physics candidate is Smashcraft 0.0.14, build physics-melee-contact,
+source 3f43d76812a20103499e91a2b9d869e1e2133358. It built with zero errors and
 six existing warnings. SHA-256:
-a528cef284088b126e171b8f8382e6c7740ab55d233fab35e2f435d9609daef7.
-Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x.
-Build evidence: smashcraft:build/shield-scale-map.log. Deployment was disabled;
+570608243c8c25b0ada247f28b1df7720379de7db3e21f87ddcef37bfed5aae8.
+Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.14.w3x.
+Build evidence: smashcraft:build/contact-map.log. Deployment was disabled;
 this candidate has not been installed or observed natively. Separate native
 input/contact probes do not establish its physics or presentation. The separate
 native arithmetic candidate in smashcraft:docs/native-physics-precision.md
