@@ -48,7 +48,8 @@ and no keys reach the other window. Selective repair removes the multi-second
 retry amplification: A's native sync-echo median/max is now 180/397 ms versus
 1698/4894 ms with whole-suffix retries; B is 147/297 ms. These are transport echoes,
 not physical or visible local response. The bounded focus defect is closed;
-chat/menu, reconnect/rematch, hardware and broader response remain open. Exact
+chat, reconnect, hardware and broader response remain open. Controller menus
+and rematch have since passed as recorded below. Exact
 scope and raw evidence: wc3-melee:docs/native-text-receipts-20261005/README.md.
 
 **Automatic start/results/rematch delivered:** the candidate now follows local
@@ -98,7 +99,7 @@ wc3-melee:docs/resume-clock-native-20261005/README.md.
 | Can late original-frame input repair the combat outcome? | Demonstrated for the native F5 shield corpus: damage 12 becomes 0, shieldstun 7, canonical and confirmed states agree. | [#29, completed](https://github.com/tompassarelli/smashcraft/issues/29) |
 | Have selection/GameCache beaten direct sync? | No in the corrected bounded 60 Hz comparison; direct sync is the selected baseline. | [#30, completed comparison](https://github.com/tompassarelli/smashcraft/issues/30) |
 | Can short inputs disappear or merge? | The 0.0.41 controller path has bounded tap/stall, focus and rematch passes. The older 0.0.40 polling path can miss/coalesce inputs. Chat, reconnect and hardware acceptance remain open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
-| Is every acquired input assigned to its intended frame despite delayed service? | The candidate preserves tested tap/stall frames and now keeps a post-resume tap at frame 98 despite a 361 ms delayed resume read. Local publication anchors still differ; cross-machine alignment remains open. 0.0.40 still assigns by local progress. | [#25, partial](https://github.com/tompassarelli/smashcraft/issues/25) |
+| Is every acquired input assigned to its intended frame despite delayed service? | The path released in 0.0.41 preserves tested tap/stall frames and keeps a post-resume tap at frame 98 despite a 361 ms delayed resume read. Local publication anchors still differ; cross-machine alignment remains open. | [#25, partial](https://github.com/tompassarelli/smashcraft/issues/25) |
 | What physical response and 3–5-frame variation should a player expect? | Candidate B software shield response: 12/12 presses, median 67.95 ms, max 98.17 ms. The measured admission backlog is fixed: 13/13 retained edge rows predict in the same callback. Physical response remains unmeasured. | [#27, partial](https://github.com/tompassarelli/smashcraft/issues/27) |
 | Can two clients fight and rematch? | Installed 0.0.41 passes controller-only menus, damaging combat, shield overlap, pause and rematch with persistent helpers. Full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |
 
@@ -218,7 +219,7 @@ original descriptions remain accessible. Those closures are not completion.
 | #20 2–4 players / ten matches | Consolidated into #17; the full requested match corpus remains required. |
 | #21 Timeboxed integrity decision | Already completed as a HOLD decision, not a positive readiness result. |
 | #25 Intended frames | Open; canonical owner for frame assignment, clock and pause semantics. |
-| #26 Input retention | Partial; candidate's tap/stall, Start pause/resume and bounded focus recovery corpora pass. Keyboard interference and broader lifecycle remain open; playable 0.0.40's polling limitation remains. |
+| #26 Input retention | Partial; 0.0.41 delivers the path with bounded tap/stall, pause/focus, shield overlap and combat/rematch passes. Chat, reconnect and hardware acceptance remain open; the preserved older 0.0.40 retains its polling limitation. |
 | #27 Response/variation | Partial; candidate software shield response measured and admission-to-prediction delay repaired with native evidence. Broader action/physical scope remains. |
 | #28 After-capture shield prediction | Completed bounded evidence, registered during this review. |
 | #29 Native tagged defense rollback | Completed bounded evidence, registered during this review. |
