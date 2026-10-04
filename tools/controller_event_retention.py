@@ -40,12 +40,13 @@ def monotonic_ns():
 
 
 class VirtualGamepad:
-    def __init__(self):
+    def __init__(self, buttons=(BTN_SOUTH,)):
         self.fd = os.open("/dev/uinput", os.O_WRONLY | os.O_NONBLOCK)
         try:
             fcntl.ioctl(self.fd, UI_SET_EVBIT, EV_KEY)
             fcntl.ioctl(self.fd, UI_SET_EVBIT, EV_ABS)
-            fcntl.ioctl(self.fd, UI_SET_KEYBIT, BTN_SOUTH)
+            for button in buttons:
+                fcntl.ioctl(self.fd, UI_SET_KEYBIT, button)
             for code in (ABS_X, ABS_Y, ABS_Z, ABS_RX, ABS_RY, ABS_RZ):
                 fcntl.ioctl(self.fd, UI_SET_ABSBIT, code)
             minimum = [0] * ABS_CNT

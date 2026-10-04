@@ -19,8 +19,8 @@ public class EditboxJournalIngress
         inputBox.setTextSizeLimit(EDITBOX_JOURNAL_CAPACITY)
         inputBox.setVisible(false)
         pauseLabel = createTextFrame("JournalPauseHelp", GAME_UI, 970)
-        pauseLabel.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.65, 0.51)
-        pauseLabel.setSize(0.11, 0.025)
+        pauseLabel.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.61, 0.49)
+        pauseLabel.setSize(0.15, 0.025)
         pauseLabel.setVisible(false)
 
     function beginEpoch()
@@ -46,7 +46,7 @@ public class EditboxJournalIngress
 
     function updatePauseLabel(boolean paused, boolean pending, boolean targetPaused)
         if active
-            pauseLabel.setText(pending ? (targetPaused ? "Pausing…" : "Resuming…") : (paused ? "Resume: F8" : "Pause: F8"))
+            pauseLabel.setText(pending ? (targetPaused ? "Pausing…" : "Resuming…") : (paused ? "Resume: Start" : "Pause: Start"))
 
     function failed() returns string
         return failure

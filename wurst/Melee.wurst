@@ -88,7 +88,6 @@ int shadowInputEpoch = 0
 int shadowLastCaptureTarget = 0
 boolean shadowLocalSendFailed = false
 boolean journalInputFailed = false
-boolean journalPauseKeyHeld = true
 boolean journalPausePending = false
 boolean journalPauseAckReceived = false
 boolean journalPauseTarget = false
@@ -670,7 +669,7 @@ function commitJournalPauseAtFrame()
 		return
 	matchControls.setPaused(journalPauseTarget)
 	pauseMatchPresentation(journalPauseTarget)
-	statusText = journalPauseTarget ? (JOURNAL_EDITBOX_INGRESS ? "Paused — press F8 to resume." : "Paused — press Y to resume.") : "Resumed."
+	statusText = journalPauseTarget ? (JOURNAL_EDITBOX_INGRESS ? "Paused — press Start to resume." : "Paused — press Y to resume.") : "Resumed."
 	statusTime = journalPauseTarget ? 3600 : 1
 	journalPausePending = false
 	journalPauseAckReceived = false
@@ -714,7 +713,7 @@ function serviceJournalInput()
 				if editboxJournalIngress.failed() != ""
 					failJournalInput(editboxJournalIngress.failed())
 					return
-				if wire.length() >= 5 and wire.substring(0, 5) == "ACK1|"
+				if (wire.length() >= 5 and wire.substring(0, 5) == "ACK1|") or (wire.length() >= 3 and wire.substring(0, 3) == "JP1")
 					return
 			else if JOURNAL_KEYBOARD_INGRESS
 				keyboardJournalIngress.pollChunk()
@@ -1414,7 +1413,6 @@ function beginShadowEpoch() returns boolean
     journalInputFailed = false
     journalTransportReadyMask = 0
     journalTransportStartSent = false
-    journalPauseKeyHeld = true
     journalPausePending = false
     journalPauseAckReceived = false
     journalPauseCommitSent = false
@@ -1775,22 +1773,18 @@ function onNativeTransportProbeStart()
     if GetTriggerPlayer() == GetLocalPlayer() and shadowInputActive and not nativePreloadProbeActive() and transportIsolationPhase == 0
         nativeTransportProbeRequestStart()
 
-// A nonprinting key can be polled while the text receiver retains focus.
-// Local polling must cross a sync event before starting the shared barrier.
-function pollEditboxJournalPause()
-    if not JOURNAL_EDITBOX_INGRESS
+// The controller's Start request shares the ordered text stream with its rows.
+// It crosses a sync event before starting the shared pause barrier.
+function serviceEditboxJournalPauseRequest()
+    if not JOURNAL_EDITBOX_INGRESS or not shadowInputActive or matchState.phase != MATCH or journalInputFailed
         return
-    if not shadowInputActive or matchState.phase != MATCH or not BlzIsLocalClientActive()
-        journalPauseKeyHeld = true
+    let wire = editboxJournalIngress.peek()
+    if wire.length() < 3 or wire.substring(0, 3) != "JP1"
         return
-    let held = BlzIsKeyPressed(OSKEY_F8)
-    let pressed = held and not journalPauseKeyHeld
-    journalPauseKeyHeld = held
-    if not pressed or journalPausePending or journalInputFailed or not matchState.humanActive(GetPlayerId(GetLocalPlayer()))
-        return
-    let wire = "JP1" + journalPad10(shadowInputEpoch) + journalPad10(journalInput.controlSequenceNumber()) + (matchControls.isPaused() ? "R" : "P")
     if not BlzSendSyncData("SC_JP", wire)
         failJournalInput("pause request could not be synchronized")
+    else if not editboxJournalIngress.consumed()
+        failJournalInput(editboxJournalIngress.failed())
 
 function receiveEditboxJournalPause()
     if not shadowInputActive or matchState.phase != MATCH or journalPausePending or journalInputFailed
@@ -1924,7 +1918,7 @@ function renderUI()
     BlzFrameSetVisible(noticeFrame, not selecting and not controlsOpen)
     BlzFrameSetVisible(developerFrame, not selecting and not controlsOpen)
     if not selecting
-        BlzFrameSetText(helpFrame, matchState.phase == RESULT ? rematchStatus() : (matchControls.isPaused() ? "PAUSED — Press " + (JOURNAL_EDITBOX_INGRESS ? "F8" : "Y") + " to resume. Combat is frozen." : (JOURNAL_EDITBOX_INGRESS ? "F8" : "Y") + ": pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge."))
+        BlzFrameSetText(helpFrame, matchState.phase == RESULT ? rematchStatus() : (matchControls.isPaused() ? "PAUSED — Press " + (JOURNAL_EDITBOX_INGRESS ? "Start" : "Y") + " to resume. Combat is frozen." : (JOURNAL_EDITBOX_INGRESS ? "Start" : "Y") + ": pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge."))
         if localFighter != null and matchState.phase == MATCH and not matchControls.isPaused() and localFighter.downState == DOWN_WAIT
             BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
         else if localFighter != null and matchState.phase == MATCH and not matchControls.isPaused() and localFighter.ledgeState == LEDGE_HANG
@@ -2061,7 +2055,7 @@ function callbackMatchTick()
         applyFrame()
 
 function gameTick()
-    pollEditboxJournalPause()
+    serviceEditboxJournalPauseRequest()
     if JOURNAL_EDITBOX_INGRESS and (not shadowInputActive or matchState.phase != MATCH)
         editboxJournalIngress.endEpoch()
     transportIsolationTick()

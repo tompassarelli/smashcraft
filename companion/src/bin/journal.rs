@@ -987,6 +987,61 @@ mod linux {
         ((value - info.minimum()).clamp(0, range) * 32_767 / range) as u16
     }
 
+    fn pause_request_wire(
+        event: &evdev::InputEvent,
+        start_held: &mut bool,
+        epoch: u32,
+        sequence: u32,
+        paused: bool,
+        pending: bool,
+    ) -> Option<String> {
+        let EventSummary::Key(_, Key::BTN_START, value) = event.destructure() else {
+            return None;
+        };
+        let pressed = value == 1 && !*start_held;
+        if value != 2 {
+            *start_held = value != 0;
+        }
+        if !pressed || pending {
+            return None;
+        }
+        Some(format!(
+            "JP1{epoch:010}{sequence:010}{}",
+            if paused { 'R' } else { 'P' }
+        ))
+    }
+
+    #[test]
+    fn controller_start_requests_pause_and_resume_once_per_press() {
+        let down = evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_START.0, 1);
+        let repeat = evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_START.0, 2);
+        let up = evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_START.0, 0);
+        let mut held = false;
+        assert_eq!(
+            pause_request_wire(&down, &mut held, 7, 1, false, false).as_deref(),
+            Some("JP100000000070000000001P")
+        );
+        assert_eq!(
+            pause_request_wire(&repeat, &mut held, 7, 1, false, false),
+            None
+        );
+        assert_eq!(
+            pause_request_wire(&down, &mut held, 7, 3, true, false),
+            None
+        );
+        assert_eq!(pause_request_wire(&up, &mut held, 7, 3, true, false), None);
+        assert_eq!(
+            pause_request_wire(&down, &mut held, 7, 3, true, false).as_deref(),
+            Some("JP100000000070000000003R")
+        );
+        pause_request_wire(&up, &mut held, 7, 3, true, true);
+        assert_eq!(pause_request_wire(&down, &mut held, 7, 3, true, true), None);
+        assert_eq!(
+            pause_request_wire(&down, &mut held, 7, 3, true, false),
+            None
+        );
+    }
+
     fn apply_event(
         ranges: &[Option<evdev::AbsInfo>; 6],
         state: &mut State,
@@ -1445,6 +1500,7 @@ mod linux {
             first_frame: next_frame,
         };
         let mut control_sequence = 1;
+        let mut start_held = false;
         let mut paused = false;
         let mut prepared = false;
         let mut stop_capture = false;
@@ -1470,6 +1526,22 @@ mod linux {
                 Err(error) => return Err(format!("evdev read: {error}")),
             };
             for event in events {
+                if o.editbox_display.is_some() {
+                    if let Some(wire) = pause_request_wire(
+                        &event,
+                        &mut start_held,
+                        o.epoch,
+                        control_sequence,
+                        paused,
+                        prepared || pause_barrier.is_some() || stop_capture,
+                    ) {
+                        mailbox
+                            .as_mut()
+                            .expect("editbox sender")
+                            .enqueue(wire)
+                            .map_err(|error| format!("controller pause request: {error}"))?;
+                    }
+                }
                 if !paused && !stop_capture {
                     apply_event(
                         &axes,
