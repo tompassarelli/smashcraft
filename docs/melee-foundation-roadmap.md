@@ -76,12 +76,12 @@ rule; complete input/attack trajectories and native action timing remain open.
 Other formula rounding, shield geometry/powershields,
 connected/sloped ECB contacts and native trajectory checks remain open.
 
-The latest physics candidate is Smashcraft 0.0.12, build physics-36f99e9,
-source 36f99e92f24d8a59d7d1b6951583b9104fd2a300. It built with zero errors and
+The latest physics candidate is Smashcraft 0.0.12, build physics-powershield-actions,
+source a698e239af0c8ec7dd2cfc1f16df779c01eb9975. It built with zero errors and
 six existing warnings. SHA-256:
-f7759db309873fdb1bc6307c2565b2ad19bf21e1adb3bfe0708d2e54b5bbc682.
+43443760c6d93e4f52be88773af45d740201b9a9831d53449d1f826516cdc832.
 Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x.
-Build evidence: smashcraft:build/melee-powershield-map.log. Deployment was disabled;
+Build evidence: smashcraft:build/powershield-actions-map.log. Deployment was disabled;
 this candidate has not been installed or observed natively. Separate native
 input/contact probes do not establish its physics or presentation. The separate
 native arithmetic candidate in smashcraft:docs/native-physics-precision.md
