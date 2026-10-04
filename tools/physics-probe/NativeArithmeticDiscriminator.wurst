@@ -53,8 +53,8 @@ init
 		let normalizedWorld = normalized * 6.
 		advance(fighter, 0, input, 0)
 		if not found and (current != direct or current != normalizedWorld)
-			set found = true
-			set firstFallDivergence = "frame=" + I2S(frame) +
+			found = true
+			firstFallDivergence = "frame=" + I2S(frame) +
 				" sourceValue=" + binary32Fields(value) +
 				" displacement=" + binary32Fields(displacement) +
 				" current=" + binary32Fields(current) +
@@ -65,7 +65,7 @@ init
 				" actualZ=" + binary32Fields(fighter.z) +
 				" sourceMatchesCurrent=" + (fighter.vz == current ? "1" : "0")
 	let sentinel = (((0.7 + 0.1) + 0.1) + 0.1)
-	set nativeRoundingUlpOffset = R2I((sentinel - 1.) * 8388608.)
+	nativeRoundingUlpOffset = R2I((sentinel - 1.) * 8388608.)
 	doAfter(0.05) ->
 		reportPhysicsArithmeticDiscriminator()
 	destroy input
