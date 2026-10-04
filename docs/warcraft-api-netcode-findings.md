@@ -628,3 +628,13 @@ regression and helper build passed. Final native pause/resume remains open.
 The digital mapper and its responsive native 0.0.40 result remain separate.
 Exact candidate, failure limits and recovery state:
 wc3-melee:docs/journal-pause-checkpoint-20261004.md.
+
+The corrected native retry retained both edges of a roughly 5.1 ms virtual-pad
+tap at original frame 19 in both helpers. They published through frame 2130
+without the old partial-control parse failure. The 35-second PREPARE wait
+expired before either helper observed its control command. A later held Y
+produced complete PAUSE requests on both clients at journal cursor 65 after
+the helpers were reaped. The driver never exercised resume or its planned
+helper stall. This remains an unfinished native integration check; helper
+edge retention does not establish intended-frame gameplay application.
+Evidence: wc3-melee:docs/journal-pause0041-evidence-20261004/.

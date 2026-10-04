@@ -1,0 +1,5 @@
+source=/dev/input/event2 name=Some("Smashcraft Event Retention Virtual Gamepad") clock=CLOCK_MONOTONIC epoch_ns=511446766915757 frame_rule=segment_frame+floor((t-segment_epoch)*60/1e9) first=1 delay=0 pause_policy=sequenced-map-control
+readiness_receipt=/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-ready-pause-0041-e1-p1.txt
+event mono_ns=511447068925000 frame=19 held=32 pressed=32 released=0
+event mono_ns=511447074059000 frame=19 held=0 pressed=0 released=32
+published_frame_count=2131 first=1 last=2131

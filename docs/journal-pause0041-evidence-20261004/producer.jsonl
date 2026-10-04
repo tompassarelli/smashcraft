@@ -1,0 +1,2 @@
+{"phase":"before-pause","event":"attack-down","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":511447068824808,"producer_after_write_monotonic_ns":511447068841710}
+{"phase":"before-pause","event":"attack-up","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":511447073989300,"producer_after_write_monotonic_ns":511447073996744}
