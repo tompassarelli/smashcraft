@@ -71,6 +71,27 @@ SHA256: `0a435ea41c8260bbd4b5a6309c6d29d8e512909239ed23c6cd52553137c66115`.
 Deployment remains disabled while concurrent input work owns the clients;
 native observation is outstanding.
 
+An independent recording now supports the digital tumble-exit ordering:
+smashcraft:docs/smash-melee-reference/slippi-ntsc-tumble-exit.json retains
+frames 2980–2982 from the hash-identified Slippi techTester recording. Neutral
+DamageFall at 2980 becomes ordinary Fall on left input at 2981, with horizontal
+self velocity already -0.05999999865889549 that frame; the next held frame
+has -0.11999999731779099. The production fixture injects the observed drift
+increment and checks the state transition, both horizontal self velocities and
+horizontal positions on both existing simulation hosts. It does not establish
+actor acceleration attributes, vertical trajectory or exact trigonometric
+knockback arithmetic. Position/velocity tolerances are 0.0001/0.00001 world
+units, respectively, and do not imply bitwise equality.
+
+The recording is explicitly NTSC but does not identify the retail revision;
+it supports ordering rather than certifying NTSC 1.02. The independently
+authored intake tool, smashcraft:tools/physics-probe/extract-tumble-exit.mjs,
+reparses the hash-checked source through the existing unmodified LGPL parser.
+The focused recordedTumbleExit case passed 1/1 (both simulation hosts), with
+zero errors and the existing unused-import warning; evidence:
+smashcraft:build/tumble-exit-trace.log. Production code and the 0.0.16 map are
+unchanged by this additional frame check.
+
 ## Wall and ceiling eligibility
 
 Weak airborne Damage also does not select wall/ceiling recovery. At the

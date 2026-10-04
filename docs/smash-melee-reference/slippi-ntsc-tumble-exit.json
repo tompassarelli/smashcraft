@@ -1,0 +1,82 @@
+{
+  "id": "slippi-ntsc-digital-tumble-exit",
+  "source": "https://raw.githubusercontent.com/project-slippi/slippi-js/ff815345e641836a331191320c0f6eae21542a5f/slp/techTester.slp",
+  "sourceRevision": "ff815345e641836a331191320c0f6eae21542a5f",
+  "sourceSha256": "05f02093dcbe2314ca0aa9547f596ac2295f3d831c72ee9b52fa70a215060351",
+  "parser": {
+    "package": "@slippi/slippi-js",
+    "version": "9.1.3",
+    "license": "LGPL-3.0-or-later",
+    "scope": "Unmodified local intake; numerical telemetry retained."
+  },
+  "recording": {
+    "slpVersion": "3.9.0",
+    "isPAL": false,
+    "gameRevision": null,
+    "stageId": 32,
+    "playerIndex": 0
+  },
+  "limitations": [
+    "Recording does not identify retail revision; this is supporting NTSC ordering evidence, not revision-specific certification.",
+    "Production fixture checks action selection and horizontal self drift only; full airborne knockback arithmetic and vertical trajectory are separate claims."
+  ],
+  "samples": [
+    {
+      "frame": 2980,
+      "action": 38,
+      "actionFrame": 4,
+      "x": 1.2414255142211914,
+      "y": 11.447086334228516,
+      "airborne": true,
+      "hitlag": 0,
+      "joystickX": 0,
+      "joystickY": 0,
+      "buttons": 0,
+      "velocities": {
+        "airX": 0,
+        "y": -2.9000000953674316,
+        "attackX": 3.8275018710010045e-8,
+        "attackY": 0.5517960786819458,
+        "groundX": 0
+      }
+    },
+    {
+      "frame": 2981,
+      "action": 29,
+      "actionFrame": 0,
+      "x": 1.1814255714416504,
+      "y": 9.047883033752441,
+      "airborne": true,
+      "hitlag": 0,
+      "joystickX": -1,
+      "joystickY": 0,
+      "buttons": 0,
+      "velocities": {
+        "airX": -0.05999999865889549,
+        "y": -2.9000000953674316,
+        "attackX": 3.337254739221862e-8,
+        "attackY": 0.5007960796356201,
+        "groundX": 0
+      }
+    },
+    {
+      "frame": 2982,
+      "action": 29,
+      "actionFrame": 1,
+      "x": 1.0614255666732788,
+      "y": 6.597679138183594,
+      "airborne": true,
+      "hitlag": 0,
+      "joystickX": -1,
+      "joystickY": 0,
+      "buttons": 0,
+      "velocities": {
+        "airX": -0.11999999731779099,
+        "y": -2.9000000953674316,
+        "attackX": 2.8470074298070358e-8,
+        "attackY": 0.44979608058929443,
+        "groundX": 0
+      }
+    }
+  ]
+}

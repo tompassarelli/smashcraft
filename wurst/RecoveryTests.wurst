@@ -5,6 +5,31 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function recordedTumbleExitAppliesDriftOnTheTransitionFrame()
+	for host = 0 to 1
+		let fighter = new FighterState(host, 1.2414255142211914 * 6, 1)
+		let input = new InputSnapshot()
+		fighter.grounded = false
+		fighter.surface = -1
+		fighter.z = 11.447086334228516 * 6
+		fighter.vz = -2.9000000953674316 * 6
+		fighter.knockbackX = 0.000000038275018710010045 * 6
+		fighter.knockbackZ = 0.5517960786819458 * 6
+		fighter.downState = DOWN_TUMBLE
+		// Supplied observed full-stick drift; this case does not certify actor attributes.
+		fighter.physics.airAcceleration = 0.05999999865889549 * 6
+		input.direction = -1
+		advance(fighter, 0, input, 0)
+		fighter.downState.assertEquals(DOWN_NONE)
+		fighter.vx.assertEquals(-0.05999999865889549 * 6, 0.00001)
+		fighter.x.assertEquals(1.1814255714416504 * 6, 0.0001)
+		advance(fighter, 0, input, 0)
+		fighter.downState.assertEquals(DOWN_NONE)
+		fighter.vx.assertEquals(-0.11999999731779099 * 6, 0.00001)
+		fighter.x.assertEquals(1.0614255666732788 * 6, 0.0001)
+		destroy input
+		destroy fighter
+
 @Test function tumbleExitRequiresFreshHorizontalInputAfterHitstun()
 	let fighter = new FighterState(0, 0, 1)
 	let input = new InputSnapshot()
