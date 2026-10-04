@@ -330,9 +330,30 @@ def main():
                 marker = "UNSENTCHATPROBE"
                 journey = dict(event="chat", epoch=epoch, slot=slot, marker=marker,
                                open_pattern=args.chat_open_pattern, observations=[],
-                               policy="neutralize gameplay while chat is open; suppress chat-period actions; "
-                                      "neutral rearm after close; preserve original frame for fresh input")
+                               policy="chat uses shared pause; suppress chat-period actions; "
+                                      "close chat before resume; neutral rearm; preserve fresh input frames")
                 events.append(journey)
+
+                def publications(state):
+                    found = []
+                    for player in range(2):
+                        matches = [p for p in data[player].glob(
+                            f"smashcraft-journal-control-{args.build}-e{epoch}-s{player}-n*.txt")
+                            if complete(p) and f" state={state} " in p.read_text()]
+                        if len(matches) != 1:
+                            return None
+                        found.append(matches[0])
+                    return found
+
+                def chat_receipt(state, serial=None):
+                    path = data[slot] / f"smashcraft-journal-text-ack-{args.build}-e{epoch}-p{slot}.txt"
+                    if not complete(path):
+                        return None
+                    match = re.search(r" chat=(\d+) chatState=(\d+) chatFrame=(\d+)", path.read_text())
+                    if (match and int(match[1]) > 0 and int(match[2]) == state and int(match[3]) == 1
+                            and (serial is None or int(match[1]) == serial)):
+                        return path
+                    return None
 
                 def observe(label):
                     path = args.out / f"chat-{epoch}-{label}.png"
@@ -365,6 +386,11 @@ def main():
                             break
                     if not opened:
                         raise RuntimeError("native chat opening unproven; inspect retained chat captures")
+                    until(lambda: chat_receipt(3), "native chat visibility was not observed by the map")
+                    journey["open_receipt"] = capture_boundary(chat_receipt(3))
+                    serial = int(re.search(r" chat=(\d+)", journey["open_receipt"]["contents"])[1])
+                    until(lambda: publications("PAUSE_COMMIT"), "chat did not establish a shared pause")
+                    journey["pause_publications"] = [capture_boundary(p) for p in publications("PAUSE_COMMIT")]
                     keys(slot, "type", "--delay", "35", marker)
                     text = observe("marker")
                     if marker not in re.sub(r"\s+", "", text).upper():
@@ -374,11 +400,24 @@ def main():
                     # Keep one button held across close: it must not rearm until
                     # the controller becomes neutral.
                     send(slot, EV_KEY, BTN_SOUTH, 1, prefix + "held-across-close")
+                    menu_button(1 - slot, 0x13b, prefix + "blocked-resume")
                     observe("stimulus")
+                    if publications("RESUME"):
+                        raise RuntimeError("opponent resumed gameplay while native chat was open")
+                    journey["blocked_resume_no_publication"] = True
                 finally:
                     journey["escape_monotonic_ns"] = time.monotonic_ns()
                     keys(slot, "key", "Escape")
                     observe("closed")
+                until(lambda: chat_receipt(0, serial), "controller receiver was not restored after chat")
+                journey["closed_receipt"] = capture_boundary(chat_receipt(0, serial))
+                # The other neutral controller requests resume while the chat
+                # player's Attack remains held; it must stay suppressed.
+                menu_button(1 - slot, 0x13b, prefix + "resume")
+                until(lambda: publications("RESUME"), "controller did not resume after chat closed")
+                journey["resume_publications"] = [capture_boundary(p) for p in publications("RESUME")]
+                until(lambda: all(" state=RESUME " in (args.out / f"helper-{player}.log").read_text()
+                                  for player in range(2)), "helpers did not accept chat resume")
                 time.sleep(.2)
                 send(slot, EV_KEY, BTN_SOUTH, 0, prefix + "neutral")
                 time.sleep(.2)

@@ -125,7 +125,7 @@ public class EditboxJournalIngress
 
     function updatePauseLabel(boolean paused, boolean pending, boolean targetPaused)
         if active
-            pauseLabel.setText(chatState != 0 ? "Chat — match paused" : pending ? (targetPaused ? "Pausing…" : "Resuming…") : (paused ? "Resume: Start" : "Pause: Start"))
+            pauseLabel.setText(chatState == 1 ? "Opening chat…" : (chatState > 1 ? "Chat — match paused" : (pending ? (targetPaused ? "Pausing…" : "Resuming…") : (paused ? "Resume: Start" : "Pause: Start"))))
 
     function failed() returns string
         return failure

@@ -47,6 +47,18 @@ def reconcile(root):
         prefix = f"match-{epoch}-chat-"
         journey = next(e for e in metadata["events"] if e["event"] == "chat" and e["epoch"] == epoch)
         require(journey["slot"] == slot, "chat fixture did not exercise each client")
+        open_receipt = re.search(r" chat=(\d+) chatState=3 chatFrame=1", journey["open_receipt"]["contents"])
+        require(open_receipt and int(open_receipt[1]) > 0, "native chat visibility receipt absent")
+        require(f" chat={open_receipt[1]} chatState=0 chatFrame=1" in journey["closed_receipt"]["contents"],
+                "controller receiver restoration receipt absent")
+        require(journey.get("blocked_resume_no_publication"), "resume during chat was not rejected")
+        barriers = [int(re.search(r"frame=(\d+)", p["contents"])[1])
+                    for p in journey["pause_publications"]]
+        resume_frames = [int(re.search(r"frame=(\d+)", p["contents"])[1])
+                         for p in journey["resume_publications"]]
+        require(len(barriers) == 2 and len(set(barriers + resume_frames)) == 1,
+                "chat pause/resume frontiers differ")
+        pause_frame = barriers[0]
         observations = {o["label"]: o for o in journey["observations"]}
         opened = [o for label, o in observations.items() if label.startswith("open-")
                   and re.search(journey["open_pattern"], o["text"], re.I)]
@@ -73,6 +85,15 @@ def reconcile(root):
             section = logs[player].split(f"match_start epoch={epoch} ", 1)[1].split(
                 f"match_end epoch={epoch} ", 1)[0]
             sections[player] = section
+            require(re.findall(r"control sequence=\d+ state=PAUSE frame=(\d+)", section) == [str(pause_frame)],
+                    "helper did not enter the shared chat pause exactly once")
+            resumes = re.findall(r"control sequence=\d+ state=RESUME frame=(\d+) epoch_ns=(\d+) "
+                                 r"read_ns=\d+ uncertainty_ns=(\d+)", section)
+            require(len(resumes) == 1 and int(resumes[0][0]) == pause_frame,
+                    "helper resume frontier differs from chat pause")
+            resume_anchor = journey["resume_publications"][player]["publication_monotonic_estimate_ns"]
+            require(abs(int(resumes[0][1]) - resume_anchor) <= int(resumes[0][2]),
+                    "independent RESUME anchor disagrees")
             publication = boundary["publications"][player]
             first = int(re.search(r"frame=(\d+)", publication["contents"])[1])
             anchor = publication["publication_monotonic_estimate_ns"]
@@ -89,7 +110,9 @@ def reconcile(root):
                 if sent["phase"] not in (f"match-{epoch}-fresh", prefix + "fresh"):
                     continue
                 stamp = kernel["kernel_monotonic_ns"]
-                frame = first + (stamp - anchor) * 60 // 1_000_000_000
+                frame = (pause_frame + (stamp - resume_anchor) * 60 // 1_000_000_000
+                         if sent["phase"] == prefix + "fresh"
+                         else first + (stamp - anchor) * 60 // 1_000_000_000)
                 require(stamp in assigned, "eligible fresh tap missing from helper")
                 row = assigned[stamp]
                 require(row[0] == frame, "eligible fresh tap moved from original assigned frame")
@@ -119,15 +142,16 @@ def reconcile(root):
                 if name != "neutral":
                     require(stamp in suppressed, "chat-period input lacks explicit suppression evidence")
                 suppressed_edges.append(dict(phase=name, kernel_monotonic_ns=stamp))
-        releases = [(int(ns), int(frame)) for ns, frame in re.findall(
-            r"focus_release mono_ns=(\d+) frame=(\d+)", sections[slot])
-                    if journey["enter_monotonic_ns"] <= int(ns) <= observations["marker"]["after_monotonic_ns"]]
-        require(len(releases) == 1, "native chat did not neutralize the active hold exactly once")
-        release_frame = releases[0][1]
         shield_events = phase_events("shield")
         require(len(shield_events) == 1, "pre-chat shield stimulus absent")
         shield = assigned[shield_events[0][1]["kernel_monotonic_ns"]]
         require(shield[1] & 256 and shield[2] & 256, "pre-chat shield was not assigned")
+        releases = [(int(ns), int(frame)) for ns, frame in re.findall(
+            r"focus_release mono_ns=(\d+) frame=(\d+)", sections[slot])
+                    if journey["enter_monotonic_ns"] <= int(ns) <= observations["marker"]["after_monotonic_ns"]]
+        require(len(releases) == 1 and releases[0][1] <= pause_frame,
+                "chat capture did not neutralize the hold before the shared pause")
+        release_frame = releases[0][1]
         fresh = assigned[phase_events("fresh")[0][1]["kernel_monotonic_ns"]][0]
 
         pages = list((root / f"epoch-{epoch}").glob(f"{slot}-smashcraft-response-p{slot}-run*-page*.txt"))
@@ -160,7 +184,8 @@ def reconcile(root):
         require(endpoints[0] == endpoints[1], "native result states differ")
         result["matches"].append(dict(epoch=epoch, chat_slot=slot, policy=journey["policy"],
                                       eligible_edges=eligible_edges, deliberately_suppressed_edges=suppressed_edges,
-                                      shield_release_frame=release_frame, confirmed_held_samples=len(held),
+                                      pause_frame=pause_frame, shield_release_frame=release_frame,
+                                      confirmed_held_samples=len(held),
                                       confirmed_released_samples=len(released), confirmed_result=endpoints[0],
                                       native_actions=[dict(slot=s, frame=f) for s, f in expected_actions],
                                       chat_evidence=journey["observations"]))
