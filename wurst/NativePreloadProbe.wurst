@@ -198,9 +198,16 @@ public function nativePreloadProbeReceive(int sender, string wire) returns boole
             recordErrors[arm]++
     return true
 
+function writeStartBoundary(string phase)
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("build=" + BUILD_ID + " slot=" + I2S(GetPlayerId(localPlayer)) + " startup=" + phase)
+    PreloadGenEnd("smashcraft-vocabulary-start-" + BUILD_ID + "-s" + I2S(GetPlayerId(localPlayer)) + "-" + phase + ".txt")
+
 function beginProbe()
     if active
         return
+    writeStartBoundary("sync-received")
     active = true
     for arm = 0 to 5
         attempts[arm] = 0
@@ -229,11 +236,13 @@ function beginProbe()
             sampleAge[index] = -1
             submitted[index] = false
             echoSeen[index] = false
+    writeStartBoundary("reset-complete")
     TimerStart(probeClock, 3600., false, null)
     beginArm(0)
 
 public function nativePreloadProbeRequestStart()
     if not active
+        writeStartBoundary("local-request")
         BlzSendSyncData(FILEIO_PROBE_START_PREFIX, "1")
 
 public function nativePreloadProbeSetup(int humanMask)
