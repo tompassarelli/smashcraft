@@ -101,3 +101,13 @@ compilation reported zero errors and zero warnings, and a separate readback
 reconstructed all 2,400 generated on-disk packets exactly against the checked
 corpus with exactly 64 distinct vocabulary script source strings. This proves
 fixture bytes and typed source consistency, not native Preloader behavior.
+
+
+Native36 startup did not deliver any probe receipts; both clients ended at the
+score screen. No vocabulary performance result follows. Startup-instrumented
+0.0.38 retains this same corpus/epoch36 and six arms, using BUILD_IDnetcode-0038
+and fresh filenames. CandidateSHA256
+`f2d678bad9c0f7268a870fc47135950cf4ab759a723253e0c1c979b9feeab411`.
+Startup markers distinguish local request, sync reception, and reset completion;
+the developer F5 exit handler now leaves a separate marker. All markers precede
+timed samples. Source `fc26d79`; built before later physics/VFX integrations.

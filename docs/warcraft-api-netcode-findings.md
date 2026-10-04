@@ -507,3 +507,42 @@ one tested build/topology,and own-echo timing remain limits. No physical latency
 or full gameplay acceptance follows.
 
 Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/fileio0034/.
+
+
+## Vocabulary startup attempt: 0.0.36
+
+Candidate SHA256 `5c02f781b7a9357f9e4a35a10bcca42a415094327e0471dbd6a8f0fb2ae1a368`,
+source `a4ed68c` (builder packaging fix; probe source `b509932`). Two retained
+clients reached actual phase2 with humans/fighters mask3. Both later reached
+Warcraft's score screen during private XTEST Ctrl+P trigger attempts. No begin,
+end, or sample receipt appeared; the collector completed with zero receipts.
+This supplies no vocabulary throughput or latency result. The exact transition
+cause remains unresolved. Candidate0.0.38 adds probe-local request, synchronized
+entry, completed-reset markers and an F5 developer-exit marker before testing
+the same six arms. These startup writes precede the timed arms.
+Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/vocabulary0036/.
+
+## Parallel physics and VFX checkpoint
+
+Native0.0.37 source `1bc4a7b69a8527f0cbe37c26fff7193f0237be69`, SHA256
+`e78ae136a69a4841a2b144416dac30b3e5dc408ac5c978bbd21a3103f09bc0a9`,
+records the first scaling difference at fall step6. Identical stored operands
+-6.119999885559082 and -1.0199999809265137 have exactly representable sum
+-7.139999866485596. Direct world addition gives that result; current normalized
+rounding/scaling gives -7.1399993896484375 and actual production velocity matches
+the latter. Its normalizedWorld result equals current by construction, so this
+is not a separately maintained normalized trajectory comparison. The native
+`0.7 + 0.1 + 0.1 + 0.1` sentinel gives one ULP below1; ordinary IEEE32 gives1.
+This establishes a scale-conversion defect and native arithmetic difference,
+without assigning all broad native35 mismatches to either. Explicit nearest
+operations accepting operands before arithmetic are being repaired upstream.
+Evidence: wc3-melee:docs/native-physics-precision-20261004/native0037.txt and
+wc3-melee:docs/native-physics-precision-20261004/native0037-analysis.json.
+
+Upstream test-harness R2SW formatting repair `0fe2efc959049b4ede2b86c66ae61c130eb04b55`
+is published; focused execution passed1/1 with zero skips. The diagnostic
+consumer checker uses that immutable runtime source. This is a harness repair,
+not a production arithmetic fix. Six common capture/throw, charge/ready, and
+ledge catch/recovery cues are integrated at `30ac333`; focused Impact checks
+pass21/21. Native appearance/pause/replay remains unobserved. This work runs
+alongside netcode under one root; peer mailbox listeners remain shut down.
