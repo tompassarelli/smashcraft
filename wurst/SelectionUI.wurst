@@ -4,6 +4,7 @@ import ClosureFrames
 import SelectionDrag
 import MatchRules
 import ParticipantInputs
+import BuildInfo
 
 public abstract class SelectionActions
     abstract function selectChoice(int participantId, int choice)
@@ -238,4 +239,4 @@ public class SelectionPanel
             chips[slot].setTexture("war3mapImported\\SelectionChip" + (game.humanFighterActive(slot) ? "P" + I2S(slot + 1) : "CPU") + ".tga", 0, true)
             let held = (drag.active and drag.activeSlot == slot) or (not ready and drag.heldSlot == slot and drag.hoverTile >= 0)
             chips[slot].setAbsPoint(FRAMEPOINT_TOPLEFT, held ? x - 0.020 : (ready ? selectionChipX(slot, game.characterFor(slot)) : selectionCardX(slot) + 0.060), held ? y + 0.020 : (ready ? selectionChipY(slot) : 0.200))
-        confirmLabel.setText(game.hasUnassignedHuman() ? "Choose CPU or EMPTY" : (game.allCharactersReady() ? "Start [Y]" : (game.fighterMask() == 0 ? "Add a fighter" : "Place your chip")))
+        confirmLabel.setText(game.hasUnassignedHuman() ? "Choose CPU or EMPTY" : (game.allCharactersReady() ? (JOURNAL_EDITBOX_INGRESS ? "Press Start" : "Start [Y]") : (game.fighterMask() == 0 ? "Add a fighter" : (JOURNAL_EDITBOX_INGRESS ? "Select [A]" : "Place your chip"))))

@@ -167,6 +167,8 @@ JournalMatchLifecycle journalLifecycle = new JournalMatchLifecycle()
 boolean journalEndSent = false
 boolean journalEndReceived = false
 boolean journalQuiescent = false
+int journalMenuPublishedPhase = -2
+int journalMenuPublishTicks = 0
 boolean developerRestartRequested = false
 int inputTraceTicks = 0
 int inputTraceCount = 0
@@ -1501,6 +1503,8 @@ function renderPersistentPresentation()
             participant.projectiles.present(active ? world.fighters[slot] : null, playing, matchControls.isPaused())
 
 function startMatch()
+    // Revoke menu output before the match acquires text focus.
+    publishJournalMenu()
     let wasPaused = matchControls.isPaused()
     statusText = "GO!"
     statusTime = 1
@@ -1607,11 +1611,11 @@ function initializeScenario()
         first.jumps = 0
         second.x = 350
 
-function choose(int slot)
+function choose(int slot, int direction)
     if not controlsAvailable(slot)
         return
     if matchState.phase == CHARACTER_MENU
-        matchState.selectCharacter(slot, (matchState.characterFor(slot) + 1) mod 3)
+        matchState.selectCharacter(slot, (matchState.characterFor(slot) + direction + 3) mod 3)
         makePreview()
     else if matchState.phase == STAGE_MENU
         matchState.selectStage(slot, 1 - matchState.stageChoice)
@@ -1709,6 +1713,25 @@ function onParticipantKeyDown(int slot)
         return
     if not bindings.ready
         return
+    // Journal menus have fixed controller keys, independent of combat rebindings
+    // and the mouse cursor used by drag-and-drop character selection.
+    if JOURNAL_EDITBOX_INGRESS and matchState.phase != MATCH
+        if key == OSKEY_W or key == OSKEY_R
+            choose(slot, key == OSKEY_W ? -1 : 1)
+            return
+        if key == OSKEY_N
+            if matchState.phase == CHARACTER_MENU
+                matchState.selectCharacter(slot, matchState.characterFor(slot))
+                makePreview()
+            else
+                confirm(slot)
+            return
+        if key == OSKEY_U
+            if matchState.phase == CHARACTER_MENU
+                matchState.recallCharacter(slot, slot)
+            else
+                back(slot)
+            return
     if key == OSKEY_ESCAPE and matchState.phase == STAGE_MENU
         back(slot)
         return
@@ -1731,7 +1754,7 @@ function onParticipantKeyDown(int slot)
     if matchState.phase == MATCH
         participant.sampleCallback()
     else if action == MOVE_LEFT or action == MOVE_RIGHT
-        choose(slot)
+        choose(slot, 1)
     else if action == ATTACK
         if matchState.phase == CHARACTER_MENU
             participant.selection.placeHovered()
@@ -1932,7 +1955,7 @@ function rematchStatus() returns string
             present++
             if matchState.rematchReadiness[slot]
                 ready++
-    return I2S(ready) + "/" + I2S(present) + " ready. Press Y to choose your next match."
+    return I2S(ready) + "/" + I2S(present) + " ready. Press " + (JOURNAL_EDITBOX_INGRESS ? "A or Start" : "Y") + " to choose your next match."
 
 function renderUI()
     let selecting = matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
@@ -2098,6 +2121,25 @@ function writeJournalLifecycle(string state, string kind, int frame)
     Preload("SMASHCRAFT JOURNAL CONTROL v=1 build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot) + " sequence=0 state=" + state + " frame=" + I2S(frame))
     PreloadGenEnd("smashcraft-journal-" + kind + "-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-s" + I2S(slot) + ".txt")
 
+function publishJournalMenu()
+    if not JOURNAL_EDITBOX_INGRESS
+        return
+    let slot = GetPlayerId(GetLocalPlayer())
+    var phase = -1
+    if controlsAvailable(slot) and (matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU or matchState.phase == RESULT)
+        if not shadowInputActive or journalLifecycle.quiescent()
+            phase = matchState.phase
+    journalMenuPublishTicks++
+    if phase == journalMenuPublishedPhase and (phase < 0 or journalMenuPublishTicks < 15)
+        return
+    journalMenuPublishedPhase = phase
+    journalMenuPublishTicks = 0
+    let name = phase == CHARACTER_MENU ? "CHARACTER" : (phase == STAGE_MENU ? "STAGE" : (phase == RESULT ? "RESULT" : "BLOCKED"))
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("SMASHCRAFT JOURNAL MENU v=1 build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot) + " phase=" + name)
+    PreloadGenEnd("smashcraft-journal-menu-" + BUILD_ID + "-s" + I2S(slot) + ".txt")
+
 function serviceJournalEnd()
     if not journalEndSent
         writeJournalLifecycle("END", "end", journalInput.expectedFrame())
@@ -2163,6 +2205,7 @@ function gameTick()
     renderUI()
     if JOURNAL_EDITBOX_INGRESS
         editboxJournalIngress.updatePauseLabel(matchControls.isPaused(), journalPausePending, journalPauseTarget)
+        publishJournalMenu()
     let localSlot = localParticipantSlot()
     if RESPONSE_SERVICE_PROBE
         responseProbePresent(participants[localSlot].fighter != null and participants[localSlot].fighter.shield, shadowInputActive and shadowWorld.active(localSlot) and shadowWorld.fighters[localSlot].shield, shadowInputActive and shadowWorld.active(localSlot) ? shadowRuntime.poses[localSlot].selectionSerial : -1)

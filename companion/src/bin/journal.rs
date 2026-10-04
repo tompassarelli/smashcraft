@@ -616,7 +616,7 @@ mod linux {
 
     fn usage() -> &'static str {
         "wc3-journal --follow-matches --build BUILD --slot N --device /dev/input/eventN --out DIR --editbox-display :N [--trace]\n\
-         Start before final match confirmation; follows fresh local match publications and rematches.\n\
+         Start in character selection; stick left/right chooses, A selects, X backs, Start confirms. Follows matches and rematches.\n\
          Diagnostic only: wc3-journal --device /dev/input/eventN --out DIR --ready-file PATH --epoch-monotonic-ns NS [--mailbox-display :N | --editbox-display :N] [--first-frame N] [--stop-frame N] [--trace]\n\
          Keyboard output also requires --x11-window DECIMAL_ID --pid PID and exactly one of --niri-window ID / --private-wlr-app-id ID.\n\
          Assigns Linux kernel CLOCK_MONOTONIC input_event times to half-open 60 Hz frames. The capture segment starts at the explicit host monotonic epoch; first-frame defaults to 1."
@@ -845,6 +845,149 @@ mod linux {
 
     fn lifecycle_path(dir: &Path, build: &str, epoch: u32, slot: u32, kind: &str) -> PathBuf {
         dir.join(format!("smashcraft-journal-{kind}-{build}-e{epoch}-s{slot}.txt"))
+    }
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum MenuPhase { Character, Stage, Result }
+
+    fn menu_phase(contents: &str, build: &str, epoch: u32, slot: u32) -> Option<MenuPhase> {
+        if contents.lines().rev().find(|line| !line.trim().is_empty()).map(str::trim) != Some("endfunction") {
+            return None;
+        }
+        let prefix = format!("SMASHCRAFT JOURNAL MENU v=1 build={build} epoch={epoch} slot={slot} phase=");
+        let value = contents.split_once(&prefix)?.1.split_once('"')?.0;
+        match value {
+            "CHARACTER" => Some(MenuPhase::Character),
+            "STAGE" => Some(MenuPhase::Stage),
+            "RESULT" => Some(MenuPhase::Result),
+            _ => None,
+        }
+    }
+
+    fn fresh_menu(dir: &Path, build: &str, epoch: u32, slot: u32, after_ns: u128, now_ns: u128) -> Result<Option<MenuPhase>, String> {
+        let path = dir.join(format!("smashcraft-journal-menu-{build}-s{slot}.txt"));
+        let mut file = match fs::File::open(&path) {
+            Ok(file) => file,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(None),
+            Err(error) => return Err(format!("open menu publication: {error}")),
+        };
+        let before = file.metadata().map_err(|e| e.to_string())?;
+        let modified = before.modified().map_err(|e| e.to_string())?.duration_since(UNIX_EPOCH).map_err(|e| e.to_string())?.as_nanos();
+        // Map refreshes eligible menus every 250 ms; an exited or frozen map
+        // cannot leave an indefinitely valid permission to send keys.
+        if modified <= after_ns || modified > now_ns || now_ns - modified > 1_000_000_000 {
+            return Ok(None);
+        }
+        let mut contents = String::new();
+        file.read_to_string(&mut contents).map_err(|e| e.to_string())?;
+        let after = file.metadata().map_err(|e| e.to_string())?;
+        let named = fs::metadata(path).map_err(|e| e.to_string())?;
+        if !same_control_file(&before, &after) || !same_control_file(&after, &named) || after.len() != contents.len() as u64 {
+            return Ok(None);
+        }
+        Ok(menu_phase(&contents, build, epoch, slot))
+    }
+
+    fn menu_buttons(physical: State, start: bool) -> u32 {
+        (action_state(physical) & (MOVE_LEFT | MOVE_RIGHT | ATTACK | SPECIAL)) | (u32::from(start) << 31)
+    }
+
+    #[derive(Default)]
+    struct MenuInput {
+        phase: Option<MenuPhase>,
+        armed: bool,
+        accept_since_ns: u128,
+    }
+
+    impl MenuInput {
+        fn observe(&mut self, phase: Option<MenuPhase>, physical: State, start: bool, now: u128) {
+            if self.phase != phase {
+                self.phase = phase;
+                self.armed = false;
+                self.accept_since_ns = now;
+            }
+            if phase.is_none() {
+                self.armed = false;
+            } else if action_state(physical) == 0 && !start {
+                self.armed = true;
+            }
+        }
+
+        fn press(&mut self, before: State, after: State, start_before: bool, start_after: bool, event_time: u128) -> Option<&'static str> {
+            if self.phase.is_none() || event_time < self.accept_since_ns {
+                return None;
+            }
+            if !self.armed {
+                self.armed = action_state(after) == 0 && !start_after;
+                return None;
+            }
+            let pressed = menu_buttons(after, start_after) & !menu_buttons(before, start_before);
+            // A physical event changes only one mapped menu control.
+            match pressed {
+                MOVE_LEFT => Some("w"),
+                MOVE_RIGHT => Some("r"),
+                ATTACK => Some("n"),
+                SPECIAL => Some("u"),
+                0x8000_0000 => Some("y"),
+                _ => None,
+            }
+        }
+    }
+
+    #[test]
+    fn menu_requires_fresh_complete_matching_map_permission() {
+        let dir = env::temp_dir().join(format!("journal-menu-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("smashcraft-journal-menu-menu-test-s1.txt");
+        let body = "call Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=menu-test epoch=2 slot=1 phase=RESULT\" )\n";
+        fs::write(&path, body).unwrap();
+        let now = clock_ns(libc::CLOCK_REALTIME).unwrap();
+        assert_eq!(fresh_menu(&dir, "menu-test", 2, 1, 0, now).unwrap(), None);
+        fs::write(&path, format!("{body}endfunction\n")).unwrap();
+        let modified = fs::metadata(&path).unwrap().modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+        assert_eq!(fresh_menu(&dir, "menu-test", 2, 1, 0, modified).unwrap(), Some(MenuPhase::Result));
+        assert_eq!(fresh_menu(&dir, "menu-test", 1, 1, 0, modified).unwrap(), None);
+        assert_eq!(fresh_menu(&dir, "menu-test", 2, 1, modified, modified).unwrap(), None);
+        assert_eq!(fresh_menu(&dir, "menu-test", 2, 1, 0, modified + 1_000_000_001).unwrap(), None);
+        assert_eq!(menu_phase(&format!("{body}endfunction\n"), "other", 2, 1), None);
+        assert_eq!(menu_phase(&format!("{body}endfunction\n"), "menu-test", 2, 0), None);
+        fs::write(&path, format!("{}endfunction\n", body.replace("RESULT", "BLOCKED"))).unwrap();
+        assert_eq!(fresh_menu(&dir, "menu-test", 2, 1, 0, clock_ns(libc::CLOCK_REALTIME).unwrap()).unwrap(), None);
+        fs::remove_file(path).unwrap();
+        fs::remove_dir(dir).unwrap();
+    }
+
+    #[test]
+    fn menu_taps_require_edges_and_neutral_across_phase_and_focus_changes() {
+        let neutral = State::default();
+        let attack = State { sources: 1, ..neutral };
+        let left = State { x: -10_000, ..neutral };
+        let right = State { x: 10_000, ..neutral };
+        let mut input = MenuInput::default();
+        assert_eq!(input.press(neutral, attack, false, false, 1), None);
+        input.observe(Some(MenuPhase::Character), attack, false, 10);
+        assert_eq!(input.press(attack, attack, false, false, 11), None);
+        assert_eq!(input.press(attack, neutral, false, false, 12), None);
+        assert_eq!(input.press(neutral, attack, false, false, 13), Some("n"));
+        assert_eq!(input.press(attack, attack, false, false, 14), None);
+        assert_eq!(input.press(neutral, left, false, false, 15), Some("w"));
+        assert_eq!(input.press(left, left, false, false, 16), None);
+        assert_eq!(input.press(left, right, false, false, 17), Some("r"));
+        assert_eq!(input.press(neutral, State { sources: 4, ..neutral }, false, false, 18), Some("u"));
+        assert_eq!(input.press(neutral, neutral, false, true, 19), Some("y"));
+        input.observe(Some(MenuPhase::Stage), neutral, true, 20);
+        assert_eq!(input.press(neutral, attack, true, true, 21), None);
+        assert_eq!(input.press(attack, neutral, true, false, 22), None);
+        assert_eq!(input.press(neutral, neutral, false, true, 23), Some("y"));
+        // Closed menus and focus loss use the same revocation. A held-through
+        // return button cannot confirm, nor can an old queued press.
+        input.observe(None, neutral, false, 30);
+        assert_eq!(input.press(neutral, attack, false, false, 31), None);
+        input.observe(Some(MenuPhase::Result), attack, false, 40);
+        assert_eq!(input.press(attack, attack, false, false, 41), None);
+        assert_eq!(input.press(attack, neutral, false, false, 42), None);
+        assert_eq!(input.press(neutral, attack, false, false, 39), None);
+        assert_eq!(input.press(neutral, attack, false, false, 43), Some("n"));
     }
 
     fn quiescent_path(dir: &Path, build: &str, epoch: u32, slot: u32) -> PathBuf {
@@ -2608,6 +2751,8 @@ mod linux {
         let mut ready_publication_ns = 0;
         let mut waiting_ready = o.follow_matches;
         let mut waiting_start = false;
+        let mut menu_input = MenuInput::default();
+        let mut menu = None;
         let mut ended = false;
         let mut end_marker_sent = false;
         let mut next_ready_poll = Instant::now();
@@ -2630,6 +2775,7 @@ mod linux {
             }
             if waiting_ready && Instant::now() >= next_ready_poll {
                 next_ready_poll = Instant::now() + Duration::from_millis(20);
+                menu = fresh_menu(&o.out, &o.build, o.epoch, o.slot, ready_after_ns, clock_ns(libc::CLOCK_REALTIME).map_err(|e| e.to_string())?)?;
                 if let Some((epoch, delay, modified)) = fresh_ready(&o.out, &o.build, o.slot, o.epoch, ready_after_ns)? {
                     ready_publication_ns = control_clock.publication(modified, monotonic_ns().map_err(|e| e.to_string())?)?;
                     o.epoch = epoch;
@@ -2649,6 +2795,7 @@ mod linux {
                     edges.clear();
                     snapshots.clear();
                     pending.clear();
+                    focus_input.armed = false;
                     focus_input.gameplay_armed = false;
                     let sender = mailbox.as_mut().expect("follow-matches editbox sender");
                     sender.epoch = epoch;
@@ -2694,6 +2841,10 @@ mod linux {
             if changed {
                 eprintln!("game-eligible={eligible} mono_ns={now} neutral_rearm=required");
             }
+            menu_input.observe(
+                menu.filter(|_| waiting_ready && eligible && !lost && focus_input.armed),
+                focus_input.physical, start_held, focus_now,
+            );
             let events = match device.fetch_events() {
                 Ok(events) => events.collect::<Vec<_>>(),
                 Err(error) if error.kind() == io::ErrorKind::WouldBlock => Vec::new(),
@@ -2725,7 +2876,21 @@ mod linux {
                     }
                 }
                 if waiting_ready {
+                    let before = focus_input.physical;
                     focus_input.accepts(&axes, event, start_held, false)?;
+                    if let Some(key) = menu_input.press(before, focus_input.physical, start_before, start_held, event_ns(&event)?) {
+                        // Recheck the map and exact target for every finite tap.
+                        // Directed press/release pairs leave no held menu keys
+                        // to leak into gameplay or a newly focused application.
+                        let current = fresh_menu(&o.out, &o.build, o.epoch, o.slot, ready_after_ns, clock_ns(libc::CLOCK_REALTIME).map_err(|e| e.to_string())?)?;
+                        let sender = mailbox.as_mut().expect("follow-matches editbox sender");
+                        if current == menu_input.phase && sender.eligible().map_err(|e| e.to_string())? {
+                            sender.output.text_to_window(key, sender.target_window).map_err(|e| format!("menu tap: {e}"))?;
+                            eprintln!("menu_emit epoch={} phase={:?} key={key} mono_ns={}", o.epoch, current, event_ns(&event)?);
+                        } else {
+                            menu_input.observe(None, focus_input.physical, start_held, focus_now);
+                        }
+                    }
                 } else {
                     pending_input.push(event, start_before, start_held)?;
                 }

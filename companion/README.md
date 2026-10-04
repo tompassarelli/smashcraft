@@ -183,7 +183,7 @@ per-frame edges/analog state, and atomically publishes immutable I4 preload
 files for the production journal input source. Build it with the same pinned
 environment above using `cargo build --locked --jobs 2 --bin wc3-journal`.
 
-For the editbox map, start one helper **before final match confirmation** and
+For the editbox map, start one helper **in character selection** and
 leave it running through results and rematches:
 
 ```sh
@@ -198,9 +198,30 @@ Select the exact device, build, slot and focus target. The Linux Xbox axis set
 is required. The helper opens the device and tracks its physical state before
 announcing readiness. It accepts only new complete readiness publications after
 it starts (or the preceding match ends), and only increasing within-map epochs.
-Start before confirming the match; old map-session receipts are not adopted.
-Mapped controls held before startup, during results or through rematch remain
-suppressed until neutral. Match confirmation remains a keyboard/menu action.
+Old map-session receipts are not adopted. In character selection, left-stick
+left/right cycles the character, A selects the current character, X recalls
+your selection, and Start opens stage selection once everyone has selected.
+In stage selection, left/right changes the stage, X returns to characters,
+and A or Start begins the match. At results, A or Start confirms your rematch.
+One stick deflection or button press produces one menu action; release before
+the next action. Held controls require neutral after startup, a menu phase
+change, focus loss, and entering gameplay.
+
+The map publishes `smashcraft-journal-menu-BUILD-sSLOT.txt`, containing
+`SMASHCRAFT JOURNAL MENU v=1 build=BUILD epoch=EPOCH slot=SLOT phase=PHASE` in
+a complete native preload file. PHASE is CHARACTER, STAGE, RESULT or BLOCKED.
+Eligible menus refresh every 15 map ticks (normally 250 ms); the helper requires
+a matching publication newer than its startup/previous match and no older than
+one second. Initial character selection uses epoch 0. Results become eligible
+only after all helpers have stopped and the text box has closed. BLOCKED,
+missing, partial or stale receipts suppress menu actions.
+
+Each accepted menu action uses the existing exact-window Enigo text boundary
+to send a finite W/R/N/U/Y press-release pair. It holds no menu keys, rechecks
+map permission and game focus per tap, and never activates a window. The map's
+journal menus give those keys fixed menu meanings independent of combat key
+rebindings and mouse position. This covers ordinary fighter/stage/result menus;
+mouse-only slot modes, settings, chat and other Warcraft screens are outside it.
 
 Every human helper announces readiness through the ordered text ingress. The
 map synchronizes those announcements before publishing local START. Capture
