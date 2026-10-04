@@ -11,26 +11,17 @@ Run the builder through the machine-capacity helper with the private terrain
 map as its argument. It does not install a map or control a Warcraft client.
 
 The current candidate is a one-player diagnostic map, Smashcraft 0.0.13,
-simulation source d99141834e19518b47123dab5d7710bb6d64c0ba:
-~/code/wc3-melee/worktrees/melee-physics-public/build/physics-probe/native.sWMwP6/Smashcraft 0.0.13.w3x.
-SHA-256: 7589afc945c3409b39acb1cd92c04ae7fb9c4f790a2c9e0defe42620c3ba0aaf.
-The build reports zero errors and four standard-library unused-variable
-warnings; packaged Lua syntax and script roundtrip pass. Evidence:
-smashcraft:build/capsule-native-map.log. This candidate has not been
-installed or run natively.
+simulation source 98cb2dff36e204d4c2af287731f4116602320fe5:
+~/code/wc3-melee/worktrees/melee-physics-public/build/physics-probe/native.xTRUdu/Smashcraft 0.0.13.w3x.
+SHA-256: a5ab1dd839cf3cda65052dd38de67c47298a611eb83e233a0b6cb4ef00709bc0.
+The build reports zero errors and four existing standard-library warnings;
+packaged Lua syntax and script roundtrip pass. The candidate includes the current
+production uniform-scale collision fix and all 508 recorded capsule/shield
+classifications. It has not been installed or run natively. The concurrent
+multiplayer task retains ownership of the authenticated clients.
 
-The builder now includes a sixteenth group, CAPSULE_SHIELD_CLASSIFICATION_PASS,
-covering 374 original capsule/shield classifications. The current candidate
-requires MESSAGES 19 and that additional passing group.
-The current source corpus additionally includes 34 translated, finite-radius
-cases (408 total). The candidate recorded above predates that corpus expansion
-and contains 374. Its simulation arithmetic is unchanged; a subsequent native
-candidate must package the expanded corpus before claiming those cases observed.
-Production subsequently retains uniform joint scale through collision radius
-conversion. The emitted-Lua corpus now covers 508 cases. The native candidate
-above predates that simulation change and must be rebuilt and observed before
-it can verify the scale repair; its old source marker cannot establish current
-runtime collision fidelity.
+Acceptance requires MESSAGES 19 and all sixteen groups below. Rebuilding this
+candidate adds no comparison cases and does not claim native acceptance.
 
 On map initialization, the same authored comparisons used by the emitted-Lua
 precision check execute in Warcraft. Each report is a short independent Preload
