@@ -39,6 +39,7 @@ init
         BJDebugMsg("SHIELD_CONTACT_SUM_BINARY32_EXACT_PASS")
     else
         BJDebugMsg("SHIELD_CONTACT_SUM_BINARY32_EXACT_FAIL")
+        BJDebugMsg("SHIELD_CONTACT_SUM_ACTUAL=" + R2SW(fighter.shieldEnergy, 0, 12) + " EXPECTED=1.0")
     destroy world
     destroy attacker
     destroy input

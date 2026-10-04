@@ -25,6 +25,9 @@ mkdir -p "$output_dir"
     "$project_dir/wurst/Simulation.wurst" "$project_dir/wurst/MeleeContactGeometry.wurst" \
     "$project_dir/wurst/RollTravel.wurst" \
     "$project_dir/wurst/MeleeScalarMath.wurst" \
+    "$project_dir/wurst/ParticipantInputs.wurst" "$project_dir/wurst/CommandBuffer.wurst" \
+    "$project_dir/wurst/NetworkInput.wurst" "$project_dir/wurst/KeyBindings.wurst" \
+    "$project_dir/wurst/TechInput.wurst" \
     "$project_dir/tools/physics-probe/NumericalPrecisionProbe.wurst" \
     "$output_dir/DirectionalInfluencePrecisionProbe.wurst" \
     "$output_dir/CapsuleShieldPrecisionProbe.wurst" \
@@ -47,6 +50,7 @@ initGlobals()
 initCompiletimeState()
 init_Real()
 init_Integer()
+init_ParticipantInputs()
 init_MeleeScalarMath()
 init_MeleeContactGeometry()
 init_Simulation()

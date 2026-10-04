@@ -35,7 +35,7 @@ for (const threshold of facts.thresholds) {
 }
 console.log('AIR_CUTOFF_BOUNDARY_ARGUMENT_PASS');
 const literal = value => value.toFixed(40);
-const lines = ['package AirCutoffPrecisionProbe', 'import Simulation', '', 'init'];
+const lines = ['package AirCutoffPrecisionProbe', 'import Simulation', '', 'init', '    var failures = 0'];
 for (const [index, row] of facts.results.entries()) {
     const axis = row.decay.value === Math.fround(.051) ? 'knockback' : 'shieldRecoil';
     lines.push(`    let fighter${index} = new FighterState(0, -360, 1)`,
@@ -47,6 +47,7 @@ for (const [index, row] of facts.results.entries()) {
         `    fighter${index}.${axis}Z = ${literal(row.y.value)} * 6`,
         `    advance(fighter${index}, 0, input${index}, 0)`,
         `    if fighter${index}.${axis}X != ${literal(row.afterX.value)} * 6 or fighter${index}.${axis}Z != ${literal(row.afterY.value)} * 6`,
+        `        failures++`,
         `        BJDebugMsg("AIR_CUTOFF_${index}_FAIL")`,
         `    destroy input${index}`, `    destroy fighter${index}`);
 }
@@ -64,12 +65,16 @@ for (const [index, row] of cutoffState.results.entries()) {
         `    ${fighter}.shieldRecoilZ = ${literal(row.before.recoilY.value)} * 6`,
         `    advance(${fighter}, 0, ${input}, 0)`, `    advance(${control}, 0, ${input}, 0)`,
         `    if ${fighter}.knockbackZ != ${literal(row.after.launchY.value)} * 6 or ${fighter}.knockbackX != ${control}.knockbackX`,
+        `        failures++`,
         `        BJDebugMsg("AIR_RECOIL_CUTOFF_LAUNCH_${index}_FAIL")`,
         `    if ${fighter}.shieldRecoilX != ${literal(row.after.recoilX.value)} * 6 or ${fighter}.shieldRecoilZ != ${literal(row.after.recoilY.value)} * 6`,
+        `        failures++`,
         `        BJDebugMsg("AIR_RECOIL_CUTOFF_STATE_${index}_FAIL")`,
         `    if ${control}.knockbackZ == 0 and ${literal(row.before.launchY.value)} != 0`,
+        `        failures++`,
         `        BJDebugMsg("AIR_RECOIL_CUTOFF_EMPTY_GUARD_${index}_FAIL")`,
         `    destroy ${input}`, `    destroy ${fighter}`, `    destroy ${control}`);
 }
-lines.push('    BJDebugMsg("AIR_CUTOFF_BINARY32_EXACT_PASS")', '');
+lines.push('    if failures != 0', '        BJDebugMsg("AIR_CUTOFF_BINARY32_EXACT_FAIL")',
+    '    else', '        BJDebugMsg("AIR_CUTOFF_BINARY32_EXACT_PASS")', '');
 await Bun.write(new URL('build/physics-probe/AirCutoffPrecisionProbe.wurst', project), lines.join('\n'));
