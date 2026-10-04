@@ -1,0 +1,268 @@
+{
+  "id": "retail-ntsc-1.02-tech-hitlag-input",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "commonDataSha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "execution": {
+    "cpu": "QEMU PPC750",
+    "hitlagEntry": "0x8006A1BC",
+    "initialHitlag": 4,
+    "inputEntry": "0x8006AD10",
+    "gateEntry": "0x800986B0",
+    "zeroReturnStubs": [
+      "0x800a2040",
+      "0x8016b41c",
+      "0x8016b0fc",
+      "0x801a45e8",
+      "0x800df0d0",
+      "0x8008031c",
+      "0x8006abec",
+      "0x800c37a0",
+      "0x800819a8"
+    ],
+    "exclusionStub": "0x800C5240 -> false",
+    "exitCode": 0
+  },
+  "limitations": [
+    "Original Fighter_procHitlag executes before complete Fighter_procInput, matching registered callback priorities 0 and 3. Hitlag count starts at four; freeze flags are changed by original code, not supplied per frame.",
+    "CPU/game-mode queries, unrelated post-input counter callbacks, mushroom checks and shield-state timers return zero. Collision and action entry are not executed; fighter callbacks and linked-fighter pointers are null.",
+    "These composed observations are not a complete original gameplay trajectory. Original binaries remain private outside repositories."
+  ],
+  "results": [
+    {
+      "name": "existing-window-through-freeze",
+      "initialAge": 10,
+      "initialPreviousPressInterval": 255,
+      "ticks": [
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 3,
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 11,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 2,
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 12,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 1,
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 13,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "suppliedScheduleLabelFrozen": false,
+          "hitlagRemaining": 0,
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 14,
+          "previousPressInterval": 255,
+          "eligible": true
+        }
+      ]
+    },
+    {
+      "name": "early-frozen-press-held",
+      "initialAge": 255,
+      "initialPreviousPressInterval": 255,
+      "ticks": [
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 3,
+          "frozen": true,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 2,
+          "frozen": true,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 0,
+          "eligible": false
+        },
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 1,
+          "frozen": true,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 0,
+          "eligible": false
+        },
+        {
+          "suppliedScheduleLabelFrozen": false,
+          "hitlagRemaining": 0,
+          "frozen": false,
+          "held": 64,
+          "pressed": 0,
+          "age": 1,
+          "previousPressInterval": 0,
+          "eligible": false
+        }
+      ]
+    },
+    {
+      "name": "last-frozen-press-held",
+      "initialAge": 255,
+      "initialPreviousPressInterval": 255,
+      "ticks": [
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 3,
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 2,
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 1,
+          "frozen": true,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "suppliedScheduleLabelFrozen": false,
+          "hitlagRemaining": 0,
+          "frozen": false,
+          "held": 64,
+          "pressed": 0,
+          "age": 1,
+          "previousPressInterval": 255,
+          "eligible": true
+        }
+      ]
+    },
+    {
+      "name": "release-frame-press-held",
+      "initialAge": 255,
+      "initialPreviousPressInterval": 255,
+      "ticks": [
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 3,
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 2,
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 1,
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "suppliedScheduleLabelFrozen": false,
+          "hitlagRemaining": 0,
+          "frozen": false,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 255,
+          "eligible": true
+        }
+      ]
+    },
+    {
+      "name": "neutral-through-release",
+      "initialAge": 255,
+      "initialPreviousPressInterval": 255,
+      "ticks": [
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 3,
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 2,
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "suppliedScheduleLabelFrozen": true,
+          "hitlagRemaining": 1,
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "suppliedScheduleLabelFrozen": false,
+          "hitlagRemaining": 0,
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        }
+      ]
+    }
+  ]
+}

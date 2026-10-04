@@ -1,0 +1,863 @@
+{
+  "id": "retail-ntsc-1.02-tech-input-driver",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "commonDataSha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "execution": {
+    "cpu": "QEMU PPC750",
+    "inputEntry": "0x8006AD10",
+    "gateEntry": "0x800986B0",
+    "zeroReturnStubs": [
+      "0x800a2040",
+      "0x8016b41c",
+      "0x8016b0fc",
+      "0x801a45e8",
+      "0x800df0d0",
+      "0x8008031c",
+      "0x8006abec"
+    ],
+    "exclusionStub": "0x800C5240 -> false",
+    "exitCode": 0
+  },
+  "limitations": [
+    "Complete original Fighter_procInput executes with synthetic fighter state, supplied frozen flags and digital controller buttons; edge and timer instructions are unchanged.",
+    "CPU/game-mode queries and unrelated post-input counter callbacks return zero. Hitlag flag changes, collision and action entry are not executed; this is input-driver execution, not complete gameplay.",
+    "These composed observations are not a complete original gameplay trajectory. Original binaries remain private outside repositories."
+  ],
+  "results": [
+    {
+      "name": "existing-window-through-freeze",
+      "initialAge": 10,
+      "initialPreviousPressInterval": 255,
+      "ticks": [
+        {
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 11,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 12,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 13,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 14,
+          "previousPressInterval": 255,
+          "eligible": true
+        }
+      ]
+    },
+    {
+      "name": "early-frozen-press-held",
+      "initialAge": 255,
+      "initialPreviousPressInterval": 255,
+      "ticks": [
+        {
+          "frozen": true,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": true,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 0,
+          "eligible": false
+        },
+        {
+          "frozen": true,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 0,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 64,
+          "pressed": 0,
+          "age": 1,
+          "previousPressInterval": 0,
+          "eligible": false
+        }
+      ]
+    },
+    {
+      "name": "last-frozen-press-held",
+      "initialAge": 255,
+      "initialPreviousPressInterval": 255,
+      "ticks": [
+        {
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": true,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 64,
+          "pressed": 0,
+          "age": 1,
+          "previousPressInterval": 255,
+          "eligible": true
+        }
+      ]
+    },
+    {
+      "name": "release-frame-press-held",
+      "initialAge": 255,
+      "initialPreviousPressInterval": 255,
+      "ticks": [
+        {
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": true,
+          "held": 0,
+          "pressed": 0,
+          "age": 255,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 255,
+          "eligible": true
+        }
+      ]
+    },
+    {
+      "name": "repeat-after-40-input-ticks",
+      "initialAge": 255,
+      "initialPreviousPressInterval": 255,
+      "ticks": [
+        {
+          "frozen": false,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 1,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 2,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 3,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 4,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 5,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 6,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 7,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 8,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 9,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 10,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 11,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 12,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 13,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 14,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 15,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 16,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 17,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 18,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 19,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 20,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 21,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 22,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 23,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 24,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 25,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 26,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 27,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 28,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 29,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 30,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 31,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 32,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 33,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 34,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 35,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 36,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 37,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 38,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 39,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 39,
+          "eligible": false
+        }
+      ]
+    },
+    {
+      "name": "repeat-after-41-input-ticks",
+      "initialAge": 255,
+      "initialPreviousPressInterval": 255,
+      "ticks": [
+        {
+          "frozen": false,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 1,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 2,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 3,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 4,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 5,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 6,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 7,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 8,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 9,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 10,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 11,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 12,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 13,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 14,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 15,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 16,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 17,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 18,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 19,
+          "previousPressInterval": 255,
+          "eligible": true
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 20,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 21,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 22,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 23,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 24,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 25,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 26,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 27,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 28,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 29,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 30,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 31,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 32,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 33,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 34,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 35,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 36,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 37,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 38,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 39,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 0,
+          "pressed": 0,
+          "age": 40,
+          "previousPressInterval": 255,
+          "eligible": false
+        },
+        {
+          "frozen": false,
+          "held": 64,
+          "pressed": 2147483712,
+          "age": 0,
+          "previousPressInterval": 40,
+          "eligible": true
+        }
+      ]
+    }
+  ]
+}
