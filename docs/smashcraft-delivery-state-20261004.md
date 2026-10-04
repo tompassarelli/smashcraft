@@ -15,6 +15,14 @@ These passes rule out the selection/body setup alone as sufficient to reproduce
 the full integration's disconnect. They do not establish controller performance.
 No further full-map native candidate is admitted without an owning repair.
 
+After these reductions, both clients left normally and loaded the exact40
+artifact in [TEST] sc40-landed. Fresh readiness files identify playable-0040 on
+both. They entered a fight; A moved from x-240 to0 and accepted attack serial1.
+Both now show PAUSED at6:30; Y resumes. A's small developer text required
+cropped/upscaled OCR; the earlier full-screen serial matcher missed the text,
+so its timeout is not an input failure. This closes restoration, not a new
+latency or short-tap guarantee. No helper, build, capacity job or UI wait remains.
+
 Previous full integration: native JASS50/51 disconnect during fighter selection,
 before controller helpers start. Shared fighter choices and unit identities
 matched. Unit-reference cleanup did not fix the failure. Both candidates are
