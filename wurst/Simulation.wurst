@@ -746,16 +746,16 @@ public function directionalInfluenceVector(real x, real z, real stickX, real sti
 	let vertical = z.roundToFloat32()
 	let inputX = stickX.roundToFloat32()
 	let inputZ = stickZ.roundToFloat32()
-	let square = fusedMultiplyAddFloat32(horizontal, horizontal, (vertical * vertical).roundToFloat32())
+	let square = fusedMultiplyAddFloat32(horizontal, horizontal, multiplyFloat32(vertical, vertical))
 	if square < 0.000009999999747378752 or inputX == 0 and inputZ == 0
 		return directionalInfluenceResult(horizontal, vertical, 0.)
 	let speed = SquareRoot(square).roundToFloat32()
-	let cross = -fusedMultiplyAddFloat32(vertical, inputX, -(horizontal * inputZ).roundToFloat32())
-	let fraction = ((cross * cross).roundToFloat32() / square).roundToFloat32()
-	let degrees = (fraction * 18.).roundToFloat32() * (cross < 0 ? -1 : 1)
-	let offset = (degrees * 0.01745329238474369).roundToFloat32()
+	let cross = -fusedMultiplyAddFloat32(vertical, inputX, -multiplyFloat32(horizontal, inputZ))
+	let fraction = divideFloat32(multiplyFloat32(cross, cross), square)
+	let degrees = multiplyFloat32(fraction, 18.) * (cross < 0 ? -1 : 1)
+	let offset = multiplyFloat32(degrees, 0.01745329238474369)
 	let angle = fusedMultiplyAddFloat32(degrees, 0.01745329238474369, meleeAtan2(vertical, horizontal))
-	return directionalInfluenceResult((speed * meleeCos(angle)).roundToFloat32(), (speed * meleeSin(angle)).roundToFloat32(), offset)
+	return directionalInfluenceResult(multiplyFloat32(speed, meleeCos(angle)), multiplyFloat32(speed, meleeSin(angle)), offset)
 
 function applyDirectionalInfluence(FighterState target, InputSnapshot input)
 	if not target.diPending
@@ -770,8 +770,8 @@ function applyDirectionalInfluence(FighterState target, InputSnapshot input)
 	let inputScale = dx != 0 and dz != 0 ? DIAGONAL_UNIT : 1
 	let inputX = input.diStickValid ? input.diStickX : dx * inputScale
 	let inputZ = input.diStickValid ? input.diStickZ : dz * inputScale
-	let result = directionalInfluenceVector(target.knockbackX / WORLD_UNITS_PER_MELEE_UNIT,
-		target.knockbackZ / WORLD_UNITS_PER_MELEE_UNIT, inputX, inputZ)
+	let result = directionalInfluenceVector(divideFloat32(target.knockbackX, WORLD_UNITS_PER_MELEE_UNIT),
+		divideFloat32(target.knockbackZ, WORLD_UNITS_PER_MELEE_UNIT), inputX, inputZ)
 	target.knockbackX = result.velocityX * WORLD_UNITS_PER_MELEE_UNIT
 	target.knockbackZ = result.velocityZ * WORLD_UNITS_PER_MELEE_UNIT
 	if result.angleRadians != 0
@@ -798,36 +798,36 @@ public function integerHitPower(real hitDamage) returns int
 	return damage > 0 ? max(1, R2I(damage)) : 0
 
 function launchWeightFactor(real victimWeight) returns real
-	let weight = (victimWeight.roundToFloat32() * 0.009999999776482582).roundToFloat32()
-	let fraction = ((weight * 2).roundToFloat32() / (weight + 1).roundToFloat32()).roundToFloat32()
-	return (2 - fraction).roundToFloat32()
+	let weight = multiplyFloat32(victimWeight.roundToFloat32(), 0.009999999776482582)
+	let fraction = divideFloat32(multiplyFloat32(weight, 2.), addFloat32(weight, 1.))
+	return subtractFloat32(2., fraction)
 
 function scaledLaunchGrowth(real contribution, real victimWeight, real growthPercent, real baseKnockback) returns real
-	let weighted = (contribution * launchWeightFactor(victimWeight)).roundToFloat32()
+	let weighted = multiplyFloat32(contribution, launchWeightFactor(victimWeight))
 	let growth = fusedMultiplyAddFloat32(1.399999976158142, weighted, 18.)
-	let multiplier = (growthPercent.roundToFloat32() * 0.009999999776482582).roundToFloat32()
+	let multiplier = multiplyFloat32(growthPercent.roundToFloat32(), 0.009999999776482582)
 	return min(2500., fusedMultiplyAddFloat32(multiplier, growth, baseKnockback.roundToFloat32()))
 
 function contactKnockback(real postHitPercent, real hitDamage, real victimWeight, real growthPercent, real baseKnockback, real contextScale) returns real
 	let percent = postHitPercent.roundToFloat32()
-	let powered = (percent * integerHitPower(hitDamage)).roundToFloat32()
-	let damageGrowth = (powered * 0.05000000074505806).roundToFloat32()
+	let powered = multiplyFloat32(percent, integerHitPower(hitDamage).toReal())
+	let damageGrowth = multiplyFloat32(powered, 0.05000000074505806)
 	let contribution = fusedMultiplyAddFloat32(0.10000000149011612, percent, damageGrowth)
-	return (scaledLaunchGrowth(contribution, victimWeight, growthPercent, baseKnockback) * contextScale.roundToFloat32()).roundToFloat32()
+	return multiplyFloat32(scaledLaunchGrowth(contribution, victimWeight, growthPercent, baseKnockback), contextScale.roundToFloat32())
 
 public function fixedHitKnockback(int fixedPower, real victimWeight, real growthPercent,
 		real baseKnockback, real contextScale) returns real
-	let power = (fixedPower * 10.).roundToFloat32()
-	let damageGrowth = (power * 0.05000000074505806).roundToFloat32()
+	let power = multiplyFloat32(fixedPower.toReal(), 10.)
+	let damageGrowth = multiplyFloat32(power, 0.05000000074505806)
 	let contribution = fusedMultiplyAddFloat32(10., 0.10000000149011612, damageGrowth)
-	return (scaledLaunchGrowth(contribution, victimWeight, growthPercent, baseKnockback) * contextScale.roundToFloat32()).roundToFloat32()
+	return multiplyFloat32(scaledLaunchGrowth(contribution, victimWeight, growthPercent, baseKnockback), contextScale.roundToFloat32())
 
 public function hitContextKnockback(real knockback, boolean crouching, boolean smashCharging) returns real
 	var result = knockback.roundToFloat32()
 	if crouching
-		result = (result * 0.6666666865348816).roundToFloat32()
+		result = multiplyFloat32(result, 0.6666666865348816)
 	if smashCharging
-		result = (result * 1.2000000476837158).roundToFloat32()
+		result = multiplyFloat32(result, 1.2000000476837158)
 	return result
 
 public function victimHitlagFrames(real hitDamage, boolean electric, boolean crouching) returns int
@@ -1357,7 +1357,7 @@ public function smashDamageMultiplier(int chargeFrames) returns real
 // Damage retains its fraction; attack power is integer even without staling.
 public function ordinaryHitKnockback(real preHitPercent, real hitDamage, real victimWeight,
 		real growthPercent, real baseKnockback, real contextScale) returns real
-	return contactKnockback((R2I(max(0, preHitPercent.roundToFloat32())) + hitDamage.roundToFloat32()).roundToFloat32(), hitDamage, victimWeight, growthPercent, baseKnockback, contextScale)
+	return contactKnockback(addFloat32(R2I(max(0, preHitPercent.roundToFloat32())).toReal(), hitDamage.roundToFloat32()), hitDamage, victimWeight, growthPercent, baseKnockback, contextScale)
 
 public function ordinaryHitlagFrames(real hitDamage) returns int
 	return victimHitlagFrames(hitDamage, false, false)

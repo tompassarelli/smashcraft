@@ -72,7 +72,7 @@ function quadrantIndex(real angle) returns int
     return addFloat32(scaled, 0.5).toInt()
 
 function normalizedResidual(real angle, int quadrant) returns real
-    var residual = subtractFloat32(angle, multiplyFloat32(2., quadrant))
+    var residual = subtractFloat32(angle, multiplyFloat32(2., quadrant.toReal()))
     residual = fusedMultiplyAddFloat32(0.25, angle, residual)
     residual = fusedMultiplyAddFloat32(0.0232393741607666, angle, residual)
     residual = fusedMultiplyAddFloat32(0.00000017055572243407369, angle, residual)
