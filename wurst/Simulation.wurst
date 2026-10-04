@@ -486,6 +486,8 @@ public class FighterState
 	int shieldPerfectActionFrames = 0
 	fighterShieldGeometry shieldGeometry = authoredShieldGeometry()
 	real damage = 0
+	int grabVisualSerial = 0
+	int throwVisualSerial = 0
 	int hitVisualSerial = 0
 	boolean hitVisualElectric = false
 	int shieldVisualSerial = 0
@@ -1604,6 +1606,8 @@ function resolveDamageContacts(FighterState target)
 						else
 							applyAirborneShieldRecoil(contact)
 			else
+				if contact.kind == CONTACT_THROW
+					target.throwVisualSerial++
 				if visualContact < 0
 					visualContact = index
 				if damage > 0 and contact.kind != CONTACT_PUMMEL
@@ -3083,6 +3087,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 		clearGrabLinks(target)
 		attacker.grabTarget = target
 		target.grabOwner = attacker
+		target.grabVisualSerial++
 		cancelAttack(attacker)
 		beginGrabAction(attacker, GRAB_HOLD)
 		clearDash(attacker)

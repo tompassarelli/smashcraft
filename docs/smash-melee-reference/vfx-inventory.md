@@ -36,9 +36,9 @@ colors and lifetime tuning are changeable and are not fixed test requirements.
 | Double-jump ring | Accepted aerial jump; below fighter | melee:src/melee/ft/kinds/ftCommon/ftCo_JumpAerial.c | Accepted aerial jump drives ring; native appearance unverified |
 | Air-dodge cue | Accepted air dodge; follows protection presentation | melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c | Accepted air-dodge entry drives ring; native appearance unverified |
 | Knockback smoke trail | Significant launch motion; trailing fighter | melee:src/melee/ft/kinds/ftCommon/ftCo_DamageFlyHi.c | Tumble-motion trail implemented; native appearance unverified |
-| Grab / throw cues | Accepted capture/release/contact, not every hold tick | melee:src/melee/ft/kinds/ftCommon/ftCo_Catch.c; melee:src/melee/ft/kinds/ftCommon/ftCo_Throw.c | Actions exist; cue review pending |
-| Charge / ready flash | Smash-charge entry and ready threshold | melee:src/melee/ft/kinds/ftCommon/ftCo_AttackS4.c | Charging exists; cue review pending |
-| Ledge catch / recovery | Actual catch or accepted ledge option | melee:src/melee/ft/kinds/ftCommon/ftCo_CliffCatch.c | Actions exist; cue review pending |
+| Grab / throw cues | Accepted capture/release/contact, not every hold tick | melee:src/melee/ft/kinds/ftCommon/ftCo_Catch.c; melee:src/melee/ft/kinds/ftCommon/ftCo_Throw.c | Accepted capture and throw-contact cues authored; headless event/replay checks pass; native appearance pending |
+| Charge / ready flash | Smash-charge entry and ready threshold | melee:src/melee/ft/kinds/ftCommon/ftCo_AttackS4.c | Charge-entry and full-charge flashes authored; headless entry/threshold/hitlag checks pass; native appearance pending |
+| Ledge catch / recovery | Actual catch or accepted ledge option | melee:src/melee/ft/kinds/ftCommon/ftCo_CliffCatch.c | Catch and accepted climb/roll/attack/jump cues authored at ledge lip; headless transition checks pass; native appearance pending |
 | Directional blast-zone KO | Actual stock loss at boundary; oriented outward | melee:src/melee/ft/ft_0D31.c | Stock-loss event drives directional burst; exact death rules remain unfinished |
 | Star KO | Eligible top death; fighter recedes/spins then sparkle | melee:src/melee/ft/ft_0D31.c DeadUpStar | Separate cinematic pending |
 | Screen KO | Eligible top death; foreground flight/tumble/drop | melee:src/melee/ft/ft_0D31.c DeadUpFall; melee:src/melee/ft/ft_0D4D.c | Separate cinematic pending |
@@ -46,6 +46,14 @@ colors and lifetime tuning are changeable and are not fixed test requirements.
 | Freeze / ice break | Accepted freeze state and release | melee:src/melee/ft/kinds/ftCommon/ftCo_DamageIce.c | Existing FrostEffects, review pending |
 | Character-specific attacks | Existing authored Smashcraft special windows/contact | melee:src/melee/ft/kinds/ftFox; melee:src/melee/ft/kinds/ftFalco and other fighter families | Warcraft-specific SpecialEffects already exists; port only relevant effect language |
 | Items, transformations and stage hazards | Actual feature-specific events | melee:src/melee/it; melee:src/melee/gr | Outside current Smashcraft mechanics; do not fabricate events |
+
+The common capture/throw, charge/ready and ledge cues reuse the authored shield,
+jump and tech effect models. Their ages and pool positions are replay state;
+projection does not advance them. The focused `wc3-melee:test.sh Impact` run passes
+21/21, including accepted/rejected transitions, frozen grab/charge clocks,
+paused projection, snapshot replay and removal of corrected predicted cues.
+Native placement, visual timing, pause/resume and rollback appearance remain
+pending; the selected sizes and lifetimes are authored, not retail measurements.
 
 Death selection is not simply a random animation for every stock loss. The
 retail top-death handler first checks top-boundary eligibility, then player/game
