@@ -21,8 +21,10 @@ an approximately250ms helper stop at frame97, and exited0 after300frames.
 However each native client sent32 paired packets/64rows and recorded zero
 receipts, leaving confirmation atframe0. This is a failed replacement, not a
 controller latency or original-frame application success. No more experimental
-builds are part of this delivery pass. Exact40 is being restored on both retained
-clients; authenticated sessions are preserved.
+builds are part of this delivery pass. Exact40 is restored in a two-client fight in [TEST] sc40-playable. Fresh
+readiness identifies playable-0040/human mask3 on both, and both native screens
+reached the running match. Authenticated sessions are preserved. No helper,
+build, UI wait or experimental run remains active.
 
 Evidence: wc3-melee:docs/selection0054-evidence-20261004/ through
 wc3-melee:docs/selection0057-evidence-20261004/,

@@ -7,7 +7,7 @@ deadline was 08:38:38 Taipei on 4 October; it was missed and has not reset.
 
 ## Current deciding evidence
 
-**Usable game:0.0.40. Failed controller experiment:59.** Internal diagnostic
+**Usable game:0.0.40, restored in a two-client fight. Failed controller experiment:59.** Internal diagnostic
 numbers41–59 are not successive delivered game releases. Release status and
 experimental run identity are tracked separately from now on.
 
