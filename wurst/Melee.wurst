@@ -45,6 +45,9 @@ import SpecialEffects
 import ResponseServiceProbe
 import JournalInputSource
 import FileIO
+import NativeOrderProbe
+import NativePreloadProbe
+import NativeTransportProbe
 
 constant int SHADOW_CONFIRMED_CATCHUP_LIMIT = 6
 constant int JOURNAL_PACKETS_PER_CALLBACK = 1
@@ -104,20 +107,35 @@ boolean readyMarkerWritten = false
 timer transportIsolationClock = null
 int transportIsolationTicks = 0
 int transportIsolationPhase = 0
+int transportIsolationPhaseTicks = 0
+int transportIsolationDrainTicks = 0
+int transportIsolationFailed = 0
+int transportIsolationFileFailures = 0
 int transportIsolationReadCount = 0
 int transportIsolationReadBytes = 0
 real transportIsolationReadSeconds = 0
-int transportIsolationFirstJournalSequence = -1
-int transportIsolationLastJournalSequence = -1
-int transportIsolationJournalSequenceChanges = 0
+int array transportIsolationDrainByArm
+real transportIsolationArmStartedAt = 0
+real array transportIsolationSpanByArm
+string array transportIsolationChecksum
+int array transportIsolationSimulationFrame
 int array transportIsolationSent
 int array transportIsolationReceived
+int array transportIsolationAttempts
+int array transportIsolationBytesSent
 real array transportIsolationSendTime
+real array transportIsolationAge
+int array transportIsolationFrame
 int array transportIsolationAgeSamples
 real array transportIsolationAgeSum
 real array transportIsolationAgeMax
 boolean array transportIsolationSeen
+boolean array transportIsolationSubmitted
 int array transportIsolationDuplicates
+InputPacket transportIsolationPacket = null
+NetworkInput transportIsolationNeutral = null
+boolean transportIsolationCOffer = false
+int transportIsolationFirstCFrame = 0
 int transportIsolationRejected = 0
 MatchFrameInput currentFrameInput = new MatchFrameInput()
 StagePanel stagePanel = null
@@ -473,6 +491,8 @@ function sendShadowBatch()
 function failJournalInput(string reason)
 	if journalInputFailed
 		return
+	if transportIsolationPhase == 3
+		transportIsolationFailed++
 	journalInputFailed = true
 	statusText = "Controller input stopped. Restart the match."
 	statusTime = 3600
@@ -482,30 +502,33 @@ function failJournalInput(string reason)
 function serviceJournalInput()
 	if journalInputFailed
 		return
-	if transportIsolationPhase >= 2 and transportIsolationPhase <= 3
+	if nativeOrderProbeActive()
+		return
+	if nativePreloadProbeActive() or nativeTransportProbeActive()
+		return
+	if transportIsolationPhase == 1 or transportIsolationPhase == 2
+		return
+	if transportIsolationPhase == 3 and not transportIsolationCOffer
 		return
 	let slot = GetPlayerId(GetLocalPlayer())
 	if not matchState.humanFighterActive(slot)
 		return
 	for readIndex = 1 to JOURNAL_PACKETS_PER_CALLBACK
-		journalInputFile.filename = journalInput.filename()
-		var isolationReadStarted = 0.
-		if transportIsolationPhase == 1
-			isolationReadStarted = TimerGetElapsed(transportIsolationClock)
-			let journalSequence = journalInput.sequenceNumber()
-			if transportIsolationFirstJournalSequence < 0
-				transportIsolationFirstJournalSequence = journalSequence
-			if transportIsolationLastJournalSequence != journalSequence
-				transportIsolationJournalSequenceChanges++
-			transportIsolationLastJournalSequence = journalSequence
-		let fileReadStartedMs = responseProbeClockMs()
-		let wire = journalInputFile.readAsString(localPlayer)
-		if transportIsolationPhase == 1
-			transportIsolationReadCount++
-			transportIsolationReadBytes += wire.length()
-			transportIsolationReadSeconds += TimerGetElapsed(transportIsolationClock) - isolationReadStarted
-		if fileReadStartedMs >= 0
-			responseProbeFileRead(responseProbeClockMs() - fileReadStartedMs, wire.length())
+		var wire = ""
+		if transportIsolationPhase == 3
+			transportIsolationCOffer = false
+			transportIsolationAttempts[2]++
+			let generatedFrame = journalInput.expectedFrame()
+			if not transportIsolationPacket.assign(shadowInputEpoch, generatedFrame, 2, transportIsolationNeutral, transportIsolationNeutral)
+				transportIsolationFailed++
+				return
+			wire = transportIsolationPacket.encode()
+		else
+			journalInputFile.filename = journalInput.filename()
+			let fileReadStartedMs = responseProbeClockMs()
+			wire = journalInputFile.readAsString(localPlayer)
+			if fileReadStartedMs >= 0
+				responseProbeFileRead(responseProbeClockMs() - fileReadStartedMs, wire.length())
 		if wire == ""
 			return
 		let latest = min(INPUT_LAST_FRAME, shadowSchedule.nextConfirmedFrame() - 1 + INPUT_FUTURE_LIMIT)
@@ -535,6 +558,7 @@ function serviceJournalInput()
 			shadowLocalSendFailed = true
 			failJournalInput("synchronized input submission failed")
 			return
+		let isolationSentAt = transportIsolationPhase == 3 ? TimerGetElapsed(transportIsolationClock) : 0
 		let sendStartedMs = responseProbeClockMs()
 		let sent = BlzSendSyncData("SC_GP", wire)
 		responseProbeSendCallFinish(sendStartedMs)
@@ -542,6 +566,15 @@ function serviceJournalInput()
 			shadowLocalSendFailed = true
 			failJournalInput("synchronized input submission failed")
 			return
+		if transportIsolationPhase == 3
+			let sequence = (frame - transportIsolationFirstCFrame) div 2
+			if sequence >= 0 and sequence < 300
+				let cSlot = 600 + sequence
+				transportIsolationFrame[cSlot] = frame
+				transportIsolationSendTime[cSlot] = isolationSentAt
+				transportIsolationSubmitted[cSlot] = true
+				transportIsolationSent[2]++
+				transportIsolationBytesSent[2] += wire.length()
 		if RESPONSE_SERVICE_PROBE
 			for rowIndex = 0 to count - 1
 				responseProbeTransportSend(shadowInputEpoch, frame + rowIndex)
@@ -980,25 +1013,18 @@ function shadowPollLocal() returns int
 
 function receiveShadowInput()
     let sender = GetPlayerId(GetTriggerPlayer())
+    let wire = BlzGetTriggerSyncData()
+    if nativePreloadProbeReceive(sender, wire)
+        return
     if not shadowInputActive or not matchState.humanActive(sender)
         return
-    let wire = BlzGetTriggerSyncData()
     if wire.length() == 16 and wire.substring(0, 2) == "D0"
         let packetPhase = wire.substring(2, 3)
-        if transportIsolationPhase > 0 and (packetPhase == "A" or packetPhase == "B")
+        if packetPhase == "A" or packetPhase == "B"
             let phaseIndex = packetPhase == "A" ? 0 : 1
             let sequence = S2I(wire.substring(3, 6))
-            if sender == GetPlayerId(GetLocalPlayer()) and sequence < transportIsolationSent[phaseIndex]
-                let slot = phaseIndex * 128 + sequence
-                if transportIsolationSeen[slot]
-                    transportIsolationDuplicates[phaseIndex]++
-                else
-                    let age = TimerGetElapsed(transportIsolationClock) - transportIsolationSendTime[slot]
-                    transportIsolationSeen[slot] = true
-                    transportIsolationReceived[phaseIndex]++
-                    transportIsolationAgeSamples[phaseIndex]++
-                    transportIsolationAgeSum[phaseIndex] += age
-                    transportIsolationAgeMax[phaseIndex] = max(transportIsolationAgeMax[phaseIndex], age)
+            if sender == GetPlayerId(GetLocalPlayer())
+                transportIsolationRecordEcho(phaseIndex, sequence)
             return
         transportIsolationRejected++
         return
@@ -1007,9 +1033,12 @@ function receiveShadowInput()
     var status = INPUT_MALFORMED
     if shadowIncoming.decode(wire)
 		status = shadowSchedule.acceptSynchronized(sender, shadowIncoming)
-		if RESPONSE_SERVICE_PROBE and sender == GetPlayerId(GetLocalPlayer()) and status == INPUT_ACCEPTED
-			for row = 0 to shadowIncoming.recordCount() - 1
-				responseProbeTransportReceive(shadowIncoming.epochNumber(), shadowIncoming.firstFrameNumber() + row)
+        if RESPONSE_SERVICE_PROBE and sender == GetPlayerId(GetLocalPlayer()) and status == INPUT_ACCEPTED
+            for row = 0 to shadowIncoming.recordCount() - 1
+                responseProbeTransportReceive(shadowIncoming.epochNumber(), shadowIncoming.firstFrameNumber() + row)
+        if transportIsolationPhase == 3 and sender == GetPlayerId(GetLocalPlayer()) and status == INPUT_ACCEPTED
+			let sequence = (shadowIncoming.firstFrameNumber() - transportIsolationFirstCFrame) div 2
+            transportIsolationRecordEcho(2, sequence)
 		if inputTraceActive and sender == GetPlayerId(GetLocalPlayer())
             for row = 0 to shadowIncoming.recordCount() - 1
                 recordShadowTraceEcho(shadowIncoming.epochNumber(), shadowIncoming.firstFrameNumber() + row, receivedCallback, receivedSeconds)
@@ -1023,51 +1052,112 @@ function receiveShadowInput()
         else
             shadowTraceRejected++
 
+function transportIsolationSequence(int sequence) returns string
+    return I2S(sequence + 1000).substring(1, 4)
+
+function transportIsolationRecordEcho(int arm, int sequence)
+    if sequence < 0 or sequence >= 300
+        return
+    let slot = arm * 300 + sequence
+    if transportIsolationSeen[slot]
+        transportIsolationDuplicates[arm]++
+    else if transportIsolationSubmitted[slot]
+        let age = TimerGetElapsed(transportIsolationClock) - transportIsolationSendTime[slot]
+        transportIsolationSeen[slot] = true
+        transportIsolationReceived[arm]++
+        transportIsolationAgeSamples[arm]++
+        transportIsolationAge[slot] = age
+        transportIsolationAgeSum[arm] += age
+        transportIsolationAgeMax[arm] = max(transportIsolationAgeMax[arm], age)
+
+function sendTransportIsolationProbe(int arm)
+    let sequence = transportIsolationAttempts[arm]
+    if sequence >= 300
+        return
+    transportIsolationAttempts[arm]++
+    let suffix = transportIsolationSequence(sequence)
+    var wire = "D0A" + suffix + "0000000000"
+    if arm == 1
+        wire = "D0B" + suffix + "0000000000"
+        let slot = GetPlayerId(localPlayer)
+        journalInputFile.filename = "smashcraft-transport-read-" + BUILD_ID + "-s" + I2S(slot) + "-n" + suffix + ".pld"
+        let started = TimerGetElapsed(transportIsolationClock)
+        wire = journalInputFile.readAsString(localPlayer)
+        transportIsolationReadSeconds += TimerGetElapsed(transportIsolationClock) - started
+        transportIsolationReadCount++
+        transportIsolationReadBytes += wire.length()
+        if wire != "D0B" + suffix + "0000000000"
+            transportIsolationFileFailures++
+            transportIsolationFailed++
+            return
+    let index = arm * 300 + sequence
+    transportIsolationSendTime[index] = TimerGetElapsed(transportIsolationClock)
+    transportIsolationFrame[index] = sequence
+    if BlzSendSyncData("SC_GP", wire)
+        transportIsolationSubmitted[index] = true
+        transportIsolationSent[arm]++
+        transportIsolationBytesSent[arm] += wire.length()
+    else
+        transportIsolationFailed++
+
 function dumpTransportIsolation()
     PreloadGenClear()
     PreloadGenStart()
     Preload("build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " timing=native-game-seconds")
-    Preload("fileio-reads=" + I2S(transportIsolationReadCount) + " bytes=" + I2S(transportIsolationReadBytes) + " read-seconds=" + R2S(transportIsolationReadSeconds))
-    Preload("journal-sequence-first=" + I2S(transportIsolationFirstJournalSequence) + " last=" + I2S(transportIsolationLastJournalSequence) + " changes=" + I2S(transportIsolationJournalSequenceChanges))
-    for phase = 0 to 1
-        Preload("phase=" + (phase == 0 ? "FileIO-present" : "FileIO-skipped") + " bytes=16 sent=" + I2S(transportIsolationSent[phase]) + " received=" + I2S(transportIsolationReceived[phase]) + " missing=" + I2S(transportIsolationSent[phase] - transportIsolationReceived[phase]))
-        Preload("phase-age-samples=" + I2S(transportIsolationAgeSamples[phase]) + " mean-seconds=" + R2S(transportIsolationAgeSamples[phase] > 0 ? transportIsolationAgeSum[phase] / transportIsolationAgeSamples[phase] : 0) + " max-seconds=" + R2S(transportIsolationAgeMax[phase]) + " duplicates=" + I2S(transportIsolationDuplicates[phase]))
-    Preload("diagnostic-unexpected-packets=" + I2S(transportIsolationRejected))
+    Preload("native-span=" + R2S(TimerGetElapsed(transportIsolationClock)) + " callbacks=" + I2S(transportIsolationTicks))
+    Preload("B-file=smashcraft-transport-read-" + BUILD_ID + "-s{localSlot}-n{000..299}.pld exact 16-byte D0B payload no newline")
+    Preload("B-reads=" + I2S(transportIsolationReadCount) + " bytes=" + I2S(transportIsolationReadBytes) + " seconds=" + R2S(transportIsolationReadSeconds) + " file-errors=" + I2S(transportIsolationFileFailures))
+    for arm = 0 to 2
+        let label = arm == 0 ? "A-generated" : (arm == 1 ? "B-file" : "C-I4")
+        Preload("arm=" + label + " attempts=" + I2S(transportIsolationAttempts[arm]) + " sent=" + I2S(transportIsolationSent[arm]) + " received=" + I2S(transportIsolationReceived[arm]) + " missing=" + I2S(transportIsolationSent[arm] - transportIsolationReceived[arm]))
+        Preload("arm=" + label + " bytes=" + I2S(transportIsolationBytesSent[arm]) + " age-samples=" + I2S(transportIsolationAgeSamples[arm]) + " mean=" + R2S(transportIsolationAgeSamples[arm] > 0 ? transportIsolationAgeSum[arm] / transportIsolationAgeSamples[arm] : 0) + " max=" + R2S(transportIsolationAgeMax[arm]) + " duplicate=" + I2S(transportIsolationDuplicates[arm]))
+        Preload("arm=" + label + " drain-callbacks=" + I2S(transportIsolationDrainByArm[arm]))
+        Preload("arm=" + label + " native-span=" + R2S(transportIsolationSpanByArm[arm]) + " callbacks=600 simulation-frame=" + I2S(transportIsolationSimulationFrame[arm]))
+        Preload("arm=" + label + " state-checksum=" + transportIsolationChecksum[arm])
+        for sequence = 0 to transportIsolationAttempts[arm] - 1
+            let index = arm * 300 + sequence
+            Preload("echo arm=" + label + " seq=" + transportIsolationSequence(sequence) + " frame=" + I2S(transportIsolationFrame[index]) + " seen=" + (transportIsolationSeen[index] ? "1" : "0") + " age=" + R2S(transportIsolationAge[index]))
+    Preload("failed=" + I2S(transportIsolationFailed) + " unexpected=" + I2S(transportIsolationRejected) + " C-first-frame=" + I2S(transportIsolationFirstCFrame))
     PreloadGenEnd("wc3-melee-transport-isolation.txt")
+
+function finishTransportIsolationArm()
+    let arm = transportIsolationPhase - 1
+    transportIsolationDrainByArm[arm] = transportIsolationDrainTicks
+    transportIsolationSpanByArm[arm] = TimerGetElapsed(transportIsolationClock) - transportIsolationArmStartedAt
+    diagnosticSnapshot.capture(matchWorld, matchState, matchInputs, replayRuntime)
+    transportIsolationChecksum[arm] = diagnosticSnapshot.checksum()
+    transportIsolationSimulationFrame[arm] = replayRuntime.simulationFrame
+    transportIsolationPhase++
+    transportIsolationPhaseTicks = 0
+    transportIsolationDrainTicks = 0
+    transportIsolationCOffer = false
+    transportIsolationArmStartedAt = TimerGetElapsed(transportIsolationClock)
+    if transportIsolationPhase == 3
+        transportIsolationFirstCFrame = journalInput.expectedFrame()
+    if transportIsolationPhase > 3
+        dumpTransportIsolation()
+        transportIsolationPhase = 0
 
 function transportIsolationTick()
     if transportIsolationPhase == 0
         return
-    let tick = transportIsolationTicks
-    if tick < 120
-        transportIsolationPhase = 1
-    else if tick < 240
-        transportIsolationPhase = 2
-    else
-        transportIsolationPhase = 3
-    if tick < 240
-        if transportIsolationPhase == 1 and JOURNAL_INPUT_SOURCE
-            let started = TimerGetElapsed(transportIsolationClock)
-            journalInputFile.filename = journalInput.filename()
-            let ignored = journalInputFile.readAsString(localPlayer)
-            transportIsolationReadSeconds += TimerGetElapsed(transportIsolationClock) - started
-            transportIsolationReadCount++
-            transportIsolationReadBytes += ignored.length()
-        if tick mod 2 == 0
-            let phaseIndex = transportIsolationPhase - 1
-            let row = transportIsolationSent[phaseIndex]
-            let sequence = I2S(row + 1000).substring(1, 4)
-            let wire = (phaseIndex == 0 ? "D0A" : "D0B") + sequence + "0000000000"
-            if BlzSendSyncData("SC_GP", wire)
-                transportIsolationSendTime[phaseIndex * 128 + row] = TimerGetElapsed(transportIsolationClock)
-                transportIsolationSent[phaseIndex]++
     transportIsolationTicks++
-    if transportIsolationTicks >= 840
-        dumpTransportIsolation()
-        transportIsolationPhase = 0
+    transportIsolationCOffer = false
+    if transportIsolationPhaseTicks < 600
+        if transportIsolationPhase == 1 or transportIsolationPhase == 2
+            if transportIsolationPhaseTicks mod 2 == 0
+                sendTransportIsolationProbe(transportIsolationPhase - 1)
+        else if transportIsolationPhaseTicks mod 2 == 0 and transportIsolationAttempts[2] < 300
+            transportIsolationCOffer = true
+        transportIsolationPhaseTicks++
+        return
+    if transportIsolationReceived[transportIsolationPhase - 1] >= transportIsolationSent[transportIsolationPhase - 1] or transportIsolationDrainTicks >= 600
+        finishTransportIsolationArm()
+    else
+        transportIsolationDrainTicks++
 
 function onTransportIsolationStart()
-    if GetPlayerId(GetTriggerPlayer()) != matchState.firstHumanSlot() or transportIsolationClock != null
+    if GetPlayerId(GetTriggerPlayer()) != matchState.firstHumanSlot() or transportIsolationClock != null or not JOURNAL_INPUT_SOURCE or not shadowInputActive
         return
     transportIsolationTicks = 0
     transportIsolationClock = CreateTimer()
@@ -1403,7 +1493,32 @@ function onDeveloperTrace()
         return
     startInputTrace()
 
+function onNativeOrderProbeStart()
+    nativeOrderProbeStart()
+
+function onNativePreloadProbeStart()
+    if GetTriggerPlayer() != GetLocalPlayer() or not shadowInputActive or transportIsolationPhase != 0 or inputTraceActive
+        return
+    nativePreloadProbeRequestStart()
+
+function onNativeTransportProbeStart()
+    if GetTriggerPlayer() == GetLocalPlayer() and shadowInputActive and not nativePreloadProbeActive() and transportIsolationPhase == 0
+        nativeTransportProbeRequestStart()
+
 function setupKeys()
+    if RESPONSE_SERVICE_PROBE and JOURNAL_INPUT_SOURCE
+        nativeOrderProbeSetup(matchState.humanMask)
+        nativePreloadProbeSetup(matchState.humanMask)
+        nativeTransportProbeSetup(matchState.humanMask)
+        let nativeOrderStart = CreateTrigger()
+        let nativePreloadStart = CreateTrigger()
+        let nativeTransportStart = CreateTrigger()
+        registerDeveloperChord(nativeOrderStart, OSKEY_O)
+        registerDeveloperChord(nativePreloadStart, OSKEY_P)
+        registerDeveloperChord(nativeTransportStart, OSKEY_N)
+        TriggerAddAction(nativeOrderStart, function onNativeOrderProbeStart)
+        TriggerAddAction(nativePreloadStart, function onNativePreloadProbeStart)
+        TriggerAddAction(nativeTransportStart, function onNativeTransportProbeStart)
     let transportIsolationStart = CreateTrigger()
     registerDeveloperChord(transportIsolationStart, OSKEY_B)
     TriggerAddAction(transportIsolationStart, function onTransportIsolationStart)
@@ -1703,6 +1818,9 @@ function initializeShadowInput()
     shadowBatch = new InputBatch()
     shadowOutgoing = new InputPacket()
     shadowIncoming = new InputPacket()
+    transportIsolationPacket = new InputPacket()
+    transportIsolationNeutral = new NetworkInput()
+    transportIsolationNeutral.assign(0, 0, 0, 0, 0, 0, 0)
     shadowSample = new NetworkInput()
     shadowPending = new NetworkInput()
     shadowAcceptedInputs = new ParticipantInputs()

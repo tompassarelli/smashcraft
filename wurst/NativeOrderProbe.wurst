@@ -1,0 +1,116 @@
+package NativeOrderProbe
+import Wurst
+import BuildInfo
+import RegisterEvents
+import ParticipantInputs
+
+constant int ORDER_PROBE_CARRIER_ID = 'hfoo'
+constant int ORDER_PROBE_EVENT_LIMIT = 64
+unit array[INPUT_PARTICIPANT_CAPACITY] carriers
+unit array[INPUT_PARTICIPANT_CAPACITY] selectionStagers
+timer probeClock = null
+timer selectionCheck = null
+boolean array active
+real array startSeconds
+int array eventCounts
+int array droppedCounts
+
+function receiptIndex(int observer, int sender) returns int
+    return observer * INPUT_PARTICIPANT_CAPACITY + sender
+
+function belongsToProbe(unit value) returns int
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if value == carriers[slot]
+            return slot
+    return -1
+
+function orderKind() returns string
+    if GetTriggerEventId() == EVENT_PLAYER_UNIT_ISSUED_POINT_ORDER
+        return "point"
+    if GetTriggerEventId() == EVENT_PLAYER_UNIT_ISSUED_TARGET_ORDER
+        return "target"
+    return "immediate"
+
+function onCarrierOrder()
+    let unitValue = GetTriggerUnit()
+    var sender = belongsToProbe(unitValue)
+    var role = "carrier"
+    if sender < 0
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if unitValue == selectionStagers[slot]
+                sender = slot
+                role = "stager"
+    let observer = GetPlayerId(GetLocalPlayer())
+    if sender < 0 or not active[observer]
+        return
+    let index = receiptIndex(observer, sender)
+    let sequence = eventCounts[index]
+    eventCounts[index]++
+    if sequence >= ORDER_PROBE_EVENT_LIMIT
+        droppedCounts[index]++
+        return
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("build=" + BUILD_ID + " receipt=native-player-order")
+    Preload("observed-slot=" + I2S(observer) + " sender-slot=" + I2S(sender) + " carrier-role=" + role + " event=" + orderKind() + " order-id=" + I2S(GetIssuedOrderId()))
+    Preload("native-game-seconds=" + R2S(TimerGetElapsed(probeClock)) + " since-ready=" + R2S(TimerGetElapsed(probeClock) - startSeconds[observer]))
+    PreloadGenEnd("smashcraft-native-order-" + BUILD_ID + "-observed-s" + I2S(observer) + "-sender-s" + I2S(sender) + "-n" + I2S(sequence) + ".txt")
+
+public function nativeOrderProbeSetup(int humanMask)
+    let arenaBounds = GetPlayableMapRect()
+    let baseX = GetRectMaxX(arenaBounds) - 384
+    let baseY = GetRectMaxY(arenaBounds) - 384
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if humanMask div (slot == 0 ? 1 : (slot == 1 ? 2 : (slot == 2 ? 4 : 8))) mod 2 == 1
+            carriers[slot] = CreateUnit(Player(slot), ORDER_PROBE_CARRIER_ID,
+                baseX - (slot mod 2) * 160., baseY - (slot / 2) * 160., 270.)
+            selectionStagers[slot] = CreateUnit(Player(slot), ORDER_PROBE_CARRIER_ID,
+                baseX - (slot mod 2) * 160. - 48., baseY - (slot / 2) * 160., 270.)
+    probeClock = CreateTimer()
+    selectionCheck = CreateTimer()
+    TimerStart(probeClock, 3600, false, null)
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_ISSUED_ORDER, function onCarrierOrder)
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_ISSUED_POINT_ORDER, function onCarrierOrder)
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_ISSUED_TARGET_ORDER, function onCarrierOrder)
+
+function inspectSelectedCarrier()
+    let slot = GetPlayerId(GetLocalPlayer())
+    for commandIndex = 0 to 11
+        let command = BlzGetOriginFrame(ORIGIN_FRAME_COMMAND_BUTTON, commandIndex)
+        BlzFrameSetVisible(command, true)
+        BlzFrameSetEnable(command, true)
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("build=" + BUILD_ID + " receipt=native-order-selection-after-callbacks")
+    Preload("player=" + I2S(slot) + " carrier-selected=" + (IsUnitSelected(carriers[slot], Player(slot)) ? "1" : "0") + " stager-selected=" + (IsUnitSelected(selectionStagers[slot], Player(slot)) ? "1" : "0"))
+    Preload("command-buttons-explicitly-shown=12 selection-enabled=" + (BlzIsSelectionEnabled() ? "1" : "0"))
+    PreloadGenEnd("smashcraft-order-selection-" + BUILD_ID + "-s" + I2S(slot) + ".txt")
+
+public function nativeOrderProbeStart()
+    let slot = GetPlayerId(GetLocalPlayer())
+    if carriers[slot] == null or active[slot]
+        return
+    active[slot] = true
+    startSeconds[slot] = TimerGetElapsed(probeClock)
+    BlzHideOriginFrames(false)
+    BlzEnableSelections(true, true)
+    ClearSelection()
+    SelectUnit(selectionStagers[slot], true)
+    SelectUnit(carriers[slot], true)
+    SelectUnit(selectionStagers[slot], false)
+    TimerStart(selectionCheck, 0.5, false, function inspectSelectedCarrier)
+    let exists = carriers[slot] != null
+    let typeId = exists ? GetUnitTypeId(carriers[slot]) : 0
+    let ownerSlot = exists ? GetPlayerId(GetOwningPlayer(carriers[slot])) : -1
+    let isSelected = exists and IsUnitSelected(carriers[slot], Player(slot))
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("build=" + BUILD_ID + " receipt=native-order-ready")
+    Preload("player=" + I2S(slot) + " carrier=footman hotkeys=S-stop,H-hold")
+    Preload("carrier-exists=" + (exists ? "1" : "0") + " type-id=" + I2S(typeId) + " owner-slot=" + I2S(ownerSlot) + " selected=" + (isSelected ? "1" : "0"))
+    Preload("selection-enabled=" + (BlzIsSelectionEnabled() ? "1" : "0") + " command-panel-unhidden=1")
+    Preload("native-game-seconds=" + R2S(startSeconds[slot]))
+    PreloadGenEnd("smashcraft-order-ready-" + BUILD_ID + "-s" + I2S(slot) + ".txt")
+
+public function nativeOrderProbeActive() returns boolean
+    return active[GetPlayerId(GetLocalPlayer())]

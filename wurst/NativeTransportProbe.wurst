@@ -1,0 +1,369 @@
+package NativeTransportProbe
+import Wurst
+import BuildInfo
+import ParticipantInputs
+import RegisterEvents
+
+// Native transport comparison. TimerGetElapsed supplies native game seconds;
+// timer callback counts are not treated as wall-clock measurements.
+constant int NTP_SAMPLES = 60
+constant int NTP_RATES = 2
+constant int NTP_ARMS = 3
+constant int NTP_PHASES = NTP_RATES * NTP_ARMS
+constant string NTP_START_PREFIX = "SC_NTP_START"
+constant string NTP_DATA_PREFIX = "SC_NTP_DATA"
+constant string NTP_CACHE_FILE = "ntp.w3v"
+constant int NTP_CACHE_UNIT = 'hfoo'
+constant int NTP_SYMBOLS = 15
+
+// 0..9 decimal digits, 10 frame start, 11 frame end, 12 plus, 13 minus,
+// 14 header delimiter. At most one dummy is selected at once.
+unit array[INPUT_PARTICIPANT_CAPACITY * NTP_SYMBOLS] symbols
+gamecache cache = null
+timer probeClock = null
+timer callbackDriver = null
+boolean active = false
+boolean selectionWasEnabled = true
+int activeMask = 0
+int rateIndex = 0
+int arm = 0
+int sample = 0
+boolean draining = false
+real drainStartedAt = 0
+int array received
+int array bad
+int array duplicates
+int array sendFailures
+int array sent
+boolean array seen
+real array submittedAt
+real array echoTotal
+real array echoMax
+int array echoCount
+real array phaseStartedAt
+string array frameDigits
+string array framePayload
+int array framePhase
+int array frameSeq
+boolean array frameOpen
+boolean array frameHeaderDone
+boolean array frameNegative
+
+function phaseIndex(int rate, int whichArm) returns int
+    return rate * NTP_ARMS + whichArm
+
+function receiptIndex(int observer, int sender, int phase) returns int
+    return (observer * INPUT_PARTICIPANT_CAPACITY + sender) * NTP_PHASES + phase
+
+function timingIndex(int sender, int phase, int seq) returns int
+    return (sender * NTP_PHASES + phase) * NTP_SAMPLES + seq
+
+function symbolIndex(int slot, int symbol) returns int
+    return slot * NTP_SYMBOLS + symbol
+
+function symbolOwner(unit value) returns int
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        for symbol = 0 to NTP_SYMBOLS - 1
+            if symbols[symbolIndex(slot, symbol)] == value
+                return slot * NTP_SYMBOLS + symbol
+    return -1
+
+function padded2(int value) returns string
+    return I2S(value + 100).substring(1, 3)
+
+function testValue(int slot, int seq, int rate) returns int
+    if seq == 0
+        return rate == 0 ? (-2147483647 - 1) : 2147483647
+    if seq == 1
+        return rate == 0 ? 2147483647 : (-2147483647 - 1)
+    if seq mod 4 == 0
+        return 1431655765 + slot + rate * 101
+    if seq mod 4 == 1
+        return -1431655766 - slot - rate * 101
+    if seq mod 4 == 2
+        return seq * 65537 + slot * 31 + rate * 101
+    return -seq * 4099 - slot * 17 - rate * 101
+
+function recordValue(int observer, int sender, int rate, int whichArm, int seq, int value)
+    if seq < 0 or seq >= NTP_SAMPLES
+        return
+    let phase = phaseIndex(rate, whichArm)
+    let index = receiptIndex(observer, sender, phase)
+    let sampleIndex = index * NTP_SAMPLES + seq
+    if seen[sampleIndex]
+        duplicates[index]++
+        return
+    seen[sampleIndex] = true
+    if value != testValue(sender, seq, rate)
+        bad[index]++
+    else
+        received[index]++
+    if observer == sender
+        let age = TimerGetElapsed(probeClock) - submittedAt[timingIndex(sender, phase, seq)]
+        if age >= 0
+            echoTotal[index] += age
+            echoMax[index] = max(echoMax[index], age)
+            echoCount[index]++
+
+function writeReceipt(int observer, int rate, int whichArm)
+    let phase = phaseIndex(rate, whichArm)
+    var expected = 0
+    var got = 0
+    var badTotal = 0
+    var duplicateTotal = 0
+    var sendFailureTotal = 0
+    var ageSum = 0.
+    var ageMax = 0.
+    var ageCount = 0
+    for sender = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        let index = receiptIndex(observer, sender, phase)
+        if participantIsActive(activeMask, sender)
+            expected += NTP_SAMPLES
+        got += received[index]
+        badTotal += bad[index]
+        duplicateTotal += duplicates[index]
+        sendFailureTotal += sendFailures[index]
+        if observer == sender
+            ageSum += echoTotal[index]
+            ageMax = max(ageMax, echoMax[index])
+            ageCount += echoCount[index]
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("build=" + BUILD_ID + " receipt=native-transport-probe")
+    Preload("observer=" + I2S(observer) + " rate=" + I2S(rate == 0 ? 30 : 60) + " arm=" + I2S(whichArm))
+    Preload("expected=" + I2S(expected) + " received=" + I2S(got) + " missing=" + I2S(expected - got))
+    Preload("bad=" + I2S(badTotal) + " duplicates=" + I2S(duplicateTotal) + " send-failures=" + I2S(sendFailureTotal))
+    Preload("own-echo-count=" + I2S(ageCount) + " mean-native-seconds=" + R2S(ageCount > 0 ? ageSum / ageCount : 0) + " max-native-seconds=" + R2S(ageMax))
+    Preload("native-game-seconds=" + R2S(TimerGetElapsed(probeClock)) + " phase-seconds=" + R2S(TimerGetElapsed(probeClock) - phaseStartedAt[phase]))
+    PreloadGenEnd("smashcraft-transport-" + BUILD_ID + "-observer-" + I2S(observer) + "-r" + I2S(rate) + "-a" + I2S(whichArm) + ".txt")
+
+function phaseCompleteForObserver(int observer) returns boolean
+    let phase = phaseIndex(rateIndex, arm)
+    for sender = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if participantIsActive(activeMask, sender)
+            let index = receiptIndex(observer, sender, phase)
+            if received[index] < NTP_SAMPLES
+                return false
+    return true
+
+function advancePhase()
+    let observer = GetPlayerId(GetLocalPlayer())
+    writeReceipt(observer, rateIndex, arm)
+    arm++
+    if arm >= NTP_ARMS
+        arm = 0
+        rateIndex++
+    sample = 0
+    draining = false
+    if rateIndex >= NTP_RATES
+        active = false
+        PauseTimer(callbackDriver)
+        return
+    phaseStartedAt[phaseIndex(rateIndex, arm)] = TimerGetElapsed(probeClock)
+    TimerStart(callbackDriver, 1. / (rateIndex == 0 ? 30. : 60.), true, function sendSample)
+
+function beginSelectionFrame(int sender)
+    if GetLocalPlayer() == Player(sender)
+        selectionWasEnabled = BlzIsSelectionEnabled()
+        BlzEnableSelections(true, true)
+        ClearSelection()
+
+function endSelectionFrame(int sender)
+    if GetLocalPlayer() == Player(sender) and not selectionWasEnabled
+        BlzEnableSelections(false, false)
+
+function sendSelectionSymbol(int sender, int symbol)
+    let symbolUnit = symbols[symbolIndex(sender, symbol)]
+    if symbolUnit != null and GetLocalPlayer() == Player(sender)
+        SelectUnit(symbolUnit, false)
+        SelectUnit(symbolUnit, true)
+        SelectUnit(symbolUnit, false)
+
+function sendSelectionHeader(int sender, int rate, int whichArm, int seq)
+    beginSelectionFrame(sender)
+    sendSelectionSymbol(sender, 10)
+    sendSelectionSymbol(sender, phaseIndex(rate, whichArm))
+    let digits = padded2(seq)
+    sendSelectionSymbol(sender, S2I(digits.substring(0, 1)))
+    sendSelectionSymbol(sender, S2I(digits.substring(1, 2)))
+    sendSelectionSymbol(sender, 14)
+
+function sendSelectionEnd(int sender)
+    sendSelectionSymbol(sender, 11)
+    endSelectionFrame(sender)
+
+function sendSelectionValue(int sender, int rate, int whichArm, int seq, int value)
+    var digits = I2S(value)
+    sendSelectionHeader(sender, rate, whichArm, seq)
+    if digits.substring(0, 1) == "-"
+        sendSelectionSymbol(sender, 13)
+        digits = digits.substring(1, digits.length())
+    else
+        sendSelectionSymbol(sender, 12)
+    for index = 0 to digits.length() - 1
+        sendSelectionSymbol(sender, S2I(digits.substring(index, index + 1)))
+    sendSelectionEnd(sender)
+
+function onSelection()
+    if GetTriggerEventId() != EVENT_PLAYER_UNIT_SELECTED
+        return
+    let owner = symbolOwner(GetTriggerUnit())
+    if owner < 0
+        return
+    let sender = owner div NTP_SYMBOLS
+    let symbol = owner mod NTP_SYMBOLS
+    let observer = GetPlayerId(GetLocalPlayer())
+    if symbol == 10
+        frameOpen[sender] = true
+        frameHeaderDone[sender] = false
+        frameDigits[sender] = ""
+        framePayload[sender] = ""
+        frameNegative[sender] = false
+        return
+    if not frameOpen[sender]
+        return
+    if not frameHeaderDone[sender]
+        if symbol == 14
+            let header = frameDigits[sender]
+            if header.length() == 3
+                framePhase[sender] = S2I(header.substring(0, 1))
+                frameSeq[sender] = S2I(header.substring(1, 3))
+                frameHeaderDone[sender] = true
+            else
+                frameOpen[sender] = false
+        else if symbol >= 0 and symbol <= 9
+            frameDigits[sender] += I2S(symbol)
+        return
+    if symbol == 11
+        frameOpen[sender] = false
+        let phase = framePhase[sender]
+        let rate = phase div NTP_ARMS
+        let whichArm = phase mod NTP_ARMS
+        let seq = frameSeq[sender]
+        if rate < 0 or rate >= NTP_RATES or whichArm < 0 or whichArm >= NTP_ARMS
+            return
+        if whichArm == 1
+            let key = padded2(seq)
+            let value = GetStoredInteger(cache, I2S(sender), key)
+            recordValue(observer, sender, rate, whichArm, seq, value)
+        else if whichArm == 2
+            let value = S2I((frameNegative[sender] ? "-" : "") + framePayload[sender])
+            recordValue(observer, sender, rate, whichArm, seq, value)
+        return
+    if symbol == 12
+        frameNegative[sender] = false
+    else if symbol == 13
+        frameNegative[sender] = true
+    else if symbol >= 0 and symbol <= 9
+        framePayload[sender] += I2S(symbol)
+
+function onSyncData()
+    let sender = GetPlayerId(GetTriggerPlayer())
+    nativeTransportProbeReceive(sender, BlzGetTriggerSyncData())
+
+public function nativeTransportProbeReceive(int sender, string wire) returns boolean
+    if wire.length() < 10 or wire.substring(0, 4) != "NTP1"
+        return false
+    let observer = GetPlayerId(GetLocalPlayer())
+    let rate = S2I(wire.substring(4, 5))
+    let whichArm = S2I(wire.substring(5, 6))
+    let seq = S2I(wire.substring(6, 8))
+    let value = S2I(wire.substring(8, wire.length()))
+    if rate < 0 or rate >= NTP_RATES or whichArm != 0 or seq < 0 or seq >= NTP_SAMPLES
+        return true
+    recordValue(observer, sender, rate, whichArm, seq, value)
+    return true
+
+function sendSample()
+    if not active
+        return
+    let observer = GetPlayerId(GetLocalPlayer())
+    let phase = phaseIndex(rateIndex, arm)
+    if sample >= NTP_SAMPLES
+        if not draining
+            draining = true
+            drainStartedAt = TimerGetElapsed(probeClock)
+        if phaseCompleteForObserver(observer) or TimerGetElapsed(probeClock) - drainStartedAt >= 15.
+            advancePhase()
+        return
+    let slot = observer
+    let seq = sample
+    let value = testValue(slot, seq, rateIndex)
+    let tIndex = timingIndex(slot, phase, seq)
+    submittedAt[tIndex] = TimerGetElapsed(probeClock)
+    if arm == 0
+        let wire = "NTP1" + I2S(rateIndex) + I2S(arm) + padded2(seq) + I2S(value)
+        if BlzSendSyncData(NTP_DATA_PREFIX, wire)
+            sent[receiptIndex(slot, slot, phase)]++
+        else
+            sendFailures[receiptIndex(slot, slot, phase)]++
+    else if arm == 1
+        let key = padded2(seq)
+        StoreInteger(cache, I2S(slot), key, value)
+        SyncStoredInteger(cache, I2S(slot), key)
+        sendSelectionHeader(slot, rateIndex, arm, seq)
+        sendSelectionEnd(slot)
+        sent[receiptIndex(slot, slot, phase)]++
+    else
+        sendSelectionValue(slot, rateIndex, arm, seq, value)
+        sent[receiptIndex(slot, slot, phase)]++
+    sample++
+
+public function nativeTransportProbeActive() returns boolean
+    return active
+
+public function nativeTransportProbeRequestStart()
+    if not active
+        BlzSendSyncData(NTP_START_PREFIX, "1")
+
+public function nativeTransportProbeSetup(int humanMask)
+    activeMask = humanMask
+    cache = InitGameCache(NTP_CACHE_FILE)
+    probeClock = CreateTimer()
+    callbackDriver = CreateTimer()
+    TimerStart(probeClock, 3600., false, null)
+    let arena = GetPlayableMapRect()
+    let baseX = GetRectMaxX(arena) - 512
+    let baseY = GetRectMaxY(arena) - 512
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if participantIsActive(humanMask, slot)
+            for symbol = 0 to NTP_SYMBOLS - 1
+                symbols[symbolIndex(slot, symbol)] = CreateUnit(Player(slot), NTP_CACHE_UNIT,
+                    baseX + (symbol mod 7) * 32., baseY - slot * 48., 270.)
+    let syncTrigger = CreateTrigger()
+    let startTrigger = CreateTrigger()
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if participantIsActive(humanMask, slot)
+            BlzTriggerRegisterPlayerSyncEvent(syncTrigger, Player(slot), NTP_DATA_PREFIX, false)
+            BlzTriggerRegisterPlayerSyncEvent(startTrigger, Player(slot), NTP_START_PREFIX, false)
+    TriggerAddAction(syncTrigger, function onSyncData)
+    TriggerAddAction(startTrigger, function beginProbe)
+    registerPlayerUnitEvent(EVENT_PLAYER_UNIT_SELECTED, function onSelection)
+
+function beginProbe()
+    if active
+        return
+    active = true
+    rateIndex = 0
+    arm = 0
+    sample = 0
+    draining = false
+    for observer = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        for sender = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            for phase = 0 to NTP_PHASES - 1
+                let index = receiptIndex(observer, sender, phase)
+                received[index] = 0
+                bad[index] = 0
+                duplicates[index] = 0
+                sendFailures[index] = 0
+                sent[index] = 0
+                echoTotal[index] = 0
+                echoMax[index] = 0
+                echoCount[index] = 0
+                for seq = 0 to NTP_SAMPLES - 1
+                    seen[index * NTP_SAMPLES + seq] = false
+                    if observer == sender
+                        submittedAt[timingIndex(sender, phase, seq)] = 0
+    for phase = 0 to NTP_PHASES - 1
+        phaseStartedAt[phase] = TimerGetElapsed(probeClock)
+    TimerStart(callbackDriver, 1. / 30., true, function sendSample)

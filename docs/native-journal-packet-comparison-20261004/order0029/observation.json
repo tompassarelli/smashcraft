@@ -1,0 +1,28 @@
+{
+  "build": "netcode-0029",
+  "mapSha256": "c151677f5decc8172a27c61fc39a3268c323ff68f5d24e9453aa599e8fe2591b",
+  "slots": [
+    0,
+    2
+  ],
+  "delayedCarrierSelected": [
+    true,
+    true
+  ],
+  "delayedStagerSelected": [
+    false,
+    false
+  ],
+  "commandsAttempted": [
+    "S stop on A",
+    "S stop on B"
+  ],
+  "orderReceiptsPerClient": [
+    0,
+    0
+  ],
+  "result": "both Warcraft processes exited; B showed unexpected-error dialog",
+  "crashEvidence": "Both private native Crash.txt reports identify Warcraft 3.0.0 build 24268 ACCESS_VIOLATION reading address 0x2C58. Instructions A: 0x6FFFEF2F1043, B: 0x6FFFEF321043. Dumps remain private.",
+  "cause": "unresolved; no latency or reliability verdict",
+  "recordedUtc": "2026-10-04T02:51:27.257575+00:00"
+}

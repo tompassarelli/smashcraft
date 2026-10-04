@@ -1,0 +1,14 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=netcode-0029 receipt=native-transport-probe" )
+	call Preload( "observer=2 rate=60 arm=2" )
+	call Preload( "expected=120 received=120 missing=0" )
+	call Preload( "bad=0 duplicates=0 send-failures=0" )
+	call Preload( "own-echo-count=60 mean-native-seconds=0.135 max-native-seconds=0.172" )
+	call Preload( "native-game-seconds=352.533 phase-seconds=1.133" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

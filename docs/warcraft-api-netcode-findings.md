@@ -1,0 +1,332 @@
+# Warcraft API and netcode findings
+
+Updated 4 October 2026. **Low-latency competitive readiness remains unproved.**
+This file records the reusable findings and the next decisions they support.
+Detailed run evidence remains in the linked reports. The original two-hour
+deadline was 08:38:38 Taipei on 4 October; it was missed and has not reset.
+
+## Current deciding evidence
+
+**Populated preload-file ingestion reproduces the seconds-long backlog.**
+The same two Warcraft III 3.0 clients ran exact Smashcraft 0.0.24, build
+`netcode-0024`, SHA256
+`1aa3895cbc98919fe7c300d8e71863e79faae853322bcde3b027b0c05e4c6a0f`.
+Fresh readiness identified two human fighters in slots 0 and 2. Both were in
+MATCH, with spare slots closed. Sequential arms offered 300 messages per client
+at 30 Hz through the same `SC_GP` registration and receiver.
+
+| Arm | A mean / maximum echo | B mean / maximum echo | What changed |
+| --- | --- | --- | --- |
+| Generated 16-byte messages | 95 / 215 ms | 87 / 215 ms | No file read or input admission |
+| Populated-file 16-byte messages | 3,989 / 7,555 ms | 4,146 / 7,789 ms | Fresh immutable preload filenames and the actual FileIO read |
+| Generated production I4 packets | 100 / 229 ms | 97 / 213 ms | Production decoding, original-frame admission, sending and receipt; neutral two-row inputs, no files |
+
+All 300 messages arrived in each arm/client. Reported missing, duplicate,
+failed-submission, unexpected-packet and file-validation counts were zero.
+The file-backed arm's first 30 messages averaged 809/778 ms, increasing to
+6,745/7,025 ms for its last 30 (A/B). The generated arms did not develop that
+backlog. Both final exports appeared about 37.25 host-wall seconds after the
+trigger, versus about 36.8 native-game seconds.
+
+These are native submission-to-own-receipt ages, not physical controller-to-screen
+measurements. A/B strings have matching lengths but distinct diagnostic labels.
+I4 sent 2,384 payload bytes/client, versus 4,800 for each 16-byte arm, and used
+neutral input rather than ordinary combat. Arms were sequential. Their ending
+simulation frames differ; the exports do not prove paired terminal checksums.
+The result narrows the slow behavior to populated-file integration under these
+conditions. It does not yet identify which operation inside that path causes it.
+
+Evidence: `wc3-melee:docs/native-journal-packet-comparison-20261004/isolation0024/`.
+Details: `wc3-melee:docs/native-companion-landing-result-20261004.md`.
+
+Earlier 0.0.23 missing-file trials delivered all 60 messages/arm/client with
+about 91–111 ms mean echo. Repeated missing-file reads alone did not reproduce
+the production delay. A missing-file result does not establish populated-file
+cost. Native timers reported zero read duration at their displayed precision
+even in the slow populated arm; they do not establish zero blocking wall time
+inside callbacks.
+
+## Follow-up: fresh paths alone did not reproduce the backlog
+
+The same retained clients ran exact Smashcraft 0.0.28 / `netcode-0028`, SHA256
+`38d3fd123d2818d0e16e14b58b23cebb467b0ef1cc79067d8ea8f78077646fae`, in
+MATCH with human slots 0 and 2 and spare slots closed. Ctrl+P offered 100
+messages/client/arm at 30 Hz through `SC_GP`. Every arm used the same 16-byte
+value, with a six-byte arm/sequence envelope: 22 bytes/message, 2,200 bytes/arm.
+
+| Arm | A mean / maximum echo | B mean / maximum echo |
+| --- | --- | --- |
+| Repeated populated filename | 97 / 166 ms | 94 / 158 ms |
+| Fresh populated filenames | 132 / 242 ms | 139 / 249 ms |
+| Tooltip set/get/clear without Preloader | 108 / 220 ms | 105 / 193 ms |
+
+Every arm/client received 100/100, with zero reported bad payloads, local read
+errors, failed sends or duplicates. Native phase spans were 3.433, 3.466 and
+3.432 seconds. Host-observed exports finished about 10.577 seconds after the
+trigger. Both clients read their own local fixtures named for slot 2; that
+filename does not identify the observer or sender.
+
+This falsifies fresh filenames as a sufficient explanation under this bounded
+workload. It does not contradict the 0.0.24 reproduction: that arm used changing
+file contents and 300 samples, whereas this run used constant file contents and
+100 samples. Payload envelopes and diagnostic drivers also differ. Changing
+contents and longer sustained runs remain deciding tests; do not diagnose
+Preloader, tooltip updates or an engine limit from these observations alone.
+No physical response, paired checksum or 60 Hz claim follows from this probe.
+
+Evidence: `wc3-melee:docs/native-journal-packet-comparison-20261004/fileio0028/`.
+
+## Longer changing-content reproduction on 0.0.28
+
+The same 0.0.28 match subsequently ran the earlier Ctrl+B diagnostic, with 300
+messages/client/arm at 30 Hz. Generated 16-byte traffic averaged 93/86 ms,
+changing file-backed 16-byte traffic 2,730/2,884 ms, and generated production I4
+88/95 ms (A/B). Every arm/client received 300/300 with zero reported duplicates,
+failed submissions, file-validation failures or unexpected packets.
+
+The file arm's first 30 averaged 661/654 ms, rising to 4,077/4,313 ms for its
+last 30. Maximum ages were 4,977/5,111 ms, with 241/251 drain callbacks. It again
+reproduced growing delay while generated arms stayed near the fast baseline.
+Its native spans totaled 34.165/34.331 seconds. The initial host watcher used
+incorrect build-specific receipt names; exports actually use
+`wc3-melee-transport-isolation.txt`. Embedded `netcode-0028` identity was checked
+when collecting them afterward. No precise host export-observation latency is
+claimed for this run. Ending I4 simulation frames/checksums differ.
+
+This strengthens the reproduction but still does not isolate changing tooltip
+content from duration or diagnostic-driver behavior. The next discriminator
+uses 300 changing values and a shared 30 Hz driver for generated, tooltip-only
+and fresh-file arms.
+
+Evidence: `wc3-melee:docs/native-journal-packet-comparison-20261004/isolation0028/`.
+
+The 0.0.28 order ready receipts identify existing owned Footmen and enabled
+selection, but immediate selected flags were zero. Native details later showed
+a Footman. Neither a held Stop hotkey nor a real UI right-click produced an
+exact-carrier receipt. Selection/command UI usability remains unproved; this
+is a harness boundary, not a native-order latency or reliability verdict.
+Evidence: `wc3-melee:docs/native-journal-packet-comparison-20261004/order0028/`.
+
+## Matched changing-content discriminator on 0.0.29
+
+Both retained clients ran exact Smashcraft 0.0.29 / `netcode-0029`, SHA256
+`c151677f5decc8172a27c61fc39a3268c323ff68f5d24e9453aa599e8fe2591b`, in MATCH
+with slots 0/2 and other slots closed. Build passed with zero errors/18 warnings.
+All arms offered 300 changing 16-byte values/client at 30 Hz using a shared
+independent driver, a six-byte arm/sequence envelope, and the same `SC_GP` route.
+
+| Arm | A mean / maximum echo | B mean / maximum echo |
+| --- | --- | --- |
+| Generated changing values | 99 / 125 ms | 89 / 125 ms |
+| Changing tooltip set/get/clear, no Preloader | 116 / 235 ms | 110 / 235 ms |
+| Fresh populated-file reads, changing values | 3,101 / 5,819 ms | 3,195 / 5,862 ms |
+
+Each arm/client sent 6,600 bytes and received 300/300. Reported missing,
+bad-payload, local-read-error, failed-send and duplicate counts were all zero.
+The file arm required 157/155 drain callbacks and spanned 15.229/15.163 native
+seconds, versus approximately 10.1 seconds for each preceding arm. Final
+receipts were host-observed at 35.768/35.829 seconds after the trigger.
+Both clients read their own local s2-named fixtures.
+
+Changing tooltip operations alone did not reproduce the delay at matched
+sample count, offered rate and payload size. The populated-file path still
+reproduces it. This rules out tooltip set/get/clear alone as a sufficient cause
+under these conditions, but does not yet isolate Preloader execution from the
+FileIO wrapper or the content-sensitive behavior seen in the shorter constant
+trial. Native displayed read duration remains zero and does not measure wall
+blocking. These are sequential game-clock own-echo measurements; no physical
+response or full competitive acceptance follows.
+
+Evidence: `wc3-melee:docs/native-journal-packet-comparison-20261004/fileio0029/`.
+
+## What the actual pinned libraries do
+
+The map is Wurst compiled to Lua for Warcraft III 3.0. Its exact compiler and
+standard-library identities are declared in `wc3-melee:wurst-toolchain.lock`:
+compiler `9913e1bd300c2053637d756a11bae8c3c8ed568f`, standard library
+`bb1e0458db5a372ba2a6928112452785e435d01a`.
+
+The pinned `FileIO` read calls `Preloader(filename)`, reads ability-tooltip
+chunks through `BlzGetAbilityTooltip`, and clears consumed chunks through
+`BlzSetAbilityTooltip`. It returns local data and does not itself call GameCache
+sync or `BlzSendSyncData`. The pinned modern `SyncSimple` uses
+`BlzSendSyncData` and sequences queued transfers. Our production input sender
+calls `BlzSendSyncData` directly. The 2018 GameCache-based Wurst tutorial does
+not describe this modern wrapper's implementation.
+
+## Prior art and API alternatives
+
+Warcraft's deterministic-lockstep model makes ordinary player commands a useful
+baseline. Each client simulates shared gameplay from delivered commands. The
+model does not imply that every local/native value is shared, nor that our
+fighter simulation receives rollback automatically.
+
+| Path | Relevant evidence | Decision still requiring a native measurement |
+| --- | --- | --- |
+| Direct `BlzSendSyncData` | Current generated-message and generated-I4 runs deliver quickly; production file-backed traffic falls behind | Sustained ordinary input payloads and capture-to-presentation behavior after root repair |
+| Real player orders, ability or shop commands | These use Warcraft gameplay command/event mechanisms | Actual local UI command, both-client event receipt, hotkeys/selection, release/held/analog and frame semantics |
+| Selection-encoded integers | TriggerHappy `SyncInteger` v1.2.1 transports digits through selectable dummy-unit events, with completion/sign markers | Sustained useful payload width/rate, integrity, event overhead and player-selection interference |
+| GameCache integers plus selection marker/acknowledgement | Historical Wurst tutorial and TriggerHappy `Sync` v1.3.0 use this mechanism | Current-build capacity and ordering; small keys and packed integer payloads under a matched workload |
+| Synchronized key events | Existing native baseline; down/up and modifier registration are available | Repeat, focus and receipt delay on the actual build; receipt time is not original capture time |
+| Local key polling | Warcraft 3.0 declarations support polling | Actual callback cadence; short transitions between polls can be missed |
+
+Scripted `Issue*Order` calls are not an established substitute for a real local
+player command. A proxy must receive real UI/player actions before its transport
+performance can be assessed. Local `SelectUnit` is a distinct, historically
+demonstrated networking mechanism. Selection dummies must be selectable; Locust,
+selection limits and transient UI state matter. A 31-unit selected bitset is not
+a valid full-width encoding within Warcraft's ordinary 12-unit selection limit.
+Small-value tests cannot establish general 32-bit throughput.
+
+The 0.0.24 order probe wrote paired ready receipts, but the first real Stop
+attempt produced no order receipts. Selection/hotkey/command usability remains
+unproved; this is not evidence that native orders are slow or unreliable.
+Evidence: `wc3-melee:docs/native-journal-packet-comparison-20261004/order0024/`.
+
+## Historical claims and their limits
+
+- The [2020 desync thread](https://www.hiveworkshop.com/threads/desync-2-possible-causes-found.323158/)
+  estimates approximately 5,000 integers/minute without a benchmark, exact
+  encoding or a defined current build. This is a lead, not a modern sync quota.
+- The [2018 networking tutorial and follow-up](https://www.hiveworkshop.com/threads/wc3-networking-crucial-component-of-codeless-save-load.304287/)
+  describe GameCache sync followed by a selection completion marker. The author
+  reports roughly 4 KB/s initially, falling to 1 KB/s, and says later orders/chat
+  can wait behind a large `SyncStored*` transfer. These are historical reports
+  for that mechanism, not current `BlzSendSyncData` measurements.
+- That discussion identifies cache/mission/key strings and per-call overhead,
+  short keys, and 32-bit integer packing as performance considerations.
+  Convenience or age alone does not rank the APIs.
+- TriggerHappy's [selection transport](https://www.hiveworkshop.com/threads/syncinteger.278674/)
+  carries the integer itself. His [GameCache sync library](https://www.hiveworkshop.com/threads/sync-game-cache.279148/)
+  sends GameCache values and uses selection-based acknowledgements from clients.
+  These are different mechanisms. Public source visibility is not permission to
+  copy code; this record summarizes mechanisms and cites sources.
+- The same 2018 discussion says `SyncStoredString` failed on its tested version.
+  Escape-count encoding uses one event per count and competes with player Escape
+  presses; its small action size does not imply an efficient general channel.
+- Historical TCP/6112, relay-host and bandwidth descriptions need a version and
+  hosting context before being applied to current Battle.net. An old host player
+  is not assumed to be the current network relay.
+
+Community API documentation, pinned source:
+[common.j at d49b2ba](https://github.com/lep/jassdoc/blob/d49b2ba47c72ad757aa17abdfa9ccd55a7493fd5/common.j),
+[BlzSendSyncData](https://lep.nrw/jassbot/doc/BlzSendSyncData),
+[Preloader](https://lep.nrw/jassbot/doc/Preloader).
+Preloader annotations report per-path caching and Lua-map Jass2Lua execution;
+version scope matters. This is not an ordinary fresh file read. Fresh paths,
+same-path changes, missing files and populated files require separate checks
+when the choice affects live input.
+
+## Terrain height and determinism
+
+`GetLocationZ` is explicitly asynchronous in the native documentation. Height
+can vary with platform, graphics/assets, walkable destructables or terrain
+deformation. It cannot become shared collision or combat truth without a shared
+representation. The Hive thread's later discussion connects unit fly height to
+vision/occlusion; it does not establish that every local fly-height change is
+safe or that every call desyncs.
+
+The scoped authored-source trace found one `GetLocationZ` call in
+`wc3-melee:wurst/Melee.wurst`, initializing `floorHeight`. Its consumers position
+effects and audio. The native fighter's fly height is independently calculated
+from `1800 + z`; authored fighting geometry is separate. This trace did not find
+the local terrain height feeding fighter collision/combat or native unit height.
+It does not establish complete cross-platform determinism, and it does not
+explain the measured file-backed queue growth.
+
+## Input and rollback claims we can make
+
+The actual Linux companion retained tested queued kernel events and original
+timestamps through approximately 250 ms helper/game stops. This is bounded
+event-retention evidence, not an unconditional every-frame physical guarantee.
+Polling can miss a whole press/release between samples. Device non-reporting,
+kernel queue overflow/disconnect, or events older than an already-published
+interval cannot be reconstructed; detected loss must not silently become a
+newer-frame input.
+
+[GGPO](https://www.ggpo.net/) requires deterministic stepping, complete save/load
+and continued network servicing; prediction stops at its configured limit.
+[Slippi](https://github.com/project-slippi) is relevant rollback/input prior art,
+but an emulator's facilities do not establish Warcraft's facilities.
+Rollback repairs late correctly captured/framed inputs; it cannot recreate
+uncaptured input, repair an unknown clock offset or hide multi-second delivery
+with our tested 24-frame window (400 ms at 60 Hz).
+
+Continuing update callbacks prove neither inexpensive callbacks nor smooth
+rendering, wall-clock cadence or harmless OS scheduling/GC. Matching eventual
+checksums prove neither low latency nor fairness. Cross-machine frame epochs,
+drift and pause policy remain unresolved. W3Champions/FLO-style hosting may
+change delivery and jitter; equalization deliberately delays faster paths.
+Neither fixes uncaptured events or wrong frame assignment. A native matched
+hosting comparison remains unproved.
+
+## Immediate open decisions
+
+1. Isolate the remaining populated-file boundary. The matched 0.0.29 test
+   reproduces delay with file reads while changing tooltip operations stay fast.
+   Separate direct Preloader execution from the FileIO wrapper and verify the
+   constant-content case at matched duration before naming the owning cause.
+   Correlate with host wall time; zero native read duration is insufficient.
+2. Establish a usable real native-order baseline and diagnose the two invalid
+   direct-sync values per observer/rate in the completed short transport test.
+   Add expected/actual/wire diagnostics before ranking; then compare sustained
+   rates and selection interference under usable gameplay.
+3. After the root repair, verify the actual capture-to-fight path and physical
+   responsiveness. Full human/player/platform/controller, presentation/audio,
+   clock fairness and hosting acceptance remain open. Peer reports combined
+   Wurst checks 634/634; native integration remains to verify.
+
+Reusable development guidance is published in
+`nixos-config:dotfiles/agents/skills/warcraft3-development-distilled/SKILL.md`
+and its `nixos-config:dotfiles/agents/skills/warcraft3-development-distilled/references/api-gotchas.md`
+reference. This project file owns Smashcraft-specific observations.
+
+## Native 0.0.29 short transport comparison
+
+Same two retained clients, slots 0/2, exact 0.0.29 artifact cited above.
+Each arm injected 60 signed 32-bit values per client at 30 and 60 Hz, including
+extremes and varying patterns. Each observer expected 120 values. Independent
+game-clock timing measured own submission-to-receipt, not physical response.
+
+| Rate / transport | A mean/max | B mean/max | Per-observer integrity |
+|---|---:|---:|---|
+| 30 Hz direct sync | 166/198 ms | 158/198 ms | 118/120 valid, two invalid |
+| 30 Hz GameCache + selection marker | 162/199 ms | 155/198 ms | 120/120, zero reported errors |
+| 30 Hz selection digits | 161/195 ms | 156/195 ms | 120/120, zero reported errors |
+| 60 Hz direct sync | 158/199 ms | 150/169 ms | 118/120 valid, two invalid |
+| 60 Hz GameCache + selection marker | 142/172 ms | 135/172 ms | 120/120, zero reported errors |
+| 60 Hz selection digits | 141/172 ms | 135/172 ms | 120/120, zero reported errors |
+
+All direct arms recorded 60 own echoes. Their 17.063/16.030-second phases
+included the 15-second drain timeout because completion required valid values.
+This is a payload-validation failure, not demonstrated message loss or backlog.
+Raw receipts do not identify the invalid values; add per-value wire, expected
+and actual diagnostics before naming a cause or ranking performance. Both
+selection and direct paths parse strings using S2I, so signed conversion alone
+is not yet a demonstrated cause.
+
+GameCache used ntp.w3v, one-character sender missions and two-character sequence
+keys, with values changed between rates to prevent stale-cache success. The
+selection arm sent framed decimal symbols one at a time, avoiding the 12-unit
+selection cap. It changes local selection and does not yet establish harmless
+interaction with normal gameplay. Injection lasted two seconds at 30 Hz and
+one second at 60 Hz; these trials do not prove sustained capacity, fairness or
+a faster physical input path. No superior transport is established yet.
+
+Raw exports and host collection evidence:
+wc3-melee:docs/native-journal-packet-comparison-20261004/transports0029/.
+
+## Native 0.0.29 order-command failure
+
+The improved probe confirmed carrier-selected=1 and stager-selected=0 on both
+clients after the 0.5-second callback check; immediate ready selection was zero.
+All 12 command buttons were explicitly shown and enabled. Real XTEST Stop
+inputs were attempted on A and B. Neither observer exported any order receipt;
+both Warcraft processes exited and B displayed an unexpected-error dialog.
+Private crash reports identify Warcraft 3.0.0 build 24268 access violation
+reading address 0x2C58 on both clients (instruction A: 0x6FFFEF2F1043;
+B: 0x6FFFEF321043). This
+association does not establish the exact cause or receipt timing. Native-order
+transport remains unproved. Crash reports, dumps and replay remain private;
+authored observation and numerical ready/selection exports are retained in
+wc3-melee:docs/native-journal-packet-comparison-20261004/order0029/.
