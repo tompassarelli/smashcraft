@@ -154,20 +154,27 @@ Open items carry theme labels and now/next/later priorities; #16 is the one
 roadmap and #26 is the current repair. Old comments remain evidence; the issue
 body owns current status.
 
-## Why there is an open PR and two remote branches
+## Source integration and branch cleanup
 
-GitHub has main and production-netcode-integration-20261004. Main contains the
-earlier integration and a subsequent rollback of unintended research publication;
-it also received the new issue-lookup instruction in commit 3366e5b. The later
-playable checkpoint, repairs, rejected experiments and evidence are on the
-integration branch in draft PR #24. PR #22 and #23 were already merged.
+At the start of this review GitHub had main and
+production-netcode-integration-20261004. Main contained the earlier integration
+and a rollback of unintended research publication, followed by the issue-lookup
+instruction in 3366e5b. Later gameplay work and diagnostics were in draft PR #24;
+PR #22 and #23 were already merged. This split was source integration history,
+not two current player releases.
 
-Main's new instruction was merged into this owned integration lane during the
-review. PR #24 remains the sole source integration proposal; it is not another
-game release, a successful original-frame implementation or proof of readiness.
-The exact playable artifact remains 0.0.40. The existing no-publication-to-main
-boundary for this lane remains in force; no branch was deleted to hide
-unmerged work. Retained local worker checkouts are not additional remote releases.
+Main's instruction was incorporated into the integration lane. On 5 October the
+owner authorized completing the PR/branch cleanup and removing the blanket
+no-publication-to-main restriction. PR #24 integrates the documented checkpoint;
+main is the canonical source after merge, and its temporary remote branch is
+retired once that merge is confirmed. Current PR state is visible at
+https://github.com/tompassarelli/smashcraft/pull/24.
+
+This integration does not complete #25–#27 or create a new player release.
+Exact 0.0.40 remains the playable artifact. Retained local worker checkouts are
+not additional remote releases. Use issue-scoped work lanes for future changes
+and finish each bounded checkpoint rather than retaining a permanent alternate
+delivery branch or making all research claims prerequisites for merging it.
 
 ## The next rungs
 
