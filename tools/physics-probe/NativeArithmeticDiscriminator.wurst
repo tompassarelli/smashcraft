@@ -9,7 +9,7 @@ int nativeRoundingUlpOffset = 999
 // Encode finite normal binary32 values as sign:exponent:mantissa integers.
 // Scaling by powers of two preserves the stored float exactly, so the output
 // does not depend on decimal formatting or R2SW's rounding behavior.
-private function binary32Fields(real value) returns string
+function binary32Fields(real value) returns string
 	if value == 0.
 		return "0:0:0"
 	let negative = value < 0.
@@ -24,7 +24,7 @@ private function binary32Fields(real value) returns string
 	let mantissa = R2I((magnitude - 1.) * 8388608.)
 	return (negative ? "1:" : "0:") + I2S(exponent + 127) + ":" + I2S(mantissa)
 
-private function reportPhysicsArithmeticDiscriminator()
+function reportPhysicsArithmeticDiscriminator()
 	PreloadGenStart()
 	Preload("SOURCE " + PHYSICS_SOURCE)
 	Preload("FALL_PATH " + firstFallDivergence)
