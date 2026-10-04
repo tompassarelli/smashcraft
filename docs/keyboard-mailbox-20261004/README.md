@@ -32,3 +32,33 @@ initial Quit Mission attempt. After releasing them, both clients left normally
 without restart. Exact playable40 bytes are restored on disk; the input bridge
 is not the delivered playable replacement. Graceful interruption is part of
 the pending companion repair.
+
+## Timed repeat and registration check
+
+The same map, with helper269635d, confirmedframe50 after5 native seconds.
+Helper-side emission medians were2.753/2.750ms; acknowledgment wait medians
+were91.765/84.422ms. The corresponding sample counts are retained in
+wc3-melee:docs/keyboard-mailbox-20261004/b/summary.json. These exclude no samples
+and therefore include the deliberate service stalls. Isolated emission also
+remained fast, so a speculative bulk-emitter rewrite was rejected.
+
+A separately compiled map excluded all54 carrier keys from synchronized key
+registration from startup. It still confirmed onlyframe48 after5 native
+seconds. Emission medians were2.795/2.633ms and ACK-wait medians91.227/81.210ms.
+Both players' first attack applied at originalframe19 at trace2.100s. This
+rejects those registrations as a sufficient explanation or repair. The source
+experiment was removed; its exact patch and native evidence are retained under
+wc3-melee:docs/keyboard-mailbox-20261004/local/. Candidate SHA256 is
+7f3778483ce19d4162de72f05e2ac6360d3f53743588180165bf7b421ec38fb1.
+
+The revised helper handles SIGINT gracefully and releases owned carrier keys.
+The repeat drivers used this path. SIGTERM/forced termination cannot guarantee
+that cleanup. Both native repeats exceeded the driver's completion bound; no
+all-player300-frame delivery or stall-recovery success is claimed.
+
+**Decision:** reject the serial keyboard-chunk/file-ACK protocol for playable
+controller delivery. The measured post-emission wait dominates its throughput.
+These trials do not yet distinguish Warcraft key-state visibility from the map
+ACK path, and do not establish a universal engine latency floor. Do not extend
+this approach with another unmeasured emitter tweak or promote its successful
+first tap into a game-ready claim. Exact0.0.40 remains the playable release.

@@ -1,0 +1,914 @@
+source=/dev/input/event2 name=Some("Smashcraft Event Retention Virtual Gamepad") clock=CLOCK_MONOTONIC epoch_ns=537592624083753 frame_rule=segment_frame+floor((t-segment_epoch)*60/1e9) first=1 delay=0 pause_policy=sequenced-map-control
+readiness_receipt=/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-ready-keyboard-mailbox-a-e1-p1.txt
+published_frame=1
+published_frame=2
+mailbox_emit chunk=1 bytes=7 transitions=24 elapsed_us=2462
+published_frame=3
+published_frame=4
+published_frame=5
+mailbox_ack chunk=1 wait_us=58703
+mailbox_emit chunk=2 bytes=7 transitions=2 elapsed_us=409
+published_frame=6
+published_frame=7
+published_frame=8
+published_frame=9
+published_frame=10
+published_frame=11
+published_frame=12
+published_frame=13
+mailbox_ack chunk=2 wait_us=130578
+mailbox_emit chunk=3 bytes=7 transitions=3 elapsed_us=467
+published_frame=14
+published_frame=15
+published_frame=16
+published_frame=17
+mailbox_ack chunk=3 wait_us=65313
+mailbox_emit chunk=4 bytes=7 transitions=2 elapsed_us=512
+event mono_ns=537592924277000 frame=19 held=32 pressed=32 released=0
+published_frame=18
+event mono_ns=537592929490000 frame=19 held=0 pressed=0 released=32
+published_frame=19
+published_frame=20
+published_frame=21
+published_frame=22
+mailbox_ack chunk=4 wait_us=76182
+mailbox_emit chunk=5 bytes=7 transitions=4 elapsed_us=720
+published_frame=23
+published_frame=24
+published_frame=25
+published_frame=26
+mailbox_ack chunk=5 wait_us=69706
+mailbox_emit chunk=6 bytes=7 transitions=7 elapsed_us=1209
+published_frame=27
+published_frame=28
+published_frame=29
+published_frame=30
+mailbox_ack chunk=6 wait_us=64553
+mailbox_emit chunk=7 bytes=7 transitions=3 elapsed_us=761
+published_frame=31
+published_frame=32
+published_frame=33
+published_frame=34
+mailbox_ack chunk=7 wait_us=70720
+mailbox_emit chunk=8 bytes=7 transitions=2 elapsed_us=439
+published_frame=35
+published_frame=36
+event mono_ns=537593224366000 frame=37 held=2 pressed=2 released=0
+published_frame=37
+published_frame=38
+mailbox_ack chunk=8 wait_us=70572
+mailbox_emit chunk=9 bytes=7 transitions=4 elapsed_us=608
+published_frame=39
+published_frame=40
+published_frame=41
+published_frame=42
+published_frame=43
+mailbox_ack chunk=9 wait_us=68343
+mailbox_emit chunk=10 bytes=7 transitions=4 elapsed_us=550
+published_frame=44
+published_frame=45
+published_frame=46
+published_frame=47
+mailbox_ack chunk=10 wait_us=68123
+mailbox_emit chunk=11 bytes=6 transitions=21 elapsed_us=1875
+published_frame=48
+published_frame=49
+published_frame=50
+mailbox_ack chunk=11 wait_us=61875
+mailbox_emit chunk=12 bytes=7 transitions=19 elapsed_us=1715
+published_frame=51
+published_frame=52
+published_frame=53
+published_frame=54
+published_frame=55
+mailbox_ack chunk=12 wait_us=68624
+mailbox_emit chunk=13 bytes=7 transitions=2 elapsed_us=434
+published_frame=56
+published_frame=57
+published_frame=58
+published_frame=59
+mailbox_ack chunk=13 wait_us=70443
+mailbox_emit chunk=14 bytes=7 transitions=5 elapsed_us=624
+published_frame=60
+published_frame=61
+published_frame=62
+published_frame=63
+published_frame=64
+mailbox_ack chunk=14 wait_us=82306
+mailbox_emit chunk=15 bytes=7 transitions=2 elapsed_us=465
+published_frame=65
+event mono_ns=537593724284000 frame=67 held=0 pressed=0 released=2
+published_frame=66
+published_frame=67
+published_frame=68
+mailbox_ack chunk=15 wait_us=72953
+mailbox_emit chunk=16 bytes=7 transitions=3 elapsed_us=483
+published_frame=69
+published_frame=70
+published_frame=71
+published_frame=72
+published_frame=73
+published_frame=74
+published_frame=75
+published_frame=76
+published_frame=77
+mailbox_ack chunk=16 wait_us=141032
+mailbox_emit chunk=17 bytes=7 transitions=2 elapsed_us=511
+published_frame=78
+published_frame=79
+published_frame=80
+published_frame=81
+published_frame=82
+mailbox_ack chunk=17 wait_us=78125
+mailbox_emit chunk=18 bytes=7 transitions=6 elapsed_us=726
+published_frame=83
+published_frame=84
+published_frame=85
+published_frame=86
+published_frame=87
+mailbox_ack chunk=18 wait_us=82822
+mailbox_emit chunk=19 bytes=1 transitions=26 elapsed_us=3251
+published_frame=88
+published_frame=89
+published_frame=90
+published_frame=91
+mailbox_ack chunk=19 wait_us=65226
+mailbox_emit chunk=20 bytes=7 transitions=27 elapsed_us=3460
+published_frame=92
+published_frame=93
+published_frame=94
+published_frame=95
+mailbox_ack chunk=20 wait_us=71092
+mailbox_emit chunk=21 bytes=1 transitions=27 elapsed_us=3069
+event mono_ns=537594224258000 frame=97 held=32 pressed=32 released=0
+published_frame=96
+event mono_ns=537594229385000 frame=97 held=0 pressed=0 released=32
+published_frame=97
+published_frame=98
+published_frame=99
+mailbox_ack chunk=21 wait_us=66437
+mailbox_emit chunk=22 bytes=7 transitions=28 elapsed_us=2364
+published_frame=100
+published_frame=101
+published_frame=102
+published_frame=103
+published_frame=104
+mailbox_ack chunk=22 wait_us=82222
+mailbox_emit chunk=23 bytes=7 transitions=15 elapsed_us=1661
+published_frame=105
+published_frame=106
+published_frame=107
+published_frame=108
+mailbox_ack chunk=23 wait_us=63942
+mailbox_emit chunk=24 bytes=7 transitions=11 elapsed_us=1181
+published_frame=109
+published_frame=110
+published_frame=111
+published_frame=112
+published_frame=113
+mailbox_ack chunk=24 wait_us=70939
+mailbox_emit chunk=25 bytes=7 transitions=17 elapsed_us=2237
+published_frame=114
+published_frame=115
+published_frame=116
+published_frame=117
+mailbox_ack chunk=25 wait_us=60839
+mailbox_emit chunk=26 bytes=3 transitions=24 elapsed_us=2628
+published_frame=118
+published_frame=119
+published_frame=120
+published_frame=121
+mailbox_ack chunk=26 wait_us=70156
+mailbox_emit chunk=27 bytes=7 transitions=26 elapsed_us=2677
+published_frame=122
+published_frame=123
+published_frame=124
+published_frame=125
+mailbox_ack chunk=27 wait_us=71840
+mailbox_emit chunk=28 bytes=7 transitions=15 elapsed_us=1659
+published_frame=126
+published_frame=127
+published_frame=128
+published_frame=129
+published_frame=130
+published_frame=131
+published_frame=132
+published_frame=133
+published_frame=134
+mailbox_ack chunk=28 wait_us=136044
+mailbox_emit chunk=29 bytes=6 transitions=7 elapsed_us=873
+published_frame=135
+published_frame=136
+published_frame=137
+published_frame=138
+mailbox_ack chunk=29 wait_us=78261
+mailbox_emit chunk=30 bytes=7 transitions=20 elapsed_us=1756
+published_frame=139
+published_frame=140
+published_frame=141
+published_frame=142
+published_frame=143
+mailbox_ack chunk=30 wait_us=75264
+mailbox_emit chunk=31 bytes=7 transitions=14 elapsed_us=1758
+published_frame=144
+published_frame=145
+published_frame=146
+published_frame=147
+mailbox_ack chunk=31 wait_us=72129
+mailbox_emit chunk=32 bytes=6 transitions=7 elapsed_us=1048
+published_frame=148
+published_frame=149
+published_frame=150
+published_frame=151
+published_frame=152
+published_frame=153
+published_frame=154
+published_frame=155
+event mono_ns=537595224268000 frame=157 held=32 pressed=32 released=0
+published_frame=156
+event mono_ns=537595229384000 frame=157 held=0 pressed=0 released=32
+published_frame=157
+published_frame=158
+published_frame=159
+published_frame=160
+published_frame=161
+published_frame=162
+published_frame=163
+published_frame=164
+published_frame=165
+published_frame=166
+published_frame=167
+published_frame=168
+mailbox_ack chunk=32 wait_us=334808
+mailbox_emit chunk=33 bytes=7 transitions=21 elapsed_us=2293
+published_frame=169
+published_frame=170
+published_frame=171
+published_frame=172
+published_frame=173
+published_frame=174
+mailbox_ack chunk=33 wait_us=100604
+mailbox_emit chunk=34 bytes=7 transitions=15 elapsed_us=1517
+published_frame=175
+published_frame=176
+published_frame=177
+published_frame=178
+mailbox_ack chunk=34 wait_us=69790
+mailbox_emit chunk=35 bytes=6 transitions=7 elapsed_us=1083
+published_frame=179
+published_frame=180
+published_frame=181
+published_frame=182
+published_frame=183
+mailbox_ack chunk=35 wait_us=76698
+mailbox_emit chunk=36 bytes=7 transitions=20 elapsed_us=2231
+published_frame=184
+published_frame=185
+published_frame=186
+published_frame=187
+mailbox_ack chunk=36 wait_us=66462
+mailbox_emit chunk=37 bytes=7 transitions=14 elapsed_us=1672
+published_frame=188
+published_frame=189
+published_frame=190
+published_frame=191
+published_frame=192
+published_frame=193
+published_frame=194
+published_frame=195
+mailbox_ack chunk=37 wait_us=133228
+mailbox_emit chunk=38 bytes=6 transitions=7 elapsed_us=1049
+published_frame=196
+published_frame=197
+published_frame=198
+published_frame=199
+published_frame=200
+mailbox_ack chunk=38 wait_us=83599
+mailbox_emit chunk=39 bytes=7 transitions=22 elapsed_us=1955
+published_frame=201
+published_frame=202
+published_frame=203
+published_frame=204
+published_frame=205
+mailbox_ack chunk=39 wait_us=73135
+mailbox_emit chunk=40 bytes=7 transitions=16 elapsed_us=1764
+published_frame=206
+published_frame=207
+published_frame=208
+published_frame=209
+mailbox_ack chunk=40 wait_us=73029
+mailbox_emit chunk=41 bytes=6 transitions=7 elapsed_us=1030
+published_frame=210
+published_frame=211
+published_frame=212
+published_frame=213
+published_frame=214
+mailbox_ack chunk=41 wait_us=81697
+mailbox_emit chunk=42 bytes=7 transitions=21 elapsed_us=2279
+published_frame=215
+published_frame=216
+published_frame=217
+published_frame=218
+published_frame=219
+mailbox_ack chunk=42 wait_us=74129
+mailbox_emit chunk=43 bytes=7 transitions=15 elapsed_us=1436
+published_frame=220
+published_frame=221
+published_frame=222
+published_frame=223
+mailbox_ack chunk=43 wait_us=70015
+mailbox_emit chunk=44 bytes=6 transitions=7 elapsed_us=1087
+published_frame=224
+published_frame=225
+published_frame=226
+published_frame=227
+mailbox_ack chunk=44 wait_us=73833
+mailbox_emit chunk=45 bytes=7 transitions=19 elapsed_us=2155
+published_frame=228
+published_frame=229
+published_frame=230
+published_frame=231
+published_frame=232
+mailbox_ack chunk=45 wait_us=68800
+mailbox_emit chunk=46 bytes=7 transitions=13 elapsed_us=1590
+published_frame=233
+published_frame=234
+published_frame=235
+published_frame=236
+mailbox_ack chunk=46 wait_us=68467
+mailbox_emit chunk=47 bytes=6 transitions=7 elapsed_us=920
+published_frame=237
+published_frame=238
+published_frame=239
+published_frame=240
+mailbox_ack chunk=47 wait_us=73972
+mailbox_emit chunk=48 bytes=7 transitions=18 elapsed_us=1966
+published_frame=241
+published_frame=242
+published_frame=243
+published_frame=244
+published_frame=245
+mailbox_ack chunk=48 wait_us=70635
+mailbox_emit chunk=49 bytes=7 transitions=12 elapsed_us=1459
+published_frame=246
+published_frame=247
+published_frame=248
+published_frame=249
+published_frame=250
+published_frame=251
+published_frame=252
+published_frame=253
+published_frame=254
+published_frame=255
+published_frame=256
+mailbox_ack chunk=49 wait_us=182516
+mailbox_emit chunk=50 bytes=6 transitions=7 elapsed_us=1029
+published_frame=257
+published_frame=258
+published_frame=259
+published_frame=260
+mailbox_ack chunk=50 wait_us=72932
+mailbox_emit chunk=51 bytes=7 transitions=20 elapsed_us=2165
+published_frame=261
+published_frame=262
+published_frame=263
+published_frame=264
+published_frame=265
+published_frame=266
+mailbox_ack chunk=51 wait_us=90560
+mailbox_emit chunk=52 bytes=7 transitions=14 elapsed_us=1645
+published_frame=267
+published_frame=268
+published_frame=269
+published_frame=270
+mailbox_ack chunk=52 wait_us=72989
+mailbox_emit chunk=53 bytes=6 transitions=7 elapsed_us=988
+published_frame=271
+published_frame=272
+published_frame=273
+published_frame=274
+published_frame=275
+mailbox_ack chunk=53 wait_us=78276
+mailbox_emit chunk=54 bytes=7 transitions=19 elapsed_us=2123
+published_frame=276
+published_frame=277
+published_frame=278
+published_frame=279
+published_frame=280
+mailbox_ack chunk=54 wait_us=75245
+mailbox_emit chunk=55 bytes=7 transitions=13 elapsed_us=2078
+published_frame=281
+published_frame=282
+published_frame=283
+published_frame=284
+mailbox_ack chunk=55 wait_us=76367
+mailbox_emit chunk=56 bytes=6 transitions=7 elapsed_us=1144
+published_frame=285
+published_frame=286
+published_frame=287
+published_frame=288
+published_frame=289
+mailbox_ack chunk=56 wait_us=78408
+mailbox_emit chunk=57 bytes=7 transitions=20 elapsed_us=2433
+published_frame=290
+published_frame=291
+published_frame=292
+published_frame=293
+published_frame=294
+mailbox_ack chunk=57 wait_us=74041
+mailbox_emit chunk=58 bytes=7 transitions=14 elapsed_us=1550
+published_frame=295
+published_frame=296
+published_frame=297
+published_frame=298
+mailbox_ack chunk=58 wait_us=70949
+mailbox_emit chunk=59 bytes=6 transitions=7 elapsed_us=1048
+published_frame=299
+published_frame=300
+mailbox_ack chunk=59 wait_us=81644
+mailbox_emit chunk=60 bytes=7 transitions=19 elapsed_us=2131
+mailbox_ack chunk=60 wait_us=72797
+mailbox_emit chunk=61 bytes=7 transitions=13 elapsed_us=1894
+mailbox_ack chunk=61 wait_us=76242
+mailbox_emit chunk=62 bytes=6 transitions=7 elapsed_us=1076
+mailbox_ack chunk=62 wait_us=77994
+mailbox_emit chunk=63 bytes=7 transitions=20 elapsed_us=1830
+mailbox_ack chunk=63 wait_us=79349
+mailbox_emit chunk=64 bytes=7 transitions=14 elapsed_us=2046
+mailbox_ack chunk=64 wait_us=72606
+mailbox_emit chunk=65 bytes=6 transitions=7 elapsed_us=1200
+mailbox_ack chunk=65 wait_us=88152
+mailbox_emit chunk=66 bytes=7 transitions=19 elapsed_us=2012
+mailbox_ack chunk=66 wait_us=86163
+mailbox_emit chunk=67 bytes=7 transitions=13 elapsed_us=1148
+mailbox_ack chunk=67 wait_us=91677
+mailbox_emit chunk=68 bytes=6 transitions=7 elapsed_us=1144
+mailbox_ack chunk=68 wait_us=70996
+mailbox_emit chunk=69 bytes=7 transitions=17 elapsed_us=3163
+mailbox_ack chunk=69 wait_us=72927
+mailbox_emit chunk=70 bytes=7 transitions=15 elapsed_us=1895
+mailbox_ack chunk=70 wait_us=69816
+mailbox_emit chunk=71 bytes=7 transitions=13 elapsed_us=1415
+mailbox_ack chunk=71 wait_us=68619
+mailbox_emit chunk=72 bytes=1 transitions=26 elapsed_us=2228
+mailbox_ack chunk=72 wait_us=69887
+mailbox_emit chunk=73 bytes=7 transitions=26 elapsed_us=2733
+mailbox_ack chunk=73 wait_us=82321
+mailbox_emit chunk=74 bytes=1 transitions=26 elapsed_us=3043
+mailbox_ack chunk=74 wait_us=88200
+mailbox_emit chunk=75 bytes=7 transitions=27 elapsed_us=2739
+mailbox_ack chunk=75 wait_us=91151
+mailbox_emit chunk=76 bytes=1 transitions=27 elapsed_us=3319
+mailbox_ack chunk=76 wait_us=78240
+mailbox_emit chunk=77 bytes=7 transitions=26 elapsed_us=3029
+mailbox_ack chunk=77 wait_us=80278
+mailbox_emit chunk=78 bytes=1 transitions=26 elapsed_us=2766
+mailbox_ack chunk=78 wait_us=79368
+mailbox_emit chunk=79 bytes=7 transitions=27 elapsed_us=3164
+mailbox_ack chunk=79 wait_us=88124
+mailbox_emit chunk=80 bytes=1 transitions=27 elapsed_us=2636
+mailbox_ack chunk=80 wait_us=79448
+mailbox_emit chunk=81 bytes=7 transitions=27 elapsed_us=2207
+mailbox_ack chunk=81 wait_us=77306
+mailbox_emit chunk=82 bytes=1 transitions=27 elapsed_us=2608
+mailbox_ack chunk=82 wait_us=69708
+mailbox_emit chunk=83 bytes=7 transitions=28 elapsed_us=2561
+mailbox_ack chunk=83 wait_us=74274
+mailbox_emit chunk=84 bytes=1 transitions=28 elapsed_us=3445
+mailbox_ack chunk=84 wait_us=69461
+mailbox_emit chunk=85 bytes=7 transitions=26 elapsed_us=2770
+mailbox_ack chunk=85 wait_us=86527
+mailbox_emit chunk=86 bytes=1 transitions=26 elapsed_us=2955
+mailbox_ack chunk=86 wait_us=76213
+mailbox_emit chunk=87 bytes=7 transitions=27 elapsed_us=3047
+mailbox_ack chunk=87 wait_us=86920
+mailbox_emit chunk=88 bytes=1 transitions=27 elapsed_us=3189
+mailbox_ack chunk=88 wait_us=82611
+mailbox_emit chunk=89 bytes=7 transitions=27 elapsed_us=2597
+mailbox_ack chunk=89 wait_us=80348
+mailbox_emit chunk=90 bytes=1 transitions=27 elapsed_us=2420
+mailbox_ack chunk=90 wait_us=81200
+mailbox_emit chunk=91 bytes=7 transitions=28 elapsed_us=2984
+mailbox_ack chunk=91 wait_us=81347
+mailbox_emit chunk=92 bytes=1 transitions=28 elapsed_us=3316
+mailbox_ack chunk=92 wait_us=79151
+mailbox_emit chunk=93 bytes=7 transitions=27 elapsed_us=3099
+mailbox_ack chunk=93 wait_us=84594
+mailbox_emit chunk=94 bytes=1 transitions=27 elapsed_us=3050
+mailbox_ack chunk=94 wait_us=79078
+mailbox_emit chunk=95 bytes=7 transitions=28 elapsed_us=2301
+mailbox_ack chunk=95 wait_us=83491
+mailbox_emit chunk=96 bytes=1 transitions=28 elapsed_us=2474
+mailbox_ack chunk=96 wait_us=71730
+mailbox_emit chunk=97 bytes=7 transitions=29 elapsed_us=3687
+mailbox_ack chunk=97 wait_us=72802
+mailbox_emit chunk=98 bytes=1 transitions=29 elapsed_us=3460
+mailbox_ack chunk=98 wait_us=80382
+mailbox_emit chunk=99 bytes=7 transitions=28 elapsed_us=2906
+mailbox_ack chunk=99 wait_us=91614
+mailbox_emit chunk=100 bytes=7 transitions=20 elapsed_us=1917
+mailbox_ack chunk=100 wait_us=86323
+mailbox_emit chunk=101 bytes=7 transitions=20 elapsed_us=1726
+mailbox_ack chunk=101 wait_us=89697
+mailbox_emit chunk=102 bytes=1 transitions=28 elapsed_us=2269
+mailbox_ack chunk=102 wait_us=83268
+mailbox_emit chunk=103 bytes=7 transitions=27 elapsed_us=2551
+mailbox_ack chunk=103 wait_us=79164
+mailbox_emit chunk=104 bytes=1 transitions=27 elapsed_us=2862
+mailbox_ack chunk=104 wait_us=83357
+mailbox_emit chunk=105 bytes=7 transitions=27 elapsed_us=2439
+mailbox_ack chunk=105 wait_us=92250
+mailbox_emit chunk=106 bytes=1 transitions=27 elapsed_us=3323
+mailbox_ack chunk=106 wait_us=86629
+mailbox_emit chunk=107 bytes=7 transitions=28 elapsed_us=2909
+mailbox_ack chunk=107 wait_us=91193
+mailbox_emit chunk=108 bytes=1 transitions=28 elapsed_us=3783
+mailbox_ack chunk=108 wait_us=74780
+mailbox_emit chunk=109 bytes=7 transitions=27 elapsed_us=2874
+mailbox_ack chunk=109 wait_us=93582
+mailbox_emit chunk=110 bytes=1 transitions=27 elapsed_us=2286
+mailbox_ack chunk=110 wait_us=87049
+mailbox_emit chunk=111 bytes=7 transitions=28 elapsed_us=2459
+mailbox_ack chunk=111 wait_us=94205
+mailbox_emit chunk=112 bytes=1 transitions=28 elapsed_us=2705
+mailbox_ack chunk=112 wait_us=80314
+mailbox_emit chunk=113 bytes=7 transitions=28 elapsed_us=2889
+mailbox_ack chunk=113 wait_us=87994
+mailbox_emit chunk=114 bytes=1 transitions=28 elapsed_us=3271
+mailbox_ack chunk=114 wait_us=72574
+mailbox_emit chunk=115 bytes=7 transitions=29 elapsed_us=3092
+mailbox_ack chunk=115 wait_us=99516
+mailbox_emit chunk=116 bytes=1 transitions=29 elapsed_us=3305
+mailbox_ack chunk=116 wait_us=78030
+mailbox_emit chunk=117 bytes=7 transitions=27 elapsed_us=2411
+mailbox_ack chunk=117 wait_us=82476
+mailbox_emit chunk=118 bytes=1 transitions=27 elapsed_us=2436
+mailbox_ack chunk=118 wait_us=73801
+mailbox_emit chunk=119 bytes=7 transitions=28 elapsed_us=2398
+mailbox_ack chunk=119 wait_us=83356
+mailbox_emit chunk=120 bytes=1 transitions=28 elapsed_us=2487
+mailbox_ack chunk=120 wait_us=80498
+mailbox_emit chunk=121 bytes=7 transitions=28 elapsed_us=2860
+mailbox_ack chunk=121 wait_us=84326
+mailbox_emit chunk=122 bytes=1 transitions=28 elapsed_us=3117
+mailbox_ack chunk=122 wait_us=81185
+mailbox_emit chunk=123 bytes=7 transitions=29 elapsed_us=3250
+mailbox_ack chunk=123 wait_us=82335
+mailbox_emit chunk=124 bytes=1 transitions=29 elapsed_us=3204
+mailbox_ack chunk=124 wait_us=76155
+mailbox_emit chunk=125 bytes=7 transitions=28 elapsed_us=3254
+mailbox_ack chunk=125 wait_us=95021
+mailbox_emit chunk=126 bytes=1 transitions=28 elapsed_us=2382
+mailbox_ack chunk=126 wait_us=81951
+mailbox_emit chunk=127 bytes=7 transitions=29 elapsed_us=3108
+mailbox_ack chunk=127 wait_us=91116
+mailbox_emit chunk=128 bytes=1 transitions=29 elapsed_us=2499
+mailbox_ack chunk=128 wait_us=82090
+mailbox_emit chunk=129 bytes=7 transitions=30 elapsed_us=2686
+mailbox_ack chunk=129 wait_us=93259
+mailbox_emit chunk=130 bytes=1 transitions=30 elapsed_us=3134
+mailbox_ack chunk=130 wait_us=86747
+mailbox_emit chunk=131 bytes=7 transitions=26 elapsed_us=2406
+mailbox_ack chunk=131 wait_us=79481
+mailbox_emit chunk=132 bytes=1 transitions=26 elapsed_us=2937
+mailbox_ack chunk=132 wait_us=82723
+mailbox_emit chunk=133 bytes=7 transitions=27 elapsed_us=3329
+mailbox_ack chunk=133 wait_us=92468
+mailbox_emit chunk=134 bytes=1 transitions=27 elapsed_us=2461
+mailbox_ack chunk=134 wait_us=93573
+mailbox_emit chunk=135 bytes=7 transitions=26 elapsed_us=2170
+mailbox_ack chunk=135 wait_us=92341
+mailbox_emit chunk=136 bytes=1 transitions=26 elapsed_us=2239
+mailbox_ack chunk=136 wait_us=80428
+mailbox_emit chunk=137 bytes=7 transitions=26 elapsed_us=2928
+mailbox_ack chunk=137 wait_us=84845
+mailbox_emit chunk=138 bytes=1 transitions=26 elapsed_us=2521
+mailbox_ack chunk=138 wait_us=80436
+mailbox_emit chunk=139 bytes=7 transitions=27 elapsed_us=3174
+mailbox_ack chunk=139 wait_us=90293
+mailbox_emit chunk=140 bytes=1 transitions=27 elapsed_us=3031
+mailbox_ack chunk=140 wait_us=70888
+mailbox_emit chunk=141 bytes=7 transitions=26 elapsed_us=2714
+mailbox_ack chunk=141 wait_us=86797
+mailbox_emit chunk=142 bytes=1 transitions=26 elapsed_us=2547
+mailbox_ack chunk=142 wait_us=76171
+mailbox_emit chunk=143 bytes=7 transitions=27 elapsed_us=2597
+mailbox_ack chunk=143 wait_us=79415
+mailbox_emit chunk=144 bytes=1 transitions=27 elapsed_us=2453
+mailbox_ack chunk=144 wait_us=79329
+mailbox_emit chunk=145 bytes=7 transitions=27 elapsed_us=4396
+mailbox_ack chunk=145 wait_us=91155
+mailbox_emit chunk=146 bytes=1 transitions=27 elapsed_us=3127
+mailbox_ack chunk=146 wait_us=81350
+mailbox_emit chunk=147 bytes=7 transitions=28 elapsed_us=2618
+mailbox_ack chunk=147 wait_us=82316
+mailbox_emit chunk=148 bytes=1 transitions=28 elapsed_us=2427
+mailbox_ack chunk=148 wait_us=76821
+mailbox_emit chunk=149 bytes=7 transitions=26 elapsed_us=2392
+mailbox_ack chunk=149 wait_us=91735
+mailbox_emit chunk=150 bytes=1 transitions=26 elapsed_us=2842
+mailbox_ack chunk=150 wait_us=75370
+mailbox_emit chunk=151 bytes=7 transitions=27 elapsed_us=2469
+mailbox_ack chunk=151 wait_us=89265
+mailbox_emit chunk=152 bytes=1 transitions=27 elapsed_us=2304
+mailbox_ack chunk=152 wait_us=79165
+mailbox_emit chunk=153 bytes=7 transitions=27 elapsed_us=2360
+mailbox_ack chunk=153 wait_us=84569
+mailbox_emit chunk=154 bytes=1 transitions=27 elapsed_us=3067
+mailbox_ack chunk=154 wait_us=88806
+mailbox_emit chunk=155 bytes=7 transitions=28 elapsed_us=3019
+mailbox_ack chunk=155 wait_us=88409
+mailbox_emit chunk=156 bytes=1 transitions=28 elapsed_us=2914
+mailbox_ack chunk=156 wait_us=84383
+mailbox_emit chunk=157 bytes=7 transitions=27 elapsed_us=2343
+mailbox_ack chunk=157 wait_us=87557
+mailbox_emit chunk=158 bytes=1 transitions=27 elapsed_us=2999
+mailbox_ack chunk=158 wait_us=77968
+mailbox_emit chunk=159 bytes=7 transitions=29 elapsed_us=2846
+mailbox_ack chunk=159 wait_us=92957
+mailbox_emit chunk=160 bytes=7 transitions=21 elapsed_us=2572
+mailbox_ack chunk=160 wait_us=77041
+mailbox_emit chunk=161 bytes=7 transitions=23 elapsed_us=2305
+mailbox_ack chunk=161 wait_us=102778
+mailbox_emit chunk=162 bytes=1 transitions=29 elapsed_us=3247
+mailbox_ack chunk=162 wait_us=80099
+mailbox_emit chunk=163 bytes=7 transitions=27 elapsed_us=2867
+mailbox_ack chunk=163 wait_us=85357
+mailbox_emit chunk=164 bytes=1 transitions=27 elapsed_us=3116
+mailbox_ack chunk=164 wait_us=82024
+mailbox_emit chunk=165 bytes=7 transitions=28 elapsed_us=2837
+mailbox_ack chunk=165 wait_us=90927
+mailbox_emit chunk=166 bytes=1 transitions=28 elapsed_us=2235
+mailbox_ack chunk=166 wait_us=81128
+mailbox_emit chunk=167 bytes=7 transitions=27 elapsed_us=2925
+mailbox_ack chunk=167 wait_us=95048
+mailbox_emit chunk=168 bytes=1 transitions=27 elapsed_us=2762
+mailbox_ack chunk=168 wait_us=85674
+mailbox_emit chunk=169 bytes=7 transitions=27 elapsed_us=2676
+mailbox_ack chunk=169 wait_us=89948
+mailbox_emit chunk=170 bytes=1 transitions=27 elapsed_us=3416
+mailbox_ack chunk=170 wait_us=73761
+mailbox_emit chunk=171 bytes=7 transitions=28 elapsed_us=3568
+mailbox_ack chunk=171 wait_us=89318
+mailbox_emit chunk=172 bytes=1 transitions=28 elapsed_us=3258
+mailbox_ack chunk=172 wait_us=89572
+mailbox_emit chunk=173 bytes=7 transitions=27 elapsed_us=3223
+mailbox_ack chunk=173 wait_us=93178
+mailbox_emit chunk=174 bytes=1 transitions=27 elapsed_us=2831
+mailbox_ack chunk=174 wait_us=80109
+mailbox_emit chunk=175 bytes=7 transitions=28 elapsed_us=3194
+mailbox_ack chunk=175 wait_us=96615
+mailbox_emit chunk=176 bytes=1 transitions=28 elapsed_us=2644
+mailbox_ack chunk=176 wait_us=82867
+mailbox_emit chunk=177 bytes=7 transitions=28 elapsed_us=2387
+mailbox_ack chunk=177 wait_us=96085
+mailbox_emit chunk=178 bytes=1 transitions=28 elapsed_us=2268
+mailbox_ack chunk=178 wait_us=76042
+mailbox_emit chunk=179 bytes=7 transitions=29 elapsed_us=3053
+mailbox_ack chunk=179 wait_us=88919
+mailbox_emit chunk=180 bytes=1 transitions=29 elapsed_us=3567
+mailbox_ack chunk=180 wait_us=81243
+mailbox_emit chunk=181 bytes=7 transitions=27 elapsed_us=3254
+mailbox_ack chunk=181 wait_us=99530
+mailbox_emit chunk=182 bytes=1 transitions=27 elapsed_us=3542
+mailbox_ack chunk=182 wait_us=111243
+mailbox_emit chunk=183 bytes=7 transitions=28 elapsed_us=2648
+mailbox_ack chunk=183 wait_us=96306
+mailbox_emit chunk=184 bytes=1 transitions=28 elapsed_us=2800
+mailbox_ack chunk=184 wait_us=85725
+mailbox_emit chunk=185 bytes=7 transitions=28 elapsed_us=2382
+mailbox_ack chunk=185 wait_us=89025
+mailbox_emit chunk=186 bytes=1 transitions=28 elapsed_us=2442
+mailbox_ack chunk=186 wait_us=80059
+mailbox_emit chunk=187 bytes=7 transitions=29 elapsed_us=3188
+mailbox_ack chunk=187 wait_us=76838
+mailbox_emit chunk=188 bytes=1 transitions=29 elapsed_us=3021
+mailbox_ack chunk=188 wait_us=78144
+mailbox_emit chunk=189 bytes=7 transitions=28 elapsed_us=2571
+mailbox_ack chunk=189 wait_us=85679
+mailbox_emit chunk=190 bytes=1 transitions=28 elapsed_us=2928
+mailbox_ack chunk=190 wait_us=86690
+mailbox_emit chunk=191 bytes=7 transitions=29 elapsed_us=2994
+mailbox_ack chunk=191 wait_us=87587
+mailbox_emit chunk=192 bytes=1 transitions=29 elapsed_us=3012
+mailbox_ack chunk=192 wait_us=83249
+mailbox_emit chunk=193 bytes=7 transitions=30 elapsed_us=3012
+mailbox_ack chunk=193 wait_us=94931
+mailbox_emit chunk=194 bytes=1 transitions=30 elapsed_us=2890
+mailbox_ack chunk=194 wait_us=83433
+mailbox_emit chunk=195 bytes=7 transitions=27 elapsed_us=2894
+mailbox_ack chunk=195 wait_us=98468
+mailbox_emit chunk=196 bytes=1 transitions=27 elapsed_us=2921
+mailbox_ack chunk=196 wait_us=86873
+mailbox_emit chunk=197 bytes=7 transitions=28 elapsed_us=2965
+mailbox_ack chunk=197 wait_us=86964
+mailbox_emit chunk=198 bytes=1 transitions=28 elapsed_us=3334
+mailbox_ack chunk=198 wait_us=87919
+mailbox_emit chunk=199 bytes=7 transitions=27 elapsed_us=2109
+mailbox_ack chunk=199 wait_us=92043
+mailbox_emit chunk=200 bytes=1 transitions=27 elapsed_us=2643
+mailbox_ack chunk=200 wait_us=90949
+mailbox_emit chunk=201 bytes=7 transitions=27 elapsed_us=2873
+mailbox_ack chunk=201 wait_us=86046
+mailbox_emit chunk=202 bytes=1 transitions=27 elapsed_us=3720
+mailbox_ack chunk=202 wait_us=87702
+mailbox_emit chunk=203 bytes=7 transitions=28 elapsed_us=2872
+mailbox_ack chunk=203 wait_us=90105
+mailbox_emit chunk=204 bytes=1 transitions=28 elapsed_us=3568
+mailbox_ack chunk=204 wait_us=76863
+mailbox_emit chunk=205 bytes=7 transitions=27 elapsed_us=3268
+mailbox_ack chunk=205 wait_us=103308
+mailbox_emit chunk=206 bytes=1 transitions=27 elapsed_us=4084
+mailbox_ack chunk=206 wait_us=73885
+mailbox_emit chunk=207 bytes=7 transitions=28 elapsed_us=2972
+mailbox_ack chunk=207 wait_us=102062
+mailbox_emit chunk=208 bytes=1 transitions=28 elapsed_us=3194
+mailbox_ack chunk=208 wait_us=86935
+mailbox_emit chunk=209 bytes=7 transitions=28 elapsed_us=3286
+mailbox_ack chunk=209 wait_us=100773
+mailbox_emit chunk=210 bytes=1 transitions=28 elapsed_us=5195
+mailbox_ack chunk=210 wait_us=87967
+mailbox_emit chunk=211 bytes=7 transitions=29 elapsed_us=2880
+mailbox_ack chunk=211 wait_us=114395
+mailbox_emit chunk=212 bytes=1 transitions=29 elapsed_us=3078
+mailbox_ack chunk=212 wait_us=89039
+mailbox_emit chunk=213 bytes=7 transitions=27 elapsed_us=3358
+mailbox_ack chunk=213 wait_us=83920
+mailbox_emit chunk=214 bytes=1 transitions=27 elapsed_us=2537
+mailbox_ack chunk=214 wait_us=77991
+mailbox_emit chunk=215 bytes=7 transitions=28 elapsed_us=2426
+mailbox_ack chunk=215 wait_us=84933
+mailbox_emit chunk=216 bytes=1 transitions=28 elapsed_us=3212
+mailbox_ack chunk=216 wait_us=81233
+mailbox_emit chunk=217 bytes=7 transitions=28 elapsed_us=2733
+mailbox_ack chunk=217 wait_us=95803
+mailbox_emit chunk=218 bytes=1 transitions=28 elapsed_us=2891
+mailbox_ack chunk=218 wait_us=58921
+mailbox_emit chunk=219 bytes=7 transitions=29 elapsed_us=3065
+mailbox_ack chunk=219 wait_us=108834
+mailbox_emit chunk=220 bytes=1 transitions=29 elapsed_us=3000
+mailbox_ack chunk=220 wait_us=104776
+mailbox_emit chunk=221 bytes=7 transitions=28 elapsed_us=2831
+mailbox_ack chunk=221 wait_us=80318
+mailbox_emit chunk=222 bytes=1 transitions=28 elapsed_us=2980
+mailbox_ack chunk=222 wait_us=92676
+mailbox_emit chunk=223 bytes=7 transitions=29 elapsed_us=3741
+mailbox_ack chunk=223 wait_us=67380
+mailbox_emit chunk=224 bytes=1 transitions=29 elapsed_us=2392
+mailbox_ack chunk=224 wait_us=93938
+mailbox_emit chunk=225 bytes=7 transitions=30 elapsed_us=2898
+mailbox_ack chunk=225 wait_us=103467
+mailbox_emit chunk=226 bytes=1 transitions=30 elapsed_us=2614
+mailbox_ack chunk=226 wait_us=62962
+mailbox_emit chunk=227 bytes=7 transitions=28 elapsed_us=3077
+mailbox_ack chunk=227 wait_us=101509
+mailbox_emit chunk=228 bytes=1 transitions=28 elapsed_us=3178
+mailbox_ack chunk=228 wait_us=88702
+mailbox_emit chunk=229 bytes=7 transitions=29 elapsed_us=2845
+mailbox_ack chunk=229 wait_us=117545
+mailbox_emit chunk=230 bytes=1 transitions=29 elapsed_us=3375
+mailbox_ack chunk=230 wait_us=110932
+mailbox_emit chunk=231 bytes=7 transitions=28 elapsed_us=3320
+mailbox_ack chunk=231 wait_us=91778
+mailbox_emit chunk=232 bytes=1 transitions=28 elapsed_us=2478
+mailbox_ack chunk=232 wait_us=88722
+mailbox_emit chunk=233 bytes=7 transitions=28 elapsed_us=2919
+mailbox_ack chunk=233 wait_us=71651
+mailbox_emit chunk=234 bytes=1 transitions=28 elapsed_us=2769
+mailbox_ack chunk=234 wait_us=100571
+mailbox_emit chunk=235 bytes=7 transitions=29 elapsed_us=3164
+mailbox_ack chunk=235 wait_us=108527
+mailbox_emit chunk=236 bytes=1 transitions=29 elapsed_us=4472
+mailbox_ack chunk=236 wait_us=104794
+mailbox_emit chunk=237 bytes=7 transitions=28 elapsed_us=2654
+mailbox_ack chunk=237 wait_us=98683
+mailbox_emit chunk=238 bytes=1 transitions=28 elapsed_us=3184
+mailbox_ack chunk=238 wait_us=99415
+mailbox_emit chunk=239 bytes=7 transitions=29 elapsed_us=2449
+mailbox_ack chunk=239 wait_us=97416
+mailbox_emit chunk=240 bytes=1 transitions=29 elapsed_us=2654
+mailbox_ack chunk=240 wait_us=65460
+mailbox_emit chunk=241 bytes=7 transitions=29 elapsed_us=2600
+mailbox_ack chunk=241 wait_us=106882
+mailbox_emit chunk=242 bytes=1 transitions=29 elapsed_us=2381
+mailbox_ack chunk=242 wait_us=74960
+mailbox_emit chunk=243 bytes=7 transitions=30 elapsed_us=3400
+mailbox_ack chunk=243 wait_us=90753
+mailbox_emit chunk=244 bytes=1 transitions=30 elapsed_us=2583
+mailbox_ack chunk=244 wait_us=85533
+mailbox_emit chunk=245 bytes=7 transitions=28 elapsed_us=3505
+mailbox_ack chunk=245 wait_us=80096
+mailbox_emit chunk=246 bytes=1 transitions=28 elapsed_us=3016
+mailbox_ack chunk=246 wait_us=108075
+mailbox_emit chunk=247 bytes=7 transitions=29 elapsed_us=2956
+mailbox_ack chunk=247 wait_us=96611
+mailbox_emit chunk=248 bytes=1 transitions=29 elapsed_us=4081
+mailbox_ack chunk=248 wait_us=93554
+mailbox_emit chunk=249 bytes=7 transitions=29 elapsed_us=2903
+mailbox_ack chunk=249 wait_us=97304
+mailbox_emit chunk=250 bytes=1 transitions=29 elapsed_us=2826
+mailbox_ack chunk=250 wait_us=95221
+mailbox_emit chunk=251 bytes=7 transitions=30 elapsed_us=2931
+mailbox_ack chunk=251 wait_us=96166
+mailbox_emit chunk=252 bytes=1 transitions=30 elapsed_us=3281
+mailbox_ack chunk=252 wait_us=84514
+mailbox_emit chunk=253 bytes=7 transitions=29 elapsed_us=2643
+mailbox_ack chunk=253 wait_us=93139
+mailbox_emit chunk=254 bytes=1 transitions=29 elapsed_us=2445
+mailbox_ack chunk=254 wait_us=85722
+mailbox_emit chunk=255 bytes=7 transitions=30 elapsed_us=2581
+mailbox_ack chunk=255 wait_us=86749
+mailbox_emit chunk=256 bytes=1 transitions=30 elapsed_us=3060
+mailbox_ack chunk=256 wait_us=96216
+mailbox_emit chunk=257 bytes=7 transitions=31 elapsed_us=3238
+mailbox_ack chunk=257 wait_us=94918
+mailbox_emit chunk=258 bytes=1 transitions=31 elapsed_us=4575
+mailbox_ack chunk=258 wait_us=90228
+mailbox_emit chunk=259 bytes=7 transitions=26 elapsed_us=3086
+mailbox_ack chunk=259 wait_us=93324
+mailbox_emit chunk=260 bytes=1 transitions=26 elapsed_us=2972
+mailbox_ack chunk=260 wait_us=91864
+mailbox_emit chunk=261 bytes=7 transitions=27 elapsed_us=2514
+mailbox_ack chunk=261 wait_us=82442
+mailbox_emit chunk=262 bytes=1 transitions=27 elapsed_us=2975
+mailbox_ack chunk=262 wait_us=88635
+mailbox_emit chunk=263 bytes=7 transitions=26 elapsed_us=2179
+mailbox_ack chunk=263 wait_us=84021
+mailbox_emit chunk=264 bytes=1 transitions=26 elapsed_us=2879
+mailbox_ack chunk=264 wait_us=103265
+mailbox_emit chunk=265 bytes=7 transitions=26 elapsed_us=2918
+mailbox_ack chunk=265 wait_us=96706
+mailbox_emit chunk=266 bytes=1 transitions=26 elapsed_us=2879
+mailbox_ack chunk=266 wait_us=97330
+mailbox_emit chunk=267 bytes=7 transitions=27 elapsed_us=2991
+mailbox_ack chunk=267 wait_us=94053
+mailbox_emit chunk=268 bytes=1 transitions=27 elapsed_us=3184
+mailbox_ack chunk=268 wait_us=98740
+mailbox_emit chunk=269 bytes=7 transitions=26 elapsed_us=2434
+mailbox_ack chunk=269 wait_us=99780
+mailbox_emit chunk=270 bytes=1 transitions=26 elapsed_us=2946
+mailbox_ack chunk=270 wait_us=95259
+mailbox_emit chunk=271 bytes=7 transitions=27 elapsed_us=2350
+mailbox_ack chunk=271 wait_us=99643
+mailbox_emit chunk=272 bytes=1 transitions=27 elapsed_us=2527
+mailbox_ack chunk=272 wait_us=86504
+mailbox_emit chunk=273 bytes=7 transitions=27 elapsed_us=2975
+mailbox_ack chunk=273 wait_us=95329
+mailbox_emit chunk=274 bytes=1 transitions=27 elapsed_us=3077
+mailbox_ack chunk=274 wait_us=82305
+mailbox_emit chunk=275 bytes=7 transitions=28 elapsed_us=2781
+mailbox_ack chunk=275 wait_us=86985
+mailbox_emit chunk=276 bytes=1 transitions=28 elapsed_us=3080
+mailbox_ack chunk=276 wait_us=78238
+mailbox_emit chunk=277 bytes=7 transitions=26 elapsed_us=2469
+mailbox_ack chunk=277 wait_us=84463
+mailbox_emit chunk=278 bytes=1 transitions=26 elapsed_us=2982
+mailbox_ack chunk=278 wait_us=81298
+mailbox_emit chunk=279 bytes=7 transitions=27 elapsed_us=2572
+mailbox_ack chunk=279 wait_us=87724
+mailbox_emit chunk=280 bytes=1 transitions=27 elapsed_us=3160
+mailbox_ack chunk=280 wait_us=82401
+mailbox_emit chunk=281 bytes=7 transitions=27 elapsed_us=3274
+mailbox_ack chunk=281 wait_us=83665
+mailbox_emit chunk=282 bytes=1 transitions=27 elapsed_us=2918
+mailbox_ack chunk=282 wait_us=90995
+mailbox_emit chunk=283 bytes=7 transitions=28 elapsed_us=2826
+mailbox_ack chunk=283 wait_us=88801
+mailbox_emit chunk=284 bytes=1 transitions=28 elapsed_us=2267
+mailbox_ack chunk=284 wait_us=94187
+mailbox_emit chunk=285 bytes=7 transitions=27 elapsed_us=2798
+mailbox_ack chunk=285 wait_us=91129
+mailbox_emit chunk=286 bytes=1 transitions=27 elapsed_us=2868
+mailbox_ack chunk=286 wait_us=84637
+mailbox_emit chunk=287 bytes=7 transitions=28 elapsed_us=2393
+mailbox_ack chunk=287 wait_us=107458
+mailbox_emit chunk=288 bytes=1 transitions=28 elapsed_us=2850
+mailbox_ack chunk=288 wait_us=90554
+mailbox_emit chunk=289 bytes=7 transitions=29 elapsed_us=3182
+mailbox_ack chunk=289 wait_us=86670
+mailbox_emit chunk=290 bytes=1 transitions=29 elapsed_us=2691
+mailbox_ack chunk=290 wait_us=87755
+mailbox_emit chunk=291 bytes=7 transitions=27 elapsed_us=3070
+mailbox_ack chunk=291 wait_us=82653
+mailbox_emit chunk=292 bytes=1 transitions=27 elapsed_us=2974
+mailbox_ack chunk=292 wait_us=90901
+mailbox_emit chunk=293 bytes=7 transitions=28 elapsed_us=2459
+mailbox_ack chunk=293 wait_us=84461
+mailbox_emit chunk=294 bytes=1 transitions=28 elapsed_us=2733
+mailbox_ack chunk=294 wait_us=81468
+mailbox_emit chunk=295 bytes=7 transitions=27 elapsed_us=2964
+mailbox_ack chunk=295 wait_us=80949
+mailbox_emit chunk=296 bytes=1 transitions=27 elapsed_us=2378
+mailbox_ack chunk=296 wait_us=92988
+mailbox_emit chunk=297 bytes=7 transitions=27 elapsed_us=2609
+mailbox_ack chunk=297 wait_us=85221
+mailbox_emit chunk=298 bytes=1 transitions=27 elapsed_us=3076
+mailbox_ack chunk=298 wait_us=86790
+mailbox_emit chunk=299 bytes=7 transitions=28 elapsed_us=3155
+mailbox_ack chunk=299 wait_us=95503
+mailbox_emit chunk=300 bytes=1 transitions=28 elapsed_us=2992
+mailbox_ack chunk=300 wait_us=91046
+mailbox_emit chunk=301 bytes=7 transitions=27 elapsed_us=2827
+mailbox_ack chunk=301 wait_us=77157
+mailbox_emit chunk=302 bytes=1 transitions=27 elapsed_us=3874
+mailbox_ack chunk=302 wait_us=86905

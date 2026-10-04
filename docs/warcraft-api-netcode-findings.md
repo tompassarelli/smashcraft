@@ -807,3 +807,11 @@ their application was not observed in that trace. This replacement is rejected
 for throughput pending the owning companion-emission repair. Source checks
 passed but did not establish native speed. See
 wc3-melee:docs/keyboard-mailbox-20261004/README.md.
+
+The timed native repeat measured about2.75ms median local emission but81–92ms
+median acknowledgment waits. Excluding all carrier keys from synchronized
+registration did not fix this. The serial chunk/file-ACK protocol is rejected
+for playable controller delivery; the passing first tap is not a throughput or
+stall-recovery pass. This does not establish a universal engine floor or identify
+which part of key visibility versus ACK generation contributes the wait. The
+failed source variation was removed. Exact40 remains the playable release.

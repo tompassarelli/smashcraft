@@ -1,0 +1,15 @@
+diff --git a/wurst/Melee.wurst b/wurst/Melee.wurst
+index f409b4e..dcc7349 100644
+--- a/wurst/Melee.wurst
++++ b/wurst/Melee.wurst
+@@ -1702,7 +1702,9 @@ function registerBroadKeyEvents()
+     broadKeyUpTrigger = CreateTrigger()
+     for keyCode = 1 to 255
+         let key = ConvertOsKeyType(keyCode)
+-        if key != OSKEY_Y and key != OSKEY_F5
++        // Carrier keys belong to the local journal, including before combat.
++        // Registering them as player key events also puts them on the game input path.
++        if key != OSKEY_Y and key != OSKEY_F5 and not (JOURNAL_KEYBOARD_INGRESS and keyboardJournalIngress.isCarrierCode(keyCode))
+             for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                 if matchState.humanActive(slot)
+                     registerKey(broadKeyDownTrigger, Player(slot), key, true)

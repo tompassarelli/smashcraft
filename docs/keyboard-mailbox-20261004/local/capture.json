@@ -1,0 +1,7 @@
+{
+  "epoch_monotonic_ns": 537855897117779,
+  "stall_ms": 249.980669,
+  "game_stall_ms": 245.054548,
+  "helper_sha256": "7031430d2eaac6523bcb71bd265ff029a50983fb5d4a43222c64788a4c08a5ee",
+  "scope": "Virtual controller tap, analog and stall trial; delivery pending"
+}
