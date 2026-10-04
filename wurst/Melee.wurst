@@ -1416,7 +1416,7 @@ function renderPersistentPresentation()
     let runtime = usePredictedPresentation() ? shadowRuntime : replayRuntime
     let game = usePredictedPresentation() ? shadowMatch : matchState
     let playing = game.phase == MATCH and matchState.phase == MATCH
-    combatEffects.present(runtime.impacts, playing)
+    combatEffects.present(runtime.impacts, replayRuntime.impacts, playing)
     for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
         let participant = participants[slot]
         let active = world.active(slot)

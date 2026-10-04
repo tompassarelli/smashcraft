@@ -54,6 +54,8 @@ public class ImpactEvents
     int jump = 0
     real jumpOriginX = 0
     real jumpOriginZ = 0
+    int character = 0
+    int facing = 1
     int koDirectionX = 0
     int koDirectionZ = 0
     int landing = IMPACT_NONE
@@ -120,6 +122,8 @@ public class ImpactEvents
         surfaceMissedTech = false
 
     function after(FighterState fighter)
+        character = fighter.character
+        facing = fighter.facing
         x = fighter.x
         z = fighter.z
         direction = fighter.x < previousX ? -1 : (fighter.x > previousX ? 1 : fighter.facing)

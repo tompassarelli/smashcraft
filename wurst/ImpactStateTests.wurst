@@ -81,7 +81,7 @@ class ImpactTestWorld
         pool.advance()
         for kind = 0 to IMPACT_KIND_COUNT - 1
             let i = kind * IMPACTS_PER_KIND
-            pool.project(i).visible.assertEquals(age < impactLifetime(kind))
+            pool.project(i).visible.assertEquals(kind < IMPACT_STAR_KO and age < impactLifetime(kind))
         if age == 4
             let dust = pool.project(24)
             dust.x.assertEquals(85. - 4 * 1.3)
@@ -280,3 +280,81 @@ class ImpactTestWorld
     history.correct(82, corrections, charging.world, charging.game, charging.inputs, charging.runtime).assertEquals(1)
     charging.runtime.impacts.nextSlot[IMPACT_CHARGE].assertEquals(0)
     charging.runtime.impacts.project(IMPACT_CHARGE * IMPACTS_PER_KIND).visible.assertFalse()
+
+@Test function topKoCinematicsHaveDistinctFlightSparkleAndDrop()
+    let events = new ImpactEvents()
+    events.koDirectionZ = 1
+    events.x = 200
+    events.z = 770
+    events.facing = -1
+    for character = 0 to 2
+        events.character = character
+        let pool = new ImpactState()
+        pool.emit(events, character)
+        pool.emit(events, character + 1)
+        let star = IMPACT_STAR_KO * IMPACTS_PER_KIND
+        let screen = IMPACT_SCREEN_KO * IMPACTS_PER_KIND
+        pool.nextSlot[8].assertEquals(0)
+        pool.projectKo(star).character.assertEquals(character)
+        pool.projectKo(screen).character.assertEquals(character)
+        pool.projectKo(star).x.assertEquals(90.)
+        pool.projectKo(star).z.assertEquals(480.)
+        let saved = new ImpactState()
+        pool.copyTo(saved)
+        for tick = 1 to 20
+            pool.projectKo(star)
+            pool.projectKo(screen)
+        pool.firstDifference(saved).assertEquals("")
+        for age = 1 to KO_STAR_FRAMES
+            pool.advance()
+            if age == 24
+                let a = pool.projectKo(star)
+                let b = pool.projectKo(screen)
+                (a.scale < 1. and a.y > 0 and a.pitch != 0 and a.roll != 0).assertTrue()
+                (b.scale > 1. and b.y < 0 and b.pitch != 0).assertTrue()
+            if age == 75
+                (pool.projectKo(screen).z < 200.).assertTrue()
+            if age == KO_STAR_FLIGHT_FRAMES
+                pool.projectKo(star).visible.assertFalse()
+                pool.project(star).visible.assertTrue()
+            if age == KO_SCREEN_FRAMES
+                pool.projectKo(screen).visible.assertFalse()
+        pool.project(star).visible.assertFalse()
+        saved.copyTo(pool)
+        pool.firstDifference(saved).assertEquals("")
+        pool.clear()
+        pool.projectKo(star).visible.assertFalse()
+        pool.projectKo(screen).visible.assertFalse()
+        pool.project(star).visible.assertFalse()
+
+@Test function confirmedTopKoReplayRestoresOneBodyAndUnchangedStockClock()
+    let fixture = new ImpactTestWorld(3)
+    let fighter = fixture.world.fighters[0]
+    fighter.z = 761
+    fighter.grounded = false
+    fighter.knockbackZ = TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 10
+    fighter.downState = DOWN_TUMBLE
+    fighter.downFrame = 1
+    let before = new ReplaySnapshot()
+    let after = new ReplaySnapshot()
+    let replayed = new ReplaySnapshot()
+    before.capture(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    fixture.captureNext()
+    fixture.execute()
+    fighter.out.assertTrue()
+    (fixture.runtime.impacts.nextSlot[IMPACT_STAR_KO] + fixture.runtime.impacts.nextSlot[IMPACT_SCREEN_KO]).assertEquals(1)
+    for frame = 1 to 8
+        fixture.captureNext()
+        fixture.execute()
+    (fixture.runtime.impacts.nextSlot[IMPACT_STAR_KO] + fixture.runtime.impacts.nextSlot[IMPACT_SCREEN_KO]).assertEquals(1)
+    after.capture(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    before.restore(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    for frame = 0 to 8
+        fixture.captureNext()
+        fixture.execute()
+    replayed.capture(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    after.firstDifference(replayed).assertEquals("")
+    after.firstPoseDifference(replayed).assertEquals("")
+    before.restore(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    fixture.runtime.impacts.projectKo(IMPACT_SCREEN_KO * IMPACTS_PER_KIND).visible.assertFalse()
+    fixture.runtime.impacts.projectKo(IMPACT_STAR_KO * IMPACTS_PER_KIND).visible.assertFalse()

@@ -3,11 +3,16 @@ import Wurst
 import ImpactState
 import ImpactAssetInfo
 import Simulation
+import FighterAssetInfo
+import DemonHunterAssetInfo
+
+constant int KO_BODY_COUNT = IMPACTS_PER_KIND * 2 * 3
 
 // All handles are created together in common initialization. Effects never
 // provide input to combat, and playback creates/destroys no native handles.
 public class CombatEffects
     private effect array[IMPACT_COUNT] models
+    private effect array[KO_BODY_COUNT] koBodies
     private real worldX
     private real worldY
     private real worldZ
@@ -41,29 +46,58 @@ public class CombatEffects
                 path = IMPACT_SHIELD_MODEL
             else if kind == IMPACT_THROW or kind == IMPACT_LEDGE_RECOVERY
                 path = IMPACT_JUMP_MODEL
-            else if kind == IMPACT_READY or kind == IMPACT_LEDGE_CATCH
+            else if kind == IMPACT_STAR_KO or kind == IMPACT_READY or kind == IMPACT_LEDGE_CATCH
                 path = IMPACT_TECH_MODEL
             let model = AddSpecialEffect(path, x, y)
             BlzSetSpecialEffectAlpha(model, 0)
             BlzSetSpecialEffectScale(model, 0.)
             models[i] = model
+        for i = 0 to KO_BODY_COUNT - 1
+            let character = i mod 3
+            let path = character == 0 ? ARCHER_MODEL_FILE : (character == 1 ? RIFLEMAN_MODEL_FILE : DEMON_HUNTER_MODEL_FILE)
+            let model = AddSpecialEffect(path, x, y)
+            BlzSetSpecialEffectAnimation(model, "stand hit")
+            BlzSetSpecialEffectAnimationBlendTime(model, 0.)
+            BlzSetSpecialEffectTimeScale(model, 0.)
+            BlzSetSpecialEffectTime(model, 0.1)
+            BlzSetSpecialEffectAlpha(model, 0)
+            BlzSetSpecialEffectScale(model, 0.)
+            koBodies[i] = model
 
     function clear()
         for i = 0 to IMPACT_COUNT - 1
             BlzSetSpecialEffectAlpha(models[i], 0)
             BlzSetSpecialEffectScale(models[i], 0.)
 
-    function present(ImpactState state, boolean playing)
+        for i = 0 to KO_BODY_COUNT - 1
+            BlzSetSpecialEffectAlpha(koBodies[i], 0)
+            BlzSetSpecialEffectScale(koBodies[i], 0.)
+
+    function present(ImpactState state, ImpactState confirmed, boolean playing)
         for i = 0 to IMPACT_COUNT - 1
-            let pose = state.project(i)
+            let pose = i >= IMPACT_STAR_KO * IMPACTS_PER_KIND ? confirmed.project(i) : state.project(i)
             if playing and pose.visible
                 BlzSetSpecialEffectAlpha(models[i], pose.alpha)
                 BlzSetSpecialEffectScale(models[i], pose.scale)
                 BlzSetSpecialEffectPitch(models[i], pose.pitch)
-                BlzSetSpecialEffectPosition(models[i], worldX + pose.x, worldY, worldZ + pose.z)
+                BlzSetSpecialEffectPosition(models[i], worldX + pose.x, worldY + (i div IMPACTS_PER_KIND == IMPACT_STAR_KO ? 1400. : 0.), worldZ + pose.z)
             else
                 BlzSetSpecialEffectAlpha(models[i], 0)
                 BlzSetSpecialEffectScale(models[i], 0.)
+
+        for i = 0 to KO_BODY_COUNT - 1
+            let pose = confirmed.projectKo(IMPACT_STAR_KO * IMPACTS_PER_KIND + i div 3)
+            let model = koBodies[i]
+            if playing and pose.visible and pose.character == i mod 3
+                BlzSetSpecialEffectPosition(model, worldX + pose.x, worldY + pose.y, worldZ + pose.z)
+                BlzSetSpecialEffectScale(model, characterModelScale(pose.character) * pose.scale)
+                BlzSetSpecialEffectPitch(model, pose.pitch)
+                BlzSetSpecialEffectYaw(model, pose.yaw)
+                BlzSetSpecialEffectRoll(model, pose.roll)
+                BlzSetSpecialEffectAlpha(model, pose.alpha)
+            else
+                BlzSetSpecialEffectAlpha(model, 0)
+                BlzSetSpecialEffectScale(model, 0.)
 
     function setPaused(boolean paused)
         for i = 0 to IMPACT_COUNT - 1

@@ -40,8 +40,8 @@ colors and lifetime tuning are changeable and are not fixed test requirements.
 | Charge / ready flash | Smash-charge entry and ready threshold | melee:src/melee/ft/kinds/ftCommon/ftCo_AttackS4.c | Charge-entry and full-charge flashes authored; headless entry/threshold/hitlag checks pass; native appearance pending |
 | Ledge catch / recovery | Actual catch or accepted ledge option | melee:src/melee/ft/kinds/ftCommon/ftCo_CliffCatch.c | Catch and accepted climb/roll/attack/jump cues authored at ledge lip; headless transition checks pass; native appearance pending |
 | Directional blast-zone KO | Actual stock loss at boundary; oriented outward | melee:src/melee/ft/ft_0D31.c | Stock-loss event drives directional burst; exact death rules remain unfinished |
-| Star KO | Eligible top death; fighter recedes/spins then sparkle | melee:src/melee/ft/ft_0D31.c DeadUpStar | Separate cinematic pending |
-| Screen KO | Eligible top death; foreground flight/tumble/drop | melee:src/melee/ft/ft_0D31.c DeadUpFall; melee:src/melee/ft/ft_0D4D.c | Separate cinematic pending |
+| Star KO | Eligible top death; fighter recedes/spins then sparkle | melee:src/melee/ft/ft_0D31.c DeadUpStar | Authored receding/spinning fighter and terminal sparkle implemented; native appearance pending |
+| Screen KO | Eligible top death; foreground flight/tumble/drop | melee:src/melee/ft/ft_0D31.c DeadUpFall; melee:src/melee/ft/ft_0D4D.c | Authored foreground flight, tumble and drop implemented; native appearance pending |
 | Respawn arrival / protection | Out-to-live transition; spawn location/body | melee:src/melee/ft/kinds/ftCommon/ftCo_Rebirth.c | Out-to-live event drives arrival ring; native appearance unverified |
 | Freeze / ice break | Accepted freeze state and release | melee:src/melee/ft/kinds/ftCommon/ftCo_DamageIce.c | Existing FrostEffects, review pending |
 | Character-specific attacks | Existing authored Smashcraft special windows/contact | melee:src/melee/ft/kinds/ftFox; melee:src/melee/ft/kinds/ftFalco and other fighter families | Warcraft-specific SpecialEffects already exists; port only relevant effect language |
@@ -62,3 +62,52 @@ probability. Side/bottom deaths use directional bursts. Frozen variants also
 exist. Numerical selection/timing facts must be recorded before claiming their
 exact reproduction. Warcraft camera movement and presentation choices must be
 explicit; a proxy effect is not evidence that a cinematic is implemented.
+
+## Authored top-KO cinematics (5 October 2026)
+
+The existing accepted top-blast-zone stock-loss event selects star when
+(completed simulation frame + character index) is even, screen otherwise.
+Archer/Rifleman/Illidan indices are 0/1/2. This deterministic presentation policy
+is intentionally different from retail's probability and game/camera flags;
+it neither adds top-death eligibility nor changes stock, protection or respawn.
+Side and bottom deaths retain their directional bursts. Match results and reset
+clear cinematics immediately, so a match-ending KO does not delay results.
+
+Star: 90 completed frames of the fighter receding, shrinking and spinning,
+then an 18-frame authored eight-ray sparkle at the terminal background position.
+Screen: 24 frames approaching the foreground while tumbling, 24 frames holding
+that pose, then 52 frames dropping and fading. Both reuse the installed authored
+fighter models in a frozen hit pose; the sparkle reuses the authored tech rays.
+No original Melee assets are imported. These are authored timings, not measured
+retail reproduction. Cinematics may overlap the existing 60-frame respawn.
+
+The camera continues tracking live fighters. Cinematic entry compresses the
+exit X to 45% and caps height at 480 world units to re-enter the viewing area;
+star travels 1400 units behind the arena, screen 550 toward the camera. These
+world-space choices do not claim fixed screen placement under every camera
+zoom. Native onset, readability, layering and camera extremes remain unverified.
+
+Bodies and sparkle read confirmed impact state even with predicted fighter
+presentation enabled. Their transforms derive only from completed-frame ages;
+pause and repeated rendering do not advance them, snapshot restoration retains
+selection/model/age, and correction replaces the pool without appending a new
+native effect. Fixed handles are allocated during common initialization.
+
+Native trigger: in a non-final-stock match, launch a fighter across the top
+boundary with eligible upward knockback. Record its completed KO frame; the
+parity rule above identifies the expected sequence. Repeat with opposite parity
+(or the adjacent character at the same frame). Observe through frame +108;
+pause during flight/drop, resume, and start a new match while a body is visible.
+Side/bottom KOs should retain bursts. A final-stock match-ending KO should clear
+immediately. Numerical fixture: the focused tests in
+wc3-melee:wurst/ImpactStateTests.wurst place an airborne tumbling fighter at
+z=761 with upward knockback TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 10; native fixture integration remains parent-owned.
+
+Source check: 23/23 tests pass with the pinned compiler, zero errors and nine
+indentation and unused-code warnings. The wc3-melee:test.sh Impact source set was extended
+locally with wc3-melee:wurst/CombatEffects.wurst and generated ImpactAssetInfo to
+also typecheck the native renderer. Evidence:
+wc3-melee:build/ko-source-tests.log. This covers projection phases/lifetimes for
+all three fighter models, read-only repeated projection, pool reset, and a real
+accepted top KO through snapshot restore/re-execution without duplicate bodies.
+It does not establish native animation or camera acceptance.
