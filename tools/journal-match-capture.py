@@ -42,11 +42,19 @@ def main():
                         help="exercise the full controller layout and export combat/shield evidence")
     parser.add_argument("--controller-reconnect", action="store_true",
                         help="disconnect a shielding pad, reject a decoy, and resume after neutral rearm")
+    parser.add_argument("--controller-chat", action="store_true",
+                        help="observe native chat, suppress chat-period input, and check fresh input after Escape")
+    parser.add_argument("--chat-capture-driver", type=Path,
+                        default=Path.home() / ".codex/skills/private-desktop-development-distilled/scripts/private-desktop.sh")
+    parser.add_argument("--chat-open-pattern", default=r"(?:All|Allies)\s*:",
+                        help="OCR evidence identifying the native chat entry before typing an unsent marker")
     args = parser.parse_args()
     if args.combat_actions and not args.controller_menus:
         parser.error("--combat-actions requires --controller-menus")
     if args.controller_reconnect and (not args.controller_menus or args.combat_actions):
         parser.error("--controller-reconnect requires --controller-menus without --combat-actions")
+    if args.controller_chat and (not args.controller_menus or args.combat_actions or args.controller_reconnect):
+        parser.error("--controller-chat requires --controller-menus without combat/reconnect")
     cfg = json.loads(args.session.read_text())["args"]
     cfg["build"] = args.build
     args.out.mkdir(parents=True, exist_ok=False)
@@ -316,6 +324,68 @@ def main():
                         return len(pages) == (max(rows, retained) + 149) // 150
                     until(exported, f"epoch {epoch}: response export incomplete")
 
+            def chat(epoch):
+                slot = epoch - 1
+                prefix = f"match-{epoch}-chat-"
+                marker = "UNSENTCHATPROBE"
+                journey = dict(event="chat", epoch=epoch, slot=slot, marker=marker,
+                               open_pattern=args.chat_open_pattern, observations=[],
+                               policy="neutralize gameplay while chat is open; suppress chat-period actions; "
+                                      "neutral rearm after close; preserve original frame for fresh input")
+                events.append(journey)
+
+                def observe(label):
+                    path = args.out / f"chat-{epoch}-{label}.png"
+                    before = time.monotonic_ns()
+                    subprocess.run([str(args.chat_capture_driver), "capture", str(runs[slot]),
+                                    str(path.resolve())], check=True, capture_output=True, timeout=12)
+                    text = subprocess.check_output(["tesseract", str(path), "stdout", "--psm", "11"],
+                                                   text=True, stderr=subprocess.DEVNULL, timeout=10)
+                    (path.with_suffix(".txt")).write_text(text)
+                    observation = dict(label=label, capture=str(path.resolve()), text=text,
+                                       helper_log_bytes=(args.out / f"helper-{slot}.log").stat().st_size,
+                                       before_monotonic_ns=before, after_monotonic_ns=time.monotonic_ns())
+                    journey["observations"].append(observation)
+                    return text
+
+                send(slot, EV_ABS, ABS_Z, 32767, prefix + "shield")
+                time.sleep(.5)
+                observe("before")
+                journey["enter_monotonic_ns"] = time.monotonic_ns()
+                keys(slot, "key", "Return")
+                opened = False
+                try:
+                    # OCR observes native UI. A delivered Enter key alone does
+                    # not establish that the game opened its chat entry.
+                    for attempt in range(3):
+                        text = observe(f"open-{attempt}")
+                        if re.search(args.chat_open_pattern, text, re.I):
+                            opened = True
+                            journey["opened_monotonic_ns"] = time.monotonic_ns()
+                            break
+                    if not opened:
+                        raise RuntimeError("native chat opening unproven; inspect retained chat captures")
+                    keys(slot, "type", "--delay", "35", marker)
+                    text = observe("marker")
+                    if marker not in re.sub(r"\s+", "", text).upper():
+                        raise RuntimeError("unsent marker absent from native chat; inspect retained capture")
+                    send(slot, EV_ABS, ABS_Z, 0, prefix + "shield-release")
+                    tap(slot, prefix + "suppressed")
+                    # Keep one button held across close: it must not rearm until
+                    # the controller becomes neutral.
+                    send(slot, EV_KEY, BTN_SOUTH, 1, prefix + "held-across-close")
+                    observe("stimulus")
+                finally:
+                    journey["escape_monotonic_ns"] = time.monotonic_ns()
+                    keys(slot, "key", "Escape")
+                    observe("closed")
+                time.sleep(.2)
+                send(slot, EV_KEY, BTN_SOUTH, 0, prefix + "neutral")
+                time.sleep(.2)
+                tap(slot, prefix + "fresh")
+                time.sleep(.7)
+                observe("fresh")
+
             if args.controller_menus:
                 controller_select()
 
@@ -342,6 +412,8 @@ def main():
                     combat(epoch)
                 if args.controller_reconnect:
                     reconnect(epoch)
+                if args.controller_chat:
+                    chat(epoch)
                 send(0, EV_ABS, ABS_X, -32768, f"match-{epoch}-stock-loss")
                 ends = [control("end", epoch, slot) for slot in range(2)]
                 until(lambda: all(complete(p) for p in ends), f"epoch {epoch}: result did not stop capture", 40)
@@ -360,7 +432,7 @@ def main():
                           and re.search(r"1200 [0-9.]+ end", trace.read_text()) is not None,
                           f"epoch {epoch}: trace did not complete", 30)
                 archive(epoch)
-                if args.combat_actions or args.controller_reconnect:
+                if args.combat_actions or args.controller_reconnect or args.controller_chat:
                     export_response(epoch)
                     archive(epoch)
                     # Combat can outlast the first trace. Keep it intact and
@@ -394,6 +466,7 @@ def main():
                         ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
                 print(f"Epoch {epoch}: game start, tap, stock loss and results observed", flush=True)
         result = dict(settings=cfg, combat_actions=args.combat_actions, controller_reconnect=args.controller_reconnect,
+                      controller_chat=args.controller_chat,
                       helper_pids=[p.pid for p in helpers], events=events,
                       helper_sha256=hashlib.sha256(Path(cfg["binary"]).read_bytes()).hexdigest(),
                       scope="Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; "
@@ -401,6 +474,8 @@ def main():
                                else "keyboard menu confirmation; ")
                             + ("ordinary combat and controller layout; " if args.combat_actions else "")
                             + ("controller removal/recreation and neutral rearm; " if args.controller_reconnect else "")
+                            + ("native unsent chat with deliberate controller suppression and neutral rearm; "
+                               if args.controller_chat else "")
                             + "no physical or cross-machine alignment claim.")
         (args.out / "capture.json").write_text(json.dumps(result, indent=2) + "\n")
     finally:
