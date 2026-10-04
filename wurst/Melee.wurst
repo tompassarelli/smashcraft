@@ -46,8 +46,10 @@ import ResponseServiceProbe
 import JournalInputSource
 import KeyboardJournalIngress
 import EditboxJournalIngress
+import JournalTextStream
 import VocabularyIngress
 import JournalPauseBarrier
+import JournalMatchLifecycle
 import FileIO
 import NativePreloadProbe
 import NativeTransportProbe
@@ -161,6 +163,10 @@ boolean inputTraceActive = false
 int shadowTraceRawSyncEvents = 0
 int journalTransportReadyMask = 0
 boolean journalTransportStartSent = false
+JournalMatchLifecycle journalLifecycle = new JournalMatchLifecycle()
+boolean journalEndSent = false
+boolean journalEndReceived = false
+boolean journalQuiescent = false
 boolean developerRestartRequested = false
 int inputTraceTicks = 0
 int inputTraceCount = 0
@@ -677,12 +683,25 @@ function commitJournalPauseAtFrame()
 function serviceJournalInput()
 	if journalInputFailed
 		return
-	if RESPONSE_SERVICE_PROBE and not journalTransportStartSent
-		journalTransportStartSent = true
-		startInputTrace()
-		let accepted = BlzSendSyncData("SC_GP", "J4" + I2S(shadowInputEpoch))
-		traceInput("journal transport start accepted " + (accepted ? "1" : "0"))
-	if RESPONSE_SERVICE_PROBE and journalTransportReadyMask != matchState.humanMask
+	if JOURNAL_EDITBOX_INGRESS and not journalLifecycle.started()
+		let wire = editboxJournalIngress.peek()
+		if editboxJournalIngress.failed() != ""
+			failJournalInput(editboxJournalIngress.failed())
+			return
+		let ready = wire == "JR1" + I2S(shadowInputEpoch)
+		// Explicit-clock diagnostic producers announce readiness with their first row.
+		let diagnostic = wire.length() >= 2 and wire.substring(0, 2) == "I4"
+		if not journalTransportStartSent and (ready or diagnostic)
+			if not BlzSendSyncData("SC_GP", "J4" + I2S(shadowInputEpoch))
+				failJournalInput("controller readiness could not be synchronized")
+				return
+			journalTransportStartSent = true
+			if ready and not editboxJournalIngress.consumed()
+				failJournalInput(editboxJournalIngress.failed())
+		return
+	if not JOURNAL_EDITBOX_INGRESS and RESPONSE_SERVICE_PROBE and not journalTransportStartSent
+		journalTransportStartSent = BlzSendSyncData("SC_GP", "J4" + I2S(shadowInputEpoch))
+	if not JOURNAL_EDITBOX_INGRESS and RESPONSE_SERVICE_PROBE and journalTransportReadyMask != matchState.humanMask
 		return
 	if nativePreloadProbeActive() or nativePreloadProbeStartPending() or nativeTransportProbeActive()
 		return
@@ -873,7 +892,7 @@ function shadowInputTick()
             serviceJournalInput()
     else
         shadowCaptureLocalInput()
-    if matchControls.isPaused()
+    if matchControls.isPaused() or (JOURNAL_EDITBOX_INGRESS and not journalLifecycle.started())
         return
     var confirmedSteps = 0
     while matchState.phase == MATCH and shadowSchedule.mayAdvanceConfirmed()
@@ -1223,18 +1242,24 @@ function receiveShadowInput()
     shadowTraceRawSyncEvents++
     let sender = GetPlayerId(GetTriggerPlayer())
     let wire = BlzGetTriggerSyncData()
-    if JOURNAL_INPUT_SOURCE and RESPONSE_SERVICE_PROBE and wire == "J4" + I2S(shadowInputEpoch)
+    if JOURNAL_INPUT_SOURCE and wire == "J4" + I2S(shadowInputEpoch)
         if matchState.humanActive(sender) and not participantIsActive(journalTransportReadyMask, sender)
             var bit = 1
             for slot = 1 to sender
                 bit *= 2
             journalTransportReadyMask += bit
+            journalLifecycle.ready(shadowInputEpoch, sender)
             traceInput("journal transport start received sender " + I2S(sender))
             if journalTransportReadyMask == matchState.humanMask
+                if JOURNAL_EDITBOX_INGRESS
+                    writeJournalLifecycle("START", "start", 1 + SHADOW_INPUT_DELAY)
                 PreloadGenClear()
                 PreloadGenStart()
                 Preload("build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(GetPlayerId(GetLocalPlayer())) + " received-mask=" + I2S(journalTransportReadyMask) + " before-journal-reads=yes")
                 PreloadGenEnd("smashcraft-journal-transport-ready-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-p" + I2S(GetPlayerId(GetLocalPlayer())) + ".txt")
+        return
+    if JOURNAL_INPUT_SOURCE and wire == "E4" + I2S(shadowInputEpoch)
+        journalLifecycle.stopped(shadowInputEpoch, sender)
         return
     nativePreloadProbeObserveSync(sender, wire)
     if nativePreloadProbeReceive(sender, wire)
@@ -1415,6 +1440,10 @@ function beginShadowEpoch() returns boolean
     journalInputFailed = false
     journalTransportReadyMask = 0
     journalTransportStartSent = false
+    journalLifecycle.beginEpoch(shadowInputEpoch, matchState.humanMask)
+    journalEndSent = false
+    journalEndReceived = false
+    journalQuiescent = false
     journalPausePending = false
     journalPauseAckReceived = false
     journalPauseCommitSent = false
@@ -1625,7 +1654,9 @@ function onParticipantKeyDown(int slot)
         return
     let key = BlzGetTriggerPlayerKey()
     let keyCode = GetHandleId(key)
-    if JOURNAL_EDITBOX_INGRESS and shadowInputActive and key == OSKEY_Y
+    if JOURNAL_EDITBOX_INGRESS and shadowInputActive and matchState.phase != MATCH and not journalLifecycle.quiescent()
+        return
+    if JOURNAL_EDITBOX_INGRESS and shadowInputActive and matchState.phase == MATCH and key == OSKEY_Y
         return
     if JOURNAL_KEYBOARD_INGRESS and shadowInputActive and keyboardJournalIngress.isCarrierCode(keyCode)
 		return
@@ -1639,7 +1670,7 @@ function onParticipantKeyDown(int slot)
     if keyCode < 0 or keyCode > 255 or state.isKeyHeld(keyCode)
         return
     if key == OSKEY_Y
-		if JOURNAL_INPUT_SOURCE and shadowInputActive and journalPausePending
+		if JOURNAL_INPUT_SOURCE and shadowInputActive and matchState.phase == MATCH and journalPausePending
 			return
 		let controlAction = JOURNAL_INPUT_SOURCE and shadowInputActive and matchState.phase == MATCH
 			? matchControls.keyDownDeferred(slot, matchState.phase, controls != null and controls.isOpen())
@@ -1711,7 +1742,9 @@ function onParticipantKeyUp(int slot)
         return
     let key = BlzGetTriggerPlayerKey()
     let keyCode = GetHandleId(key)
-    if JOURNAL_EDITBOX_INGRESS and shadowInputActive and key == OSKEY_Y
+    if JOURNAL_EDITBOX_INGRESS and shadowInputActive and matchState.phase != MATCH and not journalLifecycle.quiescent()
+        return
+    if JOURNAL_EDITBOX_INGRESS and shadowInputActive and matchState.phase == MATCH and key == OSKEY_Y
         return
     if JOURNAL_KEYBOARD_INGRESS and shadowInputActive and keyboardJournalIngress.isCarrierCode(keyCode)
 		return
@@ -2056,12 +2089,50 @@ function callbackMatchTick()
                 producedInputs.commands[slot].clear()
         applyFrame()
 
+function writeJournalLifecycle(string state, string kind, int frame)
+    let slot = GetPlayerId(GetLocalPlayer())
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("SMASHCRAFT JOURNAL CONTROL v=1 build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot) + " sequence=0 state=" + state + " frame=" + I2S(frame))
+    PreloadGenEnd("smashcraft-journal-" + kind + "-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-s" + I2S(slot) + ".txt")
+
+function serviceJournalEnd()
+    if not journalEndSent
+        writeJournalLifecycle("END", "end", journalInput.expectedFrame())
+        journalEndSent = true
+        journalPausePending = false
+    if journalQuiescent
+        return
+    if journalEndReceived
+        let slot = GetPlayerId(GetLocalPlayer())
+        let quiet = vocabularyReadTooltip("smashcraft-journal-quiescent-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-s" + I2S(slot) + ".pld")
+        if quiet == "Q"
+            if not BlzSendSyncData("SC_GP", "E4" + I2S(shadowInputEpoch))
+                failJournalInput("controller stop could not be synchronized")
+                return
+            journalQuiescent = true
+            editboxJournalIngress.endEpoch()
+            return
+    // Ordered old-epoch rows are terminal data now; consume them without combat.
+    for index = 1 to JOURNAL_TEXT_WINDOW
+        let wire = editboxJournalIngress.peek()
+        if wire == ""
+            return
+        let ended = wire == "JE1" + I2S(shadowInputEpoch)
+        if not editboxJournalIngress.consumed()
+            failJournalInput(editboxJournalIngress.failed())
+            return
+        if ended
+            journalEndReceived = true
+            editboxJournalIngress.flushReceipt()
+            return
+
 function gameTick()
     if JOURNAL_EDITBOX_INGRESS
         editboxJournalIngress.tick()
     serviceEditboxJournalPauseRequest()
-    if JOURNAL_EDITBOX_INGRESS and (not shadowInputActive or matchState.phase != MATCH)
-        editboxJournalIngress.endEpoch()
+    if JOURNAL_EDITBOX_INGRESS and shadowInputActive and matchState.phase != MATCH
+        serviceJournalEnd()
     transportIsolationTick()
     if RESPONSE_SERVICE_PROBE
         responseProbeBegin(replayRuntime.simulationFrame, shadowInputActive ? shadowSchedule.speculativeFrame() : -1, shadowInputActive ? shadowSchedule.knownThrough() : -1, matchState.phase)
@@ -2072,7 +2143,7 @@ function gameTick()
             clearParticipantInputs(slot)
             participant.appliedBindingRevision = participant.bindings.revision
     statusTime = max(0, statusTime - FRAME_SECONDS)
-    if shadowInputActive
+    if shadowInputActive and matchState.phase == MATCH
 		serviceJournalPauseAck()
         shadowInputTick()
 		sendJournalPauseCommit()

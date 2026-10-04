@@ -89,10 +89,7 @@ def main():
                         "key", "ctrl+g", "key", "y"], env=environments[0], check=True, timeout=5)
         for slot, root in enumerate(roots):
             ready = root / f"smashcraft-journal-ready-{build}-e1-p{slot}.txt"
-            transport = root / f"smashcraft-journal-transport-ready-{build}-e1-p{slot}.txt"
-            until(lambda: complete(ready) and complete(transport), "native startup absent")
-            if "received-mask=3 before-journal-reads=yes" not in transport.read_text():
-                raise RuntimeError("two-client startup not accepted")
+            until(lambda: complete(ready), "native startup absent")
 
         pad = VirtualGamepad(buttons=(BTN_SOUTH, 0x13b))
         value = bytearray(80)
@@ -162,6 +159,11 @@ def main():
             at(boundary + 850_000_000)
             tap(BTN_SOUTH, "fresh-after-recovery")
             print("Resume publications and delayed-helper stimulus captured", flush=True)
+            for slot, root in enumerate(roots):
+                transport = root / f"smashcraft-journal-transport-ready-{build}-e1-p{slot}.txt"
+                until(lambda: complete(transport), "helper readiness was not synchronized")
+                if "received-mask=3 before-journal-reads=yes" not in transport.read_text():
+                    raise RuntimeError("two-client startup not accepted")
             codes = [p.wait(timeout=30) for p in helpers]
             if codes != [0, 0]:
                 raise RuntimeError(f"helper exit codes: {codes}")

@@ -94,6 +94,7 @@ mod linux {
         mailbox_display: Option<String>,
         editbox_display: Option<String>,
         trace: bool,
+        follow_matches: bool,
         window: Option<u32>,
         pid: Option<u32>,
         niri_window: Option<u64>,
@@ -595,6 +596,8 @@ mod linux {
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     enum ControlState {
+        Started,
+        Ended,
         PausePrepare,
         PauseCommit,
         Paused,
@@ -612,7 +615,9 @@ mod linux {
     }
 
     fn usage() -> &'static str {
-        "wc3-journal --device /dev/input/eventN --out DIR --ready-file PATH --epoch-monotonic-ns NS [--mailbox-display :N | --editbox-display :N] [--first-frame N] [--stop-frame N] [--trace]\n\
+        "wc3-journal --follow-matches --build BUILD --slot N --device /dev/input/eventN --out DIR --editbox-display :N [--trace]\n\
+         Start before final match confirmation; follows fresh local match publications and rematches.\n\
+         Diagnostic only: wc3-journal --device /dev/input/eventN --out DIR --ready-file PATH --epoch-monotonic-ns NS [--mailbox-display :N | --editbox-display :N] [--first-frame N] [--stop-frame N] [--trace]\n\
          Keyboard output also requires --x11-window DECIMAL_ID --pid PID and exactly one of --niri-window ID / --private-wlr-app-id ID.\n\
          Assigns Linux kernel CLOCK_MONOTONIC input_event times to half-open 60 Hz frames. The capture segment starts at the explicit host monotonic epoch; first-frame defaults to 1."
     }
@@ -738,11 +743,16 @@ mod linux {
     fn options() -> Result<Options, String> {
         let mut values = BTreeMap::<String, String>::new();
         let mut trace = false;
+        let mut follow_matches = false;
         let mut args = env::args().skip(1);
         while let Some(arg) = args.next() {
             if arg == "--help" || arg == "-h" {
                 println!("{}", usage());
                 std::process::exit(0);
+            }
+            if arg == "--follow-matches" {
+                follow_matches = true;
+                continue;
             }
             if arg == "--trace" {
                 trace = true;
@@ -764,11 +774,20 @@ mod linux {
         let parse = |key: &str| -> Result<u32, String> {
             take(key)?.parse().map_err(|_| format!("invalid {key}"))
         };
-        let epoch_ns = take("--epoch-monotonic-ns")?
-            .parse::<u128>()
-            .map_err(|_| "invalid --epoch-monotonic-ns")?;
+        let epoch_ns = if follow_matches { 0 } else {
+            take("--epoch-monotonic-ns")?.parse::<u128>()
+                .map_err(|_| "invalid --epoch-monotonic-ns")?
+        };
+        if follow_matches && (values.contains_key("--ready-file") || values.contains_key("--epoch-monotonic-ns") || values.contains_key("--stop-frame") || values.contains_key("--first-frame")) {
+            return Err("--follow-matches cannot use diagnostic ready/epoch/frame arguments".into());
+        }
+        if follow_matches && !values.contains_key("--editbox-display") {
+            return Err("--follow-matches requires --editbox-display".into());
+        }
         let ready_file = values.get("--ready-file").map(PathBuf::from);
-        let (build, epoch, slot, delay) = if let Some(path) = ready_file.as_ref() {
+        let (build, epoch, slot, delay) = if follow_matches {
+            (take("--build")?.clone(), 0, parse("--slot")?, 0)
+        } else if let Some(path) = ready_file.as_ref() {
             read_ready(path)?
         } else {
             (
@@ -807,6 +826,7 @@ mod linux {
             mailbox_display: values.get("--mailbox-display").cloned(),
             editbox_display: values.get("--editbox-display").cloned(),
             trace,
+            follow_matches,
             window: values
                 .get("--x11-window")
                 .map(|s| s.parse().map_err(|_| "invalid --x11-window"))
@@ -821,6 +841,61 @@ mod linux {
                 .transpose()?,
             wlr_app_id: values.get("--private-wlr-app-id").cloned(),
         })
+    }
+
+    fn lifecycle_path(dir: &Path, build: &str, epoch: u32, slot: u32, kind: &str) -> PathBuf {
+        dir.join(format!("smashcraft-journal-{kind}-{build}-e{epoch}-s{slot}.txt"))
+    }
+
+    fn quiescent_path(dir: &Path, build: &str, epoch: u32, slot: u32) -> PathBuf {
+        dir.join(format!("smashcraft-journal-quiescent-{build}-e{epoch}-s{slot}.pld"))
+    }
+
+    fn clear_quiescent(dir: &Path, build: &str, epoch: u32, slot: u32) -> Result<(), String> {
+        match fs::remove_file(quiescent_path(dir, build, epoch, slot)) {
+            Ok(()) => Ok(()),
+            Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(()),
+            Err(error) => Err(format!("clear prior helper quiescence: {error}")),
+        }
+    }
+
+    fn validate_lifecycle(command: &ControlCommand, o: &Options, state: ControlState) -> Result<(), String> {
+        if command.build != o.build || command.epoch != o.epoch || command.slot != o.slot
+            || command.sequence != 0 || command.state != state
+            || (state == ControlState::Started && command.requested_frame != 1 + o.delay) {
+            return Err("match lifecycle publication does not match active session".into());
+        }
+        Ok(())
+    }
+
+    fn fresh_ready(dir: &Path, build: &str, slot: u32, last_epoch: u32, after_ns: u128) -> Result<Option<(u32, u32, u128)>, String> {
+        let prefix = format!("smashcraft-journal-ready-{build}-e");
+        let suffix = format!("-p{slot}.txt");
+        let mut selected = None;
+        for entry in fs::read_dir(dir).map_err(|e| e.to_string())? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let name = entry.file_name();
+            let Some(name) = name.to_str() else { continue };
+            let Some(epoch) = name.strip_prefix(&prefix).and_then(|s| s.strip_suffix(&suffix)).and_then(|s| s.parse::<u32>().ok()) else { continue };
+            if epoch <= last_epoch { continue; }
+            let mut file = fs::File::open(entry.path()).map_err(|e| e.to_string())?;
+            let before = file.metadata().map_err(|e| e.to_string())?;
+            let modified = before.modified().map_err(|e| e.to_string())?.duration_since(UNIX_EPOCH).map_err(|e| e.to_string())?.as_nanos();
+            if modified <= after_ns { continue; }
+            let mut contents = String::new();
+            file.read_to_string(&mut contents).map_err(|e| e.to_string())?;
+            let after = file.metadata().map_err(|e| e.to_string())?;
+            let named = fs::metadata(entry.path()).map_err(|e| e.to_string())?;
+            if !same_control_file(&before, &after) || !same_control_file(&after, &named)
+                || after.len() != contents.len() as u64
+                || contents.lines().rev().find(|line| !line.trim().is_empty()).map(str::trim) != Some("endfunction") { continue; }
+            let (receipt_build, receipt_epoch, receipt_slot, delay) = parse_ready(&contents)?;
+            if receipt_build != build || receipt_epoch != epoch || receipt_slot != slot || delay > 64 {
+                return Err("readiness filename and identity disagree".into());
+            }
+            if selected.is_none_or(|(previous, _, _)| epoch < previous) { selected = Some((epoch, delay, modified)); }
+        }
+        Ok(selected)
     }
 
     fn read_ready(path: &Path) -> Result<(String, u32, u32, u32), String> {
@@ -1057,6 +1132,8 @@ mod linux {
                 .map_err(|_| format!("invalid {key} in control command"))
         };
         let state = match value("state")?.as_str() {
+            "START" => ControlState::Started,
+            "END" => ControlState::Ended,
             "PAUSE" => ControlState::PausePrepare,
             "PAUSE_COMMIT" => ControlState::PauseCommit,
             "RESUME" => ControlState::Resumed,
@@ -1074,6 +1151,47 @@ mod linux {
             state,
             requested_frame,
         })
+    }
+
+    #[test]
+    fn lifecycle_follows_only_fresh_complete_ready_and_new_epochs() {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target")
+            .join(format!("journal-lifecycle-test-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("smashcraft-journal-ready-test-e1-p0.txt");
+        let prefix = "function PreloadFiles takes nothing returns nothing\ncall Preload( \"SMASHCRAFT JOURNAL v=1 build=test epoch=1 slot=0 delay=0 first_frame=1\" )\n";
+        fs::write(&path, prefix).unwrap();
+        assert!(fresh_ready(&dir, "test", 0, 0, 0).unwrap().is_none());
+        fs::write(&path, format!("{prefix}endfunction\n")).unwrap();
+        let (epoch, delay, modified) = fresh_ready(&dir, "test", 0, 0, 0).unwrap().unwrap();
+        assert_eq!((epoch, delay), (1, 0));
+        assert!(fresh_ready(&dir, "test", 0, 0, modified).unwrap().is_none());
+        assert!(fresh_ready(&dir, "test", 0, 1, 0).unwrap().is_none());
+        assert!(fresh_ready(&dir, "test", 1, 0, 0).unwrap().is_none());
+        fs::remove_file(path).unwrap();
+        fs::remove_dir(dir).unwrap();
+    }
+
+    #[test]
+    fn lifecycle_start_uses_publication_and_terminal_marker_follows_old_rows() {
+        let prefix = "function PreloadFiles takes nothing returns nothing\ncall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=test epoch=1 slot=0 sequence=0 state=START frame=1\" )\n";
+        assert!(control_if_complete(prefix).unwrap().is_none());
+        let complete = format!("{prefix}endfunction\n");
+        assert_eq!(control_if_complete(&complete).unwrap().unwrap().state, ControlState::Started);
+        assert_eq!(parse_control(&complete.replace("START", "END")).unwrap().state, ControlState::Ended);
+        let mut queue = PendingOutput::default();
+        queue.push("I4old".into()).unwrap();
+        queue.push("JE11".into()).unwrap();
+        let mut window = TextWindow::default();
+        let now = Instant::now();
+        assert!(window.next(&queue, 1, now).unwrap().unwrap().1.contains("I4old"));
+        window.sent(1, now);
+        assert!(window.next(&queue, 1, now).unwrap().unwrap().1.contains("JE11"));
+        window.sent(2, now);
+        window.receipt(&mut queue, 2, 1, 1).unwrap();
+        assert!(!queue.is_empty());
+        window.receipt(&mut queue, 2, 2, 2).unwrap();
+        assert!(queue.is_empty());
     }
 
     #[test]
@@ -2251,6 +2369,8 @@ mod linux {
             "smashcraft-journal-ack-{build}-e{epoch}-s{slot}-n{sequence}"
         ));
         let state = match state {
+            ControlState::Started => "START",
+            ControlState::Ended => "END",
             ControlState::PausePrepare => "PREPARE",
             ControlState::PauseCommit => "COMMIT",
             ControlState::Paused => "PAUSE",
@@ -2271,7 +2391,9 @@ mod linux {
     ) -> io::Result<()> {
         if let Some(mailbox) = mailbox.as_mut() {
             let state = match state {
-                ControlState::PausePrepare => "PREPARE",
+                ControlState::Started => "START",
+            ControlState::Ended => "END",
+            ControlState::PausePrepare => "PREPARE",
                 ControlState::PauseCommit => "COMMIT",
                 ControlState::Paused => "PAUSE",
                 ControlState::Resumed => "RESUME",
@@ -2372,8 +2494,9 @@ mod linux {
     }
 
     fn run() -> Result<(), String> {
-        let o = options()?;
-        if o.epoch == 0 || o.slot > 3 || o.delay > 64 {
+        let mut o = options()?;
+        let mut ready_after_ns = clock_ns(libc::CLOCK_REALTIME).map_err(|e| e.to_string())?;
+        if (!o.follow_matches && o.epoch == 0) || o.slot > 3 || o.delay > 64 {
             return Err("epoch must be positive, slot 0..3, delay 0..64".into());
         }
         if o.first_frame == 0 || o.first_frame > LAST_FRAME - o.delay {
@@ -2383,6 +2506,7 @@ mod linux {
         if o.mailbox_display.is_some() && o.editbox_display.is_some() {
             return Err("select only one keyboard ingress".into());
         }
+        if !o.follow_matches { clear_quiescent(&o.out, &o.build, o.epoch, o.slot)?; }
         let mut mailbox = o
             .editbox_display
             .as_ref()
@@ -2444,20 +2568,6 @@ mod linux {
             }
         }
         let key_state = device.get_key_state().map_err(|e| e.to_string())?;
-        if [
-            Key::BTN_SOUTH,
-            Key::BTN_WEST,
-            Key::BTN_EAST,
-            Key::BTN_NORTH,
-            Key::BTN_TL,
-            Key::BTN_TR,
-            Key::BTN_START,
-        ]
-        .iter()
-        .any(|k| key_state.contains(*k))
-        {
-            return Err("release all mapped buttons before starting journal epoch".into());
-        }
         let axis_value = |code: Abs| axes[code.0 as usize].map_or(0, |info| info.value());
         let mut state = State {
             x: normalized_axis(&axes, Abs::ABS_X, axis_value(Abs::ABS_X)),
@@ -2468,6 +2578,11 @@ mod linux {
             rt: normalized_trigger(&axes, Abs::ABS_RZ, axis_value(Abs::ABS_RZ)),
             ..State::default()
         };
+        for key in [Key::BTN_SOUTH, Key::BTN_EAST, Key::BTN_WEST, Key::BTN_NORTH, Key::BTN_TL, Key::BTN_TR] {
+            if key_state.contains(key) {
+                update_state(&axes, &mut state, evdev::InputEvent::new(evdev::EventType::KEY.0, key.0, 1));
+            }
+        }
         let physical = state;
         state = State::default();
         let mut row_state = state;
@@ -2480,7 +2595,7 @@ mod linux {
             first_frame: next_frame,
         };
         let mut control_sequence = 1;
-        let mut start_held = false;
+        let mut start_held = key_state.contains(Key::BTN_START);
         let mut focus_input = FocusInput {
             eligible: true,
             armed: action_state(physical) == 0,
@@ -2490,6 +2605,12 @@ mod linux {
         };
         let control_clock = ControlClock::new(&o.out).map_err(|e| e.to_string())?;
         let mut pending_input = PendingInput::default();
+        let mut ready_publication_ns = 0;
+        let mut waiting_ready = o.follow_matches;
+        let mut waiting_start = false;
+        let mut ended = false;
+        let mut end_marker_sent = false;
+        let mut next_ready_poll = Instant::now();
         let mut paused = false;
         let mut prepared = false;
         let mut stop_capture = false;
@@ -2499,12 +2620,46 @@ mod linux {
         let signal_running = Arc::clone(&running);
         ctrlc::set_handler(move || signal_running.store(false, Ordering::Relaxed))
             .map_err(|error| format!("install interrupt handler: {error}"))?;
+        if o.follow_matches { eprintln!("waiting_for_match build={} slot={} start_before=final-match-confirmation", o.build, o.slot); }
         loop {
             if !running.load(Ordering::Relaxed) {
                 if o.trace {
                     eprintln!("shutdown signal=SIGINT mailbox_release=begin");
                 }
                 return Ok(());
+            }
+            if waiting_ready && Instant::now() >= next_ready_poll {
+                next_ready_poll = Instant::now() + Duration::from_millis(20);
+                if let Some((epoch, delay, modified)) = fresh_ready(&o.out, &o.build, o.slot, o.epoch, ready_after_ns)? {
+                    ready_publication_ns = control_clock.publication(modified, monotonic_ns().map_err(|e| e.to_string())?)?;
+                    o.epoch = epoch;
+                    o.delay = delay;
+                    next_frame = 1 + delay;
+                    segment = FrameSegment { epoch_ns: u128::MAX, first_frame: next_frame };
+                    control_sequence = 1;
+                    paused = false;
+                    prepared = false;
+                    pause_barrier = None;
+                    stop_capture = false;
+                    ended = false;
+                    end_marker_sent = false;
+                    state = State::default();
+                    row_state = state;
+                    previous = 0;
+                    edges.clear();
+                    snapshots.clear();
+                    pending.clear();
+                    focus_input.gameplay_armed = false;
+                    let sender = mailbox.as_mut().expect("follow-matches editbox sender");
+                    sender.epoch = epoch;
+                    sender.text_window = TextWindow::default();
+                    sender.text_receipt_at = None;
+                    clear_quiescent(&o.out, &o.build, o.epoch, o.slot)?;
+                    sender.enqueue(format!("JR1{epoch}")).map_err(|e| e.to_string())?;
+                    waiting_ready = false;
+                    waiting_start = true;
+                    eprintln!("match_ready epoch={epoch} neutral_rearm=required");
+                }
             }
             // Only seal intervals completed before this queue drain. Taking
             // the cutoff afterwards races events arriving between read and seal.
@@ -2521,7 +2676,7 @@ mod linux {
                 .is_some_and(|sender| std::mem::take(&mut sender.lost_focus));
             let focus_now = monotonic_ns().map_err(|e| e.to_string())?;
             let changed = focus_input.eligible != eligible;
-            if focus_input.observe(eligible, lost, focus_now) && !paused && !stop_capture {
+            if focus_input.observe(eligible, lost, focus_now) && !paused && !stop_capture && !waiting_ready && !waiting_start {
                 let frame = release_for_focus_loss(
                     &mut state,
                     &mut edges,
@@ -2557,6 +2712,8 @@ mod linux {
                         prepared
                             || pause_barrier.is_some()
                             || stop_capture
+                            || waiting_ready
+                            || waiting_start
                             || !eligible
                             || !was_armed,
                     ) {
@@ -2567,10 +2724,44 @@ mod linux {
                             .map_err(|error| format!("controller pause request: {error}"))?;
                     }
                 }
-                pending_input.push(event, start_before, start_held)?;
+                if waiting_ready {
+                    focus_input.accepts(&axes, event, start_held, false)?;
+                } else {
+                    pending_input.push(event, start_before, start_held)?;
+                }
+            }
+            let mut start_discard_before_ns = 0;
+            if waiting_start {
+                let publication = read_control(&lifecycle_path(&o.out, &o.build, o.epoch, o.slot, "start"), control_clock)?;
+                start_discard_before_ns = publication.discard_before_ns;
+                if let Some(start) = publication.publication.filter(|p| p.epoch_ns > ready_publication_ns) {
+                    validate_lifecycle(&start.command, &o, ControlState::Started)?;
+                    segment = FrameSegment { epoch_ns: start.epoch_ns, first_frame: next_frame };
+                    waiting_start = false;
+                    eprintln!("match_start epoch={} epoch_ns={} read_ns={} uncertainty_ns={}", o.epoch, start.epoch_ns, start.read_ns, start.uncertainty_ns);
+                }
+            }
+            if !waiting_ready && !ended {
+                let publication = read_control(&lifecycle_path(&o.out, &o.build, o.epoch, o.slot, "end"), control_clock)?;
+                if let Some(end) = publication.publication.filter(|p| p.epoch_ns > ready_publication_ns) {
+                    validate_lifecycle(&end.command, &o, ControlState::Ended)?;
+                    ended = true;
+                    stop_capture = true;
+                    paused = false;
+                    waiting_start = false;
+                    prepared = false;
+                    pause_barrier = None;
+                    edges.clear();
+                    snapshots.clear();
+                    pending.clear();
+                    ready_after_ns = (end.epoch_ns as i128 + control_clock.offset_ns) as u128;
+                    eprintln!("match_end epoch={} frontier={} old_rows=drain terminal_rows=discard", o.epoch, next_frame);
+                }
             }
             let command_path = control_path(&o.out, &o.build, o.epoch, o.slot, control_sequence);
-            let control_read = read_control(&command_path, control_clock)?;
+            let control_read = if waiting_ready || waiting_start || ended {
+                ControlRead { publication: None, discard_before_ns: start_discard_before_ns }
+            } else { read_control(&command_path, control_clock)? };
             let command = control_read.publication;
             if let Some(publication) = command.as_ref() {
                 let command = &publication.command;
@@ -2655,10 +2846,10 @@ mod linux {
                 }
             }
             while let Some((event, start_before, event_start_held)) =
-                pending_input.pop(paused, control_read.discard_before_ns)?
+                pending_input.pop(paused || waiting_start, control_read.discard_before_ns)?
             {
                 let accepts = focus_input.accepts_in_segment(
-                    &axes, event, start_before, event_start_held, !paused && !stop_capture, segment,
+                    &axes, event, start_before, event_start_held, !paused && !stop_capture && !waiting_ready && !waiting_start, segment,
                 )?;
                 if accepts {
                     apply_event(
@@ -2684,7 +2875,7 @@ mod linux {
                 }
             }
             if pending_input.events.is_empty() {
-                focus_input.rearm(focus_now, start_held, !paused && !stop_capture);
+                focus_input.rearm(focus_now, start_held, !paused && !stop_capture && !waiting_ready && !waiting_start);
             }
             if before_armed != (focus_input.armed, focus_input.gameplay_armed) {
                 eprintln!(
@@ -2692,7 +2883,7 @@ mod linux {
                     focus_input.armed, focus_input.gameplay_armed
                 );
             }
-            if !paused && !stop_capture && now >= segment.epoch_ns {
+            if !paused && !stop_capture && !waiting_ready && !waiting_start && now >= segment.epoch_ns {
                 let mut completed_through = (((now - segment.epoch_ns) * HZ / 1_000_000_000)
                     + u128::from(segment.first_frame)
                     - 1)
@@ -2825,13 +3016,31 @@ mod linux {
                     }
                 }
             }
-            if let Some(mailbox) = mailbox.as_mut() {
+            if ended && !end_marker_sent {
+                if let Some(sender) = mailbox.as_mut() {
+                    let marker = format!("JE1{}", o.epoch);
+                    if sender.queued.records.len() < OUTPUT_RECORD_LIMIT
+                        && sender.queued.bytes + marker.len() + 1 <= OUTPUT_BYTE_LIMIT {
+                        sender.enqueue(marker).map_err(|e| e.to_string())?;
+                        end_marker_sent = true;
+                    }
+                } else { end_marker_sent = true; }
+            }
+            if let Some(mailbox) = mailbox.as_mut().filter(|_| !waiting_ready) {
                 mailbox
                     .step()
                     .map_err(|error| format!("keyboard mailbox output: {error}"))?;
             }
-            if stop_capture && mailbox.as_ref().is_none_or(MailboxSender::is_idle) {
-                return Ok(());
+            if stop_capture && (!ended || end_marker_sent) && mailbox.as_ref().is_none_or(MailboxSender::is_idle) {
+                if ended {
+                    publish_symbol(&quiescent_path(&o.out, &o.build, o.epoch, o.slot), b'Q').map_err(|e| e.to_string())?;
+                }
+                eprintln!("match_quiescent epoch={}", o.epoch);
+                if !o.follow_matches { return Ok(()); }
+                waiting_ready = true;
+                eprintln!("waiting_for_match build={} slot={} after_epoch={}", o.build, o.slot, o.epoch);
+                stop_capture = false;
+                focus_input.gameplay_armed = false;
             }
             thread::sleep(Duration::from_millis(1));
         }

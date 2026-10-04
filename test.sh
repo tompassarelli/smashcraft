@@ -102,6 +102,8 @@ exec "$java" -Xmx2048m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/wurst/JournalTextStreamTests.wurst" \
     "$project_dir/wurst/KeyboardJournalIngress.wurst" \
     "$project_dir/wurst/KeyboardJournalIngressTests.wurst" \
+    "$project_dir/wurst/JournalMatchLifecycle.wurst" \
+    "$project_dir/wurst/JournalMatchLifecycleTests.wurst" \
     "$project_dir/wurst/JournalPauseBarrier.wurst" \
     "$project_dir/wurst/JournalPauseBarrierTests.wurst" \
     "$project_dir/wurst/InputBatch.wurst" \

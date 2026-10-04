@@ -133,17 +133,14 @@ def main():
     try:
         for slot, root in enumerate(roots):
             ready = root / f"smashcraft-journal-ready-{args.build}-e{args.epoch}-p{slot}.txt"
-            transport = root / f"smashcraft-journal-transport-ready-{args.build}-e{args.epoch}-p{slot}.txt"
             deadline = time.monotonic() + 10
             while not all(path.exists() and "endfunction" in path.read_text()
-                          for path in (ready, transport)):
+                          for path in (ready,)):
                 if time.monotonic() >= deadline:
-                    raise RuntimeError("native readiness/preflight did not complete")
+                    raise RuntimeError("native readiness did not complete")
                 time.sleep(.02)
             if f"build={args.build} epoch={args.epoch} slot={slot}" not in ready.read_text():
                 raise RuntimeError("native readiness identity mismatch")
-            if "received-mask=3 before-journal-reads=yes" not in transport.read_text():
-                raise RuntimeError("two-client transport preflight absent")
             if "Warcraft" not in Path(f"/proc/{[args.pid_a, args.pid_b][slot]}/comm").read_text():
                 raise RuntimeError("selected native client is no longer running")
         # Mapping this test window can change focus. Restore Warcraft before
@@ -208,6 +205,10 @@ def main():
                 else:
                     pads[0].send(kind, code, value, producer, label, f"{code}:{value}")
                 sink.drain()
+        for slot, root in enumerate(roots):
+            transport = root / f"smashcraft-journal-transport-ready-{args.build}-e{args.epoch}-p{slot}.txt"
+            if not transport.exists() or "received-mask=3 before-journal-reads=yes" not in transport.read_text() or not transport.read_text().rstrip().endswith("endfunction"):
+                raise RuntimeError("two-client helper readiness absent")
         codes = [helper.wait(timeout=15) for helper in helpers]
         if codes != [0, 0]:
             raise RuntimeError(f"helper exits {codes}")

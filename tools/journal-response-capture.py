@@ -73,12 +73,9 @@ def main():
     try:
         for slot, (root, run) in enumerate(zip(roots, runs)):
             ready = root / f"smashcraft-journal-ready-{args.build}-e{args.epoch}-p{slot}.txt"
-            transport = root / f"smashcraft-journal-transport-ready-{args.build}-e{args.epoch}-p{slot}.txt"
-            wait_until(lambda: ready.exists() and transport.exists(), "native readiness absent")
+            wait_until(lambda: ready.exists() and ready.read_text().rstrip().endswith("endfunction"), "native readiness absent")
             if f"build={args.build} epoch={args.epoch} slot={slot}" not in ready.read_text():
                 raise RuntimeError("native identity mismatch")
-            if "received-mask=3 before-journal-reads=yes" not in transport.read_text():
-                raise RuntimeError("two-client transport preflight absent")
             env = dict(os.environ, DISPLAY=(run / "display").read_text().strip(),
                        XAUTHORITY=(run / "xauthority").read_text().strip())
             title = subprocess.check_output(
@@ -134,6 +131,11 @@ def main():
                                     start_monotonic_ns=before, end_monotonic_ns=time.monotonic_ns()))
                 if not value:
                     print(f"shield trial {trial + 1}/{args.trials} emitted", flush=True)
+        for slot, root in enumerate(roots):
+            transport = root / f"smashcraft-journal-transport-ready-{args.build}-e{args.epoch}-p{slot}.txt"
+            wait_until(lambda: transport.exists() and transport.read_text().rstrip().endswith("endfunction"), "helper readiness was not synchronized")
+            if "received-mask=3 before-journal-reads=yes" not in transport.read_text():
+                raise RuntimeError("two-client helper readiness absent")
         codes = [helper.wait(timeout=15) for helper in helpers]
         if codes != [0, 0]:
             raise RuntimeError(f"helper exit codes {codes}")

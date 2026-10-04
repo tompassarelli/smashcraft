@@ -183,34 +183,58 @@ per-frame edges/analog state, and atomically publishes immutable I4 preload
 files for the production journal input source. Build it with the same pinned
 environment above using `cargo build --locked --jobs 2 --bin wc3-journal`.
 
-The developer must provide an explicit monotonic capture epoch and the matching
-native readiness file. Example command, after the map has emitted its receipt:
+For the editbox map, start one helper **before final match confirmation** and
+leave it running through results and rematches:
 
 ```sh
-~/code/wc3-melee/worktrees/production-netcode-integration-20261004/companion/target/debug/wc3-journal \
-  --device /dev/input/eventN \
-  --out '/absolute/Warcraft III/CustomMapData' \
-  --ready-file '/absolute/Warcraft III/CustomMapData/smashcraft-journal-ready-BUILD-e1-p0.txt' \
-  --epoch-monotonic-ns DECLARED_EPOCH_NS --stop-frame 600 --trace
+~/code/wc3-melee/worktrees/playable-integration-20261005/companion/target/debug/wc3-journal \
+  --follow-matches --build BUILD --slot 0 \
+  --device /dev/input/eventN --out '/absolute/Warcraft III/CustomMapData' \
+  --editbox-display :N --x11-window DECIMAL_ID --pid PID \
+  --niri-window WINDOW_ID --trace
 ```
 
-These paths are examples for a checkout rooted at `wc3-melee:`; select the exact
-device and native receipt. The epoch is not inferred from file modification
-time. Slots 0–3 are recognized. `--first-frame N` declares the first frame of a
-capture segment, default 1; using another segment requires verifying native
-confirmation and the absence of existing immutable files for that sequence.
-Release mapped buttons before opening capture. The current axis contract expects
-the Linux Xbox axis set; other adapters need their own demonstrated mapping.
+Select the exact device, build, slot and focus target. The Linux Xbox axis set
+is required. The helper opens the device and tracks its physical state before
+announcing readiness. It accepts only new complete readiness publications after
+it starts (or the preceding match ends), and only increasing within-map epochs.
+Start before confirming the match; old map-session receipts are not adopted.
+Mapped controls held before startup, during results or through rematch remain
+suppressed until neutral. Match confirmation remains a keyboard/menu action.
 
-Pause requests now prepare each helper's input frontier, synchronize the highest
-frontier across human players, and commit that shared stop frame. Resume opens a
-new monotonic capture segment at the same frame with neutral controls; inputs
-already assigned before the stop retain their frames. The helper waits for the
-native control writer's closing line before parsing a newly created file.
-Focused checks pass, but native end-to-end pause/resume remains unverified.
-Cross-machine epoch alignment and drift are also unfinished. This experimental
-path is separate from the responsive digital controller-to-keyboard mapper;
-it is not a turnkey human multiplayer controller launcher or Windows/macOS path.
+Every human helper announces readiness through the ordered text ingress. The
+map synchronizes those announcements before publishing local START. Capture
+uses that complete file's stable modification timestamp, converted to the local
+monotonic clock with measured uncertainty, just as resume does. START/END files
+older than the accepted readiness publication are ignored. A delayed or partial
+START read retains original input events; the helper never substitutes its read
+time for the publication boundary. This defines a **local publication grid**;
+it does not align clocks between machines or remove their inter-client offset.
+
+At results, the map publishes END. The helper stops generating capture rows,
+discards unfinished terminal rows, drains already queued old-epoch records, and
+sends an ordered final marker. The map consumes those terminal records without
+combat and flushes the final marker receipt. The helper observes that receipt
+and publishes its fixed local quiescence acknowledgment; only then does the map
+close the editbox. The helper clears an earlier acknowledgment before announcing
+readiness, so it cannot satisfy a new match. Results controls unlock after every human helper has stopped. The same process
+then follows the next fresh epoch with neutral rearming and empty match queues.
+This supports within-map rematches; map reload and reconnect are not promised.
+Logs identify `waiting_for_match`, `match_ready`, `match_start`, `match_end`, and
+`match_quiescent`, with the epoch and startup timestamp uncertainty.
+
+The explicit `--ready-file PATH --epoch-monotonic-ns NS` mode remains for native
+diagnostic drivers. `--first-frame N` (default 1) and `--stop-frame N` belong to
+that mode; it also accepts explicit build/epoch/slot/delay arguments. Its supplied
+clock is a diagnostic assumption, never a cross-machine timing guarantee. A
+diagnostic producer's first I4 row may announce readiness to the map.
+
+Pause prepares each helper's input frontier, synchronizes the highest frontier
+across humans, and commits the shared stop frame. Resume opens a new local
+capture segment at the stable publication timestamp, retaining original tags.
+The helper waits for the native writer's closing line before parsing controls.
+Native timing and graphical acceptance are distinct from the focused source
+tests. This path remains Linux-only and separate from the digital keyboard mapper.
 On kernel SYN_DROPPED or an event for an already-published frame, acquisition
 stops with a diagnostic instead of inventing input or moving its original frame.
 

@@ -62,9 +62,14 @@ public class EditboxJournalIngress
         if ackDirty and ackTicks >= 6
             writeAck()
 
+    function flushReceipt()
+        if active
+            writeAck()
+
     function endEpoch()
         if not active
             return
+        writeAck()
         active = false
         inputBox.setFocus(GetLocalPlayer(), false)
         inputBox.setVisible(false)
