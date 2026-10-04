@@ -53,7 +53,7 @@ nix shell nixpkgs#bun --command bun "$project_dir/tools/effects/package.ts"
 nix shell nixpkgs#bun --command bun "$project_dir/tools/effects/trap.ts"
 build_id=${WC3_BUILD_ID:-$(date +%s)}
 developer_scenario=${WC3_SCENARIO:-normal}
-case "$developer_scenario" in normal|knockdown|tech|shield-break|ledge|parry|spike) ;; *) echo 'WC3_SCENARIO must be normal, knockdown, tech, shield-break, ledge, parry or spike.' >&2; exit 2;; esac
+case "$developer_scenario" in normal|knockdown|tech|shield-break|ledge|parry|spike|ko) ;; *) echo 'Unknown WC3_SCENARIO.' >&2; exit 2;; esac
 input_profile=${WC3_INPUT_PROFILE:-callback}
 case "$input_profile" in callback|shadow-d3|shadow-d3-batch2|shadow-d3-r12|shadow-d0-r12|shadow-d1-r12|shadow-d0-r24) ;; *) echo 'Unknown WC3_INPUT_PROFILE.' >&2; exit 2;; esac
 input_source=${WC3_INPUT_SOURCE:-keyboard}
@@ -192,6 +192,7 @@ printf 'public constant string INPUT_PROFILE = "%s"\npublic constant string PRES
 printf 'public constant boolean JOURNAL_INPUT_SOURCE = %s\n' "$([[ "$input_source" == journal ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
 printf 'public constant boolean JOURNAL_KEYBOARD_INGRESS = %s\n' "$([[ "$keyboard_journal_ingress" == keyboard ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
 printf 'public constant boolean RESPONSE_SERVICE_PROBE = %s\n' "$([[ "$response_probe" == 1 ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
+printf 'public constant boolean KO_SCENARIO = %s\n' "$([[ "$developer_scenario" == ko ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
 cp "$work_dir/wurst/BuildInfo.wurst" "$build_output.BuildInfo.wurst"
 if [[ "$build_output" == "$project_dir/build/wurst-map/$map_filename" ]]; then
     cp "$work_dir/wurst/BuildInfo.wurst" "$project_dir/build/generated-BuildInfo.wurst"
@@ -213,7 +214,7 @@ cd "$work_dir"
 
 packager="$project_dir/build/tools/map-pack"
 if [[ ! -x "$packager" ]]; then
-    stormlib=$(nix eval --raw nixpkgs#stormlib.outPath)
+    stormlib=$(nix build --no-link --print-out-paths nixpkgs#stormlib)
     nix shell nixpkgs#gcc --command gcc \
         -I"$stormlib/include" "$project_dir/map-pack.c" \
         -L"$stormlib/lib" -Wl,-rpath,"$stormlib/lib" -lstorm -o "$packager"

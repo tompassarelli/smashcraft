@@ -1514,6 +1514,15 @@ function initializeScenario()
         initializeParryScenario(first, second)
     if SPIKE_SCENARIO
         initializeSpikeScenario(first, second, matchState.stageChoice, 1)
+    if KO_SCENARIO
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if matchWorld.active(slot)
+                let fighter = participants[slot].fighter
+                fighter.z = 761
+                fighter.grounded = false
+                fighter.knockbackZ = TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 10
+                fighter.downState = DOWN_TUMBLE
+                fighter.downFrame = 1
     if KNOCKDOWN_SCENARIO
         first.downState = DOWN_TUMBLE
         first.grounded = false
