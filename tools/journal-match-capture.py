@@ -18,7 +18,7 @@ import subprocess
 import sys
 import time
 
-from controller_event_retention import ABS_X, BTN_SOUTH, EV_ABS, EV_KEY, KernelObserver, VirtualGamepad
+from controller_event_retention import ABS_X, ABS_Y, ABS_Z, ABS_RZ, BTN_SOUTH, EV_ABS, EV_KEY, KernelObserver, VirtualGamepad
 
 
 def event_path(pad):
@@ -38,7 +38,11 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--ui-driver", type=Path, default=Path("/tmp/sc-ui.py"))
     parser.add_argument("--controller-menus", action="store_true")
+    parser.add_argument("--combat-actions", action="store_true",
+                        help="exercise the full controller layout and export combat/shield evidence")
     args = parser.parse_args()
+    if args.combat_actions and not args.controller_menus:
+        parser.error("--combat-actions requires --controller-menus")
     cfg = json.loads(args.session.read_text())["args"]
     cfg["build"] = args.build
     args.out.mkdir(parents=True, exist_ok=False)
@@ -86,7 +90,7 @@ def main():
         target = args.out / f"epoch-{epoch}"
         target.mkdir(exist_ok=True)
         for slot, root in enumerate(data):
-            for source in list(root.glob(f"smashcraft-journal-*{args.build}*")) + [root / "wc3-melee-input-trace.txt"]:
+            for source in list(root.glob(f"smashcraft-journal-*{args.build}*")) + list(root.glob("smashcraft-response-p*-run*-page*.txt")) + [root / "wc3-melee-input-trace.txt"]:
                 if source.is_file() and source.stat().st_mtime_ns >= started_wall:
                     (target / f"{slot}-{source.name}").write_bytes(source.read_bytes())
 
@@ -105,7 +109,8 @@ def main():
             assert "Warcraft" in Path(f'/proc/{cfg["pid_" + c]}/comm').read_text()
             subprocess.run([cfg["wlrctl"], "toplevel", "focus", "title:Warcraft III"],
                            env=envs[slot], check=True, timeout=5)
-            pad = VirtualGamepad(buttons=(BTN_SOUTH, 0x134, 0x13b))
+            pad = VirtualGamepad(buttons=((BTN_SOUTH, 0x131, 0x133, 0x134, 0x136, 0x137, 0x13b)
+                                         if args.combat_actions else (BTN_SOUTH, 0x134, 0x13b)))
             pads.append(pad)
             device = event_path(pad)
             observer = KernelObserver(device, args.out / f"kernel-{slot}.jsonl")
@@ -151,18 +156,23 @@ def main():
                 events.append(dict(event="menu", phase=phase, contents=[p.read_text() for p in paths],
                                    observed_monotonic_ns=time.monotonic_ns()))
 
+            first_selection = True
+
             def controller_select():
+                nonlocal first_selection
                 menu_phase("CHARACTER")
                 ui("a", "wait", "CONTROLS")
                 # Move both cursors and return before selecting, then exercise
                 # recall/reselect on B. These are real pad events, not menu clicks.
                 for slot in range(2):
-                    for direction in (32767, -32768):
+                    for direction in ((32767,) if args.combat_actions and first_selection and slot == 1
+                                      else (32767, -32768)):
                         send(slot, EV_ABS, ABS_X, direction, "menu-character-navigation")
                         time.sleep(.12)
                         send(slot, EV_ABS, ABS_X, 0, "menu-character-navigation")
                         time.sleep(.15)
                     menu_button(slot, BTN_SOUTH, "menu-character-select")
+                first_selection = False
                 time.sleep(.3)
                 menu_button(1, 0x134, "menu-character-recall")
                 time.sleep(.3)
@@ -182,6 +192,72 @@ def main():
                 menu_button(0, 0x13b, "menu-character-return")
                 menu_phase("STAGE")
                 ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
+
+            def combat(epoch):
+                prefix = f"match-{epoch}-combat-"
+
+                def button(slot, code, name, settle=.65):
+                    menu_button(slot, code, prefix + name)
+                    time.sleep(settle)
+
+                # Archer's arrow is damage-only; Rifleman's shot also supplies a
+                # native hit reaction. Both face inward from the normal spawns.
+                button(0, 0x134, "special")
+                button(1, 0x134, "special", 1.0)
+                # Direction + LB + A selects the map's forward tilt (style 6).
+                send(0, EV_KEY, 0x136, 1, prefix + "walk")
+                send(0, EV_ABS, ABS_X, 32767, prefix + "right")
+                button(0, BTN_SOUTH, "walk-attack", .12)
+                send(0, EV_ABS, ABS_X, 0, prefix + "right")
+                time.sleep(.5)
+                send(0, EV_ABS, ABS_X, -32768, prefix + "left")
+                time.sleep(.24)
+                send(0, EV_ABS, ABS_X, 0, prefix + "left")
+                send(0, EV_KEY, 0x136, 0, prefix + "walk")
+                time.sleep(.3)
+                button(0, 0x131, "jump-b", .9)
+                button(0, 0x133, "jump-y", .9)
+                send(0, EV_ABS, ABS_Y, -32768, prefix + "tap-jump")
+                time.sleep(.12)
+                send(0, EV_ABS, ABS_Y, 0, prefix + "tap-jump")
+                time.sleep(.9)
+                button(0, 0x137, "grab")
+                # The RT-only interval must retain the confirmed shield after
+                # releasing LT. Neutral intervals expose both shield edges.
+                for code, value, name in ((ABS_Z, 32767, "shield-lt"),
+                                          (ABS_RZ, 32767, "shield-both"),
+                                          (ABS_Z, 0, "shield-rt-only"),
+                                          (ABS_RZ, 0, "shield-release")):
+                    for slot in range(2):
+                        send(slot, EV_ABS, code, value, prefix + name)
+                    time.sleep(.35)
+                menu_button(0, 0x13b, prefix + "pause")
+                def controlled(state):
+                    return all(re.search(r"control sequence=\d+ state=" + state + r" ",
+                                         (args.out / f"helper-{slot}.log").read_text().split(
+                                             f"match_start epoch={epoch} ", 1)[-1])
+                               for slot in range(2))
+                until(lambda: controlled("PAUSE"), "controller pause absent")
+                ui("a", "wait", "Paused")
+                events.append(dict(event="combat-pause", epoch=epoch))
+                menu_button(0, 0x13b, prefix + "resume")
+                until(lambda: controlled("RESUME"), "controller resume absent")
+                events.append(dict(event="combat-resume", epoch=epoch))
+                time.sleep(.3)
+
+            def export_response(epoch):
+                keys(0, "key", "ctrl+h")
+                for slot, root in enumerate(data):
+                    def exported():
+                        pages = [p for p in root.glob(f"smashcraft-response-p{slot}-run*-page*.txt")
+                                 if complete(p) and p.stat().st_mtime_ns >= trace_after_wall]
+                        if not pages:
+                            return False
+                        header = pages[0].read_text()
+                        rows = int(re.search(r" rows=(\d+)", header)[1])
+                        retained = int(re.search(r" retained=(\d+)", header)[1])
+                        return len(pages) == (max(rows, retained) + 149) // 150
+                    until(exported, f"epoch {epoch}: response export incomplete")
 
             if args.controller_menus:
                 controller_select()
@@ -205,6 +281,8 @@ def main():
                 for slot in range(2):
                     tap(slot, f"match-{epoch}-fresh")
                 time.sleep(.7)
+                if args.combat_actions:
+                    combat(epoch)
                 send(0, EV_ABS, ABS_X, -32768, f"match-{epoch}-stock-loss")
                 ends = [control("end", epoch, slot) for slot in range(2)]
                 until(lambda: all(complete(p) for p in ends), f"epoch {epoch}: result did not stop capture", 40)
@@ -223,6 +301,21 @@ def main():
                           and re.search(r"1200 [0-9.]+ end", trace.read_text()) is not None,
                           f"epoch {epoch}: trace did not complete", 30)
                 archive(epoch)
+                if args.combat_actions:
+                    export_response(epoch)
+                    archive(epoch)
+                    # Combat can outlast the first trace. Keep it intact and
+                    # capture a stationary result endpoint only when necessary.
+                    if not all(re.search(r"participant \d+ frame \d+ phase 3 ",
+                                         (root / "wc3-melee-input-trace.txt").read_text()) for root in data):
+                        final_after = time.time_ns()
+                        keys(0, "key", "ctrl+t")
+                        for root in data:
+                            trace = root / "wc3-melee-input-trace.txt"
+                            until(lambda: complete(trace) and trace.stat().st_mtime_ns >= final_after
+                                  and re.search(r"1200 [0-9.]+ end", trace.read_text()) is not None,
+                                  f"epoch {epoch}: result trace incomplete", 35)
+                        archive(f"{epoch}-result")
                 check_helpers()
                 if epoch == 1:
                     # A results-screen tap must not become a new-match action.
@@ -241,11 +334,12 @@ def main():
                         keys(0, "keydown", "y", "sleep", ".12", "keyup", "y")
                         ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
                 print(f"Epoch {epoch}: game start, tap, stock loss and results observed", flush=True)
-        result = dict(settings=cfg, helper_pids=[p.pid for p in helpers], events=events,
+        result = dict(settings=cfg, combat_actions=args.combat_actions, helper_pids=[p.pid for p in helpers], events=events,
                       helper_sha256=hashlib.sha256(Path(cfg["binary"]).read_bytes()).hexdigest(),
                       scope="Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; "
                             + ("controller-only game menus (keyboard diagnostic trace toggle); " if args.controller_menus
                                else "keyboard menu confirmation; ")
+                            + ("ordinary combat and controller layout; " if args.combat_actions else "")
                             + "no physical or cross-machine alignment claim.")
         (args.out / "capture.json").write_text(json.dumps(result, indent=2) + "\n")
     finally:
