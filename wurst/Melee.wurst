@@ -1742,17 +1742,16 @@ function onParticipantKeyUp(int slot)
         return
     let key = BlzGetTriggerPlayerKey()
     let keyCode = GetHandleId(key)
-    if JOURNAL_EDITBOX_INGRESS and shadowInputActive and matchState.phase != MATCH and not journalLifecycle.quiescent()
+    // Starting a match changes phase before its confirmation key is released.
+    if key == OSKEY_Y
+        matchControls.keyUp(slot)
         return
-    if JOURNAL_EDITBOX_INGRESS and shadowInputActive and matchState.phase == MATCH and key == OSKEY_Y
+    if JOURNAL_EDITBOX_INGRESS and shadowInputActive and matchState.phase != MATCH and not journalLifecycle.quiescent()
         return
     if JOURNAL_KEYBOARD_INGRESS and shadowInputActive and keyboardJournalIngress.isCarrierCode(keyCode)
 		return
     if inputTraceActive
         shadowTraceKeyUp[slot]++
-    if key == OSKEY_Y
-        matchControls.keyUp(slot)
-        return
     traceParticipant(slot, "received up " + I2S(keyCode))
     let participant = participants[slot]
     participant.keys.release(keyCode, participant.bindings.bindings)
