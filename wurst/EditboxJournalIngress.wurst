@@ -91,7 +91,7 @@ public class EditboxJournalIngress
                 inputBox.setText(GetLocalPlayer(), text.substring(stream.discardWidth()))
                 ackDirty = true
             if state == JOURNAL_TEXT_INVALID
-                failure = "controller retransmission changed an admitted record"
+                failure = "controller record changed or exceeded the bounded receive window"
                 return ""
             if state == JOURNAL_TEXT_WAIT
                 if text.length() >= EDITBOX_JOURNAL_CAPACITY

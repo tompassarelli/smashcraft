@@ -77,23 +77,23 @@ Helper SHA256: `a7de13116b355016f77b7ac0ae34c952b7f710860dde704da7383e1fc7d99db2
 Evidence: wc3-melee:docs/native-text-receipts-20261005/receive-queue/.
 
 The 500 ms focus-away workload completed. Both helpers exited normally, both map
-receipts reached received=150/consumed=150, and both clients confirmed frame300 /
+receipts reached received=150/consumed=150, and both clients confirmed frame 300 /
 checksum `614143:814131`. Both response exports contain300 sent/received frames,
 zero unmatched receipts and zero dropped export rows. Zero controller key events
-reached the calibrated non-game window. The helper captured Attack at original7
-and109 and synthesized a neutral release at49; unfocused events and held-through-
+reached the calibrated non-game window. The helper captured Attack at original frames 7
+and 109 and synthesized a neutral release at 49; unfocused events and held-through-
 return controls were suppressed until neutral. Native data confirms the first
-attack at7, shield presentation becoming inactive after return, and submission
-plus synchronized receipt of frames49/109. The initial five-second gameplay trace
+attack at 7, shield presentation becoming inactive after return, and submission
+plus synchronized receipt of frames 49/109. The initial five-second gameplay trace
 ends before the second attack: its precise fighter application is not observed.
 
 This fixes the tested text overflow/loss failure, but **does not establish fast
-focus recovery**. A emitted423 envelopes for150 unique records (16,157 bytes),
-and its own-sync echo median/max was3387.890/6293.091ms. B emitted196 envelopes
-and measured113.045/346.878ms. These are native game-clock echo measurements, not
-physical input response. Confirmed simulation stopped at46 during recovery;
-A's frame300 was sent at14526.886ms and echoed at19269.256ms from probe start.
-The no-focus credit control had212/249 envelopes and echo medians177.570/172.863ms;
+focus recovery**. A emitted 423 envelopes for 150 unique records (16,157 bytes),
+and its own-sync echo median/max was 3387.890/6293.091ms. B emitted196 envelopes
+and measured 113.045/346.878ms. These are native game-clock echo measurements, not
+physical input response. Confirmed simulation stopped at 46 during recovery;
+A's frame 300 was sent at 14526.886ms and echoed at 19269.256ms from probe start.
+The no-focus credit control had 212/249 envelopes and echo medians 177.570/172.863ms;
 its source differs from this queue candidate, so this is context, not a matched
 performance attribution.
 
@@ -102,3 +102,64 @@ Consequently it can retry recently sent records while cumulative receipt is
 making progress. Removing that unnecessary retransmission is the next narrow
 repair; a causal claim for the seconds-long native delay needs its result.
 No whole-focus acceptance, #26 closure or replacement player release follows.
+
+## Retry progress comparison
+
+The next helper resets its retry deadline when received acknowledgments advance.
+The five focused text tests and helper build passed. The exact same map hash
+above ran the same focus workload. Helper SHA256: `f31fb7220e5cc9f23f3c756af3276dd352e9523096b05c431033f638c97438e1`.
+The source delta is retained with the evidence as
+wc3-melee:docs/native-text-receipts-20261005/retry-progress/retry-progress.patch.
+
+Both helpers completed; both native receipts reached 150 received/consumed
+records. Both endpoints again confirmed frame 300 / checksum `614143:814131`;
+zero keys reached the calibrated other window. B sent exactly 150 envelopes
+with no retries. A still sent 342 envelopes for 150 records. A native own-sync
+echo median/max was 1698.453/4893.890 ms, B 138.260/388.328 ms. A's frame 300 was
+sent at 12036.117 ms and echoed at 13545.257 ms from probe start. This reduced
+unnecessary retransmission but did not resolve fast focus recovery. The first
+attack at frame 7 is in both initial traces; precise later fighter application
+again falls outside their five-second window.
+
+The receiver currently discards valid later records when an earlier record is
+missing; the sender then retransmits the whole unacknowledged suffix. The next
+owning repair retains valid records within the existing bounded window and
+repairs its first gap. It must keep contiguous application, identity/checksum
+validation, explicit bounds and original frame assignment. This is not a new
+transport survey or evidence that a focus-latency guarantee has been met.
+
+## Selective recovery checkpoint
+
+The receiver retains valid later envelopes within its 16-record window while
+waiting for a missing record. Consumption and acknowledgment remain contiguous.
+The sender retries only the first missing record and records receipt progress
+with monotonic timestamps. Wurst 6/6, Rust text 6/6, the retained stalled-receiver
+regression, helper build and native map compilation passed. The existing probe
+trace was extended to 20 seconds / 2048 lines so delayed actions remain observed;
+ordinary gameplay tracing is unchanged.
+
+Map `text-selective-20261005` SHA256
+`892202f4ec537a4be232579860e652c3fe7a7b0429448ca32293db74d8cbd336`.
+Helper SHA256 `b6473bdd44655be0b958f828d55418c285c0321ffc0540f6acb33e5dc4813ec4`.
+Evidence: wc3-melee:docs/native-text-receipts-20261005/selective/.
+
+The same focus workload delivered all 300 original frames per player, with both
+5 ms attacks applied exactly once at original frames 7 and 109 on both clients.
+No additional attack was applied for the unfocused/held-through-return stimuli.
+Shield prediction and confirmation both released after return. Both endpoints
+confirmed frame 300 / checksum `614143:814131`; both exports have 300 sent/received
+frames, zero unmatched receipts or export drops, and zero dropped gameplay trace
+rows. The calibrated other window received zero keys. Both helpers exited normally
+with received=consumed=150. A emitted 154 envelopes, B 150.
+
+A own-sync echo median/max was 264.279/572.723 ms; B 106.208/247.917 ms.
+Both frame-300 echoes arrived at 6623.901 ms from probe start. These are transport
+echoes, not physical or local-visible response. This accepts bounded retention
+and ordered application through the tested focus switch. **Recovery response
+still has an avoidable delay:** receipts advanced through missing records 24 and
+25 at 1701/2053 ms after capture start, then through 39 at 2351 ms. The sender waits
+another 250 ms for each next missing record despite explicit repair progress.
+Attack109 was captured around 1800 ms but synchronized gameplay applied it around
+3 seconds after capture start. No prompt post-focus response guarantee follows.
+The next small repair removes that extra waiting during an active repair, while
+retaining one-record retries and the unchanged bounds.

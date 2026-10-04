@@ -1,0 +1,54 @@
+diff --git a/companion/src/bin/journal.rs b/companion/src/bin/journal.rs
+index 2730692..1b5b347 100644
+--- a/companion/src/bin/journal.rs
++++ b/companion/src/bin/journal.rs
+@@ -155,8 +155,9 @@ mod linux {
+             if received > self.highest_sent || consumed > received {
+                 return Err(io::Error::other("native text receipt acknowledges an unsent or unreceived record"));
+             }
+-            if received >= self.received {
++            if received > self.received {
+                 self.received = received;
++                self.retry_at = None;
+             }
+             self.next_sequence = self.next_sequence.max(self.received + 1);
+             if consumed > self.consumed {
+@@ -192,6 +193,11 @@ mod linux {
+             if self.next_sequence == 0 {
+                 self.next_sequence = 1;
+             }
++            if self.highest_sent > self.received {
++                self.retry_at.get_or_insert(now + TEXT_RETRY);
++            } else {
++                self.retry_at = None;
++            }
+             // Time alone cannot distinguish lost text from a stopped receiver.
+             // Spend each fresh native receipt at most once on retransmission.
+             if self.retry_at.is_some_and(|deadline| now >= deadline)
+@@ -1571,6 +1577,26 @@ mod linux {
+         assert!(window.receipt(&mut queue, 16, 16, 4).is_ok());
+     }
+ 
++    #[test]
++    fn text_receipt_progress_defers_retry_without_releasing_unconsumed_records() {
++        let mut queue = PendingOutput::default();
++        for _ in 0..16 {
++            queue.push("I421100".into()).unwrap();
++        }
++        let mut window = TextWindow::default();
++        let now = Instant::now();
++        for sequence in 1..=16 {
++            assert_eq!(window.next(&queue, 1, now).unwrap().unwrap().0, sequence);
++            window.sent(sequence, now);
++        }
++        window.receipt(&mut queue, 8, 0, 1).unwrap();
++        let progressed = now + Duration::from_millis(200);
++        assert!(window.next(&queue, 1, progressed).unwrap().is_none());
++        assert!(window.next(&queue, 1, now + TEXT_RETRY).unwrap().is_none());
++        assert_eq!(queue.records.len(), 16);
++        assert_eq!(window.next(&queue, 1, progressed + TEXT_RETRY).unwrap().unwrap().0, 9);
++    }
++
+     #[test]
+     fn text_received_credit_stops_at_sixteen_until_gameplay_consumes_records() {
+         let mut queue = PendingOutput::default();

@@ -146,6 +146,7 @@ mod linux {
         highest_sent: u32,
         next_sequence: u32,
         retry_at: Option<Instant>,
+        retry_permit: bool,
         receipt_revision: u32,
         retried_revision: u32,
     }
@@ -155,8 +156,10 @@ mod linux {
             if received > self.highest_sent || consumed > received {
                 return Err(io::Error::other("native text receipt acknowledges an unsent or unreceived record"));
             }
-            if received >= self.received {
+            if received > self.received {
                 self.received = received;
+                self.retry_at = None;
+                self.retry_permit = false;
             }
             self.next_sequence = self.next_sequence.max(self.received + 1);
             if consumed > self.consumed {
@@ -192,6 +195,11 @@ mod linux {
             if self.next_sequence == 0 {
                 self.next_sequence = 1;
             }
+            if self.highest_sent > self.received {
+                self.retry_at.get_or_insert(now + TEXT_RETRY);
+            } else {
+                self.retry_at = None;
+            }
             // Time alone cannot distinguish lost text from a stopped receiver.
             // Spend each fresh native receipt at most once on retransmission.
             if self.retry_at.is_some_and(|deadline| now >= deadline)
@@ -200,6 +208,10 @@ mod linux {
                 self.next_sequence = self.received + 1;
                 self.retry_at = None;
                 self.retried_revision = self.receipt_revision;
+                self.retry_permit = true;
+            }
+            if self.next_sequence <= self.highest_sent && !self.retry_permit {
+                return Ok(None);
             }
             if self.next_sequence > self.consumed + TEXT_WINDOW as u32
                 || self.next_sequence <= self.consumed
@@ -219,6 +231,9 @@ mod linux {
         }
 
         fn sent(&mut self, sequence: u32, now: Instant) {
+            if sequence <= self.highest_sent {
+                self.retry_permit = false;
+            }
             self.highest_sent = self.highest_sent.max(sequence);
             self.next_sequence = sequence + 1;
             self.retry_at.get_or_insert(now + TEXT_RETRY);
@@ -227,6 +242,7 @@ mod linux {
         fn suspend(&mut self) {
             self.next_sequence = self.received + 1;
             self.retry_at = None;
+            self.retry_permit = false;
         }
     }
 
@@ -407,7 +423,14 @@ mod linux {
                             if let Some((received, consumed, revision)) =
                                 text_receipt(&contents, &self.build, self.epoch, self.slot)?
                             {
+                                let previous_revision = self.text_window.receipt_revision;
                                 self.text_window.receipt(&mut self.queued, received, consumed, revision)?;
+                                if self.trace && revision > previous_revision {
+                                    eprintln!(
+                                        "editbox_receipt monotonic_ns={} received={received} consumed={consumed} revision={revision}",
+                                        monotonic_ns()?
+                                    );
+                                }
                             }
                         }
                         Err(error) if error.kind() == io::ErrorKind::NotFound => {}
@@ -1488,7 +1511,12 @@ mod linux {
         assert_eq!(queue.records.len(), 2);
         assert!(window.next(&queue, 7, now).unwrap().is_none());
         window.suspend();
-        assert_eq!(window.next(&queue, 7, now).unwrap().unwrap(), pending);
+        window.receipt(&mut queue, 0, 0, 1).unwrap();
+        assert!(window.next(&queue, 7, now).unwrap().is_none());
+        assert_eq!(
+            window.next(&queue, 7, now + TEXT_RETRY).unwrap().unwrap(),
+            pending
+        );
         window.acknowledge(&mut queue, 1).unwrap();
         assert_eq!(
             queue.records.front().map(String::as_str),
@@ -1555,20 +1583,42 @@ mod linux {
             window.sent(sequence, now);
         }
         let retry = now + TEXT_RETRY;
-        for sequence in 1..=16 {
-            assert_eq!(window.next(&queue, 1, retry).unwrap().unwrap().0, sequence);
-            window.sent(sequence, retry);
-        }
+        assert_eq!(window.next(&queue, 1, retry).unwrap().unwrap().0, 1);
+        window.sent(1, retry);
+        assert!(window.next(&queue, 1, retry).unwrap().is_none());
         for attempt in 2..=100 {
             window.receipt(&mut queue, 0, 0, 1).unwrap();
             assert!(window.next(&queue, 1, now + TEXT_RETRY * attempt).unwrap().is_none());
         }
         assert_eq!(queue.records.len(), 16);
         window.receipt(&mut queue, 0, 0, 2).unwrap();
-        assert_eq!(window.next(&queue, 1, now + TEXT_RETRY * 101).unwrap().unwrap().0, 1);
+        let fresh_retry = now + TEXT_RETRY * 101;
+        assert_eq!(window.next(&queue, 1, fresh_retry).unwrap().unwrap().0, 1);
+        window.sent(1, fresh_retry);
+        assert!(window.next(&queue, 1, fresh_retry).unwrap().is_none());
         window.receipt(&mut queue, 16, 16, 3).unwrap();
         assert!(queue.is_empty());
         assert!(window.receipt(&mut queue, 16, 16, 4).is_ok());
+    }
+
+    #[test]
+    fn text_receipt_progress_defers_retry_without_releasing_unconsumed_records() {
+        let mut queue = PendingOutput::default();
+        for _ in 0..16 {
+            queue.push("I421100".into()).unwrap();
+        }
+        let mut window = TextWindow::default();
+        let now = Instant::now();
+        for sequence in 1..=16 {
+            assert_eq!(window.next(&queue, 1, now).unwrap().unwrap().0, sequence);
+            window.sent(sequence, now);
+        }
+        window.receipt(&mut queue, 8, 0, 1).unwrap();
+        let progressed = now + Duration::from_millis(200);
+        assert!(window.next(&queue, 1, progressed).unwrap().is_none());
+        assert!(window.next(&queue, 1, now + TEXT_RETRY).unwrap().is_none());
+        assert_eq!(queue.records.len(), 16);
+        assert_eq!(window.next(&queue, 1, progressed + TEXT_RETRY).unwrap().unwrap().0, 9);
     }
 
     #[test]
@@ -1591,6 +1641,32 @@ mod linux {
         window.receipt(&mut queue, 16, 1, 3).unwrap();
         assert_eq!(queue.records.len(), 19);
         assert_eq!(window.next(&queue, 1, retry).unwrap().unwrap().0, 17);
+    }
+
+    #[test]
+    fn text_retries_only_the_first_missing_record_after_partial_receipt_progress() {
+        for received in [1, 4] {
+            let mut queue = PendingOutput::default();
+            for _ in 0..16 {
+                queue.push("I421100".into()).unwrap();
+            }
+            let mut window = TextWindow::default();
+            let now = Instant::now();
+            window.receipt(&mut queue, 0, 0, 1).unwrap();
+            for sequence in 1..=16 {
+                assert_eq!(window.next(&queue, 1, now).unwrap().unwrap().0, sequence);
+                window.sent(sequence, now);
+            }
+            window.receipt(&mut queue, received, 0, 2).unwrap();
+            let progressed = now + Duration::from_millis(100);
+            assert!(window.next(&queue, 1, progressed).unwrap().is_none());
+            let retry = progressed + TEXT_RETRY;
+            let missing = window.next(&queue, 1, retry).unwrap().unwrap();
+            assert_eq!(missing.0, received + 1);
+            window.sent(missing.0, retry);
+            assert!(window.next(&queue, 1, retry).unwrap().is_none());
+            assert_eq!(queue.records.len(), 16);
+        }
     }
 
     #[test]

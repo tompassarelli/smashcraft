@@ -65,7 +65,10 @@ public class JournalTextStream
     function wire() returns string
         if receivedSequence <= consumedSequence
             return ""
-        return accepted[(consumedSequence + 1) mod JOURNAL_TEXT_WINDOW]
+        let next = consumedSequence + 1
+        if acceptedSequence[next mod JOURNAL_TEXT_WINDOW] != next
+            return ""
+        return accepted[next mod JOURNAL_TEXT_WINDOW]
 
     function inspect(string text) returns int
         state = JOURNAL_TEXT_WAIT
@@ -101,19 +104,22 @@ public class JournalTextStream
         let candidate = text.substring(29, delimiter)
         if checksum != journalTextChecksum(epochText + sequenceText + "|" + candidate)
             return state
+        let slot = sequence mod JOURNAL_TEXT_WINDOW
         if sequence <= receivedSequence
-            if receivedSequence - sequence < JOURNAL_TEXT_WINDOW and acceptedSequence[sequence mod JOURNAL_TEXT_WINDOW] == sequence and accepted[sequence mod JOURNAL_TEXT_WINDOW] != candidate
+            if receivedSequence - sequence < JOURNAL_TEXT_WINDOW and acceptedSequence[slot] == sequence and accepted[slot] != candidate
                 state = JOURNAL_TEXT_INVALID
             return state
-        if sequence != receivedSequence + 1
+        if sequence > consumedSequence + JOURNAL_TEXT_WINDOW
+            state = JOURNAL_TEXT_INVALID
             return state
-        if receivedSequence - consumedSequence >= JOURNAL_TEXT_WINDOW
-            state = JOURNAL_TEXT_WAIT
-            width = 0
+        if acceptedSequence[slot] == sequence
+            if accepted[slot] != candidate
+                state = JOURNAL_TEXT_INVALID
             return state
-        accepted[sequence mod JOURNAL_TEXT_WINDOW] = candidate
-        acceptedSequence[sequence mod JOURNAL_TEXT_WINDOW] = sequence
-        receivedSequence = sequence
+        accepted[slot] = candidate
+        acceptedSequence[slot] = sequence
+        while receivedSequence < consumedSequence + JOURNAL_TEXT_WINDOW and acceptedSequence[(receivedSequence + 1) mod JOURNAL_TEXT_WINDOW] == receivedSequence + 1
+            receivedSequence++
         payload = candidate
         envelope = text.substring(0, width)
         state = JOURNAL_TEXT_READY

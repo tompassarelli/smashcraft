@@ -213,7 +213,7 @@ real shadowTraceEchoSumSeconds = 0
 int array shadowTraceEchoBins
 
 function traceInput(string entry)
-    if inputTraceActive and inputTraceCount < 256
+    if inputTraceActive and inputTraceCount < (RESPONSE_SERVICE_PROBE ? 2048 : 256)
         inputTraceLines[inputTraceCount] = I2S(inputTraceTicks) + " " + R2S(TimerGetElapsed(inputTraceClock)) + " " + entry
         inputTraceCount++
     else if inputTraceActive
@@ -2016,7 +2016,7 @@ function traceTick()
             shadowTraceLocalSends = 0
             shadowTraceSameTargetSkips = 0
             shadowTraceWindowBlocks = 0
-    if inputTraceTicks >= (SHIELD_BREAK_SCENARIO or LEDGE_SCENARIO ? 600 : 300)
+    if inputTraceTicks >= (RESPONSE_SERVICE_PROBE ? 1200 : (SHIELD_BREAK_SCENARIO or LEDGE_SCENARIO ? 600 : 300))
         finishInputTrace()
 
 function produceCpuInput(int slot, int frame)

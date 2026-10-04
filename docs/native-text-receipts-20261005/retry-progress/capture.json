@@ -1,0 +1,54 @@
+{
+  "args": {
+    "binary": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/companion/target/debug/wc3-journal",
+    "out": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-focus-text-progress-20261005",
+    "build": "text-receive-queue-20261005",
+    "x11_library": "/nix/store/2g9xwk5kis01003gynr7xfca667dpgv8-libx11-1.8.13/lib/libX11.so.6.4.0",
+    "wlrctl": "/nix/store/ci70n3x298zfp6r04hx0xaxiwz8akxin-wlrctl-0.2.2/bin/wlrctl",
+    "epoch": 1,
+    "without_focus_loss": false,
+    "private_a": "/run/user/1000/private-desktop.ua70lDgf",
+    "data_a": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "pid_a": 1520922,
+    "window_a": 77594625,
+    "app_id_a": "steam_app_3516115571",
+    "private_b": "/run/user/1000/private-desktop.DIasYMFK",
+    "data_b": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "pid_b": 1533110,
+    "window_b": 77594625,
+    "app_id_b": "steam_app_3516115572"
+  },
+  "capture_epoch_monotonic_ns": 556395996242266,
+  "transitions": [
+    {
+      "window": 161480705,
+      "observed_monotonic_ns": 556395090482886
+    },
+    {
+      "window": 77594625,
+      "observed_monotonic_ns": 556395194892489
+    },
+    {
+      "window": 161480705,
+      "observed_monotonic_ns": 556396871563911
+    },
+    {
+      "window": 77594625,
+      "observed_monotonic_ns": 556397367575218
+    }
+  ],
+  "sink_calibration": [
+    {
+      "type": "press",
+      "observed_monotonic_ns": 556395123022640
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 556395123040824
+    }
+  ],
+  "sink_key_events": [],
+  "failures": [],
+  "helper_sha256": "f31fb7220e5cc9f23f3c756af3276dd352e9523096b05c431033f638c97438e1",
+  "scope": "Two virtual evdev pads, 300 frames; one 500 ms A focus interval; native gameplay traces are checked separately."
+}

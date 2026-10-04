@@ -1,0 +1,14 @@
+{"phase":"before","event":"304:1","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":557249230352306,"producer_after_write_monotonic_ns":557249230368557}
+{"phase":"before","event":"304:0","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":557249235317521,"producer_after_write_monotonic_ns":557249235327059}
+{"phase":"held-before-loss","event":"2:32767","type":3,"code":2,"value":32767,"producer_before_write_monotonic_ns":557249780337407,"producer_after_write_monotonic_ns":557249780353868}
+{"phase":"unfocused-release","event":"2:0","type":3,"code":2,"value":0,"producer_before_write_monotonic_ns":557250080326078,"producer_after_write_monotonic_ns":557250080340284}
+{"phase":"unfocused-tap","event":"304:1","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":557250130387086,"producer_after_write_monotonic_ns":557250130406091}
+{"phase":"unfocused-tap","event":"304:0","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":557250135315822,"producer_after_write_monotonic_ns":557250135323116}
+{"phase":"unfocused-start","event":"315:1","type":1,"code":315,"value":1,"producer_before_write_monotonic_ns":557250180315936,"producer_after_write_monotonic_ns":557250180329101}
+{"phase":"unfocused-start","event":"315:0","type":1,"code":315,"value":0,"producer_before_write_monotonic_ns":557250185306649,"producer_after_write_monotonic_ns":557250185313812}
+{"phase":"held-through-return","event":"304:1","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":557250230376383,"producer_after_write_monotonic_ns":557250230407711}
+{"phase":"axis-through-return","event":"0:16384","type":3,"code":0,"value":16384,"producer_before_write_monotonic_ns":557250250324196,"producer_after_write_monotonic_ns":557250250337732}
+{"phase":"rearm-button","event":"304:0","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":557250580346341,"producer_after_write_monotonic_ns":557250580359877}
+{"phase":"rearm-axis","event":"0:0","type":3,"code":0,"value":0,"producer_before_write_monotonic_ns":557250630339232,"producer_after_write_monotonic_ns":557250630353188}
+{"phase":"fresh-after-return","event":"304:1","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":557250930339033,"producer_after_write_monotonic_ns":557250930354953}
+{"phase":"fresh-after-return","event":"304:0","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":557250935321030,"producer_after_write_monotonic_ns":557250935330788}
