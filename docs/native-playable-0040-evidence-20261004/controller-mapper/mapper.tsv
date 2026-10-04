@@ -1,0 +1,20 @@
+record	event_id	capture_ns	dequeue_ns	submit_ns	control	value	action	pressed	disposition
+# capture_ns is SDL's event timestamp since SDL initialization; dequeue_ns and submit_ns are process-monotonic since watch start
+# selected=2; discarded_startup_events=4; release all mapped controls to arm; transitions are previews only unless --emit
+event	1	832517227	245719514		axis	LeftX=0			observed
+event	2	832517227	245722800		axis	LeftX=32767			observed
+transition	2	832517227	245722800	246310461	axis	LeftX=32767	Right	true	submitted
+event	3	1432758227	846489249		axis	LeftX=0			observed
+transition	3	1432758227	846489249	847118017	axis	LeftX=0	Right	false	submitted
+event	4	1582953227	996503652		button	South=true			observed
+transition	4	1582953227	996503652	996973342	button	South=true	Attack	true	submitted
+event	5	1682018166	1095216480		button	South=false			observed
+transition	5	1682018166	1095216480	1095705747	button	South=false	Attack	false	submitted
+event	6	2282214166	1697518998		button	South=true			observed
+transition	6	2282214166	1697518998	1698085460	button	South=true	Attack	true	submitted
+event	7	2382420166	1795943005		button	South=false			observed
+transition	7	2382420166	1795943005	1796572064	button	South=false	Attack	false	submitted
+event	8	2982585839	2395781665		button	South=true			observed
+transition	8	2982585839	2395781665	2396614757	button	South=true	Attack	true	submitted
+event	9	3082763839	2497167824		button	South=false			observed
+transition	9	3082763839	2497167824	2497545431	button	South=false	Attack	false	submitted

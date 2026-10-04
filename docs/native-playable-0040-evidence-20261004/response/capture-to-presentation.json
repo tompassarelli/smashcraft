@@ -1,0 +1,138 @@
+{
+  "scope": "native game-clock clean probe; sampled shield input to logical predicted presentation, not physical button-to-pixel or screenshot latency",
+  "clients": [
+    {
+      "local": 0,
+      "rows": 2533,
+      "presses": [
+        {
+          "row": 2405,
+          "target": 7128,
+          "predicted_row": 2405,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 2424,
+          "target": 7147,
+          "predicted_row": 2428,
+          "service_callbacks": 4,
+          "poll_to_present_game_ms": 66.406,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 0,
+          "capture_result": 0
+        },
+        {
+          "row": 2446,
+          "target": 7169,
+          "predicted_row": 2451,
+          "service_callbacks": 5,
+          "poll_to_present_game_ms": 83.008,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 0,
+          "capture_result": 0
+        },
+        {
+          "row": 2467,
+          "target": 7190,
+          "predicted_row": 2487,
+          "service_callbacks": 20,
+          "poll_to_present_game_ms": 332.031,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 0,
+          "capture_result": 0
+        },
+        {
+          "row": 2487,
+          "target": 7210,
+          "predicted_row": 2487,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 2508,
+          "target": 7231,
+          "predicted_row": 2510,
+          "service_callbacks": 2,
+          "poll_to_present_game_ms": 33.203,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 0,
+          "capture_result": 0
+        }
+      ]
+    },
+    {
+      "local": 1,
+      "rows": 2533,
+      "presses": [
+        {
+          "row": 2405,
+          "target": 7128,
+          "predicted_row": 2405,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 2426,
+          "target": 7149,
+          "predicted_row": 2428,
+          "service_callbacks": 2,
+          "poll_to_present_game_ms": 33.203,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 0,
+          "capture_result": 0
+        },
+        {
+          "row": 2446,
+          "target": 7169,
+          "predicted_row": 2451,
+          "service_callbacks": 5,
+          "poll_to_present_game_ms": 83.008,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 0,
+          "capture_result": 0
+        },
+        {
+          "row": 2467,
+          "target": 7190,
+          "predicted_row": 2487,
+          "service_callbacks": 20,
+          "poll_to_present_game_ms": 332.031,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 0,
+          "capture_result": 0
+        },
+        {
+          "row": 2487,
+          "target": 7210,
+          "predicted_row": 2487,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 2508,
+          "target": 7231,
+          "predicted_row": 2510,
+          "service_callbacks": 2,
+          "poll_to_present_game_ms": 33.203,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 0,
+          "capture_result": 0
+        }
+      ]
+    }
+  ],
+  "interpretation": "Rapid repeat trial: 220 ms release gaps overlap the 15-frame shield-release recovery. The first later predicted shield can belong to another press; these values are NOT per-press latency results. The separate run3 is the valid recovery-separated check."
+}

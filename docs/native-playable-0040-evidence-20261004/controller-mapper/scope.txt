@@ -1,0 +1,1 @@
+Native 0.0.40, one Linux virtual controller through current SDL3/EventMapper/enigo output into retained client A, plus native multiplayer receiver B. Not a physical-controller trial or physical response measurement. Current helper built successfully from this lane; read-only private focus check true before emission.

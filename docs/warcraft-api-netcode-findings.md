@@ -597,3 +597,23 @@ wc3-melee:docs/smashcraft-delivery-state-20261004.md. Raw traces:
 wc3-melee:docs/native-playable-0040-evidence-20261004/.
 Binary32 consumer migration is integrated and focused 22/22 passed; world-scale
 representation and full native physics fidelity remain separate open work.
+
+
+## Local logical response: playable 0.0.40
+
+Six recovery-separated shield presses per client (100 ms held, 600 ms released)
+all entered predicted shield state in the capture callback, while confirmed
+shield remained false. This bounds the sampled-input-to-logical-presentation
+seam: feedback need not wait for transport confirmation. It does not measure
+physical event capture, actual raster presentation, or hardware-to-pixel latency.
+The initial rapid-repeat sequence overlapped 15-frame shield-release recovery
+and is excluded from per-press timing conclusions. Clean native-game-clock
+probe data and host XTEST submission brackets are retained separately at
+wc3-melee:docs/native-playable-0040-evidence-20261004/response/.
+
+The current SDL3/EventMapper/enigo companion also completed a native virtual-pad
+trial: movement and all three 100 ms attack presses appeared at both clients,
+with six matching confirmed checkpoints. Private foreground eligibility was
+observed before emission. This establishes the software mapper/game seam under
+the tested conditions, not physical hardware timing or short-stall retention.
+Evidence: wc3-melee:docs/native-playable-0040-evidence-20261004/controller-mapper/.

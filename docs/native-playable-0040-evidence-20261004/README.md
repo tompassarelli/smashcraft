@@ -15,4 +15,18 @@ Each trace pair has six matching recorded confirmed frame/checksum pairs;
 all report dropped 0. This does not prove every-frame equality or hardware
 latency. The subsequent pause/resume, result/readiness and second-match start
 were observed through fresh native compositor captures and bounded OCR.
-No new response benchmark or physical-controller trial was performed.
+The later evidence extends this checkpoint:
+
+- wc3-melee:docs/native-playable-0040-evidence-20261004/response/: 12
+  recovery-separated shield presses entered predicted shield in their capture
+  callback, before confirmation. This measures logical response after capture,
+  not hardware-to-pixel latency. The earlier rapid-repeat run is labeled
+  confounded by shield recovery and excluded from the latency conclusion.
+- wc3-melee:docs/native-playable-0040-evidence-20261004/controller-mapper/:
+  current SDL3 digital mapper, one virtual Linux pad, movement and three attacks
+  in actual two-client play; six additional matching confirmed checkpoints.
+  A virtual device establishes the software path, not physical pad timing.
+
+The previously responsive digital controller-to-keyboard path is separate
+from experimental continuous-analog FileIO. FileIO delays do not establish
+a regression in that digital path. No physical-controller trial was performed.

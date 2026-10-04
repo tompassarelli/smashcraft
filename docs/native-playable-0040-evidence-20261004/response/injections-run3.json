@@ -1,0 +1,154 @@
+{
+  "events": [
+    [
+      {
+        "trial": 0,
+        "pressed": true,
+        "before_ns": 506809610730726,
+        "after_ns": 506809626725482
+      },
+      {
+        "trial": 0,
+        "pressed": false,
+        "before_ns": 506809726819890,
+        "after_ns": 506809742778838
+      },
+      {
+        "trial": 1,
+        "pressed": true,
+        "before_ns": 506810342863900,
+        "after_ns": 506810358639806
+      },
+      {
+        "trial": 1,
+        "pressed": false,
+        "before_ns": 506810458714476,
+        "after_ns": 506810474316406
+      },
+      {
+        "trial": 2,
+        "pressed": true,
+        "before_ns": 506811074401999,
+        "after_ns": 506811090121889
+      },
+      {
+        "trial": 2,
+        "pressed": false,
+        "before_ns": 506811190197361,
+        "after_ns": 506811206372585
+      },
+      {
+        "trial": 3,
+        "pressed": true,
+        "before_ns": 506811806594093,
+        "after_ns": 506811823165740
+      },
+      {
+        "trial": 3,
+        "pressed": false,
+        "before_ns": 506811923239408,
+        "after_ns": 506811938849163
+      },
+      {
+        "trial": 4,
+        "pressed": true,
+        "before_ns": 506812538926270,
+        "after_ns": 506812554548658
+      },
+      {
+        "trial": 4,
+        "pressed": false,
+        "before_ns": 506812654624450,
+        "after_ns": 506812670624065
+      },
+      {
+        "trial": 5,
+        "pressed": true,
+        "before_ns": 506813270762287,
+        "after_ns": 506813287155119
+      },
+      {
+        "trial": 5,
+        "pressed": false,
+        "before_ns": 506813387230029,
+        "after_ns": 506813402965119
+      }
+    ],
+    [
+      {
+        "trial": 0,
+        "pressed": true,
+        "before_ns": 506809611280697,
+        "after_ns": 506809626778521
+      },
+      {
+        "trial": 0,
+        "pressed": false,
+        "before_ns": 506809726953290,
+        "after_ns": 506809742819334
+      },
+      {
+        "trial": 1,
+        "pressed": true,
+        "before_ns": 506810342958117,
+        "after_ns": 506810358690651
+      },
+      {
+        "trial": 1,
+        "pressed": false,
+        "before_ns": 506810458806909,
+        "after_ns": 506810474347765
+      },
+      {
+        "trial": 2,
+        "pressed": true,
+        "before_ns": 506811074496856,
+        "after_ns": 506811090155212
+      },
+      {
+        "trial": 2,
+        "pressed": false,
+        "before_ns": 506811190286548,
+        "after_ns": 506811206332190
+      },
+      {
+        "trial": 3,
+        "pressed": true,
+        "before_ns": 506811806435736,
+        "after_ns": 506811823197650
+      },
+      {
+        "trial": 3,
+        "pressed": false,
+        "before_ns": 506811923319989,
+        "after_ns": 506811938989626
+      },
+      {
+        "trial": 4,
+        "pressed": true,
+        "before_ns": 506812539019635,
+        "after_ns": 506812554569367
+      },
+      {
+        "trial": 4,
+        "pressed": false,
+        "before_ns": 506812654717244,
+        "after_ns": 506812670586715
+      },
+      {
+        "trial": 5,
+        "pressed": true,
+        "before_ns": 506813270665145,
+        "after_ns": 506813287229278
+      },
+      {
+        "trial": 5,
+        "pressed": false,
+        "before_ns": 506813387313315,
+        "after_ns": 506813402922258
+      }
+    ]
+  ],
+  "release_gap_seconds": 0.6,
+  "scope": "software XTEST submission brackets; host monotonic, not physical input or native game clock"
+}

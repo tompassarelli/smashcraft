@@ -8,7 +8,9 @@ attacked, used specials and jumped. A controlled damaging exchange left Archer
 at 15% and Rifleman at 19% on both clients. Pause froze both clients; resume
 continued play. An intentional walk-off exercised stock loss and the result
 screen. Both players acknowledged rematch, returned to selection and entered a
-second fight. Both clients remain signed in and paused in that second match.
+second fight. Further response and mapper trials used subsequent fights.
+At 15:12 Taipei both retained clients showed the third fight's timer-draw
+result, with 0/2 ready; both remain signed in. No companion writer is running.
 
 The input source is keyboard, with local prediction and direct synchronization.
 This is the path consumed by the existing digital Xbox keyboard mapper. The
@@ -32,6 +34,30 @@ recorded both players' attacks, specials and jumps. Polling can miss a press
 that occurs entirely between samples. No arbitrary short-tap/stall retention
 guarantee is claimed; this remains a known capture limit, not a reason to delay
 handing over the working candidate.
+
+## Local response after capture
+
+The clean response probe recorded six recovery-separated 100 ms shield presses
+per client, with 600 ms release gaps. All 12 presses entered predicted shield
+state in the exact callback that captured them, while confirmed shield was
+still false. Local logical feedback therefore did not wait for synchronized
+confirmation in this check. Native game-clock poll/presentation timestamps were
+equal at their recorded precision; this is not zero physical latency or a
+button-to-pixel percentile measurement.
+
+An initial rapid-repeat sequence used only 220 ms release gaps and overlapped
+the game's 15-frame shield-release recovery. Its later shield appearances
+cannot be assigned as per-press input latency and are excluded from that
+conclusion. Evidence: wc3-melee:docs/native-playable-0040-evidence-20261004/response/.
+
+The current Rust SDL3/EventMapper/enigo companion was then rebuilt and exercised
+with one virtual Linux controller against client A in a fresh fight. Its private
+foreground check returned true before emission. Movement and all three 100 ms
+attack presses reached native play, and both clients recorded attacks at frames
+5767, 5809 and 5851 with six matching confirmed checkpoints. No trace drops,
+rejected rows or speculative failures appeared. This closes the observed native
+software mapper-to-game seam; it does not replace a physical controller trial.
+Evidence: wc3-melee:docs/native-playable-0040-evidence-20261004/controller-mapper/.
 
 ## Artifact and use
 

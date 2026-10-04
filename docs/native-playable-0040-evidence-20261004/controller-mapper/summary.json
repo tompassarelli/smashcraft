@@ -1,0 +1,46 @@
+{
+  "source_commit": "ecf0d3ba40ef54fa5ecae34776cdf1fa7d9c5381",
+  "binary_sha256": "538c5a895bfe8f9b92910289c8b2e0a3fbd668b9b8009203ff76266aedfa2c24",
+  "native_build": "playable-0040",
+  "matching_confirmed_checkpoints": [
+    [
+      "5705",
+      "780890:340163"
+    ],
+    [
+      "5768",
+      "32741:567837"
+    ],
+    [
+      "5828",
+      "114933:936586"
+    ],
+    [
+      "5886",
+      "642959:593984"
+    ],
+    [
+      "5946",
+      "54099:2021"
+    ],
+    [
+      "6006",
+      "888170:164094"
+    ]
+  ],
+  "attack_frames": [
+    [
+      "5767",
+      "1"
+    ],
+    [
+      "5809",
+      "2"
+    ],
+    [
+      "5851",
+      "3"
+    ]
+  ],
+  "scope": "one virtual Linux controller through actual current SDL3 mapper/enigo/private XTEST output into two native online clients; not physical pad or hardware response measurement"
+}

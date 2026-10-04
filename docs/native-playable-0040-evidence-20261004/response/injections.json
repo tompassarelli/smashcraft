@@ -1,0 +1,153 @@
+{
+  "events": [
+    [
+      {
+        "trial": 0,
+        "pressed": true,
+        "before_ns": 506611631096781,
+        "after_ns": 506611647567869
+      },
+      {
+        "trial": 0,
+        "pressed": false,
+        "before_ns": 506611747650164,
+        "after_ns": 506611763583214
+      },
+      {
+        "trial": 1,
+        "pressed": true,
+        "before_ns": 506611983672093,
+        "after_ns": 506611999631032
+      },
+      {
+        "trial": 1,
+        "pressed": false,
+        "before_ns": 506612099728585,
+        "after_ns": 506612116315691
+      },
+      {
+        "trial": 2,
+        "pressed": true,
+        "before_ns": 506612336398089,
+        "after_ns": 506612352652120
+      },
+      {
+        "trial": 2,
+        "pressed": false,
+        "before_ns": 506612452779960,
+        "after_ns": 506612468787420
+      },
+      {
+        "trial": 3,
+        "pressed": true,
+        "before_ns": 506612688927595,
+        "after_ns": 506612704573357
+      },
+      {
+        "trial": 3,
+        "pressed": false,
+        "before_ns": 506612804647847,
+        "after_ns": 506612820590105
+      },
+      {
+        "trial": 4,
+        "pressed": true,
+        "before_ns": 506613040669396,
+        "after_ns": 506613057043082
+      },
+      {
+        "trial": 4,
+        "pressed": false,
+        "before_ns": 506613157109176,
+        "after_ns": 506613172988897
+      },
+      {
+        "trial": 5,
+        "pressed": true,
+        "before_ns": 506613393022312,
+        "after_ns": 506613408653356
+      },
+      {
+        "trial": 5,
+        "pressed": false,
+        "before_ns": 506613508735681,
+        "after_ns": 506613524391161
+      }
+    ],
+    [
+      {
+        "trial": 0,
+        "pressed": true,
+        "before_ns": 506611631875139,
+        "after_ns": 506611647822807
+      },
+      {
+        "trial": 0,
+        "pressed": false,
+        "before_ns": 506611747910211,
+        "after_ns": 506611763612980
+      },
+      {
+        "trial": 1,
+        "pressed": true,
+        "before_ns": 506611983820852,
+        "after_ns": 506611999747460
+      },
+      {
+        "trial": 1,
+        "pressed": false,
+        "before_ns": 506612099887734,
+        "after_ns": 506612117031663
+      },
+      {
+        "trial": 2,
+        "pressed": true,
+        "before_ns": 506612337097309,
+        "after_ns": 506612352615622
+      },
+      {
+        "trial": 2,
+        "pressed": false,
+        "before_ns": 506612452692356,
+        "after_ns": 506612468752484
+      },
+      {
+        "trial": 3,
+        "pressed": true,
+        "before_ns": 506612688831636,
+        "after_ns": 506612704606069
+      },
+      {
+        "trial": 3,
+        "pressed": false,
+        "before_ns": 506612804750800,
+        "after_ns": 506612821016293
+      },
+      {
+        "trial": 4,
+        "pressed": true,
+        "before_ns": 506613041086508,
+        "after_ns": 506613056979713
+      },
+      {
+        "trial": 4,
+        "pressed": false,
+        "before_ns": 506613157021202,
+        "after_ns": 506613172950775
+      },
+      {
+        "trial": 5,
+        "pressed": true,
+        "before_ns": 506613393108143,
+        "after_ns": 506613408898155
+      },
+      {
+        "trial": 5,
+        "pressed": false,
+        "before_ns": 506613509083122,
+        "after_ns": 506613524287306
+      }
+    ]
+  ],
+  "scope": "software XTEST submission brackets; host monotonic, not physical input or native game clock"
+}
