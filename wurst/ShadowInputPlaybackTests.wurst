@@ -44,6 +44,57 @@ function shadowPlaybackDeliver(ShadowInputSchedule schedule, int sender, int epo
 	packet.assign(epoch, frame, 1, input, input).assertTrue()
 	schedule.acceptSynchronized(sender, packet).assertEquals(INPUT_ACCEPTED)
 
+@Test function admittedPairReachesShieldBeforePresentationWithinCatchupBudget()
+	let epoch = 950
+	let schedule = new ShadowInputSchedule()
+	let playback = new ShadowInputPlayback()
+	let history = new ReplayHistory()
+	let fixture = new ShadowPlaybackWorld()
+	let world = testWorld(fixture.first, fixture.second)
+	let controls = testCommands(fixture.firstCommands, fixture.secondCommands)
+	let neutral = new NetworkInput()
+	let shield = new NetworkInput()
+	let retained = new MatchFrameInput()
+	let used = new NetworkInput()
+	shadowPlaybackNeutral(neutral)
+	shield.assign(inputActionBit(LEFT_TRIGGER), inputActionBit(LEFT_TRIGGER), 0, 0, 0, 255, 0).assertTrue()
+	schedule.beginEpoch(epoch, 0, 24, 3).assertTrue()
+	playback.beginEpoch(epoch).assertTrue()
+	history.beginEpochWithCorrections(epoch, 1, 24).assertTrue()
+	schedule.captureLocalAt(epoch, 1, neutral).assertEquals(SHADOW_CAPTURED)
+	schedule.captureLocalAt(epoch, 2, shield).assertEquals(SHADOW_CAPTURED)
+	playback.catchUpSpeculative(schedule, epoch, 0, fixture.game, world, controls, fixture.runtime, history, shadowSpeculativeStepBudget(true), 0).assertTrue()
+	fixture.runtime.simulationFrame.assertEquals(2)
+	fixture.first.shield.assertTrue()
+	schedule.speculativeFrame().assertEquals(3)
+	history.copyInputRow(epoch, 2, retained).assertTrue()
+	retained.copyNetworkRow(0, used).assertTrue()
+	used.sameAs(shield).assertTrue()
+	for frame = 3 to 12
+		schedule.captureLocalAt(epoch, frame, neutral).assertEquals(SHADOW_CAPTURED)
+	// Available backlog cannot exceed the per-callback execution budget.
+	playback.catchUpSpeculative(schedule, epoch, 0, fixture.game, world, controls, fixture.runtime, history, shadowSpeculativeStepBudget(true), 0).assertTrue()
+	fixture.runtime.simulationFrame.assertEquals(8)
+	// An acknowledged pause frontier excludes that frame even when rows exist.
+	playback.catchUpSpeculative(schedule, epoch, 0, fixture.game, world, controls, fixture.runtime, history, shadowSpeculativeStepBudget(true), 10).assertTrue()
+	fixture.runtime.simulationFrame.assertEquals(9)
+	playback.catchUpSpeculative(schedule, epoch, 0, fixture.game, world, controls, fixture.runtime, history, shadowSpeculativeStepBudget(true), 0).assertTrue()
+	fixture.runtime.simulationFrame.assertEquals(12)
+	// Missing local frame 13 must not be invented by catch-up.
+	schedule.speculativeFrame().assertEquals(13)
+	// Live callback capture must keep one-step service even with seeded delay rows.
+	let liveSchedule = new ShadowInputSchedule()
+	let livePlayback = new ShadowInputPlayback()
+	let liveHistory = new ReplayHistory()
+	let live = new ShadowPlaybackWorld()
+	liveSchedule.beginEpoch(epoch, 3, 24, 3).assertTrue()
+	livePlayback.beginEpoch(epoch).assertTrue()
+	liveHistory.beginEpochWithCorrections(epoch, 1, 24).assertTrue()
+	liveSchedule.captureLocal(epoch, neutral).assertEquals(SHADOW_CAPTURED)
+	livePlayback.catchUpSpeculative(liveSchedule, epoch, 0, live.game, testWorld(live.first, live.second), testCommands(live.firstCommands, live.secondCommands), live.runtime, liveHistory, shadowSpeculativeStepBudget(false), 0).assertTrue()
+	live.runtime.simulationFrame.assertEquals(1)
+	liveSchedule.captureTarget().assertEquals(5)
+
 @Test function lateHeldInputRePredictsTailAndAcceptedReleaseStopsIt()
 	for localPlayer = 0 to 1
 		let epoch = 930 + localPlayer

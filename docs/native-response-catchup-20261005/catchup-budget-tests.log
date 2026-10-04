@@ -1,0 +1,29 @@
+{"decision":"RESERVED","reason":"RUN","class":"heavy","requestedCpus":6,"requestedMemoryMiB":8192,"leasedCpuCeilings":12,"aggregateCpuLimit":18,"leasedMemoryMiB":17152,"cpuSomeAvg10":2.47,"memoryFullAvg10":0,"memoryAvailableMiB":63204,"reclaimed":0,"lease":"1a11d38d-cb83-4565-adcc-a42c0e3316f2","expiresAt":1791139452564}
+Running tests
+Filter 'admittedPairReachesShieldBeforePresentationWithinCatchupBudget' matched 1 test(s):
+  ShadowInputPlaybackTests.admittedPairReachesShieldBeforePresentationWithinCatchupBudget
+Running /home/tom/code/wc3-melee/worktrees/editbox-pause-focus-20261005/wurst/ShadowInputPlaybackTests.wurst:47 - admittedPairReachesShieldBeforePresentationWithinCatchupBudget..
+	OK!
+Tests succeeded: 1/1
+>> All tests have passed successfully!
+Finished running tests
+compilation finished (errors: 0, warnings: 9)
+Warning in File ShadowInputPlaybackTests.wurst:370:
+ Mixing tabs and spaces for indentation.
+Warning in File FrameIntegrityExperiment.wurst:313:
+ The local variable confirmedRecord is never read. If intentional, prefix with "_" to suppress this warning.
+Warning in File FourPlayerWorldTests.wurst:9:
+ The import ParticipantInputs is never used
+Warning in File ProjectilePoseTests.wurst:6:
+ The import MatchStep is never used
+Warning in File RecoveryTests.wurst:7:
+ The import MatchStep is never used
+Warning in File ReplayState.wurst:8:
+ The import String can be removed, because it is already included in Wurst.
+Warning in File ReplayHistory.wurst:7:
+ The import CommandBuffer is never used
+Warning in File ShadowInputPlayback.wurst:9:
+ The import CommandBuffer is never used
+Warning in File ShadowInputPlaybackTests.wurst:15:
+ The import ParticipantInputs is never used
+{"decision":"RELEASED","lease":"1a11d38d-cb83-4565-adcc-a42c0e3316f2"}

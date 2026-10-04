@@ -1,0 +1,50 @@
+{"decision":"RESERVED","reason":"RUN","class":"heavy","requestedCpus":6,"requestedMemoryMiB":8192,"leasedCpuCeilings":12,"aggregateCpuLimit":18,"leasedMemoryMiB":17152,"cpuSomeAvg10":0,"memoryFullAvg10":0,"memoryAvailableMiB":63327,"reclaimed":0,"lease":"51d22c5f-cc0f-45fb-a20e-73965bc6eda1","expiresAt":1791139158027}
+Running tests
+Filter 'ShadowInputPlayback' matched 8 test(s):
+  ShadowInputPlaybackTests.admittedPairReachesShieldBeforePresentationWithinCatchupBudget
+  ShadowInputPlaybackTests.lateHeldInputRePredictsTailAndAcceptedReleaseStopsIt
+  ShadowInputPlaybackTests.lateJumpCorrectionReAdaptsLaterAttackAgainstAirState
+  ShadowInputPlaybackTests.matchingLatePredictionConfirmsWithoutReplaying
+  ShadowInputPlaybackTests.twelveLateRowsReplayAtFullDepthAndRebuildEverySnapshot
+  ShadowInputPlaybackTests.twentyFourLateRowsRePredictAndRebuildEverySnapshot
+  ShadowInputPlaybackTests.lobbyComputersReplayFromCorrectedHumansWithoutNetworkSenders
+  ShadowInputPlaybackTests.slotModeCpuAndEmptyOwnersStillConfirmAndReplayWithoutPhantomSenders
+Running /home/tom/code/wc3-melee/worktrees/editbox-pause-focus-20261005/wurst/ShadowInputPlaybackTests.wurst:47 - admittedPairReachesShieldBeforePresentationWithinCatchupBudget..
+	OK!
+Running /home/tom/code/wc3-melee/worktrees/editbox-pause-focus-20261005/wurst/ShadowInputPlaybackTests.wurst:86 - lateHeldInputRePredictsTailAndAcceptedReleaseStopsIt..
+	OK!
+Running /home/tom/code/wc3-melee/worktrees/editbox-pause-focus-20261005/wurst/ShadowInputPlaybackTests.wurst:175 - lateJumpCorrectionReAdaptsLaterAttackAgainstAirState..
+	OK!
+Running /home/tom/code/wc3-melee/worktrees/editbox-pause-focus-20261005/wurst/ShadowInputPlaybackTests.wurst:226 - matchingLatePredictionConfirmsWithoutReplaying..
+	OK!
+Running /home/tom/code/wc3-melee/worktrees/editbox-pause-focus-20261005/wurst/ShadowInputPlaybackTests.wurst:253 - twelveLateRowsReplayAtFullDepthAndRebuildEverySnapshot..
+	OK!
+Running /home/tom/code/wc3-melee/worktrees/editbox-pause-focus-20261005/wurst/ShadowInputPlaybackTests.wurst:299 - twentyFourLateRowsRePredictAndRebuildEverySnapshot..
+	OK!
+Running /home/tom/code/wc3-melee/worktrees/editbox-pause-focus-20261005/wurst/ShadowInputPlaybackTests.wurst:357 - lobbyComputersReplayFromCorrectedHumansWithoutNetworkSenders..
+	OK!
+Running /home/tom/code/wc3-melee/worktrees/editbox-pause-focus-20261005/wurst/ShadowInputPlaybackTests.wurst:419 - slotModeCpuAndEmptyOwnersStillConfirmAndReplayWithoutPhantomSenders..
+	OK!
+Tests succeeded: 8/8
+>> All tests have passed successfully!
+Finished running tests
+compilation finished (errors: 0, warnings: 9)
+Warning in File ShadowInputPlaybackTests.wurst:358:
+ Mixing tabs and spaces for indentation.
+Warning in File FrameIntegrityExperiment.wurst:313:
+ The local variable confirmedRecord is never read. If intentional, prefix with "_" to suppress this warning.
+Warning in File FourPlayerWorldTests.wurst:9:
+ The import ParticipantInputs is never used
+Warning in File ProjectilePoseTests.wurst:6:
+ The import MatchStep is never used
+Warning in File RecoveryTests.wurst:7:
+ The import MatchStep is never used
+Warning in File ReplayState.wurst:8:
+ The import String can be removed, because it is already included in Wurst.
+Warning in File ReplayHistory.wurst:7:
+ The import CommandBuffer is never used
+Warning in File ShadowInputPlayback.wurst:9:
+ The import CommandBuffer is never used
+Warning in File ShadowInputPlaybackTests.wurst:15:
+ The import ParticipantInputs is never used
+{"decision":"RELEASED","lease":"51d22c5f-cc0f-45fb-a20e-73965bc6eda1"}

@@ -904,16 +904,18 @@ function shadowInputTick()
         shadowTraceMaxReplayDepth = max(shadowTraceMaxReplayDepth, replayDepth)
     // Replay stays numerical. Persistent visuals project only the completed state;
     // event effects, audio, result state and HUD remain confirmed.
-    if matchState.phase == MATCH and shadowSchedule.mayAdvanceSpeculativeFor(GetPlayerId(GetLocalPlayer()))
-        if shadowPlayback.advanceSpeculative(shadowSchedule, shadowInputEpoch,
-            GetPlayerId(GetLocalPlayer()), shadowMatch, shadowWorld, shadowInputs, shadowRuntime, shadowHistory)
-            if inputTraceActive
-                shadowTraceSpeculativeSteps++
-        else if inputTraceActive
-            shadowTraceSpeculativeFailures++
-    else if inputTraceActive and matchState.phase == MATCH
-            and shadowSchedule.speculativeFrame() > shadowSchedule.knownThrough() + shadowSchedule.rollbackFrames()
-        shadowTraceWindowBlocks++
+    if matchState.phase == MATCH
+        let before = shadowSchedule.speculativeFrame()
+        let advanced = shadowPlayback.catchUpSpeculative(shadowSchedule, shadowInputEpoch,
+            GetPlayerId(GetLocalPlayer()), shadowMatch, shadowWorld, shadowInputs, shadowRuntime, shadowHistory,
+            shadowSpeculativeStepBudget(JOURNAL_INPUT_SOURCE), journalPauseAckReceived ? journalPauseAckFrame : 0)
+        if inputTraceActive
+            shadowTraceSpeculativeSteps += shadowSchedule.speculativeFrame() - before
+            if not advanced
+                shadowTraceSpeculativeFailures++
+            else if shadowSchedule.speculativeFrame() == before
+                    and shadowSchedule.speculativeFrame() > shadowSchedule.knownThrough() + shadowSchedule.rollbackFrames()
+                shadowTraceWindowBlocks++
 
     if RESPONSE_SERVICE_PROBE
         responseProbeAdvance(replayRuntime.simulationFrame, shadowSchedule.speculativeFrame(), correction)

@@ -1,0 +1,132 @@
+[
+  {
+    "row": 356,
+    "edge": "press",
+    "target": 96.0,
+    "F_before": 95.0,
+    "F_after": 97.0,
+    "prediction_row": 356,
+    "callbacks": 0,
+    "after_poll_native_ms": 0.0
+  },
+  {
+    "row": 370,
+    "edge": "release",
+    "target": 110.0,
+    "F_before": 109.0,
+    "F_after": 111.0,
+    "prediction_row": 370,
+    "callbacks": 0,
+    "after_poll_native_ms": 0.0
+  },
+  {
+    "row": 418,
+    "edge": "press",
+    "target": 158.0,
+    "F_before": 157.0,
+    "F_after": 159.0,
+    "prediction_row": 418,
+    "callbacks": 0,
+    "after_poll_native_ms": 0.0
+  },
+  {
+    "row": 477,
+    "edge": "press",
+    "target": 218.0,
+    "F_before": 217.0,
+    "F_after": 219.0,
+    "prediction_row": 477,
+    "callbacks": 0,
+    "after_poll_native_ms": 0.0
+  },
+  {
+    "row": 560,
+    "edge": "release",
+    "target": 300.0,
+    "F_before": 299.0,
+    "F_after": 301.0,
+    "prediction_row": 560,
+    "callbacks": 0,
+    "after_poll_native_ms": 0.0
+  },
+  {
+    "row": 602,
+    "edge": "press",
+    "target": 342.0,
+    "F_before": 341.0,
+    "F_after": 343.0,
+    "prediction_row": 602,
+    "callbacks": 0,
+    "after_poll_native_ms": 0.0
+  },
+  {
+    "row": 675,
+    "edge": "release",
+    "target": 416.0,
+    "F_before": 415.0,
+    "F_after": 417.0,
+    "prediction_row": 675,
+    "callbacks": 0,
+    "after_poll_native_ms": 0.0
+  },
+  {
+    "row": 736,
+    "edge": "release",
+    "target": 478.0,
+    "F_before": 477.0,
+    "F_after": 479.0,
+    "prediction_row": 736,
+    "callbacks": 0,
+    "after_poll_native_ms": 0.0
+  },
+  {
+    "row": 798,
+    "edge": "release",
+    "target": 540.0,
+    "F_before": 539.0,
+    "F_after": 541.0,
+    "prediction_row": 798,
+    "callbacks": 0,
+    "after_poll_native_ms": 0.0
+  },
+  {
+    "row": 858,
+    "edge": "press",
+    "target": 598.0,
+    "F_before": 597.0,
+    "F_after": 599.0,
+    "prediction_row": 858,
+    "callbacks": 0,
+    "after_poll_native_ms": 0.0
+  },
+  {
+    "row": 940,
+    "edge": "release",
+    "target": 682.0,
+    "F_before": 681.0,
+    "F_after": 683.0,
+    "prediction_row": 940,
+    "callbacks": 0,
+    "after_poll_native_ms": 0.0
+  },
+  {
+    "row": 992,
+    "edge": "press",
+    "target": 734.0,
+    "F_before": 733.0,
+    "F_after": 735.0,
+    "prediction_row": 992,
+    "callbacks": 0,
+    "after_poll_native_ms": 0.0
+  },
+  {
+    "row": 1081,
+    "edge": "release",
+    "target": 822.0,
+    "F_before": 821.0,
+    "F_after": 823.0,
+    "prediction_row": 1081,
+    "callbacks": 0,
+    "after_poll_native_ms": 0.0
+  }
+]

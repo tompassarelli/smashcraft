@@ -8,6 +8,11 @@ import Simulation
 import MatchRules
 import CommandBuffer
 
+public function shadowSpeculativeStepBudget(boolean originalFramesRetained) returns int
+    // Callback sampling owns one new frame; advancing its cursor farther would
+    // skip future capture targets. Retained journals already own their rows.
+    return originalFramesRetained ? 6 : 1
+
 public class ShadowInputPlayback
     private ParticipantInputs inputs = new ParticipantInputs()
     private MatchFrameInput row = new MatchFrameInput()
@@ -24,6 +29,19 @@ public class ShadowInputPlayback
         if not corrections.beginEpoch(newEpoch)
             return false
         epoch = newEpoch
+        return true
+
+    // Consume only already assigned local rows, within the callback budget and
+    // any acknowledged pause frontier. The schedule still bounds prediction by R.
+    function catchUpSpeculative(ShadowInputSchedule schedule, int requestedEpoch, int localPlayer,
+            MatchState game, FighterRoster world, FrameInputs controls,
+            ReplayRuntimeState runtime, ReplayHistory history, int stepBudget, int stopBeforeFrame) returns boolean
+        var steps = 0
+        while steps < stepBudget and schedule.mayAdvanceSpeculativeFor(localPlayer)
+                and (stopBeforeFrame == 0 or schedule.speculativeFrame() < stopBeforeFrame)
+            if not advanceSpeculative(schedule, requestedEpoch, localPlayer, game, world, controls, runtime, history)
+                return false
+            steps++
         return true
 
     // The service owner samples and sends before calling this method. Resolution

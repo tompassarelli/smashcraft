@@ -1,0 +1,464 @@
+{
+  "actor": "b",
+  "key": "q",
+  "roi": [
+    0,
+    0,
+    300,
+    240
+  ],
+  "clients": {
+    "a": {
+      "role": "remote",
+      "frames": 985,
+      "ready_events": 986,
+      "max_pts_match_error_ms": 0.006315,
+      "capture_gap_ms": {
+        "median": 16.338202,
+        "p95": 16.505867,
+        "max": 16.67859
+      },
+      "trials": [
+        {
+          "trial": 0,
+          "press_interval_ns": [
+            549281466951155,
+            549281467138015
+          ],
+          "baseline": 24.695513888888883,
+          "held": 38.77095833333334,
+          "step": 14.075444444444457,
+          "noise": 0.008055555555557703,
+          "threshold": 2.8150888888888916,
+          "status": "observed",
+          "frame": 159,
+          "latency_ms": 192.493422,
+          "lower_ms": 176.046591,
+          "upper_ms": 192.586852,
+          "preceding_capture_gap_ms": 16.353401
+        },
+        {
+          "trial": 1,
+          "press_interval_ns": [
+            549282505835058,
+            549282505949633
+          ],
+          "baseline": 24.709319444444446,
+          "held": 38.678430555555536,
+          "step": 13.96911111111109,
+          "noise": 0.02008333333333212,
+          "threshold": 2.793822222222218,
+          "status": "observed",
+          "frame": 222,
+          "latency_ms": 183.5762245,
+          "lower_ms": 167.171146,
+          "upper_ms": 183.633512,
+          "preceding_capture_gap_ms": 16.347791
+        },
+        {
+          "trial": 2,
+          "press_interval_ns": [
+            549283502164583,
+            549283502274539
+          ],
+          "baseline": 24.784374999999983,
+          "held": 38.576458333333335,
+          "step": 13.792083333333352,
+          "noise": 0.02058333333334872,
+          "threshold": 2.7584166666666707,
+          "status": "observed",
+          "frame": 282,
+          "latency_ms": 165.897384,
+          "lower_ms": 149.390711,
+          "upper_ms": 165.952362,
+          "preceding_capture_gap_ms": 16.451695
+        },
+        {
+          "trial": 3,
+          "press_interval_ns": [
+            549284618189150,
+            549284618300038
+          ],
+          "baseline": 24.78969444444445,
+          "held": 24.776986111111114,
+          "step": -0.012708333333335986,
+          "noise": 0.02272222222219966,
+          "threshold": 0.09088888888879865,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 4,
+          "press_interval_ns": [
+            549285574771017,
+            549285574930776
+          ],
+          "baseline": 24.70622222222221,
+          "held": 38.3028472222222,
+          "step": 13.596624999999989,
+          "noise": 0.017166666666668107,
+          "threshold": 2.7193249999999978,
+          "status": "observed",
+          "frame": 409,
+          "latency_ms": 165.5585935,
+          "lower_ms": 149.161431,
+          "upper_ms": 165.638473,
+          "preceding_capture_gap_ms": 16.317283
+        },
+        {
+          "trial": 5,
+          "press_interval_ns": [
+            549286558294820,
+            549286558406129
+          ],
+          "baseline": 24.709916666666686,
+          "held": 24.698097222222202,
+          "step": -0.011819444444483906,
+          "noise": 0.022472222222233995,
+          "threshold": 0.08988888888893598,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 6,
+          "press_interval_ns": [
+            549287594449398,
+            549287594597776
+          ],
+          "baseline": 24.765513888888876,
+          "held": 24.708111111111123,
+          "step": -0.057402777777753045,
+          "noise": 0.02890277777774486,
+          "threshold": 0.11561111111097944,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 7,
+          "press_interval_ns": [
+            549288629785863,
+            549288629905938
+          ],
+          "baseline": 24.77745833333333,
+          "held": 24.779527777777787,
+          "step": 0.002069444444458668,
+          "noise": 0.004041666666665833,
+          "threshold": 0.016166666666663332,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 8,
+          "press_interval_ns": [
+            549289844857303,
+            549289844990743
+          ],
+          "baseline": 24.767736111111105,
+          "held": 37.70622222222224,
+          "step": 12.938486111111132,
+          "noise": 0.017875000000003638,
+          "threshold": 2.5876972222222268,
+          "status": "observed",
+          "frame": 671,
+          "latency_ms": 167.008486,
+          "lower_ms": 150.604365,
+          "upper_ms": 167.075206,
+          "preceding_capture_gap_ms": 16.337401
+        },
+        {
+          "trial": 9,
+          "press_interval_ns": [
+            549290987109868,
+            549290987212751
+          ],
+          "baseline": 24.723874999999992,
+          "held": 24.77719444444446,
+          "step": 0.0533194444444689,
+          "noise": 0.031986111111109494,
+          "threshold": 0.12794444444443798,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 10,
+          "press_interval_ns": [
+            549292113108300,
+            549292113215180
+          ],
+          "baseline": 24.69306944444446,
+          "held": 37.621263888888905,
+          "step": 12.928194444444443,
+          "noise": 0.006722222222236951,
+          "threshold": 2.585638888888889,
+          "status": "observed",
+          "frame": 810,
+          "latency_ms": 168.065322,
+          "lower_ms": 151.427268,
+          "upper_ms": 168.118762,
+          "preceding_capture_gap_ms": 16.584614
+        },
+        {
+          "trial": 11,
+          "press_interval_ns": [
+            549293320011329,
+            549293320154147
+          ],
+          "baseline": 24.693666666666672,
+          "held": 37.52190277777777,
+          "step": 12.828236111111096,
+          "noise": 0.012583333333338942,
+          "threshold": 2.5656472222222195,
+          "status": "observed",
+          "frame": 885,
+          "latency_ms": 184.688714,
+          "lower_ms": 168.231854,
+          "upper_ms": 184.760123,
+          "preceding_capture_gap_ms": 16.385451
+        }
+      ],
+      "observed": 7,
+      "unresolved_or_censored": 5,
+      "latency_ms": {
+        "mean": 175.326878,
+        "median": 168.065322,
+        "p95": 192.493422,
+        "p99": 192.493422,
+        "max": 192.493422
+      }
+    },
+    "b": {
+      "role": "local",
+      "frames": 986,
+      "ready_events": 987,
+      "max_pts_match_error_ms": 0.006228,
+      "capture_gap_ms": {
+        "median": 16.340987,
+        "p95": 16.495137,
+        "max": 16.872815
+      },
+      "trials": [
+        {
+          "trial": 0,
+          "press_interval_ns": [
+            549281466951155,
+            549281467138015
+          ],
+          "baseline": 78.04655555555557,
+          "held": 86.51075,
+          "step": 8.46419444444443,
+          "noise": 0.039833333333348264,
+          "threshold": 1.6928388888888861,
+          "status": "observed",
+          "frame": 152,
+          "latency_ms": 75.387522,
+          "lower_ms": 58.988521,
+          "upper_ms": 75.480952,
+          "preceding_capture_gap_ms": 16.305571
+        },
+        {
+          "trial": 1,
+          "press_interval_ns": [
+            549282505835058,
+            549282505949633
+          ],
+          "baseline": 78.116375,
+          "held": 86.21726388888888,
+          "step": 8.100888888888875,
+          "noise": 0.08515277777776475,
+          "threshold": 1.620177777777775,
+          "status": "observed",
+          "frame": 215,
+          "latency_ms": 65.7907305,
+          "lower_ms": 49.336751,
+          "upper_ms": 65.848018,
+          "preceding_capture_gap_ms": 16.396692
+        },
+        {
+          "trial": 2,
+          "press_interval_ns": [
+            549283502164583,
+            549283502274539
+          ],
+          "baseline": 78.40061805555555,
+          "held": 86.322,
+          "step": 7.921381944444448,
+          "noise": 0.09609027777777612,
+          "threshold": 1.5842763888888898,
+          "status": "observed",
+          "frame": 276,
+          "latency_ms": 64.804938,
+          "lower_ms": 48.29564,
+          "upper_ms": 64.859916,
+          "preceding_capture_gap_ms": 16.45432
+        },
+        {
+          "trial": 3,
+          "press_interval_ns": [
+            549284618189150,
+            549284618300038
+          ],
+          "baseline": 78.39330555555556,
+          "held": 86.42013888888889,
+          "step": 8.026833333333329,
+          "noise": 0.07197222222222877,
+          "threshold": 1.605366666666666,
+          "status": "observed",
+          "frame": 346,
+          "latency_ms": 89.156114,
+          "lower_ms": 72.737321,
+          "upper_ms": 89.211558,
+          "preceding_capture_gap_ms": 16.363349
+        },
+        {
+          "trial": 4,
+          "press_interval_ns": [
+            549285574771017,
+            549285574930776
+          ],
+          "baseline": 78.11440277777777,
+          "held": 86.30852777777778,
+          "step": 8.194125000000014,
+          "noise": 0.06863888888891267,
+          "threshold": 1.6388250000000029,
+          "status": "observed",
+          "frame": 402,
+          "latency_ms": 47.5986935,
+          "lower_ms": 30.943768,
+          "upper_ms": 47.678573,
+          "preceding_capture_gap_ms": 16.575046
+        },
+        {
+          "trial": 5,
+          "press_interval_ns": [
+            549286558294820,
+            549286558406129
+          ],
+          "baseline": 78.12245833333334,
+          "held": 85.99108333333335,
+          "step": 7.868625000000009,
+          "noise": 0.013319444444448436,
+          "threshold": 1.5737250000000018,
+          "status": "observed",
+          "frame": 465,
+          "latency_ms": 91.9341505,
+          "lower_ms": 75.518733,
+          "upper_ms": 91.989805,
+          "preceding_capture_gap_ms": 16.359763
+        },
+        {
+          "trial": 6,
+          "press_interval_ns": [
+            549287594449398,
+            549287594597776
+          ],
+          "baseline": 78.3010625,
+          "held": 85.94755555555555,
+          "step": 7.646493055555553,
+          "noise": 0.09860416666664662,
+          "threshold": 1.5292986111111107,
+          "status": "observed",
+          "frame": 529,
+          "latency_ms": 98.168105,
+          "lower_ms": 81.739504,
+          "upper_ms": 98.242294,
+          "preceding_capture_gap_ms": 16.354412
+        },
+        {
+          "trial": 7,
+          "press_interval_ns": [
+            549288629785863,
+            549288629905938
+          ],
+          "baseline": 78.4077361111111,
+          "held": 86.1328888888889,
+          "step": 7.725152777777794,
+          "noise": 0.07697222222221001,
+          "threshold": 1.5450305555555588,
+          "status": "observed",
+          "frame": 591,
+          "latency_ms": 72.1597025,
+          "lower_ms": 55.743059,
+          "upper_ms": 72.21974,
+          "preceding_capture_gap_ms": 16.356606
+        },
+        {
+          "trial": 8,
+          "press_interval_ns": [
+            549289844857303,
+            549289844990743
+          ],
+          "baseline": 78.29368055555555,
+          "held": 86.12931944444445,
+          "step": 7.835638888888894,
+          "noise": 0.0444305555555502,
+          "threshold": 1.567127777777779,
+          "status": "observed",
+          "frame": 664,
+          "latency_ms": 48.480491,
+          "lower_ms": 32.016217,
+          "upper_ms": 48.547211,
+          "preceding_capture_gap_ms": 16.397554
+        },
+        {
+          "trial": 9,
+          "press_interval_ns": [
+            549290987109868,
+            549290987212751
+          ],
+          "baseline": 78.1842777777778,
+          "held": 86.12484722222221,
+          "step": 7.940569444444421,
+          "noise": 0.06948611111114644,
+          "threshold": 1.5881138888888842,
+          "status": "observed",
+          "frame": 735,
+          "latency_ms": 66.4741475,
+          "lower_ms": 50.062632,
+          "upper_ms": 66.525589,
+          "preceding_capture_gap_ms": 16.360074
+        },
+        {
+          "trial": 10,
+          "press_interval_ns": [
+            549292113108300,
+            549292113215180
+          ],
+          "baseline": 78.0367361111111,
+          "held": 85.96219444444444,
+          "step": 7.925458333333339,
+          "noise": 0.049347222222252185,
+          "threshold": 1.585091666666668,
+          "status": "observed",
+          "frame": 802,
+          "latency_ms": 36.012207,
+          "lower_ms": 19.517321,
+          "upper_ms": 36.065647,
+          "preceding_capture_gap_ms": 16.441446
+        },
+        {
+          "trial": 11,
+          "press_interval_ns": [
+            549293320011329,
+            549293320154147
+          ],
+          "baseline": 78.01793055555555,
+          "held": 85.85988888888889,
+          "step": 7.841958333333338,
+          "noise": 0.06758333333331734,
+          "threshold": 1.5683916666666677,
+          "status": "observed",
+          "frame": 878,
+          "latency_ms": 69.426079,
+          "lower_ms": 52.978326,
+          "upper_ms": 69.497488,
+          "preceding_capture_gap_ms": 16.376344
+        }
+      ],
+      "observed": 12,
+      "unresolved_or_censored": 0,
+      "latency_ms": {
+        "mean": 68.78274004166667,
+        "median": 67.95011325,
+        "p95": 98.168105,
+        "p99": 98.168105,
+        "max": 98.168105
+      }
+    }
+  },
+  "method": "Positive shield-tint change in fighter-region mean blue-minus-red; threshold is 20% of each held-state step or 4x measured pre-input motion, whichever is larger. Two consecutive frames must cross it. Negative color changes are not evidence of this shield response. This is a color-response onset metric, not a physical device/display measurement."
+}
