@@ -1,0 +1,95 @@
+{
+  "build": "netcode-0029",
+  "mapSha256": "c151677f5decc8172a27c61fc39a3268c323ff68f5d24e9453aa599e8fe2591b",
+  "slots": [
+    0,
+    2
+  ],
+  "samplesPerArmPerClient": 60,
+  "offeredHz": [
+    30,
+    60
+  ],
+  "arms": [
+    "direct-sync",
+    "gamecache-selection-marker",
+    "selection-digits"
+  ],
+  "observations": {
+    "a-smashcraft-transport-netcode-0029-observer-0-r0-a0.txt": {
+      "hostObservedNs": 491137461307134,
+      "secondsSinceTrigger": 17.520907952,
+      "mtimeNs": 1791081291403885056,
+      "sha256": "44773e665bd6a9126172cd918b0d6f0a5de7b9025e621b140bfd998a1c7e5aed"
+    },
+    "b-smashcraft-transport-netcode-0029-observer-2-r0-a0.txt": {
+      "hostObservedNs": 491137462192734,
+      "secondsSinceTrigger": 17.521793552,
+      "mtimeNs": 1791081291394396314,
+      "sha256": "b3fd7800c0b0d6897cff9ed7bca0971eea32d57b17dcb1a161a9c0aa60b3fa26"
+    },
+    "a-smashcraft-transport-netcode-0029-observer-0-r0-a1.txt": {
+      "hostObservedNs": 491139627839121,
+      "secondsSinceTrigger": 19.687439939,
+      "mtimeNs": 1791081293571541423,
+      "sha256": "5d9d1ff3ccc77710921ca304b22740411d01009d2daa1be815622fff807ddd16"
+    },
+    "b-smashcraft-transport-netcode-0029-observer-2-r0-a1.txt": {
+      "hostObservedNs": 491139628371779,
+      "secondsSinceTrigger": 19.687972597,
+      "mtimeNs": 1791081293573966208,
+      "sha256": "d5189d179753071a55cd7c3d90d695d9685facfe2cb55e7d37098807c1c0cf65"
+    },
+    "a-smashcraft-transport-netcode-0029-observer-0-r0-a2.txt": {
+      "hostObservedNs": 491141832831914,
+      "secondsSinceTrigger": 21.892432732,
+      "mtimeNs": 1791081295768879959,
+      "sha256": "1834ef35545312bbbb89cb20162dcc5b83e54a69c85402c0b667a49bf6e46149"
+    },
+    "b-smashcraft-transport-netcode-0029-observer-2-r0-a2.txt": {
+      "hostObservedNs": 491141833549879,
+      "secondsSinceTrigger": 21.893150697,
+      "mtimeNs": 1791081295775114695,
+      "sha256": "a2c8428b59b3a4c41341e7ea7daee78ba01569fe139030a099781f0b7c670395"
+    },
+    "b-smashcraft-transport-netcode-0029-observer-2-r1-a0.txt": {
+      "hostObservedNs": 491157929494546,
+      "secondsSinceTrigger": 37.989095364,
+      "mtimeNs": 1791081311876062429,
+      "sha256": "25a1da0670cb76aebac5f24ca3df1a89580e4cdab2a09264d91b351045b3d6bc"
+    },
+    "a-smashcraft-transport-netcode-0029-observer-0-r1-a0.txt": {
+      "hostObservedNs": 491157950114986,
+      "secondsSinceTrigger": 38.009715804,
+      "mtimeNs": 1791081311886545057,
+      "sha256": "2047651d8853bc3a056119dcb81c445eef0850e9b43dc3495ca9d9a6b275bf02"
+    },
+    "a-smashcraft-transport-netcode-0029-observer-0-r1-a1.txt": {
+      "hostObservedNs": 491159121451473,
+      "secondsSinceTrigger": 39.181052291,
+      "mtimeNs": 1791081313057745710,
+      "sha256": "977a72ead23256e25b961306fabd64c9d1b57c6aadb41696389d47c5eb257941"
+    },
+    "b-smashcraft-transport-netcode-0029-observer-2-r1-a1.txt": {
+      "hostObservedNs": 491159122158248,
+      "secondsSinceTrigger": 39.181759066,
+      "mtimeNs": 1791081313056758900,
+      "sha256": "ffd9039786e4e363c6a7589fbda90a8765ce9034e0463498d8ce764630b84be6"
+    },
+    "a-smashcraft-transport-netcode-0029-observer-0-r1-a2.txt": {
+      "hostObservedNs": 491160273336451,
+      "secondsSinceTrigger": 40.332937269,
+      "mtimeNs": 1791081314211637951,
+      "sha256": "5e5228b11cba91d69cba694d45c41f24a489cb99cc4e11f33e06a417584f5fa4"
+    },
+    "b-smashcraft-transport-netcode-0029-observer-2-r1-a2.txt": {
+      "hostObservedNs": 491160274264691,
+      "secondsSinceTrigger": 40.333865509,
+      "mtimeNs": 1791081314206102245,
+      "sha256": "dbefadb2359f69f1a56a7c3d896b15584a4ebe5eff7a2c6f39beb2089f11e635"
+    }
+  },
+  "triggerHostNs": 491119940399182,
+  "triggerUtc": "2026-10-04T02:34:33.891537+00:00",
+  "complete": true
+}

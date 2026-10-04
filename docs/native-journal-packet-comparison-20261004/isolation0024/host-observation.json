@@ -1,0 +1,22 @@
+{
+  "build": "netcode-0024",
+  "mapSha256": "1aa3895cbc98919fe7c300d8e71863e79faae853322bcde3b027b0c05e4c6a0f",
+  "startedUtc": "2026-10-04T01:34:16.359213+00:00",
+  "hostStartNs": 487502408077546,
+  "slots": [
+    0,
+    2
+  ],
+  "exports": {
+    "a": {
+      "hostObservedNs": 487539658274294,
+      "wallSecondsSinceTrigger": 37.250197499,
+      "sha256": "539fc2b9bc7cb2e6bd8e776b261c521caf00663fdb447552d9a328492eb66cf9"
+    },
+    "b": {
+      "hostObservedNs": 487539659717130,
+      "wallSecondsSinceTrigger": 37.251639884,
+      "sha256": "a6f83d364fd55a4338706cb50404de1f4609335abc37574c12c76a73758bf2f5"
+    }
+  }
+}

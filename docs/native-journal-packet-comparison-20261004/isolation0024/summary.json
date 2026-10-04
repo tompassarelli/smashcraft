@@ -1,0 +1,54 @@
+{
+  "a": {
+    "A-generated": {
+      "samples": 300,
+      "medianMs": 88.0,
+      "p95Ms": 164.0,
+      "maximumMs": 215.0,
+      "firstThirtyMeanMs": 122.39999999999999,
+      "lastThirtyMeanMs": 78.83333333333334
+    },
+    "B-file": {
+      "samples": 300,
+      "medianMs": 3925.5,
+      "p95Ms": 7055.0,
+      "maximumMs": 7555.0,
+      "firstThirtyMeanMs": 808.9,
+      "lastThirtyMeanMs": 6745.366666666667
+    },
+    "C-I4": {
+      "samples": 300,
+      "medianMs": 89.0,
+      "p95Ms": 173.0,
+      "maximumMs": 229.0,
+      "firstThirtyMeanMs": 85.03333333333333,
+      "lastThirtyMeanMs": 121.43333333333334
+    }
+  },
+  "b": {
+    "A-generated": {
+      "samples": 300,
+      "medianMs": 80.0,
+      "p95Ms": 156.0,
+      "maximumMs": 215.0,
+      "firstThirtyMeanMs": 118.23333333333333,
+      "lastThirtyMeanMs": 68.13333333333334
+    },
+    "B-file": {
+      "samples": 300,
+      "medianMs": 4100.5,
+      "p95Ms": 7289.0,
+      "maximumMs": 7789.0,
+      "firstThirtyMeanMs": 778.1333333333333,
+      "lastThirtyMeanMs": 7025.366666666667
+    },
+    "C-I4": {
+      "samples": 300,
+      "medianMs": 89.0,
+      "p95Ms": 171.0,
+      "maximumMs": 213.0,
+      "firstThirtyMeanMs": 85.93333333333334,
+      "lastThirtyMeanMs": 118.16666666666667
+    }
+  }
+}

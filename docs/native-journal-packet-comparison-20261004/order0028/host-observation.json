@@ -1,0 +1,9 @@
+{
+  "build": "netcode-0028",
+  "mapSha256": "38d3fd123d2818d0e16e14b58b23cebb467b0ef1cc79067d8ea8f78077646fae",
+  "readyCollectionNote": "Host Ctrl+O fires synchronized chord callback on both observers; both write local ready. Initial collector incorrectly expected only A readiness before separately starting B; corrected by collecting existing build-specific B receipt.",
+  "slots": [
+    0,
+    2
+  ]
+}

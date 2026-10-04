@@ -1,0 +1,13 @@
+{
+  "build": "netcode-0024",
+  "timing": "host XTEST command start to first complete local file observation; includes native file output and polling",
+  "rows": [
+    {
+      "senderSlot": 0,
+      "sequence": 0,
+      "key": "s",
+      "hostInputStartNs": 487718022018558,
+      "observations": {}
+    }
+  ]
+}

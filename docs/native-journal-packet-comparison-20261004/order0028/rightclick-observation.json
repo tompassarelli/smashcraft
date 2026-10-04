@@ -1,0 +1,5 @@
+{
+  "build": "netcode-0028",
+  "injection": "real UI right-click at 1400,800; not a scripted IssueOrder",
+  "observations": {}
+}

@@ -1,0 +1,13 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=netcode-0029 receipt=native-order-ready" )
+	call Preload( "player=2 carrier=footman hotkeys=S-stop,H-hold" )
+	call Preload( "carrier-exists=1 type-id=1751543663 owner-slot=2 selected=0" )
+	call Preload( "selection-enabled=1 command-panel-unhidden=1" )
+	call Preload( "native-game-seconds=1104.412" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

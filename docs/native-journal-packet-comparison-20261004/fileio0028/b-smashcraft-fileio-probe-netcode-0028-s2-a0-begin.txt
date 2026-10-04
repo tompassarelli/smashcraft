@@ -1,0 +1,11 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=netcode-0028 receipt=fileio-discriminator begin" )
+	call Preload( "slot=2 arm=0 native-game-seconds=0.000" )
+	call Preload( "fixture-slot=2 fixture-content=D0B0000000000000" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

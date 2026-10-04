@@ -172,3 +172,148 @@ B 5,131.531/7,444.427/7,611.053 ms. Both helpers exited successfully after
 publishing through F1200; later frames are not claimed as applied at this
 recording cutoff. Maximum submission was one sync call per service callback
 in both recordings. Production delay remains unresolved.
+
+## Native 0.0.24: populated-file path reproduces the backlog
+
+The same retained clients ran exact Smashcraft 0.0.24 / `netcode-0024`, SHA256
+`1aa3895cbc98919fe7c300d8e71863e79faae853322bcde3b027b0c05e4c6a0f`.
+Fresh readiness receipts identified human/fighter mask 5, slots 0 and 2. Spare
+slots were closed; both clients were in MATCH before the diagnostic began.
+
+Each sequential arm offered 300 messages per client at 30 Hz through `SC_GP`.
+A generated unique 16-byte strings. B loaded matching-size unique strings from
+300 immutable populated preload files per client. C generated neutral canonical
+two-row I4 packets and used the production decode/admit/send/receive path without
+files. A/B each sent 4,800 payload bytes per client; C sent 2,384. C's different
+payload sizes and neutral inputs limit its comparison with production combat.
+
+| Client | Generated 16-byte: mean / max | Populated-file 16-byte: mean / max | Generated I4: mean / max |
+| --- | --- | --- | --- |
+| A | 95 / 215 ms | 3,989 / 7,555 ms | 100 / 229 ms |
+| B | 87 / 215 ms | 4,146 / 7,789 ms | 97 / 213 ms |
+
+All 300 messages arrived in every arm on both clients; reported missing,
+duplicate, file-validation, failed-submission and unexpected counts were zero.
+B's mean age increased from 809/778 ms in its first 30 messages to 6,745/7,025 ms
+in its final 30 messages (A/B). Its drain required another 397/402 callbacks.
+Generated A and C did not develop that backlog. Both complete exports appeared
+about 37.25 host-wall seconds after the trigger; native spans were 36.79/36.81 s.
+Per-message ages use the native game clock. File-read duration again displayed
+zero and does not establish zero wall cost inside callbacks.
+
+Under these tested conditions, populated-file loading reproduces the slow
+behavior without production I4 decoding or fighting. The generated I4 path
+works quickly for this neutral corpus. This narrows the owning failure to the
+populated-file integration, but does not yet distinguish fresh preload execution,
+the tooltip read/write mechanism, or another interaction. It does not prove
+physical capture, ordinary combat responsiveness, or a universal engine quota.
+Arm-ending simulation frames differ, so these exports are not paired terminal
+checksum evidence. Raw exports, host observation and per-sequence statistics:
+`wc3-melee:docs/native-journal-packet-comparison-20261004/isolation0024/`.
+
+Ctrl+O produced fresh native-order ready receipts on both clients. A subsequent
+real XTEST Stop command produced no order receipts on either client, and the
+native command panel did not expose a selected Footman. Carrier creation,
+selection and command usability remain unproved. This is a failed probe setup,
+not a native-order latency or reliability result. Evidence:
+`wc3-melee:docs/native-journal-packet-comparison-20261004/order0024/`.
+
+## Native 0.0.28 FileIO discriminator
+
+Exact candidate SHA256: `38d3fd123d2818d0e16e14b58b23cebb467b0ef1cc79067d8ea8f78077646fae`.
+Pinned build passed with zero errors and 19 warnings. Separate measurement and
+driver timers corrected an earlier diagnostic defect; Ctrl+P avoids the existing
+Ctrl+T trace shortcut. Both retained clients were in MATCH, slots 0/2, other
+slots closed. Each arm sent 100 22-byte messages/client at 30 Hz.
+
+Repeated populated paths averaged 97/94 ms; fresh populated paths 132/139 ms;
+tooltip-only set/get/clear 108/105 ms (A/B). All 100/100 arrived per arm/client,
+with zero reported bad payloads, local read errors, failed sends or duplicates.
+Host-observed complete receipts arrived after 10.577 seconds. Fixtures were
+local to each client, all named for source slot 2, carrying identical 16-byte
+content. Raw receipts and host observation are retained in
+`wc3-melee:docs/native-journal-packet-comparison-20261004/fileio0028/`.
+
+Fresh filenames alone did not reproduce the 0.0.24 changing-content backlog
+in this shorter, constant-content run. Changing contents and sustained duration
+remain to isolate. This is native echo evidence, not physical response.
+
+The same 0.0.28 session's 300-sample changing-file Ctrl+B reproduction averaged
+2,730/2,884 ms (A/B), versus generated 93/86 ms and generated I4 88/95 ms. All
+300/300 arrived per arm/client, with zero reported failures or duplicates.
+Evidence is in `wc3-melee:docs/native-journal-packet-comparison-20261004/isolation0028/`.
+The corrected collection validates embedded build identity; initial watcher
+filename mismatch prevents an exact host observation-latency claim.
+
+The order probe again failed its first command boundary: Stop and a real UI
+right-click produced no exact-carrier receipts. Immediate ready flags reported
+existing owned Footmen, selection enabled, selected zero. Native details later
+showed Footman. This establishes no transport verdict; evidence is in
+`wc3-melee:docs/native-journal-packet-comparison-20261004/order0028/`.
+
+## Native 0.0.29 matched changing-content result
+
+Exact SHA256: `c151677f5decc8172a27c61fc39a3268c323ff68f5d24e9453aa599e8fe2591b`.
+Pinned build passed with zero errors/18 warnings. Both retained clients were
+in MATCH, slots 0/2, spare slots closed. At 30 Hz, 300 changing values/client
+per arm, identical 22-byte payload sizes and independent diagnostic driver:
+generated mean 99/89 ms, tooltip-only mean 116/110 ms, fresh-file mean
+3,101/3,195 ms. All 300/300 received per arm/client and reported error counters
+zero. File maxima were 5,819/5,862 ms. Final host observations at
+35.829/35.768 seconds. Raw evidence:
+`wc3-melee:docs/native-journal-packet-comparison-20261004/fileio0029/`.
+
+Tooltip set/get/clear alone is insufficient to reproduce the populated-file
+delay under this matched workload. Remaining distinction: Preloader execution
+versus FileIO wrapper, and constant content at matched duration. Native timings
+are own-echo, not physical response or competitive acceptance.
+
+## Native 0.0.29 short transport comparison
+
+Same two retained clients, slots 0/2, exact 0.0.29 artifact cited above.
+Each arm injected 60 signed 32-bit values per client at 30 and 60 Hz, including
+extremes and varying patterns. Each observer expected 120 values. Independent
+game-clock timing measured own submission-to-receipt, not physical response.
+
+| Rate / transport | A mean/max | B mean/max | Per-observer integrity |
+|---|---:|---:|---|
+| 30 Hz direct sync | 166/198 ms | 158/198 ms | 118/120 valid, two invalid |
+| 30 Hz GameCache + selection marker | 162/199 ms | 155/198 ms | 120/120, zero reported errors |
+| 30 Hz selection digits | 161/195 ms | 156/195 ms | 120/120, zero reported errors |
+| 60 Hz direct sync | 158/199 ms | 150/169 ms | 118/120 valid, two invalid |
+| 60 Hz GameCache + selection marker | 142/172 ms | 135/172 ms | 120/120, zero reported errors |
+| 60 Hz selection digits | 141/172 ms | 135/172 ms | 120/120, zero reported errors |
+
+All direct arms recorded 60 own echoes. Their 17.063/16.030-second phases
+included the 15-second drain timeout because completion required valid values.
+This is a payload-validation failure, not demonstrated message loss or backlog.
+Raw receipts do not identify the invalid values; add per-value wire, expected
+and actual diagnostics before naming a cause or ranking performance. Both
+selection and direct paths parse strings using S2I, so signed conversion alone
+is not yet a demonstrated cause.
+
+GameCache used ntp.w3v, one-character sender missions and two-character sequence
+keys, with values changed between rates to prevent stale-cache success. The
+selection arm sent framed decimal symbols one at a time, avoiding the 12-unit
+selection cap. It changes local selection and does not yet establish harmless
+interaction with normal gameplay. Injection lasted two seconds at 30 Hz and
+one second at 60 Hz; these trials do not prove sustained capacity, fairness or
+a faster physical input path. No superior transport is established yet.
+
+Raw exports and host collection evidence:
+wc3-melee:docs/native-journal-packet-comparison-20261004/transports0029/.
+
+## Native 0.0.29 order-command failure
+
+The improved probe confirmed carrier-selected=1 and stager-selected=0 on both
+clients after the 0.5-second callback check; immediate ready selection was zero.
+All 12 command buttons were explicitly shown and enabled. Real XTEST Stop
+inputs were attempted on A and B. Neither observer exported any order receipt;
+both Warcraft processes exited and B displayed an unexpected-error dialog.
+Private crash reports identify Warcraft 3.0.0 build 24268 access violation
+reading address 0x2C58 on both clients (instruction A: 0x6FFFEF2F1043;
+B: 0x6FFFEF321043). This
+association does not establish the exact cause or receipt timing. Native-order
+transport remains unproved. Crash reports, dumps and replay remain private;
+authored observation and numerical ready/selection exports are retained in
+wc3-melee:docs/native-journal-packet-comparison-20261004/order0029/.

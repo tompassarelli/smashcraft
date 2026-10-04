@@ -1,0 +1,11 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=netcode-0029 receipt=native-order-selection-after-callbacks" )
+	call Preload( "player=2 carrier-selected=1 stager-selected=0" )
+	call Preload( "command-buttons-explicitly-shown=12 selection-enabled=1" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

@@ -1,0 +1,13 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=netcode-0029 receipt=fileio-discriminator end" )
+	call Preload( "slot=2 arm=2 native-game-seconds=35.461" )
+	call Preload( "attempts=300 sent=300 echoed=300 missing=0 bad-payload=0 local-read-errors=0 send-failures=0 duplicates=0 drain-callbacks=155" )
+	call Preload( "read-count=300 native-read-seconds=0.000 sends-bytes=6600 send-call-seconds=0.000" )
+	call Preload( "echo-age-samples=300 mean-native-seconds=3.195 max-native-seconds=5.862 phase-span-native-seconds=15.163" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

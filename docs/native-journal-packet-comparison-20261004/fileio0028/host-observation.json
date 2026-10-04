@@ -1,0 +1,87 @@
+{
+  "build": "netcode-0028",
+  "mapSha256": "38d3fd123d2818d0e16e14b58b23cebb467b0ef1cc79067d8ea8f78077646fae",
+  "slots": [
+    0,
+    2
+  ],
+  "fixtureFilenameSlot": 2,
+  "sourceValue": "D0B0000000000000",
+  "observations": {
+    "a-smashcraft-fileio-probe-netcode-0028-s0-a0-begin.txt": {
+      "hostObservedNs": 489637478428430,
+      "secondsSinceTrigger": 0.234180565,
+      "mtimeNs": 1791079791411982467,
+      "sha256": "45b9b4c3d3bd3d46029cb13481a01b0ecf4ad170551b6b57acecab16e4212c0c"
+    },
+    "b-smashcraft-fileio-probe-netcode-0028-s2-a0-begin.txt": {
+      "hostObservedNs": 489637478872853,
+      "secondsSinceTrigger": 0.234624988,
+      "mtimeNs": 1791079791411078740,
+      "sha256": "ec0683f011d0a571a886e8bd4c1fb063e29c8f10bfaefc3478e7928b8b0d8528"
+    },
+    "a-smashcraft-fileio-probe-netcode-0028-s0-a0-end.txt": {
+      "hostObservedNs": 489640894999268,
+      "secondsSinceTrigger": 3.650751403,
+      "mtimeNs": 1791079794839984459,
+      "sha256": "aa18d7ef1adad9d91a0593c9c955ddc0bd60ab8e3058f29790e836727194d8aa"
+    },
+    "a-smashcraft-fileio-probe-netcode-0028-s0-a1-begin.txt": {
+      "hostObservedNs": 489640895227185,
+      "secondsSinceTrigger": 3.65097932,
+      "mtimeNs": 1791079794842976158,
+      "sha256": "9baf03a744487ca58cf764d6c0fea669e0f5cf3e3f61b9d4756510e2db6fbc5d"
+    },
+    "b-smashcraft-fileio-probe-netcode-0028-s2-a0-end.txt": {
+      "hostObservedNs": 489640895329537,
+      "secondsSinceTrigger": 3.651081672,
+      "mtimeNs": 1791079794834976173,
+      "sha256": "406e0ab2dc3ae7766058226a9eb5d7b8d9ca56e93c7792d1e1cfb32eddcb64da"
+    },
+    "b-smashcraft-fileio-probe-netcode-0028-s2-a1-begin.txt": {
+      "hostObservedNs": 489640895378308,
+      "secondsSinceTrigger": 3.651130443,
+      "mtimeNs": 1791079794840684551,
+      "sha256": "289a894bee4a51d1ad0f572037b0d85e070e44877ab691769f2c8e7d3a93a6e6"
+    },
+    "a-smashcraft-fileio-probe-netcode-0028-s0-a1-end.txt": {
+      "hostObservedNs": 489644369209552,
+      "secondsSinceTrigger": 7.124961687,
+      "mtimeNs": 1791079798316969779,
+      "sha256": "480ce51533df2cb17be7294f8819adcd4172a4be29af85e70ee86eb3aa7cff06"
+    },
+    "b-smashcraft-fileio-probe-netcode-0028-s2-a1-end.txt": {
+      "hostObservedNs": 489644369434003,
+      "secondsSinceTrigger": 7.125186138,
+      "mtimeNs": 1791079798312939271,
+      "sha256": "f21bfc157a534100b6919edbe055c104c5b9859ff58e4ebdc49355817c062d21"
+    },
+    "b-smashcraft-fileio-probe-netcode-0028-s2-a2-begin.txt": {
+      "hostObservedNs": 489644369498934,
+      "secondsSinceTrigger": 7.125251069,
+      "mtimeNs": 1791079798318321635,
+      "sha256": "883897a55b4aa0a8537632efcea9848f5a12e11829df27b3a9a3896f64e0239d"
+    },
+    "a-smashcraft-fileio-probe-netcode-0028-s0-a2-begin.txt": {
+      "hostObservedNs": 489644389739749,
+      "secondsSinceTrigger": 7.145491884,
+      "mtimeNs": 1791079798320659856,
+      "sha256": "f81fe8260a83e501089e2032ebc90a5ec74e7e2210f4d9c72c9fbcffc74399f8"
+    },
+    "a-smashcraft-fileio-probe-netcode-0028-s0-a2-end.txt": {
+      "hostObservedNs": 489647821171840,
+      "secondsSinceTrigger": 10.576923975,
+      "mtimeNs": 1791079801763025603,
+      "sha256": "5e8d49e2d792aaaa5126547ba9cfa849e386adc6570d56498810840b426072b6"
+    },
+    "b-smashcraft-fileio-probe-netcode-0028-s2-a2-end.txt": {
+      "hostObservedNs": 489647821408212,
+      "secondsSinceTrigger": 10.577160347,
+      "mtimeNs": 1791079801763766561,
+      "sha256": "afd27e1bfcc5bc5e297f9c4282c565bda65ae5ffa0dc11f8b1906e250e684e6c"
+    }
+  },
+  "triggerHostNs": 489637244247865,
+  "triggerUtc": "2026-10-04T02:09:51.195385+00:00",
+  "complete": true
+}

@@ -1,0 +1,24 @@
+{
+  "build": "netcode-0028",
+  "mapSha256": "38d3fd123d2818d0e16e14b58b23cebb467b0ef1cc79067d8ea8f78077646fae",
+  "slots": [
+    0,
+    2
+  ],
+  "triggerHostNs": 489772166675775,
+  "triggerUtc": "2026-10-04T02:12:06.117818+00:00",
+  "exports": {
+    "a": {
+      "collectionHostNs": 489856260173217,
+      "mtimeNs": 1791079960628680703,
+      "sha256": "11daf4b694b75d981dc86519bcc0a940238805e5d2e241a1ad9ccf54919abe04"
+    },
+    "b": {
+      "collectionHostNs": 489856262306394,
+      "mtimeNs": 1791079960810680388,
+      "sha256": "219cee68d962e9a9757a23e0b800d834238fd2717c498aade649d547cdafec90"
+    }
+  },
+  "complete": true,
+  "collectionCorrection": "Initial watcher expected build-specific export names, but producer uses wc3-melee-transport-isolation.txt. Raw exports were collected afterward and validated by embedded build identity. No exact export-observation latency claim."
+}

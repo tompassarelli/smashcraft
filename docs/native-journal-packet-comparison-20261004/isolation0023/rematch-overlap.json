@@ -1,0 +1,8 @@
+{
+  "build": "netcode-0023",
+  "map_sha256": "0294d0f452d81e3c84b5ffcf197bd724d11ef58e807a63e9786be00fcf08afb2",
+  "start_state": "native map RESULT, phase=3, 0/2 ready on A; retained paired session",
+  "input": "private XTEST Y holds requested for 400 ms concurrently on both clients",
+  "observation": "A returned to character selection with both human fighter cards; B ending state checked separately by fresh OCR",
+  "scope": "software overlapping result confirmation; not human rematch responsiveness or a new played match"
+}
