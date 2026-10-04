@@ -1,0 +1,9 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "SMASHCRAFT TEXT ACK v=1 build=controller-menus-20261005 epoch=2 slot=1 received=200 consumed=200 revision=73" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

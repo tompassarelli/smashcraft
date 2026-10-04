@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Drive two native journal matches with one persistent helper per controller.
 
-Starts at stage selection. The first client walks off a one-stock stage after
-short input checks; both clients use the ordinary results/rematch flow. Capture
-epochs come from the game, never from this driver.
+Starts at stage selection, or character selection with --controller-menus.
+The first client walks off after short input checks; both clients use the
+ordinary results/rematch flow. Capture epochs come from the game.
 """
 
 import argparse
@@ -37,6 +37,7 @@ def main():
     parser.add_argument("--build", required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--ui-driver", type=Path, default=Path("/tmp/sc-ui.py"))
+    parser.add_argument("--controller-menus", action="store_true")
     args = parser.parse_args()
     cfg = json.loads(args.session.read_text())["args"]
     cfg["build"] = args.build
@@ -104,7 +105,7 @@ def main():
             assert "Warcraft" in Path(f'/proc/{cfg["pid_" + c]}/comm').read_text()
             subprocess.run([cfg["wlrctl"], "toplevel", "focus", "title:Warcraft III"],
                            env=envs[slot], check=True, timeout=5)
-            pad = VirtualGamepad(buttons=(BTN_SOUTH, 0x13b))
+            pad = VirtualGamepad(buttons=(BTN_SOUTH, 0x134, 0x13b))
             pads.append(pad)
             device = event_path(pad)
             observer = KernelObserver(device, args.out / f"kernel-{slot}.jsonl")
@@ -121,12 +122,13 @@ def main():
             ], env=envs[slot], stdout=stream, stderr=stream))
         # The ordinary stage settings, not a physics/debug shortcut, make the
         # controlled stock-loss journey short.
-        stock_text = ui("a", "wait", r"[1-9] Stock")
-        stocks = int(re.search(r"([1-9])\s+Stock", stock_text, re.I)[1])
-        while stocks > 1:
-            ui("a", "click", 1380, 155)
-            stocks -= 1
-            ui("a", "wait", rf"{stocks} Stock")
+        if not args.controller_menus:
+            stock_text = ui("a", "wait", r"[1-9] Stock")
+            stocks = int(re.search(r"([1-9])\s+Stock", stock_text, re.I)[1])
+            while stocks > 1:
+                ui("a", "click", 1380, 155)
+                stocks -= 1
+                ui("a", "wait", rf"{stocks} Stock")
         with (args.out / "producer.jsonl").open("w") as producer:
             def send(slot, kind, code, value, phase):
                 pads[slot].send(kind, code, value, producer, phase, f"slot-{slot}")
@@ -136,9 +138,63 @@ def main():
                 time.sleep(.005)
                 send(slot, EV_KEY, BTN_SOUTH, 0, phase)
 
+            def menu_button(slot, code, phase):
+                send(slot, EV_KEY, code, 1, phase)
+                time.sleep(.12)
+                send(slot, EV_KEY, code, 0, phase)
+
+            def menu_phase(phase):
+                paths = [root / f"smashcraft-journal-menu-{args.build}-s{slot}.txt"
+                         for slot, root in enumerate(data)]
+                until(lambda: all(complete(p) and f"phase={phase}" in p.read_text() for p in paths),
+                      f"live controller menu phase {phase} absent")
+                events.append(dict(event="menu", phase=phase, contents=[p.read_text() for p in paths],
+                                   observed_monotonic_ns=time.monotonic_ns()))
+
+            def controller_select():
+                menu_phase("CHARACTER")
+                ui("a", "wait", "CONTROLS")
+                # Move both cursors and return before selecting, then exercise
+                # recall/reselect on B. These are real pad events, not menu clicks.
+                for slot in range(2):
+                    for direction in (32767, -32768):
+                        send(slot, EV_ABS, ABS_X, direction, "menu-character-navigation")
+                        time.sleep(.12)
+                        send(slot, EV_ABS, ABS_X, 0, "menu-character-navigation")
+                        time.sleep(.15)
+                    menu_button(slot, BTN_SOUTH, "menu-character-select")
+                time.sleep(.3)
+                menu_button(1, 0x134, "menu-character-recall")
+                time.sleep(.3)
+                menu_button(1, BTN_SOUTH, "menu-character-reselect")
+                time.sleep(.3)
+                menu_button(0, 0x13b, "menu-character-confirm")
+                menu_phase("STAGE")
+                ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
+                for direction in (32767, -32768):
+                    send(0, EV_ABS, ABS_X, direction, "menu-stage-navigation")
+                    time.sleep(.12)
+                    send(0, EV_ABS, ABS_X, 0, "menu-stage-navigation")
+                    time.sleep(.15)
+                menu_button(0, 0x134, "menu-stage-back")
+                menu_phase("CHARACTER")
+                ui("a", "wait", "CONTROLS")
+                menu_button(0, 0x13b, "menu-character-return")
+                menu_phase("STAGE")
+                ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
+
+            if args.controller_menus:
+                controller_select()
+
             for epoch in (1, 2):
                 trace_after_wall = time.time_ns()
-                keys(0, "key", "ctrl+g", "keydown", "y", "sleep", ".12", "keyup", "y")
+                # Ctrl+G only enables the diagnostic trace; controller-menu mode
+                # uses no keyboard or mouse to choose, start, or rematch.
+                keys(0, "key", "ctrl+g")
+                if args.controller_menus:
+                    menu_button(0, 0x13b, f"menu-match-{epoch}-start")
+                else:
+                    keys(0, "keydown", "y", "sleep", ".12", "keyup", "y")
                 starts = [control("start", epoch, slot) for slot in range(2)]
                 until(lambda: all(complete(p) for p in starts), f"epoch {epoch}: game-controlled start absent")
                 boundaries = [capture_boundary(p) for p in starts]
@@ -170,18 +226,27 @@ def main():
                 check_helpers()
                 if epoch == 1:
                     # A results-screen tap must not become a new-match action.
-                    tap(0, "results-only")
-                    for slot in range(2):
-                        keys(slot, "keydown", "y", "sleep", ".12", "keyup", "y")
-                    ui("a", "wait", "CONTROLS")
-                    ui("a", "click", 1080, 600)
-                    ui("b", "click", 1510, 600)
-                    keys(0, "keydown", "y", "sleep", ".12", "keyup", "y")
-                    ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
+                    if args.controller_menus:
+                        menu_phase("RESULT")
+                        tap(0, "results-only")
+                        menu_button(1, 0x13b, "menu-results-confirm")
+                        controller_select()
+                    else:
+                        tap(0, "results-only")
+                        for slot in range(2):
+                            keys(slot, "keydown", "y", "sleep", ".12", "keyup", "y")
+                        ui("a", "wait", "CONTROLS")
+                        ui("a", "click", 1080, 600)
+                        ui("b", "click", 1510, 600)
+                        keys(0, "keydown", "y", "sleep", ".12", "keyup", "y")
+                        ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
                 print(f"Epoch {epoch}: game start, tap, stock loss and results observed", flush=True)
         result = dict(settings=cfg, helper_pids=[p.pid for p in helpers], events=events,
                       helper_sha256=hashlib.sha256(Path(cfg["binary"]).read_bytes()).hexdigest(),
-                      scope="Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; keyboard menu confirmation; no physical or cross-machine alignment claim.")
+                      scope="Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; "
+                            + ("controller-only game menus (keyboard diagnostic trace toggle); " if args.controller_menus
+                               else "keyboard menu confirmation; ")
+                            + "no physical or cross-machine alignment claim.")
         (args.out / "capture.json").write_text(json.dumps(result, indent=2) + "\n")
     finally:
         for helper in helpers:

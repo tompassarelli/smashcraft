@@ -1,0 +1,22 @@
+{
+  "source_commit": "a3b302646416d1dea612f8e705e47461000382e4",
+  "build_id": "controller-menus-20261005",
+  "map_sha256": "7b9d881d5d920547239319d6b815bb08472fc243b56f2c93a683bc83ba967ec1",
+  "helper_sha256": "14440ca6999a2f805f50aa2e0ef835189fcceec0075ead786cc82d3c78fe7d6c",
+  "configuration": {
+    "input": "journal",
+    "ingress": "editbox",
+    "profile": "shadow-d0-r24",
+    "presentation": "pool-predicted",
+    "response_service_probe": true,
+    "stocks": 3
+  },
+  "checks": {
+    "rust_journal": 28,
+    "wurst_match_rules": 25,
+    "helper_build": "passed",
+    "map_build": "passed",
+    "native_journey": "passed",
+    "independent_frame_reconciliation": "passed"
+  }
+}

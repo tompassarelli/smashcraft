@@ -1,6 +1,6 @@
 # Warcraft API and netcode findings
 
-Updated 4 October 2026. **Low-latency competitive readiness remains unproved.**
+Updated 5 October 2026. **Low-latency competitive readiness remains unproved.**
 This file records the reusable findings and the next decisions they support.
 Detailed run evidence remains in the linked reports. The original two-hour
 deadline was 08:38:38 Taipei on 4 October; it was missed and has not reset.
@@ -11,6 +11,19 @@ Current claim owners and the consolidated delivery state:
 wc3-melee:docs/netplay-status.md. #26 owns the known polling-loss failure;
 #25 owns intended-frame assignment and #27 response/variation. #28–#30 preserve
 completed bounded results. Exact 0.0.40 remains playable.
+
+**5 October progress:** the editbox journal path now retains the tested 5 ms
+inputs through helper/game stalls and window-focus loss, follows pause/resume
+and match publications, and completes controller-only menus/results/rematch.
+The latest two-client, two-match controller-menu journey applied every tested
+tap once at original frame 19 and ended in matching state without restarting
+helpers. This replaces the earlier failed ingress attempts as the current
+implementation direction. It does not establish physical response or a common
+cross-machine frame clock. The remaining three claims stay in #25–#27.
+Current evidence: wc3-melee:docs/controller-menus-native-20261005/README.md and
+the linked earlier tap/stall, response and lifecycle records in the status page.
+
+## Earlier rejected ingress paths — 4 October
 
 The serial keyboard/file-ACK replacement is rejected: native five-second trials
 confirmed only 36–50 frames, with median ACK waits of 81–92 ms. Its first

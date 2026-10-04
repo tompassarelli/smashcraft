@@ -60,6 +60,16 @@ keyboard menu confirmation, not physical response or a shared cross-machine cloc
 Exact source, failures and reproduction:
 wc3-melee:docs/match-lifecycle-native-20261005/README.md.
 
+**Controller-only menus delivered:** the same persistent helpers now handle
+fighter selection, recall, stage navigation/back, match start, results and
+rematch. Two native three-stock lifecycle trials passed using virtual pads for
+all game menu actions. Four 5 ms gameplay taps applied once at frame 19 on both
+clients; both matches ended at confirmed 385/checksum `354842:379026`, with no
+trace drops or result-screen input leakage. This advances #18/#17/#26; it is not
+full human combat, physical timing or cross-machine clock alignment. Exact
+candidate and raw reconciliation:
+wc3-melee:docs/controller-menus-native-20261005/README.md.
+
 ## The specific answers and their owners
 
 **Resume service-delay defect delivered:** helper B read RESUME 361 ms after its
@@ -78,7 +88,7 @@ wc3-melee:docs/resume-clock-native-20261005/README.md.
 | Can short inputs disappear or merge? | Playable 0.0.40 can miss/coalesce inputs. The candidate retains tested 5 ms taps through helper/game stalls, window focus loss and a two-match rematch journey; chat, reconnect and hardware acceptance remain open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
 | Is every acquired input assigned to its intended frame despite delayed service? | The candidate preserves tested tap/stall frames and now keeps a post-resume tap at frame 98 despite a 361 ms delayed resume read. Local publication anchors still differ; cross-machine alignment remains open. 0.0.40 still assigns by local progress. | [#25, partial](https://github.com/tompassarelli/smashcraft/issues/25) |
 | What physical response and 3–5-frame variation should a player expect? | Candidate B software shield response: 12/12 presses, median 67.95 ms, max 98.17 ms. The measured admission backlog is fixed: 13/13 retained edge rows predict in the same callback. Physical response remains unmeasured. | [#27, partial](https://github.com/tompassarelli/smashcraft/issues/27) |
-| Can two clients fight and rematch? | Observed on 0.0.40. The journal candidate now passes bounded start/results/rematch with persistent helpers; full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |
+| Can two clients fight and rematch? | Observed on 0.0.40. The journal candidate now passes controller-only selection/start/results/rematch with persistent helpers; full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |
 
 Issues #28–#30 were created during this review to record already completed,
 bounded results. They are not three engineering tasks completed today. #21 closed
@@ -191,7 +201,7 @@ original descriptions remain accessible. Those closures are not completion.
 | #15 Measured roster tuning | Consolidated into #12; no completed before/after tuning plus playable evaluation. |
 | #16 Online roadmap | Open; original-frame input, human play, platforms, hosting and broader-player work remain. |
 | #17 Two-client integration | Partial: playable journey and bounded agreement delivered; human play, response distribution and full feedback recovery remain. |
-| #18 Controller/companion | Partial: Linux core and software map output demonstrated; physical response, analog ingress, Windows/macOS native delivery remain. |
+| #18 Controller/companion | Partial: Linux journal controller menus/start/rematch now pass natively; full layout/analog, physical and Windows/macOS acceptance remain. |
 | #19 Hosting/fairness | Open; alternative native-host admission and matched comparison not delivered. |
 | #20 2–4 players / ten matches | Consolidated into #17; the full requested match corpus remains required. |
 | #21 Timeboxed integrity decision | Already completed as a HOLD decision, not a positive readiness result. |

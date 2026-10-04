@@ -1,0 +1,9 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "SMASHCRAFT JOURNAL CONTROL v=1 build=controller-menus-20261005 epoch=1 slot=0 sequence=0 state=START frame=1" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

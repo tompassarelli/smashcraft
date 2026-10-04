@@ -1,0 +1,168 @@
+{
+  "scope": "Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; controller-only game menus (keyboard diagnostic trace toggle); no physical or cross-machine alignment claim.",
+  "helper_sha256": "14440ca6999a2f805f50aa2e0ef835189fcceec0075ead786cc82d3c78fe7d6c",
+  "persistent_helper_pids": [
+    1817458,
+    1817489
+  ],
+  "matches": [
+    {
+      "epoch": 1,
+      "players": [
+        {
+          "slot": 0,
+          "anchor_monotonic_ns": 562695659654021,
+          "helper_anchor_difference_ns": 671,
+          "published_frames": 400,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 562695965026000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 562695970195000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            }
+          ]
+        },
+        {
+          "slot": 1,
+          "anchor_monotonic_ns": 562695664802788,
+          "helper_anchor_difference_ns": -100,
+          "published_frames": 400,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 562695970294000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 562695975462000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            }
+          ]
+        }
+      ],
+      "native_clients": [
+        {
+          "client": 0,
+          "confirmed_frame": 385,
+          "confirmed_checksum": "354842:379026",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 19
+            },
+            {
+              "slot": 1,
+              "frame": 19
+            }
+          ]
+        },
+        {
+          "client": 1,
+          "confirmed_frame": 385,
+          "confirmed_checksum": "354842:379026",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 19
+            },
+            {
+              "slot": 1,
+              "frame": 19
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "epoch": 2,
+      "players": [
+        {
+          "slot": 0,
+          "anchor_monotonic_ns": 562729190026151,
+          "helper_anchor_difference_ns": 310,
+          "published_frames": 397,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 562729493398000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 562729498532000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            }
+          ]
+        },
+        {
+          "slot": 1,
+          "anchor_monotonic_ns": 562729193185419,
+          "helper_anchor_difference_ns": -160,
+          "published_frames": 397,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 562729498557000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 562729503722000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            }
+          ]
+        }
+      ],
+      "native_clients": [
+        {
+          "client": 0,
+          "confirmed_frame": 385,
+          "confirmed_checksum": "354842:379026",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 19
+            },
+            {
+              "slot": 1,
+              "frame": 19
+            }
+          ]
+        },
+        {
+          "client": 1,
+          "confirmed_frame": 385,
+          "confirmed_checksum": "354842:379026",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 19
+            },
+            {
+              "slot": 1,
+              "frame": 19
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "native_attack_applications": 8,
+  "native_trace_drops": 0,
+  "unexplained_frame_retargets": 0,
+  "extra_result_screen_actions": 0
+}

@@ -1,0 +1,486 @@
+a wait ('CONTROLS',)
+Smashcraft ' 2-FIGHTER SURVIVAL TEST
+
+RIFLEMAN ILLIDAN
+
+P3 P4
+
+T I,
+_
+
+Smashcraft vs
+
+2-FIGHTER SURVIVAL TEST
+
+ARCHER
+
+Choose fighter
+
+Choose fighter
+
+= |
+Select [A
+
+EMPTY
+
+RIFLEMAN
+
+EMPTY
+
+|
+CONTROLS [F1]
+
+
+
+a wait ('STAGE|Sky.*Deck|Three.*Bridges',)
+3 Stock - 7:00
+
+TAGE SELECT =
+IS G S C @ STOCK L+ @ R @
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide. -;‘
+
+T |
+
+H BACKX] H
+
+START MATCH [A] H
+
+| STAGE SELECT
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+BACK [X]
+
+3 Stock -
+
+7:.00
+
+STOCK + - TIME
+
+CHOOSE A STAGE
+
+g — —
+
+——— 7
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+START MATCH [A]
+
+K
+
+
+a wait ('CONTROLS',)
+Smashcraft 2-FIGHTER SURVIVAL TEST
+
+EMPTY |J
+
+ARCHER RIFLEMAN -'3’
+
+P3 P4
+
+_
+
+Smashcraft vs | 2-FIGHTER SURVIVAL TEST
+
+RIFLEMAN
+
+[ HMN [ HMN EMPTY EMPTY
+<.
+s 12—y
+' F G
+‘ L\ <¢ A
+. e
+ARCHER RIFLEMAN -
+- P - Pz P3 P4
+
+4 |
+Press Start CONTROLS [F1]
+
+
+
+a wait ('STAGE|Sky.*Deck|Three.*Bridges',)
+3 Stock - 7:00
+
+TAGE SELECT =
+IS G S C @ STOCK L+ @ R @
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide. -;‘
+
+T |
+
+H BACKX] H
+
+START MATCH [A] H
+
+| STAGE SELECT
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+BACK [X]
+
+3 Stock -
+
+7:.00
+
+STOCK + - TIME
+
+CHOOSE A STAGE
+
+g — —
+
+——— 7
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+START MATCH [A]
+
+K
+
+
+a wait ('wins|rematch',)
+0:0
+
+ARCHER . . / RIFLEMAN
+
+
+0/2 ready. Press A or Start to choose your next match.
+
+- 0.0%
+
+Player 2 wins!
+
+.
+
+P1 . ARCHER
+
+Pause: Start
+
+0.0%
+
+RIFLEMAN
+
+6:54
+
+K
+
+
+b wait ('wins|rematch',)
+s,
+v e -0.0%
+3
+
+<] RIFLEMAN
+
+ARCHER - 8
+- MG m—
+2 Frldr |8 =
+
+t: controller-menus-20261005 | player=2 | phase=3 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+
+-2
+
+0 -
+
+~ 7Y N
+) * - 6:54
+0/2 redtly. PrestW or Start to Mvose y&r rx h
+» T
+
+N -
+
+Player 2 wins!
+
+~—Ty
+
+0.0% 4
+
+P ) ARCHER
+
+0.0%
+
+RIFLEMAN
+
+S N e
+
+Developer test: controller-menus-20261005 | player=2 | phase=3 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+
+
+a wait ('CONTROLS',)
+Smashcraft 2-FIGHTER SURVIVAL TEST
+
+EMPTY |J
+
+ARCHER RIFLEMAN -'3’
+
+P3 P4
+
+_
+
+Smashcraft vs | 2-FIGHTER SURVIVAL TEST
+
+RIFLEMAN
+
+[ HMN [ HMN EMPTY EMPTY
+<.
+s 12—y
+' F G
+‘ L\ <¢ A
+. e
+ARCHER RIFLEMAN -
+- P - Pz P3 P4
+
+4 |
+Press Start CONTROLS [F1]
+
+
+
+a wait ('STAGE|Sky.*Deck|Three.*Bridges',)
+3 Stock - 7:00
+
+TAGE SELECT =
+IS G S C @ STOCK L+ @ R @
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide. -;‘
+
+T |
+
+H BACKX] H
+
+START MATCH [A] H
+
+| STAGE SELECT
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+BACK [X]
+
+3 Stock -
+
+7:.00
+
+STOCK + - TIME
+
+CHOOSE A STAGE
+
+g — —
+
+——— 7
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+START MATCH [A]
+
+K
+
+
+a wait ('CONTROLS',)
+Smashcraft 2-FIGHTER SURVIVAL TEST
+
+EMPTY |J
+
+ARCHER RIFLEMAN -'3’
+
+P3 P4
+
+_
+
+Smashcraft vs | 2-FIGHTER SURVIVAL TEST
+
+RIFLEMAN
+
+[ HMN [ HMN EMPTY EMPTY
+<.
+s 12—y
+' F G
+‘ L\ <¢ A
+. e
+ARCHER RIFLEMAN -
+- P - Pz P3 P4
+
+4 |
+Press Start CONTROLS [F1]
+
+
+
+a wait ('STAGE|Sky.*Deck|Three.*Bridges',)
+3 Stock - 7:00
+
+TAGE SELECT =
+IS G S C @ STOCK L+ @ R @
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide. -;‘
+
+T |
+
+H BACKX] H
+
+START MATCH [A] H
+
+| STAGE SELECT
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+BACK [X]
+
+3 Stock -
+
+7:.00
+
+STOCK + - TIME
+
+CHOOSE A STAGE
+
+g — —
+
+——— 7
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+START MATCH [A]
+
+K
+
+
+a wait ('wins|rematch',)
+0:0
+
+ARCHER . . / RIFLEMAN
+
+
+0/2 ready. Press A or Start to choose your next match.
+
+- 0.0%
+
+Player 2 wins!
+
+.
+
+P1 . ARCHER
+
+Pause: Start
+
+0.0%
+
+RIFLEMAN
+
+6:54
+
+K
+
+
+b wait ('wins|rematch',)
+vy
+
+s,
+5. S -0.0% <
+3
+
+ARCHER 2 o RIFLEMAN
+2 kolcidtis
+-
+
+t: controller-menus-20261005 | player=2 | phase=3 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+
+-2
+
+
+-0 -
+"
+
+\ ) ‘ - t 6:54
+0/2 reaﬁy’.r;esh or Start to Whvose y&r rx h
+» T
+
+N -
+
+Player 2 wins!
+
+~—Ty
+
+0.0% 4
+
+P ) ARCHER
+
+0.0%
+
+RIFLEMAN
+
+S N e
+
+Developer test: controller-menus-20261005 | player=2 | phase=3 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+
+
