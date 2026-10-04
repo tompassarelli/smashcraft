@@ -1,0 +1,552 @@
+{
+  "method": "First two consecutive frames toward the held appearance, crossing max(20% of held/idle difference, 4x measured idle noise, .015). Release uses the opposite direction and pre-release noise. Negative regional color changes are allowed because fighter pose changes alter background coverage. This is appearance onset, not pure blue-tint onset or actionability after shield release.",
+  "limits": [
+    "Linux virtual evdev shield trigger, not physical hardware.",
+    "Compositor ready timestamps share the producer's host monotonic clock.",
+    "Physical scanout, separate-machine clocks and human perception are unmeasured."
+  ],
+  "clients": {
+    "a": {
+      "role": "local",
+      "trials": [
+        {
+          "trial": 0,
+          "baseline": 20.480611888111895,
+          "held": 3.4431293706293786,
+          "step": -17.037482517482516,
+          "noise": 0.016206293706289898,
+          "threshold": 3.4074965034965032,
+          "press": {
+            "status": "observed",
+            "frame": 97,
+            "latency_ms": 87.1222355,
+            "lower_ms": 54.530184,
+            "upper_ms": 87.200948,
+            "preceding_capture_gap_ms": 32.513339
+          },
+          "release": {
+            "status": "observed",
+            "frame": 108,
+            "latency_ms": 161.2973345,
+            "lower_ms": 124.610433,
+            "upper_ms": 161.378266,
+            "preceding_capture_gap_ms": 36.60597
+          }
+        },
+        {
+          "trial": 1,
+          "baseline": 20.512849650349665,
+          "held": 4.0601048951048995,
+          "step": -16.452744755244765,
+          "noise": 0.0243181818181597,
+          "threshold": 3.290548951048953,
+          "press": {
+            "status": "observed",
+            "frame": 132,
+            "latency_ms": 97.647893,
+            "lower_ms": 64.807767,
+            "upper_ms": 97.698643,
+            "preceding_capture_gap_ms": 32.789376
+          },
+          "release": {
+            "status": "observed",
+            "frame": 141,
+            "latency_ms": 108.091042,
+            "lower_ms": 67.668028,
+            "upper_ms": 108.147598,
+            "preceding_capture_gap_ms": 40.366458
+          }
+        },
+        {
+          "trial": 2,
+          "baseline": 20.43956293706293,
+          "held": 4.386188811188816,
+          "step": -16.053374125874114,
+          "noise": 0.18940559440559923,
+          "threshold": 3.210674825174823,
+          "press": {
+            "status": "observed",
+            "frame": 166,
+            "latency_ms": 91.677608,
+            "lower_ms": 75.284033,
+            "upper_ms": 91.724696,
+            "preceding_capture_gap_ms": 16.346487
+          },
+          "release": {
+            "status": "observed",
+            "frame": 178,
+            "latency_ms": 188.014685,
+            "lower_ms": 155.545334,
+            "upper_ms": 188.07347,
+            "preceding_capture_gap_ms": 32.410566
+          }
+        },
+        {
+          "trial": 3,
+          "baseline": 20.325611888111865,
+          "held": 4.602762237762249,
+          "step": -15.722849650349616,
+          "noise": 0.23307692307687944,
+          "threshold": 3.1445699300699235,
+          "press": {
+            "status": "observed",
+            "frame": 203,
+            "latency_ms": 81.985708,
+            "lower_ms": 45.639731,
+            "upper_ms": 82.03741,
+            "preceding_capture_gap_ms": 36.294275
+          },
+          "release": {
+            "status": "observed",
+            "frame": 213,
+            "latency_ms": 125.855377,
+            "lower_ms": 93.022048,
+            "upper_ms": 125.902265,
+            "preceding_capture_gap_ms": 32.786441
+          }
+        },
+        {
+          "trial": 4,
+          "press": {
+            "status": "censored: insufficient capture coverage"
+          }
+        },
+        {
+          "trial": 5,
+          "baseline": 19.464353146853142,
+          "held": 5.084562937062941,
+          "step": -14.379790209790201,
+          "noise": 0.1479020979020902,
+          "threshold": 2.8759580419580404,
+          "press": {
+            "status": "observed",
+            "frame": 269,
+            "latency_ms": 108.217909,
+            "lower_ms": 75.308218,
+            "upper_ms": 108.2824,
+            "preceding_capture_gap_ms": 32.8452
+          },
+          "release": {
+            "status": "observed",
+            "frame": 277,
+            "latency_ms": 88.024857,
+            "lower_ms": 71.539985,
+            "upper_ms": 88.116083,
+            "preceding_capture_gap_ms": 16.393646
+          }
+        },
+        {
+          "trial": 6,
+          "baseline": 19.872884615384635,
+          "held": 4.954580419580424,
+          "step": -14.918304195804211,
+          "noise": 0.23386363636365104,
+          "threshold": 2.9836608391608426,
+          "press": {
+            "status": "observed",
+            "frame": 303,
+            "latency_ms": 89.1317875,
+            "lower_ms": 72.856924,
+            "upper_ms": 89.189205,
+            "preceding_capture_gap_ms": 16.217446
+          },
+          "release": {
+            "status": "observed",
+            "frame": 312,
+            "latency_ms": 116.5306745,
+            "lower_ms": 83.566005,
+            "upper_ms": 116.580904,
+            "preceding_capture_gap_ms": 32.91444
+          }
+        },
+        {
+          "trial": 7,
+          "baseline": 20.241520979020976,
+          "held": 5.1797202797203,
+          "step": -15.061800699300676,
+          "noise": 0.24284965034962624,
+          "threshold": 3.012360139860135,
+          "press": {
+            "status": "observed",
+            "frame": 337,
+            "latency_ms": 87.0472505,
+            "lower_ms": 54.279915,
+            "upper_ms": 87.104808,
+            "preceding_capture_gap_ms": 32.709778
+          },
+          "release": {
+            "status": "observed",
+            "frame": 346,
+            "latency_ms": 92.5921625,
+            "lower_ms": 76.223343,
+            "upper_ms": 92.64973,
+            "preceding_capture_gap_ms": 16.311252
+          }
+        },
+        {
+          "trial": 8,
+          "baseline": 20.137709790209783,
+          "held": 5.162552447552429,
+          "step": -14.975157342657354,
+          "noise": 0.2697727272727377,
+          "threshold": 2.995031468531471,
+          "press": {
+            "status": "observed",
+            "frame": 378,
+            "latency_ms": 97.388001,
+            "lower_ms": 64.635154,
+            "upper_ms": 97.453123,
+            "preceding_capture_gap_ms": 32.687725
+          },
+          "release": {
+            "status": "observed",
+            "frame": 387,
+            "latency_ms": 110.879393,
+            "lower_ms": 78.09948,
+            "upper_ms": 110.934892,
+            "preceding_capture_gap_ms": 32.724414
+          }
+        },
+        {
+          "trial": 9,
+          "press": {
+            "status": "censored: insufficient capture coverage"
+          }
+        },
+        {
+          "trial": 10,
+          "baseline": 20.270900349650347,
+          "held": 5.461590909090887,
+          "step": -14.80930944055946,
+          "noise": 0.18130244755242586,
+          "threshold": 2.9618618881118923,
+          "press": {
+            "status": "observed",
+            "frame": 454,
+            "latency_ms": 88.004435,
+            "lower_ms": 55.211111,
+            "upper_ms": 88.078083,
+            "preceding_capture_gap_ms": 32.719676
+          },
+          "release": {
+            "status": "observed",
+            "frame": 462,
+            "latency_ms": 83.3599735,
+            "lower_ms": 50.572627,
+            "upper_ms": 83.412196,
+            "preceding_capture_gap_ms": 32.735124
+          }
+        },
+        {
+          "trial": 11,
+          "press": {
+            "status": "censored: insufficient capture coverage"
+          }
+        }
+      ],
+      "capture_gap_ms": {
+        "n": 536,
+        "median": 32.6027315,
+        "p95": 33.771737,
+        "p99": 39.920621,
+        "max": 44.043529
+      },
+      "press": {
+        "observed": 9,
+        "unresolved_or_censored": 3,
+        "latency_ms": {
+          "n": 9,
+          "median": 89.1317875,
+          "p95": 108.217909,
+          "p99": 108.217909,
+          "max": 108.217909
+        }
+      },
+      "release": {
+        "observed": 9,
+        "unresolved_or_censored": 3,
+        "latency_ms": {
+          "n": 9,
+          "median": 110.879393,
+          "p95": 188.014685,
+          "p99": 188.014685,
+          "max": 188.014685
+        }
+      }
+    },
+    "b": {
+      "role": "remote",
+      "trials": [
+        {
+          "trial": 0,
+          "baseline": 72.95540209790211,
+          "held": 40.49711538461537,
+          "step": -32.45828671328674,
+          "noise": 0.07316433566431613,
+          "threshold": 6.491657342657348,
+          "press": {
+            "status": "observed",
+            "frame": 113,
+            "latency_ms": 184.3783495,
+            "lower_ms": 167.888839,
+            "upper_ms": 184.457062,
+            "preceding_capture_gap_ms": 16.410798
+          },
+          "release": {
+            "status": "censored: no onset in the observation window"
+          }
+        },
+        {
+          "trial": 1,
+          "baseline": 73.0851486013986,
+          "held": 41.15912587412589,
+          "step": -31.92602272727271,
+          "noise": 0.10843531468532319,
+          "threshold": 6.385204545454542,
+          "press": {
+            "status": "observed",
+            "frame": 152,
+            "latency_ms": 165.289632,
+            "lower_ms": 148.889689,
+            "upper_ms": 165.340382,
+            "preceding_capture_gap_ms": 16.349193
+          },
+          "release": {
+            "status": "observed",
+            "frame": 164,
+            "latency_ms": 213.044563,
+            "lower_ms": 196.651478,
+            "upper_ms": 213.101119,
+            "preceding_capture_gap_ms": 16.336529
+          }
+        },
+        {
+          "trial": 2,
+          "baseline": 73.05078671328673,
+          "held": 41.48332167832169,
+          "step": -31.56746503496504,
+          "noise": 0.377797202797197,
+          "threshold": 6.313493006993008,
+          "press": {
+            "status": "observed",
+            "frame": 191,
+            "latency_ms": 171.756327,
+            "lower_ms": 139.076687,
+            "upper_ms": 171.803415,
+            "preceding_capture_gap_ms": 32.632552
+          },
+          "release": {
+            "status": "observed",
+            "frame": 205,
+            "latency_ms": 264.918213,
+            "lower_ms": 232.43697,
+            "upper_ms": 264.976998,
+            "preceding_capture_gap_ms": 32.422458
+          }
+        },
+        {
+          "trial": 3,
+          "baseline": 72.6809965034965,
+          "held": 42.03526223776224,
+          "step": -30.645734265734262,
+          "noise": 0.317360139860142,
+          "threshold": 6.129146853146853,
+          "press": {
+            "status": "observed",
+            "frame": 236,
+            "latency_ms": 195.682867,
+            "lower_ms": 162.814438,
+            "upper_ms": 195.734569,
+            "preceding_capture_gap_ms": 32.816727
+          },
+          "release": {
+            "status": "censored: no onset in the observation window"
+          }
+        },
+        {
+          "trial": 4,
+          "press": {
+            "status": "unresolved: no reliable held appearance"
+          }
+        },
+        {
+          "trial": 5,
+          "baseline": 71.66748251748251,
+          "held": 42.87304195804195,
+          "step": -28.79444055944056,
+          "noise": 0.22653846153846757,
+          "threshold": 5.758888111888112,
+          "press": {
+            "status": "observed",
+            "frame": 310,
+            "latency_ms": 173.122308,
+            "lower_ms": 140.251138,
+            "upper_ms": 173.186799,
+            "preceding_capture_gap_ms": 32.806679
+          },
+          "release": {
+            "status": "observed",
+            "frame": 319,
+            "latency_ms": 151.607538,
+            "lower_ms": 118.709263,
+            "upper_ms": 151.698764,
+            "preceding_capture_gap_ms": 32.807049
+          }
+        },
+        {
+          "trial": 6,
+          "baseline": 72.12816433566434,
+          "held": 43.201590909090896,
+          "step": -28.92657342657344,
+          "noise": 0.3249825174825105,
+          "threshold": 5.785314685314688,
+          "press": {
+            "status": "observed",
+            "frame": 350,
+            "latency_ms": 185.8679865,
+            "lower_ms": 152.942536,
+            "upper_ms": 185.925404,
+            "preceding_capture_gap_ms": 32.868033
+          },
+          "release": {
+            "status": "censored: no onset in the observation window"
+          }
+        },
+        {
+          "trial": 7,
+          "baseline": 72.56942307692307,
+          "held": 43.80096153846155,
+          "step": -28.768461538461523,
+          "noise": 0.27896853146853573,
+          "threshold": 5.7536923076923046,
+          "press": {
+            "status": "observed",
+            "frame": 390,
+            "latency_ms": 189.2763545,
+            "lower_ms": 156.303225,
+            "upper_ms": 189.333912,
+            "preceding_capture_gap_ms": 32.915572
+          },
+          "release": {
+            "status": "censored: no onset in the observation window"
+          }
+        },
+        {
+          "trial": 8,
+          "baseline": 72.45893356643357,
+          "held": 43.597377622377635,
+          "step": -28.861555944055937,
+          "noise": 0.4033916083916296,
+          "threshold": 5.772311188811187,
+          "press": {
+            "status": "observed",
+            "frame": 436,
+            "latency_ms": 169.266361,
+            "lower_ms": 136.422312,
+            "upper_ms": 169.331483,
+            "preceding_capture_gap_ms": 32.778927
+          },
+          "release": {
+            "status": "observed",
+            "frame": 446,
+            "latency_ms": 165.322444,
+            "lower_ms": 148.706837,
+            "upper_ms": 165.377943,
+            "preceding_capture_gap_ms": 16.560108
+          }
+        },
+        {
+          "trial": 9,
+          "baseline": 72.40270979020978,
+          "held": 43.864938811188814,
+          "step": -28.53777097902097,
+          "noise": 0.21800699300699478,
+          "threshold": 5.707554195804194,
+          "press": {
+            "status": "observed",
+            "frame": 481,
+            "latency_ms": 178.1215625,
+            "lower_ms": 161.77461,
+            "upper_ms": 178.17643,
+            "preceding_capture_gap_ms": 16.292085
+          },
+          "release": {
+            "status": "censored: no onset in the observation window"
+          }
+        },
+        {
+          "trial": 10,
+          "baseline": 72.61608391608392,
+          "held": 44.111188811188825,
+          "step": -28.5048951048951,
+          "noise": 0.1961013986013853,
+          "threshold": 5.70097902097902,
+          "press": {
+            "status": "observed",
+            "frame": 523,
+            "latency_ms": 143.359565,
+            "lower_ms": 110.508223,
+            "upper_ms": 143.433213,
+            "preceding_capture_gap_ms": 32.777694
+          },
+          "release": {
+            "status": "observed",
+            "frame": 534,
+            "latency_ms": 170.8133055,
+            "lower_ms": 138.057678,
+            "upper_ms": 170.865528,
+            "preceding_capture_gap_ms": 32.703405
+          }
+        },
+        {
+          "trial": 11,
+          "baseline": 72.49494755244756,
+          "held": 44.144851398601396,
+          "step": -28.35009615384616,
+          "noise": 0.38222027972028627,
+          "threshold": 5.670019230769232,
+          "press": {
+            "status": "observed",
+            "frame": 571,
+            "latency_ms": 169.1827785,
+            "lower_ms": 152.751988,
+            "upper_ms": 169.246453,
+            "preceding_capture_gap_ms": 16.367116
+          },
+          "release": {
+            "status": "censored: no onset in the observation window"
+          }
+        }
+      ],
+      "capture_gap_ms": {
+        "n": 621,
+        "median": 32.459498,
+        "p95": 33.117792,
+        "p99": 37.878524,
+        "max": 40.962986
+      },
+      "press": {
+        "observed": 11,
+        "unresolved_or_censored": 1,
+        "latency_ms": {
+          "n": 11,
+          "median": 173.122308,
+          "p95": 195.682867,
+          "p99": 195.682867,
+          "max": 195.682867
+        }
+      },
+      "release": {
+        "observed": 5,
+        "unresolved_or_censored": 7,
+        "latency_ms": {
+          "n": 5,
+          "median": 170.8133055,
+          "p95": 264.918213,
+          "p99": 264.918213,
+          "max": 264.918213
+        }
+      }
+    }
+  }
+}

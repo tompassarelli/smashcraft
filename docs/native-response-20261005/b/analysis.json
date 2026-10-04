@@ -1,0 +1,484 @@
+{
+  "actor": "b",
+  "key": "q",
+  "roi": [
+    0,
+    0,
+    300,
+    240
+  ],
+  "clients": {
+    "a": {
+      "role": "remote",
+      "frames": 986,
+      "ready_events": 987,
+      "max_pts_match_error_ms": 0.00609,
+      "capture_gap_ms": {
+        "median": 16.330768,
+        "p95": 16.504164,
+        "max": 16.919051
+      },
+      "trials": [
+        {
+          "trial": 0,
+          "press_interval_ns": [
+            548527895306882,
+            548527895496047
+          ],
+          "baseline": 24.693527777777774,
+          "held": 38.88499999999999,
+          "step": 14.191472222222217,
+          "noise": 0.00865277777776896,
+          "threshold": 2.8382944444444433,
+          "status": "observed",
+          "frame": 158,
+          "latency_ms": 173.8745745,
+          "lower_ms": 157.358333,
+          "upper_ms": 173.969157,
+          "preceding_capture_gap_ms": 16.421659
+        },
+        {
+          "trial": 1,
+          "press_interval_ns": [
+            548528934180422,
+            548528934324672
+          ],
+          "baseline": 24.708124999999995,
+          "held": 38.73405555555556,
+          "step": 14.025930555555561,
+          "noise": 0.012277777777768506,
+          "threshold": 2.8051861111111123,
+          "status": "observed",
+          "frame": 222,
+          "latency_ms": 178.402977,
+          "lower_ms": 161.991237,
+          "upper_ms": 178.475102,
+          "preceding_capture_gap_ms": 16.339615
+        },
+        {
+          "trial": 2,
+          "press_interval_ns": [
+            548529930515563,
+            548529930631360
+          ],
+          "baseline": 24.776986111111114,
+          "held": 38.56788888888889,
+          "step": 13.790902777777774,
+          "noise": 0.027972222222217624,
+          "threshold": 2.7581805555555547,
+          "status": "observed",
+          "frame": 282,
+          "latency_ms": 160.7297525,
+          "lower_ms": 144.258181,
+          "upper_ms": 160.787651,
+          "preceding_capture_gap_ms": 16.413673
+        },
+        {
+          "trial": 3,
+          "press_interval_ns": [
+            548531046545236,
+            548531046671703
+          ],
+          "baseline": 24.78656944444444,
+          "held": 38.49701388888889,
+          "step": 13.710444444444448,
+          "noise": 0.010902777777772599,
+          "threshold": 2.74208888888889,
+          "status": "observed",
+          "frame": 352,
+          "latency_ms": 185.1086505,
+          "lower_ms": 168.808284,
+          "upper_ms": 185.171884,
+          "preceding_capture_gap_ms": 16.237133
+        },
+        {
+          "trial": 4,
+          "press_interval_ns": [
+            548532003119113,
+            548532003236473
+          ],
+          "baseline": 24.704486111111123,
+          "held": 38.3881111111111,
+          "step": 13.683624999999978,
+          "noise": 0.013847222222210576,
+          "threshold": 2.736724999999996,
+          "status": "observed",
+          "frame": 409,
+          "latency_ms": 161.550822,
+          "lower_ms": 145.041719,
+          "upper_ms": 161.609502,
+          "preceding_capture_gap_ms": 16.450423
+        },
+        {
+          "trial": 5,
+          "press_interval_ns": [
+            548532986647511,
+            548532986762897
+          ],
+          "baseline": 24.704958333333337,
+          "held": 38.036166666666674,
+          "step": 13.331208333333336,
+          "noise": 0.006361111111118589,
+          "threshold": 2.6662416666666675,
+          "status": "observed",
+          "frame": 470,
+          "latency_ms": 173.995351,
+          "lower_ms": 157.558539,
+          "upper_ms": 174.053044,
+          "preceding_capture_gap_ms": 16.379119
+        },
+        {
+          "trial": 6,
+          "press_interval_ns": [
+            548534022800021,
+            548534022927500
+          ],
+          "baseline": 24.763750000000016,
+          "held": 24.686999999999983,
+          "step": -0.07675000000003251,
+          "noise": 0.02713888888888505,
+          "threshold": 0.1085555555555402,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 7,
+          "press_interval_ns": [
+            548535058125471,
+            548535058243212
+          ],
+          "baseline": 24.783874999999995,
+          "held": 37.76362500000002,
+          "step": 12.979750000000024,
+          "noise": 0.029111111111120636,
+          "threshold": 2.595950000000005,
+          "status": "observed",
+          "frame": 598,
+          "latency_ms": 191.1981095,
+          "lower_ms": 174.69633,
+          "upper_ms": 191.25698,
+          "preceding_capture_gap_ms": 16.442909
+        },
+        {
+          "trial": 8,
+          "press_interval_ns": [
+            548536273206494,
+            548536273309096
+          ],
+          "baseline": 24.767736111111105,
+          "held": 37.814916666666676,
+          "step": 13.04718055555557,
+          "noise": 0.025944444444462533,
+          "threshold": 2.609436111111114,
+          "status": "observed",
+          "frame": 671,
+          "latency_ms": 166.460409,
+          "lower_ms": 150.151025,
+          "upper_ms": 166.51171,
+          "preceding_capture_gap_ms": 16.258083
+        },
+        {
+          "trial": 9,
+          "press_interval_ns": [
+            548537415449167,
+            548537415562600
+          ],
+          "baseline": 24.718958333333347,
+          "held": 37.79659722222222,
+          "step": 13.07763888888887,
+          "noise": 0.027069444444464352,
+          "threshold": 2.6155277777777743,
+          "status": "observed",
+          "frame": 742,
+          "latency_ms": 182.0854785,
+          "lower_ms": 165.662057,
+          "upper_ms": 182.142195,
+          "preceding_capture_gap_ms": 16.366705
+        },
+        {
+          "trial": 10,
+          "press_interval_ns": [
+            548538541454537,
+            548538541567498
+          ],
+          "baseline": 24.69252777777777,
+          "held": 37.63876388888889,
+          "step": 12.94623611111112,
+          "noise": 0.006180555555545197,
+          "threshold": 2.589247222222224,
+          "status": "observed",
+          "frame": 811,
+          "latency_ms": 181.7351575,
+          "lower_ms": 165.231941,
+          "upper_ms": 181.791638,
+          "preceding_capture_gap_ms": 16.446736
+        },
+        {
+          "trial": 11,
+          "press_interval_ns": [
+            548539748360637,
+            548539748500970
+          ],
+          "baseline": 24.699354166666666,
+          "held": 37.573777777777764,
+          "step": 12.874423611111098,
+          "noise": 0.014951388888874817,
+          "threshold": 2.5748847222222198,
+          "status": "observed",
+          "frame": 885,
+          "latency_ms": 180.6296555,
+          "lower_ms": 164.218972,
+          "upper_ms": 180.699822,
+          "preceding_capture_gap_ms": 16.340517
+        }
+      ],
+      "observed": 11,
+      "unresolved_or_censored": 1,
+      "latency_ms": {
+        "mean": 175.97917613636363,
+        "median": 178.402977,
+        "p95": 191.1981095,
+        "p99": 191.1981095,
+        "max": 191.1981095
+      }
+    },
+    "b": {
+      "role": "local",
+      "frames": 987,
+      "ready_events": 988,
+      "max_pts_match_error_ms": 0.006565,
+      "capture_gap_ms": {
+        "median": 16.342385,
+        "p95": 16.493073,
+        "max": 16.748632
+      },
+      "trials": [
+        {
+          "trial": 0,
+          "press_interval_ns": [
+            548527895306882,
+            548527895496047
+          ],
+          "baseline": 78.03315277777779,
+          "held": 86.55865277777777,
+          "step": 8.52549999999998,
+          "noise": 0.07045833333332041,
+          "threshold": 1.705099999999996,
+          "status": "observed",
+          "frame": 153,
+          "latency_ms": 88.8869435,
+          "lower_ms": 72.440664,
+          "upper_ms": 88.981526,
+          "preceding_capture_gap_ms": 16.351697
+        },
+        {
+          "trial": 1,
+          "press_interval_ns": [
+            548528934180422,
+            548528934324672
+          ],
+          "baseline": 78.14109722222223,
+          "held": 86.22481944444445,
+          "step": 8.083722222222221,
+          "noise": 0.06043055555554133,
+          "threshold": 1.6167444444444443,
+          "status": "observed",
+          "frame": 216,
+          "latency_ms": 77.484288,
+          "lower_ms": 60.996305,
+          "upper_ms": 77.556413,
+          "preceding_capture_gap_ms": 16.415858
+        },
+        {
+          "trial": 2,
+          "press_interval_ns": [
+            548529930515563,
+            548529930631360
+          ],
+          "baseline": 78.4001111111111,
+          "held": 86.322,
+          "step": 7.921888888888901,
+          "noise": 0.056874999999976694,
+          "threshold": 1.5843777777777803,
+          "status": "observed",
+          "frame": 277,
+          "latency_ms": 76.6728265,
+          "lower_ms": 60.137545,
+          "upper_ms": 76.730725,
+          "preceding_capture_gap_ms": 16.477383
+        },
+        {
+          "trial": 3,
+          "press_interval_ns": [
+            548531046545236,
+            548531046671703
+          ],
+          "baseline": 78.38790277777778,
+          "held": 86.43934722222221,
+          "step": 8.051444444444428,
+          "noise": 0.066569444444454,
+          "threshold": 1.6102888888888858,
+          "status": "observed",
+          "frame": 346,
+          "latency_ms": 84.8470615,
+          "lower_ms": 68.391324,
+          "upper_ms": 84.910295,
+          "preceding_capture_gap_ms": 16.392504
+        },
+        {
+          "trial": 4,
+          "press_interval_ns": [
+            548532003119113,
+            548532003236473
+          ],
+          "baseline": 78.11981944444443,
+          "held": 86.30852777777778,
+          "step": 8.188708333333352,
+          "noise": 0.07180555555555657,
+          "threshold": 1.6377416666666704,
+          "status": "observed",
+          "frame": 404,
+          "latency_ms": 76.637991,
+          "lower_ms": 60.257139,
+          "upper_ms": 76.696671,
+          "preceding_capture_gap_ms": 16.322172
+        },
+        {
+          "trial": 5,
+          "press_interval_ns": [
+            548532986647511,
+            548532986762897
+          ],
+          "baseline": 78.11773611111111,
+          "held": 85.96108333333333,
+          "step": 7.843347222222221,
+          "noise": 0.06272222222222013,
+          "threshold": 1.5686694444444442,
+          "status": "observed",
+          "frame": 464,
+          "latency_ms": 72.860246,
+          "lower_ms": 56.389901,
+          "upper_ms": 72.917939,
+          "preceding_capture_gap_ms": 16.412652
+        },
+        {
+          "trial": 6,
+          "press_interval_ns": [
+            548534022800021,
+            548534022927500
+          ],
+          "baseline": 78.320375,
+          "held": 85.94755555555555,
+          "step": 7.6271805555555545,
+          "noise": 0.0968472222222232,
+          "threshold": 1.525436111111111,
+          "status": "observed",
+          "frame": 528,
+          "latency_ms": 81.3295945,
+          "lower_ms": 64.910721,
+          "upper_ms": 81.393334,
+          "preceding_capture_gap_ms": 16.355134
+        },
+        {
+          "trial": 7,
+          "press_interval_ns": [
+            548535058125471,
+            548535058243212
+          ],
+          "baseline": 78.38827777777779,
+          "held": 86.09731944444444,
+          "step": 7.70904166666665,
+          "noise": 0.05751388888889153,
+          "threshold": 1.5418083333333301,
+          "status": "observed",
+          "frame": 591,
+          "latency_ms": 74.3502935,
+          "lower_ms": 57.943563,
+          "upper_ms": 74.409164,
+          "preceding_capture_gap_ms": 16.34786
+        },
+        {
+          "trial": 8,
+          "press_interval_ns": [
+            548536273206494,
+            548536273309096
+          ],
+          "baseline": 78.29299999999999,
+          "held": 86.14615277777777,
+          "step": 7.85315277777778,
+          "noise": 0.058263888888888005,
+          "threshold": 1.570630555555556,
+          "status": "observed",
+          "frame": 666,
+          "latency_ms": 85.764372,
+          "lower_ms": 69.332729,
+          "upper_ms": 85.815673,
+          "preceding_capture_gap_ms": 16.380342
+        },
+        {
+          "trial": 9,
+          "press_interval_ns": [
+            548537415449167,
+            548537415562600
+          ],
+          "baseline": 78.1842777777778,
+          "held": 86.14608333333332,
+          "step": 7.961805555555529,
+          "noise": 0.08412500000000023,
+          "threshold": 1.5923611111111058,
+          "status": "observed",
+          "frame": 736,
+          "latency_ms": 87.5127635,
+          "lower_ms": 70.707415,
+          "upper_ms": 87.56948,
+          "preceding_capture_gap_ms": 16.748632
+        },
+        {
+          "trial": 10,
+          "press_interval_ns": [
+            548538541454537,
+            548538541567498
+          ],
+          "baseline": 78.01324999999999,
+          "held": 85.94612500000001,
+          "step": 7.932875000000024,
+          "noise": 0.04165277777779863,
+          "threshold": 1.586575000000005,
+          "status": "observed",
+          "frame": 805,
+          "latency_ms": 86.9367585,
+          "lower_ms": 70.622206,
+          "upper_ms": 86.993239,
+          "preceding_capture_gap_ms": 16.258072
+        },
+        {
+          "trial": 11,
+          "press_interval_ns": [
+            548539748360637,
+            548539748500970
+          ],
+          "baseline": 78.02995833333333,
+          "held": 85.85876388888887,
+          "step": 7.828805555555547,
+          "noise": 0.090666666666678,
+          "threshold": 1.5657611111111096,
+          "status": "observed",
+          "frame": 879,
+          "latency_ms": 87.8009585,
+          "lower_ms": 71.308202,
+          "upper_ms": 87.871125,
+          "preceding_capture_gap_ms": 16.42259
+        }
+      ],
+      "observed": 12,
+      "unresolved_or_censored": 0,
+      "latency_ms": {
+        "mean": 81.75700808333333,
+        "median": 83.08832799999999,
+        "p95": 88.8869435,
+        "p99": 88.8869435,
+        "max": 88.8869435
+      }
+    }
+  },
+  "method": "Positive shield-tint change in fighter-region mean blue-minus-red; threshold is 20% of each held-state step or 4x measured pre-input motion, whichever is larger. Two consecutive frames must cross it. Negative color changes are not evidence of this shield response. This is a color-response onset metric, not a physical device/display measurement."
+}

@@ -1,0 +1,172 @@
+{
+  "args": {
+    "binary": "/home/tom/code/wc3-melee/worktrees/editbox-pause-focus-20261005/companion/target/debug/wc3-journal",
+    "out": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-response-a-20261005",
+    "build": "editbox-start-20261005",
+    "epoch": 1,
+    "actor": "a",
+    "private_a": "/run/user/1000/private-desktop.ua70lDgf",
+    "private_b": "/run/user/1000/private-desktop.DIasYMFK",
+    "data_a": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "data_b": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "trials": 12,
+    "geometry": "600,450 1360x550",
+    "key": "q"
+  },
+  "actions": [
+    {
+      "trial": 0,
+      "edge": "press",
+      "start_monotonic_ns": 547951432342261,
+      "end_monotonic_ns": 547951432499686
+    },
+    {
+      "trial": 0,
+      "edge": "release",
+      "start_monotonic_ns": 547951682367436,
+      "end_monotonic_ns": 547951682529299
+    },
+    {
+      "trial": 1,
+      "edge": "press",
+      "start_monotonic_ns": 547952471222833,
+      "end_monotonic_ns": 547952471324333
+    },
+    {
+      "trial": 1,
+      "edge": "release",
+      "start_monotonic_ns": 547952721216919,
+      "end_monotonic_ns": 547952721330031
+    },
+    {
+      "trial": 2,
+      "edge": "press",
+      "start_monotonic_ns": 547953467572651,
+      "end_monotonic_ns": 547953467666827
+    },
+    {
+      "trial": 2,
+      "edge": "release",
+      "start_monotonic_ns": 547953717560906,
+      "end_monotonic_ns": 547953717678476
+    },
+    {
+      "trial": 3,
+      "edge": "press",
+      "start_monotonic_ns": 547954583584297,
+      "end_monotonic_ns": 547954583687701
+    },
+    {
+      "trial": 3,
+      "edge": "release",
+      "start_monotonic_ns": 547954833583212,
+      "end_monotonic_ns": 547954833676988
+    },
+    {
+      "trial": 4,
+      "edge": "press",
+      "start_monotonic_ns": 547955540173212,
+      "end_monotonic_ns": 547955540294309
+    },
+    {
+      "trial": 4,
+      "edge": "release",
+      "start_monotonic_ns": 547955790168200,
+      "end_monotonic_ns": 547955790288726
+    },
+    {
+      "trial": 5,
+      "edge": "press",
+      "start_monotonic_ns": 547956523707781,
+      "end_monotonic_ns": 547956523836763
+    },
+    {
+      "trial": 5,
+      "edge": "release",
+      "start_monotonic_ns": 547956773743826,
+      "end_monotonic_ns": 547956773926278
+    },
+    {
+      "trial": 6,
+      "edge": "press",
+      "start_monotonic_ns": 547957559853307,
+      "end_monotonic_ns": 547957559968142
+    },
+    {
+      "trial": 6,
+      "edge": "release",
+      "start_monotonic_ns": 547957809845389,
+      "end_monotonic_ns": 547957809945848
+    },
+    {
+      "trial": 7,
+      "edge": "press",
+      "start_monotonic_ns": 547958595179718,
+      "end_monotonic_ns": 547958595294833
+    },
+    {
+      "trial": 7,
+      "edge": "release",
+      "start_monotonic_ns": 547958845178463,
+      "end_monotonic_ns": 547958845293598
+    },
+    {
+      "trial": 8,
+      "edge": "press",
+      "start_monotonic_ns": 547959810265546,
+      "end_monotonic_ns": 547959810395790
+    },
+    {
+      "trial": 8,
+      "edge": "release",
+      "start_monotonic_ns": 547960060258059,
+      "end_monotonic_ns": 547960060369057
+    },
+    {
+      "trial": 9,
+      "edge": "press",
+      "start_monotonic_ns": 547960952507265,
+      "end_monotonic_ns": 547960952617000
+    },
+    {
+      "trial": 9,
+      "edge": "release",
+      "start_monotonic_ns": 547961202510989,
+      "end_monotonic_ns": 547961202619973
+    },
+    {
+      "trial": 10,
+      "edge": "press",
+      "start_monotonic_ns": 547962078562375,
+      "end_monotonic_ns": 547962078709671
+    },
+    {
+      "trial": 10,
+      "edge": "release",
+      "start_monotonic_ns": 547962328511548,
+      "end_monotonic_ns": 547962328615993
+    },
+    {
+      "trial": 11,
+      "edge": "press",
+      "start_monotonic_ns": 547963285400335,
+      "end_monotonic_ns": 547963285527684
+    },
+    {
+      "trial": 11,
+      "edge": "release",
+      "start_monotonic_ns": 547963535386697,
+      "end_monotonic_ns": 547963535491323
+    }
+  ],
+  "failures": [],
+  "begin_monotonic_ns": 547948935476913,
+  "capture_epoch_monotonic_ns": 547949849169669,
+  "stop_frame": 912,
+  "helper_sha256": "ea6e7311e5a787cf08beeeb951cd799f01323ff3c643da9e5464098d8a36f6cb",
+  "limits": [
+    "Linux virtual evdev shield trigger, not physical hardware.",
+    "Compositor ready timestamps share the producer's host monotonic clock.",
+    "Physical scanout, separate-machine clocks and human perception are unmeasured."
+  ]
+}

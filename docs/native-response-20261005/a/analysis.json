@@ -1,0 +1,354 @@
+{
+  "actor": "a",
+  "key": "q",
+  "roi": [
+    260,
+    280,
+    520,
+    500
+  ],
+  "clients": {
+    "a": {
+      "role": "local",
+      "frames": 537,
+      "ready_events": 552,
+      "max_pts_match_error_ms": 0.006367,
+      "capture_gap_ms": {
+        "median": 32.6027315,
+        "p95": 33.771737,
+        "max": 44.043529
+      },
+      "trials": [
+        {
+          "trial": 0,
+          "press_interval_ns": [
+            547951432342261,
+            547951432499686
+          ],
+          "baseline": 20.480611888111895,
+          "held": 3.4431293706293786,
+          "step": -17.037482517482516,
+          "noise": 0.016206293706289898,
+          "threshold": 3.4074965034965032,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 1,
+          "press_interval_ns": [
+            547952471222833,
+            547952471324333
+          ],
+          "baseline": 20.512849650349665,
+          "held": 4.0601048951048995,
+          "step": -16.452744755244765,
+          "noise": 0.0243181818181597,
+          "threshold": 3.290548951048953,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 2,
+          "press_interval_ns": [
+            547953467572651,
+            547953467666827
+          ],
+          "baseline": 20.43956293706293,
+          "held": 4.386188811188816,
+          "step": -16.053374125874114,
+          "noise": 0.18940559440559923,
+          "threshold": 3.210674825174823,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 3,
+          "press_interval_ns": [
+            547954583584297,
+            547954583687701
+          ],
+          "baseline": 20.325611888111865,
+          "held": 4.602762237762249,
+          "step": -15.722849650349616,
+          "noise": 0.23307692307687944,
+          "threshold": 3.1445699300699235,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 4,
+          "press_interval_ns": [
+            547955540173212,
+            547955540294309
+          ],
+          "status": "censored: insufficient capture coverage"
+        },
+        {
+          "trial": 5,
+          "press_interval_ns": [
+            547956523707781,
+            547956523836763
+          ],
+          "baseline": 19.464353146853142,
+          "held": 5.084562937062941,
+          "step": -14.379790209790201,
+          "noise": 0.1479020979020902,
+          "threshold": 2.8759580419580404,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 6,
+          "press_interval_ns": [
+            547957559853307,
+            547957559968142
+          ],
+          "baseline": 19.872884615384635,
+          "held": 4.954580419580424,
+          "step": -14.918304195804211,
+          "noise": 0.23386363636365104,
+          "threshold": 2.9836608391608426,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 7,
+          "press_interval_ns": [
+            547958595179718,
+            547958595294833
+          ],
+          "baseline": 20.241520979020976,
+          "held": 5.1797202797203,
+          "step": -15.061800699300676,
+          "noise": 0.24284965034962624,
+          "threshold": 3.012360139860135,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 8,
+          "press_interval_ns": [
+            547959810265546,
+            547959810395790
+          ],
+          "baseline": 20.137709790209783,
+          "held": 5.162552447552429,
+          "step": -14.975157342657354,
+          "noise": 0.2697727272727377,
+          "threshold": 2.995031468531471,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 9,
+          "press_interval_ns": [
+            547960952507265,
+            547960952617000
+          ],
+          "status": "censored: insufficient capture coverage"
+        },
+        {
+          "trial": 10,
+          "press_interval_ns": [
+            547962078562375,
+            547962078709671
+          ],
+          "baseline": 20.270900349650347,
+          "held": 5.461590909090887,
+          "step": -14.80930944055946,
+          "noise": 0.18130244755242586,
+          "threshold": 2.9618618881118923,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 11,
+          "press_interval_ns": [
+            547963285400335,
+            547963285527684
+          ],
+          "status": "censored: insufficient capture coverage"
+        }
+      ],
+      "observed": 0,
+      "unresolved_or_censored": 12,
+      "latency_ms": {
+        "mean": null,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      }
+    },
+    "b": {
+      "role": "remote",
+      "frames": 622,
+      "ready_events": 637,
+      "max_pts_match_error_ms": 0.006558,
+      "capture_gap_ms": {
+        "median": 32.459498,
+        "p95": 33.117792,
+        "max": 40.962986
+      },
+      "trials": [
+        {
+          "trial": 0,
+          "press_interval_ns": [
+            547951432342261,
+            547951432499686
+          ],
+          "baseline": 72.95540209790211,
+          "held": 40.49711538461537,
+          "step": -32.45828671328674,
+          "noise": 0.07316433566431613,
+          "threshold": 6.491657342657348,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 1,
+          "press_interval_ns": [
+            547952471222833,
+            547952471324333
+          ],
+          "baseline": 73.0851486013986,
+          "held": 41.15912587412589,
+          "step": -31.92602272727271,
+          "noise": 0.10843531468532319,
+          "threshold": 6.385204545454542,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 2,
+          "press_interval_ns": [
+            547953467572651,
+            547953467666827
+          ],
+          "baseline": 73.05078671328673,
+          "held": 41.48332167832169,
+          "step": -31.56746503496504,
+          "noise": 0.377797202797197,
+          "threshold": 6.313493006993008,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 3,
+          "press_interval_ns": [
+            547954583584297,
+            547954583687701
+          ],
+          "baseline": 72.6809965034965,
+          "held": 42.03526223776224,
+          "step": -30.645734265734262,
+          "noise": 0.317360139860142,
+          "threshold": 6.129146853146853,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 4,
+          "press_interval_ns": [
+            547955540173212,
+            547955540294309
+          ],
+          "baseline": 71.73814685314686,
+          "held": 73.07055944055944,
+          "step": 1.332412587412577,
+          "noise": 0.20367132867133364,
+          "threshold": 0.8146853146853346,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 5,
+          "press_interval_ns": [
+            547956523707781,
+            547956523836763
+          ],
+          "baseline": 71.66748251748251,
+          "held": 42.87304195804195,
+          "step": -28.79444055944056,
+          "noise": 0.22653846153846757,
+          "threshold": 5.758888111888112,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 6,
+          "press_interval_ns": [
+            547957559853307,
+            547957559968142
+          ],
+          "baseline": 72.12816433566434,
+          "held": 43.201590909090896,
+          "step": -28.92657342657344,
+          "noise": 0.3249825174825105,
+          "threshold": 5.785314685314688,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 7,
+          "press_interval_ns": [
+            547958595179718,
+            547958595294833
+          ],
+          "baseline": 72.56942307692307,
+          "held": 43.80096153846155,
+          "step": -28.768461538461523,
+          "noise": 0.27896853146853573,
+          "threshold": 5.7536923076923046,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 8,
+          "press_interval_ns": [
+            547959810265546,
+            547959810395790
+          ],
+          "baseline": 72.45893356643357,
+          "held": 43.597377622377635,
+          "step": -28.861555944055937,
+          "noise": 0.4033916083916296,
+          "threshold": 5.772311188811187,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 9,
+          "press_interval_ns": [
+            547960952507265,
+            547960952617000
+          ],
+          "baseline": 72.40270979020978,
+          "held": 43.864938811188814,
+          "step": -28.53777097902097,
+          "noise": 0.21800699300699478,
+          "threshold": 5.707554195804194,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 10,
+          "press_interval_ns": [
+            547962078562375,
+            547962078709671
+          ],
+          "baseline": 72.61608391608392,
+          "held": 44.111188811188825,
+          "step": -28.5048951048951,
+          "noise": 0.1961013986013853,
+          "threshold": 5.70097902097902,
+          "status": "unresolved: no reliable held color step"
+        },
+        {
+          "trial": 11,
+          "press_interval_ns": [
+            547963285400335,
+            547963285527684
+          ],
+          "baseline": 72.49494755244756,
+          "held": 44.144851398601396,
+          "step": -28.35009615384616,
+          "noise": 0.38222027972028627,
+          "threshold": 5.670019230769232,
+          "status": "unresolved: no reliable held color step"
+        }
+      ],
+      "observed": 0,
+      "unresolved_or_censored": 12,
+      "latency_ms": {
+        "mean": null,
+        "median": null,
+        "p95": null,
+        "p99": null,
+        "max": null
+      }
+    }
+  },
+  "method": "Positive shield-tint change in fighter-region mean blue-minus-red; threshold is 20% of each held-state step or 4x measured pre-input motion, whichever is larger. Two consecutive frames must cross it. Negative color changes are not evidence of this shield response. This is a color-response onset metric, not a physical device/display measurement."
+}

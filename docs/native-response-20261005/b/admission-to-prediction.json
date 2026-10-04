@@ -1,0 +1,132 @@
+[
+  {
+    "row": 168,
+    "edge": "press",
+    "target": 96.0,
+    "F_before": 94.0,
+    "F_after": 95.0,
+    "prediction_row": 170,
+    "callbacks": 2,
+    "after_poll_native_ms": 33.333000000000084
+  },
+  {
+    "row": 182,
+    "edge": "release",
+    "target": 110.0,
+    "F_before": 108.0,
+    "F_after": 109.0,
+    "prediction_row": 184,
+    "callbacks": 2,
+    "after_poll_native_ms": 33.333000000000084
+  },
+  {
+    "row": 231,
+    "edge": "press",
+    "target": 158.0,
+    "F_before": 157.0,
+    "F_after": 158.0,
+    "prediction_row": 232,
+    "callbacks": 1,
+    "after_poll_native_ms": 16.662000000000262
+  },
+  {
+    "row": 290,
+    "edge": "press",
+    "target": 218.0,
+    "F_before": 216.0,
+    "F_after": 217.0,
+    "prediction_row": 292,
+    "callbacks": 2,
+    "after_poll_native_ms": 33.33299999999963
+  },
+  {
+    "row": 372,
+    "edge": "release",
+    "target": 300.0,
+    "F_before": 298.0,
+    "F_after": 299.0,
+    "prediction_row": 374,
+    "callbacks": 2,
+    "after_poll_native_ms": 33.33300000000054
+  },
+  {
+    "row": 414,
+    "edge": "press",
+    "target": 342.0,
+    "F_before": 340.0,
+    "F_after": 341.0,
+    "prediction_row": 416,
+    "callbacks": 2,
+    "after_poll_native_ms": 33.33299999999963
+  },
+  {
+    "row": 488,
+    "edge": "release",
+    "target": 416.0,
+    "F_before": 414.0,
+    "F_after": 415.0,
+    "prediction_row": 490,
+    "callbacks": 2,
+    "after_poll_native_ms": 33.332000000000335
+  },
+  {
+    "row": 551,
+    "edge": "release",
+    "target": 478.0,
+    "F_before": 477.0,
+    "F_after": 478.0,
+    "prediction_row": 552,
+    "callbacks": 1,
+    "after_poll_native_ms": 16.663000000000466
+  },
+  {
+    "row": 612,
+    "edge": "release",
+    "target": 540.0,
+    "F_before": 538.0,
+    "F_after": 539.0,
+    "prediction_row": 614,
+    "callbacks": 2,
+    "after_poll_native_ms": 33.33300000000054
+  },
+  {
+    "row": 671,
+    "edge": "press",
+    "target": 598.0,
+    "F_before": 597.0,
+    "F_after": 598.0,
+    "prediction_row": 672,
+    "callbacks": 1,
+    "after_poll_native_ms": 16.662000000000262
+  },
+  {
+    "row": 754,
+    "edge": "release",
+    "target": 682.0,
+    "F_before": 680.0,
+    "F_after": 681.0,
+    "prediction_row": 756,
+    "callbacks": 2,
+    "after_poll_native_ms": 33.33400000000074
+  },
+  {
+    "row": 805,
+    "edge": "press",
+    "target": 734.0,
+    "F_before": 731.0,
+    "F_after": 732.0,
+    "prediction_row": 808,
+    "callbacks": 3,
+    "after_poll_native_ms": 49.996000000001004
+  },
+  {
+    "row": 894,
+    "edge": "release",
+    "target": 822.0,
+    "F_before": 820.0,
+    "F_after": 821.0,
+    "prediction_row": 896,
+    "callbacks": 2,
+    "after_poll_native_ms": 33.332000000000335
+  }
+]

@@ -1,0 +1,1370 @@
+source=/dev/input/event3 name=Some("Smashcraft Event Retention Virtual Gamepad") clock=CLOCK_MONOTONIC epoch_ns=547949849169669 frame_rule=segment_frame+floor((t-segment_epoch)*60/1e9) first=1 delay=0 pause_policy=sequenced-map-control
+readiness_receipt=/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-ready-editbox-start-20261005-e1-p1.txt
+published_frame=1
+editbox_emit bytes=8 elapsed_us=1685 wire=I421100
+published_frame=2
+published_frame=3
+editbox_emit bytes=8 elapsed_us=1623 wire=I421300
+published_frame=4
+published_frame=5
+editbox_emit bytes=8 elapsed_us=1846 wire=I421500
+published_frame=6
+published_frame=7
+editbox_emit bytes=8 elapsed_us=1424 wire=I421700
+published_frame=8
+published_frame=9
+editbox_emit bytes=8 elapsed_us=1959 wire=I421900
+published_frame=10
+published_frame=11
+editbox_emit bytes=8 elapsed_us=1659 wire=I421B00
+published_frame=12
+published_frame=13
+editbox_emit bytes=8 elapsed_us=1757 wire=I421D00
+published_frame=14
+published_frame=15
+editbox_emit bytes=8 elapsed_us=2537 wire=I421F00
+published_frame=16
+published_frame=17
+editbox_emit bytes=8 elapsed_us=1499 wire=I421H00
+published_frame=18
+published_frame=19
+editbox_emit bytes=8 elapsed_us=1846 wire=I421J00
+published_frame=20
+published_frame=21
+editbox_emit bytes=8 elapsed_us=1937 wire=I421L00
+published_frame=22
+published_frame=23
+editbox_emit bytes=8 elapsed_us=1554 wire=I421N00
+published_frame=24
+published_frame=25
+editbox_emit bytes=8 elapsed_us=1853 wire=I421P00
+published_frame=26
+published_frame=27
+editbox_emit bytes=8 elapsed_us=1530 wire=I421R00
+published_frame=28
+published_frame=29
+editbox_emit bytes=8 elapsed_us=1910 wire=I421T00
+published_frame=30
+published_frame=31
+editbox_emit bytes=8 elapsed_us=1230 wire=I421V00
+published_frame=32
+published_frame=33
+editbox_emit bytes=9 elapsed_us=1506 wire=I421X100
+published_frame=34
+published_frame=35
+editbox_emit bytes=9 elapsed_us=1661 wire=I421Z100
+published_frame=36
+published_frame=37
+editbox_emit bytes=9 elapsed_us=2181 wire=I421b100
+published_frame=38
+published_frame=39
+editbox_emit bytes=9 elapsed_us=1590 wire=I421d100
+published_frame=40
+published_frame=41
+editbox_emit bytes=9 elapsed_us=1430 wire=I421f100
+published_frame=42
+published_frame=43
+editbox_emit bytes=9 elapsed_us=1555 wire=I421h100
+published_frame=44
+published_frame=45
+editbox_emit bytes=9 elapsed_us=2334 wire=I421j100
+published_frame=46
+published_frame=47
+editbox_emit bytes=9 elapsed_us=1340 wire=I421l100
+published_frame=48
+published_frame=49
+editbox_emit bytes=9 elapsed_us=2162 wire=I421n100
+published_frame=50
+published_frame=51
+editbox_emit bytes=9 elapsed_us=1265 wire=I421p100
+published_frame=52
+published_frame=53
+editbox_emit bytes=9 elapsed_us=1343 wire=I421r100
+published_frame=54
+published_frame=55
+editbox_emit bytes=9 elapsed_us=1345 wire=I421t100
+published_frame=56
+published_frame=57
+editbox_emit bytes=9 elapsed_us=1650 wire=I421v100
+published_frame=58
+published_frame=59
+editbox_emit bytes=9 elapsed_us=1695 wire=I421x100
+published_frame=60
+published_frame=61
+editbox_emit bytes=9 elapsed_us=2059 wire=I421z100
+published_frame=62
+published_frame=63
+editbox_emit bytes=9 elapsed_us=2350 wire=I421_100
+published_frame=64
+published_frame=65
+editbox_emit bytes=9 elapsed_us=4696 wire=I421X200
+published_frame=66
+published_frame=67
+editbox_emit bytes=9 elapsed_us=1781 wire=I421Z200
+published_frame=68
+published_frame=69
+editbox_emit bytes=9 elapsed_us=1357 wire=I421b200
+published_frame=70
+published_frame=71
+editbox_emit bytes=9 elapsed_us=1465 wire=I421d200
+published_frame=72
+published_frame=73
+editbox_emit bytes=9 elapsed_us=1831 wire=I421f200
+published_frame=74
+published_frame=75
+editbox_emit bytes=9 elapsed_us=1278 wire=I421h200
+published_frame=76
+published_frame=77
+editbox_emit bytes=9 elapsed_us=1346 wire=I421j200
+published_frame=78
+published_frame=79
+editbox_emit bytes=9 elapsed_us=1265 wire=I421l200
+published_frame=80
+published_frame=81
+editbox_emit bytes=9 elapsed_us=1577 wire=I421n200
+published_frame=82
+published_frame=83
+editbox_emit bytes=9 elapsed_us=1599 wire=I421p200
+published_frame=84
+published_frame=85
+editbox_emit bytes=9 elapsed_us=1202 wire=I421r200
+published_frame=86
+published_frame=87
+editbox_emit bytes=9 elapsed_us=1579 wire=I421t200
+published_frame=88
+published_frame=89
+editbox_emit bytes=9 elapsed_us=1528 wire=I421v200
+published_frame=90
+published_frame=91
+editbox_emit bytes=9 elapsed_us=1706 wire=I421x200
+published_frame=92
+published_frame=93
+editbox_emit bytes=9 elapsed_us=1929 wire=I421z200
+published_frame=94
+published_frame=95
+editbox_emit bytes=9 elapsed_us=2827 wire=I421_200
+published_frame=96
+published_frame=97
+editbox_emit bytes=9 elapsed_us=1796 wire=I421X300
+published_frame=98
+published_frame=99
+editbox_emit bytes=9 elapsed_us=1644 wire=I421Z300
+published_frame=100
+published_frame=101
+editbox_emit bytes=9 elapsed_us=1402 wire=I421b300
+published_frame=102
+published_frame=103
+editbox_emit bytes=9 elapsed_us=1207 wire=I421d300
+published_frame=104
+published_frame=105
+editbox_emit bytes=9 elapsed_us=1719 wire=I421f300
+published_frame=106
+published_frame=107
+editbox_emit bytes=9 elapsed_us=1557 wire=I421h300
+published_frame=108
+published_frame=109
+editbox_emit bytes=9 elapsed_us=1956 wire=I421j300
+published_frame=110
+published_frame=111
+editbox_emit bytes=9 elapsed_us=1428 wire=I421l300
+published_frame=112
+published_frame=113
+editbox_emit bytes=9 elapsed_us=1471 wire=I421n300
+published_frame=114
+published_frame=115
+editbox_emit bytes=9 elapsed_us=1859 wire=I421p300
+published_frame=116
+published_frame=117
+editbox_emit bytes=9 elapsed_us=1554 wire=I421r300
+published_frame=118
+published_frame=119
+editbox_emit bytes=9 elapsed_us=1415 wire=I421t300
+published_frame=120
+published_frame=121
+editbox_emit bytes=9 elapsed_us=1422 wire=I421v300
+published_frame=122
+published_frame=123
+editbox_emit bytes=9 elapsed_us=1540 wire=I421x300
+published_frame=124
+published_frame=125
+editbox_emit bytes=9 elapsed_us=1319 wire=I421z300
+published_frame=126
+published_frame=127
+editbox_emit bytes=9 elapsed_us=1643 wire=I421_300
+published_frame=128
+published_frame=129
+editbox_emit bytes=9 elapsed_us=1433 wire=I421X400
+published_frame=130
+published_frame=131
+editbox_emit bytes=9 elapsed_us=1665 wire=I421Z400
+published_frame=132
+published_frame=133
+editbox_emit bytes=9 elapsed_us=2197 wire=I421b400
+published_frame=134
+published_frame=135
+editbox_emit bytes=9 elapsed_us=1913 wire=I421d400
+published_frame=136
+published_frame=137
+editbox_emit bytes=9 elapsed_us=1146 wire=I421f400
+published_frame=138
+published_frame=139
+editbox_emit bytes=9 elapsed_us=1469 wire=I421h400
+published_frame=140
+published_frame=141
+editbox_emit bytes=9 elapsed_us=1356 wire=I421j400
+published_frame=142
+published_frame=143
+editbox_emit bytes=9 elapsed_us=1696 wire=I421l400
+published_frame=144
+published_frame=145
+editbox_emit bytes=9 elapsed_us=1282 wire=I421n400
+published_frame=146
+published_frame=147
+editbox_emit bytes=9 elapsed_us=1556 wire=I421p400
+published_frame=148
+published_frame=149
+editbox_emit bytes=9 elapsed_us=1392 wire=I421r400
+published_frame=150
+published_frame=151
+editbox_emit bytes=9 elapsed_us=1397 wire=I421t400
+published_frame=152
+published_frame=153
+editbox_emit bytes=9 elapsed_us=1239 wire=I421v400
+published_frame=154
+published_frame=155
+editbox_emit bytes=9 elapsed_us=1297 wire=I421x400
+published_frame=156
+published_frame=157
+editbox_emit bytes=9 elapsed_us=1630 wire=I421z400
+published_frame=158
+published_frame=159
+editbox_emit bytes=9 elapsed_us=1607 wire=I421_400
+published_frame=160
+published_frame=161
+editbox_emit bytes=9 elapsed_us=1687 wire=I421X500
+published_frame=162
+published_frame=163
+editbox_emit bytes=9 elapsed_us=2061 wire=I421Z500
+published_frame=164
+published_frame=165
+editbox_emit bytes=9 elapsed_us=1163 wire=I421b500
+published_frame=166
+published_frame=167
+editbox_emit bytes=9 elapsed_us=1157 wire=I421d500
+published_frame=168
+published_frame=169
+editbox_emit bytes=9 elapsed_us=1305 wire=I421f500
+published_frame=170
+published_frame=171
+editbox_emit bytes=9 elapsed_us=1187 wire=I421h500
+published_frame=172
+published_frame=173
+editbox_emit bytes=9 elapsed_us=1109 wire=I421j500
+published_frame=174
+published_frame=175
+editbox_emit bytes=9 elapsed_us=1120 wire=I421l500
+published_frame=176
+published_frame=177
+editbox_emit bytes=9 elapsed_us=1249 wire=I421n500
+published_frame=178
+published_frame=179
+editbox_emit bytes=9 elapsed_us=1499 wire=I421p500
+published_frame=180
+published_frame=181
+editbox_emit bytes=9 elapsed_us=1421 wire=I421r500
+published_frame=182
+published_frame=183
+editbox_emit bytes=9 elapsed_us=1373 wire=I421t500
+published_frame=184
+published_frame=185
+editbox_emit bytes=9 elapsed_us=1042 wire=I421v500
+published_frame=186
+published_frame=187
+editbox_emit bytes=9 elapsed_us=1317 wire=I421x500
+published_frame=188
+published_frame=189
+editbox_emit bytes=9 elapsed_us=1324 wire=I421z500
+published_frame=190
+published_frame=191
+editbox_emit bytes=9 elapsed_us=1685 wire=I421_500
+published_frame=192
+published_frame=193
+editbox_emit bytes=9 elapsed_us=2809 wire=I421X600
+published_frame=194
+published_frame=195
+editbox_emit bytes=9 elapsed_us=1629 wire=I421Z600
+published_frame=196
+published_frame=197
+editbox_emit bytes=9 elapsed_us=1475 wire=I421b600
+published_frame=198
+published_frame=199
+editbox_emit bytes=9 elapsed_us=1307 wire=I421d600
+published_frame=200
+published_frame=201
+editbox_emit bytes=9 elapsed_us=1289 wire=I421f600
+published_frame=202
+published_frame=203
+editbox_emit bytes=9 elapsed_us=1308 wire=I421h600
+published_frame=204
+published_frame=205
+editbox_emit bytes=9 elapsed_us=1292 wire=I421j600
+published_frame=206
+published_frame=207
+editbox_emit bytes=9 elapsed_us=1385 wire=I421l600
+published_frame=208
+published_frame=209
+editbox_emit bytes=9 elapsed_us=1367 wire=I421n600
+published_frame=210
+published_frame=211
+editbox_emit bytes=9 elapsed_us=1342 wire=I421p600
+published_frame=212
+published_frame=213
+editbox_emit bytes=9 elapsed_us=1506 wire=I421r600
+published_frame=214
+published_frame=215
+editbox_emit bytes=9 elapsed_us=1308 wire=I421t600
+published_frame=216
+published_frame=217
+editbox_emit bytes=9 elapsed_us=1344 wire=I421v600
+published_frame=218
+published_frame=219
+editbox_emit bytes=9 elapsed_us=1084 wire=I421x600
+published_frame=220
+published_frame=221
+editbox_emit bytes=9 elapsed_us=1403 wire=I421z600
+published_frame=222
+published_frame=223
+editbox_emit bytes=9 elapsed_us=1384 wire=I421_600
+published_frame=224
+published_frame=225
+editbox_emit bytes=9 elapsed_us=1503 wire=I421X700
+published_frame=226
+published_frame=227
+editbox_emit bytes=9 elapsed_us=1465 wire=I421Z700
+published_frame=228
+published_frame=229
+editbox_emit bytes=9 elapsed_us=1599 wire=I421b700
+published_frame=230
+published_frame=231
+editbox_emit bytes=9 elapsed_us=1508 wire=I421d700
+published_frame=232
+published_frame=233
+editbox_emit bytes=9 elapsed_us=1251 wire=I421f700
+published_frame=234
+published_frame=235
+editbox_emit bytes=9 elapsed_us=1158 wire=I421h700
+published_frame=236
+published_frame=237
+editbox_emit bytes=9 elapsed_us=2159 wire=I421j700
+published_frame=238
+published_frame=239
+editbox_emit bytes=9 elapsed_us=1453 wire=I421l700
+published_frame=240
+published_frame=241
+editbox_emit bytes=9 elapsed_us=1174 wire=I421n700
+published_frame=242
+published_frame=243
+editbox_emit bytes=9 elapsed_us=1495 wire=I421p700
+published_frame=244
+published_frame=245
+editbox_emit bytes=9 elapsed_us=1215 wire=I421r700
+published_frame=246
+published_frame=247
+editbox_emit bytes=9 elapsed_us=1656 wire=I421t700
+published_frame=248
+published_frame=249
+editbox_emit bytes=9 elapsed_us=1938 wire=I421v700
+published_frame=250
+published_frame=251
+editbox_emit bytes=9 elapsed_us=1187 wire=I421x700
+published_frame=252
+published_frame=253
+editbox_emit bytes=9 elapsed_us=1194 wire=I421z700
+published_frame=254
+published_frame=255
+editbox_emit bytes=9 elapsed_us=1391 wire=I421_700
+published_frame=256
+published_frame=257
+editbox_emit bytes=9 elapsed_us=1335 wire=I421X800
+published_frame=258
+published_frame=259
+editbox_emit bytes=9 elapsed_us=1536 wire=I421Z800
+published_frame=260
+published_frame=261
+editbox_emit bytes=9 elapsed_us=2072 wire=I421b800
+published_frame=262
+published_frame=263
+editbox_emit bytes=9 elapsed_us=1531 wire=I421d800
+published_frame=264
+published_frame=265
+editbox_emit bytes=9 elapsed_us=1958 wire=I421f800
+published_frame=266
+published_frame=267
+editbox_emit bytes=9 elapsed_us=1364 wire=I421h800
+published_frame=268
+published_frame=269
+editbox_emit bytes=9 elapsed_us=1098 wire=I421j800
+published_frame=270
+published_frame=271
+editbox_emit bytes=9 elapsed_us=1363 wire=I421l800
+published_frame=272
+published_frame=273
+editbox_emit bytes=9 elapsed_us=1326 wire=I421n800
+published_frame=274
+published_frame=275
+editbox_emit bytes=9 elapsed_us=1687 wire=I421p800
+published_frame=276
+published_frame=277
+editbox_emit bytes=9 elapsed_us=1190 wire=I421r800
+published_frame=278
+published_frame=279
+editbox_emit bytes=9 elapsed_us=1484 wire=I421t800
+published_frame=280
+published_frame=281
+editbox_emit bytes=9 elapsed_us=1452 wire=I421v800
+published_frame=282
+published_frame=283
+editbox_emit bytes=9 elapsed_us=1185 wire=I421x800
+published_frame=284
+published_frame=285
+editbox_emit bytes=9 elapsed_us=1225 wire=I421z800
+published_frame=286
+published_frame=287
+editbox_emit bytes=9 elapsed_us=1656 wire=I421_800
+published_frame=288
+published_frame=289
+editbox_emit bytes=9 elapsed_us=1871 wire=I421X900
+published_frame=290
+published_frame=291
+editbox_emit bytes=9 elapsed_us=1434 wire=I421Z900
+published_frame=292
+published_frame=293
+editbox_emit bytes=9 elapsed_us=1917 wire=I421b900
+published_frame=294
+published_frame=295
+editbox_emit bytes=9 elapsed_us=1311 wire=I421d900
+published_frame=296
+published_frame=297
+editbox_emit bytes=9 elapsed_us=1134 wire=I421f900
+published_frame=298
+published_frame=299
+editbox_emit bytes=9 elapsed_us=1414 wire=I421h900
+published_frame=300
+published_frame=301
+editbox_emit bytes=9 elapsed_us=1252 wire=I421j900
+published_frame=302
+published_frame=303
+editbox_emit bytes=9 elapsed_us=1299 wire=I421l900
+published_frame=304
+published_frame=305
+editbox_emit bytes=9 elapsed_us=1341 wire=I421n900
+published_frame=306
+published_frame=307
+editbox_emit bytes=9 elapsed_us=1408 wire=I421p900
+published_frame=308
+published_frame=309
+editbox_emit bytes=9 elapsed_us=1149 wire=I421r900
+published_frame=310
+published_frame=311
+editbox_emit bytes=9 elapsed_us=1930 wire=I421t900
+published_frame=312
+published_frame=313
+editbox_emit bytes=9 elapsed_us=1367 wire=I421v900
+published_frame=314
+published_frame=315
+editbox_emit bytes=9 elapsed_us=1315 wire=I421x900
+published_frame=316
+published_frame=317
+editbox_emit bytes=9 elapsed_us=1591 wire=I421z900
+published_frame=318
+published_frame=319
+editbox_emit bytes=9 elapsed_us=1841 wire=I421_900
+published_frame=320
+published_frame=321
+editbox_emit bytes=9 elapsed_us=2040 wire=I421XA00
+published_frame=322
+published_frame=323
+editbox_emit bytes=9 elapsed_us=3429 wire=I421ZA00
+published_frame=324
+published_frame=325
+editbox_emit bytes=9 elapsed_us=1759 wire=I421bA00
+published_frame=326
+published_frame=327
+editbox_emit bytes=9 elapsed_us=1599 wire=I421dA00
+published_frame=328
+published_frame=329
+editbox_emit bytes=9 elapsed_us=1622 wire=I421fA00
+published_frame=330
+published_frame=331
+editbox_emit bytes=9 elapsed_us=1862 wire=I421hA00
+published_frame=332
+published_frame=333
+editbox_emit bytes=9 elapsed_us=1591 wire=I421jA00
+published_frame=334
+published_frame=335
+editbox_emit bytes=9 elapsed_us=1263 wire=I421lA00
+published_frame=336
+published_frame=337
+editbox_emit bytes=9 elapsed_us=1446 wire=I421nA00
+published_frame=338
+published_frame=339
+editbox_emit bytes=9 elapsed_us=1508 wire=I421pA00
+published_frame=340
+published_frame=341
+editbox_emit bytes=9 elapsed_us=2043 wire=I421rA00
+published_frame=342
+published_frame=343
+editbox_emit bytes=9 elapsed_us=1328 wire=I421tA00
+published_frame=344
+published_frame=345
+editbox_emit bytes=9 elapsed_us=1896 wire=I421vA00
+published_frame=346
+published_frame=347
+editbox_emit bytes=9 elapsed_us=1910 wire=I421xA00
+published_frame=348
+published_frame=349
+editbox_emit bytes=9 elapsed_us=1411 wire=I421zA00
+published_frame=350
+published_frame=351
+editbox_emit bytes=9 elapsed_us=2517 wire=I421_A00
+published_frame=352
+published_frame=353
+editbox_emit bytes=9 elapsed_us=2024 wire=I421XB00
+published_frame=354
+published_frame=355
+editbox_emit bytes=9 elapsed_us=1569 wire=I421ZB00
+published_frame=356
+published_frame=357
+editbox_emit bytes=9 elapsed_us=1349 wire=I421bB00
+published_frame=358
+published_frame=359
+editbox_emit bytes=9 elapsed_us=1800 wire=I421dB00
+published_frame=360
+published_frame=361
+editbox_emit bytes=9 elapsed_us=1681 wire=I421fB00
+published_frame=362
+published_frame=363
+editbox_emit bytes=9 elapsed_us=1540 wire=I421hB00
+published_frame=364
+published_frame=365
+editbox_emit bytes=9 elapsed_us=1614 wire=I421jB00
+published_frame=366
+published_frame=367
+editbox_emit bytes=9 elapsed_us=1410 wire=I421lB00
+published_frame=368
+published_frame=369
+editbox_emit bytes=9 elapsed_us=1855 wire=I421nB00
+published_frame=370
+published_frame=371
+editbox_emit bytes=9 elapsed_us=1506 wire=I421pB00
+published_frame=372
+published_frame=373
+editbox_emit bytes=9 elapsed_us=1702 wire=I421rB00
+published_frame=374
+published_frame=375
+editbox_emit bytes=9 elapsed_us=2100 wire=I421tB00
+published_frame=376
+published_frame=377
+editbox_emit bytes=9 elapsed_us=1637 wire=I421vB00
+published_frame=378
+published_frame=379
+editbox_emit bytes=9 elapsed_us=1461 wire=I421xB00
+published_frame=380
+published_frame=381
+editbox_emit bytes=9 elapsed_us=1931 wire=I421zB00
+published_frame=382
+published_frame=383
+editbox_emit bytes=9 elapsed_us=1890 wire=I421_B00
+published_frame=384
+published_frame=385
+editbox_emit bytes=9 elapsed_us=1636 wire=I421XC00
+published_frame=386
+published_frame=387
+editbox_emit bytes=9 elapsed_us=2097 wire=I421ZC00
+published_frame=388
+published_frame=389
+editbox_emit bytes=9 elapsed_us=1722 wire=I421bC00
+published_frame=390
+published_frame=391
+editbox_emit bytes=9 elapsed_us=1538 wire=I421dC00
+published_frame=392
+published_frame=393
+editbox_emit bytes=9 elapsed_us=1830 wire=I421fC00
+published_frame=394
+published_frame=395
+editbox_emit bytes=9 elapsed_us=1351 wire=I421hC00
+published_frame=396
+published_frame=397
+editbox_emit bytes=9 elapsed_us=1334 wire=I421jC00
+published_frame=398
+published_frame=399
+editbox_emit bytes=9 elapsed_us=1468 wire=I421lC00
+published_frame=400
+published_frame=401
+editbox_emit bytes=9 elapsed_us=2153 wire=I421nC00
+published_frame=402
+published_frame=403
+editbox_emit bytes=9 elapsed_us=2382 wire=I421pC00
+published_frame=404
+published_frame=405
+editbox_emit bytes=9 elapsed_us=1749 wire=I421rC00
+published_frame=406
+published_frame=407
+editbox_emit bytes=9 elapsed_us=1755 wire=I421tC00
+published_frame=408
+published_frame=409
+editbox_emit bytes=9 elapsed_us=1907 wire=I421vC00
+published_frame=410
+published_frame=411
+editbox_emit bytes=9 elapsed_us=1232 wire=I421xC00
+published_frame=412
+published_frame=413
+editbox_emit bytes=9 elapsed_us=1656 wire=I421zC00
+published_frame=414
+published_frame=415
+editbox_emit bytes=9 elapsed_us=2224 wire=I421_C00
+published_frame=416
+published_frame=417
+editbox_emit bytes=9 elapsed_us=1861 wire=I421XD00
+published_frame=418
+published_frame=419
+editbox_emit bytes=9 elapsed_us=2041 wire=I421ZD00
+published_frame=420
+published_frame=421
+editbox_emit bytes=9 elapsed_us=1292 wire=I421bD00
+published_frame=422
+published_frame=423
+editbox_emit bytes=9 elapsed_us=1348 wire=I421dD00
+published_frame=424
+published_frame=425
+editbox_emit bytes=9 elapsed_us=1690 wire=I421fD00
+published_frame=426
+published_frame=427
+editbox_emit bytes=9 elapsed_us=1566 wire=I421hD00
+published_frame=428
+published_frame=429
+editbox_emit bytes=9 elapsed_us=1420 wire=I421jD00
+published_frame=430
+published_frame=431
+editbox_emit bytes=9 elapsed_us=2454 wire=I421lD00
+published_frame=432
+published_frame=433
+editbox_emit bytes=9 elapsed_us=1818 wire=I421nD00
+published_frame=434
+published_frame=435
+editbox_emit bytes=9 elapsed_us=1878 wire=I421pD00
+published_frame=436
+published_frame=437
+editbox_emit bytes=9 elapsed_us=2310 wire=I421rD00
+published_frame=438
+published_frame=439
+editbox_emit bytes=9 elapsed_us=1596 wire=I421tD00
+published_frame=440
+published_frame=441
+editbox_emit bytes=9 elapsed_us=1636 wire=I421vD00
+published_frame=442
+published_frame=443
+editbox_emit bytes=9 elapsed_us=1759 wire=I421xD00
+published_frame=444
+published_frame=445
+editbox_emit bytes=9 elapsed_us=1436 wire=I421zD00
+published_frame=446
+published_frame=447
+editbox_emit bytes=9 elapsed_us=2028 wire=I421_D00
+published_frame=448
+published_frame=449
+editbox_emit bytes=9 elapsed_us=1504 wire=I421XE00
+published_frame=450
+published_frame=451
+editbox_emit bytes=9 elapsed_us=1632 wire=I421ZE00
+published_frame=452
+published_frame=453
+editbox_emit bytes=9 elapsed_us=1733 wire=I421bE00
+published_frame=454
+published_frame=455
+editbox_emit bytes=9 elapsed_us=1679 wire=I421dE00
+published_frame=456
+published_frame=457
+editbox_emit bytes=9 elapsed_us=1312 wire=I421fE00
+published_frame=458
+published_frame=459
+editbox_emit bytes=9 elapsed_us=1730 wire=I421hE00
+published_frame=460
+published_frame=461
+editbox_emit bytes=9 elapsed_us=1981 wire=I421jE00
+published_frame=462
+published_frame=463
+editbox_emit bytes=9 elapsed_us=1592 wire=I421lE00
+published_frame=464
+published_frame=465
+editbox_emit bytes=9 elapsed_us=2161 wire=I421nE00
+published_frame=466
+published_frame=467
+editbox_emit bytes=9 elapsed_us=1559 wire=I421pE00
+published_frame=468
+published_frame=469
+editbox_emit bytes=9 elapsed_us=1801 wire=I421rE00
+published_frame=470
+published_frame=471
+editbox_emit bytes=9 elapsed_us=1990 wire=I421tE00
+published_frame=472
+published_frame=473
+editbox_emit bytes=9 elapsed_us=1434 wire=I421vE00
+published_frame=474
+published_frame=475
+editbox_emit bytes=9 elapsed_us=1471 wire=I421xE00
+published_frame=476
+published_frame=477
+editbox_emit bytes=9 elapsed_us=1841 wire=I421zE00
+published_frame=478
+published_frame=479
+editbox_emit bytes=9 elapsed_us=1858 wire=I421_E00
+published_frame=480
+published_frame=481
+editbox_emit bytes=9 elapsed_us=1635 wire=I421XF00
+published_frame=482
+published_frame=483
+editbox_emit bytes=9 elapsed_us=1513 wire=I421ZF00
+published_frame=484
+published_frame=485
+editbox_emit bytes=9 elapsed_us=1502 wire=I421bF00
+published_frame=486
+published_frame=487
+editbox_emit bytes=9 elapsed_us=1651 wire=I421dF00
+published_frame=488
+published_frame=489
+editbox_emit bytes=9 elapsed_us=1573 wire=I421fF00
+published_frame=490
+published_frame=491
+editbox_emit bytes=9 elapsed_us=2063 wire=I421hF00
+published_frame=492
+published_frame=493
+editbox_emit bytes=9 elapsed_us=1391 wire=I421jF00
+published_frame=494
+published_frame=495
+editbox_emit bytes=9 elapsed_us=2082 wire=I421lF00
+published_frame=496
+published_frame=497
+editbox_emit bytes=9 elapsed_us=1795 wire=I421nF00
+published_frame=498
+published_frame=499
+editbox_emit bytes=9 elapsed_us=1629 wire=I421pF00
+published_frame=500
+published_frame=501
+editbox_emit bytes=9 elapsed_us=2346 wire=I421rF00
+published_frame=502
+published_frame=503
+editbox_emit bytes=9 elapsed_us=1961 wire=I421tF00
+published_frame=504
+published_frame=505
+editbox_emit bytes=9 elapsed_us=1333 wire=I421vF00
+published_frame=506
+published_frame=507
+editbox_emit bytes=9 elapsed_us=1732 wire=I421xF00
+published_frame=508
+published_frame=509
+editbox_emit bytes=9 elapsed_us=2153 wire=I421zF00
+published_frame=510
+published_frame=511
+editbox_emit bytes=9 elapsed_us=2074 wire=I421_F00
+published_frame=512
+published_frame=513
+editbox_emit bytes=9 elapsed_us=2022 wire=I421XG00
+published_frame=514
+published_frame=515
+editbox_emit bytes=9 elapsed_us=1790 wire=I421ZG00
+published_frame=516
+published_frame=517
+editbox_emit bytes=9 elapsed_us=1639 wire=I421bG00
+published_frame=518
+published_frame=519
+editbox_emit bytes=9 elapsed_us=1899 wire=I421dG00
+published_frame=520
+published_frame=521
+editbox_emit bytes=9 elapsed_us=1300 wire=I421fG00
+published_frame=522
+published_frame=523
+editbox_emit bytes=9 elapsed_us=1613 wire=I421hG00
+published_frame=524
+published_frame=525
+editbox_emit bytes=9 elapsed_us=1709 wire=I421jG00
+published_frame=526
+published_frame=527
+editbox_emit bytes=9 elapsed_us=1321 wire=I421lG00
+published_frame=528
+published_frame=529
+editbox_emit bytes=9 elapsed_us=1761 wire=I421nG00
+published_frame=530
+published_frame=531
+editbox_emit bytes=9 elapsed_us=1798 wire=I421pG00
+published_frame=532
+published_frame=533
+editbox_emit bytes=9 elapsed_us=1906 wire=I421rG00
+published_frame=534
+published_frame=535
+editbox_emit bytes=9 elapsed_us=1650 wire=I421tG00
+published_frame=536
+published_frame=537
+editbox_emit bytes=9 elapsed_us=2098 wire=I421vG00
+published_frame=538
+published_frame=539
+editbox_emit bytes=9 elapsed_us=1962 wire=I421xG00
+published_frame=540
+published_frame=541
+editbox_emit bytes=9 elapsed_us=2227 wire=I421zG00
+published_frame=542
+published_frame=543
+editbox_emit bytes=9 elapsed_us=2104 wire=I421_G00
+published_frame=544
+published_frame=545
+editbox_emit bytes=9 elapsed_us=3350 wire=I421XH00
+published_frame=546
+published_frame=547
+editbox_emit bytes=9 elapsed_us=2197 wire=I421ZH00
+published_frame=548
+published_frame=549
+editbox_emit bytes=9 elapsed_us=2500 wire=I421bH00
+published_frame=550
+published_frame=551
+editbox_emit bytes=9 elapsed_us=1785 wire=I421dH00
+published_frame=552
+published_frame=553
+editbox_emit bytes=9 elapsed_us=1500 wire=I421fH00
+published_frame=554
+published_frame=555
+editbox_emit bytes=9 elapsed_us=2057 wire=I421hH00
+published_frame=556
+published_frame=557
+editbox_emit bytes=9 elapsed_us=1268 wire=I421jH00
+published_frame=558
+published_frame=559
+editbox_emit bytes=9 elapsed_us=1448 wire=I421lH00
+published_frame=560
+published_frame=561
+editbox_emit bytes=9 elapsed_us=2119 wire=I421nH00
+published_frame=562
+published_frame=563
+editbox_emit bytes=9 elapsed_us=1501 wire=I421pH00
+published_frame=564
+published_frame=565
+editbox_emit bytes=9 elapsed_us=1435 wire=I421rH00
+published_frame=566
+published_frame=567
+editbox_emit bytes=9 elapsed_us=1895 wire=I421tH00
+published_frame=568
+published_frame=569
+editbox_emit bytes=9 elapsed_us=1559 wire=I421vH00
+published_frame=570
+published_frame=571
+editbox_emit bytes=9 elapsed_us=1233 wire=I421xH00
+published_frame=572
+published_frame=573
+editbox_emit bytes=9 elapsed_us=1474 wire=I421zH00
+published_frame=574
+published_frame=575
+editbox_emit bytes=9 elapsed_us=2634 wire=I421_H00
+published_frame=576
+published_frame=577
+editbox_emit bytes=9 elapsed_us=1603 wire=I421XI00
+published_frame=578
+published_frame=579
+editbox_emit bytes=9 elapsed_us=2030 wire=I421ZI00
+published_frame=580
+published_frame=581
+editbox_emit bytes=9 elapsed_us=1879 wire=I421bI00
+published_frame=582
+published_frame=583
+editbox_emit bytes=9 elapsed_us=1680 wire=I421dI00
+published_frame=584
+published_frame=585
+editbox_emit bytes=9 elapsed_us=2079 wire=I421fI00
+published_frame=586
+published_frame=587
+editbox_emit bytes=9 elapsed_us=1454 wire=I421hI00
+published_frame=588
+published_frame=589
+editbox_emit bytes=9 elapsed_us=1495 wire=I421jI00
+published_frame=590
+published_frame=591
+editbox_emit bytes=9 elapsed_us=1970 wire=I421lI00
+published_frame=592
+published_frame=593
+editbox_emit bytes=9 elapsed_us=1844 wire=I421nI00
+published_frame=594
+published_frame=595
+editbox_emit bytes=9 elapsed_us=1688 wire=I421pI00
+published_frame=596
+published_frame=597
+editbox_emit bytes=9 elapsed_us=2059 wire=I421rI00
+published_frame=598
+published_frame=599
+editbox_emit bytes=9 elapsed_us=1434 wire=I421tI00
+published_frame=600
+published_frame=601
+editbox_emit bytes=9 elapsed_us=1453 wire=I421vI00
+published_frame=602
+published_frame=603
+editbox_emit bytes=9 elapsed_us=1346 wire=I421xI00
+published_frame=604
+published_frame=605
+editbox_emit bytes=9 elapsed_us=1540 wire=I421zI00
+published_frame=606
+published_frame=607
+editbox_emit bytes=9 elapsed_us=1789 wire=I421_I00
+published_frame=608
+published_frame=609
+editbox_emit bytes=9 elapsed_us=1551 wire=I421XJ00
+published_frame=610
+published_frame=611
+editbox_emit bytes=9 elapsed_us=1637 wire=I421ZJ00
+published_frame=612
+published_frame=613
+editbox_emit bytes=9 elapsed_us=1288 wire=I421bJ00
+published_frame=614
+published_frame=615
+editbox_emit bytes=9 elapsed_us=1708 wire=I421dJ00
+published_frame=616
+published_frame=617
+editbox_emit bytes=9 elapsed_us=2247 wire=I421fJ00
+published_frame=618
+published_frame=619
+editbox_emit bytes=9 elapsed_us=1498 wire=I421hJ00
+published_frame=620
+published_frame=621
+editbox_emit bytes=9 elapsed_us=2259 wire=I421jJ00
+published_frame=622
+published_frame=623
+editbox_emit bytes=9 elapsed_us=1706 wire=I421lJ00
+published_frame=624
+published_frame=625
+editbox_emit bytes=9 elapsed_us=1687 wire=I421nJ00
+published_frame=626
+published_frame=627
+editbox_emit bytes=9 elapsed_us=1876 wire=I421pJ00
+published_frame=628
+published_frame=629
+editbox_emit bytes=9 elapsed_us=1469 wire=I421rJ00
+published_frame=630
+published_frame=631
+editbox_emit bytes=9 elapsed_us=1398 wire=I421tJ00
+published_frame=632
+published_frame=633
+editbox_emit bytes=9 elapsed_us=1295 wire=I421vJ00
+published_frame=634
+published_frame=635
+editbox_emit bytes=9 elapsed_us=2006 wire=I421xJ00
+published_frame=636
+published_frame=637
+editbox_emit bytes=9 elapsed_us=1342 wire=I421zJ00
+published_frame=638
+published_frame=639
+editbox_emit bytes=9 elapsed_us=2244 wire=I421_J00
+published_frame=640
+published_frame=641
+editbox_emit bytes=9 elapsed_us=2049 wire=I421XK00
+published_frame=642
+published_frame=643
+editbox_emit bytes=9 elapsed_us=1648 wire=I421ZK00
+published_frame=644
+published_frame=645
+editbox_emit bytes=9 elapsed_us=1599 wire=I421bK00
+published_frame=646
+published_frame=647
+editbox_emit bytes=9 elapsed_us=2076 wire=I421dK00
+published_frame=648
+published_frame=649
+editbox_emit bytes=9 elapsed_us=1562 wire=I421fK00
+published_frame=650
+published_frame=651
+editbox_emit bytes=9 elapsed_us=1638 wire=I421hK00
+published_frame=652
+published_frame=653
+editbox_emit bytes=9 elapsed_us=1744 wire=I421jK00
+published_frame=654
+published_frame=655
+editbox_emit bytes=9 elapsed_us=1576 wire=I421lK00
+published_frame=656
+published_frame=657
+editbox_emit bytes=9 elapsed_us=1863 wire=I421nK00
+published_frame=658
+published_frame=659
+editbox_emit bytes=9 elapsed_us=1620 wire=I421pK00
+published_frame=660
+published_frame=661
+editbox_emit bytes=9 elapsed_us=1542 wire=I421rK00
+published_frame=662
+published_frame=663
+editbox_emit bytes=9 elapsed_us=2022 wire=I421tK00
+published_frame=664
+published_frame=665
+editbox_emit bytes=9 elapsed_us=1927 wire=I421vK00
+published_frame=666
+published_frame=667
+editbox_emit bytes=9 elapsed_us=2115 wire=I421xK00
+published_frame=668
+published_frame=669
+editbox_emit bytes=9 elapsed_us=1503 wire=I421zK00
+published_frame=670
+published_frame=671
+editbox_emit bytes=9 elapsed_us=1979 wire=I421_K00
+published_frame=672
+published_frame=673
+editbox_emit bytes=9 elapsed_us=1800 wire=I421XL00
+published_frame=674
+published_frame=675
+editbox_emit bytes=9 elapsed_us=2005 wire=I421ZL00
+published_frame=676
+published_frame=677
+editbox_emit bytes=9 elapsed_us=1607 wire=I421bL00
+published_frame=678
+published_frame=679
+editbox_emit bytes=9 elapsed_us=1817 wire=I421dL00
+published_frame=680
+published_frame=681
+editbox_emit bytes=9 elapsed_us=1371 wire=I421fL00
+published_frame=682
+published_frame=683
+editbox_emit bytes=9 elapsed_us=1786 wire=I421hL00
+published_frame=684
+published_frame=685
+editbox_emit bytes=9 elapsed_us=1279 wire=I421jL00
+published_frame=686
+published_frame=687
+editbox_emit bytes=9 elapsed_us=1671 wire=I421lL00
+published_frame=688
+published_frame=689
+editbox_emit bytes=9 elapsed_us=1908 wire=I421nL00
+published_frame=690
+published_frame=691
+editbox_emit bytes=9 elapsed_us=1302 wire=I421pL00
+published_frame=692
+published_frame=693
+editbox_emit bytes=9 elapsed_us=1645 wire=I421rL00
+published_frame=694
+published_frame=695
+editbox_emit bytes=9 elapsed_us=1537 wire=I421tL00
+published_frame=696
+published_frame=697
+editbox_emit bytes=9 elapsed_us=1906 wire=I421vL00
+published_frame=698
+published_frame=699
+editbox_emit bytes=9 elapsed_us=1567 wire=I421xL00
+published_frame=700
+published_frame=701
+editbox_emit bytes=9 elapsed_us=2009 wire=I421zL00
+published_frame=702
+published_frame=703
+editbox_emit bytes=9 elapsed_us=1373 wire=I421_L00
+published_frame=704
+published_frame=705
+editbox_emit bytes=9 elapsed_us=1921 wire=I421XM00
+published_frame=706
+published_frame=707
+editbox_emit bytes=9 elapsed_us=2138 wire=I421ZM00
+published_frame=708
+published_frame=709
+editbox_emit bytes=9 elapsed_us=1317 wire=I421bM00
+published_frame=710
+published_frame=711
+editbox_emit bytes=9 elapsed_us=1964 wire=I421dM00
+published_frame=712
+published_frame=713
+editbox_emit bytes=9 elapsed_us=1733 wire=I421fM00
+published_frame=714
+published_frame=715
+editbox_emit bytes=9 elapsed_us=1784 wire=I421hM00
+published_frame=716
+published_frame=717
+editbox_emit bytes=9 elapsed_us=1699 wire=I421jM00
+published_frame=718
+published_frame=719
+editbox_emit bytes=9 elapsed_us=1954 wire=I421lM00
+published_frame=720
+published_frame=721
+editbox_emit bytes=9 elapsed_us=1331 wire=I421nM00
+published_frame=722
+published_frame=723
+editbox_emit bytes=9 elapsed_us=1503 wire=I421pM00
+published_frame=724
+published_frame=725
+editbox_emit bytes=9 elapsed_us=1683 wire=I421rM00
+published_frame=726
+published_frame=727
+editbox_emit bytes=9 elapsed_us=1268 wire=I421tM00
+published_frame=728
+published_frame=729
+editbox_emit bytes=9 elapsed_us=2195 wire=I421vM00
+published_frame=730
+published_frame=731
+editbox_emit bytes=9 elapsed_us=2033 wire=I421xM00
+published_frame=732
+published_frame=733
+editbox_emit bytes=9 elapsed_us=1520 wire=I421zM00
+published_frame=734
+published_frame=735
+editbox_emit bytes=9 elapsed_us=2148 wire=I421_M00
+published_frame=736
+published_frame=737
+editbox_emit bytes=9 elapsed_us=1807 wire=I421XN00
+published_frame=738
+published_frame=739
+editbox_emit bytes=9 elapsed_us=1648 wire=I421ZN00
+published_frame=740
+published_frame=741
+editbox_emit bytes=9 elapsed_us=1989 wire=I421bN00
+published_frame=742
+published_frame=743
+editbox_emit bytes=9 elapsed_us=2501 wire=I421dN00
+published_frame=744
+published_frame=745
+editbox_emit bytes=9 elapsed_us=1793 wire=I421fN00
+published_frame=746
+published_frame=747
+editbox_emit bytes=9 elapsed_us=2039 wire=I421hN00
+published_frame=748
+published_frame=749
+editbox_emit bytes=9 elapsed_us=1773 wire=I421jN00
+published_frame=750
+published_frame=751
+editbox_emit bytes=9 elapsed_us=1449 wire=I421lN00
+published_frame=752
+published_frame=753
+editbox_emit bytes=9 elapsed_us=2196 wire=I421nN00
+published_frame=754
+published_frame=755
+editbox_emit bytes=9 elapsed_us=1904 wire=I421pN00
+published_frame=756
+published_frame=757
+editbox_emit bytes=9 elapsed_us=1301 wire=I421rN00
+published_frame=758
+published_frame=759
+editbox_emit bytes=9 elapsed_us=1450 wire=I421tN00
+published_frame=760
+published_frame=761
+editbox_emit bytes=9 elapsed_us=1363 wire=I421vN00
+published_frame=762
+published_frame=763
+editbox_emit bytes=9 elapsed_us=1741 wire=I421xN00
+published_frame=764
+published_frame=765
+editbox_emit bytes=9 elapsed_us=2562 wire=I421zN00
+published_frame=766
+published_frame=767
+editbox_emit bytes=9 elapsed_us=1660 wire=I421_N00
+published_frame=768
+published_frame=769
+editbox_emit bytes=9 elapsed_us=1743 wire=I421XO00
+published_frame=770
+published_frame=771
+editbox_emit bytes=9 elapsed_us=1855 wire=I421ZO00
+published_frame=772
+published_frame=773
+editbox_emit bytes=9 elapsed_us=1435 wire=I421bO00
+published_frame=774
+published_frame=775
+editbox_emit bytes=9 elapsed_us=1427 wire=I421dO00
+published_frame=776
+published_frame=777
+editbox_emit bytes=9 elapsed_us=2043 wire=I421fO00
+published_frame=778
+published_frame=779
+editbox_emit bytes=9 elapsed_us=2766 wire=I421hO00
+published_frame=780
+published_frame=781
+editbox_emit bytes=9 elapsed_us=1422 wire=I421jO00
+published_frame=782
+published_frame=783
+editbox_emit bytes=9 elapsed_us=1555 wire=I421lO00
+published_frame=784
+published_frame=785
+editbox_emit bytes=9 elapsed_us=2399 wire=I421nO00
+published_frame=786
+published_frame=787
+editbox_emit bytes=9 elapsed_us=1524 wire=I421pO00
+published_frame=788
+published_frame=789
+editbox_emit bytes=9 elapsed_us=1781 wire=I421rO00
+published_frame=790
+published_frame=791
+editbox_emit bytes=9 elapsed_us=1819 wire=I421tO00
+published_frame=792
+published_frame=793
+editbox_emit bytes=9 elapsed_us=1838 wire=I421vO00
+published_frame=794
+published_frame=795
+editbox_emit bytes=9 elapsed_us=1267 wire=I421xO00
+published_frame=796
+published_frame=797
+editbox_emit bytes=9 elapsed_us=1586 wire=I421zO00
+published_frame=798
+published_frame=799
+editbox_emit bytes=9 elapsed_us=2286 wire=I421_O00
+published_frame=800
+published_frame=801
+editbox_emit bytes=9 elapsed_us=2299 wire=I421XP00
+published_frame=802
+published_frame=803
+editbox_emit bytes=9 elapsed_us=1780 wire=I421ZP00
+published_frame=804
+published_frame=805
+editbox_emit bytes=9 elapsed_us=1439 wire=I421bP00
+published_frame=806
+published_frame=807
+editbox_emit bytes=9 elapsed_us=1980 wire=I421dP00
+published_frame=808
+published_frame=809
+editbox_emit bytes=9 elapsed_us=1478 wire=I421fP00
+published_frame=810
+published_frame=811
+editbox_emit bytes=9 elapsed_us=1622 wire=I421hP00
+published_frame=812
+published_frame=813
+editbox_emit bytes=9 elapsed_us=1546 wire=I421jP00
+published_frame=814
+published_frame=815
+editbox_emit bytes=9 elapsed_us=1496 wire=I421lP00
+published_frame=816
+published_frame=817
+editbox_emit bytes=9 elapsed_us=1763 wire=I421nP00
+published_frame=818
+published_frame=819
+editbox_emit bytes=9 elapsed_us=1646 wire=I421pP00
+published_frame=820
+published_frame=821
+editbox_emit bytes=9 elapsed_us=1596 wire=I421rP00
+published_frame=822
+published_frame=823
+editbox_emit bytes=9 elapsed_us=1999 wire=I421tP00
+published_frame=824
+published_frame=825
+editbox_emit bytes=9 elapsed_us=1914 wire=I421vP00
+published_frame=826
+published_frame=827
+editbox_emit bytes=9 elapsed_us=1530 wire=I421xP00
+published_frame=828
+published_frame=829
+editbox_emit bytes=9 elapsed_us=1616 wire=I421zP00
+published_frame=830
+published_frame=831
+editbox_emit bytes=9 elapsed_us=2522 wire=I421_P00
+published_frame=832
+published_frame=833
+editbox_emit bytes=9 elapsed_us=2414 wire=I421XQ00
+published_frame=834
+published_frame=835
+editbox_emit bytes=9 elapsed_us=2328 wire=I421ZQ00
+published_frame=836
+published_frame=837
+editbox_emit bytes=9 elapsed_us=1742 wire=I421bQ00
+published_frame=838
+published_frame=839
+editbox_emit bytes=9 elapsed_us=1945 wire=I421dQ00
+published_frame=840
+published_frame=841
+editbox_emit bytes=9 elapsed_us=1831 wire=I421fQ00
+published_frame=842
+published_frame=843
+editbox_emit bytes=9 elapsed_us=1733 wire=I421hQ00
+published_frame=844
+published_frame=845
+editbox_emit bytes=9 elapsed_us=2305 wire=I421jQ00
+published_frame=846
+published_frame=847
+editbox_emit bytes=9 elapsed_us=1281 wire=I421lQ00
+published_frame=848
+published_frame=849
+editbox_emit bytes=9 elapsed_us=1729 wire=I421nQ00
+published_frame=850
+published_frame=851
+editbox_emit bytes=9 elapsed_us=1799 wire=I421pQ00
+published_frame=852
+published_frame=853
+editbox_emit bytes=9 elapsed_us=1527 wire=I421rQ00
+published_frame=854
+published_frame=855
+editbox_emit bytes=9 elapsed_us=1478 wire=I421tQ00
+published_frame=856
+published_frame=857
+editbox_emit bytes=9 elapsed_us=1574 wire=I421vQ00
+published_frame=858
+published_frame=859
+editbox_emit bytes=9 elapsed_us=1558 wire=I421xQ00
+published_frame=860
+published_frame=861
+editbox_emit bytes=9 elapsed_us=2218 wire=I421zQ00
+published_frame=862
+published_frame=863
+editbox_emit bytes=9 elapsed_us=2082 wire=I421_Q00
+published_frame=864
+published_frame=865
+editbox_emit bytes=9 elapsed_us=2107 wire=I421XR00
+published_frame=866
+published_frame=867
+editbox_emit bytes=9 elapsed_us=2441 wire=I421ZR00
+published_frame=868
+published_frame=869
+editbox_emit bytes=9 elapsed_us=1736 wire=I421bR00
+published_frame=870
+published_frame=871
+editbox_emit bytes=9 elapsed_us=1558 wire=I421dR00
+published_frame=872
+published_frame=873
+editbox_emit bytes=9 elapsed_us=1742 wire=I421fR00
+published_frame=874
+published_frame=875
+editbox_emit bytes=9 elapsed_us=1929 wire=I421hR00
+published_frame=876
+published_frame=877
+editbox_emit bytes=9 elapsed_us=2033 wire=I421jR00
+published_frame=878
+published_frame=879
+editbox_emit bytes=9 elapsed_us=1610 wire=I421lR00
+published_frame=880
+published_frame=881
+editbox_emit bytes=9 elapsed_us=1981 wire=I421nR00
+published_frame=882
+published_frame=883
+editbox_emit bytes=9 elapsed_us=1974 wire=I421pR00
+published_frame=884
+published_frame=885
+editbox_emit bytes=9 elapsed_us=1546 wire=I421rR00
+published_frame=886
+published_frame=887
+editbox_emit bytes=9 elapsed_us=1265 wire=I421tR00
+published_frame=888
+published_frame=889
+editbox_emit bytes=9 elapsed_us=2102 wire=I421vR00
+published_frame=890
+published_frame=891
+editbox_emit bytes=9 elapsed_us=1769 wire=I421xR00
+published_frame=892
+published_frame=893
+editbox_emit bytes=9 elapsed_us=1447 wire=I421zR00
+published_frame=894
+published_frame=895
+editbox_emit bytes=9 elapsed_us=1982 wire=I421_R00
+published_frame=896
+published_frame=897
+editbox_emit bytes=9 elapsed_us=2468 wire=I421XS00
+published_frame=898
+published_frame=899
+editbox_emit bytes=9 elapsed_us=1692 wire=I421ZS00
+published_frame=900
+published_frame=901
+editbox_emit bytes=9 elapsed_us=1641 wire=I421bS00
+published_frame=902
+published_frame=903
+editbox_emit bytes=9 elapsed_us=2115 wire=I421dS00
+published_frame=904
+published_frame=905
+editbox_emit bytes=9 elapsed_us=2234 wire=I421fS00
+published_frame=906
+published_frame=907
+editbox_emit bytes=9 elapsed_us=1459 wire=I421hS00
+published_frame=908
+published_frame=909
+editbox_emit bytes=9 elapsed_us=1950 wire=I421jS00
+published_frame=910
+published_frame=911
+editbox_emit bytes=9 elapsed_us=1929 wire=I421lS00
+published_frame=912
