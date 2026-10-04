@@ -266,6 +266,23 @@ diagnostic producer's first I4 row may announce readiness to the map.
 Pause prepares each helper's input frontier, synchronizes the highest frontier
 across humans, and commits the shared stop frame. Resume opens a new local
 capture segment at the stable publication timestamp, retaining original tags.
+Enter in the active controller receiver requests that same shared pause before
+opening native chat. The helper drains all retained records through their
+consumed receipts, then publishes its chat quiescence symbol. Only then does
+the map hide and release the receiver and the helper press Return. Controller
+actions remain suppressed until native chat closes and the map restores its
+receiver. Closing chat leaves the match paused; neutral controls and a fresh
+Start press resume it. No player can resume while another player is typing.
+
+The existing text receipt exposes `chat` (a within-epoch request number),
+`chatState` (0 receiver restored, 1 draining, 2 focus released, 3 native chat
+observed visible), and `chatFrame` (whether `ChatEditBar` was found). State 0
+with the same nonzero request number follows observed native closure and
+receiver restoration. Helper logs report `chat_state`, `chat_quiescent`, and
+`chat_return`. Native acceptance must establish editbox Enter delivery,
+`ChatEditBar` visibility, and the injected Return opening actual chat; source
+tests alone do not establish those engine behaviors.
+
 The helper waits for the native writer's closing line before parsing controls.
 Native timing and graphical acceptance are distinct from the focused source
 tests. This path remains Linux-only and separate from the digital keyboard mapper.

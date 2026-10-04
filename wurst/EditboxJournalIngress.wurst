@@ -1,6 +1,7 @@
 package EditboxJournalIngress
 import Wurst
 import JournalTextStream
+import VocabularyIngress
 
 public constant int EDITBOX_JOURNAL_CAPACITY = 4096
 
@@ -8,6 +9,9 @@ public constant int EDITBOX_JOURNAL_CAPACITY = 4096
 // admitted prefix; retain an incomplete suffix and later appended packets.
 public class EditboxJournalIngress
     private framehandle inputBox
+    private framehandle nativeChat
+    private int chatSerial = 0
+    private int chatState = 0
     private framehandle pauseLabel
     private JournalTextStream stream = new JournalTextStream()
     private string failure = ""
@@ -20,6 +24,7 @@ public class EditboxJournalIngress
     private int ackRevision = 0
 
     construct()
+        nativeChat = BlzGetFrameByName("ChatEditBar", 0)
         inputBox = createFrame("EDITBOX", "JournalControllerInput", GAME_UI, "EscMenuEditBoxTemplate", 969)
         inputBox.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.04, 0.55)
         inputBox.setSize(0.72, 0.035)
@@ -30,11 +35,53 @@ public class EditboxJournalIngress
         pauseLabel.setSize(0.15, 0.025)
         pauseLabel.setVisible(false)
 
+    function onEnter(code callback)
+        let entered = CreateTrigger()
+        BlzTriggerRegisterFrameEvent(entered, inputBox, FRAMEEVENT_EDITBOX_ENTER)
+        TriggerAddAction(entered, callback)
+
+    function requestChat(int serial)
+        if not active or chatState != 0
+            return
+        chatSerial = serial
+        chatState = 1
+        inputBox.setFocus(GetLocalPlayer(), true)
+        writeAck()
+
+    // Q means the helper has consumed its last receipt and stopped all output.
+    // Keep receiver focus until then, including during pause acknowledgment.
+    function serviceChat(boolean paused) returns boolean
+        if not active or chatState == 0
+            return false
+        if chatState == 1 and paused
+            let path = "smashcraft-journal-chat-" + build + "-e" + I2S(epoch) + "-s" + I2S(slot) + "-n" + I2S(chatSerial) + ".pld"
+            if vocabularyReadTooltip(path) == "Q"
+                inputBox.setFocus(GetLocalPlayer(), false)
+                inputBox.setVisible(false)
+                chatState = 2
+                writeAck()
+        else if chatState == 2 and nativeChat != null and nativeChat.isVisible()
+            chatState = 3
+            writeAck()
+        else if chatState == 3 and not nativeChat.isVisible()
+            inputBox.setText(GetLocalPlayer(), "")
+            inputBox.setVisible(true)
+            inputBox.setFocus(GetLocalPlayer(), true)
+            chatState = 0
+            writeAck()
+            return true
+        return false
+
+    function chatSequence() returns int
+        return chatSerial
+
     function beginEpoch(string buildId, int newEpoch, int localSlot)
         build = buildId
         epoch = newEpoch
         slot = localSlot
         ackRevision = 0
+        chatSerial = 0
+        chatState = 0
         stream.reset(epoch)
         failure = ""
         if inputBox.getTextSizeLimit() < EDITBOX_JOURNAL_CAPACITY
@@ -50,7 +97,7 @@ public class EditboxJournalIngress
         ackRevision++
         PreloadGenClear()
         PreloadGenStart()
-        Preload("SMASHCRAFT TEXT ACK v=1 build=" + build + " epoch=" + I2S(epoch) + " slot=" + I2S(slot) + " received=" + I2S(stream.received()) + " consumed=" + I2S(stream.acknowledged()) + " revision=" + I2S(ackRevision))
+        Preload("SMASHCRAFT TEXT ACK v=1 build=" + build + " epoch=" + I2S(epoch) + " slot=" + I2S(slot) + " received=" + I2S(stream.received()) + " consumed=" + I2S(stream.acknowledged()) + " revision=" + I2S(ackRevision) + " chat=" + I2S(chatSerial) + " chatState=" + I2S(chatState) + " chatFrame=" + (nativeChat != null ? "1" : "0"))
         PreloadGenEnd("smashcraft-journal-text-ack-" + build + "-e" + I2S(epoch) + "-p" + I2S(slot) + ".txt")
         ackTicks = 0
         ackDirty = false
@@ -78,13 +125,13 @@ public class EditboxJournalIngress
 
     function updatePauseLabel(boolean paused, boolean pending, boolean targetPaused)
         if active
-            pauseLabel.setText(pending ? (targetPaused ? "Pausing…" : "Resuming…") : (paused ? "Resume: Start" : "Pause: Start"))
+            pauseLabel.setText(chatState != 0 ? "Chat — match paused" : pending ? (targetPaused ? "Pausing…" : "Resuming…") : (paused ? "Resume: Start" : "Pause: Start"))
 
     function failed() returns string
         return failure
 
     function peek() returns string
-        if not active or failure != "" or not BlzIsLocalClientActive()
+        if not active or chatState >= 2 or failure != "" or not BlzIsLocalClientActive()
             return ""
         for attempt = 1 to JOURNAL_TEXT_WINDOW
             let text = inputBox.getText()

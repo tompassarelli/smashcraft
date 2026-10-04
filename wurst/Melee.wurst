@@ -90,6 +90,8 @@ int shadowInputEpoch = 0
 int shadowLastCaptureTarget = 0
 boolean shadowLocalSendFailed = false
 boolean journalInputFailed = false
+boolean array journalChatRequested
+int array journalChatSerial
 boolean journalPausePending = false
 boolean journalPauseAckReceived = false
 boolean journalPauseTarget = false
@@ -535,7 +537,7 @@ function failJournalInput(string reason)
 		PreloadGenEnd("smashcraft-journal-failure-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-p" + I2S(slot) + ".txt")
 
 function writeJournalControl(boolean wantPaused)
-	if journalInput == null or journalPausePending
+	if journalInput == null or journalPausePending or (not wantPaused and journalChatBusy())
 		return
 	let slot = GetPlayerId(GetLocalPlayer())
 	let sequence = journalInput.controlSequenceNumber()
@@ -1446,6 +1448,9 @@ function beginShadowEpoch() returns boolean
     journalEndSent = false
     journalEndReceived = false
     journalQuiescent = false
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        journalChatRequested[slot] = false
+        journalChatSerial[slot] = 0
     journalPausePending = false
     journalPauseAckReceived = false
     journalPauseCommitSent = false
@@ -1677,6 +1682,8 @@ function onParticipantKeyDown(int slot)
     if keyCode < 0 or keyCode > 255 or state.isKeyHeld(keyCode)
         return
     if key == OSKEY_Y
+        if JOURNAL_EDITBOX_INGRESS and journalChatBusy()
+            return
 		if JOURNAL_INPUT_SOURCE and shadowInputActive and matchState.phase == MATCH and journalPausePending
 			return
 		let controlAction = JOURNAL_INPUT_SOURCE and shadowInputActive and matchState.phase == MATCH
@@ -1832,6 +1839,36 @@ function onNativePreloadProbeStart()
 function onNativeTransportProbeStart()
     if GetTriggerPlayer() == GetLocalPlayer() and shadowInputActive and not nativePreloadProbeActive() and transportIsolationPhase == 0
         nativeTransportProbeRequestStart()
+
+function journalChatBusy() returns boolean
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if journalChatRequested[slot]
+            return true
+    return false
+
+// Custom frame callbacks already synchronize the triggering player.
+function onJournalChatEnter()
+    let slot = GetPlayerId(GetTriggerPlayer())
+    if not shadowInputActive or matchState.phase != MATCH or journalInputFailed or not matchState.humanActive(slot) or journalChatRequested[slot]
+        return
+    journalChatRequested[slot] = true
+    journalChatSerial[slot]++
+    if GetTriggerPlayer() == GetLocalPlayer()
+        editboxJournalIngress.requestChat(journalChatSerial[slot])
+
+function receiveJournalChatClosed()
+    let slot = GetPlayerId(GetTriggerPlayer())
+    if BlzGetTriggerSyncData() == I2S(shadowInputEpoch) + "|" + I2S(journalChatSerial[slot])
+        journalChatRequested[slot] = false
+
+function serviceJournalChat()
+    if not JOURNAL_EDITBOX_INGRESS or not shadowInputActive or matchState.phase != MATCH or journalInputFailed
+        return
+    if journalChatBusy() and not matchControls.isPaused() and not journalPausePending
+        writeJournalControl(true)
+    if editboxJournalIngress.serviceChat(matchControls.isPaused() and not journalPausePending)
+        if not BlzSendSyncData("SC_JH", I2S(shadowInputEpoch) + "|" + I2S(editboxJournalIngress.chatSequence()))
+            failJournalInput("chat close could not be synchronized")
 
 // The controller's Start request shares the ordered text stream with its rows.
 // It crosses a sync event before starting the shared pause barrier.
@@ -2174,6 +2211,7 @@ function serviceJournalEnd()
 function gameTick()
     if JOURNAL_EDITBOX_INGRESS
         editboxJournalIngress.tick()
+    serviceJournalChat()
     serviceEditboxJournalPauseRequest()
     if JOURNAL_EDITBOX_INGRESS and shadowInputActive and matchState.phase != MATCH
         serviceJournalEnd()
@@ -2257,11 +2295,15 @@ function initializeShadowInput()
             BlzTriggerRegisterPlayerSyncEvent(sync, Player(slot), "SC_GP", false)
     TriggerAddAction(sync, function receiveShadowInput)
     if JOURNAL_EDITBOX_INGRESS
+        editboxJournalIngress.onEnter(function onJournalChatEnter)
+        let chatClosed = CreateTrigger()
         let pauseRequest = CreateTrigger()
         for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
             if matchState.humanActive(slot)
                 BlzTriggerRegisterPlayerSyncEvent(pauseRequest, Player(slot), "SC_JP", false)
+                BlzTriggerRegisterPlayerSyncEvent(chatClosed, Player(slot), "SC_JH", false)
         TriggerAddAction(pauseRequest, function receiveEditboxJournalPause)
+        TriggerAddAction(chatClosed, function receiveJournalChatClosed)
     if JOURNAL_INPUT_SOURCE
 		journalControlSync = CreateTrigger()
 		for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1

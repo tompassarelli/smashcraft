@@ -276,7 +276,16 @@ mod linux {
         Ok(format!("@J1{identity}{checksum:05}|{wire};"))
     }
 
-    fn text_receipt(contents: &str, build: &str, epoch: u32, slot: u32) -> io::Result<Option<(u32, u32, u32)>> {
+    #[derive(Debug, PartialEq, Eq)]
+    struct TextReceipt {
+        received: u32,
+        consumed: u32,
+        revision: u32,
+        chat: u32,
+        chat_state: u32,
+    }
+
+    fn text_receipt(contents: &str, build: &str, epoch: u32, slot: u32) -> io::Result<Option<TextReceipt>> {
         if contents
             .lines()
             .rev()
@@ -301,12 +310,20 @@ mod linux {
             return Err(io::Error::other("malformed native text receipt"));
         };
         let revision: String = revision_text.chars().take_while(char::is_ascii_digit).collect();
-        if !revision_text[revision.len()..].starts_with('"') || number.is_empty() || consumed.is_empty() || revision.is_empty() {
+        let fields = revision_text[revision.len()..].split('"').next().unwrap_or("");
+        let chat_fields: Vec<_> = fields.split_whitespace().collect();
+        if chat_fields.len() != 3 || number.is_empty() || consumed.is_empty() || revision.is_empty() {
             return Err(io::Error::other("malformed native text receipt"));
         }
         let counter = |text: &str| text.parse::<u32>()
             .map_err(|_| io::Error::other("native text receipt counter overflow"));
-        Ok(Some((counter(&number)?, counter(&consumed)?, counter(&revision)?)))
+        let chat = counter(chat_fields[0].strip_prefix("chat=").ok_or_else(|| io::Error::other("missing chat sequence"))?)?;
+        let chat_state = counter(chat_fields[1].strip_prefix("chatState=").ok_or_else(|| io::Error::other("missing chat state"))?)?;
+        if chat_state > 3 || (chat == 0 && chat_state != 0)
+            || !matches!(chat_fields[2], "chatFrame=0" | "chatFrame=1") {
+            return Err(io::Error::other("invalid native chat receipt"));
+        }
+        Ok(Some(TextReceipt { received: counter(&number)?, consumed: counter(&consumed)?, revision: counter(&revision)?, chat, chat_state }))
     }
 
     const MAILBOX_CHUNK_BYTES: usize = 7;
@@ -333,6 +350,10 @@ mod linux {
         trace: bool,
         emitted_at: Option<Instant>,
         editbox: bool,
+        chat: u32,
+        chat_state: u32,
+        chat_quiet: u32,
+        chat_opened: u32,
     }
 
     impl MailboxSender {
@@ -376,6 +397,10 @@ mod linux {
                 trace,
                 emitted_at: None,
                 editbox,
+                chat: 0,
+                chat_state: 0,
+                chat_quiet: 0,
+                chat_opened: 0,
             })
         }
 
@@ -418,7 +443,7 @@ mod linux {
             self.queued.is_empty() && self.current.is_none() && !self.awaiting_ack
         }
 
-        fn step(&mut self) -> io::Result<()> {
+        fn step(&mut self, paused: bool) -> io::Result<()> {
             if self.editbox {
                 let now = Instant::now();
                 if self.text_receipt_at.is_none_or(|previous| {
@@ -430,11 +455,19 @@ mod linux {
                     ));
                     match fs::read_to_string(path) {
                         Ok(contents) => {
-                            if let Some((received, consumed, revision)) =
+                            if let Some(receipt) =
                                 text_receipt(&contents, &self.build, self.epoch, self.slot)?
                             {
+                                let TextReceipt { received, consumed, revision, chat, chat_state } = receipt;
                                 let previous_revision = self.text_window.receipt_revision;
                                 self.text_window.receipt(&mut self.queued, received, consumed, revision)?;
+                                if revision > previous_revision {
+                                    if (chat, chat_state) != (self.chat, self.chat_state) {
+                                        eprintln!("chat_state epoch={} chat={chat} state={chat_state} mono_ns={}", self.epoch, monotonic_ns()?);
+                                    }
+                                    self.chat = chat;
+                                    self.chat_state = chat_state;
+                                }
                                 if self.trace && revision > previous_revision {
                                     eprintln!(
                                         "editbox_receipt monotonic_ns={} received={received} consumed={consumed} revision={revision}",
@@ -450,6 +483,25 @@ mod linux {
                 }
                 if !self.eligible()? {
                     self.text_window.suspend();
+                    return Ok(());
+                }
+                if self.chat_state == 1 && paused && self.is_idle() && self.chat_quiet != self.chat {
+                    self.chat_quiet = self.chat;
+                    let path = self.dir.join(format!("smashcraft-journal-chat-{}-e{}-s{}-n{}.pld", self.build, self.epoch, self.slot, self.chat));
+                    publish_symbol(&path, b'Q')?;
+                    eprintln!("chat_quiescent epoch={} chat={} mono_ns={}", self.epoch, self.chat, monotonic_ns()?);
+                }
+                if self.chat_state == 2 && self.chat_opened != self.chat {
+                    if self.chat_quiet != self.chat || !self.is_idle() {
+                        return Err(io::Error::other("native chat opened before sender quiescence"));
+                    }
+                    self.output.key(OutputKey::Return, Direction::Press).map_err(|e| io::Error::other(e.to_string()))?;
+                    thread::sleep(Duration::from_millis(30));
+                    self.output.key(OutputKey::Return, Direction::Release).map_err(|e| io::Error::other(e.to_string()))?;
+                    self.chat_opened = self.chat;
+                    eprintln!("chat_return epoch={} chat={} mono_ns={}", self.epoch, self.chat, monotonic_ns()?);
+                }
+                if self.chat_state >= 2 || (self.chat_state == 1 && self.chat_quiet == self.chat) {
                     return Ok(());
                 }
                 if let Some((sequence, envelope)) =
@@ -2250,13 +2302,49 @@ mod linux {
             "@J10000000001000000000102742|I421100;"
         );
         let prefix =
-            "call Preload( \"SMASHCRAFT TEXT ACK v=1 build=focus epoch=1 slot=0 received=7 consumed=5 revision=2\" )\n";
+            "call Preload( \"SMASHCRAFT TEXT ACK v=1 build=focus epoch=1 slot=0 received=7 consumed=5 revision=2 chat=0 chatState=0 chatFrame=1\" )\n";
         assert_eq!(text_receipt(prefix, "focus", 1, 0).unwrap(), None);
         let complete = format!("{prefix}endfunction\n");
-        assert_eq!(text_receipt(&complete, "focus", 1, 0).unwrap(), Some((7, 5, 2)));
+        assert_eq!(text_receipt(&complete, "focus", 1, 0).unwrap(), Some(TextReceipt { received: 7, consumed: 5, revision: 2, chat: 0, chat_state: 0 }));
         assert!(text_receipt(&complete, "focus", 2, 0).is_err());
         assert!(text_receipt(&complete, "focus", 1, 1).is_err());
         assert!(text_envelope(1, 1, "I4;incomplete").is_err());
+    }
+
+    #[test]
+    fn chat_receipts_preserve_queue_until_consumed_and_close_requires_neutral() {
+        let receipt = |state| format!("call Preload( \"SMASHCRAFT TEXT ACK v=1 build=chat epoch=1 slot=0 received=1 consumed=1 revision=9 chat=2 chatState={state} chatFrame=1\" )\nendfunction\n");
+        for state in 0..=3 {
+            let parsed = text_receipt(&receipt(state), "chat", 1, 0).unwrap().unwrap();
+            assert_eq!((parsed.chat, parsed.chat_state), (2, state));
+        }
+        assert!(text_receipt(&receipt(4), "chat", 1, 0).is_err());
+        let mut queue = PendingOutput::default();
+        queue.push("ACK1|2|PAUSE|91".into()).unwrap();
+        let mut window = TextWindow::default();
+        let now = Instant::now();
+        window.receipt(&mut queue, 0, 0, 1).unwrap();
+        let (sequence, _) = window.next(&queue, 1, now).unwrap().unwrap();
+        window.sent(sequence, now);
+        window.receipt(&mut queue, 1, 0, 2).unwrap();
+        assert!(!queue.is_empty());
+        window.receipt(&mut queue, 1, 1, 3).unwrap();
+        assert!(queue.is_empty());
+        assert!(window.next(&queue, 1, now + TEXT_RETRY).unwrap().is_none());
+
+        let mut input = FocusInput { eligible: true, armed: true, gameplay_armed: true, physical: State::default(), accept_since_ns: 0 };
+        let down = evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_SOUTH.0, 1);
+        let up = evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_SOUTH.0, 0);
+        input.observe(false, false, 0);
+        assert!(!input.accepts(&[None; 6], down, false, false).unwrap());
+        input.observe(true, false, 0);
+        input.rearm(0, false, false);
+        assert!(!input.armed);
+        // Another player's Start resumes while this player still holds Attack.
+        input.rearm(0, false, true);
+        assert!(!input.gameplay_armed);
+        assert!(!input.accepts(&[None; 6], up, false, true).unwrap());
+        assert!(input.accepts(&[None; 6], down, false, true).unwrap());
     }
 
     #[test]
@@ -3041,6 +3129,10 @@ mod linux {
                     let sender = mailbox.as_mut().expect("follow-matches editbox sender");
                     sender.epoch = epoch;
                     sender.text_window = TextWindow::default();
+                    sender.chat = 0;
+                    sender.chat_state = 0;
+                    sender.chat_quiet = 0;
+                    sender.chat_opened = 0;
                     sender.text_receipt_at = None;
                     clear_quiescent(&o.out, &o.build, o.epoch, o.slot)?;
                     sender.enqueue(format!("JR1{epoch}")).map_err(|e| e.to_string())?;
@@ -3058,7 +3150,7 @@ mod linux {
                 .map(MailboxSender::eligible)
                 .transpose()
                 .map_err(|error| format!("journal focus: {error}"))?
-                .unwrap_or(true);
+                .unwrap_or(true) && mailbox.as_ref().is_none_or(|sender| sender.chat_state == 0);
             let lost = mailbox
                 .as_mut()
                 .is_some_and(|sender| std::mem::take(&mut sender.lost_focus));
@@ -3515,7 +3607,7 @@ mod linux {
             }
             if let Some(mailbox) = mailbox.as_mut().filter(|_| !waiting_ready) {
                 mailbox
-                    .step()
+                    .step(paused && !prepared && pause_barrier.is_none())
                     .map_err(|error| format!("keyboard mailbox output: {error}"))?;
             }
             if stop_capture && (!ended || end_marker_sent) && mailbox.as_ref().is_none_or(MailboxSender::is_idle) {
