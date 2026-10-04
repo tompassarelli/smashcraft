@@ -1229,23 +1229,42 @@ mod linux {
         Ok(result)
     }
 
+    enum Capture {
+        Event(evdev::InputEvent, bool, bool),
+        Disconnected(u128),
+        Reconnected { ns: u128, axes: [Option<evdev::AbsInfo>; 6], physical: State, start: bool },
+    }
+
+    impl Capture {
+        fn timestamp(&self) -> Result<u128, String> {
+            match self {
+                Self::Event(event, ..) => event_ns(event),
+                Self::Disconnected(ns) | Self::Reconnected { ns, .. } => Ok(*ns),
+            }
+        }
+    }
+
     #[derive(Default)]
     struct PendingInput {
-        events: VecDeque<(evdev::InputEvent, bool, bool)>,
+        events: VecDeque<Capture>,
     }
 
     impl PendingInput {
         fn push(&mut self, event: evdev::InputEvent, start_before: bool, start_after: bool) -> Result<(), String> {
+            self.push_capture(Capture::Event(event, start_before, start_after))
+        }
+
+        fn push_capture(&mut self, capture: Capture) -> Result<(), String> {
             if self.events.len() >= 65_536 {
                 return Err("unpublished control retained 65536 input events; helper stopped without discarding input".into());
             }
-            self.events.push_back((event, start_before, start_after));
+            self.events.push_back(capture);
             Ok(())
         }
 
-        fn pop(&mut self, paused: bool, discard_before_ns: u128) -> Result<Option<(evdev::InputEvent, bool, bool)>, String> {
-            if let Some((event, _, _)) = self.events.front() {
-                if !paused || event_ns(event)? < discard_before_ns {
+        fn pop(&mut self, paused: bool, discard_before_ns: u128) -> Result<Option<Capture>, String> {
+            if let Some(capture) = self.events.front() {
+                if !paused || capture.timestamp()? < discard_before_ns {
                     return Ok(self.events.pop_front());
                 }
             }
@@ -1528,7 +1547,8 @@ mod linux {
         let mut edges = BTreeMap::new();
         let mut snapshots = BTreeMap::new();
         let mut accepted = Vec::new();
-        while let Some((event, before, after)) = queue.pop(false, 0).unwrap() {
+        while let Some(capture) = queue.pop(false, 0).unwrap() {
+            let Capture::Event(event, before, after) = capture else { panic!("unexpected recovery boundary") };
             if input.accepts_in_segment(&[None; 6], event, before, after, true, segment).unwrap() {
                 accepted.push(event);
                 apply_event(&[None; 6], &mut state, event, &mut edges, &mut snapshots, 91, segment, false).unwrap();
@@ -1902,6 +1922,13 @@ mod linux {
     }
 
     impl FocusInput {
+        fn restore(&mut self, physical: State, start: bool, ns: u128, gameplay: bool) {
+            self.physical = physical;
+            self.accept_since_ns = self.accept_since_ns.max(ns);
+            self.armed = self.eligible && action_state(physical) == 0 && !start;
+            self.gameplay_armed = self.armed && gameplay;
+        }
+
         fn observe(&mut self, eligible: bool, lost: bool, now: u128) -> bool {
             let disarm = lost || !eligible;
             let release = disarm && self.armed;
@@ -2636,6 +2663,191 @@ mod linux {
         fs::remove_dir(dir).unwrap();
     }
 
+    #[derive(Debug, PartialEq, Eq)]
+    struct DeviceIdentity {
+        id: evdev::InputId,
+        name: Option<String>,
+        phys: Option<String>,
+        uniq: Option<String>,
+    }
+
+    impl DeviceIdentity {
+        fn of(device: &RawDevice) -> Self {
+            Self {
+                id: device.input_id(),
+                name: device.name().map(str::to_owned),
+                phys: device.physical_path().filter(|s| !s.is_empty()).map(str::to_owned),
+                uniq: device.unique_name().filter(|s| !s.is_empty()).map(str::to_owned),
+            }
+        }
+
+        fn reconnectable(&self) -> bool {
+            self.phys.is_some() || self.uniq.is_some()
+        }
+    }
+
+    fn matching_devices(identity: &DeviceIdentity) -> io::Result<Vec<(PathBuf, RawDevice)>> {
+        let mut matches = Vec::new();
+        for entry in fs::read_dir("/dev/input")? {
+            let path = entry?.path();
+            if !path.file_name().and_then(|s| s.to_str()).is_some_and(|s| s.starts_with("event")) {
+                continue;
+            }
+            let device = match RawDevice::open(&path) {
+                Ok(device) => device,
+                Err(error) if error.kind() == io::ErrorKind::NotFound
+                    || error.kind() == io::ErrorKind::PermissionDenied
+                    || error.raw_os_error() == Some(libc::ENODEV) => continue,
+                Err(error) => return Err(error),
+            };
+            if DeviceIdentity::of(&device) == *identity {
+                matches.push((path, device));
+            }
+        }
+        Ok(matches)
+    }
+
+    // Live menu/Start gating cannot depend on the gameplay queue, which can
+    // retain original events while a pause or start publication is pending.
+    struct RecoveryGate {
+        ready: bool,
+        physical: State,
+        start: bool,
+        since_ns: u128,
+    }
+
+    impl RecoveryGate {
+        fn restored(&mut self, physical: State, start: bool, ns: u128) {
+            self.physical = physical;
+            self.start = start;
+            self.since_ns = ns;
+            self.ready = action_state(physical) == 0 && !start;
+        }
+
+        fn observe(&mut self, axes: &[Option<evdev::AbsInfo>; 6], event: evdev::InputEvent) {
+            update_state(axes, &mut self.physical, event);
+            if let EventSummary::Key(_, Key::BTN_START, value) = event.destructure() {
+                self.start = value != 0;
+            }
+            if action_state(self.physical) == 0 && !self.start {
+                self.ready = true;
+            }
+        }
+    }
+
+    #[test]
+    fn reconnect_identity_requires_a_stable_discriminator_and_excludes_another_pad() {
+        let identity = |phys: Option<&str>| DeviceIdentity {
+            id: evdev::InputId::new(evdev::BusType::BUS_USB, 0x045e, 0x02ea, 1),
+            name: Some("Xbox One S Controller".into()),
+            phys: phys.map(str::to_owned),
+            uniq: None,
+        };
+        assert!(!identity(None).reconnectable());
+        assert!(identity(Some("usb-port-1/input0")).reconnectable());
+        assert_eq!(identity(Some("usb-port-1/input0")), identity(Some("usb-port-1/input0")));
+        assert_ne!(identity(Some("usb-port-1/input0")), identity(Some("usb-port-2/input0")));
+    }
+
+    #[test]
+    fn reconnect_retains_original_tap_and_releases_held_input_at_detection() {
+        let ranges = [None; 6];
+        let segment = FrameSegment { epoch_ns: 0, first_frame: 1 };
+        let mut queue = PendingInput::default();
+        queue.push(timed_button(20_000_000, true), false, false).unwrap();
+        queue.push(timed_button(21_000_000, false), false, false).unwrap();
+        queue.push(timed_button(40_000_000, true), false, false).unwrap();
+        queue.push_capture(Capture::Disconnected(60_000_000)).unwrap();
+        // A paused/control-pending drain must retain both the edges and boundary.
+        assert!(queue.pop(true, 0).unwrap().is_none());
+        let mut state = State::default();
+        let mut edges = BTreeMap::new();
+        let mut snapshots = BTreeMap::new();
+        let mut release = None;
+        while let Some(capture) = queue.pop(false, 0).unwrap() {
+            match capture {
+                Capture::Event(event, ..) => apply_event(&ranges, &mut state, event, &mut edges, &mut snapshots, 1, segment, false).unwrap(),
+                Capture::Disconnected(ns) => release = Some(release_for_focus_loss(&mut state, &mut edges, &mut snapshots, 1, segment, ns).unwrap()),
+                Capture::Reconnected { .. } => panic!("unexpected reconnect"),
+            }
+        }
+        assert_eq!(edges[&2].pressed, ATTACK);
+        assert_eq!(edges[&2].released, ATTACK);
+        assert_eq!(edges[&3].pressed, ATTACK);
+        assert_eq!(release, Some(4));
+        assert_eq!(edges[&4].released, ATTACK);
+        assert_eq!(snapshots[&4], State::default());
+        assert_eq!(state, State::default());
+        assert_eq!(frame_at(100_000_000, segment).unwrap(), 7);
+    }
+
+    #[test]
+    fn reconnect_held_state_requires_neutral_before_gameplay_menu_and_pause() {
+        let ranges = [None; 6];
+        let held = State { sources: 1, ..State::default() };
+        let mut input = FocusInput { eligible: true, armed: true, gameplay_armed: true, physical: held, accept_since_ns: 0 };
+        let mut recovery = RecoveryGate { ready: false, physical: held, start: true, since_ns: 0 };
+        recovery.restored(held, true, 10_000_000);
+        input.restore(held, true, 10_000_000, true);
+        let mut menu = MenuInput::default();
+        menu.observe(Some(MenuPhase::Character), held, true, 10_000_000);
+        let up = timed_button(11_000_000, false);
+        assert!(!input.accepts(&ranges, up, true, true).unwrap());
+        recovery.observe(&ranges, up);
+        assert!(!recovery.ready);
+        assert_eq!(menu.press(held, State::default(), true, true, 11_000_000), None);
+        let start_up = evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_START.0, 0);
+        recovery.observe(&ranges, start_up);
+        assert!(recovery.ready);
+        input.rearm(12_000_000, false, true);
+        assert!(input.accepts(&ranges, timed_button(13_000_000, true), false, true).unwrap());
+        menu.observe(Some(MenuPhase::Character), State::default(), false, 12_000_000);
+        assert_eq!(menu.press(State::default(), held, false, false, 13_000_000), Some("n"));
+        let start_down = evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_START.0, 1);
+        assert!(pause_request_wire(&start_down, &mut false, 7, 3, true, !recovery.ready).is_some());
+        // Recovery of neutral state also permits the first genuinely new tap.
+        input.restore(State::default(), false, 20_000_000, true);
+        assert!(input.accepts(&ranges, timed_button(21_000_000, true), false, true).unwrap());
+    }
+
+    fn device_snapshot(device: &RawDevice) -> io::Result<([Option<evdev::AbsInfo>; 6], State, bool)> {
+        let mut axes = [None; 6];
+        for (code, info) in device.get_absinfo()? {
+            if code.0 < axes.len() as u16 {
+                axes[code.0 as usize] = Some(info);
+            }
+        }
+        for required in [
+            Abs::ABS_X,
+            Abs::ABS_Y,
+            Abs::ABS_RX,
+            Abs::ABS_RY,
+            Abs::ABS_Z,
+            Abs::ABS_RZ,
+        ] {
+            if axes.get(required.0 as usize).is_none_or(Option::is_none) {
+                return Err(io::Error::new(io::ErrorKind::InvalidData, format!("selected device lacks required Linux Xbox axis {required:?}")));
+            }
+        }
+        let key_state = device.get_key_state()?;
+        let axis_value = |code: Abs| axes[code.0 as usize].map_or(0, |info| info.value());
+        let mut state = State {
+            x: normalized_axis(&axes, Abs::ABS_X, axis_value(Abs::ABS_X)),
+            y: normalized_axis(&axes, Abs::ABS_Y, axis_value(Abs::ABS_Y)),
+            cx: normalized_axis(&axes, Abs::ABS_RX, axis_value(Abs::ABS_RX)),
+            cy: normalized_axis(&axes, Abs::ABS_RY, axis_value(Abs::ABS_RY)),
+            lt: normalized_trigger(&axes, Abs::ABS_Z, axis_value(Abs::ABS_Z)),
+            rt: normalized_trigger(&axes, Abs::ABS_RZ, axis_value(Abs::ABS_RZ)),
+            ..State::default()
+        };
+        for key in [Key::BTN_SOUTH, Key::BTN_EAST, Key::BTN_WEST, Key::BTN_NORTH, Key::BTN_TL, Key::BTN_TR] {
+            if key_state.contains(key) {
+                update_state(&axes, &mut state, evdev::InputEvent::new(evdev::EventType::KEY.0, key.0, 1));
+            }
+        }
+        Ok((axes, state, key_state.contains(Key::BTN_START)))
+    }
+
     fn run() -> Result<(), String> {
         let mut o = options()?;
         let mut ready_after_ns = clock_ns(libc::CLOCK_REALTIME).map_err(|e| e.to_string())?;
@@ -2674,7 +2886,7 @@ mod linux {
                 )
             })
             .transpose()?;
-        let mut device =
+        let device =
             RawDevice::open(&o.device).map_err(|e| format!("open {}: {e}", o.device.display()))?;
         set_monotonic_event_clock(&device)
             .map_err(|e| format!("set EVIOCSCLOCKID(CLOCK_MONOTONIC): {e}"))?;
@@ -2690,44 +2902,17 @@ mod linux {
         if let Some(path) = &o.ready_file {
             eprintln!("readiness_receipt={}", path.display());
         }
-        let mut axes = [None; 6];
-        for (code, info) in device.get_absinfo().map_err(|e| e.to_string())? {
-            if code.0 < axes.len() as u16 {
-                axes[code.0 as usize] = Some(info);
-            }
-        }
-        for required in [
-            Abs::ABS_X,
-            Abs::ABS_Y,
-            Abs::ABS_RX,
-            Abs::ABS_RY,
-            Abs::ABS_Z,
-            Abs::ABS_RZ,
-        ] {
-            if axes.get(required.0 as usize).is_none_or(Option::is_none) {
-                return Err(format!(
-                    "selected device lacks required Linux Xbox axis {required:?}"
-                ));
-            }
-        }
-        let key_state = device.get_key_state().map_err(|e| e.to_string())?;
-        let axis_value = |code: Abs| axes[code.0 as usize].map_or(0, |info| info.value());
-        let mut state = State {
-            x: normalized_axis(&axes, Abs::ABS_X, axis_value(Abs::ABS_X)),
-            y: normalized_axis(&axes, Abs::ABS_Y, axis_value(Abs::ABS_Y)),
-            cx: normalized_axis(&axes, Abs::ABS_RX, axis_value(Abs::ABS_RX)),
-            cy: normalized_axis(&axes, Abs::ABS_RY, axis_value(Abs::ABS_RY)),
-            lt: normalized_trigger(&axes, Abs::ABS_Z, axis_value(Abs::ABS_Z)),
-            rt: normalized_trigger(&axes, Abs::ABS_RZ, axis_value(Abs::ABS_RZ)),
-            ..State::default()
-        };
-        for key in [Key::BTN_SOUTH, Key::BTN_EAST, Key::BTN_WEST, Key::BTN_NORTH, Key::BTN_TL, Key::BTN_TR] {
-            if key_state.contains(key) {
-                update_state(&axes, &mut state, evdev::InputEvent::new(evdev::EventType::KEY.0, key.0, 1));
-            }
-        }
-        let physical = state;
-        state = State::default();
+        let (mut axes, physical, mut start_held) = device_snapshot(&device).map_err(|e| e.to_string())?;
+        let mut capture_axes = axes;
+        let mut state = State::default();
+        let identity = DeviceIdentity::of(&device);
+        let can_reconnect = identity.reconnectable()
+            && matching_devices(&identity).map_err(|e| format!("enumerate controller identity: {e}"))?.len() == 1;
+        eprintln!("controller_identity={identity:?} automatic_reconnect={can_reconnect}");
+        let mut device = Some(device);
+        let mut next_reconnect = Instant::now();
+        let mut ambiguous = false;
+        let mut recovery = RecoveryGate { ready: action_state(physical) == 0 && !start_held, physical, start: start_held, since_ns: 0 };
         let mut row_state = state;
         let mut edges = BTreeMap::<u32, Edges>::new();
         let mut snapshots = BTreeMap::<u32, State>::new();
@@ -2738,7 +2923,6 @@ mod linux {
             first_frame: next_frame,
         };
         let mut control_sequence = 1;
-        let mut start_held = key_state.contains(Key::BTN_START);
         let mut focus_input = FocusInput {
             eligible: true,
             armed: action_state(physical) == 0,
@@ -2841,18 +3025,73 @@ mod linux {
             if changed {
                 eprintln!("game-eligible={eligible} mono_ns={now} neutral_rearm=required");
             }
+            if changed || lost || !eligible { recovery.ready = false; }
             menu_input.observe(
-                menu.filter(|_| waiting_ready && eligible && !lost && focus_input.armed),
+                menu.filter(|_| waiting_ready && eligible && !lost && focus_input.armed && device.is_some() && recovery.ready),
                 focus_input.physical, start_held, focus_now,
             );
-            let events = match device.fetch_events() {
-                Ok(events) => events.collect::<Vec<_>>(),
-                Err(error) if error.kind() == io::ErrorKind::WouldBlock => Vec::new(),
-                Err(error) => return Err(format!("evdev read: {error}")),
+            if device.is_none() && can_reconnect && Instant::now() >= next_reconnect {
+                next_reconnect = Instant::now() + Duration::from_millis(100);
+                let mut candidates = matching_devices(&identity).map_err(|e| format!("find disconnected controller: {e}"))?;
+                if candidates.len() > 1 {
+                    if !ambiguous { eprintln!("controller_reconnect_ambiguous matches={} identity={identity:?}", candidates.len()); }
+                    ambiguous = true;
+                } else if let Some((path, replacement)) = candidates.pop() {
+                    ambiguous = false;
+                    let restored = (|| -> io::Result<_> {
+                        set_monotonic_event_clock(&replacement)?;
+                        set_nonblocking(&replacement)?;
+                        device_snapshot(&replacement)
+                    })();
+                    match restored {
+                        Ok((ranges, physical, start)) => {
+                            let ns = monotonic_ns().map_err(|e| e.to_string())?;
+                            capture_axes = ranges;
+                            start_held = start;
+                            recovery.restored(physical, start, ns);
+                            if waiting_ready {
+                                axes = ranges;
+                                focus_input.restore(physical, start, ns, false);
+                            } else {
+                                pending_input.push_capture(Capture::Reconnected { ns, axes: ranges, physical, start })?;
+                            }
+                            device = Some(replacement);
+                            eprintln!("controller_reconnected source={} mono_ns={ns} frontier={next_frame} identity={identity:?} neutral_rearm=required", path.display());
+                        }
+                        Err(error) if error.raw_os_error() == Some(libc::ENODEV) => {}
+                        Err(error) => return Err(format!("reopen controller {}: {error}", path.display())),
+                    }
+                }
+            }
+            let read = device.as_mut().map(|device| device.fetch_events().map(|events| events.collect::<Vec<_>>()));
+            let events = match read {
+                Some(Ok(events)) => events,
+                None => Vec::new(),
+                Some(Err(error)) if error.kind() == io::ErrorKind::WouldBlock => Vec::new(),
+                Some(Err(error)) if error.raw_os_error() == Some(libc::ENODEV) => {
+                    let ns = monotonic_ns().map_err(|e| e.to_string())?;
+                    device = None;
+                    recovery.ready = false;
+                    start_held = false;
+                    menu_input.observe(None, State::default(), false, ns);
+                    if waiting_ready {
+                        focus_input.restore(State::default(), false, ns, false);
+                        focus_input.armed = false;
+                    } else {
+                        pending_input.push_capture(Capture::Disconnected(ns))?;
+                    }
+                    eprintln!("controller_disconnected mono_ns={ns} frontier={next_frame} automatic_reconnect={can_reconnect} release_policy=first-unassigned-frame-at-detection");
+                    Vec::new()
+                }
+                Some(Err(error)) => return Err(format!("evdev read: {error}")),
             };
             for event in events {
+                // The reopen snapshot owns held state; older queue entries
+                // cannot rearm controls from before this observation interval.
+                if event_ns(&event)? < recovery.since_ns { continue; }
+                let recovery_ready = recovery.ready;
+                recovery.observe(&capture_axes, event);
                 let start_before = start_held;
-                let was_armed = focus_input.armed;
                 if o.editbox_display.is_some() {
                     if let Some(wire) = pause_request_wire(
                         &event,
@@ -2866,7 +3105,7 @@ mod linux {
                             || waiting_ready
                             || waiting_start
                             || !eligible
-                            || !was_armed,
+                            || !recovery_ready,
                     ) {
                         mailbox
                             .as_mut()
@@ -2877,7 +3116,7 @@ mod linux {
                 }
                 if waiting_ready {
                     let before = focus_input.physical;
-                    focus_input.accepts(&axes, event, start_held, false)?;
+                    focus_input.accepts(&capture_axes, event, start_held, false)?;
                     if let Some(key) = menu_input.press(before, focus_input.physical, start_before, start_held, event_ns(&event)?) {
                         // Recheck the map and exact target for every finite tap.
                         // Directed press/release pairs leave no held menu keys
@@ -3010,9 +3249,27 @@ mod linux {
                     return Err("journal pause/resume commands are out of order".into());
                 }
             }
-            while let Some((event, start_before, event_start_held)) =
-                pending_input.pop(paused || waiting_start, control_read.discard_before_ns)?
-            {
+            while let Some(capture) = pending_input.pop(paused || waiting_start, control_read.discard_before_ns)? {
+                let (event, start_before, event_start_held) = match capture {
+                    Capture::Event(event, before, after) => (event, before, after),
+                    Capture::Disconnected(ns) => {
+                        if !paused && !stop_capture && !waiting_ready && !waiting_start {
+                            let frame = release_for_focus_loss(&mut state, &mut edges, &mut snapshots, next_frame, segment, ns)?;
+                            focus_input.accept_since_ns = focus_input.accept_since_ns.max(
+                                segment.epoch_ns + (u128::from(frame - segment.first_frame) * 1_000_000_000).div_ceil(HZ),
+                            );
+                            eprintln!("controller_release mono_ns={ns} frame={frame}");
+                        }
+                        focus_input.restore(State::default(), false, ns, false);
+                        focus_input.armed = false;
+                        continue;
+                    }
+                    Capture::Reconnected { ns, axes: ranges, physical, start } => {
+                        axes = ranges;
+                        focus_input.restore(physical, start, ns, !paused && !stop_capture && !waiting_ready && !waiting_start);
+                        continue;
+                    }
+                };
                 let accepts = focus_input.accepts_in_segment(
                     &axes, event, start_before, event_start_held, !paused && !stop_capture && !waiting_ready && !waiting_start, segment,
                 )?;
@@ -3039,8 +3296,11 @@ mod linux {
                     );
                 }
             }
-            if pending_input.events.is_empty() {
+            if pending_input.events.is_empty() && device.is_some() && recovery.ready {
                 focus_input.rearm(focus_now, start_held, !paused && !stop_capture && !waiting_ready && !waiting_start);
+            }
+            if device.is_some() && eligible && action_state(recovery.physical) == 0 && !recovery.start {
+                recovery.ready = true;
             }
             if before_armed != (focus_input.armed, focus_input.gameplay_armed) {
                 eprintln!(
