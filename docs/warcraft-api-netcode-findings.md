@@ -471,3 +471,39 @@ wc3-melee:docs/native-journal-packet-comparison-20261004/transports0032/.
 Next diagnostic separates changing preload script execution from the origin of
 the value sent on the wire. Full responsive companion-to-fight acceptance remains
 open; physics/VFX ownership is now under this root and peer listeners are stopped.
+
+
+## Source-text discriminator: 0.0.34
+
+Candidate source4640a03, SHA256805fd31e96f35f1eff3bec65cb92a9db3a3370cc09e680a83a288de130c32e81,
+zero build errors18warnings. Same two clients in one match, slots0/1 mask3,
+spare slots closed. Fresh4800 fixtures,128bytes each, source-slot0. All five
+arms send changing22-byte envelopes through the same receiver at30Hz,300/client.
+Arm definitions: wc3-melee:docs/preloader-source-discriminator.md.
+
+| Arm | A mean / maximum | B mean / maximum |
+| --- | ---: | ---: |
+| Generated, no file | 111 / 248 ms | 105 / 223 ms |
+| Changing tooltip script, discard read and send generated value | 2,786 / 5,039 ms | 3,020 / 5,487 ms |
+| Identical script/tooltip, fresh filenames, send generated value | 100 / 220 ms | 103 / 220 ms |
+| Only comment changes, constant tooltip, send generated value | 2,802 / 4,911 ms | 2,950 / 5,500 ms |
+| Changing tooltip script, send returned value | 3,442 / 6,480 ms | 3,440 / 6,246 ms |
+
+All300/300 own echoes in every arm. Missing,bad payload,read errors,send failures,
+duplicates all zero. All20 begin/end receipts collected. Native phase spans
+A/B seconds: generated10.131/10.097; changing/discard14.330/14.663;
+identical10.164/10.131; comment-only14.463/14.663; returned15.630/15.530.
+The same phases' host-observed spans approximately10.076/10.066,
+14.317/14.559,10.234/10.233,14.463/14.952,16.380/15.888 seconds.
+Host spans include file publication/detection; they are not per-call timings.
+
+Changing source text alone is sufficient to reproduce the slow path under this
+workload. Returning/sending the loaded string is not necessary, nor is changing
+the tooltip value. Identical source text under fresh paths remains fast. This
+supports investigating a small reusable script vocabulary at the external file
+boundary. It does not prove the engine's internal compiler/cache mechanism or
+that a vocabulary decoder will sustain controller throughput. Sequential order,
+one tested build/topology,and own-echo timing remain limits. No physical latency
+or full gameplay acceptance follows.
+
+Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/fileio0034/.

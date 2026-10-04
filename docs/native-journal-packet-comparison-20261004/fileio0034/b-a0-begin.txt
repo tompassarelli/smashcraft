@@ -1,0 +1,13 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=netcode-0034 receipt=preloader-source-discriminator begin" )
+	call Preload( "slot=1 arm=0 native-game-seconds=0.000" )
+	call Preload( "source-method=generated-changing-no-file returned-string=none" )
+	call Preload( "expected-read=none expected-wire=D0C+NNN+D0B+NNN+10zeroes" )
+	call Preload( "fixture-slot=0 fixture-sender=1 fixture-arm=0 samples=300 offered-hz=30 payload-bytes=22 wire-changing=yes" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+
