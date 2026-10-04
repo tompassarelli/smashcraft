@@ -1,5 +1,12 @@
 #![deny(unsafe_code)]
 
+#[cfg(target_os = "linux")]
+#[path = "../focus.rs"]
+mod focus;
+#[cfg(target_os = "linux")]
+#[path = "../wlr.rs"]
+mod wlr;
+
 #[cfg(not(target_os = "linux"))]
 fn main() {
     eprintln!("wc3-journal requires Linux evdev event timestamps");
@@ -87,6 +94,58 @@ mod linux {
         mailbox_display: Option<String>,
         editbox_display: Option<String>,
         trace: bool,
+        window: Option<u32>,
+        pid: Option<u32>,
+        niri_window: Option<u64>,
+        wlr_app_id: Option<String>,
+    }
+
+    // At most four seconds of ordinary two-frame records, also bounded below
+    // the receiver's 4096-byte text capacity when draining a retained backlog.
+    const OUTPUT_RECORD_LIMIT: usize = 120;
+    const OUTPUT_BYTE_LIMIT: usize = 2048;
+
+    #[derive(Default)]
+    struct PendingOutput {
+        records: VecDeque<String>,
+        bytes: usize,
+    }
+
+    impl PendingOutput {
+        fn push(&mut self, wire: String) -> io::Result<()> {
+            if self.records.len() >= OUTPUT_RECORD_LIMIT
+                || self.bytes + wire.len() + 1 > OUTPUT_BYTE_LIMIT
+            {
+                return Err(io::Error::other(
+                    "journal output queue capacity exceeded (120 records / 2048 bytes); no queued record overwritten; helper stopped",
+                ));
+            }
+            self.bytes += wire.len() + 1;
+            self.records.push_back(wire);
+            Ok(())
+        }
+
+        fn emit_front(
+            &mut self,
+            eligible: bool,
+            emit: impl FnOnce(&str) -> io::Result<()>,
+        ) -> io::Result<()> {
+            if let Some(wire) = self.records.front().filter(|_| eligible) {
+                emit(wire)?;
+                self.pop();
+            }
+            Ok(())
+        }
+
+        fn pop(&mut self) -> Option<String> {
+            let wire = self.records.pop_front()?;
+            self.bytes -= wire.len() + 1;
+            Some(wire)
+        }
+
+        fn is_empty(&self) -> bool {
+            self.records.is_empty()
+        }
     }
 
     const MAILBOX_CHUNK_BYTES: usize = 7;
@@ -99,7 +158,9 @@ mod linux {
         slot: u32,
         output: Enigo,
         owned: BTreeSet<usize>,
-        queued: VecDeque<String>,
+        queued: PendingOutput,
+        gate: crate::focus::Gate,
+        lost_focus: bool,
         current: Option<String>,
         offset: usize,
         next_chunk: u32,
@@ -119,10 +180,13 @@ mod linux {
             display: &str,
             trace: bool,
             editbox: bool,
+            target: crate::focus::Target,
         ) -> Result<Self, String> {
+            let gate = crate::focus::Gate::new(target)?;
             let settings = Settings {
                 x11_display: Some(display.to_owned()),
                 linux_delay: 0,
+                release_keys_when_dropped: false,
                 ..Settings::default()
             };
             let output = Enigo::new(&settings).map_err(|error| error.to_string())?;
@@ -133,7 +197,9 @@ mod linux {
                 slot,
                 output,
                 owned: BTreeSet::new(),
-                queued: VecDeque::new(),
+                queued: PendingOutput::default(),
+                gate,
+                lost_focus: false,
                 current: None,
                 offset: 0,
                 next_chunk: 1,
@@ -152,25 +218,16 @@ mod linux {
                     "mailbox wire must be printable ASCII",
                 ));
             }
-            if self.editbox {
-                if wire.contains(';') {
-                    return Err(io::Error::other("controller record contains delimiter"));
-                }
-                let started = Instant::now();
-                self.output
-                    .text(&(wire.clone() + ";"))
-                    .map_err(|error| io::Error::other(error.to_string()))?;
-                if self.trace {
-                    eprintln!(
-                        "editbox_emit bytes={} elapsed_us={} wire={wire}",
-                        wire.len() + 1,
-                        started.elapsed().as_micros()
-                    );
-                }
-                return Ok(());
+            if self.editbox && wire.contains(';') {
+                return Err(io::Error::other("controller record contains delimiter"));
             }
-            self.queued.push_back(wire);
-            Ok(())
+            self.queued.push(wire)
+        }
+
+        fn eligible(&mut self) -> io::Result<bool> {
+            let eligible = self.gate.eligible().map_err(io::Error::other)?;
+            self.lost_focus |= !eligible;
+            Ok(eligible)
         }
 
         fn ack_path(&self) -> PathBuf {
@@ -188,6 +245,28 @@ mod linux {
         }
 
         fn step(&mut self) -> io::Result<()> {
+            if self.editbox {
+                if !self.queued.is_empty() {
+                    let eligible = self.eligible()?;
+                    let output = &mut self.output;
+                    let trace = self.trace;
+                    self.queued.emit_front(eligible, |wire| {
+                        let started = Instant::now();
+                        output
+                            .text(&(wire.to_owned() + ";"))
+                            .map_err(|error| io::Error::other(error.to_string()))?;
+                        if trace {
+                            eprintln!(
+                                "editbox_emit bytes={} elapsed_us={} wire={wire}",
+                                wire.len() + 1,
+                                started.elapsed().as_micros()
+                            );
+                        }
+                        Ok(())
+                    })?;
+                }
+                return Ok(());
+            }
             if self.awaiting_ack {
                 if !mailbox_ack_matches(
                     &self.ack_path(),
@@ -220,7 +299,7 @@ mod linux {
                 }
             }
             if self.current.is_none() {
-                self.current = self.queued.pop_front();
+                self.current = self.queued.pop();
                 if self.current.is_none() {
                     return Ok(());
                 }
@@ -244,10 +323,14 @@ mod linux {
             // stable. Flip that key last so the game never samples a partial
             // chunk as committed.
             for signal in 0..MAILBOX_SIGNAL_COUNT - 1 {
-                self.set_signal(signal, signals[signal])?;
+                if !self.set_signal(signal, signals[signal])? {
+                    return Ok(());
+                }
+            }
+            if !self.set_signal(53, signals[53])? {
+                return Ok(());
             }
             self.toggle = !self.toggle;
-            self.set_signal(53, signals[53])?;
             self.offset = end;
             self.awaiting_ack = true;
             if let Some(started) = started {
@@ -263,10 +346,13 @@ mod linux {
             Ok(())
         }
 
-        fn set_signal(&mut self, signal: usize, down: bool) -> io::Result<()> {
+        fn set_signal(&mut self, signal: usize, down: bool) -> io::Result<bool> {
             let was_down = self.owned.contains(&signal);
             if was_down == down {
-                return Ok(());
+                return Ok(true);
+            }
+            if !self.eligible()? {
+                return Ok(false);
             }
             self.output
                 .key(
@@ -283,7 +369,7 @@ mod linux {
             } else {
                 self.owned.remove(&signal);
             }
-            Ok(())
+            Ok(true)
         }
 
         fn release_all(&mut self) {
@@ -325,6 +411,7 @@ mod linux {
 
     fn usage() -> &'static str {
         "wc3-journal --device /dev/input/eventN --out DIR --ready-file PATH --epoch-monotonic-ns NS [--mailbox-display :N | --editbox-display :N] [--first-frame N] [--stop-frame N] [--trace]\n\
+         Keyboard output also requires --x11-window DECIMAL_ID --pid PID and exactly one of --niri-window ID / --private-wlr-app-id ID.\n\
          Assigns Linux kernel CLOCK_MONOTONIC input_event times to half-open 60 Hz frames. The capture segment starts at the explicit host monotonic epoch; first-frame defaults to 1."
     }
 
@@ -518,6 +605,19 @@ mod linux {
             mailbox_display: values.get("--mailbox-display").cloned(),
             editbox_display: values.get("--editbox-display").cloned(),
             trace,
+            window: values
+                .get("--x11-window")
+                .map(|s| s.parse().map_err(|_| "invalid --x11-window"))
+                .transpose()?,
+            pid: values
+                .get("--pid")
+                .map(|s| s.parse().map_err(|_| "invalid --pid"))
+                .transpose()?,
+            niri_window: values
+                .get("--niri-window")
+                .map(|s| s.parse().map_err(|_| "invalid --niri-window"))
+                .transpose()?,
+            wlr_app_id: values.get("--private-wlr-app-id").cloned(),
         })
     }
 
@@ -1042,6 +1142,279 @@ mod linux {
         );
     }
 
+    fn update_state(
+        ranges: &[Option<evdev::AbsInfo>; 6],
+        state: &mut State,
+        event: evdev::InputEvent,
+    ) {
+        let summary = event.destructure();
+        match summary {
+            EventSummary::Key(_, key, value) => {
+                let bit = match key {
+                    Key::BTN_SOUTH => Some(1 << 0),
+                    Key::BTN_EAST => Some(1 << 1),
+                    Key::BTN_WEST => Some(1 << 2),
+                    Key::BTN_NORTH => Some(1 << 3),
+                    Key::BTN_TL => Some(1 << 4),
+                    Key::BTN_TR => Some(1 << 5),
+                    _ => None,
+                };
+                if let Some(bit) = bit {
+                    if value == 1 {
+                        state.sources |= bit;
+                    } else if value == 0 {
+                        state.sources &= !bit;
+                    }
+                }
+            }
+            EventSummary::AbsoluteAxis(_, code, value) => match code {
+                Abs::ABS_X => state.x = normalized_axis(ranges, code, value),
+                Abs::ABS_Y => state.y = normalized_axis(ranges, code, value),
+                Abs::ABS_RX => state.cx = normalized_axis(ranges, code, value),
+                Abs::ABS_RY => state.cy = normalized_axis(ranges, code, value),
+                Abs::ABS_Z => state.lt = normalized_trigger(ranges, code, value),
+                Abs::ABS_RZ => state.rt = normalized_trigger(ranges, code, value),
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    struct FocusInput {
+        eligible: bool,
+        armed: bool,
+        gameplay_armed: bool,
+        physical: State,
+        accept_since_ns: u128,
+    }
+
+    impl FocusInput {
+        fn observe(&mut self, eligible: bool, lost: bool, now: u128) -> bool {
+            let disarm = lost || !eligible;
+            let release = disarm && self.armed;
+            if disarm || self.eligible != eligible {
+                self.armed = false;
+                self.gameplay_armed = false;
+                self.accept_since_ns = self.accept_since_ns.max(now);
+            }
+            self.eligible = eligible;
+            release
+        }
+
+        fn accepts(
+            &mut self,
+            ranges: &[Option<evdev::AbsInfo>; 6],
+            event: evdev::InputEvent,
+            start_held: bool,
+            gameplay: bool,
+        ) -> Result<bool, String> {
+            if matches!(
+                event.destructure(),
+                EventSummary::Synchronization(_, evdev::SynchronizationCode::SYN_DROPPED, _)
+            ) {
+                return Err("kernel reported SYN_DROPPED; lost original input edges cannot be reconstructed".into());
+            }
+            update_state(ranges, &mut self.physical, event);
+            let current = event_ns(&event)? >= self.accept_since_ns;
+            if !self.eligible {
+                self.armed = false;
+                self.gameplay_armed = false;
+                return Ok(false);
+            }
+            if !self.armed {
+                self.armed = current && action_state(self.physical) == 0 && !start_held;
+                self.gameplay_armed = self.armed && gameplay;
+                return Ok(false);
+            }
+            if !gameplay {
+                self.gameplay_armed = false;
+                return Ok(false);
+            }
+            if !self.gameplay_armed {
+                self.gameplay_armed = current && action_state(self.physical) == 0 && !start_held;
+                return Ok(false);
+            }
+            Ok(current)
+        }
+
+        fn rearm(&mut self, now: u128, start_held: bool, gameplay: bool) {
+            if !gameplay {
+                self.gameplay_armed = false;
+            }
+            if now >= self.accept_since_ns
+                && self.eligible
+                && (!self.armed || (gameplay && !self.gameplay_armed))
+                && action_state(self.physical) == 0
+                && !start_held
+            {
+                self.armed = true;
+                self.gameplay_armed = gameplay;
+                self.accept_since_ns = self.accept_since_ns.max(now);
+            }
+        }
+    }
+
+    #[test]
+    fn focus_loss_retains_assigned_rows_and_releases_after_the_open_frame() {
+        let mut state = State {
+            sources: 1,
+            ..State::default()
+        };
+        let mut edges = BTreeMap::from([(
+            2,
+            Edges {
+                pressed: ATTACK,
+                ..Edges::default()
+            },
+        )]);
+        let mut snapshots = BTreeMap::from([(2, state)]);
+        let segment = FrameSegment {
+            epoch_ns: 0,
+            first_frame: 1,
+        };
+        let frame = release_for_focus_loss(
+            &mut state,
+            &mut edges,
+            &mut snapshots,
+            2,
+            segment,
+            20_000_000,
+        )
+        .unwrap();
+        assert_eq!(frame, 3);
+        assert_eq!(edges[&2].pressed, ATTACK);
+        assert_eq!(snapshots[&2].sources, 1);
+        assert_eq!(edges[&3].released, ATTACK);
+        assert_eq!(snapshots[&3], State::default());
+        assert_eq!(state, State::default());
+        assert_eq!(frame_at(100_000_000, segment).unwrap(), 7);
+    }
+
+    #[test]
+    fn focus_queue_preserves_order_suppresses_output_and_fails_without_overwrite() {
+        let mut queue = PendingOutput::default();
+        let first = encode_packet(
+            7,
+            17,
+            &[encode_row(
+                State {
+                    sources: 1,
+                    ..State::default()
+                },
+                0,
+                Edges::default(),
+            )],
+        );
+        queue.push(first.clone()).unwrap();
+        queue.push("ACK1|2|P|18".into()).unwrap();
+        queue
+            .emit_front(false, |_| panic!("unfocused keyboard emission"))
+            .unwrap();
+        assert_eq!(queue.records.len(), 2);
+        assert!(
+            queue
+                .emit_front(true, |_| Err(io::Error::other("output failed")))
+                .is_err()
+        );
+        assert_eq!(queue.records.front(), Some(&first));
+        let mut emitted = Vec::new();
+        queue
+            .emit_front(true, |wire| {
+                emitted.push(wire.to_owned());
+                Ok(())
+            })
+            .unwrap();
+        queue
+            .emit_front(true, |wire| {
+                emitted.push(wire.to_owned());
+                Ok(())
+            })
+            .unwrap();
+        assert_eq!(emitted, [first, "ACK1|2|P|18".into()]);
+        assert!(queue.is_empty());
+        assert_eq!(queue.bytes, 0);
+        for _ in 0..OUTPUT_RECORD_LIMIT {
+            queue.push("0".into()).unwrap();
+        }
+        assert!(queue.push("extra".into()).is_err());
+        assert_eq!(queue.records.len(), OUTPUT_RECORD_LIMIT);
+        let mut bytes = PendingOutput::default();
+        bytes.push("a".repeat(OUTPUT_BYTE_LIMIT - 1)).unwrap();
+        assert!(bytes.push("b".into()).is_err());
+        assert_eq!(bytes.bytes, OUTPUT_BYTE_LIMIT);
+    }
+
+    #[test]
+    fn focus_return_requires_neutral_and_preserves_start_during_pause() {
+        let ranges = [None; 6];
+        let down = evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_SOUTH.0, 1);
+        let up = evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_SOUTH.0, 0);
+        let mut input = FocusInput {
+            eligible: true,
+            armed: true,
+            gameplay_armed: true,
+            physical: State::default(),
+            accept_since_ns: 0,
+        };
+        assert!(input.accepts(&ranges, down, false, true).unwrap());
+        assert!(input.observe(false, true, 0));
+        assert!(!input.accepts(&ranges, up, false, true).unwrap());
+        assert!(!input.accepts(&ranges, down, false, true).unwrap());
+        input.observe(true, false, 0);
+        input.rearm(0, false, true);
+        assert!(!input.armed);
+        assert!(!input.accepts(&ranges, up, false, true).unwrap());
+        assert!(input.armed);
+        assert!(input.accepts(&ranges, down, false, true).unwrap());
+        // Paused gameplay disarms independently of the focus-qualified Start control.
+        assert!(!input.accepts(&ranges, down, false, false).unwrap());
+        assert!(input.armed);
+        assert!(!input.gameplay_armed);
+        input.gameplay_armed = true;
+        input.rearm(0, false, false);
+        assert!(!input.gameplay_armed);
+        let start = evdev::InputEvent::new(evdev::EventType::KEY.0, Key::BTN_START.0, 1);
+        assert!(pause_request_wire(&start, &mut false, 7, 3, true, !input.armed).is_some());
+        assert!(!input.accepts(&ranges, down, false, true).unwrap());
+        assert!(!input.accepts(&ranges, up, false, true).unwrap());
+        assert!(input.accepts(&ranges, down, false, true).unwrap());
+        input.observe(false, true, 1);
+        input.observe(true, false, 2);
+        // A recovered queue item older than the focus boundary cannot rearm.
+        assert!(!input.accepts(&ranges, up, false, true).unwrap());
+        assert!(!input.armed);
+        input.rearm(2, false, true);
+        assert!(input.armed);
+        assert!(!input.accepts(&ranges, down, false, true).unwrap());
+    }
+
+    fn release_for_focus_loss(
+        state: &mut State,
+        edges: &mut BTreeMap<u32, Edges>,
+        snapshots: &mut BTreeMap<u32, State>,
+        next_frame: u32,
+        segment: FrameSegment,
+        now: u128,
+    ) -> Result<u32, String> {
+        // Already assigned rows remain immutable, including the open frame.
+        let after_assigned = edges
+            .keys()
+            .chain(snapshots.keys())
+            .max()
+            .copied()
+            .map_or(next_frame, |frame| frame.saturating_add(1));
+        let frame = frame_at(now.max(segment.epoch_ns), segment)?
+            .max(next_frame)
+            .max(after_assigned);
+        if frame > LAST_FRAME {
+            return Err("focus release exceeds supported frame range".into());
+        }
+        edges.entry(frame).or_default().released |= action_state(*state);
+        *state = State::default();
+        snapshots.insert(frame, *state);
+        Ok(frame)
+    }
+
     fn apply_event(
         ranges: &[Option<evdev::AbsInfo>; 6],
         state: &mut State,
@@ -1092,36 +1465,7 @@ mod linux {
         let before = action_state(*state);
         let before_x = i16::from(before & MOVE_RIGHT != 0) - i16::from(before & MOVE_LEFT != 0);
         let before_y = i16::from(before & MOVE_UP != 0) - i16::from(before & MOVE_DOWN != 0);
-        match summary {
-            EventSummary::Key(_, key, value) => {
-                let bit = match key {
-                    Key::BTN_SOUTH => Some(1 << 0),
-                    Key::BTN_EAST => Some(1 << 1),
-                    Key::BTN_WEST => Some(1 << 2),
-                    Key::BTN_NORTH => Some(1 << 3),
-                    Key::BTN_TL => Some(1 << 4),
-                    Key::BTN_TR => Some(1 << 5),
-                    _ => None,
-                };
-                if let Some(bit) = bit {
-                    if value == 1 {
-                        state.sources |= bit;
-                    } else if value == 0 {
-                        state.sources &= !bit;
-                    }
-                }
-            }
-            EventSummary::AbsoluteAxis(_, code, value) => match code {
-                Abs::ABS_X => state.x = normalized_axis(ranges, code, value),
-                Abs::ABS_Y => state.y = normalized_axis(ranges, code, value),
-                Abs::ABS_RX => state.cx = normalized_axis(ranges, code, value),
-                Abs::ABS_RY => state.cy = normalized_axis(ranges, code, value),
-                Abs::ABS_Z => state.lt = normalized_trigger(ranges, code, value),
-                Abs::ABS_RZ => state.rt = normalized_trigger(ranges, code, value),
-                _ => {}
-            },
-            _ => {}
-        }
+        update_state(ranges, state, event);
         let after = action_state(*state);
         edge.pressed = after & !before;
         edge.released = before & !after;
@@ -1426,6 +1770,13 @@ mod linux {
                     display,
                     o.trace,
                     o.editbox_display.is_some(),
+                    crate::focus::Target {
+                        display: display.clone(),
+                        window: o.window.ok_or("keyboard output requires --x11-window")?,
+                        pid: o.pid.ok_or("keyboard output requires --pid")?,
+                        niri_window: o.niri_window,
+                        wlr_app_id: o.wlr_app_id.clone(),
+                    },
                 )
             })
             .transpose()?;
@@ -1490,6 +1841,8 @@ mod linux {
             rt: normalized_trigger(&axes, Abs::ABS_RZ, axis_value(Abs::ABS_RZ)),
             ..State::default()
         };
+        let physical = state;
+        state = State::default();
         let mut row_state = state;
         let mut edges = BTreeMap::<u32, Edges>::new();
         let mut snapshots = BTreeMap::<u32, State>::new();
@@ -1501,6 +1854,13 @@ mod linux {
         };
         let mut control_sequence = 1;
         let mut start_held = false;
+        let mut focus_input = FocusInput {
+            eligible: true,
+            armed: action_state(physical) == 0,
+            gameplay_armed: action_state(physical) == 0,
+            physical,
+            accept_since_ns: o.epoch_ns,
+        };
         let mut paused = false;
         let mut prepared = false;
         let mut stop_capture = false;
@@ -1520,12 +1880,43 @@ mod linux {
             // Only seal intervals completed before this queue drain. Taking
             // the cutoff afterwards races events arriving between read and seal.
             let now = monotonic_ns().map_err(|e| e.to_string())?;
+            let before_armed = (focus_input.armed, focus_input.gameplay_armed);
+            let eligible = mailbox
+                .as_mut()
+                .map(MailboxSender::eligible)
+                .transpose()
+                .map_err(|error| format!("journal focus: {error}"))?
+                .unwrap_or(true);
+            let lost = mailbox
+                .as_mut()
+                .is_some_and(|sender| std::mem::take(&mut sender.lost_focus));
+            let focus_now = monotonic_ns().map_err(|e| e.to_string())?;
+            let changed = focus_input.eligible != eligible;
+            if focus_input.observe(eligible, lost, focus_now) && !paused && !stop_capture {
+                let frame = release_for_focus_loss(
+                    &mut state,
+                    &mut edges,
+                    &mut snapshots,
+                    next_frame,
+                    segment,
+                    focus_now,
+                )?;
+                focus_input.accept_since_ns = focus_input.accept_since_ns.max(
+                    segment.epoch_ns
+                        + (u128::from(frame - segment.first_frame) * 1_000_000_000).div_ceil(HZ),
+                );
+                eprintln!("focus_release mono_ns={focus_now} frame={frame}");
+            }
+            if changed {
+                eprintln!("game-eligible={eligible} mono_ns={now} neutral_rearm=required");
+            }
             let events = match device.fetch_events() {
                 Ok(events) => events.collect::<Vec<_>>(),
                 Err(error) if error.kind() == io::ErrorKind::WouldBlock => Vec::new(),
                 Err(error) => return Err(format!("evdev read: {error}")),
             };
             for event in events {
+                let was_armed = focus_input.armed;
                 if o.editbox_display.is_some() {
                     if let Some(wire) = pause_request_wire(
                         &event,
@@ -1533,7 +1924,11 @@ mod linux {
                         o.epoch,
                         control_sequence,
                         paused,
-                        prepared || pause_barrier.is_some() || stop_capture,
+                        prepared
+                            || pause_barrier.is_some()
+                            || stop_capture
+                            || !eligible
+                            || !was_armed,
                     ) {
                         mailbox
                             .as_mut()
@@ -1542,7 +1937,9 @@ mod linux {
                             .map_err(|error| format!("controller pause request: {error}"))?;
                     }
                 }
-                if !paused && !stop_capture {
+                let accepts =
+                    focus_input.accepts(&axes, event, start_held, !paused && !stop_capture)?;
+                if accepts {
                     apply_event(
                         &axes,
                         &mut state,
@@ -1553,7 +1950,24 @@ mod linux {
                         segment,
                         o.trace,
                     )?;
+                } else if o.trace
+                    && matches!(
+                        event.destructure(),
+                        EventSummary::Key(..) | EventSummary::AbsoluteAxis(..)
+                    )
+                {
+                    eprintln!(
+                        "suppressed mono_ns={} reason=focus-pause-or-neutral",
+                        event_ns(&event)?
+                    );
                 }
+            }
+            focus_input.rearm(focus_now, start_held, !paused && !stop_capture);
+            if before_armed != (focus_input.armed, focus_input.gameplay_armed) {
+                eprintln!(
+                    "input_armed={} gameplay_armed={} mono_ns={focus_now}",
+                    focus_input.armed, focus_input.gameplay_armed
+                );
             }
             let command_path = control_path(&o.out, &o.build, o.epoch, o.slot, control_sequence);
             let command = match fs::read_to_string(&command_path) {

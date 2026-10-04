@@ -218,3 +218,39 @@ Native evidence and remaining acceptance are in
 `wc3-melee:docs/native-companion-landing-result-20261004.md`. The capture path
 reached a scripted native result and rematch; current transport delay still
 fails competitive acceptance. Physical controller-to-screen timing is unmeasured.
+
+### Journal keyboard focus boundary
+
+Keyboard ingress (`--editbox-display` or `--mailbox-display`) additionally
+requires `--x11-window DECIMAL_ID`, `--pid PID`, and exactly one foreground
+adapter: `--niri-window ID` or `--private-wlr-app-id ID`. The latter uses the
+selected private desktop's `XDG_RUNTIME_DIR` and `WAYLAND_DISPLAY`. These are
+the same process/window/compositor checks used by the mapper, implemented in
+wc3-melee:companion/src/focus.rs and wc3-melee:companion/src/wlr.rs. Missing or
+failed target identity is an error; ordinary focus loss suspends keyboard output.
+
+Focus loss leaves assigned rows and queued I4/ACK1/JP1 records in order. A logical
+neutral release is assigned after any already-assigned open row; subsequent
+unfocused input is explicitly suppressed. The 60 Hz capture segment continues,
+so neutral rows retain the elapsed original frame numbers. On return, queued
+records resume without retargeting, while fresh gameplay requires all mapped
+controls (including Start) to become neutral. A held-through-return stick or
+button cannot reactivate by itself. Start remains usable during game pause after
+focus rearming; gameplay separately requires neutral after pause.
+
+The queue permits at most 120 records and 2048 bytes including delimiters,
+roughly four seconds of ordinary two-frame records (less for larger records or
+control traffic). Exceeding either bound stops with an explicit error; records
+are not overwritten. This is bounded focus recovery, not indefinite background
+capture. Trace output distinguishes `game-eligible`, `focus_release`,
+`input_armed`, `gameplay_armed`, suppressed kernel events and actual emissions.
+
+Eligibility is sampled before queue capture and each keyboard API emission;
+it is not an atomic compositor/keyboard transaction or a history of OS focus at
+every kernel event timestamp. Already assigned rows are retained; unassigned
+items observed while ineligible or before the recovery boundary are suppressed
+and logged. Map-internal chat/editbox focus is a separate acceptance boundary.
+No game activation or focus change is performed by the helper. The editbox path
+holds no transport keys; the legacy mailbox retains its existing signal state
+until eligible and gates its cleanup too, so unfocused teardown does not emit
+key releases to a different application.
