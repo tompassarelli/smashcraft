@@ -101,3 +101,38 @@ baseline remains 0.0.40. No new transport survey is needed to make that choice.
 The usable delivery remains 0.0.40. Native journal pause/resume, live original
 frame retention, physical response and broader platform/player coverage remain
 open. See wc3-melee:docs/smashcraft-delivery-state-20261004.md.
+
+## 0.0.43: bounded short-input result
+
+Source 384b95a checks the admission horizon before disk access and retains a
+deferred valid packet until submission or a new epoch. Journal checks passed
+7/7. The diagnostic trace now starts automatically on the first ready packet;
+the footer distinguishes attack animation, confirmed simulation and prediction.
+
+Candidate journal-0043 SHA256:
+52ebde1a0cd1a56574200f93693683199a46dbacf6e56749b3c0f9d07948406a.
+Two clients joined one Battle.net match, human mask 3. Both helpers assigned
+the normal 5 ms attack edges to frame 19 and a second tap during helper A's
+250.075206 ms service stop to frame 97. Both published through frame 300 and
+exited successfully. This is helper retention evidence, not native application.
+
+Both native traces completed 300 callbacks in five native seconds. Each sent
+32 paired packets containing 64 rows in the first 60 callbacks, but recorded
+zero received packets and zero confirmed steps. Confirmed simulation remained
+at frame 0; prediction reached frame 25 and blocked at its 24-frame limit.
+Frame 97 was never admitted. No confirmed attack was recorded; zero rejected
+rows, speculative failures or dropped trace entries does not turn this into a
+pass. The first failing gameplay boundary is synchronized receipt/confirmation,
+not an absent 60 Hz callback loop.
+
+The subsequent existing generated-packet check produced no local-request
+receipt after Ctrl+P. It never established its own startup, so its missing
+later receipts cannot diagnose transport. The clients were subsequently
+observed at result/quit screens. No further benchmark was admitted from this
+unstarted attempt. Both clients left through ordinary score/browser screens
+without restart, and exact playable 0.0.40 bytes were restored. Journal43 is
+archived privately; no helper or virtual controller remains active.
+
+Bounded native traces, producer/kernel timestamps and capture metadata:
+wc3-melee:docs/journal0043-evidence-20261004/. Full helper logs remain at
+wc3-melee:build/journal-tap43-native/.

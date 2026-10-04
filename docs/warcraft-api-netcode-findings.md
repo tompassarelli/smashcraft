@@ -658,3 +658,22 @@ transport survey or treat this incomplete analog-file experiment as evidence
 that its responsive digital input path regressed. Details and bounded logs:
 wc3-melee:docs/journal-pause-checkpoint-20261004.md and
 wc3-melee:docs/journal0042-evidence-20261004/.
+
+## Native43: callbacks progress, confirmation does not
+
+Admission-horizon gating and deferred-packet retention passed Journal 7/7.
+Both native clients recorded 300 callbacks in five native seconds, submitted
+32 paired packets/64 input rows, and received no production packets during
+that trace. Confirmed simulation stayed at frame 0; local prediction exhausted
+its 24-frame allowance. Normal 5 ms attack edges were retained by both helpers
+at frame 19; a tap during a 250 ms helper stop was retained at frame 97, beyond
+the unadvanced admission horizon. Neither establishes original-frame native
+application. The missing boundary is receipt/confirmation; no owning cause is
+yet established. This result does not contradict the working digital mapper.
+
+A subsequent generated-packet probe had no local-request receipt, so it gives
+no sync-performance verdict. Both signed-in clients then left normally and
+the playable 0.0.40 artifact was restored. The experiment remains unfinished;
+no general transport survey or repeated green checks block usable delivery.
+Details: wc3-melee:docs/journal-pause-checkpoint-20261004.md.
+Evidence: wc3-melee:docs/journal0043-evidence-20261004/.

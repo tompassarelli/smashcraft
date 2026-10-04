@@ -10,14 +10,19 @@ continued play. An intentional walk-off exercised stock loss and the result
 screen. Both players acknowledged rematch, returned to selection and entered a
 second fight. Further response and mapper trials used subsequent fights.
 Both retained clients remain signed in. No companion writer is running.
-The subsequent experimental 0.0.41 and 0.0.42 journal trials are recorded at
-wc3-melee:docs/journal-pause-checkpoint-20261004.md. Neither completed its native
-pause/resume journey. In 0.0.42 both helpers retained a 5 ms tap at frame 19,
-but no first pause acknowledgment arrived within 35 seconds; native application
-at that frame remains unproved. Exact 0.0.40 bytes are restored in both map
-folders after ending the unusable diagnostic game processes. Both retained launchers recovered the clients without another sign-in.
-A fresh two-client 0.0.40 fight is now loaded; a 200 ms movement hold changed
+The subsequent experimental 0.0.41–0.0.43 journal trials are recorded at
+wc3-melee:docs/journal-pause-checkpoint-20261004.md. None established usable
+original-frame journal gameplay. In 0.0.43 both helpers retained 5 ms taps,
+including one during a 250 ms helper stop, but the native traces received no
+production input and confirmation stayed at simulation frame 0. Both clients
+then left through ordinary score/browser screens without restart. Exact
+0.0.40 bytes are restored in both map folders; journal43 is archived privately.
+The earlier recovery from journal42 accepted a 200 ms movement hold, changing
 Archer x from -240 to -135. No further latency claim follows from that recovery.
+A fresh two-client 0.0.40 fight was restored after journal43. Native screens
+showed Archer/Rifleman and build playable-0040 on both clients; Archer moved
+from x=-240 to x=27 and started attack serial 1. This closes map restoration,
+not a new latency or original-frame guarantee. The fight is retained paused.
 A separate fresh 0.0.40 match after the 0.0.41 recovery accepted movement, and
 both clients completed ordinary Quit Mission to their score screens. The later
 F5 requests did not establish those exits.

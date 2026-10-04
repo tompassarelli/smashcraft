@@ -1,0 +1,4 @@
+{"phase":"normal","event":"attack-down","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":516837368196957,"producer_after_write_monotonic_ns":516837368216223}
+{"phase":"normal","event":"attack-up","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":516837373407943,"producer_after_write_monotonic_ns":516837373423973}
+{"phase":"helper-stall","event":"attack-down","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":516838668189163,"producer_after_write_monotonic_ns":516838668204481}
+{"phase":"helper-stall","event":"attack-up","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":516838673354182,"producer_after_write_monotonic_ns":516838673359733}
