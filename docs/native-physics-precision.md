@@ -8,9 +8,11 @@ sources and map outputs remain inside the owning worktree's build directory.
 The private terrain input remains outside the repository.
 
 Run the builder through the machine-capacity helper with the private terrain
-map as its argument. It does not install a map or control a Warcraft client.
+map and an explicitly coordinated version (0.0.N) as its arguments. The builder
+includes the four-player simulation's input dependencies. It does not install
+a map or control a Warcraft client.
 
-The current candidate is a one-player diagnostic map, Smashcraft 0.0.13,
+The historical candidate is a one-player diagnostic map, Smashcraft 0.0.13,
 simulation source 98cb2dff36e204d4c2af287731f4116602320fe5:
 ~/code/wc3-melee/worktrees/melee-physics-public/build/physics-probe/native.xTRUdu/Smashcraft 0.0.13.w3x.
 SHA-256: a5ab1dd839cf3cda65052dd38de67c47298a611eb83e233a0b6cb4ef00709bc0.

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 project_dir=$(cd -- "$(dirname -- "$0")/../.." && pwd)
-base_map=$(realpath -- "${1:?Usage: build-native-precision.sh PRIVATE_BASE_MAP.w3m}")
+base_map=$(realpath -- "${1:?Usage: build-native-precision.sh PRIVATE_BASE_MAP.w3m COORDINATED_VERSION}")
+map_version=${2:?Supply the version agreed with concurrent map developers.}
+[[ "$map_version" =~ ^0\.0\.[1-9][0-9]*$ ]] || { echo 'Version must be 0.0.N with positive N.' >&2; exit 2; }
 compiler="$project_dir/toolchain/wurstscript.jar"
 stdlib=/home/tom/code/wurst-stdlib/pins/bb1e0458db5a
 packager="$project_dir/build/tools/map-pack"
@@ -15,7 +17,8 @@ bun=${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}
 for generator in generate-air-cutoff-probe generate-signed-zero-probe generate-recorded-fall-probe generate-air-decrement-probe generate-ground-motion-probe generate-hitstun-probe generate-launch-magnitude-probe generate-hitlag-probe generate-analog-shield-probe generate-di-probe generate-capsule-probe; do
 	"$bun" "$project_dir/tools/physics-probe/$generator.mjs"
 done
-for package in Simulation MeleeContactGeometry RollTravel MeleeScalarMath; do
+simulation_packages=(Simulation MeleeContactGeometry RollTravel MeleeScalarMath ParticipantInputs CommandBuffer NetworkInput KeyBindings TechInput)
+for package in "${simulation_packages[@]}"; do
 	cp "$project_dir/wurst/$package.wurst" "$build_dir/wurst/"
 done
 cp "$project_dir/tools/physics-probe/NativePhysicsReport.wurst" "$build_dir/wurst/"
@@ -35,11 +38,13 @@ for probe in "$project_dir/tools/physics-probe/NumericalPrecisionProbe.wurst" \
 	awk '/^package / { print; print "import NativePhysicsReport"; next } { gsub(/BJDebugMsg\(/, "reportPhysicsProbe("); print }' "$probe" > "$build_dir/wurst/$(basename -- "$probe")"
 done
 source_commit=$(git -C "$project_dir" rev-parse HEAD)
-git -C "$project_dir" diff --quiet HEAD -- wurst/Simulation.wurst wurst/MeleeContactGeometry.wurst wurst/RollTravel.wurst wurst/MeleeScalarMath.wurst
+for package in "${simulation_packages[@]}"; do
+	git -C "$project_dir" diff --quiet HEAD -- "wurst/$package.wurst"
+done
 printf 'package NativePhysicsSource\npublic constant string PHYSICS_SOURCE = "%s"\n' "$source_commit" > "$build_dir/wurst/NativePhysicsSource.wurst"
 cp "$project_dir/tools/map-entry.j" "$build_dir/wurst/war3map.j"
 ln -s "$stdlib" "$build_dir/_build/dependencies/wurststdlib"
-map_name='Smashcraft 0.0.13'
+map_name="Smashcraft $map_version"
 cat > "$build_dir/wurst.build" <<YAML
 projectName: $map_name
 wc3Patch: v3.0
