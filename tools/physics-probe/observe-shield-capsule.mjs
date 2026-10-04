@@ -27,6 +27,13 @@ const rows=[];
 for(const shieldRadius of [1,2]) for(const x of [0,2,2.999999761581421,3,3.000000238418579,4]) rows.push({startX:x,startZ:0,endX:x,endZ:0,hitRadius:1,shieldRadius,hitScale:1,shieldScale:1});
 for(const z of [0,3,3.000000238418579,4]) for(const reverse of [false,true]) rows.push({startX:reverse?5:-5,startZ:z,endX:reverse?-5:5,endZ:z,hitRadius:1,shieldRadius:2,hitScale:1,shieldScale:1});
 for(const hitScale of [0.5,2]) for(const x of [2.5,3,4]) rows.push({startX:x,startZ:0,endX:x,endZ:0,hitRadius:1,shieldRadius:2,hitScale,shieldScale:1});
+for(const edge of [4.242640018463135,4.242640495300293,4.242640972137451]) for(const reverse of [false,true]) rows.push({startX:reverse?0:-edge,startZ:reverse?edge:0,endX:reverse?-edge:0,endZ:reverse?0:edge,hitRadius:1,shieldRadius:2,hitScale:1,shieldScale:1});
+for(const reverse of [false,true]) rows.push({startX:reverse?6:4,startZ:0,endX:reverse?4:6,endZ:0,hitRadius:1,shieldRadius:2,hitScale:1,shieldScale:1});
+if (Bun.argv[2]) {
+    rows.length = 0;
+    rows.push(...await Bun.file(Bun.argv[2]).json());
+}
+if(rows.length*40>1392)throw Error('Interpreter export limit');
 const entry=0x81000000,data=entry+0x30000,stack=entry+0xff000;
 const joint=entry+0x2a000,capsule=entry+0x28000,result=entry+0x28200,stride=40;
 const wrapper=Buffer.alloc(0x40000),words=[];

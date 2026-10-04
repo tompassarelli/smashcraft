@@ -108,6 +108,16 @@ Eleven focused powershield checks pass, including the three grouped original
 collision comparisons. Evidence: smashcraft:build/capsule-shield-focused.log.
 These selected classifications do not establish general float32 collision
 arithmetic parity, final joint transforms, hurt-capsule behavior or native proof.
+An expanded observation adds eight diagonal/endpoint cases; these agree with
+the current double-precision classification. A subsequent 340-case boundary
+comparison exposes 133 disagreements. Three concrete counterexamples are
+retained in smashcraft:docs/smash-melee-reference/retail-shield-capsule-counterexamples.json.
+The first is a point-path endpoint at (0.2273183912038803, 1.8602772951126099)
+against radius 1.8741145133972168: the original accepts it and the current
+double-precision squared-distance comparison rejects it. Projection and distance
+rounding remain to be established; simply matching symmetric tangency cases is
+insufficient. The production helper is not exact and this defect blocks its
+claim of Melee collision fidelity. All original executions remain unpatched.
 Projectile travel is tested against
 the swept circle in the simulation's x/z plane. Reflection transfers ownership
 to the defender and applies the observed common damage multiplier `0.5` and

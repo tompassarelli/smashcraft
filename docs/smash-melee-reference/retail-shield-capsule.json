@@ -308,6 +308,94 @@
       "hitScale": 2,
       "shieldScale": 1,
       "intersects": true
+    },
+    {
+      "startX": -4.242640018463135,
+      "startZ": 0,
+      "endX": 0,
+      "endZ": 4.242640018463135,
+      "hitRadius": 1,
+      "shieldRadius": 2,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": true
+    },
+    {
+      "startX": 0,
+      "startZ": 4.242640018463135,
+      "endX": -4.242640018463135,
+      "endZ": 0,
+      "hitRadius": 1,
+      "shieldRadius": 2,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": true
+    },
+    {
+      "startX": -4.242640495300293,
+      "startZ": 0,
+      "endX": 0,
+      "endZ": 4.242640495300293,
+      "hitRadius": 1,
+      "shieldRadius": 2,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": true
+    },
+    {
+      "startX": 0,
+      "startZ": 4.242640495300293,
+      "endX": -4.242640495300293,
+      "endZ": 0,
+      "hitRadius": 1,
+      "shieldRadius": 2,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": true
+    },
+    {
+      "startX": -4.242640972137451,
+      "startZ": 0,
+      "endX": 0,
+      "endZ": 4.242640972137451,
+      "hitRadius": 1,
+      "shieldRadius": 2,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": false
+    },
+    {
+      "startX": 0,
+      "startZ": 4.242640972137451,
+      "endX": -4.242640972137451,
+      "endZ": 0,
+      "hitRadius": 1,
+      "shieldRadius": 2,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": false
+    },
+    {
+      "startX": 4,
+      "startZ": 0,
+      "endX": 6,
+      "endZ": 0,
+      "hitRadius": 1,
+      "shieldRadius": 2,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": false
+    },
+    {
+      "startX": 6,
+      "startZ": 0,
+      "endX": 4,
+      "endZ": 0,
+      "hitRadius": 1,
+      "shieldRadius": 2,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": false
     }
   ]
 }

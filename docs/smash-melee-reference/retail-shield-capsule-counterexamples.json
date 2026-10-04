@@ -1,0 +1,52 @@
+{
+  "id": "retail-shield-capsule-precision-counterexamples",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "routine": "0x80007BCC",
+  "cpu": "private Gekko interpreter",
+  "returnPatches": [],
+  "sampleCount": 340,
+  "mismatchCount": 133,
+  "limitations": [
+    "Synthetic capsule endpoints, zero cached shield position and identity joint matrix.",
+    "The comparison is to the independently authored double-precision classification currently used by production, not a Warcraft native observation.",
+    "Selected counterexamples retained; no general collision parity claim."
+  ],
+  "results": [
+    {
+      "startX": 0.2273183912038803,
+      "startZ": 1.8602772951126099,
+      "endX": 2.7224481105804443,
+      "endZ": 7.7711381912231445,
+      "hitRadius": 0,
+      "shieldRadius": 1.8741145133972168,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": true,
+      "productionDoubleClassification": false
+    },
+    {
+      "startX": 9.86154556274414,
+      "startZ": -6.86391019821167,
+      "endX": -5.6012959480285645,
+      "endZ": 7.704383373260498,
+      "hitRadius": 0,
+      "shieldRadius": 1.7665791511535645,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": true,
+      "productionDoubleClassification": false
+    },
+    {
+      "startX": 8.760266304016113,
+      "startZ": 6.5879974365234375,
+      "endX": -8.983579635620117,
+      "endZ": -8.832010269165039,
+      "hitRadius": 0,
+      "shieldRadius": 0.7736536860466003,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": false,
+      "productionDoubleClassification": true
+    }
+  ]
+}
