@@ -174,3 +174,41 @@ while implementing this core. Third-party code is consumed as dependencies;
 no Blizzard Controller Support, W3Champions, Dolphin or Slippi source was copied
 or translated. SDL is zlib-licensed; sdl3 and enigo are MIT-licensed. Any future
 distribution must retain dependency notices and satisfy transitive licenses.
+
+## Experimental Linux original-frame journal
+
+`wc3-journal` is a separate Linux evdev acquisition executable. It uses kernel
+CLOCK_MONOTONIC event timestamps rather than SDL's clock conversion, retains
+per-frame edges/analog state, and atomically publishes immutable I4 preload
+files for the production journal input source. Build it with the same pinned
+environment above using `cargo build --locked --jobs 2 --bin wc3-journal`.
+
+The developer must provide an explicit monotonic capture epoch and the matching
+native readiness file. Example command, after the map has emitted its receipt:
+
+```sh
+~/code/wc3-melee/worktrees/production-netcode-integration-20261004/companion/target/debug/wc3-journal \
+  --device /dev/input/eventN \
+  --out '/absolute/Warcraft III/CustomMapData' \
+  --ready-file '/absolute/Warcraft III/CustomMapData/smashcraft-journal-ready-BUILD-e1-p0.txt' \
+  --epoch-monotonic-ns DECLARED_EPOCH_NS --stop-frame 600 --trace
+```
+
+These paths are examples for a checkout rooted at `wc3-melee:`; select the exact
+device and native receipt. The epoch is not inferred from file modification
+time. Slots 0–3 are recognized. `--first-frame N` declares the first frame of a
+capture segment, default 1; using another segment requires verifying native
+confirmation and the absence of existing immutable files for that sequence.
+Release mapped buttons before opening capture. The current axis contract expects
+the Linux Xbox axis set; other adapters need their own demonstrated mapping.
+
+The pause policy is continuous-no-pause and experimental. Cross-machine epoch
+alignment, drift, and coordinated pause/resume are unfinished. This is not yet
+a turnkey human multiplayer controller launcher or a Windows/macOS journal path.
+On kernel SYN_DROPPED or an event for an already-published frame, acquisition
+stops with a diagnostic instead of inventing input or moving its original frame.
+
+Native evidence and remaining acceptance are in
+`wc3-melee:docs/native-companion-landing-result-20261004.md`. The capture path
+reached a scripted native result and rematch; current transport delay still
+fails competitive acceptance. Physical controller-to-screen timing is unmeasured.

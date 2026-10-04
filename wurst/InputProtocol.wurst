@@ -3,7 +3,8 @@ import NetworkInput
 
 // Leave one signed counter value for the next-frame cursor.
 public constant int INPUT_LAST_FRAME = 2147483646
-public constant int INPUT_HEADER_BYTES = 15
+public constant int INPUT_HEADER_MIN_BYTES = 5
+public constant int INPUT_HEADER_MAX_BYTES = 17
 public constant int INPUT_MIN_RECORD_BYTES = 1
 public constant int INPUT_MAX_RECORD_BYTES = 21
 constant string INPUT_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
@@ -25,6 +26,51 @@ function parseCompact(string wire, int offset, int width) returns int
         if digit < 0 or value > 33554431
             return -1
         value = value * 64 + digit
+    return value
+
+function compactVarint(int value) returns string
+    if value < 0
+        return ""
+    var remaining = value
+    var result = ""
+    var more = true
+    while more
+        let payload = remaining mod 32
+        remaining = remaining div 32
+        more = remaining > 0
+        result += INPUT_ALPHABET.charAt(payload + (more ? 32 : 0))
+    return result
+
+function compactVarintWidth(string wire, int offset) returns int
+    if offset < 0 or offset >= wire.length()
+        return -1
+    for width = 1 to 7
+        if offset + width > wire.length()
+            return -1
+        let digit = INPUT_ALPHABET.indexOf(wire.charAt(offset + width - 1))
+        if digit < 0
+            return -1
+        if digit < 32
+            return width
+    return -1
+
+function parseCompactVarint(string wire, int offset, int width, int maximum) returns int
+    if width < 1 or width > 7 or offset < 0 or offset + width > wire.length()
+        return -1
+    var value = 0
+    var multiplier = 1
+    for i = 0 to width - 1
+        let digit = INPUT_ALPHABET.indexOf(wire.charAt(offset + i))
+        if digit < 0 or (i < width - 1 and digit < 32) or (i == width - 1 and digit >= 32)
+            return -1
+        let payload = digit mod 32
+        if (i == width - 1 and width > 1 and payload == 0) or (i == 6 and payload > 1)
+            return -1
+        if payload > (maximum - value) div multiplier
+            return -1
+        value += payload * multiplier
+        if i < width - 1
+            multiplier *= 32
     return value
 
 // Zero maps to zero, negatives to odd digits, positives to even digits.
@@ -125,9 +171,10 @@ function decodeRecord(string wire, int offset, NetworkInput destination) returns
     return cursor
 
 public function inputPacketSizeInRange(int bytes, int records) returns boolean
-    return records >= 1 and records <= 2 and bytes >= INPUT_HEADER_BYTES + INPUT_MIN_RECORD_BYTES * records and bytes <= INPUT_HEADER_BYTES + INPUT_MAX_RECORD_BYTES * records
+    return records >= 1 and records <= 2 and bytes >= INPUT_HEADER_MIN_BYTES + INPUT_MIN_RECORD_BYTES * records and bytes <= INPUT_HEADER_MAX_BYTES + INPUT_MAX_RECORD_BYTES * records
 
-// I3 | count (1/2) | epoch (6) | first frame (6), all integers base64.
+// I4 | count (1/2) | epoch varint | first-frame varint. Each unsigned
+// varint uses 5 payload bits per safe base64 character; bit 5 marks continuation.
 // Each absolute row starts with six presence bits: held, edges, axes, triggers,
 // press metadata, throw totals. Present groups must be nonzero. No packet or
 // row depends on a predecessor. Sender identity comes from the receive event.
@@ -154,18 +201,23 @@ public class InputPacket
 
     function decode(string wire) returns boolean
         count = 0
-        if wire.length() < INPUT_HEADER_BYTES + INPUT_MIN_RECORD_BYTES or wire.length() > INPUT_HEADER_BYTES + 2 * INPUT_MAX_RECORD_BYTES
+        if wire.length() < INPUT_HEADER_MIN_BYTES + INPUT_MIN_RECORD_BYTES or wire.length() > INPUT_HEADER_MAX_BYTES + 2 * INPUT_MAX_RECORD_BYTES
             return false
-        if wire.substring(0, 2) != "I3"
+        if wire.substring(0, 2) != "I4"
             return false
         let records = parseCompact(wire, 2, 1)
         if not inputPacketSizeInRange(wire.length(), records)
             return false
-        let decodedEpoch = parseCompact(wire, 3, 6)
-        let decodedFirst = parseCompact(wire, 9, 6)
+        let epochWidth = compactVarintWidth(wire, 3)
+        let decodedEpoch = parseCompactVarint(wire, 3, epochWidth, 2147483647)
+        if decodedEpoch < 0
+            return false
+        let frameOffset = 3 + epochWidth
+        let frameWidth = compactVarintWidth(wire, frameOffset)
+        let decodedFirst = parseCompactVarint(wire, frameOffset, frameWidth, INPUT_LAST_FRAME)
         if decodedEpoch < 0 or decodedFirst < 1 or decodedFirst > INPUT_LAST_FRAME - (records - 1)
             return false
-        var cursor = decodeRecord(wire, INPUT_HEADER_BYTES, first)
+        var cursor = decodeRecord(wire, frameOffset + frameWidth, first)
         if cursor < 0
             return false
         if records == 2
@@ -180,7 +232,7 @@ public class InputPacket
     function encode() returns string
         if count == 0
             return ""
-        let header = "I3" + compact(count, 1) + compact(epoch, 6) + compact(firstFrame, 6)
+        let header = "I4" + compact(count, 1) + compactVarint(epoch) + compactVarint(firstFrame)
         return header + encodeRecord(first) + (count == 2 ? encodeRecord(second) : "")
 
     function epochNumber() returns int

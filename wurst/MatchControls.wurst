@@ -17,7 +17,7 @@ public class MatchControls
 			return START_PAUSE_NONE
 		startPauseHeld[participantId] = true
 		for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
-			if slot != participantId and startPauseHeld[slot]
+			if slot != participantId and startPauseHeld[slot] and phase != RESULT
 				return START_PAUSE_NONE
 		if settingsOpen
 			return START_PAUSE_NONE

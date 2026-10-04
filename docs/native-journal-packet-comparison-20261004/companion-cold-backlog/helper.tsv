@@ -1,0 +1,10 @@
+event mono_ns=479735556408000 frame=1 held=32 pressed=32 released=0
+event mono_ns=479735572401000 frame=2 held=0 pressed=0 released=32
+event mono_ns=479735588371000 frame=3 held=32 pressed=32 released=0
+event mono_ns=479735604379000 frame=4 held=0 pressed=0 released=32
+event mono_ns=479735620387000 frame=5 held=32 pressed=32 released=0
+event mono_ns=479735636366000 frame=6 held=0 pressed=0 released=32
+event mono_ns=479735652391000 frame=7 held=32 pressed=32 released=0
+event mono_ns=479735668374000 frame=8 held=0 pressed=0 released=32
+event mono_ns=479735684383000 frame=8 held=32 pressed=32 released=0
+event mono_ns=479735700371000 frame=9 held=0 pressed=0 released=32

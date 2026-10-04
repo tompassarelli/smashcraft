@@ -8,8 +8,8 @@ public constant int JOURNAL_WAIT = 0
 public constant int JOURNAL_READY = 1
 public constant int JOURNAL_INVALID = 2
 
-// One immutable file carries the existing canonical I3 singleton packet.
-// The cursor changes only after its caller admits the row and sends that same
+// One immutable file carries one canonical I4 packet with one or two records.
+// The cursor changes only after its caller admits every row and sends that same
 // packet over the synchronized input channel.
 public class JournalInputSource
 	private string build = ""
@@ -19,7 +19,6 @@ public class JournalInputSource
 	private int sequence = 1
 	private boolean validated = false
 	private InputPacket packet = new InputPacket()
-	private NetworkInput row = new NetworkInput()
 
 	function beginEpoch(string buildId, int newEpoch, int localSlot, int inputDelay) returns boolean
 		if buildId == "" or newEpoch < 0 or localSlot < 0 or localSlot >= INPUT_PARTICIPANT_CAPACITY or inputDelay < 0 or inputDelay > INPUT_FUTURE_LIMIT
@@ -45,25 +44,25 @@ public class JournalInputSource
 		validated = false
 		if wire == ""
 			return JOURNAL_WAIT
-		if not packet.decode(wire) or packet.recordCount() != 1 or packet.encode() != wire
+		if not packet.decode(wire) or packet.encode() != wire
 			return JOURNAL_INVALID
 		if packet.epochNumber() != epoch
 			return JOURNAL_INVALID
 		let frame = packet.firstFrameNumber()
-		if frame > latestAdmissibleFrame
-			return JOURNAL_WAIT
 		if frame != expectedFrame()
 			return JOURNAL_INVALID
-		if not packet.copyRecord(0, row)
-			return JOURNAL_INVALID
+		if frame + packet.recordCount() - 1 > latestAdmissibleFrame
+			return JOURNAL_WAIT
 		validated = true
 		return JOURNAL_READY
 
-	function copyRow(NetworkInput destination) returns boolean
+	function copyRow(int index, NetworkInput destination) returns boolean
 		if not validated or destination == null
 			return false
-		row.copyTo(destination)
-		return true
+		return packet.copyRecord(index, destination)
+
+	function recordCount() returns int
+		return packet.recordCount()
 
 	function packetEpoch() returns int
 		return packet.epochNumber()
@@ -74,6 +73,6 @@ public class JournalInputSource
 	function sent() returns boolean
 		if not validated
 			return false
-		sequence++
+		sequence += packet.recordCount()
 		validated = false
 		return true

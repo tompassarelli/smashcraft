@@ -1,0 +1,10 @@
+{
+  "build": "netcode-0023",
+  "map_sha256": "0294d0f452d81e3c84b5ffcf197bd724d11ef58e807a63e9786be00fcf08afb2",
+  "capture_method": "paired native exports",
+  "journal_files_present": false,
+  "read_path": "missing next file; sequence remains 1; 240 reads per client; zero bytes",
+  "traffic": "60 unique 16-byte messages per player per arm at 30 Hz; no production journal packets",
+  "completion_observed_after_poll_wall_seconds": 14.004280282999389,
+  "limitation": "sequential arms; no populated-file or production receive-path causal proof"
+}

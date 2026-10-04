@@ -64,3 +64,12 @@ import MatchRules
 	controls.keyDown(3, RESULT, false).assertEquals(START_PAUSE_CONFIRM)
 	controls.keyDown(4, MATCH, false).assertEquals(START_PAUSE_NONE)
 	destroy controls
+
+@Test function overlappingResultPressesConfirmEachPlayersRematch()
+	let controls = new MatchControls()
+	controls.keyDown(0, RESULT, false).assertEquals(START_PAUSE_CONFIRM)
+	controls.keyDown(1, RESULT, false).assertEquals(START_PAUSE_CONFIRM)
+	controls.keyDown(1, RESULT, false).assertEquals(START_PAUSE_NONE)
+	controls.keyDown(2, CHARACTER_MENU, false).assertEquals(START_PAUSE_NONE)
+	controls.isPaused().assertFalse()
+	destroy controls

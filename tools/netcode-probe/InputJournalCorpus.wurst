@@ -6,6 +6,7 @@ import KeyBindings
 
 @Test function exportAuthoredPlayableRowsThroughProductionProtocol()
     let source = new NetworkInput()
+    let first = new NetworkInput()
     let scratch = new NetworkInput()
     let packet = new InputPacket()
     let decoded = new InputPacket()
@@ -52,4 +53,18 @@ import KeyBindings
                 decoded.copyRecord(0, scratch).assertTrue()
                 scratch.sameAs(source).assertTrue()
                 println("JOURNAL_CORPUS " + I2S(epoch) + " " + I2S(slot) + " " + I2S(frame) + " " + wire)
+                if frame mod 2 == 1
+                    source.copyTo(first)
+                else
+                    packet.assign(epoch, frame - 1, 2, first, source).assertTrue()
+                    let pairWire = packet.encode()
+                    decoded.decode(pairWire).assertTrue()
+                    decoded.epochNumber().assertEquals(epoch)
+                    decoded.firstFrameNumber().assertEquals(frame - 1)
+                    decoded.recordCount().assertEquals(2)
+                    decoded.copyRecord(0, scratch).assertTrue()
+                    scratch.sameAs(first).assertTrue()
+                    decoded.copyRecord(1, scratch).assertTrue()
+                    scratch.sameAs(source).assertTrue()
+                    println("JOURNAL_PAIR " + I2S(epoch) + " " + I2S(slot) + " " + I2S(frame - 1) + " " + pairWire)
                 previousHeld = held

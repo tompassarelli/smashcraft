@@ -9,7 +9,10 @@ compiler="$project_dir/toolchain/wurstscript.jar"
 [[ $(git -C "$stdlib" rev-parse HEAD) == bb1e0458db5a372ba2a6928112452785e435d01a ]]
 mkdir -p "$corpus_dir/wurst"
 # This workspace checks packet data, not map objects or imports.
-printf '%s\n' '-lua' '-stacktraces' > "$corpus_dir/wurst_run.args"
+# This isolated workspace replaces the compiler's normal run defaults with its
+# own args file. Keep the standalone test/compiletime defaults explicit; the
+# command line below selects Lua and the exact corpus test separately.
+printf '%s\n' '-runcompiletimefunctions' '-stacktraces' > "$corpus_dir/wurst_run.args"
 for source in NetworkInput InputProtocol KeyBindings; do
     cp "$project_dir/wurst/$source.wurst" "$corpus_dir/wurst/"
 done
@@ -29,3 +32,6 @@ fi
 rg '^JOURNAL_CORPUS ' "$corpus_dir/generation.log" > "$corpus_dir/corpus.tsv"
 [[ $(wc -l < "$corpus_dir/corpus.tsv") == 2400 ]]
 printf 'Validated 2400 authored rows with production InputPacket encode/decode: %s\n' "$corpus_dir/corpus.tsv"
+rg '^JOURNAL_PAIR ' "$corpus_dir/generation.log" > "$corpus_dir/pairs.tsv"
+[[ $(wc -l < "$corpus_dir/pairs.tsv") == 1200 ]]
+printf 'Validated 1200 authored pairs: %s\n' "$corpus_dir/pairs.tsv"

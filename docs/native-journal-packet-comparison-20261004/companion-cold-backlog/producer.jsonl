@@ -1,0 +1,10 @@
+{"phase":"cold-stopped","event":"press","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":479735556272479,"producer_after_write_monotonic_ns":479735556292156}
+{"phase":"cold-stopped","event":"release","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":479735572280261,"producer_after_write_monotonic_ns":479735572299898}
+{"phase":"cold-stopped","event":"press","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":479735588268056,"producer_after_write_monotonic_ns":479735588284016}
+{"phase":"cold-stopped","event":"release","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":479735604269386,"producer_after_write_monotonic_ns":479735604287580}
+{"phase":"cold-stopped","event":"press","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":479735620277819,"producer_after_write_monotonic_ns":479735620297476}
+{"phase":"cold-stopped","event":"release","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":479735636267768,"producer_after_write_monotonic_ns":479735636283808}
+{"phase":"cold-stopped","event":"press","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":479735652277193,"producer_after_write_monotonic_ns":479735652294275}
+{"phase":"cold-stopped","event":"release","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":479735668271299,"producer_after_write_monotonic_ns":479735668287269}
+{"phase":"cold-stopped","event":"press","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":479735684270745,"producer_after_write_monotonic_ns":479735684289050}
+{"phase":"cold-stopped","event":"release","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":479735700268889,"producer_after_write_monotonic_ns":479735700284759}

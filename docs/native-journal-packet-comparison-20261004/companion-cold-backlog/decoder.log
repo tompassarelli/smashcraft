@@ -1,0 +1,13 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":12,"aggregateCpuLimit":18,"leasedMemoryMiB":16384,"cpuSomeAvg10":0,"memoryFullAvg10":0,"memoryAvailableMiB":65607,"reclaimed":0,"lease":"e3f06e01-3c77-49c4-a080-3ec96d1486cd","expiresAt":1791070055201}
+Running tests
+Filter 'JournalCapturedPackets' matched 1 test(s):
+  JournalCapturedPackets.decodeColdStoppedHelperPackets
+Running /home/tom/code/wc3-melee/worktrees/production-netcode-integration-20261004/build/journal-cold-backlog-preload-20261004/decoder/wurst/JournalCapturedPackets.wurst:5 - decodeColdStoppedHelperPackets..
+	OK!
+Tests succeeded: 1/1
+>> All tests have passed successfully!
+Finished running tests
+compilation finished (errors: 0, warnings: 1)
+Warning in File JournalCapturedPackets.wurst:2:
+ The import Wurstunit can be removed, because it is already included in Wurst.
+{"decision":"RELEASED","lease":"e3f06e01-3c77-49c4-a080-3ec96d1486cd"}
