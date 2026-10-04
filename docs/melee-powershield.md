@@ -153,6 +153,16 @@ for its next candidate; no native result is inferred from emitted Lua.
 The assembled simulation suite passes 559/559, with zero errors and the existing
 RecoveryTests unused-import warning. Evidence:
 smashcraft:build/capsule-precision-assembled.log.
+Thirty-four additional original executions translate the shield center and its
+joint matrix together and use a finite hit radius. The two selected centers are
+(80.125, -23.75) and (-40.75, 120.5); endpoints and both radii are stored as
+binary32 inputs. Production emitted Lua matches every classification without
+another arithmetic change. The classification group now covers 408 original
+cases; all sixteen groups pass. Facts:
+smashcraft:docs/smash-melee-reference/retail-shield-capsule-translated.json.
+Evidence: smashcraft:build/capsule-translated-lua.log. These cases establish the
+selected translated circles with identity rotation/scale, not arbitrary joint
+transforms, animation-driven melee volumes or hurt-capsule collision.
 Projectile travel is tested against
 the swept circle in the simulation's x/z plane. Reflection transfers ownership
 to the defender and applies the observed common damage multiplier `0.5` and

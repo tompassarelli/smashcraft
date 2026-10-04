@@ -51,6 +51,12 @@ for(const [i,row] of rows.entries()) {
  const offset=i*stride;
  for(const [j,key] of ['startX','startZ','endX','endZ','hitRadius','shieldRadius','hitScale','shieldScale'].entries()) wrapper.writeFloatBE(row[key],data-entry+offset+j*4);
  wrapper.writeFloatBE(0,data-entry+offset+32);
+ wrapper.writeFloatBE(row.centerX ?? 0,data-entry+0x8000+i*8);
+ wrapper.writeFloatBE(row.centerZ ?? 0,data-entry+0x8004+i*8);
+ imm(26,data+0x8000+i*8);
+ imm(25,joint);
+ dform(48,0,26,0);dform(52,0,29,8);dform(52,0,25,0x50);
+ dform(48,0,26,4);dform(52,0,29,12);dform(52,0,25,0x60);
  imm(28,data+offset);
  for(const [j,field] of [0x4c,0x50,0x58,0x5c,0x1c].entries()){dform(48,0,28,j*4);dform(52,0,30,field);}
  dform(48,0,28,20);dform(52,0,29,0x20);
@@ -81,6 +87,6 @@ if(output.length!==rows.length*stride)throw Error('Wrong output length');
 await Bun.write(root+'/numerical-output.bin',output);
 if(rows.length*stride>1392)throw Error('Interpreter export limit');
 const results=rows.map((row,i)=>({...row,intersects:output.readUInt32BE(i*stride+36)!==0}));
-const facts={id:'retail-ntsc-1.02-shield-capsule',executableSha1:sha1,inputs:{plane:'original x/y; z=0',shieldCenter:[0,0,0],forceContact:false},referenceRevision:'0296f009f32f710495979d30772d8332af2d411a',execution:{cpu:'private Gekko interpreter',routine:'0x80007BCC',returnPatches:[],exitCode},limitations:['Synthetic capsule endpoints, cached shield position and identity joint matrix.','Interpreter host exports a fixed larger buffer; only the authored result rows are consumed.','Does not establish shield-versus-body priority, animation placement or native execution.'],results};
+const facts={id:'retail-ntsc-1.02-shield-capsule',executableSha1:sha1,inputs:{plane:'original x/y; z=0',shieldCenter:'row centerX/centerZ, default zero; joint translation matches',forceContact:false},referenceRevision:'0296f009f32f710495979d30772d8332af2d411a',execution:{cpu:'private Gekko interpreter',routine:'0x80007BCC',returnPatches:[],exitCode},limitations:['Synthetic capsule endpoints, cached shield position and joint translation; identity rotation/scale.','Interpreter host exports a fixed larger buffer; only the authored result rows are consumed.','Does not establish shield-versus-body priority, animation placement or native execution.'],results};
 await Bun.write(root+'/facts.json',JSON.stringify(facts,null,2)+'\n');
 console.log(JSON.stringify(facts));

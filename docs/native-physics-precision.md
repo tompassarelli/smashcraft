@@ -22,6 +22,10 @@ installed or run natively.
 The builder now includes a sixteenth group, CAPSULE_SHIELD_CLASSIFICATION_PASS,
 covering 374 original capsule/shield classifications. The current candidate
 requires MESSAGES 19 and that additional passing group.
+The current source corpus additionally includes 34 translated, finite-radius
+cases (408 total). The candidate recorded above predates that corpus expansion
+and contains 374. Its simulation arithmetic is unchanged; a subsequent native
+candidate must package the expanded corpus before claiming those cases observed.
 
 On map initialization, the same authored comparisons used by the emitted-Lua
 precision check execute in Warcraft. Each report is a short independent Preload
