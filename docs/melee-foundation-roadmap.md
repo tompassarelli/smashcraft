@@ -41,7 +41,7 @@ It also includes retail launch stacking, damage-level selection, grounded
 movement, rebound and test-arena surface recovery. These implementations do not
 establish full parity or complete collision geometry.
 
-The latest assembled simulation check passed 554/554 normal Wurstunit checks,
+The latest assembled simulation check passed 555/555 normal Wurstunit checks,
 after the equivalent shield-fixture deduplication documented below and the
 projectile/melee powershield and fractional DI input changes. The earlier aggregate
 passed 592/592 before that deduplication. The
@@ -76,12 +76,12 @@ rule; complete input/attack trajectories and native action timing remain open.
 Other formula rounding, shield geometry/powershields,
 connected/sloped ECB contacts and native trajectory checks remain open.
 
-The latest physics candidate is Smashcraft 0.0.12, build physics-powershield-actions,
-source a698e239af0c8ec7dd2cfc1f16df779c01eb9975. It built with zero errors and
+The latest physics candidate is Smashcraft 0.0.12, build physics-projectile-coverage,
+source 5e23fa8075c6b55bf463c564247a06fcb2b60c13. It built with zero errors and
 six existing warnings. SHA-256:
-43443760c6d93e4f52be88773af45d740201b9a9831d53449d1f826516cdc832.
+5b4164e01ca17918af66df34b549fad5cbf8e434db6d705727c842398390968c.
 Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x.
-Build evidence: smashcraft:build/powershield-actions-map.log. Deployment was disabled;
+Build evidence: smashcraft:build/projectile-shield-map.log. Deployment was disabled;
 this candidate has not been installed or observed natively. Separate native
 input/contact probes do not establish its physics or presentation. The separate
 native arithmetic candidate in smashcraft:docs/native-physics-precision.md
