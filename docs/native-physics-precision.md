@@ -109,3 +109,29 @@ The next diagnostic buffers results and starts/writes/closes its export together
 then separate fixture expectations from production/Lua32 arithmetic failures.
 A scoped child owns that repair and a 0.0.35 candidate; this root owns native
 client access. Peer communications remain stopped.
+
+
+## Complete native 0.0.35 export
+
+The repaired diagnostic candidate uses source
+`ac26f22aa81f75ebc350a85324f38152f41f230c`, SHA256
+`0bc8b9280c1aa9377e5f638e8ff0ed5b8bc982ca2a3309da9c9cffafa7fdc1e2`.
+It buffers initialization results and exports them together after initialization.
+A fresh one-player native load retains 700 diagnostic messages and the final
+failure verdict. Six groups pass: grounded friction, shield regeneration,
+shield damage, shield stun, hitlag scalars, and hitstun boundaries. The others
+fail, including capsule/shield classification, analog shielding, launch,
+directional influence, ground motion, air arithmetic, recorded fall and signed
+zero. The export reports launch mismatch count 119, DI mismatch count 21 and
+discrete DI mismatch count 15. These are comparison-case counts, not a whole-game
+fidelity percentage.
+
+Full authored numerical evidence:
+wc3-melee:docs/native-physics-precision-20261004/native0035.txt.
+The reporting repair succeeds; production arithmetic acceptance fails.
+Local IEEE Lua32 reproduces a subset of failures from non-reversible world-unit
+scaling by six and back. The compiler repository also records Warcraft 3.0
+arithmetic-result truncation rather than ordinary IEEE rounding; this explains
+why Lua64 and IEEE Lua32 checks cannot substitute for the native comparison.
+The exact production repair is still pending. No tests or comparison criteria
+have been weakened.
