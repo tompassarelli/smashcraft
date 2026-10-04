@@ -100,13 +100,20 @@ Ordinary movement with residual knockback no longer starts a damage rebound.
 The retail DamageFly/DamageFall/FlyReflect distinctions remain unverified in
 the current single-tumble-state model. Evidence: smashcraft:build/contact-assembled.log.
 
-The latest physics candidate is Smashcraft 0.0.16, build physics-tumble-exit,
-source c3e0269de4e07cf89ec7759afab2aa56f5fd0a86. It built with zero errors and
-six existing warnings. SHA-256:
-0a435ea41c8260bbd4b5a6309c6d29d8e512909239ed23c6cd52553137c66115.
-Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.16.w3x.
-Build evidence: smashcraft:build/tumble-exit-map.log. Deployment was disabled;
-this candidate has not been installed or observed natively. Separate native
+The latest combined candidate is Smashcraft 0.0.30, source
+5555133b34092d02b18d804d45358b450a26ad6e. It merges committed native/input
+development 8d47b00 with the verified physics lane, preserving four-player
+simulation/replay. The combined integration suite passed 634/634 before the
+parent's three independently checked TechInput tests were added to its source
+list. Production tech-counter wiring remains pending. The map built with zero
+errors and 23 warnings. SHA-256:
+da35042913f0057a9008e590c8be6454d27d738221738caa71c8d9bac43785a0.
+Artifact: ~/.local/share/smashcraft-build-inputs/production-netcode-20261004/build/Smashcraft 0.0.30.w3x.
+Build evidence: ~/.local/share/smashcraft-build-inputs/production-netcode-20261004/build/merged-0.0.30-build.log.
+Version 0.0.30 is explicitly coordinated with the concurrent native/input agent,
+whose existing 0.0.29 candidate and clients remain separate. Deployment was
+disabled; this combined candidate has not been installed or observed natively.
+The physics-only 0.0.16 candidate is historical. Separate native
 input/contact probes do not establish its physics or presentation. The separate
 native arithmetic candidate in smashcraft:docs/native-physics-precision.md
 packages the existing comparison cases for Warcraft execution and remains
