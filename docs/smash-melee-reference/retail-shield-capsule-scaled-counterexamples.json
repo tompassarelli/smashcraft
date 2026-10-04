@@ -1,0 +1,34 @@
+{
+  "id": "retail-shield-capsule-scaled-counterexamples",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "routine": "0x80007BCC",
+  "returnPatches": [],
+  "results": [
+    {
+      "startX": 3.7672877311706543,
+      "startZ": 3.8061885833740234,
+      "endX": -1.257254958152771,
+      "endZ": -5.283233642578125,
+      "hitRadius": 0.3639150559902191,
+      "shieldRadius": 1.8986871242523193,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": true,
+      "jointScale": 0.5750000476837158,
+      "actual": false
+    },
+    {
+      "startX": -1.7744019031524658,
+      "startZ": 2.6443862915039062,
+      "endX": -6.72720193862915,
+      "endZ": 4.344293594360352,
+      "hitRadius": 0.7961344718933105,
+      "shieldRadius": 2.737424850463867,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": false,
+      "jointScale": 0.8725000619888306,
+      "actual": true
+    }
+  ]
+}

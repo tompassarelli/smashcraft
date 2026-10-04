@@ -163,6 +163,18 @@ smashcraft:docs/smash-melee-reference/retail-shield-capsule-translated.json.
 Evidence: smashcraft:build/capsule-translated-lua.log. These cases establish the
 selected translated circles with identity rotation/scale, not arbitrary joint
 transforms, animation-driven melee volumes or hurt-capsule collision.
+Uniform joint-scale coverage now has 66 complete original executions: 32
+axis/segment cases and 34 asymmetric cases. Scales include 0.5, 1.5 and the
+recorded shield scales 0.5750000476837158 and 0.8725000619888306. The simple
+cases match a precombined world radius; two asymmetric cases do not, one in
+each classification direction. The production API currently receives only a
+precombined radius and therefore cannot retain the original local-radius/joint-
+scale conversion arithmetic. That owning information loss remains to be fixed;
+the 408 passing identity-scale cases do not close it.
+Facts: smashcraft:docs/smash-melee-reference/retail-shield-capsule-scaled.json.
+Counterexamples:
+smashcraft:docs/smash-melee-reference/retail-shield-capsule-scaled-counterexamples.json.
+No simulation or emitted-Lua pass is claimed for the scaled corpus yet.
 Projectile travel is tested against
 the swept circle in the simulation's x/z plane. Reflection transfers ownership
 to the defender and applies the observed common damage multiplier `0.5` and
