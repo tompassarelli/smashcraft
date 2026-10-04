@@ -1,51 +1,31 @@
 # Smashcraft delivery state — 4 October 2026
 
-Latest continuation: the one-packet preload check received both real packets
-and both post-read markers, reaching confirmed frame2 on both clients. Receipt
-took801.025/817.627ms; adding preload start/end calls still took631.836/698.486ms.
-This rules out a permanently missing receiver in that bounded Lua check and
-rejects moving submission to the next callback as the repair. Source generation
-is not fixed. Details: wc3-melee:docs/journal-read-boundary-20261004/README.md.
+**Playable release:0.0.40. Full original-frame controller delivery remains open.**
+The existing keyboard and digital controller mapper passed the two-client
+gameplay journey below. Those results remain valid. The original-frame journal
+experiments are separate and have not replaced that release.
 
-Exact40 has again been restored in a running two-client fight after these checks.
-The next implementation is a local keyboard-state mailbox carrying the same
-timestamped I4 and pause records, acknowledged through game file output. The
-accepted implementation owner is /root/keyboard_ingress; /root retains native
-integration and the delivery verdict. No native mailbox success is claimed.
+Latest native result: the keyboard input bridge delivered the first5ms attack
+at its original frame19 on both clients, but only reached confirmedframe36
+after5 native seconds. It is too slow for play. The helper retained later taps
+at frames97/157 across the controlled helper/game stops, but those inputs were
+not applied within the native trace. The delivery queue timed out. Evidence:
+wc3-melee:docs/keyboard-mailbox-20261004/README.md.
 
-**Playable delivery: exact0.0.40. Experimental controller59 is rejected.**
-The game already passed the two-client gameplay journey described below.
-Its keyboard and digital controller-mapper path remains the usable delivery.
-Original-frame controller retention through game stalls is unfinished; it is
-not a condition for recognizing this bounded playable result and is not claimed.
+/root/keyboard_ingress owns the companion emission repair; /root owns native
+integration and the verdict. The next check separates key emission from ACK
+observation and reruns the same game artifact after the owning repair. Both
+clients left the rejected candidate normally; exact40 is restored on disk.
+Authenticated clients remain open. No controller helper is running.
 
-The numbered41–59 artifacts include internal diagnostic maps, not nineteen
-completed game releases. Future internal diagnostics use separate run IDs and
-names; the release status always identifies the one usable player build.
+Earlier preload boundary evidence remains at
+wc3-melee:docs/journal-read-boundary-20261004/README.md: real packets arrived,
+but at631–818ms in the bounded one-packet checks. Moving submission to the next
+callback and adding preload lifecycle calls did not fix the delay.
 
-This pass isolated a pre-input disconnect to the order diagnostic setup. The
-order probe now lives under wc3-melee:tools/netcode-probe/ and is absent from
-gameplay startup. Full58 passed selection but stopped in a diagnostic checksum.
-The canonical writer now hashes bounded fragments with separate native JASS
-operation budgets; the existing fast-fall checksum/rollback test passed1/1.
-Full59 then passed selection, match startup and both pre-read ready messages.
-Both helpers retained the normal5ms tap at originalframe19 and the tap during
-an approximately250ms helper stop at frame97, and exited0 after300frames.
-However each native client sent32 paired packets/64rows and recorded zero
-receipts, leaving confirmation atframe0. This is a failed replacement, not a
-controller latency or original-frame application success. No more experimental
-builds are part of this delivery pass. Exact40 is restored in a two-client fight in [TEST] sc40-playable. Fresh
-readiness identifies playable-0040/human mask3 on both, and both native screens
-reached the running match. Authenticated sessions are preserved. No helper,
-build, UI wait or experimental run remains active.
-
-Evidence: wc3-melee:docs/selection0054-evidence-20261004/ through
-wc3-melee:docs/selection0057-evidence-20261004/,
-wc3-melee:docs/journal0058-evidence-20261004/ and
-wc3-melee:docs/journal0059-evidence-20261004/. The retained counterexample is
-specifically delivery stopping after populated file reads despite accepted
-submissions and successful pre-read ready-message exchange. Its next owning
-repair is deferred from this landing pass, not replaced by another survey.
+Numbered41–59 were internal experiments, not nineteen delivered game releases.
+Current internal diagnostics use separate names and leave the player release
+counter alone. The broader scope and unfinished claims are listed below.
 
 ## Usable checkpoint: 0.0.40
 

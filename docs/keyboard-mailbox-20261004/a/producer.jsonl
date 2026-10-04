@@ -1,0 +1,8 @@
+{"phase":"normal","event":"attack-down","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":536707201315596,"producer_after_write_monotonic_ns":536707201334512}
+{"phase":"normal","event":"attack-up","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":536707206550686,"producer_after_write_monotonic_ns":536707206565073}
+{"phase":"analog","event":"half-stick-right","type":3,"code":0,"value":16384,"producer_before_write_monotonic_ns":536707501314800,"producer_after_write_monotonic_ns":536707501334857}
+{"phase":"analog","event":"stick-neutral","type":3,"code":0,"value":0,"producer_before_write_monotonic_ns":536708001312407,"producer_after_write_monotonic_ns":536708001327927}
+{"phase":"helper-stall","event":"attack-down","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":536708501309594,"producer_after_write_monotonic_ns":536708501326786}
+{"phase":"helper-stall","event":"attack-up","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":536708506481205,"producer_after_write_monotonic_ns":536708506484291}
+{"phase":"game-stall","event":"attack-down","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":536709501310207,"producer_after_write_monotonic_ns":536709501326567}
+{"phase":"game-stall","event":"attack-up","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":536709506480395,"producer_after_write_monotonic_ns":536709506483802}

@@ -1,0 +1,9 @@
+{
+  "candidate": "keyboard-mailbox-a",
+  "map_sha256": "1e414dec6b97002fbf543a1ac10fc8f6fbc892436f1f7503de6a95528d70618c",
+  "source_commit": "bcdcb00",
+  "helper_sha256": "bac9bb58de4fcadc45d3c8e3fb670a506811940ed4a89fc415d556c5d44ec126",
+  "capture_epoch_monotonic_ns": 536706901231447,
+  "result": "Rejected: confirmation only frame36 after5 native seconds; helper drain timed out; originalframe19 attack observed on both clients, later taps not in native trace.",
+  "scope": "Two readers of one virtual evdev controller. 5ms taps; half-stick hold; helper and game SIGSTOP/SIGCONT. No physical latency or pause/resume claim."
+}

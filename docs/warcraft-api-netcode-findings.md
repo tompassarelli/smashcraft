@@ -797,3 +797,13 @@ reference therefore does not close this desync. No helpers started and there is
 no controller-performance verdict. The candidate and source patch are archived
 privately; the published Lua source and exact compiler artifact are restored.
 Evidence: wc3-melee:docs/journal0051-evidence-20261004/.
+
+## Keyboard journal bridge: first native result
+
+The native keyboard-mailbox-a trial received production packets and applied
+both players' first5ms attack at originalframe19, but confirmed onlyframe36
+after5 native seconds. The helper retained later taps across helper/game stops;
+their application was not observed in that trace. This replacement is rejected
+for throughput pending the owning companion-emission repair. Source checks
+passed but did not establish native speed. See
+wc3-melee:docs/keyboard-mailbox-20261004/README.md.
