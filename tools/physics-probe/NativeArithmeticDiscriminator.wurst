@@ -1,5 +1,6 @@
 package NativeArithmeticDiscriminator
 import Simulation
+import Binary32
 import NativePhysicsSource
 import ClosureTimers
 
