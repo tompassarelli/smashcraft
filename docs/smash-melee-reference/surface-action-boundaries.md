@@ -21,6 +21,14 @@ The assembled suite passed 568/568 with zero compiler errors; evidence:
 smashcraft:build/damage-landing-aggregate.log. This establishes integration
 with the existing simulation fixtures, not native execution.
 
+Source checkpoint `7ef7639f180bce1ef74d7e35ba6167a69e41682c` built
+Smashcraft 0.0.15, build ID `physics-damage-landing`, with zero errors and
+six existing warnings (smashcraft:build/damage-landing-map.log). Candidate:
+~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.15.w3x.
+SHA256: `48f22d9415643d0834025d7fd29f0a04dabe34beed95a32f8f47880b17e8f558`.
+Deployment was disabled to preserve the concurrent input workstream's clients.
+This candidate has not been observed in Warcraft.
+
 The retail probe supplies magnitude and replaces action consumers with result
 labels. It verifies original comparisons, not original square-root arithmetic,
 collision, action initialization or native trajectories. DamageFly/DamageFall
