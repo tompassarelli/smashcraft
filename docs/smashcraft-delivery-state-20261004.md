@@ -15,8 +15,9 @@ wc3-melee:docs/journal-pause-checkpoint-20261004.md. Neither completed its nativ
 pause/resume journey. In 0.0.42 both helpers retained a 5 ms tap at frame 19,
 but no first pause acknowledgment arrived within 35 seconds; native application
 at that frame remains unproved. Exact 0.0.40 bytes are restored in both map
-folders after ending the unusable diagnostic game processes. Launcher recovery
-is underway; do not infer that an online menu is an already running 0.0.40 fight.
+folders after ending the unusable diagnostic game processes. Both retained launchers recovered the clients without another sign-in.
+A fresh two-client 0.0.40 fight is now loaded; a 200 ms movement hold changed
+Archer x from -240 to -135. No further latency claim follows from that recovery.
 A separate fresh 0.0.40 match after the 0.0.41 recovery accepted movement, and
 both clients completed ordinary Quit Mission to their score screens. The later
 F5 requests did not establish those exits.
