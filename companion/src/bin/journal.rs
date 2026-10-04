@@ -19,8 +19,12 @@ mod linux {
         io::{self, Write},
         os::fd::AsRawFd,
         path::{Path, PathBuf},
+        sync::{
+            Arc,
+            atomic::{AtomicBool, Ordering},
+        },
         thread,
-        time::{Duration, UNIX_EPOCH},
+        time::{Duration, Instant, UNIX_EPOCH},
     };
 
     const HZ: u128 = 60;
@@ -100,6 +104,8 @@ mod linux {
         next_chunk: u32,
         toggle: bool,
         awaiting_ack: bool,
+        trace: bool,
+        emitted_at: Option<Instant>,
     }
 
     impl MailboxSender {
@@ -109,6 +115,7 @@ mod linux {
             epoch: u32,
             slot: u32,
             display: &str,
+            trace: bool,
         ) -> Result<Self, String> {
             let settings = Settings {
                 x11_display: Some(display.to_owned()),
@@ -129,6 +136,8 @@ mod linux {
                 next_chunk: 1,
                 toggle: false,
                 awaiting_ack: false,
+                trace,
+                emitted_at: None,
             })
         }
 
@@ -168,6 +177,15 @@ mod linux {
                 )? {
                     return Ok(());
                 }
+                if self.trace {
+                    if let Some(emitted_at) = self.emitted_at.take() {
+                        eprintln!(
+                            "mailbox_ack chunk={} wait_us={}",
+                            self.next_chunk,
+                            emitted_at.elapsed().as_micros()
+                        );
+                    }
+                }
                 fs::remove_file(self.ack_path())?;
                 self.awaiting_ack = false;
                 self.next_chunk += 1;
@@ -192,6 +210,14 @@ mod linux {
             let chunk = bytes[self.offset..end].to_vec();
             let final_chunk = end == bytes.len();
             let signals = mailbox_signal_values(&chunk, final_chunk, !self.toggle)?;
+            let started = self.trace.then(Instant::now);
+            let transitions = if self.trace {
+                (0..MAILBOX_SIGNAL_COUNT)
+                    .filter(|signal| self.owned.contains(signal) != signals[*signal])
+                    .count()
+            } else {
+                0
+            };
 
             // Change payload and framing while the old commit toggle remains
             // stable. Flip that key last so the game never samples a partial
@@ -203,6 +229,16 @@ mod linux {
             self.set_signal(53, signals[53])?;
             self.offset = end;
             self.awaiting_ack = true;
+            if let Some(started) = started {
+                self.emitted_at = Some(Instant::now());
+                eprintln!(
+                    "mailbox_emit chunk={} bytes={} transitions={} elapsed_us={}",
+                    self.next_chunk,
+                    chunk.len(),
+                    transitions,
+                    started.elapsed().as_micros(),
+                );
+            }
             Ok(())
         }
 
@@ -1299,7 +1335,9 @@ mod linux {
         let mut mailbox = o
             .mailbox_display
             .as_deref()
-            .map(|display| MailboxSender::new(&o.out, &o.build, o.epoch, o.slot, display))
+            .map(|display| {
+                MailboxSender::new(&o.out, &o.build, o.epoch, o.slot, display, o.trace)
+            })
             .transpose()?;
         let mut device =
             RawDevice::open(&o.device).map_err(|e| format!("open {}: {e}", o.device.display()))?;
@@ -1377,7 +1415,17 @@ mod linux {
         let mut stop_capture = false;
         let mut pause_barrier = None::<u32>;
         let mut pending = Vec::<String>::new();
+        let running = Arc::new(AtomicBool::new(true));
+        let signal_running = Arc::clone(&running);
+        ctrlc::set_handler(move || signal_running.store(false, Ordering::Relaxed))
+            .map_err(|error| format!("install interrupt handler: {error}"))?;
         loop {
+            if !running.load(Ordering::Relaxed) {
+                if o.trace {
+                    eprintln!("shutdown signal=SIGINT mailbox_release=begin");
+                }
+                return Ok(());
+            }
             // Only seal intervals completed before this queue drain. Taking
             // the cutoff afterwards races events arriving between read and seal.
             let now = monotonic_ns().map_err(|e| e.to_string())?;
