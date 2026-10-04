@@ -25,6 +25,8 @@ exec "$java" -Xmx2048m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/_build/common.j" \
     "$project_dir/_build/blizzard.j" \
     "$project_dir/wurst/Simulation.wurst" \
+    "$project_dir/wurst/TechInput.wurst" \
+    "$project_dir/wurst/TechInputTests.wurst" \
     "$project_dir/wurst/MeleeContactGeometry.wurst" \
     "$project_dir/wurst/MeleeScalarMath.wurst" \
     "$project_dir/wurst/MeleeScalarMathTests.wurst" \
