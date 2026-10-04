@@ -251,6 +251,13 @@ every kernel event timestamp. Already assigned rows are retained; unassigned
 items observed while ineligible or before the recovery boundary are suppressed
 and logged. Map-internal chat/editbox focus is a separate acceptance boundary.
 No game activation or focus change is performed by the helper. The editbox path
-holds no transport keys; the legacy mailbox retains its existing signal state
+uses Enigo's X11 `text_to_window`, including directed modifier events, so a
+focus switch cannot route its text to another application's window. This does
+not guarantee Warcraft consumes those events: the native focus trial retained
+zero sink events but exposed a missing-frame gap on return. Native acknowledgment
+and replay remain required before claiming focus-safe delivery; see
+wc3-melee:docs/native-focus-20261005/README.md.
+
+The editbox path holds no global transport keys; the legacy mailbox retains its existing signal state
 until eligible and gates its cleanup too, so unfocused teardown does not emit
 key releases to a different application.

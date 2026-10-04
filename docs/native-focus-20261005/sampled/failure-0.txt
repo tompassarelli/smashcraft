@@ -1,0 +1,10 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=editbox-catchup-20261005 epoch=1 slot=0" )
+	call Preload( "reason=invalid or noncontiguous I4 row: I421x100 sequence=47 frame=47" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

@@ -1,0 +1,471 @@
+source=/dev/input/event2 name=Some("Smashcraft Event Retention Virtual Gamepad") clock=CLOCK_MONOTONIC epoch_ns=552474779378106 frame_rule=segment_frame+floor((t-segment_epoch)*60/1e9) first=1 delay=0 pause_policy=sequenced-map-control
+readiness_receipt=/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-ready-editbox-catchup-20261005-e1-p0.txt
+published_frame=1
+published_frame=2
+editbox_emit bytes=8 elapsed_us=549 wire=I421100
+published_frame=3
+published_frame=4
+editbox_emit bytes=8 elapsed_us=576 wire=I421300
+published_frame=5
+event mono_ns=552474879645000 frame=7 held=32 pressed=32 released=0
+published_frame=6
+editbox_emit bytes=8 elapsed_us=1141 wire=I421500
+event mono_ns=552474884606000 frame=7 held=0 pressed=0 released=32
+published_frame=7
+published_frame=8
+editbox_emit bytes=14 elapsed_us=879 wire=I4217200W00W0
+published_frame=9
+published_frame=10
+editbox_emit bytes=8 elapsed_us=660 wire=I421900
+published_frame=11
+published_frame=12
+editbox_emit bytes=8 elapsed_us=667 wire=I421B00
+published_frame=13
+published_frame=14
+editbox_emit bytes=8 elapsed_us=587 wire=I421D00
+published_frame=15
+published_frame=16
+editbox_emit bytes=8 elapsed_us=611 wire=I421F00
+published_frame=17
+published_frame=18
+editbox_emit bytes=8 elapsed_us=644 wire=I421H00
+published_frame=19
+published_frame=20
+editbox_emit bytes=8 elapsed_us=1918 wire=I421J00
+published_frame=21
+published_frame=22
+editbox_emit bytes=8 elapsed_us=696 wire=I421L00
+published_frame=23
+published_frame=24
+editbox_emit bytes=8 elapsed_us=592 wire=I421N00
+published_frame=25
+published_frame=26
+editbox_emit bytes=8 elapsed_us=849 wire=I421P00
+published_frame=27
+published_frame=28
+editbox_emit bytes=8 elapsed_us=835 wire=I421R00
+published_frame=29
+published_frame=30
+editbox_emit bytes=8 elapsed_us=676 wire=I421T00
+published_frame=31
+published_frame=32
+editbox_emit bytes=8 elapsed_us=749 wire=I421V00
+published_frame=33
+published_frame=34
+editbox_emit bytes=9 elapsed_us=685 wire=I421X100
+published_frame=35
+published_frame=36
+editbox_emit bytes=9 elapsed_us=702 wire=I421Z100
+published_frame=37
+published_frame=38
+editbox_emit bytes=9 elapsed_us=561 wire=I421b100
+event mono_ns=552475429609000 frame=40 held=256 pressed=256 released=0
+published_frame=39
+published_frame=40
+editbox_emit bytes=21 elapsed_us=1441 wire=I421d10B040040000Fy0
+published_frame=41
+published_frame=42
+editbox_emit bytes=21 elapsed_us=1498 wire=I421f19040Fy09040Fy0
+published_frame=43
+published_frame=44
+editbox_emit bytes=21 elapsed_us=1217 wire=I421h19040Fy09040Fy0
+published_frame=45
+published_frame=46
+editbox_emit bytes=21 elapsed_us=1228 wire=I421j19040Fy09040Fy0
+published_frame=47
+published_frame=48
+editbox_emit bytes=21 elapsed_us=2107 wire=I421l19040Fy09040Fy0
+focus_release mono_ns=552475585459767 frame=49
+game-eligible=false mono_ns=552475583521796 neutral_rearm=required
+input_armed=false gameplay_armed=false mono_ns=552475585459767
+published_frame=49
+published_frame=50
+published_frame=51
+published_frame=52
+published_frame=53
+published_frame=54
+published_frame=55
+published_frame=56
+suppressed mono_ns=552475729602000 reason=focus-pause-or-neutral
+published_frame=57
+published_frame=58
+published_frame=59
+suppressed mono_ns=552475779604000 reason=focus-pause-or-neutral
+published_frame=60
+suppressed mono_ns=552475784571000 reason=focus-pause-or-neutral
+published_frame=61
+published_frame=62
+suppressed mono_ns=552475829663000 reason=focus-pause-or-neutral
+published_frame=63
+suppressed mono_ns=552475834545000 reason=focus-pause-or-neutral
+published_frame=64
+published_frame=65
+suppressed mono_ns=552475879541000 reason=focus-pause-or-neutral
+published_frame=66
+published_frame=67
+suppressed mono_ns=552475899627000 reason=focus-pause-or-neutral
+published_frame=68
+published_frame=69
+published_frame=70
+published_frame=71
+published_frame=72
+published_frame=73
+published_frame=74
+published_frame=75
+published_frame=76
+published_frame=77
+published_frame=78
+game-eligible=true mono_ns=552476093622632 neutral_rearm=required
+editbox_emit bytes=15 elapsed_us=2027 wire=I421n120000400
+published_frame=79
+editbox_emit bytes=9 elapsed_us=562 wire=I421p100
+editbox_emit bytes=9 elapsed_us=610 wire=I421r100
+editbox_emit bytes=9 elapsed_us=932 wire=I421t100
+editbox_emit bytes=9 elapsed_us=620 wire=I421v100
+editbox_emit bytes=9 elapsed_us=496 wire=I421x100
+editbox_emit bytes=9 elapsed_us=636 wire=I421z100
+editbox_emit bytes=9 elapsed_us=644 wire=I421_100
+published_frame=80
+editbox_emit bytes=9 elapsed_us=573 wire=I421X200
+editbox_emit bytes=9 elapsed_us=550 wire=I421Z200
+editbox_emit bytes=9 elapsed_us=715 wire=I421b200
+editbox_emit bytes=9 elapsed_us=516 wire=I421d200
+editbox_emit bytes=9 elapsed_us=585 wire=I421f200
+editbox_emit bytes=9 elapsed_us=626 wire=I421h200
+editbox_emit bytes=9 elapsed_us=664 wire=I421j200
+editbox_emit bytes=9 elapsed_us=1197 wire=I421l200
+published_frame=81
+published_frame=82
+editbox_emit bytes=9 elapsed_us=702 wire=I421n200
+published_frame=83
+published_frame=84
+editbox_emit bytes=9 elapsed_us=620 wire=I421p200
+published_frame=85
+published_frame=86
+editbox_emit bytes=9 elapsed_us=722 wire=I421r200
+suppressed mono_ns=552476229583000 reason=focus-pause-or-neutral
+published_frame=87
+published_frame=88
+editbox_emit bytes=9 elapsed_us=867 wire=I421t200
+published_frame=89
+suppressed mono_ns=552476279551000 reason=focus-pause-or-neutral
+input_armed=true gameplay_armed=true mono_ns=552476280596547
+published_frame=90
+editbox_emit bytes=9 elapsed_us=601 wire=I421v200
+published_frame=91
+published_frame=92
+editbox_emit bytes=9 elapsed_us=862 wire=I421x200
+published_frame=93
+published_frame=94
+editbox_emit bytes=9 elapsed_us=791 wire=I421z200
+published_frame=95
+published_frame=96
+editbox_emit bytes=9 elapsed_us=647 wire=I421_200
+published_frame=97
+published_frame=98
+editbox_emit bytes=9 elapsed_us=655 wire=I421X300
+published_frame=99
+published_frame=100
+editbox_emit bytes=9 elapsed_us=1375 wire=I421Z300
+published_frame=101
+published_frame=102
+editbox_emit bytes=9 elapsed_us=618 wire=I421b300
+published_frame=103
+published_frame=104
+editbox_emit bytes=9 elapsed_us=655 wire=I421d300
+published_frame=105
+published_frame=106
+editbox_emit bytes=9 elapsed_us=726 wire=I421f300
+published_frame=107
+event mono_ns=552476579580000 frame=109 held=32 pressed=32 released=0
+published_frame=108
+editbox_emit bytes=9 elapsed_us=1337 wire=I421h300
+event mono_ns=552476584566000 frame=109 held=0 pressed=0 released=32
+published_frame=109
+published_frame=110
+editbox_emit bytes=15 elapsed_us=1065 wire=I421j3200W00W0
+published_frame=111
+published_frame=112
+editbox_emit bytes=9 elapsed_us=695 wire=I421l300
+published_frame=113
+published_frame=114
+editbox_emit bytes=9 elapsed_us=630 wire=I421n300
+published_frame=115
+published_frame=116
+editbox_emit bytes=9 elapsed_us=755 wire=I421p300
+published_frame=117
+published_frame=118
+editbox_emit bytes=9 elapsed_us=599 wire=I421r300
+published_frame=119
+published_frame=120
+editbox_emit bytes=9 elapsed_us=696 wire=I421t300
+published_frame=121
+published_frame=122
+editbox_emit bytes=9 elapsed_us=645 wire=I421v300
+published_frame=123
+published_frame=124
+editbox_emit bytes=9 elapsed_us=1015 wire=I421x300
+published_frame=125
+published_frame=126
+editbox_emit bytes=9 elapsed_us=711 wire=I421z300
+published_frame=127
+published_frame=128
+editbox_emit bytes=9 elapsed_us=897 wire=I421_300
+published_frame=129
+published_frame=130
+editbox_emit bytes=9 elapsed_us=917 wire=I421X400
+published_frame=131
+published_frame=132
+editbox_emit bytes=9 elapsed_us=1223 wire=I421Z400
+published_frame=133
+published_frame=134
+editbox_emit bytes=9 elapsed_us=811 wire=I421b400
+published_frame=135
+published_frame=136
+editbox_emit bytes=9 elapsed_us=731 wire=I421d400
+published_frame=137
+published_frame=138
+editbox_emit bytes=9 elapsed_us=1176 wire=I421f400
+published_frame=139
+published_frame=140
+editbox_emit bytes=9 elapsed_us=592 wire=I421h400
+published_frame=141
+published_frame=142
+editbox_emit bytes=9 elapsed_us=702 wire=I421j400
+published_frame=143
+published_frame=144
+editbox_emit bytes=9 elapsed_us=759 wire=I421l400
+published_frame=145
+published_frame=146
+editbox_emit bytes=9 elapsed_us=700 wire=I421n400
+published_frame=147
+published_frame=148
+editbox_emit bytes=9 elapsed_us=1095 wire=I421p400
+published_frame=149
+published_frame=150
+editbox_emit bytes=9 elapsed_us=576 wire=I421r400
+published_frame=151
+published_frame=152
+editbox_emit bytes=9 elapsed_us=730 wire=I421t400
+published_frame=153
+published_frame=154
+editbox_emit bytes=9 elapsed_us=670 wire=I421v400
+published_frame=155
+published_frame=156
+editbox_emit bytes=9 elapsed_us=584 wire=I421x400
+published_frame=157
+published_frame=158
+editbox_emit bytes=9 elapsed_us=689 wire=I421z400
+published_frame=159
+published_frame=160
+editbox_emit bytes=9 elapsed_us=1196 wire=I421_400
+published_frame=161
+published_frame=162
+editbox_emit bytes=9 elapsed_us=750 wire=I421X500
+published_frame=163
+published_frame=164
+editbox_emit bytes=9 elapsed_us=832 wire=I421Z500
+published_frame=165
+published_frame=166
+editbox_emit bytes=9 elapsed_us=578 wire=I421b500
+published_frame=167
+published_frame=168
+editbox_emit bytes=9 elapsed_us=698 wire=I421d500
+published_frame=169
+published_frame=170
+editbox_emit bytes=9 elapsed_us=545 wire=I421f500
+published_frame=171
+published_frame=172
+editbox_emit bytes=9 elapsed_us=724 wire=I421h500
+published_frame=173
+published_frame=174
+editbox_emit bytes=9 elapsed_us=614 wire=I421j500
+published_frame=175
+published_frame=176
+editbox_emit bytes=9 elapsed_us=647 wire=I421l500
+published_frame=177
+published_frame=178
+editbox_emit bytes=9 elapsed_us=647 wire=I421n500
+published_frame=179
+published_frame=180
+editbox_emit bytes=9 elapsed_us=702 wire=I421p500
+published_frame=181
+published_frame=182
+editbox_emit bytes=9 elapsed_us=800 wire=I421r500
+published_frame=183
+published_frame=184
+editbox_emit bytes=9 elapsed_us=783 wire=I421t500
+published_frame=185
+published_frame=186
+editbox_emit bytes=9 elapsed_us=713 wire=I421v500
+published_frame=187
+published_frame=188
+editbox_emit bytes=9 elapsed_us=743 wire=I421x500
+published_frame=189
+published_frame=190
+editbox_emit bytes=9 elapsed_us=685 wire=I421z500
+published_frame=191
+published_frame=192
+editbox_emit bytes=9 elapsed_us=687 wire=I421_500
+published_frame=193
+published_frame=194
+editbox_emit bytes=9 elapsed_us=664 wire=I421X600
+published_frame=195
+published_frame=196
+editbox_emit bytes=9 elapsed_us=1337 wire=I421Z600
+published_frame=197
+published_frame=198
+editbox_emit bytes=9 elapsed_us=634 wire=I421b600
+published_frame=199
+published_frame=200
+editbox_emit bytes=9 elapsed_us=670 wire=I421d600
+published_frame=201
+published_frame=202
+editbox_emit bytes=9 elapsed_us=611 wire=I421f600
+published_frame=203
+published_frame=204
+editbox_emit bytes=9 elapsed_us=684 wire=I421h600
+published_frame=205
+published_frame=206
+editbox_emit bytes=9 elapsed_us=550 wire=I421j600
+published_frame=207
+published_frame=208
+editbox_emit bytes=9 elapsed_us=647 wire=I421l600
+published_frame=209
+published_frame=210
+editbox_emit bytes=9 elapsed_us=629 wire=I421n600
+published_frame=211
+published_frame=212
+editbox_emit bytes=9 elapsed_us=618 wire=I421p600
+published_frame=213
+published_frame=214
+editbox_emit bytes=9 elapsed_us=817 wire=I421r600
+published_frame=215
+published_frame=216
+editbox_emit bytes=9 elapsed_us=650 wire=I421t600
+published_frame=217
+published_frame=218
+editbox_emit bytes=9 elapsed_us=692 wire=I421v600
+published_frame=219
+published_frame=220
+editbox_emit bytes=9 elapsed_us=597 wire=I421x600
+published_frame=221
+published_frame=222
+editbox_emit bytes=9 elapsed_us=581 wire=I421z600
+published_frame=223
+published_frame=224
+editbox_emit bytes=9 elapsed_us=810 wire=I421_600
+published_frame=225
+published_frame=226
+editbox_emit bytes=9 elapsed_us=693 wire=I421X700
+published_frame=227
+published_frame=228
+editbox_emit bytes=9 elapsed_us=744 wire=I421Z700
+published_frame=229
+published_frame=230
+editbox_emit bytes=9 elapsed_us=667 wire=I421b700
+published_frame=231
+published_frame=232
+editbox_emit bytes=9 elapsed_us=726 wire=I421d700
+published_frame=233
+published_frame=234
+editbox_emit bytes=9 elapsed_us=578 wire=I421f700
+published_frame=235
+published_frame=236
+editbox_emit bytes=9 elapsed_us=761 wire=I421h700
+published_frame=237
+published_frame=238
+editbox_emit bytes=9 elapsed_us=968 wire=I421j700
+published_frame=239
+published_frame=240
+editbox_emit bytes=9 elapsed_us=837 wire=I421l700
+published_frame=241
+published_frame=242
+editbox_emit bytes=9 elapsed_us=620 wire=I421n700
+published_frame=243
+published_frame=244
+editbox_emit bytes=9 elapsed_us=643 wire=I421p700
+published_frame=245
+published_frame=246
+editbox_emit bytes=9 elapsed_us=598 wire=I421r700
+published_frame=247
+published_frame=248
+editbox_emit bytes=9 elapsed_us=568 wire=I421t700
+published_frame=249
+published_frame=250
+editbox_emit bytes=9 elapsed_us=758 wire=I421v700
+published_frame=251
+published_frame=252
+editbox_emit bytes=9 elapsed_us=549 wire=I421x700
+published_frame=253
+published_frame=254
+editbox_emit bytes=9 elapsed_us=688 wire=I421z700
+published_frame=255
+published_frame=256
+editbox_emit bytes=9 elapsed_us=778 wire=I421_700
+published_frame=257
+published_frame=258
+editbox_emit bytes=9 elapsed_us=795 wire=I421X800
+published_frame=259
+published_frame=260
+editbox_emit bytes=9 elapsed_us=749 wire=I421Z800
+published_frame=261
+published_frame=262
+editbox_emit bytes=9 elapsed_us=632 wire=I421b800
+published_frame=263
+published_frame=264
+editbox_emit bytes=9 elapsed_us=701 wire=I421d800
+published_frame=265
+published_frame=266
+editbox_emit bytes=9 elapsed_us=685 wire=I421f800
+published_frame=267
+published_frame=268
+editbox_emit bytes=9 elapsed_us=552 wire=I421h800
+published_frame=269
+published_frame=270
+editbox_emit bytes=9 elapsed_us=563 wire=I421j800
+published_frame=271
+published_frame=272
+editbox_emit bytes=9 elapsed_us=621 wire=I421l800
+published_frame=273
+published_frame=274
+editbox_emit bytes=9 elapsed_us=739 wire=I421n800
+published_frame=275
+published_frame=276
+editbox_emit bytes=9 elapsed_us=808 wire=I421p800
+published_frame=277
+published_frame=278
+editbox_emit bytes=9 elapsed_us=559 wire=I421r800
+published_frame=279
+published_frame=280
+editbox_emit bytes=9 elapsed_us=567 wire=I421t800
+published_frame=281
+published_frame=282
+editbox_emit bytes=9 elapsed_us=591 wire=I421v800
+published_frame=283
+published_frame=284
+editbox_emit bytes=9 elapsed_us=642 wire=I421x800
+published_frame=285
+published_frame=286
+editbox_emit bytes=9 elapsed_us=734 wire=I421z800
+published_frame=287
+published_frame=288
+editbox_emit bytes=9 elapsed_us=864 wire=I421_800
+published_frame=289
+published_frame=290
+editbox_emit bytes=9 elapsed_us=874 wire=I421X900
+published_frame=291
+published_frame=292
+editbox_emit bytes=9 elapsed_us=593 wire=I421Z900
+published_frame=293
+published_frame=294
+editbox_emit bytes=9 elapsed_us=804 wire=I421b900
+published_frame=295
+published_frame=296
+editbox_emit bytes=9 elapsed_us=578 wire=I421d900
+published_frame=297
+published_frame=298
+editbox_emit bytes=9 elapsed_us=980 wire=I421f900
+published_frame=299
+published_frame=300
+editbox_emit bytes=9 elapsed_us=604 wire=I421h900

@@ -7,7 +7,7 @@ publish = false
 
 [dependencies]
 sdl3 = { version = "=0.20.0", features = ["build-from-source-static", "build-from-source-unix-console"] }
-enigo = { git = "https://github.com/tompassarelli/enigo", rev = "ea81f5c1239534db48c51d46268d1ad80cc8057f" }
+enigo = { git = "https://github.com/tompassarelli/enigo", rev = "0b7bae348b0ba7108b81bc4c7267e5bb2d6a509b" }
 ctrlc = "3.5"
 
 [target.'cfg(target_os = "linux")'.dependencies]

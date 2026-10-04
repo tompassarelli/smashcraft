@@ -1,0 +1,55 @@
+{
+  "args": {
+    "binary": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/companion/target/debug/wc3-journal",
+    "out": "build/native-focus-directed-20261005",
+    "build": "editbox-catchup-20261005",
+    "x11_library": "/nix/store/2g9xwk5kis01003gynr7xfca667dpgv8-libx11-1.8.13/lib/libX11.so.6.4.0",
+    "wlrctl": "/nix/store/ci70n3x298zfp6r04hx0xaxiwz8akxin-wlrctl-0.2.2/bin/wlrctl",
+    "epoch": 1,
+    "private_a": "/run/user/1000/private-desktop.ua70lDgf",
+    "data_a": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "pid_a": 1427363,
+    "window_a": 102760449,
+    "app_id_a": "steam_app_3516115571",
+    "private_b": "/run/user/1000/private-desktop.DIasYMFK",
+    "data_b": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "pid_b": 1427372,
+    "window_b": 77594625,
+    "app_id_b": "steam_app_3516115572"
+  },
+  "capture_epoch_monotonic_ns": 552241917257201,
+  "transitions": [
+    {
+      "window": 163577857,
+      "observed_monotonic_ns": 552240961943402
+    },
+    {
+      "window": 102760449,
+      "observed_monotonic_ns": 552241115838046
+    },
+    {
+      "window": 163577857,
+      "observed_monotonic_ns": 552242789565547
+    },
+    {
+      "window": 102760449,
+      "observed_monotonic_ns": 552243293443631
+    }
+  ],
+  "sink_calibration": [
+    {
+      "type": "press",
+      "observed_monotonic_ns": 552240994170610
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 552240994188824
+    }
+  ],
+  "sink_key_events": [],
+  "failures": [
+    "RuntimeError('native client 0 rejected input')"
+  ],
+  "helper_sha256": "301da685e7a2df09023488ae902a11db514c5c112bf232eb8d03aee50e4fe854",
+  "scope": "Two virtual evdev pads, one 500 ms A focus interval, 300 frames; native gameplay traces are checked separately."
+}

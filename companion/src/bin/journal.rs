@@ -160,6 +160,7 @@ mod linux {
         owned: BTreeSet<usize>,
         queued: PendingOutput,
         gate: crate::focus::Gate,
+        target_window: u32,
         lost_focus: bool,
         current: Option<String>,
         offset: usize,
@@ -182,6 +183,7 @@ mod linux {
             editbox: bool,
             target: crate::focus::Target,
         ) -> Result<Self, String> {
+            let target_window = target.window;
             let gate = crate::focus::Gate::new(target)?;
             let settings = Settings {
                 x11_display: Some(display.to_owned()),
@@ -199,6 +201,7 @@ mod linux {
                 owned: BTreeSet::new(),
                 queued: PendingOutput::default(),
                 gate,
+                target_window,
                 lost_focus: false,
                 current: None,
                 offset: 0,
@@ -250,10 +253,11 @@ mod linux {
                     let eligible = self.eligible()?;
                     let output = &mut self.output;
                     let trace = self.trace;
+                    let target_window = self.target_window;
                     self.queued.emit_front(eligible, |wire| {
                         let started = Instant::now();
                         output
-                            .text(&(wire.to_owned() + ";"))
+                            .text_to_window(&(wire.to_owned() + ";"), target_window)
                             .map_err(|error| io::Error::other(error.to_string()))?;
                         if trace {
                             eprintln!(

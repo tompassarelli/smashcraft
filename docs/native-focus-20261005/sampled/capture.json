@@ -1,0 +1,183 @@
+{
+  "args": {
+    "binary": "/home/tom/code/wc3-melee/worktrees/editbox-pause-focus-20261005/companion/target/debug/wc3-journal",
+    "out": "build/native-focus-ready-20261005",
+    "build": "editbox-catchup-20261005",
+    "x11_library": "/nix/store/2g9xwk5kis01003gynr7xfca667dpgv8-libx11-1.8.13/lib/libX11.so.6.4.0",
+    "epoch": 1,
+    "private_a": "/run/user/1000/private-desktop.ua70lDgf",
+    "data_a": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "pid_a": 381957,
+    "window_a": 102760449,
+    "app_id_a": "steam_app_3516115571",
+    "private_b": "/run/user/1000/private-desktop.DIasYMFK",
+    "data_b": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "pid_b": 372514,
+    "window_b": 77594625,
+    "app_id_b": "steam_app_3516115572"
+  },
+  "capture_epoch_monotonic_ns": 550259982861487,
+  "transitions": [
+    {
+      "window": 71303169,
+      "observed_monotonic_ns": 550259096703142
+    },
+    {
+      "window": 102760449,
+      "observed_monotonic_ns": 550259181594675
+    },
+    {
+      "window": 71303169,
+      "observed_monotonic_ns": 550260901519301
+    },
+    {
+      "window": 102760449,
+      "observed_monotonic_ns": 550261400354064
+    }
+  ],
+  "sink_calibration": [
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550259113038051
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550259113055042
+    }
+  ],
+  "sink_key_events": [
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901652621
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901662209
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901669663
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901674983
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901679712
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901683890
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901688218
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901692075
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901696153
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901700711
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901704909
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901709287
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901713365
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901717202
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901720819
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901724866
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901728734
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901733442
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901737510
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901741758
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901745455
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901749342
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901753190
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901757307
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901761245
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901765002
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901769149
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901772766
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901776403
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901780310
+    },
+    {
+      "type": "press",
+      "observed_monotonic_ns": 550260901784528
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 550260901788395
+    }
+  ],
+  "failures": [
+    "RuntimeError('native client 0 rejected input')"
+  ],
+  "helper_sha256": "e41c384a6e361e2164ec39da52926faa3cf048d3b7c969cc2a9e4b5bad85d12c",
+  "scope": "Two virtual evdev pads, one 500 ms A focus interval, 300 frames; native gameplay traces are checked separately."
+}

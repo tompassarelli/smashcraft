@@ -39,6 +39,13 @@ These are software-stimulus-to-compositor measurements. Physical button-to-pixel
 remains unmeasured. Exact scope and baseline comparison:
 wc3-melee:docs/native-response-catchup-20261005/README.md.
 
+**Focus finding:** directed window text now avoids the observed cross-application
+leak (zero sink events, previously 32). The native receiver still dropped records
+at the focus transition: expected frame 47, next packet frame 57. The helper must
+retain and replay records until the map acknowledges them; emission alone is not
+receipt. This remains an open #26 defect, not a replacement release. Evidence:
+wc3-melee:docs/native-focus-20261005/README.md.
+
 ## The specific answers and their owners
 
 | Question / claim | Verdict | Canonical issue |
