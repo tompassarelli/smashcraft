@@ -11,20 +11,17 @@ Run the builder through the machine-capacity helper with the private terrain
 map as its argument. It does not install a map or control a Warcraft client.
 
 The current candidate is a one-player diagnostic map, Smashcraft 0.0.13,
-simulation source 36f99e92f24d8a59d7d1b6951583b9104fd2a300:
-~/code/wc3-melee/worktrees/melee-physics-public/build/physics-probe/native.bJd0hy/Smashcraft 0.0.13.w3x.
-SHA-256: 25e9dbe3eb67e24356a8ab3f2c9fb86a39084b4441e4bae1ca12e59c7eb608c7.
+simulation source d99141834e19518b47123dab5d7710bb6d64c0ba:
+~/code/wc3-melee/worktrees/melee-physics-public/build/physics-probe/native.sWMwP6/Smashcraft 0.0.13.w3x.
+SHA-256: 7589afc945c3409b39acb1cd92c04ae7fb9c4f790a2c9e0defe42620c3ba0aaf.
 The build reports zero errors and four standard-library unused-variable
 warnings; packaged Lua syntax and script roundtrip pass. Evidence:
-smashcraft:build/native-melee-powershield.log. This candidate has not been
+smashcraft:build/capsule-native-map.log. This candidate has not been
 installed or run natively.
 
 The builder now includes a sixteenth group, CAPSULE_SHIELD_CLASSIFICATION_PASS,
-covering 374 original capsule/shield classifications. A newly built candidate
-will require MESSAGES 19 and that additional passing group. The historical
-candidate above still contains fifteen groups and has not verified the current
-capsule precision repair. Its MESSAGES 18 acceptance below applies only to that
-historical candidate.
+covering 374 original capsule/shield classifications. The current candidate
+requires MESSAGES 19 and that additional passing group.
 
 On map initialization, the same authored comparisons used by the emitted-Lua
 precision check execute in Warcraft. Each report is a short independent Preload
@@ -35,9 +32,9 @@ commit, not a claim about native equivalence. NATIVE_PHYSICS_COMPLETED means
 the report finished; acceptance also requires all expected comparison results.
 
 For the current candidate, require a fresh export from the observed map load,
-the source marker above, MESSAGES 18, LAUNCH_MAGNITUDE_MISMATCH_COUNT=0,
+the source marker above, MESSAGES 19, LAUNCH_MAGNITUDE_MISMATCH_COUNT=0,
 DIRECTIONAL_INFLUENCE_MISMATCH_COUNT=0,
-DIRECTIONAL_INFLUENCE_DISCRETE_MISMATCH_COUNT=0, no failure records, and all fifteen passing groups:
+DIRECTIONAL_INFLUENCE_DISCRETE_MISMATCH_COUNT=0, no failure records, and all sixteen passing groups:
 
 - GROUNDED_BINARY32_EXACT_PASS
 - SHIELD_REGEN_BINARY32_EXACT_PASS
@@ -54,6 +51,7 @@ DIRECTIONAL_INFLUENCE_DISCRETE_MISMATCH_COUNT=0, no failure records, and all fif
 - HITLAG_SCALARS_EXACT_PASS
 - ANALOG_SHIELD_BINARY32_EXACT_PASS
 - DIRECTIONAL_INFLUENCE_BINARY32_EXACT_PASS
+- CAPSULE_SHIELD_CLASSIFICATION_PASS
 
 The fixtures cover recorded fall positions, grounded launch friction, selected
 shield arithmetic, airborne launch/recoil decay and position additions, signed

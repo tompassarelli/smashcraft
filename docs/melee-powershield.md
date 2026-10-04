@@ -116,8 +116,9 @@ The first is a point-path endpoint at (0.2273183912038803, 1.8602772951126099)
 against radius 1.8741145133972168: the original accepts it and the current
 double-precision squared-distance comparison rejects it. Projection and distance
 rounding remain to be established; simply matching symmetric tangency cases is
-insufficient. The production helper is not exact and this defect blocks its
-claim of Melee collision fidelity. All original executions remain unpatched.
+insufficient. Those disagreements exposed a production precision defect;
+its repair and bounded verification are recorded below. All original
+executions remain unpatched.
 The same three counterexamples now include original contact coordinates and
 signed contact-distance output. The first two report positive overlap
 1.1920928955078125e-7; the third reports negative overlap
