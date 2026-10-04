@@ -88,6 +88,24 @@ The current-source arithmetic candidate is Smashcraft 0.0.33, source
 ~/.local/share/smashcraft-build-inputs/native-physics-activation-20261004/native.A4CCF6/Smashcraft 0.0.33.w3x.
 SHA256: `197e0d4148c0f0680bc5b6b6513b836fbdc90505a36eea3a2f24d4e86e28036c`.
 Compilation reports zero errors and four warnings; Lua syntax and packaged-script
-comparison pass. Native execution is pending. Both stale diagnostic contact
+comparison pass. Native execution failed on the retained Warcraft client. Both stale diagnostic contact
 calls now use the production fighter roster API. Current acceptance uses the
 same sixteen groups and nineteen messages above, with this new source marker.
+
+
+## Native 0.0.33 counterexample
+
+A fresh one-player load exported source 7fd7c9debc50fa455167587a98aa6c0b48cb54fa,
+MESSAGES 689 and NATIVE_PHYSICS_FAIL. The export contains only source/count/final
+verdict; individual Preload calls made before PreloadGenStart were not retained.
+Fresh screen OCR includes SHIELD_CONTACT_SUM_BINARY32_EXACT_FAIL, recorded fall
+failures for frames -54 through -50, and SIGNED_ZERO_SIGN_1_angle_FAIL. Some
+fixture groups print PASS even after individual FAIL messages, so those banners
+do not establish passing groups. No arithmetic/native fidelity acceptance.
+
+Evidence: wc3-melee:docs/native-physics-precision-20261004/native0033.txt and
+wc3-melee:docs/native-physics-precision-20261004/native0033-screen.txt.
+The next diagnostic must retain individual results and truthful group verdicts,
+then separate fixture expectations from production/Lua32 arithmetic failures.
+A scoped child owns that repair and a 0.0.35 candidate; this root owns native
+client access. Peer communications remain stopped.
