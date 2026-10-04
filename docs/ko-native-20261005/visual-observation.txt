@@ -1,0 +1,1 @@
+A compositor video, 5.433333 seconds at 30fps. Authored Archer screen KO approaches the foreground, holds, drops; Rifleman recedes above the platform. Pause body crop at1.35s and1.8s RMSE: 1.89592 (2.89298e-05)

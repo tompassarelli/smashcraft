@@ -40,8 +40,8 @@ colors and lifetime tuning are changeable and are not fixed test requirements.
 | Charge / ready flash | Smash-charge entry and ready threshold | melee:src/melee/ft/kinds/ftCommon/ftCo_AttackS4.c | Charge-entry and full-charge flashes authored; headless entry/threshold/hitlag checks pass; native appearance pending |
 | Ledge catch / recovery | Actual catch or accepted ledge option | melee:src/melee/ft/kinds/ftCommon/ftCo_CliffCatch.c | Catch and accepted climb/roll/attack/jump cues authored at ledge lip; headless transition checks pass; native appearance pending |
 | Directional blast-zone KO | Actual stock loss at boundary; oriented outward | melee:src/melee/ft/ft_0D31.c | Stock-loss event drives directional burst; exact death rules remain unfinished |
-| Star KO | Eligible top death; fighter recedes/spins then sparkle | melee:src/melee/ft/ft_0D31.c DeadUpStar | Authored receding/spinning fighter and terminal sparkle implemented; native appearance pending |
-| Screen KO | Eligible top death; foreground flight/tumble/drop | melee:src/melee/ft/ft_0D31.c DeadUpFall; melee:src/melee/ft/ft_0D4D.c | Authored foreground flight, tumble and drop implemented; native appearance pending |
+| Star KO | Eligible top death; fighter recedes/spins then sparkle | melee:src/melee/ft/ft_0D31.c DeadUpStar | Authored receding/spinning Rifleman observed in native top-KO fixture; sparkle readability and camera extremes remain unaccepted |
+| Screen KO | Eligible top death; foreground flight/tumble/drop | melee:src/melee/ft/ft_0D31.c DeadUpFall; melee:src/melee/ft/ft_0D4D.c | Authored Archer foreground flight, tumble, hold and departure observed natively, including a pause/resume; wider camera/replay cases remain open |
 | Respawn arrival / protection | Out-to-live transition; spawn location/body | melee:src/melee/ft/kinds/ftCommon/ftCo_Rebirth.c | Out-to-live event drives arrival ring; native appearance unverified |
 | Freeze / ice break | Accepted freeze state and release | melee:src/melee/ft/kinds/ftCommon/ftCo_DamageIce.c | Existing FrostEffects, review pending |
 | Character-specific attacks | Existing authored Smashcraft special windows/contact | melee:src/melee/ft/kinds/ftFox; melee:src/melee/ft/kinds/ftFalco and other fighter families | Warcraft-specific SpecialEffects already exists; port only relevant effect language |
@@ -123,3 +123,19 @@ follows from this run. Use compositor recording for the next clip.
 Private artifact:
 ~/.local/share/smashcraft-build-inputs/playable-integration-20261005/build/ko-20261005.w3x,
 SHA256 `4f77cf28d711f8b73d2f40f425e6e92d52b3a202298f3bc94de280b351a15406`.
+
+The same artifact was successfully recorded with wf-recorder on 5 October.
+Two online clients reached the top-KO fixture. Archer visibly approaches the
+foreground, tumbles and holds before departing; Rifleman visibly recedes above
+the platform. A pause/resume during the sequence held the foreground pose:
+the central body crop at video 1.35 and 1.80 seconds has normalized pixel RMSE
+0.00002893 (lossy recording). The clips show the paused status, then resume and
+ordinary live fighters after the cinematic. No source or timing changes were
+needed for this observation.
+
+Both native traces have the same six confirmed frame/checksum checkpoints,
+from frame 0 through 222. This supports this two-character fixture and one pause;
+it does not certify Illidan, terminal sparkle readability, camera extremes,
+final-stock interruption, match reset or native correction appearance.
+Raw numeric evidence: wc3-melee:docs/ko-native-20261005/. Local video:
+wc3-melee:build/native-ko-capture-20261005/ko-pause.mp4.

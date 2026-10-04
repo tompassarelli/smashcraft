@@ -1,0 +1,29 @@
+[
+  {
+    "keys": [
+      "key",
+      "--clearmodifiers",
+      "y",
+      "ctrl+t"
+    ],
+    "monotonic_ns": 545738147260518
+  },
+  {
+    "state": "trace_started",
+    "monotonic_ns": 545738348164541
+  },
+  {
+    "keys": [
+      "key",
+      "y"
+    ],
+    "monotonic_ns": 545738845630953
+  },
+  {
+    "keys": [
+      "key",
+      "y"
+    ],
+    "monotonic_ns": 545740092456214
+  }
+]

@@ -1,0 +1,38 @@
+{
+  "source": "0507dbd",
+  "map": "ko-20261005",
+  "sha256": "4f77cf28d711f8b73d2f40f425e6e92d52b3a202298f3bc94de280b351a15406",
+  "paired_confirmed_checkpoints": [
+    [
+      "0",
+      "808493:359319"
+    ],
+    [
+      "37",
+      "241516:316511"
+    ],
+    [
+      "43",
+      "808018:470980"
+    ],
+    [
+      "102",
+      "759568:54489"
+    ],
+    [
+      "163",
+      "197263:885885"
+    ],
+    [
+      "222",
+      "940833:982510"
+    ]
+  ],
+  "recording_seconds": 5.433333,
+  "paused_visual_comparison_seconds": [
+    1.35,
+    1.8
+  ],
+  "paused_crop_normalized_rmse": 2.89298e-05,
+  "scope": "A recorded compositor, two online clients; authored Archer screen KO and Rifleman receding KO; one pause/resume; no camera extremes, Illidan or native replay correction verdict"
+}
