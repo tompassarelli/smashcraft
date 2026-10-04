@@ -1,0 +1,46 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":12,"aggregateCpuLimit":18,"leasedMemoryMiB":17152,"cpuSomeAvg10":1.96,"memoryFullAvg10":0,"memoryAvailableMiB":63267,"reclaimed":0,"lease":"6227ac40-62e8-4b14-9bb7-55cf301f5eeb","expiresAt":1791157014922}
+   Compiling wc3-controller v0.1.0 (/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/companion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.37s
+     Running unittests src/bin/journal.rs (target/debug/deps/wc3_journal-74fb9ddb175b82cd)
+
+running 33 tests
+test focus::linux::tests::pointer_root_requires_exact_active_and_pointer_recipient ... ok
+test focus::linux::tests::bridge_metadata_must_match_exact_id_and_be_unique ... ok
+test linux::controller_start_requests_pause_and_resume_once_per_press ... ok
+test linux::focus_loss_retains_assigned_rows_and_releases_after_the_open_frame ... ok
+test linux::control_reader_waits_for_the_native_writer_to_finish ... ok
+test linux::focus_return_requires_neutral_and_preserves_start_during_pause ... ok
+test linux::keyboard_mailbox_preserves_ascii_chunks_and_uses_nonconflicting_vks ... ok
+test linux::keyboard_mailbox_ack_requires_complete_matching_identity ... ok
+test linux::lifecycle_follows_only_fresh_complete_ready_and_new_epochs ... ok
+test linux::lifecycle_start_uses_publication_and_terminal_marker_follows_old_rows ... ok
+test linux::menu_taps_require_edges_and_neutral_across_phase_and_focus_changes ... ok
+test linux::queued_short_press_keeps_its_original_frames_across_a_250ms_service_stall ... ok
+test linux::menu_requires_fresh_complete_matching_map_permission ... ok
+test linux::reads_native_preload_readiness ... ok
+test linux::reads_sequenced_pause_and_resume_control_receipts ... ok
+test linux::reconnect_held_state_requires_neutral_before_gameplay_menu_and_pause ... ok
+test linux::reconnect_identity_requires_a_stable_discriminator_and_excludes_another_pad ... ok
+test linux::reconnect_retains_original_tap_and_releases_held_input_at_detection ... ok
+test linux::reconnect_sysfs_identity_retains_exact_discriminator ... ok
+test linux::resume_boundary_rearms_neutral_before_first_press_and_uses_half_open_frames ... ok
+test linux::resume_clock_rejects_steps_and_future_publications ... ok
+scan_sample=0 total_us=1655
+scan_sample=1 total_us=1005
+scan_sample=2 total_us=861
+test linux::reconnect_scan_latency_probe ... ok
+test linux::resume_starts_neutral_and_never_replays_held_pause_state ... ok
+test linux::resumed_segment_excludes_the_entire_pause_gap ... ok
+test linux::stalled_native_receiver_cannot_accumulate_unbounded_retry_copies ... ok
+test linux::text_queue_retains_sent_records_until_native_consumption_and_bounds_backlog ... ok
+test linux::text_receipt_progress_defers_retry_without_releasing_unconsumed_records ... ok
+test linux::text_receipts_require_complete_matching_native_publication ... ok
+test linux::text_received_credit_stops_at_sixteen_until_gameplay_consumes_records ... ok
+test linux::text_retries_only_the_first_missing_record_after_partial_receipt_progress ... ok
+test linux::text_window_is_pipelined_and_retries_original_sequence_after_missing_receipt ... ok
+test linux::vocabulary_publication_preserves_packets_acks_and_immutable_commit_boundary ... ok
+test linux::resume_publication_precedes_events_and_delayed_control_dequeue ... ok
+
+test result: ok. 33 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+{"decision":"RELEASED","lease":"6227ac40-62e8-4b14-9bb7-55cf301f5eeb"}

@@ -1,0 +1,74 @@
+[
+  {
+    "event": "menu",
+    "phase": "CHARACTER",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=0 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=1 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 565644627608911
+  },
+  {
+    "event": "menu",
+    "phase": "STAGE",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=0 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=1 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 565649322468353
+  },
+  {
+    "event": "menu",
+    "phase": "CHARACTER",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=0 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=1 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 565652270290846
+  },
+  {
+    "event": "menu",
+    "phase": "STAGE",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=0 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=1 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 565654658804753
+  },
+  {
+    "event": "start",
+    "epoch": 1,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-playable-0041-e1-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0041 epoch=1 slot=0 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791155811520356387,
+        "sample_monotonic_before_ns": 565657588848814,
+        "sample_realtime_ns": 1791155811539981854,
+        "sample_monotonic_after_ns": 565657588850548,
+        "publication_monotonic_estimate_ns": 565657569224214
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-playable-0041-e1-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0041 epoch=1 slot=1 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791155811527004655,
+        "sample_monotonic_before_ns": 565657588878901,
+        "sample_realtime_ns": 1791155811540010738,
+        "sample_monotonic_after_ns": 565657588879302,
+        "publication_monotonic_estimate_ns": 565657575873018
+      }
+    ],
+    "observed_monotonic_ns": 565657588901263
+  },
+  {
+    "event": "reconnect",
+    "epoch": 1,
+    "slot": 0,
+    "old_device": "/dev/input/event2",
+    "decoy_device": "/dev/input/event2",
+    "replacement_device": "/dev/input/event4",
+    "identity": "smashcraft-reconnect/native-controller-reconnect-20261005/pad-0",
+    "disconnected_monotonic_ns": 565659119157682,
+    "connected_monotonic_ns": 565660402768865
+  }
+]

@@ -1,0 +1,59 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":12,"aggregateCpuLimit":18,"leasedMemoryMiB":17152,"cpuSomeAvg10":0,"memoryFullAvg10":0,"memoryAvailableMiB":63436,"reclaimed":0,"lease":"9b094511-137f-43ec-bb5e-b424b9973b3e","expiresAt":1791156899300}
+   Compiling wc3-controller v0.1.0 (/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/companion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.18s
+     Running unittests src/bin/journal.rs (target/debug/deps/wc3_journal-74fb9ddb175b82cd)
+
+running 1 test
+scan_sample=0 path=/dev/input/event1 name=Some("Microsoft X-Box One S pad") open_us=42 close_us=17396
+scan_sample=0 path=/dev/input/event18 name=Some("kanata") open_us=62 close_us=11839
+scan_sample=0 path=/dev/input/event17 name=Some("HD-Audio Generic Headphone") open_us=50 close_us=33877
+scan_sample=0 path=/dev/input/event16 name=Some("HD-Audio Generic HDMI/DP,pcm=9") open_us=50 close_us=24861
+scan_sample=0 path=/dev/input/event15 name=Some("HD-Audio Generic HDMI/DP,pcm=8") open_us=83 close_us=31828
+scan_sample=0 path=/dev/input/event14 name=Some("HD-Audio Generic HDMI/DP,pcm=7") open_us=53 close_us=28876
+scan_sample=0 path=/dev/input/event13 name=Some("HD-Audio Generic HDMI/DP,pcm=3") open_us=52 close_us=25891
+scan_sample=0 path=/dev/input/event12 name=Some("PIXA3854:00 093A:0274 Touchpad") open_us=63 close_us=15856
+scan_sample=0 path=/dev/input/event11 name=Some("PIXA3854:00 093A:0274 Mouse") open_us=52 close_us=16871
+scan_sample=0 path=/dev/input/event10 name=Some("FRMW0004:00 32AC:0006 Consumer Control") open_us=48 close_us=16910
+scan_sample=0 path=/dev/input/event9 name=Some("FRMW0004:00 32AC:0006 Wireless Radio Control") open_us=62 close_us=18843
+scan_sample=0 path=/dev/input/event8 name=Some("Video Bus") open_us=60 close_us=21860
+scan_sample=0 path=/dev/input/event7 name=Some("Power Button") open_us=82 close_us=15753
+scan_sample=0 path=/dev/input/event6 name=Some("Lid Switch") open_us=36 close_us=16913
+scan_sample=0 path=/dev/input/event0 name=Some("AT Translated Set 2 keyboard") open_us=40 close_us=9920
+scan_sample=0 total_us=309589
+scan_sample=1 path=/dev/input/event1 name=Some("Microsoft X-Box One S pad") open_us=34 close_us=14804
+scan_sample=1 path=/dev/input/event18 name=Some("kanata") open_us=42 close_us=14891
+scan_sample=1 path=/dev/input/event17 name=Some("HD-Audio Generic Headphone") open_us=98 close_us=25801
+scan_sample=1 path=/dev/input/event16 name=Some("HD-Audio Generic HDMI/DP,pcm=9") open_us=59 close_us=30847
+scan_sample=1 path=/dev/input/event15 name=Some("HD-Audio Generic HDMI/DP,pcm=8") open_us=51 close_us=36877
+scan_sample=1 path=/dev/input/event14 name=Some("HD-Audio Generic HDMI/DP,pcm=7") open_us=48 close_us=29883
+scan_sample=1 path=/dev/input/event13 name=Some("HD-Audio Generic HDMI/DP,pcm=3") open_us=53 close_us=26917
+scan_sample=1 path=/dev/input/event12 name=Some("PIXA3854:00 093A:0274 Touchpad") open_us=85 close_us=14762
+scan_sample=1 path=/dev/input/event11 name=Some("PIXA3854:00 093A:0274 Mouse") open_us=51 close_us=14904
+scan_sample=1 path=/dev/input/event10 name=Some("FRMW0004:00 32AC:0006 Consumer Control") open_us=63 close_us=12814
+scan_sample=1 path=/dev/input/event9 name=Some("FRMW0004:00 32AC:0006 Wireless Radio Control") open_us=41 close_us=16887
+scan_sample=1 path=/dev/input/event8 name=Some("Video Bus") open_us=79 close_us=9846
+scan_sample=1 path=/dev/input/event7 name=Some("Power Button") open_us=49 close_us=12856
+scan_sample=1 path=/dev/input/event6 name=Some("Lid Switch") open_us=43 close_us=18940
+scan_sample=1 path=/dev/input/event0 name=Some("AT Translated Set 2 keyboard") open_us=52 close_us=16835
+scan_sample=1 total_us=299957
+scan_sample=2 path=/dev/input/event1 name=Some("Microsoft X-Box One S pad") open_us=35 close_us=12837
+scan_sample=2 path=/dev/input/event18 name=Some("kanata") open_us=52 close_us=17886
+scan_sample=2 path=/dev/input/event17 name=Some("HD-Audio Generic Headphone") open_us=44 close_us=28902
+scan_sample=2 path=/dev/input/event16 name=Some("HD-Audio Generic HDMI/DP,pcm=9") open_us=51 close_us=29865
+scan_sample=2 path=/dev/input/event15 name=Some("HD-Audio Generic HDMI/DP,pcm=8") open_us=52 close_us=25855
+scan_sample=2 path=/dev/input/event14 name=Some("HD-Audio Generic HDMI/DP,pcm=7") open_us=55 close_us=31855
+scan_sample=2 path=/dev/input/event13 name=Some("HD-Audio Generic HDMI/DP,pcm=3") open_us=81 close_us=25848
+scan_sample=2 path=/dev/input/event12 name=Some("PIXA3854:00 093A:0274 Touchpad") open_us=80 close_us=9805
+scan_sample=2 path=/dev/input/event11 name=Some("PIXA3854:00 093A:0274 Mouse") open_us=54 close_us=12883
+scan_sample=2 path=/dev/input/event10 name=Some("FRMW0004:00 32AC:0006 Consumer Control") open_us=67 close_us=13815
+scan_sample=2 path=/dev/input/event9 name=Some("FRMW0004:00 32AC:0006 Wireless Radio Control") open_us=34 close_us=10928
+scan_sample=2 path=/dev/input/event8 name=Some("Video Bus") open_us=48 close_us=18887
+scan_sample=2 path=/dev/input/event7 name=Some("Power Button") open_us=52 close_us=8875
+scan_sample=2 path=/dev/input/event6 name=Some("Lid Switch") open_us=42 close_us=11868
+scan_sample=2 path=/dev/input/event0 name=Some("AT Translated Set 2 keyboard") open_us=42 close_us=12894
+scan_sample=2 total_us=274986
+test linux::reconnect_scan_latency_probe ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 31 filtered out; finished in 0.88s
+
+{"decision":"RELEASED","lease":"9b094511-137f-43ec-bb5e-b424b9973b3e"}

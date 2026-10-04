@@ -126,8 +126,9 @@ def main():
                         if (v := row.split()) and v[0].isdigit() and int(v[0]) in frames]
             held = [state for frame, state in observed if shield_frame + 2 <= frame < disconnect_frame]
             assert len(held) >= 2 and all(state == 1 for state in held), "pre-disconnect shield absent"
-            released = [state for frame, state in observed if disconnect_frame + 2 <= frame <= disconnect_frame + 20]
-            assert len(released) >= 2 and all(state == 0 for state in released), "disconnect left shield held"
+            fresh_frame = match["players"][slot]["tap_edges"][-2]["assigned_frame"]
+            released = [state for frame, state in observed if disconnect_frame + 2 <= frame <= fresh_frame + 5]
+            assert len(released) >= 2 and all(state == 0 for state in released), "shield stuck or reactivated before neutral rearm"
             match["reconnect"] = dict(slot=slot, release_frame=disconnect_frame,
                                       confirmed_held_samples=len(held), confirmed_released_samples=len(released),
                                       original_device=journey["old_device"], replacement_device=journey["replacement_device"],

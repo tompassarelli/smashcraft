@@ -1,0 +1,12 @@
+{
+  "map_release": "0.0.41",
+  "build": "playable-0041",
+  "map_source": "d12a2bf",
+  "helper_source": "007b5b8",
+  "driver_source": "eb96b22",
+  "map_sha256": "25493bacd040fc08b380df0589f31631055f9032fd84671c0c5d9f639200a533",
+  "helper_sha256": "b5ff04432803aaba596dae08b1ffa108dbae8541cfdba68fab1c4b947786c20a",
+  "failed_helper_source": "41d785c",
+  "failed_helper_sha256": "18ac908b73bc839a2bdb5043ebd549ba7f1142a83932dd93fd631899b2e0fb95",
+  "scope": "Virtual Linux pads, two native clients on one host; bounded removal/reconnect, no physical or cross-machine timing claim."
+}

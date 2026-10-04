@@ -1,0 +1,16 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":12,"aggregateCpuLimit":18,"leasedMemoryMiB":17152,"cpuSomeAvg10":0.21,"memoryFullAvg10":0,"memoryAvailableMiB":63392,"reclaimed":0,"lease":"d1275685-314f-450b-b30a-25c5e3dbb9bd","expiresAt":1791157040610}
+   Compiling wc3-controller v0.1.0 (/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/companion)
+warning: method `acknowledge` is never used
+   --> src/bin/journal.rs:193:12
+    |
+156 |     impl TextWindow {
+    |     --------------- method in this implementation
+...
+193 |         fn acknowledge(&mut self, queue: &mut PendingOutput, sequence: u32) -> io::Result<()> {
+    |            ^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `wc3-controller` (bin "wc3-journal") generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.40s
+{"decision":"RELEASED","lease":"d1275685-314f-450b-b30a-25c5e3dbb9bd"}

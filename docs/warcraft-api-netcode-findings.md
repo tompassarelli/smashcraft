@@ -13,6 +13,17 @@ wc3-melee:docs/netplay-status.md. #26 owns the known polling-loss failure;
 completed bounded results. The current playable Linux controller checkpoint is
 0.0.41; exact 0.0.40 is preserved.
 
+**Linux controller reconnect:** an updated helper now survives removal and
+reopens the uniquely matching device without resetting the match or frame
+origin. Both players passed a native removal/reconnect journey with virtual
+pads: neutral release at frame 93, fresh 5 ms tap applied once at original frame
+181 on both clients, no input from a different pad at the old event number, and
+matching result states. The first attempt failed because opening/closing all
+evdev devices stalled discovery for 275–310 ms per scan. Kernel identity lookup
+before opening the matching device reduced scans to 0.86–1.66 ms; the repeated
+native journey passed with unchanged queue/frame rules. Exact scope and retained
+failure: wc3-melee:docs/controller-reconnect-native-20261005/README.md.
+
 **5 October progress:** the editbox journal path now retains the tested 5 ms
 inputs through helper/game stalls and window-focus loss, follows pause/resume
 and match publications, and completes controller-only menus/results/rematch.

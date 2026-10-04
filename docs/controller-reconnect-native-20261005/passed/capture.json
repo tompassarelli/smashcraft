@@ -1,0 +1,234 @@
+{
+  "settings": {
+    "binary": "/home/tom/.local/share/smashcraft-build-inputs/playable-integration-20261005/build/wc3-journal-reconnect-scanfix-20261005",
+    "out": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-reconnect-scanfix-20261005",
+    "build": "playable-0041",
+    "x11_library": "/nix/store/2g9xwk5kis01003gynr7xfca667dpgv8-libx11-1.8.13/lib/libX11.so.6.4.0",
+    "wlrctl": "/nix/store/ci70n3x298zfp6r04hx0xaxiwz8akxin-wlrctl-0.2.2/bin/wlrctl",
+    "epoch": 1,
+    "without_focus_loss": false,
+    "private_a": "/run/user/1000/private-desktop.ua70lDgf",
+    "data_a": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "pid_a": 1520922,
+    "window_a": 77594625,
+    "app_id_a": "steam_app_3516115571",
+    "private_b": "/run/user/1000/private-desktop.DIasYMFK",
+    "data_b": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "pid_b": 1533110,
+    "window_b": 77594625,
+    "app_id_b": "steam_app_3516115572"
+  },
+  "combat_actions": false,
+  "controller_reconnect": true,
+  "helper_pids": [
+    1931821,
+    1931851
+  ],
+  "events": [
+    {
+      "event": "menu",
+      "phase": "CHARACTER",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=0 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=1 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+      ],
+      "observed_monotonic_ns": 566027526162716
+    },
+    {
+      "event": "menu",
+      "phase": "STAGE",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=0 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=1 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+      ],
+      "observed_monotonic_ns": 566032238798182
+    },
+    {
+      "event": "menu",
+      "phase": "CHARACTER",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=0 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=1 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+      ],
+      "observed_monotonic_ns": 566035148103532
+    },
+    {
+      "event": "menu",
+      "phase": "STAGE",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=0 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=1 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+      ],
+      "observed_monotonic_ns": 566037572742966
+    },
+    {
+      "event": "start",
+      "epoch": 1,
+      "publications": [
+        {
+          "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-playable-0041-e1-s0.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0041 epoch=1 slot=0 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+          "mtime_realtime_ns": 1791156194248060129,
+          "sample_monotonic_before_ns": 566040313574006,
+          "sample_realtime_ns": 1791156194264707166,
+          "sample_monotonic_after_ns": 566040313575770,
+          "publication_monotonic_estimate_ns": 566040296927851
+        },
+        {
+          "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-playable-0041-e1-s1.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0041 epoch=1 slot=1 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+          "mtime_realtime_ns": 1791156194242652575,
+          "sample_monotonic_before_ns": 566040313606658,
+          "sample_realtime_ns": 1791156194264738495,
+          "sample_monotonic_after_ns": 566040313607068,
+          "publication_monotonic_estimate_ns": 566040291520943
+        }
+      ],
+      "observed_monotonic_ns": 566040313630092
+    },
+    {
+      "event": "reconnect",
+      "epoch": 1,
+      "slot": 0,
+      "old_device": "/dev/input/event2",
+      "decoy_device": "/dev/input/event2",
+      "replacement_device": "/dev/input/event4",
+      "identity": "smashcraft-reconnect/native-controller-reconnect-scanfix-20261005/pad-0",
+      "disconnected_monotonic_ns": 566041843152299,
+      "connected_monotonic_ns": 566042756918919
+    },
+    {
+      "event": "end",
+      "epoch": 1,
+      "publications": [
+        {
+          "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-playable-0041-e1-s0.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0041 epoch=1 slot=0 sequence=0 state=END frame=561\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+          "mtime_realtime_ns": 1791156203689591347,
+          "sample_monotonic_before_ns": 566049816295069,
+          "sample_realtime_ns": 1791156203767428209,
+          "sample_monotonic_after_ns": 566049816296862,
+          "publication_monotonic_estimate_ns": 566049738459103
+        },
+        {
+          "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-playable-0041-e1-s1.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0041 epoch=1 slot=1 sequence=0 state=END frame=563\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+          "mtime_realtime_ns": 1791156203686881990,
+          "sample_monotonic_before_ns": 566049816368677,
+          "sample_realtime_ns": 1791156203767500404,
+          "sample_monotonic_after_ns": 566049816369018,
+          "publication_monotonic_estimate_ns": 566049735750433
+        }
+      ],
+      "observed_monotonic_ns": 566049816399615
+    },
+    {
+      "event": "menu",
+      "phase": "RESULT",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=1 slot=0 phase=RESULT\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=1 slot=1 phase=RESULT\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+      ],
+      "observed_monotonic_ns": 566062271462808
+    },
+    {
+      "event": "menu",
+      "phase": "CHARACTER",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=1 slot=0 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=1 slot=1 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+      ],
+      "observed_monotonic_ns": 566062397716487
+    },
+    {
+      "event": "menu",
+      "phase": "STAGE",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=1 slot=0 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=1 slot=1 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+      ],
+      "observed_monotonic_ns": 566067243740659
+    },
+    {
+      "event": "menu",
+      "phase": "CHARACTER",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=1 slot=0 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=1 slot=1 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+      ],
+      "observed_monotonic_ns": 566070171448283
+    },
+    {
+      "event": "menu",
+      "phase": "STAGE",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=1 slot=0 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=1 slot=1 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+      ],
+      "observed_monotonic_ns": 566072594124953
+    },
+    {
+      "event": "start",
+      "epoch": 2,
+      "publications": [
+        {
+          "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-playable-0041-e2-s0.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0041 epoch=2 slot=0 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+          "mtime_realtime_ns": 1791156229349418202,
+          "sample_monotonic_before_ns": 566075400034160,
+          "sample_realtime_ns": 1791156229351166999,
+          "sample_monotonic_after_ns": 566075400035693,
+          "publication_monotonic_estimate_ns": 566075398286129
+        },
+        {
+          "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-playable-0041-e2-s1.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0041 epoch=2 slot=1 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+          "mtime_realtime_ns": 1791156229347011511,
+          "sample_monotonic_before_ns": 566075400124830,
+          "sample_realtime_ns": 1791156229351256607,
+          "sample_monotonic_after_ns": 566075400125150,
+          "publication_monotonic_estimate_ns": 566075395879894
+        }
+      ],
+      "observed_monotonic_ns": 566075400152421
+    },
+    {
+      "event": "reconnect",
+      "epoch": 2,
+      "slot": 1,
+      "old_device": "/dev/input/event3",
+      "decoy_device": "/dev/input/event3",
+      "replacement_device": "/dev/input/event5",
+      "identity": "smashcraft-reconnect/native-controller-reconnect-scanfix-20261005/pad-1",
+      "disconnected_monotonic_ns": 566076938227786,
+      "connected_monotonic_ns": 566077851964465
+    },
+    {
+      "event": "end",
+      "epoch": 2,
+      "publications": [
+        {
+          "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-playable-0041-e2-s0.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0041 epoch=2 slot=0 sequence=0 state=END frame=559\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+          "mtime_realtime_ns": 1791156238761044599,
+          "sample_monotonic_before_ns": 566084868755998,
+          "sample_realtime_ns": 1791156238819889168,
+          "sample_monotonic_after_ns": 566084868757831,
+          "publication_monotonic_estimate_ns": 566084809912345
+        },
+        {
+          "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-playable-0041-e2-s1.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0041 epoch=2 slot=1 sequence=0 state=END frame=559\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+          "mtime_realtime_ns": 1791156238761541143,
+          "sample_monotonic_before_ns": 566084868812524,
+          "sample_realtime_ns": 1791156238819944261,
+          "sample_monotonic_after_ns": 566084868812834,
+          "publication_monotonic_estimate_ns": 566084810409561
+        }
+      ],
+      "observed_monotonic_ns": 566084868838302
+    }
+  ],
+  "helper_sha256": "b5ff04432803aaba596dae08b1ffa108dbae8541cfdba68fab1c4b947786c20a",
+  "scope": "Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; controller-only game menus (keyboard diagnostic trace toggle); controller removal/recreation and neutral rearm; no physical or cross-machine alignment claim."
+}

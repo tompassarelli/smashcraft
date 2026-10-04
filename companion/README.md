@@ -240,9 +240,22 @@ and publishes its fixed local quiescence acknowledgment; only then does the map
 close the editbox. The helper clears an earlier acknowledgment before announcing
 readiness, so it cannot satisfy a new match. Results controls unlock after every human helper has stopped. The same process
 then follows the next fresh epoch with neutral rearming and empty match queues.
-This supports within-map rematches; map reload and reconnect are not promised.
+This supports within-map rematches; automatic map reload remains unsupported.
 Logs identify `waiting_for_match`, `match_ready`, `match_start`, `match_end`, and
 `match_quiescent`, with the epoch and startup timestamp uncertainty.
+
+On controller removal, the journal retains earlier captured input and emits a
+neutral release at the first unassigned frame at detection. It continues neutral
+rows while disconnected. Reconnect discovery reads kernel identity files and
+opens only a unique match for the selected Linux input ID, name, physical path
+and unique name, then rechecks the opened device. At least one physical/unique
+discriminator is required; missing or ambiguous identity never selects another
+pad. Changing USB ports can change the physical path. Controls held on return
+must become neutral before new gameplay, menu or pause inputs are accepted.
+`controller_disconnected` records detection; `controller_release frame=N`
+records its assigned release; `controller_reconnected source=...` identifies
+the recovered event path. Bounded native recovery is recorded in
+wc3-melee:docs/controller-reconnect-native-20261005/README.md.
 
 The explicit `--ready-file PATH --epoch-monotonic-ns NS` mode remains for native
 diagnostic drivers. `--first-frame N` (default 1) and `--stop-frame N` belong to
@@ -265,7 +278,7 @@ focus and pause/resume trials. Automatic start/results/rematch with the same
 helpers passed two native match lifecycles; keyboard confirmed the menus.
 See `wc3-melee:docs/match-lifecycle-native-20261005/README.md` for exact builds,
 failed attempts and limits. Physical controller-to-screen timing, cross-machine
-clock agreement, chat, reconnect and other-platform acceptance remain open.
+clock agreement, chat, physical reconnect and other-platform acceptance remain open.
 
 ### Journal keyboard focus boundary
 

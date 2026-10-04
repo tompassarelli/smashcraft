@@ -12,6 +12,17 @@ physical response, cross-machine clock/fairness and broader acceptance remain.
 Exact older 0.0.40 is preserved with its known polling-loss limitation.
 Startup/artifacts: wc3-melee:docs/playable-0041.md.
 
+**Controller reconnect delivered:** the updated helper recovers a uniquely
+matching Linux pad without restarting the match. Both players passed removal
+while shielding, rejection of a different pad at the old event number, held
+input suppression on return and a fresh 5 ms tap at its original frame 181.
+Both native clients agreed on all 12 attack applications and both result states;
+no queue failure or trace drop occurred. The first attempt exposed 275–310 ms
+device-discovery scans; reading kernel identity before opening devices reduced
+that to 0.86–1.66 ms. Exact virtual-device scope, failed attempt and acceptance:
+wc3-melee:docs/controller-reconnect-native-20261005/README.md. Physical and
+different-port reconnect, chat and map reload remain open.
+
 **5 October implementation advance:** the repaired editbox controller candidate
 delivered all 300 original frames per player in a two-client native trial.
 Three 5 ms Attack taps, including taps during ~250 ms helper/game interruptions,
@@ -98,7 +109,7 @@ wc3-melee:docs/resume-clock-native-20261005/README.md.
 | Does sampled, eligible shield input enter local prediction without waiting for sync? | Demonstrated: 12/12 presses in the capture callback on 0.0.40. Logical state, not physical pixels or all moves. | [#28, completed](https://github.com/tompassarelli/smashcraft/issues/28) |
 | Can late original-frame input repair the combat outcome? | Demonstrated for the native F5 shield corpus: damage 12 becomes 0, shieldstun 7, canonical and confirmed states agree. | [#29, completed](https://github.com/tompassarelli/smashcraft/issues/29) |
 | Have selection/GameCache beaten direct sync? | No in the corrected bounded 60 Hz comparison; direct sync is the selected baseline. | [#30, completed comparison](https://github.com/tompassarelli/smashcraft/issues/30) |
-| Can short inputs disappear or merge? | The 0.0.41 controller path has bounded tap/stall, focus and rematch passes. The older 0.0.40 polling path can miss/coalesce inputs. Chat, reconnect and hardware acceptance remain open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
+| Can short inputs disappear or merge? | The 0.0.41 controller path has bounded tap/stall, focus, reconnect and rematch passes. The older 0.0.40 polling path can miss/coalesce inputs. Chat, physical reconnect and broader hardware acceptance remain open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
 | Is every acquired input assigned to its intended frame despite delayed service? | The path released in 0.0.41 preserves tested tap/stall frames and keeps a post-resume tap at frame 98 despite a 361 ms delayed resume read. Local publication anchors still differ; cross-machine alignment remains open. | [#25, partial](https://github.com/tompassarelli/smashcraft/issues/25) |
 | What physical response and 3–5-frame variation should a player expect? | Candidate B software shield response: 12/12 presses, median 67.95 ms, max 98.17 ms. The measured admission backlog is fixed: 13/13 retained edge rows predict in the same callback. Physical response remains unmeasured. | [#27, partial](https://github.com/tompassarelli/smashcraft/issues/27) |
 | Can two clients fight and rematch? | Installed 0.0.41 passes controller-only menus, damaging combat, shield overlap, pause and rematch with persistent helpers. Full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |
@@ -219,7 +230,7 @@ original descriptions remain accessible. Those closures are not completion.
 | #20 2–4 players / ten matches | Consolidated into #17; the full requested match corpus remains required. |
 | #21 Timeboxed integrity decision | Already completed as a HOLD decision, not a positive readiness result. |
 | #25 Intended frames | Open; canonical owner for frame assignment, clock and pause semantics. |
-| #26 Input retention | Partial; 0.0.41 delivers the path with bounded tap/stall, pause/focus, shield overlap and combat/rematch passes. Chat, reconnect and hardware acceptance remain open; the preserved older 0.0.40 retains its polling limitation. |
+| #26 Input retention | Partial; 0.0.41 and its repaired helper have bounded tap/stall, pause/focus, shield overlap, reconnect and combat/rematch passes. Chat, physical reconnect and broader hardware acceptance remain open; preserved 0.0.40 retains its polling limitation. |
 | #27 Response/variation | Partial; candidate software shield response measured and admission-to-prediction delay repaired with native evidence. Broader action/physical scope remains. |
 | #28 After-capture shield prediction | Completed bounded evidence, registered during this review. |
 | #29 Native tagged defense rollback | Completed bounded evidence, registered during this review. |
@@ -262,7 +273,8 @@ delivery branch or making all research claims prerequisites for merging it.
 
 1. **#26/#18: extend the now-playable controller path at its remaining seams.**
    Tap/stall, bounded focus/pause and controller combat/rematch are banked. The
-   0.0.41 usable checkpoint is delivered. Chat/reconnect, physical play and other
+   0.0.41 usable checkpoint and bounded reconnect repair are delivered. Chat,
+   physical reconnect/play, map reload and other
    platforms remain; do not repeat the successful corpus merely for confidence.
 2. **#25: preserve the chosen frame contract.** Define active-match clock and
    pause behavior, then compare independent expected/assigned/applied frames.
