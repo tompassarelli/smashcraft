@@ -1,0 +1,9 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "SMASHCRAFT TEXT ACK v=1 build=text-receive-queue-20261005 epoch=1 slot=1 received=150 consumed=150 revision=376" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

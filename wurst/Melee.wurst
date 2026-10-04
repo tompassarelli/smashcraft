@@ -1430,7 +1430,7 @@ function beginShadowEpoch() returns boolean
         if not journalInput.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot, SHADOW_INPUT_DELAY)
             failJournalInput("epoch could not be initialized")
         if JOURNAL_EDITBOX_INGRESS
-            editboxJournalIngress.beginEpoch()
+            editboxJournalIngress.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot)
         if JOURNAL_KEYBOARD_INGRESS
 			keyboardJournalIngress.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot)
     currentFrameInput.reset()
@@ -2057,6 +2057,8 @@ function callbackMatchTick()
         applyFrame()
 
 function gameTick()
+    if JOURNAL_EDITBOX_INGRESS
+        editboxJournalIngress.tick()
     serviceEditboxJournalPauseRequest()
     if JOURNAL_EDITBOX_INGRESS and (not shadowInputActive or matchState.phase != MATCH)
         editboxJournalIngress.endEpoch()

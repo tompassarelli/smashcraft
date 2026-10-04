@@ -39,12 +39,15 @@ These are software-stimulus-to-compositor measurements. Physical button-to-pixel
 remains unmeasured. Exact scope and baseline comparison:
 wc3-melee:docs/native-response-catchup-20261005/README.md.
 
-**Focus finding:** directed window text now avoids the observed cross-application
-leak (zero sink events, previously 32). The native receiver still dropped records
-at the focus transition: expected frame 47, next packet frame 57. The helper must
-retain and replay records until the map acknowledges them; emission alone is not
-receipt. This remains an open #26 defect, not a replacement release. Evidence:
-wc3-melee:docs/native-focus-20261005/README.md.
+**Focus recovery checkpoint:** bounded native receive queuing now drains all150
+records/player after the500ms focus switch; both clients confirm frame300 with
+matching state,300 sent/received frames and zero unmatched receipts. No keys
+reached the other window. Fast recovery remains unfinished: A's own-sync echo
+median/max reached3388/6293ms and its helper emitted423 envelopes for150 records.
+The retry timer can replay young records despite advancing receipts; that is the
+next repair. Detailed second-attack application fell outside the initial trace.
+This is a bounded delivery recovery, not full focus acceptance or a new playable
+release. Evidence: wc3-melee:docs/native-text-receipts-20261005/README.md.
 
 ## The specific answers and their owners
 

@@ -1,0 +1,126 @@
+package JournalTextStream
+import InputProtocol
+
+public constant int JOURNAL_TEXT_WAIT = 0
+public constant int JOURNAL_TEXT_READY = 1
+public constant int JOURNAL_TEXT_SKIP = 2
+public constant int JOURNAL_TEXT_INVALID = 3
+public constant int JOURNAL_TEXT_WINDOW = 16
+
+public function journalTextPad(int value, int width) returns string
+    var result = I2S(value)
+    while result.length() < width
+        result = "0" + result
+    return result
+
+public function journalTextChecksum(string text) returns int
+    var result = 0
+    let alphabet = INPUT_ALPHABET + "|"
+    for i = 0 to text.length() - 1
+        let symbol = alphabet.indexOf(text.charAt(i))
+        if symbol < 0
+            return -1
+        result = (result * 251 + symbol + 1) mod 65521
+    return result
+
+public function journalTextEnvelope(int epoch, int sequence, string payload) returns string
+    let identity = journalTextPad(epoch, 10) + journalTextPad(sequence, 10)
+    return "@J1" + identity + journalTextPad(journalTextChecksum(identity + "|" + payload), 5) + "|" + payload + ";"
+
+// Reception and gameplay consumption have separate cumulative cursors. The
+// receive window is bounded so text can be drained while gameplay admission
+// waits, without acknowledging application early.
+public class JournalTextStream
+    private int epoch = 0
+    private int receivedSequence = 0
+    private int consumedSequence = 0
+    private int width = 0
+    private int state = JOURNAL_TEXT_WAIT
+    private string payload = ""
+    private string envelope = ""
+    private string array[JOURNAL_TEXT_WINDOW] accepted
+    private int array[JOURNAL_TEXT_WINDOW] acceptedSequence
+
+    function reset(int newEpoch)
+        epoch = newEpoch
+        receivedSequence = 0
+        consumedSequence = 0
+        width = 0
+        state = JOURNAL_TEXT_WAIT
+        payload = ""
+        envelope = ""
+        for i = 0 to JOURNAL_TEXT_WINDOW - 1
+            accepted[i] = ""
+            acceptedSequence[i] = 0
+
+    function acknowledged() returns int
+        return consumedSequence
+
+    function received() returns int
+        return receivedSequence
+
+    function discardWidth() returns int
+        return width
+
+    function wire() returns string
+        if receivedSequence <= consumedSequence
+            return ""
+        return accepted[(consumedSequence + 1) mod JOURNAL_TEXT_WINDOW]
+
+    function inspect(string text) returns int
+        state = JOURNAL_TEXT_WAIT
+        width = 0
+        payload = ""
+        envelope = ""
+        if text == ""
+            return state
+        let start = text.indexOf("@")
+        if start != 0
+            width = start < 0 ? text.length() : start
+            state = JOURNAL_TEXT_SKIP
+            return state
+        let delimiter = text.indexOf(";")
+        let another = text.substring(1).indexOf("@")
+        if another >= 0 and (delimiter < 0 or another + 1 < delimiter)
+            width = another + 1
+            state = JOURNAL_TEXT_SKIP
+            return state
+        if delimiter < 0
+            return state
+        width = delimiter + 1
+        state = JOURNAL_TEXT_SKIP
+        if delimiter < 30 or text.substring(0, 3) != "@J1" or text.charAt(28) != "|"
+            return state
+        let epochText = text.substring(3, 13)
+        let sequenceText = text.substring(13, 23)
+        let checksumText = text.substring(23, 28)
+        let sequence = S2I(sequenceText)
+        let checksum = S2I(checksumText)
+        if epochText != journalTextPad(epoch, 10) or sequence < 1 or sequenceText != journalTextPad(sequence, 10) or checksum < 0 or checksumText != journalTextPad(checksum, 5)
+            return state
+        let candidate = text.substring(29, delimiter)
+        if checksum != journalTextChecksum(epochText + sequenceText + "|" + candidate)
+            return state
+        if sequence <= receivedSequence
+            if receivedSequence - sequence < JOURNAL_TEXT_WINDOW and acceptedSequence[sequence mod JOURNAL_TEXT_WINDOW] == sequence and accepted[sequence mod JOURNAL_TEXT_WINDOW] != candidate
+                state = JOURNAL_TEXT_INVALID
+            return state
+        if sequence != receivedSequence + 1
+            return state
+        if receivedSequence - consumedSequence >= JOURNAL_TEXT_WINDOW
+            state = JOURNAL_TEXT_WAIT
+            width = 0
+            return state
+        accepted[sequence mod JOURNAL_TEXT_WINDOW] = candidate
+        acceptedSequence[sequence mod JOURNAL_TEXT_WINDOW] = sequence
+        receivedSequence = sequence
+        payload = candidate
+        envelope = text.substring(0, width)
+        state = JOURNAL_TEXT_READY
+        return state
+
+    function consumed() returns boolean
+        if receivedSequence <= consumedSequence or consumedSequence >= 2147483647
+            return false
+        consumedSequence++
+        return true

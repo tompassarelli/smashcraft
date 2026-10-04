@@ -125,18 +125,6 @@ mod linux {
             Ok(())
         }
 
-        fn emit_front(
-            &mut self,
-            eligible: bool,
-            emit: impl FnOnce(&str) -> io::Result<()>,
-        ) -> io::Result<()> {
-            if let Some(wire) = self.records.front().filter(|_| eligible) {
-                emit(wire)?;
-                self.pop();
-            }
-            Ok(())
-        }
-
         fn pop(&mut self) -> Option<String> {
             let wire = self.records.pop_front()?;
             self.bytes -= wire.len() + 1;
@@ -146,6 +134,153 @@ mod linux {
         fn is_empty(&self) -> bool {
             self.records.is_empty()
         }
+    }
+
+    const TEXT_WINDOW: usize = 16;
+    const TEXT_RETRY: Duration = Duration::from_millis(250);
+
+    #[derive(Default)]
+    struct TextWindow {
+        received: u32,
+        consumed: u32,
+        highest_sent: u32,
+        next_sequence: u32,
+        retry_at: Option<Instant>,
+        receipt_revision: u32,
+        retried_revision: u32,
+    }
+
+    impl TextWindow {
+        fn receipt(&mut self, queue: &mut PendingOutput, received: u32, consumed: u32, revision: u32) -> io::Result<()> {
+            if received > self.highest_sent || consumed > received {
+                return Err(io::Error::other("native text receipt acknowledges an unsent or unreceived record"));
+            }
+            if received >= self.received {
+                self.received = received;
+            }
+            self.next_sequence = self.next_sequence.max(self.received + 1);
+            if consumed > self.consumed {
+                let count = (consumed - self.consumed) as usize;
+                if count > queue.records.len() {
+                    return Err(io::Error::other("native consumed receipt exceeds retained records"));
+                }
+                for _ in 0..count {
+                    queue.pop();
+                }
+                self.consumed = consumed;
+            }
+            if self.next_sequence <= self.consumed {
+                self.next_sequence = self.consumed + 1;
+            }
+            if queue.is_empty() {
+                self.retry_at = None;
+            }
+            self.receipt_revision = self.receipt_revision.max(revision);
+            Ok(())
+        }
+
+        fn acknowledge(&mut self, queue: &mut PendingOutput, sequence: u32) -> io::Result<()> {
+            self.receipt(queue, sequence, sequence, self.receipt_revision)
+        }
+
+        fn next(
+            &mut self,
+            queue: &PendingOutput,
+            epoch: u32,
+            now: Instant,
+        ) -> io::Result<Option<(u32, String)>> {
+            if self.next_sequence == 0 {
+                self.next_sequence = 1;
+            }
+            // Time alone cannot distinguish lost text from a stopped receiver.
+            // Spend each fresh native receipt at most once on retransmission.
+            if self.retry_at.is_some_and(|deadline| now >= deadline)
+                && self.receipt_revision > self.retried_revision
+            {
+                self.next_sequence = self.received + 1;
+                self.retry_at = None;
+                self.retried_revision = self.receipt_revision;
+            }
+            if self.next_sequence > self.consumed + TEXT_WINDOW as u32
+                || self.next_sequence <= self.consumed
+                || (self.next_sequence - self.consumed - 1) as usize >= queue.records.len()
+            {
+                return Ok(None);
+            }
+            let sequence = self.next_sequence;
+            if sequence >= i32::MAX as u32 {
+                return Err(io::Error::other("text record sequence exhausted"));
+            }
+            let index = (sequence - self.consumed - 1) as usize;
+            Ok(Some((
+                sequence,
+                text_envelope(epoch, sequence, &queue.records[index])?,
+            )))
+        }
+
+        fn sent(&mut self, sequence: u32, now: Instant) {
+            self.highest_sent = self.highest_sent.max(sequence);
+            self.next_sequence = sequence + 1;
+            self.retry_at.get_or_insert(now + TEXT_RETRY);
+        }
+
+        fn suspend(&mut self) {
+            self.next_sequence = self.received + 1;
+            self.retry_at = None;
+        }
+    }
+
+    fn text_envelope(epoch: u32, sequence: u32, wire: &str) -> io::Result<String> {
+        let identity = format!("{epoch:010}{sequence:010}");
+        let mut checksum = 0u32;
+        for byte in identity
+            .bytes()
+            .chain(std::iter::once(b'|'))
+            .chain(wire.bytes())
+        {
+            let symbol = if byte == b'|' {
+                Some(64)
+            } else {
+                ALPHABET.iter().position(|value| *value == byte)
+            };
+            let symbol =
+                symbol.ok_or_else(|| io::Error::other("unsupported text record character"))?;
+            checksum = (checksum * 251 + symbol as u32 + 1) % 65_521;
+        }
+        Ok(format!("@J1{identity}{checksum:05}|{wire};"))
+    }
+
+    fn text_receipt(contents: &str, build: &str, epoch: u32, slot: u32) -> io::Result<Option<(u32, u32, u32)>> {
+        if contents
+            .lines()
+            .rev()
+            .find(|line| !line.trim().is_empty())
+            .map(str::trim)
+            != Some("endfunction")
+        {
+            return Ok(None);
+        }
+        let prefix =
+            format!("SMASHCRAFT TEXT ACK v=1 build={build} epoch={epoch} slot={slot} received=");
+        let Some(start) = contents.find(&prefix) else {
+            return Err(io::Error::other("native text receipt identity mismatch"));
+        };
+        let tail = &contents[start + prefix.len()..];
+        let number: String = tail.chars().take_while(char::is_ascii_digit).collect();
+        let Some(consumed_text) = tail[number.len()..].strip_prefix(" consumed=") else {
+            return Err(io::Error::other("malformed native text receipt"));
+        };
+        let consumed: String = consumed_text.chars().take_while(char::is_ascii_digit).collect();
+        let Some(revision_text) = consumed_text[consumed.len()..].strip_prefix(" revision=") else {
+            return Err(io::Error::other("malformed native text receipt"));
+        };
+        let revision: String = revision_text.chars().take_while(char::is_ascii_digit).collect();
+        if !revision_text[revision.len()..].starts_with('"') || number.is_empty() || consumed.is_empty() || revision.is_empty() {
+            return Err(io::Error::other("malformed native text receipt"));
+        }
+        let counter = |text: &str| text.parse::<u32>()
+            .map_err(|_| io::Error::other("native text receipt counter overflow"));
+        Ok(Some((counter(&number)?, counter(&consumed)?, counter(&revision)?)))
     }
 
     const MAILBOX_CHUNK_BYTES: usize = 7;
@@ -159,6 +294,8 @@ mod linux {
         output: Enigo,
         owned: BTreeSet<usize>,
         queued: PendingOutput,
+        text_window: TextWindow,
+        text_receipt_at: Option<Instant>,
         gate: crate::focus::Gate,
         target_window: u32,
         lost_focus: bool,
@@ -200,6 +337,8 @@ mod linux {
                 output,
                 owned: BTreeSet::new(),
                 queued: PendingOutput::default(),
+                text_window: TextWindow::default(),
+                text_receipt_at: None,
                 gate,
                 target_window,
                 lost_focus: false,
@@ -221,8 +360,14 @@ mod linux {
                     "mailbox wire must be printable ASCII",
                 ));
             }
-            if self.editbox && wire.contains(';') {
-                return Err(io::Error::other("controller record contains delimiter"));
+            if self.editbox
+                && !wire
+                    .bytes()
+                    .all(|byte| ALPHABET.contains(&byte) || byte == b'|')
+            {
+                return Err(io::Error::other(
+                    "controller record contains an unsupported character",
+                ));
             }
             self.queued.push(wire)
         }
@@ -249,25 +394,46 @@ mod linux {
 
         fn step(&mut self) -> io::Result<()> {
             if self.editbox {
-                if !self.queued.is_empty() {
-                    let eligible = self.eligible()?;
-                    let output = &mut self.output;
-                    let trace = self.trace;
-                    let target_window = self.target_window;
-                    self.queued.emit_front(eligible, |wire| {
-                        let started = Instant::now();
-                        output
-                            .text_to_window(&(wire.to_owned() + ";"), target_window)
-                            .map_err(|error| io::Error::other(error.to_string()))?;
-                        if trace {
-                            eprintln!(
-                                "editbox_emit bytes={} elapsed_us={} wire={wire}",
-                                wire.len() + 1,
-                                started.elapsed().as_micros()
-                            );
+                let now = Instant::now();
+                if self.text_receipt_at.is_none_or(|previous| {
+                    now.duration_since(previous) >= Duration::from_millis(10)
+                }) {
+                    let path = self.dir.join(format!(
+                        "smashcraft-journal-text-ack-{}-e{}-p{}.txt",
+                        self.build, self.epoch, self.slot
+                    ));
+                    match fs::read_to_string(path) {
+                        Ok(contents) => {
+                            if let Some((received, consumed, revision)) =
+                                text_receipt(&contents, &self.build, self.epoch, self.slot)?
+                            {
+                                self.text_window.receipt(&mut self.queued, received, consumed, revision)?;
+                            }
                         }
-                        Ok(())
-                    })?;
+                        Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+                        Err(error) => return Err(error),
+                    }
+                    self.text_receipt_at = Some(now);
+                }
+                if !self.eligible()? {
+                    self.text_window.suspend();
+                    return Ok(());
+                }
+                if let Some((sequence, envelope)) =
+                    self.text_window.next(&self.queued, self.epoch, now)?
+                {
+                    let started = Instant::now();
+                    self.output
+                        .text_to_window(&envelope, self.target_window)
+                        .map_err(|error| io::Error::other(error.to_string()))?;
+                    self.text_window.sent(sequence, now);
+                    if self.trace {
+                        eprintln!(
+                            "editbox_emit sequence={sequence} bytes={} elapsed_us={} envelope={envelope}",
+                            envelope.len(),
+                            started.elapsed().as_micros()
+                        );
+                    }
                 }
                 return Ok(());
             }
@@ -1295,7 +1461,7 @@ mod linux {
     }
 
     #[test]
-    fn focus_queue_preserves_order_suppresses_output_and_fails_without_overwrite() {
+    fn text_queue_retains_sent_records_until_native_consumption_and_bounds_backlog() {
         let mut queue = PendingOutput::default();
         let first = encode_packet(
             7,
@@ -1311,30 +1477,25 @@ mod linux {
         );
         queue.push(first.clone()).unwrap();
         queue.push("ACK1|2|P|18".into()).unwrap();
-        queue
-            .emit_front(false, |_| panic!("unfocused keyboard emission"))
-            .unwrap();
-        assert_eq!(queue.records.len(), 2);
-        assert!(
-            queue
-                .emit_front(true, |_| Err(io::Error::other("output failed")))
-                .is_err()
-        );
+        let mut window = TextWindow::default();
+        let now = Instant::now();
+        let pending = window.next(&queue, 7, now).unwrap().unwrap();
+        assert_eq!(window.next(&queue, 7, now).unwrap().unwrap(), pending);
         assert_eq!(queue.records.front(), Some(&first));
-        let mut emitted = Vec::new();
-        queue
-            .emit_front(true, |wire| {
-                emitted.push(wire.to_owned());
-                Ok(())
-            })
-            .unwrap();
-        queue
-            .emit_front(true, |wire| {
-                emitted.push(wire.to_owned());
-                Ok(())
-            })
-            .unwrap();
-        assert_eq!(emitted, [first, "ACK1|2|P|18".into()]);
+        window.sent(pending.0, now);
+        let second = window.next(&queue, 7, now).unwrap().unwrap();
+        window.sent(second.0, now);
+        assert_eq!(queue.records.len(), 2);
+        assert!(window.next(&queue, 7, now).unwrap().is_none());
+        window.suspend();
+        assert_eq!(window.next(&queue, 7, now).unwrap().unwrap(), pending);
+        window.acknowledge(&mut queue, 1).unwrap();
+        assert_eq!(
+            queue.records.front().map(String::as_str),
+            Some("ACK1|2|P|18")
+        );
+        assert!(window.acknowledge(&mut queue, 3).is_err());
+        window.acknowledge(&mut queue, 2).unwrap();
         assert!(queue.is_empty());
         assert_eq!(queue.bytes, 0);
         for _ in 0..OUTPUT_RECORD_LIMIT {
@@ -1346,6 +1507,106 @@ mod linux {
         bytes.push("a".repeat(OUTPUT_BYTE_LIMIT - 1)).unwrap();
         assert!(bytes.push("b".into()).is_err());
         assert_eq!(bytes.bytes, OUTPUT_BYTE_LIMIT);
+    }
+
+    #[test]
+    fn text_window_is_pipelined_and_retries_original_sequence_after_missing_receipt() {
+        let mut queue = PendingOutput::default();
+        for _ in 0..20 {
+            queue.push("I421100".into()).unwrap();
+        }
+        let mut window = TextWindow::default();
+        let now = Instant::now();
+        let first = window.next(&queue, 1, now).unwrap().unwrap();
+        for sequence in 1..=16 {
+            let record = window.next(&queue, 1, now).unwrap().unwrap();
+            assert_eq!(record.0, sequence);
+            window.sent(sequence, now);
+        }
+        assert!(window.next(&queue, 1, now).unwrap().is_none());
+        assert_eq!(queue.records.len(), 20);
+        assert!(window.next(&queue, 1, now + TEXT_RETRY).unwrap().is_none());
+        window.receipt(&mut queue, 0, 0, 1).unwrap();
+        assert_eq!(
+            window.next(&queue, 1, now + TEXT_RETRY).unwrap().unwrap(),
+            first
+        );
+        window.sent(1, now + TEXT_RETRY);
+        window.receipt(&mut queue, 16, 0, 2).unwrap();
+        assert!(window.next(&queue, 1, now + TEXT_RETRY).unwrap().is_none());
+        window.receipt(&mut queue, 16, 1, 3).unwrap();
+        assert_eq!(
+            window.next(&queue, 1, now + TEXT_RETRY).unwrap().unwrap().0,
+            17
+        );
+        window.receipt(&mut queue, 16, 12, 4).unwrap();
+        assert_eq!(queue.records.len(), 8);
+    }
+
+    #[test]
+    fn stalled_native_receiver_cannot_accumulate_unbounded_retry_copies() {
+        let mut queue = PendingOutput::default();
+        for _ in 0..16 { queue.push("I421100".into()).unwrap(); }
+        let mut window = TextWindow::default();
+        let now = Instant::now();
+        window.receipt(&mut queue, 0, 0, 1).unwrap();
+        for sequence in 1..=16 {
+            assert_eq!(window.next(&queue, 1, now).unwrap().unwrap().0, sequence);
+            window.sent(sequence, now);
+        }
+        let retry = now + TEXT_RETRY;
+        for sequence in 1..=16 {
+            assert_eq!(window.next(&queue, 1, retry).unwrap().unwrap().0, sequence);
+            window.sent(sequence, retry);
+        }
+        for attempt in 2..=100 {
+            window.receipt(&mut queue, 0, 0, 1).unwrap();
+            assert!(window.next(&queue, 1, now + TEXT_RETRY * attempt).unwrap().is_none());
+        }
+        assert_eq!(queue.records.len(), 16);
+        window.receipt(&mut queue, 0, 0, 2).unwrap();
+        assert_eq!(window.next(&queue, 1, now + TEXT_RETRY * 101).unwrap().unwrap().0, 1);
+        window.receipt(&mut queue, 16, 16, 3).unwrap();
+        assert!(queue.is_empty());
+        assert!(window.receipt(&mut queue, 16, 16, 4).is_ok());
+    }
+
+    #[test]
+    fn text_received_credit_stops_at_sixteen_until_gameplay_consumes_records() {
+        let mut queue = PendingOutput::default();
+        for _ in 0..20 { queue.push("I421100".into()).unwrap(); }
+        let mut window = TextWindow::default();
+        let now = Instant::now();
+        for sequence in 1..=16 {
+            let next = window.next(&queue, 1, now).unwrap().unwrap();
+            assert_eq!(next.0, sequence);
+            window.sent(sequence, now);
+        }
+        window.receipt(&mut queue, 16, 0, 1).unwrap();
+        assert!(window.next(&queue, 1, now).unwrap().is_none());
+        let retry = now + TEXT_RETRY;
+        window.receipt(&mut queue, 16, 0, 2).unwrap();
+        assert!(window.next(&queue, 1, retry).unwrap().is_none());
+        assert_eq!(queue.records.len(), 20);
+        window.receipt(&mut queue, 16, 1, 3).unwrap();
+        assert_eq!(queue.records.len(), 19);
+        assert_eq!(window.next(&queue, 1, retry).unwrap().unwrap().0, 17);
+    }
+
+    #[test]
+    fn text_receipts_require_complete_matching_native_publication() {
+        assert_eq!(
+            text_envelope(1, 1, "I421100").unwrap(),
+            "@J10000000001000000000102742|I421100;"
+        );
+        let prefix =
+            "call Preload( \"SMASHCRAFT TEXT ACK v=1 build=focus epoch=1 slot=0 received=7 consumed=5 revision=2\" )\n";
+        assert_eq!(text_receipt(prefix, "focus", 1, 0).unwrap(), None);
+        let complete = format!("{prefix}endfunction\n");
+        assert_eq!(text_receipt(&complete, "focus", 1, 0).unwrap(), Some((7, 5, 2)));
+        assert!(text_receipt(&complete, "focus", 2, 0).is_err());
+        assert!(text_receipt(&complete, "focus", 1, 1).is_err());
+        assert!(text_envelope(1, 1, "I4;incomplete").is_err());
     }
 
     #[test]

@@ -1,0 +1,55 @@
+{
+  "args": {
+    "binary": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/companion/target/debug/wc3-journal",
+    "out": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-focus-text-credit-20261005",
+    "build": "text-credit-20261005",
+    "x11_library": "/nix/store/2g9xwk5kis01003gynr7xfca667dpgv8-libx11-1.8.13/lib/libX11.so.6.4.0",
+    "wlrctl": "/nix/store/ci70n3x298zfp6r04hx0xaxiwz8akxin-wlrctl-0.2.2/bin/wlrctl",
+    "epoch": 1,
+    "private_a": "/run/user/1000/private-desktop.ua70lDgf",
+    "data_a": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "pid_a": 1520922,
+    "window_a": 77594625,
+    "app_id_a": "steam_app_3516115571",
+    "private_b": "/run/user/1000/private-desktop.DIasYMFK",
+    "data_b": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "pid_b": 1533110,
+    "window_b": 77594625,
+    "app_id_b": "steam_app_3516115572"
+  },
+  "capture_epoch_monotonic_ns": 554959964934601,
+  "transitions": [
+    {
+      "window": 157286401,
+      "observed_monotonic_ns": 554959058887678
+    },
+    {
+      "window": 77594625,
+      "observed_monotonic_ns": 554959163351585
+    },
+    {
+      "window": 157286401,
+      "observed_monotonic_ns": 554960836705781
+    },
+    {
+      "window": 77594625,
+      "observed_monotonic_ns": 554961337392305
+    }
+  ],
+  "sink_calibration": [
+    {
+      "type": "press",
+      "observed_monotonic_ns": 554959091152559
+    },
+    {
+      "type": "release",
+      "observed_monotonic_ns": 554959091170142
+    }
+  ],
+  "sink_key_events": [],
+  "failures": [
+    "TimeoutExpired(['/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/companion/target/debug/wc3-journal', '--device', '/dev/input/event2', '--out', '/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData', '--ready-file', '/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-ready-text-credit-20261005-e1-p0.txt', '--epoch-monotonic-ns', '554959964934601', '--stop-frame', '300', '--trace', '--editbox-display', ':2', '--x11-window', '77594625', '--pid', '1520922', '--private-wlr-app-id', 'steam_app_3516115571'], 15)"
+  ],
+  "helper_sha256": "ac752d33bd7a48d4b3bf9d5b57d62f0395943c34d33d616bcd6be5795cf8d884",
+  "scope": "Two virtual evdev pads, one 500 ms A focus interval, 300 frames; native gameplay traces are checked separately."
+}

@@ -1,0 +1,10 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=text-receipt-20261005 epoch=1 slot=0" )
+	call Preload( "reason=controller text capacity reached sequence=77 frame=77" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

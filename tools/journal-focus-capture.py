@@ -88,6 +88,8 @@ def main():
     parser.add_argument("--x11-library", type=Path, required=True)
     parser.add_argument("--wlrctl", type=Path, required=True)
     parser.add_argument("--epoch", type=int, default=1)
+    parser.add_argument("--without-focus-loss", action="store_true",
+                        help="Run ordinary tap/shield delivery to isolate focus from stream throughput")
     for slot in "ab":
         parser.add_argument(f"--private-{slot}", type=Path, required=True)
         parser.add_argument(f"--data-{slot}", type=Path, required=True)
@@ -112,8 +114,14 @@ def main():
 
     def activate(window):
         title = "Warcraft III" if window == windows[0] else "Smashcraft focus trial"
-        subprocess.run([str(args.wlrctl), "toplevel", "focus", f"title:{title}"],
-                       env=environments[0], check=True, timeout=5)
+        # XSync completes X11 mapping before the compositor necessarily exposes
+        # the new toplevel. Wait for that observed boundary before focusing it.
+        deadline = time.monotonic() + 5
+        while subprocess.run([str(args.wlrctl), "toplevel", "focus", f"title:{title}"],
+                             env=environments[0], timeout=5).returncode:
+            if time.monotonic() >= deadline:
+                raise RuntimeError(f"private toplevel did not become focusable: {title}")
+            time.sleep(.02)
         subprocess.run(["xdotool", "windowactivate", "--sync", str(window)],
                        env=environments[0], check=True, timeout=5)
         active = subprocess.check_output(["xdotool", "getactivewindow"],
@@ -185,6 +193,9 @@ def main():
             (1.800, "fresh-after-return", EV_KEY, BTN_SOUTH, 1),
             (1.805, "fresh-after-return", EV_KEY, BTN_SOUTH, 0),
         ]
+        if args.without_focus_loss:
+            schedule = [item for item in schedule if item[1] in (
+                "before", "held-before-loss", "unfocused-release", "fresh-after-return")]
         with (args.out / "producer.jsonl").open("w") as producer:
             for elapsed, label, kind, code, value in schedule:
                 time.sleep(max(0, (epoch + round(elapsed * 1e9) - time.monotonic_ns()) / 1e9))
@@ -235,7 +246,10 @@ def main():
             sink_calibration=sink_calibration,
             sink_key_events=sink.events if sink else [], failures=failures,
             helper_sha256=hashlib.sha256(args.binary.read_bytes()).hexdigest(),
-            scope="Two virtual evdev pads, one 500 ms A focus interval, 300 frames; native gameplay traces are checked separately.",
+            scope=("Two virtual evdev pads, 300 frames; "
+                   + ("ordinary delivery without focus loss" if args.without_focus_loss
+                      else "one 500 ms A focus interval")
+                   + "; native gameplay traces are checked separately."),
         ), default=str, indent=2) + "\n")
 
 

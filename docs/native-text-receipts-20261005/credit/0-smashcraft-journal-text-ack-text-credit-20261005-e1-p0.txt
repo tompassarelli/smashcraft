@@ -1,0 +1,9 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "SMASHCRAFT TEXT ACK v=1 build=text-credit-20261005 epoch=1 slot=0 sequence=70 revision=95" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+
