@@ -18,6 +18,7 @@ def main():
     args = parser.parse_args()
     root = args.capture
     metadata = json.loads((root / "capture.json").read_text())
+    reconnect = metadata.get("controller_reconnect", False)
     producer = json_lines(root / "producer.jsonl")
     result = dict(scope=metadata["scope"], helper_sha256=metadata["helper_sha256"],
                   persistent_helper_pids=metadata["helper_pids"], matches=[])
@@ -25,8 +26,11 @@ def main():
     logs = {}
     for slot in range(2):
         produced = [event for event in producer if event["event"] == f"slot-{slot}"]
-        kernel = [event for event in json_lines(root / f"kernel-{slot}.jsonl")
-                  if event["type"] != 0]
+        kernel_paths = [root / f"kernel-{slot}.jsonl"]
+        if reconnect:
+            kernel_paths += list(root.glob(f"kernel-{slot}-reconnected.jsonl"))
+        kernel = sorted((event for path in kernel_paths for event in json_lines(path)
+                         if event["type"] != 0), key=lambda event: event["kernel_monotonic_ns"])
         assert len(produced) == len(kernel), f"slot {slot}: producer/kernel count differs"
         for index, (sent, captured) in enumerate(zip(produced, kernel)):
             assert (sent["type"], sent["code"], sent["value"]) == (
@@ -58,7 +62,7 @@ def main():
                 r"event mono_ns=(\d+) frame=(\d+) held=\d+ pressed=(\d+) released=(\d+)", section)}
             edges = []
             for sent, event in stimuli[slot]:
-                if sent["phase"] != f"match-{epoch}-fresh":
+                if sent["phase"] not in (f"match-{epoch}-fresh", f"match-{epoch}-reconnect-fresh"):
                     continue
                 timestamp = event["kernel_monotonic_ns"]
                 expected_frame = first + (timestamp - anchor) * 60 // 1_000_000_000
@@ -70,7 +74,7 @@ def main():
                                   expected_frame=expected_frame, assigned_frame=frame))
                 if sent["value"]:
                     expected_actions.append((slot, frame))
-            assert len(edges) == 2
+            assert len(edges) == (4 if reconnect and slot == epoch - 1 else 2)
             rows = [int(frame) for frame in re.findall(r"published_frame=(\d+)", section)]
             assert rows and rows == list(range(first, rows[-1] + 1)), "capture frame gap or duplicate"
             match["players"].append(dict(slot=slot, anchor_monotonic_ns=anchor,
@@ -84,15 +88,53 @@ def main():
             assert actions == Counter(expected_actions), f"epoch {epoch} client {client}: actions {actions}"
             assert "journal input fail" not in trace
             assert re.findall(r"dropped (\d+)", trace) == ["0"]
-            states = re.findall(r"confirmed frame (\d+) state ([\d:]+)", trace)
+            final_path = root / f"epoch-{epoch}-result" / f"{client}-wc3-melee-input-trace.txt"
+            final_trace = final_path.read_text() if final_path.exists() else trace
+            states = re.findall(r"confirmed frame (\d+) state ([\d:]+)", final_trace)
             assert states, "missing confirmed endpoint"
+            if reconnect:
+                assert re.search(r"(?:participant|humans) \d+ frame \d+ phase 3", final_trace), "missing actual result"
+                assert len(states) >= 2 and states[-1] == states[-2], "result not stationary"
             endpoints.append(states[-1])
             match["native_clients"].append(dict(client=client, confirmed_frame=int(states[-1][0]),
                                                 confirmed_checksum=states[-1][1],
                                                 actions=[dict(slot=s, frame=f) for s, f in expected_actions]))
         assert endpoints[0] == endpoints[1], f"epoch {epoch}: confirmed states differ"
+        if reconnect:
+            slot = epoch - 1
+            journey = next(event for event in metadata["events"]
+                           if event["event"] == "reconnect" and event["epoch"] == epoch)
+            section = logs[slot].split(f"match_start epoch={epoch} ", 1)[1].split(
+                f"match_end epoch={epoch} ", 1)[0]
+            assert section.count("controller_disconnected ") == 1, "missing/extra disconnect"
+            assert section.count("controller_reconnected ") == 1, "missing/extra reconnect"
+            assert journey["replacement_device"] != journey["decoy_device"]
+            assert journey["replacement_device"] in section.split("controller_reconnected ", 1)[1].splitlines()[0]
+            disconnect_frame = int(re.search(r"controller_release [^\n]*frame=(\d+)", section)[1])
+            assigned = {int(t): int(f) for t, f in re.findall(r"event mono_ns=(\d+) frame=(\d+)", section)}
+            shield = [event for sent, event in stimuli[slot]
+                      if sent["phase"] == f"match-{epoch}-reconnect-shield"]
+            assert len(shield) == 1
+            shield_frame = assigned[shield[0]["kernel_monotonic_ns"]]
+            pages = list((root / f"epoch-{epoch}").glob(f"{slot}-smashcraft-response-p{slot}-run*-page*.txt"))
+            assert pages, "shield response observations missing"
+            latest = max(int(re.search(r"-run(\d+)-", p.name)[1]) for p in pages)
+            text = "\n".join(p.read_text() for p in pages if f"-run{latest}-" in p.name)
+            frames = {int(v[0]): int(v[7]) for row in re.findall(r'Preload\( "A ([^"\r\n]+)', text)
+                      if (v := row.split()) and v[0].isdigit()}
+            observed = [(frames[int(v[0])], int(v[6])) for row in re.findall(r'Preload\( "B ([^"\r\n]+)', text)
+                        if (v := row.split()) and v[0].isdigit() and int(v[0]) in frames]
+            held = [state for frame, state in observed if shield_frame + 2 <= frame < disconnect_frame]
+            assert len(held) >= 2 and all(state == 1 for state in held), "pre-disconnect shield absent"
+            released = [state for frame, state in observed if disconnect_frame + 2 <= frame <= disconnect_frame + 20]
+            assert len(released) >= 2 and all(state == 0 for state in released), "disconnect left shield held"
+            match["reconnect"] = dict(slot=slot, release_frame=disconnect_frame,
+                                      confirmed_held_samples=len(held), confirmed_released_samples=len(released),
+                                      original_device=journey["old_device"], replacement_device=journey["replacement_device"],
+                                      decoy_device=journey["decoy_device"], fresh_attack_applied_once=True)
         result["matches"].append(match)
-    result.update(native_attack_applications=8, native_trace_drops=0,
+    result.update(native_attack_applications=sum(len(client["actions"]) for match in result["matches"]
+                                                for client in match["native_clients"]), native_trace_drops=0,
                   unexplained_frame_retargets=0, extra_result_screen_actions=0)
     (root / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))

@@ -18,7 +18,7 @@ import subprocess
 import sys
 import time
 
-from controller_event_retention import ABS_X, ABS_Y, ABS_Z, ABS_RZ, BTN_SOUTH, EV_ABS, EV_KEY, KernelObserver, VirtualGamepad
+from controller_event_retention import ABS_X, ABS_Y, ABS_Z, ABS_RZ, BTN_SOUTH, EV_ABS, EV_KEY, KernelObserver, VirtualGamepad, wait_state
 
 
 def event_path(pad):
@@ -40,9 +40,13 @@ def main():
     parser.add_argument("--controller-menus", action="store_true")
     parser.add_argument("--combat-actions", action="store_true",
                         help="exercise the full controller layout and export combat/shield evidence")
+    parser.add_argument("--controller-reconnect", action="store_true",
+                        help="disconnect a shielding pad, reject a decoy, and resume after neutral rearm")
     args = parser.parse_args()
     if args.combat_actions and not args.controller_menus:
         parser.error("--combat-actions requires --controller-menus")
+    if args.controller_reconnect and (not args.controller_menus or args.combat_actions):
+        parser.error("--controller-reconnect requires --controller-menus without --combat-actions")
     cfg = json.loads(args.session.read_text())["args"]
     cfg["build"] = args.build
     args.out.mkdir(parents=True, exist_ok=False)
@@ -53,6 +57,10 @@ def main():
                  XDG_RUNTIME_DIR=str(run / "runtime"),
                  WAYLAND_DISPLAY=(run / "wayland-display").read_text().strip()) for run in runs]
     pads, observers, helpers, streams, events = [], [], [], [], []
+    active_observers, decoys = {}, []
+    buttons = ((BTN_SOUTH, 0x131, 0x133, 0x134, 0x136, 0x137, 0x13b)
+               if args.combat_actions else (BTN_SOUTH, 0x134, 0x13b))
+    identities = [f"smashcraft-reconnect/{args.out.name}/pad-{slot}" for slot in range(2)]
     started_wall = time.time_ns()
 
     def check_helpers():
@@ -109,13 +117,13 @@ def main():
             assert "Warcraft" in Path(f'/proc/{cfg["pid_" + c]}/comm').read_text()
             subprocess.run([cfg["wlrctl"], "toplevel", "focus", "title:Warcraft III"],
                            env=envs[slot], check=True, timeout=5)
-            pad = VirtualGamepad(buttons=((BTN_SOUTH, 0x131, 0x133, 0x134, 0x136, 0x137, 0x13b)
-                                         if args.combat_actions else (BTN_SOUTH, 0x134, 0x13b)))
+            pad = VirtualGamepad(buttons=buttons, phys=identities[slot] if args.controller_reconnect else None)
             pads.append(pad)
             device = event_path(pad)
             observer = KernelObserver(device, args.out / f"kernel-{slot}.jsonl")
             observer.start()
             observers.append(observer)
+            active_observers[slot] = observer
             stream = (args.out / f"helper-{slot}.log").open("w")
             streams.append(stream)
             helpers.append(subprocess.Popen([
@@ -245,6 +253,55 @@ def main():
                 events.append(dict(event="combat-resume", epoch=epoch))
                 time.sleep(.3)
 
+            def reconnect(epoch):
+                slot = epoch - 1
+                prefix = f"match-{epoch}-reconnect-"
+                log = args.out / f"helper-{slot}.log"
+                old_path = str(event_path(pads[slot]))
+                send(slot, EV_ABS, ABS_Z, 32767, prefix + "shield")
+                time.sleep(.5)
+                active_observers[slot].close()
+                observers.remove(active_observers.pop(slot))
+                pads[slot].close()
+                disconnected_ns = time.monotonic_ns()
+                until(lambda: "controller_disconnected " in log.read_text(), "disconnect not observed")
+                decoy = VirtualGamepad(buttons=buttons, phys=identities[slot] + "-decoy")
+                decoys.append(decoy)
+                decoy_path = str(event_path(decoy))
+                decoy.send(EV_KEY, BTN_SOUTH, 1, producer, prefix + "decoy", f"decoy-{slot}")
+                time.sleep(.12)
+                decoy.send(EV_KEY, BTN_SOUTH, 0, producer, prefix + "decoy", f"decoy-{slot}")
+                time.sleep(.25)
+                if "controller_reconnected " in log.read_text():
+                    raise RuntimeError("helper bound to a different controller")
+                # Hold the helper while setting the replacement's initial state,
+                # so it must open an already-held device rather than race a press.
+                helpers[slot].send_signal(signal.SIGSTOP)
+                wait_state(helpers[slot].pid, {"T", "t"})
+                replacement = VirtualGamepad(buttons=buttons, phys=identities[slot])
+                pads[slot] = replacement
+                device = event_path(replacement)
+                observer = KernelObserver(device, args.out / f"kernel-{slot}-reconnected.jsonl")
+                observer.start()
+                observers.append(observer)
+                active_observers[slot] = observer
+                send(slot, EV_ABS, ABS_Z, 32767, prefix + "held-on-connect")
+                send(slot, EV_KEY, BTN_SOUTH, 1, prefix + "held-on-connect")
+                helpers[slot].send_signal(signal.SIGCONT)
+                until(lambda: "controller_reconnected " in log.read_text(), "matching controller not recovered")
+                connected_ns = time.monotonic_ns()
+                time.sleep(.35)
+                send(slot, EV_KEY, BTN_SOUTH, 0, prefix + "neutral")
+                send(slot, EV_ABS, ABS_Z, 0, prefix + "neutral")
+                time.sleep(.2)
+                tap(slot, prefix + "fresh")
+                time.sleep(.7)
+                events.append(dict(event="reconnect", epoch=epoch, slot=slot,
+                                   old_device=old_path, decoy_device=decoy_path,
+                                   replacement_device=str(device), identity=identities[slot],
+                                   disconnected_monotonic_ns=disconnected_ns,
+                                   connected_monotonic_ns=connected_ns))
+
             def export_response(epoch):
                 keys(0, "key", "ctrl+h")
                 for slot, root in enumerate(data):
@@ -283,6 +340,8 @@ def main():
                 time.sleep(.7)
                 if args.combat_actions:
                     combat(epoch)
+                if args.controller_reconnect:
+                    reconnect(epoch)
                 send(0, EV_ABS, ABS_X, -32768, f"match-{epoch}-stock-loss")
                 ends = [control("end", epoch, slot) for slot in range(2)]
                 until(lambda: all(complete(p) for p in ends), f"epoch {epoch}: result did not stop capture", 40)
@@ -301,7 +360,7 @@ def main():
                           and re.search(r"1200 [0-9.]+ end", trace.read_text()) is not None,
                           f"epoch {epoch}: trace did not complete", 30)
                 archive(epoch)
-                if args.combat_actions:
+                if args.combat_actions or args.controller_reconnect:
                     export_response(epoch)
                     archive(epoch)
                     # Combat can outlast the first trace. Keep it intact and
@@ -334,12 +393,14 @@ def main():
                         keys(0, "keydown", "y", "sleep", ".12", "keyup", "y")
                         ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
                 print(f"Epoch {epoch}: game start, tap, stock loss and results observed", flush=True)
-        result = dict(settings=cfg, combat_actions=args.combat_actions, helper_pids=[p.pid for p in helpers], events=events,
+        result = dict(settings=cfg, combat_actions=args.combat_actions, controller_reconnect=args.controller_reconnect,
+                      helper_pids=[p.pid for p in helpers], events=events,
                       helper_sha256=hashlib.sha256(Path(cfg["binary"]).read_bytes()).hexdigest(),
                       scope="Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; "
                             + ("controller-only game menus (keyboard diagnostic trace toggle); " if args.controller_menus
                                else "keyboard menu confirmation; ")
                             + ("ordinary combat and controller layout; " if args.combat_actions else "")
+                            + ("controller removal/recreation and neutral rearm; " if args.controller_reconnect else "")
                             + "no physical or cross-machine alignment claim.")
         (args.out / "capture.json").write_text(json.dumps(result, indent=2) + "\n")
     finally:
@@ -357,6 +418,8 @@ def main():
         for observer in observers:
             observer.close()
         for pad in pads:
+            pad.close()
+        for pad in decoys:
             pad.close()
         (args.out / "events.json").write_text(json.dumps(events, indent=2) + "\n")
         archive("final")
