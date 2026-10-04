@@ -1,0 +1,87 @@
+{
+  "build": "netcode-0034",
+  "records": [
+    {
+      "receipt": "a-a0-begin",
+      "observedSeconds": 24.322
+    },
+    {
+      "receipt": "b-a0-begin",
+      "observedSeconds": 24.401
+    },
+    {
+      "receipt": "a-a0-end",
+      "observedSeconds": 34.398
+    },
+    {
+      "receipt": "a-a1-begin",
+      "observedSeconds": 34.404
+    },
+    {
+      "receipt": "b-a0-end",
+      "observedSeconds": 34.467
+    },
+    {
+      "receipt": "b-a1-begin",
+      "observedSeconds": 34.474
+    },
+    {
+      "receipt": "a-a1-end",
+      "observedSeconds": 48.721
+    },
+    {
+      "receipt": "a-a2-begin",
+      "observedSeconds": 48.727
+    },
+    {
+      "receipt": "b-a1-end",
+      "observedSeconds": 49.033
+    },
+    {
+      "receipt": "b-a2-begin",
+      "observedSeconds": 49.041
+    },
+    {
+      "receipt": "a-a2-end",
+      "observedSeconds": 58.961
+    },
+    {
+      "receipt": "a-a3-begin",
+      "observedSeconds": 58.968
+    },
+    {
+      "receipt": "b-a2-end",
+      "observedSeconds": 59.274
+    },
+    {
+      "receipt": "b-a3-begin",
+      "observedSeconds": 59.281
+    },
+    {
+      "receipt": "a-a3-end",
+      "observedSeconds": 73.431
+    },
+    {
+      "receipt": "a-a4-begin",
+      "observedSeconds": 73.439
+    },
+    {
+      "receipt": "b-a3-end",
+      "observedSeconds": 74.233
+    },
+    {
+      "receipt": "b-a4-begin",
+      "observedSeconds": 74.241
+    },
+    {
+      "receipt": "a-a4-end",
+      "observedSeconds": 89.819
+    },
+    {
+      "receipt": "b-a4-end",
+      "observedSeconds": 90.129
+    }
+  ],
+  "receipts": 20,
+  "wallSeconds": 90.229
+}

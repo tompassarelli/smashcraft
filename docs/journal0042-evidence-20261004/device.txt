@@ -1,0 +1,7 @@
+mode=observation-only SDL=3.4.16 gamepads=2
+gamepad id=1 name=Some("Xbox One S Controller") path=Some("/dev/input/event1") vendor=Some(1118) product=Some(746)
+mapping=Some("0300e8fb5e040000ea02000001030000,Xbox One S Controller,a:b0,b:b1,x:b2,y:b3,back:b6,guide:b8,start:b7,leftstick:b9,rightstick:b10,leftshoulder:b4,rightshoulder:b5,dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,leftx:a0,lefty:a1,rightx:a3,righty:a4,lefttrigger:a2,righttrigger:a5,platform:Linux,")
+normalized=Sample { left_x: 284, left_y: 2437, right_x: 1816, right_y: 1578, left_trigger: 0, right_trigger: 0, a: false, b: false, x: false, y: false, lb: false, rb: false, start: false }
+gamepad id=2 name=Some("Xbox 360 Controller") path=Some("/dev/input/event2") vendor=Some(1118) product=Some(654)
+mapping=Some("0300f8165e0400008e02000014010000,Xbox 360 Controller,a:b0,leftx:a0,lefty:a1,rightx:a3,righty:a4,lefttrigger:a2,righttrigger:a5,platform:Linux,")
+normalized=Sample { left_x: 0, left_y: 0, right_x: 0, right_y: 0, left_trigger: 0, right_trigger: 0, a: false, b: false, x: false, y: false, lb: false, rb: false, start: false }

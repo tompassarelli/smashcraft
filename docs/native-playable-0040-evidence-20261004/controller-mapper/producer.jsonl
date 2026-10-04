@@ -1,0 +1,8 @@
+{"phase":"native-mapper","event":"right","type":3,"code":0,"value":32767,"producer_before_write_monotonic_ns":507389567366267,"producer_after_write_monotonic_ns":507389567380243}
+{"phase":"native-mapper","event":"neutral","type":3,"code":0,"value":0,"producer_before_write_monotonic_ns":507390167582235,"producer_after_write_monotonic_ns":507390167605929}
+{"phase":"native-mapper","event":"attack0-down","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":507390317831678,"producer_after_write_monotonic_ns":507390317848780}
+{"phase":"native-mapper","event":"attack0-up","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":507390418029419,"producer_after_write_monotonic_ns":507390418045078}
+{"phase":"native-mapper","event":"attack1-down","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":507391018223636,"producer_after_write_monotonic_ns":507391018240397}
+{"phase":"native-mapper","event":"attack1-up","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":507391118429081,"producer_after_write_monotonic_ns":507391118447185}
+{"phase":"native-mapper","event":"attack2-down","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":507391718626875,"producer_after_write_monotonic_ns":507391718644328}
+{"phase":"native-mapper","event":"attack2-up","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":507391818856826,"producer_after_write_monotonic_ns":507391818872435}

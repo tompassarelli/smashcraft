@@ -1,0 +1,9 @@
+{
+  "candidate": "0.0.53",
+  "sha256": "c90f73be675f2d2f4bd1d7a171c559c9e59d5b098251c6251d7a7de76dd9affa",
+  "scope": "Existing selection UI plus FighterState, actual fighter unit types, ability setup, invulnerability, pathing, animation, flying height and facing.",
+  "result": "Both selections/recreation succeeded. Both received later synchronized Start callback at tick11348 with matching choices and body identities. No observed disconnect.",
+  "harness": "Initial click at700,1350 missed; OCR located label and corrected click at800,1380 established callback. Initial missing receipt is not a product failure.",
+  "conclusion": "Selection UI and actual fighter body setup are insufficient alone to reproduce full-map native50/51 desync.",
+  "unobserved": "Controller reads, gameplay, rollback, saved-binding initialization and full integration."
+}

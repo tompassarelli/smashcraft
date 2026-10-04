@@ -85,14 +85,14 @@ def main():
         assert [row[0] for row in rows] == [row["kernel_monotonic_ns"] for row in kernel_edges]
         assert all(row[1] == 1 + (row[0] - epoch) * 60 // 1_000_000_000 for row in rows)
         assert all((row[3], row[4]) == ((32, 0) if i % 2 == 0 else (0, 32)) for i, row in enumerate(rows))
-        packets = list(journal.iterdir())
+        packets = list(journal.glob("*-length.pld"))
         assert len(packets) == 15, len(packets)
         summary = dict(scope="cold raw evdev acquisition; helper stopped before first mapped-event read",
                        epoch_monotonic_ns=epoch, stopped_monotonic_ns=stopped,
                        resume_requested_monotonic_ns=resumed,
                        stopped_until_resume_request_ms=(resumed - stopped) / 1e6,
                        raw_edges=len(rows), kernel_edges=len(kernel_edges), frames=30,
-                       paired_files=len(packets), assigned_frames=[row[1] for row in rows],
+                       paired_packets=len(packets), assigned_frames=[row[1] for row in rows],
                        retained_event_span_ms=(rows[-1][0] - rows[0][0]) / 1e6,
                        timestamp_matches_kernel=True,
                        native_decode_verified=False)

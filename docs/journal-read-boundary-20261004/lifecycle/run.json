@@ -1,0 +1,18 @@
+{
+  "build": "journal-read-boundary-20261004",
+  "sha256": "7c3a650ae6742d7709229d06cbb8b4b4fb3bd9ff43c664655cd9948ffd7aa32d",
+  "published": [
+    {
+      "slot": 0,
+      "files": 8,
+      "monotonic_ns": 534638798614143
+    },
+    {
+      "slot": 1,
+      "files": 8,
+      "monotonic_ns": 534638899476352
+    }
+  ],
+  "missing_traces": [],
+  "elapsed": 4.68096396594774
+}

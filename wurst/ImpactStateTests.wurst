@@ -56,6 +56,12 @@ class ImpactTestWorld
     events.jump = 2
     events.koDirectionX = 1
     events.respawn = true
+    events.grab = true
+    events.throwRelease = true
+    events.charge = true
+    events.ready = true
+    events.ledgeCatch = true
+    events.ledgeRecovery = true
     events.landing = IMPACT_NONE
     events.dodge = 0
     pool.emit(events, 0)
@@ -204,3 +210,73 @@ class ImpactTestWorld
     fixture.captureNext()
     fixture.execute()
     fixture.runtime.impacts.firstDifference(empty).assertEquals("")
+
+@Test function correctedChargeRemovesCueAndReplayRestoresAcceptedCaptureAndThrow()
+    let fixture = new ImpactTestWorld(3)
+    let owner = fixture.world.fighters[0]
+    let target = fixture.world.fighters[1]
+    owner.x = 0
+    owner.surface = 0
+    target.x = 90
+    target.surface = 0
+    beginFighterAttack(fixture.world, 0, 5, false)
+    owner.attackFrame = attackStartupFrames(5) - 1
+    let before = new ReplaySnapshot()
+    let accepted = new ReplaySnapshot()
+    before.capture(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    fixture.captureNext()
+    fixture.execute()
+    target.grabVisualSerial.assertEquals(1)
+    fixture.runtime.impacts.nextSlot[IMPACT_GRAB].assertEquals(1)
+    fixture.inputs.inputs[0].grabThrowX = 1
+    fixture.captureNext()
+    fixture.execute()
+    fixture.inputs.inputs[0].grabThrowX = 0
+    for tick = 2 to grabContactFrame(THROW_FORWARD)
+        fixture.captureNext()
+        fixture.execute()
+    target.throwVisualSerial.assertEquals(1)
+    fixture.runtime.impacts.nextSlot[IMPACT_THROW].assertEquals(1)
+    accepted.capture(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    // Paused presentation can project repeatedly without consuming or aging a cue.
+    for tick = 1 to 20
+        for i = 0 to IMPACT_COUNT - 1
+            fixture.runtime.impacts.project(i)
+    let paused = new ReplaySnapshot()
+    paused.capture(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    accepted.firstPoseDifference(paused).assertEquals("")
+    before.restore(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    fixture.captureNext()
+    fixture.execute()
+    fixture.inputs.inputs[0].grabThrowX = 1
+    fixture.captureNext()
+    fixture.execute()
+    fixture.inputs.inputs[0].grabThrowX = 0
+    for tick = 2 to grabContactFrame(THROW_FORWARD)
+        fixture.captureNext()
+        fixture.execute()
+    paused.capture(fixture.world, fixture.game, fixture.inputs, fixture.runtime)
+    accepted.firstDifference(paused).assertEquals("")
+    accepted.firstPoseDifference(paused).assertEquals("")
+
+    let charging = new ImpactTestWorld(3)
+    let history = new ReplayHistory()
+    history.beginEpochWithCorrections(82, 1, 12).assertTrue()
+    charging.inputs.inputs[0].attackHeld = true
+    beginFighterAttack(charging.world, 0, 2, true)
+    charging.world.fighters[0].attackFrame = attackStartupFrames(2) - 1
+    for frame = 1 to 3
+        charging.captureNext()
+        history.saveSpeculative(82, charging.row, charging.world, charging.game, charging.inputs, charging.runtime).assertTrue()
+        charging.execute()
+    charging.runtime.impacts.nextSlot[IMPACT_CHARGE].assertEquals(1)
+    let corrected = new MatchFrameInput()
+    let neutral = new FrameInputs()
+    let corrections = new ReplayCorrections()
+    corrections.beginEpoch(82).assertTrue()
+    for frame = 1 to 3
+        corrected.capture(frame, 3, neutral, charging.runtime).assertTrue()
+        corrections.add(corrected).assertTrue()
+    history.correct(82, corrections, charging.world, charging.game, charging.inputs, charging.runtime).assertEquals(1)
+    charging.runtime.impacts.nextSlot[IMPACT_CHARGE].assertEquals(0)
+    charging.runtime.impacts.project(IMPACT_CHARGE * IMPACTS_PER_KIND).visible.assertFalse()

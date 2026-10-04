@@ -2,9 +2,9 @@
 set -euo pipefail
 project_dir=$(cd -- "$(dirname -- "$0")/../.." && pwd)
 output_dir="$project_dir/build/physics-probe"
-compiler_root=/home/tom/code/wurst-compiler/pins/9913e1bd300c2053637d756a11bae8c3c8ed568f
-runtime_root=/home/tom/code/wurst-compiler/pins/925921095b3f0c1cb83bc2ef0bb83a13c97cda50
-stdlib_root=/home/tom/code/wurst-stdlib/pins/bb1e0458db5a
+compiler_root=/home/tom/code/wurst-compiler/pins/6b129956f6e7cf9582510f26b99d305526bf3ded
+runtime_root=/home/tom/code/wurst-compiler/pins/0fe2efc959049b4ede2b86c66ae61c130eb04b55
+stdlib_root=/home/tom/code/wurst-stdlib/pins/e3714f629113
 mkdir -p "$output_dir"
 "${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}" "$project_dir/tools/physics-probe/generate-capsule-probe.mjs"
 "${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}" "$project_dir/tools/physics-probe/generate-air-cutoff-probe.mjs"
@@ -25,6 +25,9 @@ mkdir -p "$output_dir"
     "$project_dir/wurst/Simulation.wurst" "$project_dir/wurst/MeleeContactGeometry.wurst" \
     "$project_dir/wurst/RollTravel.wurst" \
     "$project_dir/wurst/MeleeScalarMath.wurst" \
+    "$project_dir/wurst/ParticipantInputs.wurst" "$project_dir/wurst/CommandBuffer.wurst" \
+    "$project_dir/wurst/NetworkInput.wurst" "$project_dir/wurst/KeyBindings.wurst" \
+    "$project_dir/wurst/TechInput.wurst" \
     "$project_dir/tools/physics-probe/NumericalPrecisionProbe.wurst" \
     "$output_dir/DirectionalInfluencePrecisionProbe.wurst" \
     "$output_dir/CapsuleShieldPrecisionProbe.wurst" \
@@ -47,12 +50,14 @@ initGlobals()
 initCompiletimeState()
 init_Real()
 init_Integer()
+init_ParticipantInputs()
 init_MeleeScalarMath()
 init_MeleeContactGeometry()
 init_Simulation()
 local results = {}
+local failed = false
 BJDebugMsg = function(message)
-    if string.find(message, '_FAIL$', 1) then error(message) end
+    if string.find(message, '_FAIL$', 1) then failed = true end
     results[message] = true
     print(message)
 end
@@ -74,8 +79,14 @@ assert(results.GROUNDED_BINARY32_EXACT_PASS and results.SHIELD_REGEN_BINARY32_EX
     and results.AIR_DECREMENT_BINARY32_EXACT_PASS and results.SIGNED_ZERO_SCALARS_EXACT_PASS
     and results.HITSTUN_BOUNDARIES_EXACT_PASS and results.AIR_CUTOFF_BINARY32_EXACT_PASS and results.GROUND_MOTION_BINARY32_EXACT_PASS
     and results.LAUNCH_MAGNITUDE_BINARY32_EXACT_PASS and results.HITLAG_SCALARS_EXACT_PASS and results.ANALOG_SHIELD_BINARY32_EXACT_PASS
-    and results.DIRECTIONAL_INFLUENCE_BINARY32_EXACT_PASS and results.CAPSULE_SHIELD_CLASSIFICATION_PASS,
+    and results.DIRECTIONAL_INFLUENCE_BINARY32_EXACT_PASS and results.CAPSULE_SHIELD_CLASSIFICATION_PASS
+    and not failed,
     'Missing numerical precision result')
 LUA
-nix shell nixpkgs#lua5_3 --command lua "$output_dir/run-precision.lua" "$project_dir" \
-    "$runtime_root/de.peeeq.wurstscript/src/test/resources/luaruntime"
+if [[ -n ${PHYSICS_LUA:-} ]]; then
+    "$PHYSICS_LUA" "$output_dir/run-precision.lua" "$project_dir" \
+        "$runtime_root/de.peeeq.wurstscript/src/test/resources/luaruntime"
+else
+    nix shell nixpkgs#lua5_3 --command lua "$output_dir/run-precision.lua" "$project_dir" \
+        "$runtime_root/de.peeeq.wurstscript/src/test/resources/luaruntime"
+fi

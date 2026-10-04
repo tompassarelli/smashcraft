@@ -1,0 +1,22 @@
+{
+  "candidate": "0.0.49",
+  "sha256": "d8fcbb8d614188b3047a87985711b6ee04fe372d4eba5cb816ea2313a5a06383",
+  "initialization": "complete on both clients",
+  "selection": "both reached fighter selection",
+  "failure": "native desync at turn 1113 before fight",
+  "helpers_started": false,
+  "input_edges_injected": false,
+  "transport_verdict": "none",
+  "desync_diff": {
+    "section": 1768977253,
+    "A": {
+      "1": "0x0000058B",
+      "2": "0x0000140D"
+    },
+    "B": {
+      "1": "0x0000058D",
+      "2": "0x0000140F"
+    }
+  },
+  "cause": "unestablished"
+}

@@ -1,0 +1,8 @@
+{
+  "candidate": "0.0.50",
+  "sha256": "ac7308b3598780a83dc106d9b4d5ae4dcd5d23c74b4bfc46665411e298b0c575",
+  "selection": "A choice0 received; shared fighter choices and body handle IDs matched on both clients before disconnect",
+  "failure": "Native turn1851; same presence tag3792, birth tags5125/5127; controller helpers not started",
+  "verdict": "no input performance verdict; unit identity and fighter choice divergence excluded at measured selection boundary",
+  "repair": "Candidate51 moves unit removal/reference clearing into Fighter destructor; desync causality unproved"
+}

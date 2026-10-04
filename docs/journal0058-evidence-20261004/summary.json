@@ -1,0 +1,7 @@
+{
+  "candidate": "0.0.58",
+  "sha256": "2e84793508f0a1931df9e3d2a2dcd20dd773757da94585bc93ffad8efae98667",
+  "result": "Both selected, entered full journal fight and exported epoch1 readiness. No fresh native disconnect observed. Startup trace ends inside diagnostic state checksum before ready-message submission; no same-channel preflight receipt, so controller helper not started.",
+  "conclusion": "Moving order diagnostic out of gameplay closes observed selection failure. Controller delivery still blocked before reads. Candidate59 bounds canonical hash work by fragment.",
+  "controller_performance_verdict": null
+}

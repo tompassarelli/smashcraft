@@ -1,0 +1,13 @@
+{
+  "candidate": "e78ae136a69a4841a2b144416dac30b3e5dc408ac5c978bbd21a3103f09bc0a9",
+  "source": "1bc4a7b69a8527f0cbe37c26fff7193f0237be69",
+  "frame": 6,
+  "sourceValue": -6.119999885559082,
+  "displacement": -1.0199999809265137,
+  "expectedNearest32": -7.139999866485596,
+  "current": -7.1399993896484375,
+  "direct": -7.139999866485596,
+  "actual": -7.1399993896484375,
+  "nativeSentinelUlpOffset": -1,
+  "scope": "Same stored world operands only; normalizedWorld equals current by construction. Does not measure separately maintained normalized trajectory."
+}

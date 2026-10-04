@@ -1,0 +1,9 @@
+{
+  "candidate": "0.0.54",
+  "sha256": "3704e7ea6890e22fb8f0bf9fab587474f3c33dcfd0a6a5bf38511a307fb07696",
+  "scope": "Reduced53 plus exact production BindingSettings.initialize and SaveLoadData/FileIO loading, including ready gate before selection.",
+  "result": "Both saved controls ready at tick69; both selected and recreated matching bodies at tick1375; later synchronized Start callback received by both. No disconnect observed.",
+  "conclusion": "Saved-control loading plus selection/body setup is insufficient alone to reproduce full-map native50/51 desync.",
+  "controller_performance_verdict": null,
+  "later_common_callback_tick": 5635
+}

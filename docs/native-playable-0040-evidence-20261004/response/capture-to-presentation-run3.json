@@ -1,0 +1,137 @@
+{
+  "scope": "native game-clock clean probe; sampled shield to logical predicted presentation, not physical button-to-pixel; recovery-separated presses, 600ms release gaps",
+  "clients": [
+    {
+      "local": 0,
+      "rows": 412,
+      "presses": [
+        {
+          "row": 149,
+          "target": 18774,
+          "predicted_row": 149,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 191,
+          "target": 18816,
+          "predicted_row": 191,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 234,
+          "target": 18859,
+          "predicted_row": 234,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 278,
+          "target": 18903,
+          "predicted_row": 278,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 321,
+          "target": 18946,
+          "predicted_row": 321,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 363,
+          "target": 18988,
+          "predicted_row": 363,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        }
+      ]
+    },
+    {
+      "local": 1,
+      "rows": 412,
+      "presses": [
+        {
+          "row": 149,
+          "target": 18774,
+          "predicted_row": 149,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 191,
+          "target": 18816,
+          "predicted_row": 191,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 235,
+          "target": 18860,
+          "predicted_row": 235,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 278,
+          "target": 18903,
+          "predicted_row": 278,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 321,
+          "target": 18946,
+          "predicted_row": 321,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        },
+        {
+          "row": 363,
+          "target": 18988,
+          "predicted_row": 363,
+          "service_callbacks": 0,
+          "poll_to_present_game_ms": 0.0,
+          "confirmed_shield_at_capture": 0,
+          "predicted_shield_at_capture": 1,
+          "capture_result": 0
+        }
+      ]
+    }
+  ]
+}

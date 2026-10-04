@@ -1,0 +1,23 @@
+Keyboard mailbox private-X11 emission baseline
+Date: 2026-10-04
+Worktree commit before companion change: bcdcb00
+Display: :2, XAUTHORITY empty; parent-authorized private display
+Target: temporary focused override-redirect X11 window created by the measurement process
+Method: six chunks through the production MailboxSender + Enigo path; after each of chunks 1-5, the test wrote a matching synthetic ACK and immediately called step again. The sixth chunk was emitted but its ACK was not sampled. Temporary measurement test was removed after the run.
+
+Trace (elapsed_us is synchronous local sender emission duration):
+mailbox_emit chunk=1 bytes=7 transitions=23 elapsed_us=1878
+mailbox_ack chunk=1 wait_us=179
+mailbox_emit chunk=2 bytes=7 transitions=14 elapsed_us=1071
+mailbox_ack chunk=2 wait_us=106
+mailbox_emit chunk=3 bytes=7 transitions=9 elapsed_us=675
+mailbox_ack chunk=3 wait_us=90
+mailbox_emit chunk=4 bytes=7 transitions=8 elapsed_us=629
+mailbox_ack chunk=4 wait_us=68
+mailbox_emit chunk=5 bytes=7 transitions=7 elapsed_us=545
+mailbox_ack chunk=5 wait_us=70
+mailbox_emit chunk=6 bytes=7 transitions=4 elapsed_us=491
+
+Totals: six measured emissions = 5289 us (5.289 ms); five synthetic ACK observations = 513 us (0.513 ms). The sixth ACK was not measured. A prior one-chunk setup attempt logged 2346 us but had a malformed synthetic ACK and is excluded from these totals.
+
+Scope: measures the local Enigo-to-X-server path on this private display. It does not measure Warcraft's key handling, map polling, or native commit-to-ACK service time; parent-owned native comparison remains necessary.

@@ -1,0 +1,305 @@
+{
+  "observedAtUnix": 1791093229.7335432,
+  "arms": [
+    {
+      "client": "a",
+      "arm": 0,
+      "beginMtimeUnix": 1791092815.474079,
+      "begin": [
+        "build=netcode-0038 receipt=vocabulary-ingress begin",
+        "slot=0 arm=0 native-game-seconds=0.000",
+        "source-method=generated-I4 offered-hz=30 records-per-packet=2 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "fixture-source=0 fixture-sender=0 fixture-first-base=smashcraft-vocabulary-netcode-0038-s0-p0-a0-n000"
+      ],
+      "endMtimeUnix": 1791092821.3752944,
+      "end": [
+        "build=netcode-0038 receipt=vocabulary-ingress end",
+        "slot=0 arm=0 native-game-seconds=29.993",
+        "source-method=generated-I4 offered-hz=30 records-per-packet=2 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "attempts=300 sent=300 echoed=0 missing=300 local-read-errors=0 bad-records=0",
+        "send-failures=0 duplicates=0 peer-packets=0 peer-errors=0 drain-callbacks=600",
+        "native-read-seconds=0.000 sends-bytes=11356 send-call-seconds=0.000",
+        "echo-age-samples=0 mean-native-seconds=0.000 max-native-seconds=0.000 phase-span-native-seconds=29.993",
+        "first-read-native-seconds=0.000 first-echo-native-seconds=-1.000"
+      ],
+      "pages": 10
+    },
+    {
+      "client": "a",
+      "arm": 1,
+      "beginMtimeUnix": 1791092821.416072,
+      "begin": [
+        "build=netcode-0038 receipt=vocabulary-ingress begin",
+        "slot=0 arm=1 native-game-seconds=29.993",
+        "source-method=whole-packet-changing-script offered-hz=30 records-per-packet=2 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "fixture-source=0 fixture-sender=0 fixture-first-base=smashcraft-vocabulary-netcode-0038-s0-p0-a1-n000"
+      ],
+      "endMtimeUnix": 1791092842.1700478,
+      "end": [
+        "build=netcode-0038 receipt=vocabulary-ingress end",
+        "slot=0 arm=1 native-game-seconds=59.985",
+        "source-method=whole-packet-changing-script offered-hz=30 records-per-packet=2 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "attempts=300 sent=300 echoed=0 missing=300 local-read-errors=0 bad-records=0",
+        "send-failures=0 duplicates=0 peer-packets=0 peer-errors=0 drain-callbacks=600",
+        "native-read-seconds=0.000 sends-bytes=11356 send-call-seconds=0.000",
+        "echo-age-samples=0 mean-native-seconds=0.000 max-native-seconds=0.000 phase-span-native-seconds=29.993",
+        "first-read-native-seconds=0.000 first-echo-native-seconds=-1.000"
+      ],
+      "pages": 10
+    },
+    {
+      "client": "a",
+      "arm": 2,
+      "beginMtimeUnix": 1791092842.2094872,
+      "begin": [
+        "build=netcode-0038 receipt=vocabulary-ingress begin",
+        "slot=0 arm=2 native-game-seconds=59.985",
+        "source-method=fixed-64-script-vocabulary offered-hz=30 records-per-packet=2 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "fixture-source=0 fixture-sender=0 fixture-first-base=smashcraft-vocabulary-netcode-0038-s0-p0-a2-n000"
+      ],
+      "endMtimeUnix": 1791093037.5178018,
+      "end": [
+        "build=netcode-0038 receipt=vocabulary-ingress end",
+        "slot=0 arm=2 native-game-seconds=89.978",
+        "source-method=fixed-64-script-vocabulary offered-hz=30 records-per-packet=2 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "attempts=300 sent=300 echoed=0 missing=300 local-read-errors=0 bad-records=0",
+        "send-failures=0 duplicates=0 peer-packets=0 peer-errors=0 drain-callbacks=600",
+        "native-read-seconds=0.000 sends-bytes=11356 send-call-seconds=0.000",
+        "echo-age-samples=0 mean-native-seconds=0.000 max-native-seconds=0.000 phase-span-native-seconds=29.993",
+        "first-read-native-seconds=0.000 first-echo-native-seconds=-1.000"
+      ],
+      "pages": 10
+    },
+    {
+      "client": "a",
+      "arm": 3,
+      "beginMtimeUnix": 1791093037.5588017,
+      "begin": [
+        "build=netcode-0038 receipt=vocabulary-ingress begin",
+        "slot=0 arm=3 native-game-seconds=89.978",
+        "source-method=generated-I4 offered-hz=60 records-per-packet=1 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "fixture-source=0 fixture-sender=0 fixture-first-base=smashcraft-vocabulary-netcode-0038-s0-p0-a3-n000"
+      ],
+      "endMtimeUnix": 1791093043.8040147,
+      "end": [
+        "build=netcode-0038 receipt=vocabulary-ingress end",
+        "slot=0 arm=3 native-game-seconds=114.972",
+        "source-method=generated-I4 offered-hz=60 records-per-packet=1 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "attempts=300 sent=300 echoed=0 missing=300 local-read-errors=0 bad-records=0",
+        "send-failures=0 duplicates=0 peer-packets=0 peer-errors=0 drain-callbacks=1200",
+        "native-read-seconds=0.000 sends-bytes=7749 send-call-seconds=0.000",
+        "echo-age-samples=0 mean-native-seconds=0.000 max-native-seconds=0.000 phase-span-native-seconds=24.994",
+        "first-read-native-seconds=0.000 first-echo-native-seconds=-1.000"
+      ],
+      "pages": 10
+    },
+    {
+      "client": "a",
+      "arm": 4,
+      "beginMtimeUnix": 1791093043.8437824,
+      "begin": [
+        "build=netcode-0038 receipt=vocabulary-ingress begin",
+        "slot=0 arm=4 native-game-seconds=114.972",
+        "source-method=whole-packet-changing-script offered-hz=60 records-per-packet=1 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "fixture-source=0 fixture-sender=0 fixture-first-base=smashcraft-vocabulary-netcode-0038-s0-p0-a4-n000"
+      ],
+      "endMtimeUnix": 1791093063.918889,
+      "end": [
+        "build=netcode-0038 receipt=vocabulary-ingress end",
+        "slot=0 arm=4 native-game-seconds=139.966",
+        "source-method=whole-packet-changing-script offered-hz=60 records-per-packet=1 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "attempts=300 sent=300 echoed=0 missing=300 local-read-errors=0 bad-records=0",
+        "send-failures=0 duplicates=0 peer-packets=0 peer-errors=0 drain-callbacks=1200",
+        "native-read-seconds=0.000 sends-bytes=7749 send-call-seconds=0.000",
+        "echo-age-samples=0 mean-native-seconds=0.000 max-native-seconds=0.000 phase-span-native-seconds=24.994",
+        "first-read-native-seconds=0.000 first-echo-native-seconds=-1.000"
+      ],
+      "pages": 10
+    },
+    {
+      "client": "a",
+      "arm": 5,
+      "beginMtimeUnix": 1791093063.9568665,
+      "begin": [
+        "build=netcode-0038 receipt=vocabulary-ingress begin",
+        "slot=0 arm=5 native-game-seconds=139.966",
+        "source-method=fixed-64-script-vocabulary offered-hz=60 records-per-packet=1 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=yes-from-arm2 epoch=36 original-frames=yes",
+        "fixture-source=0 fixture-sender=0 fixture-first-base=smashcraft-vocabulary-netcode-0038-s0-p0-a5-n000"
+      ],
+      "endMtimeUnix": 1791093183.698448,
+      "end": [
+        "build=netcode-0038 receipt=vocabulary-ingress end",
+        "slot=0 arm=5 native-game-seconds=164.960",
+        "source-method=fixed-64-script-vocabulary offered-hz=60 records-per-packet=1 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=yes-from-arm2 epoch=36 original-frames=yes",
+        "attempts=300 sent=300 echoed=0 missing=300 local-read-errors=0 bad-records=0",
+        "send-failures=0 duplicates=0 peer-packets=0 peer-errors=0 drain-callbacks=1200",
+        "native-read-seconds=0.000 sends-bytes=7749 send-call-seconds=0.000",
+        "echo-age-samples=0 mean-native-seconds=0.000 max-native-seconds=0.000 phase-span-native-seconds=24.994",
+        "first-read-native-seconds=0.000 first-echo-native-seconds=-1.000"
+      ],
+      "pages": 10
+    },
+    {
+      "client": "b",
+      "arm": 0,
+      "beginMtimeUnix": 1791092815.0291288,
+      "begin": [
+        "build=netcode-0038 receipt=vocabulary-ingress begin",
+        "slot=1 arm=0 native-game-seconds=0.000",
+        "source-method=generated-I4 offered-hz=30 records-per-packet=2 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "fixture-source=0 fixture-sender=1 fixture-first-base=smashcraft-vocabulary-netcode-0038-s0-p1-a0-n000"
+      ],
+      "endMtimeUnix": 1791092820.892031,
+      "end": [
+        "build=netcode-0038 receipt=vocabulary-ingress end",
+        "slot=1 arm=0 native-game-seconds=29.993",
+        "source-method=generated-I4 offered-hz=30 records-per-packet=2 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "attempts=300 sent=300 echoed=0 missing=300 local-read-errors=0 bad-records=0",
+        "send-failures=0 duplicates=0 peer-packets=0 peer-errors=0 drain-callbacks=600",
+        "native-read-seconds=0.000 sends-bytes=11356 send-call-seconds=0.000",
+        "echo-age-samples=0 mean-native-seconds=0.000 max-native-seconds=0.000 phase-span-native-seconds=29.993",
+        "first-read-native-seconds=0.000 first-echo-native-seconds=-1.000"
+      ],
+      "pages": 10
+    },
+    {
+      "client": "b",
+      "arm": 1,
+      "beginMtimeUnix": 1791092820.9317207,
+      "begin": [
+        "build=netcode-0038 receipt=vocabulary-ingress begin",
+        "slot=1 arm=1 native-game-seconds=29.993",
+        "source-method=whole-packet-changing-script offered-hz=30 records-per-packet=2 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "fixture-source=0 fixture-sender=1 fixture-first-base=smashcraft-vocabulary-netcode-0038-s0-p1-a1-n000"
+      ],
+      "endMtimeUnix": 1791092841.4633574,
+      "end": [
+        "build=netcode-0038 receipt=vocabulary-ingress end",
+        "slot=1 arm=1 native-game-seconds=59.985",
+        "source-method=whole-packet-changing-script offered-hz=30 records-per-packet=2 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "attempts=300 sent=300 echoed=0 missing=300 local-read-errors=0 bad-records=0",
+        "send-failures=0 duplicates=0 peer-packets=0 peer-errors=0 drain-callbacks=600",
+        "native-read-seconds=0.000 sends-bytes=11356 send-call-seconds=0.000",
+        "echo-age-samples=0 mean-native-seconds=0.000 max-native-seconds=0.000 phase-span-native-seconds=29.993",
+        "first-read-native-seconds=0.000 first-echo-native-seconds=-1.000"
+      ],
+      "pages": 10
+    },
+    {
+      "client": "b",
+      "arm": 2,
+      "beginMtimeUnix": 1791092841.5038257,
+      "begin": [
+        "build=netcode-0038 receipt=vocabulary-ingress begin",
+        "slot=1 arm=2 native-game-seconds=59.985",
+        "source-method=fixed-64-script-vocabulary offered-hz=30 records-per-packet=2 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "fixture-source=0 fixture-sender=1 fixture-first-base=smashcraft-vocabulary-netcode-0038-s0-p1-a2-n000"
+      ],
+      "endMtimeUnix": 1791093036.0458064,
+      "end": [
+        "build=netcode-0038 receipt=vocabulary-ingress end",
+        "slot=1 arm=2 native-game-seconds=89.978",
+        "source-method=fixed-64-script-vocabulary offered-hz=30 records-per-packet=2 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "attempts=300 sent=300 echoed=0 missing=300 local-read-errors=0 bad-records=0",
+        "send-failures=0 duplicates=0 peer-packets=0 peer-errors=0 drain-callbacks=600",
+        "native-read-seconds=0.000 sends-bytes=11356 send-call-seconds=0.000",
+        "echo-age-samples=0 mean-native-seconds=0.000 max-native-seconds=0.000 phase-span-native-seconds=29.993",
+        "first-read-native-seconds=0.000 first-echo-native-seconds=-1.000"
+      ],
+      "pages": 10
+    },
+    {
+      "client": "b",
+      "arm": 3,
+      "beginMtimeUnix": 1791093036.085524,
+      "begin": [
+        "build=netcode-0038 receipt=vocabulary-ingress begin",
+        "slot=1 arm=3 native-game-seconds=89.978",
+        "source-method=generated-I4 offered-hz=60 records-per-packet=1 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "fixture-source=0 fixture-sender=1 fixture-first-base=smashcraft-vocabulary-netcode-0038-s0-p1-a3-n000"
+      ],
+      "endMtimeUnix": 1791093042.3147824,
+      "end": [
+        "build=netcode-0038 receipt=vocabulary-ingress end",
+        "slot=1 arm=3 native-game-seconds=114.972",
+        "source-method=generated-I4 offered-hz=60 records-per-packet=1 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "attempts=300 sent=300 echoed=0 missing=300 local-read-errors=0 bad-records=0",
+        "send-failures=0 duplicates=0 peer-packets=0 peer-errors=0 drain-callbacks=1200",
+        "native-read-seconds=0.000 sends-bytes=7749 send-call-seconds=0.000",
+        "echo-age-samples=0 mean-native-seconds=0.000 max-native-seconds=0.000 phase-span-native-seconds=24.994",
+        "first-read-native-seconds=0.000 first-echo-native-seconds=-1.000"
+      ],
+      "pages": 10
+    },
+    {
+      "client": "b",
+      "arm": 4,
+      "beginMtimeUnix": 1791093042.3529012,
+      "begin": [
+        "build=netcode-0038 receipt=vocabulary-ingress begin",
+        "slot=1 arm=4 native-game-seconds=114.972",
+        "source-method=whole-packet-changing-script offered-hz=60 records-per-packet=1 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "fixture-source=0 fixture-sender=1 fixture-first-base=smashcraft-vocabulary-netcode-0038-s0-p1-a4-n000"
+      ],
+      "endMtimeUnix": 1791093063.139007,
+      "end": [
+        "build=netcode-0038 receipt=vocabulary-ingress end",
+        "slot=1 arm=4 native-game-seconds=139.966",
+        "source-method=whole-packet-changing-script offered-hz=60 records-per-packet=1 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes",
+        "attempts=300 sent=300 echoed=0 missing=300 local-read-errors=0 bad-records=0",
+        "send-failures=0 duplicates=0 peer-packets=0 peer-errors=0 drain-callbacks=1200",
+        "native-read-seconds=0.000 sends-bytes=7749 send-call-seconds=0.000",
+        "echo-age-samples=0 mean-native-seconds=0.000 max-native-seconds=0.000 phase-span-native-seconds=24.994",
+        "first-read-native-seconds=0.000 first-echo-native-seconds=-1.000"
+      ],
+      "pages": 10
+    },
+    {
+      "client": "b",
+      "arm": 5,
+      "beginMtimeUnix": 1791093063.1785948,
+      "begin": [
+        "build=netcode-0038 receipt=vocabulary-ingress begin",
+        "slot=1 arm=5 native-game-seconds=139.966",
+        "source-method=fixed-64-script-vocabulary offered-hz=60 records-per-packet=1 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=yes-from-arm2 epoch=36 original-frames=yes",
+        "fixture-source=0 fixture-sender=1 fixture-first-base=smashcraft-vocabulary-netcode-0038-s0-p1-a5-n000"
+      ],
+      "endMtimeUnix": 1791093186.673494,
+      "end": [
+        "build=netcode-0038 receipt=vocabulary-ingress end",
+        "slot=1 arm=5 native-game-seconds=164.960",
+        "source-method=fixed-64-script-vocabulary offered-hz=60 records-per-packet=1 samples=300",
+        "explicit-prewarm=no vocabulary-content-reused=yes-from-arm2 epoch=36 original-frames=yes",
+        "attempts=300 sent=300 echoed=0 missing=300 local-read-errors=0 bad-records=0",
+        "send-failures=0 duplicates=0 peer-packets=0 peer-errors=0 drain-callbacks=1200",
+        "native-read-seconds=0.000 sends-bytes=7749 send-call-seconds=0.000",
+        "echo-age-samples=0 mean-native-seconds=0.000 max-native-seconds=0.000 phase-span-native-seconds=24.994",
+        "first-read-native-seconds=0.000 first-echo-native-seconds=-1.000"
+      ],
+      "pages": 10
+    }
+  ]
+}

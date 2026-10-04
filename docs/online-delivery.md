@@ -6,11 +6,10 @@ the first native integration and online measurements use the existing Linux
 clients. Keep each platform's observed support separate from source-level
 portability.
 
-The low-latency/controller/netcode agent owns input, deterministic rollback,
-visual/audio recovery, controller integration, companion startup and hosting
-comparisons. The independent physics agent owns the verified Melee NTSC 1.02
-foundation. Consume its changes and include new mutable simulation state in
-snapshots and replay without retuning its mechanics.
+The current primary owns reconciliation of input, deterministic rollback,
+visual/audio recovery, controller integration, hosting and the accepted physics
+handoff. Include mutable simulation state in snapshots and replay without
+retuning agreed mechanics. The previous cross-peer mailbox is shut down.
 
 ## Accepted controller direction
 
@@ -34,13 +33,11 @@ and platform-specific trials.
 
 The roadmap is [#16](https://github.com/tompassarelli/smashcraft/issues/16).
 
-The immediate priority is [#21](https://github.com/tompassarelli/smashcraft/issues/21):
-the bounded competitive input-integrity decision, due 3 October 2026 at
-15:15:25 UTC / 23:15:25 Taipei. See
-wc3-melee:docs/competitive-integrity-decision.md for evidence, the HOLD
-recommendation and exact release gates, and wc3-melee:docs/online-delivery-goal.md
-for the full consolidated goal. Controller/launcher features do not reset or
-extend the investigation clock.
+Current guarantees, progress and all issue dispositions are recorded in
+wc3-melee:docs/netplay-status.md. #21 completed the earlier HOLD decision; it is
+not active implementation. The next repair is input retention #26, followed by
+the intended-frame contract #25 and response/variation #27. Completed bounded
+claims #28–#30 stay closed absent a relevant regression.
 
 1. [#17](https://github.com/tompassarelli/smashcraft/issues/17): complete an
    actual two-client fight, KO/results and rematch on the same candidate;
@@ -56,7 +53,8 @@ extend the investigation clock.
    discovery/joining for controlled hosting before comparing the same map with
    Battle.net and available W3Champions/FLO paths. Infrastructure is selected
    from measured benefits, not an assumed latency improvement.
-4. [#20](https://github.com/tompassarelli/smashcraft/issues/20): verify actual
+4. [#17](https://github.com/tompassarelli/smashcraft/issues/17), incorporating
+   the former #20 requirements: verify actual
    three/four-player play and ten completed matches, including rematches and
    slot changes under stated network conditions.
 
@@ -66,21 +64,23 @@ capability and needs an executable map-ingress proof before it is advertised.
 
 ## Acceptance and current limits
 
-Target local visible response median ≤33 ms, p95 ≤50 ms and p99 ≤83 ms, smooth
-60 Hz play, no recurring unexplained responses above 100 ms and no observed
-confirmed-state disagreements. Report physical controller latency separately
+Local visible response figures of median 33 ms, p95 50 ms and p99 83 ms are
+advisory measurement targets, not rigid acceptance gates. Assess playable
+response, explain observed outliers and preserve consistent input and outcomes.
+Report physical controller latency separately
 from injected-input timing, with the exact candidate, configuration, input
 method, sample count, network conditions and capture uncertainty.
 
-Retained native evidence includes matching sampled confirmed states, attacks
-from both humans, a real contact/hitlag/hitstun window and a results-to-combat
-rematch transition. It does not yet establish a completed combat round, current
-candidate latency acceptance, physical-controller acceptance, native support on
-all three platforms or ten completed matches. Client A's signed-in launcher
-successfully recovered the real main menu through its Play button on 3 October.
-An empty Options/Exit Game shell is the recorded post-login failure; retain the
-launcher and use the Warcraft-specific recovery skill rather than direct execution.
+Exact 0.0.40 completed the bounded two-client combat/movement/jump/pause/result/
+rematch journey, with 18 matching recorded confirmed checkpoints. Twelve sampled
+shield presses entered prediction in their capture callback, and the software
+controller mapper produced movement and three attacks. Input polling can still
+lose taps; original-frame stall retention, physical response, all-platform
+support and ten human matches remain open. Detailed evidence is in
+wc3-melee:docs/smashcraft-delivery-state-20261004.md. Preserve signed-in native
+clients; use the Warcraft recovery skill for launcher issues.
 
-Update the owning issue at meaningful executable checkpoints. Builds, synthetic
+Update the owning issue body at meaningful executable checkpoints. Add comments
+only for a material result or decision. Builds, synthetic
 host turns, controller enumeration and source inspection each prove only their
 own boundary; they do not close online or platform acceptance.

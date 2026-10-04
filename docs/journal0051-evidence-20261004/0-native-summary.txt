@@ -1,0 +1,23 @@
+Network desync on turn 01281 in game W3-C6F2BBF5-8EC6-EE8A-B829-310EFD17ADCEA70FB4CF
+War3 build 7000
+War3 next presence tag 03792 next birth tag 05125
+War3 tempest checksum c2d9b2c0
+War3 cheat checksum 00000000
+War3 combat checksum 00000000
+War3 net checksum 5454d5a4
+War3 rand checksum 51ee1720
+War3 unit checksum 00000000
+War3 game checksum d373bb7d
+War3 item checksum 00000000
+War3 destructable checksum 00000000
+War3 upgrade checksum 4fa10e21
+War3 witness checksum 00000000
+War3 world checksum 00000000
+War3 custom unit checksum 571c6fc3
+War3 custom item checksum 122689ac
+War3 custom destructable checksum 76ef2c00
+War3 custom doodad checksum 00000000
+War3 custom ability checksum 2b68e0a5
+War3 custom upgrade checksum c9396c3c
+War3 custom misc checksum 00000000
+Network desync on turn 01281 in game W3-C6F2BBF5-8EC6-EE8A-B829-310EFD17ADCEA70FB4CF

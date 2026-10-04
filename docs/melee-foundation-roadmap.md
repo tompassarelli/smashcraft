@@ -1,5 +1,12 @@
 # Melee foundation, balance design, and visual legibility
 
+Current tracking (5 October 2026): one delivery roadmap #16; physics #9
+incorporates former #5–#8, move data/balance/tuning #12 incorporates #10/#11/#15,
+and visual events/appearance #14 incorporates #13. Original requirements below
+remain reference scope, not separate active work queues. Current build and
+issue dispositions: wc3-melee:docs/netplay-status.md. The older candidate and
+coordination checkpoints below are historical.
+
 Requested 2026-10-03. Establish an independently authored, reference-tested
 Melee physics foundation before treating original Warcraft fighters as balanced.
 Use a familiar visual language first, then evolve its artwork toward Warcraft.

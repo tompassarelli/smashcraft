@@ -1,0 +1,16 @@
+Network desync on turn 00099 in game W3-9C71B95C-E54C-4879-5C4D-2BB2A2E9FEDA8F9F01F2
+War3 build 7000
+War3 next presence tag 01845 next birth tag 02188
+War3 tempest checksum 6eedf020
+War3 cheat checksum 00000000
+War3 combat checksum 00000000
+War3 net checksum 661d543c
+War3 rand checksum 505e93a4
+War3 unit checksum 00000000
+War3 game checksum d373bf7d
+War3 item checksum 00000000
+War3 destructable checksum 00000000
+War3 upgrade checksum 4fa10e21
+War3 witness checksum 00000000
+War3 world checksum 00000000
+Network desync on turn 00099 in game W3-9C71B95C-E54C-4879-5C4D-2BB2A2E9FEDA8F9F01F2

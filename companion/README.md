@@ -202,9 +202,15 @@ confirmation and the absence of existing immutable files for that sequence.
 Release mapped buttons before opening capture. The current axis contract expects
 the Linux Xbox axis set; other adapters need their own demonstrated mapping.
 
-The pause policy is continuous-no-pause and experimental. Cross-machine epoch
-alignment, drift, and coordinated pause/resume are unfinished. This is not yet
-a turnkey human multiplayer controller launcher or a Windows/macOS journal path.
+Pause requests now prepare each helper's input frontier, synchronize the highest
+frontier across human players, and commit that shared stop frame. Resume opens a
+new monotonic capture segment at the same frame with neutral controls; inputs
+already assigned before the stop retain their frames. The helper waits for the
+native control writer's closing line before parsing a newly created file.
+Focused checks pass, but native end-to-end pause/resume remains unverified.
+Cross-machine epoch alignment and drift are also unfinished. This experimental
+path is separate from the responsive digital controller-to-keyboard mapper;
+it is not a turnkey human multiplayer controller launcher or Windows/macOS path.
 On kernel SYN_DROPPED or an event for an already-published frame, acquisition
 stops with a diagnostic instead of inventing input or moving its original frame.
 

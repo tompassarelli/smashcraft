@@ -1,0 +1,5 @@
+{
+  "map_sha256": "7f3778483ce19d4162de72f05e2ac6360d3f53743588180165bf7b421ec38fb1",
+  "source": "269635d plus registration-change.patch",
+  "result": "Rejected: known50 confirmed48 at native5seconds; both first attacks applied at frame19 at trace2.100s; later taps absent from native trace."
+}

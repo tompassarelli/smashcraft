@@ -1,0 +1,18 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=netcode-0031 receipt=native-transport-probe" )
+	call Preload( "observer=2 rate=60 arm=0" )
+	call Preload( "expected=120 received=118 missing=2" )
+	call Preload( "bad=2 duplicates=0 send-failures=0" )
+	call Preload( "invalid sender=0 seq=1 expected=-2.147484e+09 actual=-2" )
+	call Preload( "invalid wire=NTP11001-2.147484e+09" )
+	call Preload( "invalid sender=2 seq=1 expected=-2.147484e+09 actual=-2" )
+	call Preload( "invalid wire=NTP11001-2.147484e+09" )
+	call Preload( "own-echo-count=60 mean-native-seconds=0.074 max-native-seconds=0.094" )
+	call Preload( "native-game-seconds=244.494 phase-seconds=16.030" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

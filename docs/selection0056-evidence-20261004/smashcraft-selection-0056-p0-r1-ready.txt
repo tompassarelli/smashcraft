@@ -1,0 +1,13 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=selection-0056 phase=ready revision=1 ticks=0" )
+	call Preload( "slot=0 choice=0 selected=0 body=1049073 bindings-ready=0" )
+	call Preload( "slot=1 choice=1 selected=0 body=1049074 bindings-ready=0" )
+	call Preload( "slot=2 choice=2 selected=0 body=0 bindings-ready=1" )
+	call Preload( "slot=3 choice=0 selected=0 body=0 bindings-ready=1" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

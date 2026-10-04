@@ -1,0 +1,14 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "SMASHCRAFT JOURNAL v=1 build=journal-0059 epoch=1 slot=0" )
+	call Preload( "input=shadow-d0-r24 delay=0 rollback=24 first_frame=1" )
+	call Preload( "filename=smashcraft-journal-journal-0059-e1-s0-n{SEQUENCE}.pld" )
+	call Preload( "packet=canonical I4; records=1 or 2 consecutive original frames; include neutral rows; no sparse events" )
+	call Preload( "transport=SC_GP; files are immutable; absent next filename is retried; sequence advances after local capture and successful submission" )
+	call Preload( "pause=sequenced control request; companion ACK names the next input frame; simulation pauses or resumes only at that acknowledged confirmed frame" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

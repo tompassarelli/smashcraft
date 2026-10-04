@@ -23,6 +23,19 @@ import MatchRules
 	controls.isPaused().assertFalse()
 	destroy controls
 
+@Test function deferredJournalPauseChangesOnlyWhenTheAcknowledgmentCommits()
+	let controls = new MatchControls()
+	controls.keyDownDeferred(0, MATCH, false).assertEquals(START_PAUSE_TOGGLED)
+	controls.isPaused().assertFalse()
+	controls.setPaused(true)
+	controls.isPaused().assertTrue()
+	controls.keyUp(0)
+	controls.keyDownDeferred(0, MATCH, false).assertEquals(START_PAUSE_TOGGLED)
+	controls.isPaused().assertTrue()
+	controls.setPaused(false)
+	controls.isPaused().assertFalse()
+	destroy controls
+
 @Test function pauseIsSharedAndSimultaneousPlayerPressDoesNotUndoIt()
 	let controls = new MatchControls()
 	controls.keyDown(0, MATCH, false).assertEquals(START_PAUSE_TOGGLED)

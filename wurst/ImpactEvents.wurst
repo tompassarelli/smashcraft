@@ -24,6 +24,21 @@ public class ImpactEvents
     private real previousZ = 0
     private real previousVelocityX = 0
     private int previousDownFrame = 0
+    private int previousGrabVisualSerial = 0
+    private int previousThrowVisualSerial = 0
+    private boolean previouslyCharging = false
+    private int previousChargeFrames = 0
+    private int previousLedgeSerial = 0
+    private int previousLedgeState = LEDGE_NONE
+    private int previousLedgeSide = 0
+    boolean grab = false
+    boolean throwRelease = false
+    boolean charge = false
+    boolean ready = false
+    boolean ledgeCatch = false
+    boolean ledgeRecovery = false
+    real ledgeX = 0
+    real ledgeZ = 0
     boolean hit = false
     boolean electric = false
     boolean shieldHit = false
@@ -70,6 +85,19 @@ public class ImpactEvents
         previousZ = fighter.z
         previousVelocityX = fighter.vx
         previousDownFrame = fighter.downFrame
+        previousGrabVisualSerial = fighter.grabVisualSerial
+        previousThrowVisualSerial = fighter.throwVisualSerial
+        previouslyCharging = fighter.smashCharging
+        previousChargeFrames = fighter.smashChargeFrames
+        previousLedgeSerial = fighter.ledgeSerial
+        previousLedgeState = fighter.ledgeState
+        previousLedgeSide = fighter.ledgeSide
+        grab = false
+        throwRelease = false
+        charge = false
+        ready = false
+        ledgeCatch = false
+        ledgeRecovery = false
         hit = false
         electric = false
         shieldHit = false
@@ -108,13 +136,26 @@ public class ImpactEvents
             normalX = fighter.surfaceContactNormalX
             normalZ = fighter.surfaceContactNormalZ
             surfaceMissedTech = (surface == SURFACE_WALL or surface == SURFACE_CEILING) and isTumbling(fighter)
+        if not previouslyOut and not fighter.out
+            grab = fighter.grabVisualSerial != previousGrabVisualSerial
+            throwRelease = fighter.throwVisualSerial != previousThrowVisualSerial
+            charge = not previouslyCharging and fighter.smashCharging
+            ready = fighter.smashCharging and previousChargeFrames < SMASH_MAX_CHARGE_FRAMES and fighter.smashChargeFrames == SMASH_MAX_CHARGE_FRAMES
+            ledgeCatch = fighter.ledgeSerial != previousLedgeSerial
+            ledgeRecovery = previousLedgeState == LEDGE_HANG and (fighter.ledgeState == LEDGE_CLIMB or fighter.ledgeState == LEDGE_ROLL or fighter.ledgeState == LEDGE_ATTACK or fighter.jumpSerial != previousJumpSerial)
+            if ledgeCatch
+                ledgeX = fighter.x - fighter.ledgeSide * LEDGE_HANG_OUTSET
+                ledgeZ = fighter.z + LEDGE_HANG_DEPTH
+            else if ledgeRecovery
+                ledgeX = previousX - previousLedgeSide * LEDGE_HANG_OUTSET
+                ledgeZ = previousZ + LEDGE_HANG_DEPTH
         hit = not previouslyOut and not fighter.out and fighter.hitVisualSerial != previousHitVisualSerial
         electric = hit and fighter.hitVisualElectric
         shieldHit = not previouslyOut and not fighter.out and fighter.shieldVisualSerial != previousShieldVisualSerial
         shieldReflect = not previouslyOut and not fighter.out and fighter.shieldReflectVisualSerial != previousShieldReflectVisualSerial
         shieldBreak = not previouslyOut and not fighter.out and previousShieldBreak == SHIELD_BREAK_NONE and fighter.shieldBreakState != SHIELD_BREAK_NONE
         ordinaryLanding = not previouslyOut and not fighter.out and not previouslyGrounded and fighter.grounded and fighter.downState == DOWN_NONE
-        if not previouslyOut and not fighter.out and fighter.jumpSerial != previousJumpSerial
+        if not previouslyOut and not fighter.out and fighter.jumpSerial != previousJumpSerial and not ledgeRecovery
             jump = fighter.jumpIsDouble ? 2 : (previouslyGrounded ? 1 : 3)
             jumpOriginX = previousX
             jumpOriginZ = previousZ

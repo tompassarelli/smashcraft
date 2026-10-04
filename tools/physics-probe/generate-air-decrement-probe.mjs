@@ -3,7 +3,7 @@ const project = new URL('../../', import.meta.url);
 const reference = await Bun.file(new URL('docs/smash-melee-reference/retail-air-axis-decrement.json', project)).json();
 const recoil = await Bun.file(new URL('docs/smash-melee-reference/retail-air-recoil-decrement.json', project)).json();
 const literal = value => value.toFixed(30);
-const lines = ['package AirDecrementPrecisionProbe', 'import Simulation', '', 'init'];
+const lines = ['package AirDecrementPrecisionProbe', 'import Simulation', '', 'init', '    var failures = 0'];
 const cases = [...reference.results.map(row => ({ row, axis: 'knockback' })),
     ...recoil.results.map(row => ({ row, axis: 'shieldRecoil' }))];
 for (const [index, { row, axis }] of cases.entries()) {
@@ -22,10 +22,13 @@ for (const [index, { row, axis }] of cases.entries()) {
         `    fighter${index}.${axis}Z = ${literal(row.y.value)} * 6`,
         `    advance(fighter${index}, 0, input${index}, 0)`,
         `    if fighter${index}.${axis}X != ${literal(row.afterX.value)} * 6 or fighter${index}.${axis}Z != ${literal(row.afterY.value)} * 6`,
+        `        failures++`,
         `        BJDebugMsg("AIR_DECREMENT_CASE_${index}_FAIL")`,
         `    if fighter${index}.x != ${literal(Math.fround(Math.fround(-60 + 0.25) + row.afterX.value))} * 6`,
+        `        failures++`,
         `        BJDebugMsg("AIR_POSITION_CASE_${index}_FAIL")`,
         `    destroy input${index}`, `    destroy fighter${index}`);
 }
-lines.push('    BJDebugMsg("AIR_DECREMENT_BINARY32_EXACT_PASS")', '');
+lines.push('    if failures != 0', '        BJDebugMsg("AIR_DECREMENT_BINARY32_EXACT_FAIL")',
+    '    else', '        BJDebugMsg("AIR_DECREMENT_BINARY32_EXACT_PASS")', '');
 await Bun.write(new URL('build/physics-probe/AirDecrementPrecisionProbe.wurst', project), lines.join('\n'));

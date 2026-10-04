@@ -1,0 +1,8 @@
+{
+  "candidate": "0.0.57",
+  "sha256": "95ef9a5ab4c4a89ed13c63a58af78548e6d89519ab5ff9ddc0788f71282d2d2d",
+  "scope": "Reduced54 plus NativeOrderProbe only.",
+  "result": "Disconnect reproduced during selection.",
+  "conclusion": "NativeOrderProbe setup alone is sufficient to reproduce the selection disconnect on54 foundation. Move experimental order diagnostic out of gameplay build; full journal58 checks assembled seam.",
+  "controller_performance_verdict": null
+}
