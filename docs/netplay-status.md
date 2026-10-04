@@ -28,14 +28,16 @@ interference and whole-window focus remain open. Resumed helper clocks differed
 by 7.1 ms, so this is not a cross-machine alignment guarantee. Evidence and exact
 scope: wc3-melee:docs/controller-start-native-20261005/README.md.
 
-**Response checkpoint:** the same controller candidate now has a software
-stimulus-to-visible-shield baseline. Client B showed all 12 presses, with
-83.09 ms median and 88.89 ms observed maximum. Native service rows locate
-1–3 callbacks of extra delay after input was already admitted: prediction
-advanced only one available frame per callback. Bounded catch-up is the active
-repair in #27. This is not physical button-to-pixel evidence or a new latency
-ceiling. Baseline and measurement limits:
-wc3-melee:docs/native-response-20261005/README.md.
+**Response repair landed:** journal prediction now consumes up to six available
+original frames before rendering. All 13 retained edge admissions reached shield
+prediction in the same callback, eliminating the baseline's 1–3-callback wait.
+B local shield presses improved from 83.09 to 67.95 ms median; releases improved
+from 81.63 to 63.52 ms. All 12 presses and releases were observed and both native
+clients confirmed frame 912 with matching state. Press maximum increased from
+88.89 to 98.17 ms, so this establishes a median improvement, not a tail bound.
+These are software-stimulus-to-compositor measurements. Physical button-to-pixel
+remains unmeasured. Exact scope and baseline comparison:
+wc3-melee:docs/native-response-catchup-20261005/README.md.
 
 ## The specific answers and their owners
 
@@ -46,7 +48,7 @@ wc3-melee:docs/native-response-20261005/README.md.
 | Have selection/GameCache beaten direct sync? | No in the corrected bounded 60 Hz comparison; direct sync is the selected baseline. | [#30, completed comparison](https://github.com/tompassarelli/smashcraft/issues/30) |
 | Can short inputs disappear or merge? | Playable 0.0.40 can miss/coalesce inputs. The new candidate retained all three 5 ms taps through the tested helper/game stalls; lifecycle acceptance remains open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
 | Is every acquired input assigned to its intended frame despite delayed service? | The candidate applied tested taps at frames 19/97/157 and passed the shared pause boundary. Resumed capture anchors differed by 7.1 ms; clock alignment remains open. 0.0.40 still assigns by local progress. | [#25, partial](https://github.com/tompassarelli/smashcraft/issues/25) |
-| What physical response and 3–5-frame variation should a player expect? | Candidate B software shield response: 12/12 presses, median 83.09 ms, max 88.89 ms. Admitted input waits another 1–3 callbacks for prediction; repair active. Physical response remains unmeasured. | [#27, open](https://github.com/tompassarelli/smashcraft/issues/27) |
+| What physical response and 3–5-frame variation should a player expect? | Candidate B software shield response: 12/12 presses, median 67.95 ms, max 98.17 ms. The measured admission backlog is fixed: 13/13 retained edge rows predict in the same callback. Physical response remains unmeasured. | [#27, partial](https://github.com/tompassarelli/smashcraft/issues/27) |
 | Can two clients fight and rematch? | Observed on 0.0.40; full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |
 
 Issues #28–#30 were created during this review to record already completed,
@@ -166,7 +168,7 @@ original descriptions remain accessible. Those closures are not completion.
 | #21 Timeboxed integrity decision | Already completed as a HOLD decision, not a positive readiness result. |
 | #25 Intended frames | Open; canonical owner for frame assignment, clock and pause semantics. |
 | #26 Input retention | Partial; candidate's tap/stall and Start pause/resume corpora pass. Keyboard interference and whole-window focus remain open; playable 0.0.40's polling limitation remains. |
-| #27 Response/variation | Partial; candidate software shield response measured and admission-to-prediction delay isolated. Bounded catch-up repair active; broader action/physical scope remains. |
+| #27 Response/variation | Partial; candidate software shield response measured and admission-to-prediction delay repaired with native evidence. Broader action/physical scope remains. |
 | #28 After-capture shield prediction | Completed bounded evidence, registered during this review. |
 | #29 Native tagged defense rollback | Completed bounded evidence, registered during this review. |
 | #30 Transport comparison | Completed bounded evidence, registered during this review. |
@@ -178,7 +180,8 @@ original descriptions remain accessible. Those closures are not completion.
 issue records, **10 open work items**, six completed records, and fourteen
 duplicate/consolidation closures. The latter are not delivered engineering.
 Open items carry theme labels and now/next/later priorities; #16 is the one
-roadmap and #27's measured scheduling delay is the current repair. Old comments remain evidence; the issue
+roadmap. The retention, Start pause and prediction catch-up checkpoints are banked;
+focus handling is the next integration gap. Old comments remain evidence; the issue
 body owns current status.
 
 ## Source integration and branch cleanup
@@ -207,15 +210,16 @@ delivery branch or making all research claims prerequisites for merging it.
 
 1. **#26: finish lifecycle integration of the passing input candidate.** The
    300-frame tap/stall counterexample is closed for this candidate. Complete
-   pause/focus behavior and replace the playable input path after its usable
+   focus behavior and replace the playable input path after its usable
    journey passes; do not repeat the successful corpus merely for confidence.
 2. **#25: preserve the chosen frame contract.** Define active-match clock and
    pause behavior, then compare independent expected/assigned/applied frames.
    Do not turn a continuous-clock experiment into a silent product decision.
-3. **#27: publish the player-facing timing envelope.** Measure eligible actions,
-   distinguish intended buffering from extra delay, and report variation and
-   remaining physical uncertainty. Do not invent a universal ceiling or rigidly
-   gate delivery on advisory 33/50/83 ms values.
+3. **#27: extend the measured timing envelope to gameplay.** The shield baseline
+   and owning prediction repair are complete. Broader eligible actions and
+   physical hardware remain; keep intended buffering separate from extra delay.
+   Do not invent a universal ceiling or rigidly gate delivery on advisory
+   33/50/83 ms values.
 
 The already completed claims stay closed unless a relevant change or concrete
 regression reopens them. Playtesting exact 0.0.40 remains useful now. It is not
