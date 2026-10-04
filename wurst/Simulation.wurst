@@ -10,15 +10,15 @@ import TechInput
 public constant real WORLD_UNITS_PER_MELEE_UNIT = 6
 
 function roundMeleeWorldValue(real value) returns real
-	return (value / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32() * WORLD_UNITS_PER_MELEE_UNIT
+	return divideFloat32(value, WORLD_UNITS_PER_MELEE_UNIT) * WORLD_UNITS_PER_MELEE_UNIT
 
 function addMeleeWorldValues(real value, real displacement) returns real
 	// Authored stationary surfaces need exact zero-displacement identity.
 	if displacement == 0
 		return value
-	let left = (value / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
-	let right = (displacement / WORLD_UNITS_PER_MELEE_UNIT).roundToFloat32()
-	return (left + right).roundToFloat32() * WORLD_UNITS_PER_MELEE_UNIT
+	let left = divideFloat32(value, WORLD_UNITS_PER_MELEE_UNIT)
+	let right = divideFloat32(displacement, WORLD_UNITS_PER_MELEE_UNIT)
+	return addFloat32(left, right) * WORLD_UNITS_PER_MELEE_UNIT
 public constant real GROUND_TRACTION = 0.07999999821186066 * WORLD_UNITS_PER_MELEE_UNIT
 public constant real INITIAL_DASH_SPEED = 1.899999976158142 * WORLD_UNITS_PER_MELEE_UNIT
 // Shared coefficients extracted from the locally identified NTSC 1.02 PlCo.dat.

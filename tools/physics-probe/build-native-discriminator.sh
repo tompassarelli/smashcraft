@@ -4,10 +4,10 @@ set -euo pipefail
 project_dir=$(cd -- "$(dirname -- "$0")/../.." && pwd)
 base_map=$(realpath -- "${1:?Usage: build-native-discriminator.sh PRIVATE_BASE_MAP.w3m}")
 compiler="$project_dir/toolchain/wurstscript.jar"
-stdlib=/home/tom/code/wurst-stdlib/pins/bb1e0458db5a
+stdlib=/home/tom/code/wurst-stdlib/pins/e3714f629113
 packager="$project_dir/build/tools/map-pack"
 [[ $(sha256sum "$compiler" | cut -d ' ' -f1) == 9495b1f3ad1f1baf53335934e9152874773e6c735b0e5db819b3e7f06c82ed15 ]]
-[[ $(git -C "$stdlib" rev-parse HEAD) == bb1e0458db5a372ba2a6928112452785e435d01a ]]
+[[ $(git -C "$stdlib" rev-parse HEAD) == e3714f629113ee682353c3244065fee3e7d9ae16 ]]
 [[ -x "$packager" && -s "$base_map" ]]
 
 private_build_root="$HOME/.local/share/smashcraft-build-inputs/$(basename -- "$project_dir")"

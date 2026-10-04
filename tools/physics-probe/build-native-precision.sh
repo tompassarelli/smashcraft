@@ -5,10 +5,10 @@ base_map=$(realpath -- "${1:?Usage: build-native-precision.sh PRIVATE_BASE_MAP.w
 map_version=${2:?Supply the version agreed with concurrent map developers.}
 [[ "$map_version" =~ ^0\.0\.[1-9][0-9]*$ ]] || { echo 'Version must be 0.0.N with positive N.' >&2; exit 2; }
 compiler="$project_dir/toolchain/wurstscript.jar"
-stdlib=/home/tom/code/wurst-stdlib/pins/bb1e0458db5a
+stdlib=/home/tom/code/wurst-stdlib/pins/e3714f629113
 packager="$project_dir/build/tools/map-pack"
 [[ $(sha256sum "$compiler" | cut -d ' ' -f1) == 9495b1f3ad1f1baf53335934e9152874773e6c735b0e5db819b3e7f06c82ed15 ]]
-[[ $(git -C "$stdlib" rev-parse HEAD) == bb1e0458db5a372ba2a6928112452785e435d01a ]]
+[[ $(git -C "$stdlib" rev-parse HEAD) == e3714f629113ee682353c3244065fee3e7d9ae16 ]]
 [[ -x "$packager" && -s "$base_map" ]]
 mkdir -p "$project_dir/build/physics-probe"
 private_build_root="$HOME/.local/share/smashcraft-build-inputs/$(basename -- "$project_dir")"

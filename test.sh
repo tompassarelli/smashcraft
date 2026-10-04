@@ -4,7 +4,7 @@ set -euo pipefail
 project_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 compiler_jar="$project_dir/toolchain/wurstscript.jar"
 java=/home/tom/.wurst/wurst-runtime/bin/java
-stdlib_checkout=/home/tom/code/wurst-stdlib/pins/bb1e0458db5a
+stdlib_checkout=/home/tom/code/wurst-stdlib/pins/e3714f629113
 compiler_checkout=/home/tom/code/wurst-compiler/pins/6b129956f6e7cf9582510f26b99d305526bf3ded
 test_timeout=${2:-90}
 [[ "$test_timeout" =~ ^[1-9][0-9]*$ ]] || { echo 'Test timeout must be positive seconds.' >&2; exit 2; }

@@ -4,7 +4,7 @@ project_dir=$(cd -- "$(dirname -- "$0")/../.." && pwd)
 output_dir="$project_dir/build/physics-probe"
 compiler_root=/home/tom/code/wurst-compiler/pins/6b129956f6e7cf9582510f26b99d305526bf3ded
 runtime_root=/home/tom/code/wurst-compiler/pins/0fe2efc959049b4ede2b86c66ae61c130eb04b55
-stdlib_root=/home/tom/code/wurst-stdlib/pins/bb1e0458db5a
+stdlib_root=/home/tom/code/wurst-stdlib/pins/e3714f629113
 mkdir -p "$output_dir"
 "${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}" "$project_dir/tools/physics-probe/generate-capsule-probe.mjs"
 "${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}" "$project_dir/tools/physics-probe/generate-air-cutoff-probe.mjs"

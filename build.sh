@@ -10,7 +10,7 @@ map_version=$(cat "$project_dir/map-version")
 map_name="Smashcraft $map_version"
 map_filename="$map_name.w3x"
 compiler_checkout=/home/tom/code/wurst-compiler/pins/6b129956f6e7cf9582510f26b99d305526bf3ded
-stdlib_checkout=/home/tom/code/wurst-stdlib/pins/bb1e0458db5a
+stdlib_checkout=/home/tom/code/wurst-stdlib/pins/e3714f629113
 compiler_jar="$project_dir/toolchain/wurstscript.jar"
 java=/home/tom/.wurst/wurst-runtime/bin/java
 maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps/00-Smashcraft'
@@ -84,7 +84,7 @@ if [[ ! "$build_id" =~ ^[A-Za-z0-9._-]+$ ]]; then
 fi
 
 expected_compiler_commit=6b129956f6e7cf9582510f26b99d305526bf3ded
-expected_stdlib_commit=bb1e0458db5a372ba2a6928112452785e435d01a
+expected_stdlib_commit=e3714f629113ee682353c3244065fee3e7d9ae16
 expected_compiler_sha256=9495b1f3ad1f1baf53335934e9152874773e6c735b0e5db819b3e7f06c82ed15
 actual_compiler_sha256=$(sha256sum "$compiler_jar" | cut -d ' ' -f 1)
 [[ "$actual_compiler_sha256" == "$expected_compiler_sha256" ]] || {
