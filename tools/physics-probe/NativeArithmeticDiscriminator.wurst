@@ -1,0 +1,71 @@
+package NativeArithmeticDiscriminator
+import Simulation
+import NativePhysicsSource
+import ClosureTimers
+
+private string firstFallDivergence = "NO_DIVERGENCE_WITHIN_TEN_FRAMES"
+private int nativeRoundingUlpOffset = 999
+
+// Encode finite normal binary32 values as sign:exponent:mantissa integers.
+// Scaling by powers of two preserves the stored float exactly, so the output
+// does not depend on decimal formatting or R2SW's rounding behavior.
+private function binary32Fields(real value) returns string
+	if value == 0.
+		return "0:0:0"
+	let negative = value < 0.
+	var magnitude = negative ? -value : value
+	var exponent = 0
+	while magnitude >= 2.
+		magnitude *= 0.5
+		exponent++
+	while magnitude < 1.
+		magnitude *= 2.
+		exponent--
+	let mantissa = R2I((magnitude - 1.) * 8388608.)
+	return (negative ? "1:" : "0:") + I2S(exponent + 127) + ":" + I2S(mantissa)
+
+private function reportPhysicsArithmeticDiscriminator()
+	PreloadGenStart()
+	Preload("SOURCE " + PHYSICS_SOURCE)
+	Preload("FALL_PATH " + firstFallDivergence)
+	Preload("ROUNDING_SENTINEL ulp_offset=" + I2S(nativeRoundingUlpOffset) + " expected_native=-1 expected_ieee32=0")
+	Preload("MESSAGES 2")
+	PreloadGenEnd("smashcraft-physics-discriminator-0037.txt")
+
+init
+	let fighter = new FighterState(0, -360, 1)
+	let input = new InputSnapshot()
+	fighter.physics.gravity = 0.17000000178813934 * 6
+	fighter.physics.terminalSpeed = 3.0999999046325684 * 6
+	fighter.grounded = false
+	fighter.surface = -1
+	fighter.z = 10.042425155639648 * 6
+	fighter.vz = 0.
+	var found = false
+	for frame = 0 to 9
+		let value = fighter.vz
+		let displacement = -fighter.physics.gravity
+		let left = (value / 6.).roundToFloat32()
+		let right = (displacement / 6.).roundToFloat32()
+		let current = (left + right).roundToFloat32() * 6.
+		let direct = value + displacement
+		let normalized = (left + right).roundToFloat32()
+		let normalizedWorld = normalized * 6.
+		advance(fighter, 0, input, 0)
+		if not found and (current != direct or current != normalizedWorld)
+			set found = true
+			set firstFallDivergence = "frame=" + I2S(frame) +
+				" sourceValue=" + binary32Fields(value) +
+				" displacement=" + binary32Fields(displacement) +
+				" current=" + binary32Fields(current) +
+				" direct=" + binary32Fields(direct) +
+				" normalized=" + binary32Fields(normalized) +
+				" normalizedWorld=" + binary32Fields(normalizedWorld) +
+				" actualVelocity=" + binary32Fields(fighter.vz) +
+				" actualZ=" + binary32Fields(fighter.z) +
+				" sourceMatchesCurrent=" + (fighter.vz == current ? "1" : "0")
+	let sentinel = (((0.7 + 0.1) + 0.1) + 0.1)
+	set nativeRoundingUlpOffset = R2I((sentinel - 1.) * 8388608.)
+	doAfter(0.05) -> reportPhysicsArithmeticDiscriminator()
+	destroy input
+	destroy fighter
