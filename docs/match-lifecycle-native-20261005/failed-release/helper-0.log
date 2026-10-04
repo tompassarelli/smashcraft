@@ -1,0 +1,246 @@
+source=/dev/input/event2 name=Some("Smashcraft Event Retention Virtual Gamepad") clock=CLOCK_MONOTONIC epoch_ns=0 frame_rule=segment_frame+floor((t-segment_epoch)*60/1e9) first=1 delay=0 pause_policy=sequenced-map-control
+waiting_for_match build=match-release-20261005 slot=0 start_before=final-match-confirmation
+input_armed=true gameplay_armed=false mono_ns=560926151414088
+match_ready epoch=1 neutral_rearm=required
+editbox_receipt monotonic_ns=560931621995634 received=0 consumed=0 revision=1
+editbox_emit sequence=1 bytes=34 elapsed_us=2041 envelope=@J10000000001000000000130780|JR11;
+editbox_receipt monotonic_ns=560931772754740 received=1 consumed=1 revision=2
+editbox_receipt monotonic_ns=560931782966559 received=1 consumed=1 revision=4
+editbox_receipt monotonic_ns=560931793035610 received=1 consumed=1 revision=5
+editbox_receipt monotonic_ns=560931861801373 received=1 consumed=1 revision=6
+match_start epoch=1 epoch_ns=560931938732148 read_ns=560931939566612 uncertainty_ns=1100195
+input_armed=true gameplay_armed=true mono_ns=560931939544871
+published_frame=1
+published_frame=2
+editbox_emit sequence=2 bytes=37 elapsed_us=2186 envelope=@J10000000001000000000252069|I421100;
+published_frame=3
+published_frame=4
+editbox_emit sequence=3 bytes=37 elapsed_us=2144 envelope=@J10000000001000000000330835|I421300;
+published_frame=5
+published_frame=6
+editbox_emit sequence=4 bytes=37 elapsed_us=2157 envelope=@J10000000001000000000409601|I421500;
+published_frame=7
+published_frame=8
+editbox_emit sequence=5 bytes=37 elapsed_us=2294 envelope=@J10000000001000000000553888|I421700;
+published_frame=9
+editbox_receipt monotonic_ns=560932090441004 received=2 consumed=2 revision=7
+published_frame=10
+editbox_emit sequence=6 bytes=37 elapsed_us=2069 envelope=@J10000000001000000000632654|I421900;
+published_frame=11
+published_frame=12
+editbox_emit sequence=7 bytes=37 elapsed_us=2128 envelope=@J10000000001000000000711420|I421B00;
+editbox_receipt monotonic_ns=560932144525159 received=6 consumed=5 revision=8
+published_frame=13
+published_frame=14
+editbox_emit sequence=8 bytes=37 elapsed_us=1911 envelope=@J10000000001000000000855707|I421D00;
+editbox_receipt monotonic_ns=560932176690815 received=7 consumed=7 revision=9
+published_frame=15
+published_frame=16
+editbox_emit sequence=9 bytes=37 elapsed_us=2089 envelope=@J10000000001000000000934473|I421F00;
+published_frame=17
+event mono_ns=560932239031000 frame=19 held=32 pressed=32 released=0
+published_frame=18
+editbox_emit sequence=10 bytes=37 elapsed_us=2341 envelope=@J10000000001000000001041745|I421H00;
+event mono_ns=560932244165000 frame=19 held=0 pressed=0 released=32
+published_frame=19
+published_frame=20
+editbox_receipt monotonic_ns=560932273593782 received=9 consumed=9 revision=10
+editbox_emit sequence=11 bytes=43 elapsed_us=2528 envelope=@J10000000001000000001145108|I421J200W00W0;
+published_frame=21
+published_frame=22
+editbox_emit sequence=12 bytes=37 elapsed_us=2106 envelope=@J10000000001000000001264798|I421L00;
+published_frame=23
+published_frame=24
+editbox_emit sequence=13 bytes=37 elapsed_us=2439 envelope=@J10000000001000000001343564|I421N00;
+published_frame=25
+editbox_receipt monotonic_ns=560932369795926 received=12 consumed=12 revision=11
+published_frame=26
+editbox_emit sequence=14 bytes=37 elapsed_us=2229 envelope=@J10000000001000000001422330|I421P00;
+published_frame=27
+published_frame=28
+editbox_emit sequence=15 bytes=37 elapsed_us=2157 envelope=@J10000000001000000001501096|I421R00;
+published_frame=29
+published_frame=30
+editbox_emit sequence=16 bytes=37 elapsed_us=2024 envelope=@J10000000001000000001645383|I421T00;
+published_frame=31
+published_frame=32
+editbox_emit sequence=17 bytes=37 elapsed_us=2003 envelope=@J10000000001000000001724149|I421V00;
+editbox_receipt monotonic_ns=560932476015745 received=15 consumed=15 revision=12
+published_frame=33
+published_frame=34
+editbox_emit sequence=18 bytes=38 elapsed_us=2411 envelope=@J10000000001000000001808415|I421X100;
+published_frame=35
+published_frame=36
+editbox_emit sequence=19 bytes=38 elapsed_us=2072 envelope=@J10000000001000000001951403|I421Z100;
+published_frame=37
+published_frame=38
+editbox_emit sequence=20 bytes=38 elapsed_us=2504 envelope=@J10000000001000000002042087|I421b100;
+editbox_receipt monotonic_ns=560932577629993 received=19 consumed=19 revision=13
+published_frame=39
+published_frame=40
+editbox_emit sequence=21 bytes=38 elapsed_us=2563 envelope=@J10000000001000000002119554|I421d100;
+published_frame=41
+published_frame=42
+editbox_emit sequence=22 bytes=38 elapsed_us=2444 envelope=@J10000000001000000002262542|I421f100;
+published_frame=43
+editbox_receipt monotonic_ns=560932667584327 received=21 consumed=21 revision=14
+published_frame=44
+editbox_emit sequence=23 bytes=38 elapsed_us=2009 envelope=@J10000000001000000002340009|I421h100;
+published_frame=45
+published_frame=46
+editbox_emit sequence=24 bytes=38 elapsed_us=2451 envelope=@J10000000001000000002417476|I421j100;
+published_frame=47
+published_frame=48
+editbox_emit sequence=25 bytes=38 elapsed_us=2373 envelope=@J10000000001000000002560464|I421l100;
+published_frame=49
+published_frame=50
+editbox_emit sequence=26 bytes=38 elapsed_us=1997 envelope=@J10000000001000000002637931|I421n100;
+editbox_receipt monotonic_ns=560932777145759 received=25 consumed=25 revision=15
+published_frame=51
+published_frame=52
+editbox_emit sequence=27 bytes=38 elapsed_us=2292 envelope=@J10000000001000000002715398|I421p100;
+published_frame=53
+published_frame=54
+editbox_emit sequence=28 bytes=38 elapsed_us=2138 envelope=@J10000000001000000002858386|I421r100;
+published_frame=55
+published_frame=56
+editbox_emit sequence=29 bytes=38 elapsed_us=2176 envelope=@J10000000001000000002935853|I421t100;
+editbox_receipt monotonic_ns=560932877142885 received=27 consumed=27 revision=16
+published_frame=57
+published_frame=58
+editbox_emit sequence=30 bytes=38 elapsed_us=2163 envelope=@J10000000001000000003026537|I421v100;
+published_frame=59
+published_frame=60
+editbox_emit sequence=31 bytes=38 elapsed_us=2319 envelope=@J10000000001000000003104004|I421x100;
+event mono_ns=560932949516000 frame=61 held=1 pressed=1 released=0
+published_frame=61
+published_frame=62
+editbox_emit sequence=32 bytes=61 elapsed_us=3459 envelope=@J10000000001000000003232122|I421z1t001001000Fm31H03_5001Fm3;
+published_frame=63
+published_frame=64
+editbox_emit sequence=33 bytes=50 elapsed_us=2753 envelope=@J10000000001000000003337741|I421_15001Fm35001Fm3;
+published_frame=65
+published_frame=66
+editbox_emit sequence=34 bytes=50 elapsed_us=3181 envelope=@J10000000001000000003423210|I421X25001Fm35001Fm3;
+editbox_receipt monotonic_ns=560933055137777 received=33 consumed=32 revision=17
+published_frame=67
+published_frame=68
+editbox_emit sequence=35 bytes=50 elapsed_us=3884 envelope=@J10000000001000000003552985|I421Z25001Fm35001Fm3;
+published_frame=69
+published_frame=70
+editbox_emit sequence=36 bytes=50 elapsed_us=3131 envelope=@J10000000001000000003617239|I421b25001Fm35001Fm3;
+editbox_receipt monotonic_ns=560933110913092 received=35 consumed=35 revision=18
+published_frame=71
+published_frame=72
+editbox_emit sequence=37 bytes=50 elapsed_us=3004 envelope=@J10000000001000000003747014|I421d25001Fm35001Fm3;
+published_frame=73
+published_frame=74
+editbox_emit sequence=38 bytes=50 elapsed_us=2738 envelope=@J10000000001000000003811268|I421f25001Fm35001Fm3;
+editbox_receipt monotonic_ns=560933176630631 received=36 consumed=36 revision=19
+published_frame=75
+published_frame=76
+editbox_emit sequence=39 bytes=50 elapsed_us=3158 envelope=@J10000000001000000003941043|I421h25001Fm35001Fm3;
+published_frame=77
+published_frame=78
+editbox_emit sequence=40 bytes=50 elapsed_us=3414 envelope=@J10000000001000000004060672|I421j25001Fm35001Fm3;
+published_frame=79
+published_frame=80
+editbox_emit sequence=41 bytes=50 elapsed_us=2995 envelope=@J10000000001000000004124926|I421l25001Fm35001Fm3;
+editbox_receipt monotonic_ns=560933278546414 received=40 consumed=40 revision=20
+published_frame=81
+published_frame=82
+editbox_emit sequence=42 bytes=50 elapsed_us=2623 envelope=@J10000000001000000004254701|I421n25001Fm35001Fm3;
+published_frame=83
+published_frame=84
+editbox_emit sequence=43 bytes=50 elapsed_us=3168 envelope=@J10000000001000000004318955|I421p25001Fm35001Fm3;
+published_frame=85
+published_frame=86
+editbox_emit sequence=44 bytes=50 elapsed_us=2878 envelope=@J10000000001000000004448730|I421r25001Fm35001Fm3;
+editbox_receipt monotonic_ns=560933381276372 received=43 consumed=43 revision=21
+published_frame=87
+published_frame=88
+editbox_emit sequence=45 bytes=50 elapsed_us=2821 envelope=@J10000000001000000004512984|I421t25001Fm35001Fm3;
+published_frame=89
+published_frame=90
+editbox_emit sequence=46 bytes=50 elapsed_us=3132 envelope=@J10000000001000000004642759|I421v25001Fm35001Fm3;
+published_frame=91
+published_frame=92
+editbox_emit sequence=47 bytes=50 elapsed_us=2782 envelope=@J10000000001000000004707013|I421x25001Fm35001Fm3;
+published_frame=93
+editbox_receipt monotonic_ns=560933489786133 received=46 consumed=46 revision=22
+published_frame=94
+editbox_emit sequence=48 bytes=50 elapsed_us=2871 envelope=@J10000000001000000004836788|I421z25001Fm35001Fm3;
+published_frame=95
+published_frame=96
+editbox_emit sequence=49 bytes=50 elapsed_us=2723 envelope=@J10000000001000000004901042|I421_25001Fm35001Fm3;
+published_frame=97
+editbox_receipt monotonic_ns=560933568581934 received=48 consumed=48 revision=23
+published_frame=98
+editbox_emit sequence=50 bytes=50 elapsed_us=2893 envelope=@J10000000001000000005041886|I421X35001Fm35001Fm3;
+published_frame=99
+published_frame=100
+editbox_emit sequence=51 bytes=50 elapsed_us=3042 envelope=@J10000000001000000005106140|I421Z35001Fm35001Fm3;
+published_frame=101
+published_frame=102
+editbox_emit sequence=52 bytes=50 elapsed_us=2875 envelope=@J10000000001000000005235915|I421b35001Fm35001Fm3;
+published_frame=103
+editbox_receipt monotonic_ns=560933667236504 received=51 consumed=51 revision=24
+published_frame=104
+editbox_emit sequence=53 bytes=50 elapsed_us=2581 envelope=@J10000000001000000005300169|I421d35001Fm35001Fm3;
+published_frame=105
+published_frame=106
+editbox_emit sequence=54 bytes=50 elapsed_us=3092 envelope=@J10000000001000000005429944|I421f35001Fm35001Fm3;
+published_frame=107
+published_frame=108
+editbox_emit sequence=55 bytes=50 elapsed_us=2723 envelope=@J10000000001000000005559719|I421h35001Fm35001Fm3;
+published_frame=109
+published_frame=110
+editbox_emit sequence=56 bytes=50 elapsed_us=2724 envelope=@J10000000001000000005623973|I421j35001Fm35001Fm3;
+editbox_receipt monotonic_ns=560933778944380 received=55 consumed=55 revision=25
+published_frame=111
+published_frame=112
+editbox_emit sequence=57 bytes=50 elapsed_us=2606 envelope=@J10000000001000000005753748|I421l35001Fm35001Fm3;
+published_frame=113
+published_frame=114
+editbox_emit sequence=58 bytes=50 elapsed_us=2847 envelope=@J10000000001000000005818002|I421n35001Fm35001Fm3;
+published_frame=115
+published_frame=116
+editbox_emit sequence=59 bytes=50 elapsed_us=2883 envelope=@J10000000001000000005947777|I421p35001Fm35001Fm3;
+published_frame=117
+editbox_receipt monotonic_ns=560933889620140 received=58 consumed=58 revision=26
+published_frame=118
+editbox_emit sequence=60 bytes=50 elapsed_us=2772 envelope=@J10000000001000000006001885|I421r35001Fm35001Fm3;
+published_frame=119
+published_frame=120
+editbox_emit sequence=61 bytes=50 elapsed_us=2652 envelope=@J10000000001000000006131660|I421t35001Fm35001Fm3;
+published_frame=121
+published_frame=122
+editbox_emit sequence=62 bytes=50 elapsed_us=3218 envelope=@J10000000001000000006261435|I421v35001Fm35001Fm3;
+published_frame=123
+published_frame=124
+editbox_emit sequence=63 bytes=50 elapsed_us=2935 envelope=@J10000000001000000006325689|I421x35001Fm35001Fm3;
+published_frame=125
+published_frame=126
+editbox_emit sequence=64 bytes=50 elapsed_us=2776 envelope=@J10000000001000000006455464|I421z35001Fm35001Fm3;
+editbox_receipt monotonic_ns=560934055342380 received=63 consumed=62 revision=27
+published_frame=127
+published_frame=128
+editbox_emit sequence=65 bytes=50 elapsed_us=2900 envelope=@J10000000001000000006519718|I421_35001Fm35001Fm3;
+published_frame=129
+published_frame=130
+editbox_emit sequence=66 bytes=50 elapsed_us=2674 envelope=@J10000000001000000006605187|I421X45001Fm35001Fm3;
+editbox_receipt monotonic_ns=560934110075071 received=65 consumed=65 revision=28
+published_frame=131
+published_frame=132
+editbox_emit sequence=67 bytes=50 elapsed_us=2739 envelope=@J10000000001000000006734962|I421Z45001Fm35001Fm3;
+published_frame=133
+published_frame=134
+editbox_emit sequence=68 bytes=50 elapsed_us=2711 envelope=@J10000000001000000006864737|I421b45001Fm35001Fm3;
+match_end epoch=1 frontier=135 old_rows=drain terminal_rows=discard
+input_armed=true gameplay_armed=false mono_ns=560934177567317
+editbox_emit sequence=69 bytes=34 elapsed_us=1830 envelope=@J10000000001000000006964296|JE11;
+suppressed mono_ns=560934197504000 reason=focus-pause-or-neutral
+editbox_receipt monotonic_ns=560934231336071 received=69 consumed=69 revision=29
+match_quiescent epoch=1
+waiting_for_match build=match-release-20261005 slot=0 after_epoch=1
+shutdown signal=SIGINT mailbox_release=begin

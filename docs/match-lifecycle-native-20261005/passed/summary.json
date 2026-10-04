@@ -1,0 +1,168 @@
+{
+  "scope": "Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; keyboard menu confirmation; no physical or cross-machine alignment claim.",
+  "helper_sha256": "5f3ef51561b4e662710ca1f26fb654b84f4db43dd9883d59f466271297997486",
+  "persistent_helper_pids": [
+    1769642,
+    1769691
+  ],
+  "matches": [
+    {
+      "epoch": 1,
+      "players": [
+        {
+          "slot": 0,
+          "anchor_monotonic_ns": 561304935876651,
+          "helper_anchor_difference_ns": 501,
+          "published_frames": 138,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 561305243708000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 561305248893000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            }
+          ]
+        },
+        {
+          "slot": 1,
+          "anchor_monotonic_ns": 561304943478855,
+          "helper_anchor_difference_ns": -114,
+          "published_frames": 135,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 561305248922000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 561305254368000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            }
+          ]
+        }
+      ],
+      "native_clients": [
+        {
+          "client": 0,
+          "confirmed_frame": 118,
+          "confirmed_checksum": "858608:772108",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 19
+            },
+            {
+              "slot": 1,
+              "frame": 19
+            }
+          ]
+        },
+        {
+          "client": 1,
+          "confirmed_frame": 118,
+          "confirmed_checksum": "858608:772108",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 19
+            },
+            {
+              "slot": 1,
+              "frame": 19
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "epoch": 2,
+      "players": [
+        {
+          "slot": 0,
+          "anchor_monotonic_ns": 561331441572644,
+          "helper_anchor_difference_ns": 320,
+          "published_frames": 136,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 561331743127000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 561331748322000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            }
+          ]
+        },
+        {
+          "slot": 1,
+          "anchor_monotonic_ns": 561331442917119,
+          "helper_anchor_difference_ns": -125,
+          "published_frames": 136,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 561331748367000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 561331753597000,
+              "expected_frame": 19,
+              "assigned_frame": 19
+            }
+          ]
+        }
+      ],
+      "native_clients": [
+        {
+          "client": 0,
+          "confirmed_frame": 117,
+          "confirmed_checksum": "339439:72128",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 19
+            },
+            {
+              "slot": 1,
+              "frame": 19
+            }
+          ]
+        },
+        {
+          "client": 1,
+          "confirmed_frame": 117,
+          "confirmed_checksum": "339439:72128",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 19
+            },
+            {
+              "slot": 1,
+              "frame": 19
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "native_attack_applications": 8,
+  "native_trace_drops": 0,
+  "unexplained_frame_retargets": 0,
+  "extra_result_screen_actions": 0
+}

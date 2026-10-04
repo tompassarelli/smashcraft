@@ -238,10 +238,13 @@ tests. This path remains Linux-only and separate from the digital keyboard mappe
 On kernel SYN_DROPPED or an event for an already-published frame, acquisition
 stops with a diagnostic instead of inventing input or moving its original frame.
 
-Native evidence and remaining acceptance are in
-`wc3-melee:docs/native-companion-landing-result-20261004.md`. The capture path
-reached a scripted native result and rematch; current transport delay still
-fails competitive acceptance. Physical controller-to-screen timing is unmeasured.
+Current evidence and remaining acceptance are in
+`wc3-melee:docs/netplay-status.md`. The Linux journal path passed bounded tap/stall,
+focus and pause/resume trials. Automatic start/results/rematch with the same
+helpers passed two native match lifecycles; keyboard confirmed the menus.
+See `wc3-melee:docs/match-lifecycle-native-20261005/README.md` for exact builds,
+failed attempts and limits. Physical controller-to-screen timing, cross-machine
+clock agreement, chat, reconnect and other-platform acceptance remain open.
 
 ### Journal keyboard focus boundary
 

@@ -1,0 +1,56 @@
+a click (1380, 155)
+a clicked 1380 155
+
+a click (1380, 155)
+a clicked 1380 155
+
+a wait ('1 Stock',)
+WAIT EXPIRED last OCR
+2 Stock - 7:00
+
+| STAGE SELECT
+e —=
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+| BACKTO FIGHTERS |
+
+STOCK @
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+H START MATCH H
+
+2 Stock - 7:00
+
+| STAGE SELECT —_ — -
+
+- STOCK + - TIME
+
+- <,
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+BACK TO FIGHTERS START MATCH
+
+

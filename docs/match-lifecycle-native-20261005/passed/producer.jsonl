@@ -1,0 +1,14 @@
+{"phase":"match-1-fresh","event":"slot-0","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":561305243569968,"producer_after_write_monotonic_ns":561305243593332}
+{"phase":"match-1-fresh","event":"slot-0","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":561305248793198,"producer_after_write_monotonic_ns":561305248808607}
+{"phase":"match-1-fresh","event":"slot-1","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":561305248900469,"producer_after_write_monotonic_ns":561305248902783}
+{"phase":"match-1-fresh","event":"slot-1","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":561305254286614,"producer_after_write_monotonic_ns":561305254299037}
+{"phase":"match-1-stock-loss","event":"slot-0","type":3,"code":0,"value":-32768,"producer_before_write_monotonic_ns":561305954451984,"producer_after_write_monotonic_ns":561305954466091}
+{"phase":"match-1-stock-loss","event":"slot-0","type":3,"code":0,"value":0,"producer_before_write_monotonic_ns":561307241852614,"producer_after_write_monotonic_ns":561307241863123}
+{"phase":"results-only","event":"slot-0","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":561325252503415,"producer_after_write_monotonic_ns":561325252515638}
+{"phase":"results-only","event":"slot-0","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":561325257627369,"producer_after_write_monotonic_ns":561325257632328}
+{"phase":"match-2-fresh","event":"slot-0","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":561331743026196,"producer_after_write_monotonic_ns":561331743042566}
+{"phase":"match-2-fresh","event":"slot-0","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":561331748219549,"producer_after_write_monotonic_ns":561331748241681}
+{"phase":"match-2-fresh","event":"slot-1","type":1,"code":304,"value":1,"producer_before_write_monotonic_ns":561331748332171,"producer_after_write_monotonic_ns":561331748334084}
+{"phase":"match-2-fresh","event":"slot-1","type":1,"code":304,"value":0,"producer_before_write_monotonic_ns":561331753507951,"producer_after_write_monotonic_ns":561331753526336}
+{"phase":"match-2-stock-loss","event":"slot-0","type":3,"code":0,"value":-32768,"producer_before_write_monotonic_ns":561332453678614,"producer_after_write_monotonic_ns":561332453693401}
+{"phase":"match-2-stock-loss","event":"slot-0","type":3,"code":0,"value":0,"producer_before_write_monotonic_ns":561333742817324,"producer_after_write_monotonic_ns":561333742828254}

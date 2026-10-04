@@ -49,6 +49,17 @@ not physical or visible local response. The bounded focus defect is closed;
 chat/menu, reconnect/rematch, hardware and broader response remain open. Exact
 scope and raw evidence: wc3-melee:docs/native-text-receipts-20261005/README.md.
 
+**Automatic start/results/rematch delivered:** the candidate now follows local
+match START publications without an externally supplied capture timestamp. The
+same two helpers completed two one-stock match lifecycles. All four 5 ms Attack
+taps applied at original frame 19 on both clients; a results-only tap did not leak.
+Both match endpoints agreed (118/858608:772108, then 117/339439:72128), with zero
+trace drops or input failures. Native testing caught and repaired a stale menu
+confirmation after text focus changed. This is Linux virtual-pad evidence with
+keyboard menu confirmation, not physical response or a shared cross-machine clock.
+Exact source, failures and reproduction:
+wc3-melee:docs/match-lifecycle-native-20261005/README.md.
+
 ## The specific answers and their owners
 
 **Resume service-delay defect delivered:** helper B read RESUME 361 ms after its
@@ -64,10 +75,10 @@ wc3-melee:docs/resume-clock-native-20261005/README.md.
 | Does sampled, eligible shield input enter local prediction without waiting for sync? | Demonstrated: 12/12 presses in the capture callback on 0.0.40. Logical state, not physical pixels or all moves. | [#28, completed](https://github.com/tompassarelli/smashcraft/issues/28) |
 | Can late original-frame input repair the combat outcome? | Demonstrated for the native F5 shield corpus: damage 12 becomes 0, shieldstun 7, canonical and confirmed states agree. | [#29, completed](https://github.com/tompassarelli/smashcraft/issues/29) |
 | Have selection/GameCache beaten direct sync? | No in the corrected bounded 60 Hz comparison; direct sync is the selected baseline. | [#30, completed comparison](https://github.com/tompassarelli/smashcraft/issues/30) |
-| Can short inputs disappear or merge? | Playable 0.0.40 can miss/coalesce inputs. The candidate retains tested 5 ms taps through helper/game stalls and window focus loss; broader lifecycle acceptance remains open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
+| Can short inputs disappear or merge? | Playable 0.0.40 can miss/coalesce inputs. The candidate retains tested 5 ms taps through helper/game stalls, window focus loss and a two-match rematch journey; chat, reconnect and hardware acceptance remain open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
 | Is every acquired input assigned to its intended frame despite delayed service? | The candidate preserves tested tap/stall frames and now keeps a post-resume tap at frame 98 despite a 361 ms delayed resume read. Local publication anchors still differ; cross-machine alignment remains open. 0.0.40 still assigns by local progress. | [#25, partial](https://github.com/tompassarelli/smashcraft/issues/25) |
 | What physical response and 3–5-frame variation should a player expect? | Candidate B software shield response: 12/12 presses, median 67.95 ms, max 98.17 ms. The measured admission backlog is fixed: 13/13 retained edge rows predict in the same callback. Physical response remains unmeasured. | [#27, partial](https://github.com/tompassarelli/smashcraft/issues/27) |
-| Can two clients fight and rematch? | Observed on 0.0.40; full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |
+| Can two clients fight and rematch? | Observed on 0.0.40. The journal candidate now passes bounded start/results/rematch with persistent helpers; full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |
 
 Issues #28–#30 were created during this review to record already completed,
 bounded results. They are not three engineering tasks completed today. #21 closed

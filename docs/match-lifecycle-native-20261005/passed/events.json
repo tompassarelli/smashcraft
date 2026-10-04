@@ -1,0 +1,102 @@
+[
+  {
+    "event": "start",
+    "epoch": 1,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-match-focus-entry-20261005-e1-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=match-focus-entry-20261005 epoch=1 slot=0 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791151458887008865,
+        "sample_monotonic_before_ns": 561304958339208,
+        "sample_realtime_ns": 1791151458909472388,
+        "sample_monotonic_after_ns": 561304958341141,
+        "publication_monotonic_estimate_ns": 561304935876651
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-match-focus-entry-20261005-e1-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=match-focus-entry-20261005 epoch=1 slot=1 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791151458894610473,
+        "sample_monotonic_before_ns": 561304958373041,
+        "sample_realtime_ns": 1791151458909504919,
+        "sample_monotonic_after_ns": 561304958373562,
+        "publication_monotonic_estimate_ns": 561304943478855
+      }
+    ],
+    "observed_monotonic_ns": 561304958400002
+  },
+  {
+    "event": "end",
+    "epoch": 1,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-match-focus-entry-20261005-e1-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=match-focus-entry-20261005 epoch=1 slot=0 sequence=0 state=END frame=131\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791151461189372061,
+        "sample_monotonic_before_ns": 561307303364734,
+        "sample_realtime_ns": 1791151461254497814,
+        "sample_monotonic_after_ns": 561307303366548,
+        "publication_monotonic_estimate_ns": 561307238239888
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-match-focus-entry-20261005-e1-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=match-focus-entry-20261005 epoch=1 slot=1 sequence=0 state=END frame=131\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791151461161078503,
+        "sample_monotonic_before_ns": 561307303420068,
+        "sample_realtime_ns": 1791151461254551835,
+        "sample_monotonic_after_ns": 561307303420409,
+        "publication_monotonic_estimate_ns": 561307209946906
+      }
+    ],
+    "observed_monotonic_ns": 561307303449293
+  },
+  {
+    "event": "start",
+    "epoch": 2,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-match-focus-entry-20261005-e2-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=match-focus-entry-20261005 epoch=2 slot=0 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791151485392704677,
+        "sample_monotonic_before_ns": 561331447912101,
+        "sample_realtime_ns": 1791151485399044950,
+        "sample_monotonic_after_ns": 561331447913734,
+        "publication_monotonic_estimate_ns": 561331441572644
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-match-focus-entry-20261005-e2-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=match-focus-entry-20261005 epoch=2 slot=1 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791151485394048726,
+        "sample_monotonic_before_ns": 561331447939883,
+        "sample_realtime_ns": 1791151485399071660,
+        "sample_monotonic_after_ns": 561331447940224,
+        "publication_monotonic_estimate_ns": 561331442917119
+      }
+    ],
+    "observed_monotonic_ns": 561331447961814
+  },
+  {
+    "event": "end",
+    "epoch": 2,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-match-focus-entry-20261005-e2-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=match-focus-entry-20261005 epoch=2 slot=0 sequence=0 state=END frame=131\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791151487673950819,
+        "sample_monotonic_before_ns": 561333783968933,
+        "sample_realtime_ns": 1791151487735101592,
+        "sample_monotonic_after_ns": 561333783970276,
+        "publication_monotonic_estimate_ns": 561333722818831
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-match-focus-entry-20261005-e2-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=match-focus-entry-20261005 epoch=2 slot=1 sequence=0 state=END frame=131\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791151487671411640,
+        "sample_monotonic_before_ns": 561333784021271,
+        "sample_realtime_ns": 1791151487735153029,
+        "sample_monotonic_after_ns": 561333784021582,
+        "publication_monotonic_estimate_ns": 561333720280037
+      }
+    ],
+    "observed_monotonic_ns": 561333784043844
+  }
+]

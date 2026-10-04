@@ -1,0 +1,335 @@
+a wait ('[1-9] Stock',)
+3 Stock - 7:00
+
+| STAGE SELECT T -
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+| BACKTO FIGHTERS | H START MATCH H
+
+3 Stock - 7:00
+
+| STAGE SELECT — — -
+
+- STOCK + - TIME
+
+CHOOSE A STAGE
+
+g —
+
+W
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+——— 7
+
+BACK TO FIGHTERS START MATCH
+
+
+a click (1380, 155)
+a clicked 1380 155
+
+a wait ('2 Stock',)
+2 Stock - 7:00
+
+| STAGE SELECT
+e —=
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+| BACKTO FIGHTERS |
+
+STOCK @
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+H START MATCH H
+
+2 Stock - 7:00
+
+| STAGE SELECT —_ — -
+
+- STOCK + - TIME
+
+- <,
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+BACK TO FIGHTERS START MATCH
+
+
+a click (1380, 155)
+a clicked 1380 155
+
+a wait ('1 Stock',)
+1 Stock - 7:00
+
+| STAGE SELECT
+e —=
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+| BACKTO FIGHTERS |
+
+STOCK @
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+H START MATCH H
+
+1 Stock - 7:00
+
+| STAGE SELECT —_ — -
+
+- STOCK + - TIME
+
+- <,
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+BACK TO FIGHTERS START MATCH
+
+
+a wait ('wins|rematch',)
+ARCHER . . / RIFLEMAN
+
+
+6:59
+
+0/2 ready. Press Y to choose your next match.
+
+Player 2 wins!
+
+.
+
+- 0.0%
+
+P1 . ARCHER
+
+0.0%
+
+RIFLEMAN
+
+£
+
+Developer test: match-focus-entry-20261005 | player=1 | phase=3 | x=-929 z=-393 | input=- 1 mode=shadow-d0-r24 pool-predicted normal=-1
+
+
+b wait ('wins|rematch',)
+#
+- 0.0%-——
+I% ? RIFLEMAN .
+
+< =
+
+PN =
+
+
+‘ 072 reaHy.T;e; to choosehr next‘;a: h 6:59
+N -
+
+Player 2 wins!
+
+0.0%
+
+e . ARCHER
+
+0.0%
+
+RIFLEMAN
+
+Developer test: match-focus-entry-20261005 | player=2 | phase=3 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+
+
+a wait ('CONTROLS',)
+Smashcraft 2-FIGHTER SUva{;&L TEST
+
+EMPTY |J
+
+ARCHER RIFLEMAN
+
+P3 P4
+
+T I,
+_
+
+Smashcraft vs | 2-FIGHTER SURVIVAL TEST
+
+RIFLEMAN
+
+[ HMN [ HMN EMPTY EMPTY
+<.
+s 12—y
+' F G
+‘ L\ <¢ A
+. e
+ARCHER RIFLEMAN
+- P - Pz P3 P4
+
+[ I = I
+Start [Y] CONTROLS [F1]
+
+
+
+a click (1080, 600)
+a clicked 1080 600
+
+b click (1510, 600)
+b clicked 1510 600
+
+a wait ('STAGE|Sky.*Deck|Three.*Bridges',)
+1 Stock - 7:00
+
+| STAGE SELECT T -
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+| BACKTO FIGHTERS | H START MATCH H
+
+1 Stock - 7:00
+
+| STAGE SELECT — — -
+
+- STOCK + - TIME
+
+CHOOSE A STAGE
+
+g —
+
+W
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+——— 7
+
+BACK TO FIGHTERS START MATCH
+
+
+a wait ('wins|rematch',)
+ARCHER . . / RIFLEMAN
+
+
+6:59
+
+| 0/2 ready. Press Y to choose your next match.
+
+Pause: Start
+
+Player 2 wins!
+
+- 0.0%
+
+P1 . ARCHER
+
+0.0%
+
+RIFLEMAN
+
+£
+
+Developer test: match-focus-entry-20261005 | player=1 | phase=3 | x=-929 z=-393 | input=- 1 mode=shadow-d0-r24 pool-predicted normal=-1
+
+
+b wait ('wins|rematch',)
+£ oon. -
+
+Y =
+
+
+Y N
+‘ 072 reaHy.T;e; to choosehr next‘;a: h 6:59
+N -
+
+Player 2 wins!
+
+0.0%
+
+e . ARCHER
+
+0.0%
+
+RIFLEMAN
+
+Developer test: match-focus-entry-20261005 | player=2 | phase=3 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+
+
