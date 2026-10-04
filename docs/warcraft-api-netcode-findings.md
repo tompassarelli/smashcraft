@@ -13,6 +13,14 @@ wc3-melee:docs/netplay-status.md. #26 owns the known polling-loss failure;
 completed bounded results. The current playable Linux controller checkpoint is
 0.0.41; exact 0.0.40 is preserved.
 
+**Controller/chat boundary:** the 0.0.41 native fixture did not observe chat
+opening with Enter during controller gameplay; native chat did open at initial
+character selection. The test stopped before chat-period input, preserving the
+failed boundary rather than claiming a suppression/recovery pass. The receiver
+holds a custom editbox's focus and the helper checks whole-window focus only;
+exact native event ordering remains to be isolated. Evidence:
+wc3-melee:docs/controller-chat-native-20261005/README.md.
+
 **Linux controller reconnect:** an updated helper now survives removal and
 reopens the uniquely matching device without resetting the match or frame
 origin. Both players passed a native removal/reconnect journey with virtual

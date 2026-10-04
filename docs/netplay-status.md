@@ -12,87 +12,38 @@ physical response, cross-machine clock/fairness and broader acceptance remain.
 Exact older 0.0.40 is preserved with its known polling-loss limitation.
 Startup/artifacts: wc3-melee:docs/playable-0041.md.
 
-**Controller reconnect delivered:** the updated helper recovers a uniquely
-matching Linux pad without restarting the match. Both players passed removal
-while shielding, rejection of a different pad at the old event number, held
-input suppression on return and a fresh 5 ms tap at its original frame 181.
-Both native clients agreed on all 12 attack applications and both result states;
-no queue failure or trace drop occurred. The first attempt exposed 275–310 ms
-device-discovery scans; reading kernel identity before opening devices reduced
-that to 0.86–1.66 ms. Exact virtual-device scope, failed attempt and acceptance:
-wc3-melee:docs/controller-reconnect-native-20261005/README.md. Physical and
-different-port reconnect, chat and map reload remain open.
+## What shipped overnight, 5 October
 
-**5 October implementation advance:** the repaired editbox controller candidate
-delivered all 300 original frames per player in a two-client native trial.
-Three 5 ms Attack taps, including taps during ~250 ms helper/game interruptions,
-applied at frames 19, 97 and 157 on both clients. Final frame 300 and checksum
-agreed. Helper emission medians fell from ~220 ms to ~1.4 ms. This is a bounded
-retention pass for #26, not physical response latency or complete acceptance of
-#25–#27. The broader lifecycle and real hardware still need work. Exact source,
-failed attempt, fixture repair and raw evidence:
-wc3-melee:docs/editbox-ingress-native-20261005/README.md.
+**Ten canonical issues remain open; none of those ten was closed overnight.**
+They are broad project acceptance buckets, not ten remaining bug fixes. The
+rows below are delivered engineering increments, not additional issue closures.
+Times are recorded commit times in Taipei. Passing scopes stay banked.
 
-**Controller pause checkpoint:** Start now travels in the controller's ordered
-input stream. Both clients paused at the same boundary and resumed through all
-600 input frames, ending at matching checksum `432553:258417`. This replaces
-the failed F8 route, which dropped incoming text while held. Concurrent keyboard
-interference remains open; the later bounded window-focus result is below. Resumed helper clocks differed
-by 7.1 ms, so this is not a cross-machine alignment guarantee. Evidence and exact
-scope: wc3-melee:docs/controller-start-native-20261005/README.md.
+| Delivered | Concrete result | Evidence |
+| --- | --- | --- |
+| Short-input retention | Three 5 ms taps, including ~250 ms helper/game stops, applied at original frames 19/97/157 on both clients; all 300 input frames/player arrived. | wc3-melee:docs/editbox-ingress-native-20261005/README.md |
+| Controller pause, 02:18 | Start pauses at a shared frontier; 600 frames/player and matching drained state after resume. | wc3-melee:docs/controller-start-native-20261005/README.md |
+| Local prediction repair, 02:46 | Removed the measured extra 1–3-callback wait; 13/13 retained edge rows predicted in their admission callback. Software shield press median 83.09 → 67.95 ms; maximum did not improve. | wc3-melee:docs/native-response-catchup-20261005/README.md |
+| Focus/receipt repair, through 05:05 | 500 ms focus-away trial retained original-frame taps, released shield and leaked no keys to the other window. Selective gap repair removed the observed multi-second retry amplification. | wc3-melee:docs/native-text-receipts-20261005/README.md |
+| Resume-frame repair, 05:26 | Reading RESUME 361 ms late no longer shifts the fresh tap: original frame 98 on both clients; 600 frames/player and matching state. | wc3-melee:docs/resume-clock-native-20261005/README.md |
+| Persistent controller menus, 06:30 | Fighter/stage selection, recall/back, start, results and rematch work without restarting helpers. | wc3-melee:docs/controller-menus-native-20261005/README.md |
+| Playable 0.0.41, 06:59 | Installed two-client combat/rematch pass: all 52 recorded combat events per match agree, shield overlap works, final states match; no extra rematch attack or trace/input failure. | wc3-melee:docs/playable-0041-native-20261005/README.md |
+| Reconnect, 07:28 | Correct pad recovered at a new event node; shield released, stale held buttons suppressed, fresh tap applied at frame 181; all 12 expected native attacks and both results agree. Scan stalls repaired from 275–310 ms to 0.86–1.66 ms. | wc3-melee:docs/controller-reconnect-native-20261005/README.md |
 
-**Response repair landed:** journal prediction now consumes up to six available
-original frames before rendering. All 13 retained edge admissions reached shield
-prediction in the same callback, eliminating the baseline's 1–3-callback wait.
-B local shield presses improved from 83.09 to 67.95 ms median; releases improved
-from 81.63 to 63.52 ms. All 12 presses and releases were observed and both native
-clients confirmed frame 912 with matching state. Press maximum increased from
-88.89 to 98.17 ms, so this establishes a median improvement, not a tail bound.
-These are software-stimulus-to-compositor measurements. Physical button-to-pixel
-remains unmeasured. Exact scope and baseline comparison:
-wc3-melee:docs/native-response-catchup-20261005/README.md.
+The controller evidence uses virtual Linux pads and two clients on one machine.
+The response sample measures software stimulus to compositor appearance, not
+physical button-to-pixel latency. Local START/RESUME anchors still differ;
+physical hardware, common cross-machine clocks and Windows/macOS are unfinished.
+The wider backlog also includes full physics/VFX/balance, alternate hosting,
+three/four-player play and ten human matches. A playable Linux checkpoint is
+therefore delivered while the whole project is incomplete.
 
-**Focus recovery delivered:** the 500 ms focus-switch corpus now retains and
-applies both 5 ms attacks exactly once at original frames 7 and 109 on both
-clients. All 300 frames per player arrive, shield releases, final states match,
-and no keys reach the other window. Selective repair removes the multi-second
-retry amplification: A's native sync-echo median/max is now 180/397 ms versus
-1698/4894 ms with whole-suffix retries; B is 147/297 ms. These are transport echoes,
-not physical or visible local response. The bounded focus defect is closed;
-chat, reconnect, hardware and broader response remain open. Controller menus
-and rematch have since passed as recorded below. Exact
-scope and raw evidence: wc3-melee:docs/native-text-receipts-20261005/README.md.
-
-**Automatic start/results/rematch delivered:** the candidate now follows local
-match START publications without an externally supplied capture timestamp. The
-same two helpers completed two one-stock match lifecycles. All four 5 ms Attack
-taps applied at original frame 19 on both clients; a results-only tap did not leak.
-Both match endpoints agreed (118/858608:772108, then 117/339439:72128), with zero
-trace drops or input failures. Native testing caught and repaired a stale menu
-confirmation after text focus changed. This is Linux virtual-pad evidence with
-keyboard menu confirmation, not physical response or a shared cross-machine clock.
-Exact source, failures and reproduction:
-wc3-melee:docs/match-lifecycle-native-20261005/README.md.
-
-**Controller-only menus delivered:** the same persistent helpers now handle
-fighter selection, recall, stage navigation/back, match start, results and
-rematch. Two native three-stock lifecycle trials passed using virtual pads for
-all game menu actions. Four 5 ms gameplay taps applied once at frame 19 on both
-clients; both matches ended at confirmed 385/checksum `354842:379026`, with no
-trace drops or result-screen input leakage. This advances #18/#17/#26; it is not
-full human combat, physical timing or cross-machine clock alignment. Exact
-candidate and raw reconciliation:
-wc3-melee:docs/controller-menus-native-20261005/README.md.
-
-**0.0.41 installed combat checkpoint delivered:** two three-stock match sequences
-passed with the release map and frozen matching helper. Both clients agreed on
-all 52 recorded combat events in each match, including attacks, specials, three
-jump sources, damage and grab initiation. Shield survived LT release while RT
-remained held; controller Start paused and resumed. Final states agreed at
-914/`933725:107908` and 918/`10392:907822`, with no extra rematch attack, input
-failure or trace drop. These are virtual-controller fights, not ten human matches
-or physical timing. Exact release corpus:
-wc3-melee:docs/playable-0041-native-20261005/README.md.
+**Latest failed boundary: chat opening.** Enter opens native chat at character
+selection, but the automated run did not observe it opening during controller
+gameplay. The fixture stopped before chat-period controls; no recovery pass is
+claimed. Exact candidate, retained failure and next owning seam:
+wc3-melee:docs/controller-chat-native-20261005/README.md. This remains #18/#26
+work and does not invalidate the completed release checks above.
 
 ## The specific answers and their owners
 

@@ -1,0 +1,115 @@
+[
+  {
+    "event": "menu",
+    "phase": "CHARACTER",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=0 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=1 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 567004791147521
+  },
+  {
+    "event": "menu",
+    "phase": "STAGE",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=0 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=1 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 567009547619469
+  },
+  {
+    "event": "menu",
+    "phase": "CHARACTER",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=0 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=1 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 567012479034454
+  },
+  {
+    "event": "menu",
+    "phase": "STAGE",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=0 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0041 epoch=0 slot=1 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 567014927275721
+  },
+  {
+    "event": "start",
+    "epoch": 1,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-playable-0041-e1-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0041 epoch=1 slot=0 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791157171686395387,
+        "sample_monotonic_before_ns": 567017751065105,
+        "sample_realtime_ns": 1791157171702197884,
+        "sample_monotonic_after_ns": 567017751066778,
+        "publication_monotonic_estimate_ns": 567017735263444
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-playable-0041-e1-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0041 epoch=1 slot=1 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791157171687011302,
+        "sample_monotonic_before_ns": 567017751104509,
+        "sample_realtime_ns": 1791157171702236506,
+        "sample_monotonic_after_ns": 567017751105110,
+        "publication_monotonic_estimate_ns": 567017735879605
+      }
+    ],
+    "observed_monotonic_ns": 567017751135958
+  },
+  {
+    "event": "chat",
+    "epoch": 1,
+    "slot": 0,
+    "marker": "UNSENTCHATPROBE",
+    "open_pattern": "(?:All|Allies)\\s*:",
+    "observations": [
+      {
+        "label": "before",
+        "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-baseline-20261005/chat-1-before.png",
+        "text": "LI\n\ne\n\nP A\n\nA\n\nW\n\nAx\n\n0:0\n\n14\n\n!\n\ne\n\n)vo 91 \u00a5\n\nARCHER\n\nRIFLEMAN\n\n~\n\n8 it\n\nN el\n",
+        "helper_log_bytes": 16321,
+        "before_monotonic_ns": 567019246911442,
+        "after_monotonic_ns": 567020568696446
+      },
+      {
+        "label": "open-0",
+        "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-baseline-20261005/chat-1-open-0.png",
+        "text": "LI\n\ne\n\nP A\n\nA\n\nW\n\nAx\n\n0:0\n\n14\n\n!\n\ne\n\nB0\n\nARCHER\n\nRIFLEMAN\n\n~\n\n8 it\n\nN el\n",
+        "helper_log_bytes": 23567,
+        "before_monotonic_ns": 567020633030019,
+        "after_monotonic_ns": 567021933311656
+      },
+      {
+        "label": "open-1",
+        "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-baseline-20261005/chat-1-open-1.png",
+        "text": "w\n\nLI\n\ne\n\nP A\n\nA\n\nW\n\nAx\n\n0:0\n\n14\n\n!\n\ne\n\nDL\n\nARCHER\n\nRIFLEMAN\n\n~\n\n8 it\n\nN el\n",
+        "helper_log_bytes": 30749,
+        "before_monotonic_ns": 567021933539023,
+        "after_monotonic_ns": 567023249981767
+      },
+      {
+        "label": "open-2",
+        "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-baseline-20261005/chat-1-open-2.png",
+        "text": "&\n\nLI\n\ne\n\nP A\n\nA\n\nW\n\nAx\n\n0:0\n\n14\n\n!\n\ne\n\n5\n\nA\n\nARCHER\n\nRIFLEMAN\n\n~\n\n8 it\n\nN el\n",
+        "helper_log_bytes": 37737,
+        "before_monotonic_ns": 567023250033354,
+        "after_monotonic_ns": 567024568403381
+      },
+      {
+        "label": "closed",
+        "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-baseline-20261005/chat-1-closed.png",
+        "text": "LA\n\nL2\n\nOl\n\nLI\n\ne\n\nP A\n\nA\n\nW\n\nAx\n\n0:0\n\n14\n\n!\n\ne\n\nl(>4\n\nVL\n\nARCHER\n\nRIFLEMAN\n\n~\n\n8 it\n\nN el\n",
+        "helper_log_bytes": 42569,
+        "before_monotonic_ns": 567024632541968,
+        "after_monotonic_ns": 567025984929289
+      }
+    ],
+    "policy": "neutralize gameplay while chat is open; suppress chat-period actions; neutral rearm after close; preserve original frame for fresh input",
+    "enter_monotonic_ns": 567020568703098,
+    "escape_monotonic_ns": 567024568424881
+  }
+]
