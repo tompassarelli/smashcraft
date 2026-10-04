@@ -81,7 +81,7 @@ cp "$project_dir/wurst.build" "$work_dir/wurst.build"
 }
 sed -i "s/^  name: .*/  name: $map_name/" "$work_dir/wurst.build"
 cp "$project_dir/tools/map-entry.j" "$work_dir/wurst/war3map.j"
-for source in FighterAssets Simulation MeleeScalarMath RollTravel BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput MatchStep ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents DamagePose CombatEffects FrostEffects SpecialEffects Melee; do
+for source in FighterAssets Simulation MeleeContactGeometry MeleeScalarMath RollTravel BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput MatchStep ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents DamagePose CombatEffects FrostEffects SpecialEffects Melee; do
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
 done
 cp "$fighter_assets/FighterAssetInfo.wurst" "$work_dir/wurst/FighterAssetInfo.wurst"

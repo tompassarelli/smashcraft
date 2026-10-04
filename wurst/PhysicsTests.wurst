@@ -908,7 +908,7 @@ function recordedShieldDefenderPosition(int frame) returns real
 @Test function combatShieldBreakUsesCharacterLaunchAttributeAfterContactFreeze()
 	for character = 0 to 2
 		let owner = new FighterState(0, 0, 1)
-		let target = new FighterState(character, 100, -1)
+		let target = new FighterState(character, 50, -1)
 		let input = new InputSnapshot()
 		target.shield = true
 		target.shieldEnergy = 1
@@ -973,7 +973,7 @@ function contactProjectile(FighterState owner, FighterState target, int slot, in
 
 @Test function contactBatchShieldBreakBlocksEveryCollectedContact()
 	let owner = new FighterState(0, 0, 1)
-	let target = new FighterState(1, 100, -1)
+	let target = new FighterState(1, 50, -1)
 	target.shield = true
 	target.shieldEnergy = 1
 	beginAttackPair(owner, target, 0, -1, false, false)

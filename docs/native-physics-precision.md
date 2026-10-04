@@ -20,6 +20,11 @@ production uniform-scale collision fix and all 508 recorded capsule/shield
 classifications. It has not been installed or run natively. The concurrent
 multiplayer task retains ownership of the authenticated clients.
 
+The subsequent ordinary-melee contact and surface-rebound eligibility changes
+are not in this candidate. Rebuild from the final production source before
+using a native result to identify the current implementation. These fixtures
+still do not exercise fighter-to-fighter geometry or connected surface play.
+
 Acceptance requires MESSAGES 19 and all sixteen groups below. Rebuilding this
 candidate adds no comparison cases and does not claim native acceptance.
 

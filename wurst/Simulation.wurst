@@ -2,6 +2,7 @@ package Simulation
 import RollTravel
 import Binary32
 import MeleeScalarMath
+import MeleeContactGeometry
 
 public constant real WORLD_UNITS_PER_MELEE_UNIT = 6
 
@@ -1638,7 +1639,21 @@ tuple hitRegion(real minX, real maxX, real minZ, real maxZ, hitEffect hitData, i
 function noHitRegion() returns hitRegion
 	return hitRegion(0, 0, 0, 0, hitEffect(0, 0, 0, 0, 0, false), 0)
 
-// Coordinates are facing-relative offsets of the victim's simulation origin.
+function regionAttackCapsule(FighterState attacker, hitRegion hitBox) returns meleeCapsule
+	return mirrorMeleeCapsule(authoredAttackCapsule(attacker.attackStyle, hitBox.minX, hitBox.maxX,
+		hitBox.minZ, hitBox.maxZ), attacker.x, attacker.z, attacker.facing)
+
+function meleeHitIntersectsShield(FighterState attacker, FighterState target, hitRegion hitBox) returns boolean
+	if not target.shield or hitBox.window <= 0
+		return false
+	let attackCapsule = regionAttackCapsule(attacker, hitBox)
+	let centerX = target.x + target.facing * target.shieldGeometry.centerX
+	let centerZ = target.z + target.shieldGeometry.centerZ
+	return capsuleCircleIntersects(attackCapsule.x1, attackCapsule.z1, attackCapsule.x2,
+		attackCapsule.z2, attackCapsule.radius, centerX, centerZ, target.shieldGeometry.radius,
+		shieldSizeMultiplier(target.shieldEnergy, target.shieldStrength))
+
+// Bounds are provisional facing-relative reach envelopes for the authored move.
 // Lower region indices win overlaps. Window zero means no authored contact;
 // increasing positive windows explicitly permit a later hit of the same target.
 function authoredHitRegion(int character, int style, int frame, int chargeFrames, int index) returns hitRegion
@@ -1732,10 +1747,22 @@ function selectHitRegion(FighterState attacker, FighterState target) returns hit
 		if attacker.attackFrame >= attacker.dashGrabTiming.startupFrames and attacker.attackFrame < attacker.dashGrabTiming.startupFrames + attacker.dashGrabTiming.activeFrames and localX >= 0 and localX <= attackReach(5) and localZ >= -130 and localZ <= 130
 			return hitRegion(0, attackReach(5), -130, 130, hitEffect(0, 0, 0, 0, 0, false), 1)
 		return noHitRegion()
+	if attacker.attackStyle == 5
+		let grab = authoredHitRegion(attacker.character, attacker.attackStyle,
+			attacker.attackFrame, attacker.smashChargeFrames, 0)
+		let alreadyHit = target.lastHitAttacker == attacker and target.lastHitAttackSerial == attacker.attackSerial and target.lastHitWindow >= grab.window
+		if grab.window > 0 and not alreadyHit and localX >= grab.minX and localX <= grab.maxX and
+			localZ >= grab.minZ and localZ <= grab.maxZ
+			return grab
+		return noHitRegion()
 	for index = 0 to (attacker.attackStyle == 6 ? 1 : 0)
 		let hitBox = authoredHitRegion(attacker.character, attacker.attackStyle, attacker.attackFrame, attacker.smashChargeFrames, index)
 		let alreadyHit = target.lastHitAttacker == attacker and target.lastHitAttackSerial == attacker.attackSerial and target.lastHitWindow >= hitBox.window
-		if hitBox.window > 0 and not alreadyHit and localX >= hitBox.minX and localX <= hitBox.maxX and localZ >= hitBox.minZ and localZ <= hitBox.maxZ
+		let attackCapsule = regionAttackCapsule(attacker, hitBox)
+		let hurtCapsule = mirrorMeleeCapsule(authoredFighterHurtCapsule(target.character), target.x, target.z, 1)
+		let bodyContact = meleeCapsulesIntersect(attackCapsule, hurtCapsule)
+		let shieldContact = meleeHitIntersectsShield(attacker, target, hitBox)
+		if hitBox.window > 0 and not alreadyHit and (bodyContact or shieldContact)
 			return hitBox
 	return noHitRegion()
 
@@ -2299,7 +2326,7 @@ function resolveSolidSurfaceContact(FighterState f, int stage, int index, real o
 		if inwardKbSpeed < 0
 			f.knockbackX -= inwardKbSpeed * nx
 			f.knockbackZ -= inwardKbSpeed * nz
-	else if f.surfaceReflectCooldown == 0 and surfaceKey != f.lastReflectedSurface and inwardKnockback > SURFACE_REFLECT_SPEED_THRESHOLD
+	else if (f.hitstun > 0 or isTumbling(f)) and f.surfaceReflectCooldown == 0 and surfaceKey != f.lastReflectedSurface and inwardKnockback > SURFACE_REFLECT_SPEED_THRESHOLD
 		let combinedX = f.vx + f.knockbackX
 		let combinedZ = f.vz + f.knockbackZ
 		let inwardSpeed = combinedX * nx + combinedZ * nz
@@ -2897,7 +2924,8 @@ function cancelAttack(FighterState fighter)
 	fighter.smashChargeFrames = 0
 	fighter.smashChargeAllowed = false
 
-function applyAttackHit(FighterState attacker, FighterState target, int style, int facing, hitEffect hitData, boolean directContact)
+function applyAttackHit(FighterState attacker, FighterState target, int style, int facing,
+		hitEffect hitData, boolean directContact, boolean shieldContact)
 	if demonHunterParryIsActive(target)
 		resolveDemonHunterParry(target, attacker, -facing)
 		return
@@ -2933,7 +2961,7 @@ function applyAttackHit(FighterState attacker, FighterState target, int style, i
 		target.groundKnockbackX = 0
 		target.knockbackZ = 0
 		return
-	queueDamageContact(attacker, target, hitData, facing, CONTACT_LAUNCH, directContact, null)
+	collectDamageContact(attacker, target, hitData, facing, CONTACT_LAUNCH, directContact, null, shieldContact)
 
 function startSpecialAction(FighterState owner, int action, int duration, int direction)
 	owner.surfaceRecoveryState = SURFACE_NONE
@@ -3198,7 +3226,7 @@ function advanceBear(FighterState owner, FighterState target, int stage)
 		owner.bearSwipeCooldown = RIFLEMAN_BEAR_SWIPE_INTERVAL
 		owner.bearHitSerial++
 		applyAttackHit(owner, target, 0, owner.bearVelocityX < 0 ? -1 : 1,
-			hitEffect(6, 90, 18, DIAGONAL_UNIT, 0.35, false), false)
+			hitEffect(6, 90, 18, DIAGONAL_UNIT, 0.35, false), false, target.shield)
 	if owner.bearLife <= 0 or owner.bearX < surfaceLeft(stage, 0) - 100 or owner.bearX > surfaceRight(stage, 0) + 100
 		owner.bearLife = 0
 
@@ -3218,7 +3246,7 @@ function advanceHippogryph(FighterState owner, FighterState target)
 			if (crossedTarget or (target.x - owner.hippogryphX).abs() <= 60) and (target.z - owner.hippogryphZ).abs() <= 100
 				owner.specialHit = true
 				applyAttackHit(owner, target, 0, owner.facing,
-					hitEffect(8, 100, 22, DIAGONAL_UNIT, DIAGONAL_UNIT, false), false)
+					hitEffect(8, 100, 22, DIAGONAL_UNIT, DIAGONAL_UNIT, false), false, target.shield)
 	if owner.hippogryphLife <= 0
 		owner.hippogryphKind = 0
 		if owner.specialAction == SPECIAL_ARCHER_DISENGAGE
@@ -3240,9 +3268,9 @@ public function advanceSpecialPair(FighterState first, FighterState second, int 
 	if secondContact.window > 0
 		second.specialHit = true
 	if firstContact.window > 0
-		applyAttackHit(first, second, 0, firstFacing, firstContact.hitData, true)
+		applyAttackHit(first, second, 0, firstFacing, firstContact.hitData, true, second.shield)
 	if secondContact.window > 0
-		applyAttackHit(second, first, 0, secondFacing, secondContact.hitData, true)
+		applyAttackHit(second, first, 0, secondFacing, secondContact.hitData, true, first.shield)
 	advanceBear(first, second, stage)
 	advanceBear(second, first, stage)
 	advanceHippogryph(first, second)
@@ -3395,12 +3423,14 @@ public function resolveAttackPair(FighterState first, FighterState second)
 		if firstStyle == 1
 			spawnProjectile(first)
 		else
-			applyAttackHit(first, second, firstStyle, firstFacing, firstRegion.hitData, true)
+			applyAttackHit(first, second, firstStyle, firstFacing, firstRegion.hitData, true,
+				meleeHitIntersectsShield(first, second, firstRegion))
 	if secondHits and not firstGrabPriority
 		if secondStyle == 1
 			spawnProjectile(second)
 		else
-			applyAttackHit(second, first, secondStyle, secondFacing, secondRegion.hitData, true)
+			applyAttackHit(second, first, secondStyle, secondFacing, secondRegion.hitData, true,
+				meleeHitIntersectsShield(second, first, secondRegion))
 	if ownsBatch
 		finishDamageContacts(first, second)
 

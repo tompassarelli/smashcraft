@@ -148,8 +148,8 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 @Test function hitRegionsRespectActiveClockAndInclusiveGeometryBoundaries()
 	for frame = 4 to 7
 		let attacker = new FighterState(0, 0, 1)
-		let target = new FighterState(1, 145, -1)
-		target.z = 130
+		// Tip centerline ends at 111; attack/body radii add 10 + 26.
+		let target = new FighterState(1, 147, -1)
 		prepareHitRegionAttack(attacker, target, 6, frame)
 		resolveAttackPair(attacker, target)
 		target.damage.assertEquals(frame == 5 ? 10. : (frame == 6 ? 8. : 0.))
@@ -157,7 +157,7 @@ function prepareHitRegionAttack(FighterState attacker, FighterState target, int 
 		destroy attacker
 	for outside = 0 to 3
 		let attacker = new FighterState(0, 0, -1)
-		let target = new FighterState(1, outside == 0 ? -146 : (outside == 1 ? 1 : -100), 1)
+		let target = new FighterState(1, outside == 0 ? -148 : (outside == 1 ? 50 : -100), 1)
 		target.z = outside == 2 ? -131 : (outside == 3 ? 131 : 0)
 		prepareHitRegionAttack(attacker, target, 6, 5)
 		resolveAttackPair(attacker, target)
@@ -1158,12 +1158,12 @@ function aerialDamageAt(int style, int facing, real targetX, real targetZ) retur
 	tiltDamageAt(10, 1, 100, 150).assertEquals(0.)
 	tiltDamageAt(6, 1, 100, 150).assertEquals(0.)
 	tiltDamageAt(6, 1, 100, -150).assertEquals(0.)
-	tiltDamageAt(9, 1, 145, 65).assertEquals(10.)
-	tiltDamageAt(10, 1, 145, -65).assertEquals(10.)
+	tiltDamageAt(9, 1, 135, 65).assertEquals(10.)
+	tiltDamageAt(10, 1, 135, -65).assertEquals(10.)
 	tiltDamageAt(9, 1, 146, 65).assertEquals(0.)
 	tiltDamageAt(10, -1, 100, -65).assertEquals(0.)
-	tiltDamageAt(6, 1, 145, 0).assertEquals(10.)
-	tiltDamageAt(6, 1, 146, 0).assertEquals(0.)
+	tiltDamageAt(6, 1, 147, 0).assertEquals(10.)
+	tiltDamageAt(6, 1, 148, 0).assertEquals(0.)
 
 @Test function walkingModifierUsesCharacterWalkSpeedAndReleasesToDash()
 	for character = 0 to 1
@@ -2277,7 +2277,7 @@ function advanceDirectionalInput(FighterState fighter, InputSnapshot input, Dire
 @Test function shieldBreakMeleeDropsShieldAndLaunchesWithoutDamage()
 	let game = testMatch()
 	let attacker = new FighterState(0, 0, 1)
-	let target = new FighterState(1, 100, -1)
+	let target = new FighterState(1, 50, -1)
 	target.shieldEnergy = 5
 	let attackerInput = new InputSnapshot()
 	let targetInput = new InputSnapshot()
@@ -3663,7 +3663,7 @@ function runGetupAttackToContact(FighterState attacker, FighterState target, int
 @Test function getupAttackWhiffDoesNotApplyHitlagOrHitstun()
 	let attacker = new FighterState(0, 0, 1)
 	let target = new FighterState(1, 0, -1)
-	runGetupAttackToContact(attacker, target, 1, 146)
+	runGetupAttackToContact(attacker, target, 1, 160)
 	target.damage.assertEquals(0.)
 	target.hitstun.assertEquals(0)
 	target.hitlag.assertEquals(0)
@@ -4562,7 +4562,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 			fighter.ledgeIntangible = 0
 			if mode < 2
 				let attacker = new FighterState(1, -570, -1)
-				let style = mode == 0 ? 0 : 5
+				let style = mode == 0 ? 8 : 5
 				beginAttackPair(attacker, fighter, style, -1, false, false)
 				attacker.attackFrame = attackStartupFrames(style)
 				resolveAttackPair(attacker, fighter)
@@ -4617,7 +4617,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 		let attacker = new FighterState(1, -570, -1)
 		let input = new InputSnapshot()
 		catchTestLedge(fighter, input)
-		let style = mode == 0 ? 0 : 5
+		let style = mode == 0 ? 8 : 5
 		beginAttackPair(attacker, fighter, style, -1, false, false)
 		attacker.attackFrame = attackStartupFrames(style)
 		resolveAttackPair(attacker, fighter)
@@ -4629,7 +4629,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 		resolveAttackPair(attacker, fighter)
 		fighter.ledgeState.assertEquals(LEDGE_NONE)
 		if mode == 0
-			fighter.damage.assertEquals(12.)
+			fighter.damage.assertEquals(8.)
 		else
 			fighter.grabbedFrames.assertEquals(grabHoldFrames(fighter.damage))
 		destroy input
@@ -4666,6 +4666,27 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.grounded.assertFalse()
 	destroy input
 	destroy fighter
+
+@Test function surfaceReflectionRequiresDamageRecovery()
+	for surface = 0 to 1
+		for recovering = 0 to 1
+			let fighter = new FighterState(0, surface == 0 ? -425. : -265., 1)
+			let input = new InputSnapshot()
+			fighter.grounded = false
+			fighter.z = surface == 0 ? 160. : 140.
+			fighter.knockbackX = surface == 0 ? 12. : 0.
+			fighter.knockbackZ = surface == 1 ? 12. : 0.
+			fighter.hitstun = recovering == 1 ? 8 : 0
+			advance(fighter, 1, input, 0)
+			fighter.surfaceContactSerial.assertEquals(1)
+			let normalLaunch = surface == 0 ? fighter.knockbackX : fighter.knockbackZ
+			if recovering == 1
+				normalLaunch.assertLessThan(0)
+			else
+				normalLaunch.assertEquals(0.)
+				fighter.surfaceReflectCooldown.assertEquals(0)
+			destroy input
+			destroy fighter
 
 @Test function retailSurfaceThresholdReflectsCombinedVelocityAtPlayableWallAndReportsContact()
 	let fighter = new FighterState(0, -425, 1)

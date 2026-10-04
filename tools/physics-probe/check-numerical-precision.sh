@@ -22,7 +22,8 @@ mkdir -p "$output_dir"
     -workspaceroot "$project_dir" -lib "$stdlib_root" -out "$output_dir/precision.lua" \
     "$compiler_root/de.peeeq.wurstscript/src/main/resources/common.j" \
     "$compiler_root/de.peeeq.wurstscript/src/main/resources/blizzard.j" \
-    "$project_dir/wurst/Simulation.wurst" "$project_dir/wurst/RollTravel.wurst" \
+    "$project_dir/wurst/Simulation.wurst" "$project_dir/wurst/MeleeContactGeometry.wurst" \
+    "$project_dir/wurst/RollTravel.wurst" \
     "$project_dir/wurst/MeleeScalarMath.wurst" \
     "$project_dir/tools/physics-probe/NumericalPrecisionProbe.wurst" \
     "$output_dir/DirectionalInfluencePrecisionProbe.wurst" \
@@ -47,6 +48,7 @@ initCompiletimeState()
 init_Real()
 init_Integer()
 init_MeleeScalarMath()
+init_MeleeContactGeometry()
 init_Simulation()
 local results = {}
 BJDebugMsg = function(message)

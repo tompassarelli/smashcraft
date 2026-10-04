@@ -25,6 +25,7 @@ exec "$java" -Xmx2048m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/_build/common.j" \
     "$project_dir/_build/blizzard.j" \
     "$project_dir/wurst/Simulation.wurst" \
+    "$project_dir/wurst/MeleeContactGeometry.wurst" \
     "$project_dir/wurst/MeleeScalarMath.wurst" \
     "$project_dir/wurst/MeleeScalarMathTests.wurst" \
     "$project_dir/wurst/RollTravel.wurst" \
@@ -35,6 +36,7 @@ exec "$java" -Xmx2048m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/wurst/DirectionalInput.wurst" \
     "$project_dir/wurst/DirectionalInputTests.wurst" \
     "$project_dir/wurst/SimulationTests.wurst" \
+    "$project_dir/wurst/MeleeContactTests.wurst" \
     "$project_dir/wurst/RecoveryTests.wurst" \
     "$project_dir/wurst/GrabTests.wurst" \
     "$project_dir/wurst/HitTimingTests.wurst" \

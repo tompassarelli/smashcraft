@@ -1029,23 +1029,38 @@ full tumble-parity claim; a screenshot saying “exceeds 80” is not sufficient
 
 ## Frame-authored hit regions
 
-The match now selects facing-relative rectangular regions using the current
-`attackFrame`. Regions include damage, growth, base knockback,
-launch direction, and a numbered contact window. Lower region indices win
-overlaps: a target receives exactly one selected effect per resolution.
-Both fighters' effects and facing are copied before applying either hit, so
-trades retain their original selected regions even when a hit cancels an
-attack. Hit application retains the maximum of existing and incoming hitlag,
-so unequal trades cannot shorten one fighter's freeze depending on resolution
-order. Existing grab priority and independent projectile handling remain.
-The unchanged moves keep their previous geometry, active frames and effects.
+The match selects a facing-mirrored capsule for each active move region and a
+separate capsule for each target body. Strike direction follows move identity:
+jabs and horizontal attacks have horizontal centerlines, angled tilts follow
+diagonal paths, and up/down aerials have vertical centerlines. Grounded upward
+strikes use rising diagonals. The custom reach envelopes calibrate the strike
+span; they are no longer victim-origin rectangles. Radii range from 10 to 40
+world units according to the authored strike. Archer, Rifleman and Demon Hunter
+use body capsules with radii 24, 26 and 25, extending from local z=4 to
+88, 96 and 102. These are provisional, pose-independent custom tuning values,
+not Melee hitbox or hurtbox measurements. Contact reach changes with this
+explicit replacement; damage, active frames, recovery, and fighter stats do not.
 
-Flat forward tilt (style 6) has an inner region at local x=0–110 and a
-higher-priority tip at x=90–145, both at local z=-130–130. All bounds are
-inclusive world-unit offsets from the attacker to the victim's simulation
-origin. Facing mirrors x. Its active frames remain 5–6, total duration 28;
+An ordinary move connects when its capsule reaches either the body capsule or
+the active shield circle. The shield query uses the move capsule's finite
+radius, the fighter's authored shield center and radius, and the current shield
+size multiplier. A contact covered by the shield enters the existing shield
+damage/stun/pushback path; a contact outside the shield circle can hit the body
+while guard is held. A capsule can also reach the shield before the body. The
+first overlapping move region retains priority, and a shield intersection on
+that selected region blocks its body intersection. Both fighters' selected
+effects and facing are copied before applying either hit, so trades retain
+their original regions. Hit application retains the maximum of existing and
+incoming hitlag. Normal grabs and dash grabs keep their origin-range query and
+shield bypass; projectiles keep their independent swept query. Multi-hit
+specials still use their prior broad contact checks.
+
+Flat forward tilt (style 6) has an inner reach envelope at local x=0–110 and a
+higher-priority tip at x=90–145, both at local z=-130–130. The selected
+horizontal centerlines end at x=76 (inner) and x=111 (tip), at z=45. Facing mirrors x. Its active frames remain 5–6, total duration 28;
 the angled forward tilts retain their existing single regions and effects.
-These are independently authored, provisional values, not Melee measurements:
+Damage and reach envelopes are independently authored provisional values, not
+Melee measurements:
 
 | Move / region / attack frames | Damage | Growth % | Base knockback | Hitlag ticks | Local launch direction (x,z) |
 | --- | ---: | ---: | ---: | ---: | --- |
@@ -1072,10 +1087,10 @@ in range. Missing the opening does not prevent a finisher. Its old bounds
 window is reached after those frozen ticks rather than after a wall-clock
 delay. Each window can connect once; it does not reset every active frame.
 
-These rectangles still test a single victim origin; they are not pose-derived
-hurtboxes. Animation alignment, character-specific region tuning, and native
-combat feel remain future work. Existing clip frame clocks and recovery
-durations are preserved, but this does not establish geometric alignment.
+Ordinary strikes now test the capsules described above. Grab and special
+queries remain simplified, and the capsules are not pose-derived hurtboxes.
+Animation alignment, character-specific tuning, and native combat feel remain
+open. Existing clip frame clocks and recovery durations are preserved.
 
 The `SimulationTests` filter passes 146/146 tests, including nine added
 resolution tests for overlap priority, mirrored launch, early/late effects,

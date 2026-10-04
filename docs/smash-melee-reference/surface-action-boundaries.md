@@ -5,6 +5,28 @@ These are independently described control-flow observations, not copied game
 implementation. Numerical animation lengths are recorded separately in
 smashcraft:docs/smash-melee-reference/retail-action-lengths.json.
 
+## Ordinary movement is not a damage rebound
+
+At reference revision `0296f009f32f710495979d30772d8332af2d411a`,
+melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c dispatches wall/ceiling
+reflection from the damage-flight collision callback. Ordinary Fall and
+AttackAir have separate collision callbacks; remaining knockback by itself
+does not select the damage rebound action.
+
+Smashcraft previously reflected any sufficiently large inward knockback at
+an authored wall or ceiling, including an actor in ordinary movement. The
+production query now requires damage recovery (hitstun or its modeled tumble
+state) before taking the rebound branch. Ordinary motion still contacts the
+surface and loses its inward velocity, without starting a rebound cooldown.
+The connected `surfaceReflectionRequiresDamageRecovery` case checks ordinary
+versus damage movement at both a wall and ceiling. It failed before the fix
+(ordinary movement rebounded at -9.355 instead of stopping) and passed after it.
+
+This closes the ordinary-movement discrepancy. It does not prove the full
+retail distinction between DamageFly, DamageFall and FlyReflect callbacks,
+their animation/input ordering, ECB placement, or native surface trajectories.
+Smashcraft's single tumble state still needs those distinctions verified.
+
 Ceiling recovery, observed in melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveCeil.c,
 consumes its horizontal impulse event once, then transitions to ordinary fall
 when animation tracks finish. Its input-interrupt callback is empty. For the
