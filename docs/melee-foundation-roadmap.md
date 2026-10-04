@@ -46,8 +46,13 @@ after airborne weak-damage landing bands, tumble-only surface recovery and
 digital tumble exit were integrated. A subsequent independent NTSC replay
 check passed for tumble exit and same-frame horizontal drift on both simulation
 hosts; the recording does not identify retail revision. Seven original NTSC
-1.02 tech-timer gate executions confirm the existing 20/40 limits and their
-strict/inclusive boundaries, but do not establish input aging through hitlag.
+1.02 tech-timer gate executions confirm the 20/40 scalar limits. Subsequent
+original hitlag/input-driver execution establishes aging through frozen frames
+and exposes production discrepancies: accumulated early presses become
+ineligible, a last-frozen-frame press retains 19 contact frames on release,
+and repeat presses require 41 elapsed input ticks. The independently authored
+counter rule passes three focused tests, but production integration remains
+pending. See smashcraft:docs/melee-tech-input.md.
 Evidence is retained in smashcraft:docs/smash-melee-reference/surface-action-boundaries.md.
 The prior contact integration passed 566/566; the earlier check passed 561/561 after shield-fixture
 deduplication; the earlier aggregate passed 592/592 before that deduplication. The
