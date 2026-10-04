@@ -44,6 +44,7 @@ import FrostEffects
 import SpecialEffects
 import ResponseServiceProbe
 import JournalInputSource
+import KeyboardJournalIngress
 import VocabularyIngress
 import JournalPauseBarrier
 import FileIO
@@ -103,6 +104,7 @@ ShadowInputSchedule shadowSchedule = null
 ShadowInputPlayback shadowPlayback = null
 KeyboardInputCapture shadowCapture = null
 JournalInputSource journalInput = null
+KeyboardJournalIngress keyboardJournalIngress = null
 File journalInputFile = null
 InputBatch shadowBatch = null
 InputPacket shadowOutgoing = null
@@ -547,7 +549,14 @@ function serviceJournalPauseAck()
 		return
 	let localPlayer = GetLocalPlayer()
 	let sequence = journalInput.controlSequenceNumber()
-	let wire = vocabularyReadControlAck(journalInput.controlAckBase())
+	var wire = ""
+	if JOURNAL_KEYBOARD_INGRESS
+		keyboardJournalIngress.pollChunk()
+		let assembled = keyboardJournalIngress.assembledWire()
+		if keyboardJournalIngress.hasFinalChunk() and assembled.length() >= 5 and assembled.substring(0, 5) == "ACK1|"
+			wire = assembled
+	else
+		wire = vocabularyReadControlAck(journalInput.controlAckBase())
 	let expectedState = journalPauseTarget ? (journalPauseCommitSent ? "PAUSE" : "PREPARE") : "RESUME"
 	if not journalInput.acceptControlAck(wire, expectedState)
 		return
@@ -556,6 +565,8 @@ function serviceJournalPauseAck()
 	let syncWire = "JC1" + journalPad10(shadowInputEpoch) + I2S(slot) + journalPad10(sequence) + stateCode + journalPad10(journalInput.controlAckFrame())
 	if not BlzSendSyncData("SC_JC", syncWire)
 		failJournalInput("pause acknowledgment could not be synchronized")
+	else if JOURNAL_KEYBOARD_INGRESS
+		keyboardJournalIngress.acknowledgeFinalMessage()
 
 function sendJournalPauseCommit()
 	if not journalPausePending or not journalPauseTarget or journalPauseCommitSent or not journalPausePrepareComplete
@@ -680,7 +691,14 @@ function serviceJournalInput()
 			wire = transportIsolationPacket.encode()
 		else
 			wire = journalInput.bufferedPacket()
-			if wire == ""
+			if JOURNAL_KEYBOARD_INGRESS
+				keyboardJournalIngress.pollChunk()
+				let assembled = keyboardJournalIngress.assembledWire()
+				if keyboardJournalIngress.hasFinalChunk() and assembled.length() >= 2 and assembled.substring(0, 2) == "I4"
+					wire = assembled
+				else
+					return
+			else if wire == ""
 				let fileReadStartedMs = responseProbeClockMs()
 				wire = vocabularyReadPacket(journalInput.packetBase())
 				if fileReadStartedMs >= 0
@@ -747,6 +765,8 @@ function serviceJournalInput()
 			shadowLocalSendFailed = true
 			failJournalInput("journal cursor could not advance after send")
 			return
+		if JOURNAL_KEYBOARD_INGRESS
+			keyboardJournalIngress.acknowledgeFinalMessage()
 
 function shadowCaptureLocalInput()
 	if JOURNAL_INPUT_SOURCE
@@ -1379,6 +1399,8 @@ function beginShadowEpoch() returns boolean
         let localSlot = GetPlayerId(GetLocalPlayer())
         if not journalInput.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot, SHADOW_INPUT_DELAY)
             failJournalInput("epoch could not be initialized")
+        if JOURNAL_KEYBOARD_INGRESS
+			keyboardJournalIngress.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot)
     currentFrameInput.reset()
     return true
 
@@ -1456,7 +1478,7 @@ function startMatch()
             Preload("input=" + INPUT_PROFILE + " delay=" + I2S(SHADOW_INPUT_DELAY) + " rollback=" + I2S(SHADOW_INPUT_ROLLBACK) + " first_frame=" + I2S(1 + SHADOW_INPUT_DELAY))
             Preload("filename=smashcraft-journal-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-s" + I2S(slot) + "-n{SEQUENCE}.pld")
             Preload("packet=canonical I4; records=1 or 2 consecutive original frames; include neutral rows; no sparse events")
-            Preload("transport=SC_GP; files are immutable; absent next filename is retried; sequence advances after local capture and successful submission")
+            Preload(JOURNAL_KEYBOARD_INGRESS ? "transport=keyboard-mailbox-v1; seven printable ASCII bytes per committed chunk; exact ACK before data is reused" : "transport=SC_GP; files are immutable; absent next filename is retried; sequence advances after local capture and successful submission")
             Preload("pause=sequenced control request; companion ACK names the next input frame; simulation pauses or resumes only at that acknowledged confirmed frame")
             PreloadGenEnd("smashcraft-journal-ready-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-p" + I2S(slot) + ".txt")
     if POOL_PRESENTATION and shadowInputActive
@@ -1560,10 +1582,12 @@ function openSettingsScreen(int slot)
 function onParticipantKeyDown(int slot)
     if not matchState.humanActive(slot)
         return
-    if inputTraceActive
-        shadowTraceKeyDown[slot]++
     let key = BlzGetTriggerPlayerKey()
     let keyCode = GetHandleId(key)
+    if JOURNAL_KEYBOARD_INGRESS and shadowInputActive and keyboardJournalIngress.isCarrierCode(keyCode)
+		return
+    if inputTraceActive
+        shadowTraceKeyDown[slot]++
     traceParticipant(slot, "received down " + I2S(keyCode))
     let participant = participants[slot]
     let state = participant.keys
@@ -1642,13 +1666,15 @@ function onParticipantKeyDown(int slot)
 function onParticipantKeyUp(int slot)
     if not matchState.humanActive(slot)
         return
+    let key = BlzGetTriggerPlayerKey()
+    let keyCode = GetHandleId(key)
+    if JOURNAL_KEYBOARD_INGRESS and shadowInputActive and keyboardJournalIngress.isCarrierCode(keyCode)
+		return
     if inputTraceActive
         shadowTraceKeyUp[slot]++
-    let key = BlzGetTriggerPlayerKey()
     if key == OSKEY_Y
         matchControls.keyUp(slot)
         return
-    let keyCode = GetHandleId(key)
     traceParticipant(slot, "received up " + I2S(keyCode))
     let participant = participants[slot]
     participant.keys.release(keyCode, participant.bindings.bindings)
@@ -2014,6 +2040,8 @@ function initializeShadowInput()
     if JOURNAL_INPUT_SOURCE
         journalInput = new JournalInputSource()
         journalInputFile = new File("")
+        if JOURNAL_KEYBOARD_INGRESS
+			keyboardJournalIngress = new KeyboardJournalIngress()
     shadowBatch = new InputBatch()
     shadowOutgoing = new InputPacket()
     shadowIncoming = new InputPacket()

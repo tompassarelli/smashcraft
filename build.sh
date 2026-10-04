@@ -8,6 +8,10 @@ map_version=$(cat "$project_dir/map-version")
     exit 2
 }
 map_name="Smashcraft $map_version"
+if [[ -n ${WC3_DIAGNOSTIC_ID:-} ]]; then
+    [[ "$WC3_DIAGNOSTIC_ID" =~ ^[A-Za-z0-9._-]+$ ]] || { echo 'Invalid WC3_DIAGNOSTIC_ID.' >&2; exit 2; }
+    map_name="Smashcraft diagnostic $WC3_DIAGNOSTIC_ID"
+fi
 map_filename="$map_name.w3x"
 compiler_checkout=/home/tom/code/wurst-compiler/pins/6b129956f6e7cf9582510f26b99d305526bf3ded
 stdlib_checkout=/home/tom/code/wurst-stdlib/pins/e3714f629113
@@ -54,6 +58,9 @@ input_profile=${WC3_INPUT_PROFILE:-callback}
 case "$input_profile" in callback|shadow-d3|shadow-d3-batch2|shadow-d3-r12|shadow-d0-r12|shadow-d1-r12|shadow-d0-r24) ;; *) echo 'Unknown WC3_INPUT_PROFILE.' >&2; exit 2;; esac
 input_source=${WC3_INPUT_SOURCE:-keyboard}
 case "$input_source" in keyboard|journal) ;; *) echo 'WC3_INPUT_SOURCE must be keyboard or journal.' >&2; exit 2;; esac
+keyboard_journal_ingress=${WC3_JOURNAL_INGRESS:-files}
+case "$keyboard_journal_ingress" in files|keyboard) ;; *) echo 'WC3_JOURNAL_INGRESS must be files or keyboard.' >&2; exit 2;; esac
+[[ "$input_source" == journal || "$keyboard_journal_ingress" == files ]] || { echo 'WC3_JOURNAL_INGRESS=keyboard requires WC3_INPUT_SOURCE=journal.' >&2; exit 2; }
 if [[ "$input_source" == journal && "$input_profile" == callback ]]; then
     echo 'WC3_INPUT_SOURCE=journal requires a shadow input profile.' >&2
     exit 2
@@ -183,6 +190,7 @@ done
 printf 'package BuildInfo\npublic constant string BUILD_ID = "%s"\npublic constant boolean SHADOW_INPUT_PROFILE = %s\npublic constant boolean SHADOW_INPUT_BATCH2 = %s\npublic constant int SHADOW_INPUT_DELAY = %s\npublic constant int SHADOW_INPUT_ROLLBACK = %s\npublic constant boolean KNOCKDOWN_SCENARIO = %s\npublic constant boolean TECH_SCENARIO = %s\npublic constant boolean SHIELD_BREAK_SCENARIO = %s\npublic constant boolean LEDGE_SCENARIO = %s\npublic constant boolean PARRY_SCENARIO = %s\npublic constant boolean SPIKE_SCENARIO = %s\n' "$build_id" "$shadow_input" "$([[ "$input_profile" == shadow-d3-batch2 ]] && echo true || echo false)" "$input_delay" "$input_rollback" "$([[ "$developer_scenario" == knockdown || "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == tech ]] && echo true || echo false)" "$([[ "$developer_scenario" == shield-break ]] && echo true || echo false)" "$([[ "$developer_scenario" == ledge ]] && echo true || echo false)" "$([[ "$developer_scenario" == parry ]] && echo true || echo false)" "$([[ "$developer_scenario" == spike ]] && echo true || echo false)" > "$work_dir/wurst/BuildInfo.wurst"
 printf 'public constant string INPUT_PROFILE = "%s"\npublic constant string PRESENTATION_PROFILE = "%s"\npublic constant boolean POOL_PRESENTATION = %s\npublic constant boolean PREDICTED_PRESENTATION = %s\n' "$input_profile" "$presentation" "$([[ "$presentation" != native ]] && echo true || echo false)" "$([[ "$presentation" == pool-predicted ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
 printf 'public constant boolean JOURNAL_INPUT_SOURCE = %s\n' "$([[ "$input_source" == journal ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
+printf 'public constant boolean JOURNAL_KEYBOARD_INGRESS = %s\n' "$([[ "$keyboard_journal_ingress" == keyboard ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
 printf 'public constant boolean RESPONSE_SERVICE_PROBE = %s\n' "$([[ "$response_probe" == 1 ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
 cp "$work_dir/wurst/BuildInfo.wurst" "$build_output.BuildInfo.wurst"
 if [[ "$build_output" == "$project_dir/build/wurst-map/$map_filename" ]]; then

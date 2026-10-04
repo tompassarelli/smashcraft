@@ -1,0 +1,163 @@
+package KeyboardJournalIngress
+import Wurst
+
+// One seven-byte ASCII chunk is represented by 49 held data keys plus five
+// framing keys. Data remains stable until its exact ACK appears under the
+// local CustomMapData directory.
+public constant int KEYBOARD_JOURNAL_CHUNK_BYTES = 7
+public constant int KEYBOARD_JOURNAL_KEY_COUNT = 54
+constant int KEYBOARD_JOURNAL_FINAL_KEY = 52
+constant int KEYBOARD_JOURNAL_TOGGLE_KEY = 53
+public constant string KEYBOARD_JOURNAL_ASCII = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+
+int array[54] keyCodes
+
+function initializeKeyCodes()
+	var key = 0
+	for vk = 0x30 to 0x39
+		keyCodes[key] = vk
+		key++
+	for vk = 0x41 to 0x58
+		keyCodes[key] = vk
+		key++
+	keyCodes[key] = 0x5A // Z; Y is reserved for the match pause control.
+	key++
+	keyCodes[key] = 0xBD
+	key++
+	keyCodes[key] = 0xBB
+	key++
+	keyCodes[key] = 0xDB
+	key++
+	keyCodes[key] = 0xDD
+	key++
+	keyCodes[key] = 0xDC
+	key++
+	keyCodes[key] = 0xBA
+	key++
+	keyCodes[key] = 0xDE
+	key++
+	keyCodes[key] = 0xBC
+	key++
+	keyCodes[key] = 0xBE
+	key++
+	keyCodes[key] = 0xBF
+	key++
+	keyCodes[key] = 0xC0
+	key++
+	for vk = 0x7C to 0x7E // F13-F15 complete the 49 data bits.
+		keyCodes[key] = vk
+		key++
+	// The remaining five keys carry length, final-chunk, and commit-toggle
+	// metadata; all are outside ordinary controls.
+	keyCodes[49] = 0x7F // F16
+	keyCodes[50] = 0x80 // F17
+	keyCodes[51] = 0x81 // F18
+	keyCodes[52] = 0x82 // F19
+	keyCodes[53] = 0x83 // F20 is the commit toggle.
+
+public function keyboardJournalDecodeChunk(string state) returns string
+	if state.length() != KEYBOARD_JOURNAL_KEY_COUNT
+		return "!invalid!"
+	var length = 0
+	var place = 1
+	for bit = 0 to 2
+		if state.substring(49 + bit, 50 + bit) == "1"
+			length = length + place
+		place = place * 2
+	if length == 0
+		return ""
+	if length > KEYBOARD_JOURNAL_CHUNK_BYTES
+		return "!invalid!"
+	var wire = ""
+	for offset = 0 to length - 1
+		let charCode = keyboardJournalDecodeChar(state, offset)
+		if charCode < 32 or charCode > 126
+			return "!invalid!"
+		wire += KEYBOARD_JOURNAL_ASCII.substring(charCode - 32, charCode - 31)
+	return wire
+
+public function keyboardJournalDecodeChar(string state, int offset) returns int
+	var charCode = 0
+	var place = 1
+	for bit = 0 to 6
+		if state.substring(offset * 7 + bit, offset * 7 + bit + 1) == "1"
+			charCode = charCode + place
+		place = place * 2
+	return charCode
+
+public class KeyboardJournalIngress
+	private bool commitState = false
+	private int chunkOrdinal = 0
+	private string packetWire = ""
+	private bool packetFinished = false
+	private string build = ""
+	private int epoch = 0
+	private int slot = 0
+	private bool initialized = false
+
+	function beginEpoch(string buildId, int newEpoch, int localSlot)
+		build = buildId
+		epoch = newEpoch
+		slot = localSlot
+		chunkOrdinal = 0
+		packetWire = ""
+		packetFinished = false
+		initialized = true
+		commitState = false
+
+	function currentState() returns string
+		var state = ""
+		for i = 0 to KEYBOARD_JOURNAL_KEY_COUNT - 1
+			state += BlzIsKeyPressed(ConvertOsKeyType(keyCodes[i])) ? "1" : "0"
+		return state
+
+	// Returns true only when a newly committed chunk was appended.
+	function pollChunk() returns bool
+		if not initialized or not BlzIsLocalClientActive()
+			return false
+		let nextCommit = BlzIsKeyPressed(ConvertOsKeyType(keyCodes[KEYBOARD_JOURNAL_TOGGLE_KEY]))
+		if nextCommit == commitState
+			return false
+		let state = currentState()
+		let wire = keyboardJournalDecodeChunk(state)
+		if wire == "" or wire == "!invalid!"
+			return false
+		commitState = nextCommit
+		let finalChunk = state.substring(KEYBOARD_JOURNAL_FINAL_KEY, KEYBOARD_JOURNAL_FINAL_KEY + 1) == "1"
+		packetWire += wire
+		chunkOrdinal++
+		packetFinished = finalChunk
+		if not finalChunk
+			writeAck()
+		return true
+
+	function assembledWire() returns string
+		return packetWire
+
+	function hasFinalChunk() returns bool
+		return packetFinished
+
+	function currentChunkOrdinal() returns int
+		return chunkOrdinal
+
+	function isCarrierCode(int targetKeyCode) returns bool
+		for i = 0 to KEYBOARD_JOURNAL_KEY_COUNT - 1
+			if keyCodes[i] == targetKeyCode
+				return true
+		return false
+
+	function acknowledgeFinalMessage()
+		if not packetFinished
+			return
+		writeAck()
+		packetWire = ""
+		packetFinished = false
+
+	private function writeAck()
+		PreloadGenClear()
+		PreloadGenStart()
+		Preload("SMASHCRAFT KEYBOARD ACK v=1 build=" + build + " epoch=" + I2S(epoch) + " slot=" + I2S(slot) + " chunk=" + I2S(chunkOrdinal))
+		PreloadGenEnd("smashcraft-journal-mailbox-ack-" + build + "-e" + I2S(epoch) + "-s" + I2S(slot) + "-c" + I2S(chunkOrdinal) + ".txt")
+
+init
+	initializeKeyCodes()

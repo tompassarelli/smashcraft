@@ -10,9 +10,10 @@ fn main() {
 mod linux {
     #![allow(unsafe_code)]
 
+    use enigo::{Direction, Enigo, Key as OutputKey, Keyboard, Settings};
     use evdev::{AbsoluteAxisCode as Abs, EventSummary, KeyCode as Key, raw_stream::RawDevice};
     use std::{
-        collections::BTreeMap,
+        collections::{BTreeMap, BTreeSet, VecDeque},
         env,
         fs::{self, OpenOptions},
         io::{self, Write},
@@ -79,7 +80,166 @@ mod linux {
         first_frame: u32,
         stop_frame: Option<u32>,
         ready_file: Option<PathBuf>,
+        mailbox_display: Option<String>,
         trace: bool,
+    }
+
+    const MAILBOX_CHUNK_BYTES: usize = 7;
+    const MAILBOX_SIGNAL_COUNT: usize = 54;
+
+    struct MailboxSender {
+        dir: PathBuf,
+        build: String,
+        epoch: u32,
+        slot: u32,
+        output: Enigo,
+        owned: BTreeSet<usize>,
+        queued: VecDeque<String>,
+        current: Option<String>,
+        offset: usize,
+        next_chunk: u32,
+        toggle: bool,
+        awaiting_ack: bool,
+    }
+
+    impl MailboxSender {
+        fn new(
+            dir: &Path,
+            build: &str,
+            epoch: u32,
+            slot: u32,
+            display: &str,
+        ) -> Result<Self, String> {
+            let settings = Settings {
+                x11_display: Some(display.to_owned()),
+                linux_delay: 0,
+                ..Settings::default()
+            };
+            let output = Enigo::new(&settings).map_err(|error| error.to_string())?;
+            Ok(Self {
+                dir: dir.to_owned(),
+                build: build.to_owned(),
+                epoch,
+                slot,
+                output,
+                owned: BTreeSet::new(),
+                queued: VecDeque::new(),
+                current: None,
+                offset: 0,
+                next_chunk: 1,
+                toggle: false,
+                awaiting_ack: false,
+            })
+        }
+
+        fn enqueue(&mut self, wire: String) -> io::Result<()> {
+            if wire.is_empty() || !wire.bytes().all(|byte| (32..=126).contains(&byte)) {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "mailbox wire must be printable ASCII",
+                ));
+            }
+            self.queued.push_back(wire);
+            Ok(())
+        }
+
+        fn ack_path(&self) -> PathBuf {
+            mailbox_ack_path(
+                &self.dir,
+                &self.build,
+                self.epoch,
+                self.slot,
+                self.next_chunk,
+            )
+        }
+
+        fn is_idle(&self) -> bool {
+            self.queued.is_empty() && self.current.is_none() && !self.awaiting_ack
+        }
+
+        fn step(&mut self) -> io::Result<()> {
+            if self.awaiting_ack {
+                if !mailbox_ack_matches(
+                    &self.ack_path(),
+                    &self.build,
+                    self.epoch,
+                    self.slot,
+                    self.next_chunk,
+                )? {
+                    return Ok(());
+                }
+                fs::remove_file(self.ack_path())?;
+                self.awaiting_ack = false;
+                self.next_chunk += 1;
+                if self
+                    .current
+                    .as_ref()
+                    .is_some_and(|wire| self.offset >= wire.len())
+                {
+                    self.current = None;
+                    self.offset = 0;
+                }
+            }
+            if self.current.is_none() {
+                self.current = self.queued.pop_front();
+                if self.current.is_none() {
+                    return Ok(());
+                }
+            }
+            let wire = self.current.as_ref().expect("current mailbox message");
+            let bytes = wire.as_bytes();
+            let end = (self.offset + MAILBOX_CHUNK_BYTES).min(bytes.len());
+            let chunk = bytes[self.offset..end].to_vec();
+            let final_chunk = end == bytes.len();
+            let signals = mailbox_signal_values(&chunk, final_chunk, !self.toggle)?;
+
+            // Change payload and framing while the old commit toggle remains
+            // stable. Flip that key last so the game never samples a partial
+            // chunk as committed.
+            for signal in 0..MAILBOX_SIGNAL_COUNT - 1 {
+                self.set_signal(signal, signals[signal])?;
+            }
+            self.toggle = !self.toggle;
+            self.set_signal(53, signals[53])?;
+            self.offset = end;
+            self.awaiting_ack = true;
+            Ok(())
+        }
+
+        fn set_signal(&mut self, signal: usize, down: bool) -> io::Result<()> {
+            let was_down = self.owned.contains(&signal);
+            if was_down == down {
+                return Ok(());
+            }
+            self.output
+                .key(
+                    mailbox_output_key(signal),
+                    if down {
+                        Direction::Press
+                    } else {
+                        Direction::Release
+                    },
+                )
+                .map_err(|error| io::Error::other(error.to_string()))?;
+            if down {
+                self.owned.insert(signal);
+            } else {
+                self.owned.remove(&signal);
+            }
+            Ok(())
+        }
+
+        fn release_all(&mut self) {
+            for signal in self.owned.clone() {
+                let _ = self.set_signal(signal, false);
+            }
+        }
+    }
+
+    impl Drop for MailboxSender {
+        fn drop(&mut self) {
+            self.release_all();
+        }
     }
 
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -107,8 +267,126 @@ mod linux {
     }
 
     fn usage() -> &'static str {
-        "wc3-journal --device /dev/input/eventN --out DIR --ready-file PATH --epoch-monotonic-ns NS [--first-frame N] [--stop-frame N] [--trace]\n\
+        "wc3-journal --device /dev/input/eventN --out DIR --ready-file PATH --epoch-monotonic-ns NS [--mailbox-display :N] [--first-frame N] [--stop-frame N] [--trace]\n\
          Assigns Linux kernel CLOCK_MONOTONIC input_event times to half-open 60 Hz frames. The capture segment starts at the explicit host monotonic epoch; first-frame defaults to 1."
+    }
+
+    fn mailbox_ack_path(dir: &Path, build: &str, epoch: u32, slot: u32, chunk: u32) -> PathBuf {
+        dir.join(format!(
+            "smashcraft-journal-mailbox-ack-{build}-e{epoch}-s{slot}-c{chunk}.txt"
+        ))
+    }
+
+    fn mailbox_ack_matches(
+        path: &Path,
+        build: &str,
+        epoch: u32,
+        slot: u32,
+        chunk: u32,
+    ) -> io::Result<bool> {
+        let contents = match fs::read_to_string(path) {
+            Ok(contents) => contents,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(false),
+            Err(error) => return Err(error),
+        };
+        if contents
+            .lines()
+            .rev()
+            .find(|line| !line.trim().is_empty())
+            .map(str::trim)
+            != Some("endfunction")
+        {
+            return Ok(false);
+        }
+        let fields = contents
+            .split_whitespace()
+            .filter_map(|token| token.trim_matches('"').split_once('='));
+        let fields = fields.collect::<BTreeMap<_, _>>();
+        Ok(fields.get("v") == Some(&"1")
+            && fields.get("build") == Some(&build)
+            && fields
+                .get("epoch")
+                .and_then(|value| value.parse::<u32>().ok())
+                == Some(epoch)
+            && fields
+                .get("slot")
+                .and_then(|value| value.parse::<u32>().ok())
+                == Some(slot)
+            && fields
+                .get("chunk")
+                .and_then(|value| value.parse::<u32>().ok())
+                == Some(chunk))
+    }
+
+    fn mailbox_virtual_key(signal: usize) -> u16 {
+        match signal {
+            0..=9 => 0x30 + signal as u16,
+            10..=33 => 0x41 + (signal - 10) as u16,
+            34 => 0x5A,
+            35..=45 => [
+                0xBD, 0xBB, 0xDB, 0xDD, 0xDC, 0xBA, 0xDE, 0xBC, 0xBE, 0xBF, 0xC0,
+            ][signal - 35],
+            46..=53 => 0x7C + (signal - 46) as u16,
+            _ => unreachable!("mailbox signal is in 0..54"),
+        }
+    }
+
+    fn mailbox_signal_values(
+        chunk: &[u8],
+        final_chunk: bool,
+        toggle: bool,
+    ) -> io::Result<[bool; MAILBOX_SIGNAL_COUNT]> {
+        if chunk.is_empty() || chunk.len() > MAILBOX_CHUNK_BYTES {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid keyboard mailbox chunk",
+            ));
+        }
+        let mut signals = [false; MAILBOX_SIGNAL_COUNT];
+        for (offset, byte) in chunk.iter().enumerate() {
+            if !(32..=126).contains(byte) {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "keyboard mailbox requires printable ASCII",
+                ));
+            }
+            for bit in 0..7 {
+                signals[offset * 7 + bit] = byte & (1 << bit) != 0;
+            }
+        }
+        for bit in 0..3 {
+            signals[49 + bit] = chunk.len() & (1 << bit) != 0;
+        }
+        signals[52] = final_chunk;
+        signals[53] = toggle;
+        Ok(signals)
+    }
+
+    fn mailbox_output_key(signal: usize) -> OutputKey {
+        match mailbox_virtual_key(signal) {
+            vk @ 0x30..=0x39 => OutputKey::Unicode(char::from(vk as u8)),
+            vk @ 0x41..=0x5A => OutputKey::Unicode(char::from(vk as u8 + 32)),
+            0xBD => OutputKey::Unicode('-'),
+            0xBB => OutputKey::Unicode('='),
+            0xDB => OutputKey::Unicode('['),
+            0xDD => OutputKey::Unicode(']'),
+            0xDC => OutputKey::Unicode('\\'),
+            0xBA => OutputKey::Unicode(';'),
+            0xDE => OutputKey::Unicode('\''),
+            0xBC => OutputKey::Unicode(','),
+            0xBE => OutputKey::Unicode('.'),
+            0xBF => OutputKey::Unicode('/'),
+            0xC0 => OutputKey::Unicode('`'),
+            0x7C => OutputKey::F13,
+            0x7D => OutputKey::F14,
+            0x7E => OutputKey::F15,
+            0x7F => OutputKey::F16,
+            0x80 => OutputKey::F17,
+            0x81 => OutputKey::F18,
+            0x82 => OutputKey::F19,
+            0x83 => OutputKey::F20,
+            _ => unreachable!("mailbox key mapping is complete"),
+        }
     }
 
     fn options() -> Result<Options, String> {
@@ -180,6 +458,7 @@ mod linux {
                 .map(|s| s.parse().map_err(|_| "invalid --stop-frame"))
                 .transpose()?,
             ready_file,
+            mailbox_display: values.get("--mailbox-display").cloned(),
             trace,
         })
     }
@@ -323,6 +602,55 @@ mod linux {
             Some(parse_control(command).unwrap())
         );
         assert!(control_if_complete(&command.replace("v=1", "v=2")).is_err());
+    }
+
+    #[test]
+    fn keyboard_mailbox_preserves_ascii_chunks_and_uses_nonconflicting_vks() {
+        let mut codes = BTreeSet::new();
+        for signal in 0..MAILBOX_SIGNAL_COUNT {
+            let vk = mailbox_virtual_key(signal);
+            assert!(codes.insert(vk), "duplicate carrier VK {vk:#x}");
+            assert!(
+                ![
+                    0x1B, 0x09, 0x0D, 0x59, 0x70, 0x74, 0x79, 0x10, 0x11, 0x12, 0x5B, 0x5C
+                ]
+                .contains(&vk)
+            );
+        }
+        for message in ["I40001a", "ACK1|4|P", "ACK1|4|PREPARE|19"] {
+            for (index, chunk) in message.as_bytes().chunks(MAILBOX_CHUNK_BYTES).enumerate() {
+                let final_chunk = (index + 1) * MAILBOX_CHUNK_BYTES >= message.len();
+                let values = mailbox_signal_values(chunk, final_chunk, index % 2 == 0).unwrap();
+                let decoded_length = (0..3)
+                    .map(|bit| usize::from(values[49 + bit]) << bit)
+                    .sum::<usize>();
+                assert_eq!(decoded_length, chunk.len());
+                let decoded = (0..decoded_length)
+                    .map(|offset| {
+                        let byte = (0..7)
+                            .map(|bit| u8::from(values[offset * 7 + bit]) << bit)
+                            .sum::<u8>();
+                        char::from(byte)
+                    })
+                    .collect::<String>();
+                assert_eq!(decoded.as_bytes(), chunk);
+                assert_eq!(values[52], final_chunk);
+                assert_eq!(values[53], index % 2 == 0);
+            }
+        }
+    }
+
+    #[test]
+    fn keyboard_mailbox_ack_requires_complete_matching_identity() {
+        let dir = std::env::temp_dir().join(format!("mailbox-ack-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let path = mailbox_ack_path(&dir, "test", 7, 2, 9);
+        fs::write(&path, "function PreloadFiles takes nothing returns nothing\ncall Preload( \"SMASHCRAFT KEYBOARD ACK v=1 build=test epoch=7 slot=2 chunk=9\" )\n").unwrap();
+        assert!(!mailbox_ack_matches(&path, "test", 7, 2, 9).unwrap());
+        fs::write(&path, "function PreloadFiles takes nothing returns nothing\ncall Preload( \"SMASHCRAFT KEYBOARD ACK v=1 build=test epoch=7 slot=2 chunk=9\" )\nendfunction\n").unwrap();
+        assert!(mailbox_ack_matches(&path, "test", 7, 2, 9).unwrap());
+        assert!(!mailbox_ack_matches(&path, "test", 7, 2, 10).unwrap());
+        fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]
@@ -747,6 +1075,22 @@ mod linux {
         publish_vocabulary(&base, &encode_packet(epoch, first, rows))
     }
 
+    fn submit_packet(
+        dir: &Path,
+        build: &str,
+        epoch: u32,
+        slot: u32,
+        first: u32,
+        rows: &[String],
+        mailbox: &mut Option<MailboxSender>,
+    ) -> io::Result<()> {
+        if let Some(mailbox) = mailbox.as_mut() {
+            mailbox.enqueue(encode_packet(epoch, first, rows))
+        } else {
+            publish(dir, build, epoch, slot, first, rows)
+        }
+    }
+
     fn vocabulary_path(base: &Path, suffix: &str) -> PathBuf {
         let mut path = base.as_os_str().to_os_string();
         path.push(suffix);
@@ -829,6 +1173,29 @@ mod linux {
             ControlState::Resumed => "RESUME",
         };
         publish_vocabulary(&base, &format!("ACK1|{sequence}|{state}|{frame}"))
+    }
+
+    fn submit_control_ack(
+        dir: &Path,
+        build: &str,
+        epoch: u32,
+        slot: u32,
+        sequence: u32,
+        state: ControlState,
+        frame: u32,
+        mailbox: &mut Option<MailboxSender>,
+    ) -> io::Result<()> {
+        if let Some(mailbox) = mailbox.as_mut() {
+            let state = match state {
+                ControlState::PausePrepare => "PREPARE",
+                ControlState::PauseCommit => "COMMIT",
+                ControlState::Paused => "PAUSE",
+                ControlState::Resumed => "RESUME",
+            };
+            mailbox.enqueue(format!("ACK1|{sequence}|{state}|{frame}"))
+        } else {
+            publish_control_ack(dir, build, epoch, slot, sequence, state, frame)
+        }
     }
 
     #[test]
@@ -929,6 +1296,11 @@ mod linux {
             return Err("first-frame must be a valid positive capture-segment frame".into());
         }
         fs::create_dir_all(&o.out).map_err(|e| e.to_string())?;
+        let mut mailbox = o
+            .mailbox_display
+            .as_deref()
+            .map(|display| MailboxSender::new(&o.out, &o.build, o.epoch, o.slot, display))
+            .transpose()?;
         let mut device =
             RawDevice::open(&o.device).map_err(|e| format!("open {}: {e}", o.device.display()))?;
         set_monotonic_event_clock(&device)
@@ -1002,6 +1374,7 @@ mod linux {
         let mut control_sequence = 1;
         let mut paused = false;
         let mut prepared = false;
+        let mut stop_capture = false;
         let mut pause_barrier = None::<u32>;
         let mut pending = Vec::<String>::new();
         loop {
@@ -1014,7 +1387,7 @@ mod linux {
                 Err(error) => return Err(format!("evdev read: {error}")),
             };
             for event in events {
-                if !paused {
+                if !paused && !stop_capture {
                     apply_event(
                         &axes,
                         &mut state,
@@ -1096,7 +1469,7 @@ mod linux {
                     snapshots.clear();
                     pending.clear();
                     paused = false;
-                    publish_control_ack(
+                    submit_control_ack(
                         &o.out,
                         &o.build,
                         o.epoch,
@@ -1104,6 +1477,7 @@ mod linux {
                         command.sequence,
                         command.state,
                         next_frame,
+                        &mut mailbox,
                     )
                     .map_err(|e| e.to_string())?;
                     if o.trace {
@@ -1117,7 +1491,7 @@ mod linux {
                     return Err("journal pause/resume commands are out of order".into());
                 }
             }
-            if !paused && now >= segment.epoch_ns {
+            if !paused && !stop_capture && now >= segment.epoch_ns {
                 let mut completed_through = (((now - segment.epoch_ns) * HZ / 1_000_000_000)
                     + u128::from(segment.first_frame)
                     - 1)
@@ -1132,7 +1506,8 @@ mod linux {
                 }
                 while next_frame <= completed_through {
                     if o.stop_frame.is_some_and(|stop| next_frame > stop) {
-                        return Ok(());
+                        stop_capture = true;
+                        break;
                     }
                     if let Some(frame_state) = snapshots.remove(&next_frame) {
                         row_state = frame_state;
@@ -1142,8 +1517,16 @@ mod linux {
                     previous = action_state(row_state);
                     pending.push(row);
                     if pending.len() == 2 {
-                        publish(&o.out, &o.build, o.epoch, o.slot, next_frame - 1, &pending)
-                            .map_err(|e| e.to_string())?;
+                        submit_packet(
+                            &o.out,
+                            &o.build,
+                            o.epoch,
+                            o.slot,
+                            next_frame - 1,
+                            &pending,
+                            &mut mailbox,
+                        )
+                        .map_err(|e| e.to_string())?;
                         pending.clear();
                     }
                     if o.trace {
@@ -1151,29 +1534,40 @@ mod linux {
                     }
                     if o.stop_frame == Some(next_frame) {
                         if !pending.is_empty() {
-                            publish(&o.out, &o.build, o.epoch, o.slot, next_frame, &pending)
-                                .map_err(|e| e.to_string())?;
+                            submit_packet(
+                                &o.out,
+                                &o.build,
+                                o.epoch,
+                                o.slot,
+                                next_frame,
+                                &pending,
+                                &mut mailbox,
+                            )
+                            .map_err(|e| e.to_string())?;
+                            pending.clear();
                         }
-                        return Ok(());
+                        stop_capture = true;
+                        break;
                     }
                     next_frame += 1;
                 }
                 if let Some(command) = pause_after_seal {
                     if !pending.is_empty() {
-                        publish(
+                        submit_packet(
                             &o.out,
                             &o.build,
                             o.epoch,
                             o.slot,
                             next_frame - pending.len() as u32,
                             &pending,
+                            &mut mailbox,
                         )
                         .map_err(|e| e.to_string())?;
                         pending.clear();
                     }
                     paused = true;
                     prepared = true;
-                    publish_control_ack(
+                    submit_control_ack(
                         &o.out,
                         &o.build,
                         o.epoch,
@@ -1181,6 +1575,7 @@ mod linux {
                         command.sequence,
                         ControlState::PausePrepare,
                         next_frame,
+                        &mut mailbox,
                     )
                     .map_err(|e| e.to_string())?;
                     if o.trace {
@@ -1197,19 +1592,20 @@ mod linux {
                         return Err("pause barrier cursor advanced past its requested frame".into());
                     }
                     if !pending.is_empty() {
-                        publish(
+                        submit_packet(
                             &o.out,
                             &o.build,
                             o.epoch,
                             o.slot,
                             next_frame - pending.len() as u32,
                             &pending,
+                            &mut mailbox,
                         )
                         .map_err(|e| e.to_string())?;
                         pending.clear();
                     }
                     paused = true;
-                    publish_control_ack(
+                    submit_control_ack(
                         &o.out,
                         &o.build,
                         o.epoch,
@@ -1217,6 +1613,7 @@ mod linux {
                         control_sequence - 1,
                         ControlState::Paused,
                         barrier,
+                        &mut mailbox,
                     )
                     .map_err(|e| e.to_string())?;
                     if o.trace {
@@ -1226,6 +1623,14 @@ mod linux {
                         );
                     }
                 }
+            }
+            if let Some(mailbox) = mailbox.as_mut() {
+                mailbox
+                    .step()
+                    .map_err(|error| format!("keyboard mailbox output: {error}"))?;
+            }
+            if stop_capture && mailbox.as_ref().is_none_or(MailboxSender::is_idle) {
+                return Ok(());
             }
             thread::sleep(Duration::from_millis(1));
         }
