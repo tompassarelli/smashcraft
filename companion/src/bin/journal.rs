@@ -2684,27 +2684,84 @@ mod linux {
         fn reconnectable(&self) -> bool {
             self.phys.is_some() || self.uniq.is_some()
         }
+
+        fn from_sysfs(device: &Path) -> io::Result<Self> {
+            let field = |name: &str| -> io::Result<String> {
+                let value = fs::read_to_string(device.join(name))?;
+                Ok(value.strip_suffix('\n').unwrap_or(&value).to_owned())
+            };
+            let hex = |name: &str| -> io::Result<u16> {
+                u16::from_str_radix(&field(name)?, 16)
+                    .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))
+            };
+            let optional = |value: String| if value.is_empty() { None } else { Some(value) };
+            Ok(Self {
+                id: evdev::InputId::new(evdev::BusType(hex("id/bustype")?), hex("id/vendor")?, hex("id/product")?, hex("id/version")?),
+                name: Some(field("name")?),
+                phys: optional(field("phys")?),
+                uniq: optional(field("uniq")?),
+            })
+        }
     }
 
-    fn matching_devices(identity: &DeviceIdentity) -> io::Result<Vec<(PathBuf, RawDevice)>> {
+    fn matching_devices(identity: &DeviceIdentity) -> io::Result<Vec<PathBuf>> {
         let mut matches = Vec::new();
-        for entry in fs::read_dir("/dev/input")? {
-            let path = entry?.path();
-            if !path.file_name().and_then(|s| s.to_str()).is_some_and(|s| s.starts_with("event")) {
+        // Closing an evdev fd can wait for kernel readers. Enumerating identity
+        // through sysfs avoids opening and closing every unrelated input device
+        // on the same thread that captures frames and services delivery.
+        for entry in fs::read_dir("/sys/class/input")? {
+            let entry = entry?;
+            if !entry.file_name().to_str().is_some_and(|s| s.starts_with("event")) {
                 continue;
             }
-            let device = match RawDevice::open(&path) {
-                Ok(device) => device,
+            let candidate = match DeviceIdentity::from_sysfs(&entry.path().join("device")) {
+                Ok(candidate) => candidate,
                 Err(error) if error.kind() == io::ErrorKind::NotFound
-                    || error.kind() == io::ErrorKind::PermissionDenied
                     || error.raw_os_error() == Some(libc::ENODEV) => continue,
                 Err(error) => return Err(error),
             };
-            if DeviceIdentity::of(&device) == *identity {
-                matches.push((path, device));
+            if candidate == *identity {
+                matches.push(Path::new("/dev/input").join(entry.file_name()));
             }
         }
         Ok(matches)
+    }
+
+    #[test]
+    #[ignore = "read-only native scan timing; requires access to /dev/input"]
+    fn reconnect_scan_latency_probe() {
+        let absent = DeviceIdentity {
+            id: evdev::InputId::new(evdev::BusType::BUS_USB, 0x045e, 0x02ea, 1),
+            name: Some("Smashcraft disconnected measurement".into()),
+            phys: Some("smashcraft-disconnected-measurement".into()),
+            uniq: None,
+        };
+        for sample in 0..3 {
+            let scan = Instant::now();
+            assert!(matching_devices(&absent).unwrap().is_empty());
+            eprintln!("scan_sample={sample} total_us={}", scan.elapsed().as_micros());
+        }
+    }
+
+    #[test]
+    fn reconnect_sysfs_identity_retains_exact_discriminator() {
+        let dir = env::temp_dir().join(format!("reconnect-identity-{}", std::process::id()));
+        fs::create_dir_all(dir.join("id")).unwrap();
+        for (field, value) in [("id/bustype", "0003"), ("id/vendor", "045e"), ("id/product", "02ea"), ("id/version", "0301"), ("name", "Xbox"), ("phys", "usb-port-1/input0"), ("uniq", "")] {
+            fs::write(dir.join(field), format!("{value}\n")).unwrap();
+        }
+        let identity = DeviceIdentity::from_sysfs(&dir).unwrap();
+        assert_eq!(identity, DeviceIdentity {
+            id: evdev::InputId::new(evdev::BusType::BUS_USB, 0x045e, 0x02ea, 0x0301),
+            name: Some("Xbox".into()), phys: Some("usb-port-1/input0".into()), uniq: None,
+        });
+        fs::write(dir.join("phys"), "usb-port-2/input0\n").unwrap();
+        assert_ne!(DeviceIdentity::from_sysfs(&dir).unwrap(), identity);
+        for field in ["id/bustype", "id/vendor", "id/product", "id/version", "name", "phys", "uniq"] {
+            fs::remove_file(dir.join(field)).unwrap();
+        }
+        fs::remove_dir(dir.join("id")).unwrap();
+        fs::remove_dir(dir).unwrap();
     }
 
     // Live menu/Start gating cannot depend on the gameplay queue, which can
@@ -3036,15 +3093,19 @@ mod linux {
                 if candidates.len() > 1 {
                     if !ambiguous { eprintln!("controller_reconnect_ambiguous matches={} identity={identity:?}", candidates.len()); }
                     ambiguous = true;
-                } else if let Some((path, replacement)) = candidates.pop() {
+                } else if let Some(path) = candidates.pop() {
                     ambiguous = false;
                     let restored = (|| -> io::Result<_> {
+                        let replacement = RawDevice::open(&path)?;
+                        // The event number may have been reused after discovery.
+                        if DeviceIdentity::of(&replacement) != identity { return Ok(None); }
                         set_monotonic_event_clock(&replacement)?;
                         set_nonblocking(&replacement)?;
-                        device_snapshot(&replacement)
+                        let snapshot = device_snapshot(&replacement)?;
+                        Ok(Some((replacement, snapshot)))
                     })();
                     match restored {
-                        Ok((ranges, physical, start)) => {
+                        Ok(Some((replacement, (ranges, physical, start)))) => {
                             let ns = monotonic_ns().map_err(|e| e.to_string())?;
                             capture_axes = ranges;
                             start_held = start;
@@ -3058,7 +3119,8 @@ mod linux {
                             device = Some(replacement);
                             eprintln!("controller_reconnected source={} mono_ns={ns} frontier={next_frame} identity={identity:?} neutral_rearm=required", path.display());
                         }
-                        Err(error) if error.raw_os_error() == Some(libc::ENODEV) => {}
+                        Ok(None) => {}
+                        Err(error) if error.kind() == io::ErrorKind::NotFound || error.raw_os_error() == Some(libc::ENODEV) => {}
                         Err(error) => return Err(format!("reopen controller {}: {error}", path.display())),
                     }
                 }
