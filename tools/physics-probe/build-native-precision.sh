@@ -7,7 +7,7 @@ map_version=${2:?Supply the version agreed with concurrent map developers.}
 compiler="$project_dir/toolchain/wurstscript.jar"
 stdlib=/home/tom/code/wurst-stdlib/pins/bb1e0458db5a
 packager="$project_dir/build/tools/map-pack"
-[[ $(sha256sum "$compiler" | cut -d ' ' -f1) == 2ed2ee8cf563aedaef7e384b2e0c68f50a306144e99fa506b90935c62b64a18a ]]
+[[ $(sha256sum "$compiler" | cut -d ' ' -f1) == 9495b1f3ad1f1baf53335934e9152874773e6c735b0e5db819b3e7f06c82ed15 ]]
 [[ $(git -C "$stdlib" rev-parse HEAD) == bb1e0458db5a372ba2a6928112452785e435d01a ]]
 [[ -x "$packager" && -s "$base_map" ]]
 mkdir -p "$project_dir/build/physics-probe"

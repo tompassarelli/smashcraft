@@ -2,7 +2,7 @@
 set -euo pipefail
 project_dir=$(cd -- "$(dirname -- "$0")/../.." && pwd)
 output_dir="$project_dir/build/physics-probe"
-compiler_root=/home/tom/code/wurst-compiler/pins/9913e1bd300c2053637d756a11bae8c3c8ed568f
+compiler_root=/home/tom/code/wurst-compiler/pins/6b129956f6e7cf9582510f26b99d305526bf3ded
 runtime_root=/home/tom/code/wurst-compiler/pins/925921095b3f0c1cb83bc2ef0bb83a13c97cda50
 stdlib_root=/home/tom/code/wurst-stdlib/pins/bb1e0458db5a
 mkdir -p "$output_dir"

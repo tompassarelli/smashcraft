@@ -404,7 +404,7 @@ seq 1 at 60 Hz, from each sender. Wire text was `NTP10000-2.147484e+09` or
 `NTP11001-2.147484e+09`; parsed actual value was `-2`. The generated map script
 emits `-2147483648` and uses Lua `tostring` for I2S. On 32-bit Lua the positive
 magnitude of that unary-minus literal cannot be represented as an integer;
-this is the compiler root-repair hypothesis being tested at its owner.
+this was reproduced at the compiler owner under Lua 5.3.6 built with LUA_32BITS.
 Native wire evidence proves the serialization failure before parsing. No
 transport loss follows from those two invalid values. The 17.063/16.030-second
 direct phases include the 15-second validation drain timeout.
@@ -417,3 +417,21 @@ sustained capacity, harmless selection interaction, fairness or physical respons
 No alternative beats the direct-sync baseline on established usable evidence.
 
 Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/transports0031/.
+
+
+## Minimum-integer compiler repair activated
+
+The Lua printer now emits `(-2147483647 - 1)` for the minimum signed integer,
+including optimizer-folded expressions. Under Lua32 this preserves integer type
+and exact decimal serialization; the old unary-minus literal became a float
+and serialized as scientific notation. Both focused upstream regressions passed
+(2 passed, 0 skipped), and the generated reproduction executed successfully.
+
+Compiler checkpoint `6b129956f6e7cf9582510f26b99d305526bf3ded` is published
+in the declared compiler repository and pinned by wc3-melee:wurst-toolchain.lock.
+Compiler JAR SHA256 is
+`9495b1f3ad1f1baf53335934e9152874773e6c735b0e5db819b3e7f06c82ed15`.
+The consumer’s focused input-protocol checks pass 7/7 with zero errors and nine
+existing warnings. Native direct-sync and selection-encoding revalidation is
+pending; these checks do not yet establish corrected native protocol integrity
+or alter the measured latency verdict.
