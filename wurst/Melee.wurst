@@ -88,6 +88,7 @@ int shadowInputEpoch = 0
 int shadowLastCaptureTarget = 0
 boolean shadowLocalSendFailed = false
 boolean journalInputFailed = false
+boolean journalPauseKeyHeld = true
 boolean journalPausePending = false
 boolean journalPauseAckReceived = false
 boolean journalPauseTarget = false
@@ -669,7 +670,7 @@ function commitJournalPauseAtFrame()
 		return
 	matchControls.setPaused(journalPauseTarget)
 	pauseMatchPresentation(journalPauseTarget)
-	statusText = journalPauseTarget ? (JOURNAL_EDITBOX_INGRESS ? "Paused — press Ctrl+Y to resume." : "Paused — press Y to resume.") : "Resumed."
+	statusText = journalPauseTarget ? (JOURNAL_EDITBOX_INGRESS ? "Paused — press F8 to resume." : "Paused — press Y to resume.") : "Resumed."
 	statusTime = journalPauseTarget ? 3600 : 1
 	journalPausePending = false
 	journalPauseAckReceived = false
@@ -1413,6 +1414,7 @@ function beginShadowEpoch() returns boolean
     journalInputFailed = false
     journalTransportReadyMask = 0
     journalTransportStartSent = false
+    journalPauseKeyHeld = true
     journalPausePending = false
     journalPauseAckReceived = false
     journalPauseCommitSent = false
@@ -1773,15 +1775,35 @@ function onNativeTransportProbeStart()
     if GetTriggerPlayer() == GetLocalPlayer() and shadowInputActive and not nativePreloadProbeActive() and transportIsolationPhase == 0
         nativeTransportProbeRequestStart()
 
-function onEditboxJournalPause()
-    if shadowInputActive and matchState.phase == MATCH and not journalPausePending
+// A nonprinting key can be polled while the text receiver retains focus.
+// Local polling must cross a sync event before starting the shared barrier.
+function pollEditboxJournalPause()
+    if not JOURNAL_EDITBOX_INGRESS
+        return
+    if not shadowInputActive or matchState.phase != MATCH or not BlzIsLocalClientActive()
+        journalPauseKeyHeld = true
+        return
+    let held = BlzIsKeyPressed(OSKEY_F8)
+    let pressed = held and not journalPauseKeyHeld
+    journalPauseKeyHeld = held
+    if not pressed or journalPausePending or journalInputFailed or not matchState.humanActive(GetPlayerId(GetLocalPlayer()))
+        return
+    let wire = "JP1" + journalPad10(shadowInputEpoch) + journalPad10(journalInput.controlSequenceNumber()) + (matchControls.isPaused() ? "R" : "P")
+    if not BlzSendSyncData("SC_JP", wire)
+        failJournalInput("pause request could not be synchronized")
+
+function receiveEditboxJournalPause()
+    if not shadowInputActive or matchState.phase != MATCH or journalPausePending or journalInputFailed
+        return
+    if not matchState.humanActive(GetPlayerId(GetTriggerPlayer()))
+        return
+    let wire = BlzGetTriggerSyncData()
+    let expected = "JP1" + journalPad10(shadowInputEpoch) + journalPad10(journalInput.controlSequenceNumber()) + (matchControls.isPaused() ? "R" : "P")
+    // The epoch and control sequence discard delayed or simultaneous requests.
+    if wire == expected
         writeJournalControl(not matchControls.isPaused())
 
 function setupKeys()
-    if JOURNAL_EDITBOX_INGRESS
-        let editboxPause = CreateTrigger()
-        registerDeveloperChord(editboxPause, OSKEY_Y)
-        TriggerAddAction(editboxPause, function onEditboxJournalPause)
     if RESPONSE_SERVICE_PROBE and JOURNAL_INPUT_SOURCE
         nativePreloadProbeSetup(matchState.humanMask)
         nativeTransportProbeSetup(matchState.humanMask)
@@ -1902,7 +1924,7 @@ function renderUI()
     BlzFrameSetVisible(noticeFrame, not selecting and not controlsOpen)
     BlzFrameSetVisible(developerFrame, not selecting and not controlsOpen)
     if not selecting
-        BlzFrameSetText(helpFrame, matchState.phase == RESULT ? rematchStatus() : (matchControls.isPaused() ? "PAUSED — Press " + (JOURNAL_EDITBOX_INGRESS ? "Ctrl+Y" : "Y") + " to resume. Combat is frozen." : (JOURNAL_EDITBOX_INGRESS ? "Ctrl+Y" : "Y") + ": pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge."))
+        BlzFrameSetText(helpFrame, matchState.phase == RESULT ? rematchStatus() : (matchControls.isPaused() ? "PAUSED — Press " + (JOURNAL_EDITBOX_INGRESS ? "F8" : "Y") + " to resume. Combat is frozen." : (JOURNAL_EDITBOX_INGRESS ? "F8" : "Y") + ": pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge."))
         if localFighter != null and matchState.phase == MATCH and not matchControls.isPaused() and localFighter.downState == DOWN_WAIT
             BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
         else if localFighter != null and matchState.phase == MATCH and not matchControls.isPaused() and localFighter.ledgeState == LEDGE_HANG
@@ -2039,6 +2061,7 @@ function callbackMatchTick()
         applyFrame()
 
 function gameTick()
+    pollEditboxJournalPause()
     if JOURNAL_EDITBOX_INGRESS and (not shadowInputActive or matchState.phase != MATCH)
         editboxJournalIngress.endEpoch()
     transportIsolationTick()
@@ -2067,6 +2090,8 @@ function gameTick()
     renderPersistentPresentation()
     lockArenaCamera()
     renderUI()
+    if JOURNAL_EDITBOX_INGRESS
+        editboxJournalIngress.updatePauseLabel(matchControls.isPaused(), journalPausePending, journalPauseTarget)
     let localSlot = localParticipantSlot()
     if RESPONSE_SERVICE_PROBE
         responseProbePresent(participants[localSlot].fighter != null and participants[localSlot].fighter.shield, shadowInputActive and shadowWorld.active(localSlot) and shadowWorld.fighters[localSlot].shield, shadowInputActive and shadowWorld.active(localSlot) ? shadowRuntime.poses[localSlot].selectionSerial : -1)
@@ -2117,6 +2142,12 @@ function initializeShadowInput()
         if matchState.humanActive(slot)
             BlzTriggerRegisterPlayerSyncEvent(sync, Player(slot), "SC_GP", false)
     TriggerAddAction(sync, function receiveShadowInput)
+    if JOURNAL_EDITBOX_INGRESS
+        let pauseRequest = CreateTrigger()
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if matchState.humanActive(slot)
+                BlzTriggerRegisterPlayerSyncEvent(pauseRequest, Player(slot), "SC_JP", false)
+        TriggerAddAction(pauseRequest, function receiveEditboxJournalPause)
     if JOURNAL_INPUT_SOURCE
 		journalControlSync = CreateTrigger()
 		for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
