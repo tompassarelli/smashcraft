@@ -709,3 +709,47 @@ Direct sync with the delivered keyboard/digital mapper remains the usable
 choice. Original-frame short-tap/stall retention through FileIO is not delivered.
 No observed finding justifies treating the previously responsive mapper as
 regressed or continuing another broad transport inventory before usable play.
+
+### Native JASS47: initialization blocks gameplay
+
+The same Wurst gameplay now builds to native JASS. The compiler previously
+retained Lua metadata from a Lua base map; owning fix
+`b9b534f7032e0de30c183d49b333376affca0838` sets the language for both targets.
+Its focused ProjectConfigBuilderTests passed after the regression failed before
+repair. Artifact47 metadata was verified as JASS with four players.
+
+Both signed-in clients joined `[TEST] sc47-native-jass` and entered the game
+world, but fighter selection never appeared and neither wrote controller
+readiness. The driver timed out before creating helpers or injecting inputs.
+This is an initialization failure, with no input-latency verdict. Operation
+budget exhaustion is a hypothesis, not an established cause. The next build
+records initialization milestones to identify the first stopping boundary.
+
+Artifact47 SHA256:
+`f5d2520c8b4a72e1d71b19c7242608dd56f27ca09b37950a1e49e488b19e31ec`.
+
+### JASS48/49: startup repaired; selection desync remains
+
+48's durable startup marker stopped after effects setup, within the subsequent
+input/replay initialization. 49 separated large allocations using the existing
+synchronous Execute helper, including one execution budget per replay slot.
+Both clients then recorded initialization complete and displayed fighter
+selection. That fixes the observed startup boundary; it does not establish a
+general operation-budget diagnosis for every earlier failure.
+
+During character selection, native desync records were written at turn1113.
+A returned to results; B remained in selection with A absent. No controller
+helpers started and no short-tap samples were injected. The earliest differing
+record is category1768977253, with two counters differing by2; the records alone
+do not identify the owning cause. 49 therefore provides no input-performance
+verdict and is rejected as a playable replacement.
+
+The experimental JASS source and raw failure records are retained privately at
+`~/.local/share/smashcraft-build-inputs/production-netcode-20261004/archive/native-jass49/`.
+The published Lua source and exact compiler artifact were restored. Exact
+playable40 is reinstalled on both clients; its recovery journey is recorded
+separately. The general compiler metadata fix remains in its owned compiler
+branch. Native evidence: wc3-melee:docs/journal0049-evidence-20261004/.
+
+Artifact49 SHA256:
+`d8fcbb8d614188b3047a87985711b6ee04fe372d4eba5cb816ea2313a5a06383`.

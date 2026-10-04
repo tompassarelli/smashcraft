@@ -1,0 +1,7 @@
+awaiting both native epoch1 readiness and same-channel preflight receipts
+helpers reaped; virtual pad closed
+Traceback (most recent call last):
+  File "/tmp/sc-tap49.py", line 24, in <module>
+    if time.monotonic()>deadline:raise RuntimeError('pre-file production channel startup failed; do not start helpers or infer file-read cause')
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: pre-file production channel startup failed; do not start helpers or infer file-read cause
