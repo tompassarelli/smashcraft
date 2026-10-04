@@ -147,6 +147,10 @@ and readable combat. Cosmetic experimentation does not block numerical repairs.
 
 Roadmap: https://github.com/tompassarelli/smashcraft/issues/2
 
+M0 reference intake (#3) and independent comparison infrastructure (#4) are
+complete and closed. This establishes the reference and comparison tools;
+M1 mechanic/native acceptance and M3 native visual acceptance remain open.
+
 | Milestone | Work | Depends on |
 | --- | --- | --- |
 | M0 | [#3 Acquire authoritative Melee parameter and frame-data references](https://github.com/tompassarelli/smashcraft/issues/3) | — |
