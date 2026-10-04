@@ -1,0 +1,90 @@
+{
+  "id": "retail-ntsc-1.02-shield-contact",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "inputs": {
+    "capsuleRadius": 1,
+    "capsuleEndpoints": "both (x,0,0)",
+    "shieldCenter": [
+      0,
+      0,
+      0
+    ],
+    "hitScale": 1,
+    "shieldScale": 1,
+    "forceContact": false
+  },
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "execution": {
+    "cpu": "private Gekko interpreter",
+    "routine": "0x80007BCC",
+    "returnPatches": [],
+    "exitCode": 0
+  },
+  "limitations": [
+    "Synthetic point capsule, cached shield position and identity joint matrix.",
+    "Interpreter host exports a fixed larger buffer; only the authored result rows are consumed.",
+    "Does not establish shield-versus-body priority, animation placement or native execution."
+  ],
+  "results": [
+    {
+      "radius": 1,
+      "x": 0,
+      "intersects": true
+    },
+    {
+      "radius": 1,
+      "x": 2,
+      "intersects": true
+    },
+    {
+      "radius": 1,
+      "x": 2.999999761581421,
+      "intersects": false
+    },
+    {
+      "radius": 1,
+      "x": 3,
+      "intersects": false
+    },
+    {
+      "radius": 1,
+      "x": 3.000000238418579,
+      "intersects": false
+    },
+    {
+      "radius": 1,
+      "x": 4,
+      "intersects": false
+    },
+    {
+      "radius": 2,
+      "x": 0,
+      "intersects": true
+    },
+    {
+      "radius": 2,
+      "x": 2,
+      "intersects": true
+    },
+    {
+      "radius": 2,
+      "x": 2.999999761581421,
+      "intersects": true
+    },
+    {
+      "radius": 2,
+      "x": 3,
+      "intersects": true
+    },
+    {
+      "radius": 2,
+      "x": 3.000000238418579,
+      "intersects": false
+    },
+    {
+      "radius": 2,
+      "x": 4,
+      "intersects": false
+    }
+  ]
+}

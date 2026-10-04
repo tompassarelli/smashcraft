@@ -54,6 +54,18 @@ See `smashcraft:docs/smash-melee-reference/retail-shield-joint.json` and
 `smashcraft:tools/physics-probe/observe-shield-joint.mjs`.
 Final collision matrices, joint animation/placement and guard-entry ordering
 remain unobserved, so this does not establish complete world-geometry parity.
+The original shield-contact routine `0x80007BCC` now executes twelve synthetic
+point-capsule cases through the existing private Gekko interpreter, without
+return patches. A radius-1 hit against a radius-2 shield accepts distance 3,
+including exact tangency, and rejects the next binary32 value above 3.
+The radius-1 shield similarly accepts distance 2. The cached shield position
+is zero and its joint matrix is identity; both hit-capsule endpoints coincide.
+See smashcraft:docs/smash-melee-reference/retail-shield-contact.json and
+smashcraft:tools/physics-probe/observe-shield-contact.mjs. This proves those
+isolated collision classifications, not shield/body priority or pose geometry.
+Production melee selection still tests an authored rectangle against the victim
+origin, then classifies every eligible contact as blocked when shielding.
+Independent shield intersections and exposed-body pokes remain missing.
 Projectile travel is tested against
 the swept circle in the simulation's x/z plane. Reflection transfers ownership
 to the defender and applies the observed common damage multiplier `0.5` and
