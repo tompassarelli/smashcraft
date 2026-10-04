@@ -66,6 +66,21 @@ isolated collision classifications, not shield/body priority or pose geometry.
 Production melee selection still tests an authored rectangle against the victim
 origin, then classifies every eligible contact as blocked when shielding.
 Independent shield intersections and exposed-body pokes remain missing.
+Projectile contact selection now checks the ordinary authored shield circle
+before the existing body-contact predicate, after the reflector opportunity.
+Shield-only intersections can block a projectile; body intersections outside
+the shield apply body damage despite held guard. The selected blocked status
+is retained in the contact batch rather than inferred again from held guard.
+The swept path remains a point path, matching the existing reflector geometry;
+projectile sizes, capsule/matrix arithmetic and body geometry are not yet
+verified against complete retail contact execution. Melee coverage/pokes remain
+missing. Eight focused powershield checks pass, including one connected
+two-case regression for exposed-body versus shield-only projectile contact.
+Evidence: smashcraft:build/projectile-shield-focused.log.
+The assembled simulation check passes 555/555, with zero errors and the
+existing RecoveryTests unused-import warning. Evidence:
+smashcraft:build/projectile-shield-assembled.log. No emitted-Lua arithmetic or
+native collision parity is claimed by these source checks.
 Twelve further cases enter the original dispatch fragment at `0x80079050`,
 after shielding eligibility. The original collision helper and its result
 branch execute unchanged. Contact cases reach `0x80079080`, before shield

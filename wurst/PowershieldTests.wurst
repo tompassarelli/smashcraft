@@ -5,6 +5,34 @@ import CommandBuffer
 import MatchRules
 import ImpactEvents
 
+@Test function projectileShieldCoverageSeparatesExposedBodyAndShieldOnlyContacts()
+	for scenario = 0 to 1
+		let shooter = new FighterState(0, -100, 1)
+		let defender = new FighterState(1, 0, -1)
+		defender.z = 0
+		defender.shield = true
+		defender.shieldGeometry = fighterShieldGeometry(0, 45, scenario == 0 ? 60. : 200.)
+		shooter.projectileX[0] = scenario == 0 ? -20. : -80.
+		shooter.projectileZ[0] = scenario == 0 ? 80. : 45.
+		shooter.projectileVelocityX[0] = scenario == 0 ? 40. : 30.
+		shooter.projectileDirection[0] = 1
+		shooter.projectileKind[0] = PROJECTILE_BLASTER
+		shooter.projectileLife[0] = 3
+		shooter.projectileDamageMultiplier[0] = 1
+		let energy = defender.shieldEnergy
+		updateProjectilePair(shooter, defender)
+		projectileActive(shooter, 0).assertFalse()
+		if scenario == 0
+			(defender.damage > 0).assertTrue()
+			defender.shieldEnergy.assertEquals(energy)
+			defender.shieldStun.assertEquals(0)
+		else
+			defender.damage.assertEquals(0.)
+			(defender.shieldEnergy < energy).assertTrue()
+			(defender.shieldStun > 0).assertTrue()
+		destroy defender
+		destroy shooter
+
 @Test function fullTriggerWithinObservedWindowStartsAndExpiresReflectState()
 	let fighter = new FighterState(0, 0, 1)
 	let input = new InputSnapshot()

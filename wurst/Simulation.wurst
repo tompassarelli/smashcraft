@@ -1481,15 +1481,19 @@ public function beginDamageContacts()
 	damageContactCount = 0
 	collectingDamageContacts = true
 
-public function queueDamageContact(FighterState source, FighterState target, hitEffect data,
-		int facing, int kind, boolean direct, InputSnapshot throwInput)
+function collectDamageContact(FighterState source, FighterState target, hitEffect data,
+		int facing, int kind, boolean direct, InputSnapshot throwInput, boolean shieldContact)
 	let unblockable = kind == CONTACT_THROW or kind == CONTACT_PUMMEL
 	damageContacts[damageContactCount] = damageContact(source, target, data, facing, kind, direct,
-		not unblockable and target.shield, target.crouching,
+		not unblockable and shieldContact, target.crouching,
 		target.grounded, source.grounded, source.positionDeltaX, source.positionDeltaZ,
 		target.positionDeltaX, target.positionDeltaZ, isDownDamageState(target),
 		target.smashCharging, throwInput)
 	damageContactCount++
+
+public function queueDamageContact(FighterState source, FighterState target, hitEffect data,
+		int facing, int kind, boolean direct, InputSnapshot throwInput)
+	collectDamageContact(source, target, data, facing, kind, direct, throwInput, target.shield)
 
 function shieldRecoilAxis(real attackerDelta, real defenderDelta) returns real
 	if attackerDelta * defenderDelta >= 0
@@ -2605,12 +2609,12 @@ function spawnArcherArrow(FighterState owner, int direction, real verticalSpeed,
 	spawnProjectileMotion(owner, kind, facing * BLASTER_PROJECTILE_SPEED, verticalSpeed,
 		kind == PROJECTILE_ARROW ? 75 : 65, serial)
 
-function applySpecialProjectileHit(FighterState owner, FighterState target, int kind, int direction, real damageMultiplier)
+function applySpecialProjectileHit(FighterState owner, FighterState target, int kind, int direction, real damageMultiplier, boolean shieldContact)
 	let damage = kind == PROJECTILE_FAN_ARROW ? 4. : (kind == PROJECTILE_RECOIL or kind == PROJECTILE_MANA_BURN ? 5. : 7.)
 	let scaledDamage = (damage * damageMultiplier).roundToFloat32()
 	let damageOnly = kind == PROJECTILE_ARROW or kind == PROJECTILE_FAN_ARROW
-	queueDamageContact(owner, target, hitEffect(scaledDamage, 85, 16, 0.8, kind == PROJECTILE_RECOIL ? -0.6 : 0.6, false), direction,
-		damageOnly ? CONTACT_DAMAGE_ONLY : CONTACT_LAUNCH, false, null)
+	collectDamageContact(owner, target, hitEffect(scaledDamage, 85, 16, 0.8, kind == PROJECTILE_RECOIL ? -0.6 : 0.6, false), direction,
+		damageOnly ? CONTACT_DAMAGE_ONLY : CONTACT_LAUNCH, false, null, shieldContact)
 
 function demonHunterParryIsActive(FighterState fighter) returns boolean
 	return fighter.character == 2 and fighter.specialAction == SPECIAL_DEMONHUNTER_PARRY_STEP
@@ -2635,20 +2639,17 @@ function resolveDemonHunterParry(FighterState defender, FighterState attacker, i
 	defender.specialFrame = 0
 	defender.specialLockFrames = 0
 
-function applyProjectileHit(FighterState owner, FighterState target, int index)
+function applyProjectileHit(FighterState owner, FighterState target, int index, boolean shieldContact)
 	if demonHunterParryIsActive(target)
 		resolveDemonHunterParry(target, owner, -owner.projectileDirection[index])
 		return
 	if owner.projectileKind[index] != PROJECTILE_BLASTER
-		applySpecialProjectileHit(owner, target, owner.projectileKind[index], owner.projectileDirection[index], owner.projectileDamageMultiplier[index])
+		applySpecialProjectileHit(owner, target, owner.projectileKind[index], owner.projectileDirection[index], owner.projectileDamageMultiplier[index], shieldContact)
 	else
 		let damage = (attackDamage(1) * owner.projectileDamageMultiplier[index]).roundToFloat32()
-		queueDamageContact(owner, target, hitEffect(damage, 0, 0, 0, 0, false), owner.projectileDirection[index], CONTACT_FLINCH, false, null)
+		collectDamageContact(owner, target, hitEffect(damage, 0, 0, 0, 0, false), owner.projectileDirection[index], CONTACT_FLINCH, false, null, shieldContact)
 
-function shieldReflectorRadius(FighterState target) returns real
-	return target.shieldGeometry.radius * shieldSizeMultiplier(target.shieldEnergy, target.shieldStrength) * SHIELD_REFLECTOR_RADIUS_FACTOR
-
-function shieldReflectorIntersects(FighterState target, real oldX, real oldZ, real newX, real newZ) returns boolean
+function shieldCircleIntersects(FighterState target, real oldX, real oldZ, real newX, real newZ, real radiusFactor) returns boolean
 	let centerX = target.x + target.facing * target.shieldGeometry.centerX
 	let centerZ = target.z + target.shieldGeometry.centerZ
 	let deltaX = newX - oldX
@@ -2659,7 +2660,7 @@ function shieldReflectorIntersects(FighterState target, real oldX, real oldZ, re
 	let closestZ = oldZ + projection * deltaZ
 	let offsetX = centerX - closestX
 	let offsetZ = centerZ - closestZ
-	let radius = shieldReflectorRadius(target)
+	let radius = target.shieldGeometry.radius * shieldSizeMultiplier(target.shieldEnergy, target.shieldStrength) * radiusFactor
 	return offsetX * offsetX + offsetZ * offsetZ <= radius * radius
 
 function reflectProjectile(FighterState owner, FighterState target, int sourceIndex) returns boolean
@@ -2698,11 +2699,12 @@ function updateProjectiles(FighterState owner, FighterState target, real targetX
 			let crossedTarget = (targetX - oldX) * direction >= 0 and (targetX - owner.projectileX[index]) * direction <= 0
 			let nearTarget = (targetX - owner.projectileX[index]).abs() <= BLASTER_PROJECTILE_RADIUS
 			let crossedHeight = targetZ + 45 >= min(oldZ, owner.projectileZ[index]) - BLASTER_PROJECTILE_HALF_HEIGHT and targetZ + 45 <= max(oldZ, owner.projectileZ[index]) + BLASTER_PROJECTILE_HALF_HEIGHT
-			let reflectorContact = target.shieldReflectFrames > 0 and shieldReflectorIntersects(target, oldX, oldZ, owner.projectileX[index], owner.projectileZ[index])
+			let reflectorContact = target.shieldReflectFrames > 0 and shieldCircleIntersects(target, oldX, oldZ, owner.projectileX[index], owner.projectileZ[index], SHIELD_REFLECTOR_RADIUS_FACTOR)
+			let shieldContact = target.shield and shieldCircleIntersects(target, oldX, oldZ, owner.projectileX[index], owner.projectileZ[index], 1.)
 			if reflectorContact and not targetWasOut and not targetWasIntangible and reflectProjectile(owner, target, index)
 				owner.projectileLife[index] = 0
-			else if (crossedTarget or nearTarget) and crossedHeight and not targetWasOut and not targetWasIntangible
-				applyProjectileHit(owner, target, index)
+			else if (shieldContact or (crossedTarget or nearTarget) and crossedHeight) and not targetWasOut and not targetWasIntangible
+				applyProjectileHit(owner, target, index, shieldContact)
 				owner.projectileLife[index] = 0
 			else if owner.projectileLife[index] <= 0
 				owner.projectileLife[index] = 0
