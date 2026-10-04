@@ -11,6 +11,10 @@ screen. Both players acknowledged rematch, returned to selection and entered a
 second fight. Further response and mapper trials used subsequent fights.
 At 15:12 Taipei both retained clients showed the third fight's timer-draw
 result, with 0/2 ready; both remain signed in. No companion writer is running.
+The subsequent experimental 0.0.41 journal pause trial is recorded separately
+at wc3-melee:docs/journal-pause-checkpoint-20261004.md. Exact 0.0.40 bytes are
+restored on disk, but that later loaded diagnostic has not completed a map leave;
+do not infer that the retained clients currently run 0.0.40.
 
 The input source is keyboard, with local prediction and direct synchronization.
 This is the path consumed by the existing digital Xbox keyboard mapper. The
@@ -111,5 +115,8 @@ Detailed research: wc3-melee:docs/warcraft-api-netcode-findings.md.
 Original 08:38:38 Taipei deadline was missed. The later one-hour checkpoint
 request arrived at 14:26; this playable journey completed before 15:26.
 Peer listeners remain stopped by instruction. Physics/VFX child work is settled.
+The journal pause worker is also settled. Its change compiled and passed focused
+checks; a native partial-control-file failure was repaired in the companion.
+Native final pause/resume is still open and does not delay the 0.0.40 artifact.
 Issues 3/4/21 remain closed for their delivered scopes; this bounded gameplay
 check does not justify closing broader acceptance issues.

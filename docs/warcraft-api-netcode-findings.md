@@ -617,3 +617,14 @@ with six matching confirmed checkpoints. Private foreground eligibility was
 observed before emission. This establishes the software mapper/game seam under
 the tested conditions, not physical hardware timing or short-stall retention.
 Evidence: wc3-melee:docs/native-playable-0040-evidence-20261004/controller-mapper/.
+
+## Journal pause publication boundary
+
+Native 0.0.41 prepared helper frontiers 1422/1431 and selected the shared
+PAUSE_COMMIT frame 1431. Helpers then reported "control command lacks v" while
+the eventual complete native receipts were valid. The control reader now waits
+for the preload function's closing line before parsing; the focused partial-write
+regression and helper build passed. Final native pause/resume remains open.
+The digital mapper and its responsive native 0.0.40 result remain separate.
+Exact candidate, failure limits and recovery state:
+wc3-melee:docs/journal-pause-checkpoint-20261004.md.

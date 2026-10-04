@@ -227,6 +227,21 @@ mod linux {
         Ok((build, epoch, slot, delay))
     }
 
+    fn control_if_complete(contents: &str) -> Result<Option<ControlCommand>, String> {
+        // PreloadGenEnd creates the file before finishing its contents. The
+        // generated function's closing line is the publication boundary.
+        if contents
+            .lines()
+            .rev()
+            .find(|line| !line.trim().is_empty())
+            .map(str::trim)
+            != Some("endfunction")
+        {
+            return Ok(None);
+        }
+        parse_control(contents).map(Some)
+    }
+
     fn parse_control(contents: &str) -> Result<ControlCommand, String> {
         let mut fields = BTreeMap::<String, String>::new();
         for token in contents.split_whitespace() {
@@ -295,6 +310,19 @@ mod linux {
         let resume = pause.replace("sequence=3 state=PAUSE", "sequence=4 state=RESUME");
         assert_eq!(parse_control(&resume).unwrap().state, ControlState::Resumed);
         assert!(parse_control(&pause.replace("frame=91", "frame=0")).is_err());
+    }
+
+    #[test]
+    fn control_reader_waits_for_the_native_writer_to_finish() {
+        let command = "function PreloadFiles takes nothing returns nothing\ncall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=playable epoch=7 slot=2 sequence=3 state=PAUSE frame=91\" )\nendfunction\n";
+        for length in 0..command.find("endfunction").unwrap() + "endfunction".len() {
+            assert_eq!(control_if_complete(&command[..length]).unwrap(), None);
+        }
+        assert_eq!(
+            control_if_complete(command).unwrap(),
+            Some(parse_control(command).unwrap())
+        );
+        assert!(control_if_complete(&command.replace("v=1", "v=2")).is_err());
     }
 
     #[test]
@@ -902,17 +930,19 @@ mod linux {
             let command_path = control_path(&o.out, &o.build, o.epoch, o.slot, control_sequence);
             let command = match fs::read_to_string(&command_path) {
                 Ok(contents) => {
-                    let command = parse_control(&contents)?;
-                    if command.build != o.build
-                        || command.epoch != o.epoch
-                        || command.slot != o.slot
-                        || command.sequence != control_sequence
-                    {
-                        return Err(
-                            "journal control identity does not match the active session".into()
-                        );
+                    let command = control_if_complete(&contents)?;
+                    if let Some(command) = command.as_ref() {
+                        if command.build != o.build
+                            || command.epoch != o.epoch
+                            || command.slot != o.slot
+                            || command.sequence != control_sequence
+                        {
+                            return Err(
+                                "journal control identity does not match the active session".into(),
+                            );
+                        }
                     }
-                    Some(command)
+                    command
                 }
                 Err(error) if error.kind() == io::ErrorKind::NotFound => None,
                 Err(error) => return Err(format!("read journal control command: {error}")),
