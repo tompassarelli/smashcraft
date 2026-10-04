@@ -6,6 +6,7 @@ compiler_root=/home/tom/code/wurst-compiler/pins/9913e1bd300c2053637d756a11bae8c
 runtime_root=/home/tom/code/wurst-compiler/pins/925921095b3f0c1cb83bc2ef0bb83a13c97cda50
 stdlib_root=/home/tom/code/wurst-stdlib/pins/bb1e0458db5a
 mkdir -p "$output_dir"
+"${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}" "$project_dir/tools/physics-probe/generate-capsule-probe.mjs"
 "${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}" "$project_dir/tools/physics-probe/generate-air-cutoff-probe.mjs"
 "${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}" "$project_dir/tools/physics-probe/generate-signed-zero-probe.mjs"
 "${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}" "$project_dir/tools/physics-probe/generate-recorded-fall-probe.mjs"
@@ -25,6 +26,7 @@ mkdir -p "$output_dir"
     "$project_dir/wurst/MeleeScalarMath.wurst" \
     "$project_dir/tools/physics-probe/NumericalPrecisionProbe.wurst" \
     "$output_dir/DirectionalInfluencePrecisionProbe.wurst" \
+    "$output_dir/CapsuleShieldPrecisionProbe.wurst" \
     "$output_dir/AnalogShieldPrecisionProbe.wurst" \
     "$output_dir/HitlagPrecisionProbe.wurst" \
     "$output_dir/HitstunPrecisionProbe.wurst" \
@@ -63,13 +65,14 @@ init_HitlagPrecisionProbe()
 init_AnalogShieldPrecisionProbe()
 init_LaunchMagnitudePrecisionProbe()
 init_DirectionalInfluencePrecisionProbe()
+init_CapsuleShieldPrecisionProbe()
 assert(results.GROUNDED_BINARY32_EXACT_PASS and results.SHIELD_REGEN_BINARY32_EXACT_PASS
     and results.SHIELD_DAMAGE_BINARY32_EXACT_PASS and results.SHIELD_CONTACT_SUM_BINARY32_EXACT_PASS
     and results.SHIELD_STUN_BINARY32_EXACT_PASS and results.RECORDED_FALL_TEN_FRAMES_BINARY32_EXACT_PASS
     and results.AIR_DECREMENT_BINARY32_EXACT_PASS and results.SIGNED_ZERO_SCALARS_EXACT_PASS
     and results.HITSTUN_BOUNDARIES_EXACT_PASS and results.AIR_CUTOFF_BINARY32_EXACT_PASS and results.GROUND_MOTION_BINARY32_EXACT_PASS
     and results.LAUNCH_MAGNITUDE_BINARY32_EXACT_PASS and results.HITLAG_SCALARS_EXACT_PASS and results.ANALOG_SHIELD_BINARY32_EXACT_PASS
-    and results.DIRECTIONAL_INFLUENCE_BINARY32_EXACT_PASS,
+    and results.DIRECTIONAL_INFLUENCE_BINARY32_EXACT_PASS and results.CAPSULE_SHIELD_CLASSIFICATION_PASS,
     'Missing numerical precision result')
 LUA
 nix shell nixpkgs#lua5_3 --command lua "$output_dir/run-precision.lua" "$project_dir" \

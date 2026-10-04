@@ -2651,16 +2651,24 @@ function applyProjectileHit(FighterState owner, FighterState target, int index, 
 
 public function capsuleCircleIntersects(real oldX, real oldZ, real newX, real newZ,
 		real capsuleRadius, real centerX, real centerZ, real circleRadius) returns boolean
-	let deltaX = newX - oldX
-	let deltaZ = newZ - oldZ
-	let lengthSquared = deltaX * deltaX + deltaZ * deltaZ
-	let projection = lengthSquared == 0 ? 0 : max(0, min(1, ((centerX - oldX) * deltaX + (centerZ - oldZ) * deltaZ) / lengthSquared))
-	let closestX = oldX + projection * deltaX
-	let closestZ = oldZ + projection * deltaZ
-	let offsetX = centerX - closestX
-	let offsetZ = centerZ - closestZ
-	let radius = capsuleRadius + circleRadius
-	return offsetX * offsetX + offsetZ * offsetZ <= radius * radius
+	let deltaX = (oldX - newX).roundToFloat32()
+	let deltaZ = (oldZ - newZ).roundToFloat32()
+	let lengthSquared = ((deltaX * deltaX).roundToFloat32() + (deltaZ * deltaZ).roundToFloat32()).roundToFloat32()
+	let endOffsetX = (newX - centerX).roundToFloat32()
+	let endOffsetZ = (newZ - centerZ).roundToFloat32()
+	let numerator = -fusedMultiplyAddFloat32(endOffsetX, deltaX, (endOffsetZ * deltaZ).roundToFloat32())
+	let projection = lengthSquared < 0.000009999999747378752 ? 0. : max(0., min(1., (numerator / lengthSquared).roundToFloat32()))
+	let closestX = fusedMultiplyAddFloat32(projection, deltaX, newX)
+	let closestZ = fusedMultiplyAddFloat32(projection, deltaZ, newZ)
+	let offsetX = (centerX - closestX).roundToFloat32()
+	let offsetZ = (centerZ - closestZ).roundToFloat32()
+	let distanceSquared = fusedMultiplyAddFloat32(offsetX, offsetX, (offsetZ * offsetZ).roundToFloat32())
+	let distance = SquareRoot(distanceSquared).roundToFloat32()
+	if distance < 0.000009999999747378752
+		return true
+	// Converting the joint radius retains its rounding even for an identity matrix.
+	let convertedRadius = ((circleRadius * distance).roundToFloat32() / distance).roundToFloat32()
+	return distance <= (capsuleRadius + convertedRadius).roundToFloat32()
 
 function shieldCircleIntersects(FighterState target, real oldX, real oldZ, real newX, real newZ, real radiusFactor) returns boolean
 	let centerX = target.x + target.facing * target.shieldGeometry.centerX

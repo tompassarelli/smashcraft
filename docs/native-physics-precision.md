@@ -19,6 +19,13 @@ warnings; packaged Lua syntax and script roundtrip pass. Evidence:
 smashcraft:build/native-melee-powershield.log. This candidate has not been
 installed or run natively.
 
+The builder now includes a sixteenth group, CAPSULE_SHIELD_CLASSIFICATION_PASS,
+covering 374 original capsule/shield classifications. A newly built candidate
+will require MESSAGES 19 and that additional passing group. The historical
+candidate above still contains fifteen groups and has not verified the current
+capsule precision repair. Its MESSAGES 18 acceptance below applies only to that
+historical candidate.
+
 On map initialization, the same authored comparisons used by the emitted-Lua
 precision check execute in Warcraft. Each report is a short independent Preload
 record. A timer closes the report after initialization, exporting

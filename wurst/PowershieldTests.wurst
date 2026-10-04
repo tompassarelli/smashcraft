@@ -289,3 +289,11 @@ import ImpactEvents
 	capsuleCircleIntersects(2.5, 0., 2.5, 0., 2., 0., 0., 2.).assertEquals(true)
 	capsuleCircleIntersects(3., 0., 3., 0., 2., 0., 0., 2.).assertEquals(true)
 	capsuleCircleIntersects(4., 0., 4., 0., 2., 0., 0., 2.).assertEquals(true)
+
+@Test function originalAsymmetricCapsuleRoundingAndRadiusConversion()
+	capsuleCircleIntersects(0.2273183912038803, 1.8602772951126099, 2.7224481105804443, 7.7711381912231445, 0., 0., 0., 1.8741145133972168).assertEquals(true)
+	capsuleCircleIntersects(9.86154556274414, -6.86391019821167, -5.6012959480285645, 7.704383373260498, 0., 0., 0., 1.7665791511535645).assertEquals(true)
+	capsuleCircleIntersects(8.760266304016113, 6.5879974365234375, -8.983579635620117, -8.832010269165039, 0., 0., 0., 0.7736536860466003).assertEquals(false)
+	capsuleCircleIntersects(-6.00670051574707, 1.2787494659423828, -4.775786399841309, 9.034687042236328, 0., 0., 0., 6.1413068771362305).assertEquals(false)
+	capsuleCircleIntersects(-3.236114978790283, -9.718732833862305, -8.34358024597168, 7.590638637542725, 0., 0., 0., 5.854279518127441).assertEquals(false)
+	capsuleCircleIntersects(0.822984516620636, 3.0610923767089844, 9.638368606567383, 9.857255935668945, 0., 0., 0., 3.1697933673858643).assertEquals(true)

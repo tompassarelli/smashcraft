@@ -129,6 +129,29 @@ Facts: smashcraft:docs/smash-melee-reference/retail-shield-capsule-details.json.
 Observer: smashcraft:tools/physics-probe/observe-shield-capsule-details.mjs.
 The observer executes the full unchanged routine and records its capsule output
 fields, with the same synthetic geometry limitations as the original cases.
+The precision defect above is now repaired for the recorded identity-circle
+cases. Production uses binary32 endpoint differences, a rounded squared-length
+sum, fused projection/interpolation and distance sum, rounded square root, and
+the joint-radius conversion's rounded multiply/divide. Interpolation starts
+from the newest capsule endpoint. The retained near-zero threshold is
+0.000009999999747378752, observed at retail r2 offset `-0x7FF0`.
+An identity transform still requires radius conversion: rounding its product
+and quotient can shift the effective radius by one binary32 step. Omitting that
+step left nine disagreements after repairing projection/distance arithmetic.
+All 340 boundary observations are retained as numerical facts in
+smashcraft:docs/smash-melee-reference/retail-shield-capsule-boundaries.jsonl.
+The production emitted-Lua probe now matches all 374 recorded classifications
+(34 geometry cases plus 340 boundary cases); all sixteen precision groups pass.
+Six selected asymmetric/normalization cases add one grouped source regression;
+the focused suite passes 12/12. Evidence:
+smashcraft:build/capsule-precision-focused.log and
+smashcraft:build/capsule-precision-lua.log. This closes those counterexamples,
+not arbitrary transforms, body capsules, translated cases or Warcraft-native
+square-root behavior. The native builder includes the new classification group
+for its next candidate; no native result is inferred from emitted Lua.
+The assembled simulation suite passes 559/559, with zero errors and the existing
+RecoveryTests unused-import warning. Evidence:
+smashcraft:build/capsule-precision-assembled.log.
 Projectile travel is tested against
 the swept circle in the simulation's x/z plane. Reflection transfers ownership
 to the defender and applies the observed common damage multiplier `0.5` and
