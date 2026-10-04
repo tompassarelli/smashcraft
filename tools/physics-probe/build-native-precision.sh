@@ -11,7 +11,9 @@ packager="$project_dir/build/tools/map-pack"
 [[ $(git -C "$stdlib" rev-parse HEAD) == bb1e0458db5a372ba2a6928112452785e435d01a ]]
 [[ -x "$packager" && -s "$base_map" ]]
 mkdir -p "$project_dir/build/physics-probe"
-build_dir=$(mktemp -d "$project_dir/build/physics-probe/native.XXXXXX")
+private_build_root="$HOME/.local/share/smashcraft-build-inputs/$(basename -- "$project_dir")"
+mkdir -p "$private_build_root"
+build_dir=$(mktemp -d "$private_build_root/native.XXXXXX")
 mkdir -p "$build_dir/wurst" "$build_dir/_build/dependencies"
 bun=${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}
 for generator in generate-air-cutoff-probe generate-signed-zero-probe generate-recorded-fall-probe generate-air-decrement-probe generate-ground-motion-probe generate-hitstun-probe generate-launch-magnitude-probe generate-hitlag-probe generate-analog-shield-probe generate-di-probe generate-capsule-probe; do
