@@ -66,6 +66,7 @@ init
 				" sourceMatchesCurrent=" + (fighter.vz == current ? "1" : "0")
 	let sentinel = (((0.7 + 0.1) + 0.1) + 0.1)
 	set nativeRoundingUlpOffset = R2I((sentinel - 1.) * 8388608.)
-	doAfter(0.05) -> reportPhysicsArithmeticDiscriminator()
+	doAfter(0.05) ->
+		reportPhysicsArithmeticDiscriminator()
 	destroy input
 	destroy fighter
