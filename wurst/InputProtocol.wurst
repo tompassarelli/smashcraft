@@ -7,7 +7,7 @@ public constant int INPUT_HEADER_MIN_BYTES = 5
 public constant int INPUT_HEADER_MAX_BYTES = 17
 public constant int INPUT_MIN_RECORD_BYTES = 1
 public constant int INPUT_MAX_RECORD_BYTES = 21
-constant string INPUT_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
+public constant string INPUT_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
 
 function compact(int value, int width) returns string
     var result = ""
