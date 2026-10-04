@@ -1,0 +1,23 @@
+{
+  "source_commit": "d12a2bf",
+  "build_id": "playable-0041",
+  "map_sha256": "25493bacd040fc08b380df0589f31631055f9032fd84671c0c5d9f639200a533",
+  "helper_sha256": "14440ca6999a2f805f50aa2e0ef835189fcceec0075ead786cc82d3c78fe7d6c",
+  "configuration": {
+    "input": "journal",
+    "ingress": "editbox",
+    "profile": "shadow-d0-r24",
+    "presentation": "pool-predicted",
+    "response_service_probe": true,
+    "stocks": 3
+  },
+  "checks": {
+    "rust_journal": 28,
+    "wurst_match_rules": 25,
+    "helper_build": "passed",
+    "map_build": "passed",
+    "native_journey": "two controller combat and rematch passes",
+    "independent_frame_reconciliation": "kernel/helper/native action and shield reconciliation passed"
+  },
+  "driver_commit": "3f5569c"
+}

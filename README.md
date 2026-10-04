@@ -12,11 +12,13 @@ dodges, shields, hitstun, knockback, and stocks.
 · [Release notes, installation, and known limits](https://github.com/tompassarelli/smashcraft/releases/tag/prototype-2026-10-01)
 · [Player guide](docs/player-guide.md)
 
-The downloadable map is an earlier snapshot. Ongoing development includes newer
-gameplay and presentation work; read the release notes to see what the download
-contains. Recent two-client tests have demonstrated synchronized matches and
-numerical rollback correction. Visible prediction remains pending; see the
-[native evidence](docs/native-capability-report.md) for current results and limits.
+The downloadable map is an earlier snapshot. The current local Linux controller
+checkpoint is [Smashcraft 0.0.41](https://github.com/tompassarelli/smashcraft/blob/main/docs/playable-0041.md).
+Two-client tests demonstrate local prediction, bounded rollback correction,
+retained controller inputs and controller-driven combat/rematches. Physical
+response and cross-machine timing remain open; the
+[current claims and evidence](https://github.com/tompassarelli/smashcraft/blob/main/docs/netplay-status.md)
+state their exact scope.
 
 ## Build and test
 
@@ -35,10 +37,10 @@ Warcraft III terrain map as the required `.w3m` or `.w3x` argument. See
 
 Pre-release maps are named **Smashcraft 0.0.N** in both Warcraft and the filename.
 Increment only the last number in `wc3-melee:map-version` for the next pre-release.
-The default artifact is `wc3-melee:build/wurst-map/Smashcraft 0.0.N.w3x`.
-`WC3_DEPLOY_MAP=1` installs one current map into Warcraft's flat
-`Maps/00-Smashcraft` folder and moves prior Smashcraft files from that folder to
-`wc3-melee:build/map-archive` outside the game's map browser. No Dev/Release folders.
+Artifacts stay under the private `WC3_PRIVATE_ASSETS` directory, outside the
+repository. The current artifact and matching helper are named in
+wc3-melee:docs/playable-0041.md. Install one current map in Warcraft's flat
+`Maps/00-Smashcraft` folder; retain old maps privately outside the map browser.
 
 - [Gameplay and controls](docs/player-guide.md)
 - [Delivery goal and current sequence](docs/delivery-goal.md)

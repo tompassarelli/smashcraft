@@ -1,0 +1,110 @@
+a wait End Game
+a wait Quit Mission
+a wait MATCH RESULTS
+b wait End Game
+b wait Quit Mission
+b wait MATCH RESULTS
+candidate sha256 25493bacd040fc08b380df0589f31631055f9032fd84671c0c5d9f639200a533
+a click 155 1388
+a wait Quick.*Filter|CREATE LOAD|CUSTOM GAMES
+b click 155 1388
+b wait Quick.*Filter|CREATE LOAD|CUSTOM GAMES
+a click 1510 1200
+a wait CREATE GAME
+a click 1190 365
+Traceback (most recent call last):
+  File "/tmp/sc-recovery-reload.py", line 51, in <module>
+    ui('a','click',1190,365);ui('a','wait','Archer.*Rifleman')
+                             ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sc-recovery-reload.py", line 19, in ui
+    if r.returncode:raise RuntimeError(r.stdout)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: WAIT EXPIRED last OCR
+MuLTIPLAYER
+
+GAME NAME
+
+Please give your lobby a name. Lobby names can be up to 31 characters long. [PUBLIC]
+
+GAME SPEED
+
+l ®
+
+sLow FAST
+
+ADVANCED OPTIONS
+
+M Lock TEAMS
+
+M TEAM TOGETHER
+
+| FuLL SHARED UNIT CoNTROL
+
+RANDOM RACES
+
+RANDOM HERO
+
+OBSERVERS VISIBILITY
+
+SMASHCRAFT 0.0.41
+e Created By: Tompas
+
+\ 1/
+= (ur ONE LEVEL)
+
+SMASHCRAFT 0.0.41 |
+
+SUGGESTED PLAYERS:
+MAP SIZE:
+
+Archer, Rifieman, and lllidan platform fight.
+
+o) S ) /N AN S N A) AN G S AN AN AV S AN AN AN G AN AN AN AN ). AN A
+
+CREATE GAME
+
+Mutmiriaver
+
+GAME NAME
+
+GAME SPEED
+
+SLOW NORMAL
+
+ADVANCED OPTIONS
+v Lock Teams
+" Team ToGETHER
+
+Furt SHARED UNIT CONTROL
+
+—
+RANDOM RACES
+—
+RanDOM HERO
+OBSERVERS VISIBILITY
+No OBSERVERS A DerauLT
+
+BACK
+
+N
+
+FAST
+
+A
+
+=
+
+(UP ONE LEVEL)
+
+hnd SMASHCRAFT 0.0.41
+Created By: Tompas
+
+SUGGESTED PLAYERS:
+MAP SIZE:
+
+Archer, Rifieman, and lllidan platform fight,
+
+1-4
+Tiny
+
+

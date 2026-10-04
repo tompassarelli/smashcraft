@@ -1,0 +1,14 @@
+a wait SMASHCRAFT\s+0\.0\.41
+a click 400 335
+a click 2195 1127
+a wait PLAYERS: 1/4
+b click 1470 195
+b wait \[TEST\]|ITEST|20261005
+b click 680 385
+b click 1295 1213
+b wait PLAYERS: 2/4
+a wait PLAYERS: 2/4
+a click 2195 1127
+a wait CONTROLS
+b wait CONTROLS
+Both clients at character selection; no helper running

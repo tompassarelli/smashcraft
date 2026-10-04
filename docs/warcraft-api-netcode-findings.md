@@ -10,7 +10,8 @@ deadline was 08:38:38 Taipei on 4 October; it was missed and has not reset.
 Current claim owners and the consolidated delivery state:
 wc3-melee:docs/netplay-status.md. #26 owns the known polling-loss failure;
 #25 owns intended-frame assignment and #27 response/variation. #28–#30 preserve
-completed bounded results. Exact 0.0.40 remains playable.
+completed bounded results. The current playable Linux controller checkpoint is
+0.0.41; exact 0.0.40 is preserved.
 
 **5 October progress:** the editbox journal path now retains the tested 5 ms
 inputs through helper/game stalls and window-focus loss, follows pause/resume
@@ -22,6 +23,13 @@ implementation direction. It does not establish physical response or a common
 cross-machine frame clock. The remaining three claims stay in #25–#27.
 Current evidence: wc3-melee:docs/controller-menus-native-20261005/README.md and
 the linked earlier tap/stall, response and lifecycle records in the status page.
+
+**Installed 0.0.41 delivery:** the matching release map/helper passed two native
+combat/rematch sequences. Both clients agreed on recorded combat and final
+states; overlapping triggers retained shield and controller pause/resume worked.
+Startup/artifacts: wc3-melee:docs/playable-0041.md. Exact release evidence:
+wc3-melee:docs/playable-0041-native-20261005/README.md. This advances playable
+controller delivery without claiming physical latency or cross-machine fairness.
 
 ## Earlier rejected ingress paths — 4 October
 

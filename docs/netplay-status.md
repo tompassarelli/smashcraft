@@ -1,14 +1,16 @@
 # Netplay claims, progress and issue reconciliation
 
-Reviewed 5 October 2026, Taipei time. Window: approximately 2–4 October;
-the material netcode evidence below is concentrated on 3–4 October. This is a
-review of existing evidence, not a new gameplay or latency test. GitHub holds
-current issue state; linked records retain the exact measurement scope.
+Updated 5 October 2026, Taipei time. The historical review covers 2–4 October;
+the later checkpoints below include new native evidence from 5 October. GitHub
+holds current issue state; linked records retain the exact measurement scope.
 
-**Playable build: 0.0.40. Consistent original-frame controller input: unfinished.**
-There is demonstrated local prediction, bounded numerical rollback and a working
-two-client gameplay journey. There is also a known polling-loss limitation.
-Neither “nothing works” nor “the latency guarantees are done” describes the result.
+**Playable Linux controller checkpoint: 0.0.41. Full input guarantees remain open.**
+The map and its matching helper passed controller-only menus, a damaging combat
+sequence, shield overlap, pause, results and rematch in both native clients.
+Frame capture, retention and local prediction have bounded passing evidence;
+physical response, cross-machine clock/fairness and broader acceptance remain.
+Exact older 0.0.40 is preserved with its known polling-loss limitation.
+Startup/artifacts: wc3-melee:docs/playable-0041.md.
 
 **5 October implementation advance:** the repaired editbox controller candidate
 delivered all 300 original frames per player in a two-client native trial.
@@ -70,6 +72,16 @@ full human combat, physical timing or cross-machine clock alignment. Exact
 candidate and raw reconciliation:
 wc3-melee:docs/controller-menus-native-20261005/README.md.
 
+**0.0.41 installed combat checkpoint delivered:** two three-stock match sequences
+passed with the release map and frozen matching helper. Both clients agreed on
+all 52 recorded combat events in each match, including attacks, specials, three
+jump sources, damage and grab initiation. Shield survived LT release while RT
+remained held; controller Start paused and resumed. Final states agreed at
+914/`933725:107908` and 918/`10392:907822`, with no extra rematch attack, input
+failure or trace drop. These are virtual-controller fights, not ten human matches
+or physical timing. Exact release corpus:
+wc3-melee:docs/playable-0041-native-20261005/README.md.
+
 ## The specific answers and their owners
 
 **Resume service-delay defect delivered:** helper B read RESUME 361 ms after its
@@ -85,10 +97,10 @@ wc3-melee:docs/resume-clock-native-20261005/README.md.
 | Does sampled, eligible shield input enter local prediction without waiting for sync? | Demonstrated: 12/12 presses in the capture callback on 0.0.40. Logical state, not physical pixels or all moves. | [#28, completed](https://github.com/tompassarelli/smashcraft/issues/28) |
 | Can late original-frame input repair the combat outcome? | Demonstrated for the native F5 shield corpus: damage 12 becomes 0, shieldstun 7, canonical and confirmed states agree. | [#29, completed](https://github.com/tompassarelli/smashcraft/issues/29) |
 | Have selection/GameCache beaten direct sync? | No in the corrected bounded 60 Hz comparison; direct sync is the selected baseline. | [#30, completed comparison](https://github.com/tompassarelli/smashcraft/issues/30) |
-| Can short inputs disappear or merge? | Playable 0.0.40 can miss/coalesce inputs. The candidate retains tested 5 ms taps through helper/game stalls, window focus loss and a two-match rematch journey; chat, reconnect and hardware acceptance remain open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
+| Can short inputs disappear or merge? | The 0.0.41 controller path has bounded tap/stall, focus and rematch passes. The older 0.0.40 polling path can miss/coalesce inputs. Chat, reconnect and hardware acceptance remain open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
 | Is every acquired input assigned to its intended frame despite delayed service? | The candidate preserves tested tap/stall frames and now keeps a post-resume tap at frame 98 despite a 361 ms delayed resume read. Local publication anchors still differ; cross-machine alignment remains open. 0.0.40 still assigns by local progress. | [#25, partial](https://github.com/tompassarelli/smashcraft/issues/25) |
 | What physical response and 3–5-frame variation should a player expect? | Candidate B software shield response: 12/12 presses, median 67.95 ms, max 98.17 ms. The measured admission backlog is fixed: 13/13 retained edge rows predict in the same callback. Physical response remains unmeasured. | [#27, partial](https://github.com/tompassarelli/smashcraft/issues/27) |
-| Can two clients fight and rematch? | Observed on 0.0.40. The journal candidate now passes controller-only selection/start/results/rematch with persistent helpers; full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |
+| Can two clients fight and rematch? | Installed 0.0.41 passes controller-only menus, damaging combat, shield overlap, pause and rematch with persistent helpers. Full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |
 
 Issues #28–#30 were created during this review to record already completed,
 bounded results. They are not three engineering tasks completed today. #21 closed
@@ -200,8 +212,8 @@ original descriptions remain accessible. Those closures are not completion.
 | #14 Visible effects | Partial; common grab/charge/ledge cues and star/screen KO implemented. Two-client KO observation and pause/resume pass recorded in wc3-melee:docs/ko-native-20261005/README.md; broader appearance/replay acceptance remains. |
 | #15 Measured roster tuning | Consolidated into #12; no completed before/after tuning plus playable evaluation. |
 | #16 Online roadmap | Open; original-frame input, human play, platforms, hosting and broader-player work remain. |
-| #17 Two-client integration | Partial: playable journey and bounded agreement delivered; human play, response distribution and full feedback recovery remain. |
-| #18 Controller/companion | Partial: Linux journal controller menus/start/rematch now pass natively; full layout/analog, physical and Windows/macOS acceptance remain. |
+| #17 Two-client integration | Partial: 0.0.41 controller combat/rematch and bounded agreement delivered; human play, response distribution and full feedback recovery remain. |
+| #18 Controller/companion | Partial: requested Linux control mappings and menu/combat/rematch path pass with virtual pads; analog range, physical and Windows/macOS acceptance remain. |
 | #19 Hosting/fairness | Open; alternative native-host admission and matched comparison not delivered. |
 | #20 2–4 players / ten matches | Consolidated into #17; the full requested match corpus remains required. |
 | #21 Timeboxed integrity decision | Already completed as a HOLD decision, not a positive readiness result. |
@@ -234,23 +246,23 @@ not two current player releases.
 
 Main's instruction was incorporated into the integration lane. On 5 October the
 owner authorized completing the PR/branch cleanup and removing the blanket
-no-publication-to-main restriction. PR #24 integrates the documented checkpoint;
-main is the canonical source after merge, and its temporary remote branch is
-retired once that merge is confirmed. Current PR state is visible at
+no-publication-to-main restriction. PR #24 is merged and its temporary remote
+integration branch is retired. Main is the canonical source. Current PR state is visible at
 https://github.com/tompassarelli/smashcraft/pull/24.
 
-This integration does not complete #25–#27 or create a new player release.
-Exact 0.0.40 remains the playable artifact. Retained local worker checkouts are
+The PR integration did not complete #25–#27 or create a player release.
+The subsequent controller checkpoint is now playable 0.0.41; exact 0.0.40 remains
+preserved. Retained local worker checkouts are
 not additional remote releases. Use issue-scoped work lanes for future changes
 and finish each bounded checkpoint rather than retaining a permanent alternate
 delivery branch or making all research claims prerequisites for merging it.
 
 ## The next rungs
 
-1. **#26: finish lifecycle integration of the passing input candidate.** The
-   300-frame tap/stall counterexample is closed for this candidate. Complete
-   remaining lifecycle behavior and replace the playable input path after its usable
-   journey passes; do not repeat the successful corpus merely for confidence.
+1. **#26/#18: extend the now-playable controller path at its remaining seams.**
+   Tap/stall, bounded focus/pause and controller combat/rematch are banked. The
+   0.0.41 usable checkpoint is delivered. Chat/reconnect, physical play and other
+   platforms remain; do not repeat the successful corpus merely for confidence.
 2. **#25: preserve the chosen frame contract.** Define active-match clock and
    pause behavior, then compare independent expected/assigned/applied frames.
    Do not turn a continuous-clock experiment into a silent product decision.
@@ -261,6 +273,6 @@ delivery branch or making all research claims prerequisites for merging it.
    33/50/83 ms values.
 
 The already completed claims stay closed unless a relevant change or concrete
-regression reopens them. Playtesting exact 0.0.40 remains useful now. It is not
+regression reopens them. Playtesting the 0.0.41 Linux checkpoint is useful now. It is not
 a substitute for these specific technical claims, and broad platform/physics
 roadmaps must not prevent reporting progress on them.

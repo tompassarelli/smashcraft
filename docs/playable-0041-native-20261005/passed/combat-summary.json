@@ -1,0 +1,55 @@
+{
+  "scope": "Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; controller-only game menus (keyboard diagnostic trace toggle); ordinary combat and controller layout; no physical or cross-machine alignment claim.",
+  "helper_sha256": "14440ca6999a2f805f50aa2e0ef835189fcceec0075ead786cc82d3c78fe7d6c",
+  "persistent_helper_pids": [
+    1870004,
+    1870031
+  ],
+  "matches": [
+    {
+      "epoch": 1,
+      "native_action_records": 52,
+      "confirmed_shield_samples": [
+        {
+          "shield-lt": 15,
+          "shield-both": 18,
+          "shield-rt-only": 22
+        },
+        {
+          "shield-lt": 18,
+          "shield-both": 18,
+          "shield-rt-only": 23
+        }
+      ],
+      "confirmed_result": [
+        "914",
+        "933725:107908"
+      ]
+    },
+    {
+      "epoch": 2,
+      "native_action_records": 52,
+      "confirmed_shield_samples": [
+        {
+          "shield-lt": 15,
+          "shield-both": 18,
+          "shield-rt-only": 25
+        },
+        {
+          "shield-lt": 15,
+          "shield-both": 18,
+          "shield-rt-only": 25
+        }
+      ],
+      "confirmed_result": [
+        "918",
+        "10392:907822"
+      ]
+    }
+  ],
+  "limitations": [
+    "Virtual Linux pads; no physical timing or cross-machine claim.",
+    "RB proves grab initiation; no in-range grab contact claim.",
+    "LB proves the native walking-modifier tilt, not a measured walking speed."
+  ]
+}

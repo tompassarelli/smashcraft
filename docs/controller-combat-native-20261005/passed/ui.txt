@@ -1,0 +1,563 @@
+a wait ('CONTROLS',)
+Smashcraft ' 2-FIGHTER SURVIVAL TEST
+
+RIFLEMAN ILLIDAN
+
+P3 P4
+
+T I,
+_
+
+Smashcraft vs
+
+2-FIGHTER SURVIVAL TEST
+
+ARCHER
+
+Choose fighter
+
+Choose fighter
+
+= |
+Select [A
+
+EMPTY
+
+RIFLEMAN
+
+EMPTY
+
+|
+CONTROLS [F1]
+
+
+
+a wait ('STAGE|Sky.*Deck|Three.*Bridges',)
+3 Stock - 7:00
+
+TAGE SELECT =
+IS G S C @ STOCK L+ @ R @
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide. -;‘
+
+T |
+
+H BACKX] H
+
+START MATCH [A] H
+
+| STAGE SELECT
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+BACK [X]
+
+3 Stock -
+
+7:.00
+
+STOCK + - TIME
+
+CHOOSE A STAGE
+
+g — —
+
+——— 7
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+START MATCH [A]
+
+K
+
+
+a wait ('CONTROLS',)
+Smashcraft 2-FIGHTER SURVIVAL TEST
+
+EMPTY |
+
+ILLIDAN %
+
+P4
+
+_
+
+Smashcraft vs
+
+2-FIGHTER SURVIVAL TEST
+
+[ HMN [ HMN
+,”
+SN
+. '
+ARCHER ILLIDAN
+
+- P
+
+4
+Press Start
+
+EMPTY
+
+RIFLEMAN ILLIDAN
+
+EMPTY
+
+|
+CONTROLS [F1]
+
+
+
+a wait ('STAGE|Sky.*Deck|Three.*Bridges',)
+3 Stock - 7:00
+
+TAGE SELECT =
+IS G S C @ STOCK L+ @ R @
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide. -;‘
+
+T |
+
+H BACKX] H
+
+START MATCH [A] H
+
+| STAGE SELECT
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+BACK [X]
+
+3 Stock -
+
+7:.00
+
+STOCK + - TIME
+
+CHOOSE A STAGE
+
+g — —
+
+——— 7
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+START MATCH [A]
+
+K
+
+
+a wait ('Paused',)
+7.0
+
+ARCHER : ‘ f ILLIDA
+
+
+6:51
+
+PAUSED — Press Start to resume. Combat Is frozen.
+
+- Resume: Start
+
+Paused — press Start to re:
+.
+
+ 5.0%
+
+P1 . ARCHER
+
+7.0%
+
+ILLIDAN
+
+R
+
+Developer test: controller-menus-20261005 | player=1 | phase=2 | x=-322 z=0 | input=- 1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+
+K
+
+
+a wait ('wins|rematch',)
+7.0
+
+N
+ARCHER ILLIDAN
+
+
+6:45
+
+0/2 ready. Press A or Start to choose your next match.
+
+- Pause: Start
+
+Player 2 wins!
+
+- 0.0%
+
+P1 . ARCHER
+
+7.0%
+
+ILLIDAN
+
+R
+
+Developer test: controller-menus-20261005 | player=1 | phase=3 | x=-920 z=-376 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+
+K
+
+
+b wait ('wins|rematch',)
+ARCHER ILLIDAN
+
+-2 -
+
+-
+-
+-
+
+ Developer test: controller-menus-20261005 | player=2 | phase=3 | x=240 z=0 | input=-1 mode=shadow-
+
+-0
+e
+
+\ ) ‘ b ) -\ 6:45
+0/2 redtly. PrestW or Start to Mvose y&r next h
+
+N -
+
+Player 2 wins!
+
+-
+
+0.0%
+
+P ) ARCHER
+
+7.0%
+
+ILLIDAN
+
+WA &
+
+Developer test: controller-menus-20261005 | player=2 | phase=3 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+
+
+a wait ('CONTROLS',)
+Smashcraft 2-FIGHTER SURVIVAL TEST
+
+EMPTY |
+
+ILLIDAN %
+
+P4
+
+_
+
+Smashcraft vs
+
+2-FIGHTER SURVIVAL TEST
+
+[ HMN [ HMN
+,”
+SN
+. '
+ARCHER ILLIDAN
+
+- P
+
+4
+Press Start
+
+EMPTY
+
+RIFLEMAN ILLIDAN
+
+EMPTY
+
+|
+CONTROLS [F1]
+
+
+
+a wait ('STAGE|Sky.*Deck|Three.*Bridges',)
+3 Stock - 7:00
+
+TAGE SELECT =
+IS G S C @ STOCK L+ @ R @
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide. -;‘
+
+T |
+
+H BACKX] H
+
+START MATCH [A] H
+
+| STAGE SELECT
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+BACK [X]
+
+3 Stock -
+
+7:.00
+
+STOCK + - TIME
+
+CHOOSE A STAGE
+
+g — —
+
+——— 7
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+START MATCH [A]
+
+K
+
+
+a wait ('CONTROLS',)
+Smashcraft 2-FIGHTER SURVIVAL TEST
+
+EMPTY |
+
+ILLIDAN %
+
+P4
+
+_
+
+Smashcraft vs
+
+2-FIGHTER SURVIVAL TEST
+
+[ HMN [ HMN
+,”
+SN
+. '
+ARCHER ILLIDAN
+
+- P
+
+4
+Press Start
+
+EMPTY
+
+RIFLEMAN ILLIDAN
+
+EMPTY
+
+|
+CONTROLS [F1]
+
+
+
+a wait ('STAGE|Sky.*Deck|Three.*Bridges',)
+3 Stock - 7:00
+
+TAGE SELECT =
+IS G S C @ STOCK L+ @ R @
+
+CHOOSE A STAGE
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide. -;‘
+
+T |
+
+H BACKX] H
+
+START MATCH [A] H
+
+| STAGE SELECT
+
+Sky Deck
+
+One open platform.
+Room to fight, nowhere to hide.
+
+BACK [X]
+
+3 Stock -
+
+7:.00
+
+STOCK + - TIME
+
+CHOOSE A STAGE
+
+g — —
+
+——— 7
+
+Sky Deck Three Bridges
+
+Click a stage or move the chip.
+Any player can choose.
+Left/Right: change stage - Y: start
+
+START MATCH [A]
+
+K
+
+
+a wait ('Paused',)
+ARCHER : ‘ f ILLIDA
+
+
+6:51
+
+PAUSED — Press Start to resume. Combat Is frozen.
+
+- Resume: Start
+
+Paused — press Start to re:
+.
+
+ 5.0%
+
+P1 . ARCHER
+
+7.0%
+
+ILLIDAN
+
+R
+
+Developer test: controller-menus-20261005 | player=1 | phase=2 | x=-322 z=0 | input=- 1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+
+K
+
+
+a wait ('wins|rematch',)
+7.0
+
+N
+ARCHER ILLIDAN
+
+
+6:45
+
+0/2 ready. Press A or Start to choose your next match.
+
+- Pause: Start
+
+Player 2 wins!
+
+- 0.0%
+
+P1 . ARCHER
+
+7.0%
+
+ILLIDAN
+
+R
+
+Developer test: controller-menus-20261005 | player=1 | phase=3 | x=-920 z=-376 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+
+K
+
+
+b wait ('wins|rematch',)
+ARCHER ILLIDAN
+
+-2 -
+
+-
+-
+-
+
+ Developer test: controller-menus-20261005 | player=2 | phase=3 | x=240 z=0 | input=-1 mode=shadow-
+
+-0
+e
+
+\ ) ‘ b ) -\ 6:45
+0/2 redtly. PrestW or Start to Mvose y&r next h
+
+N -
+
+Player 2 wins!
+
+-
+
+0.0%
+
+P ) ARCHER
+
+7.0%
+
+ILLIDAN
+
+WA &
+
+Developer test: controller-menus-20261005 | player=2 | phase=3 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+
+
