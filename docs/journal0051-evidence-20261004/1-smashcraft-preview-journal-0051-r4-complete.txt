@@ -1,0 +1,5 @@
+build=journal-0051 phase=complete preview=4 match-phase=0 humans=2 mask=3
+slot=0 ready=1 controls=0 choice=0 selected=0 body=1051013
+slot=1 ready=1 controls=1 choice=1 selected=1 body=1051011
+slot=2 ready=1 controls=0 choice=2 selected=0 body=0
+slot=3 ready=1 controls=0 choice=0 selected=0 body=0

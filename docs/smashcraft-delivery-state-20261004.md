@@ -1,5 +1,16 @@
 # Smashcraft delivery state — 4 October 2026
 
+Latest decision: native JASS50/51 still disconnect during fighter selection,
+before controller helpers start. Shared fighter choices and unit identities
+matched. Unit-reference cleanup did not fix the failure. Both candidates are
+rejected and archived privately. The published Lua source, exact compiler JAR
+and playable40 artifact are restored. Original-frame controller retention and
+the broader acceptance work remain incomplete. Advisory response targets do
+not replace the usable-gameplay decision.
+
+Failure evidence: wc3-melee:docs/journal0050-evidence-20261004/ and
+wc3-melee:docs/journal0051-evidence-20261004/.
+
 ## Usable checkpoint: 0.0.40
 
 The integrated candidate is playable in the observed two-client online journey.

@@ -7,17 +7,27 @@ deadline was 08:38:38 Taipei on 4 October; it was missed and has not reset.
 
 ## Current deciding evidence
 
-The newest matched 0.0.31 test separates the wrapper from populated Preloader
+Exact 0.0.40 remains the delivered two-client gameplay checkpoint: movement,
+combat, pause/resume, stock loss, results and rematch have been observed. Its
+keyboard input path also serves the digital controller mapper that the operator
+reported responsive. It does not retain arbitrary controller edges through
+service stalls. Original-frame controller delivery remains unfinished.
+
+The matched 0.0.31 test separates the wrapper from populated Preloader
 execution: changing FileIO averaged 3,170/3,064 ms and direct changing Preloader
 3,050/2,800 ms (A/B), while generated changing values averaged 86/68 ms and
 fresh constant-content FileIO 85/81 ms. Every arm delivered 300/300 with zero
-reported integrity errors. Details and limits appear below.
+reported integrity errors. This remains bounded transport evidence, not physical
+button-to-pixel timing. No alternative has beaten the usable direct-sync baseline.
 
-Direct-sync invalid values now have an identified serialization failure:
-minimum signed integer wire text was `-2.147484e+09`, parsed as `-2`. Generated
-Lua emits the minimum integer as `-2147483648` and lowers I2S to `tostring`.
-A focused compiler repair and Lua32 proof are in progress; no corrected native
-transport ranking is claimed yet.
+The minimum-integer serialization defect was repaired and activated; it is no
+longer pending. Journal44–46 failed native input delivery. Native JASS47–51
+repaired startup but exposed a pre-input selection desync. Candidate50 matched
+choices and unit identities before disconnect; candidate51's unit-reference
+cleanup did not fix it. Both candidates are rejected. The exact Lua source,
+compiler artifact and playable40 map are restored; the desync cause is open.
+Evidence and limits appear below and in
+wc3-melee:docs/smashcraft-delivery-state-20261004.md.
 
 **Populated preload-file ingestion reproduces the seconds-long backlog.**
 The same two Warcraft III 3.0 clients ran exact Smashcraft 0.0.24, build
@@ -753,3 +763,27 @@ branch. Native evidence: wc3-melee:docs/journal0049-evidence-20261004/.
 
 Artifact49 SHA256:
 `d8fcbb8d614188b3047a87985711b6ee04fe372d4eba5cb816ea2313a5a06383`.
+
+### Native50: matched selection state before the disconnect
+
+Both clients completed initialization and received A's Archer choice. Preview
+records matched fighter choices, readiness and both unit handle identities
+before and after recreation. A still disconnected. Native error summaries
+name turn1851, matching presence tag3792 and differing birth tags5125/5127.
+Controller helpers never started, so this is not a controller or latency verdict.
+The archived raw numeric log repeats earlier turn1113 records; use the current
+error summary and selection records for this attempt.
+
+The generated JASS also exposed an owning lifecycle defect: destroying Fighter
+did not clear its removed unit reference. Candidate51 moves unit removal and
+reference clearing into Fighter's destructor. This is a concrete resource repair;
+its causal relationship to the desync is unproved pending the native check.
+Evidence: wc3-melee:docs/journal0050-evidence-20261004/.
+
+Candidate51 compiled and initialized on both clients, but reproduced the
+disconnect immediately after A's selection, at native turn1281. Presence
+tags3792 matched; birth tags5125/5127 differed again. Clearing the Fighter unit
+reference therefore does not close this desync. No helpers started and there is
+no controller-performance verdict. The candidate and source patch are archived
+privately; the published Lua source and exact compiler artifact are restored.
+Evidence: wc3-melee:docs/journal0051-evidence-20261004/.

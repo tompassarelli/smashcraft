@@ -1,0 +1,10 @@
+{
+  "candidate": "0.0.51",
+  "sha256": "002bd575c48c6bb698b866d2fc1dcd9a601368f94470ae66ec0834ac035bb743",
+  "repair": "Fighter destructor clears native unit reference after removal",
+  "initialization": "complete on both clients",
+  "selection": "same choices and native body handles through A selection; A disconnected before B could select",
+  "failure": "turn1281; next presence tags3792 equal; next birth tags5125/5127 differ",
+  "helpers_started": false,
+  "verdict": "cleanup does not fix native desync; no controller performance verdict; cause unestablished"
+}
