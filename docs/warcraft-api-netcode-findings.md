@@ -7,15 +7,26 @@ deadline was 08:38:38 Taipei on 4 October; it was missed and has not reset.
 
 ## Current deciding evidence
 
-The bounded one-packet read check now shows delayed delivery rather than a
+Current claim owners and the consolidated delivery state:
+wc3-melee:docs/netplay-status.md. #26 owns the known polling-loss failure;
+#25 owns intended-frame assignment and #27 response/variation. #28–#30 preserve
+completed bounded results. Exact 0.0.40 remains playable.
+
+The serial keyboard/file-ACK replacement is rejected: native five-second trials
+confirmed only 36–50 frames, with median ACK waits of 81–92 ms. Its first
+original-frame tap does not establish usable throughput. Removing synchronized
+carrier-key registration did not fix the delay. Evidence:
+wc3-melee:docs/keyboard-mailbox-20261004/README.md.
+
+The earlier bounded one-packet read check showed delayed delivery rather than a
 permanently dead receiver: both clients received the packet and fixed markers,
 confirming frame2, with own-receipt ages801.025/817.627ms. Sending on the next
 callback did not avoid the delay. Adding the normal preload start/end calls
 also failed to repair it (631.836/698.486ms). The same compiled Lua map was used
 for both checks; this does not establish eventual delivery for native JASS59.
-Evidence and the selected local keyboard-state ingress implementation:
-wc3-melee:docs/journal-read-boundary-20261004/README.md. That replacement has no
-native performance verdict yet; exact40 remains the playable delivery.
+Evidence: wc3-melee:docs/journal-read-boundary-20261004/README.md. Its proposed
+keyboard-state replacement subsequently failed the native throughput trials
+above; it is not the selected playable input path.
 
 **Usable game:0.0.40, restored in a two-client fight. Failed controller experiment:59.** Internal diagnostic
 numbers41–59 are not successive delivered game releases. Release status and

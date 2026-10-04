@@ -1,5 +1,10 @@
 # Smashcraft delivery state — 4 October 2026
 
+Current claim/issue owners and the 2–4 October progress review are in
+wc3-melee:docs/netplay-status.md. Input retention #26 is a known failure;
+frame assignment #25 and physical response #27 remain open. Completed bounded
+claims #28–#30 do not close those requirements.
+
 **Playable release:0.0.40. Full original-frame controller delivery remains open.**
 The existing keyboard and digital controller mapper passed the two-client
 gameplay journey below. Those results remain valid. The original-frame journal

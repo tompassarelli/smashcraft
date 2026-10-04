@@ -7,7 +7,7 @@ upstream article does not update it.
 
 ## Input guarantee lookup — questions have durable owners
 
-Read the linked issue's current body, latest relevant comments and exact
+Start with wc3-melee:docs/netplay-status.md. Read the linked issue's current body, latest relevant comments and exact
 candidate evidence before answering a Smashcraft performance question.
 Use memory only to locate evidence. Do not restart the investigation from a
 generic explanation or create duplicate issues.
@@ -20,7 +20,7 @@ generic explanation or create duplicate issues.
 
 These issues refine #17's integrated acceptance under roadmap #16; they do not
 replace the existing implementation lane, #18 controller/platform work,
-#19 hosting comparison, or #20 full-match acceptance.
+#19 hosting comparison, or #17's consolidated full-match acceptance.
 
 Answer with the verdict, issue number, exact build/path, supporting evidence,
 limits and next unresolved gate. Distinguish measured support, code-only support,
@@ -37,6 +37,14 @@ checksums cannot alone prove first-frame physical response or zero lost gameplay
 inputs. Keep intentional delay, tick quantization and designed action startup
 separate from unexplained jitter. Preserve the advisory status of the 33/50/83 ms
 planning targets documented in #17/#20.
+
+Keep the current decision in the issue body; add a comment only for a material
+new result or decision, not routine activity. Reuse the canonical theme/claim
+issue and roadmap #16. Closed issues marked consolidated are transfers of scope,
+not completed engineering; their destination owns every unfinished requirement.
+Keep bounded completed claims #28–#30 closed absent a relevant change or concrete
+counterexample. This reporting procedure does not trigger an audit for unrelated
+asset or balance edits.
 
 For new evidence, update the owning issue with exact candidate/source identity,
 independent stimulus/oracle, sample count, uncertainty, raw traces, reproduction,
