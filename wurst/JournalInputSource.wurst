@@ -8,7 +8,7 @@ public constant int JOURNAL_WAIT = 0
 public constant int JOURNAL_READY = 1
 public constant int JOURNAL_INVALID = 2
 
-// One immutable file carries one canonical I4 packet with one or two records.
+// One immutable symbol-file set carries a canonical I4 packet with one or two records.
 // The cursor changes only after its caller admits every row and sends that same
 // packet over the synchronized input channel.
 public class JournalInputSource
@@ -35,8 +35,8 @@ public class JournalInputSource
 		validated = false
 		return true
 
-	function filename() returns string
-		return "smashcraft-journal-" + build + "-e" + I2S(epoch) + "-s" + I2S(slot) + "-n" + I2S(sequence) + ".pld"
+	function packetBase() returns string
+		return "smashcraft-journal-" + build + "-e" + I2S(epoch) + "-s" + I2S(slot) + "-n" + I2S(expectedFrame())
 
 	function expectedFrame() returns int
 		return 1 + delay + sequence - 1
@@ -50,8 +50,8 @@ public class JournalInputSource
 	function controlAckFrame() returns int
 		return controlAckFrame
 
-	function controlAckFilename() returns string
-		return "smashcraft-journal-ack-" + build + "-e" + I2S(epoch) + "-s" + I2S(slot) + "-n" + I2S(controlSequence) + ".pld"
+	function controlAckBase() returns string
+		return "smashcraft-journal-ack-" + build + "-e" + I2S(epoch) + "-s" + I2S(slot) + "-n" + I2S(controlSequence)
 
 	function acceptControlAck(string wire, string expectedState) returns boolean
 		if wire == ""

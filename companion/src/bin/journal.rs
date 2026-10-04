@@ -741,33 +741,67 @@ mod linux {
         first: u32,
         rows: &[String],
     ) -> io::Result<()> {
-        let target = dir.join(format!(
-            "smashcraft-journal-{build}-e{epoch}-s{slot}-n{first}.pld"
+        let base = dir.join(format!(
+            "smashcraft-journal-{build}-e{epoch}-s{slot}-n{first}"
         ));
-        if target.exists() {
-            return Err(io::Error::new(
-                io::ErrorKind::AlreadyExists,
-                format!("immutable journal row already exists: {}", target.display()),
-            ));
-        }
-        let wire = encode_packet(epoch, first, rows);
-        let temp = dir.join(format!(
-            ".journal-{epoch}-{slot}-{first}-{}.tmp",
-            std::process::id()
-        ));
+        publish_vocabulary(&base, &encode_packet(epoch, first, rows))
+    }
+
+    fn vocabulary_path(base: &Path, suffix: &str) -> PathBuf {
+        let mut path = base.as_os_str().to_os_string();
+        path.push(suffix);
+        path.into()
+    }
+
+    fn publish_symbol(target: &Path, symbol: u8) -> io::Result<()> {
+        let temp = vocabulary_path(target, &format!(".{}.tmp", std::process::id()));
         let mut file = OpenOptions::new()
             .write(true)
             .create_new(true)
             .open(&temp)?;
-        // Warcraft's FileIO executes a preload function and reads the tooltip;
-        // a bare packet string is not a loadable preload file.
-        writeln!(file, "function PreloadFiles takes nothing returns nothing")?;
-        writeln!(file, "call BlzSetAbilityTooltip('$wsl', \"{wire}\", 0)")?;
-        writeln!(file, "endfunction")?;
-        drop(file);
-        fs::hard_link(&temp, &target)?;
-        fs::remove_file(temp)?;
-        Ok(())
+        let result = (|| {
+            writeln!(file, "function PreloadFiles takes nothing returns nothing")?;
+            writeln!(
+                file,
+                "call BlzSetAbilityTooltip('$wsl', \"{}\", 0)",
+                char::from(symbol)
+            )?;
+            writeln!(file, "endfunction")?;
+            drop(file);
+            // A hard link publishes complete bytes without replacing a peer or
+            // previously published immutable symbol, including after a restart.
+            fs::hard_link(&temp, target)
+        })();
+        let cleanup = fs::remove_file(temp);
+        result.and(cleanup)
+    }
+
+    fn publish_vocabulary(base: &Path, wire: &str) -> io::Result<()> {
+        // The marker is an alphabet index. '|' is the sole additional fixed
+        // script needed by the existing ACK1 control wire.
+        if wire.is_empty()
+            || wire.len() >= ALPHABET.len()
+            || !wire
+                .bytes()
+                .all(|symbol| ALPHABET.contains(&symbol) || symbol == b'|')
+        {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid vocabulary payload",
+            ));
+        }
+        let marker = vocabulary_path(base, "-length.pld");
+        if marker.exists() {
+            return Err(io::Error::new(
+                io::ErrorKind::AlreadyExists,
+                "immutable journal packet already exists",
+            ));
+        }
+        for (offset, symbol) in wire.bytes().enumerate() {
+            publish_symbol(&vocabulary_path(base, &format!("-c{offset}.pld")), symbol)?;
+        }
+        // Readers do not inspect symbols until this final publication succeeds.
+        publish_symbol(&marker, ALPHABET[wire.len()])
     }
 
     fn control_path(dir: &Path, build: &str, epoch: u32, slot: u32, sequence: u32) -> PathBuf {
@@ -785,39 +819,105 @@ mod linux {
         state: ControlState,
         frame: u32,
     ) -> io::Result<()> {
-        let target = dir.join(format!(
-            "smashcraft-journal-ack-{build}-e{epoch}-s{slot}-n{sequence}.pld"
+        let base = dir.join(format!(
+            "smashcraft-journal-ack-{build}-e{epoch}-s{slot}-n{sequence}"
         ));
-        if target.exists() {
-            return Err(io::Error::new(
-                io::ErrorKind::AlreadyExists,
-                "journal control acknowledgment already exists",
-            ));
-        }
         let state = match state {
             ControlState::PausePrepare => "PREPARE",
             ControlState::PauseCommit => "COMMIT",
             ControlState::Paused => "PAUSE",
             ControlState::Resumed => "RESUME",
         };
-        let temp = dir.join(format!(
-            ".journal-ack-{epoch}-{slot}-{sequence}-{}.tmp",
-            std::process::id()
-        ));
-        let mut file = OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&temp)?;
-        writeln!(file, "function PreloadFiles takes nothing returns nothing")?;
-        writeln!(
-            file,
-            "call BlzSetAbilityTooltip('$wsl', \"ACK1|{sequence}|{state}|{frame}\", 0)"
-        )?;
-        writeln!(file, "endfunction")?;
-        drop(file);
-        fs::hard_link(&temp, &target)?;
-        fs::remove_file(temp)?;
-        Ok(())
+        publish_vocabulary(&base, &format!("ACK1|{sequence}|{state}|{frame}"))
+    }
+
+    #[test]
+    fn vocabulary_publication_preserves_packets_acks_and_immutable_commit_boundary() {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join(format!("journal-vocabulary-test-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let read_symbol = |path: PathBuf| {
+            let script = fs::read_to_string(path).unwrap();
+            let symbol = script.strip_prefix("function PreloadFiles takes nothing returns nothing\ncall BlzSetAbilityTooltip('$wsl', \"")
+                .unwrap().strip_suffix("\", 0)\nendfunction\n").unwrap();
+            assert_eq!(symbol.len(), 1);
+            symbol.as_bytes()[0]
+        };
+        let read_wire = |base: &Path| {
+            let marker = read_symbol(vocabulary_path(base, "-length.pld"));
+            let length = ALPHABET
+                .iter()
+                .position(|symbol| *symbol == marker)
+                .unwrap();
+            (0..length)
+                .map(|offset| {
+                    char::from(read_symbol(vocabulary_path(
+                        base,
+                        &format!("-c{offset}.pld"),
+                    )))
+                })
+                .collect::<String>()
+        };
+        let press = encode_row(
+            State {
+                sources: 1,
+                ..State::default()
+            },
+            0,
+            Edges::default(),
+        );
+        let release = encode_row(State::default(), ATTACK, Edges::default());
+        let rows = [press, release];
+        // The filename and I4 header both retain frame 4 (including delay).
+        publish(&dir, "vocabulary", 91, 2, 4, &rows).unwrap();
+        let base = dir.join("smashcraft-journal-vocabulary-e91-s2-n4");
+        let wire = encode_packet(91, 4, &rows);
+        assert_eq!(read_wire(&base), wire);
+        assert_eq!(
+            publish(&dir, "vocabulary", 91, 2, 4, &["0".into()])
+                .unwrap_err()
+                .kind(),
+            io::ErrorKind::AlreadyExists
+        );
+        assert_eq!(read_wire(&base), wire);
+        for (sequence, state, expected) in [
+            (1, ControlState::PausePrepare, "ACK1|1|PREPARE|6"),
+            (2, ControlState::Paused, "ACK1|2|PAUSE|6"),
+            (3, ControlState::Resumed, "ACK1|3|RESUME|6"),
+        ] {
+            publish_control_ack(&dir, "vocabulary", 91, 2, sequence, state, 6).unwrap();
+            assert_eq!(
+                read_wire(&dir.join(format!(
+                    "smashcraft-journal-ack-vocabulary-e91-s2-n{sequence}"
+                ))),
+                expected
+            );
+        }
+        // A collision halfway through must never expose a committed packet.
+        let partial = dir.join("partial");
+        let collision = vocabulary_path(&partial, "-c1.pld");
+        publish_symbol(&collision, b'Z').unwrap();
+        assert_eq!(
+            publish_vocabulary(&partial, "I412300").unwrap_err().kind(),
+            io::ErrorKind::AlreadyExists
+        );
+        assert!(!vocabulary_path(&partial, "-length.pld").exists());
+        assert_eq!(read_symbol(collision), b'Z');
+        let invalid = dir.join("invalid");
+        assert_eq!(
+            publish_vocabulary(&invalid, "unsafe\"").unwrap_err().kind(),
+            io::ErrorKind::InvalidInput
+        );
+        assert!(!vocabulary_path(&invalid, "-c0.pld").exists());
+        for entry in fs::read_dir(&dir).unwrap() {
+            let path = entry.unwrap().path();
+            assert_eq!(path.extension().unwrap(), "pld");
+            let symbol = read_symbol(path.clone());
+            assert!(ALPHABET.contains(&symbol) || symbol == b'|');
+            fs::remove_file(path).unwrap();
+        }
+        fs::remove_dir(dir).unwrap();
     }
 
     fn run() -> Result<(), String> {

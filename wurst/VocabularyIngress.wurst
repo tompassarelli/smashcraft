@@ -20,19 +20,25 @@ public function vocabularyReadTooltip(string path) returns string
     BlzSetAbilityTooltip(FILE_IO_ABIL_ID, " ", 0)
     return value == " " ? "" : value
 
-public function vocabularyReadPacket(string base) returns string
+public function vocabularyReadText(string base, int minimum, int maximum, string alphabet) returns string
     let marker = vocabularyReadTooltip(vocabularyMarkerPath(base))
     if marker == ""
         return ""
     let length = marker.length() == 1 ? INPUT_ALPHABET.indexOf(marker) : -1
-    if length < INPUT_HEADER_MIN_BYTES + INPUT_MIN_RECORD_BYTES or length > VOCABULARY_PACKET_MAX_BYTES
+    if length < minimum or length > maximum
         return "invalid-vocabulary-length"
     var wire = ""
     for offset = 0 to length - 1
         let symbol = vocabularyReadTooltip(vocabularySymbolPath(base, offset))
         if symbol == ""
             return ""
-        if symbol.length() != 1 or INPUT_ALPHABET.indexOf(symbol) < 0
+        if symbol.length() != 1 or alphabet.indexOf(symbol) < 0
             return "invalid-vocabulary-symbol"
         wire += symbol
     return wire
+
+public function vocabularyReadPacket(string base) returns string
+    return vocabularyReadText(base, INPUT_HEADER_MIN_BYTES + INPUT_MIN_RECORD_BYTES, VOCABULARY_PACKET_MAX_BYTES, INPUT_ALPHABET)
+
+public function vocabularyReadControlAck(string base) returns string
+    return vocabularyReadText(base, 1, INPUT_ALPHABET.length() - 1, INPUT_ALPHABET + "|")

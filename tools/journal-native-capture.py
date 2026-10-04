@@ -47,7 +47,7 @@ def main():
     for slot, root in enumerate(roots):
         ready = root / f"smashcraft-journal-ready-{args.build}-e{args.epoch}-p{slot}.txt"
         assert f"build={args.build} epoch={args.epoch} slot={slot}" in ready.read_text()
-        assert not (root / f"smashcraft-journal-{args.build}-e{args.epoch}-s{slot}-n{args.first_frame}.pld").exists()
+        assert not (root / f"smashcraft-journal-{args.build}-e{args.epoch}-s{slot}-n{args.first_frame}-length.pld").exists()
     assert "Warcraft" in Path(f"/proc/{args.client_b_pid}/comm").read_text()
     pads, observers, helpers, streams = [], [], [], []
     paused_game = False

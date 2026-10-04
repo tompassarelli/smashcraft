@@ -44,6 +44,7 @@ import FrostEffects
 import SpecialEffects
 import ResponseServiceProbe
 import JournalInputSource
+import VocabularyIngress
 import JournalPauseBarrier
 import FileIO
 import NativeOrderProbe
@@ -543,8 +544,7 @@ function serviceJournalPauseAck()
 		return
 	let localPlayer = GetLocalPlayer()
 	let sequence = journalInput.controlSequenceNumber()
-	journalInputFile.filename = journalInput.controlAckFilename()
-	let wire = journalInputFile.readAsString(localPlayer)
+	let wire = vocabularyReadControlAck(journalInput.controlAckBase())
 	let expectedState = journalPauseTarget ? (journalPauseCommitSent ? "PAUSE" : "PREPARE") : "RESUME"
 	if not journalInput.acceptControlAck(wire, expectedState)
 		return
@@ -668,9 +668,8 @@ function serviceJournalInput()
 				return
 			wire = transportIsolationPacket.encode()
 		else
-			journalInputFile.filename = journalInput.filename()
 			let fileReadStartedMs = responseProbeClockMs()
-			wire = journalInputFile.readAsString(localPlayer)
+			wire = vocabularyReadPacket(journalInput.packetBase())
 			if fileReadStartedMs >= 0
 				responseProbeFileRead(responseProbeClockMs() - fileReadStartedMs, wire.length())
 		if wire == ""
