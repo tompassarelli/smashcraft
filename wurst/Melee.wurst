@@ -1459,6 +1459,9 @@ function beginShadowEpoch() returns boolean
         if not journalInput.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot, SHADOW_INPUT_DELAY)
             failJournalInput("epoch could not be initialized")
         if JOURNAL_EDITBOX_INGRESS
+            // Text focus can consume the release of the menu key that started combat.
+            for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                matchControls.keyUp(slot)
             editboxJournalIngress.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot)
         if JOURNAL_KEYBOARD_INGRESS
 			keyboardJournalIngress.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot)
