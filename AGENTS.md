@@ -5,6 +5,45 @@ Read wc3-melee:wurst-toolchain.lock and wc3-melee:wurst.build before changing
 patch, compiler, standard library or target. The lock is authoritative; a newer
 upstream article does not update it.
 
+## Input guarantee lookup — questions have durable owners
+
+Read the linked issue's current body, latest relevant comments and exact
+candidate evidence before answering a Smashcraft performance question.
+Use memory only to locate evidence. Do not restart the investigation from a
+generic explanation or create duplicate issues.
+
+| User's question | Acceptance issue |
+| --- | --- |
+| Which original simulation frame owns my press? Can delayed delivery move it by 3–5 frames or change confirmed combat? | [#25](https://github.com/tompassarelli/smashcraft/issues/25) |
+| Can a short tap or release be lost, duplicated, reordered or stuck during a hitch? | [#26](https://github.com/tompassarelli/smashcraft/issues/26) |
+| Does local action start on the first eligible tick? What visible delay, jitter, pacing and correction should I expect? | [#27](https://github.com/tompassarelli/smashcraft/issues/27) |
+
+These issues refine #17's integrated acceptance under roadmap #16; they do not
+replace the existing implementation lane, #18 controller/platform work,
+#19 hosting comparison, or #20 full-match acceptance.
+
+Answer with the verdict, issue number, exact build/path, supporting evidence,
+limits and next unresolved gate. Distinguish measured support, code-only support,
+failed counterexamples, blocked/unverified work and inference. Say “solved in
+#N” only when its accepted result supports the exact claim and later changes have
+not invalidated it. **#21 closed a timeboxed HOLD decision; input guarantees
+remain open.** Closed investigations, merged PRs and passing unit tests do not
+by themselves establish native acceptance.
+
+Keep physical capture, helper dequeue, map admission, original frame assignment,
+local simulation, visible response, remote delivery and final confirmation
+separate. A 60 Hz loop, own-echo timing, retained helper events or matching final
+checksums cannot alone prove first-frame physical response or zero lost gameplay
+inputs. Keep intentional delay, tick quantization and designed action startup
+separate from unexplained jitter. Preserve the advisory status of the 33/50/83 ms
+planning targets documented in #17/#20.
+
+For new evidence, update the owning issue with exact candidate/source identity,
+independent stimulus/oracle, sample count, uncertainty, raw traces, reproduction,
+current conclusion and remaining limitation. Preserve failed/superseded findings
+with dates. Close only for an accepted result or an explicit documented
+disposition; do not silently convert investigation completion into success.
+
 ## Source and workflow
 
 - wc3-melee:wurst/ owns gameplay, deterministic state/replay, selection and UI.
