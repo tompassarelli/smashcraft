@@ -1,0 +1,9 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=netcode-0038 slot=1 startup=sync-received" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

@@ -9,8 +9,8 @@ map_version=$(cat "$project_dir/map-version")
 }
 map_name="Smashcraft $map_version"
 map_filename="$map_name.w3x"
-compiler_checkout=/home/tom/code/wurst-compiler/pins/9913e1bd300c2053637d756a11bae8c3c8ed568f
-stdlib_checkout=/home/tom/code/wurst-stdlib/pins/bb1e0458db5a
+compiler_checkout=/home/tom/code/wurst-compiler/pins/6b129956f6e7cf9582510f26b99d305526bf3ded
+stdlib_checkout=/home/tom/code/wurst-stdlib/pins/e3714f629113
 compiler_jar="$project_dir/toolchain/wurstscript.jar"
 java=/home/tom/.wurst/wurst-runtime/bin/java
 maps_dir='/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps/00-Smashcraft'
@@ -83,9 +83,9 @@ if [[ ! "$build_id" =~ ^[A-Za-z0-9._-]+$ ]]; then
     exit 2
 fi
 
-expected_compiler_commit=9913e1bd300c2053637d756a11bae8c3c8ed568f
-expected_stdlib_commit=bb1e0458db5a372ba2a6928112452785e435d01a
-expected_compiler_sha256=2ed2ee8cf563aedaef7e384b2e0c68f50a306144e99fa506b90935c62b64a18a
+expected_compiler_commit=6b129956f6e7cf9582510f26b99d305526bf3ded
+expected_stdlib_commit=e3714f629113ee682353c3244065fee3e7d9ae16
+expected_compiler_sha256=9495b1f3ad1f1baf53335934e9152874773e6c735b0e5db819b3e7f06c82ed15
 actual_compiler_sha256=$(sha256sum "$compiler_jar" | cut -d ' ' -f 1)
 [[ "$actual_compiler_sha256" == "$expected_compiler_sha256" ]] || {
     printf 'Pinned Wurst compiler checksum mismatch.\n' >&2
@@ -121,7 +121,7 @@ cp "$project_dir/wurst.build" "$work_dir/wurst.build"
 }
 sed -i "s/^  name: .*/  name: $map_name/" "$work_dir/wurst.build"
 cp "$project_dir/tools/map-entry.j" "$work_dir/wurst/war3map.j"
-for source in ConfirmedModelSounds ModelSoundPresentation FighterAssets Simulation TechInput MeleeContactGeometry MeleeScalarMath RollTravel IllidanMotion FighterPose BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput NetworkInput InputAdapter MatchStep ReplayState ReplayHistory KeyboardInputCapture InputProtocol InputBatch ParticipantInputs InputLedger FixedInputSchedule ShadowInputSchedule ShadowInputPlayback JournalInputSource ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents ImpactState SpecialEffectState SummonPose SummonState SummonPresentation DamagePose CombatEffects FrostEffects ProjectilePose ProjectilePresentation ShieldPose ShieldPresentation SpecialEffects ResponseServiceProbe NativeOrderProbe NativePreloadProbe NativeTransportProbe Melee; do
+for source in ConfirmedModelSounds ModelSoundPresentation FighterAssets Simulation TechInput MeleeContactGeometry MeleeScalarMath RollTravel IllidanMotion FighterPose BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput NetworkInput InputAdapter MatchStep ReplayState ReplayHistory KeyboardInputCapture InputProtocol InputBatch ParticipantInputs InputLedger FixedInputSchedule ShadowInputSchedule ShadowInputPlayback JournalInputSource VocabularyIngress VocabularyProbeCorpus ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents ImpactState SpecialEffectState SummonPose SummonState SummonPresentation DamagePose CombatEffects FrostEffects ProjectilePose ProjectilePresentation ShieldPose ShieldPresentation SpecialEffects ResponseServiceProbe NativeOrderProbe NativePreloadProbe NativeTransportProbe Melee; do
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
 done
 cp "$project_dir/build/model-sounds/wurst/ModelSoundInfo.wurst" "$work_dir/wurst/ModelSoundInfo.wurst"

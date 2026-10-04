@@ -1632,8 +1632,8 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 			for frame = 1 to 3
 				expectedX *= 0.8999999761581421
 				expectedZ *= 0.8999999761581421
-				expectedPositionX = ((expectedPositionX / 6).roundToFloat32() + (expectedX / 6).roundToFloat32()).roundToFloat32() * 6
-				expectedPositionZ = ((expectedPositionZ / 6).roundToFloat32() + (expectedZ / 6).roundToFloat32()).roundToFloat32() * 6
+				expectedPositionX = addFloat32(divideFloat32(expectedPositionX, 6), divideFloat32(expectedX, 6)) * 6
+				expectedPositionZ = addFloat32(divideFloat32(expectedPositionZ, 6), divideFloat32(expectedZ, 6)) * 6
 				advance(f, 0, input, 0)
 				f.vx.assertEquals(expectedX, 0.00001)
 				f.vz.assertEquals(expectedZ, 0.00001)
@@ -1684,9 +1684,9 @@ function startObservedRoll(FighterState f, InputSnapshot input, int profile, int
 			f.airDodgeFrame.assertEquals(30)
 			f.vx.assertEquals(nextVX, 0.00001)
 			f.vz.assertEquals(nextVZ, 0.00001)
-			let nextX = ((beforeX / 6).roundToFloat32() + (nextVX / 6).roundToFloat32()).roundToFloat32() * 6
+			let nextX = addFloat32(divideFloat32(beforeX, 6), divideFloat32(nextVX, 6)) * 6
 			f.x.assertEquals(nextX, 0.00001)
-			let nextZ = ((beforeZ / 6).roundToFloat32() + (nextVZ / 6).roundToFloat32()).roundToFloat32() * 6
+			let nextZ = addFloat32(divideFloat32(beforeZ, 6), divideFloat32(nextVZ, 6)) * 6
 			f.z.assertEquals(nextZ, 0.00001)
 			f.airDodging.assertTrue()
 			canAttack(f).assertFalse()

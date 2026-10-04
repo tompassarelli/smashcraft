@@ -1,0 +1,12 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=netcode-0031 receipt=fileio-discriminator begin" )
+	call Preload( "slot=2 arm=1 native-game-seconds=10.100" )
+	call Preload( "fixture-slot=2 fixture-arm=1 samples=300 offered-hz=30 payload-bytes=22 changing=yes" )
+	call Preload( "fixture-path-pattern=smashcraft-fileio-changing-netcode-0031-s2-nNNN.pld content=D0B+NNN+10zeroes" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

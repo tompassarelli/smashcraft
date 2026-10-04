@@ -1,0 +1,38 @@
+package VocabularyIngress
+import Wurst
+import FileIO
+import InputProtocol
+
+// The caller owns immutable base paths and publishes the length marker last.
+// Empty means missing/incomplete; malformed data is returned to the I4 validator.
+public constant int VOCABULARY_PACKET_MAX_BYTES = INPUT_HEADER_MAX_BYTES + 2 * INPUT_MAX_RECORD_BYTES
+
+public function vocabularySymbolPath(string base, int offset) returns string
+    return base + "-c" + I2S(offset) + ".pld"
+
+public function vocabularyMarkerPath(string base) returns string
+    return base + "-length.pld"
+
+public function vocabularyReadTooltip(string path) returns string
+    BlzSetAbilityTooltip(FILE_IO_ABIL_ID, " ", 0)
+    Preloader(path)
+    let value = BlzGetAbilityTooltip(FILE_IO_ABIL_ID, 0)
+    BlzSetAbilityTooltip(FILE_IO_ABIL_ID, " ", 0)
+    return value == " " ? "" : value
+
+public function vocabularyReadPacket(string base) returns string
+    let marker = vocabularyReadTooltip(vocabularyMarkerPath(base))
+    if marker == ""
+        return ""
+    let length = marker.length() == 1 ? INPUT_ALPHABET.indexOf(marker) : -1
+    if length < INPUT_HEADER_MIN_BYTES + INPUT_MIN_RECORD_BYTES or length > VOCABULARY_PACKET_MAX_BYTES
+        return "invalid-vocabulary-length"
+    var wire = ""
+    for offset = 0 to length - 1
+        let symbol = vocabularyReadTooltip(vocabularySymbolPath(base, offset))
+        if symbol == ""
+            return ""
+        if symbol.length() != 1 or INPUT_ALPHABET.indexOf(symbol) < 0
+            return "invalid-vocabulary-symbol"
+        wire += symbol
+    return wire

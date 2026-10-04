@@ -504,7 +504,7 @@ function serviceJournalInput()
 		return
 	if nativeOrderProbeActive()
 		return
-	if nativePreloadProbeActive() or nativeTransportProbeActive()
+	if nativePreloadProbeActive() or nativePreloadProbeStartPending() or nativeTransportProbeActive()
 		return
 	if transportIsolationPhase == 1 or transportIsolationPhase == 2
 		return
@@ -1014,6 +1014,7 @@ function shadowPollLocal() returns int
 function receiveShadowInput()
     let sender = GetPlayerId(GetTriggerPlayer())
     let wire = BlzGetTriggerSyncData()
+    nativePreloadProbeObserveSync(sender, wire)
     if nativePreloadProbeReceive(sender, wire)
         return
     if not shadowInputActive or not matchState.humanActive(sender)
@@ -1392,6 +1393,11 @@ function onParticipantKeyDown(int slot)
             confirm(slot)
         return
     if slot == matchState.firstHumanSlot() and key == OSKEY_F5
+        if RESPONSE_SERVICE_PROBE
+            PreloadGenClear()
+            PreloadGenStart()
+            Preload("build=" + BUILD_ID + " slot=" + I2S(slot) + " key=" + I2S(keyCode) + " phase=" + I2S(matchState.phase))
+            PreloadGenEnd("smashcraft-developer-exit-" + BUILD_ID + ".txt")
         EndGame(false)
         return
     if key == OSKEY_ESCAPE and controls != null and controls.isOpen()

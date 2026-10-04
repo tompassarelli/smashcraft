@@ -1,0 +1,11 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "SOURCE 7fd7c9debc50fa455167587a98aa6c0b48cb54fa" )
+	call Preload( "MESSAGES 689" )
+	call Preload( "NATIVE_PHYSICS_FAIL" )
+	call PreloadEnd( 0.4 )
+
+endfunction
+
+

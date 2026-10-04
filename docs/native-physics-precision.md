@@ -3,9 +3,9 @@
 smashcraft:tools/physics-probe/build-native-precision.sh packages the production
 Simulation, RollTravel and MeleeScalarMath sources with the existing numerical
 comparison fixtures. It uses the locked compiler and standard library and
-rejects uncommitted changes to those three simulation packages. All generated
-sources and map outputs remain inside the owning worktree's build directory.
-The private terrain input remains outside the repository.
+rejects uncommitted changes to those three simulation packages. Authored generated fixture sources remain inside the owning worktree’s build
+directory. Map intermediates and candidates remain in private build storage
+outside the repository, alongside the private terrain input.
 
 Run the builder through the machine-capacity helper with the private terrain
 map and an explicitly coordinated version (0.0.N) as its arguments. The builder
@@ -80,3 +80,58 @@ The current candidate includes 56 original DI vectors. The emitted-Lua check
 observes all 56 matching
 vectors; see smashcraft:docs/smash-melee-reference/retail-di-vector.json for the
 original execution boundary and limitations.
+
+
+The current-source arithmetic candidate is Smashcraft 0.0.33, source
+`7fd7c9debc50fa455167587a98aa6c0b48cb54fa`, built with compiler
+`6b129956f6e7cf9582510f26b99d305526bf3ded`. Candidate:
+~/.local/share/smashcraft-build-inputs/native-physics-activation-20261004/native.A4CCF6/Smashcraft 0.0.33.w3x.
+SHA256: `197e0d4148c0f0680bc5b6b6513b836fbdc90505a36eea3a2f24d4e86e28036c`.
+Compilation reports zero errors and four warnings; Lua syntax and packaged-script
+comparison pass. Native execution failed on the retained Warcraft client. Both stale diagnostic contact
+calls now use the production fighter roster API. Current acceptance uses the
+same sixteen groups and nineteen messages above, with this new source marker.
+
+
+## Native 0.0.33 counterexample
+
+A fresh one-player load exported source 7fd7c9debc50fa455167587a98aa6c0b48cb54fa,
+MESSAGES 689 and NATIVE_PHYSICS_FAIL. The export contains only source/count/final
+verdict; individual initialization-phase Preload records were not retained. Emitted initialization order does not establish why.
+Fresh screen OCR includes SHIELD_CONTACT_SUM_BINARY32_EXACT_FAIL, recorded fall
+failures for frames -54 through -50, and SIGNED_ZERO_SIGN_1_angle_FAIL. Some
+fixture groups print PASS even after individual FAIL messages, so those banners
+do not establish passing groups. No arithmetic/native fidelity acceptance.
+
+Evidence: wc3-melee:docs/native-physics-precision-20261004/native0033.txt and
+wc3-melee:docs/native-physics-precision-20261004/native0033-screen.txt.
+The next diagnostic buffers results and starts/writes/closes its export together in the timer; native execution must verify retained individual results and truthful group verdicts,
+then separate fixture expectations from production/Lua32 arithmetic failures.
+A scoped child owns that repair and a 0.0.35 candidate; this root owns native
+client access. Peer communications remain stopped.
+
+
+## Complete native 0.0.35 export
+
+The repaired diagnostic candidate uses source
+`ac26f22aa81f75ebc350a85324f38152f41f230c`, SHA256
+`0bc8b9280c1aa9377e5f638e8ff0ed5b8bc982ca2a3309da9c9cffafa7fdc1e2`.
+It buffers initialization results and exports them together after initialization.
+A fresh one-player native load retains 700 diagnostic messages and the final
+failure verdict. Six groups pass: grounded friction, shield regeneration,
+shield damage, shield stun, hitlag scalars, and hitstun boundaries. The others
+fail, including capsule/shield classification, analog shielding, launch,
+directional influence, ground motion, air arithmetic, recorded fall and signed
+zero. The export reports launch mismatch count 119, DI mismatch count 21 and
+discrete DI mismatch count 15. These are comparison-case counts, not a whole-game
+fidelity percentage.
+
+Full authored numerical evidence:
+wc3-melee:docs/native-physics-precision-20261004/native0035.txt.
+The reporting repair succeeds; production arithmetic acceptance fails.
+Local IEEE Lua32 reproduces a subset of failures from non-reversible world-unit
+scaling by six and back. The compiler repository also records Warcraft 3.0
+arithmetic-result truncation rather than ordinary IEEE rounding; this explains
+why Lua64 and IEEE Lua32 checks cannot substitute for the native comparison.
+The exact production repair is still pending. No tests or comparison criteria
+have been weakened.

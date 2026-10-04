@@ -1,0 +1,17 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=netcode-0038 receipt=vocabulary-ingress end" )
+	call Preload( "slot=0 arm=4 native-game-seconds=139.966" )
+	call Preload( "source-method=whole-packet-changing-script offered-hz=60 records-per-packet=1 samples=300" )
+	call Preload( "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes" )
+	call Preload( "attempts=300 sent=300 echoed=0 missing=300 local-read-errors=0 bad-records=0" )
+	call Preload( "send-failures=0 duplicates=0 peer-packets=0 peer-errors=0 drain-callbacks=1200" )
+	call Preload( "native-read-seconds=0.000 sends-bytes=7749 send-call-seconds=0.000" )
+	call Preload( "echo-age-samples=0 mean-native-seconds=0.000 max-native-seconds=0.000 phase-span-native-seconds=24.994" )
+	call Preload( "first-read-native-seconds=0.000 first-echo-native-seconds=-1.000" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

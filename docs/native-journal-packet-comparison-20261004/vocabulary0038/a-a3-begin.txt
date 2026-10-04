@@ -1,0 +1,13 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=netcode-0038 receipt=vocabulary-ingress begin" )
+	call Preload( "slot=0 arm=3 native-game-seconds=89.978" )
+	call Preload( "source-method=generated-I4 offered-hz=60 records-per-packet=1 samples=300" )
+	call Preload( "explicit-prewarm=no vocabulary-content-reused=no-earlier-vocabulary-arm epoch=36 original-frames=yes" )
+	call Preload( "fixture-source=0 fixture-sender=0 fixture-first-base=smashcraft-vocabulary-netcode-0038-s0-p0-a3-n000" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+
