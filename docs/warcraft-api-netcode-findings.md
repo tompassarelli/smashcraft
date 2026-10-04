@@ -638,3 +638,21 @@ the helpers were reaped. The driver never exercised resume or its planned
 helper stall. This remains an unfinished native integration check; helper
 edge retention does not establish intended-frame gameplay application.
 Evidence: wc3-melee:docs/journal-pause0041-evidence-20261004/.
+
+
+## Native 0.0.42 journal decision
+
+The fixed one-character script vocabulary and original-frame filename repair
+are integrated at 1f185f8. Rust journal 7/7 and Wurst Journal 5/5 focused checks
+passed. The native two-client match did not complete the first PREPARE wait
+within 35 seconds. Both helpers retained the 5 ms attack edges at frame 19;
+the screen was observed at frame 0 during the run and later at frame 9 with
+Pausing after helper shutdown. No fresh native trace completed, and the planned
+resume/stall steps were not reached. Immutable script content has not established
+usable native journal ingress or original-frame gameplay application.
+
+Keep 0.0.40 as the playable keyboard/digital-mapper candidate. Do not reopen the
+transport survey or treat this incomplete analog-file experiment as evidence
+that its responsive digital input path regressed. Details and bounded logs:
+wc3-melee:docs/journal-pause-checkpoint-20261004.md and
+wc3-melee:docs/journal0042-evidence-20261004/.

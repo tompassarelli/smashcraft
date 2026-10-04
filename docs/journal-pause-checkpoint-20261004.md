@@ -59,11 +59,40 @@ The corrected trial's two helpers were also reaped and its virtual controller
 destroyed. Both retained clients reached Game Menu and then End Game Options,
 but Quit Mission did not establish a score/browser transition after held keys
 and pointer clicks. Both exact game windows remained focused and the pointer
-reached the observed Quit Mission position. No game/launcher was restarted.
-Exact 0.0.40 bytes are restored on disk and 0.0.41 remains privately archived.
-Preserve the loaded trial's input files until both clients' actual map leave is
-established. Bounded public evidence is under
-wc3-melee:docs/journal-pause0041-evidence-20261004/.
+reached the observed Quit Mission position. Both unusable game processes were subsequently terminated by exact PID and
+recovered through Play in their retained authenticated Battle.net launchers.
+Both returned online without another sign-in. A fresh 0.0.40 two-client match
+then accepted movement, and both clients completed ordinary Quit Mission to
+score screens. Later F5 requests occurred after that transition, with no
+receipt, and did not establish the exit. Do not attribute the earlier leave
+failure to the journal without a discriminating measurement. Bounded evidence is
+under wc3-melee:docs/journal-pause0041-evidence-20261004/.
+
+## 0.0.42 checkpoint
+
+Source 1f185f8 integrates the immutable one-character vocabulary reader for I4
+packets and ACK1 replies. The helper publishes symbols first and a length marker
+last. It also repairs nonzero-delay addressing: the reader names the original
+frame, matching the writer. Focused journal checks passed Rust 7/7 and Wurst
+5/5; these establish protocol logic, not native performance.
+
+The private candidate is
+~/.local/share/smashcraft-build-inputs/production-netcode-20261004/build/Smashcraft 0.0.42.w3x,
+SHA256 a0bfcbe264ff624c069779b0afd605b0bb62c33f73ccf561a8b063a497a6b723.
+Both retained clients joined the same Battle.net match; the spare slots were
+closed and both entered the fight. Helper epoch 514602024183525 assigned both
+5 ms attack edges to frame 19. The first PREPARE acknowledgment was unavailable
+within 35 seconds. The native screen was observed at simulation frame 0 during
+the trial and later at frame 9 with Pausing after helper shutdown. No fresh
+journal-0042 trace start or completed trace was observed. The fixture never
+reached native pause commitment, resume, or its controlled helper stall.
+
+This encoding has not established usable native journal input. Helper retention
+does not prove native application at the intended frame. The helpers were reaped
+and the virtual controller destroyed. Bounded evidence is retained at
+wc3-melee:docs/journal0042-evidence-20261004/; full private logs remain at
+wc3-melee:build/journal-journal42-native. The playable keyboard/digital-mapper
+baseline remains 0.0.40. No new transport survey is needed to make that choice.
 
 The usable delivery remains 0.0.40. Native journal pause/resume, live original
 frame retention, physical response and broader platform/player coverage remain

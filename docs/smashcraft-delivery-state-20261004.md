@@ -10,13 +10,16 @@ continued play. An intentional walk-off exercised stock loss and the result
 screen. Both players acknowledged rematch, returned to selection and entered a
 second fight. Further response and mapper trials used subsequent fights.
 Both retained clients remain signed in. No companion writer is running.
-The subsequent experimental 0.0.41 journal pause trial is recorded separately
-at wc3-melee:docs/journal-pause-checkpoint-20261004.md. The first trial completed
-a warm map leave and the corrected trial loaded a fresh match. That corrected
-trial did not reach pause acknowledgment within its bounded driver wait.
-Exact 0.0.40 bytes are restored on disk, but the loaded diagnostic still shows
-the End Game submenu after held keys and pointer clicks; its map leave is not
-established. Do not infer that the retained clients currently run 0.0.40.
+The subsequent experimental 0.0.41 and 0.0.42 journal trials are recorded at
+wc3-melee:docs/journal-pause-checkpoint-20261004.md. Neither completed its native
+pause/resume journey. In 0.0.42 both helpers retained a 5 ms tap at frame 19,
+but no first pause acknowledgment arrived within 35 seconds; native application
+at that frame remains unproved. Exact 0.0.40 bytes are restored in both map
+folders after ending the unusable diagnostic game processes. Launcher recovery
+is underway; do not infer that an online menu is an already running 0.0.40 fight.
+A separate fresh 0.0.40 match after the 0.0.41 recovery accepted movement, and
+both clients completed ordinary Quit Mission to their score screens. The later
+F5 requests did not establish those exits.
 
 The input source is keyboard, with local prediction and direct synchronization.
 This is the path consumed by the existing digital Xbox keyboard mapper. The
