@@ -1,5 +1,6 @@
 package InputLedger
 import NetworkInput
+import ParticipantInputs
 import InputProtocol
 
 public constant int INPUT_LEDGER_CAPACITY = 256
@@ -16,43 +17,57 @@ public constant int INPUT_STORAGE_FULL = 7
 // Common construction preallocates every row and receive scratch object. No
 // accept/read/predict/reset operation allocates or destroys Wurst objects.
 public class InputLedger
-    private NetworkInput array[512] rows
-    private int array[512] frames
+    private NetworkInput array[INPUT_LEDGER_CAPACITY * INPUT_PARTICIPANT_CAPACITY] rows
+    private int array[INPUT_LEDGER_CAPACITY * INPUT_PARTICIPANT_CAPACITY] frames
     private InputPacket packet = new InputPacket()
     private NetworkInput firstScratch = new NetworkInput()
     private NetworkInput secondScratch = new NetworkInput()
     private NetworkInput neutral = new NetworkInput()
+    private int activeMask = 0
     private int epoch = -1
     private int retainedFrom = 1
     private int consumed = 0
     private int known = 0
 
     construct()
-        for i = 0 to 511
+        for i = 0 to INPUT_LEDGER_CAPACITY * INPUT_PARTICIPANT_CAPACITY - 1
             rows[i] = new NetworkInput()
             frames[i] = -1
 
     // Normal matches start at 1: seed 1..D, corresponding to proposal 0..D-1.
     // Explicit firstFrame also supports bounded imported/resumed frame ranges.
-    function beginEpoch(int newEpoch, int firstFrame, int delay) returns boolean
-        if newEpoch <= epoch or firstFrame < 1 or firstFrame > INPUT_LAST_FRAME or delay < 0 or delay > INPUT_FUTURE_LIMIT
+    function beginEpoch(int newEpoch, int firstFrame, int delay, int participants) returns boolean
+        if not validParticipantMask(participants) or newEpoch <= epoch or firstFrame < 1 or firstFrame > INPUT_LAST_FRAME or delay < 0 or delay > INPUT_FUTURE_LIMIT
             return false
         if delay > 0 and firstFrame > INPUT_LAST_FRAME - (delay - 1)
             return false
+        activeMask = participants
         epoch = newEpoch
         retainedFrom = firstFrame
         consumed = firstFrame - 1
         known = firstFrame - 1
-        for i = 0 to 511
+        for i = 0 to INPUT_LEDGER_CAPACITY * INPUT_PARTICIPANT_CAPACITY - 1
             frames[i] = -1
         for i = 0 to delay - 1
             let frame = firstFrame + i
-            let index = (frame mod INPUT_LEDGER_CAPACITY) * 2
-            neutral.copyTo(rows[index])
-            neutral.copyTo(rows[index + 1])
-            frames[index] = frame
-            frames[index + 1] = frame
+            let index = (frame mod INPUT_LEDGER_CAPACITY) * INPUT_PARTICIPANT_CAPACITY
+            for sender = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                if isActive(sender)
+                    neutral.copyTo(rows[index + sender])
+                    frames[index + sender] = frame
             known = frame
+        return true
+
+    function participantMask() returns int
+        return activeMask
+
+    function isActive(int sender) returns boolean
+        return participantIsActive(activeMask, sender)
+
+    private function allPresent(int frame) returns boolean
+        for sender = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if isActive(sender) and not contains(epoch, sender, frame)
+                return false
         return true
 
     function epochNumber() returns int
@@ -68,22 +83,22 @@ public class InputLedger
         return retainedFrom
 
     function contains(int requestedEpoch, int sender, int frame) returns boolean
-        if epoch < 0 or requestedEpoch != epoch or sender < 0 or sender > 1 or frame < retainedFrom or frame > INPUT_LAST_FRAME
+        if epoch < 0 or requestedEpoch != epoch or not isActive(sender) or frame < retainedFrom or frame > INPUT_LAST_FRAME
             return false
         if frame - retainedFrom >= INPUT_LEDGER_CAPACITY
             return false
-        return frames[(frame mod INPUT_LEDGER_CAPACITY) * 2 + sender] == frame
+        return frames[(frame mod INPUT_LEDGER_CAPACITY) * INPUT_PARTICIPANT_CAPACITY + sender] == frame
 
     function copyAccepted(int requestedEpoch, int sender, int frame, NetworkInput destination) returns boolean
         if not contains(requestedEpoch, sender, frame)
             return false
-        rows[(frame mod INPUT_LEDGER_CAPACITY) * 2 + sender].copyTo(destination)
+        rows[(frame mod INPUT_LEDGER_CAPACITY) * INPUT_PARTICIPANT_CAPACITY + sender].copyTo(destination)
         return true
 
     function predictFrom(int requestedEpoch, int sender, int frame, NetworkInput destination) returns boolean
         if not contains(requestedEpoch, sender, frame)
             return false
-        rows[(frame mod INPUT_LEDGER_CAPACITY) * 2 + sender].predictTo(destination)
+        rows[(frame mod INPUT_LEDGER_CAPACITY) * INPUT_PARTICIPANT_CAPACITY + sender].predictTo(destination)
         return true
 
     // The caller acknowledges actual common consumption in order. Future bounds
@@ -100,9 +115,9 @@ public class InputLedger
         if epoch < 0 or requestedEpoch != epoch or frame < retainedFrom - 1 or frame > consumed
             return false
         for oldFrame = retainedFrom to frame
-            let index = (oldFrame mod INPUT_LEDGER_CAPACITY) * 2
-            frames[index] = -1
-            frames[index + 1] = -1
+            let index = (oldFrame mod INPUT_LEDGER_CAPACITY) * INPUT_PARTICIPANT_CAPACITY
+            for sender = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                frames[index + sender] = -1
         retainedFrom = frame + 1
         return true
 
@@ -113,7 +128,7 @@ public class InputLedger
             return INPUT_TOO_FAR_AHEAD
         if frame - retainedFrom >= INPUT_LEDGER_CAPACITY
             return INPUT_STORAGE_FULL
-        let index = (frame mod INPUT_LEDGER_CAPACITY) * 2 + sender
+        let index = (frame mod INPUT_LEDGER_CAPACITY) * INPUT_PARTICIPANT_CAPACITY + sender
         if frames[index] == frame
             return rows[index].sameAs(row) ? INPUT_ACCEPTED : INPUT_CONFLICT
         if frames[index] != -1
@@ -121,7 +136,7 @@ public class InputLedger
         return INPUT_ACCEPTED
 
     private function commitRow(int sender, int frame, NetworkInput row)
-        let index = (frame mod INPUT_LEDGER_CAPACITY) * 2 + sender
+        let index = (frame mod INPUT_LEDGER_CAPACITY) * INPUT_PARTICIPANT_CAPACITY + sender
         if frames[index] != frame
             row.copyTo(rows[index])
             frames[index] = frame
@@ -129,7 +144,7 @@ public class InputLedger
     // Only the receiver's event-derived slot is authoritative. Do not call from
     // local sampling or pending-input storage: those are separate scheduler data.
     function acceptPacket(int sender, InputPacket incoming) returns int
-        if sender < 0 or sender > 1
+        if sender < 0 or sender >= INPUT_PARTICIPANT_CAPACITY or (epoch >= 0 and not isActive(sender))
             return INPUT_WRONG_SENDER
         let count = incoming.recordCount()
         if count < 1 or count > 2
@@ -149,12 +164,12 @@ public class InputLedger
         commitRow(sender, frame, firstScratch)
         if count == 2
             commitRow(sender, frame + 1, secondScratch)
-        while known < INPUT_LAST_FRAME and contains(epoch, 0, known + 1) and contains(epoch, 1, known + 1)
+        while known < INPUT_LAST_FRAME and allPresent(known + 1)
             known++
         return INPUT_ACCEPTED
 
     function receive(int sender, string wire) returns int
-        if sender < 0 or sender > 1
+        if sender < 0 or sender >= INPUT_PARTICIPANT_CAPACITY or (epoch >= 0 and not isActive(sender))
             return INPUT_WRONG_SENDER
         if not packet.decode(wire)
             return INPUT_MALFORMED

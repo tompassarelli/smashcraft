@@ -1,0 +1,93 @@
+package InputBatchTests
+import InputBatch
+import NetworkInput
+import ParticipantInputs
+import InputProtocol
+import InputLedger
+import ShadowInputSchedule
+import KeyBindings
+
+@Test function batchPreservesTwoDistinctCapturedEdgesAndBoundsStorage()
+    let batch = new InputBatch()
+    let source = new NetworkInput()
+    let decoded = new NetworkInput()
+    let packet = new InputPacket()
+    batch.beginEpoch(70)
+    source.assign(inputActionBit(ATTACK), inputActionBit(ATTACK), 0, 0, 0, 0, 0).assertTrue()
+    batch.append(70, 4, source).assertTrue()
+    source.assign(0, 0, inputActionBit(ATTACK), 0, 0, 0, 0).assertTrue()
+    batch.append(70, 4, source).assertFalse()
+    batch.append(70, 6, source).assertFalse()
+    batch.append(71, 5, source).assertFalse()
+    batch.append(70, 5, source).assertTrue()
+    batch.append(70, 6, source).assertFalse()
+    source.assign(0, 0, 0, 0, 0, 0, 0).assertTrue()
+    batch.prepare(packet).assertTrue()
+    packet.encode().length().assertEquals(23)
+    packet.decode(packet.encode()).assertTrue()
+    packet.copyRecord(0, decoded).assertTrue()
+    decoded.pressedMask().assertEquals(inputActionBit(ATTACK))
+    packet.copyRecord(1, decoded).assertTrue()
+    decoded.releasedMask().assertEquals(inputActionBit(ATTACK))
+    batch.sent()
+    batch.recordCount().assertEquals(0)
+    batch.prepare(packet).assertFalse()
+
+@Test function incompleteBatchFlushAndEpochResetCannotLeakOldRows()
+    let batch = new InputBatch()
+    let row = new NetworkInput()
+    let packet = new InputPacket()
+    batch.beginEpoch(71)
+    batch.append(71, 4, row).assertTrue()
+    batch.prepare(packet).assertTrue()
+    packet.recordCount().assertEquals(1)
+    packet.encode().length().assertEquals(7)
+    batch.sent()
+    batch.append(71, 5, row).assertTrue()
+    batch.beginEpoch(72)
+    batch.recordCount().assertEquals(0)
+    batch.prepare(packet).assertFalse()
+    batch.append(71, 6, row).assertFalse()
+    batch.append(72, 4, row).assertTrue()
+    batch.prepare(packet).assertTrue()
+    packet.epochNumber().assertEquals(72)
+    packet.firstFrameNumber().assertEquals(4)
+
+@Test function batchScheduleAdvancesWithPauseAndWindowWaitSingletons()
+    let schedule = new ShadowInputSchedule()
+    let batch = new InputBatch()
+    let sample = new NetworkInput()
+    let inputs = new ParticipantInputs()
+    let packet = new InputPacket()
+    schedule.beginEpoch(73, 3, SHADOW_DEFAULT_ROLLBACK_WINDOW, 3).assertTrue()
+    batch.beginEpoch(73)
+    // Withhold all transport until the R=6 window fills, then flush its
+    // incomplete tail. Every captured F+D row remains available verbatim.
+    for frame = 1 to 9
+        let target = schedule.captureTarget()
+        target.assertEquals(frame + 3)
+        schedule.captureLocal(73, sample).assertEquals(SHADOW_CAPTURED)
+        schedule.resolveSpeculative(73, 0, inputs).assertTrue()
+        schedule.completeSpeculative(73, frame).assertTrue()
+    schedule.mayAdvanceSpeculative().assertFalse()
+    schedule.captureLocal(73, sample).assertEquals(SHADOW_CAPTURED)
+    // Repeated polling at a blocked target cannot rewrite the capture.
+    schedule.captureLocal(73, sample).assertEquals(SHADOW_ALREADY_CAPTURED)
+    for target = 4 to 13
+        schedule.copyPending(73, target, sample).assertTrue()
+        batch.append(73, target, sample).assertTrue()
+        // Frame 6 represents a pause/transition singleton. The final tail
+        // represents a repeated-target wait with no second row forthcoming.
+        if batch.recordCount() == 2 or target == 6 or target == 13
+            batch.prepare(packet).assertTrue()
+            schedule.acceptSynchronized(0, packet).assertEquals(INPUT_ACCEPTED)
+            schedule.acceptSynchronized(1, packet).assertEquals(INPUT_ACCEPTED)
+            batch.sent()
+    schedule.knownThrough().assertEquals(13)
+    schedule.mayAdvanceSpeculative().assertTrue()
+    while schedule.mayAdvanceConfirmed()
+        let frame = schedule.nextConfirmedFrame()
+        schedule.readConfirmed(73, inputs).assertTrue()
+        schedule.completeConfirmed(73, frame).assertTrue()
+    schedule.nextConfirmedFrame().assertEquals(10)
+    batch.recordCount().assertEquals(0)

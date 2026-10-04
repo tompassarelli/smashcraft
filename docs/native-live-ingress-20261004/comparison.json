@@ -1,0 +1,16 @@
+[
+  {
+    "slot": 0,
+    "header": "LIVE_INGRESS_complete v=1 build=20261003T205320798376516 version=0.0.15 slot=0 callbacks=300 local_unique=10 sync_p0_unique=10 sync_p1_unique=10 read_attempts=47 missing_reads=37 invalid_records=0 send_failures=0 receive_errors=0 errors=0",
+    "local_exact": 10,
+    "sender0_exact": 10,
+    "sender1_exact": 10
+  },
+  {
+    "slot": 1,
+    "header": "LIVE_INGRESS_complete v=1 build=20261003T205320798376516 version=0.0.15 slot=1 callbacks=300 local_unique=10 sync_p0_unique=10 sync_p1_unique=10 read_attempts=90 missing_reads=80 invalid_records=0 send_failures=0 receive_errors=0 errors=0",
+    "local_exact": 10,
+    "sender0_exact": 10,
+    "sender1_exact": 10
+  }
+]

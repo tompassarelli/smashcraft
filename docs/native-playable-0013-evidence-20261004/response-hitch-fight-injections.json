@@ -1,0 +1,106 @@
+[
+  {
+    "action": [
+      "key",
+      "ctrl+g"
+    ],
+    "before_ns": 469175544948924,
+    "after_ns": 469175575640458
+  },
+  {
+    "action": [
+      "keydown",
+      "q"
+    ],
+    "before_ns": 469175875732173,
+    "after_ns": 469175893700194
+  },
+  {
+    "action": [
+      "keyup",
+      "q"
+    ],
+    "before_ns": 469175993781811,
+    "after_ns": 469176012049744
+  },
+  {
+    "action": [
+      "keydown",
+      "q"
+    ],
+    "before_ns": 469176212121386,
+    "after_ns": 469176229303925
+  },
+  {
+    "action": [
+      "keyup",
+      "q"
+    ],
+    "before_ns": 469176329384691,
+    "after_ns": 469176347143009
+  },
+  {
+    "action": [
+      "keydown",
+      "q"
+    ],
+    "before_ns": 469176547223959,
+    "after_ns": 469176564412560
+  },
+  {
+    "action": [
+      "keyup",
+      "q"
+    ],
+    "before_ns": 469176664512100,
+    "after_ns": 469176681994822
+  },
+  {
+    "action": "SIGSTOP",
+    "ns": 469176882149600
+  },
+  {
+    "action": [
+      "keydown",
+      "q"
+    ],
+    "before_ns": 469176912228076,
+    "after_ns": 469176929174142
+  },
+  {
+    "action": [
+      "keyup",
+      "q"
+    ],
+    "before_ns": 469177029248385,
+    "after_ns": 469177046383385
+  },
+  {
+    "action": "SIGCONT",
+    "ns": 469177166756337
+  },
+  {
+    "action": [
+      "keydown",
+      "q"
+    ],
+    "before_ns": 469177766845289,
+    "after_ns": 469177785109365
+  },
+  {
+    "action": [
+      "keyup",
+      "q"
+    ],
+    "before_ns": 469177885191513,
+    "after_ns": 469177902812504
+  },
+  {
+    "action": [
+      "key",
+      "ctrl+h"
+    ],
+    "before_ns": 469178302889225,
+    "after_ns": 469178332891237
+  }
+]

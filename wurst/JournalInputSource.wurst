@@ -1,0 +1,78 @@
+package JournalInputSource
+import InputProtocol
+import InputLedger
+import NetworkInput
+import ParticipantInputs
+
+public constant int JOURNAL_WAIT = 0
+public constant int JOURNAL_READY = 1
+public constant int JOURNAL_INVALID = 2
+
+// One immutable file carries one canonical I4 packet with one or two records.
+// The cursor changes only after its caller admits every row and sends that same
+// packet over the synchronized input channel.
+public class JournalInputSource
+	private string build = ""
+	private int epoch = -1
+	private int slot = -1
+	private int delay = 0
+	private int sequence = 1
+	private boolean validated = false
+	private InputPacket packet = new InputPacket()
+
+	function beginEpoch(string buildId, int newEpoch, int localSlot, int inputDelay) returns boolean
+		if buildId == "" or newEpoch < 0 or localSlot < 0 or localSlot >= INPUT_PARTICIPANT_CAPACITY or inputDelay < 0 or inputDelay > INPUT_FUTURE_LIMIT
+			return false
+		build = buildId
+		epoch = newEpoch
+		slot = localSlot
+		delay = inputDelay
+		sequence = 1
+		validated = false
+		return true
+
+	function filename() returns string
+		return "smashcraft-journal-" + build + "-e" + I2S(epoch) + "-s" + I2S(slot) + "-n" + I2S(sequence) + ".pld"
+
+	function expectedFrame() returns int
+		return 1 + delay + sequence - 1
+
+	function sequenceNumber() returns int
+		return sequence
+
+	function decode(string wire, int latestAdmissibleFrame) returns int
+		validated = false
+		if wire == ""
+			return JOURNAL_WAIT
+		if not packet.decode(wire) or packet.encode() != wire
+			return JOURNAL_INVALID
+		if packet.epochNumber() != epoch
+			return JOURNAL_INVALID
+		let frame = packet.firstFrameNumber()
+		if frame != expectedFrame()
+			return JOURNAL_INVALID
+		if frame + packet.recordCount() - 1 > latestAdmissibleFrame
+			return JOURNAL_WAIT
+		validated = true
+		return JOURNAL_READY
+
+	function copyRow(int index, NetworkInput destination) returns boolean
+		if not validated or destination == null
+			return false
+		return packet.copyRecord(index, destination)
+
+	function recordCount() returns int
+		return packet.recordCount()
+
+	function packetEpoch() returns int
+		return packet.epochNumber()
+
+	function packetFrame() returns int
+		return packet.firstFrameNumber()
+
+	function sent() returns boolean
+		if not validated
+			return false
+		sequence += packet.recordCount()
+		validated = false
+		return true

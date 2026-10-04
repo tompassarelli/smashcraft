@@ -4,6 +4,7 @@ import ClosureFrames
 import MatchRules
 import SelectionDrag
 import StageSelection
+import ParticipantInputs
 
 public abstract class StageActions
     abstract function selectStage(int participantId, int choice)
@@ -98,12 +99,12 @@ public class StagePanel
         chip.setTexture("war3mapImported\\StageChip.tga", 0, true)
         chip.setSize(0.040, 0.040)
         chip.setEnabled(false)
-        stageText(root, "MeleeStageHelp", 0.454, 0.230, 0.30, 0.065, 0.011, "Click a stage or move the chip.\nEither player can choose.\nLeft/Right: change stage · Y: start")
+        stageText(root, "MeleeStageHelp", 0.454, 0.230, 0.30, 0.065, 0.011, "Click a stage or move the chip.\nAny player can choose.\nLeft/Right: change stage · Y: start")
         let start = stageButton(root, "MeleeStageStart", 0.545, 0.092, 0.210, 0.048, "START MATCH")
         start.onClick(() -> actions.start(GetPlayerId(GetTriggerPlayer())))
         let back = stageButton(root, "MeleeStageBack", 0.045, 0.082, 0.170, 0.037, "BACK TO FIGHTERS")
         back.onClick(() -> actions.back(GetPlayerId(GetTriggerPlayer())))
-        for slot = 0 to 1
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
             let sync = CreateTrigger()
             BlzTriggerRegisterPlayerSyncEvent(sync, Player(slot), "stage-drop", false)
             TriggerAddAction(sync, function onStageDrop)
@@ -114,7 +115,7 @@ public class StagePanel
         actions.selectStage(participantId, choice)
 
     function update(MatchState game)
-        let enabled = game.phase == STAGE_MENU and GetPlayerId(GetLocalPlayer()) < game.humanCount
+        let enabled = game.phase == STAGE_MENU and game.humanActive(GetPlayerId(GetLocalPlayer()))
         if lastPhase != game.phase
             root.setVisible(enabled)
             backdrop.setVisible(enabled)

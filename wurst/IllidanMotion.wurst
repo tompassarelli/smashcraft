@@ -1,0 +1,116 @@
+package IllidanMotion
+import Simulation
+
+public constant int ILLIDAN_IDLE = 0
+public constant int ILLIDAN_WALK = 1
+public constant int ILLIDAN_RUN = 2
+public constant int ILLIDAN_DASH = 3
+public constant int ILLIDAN_TURN = 4
+public constant int ILLIDAN_STOP = 5
+public constant int ILLIDAN_CROUCH = 6
+public constant int ILLIDAN_FALL = 7
+public constant int ILLIDAN_FAST_FALL = 8
+
+// Completed-frame presentation history; never read by the simulation.
+public class IllidanMotion
+    int motion = ILLIDAN_IDLE
+    int transitionRemaining = 0
+    int respawnRemaining = 0
+    int escapeRemaining = 0
+    int ledgeCatchRemaining = 0
+    boolean ledgeJump = false
+    private int previousFacing = 0
+    private int previousLedge = LEDGE_NONE
+    private int previousJump = 0
+    private boolean previousOut = false
+    private FighterState previousGrabOwner = null
+    private boolean previouslyMoving = false
+
+    function advance(FighterState f, InputSnapshot input)
+        if f.hitlag > 0 or f.frozenFrames > 0
+            return
+        respawnRemaining = max(0, respawnRemaining - 1)
+        escapeRemaining = max(0, escapeRemaining - 1)
+        ledgeCatchRemaining = max(0, ledgeCatchRemaining - 1)
+        if previousOut and not f.out
+            respawnRemaining = 24
+        if previousGrabOwner != null and f.grabOwner == null and previousGrabOwner.grabAction == GRAB_ESCAPE
+            escapeRemaining = 10
+        if previousLedge == LEDGE_NONE and f.ledgeState == LEDGE_HANG
+            ledgeCatchRemaining = 6
+        if f.jumpSerial != previousJump
+            ledgeJump = previousLedge == LEDGE_HANG
+        if f.grounded or f.hitstun > 0 or f.specialAction != SPECIAL_NONE
+            ledgeJump = false
+        let moving = f.grounded and f.vx.abs() > 0.1
+        let available = f.grounded and canAttack(f) and not f.shield and f.shieldReleaseLag == 0 and f.jumpSquat == 0
+        if not available
+            transitionRemaining = 0
+            motion = f.fastFalling ? ILLIDAN_FAST_FALL : ILLIDAN_FALL
+        else if input.direction != 0 and previousFacing != 0 and (f.facing != previousFacing or f.vx * input.direction < 0)
+            motion = ILLIDAN_TURN
+            transitionRemaining = 8
+        else if input.direction == 0 and previouslyMoving and (motion == ILLIDAN_RUN or motion == ILLIDAN_DASH or motion == ILLIDAN_WALK)
+            motion = ILLIDAN_STOP
+            transitionRemaining = 8
+        else if transitionRemaining > 0
+            transitionRemaining--
+        else if input.down and input.direction == 0
+            motion = ILLIDAN_CROUCH
+        else if f.dashFrame > 0 and f.dashFrame <= INITIAL_DASH_FRAMES and input.direction != 0
+            motion = ILLIDAN_DASH
+        else if moving
+            motion = input.walking ? ILLIDAN_WALK : ILLIDAN_RUN
+        else
+            motion = ILLIDAN_IDLE
+        if f.hitstun > 0 or f.grounded or input.direction != 0 or input.jumpPressed or input.attackRequested or f.specialAction != SPECIAL_NONE
+            respawnRemaining = 0
+        if f.hitstun == 0 or f.grabOwner != null
+            escapeRemaining = 0
+        previousFacing = f.facing
+        previousLedge = f.ledgeState
+        previousJump = f.jumpSerial
+        previousOut = f.out
+        previousGrabOwner = f.grabOwner
+        previouslyMoving = moving
+
+    function copyTo(IllidanMotion destination, FighterRoster source, FighterRoster target)
+        destination.motion = motion
+        destination.transitionRemaining = transitionRemaining
+        destination.respawnRemaining = respawnRemaining
+        destination.escapeRemaining = escapeRemaining
+        destination.ledgeCatchRemaining = ledgeCatchRemaining
+        destination.ledgeJump = ledgeJump
+        destination.previousFacing = previousFacing
+        destination.previousLedge = previousLedge
+        destination.previousJump = previousJump
+        destination.previousOut = previousOut
+        destination.previouslyMoving = previouslyMoving
+        destination.previousGrabOwner = source.remap(previousGrabOwner, target)
+
+    function firstDifference(IllidanMotion other, FighterRoster world, FighterRoster otherWorld) returns string
+        if motion != other.motion
+            return "motion"
+        if transitionRemaining != other.transitionRemaining
+            return "transitionRemaining"
+        if respawnRemaining != other.respawnRemaining
+            return "respawnRemaining"
+        if escapeRemaining != other.escapeRemaining
+            return "escapeRemaining"
+        if ledgeCatchRemaining != other.ledgeCatchRemaining
+            return "ledgeCatchRemaining"
+        if ledgeJump != other.ledgeJump
+            return "ledgeJump"
+        if previousFacing != other.previousFacing
+            return "previousFacing"
+        if previousLedge != other.previousLedge
+            return "previousLedge"
+        if previousJump != other.previousJump
+            return "previousJump"
+        if previousOut != other.previousOut
+            return "previousOut"
+        if previouslyMoving != other.previouslyMoving
+            return "previouslyMoving"
+        if world.slotOf(previousGrabOwner) != otherWorld.slotOf(other.previousGrabOwner) or world.slotOf(previousGrabOwner) == -2
+            return "previousGrabOwner"
+        return ""

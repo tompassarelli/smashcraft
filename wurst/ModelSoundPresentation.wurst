@@ -1,0 +1,23 @@
+package ModelSoundPresentation
+import Wurst
+import ConfirmedModelSounds
+import ModelSoundInfo
+
+public class ModelSoundPresentation extends ModelSoundSink
+    private real originX
+    private real originY
+    private real originZ
+
+    function setOrigin(real x, real y, real z)
+        originX = x
+        originY = y
+        originZ = z
+
+    override function emit(modelSoundEvent occurrence, real x, real z)
+        let label = modelSoundLabel(occurrence.soundIndex)
+        // The stock label owns its variants, pitch, channel and attenuation.
+        // Engine mixing/voice limits remain native acceptance boundaries.
+        let cue = CreateSoundFromLabel(label, false, modelSoundIs3D(occurrence.soundIndex), true, 10000, 10000)
+        SetSoundPosition(cue, originX + x, originY, originZ + z)
+        StartSound(cue)
+        KillSoundWhenDone(cue)

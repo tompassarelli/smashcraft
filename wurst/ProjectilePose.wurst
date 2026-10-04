@@ -1,0 +1,13 @@
+package ProjectilePose
+import Wurst
+import Simulation
+
+public tuple projectilePose(boolean visible, real x, real z, real yaw, real pitch)
+
+public function projectedProjectile(FighterState fighter, int index, boolean playing) returns projectilePose
+    if not playing or fighter == null or fighter.out or not projectileActive(fighter, index)
+        return projectilePose(false, 0., 0., 0., 0.)
+    let velocityX = projectileVelocityXAt(fighter, index)
+    let velocityZ = projectileVelocityZAt(fighter, index)
+    return projectilePose(true, projectileXAt(fighter, index), projectileZAt(fighter, index),
+        velocityX >= 0 ? 0. : 3.141592654, -Atan2(velocityZ, velocityX.abs()))

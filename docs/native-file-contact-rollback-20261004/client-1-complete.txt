@@ -1,0 +1,28 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "NATIVE_FILE_CONTACT_ROLLBACK v=1 candidate=0.0.16 build=20261003T210905424561942 source_commit=f8838abd66dadef75b6d2638aecc3f53065591fc epoch=9910 local_slot=1" )
+	call Preload( "scope=current production simulation/replay sources; synthetic immutable FileIO stream; no physical input or visible fighter-response acceptance" )
+	call Preload( "application=auto speculative F1-F8 before ready; tagged remote F1-F8 accepted at F9 then corrected by production reconcile; receive times are observer-local Warcraft timer ms" )
+	call Preload( "counts rows=8 speculative_steps=8 invalid=0 native_poll_callbacks=91 native_file_reads=15 missing_file_reads=7 native_sends=8 accepted_through=8" )
+	call Preload( "transient_after_F8 damage=12.000 checksum=171979:116100" )
+	call Preload( "correction earliest_frame=5 known_through=8 corrected_damage=0.000 shield_stun=7 checksum_F8=650897:604915" )
+	call Preload( "canonical damage_F8=0.000 checksum_F8=650897:604915" )
+	call Preload( "confirmed damage_F8=0.000 checksum_F8=650897:604915" )
+	call Preload( "corrected_vs_canonical_at_F8=" )
+	call Preload( "corrected_vs_confirmed_at_F8=" )
+	call Preload( "F9_original_remote_row_matches=1" )
+	call Preload( "f9_retarget_after_F12 shield_damage=12.000 checksum=815256:201360" )
+	call Preload( "canonical_vs_f9_retarget_at_F12_firstDifference=fighter[0].x" )
+	call Preload( "FRAME_TAGS sequence id elapsed_us intended_frame shield_held receive_game_ms accepted_status accepted_frame exact_wire" )
+	call Preload( "REMOTE sequence=1 id=1 elapsed_us=8000 intended_frame=1 shield_held=0 receive_game_ms=1524.902 accepted_status=0 accepted_frame=1 exact_wire=V1|000001|008000|000001|0;" )
+	call Preload( "REMOTE sequence=2 id=2 elapsed_us=24666 intended_frame=2 shield_held=0 receive_game_ms=1524.902 accepted_status=0 accepted_frame=2 exact_wire=V1|000002|024666|000002|0;" )
+	call Preload( "REMOTE sequence=3 id=3 elapsed_us=41333 intended_frame=3 shield_held=0 receive_game_ms=1524.902 accepted_status=0 accepted_frame=3 exact_wire=V1|000003|041333|000003|0;" )
+	call Preload( "REMOTE sequence=4 id=4 elapsed_us=58000 intended_frame=4 shield_held=0 receive_game_ms=1524.902 accepted_status=0 accepted_frame=4 exact_wire=V1|000004|058000|000004|0;" )
+	call Preload( "REMOTE sequence=5 id=5 elapsed_us=74666 intended_frame=5 shield_held=1 receive_game_ms=1524.902 accepted_status=0 accepted_frame=5 exact_wire=V1|000005|074666|000005|1;" )
+	call Preload( "REMOTE sequence=6 id=6 elapsed_us=91333 intended_frame=6 shield_held=1 receive_game_ms=1524.902 accepted_status=0 accepted_frame=6 exact_wire=V1|000006|091333|000006|1;" )
+	call Preload( "REMOTE sequence=7 id=7 elapsed_us=108000 intended_frame=7 shield_held=0 receive_game_ms=1524.902 accepted_status=0 accepted_frame=7 exact_wire=V1|000007|108000|000007|0;" )
+	call Preload( "REMOTE sequence=8 id=8 elapsed_us=124666 intended_frame=8 shield_held=0 receive_game_ms=1524.902 accepted_status=0 accepted_frame=8 exact_wire=V1|000008|124666|000008|0;" )
+	call PreloadEnd( 0.1 )
+
+endfunction

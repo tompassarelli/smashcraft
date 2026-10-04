@@ -1,4 +1,5 @@
 package CombatInputTests
+import WorldTestSupport
 import CombatInput
 import Simulation
 import MatchStep
@@ -23,12 +24,12 @@ import KeyBindings
             fighter.shield = input.shield
             let style = grabInput == 1 ? normalAttackStyle(0, 0, false, true) : 5
             commands.enqueue(style, 0, 1, false)
-            stepMatch(game, fighter, target, input, otherInput, commands, otherCommands, 1)
+            stepMatch(game, testWorld(fighter, target), testControls(input, otherInput, commands, otherCommands), 1)
             fighter.attackStyle.assertEquals(5)
             fighter.shield.assertFalse()
             fighter.shieldReleaseLag.assertEquals(0)
             for frame = 2 to 8
-                stepMatch(game, fighter, target, input, otherInput, commands, otherCommands, frame)
+                stepMatch(game, testWorld(fighter, target), testControls(input, otherInput, commands, otherCommands), frame)
             target.grabbedFrames.assertGreaterThan(0)
             destroy otherCommands
             destroy commands

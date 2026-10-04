@@ -1,0 +1,836 @@
+{
+  "build": "20261003T212333969582051",
+  "rows": [
+    {
+      "slot": 0,
+      "sequence": 0,
+      "first_observed_ns": 472764398054611,
+      "previous_scan_ns": 472764394798856,
+      "read_begin_ns": 472764397888821,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_READY v=1 build=20261003T212333969582051 slot=0 callback=0 native_ms=0.244 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"service=60Hz marker_every=6_callbacks total_callbacks=300 total_markers=50 delta_baseline=ready_time observer_local_only=no_cross_client_subtraction\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 1,
+      "first_observed_ns": 472764404357780,
+      "previous_scan_ns": 472764401160826,
+      "read_begin_ns": 472764404198031,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=1 callback=6 native_ms=100.098 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 2,
+      "first_observed_ns": 472764407555997,
+      "previous_scan_ns": 472764404198031,
+      "read_begin_ns": 472764407365370,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=2 callback=12 native_ms=200.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 3,
+      "first_observed_ns": 472764550211903,
+      "previous_scan_ns": 472764547009068,
+      "read_begin_ns": 472764549987152,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=3 callback=18 native_ms=300.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 4,
+      "first_observed_ns": 472764567335999,
+      "previous_scan_ns": 472764563529974,
+      "read_begin_ns": 472764567134462,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=4 callback=24 native_ms=400.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 5,
+      "first_observed_ns": 472764692394553,
+      "previous_scan_ns": 472764689237283,
+      "read_begin_ns": 472764692247929,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=5 callback=30 native_ms=500.244 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 0,
+      "first_observed_ns": 472764772161183,
+      "previous_scan_ns": 472764768474602,
+      "read_begin_ns": 472764771562513,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_READY v=1 build=20261003T212333969582051 slot=1 callback=0 native_ms=0.244 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"service=60Hz marker_every=6_callbacks total_callbacks=300 total_markers=50 delta_baseline=ready_time observer_local_only=no_cross_client_subtraction\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 1,
+      "first_observed_ns": 472764778396295,
+      "previous_scan_ns": 472764774671232,
+      "read_begin_ns": 472764777883265,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=1 callback=6 native_ms=100.098 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 2,
+      "first_observed_ns": 472764781342981,
+      "previous_scan_ns": 472764777883265,
+      "read_begin_ns": 472764780889793,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=2 callback=12 native_ms=200.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 6,
+      "first_observed_ns": 472764789973858,
+      "previous_scan_ns": 472764786813842,
+      "read_begin_ns": 472764789934955,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=6 callback=36 native_ms=600.098 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 3,
+      "first_observed_ns": 472764790435632,
+      "previous_scan_ns": 472764786813842,
+      "read_begin_ns": 472764789934955,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=3 callback=18 native_ms=300.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 4,
+      "first_observed_ns": 472764790461000,
+      "previous_scan_ns": 472764786813842,
+      "read_begin_ns": 472764789934955,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=4 callback=24 native_ms=400.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 5,
+      "first_observed_ns": 472764793561884,
+      "previous_scan_ns": 472764789934955,
+      "read_begin_ns": 472764792966740,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=5 callback=30 native_ms=500.244 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 6,
+      "first_observed_ns": 472764808233088,
+      "previous_scan_ns": 472764804768152,
+      "read_begin_ns": 472764807722432,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=6 callback=36 native_ms=600.098 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 7,
+      "first_observed_ns": 472764884306334,
+      "previous_scan_ns": 472764880436811,
+      "read_begin_ns": 472764883592498,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=7 callback=42 native_ms=700.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 7,
+      "first_observed_ns": 472764886967776,
+      "previous_scan_ns": 472764883592498,
+      "read_begin_ns": 472764886779374,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=7 callback=42 native_ms=700.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 8,
+      "first_observed_ns": 472764994652678,
+      "previous_scan_ns": 472764991134532,
+      "read_begin_ns": 472764994086037,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=8 callback=48 native_ms=800.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 8,
+      "first_observed_ns": 472765000500365,
+      "previous_scan_ns": 472764997132420,
+      "read_begin_ns": 472765000214780,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=8 callback=48 native_ms=800.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 9,
+      "first_observed_ns": 472765078447058,
+      "previous_scan_ns": 472765075373324,
+      "read_begin_ns": 472765078319439,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=9 callback=54 native_ms=900.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 9,
+      "first_observed_ns": 472765081989239,
+      "previous_scan_ns": 472765078319439,
+      "read_begin_ns": 472765081361193,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=9 callback=54 native_ms=900.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 10,
+      "first_observed_ns": 472765207284607,
+      "previous_scan_ns": 472765204009205,
+      "read_begin_ns": 472765207146639,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=10 callback=60 native_ms=1000.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 10,
+      "first_observed_ns": 472765207745820,
+      "previous_scan_ns": 472765204009205,
+      "read_begin_ns": 472765207146639,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=10 callback=60 native_ms=1000.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 11,
+      "first_observed_ns": 472765285377283,
+      "previous_scan_ns": 472765282503544,
+      "read_begin_ns": 472765285275022,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=11 callback=66 native_ms=1100.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 12,
+      "first_observed_ns": 472765445771305,
+      "previous_scan_ns": 472765442883128,
+      "read_begin_ns": 472765445653144,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=12 callback=72 native_ms=1200.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 11,
+      "first_observed_ns": 472765466580940,
+      "previous_scan_ns": 472765462793510,
+      "read_begin_ns": 472765465818032,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=11 callback=66 native_ms=1100.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 12,
+      "first_observed_ns": 472765469616382,
+      "previous_scan_ns": 472765465818032,
+      "read_begin_ns": 472765469134710,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=12 callback=72 native_ms=1200.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 13,
+      "first_observed_ns": 472765472440799,
+      "previous_scan_ns": 472765469134710,
+      "read_begin_ns": 472765472009582,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=13 callback=78 native_ms=1300.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 13,
+      "first_observed_ns": 472765494930890,
+      "previous_scan_ns": 472765492108837,
+      "read_begin_ns": 472765494820253,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=13 callback=78 native_ms=1300.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 14,
+      "first_observed_ns": 472765646629193,
+      "previous_scan_ns": 472765642873974,
+      "read_begin_ns": 472765646122455,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=14 callback=84 native_ms=1400.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 14,
+      "first_observed_ns": 472765655046771,
+      "previous_scan_ns": 472765651809992,
+      "read_begin_ns": 472765654895488,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=14 callback=84 native_ms=1400.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 15,
+      "first_observed_ns": 472765667055501,
+      "previous_scan_ns": 472765663647701,
+      "read_begin_ns": 472765666421464,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=15 callback=90 native_ms=1500.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 15,
+      "first_observed_ns": 472765686274318,
+      "previous_scan_ns": 472765683406008,
+      "read_begin_ns": 472765686178999,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=15 callback=90 native_ms=1500.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 16,
+      "first_observed_ns": 472765756895267,
+      "previous_scan_ns": 472765753732838,
+      "read_begin_ns": 472765756469951,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=16 callback=96 native_ms=1600.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 16,
+      "first_observed_ns": 472765784697322,
+      "previous_scan_ns": 472765781556332,
+      "read_begin_ns": 472765784496426,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=16 callback=96 native_ms=1600.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 17,
+      "first_observed_ns": 472765867180918,
+      "previous_scan_ns": 472765863922679,
+      "read_begin_ns": 472765866709876,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=17 callback=102 native_ms=1700.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 17,
+      "first_observed_ns": 472765878234560,
+      "previous_scan_ns": 472765874952166,
+      "read_begin_ns": 472765878097884,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=17 callback=102 native_ms=1700.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 18,
+      "first_observed_ns": 472765958455631,
+      "previous_scan_ns": 472765955071756,
+      "read_begin_ns": 472765957947820,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=18 callback=108 native_ms=1800.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 18,
+      "first_observed_ns": 472765974414125,
+      "previous_scan_ns": 472765971594977,
+      "read_begin_ns": 472765974258944,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=18 callback=108 native_ms=1800.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 19,
+      "first_observed_ns": 472766078649469,
+      "previous_scan_ns": 472766075555367,
+      "read_begin_ns": 472766078249290,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=19 callback=114 native_ms=1900.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 19,
+      "first_observed_ns": 472766086642843,
+      "previous_scan_ns": 472766083712758,
+      "read_begin_ns": 472766086541433,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=19 callback=114 native_ms=1900.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 20,
+      "first_observed_ns": 472766155562177,
+      "previous_scan_ns": 472766152416689,
+      "read_begin_ns": 472766155018460,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=20 callback=120 native_ms=2000.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 20,
+      "first_observed_ns": 472766186416946,
+      "previous_scan_ns": 472766183251931,
+      "read_begin_ns": 472766186245014,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=20 callback=120 native_ms=2000.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 21,
+      "first_observed_ns": 472766291535264,
+      "previous_scan_ns": 472766288479223,
+      "read_begin_ns": 472766291081885,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=21 callback=126 native_ms=2100.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 21,
+      "first_observed_ns": 472766296627467,
+      "previous_scan_ns": 472766293857251,
+      "read_begin_ns": 472766296475402,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=21 callback=126 native_ms=2100.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 22,
+      "first_observed_ns": 472766356131727,
+      "previous_scan_ns": 472766352987811,
+      "read_begin_ns": 472766355737208,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=22 callback=132 native_ms=2200.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 22,
+      "first_observed_ns": 472766374695207,
+      "previous_scan_ns": 472766371766625,
+      "read_begin_ns": 472766374552199,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=22 callback=132 native_ms=2200.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 23,
+      "first_observed_ns": 472766504326632,
+      "previous_scan_ns": 472766501227992,
+      "read_begin_ns": 472766504191179,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=23 callback=138 native_ms=2300.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 23,
+      "first_observed_ns": 472766507509020,
+      "previous_scan_ns": 472766504191179,
+      "read_begin_ns": 472766506947569,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=23 callback=138 native_ms=2300.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 24,
+      "first_observed_ns": 472766580794337,
+      "previous_scan_ns": 472766577850005,
+      "read_begin_ns": 472766580429264,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=24 callback=144 native_ms=2400.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 24,
+      "first_observed_ns": 472766583224026,
+      "previous_scan_ns": 472766580429264,
+      "read_begin_ns": 472766583097328,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=24 callback=144 native_ms=2400.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 25,
+      "first_observed_ns": 472766723895367,
+      "previous_scan_ns": 472766720948231,
+      "read_begin_ns": 472766723477726,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=25 callback=150 native_ms=2500.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 25,
+      "first_observed_ns": 472766729023377,
+      "previous_scan_ns": 472766726205732,
+      "read_begin_ns": 472766728842969,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=25 callback=150 native_ms=2500.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 26,
+      "first_observed_ns": 472766777041074,
+      "previous_scan_ns": 472766774176552,
+      "read_begin_ns": 472766776841150,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=26 callback=156 native_ms=2600.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 26,
+      "first_observed_ns": 472766785421833,
+      "previous_scan_ns": 472766782356555,
+      "read_begin_ns": 472766785077037,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=26 callback=156 native_ms=2600.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 27,
+      "first_observed_ns": 472766879353450,
+      "previous_scan_ns": 472766876459352,
+      "read_begin_ns": 472766878964952,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=27 callback=162 native_ms=2700.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 27,
+      "first_observed_ns": 472766889511595,
+      "previous_scan_ns": 472766886665688,
+      "read_begin_ns": 472766889316550,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=27 callback=162 native_ms=2700.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 28,
+      "first_observed_ns": 472766978999223,
+      "previous_scan_ns": 472766976143577,
+      "read_begin_ns": 472766978616386,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=28 callback=168 native_ms=2800.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 28,
+      "first_observed_ns": 472766984344139,
+      "previous_scan_ns": 472766981269072,
+      "read_begin_ns": 472766983740158,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=28 callback=168 native_ms=2800.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 29,
+      "first_observed_ns": 472767078821167,
+      "previous_scan_ns": 472767075923402,
+      "read_begin_ns": 472767078472915,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=29 callback=174 native_ms=2900.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 29,
+      "first_observed_ns": 472767081240946,
+      "previous_scan_ns": 472767078472915,
+      "read_begin_ns": 472767081092248,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=29 callback=174 native_ms=2900.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 30,
+      "first_observed_ns": 472767176130957,
+      "previous_scan_ns": 472767173507757,
+      "read_begin_ns": 472767175985335,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=30 callback=180 native_ms=3000.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 30,
+      "first_observed_ns": 472767181788929,
+      "previous_scan_ns": 472767178709094,
+      "read_begin_ns": 472767181283463,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=30 callback=180 native_ms=3000.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 31,
+      "first_observed_ns": 472767278939221,
+      "previous_scan_ns": 472767276193902,
+      "read_begin_ns": 472767278617990,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=31 callback=186 native_ms=3100.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 31,
+      "first_observed_ns": 472767291350585,
+      "previous_scan_ns": 472767288659517,
+      "read_begin_ns": 472767291225922,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=31 callback=186 native_ms=3100.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 32,
+      "first_observed_ns": 472767377794125,
+      "previous_scan_ns": 472767375032936,
+      "read_begin_ns": 472767377505605,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=32 callback=192 native_ms=3200.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 32,
+      "first_observed_ns": 472767387518629,
+      "previous_scan_ns": 472767384895348,
+      "read_begin_ns": 472767387378376,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=32 callback=192 native_ms=3200.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 33,
+      "first_observed_ns": 472767480147096,
+      "previous_scan_ns": 472767477415573,
+      "read_begin_ns": 472767479821557,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=33 callback=198 native_ms=3300.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 33,
+      "first_observed_ns": 472767482458543,
+      "previous_scan_ns": 472767479821557,
+      "read_begin_ns": 472767482365810,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=33 callback=198 native_ms=3300.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 34,
+      "first_observed_ns": 472767578517974,
+      "previous_scan_ns": 472767576010850,
+      "read_begin_ns": 472767578394072,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=34 callback=204 native_ms=3400.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 34,
+      "first_observed_ns": 472767581127438,
+      "previous_scan_ns": 472767578394072,
+      "read_begin_ns": 472767580887169,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=34 callback=204 native_ms=3400.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 35,
+      "first_observed_ns": 472767676290481,
+      "previous_scan_ns": 472767673669765,
+      "read_begin_ns": 472767676024623,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=35 callback=210 native_ms=3500.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 35,
+      "first_observed_ns": 472767690509849,
+      "previous_scan_ns": 472767687955267,
+      "read_begin_ns": 472767690370137,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=35 callback=210 native_ms=3500.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 36,
+      "first_observed_ns": 472767776082158,
+      "previous_scan_ns": 472767773392863,
+      "read_begin_ns": 472767775735879,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=36 callback=216 native_ms=3600.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 36,
+      "first_observed_ns": 472767788279982,
+      "previous_scan_ns": 472767785682279,
+      "read_begin_ns": 472767788182920,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=36 callback=216 native_ms=3600.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 37,
+      "first_observed_ns": 472767877879930,
+      "previous_scan_ns": 472767875204842,
+      "read_begin_ns": 472767877591680,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=37 callback=222 native_ms=3700.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 37,
+      "first_observed_ns": 472767882779672,
+      "previous_scan_ns": 472767880087943,
+      "read_begin_ns": 472767882463660,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=37 callback=222 native_ms=3700.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 38,
+      "first_observed_ns": 472767979383782,
+      "previous_scan_ns": 472767976879474,
+      "read_begin_ns": 472767979249450,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=38 callback=228 native_ms=3800.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 38,
+      "first_observed_ns": 472767979549492,
+      "previous_scan_ns": 472767976879474,
+      "read_begin_ns": 472767979249450,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=38 callback=228 native_ms=3800.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 39,
+      "first_observed_ns": 472768080346000,
+      "previous_scan_ns": 472768077522414,
+      "read_begin_ns": 472768079823302,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=39 callback=234 native_ms=3900.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 39,
+      "first_observed_ns": 472768090324940,
+      "previous_scan_ns": 472768087653459,
+      "read_begin_ns": 472768090085883,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=39 callback=234 native_ms=3900.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 40,
+      "first_observed_ns": 472768178794513,
+      "previous_scan_ns": 472768176217249,
+      "read_begin_ns": 472768178505632,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=40 callback=240 native_ms=4000.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 40,
+      "first_observed_ns": 472768185757738,
+      "previous_scan_ns": 472768183324693,
+      "read_begin_ns": 472768185622194,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=40 callback=240 native_ms=4000.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 41,
+      "first_observed_ns": 472768279997342,
+      "previous_scan_ns": 472768277498244,
+      "read_begin_ns": 472768279765809,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=41 callback=246 native_ms=4100.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 41,
+      "first_observed_ns": 472768282232877,
+      "previous_scan_ns": 472768279765809,
+      "read_begin_ns": 472768282161042,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=41 callback=246 native_ms=4100.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 42,
+      "first_observed_ns": 472768379426240,
+      "previous_scan_ns": 472768377011670,
+      "read_begin_ns": 472768379304602,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=42 callback=252 native_ms=4200.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 42,
+      "first_observed_ns": 472768379565401,
+      "previous_scan_ns": 472768377011670,
+      "read_begin_ns": 472768379304602,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=42 callback=252 native_ms=4200.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 43,
+      "first_observed_ns": 472768476509267,
+      "previous_scan_ns": 472768473926592,
+      "read_begin_ns": 472768476271382,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=43 callback=258 native_ms=4300.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 43,
+      "first_observed_ns": 472768478980463,
+      "previous_scan_ns": 472768476271382,
+      "read_begin_ns": 472768478826805,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=43 callback=258 native_ms=4300.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 44,
+      "first_observed_ns": 472768580103052,
+      "previous_scan_ns": 472768577705223,
+      "read_begin_ns": 472768579897627,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=44 callback=264 native_ms=4400.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 44,
+      "first_observed_ns": 472768588997792,
+      "previous_scan_ns": 472768586644758,
+      "read_begin_ns": 472768588832262,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=44 callback=264 native_ms=4400.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 45,
+      "first_observed_ns": 472768679555614,
+      "previous_scan_ns": 472768677186930,
+      "read_begin_ns": 472768679363234,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=45 callback=270 native_ms=4500.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 45,
+      "first_observed_ns": 472768684070275,
+      "previous_scan_ns": 472768681674982,
+      "read_begin_ns": 472768683908012,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=45 callback=270 native_ms=4500.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 46,
+      "first_observed_ns": 472768779195026,
+      "previous_scan_ns": 472768776812687,
+      "read_begin_ns": 472768779011783,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=46 callback=276 native_ms=4600.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 46,
+      "first_observed_ns": 472768779308960,
+      "previous_scan_ns": 472768776812687,
+      "read_begin_ns": 472768779011783,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=46 callback=276 native_ms=4600.098 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 47,
+      "first_observed_ns": 472768875358321,
+      "previous_scan_ns": 472768873087060,
+      "read_begin_ns": 472768875241042,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=47 callback=282 native_ms=4700.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 47,
+      "first_observed_ns": 472768879856772,
+      "previous_scan_ns": 472768877524827,
+      "read_begin_ns": 472768879726198,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=47 callback=282 native_ms=4700.195 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 48,
+      "first_observed_ns": 472768979917093,
+      "previous_scan_ns": 472768977596548,
+      "read_begin_ns": 472768979732136,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=48 callback=288 native_ms=4800.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 48,
+      "first_observed_ns": 472768986423272,
+      "previous_scan_ns": 472768984160156,
+      "read_begin_ns": 472768986335357,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=48 callback=288 native_ms=4800.049 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 49,
+      "first_observed_ns": 472769078880670,
+      "previous_scan_ns": 472769076536932,
+      "read_begin_ns": 472769078710842,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=49 callback=294 native_ms=4900.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 49,
+      "first_observed_ns": 472769083332013,
+      "previous_scan_ns": 472769080963509,
+      "read_begin_ns": 472769083188604,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=49 callback=294 native_ms=4900.146 previous_marker_delta_ms=100.098 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=progress\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 0,
+      "sequence": 50,
+      "first_observed_ns": 472769180709170,
+      "previous_scan_ns": 472769178494795,
+      "read_begin_ns": 472769180591901,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=0 sequence=50 callback=300 native_ms=5000.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=complete\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "slot": 1,
+      "sequence": 50,
+      "first_observed_ns": 472769180762189,
+      "previous_scan_ns": 472769178494795,
+      "read_begin_ns": 472769180591901,
+      "text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"WC3_NATIVE_CLOCK_MARKER v=1 build=20261003T212333969582051 slot=1 sequence=50 callback=300 native_ms=5000.000 previous_marker_delta_ms=99.854 clock=TimerGetElapsed(nativeClock)\" )\n\tcall Preload( \"phase=complete\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    }
+  ],
+  "signals": [
+    {
+      "action": "stop_request",
+      "ns": 472765208220649
+    },
+    {
+      "action": "stop_observed",
+      "ns": 472765210086953
+    },
+    {
+      "action": "resume_request",
+      "ns": 472765460723465
+    }
+  ],
+  "scope": "host observations bracket file visibility, not exact native callback time; compare intervals within each native clock only"
+}

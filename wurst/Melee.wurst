@@ -3,13 +3,23 @@ import Wurst
 import Abilities
 import BuildInfo
 import Simulation
-import DirectionalInput
 import MatchRules
 import MatchControls
 import MatchHUD
 import CommandBuffer
 import CombatInput
 import MatchStep
+import ReplayState
+import ReplayHistory
+import KeyboardInputCapture
+import NetworkInput
+import ParticipantInputs
+import InputProtocol
+import InputAdapter
+import InputBatch
+import InputLedger
+import ShadowInputSchedule
+import ShadowInputPlayback
 import ParryScenario
 import SpikeScenario
 import SelectionUI
@@ -20,53 +30,45 @@ import PlayerInputState
 import SettingsUI
 import FighterAssets
 import StageAssetInfo
-import ImpactEvents
+import ImpactState
 import DamagePose
+import FighterPose
+import FighterPoolPresentation
+import ConfirmedModelSounds
+import ModelSoundPresentation
+import ProjectilePresentation
+import ShieldPresentation
 import BotRecovery
 import CombatEffects
 import FrostEffects
 import SpecialEffects
+import ResponseServiceProbe
+import JournalInputSource
+import FileIO
 
-constant real FRAME_SECONDS = 0.016666667
-
+constant int SHADOW_CONFIRMED_CATCHUP_LIMIT = 6
+constant int JOURNAL_PACKETS_PER_CALLBACK = 1
 real centerX = 0
 real centerY = 0
 real floorHeight = 0
 MatchState matchState = new MatchState()
+FighterRoster matchWorld = new FighterRoster(3)
+FrameInputs matchInputs = new FrameInputs()
+FrameInputs producedInputs = new FrameInputs()
+FighterRoster shadowWorld = new FighterRoster(3)
+FrameInputs shadowInputs = new FrameInputs()
 MatchControls matchControls = new MatchControls()
-Fighter playerFighter = null
-Fighter botFighter = null
+NativeParticipant array[INPUT_PARTICIPANT_CAPACITY] participants
 timer gameTimer = null
 CombatEffects combatEffects = null
 FrostEffects frostEffects = null
 SpecialEffects specialEffects = null
-ImpactEvents firstImpacts = new ImpactEvents()
-ImpactEvents secondImpacts = new ImpactEvents()
-PlayerInputState firstKeyState = new PlayerInputState()
-boolean playerNormalAttackQueued = false
-boolean playerLeftPressed = false
-boolean playerRightPressed = false
-boolean playerDownPressed = false
-boolean playerSpecialPressed = false
-boolean playerGetupAttackPressed = false
-boolean playerGetupStandPressed = false
-boolean playerTechPressed = false
-boolean playerLCancelPressed = false
-boolean playerMashPressed = false
-boolean playerGrabMashPressed = false
-boolean playerAttackPressed = false
-int playerThrowX = 0
-int playerThrowZ = 0
-int playerLedgeVerticalPressed = 0
+ConfirmedModelSounds modelSounds = new ConfirmedModelSounds()
+ModelSoundPresentation modelSoundPresentation = new ModelSoundPresentation()
 effect array stageDecks
 int stageDeckCount = 0
-effect array projectileModels
-int array projectileModelFamilies
-int projectileModelCount = 0
 framehandle titleFrame
 framehandle menuFrame
-FighterHUD firstHUD
-FighterHUD secondHUD
 MatchClock matchClock
 framehandle helpFrame
 framehandle noticeFrame
@@ -74,18 +76,52 @@ framehandle developerFrame
 string statusText = ""
 real statusTime = 0
 ReplayRuntimeState replayRuntime = new ReplayRuntimeState()
+ReplaySnapshot diagnosticSnapshot = new ReplaySnapshot()
+boolean shadowInputActive = false
+int shadowInputEpoch = 0
+int shadowLastCaptureTarget = 0
+boolean shadowLocalSendFailed = false
+boolean journalInputFailed = false
+trigger broadKeyDownTrigger = null
+trigger broadKeyUpTrigger = null
+ShadowInputSchedule shadowSchedule = null
+ShadowInputPlayback shadowPlayback = null
+KeyboardInputCapture shadowCapture = null
+JournalInputSource journalInput = null
+File journalInputFile = null
+InputBatch shadowBatch = null
+InputPacket shadowOutgoing = null
+InputPacket shadowIncoming = null
+NetworkInput responseProbeSample = null
+NetworkInput shadowSample = null
+NetworkInput shadowPending = null
+ParticipantInputs shadowAcceptedInputs = null
+MatchState shadowMatch = null
+ReplayRuntimeState shadowRuntime = null
+ReplayHistory shadowHistory = null
+ReplaySnapshot shadowSeed = null
 boolean readyMarkerWritten = false
-boolean playerJumpQueued = false
-boolean playerJumpHeld = false
-boolean playerAirDodgeQueued = false
-int playerDodgeX = 0
-int playerDodgeZ = 0
-boolean botJumpQueued = false
-boolean botJumpHeld = false
-// Attack callbacks write producer requests; captured rows feed the canonical buffers.
-AttackBuffer playerAttackRequests = new AttackBuffer(0)
-AttackBuffer secondAttackRequests = new AttackBuffer(0)
+timer transportIsolationClock = null
+int transportIsolationTicks = 0
+int transportIsolationPhase = 0
+int transportIsolationReadCount = 0
+int transportIsolationReadBytes = 0
+real transportIsolationReadSeconds = 0
+int transportIsolationFirstJournalSequence = -1
+int transportIsolationLastJournalSequence = -1
+int transportIsolationJournalSequenceChanges = 0
+int array transportIsolationSent
+int array transportIsolationReceived
+real array transportIsolationSendTime
+int array transportIsolationAgeSamples
+real array transportIsolationAgeSum
+real array transportIsolationAgeMax
+boolean array transportIsolationSeen
+int array transportIsolationDuplicates
+int transportIsolationRejected = 0
 MatchFrameInput currentFrameInput = new MatchFrameInput()
+StagePanel stagePanel = null
+
 timer inputTraceClock = null
 boolean inputTraceActive = false
 boolean developerRestartRequested = false
@@ -96,7 +132,48 @@ int inputTraceLastAxes = 999
 int inputTraceLastDodge = -1
 int inputTraceLastLandingLag = -1
 string array inputTraceLines
-boolean twoHumanPlayers = false
+int array[INPUT_PARTICIPANT_CAPACITY] shadowTraceAccepted
+int shadowTraceRejected = 0
+int shadowTraceWaitTicks = 0
+int shadowTraceConfirmedSteps = 0
+int shadowTraceSpeculativeSteps = 0
+int shadowTraceSpeculativeFailures = 0
+int shadowTraceCorrections = 0
+int shadowTraceReplayedFrames = 0
+int shadowTraceMaxReplayDepth = 0
+int shadowTraceLocalPolls = 0
+int shadowTraceLocalCaptures = 0
+int shadowTraceLocalSends = 0
+int shadowTraceSentRows = 0
+int shadowTraceSingletons = 0
+int array[INPUT_PARTICIPANT_CAPACITY] shadowTraceReceivedRows
+int array shadowBatchCaptureCallback
+real array shadowBatchCaptureTime
+boolean array shadowBatchCaptureTraced
+int shadowTraceBatchWaitSamples = 0
+int shadowTraceBatchWaitSumCallbacks = 0
+int shadowTraceBatchWaitMaxCallbacks = 0
+real shadowTraceBatchWaitSumSeconds = 0
+real shadowTraceBatchWaitMaxSeconds = 0
+int shadowTraceSameTargetSkips = 0
+int shadowTraceWindowBlocks = 0
+int array[INPUT_PARTICIPANT_CAPACITY] shadowTraceKeyDown
+int array[INPUT_PARTICIPANT_CAPACITY] shadowTraceKeyUp
+constant int SHADOW_TRACE_ECHO_CAPACITY = 256
+int array shadowTraceSendEpoch
+int array shadowTraceSendFrame
+int array shadowTraceSendCallback
+real array shadowTraceSendTime
+int shadowTraceEchoPending = 0
+int shadowTraceEchoOverwritten = 0
+int shadowTraceEchoSamples = 0
+int shadowTraceEchoMinCallbacks = 0
+int shadowTraceEchoMaxCallbacks = 0
+int shadowTraceEchoSumCallbacks = 0
+real shadowTraceEchoMinSeconds = 0
+real shadowTraceEchoMaxSeconds = 0
+real shadowTraceEchoSumSeconds = 0
+int array shadowTraceEchoBins
 
 function traceInput(string entry)
     if inputTraceActive and inputTraceCount < 256
@@ -108,6 +185,102 @@ function traceInput(string entry)
 function traceParticipant(int participantId, string entry)
     traceInput("participant " + I2S(participantId) + " frame " + I2S(replayRuntime.simulationFrame) + " phase " + I2S(matchState.phase) + " " + entry)
 
+function resetShadowBatchSummary()
+    shadowTraceSentRows = 0
+    shadowTraceSingletons = 0
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        shadowTraceReceivedRows[slot] = 0
+    shadowTraceBatchWaitSamples = 0
+    shadowTraceBatchWaitSumCallbacks = 0
+    shadowTraceBatchWaitMaxCallbacks = 0
+    shadowTraceBatchWaitSumSeconds = 0
+    shadowTraceBatchWaitMaxSeconds = 0
+
+function resetShadowEchoRing()
+    shadowTraceEchoPending = 0
+    for slot = 0 to SHADOW_TRACE_ECHO_CAPACITY - 1
+        shadowTraceSendEpoch[slot] = -1
+        shadowTraceSendFrame[slot] = 0
+        shadowTraceSendCallback[slot] = 0
+        shadowTraceSendTime[slot] = 0
+
+function resetShadowEchoSummary()
+    shadowTraceEchoOverwritten = 0
+    shadowTraceEchoSamples = 0
+    shadowTraceEchoMinCallbacks = 0
+    shadowTraceEchoMaxCallbacks = 0
+    shadowTraceEchoSumCallbacks = 0
+    shadowTraceEchoMinSeconds = 0
+    shadowTraceEchoMaxSeconds = 0
+    shadowTraceEchoSumSeconds = 0
+    for bin = 0 to 5
+        shadowTraceEchoBins[bin] = 0
+
+// Local measurements never feed the accepted ledger, prediction, or snapshots.
+
+function recordShadowTraceSend(int epoch, int frame)
+    let slot = frame mod SHADOW_TRACE_ECHO_CAPACITY
+    if shadowTraceSendFrame[slot] != 0
+        shadowTraceEchoOverwritten++
+    else
+        shadowTraceEchoPending++
+    shadowTraceSendEpoch[slot] = epoch
+    shadowTraceSendFrame[slot] = frame
+    shadowTraceSendCallback[slot] = inputTraceTicks
+    shadowTraceSendTime[slot] = TimerGetElapsed(inputTraceClock)
+
+function recordShadowTraceEcho(int epoch, int frame, int callback, real seconds)
+    let slot = frame mod SHADOW_TRACE_ECHO_CAPACITY
+    if shadowTraceSendFrame[slot] != frame or shadowTraceSendEpoch[slot] != epoch
+        return
+    let ageCallbacks = callback - shadowTraceSendCallback[slot]
+    let ageSeconds = seconds - shadowTraceSendTime[slot]
+    shadowTraceSendFrame[slot] = 0
+    shadowTraceEchoPending--
+    if shadowTraceEchoSamples == 0
+        shadowTraceEchoMinCallbacks = ageCallbacks
+        shadowTraceEchoMinSeconds = ageSeconds
+    shadowTraceEchoSamples++
+    shadowTraceEchoMinCallbacks = min(shadowTraceEchoMinCallbacks, ageCallbacks)
+    shadowTraceEchoMaxCallbacks = max(shadowTraceEchoMaxCallbacks, ageCallbacks)
+    shadowTraceEchoSumCallbacks += ageCallbacks
+    shadowTraceEchoMinSeconds = min(shadowTraceEchoMinSeconds, ageSeconds)
+    shadowTraceEchoMaxSeconds = max(shadowTraceEchoMaxSeconds, ageSeconds)
+    shadowTraceEchoSumSeconds += ageSeconds
+    let bin = ageCallbacks <= 3 ? 0 : (ageCallbacks <= 6 ? 1 : (ageCallbacks <= 9 ? 2 : (ageCallbacks <= 12 ? 3 : (ageCallbacks <= 18 ? 4 : 5))))
+    shadowTraceEchoBins[bin]++
+
+function traceShadowEchoSummary()
+    let divisor = max(1, shadowTraceEchoSamples)
+    traceInput("local echo samples " + I2S(shadowTraceEchoSamples)
+        + " pending " + I2S(shadowTraceEchoPending) + " overwritten " + I2S(shadowTraceEchoOverwritten)
+        + " callbacks min-mean-max " + I2S(shadowTraceEchoMinCallbacks) + ":" + R2S(shadowTraceEchoSumCallbacks * 1.0 / divisor) + ":" + I2S(shadowTraceEchoMaxCallbacks))
+    traceInput("local echo native-ms min-mean-max " + R2S(shadowTraceEchoMinSeconds * 1000) + ":" + R2S(shadowTraceEchoSumSeconds * 1000 / divisor) + ":" + R2S(shadowTraceEchoMaxSeconds * 1000)
+        + " callbacks bins 0-3,4-6,7-9,10-12,13-18,19+ " + I2S(shadowTraceEchoBins[0]) + ":" + I2S(shadowTraceEchoBins[1]) + ":" + I2S(shadowTraceEchoBins[2]) + ":" + I2S(shadowTraceEchoBins[3]) + ":" + I2S(shadowTraceEchoBins[4]) + ":" + I2S(shadowTraceEchoBins[5]))
+    resetShadowEchoSummary()
+
+function traceConfirmedState()
+    if participants[matchState.firstHumanSlot()].fighter == null
+        return
+    let started = TimerGetElapsed(inputTraceClock)
+    diagnosticSnapshot.capture(matchWorld, matchState, matchInputs, replayRuntime)
+    let checksum = diagnosticSnapshot.checksum()
+    let elapsed = TimerGetElapsed(inputTraceClock) - started
+    traceInput("confirmed frame " + I2S(replayRuntime.simulationFrame)
+        + " state " + checksum)
+    traceInput("checksum native-seconds " + R2S(elapsed))
+
+function traceSelectionState(string reason)
+    if not inputTraceActive
+        return
+    traceInput("selection " + reason + " phase " + I2S(matchState.phase)
+        + " connected " + I2S(matchState.humanMask) + " human-fighters " + I2S(matchState.humanFighterMask)
+        + " computers " + I2S(matchState.computerMask) + " fighters " + I2S(matchState.fighterMask()))
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        let mode = matchState.humanFighterActive(slot) ? "HMN" : (matchState.computerActive(slot) ? "CPU" : "EMPTY")
+        traceInput("selection slot " + I2S(slot) + " mode " + mode + " choice " + I2S(matchState.characterFor(slot))
+            + " ready " + (matchState.characterReady(slot) ? "1" : "0"))
+
 function startInputTrace()
     if inputTraceClock == null
         inputTraceClock = CreateTimer()
@@ -117,14 +290,43 @@ function startInputTrace()
     inputTraceLastAxes = 999
     inputTraceLastDodge = -1
     inputTraceLastLandingLag = -1
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        shadowTraceAccepted[slot] = 0
+    shadowTraceRejected = 0
+    shadowTraceWaitTicks = 0
+    shadowTraceConfirmedSteps = 0
+    shadowTraceSpeculativeSteps = 0
+    shadowTraceSpeculativeFailures = 0
+    shadowTraceCorrections = 0
+    shadowTraceReplayedFrames = 0
+    shadowTraceMaxReplayDepth = 0
+    shadowTraceLocalPolls = 0
+    shadowTraceLocalCaptures = 0
+    shadowTraceLocalSends = 0
+    shadowTraceSameTargetSkips = 0
+    shadowTraceWindowBlocks = 0
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        shadowTraceKeyDown[slot] = 0
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        shadowTraceKeyUp[slot] = 0
+    shadowTraceEchoPending = 0
+    resetShadowBatchSummary()
+    shadowBatchCaptureTraced[0] = false
+    shadowBatchCaptureTraced[1] = false
+    resetShadowEchoSummary()
+    resetShadowEchoRing()
     inputTraceActive = true
     TimerStart(inputTraceClock, 1000, false, null)
-    traceInput("start " + BUILD_ID)
-    traceInput("humans " + (twoHumanPlayers ? "2" : "1") + " frame " + I2S(replayRuntime.simulationFrame) + " phase " + I2S(matchState.phase))
+    traceInput("start " + BUILD_ID + " input " + INPUT_PROFILE + " presentation " + PRESENTATION_PROFILE)
+    traceInput("humans " + I2S(matchState.humanCount) + " frame " + I2S(replayRuntime.simulationFrame) + " phase " + I2S(matchState.phase))
+    traceConfirmedState()
+    traceSelectionState("trace-start")
+    let receiptStarted = TimerGetElapsed(inputTraceClock)
     PreloadGenClear()
     PreloadGenStart()
     Preload("TRACE START " + BUILD_ID)
     PreloadGenEnd("wc3-melee-input-start.txt")
+    traceInput("trace-start receipt native-seconds " + R2S(TimerGetElapsed(inputTraceClock) - receiptStarted))
 
 function finishInputTrace()
     inputTraceActive = false
@@ -137,77 +339,498 @@ function finishInputTrace()
     Preload(I2S(inputTraceTicks) + " " + R2S(TimerGetElapsed(inputTraceClock)) + " end")
     PreloadGenEnd("wc3-melee-input-trace.txt")
 
-InputSnapshot playerInput = null
-InputSnapshot botInput = null
-StagePanel stagePanel = null
-SelectionPanel selectionPanel = null
-SettingsPanel settingsPanel = null
-BindingSettings playerBindings = new BindingSettings(Player(0))
-BindingSettings secondBindings = new BindingSettings(Player(1))
-PlayerInputState secondKeyState = new PlayerInputState()
-InputSnapshot secondPlayerInput = null
-SettingsPanel secondSettingsPanel = null
-SelectionPanel secondSelectionPanel = null
-boolean hostHumanPlayer = false
-boolean secondNormalAttackQueued = false
-boolean secondLeftPressed = false
-boolean secondRightPressed = false
-boolean secondDownPressed = false
-boolean secondSpecialPressed = false
-boolean secondTechPressed = false
-boolean secondLCancelPressed = false
-boolean secondMashPressed = false
-boolean secondGrabMashPressed = false
-boolean secondAttackPressed = false
-int secondThrowX = 0
-int secondThrowZ = 0
-int secondLedgeVerticalPressed = 0
-boolean secondGetupAttackPressed = false
-boolean secondGetupStandPressed = false
-boolean secondJumpQueued = false
-boolean secondAirDodgeQueued = false
-int secondDodgeX = 0
-int secondDodgeZ = 0
-int secondAttackFacing = 0
-int secondLastInputAction = -1
-int appliedBindingRevision = -1
-int appliedSecondBindingRevision = -1
-AttackBuffer playerAttacks = new AttackBuffer(ATTACK_BUFFER_FRAMES)
-AttackBuffer botAttacks = new AttackBuffer(ATTACK_BUFFER_FRAMES)
-int playerAttackFacing = 0
-int lastInputAction = -1
-int lastNormalStyle = -1
+class Fighter extends FighterState
+    unit body
+    effect dizzyEffect = null
+    int renderedSelection = 0
+
+    construct(player owner, int fighterType, real startX, int direction)
+        super(fighterType, startX, direction)
+        body = CreateUnit(owner, fighterType == 2 ? DEMON_HUNTER_FIGHTER_ID : (fighterType == 0 ? ARCHER_FIGHTER_ID : RIFLEMAN_FIGHTER_ID), centerX + startX, centerY, direction > 0 ? 0 : 180)
+        SetUnitInvulnerable(body, true)
+        SetUnitPathing(body, false)
+        UnitAddAbility(body, 'Amrf')
+        UnitRemoveAbility(body, 'Amrf')
+        UnitAddAbility(body, 'Aloc')
+        PauseUnit(body, true)
+        // A blended transition can retain the previous pose throughout hitlag.
+        SetUnitBlendTime(body, 0.)
+        place()
+
+    function place()
+        SetUnitX(body, centerX + x)
+        SetUnitY(body, centerY)
+        SetUnitFlyHeight(body, 1800 + z, 0)
+        BlzSetUnitFacingEx(body, fighterPoseFacing(this) > 0 ? 0 : 180)
+
+    function clearDizzyEffect()
+        if dizzyEffect != null
+            BlzSetSpecialEffectScale(dizzyEffect, 0.)
+            DestroyEffect(dizzyEffect)
+            dizzyEffect = null
+
+    function renderDizzy()
+        if shieldBreakState != SHIELD_BREAK_DIZZY or out or matchState.phase != MATCH
+            clearDizzyEffect()
+            return
+        if dizzyEffect == null
+            dizzyEffect = AddSpecialEffect(Abilities.thunderclapTarget, centerX + x, centerY)
+        BlzSetSpecialEffectPosition(dizzyEffect, centerX + x, centerY, floorHeight + z + 115)
+
+
+function frameText(string name, real x, real y, real width, real height, real size) returns framehandle
+    let result = BlzCreateFrameByType("TEXT", name, BlzGetOriginFrame(ORIGIN_FRAME_GAME_UI, 0), "", 0)
+    BlzFrameSetAbsPoint(result, FRAMEPOINT_TOPLEFT, x, y)
+    BlzFrameSetSize(result, width, height)
+    BlzFrameSetFont(result, "Fonts\\FRIZQT__.TTF", size, 0)
+    BlzFrameSetTextAlignment(result, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT)
+    return result
+
+function clearStageDecks()
+    for i = 0 to stageDeckCount - 1
+        BlzSetSpecialEffectScale(stageDecks[i], 0.)
+        DestroyEffect(stageDecks[i])
+        stageDecks[i] = null
+    stageDeckCount = 0
+
+function clearProjectileModels()
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if participants[slot].projectiles != null
+            participants[slot].projectiles.clear()
+
+function drawStage()
+    clearStageDecks()
+    for i = 0 to surfaceCount(matchState.stageChoice) - 1
+        let left = surfaceLeft(matchState.stageChoice, i)
+        let right = surfaceRight(matchState.stageChoice, i)
+        let pass = surfacePass(matchState.stageChoice, i)
+        let deck = AddSpecialEffect(STAGE_DECK_MODEL, centerX + (left + right) / 2, centerY)
+        BlzSetSpecialEffectPosition(deck, centerX + (left + right) / 2, centerY, floorHeight + surfaceZ(matchState.stageChoice, i))
+        // The authored walking plane spans [-50,50] at z=0; the body stays below it.
+        BlzSetSpecialEffectMatrixScale(deck, (right - left) / 100, pass ? 0.65 : 1., pass ? 0.45 : 1.)
+        stageDecks[stageDeckCount] = deck
+        stageDeckCount++
+
+function announce(string message)
+    statusText = message
+    statusTime = 2
+
+function traceFrameInput(int participantId, InputSnapshot input, AttackBuffer attacks, int frame)
+    if inputTraceActive and (input.jumpPressed or input.airDodgePressed or input.specialPressed or attacks.hasPending(frame))
+        traceInput("participant " + I2S(participantId) + " frame " + I2S(frame) + " phase " + I2S(matchState.phase) + " sampled x " + I2S(input.direction) + " z " + I2S(input.verticalDirection) + " jump " + (input.jumpPressed ? "1" : "0") + " dodge " + (input.airDodgePressed ? "1" : "0") + " special " + (input.specialPressed ? "1" : "0") + " attack " + I2S(attacks.hasPending(frame) ? attacks.style : -1))
+
+function traceSpecialAction(int participantId, Fighter f, int previousAction)
+    if f.specialAction != previousAction
+        traceParticipant(participantId, "special " + I2S(f.specialAction) + " action-frame " + I2S(f.specialFrame) + " x " + R2S(f.x) + " z " + R2S(f.z))
+
+function traceRecovery(int participantId, Fighter f, int previousDown, boolean previouslyActionable)
+    if inputTraceActive and (f.downState != previousDown or canAttack(f) != previouslyActionable)
+        traceParticipant(participantId, "recovery down " + I2S(f.downState) + " actionable " + (canAttack(f) ? "1" : "0") + " hitlag " + I2S(f.hitlag) + " hitstun " + I2S(f.hitstun) + " damage " + R2S(f.damage))
+
+function sendShadowBatch()
+    let count = shadowBatch.recordCount()
+    if count == 0 or shadowLocalSendFailed
+        return
+    if not shadowBatch.prepare(shadowOutgoing)
+        shadowLocalSendFailed = true
+        statusText = "Controls stopped responding. Restart the match."
+        statusTime = 3600
+        return
+    let wire = shadowOutgoing.encode()
+    if not inputPacketSizeInRange(wire.length(), count)
+        shadowLocalSendFailed = true
+        statusText = "Controls stopped responding. Restart the match."
+        statusTime = 3600
+        return
+    let sendStartedMs = responseProbeClockMs()
+    let sent = BlzSendSyncData("SC_GP", wire)
+    responseProbeSendCallFinish(sendStartedMs)
+    if not sent
+        shadowLocalSendFailed = true
+        statusText = "Controls stopped responding. Restart the match."
+        statusTime = 3600
+        return
+    if RESPONSE_SERVICE_PROBE
+        for row = 0 to count - 1
+            responseProbeTransportSend(shadowInputEpoch, shadowBatch.firstFrameNumber() + row)
+    if inputTraceActive
+        shadowTraceLocalSends++
+        shadowTraceSentRows += count
+        if count == 1
+            shadowTraceSingletons++
+        for row = 0 to count - 1
+            recordShadowTraceSend(shadowInputEpoch, shadowBatch.firstFrameNumber() + row)
+            if shadowBatchCaptureTraced[row]
+                let callbacks = inputTraceTicks - shadowBatchCaptureCallback[row]
+                let seconds = TimerGetElapsed(inputTraceClock) - shadowBatchCaptureTime[row]
+                shadowTraceBatchWaitSamples++
+                shadowTraceBatchWaitSumCallbacks += callbacks
+                shadowTraceBatchWaitMaxCallbacks = max(shadowTraceBatchWaitMaxCallbacks, callbacks)
+                shadowTraceBatchWaitSumSeconds += seconds
+                shadowTraceBatchWaitMaxSeconds = max(shadowTraceBatchWaitMaxSeconds, seconds)
+    shadowBatch.sent()
+
+function failJournalInput(string reason)
+	if journalInputFailed
+		return
+	journalInputFailed = true
+	statusText = "Controller input stopped. Restart the match."
+	statusTime = 3600
+	if inputTraceActive
+		traceInput("journal stopped " + reason + " sequence " + I2S(journalInput.sequenceNumber()) + " frame " + I2S(journalInput.expectedFrame()))
+
+function serviceJournalInput()
+	if journalInputFailed
+		return
+	if transportIsolationPhase >= 2 and transportIsolationPhase <= 3
+		return
+	let slot = GetPlayerId(GetLocalPlayer())
+	if not matchState.humanFighterActive(slot)
+		return
+	for readIndex = 1 to JOURNAL_PACKETS_PER_CALLBACK
+		journalInputFile.filename = journalInput.filename()
+		var isolationReadStarted = 0.
+		if transportIsolationPhase == 1
+			isolationReadStarted = TimerGetElapsed(transportIsolationClock)
+			let journalSequence = journalInput.sequenceNumber()
+			if transportIsolationFirstJournalSequence < 0
+				transportIsolationFirstJournalSequence = journalSequence
+			if transportIsolationLastJournalSequence != journalSequence
+				transportIsolationJournalSequenceChanges++
+			transportIsolationLastJournalSequence = journalSequence
+		let fileReadStartedMs = responseProbeClockMs()
+		let wire = journalInputFile.readAsString(localPlayer)
+		if transportIsolationPhase == 1
+			transportIsolationReadCount++
+			transportIsolationReadBytes += wire.length()
+			transportIsolationReadSeconds += TimerGetElapsed(transportIsolationClock) - isolationReadStarted
+		if fileReadStartedMs >= 0
+			responseProbeFileRead(responseProbeClockMs() - fileReadStartedMs, wire.length())
+		if wire == ""
+			return
+		let latest = min(INPUT_LAST_FRAME, shadowSchedule.nextConfirmedFrame() - 1 + INPUT_FUTURE_LIMIT)
+		let decoded = journalInput.decode(wire, latest)
+		if decoded == JOURNAL_WAIT
+			return
+		if decoded != JOURNAL_READY
+			failJournalInput("invalid or noncontiguous I4 row")
+			return
+		let frame = journalInput.packetFrame()
+		let count = journalInput.recordCount()
+		for rowIndex = 0 to count - 1
+			if not journalInput.copyRow(rowIndex, shadowPending)
+				failJournalInput("row validation state was lost")
+				return
+			let captured = shadowSchedule.captureLocalAt(shadowInputEpoch, frame + rowIndex, shadowPending)
+			if captured == SHADOW_TOO_FAR_AHEAD or captured == SHADOW_PENDING_FULL
+				return
+			if captured != SHADOW_CAPTURED and captured != SHADOW_ALREADY_CAPTURED
+				failJournalInput("original frame could not be admitted")
+				return
+			if RESPONSE_SERVICE_PROBE and captured == SHADOW_CAPTURED
+				responseProbePoll(shadowPending.heldMask(), shadowPending.pressedMask(), shadowPending.releasedMask(), frame + rowIndex)
+			if inputTraceActive and captured == SHADOW_CAPTURED
+				shadowTraceLocalCaptures++
+		if not inputPacketSizeInRange(wire.length(), count)
+			shadowLocalSendFailed = true
+			failJournalInput("synchronized input submission failed")
+			return
+		let sendStartedMs = responseProbeClockMs()
+		let sent = BlzSendSyncData("SC_GP", wire)
+		responseProbeSendCallFinish(sendStartedMs)
+		if not sent
+			shadowLocalSendFailed = true
+			failJournalInput("synchronized input submission failed")
+			return
+		if RESPONSE_SERVICE_PROBE
+			for rowIndex = 0 to count - 1
+				responseProbeTransportSend(shadowInputEpoch, frame + rowIndex)
+		if inputTraceActive
+			shadowTraceLocalSends++
+			shadowTraceSentRows += count
+			if count == 1
+				shadowTraceSingletons++
+			for rowIndex = 0 to count - 1
+				recordShadowTraceSend(shadowInputEpoch, frame + rowIndex)
+			traceInput("journal sent sequence " + I2S(journalInput.sequenceNumber()) + " frame " + I2S(frame) + " count " + I2S(count))
+		if not journalInput.sent()
+			shadowLocalSendFailed = true
+			failJournalInput("journal cursor could not advance after send")
+			return
+
+function shadowCaptureLocalInput()
+	if JOURNAL_INPUT_SOURCE
+		serviceJournalInput()
+		return
+    if inputTraceActive
+        shadowTraceLocalPolls++
+    // Poll neutral while paused or locally inactive. This latches releases;
+    // the sampler keeps them until a not-yet-assigned frame can carry them.
+    let heldActions = not matchControls.isPaused() ? shadowPollLocal() : 0
+    shadowCapture.sample(heldActions)
+    if responseProbeRecording()
+        shadowCapture.read(responseProbeSample)
+        responseProbePoll(heldActions, responseProbeSample.pressedMask(), responseProbeSample.releasedMask(), shadowSchedule.captureTarget())
+    if matchControls.isPaused() or shadowLocalSendFailed
+        sendShadowBatch()
+        return
+    let target = shadowSchedule.captureTarget()
+    if target == 0
+        sendShadowBatch()
+        return
+    if target == shadowLastCaptureTarget
+        if inputTraceActive
+            shadowTraceSameTargetSkips++
+        // A stalled cursor must never strand the row needed to unblock it.
+        sendShadowBatch()
+        return
+    shadowCapture.read(shadowSample)
+    let result = shadowSchedule.captureLocal(shadowInputEpoch, shadowSample)
+    if RESPONSE_SERVICE_PROBE
+        responseProbeCapture(result)
+    if result == SHADOW_ALREADY_CAPTURED
+        shadowLastCaptureTarget = target
+        return
+    if result != SHADOW_CAPTURED
+        statusText = "Controls stopped responding. Restart the match."
+        statusTime = 3600
+        return
+    if inputTraceActive
+        shadowTraceLocalCaptures++
+    shadowCapture.commitCapturedEdges()
+    shadowLastCaptureTarget = target
+    let batchSlot = shadowBatch.recordCount()
+    if not shadowSchedule.copyPending(shadowInputEpoch, target, shadowPending)
+            or not shadowBatch.append(shadowInputEpoch, target, shadowPending)
+        shadowLocalSendFailed = true
+        statusText = "Controls stopped responding. Restart the match."
+        statusTime = 3600
+        return
+    shadowBatchCaptureTraced[batchSlot] = inputTraceActive
+    if inputTraceActive
+        shadowBatchCaptureCallback[batchSlot] = inputTraceTicks
+        shadowBatchCaptureTime[batchSlot] = TimerGetElapsed(inputTraceClock)
+    if not SHADOW_INPUT_BATCH2 or shadowBatch.recordCount() == 2
+        sendShadowBatch()
+
+function stepConfirmedShadowFrame() returns boolean
+    let frame = shadowSchedule.nextConfirmedFrame()
+    if not shadowSchedule.readConfirmed(shadowInputEpoch, shadowAcceptedInputs)
+        return false
+    if not currentFrameInput.captureNetworkInputs(frame, shadowAcceptedInputs, matchWorld, matchState.humanMask)
+        return false
+    applyFrame()
+    if replayRuntime.simulationFrame != frame
+        return false
+    return shadowSchedule.completeConfirmed(shadowInputEpoch, frame)
+
+function shadowInputTick()
+    if not shadowInputActive
+        return
+    if matchState.phase != MATCH
+        sendShadowBatch()
+        return
+    if JOURNAL_INPUT_SOURCE
+        if not matchControls.isPaused()
+            serviceJournalInput()
+    else
+        shadowCaptureLocalInput()
+    if matchControls.isPaused()
+        return
+    var confirmedSteps = 0
+    while matchState.phase == MATCH and shadowSchedule.mayAdvanceConfirmed()
+            and confirmedSteps < SHADOW_CONFIRMED_CATCHUP_LIMIT
+        if not stepConfirmedShadowFrame()
+            statusText = "The match could not advance. Restart the match."
+            statusTime = 3600
+            return
+        confirmedSteps++
+        if inputTraceActive
+            shadowTraceConfirmedSteps++
+    if matchState.phase != MATCH
+        sendShadowBatch()
+    if inputTraceActive and confirmedSteps == 0 and matchState.phase == MATCH
+        shadowTraceWaitTicks++
+    let correction = shadowPlayback.reconcile(shadowSchedule, shadowInputEpoch,
+        GetPlayerId(GetLocalPlayer()),
+        shadowWorld, shadowMatch, shadowInputs, shadowRuntime, shadowHistory)
+    if correction < REPLAY_CORRECTION_UNCHANGED
+        statusText = "The match could not catch up. Restart the match."
+        statusTime = 3600
+        return
+    if inputTraceActive and correction != REPLAY_CORRECTION_UNCHANGED
+        shadowTraceCorrections++
+        let replayDepth = shadowRuntime.simulationFrame - correction + 1
+        shadowTraceReplayedFrames += replayDepth
+        shadowTraceMaxReplayDepth = max(shadowTraceMaxReplayDepth, replayDepth)
+    // Replay stays numerical. Persistent visuals project only the completed state;
+    // event effects, audio, result state and HUD remain confirmed.
+    if matchState.phase == MATCH and shadowSchedule.mayAdvanceSpeculativeFor(GetPlayerId(GetLocalPlayer()))
+        if shadowPlayback.advanceSpeculative(shadowSchedule, shadowInputEpoch,
+            GetPlayerId(GetLocalPlayer()), shadowMatch, shadowWorld, shadowInputs, shadowRuntime, shadowHistory)
+            if inputTraceActive
+                shadowTraceSpeculativeSteps++
+        else if inputTraceActive
+            shadowTraceSpeculativeFailures++
+    else if inputTraceActive and matchState.phase == MATCH
+            and shadowSchedule.speculativeFrame() > shadowSchedule.knownThrough() + shadowSchedule.rollbackFrames()
+        shadowTraceWindowBlocks++
+
+    if RESPONSE_SERVICE_PROBE
+        responseProbeAdvance(replayRuntime.simulationFrame, shadowSchedule.speculativeFrame(), correction)
+
+function removeBroadKeyEvents()
+    if broadKeyDownTrigger != null
+        DestroyTrigger(broadKeyDownTrigger)
+        broadKeyDownTrigger = null
+    if broadKeyUpTrigger != null
+        DestroyTrigger(broadKeyUpTrigger)
+        broadKeyUpTrigger = null
+
+function syncKeyEventLifecycle()
+    let shadowPollingCombat = SHADOW_INPUT_PROFILE and shadowInputActive and matchState.phase == MATCH
+    if shadowPollingCombat
+        removeBroadKeyEvents()
+    else
+        registerBroadKeyEvents()
+
+function onResponseProbeStart()
+    if not inputTraceActive and GetPlayerId(GetTriggerPlayer()) == matchState.firstHumanSlot()
+        responseProbeStart()
+
+function onResponseProbeStartEdges()
+    if not inputTraceActive and GetPlayerId(GetTriggerPlayer()) == matchState.firstHumanSlot()
+        responseProbeStartEdges()
+
+function onResponseProbeDump()
+    if GetPlayerId(GetTriggerPlayer()) == matchState.firstHumanSlot()
+        responseProbeDump()
+
+function aerialAttackName(int style) returns string
+    if style == AERIAL_NEUTRAL_STYLE
+        return "Neutral air!"
+    if style == AERIAL_FORWARD_STYLE
+        return "Forward air!"
+    if style == AERIAL_BACK_STYLE
+        return "Back air!"
+    if style == AERIAL_UP_STYLE
+        return "Up air!"
+    return "Down air!"
+
+class NativeParticipant
+    Fighter fighter = null
+    FighterPoolPresentation pool = null
+    ProjectilePresentation projectiles = null
+    ShieldPresentation shield = null
+    FighterHUD hud = null
+    BindingSettings bindings
+    SettingsPanel settings = null
+    SelectionPanel selection = null
+    PlayerInputState keys = new PlayerInputState()
+    KeyboardInputCapture callbackCapture = new KeyboardInputCapture()
+    NetworkInput callbackRow = new NetworkInput()
+    int appliedBindingRevision = -1
+    int lastInputAction = -1
+    int lastNormalStyle = -1
+    boolean wasOut = false
+    boolean wasHolding = false
+    boolean wasActionable = false
+    int previousAttack = 0
+    int previousJump = 0
+    int previousDown = 0
+    int previousLCancel = 0
+    int previousShieldBreak = 0
+    int previousBreakState = 0
+    int previousLedge = 0
+    int previousSpecial = 0
+    int previousGrab = 0
+
+    construct(int slot)
+        bindings = new BindingSettings(Player(slot))
+
+    function sampleCallback()
+        var mask = 0
+        for action = 0 to ACTION_COUNT - 1
+            if keys.actionHeld(action)
+                mask += inputActionBit(action)
+        callbackCapture.sample(mask)
+
+    function beforeFrame()
+        wasOut = fighter.out
+        wasHolding = fighter.grabTarget != null
+        wasActionable = canAttack(fighter)
+        previousAttack = fighter.attackSerial
+        previousJump = fighter.jumpSerial
+        previousDown = fighter.downState
+        previousLCancel = fighter.lCancelSerial
+        previousShieldBreak = fighter.shieldBreakSerial
+        previousBreakState = fighter.shieldBreakState
+        previousLedge = fighter.ledgeState
+        previousSpecial = fighter.specialAction
+        previousGrab = fighter.grabAction
+
+function localParticipantSlot() returns int
+    let slot = GetPlayerId(GetLocalPlayer())
+    return matchState.humanActive(slot) ? slot : matchState.firstHumanSlot()
+
+function fighterLabel(int slot) returns string
+    return matchState.humanFighterActive(slot) ? "Player " + I2S(slot + 1) : "Computer"
+
+function currentHumanMask() returns int
+    var mask = 0
+    var bit = 1
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if GetPlayerController(Player(slot)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(slot)) == PLAYER_SLOT_STATE_PLAYING and not participantIsActive(matchState.departedMask, slot)
+            mask += bit
+        bit *= 2
+    return mask
+
+function currentComputerMask() returns int
+    var mask = 0
+    var bit = 1
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if GetPlayerController(Player(slot)) == MAP_CONTROL_COMPUTER and GetPlayerSlotState(Player(slot)) == PLAYER_SLOT_STATE_PLAYING
+            mask += bit
+        bit *= 2
+    return mask
+
+function clearParticipantInputs(int slot)
+    let participant = participants[slot]
+    participant.keys.clear()
+    participant.callbackCapture.reset(0)
+    producedInputs.commands[slot].clear()
+    matchInputs.commands[slot].clear()
+
+function clearAllInputs()
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        clearParticipantInputs(slot)
+
+function controlsAvailable(int slot) returns boolean
+    if not matchState.humanPresent(slot)
+        return false
+    let participant = participants[slot]
+    return participant.bindings.ready and (participant.settings == null or not participant.settings.isOpen())
 
 class MeleeSelectionActions extends SelectionActions
     override function selectChoice(int participantId, int choice)
-        let bindings = participantId == 0 ? playerBindings : secondBindings
-        let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
-        if not bindings.ready or controls.isOpen() or matchState.phase != CHARACTER_MENU
-            return
-        matchState.selectCharacter(participantId, choice)
-        makePreview()
+        if controlsAvailable(participantId) and matchState.phase == CHARACTER_MENU
+            matchState.selectCharacter(participantId, choice)
+            makePreview()
 
-    override function selectCpuChoice(int participantId, int choice)
-        if participantId != 0 or twoHumanPlayers or not playerBindings.ready or matchState.phase != CHARACTER_MENU
-            return
-        if settingsPanel != null and settingsPanel.isOpen()
-            return
-        matchState.selectCpuCharacter(participantId, choice)
-        makePreview()
+    override function selectCpuChoice(int participantId, int cpu, int choice)
+        if controlsAvailable(participantId) and matchState.phase == CHARACTER_MENU and matchState.canChooseComputer(participantId, cpu)
+            matchState.selectCpuCharacter(participantId, cpu, choice)
+            makePreview()
+
+    override function cycleMode(int actorId, int fighterSlot)
+        if controlsAvailable(actorId) and matchState.cycleSlotMode(actorId, fighterSlot)
+            makePreview()
+            traceSelectionState("cycle actor " + I2S(actorId) + " slot " + I2S(fighterSlot))
 
     override function recallChoice(int actorId, int chipSlot)
-        if actorId != 0 and actorId != 1
-            return
-        if actorId == 1 and not twoHumanPlayers
-            return
-        if not matchState.characterReady(chipSlot)
-            return
-        let bindings = actorId == 0 ? playerBindings : secondBindings
-        let controls = actorId == 0 ? settingsPanel : secondSettingsPanel
-        if not bindings.ready or (controls != null and controls.isOpen())
-            return
-        matchState.recallCharacter(actorId, chipSlot)
-        makePreview()
+        if controlsAvailable(actorId) and matchState.phase == CHARACTER_MENU
+            matchState.recallCharacter(actorId, chipSlot)
+            makePreview()
 
     override function openSettings(int participantId)
         openSettingsScreen(participantId)
@@ -233,142 +856,26 @@ class MeleeSettingsActions extends SettingsActions
     construct(int participantId)
         this.participantId = participantId
     override function closeSettings(int _participantId)
-        if participantId == 0
-            clearHeldInputs()
-        else
-            clearSecondInputs()
-
-
-class Fighter extends FighterState
-    unit body
-    effect shieldEffect = null
-    effect dizzyEffect = null
-    string animation = ""
-    int jumpAnimationRemaining = 0
-    boolean doubleJumpAnimation = false
-    real landingAnimationRate = 1.
-
-    construct(player owner, int fighterType, real startX, int direction)
-        super(fighterType, startX, direction)
-        body = CreateUnit(owner, fighterType == 2 ? DEMON_HUNTER_FIGHTER_ID : (fighterType == 0 ? ARCHER_FIGHTER_ID : RIFLEMAN_FIGHTER_ID), centerX + startX, centerY, direction > 0 ? 0 : 180)
-        SetUnitInvulnerable(body, true)
-        SetUnitPathing(body, false)
-        UnitAddAbility(body, 'Amrf')
-        UnitRemoveAbility(body, 'Amrf')
-        UnitAddAbility(body, 'Aloc')
-        PauseUnit(body, true)
-        // A blended transition can retain the previous pose throughout hitlag.
-        SetUnitBlendTime(body, 0.)
-        place()
-
-    function place()
-        SetUnitX(body, centerX + x)
-        SetUnitY(body, centerY)
-        SetUnitFlyHeight(body, 1800 + z, 0)
-        BlzSetUnitFacingEx(body, fighterPoseFacing(this) > 0 ? 0 : 180)
-
-    function clearShieldEffect()
-        if shieldEffect != null
-            BlzSetSpecialEffectScale(shieldEffect, 0.)
-            DestroyEffect(shieldEffect)
-            shieldEffect = null
-
-    function renderShield()
-        if not shield or out or matchState.phase != MATCH
-            clearShieldEffect()
-            return
-        if shieldEffect == null
-            shieldEffect = AddSpecialEffect(Abilities.antiMagicShell, centerX + x, centerY)
-            BlzSetSpecialEffectAlpha(shieldEffect, 180)
-        let scale = shieldVisualScale(this)
-        // AntiMagicShell's Stand bounds center is 47.6 units below its origin.
-        BlzSetSpecialEffectPosition(shieldEffect, centerX + x, centerY, floorHeight + z + 50 + 47.6 * scale)
-        BlzSetSpecialEffectScale(shieldEffect, scale)
-
-    function clearDizzyEffect()
-        if dizzyEffect != null
-            BlzSetSpecialEffectScale(dizzyEffect, 0.)
-            DestroyEffect(dizzyEffect)
-            dizzyEffect = null
-
-    function renderDizzy()
-        if shieldBreakState != SHIELD_BREAK_DIZZY or out or matchState.phase != MATCH
-            clearDizzyEffect()
-            return
-        if dizzyEffect == null
-            dizzyEffect = AddSpecialEffect(Abilities.thunderclapTarget, centerX + x, centerY)
-        BlzSetSpecialEffectPosition(dizzyEffect, centerX + x, centerY, floorHeight + z + 115)
-
-
-function charName(int which) returns string
-    return which == 0 ? "Archer" : "Rifleman"
-
-function charModel(int which) returns string
-    return which == 0 ? "Archer" : "Rifleman"
-
-function frameText(string name, real x, real y, real width, real height, real size) returns framehandle
-    let result = BlzCreateFrameByType("TEXT", name, BlzGetOriginFrame(ORIGIN_FRAME_GAME_UI, 0), "", 0)
-    BlzFrameSetAbsPoint(result, FRAMEPOINT_TOPLEFT, x, y)
-    BlzFrameSetSize(result, width, height)
-    BlzFrameSetFont(result, "Fonts\\FRIZQT__.TTF", size, 0)
-    BlzFrameSetTextAlignment(result, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT)
-    return result
-
-function clearStageDecks()
-    for i = 0 to stageDeckCount - 1
-        BlzSetSpecialEffectScale(stageDecks[i], 0.)
-        DestroyEffect(stageDecks[i])
-        stageDecks[i] = null
-    stageDeckCount = 0
-
-function clearProjectileModels()
-    for i = 0 to projectileModelCount - 1
-        if projectileModels[i] != null
-            DestroyEffect(projectileModels[i])
-            projectileModels[i] = null
-        projectileModelFamilies[i] = -1
-    projectileModelCount = 0
-
-function renderProjectile(int index, boolean active, real x, real z, real velocityX, real velocityZ, int visualFamily)
-    projectileModelCount = max(projectileModelCount, index + 1)
-    if not active
-        if projectileModels[index] != null
-            DestroyEffect(projectileModels[index])
-            projectileModels[index] = null
-        projectileModelFamilies[index] = -1
-        return
-    if projectileModels[index] != null and projectileModelFamilies[index] != visualFamily
-        DestroyEffect(projectileModels[index])
-        projectileModels[index] = null
-    if projectileModels[index] == null
-        let model = visualFamily == 2 ? Abilities.manaFlareMissile : (visualFamily == 0 ? Abilities.arrowMissile1 : Abilities.gyroCopterMissile)
-        projectileModels[index] = AddSpecialEffect(model, centerX + x, centerY)
-        projectileModelFamilies[index] = visualFamily
-        if visualFamily == 1
-            BlzSetSpecialEffectScale(projectileModels[index], 0.65)
-    BlzSetSpecialEffectYaw(projectileModels[index], velocityX >= 0 ? 0. : 3.141592654)
-    BlzSetSpecialEffectPitch(projectileModels[index], -Atan2(velocityZ, velocityX.abs()))
-    BlzSetSpecialEffectPosition(projectileModels[index], centerX + x, centerY, floorHeight + z)
-
-function renderProjectiles(FighterState fighter, int offset)
-    for index = 0 to PROJECTILE_CAPACITY - 1
-        renderProjectile(offset + index, projectileActive(fighter, index), projectileXAt(fighter, index),
-            projectileZAt(fighter, index), projectileVelocityXAt(fighter, index), projectileVelocityZAt(fighter, index), projectileVisualFamilyAt(fighter, index))
-
-function drawStage()
-    clearStageDecks()
-    for i = 0 to surfaceCount(matchState.stageChoice) - 1
-        let left = surfaceLeft(matchState.stageChoice, i)
-        let right = surfaceRight(matchState.stageChoice, i)
-        let pass = surfacePass(matchState.stageChoice, i)
-        let deck = AddSpecialEffect(STAGE_DECK_MODEL, centerX + (left + right) / 2, centerY)
-        BlzSetSpecialEffectPosition(deck, centerX + (left + right) / 2, centerY, floorHeight + surfaceZ(matchState.stageChoice, i))
-        // The authored walking plane spans [-50,50] at z=0; the body stays below it.
-        BlzSetSpecialEffectMatrixScale(deck, (right - left) / 100, pass ? 0.65 : 1., pass ? 0.45 : 1.)
-        stageDecks[stageDeckCount] = deck
-        stageDeckCount++
+        clearParticipantInputs(participantId)
 
 function removeFighters()
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        let participant = participants[slot]
+        if participant.shield != null
+            destroy participant.shield
+            participant.shield = null
+        if participant.projectiles != null
+            destroy participant.projectiles
+            participant.projectiles = null
+        if participant.pool != null
+            destroy participant.pool
+            participant.pool = null
+        if participant.fighter != null
+            participant.fighter.clearDizzyEffect()
+            RemoveUnit(participant.fighter.body)
+            destroy participant.fighter
+            participant.fighter = null
+            matchWorld.fighters[slot] = null
     if frostEffects != null
         frostEffects.clear()
     if specialEffects != null
@@ -376,371 +883,425 @@ function removeFighters()
     if combatEffects != null
         combatEffects.clear()
     clearProjectileModels()
-    if playerFighter != null
-        playerFighter.clearShieldEffect()
-        playerFighter.clearDizzyEffect()
-        RemoveUnit(playerFighter.body)
-        destroy playerFighter
-        playerFighter = null
-    if botFighter != null
-        botFighter.clearShieldEffect()
-        botFighter.clearDizzyEffect()
-        RemoveUnit(botFighter.body)
-        destroy botFighter
-        botFighter = null
 
 function makePreview()
-    clearHeldInputs()
-    clearSecondInputs()
+    clearAllInputs()
     removeFighters()
-    playerFighter = new Fighter(Player(0), matchState.characterChoice, -240, 1)
-    botFighter = new Fighter(Player(1), matchState.secondCharacterChoice, 240, -1)
-    SetUnitAnimation(playerFighter.body, "stand")
-    SetUnitAnimation(botFighter.body, "stand")
-
-function announce(string message)
-    statusText = message
-    statusTime = 2
-
-function loseStock(Fighter f)
-    ShowUnit(f.body, false)
-    if f.stocks > 0 and not matchState.practice
-        announce(f == playerFighter ? "Player 1 lost a stock!" : (twoHumanPlayers ? "Player 2 lost a stock!" : "Opponent lost a stock!"))
-
-function attack(Fighter attacker, Fighter target, int style)
-    if matchState.phase != MATCH
-        return
-    if attacker == playerFighter
-        queueHumanAttack(playerAttackRequests, secondAttackRequests, 0, style, style == 4 ? playerAttackFacing : 0, replayRuntime.simulationFrame)
-    else if twoHumanPlayers
-        queueHumanAttack(playerAttackRequests, secondAttackRequests, 1, style, style == 4 ? secondAttackFacing : 0, replayRuntime.simulationFrame)
-    else
-        secondAttackRequests.enqueue(style, target.x >= attacker.x ? 1 : -1, replayRuntime.simulationFrame, false)
-
-function traceFrameInput(int participantId, InputSnapshot input, AttackBuffer attacks, int frame)
-    if inputTraceActive and (input.jumpPressed or input.airDodgePressed or input.specialPressed or attacks.hasPending(frame))
-        traceInput("participant " + I2S(participantId) + " frame " + I2S(frame) + " phase " + I2S(matchState.phase) + " sampled x " + I2S(input.direction) + " z " + I2S(input.verticalDirection) + " jump " + (input.jumpPressed ? "1" : "0") + " dodge " + (input.airDodgePressed ? "1" : "0") + " special " + (input.specialPressed ? "1" : "0") + " attack " + I2S(attacks.hasPending(frame) ? attacks.style : -1))
-
-function traceSpecialAction(int participantId, Fighter f, int previousAction)
-    if f.specialAction != previousAction
-        traceParticipant(participantId, "special " + I2S(f.specialAction) + " action-frame " + I2S(f.specialFrame) + " x " + R2S(f.x) + " z " + R2S(f.z))
-
-function traceRecovery(int participantId, Fighter f, int previousDown, boolean previouslyActionable)
-    if inputTraceActive and (f.downState != previousDown or canAttack(f) != previouslyActionable)
-        traceParticipant(participantId, "recovery down " + I2S(f.downState) + " actionable " + (canAttack(f) ? "1" : "0") + " hitlag " + I2S(f.hitlag) + " hitstun " + I2S(f.hitstun) + " damage " + R2S(f.damage))
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        destroy producedInputs.inputs[slot]
+        producedInputs.inputs[slot] = new InputSnapshot()
+    matchWorld.mask = matchState.fighterMask()
+    var count = 0
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if matchWorld.active(slot)
+            count++
+    var position = 0
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if matchWorld.active(slot)
+            participants[slot].hud.layout(position, count)
+            position++
+            let x = matchSpawnX(slot)
+            let fighter = new Fighter(Player(slot), matchState.characterFor(slot), x, x < 0 ? 1 : -1)
+            participants[slot].fighter = fighter
+            matchWorld.fighters[slot] = fighter
+            SetUnitAnimation(fighter.body, "stand")
 
 function applyFrame()
-    firstImpacts.before(playerFighter)
-    secondImpacts.before(botFighter)
-    let playerWasOut = playerFighter.out
-    let botWasOut = botFighter.out
-    let playerPreviousAttack = playerFighter.attackSerial
-    let botPreviousAttack = botFighter.attackSerial
-    let playerPreviousJump = playerFighter.jumpSerial
-    let botPreviousJump = botFighter.jumpSerial
-    let playerPreviousDown = playerFighter.downState
-    let botPreviousDown = botFighter.downState
-    let playerPreviouslyActionable = canAttack(playerFighter)
-    let botPreviouslyActionable = canAttack(botFighter)
-    let playerPreviousLCancel = playerFighter.lCancelSerial
-    let playerPreviousShieldBreak = playerFighter.shieldBreakSerial
-    let botPreviousShieldBreak = botFighter.shieldBreakSerial
-    let playerPreviousBreakState = playerFighter.shieldBreakState
-    let playerPreviousLedge = playerFighter.ledgeState
-    let playerPreviousSpecial = playerFighter.specialAction
-    let botPreviousSpecial = botFighter.specialAction
-    let playerWasHolding = playerFighter.grabTarget != null
-    let botWasHolding = botFighter.grabTarget != null
-    let playerPreviousGrab = playerFighter.grabAction
-    let botPreviousGrab = botFighter.grabAction
-    if not currentFrameInput.execute(matchState, playerFighter, botFighter,
-            playerAttacks, botAttacks, replayRuntime, currentFrameInput.frameNumber())
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if matchWorld.active(slot)
+            participants[slot].beforeFrame()
+    if not currentFrameInput.execute(matchState, matchWorld, matchInputs, replayRuntime, currentFrameInput.frameNumber())
         return
-    firstImpacts.after(playerFighter)
-    secondImpacts.after(botFighter)
-    if playerPreviousGrab != playerFighter.grabAction
-        traceParticipant(0, "grab action " + I2S(playerFighter.grabAction) + " frame " + I2S(playerFighter.grabFrame) + " serial " + I2S(playerFighter.grabSerial))
-    if botPreviousGrab != botFighter.grabAction
-        traceParticipant(1, "grab action " + I2S(botFighter.grabAction) + " frame " + I2S(botFighter.grabFrame) + " serial " + I2S(botFighter.grabSerial))
-    if playerWasHolding != (playerFighter.grabTarget != null)
-        traceParticipant(0, "grab-hold " + (playerFighter.grabTarget != null ? "start" : "end"))
-    if botWasHolding != (botFighter.grabTarget != null)
-        traceParticipant(1, "grab-hold " + (botFighter.grabTarget != null ? "start" : "end"))
-    traceSpecialAction(0, playerFighter, playerPreviousSpecial)
-    traceSpecialAction(1, botFighter, botPreviousSpecial)
-    traceRecovery(0, playerFighter, playerPreviousDown, playerPreviouslyActionable)
-    traceRecovery(1, botFighter, botPreviousDown, botPreviouslyActionable)
-    combatEffects.present(replayRuntime.simulationFrame, firstImpacts, secondImpacts)
-    if playerFighter.shieldBreakSerial > playerPreviousShieldBreak
-        announce("Player 1's shield broke!")
-    else if botFighter.shieldBreakSerial > botPreviousShieldBreak
-        announce(twoHumanPlayers ? "Player 2's shield broke!" : "Opponent's shield broke!")
-    if playerPreviousBreakState != playerFighter.shieldBreakState
-        traceInput("shield-break " + I2S(playerFighter.shieldBreakState) + " z " + R2S(playerFighter.z) + " remaining " + R2S(playerFighter.shieldBreakRemaining))
-    if playerPreviousLedge != playerFighter.ledgeState
-        traceInput("ledge " + I2S(playerFighter.ledgeState) + " x " + R2S(playerFighter.x) + " z " + R2S(playerFighter.z))
-    if playerFighter.jumpSerial != playerPreviousJump
-        traceInput("jump " + I2S(playerFighter.jumpSerial) + " double " + (playerFighter.jumpIsDouble ? "1" : "0") + " z " + R2S(playerFighter.z))
-        traceParticipant(0, "applied jump " + I2S(playerFighter.jumpSerial))
-    if botFighter.jumpSerial != botPreviousJump
-        traceParticipant(1, "applied jump " + I2S(botFighter.jumpSerial))
-    if playerFighter.lCancelSerial > playerPreviousLCancel
-        announce("L-cancel!")
-    if playerFighter.downState != playerPreviousDown
-        if playerFighter.downState == DOWN_TECH
-            announce("Tech!")
-        else if playerFighter.downState == DOWN_TECH_ROLL
-            announce("Tech roll!")
-    if playerFighter.attackSerial != playerPreviousAttack
-        traceParticipant(0, "applied attack " + I2S(playerFighter.attackSerial) + " style " + I2S(playerFighter.attackStyle))
-        if attackPhase(playerFighter) != ATTACK_NONE
-            playAttackAnimation(playerFighter)
-        if isAerialAttack(playerFighter.attackStyle)
-            announce(aerialAttackName(playerFighter.attackStyle))
-    if botFighter.attackSerial != botPreviousAttack
-        traceParticipant(1, "applied attack " + I2S(botFighter.attackSerial) + " style " + I2S(botFighter.attackStyle))
-        if attackPhase(botFighter) != ATTACK_NONE
-            playAttackAnimation(botFighter)
-    renderFighter(playerFighter, playerWasOut, playerFighter.jumpSerial != playerPreviousJump, firstImpacts.hit)
-    renderFighter(botFighter, botWasOut, botFighter.jumpSerial != botPreviousJump, secondImpacts.hit)
-    frostEffects.present(playerFighter, botFighter)
-    specialEffects.present(playerFighter, botFighter)
-    renderProjectiles(playerFighter, 0)
-    renderProjectiles(botFighter, PROJECTILE_CAPACITY)
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if matchWorld.active(slot)
+            let participant = participants[slot]
+            let fighter = participant.fighter
+            if shadowInputActive
+                currentFrameInput.copyExecutedInput(slot, producedInputs.inputs[slot])
+            if participant.previousGrab != fighter.grabAction
+                traceParticipant(slot, "grab action " + I2S(fighter.grabAction) + " frame " + I2S(fighter.grabFrame) + " serial " + I2S(fighter.grabSerial))
+            if participant.wasHolding != (fighter.grabTarget != null)
+                traceParticipant(slot, "grab-hold " + (fighter.grabTarget != null ? "start" : "end"))
+            traceSpecialAction(slot, fighter, participant.previousSpecial)
+            traceRecovery(slot, fighter, participant.previousDown, participant.wasActionable)
+            if fighter.shieldBreakSerial > participant.previousShieldBreak
+                announce(fighterLabel(slot) + "'s shield broke!")
+            if participant.previousBreakState != fighter.shieldBreakState
+                traceParticipant(slot, "shield-break " + I2S(fighter.shieldBreakState) + " z " + R2S(fighter.z) + " remaining " + R2S(fighter.shieldBreakRemaining))
+            if participant.previousLedge != fighter.ledgeState
+                traceParticipant(slot, "ledge " + I2S(fighter.ledgeState) + " x " + R2S(fighter.x) + " z " + R2S(fighter.z))
+            if participant.previousJump != fighter.jumpSerial
+                traceParticipant(slot, "applied jump " + I2S(fighter.jumpSerial) + " double " + (fighter.jumpIsDouble ? "1" : "0") + " z " + R2S(fighter.z))
+            if fighter.lCancelSerial > participant.previousLCancel
+                announce("L-cancel!")
+            if participant.previousDown != fighter.downState
+                if fighter.downState == DOWN_TECH
+                    announce("Tech!")
+                else if fighter.downState == DOWN_TECH_ROLL
+                    announce("Tech roll!")
+            if participant.previousAttack != fighter.attackSerial
+                traceParticipant(slot, "applied attack " + I2S(fighter.attackSerial) + " style " + I2S(fighter.attackStyle))
+                if isAerialAttack(fighter.attackStyle)
+                    announce(aerialAttackName(fighter.attackStyle))
+            if participant.pool != null and participant.pool.admitted()
+                if not modelSounds.confirm(shadowInputEpoch, replayRuntime.simulationFrame, slot, fighter, replayRuntime.poses[slot], modelSoundPresentation)
+                    traceInput("model sound rejected confirmed frame " + I2S(replayRuntime.simulationFrame) + " slot " + I2S(slot))
+            renderFighter(slot, replayRuntime.poses[slot], participant.wasOut)
+            specialEffects.presentConfirmedAnimated(replayRuntime.simulationFrame, fighter, slot)
     if matchState.phase == RESULT
+        frostEffects.clear()
+        specialEffects.clear()
         clearProjectileModels()
+        announceResult()
 
-function jump(Fighter f)
-    if matchState.phase != MATCH
+function announceResult()
+    if matchState.interrupted
+        statusText = matchState.winner >= 0 ? fighterLabel(matchState.winner) + " wins by forfeit." : "Match ended because a player left."
+        statusTime = 3600
         return
-    if f == playerFighter
-        playerJumpQueued = true
-        playerJumpHeld = true
-    else if twoHumanPlayers
-        secondJumpQueued = true
-    else
-        botJumpQueued = true
-        botJumpHeld = true
+    statusText = matchState.winner >= 0 ? fighterLabel(matchState.winner) + " wins!" : (matchState.timedOut ? "Time! Draw." : "Draw!")
+    statusTime = 3600
 
-function airDodge(Fighter _f, int horizontal, int vertical)
-    if matchState.phase != MATCH
+function shadowPollLocal() returns int
+    let slot = GetPlayerId(GetLocalPlayer())
+    if not BlzIsLocalClientActive() or not matchState.humanFighterActive(slot)
+        return 0
+    let activeBindings = participants[slot].bindings.bindings
+    var heldActions = 0
+    for action = 0 to ACTION_COUNT - 1
+        var down = false
+        for keySlot = 0 to 1
+            let keyCode = activeBindings.keyFor(action, keySlot)
+            if keyCode != 0 and BlzIsKeyPressed(ConvertOsKeyType(keyCode))
+                down = true
+        if down
+            heldActions += inputActionBit(action)
+    return heldActions
+
+function receiveShadowInput()
+    let sender = GetPlayerId(GetTriggerPlayer())
+    if not shadowInputActive or not matchState.humanActive(sender)
         return
-    if _f == playerFighter
-        playerAirDodgeQueued = true
-        playerDodgeX = horizontal
-        playerDodgeZ = vertical
+    let wire = BlzGetTriggerSyncData()
+    if wire.length() == 16 and wire.substring(0, 2) == "D0"
+        let packetPhase = wire.substring(2, 3)
+        if transportIsolationPhase > 0 and (packetPhase == "A" or packetPhase == "B")
+            let phaseIndex = packetPhase == "A" ? 0 : 1
+            let sequence = S2I(wire.substring(3, 6))
+            if sender == GetPlayerId(GetLocalPlayer()) and sequence < transportIsolationSent[phaseIndex]
+                let slot = phaseIndex * 128 + sequence
+                if transportIsolationSeen[slot]
+                    transportIsolationDuplicates[phaseIndex]++
+                else
+                    let age = TimerGetElapsed(transportIsolationClock) - transportIsolationSendTime[slot]
+                    transportIsolationSeen[slot] = true
+                    transportIsolationReceived[phaseIndex]++
+                    transportIsolationAgeSamples[phaseIndex]++
+                    transportIsolationAgeSum[phaseIndex] += age
+                    transportIsolationAgeMax[phaseIndex] = max(transportIsolationAgeMax[phaseIndex], age)
+            return
+        transportIsolationRejected++
+        return
+    let receivedCallback = inputTraceTicks
+    let receivedSeconds = inputTraceActive ? TimerGetElapsed(inputTraceClock) : 0
+    var status = INPUT_MALFORMED
+    if shadowIncoming.decode(wire)
+		status = shadowSchedule.acceptSynchronized(sender, shadowIncoming)
+		if RESPONSE_SERVICE_PROBE and sender == GetPlayerId(GetLocalPlayer()) and status == INPUT_ACCEPTED
+			for row = 0 to shadowIncoming.recordCount() - 1
+				responseProbeTransportReceive(shadowIncoming.epochNumber(), shadowIncoming.firstFrameNumber() + row)
+		if inputTraceActive and sender == GetPlayerId(GetLocalPlayer())
+            for row = 0 to shadowIncoming.recordCount() - 1
+                recordShadowTraceEcho(shadowIncoming.epochNumber(), shadowIncoming.firstFrameNumber() + row, receivedCallback, receivedSeconds)
+    if status != INPUT_ACCEPTED and status != INPUT_WRONG_EPOCH
+        statusText = "The players could not stay connected. Restart the match."
+        statusTime = 3600
+    if inputTraceActive
+        if status == INPUT_ACCEPTED
+            shadowTraceAccepted[sender]++
+            shadowTraceReceivedRows[sender] += shadowIncoming.recordCount()
+        else
+            shadowTraceRejected++
+
+function dumpTransportIsolation()
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " timing=native-game-seconds")
+    Preload("fileio-reads=" + I2S(transportIsolationReadCount) + " bytes=" + I2S(transportIsolationReadBytes) + " read-seconds=" + R2S(transportIsolationReadSeconds))
+    Preload("journal-sequence-first=" + I2S(transportIsolationFirstJournalSequence) + " last=" + I2S(transportIsolationLastJournalSequence) + " changes=" + I2S(transportIsolationJournalSequenceChanges))
+    for phase = 0 to 1
+        Preload("phase=" + (phase == 0 ? "FileIO-present" : "FileIO-skipped") + " bytes=16 sent=" + I2S(transportIsolationSent[phase]) + " received=" + I2S(transportIsolationReceived[phase]) + " missing=" + I2S(transportIsolationSent[phase] - transportIsolationReceived[phase]))
+        Preload("phase-age-samples=" + I2S(transportIsolationAgeSamples[phase]) + " mean-seconds=" + R2S(transportIsolationAgeSamples[phase] > 0 ? transportIsolationAgeSum[phase] / transportIsolationAgeSamples[phase] : 0) + " max-seconds=" + R2S(transportIsolationAgeMax[phase]) + " duplicates=" + I2S(transportIsolationDuplicates[phase]))
+    Preload("diagnostic-unexpected-packets=" + I2S(transportIsolationRejected))
+    PreloadGenEnd("wc3-melee-transport-isolation.txt")
+
+function transportIsolationTick()
+    if transportIsolationPhase == 0
+        return
+    let tick = transportIsolationTicks
+    if tick < 120
+        transportIsolationPhase = 1
+    else if tick < 240
+        transportIsolationPhase = 2
     else
-        secondAirDodgeQueued = true
-        secondDodgeX = horizontal
-        secondDodgeZ = vertical
+        transportIsolationPhase = 3
+    if tick < 240
+        if transportIsolationPhase == 1 and JOURNAL_INPUT_SOURCE
+            let started = TimerGetElapsed(transportIsolationClock)
+            journalInputFile.filename = journalInput.filename()
+            let ignored = journalInputFile.readAsString(localPlayer)
+            transportIsolationReadSeconds += TimerGetElapsed(transportIsolationClock) - started
+            transportIsolationReadCount++
+            transportIsolationReadBytes += ignored.length()
+        if tick mod 2 == 0
+            let phaseIndex = transportIsolationPhase - 1
+            let row = transportIsolationSent[phaseIndex]
+            let sequence = I2S(row + 1000).substring(1, 4)
+            let wire = (phaseIndex == 0 ? "D0A" : "D0B") + sequence + "0000000000"
+            if BlzSendSyncData("SC_GP", wire)
+                transportIsolationSendTime[phaseIndex * 128 + row] = TimerGetElapsed(transportIsolationClock)
+                transportIsolationSent[phaseIndex]++
+    transportIsolationTicks++
+    if transportIsolationTicks >= 840
+        dumpTransportIsolation()
+        transportIsolationPhase = 0
+
+function onTransportIsolationStart()
+    if GetPlayerId(GetTriggerPlayer()) != matchState.firstHumanSlot() or transportIsolationClock != null
+        return
+    transportIsolationTicks = 0
+    transportIsolationClock = CreateTimer()
+    TimerStart(transportIsolationClock, 3600, false, null)
+    transportIsolationPhase = 1
+
+function beginShadowEpoch() returns boolean
+    shadowInputEpoch++
+    if not shadowSchedule.beginEpoch(shadowInputEpoch, SHADOW_INPUT_DELAY, SHADOW_INPUT_ROLLBACK, matchState.humanMask)
+        return false
+    if not shadowPlayback.beginEpoch(shadowInputEpoch)
+        return false
+    if not shadowHistory.beginEpochWithCorrections(shadowInputEpoch, 1, shadowSchedule.rollbackFrames())
+        return false
+    shadowLastCaptureTarget = 0
+    shadowBatch.beginEpoch(shadowInputEpoch)
+    resetShadowEchoRing()
+    shadowLocalSendFailed = false
+    shadowWorld.mask = matchWorld.mask
+    shadowSeed.capture(matchWorld, matchState, matchInputs, replayRuntime)
+    shadowSeed.restore(shadowWorld, shadowMatch, shadowInputs, shadowRuntime)
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        shadowInputs.commands[slot].clear()
+        shadowAcceptedInputs.row(slot).assign(0, 0, 0, 0, 0, 0, 0)
+    shadowRuntime.simulationFrame = 0
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        shadowRuntime.botAttackDelays[slot] = 0
+    if JOURNAL_INPUT_SOURCE
+        shadowCapture.reset(0)
+    else
+        shadowCapture.reset(shadowPollLocal())
+    journalInputFailed = false
+    if JOURNAL_INPUT_SOURCE
+        let localSlot = GetPlayerId(GetLocalPlayer())
+        if not journalInput.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot, SHADOW_INPUT_DELAY)
+            failJournalInput("epoch could not be initialized")
+    currentFrameInput.reset()
+    return true
+
+function usePredictedPresentation() returns boolean
+    return PREDICTED_PRESENTATION and shadowInputActive and matchState.phase == MATCH
+
+function presentationWorld() returns FighterRoster
+    return usePredictedPresentation() ? shadowWorld : matchWorld
+
+// Called once after all confirmed catch-up and numerical replay for this callback.
+function renderPersistentPresentation()
+    let world = presentationWorld()
+    let runtime = usePredictedPresentation() ? shadowRuntime : replayRuntime
+    let game = usePredictedPresentation() ? shadowMatch : matchState
+    let playing = game.phase == MATCH and matchState.phase == MATCH
+    combatEffects.present(runtime.impacts, playing)
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        let participant = participants[slot]
+        let active = world.active(slot)
+        if participant.pool != null
+            if active
+                participant.pool.present(world.fighters[slot], runtime.poses[slot])
+            else
+                participant.pool.hide()
+        specialEffects.presentStatic(runtime.specials, playing and active ? world.fighters[slot] : null, slot)
+        specialEffects.presentSummons(runtime.summons, playing and active ? world.fighters[slot] : null, slot)
+        if playing and active
+            frostEffects.present(world.fighters[slot], slot)
+        else
+            frostEffects.hideSlot(slot)
+        if participant.shield != null
+            participant.shield.present(active ? world.fighters[slot] : null, playing)
+        if participant.projectiles != null
+            participant.projectiles.present(active ? world.fighters[slot] : null, playing, matchControls.isPaused())
 
 function startMatch()
     let wasPaused = matchControls.isPaused()
     statusText = "GO!"
     statusTime = 1
-    if settingsPanel != null and settingsPanel.isOpen()
-        settingsPanel.close()
-    if secondSettingsPanel != null and secondSettingsPanel.isOpen()
-        secondSettingsPanel.close()
-    playerAttacks.clear()
-    botAttacks.clear()
-    playerAttackRequests.clear()
-    secondAttackRequests.clear()
-    clearHeldInputs()
-    clearSecondInputs()
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if participants[slot].settings != null and participants[slot].settings.isOpen()
+            participants[slot].settings.close()
+    clearAllInputs()
     replayRuntime.simulationFrame = 0
+    replayRuntime.resetPoses()
     matchControls.resume()
     currentFrameInput.reset()
-    replayRuntime.botAttackDelay = 0
-    botJumpHeld = false
-    playerAttackFacing = 0
-    playerJumpQueued = false
-    playerAirDodgeQueued = false
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        replayRuntime.botAttackDelays[slot] = 0
     makePreview()
-    initializeMatchFighters(matchState, playerFighter, botFighter)
-    ShowUnit(botFighter.body, not matchState.practice)
+    initializeMatchFighters(matchState, matchWorld)
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if matchWorld.active(slot)
+            participants[slot].shield = new ShieldPresentation(slot, centerX, centerY, floorHeight)
+            participants[slot].projectiles = new ProjectilePresentation(participants[slot].fighter.character, centerX, centerY, floorHeight)
     drawStage()
     if wasPaused
         pauseMatchPresentation(false)
-    if PARRY_SCENARIO
-        initializeParryScenario(playerFighter, botFighter)
-    if SPIKE_SCENARIO
-        initializeSpikeScenario(playerFighter, botFighter, matchState.stageChoice, 1)
-    if KNOCKDOWN_SCENARIO
-        playerFighter.downState = DOWN_TUMBLE
-        playerFighter.grounded = false
-        playerFighter.z = TECH_SCENARIO ? 300 : 80
-        playerFighter.vz = -8
-        playerFighter.hitstun = TECH_SCENARIO ? 60 : 30
-        botFighter.x = TECH_SCENARIO ? 350 : playerFighter.x + 100
-    if SHIELD_BREAK_SCENARIO
-        playerFighter.shieldEnergy = 1
-        botFighter.x = 350
-    if LEDGE_SCENARIO
-        playerFighter.x = surfaceLeft(matchState.stageChoice, 0) - 16
-        playerFighter.z = 15
-        playerFighter.grounded = false
-        playerFighter.surface = -1
-        playerFighter.facing = 1
-        playerFighter.vz = -1
-        playerFighter.jumps = 0
-        botFighter.x = 350
+    initializeScenario()
+    shadowInputActive = false
+    if SHADOW_INPUT_PROFILE
+        shadowInputActive = beginShadowEpoch()
+        if not shadowInputActive
+            statusText = "The players could not connect. Restart the match."
+            statusTime = 3600
+        else if JOURNAL_INPUT_SOURCE
+            let slot = GetPlayerId(GetLocalPlayer())
+            PreloadGenClear()
+            PreloadGenStart()
+            Preload("SMASHCRAFT JOURNAL v=1 build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot))
+            Preload("input=" + INPUT_PROFILE + " delay=" + I2S(SHADOW_INPUT_DELAY) + " rollback=" + I2S(SHADOW_INPUT_ROLLBACK) + " first_frame=" + I2S(1 + SHADOW_INPUT_DELAY))
+            Preload("filename=smashcraft-journal-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-s" + I2S(slot) + "-n{SEQUENCE}.pld")
+            Preload("packet=canonical I4; records=1 or 2 consecutive original frames; include neutral rows; no sparse events")
+            Preload("transport=SC_GP; files are immutable; absent next filename is retried; sequence advances after local capture and successful submission")
+            PreloadGenEnd("smashcraft-journal-ready-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-p" + I2S(slot) + ".txt")
+    if POOL_PRESENTATION and shadowInputActive
+        modelSounds.beginEpoch(shadowInputEpoch)
+        modelSoundPresentation.setOrigin(centerX, centerY, floorHeight)
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if matchWorld.active(slot)
+                let participant = participants[slot]
+                participant.pool = new FighterPoolPresentation(participant.fighter.character, slot, centerX, centerY, floorHeight)
+                if participant.pool.admitted()
+                    SetUnitTimeScale(participant.fighter.body, 0.)
+                    ShowUnit(participant.fighter.body, false)
+                    modelSounds.confirm(shadowInputEpoch, 0, slot, participant.fighter, replayRuntime.poses[slot], modelSoundPresentation)
+                else
+                    statusText = "This fighter is unavailable in the movement preview."
+                    statusTime = 3600
+    renderPersistentPresentation()
+    syncKeyEventLifecycle()
 
-function choose(int participantId)
-    let bindings = participantId == 0 ? playerBindings : secondBindings
-    let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
-    if not bindings.ready or (controls != null and controls.isOpen())
+function initializeScenario()
+    let first = participants[matchState.firstHumanSlot()].fighter
+    if first == null
+        return
+    var other = matchState.cpuSlot()
+    if other < 0
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if matchWorld.active(slot) and slot != matchState.firstHumanSlot() and other < 0
+                other = slot
+    if other < 0
+        return
+    let second = participants[other].fighter
+    if PARRY_SCENARIO
+        initializeParryScenario(first, second)
+    if SPIKE_SCENARIO
+        initializeSpikeScenario(first, second, matchState.stageChoice, 1)
+    if KNOCKDOWN_SCENARIO
+        first.downState = DOWN_TUMBLE
+        first.grounded = false
+        first.z = TECH_SCENARIO ? 300 : 80
+        first.vz = -8
+        first.hitstun = TECH_SCENARIO ? 60 : 30
+        second.x = TECH_SCENARIO ? 350 : first.x + 100
+    if SHIELD_BREAK_SCENARIO
+        first.shieldEnergy = 1
+        second.x = 350
+    if LEDGE_SCENARIO
+        first.x = surfaceLeft(matchState.stageChoice, 0) - 16
+        first.z = 15
+        first.grounded = false
+        first.surface = -1
+        first.facing = 1
+        first.vz = -1
+        first.jumps = 0
+        second.x = 350
+
+function choose(int slot)
+    if not controlsAvailable(slot)
         return
     if matchState.phase == CHARACTER_MENU
-        matchState.selectCharacter(participantId, (matchState.characterFor(participantId) + 1) mod 3)
+        matchState.selectCharacter(slot, (matchState.characterFor(slot) + 1) mod 3)
         makePreview()
     else if matchState.phase == STAGE_MENU
-        matchState.selectStage(participantId, 1 - matchState.stageChoice)
+        matchState.selectStage(slot, 1 - matchState.stageChoice)
 
-function confirm(int participantId)
-    let bindings = participantId == 0 ? playerBindings : secondBindings
-    let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
-    if not bindings.ready or (controls != null and controls.isOpen())
+function confirm(int slot)
+    if not controlsAvailable(slot)
         announce("Controls are still loading or settings are open.")
         return
-    let previousPhase = matchState.phase
-    if previousPhase == CHARACTER_MENU
-        if matchState.requestStageSelect(participantId)
-            if settingsPanel != null
-                settingsPanel.close()
-            if secondSettingsPanel != null
-                secondSettingsPanel.close()
-    else if previousPhase == STAGE_MENU
-        if matchState.requestStart(participantId)
+    if matchState.phase == CHARACTER_MENU
+        if matchState.requestStageSelect(slot)
+            for participant = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                participants[participant].settings.close()
+    else if matchState.phase == STAGE_MENU
+        if matchState.requestStart(slot)
             startMatch()
-    else if previousPhase == RESULT
-        if matchState.confirmRematch(participantId)
+    else if matchState.phase == RESULT
+        if matchState.confirmRematch(slot)
+            matchState.updateConnectedHumans(currentHumanMask())
             statusText = ""
             statusTime = 0
             makePreview()
-    else if previousPhase == MATCH
-        if participantId == 0
-            playerNormalAttackQueued = true
-        else
-            secondNormalAttackQueued = true
 
-function back(int participantId)
-    let bindings = participantId == 0 ? playerBindings : secondBindings
-    let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
-    if not bindings.ready or (controls != null and controls.isOpen())
+function back(int slot)
+    if not controlsAvailable(slot)
         return
     if matchState.phase == CHARACTER_MENU
-        if participantId == 0
-            selectionPanel.recallHeld()
-        else
-            secondSelectionPanel.recallHeld()
+        participants[slot].selection.recallHeld()
     else if matchState.phase == STAGE_MENU
-        matchState.returnToCharacters(participantId)
-    else if matchState.phase == MATCH
-        attack(participantId == 0 ? playerFighter : botFighter, participantId == 0 ? botFighter : playerFighter, 1)
+        matchState.returnToCharacters(slot)
 
-function actionHeld(int action) returns boolean
-    return firstKeyState.actionHeld(action)
-
-function clearSecondInputs()
-    secondMashPressed = false
-    secondGrabMashPressed = false
-    secondAttackPressed = false
-    secondThrowX = 0
-    secondThrowZ = 0
-    secondLedgeVerticalPressed = 0
-    secondKeyState.clear()
-    secondNormalAttackQueued = false
-    secondLeftPressed = false
-    secondRightPressed = false
-    secondDownPressed = false
-    secondSpecialPressed = false
-    secondTechPressed = false
-    secondLCancelPressed = false
-    secondGetupAttackPressed = false
-    secondGetupStandPressed = false
-    secondJumpQueued = false
-    secondAirDodgeQueued = false
-    secondDodgeX = 0
-    secondDodgeZ = 0
-    secondAttackFacing = 0
-    botJumpQueued = false
-    botJumpHeld = false
-    if secondAttackRequests != null
-        secondAttackRequests.clear()
-    if botAttacks != null
-        botAttacks.clear()
-
-function clearHeldInputs()
-    playerMashPressed = false
-    playerGrabMashPressed = false
-    playerAttackPressed = false
-    playerThrowX = 0
-    playerThrowZ = 0
-    playerLedgeVerticalPressed = 0
-    firstKeyState.clear()
-    playerNormalAttackQueued = false
-    playerLeftPressed = false
-    playerRightPressed = false
-    playerDownPressed = false
-    playerSpecialPressed = false
-    playerGetupAttackPressed = false
-    playerGetupStandPressed = false
-    playerTechPressed = false
-    playerLCancelPressed = false
-    playerJumpHeld = false
-    playerJumpQueued = false
-    playerAirDodgeQueued = false
-    playerDodgeX = 0
-    playerDodgeZ = 0
-    playerAttackFacing = 0
-    if playerAttackRequests != null
-        playerAttackRequests.clear()
-    if playerAttacks != null
-        playerAttacks.clear()
-
-function openSettingsScreen(int participantId)
-    if matchState.phase != CHARACTER_MENU
+function openSettingsScreen(int slot)
+    if matchState.phase != CHARACTER_MENU or not matchState.humanActive(slot)
         return
-    let bindings = participantId == 0 ? playerBindings : secondBindings
-    let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
-    if not bindings.ready or controls == null
+    let participant = participants[slot]
+    if not participant.bindings.ready or participant.settings == null
         announce("Controls are still loading.")
         return
-    if participantId == 0
-        clearHeldInputs()
-    else
-        clearSecondInputs()
-    controls.show()
+    clearParticipantInputs(slot)
+    participant.settings.show()
 
-function onParticipantKeyDown(int participantId)
+function onParticipantKeyDown(int slot)
+    if not matchState.humanActive(slot)
+        return
+    if inputTraceActive
+        shadowTraceKeyDown[slot]++
     let key = BlzGetTriggerPlayerKey()
     let keyCode = GetHandleId(key)
-    traceParticipant(participantId, "received down " + I2S(keyCode))
-    let state = participantId == 0 ? firstKeyState : secondKeyState
-    let bindings = participantId == 0 ? playerBindings : secondBindings
-    let controls = participantId == 0 ? settingsPanel : secondSettingsPanel
-    let fighter = participantId == 0 ? playerFighter : botFighter
-    let opponent = participantId == 0 ? botFighter : playerFighter
+    traceParticipant(slot, "received down " + I2S(keyCode))
+    let participant = participants[slot]
+    let state = participant.keys
+    let bindings = participant.bindings
+    let controls = participant.settings
     if keyCode < 0 or keyCode > 255 or state.isKeyHeld(keyCode)
         return
     if key == OSKEY_Y
-        let controlAction = matchControls.keyDown(participantId, matchState.phase, controls != null and controls.isOpen())
+        let controlAction = matchControls.keyDown(slot, matchState.phase, controls != null and controls.isOpen())
         if controlAction == START_PAUSE_TOGGLED
-            clearHeldInputs()
-            clearSecondInputs()
-            if matchControls.isPaused()
-                statusText = "Paused — press Y to resume."
-                statusTime = 3600
-                pauseMatchPresentation(true)
-            else
-                pauseMatchPresentation(false)
-                statusText = "Resumed."
-                statusTime = 1
+            clearAllInputs()
+            pauseMatchPresentation(matchControls.isPaused())
+            statusText = matchControls.isPaused() ? "Paused — press Y to resume." : "Resumed."
+            statusTime = matchControls.isPaused() ? 3600 : 1
         else if controlAction == START_PAUSE_CONFIRM
-            confirm(participantId)
+            confirm(slot)
         return
-    if participantId == 0 and key == OSKEY_F5
+    if slot == matchState.firstHumanSlot() and key == OSKEY_F5
         EndGame(false)
         return
     if key == OSKEY_ESCAPE and controls != null and controls.isOpen()
@@ -751,16 +1312,14 @@ function onParticipantKeyDown(int participantId)
             bindings.capture(keyCode)
         return
     if key == OSKEY_F1
-        openSettingsScreen(participantId)
-        return
-    if participantId == 1 and not twoHumanPlayers
+        openSettingsScreen(slot)
         return
     if not bindings.ready
         return
     if key == OSKEY_ESCAPE and matchState.phase == STAGE_MENU
-        back(participantId)
+        back(slot)
         return
-    if key == OSKEY_ESCAPE and matchControls.isPaused() and matchState.leavePractice(participantId)
+    if key == OSKEY_ESCAPE and matchControls.isPaused() and matchState.leavePractice(slot)
         matchControls.resume()
         statusText = ""
         statusTime = 0
@@ -769,919 +1328,411 @@ function onParticipantKeyDown(int participantId)
         return
     if matchState.phase == MATCH and matchControls.isPaused()
         return
-    let action = bindings.bindings.actionFor(keyCode)
-    let wasHeld = action >= 0 and state.actionHeld(action)
-    if state.press(keyCode, bindings.bindings) < 0
+    if shadowInputActive and matchState.phase == MATCH
         return
-    traceParticipant(participantId, "mapped action " + I2S(action))
-    if participantId == 0
-        traceInput("down " + I2S(keyCode))
-        lastInputAction = action
-    else
-        secondLastInputAction = action
-    if not wasHeld and matchState.phase == MATCH
-        let mashButton = action == ATTACK or action == SPECIAL or action == JUMP or action == GRAB or action == LEFT_TRIGGER or action == RIGHT_TRIGGER
-        let throwX = action == MOVE_LEFT or action == SMASH_LEFT ? -1 : (action == MOVE_RIGHT or action == SMASH_RIGHT ? 1 : 0)
-        let throwZ = action == MOVE_DOWN or action == SMASH_DOWN ? -1 : (action == MOVE_UP or action == SMASH_UP ? 1 : 0)
-        if participantId == 0
-            playerGrabMashPressed = playerGrabMashPressed or mashButton
-            playerAttackPressed = playerAttackPressed or action == ATTACK
-            playerThrowX += throwX
-            playerThrowZ += throwZ
-        else
-            secondGrabMashPressed = secondGrabMashPressed or mashButton
-            secondAttackPressed = secondAttackPressed or action == ATTACK
-            secondThrowX += throwX
-            secondThrowZ += throwZ
-        if action == MOVE_UP or action == MOVE_DOWN
-            if participantId == 0
-                playerLedgeVerticalPressed = action == MOVE_UP ? 1 : -1
-            else
-                secondLedgeVerticalPressed = action == MOVE_UP ? 1 : -1
-        if participantId == 0
-            playerMashPressed = true
-        else
-            secondMashPressed = true
-        if action == LEFT_TRIGGER or action == RIGHT_TRIGGER or action == GRAB
-            if participantId == 0
-                playerLCancelPressed = true
-            else
-                secondLCancelPressed = true
-        if action == ATTACK or (action == SPECIAL and (fighter.character != 1 or not state.actionHeld(MOVE_DOWN)))
-            if participantId == 0
-                playerGetupAttackPressed = true
-            else
-                secondGetupAttackPressed = true
-        if action == MOVE_UP or action == JUMP or action == LEFT_TRIGGER or action == RIGHT_TRIGGER
-            if participantId == 0
-                playerGetupStandPressed = true
-            else
-                secondGetupStandPressed = true
-    if action == MOVE_LEFT
-        if not wasHeld and matchState.phase == MATCH
-            if participantId == 0
-                playerLeftPressed = true
-            else
-                secondLeftPressed = true
-        if matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
-            choose(participantId)
-    else if action == MOVE_RIGHT
-        if not wasHeld and matchState.phase == MATCH
-            if participantId == 0
-                playerRightPressed = true
-            else
-                secondRightPressed = true
-        if matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
-            choose(participantId)
-    else if action == MOVE_DOWN
-        if not wasHeld and matchState.phase == MATCH
-            if participantId == 0
-                playerDownPressed = true
-            else
-                secondDownPressed = true
-    else if action == JUMP
-        if not wasHeld
-            jump(fighter)
+    let action = state.press(keyCode, bindings.bindings)
+    if action < 0
+        return
+    participant.lastInputAction = action
+    traceParticipant(slot, "mapped action " + I2S(action))
+    if matchState.phase == MATCH
+        participant.sampleCallback()
+    else if action == MOVE_LEFT or action == MOVE_RIGHT
+        choose(slot)
     else if action == ATTACK
         if matchState.phase == CHARACTER_MENU
-            if participantId == 0
-                selectionPanel.placeHovered()
-            else
-                secondSelectionPanel.placeHovered()
+            participant.selection.placeHovered()
         else
-            confirm(participantId)
+            confirm(slot)
     else if action == SPECIAL
-        if matchState.phase == MATCH
-            if not wasHeld
-                if participantId == 0
-                    playerSpecialPressed = true
-                else
-                    secondSpecialPressed = true
-        else
-            back(participantId)
-    else if action == GRAB
-        attack(fighter, opponent, 5)
-    else if action == LEFT_TRIGGER or action == RIGHT_TRIGGER
-        if not wasHeld
-            if matchState.phase == MATCH
-                if participantId == 0
-                    playerTechPressed = true
-                else
-                    secondTechPressed = true
-            airDodge(fighter, state.directionX(), state.directionZ())
-    else if action == SMASH_LEFT
-        if participantId == 0
-            playerAttackFacing = -1
-        else
-            secondAttackFacing = -1
-        attack(fighter, opponent, 4)
-    else if action == SMASH_RIGHT
-        if participantId == 0
-            playerAttackFacing = 1
-        else
-            secondAttackFacing = 1
-        attack(fighter, opponent, 4)
-    else if action == SMASH_UP
-        attack(fighter, opponent, 2)
-    else if action == SMASH_DOWN
-        attack(fighter, opponent, 3)
-    if matchState.phase == MATCH and action >= MOVE_LEFT and action <= MOVE_UP and state.actionHeld(ATTACK)
-        if participantId == 0
-            playerNormalAttackQueued = true
-        else
-            secondNormalAttackQueued = true
+        back(slot)
 
-function onParticipantKeyUp(int participantId)
-    let key = BlzGetTriggerPlayerKey()
-    let keyCode = GetHandleId(key)
-    if key == OSKEY_Y
-        matchControls.keyUp(participantId)
+function onParticipantKeyUp(int slot)
+    if not matchState.humanActive(slot)
         return
-    traceParticipant(participantId, "received up " + I2S(keyCode))
-    let state = participantId == 0 ? firstKeyState : secondKeyState
-    let bindings = participantId == 0 ? playerBindings : secondBindings
-    if participantId == 0
-        traceInput("up " + I2S(keyCode))
-    state.release(keyCode, bindings.bindings)
+    if inputTraceActive
+        shadowTraceKeyUp[slot]++
+    let key = BlzGetTriggerPlayerKey()
+    if key == OSKEY_Y
+        matchControls.keyUp(slot)
+        return
+    let keyCode = GetHandleId(key)
+    traceParticipant(slot, "received up " + I2S(keyCode))
+    let participant = participants[slot]
+    participant.keys.release(keyCode, participant.bindings.bindings)
+    if matchState.phase == MATCH
+        participant.sampleCallback()
 
 function onKeyDown()
-    if GetTriggerPlayer() == Player(0) and hostHumanPlayer
-        onParticipantKeyDown(0)
-    else if GetTriggerPlayer() == Player(1) and twoHumanPlayers
-        onParticipantKeyDown(1)
+    onParticipantKeyDown(GetPlayerId(GetTriggerPlayer()))
 
 function onKeyUp()
-    if GetTriggerPlayer() == Player(0) and hostHumanPlayer
-        onParticipantKeyUp(0)
-    else if GetTriggerPlayer() == Player(1) and twoHumanPlayers
-        onParticipantKeyUp(1)
+    onParticipantKeyUp(GetPlayerId(GetTriggerPlayer()))
 
 function registerKey(trigger eventTrigger, player participant, oskeytype key, boolean down)
     BlzTriggerRegisterPlayerKeyEvent(eventTrigger, participant, key, 0, down)
 
 function registerDeveloperChord(trigger eventTrigger, oskeytype key)
-    BlzTriggerRegisterPlayerKeyEvent(eventTrigger, Player(0), key, 2, true)
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if matchState.humanActive(slot)
+            BlzTriggerRegisterPlayerKeyEvent(eventTrigger, Player(slot), key, 2, true)
+
+function registerBroadKeyEvents()
+    if broadKeyDownTrigger != null or broadKeyUpTrigger != null
+        return
+    broadKeyDownTrigger = CreateTrigger()
+    broadKeyUpTrigger = CreateTrigger()
+    for keyCode = 1 to 255
+        let key = ConvertOsKeyType(keyCode)
+        if key != OSKEY_Y and key != OSKEY_F5
+            for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                if matchState.humanActive(slot)
+                    registerKey(broadKeyDownTrigger, Player(slot), key, true)
+                    registerKey(broadKeyUpTrigger, Player(slot), key, false)
+    TriggerAddAction(broadKeyDownTrigger, function onKeyDown)
+    TriggerAddAction(broadKeyUpTrigger, function onKeyUp)
 
 function onDeveloperRestart()
-    if GetTriggerPlayer() != Player(0) or not hostHumanPlayer or developerRestartRequested
+    if GetPlayerId(GetTriggerPlayer()) != matchState.firstHumanSlot() or developerRestartRequested
         return
     developerRestartRequested = true
     RestartGame(false)
 
 function onDeveloperTrace()
-    if GetTriggerPlayer() != Player(0) or not hostHumanPlayer or inputTraceActive
+    if GetPlayerId(GetTriggerPlayer()) != matchState.firstHumanSlot() or inputTraceActive or responseProbeRecording()
         return
     startInputTrace()
 
 function setupKeys()
-    let downTrigger = CreateTrigger()
-    let upTrigger = CreateTrigger()
+    let transportIsolationStart = CreateTrigger()
+    registerDeveloperChord(transportIsolationStart, OSKEY_B)
+    TriggerAddAction(transportIsolationStart, function onTransportIsolationStart)
+    if RESPONSE_SERVICE_PROBE
+        responseProbeSetup()
+        responseProbeSample = new NetworkInput()
+        let probeStart = CreateTrigger()
+        let probeStartEdges = CreateTrigger()
+        let probeDump = CreateTrigger()
+        registerDeveloperChord(probeStart, OSKEY_G)
+        registerDeveloperChord(probeStartEdges, OSKEY_J)
+        registerDeveloperChord(probeDump, OSKEY_H)
+        TriggerAddAction(probeStart, function onResponseProbeStart)
+        TriggerAddAction(probeStartEdges, function onResponseProbeStartEdges)
+        TriggerAddAction(probeDump, function onResponseProbeDump)
     let restartTrigger = CreateTrigger()
     let traceTrigger = CreateTrigger()
+    let controlDownTrigger = CreateTrigger()
+    let controlUpTrigger = CreateTrigger()
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if matchState.humanActive(slot)
+            registerKey(controlDownTrigger, Player(slot), OSKEY_Y, true)
+            registerKey(controlDownTrigger, Player(slot), OSKEY_F5, true)
+            registerKey(controlUpTrigger, Player(slot), OSKEY_Y, false)
+            registerKey(controlUpTrigger, Player(slot), OSKEY_F5, false)
     registerDeveloperChord(restartTrigger, OSKEY_R)
     registerDeveloperChord(traceTrigger, OSKEY_T)
     TriggerAddAction(restartTrigger, function onDeveloperRestart)
     TriggerAddAction(traceTrigger, function onDeveloperTrace)
-    for keyCode = 1 to 255
-        let key = ConvertOsKeyType(keyCode)
-        if hostHumanPlayer
-            registerKey(downTrigger, Player(0), key, true)
-            registerKey(upTrigger, Player(0), key, false)
-        if twoHumanPlayers
-            registerKey(downTrigger, Player(1), key, true)
-            registerKey(upTrigger, Player(1), key, false)
-    TriggerAddAction(downTrigger, function onKeyDown)
-    TriggerAddAction(upTrigger, function onKeyUp)
-
-function secondPlayerLeaves()
-    if not twoHumanPlayers
-        return
-    twoHumanPlayers = false
-    matchState.unreadyCharacter(1)
-    matchState.setHumanCount(1)
-    clearSecondInputs()
-    secondBindings.capturing = false
-    announce("Player 2 left. The opponent is now controlled by the computer.")
-
-function firstPlayerLeaves()
-    clearHeldInputs()
-    clearSecondInputs()
-    matchState.forfeit(0)
-
-function playAttackAnimation(Fighter fighter)
-    if fighter.character == 2
-        if fighter.attackStyle == 2
-            SetUnitAnimationByIndex(fighter.body, DEMON_HUNTER_UP_SMASH_INDEX)
-            return
-        if fighter.attackStyle == 3
-            SetUnitAnimationByIndex(fighter.body, DEMON_HUNTER_DOWN_SMASH_INDEX)
-            return
-        if fighter.attackStyle == 4
-            SetUnitAnimationByIndex(fighter.body, DEMON_HUNTER_FORWARD_SMASH_INDEX)
-            return
-        if fighter.attackStyle == DEMONHUNTER_DASH_ATTACK_STYLE
-            SetUnitAnimationByIndex(fighter.body, DEMON_HUNTER_DASH_ATTACK_INDEX)
-            return
-    if fighter.attackStyle == AERIAL_NEUTRAL_STYLE
-        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_AERIAL_NEUTRAL_INDEX : (fighter.character == 0 ? ARCHER_AERIAL_NEUTRAL_INDEX : RIFLEMAN_AERIAL_NEUTRAL_INDEX)))
-        return
-    if fighter.attackStyle == AERIAL_FORWARD_STYLE
-        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_AERIAL_FORWARD_INDEX : (fighter.character == 0 ? ARCHER_AERIAL_FORWARD_INDEX : RIFLEMAN_AERIAL_FORWARD_INDEX)))
-        return
-    if fighter.attackStyle == AERIAL_BACK_STYLE
-        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_AERIAL_BACK_INDEX : (fighter.character == 0 ? ARCHER_AERIAL_BACK_INDEX : RIFLEMAN_AERIAL_BACK_INDEX)))
-        return
-    if fighter.attackStyle == AERIAL_UP_STYLE
-        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_AERIAL_UP_INDEX : (fighter.character == 0 ? ARCHER_AERIAL_UP_INDEX : RIFLEMAN_AERIAL_UP_INDEX)))
-        return
-    if fighter.attackStyle == AERIAL_DOWN_STYLE
-        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_AERIAL_DOWN_INDEX : (fighter.character == 0 ? ARCHER_AERIAL_DOWN_INDEX : RIFLEMAN_AERIAL_DOWN_INDEX)))
-        return
-    if fighter.attackStyle == 0
-        SetUnitAnimationByIndex(fighter.body, ((fighter.character == 2 ? DEMON_HUNTER_ATTACK_JAB_INDEX : (fighter.character == 0 ? ARCHER_JAB_INDEX : RIFLEMAN_JAB_INDEX))))
-        return
-    if fighter.attackStyle == 5
-        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_GRAB_INDEX : (fighter.character == 0 ? ARCHER_GRAB_INDEX : RIFLEMAN_GRAB_INDEX)))
-        return
-    if fighter.attackStyle == 6
-        SetUnitAnimationByIndex(fighter.body, ((fighter.character == 2 ? DEMON_HUNTER_FORWARD_TILT_INDEX : (fighter.character == 0 ? ARCHER_FORWARD_TILT_INDEX : RIFLEMAN_FORWARD_TILT_INDEX))))
-        return
-    if fighter.attackStyle == 7
-        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_UP_TILT_INDEX : (fighter.character == 0 ? ARCHER_UP_TILT_INDEX : RIFLEMAN_UP_TILT_INDEX)))
-        return
-    if fighter.attackStyle == 8
-        SetUnitAnimationByIndex(fighter.body, (fighter.character == 2 ? DEMON_HUNTER_DOWN_TILT_INDEX : (fighter.character == 0 ? ARCHER_DOWN_TILT_INDEX : RIFLEMAN_DOWN_TILT_INDEX)))
-        return
-    if fighter.attackStyle == 9
-        SetUnitAnimationByIndex(fighter.body, ((fighter.character == 2 ? DEMON_HUNTER_FORWARD_TILT_UP_INDEX : (fighter.character == 0 ? ARCHER_FORWARD_TILT_UP_INDEX : RIFLEMAN_FORWARD_TILT_UP_INDEX))))
-        return
-    if fighter.attackStyle == 10
-        SetUnitAnimationByIndex(fighter.body, ((fighter.character == 2 ? DEMON_HUNTER_FORWARD_TILT_DOWN_INDEX : (fighter.character == 0 ? ARCHER_FORWARD_TILT_DOWN_INDEX : RIFLEMAN_FORWARD_TILT_DOWN_INDEX))))
-        return
-    if fighter.attackStyle == DOWN_ATTACK_STYLE or fighter.attackStyle == LEDGE_ATTACK_STYLE
-        SetUnitAnimationByIndex(fighter.body, ((fighter.character == 2 ? DEMON_HUNTER_GET_UP_ATTACK_INDEX : (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_INDEX : RIFLEMAN_GET_UP_ATTACK_INDEX))))
-        return
-    SetUnitAnimation(fighter.body, "attack")
-
-function aerialAttackName(int style) returns string
-    if style == AERIAL_NEUTRAL_STYLE
-        return "Neutral air!"
-    if style == AERIAL_FORWARD_STYLE
-        return "Forward air!"
-    if style == AERIAL_BACK_STYLE
-        return "Back air!"
-    if style == AERIAL_UP_STYLE
-        return "Up air!"
-    return "Down air!"
-
-function attackAnimationRate(Fighter fighter) returns real
-    if attackPhase(fighter) == ATTACK_NONE
-        return 1.
-    let seconds = fighter.attackDuration * FRAME_SECONDS
-    if fighter.character == 2
-        if fighter.attackStyle == 2
-            return DEMON_HUNTER_UP_SMASH_SECONDS / seconds
-        if fighter.attackStyle == 3
-            return DEMON_HUNTER_DOWN_SMASH_SECONDS / seconds
-        if fighter.attackStyle == 4
-            return DEMON_HUNTER_FORWARD_SMASH_SECONDS / seconds
-        if fighter.attackStyle == DEMONHUNTER_DASH_ATTACK_STYLE
-            return DEMON_HUNTER_DASH_ATTACK_SECONDS / seconds
-    if fighter.attackStyle == AERIAL_NEUTRAL_STYLE
-        return ((fighter.character == 2 ? DEMON_HUNTER_AERIAL_NEUTRAL_SECONDS : (fighter.character == 0 ? ARCHER_AERIAL_NEUTRAL_SECONDS : RIFLEMAN_AERIAL_NEUTRAL_SECONDS))) / seconds
-    if fighter.attackStyle == AERIAL_FORWARD_STYLE
-        return ((fighter.character == 2 ? DEMON_HUNTER_AERIAL_FORWARD_SECONDS : (fighter.character == 0 ? ARCHER_AERIAL_FORWARD_SECONDS : RIFLEMAN_AERIAL_FORWARD_SECONDS))) / seconds
-    if fighter.attackStyle == AERIAL_BACK_STYLE
-        return ((fighter.character == 2 ? DEMON_HUNTER_AERIAL_BACK_SECONDS : (fighter.character == 0 ? ARCHER_AERIAL_BACK_SECONDS : RIFLEMAN_AERIAL_BACK_SECONDS))) / seconds
-    if fighter.attackStyle == AERIAL_UP_STYLE
-        return ((fighter.character == 2 ? DEMON_HUNTER_AERIAL_UP_SECONDS : (fighter.character == 0 ? ARCHER_AERIAL_UP_SECONDS : RIFLEMAN_AERIAL_UP_SECONDS))) / seconds
-    if fighter.attackStyle == AERIAL_DOWN_STYLE
-        return ((fighter.character == 2 ? DEMON_HUNTER_AERIAL_DOWN_SECONDS : (fighter.character == 0 ? ARCHER_AERIAL_DOWN_SECONDS : RIFLEMAN_AERIAL_DOWN_SECONDS))) / seconds
-    if fighter.attackStyle == 0
-        return ((fighter.character == 2 ? DEMON_HUNTER_ATTACK_JAB_SECONDS : (fighter.character == 0 ? ARCHER_JAB_SECONDS : RIFLEMAN_JAB_SECONDS))) / seconds
-    if fighter.attackStyle == 5
-        return ((fighter.character == 2 ? DEMON_HUNTER_GRAB_SECONDS : (fighter.character == 0 ? ARCHER_GRAB_SECONDS : RIFLEMAN_GRAB_SECONDS))) / seconds
-    if fighter.attackStyle == 6
-        return ((fighter.character == 2 ? DEMON_HUNTER_FORWARD_TILT_SECONDS : (fighter.character == 0 ? ARCHER_FORWARD_TILT_SECONDS : RIFLEMAN_FORWARD_TILT_SECONDS))) / seconds
-    if fighter.attackStyle == 7
-        return ((fighter.character == 2 ? DEMON_HUNTER_UP_TILT_SECONDS : (fighter.character == 0 ? ARCHER_UP_TILT_SECONDS : RIFLEMAN_UP_TILT_SECONDS))) / seconds
-    if fighter.attackStyle == 8
-        return ((fighter.character == 2 ? DEMON_HUNTER_DOWN_TILT_SECONDS : (fighter.character == 0 ? ARCHER_DOWN_TILT_SECONDS : RIFLEMAN_DOWN_TILT_SECONDS))) / seconds
-    if fighter.attackStyle == 9
-        return ((fighter.character == 2 ? DEMON_HUNTER_FORWARD_TILT_UP_SECONDS : (fighter.character == 0 ? ARCHER_FORWARD_TILT_UP_SECONDS : RIFLEMAN_FORWARD_TILT_UP_SECONDS))) / seconds
-    if fighter.attackStyle == 10
-        return ((fighter.character == 2 ? DEMON_HUNTER_FORWARD_TILT_DOWN_SECONDS : (fighter.character == 0 ? ARCHER_FORWARD_TILT_DOWN_SECONDS : RIFLEMAN_FORWARD_TILT_DOWN_SECONDS))) / seconds
-    if fighter.attackStyle == DOWN_ATTACK_STYLE
-        return ((fighter.character == 2 ? DEMON_HUNTER_GET_UP_ATTACK_SECONDS : (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS))) / seconds
-    if fighter.attackStyle == LEDGE_ATTACK_STYLE
-        return ((fighter.character == 2 ? DEMON_HUNTER_GET_UP_ATTACK_SECONDS : (fighter.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS))) / (LEDGE_ATTACK_FRAMES * FRAME_SECONDS)
-    return 1.
-
-function downAnimationIndex(Fighter fighter) returns int
-    if fighter.character == 2
-        if fighter.downState == DOWN_TECH
-            return DEMON_HUNTER_TECH_NEUTRAL_INDEX
-        if fighter.downState == DOWN_TECH_ROLL
-            return fighter.downDirection == fighter.facing ? DEMON_HUNTER_TECH_FORWARD_INDEX : DEMON_HUNTER_TECH_BACK_INDEX
-        if fighter.downState == DOWN_ROLL
-            return fighter.downDirection == fighter.facing ? DEMON_HUNTER_GET_UP_ROLL_FORWARD_INDEX : DEMON_HUNTER_GET_UP_ROLL_BACK_INDEX
-    if fighter.downState == DOWN_DAMAGE
-        return (fighter.character == 2 ? DEMON_HUNTER_DOWN_DAMAGE_INDEX : (fighter.character == 0 ? ARCHER_DOWN_DAMAGE_INDEX : RIFLEMAN_DOWN_DAMAGE_INDEX))
-    if fighter.downState == DOWN_BOUND or fighter.downState == DOWN_WAIT
-        return ((fighter.character == 2 ? DEMON_HUNTER_KNOCKDOWN_INDEX : (fighter.character == 0 ? ARCHER_KNOCKDOWN_INDEX : RIFLEMAN_KNOCKDOWN_INDEX)))
-    if fighter.downState == DOWN_STAND or fighter.downState == DOWN_TECH
-        return ((fighter.character == 2 ? DEMON_HUNTER_GET_UP_INDEX : (fighter.character == 0 ? ARCHER_GET_UP_INDEX : RIFLEMAN_GET_UP_INDEX)))
-    return fighter.downDirection == fighter.facing ? ((fighter.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_INDEX : (fighter.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX))) : ((fighter.character == 2 ? DEMON_HUNTER_ROLL_BACKWARD_INDEX : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_INDEX : RIFLEMAN_ROLL_BACKWARD_INDEX)))
-
-function downAnimationRate(Fighter fighter) returns real
-    if fighter.character == 2
-        if fighter.downState == DOWN_TECH
-            return DEMON_HUNTER_TECH_NEUTRAL_SECONDS / (TECH_IN_PLACE_FRAMES * FRAME_SECONDS)
-        if fighter.downState == DOWN_TECH_ROLL
-            return (fighter.downDirection == fighter.facing ? DEMON_HUNTER_TECH_FORWARD_SECONDS : DEMON_HUNTER_TECH_BACK_SECONDS) / (TECH_ROLL_FRAMES * FRAME_SECONDS)
-        if fighter.downState == DOWN_ROLL
-            return (fighter.downDirection == fighter.facing ? DEMON_HUNTER_GET_UP_ROLL_FORWARD_SECONDS : DEMON_HUNTER_GET_UP_ROLL_BACK_SECONDS) / (DOWN_ROLL_FRAMES * FRAME_SECONDS)
-    if fighter.downState == DOWN_DAMAGE
-        return ((fighter.character == 2 ? DEMON_HUNTER_DOWN_DAMAGE_SECONDS : (fighter.character == 0 ? ARCHER_DOWN_DAMAGE_SECONDS : RIFLEMAN_DOWN_DAMAGE_SECONDS))) / (DOWN_DAMAGE_FRAMES * FRAME_SECONDS)
-    if fighter.downState == DOWN_WAIT
-        return 0.
-    if fighter.downState == DOWN_BOUND
-        return ((fighter.character == 2 ? DEMON_HUNTER_KNOCKDOWN_SECONDS : (fighter.character == 0 ? ARCHER_KNOCKDOWN_SECONDS : RIFLEMAN_KNOCKDOWN_SECONDS))) / (DOWN_BOUND_FRAMES * FRAME_SECONDS)
-    if fighter.downState == DOWN_STAND
-        return ((fighter.character == 2 ? DEMON_HUNTER_GET_UP_SECONDS : (fighter.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS))) / (DOWN_STAND_FRAMES * FRAME_SECONDS)
-    if fighter.downState == DOWN_TECH
-        return ((fighter.character == 2 ? DEMON_HUNTER_GET_UP_SECONDS : (fighter.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS))) / (TECH_IN_PLACE_FRAMES * FRAME_SECONDS)
-    let seconds = fighter.downDirection == fighter.facing ? ((fighter.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_SECONDS : (fighter.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS))) : ((fighter.character == 2 ? DEMON_HUNTER_ROLL_BACKWARD_SECONDS : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_SECONDS : RIFLEMAN_ROLL_BACKWARD_SECONDS)))
-    return seconds / ((fighter.downState == DOWN_TECH_ROLL ? TECH_ROLL_FRAMES : DOWN_ROLL_FRAMES) * FRAME_SECONDS)
-
-function groundDodgeAnimation(Fighter fighter) returns int
-    if fighter.groundDodgeDirection == 0
-        return ((fighter.character == 2 ? DEMON_HUNTER_SPOT_DODGE_INDEX : (fighter.character == 0 ? ARCHER_SPOT_DODGE_INDEX : RIFLEMAN_SPOT_DODGE_INDEX)))
-    return isForwardGroundRoll(fighter) ? ((fighter.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_INDEX : (fighter.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX))) : ((fighter.character == 2 ? DEMON_HUNTER_ROLL_BACKWARD_INDEX : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_INDEX : RIFLEMAN_ROLL_BACKWARD_INDEX)))
-
-function groundDodgeAnimationSeconds(Fighter fighter) returns real
-    if fighter.groundDodgeDirection == 0
-        return ((fighter.character == 2 ? DEMON_HUNTER_SPOT_DODGE_SECONDS : (fighter.character == 0 ? ARCHER_SPOT_DODGE_SECONDS : RIFLEMAN_SPOT_DODGE_SECONDS)))
-    return isForwardGroundRoll(fighter) ? ((fighter.character == 2 ? DEMON_HUNTER_ROLL_FORWARD_SECONDS : (fighter.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS))) : ((fighter.character == 2 ? DEMON_HUNTER_ROLL_BACKWARD_SECONDS : (fighter.character == 0 ? ARCHER_ROLL_BACKWARD_SECONDS : RIFLEMAN_ROLL_BACKWARD_SECONDS)))
-
-function specialAnimationIndex(Fighter f) returns int
-    if f.specialAction == SPECIAL_DEMONHUNTER_MANA_BURN
-        return f.grounded ? DEMON_HUNTER_SPECIAL_NEUTRAL_INDEX : DEMON_HUNTER_SPECIAL_NEUTRAL_AIR_INDEX
-    if f.specialAction == SPECIAL_DEMONHUNTER_PARRY_STEP
-        return f.grounded ? DEMON_HUNTER_SPECIAL_SIDE_INDEX : DEMON_HUNTER_SPECIAL_SIDE_AIR_INDEX
-    if f.specialAction == SPECIAL_DEMONHUNTER_WING_ASCENT
-        return f.grounded ? DEMON_HUNTER_SPECIAL_UP_INDEX : DEMON_HUNTER_SPECIAL_UP_AIR_INDEX
-    if f.specialAction == SPECIAL_DEMONHUNTER_IMMOLATE
-        return f.grounded ? DEMON_HUNTER_SPECIAL_DOWN_INDEX : DEMON_HUNTER_SPECIAL_DOWN_AIR_INDEX
-    if f.specialAction == SPECIAL_ARCHER_ARROW
-        return ARCHER_SPECIAL_NEUTRAL_INDEX
-    if f.specialAction == SPECIAL_ARCHER_MULTISHOT
-        return ARCHER_SPECIAL_SIDE_INDEX
-    if f.specialAction == SPECIAL_ARCHER_DISENGAGE
-        return ARCHER_SPECIAL_DOWN_INDEX
-    if f.specialAction == SPECIAL_ARCHER_RECOVERY
-        return ARCHER_SPECIAL_UP_INDEX
-    if f.specialAction == SPECIAL_RIFLEMAN_BEAR
-        return RIFLEMAN_SPECIAL_SIDE_INDEX
-    if f.specialAction == SPECIAL_RIFLEMAN_TRAP
-        return RIFLEMAN_SPECIAL_DOWN_INDEX
-    if f.specialAction == SPECIAL_RIFLEMAN_RECOVERY
-        return RIFLEMAN_SPECIAL_UP_INDEX
-    if f.specialDuration == attackDurationFramesForGrounding(1, false)
-        return RIFLEMAN_SPECIAL_NEUTRAL_AIR_INDEX
-    return RIFLEMAN_SPECIAL_NEUTRAL_INDEX
-
-function specialAnimationSeconds(Fighter f) returns real
-    if f.specialAction == SPECIAL_DEMONHUNTER_MANA_BURN
-        return f.grounded ? DEMON_HUNTER_SPECIAL_NEUTRAL_SECONDS : DEMON_HUNTER_SPECIAL_NEUTRAL_AIR_SECONDS
-    if f.specialAction == SPECIAL_DEMONHUNTER_PARRY_STEP
-        return f.grounded ? DEMON_HUNTER_SPECIAL_SIDE_SECONDS : DEMON_HUNTER_SPECIAL_SIDE_AIR_SECONDS
-    if f.specialAction == SPECIAL_DEMONHUNTER_WING_ASCENT
-        return f.grounded ? DEMON_HUNTER_SPECIAL_UP_SECONDS : DEMON_HUNTER_SPECIAL_UP_AIR_SECONDS
-    if f.specialAction == SPECIAL_DEMONHUNTER_IMMOLATE
-        return f.grounded ? DEMON_HUNTER_SPECIAL_DOWN_SECONDS : DEMON_HUNTER_SPECIAL_DOWN_AIR_SECONDS
-    if f.specialAction == SPECIAL_ARCHER_ARROW
-        return ARCHER_SPECIAL_NEUTRAL_SECONDS
-    if f.specialAction == SPECIAL_ARCHER_MULTISHOT
-        return ARCHER_SPECIAL_SIDE_SECONDS
-    if f.specialAction == SPECIAL_ARCHER_DISENGAGE
-        return ARCHER_SPECIAL_DOWN_SECONDS
-    if f.specialAction == SPECIAL_ARCHER_RECOVERY
-        return ARCHER_SPECIAL_UP_SECONDS
-    if f.specialAction == SPECIAL_RIFLEMAN_BEAR
-        return RIFLEMAN_SPECIAL_SIDE_SECONDS
-    if f.specialAction == SPECIAL_RIFLEMAN_TRAP
-        return RIFLEMAN_SPECIAL_DOWN_SECONDS
-    if f.specialAction == SPECIAL_RIFLEMAN_RECOVERY
-        return RIFLEMAN_SPECIAL_UP_SECONDS
-    if f.specialDuration == attackDurationFramesForGrounding(1, false)
-        return RIFLEMAN_SPECIAL_NEUTRAL_AIR_SECONDS
-    return RIFLEMAN_SPECIAL_NEUTRAL_SECONDS
-
-function damageAnimationIndex(Fighter f, int pose) returns int
-    if pose == DAMAGE_POSE_GROUND
-        return (f.character == 2 ? DEMON_HUNTER_DAMAGE_GROUND_INDEX : (f.character == 0 ? ARCHER_DAMAGE_GROUND_INDEX : RIFLEMAN_DAMAGE_GROUND_INDEX))
-    if pose == DAMAGE_POSE_TUMBLE
-        return (f.character == 2 ? DEMON_HUNTER_DAMAGE_TUMBLE_INDEX : (f.character == 0 ? ARCHER_DAMAGE_TUMBLE_INDEX : RIFLEMAN_DAMAGE_TUMBLE_INDEX))
-    if pose == DAMAGE_POSE_SHIELD
-        return (f.character == 2 ? DEMON_HUNTER_DAMAGE_SHIELD_INDEX : (f.character == 0 ? ARCHER_DAMAGE_SHIELD_INDEX : RIFLEMAN_DAMAGE_SHIELD_INDEX))
-    return (f.character == 2 ? DEMON_HUNTER_DAMAGE_AIR_INDEX : (f.character == 0 ? ARCHER_DAMAGE_AIR_INDEX : RIFLEMAN_DAMAGE_AIR_INDEX))
-
-function damageAnimationSeconds(Fighter f, int pose) returns real
-    if pose == DAMAGE_POSE_GROUND
-        return (f.character == 2 ? DEMON_HUNTER_DAMAGE_GROUND_SECONDS : (f.character == 0 ? ARCHER_DAMAGE_GROUND_SECONDS : RIFLEMAN_DAMAGE_GROUND_SECONDS))
-    if pose == DAMAGE_POSE_TUMBLE
-        return (f.character == 2 ? DEMON_HUNTER_DAMAGE_TUMBLE_SECONDS : (f.character == 0 ? ARCHER_DAMAGE_TUMBLE_SECONDS : RIFLEMAN_DAMAGE_TUMBLE_SECONDS))
-    if pose == DAMAGE_POSE_SHIELD
-        return (f.character == 2 ? DEMON_HUNTER_DAMAGE_SHIELD_SECONDS : (f.character == 0 ? ARCHER_DAMAGE_SHIELD_SECONDS : RIFLEMAN_DAMAGE_SHIELD_SECONDS))
-    return (f.character == 2 ? DEMON_HUNTER_DAMAGE_AIR_SECONDS : (f.character == 0 ? ARCHER_DAMAGE_AIR_SECONDS : RIFLEMAN_DAMAGE_AIR_SECONDS))
-
-function grabAnimationIndex(int character, int action, boolean victim) returns int
-    if action == GRAB_PUMMEL
-        if victim
-            return (character == 2 ? DEMON_HUNTER_VICTIM_PUMMEL_INDEX : (character == 0 ? ARCHER_VICTIM_PUMMEL_INDEX : RIFLEMAN_VICTIM_PUMMEL_INDEX))
-        return (character == 2 ? DEMON_HUNTER_PUMMEL_INDEX : (character == 0 ? ARCHER_PUMMEL_INDEX : RIFLEMAN_PUMMEL_INDEX))
-    if action == THROW_FORWARD
-        if victim
-            return (character == 2 ? DEMON_HUNTER_VICTIM_THROW_FORWARD_INDEX : (character == 0 ? ARCHER_VICTIM_THROW_FORWARD_INDEX : RIFLEMAN_VICTIM_THROW_FORWARD_INDEX))
-        return (character == 2 ? DEMON_HUNTER_THROW_FORWARD_INDEX : (character == 0 ? ARCHER_THROW_FORWARD_INDEX : RIFLEMAN_THROW_FORWARD_INDEX))
-    if action == THROW_BACK
-        if victim
-            return (character == 2 ? DEMON_HUNTER_VICTIM_THROW_BACK_INDEX : (character == 0 ? ARCHER_VICTIM_THROW_BACK_INDEX : RIFLEMAN_VICTIM_THROW_BACK_INDEX))
-        return (character == 2 ? DEMON_HUNTER_THROW_BACK_INDEX : (character == 0 ? ARCHER_THROW_BACK_INDEX : RIFLEMAN_THROW_BACK_INDEX))
-    if action == THROW_UP
-        if victim
-            return (character == 2 ? DEMON_HUNTER_VICTIM_THROW_UP_INDEX : (character == 0 ? ARCHER_VICTIM_THROW_UP_INDEX : RIFLEMAN_VICTIM_THROW_UP_INDEX))
-        return (character == 2 ? DEMON_HUNTER_THROW_UP_INDEX : (character == 0 ? ARCHER_THROW_UP_INDEX : RIFLEMAN_THROW_UP_INDEX))
-    if action == THROW_DOWN
-        if victim
-            return (character == 2 ? DEMON_HUNTER_VICTIM_THROW_DOWN_INDEX : (character == 0 ? ARCHER_VICTIM_THROW_DOWN_INDEX : RIFLEMAN_VICTIM_THROW_DOWN_INDEX))
-        return (character == 2 ? DEMON_HUNTER_THROW_DOWN_INDEX : (character == 0 ? ARCHER_THROW_DOWN_INDEX : RIFLEMAN_THROW_DOWN_INDEX))
-    if character == 2
-        return victim ? DEMON_HUNTER_GRABBED_INDEX : DEMON_HUNTER_GRAB_HOLD_INDEX
-    return character == 0 ? (victim ? ARCHER_GRABBED_INDEX : ARCHER_GRAB_HOLD_INDEX) : (victim ? RIFLEMAN_GRABBED_INDEX : RIFLEMAN_GRAB_HOLD_INDEX)
-
-function grabAnimationSeconds(int character, int action) returns real
-    if action == GRAB_PUMMEL
-        return (character == 2 ? DEMON_HUNTER_PUMMEL_SECONDS : (character == 0 ? ARCHER_PUMMEL_SECONDS : RIFLEMAN_PUMMEL_SECONDS))
-    if action == THROW_FORWARD
-        return (character == 2 ? DEMON_HUNTER_THROW_FORWARD_SECONDS : (character == 0 ? ARCHER_THROW_FORWARD_SECONDS : RIFLEMAN_THROW_FORWARD_SECONDS))
-    if action == THROW_BACK
-        return (character == 2 ? DEMON_HUNTER_THROW_BACK_SECONDS : (character == 0 ? ARCHER_THROW_BACK_SECONDS : RIFLEMAN_THROW_BACK_SECONDS))
-    if action == THROW_UP
-        return (character == 2 ? DEMON_HUNTER_THROW_UP_SECONDS : (character == 0 ? ARCHER_THROW_UP_SECONDS : RIFLEMAN_THROW_UP_SECONDS))
-    if action == THROW_DOWN
-        return (character == 2 ? DEMON_HUNTER_THROW_DOWN_SECONDS : (character == 0 ? ARCHER_THROW_DOWN_SECONDS : RIFLEMAN_THROW_DOWN_SECONDS))
-    return 0.
-
-function renderFighter(Fighter f, boolean wasOut, boolean jumped, boolean hit)
-    f.renderShield()
-    f.renderDizzy()
-    if wasOut and not f.out
-        ShowUnit(f.body, true)
-    else if not wasOut and f.out
-        loseStock(f)
-    if f.out
-        return
-    f.place()
-    if f.frozenFrames > 0
-        SetUnitTimeScale(f.body, 0.)
-        SetUnitVertexColor(f.body, 155, 210, 255, 255)
-        return
-    if f.grounded or f.hitstun > 0 or f.airDodging or attackPhase(f) != ATTACK_NONE or f.specialAction != SPECIAL_NONE or f.downState != DOWN_NONE or f.shieldBreakState != SHIELD_BREAK_NONE or f.ledgeState != LEDGE_NONE
-        f.jumpAnimationRemaining = 0
-    else if jumped and not wasOut
-        f.doubleJumpAnimation = f.jumpIsDouble
-        f.jumpAnimationRemaining = f.doubleJumpAnimation ? 30 : 24
-        f.animation = ""
-    else if f.jumpAnimationRemaining > 0 and f.hitlag <= 0
-        f.jumpAnimationRemaining--
-    let reaction = damagePose(f)
-    var animationRate = attackAnimationRate(f)
-    if f.ledgeState == LEDGE_CLIMB
-        animationRate = ((f.character == 2 ? DEMON_HUNTER_LEDGE_CLIMB_SECONDS : (f.character == 0 ? ARCHER_LEDGE_CLIMB_SECONDS : RIFLEMAN_LEDGE_CLIMB_SECONDS))) / (LEDGE_CLIMB_FRAMES * FRAME_SECONDS)
-    else if f.ledgeState == LEDGE_ROLL
-        animationRate = ((f.character == 2 ? DEMON_HUNTER_LEDGE_ROLL_SECONDS : (f.character == 0 ? ARCHER_ROLL_FORWARD_SECONDS : RIFLEMAN_ROLL_FORWARD_SECONDS))) / (LEDGE_ROLL_FRAMES * FRAME_SECONDS)
-    else if f.ledgeState == LEDGE_ATTACK
-        animationRate = ((f.character == 2 ? DEMON_HUNTER_LEDGE_ATTACK_SECONDS : (f.character == 0 ? ARCHER_GET_UP_ATTACK_SECONDS : RIFLEMAN_GET_UP_ATTACK_SECONDS))) / (LEDGE_ATTACK_FRAMES * FRAME_SECONDS)
-    else if f.shieldBreakState == SHIELD_BREAK_LAND
-        animationRate = ((f.character == 2 ? DEMON_HUNTER_KNOCKDOWN_SECONDS : (f.character == 0 ? ARCHER_KNOCKDOWN_SECONDS : RIFLEMAN_KNOCKDOWN_SECONDS))) / (SHIELD_BREAK_LAND_FRAMES * FRAME_SECONDS)
-    else if f.shieldBreakState == SHIELD_BREAK_STAND
-        animationRate = ((f.character == 2 ? DEMON_HUNTER_GET_UP_SECONDS : (f.character == 0 ? ARCHER_GET_UP_SECONDS : RIFLEMAN_GET_UP_SECONDS))) / (SHIELD_BREAK_STAND_FRAMES * FRAME_SECONDS)
-    else if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
-        animationRate = downAnimationRate(f)
-    else if reaction != DAMAGE_POSE_NONE
-        animationRate = damageAnimationSeconds(f, reaction) / (24 * FRAME_SECONDS)
-    else if f.specialFall
-        animationRate = 0.
-    else if isGroundDodging(f)
-        let duration = f.groundDodgeDirection == 0 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES
-        animationRate = groundDodgeAnimationSeconds(f) / (duration * FRAME_SECONDS)
-    else if f.specialAction != SPECIAL_NONE and f.hitstun == 0
-        animationRate = specialAnimationSeconds(f) / (f.specialDuration * FRAME_SECONDS)
-    else if f.jumpAnimationRemaining > 0
-        animationRate = f.doubleJumpAnimation ? ((f.character == 2 ? DEMON_HUNTER_DOUBLE_JUMP_SECONDS : (f.character == 0 ? ARCHER_DOUBLE_JUMP_SECONDS : RIFLEMAN_DOUBLE_JUMP_SECONDS))) / (30 * FRAME_SECONDS) : ((f.character == 2 ? DEMON_HUNTER_JUMP_SECONDS : (f.character == 0 ? ARCHER_JUMP_SECONDS : RIFLEMAN_JUMP_SECONDS))) / (24 * FRAME_SECONDS)
-    SetUnitVertexColor(f.body, f.shield ? 100 : 255, f.shield ? 160 : 255, 255, isIntangible(f) ? 140 : 255)
-    if inGrabContext(f)
-        let victim = f.grabOwner != null
-        let owner = victim ? f.grabOwner : f
-        let action = owner.grabAction
-        let anim = "grab" + I2S(action) + ":" + I2S(owner.grabSerial) + (victim ? ":victim" : ":holder")
-        if f.animation != anim
-            if action == GRAB_ESCAPE
-                SetUnitAnimation(f.body, "stand ready")
+    TriggerAddAction(controlDownTrigger, function onKeyDown)
+    TriggerAddAction(controlUpTrigger, function onKeyUp)
+    syncKeyEventLifecycle()
+function renderFighter(int slot, FighterPose pose, boolean wasOut)
+    let participant = participants[slot]
+    let fighter = participant.fighter
+    fighter.renderDizzy()
+    if wasOut and not fighter.out
+        ShowUnit(fighter.body, true)
+    else if not wasOut and fighter.out
+        ShowUnit(fighter.body, false)
+        if fighter.stocks > 0
+            announce(fighterLabel(slot) + " lost a stock!")
+    let pooled = participant.pool != null and participant.pool.admitted()
+    if pooled
+        ShowUnit(fighter.body, false)
+    if fighter.renderedSelection != pose.selectionSerial
+        if not pooled
+            if pose.clipIndex >= 0
+                SetUnitAnimationByIndex(fighter.body, pose.clipIndex)
             else
-                SetUnitAnimationByIndex(f.body, grabAnimationIndex(f.character, action, victim))
-            f.animation = anim
-        animationRate = action >= GRAB_PUMMEL and action <= THROW_DOWN ? grabAnimationSeconds(f.character, action) / (grabActionDuration(action) * FRAME_SECONDS) : 0
-    else if f.ledgeState != LEDGE_NONE
-        let anim = "ledge" + I2S(f.ledgeState)
-        if f.animation != anim
-            if f.ledgeState == LEDGE_CLIMB
-                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_LEDGE_CLIMB_INDEX : (f.character == 0 ? ARCHER_LEDGE_CLIMB_INDEX : RIFLEMAN_LEDGE_CLIMB_INDEX)))
-            else if f.ledgeState == LEDGE_ROLL
-                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_LEDGE_ROLL_INDEX : (f.character == 0 ? ARCHER_ROLL_FORWARD_INDEX : RIFLEMAN_ROLL_FORWARD_INDEX)))
-            else if f.ledgeState == LEDGE_ATTACK
-                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_LEDGE_ATTACK_INDEX : (f.character == 0 ? ARCHER_GET_UP_ATTACK_INDEX : RIFLEMAN_GET_UP_ATTACK_INDEX)))
-            else
-                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_LEDGE_HANG_INDEX : (f.character == 0 ? ARCHER_LEDGE_HANG_INDEX : RIFLEMAN_LEDGE_HANG_INDEX)))
-            f.animation = anim
-    else if f.shieldBreakState != SHIELD_BREAK_NONE
-        let anim = "shieldbreak" + I2S(f.shieldBreakState)
-        if f.animation != anim
-            if f.shieldBreakState == SHIELD_BREAK_LAND
-                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_KNOCKDOWN_INDEX : (f.character == 0 ? ARCHER_KNOCKDOWN_INDEX : RIFLEMAN_KNOCKDOWN_INDEX)))
-            else if f.shieldBreakState == SHIELD_BREAK_STAND
-                SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_GET_UP_INDEX : (f.character == 0 ? ARCHER_GET_UP_INDEX : RIFLEMAN_GET_UP_INDEX)))
-            else
-                SetUnitAnimation(f.body, "stand hit")
-            f.animation = anim
-    else if f.downState != DOWN_NONE and f.downState != DOWN_TUMBLE and f.downState != DOWN_ATTACK
-        let anim = "down" + I2S(f.downState)
-        if f.animation != anim or (f.downState == DOWN_DAMAGE and hit)
-            if f.downState == DOWN_WAIT and f.character == 2
-                SetUnitAnimationByIndex(f.body, DEMON_HUNTER_DOWN_WAIT_INDEX)
-            else if f.downState != DOWN_WAIT
-                SetUnitAnimationByIndex(f.body, downAnimationIndex(f))
-            f.animation = anim
-    else if reaction != DAMAGE_POSE_NONE
-        let anim = "damage" + I2S(reaction)
-        if hit or f.animation != anim
-            SetUnitAnimationByIndex(f.body, damageAnimationIndex(f, reaction))
-            f.animation = anim
-            traceParticipant(f == playerFighter ? 0 : 1, "damage pose " + I2S(reaction) + " hitlag " + I2S(f.hitlag) + " hitstun " + I2S(f.hitstun) + " x " + R2S(f.x) + " z " + R2S(f.z) + " launch " + R2S(f.knockbackX) + ":" + R2S(f.knockbackZ))
-    else if f.specialFall
-        if f.animation != "specialfall"
-            SetUnitAnimationByIndex(f.body, (f.character == 2 ? DEMON_HUNTER_FALL_SPECIAL_INDEX : (f.character == 0 ? ARCHER_FALL_SPECIAL_INDEX : RIFLEMAN_FALL_SPECIAL_INDEX)))
-            f.animation = "specialfall"
-    else if isGroundDodging(f)
-        if f.animation != "dodge"
-            SetUnitAnimationByIndex(f.body, groundDodgeAnimation(f))
-            f.animation = "dodge"
-    else if f.specialAction != SPECIAL_NONE and f.hitstun == 0
-        let anim = "special" + I2S(f.specialAction)
-        if f.animation != anim
-            SetUnitAnimationByIndex(f.body, specialAnimationIndex(f))
-            f.animation = anim
-    else if f.character == 2 and f.airDodging
-        if f.animation != "air-dodge"
-            SetUnitAnimationByIndex(f.body, DEMON_HUNTER_AIR_DODGE_INDEX)
-            f.animation = "air-dodge"
-        animationRate = DEMON_HUNTER_AIR_DODGE_SECONDS / (AIR_DODGE_ANIMATION_FRAMES * FRAME_SECONDS)
-    else if f.character == 2 and f.jumpSquat > 0
-        if f.animation != "jump-squat"
-            SetUnitAnimationByIndex(f.body, DEMON_HUNTER_JUMP_SQUAT_INDEX)
-            f.animation = "jump-squat"
-        animationRate = DEMON_HUNTER_JUMP_SQUAT_SECONDS / (f.physics.jumpSquatFrames * FRAME_SECONDS)
-    else if f.character == 2 and f.grounded and f.landingLag > 0
-        if f.animation != "landing"
-            let specialLanding = f.animation == "specialfall" or f.animation == "air-dodge"
-            SetUnitAnimationByIndex(f.body, specialLanding ? DEMON_HUNTER_LAND_SPECIAL_INDEX : DEMON_HUNTER_LAND_INDEX)
-            let seconds = specialLanding ? DEMON_HUNTER_LAND_SPECIAL_SECONDS : DEMON_HUNTER_LAND_SECONDS
-            f.landingAnimationRate = seconds / (f.landingLag * FRAME_SECONDS)
-            f.animation = "landing"
-        animationRate = f.landingAnimationRate
-    else if f.character == 2 and f.shield
-        let raising = f.shieldHeldFrames <= 4
-        let anim = raising ? "shield-raise" : "shield-hold"
-        if f.animation != anim
-            SetUnitAnimationByIndex(f.body, raising ? DEMON_HUNTER_SHIELD_RAISE_INDEX : DEMON_HUNTER_SHIELD_HOLD_INDEX)
-            f.animation = anim
-        animationRate = raising ? DEMON_HUNTER_SHIELD_RAISE_SECONDS / (4 * FRAME_SECONDS) : 0.
-    else if f.character == 2 and f.shieldReleaseLag > 0
-        if f.animation != "shield-release"
-            SetUnitAnimationByIndex(f.body, DEMON_HUNTER_SHIELD_RELEASE_INDEX)
-            f.animation = "shield-release"
-        animationRate = DEMON_HUNTER_SHIELD_RELEASE_SECONDS / (SHIELD_RELEASE_LAG_FRAMES * FRAME_SECONDS)
-    else if f.jumpAnimationRemaining > 0
-        if f.animation != "jump"
-            SetUnitAnimationByIndex(f.body, f.doubleJumpAnimation ? ((f.character == 2 ? DEMON_HUNTER_DOUBLE_JUMP_INDEX : (f.character == 0 ? ARCHER_DOUBLE_JUMP_INDEX : RIFLEMAN_DOUBLE_JUMP_INDEX))) : ((f.character == 2 ? DEMON_HUNTER_JUMP_INDEX : (f.character == 0 ? ARCHER_JUMP_INDEX : RIFLEMAN_JUMP_INDEX))))
-            f.animation = "jump"
-    else if attackPhase(f) == ATTACK_NONE and f.hitstun == 0 and f.hitlag == 0
-        let anim = f.character == 2 and not f.grounded ? "fall" : (f.grounded and totalVelocityX(f).abs() > 0.1 ? "walk" : "stand")
-        if anim == "walk"
-            animationRate = min(1.4, max(0.2, f.vx.abs() / f.physics.runSpeed))
-        if anim == "fall"
-            animationRate = 0.
-        if f.animation != anim
-            if anim == "fall"
-                SetUnitAnimationByIndex(f.body, DEMON_HUNTER_FALL_INDEX)
-            else
-                SetUnitAnimation(f.body, anim)
-            f.animation = anim
+                SetUnitAnimation(fighter.body, pose.clipName)
+        fighter.renderedSelection = pose.selectionSerial
+        let reaction = damagePose(fighter)
+        if reaction != DAMAGE_POSE_NONE
+            traceParticipant(slot, "damage pose " + I2S(reaction) + " hitlag " + I2S(fighter.hitlag) + " hitstun " + I2S(fighter.hitstun) + " x " + R2S(fighter.x) + " z " + R2S(fighter.z) + " launch " + R2S(fighter.knockbackX) + ":" + R2S(fighter.knockbackZ))
+    if not pooled
+        SetUnitTimeScale(fighter.body, pose.rate)
+    if fighter.out
+        return
+    fighter.place()
+    if fighter.frozenFrames > 0
+        SetUnitVertexColor(fighter.body, 155, 210, 255, 255)
     else
-        if f.animation == "grab-hold" or f.animation == "grabbed"
-            SetUnitAnimation(f.body, "stand ready")
-        f.animation = ""
-    // Select the victim's reaction first; retain the attacker's contact pose.
-    // On release only the playback rate changes, so the held clip resumes.
-    SetUnitTimeScale(f.body, f.hitlag > 0 or f.smashCharging ? 0 : animationRate)
+        SetUnitVertexColor(fighter.body, fighter.shield ? 100 : 255, fighter.shield ? 160 : 255, 255, isIntangible(fighter) ? 140 : 255)
 
 function pauseMatchPresentation(boolean paused)
-    if playerFighter != null
-        if paused
-            SetUnitTimeScale(playerFighter.body, 0.)
-        else if not playerFighter.out
-            let jumpAnimationRemaining = playerFighter.jumpAnimationRemaining
-            renderFighter(playerFighter, false, false, false)
-            playerFighter.jumpAnimationRemaining = jumpAnimationRemaining
-    if botFighter != null
-        if paused
-            SetUnitTimeScale(botFighter.body, 0.)
-        else if not botFighter.out
-            let jumpAnimationRemaining = botFighter.jumpAnimationRemaining
-            renderFighter(botFighter, false, false, false)
-            botFighter.jumpAnimationRemaining = jumpAnimationRemaining
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if matchWorld.active(slot) and participants[slot].fighter != null
+            if paused
+                SetUnitTimeScale(participants[slot].fighter.body, 0.)
+            else if not participants[slot].fighter.out
+                renderFighter(slot, replayRuntime.poses[slot], false)
     if combatEffects != null
         combatEffects.setPaused(paused)
     if specialEffects != null
         specialEffects.setPaused(paused)
-    for i = 0 to projectileModelCount - 1
-        if projectileModels[i] != null
-            BlzSetSpecialEffectTimeScale(projectileModels[i], paused ? 0. : 1.)
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if participants[slot].projectiles != null
+            participants[slot].projectiles.setPaused(paused)
+
+function rematchStatus() returns string
+    var ready = 0
+    var present = 0
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if matchState.humanPresent(slot)
+            present++
+            if matchState.rematchReadiness[slot]
+                ready++
+    return I2S(ready) + "/" + I2S(present) + " ready. Press Y to choose your next match."
 
 function renderUI()
     let selecting = matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
-    let localSlot = GetLocalPlayer() == Player(1) and twoHumanPlayers ? 1 : 0
-    let localFighter = localSlot == 0 ? playerFighter : botFighter
-    let controls = localSlot == 0 ? settingsPanel : secondSettingsPanel
-    let controlsOpen = controls != null and controls.isOpen()
-    if GetLocalPlayer() == Player(localSlot)
-        BlzFrameSetVisible(titleFrame, false)
-        BlzFrameSetVisible(menuFrame, false)
-        firstHUD.update(not selecting and not controlsOpen, playerFighter.character, playerFighter.damage, playerFighter.stocks)
-        secondHUD.update(not selecting and not controlsOpen and not matchState.practice, botFighter.character, botFighter.damage, botFighter.stocks)
-        matchClock.update(not selecting and not controlsOpen and not matchState.practice and matchState.timeLimitMinutes > 0, matchState.remainingSeconds())
-        BlzFrameSetVisible(helpFrame, not selecting and not controlsOpen)
-        BlzFrameSetVisible(noticeFrame, not selecting and not controlsOpen)
-        BlzFrameSetVisible(developerFrame, not selecting and not controlsOpen)
-        if not selecting
-            BlzFrameSetText(helpFrame, matchState.phase == RESULT ? (matchState.firstRematchReady and twoHumanPlayers ? "Player 1 ready; waiting for Player 2. Press Y to choose the next match." : (matchState.secondRematchReady and twoHumanPlayers ? "Player 2 ready; waiting for Player 1. Press Y to choose the next match." : "Press Y to choose your next match.")) : (matchControls.isPaused() ? "PAUSED — Press Y to resume. Combat is frozen." : "Y: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge."))
-            if matchState.phase == MATCH and not matchControls.isPaused() and localFighter.downState == DOWN_WAIT
-                BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
-            else if matchState.phase == MATCH and not matchControls.isPaused() and localFighter.ledgeState == LEDGE_HANG
-                BlzFrameSetText(helpFrame, "Ledge: Up or toward stage to climb; Jump to leap; Shield to roll; Attack to strike.\nDown or away from stage lets go.")
-            if matchState.practice and matchControls.isPaused()
-                BlzFrameSetText(helpFrame, "Practice paused. Y: resume. Esc: choose fighters.")
-            BlzFrameSetText(noticeFrame, playerFighter != null and playerFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
-    selectionPanel.update(matchState.phase, matchState.characterFor(0),
-        settingsPanel != null and settingsPanel.isOpen(), true, matchState.characterReady(0),
-        matchState.characterFor(1), twoHumanPlayers, matchState.characterReady(1))
-    secondSelectionPanel.update(matchState.phase, matchState.characterFor(1),
-        secondSettingsPanel != null and secondSettingsPanel.isOpen(), twoHumanPlayers, matchState.characterReady(1),
-        matchState.characterFor(0), true, matchState.characterReady(0))
+    let localSlot = localParticipantSlot()
+    let localParticipant = participants[localSlot]
+    let localFighter = localParticipant.fighter
+    let controlsOpen = localParticipant.settings != null and localParticipant.settings.isOpen()
+    BlzFrameSetVisible(titleFrame, false)
+    BlzFrameSetVisible(menuFrame, false)
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        let fighter = participants[slot].fighter
+        if fighter != null
+            participants[slot].hud.update(not selecting and not controlsOpen, fighter.character, fighter.damage, fighter.stocks)
+        else
+            participants[slot].hud.update(false, 0, 0., 0)
+        participants[slot].selection.update(matchState, participants[slot].settings.isOpen())
+        participants[slot].settings.update()
+    matchClock.update(not selecting and not controlsOpen and matchState.timeLimitMinutes > 0, matchState.remainingSeconds())
+    BlzFrameSetVisible(helpFrame, not selecting and not controlsOpen)
+    BlzFrameSetVisible(noticeFrame, not selecting and not controlsOpen)
+    BlzFrameSetVisible(developerFrame, not selecting and not controlsOpen)
+    if not selecting
+        BlzFrameSetText(helpFrame, matchState.phase == RESULT ? rematchStatus() : (matchControls.isPaused() ? "PAUSED — Press Y to resume. Combat is frozen." : "Y: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge."))
+        if localFighter != null and matchState.phase == MATCH and not matchControls.isPaused() and localFighter.downState == DOWN_WAIT
+            BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
+        else if localFighter != null and matchState.phase == MATCH and not matchControls.isPaused() and localFighter.ledgeState == LEDGE_HANG
+            BlzFrameSetText(helpFrame, "Ledge: Up or toward stage to climb; Jump to leap; Shield to roll; Attack to strike.\nDown or away from stage lets go.")
+        BlzFrameSetText(noticeFrame, localFighter != null and localFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
     stagePanel.update(matchState)
-    if settingsPanel != null
-        settingsPanel.update()
-    if secondSettingsPanel != null
-        secondSettingsPanel.update()
-    if GetLocalPlayer() == Player(0) and playerFighter != null
-        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(playerFighter.x)) + " z=" + I2S(R2I(playerFighter.z)) + " | input=" + I2S(lastInputAction) + " normal=" + I2S(lastNormalStyle) + " move=" + I2S(playerFighter.attackStyle) + " frame=" + I2S(playerFighter.attackFrame) + " serial=" + I2S(playerFighter.attackSerial) + " down=" + I2S(playerFighter.downState) + ":" + I2S(playerFighter.downFrame) + " DI=" + I2S(playerFighter.diSerial) + ":" + I2S(R2I(playerFighter.diAngleDegrees)) + " S=" + I2S(playerFighter.sdiSerial) + " A=" + I2S(playerFighter.asdiSerial) + " | Ctrl+R restart")
+    if localFighter != null
+        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | player=" + I2S(localSlot + 1) + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(localFighter.x)) + " z=" + I2S(R2I(localFighter.z)) + " | input=" + I2S(localParticipant.lastInputAction) + " mode=" + (shadowInputActive ? INPUT_PROFILE + " " + PRESENTATION_PROFILE : "callback") + " normal=" + I2S(localParticipant.lastNormalStyle) + " move=" + I2S(localFighter.attackStyle) + " frame=" + I2S(localFighter.attackFrame) + " serial=" + I2S(localFighter.attackSerial) + " down=" + I2S(localFighter.downState) + ":" + I2S(localFighter.downFrame) + " DI=" + I2S(localFighter.diSerial) + ":" + I2S(R2I(localFighter.diAngleDegrees)) + " S=" + I2S(localFighter.sdiSerial) + " A=" + I2S(localFighter.asdiSerial) + " | Ctrl+R restart")
 
 function lockArenaCamera()
+    var left = 0.
+    var right = 0.
+    var bottom = 0.
+    var top = 0.
+    var live = 0
+    let world = presentationWorld()
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if matchWorld.active(slot) and participants[slot].fighter != null
+            let fighter = world.fighters[slot]
+            if not fighter.out
+                if live == 0
+                    left = fighter.x
+                    right = fighter.x
+                    bottom = fighter.z
+                    top = fighter.z
+                else
+                    left = min(left, fighter.x)
+                    right = max(right, fighter.x)
+                    bottom = min(bottom, fighter.z)
+                    top = max(top, fighter.z)
+                live++
+    let targetX = centerX + (left + right) / 2
+    let targetZ = max(160., (bottom + top) / 2)
+    let distance = max(1450., max((right - left + 500) * 1.15, (top - bottom + 350) * 1.5))
+    SetCameraBounds(targetX, centerY, targetX, centerY, targetX, centerY, targetX, centerY)
     SetCameraField(CAMERA_FIELD_ROTATION, 90, 0)
     SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, 350, 0)
-    SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, 1450, 0)
-    SetCameraField(CAMERA_FIELD_ZOFFSET, 1960, 0)
+    SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, distance, 0)
+    SetCameraField(CAMERA_FIELD_ZOFFSET, 1800 + targetZ, 0)
     SetCameraField(CAMERA_FIELD_ROLL, 0, 0)
     SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, 70, 0)
     SetCameraField(CAMERA_FIELD_FARZ, 8000, 0)
-    SetCameraPosition(centerX, centerY)
+    SetCameraPosition(targetX, centerY)
+
+function traceTick()
+    if not inputTraceActive
+        return
+    inputTraceTicks++
+    let localSlot = localParticipantSlot()
+    let participant = participants[localSlot]
+    let fighter = participant.fighter
+    if fighter != null
+        let axes = participant.keys.directionX() + 3 * participant.keys.directionZ()
+        if axes != inputTraceLastAxes or participant.keys.pulsePending() or inputTraceTicks mod 60 == 0
+            traceInput("sample " + I2S(axes) + " pulse " + (participant.keys.pulsePending() ? I2S(participant.keys.pulseX()) + ":" + I2S(participant.keys.pulseZ()) : "none") + " hitlag " + I2S(fighter.hitlag))
+            inputTraceLastAxes = axes
+        if inputTraceLastDodge != fighter.airDodgeFrame or inputTraceLastLandingLag != fighter.landingLag
+            traceInput("motion air " + I2S(fighter.airDodgeFrame) + " landing " + I2S(fighter.landingLag) + " x " + R2S(fighter.x) + " z " + R2S(fighter.z))
+            inputTraceLastDodge = fighter.airDodgeFrame
+            inputTraceLastLandingLag = fighter.landingLag
+    if inputTraceTicks mod 60 == 0
+        traceConfirmedState()
+        if shadowInputActive
+            for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                if matchWorld.active(slot)
+                    let pool = participants[slot].pool
+                    if pool != null
+                        traceInput("local presentation " + PRESENTATION_PROFILE + " participant " + I2S(slot) + " admitted " + (pool.admitted() ? "1" : "0") + " missing-selections " + I2S(pool.missingSelections))
+                    traceInput("participant " + I2S(slot) + " received-packets " + I2S(shadowTraceAccepted[slot]) + " received-rows " + I2S(shadowTraceReceivedRows[slot]) + " key-down " + I2S(shadowTraceKeyDown[slot]) + " key-up " + I2S(shadowTraceKeyUp[slot]))
+            traceInput("common K " + I2S(shadowSchedule.knownThrough()) + " confirmed " + I2S(shadowSchedule.nextConfirmedFrame() - 1) + " R " + I2S(shadowSchedule.rollbackFrames()))
+            traceInput("local callbacks " + I2S(inputTraceTicks) + " F " + I2S(shadowSchedule.speculativeFrame()) + " rejected " + I2S(shadowTraceRejected) + " no-confirmed " + I2S(shadowTraceWaitTicks) + " confirmed-steps " + I2S(shadowTraceConfirmedSteps) + " speculative-steps " + I2S(shadowTraceSpeculativeSteps) + " failed " + I2S(shadowTraceSpeculativeFailures) + " corrections " + I2S(shadowTraceCorrections) + " replayed-frames " + I2S(shadowTraceReplayedFrames) + " max-replay-depth " + I2S(shadowTraceMaxReplayDepth))
+            traceInput("local target " + I2S(shadowSchedule.captureTarget()) + " polls " + I2S(shadowTraceLocalPolls) + " captures " + I2S(shadowTraceLocalCaptures) + " sent-packets " + I2S(shadowTraceLocalSends) + " same-target " + I2S(shadowTraceSameTargetSkips) + " window-blocks " + I2S(shadowTraceWindowBlocks))
+            traceInput("local sent-rows " + I2S(shadowTraceSentRows) + " singleton-packets " + I2S(shadowTraceSingletons) + " batch-pending " + I2S(shadowBatch.recordCount()))
+            let divisor = max(1, shadowTraceBatchWaitSamples)
+            traceInput("local capture-send samples " + I2S(shadowTraceBatchWaitSamples) + " callbacks mean-max " + R2S(shadowTraceBatchWaitSumCallbacks * 1.0 / divisor) + ":" + I2S(shadowTraceBatchWaitMaxCallbacks) + " native-ms mean-max " + R2S(shadowTraceBatchWaitSumSeconds * 1000 / divisor) + ":" + R2S(shadowTraceBatchWaitMaxSeconds * 1000))
+            resetShadowBatchSummary()
+            traceShadowEchoSummary()
+            for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+                shadowTraceAccepted[slot] = 0
+                shadowTraceKeyDown[slot] = 0
+                shadowTraceKeyUp[slot] = 0
+            shadowTraceRejected = 0
+            shadowTraceWaitTicks = 0
+            shadowTraceConfirmedSteps = 0
+            shadowTraceSpeculativeSteps = 0
+            shadowTraceSpeculativeFailures = 0
+            shadowTraceCorrections = 0
+            shadowTraceReplayedFrames = 0
+            shadowTraceMaxReplayDepth = 0
+            shadowTraceLocalPolls = 0
+            shadowTraceLocalCaptures = 0
+            shadowTraceLocalSends = 0
+            shadowTraceSameTargetSkips = 0
+            shadowTraceWindowBlocks = 0
+    if inputTraceTicks >= (SHIELD_BREAK_SCENARIO or LEDGE_SCENARIO ? 600 : 300)
+        finishInputTrace()
+
+function produceCpuInput(int slot, int frame)
+    let fighter = participants[slot].fighter
+    let targetSlot = matchState.firstHumanSlot()
+    let input = producedInputs.inputs[slot]
+    let commands = producedInputs.commands[slot]
+    input.direction = 0
+    input.jumpPressed = false
+    input.jumpHeld = false
+    input.specialPressed = false
+    input.verticalDirection = 0
+    input.ledgeVerticalPressed = 0
+    commands.clear()
+    if not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not LEDGE_SCENARIO and not PARRY_SCENARIO and not SPIKE_SCENARIO and not fighter.out
+        produceComputerInput(matchState, matchWorld, replayRuntime, slot, frame, input, commands)
+    if PARRY_SCENARIO
+        queueParryScenarioJab(producedInputs.inputs[targetSlot], fighter, commands, frame)
+
+function callbackMatchTick()
+    let frame = replayRuntime.simulationFrame + 1
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if matchState.humanFighterActive(slot)
+            let participant = participants[slot]
+            participant.callbackCapture.read(participant.callbackRow)
+            adaptInput(participant.callbackRow, participant.fighter, frame, producedInputs.inputs[slot], producedInputs.commands[slot])
+            participant.callbackCapture.commitCapturedEdges()
+            if producedInputs.commands[slot].hasPending(frame)
+                participant.lastNormalStyle = producedInputs.commands[slot].style
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if matchState.computerActive(slot)
+            produceCpuInput(slot, frame)
+    if currentFrameInput.capture(frame, matchWorld.mask, producedInputs, replayRuntime)
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if matchWorld.active(slot)
+                traceFrameInput(slot, producedInputs.inputs[slot], producedInputs.commands[slot], frame)
+                producedInputs.commands[slot].clear()
+        applyFrame()
 
 function gameTick()
-    if inputTraceActive
-        inputTraceTicks++
-        let axes = firstKeyState.directionX() + 3 * firstKeyState.directionZ()
-        if axes != inputTraceLastAxes or firstKeyState.pulsePending() or inputTraceTicks % 60 == 0
-            traceInput("sample " + I2S(axes) + " pulse " + (firstKeyState.pulsePending() ? I2S(firstKeyState.pulseX()) + ":" + I2S(firstKeyState.pulseZ()) : "none") + " hitlag " + I2S(playerFighter.hitlag))
-            inputTraceLastAxes = axes
-        if inputTraceLastDodge != playerFighter.airDodgeFrame or inputTraceLastLandingLag != playerFighter.landingLag
-            traceInput("motion air " + I2S(playerFighter.airDodgeFrame) + " landing " + I2S(playerFighter.landingLag) + " x " + R2S(playerFighter.x) + " z " + R2S(playerFighter.z))
-            inputTraceLastDodge = playerFighter.airDodgeFrame
-            inputTraceLastLandingLag = playerFighter.landingLag
-        if inputTraceTicks >= (SHIELD_BREAK_SCENARIO or LEDGE_SCENARIO ? 600 : 300)
-            finishInputTrace()
-    if appliedBindingRevision != playerBindings.revision
-        clearHeldInputs()
-        appliedBindingRevision = playerBindings.revision
-    if appliedSecondBindingRevision != secondBindings.revision
-        clearSecondInputs()
-        appliedSecondBindingRevision = secondBindings.revision
-    if not matchControls.isPaused()
-        combatEffects.tick()
-    lockArenaCamera()
+    transportIsolationTick()
+    if RESPONSE_SERVICE_PROBE
+        responseProbeBegin(replayRuntime.simulationFrame, shadowInputActive ? shadowSchedule.speculativeFrame() : -1, shadowInputActive ? shadowSchedule.knownThrough() : -1, matchState.phase)
+    traceTick()
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        let participant = participants[slot]
+        if participant.appliedBindingRevision != participant.bindings.revision
+            clearParticipantInputs(slot)
+            participant.appliedBindingRevision = participant.bindings.revision
     statusTime = max(0, statusTime - FRAME_SECONDS)
-    if matchState.phase == MATCH and not matchControls.isPaused()
-        let frame = replayRuntime.simulationFrame + 1
-        let direction = firstKeyState.consumeMovementX()
-        let verticalDirection = firstKeyState.consumeMovementZ()
-        if playerNormalAttackQueued
-            let style = normalAttackStyle(direction, verticalDirection, firstKeyState.actionHeld(WALK_MODIFIER), playerFighter.grounded and (playerFighter.shield or firstKeyState.actionHeld(LEFT_TRIGGER) or firstKeyState.actionHeld(RIGHT_TRIGGER)))
-            lastNormalStyle = style
-            playerAttackRequests.enqueue(style, direction, frame, true)
-        botInput.direction = 0
-        botInput.jumpPressed = botJumpQueued
-        botInput.jumpHeld = botJumpHeld
-        botInput.specialPressed = false
-        botInput.verticalDirection = 0
-        botInput.ledgeVerticalPressed = 0
-        if not twoHumanPlayers and not matchState.practice and not KNOCKDOWN_SCENARIO and not SHIELD_BREAK_SCENARIO and not LEDGE_SCENARIO and not PARRY_SCENARIO and not SPIKE_SCENARIO and not botFighter.out
-            let recovering = chooseRecoveryInput(botFighter, matchState.stageChoice, botInput)
-            let gap = playerFighter.x - botFighter.x
-            if not recovering and not playerFighter.out
-                let chaseX = min(surfaceRight(matchState.stageChoice, 0) - 40, max(surfaceLeft(matchState.stageChoice, 0) + 40, playerFighter.x))
-                if (chaseX - botFighter.x).abs() > 95
-                    botInput.direction = chaseX > botFighter.x ? 1 : -1
-                if botFighter.grounded and playerFighter.z > botFighter.z + 130
-                    botInput.jumpPressed = true
-                    botInput.jumpHeld = true
-            replayRuntime.botAttackDelay -= FRAME_SECONDS
-            if not recovering and not playerFighter.out and gap.abs() < 135 and replayRuntime.botAttackDelay <= 0
-                secondAttackRequests.enqueue(0, playerFighter.x >= botFighter.x ? 1 : -1, frame, false)
-                replayRuntime.botAttackDelay = 0.35
-        playerInput.direction = direction
-        playerInput.verticalDirection = verticalDirection
-        playerInput.sdiPulse = firstKeyState.pulsePending()
-        playerInput.sdiX = firstKeyState.pulseX()
-        playerInput.sdiZ = firstKeyState.pulseZ()
-        playerInput.cStickX = (actionHeld(SMASH_RIGHT) ? 1 : 0) - (actionHeld(SMASH_LEFT) ? 1 : 0)
-        playerInput.cStickZ = (actionHeld(SMASH_UP) ? 1 : 0) - (actionHeld(SMASH_DOWN) ? 1 : 0)
-        playerInput.attackHeld = actionHeld(ATTACK)
-        playerInput.techPressed = playerTechPressed
-        playerInput.lCancelPressed = playerLCancelPressed
-        playerInput.mashPressed = playerMashPressed
-        playerInput.grabMashPressed = playerGrabMashPressed
-        playerInput.attackPressed = playerAttackPressed
-        playerInput.grabThrowX = playerThrowX > 0 ? 1 : (playerThrowX < 0 ? -1 : 0)
-        playerInput.grabThrowZ = playerThrowZ > 0 ? 1 : (playerThrowZ < 0 ? -1 : 0)
-        playerInput.ledgeVerticalPressed = playerLedgeVerticalPressed
-        playerInput.getupAttackPressed = playerGetupAttackPressed
-        playerInput.specialPressed = playerSpecialPressed
-        playerInput.specialX = playerSpecialPressed ? firstKeyState.specialX : 0
-        playerInput.specialZ = playerSpecialPressed ? firstKeyState.specialZ : 0
-        firstKeyState.consumePressed(SPECIAL)
-        playerInput.getupStandPressed = playerGetupStandPressed
-        playerInput.getupDirection = (playerRightPressed ? 1 : 0) - (playerLeftPressed ? 1 : 0)
-        playerInput.getupDirectionPressed = playerInput.getupDirection != 0
-        playerInput.walking = firstKeyState.actionHeld(WALK_MODIFIER)
-        playerInput.down = firstKeyState.actionHeld(MOVE_DOWN)
-        playerInput.shield = firstKeyState.actionHeld(LEFT_TRIGGER) or firstKeyState.actionHeld(RIGHT_TRIGGER)
-        let groundDodge = groundDodgeIntent(playerInput.shield, playerLeftPressed, playerRightPressed, playerDownPressed)
-        playerInput.groundDodgePressed = groundDodge != NO_GROUND_DODGE
-        playerInput.groundDodgeDirection = groundDodge == NO_GROUND_DODGE ? 0 : groundDodge
-        playerInput.jumpPressed = playerJumpQueued
-        playerInput.jumpHeld = firstKeyState.actionHeld(JUMP)
-        playerInput.airDodgePressed = playerAirDodgeQueued
-        playerInput.dodgeX = playerDodgeX
-        playerInput.dodgeZ = playerDodgeZ
-        playerInput.attackHeld = actionHeld(ATTACK)
-        secondPlayerInput.direction = secondKeyState.consumeMovementX()
-        secondPlayerInput.verticalDirection = secondKeyState.consumeMovementZ()
-        secondPlayerInput.sdiPulse = secondKeyState.pulsePending()
-        secondPlayerInput.sdiX = secondKeyState.pulseX()
-        secondPlayerInput.sdiZ = secondKeyState.pulseZ()
-        secondPlayerInput.cStickX = (secondKeyState.actionHeld(SMASH_RIGHT) ? 1 : 0) - (secondKeyState.actionHeld(SMASH_LEFT) ? 1 : 0)
-        secondPlayerInput.cStickZ = (secondKeyState.actionHeld(SMASH_UP) ? 1 : 0) - (secondKeyState.actionHeld(SMASH_DOWN) ? 1 : 0)
-        secondPlayerInput.attackHeld = secondKeyState.actionHeld(ATTACK)
-        secondPlayerInput.techPressed = secondTechPressed
-        secondPlayerInput.lCancelPressed = secondLCancelPressed
-        secondPlayerInput.mashPressed = secondMashPressed
-        secondPlayerInput.grabMashPressed = secondGrabMashPressed
-        secondPlayerInput.attackPressed = secondAttackPressed
-        secondPlayerInput.grabThrowX = secondThrowX > 0 ? 1 : (secondThrowX < 0 ? -1 : 0)
-        secondPlayerInput.grabThrowZ = secondThrowZ > 0 ? 1 : (secondThrowZ < 0 ? -1 : 0)
-        secondPlayerInput.ledgeVerticalPressed = secondLedgeVerticalPressed
-        secondPlayerInput.getupAttackPressed = secondGetupAttackPressed
-        secondPlayerInput.specialPressed = secondSpecialPressed
-        secondPlayerInput.specialX = secondSpecialPressed ? secondKeyState.specialX : 0
-        secondPlayerInput.specialZ = secondSpecialPressed ? secondKeyState.specialZ : 0
-        secondKeyState.consumePressed(SPECIAL)
-        secondPlayerInput.getupStandPressed = secondGetupStandPressed
-        secondPlayerInput.getupDirection = (secondRightPressed ? 1 : 0) - (secondLeftPressed ? 1 : 0)
-        secondPlayerInput.getupDirectionPressed = secondPlayerInput.getupDirection != 0
-        secondPlayerInput.walking = secondKeyState.actionHeld(WALK_MODIFIER)
-        secondPlayerInput.down = secondKeyState.actionHeld(MOVE_DOWN)
-        secondPlayerInput.shield = secondKeyState.actionHeld(LEFT_TRIGGER) or secondKeyState.actionHeld(RIGHT_TRIGGER)
-        let secondGroundDodge = groundDodgeIntent(secondPlayerInput.shield, secondLeftPressed, secondRightPressed, secondDownPressed)
-        secondPlayerInput.groundDodgePressed = secondGroundDodge != NO_GROUND_DODGE
-        secondPlayerInput.groundDodgeDirection = secondGroundDodge == NO_GROUND_DODGE ? 0 : secondGroundDodge
-        secondPlayerInput.jumpPressed = secondJumpQueued
-        secondPlayerInput.jumpHeld = secondKeyState.actionHeld(JUMP)
-        secondPlayerInput.airDodgePressed = secondAirDodgeQueued
-        secondPlayerInput.dodgeX = secondDodgeX
-        secondPlayerInput.dodgeZ = secondDodgeZ
-        if twoHumanPlayers and secondNormalAttackQueued
-            let style = normalAttackStyle(secondPlayerInput.direction, secondPlayerInput.verticalDirection, secondPlayerInput.walking, botFighter.grounded and (botFighter.shield or secondPlayerInput.shield))
-            secondAttackRequests.enqueue(style, secondPlayerInput.direction, frame, true)
-        if PARRY_SCENARIO and not twoHumanPlayers and not matchState.practice
-            queueParryScenarioJab(playerInput, botFighter, secondAttackRequests, frame)
-        if currentFrameInput.capture(frame,
-                playerInput, twoHumanPlayers ? secondPlayerInput : botInput,
-                playerAttackRequests, secondAttackRequests, replayRuntime)
-            traceFrameInput(0, playerInput, playerAttackRequests, frame)
-            traceFrameInput(1, twoHumanPlayers ? secondPlayerInput : botInput, secondAttackRequests, frame)
-            playerAttackRequests.clear()
-            secondAttackRequests.clear()
-            applyFrame()
-        playerMashPressed = false
-        playerGrabMashPressed = false
-        playerAttackPressed = false
-        playerThrowX = 0
-        playerThrowZ = 0
-        secondMashPressed = false
-        secondGrabMashPressed = false
-        secondAttackPressed = false
-        secondThrowX = 0
-        secondThrowZ = 0
-        playerLedgeVerticalPressed = 0
-        secondLedgeVerticalPressed = 0
-        playerAttackFacing = 0
-        playerNormalAttackQueued = false
-        playerLeftPressed = false
-        playerRightPressed = false
-        playerDownPressed = false
-        playerSpecialPressed = false
-        playerGetupAttackPressed = false
-        playerGetupStandPressed = false
-        playerTechPressed = false
-        playerLCancelPressed = false
-        playerJumpQueued = false
-        playerInput.jumpPressed = false
-        playerAirDodgeQueued = false
-        playerDodgeX = 0
-        playerDodgeZ = 0
-        botJumpQueued = false
-        botJumpHeld = false
-        botInput.jumpPressed = false
-        secondAttackFacing = 0
-        secondNormalAttackQueued = false
-        secondLeftPressed = false
-        secondRightPressed = false
-        secondDownPressed = false
-        secondSpecialPressed = false
-        secondGetupAttackPressed = false
-        secondGetupStandPressed = false
-        secondTechPressed = false
-        secondLCancelPressed = false
-        secondJumpQueued = false
-        secondAirDodgeQueued = false
-        secondDodgeX = 0
-        secondDodgeZ = 0
-        secondKeyState.clearPulse()
-        if matchState.phase == RESULT
-            statusText = matchState.winner == 0 ? "Player 1 wins!" : (matchState.winner == 1 ? (twoHumanPlayers ? "Player 2 wins!" : "Computer wins!") : (matchState.timedOut ? "Time! Draw." : "Draw! Both fighters are out."))
-            statusTime = 3600
+    if shadowInputActive
+        shadowInputTick()
+    else if matchState.phase == MATCH and not matchControls.isPaused()
+        callbackMatchTick()
     if matchState.phase != MATCH
-        clearHeldInputs()
-        clearSecondInputs()
+        clearAllInputs()
     else
-        firstKeyState.clearPulse()
-        secondKeyState.clearPulse()
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            participants[slot].keys.clearPulse()
+    syncKeyEventLifecycle()
+    renderPersistentPresentation()
+    lockArenaCamera()
     renderUI()
-    if not readyMarkerWritten and playerBindings.ready
+    let localSlot = localParticipantSlot()
+    if RESPONSE_SERVICE_PROBE
+        responseProbePresent(participants[localSlot].fighter != null and participants[localSlot].fighter.shield, shadowInputActive and shadowWorld.active(localSlot) and shadowWorld.fighters[localSlot].shield, shadowInputActive and shadowWorld.active(localSlot) ? shadowRuntime.poses[localSlot].selectionSerial : -1)
+    if not readyMarkerWritten and participants[localSlot].bindings.ready
         readyMarkerWritten = true
         PreloadGenClear()
         PreloadGenStart()
         Preload("BUILD " + BUILD_ID)
+        Preload("INPUT " + INPUT_PROFILE + " PRESENTATION " + PRESENTATION_PROFILE)
         Preload("SCENARIO " + (SPIKE_SCENARIO ? "spike" : (PARRY_SCENARIO ? "parry" : (LEDGE_SCENARIO ? "ledge" : (SHIELD_BREAK_SCENARIO ? "shield-break" : (TECH_SCENARIO ? "tech" : (KNOCKDOWN_SCENARIO ? "knockdown" : "normal")))))))
-        Preload("BINDINGS " + playerBindings.bindings.encode())
-        Preload("BINDINGS1 " + (twoHumanPlayers ? secondBindings.bindings.encode() : "BOT"))
+        Preload("BINDINGS " + participants[localSlot].bindings.bindings.encode())
+        Preload("HUMANS " + I2S(matchState.humanMask) + " FIGHTERS " + I2S(matchWorld.mask))
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if matchWorld.active(slot)
+                Preload("BINDINGS" + I2S(slot) + " " + (matchState.humanActive(slot) ? participants[slot].bindings.bindings.encode() : "BOT"))
         PreloadGenEnd("wc3-melee-ready.txt")
+
+function initializeShadowInput()
+    if not SHADOW_INPUT_PROFILE
+        return
+    shadowSchedule = new ShadowInputSchedule()
+    shadowPlayback = new ShadowInputPlayback()
+    shadowCapture = new KeyboardInputCapture()
+    if JOURNAL_INPUT_SOURCE
+        journalInput = new JournalInputSource()
+        journalInputFile = new File("")
+    shadowBatch = new InputBatch()
+    shadowOutgoing = new InputPacket()
+    shadowIncoming = new InputPacket()
+    shadowSample = new NetworkInput()
+    shadowPending = new NetworkInput()
+    shadowAcceptedInputs = new ParticipantInputs()
+    shadowMatch = new MatchState()
+    shadowRuntime = new ReplayRuntimeState()
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        shadowWorld.fighters[slot] = new FighterState(slot mod 3, matchSpawnX(slot), slot mod 2 == 0 ? 1 : -1)
+    shadowHistory = new ReplayHistory()
+    shadowSeed = new ReplaySnapshot()
+    let sync = CreateTrigger()
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        if matchState.humanActive(slot)
+            BlzTriggerRegisterPlayerSyncEvent(sync, Player(slot), "SC_GP", false)
+    TriggerAddAction(sync, function receiveShadowInput)
 
 function initGame()
     DestroyTimer(GetExpiredTimer())
-    hostHumanPlayer = GetPlayerController(Player(0)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(0)) == PLAYER_SLOT_STATE_PLAYING
-    twoHumanPlayers = hostHumanPlayer and GetPlayerController(Player(1)) == MAP_CONTROL_USER and GetPlayerSlotState(Player(1)) == PLAYER_SLOT_STATE_PLAYING
-    matchState.setHumanCount(twoHumanPlayers ? 2 : 1)
+    matchState.setParticipants(currentHumanMask(), currentComputerMask())
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        participants[slot] = new NativeParticipant(slot)
+        destroy matchInputs.commands[slot]
+        matchInputs.commands[slot] = new AttackBuffer(ATTACK_BUFFER_FRAMES)
+        destroy shadowInputs.commands[slot]
+        shadowInputs.commands[slot] = new AttackBuffer(ATTACK_BUFFER_FRAMES)
     if PARRY_SCENARIO or SPIKE_SCENARIO
-        matchState.selectCharacter(0, 2)
-        if twoHumanPlayers
-            matchState.selectCharacter(1, SPIKE_SCENARIO ? 2 : 0)
-        else
-            matchState.selectCpuCharacter(0, SPIKE_SCENARIO ? 2 : 0)
-    playerInput = new InputSnapshot()
-    botInput = new InputSnapshot()
-    secondPlayerInput = new InputSnapshot()
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if matchState.humanActive(slot)
+                matchState.selectCharacter(slot, SPIKE_SCENARIO or slot == matchState.firstHumanSlot() ? 2 : 0)
+        if matchState.humanCount == 1
+            matchState.selectCpuCharacter(matchState.firstHumanSlot(), matchState.cpuSlot(), SPIKE_SCENARIO ? 2 : 0)
     let center = GetRectCenter(GetPlayableMapRect())
     centerX = GetLocationX(center)
     centerY = GetLocationY(center)
@@ -1696,48 +1747,73 @@ function initGame()
     FogMaskEnable(false)
     titleFrame = frameText("MeleeTitle", 0.06, 0.56, 0.68, 0.04, 0.023)
     menuFrame = frameText("MeleeMenu", 0.06, 0.505, 0.68, 0.19, 0.017)
-    firstHUD = new FighterHUD(0, 2)
-    secondHUD = new FighterHUD(1, 2)
     matchClock = new MatchClock()
     helpFrame = frameText("MeleeHelp", 0.06, 0.54, 0.58, 0.055, 0.010)
     noticeFrame = frameText("MeleeNotice", 0.26, 0.47, 0.42, 0.07, 0.019)
     developerFrame = frameText("MeleeDeveloper", 0.06, 0.012, 0.72, 0.01, 0.007)
     stagePanel = new StagePanel(new MeleeStageActions())
-    selectionPanel = new SelectionPanel(new MeleeSelectionActions(), 0)
-    settingsPanel = new SettingsPanel(playerBindings, new MeleeSettingsActions(0), 0)
-    secondSelectionPanel = new SelectionPanel(new MeleeSelectionActions(), 1)
-    secondSettingsPanel = new SettingsPanel(secondBindings, new MeleeSettingsActions(1), 1)
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        let participant = participants[slot]
+        participant.hud = new FighterHUD(slot, 4)
+        participant.selection = new SelectionPanel(new MeleeSelectionActions(), slot)
+        participant.settings = new SettingsPanel(participant.bindings, new MeleeSettingsActions(slot), slot)
     drawStage()
-    // Native camera hotkeys run before synchronized key callbacks. Constrain
-    // their target so Space cannot pan away between simulation ticks.
-    SetCameraBounds(centerX, centerY, centerX, centerY, centerX, centerY, centerX, centerY)
-    lockArenaCamera()
     CameraSetSmoothingFactor(0)
     SetTimeOfDay(12)
     SetTimeOfDayScale(0)
     SetSkyModel("Environment\\Sky\\LordaeronSummerSky\\LordaeronSummerSky.mdl")
-    PanCameraToTimed(centerX, centerY, 0)
     combatEffects = new CombatEffects(centerX, centerY, floorHeight)
     frostEffects = new FrostEffects(centerX, centerY, floorHeight)
     specialEffects = new SpecialEffects(centerX, centerY, floorHeight)
+    initializeShadowInput()
     makePreview()
+    lockArenaCamera()
     renderUI()
     setupKeys()
-    playerBindings.initialize()
-    if twoHumanPlayers
-        secondBindings.initialize()
-    else
-        secondBindings.bindings.preset(false)
-        secondBindings.ready = true
-        secondBindings.revision++
-    let leaveTrigger = CreateTrigger()
-    TriggerRegisterPlayerEvent(leaveTrigger, Player(1), EVENT_PLAYER_LEAVE)
-    TriggerAddAction(leaveTrigger, function secondPlayerLeaves)
-    let hostLeaveTrigger = CreateTrigger()
-    TriggerRegisterPlayerEvent(hostLeaveTrigger, Player(0), EVENT_PLAYER_LEAVE)
-    TriggerAddAction(hostLeaveTrigger, function firstPlayerLeaves)
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        let participant = participants[slot]
+        if matchState.humanActive(slot)
+            participant.bindings.initialize()
+        else
+            participant.bindings.bindings.preset(false)
+            participant.bindings.ready = true
+            participant.bindings.revision++
+    let leave = CreateTrigger()
+    for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+        TriggerRegisterPlayerEvent(leave, Player(slot), EVENT_PLAYER_LEAVE)
+    TriggerAddAction(leave, function playerLeaves)
     gameTimer = CreateTimer()
     TimerStart(gameTimer, FRAME_SECONDS, true, function gameTick)
+
+function playerLeaves()
+    let slot = GetPlayerId(GetTriggerPlayer())
+    if not matchState.humanPresent(slot)
+        return
+    let wasMatch = matchState.phase == MATCH
+    matchState.participantLeft(slot, matchWorld)
+    clearAllInputs()
+    matchControls.keyUp(slot)
+    participants[slot].bindings.capturing = false
+    if shadowInputActive
+        shadowInputActive = false
+        shadowBatch.beginEpoch(-1)
+    if wasMatch
+        frostEffects.clear()
+        specialEffects.clear()
+        clearProjectileModels()
+        matchControls.resume()
+        pauseMatchPresentation(false)
+        announceResult()
+    else if matchState.phase == CHARACTER_MENU or matchState.phase == STAGE_MENU
+        matchState.phase = CHARACTER_MENU
+        let mask = currentHumanMask()
+        if validParticipantMask(mask)
+            matchState.updateConnectedHumans(mask)
+            makePreview()
+        announce("A player left. Choose the next match.")
+    removeBroadKeyEvents()
+    syncKeyEventLifecycle()
+
 
 init
     // Custom frame creation and font setup require the running game UI.

@@ -1,0 +1,64 @@
+package SummonState
+import Wurst
+import Simulation
+import ParticipantInputs
+import SummonPose
+import SummonOriginalClipInfo
+
+public tuple SummonProjection(boolean visible, int clipIndex, real seconds, real x, real z, real yaw, real scale)
+
+public class SummonState
+    SummonPose array[INPUT_PARTICIPANT_CAPACITY] bears
+    int array[INPUT_PARTICIPANT_CAPACITY] bearHitSerial
+
+    construct()
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            bears[slot] = new SummonPose()
+            bearHitSerial[slot] = 0
+
+    ondestroy
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            destroy bears[slot]
+
+    function clear()
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            bears[slot].clear()
+            bearHitSerial[slot] = 0
+
+    function copyTo(SummonState destination)
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            bears[slot].copyTo(destination.bears[slot])
+            destination.bearHitSerial[slot] = bearHitSerial[slot]
+
+    function firstDifference(SummonState actual) returns string
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            let prefix = "slot[" + I2S(slot) + "]."
+            let field = bears[slot].firstDifference(actual.bears[slot])
+            if field != ""
+                return prefix + field
+            if bearHitSerial[slot] != actual.bearHitSerial[slot]
+                return prefix + "bearHitSerial"
+        return ""
+
+    // Called once for an executed frame, including hitlag; pause executes none.
+    function advance(FighterState fighter, int slot)
+        let pose = bears[slot]
+        if fighter == null
+            pose.clear()
+            bearHitSerial[slot] = 0
+            return
+        if fighter.out or fighter.bearLife <= 0
+            pose.clear()
+        else if fighter.bearHitSerial != bearHitSerial[slot]
+            pose.select(SUMMON_BEAR_ATTACK, SUMMON_BEAR_WALK)
+        else if not pose.active
+            pose.select(SUMMON_BEAR_WALK, -1)
+        else
+            pose.advance(SUMMON_BEAR, 1. / 60.)
+        bearHitSerial[slot] = fighter.bearHitSerial
+
+    function projectBear(FighterState fighter, int slot) returns SummonProjection
+        let pose = bears[slot]
+        if fighter == null or fighter.out or fighter.bearLife <= 0 or not pose.active
+            return SummonProjection(false, -1, 0., 0., 0., 0., 0.)
+        return SummonProjection(true, pose.clipIndex, pose.clipTime, fighter.bearX, fighter.bearZ, fighter.bearVelocityX >= 0 ? 0. : 3.141592654, 0.8)

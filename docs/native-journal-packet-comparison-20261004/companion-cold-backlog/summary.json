@@ -1,0 +1,28 @@
+{
+  "scope": "cold raw evdev acquisition; helper stopped before first mapped-event read",
+  "epoch_monotonic_ns": 479735551188465,
+  "stopped_monotonic_ns": 479735478126607,
+  "resume_requested_monotonic_ns": 479735728176294,
+  "stopped_until_resume_request_ms": 250.049687,
+  "raw_edges": 10,
+  "kernel_edges": 10,
+  "frames": 30,
+  "paired_files": 15,
+  "assigned_frames": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    8,
+    9
+  ],
+  "retained_event_span_ms": 143.963,
+  "timestamp_matches_kernel": true,
+  "native_decode_verified": false,
+  "production_decoder_verified": true,
+  "production_decoder_test": "JournalCapturedPackets.decodeColdStoppedHelperPackets; 1/1; exact emitted wires; all 30 frames and button masks matched kernel-event oracle"
+}

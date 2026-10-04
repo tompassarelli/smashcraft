@@ -1,4 +1,5 @@
 package GrabTests
+import WorldTestSupport
 import Simulation
 import MatchStep
 import MatchRules
@@ -8,10 +9,10 @@ import ReplayState
 function catchTarget(FighterState owner, FighterState target)
     owner.surface = 0
     target.surface = 0
-    beginAttackPair(owner, target, 5, -1, false, false)
+    testBeginAttacks(testWorld(owner, target), 5, -1, false, false)
     owner.attackFrame = attackStartupFrames(5)
-    resolveAttackPair(owner, target)
-    resolveGrabPair(owner, target)
+    resolveAttacks(testWorld(owner, target))
+    resolveGrabs(testWorld(owner, target))
     (owner.grabTarget == target).assertTrue()
     (target.grabOwner == owner).assertTrue()
 
@@ -39,9 +40,9 @@ function catchTarget(FighterState owner, FighterState target)
                 owner.jumps.assertEquals(originalJumps)
                 for frame = 1 to GRAB_HOLD_FRAMES
                     if order == 0
-                        stepMatch(game, owner, target, ownerInput, targetInput, ownerCommands, targetCommands, frame)
+                        stepMatch(game, testWorld(owner, target), testControls(ownerInput, targetInput, ownerCommands, targetCommands), frame)
                     else
-                        stepMatch(game, target, owner, targetInput, ownerInput, targetCommands, ownerCommands, frame)
+                        stepMatch(game, testWorld(target, owner), testControls(targetInput, ownerInput, targetCommands, ownerCommands), frame)
                     owner.x.assertEquals(0.)
                     owner.facing.assertEquals(facing)
                     target.x.assertEquals(GRAB_HOLD_DISTANCE * facing)
@@ -75,7 +76,7 @@ function catchTarget(FighterState owner, FighterState target)
             shooter.projectileZ[0] = hit.z + 45
             shooter.projectileVelocityX[0] = 20
             shooter.projectileDirection[0] = 1
-            updateProjectilePair(owner, target)
+            updateProjectiles(testWorld(owner, target))
             hit.damage.assertGreaterThan(0)
             if kind == PROJECTILE_ARROW or kind == PROJECTILE_FAN_ARROW
                 hit.hitstun.assertEquals(0)
@@ -110,7 +111,7 @@ function catchTarget(FighterState owner, FighterState target)
     target.freezeTrapLife = 100
     target.freezeTrapX = owner.x
     target.freezeTrapSurface = 0
-    advanceFreezeTrapPair(owner, target)
+    advanceFreezeTraps(testWorld(owner, target))
     owner.frozenFrames.assertGreaterThan(0)
     (owner.grabTarget == null).assertTrue()
     (target.grabOwner == null).assertTrue()
@@ -120,17 +121,17 @@ function catchTarget(FighterState owner, FighterState target)
 @Test function simultaneousGrabsDoNotGiveEitherSlotOwnership()
     let first = new FighterState(0, 0, 1)
     let second = new FighterState(1, 90, -1)
-    beginAttackPair(first, second, 5, 5, false, false)
+    testBeginAttacks(testWorld(first, second), 5, 5, false, false)
     first.attackFrame = attackStartupFrames(5)
     second.attackFrame = attackStartupFrames(5)
-    resolveAttackPair(first, second)
+    resolveAttacks(testWorld(first, second))
     (first.grabTarget == null).assertTrue()
     (second.grabTarget == null).assertTrue()
     first.grabbedFrames.assertEquals(0)
     second.grabbedFrames.assertEquals(0)
     first.hitlag = 1
     second.attackFrame++
-    resolveAttackPair(first, second)
+    resolveAttacks(testWorld(first, second))
     (second.grabTarget == null).assertTrue()
     first.grabbedFrames.assertEquals(0)
     destroy first
@@ -146,19 +147,19 @@ function catchTarget(FighterState owner, FighterState target)
     let before = new ReplaySnapshot()
     let after = new ReplaySnapshot()
     catchTarget(owner, target)
-    before.capture(owner, target, game, commands, otherCommands, runtime)
-    (before.first.grabTarget == before.second).assertTrue()
-    (before.second.grabOwner == before.first).assertTrue()
+    before.capture(testWorld(owner, target), game, testCommands(commands, otherCommands), runtime)
+    (before.world.fighters[0].grabTarget == before.world.fighters[1]).assertTrue()
+    (before.world.fighters[1].grabOwner == before.world.fighters[0]).assertTrue()
     reset(owner, 0)
-    before.second.grabbedFrames.assertEquals(GRAB_HOLD_FRAMES)
-    before.restore(owner, target, game, commands, otherCommands, runtime)
+    before.world.fighters[1].grabbedFrames.assertEquals(GRAB_HOLD_FRAMES)
+    before.restore(testWorld(owner, target), game, testCommands(commands, otherCommands), runtime)
     (owner.grabTarget == target).assertTrue()
     (target.grabOwner == owner).assertTrue()
-    after.capture(owner, target, game, commands, otherCommands, runtime)
+    after.capture(testWorld(owner, target), game, testCommands(commands, otherCommands), runtime)
     before.firstDifference(after).assertEquals("")
-    before.first.grabTarget = owner
-    after.first.grabTarget = target
-    before.firstDifference(after).assertEquals("first.grabTarget")
+    before.world.fighters[0].grabTarget = owner
+    after.world.fighters[0].grabTarget = target
+    before.firstDifference(after).assertEquals("fighter[0].grabTarget")
     destroy before
     destroy after
     destroy owner
@@ -179,20 +180,20 @@ function catchTarget(FighterState owner, FighterState target)
     mash.grabMashPressed = true
     mash.direction = 1
     mash.verticalDirection = 1
-    advanceGrabPair(owner, target, held, mash, false)
+    testGrabFrame(testWorld(owner, target), testInputs(held, mash), false)
     target.grabbedFrames.assertEquals(143)
     mash.grabMashPressed = false
     mash.direction = 0
     mash.verticalDirection = 0
-    advanceGrabPair(owner, target, held, mash, false)
+    testGrabFrame(testWorld(owner, target), testInputs(held, mash), false)
     target.grabbedFrames.assertEquals(142)
     mash.direction = 1
     mash.verticalDirection = 1
-    advanceGrabPair(owner, target, held, mash, false)
+    testGrabFrame(testWorld(owner, target), testInputs(held, mash), false)
     target.grabbedFrames.assertEquals(141)
     mash.direction = -1
     mash.verticalDirection = -1
-    advanceGrabPair(owner, target, held, mash, false)
+    testGrabFrame(testWorld(owner, target), testInputs(held, mash), false)
     target.grabbedFrames.assertEquals(134)
     destroy held
     destroy mash
@@ -214,7 +215,7 @@ function catchTarget(FighterState owner, FighterState target)
     input.attackHeld = true
     for frame = 1 to 45
         commands.enqueue(0, 1, frame, false)
-        stepMatch(game, owner, target, input, other, commands, otherCommands, frame)
+        stepMatch(game, testWorld(owner, target), testControls(input, other, commands, otherCommands), frame)
         input.attackPressed = false
         if frame < grabContactFrame(GRAB_PUMMEL)
             target.damage.assertEquals(100.)
@@ -226,7 +227,7 @@ function catchTarget(FighterState owner, FighterState target)
     // Damage does not recalculate the escape timer; three full frozen frames precede the release frame.
     target.grabbedFrames.assertEquals(236 - 45 + ordinaryHitlagFrames(3) - 1)
     input.attackPressed = true
-    stepMatch(game, owner, target, input, other, commands, otherCommands, 46)
+    stepMatch(game, testWorld(owner, target), testControls(input, other, commands, otherCommands), 46)
     owner.grabAction.assertEquals(GRAB_PUMMEL)
     owner.grabFrame.assertEquals(1)
     destroy input
@@ -256,9 +257,9 @@ function catchTarget(FighterState owner, FighterState target)
                     input.grabThrowZ = action == THROW_UP ? 1 : (action == THROW_DOWN ? -1 : 0)
                     for frame = 1 to grabActionDuration(action)
                         if order == 0
-                            stepMatch(game, owner, target, input, other, commands, otherCommands, frame)
+                            stepMatch(game, testWorld(owner, target), testControls(input, other, commands, otherCommands), frame)
                         else
-                            stepMatch(game, target, owner, other, input, otherCommands, commands, frame)
+                            stepMatch(game, testWorld(target, owner), testControls(other, input, otherCommands, commands), frame)
                         if frame < grabContactFrame(action)
                             (owner.grabTarget == target).assertTrue()
                             target.damage.assertEquals(0.)
@@ -293,7 +294,7 @@ function catchTarget(FighterState owner, FighterState target)
     otherCommands.enqueue(0, -1, 1, false)
     input.specialPressed = true
     other.specialPressed = true
-    stepMatch(game, owner, target, input, other, commands, otherCommands, 1)
+    stepMatch(game, testWorld(owner, target), testControls(input, other, commands, otherCommands), 1)
     owner.grabAction.assertEquals(GRAB_ESCAPE)
     owner.specialAction.assertEquals(SPECIAL_NONE)
     target.specialAction.assertEquals(SPECIAL_NONE)
@@ -326,20 +327,20 @@ function catchTarget(FighterState owner, FighterState target)
         input.attackPressed = action == GRAB_PUMMEL
         input.grabThrowX = action == THROW_FORWARD ? 1 : (action == THROW_BACK ? -1 : 0)
         input.grabThrowZ = action == THROW_UP ? 1 : (action == THROW_DOWN ? -1 : 0)
-        stepMatch(game, owner, target, input, other, commands, otherCommands, 1)
+        stepMatch(game, testWorld(owner, target), testControls(input, other, commands, otherCommands), 1)
         input.attackPressed = false
         input.grabThrowX = 0
         input.grabThrowZ = 0
         other.direction = -1
-        stepMatch(game, owner, target, input, other, commands, otherCommands, 2)
-        before.capture(owner, target, game, commands, otherCommands, runtime)
+        stepMatch(game, testWorld(owner, target), testControls(input, other, commands, otherCommands), 2)
+        before.capture(testWorld(owner, target), game, testCommands(commands, otherCommands), runtime)
         for frame = 3 to 45
-            stepMatch(game, owner, target, input, other, commands, otherCommands, frame)
-        expected.capture(owner, target, game, commands, otherCommands, runtime)
-        before.restore(owner, target, game, commands, otherCommands, runtime)
+            stepMatch(game, testWorld(owner, target), testControls(input, other, commands, otherCommands), frame)
+        expected.capture(testWorld(owner, target), game, testCommands(commands, otherCommands), runtime)
+        before.restore(testWorld(owner, target), game, testCommands(commands, otherCommands), runtime)
         for frame = 3 to 45
-            stepMatch(game, owner, target, input, other, commands, otherCommands, frame)
-        actual.capture(owner, target, game, commands, otherCommands, runtime)
+            stepMatch(game, testWorld(owner, target), testControls(input, other, commands, otherCommands), frame)
+        actual.capture(testWorld(owner, target), game, testCommands(commands, otherCommands), runtime)
         expected.firstDifference(actual).assertEquals("")
         destroy before
         destroy expected
@@ -363,7 +364,7 @@ function catchTarget(FighterState owner, FighterState target)
         if release == 1
             input.grabThrowZ = 1
             for frame = 1 to grabContactFrame(THROW_UP)
-                advanceGrabPair(owner, target, input, other, false)
+                testGrabFrame(testWorld(owner, target), testInputs(input, other), false)
             (owner.grabTarget == null).assertTrue()
             owner.grabAction.assertEquals(THROW_UP)
         owner.x = 921

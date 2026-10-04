@@ -1,4 +1,5 @@
 package MatchStepTests
+import WorldTestSupport
 import Simulation
 import MatchRules
 import CommandBuffer
@@ -25,7 +26,7 @@ import MatchStep
             firstInput.groundDodgeDirection = 1
             if action == 3
                 firstCommands.enqueue(5, 0, 1, false)
-            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+            stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
             first.shield.assertFalse()
             first.shieldEnergy.assertEquals(0.07, 0.0001)
             if boundary == 0
@@ -66,12 +67,12 @@ import MatchStep
     second.shieldEnergy = 20
     firstInput.shield = true
     secondInput.shield = true
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     first.shield.assertTrue()
     first.shieldEnergy.assertEquals(0.1, 0.0001)
     second.shieldEnergy.assertEquals(19.72, 0.0001)
     firstInput.jumpPressed = true
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 2)
     first.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
     first.jumpSquat.assertEquals(0)
     first.shieldEnergy.assertEquals(0.07, 0.0001)
@@ -110,7 +111,7 @@ import MatchStep
         for frame = 1 to 4
             if action == 1
                 firstCommands.enqueue(5, 0, frame, false)
-            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+            stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
             first.shield.assertTrue()
             first.jumpSquat.assertEquals(0)
             first.attackStyle.assertEquals(-1)
@@ -119,7 +120,7 @@ import MatchStep
         first.shieldDrainResumePending.assertTrue()
         if action == 1
             firstCommands.enqueue(5, 0, 5, false)
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 5)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 5)
         first.shield.assertFalse()
         first.shieldDrainResumePending.assertFalse()
         first.shieldEnergy.assertEquals(20.07, 0.0001)
@@ -130,7 +131,7 @@ import MatchStep
         else
             first.attackStyle.assertEquals(5)
         firstInput.jumpPressed = false
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 6)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 6)
         second.shieldEnergy.assertEquals(19.72, 0.0001)
         destroy firstCommands
         destroy secondCommands
@@ -152,11 +153,11 @@ import MatchStep
     first.shield = true
     first.shieldEnergy = 0.14000000059604645 * 2
     firstInput.shield = true
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     first.shieldEnergy.assertEquals(0.)
     first.shield.assertTrue()
     first.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 2)
     first.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
     first.shield.assertFalse()
     first.shieldEnergy.assertEquals(0.07, 0.0001)
@@ -187,7 +188,7 @@ import MatchStep
     second.shieldEnergy = digitalShieldDamage(7.)
     second.hitlag = 4
     secondInput.shield = true
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     second.shieldEnergy.assertEquals(0.)
     second.shield.assertTrue()
     second.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
@@ -197,12 +198,12 @@ import MatchStep
     first.projectileZ[0] = 45
     first.projectileVelocityX[0] = 20
     first.projectileDirection[0] = 1
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 2)
     second.shield.assertFalse()
     second.shieldBreakState.assertEquals(SHIELD_BREAK_AIR)
     second.shieldEnergy.assertEquals(30.)
     second.damage.assertEquals(0.)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 3)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 3)
     second.shieldEnergy.assertEquals(30.07, 0.0001)
     destroy firstCommands
     destroy secondCommands
@@ -245,15 +246,15 @@ import MatchStep
         else
             first.downState = DOWN_WAIT
             first.downWaitRemaining = 20
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
         first.shieldEnergy.assertEquals(20.07, 0.0001)
         if state == 2
             second.shieldEnergy.assertEquals(20.07, 0.0001)
             (first.grabTarget == second).assertTrue()
         first.shieldEnergy = 59.98
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 2)
         first.shieldEnergy.assertEquals(60.)
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 3)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 3)
         first.shieldEnergy.assertEquals(60.)
         destroy firstCommands
         destroy secondCommands
@@ -279,7 +280,7 @@ import MatchStep
     firstInput.shield = true
     secondInput.shield = true
     firstCommands.enqueue(5, 0, 1, false)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     first.attackStyle.assertEquals(5)
     first.shield.assertFalse()
     first.shieldEnergy.assertEquals(19.79, 0.0001)
@@ -287,7 +288,7 @@ import MatchStep
     second.shieldEnergy.assertEquals(19.72, 0.0001)
     first.hitlag = 3
     second.hitlag = 3
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 2)
     first.shieldEnergy.assertEquals(19.86, 0.0001)
     second.shieldEnergy.assertEquals(19.72, 0.0001)
     destroy firstCommands
@@ -310,20 +311,20 @@ import MatchStep
     first.shieldEnergy = 10
     first.shieldBreakState = SHIELD_BREAK_STAND
     first.shieldBreakFrame = first.shieldBreakStandFrames - 1
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     first.shieldBreakState.assertEquals(SHIELD_BREAK_DIZZY)
     first.shieldEnergy.assertEquals(30.07, 0.0001)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 2)
     first.shieldEnergy.assertEquals(30.07, 0.0001)
     first.shieldBreakRemaining = 1
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 3)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 3)
     first.shieldBreakState.assertEquals(SHIELD_BREAK_NONE)
     first.shieldEnergy.assertEquals(30.07, 0.0001)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 4)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 4)
     first.shieldEnergy.assertEquals(30.14, 0.0001)
     first.out = true
     first.respawn = 10
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 5)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 5)
     first.shieldEnergy.assertEquals(30.14, 0.0001)
     destroy firstCommands
     destroy secondCommands
@@ -347,9 +348,9 @@ import MatchStep
     second.shield = true
     second.shieldEnergy = 20
     secondInput.shield = true
-    beginAttackPair(first, second, 5, -1, false, false)
+    testBeginAttacks(testWorld(first, second), 5, -1, false, false)
     first.attackFrame = attackStartupFrames(5) - 1
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     (second.grabOwner == first).assertTrue()
     second.shield.assertFalse()
     second.shieldEnergy.assertEquals(19.79, 0.0001)
@@ -365,60 +366,60 @@ import MatchStep
     for character = 0 to 2
         let game = new MatchState()
         game.selectCharacter(0, character)
-        game.requestStageSelect(0).assertTrue()
+        assertTrue(game.requestStageSelect(0), "MatchStepTests.wurst:12")
         game.setStocks(0, 1)
         game.setTimeLimit(0, 1)
-        game.requestStart(0).assertTrue()
+        assertTrue(game.requestStart(0), "MatchStepTests.wurst:15")
         let first = new FighterState(character, -240, 1)
         let second = new FighterState(1, 240, -1)
-        initializeMatchFighters(game, first, second)
+        initializeMatchFighters(game, testWorld(first, second))
         let input = new InputSnapshot()
         let otherInput = new InputSnapshot()
         let commands = new AttackBuffer(0)
         let otherCommands = new AttackBuffer(0)
-        second.out.assertTrue()
+        assertTrue(second.out, "MatchStepTests.wurst:23")
         second.stocks.assertEquals(0)
         commands.enqueue(0, 0, 1, false)
         otherCommands.enqueue(0, 0, 1, false)
-        stepMatch(game, first, second, input, otherInput, commands, otherCommands, 1)
+        stepMatch(game, testWorld(first, second), testControls(input, otherInput, commands, otherCommands), 1)
         first.attackSerial.assertEquals(1)
         second.attackSerial.assertEquals(0)
         for frame = 2 to 90
-            stepMatch(game, first, second, input, otherInput, commands, otherCommands, frame)
+            stepMatch(game, testWorld(first, second), testControls(input, otherInput, commands, otherCommands), frame)
         input.direction = 1
         for frame = 91 to 100
-            stepMatch(game, first, second, input, otherInput, commands, otherCommands, frame)
+            stepMatch(game, testWorld(first, second), testControls(input, otherInput, commands, otherCommands), frame)
         first.x.assertGreaterThan(-240.)
         input.jumpPressed = true
         input.jumpHeld = true
-        stepMatch(game, first, second, input, otherInput, commands, otherCommands, 101)
+        stepMatch(game, testWorld(first, second), testControls(input, otherInput, commands, otherCommands), 101)
         input.jumpPressed = false
         for frame = 102 to 112
-            stepMatch(game, first, second, input, otherInput, commands, otherCommands, frame)
+            stepMatch(game, testWorld(first, second), testControls(input, otherInput, commands, otherCommands), frame)
         first.grounded.assertFalse()
         first.z.assertGreaterThan(0.)
         input.jumpHeld = false
         var walkFrame = 113
         while not first.out and walkFrame < 500
-            stepMatch(game, first, second, input, otherInput, commands, otherCommands, walkFrame)
+            stepMatch(game, testWorld(first, second), testControls(input, otherInput, commands, otherCommands), walkFrame)
             walkFrame++
-        first.out.assertTrue()
+        assertTrue(first.out, "practice blast zone character=" + I2S(character) + " x=" + R2S(first.x) + " z=" + R2S(first.z) + " vx=" + R2S(first.vx))
         first.stocks.assertEquals(1)
         first.respawn.assertEquals(60)
         game.phase.assertEquals(MATCH)
         input.direction = 0
         for respawnFrame = walkFrame to walkFrame + 59
-            stepMatch(game, first, second, input, otherInput, commands, otherCommands, respawnFrame)
+            stepMatch(game, testWorld(first, second), testControls(input, otherInput, commands, otherCommands), respawnFrame)
         first.out.assertFalse()
         first.x.assertEquals(-240.)
         first.damage.assertEquals(0.)
         input.direction = 1
-        stepMatch(game, first, second, input, otherInput, commands, otherCommands, walkFrame + 60)
+        stepMatch(game, testWorld(first, second), testControls(input, otherInput, commands, otherCommands), walkFrame + 60)
         first.x.assertGreaterThan(-240.)
         game.phase.assertEquals(MATCH)
         game.remainingFrames.assertEquals(0)
         game.timedOut.assertFalse()
-        second.out.assertTrue()
+        assertTrue(second.out, "MatchStepTests.wurst:65")
         second.x.assertEquals(240.)
         second.jumpSerial.assertEquals(0)
         second.attackSerial.assertEquals(0)
@@ -432,7 +433,7 @@ import MatchStep
 
 @Test function humanDirectAttacksReachBothSlotsOnTheNextStep()
     for style = 1 to 5
-        let game = new MatchState()
+        let game = testSoloMatch()
         game.setHumanCount(2)
         game.selectCharacter(0, 0)
         game.selectCharacter(1, 1)
@@ -444,18 +445,18 @@ import MatchStep
         let secondInput = new InputSnapshot()
         let firstCommands = new AttackBuffer(0)
         let secondCommands = new AttackBuffer(0)
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 10)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 10)
         queueHumanAttack(firstCommands, secondCommands, 0, style, 1, 10)
         queueHumanAttack(firstCommands, secondCommands, 1, style, -1, 10)
         first.attackSerial.assertEquals(0)
         second.attackSerial.assertEquals(0)
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 11)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 11)
         first.attackSerial.assertEquals(1)
         second.attackSerial.assertEquals(1)
         first.attackStyle.assertEquals(style)
         second.attackStyle.assertEquals(style)
         first.attackFrame.assertEquals(second.attackFrame)
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 12)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 12)
         first.attackSerial.assertEquals(1)
         second.attackSerial.assertEquals(1)
         destroy firstCommands
@@ -467,9 +468,9 @@ import MatchStep
         destroy game
 
 @Test function activeShieldConsumesGrabButRejectsOrdinaryAttackCommand()
-    let game = new MatchState()
+    let game = testSoloMatch()
     game.selectCharacter(0, 0)
-    game.selectCpuCharacter(0, 1)
+    game.selectCpuCharacter(0, game.cpuSlot(), 1)
     game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, 0, 1)
@@ -480,13 +481,13 @@ import MatchStep
     let secondCommands = new AttackBuffer(0)
     firstInput.shield = true
     firstCommands.enqueue(0, 0, 1, false)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     first.shield.assertTrue()
     first.attackStyle.assertEquals(-1)
     firstCommands.hasPending(1).assertTrue()
     firstCommands.clear()
     firstCommands.enqueue(5, 0, 2, false)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 2)
     first.attackStyle.assertEquals(5)
     first.shield.assertFalse()
     first.shieldReleaseLag.assertEquals(0)
@@ -500,9 +501,9 @@ import MatchStep
 
 @Test function downOnlyDropsWhenAttackQueueIsEmptyExpiredOrFuture()
     for mode = 0 to 2
-        let game = new MatchState()
+        let game = testSoloMatch()
         game.selectCharacter(0, 0)
-        game.selectCpuCharacter(0, 1)
+        game.selectCpuCharacter(0, game.cpuSlot(), 1)
         game.requestStageSelect(0)
         game.selectStage(0, 1)
         game.requestStart(0)
@@ -517,7 +518,7 @@ import MatchStep
         let secondCommands = new AttackBuffer(0)
         if mode > 0
             firstCommands.enqueue(3, 0, mode == 1 ? 0 : 2, true)
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
         first.grounded.assertFalse()
         first.z.assertLessThan(170.)
         first.attackStyle.assertEquals(-1)
@@ -533,9 +534,9 @@ import MatchStep
 @Test function downwardNormalsTakePriorityOverDroppingThroughUpperPlatforms()
     for style = 3 to 8
         if style == 3 or style == 8
-            let game = new MatchState()
+            let game = testSoloMatch()
             game.selectCharacter(0, 0)
-            game.selectCpuCharacter(0, 1)
+            game.selectCpuCharacter(0, game.cpuSlot(), 1)
             game.requestStageSelect(0)
             game.selectStage(0, 1)
             game.requestStart(0)
@@ -550,12 +551,12 @@ import MatchStep
             let firstCommands = new AttackBuffer(0)
             let secondCommands = new AttackBuffer(0)
             firstCommands.enqueue(style, 0, 1, true)
-            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+            stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
             first.grounded.assertTrue()
             first.z.assertEquals(170.)
             first.attackStyle.assertEquals(style)
             for frame = 2 to 12
-                stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+                stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
                 first.grounded.assertTrue()
             first.smashCharging.assertEquals(style == 3)
             destroy firstCommands
@@ -568,9 +569,9 @@ import MatchStep
 
 @Test function heldNormalSmashChargesAndReleasesButDirectCommandStaysImmediate()
     for mode = 0 to 1
-        let game = new MatchState()
+        let game = testSoloMatch()
         game.selectCharacter(0, 0)
-        game.selectCpuCharacter(0, 1)
+        game.selectCpuCharacter(0, game.cpuSlot(), 1)
         game.requestStageSelect(0)
         game.requestStart(0)
         let first = new FighterState(0, 0, 1)
@@ -582,7 +583,7 @@ import MatchStep
         let secondCommands = new AttackBuffer(0)
         firstCommands.enqueue(4, 1, 1, mode == 1)
         for frame = 1 to 12
-            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+            stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
         first.smashCharging.assertEquals(mode == 1)
         if mode == 1
             first.smashChargeFrames.assertGreaterThan(0)
@@ -592,7 +593,7 @@ import MatchStep
             first.attackFrame.assertGreaterThan(attackStartupFrames(4))
         let heldFrame = first.attackFrame
         firstInput.attackHeld = false
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 13)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 13)
         first.smashCharging.assertFalse()
         first.attackFrame.assertGreaterThan(heldFrame)
         first.attackSerial.assertEquals(1)
@@ -605,9 +606,9 @@ import MatchStep
         destroy game
 
 @Test function airborneBackAttackKeepsFacingWhileDriftingBackwards()
-    let game = new MatchState()
+    let game = testSoloMatch()
     game.selectCharacter(0, 0)
-    game.selectCpuCharacter(0, 1)
+    game.selectCpuCharacter(0, game.cpuSlot(), 1)
     game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, 0, 1)
@@ -620,7 +621,7 @@ import MatchStep
     let firstCommands = new AttackBuffer(0)
     let secondCommands = new AttackBuffer(0)
     firstCommands.enqueue(4, -1, 1, false)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     first.attackStyle.assertEquals(AERIAL_BACK_STYLE)
     first.facing.assertEquals(1)
     first.vx.assertLessThan(0.)
@@ -637,7 +638,7 @@ import MatchStep
         for facing = -1 to 1
             if facing != 0
                 for squatRemaining = 1 to jumpSquatFrames(character)
-                    let game = new MatchState()
+                    let game = testSoloMatch()
                     game.phase = MATCH
                     let fighter = new FighterState(character, 0, facing)
                     let target = new FighterState(1 - character, 350, -facing)
@@ -650,7 +651,7 @@ import MatchStep
                     input.jumpHeld = true
                     commands.enqueue(4, -facing, 1, false)
                     for frame = 1 to squatRemaining
-                        stepMatch(game, fighter, target, input, otherInput, commands, otherCommands, frame)
+                        stepMatch(game, testWorld(fighter, target), testControls(input, otherInput, commands, otherCommands), frame)
                         fighter.facing.assertEquals(facing)
                         if frame < squatRemaining
                             fighter.grounded.assertTrue()
@@ -670,9 +671,9 @@ import MatchStep
                     destroy game
 
 @Test function attackSelectionUsesGroundingAfterTheMovementStep()
-    let game = new MatchState()
+    let game = testSoloMatch()
     game.selectCharacter(0, 0)
-    game.selectCpuCharacter(0, 1)
+    game.selectCpuCharacter(0, game.cpuSlot(), 1)
     game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, 0, 1)
@@ -685,7 +686,7 @@ import MatchStep
     first.jumpHeld = true
     firstInput.jumpHeld = true
     firstCommands.enqueue(0, 0, 1, false)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     first.grounded.assertFalse()
     first.attackStyle.assertEquals(AERIAL_NEUTRAL_STYLE)
     first.attackStyle = -1
@@ -693,16 +694,16 @@ import MatchStep
     first.z = 1
     first.vz = -3
     firstCommands.enqueue(0, 0, 2, false)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 2)
     first.grounded.assertTrue()
     first.landingLag.assertEquals(4)
     first.attackStyle.assertEquals(-1)
     for frame = 3 to 5
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
         first.attackStyle.assertEquals(-1)
     firstCommands.hasPending(5).assertFalse()
     firstCommands.enqueue(0, 0, 6, false)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 6)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 6)
     first.landingLag.assertEquals(0)
     first.attackStyle.assertEquals(0)
     destroy firstCommands
@@ -714,9 +715,9 @@ import MatchStep
     destroy game
 
 @Test function shieldPressAppliesBeforeSameFrameAttack()
-    let game = new MatchState()
+    let game = testSoloMatch()
     game.selectCharacter(0, 0)
-    game.selectCpuCharacter(0, 1)
+    game.selectCpuCharacter(0, game.cpuSlot(), 1)
     game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, 0, 1)
@@ -728,15 +729,15 @@ import MatchStep
     let secondCommands = new AttackBuffer(0)
     firstCommands.enqueue(0, 0, 1, false)
     for frame = 1 to attackStartupFrames(0) + 1
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
     second.damage.assertEquals(0.)
     second.shieldStun.assertGreaterThan(0)
     second.shieldEnergy.assertLessThan(60.)
 
 @Test function bothFinalStocksResolveAfterTheSameStep()
-    let game = new MatchState()
+    let game = testSoloMatch()
     game.selectCharacter(0, 0)
-    game.selectCpuCharacter(0, 1)
+    game.selectCpuCharacter(0, game.cpuSlot(), 1)
     game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, -921, 1)
@@ -747,17 +748,17 @@ import MatchStep
     let secondInput = new InputSnapshot()
     let firstCommands = new AttackBuffer(0)
     let secondCommands = new AttackBuffer(0)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     game.phase.assertEquals(RESULT)
     game.winner.assertEquals(-1)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 2)
     first.stocks.assertEquals(0)
     second.stocks.assertEquals(0)
 
 @Test function ledgeSharedMatchStepCatchesBothSlotsThenAcceptsFreshOptions()
-    let game = new MatchState()
+    let game = testSoloMatch()
     game.selectCharacter(0, 0)
-    game.selectCpuCharacter(0, 1)
+    game.selectCpuCharacter(0, game.cpuSlot(), 1)
     game.requestStageSelect(0)
     game.requestStart(0)
     let first = new FighterState(0, -620, 1)
@@ -772,7 +773,7 @@ import MatchStep
     let secondInput = new InputSnapshot()
     let firstCommands = new AttackBuffer(0)
     let secondCommands = new AttackBuffer(0)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     first.ledgeState.assertEquals(LEDGE_HANG)
     second.ledgeState.assertEquals(LEDGE_HANG)
     first.ledgeFrame.assertEquals(1)
@@ -780,7 +781,7 @@ import MatchStep
     firstInput.getupAttackPressed = true
     secondInput.ledgeVerticalPressed = 1
     firstCommands.enqueue(0, 0, 2, false)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 2)
     first.ledgeState.assertEquals(LEDGE_ATTACK)
     second.ledgeState.assertEquals(LEDGE_CLIMB)
     first.attackStyle.assertEquals(LEDGE_ATTACK_STYLE)
@@ -797,15 +798,15 @@ import MatchStep
     destroy game
 
 @Test function configuredStocksAndLastTickKnockoutPrecedeTimeout()
-    let game = new MatchState()
+    let game = testSoloMatch()
     game.selectCharacter(0, 0)
-    game.selectCpuCharacter(0, 1)
+    game.selectCpuCharacter(0, game.cpuSlot(), 1)
     game.requestStageSelect(0)
     game.setStocks(0, 1)
     game.requestStart(0)
     let first = new FighterState(0, -921, 1)
     let second = new FighterState(1, 240, -1)
-    initializeMatchFighters(game, first, second)
+    initializeMatchFighters(game, testWorld(first, second))
     first.stocks.assertEquals(1)
     second.stocks.assertEquals(1)
     game.remainingFrames = 1
@@ -813,7 +814,7 @@ import MatchStep
     let secondInput = new InputSnapshot()
     let firstCommands = new AttackBuffer(0)
     let secondCommands = new AttackBuffer(0)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     game.phase.assertEquals(RESULT)
     game.winner.assertEquals(1)
     game.timedOut.assertFalse()
@@ -827,31 +828,31 @@ import MatchStep
     destroy game
 
 @Test function sharedStepClockRunsOnlyDuringMatch()
-    let game = new MatchState()
+    let game = testSoloMatch()
     let first = new FighterState(0, -240, 1)
     let second = new FighterState(1, 240, -1)
     let firstInput = new InputSnapshot()
     let secondInput = new InputSnapshot()
     let firstCommands = new AttackBuffer(0)
     let secondCommands = new AttackBuffer(0)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     game.remainingFrames.assertEquals(25200)
     game.selectCharacter(0, 0)
-    game.selectCpuCharacter(0, 1)
+    game.selectCpuCharacter(0, game.cpuSlot(), 1)
     game.requestStageSelect(0)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 2)
     game.remainingFrames.assertEquals(25200)
     game.requestStart(0)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 3)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 3)
     game.remainingFrames.assertEquals(25199)
     game.remainingFrames = 1
     first.damage = 30
     second.damage = 10
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 4)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 4)
     game.phase.assertEquals(RESULT)
     game.winner.assertEquals(1)
     game.timedOut.assertTrue()
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 5)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 5)
     game.remainingFrames.assertEquals(0)
     destroy firstCommands
     destroy secondCommands
@@ -878,18 +879,18 @@ import MatchStep
     first.groundActionFrame = 5
     firstInput.direction = 1
     firstCommands.enqueue(5, 0, 1, false)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     first.attackStyle.assertEquals(5)
     first.dashGrabAttack.assertTrue()
     first.attackDuration.assertEquals(40)
     first.dashGrabTiming.startupFrames.assertEquals(10)
     firstInput.attackPressed = false
     for frame = 2 to 10
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
         second.grabbedFrames.assertEquals(0)
     first.attackFrame.assertEquals(9)
     attackPhase(first).assertEquals(ATTACK_STARTUP)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 11)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 11)
     second.grabbedFrames.assertGreaterThan(0)
     destroy firstCommands
     destroy secondCommands
@@ -921,7 +922,7 @@ import MatchStep
     secondInput.direction = -1
     firstCommands.enqueue(0, 0, 1, false)
     secondCommands.enqueue(5, 0, 1, false)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     first.attackStyle.assertEquals(0)
     first.dashGrabAttack.assertFalse()
     first.dashGrabTiming.startupFrames.assertEquals(attackStartupFrames(5))
@@ -953,11 +954,11 @@ import MatchStep
     first.groundAction = GROUND_ACTION_RUN
     first.groundActionFrame = 1
     firstInput.shield = true
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     first.dashGrabWindow.assertEquals(3)
     firstInput.attackPressed = true
     firstCommands.enqueue(5, 0, 2, false)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 2)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 2)
     first.dashGrabAttack.assertTrue()
     first.dashGrabWindow.assertEquals(0)
     first.attackDuration.assertEquals(40)
@@ -982,14 +983,12 @@ import MatchStep
     expiry.dashGrabWindow = 3
     expiry.hitlag = 2
     expiryInput.shield = true
-    stepMatch(expiryGame, expiry, expiryOther, expiryInput, expiryOtherInput,
-        expiryCommands, expiryOtherCommands, 1)
+    stepMatch(expiryGame, testWorld(expiry, expiryOther), testControls(expiryInput, expiryOtherInput, expiryCommands, expiryOtherCommands), 1)
     expiry.dashGrabWindow.assertEquals(3)
-    stepMatch(expiryGame, expiry, expiryOther, expiryInput, expiryOtherInput,
-        expiryCommands, expiryOtherCommands, 2)
+    stepMatch(expiryGame, testWorld(expiry, expiryOther), testControls(expiryInput, expiryOtherInput, expiryCommands, expiryOtherCommands), 2)
     expiry.dashGrabWindow.assertEquals(2)
     for frame = 3 to 4
-        stepMatch(expiryGame, expiry, expiryOther, expiryInput, expiryOtherInput, expiryCommands, expiryOtherCommands, frame)
+        stepMatch(expiryGame, testWorld(expiry, expiryOther), testControls(expiryInput, expiryOtherInput, expiryCommands, expiryOtherCommands), frame)
     expiry.dashGrabWindow.assertEquals(0)
     destroy expiryCommands
     destroy expiryOtherCommands
@@ -1011,7 +1010,7 @@ import MatchStep
     early.groundAction = GROUND_ACTION_DASH
     early.groundActionFrame = DASH_GUARD_EARLY_FRAMES
     earlyInput.shield = true
-    stepMatch(earlyGame, early, earlyOther, earlyInput, earlyOtherInput, earlyCommands, earlyOtherCommands, 1)
+    stepMatch(earlyGame, testWorld(early, earlyOther), testControls(earlyInput, earlyOtherInput, earlyCommands, earlyOtherCommands), 1)
     early.dashGrabWindow.assertEquals(0)
     destroy earlyCommands
     destroy earlyOtherCommands
@@ -1034,8 +1033,7 @@ import MatchStep
     dashLate.groundAction = GROUND_ACTION_DASH
     dashLate.groundActionFrame = DASH_GUARD_EARLY_FRAMES + 1
     dashLateInput.shield = true
-    stepMatch(dashLateGame, dashLate, dashLateOther, dashLateInput, dashLateOtherInput,
-        dashLateCommands, dashLateOtherCommands, 1)
+    stepMatch(dashLateGame, testWorld(dashLate, dashLateOther), testControls(dashLateInput, dashLateOtherInput, dashLateCommands, dashLateOtherCommands), 1)
     dashLate.dashGrabWindow.assertEquals(3)
     destroy dashLateCommands
     destroy dashLateOtherCommands
@@ -1061,12 +1059,12 @@ import MatchStep
     first.groundActionFrame = 5
     firstInput.direction = 1
     firstCommands.enqueue(5, 0, 1, false)
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 1)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 1)
     first.attackFrame.assertEquals(0)
     first.dashGrabAttack.assertTrue()
     firstInput.direction = 0
     for frame = 2 to 40
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
         first.out.assertFalse()
         second.grabbedFrames.assertEquals(0)
     first.attackFrame.assertEquals(39)
@@ -1074,7 +1072,7 @@ import MatchStep
     first.cooldown.assertEquals(1)
     firstInput.jumpPressed = true
     firstInput.jumpHeld = true
-    stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 41)
+    stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 41)
     first.attackStyle.assertEquals(-1)
     first.cooldown.assertEquals(0)
     first.jumpSquat.assertGreaterThan(0)
@@ -1106,16 +1104,16 @@ import MatchStep
         second.invincible = 12 + lateByOne
         firstCommands.enqueue(5, 0, 1, false)
         for frame = 1 to 11
-            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+            stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
             second.grabbedFrames.assertEquals(0)
         first.attackFrame.assertEquals(10)
         attackPhase(first).assertEquals(ATTACK_ACTIVE)
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 12)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 12)
         if lateByOne == 0
             second.grabbedFrames.assertGreaterThan(0)
         else
             second.grabbedFrames.assertEquals(0)
-            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 13)
+            stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 13)
             second.invincible.assertEquals(0)
             first.attackFrame.assertEquals(12)
             attackPhase(first).assertEquals(ATTACK_RECOVERY)

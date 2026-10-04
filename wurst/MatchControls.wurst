@@ -1,5 +1,6 @@
 package MatchControls
 import MatchRules
+import ParticipantInputs
 
 public constant int START_PAUSE_NONE = 0
 public constant int START_PAUSE_CONFIRM = 1
@@ -9,14 +10,15 @@ public constant int START_PAUSE_TOGGLED = 2
 // simulation state, so replay snapshots must never restore this state.
 public class MatchControls
 	private boolean paused = false
-	private boolean array[2] startPauseHeld
+	private boolean array[INPUT_PARTICIPANT_CAPACITY] startPauseHeld
 
 	function keyDown(int participantId, int phase, boolean settingsOpen) returns int
-		if participantId < 0 or participantId >= 2 or startPauseHeld[participantId]
+		if participantId < 0 or participantId >= INPUT_PARTICIPANT_CAPACITY or startPauseHeld[participantId]
 			return START_PAUSE_NONE
 		startPauseHeld[participantId] = true
-		if startPauseHeld[1 - participantId]
-			return START_PAUSE_NONE
+		for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+			if slot != participantId and startPauseHeld[slot] and phase != RESULT
+				return START_PAUSE_NONE
 		if settingsOpen
 			return START_PAUSE_NONE
 		if phase == MATCH
@@ -27,7 +29,7 @@ public class MatchControls
 		return START_PAUSE_NONE
 
 	function keyUp(int participantId)
-		if participantId >= 0 and participantId < 2
+		if participantId >= 0 and participantId < INPUT_PARTICIPANT_CAPACITY
 			startPauseHeld[participantId] = false
 
 	function isPaused() returns boolean

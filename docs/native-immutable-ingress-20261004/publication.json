@@ -1,0 +1,16 @@
+[
+  {
+    "slot": 0,
+    "ready_observed_ns": 470138499544954,
+    "publish_before_ns": 470138500898147,
+    "publish_after_ns": 470138501162133,
+    "ready_text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"IMMUTABLE_FILE_INGRESS v=1 build=20261003T203950917701952 version=0.0.14 slot=0 phase=ready_create_retry_file_now callbacks=0 retry_attempts=0 unique_files_read=0 unique_matches=0 retry_delivered=0 sync_received=0\" )\n\tcall Preload( \"FileIO pinned stdlib bb1e0458db5a372ba2a6928112452785e435d01a\" )\n\tcall Preload( \"INITIAL_MISSING_READ slot=0 attempt=1 game_ms=0.244 file=smashcraft-ingress-20261003T203950917701952-retry.pld data= expected=\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+  },
+  {
+    "slot": 1,
+    "ready_observed_ns": 470138879207776,
+    "publish_before_ns": 470138879994154,
+    "publish_after_ns": 470138880172639,
+    "ready_text": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"IMMUTABLE_FILE_INGRESS v=1 build=20261003T203950917701952 version=0.0.14 slot=1 phase=ready_create_retry_file_now callbacks=0 retry_attempts=0 unique_files_read=0 unique_matches=0 retry_delivered=0 sync_received=0\" )\n\tcall Preload( \"FileIO pinned stdlib bb1e0458db5a372ba2a6928112452785e435d01a\" )\n\tcall Preload( \"INITIAL_MISSING_READ slot=1 attempt=1 game_ms=0.244 file=smashcraft-ingress-20261003T203950917701952-retry.pld data= expected=\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+  }
+]

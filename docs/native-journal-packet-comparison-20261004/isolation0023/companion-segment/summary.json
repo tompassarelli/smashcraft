@@ -1,0 +1,39 @@
+{
+  "build": "netcode-0023",
+  "epoch": 1,
+  "capture_epoch_monotonic_ns": 485082427650781,
+  "first_frame": 601,
+  "frames": 600,
+  "helper_exit_codes": [
+    0,
+    0
+  ],
+  "binary_sha256": "9f40065ecc3ce56f49e25daf5fbbe37f23fc0ed5428daea9cb1c2830f818e481",
+  "controlled_stops": [
+    {
+      "action": "stop-helper",
+      "pid": 3204383,
+      "state": "T",
+      "observed_monotonic_ns": 485083928478449
+    },
+    {
+      "action": "resume-helper",
+      "pid": 3204383,
+      "state": "R",
+      "observed_monotonic_ns": 485084178125183
+    },
+    {
+      "action": "stop-game",
+      "pid": 1912370,
+      "state": "T",
+      "observed_monotonic_ns": 485085433372465
+    },
+    {
+      "action": "resume-game",
+      "pid": 1912370,
+      "state": "R",
+      "observed_monotonic_ns": 485085678563833
+    }
+  ],
+  "scope": "two virtual devices; actual companion and native file ingress; one shared Linux host clock; not physical-controller or remote clock-alignment proof"
+}

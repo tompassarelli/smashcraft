@@ -1,0 +1,45 @@
+{
+  "a": {
+    "pages": 18,
+    "service_rows": 2700,
+    "last_confirmed": 458.0,
+    "sent_frames": 522,
+    "received_frames": 458,
+    "phases": [
+      2
+    ],
+    "echo_native_ms": {
+      "median": 5386.596,
+      "p95": 7991.455,
+      "maximum": 8080.26
+    },
+    "pressed_attack_frames": [
+      76,
+      106,
+      136,
+      166
+    ]
+  },
+  "b": {
+    "pages": 18,
+    "service_rows": 2700,
+    "last_confirmed": 458.0,
+    "sent_frames": 522,
+    "received_frames": 458,
+    "phases": [
+      2
+    ],
+    "echo_native_ms": {
+      "median": 6218.444,
+      "p95": 8163.939,
+      "maximum": 8297.24
+    },
+    "pressed_attack_frames": [
+      64,
+      94,
+      124,
+      154,
+      184
+    ]
+  }
+}

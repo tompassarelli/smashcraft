@@ -1,4 +1,5 @@
 package SpikeScenarioTests
+import WorldTestSupport
 import Simulation
 import MatchRules
 import MatchStep
@@ -19,23 +20,23 @@ import SpikeScenario
         let secondCommands = new AttackBuffer(ATTACK_BUFFER_FRAMES)
         // Allow a real-input-sized interval after starting the airborne fixture.
         for frame = 1 to 12
-            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+            stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
         firstInput.specialPressed = true
         firstInput.specialZ = -1
         firstInput.down = true
-        stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, 13)
+        stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), 13)
         firstInput.specialPressed = false
         firstInput.specialZ = 0
         firstInput.down = false
         for frame = 14 to 16
-            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+            stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
         second.damage.assertEquals(9.)
         second.grounded.assertFalse()
         second.knockbackZ.assertLessThan(0.)
         second.hitstun.assertGreaterThan(0)
         let contactHeight = second.z
         for frame = 17 to 30
-            stepMatch(game, first, second, firstInput, secondInput, firstCommands, secondCommands, frame)
+            stepMatch(game, testWorld(first, second), testControls(firstInput, secondInput, firstCommands, secondCommands), frame)
         second.damage.assertEquals(9.)
         second.z.assertLessThan(contactHeight)
         second.grounded.assertFalse()

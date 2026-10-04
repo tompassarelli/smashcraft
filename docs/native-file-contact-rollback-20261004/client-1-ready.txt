@@ -1,0 +1,8 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "NATIVE_FILE_CONTACT_READY v=1 candidate=0.0.16 build=20261003T210905424561942 source_commit=f8838abd66dadef75b6d2638aecc3f53065591fc slot=1 speculative_through=8 speculative_steps=8 transient_damage=12.000 transient_checksum=171979:116100" )
+	call Preload( "P2 only reads build-specific immutable files in sequence1..8 at 60Hz; unchanged 26-byte wires are sent using CR16; held=1 at F5/F6; rollback correction occurs after all rows arrive" )
+	call PreloadEnd( 0.0 )
+
+endfunction
