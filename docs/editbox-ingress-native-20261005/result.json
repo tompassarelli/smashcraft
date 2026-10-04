@@ -1,0 +1,69 @@
+{
+  "map_sha256": "76b209e855f7771011eda13687d9c3dcd9d972f9372524c2f32793dbe3141784",
+  "map_source": "ad66b8e7d376d59cea73ad26bc23addad56f4131",
+  "enigo_revision": "ea81f5c1239534db48c51d46268d1ad80cc8057f",
+  "helper_sha256": "ffd9d5e173b7ee570db16200b724d7465e2f5ec0c4338f4a100950e819c2af9f",
+  "capture": {
+    "epoch_monotonic_ns": 544968711122183,
+    "helper_exit_codes": [
+      0,
+      0
+    ],
+    "stall_ms": 249.993963,
+    "game_stall_ms": 245.026821,
+    "helper_sha256": "ffd9d5e173b7ee570db16200b724d7465e2f5ec0c4338f4a100950e819c2af9f",
+    "scope": "Two readers of one virtual kernel device; 300 frames; 5ms taps normally, during helper stop and during game stop; half-stick hold from 0.6 to 1.1 seconds; no physical latency or pause/resume claim"
+  },
+  "clients": [
+    {
+      "slot": 0,
+      "kernel_events_matched": 8,
+      "original_event_frames": [
+        19,
+        19,
+        37,
+        67,
+        97,
+        97,
+        157,
+        157
+      ],
+      "published_frames": 300,
+      "packet_count": 150,
+      "emission_median_ms": 1.416,
+      "emission_max_ms": 4.84,
+      "confirmed_attack_frames_per_fighter": [
+        19,
+        97,
+        157
+      ],
+      "confirmed_frame": 300,
+      "final_checksum": "978581:476670"
+    },
+    {
+      "slot": 1,
+      "kernel_events_matched": 8,
+      "original_event_frames": [
+        19,
+        19,
+        37,
+        67,
+        97,
+        97,
+        157,
+        157
+      ],
+      "published_frames": 300,
+      "packet_count": 150,
+      "emission_median_ms": 1.398,
+      "emission_max_ms": 6.077,
+      "confirmed_attack_frames_per_fighter": [
+        19,
+        97,
+        157
+      ],
+      "confirmed_frame": 300,
+      "final_checksum": "978581:476670"
+    }
+  ]
+}

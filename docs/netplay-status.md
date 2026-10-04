@@ -10,6 +10,16 @@ There is demonstrated local prediction, bounded numerical rollback and a working
 two-client gameplay journey. There is also a known polling-loss limitation.
 Neither “nothing works” nor “the latency guarantees are done” describes the result.
 
+**5 October implementation advance:** the repaired editbox controller candidate
+delivered all 300 original frames per player in a two-client native trial.
+Three 5 ms Attack taps, including taps during ~250 ms helper/game interruptions,
+applied at frames 19, 97 and 157 on both clients. Final frame 300 and checksum
+agreed. Helper emission medians fell from ~220 ms to ~1.4 ms. This is a bounded
+retention pass for #26, not physical response latency or complete acceptance of
+#25–#27. Pause/focus lifecycle and real hardware still need work. Exact source,
+failed attempt, fixture repair and raw evidence:
+wc3-melee:docs/editbox-ingress-native-20261005/README.md.
+
 ## The specific answers and their owners
 
 | Question / claim | Verdict | Canonical issue |

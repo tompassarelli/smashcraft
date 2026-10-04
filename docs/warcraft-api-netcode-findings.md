@@ -826,3 +826,26 @@ for playable controller delivery; the passing first tap is not a throughput or
 stall-recovery pass. This does not establish a universal engine floor or identify
 which part of key visibility versus ACK generation contributes the wait. The
 failed source variation was removed. Exact40 remains the playable release.
+
+## Editbox journal: bounded native retention pass, 5 October
+
+The replacement locally polled editbox ingress, repaired Enigo X11 emission and
+existing direct sync completed 300 original frames per player on two online
+clients. All three 5 ms Attack taps applied once per fighter at frames 19, 97
+and 157, including a 249.994 ms helper stop and a 245.027 ms game stop. Both
+clients finished at confirmed frame 300 with checksum `978581:476670` and no
+input rejection. The same stream included half-stick motion and return.
+
+The helper's text emission medians were 1.416/1.398 ms, compared with ~220 ms
+in the first integrated trial. That repair is in the underlying Enigo library,
+not a substituted emitter. A failed first attempt with the repaired helper
+exposed six temporary X11 mappings left on A by an earlier forcibly stopped
+helper. Restoring those test-owned mappings made A's keymap match B's; the
+unchanged candidate then passed. Keep this fixture-state failure with the result.
+
+This supports the native short-tap/stall workload in #26. It does not establish
+physical response timing, complete pause/focus lifecycle, hardware/platform
+coverage or all original-frame guarantees. Playable 0.0.40 remains separate.
+The source pins, exact artifact identities, corpus, failed attempt, final
+reconciliation and raw logs are in
+wc3-melee:docs/editbox-ingress-native-20261005/README.md.

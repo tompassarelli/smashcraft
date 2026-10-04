@@ -1,6 +1,9 @@
 # Local editbox input candidate
 
-This is an unaccepted #26 candidate. It integrates the locally polled editbox
+This #26 candidate passed its bounded two-client short-tap/stall corpus on
+5 October after the helper repair; broader acceptance remains open. See
+wc3-melee:docs/editbox-ingress-native-20261005/README.md for the final result
+and raw traces. It integrates the locally polled editbox
 boundary demonstrated in wc3-melee:docs/frame-tagged-native-results-20261004.md
 with the existing live evdev journal, original-frame admission, direct
 BlzSendSyncData and local prediction. It does not use editbox event callbacks or
@@ -40,19 +43,19 @@ WC3_INPUT_PROFILE=shadow-d0-r24 WC3_PRESENTATION=pool-predicted \
 WC3_INPUT_SOURCE=journal WC3_JOURNAL_INGRESS=editbox \
 WC3_RESPONSE_SERVICE_PROBE=1 WC3_DEPLOY_MAP=0 \
 WC3_PRIVATE_ASSETS="$HOME/.local/share/smashcraft-build-inputs/production-netcode-20261004" \
-~/code/wc3-melee/worktrees/input-retention-20261005/build.sh "$SMASHCRAFT_BASE_MAP"
+~/code/wc3-melee/worktrees/playable-integration-20261005/build.sh "$SMASHCRAFT_BASE_MAP"
 ```
 
 The lane needs the same prepared generated art as the existing integration
 lane. The parent owns packaging and both authenticated native clients. No player
 release counter changes. After loading the diagnostic and starting a match,
 use the existing native driver with its binary changed to
-~/code/wc3-melee/worktrees/input-retention-20261005/companion/target/debug/wc3-journal
+~/code/wc3-melee/worktrees/playable-integration-20261005/companion/target/debug/wc3-journal
 and replace `--mailbox-display` with `--editbox-display`. The equivalent helper
 invocation per client is:
 
 ```sh
-~/code/wc3-melee/worktrees/input-retention-20261005/companion/target/debug/wc3-journal \
+~/code/wc3-melee/worktrees/playable-integration-20261005/companion/target/debug/wc3-journal \
   --device "$SMASHCRAFT_EVDEV" --out "$SMASHCRAFT_CUSTOM_MAP_DATA" \
   --ready-file "$SMASHCRAFT_READY_RECEIPT" \
   --epoch-monotonic-ns "$SMASHCRAFT_CAPTURE_EPOCH_NS" \

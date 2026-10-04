@@ -1,0 +1,11 @@
+{
+  "epoch_monotonic_ns": 544968711122183,
+  "helper_exit_codes": [
+    0,
+    0
+  ],
+  "stall_ms": 249.993963,
+  "game_stall_ms": 245.026821,
+  "helper_sha256": "ffd9d5e173b7ee570db16200b724d7465e2f5ec0c4338f4a100950e819c2af9f",
+  "scope": "Two readers of one virtual kernel device; 300 frames; 5ms taps normally, during helper stop and during game stop; half-stick hold from 0.6 to 1.1 seconds; no physical latency or pause/resume claim"
+}
