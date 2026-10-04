@@ -7,6 +7,18 @@ deadline was 08:38:38 Taipei on 4 October; it was missed and has not reset.
 
 ## Current deciding evidence
 
+The newest matched 0.0.31 test separates the wrapper from populated Preloader
+execution: changing FileIO averaged 3,170/3,064 ms and direct changing Preloader
+3,050/2,800 ms (A/B), while generated changing values averaged 86/68 ms and
+fresh constant-content FileIO 85/81 ms. Every arm delivered 300/300 with zero
+reported integrity errors. Details and limits appear below.
+
+Direct-sync invalid values now have an identified serialization failure:
+minimum signed integer wire text was `-2.147484e+09`, parsed as `-2`. Generated
+Lua emits the minimum integer as `-2147483648` and lowers I2S to `tostring`.
+A focused compiler repair and Lua32 proof are in progress; no corrected native
+transport ranking is claimed yet.
+
 **Populated preload-file ingestion reproduces the seconds-long backlog.**
 The same two Warcraft III 3.0 clients ran exact Smashcraft 0.0.24, build
 `netcode-0024`, SHA256
@@ -262,19 +274,19 @@ hosting comparison remains unproved.
 
 ## Immediate open decisions
 
-1. Isolate the remaining populated-file boundary. The matched 0.0.29 test
-   reproduces delay with file reads while changing tooltip operations stay fast.
-   Separate direct Preloader execution from the FileIO wrapper and verify the
-   constant-content case at matched duration before naming the owning cause.
-   Correlate with host wall time; zero native read duration is insufficient.
-2. Establish a usable real native-order baseline and diagnose the two invalid
-   direct-sync values per observer/rate in the completed short transport test.
-   Add expected/actual/wire diagnostics before ranking; then compare sustained
-   rates and selection interference under usable gameplay.
-3. After the root repair, verify the actual capture-to-fight path and physical
-   responsiveness. Full human/player/platform/controller, presentation/audio,
-   clock fairness and hosting acceptance remain open. Peer reports combined
-   Wurst checks 634/634; native integration remains to verify.
+1. Repair the content-sensitive populated-Preloader boundary. The matched
+   0.0.31 test reproduces delay with both FileIO and direct Preloader changing
+   content, while the same-duration constant-content FileIO arm stays fast.
+   Wrapper overhead and run duration alone are insufficient explanations.
+   The internal cause and a fast changing-input file path remain unresolved.
+2. Repair minimum signed integer emission at the compiler owner, then rebuild
+   and re-run the direct-sync integrity comparison before ranking transports.
+   Native-order crash remains unresolved and that trial is deferred. Sustained
+   rates and selection interference under gameplay remain unproved.
+3. Verify the repaired actual capture-to-fight path and physical responsiveness.
+   Full human/player/platform/controller, presentation/audio, clock fairness and
+   hosting acceptance remain open. Peer reports combined Wurst checks 635/635;
+   component checks do not establish native acceptance.
 
 Reusable development guidance is published in
 `nixos-config:dotfiles/agents/skills/warcraft3-development-distilled/SKILL.md`
@@ -330,3 +342,78 @@ association does not establish the exact cause or receipt timing. Native-order
 transport remains unproved. Crash reports, dumps and replay remain private;
 authored observation and numerical ready/selection exports are retained in
 wc3-melee:docs/native-journal-packet-comparison-20261004/order0029/.
+
+## Matched direct-Preloader and constant-content comparison on 0.0.31
+
+Both retained Warcraft III 3.0 clients ran exact Smashcraft 0.0.31,
+`netcode-0031`, SHA256
+`311214a2e6b4d1019be4f98c66e5cec2f8e136b3129f643b0f53de57ee88b9c9`.
+Source base was shared main 6884e987 plus the retained diagnostic edits in
+wc3-melee:wurst/NativePreloadProbe.wurst and
+wc3-melee:wurst/NativeTransportProbe.wurst. The build passed with zero errors
+and 18 warnings. Native readiness confirmed human mask 5, slots 0/2 in MATCH;
+spare slots were closed. The same independent 30 Hz driver and SC_GP receiver
+sent 300 values/client/arm, each with a 22-byte envelope (6,600 bytes/arm).
+
+| Arm | A mean / maximum echo | B mean / maximum echo |
+| --- | ---: | ---: |
+| Generated changing content | 86 / 113 ms | 68 / 100 ms |
+| Fresh FileIO changing content | 3,170 / 6,028 ms | 3,064 / 5,445 ms |
+| Fresh direct Preloader changing content | 3,050 / 5,521 ms | 2,800 / 5,346 ms |
+| Fresh FileIO constant content | 85 / 120 ms | 81 / 162 ms |
+
+Every arm/client received 300/300 with missing, bad payload, local read error,
+failed-send and duplicate counts zero. Changing FileIO spans were 15.200/14.833
+native seconds; direct Preloader 14.900/14.400; generated 10.100/10.100 and
+constant FileIO 10.098/10.098. Final complete receipts were host-observed at
+50.803/50.052 seconds after the trigger. All 16 begin/end receipts were collected.
+
+Direct Preloader explicitly reads and clears the same ability tooltip, without
+calling the FileIO wrapper. Both clients use local copies of disjoint filename
+sets, whose s2 names identify the fixture source, not the observer. The result
+rules out the wrapper as a necessary cause and duration alone as a sufficient
+cause under this workload. Together with the fast changing tooltip-only arm in
+0.0.29, it identifies a content-sensitive populated-Preloader interaction.
+It does not identify an engine quota, script-cache mechanism, garbage collection,
+OS scheduling cause, or repair. Sequential arm order remains a limitation.
+Native read durations display zero and do not measure blocking wall time.
+Own-echo ages are game-clock measurements, not physical button-to-pixel latency.
+
+Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/fileio0031/.
+
+## Direct-sync serialization diagnostic on 0.0.31
+
+Same match and artifact, 60 values/client/arm at 30 and 60 Hz; each observer
+expected 120 values. All 12 final receipts were collected, last host-observed
+at 40.040/40.041 seconds after the trigger. Direct sync again received 118/120
+valid values and two invalid values per observer/rate; all 60 own echoes arrived.
+GameCache plus selection markers and selection digits reported 120/120 valid,
+zero errors. Exact own-echo mean/max ages:
+
+| Rate / transport | A mean / maximum | B mean / maximum |
+| --- | ---: | ---: |
+| 30 Hz direct sync | 88 / 100 ms | 79 / 99 ms |
+| 30 Hz GameCache + selection marker | 85 / 100 ms | 70 / 100 ms |
+| 30 Hz selection digits | 87 / 121 ms | 75 / 98 ms |
+| 60 Hz direct sync | 81 / 94 ms | 74 / 94 ms |
+| 60 Hz GameCache + selection marker | 95 / 189 ms | 93 / 189 ms |
+| 60 Hz selection digits | 77 / 96 ms | 71 / 95 ms |
+
+Every invalid direct value was the minimum signed integer, seq 0 at 30 Hz or
+seq 1 at 60 Hz, from each sender. Wire text was `NTP10000-2.147484e+09` or
+`NTP11001-2.147484e+09`; parsed actual value was `-2`. The generated map script
+emits `-2147483648` and uses Lua `tostring` for I2S. On 32-bit Lua the positive
+magnitude of that unary-minus literal cannot be represented as an integer;
+this is the compiler root-repair hypothesis being tested at its owner.
+Native wire evidence proves the serialization failure before parsing. No
+transport loss follows from those two invalid values. The 17.063/16.030-second
+direct phases include the 15-second validation drain timeout.
+
+The selection encoder also uses I2S and per-character S2I. Its apparent success
+at this edge does not establish faithful decimal-symbol encoding: inspect and
+repair the shared integer-literal boundary before claiming extreme-value
+protocol integrity. These one/two-second injection windows do not establish
+sustained capacity, harmless selection interaction, fairness or physical response.
+No alternative beats the direct-sync baseline on established usable evidence.
+
+Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/transports0031/.
