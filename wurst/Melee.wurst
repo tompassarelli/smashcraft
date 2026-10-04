@@ -45,6 +45,7 @@ import SpecialEffects
 import ResponseServiceProbe
 import JournalInputSource
 import KeyboardJournalIngress
+import EditboxJournalIngress
 import VocabularyIngress
 import JournalPauseBarrier
 import FileIO
@@ -105,6 +106,7 @@ ShadowInputPlayback shadowPlayback = null
 KeyboardInputCapture shadowCapture = null
 JournalInputSource journalInput = null
 KeyboardJournalIngress keyboardJournalIngress = null
+EditboxJournalIngress editboxJournalIngress = null
 File journalInputFile = null
 InputBatch shadowBatch = null
 InputPacket shadowOutgoing = null
@@ -550,7 +552,12 @@ function serviceJournalPauseAck()
 	let localPlayer = GetLocalPlayer()
 	let sequence = journalInput.controlSequenceNumber()
 	var wire = ""
-	if JOURNAL_KEYBOARD_INGRESS
+	if JOURNAL_EDITBOX_INGRESS
+		wire = editboxJournalIngress.peek()
+		if editboxJournalIngress.failed() != ""
+			failJournalInput(editboxJournalIngress.failed())
+			return
+	else if JOURNAL_KEYBOARD_INGRESS
 		keyboardJournalIngress.pollChunk()
 		let assembled = keyboardJournalIngress.assembledWire()
 		if keyboardJournalIngress.hasFinalChunk() and assembled.length() >= 5 and assembled.substring(0, 5) == "ACK1|"
@@ -565,6 +572,9 @@ function serviceJournalPauseAck()
 	let syncWire = "JC1" + journalPad10(shadowInputEpoch) + I2S(slot) + journalPad10(sequence) + stateCode + journalPad10(journalInput.controlAckFrame())
 	if not BlzSendSyncData("SC_JC", syncWire)
 		failJournalInput("pause acknowledgment could not be synchronized")
+	else if JOURNAL_EDITBOX_INGRESS
+		if not editboxJournalIngress.consumed()
+			failJournalInput(editboxJournalIngress.failed())
 	else if JOURNAL_KEYBOARD_INGRESS
 		keyboardJournalIngress.acknowledgeFinalMessage()
 
@@ -652,7 +662,7 @@ function commitJournalPauseAtFrame()
 		return
 	matchControls.setPaused(journalPauseTarget)
 	pauseMatchPresentation(journalPauseTarget)
-	statusText = journalPauseTarget ? "Paused — press Y to resume." : "Resumed."
+	statusText = journalPauseTarget ? (JOURNAL_EDITBOX_INGRESS ? "Paused — press Ctrl+Y to resume." : "Paused — press Y to resume.") : "Resumed."
 	statusTime = journalPauseTarget ? 3600 : 1
 	journalPausePending = false
 	journalPauseAckReceived = false
@@ -691,7 +701,14 @@ function serviceJournalInput()
 			wire = transportIsolationPacket.encode()
 		else
 			wire = journalInput.bufferedPacket()
-			if JOURNAL_KEYBOARD_INGRESS
+			if JOURNAL_EDITBOX_INGRESS
+				wire = editboxJournalIngress.peek()
+				if editboxJournalIngress.failed() != ""
+					failJournalInput(editboxJournalIngress.failed())
+					return
+				if wire.length() >= 5 and wire.substring(0, 5) == "ACK1|"
+					return
+			else if JOURNAL_KEYBOARD_INGRESS
 				keyboardJournalIngress.pollChunk()
 				let assembled = keyboardJournalIngress.assembledWire()
 				if keyboardJournalIngress.hasFinalChunk() and assembled.length() >= 2 and assembled.substring(0, 2) == "I4"
@@ -765,7 +782,11 @@ function serviceJournalInput()
 			shadowLocalSendFailed = true
 			failJournalInput("journal cursor could not advance after send")
 			return
-		if JOURNAL_KEYBOARD_INGRESS
+		if JOURNAL_EDITBOX_INGRESS
+			if not editboxJournalIngress.consumed()
+				failJournalInput(editboxJournalIngress.failed())
+				return
+		else if JOURNAL_KEYBOARD_INGRESS
 			keyboardJournalIngress.acknowledgeFinalMessage()
 
 function shadowCaptureLocalInput()
@@ -1399,6 +1420,8 @@ function beginShadowEpoch() returns boolean
         let localSlot = GetPlayerId(GetLocalPlayer())
         if not journalInput.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot, SHADOW_INPUT_DELAY)
             failJournalInput("epoch could not be initialized")
+        if JOURNAL_EDITBOX_INGRESS
+            editboxJournalIngress.beginEpoch()
         if JOURNAL_KEYBOARD_INGRESS
 			keyboardJournalIngress.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot)
     currentFrameInput.reset()
@@ -1478,7 +1501,7 @@ function startMatch()
             Preload("input=" + INPUT_PROFILE + " delay=" + I2S(SHADOW_INPUT_DELAY) + " rollback=" + I2S(SHADOW_INPUT_ROLLBACK) + " first_frame=" + I2S(1 + SHADOW_INPUT_DELAY))
             Preload("filename=smashcraft-journal-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-s" + I2S(slot) + "-n{SEQUENCE}.pld")
             Preload("packet=canonical I4; records=1 or 2 consecutive original frames; include neutral rows; no sparse events")
-            Preload(JOURNAL_KEYBOARD_INGRESS ? "transport=keyboard-mailbox-v1; seven printable ASCII bytes per committed chunk; exact ACK before data is reused" : "transport=SC_GP; files are immutable; absent next filename is retried; sequence advances after local capture and successful submission")
+            Preload(JOURNAL_EDITBOX_INGRESS ? "transport=editbox-v1; semicolon-delimited I4; local poll and consumed-prefix drain; text-capacity=4096" : (JOURNAL_KEYBOARD_INGRESS ? "transport=keyboard-mailbox-v1; seven printable ASCII bytes per committed chunk; exact ACK before data is reused" : "transport=SC_GP; files are immutable; absent next filename is retried; sequence advances after local capture and successful submission"))
             Preload("pause=sequenced control request; companion ACK names the next input frame; simulation pauses or resumes only at that acknowledged confirmed frame")
             PreloadGenEnd("smashcraft-journal-ready-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-p" + I2S(slot) + ".txt")
     if POOL_PRESENTATION and shadowInputActive
@@ -1593,6 +1616,8 @@ function onParticipantKeyDown(int slot)
         return
     let key = BlzGetTriggerPlayerKey()
     let keyCode = GetHandleId(key)
+    if JOURNAL_EDITBOX_INGRESS and shadowInputActive and key == OSKEY_Y
+        return
     if JOURNAL_KEYBOARD_INGRESS and shadowInputActive and keyboardJournalIngress.isCarrierCode(keyCode)
 		return
     if inputTraceActive
@@ -1677,6 +1702,8 @@ function onParticipantKeyUp(int slot)
         return
     let key = BlzGetTriggerPlayerKey()
     let keyCode = GetHandleId(key)
+    if JOURNAL_EDITBOX_INGRESS and shadowInputActive and key == OSKEY_Y
+        return
     if JOURNAL_KEYBOARD_INGRESS and shadowInputActive and keyboardJournalIngress.isCarrierCode(keyCode)
 		return
     if inputTraceActive
@@ -1739,7 +1766,15 @@ function onNativeTransportProbeStart()
     if GetTriggerPlayer() == GetLocalPlayer() and shadowInputActive and not nativePreloadProbeActive() and transportIsolationPhase == 0
         nativeTransportProbeRequestStart()
 
+function onEditboxJournalPause()
+    if shadowInputActive and matchState.phase == MATCH and not journalPausePending
+        writeJournalControl(not matchControls.isPaused())
+
 function setupKeys()
+    if JOURNAL_EDITBOX_INGRESS
+        let editboxPause = CreateTrigger()
+        registerDeveloperChord(editboxPause, OSKEY_Y)
+        TriggerAddAction(editboxPause, function onEditboxJournalPause)
     if RESPONSE_SERVICE_PROBE and JOURNAL_INPUT_SOURCE
         nativePreloadProbeSetup(matchState.humanMask)
         nativeTransportProbeSetup(matchState.humanMask)
@@ -1860,7 +1895,7 @@ function renderUI()
     BlzFrameSetVisible(noticeFrame, not selecting and not controlsOpen)
     BlzFrameSetVisible(developerFrame, not selecting and not controlsOpen)
     if not selecting
-        BlzFrameSetText(helpFrame, matchState.phase == RESULT ? rematchStatus() : (matchControls.isPaused() ? "PAUSED — Press Y to resume. Combat is frozen." : "Y: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge."))
+        BlzFrameSetText(helpFrame, matchState.phase == RESULT ? rematchStatus() : (matchControls.isPaused() ? "PAUSED — Press " + (JOURNAL_EDITBOX_INGRESS ? "Ctrl+Y" : "Y") + " to resume. Combat is frozen." : (JOURNAL_EDITBOX_INGRESS ? "Ctrl+Y" : "Y") + ": pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge."))
         if localFighter != null and matchState.phase == MATCH and not matchControls.isPaused() and localFighter.downState == DOWN_WAIT
             BlzFrameSetText(helpFrame, "Knocked down: Attack/Special to strike, Up/Jump/Shield to stand, Left/Right to roll.")
         else if localFighter != null and matchState.phase == MATCH and not matchControls.isPaused() and localFighter.ledgeState == LEDGE_HANG
@@ -1997,6 +2032,8 @@ function callbackMatchTick()
         applyFrame()
 
 function gameTick()
+    if JOURNAL_EDITBOX_INGRESS and (not shadowInputActive or matchState.phase != MATCH)
+        editboxJournalIngress.endEpoch()
     transportIsolationTick()
     if RESPONSE_SERVICE_PROBE
         responseProbeBegin(replayRuntime.simulationFrame, shadowInputActive ? shadowSchedule.speculativeFrame() : -1, shadowInputActive ? shadowSchedule.knownThrough() : -1, matchState.phase)
@@ -2051,6 +2088,8 @@ function initializeShadowInput()
         journalInputFile = new File("")
         if JOURNAL_KEYBOARD_INGRESS
 			keyboardJournalIngress = new KeyboardJournalIngress()
+        if JOURNAL_EDITBOX_INGRESS
+            editboxJournalIngress = new EditboxJournalIngress()
     shadowBatch = new InputBatch()
     shadowOutgoing = new InputPacket()
     shadowIncoming = new InputPacket()

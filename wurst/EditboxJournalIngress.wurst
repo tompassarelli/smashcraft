@@ -1,0 +1,72 @@
+package EditboxJournalIngress
+import Wurst
+
+public constant int EDITBOX_JOURNAL_CAPACITY = 4096
+
+// getText/setText run consecutively on the engine thread. Remove only the
+// admitted prefix; retain an incomplete suffix and later appended packets.
+public class EditboxJournalIngress
+    private framehandle inputBox
+    private string buffered = ""
+    private string failure = ""
+    private boolean active = false
+
+    construct()
+        inputBox = createFrame("EDITBOX", "JournalControllerInput", GAME_UI, "EscMenuEditBoxTemplate", 969)
+        inputBox.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.04, 0.55)
+        inputBox.setSize(0.72, 0.035)
+        inputBox.setTextSizeLimit(EDITBOX_JOURNAL_CAPACITY)
+        inputBox.setVisible(false)
+
+    function beginEpoch()
+        buffered = ""
+        failure = ""
+        if inputBox.getTextSizeLimit() < EDITBOX_JOURNAL_CAPACITY
+            failure = "controller text capacity was not accepted"
+        active = true
+        inputBox.setText(GetLocalPlayer(), "")
+        inputBox.setVisible(true)
+        inputBox.setFocus(GetLocalPlayer(), true)
+
+    function endEpoch()
+        if not active
+            return
+        active = false
+        inputBox.setFocus(GetLocalPlayer(), false)
+        inputBox.setVisible(false)
+        inputBox.setText(GetLocalPlayer(), "")
+        buffered = ""
+
+    function failed() returns string
+        return failure
+
+    function peek() returns string
+        if not active or failure != "" or not BlzIsLocalClientActive()
+            return ""
+        let text = inputBox.getText()
+        if text.length() >= EDITBOX_JOURNAL_CAPACITY
+            failure = "controller text capacity reached"
+            return ""
+        if buffered != ""
+            if text.length() < buffered.length() + 1 or text.substring(0, buffered.length() + 1) != buffered + ";"
+                failure = "controller text changed before admission"
+                return ""
+            return buffered
+        let delimiter = text.indexOf(";")
+        if delimiter < 0
+            return ""
+        if delimiter == 0
+            failure = "empty controller record"
+            return ""
+        buffered = text.substring(0, delimiter)
+        return buffered
+
+    function consumed() returns boolean
+        let text = inputBox.getText()
+        let width = buffered.length() + 1
+        if buffered == "" or text.length() < width or text.substring(0, width) != buffered + ";"
+            failure = "controller text changed during admission"
+            return false
+        inputBox.setText(GetLocalPlayer(), text.substring(width))
+        buffered = ""
+        return true

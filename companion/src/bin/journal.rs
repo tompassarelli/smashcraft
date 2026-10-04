@@ -85,6 +85,7 @@ mod linux {
         stop_frame: Option<u32>,
         ready_file: Option<PathBuf>,
         mailbox_display: Option<String>,
+        editbox_display: Option<String>,
         trace: bool,
     }
 
@@ -106,6 +107,7 @@ mod linux {
         awaiting_ack: bool,
         trace: bool,
         emitted_at: Option<Instant>,
+        editbox: bool,
     }
 
     impl MailboxSender {
@@ -116,6 +118,7 @@ mod linux {
             slot: u32,
             display: &str,
             trace: bool,
+            editbox: bool,
         ) -> Result<Self, String> {
             let settings = Settings {
                 x11_display: Some(display.to_owned()),
@@ -138,6 +141,7 @@ mod linux {
                 awaiting_ack: false,
                 trace,
                 emitted_at: None,
+                editbox,
             })
         }
 
@@ -147,6 +151,23 @@ mod linux {
                     io::ErrorKind::InvalidInput,
                     "mailbox wire must be printable ASCII",
                 ));
+            }
+            if self.editbox {
+                if wire.contains(';') {
+                    return Err(io::Error::other("controller record contains delimiter"));
+                }
+                let started = Instant::now();
+                self.output
+                    .text(&(wire.clone() + ";"))
+                    .map_err(|error| io::Error::other(error.to_string()))?;
+                if self.trace {
+                    eprintln!(
+                        "editbox_emit bytes={} elapsed_us={} wire={wire}",
+                        wire.len() + 1,
+                        started.elapsed().as_micros()
+                    );
+                }
+                return Ok(());
             }
             self.queued.push_back(wire);
             Ok(())
@@ -303,7 +324,7 @@ mod linux {
     }
 
     fn usage() -> &'static str {
-        "wc3-journal --device /dev/input/eventN --out DIR --ready-file PATH --epoch-monotonic-ns NS [--mailbox-display :N] [--first-frame N] [--stop-frame N] [--trace]\n\
+        "wc3-journal --device /dev/input/eventN --out DIR --ready-file PATH --epoch-monotonic-ns NS [--mailbox-display :N | --editbox-display :N] [--first-frame N] [--stop-frame N] [--trace]\n\
          Assigns Linux kernel CLOCK_MONOTONIC input_event times to half-open 60 Hz frames. The capture segment starts at the explicit host monotonic epoch; first-frame defaults to 1."
     }
 
@@ -495,6 +516,7 @@ mod linux {
                 .transpose()?,
             ready_file,
             mailbox_display: values.get("--mailbox-display").cloned(),
+            editbox_display: values.get("--editbox-display").cloned(),
             trace,
         })
     }
@@ -1332,11 +1354,24 @@ mod linux {
             return Err("first-frame must be a valid positive capture-segment frame".into());
         }
         fs::create_dir_all(&o.out).map_err(|e| e.to_string())?;
+        if o.mailbox_display.is_some() && o.editbox_display.is_some() {
+            return Err("select only one keyboard ingress".into());
+        }
         let mut mailbox = o
-            .mailbox_display
+            .editbox_display
+            .as_ref()
+            .or(o.mailbox_display.as_ref())
             .as_deref()
             .map(|display| {
-                MailboxSender::new(&o.out, &o.build, o.epoch, o.slot, display, o.trace)
+                MailboxSender::new(
+                    &o.out,
+                    &o.build,
+                    o.epoch,
+                    o.slot,
+                    display,
+                    o.trace,
+                    o.editbox_display.is_some(),
+                )
             })
             .transpose()?;
         let mut device =
