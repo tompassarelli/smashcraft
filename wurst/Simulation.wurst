@@ -2650,7 +2650,7 @@ function applyProjectileHit(FighterState owner, FighterState target, int index, 
 		collectDamageContact(owner, target, hitEffect(damage, 0, 0, 0, 0, false), owner.projectileDirection[index], CONTACT_FLINCH, false, null, shieldContact)
 
 public function capsuleCircleIntersects(real oldX, real oldZ, real newX, real newZ,
-		real capsuleRadius, real centerX, real centerZ, real circleRadius) returns boolean
+		real capsuleRadius, real centerX, real centerZ, real circleRadius, real circleScale) returns boolean
 	let deltaX = (oldX - newX).roundToFloat32()
 	let deltaZ = (oldZ - newZ).roundToFloat32()
 	let lengthSquared = ((deltaX * deltaX).roundToFloat32() + (deltaZ * deltaZ).roundToFloat32()).roundToFloat32()
@@ -2666,15 +2666,27 @@ public function capsuleCircleIntersects(real oldX, real oldZ, real newX, real ne
 	let distance = SquareRoot(distanceSquared).roundToFloat32()
 	if distance < 0.000009999999747378752
 		return true
-	// Converting the joint radius retains its rounding even for an identity matrix.
-	let convertedRadius = ((circleRadius * distance).roundToFloat32() / distance).roundToFloat32()
+	let inverseScale = (1. / circleScale).roundToFloat32()
+	let inverseTranslateX = (-centerX * inverseScale).roundToFloat32()
+	let inverseTranslateZ = (-centerZ * inverseScale).roundToFloat32()
+	let localCenterX = ((centerX * inverseScale).roundToFloat32() + inverseTranslateX).roundToFloat32()
+	let localCenterZ = ((centerZ * inverseScale).roundToFloat32() + inverseTranslateZ).roundToFloat32()
+	let localClosestX = ((closestX * inverseScale).roundToFloat32() + inverseTranslateX).roundToFloat32()
+	let localClosestZ = ((closestZ * inverseScale).roundToFloat32() + inverseTranslateZ).roundToFloat32()
+	let localOffsetX = (localCenterX - localClosestX).roundToFloat32()
+	let localOffsetZ = (localCenterZ - localClosestZ).roundToFloat32()
+	let localDistance = SquareRoot(fusedMultiplyAddFloat32(localOffsetX, localOffsetX,
+		(localOffsetZ * localOffsetZ).roundToFloat32())).roundToFloat32()
+	// Radius conversion retains rounding even for an identity joint transform.
+	let convertedRadius = ((circleRadius * distance).roundToFloat32() / localDistance).roundToFloat32()
 	return distance <= (capsuleRadius + convertedRadius).roundToFloat32()
 
 function shieldCircleIntersects(FighterState target, real oldX, real oldZ, real newX, real newZ, real radiusFactor) returns boolean
 	let centerX = target.x + target.facing * target.shieldGeometry.centerX
 	let centerZ = target.z + target.shieldGeometry.centerZ
-	let radius = target.shieldGeometry.radius * shieldSizeMultiplier(target.shieldEnergy, target.shieldStrength) * radiusFactor
-	return capsuleCircleIntersects(oldX, oldZ, newX, newZ, 0., centerX, centerZ, radius)
+	let radius = (target.shieldGeometry.radius * radiusFactor).roundToFloat32()
+	let scale = shieldSizeMultiplier(target.shieldEnergy, target.shieldStrength)
+	return capsuleCircleIntersects(oldX, oldZ, newX, newZ, 0., centerX, centerZ, radius, scale)
 
 function reflectProjectile(FighterState owner, FighterState target, int sourceIndex) returns boolean
 	for index = 0 to PROJECTILE_CAPACITY - 1

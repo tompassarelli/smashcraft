@@ -167,14 +167,34 @@ Uniform joint-scale coverage now has 66 complete original executions: 32
 axis/segment cases and 34 asymmetric cases. Scales include 0.5, 1.5 and the
 recorded shield scales 0.5750000476837158 and 0.8725000619888306. The simple
 cases match a precombined world radius; two asymmetric cases do not, one in
-each classification direction. The production API currently receives only a
-precombined radius and therefore cannot retain the original local-radius/joint-
-scale conversion arithmetic. That owning information loss remains to be fixed;
-the 408 passing identity-scale cases do not close it.
+each classification direction. The previous production API received only a
+precombined radius and could not retain the original local-radius/joint-scale
+conversion arithmetic. These counterexamples motivated the repair below;
+the 408 passing identity-scale cases alone did not close that defect.
 Facts: smashcraft:docs/smash-melee-reference/retail-shield-capsule-scaled.json.
 Counterexamples:
 smashcraft:docs/smash-melee-reference/retail-shield-capsule-scaled-counterexamples.json.
-No simulation or emitted-Lua pass is claimed for the scaled corpus yet.
+The local-radius information loss is now repaired. The production collision
+API retains local circle radius and uniform joint scale separately; every
+in-tree caller is migrated. Projectile ordinary-shield and reflector checks
+derive their local radius and joint scale separately from existing authored
+geometry and recorded shield sizing. No new replayed state is introduced.
+The radius conversion uses the distance in the inverse joint transform rather
+than dividing by world distance. Uniform scale and translation retain their
+separate binary32 matrix multiplication/addition steps; fusing a product with
+translation incorrectly classified six combined cases.
+Thirty-four additional original scaled-and-translated cases are recorded in
+smashcraft:docs/smash-melee-reference/retail-shield-capsule-scaled-translated.json.
+All 508 recorded classifications now match production emitted Lua, including
+the two scaled counterexamples and the combined-transform cases. All sixteen
+precision groups pass; the focused powershield suite passes 14/14, with two
+grouped regressions for the observed defects. Evidence:
+smashcraft:build/shield-scale-focused.log and smashcraft:build/shield-scale-lua.log.
+Arbitrary rotation/nonuniform transforms, animation-driven melee volumes,
+body capsules and native execution remain outside this evidence.
+The assembled simulation suite passes 561/561, with zero errors and the existing
+RecoveryTests unused-import warning. Evidence:
+smashcraft:build/shield-scale-assembled.log.
 Projectile travel is tested against
 the swept circle in the simulation's x/z plane. Reflection transfers ownership
 to the defender and applies the observed common damage multiplier `0.5` and
