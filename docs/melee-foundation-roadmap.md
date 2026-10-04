@@ -53,7 +53,7 @@ ineligible, a last-frozen-frame press retains 19 contact frames on release,
 and repeat presses require 41 elapsed input ticks. The independently authored
 counter rule passes three focused tests and now drives production input aging,
 contact eligibility and replay/reset state. The connected SimulationTests pass
-203/203 and ReplayStateTests pass 11/11; the combined check is pending. See
+203/203 and ReplayStateTests pass 11/11; the combined check passes 635/635. See
 smashcraft:docs/melee-tech-input.md.
 Evidence is retained in smashcraft:docs/smash-melee-reference/surface-action-boundaries.md.
 The prior contact integration passed 566/566; the earlier check passed 561/561 after shield-fixture
@@ -103,16 +103,16 @@ The retail DamageFly/DamageFall/FlyReflect distinctions remain unverified in
 the current single-tumble-state model. Evidence: smashcraft:build/contact-assembled.log.
 
 The latest combined candidate is Smashcraft 0.0.30, source
-5555133b34092d02b18d804d45358b450a26ad6e. It merges committed native/input
-development 8d47b00 with the verified physics lane, preserving four-player
-simulation/replay. The combined integration suite passed 634/634 before the
-parent's three independently checked TechInput tests were added to its source
-list. Subsequent production tech-counter wiring is not in this artifact and
-requires a rebuilt candidate before native testing. The map built with zero
-errors and 23 warnings. SHA-256:
-da35042913f0057a9008e590c8be6454d27d738221738caa71c8d9bac43785a0.
-Artifact: ~/.local/share/smashcraft-build-inputs/production-netcode-20261004/build/Smashcraft 0.0.30.w3x.
-Build evidence: ~/.local/share/smashcraft-build-inputs/production-netcode-20261004/build/merged-0.0.30-build.log.
+f3efa8a3f595052f0d313efc6222e4180bbd2d5c. It merges committed native/input
+development 2a12d780a63b349cbd184fc0f0409fd490b06735 with the verified physics
+lane, preserving four-player simulation/replay. Production tech-counter wiring
+and replay/reset changes are included. The combined simulation suite passed
+635/635 before the peer's subsequent entry/probe changes were merged; the map
+build verifies those entry dependencies. Evidence: smashcraft:build/combined-tech-tests.log.
+The map built with zero errors and 25 warnings. SHA-256:
+619868e0cec22488a3a0b7b08687e2a90fdefba27e084c78bcf3a3e770e40062.
+Artifact: ~/.local/share/smashcraft-build-inputs/production-netcode-20261004/build/physics-combined-tech-0.0.30.w3x.
+Build evidence: smashcraft:build/combined-tech-map.log.
 Version 0.0.30 is explicitly coordinated with the concurrent native/input agent,
 whose existing 0.0.29 candidate and clients remain separate. Deployment was
 disabled; this combined candidate has not been installed or observed natively.
