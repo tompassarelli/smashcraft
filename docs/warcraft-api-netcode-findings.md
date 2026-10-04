@@ -569,3 +569,31 @@ rigid substitutes for input correctness or playable acceptance. Comprehensive
 current state: wc3-melee:docs/smashcraft-delivery-state-20261004.md. Upstream
 Binary32 explicit operand repair e3714f629113ee682353c3244065fee3e7d9ae16
 passed15/15 and is published; consumer/native integration remains pending.
+
+
+## Playable delivery checkpoint: 0.0.40
+
+The integrated keyboard/local-prediction candidate completed two-client online
+movement, held attacks, specials, jumps, damaging contact, pause/resume, stock
+loss, results and two-party rematch into a second fight. Both clients displayed
+15%/19% damage after contact. Three trace pairs have 18 matching recorded
+confirmed frame/checksum checkpoints; no dropped trace rows, rejected input,
+speculative failure or rollback-window block appeared in recorded summaries.
+Held-action corrections reached depth 15. This is automated keyboard gameplay,
+not measured physical-controller latency or complete frame-retention proof.
+
+The operator reports prior responsive controller play through keyboard mapping.
+That working digital input path is separate from experimental continuous-analog
+FileIO ingress; the latter's delay must not be presented as a regression of the
+former. The short synthetic-tap sequence did not register every action. Explicit
+100 ms holds recorded attacks, specials and jumps for both players. Polling can
+miss a pulse wholly between samples; no arbitrary short-tap/stall guarantee is
+claimed. No additional transport survey blocks this usable candidate.
+
+Map SHA256 13f0ba7f6a78eff1c7f71e14f2c398ebeb38c6f24b06aad9b2540f4f7eaa1f17,
+source fa681100fc429735720325bf479f5bcd6944f25d plus map-version 0.0.40.
+Build settings and usable instructions:
+wc3-melee:docs/smashcraft-delivery-state-20261004.md. Raw traces:
+wc3-melee:docs/native-playable-0040-evidence-20261004/.
+Binary32 consumer migration is integrated and focused 22/22 passed; world-scale
+representation and full native physics fidelity remain separate open work.

@@ -1,98 +1,89 @@
 # Smashcraft delivery state — 4 October 2026
 
-## Verdict and operator intent
+## Usable checkpoint: 0.0.40
 
-Responsive online play is not yet delivered. No measured transport shortcut has
-beaten direct sync. Frame accuracy is the primary requirement: retain captured
-presses/releases, assign them consistently to intended simulation frames, and
-apply them on those frames when late delivery requires rollback. Ordinary network
-jitter must not silently shift or discard an action. Capture, frame assignment,
-receipt, simulation and visible response are separate boundaries.
+The integrated candidate is playable in the observed two-client online journey.
+Both retained Warcraft clients loaded the same map, entered a fight, moved,
+attacked, used specials and jumped. A controlled damaging exchange left Archer
+at 15% and Rifleman at 19% on both clients. Pause froze both clients; resume
+continued play. An intentional walk-off exercised stock loss and the result
+screen. Both players acknowledged rematch, returned to selection and entered a
+second fight. Both clients remain signed in and paused in that second match.
 
-The operator clarified that 33 ms median / 50 ms p95 / 83 ms p99 are useful visible
-response targets, not rigid substitutes for viable gameplay. Judge the usable
-checkpoint by responsive fights, consistent input timing, retained short taps,
-bounded corrections and recovery from ordinary pauses/stalls. Report observed
-limits. Do not claim all hardware events survive arbitrary stalls. Full device,
-platform, player-count and match coverage remains requested, but unfinished
-extended coverage must be distinguished from the first usable checkpoint.
+The input source is keyboard, with local prediction and direct synchronization.
+This is the path consumed by the existing digital Xbox keyboard mapper. The
+operator reports that controller play was already responsive before the FileIO
+experiments. Those experiments concern a separate continuous-analog path; their
+multi-second delays do not establish a regression of the keyboard mapper.
+This native check used private XTEST key presses, not physical controller input.
 
-## Measured evidence
+During the controlled held-action trace, both observers recorded the same
+attack frame 11585, damage/launch frame 11589, specials, jumps and six confirmed
+frame/checksum pairs. Across idle, initial action and held-action traces, all
+18 recorded pairs agree. Every trace reports zero dropped rows; recorded
+summary intervals show zero rejected rows, speculative failures or rollback
+window blocks. Corrections were exercised, with maximum observed replay depth
+15 frames in the held-action trace. This is bounded agreement, not every-frame
+or physical button-to-pixel proof.
 
-| Boundary | Observed | Limit / next action |
-| --- | --- | --- |
-| Corrected native32 direct sync | 30 Hz means A/B 80/75 ms; 60 Hz 114/108 ms. Every 120/120 value correct in each comparison arm. | Transport echoes only; no physical response or full playable claim. |
-| Native32 GameCache + selections | 30 Hz 80/75 ms; 60 Hz 721/743 ms. | No demonstrated advantage over direct sync at the higher rate. |
-| Native32 selection digits | 30 Hz 102/99 ms; 60 Hz 4759/4880 ms. | Functional alternative, unsuitable in the measured higher-rate comparison. |
-| Native34 file source discriminator | Generated and identical scripts under fresh paths: 100–111 ms means. Changing scripts, including comment-only changes: 2.8–3.4 seconds. All 300/300 correct per arm. | Source-text variation suffices for delay; engine internal cause remains unknown. |
-| Native38 vocabulary | All 24 begin/end receipts and 120 pages retained. All arms sent 300/client; every arm recorded zero own echoes and zero peer packets. Local source comparisons reported zero read errors. | Generated controls failed too, invalidating latency/integrity ranking. Do not integrate the writer from this evidence. |
-| Capture retention | 250.308 ms stopped-helper trial retained ten edges and emitted 24 rows in twelve pairs. | Production decoder/rollback not exercised by that trial; pause/resume frame mapping remains unfinished. |
-| Arithmetic | Upstream explicit-operand Binary32 repair e3714f629113ee682353c3244065fee3e7d9ae16 passed 15/15 focused tests. | Consumer migration/native proof pending; world-scale loss is separate. |
-| Common VFX | Six capture/throw, charge/ready, ledge cues integrated; Impact tests 21/21. | Native appearance, timing, pause and replay still required. |
+The first action sequence used xdotool's very short default taps and did not
+register every injected action. The second used explicit 100 ms presses and
+recorded both players' attacks, specials and jumps. Polling can miss a press
+that occurs entirely between samples. No arbitrary short-tap/stall retention
+guarantee is claimed; this remains a known capture limit, not a reason to delay
+handing over the working candidate.
 
-Native38 source fc26d79, map SHA256
-f2d678bad9c0f7268a870fc47135950cf4ab759a723253e0c1c979b9feeab411.
-A startup local request preceded synchronized entry by 181.327 seconds;
-reset then completed in about 41 ms by publication timestamps. Receipt
-publication spans A/B: generated30 5.901/5.863 seconds, changing30
-20.754/20.532, vocabulary30 195.308/194.542, generated60 6.245/6.229,
-changing60 20.075/20.786, vocabulary60 119.742/123.495. These spans include
-sending and drain callbacks, and are not per-read cost or latency. Native timer
-spans diverge materially from host publication spans. No cadence guarantee
-follows. The initial collector timed out before startup with zero receipts;
-late collection retained the completed export. Its directory-glob polling used
-about one CPU core; collection was changed to exact-path polling. This host
-interference remains a confound, not an explanation for the game failure.
+## Artifact and use
 
-Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/transports0032/,
-wc3-melee:docs/native-journal-packet-comparison-20261004/fileio0034/,
-wc3-melee:docs/native-journal-packet-comparison-20261004/vocabulary0038/,
-wc3-melee:docs/native-physics-precision-20261004/native0035.txt and
-wc3-melee:docs/native-physics-precision-20261004/native0037.txt.
+Private map:
+~/.local/share/smashcraft-build-inputs/production-netcode-20261004/build/Smashcraft 0.0.40.w3x
 
-## Current execution and estimate
+SHA256: 13f0ba7f6a78eff1c7f71e14f2c398ebeb38c6f24b06aad9b2540f4f7eaa1f17.
+Both clients' Maps/00-Smashcraft folders contain these exact bytes. Previous
+maps are archived privately. Source: fa681100fc429735720325bf479f5bcd6944f25d,
+with map-version 0.0.40. Build completed and its capacity lease was released.
 
-Root owns input testing/native clients; the arithmetic worker accepted consumer
-migration in a separate owned lane. Both peer listeners remain stopped by
-operator instruction. Native38's existing transport control is being invoked
-after the vocabulary experiment to distinguish the SC_GP receiver from broader
-sync failure. Its results are diagnostic after a contaminated workload, not a
-fresh matched performance comparison. The source-verified chord is Ctrl+N;
-an initial Ctrl+T attempt was not registered and invoked no test.
+Build configuration: WC3_INPUT_PROFILE=shadow-d0-r24,
+WC3_INPUT_SOURCE=keyboard, WC3_PRESENTATION=pool-predicted,
+WC3_RESPONSE_SERVICE_PROBE=1, WC3_BUILD_ID=playable-0040, WC3_DEPLOY_MAP=0.
+Use wc3-melee:build.sh with the private physics-base.w3m and private asset root.
 
-Next decisive input-path checkpoint estimate: 30–60 minutes from the executive
-report, an uncalibrated estimate based on recent build/native iteration times,
-not a completion commitment. Original deadline 08:38:38 Taipei was missed and
-is never reset. Full completion has no credible date yet. A repeated failed
-boundary must change the next diagnostic or route, not produce another blind
-rerun or a claim of being almost done.
+The retained Xbox profile is
+~/code/wc3-melee/worktrees/test-loop/tools/controllers/xbox.amgp;
+the installed AntiMicroX configuration already selects it. It maps stick
+left/right/down to W/R/E, up to Space+I, A to attack N, X to special U,
+B/Y to jump I, RB to grab O, LB to walk P, triggers to shield Q and Start to Y.
+These primary keys match the bindings exported by this candidate. Keep one
+mapper active only for the intended game. Digital mapping supplies no
+continuous stick angle, analog walking speed or trigger pressure.
 
-## Delivery path
+Evidence: wc3-melee:docs/native-playable-0040-evidence-20261004/.
+Draft source PR: https://github.com/tompassarelli/smashcraft/pull/24.
 
-Resolve the earliest failing input boundary, then exercise actual captured
-input through the production decoder into two-client fights and rematch. Check
-short taps, original frames, a bounded service stall, rollback, and pause/resume
-mapping. Measure visible response and corrections on the working path. Keep
-arithmetic/native fidelity and authored VFX integration productive alongside
-input work. Hosting admission and remaining device/platform/player coverage
-stay explicit. Issues 3/4/21 are closed for their delivered scope; no further
-issue closure is justified by the latest results. Draft PR:
-https://github.com/tompassarelli/smashcraft/pull/23.
+## Remaining work, separated from usable delivery
 
-## Subsequent checkpoint
+33 ms median / 50 ms p95 / 83 ms p99 are measurement guides, not acceptance gates.
+Physical controller response, guaranteed intended-frame retention during stalls,
+visual/audio correction quality, full native physics fidelity, additional
+platforms/controllers and 3–4-player coverage remain unestablished. The present
+result supports viable online gameplay; it does not close those broader claims.
 
-A displayed Battle.net disconnect after the warm-exit attempt; B reported win
-by forfeit. The disconnect onset/cause is unknown and is not assigned as the
-cause of the earlier missing echoes. Both launcher auth transports have their
-source addresses present; actual game admission still requires recovery. The
-separate-prefix native38 control produced no receipts before leaving.
+Binary32 explicit-operand repair e3714f629113ee682353c3244065fee3e7d9ae16 is pinned
+and integrated. Upstream focused checks passed 15/15; consumer scalar/DI/launch
+checks passed 22/22. Six common VFX cues are integrated; Impact checks passed
+21/21. Canonical world-scale representation loss remains open. Green focused
+checks are not being repeated to delay this checkpoint.
 
-Generated-only native39 diagnostic built with zero errors. It suppresses normal
-journal polling while start is pending, reports accepted/rejected start send,
-and counts rawSC_GP events before parsing. SHA256
-ab3cf8e74ee5b74ab701d7bef0bae99c9fabdbc671ffc8e20368d1ded70cc6fe.
-Native observation pending. Includes commonVFX but predates binary32 migration.
+Direct sync remains the best measured transport: native32 all 120/120 correct,
+30 Hz means 75–80 ms and 60 Hz means 108–114 ms. GameCache and selection encoding
+were slower at 60 Hz. Native34 changing script text reproduced seconds of delay;
+identical script text remained fast. Native38 generated controls failed too,
+so its vocabulary results cannot rank latency or integrity. Native39 was built
+but not run; it is deferred while the playable keyboard candidate is delivered.
+Detailed research: wc3-melee:docs/warcraft-api-netcode-findings.md.
 
-Consumer arithmetic source87d2c79 plusb5cd0638cb33bc179802f15d70b5a2596da44c23
-passed22focused checks: scalar16,DI3,actual-launch-magnitude1,hit-launch1,
-knockback-cap1. Native acceptance and scale representation repair remain open.
+Original 08:38:38 Taipei deadline was missed. The later one-hour checkpoint
+request arrived at 14:26; this playable journey completed before 15:26.
+Peer listeners remain stopped by instruction. Physics/VFX child work is settled.
+Issues 3/4/21 remain closed for their delivered scopes; this bounded gameplay
+check does not justify closing broader acceptance issues.
