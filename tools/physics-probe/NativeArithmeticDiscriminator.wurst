@@ -3,8 +3,8 @@ import Simulation
 import NativePhysicsSource
 import ClosureTimers
 
-private string firstFallDivergence = "NO_DIVERGENCE_WITHIN_TEN_FRAMES"
-private int nativeRoundingUlpOffset = 999
+string firstFallDivergence = "NO_DIVERGENCE_WITHIN_TEN_FRAMES"
+int nativeRoundingUlpOffset = 999
 
 // Encode finite normal binary32 values as sign:exponent:mantissa integers.
 // Scaling by powers of two preserves the stored float exactly, so the output
