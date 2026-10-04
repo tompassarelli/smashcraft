@@ -20,6 +20,7 @@ public class JournalInputSource
 	private int controlSequence = 1
 	private int controlAckFrame = 0
 	private boolean validated = false
+	private string bufferedWire = ""
 	private InputPacket packet = new InputPacket()
 
 	function beginEpoch(string buildId, int newEpoch, int localSlot, int inputDelay) returns boolean
@@ -33,6 +34,7 @@ public class JournalInputSource
 		controlSequence = 1
 		controlAckFrame = 0
 		validated = false
+		bufferedWire = ""
 		return true
 
 	function packetBase() returns string
@@ -43,6 +45,9 @@ public class JournalInputSource
 
 	function sequenceNumber() returns int
 		return sequence
+
+	function bufferedPacket() returns string
+		return bufferedWire
 
 	function controlSequenceNumber() returns int
 		return controlSequence
@@ -72,6 +77,7 @@ public class JournalInputSource
 
 	function decode(string wire, int latestAdmissibleFrame) returns int
 		validated = false
+		bufferedWire = ""
 		if wire == ""
 			return JOURNAL_WAIT
 		if not packet.decode(wire) or packet.encode() != wire
@@ -81,6 +87,7 @@ public class JournalInputSource
 		let frame = packet.firstFrameNumber()
 		if frame != expectedFrame()
 			return JOURNAL_INVALID
+		bufferedWire = wire
 		if frame + packet.recordCount() - 1 > latestAdmissibleFrame
 			return JOURNAL_WAIT
 		validated = true
@@ -105,4 +112,5 @@ public class JournalInputSource
 			return false
 		sequence += packet.recordCount()
 		validated = false
+		bufferedWire = ""
 		return true

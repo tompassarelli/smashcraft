@@ -82,8 +82,12 @@ SHA256 a0bfcbe264ff624c069779b0afd605b0bb62c33f73ccf561a8b063a497a6b723.
 Both retained clients joined the same Battle.net match; the spare slots were
 closed and both entered the fight. Helper epoch 514602024183525 assigned both
 5 ms attack edges to frame 19. The first PREPARE acknowledgment was unavailable
-within 35 seconds. The native screen was observed at simulation frame 0 during
-the trial and later at frame 9 with Pausing after helper shutdown. No fresh
+within 35 seconds. The developer footer was observed at attack frame 0 during the trial and later
+at attack frame 9 with Pausing after helper shutdown. These are animation
+frames, not simulation frames (wc3-melee:wurst/Melee.wurst). Complete pause
+requests on both clients name next input frame 65, showing their journal
+cursors had admitted input through frame 64. Attack serial 1 was also observed;
+that does not establish the attack's exact original simulation frame. No fresh
 journal-0042 trace start or completed trace was observed. The fixture never
 reached native pause commitment, resume, or its controlled helper stall.
 

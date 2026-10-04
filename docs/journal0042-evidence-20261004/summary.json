@@ -4,13 +4,14 @@
   "map_sha256": "a0bfcbe264ff624c069779b0afd605b0bb62c33f73ccf561a8b063a497a6b723",
   "helper_sha256": "7286aa2f2acfe6f3447e1b10d7294b636cdd0a9e3840e969676a8bb2fdd98ef7",
   "epoch_monotonic_ns": 514602024183525,
-  "verdict": "Incomplete: first PREPARE acknowledgment unavailable within 35 seconds; native screen observed at frame 0; no original-frame native application established",
+  "verdict": "Incomplete: first PREPARE acknowledgment unavailable within 35 seconds; no original-frame native application established. Footer frame is attack animation frame, not simulation frame.",
   "observed": [
     "Both clients joined same 0.0.42 Battle.net match; slots 2/3 closed",
     "Both helpers retained down/up at frame 19",
     "No fresh journal-0042 trace start or completed trace observed",
     "Helpers reaped and virtual controller destroyed",
-    "Later native screen showed frame 9 and Pausing after helpers were reaped; normal Quit Mission did not establish score transition in the bounded attempts"
+    "Later native screen showed attack animation frame 9 and Pausing after helpers were reaped; normal Quit Mission did not establish score transition in the bounded attempts",
+    "Both complete first pause-control receipts name next input frame 65; journal cursors therefore advanced through input frame 64. Attack serial 1 observed, exact application frame unproved."
   ],
   "not_reached": [
     "native pause commitment",

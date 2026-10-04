@@ -646,8 +646,10 @@ The fixed one-character script vocabulary and original-frame filename repair
 are integrated at 1f185f8. Rust journal 7/7 and Wurst Journal 5/5 focused checks
 passed. The native two-client match did not complete the first PREPARE wait
 within 35 seconds. Both helpers retained the 5 ms attack edges at frame 19;
-the screen was observed at frame 0 during the run and later at frame 9 with
-Pausing after helper shutdown. No fresh native trace completed, and the planned
+the footer showed attack animation frame 0 and later 9 with Pausing after
+helper shutdown. Those footer values are not simulation frames. Complete pause
+requests name next input frame 65 on both clients, establishing journal cursor
+progress through frame 64. The exact native attack application frame is unproved. No fresh native trace completed, and the planned
 resume/stall steps were not reached. Immutable script content has not established
 usable native journal ingress or original-frame gameplay application.
 

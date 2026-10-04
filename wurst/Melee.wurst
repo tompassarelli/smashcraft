@@ -658,6 +658,9 @@ function serviceJournalInput()
 	if not matchState.humanFighterActive(slot)
 		return
 	for readIndex = 1 to JOURNAL_PACKETS_PER_CALLBACK
+		let latest = min(INPUT_LAST_FRAME, shadowSchedule.nextConfirmedFrame() - 1 + INPUT_FUTURE_LIMIT)
+		if journalInput.expectedFrame() > latest
+			return
 		var wire = ""
 		if transportIsolationPhase == 3
 			transportIsolationCOffer = false
@@ -668,19 +671,22 @@ function serviceJournalInput()
 				return
 			wire = transportIsolationPacket.encode()
 		else
-			let fileReadStartedMs = responseProbeClockMs()
-			wire = vocabularyReadPacket(journalInput.packetBase())
-			if fileReadStartedMs >= 0
-				responseProbeFileRead(responseProbeClockMs() - fileReadStartedMs, wire.length())
+			wire = journalInput.bufferedPacket()
+			if wire == ""
+				let fileReadStartedMs = responseProbeClockMs()
+				wire = vocabularyReadPacket(journalInput.packetBase())
+				if fileReadStartedMs >= 0
+					responseProbeFileRead(responseProbeClockMs() - fileReadStartedMs, wire.length())
 		if wire == ""
 			return
-		let latest = min(INPUT_LAST_FRAME, shadowSchedule.nextConfirmedFrame() - 1 + INPUT_FUTURE_LIMIT)
 		let decoded = journalInput.decode(wire, latest)
 		if decoded == JOURNAL_WAIT
 			return
 		if decoded != JOURNAL_READY
 			failJournalInput("invalid or noncontiguous I4 row")
 			return
+		if RESPONSE_SERVICE_PROBE and journalInput.sequenceNumber() == 1 and not inputTraceActive
+			startInputTrace()
 		let frame = journalInput.packetFrame()
 		let count = journalInput.recordCount()
 		for rowIndex = 0 to count - 1
@@ -1810,7 +1816,7 @@ function renderUI()
         BlzFrameSetText(noticeFrame, localFighter != null and localFighter.smashCharging ? "Charging smash: release Attack to strike." : (statusTime > 0 ? statusText : ""))
     stagePanel.update(matchState)
     if localFighter != null
-        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | player=" + I2S(localSlot + 1) + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(localFighter.x)) + " z=" + I2S(R2I(localFighter.z)) + " | input=" + I2S(localParticipant.lastInputAction) + " mode=" + (shadowInputActive ? INPUT_PROFILE + " " + PRESENTATION_PROFILE : "callback") + " normal=" + I2S(localParticipant.lastNormalStyle) + " move=" + I2S(localFighter.attackStyle) + " frame=" + I2S(localFighter.attackFrame) + " serial=" + I2S(localFighter.attackSerial) + " down=" + I2S(localFighter.downState) + ":" + I2S(localFighter.downFrame) + " DI=" + I2S(localFighter.diSerial) + ":" + I2S(R2I(localFighter.diAngleDegrees)) + " S=" + I2S(localFighter.sdiSerial) + " A=" + I2S(localFighter.asdiSerial) + " | Ctrl+R restart")
+        BlzFrameSetText(developerFrame, "Developer test: " + BUILD_ID + " | player=" + I2S(localSlot + 1) + " | phase=" + I2S(matchState.phase) + " | x=" + I2S(R2I(localFighter.x)) + " z=" + I2S(R2I(localFighter.z)) + " | input=" + I2S(localParticipant.lastInputAction) + " mode=" + (shadowInputActive ? INPUT_PROFILE + " " + PRESENTATION_PROFILE : "callback") + " normal=" + I2S(localParticipant.lastNormalStyle) + " move=" + I2S(localFighter.attackStyle) + " attack-frame=" + I2S(localFighter.attackFrame) + " simulation=" + I2S(replayRuntime.simulationFrame) + " predicted=" + I2S(shadowInputActive ? shadowSchedule.speculativeFrame() : replayRuntime.simulationFrame) + " serial=" + I2S(localFighter.attackSerial) + " down=" + I2S(localFighter.downState) + ":" + I2S(localFighter.downFrame) + " DI=" + I2S(localFighter.diSerial) + ":" + I2S(R2I(localFighter.diAngleDegrees)) + " S=" + I2S(localFighter.sdiSerial) + " A=" + I2S(localFighter.asdiSerial) + " | Ctrl+R restart")
 
 function lockArenaCamera()
     var left = 0.
