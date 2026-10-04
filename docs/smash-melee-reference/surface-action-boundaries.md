@@ -1,5 +1,33 @@
 # Surface recovery action boundaries
 
+## Airborne weak-damage landing selection
+
+smashcraft:docs/smash-melee-reference/retail-damage-landing.json records eight
+inputs executed through the NTSC 1.02 magnitude-comparison branches under
+QEMU PPC750. Below 0.5 Melee units/frame, airborne Damage retains its damage
+state on grounding. From 0.5 inclusive to 5 exclusive, it enters ordinary
+Landing and clears hitstun. At 5 inclusive it enters DownBound directly;
+this branch does not select a tech even when tech input is present.
+
+Production floor contact now uses those three bands for non-tumbling airborne
+damage. Ordinary landing retains the existing four-frame landing lock; both
+recorded retail profiles have normal_landing_lag 4. Actor-specific landing-lag
+variation is not established by this correction. ASDI landing is unchanged.
+The floor-crossing fixture checks all three outcomes and the last locked and
+first actionable normal-landing ticks. RecoveryTests passed 18/18 after the
+middle-band case failed before the correction (19 stun instead of zero).
+Evidence: smashcraft:build/damage-landing-focused.log.
+The assembled suite passed 568/568 with zero compiler errors; evidence:
+smashcraft:build/damage-landing-aggregate.log. This establishes integration
+with the existing simulation fixtures, not native execution.
+
+The retail probe supplies magnitude and replaces action consumers with result
+labels. It verifies original comparisons, not original square-root arithmetic,
+collision, action initialization or native trajectories. DamageFly/DamageFall
+distinctions and full frame-trace parity remain open. The authored loader is
+smashcraft:tools/physics-probe/observe-damage-landing.mjs; executable bytes and
+extracted proprietary data remain in private storage outside repositories.
+
 Reference revision: `0296f009f32f710495979d30772d8332af2d411a`.
 These are independently described control-flow observations, not copied game
 implementation. Numerical animation lengths are recorded separately in

@@ -1,0 +1,87 @@
+{
+  "id": "retail-ntsc-1.02-air-damage-landing-selection",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "commonDataSha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "units": "Melee units/frame",
+  "commonValues": [
+    {
+      "offset": "0x1E0",
+      "value": 5
+    },
+    {
+      "offset": "0x1E4",
+      "value": 0.5
+    }
+  ],
+  "execution": {
+    "entry": "0x8008FC38",
+    "cpu": "QEMU PPC750",
+    "actionReturnLabels": [
+      {
+        "address": "0x8008fc4c",
+        "label": 3,
+        "action": "knockdown"
+      },
+      {
+        "address": "0x8008fc68",
+        "label": 2,
+        "action": "landing"
+      },
+      {
+        "address": "0x8008fc74",
+        "label": 1,
+        "action": "grounded-damage"
+      }
+    ],
+    "exitCode": 0
+  },
+  "limitations": [
+    "Original magnitude comparisons run unchanged; magnitude is supplied, not computed by the original square-root block.",
+    "Action consumers are replaced by authored result labels; no action initialization, collision, state clocks or native trajectory is executed.",
+    "Applies to airborne Damage collision, not DamageFly or DamageFall.",
+    "Original binaries remain outside repositories."
+  ],
+  "results": [
+    {
+      "speed": 0,
+      "label": 1,
+      "action": "grounded-damage"
+    },
+    {
+      "speed": 0.4999999701976776,
+      "label": 1,
+      "action": "grounded-damage"
+    },
+    {
+      "speed": 0.5,
+      "label": 2,
+      "action": "landing"
+    },
+    {
+      "speed": 0.5000000596046448,
+      "label": 2,
+      "action": "landing"
+    },
+    {
+      "speed": 4.999999523162842,
+      "label": 2,
+      "action": "landing"
+    },
+    {
+      "speed": 5,
+      "label": 3,
+      "action": "knockdown"
+    },
+    {
+      "speed": 5.000000476837158,
+      "label": 3,
+      "action": "knockdown"
+    },
+    {
+      "speed": 8,
+      "label": 3,
+      "action": "knockdown"
+    }
+  ]
+}

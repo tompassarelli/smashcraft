@@ -5,6 +5,44 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function airborneDamageLandingMatchesOriginalInclusiveSpeedBranches()
+	airborneDamageLandingReaction(0.).assertEquals(DAMAGE_LANDING_RETAIN_STUN)
+	airborneDamageLandingReaction(0.4999999701976776).assertEquals(DAMAGE_LANDING_RETAIN_STUN)
+	airborneDamageLandingReaction(0.5).assertEquals(DAMAGE_LANDING_NORMAL)
+	airborneDamageLandingReaction(0.5000000596046448).assertEquals(DAMAGE_LANDING_NORMAL)
+	airborneDamageLandingReaction(4.999999523162842).assertEquals(DAMAGE_LANDING_NORMAL)
+	airborneDamageLandingReaction(5.).assertEquals(DAMAGE_LANDING_KNOCKDOWN)
+	airborneDamageLandingReaction(5.000000476837158).assertEquals(DAMAGE_LANDING_KNOCKDOWN)
+	airborneDamageLandingReaction(8.).assertEquals(DAMAGE_LANDING_KNOCKDOWN)
+
+@Test function airborneDamageLandingSelectsRetainedStunLandingLagAndKnockdown()
+	for reaction = 0 to 2
+		let fighter = new FighterState(0, 0, 1)
+		let input = new InputSnapshot()
+		fighter.grounded = false
+		fighter.surface = -1
+		fighter.z = 1
+		fighter.vz = -2
+		fighter.hitstun = 20
+		fighter.damageLevel = 2
+		fighter.knockbackX = (reaction == 0 ? 0.3 : (reaction == 1 ? 1.1 : 6.1)) * 6
+		input.techPressed = reaction == 2
+		advance(fighter, 0, input, 0)
+		fighter.grounded.assertTrue()
+		fighter.hitstun.assertEquals(reaction == 0 ? 19 : 0)
+		fighter.landingLag.assertEquals(reaction == 1 ? EMPTY_LANDING_LAG : 0)
+		fighter.downState.assertEquals(reaction == 2 ? DOWN_BOUND : DOWN_NONE)
+		canAttack(fighter).assertFalse()
+		if reaction == 1
+			input.jumpPressed = true
+			for tick = 1 to EMPTY_LANDING_LAG - 1
+				advance(fighter, 0, input, 0)
+				fighter.jumpSquat.assertEquals(0)
+			advance(fighter, 0, input, 0)
+			fighter.jumpSquat.assertGreaterThan(0)
+		destroy input
+		destroy fighter
+
 // Test-only grounded-motion profile; no character or move data enters the roster.
 function floorRecoveryReferencePhysics() returns fighterPhysics
 	var physics = archerPhysics()
