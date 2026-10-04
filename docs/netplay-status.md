@@ -16,7 +16,7 @@ Three 5 ms Attack taps, including taps during ~250 ms helper/game interruptions,
 applied at frames 19, 97 and 157 on both clients. Final frame 300 and checksum
 agreed. Helper emission medians fell from ~220 ms to ~1.4 ms. This is a bounded
 retention pass for #26, not physical response latency or complete acceptance of
-#25–#27. Pause/focus lifecycle and real hardware still need work. Exact source,
+#25–#27. The broader lifecycle and real hardware still need work. Exact source,
 failed attempt, fixture repair and raw evidence:
 wc3-melee:docs/editbox-ingress-native-20261005/README.md.
 
@@ -24,7 +24,7 @@ wc3-melee:docs/editbox-ingress-native-20261005/README.md.
 input stream. Both clients paused at the same boundary and resumed through all
 600 input frames, ending at matching checksum `432553:258417`. This replaces
 the failed F8 route, which dropped incoming text while held. Concurrent keyboard
-interference and whole-window focus remain open. Resumed helper clocks differed
+interference remains open; the later bounded window-focus result is below. Resumed helper clocks differed
 by 7.1 ms, so this is not a cross-machine alignment guarantee. Evidence and exact
 scope: wc3-melee:docs/controller-start-native-20261005/README.md.
 
@@ -39,15 +39,15 @@ These are software-stimulus-to-compositor measurements. Physical button-to-pixel
 remains unmeasured. Exact scope and baseline comparison:
 wc3-melee:docs/native-response-catchup-20261005/README.md.
 
-**Focus recovery checkpoint:** bounded native receive queuing now drains all150
-records/player after the500ms focus switch; both clients confirm frame300 with
-matching state,300 sent/received frames and zero unmatched receipts. No keys
-reached the other window. Fast recovery remains unfinished: A's own-sync echo
-median/max reached3388/6293ms and its helper emitted423 envelopes for150 records.
-The retry timer can replay young records despite advancing receipts; that is the
-next repair. Detailed second-attack application fell outside the initial trace.
-This is a bounded delivery recovery, not full focus acceptance or a new playable
-release. Evidence: wc3-melee:docs/native-text-receipts-20261005/README.md.
+**Focus recovery delivered:** the 500 ms focus-switch corpus now retains and
+applies both 5 ms attacks exactly once at original frames 7 and 109 on both
+clients. All 300 frames per player arrive, shield releases, final states match,
+and no keys reach the other window. Selective repair removes the multi-second
+retry amplification: A's native sync-echo median/max is now 180/397 ms versus
+1698/4894 ms with whole-suffix retries; B is 147/297 ms. These are transport echoes,
+not physical or visible local response. The bounded focus defect is closed;
+chat/menu, reconnect/rematch, hardware and broader response remain open. Exact
+scope and raw evidence: wc3-melee:docs/native-text-receipts-20261005/README.md.
 
 ## The specific answers and their owners
 
@@ -56,7 +56,7 @@ release. Evidence: wc3-melee:docs/native-text-receipts-20261005/README.md.
 | Does sampled, eligible shield input enter local prediction without waiting for sync? | Demonstrated: 12/12 presses in the capture callback on 0.0.40. Logical state, not physical pixels or all moves. | [#28, completed](https://github.com/tompassarelli/smashcraft/issues/28) |
 | Can late original-frame input repair the combat outcome? | Demonstrated for the native F5 shield corpus: damage 12 becomes 0, shieldstun 7, canonical and confirmed states agree. | [#29, completed](https://github.com/tompassarelli/smashcraft/issues/29) |
 | Have selection/GameCache beaten direct sync? | No in the corrected bounded 60 Hz comparison; direct sync is the selected baseline. | [#30, completed comparison](https://github.com/tompassarelli/smashcraft/issues/30) |
-| Can short inputs disappear or merge? | Playable 0.0.40 can miss/coalesce inputs. The new candidate retained all three 5 ms taps through the tested helper/game stalls; lifecycle acceptance remains open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
+| Can short inputs disappear or merge? | Playable 0.0.40 can miss/coalesce inputs. The candidate retains tested 5 ms taps through helper/game stalls and window focus loss; broader lifecycle acceptance remains open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
 | Is every acquired input assigned to its intended frame despite delayed service? | The candidate applied tested taps at frames 19/97/157 and passed the shared pause boundary. Resumed capture anchors differed by 7.1 ms; clock alignment remains open. 0.0.40 still assigns by local progress. | [#25, partial](https://github.com/tompassarelli/smashcraft/issues/25) |
 | What physical response and 3–5-frame variation should a player expect? | Candidate B software shield response: 12/12 presses, median 67.95 ms, max 98.17 ms. The measured admission backlog is fixed: 13/13 retained edge rows predict in the same callback. Physical response remains unmeasured. | [#27, partial](https://github.com/tompassarelli/smashcraft/issues/27) |
 | Can two clients fight and rematch? | Observed on 0.0.40; full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |
@@ -177,7 +177,7 @@ original descriptions remain accessible. Those closures are not completion.
 | #20 2–4 players / ten matches | Consolidated into #17; the full requested match corpus remains required. |
 | #21 Timeboxed integrity decision | Already completed as a HOLD decision, not a positive readiness result. |
 | #25 Intended frames | Open; canonical owner for frame assignment, clock and pause semantics. |
-| #26 Input retention | Partial; candidate's tap/stall and Start pause/resume corpora pass. Keyboard interference and whole-window focus remain open; playable 0.0.40's polling limitation remains. |
+| #26 Input retention | Partial; candidate's tap/stall, Start pause/resume and bounded focus recovery corpora pass. Keyboard interference and broader lifecycle remain open; playable 0.0.40's polling limitation remains. |
 | #27 Response/variation | Partial; candidate software shield response measured and admission-to-prediction delay repaired with native evidence. Broader action/physical scope remains. |
 | #28 After-capture shield prediction | Completed bounded evidence, registered during this review. |
 | #29 Native tagged defense rollback | Completed bounded evidence, registered during this review. |

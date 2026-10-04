@@ -1,0 +1,97 @@
+{
+  "map_sha256": "892202f4ec537a4be232579860e652c3fe7a7b0429448ca32293db74d8cbd336",
+  "helper_sha256": "1bc5d07fe402946b1b4de54380a17e192ff8ba7748ac28ecb737e6475862dbce",
+  "scope": "500 ms focus-away, 300 frames per player, virtual evdev devices; not physical or visible response",
+  "clients": [
+    {
+      "slot": 0,
+      "original_frames": 300,
+      "applied_attacks": [
+        [
+          0,
+          7,
+          1
+        ],
+        [
+          0,
+          109,
+          2
+        ]
+      ],
+      "envelopes": 154,
+      "unique_records": 150,
+      "own_echo_native_ms_median": 180.06900000000002,
+      "own_echo_native_ms_max": 396.652,
+      "frame300_send_echo_ms": [
+        6460.907,
+        6548.912
+      ],
+      "shield_transitions": [
+        {
+          "service_row": 0,
+          "native_ms": "11.002",
+          "confirmed_frame": "-1",
+          "predicted_next": "-1",
+          "confirmed_shield": "0",
+          "predicted_shield": "0"
+        },
+        {
+          "service_row": 127,
+          "native_ms": "2127.640",
+          "confirmed_frame": "32",
+          "predicted_next": "45",
+          "confirmed_shield": "0",
+          "predicted_shield": "1"
+        },
+        {
+          "service_row": 140,
+          "native_ms": "2344.299",
+          "confirmed_frame": "44",
+          "predicted_next": "47",
+          "confirmed_shield": "1",
+          "predicted_shield": "1"
+        },
+        {
+          "service_row": 198,
+          "native_ms": "3310.951",
+          "confirmed_frame": "50",
+          "predicted_next": "53",
+          "confirmed_shield": "1",
+          "predicted_shield": "0"
+        },
+        {
+          "service_row": 213,
+          "native_ms": "3560.951",
+          "confirmed_frame": "56",
+          "predicted_next": "81",
+          "confirmed_shield": "0",
+          "predicted_shield": "0"
+        }
+      ]
+    },
+    {
+      "slot": 1,
+      "original_frames": 300,
+      "applied_attacks": [
+        [
+          0,
+          7,
+          1
+        ],
+        [
+          0,
+          109,
+          2
+        ]
+      ],
+      "envelopes": 150,
+      "unique_records": 150,
+      "own_echo_native_ms_median": 146.744,
+      "own_echo_native_ms_max": 296.745,
+      "frame300_send_echo_ms": [
+        6460.907,
+        6548.912
+      ]
+    }
+  ]
+}

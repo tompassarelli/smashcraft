@@ -147,6 +147,7 @@ mod linux {
         next_sequence: u32,
         retry_at: Option<Instant>,
         retry_permit: bool,
+        recovery_through: u32,
         receipt_revision: u32,
         retried_revision: u32,
     }
@@ -160,6 +161,12 @@ mod linux {
                 self.received = received;
                 self.retry_at = None;
                 self.retry_permit = false;
+                if received < self.recovery_through {
+                    self.next_sequence = received + 1;
+                    self.retry_permit = true;
+                } else {
+                    self.recovery_through = 0;
+                }
             }
             self.next_sequence = self.next_sequence.max(self.received + 1);
             if consumed > self.consumed {
@@ -209,6 +216,7 @@ mod linux {
                 self.retry_at = None;
                 self.retried_revision = self.receipt_revision;
                 self.retry_permit = true;
+                self.recovery_through = self.highest_sent;
             }
             if self.next_sequence <= self.highest_sent && !self.retry_permit {
                 return Ok(None);
@@ -242,7 +250,8 @@ mod linux {
         fn suspend(&mut self) {
             self.next_sequence = self.received + 1;
             self.retry_at = None;
-            self.retry_permit = false;
+            self.recovery_through = self.highest_sent;
+            self.retry_permit = self.received < self.highest_sent;
         }
     }
 
@@ -1512,11 +1521,12 @@ mod linux {
         assert!(window.next(&queue, 7, now).unwrap().is_none());
         window.suspend();
         window.receipt(&mut queue, 0, 0, 1).unwrap();
-        assert!(window.next(&queue, 7, now).unwrap().is_none());
         assert_eq!(
-            window.next(&queue, 7, now + TEXT_RETRY).unwrap().unwrap(),
+            window.next(&queue, 7, now).unwrap().unwrap(),
             pending
         );
+        window.sent(pending.0, now);
+        assert!(window.next(&queue, 7, now).unwrap().is_none());
         window.acknowledge(&mut queue, 1).unwrap();
         assert_eq!(
             queue.records.front().map(String::as_str),
@@ -1666,6 +1676,14 @@ mod linux {
             window.sent(missing.0, retry);
             assert!(window.next(&queue, 1, retry).unwrap().is_none());
             assert_eq!(queue.records.len(), 16);
+            window.receipt(&mut queue, missing.0, 0, 3).unwrap();
+            let next_gap = window.next(&queue, 1, retry).unwrap().unwrap();
+            assert_eq!(next_gap.0, missing.0 + 1);
+            window.sent(next_gap.0, retry);
+            assert!(window.next(&queue, 1, retry).unwrap().is_none());
+            window.receipt(&mut queue, 16, 16, 4).unwrap();
+            assert!(queue.is_empty());
+            assert!(window.next(&queue, 1, retry).unwrap().is_none());
         }
     }
 

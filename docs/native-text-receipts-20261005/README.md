@@ -1,6 +1,6 @@
 # Native receipt/replay — 5 October 2026
 
-Status: native focus trial now drains all records; slow recovery remains open.
+Status: bounded focus retention and ordered recovery pass; broader latency and lifecycle acceptance remain open.
 Playable 0.0.40 is unchanged.
 
 The helper retains original records after emission and removes them only after
@@ -159,7 +159,42 @@ and ordered application through the tested focus switch. **Recovery response
 still has an avoidable delay:** receipts advanced through missing records 24 and
 25 at 1701/2053 ms after capture start, then through 39 at 2351 ms. The sender waits
 another 250 ms for each next missing record despite explicit repair progress.
-Attack109 was captured around 1800 ms but synchronized gameplay applied it around
-3 seconds after capture start. No prompt post-focus response guarantee follows.
+The helper captured Attack109 around 1800 ms after its capture anchor; native
+gameplay traced its application at 4.483 native seconds from trace start. These
+clock origins must not be subtracted as a physical-response measurement. No prompt post-focus response guarantee follows.
 The next small repair removes that extra waiting during an active repair, while
 retaining one-record retries and the unchanged bounds.
+
+## Accepted recovery progress checkpoint
+
+During an active repair, a received acknowledgment now releases one next missing
+record immediately. Focus return also permits one immediate retry. Unchanged
+receipts still cannot flood the receiver. The six focused Rust checks and helper
+build pass; the exact `text-selective-20261005` map above is unchanged.
+Helper SHA256 `1bc5d07fe402946b1b4de54380a17e192ff8ba7748ac28ecb737e6475862dbce`.
+Evidence: wc3-melee:docs/native-text-receipts-20261005/recovery-progress/summary.json
+and the adjacent raw capture, kernel, helper, native trace and response files.
+
+The same 500 ms focus-away workload passes: both 5 ms Attack taps applied exactly
+once at original frames 7 and 109 on both clients; the unfocused/held-through-
+return stimuli caused no extra attack; shield prediction and confirmation
+released; all 300 original frames per player were sent and received; both native
+endpoints confirmed frame 300 / checksum `614143:814131`. No unmatched receipt,
+export drop, gameplay trace drop, native input rejection or key leak to the
+calibrated other window occurred. Both helpers finished with 150 received and
+consumed records. A sent 154 envelopes, B 150.
+
+A native own-sync echo median/max: **180.069/396.652 ms**.
+B: **146.744/296.745 ms**. Both frame-300 echoes arrived at 6548.912 ms from the
+response-probe start (send at 6460.907 ms). Compared with the same-map prior
+helper, A's median/max fell from 264.279/572.723 ms. Compared with the whole-suffix
+retry candidate, A fell from 1698.453/4893.890 ms and 342 transmissions. The tested
+multi-second amplification is repaired; these short comparisons do not establish
+a network latency ceiling or physical input response.
+
+This closes the bounded focus-loss/retry defect. The case remains accepted unless
+a relevant change or counterexample challenges it. Real hardware, visible local
+response, chat/menu interference, reconnect/rematch and complete pause lifecycle
+coverage remain under the existing issues. Playable 0.0.40 is preserved; this
+protocol checkpoint is not yet a replacement player release. No additional
+transport survey or repeat of this passing corpus is required.
