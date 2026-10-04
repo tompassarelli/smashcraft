@@ -5,18 +5,20 @@ The existing keyboard and digital controller mapper passed the two-client
 gameplay journey below. Those results remain valid. The original-frame journal
 experiments are separate and have not replaced that release.
 
-Latest native result: the keyboard input bridge delivered the first5ms attack
-at its original frame19 on both clients, but only reached confirmedframe36
-after5 native seconds. It is too slow for play. The helper retained later taps
-at frames97/157 across the controlled helper/game stops, but those inputs were
-not applied within the native trace. The delivery queue timed out. Evidence:
+Latest native result: the serial keyboard/file-ACK bridge is rejected for
+playable controller delivery. It transported the first5ms attack at original
+frame19, but confirmed only36–50 frames in5 native seconds. Native emission
+medians were about2.75ms and ACK-wait medians81–92ms. Removing synchronized
+registrations for the carrier keys did not fix it. Details and exact scope:
 wc3-melee:docs/keyboard-mailbox-20261004/README.md.
 
-/root/keyboard_ingress owns the companion emission repair; /root owns native
-integration and the verdict. The next check separates key emission from ACK
-observation and reruns the same game artifact after the owning repair. Both
-clients left the rejected candidate normally; exact40 is restored on disk.
-Authenticated clients remain open. No controller helper is running.
+The unsuccessful registration change was removed. The helper now logs emission
+and ACK timing separately and handles SIGINT with carrier-key cleanup. Source
+and focused checks are complete; no worker is still implementing a replacement.
+Exact40 is restored in a running two-client fight after the final diagnostic.
+Both native screens reached the match; authenticated sessions are retained.
+No helper, virtual pad, build or child remains running. The original-frame
+controller requirement remains unresolved; no new latency guarantee is claimed.
 
 Earlier preload boundary evidence remains at
 wc3-melee:docs/journal-read-boundary-20261004/README.md: real packets arrived,
@@ -203,6 +205,6 @@ invocation also created a second executable; both were stopped and observed
 exited before one further Play recovered the real main menu. Avoid duplicate
 Play invocations against a live game. No audio root-cause claim follows.
 
-Both restored40 clients now visibly show PAUSED. Press Y to resume the retained
-match. No companion helper, virtual controller, build, lease or worker remains
-running. Peer mailbox listeners remain stopped.
+At that historical journal46 recovery checkpoint, both restored40 clients
+were paused. Current native state is described at the top of this document.
+Peer mailbox listeners remain stopped.
