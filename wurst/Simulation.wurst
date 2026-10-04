@@ -5,6 +5,7 @@ import CommandBuffer
 import Binary32
 import MeleeScalarMath
 import MeleeContactGeometry
+import TechInput
 
 public constant real WORLD_UNITS_PER_MELEE_UNIT = 6
 
@@ -249,7 +250,7 @@ public constant int WALL_TECH_JUMP_INPUT_WINDOW_FRAMES = 20
 // PlCo.dat +0x164 max_grounded_kb_on_landing, converted to map units.
 public constant real MAX_GROUNDED_KNOCKBACK_ON_LANDING = 8.300000190734863 * WORLD_UNITS_PER_MELEE_UNIT
 public constant int TECH_WINDOW_FRAMES = 20
-public constant int TECH_LOCKOUT_FRAMES = 40
+public constant int TECH_REPEAT_MINIMUM_AGE_FRAMES = 40
 public constant int TECH_IN_PLACE_FRAMES = 26
 public constant int TECH_ROLL_FRAMES = 40
 public constant int TECH_INTANGIBLE_FRAMES = 20
@@ -620,8 +621,9 @@ public class FighterState
 	int downWaitRemaining = 0
 	boolean downFaceUp = true
 	int techWindow = 0
-	int techLockout = 0
-	boolean techHitlagLatched = false
+	int techPressAge = 255
+	int techPreviousPressAge = 255
+	boolean techAccumulatedPress = false
 	int grabbedFrames = 0
 	int grabAction = GRAB_NONE
 	int grabFrame = 0
@@ -1959,8 +1961,7 @@ function catchLedge(FighterState f, int stage, int side)
 	f.jumps = 1
 	f.dropTime = 0
 	f.lCancelWindow = 0
-	f.techWindow = 0
-	f.techHitlagLatched = false
+	clearTechInput(f)
 
 public function resolveLedges(FighterRoster world, int stage, FrameInputs controls)
 	// Tied nearest candidates both fail, preserving simultaneous two-fighter catches.
@@ -2191,9 +2192,7 @@ function beginShieldBreak(FighterState f)
 	f.grabbedFrames = 0
 	f.landingLag = 0
 	f.lCancelWindow = 0
-	f.techWindow = 0
-	f.techLockout = 0
-	f.techHitlagLatched = false
+	clearTechInput(f)
 	f.dropTime = 0
 	f.diPending = false
 	f.diLaunchSpeed = 0
@@ -2256,6 +2255,12 @@ function clearDownState(FighterState f)
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
 	f.surfaceWallJumpQueued = false
+
+function clearTechInput(FighterState f)
+	f.techWindow = 0
+	f.techPressAge = 255
+	f.techPreviousPressAge = 255
+	f.techAccumulatedPress = false
 
 function beginDownState(FighterState f, int state, int direction)
 	f.fastFalling = false
@@ -3672,9 +3677,7 @@ public function reset(FighterState f, real startX)
 	f.surfaceContactNormalZ = 0
 	f.lCancelWindow = 0
 	f.lCancelSerial = 0
-	f.techWindow = 0
-	f.techLockout = 0
-	f.techHitlagLatched = false
+	clearTechInput(f)
 	f.jumpSerial = 0
 	f.jumpIsDouble = false
 	f.x = startX
@@ -3785,6 +3788,13 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 	// Expiry resumes this frame, including input gates and state countdowns.
 	let hitlagBefore = f.hitlag
 	f.hitlag = max(0, f.hitlag - 1)
+	let techState = advanceTechInput(
+		techInputState(f.techPressAge, f.techPreviousPressAge, f.techAccumulatedPress),
+		input.techPressed, f.hitlag > 0)
+	f.techPressAge = techState.pressAge
+	f.techPreviousPressAge = techState.previousPressAge
+	f.techAccumulatedPress = techState.accumulatedPress
+	f.techWindow = techInputContactWindow(techState)
 	if f.hitlag <= 0 and f.knockbackAgeFrames >= 0
 		f.knockbackAgeFrames = min(KNOCKBACK_STACKING_FRAMES, f.knockbackAgeFrames + 1)
 	if f.hitlag <= 0
@@ -3813,10 +3823,6 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 		f.lCancelWindow = L_CANCEL_WINDOW_FRAMES
 	if f.hitlag <= 0
 		f.surfaceReflectCooldown = max(0, f.surfaceReflectCooldown - 1)
-		if not f.techHitlagLatched
-			f.techWindow = max(0, f.techWindow - 1)
-			f.techLockout = max(0, f.techLockout - 1)
-		f.techHitlagLatched = false
 		if isFloorTeching(f) and f.downFrame >= (f.downState == DOWN_TECH ? TECH_IN_PLACE_FRAMES : TECH_ROLL_FRAMES)
 			clearDownState(f)
 		else if f.downState == DOWN_STAND and f.downFrame >= DOWN_STAND_FRAMES
@@ -3825,11 +3831,6 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 			clearDownState(f)
 		else if f.downState == DOWN_ATTACK and f.downFrame >= DOWN_ATTACK_FRAMES
 			clearDownState(f)
-	if input.techPressed
-		f.techWindow = f.techLockout == 0 ? (hitlagBefore > 1 ? 1 : TECH_WINDOW_FRAMES) : 0
-		f.techLockout = TECH_LOCKOUT_FRAMES
-		if f.hitlag > 0
-			f.techHitlagLatched = true
 	let wallJumped = advanceSurfaceRecovery(f, input)
 	let wallTechStartup = f.surfaceRecoveryState == SURFACE_TECH_WALL and f.surfaceRecoveryFrame < WALL_TECH_STARTUP_FRAMES
 	if hitlagBefore > 0 and f.diPending
@@ -4117,9 +4118,7 @@ function checkBlastZone(FighterState f)
 		f.groundKnockbackX = 0
 		f.knockbackZ = 0
 		f.lCancelWindow = 0
-		f.techWindow = 0
-		f.techLockout = 0
-		f.techHitlagLatched = false
+		clearTechInput(f)
 		f.stocks = max(0, f.stocks - 1)
 		f.respawn = f.stocks > 0 ? 60 : 0
 		f.attackStyle = -1

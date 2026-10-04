@@ -203,8 +203,9 @@ function copyFighter(FighterState source, FighterState destination, FighterRoste
 	destination.downWaitRemaining = source.downWaitRemaining
 	destination.downFaceUp = source.downFaceUp
 	destination.techWindow = source.techWindow
-	destination.techLockout = source.techLockout
-	destination.techHitlagLatched = source.techHitlagLatched
+	destination.techPressAge = source.techPressAge
+	destination.techPreviousPressAge = source.techPreviousPressAge
+	destination.techAccumulatedPress = source.techAccumulatedPress
 	destination.grabbedFrames = source.grabbedFrames
 	destination.grabAction = source.grabAction
 	destination.grabFrame = source.grabFrame
@@ -586,10 +587,12 @@ function fighterDifference(FighterState expected, FighterState actual, FighterRo
 		return "downFaceUp"
 	if expected.techWindow != actual.techWindow
 		return "techWindow"
-	if expected.techLockout != actual.techLockout
-		return "techLockout"
-	if expected.techHitlagLatched != actual.techHitlagLatched
-		return "techHitlagLatched"
+	if expected.techPressAge != actual.techPressAge
+		return "techPressAge"
+	if expected.techPreviousPressAge != actual.techPreviousPressAge
+		return "techPreviousPressAge"
+	if expected.techAccumulatedPress != actual.techAccumulatedPress
+		return "techAccumulatedPress"
 	if expected.grabbedFrames != actual.grabbedFrames
 		return "grabbedFrames"
 	if expected.grabAction != actual.grabAction
@@ -1051,8 +1054,9 @@ function canonicalFighter(CanonicalWriter writer, string prefix, FighterState fi
 	canonicalInt(writer, prefix + "." + "downWaitRemaining", fighter.downWaitRemaining)
 	canonicalBoolean(writer, prefix + "." + "downFaceUp", fighter.downFaceUp)
 	canonicalInt(writer, prefix + "." + "techWindow", fighter.techWindow)
-	canonicalInt(writer, prefix + "." + "techLockout", fighter.techLockout)
-	canonicalBoolean(writer, prefix + "." + "techHitlagLatched", fighter.techHitlagLatched)
+	canonicalInt(writer, prefix + "." + "techPressAge", fighter.techPressAge)
+	canonicalInt(writer, prefix + "." + "techPreviousPressAge", fighter.techPreviousPressAge)
+	canonicalBoolean(writer, prefix + "." + "techAccumulatedPress", fighter.techAccumulatedPress)
 	canonicalInt(writer, prefix + "." + "grabbedFrames", fighter.grabbedFrames)
 	canonicalInt(writer, prefix + "." + "grabAction", fighter.grabAction)
 	canonicalInt(writer, prefix + "." + "grabFrame", fighter.grabFrame)
