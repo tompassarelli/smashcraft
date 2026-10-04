@@ -1,0 +1,138 @@
+{
+  "scope": "Same-host two-client native resume with delayed B helper; software evdev, not physical response or cross-machine alignment.",
+  "helper_sha256": "978f7e2b1f92c906f86b92d8960cd4e0eef05e2a51a929fa6e52775fd3ca1fa4",
+  "produced_key_events": 14,
+  "kernel_key_events": 14,
+  "players": [
+    {
+      "slot": 0,
+      "resumed_first_frame": 86,
+      "publication_monotonic_estimate_ns": 558802013700422,
+      "published_frames": 600,
+      "edges": [
+        {
+          "phase": "before-pause",
+          "pressed": true,
+          "kernel_monotonic_ns": 558795776236000,
+          "expected_frame": 19,
+          "assigned_frame": 19
+        },
+        {
+          "phase": "before-pause",
+          "pressed": false,
+          "kernel_monotonic_ns": 558795781459000,
+          "expected_frame": 19,
+          "assigned_frame": 19
+        },
+        {
+          "phase": "fresh-while-helper-stopped",
+          "pressed": true,
+          "kernel_monotonic_ns": 558802227019000,
+          "expected_frame": 98,
+          "assigned_frame": 98
+        },
+        {
+          "phase": "fresh-while-helper-stopped",
+          "pressed": false,
+          "kernel_monotonic_ns": 558802232103000,
+          "expected_frame": 99,
+          "assigned_frame": 99
+        },
+        {
+          "phase": "fresh-after-recovery",
+          "pressed": true,
+          "kernel_monotonic_ns": 558802867025000,
+          "expected_frame": 137,
+          "assigned_frame": 137
+        },
+        {
+          "phase": "fresh-after-recovery",
+          "pressed": false,
+          "kernel_monotonic_ns": 558802872187000,
+          "expected_frame": 137,
+          "assigned_frame": 137
+        }
+      ]
+    },
+    {
+      "slot": 1,
+      "resumed_first_frame": 86,
+      "publication_monotonic_estimate_ns": 558802016834742,
+      "published_frames": 600,
+      "edges": [
+        {
+          "phase": "before-pause",
+          "pressed": true,
+          "kernel_monotonic_ns": 558795776236000,
+          "expected_frame": 19,
+          "assigned_frame": 19
+        },
+        {
+          "phase": "before-pause",
+          "pressed": false,
+          "kernel_monotonic_ns": 558795781459000,
+          "expected_frame": 19,
+          "assigned_frame": 19
+        },
+        {
+          "phase": "fresh-while-helper-stopped",
+          "pressed": true,
+          "kernel_monotonic_ns": 558802227019000,
+          "expected_frame": 98,
+          "assigned_frame": 98
+        },
+        {
+          "phase": "fresh-while-helper-stopped",
+          "pressed": false,
+          "kernel_monotonic_ns": 558802232103000,
+          "expected_frame": 98,
+          "assigned_frame": 98
+        },
+        {
+          "phase": "fresh-after-recovery",
+          "pressed": true,
+          "kernel_monotonic_ns": 558802867025000,
+          "expected_frame": 137,
+          "assigned_frame": 137
+        },
+        {
+          "phase": "fresh-after-recovery",
+          "pressed": false,
+          "kernel_monotonic_ns": 558802872187000,
+          "expected_frame": 137,
+          "assigned_frame": 137
+        }
+      ]
+    }
+  ],
+  "native_actions": [
+    {
+      "slot": 0,
+      "frame": 19
+    },
+    {
+      "slot": 0,
+      "frame": 98
+    },
+    {
+      "slot": 0,
+      "frame": 137
+    },
+    {
+      "slot": 1,
+      "frame": 19
+    },
+    {
+      "slot": 1,
+      "frame": 98
+    },
+    {
+      "slot": 1,
+      "frame": 137
+    }
+  ],
+  "confirmed_frame": 600,
+  "confirmed_checksum": "101166:468220",
+  "native_trace_drops": 0,
+  "unexplained_frame_retargets": 0
+}

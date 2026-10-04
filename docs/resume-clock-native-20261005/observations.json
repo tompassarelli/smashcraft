@@ -1,0 +1,10 @@
+[
+  {
+    "event": "helper-b-stopped",
+    "monotonic_ns": 558801847958573
+  },
+  {
+    "event": "helper-b-continued",
+    "monotonic_ns": 558802376906492
+  }
+]

@@ -1,6 +1,11 @@
-# Input clock contract: next executable gate
+# Input clock contract and historical experiments
 
-Current production-integration scheduling assigns a poll to next speculative
+The experiments below record the 4 October investigation. Current decisions
+belong to issue #25 and wc3-melee:docs/netplay-status.md. Historical experiment
+gates do not prohibit publishing a checked checkpoint or playing the accepted
+0.0.40 build; they identify the stronger claims that remain unsupported.
+
+At the start of this investigation, production-integration scheduling assigned a poll to next speculative
 frame plus fixed delay. It does not derive that frame from event time. Preserved
 text records therefore need a separate frame rule; their survival alone does
 not close competitive input integrity.
@@ -36,7 +41,8 @@ clock is aligned with another machine or with production simulation. The next
 contact test must replay the original F5 defense after delivery at F9 without
 retargeting it. Live clock alignment must bound offset/drift uncertainty,
 identify permitted boundary ambiguity, and define common pause/resume semantics.
-Until those gates pass, keep competitive HOLD and avoid an end-to-end bound.
+That experiment does not establish an end-to-end bound. Its unfinished clock
+claims remain owned by #25, independently of bounded delivery and playtesting.
 
 ## Executable capture-time boundary rule
 

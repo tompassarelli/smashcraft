@@ -1,0 +1,58 @@
+{
+  "settings": {
+    "binary": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/companion/target/debug/wc3-journal",
+    "out": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-focus-text-recovery-20261005",
+    "build": "text-selective-20261005",
+    "x11_library": "/nix/store/2g9xwk5kis01003gynr7xfca667dpgv8-libx11-1.8.13/lib/libX11.so.6.4.0",
+    "wlrctl": "/nix/store/ci70n3x298zfp6r04hx0xaxiwz8akxin-wlrctl-0.2.2/bin/wlrctl",
+    "epoch": 1,
+    "without_focus_loss": false,
+    "private_a": "/run/user/1000/private-desktop.ua70lDgf",
+    "data_a": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "pid_a": 1520922,
+    "window_a": 77594625,
+    "app_id_a": "steam_app_3516115571",
+    "private_b": "/run/user/1000/private-desktop.DIasYMFK",
+    "data_b": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
+    "pid_b": 1533110,
+    "window_b": 77594625,
+    "app_id_b": "steam_app_3516115572"
+  },
+  "capture_epoch_monotonic_ns": 558795475955968,
+  "helper_sha256": "978f7e2b1f92c906f86b92d8960cd4e0eef05e2a51a929fa6e52775fd3ca1fa4",
+  "helper_exit_codes": [
+    0,
+    0
+  ],
+  "observations": [
+    {
+      "event": "helper-b-stopped",
+      "monotonic_ns": 558801847958573
+    },
+    {
+      "event": "helper-b-continued",
+      "monotonic_ns": 558802376906492
+    }
+  ],
+  "resume_publications": [
+    {
+      "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-control-text-selective-20261005-e1-s0-n3.txt",
+      "mtime_realtime_ns": 1791148955964832810,
+      "sample_monotonic_before_ns": 558802019677508,
+      "sample_realtime_ns": 1791148955970811078,
+      "sample_monotonic_after_ns": 558802019679872,
+      "publication_monotonic_estimate_ns": 558802013700422,
+      "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=text-selective-20261005 epoch=1 slot=0 sequence=3 state=RESUME frame=86\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    },
+    {
+      "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-control-text-selective-20261005-e1-s1-n3.txt",
+      "mtime_realtime_ns": 1791148955967966365,
+      "sample_monotonic_before_ns": 558802019725267,
+      "sample_realtime_ns": 1791148955970857095,
+      "sample_monotonic_after_ns": 558802019725678,
+      "publication_monotonic_estimate_ns": 558802016834742,
+      "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=text-selective-20261005 epoch=1 slot=1 sequence=3 state=RESUME frame=86\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    }
+  ],
+  "scope": "Same-host two-client native resume with delayed B helper; software evdev, not physical response or cross-machine alignment."
+}

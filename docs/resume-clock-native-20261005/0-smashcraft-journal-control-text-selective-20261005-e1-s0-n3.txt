@@ -1,0 +1,7 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "SMASHCRAFT JOURNAL CONTROL v=1 build=text-selective-20261005 epoch=1 slot=0 sequence=3 state=RESUME frame=86" )
+	call PreloadEnd( 0.0 )
+
+endfunction

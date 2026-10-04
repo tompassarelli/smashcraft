@@ -1,0 +1,20 @@
+[
+  {
+    "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-control-text-selective-20261005-e1-s0-n3.txt",
+    "mtime_realtime_ns": 1791148955964832810,
+    "sample_monotonic_before_ns": 558802019677508,
+    "sample_realtime_ns": 1791148955970811078,
+    "sample_monotonic_after_ns": 558802019679872,
+    "publication_monotonic_estimate_ns": 558802013700422,
+    "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=text-selective-20261005 epoch=1 slot=0 sequence=3 state=RESUME frame=86\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+  },
+  {
+    "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-control-text-selective-20261005-e1-s1-n3.txt",
+    "mtime_realtime_ns": 1791148955967966365,
+    "sample_monotonic_before_ns": 558802019725267,
+    "sample_realtime_ns": 1791148955970857095,
+    "sample_monotonic_after_ns": 558802019725678,
+    "publication_monotonic_estimate_ns": 558802016834742,
+    "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=text-selective-20261005 epoch=1 slot=1 sequence=3 state=RESUME frame=86\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+  }
+]

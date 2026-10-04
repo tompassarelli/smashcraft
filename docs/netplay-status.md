@@ -51,13 +51,21 @@ scope and raw evidence: wc3-melee:docs/native-text-receipts-20261005/README.md.
 
 ## The specific answers and their owners
 
+**Resume service-delay defect delivered:** helper B read RESUME 361 ms after its
+publication-derived boundary, but the fresh 5 ms tap captured during that stop
+applied at original frame 98 on both clients. All 600 frames/player arrived,
+paused/held actions stayed suppressed, and both final states matched. Local
+publication anchors still differed by 3.134 ms; this is not cross-machine clock
+alignment. Exact contract, uncertainty and raw evidence:
+wc3-melee:docs/resume-clock-native-20261005/README.md.
+
 | Question / claim | Verdict | Canonical issue |
 | --- | --- | --- |
 | Does sampled, eligible shield input enter local prediction without waiting for sync? | Demonstrated: 12/12 presses in the capture callback on 0.0.40. Logical state, not physical pixels or all moves. | [#28, completed](https://github.com/tompassarelli/smashcraft/issues/28) |
 | Can late original-frame input repair the combat outcome? | Demonstrated for the native F5 shield corpus: damage 12 becomes 0, shieldstun 7, canonical and confirmed states agree. | [#29, completed](https://github.com/tompassarelli/smashcraft/issues/29) |
 | Have selection/GameCache beaten direct sync? | No in the corrected bounded 60 Hz comparison; direct sync is the selected baseline. | [#30, completed comparison](https://github.com/tompassarelli/smashcraft/issues/30) |
 | Can short inputs disappear or merge? | Playable 0.0.40 can miss/coalesce inputs. The candidate retains tested 5 ms taps through helper/game stalls and window focus loss; broader lifecycle acceptance remains open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
-| Is every acquired input assigned to its intended frame despite delayed service? | The candidate applied tested taps at frames 19/97/157 and passed the shared pause boundary. Resumed capture anchors differed by 7.1 ms; clock alignment remains open. 0.0.40 still assigns by local progress. | [#25, partial](https://github.com/tompassarelli/smashcraft/issues/25) |
+| Is every acquired input assigned to its intended frame despite delayed service? | The candidate preserves tested tap/stall frames and now keeps a post-resume tap at frame 98 despite a 361 ms delayed resume read. Local publication anchors still differ; cross-machine alignment remains open. 0.0.40 still assigns by local progress. | [#25, partial](https://github.com/tompassarelli/smashcraft/issues/25) |
 | What physical response and 3–5-frame variation should a player expect? | Candidate B software shield response: 12/12 presses, median 67.95 ms, max 98.17 ms. The measured admission backlog is fixed: 13/13 retained edge rows predict in the same callback. Physical response remains unmeasured. | [#27, partial](https://github.com/tompassarelli/smashcraft/issues/27) |
 | Can two clients fight and rematch? | Observed on 0.0.40; full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |
 
@@ -191,7 +199,7 @@ issue records, **10 open work items**, six completed records, and fourteen
 duplicate/consolidation closures. The latter are not delivered engineering.
 Open items carry theme labels and now/next/later priorities; #16 is the one
 roadmap. The retention, Start pause and prediction catch-up checkpoints are banked;
-focus handling is the next integration gap. Old comments remain evidence; the issue
+bounded focus and resume-service gaps are now repaired. Old comments remain evidence; the issue
 body owns current status.
 
 ## Source integration and branch cleanup
@@ -220,7 +228,7 @@ delivery branch or making all research claims prerequisites for merging it.
 
 1. **#26: finish lifecycle integration of the passing input candidate.** The
    300-frame tap/stall counterexample is closed for this candidate. Complete
-   focus behavior and replace the playable input path after its usable
+   remaining lifecycle behavior and replace the playable input path after its usable
    journey passes; do not repeat the successful corpus merely for confidence.
 2. **#25: preserve the chosen frame contract.** Define active-match clock and
    pause behavior, then compare independent expected/assigned/applied frames.
