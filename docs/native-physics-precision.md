@@ -26,6 +26,11 @@ The current source corpus additionally includes 34 translated, finite-radius
 cases (408 total). The candidate recorded above predates that corpus expansion
 and contains 374. Its simulation arithmetic is unchanged; a subsequent native
 candidate must package the expanded corpus before claiming those cases observed.
+Production subsequently retains uniform joint scale through collision radius
+conversion. The emitted-Lua corpus now covers 508 cases. The native candidate
+above predates that simulation change and must be rebuilt and observed before
+it can verify the scale repair; its old source marker cannot establish current
+runtime collision fidelity.
 
 On map initialization, the same authored comparisons used by the emitted-Lua
 precision check execute in Warcraft. Each report is a short independent Preload

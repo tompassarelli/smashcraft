@@ -41,7 +41,7 @@ It also includes retail launch stacking, damage-level selection, grounded
 movement, rebound and test-arena surface recovery. These implementations do not
 establish full parity or complete collision geometry.
 
-The latest assembled simulation check passed 559/559 normal Wurstunit checks,
+The latest assembled simulation check passed 561/561 normal Wurstunit checks,
 after the equivalent shield-fixture deduplication documented below and the
 projectile/melee powershield and fractional DI input changes. The earlier aggregate
 passed 592/592 before that deduplication. The
@@ -63,7 +63,9 @@ matches 52 original ordinary/electric/crouching observations. Analog pressure
 now reaches drain, contact damage/stun/pushback, relative visual size and replay,
 with 54 original numeric rows matching emitted Lua and four connected tests.
 See smashcraft:docs/melee-analog-shield.md for its boundaries. The assembled
-precision check passes fifteen groups. The DI group matches all 56 original
+precision check passes sixteen groups, including 508 original capsule/shield
+classifications across identity, translated and uniformly scaled circles.
+The DI group matches all 56 original
 vectors exactly, including zero signs; the previous formula mismatched 39/56.
 Fractional DI input survives adapter conversion, snapshot copying and replay
 correction. Projectile powershield reflection is implemented; its world
@@ -76,12 +78,12 @@ rule; complete input/attack trajectories and native action timing remain open.
 Other formula rounding, shield geometry/powershields,
 connected/sloped ECB contacts and native trajectory checks remain open.
 
-The latest physics candidate is Smashcraft 0.0.12, build physics-capsule-precision,
-source d99141834e19518b47123dab5d7710bb6d64c0ba. It built with zero errors and
+The latest physics candidate is Smashcraft 0.0.12, build physics-shield-scale,
+source 949343a9755dd5399b4834e77b61b58e5107debb. It built with zero errors and
 six existing warnings. SHA-256:
-1f585ad105aa5d04c9ee834c05af7a331b5bef71aa4f06866b5435c40a22d4ee.
+a528cef284088b126e171b8f8382e6c7740ab55d233fab35e2f435d9609daef7.
 Artifact: ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x.
-Build evidence: smashcraft:build/capsule-precision-map.log. Deployment was disabled;
+Build evidence: smashcraft:build/shield-scale-map.log. Deployment was disabled;
 this candidate has not been installed or observed natively. Separate native
 input/contact probes do not establish its physics or presentation. The separate
 native arithmetic candidate in smashcraft:docs/native-physics-precision.md
