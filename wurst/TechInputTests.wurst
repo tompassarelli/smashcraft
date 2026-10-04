@@ -1,0 +1,35 @@
+package TechInputTests
+import TechInput
+
+@Test function originalTechInputAgesAcrossHitlagAndCarriesRepeatedPresses()
+	var existing = techInputState(10, 255, false)
+	var early = emptyTechInputState()
+	var last = emptyTechInputState()
+	for tick = 1 to 4
+		let frozen = tick < 4
+		existing = advanceTechInput(existing, false, frozen)
+		existing.pressAge.assertEquals(10 + tick)
+		early = advanceTechInput(early, tick == 1, frozen)
+		early.pressAge.assertEquals(tick < 4 ? 0 : 1)
+		early.previousPressAge.assertEquals(tick == 1 ? 255 : 0)
+		techInputIsEligible(early).assertEquals(tick == 1)
+		last = advanceTechInput(last, tick == 3, frozen)
+	last.pressAge.assertEquals(1)
+	last.previousPressAge.assertEquals(255)
+	techInputContactWindow(last).assertEquals(19)
+
+@Test function originalTechInputRepeatBoundaryUsesPreviousFrameAge()
+	for gap = 40 to 41
+		var state = advanceTechInput(emptyTechInputState(), true, false)
+		for elapsed = 1 to gap - 1
+			state = advanceTechInput(state, false, false)
+		state = advanceTechInput(state, true, false)
+		state.previousPressAge.assertEquals(gap - 1)
+		techInputIsEligible(state).assertEquals(gap == 41)
+
+@Test function originalTechInputWindowIncludesAgeNineteenAndExcludesTwenty()
+	var state = advanceTechInput(emptyTechInputState(), true, false)
+	for age = 0 to 20
+		state.pressAge.assertEquals(age)
+		techInputContactWindow(state).assertEquals(age < 20 ? 20 - age : 0)
+		state = advanceTechInput(state, false, false)

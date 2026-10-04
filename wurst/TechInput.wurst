@@ -1,0 +1,19 @@
+package TechInput
+
+public tuple techInputState(int pressAge, int previousPressAge, boolean accumulatedPress)
+
+public function emptyTechInputState() returns techInputState
+	return techInputState(255, 255, false)
+
+// NTSC 1.02 input-driver observations; ages continue through frozen input frames.
+public function advanceTechInput(techInputState previous, boolean freshPress, boolean frozen) returns techInputState
+	let pressed = freshPress or (frozen and previous.accumulatedPress)
+	let age = pressed ? 0 : min(255, previous.pressAge + 1)
+	let priorAge = pressed ? previous.pressAge : previous.previousPressAge
+	return techInputState(age, priorAge, frozen and pressed)
+
+public function techInputIsEligible(techInputState state) returns boolean
+	return state.pressAge < 20 and state.previousPressAge >= 40
+
+public function techInputContactWindow(techInputState state) returns int
+	return techInputIsEligible(state) ? 20 - state.pressAge : 0
