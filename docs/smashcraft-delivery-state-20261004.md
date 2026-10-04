@@ -163,6 +163,19 @@ delivered keyboard/digital-controller scope. Broader acceptance remains open.
 
 After the failed46 trial, both helpers/pad were reaped and both unusable game
 processes were terminated by verified exact PID. Exact40 bytes were restored
-to both mapfolders; launcher recovery is in progress. There is no journal
+to both mapfolders. Both clients recovered online through their retained
+launchers without another sign-in and joined [TEST] sc40-returned. Archer on
+client A accepted attack serial1 and movement from x240 to x-105. This closes
+restoration only; the previous bounded gameplay evidence remains the delivery
+basis. There is no journal
 performance pass. The delivered scope remains usable keyboard/digital control,
 with full original-frame capture and remaining acceptance explicitly open.
+
+The audio-startup error on A left an unusable executable. A repeated Play
+invocation also created a second executable; both were stopped and observed
+exited before one further Play recovered the real main menu. Avoid duplicate
+Play invocations against a live game. No audio root-cause claim follows.
+
+Both restored40 clients now visibly show PAUSED. Press Y to resume the retained
+match. No companion helper, virtual controller, build, lease or worker remains
+running. Peer mailbox listeners remain stopped.
