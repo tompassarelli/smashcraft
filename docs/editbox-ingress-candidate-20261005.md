@@ -107,3 +107,33 @@ Evidence stays in the integration lane's
 wc3-melee:build/native-editbox-20261005/ (producer/kernel logs, both helper logs,
 both map traces and compositor video). Neither end-to-end retention nor gameplay
 response passed. Playable 0.0.40 and the open #25–#27 claims remain unchanged.
+
+## Isolated native rejection
+
+Diagnostic `editbox-20261005b` adds a failure receipt independent of trace
+duration. Map SHA256:
+`76b209e855f7771011eda13687d9c3dcd9d972f9372524c2f32793dbe3141784`.
+Both clients received `I421100;` through private-display xdotool. Each map
+admitted its two rows, both clients received both players' rows, and both
+confirmed frame 2 with checksum `401279:850203`. No rejection occurred.
+
+Without leaving that match, the unchanged helper then emitted only
+`I421300;` on each client (`--first-frame 3 --stop-frame 4`). Both helper
+processes exited successfully. Both native failure receipts contain:
+
+```text
+reason=invalid or noncontiguous I4 row: 421300 sequence=3 frame=3
+```
+
+The leading capital I was lost across this emission boundary. The successful
+xdotool control establishes that the first-packet decoder/admission/direct-sync
+path works; it is a diagnostic control, not a substituted production helper.
+It does not establish continuous capture, stalls or gameplay acceptance.
+Enigo's remapped-key path versus existing shifted-key mappings is the current
+fidelity hypothesis; the timing defect is independently reproduced without
+Warcraft in wc3-melee:docs/enigo-text-counterexample-20261005/README.md.
+The upstream repair owns both demonstrated consumer constraints.
+
+Evidence: wc3-melee:build/load-editbox-20261005b/ and
+wc3-melee:build/first-helper-editbox-b/ in the integration lane. All helpers and
+virtual devices from these trials exited; the signed-in clients remain open.
