@@ -54,8 +54,6 @@ function copyFighter(FighterState source, FighterState destination, FighterRoste
 	destination.shieldRecoilZ = source.shieldRecoilZ
 	destination.shieldDrainResumePending = source.shieldDrainResumePending
 	destination.damage = source.damage
-	destination.grabVisualSerial = source.grabVisualSerial
-	destination.throwVisualSerial = source.throwVisualSerial
 	destination.hitVisualSerial = source.hitVisualSerial
 	destination.hitVisualElectric = source.hitVisualElectric
 	destination.shieldVisualSerial = source.shieldVisualSerial
@@ -300,10 +298,6 @@ function fighterDifference(FighterState expected, FighterState actual, FighterRo
 		return "shieldDrainResumePending"
 	if expected.damage != actual.damage
 		return "damage"
-	if expected.grabVisualSerial != actual.grabVisualSerial
-		return "grabVisualSerial"
-	if expected.throwVisualSerial != actual.throwVisualSerial
-		return "throwVisualSerial"
 	if expected.hitVisualSerial != actual.hitVisualSerial
 		return "hitVisualSerial"
 	if expected.hitVisualElectric != actual.hitVisualElectric
@@ -1092,8 +1086,6 @@ function canonicalFighter(CanonicalWriter writer, string prefix, FighterState fi
 	canonicalRealField(writer, prefix + ".shieldRecoilX", fighter.shieldRecoilX)
 	canonicalRealField(writer, prefix + ".shieldRecoilZ", fighter.shieldRecoilZ)
 	canonicalBoolean(writer, prefix + ".shieldDrainResumePending", fighter.shieldDrainResumePending)
-	canonicalInt(writer, prefix + ".grabVisualSerial", fighter.grabVisualSerial)
-	canonicalInt(writer, prefix + ".throwVisualSerial", fighter.throwVisualSerial)
 	canonicalInt(writer, prefix + ".hitVisualSerial", fighter.hitVisualSerial)
 	canonicalBoolean(writer, prefix + ".hitVisualElectric", fighter.hitVisualElectric)
 	canonicalInt(writer, prefix + ".shieldVisualSerial", fighter.shieldVisualSerial)

@@ -4,13 +4,7 @@ import ImpactEvents
 import Simulation
 
 public constant int IMPACTS_PER_KIND = 8
-public constant int IMPACT_GRAB = 10
-public constant int IMPACT_THROW = 11
-public constant int IMPACT_CHARGE = 12
-public constant int IMPACT_READY = 13
-public constant int IMPACT_LEDGE_CATCH = 14
-public constant int IMPACT_LEDGE_RECOVERY = 15
-public constant int IMPACT_KIND_COUNT = 16
+public constant int IMPACT_KIND_COUNT = 10
 public constant int IMPACT_COUNT = IMPACTS_PER_KIND * IMPACT_KIND_COUNT
 
 public tuple ImpactPose(boolean visible, int alpha, real scale, real x, real z, real pitch)
@@ -104,18 +98,6 @@ public class ImpactState
         driftZ[slot] = events.normalZ
 
     function emit(ImpactEvents events, int frame)
-        if events.grab
-            spawn(IMPACT_GRAB, events.x, events.z + 50, 0, 0.65)
-        if events.throwRelease
-            spawn(IMPACT_THROW, events.x, events.z + 50, 0, 1.1)
-        if events.charge
-            spawn(IMPACT_CHARGE, events.x, events.z + 50, 0, 0.5)
-        if events.ready
-            spawn(IMPACT_READY, events.x, events.z + 65, 0, 0.9)
-        if events.ledgeCatch
-            spawn(IMPACT_LEDGE_CATCH, events.ledgeX, events.ledgeZ, 0, 0.6)
-        if events.ledgeRecovery
-            spawn(IMPACT_LEDGE_RECOVERY, events.ledgeX, events.ledgeZ, 0, 0.8)
         if events.hit
             spawn(events.electric ? 5 : 0, events.x, events.z + 50, 0, 1.)
         if events.shieldHit

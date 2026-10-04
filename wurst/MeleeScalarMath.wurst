@@ -20,8 +20,8 @@ function segmentFor(real magnitude) returns atanSegment
     return atanSegment(0.4142135679721832, 0., 1.1715729236602783, 0., 1.1780970096588135, 0.0000002499999993688107)
 
 function atanPolynomial(real residual) returns real
-    let square = multiplyFloat32(residual, residual)
-    let cube = multiplyFloat32(square, residual)
+    let square = (residual * residual).roundToFloat32()
+    let cube = (square * residual).roundToFloat32()
     var coefficient = 0.04714243486523628
     coefficient = fusedMultiplyAddFloat32(coefficient, square, -0.08459755778312683)
     coefficient = fusedMultiplyAddFloat32(coefficient, square, 0.11041180044412613)
@@ -34,14 +34,14 @@ function positiveAtan(real magnitude) returns real
     if magnitude <= 0.4142135679721832
         return atanPolynomial(magnitude)
     if magnitude >= 2.4142136573791504
-        return subtractFloat32(HALF_PI, atanPolynomial(divideFloat32(1., magnitude)))
+        return (HALF_PI - atanPolynomial((1. / magnitude).roundToFloat32())).roundToFloat32()
     let segment = segmentFor(magnitude)
-    let denominator = addFloat32(segment.offsetHigh, addFloat32(magnitude, segment.offsetLow))
-    let inverse = divideFloat32(1., denominator)
+    let denominator = (segment.offsetHigh + (magnitude + segment.offsetLow).roundToFloat32()).roundToFloat32()
+    let inverse = (1. / denominator).roundToFloat32()
     let high = fusedMultiplyAddFloat32(-inverse, segment.numeratorHigh, segment.offsetHigh)
     let low = fusedMultiplyAddFloat32(-inverse, segment.numeratorLow, segment.offsetLow)
-    let residual = addFloat32(high, low)
-    return addFloat32(addFloat32(atanPolynomial(residual), segment.angleLow), segment.angleHigh)
+    let residual = (high + low).roundToFloat32()
+    return ((atanPolynomial(residual) + segment.angleLow).roundToFloat32() + segment.angleHigh).roundToFloat32()
 
 function hasNegativeSign(real value) returns boolean
     // IEEE reciprocal distinguishes the zeros that choose atan2's quadrant.
@@ -55,24 +55,24 @@ public function meleeAtan2(real y, real x) returns real
         if hasNegativeSign(vertical)
             return -HALF_PI
         return HALF_PI
-    let ratio = divideFloat32(vertical, horizontal)
+    let ratio = (vertical / horizontal).roundToFloat32()
     var angle = positiveAtan(ratio.abs())
     if hasNegativeSign(ratio)
         angle = -angle
     if horizontal < 0.
         if hasNegativeSign(vertical)
-            return subtractFloat32(angle, PI)
-        return addFloat32(angle, PI)
+            return (angle - PI).roundToFloat32()
+        return (angle + PI).roundToFloat32()
     return angle
 
 function quadrantIndex(real angle) returns int
-    let scaled = multiplyFloat32(angle, 0.6366197466850281)
+    let scaled = (angle * 0.6366197466850281).roundToFloat32()
     if angle < 0.
-        return subtractFloat32(scaled, 0.5).toInt()
-    return addFloat32(scaled, 0.5).toInt()
+        return (scaled - 0.5).roundToFloat32().toInt()
+    return (scaled + 0.5).roundToFloat32().toInt()
 
 function normalizedResidual(real angle, int quadrant) returns real
-    var residual = subtractFloat32(angle, multiplyFloat32(2., quadrant.toReal()))
+    var residual = (angle - 2. * quadrant).roundToFloat32()
     residual = fusedMultiplyAddFloat32(0.25, angle, residual)
     residual = fusedMultiplyAddFloat32(0.0232393741607666, angle, residual)
     residual = fusedMultiplyAddFloat32(0.00000017055572243407369, angle, residual)
@@ -114,10 +114,10 @@ public function meleeSin(real angle) returns real
     let sine = quadrantSine(quadrant)
     let cosine = quadrantCosine(quadrant)
     if residual.abs() < 0.0003452669770922512
-        return fusedMultiplyAddFloat32(multiplyFloat32(cosine, residual), 0.7853981852531433, sine)
-    let square = multiplyFloat32(residual, residual)
+        return fusedMultiplyAddFloat32((cosine * residual).roundToFloat32(), 0.7853981852531433, sine)
+    let square = (residual * residual).roundToFloat32()
     if sine != 0.
-        return multiplyFloat32(sine, evenPolynomial(square))
+        return sine * evenPolynomial(square)
     return (cosine * residual * oddPolynomial(square)).roundToFloat32()
 
 /** Binary32 cosine for finite angles in [-float32(pi), float32(pi)]. */
@@ -129,7 +129,7 @@ public function meleeCos(real angle) returns real
     let cosine = quadrantCosine(quadrant)
     if residual.abs() < 0.0003452669770922512
         return fusedMultiplyAddFloat32(-residual, sine, cosine)
-    let square = multiplyFloat32(residual, residual)
+    let square = (residual * residual).roundToFloat32()
     if cosine != 0.
-        return multiplyFloat32(cosine, evenPolynomial(square))
+        return cosine * evenPolynomial(square)
     return (-sine * residual * oddPolynomial(square)).roundToFloat32()

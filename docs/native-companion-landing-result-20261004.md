@@ -317,29 +317,3 @@ association does not establish the exact cause or receipt timing. Native-order
 transport remains unproved. Crash reports, dumps and replay remain private;
 authored observation and numerical ready/selection exports are retained in
 wc3-melee:docs/native-journal-packet-comparison-20261004/order0029/.
-
-
-## 0.0.31 deciding follow-up
-
-The four-arm 300-sample/client comparison completed with all 16 begin/end
-receipts and zero reported integrity errors. Generated changing content averaged
-86/68 ms; fresh FileIO changing content 3,170/3,064 ms; direct Preloader changing
-content 3,050/2,800 ms; fresh FileIO constant content 85/81 ms (A/B).
-The wrapper is not necessary to reproduce the delay; matched duration alone
-also does not reproduce it. The owning content-sensitive Preloader cause remains
-unresolved. Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/fileio0031/.
-
-The subsequent 30/60 Hz short transport diagnostic completed all 12 receipts.
-The two invalid direct values per observer/rate are minimum signed integers,
-serialized as `-2.147484e+09` and parsed as `-2`. All 60 own echoes arrived.
-Compiler root repair is in progress; selection extreme-value encoding also
-requires correction before ranking. Generated map Lua emits `-2147483648` and
-lowers I2S to tostring. Evidence and full timing table:
-wc3-melee:docs/warcraft-api-netcode-findings.md and
-wc3-melee:docs/native-journal-packet-comparison-20261004/transports0031/.
-
-Exact map SHA256 311214a2e6b4d1019be4f98c66e5cec2f8e136b3129f643b0f53de57ee88b9c9;
-zero build errors, 18 warnings; native slots 0/2 in one MATCH, spare slots closed.
-These are game-clock own-echo measurements. Competitive physical response,
-human fights, fairness and full acceptance remain open. PR #22 is merged;
-subsequent findings are a new publication checkpoint.

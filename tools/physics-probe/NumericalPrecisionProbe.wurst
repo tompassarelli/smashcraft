@@ -26,21 +26,16 @@ init
     else
         BJDebugMsg("SHIELD_STUN_BINARY32_EXACT_FAIL")
     let attacker = new FighterState(1, 100, -1)
-    let world = new FighterRoster(3)
-    world.fighters[0] = fighter
-    world.fighters[1] = attacker
     fighter.shield = true
     fighter.shieldEnergy = 8
     beginDamageContacts()
     queueDamageContact(attacker, fighter, hitEffect(9, 0, 0, 0, 0, false), 1, CONTACT_DAMAGE_ONLY, false, null)
     queueDamageContact(attacker, fighter, hitEffect(1, 0, 0, 0, 0, false), 1, CONTACT_DAMAGE_ONLY, false, null)
-    finishDamageContacts(world)
+    finishDamageContacts(attacker, fighter)
     if fighter.shieldEnergy == 1.
         BJDebugMsg("SHIELD_CONTACT_SUM_BINARY32_EXACT_PASS")
     else
         BJDebugMsg("SHIELD_CONTACT_SUM_BINARY32_EXACT_FAIL")
-        BJDebugMsg("SHIELD_CONTACT_SUM_ACTUAL=" + R2SW(fighter.shieldEnergy, 0, 12) + " EXPECTED=1.0")
-    destroy world
     destroy attacker
     destroy input
     destroy fighter

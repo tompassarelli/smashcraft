@@ -5,25 +5,18 @@ import NativePhysicsSource
 
 int messages = 0
 boolean failed = false
-string array records
-int passingGroups = 0
 
 public function reportPhysicsProbe(string message)
-	records[messages] = message
 	messages++
 	if message.length() >= 5 and message.substring(message.length() - 5, message.length()) == "_FAIL"
 		failed = true
-	if message.length() >= 5 and message.substring(message.length() - 5, message.length()) == "_PASS"
-		passingGroups++
+	Preload(message)
 	BJDebugMsg(message)
 
 init
+	PreloadGenStart()
 	doAfter(0.01) ->
-		// Package initialization order must not control which results survive export.
-		PreloadGenStart()
 		Preload("SOURCE " + PHYSICS_SOURCE)
-		for i = 0 to messages - 1
-			Preload(records[i])
 		Preload("MESSAGES " + I2S(messages))
-		Preload(failed or passingGroups != 16 or messages != 19 ? "NATIVE_PHYSICS_FAIL" : "NATIVE_PHYSICS_COMPLETED")
+		Preload(failed ? "NATIVE_PHYSICS_FAIL" : "NATIVE_PHYSICS_COMPLETED")
 		PreloadGenEnd("smashcraft-native-physics-precision.txt")

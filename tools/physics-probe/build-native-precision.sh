@@ -5,15 +5,13 @@ base_map=$(realpath -- "${1:?Usage: build-native-precision.sh PRIVATE_BASE_MAP.w
 map_version=${2:?Supply the version agreed with concurrent map developers.}
 [[ "$map_version" =~ ^0\.0\.[1-9][0-9]*$ ]] || { echo 'Version must be 0.0.N with positive N.' >&2; exit 2; }
 compiler="$project_dir/toolchain/wurstscript.jar"
-stdlib=/home/tom/code/wurst-stdlib/pins/e3714f629113
+stdlib=/home/tom/code/wurst-stdlib/pins/bb1e0458db5a
 packager="$project_dir/build/tools/map-pack"
-[[ $(sha256sum "$compiler" | cut -d ' ' -f1) == 9495b1f3ad1f1baf53335934e9152874773e6c735b0e5db819b3e7f06c82ed15 ]]
-[[ $(git -C "$stdlib" rev-parse HEAD) == e3714f629113ee682353c3244065fee3e7d9ae16 ]]
+[[ $(sha256sum "$compiler" | cut -d ' ' -f1) == 2ed2ee8cf563aedaef7e384b2e0c68f50a306144e99fa506b90935c62b64a18a ]]
+[[ $(git -C "$stdlib" rev-parse HEAD) == bb1e0458db5a372ba2a6928112452785e435d01a ]]
 [[ -x "$packager" && -s "$base_map" ]]
 mkdir -p "$project_dir/build/physics-probe"
-private_build_root="$HOME/.local/share/smashcraft-build-inputs/$(basename -- "$project_dir")"
-mkdir -p "$private_build_root"
-build_dir=$(mktemp -d "$private_build_root/native.XXXXXX")
+build_dir=$(mktemp -d "$project_dir/build/physics-probe/native.XXXXXX")
 mkdir -p "$build_dir/wurst" "$build_dir/_build/dependencies"
 bun=${BUN:-/nix/store/g7skjk9lrdnshaxd7px62bchq6yg0bbh-bun-1.3.13/bin/bun}
 for generator in generate-air-cutoff-probe generate-signed-zero-probe generate-recorded-fall-probe generate-air-decrement-probe generate-ground-motion-probe generate-hitstun-probe generate-launch-magnitude-probe generate-hitlag-probe generate-analog-shield-probe generate-di-probe generate-capsule-probe; do

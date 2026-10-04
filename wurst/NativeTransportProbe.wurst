@@ -36,8 +36,6 @@ int array duplicates
 int array sendFailures
 int array sent
 boolean array seen
-int array actualValues
-string array directWires
 real array submittedAt
 real array echoTotal
 real array echoMax
@@ -96,7 +94,6 @@ function recordValue(int observer, int sender, int rate, int whichArm, int seq, 
         duplicates[index]++
         return
     seen[sampleIndex] = true
-    actualValues[sampleIndex] = value
     if value != testValue(sender, seq, rate)
         bad[index]++
     else
@@ -136,15 +133,6 @@ function writeReceipt(int observer, int rate, int whichArm)
     Preload("observer=" + I2S(observer) + " rate=" + I2S(rate == 0 ? 30 : 60) + " arm=" + I2S(whichArm))
     Preload("expected=" + I2S(expected) + " received=" + I2S(got) + " missing=" + I2S(expected - got))
     Preload("bad=" + I2S(badTotal) + " duplicates=" + I2S(duplicateTotal) + " send-failures=" + I2S(sendFailureTotal))
-    for sender = 0 to INPUT_PARTICIPANT_CAPACITY - 1
-        if participantIsActive(activeMask, sender)
-            let index = receiptIndex(observer, sender, phase)
-            for seq = 0 to NTP_SAMPLES - 1
-                let sampleIndex = index * NTP_SAMPLES + seq
-                if seen[sampleIndex] and actualValues[sampleIndex] != testValue(sender, seq, rate)
-                    Preload("invalid sender=" + I2S(sender) + " seq=" + I2S(seq) + " expected=" + I2S(testValue(sender, seq, rate)) + " actual=" + I2S(actualValues[sampleIndex]))
-                    if whichArm == 0
-                        Preload("invalid wire=" + directWires[sampleIndex])
     Preload("own-echo-count=" + I2S(ageCount) + " mean-native-seconds=" + R2S(ageCount > 0 ? ageSum / ageCount : 0) + " max-native-seconds=" + R2S(ageMax))
     Preload("native-game-seconds=" + R2S(TimerGetElapsed(probeClock)) + " phase-seconds=" + R2S(TimerGetElapsed(probeClock) - phaseStartedAt[phase]))
     PreloadGenEnd("smashcraft-transport-" + BUILD_ID + "-observer-" + I2S(observer) + "-r" + I2S(rate) + "-a" + I2S(whichArm) + ".txt")
@@ -283,8 +271,6 @@ public function nativeTransportProbeReceive(int sender, string wire) returns boo
     let value = S2I(wire.substring(8, wire.length()))
     if rate < 0 or rate >= NTP_RATES or whichArm != 0 or seq < 0 or seq >= NTP_SAMPLES
         return true
-    let index = receiptIndex(observer, sender, phaseIndex(rate, whichArm)) * NTP_SAMPLES + seq
-    directWires[index] = wire
     recordValue(observer, sender, rate, whichArm, seq, value)
     return true
 
@@ -376,8 +362,6 @@ function beginProbe()
                 echoCount[index] = 0
                 for seq = 0 to NTP_SAMPLES - 1
                     seen[index * NTP_SAMPLES + seq] = false
-                    actualValues[index * NTP_SAMPLES + seq] = 0
-                    directWires[index * NTP_SAMPLES + seq] = ""
                     if observer == sender
                         submittedAt[timingIndex(sender, phase, seq)] = 0
     for phase = 0 to NTP_PHASES - 1

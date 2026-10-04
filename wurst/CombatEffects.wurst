@@ -37,12 +37,8 @@ public class CombatEffects
                 path = IMPACT_KO_MODEL
             else if kind == 9
                 path = IMPACT_RESPAWN_MODEL
-            else if kind == IMPACT_GRAB or kind == IMPACT_CHARGE
+            else if kind == 10
                 path = IMPACT_SHIELD_MODEL
-            else if kind == IMPACT_THROW or kind == IMPACT_LEDGE_RECOVERY
-                path = IMPACT_JUMP_MODEL
-            else if kind == IMPACT_READY or kind == IMPACT_LEDGE_CATCH
-                path = IMPACT_TECH_MODEL
             let model = AddSpecialEffect(path, x, y)
             BlzSetSpecialEffectAlpha(model, 0)
             BlzSetSpecialEffectScale(model, 0.)
