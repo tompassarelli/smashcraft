@@ -23,26 +23,31 @@ Unrelated mushroom/shield timer helpers return zero; linked fighters and
 per-fighter callbacks are absent. Full animation, collision and recovery action
 execution remain outside this observation.
 
-| Supplied input sequence | Original observed result | Current production discrepancy |
+| Supplied input sequence | Original observed result | Production rule |
 | --- | --- | --- |
-| Existing input age 10, three frozen input frames, one unfrozen frame | Age 11, 12, 13, then 14 | Production pauses the window during frozen frames |
-| Press on first of three frozen frames, hold through release | First prior-press interval 255, then 0; ineligible on release | Production gives the early press one post-freeze opportunity |
-| Press on last frozen frame, then hold on unfrozen frame | Age 0 then 1, prior interval 255; eligible, with 19 remaining contact frames | Production gives this early-countdown press only one post-freeze opportunity |
-| Press on first unfrozen frame | Age 0, prior interval 255; eligible | Normal fresh-press window remains 20 contact frames |
-| Press, release, second press 40 input ticks later | Stored prior age 39; ineligible | Production currently accepts this second press |
-| Press, release, second press 41 input ticks later | Stored prior age 40; eligible | Required repeat-press boundary |
+| Existing input age 10, three frozen input frames, one unfrozen frame | Age 11, 12, 13, then 14 | Current press age advances on every input frame, including hitlag |
+| Press on first of three frozen frames, hold through release | First prior-press interval 255, then 0; ineligible on release | Repeated accumulated frozen presses update the prior age; this press is ineligible after release |
+| Press on last frozen frame, then hold on unfrozen frame | Age 0 then 1, prior interval 255; eligible, with 19 remaining contact frames | The derived contact window is 19 on release |
+| Press on first unfrozen frame | Age 0, prior interval 255; eligible | The derived contact window is 20 |
+| Press, release, second press 40 input ticks later | Stored prior age 39; ineligible | The derived window is 0 |
+| Press, release, second press 41 input ticks later | Stored prior age 40; eligible | The derived window is 20 |
 
 The scalar gate's common-data minimum is 40, but it reads the previous age
 before resetting the counter. Consequently the minimum elapsed input-tick gap
 between these digital presses is 41. A common-value match alone does not prove
 that a countdown uses the correct frame convention.
 
-These results identify production corrections still required after the shared
-input/physics-tree integration. They do not establish a complete original
-match trajectory or native Warcraft timing. Existing implementation tests that
-assert paused aging or the 40-tick repeat convention must be replaced with the
-observed behavior as part of the owning correction; passing them cannot certify
-retail parity.
+Production stores the current press age, the prior press interval recorded on a
+new edge, and whether a press edge is accumulated during hitlag. It advances
+this input state after decrementing hitlag and before fighter-state early
+returns. The contact window is derived from the current age and prior interval,
+rather than a countdown paused by hitlag. Reset, stock loss, replay copy, replay
+comparison, and replay checksum include the exact state.
+
+Production checks: `SimulationTests` passed 203/203 and `ReplayStateTests`
+passed 11/11 on the combined four-player source tree. These deterministic tests
+verify the recorded boundaries and replay state. They do not establish a
+complete original match trajectory or native Warcraft callback behavior.
 
 Original executable and extracted common-data files, including the runner's
 original-containing ELF, remain private outside repositories. The public record

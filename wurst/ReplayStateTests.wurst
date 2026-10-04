@@ -90,6 +90,9 @@ import MatchStep
     first.jumpInputAge = 7
     first.surfaceWallJumpQueued = true
     first.techWindow = 11
+    first.techPressAge = 9
+    first.techPreviousPressAge = 43
+    first.techAccumulatedPress = true
     first.projectileLife[3] = 27
     first.projectileX[3] = -44.25
     first.projectileZ[3] = 81.5
@@ -143,6 +146,9 @@ import MatchStep
     first.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
     first.surfaceWallJumpQueued = false
     first.techWindow = 0
+    first.techPressAge = 255
+    first.techPreviousPressAge = 255
+    first.techAccumulatedPress = false
     first.projectileLife[3] = 0
     first.projectileX[3] = 0
     first.projectileZ[3] = 0
@@ -199,8 +205,23 @@ import MatchStep
     first.jumpDodgeZ.assertEquals(1)
     first.jumpInputAge.assertEquals(7)
     first.surfaceWallJumpQueued.assertTrue()
+    first.techPressAge.assertEquals(9)
+    first.techPreviousPressAge.assertEquals(43)
+    first.techAccumulatedPress.assertTrue()
     actual.capture(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
     snapshot.firstDifference(actual).assertEquals("")
+    first.techPressAge = 10
+    actual.capture(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
+    snapshot.firstDifference(actual).assertEquals("fighter[0].techPressAge")
+    first.techPressAge = 9
+    first.techPreviousPressAge = 44
+    actual.capture(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
+    snapshot.firstDifference(actual).assertEquals("fighter[0].techPreviousPressAge")
+    first.techPreviousPressAge = 43
+    first.techAccumulatedPress = false
+    actual.capture(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
+    snapshot.firstDifference(actual).assertEquals("fighter[0].techAccumulatedPress")
+    first.techAccumulatedPress = true
     first.surfaceWallJumpQueued = false
     actual.capture(testWorld(first, second), match, testCommands(firstCommands, secondCommands), runtime)
     snapshot.firstDifference(actual).assertEquals("fighter[0].surfaceWallJumpQueued")
