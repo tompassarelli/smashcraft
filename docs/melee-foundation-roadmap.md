@@ -51,8 +51,10 @@ original hitlag/input-driver execution establishes aging through frozen frames
 and exposes production discrepancies: accumulated early presses become
 ineligible, a last-frozen-frame press retains 19 contact frames on release,
 and repeat presses require 41 elapsed input ticks. The independently authored
-counter rule passes three focused tests, but production integration remains
-pending. See smashcraft:docs/melee-tech-input.md.
+counter rule passes three focused tests and now drives production input aging,
+contact eligibility and replay/reset state. The connected SimulationTests pass
+203/203 and ReplayStateTests pass 11/11; the combined check is pending. See
+smashcraft:docs/melee-tech-input.md.
 Evidence is retained in smashcraft:docs/smash-melee-reference/surface-action-boundaries.md.
 The prior contact integration passed 566/566; the earlier check passed 561/561 after shield-fixture
 deduplication; the earlier aggregate passed 592/592 before that deduplication. The
@@ -105,7 +107,8 @@ The latest combined candidate is Smashcraft 0.0.30, source
 development 8d47b00 with the verified physics lane, preserving four-player
 simulation/replay. The combined integration suite passed 634/634 before the
 parent's three independently checked TechInput tests were added to its source
-list. Production tech-counter wiring remains pending. The map built with zero
+list. Subsequent production tech-counter wiring is not in this artifact and
+requires a rebuilt candidate before native testing. The map built with zero
 errors and 23 warnings. SHA-256:
 da35042913f0057a9008e590c8be6454d27d738221738caa71c8d9bac43785a0.
 Artifact: ~/.local/share/smashcraft-build-inputs/production-netcode-20261004/build/Smashcraft 0.0.30.w3x.
