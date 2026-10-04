@@ -7,10 +7,12 @@ upstream article does not update it.
 
 ## Input guarantee lookup — questions have durable owners
 
-Start with wc3-melee:docs/netplay-status.md. Read the linked issue's current body, latest relevant comments and exact
-candidate evidence before answering a Smashcraft performance question.
-Use memory only to locate evidence. Do not restart the investigation from a
-generic explanation or create duplicate issues.
+Use wc3-melee:docs/netplay-status.md and the owning issue's current body for
+Smashcraft performance questions. Reuse evidence already established for the
+unchanged candidate; inspect raw traces and comments when the question needs
+new detail or a relevant change or counterexample challenges the verdict.
+A repeated status question needs the current answer, not a fresh investigation
+or duplicate issue.
 
 | User's question | Acceptance issue |
 | --- | --- |
@@ -22,8 +24,10 @@ These issues refine #17's integrated acceptance under roadmap #16; they do not
 replace the existing implementation lane, #18 controller/platform work,
 #19 hosting comparison, or #17's consolidated full-match acceptance.
 
-Answer with the verdict, issue number, exact build/path, supporting evidence,
-limits and next unresolved gate. Distinguish measured support, code-only support,
+Answer with the verdict, issue link, and material limitation. Include the exact
+build and evidence detail when they change the answer or are requested; link
+the existing record instead of reproducing it in every update.
+Distinguish measured support, code-only support,
 failed counterexamples, blocked/unverified work and inference. Say “solved in
 #N” only when its accepted result supports the exact claim and later changes have
 not invalidated it. **#21 closed a timeboxed HOLD decision; input guarantees
@@ -46,11 +50,12 @@ Keep bounded completed claims #28–#30 closed absent a relevant change or concr
 counterexample. This reporting procedure does not trigger an audit for unrelated
 asset or balance edits.
 
-For new evidence, update the owning issue with exact candidate/source identity,
-independent stimulus/oracle, sample count, uncertainty, raw traces, reproduction,
-current conclusion and remaining limitation. Preserve failed/superseded findings
-with dates. Close only for an accepted result or an explicit documented
-disposition; do not silently convert investigation completion into success.
+For a material new result, update the owning issue's verdict and link the
+reproduction/evidence record. Keep candidate identity, stimulus, sample size
+and limitations with that record; do not duplicate them across comments and
+documents. Preserve failed/superseded findings with dates. Close only for an
+accepted result or an explicit documented disposition; do not silently convert
+investigation completion into success.
 
 ## Source and workflow
 
