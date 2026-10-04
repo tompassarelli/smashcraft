@@ -1,0 +1,23 @@
+{
+  "id": "ntsc-1.02-tumble-exit-input",
+  "commonDataSha1": "c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41",
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "values": [
+    {
+      "offset": "0x008",
+      "name": "horizontal_smash_deadzone",
+      "value": 0.25
+    },
+    {
+      "offset": "0x210",
+      "name": "tumble_exit_horizontal_threshold",
+      "value": 0.800000011920929
+    },
+    {
+      "offset": "0x214",
+      "name": "tumble_exit_input_age_exclusive_limit",
+      "value": 1
+    }
+  ],
+  "scope": "Numerical common-data facts only; no original input/state execution or native trace is certified."
+}

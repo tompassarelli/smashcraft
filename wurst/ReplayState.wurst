@@ -108,6 +108,7 @@ function copyFighter(FighterState source, FighterState destination,
 	destination.fastFalling = source.fastFalling
 	destination.fastFallDownHeld = source.fastFallDownHeld
 	destination.fastFallInputAge = source.fastFallInputAge
+	destination.previousHorizontalDirection = source.previousHorizontalDirection
 	destination.jumpInputAge = source.jumpInputAge
 	destination.jumps = source.jumps
 	destination.jumpSerial = source.jumpSerial
@@ -424,6 +425,8 @@ function fighterDifference(FighterState expected, FighterState actual,
 		return "fastFallDownHeld"
 	if expected.fastFallInputAge != actual.fastFallInputAge
 		return "fastFallInputAge"
+	if expected.previousHorizontalDirection != actual.previousHorizontalDirection
+		return "previousHorizontalDirection"
 	if expected.jumpInputAge != actual.jumpInputAge
 		return "jumpInputAge"
 	if expected.fastFalling != actual.fastFalling

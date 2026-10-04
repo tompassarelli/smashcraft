@@ -540,6 +540,7 @@ public class FighterState
 	boolean fastFalling = false
 	boolean fastFallDownHeld = false
 	int fastFallInputAge = FAST_FALL_INPUT_WINDOW
+	int previousHorizontalDirection = 0
 	int jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
 	int jumps = 2
 	int jumpSerial = 0
@@ -3461,6 +3462,7 @@ public function reset(FighterState f, real startX)
 	f.fastFalling = false
 	f.fastFallDownHeld = false
 	f.fastFallInputAge = FAST_FALL_INPUT_WINDOW
+	f.previousHorizontalDirection = 0
 	f.jumpInputAge = WALL_TECH_JUMP_INPUT_WINDOW_FRAMES
 	f.crouching = false
 	f.dashGrabWindow = 0
@@ -3606,6 +3608,9 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 	let downHeld = (input.down ? 1. : 0.) >= FAST_FALL_DOWN_THRESHOLD
 	f.fastFallInputAge = downHeld ? (f.fastFallDownHeld ? min(FAST_FALL_INPUT_WINDOW, f.fastFallInputAge + 1) : 0) : FAST_FALL_INPUT_WINDOW
 	f.fastFallDownHeld = downHeld
+	// Digital directions exceed the retail 0.8 tumble-exit threshold; its window is one input frame.
+	let freshHorizontalInput = input.direction != 0 and input.direction != f.previousHorizontalDirection
+	f.previousHorizontalDirection = input.direction
 	// Expiry resumes this frame, including input gates and state countdowns.
 	let hitlagBefore = f.hitlag
 	f.hitlag = max(0, f.hitlag - 1)
@@ -3815,6 +3820,9 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 	if lateDashGuardEntry
 		f.dashGrabWindow = 3
 	var direction = input.direction
+	if isTumbling(f) and not f.grounded and f.hitstun <= 0 and f.hitlag <= 0 and freshHorizontalInput
+		clearDownState(f)
+		f.vx = max(-f.physics.airSpeed, min(f.physics.airSpeed, f.vx))
 	var dashEntryDisplacementAdjustment = 0.
 	let canSteer = f.downState == DOWN_NONE and f.hitstun <= 0 and (not f.airDodging or not dodgeActive) and not isGroundDodging(f) and f.shieldReleaseLag <= 0 and f.landingLag <= 0 and f.shieldStun <= 0 and f.jumpSquat <= 0 and not smashChargePaused and (not f.grounded or f.cooldown <= 0)
 		and f.surfaceRecoveryState != SURFACE_TECH_WALL

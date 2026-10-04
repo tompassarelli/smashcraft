@@ -41,7 +41,28 @@ These are independently described control-flow observations, not copied game
 implementation. Numerical animation lengths are recorded separately in
 smashcraft:docs/smash-melee-reference/retail-action-lengths.json.
 
-## Ordinary movement is not a damage rebound
+## Digital tumble exit
+
+smashcraft:docs/smash-melee-reference/retail-tumble-exit.json records the
+revision-identified common data: horizontal magnitude threshold
+0.800000011920929 and input age strictly below 1. The independently described
+DamageFall input behavior allows ordinary Fall after hitstun on that fresh
+horizontal input. For the digital -1/0/+1 controls, a press from neutral or a
+reversal exceeds the threshold and starts input age zero; continued holding
+does not. Production now leaves tumble on this input, clamps ordinary aerial
+self-velocity and permits ordinary drift. Input history is retained in replay
+and cleared on reset. The focused RecoveryTests passed 20/20, including a
+direction held through hitstun and a subsequent reversal, plus replay/reset.
+Evidence: smashcraft:build/tumble-exit-focused.log.
+The assembled suite passed 571/571 with zero errors and one existing warning
+(smashcraft:build/tumble-exit-aggregate.log), including the corrected wall
+fixture and the preceding weak-damage surface eligibility change.
+
+This establishes the digital projection of the rule. Analog input magnitudes,
+full retail callback priority, independent executable/frame-trace parity and
+native behavior remain unverified. The 0.0.15 map predates this correction.
+
+## Wall and ceiling eligibility
 
 Weak airborne Damage also does not select wall/ceiling recovery. At the
 recorded reference revision, its collision callback handles grounding;

@@ -5,6 +5,49 @@ import MatchRules
 import CommandBuffer
 import MatchStep
 
+@Test function tumbleExitRequiresFreshHorizontalInputAfterHitstun()
+	let fighter = new FighterState(0, 0, 1)
+	let input = new InputSnapshot()
+	fighter.grounded = false
+	fighter.z = 300
+	fighter.downState = DOWN_TUMBLE
+	fighter.hitstun = 2
+	input.direction = 1
+	advance(fighter, 0, input, 0)
+	fighter.downState.assertEquals(DOWN_TUMBLE)
+	advance(fighter, 0, input, 0)
+	fighter.hitstun.assertEquals(0)
+	fighter.downState.assertEquals(DOWN_TUMBLE)
+	input.direction = -1
+	advance(fighter, 0, input, 0)
+	fighter.downState.assertEquals(DOWN_NONE)
+	fighter.vx.assertLessThan(0.)
+	destroy input
+	destroy fighter
+
+@Test function tumbleExitInputHistoryIsCopiedAndReset()
+	let fighter = new FighterState(0, 0, 1)
+	let copied = new FighterState(0, 0, 1)
+	let match = new MatchState()
+	let firstCommands = new AttackBuffer(0)
+	let secondCommands = new AttackBuffer(1)
+	let runtime = new ReplayRuntimeState()
+	let snapshot = new ReplaySnapshot()
+	fighter.previousHorizontalDirection = -1
+	snapshot.capture(fighter, copied, match, firstCommands, secondCommands, runtime)
+	fighter.previousHorizontalDirection = 1
+	snapshot.restore(fighter, copied, match, firstCommands, secondCommands, runtime)
+	fighter.previousHorizontalDirection.assertEquals(-1)
+	reset(fighter, 0)
+	fighter.previousHorizontalDirection.assertEquals(0)
+	destroy snapshot
+	destroy runtime
+	destroy secondCommands
+	destroy firstCommands
+	destroy match
+	destroy copied
+	destroy fighter
+
 @Test function airborneDamageLandingMatchesOriginalInclusiveSpeedBranches()
 	airborneDamageLandingReaction(0.).assertEquals(DAMAGE_LANDING_RETAIN_STUN)
 	airborneDamageLandingReaction(0.4999999701976776).assertEquals(DAMAGE_LANDING_RETAIN_STUN)
