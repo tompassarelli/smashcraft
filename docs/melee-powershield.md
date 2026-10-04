@@ -118,6 +118,17 @@ double-precision squared-distance comparison rejects it. Projection and distance
 rounding remain to be established; simply matching symmetric tangency cases is
 insufficient. The production helper is not exact and this defect blocks its
 claim of Melee collision fidelity. All original executions remain unpatched.
+The same three counterexamples now include original contact coordinates and
+signed contact-distance output. The first two report positive overlap
+1.1920928955078125e-7; the third reports negative overlap
+-2.980232238769531e-7. These values distinguish calculation differences from a
+simple change to the final inclusive comparison. The first reported contact
+coordinate also differs from its nearest endpoint, so a final square-root
+replacement alone has not been shown to repair the original path.
+Facts: smashcraft:docs/smash-melee-reference/retail-shield-capsule-details.json.
+Observer: smashcraft:tools/physics-probe/observe-shield-capsule-details.mjs.
+The observer executes the full unchanged routine and records its capsule output
+fields, with the same synthetic geometry limitations as the original cases.
 Projectile travel is tested against
 the swept circle in the simulation's x/z plane. Reflection transfers ownership
 to the defender and applies the observed common damage multiplier `0.5` and

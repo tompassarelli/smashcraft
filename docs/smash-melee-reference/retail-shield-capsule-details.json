@@ -1,0 +1,72 @@
+{
+  "id": "retail-ntsc-1.02-shield-capsule-details",
+  "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+  "inputs": {
+    "plane": "original x/y; z=0",
+    "shieldCenter": [
+      0,
+      0,
+      0
+    ],
+    "forceContact": false
+  },
+  "referenceRevision": "0296f009f32f710495979d30772d8332af2d411a",
+  "execution": {
+    "cpu": "private Gekko interpreter",
+    "routine": "0x80007BCC",
+    "returnPatches": [],
+    "exitCode": 0
+  },
+  "limitations": [
+    "Synthetic capsule endpoints, cached shield position and identity joint matrix.",
+    "Interpreter host exports a fixed larger buffer; only the authored result rows are consumed.",
+    "Does not establish shield-versus-body priority, animation placement or native execution."
+  ],
+  "results": [
+    {
+      "startX": 0.2273183912038803,
+      "startZ": 1.8602772951126099,
+      "endX": 2.7224481105804443,
+      "endZ": 7.7711381912231445,
+      "hitRadius": 0,
+      "shieldRadius": 1.8741145133972168,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": true,
+      "productionDoubleClassification": false,
+      "contactX": 0.22731831669807434,
+      "contactZ": 1.8602774143218994,
+      "contactDistance": 1.1920928955078125e-7
+    },
+    {
+      "startX": 9.86154556274414,
+      "startZ": -6.86391019821167,
+      "endX": -5.6012959480285645,
+      "endZ": 7.704383373260498,
+      "hitRadius": 0,
+      "shieldRadius": 1.7665791511535645,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": true,
+      "productionDoubleClassification": false,
+      "contactX": 1.2114131450653076,
+      "contactZ": 1.285799503326416,
+      "contactDistance": 1.1920928955078125e-7
+    },
+    {
+      "startX": 8.760266304016113,
+      "startZ": 6.5879974365234375,
+      "endX": -8.983579635620117,
+      "endZ": -8.832010269165039,
+      "hitRadius": 0,
+      "shieldRadius": 0.7736536860466003,
+      "hitScale": 1,
+      "shieldScale": 1,
+      "intersects": false,
+      "productionDoubleClassification": true,
+      "contactX": 0.5074781775474548,
+      "contactZ": -0.5839571356773376,
+      "contactDistance": -2.980232238769531e-7
+    }
+  ]
+}
