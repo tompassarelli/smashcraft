@@ -43,6 +43,26 @@ smashcraft:docs/smash-melee-reference/retail-action-lengths.json.
 
 ## Ordinary movement is not a damage rebound
 
+Weak airborne Damage also does not select wall/ceiling recovery. At the
+recorded reference revision, its collision callback handles grounding;
+DamageFly's callback separately checks wall/ceiling contact for recovery.
+Production now requires the modeled tumble state for wall/ceiling tech or
+reflection, rather than accepting hitstun alone. The contact fixture separates
+ordinary motion, non-tumbling damage and tumbling damage at both surfaces;
+a second fixture retains stun and the unused tech window on weak-damage
+contact. Existing reflection fixtures now explicitly enter tumble, retaining
+their velocity, threshold and normal assertions.
+The assembled check passed 568/569; its sole failure was the exterior-wall
+fixture's missing tumble setup. After giving that reflection fixture its
+intended damage-flight state, its unchanged assertions passed 1/1.
+Evidence: smashcraft:build/weak-damage-surface-aggregate.log and
+smashcraft:build/weak-damage-wall-fixture.log. The source correction is newer
+than the 0.0.15 candidate and is not packaged in that map.
+
+This corrects weak-Damage eligibility. It does not establish a complete mapping
+of DamageFly, DamageFall and FlyReflect states, independent retail contact
+traces, or native collision behavior.
+
 At reference revision `0296f009f32f710495979d30772d8332af2d411a`,
 melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c dispatches wall/ceiling
 reflection from the damage-flight collision callback. Ordinary Fall and

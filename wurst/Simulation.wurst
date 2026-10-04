@@ -2323,7 +2323,7 @@ function resolveSolidSurfaceContact(FighterState f, int stage, int index, real o
 	f.surfaceRecoveryFrame = 0
 	f.surfaceRecoveryVelocityApplied = false
 	f.surfaceWallJumpQueued = false
-	if f.surfaceReflectCooldown == 0 and f.techWindow > 0 and (f.hitstun > 0 or isTumbling(f))
+	if f.surfaceReflectCooldown == 0 and f.techWindow > 0 and isTumbling(f)
 		eventKind = solidSurfaceKind(stage, index) == SURFACE_WALL ? SURFACE_TECH_WALL : SURFACE_TECH_CEILING
 		f.techWindow = 0
 		f.hitstun = 0
@@ -2349,7 +2349,7 @@ function resolveSolidSurfaceContact(FighterState f, int stage, int index, real o
 		if inwardKbSpeed < 0
 			f.knockbackX -= inwardKbSpeed * nx
 			f.knockbackZ -= inwardKbSpeed * nz
-	else if (f.hitstun > 0 or isTumbling(f)) and f.surfaceReflectCooldown == 0 and surfaceKey != f.lastReflectedSurface and inwardKnockback > SURFACE_REFLECT_SPEED_THRESHOLD
+	else if isTumbling(f) and f.surfaceReflectCooldown == 0 and surfaceKey != f.lastReflectedSurface and inwardKnockback > SURFACE_REFLECT_SPEED_THRESHOLD
 		let combinedX = f.vx + f.knockbackX
 		let combinedZ = f.vz + f.knockbackZ
 		let inwardSpeed = combinedX * nx + combinedZ * nz

@@ -4669,18 +4669,19 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 
 @Test function surfaceReflectionRequiresDamageRecovery()
 	for surface = 0 to 1
-		for recovering = 0 to 1
+		for recovering = 0 to 2
 			let fighter = new FighterState(0, surface == 0 ? -425. : -265., 1)
 			let input = new InputSnapshot()
 			fighter.grounded = false
 			fighter.z = surface == 0 ? 160. : 140.
 			fighter.knockbackX = surface == 0 ? 12. : 0.
 			fighter.knockbackZ = surface == 1 ? 12. : 0.
-			fighter.hitstun = recovering == 1 ? 8 : 0
+			fighter.hitstun = recovering > 0 ? 8 : 0
+			fighter.downState = recovering == 2 ? DOWN_TUMBLE : DOWN_NONE
 			advance(fighter, 1, input, 0)
 			fighter.surfaceContactSerial.assertEquals(1)
 			let normalLaunch = surface == 0 ? fighter.knockbackX : fighter.knockbackZ
-			if recovering == 1
+			if recovering == 2
 				normalLaunch.assertLessThan(0)
 			else
 				normalLaunch.assertEquals(0.)
@@ -4688,12 +4689,32 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 			destroy input
 			destroy fighter
 
+@Test function weakAirborneDamageCannotWallOrCeilingTech()
+	for surface = 0 to 1
+		let fighter = new FighterState(0, surface == 0 ? -425. : -265., 1)
+		let input = new InputSnapshot()
+		fighter.grounded = false
+		fighter.z = surface == 0 ? 160. : 140.
+		fighter.knockbackX = surface == 0 ? 12. : 0.
+		fighter.knockbackZ = surface == 1 ? 12. : 0.
+		fighter.hitstun = 8
+		fighter.damageLevel = 2
+		fighter.techWindow = 3
+		advance(fighter, 1, input, 0)
+		fighter.surfaceContactSerial.assertEquals(1)
+		fighter.surfaceRecoveryState.assertEquals(SURFACE_NONE)
+		fighter.hitstun.assertEquals(7)
+		fighter.techWindow.assertGreaterThan(0)
+		destroy input
+		destroy fighter
+
 @Test function retailSurfaceThresholdReflectsCombinedVelocityAtPlayableWallAndReportsContact()
 	let fighter = new FighterState(0, -425, 1)
 	let input = new InputSnapshot()
 	fighter.grounded = false
 	fighter.z = 160
 	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
 	fighter.vx = -2
 	fighter.knockbackX = 12
 	advance(fighter, 1, input, 0)
@@ -4717,6 +4738,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.grounded = false
 	fighter.z = 160
 	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
 	fighter.knockbackX = (SURFACE_REFLECT_SPEED_THRESHOLD + 0.305)
 	advance(fighter, 1, input, 0)
 	fighter.x.assertEquals(-420)
@@ -4731,6 +4753,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 	fighter.grounded = false
 	fighter.z = 140
 	fighter.hitstun = 8
+	fighter.downState = DOWN_TUMBLE
 	fighter.knockbackZ = 12
 	advance(fighter, 1, input, 0)
 	fighter.z.assertEquals(145.7, 0.001)
@@ -5201,6 +5224,7 @@ function catchTestLedge(FighterState fighter, InputSnapshot input)
 			fighter.grounded = false
 			fighter.z = 160
 			fighter.hitstun = 8
+			fighter.downState = DOWN_TUMBLE
 			fighter.knockbackX = -side * 12.
 			advance(fighter, 1, input, 0)
 			fighter.x.assertEquals(wallX)
