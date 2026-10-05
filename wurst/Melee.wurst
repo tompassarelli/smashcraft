@@ -716,7 +716,9 @@ function serviceJournalInput()
 	if transportIsolationPhase == 3 and not transportIsolationCOffer
 		return
 	let slot = GetPlayerId(GetLocalPlayer())
-	if not matchState.humanFighterActive(slot)
+	// Connected controllers retain a journal even when their fighter is CPU or empty.
+	// MatchFrameInput selects CPU/empty behavior; every sender must still advance.
+	if not matchState.humanActive(slot)
 		return
 	for readIndex = 1 to JOURNAL_PACKETS_PER_CALLBACK
 		let latest = min(INPUT_LAST_FRAME, shadowSchedule.nextConfirmedFrame() - 1 + INPUT_FUTURE_LIMIT)
@@ -2180,7 +2182,9 @@ function publishJournalMenu()
     let name = phase == CHARACTER_MENU ? "CHARACTER" : (phase == STAGE_MENU ? "STAGE" : (phase == RESULT ? "RESULT" : "BLOCKED"))
     PreloadGenClear()
     PreloadGenStart()
-    Preload("SMASHCRAFT JOURNAL MENU v=1 build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot) + " phase=" + name)
+    Preload("SMASHCRAFT JOURNAL MENU v=1 build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot) + " phase=" + name
+        + " connected=" + I2S(matchState.humanMask) + " human-fighters=" + I2S(matchState.humanFighterMask)
+        + " computers=" + I2S(matchState.computerMask) + " fighters=" + I2S(matchState.fighterMask()))
     PreloadGenEnd("smashcraft-journal-menu-" + BUILD_ID + "-s" + I2S(slot) + ".txt")
 
 function serviceJournalEnd()
