@@ -11,7 +11,7 @@ import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
 import { checkBlastZone } from "./stocks";
-import { beginAttack, cancelAttack, clearDownState, clearTechInput, leaveLedge } from "./transitions";
+import { beginAttack, cancelAttack, clearDownState, clearTech, leaveLedge } from "./transitions";
 
 export const LEDGE_CLIMB_FRAMES = 25;
 export const LEDGE_ROLL_FRAMES = 36;
@@ -76,7 +76,7 @@ function catchLedge(f: Fighter, stage: number, side: number): void {
   f.jump.remaining = 1;
   motion.dropTime = 0;
   f.landing.lCancelWindow = 0;
-  clearTechInput(f);
+  clearTech(f);
 }
 
 /** Catches each main-deck ledge for its nearest candidate; tied nearest candidates both fail. */

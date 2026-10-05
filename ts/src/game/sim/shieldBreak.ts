@@ -9,7 +9,7 @@ import { type Controls, type Roster, fighterAt } from "./roster";
 import { SHIELD_BREAK_RESTORED_ENERGY, clearShieldBreak, shieldBreakDizzyFrames } from "./shield";
 import { surfaceZ } from "./stage";
 import { checkBlastZone } from "./stocks";
-import { cancelAttack, clearDownState, clearGrabLinks, clearTechInput, interruptJumpOrDodge } from "./transitions";
+import { cancelAttack, clearDownState, clearGrabLinks, clearTech, interruptJumpOrDodge } from "./transitions";
 
 const SHIELD_BREAK_FRAME_DECAY = 1.0;
 const SHIELD_BREAK_MASH_STRENGTH = 3.0;
@@ -33,7 +33,7 @@ export function beginShieldBreak(world: Roster, slot: number): void {
   f.grab.grabbedFrames = 0;
   f.landing.lag = 0;
   f.landing.lCancelWindow = 0;
-  clearTechInput(f);
+  clearTech(f);
   motion.dropTime = 0;
   launch.diPending = false;
   launch.diLaunchSpeed = 0.0;

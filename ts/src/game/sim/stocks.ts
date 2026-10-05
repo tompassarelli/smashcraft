@@ -16,7 +16,7 @@ import {
   clearOwnedFreezeTrap,
   clearSpecialOnStock,
   clearSurfaceRecovery,
-  clearTechInput,
+  clearTech,
 } from "./transitions";
 
 const BLAST_ZONE_SIDE = 920.0;
@@ -52,7 +52,7 @@ export function checkBlastZone(world: Roster, slot: number): void {
   launch.groundKnockbackX = 0.0;
   launch.knockbackZ = 0.0;
   f.landing.lCancelWindow = 0;
-  clearTechInput(f);
+  clearTech(f);
   status.stocks = max(0, status.stocks - 1);
   status.respawn = status.stocks > 0 ? RESPAWN_FRAMES : 0;
   attack.style = undefined;
@@ -119,7 +119,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   recovery.contactNormalZ = 0.0;
   landing.lCancelWindow = 0;
   landing.lCancelSerial = 0;
-  clearTechInput(f);
+  clearTech(f);
   jump.serial = 0;
   jump.isDouble = false;
   motion.x = startX;
