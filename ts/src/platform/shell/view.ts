@@ -11,11 +11,12 @@ import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import type { FighterPose } from "../../game/presentation/fighterPose";
 import { journalIngress } from "../../game/shell/build";
 import { type StartControl, fighterLabel, matchHelp } from "../../game/shell/messages";
+import { FLOOR_HEIGHT } from "../../game/render/effects";
 import { isIntangible } from "../../game/sim/conditions";
 import { type Roster, fighterAt, isActive } from "../../game/sim/roster";
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "../../game/sim/stage";
 import { localParticipantSlot, traceParticipant } from "./diagnostics";
-import { FLY_HEIGHT, placeFighterBody, renderDizzy } from "./fighterBody";
+import { placeFighterBody, renderDizzy } from "./fighterBody";
 import { type ShellState, type StatusFrames, activeRollback } from "./state";
 import { pauseEffects, views } from "./ui";
 
@@ -189,7 +190,7 @@ export function lockArenaCamera(s: ShellState): void {
   SetCameraField(CAMERA_FIELD_ROTATION, 90.0, 0.0);
   SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, 350.0, 0.0);
   SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, distance, 0.0);
-  SetCameraField(CAMERA_FIELD_ZOFFSET, FLY_HEIGHT + targetZ, 0.0);
+  SetCameraField(CAMERA_FIELD_ZOFFSET, FLOOR_HEIGHT + targetZ, 0.0);
   SetCameraField(CAMERA_FIELD_ROLL, 0.0, 0.0);
   SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, 70.0, 0.0);
   SetCameraField(CAMERA_FIELD_FARZ, 8000.0, 0.0);
