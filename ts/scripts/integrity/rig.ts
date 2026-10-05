@@ -161,6 +161,12 @@ export function liveRig(parts: LiveRigParts): RigShape {
         yield* logUi(client, "wait", `${pattern.source}\n${seen}`);
         return seen;
       }),
+    readText: (client, region) =>
+      Effect.all([read(clients[client], region, "light"), read(clients[client], region, "gold")], { concurrency: 2 }).pipe(
+        Effect.map(([light, gold]) => `${light}\n${gold}`),
+        Effect.mapError(fromDesktop),
+        Effect.tap((text) => logUi(client, "read", `${region.x},${region.y} ${region.width}x${region.height}\n${text}`)),
+      ),
     click: (client, x, y) => click(clients[client], x, y).pipe(Effect.mapError(fromDesktop), Effect.andThen(logUi(client, "click", `${x} ${y}`))),
     key: (client, key) => keys(clients[client], key).pipe(Effect.mapError(fromDesktop)),
     type: (client, text) => typeText(clients[client], text, 35).pipe(Effect.mapError(fromDesktop)),

@@ -27,10 +27,23 @@ export function controlFile(identity: JournalIdentity, sequence: number, state: 
   return { name: journalControlFile(build, epoch, slot, sequence), lines: [controlLine(identity, sequence, state, frame)] };
 }
 
-/** Match start and end: the helper starts and stops journaling an epoch. */
-export function lifecycleFile(identity: JournalIdentity, kind: "start" | "end", frame: number): PreloadFile {
+/** Match start: the helper starts journaling an epoch. */
+export function startFile(identity: JournalIdentity, frame: number): PreloadFile {
   const { build, epoch, slot } = identity;
-  return { name: journalLifecycleFile(build, epoch, slot, kind), lines: [controlLine(identity, 0, kind === "start" ? "START" : "END", frame)] };
+  return { name: journalLifecycleFile(build, epoch, slot, "start"), lines: [controlLine(identity, 0, "START", frame)] };
+}
+
+/**
+ * Match end: the helper stops journaling the epoch. The receipt also names
+ * the confirmed winner by the slot label the HUD shows (P1 for slot 0), or
+ * none, for tools that check results; the helper ignores fields it doesn't read.
+ */
+export function endFile(identity: JournalIdentity, frame: number, winner: number | undefined): PreloadFile {
+  const { build, epoch, slot } = identity;
+  return {
+    name: journalLifecycleFile(build, epoch, slot, "end"),
+    lines: [`${controlLine(identity, 0, "END", frame)} winner=${winner === undefined ? "none" : `P${winner + 1}`}`],
+  };
 }
 
 /** The helper's reply that it has stopped writing an ended epoch; it holds "Q". */

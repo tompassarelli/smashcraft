@@ -144,7 +144,8 @@ export interface Rollback {
 export interface StatusFrames {
   readonly help: framehandle;
   readonly notice: framehandle;
-  readonly developer: framehandle;
+  /** Only a build with the developer console has the developer line. */
+  readonly developer: framehandle | undefined;
 }
 
 interface StatusLine {

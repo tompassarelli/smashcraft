@@ -5,6 +5,7 @@
 // slot change, and the rematch. Everything it does to the clients goes through
 // the Rig service, so a recording Rig can replay the journey without Warcraft.
 import { Context, Effect } from "effect";
+import type { Region } from "wisp/scripts/warcraft/desktop";
 import { IntegrityFailure } from "./evidence";
 import { ABS_X, BTN_SOUTH, BTN_START, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
@@ -54,7 +55,7 @@ export type JourneyRecord =
   }
   | { readonly event: "integrity-slot-change" | "four-fighter-setup"; readonly epoch: number; readonly changes: readonly ModeReceipt[] }
   | { readonly event: "dev-config"; readonly epoch: number; readonly command: string; readonly publications: readonly PublicationRecord[] }
-  | { readonly event: "results"; readonly epoch: number; readonly texts: readonly string[] };
+  | { readonly event: "results"; readonly epoch: number; readonly texts: readonly string[]; readonly notices?: readonly string[] };
 
 export interface Stopped {
   readonly target: StallTarget;
@@ -84,6 +85,8 @@ export interface RigShape {
   readonly resume: (stopped: Stopped) => Effect.Effect<void>;
   /** Waits until a client's screen shows text matching `pattern`, and returns the text read. */
   readonly waitText: (client: Slot, pattern: RegExp) => Effect.Effect<string, IntegrityFailure>;
+  /** Reads one region of a client's screen once. */
+  readonly readText: (client: Slot, region: Region) => Effect.Effect<string, IntegrityFailure>;
   readonly click: (client: Slot, x: number, y: number) => Effect.Effect<void, IntegrityFailure>;
   readonly key: (client: Slot, key: string) => Effect.Effect<void, IntegrityFailure>;
   readonly type: (client: Slot, text: string) => Effect.Effect<void, IntegrityFailure>;
@@ -114,6 +117,13 @@ export interface JourneyOptions {
 
 const CONTROLS = /CONTROLS/i;
 const RESULTS = /wins|rematch/i;
+/**
+ * The result announcement, view.ts's notice frame at (0.26, 0.47) sized 0.42 by
+ * 0.07 in Warcraft's 0.8 by 0.6 interface, on the 2560x1440 client frame,
+ * where that interface is 1920 by 1440 pixels from x = 320. A region is read
+ * as one block of text; the whole screen is read as scattered words.
+ */
+const RESULT_NOTICE: Region = { x: 944, y: 312, width: 1008, height: 168 };
 const PAUSED = /PAUSED.*Press.*Start.*resume|Paused.*press.*Start.*resume/i;
 const TWO_HUMANS = "connected=3 human-fighters=3 computers=0 fighters=3";
 const TRACE = INPUT_TRACE_FILE;
@@ -445,7 +455,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       if (playable) {
         // The playable build has no response probe: its results are the
         // result screens and a stationary confirmed-checksum trace.
-        yield* rig.record({ event: "results", epoch, texts: results });
+        const notices = yield* both((client) => rig.readText(client, RESULT_NOTICE));
+        yield* rig.record({ event: "results", epoch, texts: results, notices });
         const resultAfterNs = yield* rig.realtimeNs;
         yield* rig.key(0, "ctrl+t");
         for (const client of SLOTS) yield* rig.until(`epoch ${epoch}: result trace incomplete`, traceComplete(client, resultAfterNs, PLAYABLE_TRACE_TICKS), 35);

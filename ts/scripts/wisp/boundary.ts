@@ -54,10 +54,20 @@ export const InputTrace = preloadRecord(
 
 const Identity = { build: Schema.NonEmptyString, epoch: Count, slot: Count };
 
-/** Sequenced pause/resume requests and the start/end receipts share this record. */
+/**
+ * Sequenced pause/resume requests and the start/end receipts share this
+ * record. An end receipt names the match's winner (P1-P4 or none); end
+ * receipts of builds before 0.0.46 have no winner field.
+ */
 export const JournalControl = preloadRecord(
-  { head: ["SMASHCRAFT JOURNAL CONTROL v=1 build={build} epoch={epoch} slot={slot} sequence={sequence} state={state} frame={frame}"] },
-  Schema.Struct({ ...Identity, sequence: Count, state: Schema.Literals(["START", "END", "PAUSE", "PAUSE_COMMIT", "RESUME"]), frame: Count }),
+  { head: ["SMASHCRAFT JOURNAL CONTROL v=1 build={build} epoch={epoch} slot={slot} sequence={sequence} state={state} frame={frame} winner={winner}"] },
+  Schema.Struct({
+    ...Identity,
+    sequence: Count,
+    state: Schema.Literals(["START", "END", "PAUSE", "PAUSE_COMMIT", "RESUME"]),
+    frame: Count,
+    winner: Schema.optionalKey(Schema.String.check(Schema.isPattern(/^(?:P[1-4]|none)$/))),
+  }),
 );
 
 const JournalMenu = preloadRecord(

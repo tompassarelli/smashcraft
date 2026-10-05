@@ -20,6 +20,10 @@ const fixtures = [
     lines: ["SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0042 epoch=2 slot=1 sequence=0 state=END frame=900"],
   },
   {
+    name: "smashcraft-journal-end-playable-0046-e2-s1.txt", field: "winner", valid: "winner=P2", invalid: "winner=P5",
+    lines: ["SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0046 epoch=2 slot=1 sequence=0 state=END frame=900 winner=P2"],
+  },
+  {
     name: "smashcraft-journal-menu-playable-0042-s1.txt", field: "humanFighters", valid: "human-fighters=3", invalid: "human-fighters=bad",
     lines: ["SMASHCRAFT JOURNAL MENU v=1 build=playable-0042 epoch=2 slot=1 phase=STAGE", "connected=3 human-fighters=3 computers=4 fighters=7"],
   },
@@ -96,7 +100,7 @@ test("game file inventory decodes native records and returns a typed filename an
 });
 
 test("response pages reject malformed numeric data rows at their line field", async () => {
-  const fixture = fixtures[7];
+  const fixture = fixtures[8];
   const kind = writtenGameFileKind(fixture.name);
   if (kind === undefined) throw new Error("missing response decoder");
   const text = preload(fixture.lines).replace("I 139 rollback 1 8", "I 139 rollback 1 nope");

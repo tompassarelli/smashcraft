@@ -210,13 +210,13 @@ function initialize(): void {
   const origin = worldOrigin();
   BlzHideOriginFrames(true);
   // The panels' frame templates come from this table of contents.
-  if (!BlzLoadTOCFile("war3mapImported\\SmashcraftHUD.toc")) DisplayTextToPlayer(GetLocalPlayer(), 0.0, 0.0, "Developer: failed to load Smashcraft HUD definitions");
+  if (!BlzLoadTOCFile("war3mapImported\\SmashcraftHUD.toc")) DisplayTextToPlayer(GetLocalPlayer(), 0.0, 0.0, "Smashcraft's menus could not load. Restart the game.");
   BlzEnableSelections(false, false);
   EnableUserControl(true);
   FogEnable(false);
   FogMaskEnable(false);
   const s = createShellState(build, {
-    origin, frames: createStatusFrames(), persistence: bindingFiles, playback: pending.playback,
+    origin, frames: createStatusFrames(build), persistence: bindingFiles, playback: pending.playback,
     editbox: journalIngress(build) === "editbox" ? new EditboxIngress() : undefined,
   });
   setParticipants(s.game, currentHumanMask(0), currentComputerMask());

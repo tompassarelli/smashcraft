@@ -58,7 +58,7 @@ export function startMatch(s: ShellState): void {
     participant.pooled = beginFighterRenderers(s, slot, fighter.character, pooled);
     if (!pooled || rollback === undefined) continue;
     if (!participant.pooled) {
-      setStatus(s, "This fighter is unavailable in the movement preview.", LASTING);
+      setStatus(s, "This fighter can't be played yet. Restart the match and choose another.", LASTING);
       continue;
     }
     if (participant.body !== undefined) {

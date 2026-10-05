@@ -36,6 +36,7 @@ export interface MapBuild {
   readonly presentation: PresentationProfile;
   readonly scenario: Scenario;
   readonly responseProbe: boolean;
+  /** The `-dev` chat commands and the developer status line; players of a playable build see neither. */
   readonly devConsole: boolean;
   /**
    * Polls CustomMapData for `bun wisp hot` bundles, 32 file lookups a second.
