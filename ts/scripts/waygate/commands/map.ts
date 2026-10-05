@@ -4,26 +4,13 @@ import { Effect, Layer } from "effect";
 import { type Command, UsageFailure } from "waygate/scripts/waygate/command";
 import { MapBuild } from "waygate/scripts/waygate/mapBuild";
 import { decodeBuildOptions, importedAssets } from "../mapInputs";
-import { buildProject, gameFilesLayer, sourceErrorsLayer } from "../project";
+import { buildProject, gameFilesLayer, profileOption, sourceErrorsLayer } from "../project";
 import { SMASHCRAFT_MAP } from "../../mapInfo";
 import { fighterUnits, fileIoAbility } from "../../objectData";
 
-const profiles = {
-  main: MapBuild.layer(buildProject()),
-  integrity: MapBuild.layer(buildProject("integrity")),
-  playable: MapBuild.layer(buildProject("playable")),
-  "physics-probe": MapBuild.layer(buildProject("physics-probe")),
-  "frame-cost": MapBuild.layer(buildProject("frame-cost")),
-} as const;
-
 const profileOptions = (args: readonly string[]) => Effect.gen(function*() {
-  const index = args.indexOf("--profile");
-  const profile = index < 0 ? "main" : args[index + 1];
-  if (profile !== "main" && profile !== "integrity" && profile !== "playable" && profile !== "physics-probe" && profile !== "frame-cost") {
-    return yield* new UsageFailure({ problem: "--profile takes main, integrity, playable, physics-probe or frame-cost" });
-  }
-  const remaining = index < 0 ? [...args] : [...args.slice(0, index), ...args.slice(index + 2)];
-  const services = profiles[profile].pipe(Layer.provideMerge(sourceErrorsLayer), Layer.provide(gameFilesLayer));
+  const { profile, args: remaining } = yield* profileOption(args);
+  const services = MapBuild.layer(buildProject(profile)).pipe(Layer.provideMerge(sourceErrorsLayer), Layer.provide(gameFilesLayer));
   return { args: remaining, services };
 });
 

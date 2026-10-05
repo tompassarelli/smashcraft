@@ -11,7 +11,7 @@ if (files.length === 0) throw new Error("No tests found");
 
 // The game registry and native fixtures own independent global stubs.
 // Give each its own process; the last runs every other discovered file.
-const isolated = ["test/game.test.ts", "test/desync-guard.test.ts", "test/visual-lifecycle.test.ts"];
+const isolated = ["test/game.test.ts", "test/desync-guard.test.ts", "test/visual-lifecycle.test.ts", "test/stack-trace.test.ts"];
 const groups = [
   ...isolated.map((name) => files.filter((file) => file === name)),
   files.filter((file) => !isolated.includes(file)),

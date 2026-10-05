@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.stack-trace.json",
+  "compilerOptions": {
+    "outDir": "build/lua-stack"
+  },
+  "include": [
+    "node_modules/waygate/src/natives/warcraft.d.ts",
+    "test/stack/entry.ts"
+  ],
+  "tstl": {
+    "luaBundle": "stack.lua",
+    "luaBundleEntry": "test/stack/entry.ts"
+  }
+}

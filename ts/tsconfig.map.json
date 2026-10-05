@@ -31,7 +31,9 @@
     "src/platform/physicsProbeMain.ts",
     "src/platform/frameCostMain.ts",
     "src/platform/integrityMain.ts",
-    "src/platform/playableMain.ts"
+    "src/platform/playableMain.ts",
+    "src/platform/stackDemo.ts",
+    "src/platform/stackTraceMain.ts"
   ],
   "tstl": {
     "luaTarget": "5.3",

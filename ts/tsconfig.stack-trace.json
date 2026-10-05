@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.map.json",
+  "compilerOptions": {
+    "rootDir": "."
+  },
+  "include": [
+    "node_modules/waygate/src/natives/warcraft.d.ts",
+    "src/platform/stackTraceMain.ts"
+  ],
+  "exclude": [],
+  "tstl": {
+    "luaBundle": "stack-trace.lua",
+    "luaBundleEntry": "src/platform/stackTraceMain.ts",
+    "luaPlugins": [
+      {
+        "name": "./node_modules/waygate/plugins/warcraft-numbers.ts"
+      },
+      {
+        "name": "./node_modules/waygate/plugins/stack-traces.ts"
+      }
+    ]
+  }
+}
