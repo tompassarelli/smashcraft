@@ -689,8 +689,8 @@ function commitJournalPauseAtFrame()
 	journalPausePending = false
 	journalPauseAckReceived = false
 
-function flushJournalTransport(boolean force)
-	if journalInputFailed or not journalTransport.ready(force)
+function flushJournalTransport(boolean flushNow)
+	if journalInputFailed or not journalTransport.ready(flushNow)
 		return
 	let wire = journalTransport.encode()
 	let frame = journalTransport.firstFrameNumber()
