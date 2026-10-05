@@ -15,7 +15,7 @@ import {
   shieldContactPushback,
 } from "./shield";
 import { surfaceZ } from "./stage";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { advanceSolo, contactBatch, controls, hitEffect, testBeginAttacks, testWorld } from "./testWorld";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 
@@ -175,7 +175,7 @@ test("a perfect contact allows an attack during the drop and holding guard consu
   const input = controls();
   const queueHit = (): void => queueDamageContact(world, 0, 1, hitEffect(10.0, 100.0, 20.0, 1.0, 1.0), 1, ContactKind.launch, true, undefined);
   for (let heldTicks = 0; heldTicks <= 4; heldTicks++) {
-    reset(world, 1, 0.0);
+    respawnFighter(world, 1, 0.0);
     target.motion.grounded = true;
     target.motion.z = surfaceZ(0, 0);
     target.shield.raised = true;

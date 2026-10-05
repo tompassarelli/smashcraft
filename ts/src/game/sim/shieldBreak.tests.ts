@@ -6,12 +6,12 @@ import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, DownState, ShieldBreak } from "./codes";
 import { canAttack, isIntangible } from "./conditions";
 import { type Fighter, SHIELD_MAX, createFighter } from "./fighter";
-import { simulationAirDodge, simulationJump } from "./jumpsAndDodges";
+import { beginAirDodge, beginJump } from "./jumpsAndDodges";
 import { attackStartupFrames, grabHoldFrames } from "./moves";
 import { updateProjectiles } from "./projectiles";
 import type { Controls } from "./roster";
 import { shieldBreakDizzyFrames } from "./shield";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, soloWorld, testBeginAttacks, testWorld } from "./testWorld";
 import { SHIELD_BREAK_LAND_FRAMES, SHIELD_BREAK_STAND_FRAMES } from "./tuning";
 
@@ -172,8 +172,8 @@ test("the forced shield-break sequence rejects actions and techs for both charac
     assertNear(fighter.shield.energy, f32(30.07), f32(0.0001));
     const dizzyTicks = toInt(fighter.shield.breakRemaining);
     for (let tick = 1; tick <= dizzyTicks - 1; tick++) {
-      simulationJump(fighter, 0);
-      simulationAirDodge(fighter, 1, 0);
+      beginJump(fighter, 0);
+      beginAirDodge(fighter, 1, 0);
       testBeginAttacks(world, AttackStyle.grab, undefined);
       advanceSolo(fighter, 0, input, 0.0);
       assertEquals(fighter.shield.breakState, ShieldBreak.dizzy);
@@ -289,7 +289,7 @@ test("both fighters' basic projectiles interrupt a shield break", () => {
   }
 });
 
-test("stock loss and reset clear a shield-break recovery", () => {
+test("stock loss and respawning clear a shield-break recovery", () => {
   for (const state of BREAK_PHASES) {
     const fighter = shieldBreakTestFighter(Character.archer, 0.0);
     const input = controls();
@@ -309,7 +309,7 @@ test("stock loss and reset clear a shield-break recovery", () => {
     assertEquals(fighter.shield.energy, SHIELD_MAX);
     fighter.shield.breakState = state;
     fighter.shield.breakFrame = 10;
-    reset(soloWorld(fighter), 0, 0.0);
+    respawnFighter(soloWorld(fighter), 0, 0.0);
     assertEquals(fighter.shield.breakState, ShieldBreak.none);
     assertEquals(fighter.shield.breakFrame, 0);
   }

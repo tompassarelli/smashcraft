@@ -33,7 +33,8 @@ strengths 0.4 and 1, and powers 3, 10 and 30. A full-strength power-10 contact
 has the same 6.5 stun duration in both cases, but defender pushback is
 0.7800000905990601 ordinarily and 1.3000000715255737 when perfect, in Melee
 units. The original contact accumulator preserves its seed on perfect contacts.
-See `smashcraft:docs/smash-melee-reference/retail-powershield-contact.json`.
+See `smashcraft:docs/smash-melee-reference/retail-powershield-contact.json`;
+observer: `smashcraft:tools/physics-probe/observe-powershield-contact.mjs`.
 These are isolated original branches with return patches before presentation
 and full state-entry consumers, not a complete gameplay contact trace.
 

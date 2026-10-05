@@ -7,7 +7,7 @@ import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character, GroundAction } from "./codes";
 import { type Fighter, createFighter } from "./fighter";
 import { advance } from "./step";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, testBeginAttacks, testWorld, withPhysics } from "./testWorld";
 import {
   GROUND_TRACTION,
@@ -327,7 +327,7 @@ test("hitlag freezes an initial dash, then a reversal resumes", () => {
   assertEquals(fighter.ground.dashFrame, 0);
 });
 
-test("an initial dash clears on a jump, shield, attack and stock reset", () => {
+test("an initial dash clears on a jump, shield, attack and respawn", () => {
   for (let interruption = 0; interruption <= 3; interruption++) {
     const fighter = createFighter(Character.archer, 0.0, 1);
     const world = testWorld(fighter, createFighter(Character.rifleman, 300.0, -1));
@@ -350,7 +350,7 @@ test("an initial dash clears on a jump, shield, attack and stock reset", () => {
       advance(world, 0, 0, input, 0.0);
       assertTrue(fighter.status.out);
       assertEquals(fighter.ground.dashFrame, 0);
-      reset(world, 0, 0.0);
+      respawnFighter(world, 0, 0.0);
     }
     assertEquals(fighter.ground.dashFrame, 0);
     assertEquals(fighter.ground.dashDirection, 0);

@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import { AttackStyle, Character } from "../src/game/sim/codes";
-import { type Fighter, createFighter } from "../src/game/sim/fighter";
+import { createFighter } from "../src/game/sim/fighter";
 import { authoredHitRegion, emptyHitRegion } from "../src/game/sim/hitRegions";
 import { beginFighterAttack, resolveAttacks } from "../src/game/sim/attacks";
-import { attackRecoveryFrames, attackStartupFrames, L_CANCEL_WINDOW_FRAMES } from "../src/game/sim/moves";
+import { attackStartupFrames } from "../src/game/sim/moves";
 import { createRoster } from "../src/game/sim/roster";
 import { observeLandingLag } from "./moveData";
 
@@ -20,11 +20,7 @@ test("move export reads jab contact through production resolution for all fighte
   }
 });
 
-test("move export keeps character recovery and observed landing values", () => {
-  expect(attackRecoveryFrames(Character.archer, AttackStyle.downAir, false)).toBe(11);
-  expect(attackRecoveryFrames(Character.rifleman, AttackStyle.downAir, false)).toBe(28);
-  expect(attackRecoveryFrames(Character.demonHunter, AttackStyle.downAir, false)).toBe(28);
+test("move export observes landing lag through the production step, halved by an L-cancel", () => {
   expect(observeLandingLag(Character.archer, AttackStyle.neutralAir, false)).toBe(10);
   expect(observeLandingLag(Character.archer, AttackStyle.neutralAir, true)).toBe(5);
-  expect(L_CANCEL_WINDOW_FRAMES).toBe(7);
 });

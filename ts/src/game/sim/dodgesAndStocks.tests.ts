@@ -17,11 +17,11 @@ import {
 } from "./conditions";
 import { AIR_DODGE_LANDING_LAG } from "./down";
 import { type Fighter, createFighter } from "./fighter";
-import { simulationAirDodge } from "./jumpsAndDodges";
+import { beginAirDodge } from "./jumpsAndDodges";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "./knockback";
 import { attackStartupFrames } from "./moves";
 import { surfaceRight, surfaceZ } from "./stage";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, soloWorld, testWorld } from "./testWorld";
 import { GROUND_TRACTION, authoredPhysics } from "./tuning";
 
@@ -82,7 +82,7 @@ test("a horizontal air dodge defaults to a shallow wavedash on both sides", () =
       const fighter = createFighter(character, 0.0, -direction);
       fighter.motion.grounded = false;
       fighter.motion.z = 1.0;
-      simulationAirDodge(fighter, direction, 0);
+      beginAirDodge(fighter, direction, 0);
       assertNear(fighter.motion.vx, direction * 17.689651489257812, 0.00009999999747378752);
       assertNear(fighter.motion.vz, -5.747715950012207, 0.00009999999747378752);
       assertNear(f32(f32(fighter.motion.vx * fighter.motion.vx) + f32(fighter.motion.vz * fighter.motion.vz)), 345.9599914550781, 0.0010000000474974513);
@@ -122,7 +122,7 @@ test("a diagonal air dodge displaces both axes with the same decayed vector", ()
     const fighter = createFighter(Character.archer, 0.0, 1);
     fighter.motion.grounded = false;
     fighter.motion.z = 300.0;
-    simulationAirDodge(fighter, 1, direction);
+    beginAirDodge(fighter, 1, direction);
     const input = controls();
     let displacement = 11.836966514587402;
     let distance = 0.0;
@@ -143,7 +143,7 @@ test("a fast air dodge uses the swept platform crossing", () => {
     const fighter = createFighter(Character.archer, entersTooLate ? -440.0 : -350.0, 1);
     fighter.motion.grounded = false;
     fighter.motion.z = 200.0;
-    simulationAirDodge(fighter, 1, -1);
+    beginAirDodge(fighter, 1, -1);
     // Stress the collision sweep independently of provisional dodge speed.
     fighter.motion.vx = 100.0;
     fighter.motion.vz = -300.0;
@@ -161,7 +161,7 @@ test("an air dodge landing slides and restores actions after ten ticks", () => {
     const fighter = createFighter(character, 0.0, 1);
     fighter.motion.grounded = false;
     fighter.motion.z = 1.0;
-    simulationAirDodge(fighter, 1, -1);
+    beginAirDodge(fighter, 1, -1);
     const input = controls();
     advanceSolo(fighter, 0, input, 0.0);
     assertTrue(fighter.motion.grounded);
@@ -352,11 +352,11 @@ test("a jump takes priority over a starting ground dodge", () => {
   assertEquals(fighter.jump.squat, authoredPhysics(Character.archer).jumpSquatFrames);
 });
 
-test("reset and getting hit clear the ground dodge state", () => {
+test("respawning and getting hit clear the ground dodge state", () => {
   const fighter = createFighter(Character.rifleman, 100.0, -1);
   fighter.dodge.groundFrame = 8;
   fighter.dodge.groundDirection = -1;
-  reset(soloWorld(fighter), 0, 0.0);
+  respawnFighter(soloWorld(fighter), 0, 0.0);
   assertEquals(fighter.dodge.groundFrame, 0);
   assertEquals(fighter.dodge.groundDirection, 0);
   fighter.dodge.groundFrame = 1;

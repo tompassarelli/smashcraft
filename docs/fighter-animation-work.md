@@ -645,6 +645,29 @@ cmake --build /home/tom/code/casclib/worktrees/assets/build --parallel 2
 Override CASC_SOURCE or WC3_STORAGE when these local checkout/install paths
 change. The full extraction command passed in about five seconds.
 
+## Illidan, portraits and selection art
+
+Illidan's package is regenerated in order from the repository root. Run each
+Blender step as `blender --background --python-exit-code 1 --python FILE`:
+
+1. smashcraft:tools/animations/extract-demonhunter.sh extracts the installed
+   Demon Hunter model and textures to smashcraft:build/illidan-assets/ with
+   the CascLib setup above.
+2. smashcraft:tools/animations/import-demonhunter.py saves the editable scene.
+3. smashcraft:tools/animations/demonhunter.py authors the combat clips and
+   exports the fighter model to smashcraft:build/illidan-animation/.
+4. smashcraft:tools/animations/check-illidan.py checks that stock actions and
+   geosets are unchanged and that combat clips keep the authored visibility,
+   root and wing rules, then records the source textures for packaging.
+5. `bun tools/animations/package-illidan.ts` encodes the model and regenerates
+   smashcraft:ts/src/game/presentation/demonHunterAssetInfo.ts.
+
+smashcraft:tools/animations/build-portraits.sh renders the Archer and Rifleman
+portraits and tiles, and smashcraft:tools/selection/build-art.sh renders the
+selection and HUD textures from smashcraft:tools/selection/art/. Both write
+smashcraft:build/selection-assets/, which the map build imports from its
+`--assets` directory.
+
 ## Build and play the first authored jab
 
 ```bash

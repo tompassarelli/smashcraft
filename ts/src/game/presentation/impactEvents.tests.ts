@@ -9,7 +9,7 @@ import { resolveLedges } from "../sim/ledge";
 import { SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, grabContactFrame } from "../sim/moves";
 import { neutralControls } from "../sim/roster";
 import { surfaceLeft, surfaceZ } from "../sim/stage";
-import { reset } from "../sim/stocks";
+import { respawnFighter } from "../sim/stocks";
 import { advanceSolo, contactBatch, hitEffect, testBeginAttacks, testGrabFrame, testWorld } from "../sim/testWorld";
 import {
   DodgeCue, ImpactLanding, JumpCue, type ImpactEvents, captureImpactEventsBefore, consumeImpactFrame, createImpactEvents,
@@ -238,7 +238,7 @@ test("a grab escape and an interrupted throw raise no release cue", () => {
       testGrabFrame(world, controls, false);
     } else target.grab.grabbedFrames = 1;
     journal(events, target, () => {
-      if (interrupted === 1) reset(world, 0, 0.0);
+      if (interrupted === 1) respawnFighter(world, 0, 0.0);
       else testGrabFrame(world, controls, false);
     });
     assertEquals(target.grab.owner, undefined);

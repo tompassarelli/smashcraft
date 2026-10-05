@@ -2,7 +2,7 @@
 // integrity build. Its own file lets the suite run both journeys in parallel.
 import { afterAll, test } from "bun:test";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
-import { installNatives } from "./desync/twoClients";
+import { installNatives } from "./desync/simulatedClient";
 import { entryFor, expectNoDivergence, playThroughReload } from "./desync/journeys";
 
 const restoreNatives = installNatives();

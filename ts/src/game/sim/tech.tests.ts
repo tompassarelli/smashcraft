@@ -7,11 +7,11 @@ import { AttackStyle, Character, DownState } from "./codes";
 import { TECH_INTANGIBLE_FRAMES, TECH_ROLL_INTANGIBLE_FRAMES, canAttack, isFloorTeching, isIntangible } from "./conditions";
 import { TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "./down";
 import { type Fighter, createFighter } from "./fighter";
-import { simulationJump } from "./jumpsAndDodges";
+import { beginJump } from "./jumpsAndDodges";
 import { updateProjectiles } from "./projectiles";
 import type { Controls } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, resolveStartedAttack, seedTechWindow, soloWorld, testWorld } from "./testWorld";
 import { AUTHORED_PHYSICS } from "./tuning";
 
@@ -113,7 +113,7 @@ test("Illidan's tech contact retains his original travel and protection frames",
       assertEquals(isIntangible(fighter), frame <= (direction === 0 ? TECH_INTANGIBLE_FRAMES : TECH_ROLL_INTANGIBLE_FRAMES));
       assertEquals(fighter.motion.x, f32(contactX + f32(f32(direction * 8.0) * max(0, min(frame, 19) - 3))));
       assertFalse(canAttack(fighter));
-      simulationJump(fighter, 0);
+      beginJump(fighter, 0);
       assertEquals(fighter.jump.squat, 0);
       assertEquals(fighter.jump.serial, 0);
       if (frame < duration) advanceSolo(fighter, 0, input, 0.0);
@@ -204,12 +204,12 @@ test("a tech's vulnerable recovery can be interrupted by melee or the rifleman's
   }
 });
 
-test("tech state and input timers clear on reset and stock loss", () => {
+test("tech state and input timers clear on respawn and stock loss", () => {
   const fighter = techTestTumbler();
   const world = soloWorld(fighter);
   const input = controls({ techPressed: true });
   advanceTechAirTick(fighter, input);
-  reset(world, 0, 0.0);
+  respawnFighter(world, 0, 0.0);
   assertEquals(fighter.tech.window, 0);
   assertEquals(fighter.tech.pressAge, TECH_PRESS_AGE_LIMIT);
   fighter.down.state = DownState.tumble;
@@ -224,12 +224,12 @@ test("tech state and input timers clear on reset and stock loss", () => {
   assertEquals(fighter.status.stocks, 2);
   assertEquals(fighter.down.state, DownState.none);
   assertEquals(fighter.tech.window, 0);
-  reset(world, 0, 0.0);
+  respawnFighter(world, 0, 0.0);
   fighter.down.state = DownState.techRoll;
   fighter.down.frame = 12;
   fighter.down.direction = 1;
   seedTechWindow(fighter, 10);
-  reset(world, 0, 0.0);
+  respawnFighter(world, 0, 0.0);
   assertEquals(fighter.down.state, DownState.none);
   assertEquals(fighter.down.frame, 0);
   assertEquals(fighter.down.direction, 0);

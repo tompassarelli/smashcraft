@@ -1,14 +1,15 @@
 // The desync guard: two simulated clients, local slot 0 and local slot 1,
 // run the map's TypeScript entry in lockstep through a match and a hot reload
 // mid-match, and must make the same native calls in the same order. Only the
-// local-only calls in test/desync/twoClients.ts ALLOWED_LOCAL may differ.
+// local-only calls in test/desync/simulatedClient.ts ALLOWED_LOCAL may differ.
 // Host stubs stand in for Warcraft, so this finds code that branches on the
 // local client; it does not prove native behavior.
 import { afterAll, expect, test } from "bun:test";
 import { CURRENT_BUILD, PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
 import { DESYNC_COMMAND } from "../src/game/shell/devSettings";
 import { install, start } from "../src/platform/main";
-import { Lockstep, installNatives } from "./desync/twoClients";
+import { installNatives } from "./desync/simulatedClient";
+import { Lockstep } from "./desync/twoClients";
 import { type Entry, entryFor, expectNoDivergence, playThroughReload } from "./desync/journeys";
 
 const restoreNatives = installNatives();

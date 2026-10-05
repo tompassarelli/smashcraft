@@ -12,7 +12,8 @@ import { startMatch } from "../src/platform/shell/matchStart";
 import { confirm } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
 import { pauseMatchPresentation, renderPersistentPresentation } from "../src/platform/shell/view";
-import { Client, Lockstep, installNatives } from "./desync/twoClients";
+import { type Client, installNatives } from "./desync/simulatedClient";
+import { Lockstep } from "./desync/twoClients";
 
 const restoreNatives = installNatives();
 afterAll(restoreNatives);

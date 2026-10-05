@@ -1,7 +1,7 @@
 // State transitions every system shares: starting attacks, entering down
 // states, and ending or interrupting actions. Grab links are the only state
 // that spans fighters, so clearing them takes the roster.
-import { clearTechInput as clearTechInputState } from "../physics/techInput";
+import { clearTechInput } from "../physics/techInput";
 import { max } from "../../runtime/numbers";
 import { AttackStyle, DASH_GRAB_REQUEST, DownState, GrabAction, HippogryphKind, LedgeState, ProjectileKind, SpecialAction, SurfaceContact } from "./codes";
 import { isTumbling } from "./conditions";
@@ -31,10 +31,10 @@ export function clearDownState(f: Fighter): void {
   clearSurfaceRecovery(f);
 }
 
-export function clearTechInput(f: Fighter): void {
+export function clearTech(f: Fighter): void {
   const { tech } = f;
   tech.window = 0;
-  clearTechInputState(tech);
+  clearTechInput(tech);
 }
 
 export function clearLedge(f: Fighter): void {

@@ -6,7 +6,7 @@ import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
 import { resolveAttacks, beginFighterAttack } from "./attacks";
 import { advanceFreezeTraps } from "./summons";
 import { advanceSolo, controls, testWorld } from "./testWorld";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { createRoster } from "./roster";
 import { f32 } from "waygate/src/sim/f32";
 
@@ -93,7 +93,7 @@ test("koRespawnAndResetClearTrapAndFrozenState", () => {
   rifleman.freezeTrap.life = 900;
   rifleman.freezeTrap.serial = 1;
   rifleman.status.frozenFrames = 12;
-  reset(world, 0, 240.0);
+  respawnFighter(world, 0, 240.0);
   assertEquals(rifleman.freezeTrap.serial, 0);
   assertEquals(rifleman.freezeTrap.life, 0);
   assertEquals(rifleman.status.frozenFrames, 0);
