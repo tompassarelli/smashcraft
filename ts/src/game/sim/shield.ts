@@ -1,0 +1,232 @@
+// Shield arithmetic: analog pressure, drain, contact stun, pushback, recoil and
+// size, plus shield contact motion. Pressure scaling follows
+// smashcraft:docs/melee-analog-shield.md and smashcraft:docs/melee-powershield.md.
+import { max, min, toInt } from "../../runtime/wurst";
+import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "../../sim/binary32";
+import { f32 } from "../../sim/f32";
+import { ShieldBreak } from "./codes";
+import { type Fighter, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "./fighter";
+import { integerHitPower } from "./knockback";
+import { AIR_RECOIL_DECAY, AIR_RECOIL_SQUARED_CUTOFF, decayedAirMotion, roundMeleeWorldValue } from "./motion";
+import type { Controls } from "./roster";
+import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
+import { squareRoot } from "./warcraftMath";
+
+export const SHIELD_REFLECTOR_ACTIVE_FRAMES = 2;
+export const SHIELD_PERFECT_ACTIVE_FRAMES = 4;
+export const SHIELD_PERFECT_POST_CONTACT_FRAMES = 4;
+export const SHIELD_REFLECTOR_RADIUS_FACTOR = 0.75;
+export const SHIELD_PROJECTILE_DAMAGE_MULTIPLIER = 0.5;
+export const SHIELD_PROJECTILE_SPEED_MULTIPLIER = 0.699999988079071;
+export const SHIELD_BREAK_RESTORED_ENERGY = 30.0;
+export const SHIELD_MIN_HOLD_FRAMES = 8;
+export const SHIELD_RELEASE_LAG_FRAMES = 15;
+export const SHIELD_HIT_WEIGHT_MULTIPLIER = 0.25;
+const SHIELD_BREAK_BASE_PERCENT = 400.0;
+const SHIELD_BREAK_MIN_FRAMES = 90.0;
+const SHIELD_DRAIN_BASE = 0.14000000059604645;
+const SHIELD_TRIGGER_THRESHOLD = 0.30000001192092896;
+const SHIELD_REGEN_PER_FRAME = 0.07000000029802322;
+const SHIELD_DAMAGE_SCALE = 1.0;
+const SHIELD_DAMAGE_BASE = 0.0;
+const SHIELD_STUN_MULTIPLIER = 1.5;
+const SHIELD_STUN_BASE = 2.0;
+const SHIELD_PUSHBACK_BASE = 0.20000000298023224;
+const SHIELD_PUSHBACK_CAP = 2.0;
+const SHIELD_PUSHBACK_MULTIPLIER = 0.6000000238418579;
+const SHIELD_RECOIL_DAMAGE_FACTOR = 0.07000000029802322;
+const SHIELD_RECOIL_BASE = 0.019999999552965164;
+const SHIELD_RECOIL_GROUND_FRICTION_MULTIPLIER = 1.100000023841858;
+
+/** A trigger byte at or past the analog threshold (77) raises the shield. */
+export function analogShieldActive(pressure: number): boolean {
+  return roundToFloat32(f32(pressure / 255.0)) >= SHIELD_TRIGGER_THRESHOLD;
+}
+
+/** Pressure past the threshold, scaled to [0, 1]. */
+export function analogShieldStrength(pressure: number): number {
+  const normalized = roundToFloat32(f32(pressure / 255.0));
+  return max(0.0, roundToFloat32(f32(roundToFloat32(f32(normalized - SHIELD_TRIGGER_THRESHOLD)) / roundToFloat32(f32(1.0 - SHIELD_TRIGGER_THRESHOLD)))));
+}
+
+function shieldInterpolation(strength: number, light: number, digital: number): number {
+  return fusedMultiplyAddFloat32(strength, roundToFloat32(f32(digital - light)), light);
+}
+
+export function shieldDrain(strength: number): number {
+  return roundToFloat32(f32(SHIELD_DRAIN_BASE * shieldInterpolation(strength, 0.10000000149011612, 2.0)));
+}
+
+export function shieldstunDuration(damage: number, strength: number): number {
+  const factor = roundToFloat32(f32(1.0 - shieldInterpolation(strength, 0.05000000074505806, 0.699999988079071)));
+  const scaledPower = roundToFloat32(f32(integerHitPower(damage) * factor));
+  return fusedMultiplyAddFloat32(scaledPower, SHIELD_STUN_MULTIPLIER, SHIELD_STUN_BASE);
+}
+
+export function digitalShieldstunDuration(damage: number): number {
+  return shieldstunDuration(damage, 1.0);
+}
+
+export function shieldstunFrames(hitDamage: number, strength: number): number {
+  return toInt(f32(f32(shieldstunDuration(hitDamage, strength) * 200) / 201));
+}
+
+export function digitalShieldstunFrames(hitDamage: number): number {
+  return shieldstunFrames(hitDamage, 1.0);
+}
+
+/** Defender pushback in world units; a perfect shield keeps the unreduced speed under the same cap. */
+export function shieldContactPushback(damage: number, strength: number, perfect: boolean): number {
+  const speed = roundToFloat32(f32(shieldstunDuration(damage, strength) * SHIELD_PUSHBACK_BASE));
+  return f32(min(SHIELD_PUSHBACK_CAP, perfect ? speed : roundToFloat32(f32(speed * SHIELD_PUSHBACK_MULTIPLIER))) * WORLD_UNITS_PER_MELEE_UNIT);
+}
+
+export function shieldPushback(damage: number, strength: number): number {
+  return shieldContactPushback(damage, strength, false);
+}
+
+export function digitalShieldPushback(damage: number): number {
+  return shieldPushback(damage, 1.0);
+}
+
+/** Grounded attacker recoil in world units. */
+export function digitalShieldRecoil(damage: number): number {
+  return f32(f32(f32(integerHitPower(damage) * SHIELD_RECOIL_DAMAGE_FACTOR) + SHIELD_RECOIL_BASE) * WORLD_UNITS_PER_MELEE_UNIT);
+}
+
+export function shieldContactDamage(damage: number, strength: number): number {
+  const factor = roundToFloat32(f32(1.0 - shieldInterpolation(strength, 0.10000000149011612, 0.30000001192092896)));
+  return fusedMultiplyAddFloat32(roundToFloat32(f32(damage * factor)), SHIELD_DAMAGE_SCALE, SHIELD_DAMAGE_BASE);
+}
+
+export function digitalShieldDamage(damage: number): number {
+  return shieldContactDamage(damage, 1.0);
+}
+
+/** Shield radius scale for its health and pressure. */
+export function shieldSizeMultiplier(health: number, strength: number): number {
+  const healthRatio = roundToFloat32(f32(health / SHIELD_MAX));
+  const pressureScale = shieldInterpolation(strength, 1.0, 0.5);
+  return fusedMultiplyAddFloat32(roundToFloat32(f32(1.0 - 0.15000000596046448)), roundToFloat32(f32(healthRatio * pressureScale)), 0.15000000596046448);
+}
+
+/** The authored bubble scale, adjusted by pressure relative to a digital shield. */
+export function shieldVisualScale(f: Fighter): number {
+  const { energy, strength } = f.shield;
+  const authoredScale = f32(0.699999988079071 + f32(f32(0.5 * energy) / SHIELD_MAX));
+  return f32(f32(authoredScale * shieldSizeMultiplier(energy, strength)) / shieldSizeMultiplier(energy, 1.0));
+}
+
+export function shieldBreakDizzyFrames(percent: number): number {
+  return f32(max(0.0, f32(SHIELD_BREAK_BASE_PERCENT - percent)) + SHIELD_BREAK_MIN_FRAMES);
+}
+
+export function clearShieldBreak(f: Fighter): void {
+  f.shield.breakState = ShieldBreak.none;
+  f.shield.breakFrame = 0;
+  f.shield.breakRemaining = 0.0;
+}
+
+/** Ground pushback and recoil slide against traction; airborne recoil is a vector that decays by the common amount. */
+export function decayShieldMotion(f: Fighter): void {
+  const { shield } = f;
+  if (f.motion.grounded) {
+    const defenderDecay = roundMeleeWorldValue(f.tuning.physics.traction);
+    const defenderSpeed = roundMeleeWorldValue(shield.pushbackX);
+    shield.pushbackX = roundMeleeWorldValue(defenderSpeed > 0 ? max(0.0, f32(defenderSpeed - defenderDecay)) : min(0.0, f32(defenderSpeed + defenderDecay)));
+    // The currently modeled ground is flat, so shield recoil has no vertical component there.
+    shield.recoilZ = 0.0;
+    const attackerDecay = roundMeleeWorldValue(f32(defenderDecay * SHIELD_RECOIL_GROUND_FRICTION_MULTIPLIER));
+    const attackerSpeed = roundMeleeWorldValue(shield.recoilX);
+    shield.recoilX = roundMeleeWorldValue(attackerSpeed > 0 ? max(0.0, f32(attackerSpeed - attackerDecay)) : min(0.0, f32(attackerSpeed + attackerDecay)));
+    return;
+  }
+  shield.pushbackX = 0.0;
+  if (shield.recoilX === 0 && shield.recoilZ === 0) return;
+  const decayed = decayedAirMotion(shield.recoilX, shield.recoilZ, AIR_RECOIL_DECAY, AIR_RECOIL_SQUARED_CUTOFF);
+  if (decayed.belowCutoff) {
+    // Retail cutoff clears vertical launch, retaining vertical recoil.
+    shield.recoilX = 0.0;
+    f.launch.knockbackZ = 0.0;
+  } else {
+    shield.recoilX = decayed.x;
+    shield.recoilZ = decayed.z;
+  }
+}
+
+/** False once after a shield contact, and while shieldstun forces the guard. */
+export function shieldDrainShouldResume(f: Fighter, forcedShield: boolean): boolean {
+  if (forcedShield) return false;
+  if (f.shield.drainResumePending) {
+    f.shield.drainResumePending = false;
+    return false;
+  }
+  return true;
+}
+
+export function advanceShieldInputClocks(f: Fighter, input: Readonly<Controls>): void {
+  const { shield } = f;
+  if (shield.reflectFrames > 0) shield.reflectFrames--;
+  if (shield.perfectFrames > 0) shield.perfectFrames--;
+  if (input.shieldTriggerActive) {
+    shield.triggerAge = shield.triggerWasActive ? min(SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, shield.triggerAge + 1) : 0;
+  } else {
+    shield.triggerAge = SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES;
+  }
+  shield.triggerWasActive = input.shieldTriggerActive;
+}
+
+/** Match steps call this after input transitions and contact collection, before damage resolution. */
+export function regenerateShield(f: Fighter): void {
+  const { shield } = f;
+  if (!f.status.out && !shield.raised && shield.energy < SHIELD_MAX) {
+    shield.energy = min(SHIELD_MAX, roundToFloat32(f32(shield.energy + SHIELD_REGEN_PER_FRAME)));
+  }
+}
+
+/**
+ * Whether a swept capsule from (old) to (new) touches a scaled circle. Operands
+ * pass to the binary32 helpers before arithmetic: native real operations can
+ * truncate bits that rounding an evaluated expression cannot recover.
+ */
+export function capsuleCircleIntersects(
+  oldX: number, oldZ: number, newX: number, newZ: number, capsuleRadius: number,
+  centerX: number, centerZ: number, circleRadius: number, circleScale: number,
+): boolean {
+  const deltaX = subtractFloat32(oldX, newX);
+  const deltaZ = subtractFloat32(oldZ, newZ);
+  const lengthSquared = addFloat32(multiplyFloat32(deltaX, deltaX), multiplyFloat32(deltaZ, deltaZ));
+  const endOffsetX = subtractFloat32(newX, centerX);
+  const endOffsetZ = subtractFloat32(newZ, centerZ);
+  const numerator = -fusedMultiplyAddFloat32(endOffsetX, deltaX, multiplyFloat32(endOffsetZ, deltaZ));
+  const projection = lengthSquared < 0.000009999999747378752 ? 0.0 : max(0.0, min(1.0, divideFloat32(numerator, lengthSquared)));
+  const closestX = fusedMultiplyAddFloat32(projection, deltaX, newX);
+  const closestZ = fusedMultiplyAddFloat32(projection, deltaZ, newZ);
+  const offsetX = subtractFloat32(centerX, closestX);
+  const offsetZ = subtractFloat32(centerZ, closestZ);
+  const distance = roundToFloat32(squareRoot(fusedMultiplyAddFloat32(offsetX, offsetX, multiplyFloat32(offsetZ, offsetZ))));
+  if (distance < 0.000009999999747378752) return true;
+  const inverseScale = divideFloat32(1.0, circleScale);
+  const inverseTranslateX = multiplyFloat32(-centerX, inverseScale);
+  const inverseTranslateZ = multiplyFloat32(-centerZ, inverseScale);
+  const localCenterX = addFloat32(multiplyFloat32(centerX, inverseScale), inverseTranslateX);
+  const localCenterZ = addFloat32(multiplyFloat32(centerZ, inverseScale), inverseTranslateZ);
+  const localClosestX = addFloat32(multiplyFloat32(closestX, inverseScale), inverseTranslateX);
+  const localClosestZ = addFloat32(multiplyFloat32(closestZ, inverseScale), inverseTranslateZ);
+  const localOffsetX = subtractFloat32(localCenterX, localClosestX);
+  const localOffsetZ = subtractFloat32(localCenterZ, localClosestZ);
+  const localDistance = roundToFloat32(squareRoot(fusedMultiplyAddFloat32(localOffsetX, localOffsetX, multiplyFloat32(localOffsetZ, localOffsetZ))));
+  // Radius conversion retains rounding even for an identity joint transform.
+  const convertedRadius = divideFloat32(multiplyFloat32(circleRadius, distance), localDistance);
+  return distance <= addFloat32(capsuleRadius, convertedRadius);
+}
+
+/** Whether a projectile's step crosses the target's shield circle, scaled by radiusFactor. */
+export function shieldCircleIntersects(target: Fighter, oldX: number, oldZ: number, newX: number, newZ: number, radiusFactor: number): boolean {
+  const geometry = target.tuning.shield;
+  const centerX = f32(target.motion.x + f32(target.facing * geometry.centerX));
+  const centerZ = f32(target.motion.z + geometry.centerZ);
+  const radius = roundToFloat32(f32(geometry.radius * radiusFactor));
+  const scale = shieldSizeMultiplier(target.shield.energy, target.shield.strength);
+  return capsuleCircleIntersects(oldX, oldZ, newX, newZ, 0.0, centerX, centerZ, radius, scale);
+}

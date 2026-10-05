@@ -1,8 +1,8 @@
 // Attack timing, damage and reach for every action ID. Frame counts are
 // provisional authored values unless a constant names its Melee source.
-import { max, min } from "../../runtime/wurst";
+import { max, min, toInt } from "../../runtime/wurst";
 import { f32 } from "../../sim/f32";
-import { AttackStyle, Character } from "./codes";
+import { AttackStyle, Character, GrabAction } from "./codes";
 
 export const SMASH_MAX_CHARGE_FRAMES = 60;
 export const SMASH_MAX_DAMAGE_MULTIPLIER = 1.3671000003814697;
@@ -205,4 +205,43 @@ export function attackDurationFramesForGrounding(style: AttackStyle, grounded: b
 
 export function attackRecoveryFrames(character: Character, style: AttackStyle, grounded: boolean): number {
   return attackDurationFramesForGrounding(style, grounded) - attackStartupFrames(style) - characterAttackActiveFrames(character, style);
+}
+
+export const GRAB_HOLD_FRAMES = 76;
+export const GRAB_HOLD_DISTANCE = 50.0;
+
+/** Frames a grabbed fighter is held before mashing, longer at higher percent. */
+export function grabHoldFrames(damage: number): number {
+  return toInt(f32(GRAB_HOLD_FRAMES + f32(1.600000023841858 * max(0.0, damage))));
+}
+
+/** The one-based action frame, counting entry, on which a pummel or throw connects. */
+export function grabContactFrame(action: GrabAction): number {
+  switch (action) {
+    case GrabAction.pummel:
+      return 5;
+    case GrabAction.throwForward:
+      return 12;
+    case GrabAction.throwUp:
+      return 14;
+    default:
+      return 16;
+  }
+}
+
+export function grabActionDuration(action: GrabAction): number {
+  switch (action) {
+    case GrabAction.pummel:
+      return 24;
+    case GrabAction.throwForward:
+      return 30;
+    case GrabAction.throwBack:
+      return 34;
+    case GrabAction.throwUp:
+      return 32;
+    case GrabAction.throwDown:
+      return 36;
+    default:
+      return 10;
+  }
 }

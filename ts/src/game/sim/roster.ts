@@ -125,3 +125,10 @@ export function neutralControls(): Controls {
 export function copyControls(target: Controls, source: Readonly<Controls>): void {
   Object.assign(target, source);
 }
+
+/** A frame's controls for a slot the roster has active. */
+export function controlsAt(controls: readonly Readonly<Controls>[], slot: number): Readonly<Controls> {
+  const row = controls[slot];
+  if (row === undefined) throw new Error(`no controls for slot ${slot}`);
+  return row;
+}
