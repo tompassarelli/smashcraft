@@ -27,7 +27,7 @@ async function check(
   }
 }
 
-await check("full type-check (target ≤1 s)", ["run", "check"], 1000);
+await check("type-check edit-loop and dependency validation", ["scripts/typecheck-benchmark.ts"]);
 await check(
   "focused logic test (target ≤0.3 s)",
   ["test", "test/game.test.ts"],

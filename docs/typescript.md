@@ -132,6 +132,13 @@ From smashcraft:ts/:
   including Effect diagnostics. A first check after removing these caches does
   all the work again. TypeScriptToLua needs the compiler API that only
   TypeScript 6.0 has, so it compiles with 6.0 and the two report the same errors.
+- `bun scripts/typecheck-benchmark.ts`: CI's type-check latency gate. It reports
+  a cold full check after removing both dependency caches, then changes the
+  implementation of the manifest file-name function shared by host and game.
+  The full check after that edit must finish within 1000 ms. It also changes
+  the exported argument type and requires errors at both consumers, then
+  restores the source in `finally` and checks it again. Cold startup has no
+  latency gate; every check still fails CI on unexpected compiler errors.
 - `LUA=<32-bit lua> bun waygate parity numeric`: emitted Lua against Bun on
   the numeric corpus.
 - `GAME_SOAK=1 bun test test/game.test.ts`: the long `*.soak.ts` scenarios,
