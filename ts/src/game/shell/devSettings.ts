@@ -9,7 +9,7 @@ import { parseDecimal } from "../netcode/journal/decimal";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import {
   type MatchState, Phase, createMatchState, firstHumanSlot, humanFighterActive, humanPresent, requestStageSelect, requestStart, returnToCharacters,
-  selectCharacter, selectStage,
+  selectCharacter, selectStage, setStocks,
 } from "../match/rules";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
 
@@ -61,7 +61,7 @@ export const QUICK_MATCH_COMMAND = "-dev quick";
 
 /**
  * Readies every present human with their slot's default fighter and starts
- * the match on the default stage, from either menu. False, with no match
+ * a one-stock match on the default stage, from either menu. False, with no match
  * started, when the menus could not start one.
  */
 export function prepareQuickMatch(game: MatchState): boolean {
@@ -74,5 +74,6 @@ export function prepareQuickMatch(game: MatchState): boolean {
   }
   if (!requestStageSelect(game, first)) return false;
   selectStage(game, first, createMatchState().stageChoice);
+  setStocks(game, first, 1);
   return requestStart(game, first);
 }

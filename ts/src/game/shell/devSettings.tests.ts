@@ -32,16 +32,18 @@ test("dev commands reject values the schedule cannot start", () => {
   assertEquals(dev.batch, 2);
 });
 
-test("a quick match readies every present human's default fighter and starts on the default stage", () => {
+test("a quick match readies every present human's default fighter and starts with one stock on the default stage", () => {
   for (const from of [Phase.characterMenu, Phase.stageMenu]) {
     const game = createMatchState();
     setParticipants(game, 0b011, 0b100);
     selectCharacter(game, 0, Character.demonHunter);
     game.stageChoice = 1;
+    game.stockCount = 9;
     game.phase = from;
     assertTrue(prepareQuickMatch(game));
     assertEquals(game.phase, Phase.match);
     assertEquals(game.stageChoice, 0);
+    assertEquals(game.stockCount, 1);
     assertEquals(game.characterChoices[0], Character.archer);
     assertEquals(game.characterChoices[1], Character.rifleman);
     assertEquals(fighterMask(game), 0b111);
@@ -49,4 +51,5 @@ test("a quick match readies every present human's default fighter and starts on 
   const playing = createMatchState();
   playing.phase = Phase.match;
   assertFalse(prepareQuickMatch(playing));
+  assertEquals(playing.stockCount, 3);
 });
