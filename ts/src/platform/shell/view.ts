@@ -7,11 +7,11 @@ import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
 import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { Phase, remainingSeconds } from "../../game/match/rules";
+import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../game/presentation/arenaCamera";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import type { FighterPose } from "../../game/presentation/fighterPose";
 import { journalIngress } from "../../game/shell/build";
 import { type StartControl, fighterLabel, matchHelp } from "../../game/shell/messages";
-import { FLOOR_HEIGHT } from "../../game/render/effects";
 import { isIntangible } from "../../game/sim/conditions";
 import { type Roster, fighterAt, isActive } from "../../game/sim/roster";
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "../../game/sim/stage";
@@ -183,17 +183,16 @@ export function lockArenaCamera(s: ShellState): void {
     live++;
   }
   const { x: centerX, y: centerY } = s.origin;
-  const targetX = centerX + (left + right) / 2;
-  const targetZ = Math.max(160.0, (bottom + top) / 2);
-  const distance = Math.max(1450.0, (right - left + 500) * f32(1.15), (top - bottom + 350) * 1.5);
+  const framing = arenaFraming(left, right, bottom, top);
+  const targetX = centerX + framing.x;
   SetCameraBounds(targetX, centerY, targetX, centerY, targetX, centerY, targetX, centerY);
-  SetCameraField(CAMERA_FIELD_ROTATION, 90.0, 0.0);
-  SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, 350.0, 0.0);
-  SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, distance, 0.0);
-  SetCameraField(CAMERA_FIELD_ZOFFSET, FLOOR_HEIGHT + targetZ, 0.0);
+  SetCameraField(CAMERA_FIELD_ROTATION, ARENA_CAMERA.rotation, 0.0);
+  SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, ARENA_CAMERA.angleOfAttack, 0.0);
+  SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, framing.distance, 0.0);
+  SetCameraField(CAMERA_FIELD_ZOFFSET, FLOOR_HEIGHT + framing.z, 0.0);
   SetCameraField(CAMERA_FIELD_ROLL, 0.0, 0.0);
-  SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, 70.0, 0.0);
-  SetCameraField(CAMERA_FIELD_FARZ, 8000.0, 0.0);
+  SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, ARENA_CAMERA.fieldOfView, 0.0);
+  SetCameraField(CAMERA_FIELD_FARZ, ARENA_CAMERA.farZ, 0.0);
   SetCameraPosition(targetX, centerY);
 }
 

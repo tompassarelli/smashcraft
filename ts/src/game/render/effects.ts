@@ -2,10 +2,8 @@
 // handles created in the synchronized match lifecycle and only change them
 // while presenting completed state; presenting never creates or destroys one.
 import { f32 } from "wisp/src/sim/f32";
+import { FLOOR_HEIGHT } from "../presentation/arenaCamera";
 import { Character } from "../sim/codes";
-
-/** The arena floor stands this far above the ground at the world origin. */
-export const FLOOR_HEIGHT = 1800.0;
 
 /** The world point the simulation's origin maps to: stage center and floor height. */
 export interface WorldOrigin {

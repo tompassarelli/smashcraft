@@ -19,9 +19,9 @@ import {
   clearTech,
 } from "./transitions";
 
-const BLAST_ZONE_SIDE = 920.0;
-const BLAST_ZONE_BOTTOM = -420.0;
-const BLAST_ZONE_TOP = 760.0;
+export const BLAST_ZONE_SIDE = 920.0;
+export const BLAST_ZONE_BOTTOM = -420.0;
+export const BLAST_ZONE_TOP = 760.0;
 const RESPAWN_FRAMES = 60;
 const RESPAWN_HEIGHT = 280.0;
 const RESPAWN_INVINCIBLE_FRAMES = 90;

@@ -1,10 +1,12 @@
 // The development build's scene report, read the way the host reads it, against
-// Smashcraft's declared player view (scripts/wisp/playerView.ts).
+// Smashcraft's declared player view (scripts/wisp/playerView.ts), with the model
+// facts and arena cameras of its render visibility.
 import { afterAll, expect, test } from "bun:test";
 import { trampoline } from "wisp/src/platform/dispatch";
-import { sceneFile } from "wisp/src/runtime/scene";
+import { reportedModel, sceneFile } from "wisp/src/runtime/scene";
 import { type SceneReport, readSceneLines, sceneProblems } from "wisp/scripts/wisp/scene";
 import { SMASHCRAFT_SCENE } from "../scripts/wisp/playerView";
+import { STAGE_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { requestStageSelect, requestStart, selectCharacter } from "../src/game/match/rules";
 import { Character } from "../src/game/sim/codes";
 import { start as startDevelopment } from "../src/platform/devMain";
@@ -48,4 +50,26 @@ test("development build: a match's scene report shows the stage and declares eve
   expect(report.effects).toBeGreaterThan(200);
   expect(report.models.find(({ model }) => model.includes("StageDeck"))).toMatchObject({ live: 1, inView: 1, drawn: 1 });
   expect(client.errors).toEqual([]);
+});
+
+test("the two shipped defects fail the scene check from the match's first report", () => {
+  const read = (lines: readonly string[]) => {
+    const report = readSceneLines(lines);
+    if ("problem" in report) throw new Error(report.problem);
+    return report;
+  };
+  const deck = `model 1 1 1 0 0 0 0 ${reportedModel(STAGE_DECK_MODEL)}`;
+  // Match-start lines of the development build with 05266a3's parking reverted (evidence/render-visibility-20261006):
+  // the rifleman's collapsed GyroCopterMissile pool waits at the floor and keeps smoking.
+  expect(sceneProblems(read(["scene 1 frame 0 effects 267", deck, "model 16 16 0 0 0 0 0 Abilities/Weapons/GyroCopter/GyroCopterMissile.mdx"]), SMASHCRAFT_SCENE)).toEqual([{
+    seen: "16 hidden projectiles in view still show particles",
+    evidence: "model Abilities/Weapons/GyroCopter/GyroCopterMissile.mdx: 16 in view, 0 drawn; BlizParticle02 emits 30/s, each for 0.5 s",
+  }]);
+  // And with 168e08c's empty stage deck model.
+  const emptyDeck = { ...SMASHCRAFT_SCENE, kinds: SMASHCRAFT_SCENE.kinds.map((kind) => (kind.name === "stage deck" ? { ...kind, models: [""] } : kind)) };
+  expect(sceneProblems(read(["scene 1 frame 0 effects 267", "model 1 1 1 0 0 0 1 "]), emptyDeck).map(({ seen }) => seen)).toEqual([
+    "no stage under the fighters: 0 of the 1 stage deck pieces a match needs are drawn",
+    "invisible stage deck: 1 effects were created with no model, 1 of them meant to be drawn now",
+    "nothing where a stage deck should be: the game names no model for it",
+  ]);
 });

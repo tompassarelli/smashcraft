@@ -3,7 +3,7 @@ import { createFrameControls } from "../src/game/match/controls";
 import { captureFrame, createMatchFrameInput } from "../src/game/match/frameInput";
 import { Phase, requestStageSelect, requestStart, selectCharacter } from "../src/game/match/rules";
 import { IMPACT_DUST, IMPACTS_PER_KIND } from "../src/game/presentation/impactState";
-import { FLOOR_HEIGHT } from "../src/game/render/effects";
+import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { ReplayCorrections, ReplayHistory } from "../src/game/replay/history";
 import { Character } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
