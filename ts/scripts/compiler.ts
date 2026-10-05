@@ -2,13 +2,16 @@
 // previous program's unchanged files, so an edit costs only re-checking and
 // transforming, not process start, module load and parsing.
 import ts from "typescript";
+import { resolve } from "node:path";
 import { Transpiler, parseConfigFileWithSystem } from "typescript-to-lua";
 
 export function mapCompiler(configPath: string): () => readonly ts.Diagnostic[] {
   let previous: ts.Program | undefined;
   return () => {
     // Parsed every time so added and removed files are picked up.
-    const config = parseConfigFileWithSystem(configPath);
+    // An absolute config path keeps every source file name absolute, which the
+    // map plugin needs to recognize f32, floorDiv and floorMod by their file.
+    const config = parseConfigFileWithSystem(resolve(configPath));
     if (config.errors.length > 0) return config.errors;
     const program = ts.createProgram({ rootNames: config.fileNames, options: config.options, ...(previous && { oldProgram: previous }) });
     previous = program;
