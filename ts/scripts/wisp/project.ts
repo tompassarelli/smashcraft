@@ -6,25 +6,25 @@ import { MapBuild, type BuildProject } from "wisp/scripts/wisp/mapBuild";
 import { GameFiles } from "wisp/scripts/wisp/gameFiles";
 import { SourceErrors } from "wisp/scripts/wisp/sourceErrors";
 
-export const ts = join(import.meta.dir, "../..");
-export const projectRoot = join(ts, "..");
+export const tsDirectory = join(import.meta.dir, "../..");
+export const projectRoot = join(tsDirectory, "..");
 export const clientState = join(homedir(), ".local/state/smashcraft/clients.json");
-export const sourceMapDirectory = join(ts, "build/source-maps");
+export const sourceMapDirectory = join(tsDirectory, "build/source-maps");
 
 /** Every compile of the map: normal gameplay, and each diagnostic with its own entry and TypeScriptToLua configuration. */
 export const profiles = ["main", "integrity", "playable", "physics-probe", "frame-cost", "stack-trace"] as const;
 export type Profile = (typeof profiles)[number];
-const profileConfig = (profile: Profile) => join(ts, profile === "main" ? "tsconfig.map.json" : `tsconfig.${profile}.json`);
+const profileConfig = (profile: Profile) => join(tsDirectory, profile === "main" ? "tsconfig.map.json" : `tsconfig.${profile}.json`);
 
 export const buildProject = (profile: Profile = "main"): BuildProject => ({
   projectRoot,
   configPath: profileConfig(profile),
-  bundlePath: join(ts, profile === "main" ? "build/map.lua" : `build/${profile}.lua`),
-  compileInputs: [join(ts, "src"), join(ts, "node_modules/wisp/src"), join(ts, "node_modules/wisp/plugins"),
-    ...profiles.map(profileConfig), join(ts, "tsconfig.json")],
+  bundlePath: join(tsDirectory, profile === "main" ? "build/map.lua" : `build/${profile}.lua`),
+  compileInputs: [join(tsDirectory, "src"), join(tsDirectory, "node_modules/wisp/src"), join(tsDirectory, "node_modules/wisp/plugins"),
+    ...profiles.map(profileConfig), join(tsDirectory, "tsconfig.json")],
   packager: join(projectRoot, "build/tools/map-pack"),
   toolchainLockPath: join(projectRoot, "typescript-toolchain.lock"),
-  packageDirectory: ts,
+  packageDirectory: tsDirectory,
   entryGlobal: "smashcraftTs",
 });
 
