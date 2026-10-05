@@ -3,7 +3,7 @@
 // its journal, then the fighters' renderers.
 import { PARTICIPANT_SLOTS } from "../../game/input/participants";
 import { resetMatchFrameInput } from "../../game/match/frameInput";
-import { resetPoses } from "../../game/match/runtime";
+import { clearPresentationHistory } from "../../game/match/pacingAndPresentation";
 import { initializeMatchFighters } from "../../game/match/step";
 import { beginModelSoundEpoch, confirmModelSounds } from "../../game/render/modelSounds";
 import { readyFile } from "../../game/shell/journalFiles";
@@ -29,7 +29,7 @@ export function startMatch(s: ShellState): void {
   for (const slot of PARTICIPANT_SLOTS) if (ui.settings[slot].isOpen()) ui.settings[slot].close();
   clearAllInputs(s);
   s.runtime.simulationFrame = 0;
-  resetPoses(s.runtime);
+  clearPresentationHistory(s.runtime);
   s.session.paused = false;
   resetMatchFrameInput(s.frameInput);
   s.runtime.botAttackDelays.fill(0.0);

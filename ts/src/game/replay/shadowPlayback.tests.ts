@@ -22,7 +22,7 @@ import {
   selectCharacter,
   setParticipants,
 } from "../match/rules";
-import { createReplayRuntimeState } from "../match/runtime";
+import { createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { matchSpawnX } from "../match/step";
 import { Capture } from "../netcode/capture";
 import { DEFAULT_ROLLBACK_WINDOW, ShadowInputSchedule } from "../netcode/shadowSchedule";
@@ -334,7 +334,7 @@ function lobbyState(game: ReturnType<typeof createMatchState>): ReplayState {
   for (const slot of PARTICIPANT_SLOTS) {
     if (fighterActive(game, slot)) world.fighters[slot] = createFighter(SLOT_CHARACTERS[slot], matchSpawnX(slot), slot === 0 || slot === 2 ? 1 : -1);
   }
-  return { world, match: game, controls: createFrameControls(), runtime: createReplayRuntimeState() };
+  return { world, match: game, controls: createFrameControls(), runtime: createPacingAndPresentation() };
 }
 
 function capture(state: ReplayState): ReplayState {

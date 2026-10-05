@@ -1,7 +1,7 @@
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { createFrameControls } from "../match/controls";
+import { createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { Phase, createMatchState } from "../match/rules";
-import { createReplayRuntimeState } from "../match/runtime";
 import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
 import { Character } from "../sim/codes";
 import { SHIELD_MAX, createFighter } from "../sim/fighter";
@@ -41,7 +41,7 @@ test("a corrected shield projects the restored state of a sparse participant", (
   const game = createMatchState();
   game.phase = Phase.match;
   const inputs = createFrameControls();
-  const runtime = createReplayRuntimeState();
+  const runtime = createPacingAndPresentation();
   const snapshot = createReplaySnapshot();
   captureReplaySnapshot(snapshot, world, game, inputs, runtime);
   fighter.shield.raised = true;

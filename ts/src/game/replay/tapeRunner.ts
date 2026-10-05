@@ -8,7 +8,7 @@ import {
   confirmRematch, createMatchState, fighterMask, requestStageSelect, requestStart, selectCharacter, selectStage,
   setParticipants, setStocks, setTimeLimit, updateConnectedHumans,
 } from "../match/rules";
-import { createReplayRuntimeState, resetPoses } from "../match/runtime";
+import { clearPresentationHistory, createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { initializeMatchFighters, matchSpawnX } from "../match/step";
 import { createFighter } from "../sim/fighter";
 import { copyControls, createRoster, isActive, neutralControls } from "../sim/roster";
@@ -50,7 +50,7 @@ export interface TapeSession {
 
 export function createTapeSession(): TapeSession {
   return {
-    live: { world: createRoster(0), match: createMatchState(), controls: createFrameControls(), runtime: createReplayRuntimeState() },
+    live: { world: createRoster(0), match: createMatchState(), controls: createFrameControls(), runtime: createPacingAndPresentation() },
     history: new ReplayHistory(), corrections: new ReplayCorrections(), observed: createReplaySnapshot(),
     row: createMatchFrameInput(), correction: createMatchFrameInput(), produced: createFrameControls(), epoch: 0,
   };
@@ -80,7 +80,7 @@ function startMatch(session: TapeSession): boolean {
     runtime.botAttackDelays[slot] = 0.0;
   }
   runtime.simulationFrame = 0;
-  resetPoses(runtime);
+  clearPresentationHistory(runtime);
   initializeMatchFighters(match, world);
   session.epoch++;
   return session.history.beginEpoch(session.epoch, 1, REPLAY_MAX_CORRECTION_FRAMES) && session.corrections.beginEpoch(session.epoch);

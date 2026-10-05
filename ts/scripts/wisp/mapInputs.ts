@@ -79,7 +79,7 @@ export const GENERATED_MODELS: readonly { readonly list: string; readonly genera
 ];
 
 /** The summon clip models the compiled script draws; the summon evidence lists their files. */
-export const SUMMON_MODELS = Array.from({ length: summonClipCount(SUMMON_BEAR) }, (_, index) => summonClip(SUMMON_BEAR, index).modelPath);
+const SUMMON_MODELS = Array.from({ length: summonClipCount(SUMMON_BEAR) }, (_, index) => summonClip(SUMMON_BEAR, index).modelPath);
 
 /**
  * The pooled fighters' clip and light models the compiled script draws; the
@@ -98,7 +98,7 @@ export const SCRIPT_MODELS: readonly string[] = [
 ];
 
 /** The model sound table and the clips its cues are keyed to. */
-export interface SoundTable {
+interface SoundTable {
   readonly cueCount: (character: number) => number;
   readonly cue: (character: number, ordinal: number) => ModelSoundCue | undefined;
   readonly label: (soundIndex: number) => string | undefined;
@@ -147,7 +147,7 @@ const requireListed = (path: string, imports: readonly string[], models: readonl
  * new script names. The build verified their contents; this reads the
  * archive's file list once, whose names Warcraft matches without case.
  */
-export const carriedModels = (map: string, packager: string, models: readonly string[] = SCRIPT_MODELS) => Effect.scoped(Effect.gen(function*() {
+const carriedModels = (map: string, packager: string, models: readonly string[] = SCRIPT_MODELS) => Effect.scoped(Effect.gen(function*() {
   if (models.includes("")) return yield* new MapBuildFailure({ operation: "check script models", path: map, cause: EMPTY_MODEL });
   const scratch = yield* Effect.acquireRelease(
     tryMapSync("create scratch directory", tmpdir(), () => mkdtempSync(join(tmpdir(), "smashcraft-models."))),

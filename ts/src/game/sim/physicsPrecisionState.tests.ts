@@ -3,7 +3,7 @@ import { beginDamageContacts, finishDamageContacts, queueDamageContact } from ".
 import { Character, ContactKind } from "./codes";
 import { createFighter } from "./fighter";
 import { controls, hitEffect, soloWorld, testWorld, withPhysics } from "./testWorld";
-import { advance } from "./step";
+import { advanceFighter } from "./step";
 import { digitalShieldDamage, digitalShieldstunDuration } from "./shield";
 import { melee } from "./tuning";
 
@@ -15,7 +15,7 @@ test("#9 GROUNDED_BINARY32_EXACT_PASS", () => {
   fighter.launch.knockbackX = melee(0.7562744617462158);
   fighter.launch.hitstun = 10;
 
-  advance(soloWorld(fighter), 0, 0, controls(), 0.0);
+  advanceFighter(soloWorld(fighter), 0, 0, controls(), 0.0);
 
   assertEquals(fighter.launch.knockbackX, melee(0.6762744784355164));
 });
@@ -24,7 +24,7 @@ test("#9 SHIELD_REGEN_BINARY32_EXACT_PASS", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.shield.energy = 20.0;
 
-  advance(soloWorld(fighter), 0, 0, controls(), 0.0);
+  advanceFighter(soloWorld(fighter), 0, 0, controls(), 0.0);
 
   assertEquals(fighter.shield.energy, 20.06999969482422);
 });

@@ -2,8 +2,8 @@
 // as recorded tapes, so accepted remote rows can replace predictions in place.
 import type { InputRow } from "../input/inputRow";
 import type { FrameControls } from "../match/controls";
+import type { PacingAndPresentation } from "../match/pacingAndPresentation";
 import type { MatchState } from "../match/rules";
-import type { ReplayRuntimeState } from "../match/runtime";
 import { type CorrectionResult, ReplayHistory } from "../replay/history";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
 import { ShadowInputPlayback } from "../replay/shadowPlayback";
@@ -14,7 +14,7 @@ interface MutableReplayState {
   world: ReplayState["world"];
   match: MatchState;
   controls: FrameControls;
-  runtime: ReplayRuntimeState;
+  runtime: PacingAndPresentation;
 }
 
 /** Production rollback playback: the shell's private world is corrected from retained input rows. */

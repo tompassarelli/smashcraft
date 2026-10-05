@@ -1,8 +1,8 @@
 import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { createFrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "../match/frameInput";
+import { createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { Phase, createMatchState } from "../match/rules";
-import { createReplayRuntimeState } from "../match/runtime";
 import { stateChecksum } from "../replay/canonical";
 import { firstPoseDifference, firstStateDifference } from "../replay/difference";
 import { ReplayHistory } from "../replay/history";
@@ -22,7 +22,7 @@ test("replaying rows from a restored frame reproduces each pose's selection and 
     game.timeLimitMinutes = 0;
     const live: ReplayState = {
       world: testWorld(createFighter(character, -200.0, 1), createFighter(Character.rifleman, 200.0, -1)),
-      match: game, controls: createFrameControls(), runtime: createReplayRuntimeState(),
+      match: game, controls: createFrameControls(), runtime: createPacingAndPresentation(),
     };
     const captured = createFrameControls();
     const row = createMatchFrameInput();
@@ -122,7 +122,7 @@ test("a snapshot's pose escapes from its own copy of the previous holder", () =>
   const world = testWorld(first, second);
   const game = createMatchState();
   const controls = createFrameControls();
-  const runtime = createReplayRuntimeState();
+  const runtime = createPacingAndPresentation();
   const input = neutralControls();
   const snapshot = createReplaySnapshot();
   first.grab.owner = 1;

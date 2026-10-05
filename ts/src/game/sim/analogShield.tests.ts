@@ -15,7 +15,7 @@ import {
   shieldSizeMultiplier,
   shieldstunDuration,
 } from "./shield";
-import { advance } from "./step";
+import { advanceFighter } from "./step";
 import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, soloWorld, testWorld } from "./testWorld";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
@@ -152,7 +152,7 @@ test("a light shield contact uses its strength and freezes it through stun", () 
   const { strength, energy } = target.shield;
   const input = controls({ shield: true, shieldStrength: 1.0 });
   while (target.launch.hitlag > 1 || target.shield.stun > 0) {
-    advance(world, 1, 0, input, 0.0);
+    advanceFighter(world, 1, 0, input, 0.0);
     assertEquals(target.shield.strength, strength);
     assertEquals(target.shield.energy, energy);
   }

@@ -5,8 +5,8 @@
 import { STAGE_DECK_MODEL } from "../../game/assets/stageAssetInfo";
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
+import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { Phase, remainingSeconds } from "../../game/match/rules";
-import type { ReplayRuntimeState } from "../../game/match/runtime";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import type { FighterPose } from "../../game/presentation/fighterPose";
 import { journalIngress } from "../../game/shell/build";
@@ -127,7 +127,7 @@ export function pauseMatchPresentation(s: ShellState, paused: boolean): void {
 
 interface PresentedMatch {
   readonly world: Roster;
-  readonly runtime: ReplayRuntimeState;
+  readonly runtime: PacingAndPresentation;
   readonly playing: boolean;
 }
 

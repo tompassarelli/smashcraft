@@ -13,7 +13,7 @@ import {
   type MatchState, copyMatchState, createMatchState, cycleSlotMode, fighterActive, fighterMask, humanFighterActive,
   requestStageSelect, requestStart, selectCharacter, setParticipants,
 } from "../../match/rules";
-import { createReplayRuntimeState } from "../../match/runtime";
+import { createPacingAndPresentation } from "../../match/pacingAndPresentation";
 import { initializeMatchFighters, matchSpawnX } from "../../match/step";
 import { stateChecksum } from "../../replay/canonical";
 import { type ReplayState, createReplaySnapshot } from "../../replay/snapshot";
@@ -205,7 +205,7 @@ function world(source: Readonly<MatchState>): ReplayState {
     if (fighterActive(game, slot)) roster.fighters[slot] = createFighter(slot === 0 ? Character.archer : Character.rifleman, matchSpawnX(slot), slot === 0 ? 1 : -1);
   }
   initializeMatchFighters(game, roster);
-  return { world: roster, match: game, controls: createFrameControls(), runtime: createReplayRuntimeState() };
+  return { world: roster, match: game, controls: createFrameControls(), runtime: createPacingAndPresentation() };
 }
 
 /**

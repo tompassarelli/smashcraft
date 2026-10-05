@@ -14,7 +14,7 @@ import { beginJump } from "./jumpsAndDodges";
 import { SMASH_MAX_CHARGE_FRAMES, SMASH_MAX_DAMAGE_MULTIPLIER, attackActiveFrames, attackStartupFrames, isAerialAttack, smashDamageMultiplier } from "./moves";
 import type { Controls, Roster } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
-import { advance } from "./step";
+import { advanceFighter } from "./step";
 import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, soloWorld, testBeginAttacks, testWorld } from "./testWorld";
 import { authoredPhysics } from "./tuning";
@@ -51,7 +51,7 @@ test("hitting a jump squat cancels its buffered air dodge", () => {
   const attacker = createFighter(Character.rifleman, 0.0, 1);
   const fighter = createFighter(Character.archer, 70.0, -1);
   const world = testWorld(attacker, fighter);
-  advance(world, 1, 0, controls({ jumpPressed: true, airDodgePressed: true }), 0.0);
+  advanceFighter(world, 1, 0, controls({ jumpPressed: true, airDodgePressed: true }), 0.0);
   assertTrue(fighter.jump.dodgeQueued);
   testBeginAttacks(world, AttackStyle.jab, undefined);
   attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
@@ -173,7 +173,7 @@ test("an ordinary hit-region window survives freezes, region changes and re-entr
   prepareHitRegionAttack(world, attacker, AttackStyle.forwardTilt, 5);
   resolveAttacks(world);
   for (let tick = 1; tick <= 5; tick++) {
-    advance(world, 0, 0, input, -240.0);
+    advanceFighter(world, 0, 0, input, -240.0);
     resolveAttacks(world);
     assertEquals(attacker.attack.frame, 5);
     assertEquals(target.status.damage, 10.0);
@@ -181,11 +181,11 @@ test("an ordinary hit-region window survives freezes, region changes and re-entr
   target.motion.x = 500.0;
   resolveAttacks(world);
   target.motion.x = 50.0;
-  advance(world, 0, 0, input, -240.0);
+  advanceFighter(world, 0, 0, input, -240.0);
   assertEquals(attacker.attack.frame, 6);
   resolveAttacks(world);
   assertEquals(target.status.damage, 10.0);
-  while (attacker.attack.style !== undefined) advance(world, 0, 0, input, -240.0);
+  while (attacker.attack.style !== undefined) advanceFighter(world, 0, 0, input, -240.0);
   prepareHitRegionAttack(world, attacker, AttackStyle.forwardTilt, 5);
   resolveAttacks(world);
   assertEquals(target.status.damage, 17.0);
@@ -218,16 +218,16 @@ test("the up aerial explicitly rehits only on its finishing window", () => {
   assertEquals(target.status.damage, 4.0);
   assertEquals(target.launch.hitlag, 4);
   for (let tick = 1; tick <= 3; tick++) {
-    advance(world, 0, 0, input, -240.0);
+    advanceFighter(world, 0, 0, input, -240.0);
     resolveAttacks(world);
     assertEquals(attacker.attack.frame, 5);
     assertEquals(target.status.damage, 4.0);
   }
-  advance(world, 0, 0, input, -240.0);
+  advanceFighter(world, 0, 0, input, -240.0);
   assertEquals(attacker.attack.frame, 6);
   resolveAttacks(world);
   assertEquals(target.status.damage, 4.0);
-  advance(world, 0, 0, input, -240.0);
+  advanceFighter(world, 0, 0, input, -240.0);
   assertEquals(attacker.attack.frame, 7);
   resolveAttacks(world);
   assertEquals(target.status.damage, 12.0);
@@ -238,7 +238,7 @@ test("the up aerial explicitly rehits only on its finishing window", () => {
   attacker.launch.hitlag = 0;
   resolveAttacks(world);
   assertEquals(target.status.damage, 12.0);
-  advance(world, 0, 0, input, -240.0);
+  advanceFighter(world, 0, 0, input, -240.0);
   assertEquals(attacker.attack.frame, 8);
   resolveAttacks(world);
   assertEquals(target.status.damage, 12.0);
@@ -457,7 +457,7 @@ test("an L-cancel doesn't shorten air dodge or empty landings and clears on stoc
   assertEquals(fighter.landing.lag, 4);
   assertEquals(fighter.landing.lCancelSerial, 0);
   fighter.motion.x = 921.0;
-  advance(world, 0, 0, input, 0.0);
+  advanceFighter(world, 0, 0, input, 0.0);
   assertTrue(fighter.status.out);
   assertEquals(fighter.landing.lCancelWindow, 0);
   fighter.landing.lCancelSerial = 2;
@@ -472,7 +472,7 @@ function prepareSmashCharge(world: Roster, fighter: Fighter, target: Fighter, in
   target.motion.x = f32(fighter.motion.x + 100);
   input.attackHeld = true;
   testBeginAttacks(world, style, undefined, true, false);
-  for (let tick = 1; tick <= attackStartupFrames(style); tick++) advance(world, 0, 0, input, -240.0);
+  for (let tick = 1; tick <= attackStartupFrames(style); tick++) advanceFighter(world, 0, 0, input, -240.0);
 }
 
 test("smash charge pauses the pre-active clock, and release enters the hit frame", () => {
@@ -488,7 +488,7 @@ test("smash charge pauses the pre-active clock, and release enters the hit frame
   const pausedX = fighter.motion.x;
   input.direction = -1;
   input.attackHeld = false;
-  advance(world, 0, 0, input, -240.0);
+  advanceFighter(world, 0, 0, input, -240.0);
   assertFalse(fighter.attack.smashCharging);
   assertEquals(fighter.attack.smashChargeFrames, 1);
   assertEquals(fighter.attack.frame, attackStartupFrames(AttackStyle.upSmash));
@@ -504,11 +504,11 @@ test("smash charge caps at sixty ticks and scales to Melee's damage multiplier",
   const world = testWorld(fighter, target);
   const input = controls();
   prepareSmashCharge(world, fighter, target, input, AttackStyle.upSmash);
-  for (let tick = 2; tick <= SMASH_MAX_CHARGE_FRAMES; tick++) advance(world, 0, 0, input, -240.0);
+  for (let tick = 2; tick <= SMASH_MAX_CHARGE_FRAMES; tick++) advanceFighter(world, 0, 0, input, -240.0);
   assertEquals(fighter.attack.smashChargeFrames, SMASH_MAX_CHARGE_FRAMES);
   assertTrue(fighter.attack.smashCharging);
   input.attackHeld = false;
-  advance(world, 0, 0, input, -240.0);
+  advanceFighter(world, 0, 0, input, -240.0);
   assertFalse(fighter.attack.smashCharging);
   assertEquals(fighter.attack.smashChargeFrames, SMASH_MAX_CHARGE_FRAMES);
   assertEquals(fighter.attack.frame, attackStartupFrames(AttackStyle.upSmash));
@@ -523,7 +523,7 @@ test("a direct smash doesn't charge, and charge freezes only the fighter's contr
   const directWorld = testWorld(direct, directTarget);
   const directInput = controls({ attackHeld: true });
   testBeginAttacks(directWorld, AttackStyle.forwardSmash, undefined);
-  for (let tick = 1; tick <= attackStartupFrames(AttackStyle.forwardSmash); tick++) advance(directWorld, 0, 0, directInput, -240.0);
+  for (let tick = 1; tick <= attackStartupFrames(AttackStyle.forwardSmash); tick++) advanceFighter(directWorld, 0, 0, directInput, -240.0);
   assertFalse(direct.attack.smashCharging);
   assertEquals(direct.attack.frame, attackStartupFrames(AttackStyle.forwardSmash));
   resolveAttacks(directWorld);
@@ -538,11 +538,11 @@ test("a direct smash doesn't charge, and charge freezes only the fighter's contr
   fighter.status.invincible = 10;
   fighter.motion.dropTime = 10;
   fighter.launch.hitlag = 3;
-  for (let tick = 1; tick <= 2; tick++) advance(world, 0, 0, input, -240.0);
+  for (let tick = 1; tick <= 2; tick++) advanceFighter(world, 0, 0, input, -240.0);
   assertEquals(fighter.attack.smashChargeFrames, 1);
   assertEquals(fighter.attack.frame, attackFrame);
   assertEquals(fighter.attack.cooldown, cooldown);
-  advance(world, 0, 0, input, -240.0);
+  advanceFighter(world, 0, 0, input, -240.0);
   assertEquals(fighter.attack.smashChargeFrames, 2);
   assertEquals(fighter.attack.frame, attackFrame);
   assertEquals(fighter.attack.cooldown, cooldown);
@@ -557,7 +557,7 @@ test("smash charge stops when the fighter leaves the ground and clears on interr
   const input = controls();
   prepareSmashCharge(testWorld(fighter, target), fighter, target, input, AttackStyle.upSmash);
   fighter.motion.grounded = false;
-  advance(testWorld(fighter, target), 0, 0, input, -240.0);
+  advanceFighter(testWorld(fighter, target), 0, 0, input, -240.0);
   assertFalse(fighter.attack.smashCharging);
   assertFalse(fighter.attack.smashChargeAllowed);
   assertEquals(fighter.attack.frame, attackStartupFrames(AttackStyle.upSmash));
@@ -574,7 +574,7 @@ test("smash charge stops when the fighter leaves the ground and clears on interr
   prepareSmashCharge(stockWorld, stockFighter, stockTarget, stockInput, AttackStyle.upSmash);
   stockFighter.motion.x = 920.0009765625;
   stockInput.attackHeld = false;
-  advance(stockWorld, 0, 0, stockInput, -240.0);
+  advanceFighter(stockWorld, 0, 0, stockInput, -240.0);
   assertTrue(stockFighter.status.out);
   assertFalse(stockFighter.attack.smashCharging);
   assertEquals(stockFighter.attack.smashChargeFrames, 0);
@@ -590,8 +590,8 @@ test("a simultaneous charged smash trade snapshots both charge amounts", () => {
   const secondInput = controls({ attackHeld: true });
   testBeginAttacks(world, AttackStyle.upSmash, AttackStyle.upSmash, true, true);
   const step = () => {
-    advance(world, 0, 0, firstInput, -240.0);
-    advance(world, 1, 0, secondInput, 240.0);
+    advanceFighter(world, 0, 0, firstInput, -240.0);
+    advanceFighter(world, 1, 0, secondInput, 240.0);
   };
   for (let tick = 1; tick <= attackStartupFrames(AttackStyle.upSmash); tick++) step();
   for (let tick = 2; tick <= SMASH_MAX_CHARGE_FRAMES; tick++) step();
@@ -610,24 +610,24 @@ test("jump events follow the takeoff and an accepted air jump", () => {
     const fighter = createFighter(character, 0.0, 1);
     const world = soloWorld(fighter);
     const input = controls({ jumpPressed: true, jumpHeld: true });
-    advance(world, 0, 0, input, 0.0);
+    advanceFighter(world, 0, 0, input, 0.0);
     assertEquals(fighter.jump.serial, 0);
     input.jumpPressed = false;
     for (let frame = 2; frame <= jumpSquatFrames(character); frame++) {
-      advance(world, 0, 0, input, 0.0);
+      advanceFighter(world, 0, 0, input, 0.0);
       assertEquals(fighter.jump.serial, 0);
     }
-    advance(world, 0, 0, input, 0.0);
+    advanceFighter(world, 0, 0, input, 0.0);
     assertEquals(fighter.jump.serial, 1);
     assertFalse(fighter.jump.isDouble);
     assertFalse(fighter.motion.grounded);
-    advance(world, 0, 0, input, 0.0);
+    advanceFighter(world, 0, 0, input, 0.0);
     assertEquals(fighter.jump.serial, 1);
     input.jumpPressed = true;
-    advance(world, 0, 0, input, 0.0);
+    advanceFighter(world, 0, 0, input, 0.0);
     assertEquals(fighter.jump.serial, 2);
     assertTrue(fighter.jump.isDouble);
-    advance(world, 0, 0, input, 0.0);
+    advanceFighter(world, 0, 0, input, 0.0);
     assertEquals(fighter.jump.serial, 2);
     respawnFighter(world, 0, 0.0);
     assertEquals(fighter.jump.serial, 0);
@@ -659,19 +659,19 @@ test("every ground action exposes startup, active and recovery frames", () => {
     assertEquals(fighter.attack.frame, 0);
     assertEquals(attackPhase(fighter), AttackPhase.startup);
     for (let frame = 1; frame <= attackStartupFrames(style) - 1; frame++) {
-      advance(world, 0, 0, input, -240.0);
+      advanceFighter(world, 0, 0, input, -240.0);
       assertEquals(attackPhase(fighter), AttackPhase.startup);
     }
-    advance(world, 0, 0, input, -240.0);
+    advanceFighter(world, 0, 0, input, -240.0);
     assertEquals(attackPhase(fighter), AttackPhase.active);
     for (let frame = 1; frame <= attackActiveFrames(style) - 1; frame++) {
-      advance(world, 0, 0, input, -240.0);
+      advanceFighter(world, 0, 0, input, -240.0);
       assertEquals(attackPhase(fighter), AttackPhase.active);
     }
-    advance(world, 0, 0, input, -240.0);
+    advanceFighter(world, 0, 0, input, -240.0);
     assertEquals(attackPhase(fighter), AttackPhase.recovery);
     for (let frame = 1; frame <= fighter.attack.duration - attackStartupFrames(style) - attackActiveFrames(style); frame++) {
-      advance(world, 0, 0, input, -240.0);
+      advanceFighter(world, 0, 0, input, -240.0);
     }
     assertEquals(attackPhase(fighter), AttackPhase.none);
     assertEquals(fighter.attack.cooldown, 0);
@@ -688,7 +688,7 @@ test("recovery frames can't deal damage", () => {
   const world = testWorld(attacker, target);
   const input = controls();
   testBeginAttacks(world, AttackStyle.jab, undefined);
-  for (let frame = 1; frame <= attackStartupFrames(AttackStyle.jab) + attackActiveFrames(AttackStyle.jab); frame++) advance(world, 0, 0, input, -240.0);
+  for (let frame = 1; frame <= attackStartupFrames(AttackStyle.jab) + attackActiveFrames(AttackStyle.jab); frame++) advanceFighter(world, 0, 0, input, -240.0);
   assertEquals(attackPhase(attacker), AttackPhase.recovery);
   for (let frame = 0; frame <= 5; frame++) resolveAttacks(world);
   assertEquals(target.status.damage, 0.0);

@@ -50,7 +50,7 @@ export const fresh: Command = (args) => Effect.gen(function*() {
   yield* Effect.gen(function*() {
     if (flags.includes("--rebuild")) yield* rebuildMap(map).pipe(step("map rebuilt"));
     yield* freshMatch(map, flags.includes("--from-game"));
-    yield* startQuickMatch.pipe(step("quick match and client receipts"));
+    yield* sendQuickMatchCommand.pipe(step("quick match and client receipts"));
   }).pipe(Effect.provide(options.services.pipe(Layer.provideMerge(Clients.layer(clientState)))));
 });
 
@@ -140,8 +140,8 @@ export const freshMatch = (map: string, fromGame = false) => Effect.gen(function
   return yield* Effect.forEach(clients.all, (client) => readyAfter(client, start), { concurrency: "unbounded" }).pipe(step("every client at character selection"));
 });
 
-/** Starts the ordinary developer quick match and waits until every player's new receipt arrives. */
-export const startQuickMatch = Effect.gen(function*() {
+/** Sends `-dev quick` from the host client and waits until every player's new receipt arrives. */
+export const sendQuickMatchCommand = Effect.gen(function*() {
   const clients = yield* Clients;
   const files = yield* GameFiles;
   const [host] = clients.all;

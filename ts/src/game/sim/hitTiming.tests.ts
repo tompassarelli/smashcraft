@@ -9,7 +9,7 @@ import { ordinaryHitlagFrames, ordinaryHitstunFrames } from "./knockback";
 import { attackStartupFrames } from "./moves";
 import { updateProjectiles } from "./projectiles";
 import { digitalShieldstunFrames } from "./shield";
-import { advance } from "./step";
+import { advanceFighter } from "./step";
 import { advanceSolo, controls, testBeginAttacks, testWorld } from "./testWorld";
 
 // Slippi techTester.slp ff815345e641836a331191320c0f6eae21542a5f, frames
@@ -86,10 +86,10 @@ test("a shield contact freezes both bodies before shieldstun counts down", () =>
   assertEquals(target.launch.hitlag, 7);
   assertEquals(target.shield.stun, 7);
   for (let tick = 1; tick <= 6; tick++) {
-    advance(world, 1, 0, input, 240.0);
+    advanceFighter(world, 1, 0, input, 240.0);
     assertEquals(target.shield.stun, 7);
   }
-  advance(world, 1, 0, input, 240.0);
+  advanceFighter(world, 1, 0, input, 240.0);
   assertEquals(target.shield.stun, 6);
 });
 

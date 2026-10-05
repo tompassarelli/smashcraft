@@ -10,8 +10,8 @@ import { PARTICIPANT_SLOTS, type ParticipantInputs, type ParticipantSlot, type S
 import { type PlayerKeys, playerKeys } from "../../game/input/playerKeys";
 import { type FrameControls, type MatchControls, createFrameControls, createMatchControls } from "../../game/match/controls";
 import { type MatchFrameInput, createMatchFrameInput } from "../../game/match/frameInput";
+import { type PacingAndPresentation, createPacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { type MatchState, createMatchState } from "../../game/match/rules";
-import { type ReplayRuntimeState, createReplayRuntimeState } from "../../game/match/runtime";
 import { matchSpawnX } from "../../game/match/step";
 import type { FixedDelay } from "../../game/netcode/fixedSchedule";
 import { InputBatch } from "../../game/netcode/inputBatch";
@@ -169,7 +169,7 @@ export interface ShellState {
   readonly controls: FrameControls;
   /** Callback matches adapt keys into these before a frame captures them. */
   readonly produced: FrameControls;
-  readonly runtime: ReplayRuntimeState;
+  readonly runtime: PacingAndPresentation;
   /** Pause and Start keys; outside replay state, so rollback never undoes a pause. */
   readonly session: MatchControls;
   readonly frameInput: MatchFrameInput;
@@ -241,7 +241,7 @@ function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: Ed
   return {
     mode, active: false, epoch: 0, delay: mode.delay, window: mode.rollback, batch: DEFAULT_BATCH,
     schedule: new ShadowInputSchedule(), playback,
-    speculative: { world: speculativeRoster(), game: createMatchState(), controls: bufferedControls(), runtime: createReplayRuntimeState() },
+    speculative: { world: speculativeRoster(), game: createMatchState(), controls: bufferedControls(), runtime: createPacingAndPresentation() },
     seed: createReplaySnapshot(), accepted: participantInputs(), sendFailed: false,
     keyboard: mode.kind === "keyboard"
       ? {
@@ -268,7 +268,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
   const { persistence } = setup;
   const state: ShellState = {
     build, origin: setup.origin, game: createMatchState(), world: createRoster(0), controls: bufferedControls(),
-    produced: createFrameControls(), runtime: createReplayRuntimeState(), session: createMatchControls(),
+    produced: createFrameControls(), runtime: createPacingAndPresentation(), session: createMatchControls(),
     frameInput: createMatchFrameInput(),
     participants: [participant(0, persistence), participant(1, persistence), participant(2, persistence), participant(3, persistence)],
     status: { text: "", seconds: 0.0 }, frames: setup.frames, stageDecks: [], ui: undefined,

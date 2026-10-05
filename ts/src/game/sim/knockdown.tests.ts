@@ -10,7 +10,7 @@ import { ORDINARY_HIT_CONTEXT_SCALE, ORDINARY_HIT_GROWTH_PERCENT, ordinaryHitKno
 import { DOWN_ATTACK_ACTIVE_FRAMES, DOWN_ATTACK_BASE_KNOCKBACK, DOWN_ATTACK_DAMAGE, DOWN_ATTACK_FRAMES, DOWN_ATTACK_STARTUP_FRAMES } from "./moves";
 import { totalVelocityZ } from "./motion";
 import type { Roster } from "./roster";
-import { advance } from "./step";
+import { advanceFighter } from "./step";
 import { advanceSolo, controls, resolveStartedAttack, testBeginAttacks, testWorld } from "./testWorld";
 
 test("tumble blocks actions until hitstun ends", () => {
@@ -111,20 +111,20 @@ test("a down wait autostands, and the get-up attack has its own hitbox", () => {
   fighter.down.state = DownState.wait;
   fighter.down.frame = DOWN_WAIT_FRAMES - 1;
   fighter.down.waitRemaining = 1;
-  advance(world, 0, 0, input, 0.0);
+  advanceFighter(world, 0, 0, input, 0.0);
   assertEquals(fighter.down.state, DownState.stand);
   fighter.down.state = DownState.wait;
   fighter.down.frame = 0;
   fighter.down.waitRemaining = DOWN_WAIT_FRAMES;
   input.getupAttackPressed = true;
-  advance(world, 0, 0, input, 0.0);
+  advanceFighter(world, 0, 0, input, 0.0);
   assertEquals(fighter.down.state, DownState.attack);
   assertEquals(attackPhase(fighter), AttackPhase.startup);
-  for (let frame = 1; frame <= DOWN_ATTACK_STARTUP_FRAMES; frame++) advance(world, 0, 0, input, 0.0);
+  for (let frame = 1; frame <= DOWN_ATTACK_STARTUP_FRAMES; frame++) advanceFighter(world, 0, 0, input, 0.0);
   assertEquals(attackPhase(fighter), AttackPhase.active);
   for (let frame = 1; frame <= DOWN_ATTACK_ACTIVE_FRAMES; frame++) {
     resolveAttacks(world);
-    advance(world, 0, 0, input, 0.0);
+    advanceFighter(world, 0, 0, input, 0.0);
   }
   assertEquals(opponent.status.damage, DOWN_ATTACK_DAMAGE);
 });
@@ -143,11 +143,11 @@ function runGetupAttackToContact(world: Roster, attacker: Fighter, target: Fight
   target.motion.grounded = true;
   target.motion.surface = 0;
   const input = controls({ shield: target.shield.raised, getupAttackPressed: true });
-  advance(world, 0, 0, input, 0.0);
+  advanceFighter(world, 0, 0, input, 0.0);
   input.getupAttackPressed = false;
   for (let tick = 1; tick <= DOWN_ATTACK_STARTUP_FRAMES; tick++) {
-    advance(world, 0, 0, input, 0.0);
-    advance(world, 1, 0, input, 0.0);
+    advanceFighter(world, 0, 0, input, 0.0);
+    advanceFighter(world, 1, 0, input, 0.0);
     resolveAttacks(world);
   }
 }
@@ -174,9 +174,9 @@ test("a clean low-percent get-up attack gives the attacker time before the wake-
       const neutral = controls();
       const victimInput = controls();
       for (let frame = 1; frame <= 90; frame++) {
-        advance(world, 0, 0, neutral, 0.0);
+        advanceFighter(world, 0, 0, neutral, 0.0);
         victimInput.getupAttackPressed = target.down.state === DownState.wait;
-        advance(world, 1, 0, victimInput, 0.0);
+        advanceFighter(world, 1, 0, victimInput, 0.0);
         if (victimWakeupActiveFrame < 0 && attackPhase(target) === AttackPhase.active) victimWakeupActiveFrame = frame;
         if (attackerReadyFrame < 0 && canAttack(attacker)) {
           attackerReadyFrame = frame;
@@ -210,8 +210,8 @@ test("a clean get-up attack recovers before a successful tech, for both characte
       for (let frame = 1; frame <= 100; frame++) {
         defender.techPressed = !pressedTech && target.launch.hitlag === 0 && isTumbling(target) && totalVelocityZ(target) < 0 && target.motion.z < 50;
         pressedTech = pressedTech || defender.techPressed;
-        advance(world, 0, 0, neutral, 0.0);
-        advance(world, 1, 0, defender, 0.0);
+        advanceFighter(world, 0, 0, neutral, 0.0);
+        advanceFighter(world, 1, 0, defender, 0.0);
         landedTech = landedTech || target.down.state === DownState.tech;
         if (attackerReady < 0 && canAttack(attacker)) attackerReady = frame;
         if (defenderReady < 0 && canAttack(target)) defenderReady = frame;
@@ -236,8 +236,8 @@ test("a get-up attack on a shield doesn't grant the clean hit's frame advantage"
   let attackerReady = -1;
   let defenderReady = -1;
   for (let frame = 1; frame <= 60; frame++) {
-    advance(world, 0, 0, neutral, 0.0);
-    advance(world, 1, 0, neutral, 0.0);
+    advanceFighter(world, 0, 0, neutral, 0.0);
+    advanceFighter(world, 1, 0, neutral, 0.0);
     if (attackerReady < 0 && canAttack(attacker)) attackerReady = frame;
     if (defenderReady < 0 && canAttack(target)) defenderReady = frame;
   }

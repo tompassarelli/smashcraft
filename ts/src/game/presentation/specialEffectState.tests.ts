@@ -1,8 +1,8 @@
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS } from "../input/participants";
+import { clearPresentationHistory } from "../match/pacingAndPresentation";
 import { Phase } from "../match/rules";
-import { resetPoses } from "../match/runtime";
 import { queueAttack } from "../input/attackBuffer";
 import { createFrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput } from "../match/frameInput";
@@ -175,7 +175,7 @@ test("sparse and four-player parry flashes match whether projected or not, and r
     assertEquals(catchup.game.phase, Phase.result);
     const empty = createSpecialEffectState();
     assertEquals(firstSpecialEffectDifference(catchup.runtime.specials, empty), undefined);
-    resetPoses(sequential.runtime);
+    clearPresentationHistory(sequential.runtime);
     assertEquals(firstSpecialEffectDifference(specials, empty), undefined);
     sequential.game.phase = Phase.characterMenu;
     specials.parryAge[0] = 1;

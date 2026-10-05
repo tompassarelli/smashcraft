@@ -9,8 +9,8 @@ import { advanceSummons, clearSummonState } from "../presentation/summonState";
 import { advanceFighterPose } from "../presentation/fighterPose";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, sameControls } from "../sim/roster";
 import { type FrameControls, createFrameControls } from "./controls";
+import type { PacingAndPresentation } from "./pacingAndPresentation";
 import { type MatchState, Phase, computerActive } from "./rules";
-import type { ReplayRuntimeState } from "./runtime";
 import { produceComputerInput, stepMatch } from "./step";
 
 /** Detached source rows. Every execution adapts again from the world being replayed. */
@@ -38,7 +38,7 @@ export function resetMatchFrameInput(row: MatchFrameInput): void {
   row.source = "adapted";
 }
 
-export function captureFrame(row: MatchFrameInput, frame: number, mask: number, controls: Readonly<FrameControls>, runtime: Readonly<ReplayRuntimeState>): boolean {
+export function captureFrame(row: MatchFrameInput, frame: number, mask: number, controls: Readonly<FrameControls>, runtime: Readonly<PacingAndPresentation>): boolean {
   if (frame < 0 || row.frame === frame || !isParticipantMask(mask)) return false;
   row.frame = frame;
   row.mask = mask;
@@ -132,7 +132,7 @@ const beforeAttack: Slots<number> = [0, 0, 0, 0];
 const beforeDamage: Slots<number> = [0.0, 0.0, 0.0, 0.0];
 const beforeShield: Slots<number> = [0.0, 0.0, 0.0, 0.0];
 
-export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: ReplayRuntimeState, frame: number): boolean {
+export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number): boolean {
   if (row.frame !== frame || frame !== runtime.simulationFrame + 1 || row.mask !== world.mask) return false;
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
