@@ -1,6 +1,6 @@
 import { max, min, toInt } from "../../runtime/numbers";
-import { f32 } from "waygate/src/sim/f32";
-import { idiv, imod } from "waygate/src/sim/intMath";
+import { f32 } from "wisp/src/sim/f32";
+import { idiv, imod } from "wisp/src/sim/intMath";
 import { type Character, SurfaceContact } from "../sim/codes";
 import { DodgeCue, type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
 

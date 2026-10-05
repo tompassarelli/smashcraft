@@ -1,6 +1,6 @@
 import { Effect } from "effect";
-import { type Command, UsageFailure, describeCause } from "waygate/scripts/waygate/command";
-import { step } from "waygate/scripts/waygate/timings";
+import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
+import { step } from "wisp/scripts/wisp/timings";
 import { captureMatches, parseCaptureArguments } from "../../integrity/capture";
 import { IntegrityFailure } from "../../integrity/evidence";
 import { reconcilePlayable } from "../../playable";
@@ -13,7 +13,7 @@ export const playable: Command = ([mode, ...args]) => {
       if (options.sweep.length > 0 || options.fourFighters) throw new Error("playable capture takes one two-player match and rematch");
       return { ...options, workload: "playable" as const };
     },
-    catch: (cause) => new IntegrityFailure({ operation: "parse playable arguments", path: "waygate playable capture", cause: describeCause(cause) }),
+    catch: (cause) => new IntegrityFailure({ operation: "parse playable arguments", path: "wisp playable capture", cause: describeCause(cause) }),
   }).pipe(Effect.flatMap(captureMatches), step("native playable match and rematch"));
   if (mode === "result" && args.length === 1 && args[0] !== undefined) {
     const root = args[0];

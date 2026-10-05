@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { Phase, createMatchState, fighterMask, selectCharacter, setParticipants } from "../match/rules";
 import { Character } from "../sim/codes";
 import { MAX_BATCH } from "../netcode/journal/transport";

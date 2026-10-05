@@ -1,4 +1,4 @@
-import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { EDITBOX_CAPACITY, EditboxSession } from "./editbox";
 import { textEnvelope } from "./text";
 

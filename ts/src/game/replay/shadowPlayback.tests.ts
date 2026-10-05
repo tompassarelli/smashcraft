@@ -1,6 +1,6 @@
 // Speculation, confirmation and correction share one two-cursor fixture;
 // retain the full transitions through delivery, pause, ring wrap and slot changes.
-import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { Action, bit, maskOf } from "../input/actions";
 import { type InputRow, type RowFields, emptyInput, inputRow, predictInto, sameInput } from "../input/inputRow";
 import { PARTICIPANT_SLOTS } from "../input/participants";

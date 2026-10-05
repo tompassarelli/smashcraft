@@ -2,8 +2,8 @@
 // Contact checks run for every hit region every frame and again in rollback
 // replays, so capsule functions fill a caller's record instead of returning
 // a new one.
-import { f32 } from "waygate/src/sim/f32";
-import { at } from "waygate/src/runtime/lookup";
+import { f32 } from "wisp/src/sim/f32";
+import { at } from "wisp/src/runtime/lookup";
 
 /** A segment swept by a radius. */
 interface Capsule {

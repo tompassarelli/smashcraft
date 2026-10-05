@@ -3,7 +3,7 @@
 // match polls the keyboard instead, so its triggers are removed for combat.
 import { PARTICIPANT_SLOTS } from "../../game/input/participants";
 import { Phase, humanActive } from "../../game/match/rules";
-import { trampoline } from "waygate/src/platform/dispatch";
+import { trampoline } from "wisp/src/platform/dispatch";
 import { type ShellState, activeRollback } from "./state";
 
 export const KEY_DOWN = "shell.keyDown";

@@ -8,7 +8,7 @@ import {
   InputTrace,
   InputTraceStart,
   MeleeReady,
-} from "../scripts/waygate/boundary";
+} from "../scripts/wisp/boundary";
 import {
   BACK,
   CREATE,
@@ -25,13 +25,13 @@ import {
   START,
   freshMatch,
   startQuickMatch,
-} from "../scripts/waygate/commands/fresh";
-import { Clients, type Client } from "waygate/scripts/waygate/clients";
-import { dataDirectory, GameFiles, type StoredFile } from "waygate/scripts/waygate/gameFiles";
-import { HotReload } from "waygate/scripts/waygate/hotReload";
-import { MapBuild, type CompiledBundle } from "waygate/scripts/waygate/mapBuild";
+} from "../scripts/wisp/commands/fresh";
+import { Clients, type Client } from "wisp/scripts/wisp/clients";
+import { dataDirectory, GameFiles, type StoredFile } from "wisp/scripts/wisp/gameFiles";
+import { HotReload } from "wisp/scripts/wisp/hotReload";
+import { MapBuild, type CompiledBundle } from "wisp/scripts/wisp/mapBuild";
 
-const fixture = (name: string) => readFileSync(join(import.meta.dir, "fixtures/waygate", name), "utf8");
+const fixture = (name: string) => readFileSync(join(import.meta.dir, "fixtures/wisp", name), "utf8");
 
 test("each game-written file kind decodes its native Preload fixture", async () => {
   expect(await Effect.runPromise(MeleeReady.decode("ready.txt", fixture("melee-ready.pld"))))

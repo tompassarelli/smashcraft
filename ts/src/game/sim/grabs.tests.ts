@@ -1,6 +1,6 @@
 // Grab links: what releases them, mash-out and stock loss.
-import { assertEquals, assertGreaterThan, test } from "waygate/src/runtime/testing";
-import { f32 } from "waygate/src/sim/f32";
+import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
+import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, GrabAction, ProjectileKind } from "./codes";
 import { type Fighter, createFighter } from "./fighter";

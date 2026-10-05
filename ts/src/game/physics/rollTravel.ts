@@ -1,7 +1,7 @@
 // Factual frame observations from libmelee ef679270ff95f0d42339dcdf1608282a35023349,
 // melee/framedata.csv, SHA256 8e0d811290b511902076c0011db1a0116356a7ddaa68dfa369ea4f5dcdc93777.
 // Numerical data only; no LGPL library helper implementation is incorporated.
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../sim/tuning";
 
 type RollKind = "roll" | "faceUpGetup" | "faceDownGetup" | "tech";

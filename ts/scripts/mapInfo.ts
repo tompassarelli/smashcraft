@@ -1,4 +1,4 @@
-import type { MapDeclaration } from "waygate/scripts/mapInfo";
+import type { MapDeclaration } from "wisp/scripts/mapInfo";
 
 export const SMASHCRAFT_MAP = {
   author: "Tompas",

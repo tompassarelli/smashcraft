@@ -1,5 +1,5 @@
-import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
-import { imod } from "waygate/src/sim/intMath";
+import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
+import { imod } from "wisp/src/sim/intMath";
 import { type InputRow, type RowFields, copyInput, inputRow, sameInput } from "../input/inputRow";
 import { participantInputs } from "../input/participants";
 import { INPUT_LAST_FRAME, inputPacket } from "../input/wire";

@@ -1,7 +1,7 @@
 // Shared vocabulary of the native renderers. Renderers own special-effect
 // handles created in the synchronized match lifecycle and only change them
 // while presenting completed state; presenting never creates or destroys one.
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { Character } from "../sim/codes";
 
 /** The world point the simulation's origin maps to: stage center and floor height. */

@@ -1,4 +1,4 @@
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 
 interface SummonOriginalClip {
   valid: boolean;

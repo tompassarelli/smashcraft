@@ -4,8 +4,8 @@
 // report naming the demo's TypeScript frames, innermost first, at the source
 // lines that were executing. The test reads the source with Lua's io library,
 // which Warcraft lacks; the natives the reporter calls are recorders.
-import { installDispatch, trampoline } from "waygate/src/platform/dispatch";
-import { configureRuntime } from "waygate/src/runtime/config";
+import { installDispatch, trampoline } from "wisp/src/platform/dispatch";
+import { configureRuntime } from "wisp/src/runtime/config";
 import { CURRENT_BUILD } from "../../src/game/shell/currentBuild";
 import { STACK_DEMO_COMMAND, STACK_DEMO_HANDLER, installStackDemo } from "../../src/platform/stackDemo";
 

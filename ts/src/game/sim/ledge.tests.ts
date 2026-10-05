@@ -1,6 +1,6 @@
 // Ledge catches, contention, hang options and their protection.
-import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "waygate/src/runtime/testing";
-import { f32 } from "waygate/src/sim/f32";
+import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackPhase, AttackStyle, Character, LedgeState, ShieldBreak } from "./codes";
 import { attackPhase, canAttack, isIntangible } from "./conditions";

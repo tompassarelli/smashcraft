@@ -1,8 +1,8 @@
-// `waygate build` and `waygate rebuild`: the TypeScript-only map build and the
+// `wisp build` and `wisp rebuild`: the TypeScript-only map build and the
 // script-only rebuild of a map that build.sh or `build` packaged.
 import { Effect, Layer } from "effect";
-import { type Command, UsageFailure } from "waygate/scripts/waygate/command";
-import { MapBuild } from "waygate/scripts/waygate/mapBuild";
+import { type Command, UsageFailure } from "wisp/scripts/wisp/command";
+import { MapBuild } from "wisp/scripts/wisp/mapBuild";
 import { decodeBuildOptions, importedAssets, rebuildMap } from "../mapInputs";
 import { buildProject, gameFilesLayer, profileOption, sourceErrorsLayer } from "../project";
 import { SMASHCRAFT_MAP } from "../../mapInfo";

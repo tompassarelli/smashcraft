@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdtempSync, mkdirSync, readdirSync, rmSync, chmodSync } from "node:fs";
 import { join } from "node:path";
 import { Effect, Fiber } from "effect";
-import { replayInLua } from "../scripts/waygate/commands/tapes";
+import { replayInLua } from "../scripts/wisp/commands/tapes";
 
 async function fixture(source: string) {
   const build = join(import.meta.dir, "../build");

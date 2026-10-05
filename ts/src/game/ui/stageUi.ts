@@ -1,7 +1,7 @@
 // The stage panel all players share. Its buttons are synchronized frame clicks
 // any player may press; dragging the stage chip is local cursor art until a
 // finished choice crosses the "stage-drop" sync event.
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { bindPrototype } from "../../platform/rebind";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type MatchState, Phase, humanActive, practiceSelected } from "../match/rules";

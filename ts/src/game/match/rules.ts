@@ -1,4 +1,4 @@
-import { floorDiv } from "waygate/src/sim/intMath";
+import { floorDiv } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots, isParticipantMask, isParticipantSlot, participantActive } from "../input/participants";
 import { Character } from "../sim/codes";
 import { type Roster, fighterAt, isActive } from "../sim/roster";

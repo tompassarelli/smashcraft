@@ -10,7 +10,7 @@ import { readyFile } from "../../game/shell/journalFiles";
 import { initializeScenario } from "../../game/shell/scenarios";
 import { usesPool } from "../../game/shell/build";
 import { fighterAt, isActive } from "../../game/sim/roster";
-import { writeLines } from "waygate/src/platform/fileio";
+import { writeLines } from "wisp/src/platform/fileio";
 import { clearAllInputs } from "./inputs";
 import { journalIdentity, publishMenu } from "./journal";
 import { syncKeyEvents } from "./keyEvents";

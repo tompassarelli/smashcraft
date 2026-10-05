@@ -1,8 +1,8 @@
 // Projectiles: spawning, flight, hits, shield blocks and reflections. Timing
 // and trajectories are first-pass character-special tuning.
 import { max, min } from "../../runtime/numbers";
-import { roundToFloat32 } from "waygate/src/sim/binary32";
-import { f32 } from "waygate/src/sim/f32";
+import { roundToFloat32 } from "wisp/src/sim/binary32";
+import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, ContactKind, ProjectileKind } from "./codes";
 import { isIntangible } from "./conditions";
 import { collectDamageContact, finishDamageContacts, openDamageContacts } from "./contacts";
@@ -13,7 +13,7 @@ import { attackDamage } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { SHIELD_PROJECTILE_DAMAGE_MULTIPLIER, SHIELD_PROJECTILE_SPEED_MULTIPLIER, SHIELD_REFLECTOR_RADIUS_FACTOR, shieldCircleIntersects } from "./shield";
-import { at } from "waygate/src/runtime/lookup";
+import { at } from "wisp/src/runtime/lookup";
 
 export const BLASTER_PROJECTILE_SPEED = 36.0;
 export const BLASTER_PROJECTILE_LIFETIME = 60;

@@ -1,4 +1,4 @@
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { LedgeState, SpecialAction } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { totalVelocityZ } from "../sim/motion";

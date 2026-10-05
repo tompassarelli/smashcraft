@@ -4,8 +4,8 @@
 // files the Wurst map saved still load.
 import type { BindingPersistence } from "../../game/ui/bindingSettings";
 import { PARTICIPANT_SLOTS } from "../../game/input/participants";
-import { trampoline } from "waygate/src/platform/dispatch";
-import { readChunks, writeChunks } from "waygate/src/platform/fileio";
+import { trampoline } from "wisp/src/platform/dispatch";
+import { readChunks, writeChunks } from "wisp/src/platform/fileio";
 import { departPlayerFiles, enqueuePlayerFile, receivePlayerFileChunk, type PlayerFileQueue } from "./playerFileQueue";
 
 export const PLAYER_FILE_RECEIVED = "shell.playerFileReceived";

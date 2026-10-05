@@ -10,7 +10,7 @@ import {
 import { type ModelSoundCue, fighterSoundCue, fighterSoundCueCount } from "../assets/modelSoundInfo";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { FRAME_SECONDS, type FighterPose } from "../presentation/fighterPose";
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { toInt } from "../../runtime/numbers";
 import type { Fighter } from "../sim/fighter";
 

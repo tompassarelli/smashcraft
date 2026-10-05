@@ -2,7 +2,7 @@
 // then compares the last incremental bundle with a fresh full compile.
 import { readFileSync, writeFileSync, utimesSync } from "node:fs";
 import { resolve } from "node:path";
-import { mapCompiler, report } from "waygate/scripts/compiler";
+import { mapCompiler, report } from "wisp/scripts/compiler";
 
 const project = resolve(import.meta.dir, "..");
 const source = resolve(project, "src/platform/shell/diagnostics.ts");

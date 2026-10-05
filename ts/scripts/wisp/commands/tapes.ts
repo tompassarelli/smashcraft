@@ -1,8 +1,8 @@
-// `waygate tapes`, the replay acceptance oracle: recorded tapes must give
+// `wisp tapes`, the replay acceptance oracle: recorded tapes must give
 // identical canonical replay states, hence identical checksums, after every
 // frame in TypeScript under Bun and TypeScript under 32-bit Lua.
 // Prints the totals, or each runtime pair's first divergent frame and field.
-// smashcraft:ts/scripts/waygate/acceptanceTapes.ts records the tapes fresh
+// smashcraft:ts/scripts/wisp/acceptanceTapes.ts records the tapes fresh
 // each run; every runtime then replays the same recorded rows.
 // Environment: LUA, a LUA_32BITS lua.
 import "../../../test/host-natives";
@@ -10,9 +10,9 @@ import { join } from "node:path";
 import { Console, Effect, Schema } from "effect";
 import { decodeTape } from "../../../src/game/replay/tape";
 import { runTape } from "../../../src/game/replay/tapeRunner";
-import { type Command, UsageFailure, describeCause } from "waygate/scripts/waygate/command";
-import { step } from "waygate/scripts/waygate/timings";
-import { captureProcess } from "waygate/scripts/waygate/mapBuild";
+import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
+import { step } from "wisp/scripts/wisp/timings";
+import { captureProcess } from "wisp/scripts/wisp/mapBuild";
 import { generateTapes } from "../acceptanceTapes";
 
 const ts = join(import.meta.dir, "../../..");
@@ -70,10 +70,10 @@ const tapesLua = join(ts, "build", "lua-tapes", "tapes.lua");
 async function compileTypeScriptLua(): Promise<number> {
   const sources = ["src", "test/tapes"].flatMap(dir => [...new Bun.Glob(`${dir}/**/*.ts`).scanSync(ts)]).sort().map(path => join(ts, path));
   const config = join(ts, "tsconfig.lua-tapes.json");
-  const framework = [...new Bun.Glob("src/**/*.{ts,lua}").scanSync(join(ts, "node_modules/waygate"))]
-    .map((file) => join(ts, "node_modules/waygate", file));
+  const framework = [...new Bun.Glob("src/**/*.{ts,lua}").scanSync(join(ts, "node_modules/wisp"))]
+    .map((file) => join(ts, "node_modules/wisp", file));
   return cachedBuild(tapesLua, await inputsHash([...sources, ...framework,
-    join(ts, "node_modules/waygate/plugins/warcraft-numbers.ts"), config], "tstl"), () =>
+    join(ts, "node_modules/wisp/plugins/warcraft-numbers.ts"), config], "tstl"), () =>
     command([process.execPath, "--bun", join(ts, "node_modules/typescript-to-lua/dist/tstl.js"), "-p", config]).error);
 }
 

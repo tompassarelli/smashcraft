@@ -2,9 +2,9 @@
 import { join } from "node:path";
 import { canonicalChecksum } from "../src/game/replay/canonical";
 import { Effect } from "effect";
-import { MalformedGameFile } from "waygate/scripts/waygate/boundary";
-import { GameFiles, readGameFile } from "waygate/scripts/waygate/gameFiles";
-import { FrameCost, frameCostFile } from "./waygate/boundary";
+import { MalformedGameFile } from "wisp/scripts/wisp/boundary";
+import { GameFiles, readGameFile } from "wisp/scripts/wisp/gameFiles";
+import { FrameCost, frameCostFile } from "./wisp/boundary";
 
 const [command, directory, runId] = process.argv.slice(2);
 if (directory === undefined) throw new Error("usage: bun smashcraft:ts/scripts/frameCost.ts read CUSTOM_MAP_DATA RUN_ID");

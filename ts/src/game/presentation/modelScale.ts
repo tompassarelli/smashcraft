@@ -1,4 +1,4 @@
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { Character } from "../sim/codes";
 
 /** The scale each fighter model is drawn at; effects attached to it scale with it. */

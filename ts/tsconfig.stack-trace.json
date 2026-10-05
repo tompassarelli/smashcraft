@@ -4,7 +4,7 @@
     "rootDir": "."
   },
   "include": [
-    "node_modules/waygate/src/natives/warcraft.d.ts",
+    "node_modules/wisp/src/natives/warcraft.d.ts",
     "src/platform/stackTraceMain.ts"
   ],
   "exclude": [],
@@ -13,10 +13,10 @@
     "luaBundleEntry": "src/platform/stackTraceMain.ts",
     "luaPlugins": [
       {
-        "name": "./node_modules/waygate/plugins/warcraft-numbers.ts"
+        "name": "./node_modules/wisp/plugins/warcraft-numbers.ts"
       },
       {
-        "name": "./node_modules/waygate/plugins/stack-traces.ts"
+        "name": "./node_modules/wisp/plugins/stack-traces.ts"
       }
     ]
   }

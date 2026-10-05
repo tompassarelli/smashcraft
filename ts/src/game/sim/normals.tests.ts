@@ -2,8 +2,8 @@
 // production movement step, including landing and defensive interruptions.
 // Normal attacks and projectiles: ranges, phases, lingering aerial windows,
 // landings, ground dodges and walking.
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
-import { f32 } from "waygate/src/sim/f32";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackPhase, AttackStyle, Character } from "./codes";
 import { attackPhase, canAttack, isIntangible } from "./conditions";

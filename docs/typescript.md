@@ -6,35 +6,35 @@ checked by tests and recorded tapes
 (smashcraft:docs/warcraft-api-netcode-findings.md#lua-numbers-in-the-game
 explains why three runtimes are compared).
 
-Waygate is maintained in its own repository. smashcraft:ts/waygate.lock records
+Wisp is maintained in its own repository. smashcraft:ts/wisp.lock records
 the immutable source revision and generated archive consumed by Bun. A clean
 checkout needs only `bun install --frozen-lockfile` from smashcraft:ts/;
 installing this dependency requires no private GitHub credentials.
 
-Waygate owns compilation, numeric helpers and guards, reload and error
+Wisp owns compilation, numeric helpers and guards, reload and error
 reporting, host services, and archive packaging. Smashcraft owns the map
 declaration in smashcraft:ts/scripts/mapInfo.ts, imports and object data in
-smashcraft:ts/scripts/waygate/mapInputs.ts, project paths and naming in
-smashcraft:ts/scripts/waygate/project.ts, and game-specific commands, assets,
+smashcraft:ts/scripts/wisp/mapInputs.ts, project paths and naming in
+smashcraft:ts/scripts/wisp/project.ts, and game-specific commands, assets,
 replay corpora and native acceptance journeys.
 
-To update to Waygate's current published `main`, run from smashcraft:ts/:
+To update to Wisp's current published `main`, run from smashcraft:ts/:
 
 ```sh
-bun run update:waygate
+bun run update:wisp
 ```
 
-The updater fetches private Waygate `main` using Git's configured credentials,
+The updater fetches private Wisp `main` using Git's configured credentials,
 resolves its commit, generates the Lua modules and declarations needed by TSTL,
-and updates the archive, smashcraft:ts/waygate.lock, package metadata and Bun
+and updates the archive, smashcraft:ts/wisp.lock, package metadata and Bun
 lockfile. An already-generated archive for that commit is reused. There is no
 manual SHA or archive-name selection. The dependency stays at that resolved
 commit until the next update; `bun install` does not follow the branch.
 Compiler versions remain separately pinned in smashcraft:typescript-toolchain.lock.
 To select an exact source revision explicitly, use
-`bun run update:waygate /absolute/path/to/waygate/checkout FULL_COMMIT`.
+`bun run update:wisp /absolute/path/to/wisp/checkout FULL_COMMIT`.
 Generated dependency output belongs in smashcraft:ts/vendor/; maintained
-framework implementations belong only in Waygate. Commit the new pin,
+framework implementations belong only in Wisp. Commit the new pin,
 package metadata, Bun lockfile and generated archive together after checking
 the affected consumer commands.
 
@@ -43,7 +43,7 @@ the affected consumer commands.
 Map Lua has 32-bit integers that wrap silently and binary32 numbers whose raw
 `+` and `*` don't round to nearest. Bun computes in binary64. So:
 
-- Integers: `idiv`, `imod`, `floorDiv` and `floorMod` from `waygate/src/sim/intMath`. Never
+- Integers: `idiv`, `imod`, `floorDiv` and `floorMod` from `wisp/src/sim/intMath`. Never
   `Math.floor(a / b)` or `%` on integers: the first loses bits above 2^24 in
   Warcraft, the second floors in Lua and truncates in JavaScript.
 - Bitwise `&`, `|`, `^` and `<<` are exact on 32-bit values in both runtimes;
@@ -51,7 +51,7 @@ Map Lua has 32-bit integers that wrap silently and binary32 numbers whose raw
   `floorDiv`: TypeScriptToLua rejects `>>`, and its `>>>` masks with
   4294967295, which a 32-bit Lua integer can't hold.
 - Reals in synchronized code: wrap each real `+ - * /` in `f32()` (host
-  rounding, free in Lua), or use the exact `waygate/src/sim/binary32` helpers where the value
+  rounding, free in Lua), or use the exact `wisp/src/sim/binary32` helpers where the value
   must match Melee or the game bit for bit.
 - Decimal literals are exact binary32 values (`0.10000000149011612`, not `0.1`)
   and keep a decimal point (`2.0`) so they stay Lua floats.
@@ -76,10 +76,10 @@ Map Lua has 32-bit integers that wrap silently and binary32 numbers whose raw
 
 ### Effect on the host
 
-Waygate's host tools use Effect for asynchronous orchestration: typed failures,
+Wisp's host tools use Effect for asynchronous orchestration: typed failures,
 boundary decoding with Schema, bounded client publication and scoped resource
-ownership. `smashcraft:ts/scripts/waygate.ts` is the single CLI entrypoint;
-`bun waygate hot`, `build`, `rebuild`, `fresh`, `client`, `tapes` and `parity`
+ownership. `smashcraft:ts/scripts/wisp.ts` is the single CLI entrypoint;
+`bun wisp hot`, `build`, `rebuild`, `fresh`, `client`, `tapes` and `parity`
 are commands composed from shared GameFiles, Clients, MapBuild, HotReload and
 SourceErrors services. Each command prints its steps and elapsed time. Hot
 reload publishes every client's payload before its manifest. A failed or
@@ -89,9 +89,9 @@ function, including whitespace and line endings around the message.
 
 Map builds use staged outputs: interrupting a step stops its child process, a
 failed step leaves the previous map in place, and archive entries are verified
-four at a time. `waygate parity numeric` compares the numeric corpus against
-Lua32; `waygate parity capture` and `waygate parity result` run and reconcile
-the native issue #26 input-integrity check through the same CLI. `waygate fresh
+four at a time. `wisp parity numeric` compares the numeric corpus against
+Lua32; `wisp parity capture` and `wisp parity result` run and reconcile
+the native issue #26 input-integrity check through the same CLI. `wisp fresh
 MAP.w3x [--rebuild] [--from-game]` rebuilds the map script when requested,
 starts a new match, sends `-dev quick`, and waits for every client's typed
 receipt. Use `--from-game` when every client is already in a running map:
@@ -101,9 +101,9 @@ lobby, Create Game and Custom Games screens. Both modes verify results and
 Custom Games after leaving, actual lobby player counts after hosting/joining,
 and fresh ready files after loading.
 
-`bun waygate hot --data A --data B --watch` also prints each native desync:
+`bun wisp hot --data A --data B --watch` also prints each native desync:
 its turn and every Warcraft engine value that differs, with both clients'
-values, from the Desync.txt each client writes (see Waygate's
+values, from the Desync.txt each client writes (see Wisp's
 docs/hot-reload.md, "Desync reports"). To check that path, type
 `-dev desync` in a dev-console build (`main` or `integrity` profile): the
 typing player's client alone creates one timer, so the clients' handle
@@ -124,7 +124,7 @@ TSTL's Lua library lacks. From smashcraft:ts/,
 and the compiler crash. The map also has no suspended work for fibers to
 own: one frame timer advances explicit state, callbacks rebind by name after
 hot reload, and rollback snapshots hold all gameplay state
-([waygate#1](https://github.com/tompassarelli/waygate/issues/1)).
+([wisp#1](https://github.com/tompassarelli/wisp/issues/1)).
 
 For APIs, read smashcraft:repos/effect/LLMS.md and its version-matched source
 and tests. Application imports resolve installed packages, not vendor paths.
@@ -167,7 +167,7 @@ iteration. Copy the index into a `const` in the body, or take it as a
 
 ## Tests
 
-`test(name, fn)` from `waygate/src/runtime/testing` registers a test that runs under Bun
+`test(name, fn)` from `wisp/src/runtime/testing` registers a test that runs under Bun
 and in 32-bit Lua. Keep a test only for a contract: a Melee reference value, a
 gameplay or netcode invariant, a reproduced defect. A test that restates the
 implementation or pins an incidental constant is deleted, not ported. Never
@@ -201,12 +201,12 @@ From smashcraft:ts/:
   and the game's receipt writer, then
   restores the source in `finally` and checks it again. Cold startup has no
   latency gate; every check still fails CI on unexpected compiler errors.
-- `LUA=<32-bit lua> bun waygate parity numeric`: emitted Lua against Bun on
+- `LUA=<32-bit lua> bun wisp parity numeric`: emitted Lua against Bun on
   the numeric corpus.
 - `GAME_SOAK=1 bun test test/game.test.ts`: the long `*.soak.ts` scenarios,
   such as the 100000-frame replay tape, which the default suite leaves out.
   `GAME_SOAK=1` selects the same modules for `scripts/lua-tests.ts`.
-- Set `LUA=<32-bit lua>`, then run `bun waygate tapes` for replay acceptance
+- Set `LUA=<32-bit lua>`, then run `bun wisp tapes` for replay acceptance
   tapes. It records cases for every bound action, corrected predictions and a
   rematch, then compares canonical replay state and fighter poses after every
   frame in Bun and emitted Lua32. It reports the first divergent frame and
@@ -219,11 +219,11 @@ From smashcraft:ts/:
 ## Build the map
 
 From the repository root, `./build.sh BASE.w3m ASSET_CONTAINER.w3x` invokes
-Waygate's map build with the private assets and packager. The equivalent direct
+Wisp's map build with the private assets and packager. The equivalent direct
 command from `ts/` is:
 
 ```sh
-bun waygate build --base BASE.w3m --container ASSET_CONTAINER.w3x --assets DIR \
+bun wisp build --base BASE.w3m --container ASSET_CONTAINER.w3x --assets DIR \
   --summon DIR --name NAME --out OUT.w3x
 ```
 
@@ -233,7 +233,7 @@ smashcraft:ts/src/platform/main.ts. Bun generates the fighter units
 (war3map.w3u), FileIO's `$wsl` ability (war3map.w3a), the map description
 (war3map.w3i), the map header and the matching `config()` from
 smashcraft:ts/src/game/objectData.ts and smashcraft:ts/scripts/mapInfo.ts through
-Waygate's generic encoders. For the
+Wisp's generic encoders. For the
 same base map, these files are generated deterministically from the declared
 TypeScript data and the packaged map inputs.
 
@@ -248,7 +248,7 @@ Repository-authored models are generated: each generator writes the models,
 their textures and an import list under smashcraft:build/, and the models'
 content-addressed import paths to a checked-in module under
 smashcraft:ts/src/game/, which the map compiles. Regenerate instead of editing
-those modules. smashcraft:ts/scripts/waygate/mapInputs.ts lists each family
+those modules. smashcraft:ts/scripts/wisp/mapInputs.ts lists each family
 (`GENERATED_MODELS`) with its import list and generator; the stage deck comes
 from smashcraft:tools/stage/package.ts. The build fails unless each family's
 import list under `--assets` holds every model its module names, and unless the
@@ -261,21 +261,21 @@ map again after regenerating a model.
 The build first checks the running Bun and the declared and installed packages
 against smashcraft:typescript-toolchain.lock.
 
-`bun waygate build --profile integrity` packages normal gameplay with the
+`bun wisp build --profile integrity` packages normal gameplay with the
 persistent helper's journal/editbox input, predicted fighter presentation and
 native response export. Rebuild it with
-`bun waygate rebuild MAP.w3x --profile integrity`. Its build ID is
+`bun wisp rebuild MAP.w3x --profile integrity`. Its build ID is
 `typescript-integrity`, as declared in smashcraft:ts/src/game/shell/currentBuild.ts;
 the entry in smashcraft:ts/src/platform/integrityMain.ts shares the normal shell
 and reload lifecycle. Use this profile for native input-integrity and
 four-fighter match/rematch captures.
 
-`bun waygate build --profile physics-probe` selects the production numerical
+`bun wisp build --profile physics-probe` selects the production numerical
 fixture map instead of the playable entry; the remaining build arguments are
-the same. Rebuild it with `bun waygate rebuild MAP.w3x --profile physics-probe`.
+the same. Rebuild it with `bun wisp rebuild MAP.w3x --profile physics-probe`.
 The report and required groups are in smashcraft:docs/native-physics-precision.md.
 
-`bun waygate build --profile frame-cost` packages the isolated 4096-frame
+`bun wisp build --profile frame-cost` packages the isolated 4096-frame
 TypeScript workload. It writes its bundle key and complete replay state to
 `smashcraft-frame-cost-KEY-p0-typescript.txt` in the client's CustomMapData.
 smashcraft:ts/scripts/frameCost.ts retains `read CUSTOM_MAP_DATA RUN_ID` for
@@ -283,11 +283,11 @@ recorded paired results, including historical Wurst baselines. That reader
 still requires equal complete states and a TypeScript/Wurst time ratio at most
 one; new replay fields are never removed to fit an older baseline.
 
-`bun waygate build --profile stack-trace` compiles the development build with
-Waygate's stack plugin (smashcraft:ts/tsconfig.stack-trace.json), so an in-game
+`bun wisp build --profile stack-trace` compiles the development build with
+Wisp's stack plugin (smashcraft:ts/tsconfig.stack-trace.json), so an in-game
 error report lists each active TypeScript frame as `src/FILE.ts:LINE: in
 FUNCTION`, innermost first. Rebuild with
-`bun waygate rebuild MAP.w3x --profile stack-trace`; `bun waygate hot --profile
+`bun wisp rebuild MAP.w3x --profile stack-trace`; `bun wisp hot --profile
 stack-trace --data DIR ... --watch` reloads and prints that bundle's reports.
 Its build ID is `typescript-stack-trace`, and its entry
 smashcraft:ts/src/platform/stackTraceMain.ts adds one command to the
@@ -297,8 +297,8 @@ console registers it, and no other entry compiles it. The report is written
 only when its message differs from the previous one, so type
 `-dev stack-demo 2` for another. The instrumented bundle is about 2.2 times the
 normal bundle's size and costs CPU
-(waygate:docs/stack-traces.md), so keep it out of playable and
-measurement builds. Frames cover this repository's TypeScript; Waygate's
+(wisp:docs/stack-traces.md), so keep it out of playable and
+measurement builds. Frames cover this repository's TypeScript; Wisp's
 precompiled dispatch and reporter, and Warcraft natives, add none.
 `LUA=<32-bit lua> bun scripts/lua-tests.ts` compiles
 smashcraft:ts/test/stack/entry.ts with the plugin and checks that the demo's

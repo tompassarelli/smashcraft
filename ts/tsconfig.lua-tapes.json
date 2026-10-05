@@ -18,7 +18,7 @@
     "outDir": "build/lua-tapes"
   },
   "include": [
-    "node_modules/waygate/src/natives/warcraft.d.ts",
+    "node_modules/wisp/src/natives/warcraft.d.ts",
     "test/tapes/lua-entry.ts"
   ],
   "tstl": {
@@ -29,7 +29,7 @@
     "noHeader": true,
     "luaPlugins": [
       {
-        "name": "./node_modules/waygate/plugins/warcraft-numbers.ts"
+        "name": "./node_modules/wisp/plugins/warcraft-numbers.ts"
       }
     ]
   }

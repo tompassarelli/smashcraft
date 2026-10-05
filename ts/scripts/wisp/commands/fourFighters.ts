@@ -1,6 +1,6 @@
 import { Effect } from "effect";
-import { type Command, UsageFailure, describeCause } from "waygate/scripts/waygate/command";
-import { step } from "waygate/scripts/waygate/timings";
+import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
+import { step } from "wisp/scripts/wisp/timings";
 import { captureMatches, parseCaptureArguments } from "../../integrity/capture";
 import { IntegrityFailure } from "../../integrity/evidence";
 import { reconcileFourFighters } from "../../fourFighters";
@@ -13,7 +13,7 @@ export const fourFighters: Command = ([mode, ...args]) => {
       if (options.sweep.length > 0) throw new Error("four-fighters capture takes one match/rematch pair");
       return { ...options, workload: "match" as const };
     },
-    catch: (cause) => new IntegrityFailure({ operation: "parse four-fighter arguments", path: "waygate four-fighters capture", cause: describeCause(cause) }),
+    catch: (cause) => new IntegrityFailure({ operation: "parse four-fighter arguments", path: "wisp four-fighters capture", cause: describeCause(cause) }),
   }).pipe(Effect.flatMap(captureMatches), step("native four-fighter match and rematch"));
   if (mode === "result" && args.length === 1 && args[0] !== undefined) {
     const root = args[0];

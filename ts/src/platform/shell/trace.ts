@@ -4,9 +4,9 @@
 // several of its lines. Local measurements here never feed the accepted
 // ledger, prediction or snapshots.
 import { INPUT_TRACE_FILE, traceEndLines } from "../../runtime/gameFiles";
-import { floorMod } from "waygate/src/sim/intMath";
+import { floorMod } from "wisp/src/sim/intMath";
 import type { ParticipantSlot, Slots } from "../../game/input/participants";
-import { writeLines } from "waygate/src/platform/fileio";
+import { writeLines } from "wisp/src/platform/fileio";
 
 const ECHO_CAPACITY = 256;
 const ECHO_BIN_LIMITS = [3, 6, 9, 12, 18] as const;

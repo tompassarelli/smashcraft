@@ -1,4 +1,4 @@
-import { assertDefined, assertEquals, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertDefined, assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { JournalInputSource } from "./source";
 import { type ReadFile, type VocabularyRead, markerFile, readVocabularyControlAck, readVocabularyPacket, symbolFile } from "./vocabulary";
 import { VOCABULARY_PROBE_EPOCH, VOCABULARY_PROBE_SAMPLES, vocabularyProbePacket } from "./vocabularyProbe";

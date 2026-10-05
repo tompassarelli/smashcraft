@@ -15,7 +15,7 @@ import {
 } from "../presentation/specialEffectState";
 import { SUMMON_BEAR } from "../presentation/summonClipInfo";
 import { type SummonState, projectBear } from "../presentation/summonState";
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { Character, SpecialAction } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP } from "../sim/specials";

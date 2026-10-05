@@ -7,7 +7,7 @@ import {
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
 } from "../../game/match/rules";
 import { prepareQuickMatch } from "../../game/shell/devSettings";
-import { floorMod } from "waygate/src/sim/intMath";
+import { floorMod } from "wisp/src/sim/intMath";
 import { traceSelectionState } from "./diagnostics";
 import { clearParticipantInputs, controlsAvailable, currentHumanMask } from "./inputs";
 import { startMatch } from "./matchStart";

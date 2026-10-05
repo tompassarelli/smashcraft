@@ -1,4 +1,4 @@
-import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { neutralControls } from "../sim/roster";

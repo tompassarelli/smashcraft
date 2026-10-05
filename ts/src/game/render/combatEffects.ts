@@ -28,8 +28,8 @@ import {
   projectImpact,
   projectKo,
 } from "../presentation/impactState";
-import { f32 } from "waygate/src/sim/f32";
-import { floorDiv, floorMod } from "waygate/src/sim/intMath";
+import { f32 } from "wisp/src/sim/f32";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { Character } from "../sim/codes";
 import { type WorldOrigin, hideEffect } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";

@@ -1,5 +1,5 @@
 // One simulated Warcraft client for the desync guard. Every native declared in
-// waygate:src/natives/warcraft.d.ts is stubbed per client, the shell's global
+// wisp:src/natives/warcraft.d.ts is stubbed per client, the shell's global
 // state is swapped in while the client runs, and the client logs its native
 // calls, except the local-only calls ALLOWED_LOCAL names.
 import { readFileSync } from "node:fs";
@@ -59,7 +59,7 @@ interface Native {
   readonly returns: string;
 }
 
-const declarations = readFileSync(join(import.meta.dir, "../../node_modules/waygate/src/natives/warcraft.d.ts"), "utf8");
+const declarations = readFileSync(join(import.meta.dir, "../../node_modules/wisp/src/natives/warcraft.d.ts"), "utf8");
 const NATIVES: readonly Native[] = [...declarations.matchAll(/^declare function (\w+)\(.*\): (\w+);$/gm)].map(([, name, returns]) => ({ name: name ?? "", returns: returns ?? "void" }));
 const CONSTANTS: readonly [string, string][] = [...declarations.matchAll(/^declare const (\w+): (\w+);$/gm)].map(([, name, type]) => [name ?? "", type ?? ""]);
 

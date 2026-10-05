@@ -3,9 +3,9 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { Effect, Predicate, Schema } from "effect";
-import type { GameFileKind } from "waygate/scripts/waygate/boundary";
-import { INPUT_TRACE_FILE, JournalControl, InputTrace, ResponsePage, responsePageFile } from "../waygate/boundary";
-import { at } from "waygate/src/runtime/lookup";
+import type { GameFileKind } from "wisp/scripts/wisp/boundary";
+import { INPUT_TRACE_FILE, JournalControl, InputTrace, ResponsePage, responsePageFile } from "../wisp/boundary";
+import { at } from "wisp/src/runtime/lookup";
 import type { Injection, KernelEvent, SourceEdge } from "./linuxInput";
 import {
   type CaptureEvidence, type CaptureMetadata, type ClientExport, type EpochPair, type IntegrityResult, type JourneyEvent,

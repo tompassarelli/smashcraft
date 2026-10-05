@@ -2,7 +2,7 @@
 // size, plus shield contact motion. Pressure scaling follows
 // smashcraft:docs/melee-analog-shield.md and smashcraft:docs/melee-powershield.md.
 import { max, min, toInt } from "../../runtime/numbers";
-import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
+import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { ShieldBreak } from "./codes";
 import { type Fighter, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "./fighter";
 import { integerHitPower } from "./knockback";

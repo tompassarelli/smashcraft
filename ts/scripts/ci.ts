@@ -34,7 +34,7 @@ await check(
   100,
   { ...process.env, GAME_TESTS: "sim/meleeScalarMath" },
 );
-await check("fake-client hot-reload and fresh-match protocol", ["test", "test/waygate.test.ts", "-t", "fake client"]);
+await check("fake-client hot-reload and fresh-match protocol", ["test", "test/wisp.test.ts", "-t", "fake client"]);
 await check("full logic suite (target ≤3 s)", ["run", "test"], 3000);
 await check(
   "compiler affected-module and output-equivalence checks",

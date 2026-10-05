@@ -1,4 +1,4 @@
-import { at } from "waygate/src/runtime/lookup";
+import { at } from "wisp/src/runtime/lookup";
 // Melee's independently authored binary32 atan2/sin/cos approximations.
 // Coefficients come from
 // smashcraft:docs/smash-melee-reference/retail-trig-coefficients.json. Every
@@ -11,7 +11,7 @@ import {
   roundToFloat32,
   subtractFloat32,
   toInt,
-} from "waygate/src/sim/binary32";
+} from "wisp/src/sim/binary32";
 
 const PI = 3.1415927410125732;
 const HALF_PI = 1.5707963705062866;

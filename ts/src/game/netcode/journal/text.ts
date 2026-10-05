@@ -5,7 +5,7 @@
 //
 // with zero-padded decimals. The checksum covers epoch, sequence, "|" and
 // payload over the I4 alphabet plus "|", so the text is a protocol.
-import { floorMod, imod } from "waygate/src/sim/intMath";
+import { floorMod, imod } from "wisp/src/sim/intMath";
 import { ALPHABET } from "../../input/wire";
 import { padDecimal, parseDecimal } from "./decimal";
 

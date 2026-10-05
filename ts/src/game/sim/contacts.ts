@@ -2,7 +2,7 @@
 // pre-hit state, then each target resolves its contacts together. The
 // strongest launch wins; blocked contacts drain and push the shield instead.
 import { max, min, toInt } from "../../runtime/numbers";
-import { addFloat32, divideFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
+import { addFloat32, divideFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { ContactKind, DownState } from "./codes";
 import { isDownDamageState } from "./conditions";
 import { DOWN_DAMAGE_RESET_THRESHOLD } from "./down";
@@ -31,7 +31,7 @@ import {
 } from "./shield";
 import { beginShieldBreak } from "./shieldBreak";
 import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge } from "./transitions";
-import { at } from "waygate/src/runtime/lookup";
+import { at } from "wisp/src/runtime/lookup";
 
 /** One contact, with the source's and target's state sampled when it was collected. */
 interface DamageContact {

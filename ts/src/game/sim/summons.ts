@@ -1,7 +1,7 @@
 // Summons that act on their own: the Rifleman's bear and freeze trap, and the
 // Archer's hippogryph.
 import { max } from "../../runtime/numbers";
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, HippogryphKind, SpecialAction } from "./codes";
 import { canAttack, isIntangible } from "./conditions";
 import type { Fighter } from "./fighter";

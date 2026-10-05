@@ -1,7 +1,7 @@
 // Math operations used by the simulation, with the Warcraft native domains
 // and binary32 results expected by the authored physics contracts.
-import { squareRootFloat32 } from "waygate/src/sim/binary32";
-import { f32 } from "waygate/src/sim/f32";
+import { squareRootFloat32 } from "wisp/src/sim/binary32";
+import { f32 } from "wisp/src/sim/f32";
 
 /** SquareRoot: zero outside its domain, as measured on the 3.0.0 client. */
 export function squareRoot(value: number): number {

@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { AttackPhase, AttackStyle, Character, GrabAction } from "../sim/codes";
 import { createFighter, type Fighter } from "../sim/fighter";
 import { createRoster, copyControls, neutralControls, type Controls } from "../sim/roster";

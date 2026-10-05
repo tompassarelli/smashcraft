@@ -2,9 +2,9 @@
 import { expect } from "bun:test";
 import type { MapBuild } from "../../src/game/shell/build";
 import { replayHistoryPlayback } from "../../src/game/shell/rollbackPlayback";
-import { installDispatch } from "waygate/src/platform/dispatch";
-import { configureRuntime } from "waygate/src/runtime/config";
-import { installHotReload, startHotReload } from "waygate/src/platform/hotReload";
+import { installDispatch } from "wisp/src/platform/dispatch";
+import { configureRuntime } from "wisp/src/runtime/config";
+import { installHotReload, startHotReload } from "wisp/src/platform/hotReload";
 import { installShell, startShell } from "../../src/platform/shell/shell";
 import { installObjectData } from "../../src/platform/shell/objectData";
 import { Lockstep } from "./twoClients";

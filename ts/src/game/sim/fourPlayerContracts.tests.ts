@@ -1,4 +1,4 @@
-import { assertEquals, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { AttackStyle, Character, HippogryphKind, LedgeState, ProjectileKind, SpecialAction } from "./codes";
 import { createFighter } from "./fighter";
 import { beginFighterAttack, resolveAttacks } from "./attacks";
@@ -9,7 +9,7 @@ import { createRoster } from "./roster";
 import { advanceFreezeTraps, startFreezeTrap } from "./summons";
 import { controls } from "./testWorld";
 import { resolveLedges } from "./ledge";
-import { imod } from "waygate/src/sim/intMath";
+import { imod } from "wisp/src/sim/intMath";
 
 function fourWorld() {
   return createRoster(15, [

@@ -1,4 +1,4 @@
-import { at } from "waygate/src/runtime/lookup";
+import { at } from "wisp/src/runtime/lookup";
 import { participantActive } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
 

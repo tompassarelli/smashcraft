@@ -1,4 +1,4 @@
-import { floorMod } from "waygate/src/sim/intMath";
+import { floorMod } from "wisp/src/sim/intMath";
 import { attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { type FrameControls, createFrameControls } from "../match/controls";
 import { type MatchFrameInput, captureFrame, createMatchFrameInput, executeMatchFrame } from "../match/frameInput";

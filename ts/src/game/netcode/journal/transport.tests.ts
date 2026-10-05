@@ -1,8 +1,8 @@
 // The journal transport's contract: rate-capped I5 messages carry every
 // admitted frame once, in order, holds included, and two clients running the
 // same match on what they receive confirm every edge on its original frame.
-import { assertDefined, assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "waygate/src/runtime/testing";
-import { floorMod } from "waygate/src/sim/intMath";
+import { assertDefined, assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { floorMod } from "wisp/src/sim/intMath";
 import { ALL_ACTIONS, Action, bit, maskOf } from "../../input/actions";
 import { type InputRow, type RowFields, inputRow, sameInput } from "../../input/inputRow";
 import { PARTICIPANT_SLOTS, type ParticipantInputs, participantInputs } from "../../input/participants";

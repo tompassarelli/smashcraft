@@ -1,4 +1,4 @@
-// The acceptance tapes for `waygate tapes`, recorded fresh each run by two
+// The acceptance tapes for `wisp tapes`, recorded fresh each run by two
 // scripted keyboard players reacting to the TypeScript simulation. Between
 // them the tapes press every bound source, replay rollbacks and corrected
 // predictions, and play a rematch.

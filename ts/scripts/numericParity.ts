@@ -1,6 +1,6 @@
-// Numeric Lua parity implementation used by the Waygate parity command.
+// Numeric Lua parity implementation used by the Wisp parity command.
 import { evaluateCase } from "../src/parity/corpus";
-import { at } from "waygate/src/runtime/lookup";
+import { at } from "wisp/src/runtime/lookup";
 
 // Lua's %a hex floats are exact: [-]0xH.HHHp[+-]D.
 function parseHexFloat(text: string): number {

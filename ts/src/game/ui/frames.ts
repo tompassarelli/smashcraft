@@ -2,8 +2,8 @@
 // same frames and triggers in the same order; only visibility, text and cursor
 // art differ per client, and a choice reaches the game through a synchronized
 // event (a frame click or player sync data).
-import { on, trampoline } from "waygate/src/platform/dispatch";
-import { f32 } from "waygate/src/sim/f32";
+import { on, trampoline } from "wisp/src/platform/dispatch";
+import { f32 } from "wisp/src/sim/f32";
 
 /** The controls a build's menus accept, which their help text names. */
 export type MenuControls = "journal" | "keyboard";

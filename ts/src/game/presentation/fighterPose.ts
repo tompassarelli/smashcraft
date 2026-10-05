@@ -1,7 +1,7 @@
 // Clip selection and its completed-frame clock stay together: the chosen clip
 // determines whether the elapsed interval advances, freezes or restarts.
 import { max, min } from "../../runtime/numbers";
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { AttackPhase, AttackStyle, Character, DownState, GrabAction, LedgeState, ShieldBreak, SpecialAction } from "../sim/codes";
 import { GROUND_ROLL_FRAMES, SPOT_DODGE_FRAMES, attackPhase, inGrabContext, isForwardGroundRoll, isGroundDodging } from "../sim/conditions";
 import { DOWN_BOUND_FRAMES, DOWN_DAMAGE_FRAMES, DOWN_ROLL_FRAMES, DOWN_STAND_FRAMES, TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "../sim/down";

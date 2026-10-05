@@ -36,8 +36,8 @@ a different device or USB identity needs a fresh helper.
 | Fight | Stick: move; A: attack; X: special; B/Y or stick-up: jump; RB: grab; LB: walk; either trigger: shield |
 | Pause/results | Start: pause/resume; A or Start at results: rematch |
 
-Developer build command: `bun waygate build --profile playable` with the normal
+Developer build command: `bun wisp build --profile playable` with the normal
 private map inputs. This profile uses the same combat and controller path as
 the native four-fighter acceptance map, with build ID `playable-0043` and the
 developer display and response recording disabled. Rebuilding uses
-`bun waygate rebuild /absolute/candidate.w3x --profile playable`.
+`bun wisp rebuild /absolute/candidate.w3x --profile playable`.

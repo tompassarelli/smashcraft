@@ -1,18 +1,18 @@
 # Smashcraft development
 
 Smashcraft is a platform fighter for Warcraft III, written in TypeScript and
-compiled to Lua with TypeScriptToLua. Waygate and Bun are the supported build,
+compiled to Lua with TypeScriptToLua. Wisp and Bun are the supported build,
 test and development tools. `smashcraft:typescript-toolchain.lock` pins Bun,
-TypeScript, TypeScriptToLua and Effect; the map build checks it. Waygate is
-maintained in its own repository. smashcraft:ts/waygate.lock records the exact
+TypeScript, TypeScriptToLua and Effect; the map build checks it. Wisp is
+maintained in its own repository. smashcraft:ts/wisp.lock records the exact
 source revision; Bun installs its generated archive from smashcraft:ts/vendor/.
-Change framework code in an owned Waygate lane, publish it, and update the
-consumer pin with `bun run update:waygate` from smashcraft:ts/ (fetches the
+Change framework code in an owned Wisp lane, publish it, and update the
+consumer pin with `bun run update:wisp` from smashcraft:ts/ (fetches the
 current published `main` and records its resolved commit). Never edit the
 installed dependency or add a local framework copy.
 
-Before adding tooling or diagnostics, consult Waygate's feature index at
-smashcraft:ts/node_modules/waygate/docs/index.md (source: waygate:docs/index.md).
+Before adding tooling or diagnostics, consult Wisp's feature index at
+smashcraft:ts/node_modules/wisp/docs/index.md (source: wisp:docs/index.md).
 It includes opt-in features such as TypeScript call stacks and their costs.
 
 ## Issues define the scope — finish them
@@ -50,9 +50,9 @@ investigation.
 - Use the declared project development shell when available. Preserve pinned
   dependencies; do not repeat ad hoc environment setup as the normal loop.
 
-## TypeScript and Waygate
+## TypeScript and Wisp
 
-Effect is the preferred foundation for Waygate's TypeScript tooling.
+Effect is the preferred foundation for Wisp's TypeScript tooling.
 Read smashcraft:.agents/skills/effect/SKILL.md for Effect work and for the
 weekly dependency/source update. The upstream repository is vendored at
 smashcraft:repos/effect/ as read-only reference material: read its LLMS.md,
@@ -60,34 +60,34 @@ implementation and tests before choosing APIs. Import installed packages,
 never the subtree. Upstream development instructions apply to upstream work,
 not to Smashcraft's package manager, language or build commands.
 
-smashcraft:ts/ is the TypeScript side, built on Waygate: the framework and
+smashcraft:ts/ is the TypeScript side, built on Wisp: the framework and
 development loop for Warcraft maps in TypeScript. Read
 warcraft-typescript-development-distilled before changing TypeScript
 or code in a running game, and smashcraft:docs/typescript.md before writing map
 code. From smashcraft:ts/:
 - Logic: `bun run test`, plus `LUA=<32-bit lua> bun scripts/lua-tests.ts` for the
   emitted Lua. `bun run check` type-checks.
-- Running game: `bun waygate hot --data <client A CustomMapData> --data <client
+- Running game: `bun wisp hot --data <client A CustomMapData> --data <client
   B CustomMapData> --watch` hot-reloads every save into both clients and prints
   in-game errors with TypeScript lines.
-- Map commands: `bun waygate build --base BASE.w3m --container MAP.w3x --assets
+- Map commands: `bun wisp build --base BASE.w3m --container MAP.w3x --assets
   DIR --summon DIR --name NAME --out OUT.w3x` builds the TypeScript map;
-  `bun waygate rebuild MAP.w3x` replaces only its script.
-- Fresh match: `bun waygate fresh MAP.w3x [--rebuild]` starts a new game, sends
+  `bun wisp rebuild MAP.w3x` replaces only its script.
+- Fresh match: `bun wisp fresh MAP.w3x [--rebuild]` starts a new game, sends
   `-dev quick`, and waits until every signed-in client writes its receipt.
   `--rebuild` replaces the map script first.
-- Client driver: `bun waygate client look|read|click|keys CLIENT ...` reads and
+- Client driver: `bun wisp client look|read|click|keys CLIENT ...` reads and
   drives a client. Session values live in ~/.local/state/smashcraft/clients.json.
-- Tapes: set `LUA` to the 32-bit Lua executable, then run `bun waygate tapes` to
+- Tapes: set `LUA` to the 32-bit Lua executable, then run `bun wisp tapes` to
   compare replay results across Bun and Lua32.
-- Parity: `bun waygate parity numeric` compares the numeric corpus with Lua32;
-  `bun waygate parity capture ...` runs native input-integrity capture and
-  `bun waygate parity result DIR` reconciles its output.
-- Physics diagnostic: `bun waygate build --profile physics-probe ...` selects
+- Parity: `bun wisp parity numeric` compares the numeric corpus with Lua32;
+  `bun wisp parity capture ...` runs native input-integrity capture and
+  `bun wisp parity result DIR` reconciles its output.
+- Physics diagnostic: `bun wisp build --profile physics-probe ...` selects
   the production numerical fixtures. Rebuild it with
-  `bun waygate rebuild MAP.w3x --profile physics-probe`; see
+  `bun wisp rebuild MAP.w3x --profile physics-probe`; see
   smashcraft:docs/native-physics-precision.md for the unchanged report gate.
-- Frame workload: `bun waygate build --profile frame-cost ...` runs the
+- Frame workload: `bun wisp build --profile frame-cost ...` runs the
   isolated 4096-frame TypeScript executor and records its complete replay state.
   smashcraft:ts/scripts/frameCost.ts reads recorded paired benchmark results.
 
@@ -96,7 +96,7 @@ code. From smashcraft:ts/:
 From smashcraft:ts/, use `bun test test/game.test.ts` for focused game tests,
 `bun run check` for host and map type-checking, and
 `LUA=<32-bit lua> bun scripts/lua-tests.ts` for emitted-Lua tests. Use
-`bun waygate build ...` to build a map. See smashcraft:docs/development-loop.md
+`bun wisp build ...` to build a map. See smashcraft:docs/development-loop.md
 for the local toolchain and base-map setup.
 
 Pure simulation tests establish logical rules, not Warcraft callback timing,

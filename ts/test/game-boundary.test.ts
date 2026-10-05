@@ -1,7 +1,7 @@
 import { Cause, Effect, Exit, Option } from "effect";
 import { expect, test } from "bun:test";
-import { MalformedGameFile } from "waygate/scripts/waygate/boundary";
-import { writtenGameFileKind } from "../scripts/waygate/boundary";
+import { MalformedGameFile } from "wisp/scripts/wisp/boundary";
+import { writtenGameFileKind } from "../scripts/wisp/boundary";
 
 const preload = (lines: readonly string[]) => `function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\r\n${lines.map((line) => `\tcall Preload( "${line}" )\r\n`).join("")}\tcall PreloadEnd( 0.1 )\r\nendfunction\n`;
 

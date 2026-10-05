@@ -62,7 +62,7 @@ try {
   edit(currentSource.replace(signature, "export const devCommandReceiptFile = (build: number, slot: number)"));
   const invalid = check("invalid shared signature");
   if (invalid.exitCode === 0
-    || !/scripts\/waygate\/commands\/fresh\.ts\(\d+,\d+\): error TS2345/.test(invalid.stdout)
+    || !/scripts\/wisp\/commands\/fresh\.ts\(\d+,\d+\): error TS2345/.test(invalid.stdout)
     || !/src\/game\/shell\/journalFiles\.ts\(\d+,\d+\): error TS2345/.test(invalid.stdout)) {
     throw new Error("changed shared signature did not fail at both host and game consumers");
   }

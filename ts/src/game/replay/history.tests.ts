@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { type AttackBuffer, attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import type { FrameControls } from "../match/controls";
 import { type MatchFrameInput, captureFrame, copyMatchFrameInput, createMatchFrameInput, resetMatchFrameInput, sameMatchFrameInput } from "../match/frameInput";

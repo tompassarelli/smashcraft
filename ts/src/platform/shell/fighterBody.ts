@@ -1,6 +1,6 @@
 // The unit each fighter animates when no pool presents it. Every client
 // creates the same units, as shared handles, at the same synchronized points.
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { ShieldBreak } from "../../game/sim/codes";
 import { fighterPoseFacing } from "../../game/sim/conditions";
 import type { Fighter } from "../../game/sim/fighter";

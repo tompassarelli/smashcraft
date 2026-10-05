@@ -3,8 +3,8 @@
 // One fighter's frame: timers, input transitions, steering, gravity, motion,
 // wall contacts and landing, in the order the retail engine applies them.
 import { max, min } from "../../runtime/numbers";
-import { divideFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
-import { f32 } from "waygate/src/sim/f32";
+import { divideFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
+import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState, GroundAction, LedgeState, ShieldBreak, SpecialAction, SurfaceContact } from "./codes";
 import {
   SPOT_DODGE_FRAMES,
@@ -67,7 +67,7 @@ import { forwardRollTurnFrame, rollTravel } from "../physics/rollTravel";
 import { advanceTechInput, techContactWindow } from "../physics/techInput";
 import { clearDownState, clearOwnedFreezeTrap } from "./transitions";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
-import { at } from "waygate/src/runtime/lookup";
+import { at } from "wisp/src/runtime/lookup";
 
 const FAST_FALL_DOWN_THRESHOLD = 0.6625000238418579;
 const PLATFORM_DROP_FRAMES = 12;

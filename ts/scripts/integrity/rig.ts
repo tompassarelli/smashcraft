@@ -5,12 +5,12 @@ import { appendFileSync, copyFileSync, mkdirSync, readFileSync, readdirSync, sta
 import { join } from "node:path";
 import type { Subprocess } from "bun";
 import { Effect, Predicate } from "effect";
-import { type Client, type DesktopFailure, click, keys, read, typeText, waitFor } from "waygate/scripts/warcraft/desktop";
+import { type Client, type DesktopFailure, click, keys, read, typeText, waitFor } from "wisp/scripts/warcraft/desktop";
 import { IntegrityFailure, producerLine, tryIntegrity } from "./evidence";
 import type { GameFile, JourneyRecord, PublicationRecord, RigShape, Stopped } from "./journey";
 import { type Observer, type Pad, continueProcess, inject, monotonicNs, realtimeNs, stopProcess } from "./linux";
 import { SLOTS, type Slot } from "./reconcile";
-import { INPUT_TRACE_FILE, responsePageFile, decodeWrittenGameFile } from "../waygate/boundary";
+import { INPUT_TRACE_FILE, responsePageFile, decodeWrittenGameFile } from "../wisp/boundary";
 
 interface LiveRigParts {
   readonly clients: readonly [Client, Client];

@@ -1,4 +1,4 @@
-// `waygate fresh MAP.w3x`: starts a new Battle.net game, issues `-dev quick`
+// `wisp fresh MAP.w3x`: starts a new Battle.net game, issues `-dev quick`
 // and waits for every client's receipt. `--rebuild` packages a warm script first.
 // The first client hosts; the others join by game name. The map signals
 // character selection by writing its ready file into each client's
@@ -8,11 +8,11 @@ import { Clock, Console, Effect, Layer } from "effect";
 import { QUICK_MATCH_COMMAND } from "../../../src/game/shell/devSettings";
 import { devCommandReceiptFile, MELEE_READY_FILE } from "../../../src/runtime/gameFiles";
 import { DevCommandReceipt, MeleeReady } from "../boundary";
-import type { MalformedGameFile } from "waygate/scripts/waygate/boundary";
-import { type Client, Clients, type DesktopFailure, waitFor, waitForText } from "waygate/scripts/waygate/clients";
-import { type Command, UsageFailure } from "waygate/scripts/waygate/command";
-import { GameFiles, dataDirectory, readGameFile } from "waygate/scripts/waygate/gameFiles";
-import { step } from "waygate/scripts/waygate/timings";
+import type { MalformedGameFile } from "wisp/scripts/wisp/boundary";
+import { type Client, Clients, type DesktopFailure, waitFor, waitForText } from "wisp/scripts/wisp/clients";
+import { type Command, UsageFailure } from "wisp/scripts/wisp/command";
+import { GameFiles, dataDirectory, readGameFile } from "wisp/scripts/wisp/gameFiles";
+import { step } from "wisp/scripts/wisp/timings";
 import { rebuildMap } from "../mapInputs";
 
 // Regions of the 2560x1440 frame where each screen's identifying label appears.

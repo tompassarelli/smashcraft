@@ -1,6 +1,6 @@
-import { floorMod } from "waygate/src/sim/intMath";
+import { floorMod } from "wisp/src/sim/intMath";
 import { type InputRow, copyInput, emptyInput } from "../input/inputRow";
-import { at } from "waygate/src/runtime/lookup";
+import { at } from "wisp/src/runtime/lookup";
 
 interface Slot {
   frame: number | undefined;

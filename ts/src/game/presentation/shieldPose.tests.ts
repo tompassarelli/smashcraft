@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { createFrameControls } from "../match/controls";
 import { Phase, createMatchState } from "../match/rules";
 import { createReplayRuntimeState } from "../match/runtime";

@@ -1,4 +1,4 @@
-import { assertEquals, test } from "waygate/src/runtime/testing";
+import { assertEquals, test } from "wisp/src/runtime/testing";
 import { meleeAtan2, meleeCos, meleeSin } from "./meleeScalarMath";
 
 // Recorded from the retail routines (smashcraft:docs/melee-scalar-math.md).

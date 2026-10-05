@@ -1,6 +1,6 @@
-import { assertEquals, assertNear, test } from "waygate/src/runtime/testing";
-import { f32 } from "waygate/src/sim/f32";
-import { floorMod } from "waygate/src/sim/intMath";
+import { assertEquals, assertNear, test } from "wisp/src/runtime/testing";
+import { f32 } from "wisp/src/sim/f32";
+import { floorMod } from "wisp/src/sim/intMath";
 import { pointerX, pointerY } from "./pointer";
 import {
   type Placement, type Roster, type RosterChip, type SelectionDrag, cardSlot, cardX, chipX, chipY, clearSelectionDrag, placeHovered,

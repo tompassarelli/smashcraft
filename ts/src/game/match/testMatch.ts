@@ -1,6 +1,6 @@
 // Test fixtures only: a match whose frames run through captured rows and the
 // frame executor, as recorded play does.
-import { assertTrue } from "waygate/src/runtime/testing";
+import { assertTrue } from "wisp/src/runtime/testing";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import type { Character } from "../sim/codes";
 import { createFighter } from "../sim/fighter";

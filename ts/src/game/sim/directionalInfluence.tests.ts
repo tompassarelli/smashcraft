@@ -1,9 +1,9 @@
 // These cases share the same hitlag-to-launch timeline: pulses, automatic
 // smash DI and continuous DI must be checked at their common frame boundaries.
 // Smash DI, automatic smash DI, directional influence and launch decay.
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
-import { roundToFloat32 } from "waygate/src/sim/binary32";
-import { f32 } from "waygate/src/sim/f32";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { roundToFloat32 } from "wisp/src/sim/binary32";
+import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, DownState } from "./codes";
 import { createFighter } from "./fighter";

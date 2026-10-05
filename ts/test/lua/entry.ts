@@ -1,5 +1,5 @@
 // Runs every registered test in Lua; the index imports the test modules.
-import { AssertionFailure, registeredTests } from "waygate/src/runtime/testing";
+import { AssertionFailure, registeredTests } from "wisp/src/runtime/testing";
 import "./index";
 
 let failures = 0;

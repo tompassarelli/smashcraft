@@ -1,4 +1,4 @@
-import { assertEquals, test } from "waygate/src/runtime/testing";
+import { assertEquals, test } from "wisp/src/runtime/testing";
 import type { BindingLoadResult } from "../../game/ui/bindingSettings";
 import { departPlayerFiles, enqueuePlayerFile, receivePlayerFileChunk, type PlayerFileQueue } from "./playerFileQueue";
 

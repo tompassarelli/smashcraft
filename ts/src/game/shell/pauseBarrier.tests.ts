@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import type { ControlState } from "../netcode/journal/source";
 import { agreedFrame, encodeControlAck, pauseBarrier, pausing, preparedFrame, receiveControlAck, requestRound } from "./pauseBarrier";
 

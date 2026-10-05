@@ -1,6 +1,6 @@
 // Smashcraft's selection, developer-command and input-trace records.
 import { Effect, Schema } from "effect";
-import { preloadRecord, Count, Seconds, type GameFileKind } from "waygate/scripts/waygate/boundary";
+import { preloadRecord, Count, Seconds, type GameFileKind } from "wisp/scripts/wisp/boundary";
 import { MAX_BATCH } from "../../src/game/netcode/journal/transport";
 import * as files from "../../src/runtime/gameFiles";
 export * from "../../src/runtime/gameFiles";

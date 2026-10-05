@@ -1,4 +1,4 @@
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import type { Fighter } from "../sim/fighter";
 import { projectileActive } from "../sim/projectiles";
 import { atan2 } from "../sim/warcraftMath";

@@ -1,9 +1,9 @@
-// Runs game tests registered through waygate:src/runtime/testing.ts.
+// Runs game tests registered through wisp:src/runtime/testing.ts.
 // Optional filter: GAME_TESTS=Simulation bun test test/game.test.ts
 // GAME_TEST_SHARD=K/N runs every Nth module starting at K; scripts/test.ts runs all shards.
 // GAME_SOAK=1 runs the long *.soak.ts scenarios instead, without a time limit.
 import { describe, test } from "bun:test";
-import { registeredTests } from "waygate/src/runtime/testing";
+import { registeredTests } from "wisp/src/runtime/testing";
 
 const filter = process.env.GAME_TESTS ?? "";
 const soak = process.env.GAME_SOAK === "1";

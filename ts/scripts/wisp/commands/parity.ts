@@ -1,12 +1,12 @@
-// `waygate parity`: numeric Lua parity and issue #26 native capture/result.
+// `wisp parity`: numeric Lua parity and issue #26 native capture/result.
 // Capture and reconciliation call the harness APIs directly so they remain
-// part of Waygate's traced Effect program.
+// part of Wisp's traced Effect program.
 import { Effect } from "effect";
 import { runNumericParity } from "../../numericParity";
 import { captureMatches, parseCaptureArguments } from "../../integrity/capture";
 import { IntegrityFailure, reconcileCapture } from "../../integrity/evidence";
-import { type Command, UsageFailure, describeCause } from "waygate/scripts/waygate/command";
-import { step } from "waygate/scripts/waygate/timings";
+import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
+import { step } from "wisp/scripts/wisp/timings";
 
 const usage = "parity numeric [RESULT_FILE ...] | parity capture CAPTURE_OPTIONS | parity result CAPTURE_DIR";
 
@@ -25,7 +25,7 @@ export const parity: Command = ([mode, ...args]) => {
     case "capture":
       return Effect.try({
         try: () => parseCaptureArguments(args),
-        catch: (cause) => new IntegrityFailure({ operation: "parse capture arguments", path: "waygate parity capture", cause: describeCause(cause) }),
+        catch: (cause) => new IntegrityFailure({ operation: "parse capture arguments", path: "wisp parity capture", cause: describeCause(cause) }),
       }).pipe(
         Effect.flatMap(captureMatches),
         step("native input-integrity capture"),
@@ -41,9 +41,9 @@ export const parity: Command = ([mode, ...args]) => {
       );
     }
     default:
-      return Effect.fail(new UsageFailure({ problem: `parity requires numeric, capture or result; usage: waygate ${usage}` }));
+      return Effect.fail(new UsageFailure({ problem: `parity requires numeric, capture or result; usage: wisp ${usage}` }));
   }
 };
 
-/** The input-integrity spelling remains convenient while all execution shares the Waygate entrypoint. */
+/** The input-integrity spelling remains convenient while all execution shares the Wisp entrypoint. */
 export const integrity: Command = ([mode, ...args]) => parity([mode === "capture" || mode === "result" ? mode : "", ...args]);

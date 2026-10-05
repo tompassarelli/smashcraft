@@ -4,9 +4,9 @@
 import { CURRENT_BUILD } from "../game/shell/currentBuild";
 import type { MapBuild } from "../game/shell/build";
 import { replayHistoryPlayback } from "../game/shell/rollbackPlayback";
-import { configureRuntime } from "waygate/src/runtime/config";
-import { installDispatch } from "waygate/src/platform/dispatch";
-import { installHotReload, startHotReload } from "waygate/src/platform/hotReload";
+import { configureRuntime } from "wisp/src/runtime/config";
+import { installDispatch } from "wisp/src/platform/dispatch";
+import { installHotReload, startHotReload } from "wisp/src/platform/hotReload";
 import { installShell, startShell } from "./shell/shell";
 import { installObjectData } from "./shell/objectData";
 

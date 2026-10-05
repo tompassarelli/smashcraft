@@ -11,7 +11,7 @@ import { DESYNC_COMMAND, QUICK_MATCH_COMMAND, applyDevCommand } from "../../game
 import { devReceiptFile } from "../../game/shell/journalFiles";
 import { pausedMessage } from "../../game/shell/messages";
 import { captureBinding } from "../../game/ui/bindingSettings";
-import { writeLines } from "waygate/src/platform/fileio";
+import { writeLines } from "wisp/src/platform/fileio";
 import { confirmedChecksum, startInputTrace, traceParticipant } from "./diagnostics";
 import { probeFrameCostClock } from "./frameCost";
 import { clearAllInputs } from "./inputs";

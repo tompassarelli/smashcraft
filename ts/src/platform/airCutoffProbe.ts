@@ -1,6 +1,6 @@
 // Developer-only trace for the native AIR_CUTOFF_4 counterexample.
-import { fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
-import { f32 } from "waygate/src/sim/f32";
+import { fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
+import { f32 } from "wisp/src/sim/f32";
 import { Character } from "../game/sim/codes";
 import { createFighter } from "../game/sim/fighter";
 import { decayKnockback } from "../game/sim/knockback";

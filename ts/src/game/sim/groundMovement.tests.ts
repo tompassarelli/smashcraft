@@ -1,9 +1,9 @@
 // Keep the recorded movement timelines together so entry, reversal and exit
 // use the same NTSC parameter fixtures and frame-count conventions.
 // Dash, run, turn-run and run-brake against the authored and NTSC timelines.
-import { assertEquals, assertFalse, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertEquals, assertFalse, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { max, min } from "../../runtime/numbers";
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GroundAction } from "./codes";
 import { type Fighter, createFighter } from "./fighter";
 import { advance } from "./step";

@@ -1,5 +1,5 @@
-import { assertEquals, test } from "waygate/src/runtime/testing";
-import { f32 } from "waygate/src/sim/f32";
+import { assertEquals, test } from "wisp/src/runtime/testing";
+import { f32 } from "wisp/src/sim/f32";
 import { clearStageDrag, stageDrag, stageTileAt, updateStageDrag } from "./stageSelection";
 
 /** UI frame units from thousandths, the same binary32 value in both runtimes. */

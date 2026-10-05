@@ -1,4 +1,4 @@
-import { assertEquals, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { Character, ContactKind } from "./codes";
 import { beginDamageContacts, finishDamageContacts, queueDamageContact } from "./contacts";
 import { createFighter } from "./fighter";

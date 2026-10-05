@@ -1,10 +1,10 @@
 import { join } from "node:path";
 import { Effect } from "effect";
 import { expect, test } from "bun:test";
-import { verifyToolchain } from "waygate/scripts/waygate/mapBuild";
-import { composeScript, typescriptBase } from "waygate/scripts/mapScript";
+import { verifyToolchain } from "wisp/scripts/wisp/mapBuild";
+import { composeScript, typescriptBase } from "wisp/scripts/mapScript";
 import { fileIoAbility } from "../scripts/objectData";
-import { GENERATED_MODELS, SCRIPT_MODELS, missingModels } from "../scripts/waygate/mapInputs";
+import { GENERATED_MODELS, SCRIPT_MODELS, missingModels } from "../scripts/wisp/mapInputs";
 import { STAGE_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 
 const project = join(import.meta.dir, "../..");

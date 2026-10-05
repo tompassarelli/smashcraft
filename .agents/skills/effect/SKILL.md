@@ -1,6 +1,6 @@
 ---
 name: effect
-description: Develop Smashcraft and Waygate with Effect, or maintain their Effect dependency and vendored source. Includes the weekly source-update policy.
+description: Develop Smashcraft and Wisp with Effect, or maintain their Effect dependency and vendored source. Includes the weekly source-update policy.
 ---
 
 # Effect in Smashcraft
@@ -19,7 +19,7 @@ scripts, or modify its files during application work. Its upstream toolchain
 does not change Smashcraft's Bun workflow. Preserve upstream licenses and
 notices. The exact source identity is in smashcraft:repos/effect.json.
 
-Waygate spans Bun tools and synchronized TSTL/Lua game code. Read
+Wisp spans Bun tools and synchronized TSTL/Lua game code. Read
 smashcraft:docs/typescript.md and `warcraft-typescript-development-distilled`
 before changing that boundary. Establish compiler and runtime compatibility
 before moving Effect APIs into map code; host success alone is insufficient.

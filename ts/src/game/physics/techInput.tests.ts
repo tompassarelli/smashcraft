@@ -1,4 +1,4 @@
-import { assertEquals, test } from "waygate/src/runtime/testing";
+import { assertEquals, test } from "wisp/src/runtime/testing";
 import { type TechInput, advanceTechInput, emptyTechInput, techContactWindow, techInputEligible } from "./techInput";
 
 function pressedOnce(): TechInput {

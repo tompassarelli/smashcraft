@@ -1,7 +1,7 @@
 // Snapshot copy, equality and restoration cover the same complete replay
 // record; keeping the cases together exposes fields missing from any operation.
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "waygate/src/runtime/testing";
-import { f32 } from "waygate/src/sim/f32";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { f32 } from "wisp/src/sim/f32";
 import { type AttackBuffer, attackBuffer, clearAttackBuffer, hasPendingAttack, queueAttack } from "../input/attackBuffer";
 import type { FrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame, resetMatchFrameInput } from "../match/frameInput";

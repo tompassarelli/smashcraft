@@ -1,6 +1,6 @@
 // Smash DI during hitlag and automatic smash DI when it ends: fixed shifts of
 // the victim's position along the held direction.
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { finishLanding } from "./down";
 import { DIAGONAL_UNIT } from "./knockback";
 import { landingAlongShift } from "./motion";

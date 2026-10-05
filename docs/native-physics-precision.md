@@ -8,11 +8,11 @@ Its entry is smashcraft:ts/src/platform/physicsProbeMain.ts, selected by
 smashcraft:ts/tsconfig.physics-probe.json. The report's `SOURCE` value is the
 compiled bundle key passed by the packaged map's entry.
 
-From smashcraft:ts/, build with `bun waygate build --profile physics-probe`
+From smashcraft:ts/, build with `bun wisp build --profile physics-probe`
 and the normal `--base`, `--container`, `--assets`, `--summon`, `--name` and
 `--out` arguments documented in smashcraft:docs/typescript.md. Use a distinct
 `Smashcraft diagnostic RUN_ID` name and a private output directory outside the
-checkout. `bun waygate rebuild MAP.w3x --profile physics-probe` replaces only
+checkout. `bun wisp rebuild MAP.w3x --profile physics-probe` replaces only
 that diagnostic's script. Neither command installs a map or controls a client.
 
 For the headless fixtures, run

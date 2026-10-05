@@ -1,7 +1,7 @@
 // The character panel of one participant. Every client builds all four panels;
 // only the owner's client shows its own and reads its pointer, and a placed or
 // recalled chip crosses a player sync event before the game sees it.
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { bindPrototype } from "../../platform/rebind";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS } from "../input/participants";
 import {

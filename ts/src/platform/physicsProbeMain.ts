@@ -1,6 +1,6 @@
 // Diagnostic map entry for issue #9. It executes the same production
 // simulation fixtures as Bun and Lua32, then exports the native gate report.
-import { AssertionFailure, registeredTests } from "waygate/src/runtime/testing";
+import { AssertionFailure, registeredTests } from "wisp/src/runtime/testing";
 import { PHYSICS_REPORT_FILE } from "../runtime/gameFiles";
 import "../game/sim/physicsPrecisionState.tests";
 import "../game/sim/physicsPrecisionScalar.tests";

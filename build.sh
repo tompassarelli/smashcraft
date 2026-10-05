@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Canonical TypeScript-only map build. `waygate build`
-# (waygate:scripts/waygate/mapBuild.ts) does the work; this script
+# Canonical TypeScript-only map build. `wisp build`
+# (wisp:scripts/wisp/mapBuild.ts) does the work; this script
 # supplies its private asset inputs and map packager.
 set -euo pipefail
 
@@ -23,12 +23,12 @@ packager="$project_dir/build/tools/map-pack"
 if [[ ! -x "$packager" ]]; then
     mkdir -p "$(dirname -- "$packager")"
     stormlib=$(nix build --no-link --print-out-paths nixpkgs#stormlib)
-    nix shell nixpkgs#gcc --command gcc -I"$stormlib/include" "$project_dir/ts/node_modules/waygate/native/map-pack.c" \
+    nix shell nixpkgs#gcc --command gcc -I"$stormlib/include" "$project_dir/ts/node_modules/wisp/native/map-pack.c" \
         -L"$stormlib/lib" -Wl,-rpath,"$stormlib/lib" -lstorm -o "$packager"
 fi
 mkdir -p "$(dirname -- "$output")"
 
-exec "$bun" "$project_dir/ts/scripts/waygate.ts" build \
+exec "$bun" "$project_dir/ts/scripts/wisp.ts" build \
     --base "$(realpath -- "$1")" --container "$(realpath -- "$2")" \
     --assets "$project_dir/build" --summon "$private_assets/summon-original-clips" \
     --name "$map_name" --out "$output" --packager "$packager"

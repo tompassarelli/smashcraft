@@ -5,8 +5,8 @@
 // these strings and checksums between Wurst's Lua, Bun and 32-bit Lua.
 import { attackBufferCanonicalState } from "../input/attackBuffer";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS, participantActive } from "../input/participants";
-import { at } from "waygate/src/runtime/lookup";
-import { floorMod } from "waygate/src/sim/intMath";
+import { at } from "wisp/src/runtime/lookup";
+import { floorMod } from "wisp/src/sim/intMath";
 import { SPECIAL_ACTION_CAPACITY } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";

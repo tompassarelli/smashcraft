@@ -1,7 +1,7 @@
 // Starting attacks and resolving their contacts. Every contact is selected
 // against the same pre-hit state before grabs or parries can interrupt an
 // attacker; mutual catches clash and competing catches take the nearest victim.
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST } from "./codes";
 import { attackPhase, canStartAttackStyle, inGrabContext, isIntangible } from "./conditions";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
@@ -15,7 +15,7 @@ import { type Roster, fighterAt, isActive } from "./roster";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
 import { attackCapsule, hurtCapsule, emptyCapsule, capsulesIntersect, placeCapsule } from "../physics/contactGeometry";
 import { beginAttack } from "./transitions";
-import { at } from "waygate/src/runtime/lookup";
+import { at } from "wisp/src/runtime/lookup";
 
 const GRAB_REACH = attackReach(AttackStyle.grab);
 const DASH_GRAB_REGION: Readonly<HitRegion> = {

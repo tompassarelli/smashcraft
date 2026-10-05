@@ -1,10 +1,10 @@
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { Effect } from "effect";
-import { UsageFailure } from "waygate/scripts/waygate/command";
-import { MapBuild, type BuildProject } from "waygate/scripts/waygate/mapBuild";
-import { GameFiles } from "waygate/scripts/waygate/gameFiles";
-import { SourceErrors } from "waygate/scripts/waygate/sourceErrors";
+import { UsageFailure } from "wisp/scripts/wisp/command";
+import { MapBuild, type BuildProject } from "wisp/scripts/wisp/mapBuild";
+import { GameFiles } from "wisp/scripts/wisp/gameFiles";
+import { SourceErrors } from "wisp/scripts/wisp/sourceErrors";
 
 export const ts = join(import.meta.dir, "../..");
 export const projectRoot = join(ts, "..");
@@ -20,7 +20,7 @@ export const buildProject = (profile: Profile = "main"): BuildProject => ({
   projectRoot,
   configPath: profileConfig(profile),
   bundlePath: join(ts, profile === "main" ? "build/map.lua" : `build/${profile}.lua`),
-  compileInputs: [join(ts, "src"), join(ts, "node_modules/waygate/src"), join(ts, "node_modules/waygate/plugins"),
+  compileInputs: [join(ts, "src"), join(ts, "node_modules/wisp/src"), join(ts, "node_modules/wisp/plugins"),
     ...profiles.map(profileConfig), join(ts, "tsconfig.json")],
   packager: join(projectRoot, "build/tools/map-pack"),
   toolchainLockPath: join(projectRoot, "typescript-toolchain.lock"),

@@ -2,7 +2,7 @@
 // command timeline in tuning.ground. Coefficients come from the locally
 // identified NTSC 1.02 PlCo.dat.
 import { max, min } from "../../runtime/numbers";
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { GroundAction } from "./codes";
 import type { Fighter } from "./fighter";
 import { INITIAL_DASH_FRAMES, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";

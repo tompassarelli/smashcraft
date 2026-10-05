@@ -8,7 +8,7 @@
 // held, edges, axes, triggers, press metadata, throw totals. A present group is
 // never zero, so every row has exactly one spelling. Sender identity comes from
 // the receive event, not the packet.
-import { floorDiv, floorMod } from "waygate/src/sim/intMath";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { ALL_ACTIONS } from "./actions";
 import { type Direction, type InputRow, emptyInput, inputRow, predictInto, sameInput } from "./inputRow";
 

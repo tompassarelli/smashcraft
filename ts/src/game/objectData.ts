@@ -1,5 +1,5 @@
 // The build and running map consume these same object definitions.
-import { CHUNKS_PER_FILE, FILE_IO_ABILITY } from "waygate/src/runtime/gameFiles";
+import { CHUNKS_PER_FILE, FILE_IO_ABILITY } from "wisp/src/runtime/gameFiles";
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "./presentation/fighterAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "./presentation/demonHunterAssetInfo";
 import { Character } from "./sim/codes";

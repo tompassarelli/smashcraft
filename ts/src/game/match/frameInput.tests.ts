@@ -1,4 +1,4 @@
-import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { Action, maskOf } from "../input/actions";
 import { queueAttack } from "../input/attackBuffer";
 import { type InputRow, emptyInput, inputRow, sameInput } from "../input/inputRow";

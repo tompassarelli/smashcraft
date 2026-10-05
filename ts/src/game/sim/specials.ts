@@ -2,7 +2,7 @@
 // and Demon Hunter's Immolation contact. First-pass timing and trajectories;
 // gameplay tuning remains provisional.
 import { max } from "../../runtime/numbers";
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, HippogryphKind, ProjectileKind, SPECIAL_ACTION_CAPACITY, SpecialAction, SurfaceContact } from "./codes";
 import { canAttack, isIntangible } from "./conditions";
 import { finishDamageContacts, openDamageContacts } from "./contacts";
@@ -17,7 +17,7 @@ import { BLASTER_PROJECTILE_LIFETIME, BLASTER_PROJECTILE_SPEED, spawnArcherArrow
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
 import { RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
-import { at } from "waygate/src/runtime/lookup";
+import { at } from "wisp/src/runtime/lookup";
 
 export const DEMONHUNTER_MANA_BURN_STARTUP = 8;
 const DEMONHUNTER_MANA_BURN_RECOVERY = 25;

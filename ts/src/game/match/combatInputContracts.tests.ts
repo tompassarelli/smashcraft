@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertGreaterThan, test } from "waygate/src/runtime/testing";
+import { assertEquals, assertFalse, assertGreaterThan, test } from "wisp/src/runtime/testing";
 import { Action } from "../input/actions";
 import { actionFor, presetBindings } from "../input/keyBindings";
 import { attackBuffer, queueAttack } from "../input/attackBuffer";

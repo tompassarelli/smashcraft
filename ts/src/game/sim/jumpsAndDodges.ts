@@ -1,6 +1,6 @@
 // Starting jumps, air dodges and ground dodges.
 import { max } from "../../runtime/numbers";
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { Character, DownState, LedgeState, ShieldBreak, SurfaceContact } from "./codes";
 import { inGrabContext, inSurfaceTechStartup, isGroundDodging, isTumbling } from "./conditions";
 import type { Fighter } from "./fighter";

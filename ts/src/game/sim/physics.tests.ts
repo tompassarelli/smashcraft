@@ -1,11 +1,11 @@
 // The large fixture set retains independent retail reference values across
 // arithmetic, motion and contact; each group must survive changes to production.
 // Retail physics references: NTSC 1.02 recordings and extracted parameters.
-import { floorMod } from "waygate/src/sim/intMath";
-import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
+import { floorMod } from "wisp/src/sim/intMath";
+import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { max } from "../../runtime/numbers";
-import { addFloat32, divideFloat32 } from "waygate/src/sim/binary32";
-import { f32 } from "waygate/src/sim/f32";
+import { addFloat32, divideFloat32 } from "wisp/src/sim/binary32";
+import { f32 } from "wisp/src/sim/f32";
 import { advanceSpecials } from "./specials";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, ContactKind, DownState, GrabAction, GroundAction, HippogryphKind, ProjectileKind, ShieldBreak, SpecialAction } from "./codes";

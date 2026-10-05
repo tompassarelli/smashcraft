@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { MatchLifecycle, pauseBarrierFrame } from "./lifecycle";
 
 test("a match starts and ends only when every human crosses, and a rematch ignores the last epoch", () => {

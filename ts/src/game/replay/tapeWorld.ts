@@ -1,8 +1,8 @@
 // Recorded-tape fixtures shared by the replay contracts, the soak and tape
 // runners: Wurst ReplayHistoryTests' TapeWorld and runRecordedTape. Every
 // rule still runs through the production frame executor and history.
-import { assertEquals, assertGreaterThan, assertLessThan, assertTrue } from "waygate/src/runtime/testing";
-import { floorMod } from "waygate/src/sim/intMath";
+import { assertEquals, assertGreaterThan, assertLessThan, assertTrue } from "wisp/src/runtime/testing";
+import { floorMod } from "wisp/src/sim/intMath";
 import { attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { type FrameControls, createFrameControls } from "../match/controls";
 import { type MatchFrameInput, captureFrame, createMatchFrameInput, executeMatchFrame, resetMatchFrameInput } from "../match/frameInput";

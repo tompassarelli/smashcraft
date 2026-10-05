@@ -1,7 +1,7 @@
 // A deliberate failure for the stack-trace diagnostic build: `-dev stack-demo`
 // throws three calls below its chat handler, so the error report the dispatch
 // boundary writes must carry the TypeScript frames the stack plugin records.
-import { on, trampoline } from "waygate/src/platform/dispatch";
+import { on, trampoline } from "wisp/src/platform/dispatch";
 import { PARTICIPANT_SLOTS } from "../game/input/participants";
 import type { MapBuild } from "../game/shell/build";
 

@@ -2,7 +2,7 @@
 // helper publishes these packets as fixture files and the probe compares every
 // received packet with vocabularyProbePacket's text, so each row is part of
 // that contract.
-import { floorDiv, floorMod } from "waygate/src/sim/intMath";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { ALL_ACTIONS, Action, bit, has } from "../../input/actions";
 import { type InputRow, inputRow } from "../../input/inputRow";
 import { encodePacket, inputPacket } from "../../input/wire";

@@ -13,8 +13,8 @@ and next work: [roadmap #16](https://github.com/tompassarelli/smashcraft/issues/
 
 ## Build and test
 
-Smashcraft is written in TypeScript and runs on [Waygate](https://github.com/tompassarelli/waygate),
-the framework for Warcraft III maps. smashcraft:ts/waygate.lock pins its source
+Smashcraft is written in TypeScript and runs on [Wisp](https://github.com/tompassarelli/wisp),
+the framework for Warcraft III maps. smashcraft:ts/wisp.lock pins its source
 revision; `bun install --frozen-lockfile` installs the generated package from
 the checkout. TypeScriptToLua compiles the game to Warcraft's Lua. Code
 changes reach running multiplayer clients without re-hosting, in-game errors
@@ -27,7 +27,7 @@ From [smashcraft:ts/](ts/):
 
 - `bun test` runs the logic tests, and `LUA=<32-bit lua> bun scripts/lua-tests.ts`
   runs them in 32-bit Lua. `bun run check` type-checks.
-- `bun waygate hot --data <client CustomMapData> ... --watch` reloads every
+- `bun wisp hot --data <client CustomMapData> ... --watch` reloads every
   save into the running clients.
 - `../build.sh BASE_MAP ASSET_CONTAINER` builds the map.
 

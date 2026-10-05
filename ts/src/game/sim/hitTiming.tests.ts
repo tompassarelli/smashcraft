@@ -1,6 +1,6 @@
-import { assertEquals, assertGreaterThan, assertTrue, test } from "waygate/src/runtime/testing";
+import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { max } from "../../runtime/numbers";
-import { f32 } from "waygate/src/sim/f32";
+import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, ProjectileKind } from "./codes";
 import { canAttack } from "./conditions";

@@ -2,7 +2,7 @@
 // carrier keys are polled on the local client, and receipts are written for
 // the helper.
 import { CARRIER_KEYS, COMMIT_KEY, type KeyboardMailbox, decodeChunk } from "../game/netcode/journal/keyboard";
-import { writeLine } from "waygate/src/platform/fileio";
+import { writeLine } from "wisp/src/platform/fileio";
 
 const isDown = (key: number) => BlzIsKeyPressed(ConvertOsKeyType(key));
 

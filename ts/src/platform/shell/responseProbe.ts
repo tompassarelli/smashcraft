@@ -5,10 +5,10 @@
 // smashcraft-response-p<slot>-run<run>-page<page>.txt; their lines are the
 // harness's format. Times are native game milliseconds, not host time, and
 // nothing here feeds synchronized state.
-import { f32 } from "waygate/src/sim/f32";
-import { floorDiv, floorMod } from "waygate/src/sim/intMath";
-import { trampoline } from "waygate/src/platform/dispatch";
-import { writeLines } from "waygate/src/platform/fileio";
+import { f32 } from "wisp/src/sim/f32";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
+import { trampoline } from "wisp/src/platform/dispatch";
+import { writeLines } from "wisp/src/platform/fileio";
 import { edgeStampFile, responsePageFile } from "../../runtime/gameFiles";
 
 const ROW_LIMIT = 7200;
