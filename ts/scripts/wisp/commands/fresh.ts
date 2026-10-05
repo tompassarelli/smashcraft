@@ -1,6 +1,7 @@
 // `wisp fresh MAP.w3x`: starts a new Battle.net game, issues `-dev quick`,
 // waits for every client's receipt, then checks what each player sees
-// (playerView.ts). `--rebuild` packages a warm script first.
+// (playerView.ts). `--rebuild` packages a warm script first; `--no-quick`
+// stops at character selection, as captures and playable builds need.
 // The first client hosts; the others join by game name. The map signals
 // character selection by writing its ready file into each client's
 // CustomMapData.
@@ -53,15 +54,17 @@ export const fresh: Command = (args) => Effect.gen(function*() {
   const options = yield* profileOptions(args);
   const { profile } = yield* profileOption(args);
   const [map, ...flags] = options.args;
-  if (map === undefined || flags.some((flag) => flag !== "--rebuild" && flag !== "--from-game")) {
-    return yield* new UsageFailure({ problem: "fresh takes MAP.w3x [--rebuild] [--from-game] [--profile PROFILE]" });
+  if (map === undefined || flags.some((flag) => flag !== "--rebuild" && flag !== "--from-game" && flag !== "--no-quick")) {
+    return yield* new UsageFailure({ problem: "fresh takes MAP.w3x [--rebuild] [--from-game] [--no-quick] [--profile PROFILE]" });
   }
   yield* Effect.gen(function*() {
     if (flags.includes("--rebuild")) yield* rebuildMap(map).pipe(step("map rebuilt"));
     yield* freshMatch(map, flags.includes("--from-game"));
-    const since = yield* Clock.currentTimeMillis;
-    yield* sendQuickMatchCommand.pipe(step("quick match and client receipts"));
-    yield* checkPlayerView(smashcraftPlayerView({ frame: true, scene: sceneProfiles.has(profile) }), since, freshFrames).pipe(step("player view"));
+    if (!flags.includes("--no-quick")) {
+      const since = yield* Clock.currentTimeMillis;
+      yield* sendQuickMatchCommand.pipe(step("quick match and client receipts"));
+      yield* checkPlayerView(smashcraftPlayerView({ frame: true, scene: sceneProfiles.has(profile) }), since, freshFrames).pipe(step("player view"));
+    }
   }).pipe(Effect.provide(options.services.pipe(Layer.provideMerge(Clients.layer(clientState)))));
 });
 

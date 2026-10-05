@@ -115,7 +115,6 @@ export interface JourneyOptions {
 const CONTROLS = /CONTROLS/i;
 const RESULTS = /wins|rematch/i;
 const PAUSED = /PAUSED.*Press.*Start.*resume|Paused.*press.*Start.*resume/i;
-const CHAT_OPEN = /(?:All|Allies)\s*:/i;
 const TWO_HUMANS = "connected=3 human-fighters=3 computers=0 fighters=3";
 const TRACE = INPUT_TRACE_FILE;
 /** Callbacks an input trace records: with the response probe, and in every other normal build. */
@@ -273,8 +272,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     Effect.gen(function*() {
       const name = (client: Slot) => devCommandReceiptFile(build, client);
       const before = (yield* Effect.forEach(SLOTS, (client) => rig.file(client, name(client)))).map((file) => file?.text ?? "");
+      // The map hides Warcraft's chat box; both clients' receipts confirm the command.
       yield* rig.key(0, "Return");
-      yield* rig.waitText(0, CHAT_OPEN);
       yield* rig.type(0, command);
       yield* rig.key(0, "Return");
       yield* rig.until(`dev command not confirmed: ${command}`, Effect.forEach(SLOTS, (client) => rig.file(client, name(client))).pipe(
