@@ -34,7 +34,7 @@ if (supplied.length > 0) {
   // Preload files wrap each line as: call Preload( "..." )
   output = texts.join("\n").replace(/call Preload\( "([^"]*)" \)/g, "$1");
 } else {
-  const compile = Bun.spawnSync(["bun", "x", "--bun", "tstl", "-p", "tsconfig.lua.json"], { stdout: "inherit", stderr: "inherit" });
+  const compile = Bun.spawnSync(["bun", "--bun", "node_modules/typescript-to-lua/dist/tstl.js", "-p", "tsconfig.lua.json"], { stdout: "inherit", stderr: "inherit" });
   if (compile.exitCode !== 0) throw new Error("TypeScriptToLua failed");
   const run = Bun.spawnSync([process.env.LUA ?? "lua", "build/parity.lua"], { stderr: "inherit" });
   if (run.exitCode !== 0) throw new Error("Lua run failed");

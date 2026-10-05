@@ -3,8 +3,9 @@
 // - 1.0 prints as the integer literal 1, so `x * 2.0` could stay an integer and
 //   overflow. Literals written with a decimal point or exponent stay floats,
 //   matching Wurst's real literals.
-// - Math.floor(a / b) divides in binary32, losing bits above 2^24. idiv(a, b)
-//   from src/sim/intMath.ts compiles to Lua's exact integer `a // b`.
+// - Math.floor(a / b) divides in binary32, losing bits above 2^24, and `%`
+//   floors in Lua but truncates in JavaScript. floorDiv and floorMod from
+//   src/sim/intMath.ts compile to Lua's exact integer `//` and `%`.
 import * as ts from "typescript";
 import * as tstl from "typescript-to-lua";
 import { LuaPrinter } from "typescript-to-lua";
@@ -21,12 +22,19 @@ class WarcraftNumberPrinter extends LuaPrinter {
   }
 }
 
-function isIntegerDivision(node: ts.CallExpression, checker: ts.TypeChecker): boolean {
-  if (!ts.isIdentifier(node.expression) || node.expression.text !== "idiv" || node.arguments.length !== 2) return false;
+const integerOperators: Record<string, tstl.BinaryOperator> = {
+  floorDiv: tstl.SyntaxKind.FloorDivisionOperator,
+  floorMod: tstl.SyntaxKind.ModuloOperator,
+};
+
+function integerOperator(node: ts.CallExpression, checker: ts.TypeChecker): tstl.BinaryOperator | undefined {
+  if (!ts.isIdentifier(node.expression) || node.arguments.length !== 2) return undefined;
+  const operator = integerOperators[node.expression.text];
+  if (operator === undefined) return undefined;
   let symbol = checker.getSymbolAtLocation(node.expression);
   if (symbol !== undefined && symbol.flags & ts.SymbolFlags.Alias) symbol = checker.getAliasedSymbol(symbol);
   const declaration = symbol?.declarations?.[0];
-  return declaration !== undefined && declaration.getSourceFile().fileName.endsWith("/src/sim/intMath.ts");
+  return declaration !== undefined && declaration.getSourceFile().fileName.endsWith("/src/sim/intMath.ts") ? operator : undefined;
 }
 
 const plugin: tstl.Plugin = {
@@ -38,14 +46,10 @@ const plugin: tstl.Plugin = {
       return result;
     },
     [ts.SyntaxKind.CallExpression]: (node, context) => {
-      if (!isIntegerDivision(node, context.checker)) return context.superTransformExpression(node);
+      const operator = integerOperator(node, context.checker);
+      if (operator === undefined) return context.superTransformExpression(node);
       const [left, right] = node.arguments;
-      return tstl.createBinaryExpression(
-        context.transformExpression(left!),
-        context.transformExpression(right!),
-        tstl.SyntaxKind.FloorDivisionOperator,
-        node,
-      );
+      return tstl.createBinaryExpression(context.transformExpression(left!), context.transformExpression(right!), operator, node);
     },
   },
   printer: (program, emitHost, fileName, file) => new WarcraftNumberPrinter(emitHost, program, fileName).print(file),

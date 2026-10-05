@@ -2,7 +2,7 @@
 // tompassarelli/WurstStdlib2 (e3714f6). Every operation rounds once, to nearest
 // with ties to even, on binary64 hosts and in Warcraft's binary32 Lua alike.
 // Integer limbs stay below 2^31, the range of Warcraft's Lua integers.
-import { idiv } from "./intMath";
+import { floorDiv, floorMod } from "./intMath";
 
 /** Truncation toward zero, which Lua and JavaScript both emit exactly. */
 export function toInt(value: number): number {
@@ -37,7 +37,7 @@ export function roundToFloat32(value: number): number {
   const units = significand * 8388608.0;
   let rounded = Math.floor(units);
   const remainder = units - rounded;
-  if (remainder > 0.5 || (remainder === 0.5 && rounded % 2 !== 0)) rounded += 1;
+  if (remainder > 0.5 || (remainder === 0.5 && floorMod(rounded, 2) !== 0)) rounded += 1;
   if (exponent === 127 && rounded === 16777216) {
     return negative ? -binary32Infinity() : binary32Infinity();
   }
@@ -102,9 +102,9 @@ export function divideFloat32(numerator: number, denominator: number): number {
       quotient += 1;
     }
   }
-  let rounded = idiv(quotient, 8);
-  const roundingBits = quotient % 8;
-  if (roundingBits > 4 || (roundingBits === 4 && (remainder !== 0 || rounded % 2 !== 0))) rounded += 1;
+  let rounded = floorDiv(quotient, 8);
+  const roundingBits = floorMod(quotient, 8);
+  if (roundingBits > 4 || (roundingBits === 4 && (remainder !== 0 || floorMod(rounded, 2) !== 0))) rounded += 1;
   let scale = exponent - 23;
   if (exponent < -126) {
     const subnormalShift = exponent + 149;
@@ -114,11 +114,11 @@ export function divideFloat32(numerator: number, denominator: number): number {
     } else {
       let divisor = 1;
       for (let i = 1; i <= 26 - subnormalShift; i++) divisor *= 2;
-      rounded = idiv(quotient, divisor);
-      const roundingRemainder = quotient % divisor;
+      rounded = floorDiv(quotient, divisor);
+      const roundingRemainder = floorMod(quotient, divisor);
       if (
         roundingRemainder * 2 > divisor ||
-        (roundingRemainder * 2 === divisor && (remainder !== 0 || rounded % 2 !== 0))
+        (roundingRemainder * 2 === divisor && (remainder !== 0 || floorMod(rounded, 2) !== 0))
       ) {
         rounded += 1;
       }
@@ -155,15 +155,15 @@ interface Limbs {
 
 function multiplySignificands(a: number, b: number): { high: number; low: number } {
   // Twelve-bit factors keep every partial product within signed 32 bits.
-  const aLow = a % 4096;
-  const bLow = b % 4096;
-  const aHigh = idiv(a, 4096);
-  const bHigh = idiv(b, 4096);
+  const aLow = floorMod(a, 4096);
+  const bLow = floorMod(b, 4096);
+  const aHigh = floorDiv(a, 4096);
+  const bHigh = floorDiv(b, 4096);
   const first = aLow * bLow;
-  const second = idiv(first, 4096) + aHigh * bLow + aLow * bHigh;
+  const second = floorDiv(first, 4096) + aHigh * bLow + aLow * bHigh;
   return {
-    high: aHigh * bHigh + idiv(second, 4096),
-    low: (first % 4096) + (second % 4096) * 4096,
+    high: aHigh * bHigh + floorDiv(second, 4096),
+    low: floorMod(first, 4096) + floorMod(second, 4096) * 4096,
   };
 }
 
@@ -176,28 +176,28 @@ function shiftRightJam(value: Limbs, count: number): Limbs {
   while (remaining >= 24) {
     const lost = result.low !== 0;
     result = { high: 0, middle: result.high, low: result.middle };
-    if (lost && result.low % 2 === 0) result.low += 1;
+    if (lost && floorMod(result.low, 2) === 0) result.low += 1;
     remaining -= 24;
   }
   for (let i = 1; i <= remaining; i++) {
-    const lost = result.low % 2 !== 0;
+    const lost = floorMod(result.low, 2) !== 0;
     result = {
-      high: idiv(result.high, 2),
-      middle: idiv(result.middle, 2) + (result.high % 2) * 8388608,
-      low: idiv(result.low, 2) + (result.middle % 2) * 8388608,
+      high: floorDiv(result.high, 2),
+      middle: floorDiv(result.middle, 2) + floorMod(result.high, 2) * 8388608,
+      low: floorDiv(result.low, 2) + floorMod(result.middle, 2) * 8388608,
     };
-    if (lost && result.low % 2 === 0) result.low += 1;
+    if (lost && floorMod(result.low, 2) === 0) result.low += 1;
   }
   return result;
 }
 
 function addLimbs(a: Limbs, b: Limbs): Limbs {
   const lowSum = a.low + b.low;
-  const middleSum = a.middle + b.middle + idiv(lowSum, 16777216);
+  const middleSum = a.middle + b.middle + floorDiv(lowSum, 16777216);
   return {
-    high: a.high + b.high + idiv(middleSum, 16777216),
-    middle: middleSum % 16777216,
-    low: lowSum % 16777216,
+    high: a.high + b.high + floorDiv(middleSum, 16777216),
+    middle: floorMod(middleSum, 16777216),
+    low: floorMod(lowSum, 16777216),
   };
 }
 
@@ -225,7 +225,7 @@ function bitLength(value: number): number {
   let remaining = value;
   let result = 0;
   while (remaining !== 0) {
-    remaining = idiv(remaining, 2);
+    remaining = floorDiv(remaining, 2);
     result += 1;
   }
   return result;
@@ -245,13 +245,13 @@ function roundLimbs(value: Limbs, scale: number, negative: boolean): number {
   let resultScale = scale;
   if (shift >= 2) {
     const truncated = shiftRightJam(value, shift - 2);
-    rounded = truncated.middle * 4194304 + idiv(truncated.low, 4);
-    const remainder = truncated.low % 4;
-    if (remainder > 2 || (remainder === 2 && rounded % 2 !== 0)) rounded += 1;
+    rounded = truncated.middle * 4194304 + floorDiv(truncated.low, 4);
+    const remainder = floorMod(truncated.low, 4);
+    if (remainder > 2 || (remainder === 2 && floorMod(rounded, 2) !== 0)) rounded += 1;
     resultScale += shift;
   } else if (shift === 1) {
-    rounded = value.middle * 8388608 + idiv(value.low, 2);
-    if (value.low % 2 !== 0 && rounded % 2 !== 0) rounded += 1;
+    rounded = value.middle * 8388608 + floorDiv(value.low, 2);
+    if (floorMod(value.low, 2) !== 0 && floorMod(rounded, 2) !== 0) rounded += 1;
     resultScale += 1;
   }
   if (resultScale + bitLength(rounded) > 128) return negative ? -binary32Infinity() : binary32Infinity();
@@ -270,17 +270,17 @@ export function fusedMultiplyAddFloat32(a: number, b: number, c: number): number
   const product = multiplySignificands(left.significand, right.significand);
   // One carry bit above the product and 23 exact zero bits below it.
   let magnitude: Limbs = {
-    high: idiv(product.high, 2),
-    middle: (product.high % 2) * 8388608 + idiv(product.low, 2),
-    low: (product.low % 2) * 8388608,
+    high: floorDiv(product.high, 2),
+    middle: floorMod(product.high, 2) * 8388608 + floorDiv(product.low, 2),
+    low: floorMod(product.low, 2) * 8388608,
   };
   let scale = left.exponent + right.exponent - 23;
   let negative = a < 0 !== b < 0;
   if (c !== 0) {
     const addend = decompose(c);
     let other: Limbs = {
-      high: idiv(addend.significand, 2),
-      middle: (addend.significand % 2) * 8388608,
+      high: floorDiv(addend.significand, 2),
+      middle: floorMod(addend.significand, 2) * 8388608,
       low: 0,
     };
     const otherScale = addend.exponent - 47;
