@@ -8,6 +8,7 @@ import { UsageFailure } from "waygate/scripts/waygate/command";
 import { step } from "waygate/scripts/waygate/timings";
 import * as frostModels from "../../src/game/assets/frostAssetInfo";
 import * as impactModels from "../../src/game/assets/impactAssetInfo";
+import * as shieldModels from "../../src/game/assets/shieldAssetInfo";
 import { STAGE_DECK_MODEL } from "../../src/game/assets/stageAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
@@ -64,6 +65,7 @@ export const GENERATED_MODELS: readonly { readonly list: string; readonly genera
   { list: "stage-assets/imports.txt", generator: "tools/stage/package.ts", models: [STAGE_DECK_MODEL] },
   { list: "impact-assets/imports.txt", generator: "tools/effects/package.ts", models: Object.values(impactModels) },
   { list: "impact-assets/frost-imports.txt", generator: "tools/effects/trap.ts", models: Object.values(frostModels) },
+  { list: "impact-assets/shield-imports.txt", generator: "tools/effects/shield.ts", models: Object.values(shieldModels) },
 ];
 
 /** The summon clip models the compiled script draws; the summon evidence lists their files. */
@@ -125,8 +127,6 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
   const evidence = yield* readJson(SummonEvidence, evidencePath);
   const summonFiles = evidence.records.flatMap((record) => record.clips).map(({ filename }) => filename);
   yield* requireListed(evidencePath, summonFiles, SUMMON_MODELS, "summonClipInfo.ts and the summon clips differ");
-  const impact = join(assets, "impact-assets");
-  const impactLists = yield* Effect.forEach(["shield-imports.txt"], (list) => importLines(join(impact, list)));
   return [
     { entry: ARCHER_MODEL_FILE, source: join(assets, "animation-assets/ArcherFighter.mdx") },
     { entry: RIFLEMAN_MODEL_FILE, source: join(assets, "animation-assets/RiflemanFighter.mdx") },
@@ -134,7 +134,6 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     ...SELECTION_TEXTURES.map((texture) => imported(join(assets, "selection-assets"), `${texture}.tga`)),
     ...["SmashcraftHUD.fdf", "SmashcraftHUD.toc"].map((file) => imported(join(PROJECT, "tools/selection/art"), file)),
     ...generated.flat(),
-    ...impactLists.flat().map((file) => imported(impact, file)),
     ...summonFiles.map((filename) => imported(join(summon, "imports/war3mapImported"), filename)),
   ] satisfies ArchiveEntry[];
 });
