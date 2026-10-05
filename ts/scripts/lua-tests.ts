@@ -4,7 +4,7 @@
 const pattern = process.env.GAME_SOAK === "1" ? "src/**/*.soak.ts" : "src/**/*.tests.ts";
 const modules = [...new Bun.Glob(pattern).scanSync(".")].sort();
 await Bun.write("test/lua/index.ts", `${modules.map((m) => `import "../../${m.replace(/\.ts$/, "")}";`).join("\n")}\n`);
-const compile = Bun.spawnSync(["bun", "--bun", "node_modules/typescript-to-lua/dist/tstl.js", "-p", "tsconfig.lua-tests.json"], { stdout: "inherit", stderr: "inherit" });
+const compile = Bun.spawnSync([process.execPath, "--bun", "node_modules/typescript-to-lua/dist/tstl.js", "-p", "tsconfig.lua-tests.json"], { stdout: "inherit", stderr: "inherit" });
 if (compile.exitCode !== 0) process.exit(compile.exitCode ?? 1);
 const run = Bun.spawnSync([process.env.LUA ?? "lua", "build/lua-tests/tests.lua"], { stdout: "inherit", stderr: "inherit" });
 process.exit(run.exitCode ?? 1);

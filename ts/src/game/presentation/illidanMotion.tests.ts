@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
+import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
 import { Character, GrabAction, LedgeState } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { neutralControls } from "../sim/roster";

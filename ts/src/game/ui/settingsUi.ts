@@ -1,7 +1,7 @@
 // One participant's controls screen. Every client builds all four and tracks
 // whether each is open from synchronized events; only the owner's client draws
 // its own. Escape and captured keys arrive through the shell's key handling.
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { bindPrototype } from "../../platform/rebind";
 import { ACTION_COUNT, type Action } from "../input/actions";
 import { ACTION_LABELS, type KeySlot, encodeBindings, keyFor, keyLabel } from "../input/keyBindings";

@@ -1,5 +1,5 @@
-import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
-import { imod } from "../../sim/intMath";
+import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { imod } from "waygate/src/sim/intMath";
 import { createFighter } from "../sim/fighter";
 import { createRoster, fighterAt } from "../sim/roster";
 import { Phase, advanceClock, allCharactersReady, canChooseComputer, characterFor, characterReady, computerActive, confirmRematch, copyMatchState, cpuSlot, createMatchState, cycleSlotMode, fighterActive, fighterMask, firstHumanSlot, forfeit, hasUnassignedHuman, humanFighterActive, humanPresent, participantLeft, practiceSelected, recallCharacter, remainingSeconds, requestStageSelect, requestStart, resolveStocks, returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setHumanCount, setHumanMask, setParticipants, setStocks, setTimeLimit, unreadyCharacter, updateConnectedHumans } from "./rules";

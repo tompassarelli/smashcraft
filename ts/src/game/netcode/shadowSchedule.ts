@@ -11,7 +11,7 @@ import { Capture } from "./capture";
 import { type FixedDelay, FixedInputSchedule, fixedCaptureTarget } from "./fixedSchedule";
 import { FrameRing } from "./frameRing";
 import { FUTURE_LIMIT, type Receipt } from "./ledger";
-import { at } from "../../runtime/lookup";
+import { at } from "waygate/src/runtime/lookup";
 
 export const DEFAULT_ROLLBACK_WINDOW = 6;
 export const PENDING_CAPACITY = 256;

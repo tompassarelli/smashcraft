@@ -1,4 +1,4 @@
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { type AttackBuffer, clearAttackBuffer, hasPendingAttack, queueAttack, takeAttack } from "../input/attackBuffer";
 import { attackStyleForGrounding } from "../input/combat";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/participants";

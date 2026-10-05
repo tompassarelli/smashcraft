@@ -2,11 +2,11 @@
   "extends": "./tsconfig.map.json",
   "include": [
     "node_modules/waygate/src/natives/warcraft.d.ts",
-    "src/platform/physicsProbeMain.ts"
+    "src/platform/frameCostMain.ts"
   ],
   "exclude": [],
   "tstl": {
-    "luaBundle": "physics-probe.lua",
-    "luaBundleEntry": "src/platform/physicsProbeMain.ts"
+    "luaBundle": "frame-cost.lua",
+    "luaBundleEntry": "src/platform/frameCostMain.ts"
   }
 }

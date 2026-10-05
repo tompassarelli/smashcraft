@@ -3,11 +3,13 @@
 // again, so the reloader and error reporting reload too.
 import { CURRENT_BUILD } from "../game/shell/currentBuild";
 import { replayHistoryPlayback } from "../game/shell/rollbackPlayback";
-import { installDispatch } from "./dispatch";
-import { installHotReload, startHotReload } from "./hotReload";
+import { configureRuntime } from "waygate/src/runtime/config";
+import { installDispatch } from "waygate/src/platform/dispatch";
+import { installHotReload, startHotReload } from "waygate/src/platform/hotReload";
 import { installShell, startShell } from "./shell/shell";
 
 export function install(this: void): void {
+  configureRuntime({ filePrefix: "smashcraft", globalPrefix: "__smashcraft", announcePrefix: "SC_HR", readyPrefix: "SC_HRR" });
   installDispatch();
   installShell();
   installHotReload();

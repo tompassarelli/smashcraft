@@ -1,5 +1,5 @@
 import { ACTION_COUNT, Action } from "./actions";
-import { floorDiv } from "../../sim/intMath";
+import { floorDiv } from "waygate/src/sim/intMath";
 
 export type KeySlot = 0 | 1;
 

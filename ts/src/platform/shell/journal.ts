@@ -14,7 +14,7 @@ import { FUTURE_LIMIT } from "../../game/netcode/ledger";
 import { type JournalIdentity, type MenuPhase, controlFile, failureFile, lifecycleFile, menuFile, quiescentFile, transportReadyFile } from "../../game/shell/journalFiles";
 import { pausedMessage } from "../../game/shell/messages";
 import { CONTROL_ACK_PREFIX, agreedFrame, encodeControlAck, pausing, preparedFrame, receiveControlAck, requestRound } from "../../game/shell/pauseBarrier";
-import { readChunk, writeLines } from "../fileio";
+import { readChunk, writeLines } from "waygate/src/platform/fileio";
 import { pollMailbox, releaseMessage } from "../keyboardJournal";
 import { startInputTrace } from "./diagnostics";
 import { controlsAvailable } from "./inputs";

@@ -1,4 +1,4 @@
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { SHIELD_MAX, type Fighter } from "../sim/fighter";
 
 export interface ShieldPose {

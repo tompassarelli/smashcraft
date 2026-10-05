@@ -1,9 +1,9 @@
 // Retail physics references: NTSC 1.02 recordings and extracted parameters.
-import { floorMod } from "../../sim/intMath";
-import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "../../runtime/testing";
+import { floorMod } from "waygate/src/sim/intMath";
+import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
 import { max } from "../../runtime/wurst";
-import { addFloat32, divideFloat32 } from "../../sim/binary32";
-import { f32 } from "../../sim/f32";
+import { addFloat32, divideFloat32 } from "waygate/src/sim/binary32";
+import { f32 } from "waygate/src/sim/f32";
 import { advanceSpecials } from "./specials";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, ContactKind, DownState, GrabAction, GroundAction, HippogryphKind, ProjectileKind, ShieldBreak, SpecialAction } from "./codes";

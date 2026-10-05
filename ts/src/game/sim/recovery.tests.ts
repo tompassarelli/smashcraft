@@ -1,7 +1,7 @@
 // Floor recovery: recorded tech and missed-tech skids, down damage (jab
 // resets), get-up timing and protection.
-import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "../../runtime/testing";
-import { f32 } from "../../sim/f32";
+import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
+import { f32 } from "waygate/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, DownState, ProjectileKind } from "./codes";
 import {

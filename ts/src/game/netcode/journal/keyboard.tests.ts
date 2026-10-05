@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertTrue, test } from "../../../runtime/testing";
+import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
 import { CARRIER_KEYS, KeyboardMailbox, decodeChunk } from "./keyboard";
 
 /** The carrier keys a helper holds for one chunk, written from the protocol independently of the decoder. */

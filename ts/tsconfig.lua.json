@@ -33,7 +33,7 @@
     "noHeader": true,
     "luaPlugins": [
       {
-        "name": "./plugins/warcraft-numbers.ts"
+        "name": "./node_modules/waygate/plugins/warcraft-numbers.ts"
       }
     ]
   }

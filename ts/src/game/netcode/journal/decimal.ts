@@ -1,4 +1,4 @@
-import { floorDiv } from "../../../sim/intMath";
+import { floorDiv } from "waygate/src/sim/intMath";
 
 const MAX_INT = 2147483647;
 const ZERO = 48;

@@ -1,4 +1,4 @@
-import { assertEquals, test } from "../../runtime/testing";
+import { assertEquals, test } from "waygate/src/runtime/testing";
 import { createFighter } from "../sim/fighter";
 import { Character } from "../sim/codes";
 import { advanceSolo, controls } from "../sim/testWorld";

@@ -1,5 +1,5 @@
 import { max } from "../../runtime/wurst";
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { GrabAction, LedgeState, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";

@@ -1,7 +1,7 @@
 // Actor-owned tuning, in world units per simulation frame. Character identity
 // selects moves and presentation; these records travel with each fighter so
 // reference rigs can substitute retail values without retuning the roster.
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character } from "./codes";
 import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
 

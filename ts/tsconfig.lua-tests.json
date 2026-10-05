@@ -21,7 +21,7 @@
     "src/runtime/*.ts",
     "src/sim/*.ts",
     "src/game/**/*.ts",
-    "src/natives/*.d.ts",
+    "node_modules/waygate/src/natives/warcraft.d.ts",
     "test/lua/*.ts"
   ],
   "tstl": {
@@ -32,7 +32,7 @@
     "noHeader": true,
     "luaPlugins": [
       {
-        "name": "./plugins/warcraft-numbers.ts"
+        "name": "./node_modules/waygate/plugins/warcraft-numbers.ts"
       }
     ]
   },

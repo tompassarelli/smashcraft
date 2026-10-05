@@ -1,5 +1,5 @@
-import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
-import { f32 } from "../../sim/f32";
+import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { f32 } from "waygate/src/sim/f32";
 import { createFrameControls } from "../match/controls";
 import { Phase, createMatchState } from "../match/rules";
 import { createReplayRuntimeState } from "../match/runtime";

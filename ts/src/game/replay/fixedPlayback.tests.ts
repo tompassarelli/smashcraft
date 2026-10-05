@@ -1,5 +1,5 @@
-import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
-import { floorDiv, floorMod } from "../../sim/intMath";
+import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { floorDiv, floorMod } from "waygate/src/sim/intMath";
 import { Action, bit } from "../input/actions";
 import { adaptInput } from "../input/adapter";
 import { attackBuffer } from "../input/attackBuffer";

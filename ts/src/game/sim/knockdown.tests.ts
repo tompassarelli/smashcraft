@@ -1,6 +1,6 @@
 // Tumble, knockdown, getting up and the get-up attack's frame advantage.
-import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "../../runtime/testing";
-import { f32 } from "../../sim/f32";
+import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "waygate/src/runtime/testing";
+import { f32 } from "waygate/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackPhase, AttackStyle, Character, DownState } from "./codes";
 import { DOWN_RECOVERY_INTANGIBLE_FRAMES, attackPhase, canAttack, isIntangible, isTumbling } from "./conditions";

@@ -1,5 +1,5 @@
-import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
-import { imod } from "../../sim/intMath";
+import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { imod } from "waygate/src/sim/intMath";
 import { Action, bit, has, maskOf } from "../input/actions";
 import { type InputRow, type RowFields, copyInput, emptyInput, inputRow, predictInto, sameInput } from "../input/inputRow";
 import { type ParticipantInputs, participantInputs } from "../input/participants";

@@ -11,7 +11,7 @@ import { SPECIAL_ACTION_CAPACITY } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter, type MeleeMotionValue, type Projectile } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import type { DashGrabRules, FighterPhysics, GroundMovementRules, ShieldGeometry, SurfaceRecoveryPhysics } from "../sim/tuning";
-import { at } from "../../runtime/lookup";
+import { at } from "waygate/src/runtime/lookup";
 import { canonicalSlot } from "./canonical";
 import type { ReplayState } from "./snapshot";
 

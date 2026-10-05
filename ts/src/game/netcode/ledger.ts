@@ -5,7 +5,7 @@ import { type InputRow, emptyInput, sameInput } from "../input/inputRow";
 import { PARTICIPANT_CAPACITY, isParticipantMask, participantActive } from "../input/participants";
 import { INPUT_LAST_FRAME, type InputPacket, decodePacket } from "../input/wire";
 import { FrameRing } from "./frameRing";
-import { at } from "../../runtime/lookup";
+import { at } from "waygate/src/runtime/lookup";
 
 export const LEDGER_CAPACITY = 256;
 /** How far past the last consumed frame a row may arrive. */

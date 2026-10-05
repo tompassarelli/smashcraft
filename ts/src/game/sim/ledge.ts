@@ -1,6 +1,6 @@
 // Ledge catches and the options from a hang: jump, climb, drop, roll and attack.
 import { max, min } from "../../runtime/wurst";
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, DownState, LedgeState } from "./codes";
 import { canAttack, isTumbling } from "./conditions";
 import type { Fighter } from "./fighter";

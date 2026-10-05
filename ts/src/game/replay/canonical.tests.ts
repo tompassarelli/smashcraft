@@ -1,4 +1,4 @@
-import { assertEquals, assertTrue, test } from "../../runtime/testing";
+import { assertEquals, assertTrue, test } from "waygate/src/runtime/testing";
 import { attackBuffer, queueAttack } from "../input/attackBuffer";
 import type { FrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput } from "../match/frameInput";

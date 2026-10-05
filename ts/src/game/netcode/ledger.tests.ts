@@ -1,4 +1,4 @@
-import { assertDefined, assertEquals, assertTrue, assertFalse, test } from "../../runtime/testing";
+import { assertDefined, assertEquals, assertTrue, assertFalse, test } from "waygate/src/runtime/testing";
 import { type InputRow, type RowFields, emptyInput, inputRow, predictInto, sameInput } from "../input/inputRow";
 import { INPUT_LAST_FRAME, encodePacket, inputPacket } from "../input/wire";
 import { InputLedger } from "./ledger";

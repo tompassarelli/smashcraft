@@ -17,8 +17,8 @@ import { TAPE_HEADER, decodeTape } from "../../../src/game/replay/tape";
 import { type TapeSession, createTapeSession, performTapeOperation, runTape } from "../../../src/game/replay/tapeRunner";
 import { Character } from "../../../src/game/sim/codes";
 import { type Controls, fighterAt, neutralControls } from "../../../src/game/sim/roster";
-import { type Command, UsageFailure, describeCause } from "../command";
-import { step } from "../timings";
+import { type Command, UsageFailure, describeCause } from "waygate/scripts/waygate/command";
+import { step } from "waygate/scripts/waygate/timings";
 
 const ts = join(import.meta.dir, "../../..");
 const build = join(ts, "build", "tapes");
@@ -310,10 +310,13 @@ async function cachedBuild(output: string, hash: string, buildIt: () => string |
 const tapesLua = join(ts, "build", "lua-tapes", "tapes.lua");
 
 async function compileTypeScriptLua(): Promise<number> {
-  const sources = ["src", "test/tapes", "plugins"].flatMap(dir => [...new Bun.Glob(`${dir}/**/*.ts`).scanSync(ts)]).sort().map(path => join(ts, path));
+  const sources = ["src", "test/tapes"].flatMap(dir => [...new Bun.Glob(`${dir}/**/*.ts`).scanSync(ts)]).sort().map(path => join(ts, path));
   const config = join(ts, "tsconfig.lua-tapes.json");
-  return cachedBuild(tapesLua, await inputsHash([...sources, config], "tstl"), () =>
-    command(["bun", "--bun", join(ts, "node_modules/typescript-to-lua/dist/tstl.js"), "-p", config]).error);
+  const framework = [...new Bun.Glob("src/**/*.{ts,lua}").scanSync(join(ts, "node_modules/waygate"))]
+    .map((file) => join(ts, "node_modules/waygate", file));
+  return cachedBuild(tapesLua, await inputsHash([...sources, ...framework,
+    join(ts, "node_modules/waygate/plugins/warcraft-numbers.ts"), config], "tstl"), () =>
+    command([process.execPath, "--bun", join(ts, "node_modules/typescript-to-lua/dist/tstl.js"), "-p", config]).error);
 }
 
 /** Runs a 32-bit Lua process; the tapes run concurrently, each in its own process. */

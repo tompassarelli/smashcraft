@@ -1,5 +1,5 @@
 // Two simulated Warcraft clients in lockstep, for the desync guard. Every
-// native declared in src/natives/warcraft.d.ts is stubbed per client; the
+// native declared in waygate:src/natives/warcraft.d.ts is stubbed per client; the
 // clients take turns running the same map code, with the shell's global state
 // swapped in and out, and every synchronized event (chat, keys, sync data
 // either client sends) reaches both clients in the same order. Each client
@@ -57,7 +57,7 @@ interface Native {
   readonly returns: string;
 }
 
-const declarations = readFileSync(join(import.meta.dir, "../../src/natives/warcraft.d.ts"), "utf8");
+const declarations = readFileSync(join(import.meta.dir, "../../node_modules/waygate/src/natives/warcraft.d.ts"), "utf8");
 const NATIVES: readonly Native[] = [...declarations.matchAll(/^declare function (\w+)\(.*\): (\w+);$/gm)].map(([, name, returns]) => ({ name: name ?? "", returns: returns ?? "void" }));
 const CONSTANTS: readonly [string, string][] = [...declarations.matchAll(/^declare const (\w+): (\w+);$/gm)].map(([, name, type]) => [name ?? "", type ?? ""]);
 

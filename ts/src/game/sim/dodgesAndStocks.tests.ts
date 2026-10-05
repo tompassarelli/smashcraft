@@ -1,6 +1,6 @@
 // Air dodges, ground dodges and blast zones.
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "../../runtime/testing";
-import { f32 } from "../../sim/f32";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
+import { f32 } from "waygate/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character } from "./codes";
 import {

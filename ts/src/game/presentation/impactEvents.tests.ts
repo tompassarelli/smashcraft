@@ -1,5 +1,5 @@
-import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
-import { f32 } from "../../sim/f32";
+import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character, ContactKind, DownState, GrabAction, SurfaceContact } from "../sim/codes";
 import { queueDamageContact } from "../sim/contacts";
 import { type Fighter, createFighter } from "../sim/fighter";

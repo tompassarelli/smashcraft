@@ -1,4 +1,4 @@
-import { assertEquals, assertGreaterThan, assertFalse, assertTrue, test } from "../../runtime/testing";
+import { assertEquals, assertGreaterThan, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
 import { AttackStyle, Character } from "./codes";
 import { canStartAttackStyle } from "./conditions";
 import { createFighter } from "./fighter";
@@ -8,7 +8,7 @@ import { advanceFreezeTraps } from "./summons";
 import { advanceSolo, controls, testWorld } from "./testWorld";
 import { reset } from "./stocks";
 import { createRoster } from "./roster";
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 
 test("shieldConsumesTrapWithoutFreezingAndHitBreaksIce", () => {
   const owner = createFighter(Character.rifleman, 0.0, 1);

@@ -1,6 +1,6 @@
 import { max, min, toInt } from "../../runtime/wurst";
-import { f32 } from "../../sim/f32";
-import { idiv, imod } from "../../sim/intMath";
+import { f32 } from "waygate/src/sim/f32";
+import { idiv, imod } from "waygate/src/sim/intMath";
 import { type Character, SurfaceContact } from "../sim/codes";
 import { DodgeCue, type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
 

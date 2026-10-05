@@ -3,7 +3,7 @@
 // allocates handles. Particles the engine emits are not replay state.
 import { Character } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { STOCK_MODELS, type WorldOrigin, hideEffect } from "./effects";
 import { projectedProjectile } from "../presentation/projectilePose";
 

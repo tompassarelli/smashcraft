@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, test } from "../../runtime/testing";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, test } from "waygate/src/runtime/testing";
 import { type AttackBuffer, ATTACK_BUFFER_FRAMES, attackBuffer } from "../input/attackBuffer";
 import { type FrameControls, createFrameControls } from "../match/controls";
 import { Phase, createMatchState } from "../match/rules";

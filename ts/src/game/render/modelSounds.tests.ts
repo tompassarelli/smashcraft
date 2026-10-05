@@ -1,5 +1,5 @@
-import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
-import { f32 } from "../../sim/f32";
+import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { f32 } from "waygate/src/sim/f32";
 import type { FighterOriginalClip } from "../assets/fighterOriginalClipInfo";
 import type { ModelSoundCue } from "../assets/modelSoundInfo";
 import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";

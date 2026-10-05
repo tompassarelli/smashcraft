@@ -8,7 +8,7 @@ import { REPLAY_HISTORY_CAPACITY } from "../replay/limits";
 import { Capture } from "./capture";
 import { FrameRing } from "./frameRing";
 import { InputLedger, LEDGER_CAPACITY, type Receipt } from "./ledger";
-import { at } from "../../runtime/lookup";
+import { at } from "waygate/src/runtime/lookup";
 
 /** The input delays a schedule supports. */
 export type FixedDelay = 0 | 1 | 2 | 3 | 5;

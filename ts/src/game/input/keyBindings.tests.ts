@@ -1,4 +1,4 @@
-import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
+import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
 import { Action } from "./actions";
 import { type BindingPreset, type KeyBindings, actionFor, decodeBindings, encodeBindings, keyFor, presetBindings, rebind } from "./keyBindings";
 

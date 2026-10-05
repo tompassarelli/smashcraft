@@ -1,7 +1,7 @@
 // The Warcraft math natives the simulation uses, with the binary32 results the
 // Wurst interpreter defines for them. Written with the language's math library
 // so the same code runs on the host, in test Lua and in the map.
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 
 /** SquareRoot: zero outside its domain, as measured on the 3.0.0 client. */
 export function squareRoot(value: number): number {

@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
+import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
 import { Action, bit } from "./actions";
 import { pulsePending } from "./directionalInput";
 import { presetBindings, rebind } from "./keyBindings";

@@ -32,7 +32,6 @@
   ],
   "exclude": [
     "src/platform/**",
-    "src/natives/**",
     "src/game/ui/**",
     "src/game/render/**",
     "src/parity/lua-entry.ts"

@@ -1,5 +1,5 @@
 import { min, toInt } from "../../runtime/wurst";
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { summonClip } from "./summonClipInfo";
 
 /** A native animation queue as data: the playing clip, its elapsed time and the clip queued after it. */

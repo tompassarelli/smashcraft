@@ -1,8 +1,8 @@
 // Fighter rules: jumps, landings, L-cancels, smash charge, hit regions and
 // attack phases.
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "../../runtime/testing";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
 import { max } from "../../runtime/wurst";
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackPhase, AttackStyle, Character } from "./codes";
 import { attackPhase, canAttack } from "./conditions";

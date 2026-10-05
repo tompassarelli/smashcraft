@@ -1,4 +1,4 @@
-import { assertEquals, test } from "../../runtime/testing";
+import { assertEquals, test } from "waygate/src/runtime/testing";
 import { controlFile, devReceiptFile, lifecycleFile, menuFile } from "./journalFiles";
 
 const identity = { build: "playable-0042", epoch: 2, slot: 1 };

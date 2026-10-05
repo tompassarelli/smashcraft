@@ -1,9 +1,9 @@
 import { TECH_WINDOW_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../physics/techInput";
 // Solid stage surfaces, tumble rebounds, wall and ceiling techs, and the
 // decoded common recovery values.
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "../../runtime/testing";
-import { roundToFloat32 } from "../../sim/binary32";
-import { f32 } from "../../sim/f32";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
+import { roundToFloat32 } from "waygate/src/sim/binary32";
+import { f32 } from "waygate/src/sim/f32";
 import { Character, DownState, SurfaceContact } from "./codes";
 import { WALL_TECH_STARTUP_FRAMES, canAttack, isIntangible } from "./conditions";
 import { DOWN_DAMAGE_RESET_THRESHOLD, DOWN_WAIT_FRAMES } from "./down";

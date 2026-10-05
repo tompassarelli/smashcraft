@@ -5,10 +5,10 @@
 // smashcraft-response-p<slot>-run<run>-page<page>.txt; their lines are the
 // harness's format. Times are native game milliseconds, not host time, and
 // nothing here feeds synchronized state.
-import { f32 } from "../../sim/f32";
-import { floorDiv, floorMod } from "../../sim/intMath";
-import { trampoline } from "../dispatch";
-import { writeLines } from "../fileio";
+import { f32 } from "waygate/src/sim/f32";
+import { floorDiv, floorMod } from "waygate/src/sim/intMath";
+import { trampoline } from "waygate/src/platform/dispatch";
+import { writeLines } from "waygate/src/platform/fileio";
 
 const ROW_LIMIT = 7200;
 const PAGE_ROWS = 150;

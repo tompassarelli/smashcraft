@@ -1,7 +1,7 @@
 // Stage geometry. Stage 0 is one flat deck; stage 1 adds two raised
 // pass-through decks. Deck 0 is always the main deck.
-import { f32 } from "../../sim/f32";
-import { idiv, imod } from "../../sim/intMath";
+import { f32 } from "waygate/src/sim/f32";
+import { idiv, imod } from "waygate/src/sim/intMath";
 import { SurfaceContact } from "./codes";
 
 /** Walkable decks. */

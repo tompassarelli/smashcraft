@@ -8,7 +8,7 @@ import { clearMotionValue, setWorldMotionValue } from "./motion";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt } from "./roster";
 import { clearShieldBreak } from "./shield";
-import { at } from "../../runtime/lookup";
+import { at } from "waygate/src/runtime/lookup";
 import {
   clearDownState,
   clearGrabLinks,

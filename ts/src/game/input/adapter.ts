@@ -1,4 +1,4 @@
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import type { Controls } from "../sim/roster";

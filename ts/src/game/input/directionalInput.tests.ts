@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
+import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
 import { type DirectionalInput, clearDirections, clearPulse, neutralDirections, pulsePending, updateDirections } from "./directionalInput";
 
 function assertDirections(input: Readonly<DirectionalInput>, expected: Readonly<DirectionalInput>): void {

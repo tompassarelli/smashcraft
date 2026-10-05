@@ -2,8 +2,8 @@
 // box and its pause hint, the hand-off of keyboard focus to Warcraft's chat
 // entry, and the receipts the helper polls. Every call here is local UI.
 import { EDITBOX_CAPACITY, type EditboxFailure, EditboxSession, pauseLabel } from "../game/netcode/journal/editbox";
-import { trampoline } from "./dispatch";
-import { readChunk, writeLine } from "./fileio";
+import { trampoline } from "waygate/src/platform/dispatch";
+import { readChunk, writeLine } from "waygate/src/platform/fileio";
 
 /** The dispatch name of Enter in the box, the local player's request to chat; register its handler with on(). */
 export const EDITBOX_ENTER = "journal.editboxEnter";

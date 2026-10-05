@@ -1,6 +1,6 @@
 import { toInt } from "../../runtime/wurst";
-import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
-import { f32 } from "../../sim/f32";
+import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
+import { f32 } from "waygate/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../input/participants";
 import { Phase } from "../match/rules";
 import { resetPoses } from "../match/runtime";

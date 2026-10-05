@@ -6,8 +6,8 @@ import { resolve } from "node:path";
 const project = resolve(import.meta.dir, "..");
 const source = resolve(project, "src/runtime/gameFiles.ts");
 const original = readFileSync(source, "utf8");
-const body = '`smashcraft-hot-manifest-${version}.pld`';
-const signature = "export const manifestFile = (version: number)";
+const body = '`smashcraft-dev-${build}-p${slot}.txt`';
+const signature = "export const devCommandReceiptFile = (build: string, slot: number)";
 const targetMs = 1000;
 let currentSource = original;
 
@@ -44,14 +44,14 @@ function edit(text: string): void {
 
 try {
   if (!original.includes(body) || !original.includes(signature)) {
-    throw new Error("shared manifest function changed; inspect it before benchmarking");
+    throw new Error("shared developer receipt function changed; inspect it before benchmarking");
   }
   for (const cache of ["build/typecheck-host.tsbuildinfo", "build/typecheck-game.tsbuildinfo"]) {
     rmSync(resolve(project, cache), { force: true });
   }
   requireSuccess(check("cold full type-check (reported)"));
 
-  edit(original.replace(body, '`smashcraft-hot-manifest-probe-${version}.pld`'));
+  edit(original.replace(body, '`smashcraft-dev-probe-${build}-p${slot}.txt`'));
   const edited = check("full type-check after shared implementation edit (target ≤1 s)");
   requireSuccess(edited);
   if (edited.elapsedMs > targetMs) {
@@ -59,11 +59,11 @@ try {
     process.exitCode ||= 1;
   }
 
-  edit(currentSource.replace(signature, "export const manifestFile = (version: string)"));
+  edit(currentSource.replace(signature, "export const devCommandReceiptFile = (build: number, slot: number)"));
   const invalid = check("invalid shared signature");
   if (invalid.exitCode === 0
-    || !/scripts\/waygate\/hotReload\.ts\(\d+,\d+\): error TS2345/.test(invalid.stdout)
-    || !/src\/platform\/hotReload\.ts\(\d+,\d+\): error TS2345/.test(invalid.stdout)) {
+    || !/scripts\/waygate\/commands\/fresh\.ts\(\d+,\d+\): error TS2345/.test(invalid.stdout)
+    || !/src\/game\/shell\/journalFiles\.ts\(\d+,\d+\): error TS2345/.test(invalid.stdout)) {
     throw new Error("changed shared signature did not fail at both host and game consumers");
   }
   console.log("changed shared signature rejected by host and game consumers");

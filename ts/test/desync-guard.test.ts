@@ -8,8 +8,9 @@ import { afterAll, expect, test } from "bun:test";
 import { CURRENT_BUILD, INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import type { MapBuild } from "../src/game/shell/build";
 import { replayHistoryPlayback } from "../src/game/shell/rollbackPlayback";
-import { installDispatch } from "../src/platform/dispatch";
-import { installHotReload, startHotReload } from "../src/platform/hotReload";
+import { installDispatch } from "waygate/src/platform/dispatch";
+import { configureRuntime } from "waygate/src/runtime/config";
+import { installHotReload, startHotReload } from "waygate/src/platform/hotReload";
 import { install, start } from "../src/platform/main";
 import { installShell, startShell } from "../src/platform/shell/shell";
 import { Lockstep, installNatives } from "./desync/twoClients";
@@ -28,6 +29,7 @@ interface Entry {
 /** The map entry with another build, as packaging would choose it. */
 function entryFor(build: MapBuild): Entry {
   const reinstall = () => {
+    configureRuntime({ filePrefix: "smashcraft", globalPrefix: "__smashcraft", announcePrefix: "SC_HR", readyPrefix: "SC_HRR" });
     installDispatch();
     installShell();
     installHotReload();

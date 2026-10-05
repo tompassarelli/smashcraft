@@ -1,4 +1,4 @@
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
 import { SUMMON_BEAR, SUMMON_BEAR_ATTACK, SUMMON_BEAR_WALK } from "./summonClipInfo";

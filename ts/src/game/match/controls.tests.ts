@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
+import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
 import { Phase } from "./rules";
 import { createMatchControls, startKeyDown, startKeyUp } from "./controls";
 

@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
+import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
 import { Phase, createMatchState, fighterMask, selectCharacter, setParticipants } from "../match/rules";
 import { Character } from "../sim/codes";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";

@@ -1,4 +1,4 @@
-import { assertEquals, test } from "../../runtime/testing";
+import { assertEquals, test } from "waygate/src/runtime/testing";
 import { AttackStyle } from "../sim/codes";
 import { attackStyleForGrounding, groundDodgeIntent, normalAttackStyle } from "./combat";
 

@@ -1,7 +1,7 @@
 // Powershield: reflect and perfect-shield windows, projectile reflection,
 // and the original capsule-against-shield boundaries.
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "../../runtime/testing";
-import { f32 } from "../../sim/f32";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "waygate/src/runtime/testing";
+import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character, ContactKind, ProjectileKind } from "./codes";
 import { canAttack } from "./conditions";
 import { queueDamageContact } from "./contacts";

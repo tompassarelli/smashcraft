@@ -1,4 +1,4 @@
-import { assertEquals, assertGreaterThan, assertTrue, test } from "../../runtime/testing";
+import { assertEquals, assertGreaterThan, assertTrue, test } from "waygate/src/runtime/testing";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character } from "./codes";
 import { type Fighter, SHIELD_MAX, createFighter } from "./fighter";

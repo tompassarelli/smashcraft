@@ -2,7 +2,7 @@
 // the bottom and a chip that sits on its card until placed on a roster tile.
 // Coordinates are UI frame units (pointer.ts). The state belongs to the local
 // cursor: a placement crosses a player sync event before it changes a fighter.
-import { floorMod } from "../../sim/intMath";
+import { floorMod } from "waygate/src/sim/intMath";
 import { PARTICIPANT_CAPACITY, participantActive } from "../input/participants";
 
 /** Roster tiles left to right; a tile's number is the fighter it chooses. */

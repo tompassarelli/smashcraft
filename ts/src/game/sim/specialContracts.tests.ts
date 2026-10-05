@@ -1,5 +1,5 @@
-import { assertEquals, assertGreaterThan, assertTrue, test } from "../../runtime/testing";
-import { f32 } from "../../sim/f32";
+import { assertEquals, assertGreaterThan, assertTrue, test } from "waygate/src/runtime/testing";
+import { f32 } from "waygate/src/sim/f32";
 import { Character, DownState, HippogryphKind, ProjectileKind, SpecialAction } from "./codes";
 import { createFighter, SHIELD_MAX } from "./fighter";
 import { advanceSpecials } from "./specials";

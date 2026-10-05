@@ -1,6 +1,6 @@
-import { assertEquals, assertGreaterThan, assertTrue, test } from "../../runtime/testing";
+import { assertEquals, assertGreaterThan, assertTrue, test } from "waygate/src/runtime/testing";
 import { max } from "../../runtime/wurst";
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, ProjectileKind } from "./codes";
 import { canAttack } from "./conditions";

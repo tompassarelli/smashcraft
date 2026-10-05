@@ -1,4 +1,4 @@
-import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
+import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
 import { Capture } from "../netcode/capture";
 import { FixedInputSchedule } from "../netcode/fixedSchedule";
 import { Action, bit, has, maskOf } from "./actions";

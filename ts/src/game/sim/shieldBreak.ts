@@ -1,7 +1,7 @@
 // Shield break: launched upward, landing, standing up, then dizzy until the
 // timer, shortened by mashing, runs out.
 import { max } from "../../runtime/wurst";
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { ShieldBreak } from "./codes";
 import type { Fighter } from "./fighter";
 import { applyMeleeGravity, clearMotionValue, landingAlongShift, moveMeleeVerticalVelocity, setWorldMotionValue } from "./motion";

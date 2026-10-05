@@ -1,7 +1,7 @@
 // Attack timing, damage and reach for every action ID. Frame counts are
 // provisional authored values unless a constant names its Melee source.
 import { max, min, toInt } from "../../runtime/wurst";
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character, GrabAction } from "./codes";
 
 export const SMASH_MAX_CHARGE_FRAMES = 60;

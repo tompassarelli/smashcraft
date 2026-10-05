@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
+import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
 import { Character, DownState, GroundAction, ProjectileKind, SPECIAL_ACTION_CAPACITY, ShieldBreak } from "./codes";
 import { PROJECTILE_CAPACITY, createFighter } from "./fighter";
 import { PARTICIPANT_CAPACITY } from "../input/participants";

@@ -5,7 +5,7 @@ import { appendFileSync, copyFileSync, mkdirSync, readFileSync, readdirSync, sta
 import { join } from "node:path";
 import type { Subprocess } from "bun";
 import { Effect } from "effect";
-import { type Client, type DesktopFailure, click, keys, read, typeText, waitFor } from "../warcraft/desktop";
+import { type Client, type DesktopFailure, click, keys, read, typeText, waitFor } from "waygate/scripts/warcraft/desktop";
 import { IntegrityFailure, producerLine, tryIntegrity } from "./evidence";
 import type { GameFile, JourneyRecord, PublicationRecord, RigShape, Stopped } from "./journey";
 import { type Observer, type Pad, continueProcess, inject, monotonicNs, realtimeNs, stopProcess } from "./linux";

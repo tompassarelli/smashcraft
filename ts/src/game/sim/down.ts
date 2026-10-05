@@ -1,8 +1,8 @@
 // Landing, knockdowns, floor techs and getting up.
 import { max, min } from "../../runtime/wurst";
-import { roundToFloat32 } from "../../sim/binary32";
-import { f32 } from "../../sim/f32";
-import { idiv } from "../../sim/intMath";
+import { roundToFloat32 } from "waygate/src/sim/binary32";
+import { f32 } from "waygate/src/sim/f32";
+import { idiv } from "waygate/src/sim/intMath";
 import { Character, DamageLanding, DownState } from "./codes";
 import { isFloorTeching, isTumbling } from "./conditions";
 import { type Fighter } from "./fighter";

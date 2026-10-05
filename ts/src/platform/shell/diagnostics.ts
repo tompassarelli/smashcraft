@@ -9,9 +9,9 @@ import { characterFor, characterReady, computerActive, fighterMask, firstHumanSl
 import { captureReplaySnapshot } from "../../game/replay/snapshot";
 import { stateChecksum } from "../../game/replay/canonical";
 import { fighterAt, isActive, type Controls } from "../../game/sim/roster";
-import { floorMod } from "../../sim/intMath";
+import { floorMod } from "waygate/src/sim/intMath";
 import { INPUT_START_FILE, MELEE_READY_FILE, traceStartLine } from "../../runtime/gameFiles";
-import { writeLines } from "../fileio";
+import { writeLines } from "waygate/src/platform/fileio";
 import { type ShellState, activeRollback, localSlot } from "./state";
 import { views } from "./ui";
 import { beginInputTrace, closeTraceWindow, finishInputTrace, traceInput, traceParticipantWindow, traceSeconds } from "./trace";

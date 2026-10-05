@@ -11,8 +11,8 @@ import {
   resetMatchFrameInput,
   sameMatchFrameInput,
 } from "../match/frameInput";
-import { at } from "../../runtime/lookup";
-import { floorMod } from "../../sim/intMath";
+import { at } from "waygate/src/runtime/lookup";
+import { floorMod } from "waygate/src/sim/intMath";
 import { REPLAY_HISTORY_CAPACITY, REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
 

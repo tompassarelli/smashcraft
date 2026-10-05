@@ -2,7 +2,7 @@
 // action, with the hit each one deals. Lower region indices win overlaps.
 // Window zero means no authored contact; increasing positive windows
 // explicitly permit a later hit of the same target.
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character } from "./codes";
 import { DIAGONAL_UNIT, ORDINARY_HIT_BASE_KNOCKBACK, ORDINARY_HIT_GROWTH_PERCENT } from "./knockback";
 import {

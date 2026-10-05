@@ -5,8 +5,8 @@ import { Effect } from "effect";
 import { runNumericParity } from "../../parity";
 import { captureMatches, parseCaptureArguments, reconcileCapture } from "../../integrity";
 import { IntegrityFailure } from "../../integrity/evidence";
-import { type Command, UsageFailure, describeCause } from "../command";
-import { step } from "../timings";
+import { type Command, UsageFailure, describeCause } from "waygate/scripts/waygate/command";
+import { step } from "waygate/scripts/waygate/timings";
 
 const usage = "parity numeric [RESULT_FILE ...] | parity capture CAPTURE_OPTIONS | parity result CAPTURE_DIR";
 

@@ -11,7 +11,7 @@ import { QUICK_MATCH_COMMAND, applyDevCommand } from "../../game/shell/devSettin
 import { devReceiptFile } from "../../game/shell/journalFiles";
 import { pausedMessage } from "../../game/shell/messages";
 import { captureBinding } from "../../game/ui/bindingSettings";
-import { writeLines } from "../fileio";
+import { writeLines } from "waygate/src/platform/fileio";
 import { confirmedChecksum, startInputTrace, traceParticipant } from "./diagnostics";
 import { probeFrameCostClock } from "./frameCost";
 import { clearAllInputs } from "./inputs";

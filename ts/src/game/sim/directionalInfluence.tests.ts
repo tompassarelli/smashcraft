@@ -1,7 +1,7 @@
 // Smash DI, automatic smash DI, directional influence and launch decay.
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "../../runtime/testing";
-import { roundToFloat32 } from "../../sim/binary32";
-import { f32 } from "../../sim/f32";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
+import { roundToFloat32 } from "waygate/src/sim/binary32";
+import { f32 } from "waygate/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, DownState } from "./codes";
 import { createFighter } from "./fighter";

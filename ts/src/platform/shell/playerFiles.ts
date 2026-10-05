@@ -4,8 +4,8 @@
 // files the Wurst map saved still load.
 import type { BindingLoadResult, BindingPersistence } from "../../game/ui/bindingSettings";
 import { PARTICIPANT_SLOTS } from "../../game/input/participants";
-import { trampoline } from "../dispatch";
-import { readChunks, writeChunks } from "../fileio";
+import { trampoline } from "waygate/src/platform/dispatch";
+import { readChunks, writeChunks } from "waygate/src/platform/fileio";
 
 export const PLAYER_FILE_RECEIVED = "shell.playerFileReceived";
 const MORE_PREFIX = "SC_FL";

@@ -1,4 +1,4 @@
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "../../runtime/testing";
+import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "waygate/src/runtime/testing";
 import { AttackStyle, Character, LedgeState, ProjectileKind, SpecialAction } from "./codes";
 import { DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP, DEMONHUNTER_WING_DURATION, startFighterSpecial, advanceSpecials } from "./specials";
 import { DEMONHUNTER_PARRY_START } from "./hits";

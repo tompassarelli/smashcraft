@@ -1,8 +1,8 @@
 // One corpus evaluated identically on the host (binary64) and in Warcraft's Lua
 // (32-bit integers, binary32 numbers). Inputs are exact binary32 values built
 // from integer steps below 2^31; no bitwise operators.
-import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, subtractFloat32 } from "../sim/binary32";
-import { floorMod } from "../sim/intMath";
+import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
+import { floorMod } from "waygate/src/sim/intMath";
 import { meleeAtan2, meleeCos, meleeSin } from "../sim/meleeScalarMath";
 
 function powerOfTwo(exponent: number): number {

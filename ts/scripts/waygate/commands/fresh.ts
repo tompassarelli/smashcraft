@@ -7,13 +7,13 @@ import { join } from "node:path";
 import { Clock, Console, Effect, Layer } from "effect";
 import { QUICK_MATCH_COMMAND } from "../../../src/game/shell/devSettings";
 import { devCommandReceiptFile, MELEE_READY_FILE } from "../../../src/runtime/gameFiles";
-import { DevCommandReceipt, MeleeReady, type MalformedGameFile } from "../boundary";
-import { type Client, Clients, type DesktopFailure, waitFor, waitForText } from "../clients";
-import { type Command, UsageFailure } from "../command";
-import { GameFiles, dataDirectory, readGameFile } from "../gameFiles";
-import { MapBuild } from "../mapBuild";
-import { SourceErrors } from "../sourceErrors";
-import { step } from "../timings";
+import { DevCommandReceipt, MeleeReady } from "../boundary";
+import type { MalformedGameFile } from "waygate/scripts/waygate/boundary";
+import { type Client, Clients, type DesktopFailure, waitFor, waitForText } from "waygate/scripts/waygate/clients";
+import { type Command, UsageFailure } from "waygate/scripts/waygate/command";
+import { GameFiles, dataDirectory, readGameFile } from "waygate/scripts/waygate/gameFiles";
+import { MapBuild } from "waygate/scripts/waygate/mapBuild";
+import { step } from "waygate/scripts/waygate/timings";
 
 // Regions of the 2560x1440 frame where each screen's identifying label appears.
 export const GAME_MENU = { x: 1100, y: 180, width: 420, height: 50 };
@@ -38,10 +38,12 @@ export const JOIN_NAME = { x: 300, y: 1205 };
 export const JOIN = { x: 1295, y: 1213 };
 export const START = { x: 2195, y: 1127 };
 
-const commandServices = MapBuild.layer.pipe(
-  Layer.provideMerge(SourceErrors.layer),
-  Layer.provideMerge(GameFiles.layer),
-  Layer.provideMerge(Clients.layer()),
+import { clientState, mapBuildLayer, gameFilesLayer, sourceErrorsLayer } from "../project";
+
+const commandServices = mapBuildLayer.pipe(
+  Layer.provideMerge(sourceErrorsLayer),
+  Layer.provideMerge(gameFilesLayer),
+  Layer.provideMerge(Clients.layer(clientState)),
 );
 
 export const fresh: Command = (args) => Effect.gen(function*() {

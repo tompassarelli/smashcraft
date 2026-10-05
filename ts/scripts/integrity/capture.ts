@@ -6,7 +6,8 @@ import { dirname, join } from "node:path";
 import { parseArgs } from "node:util";
 import type { Subprocess } from "bun";
 import { Effect, Exit, Option } from "effect";
-import { type Client, type DesktopFailure, focus, loadClients, windowPid } from "../warcraft/desktop";
+import { clientState } from "../waygate/project";
+import { type Client, type DesktopFailure, focus, loadClients, windowPid } from "waygate/scripts/warcraft/desktop";
 import { IntegrityFailure, tryIntegrity, tryIntegrityPromise } from "./evidence";
 import { type JourneyOptions, type JourneyRecord, Rig, runJourney } from "./journey";
 import { type Observer, type Pad, observeDevice, openPad, realtimeNs } from "./linux";
@@ -125,7 +126,7 @@ const startHelper = (command: readonly string[], env: Record<string, string | un
 export const captureMatches = (options: CaptureOptions) =>
   Effect.gen(function*() {
     const { build, out } = options;
-    const loaded = yield* loadClients(options.clients).pipe(Effect.mapError(fromDesktop));
+    const loaded = yield* loadClients(options.clients ?? clientState).pipe(Effect.mapError(fromDesktop));
     if (loaded.length !== 2) return yield* new IntegrityFailure({ operation: "load clients", path: options.clients ?? "default clients file", cause: `${loaded.length} clients, need 2` });
     const clients = [loaded[0], loaded[1]!] as const;
     const [appA, appB] = clients.map((client) => options.appIds.get(client.name));

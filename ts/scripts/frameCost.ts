@@ -1,55 +1,12 @@
-// Private native benchmark assembly and readback. The Lua below is the irreducible
-// Warcraft/OS boundary: Wurst imports bare natives and both executors share os.clock.
-import { join, resolve } from "node:path";
-import { Effect } from "effect";
+// Read recorded paired native benchmark results, including historical Wurst baselines.
+import { join } from "node:path";
 import { canonicalChecksum } from "../src/game/replay/canonical";
-import { mapCompiler, report } from "./compiler";
-import { verifyToolchain } from "./waygate/mapBuild";
-import { composeScript, loadBundle } from "./mapScript";
 
-const project = resolve(import.meta.dir, "../..");
 const [command, directory, runId] = process.argv.slice(2);
-if (directory === undefined) throw new Error("usage: bun smashcraft:ts/scripts/frameCost.ts compose PRIVATE_BUILD RUN_ID | read CUSTOM_MAP_DATA RUN_ID");
+if (directory === undefined) throw new Error("usage: bun smashcraft:ts/scripts/frameCost.ts read CUSTOM_MAP_DATA RUN_ID");
 if (runId === undefined || !/^[a-z0-9][a-z0-9-]*$/.test(runId)) throw new Error("supply a distinct lowercase diagnostic run ID");
 
-if (command === "compose") {
-  await Effect.runPromise(verifyToolchain(join(project, "typescript-toolchain.lock"), join(project, "ts")));
-  const config = join(directory, "tsconfig.json");
-  await Bun.write(config, JSON.stringify({
-    extends: join(project, "ts/tsconfig.map.json"),
-    compilerOptions: { outDir: directory, rootDir: join(project, "ts/src"),
-      typeRoots: [join(project, "ts/node_modules"), join(project, "ts/node_modules/@types")] },
-    include: [join(project, "ts/src/platform/frameCostMain.ts"), join(project, "ts/src/natives/*.d.ts")],
-    tstl: { luaBundle: "benchmark.lua", luaBundleEntry: join(project, "ts/src/platform/frameCostMain.ts"),
-      luaPlugins: [{ name: join(project, "ts/plugins/warcraft-numbers.ts") }] },
-  }));
-  const diagnostics = mapCompiler(config)();
-  if (diagnostics.length > 0) throw new Error(report(diagnostics));
-  const base = await Bun.file(join(directory, "base.lua")).text();
-  const bridge = `
-function smashcraftFrameCostClock()
-    return os.clock()
-end
-function smashcraftRunTypeScriptFrameCost()
-    smashcraftTs.run()
-end
-function smashcraftFrameCostEmit(language, frames, total, mean, initial, final, state)
-    PreloadGenClear()
-    PreloadGenStart()
-    Preload("frames=" .. I2S(frames))
-    Preload("total_seconds=" .. R2SW(total, 16, 9))
-    Preload("mean_seconds=" .. R2SW(mean, 16, 9))
-    Preload("initial_checksum=" .. initial)
-    Preload("final_checksum=" .. final)
-    for offset = 1, #state, 200 do
-        Preload("state=" .. string.sub(state, offset, offset + 199))
-    end
-    PreloadGenEnd("smashcraft-frame-cost-${runId}-p" .. I2S(GetPlayerId(GetLocalPlayer())) .. "-" .. language .. ".txt")
-    DisplayTextToPlayer(GetLocalPlayer(), 0, 0, "Benchmark " .. language .. ": " .. I2S(frames) .. " frames, " .. R2SW(total, 12, 6) .. " seconds")
-end
-`;
-  await Bun.write(join(directory, "war3map.lua"), composeScript(base + bridge, loadBundle(join(directory, "benchmark.lua"))));
-} else if (command === "read") {
+if (command === "read") {
   const records = await Promise.all(["wurst", "typescript"].map(async language => {
     const path = join(directory, `smashcraft-frame-cost-${runId}-p0-${language}.txt`);
     const file = await Bun.file(path).text();
@@ -80,4 +37,4 @@ end
     console.error(`first final state difference: ${left[index]} / ${right[index]}`);
   }
   if (!equal || ratio > 1) process.exitCode = 1;
-} else throw new Error("expected compose or read");
+} else throw new Error("expected read");

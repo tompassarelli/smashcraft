@@ -1,4 +1,4 @@
-import { floorMod } from "../../sim/intMath";
+import { floorMod } from "waygate/src/sim/intMath";
 import { attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { type FrameControls, createFrameControls } from "../match/controls";
 import { type MatchFrameInput, captureFrame, createMatchFrameInput, executeMatchFrame } from "../match/frameInput";
@@ -8,8 +8,6 @@ import { createFighter } from "../sim/fighter";
 import { createRoster } from "../sim/roster";
 import { canonicalState, stateChecksum } from "./canonical";
 import { copyReplayState, createReplaySnapshot } from "./snapshot";
-
-declare function smashcraftFrameCostClock(): number;
 
 const FRAME_COUNT = 4096;
 
@@ -23,7 +21,7 @@ export interface FrameCostBenchmarkResult {
 }
 
 /** Runs the recorded-tape workload through the production TypeScript frame executor. */
-export function runFrameCostBenchmark(): FrameCostBenchmarkResult | undefined {
+export function runFrameCostBenchmark(clock: () => number): FrameCostBenchmarkResult | undefined {
   const match = createMatchState();
   match.phase = Phase.match;
   match.timeLimitMinutes = 0;
@@ -74,12 +72,12 @@ export function runFrameCostBenchmark(): FrameCostBenchmarkResult | undefined {
     rows.push(row);
   }
 
-  const start = smashcraftFrameCostClock();
+  const start = clock();
   for (let index = 0; index < FRAME_COUNT; index++) {
     const row = rows[index];
     if (row === undefined || !executeMatchFrame(row, live.match, live.world, live.controls, live.runtime, index + 1)) return undefined;
   }
-  const totalSeconds = smashcraftFrameCostClock() - start;
+  const totalSeconds = clock() - start;
   copyReplayState(snapshot, live);
   return { frames: FRAME_COUNT, totalSeconds, meanSecondsPerFrame: totalSeconds / FRAME_COUNT,
     initialChecksum, finalChecksum: stateChecksum(snapshot), finalState: canonicalState(snapshot) };

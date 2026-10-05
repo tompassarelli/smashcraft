@@ -21,14 +21,14 @@
   "include": [
     "src/sim/**/*.ts",
     "src/runtime/*.ts",
-    "src/natives/*.d.ts",
+    "node_modules/waygate/src/natives/warcraft.d.ts",
     "src/platform/*.ts"
   ],
   "exclude": [
     "src/**/*.test.ts",
     "src/**/*.tests.ts",
-    "src/runtime/testing.ts",
-    "src/platform/physicsProbeMain.ts"
+    "src/platform/physicsProbeMain.ts",
+    "src/platform/frameCostMain.ts"
   ],
   "tstl": {
     "luaTarget": "5.3",
@@ -38,7 +38,7 @@
     "noHeader": true,
     "luaPlugins": [
       {
-        "name": "./plugins/warcraft-numbers.ts"
+        "name": "./node_modules/waygate/plugins/warcraft-numbers.ts"
       }
     ]
   }

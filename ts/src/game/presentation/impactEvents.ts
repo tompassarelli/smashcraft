@@ -1,5 +1,5 @@
-import { f32 } from "../../sim/f32";
-import { imod } from "../../sim/intMath";
+import { f32 } from "waygate/src/sim/f32";
+import { imod } from "waygate/src/sim/intMath";
 import { type Character, DownState, LedgeState, ShieldBreak, SurfaceContact } from "../sim/codes";
 import { isFloorTeching, isGroundDodging, isTumbling } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";

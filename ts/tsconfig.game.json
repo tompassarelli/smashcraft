@@ -19,7 +19,7 @@
     ]
   },
   "include": [
-    "src/natives/*.d.ts",
+    "node_modules/waygate/src/natives/warcraft.d.ts",
     "src/runtime/*.ts",
     "src/sim/*.ts",
     "src/game/**/*.ts",

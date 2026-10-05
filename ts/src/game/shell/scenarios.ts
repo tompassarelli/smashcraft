@@ -1,6 +1,6 @@
 // Developer scenarios: a match that starts from a staged position, for native
 // probes of one mechanic. The probe scripts select one at build time.
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { type AttackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../input/participants";
 import type { FrameControls } from "../match/controls";

@@ -3,7 +3,7 @@
 // presentation, persistent visuals follow the speculative match and event
 // effects, audio, results and HUD follow the confirmed one.
 import { STAGE_DECK_MODEL } from "../../game/assets/stageAssetInfo";
-import { f32 } from "../../sim/f32";
+import { f32 } from "waygate/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
 import { Phase, remainingSeconds } from "../../game/match/rules";
 import type { ReplayRuntimeState } from "../../game/match/runtime";

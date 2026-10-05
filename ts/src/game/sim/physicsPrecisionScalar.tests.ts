@@ -1,5 +1,5 @@
-import { assertEquals, test } from "../../runtime/testing";
-import { f32 } from "../../sim/f32";
+import { assertEquals, test } from "waygate/src/runtime/testing";
+import { f32 } from "waygate/src/sim/f32";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { directionalInfluenceVector, damageLevelForKnockback, fixedHitKnockback, hitContextKnockback, ordinaryHitKnockback, ordinaryHitstunFrames, victimHitlagFrames } from "./knockback";
 import { analogShieldStrength, capsuleCircleIntersects, shieldContactDamage, shieldContactPushback, shieldContactPushbackMelee, shieldDrain, shieldPushback, shieldSizeMultiplier, shieldstunDuration } from "./shield";

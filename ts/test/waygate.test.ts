@@ -1,18 +1,14 @@
-import { readFileSync, mkdtempSync, utimesSync, writeFileSync, mkdirSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Cause, Clock, Effect, Exit, Fiber, Layer } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, test } from "bun:test";
 import {
-  Acknowledgement,
   DevCommandReceipt,
-  ErrorReport,
   InputTrace,
   InputTraceStart,
   MeleeReady,
 } from "../scripts/waygate/boundary";
-import { validateDataDirectories } from "../scripts/waygate/commands/hot";
 import {
   BACK,
   CREATE,
@@ -31,19 +27,14 @@ import {
   freshMatch,
   startQuickMatch,
 } from "../scripts/waygate/commands/fresh";
-import { Clients, type Client } from "../scripts/waygate/clients";
-import { dataDirectory, GameFiles, type StoredFile } from "../scripts/waygate/gameFiles";
-import { HotReload } from "../scripts/waygate/hotReload";
-import { MapBuild, type CompiledBundle } from "../scripts/waygate/mapBuild";
-import { freshBundleAge } from "../scripts/waygate/mapBuild";
+import { Clients, type Client } from "waygate/scripts/waygate/clients";
+import { dataDirectory, GameFiles, type StoredFile } from "waygate/scripts/waygate/gameFiles";
+import { HotReload } from "waygate/scripts/waygate/hotReload";
+import { MapBuild, type CompiledBundle } from "waygate/scripts/waygate/mapBuild";
 
 const fixture = (name: string) => readFileSync(join(import.meta.dir, "fixtures/waygate", name), "utf8");
 
 test("each game-written file kind decodes its native Preload fixture", async () => {
-  expect(await Effect.runPromise(Acknowledgement.decode("ack.txt", fixture("acknowledgement.pld"))))
-    .toEqual({ version: 42, elapsed: 621.2031 });
-  expect(await Effect.runPromise(ErrorReport.decode("error.txt", fixture("error-report.pld"))))
-    .toEqual({ count: 3, handler: "OnTrigger", lines: ["attempt to call nil value", "smashcraft-hot-101-24:42: in function 'OnTrigger'"] });
   expect(await Effect.runPromise(MeleeReady.decode("ready.txt", fixture("melee-ready.pld"))))
     .toEqual({ build: "ts-shell-r1", input: "input-v4", presentation: "pose-v6", scenario: "default", bindings: "standard", humans: 2, fighters: 2, slotBindings: ["BINDINGS0 HUMAN", "BINDINGS1 HUMAN"] });
   expect(await Effect.runPromise(DevCommandReceipt.decode("dev.txt", fixture("dev-command-receipt.pld"))))
@@ -56,8 +47,6 @@ test("each game-written file kind decodes its native Preload fixture", async () 
 
 test("malformed fixtures report their file and typed field", async () => {
   const cases = [
-    ["ack-malformed.txt", Acknowledgement, "acknowledgement-malformed.pld", "version"],
-    ["error-malformed.txt", ErrorReport, "error-report-malformed.pld", "count"],
     ["ready-malformed.txt", MeleeReady, "melee-ready-malformed.pld", "humans"],
     ["dev-malformed.txt", DevCommandReceipt, "dev-command-receipt-malformed.pld", "receipt"],
     ["trace-start-malformed.txt", InputTraceStart, "input-trace-start-malformed.pld", "build"],
@@ -99,7 +88,7 @@ test("hot reload publishes payloads before manifests and waits for each fake cli
   const bundle = { text: "bundle", bytes: new TextEncoder().encode("bundle"), checksum: "6:abc" } satisfies CompiledBundle;
   const mapBuild = MapBuild.of({ compile: Effect.succeed(bundle), build: () => Effect.void, rebuild: () => Effect.void });
   const dependencies = Layer.merge(Layer.succeed(GameFiles, files), Layer.succeed(MapBuild, mapBuild));
-  const hotLayer = HotReload.layer(directories).pipe(Layer.provide(dependencies));
+  const hotLayer = HotReload.layer(directories, "smashcraft").pipe(Layer.provide(dependencies));
   const program = Effect.gen(function*() {
     const hot = yield* HotReload;
     return yield* hot.publish;
@@ -220,28 +209,4 @@ test("fresh-match flow drives two fake clients and waits on the Effect clock for
   expect(clicks).toContain(`a:${START.x},${START.y}`);
   expect(messages.at(-1)).toBe("-dev quick");
   expect(chatSubmissions).toBe(2);
-});
-
-test("hot reload requires distinct non-empty client data directories", async () => {
-  expect(await Effect.runPromise(validateDataDirectories(["/client/data"]))).toEqual(["/client/data"]);
-  expect(Exit.isFailure(await Effect.runPromiseExit(validateDataDirectories([])))).toBe(true);
-  expect(Exit.isFailure(await Effect.runPromiseExit(validateDataDirectories([""])))).toBe(true);
-  expect(Exit.isFailure(await Effect.runPromiseExit(validateDataDirectories(["/client/data", "/client/data"])))).toBe(true);
-});
-
-test("map rebuild reuses the bundle only while it is newer than every compile input", () => {
-  const root = mkdtempSync(join(tmpdir(), "smashcraft-fresh-"));
-  const src = join(root, "src");
-  mkdirSync(join(src, "game"), { recursive: true });
-  const source = join(src, "game", "a.ts");
-  const config = join(root, "tsconfig.map.json");
-  const bundle = join(root, "map.lua");
-  for (const file of [source, config, bundle, `${bundle}.map`]) writeFileSync(file, "");
-  const at = (file: string, seconds: number) => utimesSync(file, seconds, seconds);
-  at(source, 100);
-  at(config, 100);
-  at(bundle, 200);
-  expect(freshBundleAge(bundle, [src, config], 203_000)).toBe(3);
-  at(source, 250);
-  expect(freshBundleAge(bundle, [src, config], 260_000)).toBeUndefined();
 });

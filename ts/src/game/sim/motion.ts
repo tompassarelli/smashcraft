@@ -2,8 +2,8 @@
 // original units and publish rounded world values; air drift, launch decay and
 // platform landings use the same arithmetic as the retail engine.
 import { max, min } from "../../runtime/wurst";
-import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, roundToFloat32, subtractFloat32 } from "../../sim/binary32";
-import { f32 } from "../../sim/f32";
+import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
+import { f32 } from "waygate/src/sim/f32";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { Character } from "./codes";
 import type { Fighter, MeleeMotionValue } from "./fighter";

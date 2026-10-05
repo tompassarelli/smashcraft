@@ -1,7 +1,7 @@
 // The in-match HUD: a damage plate per fighter and the match clock. Every
 // client creates the same frames; only what they show varies.
-import { f32 } from "../../sim/f32";
-import { idiv, imod } from "../../sim/intMath";
+import { f32 } from "waygate/src/sim/f32";
+import { idiv, imod } from "waygate/src/sim/intMath";
 import { Character } from "../sim/codes";
 import { MENU_FONT, createBackdrop, createText, gameUi, placeTopLeft } from "./frames";
 
