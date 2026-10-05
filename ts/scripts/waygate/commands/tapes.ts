@@ -19,6 +19,7 @@ import { Character } from "../../../src/game/sim/codes";
 import { type Controls, fighterAt, neutralControls } from "../../../src/game/sim/roster";
 import { type Command, UsageFailure, describeCause } from "waygate/scripts/waygate/command";
 import { step } from "waygate/scripts/waygate/timings";
+import { captureProcess } from "waygate/scripts/waygate/mapBuild";
 
 const ts = join(import.meta.dir, "../../..");
 const build = join(ts, "build", "tapes");
@@ -319,14 +320,15 @@ async function compileTypeScriptLua(): Promise<number> {
     command([process.execPath, "--bun", join(ts, "node_modules/typescript-to-lua/dist/tstl.js"), "-p", config]).error);
 }
 
-/** Runs a 32-bit Lua process; the tapes run concurrently, each in its own process. */
-async function runLua(argv: string[], env: Record<string, string> = {}): Promise<Run> {
-  const child = Bun.spawn([lua, ...argv], { env: { ...process.env, ...env }, stdout: "pipe", stderr: "pipe" });
-  const [output, stderr, exitCode] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
-  return { records: recordsOf(output), error: exitCode === 0 ? undefined : stderr.trim() || `exit ${exitCode}` };
-}
-
-const runInLua = (file: string) => runLua([tapesLua], { TAPE_FILE: file });
+/** Two replay children bound pipe buffers while Bun replays on this thread. */
+export const replayInLua = (files: readonly string[], executable = lua) =>
+  Effect.forEach(files, (file) =>
+    captureProcess("replay in 32-bit Lua", file, [executable, tapesLua], { env: { ...process.env, TAPE_FILE: file } }).pipe(
+      Effect.map(({ stdout, stderr, exitCode }): Run => ({
+        records: recordsOf(stdout), error: exitCode === 0 ? undefined : stderr.trim() || `exit ${exitCode}`,
+      })),
+      Effect.mapError((cause) => new TapesFailure({ problem: describeCause(cause) })),
+    ), { concurrency: 2 });
 
 // ---------------------------------------------------------------- comparison
 
@@ -387,9 +389,9 @@ export const tapes: Command = (args) => Effect.gen(function*() {
   yield* attempt("compile TypeScript Lua", compileTypeScriptLua).pipe(step("compile TypeScript Lua"));
   // Lua processes start before the in-process Bun runs occupy this thread.
   const replays = yield* Effect.all({
-    "ts-lua32": attempt("replay in 32-bit Lua", () => Promise.all(tapes.map(({ file }) => runInLua(file)))).pipe(step("replay in ts-lua32")),
+    "ts-lua32": replayInLua(tapes.map(({ file }) => file)).pipe(step("replay in ts-lua32")),
     "bun": attempt("replay in Bun", () => tapes.map(({ text }) => runInBun(text))).pipe(step("replay in bun")),
-  }, { concurrency: "unbounded" });
+  }, { concurrency: 2 });
   const runs = new Map(tapes.map(({ name }, index): [string, Record<RuntimeName, Run>] => {
     const byRuntime = (runtime: RuntimeName): Run => replays[runtime][index] ?? { records: [], error: "no run" };
     return [name, { bun: byRuntime("bun"), "ts-lua32": byRuntime("ts-lua32") }];
