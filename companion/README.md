@@ -141,12 +141,42 @@ behavior; a hung display server is not a bounded-release guarantee.
 
 Use `--check-focus` instead of `--emit --watch-seconds N` with those target
 arguments to perform a read-only eligibility check without initializing enigo.
-Other compositor/session combinations remain unverified. Windows/macOS use
-the common acquisition/mapping and enigo abstraction but **refuse `--emit`**
-until their native foreground identity adapters exist. No native Windows/macOS
-build or runtime acceptance is claimed. No GameCube adapter or Steam Deck has
-been physically tested; SDL handles those protocols without a custom decoder.
-Continuous analog delivery into Warcraft, Tauri and packaging remain separate.
+Other compositor/session combinations remain unverified. No GameCube adapter
+or Steam Deck has been physically tested; SDL handles those protocols without a
+custom decoder. Continuous analog delivery into Warcraft, Tauri and packaging
+remain separate.
+
+## Windows and macOS output
+
+Each OS has one foreground adapter behind the `Foreground` trait in
+`smashcraft:companion/src/focus.rs`; the mapping, rearm rules and enigo output
+are shared. `--emit --watch-seconds N` needs no target arguments there:
+
+- **Windows:** the foreground window's process image must be `Warcraft III.exe`
+  (`GetForegroundWindow`, `QueryFullProcessImageNameW`). Keys go through
+  `SendInput` to that foreground window. A game running elevated cannot receive
+  them and is never eligible.
+- **macOS:** the frontmost application's executable must be `Warcraft III`
+  (`NSWorkspace`). Each check drains the main run loop, which is where macOS
+  publishes activation changes. Keys are posted to the HID event stream, which
+  needs the Accessibility permission for the app that starts the helper; enigo
+  prompts on first use.
+
+`--pid PID` optionally pins one game process. `--check-focus` reports the
+eligibility without opening keyboard output. The Linux-only target arguments are
+rejected. The same foreground/submission race as on Linux applies. The journal
+binary (`wc3-journal`) remains Linux-only; on Windows and macOS the map receives
+the controller as ordinary keyboard keys with its standard QWERTY bindings.
+
+`cargo test --locked --features e2e --test e2e -- --nocapture` runs the real
+helper in a Windows or macOS desktop session against an SDL virtual gamepad
+(`--virtual-pad`, driven by stdin) and two `wc3-standin` windows, one copied to
+the Warcraft III executable name. It checks the requested layout, the six
+ordered jump overlaps and the trigger overlap, that no key reaches either
+window while the other one is focused, that focus loss and disconnect release
+held keys in the operating system's key state, and that a control held through
+refocus must return to neutral. `smashcraft:.github/workflows/companion.yml`
+runs it on GitHub's `windows-latest` and `macos-latest` runners.
 
 ## Observed evidence
 
