@@ -7,6 +7,21 @@ import MeleeScalarMath
 import MeleeContactGeometry
 import TechInput
 
+// Per-call decision observations consumed by MatchStep's native response probe.
+// They never feed simulation or participate in snapshots.
+public int observedLegalActions = 0
+public int observedStartedActions = 0
+
+public function resetObservedActions()
+    observedLegalActions = 0
+    observedStartedActions = 0
+
+public function observeActionDecision(int mask)
+    observedLegalActions = BlzBitOr(observedLegalActions, mask)
+
+public function observeActionStart(int mask)
+    observedStartedActions = BlzBitOr(observedStartedActions, mask)
+
 public constant real WORLD_UNITS_PER_MELEE_UNIT = 6
 
 // Original-unit accumulation survives the rounded world-coordinate projection.
@@ -3244,6 +3259,7 @@ public function startFighterSpecial(FighterState owner, int stage, InputSnapshot
 	let requested = requestedSpecial(owner, input)
 	if not specialCanStart(owner, requested)
 		return false
+	observeActionDecision(64)
 	if not owner.grounded and input.specialX == 0 and input.specialZ == 0 and owner.lastAerialTapDirection != 0
 		owner.facing = owner.lastAerialTapDirection
 	let moveX = specialDirection(input, owner.facing)
@@ -3543,6 +3559,7 @@ public function simulationJump(FighterState f, int horizontal)
 		return
 	if f.out or f.specialFall or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or (f.shieldReleaseLag > 0 and not f.grounded) or f.landingLag > 0 or f.airDodging or isGroundDodging(f) or f.cooldown > 0 or f.jumpSquat > 0 or f.jumps <= 0
 		return
+	observeActionDecision(16)
 	f.surfaceRecoveryState = SURFACE_NONE
 	f.surfaceRecoveryFrame = 0
 	f.fastFalling = false
@@ -3563,6 +3580,7 @@ public function simulationJump(FighterState f, int horizontal)
 		f.jumpIsDouble = true
 		clearDownState(f)
 	f.jumps--
+	observeActionStart(16)
 
 public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	if f.surfaceRecoveryState == SURFACE_TECH_CEILING
@@ -3575,6 +3593,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 		return
 	if f.out or f.specialFall or f.shieldBreakState != SHIELD_BREAK_NONE or (f.downState != DOWN_NONE and not isTumbling(f)) or f.grounded or f.hitlag > 0 or f.hitstun > 0 or f.shieldStun > 0 or f.landingLag > 0 or f.cooldown > 0 or f.airDodging or f.airDodgeTime > 0
 		return
+	observeActionDecision(768)
 	f.fastFalling = false
 	let dx = horizontal == 0 ? 0 : (horizontal > 0 ? 1 : -1)
 	let dz = vertical == 0 ? 0 : (vertical > 0 ? 1 : -1)
@@ -3590,6 +3609,7 @@ public function simulationAirDodge(FighterState f, int horizontal, int vertical)
 	f.knockbackZ = 0
 	f.airDodgeTime = AIR_DODGE_DECAY_FRAMES
 	f.airDodging = true
+	observeActionStart(768)
 	f.crouching = false
 	f.airDodgeFrame = 0
 	f.grounded = false
@@ -4030,6 +4050,8 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 	f.shieldReleaseLag = max(0, f.shieldReleaseLag - 1)
 	let shieldCanStart = (input.shield or input.shieldPressed) and (f.shield or f.shieldEnergy > 0) and f.downState == DOWN_NONE and f.hitstun <= 0 and f.grounded and not isGroundDodging(f)
 		and f.shieldStun <= 0 and f.landingLag <= 0 and f.shieldReleaseLag <= 0 and f.cooldown <= 0 and f.jumpSquat <= 0
+	if shieldCanStart
+		observeActionDecision(768)
 	var wantsShield = forcedShield
 	if not forcedShield
 		if f.shield and not input.shield and f.shieldHeldFrames < SHIELD_MIN_HOLD_FRAMES
@@ -4052,6 +4074,8 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 	else if not wantsShield and f.shieldReleaseLag <= 0
 		f.shieldPerfectActionFrames = 0
 	f.shield = wantsShield
+	if shieldCanStart and f.shield
+		observeActionStart(768)
 	if wantsShield and input.shieldPressed and f.shieldTriggerAge < SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES
 		and f.shieldHeldFrames <= SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES and input.shieldStrength >= 1 and not forcedShield
 		f.shieldReflectFrames = SHIELD_REFLECTOR_ACTIVE_FRAMES
@@ -4073,6 +4097,9 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 	if not canSteer or wantsShield or not f.grounded
 		clearDash(f)
 	if canSteer
+		if not wantsShield
+			observeActionDecision(16399)
+			observeActionStart(16399)
 		if wantsShield
 			direction = 0
 		if f.grounded

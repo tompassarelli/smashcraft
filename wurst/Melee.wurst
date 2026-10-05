@@ -778,6 +778,7 @@ function serviceJournalInput()
 				return
 			if RESPONSE_SERVICE_PROBE and captured == SHADOW_CAPTURED
 				responseProbePoll(shadowPending.heldMask(), shadowPending.pressedMask(), shadowPending.releasedMask(), frame + rowIndex)
+				responseProbeInput("capture", shadowInputEpoch, GetPlayerId(GetLocalPlayer()), frame + rowIndex, shadowPending.heldMask(), shadowPending.pressedMask(), shadowPending.releasedMask(), shadowSchedule.speculativeFrame())
 			if inputTraceActive and captured == SHADOW_CAPTURED
 				shadowTraceLocalCaptures++
 		if not inputPacketSizeInRange(wire.length(), count)
@@ -885,6 +886,13 @@ function stepConfirmedShadowFrame() returns boolean
     if not currentFrameInput.captureNetworkInputs(frame, shadowAcceptedInputs, matchWorld, matchState.humanMask)
         return false
     applyFrame()
+    if RESPONSE_SERVICE_PROBE
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            if matchState.humanActive(slot)
+                let accepted = shadowAcceptedInputs.row(slot)
+                responseProbeInput("confirmed", shadowInputEpoch, slot, frame, accepted.heldMask(), accepted.pressedMask(), accepted.releasedMask(), shadowSchedule.speculativeFrame())
+                if accepted.pressedMask() != 0
+                    responseProbeIntegrity("legal " + I2S(shadowInputEpoch) + " " + I2S(slot) + " " + I2S(frame) + " " + I2S(accepted.pressedMask()) + " " + I2S(BlzBitAnd(accepted.pressedMask(), observedFrameLegalActions[slot])) + " " + I2S(BlzBitAnd(accepted.pressedMask(), observedFrameStartedActions[slot])))
     if replayRuntime.simulationFrame != frame
         return false
     return shadowSchedule.completeConfirmed(shadowInputEpoch, frame)
@@ -929,6 +937,8 @@ function shadowInputTick()
         let replayDepth = shadowRuntime.simulationFrame - correction + 1
         shadowTraceReplayedFrames += replayDepth
         shadowTraceMaxReplayDepth = max(shadowTraceMaxReplayDepth, replayDepth)
+    if RESPONSE_SERVICE_PROBE and correction != REPLAY_CORRECTION_UNCHANGED
+        responseProbeIntegrity("rollback " + I2S(shadowInputEpoch) + " " + I2S(shadowRuntime.simulationFrame - correction + 1))
     // Replay stays numerical. Persistent visuals project only the completed state;
     // event effects, audio, result state and HUD remain confirmed.
     if matchState.phase == MATCH
@@ -943,6 +953,8 @@ function shadowInputTick()
             else if shadowSchedule.speculativeFrame() == before
                     and shadowSchedule.speculativeFrame() > shadowSchedule.knownThrough() + shadowSchedule.rollbackFrames()
                 shadowTraceWindowBlocks++
+        if RESPONSE_SERVICE_PROBE and shadowSchedule.speculativeFrame() == before and before > shadowSchedule.knownThrough() + shadowSchedule.rollbackFrames()
+            responseProbeIntegrity("stall " + I2S(shadowInputEpoch) + " " + I2S(before) + " " + I2S(shadowSchedule.knownThrough()))
 
     if RESPONSE_SERVICE_PROBE
         responseProbeAdvance(replayRuntime.simulationFrame, shadowSchedule.speculativeFrame(), correction)
@@ -972,6 +984,9 @@ function onResponseProbeStartEdges()
 
 function onResponseProbeDump()
     if GetPlayerId(GetTriggerPlayer()) == matchState.firstHumanSlot()
+        if shadowInputActive
+            diagnosticSnapshot.capture(matchWorld, matchState, matchInputs, replayRuntime)
+            responseProbeIntegrity("checksum " + I2S(shadowInputEpoch) + " " + I2S(replayRuntime.simulationFrame) + " " + diagnosticSnapshot.checksum() + " " + I2S(matchState.phase))
         responseProbeDump()
 
 function aerialAttackName(int style) returns string
@@ -1289,6 +1304,10 @@ function receiveShadowInput()
     var status = INPUT_MALFORMED
     if shadowIncoming.decode(wire)
 		status = shadowSchedule.acceptSynchronized(sender, shadowIncoming)
+        if RESPONSE_SERVICE_PROBE and status == INPUT_ACCEPTED
+            for index = 0 to shadowIncoming.recordCount() - 1
+                if shadowIncoming.copyRecord(index, responseProbeSample)
+                    responseProbeInput("receive", shadowIncoming.epochNumber(), sender, shadowIncoming.firstFrameNumber() + index, responseProbeSample.heldMask(), responseProbeSample.pressedMask(), responseProbeSample.releasedMask(), shadowSchedule.speculativeFrame())
         if RESPONSE_SERVICE_PROBE and sender == GetPlayerId(GetLocalPlayer()) and status == INPUT_ACCEPTED
             for row = 0 to shadowIncoming.recordCount() - 1
                 responseProbeTransportReceive(shadowIncoming.epochNumber(), shadowIncoming.firstFrameNumber() + row)

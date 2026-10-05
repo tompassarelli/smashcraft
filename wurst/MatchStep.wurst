@@ -11,6 +11,9 @@ import ImpactState
 import SpecialEffectState
 import BotRecovery
 
+public int array observedFrameLegalActions
+public int array observedFrameStartedActions
+
 boolean array hadDashGrabWindow
 boolean array wasGrabbed
 boolean array beforeOut
@@ -72,6 +75,8 @@ public function stepMatch(MatchState game, FighterRoster world, FrameInputs cont
     for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
         if world.active(slot)
             let f = world.fighters[slot]
+            observedFrameLegalActions[slot] = 0
+            observedFrameStartedActions[slot] = 0
             beforeOut[slot] = f.out
             hadDashGrabWindow[slot] = f.dashGrabWindow > 0 and f.frozenFrames == 0 and f.hitlag <= 1
             wasGrabbed[slot] = inGrabContext(f)
@@ -81,14 +86,21 @@ public function stepMatch(MatchState game, FighterRoster world, FrameInputs cont
     resolveLedges(world, game.stageChoice, controls)
     for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
         if world.active(slot)
+            resetObservedActions()
             advanceFighterMotion(world.fighters[slot], game.stageChoice, controls.inputs[slot], matchSpawnX(slot))
+            observedFrameLegalActions[slot] = observedLegalActions
+            observedFrameStartedActions[slot] = observedStartedActions
     captureGrabPauses(world)
     resolveGrabs(world)
     beginDamageContacts()
     advanceGrabs(world, controls)
     for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
         if world.active(slot) and not wasGrabbed[slot]
-            startFighterSpecial(world.fighters[slot], game.stageChoice, controls.inputs[slot])
+            resetObservedActions()
+            let specialStarted = startFighterSpecial(world.fighters[slot], game.stageChoice, controls.inputs[slot])
+            observedFrameLegalActions[slot] = BlzBitOr(observedFrameLegalActions[slot], observedLegalActions)
+            if specialStarted
+                observedFrameStartedActions[slot] = BlzBitOr(observedFrameStartedActions[slot], 64)
     advanceFreezeTraps(world)
     for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
         if world.active(slot)
@@ -104,7 +116,12 @@ public function stepMatch(MatchState game, FighterRoster world, FrameInputs cont
                 f.dashGrabWindow = 0
             if f.grounded and style >= 0 and commands.consumedFacing != 0
                 f.facing = commands.consumedFacing
+            let serial = f.attackSerial
+            if style >= 0 and canStartAttackStyle(f, style)
+                observedFrameLegalActions[slot] = BlzBitOr(observedFrameLegalActions[slot], style == 5 or style == 11 ? 160 : 32)
             beginFighterAttack(world, slot, style, commands.consumedMayCharge and controls.inputs[slot].attackHeld)
+            if f.attackSerial != serial
+                observedFrameStartedActions[slot] = BlzBitOr(observedFrameStartedActions[slot], style == 5 or style == 11 ? 160 : 32)
             if hadDashGrabWindow[slot] and f.dashGrabWindow > 0 and not f.dashGrabAttack
                 f.dashGrabWindow = max(0, f.dashGrabWindow - 1)
     resolveAttacks(world)
