@@ -1,7 +1,7 @@
 // One fighter's frame: timers, input transitions, steering, gravity, motion,
 // wall contacts and landing, in the order the retail engine applies them.
 import { max, min } from "../../runtime/wurst";
-import { divideFloat32, roundToFloat32 } from "waygate/src/sim/binary32";
+import { divideFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
 import { f32 } from "waygate/src/sim/f32";
 import { Character, DownState, GroundAction, LedgeState, ShieldBreak, SpecialAction, SurfaceContact } from "./codes";
 import {
@@ -313,7 +313,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   // Only the guard present at the animation boundary drains; input may enter or leave guard later.
   if (launch.hitlag <= 0 && shield.raised && shieldDrainShouldResume(f, shield.stun > 0)) {
     if (input.shield) shield.strength = input.shieldStrength;
-    shield.energy = roundToFloat32(f32(shield.energy - shieldDrain(shield.strength)));
+    shield.energy = subtractFloat32(shield.energy, shieldDrain(shield.strength));
     if (shield.energy < 0) {
       shield.energy = 0.0;
       beginShieldBreak(world, slot);

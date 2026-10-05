@@ -1,6 +1,7 @@
 // Actor-owned tuning, in world units per simulation frame. Character identity
 // selects moves and presentation; these records travel with each fighter so
 // reference rigs can substitute retail values without retuning the roster.
+import { multiplyFloat32 } from "waygate/src/sim/binary32";
 import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character } from "./codes";
 import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
@@ -9,7 +10,7 @@ export const WORLD_UNITS_PER_MELEE_UNIT = 6.0;
 
 /** A Melee-unit tuning value in world units, rounded as the game rounds it. */
 export function melee(units: number): number {
-  return f32(units * WORLD_UNITS_PER_MELEE_UNIT);
+  return multiplyFloat32(units, WORLD_UNITS_PER_MELEE_UNIT);
 }
 
 export interface FighterPhysics {
