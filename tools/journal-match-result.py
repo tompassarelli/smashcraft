@@ -229,13 +229,25 @@ def integrity_result(root, metadata):
     require(any(e["event"] == "integrity-pause" for e in metadata["events"]) and
             any(e["event"] == "integrity-resume" for e in metadata["events"]), "Start pause/resume absent")
     change = next((e for e in metadata["events"] if e["event"] == "integrity-slot-change"), None)
-    require(change is not None and [(c["human_fighters"], c["computers"]) for c in change["changes"]] == [(7, 0), (3, 4)],
+    four_fighters = metadata.get("four_fighters", False)
+    expected_modes = [(3, 8), (7, 8), (3, 12)] if four_fighters else [(7, 0), (3, 4)]
+    require(change is not None and [(c["human_fighters"], c["computers"]) for c in change["changes"]] == expected_modes,
             "rematch slot change absent")
+    if four_fighters:
+        setup = next((e for e in metadata["events"] if e["event"] == "four-fighter-setup"), None)
+        require(setup is not None and [(c["human_fighters"], c["computers"]) for c in setup["changes"]]
+                == [(7, 0), (3, 4), (11, 4), (3, 12)], "two-human two-CPU setup absent")
+        for epoch in (1, 2):
+            for client in (0, 1):
+                trace = root / f"epoch-{epoch}" / f"{client}-wc3-melee-input-trace.txt"
+                require(trace.exists() and "connected 3 human-fighters 3 computers 12 fighters 15" in trace.read_text(),
+                        f"epoch {epoch} client {client}: native four-fighter roster absent")
     gate_edges = losses == duplicates == reordered == stuck == 0
     gate_frames = total > 0 and correct == total
     gate_local = legal_presses > 0 and missing_local == 0 and bool(local_delays) and min(local_delays) >= 0 and max(local_delays) <= 1
     gate_checksums = len(endpoints) == 4 and all(endpoints[e, 0] == endpoints[e, 1] for e in (1, 2))
     result = dict(scope=metadata["scope"], build=metadata["settings"]["build"],
+                  four_fighters=four_fighters,
                   helper_sha256=metadata["helper_sha256"], edges_injected_per_player=injected,
                   lost=losses, duplicated=duplicates, reordered=reordered, stuck=stuck,
                   expected_frame_both_clients=dict(correct=correct, total=total,
