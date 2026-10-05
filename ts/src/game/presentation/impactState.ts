@@ -76,17 +76,30 @@ export interface ImpactState {
 
 const filled = <T>(length: number, value: T): T[] => Array.from({ length }, () => value);
 
+/** An empty pool, copied for each new state: a snapshot ring creates one per frame it keeps. */
+const EMPTY: Readonly<ImpactState> = {
+  ages: filled<number | undefined>(IMPACT_COUNT, undefined),
+  nextSlot: filled(IMPACT_KIND_COUNT, 0),
+  originX: filled(IMPACT_COUNT, 0.0),
+  originZ: filled(IMPACT_COUNT, 0.0),
+  drift: filled(IMPACT_COUNT, 0),
+  driftZ: filled(IMPACT_COUNT, 0.0),
+  pitch: filled(IMPACT_COUNT, 0.0),
+  character: filled<Character>(IMPACT_COUNT, 0),
+  strength: filled(IMPACT_COUNT, 0.0),
+};
+
 export function createImpactState(): ImpactState {
   return {
-    ages: filled<number | undefined>(IMPACT_COUNT, undefined),
-    nextSlot: filled(IMPACT_KIND_COUNT, 0),
-    originX: filled(IMPACT_COUNT, 0.0),
-    originZ: filled(IMPACT_COUNT, 0.0),
-    drift: filled(IMPACT_COUNT, 0),
-    driftZ: filled(IMPACT_COUNT, 0.0),
-    pitch: filled(IMPACT_COUNT, 0.0),
-    character: filled<Character>(IMPACT_COUNT, 0),
-    strength: filled(IMPACT_COUNT, 0.0),
+    ages: EMPTY.ages.slice(),
+    nextSlot: EMPTY.nextSlot.slice(),
+    originX: EMPTY.originX.slice(),
+    originZ: EMPTY.originZ.slice(),
+    drift: EMPTY.drift.slice(),
+    driftZ: EMPTY.driftZ.slice(),
+    pitch: EMPTY.pitch.slice(),
+    character: EMPTY.character.slice(),
+    strength: EMPTY.strength.slice(),
   };
 }
 
