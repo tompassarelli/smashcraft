@@ -53,8 +53,10 @@ substitute for its edge count, action coverage or interruptions.
 After integration of the canonical-motion repair (`6760488`), the existing
 ShadowInputPlaybackTests passed 8/8 with zero errors and nine warnings. They
 cover late replay, CPU sender ownership and the CPU/EMPTY slot counterfactual.
-The source-check log is retained here as passed/integration-playback.log; it
-does not change the identity of the earlier native candidate.
+The source-check log is
+wc3-melee:docs/controller-slots-native-20261005/passed/integration-playback.log;
+it does not change the identity of the earlier native candidate. Published text
+exports normalize line endings and trailing whitespace only.
 
 ## Fixture corrections
 

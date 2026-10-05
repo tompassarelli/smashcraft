@@ -5,5 +5,3 @@ function PreloadFiles takes nothing returns nothing
 	call PreloadEnd( 0.1 )
 
 endfunction
-
-
