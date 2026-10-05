@@ -1,0 +1,612 @@
+# bun wisp dev output, ten edits
+out watching src, scripts, test in /home/tom/code/smashcraft/worktrees/dev-loop-20261006/ts
+out first run
+out    0.659 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    3.518 s  tests: 731 passed (all 99 test files: the first run)
+out    4.286 s  types: no errors in the project
+out saved src/game/sim/step.ts
+out    0.104 s  types: no errors in src/game/sim/step.ts
+out    0.608 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    3.501 s  tests: 509 passed (59 test files of 99 affected)
+out    4.004 s  types: no errors in the project
+out saved src/game/sim/step.ts
+out    0.108 s  types: no errors in src/game/sim/step.ts
+out    0.564 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    3.297 s  tests: 509 passed (59 test files of 99 affected)
+out    3.785 s  types: no errors in the project
+out saved src/game/sim/fighter.ts
+out    0.041 s  types: no errors in src/game/sim/fighter.ts
+out    0.605 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    3.892 s  tests: 576 passed (68 test files of 99 affected)
+out    5.926 s  types: no errors in the project
+out saved src/game/sim/fighter.ts
+out    0.046 s  types: no errors in src/game/sim/fighter.ts
+out    0.564 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    4.075 s  tests: 576 passed (68 test files of 99 affected)
+out    5.931 s  types: no errors in the project
+out saved src/game/match/rules.ts
+out    0.047 s  types: no errors in src/game/match/rules.ts
+out    0.602 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    3.586 s  tests: 184 passed (34 test files of 99 affected)
+out    4.034 s  types: no errors in the project
+out saved src/game/match/rules.ts
+out    0.049 s  types: no errors in src/game/match/rules.ts
+out    0.595 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    3.804 s  tests: 184 passed (34 test files of 99 affected)
+out    4.292 s  types: no errors in the project
+out saved src/game/presentation/impactState.ts
+out    0.062 s  types: no errors in src/game/presentation/impactState.ts
+out    0.573 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.596 s  tests: 103 passed (26 test files of 99 affected)
+out    3.373 s  types: no errors in the project
+out saved src/game/presentation/impactState.ts
+out    0.057 s  types: no errors in src/game/presentation/impactState.ts
+out    0.592 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.786 s  tests: 103 passed (26 test files of 99 affected)
+out    3.500 s  types: no errors in the project
+out saved src/game/replay/canonical.ts
+out    0.054 s  types: no errors in src/game/replay/canonical.ts
+out    0.550 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.674 s  tests: 91 passed (23 test files of 99 affected)
+out    3.133 s  types: no errors in the project
+out saved src/game/replay/canonical.ts
+out    0.058 s  types: no errors in src/game/replay/canonical.ts
+out    0.584 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.582 s  tests: 91 passed (23 test files of 99 affected)
+out    3.033 s  types: no errors in the project
+out saved src/game/input/adapter.ts
+out    0.041 s  types: no errors in src/game/input/adapter.ts
+out    0.578 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.630 s  tests: 104 passed (24 test files of 99 affected)
+out    3.366 s  types: no errors in the project
+out saved src/game/input/adapter.ts
+out    0.041 s  types: no errors in src/game/input/adapter.ts
+out    0.564 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.677 s  tests: 104 passed (24 test files of 99 affected)
+out    3.400 s  types: no errors in the project
+out saved src/game/netcode/fixedSchedule.ts
+out    0.039 s  types: no errors in src/game/netcode/fixedSchedule.ts
+out    0.602 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.801 s  tests: 74 passed (19 test files of 99 affected)
+out    3.222 s  types: no errors in the project
+out saved src/game/netcode/fixedSchedule.ts
+out    0.036 s  types: no errors in src/game/netcode/fixedSchedule.ts
+out    0.589 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.555 s  tests: 74 passed (19 test files of 99 affected)
+out    2.983 s  types: no errors in the project
+out saved src/game/render/effects.ts
+out    0.025 s  types: no errors in src/game/render/effects.ts
+out    0.574 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.260 s  tests: 19 passed (9 test files of 99 affected)
+out    2.744 s  types: no errors in the project
+out saved src/game/render/effects.ts
+out    0.029 s  types: no errors in src/game/render/effects.ts
+out    0.575 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.541 s  tests: 19 passed (9 test files of 99 affected)
+out    3.002 s  types: no errors in the project
+out saved src/game/sim/attacks.ts
+out    0.048 s  types: no errors in src/game/sim/attacks.ts
+out    0.559 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.673 s  tests: 516 passed (62 test files of 99 affected)
+out    3.126 s  types: no errors in the project
+out saved src/game/sim/attacks.ts
+out    0.054 s  types: no errors in src/game/sim/attacks.ts
+out    0.565 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    3.456 s  tests: 516 passed (62 test files of 99 affected)
+out    3.918 s  types: no errors in the project
+out saved src/game/menu/selectionDrag.ts
+out    0.038 s  types: no errors in src/game/menu/selectionDrag.ts
+out    0.616 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.898 s  tests: 30 passed (10 test files of 99 affected)
+out    3.565 s  types: no errors in the project
+out saved src/game/menu/selectionDrag.ts
+out    0.037 s  types: no errors in src/game/menu/selectionDrag.ts
+out    0.625 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.580 s  tests: 30 passed (10 test files of 99 affected)
+out    3.247 s  types: no errors in the project
+err   89.841 s  dev (89.841 s)
+
+# bun wisp dev output, ten mutations and one unrelated edit
+out watching src, scripts, test in /home/tom/code/smashcraft/worktrees/dev-loop-20261006/ts
+out first run
+out    0.649 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    3.379 s  tests: 731 passed (all 99 test files: the first run)
+out    3.452 s  types: no errors in the project
+out saved src/game/sim/step.ts
+out    0.115 s  types: no errors in src/game/sim/step.ts
+out    0.558 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    1.941 s  FAIL src/game/sim/dodgesAndStocks.tests.ts > a blast zone removes exactly one stock: expected 920.0009765625, actual -240
+out    2.027 s  FAIL src/game/match/matchStepContracts.tests.ts > practiceMatchMovesJumpsAttacksAndRespawnsWithoutOpponent: expected 0, actual 1
+out    3.365 s  tests: 2 failures, 507 passed (59 test files of 99 affected)
+out    3.865 s  types: no errors in the project
+out saved src/game/sim/step.ts
+out    0.101 s  types: no errors in src/game/sim/step.ts
+out    0.558 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    3.442 s  tests: 509 passed (59 test files of 99 affected)
+out    3.937 s  types: no errors in the project
+out saved src/game/sim/knockback.ts
+out    0.042 s  types: no errors in src/game/sim/knockback.ts
+out    0.559 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    1.893 s  FAIL src/game/sim/physics.tests.ts > retail combat damage levels use all three unrounded scaled thresholds: expected 2, actual 1
+out    2.137 s  FAIL src/game/sim/physicsPrecisionScalar.tests.ts > #9 HITSTUN_BOUNDARIES_EXACT_PASS: expected 2, actual 1
+out    4.031 s  tests: 2 failures, 547 passed (66 test files of 99 affected)
+out    4.540 s  types: no errors in the project
+out saved src/game/sim/knockback.ts
+out    0.053 s  types: no errors in src/game/sim/knockback.ts
+out    0.639 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    3.994 s  tests: 549 passed (66 test files of 99 affected)
+out    4.420 s  types: no errors in the project
+out saved src/game/match/rules.ts
+out    0.048 s  types: no errors in src/game/match/rules.ts
+out    0.580 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    1.848 s  FAIL src/game/match/rules.tests.ts > everyHumanMustChooseAndConfirmForThreeAndFourPlayerMatches: expected 4, actual 1
+out    3.527 s  tests: 1 failure, 183 passed (34 test files of 99 affected)
+out    3.979 s  types: no errors in the project
+out saved src/game/match/rules.ts
+out    0.055 s  types: no errors in src/game/match/rules.ts
+out    0.560 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    3.353 s  tests: 184 passed (34 test files of 99 affected)
+out    3.801 s  types: no errors in the project
+out saved src/game/presentation/impactState.ts
+out    0.054 s  types: no errors in src/game/presentation/impactState.ts
+out    0.554 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.115 s  FAIL src/game/presentation/impactState.tests.ts > impact projection reads only, shows each impact for its lifetime, and clearing empties the pool: kind 0 at age 5: expected true, actual false
+out              FAIL src/game/presentation/impactState.tests.ts > a snapshot restores the impact pool and its ring pointers: expected 5, actual 10
+out              FAIL src/game/presentation/impactState.tests.ts > a correction removes a predicted impact and restores the accepted one's age: expected 4, actual 8
+out              FAIL src/game/presentation/impactState.tests.ts > sparse and four-player matches emit the same impacts whether projected each frame or not: expected 7, actual 14
+out              FAIL src/game/presentation/impactState.tests.ts > top KO cinematics have distinct flight, sparkle and drop: expected true
+out    2.757 s  FAIL test/player-text.test.ts, test/player-view.test.ts, test/selection-load.test.ts, test/visual-lifecycle.test.ts exited 1:
+out test/player-view.test.ts:
+out 146 |     BlzSetSpecialEffectPosition(missile, origin.x, origin.y, origin.z);
+out 147 |     trampoline("scene.report")();
+out 148 |   });
+out 149 |   // A dust slot stayed in view across uses for longer than a hit spark may stay;
+out 150 |   // each use was a stay of its own, and only the standing spark and the collapsed missile fail.
+out 151 |   expect(longestReused).toBeGreaterThan(seconds(3));
+out                               ^
+out error: expect(received).toBeGreaterThan(expected)
+out Expected: > 180
+out Received: 84
+out       at <anonymous> (/home/tom/code/smashcraft/worktrees/dev-loop-20261006/ts/test/player-view.test.ts:151:25)
+out (fail) a dust slot reused while shown is a new stay each use; a standing spark and a collapsed missile still fail [241.00ms]
+out  9 pass
+out  1 fail
+out  156 expect() calls
+out Ran 10 tests across 4 files. [2.17s]
+out    2.757 s  tests: 6 failures, 97 passed (26 test files of 99 affected)
+out    3.201 s  types: no errors in the project
+out saved src/game/presentation/impactState.ts
+out    0.056 s  types: no errors in src/game/presentation/impactState.ts
+out    0.594 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.768 s  tests: 103 passed (26 test files of 99 affected)
+out    3.224 s  types: no errors in the project
+out saved src/game/sim/attacks.ts
+out    0.048 s  types: no errors in src/game/sim/attacks.ts
+out    0.586 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.129 s  FAIL src/game/match/matchStepContracts.tests.ts > dashGrabUsesTestActorTimingAndWindowIsReplayable: expected more than 0, actual 0
+out              FAIL src/game/match/matchStepContracts.tests.ts > dashGrabSecondActiveTickCapturesButFollowingTickDoesNot: expected more than 0, actual 0
+out    3.538 s  tests: 2 failures, 514 passed (62 test files of 99 affected)
+out    3.979 s  types: no errors in the project
+out saved src/game/sim/attacks.ts
+out    0.053 s  types: no errors in src/game/sim/attacks.ts
+out    0.590 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    3.484 s  tests: 516 passed (62 test files of 99 affected)
+out    3.925 s  types: no errors in the project
+out saved src/game/netcode/fixedSchedule.ts
+out    0.041 s  types: no errors in src/game/netcode/fixedSchedule.ts
+out    0.568 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    1.525 s  FAIL src/game/input/keyboardCapture.tests.ts > a tap between samples keeps both edges until a schedule takes the row: expected value to be defined
+out              FAIL src/game/input/keyboardCapture.tests.ts > a tap while the schedule waits goes to the next target and never rewrites an assigned row: expected value to be defined
+out              FAIL src/game/netcode/fixedSchedule.tests.ts > every supported delay seeds neutral frames, and each frame completes explicitly in order: expected 2, actual 3
+out              FAIL src/game/netcode/fixedSchedule.tests.ts > a capture opportunity assigns its target once, and local capture never opens the common gate: expected value to be defined
+out              FAIL src/game/netcode/fixedSchedule.tests.ts > a new epoch clears pending and prepared rows: expected true
+out              FAIL src/game/netcode/fixedSchedule.tests.ts > capture targets stop at the last frame instead of wrapping: expected 1, actual 2
+out              FAIL src/game/netcode/fixedSchedule.tests.ts > delivery order, duplicates, waits and ring wrap never change the rows a frame runs: expected 4, actual 5
+out              FAIL src/game/netcode/fixedSchedule.tests.ts > four participants keep every row across ring reuse: expected value to be defined
+out              FAIL src/game/netcode/inputBatch.tests.ts > every captured row reaches the ledger verbatim through pause and window-wait singletons: expected 4, actual 5
+out              FAIL src/game/netcode/shadowSchedule.tests.ts > the largest delay captures the first frame after the seed before anything is confirmed: expected 6, actual 7
+out              FAIL src/game/netcode/shadowSchedule.tests.ts > a tagged duplicate is accepted, a changed one conflicts, and neither moves a cursor: expected 1, actual 0
+out              FAIL src/game/netcode/shadowSchedule.tests.ts > tagged retention and ring reuse follow confirmed consumption: expected true
+out              FAIL src/game/netcode/shadowSchedule.tests.ts > delays of zero and one keep seed assignment, confirmation and epoch boundaries: expected 1, actual 2
+out              FAIL src/game/netcode/shadowSchedule.tests.ts > a twelve-frame window stops at K + 12, keeps captures immutable and holds for the epoch: expected 4, actual 5
+out              FAIL src/game/netcode/shadowSchedule.tests.ts > a twenty-four-frame window stops and resumes without reassigning local input: expected 1, actual 2
+out              FAIL src/game/netcode/shadowSchedule.tests.ts > every local slot predicts each remote from that remote's own causal history: expected speculative, actual undefined
+out              FAIL src/game/netcode/shadowSchedule.tests.ts > sparse membership with local slot three invents no inactive or missing accepted rows: expected speculative, actual undefined
+out              FAIL src/game/replay/shadowPlayback.tests.ts > an admitted shield reaches the fighter within the catch-up budget and pause frontier: expected 5, actual 6
+out              FAIL src/game/replay/shadowPlayback.tests.ts > a late held input re-predicts the tail and an accepted release stops it: expected true
+out              FAIL src/game/replay/shadowPlayback.tests.ts > a late jump correction re-adapts a later attack against the air state: expected true
+out              FAIL src/game/replay/shadowPlayback.tests.ts > a matching late prediction confirms without replaying: expected true
+out              FAIL src/game/replay/shadowPlayback.tests.ts > twelve late rows replay at full depth and rebuild every snapshot: expected true
+out              FAIL src/game/replay/shadowPlayback.tests.ts > twenty-four late rows re-predict and rebuild every snapshot: expected true
+out              FAIL src/game/replay/shadowPlayback.tests.ts > lobby computers replay from corrected humans without network senders: expected true
+out              FAIL src/game/replay/shadowPlayback.tests.ts > computer and empty slot owners still confirm and replay without phantom senders: expected true
+out    2.705 s  tests: 25 failures, 49 passed (19 test files of 99 affected)
+out    3.158 s  types: no errors in the project
+out saved src/game/netcode/fixedSchedule.ts
+out    0.036 s  types: no errors in src/game/netcode/fixedSchedule.ts
+out    0.595 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.726 s  tests: 74 passed (19 test files of 99 affected)
+out    3.172 s  types: no errors in the project
+out saved src/game/input/adapter.ts
+out    0.042 s  types: no errors in src/game/input/adapter.ts
+out    0.611 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.189 s  FAIL src/game/input/adapter.tests.ts > digital taps become movement without confusing C-stick down: expected -1, actual 1
+out              FAIL src/game/input/adapter.tests.ts > grab, throw, mash, L-cancel, tech and ledge intents use fresh edges: expected -1, actual 1
+out    2.673 s  tests: 2 failures, 102 passed (24 test files of 99 affected)
+out    3.120 s  types: no errors in the project
+out saved src/game/input/adapter.ts
+out    0.036 s  types: no errors in src/game/input/adapter.ts
+out    0.598 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.714 s  tests: 104 passed (24 test files of 99 affected)
+out    3.153 s  types: no errors in the project
+out saved src/game/menu/selectionDrag.ts
+out    0.032 s  types: no errors in src/game/menu/selectionDrag.ts
+out    0.575 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    0.595 s  FAIL src/game/menu/selectionDrag.tests.ts > a placed chip can be dragged to another tile: placed tile: expected 1, actual 2
+out              FAIL src/game/menu/selectionDrag.tests.ts > unplaced human and computer chips drag from their cards onto the roster: placed tile: expected 1, actual 2
+out    2.365 s  tests: 2 failures, 28 passed (10 test files of 99 affected)
+out    2.792 s  types: no errors in the project
+out saved src/game/menu/selectionDrag.ts
+out    0.037 s  types: no errors in src/game/menu/selectionDrag.ts
+out    0.582 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.363 s  tests: 30 passed (10 test files of 99 affected)
+out    2.799 s  types: no errors in the project
+out saved src/game/sim/motion.ts
+out    0.043 s  types: no errors in src/game/sim/motion.ts
+out    0.589 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.082 s  FAIL src/game/sim/surfaces.tests.ts > the retail surface threshold reflects the combined velocity at the playable wall and reports the contact: expected -1.1039999723434448 within 0.0010000000474974513, actual -0.5519999861717224
+out              FAIL src/game/sim/surfaces.tests.ts > a retail wall tech jump latches buffered input without an ordinary trait or speed gate: expected 17.21999740600586, actual 17.909997940063477
+out              FAIL src/game/sim/surfaces.tests.ts > a retail wall tech selects a jump from a recent input age at contact: expected 17.21999740600586, actual 17.909997940063477
+out    2.110 s  FAIL src/game/sim/actionLocks.tests.ts > complete jump trajectories match the reference heights: expected 187.6800079345703 within 0.019999999552965164, actual 364.32000732421875
+out              FAIL src/game/sim/directionalInfluence.tests.ts > knockback decays by vector magnitude and continues after hitstun: expected 378.3752136230469 within 0.00009999999747378752, actual 379.065185546875
+out              FAIL src/game/sim/directionalInfluence.tests.ts > a downward launch exceeds the terminal fall cap, and fast fall uses self descent: expected -1.3799999952316284 within 0.0010000000474974513, actual -0.6899999976158142
+out              FAIL src/game/sim/directionalInfluence.tests.ts > hitlag freezes the launch vector, then release resumes self velocity and decay: expected -0.3799999952316284, actual 0.3100000023841858
+out              FAIL src/game/sim/dodgesAndStocks.tests.ts > diagonal down doesn't trigger a fast fall, but straight down does: expected -2.3799999952316284 within 0.0010000000474974513, actual -1.690000057220459
+out              FAIL src/game/sim/knockdown.tests.ts > a clean low-percent get-up attack gives the attacker time before the wake-up attack, for both characters and sides: expected 67, actual 81
+out              FAIL src/game/sim/physics.tests.ts > a recorded NTSC Falco neutral fall matches ten independent positions: expected 0, actual -59
+out              FAIL src/game/sim/physics.tests.ts > canonical motion preserves all ten recorded fall positions exactly: expected 9.872425079345703, actual 9.957425117492676
+out              FAIL src/game/sim/physics.tests.ts > canonical motion imports world edits and clears on respawn: expected 9.829999923706055, actual 9.914999961853027
+out              FAIL src/game/sim/physics.tests.ts > fast fall requires descending self velocity, and an air dodge clears it: expected -0.3799999952316284 within 0.000009999999747378752, actual 0.3100000023841858
+out              FAIL src/game/sim/physics.tests.ts > a combat shield break uses the character's launch attribute after the contact freeze: expected 18.41999924182892 within 0.00009999999747378752, actual 19.110000610351562
+out              FAIL src/game/sim/physics.tests.ts > a ground jump's entry preserves its launch, then applies gravity and drift: expected 11.220000386238098 within 0.000009999999747378752, actual 11.90999984741211
+out              FAIL src/game/sim/physics.tests.ts > an aerial jump's entry applies gravity immediately: expected 25.115999221801758 within 0.000009999999747378752, actual 25.805999755859375
+out              FAIL src/game/sim/physics.tests.ts > the same character uses its assigned gravity and jump parameters: expected 94.5, actual 95.25
+out              FAIL src/game/sim/physics.tests.ts > a stock respawn retains the assigned physics: expected -2, actual -1
+out              FAIL src/game/sim/physics.tests.ts > a retail aerial fast fall requires down at most three frames before descent: expected true, actual false
+out              FAIL src/game/sim/physics.tests.ts > a retail aerial fast-fall input ages during hitlag through its expiry frame: expected -2.0199999809265137 within 9.999999974752427e-7, actual -1.5099999904632568
+out              FAIL src/game/sim/physics.tests.ts > a retail aerial dodge resumes gravity and drift on tick thirty: expected -1.0199999809265137 within 0.000009999999747378752, actual -0.5099999904632568
+out              FAIL src/game/sim/physics.tests.ts > a retail aerial dodge's switch boundary freezes in hitlag: expected 298.9800109863281 within 0.000009999999747378752, actual 299.489990234375
+out              FAIL src/game/sim/physicsPrecisionMotion.tests.ts > #9 RECORDED_FALL_TEN_FRAMES_BINARY32_EXACT_PASS: expected 9.872425079345703, actual 9.957425117492676
+out    2.953 s  FAIL scripts/moveComparisons.tests.ts, test/integrity.test.ts, test/rematch-load.test.ts, test/wisp.test.ts exited 1:
+out -dev quick acknowledged by 2 client(s)
+out -dev quick acknowledged by 2 client(s)
+out scripts/moveComparisons.tests.ts:
+out 10 |   expect(categoryTradeoffViolation(mutant, normal)).toBe(true);
+out 11 | });
+out 12 | 
+out 13 | test("move comparison requires contact before normal action recovery", () => {
+out 14 |   const baseline = compareContact(Character.archer, 2, 60, 60, false);
+out 15 |   expect(baseline.attackerReady).toBe(12);
+out                                       ^
+out error: expect(received).toBe(expected)
+out Expected: 12
+out Received: 13
+out       at <anonymous> (/home/tom/code/smashcraft/worktrees/dev-loop-20261006/ts/scripts/moveComparisons.tests.ts:15:34)
+out (fail) move comparison requires contact before normal action recovery [11.00ms]
+out test/wisp.test.ts:
+out  20 pass
+out  1 fail
+out  117 expect() calls
+out Ran 21 tests across 4 files. [2.34s]
+out    3.036 s  FAIL test/player-text.test.ts, test/player-view.test.ts, test/selection-load.test.ts, test/visual-lifecycle.test.ts exited 1:
+out test/player-view.test.ts:
+out 146 |     BlzSetSpecialEffectPosition(missile, origin.x, origin.y, origin.z);
+out 147 |     trampoline("scene.report")();
+out 148 |   });
+out 149 |   // A dust slot stayed in view across uses for longer than a hit spark may stay;
+out 150 |   // each use was a stay of its own, and only the standing spark and the collapsed missile fail.
+out 151 |   expect(longestReused).toBeGreaterThan(seconds(3));
+out                               ^
+out error: expect(received).toBeGreaterThan(expected)
+out Expected: > 180
+out Received: 117
+out       at <anonymous> (/home/tom/code/smashcraft/worktrees/dev-loop-20261006/ts/test/player-view.test.ts:151:25)
+out (fail) a dust slot reused while shown is a new stay each use; a standing spark and a collapsed missile still fail [275.00ms]
+out  9 pass
+out  1 fail
+out  156 expect() calls
+out Ran 10 tests across 4 files. [2.41s]
+out    3.036 s  tests: 25 failures, 524 passed (66 test files of 99 affected)
+out    3.471 s  types: no errors in the project
+out saved src/game/sim/motion.ts
+out    0.042 s  types: no errors in src/game/sim/motion.ts
+out    0.569 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    3.937 s  tests: 549 passed (66 test files of 99 affected)
+out    4.381 s  types: no errors in the project
+out saved src/game/replay/canonical.ts
+out    0.065 s  types: no errors in src/game/replay/canonical.ts
+out    0.623 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    1.902 s  FAIL src/game/replay/canonical.tests.ts > canonical fragments and checksums match Wurst's ASCII tape form: expected |frame=17, actual |frame=+4:4194304:0
+out              FAIL src/game/replay/canonical.tests.ts > canonical integers print as Wurst's I2S whichever Lua number type holds them: expected |facing=2, actual |facing=+1:0:0
+out    3.370 s  tests: 2 failures, 89 passed (23 test files of 99 affected)
+out    3.832 s  types: no errors in the project
+out saved src/game/replay/canonical.ts
+out    0.061 s  types: no errors in src/game/replay/canonical.ts
+out    0.590 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    2.743 s  tests: 91 passed (23 test files of 99 affected)
+out    3.208 s  types: no errors in the project
+out saved scripts/moveComparisons.ts
+out    0.044 s  types: no errors in scripts/moveComparisons.ts
+out    0.554 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    1.843 s  tests: 8 passed (4 test files of 99 affected)
+out    2.226 s  types: no errors in the project
+out saved scripts/moveComparisons.ts
+out    0.045 s  types: no errors in scripts/moveComparisons.ts
+out    0.619 s  journey quick-match: no problems
+out            p0: 341968 native calls
+out            p1: 341968 native calls
+out            no desync in 600 frames
+out            hot reload 1 running in every client
+out            p0 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out            p1 scene: frame 569: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+out    1.916 s  tests: 8 passed (4 test files of 99 affected)
+out    2.327 s  types: no errors in the project
+err   92.933 s  dev (92.933 s)
