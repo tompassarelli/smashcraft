@@ -1,3 +1,4 @@
+import { at } from "../runtime/lookup";
 // Melee's binary32 atan2/sin/cos approximations, ported from
 // smashcraft:wurst/MeleeScalarMath.wurst. Coefficients come from
 // smashcraft:docs/smash-melee-reference/retail-trig-coefficients.json. Every
@@ -46,8 +47,11 @@ const SEGMENT_LIMITS = [0.534511148929596, 0.8206787705421448, 1.218503475189209
 
 function segmentFor(magnitude: number): AtanSegment {
   let index = 0;
-  while (index < SEGMENT_LIMITS.length && magnitude >= SEGMENT_LIMITS[index]!) index++;
-  return SEGMENTS[index]!;
+  for (const limit of SEGMENT_LIMITS) {
+    if (magnitude < limit) break;
+    index++;
+  }
+  return at(SEGMENTS, index);
 }
 
 function atanPolynomial(residual: number): number {

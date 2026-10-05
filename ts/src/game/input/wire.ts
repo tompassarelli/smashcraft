@@ -116,7 +116,7 @@ class Reader {
 
   digit(): number | undefined {
     if (this.offset >= this.text.length) return undefined;
-    const value = ALPHABET.indexOf(this.text[this.offset]!);
+    const value = ALPHABET.indexOf(this.text.charAt(this.offset));
     if (value < 0) return undefined;
     this.offset++;
     return value;

@@ -17,6 +17,7 @@ import { BLASTER_PROJECTILE_LIFETIME, BLASTER_PROJECTILE_SPEED, spawnArcherArrow
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
 import { RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
+import { at } from "../../runtime/lookup";
 
 export const DEMONHUNTER_MANA_BURN_STARTUP = 8;
 export const DEMONHUNTER_MANA_BURN_RECOVERY = 25;
@@ -88,7 +89,7 @@ function requestedSpecial(owner: Fighter, input: Readonly<Controls>): SpecialAct
 
 function specialCanStart(owner: Fighter, action: SpecialAction): boolean {
   const { special } = owner;
-  return action > SpecialAction.none && action < SPECIAL_ACTION_CAPACITY && special.cooldowns[action]! <= 0
+  return action > SpecialAction.none && action < SPECIAL_ACTION_CAPACITY && at(special.cooldowns, action) <= 0
     && special.lockFrames <= 0 && special.action === SpecialAction.none && canAttack(owner);
 }
 
@@ -335,11 +336,11 @@ export function advanceSpecials(world: Roster, stage: number): void {
     const owner = fighterAt(world, ownerSlot);
     for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
       if (!isActive(world, targetSlot) || targetSlot === ownerSlot) continue;
-      const contact = contacts[ownerSlot * PARTICIPANT_CAPACITY + targetSlot]!;
+      const contact = at(contacts, ownerSlot * PARTICIPANT_CAPACITY + targetSlot);
       if (contact.window <= 0) continue;
       const target = fighterAt(world, targetSlot);
       recordSpecialHit(owner, targetSlot);
-      applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, facings[ownerSlot]!, contact.effect, true, meleeHitIntersectsShield(owner, target, contact));
+      applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, at(facings, ownerSlot), contact.effect, true, meleeHitIntersectsShield(owner, target, contact));
     }
   }
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {

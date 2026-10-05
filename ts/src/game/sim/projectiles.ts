@@ -13,6 +13,7 @@ import { attackDamage } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { SHIELD_PROJECTILE_DAMAGE_MULTIPLIER, SHIELD_PROJECTILE_SPEED_MULTIPLIER, SHIELD_REFLECTOR_RADIUS_FACTOR, shieldCircleIntersects } from "./shield";
+import { at } from "../../runtime/lookup";
 
 export const BLASTER_PROJECTILE_SPEED = 36.0;
 export const BLASTER_PROJECTILE_LIFETIME = 60;
@@ -30,7 +31,7 @@ export function projectileCount(f: Fighter): number {
 }
 
 export function projectileActive(f: Fighter, index: number): boolean {
-  return index >= 0 && index < PROJECTILE_CAPACITY && f.projectiles[index]!.life > 0;
+  return index >= 0 && index < PROJECTILE_CAPACITY && at(f.projectiles, index).life > 0;
 }
 
 /** Launches from the owner's hand in the first free slot; a full owner fires nothing. */
@@ -145,8 +146,8 @@ function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile,
   for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
     if (!isActive(world, targetSlot) || targetSlot === ownerSlot || targets.out[targetSlot] || targets.intangible[targetSlot]) continue;
     const target = fighterAt(world, targetSlot);
-    const targetX = targets.x[targetSlot]!;
-    const centerZ = f32(targets.z[targetSlot]! + TARGET_CENTER_HEIGHT);
+    const targetX = at(targets.x, targetSlot);
+    const centerZ = f32(at(targets.z, targetSlot) + TARGET_CENTER_HEIGHT);
     const crossed = f32(f32(targetX - oldX) * direction) >= 0 && f32(f32(targetX - projectile.x) * direction) <= 0;
     const near = Math.abs(f32(targetX - projectile.x)) <= BLASTER_PROJECTILE_RADIUS;
     const height = centerZ >= lowZ && centerZ <= highZ;
