@@ -44,6 +44,7 @@ import FrostEffects
 import SpecialEffects
 import ResponseServiceProbe
 import JournalInputSource
+import JournalTransportBatch
 import KeyboardJournalIngress
 import EditboxJournalIngress
 import JournalTextStream
@@ -88,9 +89,10 @@ ReplayRuntimeState replayRuntime = new ReplayRuntimeState()
 ReplaySnapshot diagnosticSnapshot = new ReplaySnapshot()
 boolean shadowInputActive = false
 int shadowInputEpoch = 0
-DevSettings devSettings = new DevSettings(SHADOW_INPUT_ROLLBACK, SHADOW_INPUT_DELAY)
+DevSettings devSettings = new DevSettings(SHADOW_INPUT_ROLLBACK, SHADOW_INPUT_DELAY, 2)
 int shadowEpochDelay = SHADOW_INPUT_DELAY
 int shadowEpochRollback = SHADOW_INPUT_ROLLBACK
+int shadowEpochBatch = 2
 int devReceipts = 0
 int shadowLastCaptureTarget = 0
 boolean shadowLocalSendFailed = false
@@ -114,6 +116,8 @@ ShadowInputSchedule shadowSchedule = null
 ShadowInputPlayback shadowPlayback = null
 KeyboardInputCapture shadowCapture = null
 JournalInputSource journalInput = null
+JournalTransportBatch journalTransport = new JournalTransportBatch()
+JournalTransportBatch journalReceived = new JournalTransportBatch()
 KeyboardJournalIngress keyboardJournalIngress = null
 EditboxJournalIngress editboxJournalIngress = null
 File journalInputFile = null
@@ -691,6 +695,42 @@ function commitJournalPauseAtFrame()
 	journalPausePending = false
 	journalPauseAckReceived = false
 
+function flushJournalTransport(boolean flushNow)
+	if journalInputFailed or not journalTransport.ready(flushNow)
+		return
+	let wire = journalTransport.encode()
+	let frame = journalTransport.firstFrameNumber()
+	let count = journalTransport.recordCount()
+	let isolationSentAt = transportIsolationPhase == 3 ? TimerGetElapsed(transportIsolationClock) : 0
+	let sendStartedMs = responseProbeClockMs()
+	let sent = BlzSendSyncData("SC_GP", wire)
+	responseProbeSendCallFinish(sendStartedMs)
+	if not sent
+		shadowLocalSendFailed = true
+		failJournalInput("synchronized input submission failed")
+		return
+	if transportIsolationPhase == 3
+		let sequence = (frame - transportIsolationFirstCFrame) div 2
+		if sequence >= 0 and sequence < 300
+			let cSlot = 600 + sequence
+			transportIsolationFrame[cSlot] = frame
+			transportIsolationSendTime[cSlot] = isolationSentAt
+			transportIsolationSubmitted[cSlot] = true
+			transportIsolationSent[2]++
+			transportIsolationBytesSent[2] += wire.length()
+	if RESPONSE_SERVICE_PROBE
+		for rowIndex = 0 to count - 1
+			responseProbeTransportSend(shadowInputEpoch, frame + rowIndex)
+	if inputTraceActive
+		shadowTraceLocalSends++
+		shadowTraceSentRows += count
+		if count == 1
+			shadowTraceSingletons++
+		for rowIndex = 0 to count - 1
+			recordShadowTraceSend(shadowInputEpoch, frame + rowIndex)
+		traceInput("journal sent frame " + I2S(frame) + " count " + I2S(count))
+	journalTransport.clear()
+
 function serviceJournalInput()
 	if journalInputFailed
 		return
@@ -790,34 +830,9 @@ function serviceJournalInput()
 			shadowLocalSendFailed = true
 			failJournalInput("synchronized input submission failed")
 			return
-		let isolationSentAt = transportIsolationPhase == 3 ? TimerGetElapsed(transportIsolationClock) : 0
-		let sendStartedMs = responseProbeClockMs()
-		let sent = BlzSendSyncData("SC_GP", wire)
-		responseProbeSendCallFinish(sendStartedMs)
-		if not sent
-			shadowLocalSendFailed = true
-			failJournalInput("synchronized input submission failed")
+		if not journalTransport.append(wire)
+			failJournalInput("controller input could not be queued")
 			return
-		if transportIsolationPhase == 3
-			let sequence = (frame - transportIsolationFirstCFrame) div 2
-			if sequence >= 0 and sequence < 300
-				let cSlot = 600 + sequence
-				transportIsolationFrame[cSlot] = frame
-				transportIsolationSendTime[cSlot] = isolationSentAt
-				transportIsolationSubmitted[cSlot] = true
-				transportIsolationSent[2]++
-				transportIsolationBytesSent[2] += wire.length()
-		if RESPONSE_SERVICE_PROBE
-			for rowIndex = 0 to count - 1
-				responseProbeTransportSend(shadowInputEpoch, frame + rowIndex)
-		if inputTraceActive
-			shadowTraceLocalSends++
-			shadowTraceSentRows += count
-			if count == 1
-				shadowTraceSingletons++
-			for rowIndex = 0 to count - 1
-				recordShadowTraceSend(shadowInputEpoch, frame + rowIndex)
-			traceInput("journal sent sequence " + I2S(journalInput.sequenceNumber()) + " frame " + I2S(frame) + " count " + I2S(count))
 		if not journalInput.sent()
 			shadowLocalSendFailed = true
 			failJournalInput("journal cursor could not advance after send")
@@ -909,8 +924,10 @@ function shadowInputTick()
         sendShadowBatch()
         return
     if JOURNAL_INPUT_SOURCE
+        journalTransport.nextCallback()
         if not matchControls.isPaused()
             serviceJournalInput()
+        flushJournalTransport(shadowEpochBatch == 1 or matchControls.isPaused() or journalPausePending or transportIsolationPhase == 3)
     else
         shadowCaptureLocalInput()
     if matchControls.isPaused() or (JOURNAL_EDITBOX_INGRESS and not journalLifecycle.started())
@@ -1304,6 +1321,16 @@ function receiveShadowInput()
             return
         transportIsolationRejected++
         return
+    if not journalReceived.decode(wire)
+        statusText = "The players could not stay connected. Restart the match."
+        statusTime = 3600
+        if inputTraceActive
+            shadowTraceRejected++
+        return
+    for index = 0 to journalReceived.packetCount() - 1
+        receiveShadowPacket(sender, journalReceived.packetWire(index))
+
+function receiveShadowPacket(int sender, string wire)
     let receivedCallback = inputTraceTicks
     let receivedSeconds = inputTraceActive ? TimerGetElapsed(inputTraceClock) : 0
     var status = INPUT_MALFORMED
@@ -1448,6 +1475,7 @@ function beginShadowEpoch() returns boolean
     shadowInputEpoch++
     shadowEpochDelay = devSettings.delay
     shadowEpochRollback = devSettings.rollback
+    shadowEpochBatch = devSettings.batch
     if not shadowSchedule.beginEpoch(shadowInputEpoch, shadowEpochDelay, shadowEpochRollback, matchState.humanMask)
         return false
     if not shadowPlayback.beginEpoch(shadowInputEpoch)
@@ -1472,6 +1500,8 @@ function beginShadowEpoch() returns boolean
     else
         shadowCapture.reset(shadowPollLocal())
     journalInputFailed = false
+    journalTransport.clear()
+    journalReceived.clear()
     journalTransportReadyMask = 0
     journalTransportStartSent = false
     journalLifecycle.beginEpoch(shadowInputEpoch, matchState.humanMask)
@@ -2362,7 +2392,7 @@ function receiveDevCommand()
     DisplayTextToPlayer(GetLocalPlayer(), 0, 0, receipt)
     PreloadGenClear()
     PreloadGenStart()
-    Preload("SMASHCRAFT DEV v=1 build=" + BUILD_ID + " receipt=" + I2S(devReceipts) + " epoch=" + I2S(shadowInputEpoch) + " rb=" + I2S(devSettings.rollback) + " delay=" + I2S(devSettings.delay) + " ")
+    Preload("SMASHCRAFT DEV v=1 build=" + BUILD_ID + " receipt=" + I2S(devReceipts) + " epoch=" + I2S(shadowInputEpoch) + " rb=" + I2S(devSettings.rollback) + " delay=" + I2S(devSettings.delay) + " batch=" + I2S(devSettings.batch) + " ")
     PreloadGenEnd("smashcraft-dev-" + BUILD_ID + "-p" + I2S(GetPlayerId(GetLocalPlayer())) + ".txt")
 
 function initGame()

@@ -8,10 +8,13 @@ import FixedInputSchedule
 public class DevSettings
     int rollback
     int delay
+    // Journal packets carried by one synchronized message: 1 or 2.
+    int batch
 
-    construct(int rollback, int delay)
+    construct(int rollback, int delay, int batch)
         this.rollback = rollback
         this.delay = delay
+        this.batch = batch
 
     // Returns the confirmation for a recognized command, or "" otherwise.
     function apply(string message) returns string
@@ -29,10 +32,16 @@ public class DevSettings
                 return "dev: delay must be 0, 1, 2, 3 or 5"
             delay = value
             return describe()
+        if message.startsWith("-dev batch ")
+            let value = devCommandInt(message.substring(11))
+            if value < 1 or value > 2
+                return "dev: batch must be 1 or 2"
+            batch = value
+            return describe()
         return ""
 
     function describe() returns string
-        return "dev: next match rb=" + I2S(rollback) + " delay=" + I2S(delay)
+        return "dev: next match rb=" + I2S(rollback) + " delay=" + I2S(delay) + " batch=" + I2S(batch)
 
 function devCommandInt(string text) returns int
     let value = S2I(text)

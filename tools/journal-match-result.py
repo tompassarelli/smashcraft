@@ -299,15 +299,15 @@ def sweep_result(root, metadata):
             "Opponent lateness p50/p95/max | Rollback depth p50/p95/max | Stalls (longest) | Checksums | Passed |",
             "|---|---|---|---|---|---|---|---|---|"]
     passed = True
-    for index, window in enumerate(metadata["sweep"]):
+    for index, (window, batch) in enumerate(metadata["sweep"]):
         first = metadata.get("epochs", [1])[0]
         pair = (first + 2 * index, first + 2 * index + 1)
-        print(f"## R{window}: epochs {pair}")
-        r = integrity_result(root, metadata, pair, f"rb{window}", window)
+        print(f"## R{window} batch {batch}: epochs {pair}")
+        r = integrity_result(root, metadata, pair, f"rb{window}-b{batch}", window)
         passed = passed and r["passed"]
         def brief(d):
             return f"{d['p50']} / {d['p95']} / {d['max']}"
-        rows.append(f"| R{window} | {r['lost']}/{r['duplicated']}/{r['reordered']}/{r['stuck']} | "
+        rows.append(f"| R{window} batch {batch} | {r['lost']}/{r['duplicated']}/{r['reordered']}/{r['stuck']} | "
                     f"{r['expected_frame_both_clients']['percent']}% | {brief(r['local_start_minus_capture_frames'])} | "
                     f"{brief(r['opponent_input_lateness_frames'])} | {brief(r['rollback_depth_frames'])} | "
                     f"{r['prediction_stalls']['count']} ({r['prediction_stalls']['longest_callbacks']}) | "

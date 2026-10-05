@@ -40,8 +40,9 @@ def main():
     parser.add_argument("--controller-menus", action="store_true")
     parser.add_argument("--input-integrity", action="store_true",
                         help="run the issue 26 all-binding 500-edge-per-player match/rematch test")
-    parser.add_argument("--sweep", type=lambda text: [int(v) for v in text.split(",")], default=None,
-                        help="rollback windows; each runs one integrity match and rematch after a -dev rb chat command")
+    parser.add_argument("--sweep", type=lambda text: [[int(n) for n in (v + ":2").split(":")[:2]] for v in text.split(",")],
+                        default=None, help="RB or RB:BATCH entries; each runs one integrity match and rematch after "
+                                           "-dev batch and -dev rb chat commands (batch defaults to 2)")
     parser.add_argument("--first-epoch", type=int, default=1,
                         help="first map match number when continuing an already loaded session (odd for integrity runs)")
     parser.add_argument("--four-fighters", action="store_true",
@@ -719,7 +720,8 @@ def main():
                         ui("b", "click", 1380, 155)
                         ui("b", "wait", rf"{stocks} Stock")
                 if args.sweep and epoch % 2 == 1:
-                    window = args.sweep[(epoch - epochs[0]) // 2]
+                    window, batch = args.sweep[(epoch - epochs[0]) // 2]
+                    dev_command(epoch, f"-dev batch {batch}", f" batch={batch} ")
                     dev_command(epoch, f"-dev rb {window}", f" rb={window} ")
                 trace_after_wall = time.time_ns()
                 # Ctrl+G only enables the diagnostic trace; controller-menu mode
