@@ -22,7 +22,7 @@ import { TransportBatch } from "../../game/netcode/journal/transport";
 import { ShadowInputSchedule } from "../../game/netcode/shadowSchedule";
 import type { WorldOrigin } from "../../game/render/effects";
 import { type ModelSoundCursor, ORIGINAL_MODEL_SOUNDS, createModelSoundCursor } from "../../game/render/modelSounds";
-import { type ReplaySnapshot, createReplaySnapshot } from "../../game/replay/snapshot";
+import { type ReplayState, createReplaySnapshot } from "../../game/replay/snapshot";
 import { type JournalIngress, type MapBuild, type ShadowInputMode, isShadow } from "../../game/shell/build";
 import type { BatchSize, DevSettings } from "../../game/shell/devSettings";
 import type { MenuPhase } from "../../game/shell/journalFiles";
@@ -133,7 +133,7 @@ export interface Rollback {
   readonly schedule: ShadowInputSchedule;
   readonly playback: RollbackPlayback;
   readonly speculative: SpeculativeMatch;
-  readonly seed: ReplaySnapshot;
+  readonly seed: ReplayState;
   readonly accepted: ParticipantInputs;
   sendFailed: boolean;
   readonly keyboard: KeyboardRollback | undefined;
@@ -188,7 +188,7 @@ export interface ShellState {
   readyMarkerWritten: boolean;
   restartRequested: boolean;
   /** Checksums capture the confirmed match here. */
-  readonly diagnostic: ReplaySnapshot;
+  readonly diagnostic: ReplayState;
 }
 
 declare global {

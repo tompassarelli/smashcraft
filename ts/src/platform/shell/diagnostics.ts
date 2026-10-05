@@ -7,7 +7,7 @@ import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/partic
 import { directionX, directionZ } from "../../game/input/playerKeys";
 import { characterFor, characterReady, computerActive, fighterMask, firstHumanSlot, humanActive, humanFighterActive } from "../../game/match/rules";
 import { captureReplaySnapshot } from "../../game/replay/snapshot";
-import { checksum } from "../../game/replay/canonical";
+import { stateChecksum } from "../../game/replay/canonical";
 import { fighterAt, isActive, type Controls } from "../../game/sim/roster";
 import { floorMod } from "../../sim/intMath";
 import { writeLines } from "../fileio";
@@ -24,7 +24,7 @@ export function traceParticipant(s: ShellState, slot: number, entry: string): vo
 /** The confirmed match's canonical checksum. */
 export function confirmedChecksum(s: ShellState): string {
   captureReplaySnapshot(s.diagnostic, s.world, s.game, s.controls, s.runtime);
-  return checksum(s.diagnostic);
+  return stateChecksum(s.diagnostic);
 }
 
 export function traceConfirmedState(s: ShellState): void {
