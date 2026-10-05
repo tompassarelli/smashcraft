@@ -21,7 +21,7 @@ const record = (overrides: Partial<PlayableRecord> = {}): PlayableRecord => ({
   ...overrides,
 });
 
-test("a playable match and rematch pass when both clients agree on winner, end frame and result checksum", () => {
+test("a playable match and rematch pass when both clients agree on winner and confirmed result checksum", () => {
   expect(playableResult(capture(), record())).toMatchObject({
     passed: true, failures: [], epochs: [1, 2],
     matches: [{ epoch: 1, winner: "Player 2", winners: ["Player 2", "Player 2"], end_frames: [900, 900] }, { epoch: 2, winner: "Player 1", winners: ["Player 1", "Player 1"] }],
@@ -32,8 +32,10 @@ test("a playable capture fails on any disagreement, missing result or in-game er
   const exports = new Map(capture().exports);
   exports.set(2, [exported(), exported("123:457")]);
   expect(playableResult({ ...capture(), exports }, record()).failures).toEqual(["epoch 2: confirmed checksums differ at frames 900, 960"]);
-  expect(playableResult(capture([boundary("start", 1), boundary("end", 1, [900, 901]), boundary("start", 2), boundary("end", 2)]), record()).failures)
-    .toEqual(["epoch 1: end frames differ or are absent"]);
+  // Each receipt's frame is its client's local input frame; a difference alone is not a disagreement.
+  expect(playableResult(capture([boundary("start", 1), boundary("end", 1, [900, 901]), boundary("start", 2), boundary("end", 2)]), record()).failures).toEqual([]);
+  expect(playableResult(capture([boundary("start", 1), boundary("end", 1, [900, 0]), boundary("start", 2), boundary("end", 2)]), record()).failures)
+    .toEqual(["epoch 1: an end receipt is absent"]);
   expect(playableResult(capture(), record({ results: new Map([[1, { texts: ["Player 2 wins!", "Player 1 wins!"] }], [2, { texts: ["Player 1 wins!", "Player 1 wins!"] }]]) })).passed).toBe(false);
   expect(playableResult(capture([boundary("start", 1), boundary("end", 1), boundary("start", 2)]), record()).passed).toBe(false);
   expect(playableResult(capture(), record({ errorReports: ["epoch-1/0-smashcraft-error-p0.txt"] })).passed).toBe(false);
