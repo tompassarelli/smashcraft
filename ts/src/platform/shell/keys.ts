@@ -13,6 +13,7 @@ import { pausedMessage } from "../../game/shell/messages";
 import { captureBinding } from "../../game/ui/bindingSettings";
 import { writeLines } from "../fileio";
 import { confirmedChecksum, startInputTrace, traceParticipant } from "./diagnostics";
+import { probeFrameCostClock } from "./frameCost";
 import { clearAllInputs } from "./inputs";
 import { chatBusy, journalEpoch, journalIdentity, requestPause } from "./journal";
 import { Key } from "./keyEvents";
@@ -192,6 +193,9 @@ export function onDevCommand(s: ShellState): void {
   if (message === QUICK_MATCH_COMMAND) {
     receipt = "dev: quick match";
     startQuickMatch(s);
+  } else if (message === "-dev frame-cost-clock") {
+    receipt = "dev: frame cost clock probe";
+    probeFrameCostClock();
   } else receipt = applyDevCommand(s.dev, message);
   if (receipt === undefined) return;
   s.devReceipts++;
