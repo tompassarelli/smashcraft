@@ -105,7 +105,7 @@ let current: Client | undefined;
  */
 export function installNatives(): () => void {
   const global = globalThis as Record<string, unknown>;
-  const names = [...NATIVES.map(({ name }) => name), ...CONSTANTS.map(([name]) => name), "xpcall"];
+  const names = [...NATIVES.map(({ name }) => name), ...CONSTANTS.map(([name]) => name), "xpcall", "setmetatable"];
   const before = new Map(names.map(name => [name, global[name]] as const));
   for (const name of names) {
     Object.defineProperty(globalThis, name, {
@@ -230,6 +230,10 @@ export class Client {
         handler(error);
         return false;
       }
+    };
+    this.natives.setmetatable = (table: object, metatable: object) => {
+      Object.setPrototypeOf(table, metatable);
+      return table;
     };
   }
 

@@ -2,6 +2,7 @@
 // whether each is open from synchronized events; only the owner's client draws
 // its own. Escape and captured keys arrive through the shell's key handling.
 import { f32 } from "../../sim/f32";
+import { bindPrototype } from "../../platform/rebind";
 import { ACTION_COUNT, type Action } from "../input/actions";
 import { ACTION_LABELS, type KeySlot, encodeBindings, keyFor, keyLabel } from "../input/keyBindings";
 import {
@@ -41,7 +42,7 @@ export class SettingsPanel {
 
   constructor(
     private readonly settings: BindingSettings,
-    private readonly actions: SettingsActions,
+    private actions: SettingsActions,
     readonly participantId: number,
   ) {
     const suffix = I2S(participantId);
@@ -88,6 +89,12 @@ export class SettingsPanel {
     this.all = [this.title, this.help, this.status, ...this.buttons];
     for (const row of rows) this.all.push(row.label, ...row.keys);
     this.setVisible(false);
+  }
+
+  bindActions(actions: SettingsActions): void {
+    this.actions = actions;
+    bindPrototype(this.clicks, ButtonClicks.prototype);
+    this.clicks.bindHandler((button, clicker) => this.click(button, clicker));
   }
 
   destroy(): void {

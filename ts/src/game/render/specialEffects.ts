@@ -22,6 +22,7 @@ import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_
 import { STOCK_MODELS, type WorldOrigin, facingYaw, hideEffect } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
 import { SummonPresentation } from "./summonPresentation";
+import { bindPrototype } from "../../platform/rebind";
 
 interface SpecialSlot {
   readonly bear: SummonPresentation;
@@ -65,6 +66,11 @@ export class SpecialEffects {
       };
     });
     this.clear();
+  }
+
+  /** Bind retained summon pools to the reloaded bundle. */
+  bindNestedCode(): void {
+    for (const slot of this.slots) bindPrototype(slot.bear, SummonPresentation.prototype);
   }
 
   clear(): void {
