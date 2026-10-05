@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { Effect, Schema } from "effect";
 import type { GameFileKind } from "waygate/scripts/waygate/boundary";
 import { INPUT_TRACE_FILE, JournalControl, InputTrace, ResponsePage, responsePageFile } from "../waygate/boundary";
+import { at } from "waygate/src/runtime/lookup";
 import type { Injection, KernelEvent, SourceEdge } from "./linuxInput";
 import {
   type CaptureEvidence, type CaptureMetadata, type ClientExport, type EpochPair, type IntegrityResult, type JourneyEvent,
@@ -112,7 +113,7 @@ const readJsonLines = <S extends Schema.Top & { readonly DecodingServices: never
   Effect.gen(function*() {
     const lines = (yield* readText(path)).split(/\r?\n/);
     if (lines.at(-1) === "") lines.pop();
-    const json = yield* tryIntegrity("parse JSON lines", path, () => lines.map((line) => JSON.parse(line) as unknown));
+    const json = yield* tryIntegrity("parse JSON lines", path, () => lines.map((line): unknown => JSON.parse(line)));
     return yield* Effect.forEach(json, decode(schema, path));
   });
 
@@ -193,7 +194,7 @@ export const readEvidence = (root: string, metadata: CaptureMetadata) =>
     const epochs = [...new Set(pairs.flat())];
     const exports = new Map<number, readonly [ClientExport, ClientExport]>();
     for (const epoch of epochs) exports.set(epoch, [yield* clientExport(root, epoch, 0), yield* clientExport(root, epoch, 1)]);
-    return { metadata, producer, kernel: [kernel[0]!, kernel[1]!] as readonly [readonly KernelEvent[], readonly KernelEvent[]], exports } satisfies CaptureEvidence;
+    return { metadata, producer, kernel: [at(kernel, 0), at(kernel, 1)], exports } satisfies CaptureEvidence;
   });
 
 const reconcile = (root: string, evidence: CaptureEvidence, pair: EpochPair, window?: number) =>

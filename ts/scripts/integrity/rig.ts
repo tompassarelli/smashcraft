@@ -4,7 +4,7 @@
 import { appendFileSync, copyFileSync, mkdirSync, readFileSync, readdirSync, statSync, utimesSync, writeSync } from "node:fs";
 import { join } from "node:path";
 import type { Subprocess } from "bun";
-import { Effect } from "effect";
+import { Effect, Predicate } from "effect";
 import { type Client, type DesktopFailure, click, keys, read, typeText, waitFor } from "waygate/scripts/warcraft/desktop";
 import { IntegrityFailure, producerLine, tryIntegrity } from "./evidence";
 import type { GameFile, JourneyRecord, PublicationRecord, RigShape, Stopped } from "./journey";
@@ -76,7 +76,7 @@ export function liveRig(parts: LiveRigParts): RigShape {
         const { mtimeNs } = statSync(path, { bigint: true });
         return { text: readFileSync(path, "utf8"), mtimeNs };
       } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
+        if (Predicate.isObject(error) && error.code === "ENOENT") return undefined;
         throw error;
       }
     }).pipe(Effect.tap((stored) => {

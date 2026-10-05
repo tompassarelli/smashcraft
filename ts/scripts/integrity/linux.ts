@@ -3,7 +3,7 @@
 // and ioctl, uinput pads, evdev observers and stopped-process checks.
 import { dlopen, ptr, read } from "bun:ffi";
 import { closeSync, constants, openSync, readFileSync, readSync, readdirSync, writeSync } from "node:fs";
-import { Effect } from "effect";
+import { Effect, Predicate } from "effect";
 import { IntegrityFailure, kernelLine, tryIntegrity } from "./evidence";
 import {
   CLOCK_MONOTONIC, CLOCK_REALTIME, EVIOCSCLOCKID, INPUT_EVENT_BYTES, type Injection, type SourceEdge, UI_DEV_CREATE, UI_DEV_DESTROY, UI_GET_SYSNAME,
@@ -20,7 +20,9 @@ const timespec = new BigInt64Array(2);
 
 function clock(id: number): bigint {
   if (libc.symbols.clock_gettime(id, timespec) !== 0) throw new Error(`clock_gettime(${id}) failed`);
-  return timespec[0]! * 1_000_000_000n + timespec[1]!;
+  const [seconds, nanoseconds] = timespec;
+  if (seconds === undefined || nanoseconds === undefined) throw new Error("clock_gettime returned an incomplete timespec");
+  return seconds * 1_000_000_000n + nanoseconds;
 }
 
 /** CLOCK_MONOTONIC in nanoseconds; exact as a number for about 104 days of uptime. */
@@ -124,7 +126,7 @@ export const observeDevice = (device: string, logPath: string) =>
         try {
           bytes = readSync(fd, buffer, 0, buffer.length, null);
         } catch (error) {
-          if ((error as NodeJS.ErrnoException).code === "EAGAIN") return;
+          if (Predicate.isObject(error) && error.code === "EAGAIN") return;
           throw error;
         }
         if (bytes <= 0) return;

@@ -2,6 +2,7 @@
 // functions as gameplay and never enter the map build.
 import { mkdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { Predicate, Schema } from "effect";
 import { AttackStyle, Character } from "../src/game/sim/codes";
 import { type Fighter, createFighter } from "../src/game/sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../src/game/sim/hitRegions";
@@ -27,8 +28,8 @@ const names: Record<number, string> = {
 const json = (value: unknown): string => JSON.stringify(value);
 const rows: string[] = [];
 function firstDifference(expected: string, actual: string): string | undefined {
-  const left = JSON.parse(expected) as unknown;
-  const right = JSON.parse(actual) as unknown;
+  const left: unknown = JSON.parse(expected);
+  const right: unknown = JSON.parse(actual);
   const visit = (a: unknown, b: unknown, path: string): string | undefined => {
     if (typeof a === "number" && typeof b === "number") return Number(a.toFixed(12)) === Number(b.toFixed(12)) ? undefined : path;
     if (Array.isArray(a) && Array.isArray(b)) {
@@ -39,13 +40,11 @@ function firstDifference(expected: string, actual: string): string | undefined {
       }
       return undefined;
     }
-    if (typeof a === "object" && a !== null && typeof b === "object" && b !== null) {
-      const aRecord = a as Record<string, unknown>;
-      const bRecord = b as Record<string, unknown>;
-      const keys = [...new Set([...Object.keys(aRecord), ...Object.keys(bRecord)])].sort();
+    if (Predicate.isObject(a) && Predicate.isObject(b)) {
+      const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].sort();
       for (const key of keys) {
-        if (!(key in aRecord) || !(key in bRecord)) return `${path}.${key}`;
-        const difference = visit(aRecord[key], bRecord[key], `${path}.${key}`);
+        if (!(key in a) || !(key in b)) return `${path}.${key}`;
+        const difference = visit(a[key], b[key], `${path}.${key}`);
         if (difference !== undefined) return difference;
       }
       return undefined;
@@ -84,22 +83,21 @@ function emitMoves(): void {
       const active = characterAttackActiveFrames(character, style);
       const total = attackDurationFramesForGrounding(style, !isAerialAttack(style));
       const recovery = total - startup - active;
-      const humanStyle = style as AttackStyle;
       const multiplier = isSmashAttack(style) ? smashDamageMultiplier(charge) : 1;
       const hurt = hurtCapsule(character);
       const move = { kind: "move", character, move: names[style], style, chargeFrames: charge, startup, active, recovery, totalUnpaused: total,
-        landingLag: attackLandingLag(style), observedLandingLag: observeLandingLag(character, humanStyle, false), observedLCancelLandingLag: observeLandingLag(character, humanStyle, true),
+        landingLag: attackLandingLag(style), observedLandingLag: observeLandingLag(character, style, false), observedLCancelLandingLag: observeLandingLag(character, style, true),
         lCancelWindow: L_CANCEL_WINDOW_FRAMES, chargeDamageMultiplier: multiplier, hurtCapsule: hurt, autocancelWindows: null, animationHurtboxes: null };
       rows.push(json(move));
-      for (let frame = 0; frame < total; frame++) for (let region = 0; region < authoredHitRegionCount(humanStyle); region++) {
-        const hit = authoredHitRegion(emptyHitRegion(), character, humanStyle, frame, charge, region);
+      for (let frame = 0; frame < total; frame++) for (let region = 0; region < authoredHitRegionCount(style); region++) {
+        const hit = authoredHitRegion(emptyHitRegion(), character, style, frame, charge, region);
         if (hit.window <= 0) continue;
         const effect = hit.effect;
         const knockback = ordinaryHitKnockback(0, effect.damage, 100, effect.growth, effect.base, 1);
         const angle = Math.atan2(effect.launchZ, effect.launchX) * 180 / Math.PI;
         rows.push(json({ kind: "contact", character, move: names[style], style, chargeFrames: charge, frame, region, window: hit.window,
           damage: effect.damage, growth: effect.growth, baseKnockback: effect.base, launchX: effect.launchX, launchZ: effect.launchZ,
-          angleDegrees: angle, electric: effect.electric, envelope: [hit.minX, hit.maxX, hit.minZ, hit.maxZ], hitCapsule: capsule(humanStyle, character, frame, charge, region),
+          angleDegrees: angle, electric: effect.electric, envelope: [hit.minX, hit.maxX, hit.minZ, hit.maxZ], hitCapsule: capsule(style, character, frame, charge, region),
           derived: { knockback, hitstun: ordinaryHitstunFrames(knockback), attackerHitlag: ordinaryHitlagFrames(effect.damage),
             victimHitlag: victimHitlagFrames(effect.damage, effect.electric, false), digitalShieldDamage: digitalShieldDamage(effect.damage),
             digitalShieldstun: digitalShieldstunFrames(effect.damage), digitalShieldPushback: digitalShieldPushback(effect.damage), digitalShieldRecoil: digitalShieldRecoil(effect.damage) } }));
@@ -114,7 +112,7 @@ function emitMoves(): void {
     fighter.motion.surface = fighter.motion.grounded ? 0 : undefined;
     fighter.motion.z = fighter.motion.grounded ? 0 : 700;
     const startZ = fighter.motion.z;
-    beginFighterAttack(world, 0, style as AttackStyle, false);
+    beginFighterAttack(world, 0, style, false);
     for (let elapsed = 0; elapsed <= total; elapsed++) {
       rows.push(json({ kind: "motion", character, move: names[style], style, chargeFrames: 0, elapsed, attackFrame: fighter.attack.frame,
         attackStyle: fighter.attack.style ?? -1, phase: fighter.attack.style === undefined ? 0 : fighter.attack.frame < startup ? 1 : fighter.attack.frame < startup + active ? 2 : 3,
@@ -125,9 +123,15 @@ function emitMoves(): void {
   }
 }
 
-type Row = Record<string, any>;
-const readJsonl = async (path: string): Promise<Row[]> => (await Bun.file(path).text()).trim().split("\n").map((line) => JSON.parse(line) as Row);
-export const actionFamily = (style: number): string => ({ 0: "jab1", 2: "usmash", 3: "dsmash", 4: "fsmash", 6: "ftilt", 7: "utilt", 8: "dtilt", 9: "ftilt", 10: "ftilt", 12: "nair", 13: "fair", 14: "bair", 15: "uair", 16: "dair" } as Record<number, string>)[style] ?? "";
+const readJsonl = async <S extends Schema.Top>(path: string, schema: S): Promise<S["Type"][]> =>
+  (await Bun.file(path).text()).trim().split("\n").map((line) => {
+    const value: unknown = JSON.parse(line);
+    // Validate without rebuilding the object: declared facts retain every field and its original order.
+    Schema.asserts(schema, value);
+    return value;
+  });
+const ACTION_FAMILIES: Readonly<Record<number, string>> = { 0: "jab1", 2: "usmash", 3: "dsmash", 4: "fsmash", 6: "ftilt", 7: "utilt", 8: "dtilt", 9: "ftilt", 10: "ftilt", 12: "nair", 13: "fair", 14: "bair", 15: "uair", 16: "dair" };
+export const actionFamily = (style: number): string => ACTION_FAMILIES[style] ?? "";
 export function referenceJoinScope(style: number, charge: number): string {
   if (charge > 0) return "family-only-charge-unknown";
   if (style === 9 || style === 10) return "family-only-angle-unknown";
@@ -136,8 +140,23 @@ export function referenceJoinScope(style: number, charge: number): string {
 export function firstActiveDelta(startup: number, referenceStart: number): number {
   return startup + 1 - referenceStart;
 }
-interface TradeoffFact { readonly category: string; readonly spacing: number; readonly percent: number; readonly shielding: boolean; readonly character: number;
-  readonly connected: boolean; readonly attackerReady: number; readonly defenderReady: number; readonly shieldDamage: number; readonly percentDamage: number; }
+const TradeoffFact = Schema.Struct({
+  category: Schema.String, spacing: Schema.Finite, percent: Schema.Finite, shielding: Schema.Boolean, character: Schema.Finite,
+  connected: Schema.Boolean, attackerReady: Schema.Finite, defenderReady: Schema.Finite, shieldDamage: Schema.Finite, percentDamage: Schema.Finite,
+});
+type TradeoffFact = typeof TradeoffFact.Type;
+const MoveRow = Schema.Union([
+  Schema.Struct({ kind: Schema.Literal("move"), style: Schema.Finite, chargeFrames: Schema.Finite, startup: Schema.Finite, character: Schema.Finite }),
+  Schema.Struct({ kind: Schema.Literals(["context", "contact", "motion"]) }),
+]);
+const ReferenceRow = Schema.Struct({
+  category: Schema.String, character: Schema.String, action: Schema.NullOr(Schema.String),
+  values: Schema.Record(Schema.String, Schema.NullOr(Schema.Finite)), frame_index_origin: Schema.Finite,
+});
+const ComparisonRow = Schema.Union([
+  Schema.Struct({ kind: Schema.Literal("contact"), ...TradeoffFact.fields }),
+  Schema.Struct({ kind: Schema.Literals(["context", "category-rule", "option"]) }),
+]);
 function sameContactContext(a: TradeoffFact, b: TradeoffFact): boolean {
   return a.category === b.category && a.spacing === b.spacing && a.percent === b.percent && a.shielding === b.shielding;
 }
@@ -159,8 +178,8 @@ export function referenceTradeoffVerdict(a: TradeoffFact, b: TradeoffFact): stri
 function emitReference(): Promise<void> {
   return (async () => {
     const [moves, references, comparisons] = await Promise.all([
-      readJsonl(join(root, "tools/move-data/moves.jsonl")), readJsonl(join(root, "references/melee-frame-data/records.jsonl")),
-      readJsonl(join(root, "tools/move-data/comparisons.jsonl")),
+      readJsonl(join(root, "tools/move-data/moves.jsonl"), MoveRow), readJsonl(join(root, "references/melee-frame-data/records.jsonl"), ReferenceRow),
+      readJsonl(join(root, "tools/move-data/comparisons.jsonl"), ComparisonRow),
     ]);
     rows.length = 0;
     rows.push(json({ kind: "context", schema: 1, productionInput: "smashcraft:tools/move-data/moves.jsonl", comparisonInput: "smashcraft:tools/move-data/comparisons.jsonl", referenceInput: "smashcraft:references/melee-frame-data/records.jsonl", productionContext: moves.find((r) => r.kind === "context"), comparisonContext: comparisons.find((r) => r.kind === "context"), join: "action family across distinct identities; never fighter equivalence", declaredMeaning: "verbatim exported facts, including previously derived production measurements", referenceFieldMeanings: { start: "reported first active, one-based", end: "reported last active bound; gaps unknown", total: "reported action boundary; recovery not inferred", stun: "shieldstun, not hitstun", percent: "reported strongest rounded base damage; not multihit total" }, projection: { damage: "maximize shieldDamage on shield, percentDamage on body", attackerReady: "minimize", defenderReady: "maximize", pairing: "different production fighters; same category, spacing, percent, shielding; fixed Rifleman defender and shared fixture" }, excludedFromOrder: ["separation", "launch direction", "hurtbox geometry", "approach and startup", "escape choices", "whole moveset"], tuningDecision: "No supported parameter change: partial-order findings alone do not establish an unwanted trade-off or target." }));
@@ -184,9 +203,10 @@ function emitReference(): Promise<void> {
     }
     const contacts = comparisons.filter((r) => r.kind === "contact");
     for (let j = 0; j < contacts.length; j++) for (let i = 0; i < j; i++) {
-      const a = contacts[i]!, b = contacts[j]!;
-      if (a.character === b.character || !sameContactContext(a as TradeoffFact, b as TradeoffFact)) continue;
-      const verdict = referenceTradeoffVerdict(a as TradeoffFact, b as TradeoffFact);
+      const a = contacts[i], b = contacts[j];
+      if (a === undefined || b === undefined) throw new Error("contact pair missing");
+      if (a.character === b.character || !sameContactContext(a, b)) continue;
+      const verdict = referenceTradeoffVerdict(a, b);
       rows.push(json({ kind: "tradeoff", declared: { a, b }, derived: { verdict }, unknown: { overallDominance: null, tuningRecommendation: null } }));
     }
   })();
@@ -212,7 +232,9 @@ async function main(): Promise<void> {
     const actualRows = result.trim().split("\n");
     const rowCount = Math.min(expectedRows.length, actualRows.length);
     for (let index = 0; index < rowCount; index++) {
-      const difference = firstDifference(expectedRows[index]!, actualRows[index]!);
+      const expected = expectedRows[index], actual = actualRows[index];
+      if (expected === undefined || actual === undefined) throw new Error(`Snapshot row ${index} missing`);
+      const difference = firstDifference(expected, actual);
       if (difference !== undefined) throw new Error(`Generated row ${index} differs from ${snapshot} at ${difference}; inspect the production-data change before replacing the snapshot.`);
     }
     if (expectedRows.length !== actualRows.length) throw new Error(`Generated output has ${actualRows.length} rows; ${snapshot} has ${expectedRows.length}. Inspect before replacing the snapshot.`);

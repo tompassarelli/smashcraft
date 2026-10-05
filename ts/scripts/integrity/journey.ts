@@ -320,7 +320,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
             const names = yield* rig.files(client, journalControlFile(build, epoch, client, "*"));
             const files = yield* Effect.forEach(names, (name) => rig.file(client, name).pipe(Effect.map((file) => ({ name, file }))));
             const matching = files.filter(({ file }) => complete(file) && file.text.includes(` state=${state} `));
-            return matching.length === 1 ? matching[0]!.name : undefined;
+            return matching.length === 1 ? matching[0]?.name : undefined;
           })).pipe(Effect.map(([a, b]) => (a !== undefined && b !== undefined ? [a, b] as const : undefined)));
       const receipts = (state: string) =>
         Effect.gen(function*() {

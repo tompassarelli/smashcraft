@@ -170,18 +170,18 @@ function key(character: number, category: number, spacing: number, percent: numb
 export function exportComparisons(): string[] {
   const rows: string[] = [];
   rows.push(json({ kind: "context", schema: 1, roster: ["Archer", "Rifleman", "Demon Hunter"], defender: "Rifleman with production weight", horizon: HORIZON, timeOrigin: "contact checkpoint, zero-based ticks; -1 means unobserved or unavailable", grounding: "smash/normal grounded; late neutral aerial at attack frame 20, z20, vz-2", facing: [1, -1], stage: 0, charge: 0, shield: "full digital shield held before checkpoint, released afterwards; no powershield", lCancel: "one press on first aerial tick with hitlag <=1", DI: "neutral, no SDI or ASDI displacement", actionable: "canAttack for a normal action; not a universal earliest escape oracle", optionPolicy: "jab or forward tilt attempted at normal-ready + delay 0..12; optional approach only during delay; target otherwise neutral", limits: ["contact-state experiment, not complete approach safety", "strictly earlier contact required; same-tick response is not certified", "bounded true links exclude DI/SDI/escape-policy variation", "no read or human reaction likelihood inferred", "no reference-character equivalence", "no native or balance acceptance"] }));
-  for (let character = 0; character < 3; character++) for (const spacing of [60, 140]) {
-    const normal = compareContact(character as Character, 1, spacing, 0, true);
-    const smash = compareContact(character as Character, 0, spacing, 0, true);
-    const mutant = compareContact(character as Character, 0, spacing, 0, true, true);
+  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) for (const spacing of [60, 140]) {
+    const normal = compareContact(character, 1, spacing, 0, true);
+    const smash = compareContact(character, 0, spacing, 0, true);
+    const mutant = compareContact(character, 0, spacing, 0, true, true);
     rows.push(json({ kind: "category-rule", character, defenderCharacter: Character.rifleman, spacing, percent: 0, shielding: true, rule: "greater shield damage requires later attacker recovery or earlier defender response", productionViolation: categoryTradeoffViolation(smash, normal), mutantViolation: categoryTradeoffViolation(mutant, normal), normalAttackerReady: normal.attackerReady, smashAttackerReady: smash.attackerReady, mutantAttackerReady: mutant.attackerReady, normalDefenderReady: normal.defenderReady, smashDefenderReady: smash.defenderReady, normalShieldDamage: normal.shieldDamage, smashShieldDamage: smash.shieldDamage, mutation: "after contact, only fixture attacker cooldown and remaining attack duration become one tick" }));
     for (let category = 0; category < 3; category++) for (const [percent, shielding] of [[0, true], [0, false], [60, false]] as const) {
-      const result = compareContact(character as Character, category, spacing, percent, shielding);
+      const result = compareContact(character, category, spacing, percent, shielding);
       const identity = key(character, category, spacing, percent, shielding);
       rows.push(json({ kind: "contact", ...identity, ...result }));
       if (!result.connected) continue;
       for (const candidateStyle of [AttackStyle.jab, AttackStyle.forwardTilt]) for (let delay = 0; delay <= 12; delay++) for (const approach of [false, true]) {
-        const follow = compareFollowup(character as Character, category, spacing, percent, shielding, candidateStyle, delay, approach, result);
+        const follow = compareFollowup(character, category, spacing, percent, shielding, candidateStyle, delay, approach, result);
         rows.push(json({ kind: "option", ...identity, role: shielding ? "punish" : "followup", candidateStyle, delay, approach,
           ...follow, verdict: followupVerdict(follow, shielding, approach) }));
       }

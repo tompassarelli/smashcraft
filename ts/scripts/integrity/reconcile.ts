@@ -151,11 +151,15 @@ function bits(mask: number): number[] {
  */
 function sourceMask({ type, code, value }: SourceEdge): number {
   if (value === 0) return 0;
-  if (type === 1) return ({ 0x130: 32, 0x131: 16, 0x133: 16, 0x134: 64, 0x136: 16384, 0x137: 128 } as Record<number, number>)[code] ?? 0;
+  if (type === 1) {
+    const buttons: Readonly<Record<number, number>> = { 0x130: 32, 0x131: 16, 0x133: 16, 0x134: 64, 0x136: 16384, 0x137: 128 };
+    return buttons[code] ?? 0;
+  }
   if (type === 3) {
     if (code === 0) return value < 0 ? 1 : 2;
     if (code === 1) return value < 0 ? 24 : 4;
-    return ({ 2: 256, 5: 512 } as Record<number, number>)[code] ?? 0;
+    const triggers: Readonly<Record<number, number>> = { 2: 256, 5: 512 };
+    return triggers[code] ?? 0;
   }
   return 0;
 }
@@ -213,7 +217,10 @@ function sameEndpoint(a: Endpoint | undefined, b: Endpoint | undefined): boolean
 }
 
 function sameModes(changes: readonly SlotMode[], expected: readonly (readonly [number, number])[]): boolean {
-  return changes.length === expected.length && changes.every((mode, i) => mode.humanFighters === expected[i]![0] && mode.computers === expected[i]![1]);
+  return changes.length === expected.length && changes.every((mode, i) => {
+    const pair = expected[i];
+    return pair !== undefined && mode.humanFighters === pair[0] && mode.computers === pair[1];
+  });
 }
 
 /**
@@ -234,8 +241,9 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
     const kernel = evidence.kernel[slot].filter((event) => event.type !== 0);
     require(sent.length === kernel.length, `slot ${slot}: producer/kernel edge count differs`);
     for (let i = 0; i < Math.min(sent.length, kernel.length); i++) {
-      const edge = sent[i]!;
-      const observed = kernel[i]!;
+      const edge = sent[i];
+      const observed = kernel[i];
+      if (edge === undefined || observed === undefined) throw new MalformedEvidence(`slot ${slot}: source edge ${i} absent`);
       require(edge.type === observed.type && edge.code === observed.code && edge.value === observed.value, `slot ${slot}: producer/kernel source order differs`);
       if (edge.injectedNs !== undefined) require(edge.injectedNs === observed.kernelNs, `slot ${slot}: uinput did not preserve the producer timestamp`);
     }
@@ -255,12 +263,17 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
   for (const epoch of pair) {
     for (const client of SLOTS) {
       const exported = evidence.exports.get(epoch)?.[client];
-      if (!require(exported !== undefined && exported.pages.length > 0, `epoch ${epoch} client ${client}: response pages absent`) || exported === undefined) continue;
+      const firstPage = exported?.pages[0];
+      if (!require(firstPage !== undefined, `epoch ${epoch} client ${client}: response pages absent`) || exported === undefined || firstPage === undefined) continue;
       const text = exported.pages.join("\n");
-      const retained = /integrity retained=(\d+) dropped=(\d+)/.exec(exported.pages[0]!);
+      const retained = /integrity retained=(\d+) dropped=(\d+)/.exec(firstPage);
       if (!require(retained !== null, `epoch ${epoch} client ${client}: integrity header absent`) || retained === null) continue;
       require(Number(retained[2]) === 0, `epoch ${epoch} client ${client}: integrity rows dropped`);
-      const rows = [...text.matchAll(/Preload\( "I ([^"\r\n]+)/g)].map((match) => match[1]!.split(/\s+/).filter((field) => field !== ""));
+      const rows = [...text.matchAll(/Preload\( "I ([^"\r\n]+)/g)].map((match) => {
+        const contents = match[1];
+        if (contents === undefined) throw new MalformedEvidence(`epoch ${epoch} client ${client}: integrity row missing`);
+        return contents.split(/\s+/).filter((field) => field !== "");
+      });
       require(rows.length === Number(retained[1]), `epoch ${epoch} client ${client}: incomplete integrity export`);
       const what = `epoch ${epoch} client ${client} integrity row`;
       const events: NativeRow[] = [];
@@ -285,7 +298,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
       if (stalls.length > 0) {
         let length = 1;
         for (let i = 1; i < stalls.length; i++) {
-          if (stalls[i] === stalls[i - 1]! + 1) {
+          if (stalls[i] === at(stalls, i - 1, `epoch ${epoch} client ${client} stall serial`) + 1) {
             length++;
           } else {
             stallLengths.push(length);
@@ -311,6 +324,8 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
       const segments = [boundary.publications[slot], ...resumes.map((publications) => publications[slot])]
         .map((publication): readonly [number, number] => [publication.estimateNs, integer(/frame=(\d+)/.exec(publication.contents)?.[1], `epoch ${epoch} receipt frame`)])
         .sort(compareSegments);
+      const firstSegment = segments[0];
+      if (firstSegment === undefined) throw new MalformedEvidence(`epoch ${epoch} slot ${slot}: start segment absent`);
       const finalNs = end.publications[slot].estimateNs;
       const expected = new EdgeCounts();
       const expectedHeld = new Map<number, number>();
@@ -322,7 +337,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         if (edge.type === 1 && edge.code === START_BUTTON) continue;
         const before = edge.injectedNs ?? edge.beforeNs;
         const after = edge.injectedNs ?? edge.afterNs;
-        if (before >= finalNs || before < segments[0]![0]) continue;
+        if (before >= finalNs || before < firstSegment[0]) continue;
         const [anchor, first] = segments.filter((segment) => segment[0] <= before).reduce((a, b) => (compareSegments(a, b) >= 0 ? a : b));
         const frame = first + floorDiv((before - anchor) * 60, NS_PER_SECOND);
         require(frame === first + floorDiv((after - anchor) * 60, NS_PER_SECOND), `epoch ${epoch} slot ${slot}: injection crossed frame boundary at ${before}`);
@@ -337,7 +352,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         for (const key of edgeKeys) expected.add(key);
         if (!edge.phase.includes("-integrity-")) continue;
         injected[slot]++;
-        coverage[slot].add(edge.phase.split(":").at(-1)!);
+        coverage[slot].add(edge.phase.slice(edge.phase.lastIndexOf(":") + 1));
         require(edgeKeys.length > 0, `epoch ${epoch} slot ${slot}: source transition has no action edge`);
         sourceEdges.push(edgeKeys);
         const down = previousDown.get(source);
@@ -358,7 +373,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         for (const { stage, values } of events) {
           if (stage !== "confirmed" || values[1] !== slot) continue;
           if (values.length !== 7) throw new MalformedEvidence(`${what}: ${values.length} fields`);
-          const [, , frame, held, pressed, released] = values as readonly [number, number, number, number, number, number, number];
+          const frame = at(values, 2, what), held = at(values, 3, what), pressed = at(values, 4, what), released = at(values, 5, what);
           frames.push(frame);
           for (const key of frameEdges(frame, pressed, released)) observed.add(key);
           const expectedMask = expectedHeld.get(frame);
@@ -366,7 +381,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         }
         lost += expected.excess(observed);
         duplicated += observed.excess(expected);
-        for (let i = 1; i < frames.length; i++) if (frames[i]! <= frames[i - 1]!) reordered++;
+        for (let i = 1; i < frames.length; i++) if (at(frames, i, what) <= at(frames, i - 1, what)) reordered++;
         observedClients.push(observed);
         if (client === slot) continue;
         for (const { stage, values } of events) {
@@ -393,7 +408,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
       for (const { stage, values } of local) {
         if (stage !== "legal" || values[1] !== slot) continue;
         if (values.length !== 6) throw new MalformedEvidence(`${what}: ${values.length} fields`);
-        const [, , frame, pressed, legal, started] = values as readonly [number, number, number, number, number, number];
+        const frame = at(values, 2, what), pressed = at(values, 3, what), legal = at(values, 4, what), started = at(values, 5, what);
         legalPresses += popcount(legal);
         illegalPresses += popcount(pressed & ~legal);
         require((started & legal) === legal, `epoch ${epoch} slot ${slot} frame ${frame}: legal confirmed action failed`);

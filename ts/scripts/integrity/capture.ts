@@ -6,6 +6,7 @@ import { dirname, join } from "node:path";
 import { parseArgs } from "node:util";
 import type { Subprocess } from "bun";
 import { Effect, Exit, Option } from "effect";
+import { at } from "waygate/src/runtime/lookup";
 import { clientState } from "../waygate/project";
 import { type Client, type DesktopFailure, focus, loadClients, windowPid } from "waygate/scripts/warcraft/desktop";
 import { IntegrityFailure, tryIntegrity, tryIntegrityPromise } from "./evidence";
@@ -128,7 +129,7 @@ export const captureMatches = (options: CaptureOptions) =>
     const { build, out } = options;
     const loaded = yield* loadClients(options.clients ?? clientState).pipe(Effect.mapError(fromDesktop));
     if (loaded.length !== 2) return yield* new IntegrityFailure({ operation: "load clients", path: options.clients ?? "default clients file", cause: `${loaded.length} clients, need 2` });
-    const clients = [loaded[0], loaded[1]!] as const;
+    const clients = [loaded[0], at(loaded, 1)] as const;
     const [appA, appB] = clients.map((client) => options.appIds.get(client.name));
     if (appA === undefined || appB === undefined) return yield* new IntegrityFailure({ operation: "read app IDs", path: "--app-id", cause: `need one for each of ${clients.map((c) => c.name).join(", ")}` });
     const appIds = [appA, appB] as const;
@@ -163,10 +164,10 @@ export const captureMatches = (options: CaptureOptions) =>
         out,
         build,
         startedNs,
-        gamePids: [gamePids[0]!, gamePids[1]!],
-        pads: [pads[0]!, pads[1]!],
+        gamePids: [at(gamePids, 0), at(gamePids, 1)],
+        pads: [at(pads, 0), at(pads, 1)],
         observers,
-        helpers: [helpers[0]!, helpers[1]!],
+        helpers: [at(helpers, 0), at(helpers, 1)],
         producerLog,
         events,
       });
