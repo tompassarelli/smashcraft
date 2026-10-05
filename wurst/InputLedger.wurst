@@ -3,9 +3,7 @@ import NetworkInput
 import ParticipantInputs
 import InputProtocol
 
-// Completed rows stay retained for replay (REPLAY_HISTORY_CAPACITY) while
-// input arrives up to INPUT_FUTURE_LIMIT ahead; capacity must exceed both together.
-public constant int INPUT_LEDGER_CAPACITY = 512
+public constant int INPUT_LEDGER_CAPACITY = 256
 public constant int INPUT_FUTURE_LIMIT = 64
 public constant int INPUT_ACCEPTED = 0
 public constant int INPUT_MALFORMED = 1
