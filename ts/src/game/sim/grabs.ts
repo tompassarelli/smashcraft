@@ -131,7 +131,7 @@ export function advanceGrabs(world: Roster, controls: readonly Readonly<Controls
     const heldSlot = target !== undefined && isActive(world, target) ? target : undefined;
     const ownerInput = controlsAt(controls, slot);
     const targetInput = heldSlot === undefined ? ownerInput : controlsAt(controls, heldSlot);
-    const paused = world.grabPaused[slot]! || (heldSlot !== undefined && world.grabPaused[heldSlot]!);
+    const paused = world.grabPaused[slot] === true || (heldSlot !== undefined && world.grabPaused[heldSlot] === true);
     advanceGrab(world, slot, ownerInput, targetInput, paused);
   }
   if (ownsBatch) finishDamageContacts(world);

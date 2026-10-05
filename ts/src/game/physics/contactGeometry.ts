@@ -3,6 +3,7 @@
 // replays, so capsule functions fill a caller's record instead of returning
 // a new one.
 import { f32 } from "../../sim/f32";
+import { at } from "../../runtime/lookup";
 
 /** A segment swept by a radius. */
 export interface Capsule {
@@ -145,5 +146,5 @@ const HURT_CAPSULES: readonly Readonly<Capsule>[] = [
 
 /** A character's facing-relative hurt capsule; characters past the table share its last entry. */
 export function hurtCapsule(character: number): Readonly<Capsule> {
-  return HURT_CAPSULES[character] ?? HURT_CAPSULES[HURT_CAPSULES.length - 1]!;
+  return HURT_CAPSULES[character] ?? at(HURT_CAPSULES, HURT_CAPSULES.length - 1);
 }

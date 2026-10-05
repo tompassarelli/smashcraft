@@ -11,6 +11,7 @@ import { Capture } from "./capture";
 import { type FixedDelay, FixedInputSchedule, fixedCaptureTarget } from "./fixedSchedule";
 import { FrameRing } from "./frameRing";
 import { FUTURE_LIMIT, type Receipt } from "./ledger";
+import { at } from "../../runtime/lookup";
 
 export const DEFAULT_ROLLBACK_WINDOW = 6;
 export const PENDING_CAPACITY = 256;
@@ -159,15 +160,14 @@ export class ShadowInputSchedule {
     let resolution: Resolution = "accepted";
     for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
       if (!this.isActive(slot)) continue;
-      const target = inputs[slot]!;
-      const previous = this.previous[slot]!;
+      const target = at(inputs, slot);
+      const previous = at(this.previous, slot);
       const accepted = this.schedule.accepted(epoch, slot, frame);
       if (accepted !== undefined) {
         copyInput(target, accepted);
       } else {
         resolution = "speculative";
-        // mayAdvanceSpeculativeFor proved the local row is captured when it is not accepted.
-        if (slot === localPlayer) copyInput(target, this.pendingRows.row(frame)!);
+        if (slot === localPlayer) copyInput(target, this.capturedRow(frame));
         else predictInto(target, previous);
       }
       copyInput(previous, target);
@@ -215,10 +215,17 @@ export class ShadowInputSchedule {
     return this.schedule.accepted(epoch, slot, frame);
   }
 
+  /** mayAdvanceSpeculativeFor proved the local row is captured whenever it is not yet accepted. */
+  private capturedRow(frame: number): Readonly<InputRow> {
+    const row = this.pendingRows.row(frame);
+    if (row === undefined) throw new Error(`local input for frame ${frame} was never captured`);
+    return row;
+  }
+
   /** Replaces a slot's prediction basis after a correction rebuilt its rows. */
   rememberResolvedInput(slot: number, row: Readonly<InputRow>): boolean {
     if (!this.isActive(slot)) return false;
-    copyInput(this.previous[slot]!, row);
+    copyInput(at(this.previous, slot), row);
     return true;
   }
 

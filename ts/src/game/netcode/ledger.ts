@@ -5,6 +5,7 @@ import { type InputRow, emptyInput, sameInput } from "../input/inputRow";
 import { PARTICIPANT_CAPACITY, isParticipantMask, participantActive } from "../input/participants";
 import { INPUT_LAST_FRAME, type InputPacket, decodePacket } from "../input/wire";
 import { FrameRing } from "./frameRing";
+import { at } from "../../runtime/lookup";
 
 export const LEDGER_CAPACITY = 256;
 /** How far past the last consumed frame a row may arrive. */
@@ -54,7 +55,7 @@ export class InputLedger {
     for (let i = 0; i < delay; i++) {
       const frame = firstFrame + i;
       for (let sender = 0; sender < PARTICIPANT_CAPACITY; sender++) {
-        if (this.isActive(sender)) this.senders[sender]!.store(frame, NEUTRAL);
+        if (this.isActive(sender)) at(this.senders, sender).store(frame, NEUTRAL);
       }
       this.known = frame;
     }
@@ -90,7 +91,7 @@ export class InputLedger {
   accepted(epoch: number, sender: number, frame: number): Readonly<InputRow> | undefined {
     if (epoch !== this.current || !this.isActive(sender) || frame < this.retainedFrom || frame > INPUT_LAST_FRAME) return undefined;
     if (frame - this.retainedFrom >= LEDGER_CAPACITY) return undefined;
-    return this.senders[sender]!.row(frame);
+    return at(this.senders, sender).row(frame);
   }
 
   /**
@@ -126,10 +127,10 @@ export class InputLedger {
     if (rows.length < 1 || rows.length > 2) return "malformed";
     if (epoch !== this.current) return "wrongEpoch";
     for (let i = 0; i < rows.length; i++) {
-      const receipt = this.check(sender, firstFrame + i, rows[i]!);
+      const receipt = this.check(sender, firstFrame + i, at(rows, i));
       if (receipt !== "accepted") return receipt;
     }
-    rows.forEach((row, i) => this.senders[sender]!.store(firstFrame + i, row));
+    rows.forEach((row, i) => at(this.senders, sender).store(firstFrame + i, row));
     while (this.known < INPUT_LAST_FRAME && this.allPresent(epoch, this.known + 1)) this.known++;
     return "accepted";
   }
@@ -148,7 +149,7 @@ export class InputLedger {
     if (frame < this.retainedFrom) return "outOfHistory";
     if (frame - this.consumed > FUTURE_LIMIT) return "tooFarAhead";
     if (frame - this.retainedFrom >= LEDGER_CAPACITY) return "storageFull";
-    const ring = this.senders[sender]!;
+    const ring = at(this.senders, sender);
     const stored = ring.row(frame);
     if (stored !== undefined) return sameInput(stored, row) ? "accepted" : "conflict";
     return ring.vacant(frame) ? "accepted" : "storageFull";

@@ -9,7 +9,9 @@
 //   on the host, to x;
 // - rejects code that would compile but compute differently in Warcraft:
 //   decimal literals that aren't binary32 values, `%`, `>>>`, Math.floor(a / b),
-//   and runtime services without a deterministic Lua meaning.
+//   and runtime services without a deterministic Lua meaning;
+// - rejects type escapes in game code (tests excepted): `any`, `as unknown as`
+//   and non-null `!`, which assert what the code should check.
 // Node, Bun and DOM APIs need no rule: the map tsconfig doesn't declare them.
 import * as ts from "typescript";
 import * as tstl from "typescript-to-lua";
@@ -79,6 +81,7 @@ const RUNTIME_SERVICES = new Map([
 function check(file: ts.SourceFile, checker: ts.TypeChecker, diagnostics: ts.Diagnostic[]): void {
   // intMath holds the host definitions of the operations this plugin compiles to Lua operators.
   if (file.fileName.endsWith("/src/sim/intMath.ts")) return;
+  const isTest = file.fileName.endsWith(".tests.ts");
   const reject = (node: ts.Node, messageText: string) =>
     diagnostics.push({ category: ts.DiagnosticCategory.Error, code: 9300, source: "warcraft", file, start: node.getStart(file), length: node.getWidth(file), messageText });
   const visit = (node: ts.Node): void => {
@@ -106,6 +109,10 @@ function check(file: ts.SourceFile, checker: ts.TypeChecker, diagnostics: ts.Dia
     } else if (ts.isIdentifier(node)) {
       const service = RUNTIME_SERVICES.get(node.text);
       if (service !== undefined && !ts.isTypeReferenceNode(node.parent) && isStandardLibrary(node, checker)) reject(node, service);
+    } else if (!isTest) {
+      if (ts.isNonNullExpression(node)) reject(node, "non-null `!` asserts what the code should check; handle the absent case");
+      else if (node.kind === ts.SyntaxKind.AnyKeyword) reject(node, "`any` turns off type checking; name the type");
+      else if (ts.isAsExpression(node) && ts.isAsExpression(node.expression) && node.expression.type.kind === ts.SyntaxKind.UnknownKeyword) reject(node, "`as unknown as` forces an unrelated type; convert the value instead");
     }
     ts.forEachChild(node, visit);
   };

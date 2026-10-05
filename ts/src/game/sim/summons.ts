@@ -125,7 +125,7 @@ export function advanceFreezeTraps(world: Roster): void {
     }
     if (nearest !== undefined) {
       triggers[ownerSlot] = true;
-      freezes[nearest] = freezes[nearest]! || !fighterAt(world, nearest).shield.raised;
+      freezes[nearest] = freezes[nearest] === true || !fighterAt(world, nearest).shield.raised;
     }
   }
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {

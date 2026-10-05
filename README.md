@@ -8,12 +8,7 @@ Smashcraft is an in-development, Melee-inspired platform fighter for Warcraft
 III. Archer, Rifleman, and Illidan fight on floating stages with jumps, air
 dodges, shields, hitstun, knockback, and stocks.
 
-[Download the playable prototype](https://github.com/tompassarelli/smashcraft/releases/download/prototype-2026-10-01/Smashcraft.w3x)
-· [Release notes, installation, and known limits](https://github.com/tompassarelli/smashcraft/releases/tag/prototype-2026-10-01)
-· [Player guide](docs/player-guide.md)
-
-The downloadable map is an earlier snapshot. The current local Linux controller
-build is described in [docs/playable-0041.md](docs/playable-0041.md). Status
+There is no public release yet. [Player guide](docs/player-guide.md) · status
 and next work: [roadmap #16](https://github.com/tompassarelli/smashcraft/issues/16).
 
 ## Build and test

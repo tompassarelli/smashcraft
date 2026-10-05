@@ -8,6 +8,7 @@ import { REPLAY_HISTORY_CAPACITY } from "../replay/limits";
 import { Capture } from "./capture";
 import { FrameRing } from "./frameRing";
 import { InputLedger, LEDGER_CAPACITY, type Receipt } from "./ledger";
+import { at } from "../../runtime/lookup";
 
 /** The input delays a schedule supports. */
 export type FixedDelay = 0 | 1 | 2 | 3 | 5;
@@ -125,7 +126,7 @@ export class FixedInputSchedule {
     if (epoch !== this.current || !this.mayAdvance()) return false;
     for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
       const row = this.ledger.accepted(epoch, slot, this.next);
-      if (row !== undefined) copyInput(inputs[slot]!, row);
+      if (row !== undefined) copyInput(at(inputs, slot), row);
     }
     this.prepared = this.next;
     return true;

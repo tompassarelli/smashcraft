@@ -1,5 +1,6 @@
 import { floorMod } from "../../sim/intMath";
 import { type InputRow, copyInput, emptyInput } from "../input/inputRow";
+import { at } from "../../runtime/lookup";
 
 interface Slot {
   frame: number | undefined;
@@ -19,7 +20,7 @@ export class FrameRing {
   }
 
   private slot(frame: number): Slot {
-    return this.slots[floorMod(frame, this.capacity)]!;
+    return at(this.slots, floorMod(frame, this.capacity));
   }
 
   /** The row stored for exactly this frame. Valid until the frame is released. */
