@@ -1,10 +1,10 @@
-# Smashcraft 0.0.43: Linux start guide
+# Smashcraft 0.0.44: Linux start guide
 
 This is a private candidate. The preserved 0.0.41 and 0.0.42 maps remain separate.
 Use this map and its matching helper together:
 
-- Map: ~/.local/share/smashcraft-build-inputs/native-delivery-20261005/playable-0043/Smashcraft 0.0.43.w3x
-- Helper: ~/.local/share/smashcraft-build-inputs/native-delivery-20261005/playable-0043/wc3-journal-0.0.43
+- Map: ~/.local/share/smashcraft-build-inputs/playable-0044/Smashcraft 0.0.44.w3x
+- Helper: ~/.local/share/smashcraft-build-inputs/playable-0044/wc3-journal-0.0.44
 
 Put the map in each player's Warcraft III `Maps/00-Smashcraft` folder. Join the
 same custom game and start it. At fighter selection, start one helper for each
@@ -15,8 +15,8 @@ reloading the map, stop the helper and start it again at fighter selection.
 For a private desktop, the helper command is:
 
 ```sh
-~/.local/share/smashcraft-build-inputs/native-delivery-20261005/playable-0043/wc3-journal-0.0.43 \
-  --follow-matches --build playable-0043 --slot 0 \
+~/.local/share/smashcraft-build-inputs/playable-0044/wc3-journal-0.0.44 \
+  --follow-matches --build playable-0044 --slot 0 \
   --device /dev/input/eventN --out '/absolute/Warcraft III/CustomMapData' \
   --editbox-display :N --x11-window DECIMAL_XID --pid GAME_PID \
   --private-wlr-app-id GAME_APP_ID
@@ -36,8 +36,25 @@ a different device or USB identity needs a fresh helper.
 | Fight | Stick: move; A: attack; X: special; B/Y or stick-up: jump; RB: grab; LB: walk; either trigger: shield |
 | Pause/results | Start: pause/resume; A or Start at results: rematch |
 
-Developer build command: `bun wisp build --profile playable` with the normal
-private map inputs. This profile uses the same combat and controller path as
-the native four-fighter acceptance map, with build ID `playable-0043` and the
-developer display and response recording disabled. Rebuilding uses
-`bun wisp rebuild /absolute/candidate.w3x --profile playable`.
+The stage screen's stock and time settings use the mouse.
+
+## Developer build
+
+The profile shares the native four-fighter acceptance map's combat and
+controller path, with build ID `playable-0044`. The developer display and
+response recording are off. Built from ts/ with the private inputs:
+
+```sh
+bun wisp build --profile playable --base ~/.local/share/smashcraft-build-inputs/physics-base.w3m \
+  --container ~/.local/share/smashcraft-build-inputs/native-delivery-20261005/'Smashcraft diagnostic four-fighters.w3x' \
+  --assets ~/.local/share/smashcraft-build-inputs/build-port-20261005 \
+  --summon ~/.local/share/smashcraft-build-inputs/build-port-20261005/summon-original-clips \
+  --name "Smashcraft 0.0.44" --out ~/.local/share/smashcraft-build-inputs/playable-0044/'Smashcraft 0.0.44.w3x'
+```
+
+The helper is the unchanged 0.0.43 binary, renamed. `--build` names the map's build.
+
+To check a candidate on the two engineering clients, run
+`bun wisp fresh MAP.w3x --no-quick` to stop at fighter selection, then
+`bun wisp playable capture --helper HELPER --build playable-0044 --out DIR --app-id a=APP_ID --app-id b=APP_ID`
+and `bun wisp playable result DIR`.

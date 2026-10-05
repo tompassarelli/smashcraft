@@ -1,0 +1,11 @@
+$ bun scripts/wisp.ts fresh "/home/tom/.local/share/smashcraft-build-inputs/playable-0044/Smashcraft 0.0.44.w3x" --no-quick
+   0.029 s  map installed (0.001 s)
+   0.877 s  a: input batch (3 actions) (0.070 s)
+   0.892 s  b: input batch (3 actions) (0.069 s)
+   1.312 s  a: input batch (3 actions) (0.229 s)
+   1.322 s  b: input batch (3 actions) (0.228 s)
+  11.335 s  a at Custom Games failed (11.305 s)
+  11.336 s  b at Custom Games interrupted (11.304 s)
+  11.337 s  fresh failed (11.337 s)
+wait for match results failed for a: not seen within 10 s
+error: script "wisp" exited with code 1

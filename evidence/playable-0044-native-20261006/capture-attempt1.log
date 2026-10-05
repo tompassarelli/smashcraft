@@ -1,0 +1,5 @@
+$ bun scripts/wisp.ts playable capture --helper "/home/tom/.local/share/smashcraft-build-inputs/playable-0044/wc3-journal-0.0.44" --build "playable-0044" --out "/home/tom/.local/share/smashcraft-build-inputs/playable-0044/capture" --app-id "a=steam_app_3516115571" --app-id "b=steam_app_3516115572" --first-epoch "1"
+  32.312 s  native playable match and rematch failed (32.311 s)
+  32.312 s  playable failed (32.312 s)
+live controller menu phase STAGE absent failed for /home/tom/.local/share/smashcraft-build-inputs/playable-0044/capture: not observed within 30 s
+error: script "wisp" exited with code 1

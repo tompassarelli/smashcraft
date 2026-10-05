@@ -1,0 +1,11 @@
+[
+  {
+    "event": "menu",
+    "phase": "CHARACTER",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0044 epoch=0 slot=0 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+      "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=playable-0044 epoch=0 slot=1 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n"
+    ],
+    "observed_monotonic_ns": 627959917544871
+  }
+]

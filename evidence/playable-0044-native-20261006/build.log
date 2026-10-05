@@ -1,0 +1,8 @@
+$ bun scripts/wisp.ts build --profile playable --base "/home/tom/.local/share/smashcraft-build-inputs/physics-base.w3m" --container "/home/tom/.local/share/smashcraft-build-inputs/native-delivery-20261005/Smashcraft diagnostic four-fighters.w3x" --assets "/home/tom/.local/share/smashcraft-build-inputs/build-port-20261005" --summon "/home/tom/.local/share/smashcraft-build-inputs/build-port-20261005/summon-original-clips" --name "Smashcraft 0.0.44" --out "/home/tom/.local/share/smashcraft-build-inputs/playable-0044/Smashcraft 0.0.44.w3x"
+   0.039 s  verify toolchain (0.010 s)
+   7.327 s  compile (7.286 s)
+   7.540 s  generate (0.213 s)
+   7.613 s  package (0.071 s)
+   8.336 s  verify 304 entries (0.723 s)
+built /home/tom/.local/share/smashcraft-build-inputs/playable-0044/Smashcraft 0.0.44.w3x
+   8.365 s  build (8.365 s)
