@@ -1,4 +1,6 @@
-import { INTEGRITY_BUILD } from "../game/shell/currentBuild";
+// The development map's entry: the game's entry plus the scene report. The
+// playable entry shares main.ts and never compiles this module.
+import { CURRENT_BUILD } from "../game/shell/currentBuild";
 import { install as installGame, startBuild } from "./main";
 import { installSceneReport, startMatchSceneReport } from "./sceneReport";
 
@@ -7,8 +9,7 @@ export function install(this: void): void {
   installSceneReport();
 }
 
-/** Normal production gameplay with the native helper's journal/editbox input, reporting the scene it draws. */
 export function start(this: void): void {
-  startBuild(INTEGRITY_BUILD);
+  startBuild(CURRENT_BUILD);
   startMatchSceneReport();
 }

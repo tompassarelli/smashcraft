@@ -39,6 +39,9 @@ const ALLOWED_LOCAL: Readonly<Record<string, string>> = {
   DisplayTextToPlayer: "local message",
   TimerGetElapsed: "reads a timer; local measurements never feed synchronized state",
   GetPlayerId: "reads a player's slot number; no effect",
+  BlzGetLocalSpecialEffectX: "reads an effect's local position, which only the scene report uses",
+  BlzGetLocalSpecialEffectY: "reads an effect's local position, which only the scene report uses",
+  BlzGetLocalSpecialEffectZ: "reads an effect's local position, which only the scene report uses",
   I2S: "pure conversion",
   R2S: "pure conversion",
   R2I: "pure conversion",
@@ -121,6 +124,11 @@ export function installNatives(): () => void {
         if (current === undefined) throw new Error(`${name} used outside a client`);
         return current.natives[name];
       },
+      // The scene recorder wraps effect natives in the client's globals.
+      set: (value: unknown) => {
+        if (current === undefined) throw new Error(`${name} replaced outside a client`);
+        current.natives[name] = value;
+      },
     });
   }
   return () => {
@@ -148,6 +156,8 @@ export class Client {
   private readonly memo = new Map<string, Handle>();
   private event: EventContext = { player: 0, syncPrefix: "", syncData: "", chat: "", key: 0, timer: undefined };
   private preload: string[] = [];
+  /** Effect positions; an effect stays on the ground, at height 0, where AddSpecialEffect creates it until moved. */
+  private readonly positions = new Map<unknown, readonly [number, number, number]>();
 
   constructor(readonly slot: number, readonly humans: readonly number[], readonly network: SyncMessage[], screenWidth: number) {
     const handle = (kind: string): Handle => ({ kind, id: ++this.nextId });
@@ -214,6 +224,10 @@ export class Client {
       PreloadGenClear: () => { this.preload = []; },
       Preload: (line: string) => { this.preload.push(line); },
       PreloadGenEnd: (name: string) => { this.files.set(name, this.preload); },
+      BlzSetSpecialEffectPosition: (effect: unknown, x: number, y: number, z: number) => { this.positions.set(effect, [x, y, z]); },
+      BlzGetLocalSpecialEffectX: (effect: unknown) => this.positions.get(effect)?.[0] ?? 0,
+      BlzGetLocalSpecialEffectY: (effect: unknown) => this.positions.get(effect)?.[1] ?? 0,
+      BlzGetLocalSpecialEffectZ: (effect: unknown) => this.positions.get(effect)?.[2] ?? 0,
       DisplayTextToPlayer: (_p: number, _x: number, _y: number, text: string) => { if (text.startsWith("error in")) this.errors.push(text); },
       I2S: (n: number) => String(n),
       R2S: (n: number) => n.toFixed(3),

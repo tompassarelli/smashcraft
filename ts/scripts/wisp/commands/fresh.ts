@@ -1,5 +1,6 @@
-// `wisp fresh MAP.w3x`: starts a new Battle.net game, issues `-dev quick`
-// and waits for every client's receipt. `--rebuild` packages a warm script first.
+// `wisp fresh MAP.w3x`: starts a new Battle.net game, issues `-dev quick`,
+// waits for every client's receipt, then checks what each player sees
+// (playerView.ts). `--rebuild` packages a warm script first.
 // The first client hosts; the others join by game name. The map signals
 // character selection by writing its ready file into each client's
 // CustomMapData.
@@ -12,6 +13,7 @@ import type { MalformedGameFile } from "wisp/scripts/wisp/boundary";
 import { type Client, Clients, type DesktopFailure, waitFor, waitForText } from "wisp/scripts/wisp/clients";
 import { type Command, UsageFailure } from "wisp/scripts/wisp/command";
 import { GameFiles, dataDirectory, readGameFile } from "wisp/scripts/wisp/gameFiles";
+import { checkPlayerView } from "wisp/scripts/wisp/playerView";
 import { step } from "wisp/scripts/wisp/timings";
 import { rebuildMap } from "../mapInputs";
 
@@ -38,11 +40,13 @@ export const JOIN_NAME = { x: 300, y: 1205 };
 export const JOIN = { x: 1295, y: 1213 };
 export const START = { x: 2195, y: 1127 };
 
-import { clientState } from "../project";
+import { clientState, profileOption, sceneProfiles } from "../project";
+import { freshFrames, smashcraftPlayerView } from "../playerView";
 import { profileOptions } from "./map";
 
 export const fresh: Command = (args) => Effect.gen(function*() {
   const options = yield* profileOptions(args);
+  const { profile } = yield* profileOption(args);
   const [map, ...flags] = options.args;
   if (map === undefined || flags.some((flag) => flag !== "--rebuild" && flag !== "--from-game")) {
     return yield* new UsageFailure({ problem: "fresh takes MAP.w3x [--rebuild] [--from-game] [--profile PROFILE]" });
@@ -50,7 +54,9 @@ export const fresh: Command = (args) => Effect.gen(function*() {
   yield* Effect.gen(function*() {
     if (flags.includes("--rebuild")) yield* rebuildMap(map).pipe(step("map rebuilt"));
     yield* freshMatch(map, flags.includes("--from-game"));
+    const since = yield* Clock.currentTimeMillis;
     yield* sendQuickMatchCommand.pipe(step("quick match and client receipts"));
+    yield* checkPlayerView(smashcraftPlayerView({ frame: true, scene: sceneProfiles.has(profile) }), since, freshFrames).pipe(step("player view"));
   }).pipe(Effect.provide(options.services.pipe(Layer.provideMerge(Clients.layer(clientState)))));
 });
 

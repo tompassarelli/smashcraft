@@ -1,10 +1,11 @@
 // Foreign model-format boundary. Simulation owns all world-space platform edges.
 import { parseMDL, generateMDX, parseMDX } from "../animations/node_modules/war3-model";
 import { join } from "node:path";
+import { STAGE_PALETTE } from "../../ts/src/game/assets/stagePalette";
 
 const output = join(import.meta.dir, "../../build/stage-assets");
 // Slate walking surface, brass lip, charcoal structural body, recessed steel.
-const colors = [[136, 151, 157], [153, 129, 78], [48, 58, 68], [77, 91, 103]];
+const colors = [STAGE_PALETTE.slate, STAGE_PALETTE.brass, STAGE_PALETTE.charcoal, STAGE_PALETTE.steel];
 const texture = new Uint8Array(18 + colors.length * 4);
 texture[2] = 2;
 texture[12] = colors.length;

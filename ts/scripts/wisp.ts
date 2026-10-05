@@ -18,6 +18,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   "four-fighters": { usage: "four-fighters capture OPTIONS... | result CAPTURE_DIR", load: async () => (await import("./wisp/commands/fourFighters")).fourFighters },
   playable: { usage: "playable capture OPTIONS... | result CAPTURE_DIR", load: async () => (await import("./wisp/commands/playable")).playable },
   client: { usage: "client look|read|click|keys CLIENT ...", load: async () => (await import("./wisp/commands/client")).client },
+  view: { usage: "view scene DATA_DIR... | frame FRAME.ppm...", load: async () => (await import("./wisp/commands/view")).view },
 };
 
 const [name, ...args] = process.argv.slice(2);

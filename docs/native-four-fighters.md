@@ -49,6 +49,12 @@ retain two players and two CPUs. After the rematch result, the journey returns
 to fighter selection and empties C/D. Results are archived before leaving each
 match; a longer match also gets a stationary result trace.
 
+At each match start, about a second in, the journey also checks what each
+player sees, and the scene report again at each result
+(smashcraft:docs/player-view.md); frames stay in
+`OUT/player-view-EPOCH/CLIENT.ppm`. A map built before the scene recorder
+writes no report, so rebuild candidates before capturing.
+
 The result command writes `four-fighters.json` beside the native capture.
 Exit 0 requires all four final result checksums at matching frames, with no
 journey failures. Retain the candidate map hash and helper hash with the raw

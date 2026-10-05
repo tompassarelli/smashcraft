@@ -89,6 +89,8 @@ export interface RigShape {
   readonly type: (client: Slot, text: string) => Effect.Effect<void, IntegrityFailure>;
   /** Copies this capture's game files from both clients into epoch-LABEL/. */
   readonly archive: (label: string) => Effect.Effect<void, IntegrityFailure>;
+  /** Checks what each player sees in a match: one captured frame each, and the scene report of a build that writes one. */
+  readonly playerView: (epoch: number, checks: { readonly frame: boolean; readonly scene: boolean }) => Effect.Effect<void, IntegrityFailure>;
   readonly record: (event: JourneyRecord) => Effect.Effect<void>;
   readonly progress: (message: string) => Effect.Effect<void>;
 }
@@ -418,6 +420,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const deadline = Math.max(...started.map((publication) => publication.publication_monotonic_estimate_ns)) + 300_000_000;
       yield* rig.sleep(Math.max(0, (deadline - (yield* rig.monotonicNs)) / 1_000_000));
       yield* rig.sleep(700);
+      // The playable build starts no scene recorder.
+      yield* rig.playerView(epoch, { frame: true, scene: !playable });
       if (matchOnly || playable) {
         for (let attack = 0; attack < 4; attack++) {
           for (const slot of SLOTS) yield* tap(slot, `match-${epoch}-combat`);
@@ -436,6 +440,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const quiescent = new RegExp(`match_quiescent epoch=${epoch}(?:\\s|$)`);
       yield* rig.until(`epoch ${epoch}: helpers did not quiesce`, Effect.forEach(SLOTS, rig.helperLog).pipe(Effect.map((logs) => logs.every((log) => quiescent.test(log)))));
       yield* rig.record({ event: "end", epoch, publications: yield* boundaries(end), observed_monotonic_ns: yield* rig.monotonicNs });
+      // At the result every stay in view is complete; the screen no longer shows the arena.
+      if (!playable) yield* rig.playerView(epoch, { frame: false, scene: true });
       const results = yield* both((client) => rig.waitText(client, RESULTS));
       if (playable) {
         // The playable build has no response probe: its results are the

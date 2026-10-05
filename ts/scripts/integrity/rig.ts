@@ -4,16 +4,22 @@
 import { appendFileSync, copyFileSync, mkdirSync, readFileSync, readdirSync, statSync, utimesSync, writeSync } from "node:fs";
 import { join } from "node:path";
 import type { Subprocess } from "bun";
-import { Effect, Predicate } from "effect";
+import { Effect, Layer, Predicate } from "effect";
 import { type Client, type DesktopFailure, click, keys, read, typeText, waitFor } from "wisp/scripts/warcraft/desktop";
+import { Clients } from "wisp/scripts/wisp/clients";
+import { checkPlayerView } from "wisp/scripts/wisp/playerView";
 import { IntegrityFailure, producerLine, tryIntegrity } from "./evidence";
 import type { GameFile, JourneyRecord, PublicationRecord, RigShape, Stopped } from "./journey";
 import { type Observer, type Pad, continueProcess, inject, monotonicNs, realtimeNs, stopProcess } from "./linux";
 import { SLOTS, type Slot } from "./reconcile";
 import { INPUT_TRACE_FILE, responsePageFile, decodeWrittenGameFile } from "../wisp/boundary";
+import { smashcraftPlayerView } from "../wisp/playerView";
+import { gameFilesLayer } from "../wisp/project";
 
 interface LiveRigParts {
   readonly clients: readonly [Client, Client];
+  /** The desktop driver's clients file the clients were loaded from. */
+  readonly clientsFile: string;
   /** Each client's CustomMapData folder. */
   readonly data: readonly [string, string];
   readonly out: string;
@@ -159,6 +165,10 @@ export function liveRig(parts: LiveRigParts): RigShape {
     key: (client, key) => keys(clients[client], key).pipe(Effect.mapError(fromDesktop)),
     type: (client, text) => typeText(clients[client], text, 35).pipe(Effect.mapError(fromDesktop)),
     archive: (label) => archiveFiles(parts, label),
+    playerView: (epoch, checks) => Effect.suspend(() => checkPlayerView(smashcraftPlayerView(checks), Date.now(), join(out, `player-view-${epoch}`))).pipe(
+      Effect.provide(Layer.merge(Clients.layer(parts.clientsFile), gameFilesLayer)),
+      Effect.mapError((failure) => new IntegrityFailure({ operation: `check player view in match ${epoch}`, path: out, cause: failure.message })),
+    ),
     record: (event) => Effect.sync(() => {
       parts.events.push(event);
     }),
