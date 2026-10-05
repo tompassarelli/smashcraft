@@ -101,6 +101,7 @@ export const freshMatch = (map: string) => Effect.gen(function*() {
     yield* clients.keys(client, "ctrl+a");
     yield* clients.typeText(client, game);
     yield* click(client, JOIN);
+    yield* waitForText(client, "joined lobby", /PLAYERS/i, LOBBY, "light", 20);
   }).pipe(step(`${client.name} asked to join`));
 
   /** Waits for a ready file written after `time`; a malformed one is read again until the wait ends. */
