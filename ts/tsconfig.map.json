@@ -38,7 +38,7 @@
   "tstl": {
     "luaTarget": "5.3",
     "luaBundle": "map.lua",
-    "luaBundleEntry": "src/platform/main.ts",
+    "luaBundleEntry": "src/platform/devMain.ts",
     "noImplicitSelf": true,
     "noHeader": true,
     "luaPlugins": [

@@ -163,6 +163,7 @@ export const captureMatches = (options: CaptureOptions) =>
       const producerLog = yield* Effect.acquireRelease(tryIntegrity("open producer log", producerPath, () => openSync(producerPath, "w")), (fd) => Effect.sync(() => closeSync(fd)));
       const rig = liveRig({
         clients,
+        clientsFile: options.clients ?? clientState,
         data,
         out,
         build,

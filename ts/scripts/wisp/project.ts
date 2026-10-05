@@ -14,6 +14,8 @@ export const sourceMapDirectory = join(ts, "build/source-maps");
 /** Every compile of the map: normal gameplay, and each diagnostic with its own entry and TypeScriptToLua configuration. */
 export const profiles = ["main", "integrity", "playable", "physics-probe", "frame-cost", "stack-trace"] as const;
 export type Profile = (typeof profiles)[number];
+/** Profiles whose entry starts the scene recorder (src/platform/sceneReport.ts). */
+export const sceneProfiles: ReadonlySet<Profile> = new Set<Profile>(["main", "integrity"]);
 const profileConfig = (profile: Profile) => join(ts, profile === "main" ? "tsconfig.map.json" : `tsconfig.${profile}.json`);
 
 export const buildProject = (profile: Profile = "main"): BuildProject => ({

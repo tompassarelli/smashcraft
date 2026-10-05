@@ -85,6 +85,7 @@ function recordingRig(file: (client: Slot, name: string) => string, screenText =
     key: (client, key) => log(`key ${CLIENTS[client]} ${key}`),
     type: (client, text) => log(`type ${CLIENTS[client]} ${text}`),
     archive: (label) => log(`archive ${label}`),
+    playerView: (epoch, { frame, scene }) => log(`view ${epoch} frame=${frame} scene=${scene}`),
     record: (event) => Effect.sync(() => {
       events.push(event);
       trace.push(`event ${event.event}${event.event === "integrity-stall" ? ` ${event.kind}` : ""}`);

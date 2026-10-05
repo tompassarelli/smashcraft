@@ -103,7 +103,8 @@ it skips menu discovery, opens and checks Game Menu, then runs the recorded
 End Game / Quit Mission sequence. The ordinary mode also accepts results,
 lobby, Create Game and Custom Games screens. Both modes verify results and
 Custom Games after leaving, actual lobby player counts after hosting/joining,
-and fresh ready files after loading.
+and fresh ready files after loading. It then checks what each player sees
+(smashcraft:docs/player-view.md).
 
 `bun wisp hot --data A --data B --watch` also prints each native desync:
 its turn and every Warcraft engine value that differs, with both clients'
@@ -233,7 +234,8 @@ bun wisp build --base BASE.w3m --container ASSET_CONTAINER.w3x --assets DIR \
 
 The map's script is
 the base map's script plus the TSTL bundle, whose entry is
-smashcraft:ts/src/platform/main.ts. Bun generates the fighter units
+smashcraft:ts/src/platform/devMain.ts: smashcraft:ts/src/platform/main.ts,
+which every profile's entry shares, plus the scene recorder. Bun generates the fighter units
 (war3map.w3u), FileIO's `$wsl` ability (war3map.w3a), the map description
 (war3map.w3i), the map header and the matching `config()` from
 smashcraft:ts/src/game/objectData.ts and smashcraft:ts/scripts/mapInfo.ts through

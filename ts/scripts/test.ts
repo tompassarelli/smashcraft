@@ -15,7 +15,7 @@ if (files.length === 0) throw new Error("No tests found");
 const isolated = [
   ["test/game.test.ts"],
   ["test/desync-guard.test.ts", "test/desync-guard-integrity.test.ts"],
-  ["test/visual-lifecycle.test.ts"],
+  ["test/visual-lifecycle.test.ts", "test/player-view.test.ts"],
   ["test/stack-trace.test.ts"],
 ];
 const groups: { readonly files: readonly string[] }[] = [
