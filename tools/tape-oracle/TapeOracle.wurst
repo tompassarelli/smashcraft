@@ -27,9 +27,6 @@ FrameInputs produced
 InputSnapshot neutral
 int epoch = 0
 
-function fail(string message)
-	TapeOracleFail(message)
-
 function flag() returns boolean
 	return TapeOracleInt() != 0
 
@@ -115,12 +112,12 @@ function setInput(InputSnapshot input, string name)
 	else if name == "attackHeld"
 		input.attackHeld = flag()
 	else
-		fail("unknown input field " + name)
+		TapeOracleFail("unknown input field " + name)
 
 function readInput()
 	let slot = TapeOracleInt()
 	if slot < 0 or slot >= INPUT_PARTICIPANT_CAPACITY
-		fail("input slot out of range")
+		TapeOracleFail("input slot out of range")
 		return
 	var name = TapeOracleWord()
 	while name != ""
@@ -148,7 +145,7 @@ function startMatch()
 	runtime.resetPoses()
 	initializeMatchFighters(game, world)
 	if not history.beginEpoch(epoch, 1)
-		fail("history refused epoch " + I2S(epoch))
+		TapeOracleFail("history refused epoch " + I2S(epoch))
 
 function flagText(boolean value) returns string
 	return value ? "1" : "0"
@@ -178,11 +175,11 @@ function emit(string operation, string result)
 function runFrame()
 	let number = TapeOracleInt()
 	if not row.capture(number, world.mask, produced, runtime)
-		fail("capture refused frame " + I2S(number))
+		TapeOracleFail("capture refused frame " + I2S(number))
 	if not history.save(epoch, row, world, game, controls, runtime)
-		fail("history refused frame " + I2S(number))
+		TapeOracleFail("history refused frame " + I2S(number))
 	if not row.execute(game, world, controls, runtime, number)
-		fail("execution refused frame " + I2S(number))
+		TapeOracleFail("execution refused frame " + I2S(number))
 	emit("frame", I2S(number))
 	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
 		neutral.copyTo(produced.inputs[slot])
@@ -192,7 +189,7 @@ function runRollback()
 	let first = TapeOracleInt()
 	let last = TapeOracleInt()
 	if last != runtime.simulationFrame or not history.replay(epoch, first, last, world, game, controls, runtime)
-		fail("history refused replay " + I2S(first) + ".." + I2S(last))
+		TapeOracleFail("history refused replay " + I2S(first) + ".." + I2S(last))
 	emit("rollback", I2S(first) + ".." + I2S(last))
 
 function perform(string operation)
@@ -235,7 +232,7 @@ function perform(string operation)
 			game.updateConnectedHumans(game.humanMask)
 		emit(operation, flagText(confirmed))
 	else
-		fail("unknown operation " + operation)
+		TapeOracleFail("unknown operation " + operation)
 
 init
 	game = new MatchState()
