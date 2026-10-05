@@ -81,6 +81,12 @@ export const JournalFailure = preloadRecord(
 
 const integer = "[+-]?\\d+";
 const real = "[+-]?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?";
+/** Object fields read back from the retained native handles after a bundle install. */
+export const ObjectDataReceipt = preloadRecord(
+  { head: ["object-data frame {frame} objects {objects} state {state}"], rest: "units" },
+  Schema.Struct({ frame: Count, objects: Schema.String.check(Schema.isPattern(/^\d+:\d+$/)), state: Schema.String.check(Schema.isPattern(/^\d+:\d+$/)),
+    units: Schema.Array(Schema.String.check(Schema.isPattern(new RegExp(`^slot \\d+ unit \\d+ handle \\d+ speed ${real} cooldown ${real}$`)))) }),
+);
 // Response pages retain their text for the pure reconciler, after checking
 // the numeric fields and column counts of every exported row here.
 const ResponseLine = Schema.String.check(Schema.isPattern(new RegExp(
@@ -127,6 +133,7 @@ export function writtenGameFileKind(name: string): GameFileKind<unknown> | undef
   if (name === files.INPUT_START_FILE) return InputTraceStart;
   if (name === files.INPUT_TRACE_FILE) return InputTrace;
   if (name === files.PHYSICS_REPORT_FILE) return PhysicsReport;
+  if (/^smashcraft-object-data-p\d+\.txt$/.test(name)) return ObjectDataReceipt;
   if (/^smashcraft-dev-.*-p\d+\.txt$/.test(name)) return DevCommandReceipt;
   if (/^smashcraft-journal-(?:control|start|end)-.*\.txt$/.test(name)) return JournalControl;
   if (/^smashcraft-journal-menu-.*\.txt$/.test(name)) return JournalMenu;

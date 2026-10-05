@@ -1,6 +1,7 @@
 // Diagnostic map entry for issue #9. It executes the same production
 // simulation fixtures as Bun and Lua32, then exports the native gate report.
 import { AssertionFailure, registeredTests } from "waygate/src/runtime/testing";
+import { PHYSICS_REPORT_FILE } from "../runtime/gameFiles";
 import "../game/sim/physicsPrecisionState.tests";
 import "../game/sim/physicsPrecisionScalar.tests";
 import "../game/sim/physicsPrecisionMotion.tests";
@@ -82,7 +83,7 @@ function runProbe(source: string): void {
   for (const line of output) Preload(line);
   Preload(`MESSAGES ${output.length}`);
   Preload(failures === 0 && output.length === 19 ? "NATIVE_PHYSICS_COMPLETED" : "NATIVE_PHYSICS_FAIL");
-  PreloadGenEnd("smashcraft-native-physics-precision.txt");
+  PreloadGenEnd(PHYSICS_REPORT_FILE);
 }
 
 export function start(source: string): void {

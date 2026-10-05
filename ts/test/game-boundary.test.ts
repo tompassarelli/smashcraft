@@ -67,6 +67,11 @@ const fixtures = [
     name: "smashcraft-native-physics-precision.txt", field: "messages", valid: "MESSAGES 1", invalid: "MESSAGES bad",
     lines: ["SOURCE trial", "GROUNDED_BINARY32_EXACT_PASS", "MESSAGES 1", "NATIVE_PHYSICS_COMPLETED"],
   },
+  {
+    name: "smashcraft-object-data-p0.txt", field: "frame", valid: "frame 25200", invalid: "frame nope",
+    lines: ["object-data frame 25200 objects 88456:3301267 state 697138:315011",
+      "slot 0 unit 1835426162 handle 1048706 speed 270.0 cooldown 1.5", "slot 1 unit 1835430502 handle 1050694 speed 270.0 cooldown 1.5"],
+  },
 ] as const;
 
 test("game file inventory decodes native records and returns a typed filename and field for malformed fixtures", async () => {

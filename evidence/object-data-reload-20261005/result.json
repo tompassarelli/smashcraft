@@ -1,0 +1,167 @@
+{
+  "nativeSource": "d2377fed",
+  "nativeWaygateRevision": "be5a2bd35d2742ae710f4ba7e70f8490bb1086ec",
+  "passed": true,
+  "nativeFieldsOnly": true,
+  "sourceRestored": true,
+  "restoredOnBothClients": true,
+  "watcherExitCode": 0,
+  "phases": {
+    "baseline": {
+      "version": 87,
+      "editToRunningMs": 8809.258016,
+      "observations": [
+        {
+          "slot": 0,
+          "applyClockSeconds": 0.0078125,
+          "frame": 25200,
+          "objects": "88456:3301267",
+          "state": "697138:315011",
+          "fighters": [
+            {
+              "slot": 0,
+              "unit": 1835426162,
+              "handle": 1048706,
+              "speed": 270,
+              "cooldown": 1.5
+            },
+            {
+              "slot": 1,
+              "unit": 1835430502,
+              "handle": 1050694,
+              "speed": 270,
+              "cooldown": 1.5
+            }
+          ]
+        },
+        {
+          "slot": 1,
+          "applyClockSeconds": 0.0078125,
+          "frame": 25200,
+          "objects": "88456:3301267",
+          "state": "697138:315011",
+          "fighters": [
+            {
+              "slot": 0,
+              "unit": 1835426162,
+              "handle": 1048706,
+              "speed": 270,
+              "cooldown": 1.5
+            },
+            {
+              "slot": 1,
+              "unit": 1835430502,
+              "handle": 1050694,
+              "speed": 270,
+              "cooldown": 1.5
+            }
+          ]
+        }
+      ]
+    },
+    "changed": {
+      "version": 88,
+      "editToRunningMs": 1452.954216,
+      "observations": [
+        {
+          "slot": 0,
+          "applyClockSeconds": 1.546875,
+          "frame": 25200,
+          "objects": "813132:3590851",
+          "state": "697138:315011",
+          "fighters": [
+            {
+              "slot": 0,
+              "unit": 1835426162,
+              "handle": 1048706,
+              "speed": 300,
+              "cooldown": 0.75
+            },
+            {
+              "slot": 1,
+              "unit": 1835430502,
+              "handle": 1050694,
+              "speed": 300,
+              "cooldown": 0.75
+            }
+          ]
+        },
+        {
+          "slot": 1,
+          "applyClockSeconds": 1.546875,
+          "frame": 25200,
+          "objects": "813132:3590851",
+          "state": "697138:315011",
+          "fighters": [
+            {
+              "slot": 0,
+              "unit": 1835426162,
+              "handle": 1048706,
+              "speed": 300,
+              "cooldown": 0.75
+            },
+            {
+              "slot": 1,
+              "unit": 1835430502,
+              "handle": 1050694,
+              "speed": 300,
+              "cooldown": 0.75
+            }
+          ]
+        }
+      ]
+    },
+    "restored": {
+      "version": 89,
+      "editToRunningMs": 1313.2795119999992,
+      "observations": [
+        {
+          "slot": 0,
+          "applyClockSeconds": 2.914062,
+          "frame": 25200,
+          "objects": "88456:3301267",
+          "state": "697138:315011",
+          "fighters": [
+            {
+              "slot": 0,
+              "unit": 1835426162,
+              "handle": 1048706,
+              "speed": 270,
+              "cooldown": 1.5
+            },
+            {
+              "slot": 1,
+              "unit": 1835430502,
+              "handle": 1050694,
+              "speed": 270,
+              "cooldown": 1.5
+            }
+          ]
+        },
+        {
+          "slot": 1,
+          "applyClockSeconds": 2.914062,
+          "frame": 25200,
+          "objects": "88456:3301267",
+          "state": "697138:315011",
+          "fighters": [
+            {
+              "slot": 0,
+              "unit": 1835426162,
+              "handle": 1048706,
+              "speed": 270,
+              "cooldown": 1.5
+            },
+            {
+              "slot": 1,
+              "unit": 1835430502,
+              "handle": 1050694,
+              "speed": 270,
+              "cooldown": 1.5
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

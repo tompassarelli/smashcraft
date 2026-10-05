@@ -114,24 +114,6 @@ export function shieldSizeMultiplier(health: number, strength: number): number {
   return fusedMultiplyAddFloat32(subtractFloat32(1.0, 0.15000000596046448), multiplyFloat32(healthRatio, pressureScale), 0.15000000596046448);
 }
 
-<<<<<<< HEAD
-/** The authored bubble scale, adjusted by pressure relative to a digital shield. */
-export function shieldVisualScale(f: Fighter): number {
-  const { energy, strength } = f.shield;
-  const authoredScale = addFloat32(0.699999988079071, divideFloat32(multiplyFloat32(0.5, energy), SHIELD_MAX));
-  return divideFloat32(multiplyFloat32(authoredScale, shieldSizeMultiplier(energy, strength)), shieldSizeMultiplier(energy, 1.0));
-}
-
-||||||| parent of 6ec679b (Name numeric helpers for their runtime responsibility)
-/** The authored bubble scale, adjusted by pressure relative to a digital shield. */
-export function shieldVisualScale(f: Fighter): number {
-  const { energy, strength } = f.shield;
-  const authoredScale = f32(0.699999988079071 + f32(f32(0.5 * energy) / SHIELD_MAX));
-  return f32(f32(authoredScale * shieldSizeMultiplier(energy, strength)) / shieldSizeMultiplier(energy, 1.0));
-}
-
-=======
->>>>>>> 6ec679b (Name numeric helpers for their runtime responsibility)
 export function shieldBreakDizzyFrames(percent: number): number {
   return addFloat32(max(0.0, subtractFloat32(SHIELD_BREAK_BASE_PERCENT, percent)), SHIELD_BREAK_MIN_FRAMES);
 }

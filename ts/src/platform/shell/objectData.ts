@@ -4,6 +4,7 @@ import { writeLines } from "waygate/src/platform/fileio";
 import { applyFighterObject, applyFileIoObject } from "../objectData";
 import { confirmedChecksum } from "./diagnostics";
 import { shellState } from "./state";
+import { objectDataReceiptFile } from "../../runtime/gameFiles";
 
 /** install() already runs on the same synchronized frame on every client. */
 export function installObjectData(): void {
@@ -25,7 +26,7 @@ export function installObjectData(): void {
   if (!s.build.devConsole) return;
   const text = fields.join("\n");
   const objectChecksum = checksum(text.length, index => text.charCodeAt(index));
-  writeLines(`smashcraft-object-data-p${GetPlayerId(GetLocalPlayer())}.txt`, [
+  writeLines(objectDataReceiptFile(GetPlayerId(GetLocalPlayer())), [
     `object-data frame ${s.runtime.simulationFrame} objects ${objectChecksum} state ${confirmedChecksum(s)}`,
     ...fields,
   ]);
