@@ -2,8 +2,7 @@
 // pre-hit state, then each target resolves its contacts together. The
 // strongest launch wins; blocked contacts drain and push the shield instead.
 import { max, min, toInt } from "../../runtime/wurst";
-import { roundToFloat32 } from "waygate/src/sim/binary32";
-import { f32 } from "waygate/src/sim/f32";
+import { addFloat32, divideFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
 import { ContactKind, DownState } from "./codes";
 import { isDownDamageState } from "./conditions";
 import { DOWN_DAMAGE_RESET_THRESHOLD } from "./down";
@@ -121,14 +120,14 @@ export function queueDamageContact(
 }
 
 function shieldRecoilAxis(attackerDelta: number, defenderDelta: number): number {
-  return f32(attackerDelta * defenderDelta) >= 0 ? f32(defenderDelta - attackerDelta) : defenderDelta;
+  return multiplyFloat32(attackerDelta, defenderDelta) >= 0 ? subtractFloat32(defenderDelta, attackerDelta) : defenderDelta;
 }
 
 /** An airborne attacker recoils by the relative step, scaled by the weight ratio. */
 function applyAirborneShieldRecoil(source: Fighter, target: Fighter, contact: Readonly<DamageContact>): void {
-  const weightRatio = f32(min(f32(target.tuning.physics.weight / source.tuning.physics.weight), 1.0) * SHIELD_HIT_WEIGHT_MULTIPLIER);
-  source.shield.recoilX = f32(source.shield.recoilX + f32(shieldRecoilAxis(contact.sourceDeltaX, contact.targetDeltaX) * weightRatio));
-  source.shield.recoilZ = f32(source.shield.recoilZ + f32(shieldRecoilAxis(contact.sourceDeltaZ, contact.targetDeltaZ) * weightRatio));
+  const weightRatio = multiplyFloat32(min(divideFloat32(target.tuning.physics.weight, source.tuning.physics.weight), 1.0), SHIELD_HIT_WEIGHT_MULTIPLIER);
+  source.shield.recoilX = addFloat32(source.shield.recoilX, multiplyFloat32(shieldRecoilAxis(contact.sourceDeltaX, contact.targetDeltaX), weightRatio));
+  source.shield.recoilZ = addFloat32(source.shield.recoilZ, multiplyFloat32(shieldRecoilAxis(contact.sourceDeltaZ, contact.targetDeltaZ), weightRatio));
 }
 
 function contactAt(index: number): DamageContact {
@@ -155,12 +154,12 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     if (contact.target !== slot) continue;
     if (contact.blocked) {
       blockedContact = true;
-      if (!perfectShield) shieldDamage = roundToFloat32(f32(shieldDamage + contact.effect.damage));
+      if (!perfectShield) shieldDamage = addFloat32(shieldDamage, contact.effect.damage);
     } else {
-      totalDamage = roundToFloat32(f32(totalDamage + roundToFloat32(contact.effect.damage)));
+      totalDamage = addFloat32(totalDamage, roundToFloat32(contact.effect.damage));
     }
   }
-  const postHitPercent = roundToFloat32(f32(toInt(max(0.0, roundToFloat32(status.damage))) + totalDamage));
+  const postHitPercent = addFloat32(toInt(max(0.0, roundToFloat32(status.damage))), totalDamage);
   for (let index = 0; index < batch.count; index++) {
     const contact = contactAt(index);
     if (contact.target !== slot) continue;
@@ -175,7 +174,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
       shieldPushback = max(shieldPushback, pushback);
       if (pushback === shieldPushback) shieldDirection = contact.facing;
       if (contact.direct) {
-        if (contact.sourceGrounded) source.shield.recoilX = f32(-contact.facing * max(Math.abs(source.shield.recoilX), digitalShieldRecoil(damage)));
+        if (contact.sourceGrounded) source.shield.recoilX = multiplyFloat32(-contact.facing, max(Math.abs(source.shield.recoilX), digitalShieldRecoil(damage)));
         else applyAirborneShieldRecoil(source, target, contact);
       }
       continue;
@@ -205,7 +204,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     // The strongest launch supplies the effect; the largest damage supplies hitlag power.
     if (hurtContact !== undefined) launch.hitlag = max(launch.hitlag, victimHitlagFrames(hitlagDamage, effectContact.effect.electric, effectContact.crouching));
   }
-  status.damage = roundToFloat32(f32(roundToFloat32(status.damage) + totalDamage));
+  status.damage = addFloat32(roundToFloat32(status.damage), totalDamage);
   if (blockedContact) {
     if (perfectShield) {
       target.visuals.shieldReflect++;
@@ -215,11 +214,11 @@ function resolveDamageContacts(world: Roster, slot: number): void {
       target.visuals.shield++;
     }
   }
-  if (shieldDamage > 0) shield.energy = roundToFloat32(f32(shield.energy - shieldContactDamage(shieldDamage, shield.strength)));
+  if (shieldDamage > 0) shield.energy = subtractFloat32(shield.energy, shieldContactDamage(shieldDamage, shield.strength));
   if (shieldPushback > 0 && target.motion.grounded) {
     // Shield contact replaces the defender's self ground speed.
     target.motion.vx = 0.0;
-    shield.pushbackX = f32(shieldDirection * shieldPushback);
+    shield.pushbackX = multiplyFloat32(shieldDirection, shieldPushback);
     shield.drainResumePending = true;
   }
   if (shieldDamage > 0 && shield.energy < 0) {
@@ -250,7 +249,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   if (winner === undefined) return;
   target.motion.vx = 0.0;
   target.motion.vz = 0.0;
-  installDamageLaunch(target, strongest, f32(chosen.facing * chosen.effect.launchX), chosen.effect.launchZ, chosen.grounded);
+  installDamageLaunch(target, strongest, multiplyFloat32(chosen.facing, chosen.effect.launchX), chosen.effect.launchZ, chosen.grounded);
   launch.sdiWasGrounded = chosen.grounded;
   launch.sdiLaunchesUpward = launch.knockbackZ > 0;
   launch.diPending = true;

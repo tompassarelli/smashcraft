@@ -2,7 +2,7 @@
 // original units and publish rounded world values; air drift, launch decay and
 // platform landings use the same arithmetic as the retail engine.
 import { max, min } from "../../runtime/wurst";
-import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
+import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
 import { f32 } from "waygate/src/sim/f32";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { Character } from "./codes";
@@ -12,7 +12,7 @@ import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 
 function setOriginal(value: MeleeMotionValue, original: number): void {
   value.original = original;
-  value.published = f32(original * WORLD_UNITS_PER_MELEE_UNIT);
+  value.published = multiplyFloat32(original, WORLD_UNITS_PER_MELEE_UNIT);
 }
 
 /** Restarts accumulation from a world value written outside Melee-unit motion. */
@@ -90,7 +90,7 @@ export function moveMeleeVerticalVelocity(f: Fighter): void {
 }
 
 export function roundMeleeWorldValue(value: number): number {
-  return f32(divideFloat32(value, WORLD_UNITS_PER_MELEE_UNIT) * WORLD_UNITS_PER_MELEE_UNIT);
+  return multiplyFloat32(divideFloat32(value, WORLD_UNITS_PER_MELEE_UNIT), WORLD_UNITS_PER_MELEE_UNIT);
 }
 
 export function addMeleeWorldValues(value: number, displacement: number): number {
@@ -98,7 +98,7 @@ export function addMeleeWorldValues(value: number, displacement: number): number
   if (displacement === 0) return value;
   const left = divideFloat32(value, WORLD_UNITS_PER_MELEE_UNIT);
   const right = divideFloat32(displacement, WORLD_UNITS_PER_MELEE_UNIT);
-  return f32(addFloat32(left, right) * WORLD_UNITS_PER_MELEE_UNIT);
+  return multiplyFloat32(addFloat32(left, right), WORLD_UNITS_PER_MELEE_UNIT);
 }
 
 export function totalVelocityX(f: Fighter): number {
@@ -128,9 +128,9 @@ function retailAirDecaySquaredCutoff(decay: number): number {
 
 const KNOCKBACK_DECAY_PER_FRAME = 0.050999999046325684;
 // Common-data value x3E8 from the cited NTSC 1.02 extraction; values are Melee units.
-export const AIR_SHIELD_RECOIL_DECAY = f32(0.05000000074505806 * WORLD_UNITS_PER_MELEE_UNIT);
+export const AIR_SHIELD_RECOIL_DECAY = multiplyFloat32(0.05000000074505806, WORLD_UNITS_PER_MELEE_UNIT);
 export const AIR_KNOCKBACK_DECAY = roundToFloat32(KNOCKBACK_DECAY_PER_FRAME);
-export const AIR_RECOIL_DECAY = roundToFloat32(f32(AIR_SHIELD_RECOIL_DECAY / WORLD_UNITS_PER_MELEE_UNIT));
+export const AIR_RECOIL_DECAY = divideFloat32(AIR_SHIELD_RECOIL_DECAY, WORLD_UNITS_PER_MELEE_UNIT);
 export const AIR_KNOCKBACK_SQUARED_CUTOFF = retailAirDecaySquaredCutoff(AIR_KNOCKBACK_DECAY);
 export const AIR_RECOIL_SQUARED_CUTOFF = retailAirDecaySquaredCutoff(AIR_RECOIL_DECAY);
 
@@ -146,7 +146,7 @@ const decayed: AirMotion = { x: 0.0, z: 0.0, belowCutoff: false };
 
 /** Decays a Melee-unit vector along its own angle. Valid until the next call. */
 export function decayedAirMotion(horizontal: number, vertical: number, decay: number, squaredCutoff: number): Readonly<AirMotion> {
-  const verticalSquare = roundToFloat32(f32(vertical * vertical));
+  const verticalSquare = multiplyFloat32(vertical, vertical);
   const speedSquare = fusedMultiplyAddFloat32(horizontal, horizontal, verticalSquare);
   if (speedSquare < squaredCutoff) {
     decayed.x = 0.0;
