@@ -1,5 +1,5 @@
 // Measures the first and repeated body-edit compiles in one compiler process,
-// then compares every incremental bundle with a fresh full compile.
+// then compares the last incremental bundle with a fresh full compile.
 import { readFileSync, writeFileSync, utimesSync } from "node:fs";
 import { resolve } from "node:path";
 import { mapCompiler, report } from "./compiler";
