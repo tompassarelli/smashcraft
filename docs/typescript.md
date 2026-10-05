@@ -243,15 +243,19 @@ names; the archive check then verifies the map carries them. `rebuild` and
 list names every imported model the new script names (`SCRIPT_MODELS`); build
 the map again after regenerating a model.
 
-Pooled fighters derive from the original fighter models.
+Pooled fighters and their model sounds derive from the original fighter models.
 smashcraft:tools/animations/export-original-clips.ts reads them from
 `--assets PRIVATE_ASSETS`, writes one clip model per original sequence, each
 fighter's static light and their evidence to `--out` outside the checkout, and
 writes smashcraft:ts/src/game/assets/fighterOriginalClipInfo.ts; with
 `--metadata-only` it checks retained clips against the current sources and
-writes only the module. The build fails unless `--assets`'s
-original-clips-static-lights/original-clips-evidence.json lists every clip and
-light the module names. Hidden pooled clips wait collapsed on the ground beneath
+writes only the module. smashcraft:tools/animations/export-model-sounds.ts
+resolves each model sound event through the game's AnimSounds.slk (`--sounds`)
+and writes smashcraft:ts/src/game/assets/modelSoundInfo.ts. The build fails
+unless `--assets`'s original-clips-static-lights/original-clips-evidence.json
+lists every clip and light the module names, and unless every sound cue names a
+stock label and keys a pooled clip. Sound labels are the game's own sounds, so
+the map imports none. Hidden pooled clips wait collapsed on the ground beneath
 the floor, like every hidden effect, because alpha does not stop a model's
 particle emitters.
 

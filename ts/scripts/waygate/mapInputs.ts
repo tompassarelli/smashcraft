@@ -6,9 +6,10 @@ import { Effect, Schema } from "effect";
 import { MapBuild, MapBuildFailure, runProcess, type ArchiveEntry } from "waygate/scripts/waygate/mapBuild";
 import { UsageFailure } from "waygate/scripts/waygate/command";
 import { step } from "waygate/scripts/waygate/timings";
-import { originalClip, originalClipCount, originalLightPath } from "../../src/game/assets/fighterOriginalClipInfo";
+import { type FighterOriginalClip, originalClip, originalClipCount, originalLightPath } from "../../src/game/assets/fighterOriginalClipInfo";
 import * as frostModels from "../../src/game/assets/frostAssetInfo";
 import * as impactModels from "../../src/game/assets/impactAssetInfo";
+import { type ModelSoundCue, fighterSoundCue, fighterSoundCueCount, modelSoundLabel } from "../../src/game/assets/modelSoundInfo";
 import * as shieldModels from "../../src/game/assets/shieldAssetInfo";
 import { STAGE_DECK_MODEL } from "../../src/game/assets/stageAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
@@ -96,6 +97,35 @@ export const SCRIPT_MODELS: readonly string[] = [
   ...GENERATED_MODELS.flatMap(({ models }) => models),
 ];
 
+/** The model sound table and the clips its cues are keyed to. */
+export interface SoundTable {
+  readonly cueCount: (character: number) => number;
+  readonly cue: (character: number, ordinal: number) => ModelSoundCue | undefined;
+  readonly label: (soundIndex: number) => string | undefined;
+  readonly clip: (character: number, sequenceIndex: number) => FighterOriginalClip | undefined;
+}
+
+export const MODEL_SOUND_TABLE: SoundTable = { cueCount: fighterSoundCueCount, cue: fighterSoundCue, label: modelSoundLabel, clip: originalClip };
+
+/**
+ * Why the model sound table names a cue no sound can play, if it does. Cues
+ * name the game's stock sound labels, which the map does not import.
+ */
+export function soundTableProblem(table: SoundTable): string | undefined {
+  for (const character of Object.values(Character)) {
+    for (let ordinal = 0; ordinal < table.cueCount(character); ordinal++) {
+      const cue = table.cue(character, ordinal);
+      if (cue === undefined) return `character ${character} sound cue ${ordinal} is missing`;
+      const label = table.label(cue.soundIndex);
+      if (label === undefined || label === "") return `character ${character} sound cue ${ordinal} names no sound label`;
+      if (table.clip(character, cue.sequenceIndex) === undefined) {
+        return `character ${character} sound cue ${ordinal} keys sequence ${cue.sequenceIndex}, which has no clip`;
+      }
+    }
+  }
+  return undefined;
+}
+
 /** Why `imports` cannot supply every model the compiled script names, if they cannot. */
 export function missingModels(imports: readonly string[], models: readonly string[]): string | undefined {
   if (models.includes("")) return EMPTY_MODEL;
@@ -156,6 +186,10 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
   const clipEvidence = yield* readJson(OriginalClipEvidence, clipEvidencePath);
   const clipFiles = clipEvidence.records.flatMap((record) => [...record.clips.map(({ filename }) => filename), ...(record.light === null ? [] : [record.light.filename])]);
   yield* requireListed(clipEvidencePath, clipFiles, ORIGINAL_CLIP_MODELS, "export them with tools/animations/export-original-clips.ts");
+  const soundProblem = soundTableProblem(MODEL_SOUND_TABLE);
+  if (soundProblem !== undefined) {
+    return yield* new MapBuildFailure({ operation: "check model sounds", path: "ts/src/game/assets/modelSoundInfo.ts", cause: `${soundProblem}; export them with tools/animations/export-model-sounds.ts` });
+  }
   return [
     { entry: ARCHER_MODEL_FILE, source: join(assets, "animation-assets/ArcherFighter.mdx") },
     { entry: RIFLEMAN_MODEL_FILE, source: join(assets, "animation-assets/RiflemanFighter.mdx") },
