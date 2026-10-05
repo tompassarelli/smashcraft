@@ -31,7 +31,7 @@ import {
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { Character } from "../sim/codes";
-import { type WorldOrigin, hideEffect } from "./effects";
+import { type ParkedFlags, type WorldOrigin, hideEffect, parkOnce } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
 
 /** A KO body per star-KO impact and character, so any fighter can fly off as itself. */
@@ -65,6 +65,8 @@ export class CombatEffects {
   private readonly koBodies: effect[] = [];
   /** Each impact slot's age when last shown; created on first use, so a pool retained across a reload gains it. */
   private shownAges: (number | undefined)[] | undefined;
+  /** Impacts at their pool index, then KO bodies. */
+  private parked: ParkedFlags | undefined;
   /** The impacts' plane, just in front of the fighters; hidden models park beneath it. */
   readonly x: number;
   readonly y: number;
@@ -74,9 +76,11 @@ export class CombatEffects {
     this.x = origin.x;
     this.y = origin.y - 8.0;
     this.z = origin.z;
+    const parked: ParkedFlags = [];
+    this.parked = parked;
     for (let i = 0; i < IMPACT_COUNT; i++) {
       const model = AddSpecialEffect(impactModel(floorDiv(i, IMPACTS_PER_KIND)), origin.x, origin.y);
-      hideEffect(model, this);
+      parkOnce(model, this, parked, i);
       this.impacts.push(model);
     }
     for (let i = 0; i < KO_BODY_COUNT; i++) {
@@ -85,20 +89,22 @@ export class CombatEffects {
       BlzSetSpecialEffectAnimationBlendTime(model, 0.0);
       BlzSetSpecialEffectTimeScale(model, 0.0);
       BlzSetSpecialEffectTime(model, f32(0.1));
-      hideEffect(model, this);
+      parkOnce(model, this, parked, IMPACT_COUNT + i);
       this.koBodies.push(model);
     }
   }
 
   clear(): void {
-    for (const model of this.impacts) hideEffect(model, this);
-    for (const model of this.koBodies) hideEffect(model, this);
+    const parked = (this.parked ??= []);
+    this.impacts.forEach((model, i) => parkOnce(model, this, parked, i));
+    this.koBodies.forEach((model, i) => parkOnce(model, this, parked, IMPACT_COUNT + i));
     this.shownAges = undefined;
   }
 
   /** KO impacts come from confirmed state, so a rollback never replays one; the rest from `state`. */
   present(state: Readonly<ImpactState>, confirmed: Readonly<ImpactState>, playing: boolean): void {
     const shownAges = (this.shownAges ??= []);
+    const parked = (this.parked ??= []);
     for (let i = 0; i < this.impacts.length; i++) {
       const model = this.impacts[i];
       if (model === undefined) continue;
@@ -106,7 +112,7 @@ export class CombatEffects {
       const pose = projectImpact(source, i);
       const age = source.ages[i];
       if (!playing || !pose.visible) {
-        hideEffect(model, this);
+        parkOnce(model, this, parked, i);
         shownAges[i] = undefined;
         continue;
       }
@@ -115,6 +121,7 @@ export class CombatEffects {
       const last = shownAges[i];
       if (last !== undefined && age !== undefined && age < last) hideEffect(model, this);
       shownAges[i] = age;
+      parked[i] = false;
       const depth = floorDiv(i, IMPACTS_PER_KIND) === IMPACT_STAR_KO ? STAR_KO_DEPTH : 0.0;
       BlzSetSpecialEffectAlpha(model, pose.alpha);
       BlzSetSpecialEffectScale(model, pose.scale);
@@ -126,9 +133,10 @@ export class CombatEffects {
       if (model === undefined) continue;
       const pose = projectKo(confirmed, STAR_KO_FIRST + floorDiv(i, 3));
       if (!playing || !pose.visible || pose.character !== floorMod(i, 3)) {
-        hideEffect(model, this);
+        parkOnce(model, this, parked, IMPACT_COUNT + i);
         continue;
       }
+      parked[IMPACT_COUNT + i] = false;
       BlzSetSpecialEffectPosition(model, this.x + pose.x, this.y + pose.y, this.z + pose.z);
       BlzSetSpecialEffectScale(model, characterModelScale(pose.character) * pose.scale);
       BlzSetSpecialEffectPitch(model, pose.pitch);

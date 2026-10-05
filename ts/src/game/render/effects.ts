@@ -39,3 +39,22 @@ export function hideEffect(model: effect, origin: Readonly<WorldOrigin>): void {
   BlzSetSpecialEffectScale(model, 0.0);
   BlzSetSpecialEffectPosition(model, origin.x, origin.y, origin.z - FLOOR_HEIGHT);
 }
+
+/**
+ * Which of a renderer's effects are parked, by the renderer's own index.
+ * Most pooled effects stay hidden for a whole match, and each native call
+ * costs Warcraft far more than a Lua lookup, so a renderer parks an effect
+ * when it stops showing it, not on every frame it stays hidden. Renderers
+ * create their flags on first use, so flags are empty after construction or
+ * a hot reload: whether an effect is parked is then unknown, and its next
+ * hide parks it.
+ */
+export type ParkedFlags = boolean[];
+
+/** Parks the effect unless its flag says it is parked; true when it parked it now. */
+export function parkOnce(model: effect, origin: Readonly<WorldOrigin>, parked: ParkedFlags, index: number): boolean {
+  if (parked[index] === true) return false;
+  hideEffect(model, origin);
+  parked[index] = true;
+  return true;
+}

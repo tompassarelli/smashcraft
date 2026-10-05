@@ -4,7 +4,7 @@
 import { Character } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { f32 } from "wisp/src/sim/f32";
-import { STOCK_MODELS, type WorldOrigin, hideEffect } from "./effects";
+import { type ParkedFlags, STOCK_MODELS, type WorldOrigin, parkOnce } from "./effects";
 import { projectedProjectile } from "../presentation/projectilePose";
 
 function projectileModel(character: Character): string {
@@ -14,6 +14,7 @@ function projectileModel(character: Character): string {
 export class ProjectilePresentation {
   private readonly models: effect[] = [];
   private readonly visible: boolean[] = [];
+  private parked: ParkedFlags | undefined;
   private readonly scale: number;
 
   constructor(
@@ -30,30 +31,33 @@ export class ProjectilePresentation {
     this.clear();
   }
 
-  private hide(model: effect): void {
-    hideEffect(model, this.origin);
-    BlzSetSpecialEffectTimeScale(model, 0.0);
+  /** Parks a missile once and stops its animation, which a pause would otherwise leave running. */
+  private hide(model: effect, parked: ParkedFlags, index: number): void {
+    if (parkOnce(model, this.origin, parked, index)) BlzSetSpecialEffectTimeScale(model, 0.0);
   }
 
   clear(): void {
+    const parked = (this.parked ??= []);
     for (let index = 0; index < this.models.length; index++) {
       const model = this.models[index];
       if (model === undefined) continue;
       this.visible[index] = false;
-      this.hide(model);
+      this.hide(model, parked, index);
     }
   }
 
   present(fighter: Readonly<Fighter> | undefined, playing: boolean, paused: boolean): void {
+    const parked = (this.parked ??= []);
     for (let index = 0; index < this.models.length; index++) {
       const model = this.models[index];
       if (model === undefined) continue;
       const pose = projectedProjectile(fighter, index, playing);
       this.visible[index] = pose.visible;
       if (!pose.visible) {
-        this.hide(model);
+        this.hide(model, parked, index);
         continue;
       }
+      parked[index] = false;
       BlzSetSpecialEffectYaw(model, pose.yaw);
       BlzSetSpecialEffectPitch(model, pose.pitch);
       BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);

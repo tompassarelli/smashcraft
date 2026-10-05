@@ -235,6 +235,13 @@ new table and walks the source with `pairs` on every call, and in the
 integrity build's rematch the input and control copies made with it were an
 eighth of the match's Lua work (Lua32, 6 October 2026).
 
+Native calls cost Warcraft more than Lua does. A renderer parks a pooled
+effect once, when it stops showing it, and keeps a flag per effect so it does
+not park it again until it has shown it (`parkOnce`,
+smashcraft:ts/src/game/render/effects.ts). Re-parking every hidden impact,
+missile, trap and special effect on every frame was about 530 of a match
+frame's 766 native calls with two fighters.
+
 Engine callbacks (timers, triggers, frame events) go through the dispatch
 table, so hot reload can replace code without rebinding them.
 

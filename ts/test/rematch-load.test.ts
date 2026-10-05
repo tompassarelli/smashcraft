@@ -8,9 +8,10 @@
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/scripts/wisp/syncChannel";
-import type { HeadlessClient } from "wisp/src/headless/client";
+import type { EffectPose, HeadlessClient } from "wisp/src/headless/client";
 import { originalClipCount, originalLightPath } from "../src/game/assets/fighterOriginalClipInfo";
 import { Phase } from "../src/game/match/rules";
+import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { ReplayHistory } from "../src/game/replay/history";
 import { ShadowInputPlayback } from "../src/game/replay/shadowPlayback";
 import { Character } from "../src/game/sim/codes";
@@ -66,10 +67,52 @@ function countLifetimes(client: HeadlessClient): Map<string, number> {
   return counts;
 }
 
-test("a match and its three-fighter rematch read only correctable rollback rows and keep nothing between them", () => {
+/** The effect setters whose result a headless client keeps in an effect's pose. */
+const POSED = ["BlzSetSpecialEffectPosition", "BlzSetSpecialEffectX", "BlzSetSpecialEffectY", "BlzSetSpecialEffectZ", "BlzSetSpecialEffectAlpha", "BlzSetSpecialEffectScale", "BlzSetSpecialEffectTimeScale", "BlzSetSpecialEffectMatrixScale", "BlzResetSpecialEffectMatrix"];
+
+/**
+ * Counts, while `on`, setter calls during a frame on effects parked before
+ * and after it whose pose the frame left as it was: Warcraft runs each
+ * native call, and a pool's hidden effects stay parked for most of a match.
+ * Call `frameEnded` after each frame.
+ */
+function parkedCallMeter(client: HeadlessClient, parkedBelow: () => number) {
+  const poses = (client as unknown as { effects: Map<unknown, EffectPose> }).effects;
+  const describe = (pose: EffectPose) => `${pose.x} ${pose.y} ${pose.z} ${pose.alpha} ${pose.scale} ${pose.timeScale} ${pose.flat}`;
+  /** This frame's touched effects: their pose before the first call and the calls they took. */
+  const touched = new Map<unknown, { readonly before: string; readonly parked: boolean; calls: number }>();
+  const meter = {
+    on: false,
+    calls: 0,
+    frameEnded: () => {
+      for (const [effect, { before, parked, calls }] of touched) {
+        const pose = poses.get(effect);
+        if (parked && pose !== undefined && pose.z < parkedBelow() && describe(pose) === before) meter.calls += calls;
+      }
+      touched.clear();
+    },
+  };
+  for (const name of POSED) {
+    const native = client.natives[name] as (effect: unknown, ...args: unknown[]) => unknown;
+    client.natives[name] = (effect: unknown, ...args: unknown[]) => {
+      const pose = meter.on ? poses.get(effect) : undefined;
+      if (pose !== undefined) {
+        const seen = touched.get(effect) ?? { before: describe(pose), parked: pose.z < parkedBelow(), calls: 0 };
+        seen.calls++;
+        touched.set(effect, seen);
+      }
+      return native(effect, ...args);
+    };
+  }
+  return meter;
+}
+
+test("a match and its three-fighter rematch read only correctable rollback rows, touch no parked effect and keep nothing between them", () => {
   const clients = headless.clients({ start: () => startBuild(PLAYABLE_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
   const host = clients.clients[0] as HeadlessClient;
   const lifetimes = countLifetimes(host);
+  let parkedBelow = 0;
+  const parked = parkedCallMeter(host, () => parkedBelow);
   const read = <T>(body: () => T): T => {
     let value: T | undefined;
     host.run(() => {
@@ -81,6 +124,7 @@ test("a match and its three-fighter rematch read only correctable rollback rows 
   const frames = (count: number) => {
     for (let frame = 0; frame < count; frame++) {
       clients.frames(1);
+      parked.frameEnded();
       helpers.service(clients);
     }
   };
@@ -103,17 +147,22 @@ test("a match and its three-fighter rematch read only correctable rollback rows 
     rowsRead.length = 0;
     corrections = 0;
     lifetimes.clear();
+    parked.on = true;
+    parked.calls = 0;
     until("a result", () => phase() !== Phase.match, 900);
     const played = { lifetimes: Object.fromEntries(lifetimes), rows: Math.max(...rowsRead), corrections, effectsAtResult: host.effectPoses().length };
     // The edit box keeps the keyboard until both helpers have stopped journaling the match.
     until("helpers quiescent", () => read(() => shell().rollback?.journal?.lifecycle?.quiescent() === true), 90);
+    parked.on = false;
     for (const slot of [0, 1]) clients.press(slot, Key.n);
     until("fighter selection", () => phase() === Phase.characterMenu, 30);
-    return played;
+    return { ...played, parkedCalls: parked.calls };
   };
 
   clients.start();
   frames(30);
+  // hideEffect parks effects on the ground beneath the floor.
+  parkedBelow = read(() => shell().origin.z - FLOOR_HEIGHT + 1.0);
   const window = read(() => shell().rollback?.window ?? 0);
   const first = play({ denseCycles: 1, walkers: [0] });
   const selectionAfterFirst = host.effectPoses().length;
@@ -127,6 +176,8 @@ test("a match and its three-fighter rematch read only correctable rollback rows 
     // A reconcile reads the rows a correction may change, the authoritative row before them and the newest
     // row once more, never the whole 64-frame history.
     expect(played.rows).toBeLessThanOrEqual(window + 2);
+    // From the match's first frame through its result, no call touches an effect that stays parked.
+    expect(played.parkedCalls).toBe(0);
   }
   // Match frames create and destroy nothing; the result recreates the menu key triggers the match start removed.
   for (const played of [first, rematch]) expect(played.lifetimes).toEqual({ CreateTrigger: 2 });

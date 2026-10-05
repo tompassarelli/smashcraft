@@ -3,7 +3,7 @@
 // without allocating a handle.
 import { SHIELD_P1_MODEL, SHIELD_P2_MODEL, SHIELD_P3_MODEL, SHIELD_P4_MODEL } from "../assets/shieldAssetInfo";
 import type { Fighter } from "../sim/fighter";
-import { type WorldOrigin, hideEffect } from "./effects";
+import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
 import { projectedShield } from "../presentation/shieldPose";
 
 function shieldModel(slot: number): string {
@@ -12,6 +12,7 @@ function shieldModel(slot: number): string {
 
 export class ShieldPresentation {
   private readonly model: effect;
+  private parked: ParkedFlags | undefined;
 
   constructor(
     slot: number,
@@ -26,7 +27,7 @@ export class ShieldPresentation {
   }
 
   hide(): void {
-    hideEffect(this.model, this.origin);
+    parkOnce(this.model, this.origin, (this.parked ??= []), 0);
   }
 
   present(fighter: Readonly<Fighter> | undefined, playing: boolean): void {
@@ -35,6 +36,7 @@ export class ShieldPresentation {
       this.hide();
       return;
     }
+    (this.parked ??= [])[0] = false;
     BlzSetSpecialEffectPosition(this.model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
     BlzSetSpecialEffectScale(this.model, pose.scale);
     BlzSetSpecialEffectAlpha(this.model, 255);
