@@ -17,11 +17,14 @@ class IncrementalTranspiler extends Transpiler {
   private readonly modules = new Map<string, ProcessedFile>();
 
   compile(program: ts.Program, affected: readonly ts.SourceFile[]): readonly ts.Diagnostic[] {
+    const started = performance.now();
     const { diagnostics: pluginDiagnostics, plugins } = getPlugins(program);
     if (pluginDiagnostics.length > 0) return pluginDiagnostics;
+    const pluginDone = performance.now();
     const writeFile = this.emitHost.writeFile;
     const { diagnostics, transpiledFiles } = getProgramTranspileResult(this.emitHost, writeFile, { program, plugins, sourceFiles: [...affected] });
     if (diagnostics.length > 0) return diagnostics;
+    const transpileDone = performance.now();
     for (const file of transpiledFiles) this.modules.set(file.fileName, file);
     const ordered: ProcessedFile[] = [];
     const live = new Set<string>();
@@ -35,11 +38,13 @@ class IncrementalTranspiler extends Transpiler {
     const planDiagnostics: ts.Diagnostic[] = [];
     const { emitPlan } = this.getEmitPlan(program, planDiagnostics, ordered, plugins);
     if (planDiagnostics.length > 0) return planDiagnostics;
+    const planDone = performance.now();
     const { sourceMap: writeSourceMap = false, emitBOM = false } = program.getCompilerOptions();
     for (const { outputPath, code, sourceMap, sourceFiles } of emitPlan) {
       writeFile(outputPath, code, emitBOM, undefined, sourceFiles);
       if (writeSourceMap && sourceMap !== undefined) writeFile(`${outputPath}.map`, sourceMap, emitBOM, undefined, sourceFiles);
     }
+    if (process.env.COMPILER_TIMINGS !== undefined) console.log(`TSTL plugins ${(pluginDone - started).toFixed(1)} ms, transpile ${(transpileDone - pluginDone).toFixed(1)} ms, bundle-plan ${(planDone - transpileDone).toFixed(1)} ms, writes ${(performance.now() - planDone).toFixed(1)} ms; affected ${affected.length}`);
     return [];
   }
 }
@@ -72,13 +77,17 @@ export function mapCompiler(configPath: string): () => readonly ts.Diagnostic[] 
   const transpiler = new IncrementalTranspiler();
   const sources = new Map<string, CachedSource>();
   let builder: ts.SemanticDiagnosticsBuilderProgram | undefined;
+  let signaturesPrimed = false;
   return () => {
+    const started = performance.now();
     // Parsed every time so added and removed files are picked up.
     const config = parseConfigFileWithSystem(absolute);
     if (config.errors.length > 0) return config.errors;
+    config.options.declaration = true;
     const host = cachingHost(config.options, sources);
-    const program = ts.createProgram({ rootNames: config.fileNames, options: config.options, host, ...(builder && { oldProgram: builder.getProgram() }) });
-    builder = ts.createSemanticDiagnosticsBuilderProgram(program, host, builder);
+    builder = ts.createSemanticDiagnosticsBuilderProgram(config.fileNames, config.options, host, builder);
+    const program = builder.getProgram();
+    const builderDone = performance.now();
     const global = [...program.getOptionsDiagnostics(), ...program.getGlobalDiagnostics()];
     if (global.length > 0) return global;
     const affected: ts.SourceFile[] = [];
@@ -93,8 +102,16 @@ export function mapCompiler(configPath: string): () => readonly ts.Diagnostic[] 
       }
       diagnostics.push(...next.result);
     }
+    if (!signaturesPrimed) {
+      const declarations = builder.emit(undefined, () => {}, undefined, true);
+      diagnostics.push(...declarations.diagnostics);
+      signaturesPrimed = declarations.diagnostics.length === 0 && diagnostics.length === 0;
+    }
+    const checkDone = performance.now();
     if (diagnostics.length > 0) return diagnostics;
-    return transpiler.compile(program, affected);
+    const result = transpiler.compile(program, affected);
+    if (process.env.COMPILER_TIMINGS !== undefined) console.log(`config+builder ${(builderDone - started).toFixed(1)} ms, semantic diagnostics ${(checkDone - builderDone).toFixed(1)} ms`);
+    return result;
   };
 }
 
