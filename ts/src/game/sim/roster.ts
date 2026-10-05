@@ -132,3 +132,11 @@ export function controlsAt(controls: readonly Readonly<Controls>[], slot: number
   if (row === undefined) throw new Error(`no controls for slot ${slot}`);
   return row;
 }
+
+const CONTROL_FIELDS = [
+  "direction", "verticalDirection", "diStickValid", "diStickX", "diStickZ", "sdiPulse", "sdiX", "sdiZ", "cStickX", "cStickZ", "attackRequested", "specialPressed", "specialX", "specialZ", "down", "shield", "shieldPressed", "shieldTriggerActive", "shieldStrength", "jumpPressed", "airDodgePressed", "techPressed", "mashPressed", "attackPressed", "grabMashPressed", "grabThrowX", "grabThrowZ", "lCancelPressed", "groundDodgePressed", "groundDodgeDirection", "getupAttackPressed", "ledgeVerticalPressed", "getupStandPressed", "getupDirectionPressed", "getupDirection", "dodgeX", "dodgeZ", "jumpHeld", "walking", "attackHeld"
+] as const satisfies readonly (keyof Controls)[];
+
+export function sameControls(a: Readonly<Controls>, b: Readonly<Controls>): boolean {
+  return CONTROL_FIELDS.every(field => a[field] === b[field]);
+}

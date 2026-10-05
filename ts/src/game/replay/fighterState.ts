@@ -1,6 +1,12 @@
 import { createFighter, type Fighter } from "../sim/fighter";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 
+function requiredAt<T>(values: readonly T[], index: number): T {
+  const value = values[index];
+  if (value === undefined) throw new Error(`replay state is missing slot ${index}`);
+  return value;
+}
+
 /** Create detached mutable state for a replay slot while retaining authored tuning values. */
 export function cloneFighterState(source: Fighter): Fighter {
   const copy = createFighter(source.character, source.motion.x, source.facing);
@@ -123,8 +129,8 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>): vo
   attack.smashChargeFrames = sourceAttack.smashChargeFrames;
   attack.smashChargeAllowed = sourceAttack.smashChargeAllowed;
   for (let i = 0; i < target.hits.entries.length; i++) {
-    const to = target.hits.entries[i]!;
-    const from = source.hits.entries[i]!;
+    const to = requiredAt(target.hits.entries, i);
+    const from = requiredAt(source.hits.entries, i);
     to.attacker = from.attacker;
     to.attackSerial = from.attackSerial;
     to.window = from.window;
@@ -150,14 +156,14 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>): vo
   special.duration = sourceSpecial.duration;
   special.lockFrames = sourceSpecial.lockFrames;
   special.fall = sourceSpecial.fall;
-  for (let i = 0; i < special.cooldowns.length; i++) special.cooldowns[i] = sourceSpecial.cooldowns[i]!;
+  for (let i = 0; i < special.cooldowns.length; i++) special.cooldowns[i] = requiredAt(sourceSpecial.cooldowns, i);
   special.direction = sourceSpecial.direction;
   special.hit = sourceSpecial.hit;
   for (let i = 0; i < PARTICIPANT_CAPACITY; i++) special.hitTargets[i] = sourceSpecial.hitTargets[i];
 
   for (let i = 0; i < target.projectiles.length; i++) {
-    const to = target.projectiles[i]!;
-    const from = source.projectiles[i]!;
+    const to = requiredAt(target.projectiles, i);
+    const from = requiredAt(source.projectiles, i);
     to.life = from.life;
     to.x = from.x;
     to.z = from.z;

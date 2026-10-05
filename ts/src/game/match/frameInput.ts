@@ -1,0 +1,176 @@
+import { copyAttackBuffer, queueAttack, sameAttackBuffer } from "../input/attackBuffer";
+import { adaptInput } from "../input/adapter";
+import { type InputRow, copyInput, sameInput } from "../input/inputRow";
+import { PARTICIPANT_SLOTS, type ParticipantInputs, type Slots, isParticipantMask, isParticipantSlot, participantActive, participantInputs } from "../input/participants";
+import { captureImpactEventsBefore, finishImpactEventsAfter } from "../presentation/impactEvents";
+import { advanceImpacts, clearImpactState, emitImpacts } from "../presentation/impactState";
+import { advanceSpecialEffect, clearSpecialEffectState } from "../presentation/specialEffectState";
+import { advanceSummons, clearSummonState } from "../presentation/summonState";
+import { advanceFighterPose } from "../presentation/fighterPose";
+import { type Controls, type Roster, copyControls, fighterAt, isActive, sameControls } from "../sim/roster";
+import { type FrameControls, createFrameControls } from "./controls";
+import { type MatchState, Phase, computerActive } from "./rules";
+import type { ReplayRuntimeState } from "./runtime";
+import { produceComputerInput, stepMatch } from "./step";
+
+/** Detached source rows. Every execution adapts again from the world being replayed. */
+export interface MatchFrameInput {
+  frame: number | undefined;
+  mask: number;
+  networkMask: number;
+  source: "network" | "adapted";
+  readonly values: FrameControls;
+  readonly network: ParticipantInputs;
+  readonly botDelaysAfterInput: Slots<number>;
+  readonly scratch: FrameControls;
+}
+
+export function createMatchFrameInput(): MatchFrameInput {
+  return {
+    frame: undefined, mask: 0, networkMask: 0, source: "adapted",
+    values: createFrameControls(), network: participantInputs(), botDelaysAfterInput: [0.0, 0.0, 0.0, 0.0], scratch: createFrameControls(),
+  };
+}
+
+export function resetMatchFrameInput(row: MatchFrameInput): void {
+  row.frame = undefined;
+  row.mask = 0;
+  row.source = "adapted";
+}
+
+export function captureFrame(row: MatchFrameInput, frame: number, mask: number, controls: Readonly<FrameControls>, runtime: Readonly<ReplayRuntimeState>): boolean {
+  if (frame < 0 || row.frame === frame || !isParticipantMask(mask)) return false;
+  row.frame = frame;
+  row.mask = mask;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (participantActive(mask, slot)) {
+      copyControls(row.values.inputs[slot], controls.inputs[slot]);
+      copyAttackBuffer(row.values.commands[slot], controls.commands[slot]);
+    }
+    row.botDelaysAfterInput[slot] = runtime.botAttackDelays[slot];
+  }
+  row.source = "adapted";
+  row.networkMask = 0;
+  return true;
+}
+
+export function captureNetworkFrame(row: MatchFrameInput, frame: number, source: ParticipantInputs, world: Roster, senderMask: number): boolean {
+  if (frame < 0 || row.frame === frame || !isParticipantMask(world.mask) || !isParticipantMask(senderMask)) return false;
+  row.frame = frame;
+  row.mask = world.mask;
+  row.networkMask = senderMask;
+  for (const slot of PARTICIPANT_SLOTS) if (participantActive(senderMask, slot)) copyInput(row.network[slot], source[slot]);
+  row.source = "network";
+  refreshNetworkAdaptation(row, world, frame);
+  return true;
+}
+
+export const hasNetworkRows = (row: Readonly<MatchFrameInput>): boolean => row.source === "network";
+
+export function copyNetworkRow(row: Readonly<MatchFrameInput>, slot: number, target: InputRow): boolean {
+  if (row.source !== "network" || !isParticipantSlot(slot) || !participantActive(row.networkMask, slot)) return false;
+  copyInput(target, row.network[slot]);
+  return true;
+}
+
+export function networkRowsMatch(row: Readonly<MatchFrameInput>, source: ParticipantInputs): boolean {
+  if (row.source !== "network") return false;
+  return PARTICIPANT_SLOTS.every(slot => !participantActive(row.networkMask, slot) || sameInput(row.network[slot], source[slot]));
+}
+
+export function replaceNetworkRows(row: MatchFrameInput, source: ParticipantInputs): boolean {
+  if (row.source !== "network") return false;
+  for (const slot of PARTICIPANT_SLOTS) if (participantActive(row.networkMask, slot)) copyInput(row.network[slot], source[slot]);
+  return true;
+}
+
+export function refreshNetworkAdaptation(row: MatchFrameInput, world: Roster, frame: number): boolean {
+  if (row.source !== "network" || row.frame !== frame || row.mask !== world.mask) return false;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (isActive(world, slot) && participantActive(row.networkMask, slot)) adaptInput(row.network[slot], fighterAt(world, slot), frame, row.values.inputs[slot], row.values.commands[slot]);
+  }
+  return true;
+}
+
+export function copyMatchFrameInput(target: MatchFrameInput, source: Readonly<MatchFrameInput>): void {
+  target.frame = source.frame;
+  target.mask = source.mask;
+  target.networkMask = source.networkMask;
+  target.source = source.source;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (participantActive(source.mask, slot)) {
+      copyControls(target.values.inputs[slot], source.values.inputs[slot]);
+      copyAttackBuffer(target.values.commands[slot], source.values.commands[slot]);
+    }
+    if (participantActive(source.networkMask, slot)) copyInput(target.network[slot], source.network[slot]);
+    target.botDelaysAfterInput[slot] = source.botDelaysAfterInput[slot];
+  }
+}
+
+export function copyExecutedInput(row: Readonly<MatchFrameInput>, slot: number, target: Controls): boolean {
+  if (!isParticipantSlot(slot) || !participantActive(row.mask, slot)) return false;
+  copyControls(target, row.scratch.inputs[slot]);
+  return true;
+}
+
+export function sameMatchFrameInput(a: Readonly<MatchFrameInput>, b: Readonly<MatchFrameInput>): boolean {
+  if (a.frame !== b.frame || a.mask !== b.mask || a.networkMask !== b.networkMask || a.source !== b.source) return false;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (a.source === "network") {
+      if (participantActive(a.networkMask, slot) && !sameInput(a.network[slot], b.network[slot])) return false;
+    } else if (participantActive(a.mask, slot)) {
+      if (a.botDelaysAfterInput[slot] !== b.botDelaysAfterInput[slot] || !sameControls(a.values.inputs[slot], b.values.inputs[slot]) || !sameAttackBuffer(a.values.commands[slot], b.values.commands[slot])) return false;
+    }
+  }
+  return true;
+}
+
+// Preallocated: execution and rollback overwrite every active slot before reading it.
+const beforeOut: Slots<boolean> = [false, false, false, false];
+const beforeJump: Slots<number> = [0, 0, 0, 0];
+const beforeAttack: Slots<number> = [0, 0, 0, 0];
+const beforeDamage: Slots<number> = [0.0, 0.0, 0.0, 0.0];
+const beforeShield: Slots<number> = [0.0, 0.0, 0.0, 0.0];
+
+export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: ReplayRuntimeState, frame: number): boolean {
+  if (row.frame !== frame || frame !== runtime.simulationFrame + 1 || row.mask !== world.mask) return false;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (!isActive(world, slot)) continue;
+    if (row.source === "network") {
+      if (computerActive(game, slot)) produceComputerInput(game, world, runtime, slot, frame, row.values.inputs[slot], row.values.commands[slot]);
+      else adaptInput(row.network[slot], fighterAt(world, slot), frame, row.values.inputs[slot], row.values.commands[slot]);
+    } else runtime.botAttackDelays[slot] = row.botDelaysAfterInput[slot];
+    copyControls(row.scratch.inputs[slot], row.values.inputs[slot]);
+    row.scratch.commands[slot] = controls.commands[slot];
+    const request = row.values.commands[slot].pending;
+    if (request !== undefined) queueAttack(controls.commands[slot], request);
+    const f = fighterAt(world, slot);
+    captureImpactEventsBefore(runtime.frameImpacts[slot], f);
+    beforeOut[slot] = f.status.out;
+    beforeJump[slot] = f.jump.serial;
+    beforeAttack[slot] = f.attack.serial;
+    beforeDamage[slot] = f.status.damage;
+    beforeShield[slot] = f.shield.energy;
+  }
+  advanceImpacts(runtime.impacts);
+  stepMatch(game, world, row.scratch, frame);
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (!isActive(world, slot)) { advanceSummons(runtime.summons, undefined, slot); continue; }
+    const f = fighterAt(world, slot);
+    finishImpactEventsAfter(runtime.frameImpacts[slot], f);
+    if (game.phase === Phase.match) {
+      emitImpacts(runtime.impacts, runtime.frameImpacts[slot], frame);
+      advanceSpecialEffect(runtime.specials, f, slot);
+      advanceSummons(runtime.summons, f, slot);
+    }
+    const hit = !beforeOut[slot] && !f.status.out && (f.status.damage > beforeDamage[slot] || (f.shield.stun > 0 && f.shield.energy < beforeShield[slot]));
+    advanceFighterPose(runtime.poses[slot], f, world, row.scratch.inputs[slot], beforeOut[slot], f.jump.serial !== beforeJump[slot], f.attack.serial !== beforeAttack[slot], hit);
+  }
+  if (game.phase !== Phase.match) {
+    clearImpactState(runtime.impacts);
+    clearSpecialEffectState(runtime.specials);
+    clearSummonState(runtime.summons);
+  }
+  runtime.simulationFrame = frame;
+  return true;
+}

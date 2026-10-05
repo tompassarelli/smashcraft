@@ -3,17 +3,23 @@ import { Character, SurfaceContact } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { cloneFighterState, copyFighterState } from "./fighterState";
 
+function entryAt<T>(values: readonly T[], index: number): T {
+  const value = values[index];
+  if (value === undefined) throw new Error(`missing fixture slot ${index}`);
+  return value;
+}
+
 test("fighter replay copies detach every mutable record and retain participant-slot references", () => {
   const source = createFighter(Character.archer, -12, 1);
   source.motion.meleeX.original = 18.25;
   source.motion.meleeX.published = -12;
   source.motion.surface = 3;
   source.launch.knockbackAge = 7;
-  source.hits.entries[2]!.attacker = 3;
-  source.hits.entries[2]!.attackSerial = 19;
+  entryAt(source.hits.entries, 2).attacker = 3;
+  entryAt(source.hits.entries, 2).attackSerial = 19;
   source.special.hitTargets[1] = 2;
-  source.projectiles[4]!.newlyReflected = true;
-  source.projectiles[4]!.damageMultiplier = 1.75;
+  entryAt(source.projectiles, 4).newlyReflected = true;
+  entryAt(source.projectiles, 4).damageMultiplier = 1.75;
   source.surfaceRecovery.state = SurfaceContact.techWall;
   source.surfaceRecovery.lastReflectedSurface = 5;
   source.grab.owner = 3;
@@ -34,22 +40,22 @@ test("fighter replay copies detach every mutable record and retain participant-s
   assertEquals(copy.motion.meleeX.original, 18.25);
   assertEquals(copy.motion.surface, 3);
   assertEquals(copy.launch.knockbackAge, 7);
-  assertEquals(copy.hits.entries[2]!.attacker, 3);
-  assertEquals(copy.hits.entries[2]!.attackSerial, 19);
+  assertEquals(entryAt(copy.hits.entries, 2).attacker, 3);
+  assertEquals(entryAt(copy.hits.entries, 2).attackSerial, 19);
   assertEquals(copy.special.hitTargets[1], 2);
-  assertTrue(copy.projectiles[4]!.newlyReflected);
-  assertEquals(copy.projectiles[4]!.damageMultiplier, 1.75);
+  assertTrue(entryAt(copy.projectiles, 4).newlyReflected);
+  assertEquals(entryAt(copy.projectiles, 4).damageMultiplier, 1.75);
   assertEquals(copy.surfaceRecovery.lastReflectedSurface, 5);
   assertEquals(copy.grab.owner, 3);
   assertEquals(copy.grab.target, 0);
   assertEquals(copy.status.frozenFrames, 11);
 
   source.motion.meleeX.original = 0;
-  source.hits.entries[2]!.attacker = undefined;
-  source.projectiles[4]!.damageMultiplier = 0;
+  entryAt(source.hits.entries, 2).attacker = undefined;
+  entryAt(source.projectiles, 4).damageMultiplier = 0;
   assertEquals(copy.motion.meleeX.original, 18.25);
-  assertEquals(copy.hits.entries[2]!.attacker, 3);
-  assertEquals(copy.projectiles[4]!.damageMultiplier, 1.75);
+  assertEquals(entryAt(copy.hits.entries, 2).attacker, 3);
+  assertEquals(entryAt(copy.projectiles, 4).damageMultiplier, 1.75);
 
   const reused = createFighter(Character.rifleman, 4, -1);
   copyFighterState(reused, copy);
