@@ -3,6 +3,7 @@
 // wc3-melee-input-trace.txt when the trace ends. The integrity harness parses
 // several of its lines. Local measurements here never feed the accepted
 // ledger, prediction or snapshots.
+import { INPUT_TRACE_FILE, traceEndLines } from "../../runtime/gameFiles";
 import { floorMod } from "../../sim/intMath";
 import type { ParticipantSlot, Slots } from "../../game/input/participants";
 import { writeLines } from "../fileio";
@@ -150,7 +151,7 @@ export function resetEchoRing(trace: InputTrace): void {
 export function finishInputTrace(trace: InputTrace): void {
   trace.active = false;
   if (trace.clock !== undefined) PauseTimer(trace.clock);
-  writeLines("wc3-melee-input-trace.txt", [...trace.lines, `dropped ${trace.dropped}`, `${trace.ticks} ${R2S(traceSeconds(trace))} end`]);
+  writeLines(INPUT_TRACE_FILE, [...trace.lines, ...traceEndLines(trace.dropped, trace.ticks, R2S(traceSeconds(trace)))]);
 }
 
 /** A local row handed to the synchronized channel. */

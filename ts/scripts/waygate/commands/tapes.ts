@@ -1,23 +1,26 @@
-// The replay acceptance oracle: recorded tapes must give identical canonical
-// replay states, hence identical checksums, after every frame in Wurst's Lua,
-// TypeScript under Bun and TypeScript under 32-bit Lua. Prints the totals, or
-// each runtime pair's first divergent frame and field. The tapes are recorded
-// fresh each run by two scripted keyboard players reacting to the TypeScript
-// simulation; every runtime then replays the same recorded rows.
-// Usage (from ts/): LUA=<LUA_32BITS lua> bun scripts/tapes.ts
-import "../test/host-natives";
+// `waygate tapes`, the replay acceptance oracle: recorded tapes must give
+// identical canonical replay states, hence identical checksums, after every
+// frame in Wurst's Lua, TypeScript under Bun and TypeScript under 32-bit Lua.
+// Prints the totals, or each runtime pair's first divergent frame and field.
+// The tapes are recorded fresh each run by two scripted keyboard players
+// reacting to the TypeScript simulation; every runtime then replays the same
+// recorded rows. Environment: LUA, a LUA_32BITS lua.
+import "../../../test/host-natives";
 import { dirname, join } from "node:path";
-import { adaptInput } from "../src/game/input/adapter";
-import { ACTION_COUNT, Action, bit } from "../src/game/input/actions";
-import { type AttackBuffer, attackBuffer } from "../src/game/input/attackBuffer";
-import { commitEdges, keyboardCapture, sampleKeys } from "../src/game/input/keyboardCapture";
-import { actionFor, keyLabel, presetBindings } from "../src/game/input/keyBindings";
-import { TAPE_HEADER, decodeTape } from "../src/game/replay/tape";
-import { type TapeSession, createTapeSession, performTapeOperation, runTape } from "../src/game/replay/tapeRunner";
-import { Character } from "../src/game/sim/codes";
-import { type Controls, fighterAt, neutralControls } from "../src/game/sim/roster";
+import { Console, Effect, Schema } from "effect";
+import { adaptInput } from "../../../src/game/input/adapter";
+import { ACTION_COUNT, Action, bit } from "../../../src/game/input/actions";
+import { type AttackBuffer, attackBuffer } from "../../../src/game/input/attackBuffer";
+import { commitEdges, keyboardCapture, sampleKeys } from "../../../src/game/input/keyboardCapture";
+import { actionFor, keyLabel, presetBindings } from "../../../src/game/input/keyBindings";
+import { TAPE_HEADER, decodeTape } from "../../../src/game/replay/tape";
+import { type TapeSession, createTapeSession, performTapeOperation, runTape } from "../../../src/game/replay/tapeRunner";
+import { Character } from "../../../src/game/sim/codes";
+import { type Controls, fighterAt, neutralControls } from "../../../src/game/sim/roster";
+import { type Command, UsageFailure, describeCause } from "../command";
+import { step } from "../timings";
 
-const ts = join(import.meta.dir, "..");
+const ts = join(import.meta.dir, "../../..");
 const project = join(ts, "..");
 const build = join(ts, "build", "tapes");
 
@@ -326,11 +329,6 @@ const runInLua = (file: string) => runLua([tapesLua], { TAPE_FILE: file });
 // The Wurst side compiles the oracle package with the game's own replay code,
 // using the locked compiler and the map build's flags, then runs that Lua in
 // 32-bit Lua with stubbed natives.
-const lock = await Bun.file(join(project, "wurst-toolchain.lock")).text();
-const lockValue = (name: string) => new RegExp(`^${name} = "(.*)"$`, "m").exec(lock)?.[1] ?? "";
-const compilerPin = `/home/tom/code/wurst-compiler/pins/${lockValue("compilerCommit")}`;
-const stdlibPin = `/home/tom/code/wurst-stdlib/pins/${lockValue("stdlibCommit").slice(0, 12)}`;
-const luaRuntime = `/home/tom/code/wurst-compiler/pins/${lockValue("luaTestRuntimeCommit")}/de.peeeq.wurstscript/src/test/resources/luaruntime`;
 const java = "/home/tom/.wurst/wurst-runtime/bin/java";
 const compilerJar = join(project, "toolchain", "wurstscript.jar");
 const oracleDir = join(project, "build", "tape-oracle");
@@ -346,7 +344,26 @@ const WURST_SOURCES = [
   "wurst/ReplayState.wurst", "wurst/ReplayHistory.wurst", "tools/tape-oracle/TapeOracle.wurst",
 ].map(path => join(project, path));
 
-async function compileWurstLua(): Promise<number> {
+/** The locked Wurst compiler, standard library and Lua test runtime (smashcraft:wurst-toolchain.lock). */
+interface WurstToolchain {
+  readonly lockValue: (name: string) => string;
+  readonly compilerPin: string;
+  readonly stdlibPin: string;
+  readonly luaRuntime: string;
+}
+
+async function wurstToolchain(): Promise<WurstToolchain> {
+  const lock = await Bun.file(join(project, "wurst-toolchain.lock")).text();
+  const lockValue = (name: string) => new RegExp(`^${name} = "(.*)"$`, "m").exec(lock)?.[1] ?? "";
+  return {
+    lockValue,
+    compilerPin: `/home/tom/code/wurst-compiler/pins/${lockValue("compilerCommit")}`,
+    stdlibPin: `/home/tom/code/wurst-stdlib/pins/${lockValue("stdlibCommit").slice(0, 12)}`,
+    luaRuntime: `/home/tom/code/wurst-compiler/pins/${lockValue("luaTestRuntimeCommit")}/de.peeeq.wurstscript/src/test/resources/luaruntime`,
+  };
+}
+
+async function compileWurstLua({ lockValue, compilerPin, stdlibPin }: WurstToolchain): Promise<number> {
   const jarHash = new Bun.CryptoHasher("sha256").update(await Bun.file(compilerJar).bytes()).digest("hex");
   if (jarHash !== lockValue("compilerArtifactSha256")) throw new Error(`${compilerJar} does not match wurst-toolchain.lock`);
   const commonJ = join(compilerPin, "de.peeeq.wurstscript/src/main/resources/common.j");
@@ -368,7 +385,7 @@ async function compileWurstLua(): Promise<number> {
   });
 }
 
-const runInWurst = (file: string) => runLua([join(project, "tools", "tape-oracle", "run.lua"), oracleLua, luaRuntime, file]);
+const runInWurst = ({ luaRuntime }: WurstToolchain, file: string) => runLua([join(project, "tools", "tape-oracle", "run.lua"), oracleLua, luaRuntime, file]);
 
 // ---------------------------------------------------------------- comparison
 
@@ -397,78 +414,80 @@ function describeDivergence(a: string | undefined, b: string | undefined, names:
   return `${first ?? "no field"} (${count} fields differ)`;
 }
 
-// ---------------------------------------------------------------- main
+// ---------------------------------------------------------------- command
 
-const checkStarted = performance.now();
-if (command([lua, "-e", "io.write(math.maxinteger)"]).output !== "2147483647") {
-  console.error(`LUA=${lua} is not a 32-bit Lua (LUA_32BITS); point LUA at one.`);
-  process.exit(2);
+/** The runtimes disagree, one stopped, or the check couldn't run. */
+export class TapesFailure extends Schema.TaggedError<TapesFailure>()("TapesFailure", {
+  problem: Schema.String,
+}) {
+  override get message(): string {
+    return this.problem;
+  }
 }
-await Bun.$`mkdir -p ${build}`;
-const texts = generateTapes();
-for (const [name, text] of texts) await Bun.write(join(build, `${name}.tape`), text);
 
-const seconds: Record<RuntimeName, { compile: number; run: number }> = {
-  "wurst-lua": { compile: await compileWurstLua(), run: 0 },
-  "bun": { compile: 0, run: 0 },
-  "ts-lua32": { compile: await compileTypeScriptLua(), run: 0 },
-};
-// Seconds per runtime are summed over its tapes; the Lua processes overlap.
-async function timed(runtime: RuntimeName, go: () => Run | Promise<Run>): Promise<Run> {
-  const started = performance.now();
-  const run = await go();
-  seconds[runtime].run += (performance.now() - started) / 1000;
-  return run;
-}
-// Start every Lua process before the in-process Bun runs occupy this thread.
-const started = [...texts].map(([name, text]) => {
-  const file = join(build, `${name}.tape`);
-  return { name, text, wurst: timed("wurst-lua", () => runInWurst(file)), lua32: timed("ts-lua32", () => runInLua(file)) };
-});
-const runs = new Map<string, Record<RuntimeName, Run>>();
-for (const { name, text, wurst, lua32 } of started) {
-  const bun = await timed("bun", () => runInBun(text));
-  runs.set(name, { "wurst-lua": await wurst, bun, "ts-lua32": await lua32 });
-}
+const attempt = <A>(what: string, run: () => A | PromiseLike<A>) =>
+  Effect.tryPromise({ try: async () => run(), catch: (cause) => new TapesFailure({ problem: `${what}: ${describeCause(cause)}` }) });
 
 /** Executed frames, run on recorded or on predicted rows. */
 const isFrame = (operation: string | undefined) => operation === "frame" || operation === "predict";
 const frameCount = (run: Run) => run.records.filter(record => isFrame(record.split(" ", 2)[1])).length;
-const perTape = [...runs].map(([name, byRuntime]) => `${name} ${frameCount(byRuntime["wurst-lua"])}`);
-const totalFrames = [...runs.values()].reduce((sum, byRuntime) => sum + frameCount(byRuntime["wurst-lua"]), 0);
-console.log(`${runs.size} tapes, ${totalFrames} frames (${perTape.join(", ")})`);
-const perRuntime = RUNTIMES.map(runtime => {
-  const { compile, run } = seconds[runtime];
-  return `${runtime} ${run.toFixed(1)} s${compile > 0 ? ` after a ${compile.toFixed(1)} s compile` : ""}`;
-});
-console.log(`run time summed over tapes: ${perRuntime.join(", ")}; ${((performance.now() - checkStarted) / 1000).toFixed(1)} s in all, the Lua runs overlapping`);
 
-let failed = false;
-for (const [name, byRuntime] of runs) {
-  for (const runtime of RUNTIMES) {
-    const { error } = byRuntime[runtime];
-    if (error === undefined) continue;
-    failed = true;
-    console.log(`${runtime} stopped on ${name}: ${error.split("\n").slice(0, 3).join(" | ")}`);
+export const tapes: Command = (args) => Effect.gen(function*() {
+  if (args.length > 0) return yield* new UsageFailure({ problem: "tapes takes no arguments; set LUA to a 32-bit Lua" });
+  if (command([lua, "-e", "io.write(math.maxinteger)"]).output !== "2147483647") {
+    return yield* new TapesFailure({ problem: `LUA=${lua} is not a 32-bit Lua (LUA_32BITS); point LUA at one.` });
   }
-}
-for (const pair of PAIRS) {
-  let divergentFrames = 0;
-  let divergentOther = 0;
-  let first: string | undefined;
+  const tapes = yield* attempt("record tapes", async () => {
+    await Bun.$`mkdir -p ${build}`;
+    const recorded = [...generateTapes()].map(([name, text]) => ({ name, text, file: join(build, `${name}.tape`) }));
+    for (const { file, text } of recorded) await Bun.write(file, text);
+    return recorded;
+  }).pipe(step("record tapes"));
+  const toolchain = yield* attempt("read wurst-toolchain.lock", wurstToolchain);
+  yield* attempt("compile Wurst Lua", () => compileWurstLua(toolchain)).pipe(step("compile Wurst Lua"));
+  yield* attempt("compile TypeScript Lua", compileTypeScriptLua).pipe(step("compile TypeScript Lua"));
+  // Every Lua process starts before the in-process Bun runs occupy this thread.
+  const replays = yield* Effect.all({
+    "wurst-lua": attempt("replay in Wurst Lua", () => Promise.all(tapes.map(({ file }) => runInWurst(toolchain, file)))).pipe(step("replay in wurst-lua")),
+    "ts-lua32": attempt("replay in 32-bit Lua", () => Promise.all(tapes.map(({ file }) => runInLua(file)))).pipe(step("replay in ts-lua32")),
+    "bun": attempt("replay in Bun", () => tapes.map(({ text }) => runInBun(text))).pipe(step("replay in bun")),
+  }, { concurrency: "unbounded" });
+  const runs = new Map(tapes.map(({ name }, index): [string, Record<RuntimeName, Run>] => {
+    const byRuntime = (runtime: RuntimeName): Run => replays[runtime][index] ?? { records: [], error: "no run" };
+    return [name, { "wurst-lua": byRuntime("wurst-lua"), bun: byRuntime("bun"), "ts-lua32": byRuntime("ts-lua32") }];
+  }));
+
+  const perTape = [...runs].map(([name, byRuntime]) => `${name} ${frameCount(byRuntime["wurst-lua"])}`);
+  const totalFrames = [...runs.values()].reduce((sum, byRuntime) => sum + frameCount(byRuntime["wurst-lua"]), 0);
+  yield* Console.log(`${runs.size} tapes, ${totalFrames} frames (${perTape.join(", ")})`);
+
+  let failed = false;
   for (const [name, byRuntime] of runs) {
-    const a = byRuntime[pair[0]].records;
-    const b = byRuntime[pair[1]].records;
-    for (let index = 0; index < Math.max(a.length, b.length); index++) {
-      if (a[index] === b[index]) continue;
-      const { label } = parseRecord(a[index] ?? b[index]);
-      if (isFrame(label.split(" ")[1])) divergentFrames++;
-      else divergentOther++;
-      first ??= `${name} line ${label}: ${describeDivergence(a[index], b[index], pair)}`;
+    for (const runtime of RUNTIMES) {
+      const { error } = byRuntime[runtime];
+      if (error === undefined) continue;
+      failed = true;
+      yield* Console.log(`${runtime} stopped on ${name}: ${error.split("\n").slice(0, 3).join(" | ")}`);
     }
   }
-  if (first !== undefined) failed = true;
-  const other = divergentOther > 0 ? ` and ${divergentOther} other records` : "";
-  console.log(`${pair.join("/")}: ${divergentFrames} divergent frames${other}${first === undefined ? "" : `; first at ${first}`}`);
-}
-process.exit(failed ? 1 : 0);
+  for (const pair of PAIRS) {
+    let divergentFrames = 0;
+    let divergentOther = 0;
+    let first: string | undefined;
+    for (const [name, byRuntime] of runs) {
+      const a = byRuntime[pair[0]].records;
+      const b = byRuntime[pair[1]].records;
+      for (let index = 0; index < Math.max(a.length, b.length); index++) {
+        if (a[index] === b[index]) continue;
+        const { label } = parseRecord(a[index] ?? b[index]);
+        if (isFrame(label.split(" ")[1])) divergentFrames++;
+        else divergentOther++;
+        first ??= `${name} line ${label}: ${describeDivergence(a[index], b[index], pair)}`;
+      }
+    }
+    if (first !== undefined) failed = true;
+    const other = divergentOther > 0 ? ` and ${divergentOther} other records` : "";
+    yield* Console.log(`${pair.join("/")}: ${divergentFrames} divergent frames${other}${first === undefined ? "" : `; first at ${first}`}`);
+  }
+  if (failed) return yield* new TapesFailure({ problem: "the runtimes disagree or one stopped" });
+});

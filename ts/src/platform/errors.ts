@@ -1,8 +1,8 @@
 // Runtime errors from engine callbacks. Each is shown in game and written to a
-// file where scripts/hot.ts maps its Lua positions back to TypeScript lines.
+// file where `waygate hot` maps its Lua positions back to TypeScript lines.
 // A broken per-frame handler fails every frame, so a message is written only
 // when it differs from the previous one.
-import { errorFile } from "../runtime/hotFiles";
+import { errorFile, errorHeading } from "../runtime/gameFiles";
 
 /** Preload lines longer than this are cut so the file stays readable. */
 const MAX_LINE = 240;
@@ -41,7 +41,7 @@ export function reportError(handler: string, error: unknown, stack: string): voi
   DisplayTextToPlayer(GetLocalPlayer(), 0, 0, `error in ${handler}: ${message}`);
   PreloadGenClear();
   PreloadGenStart();
-  Preload(`error ${state.count} in ${handler}`);
+  Preload(errorHeading(state.count, handler));
   for (const line of [message, ...stack.split("\n")]) if (line !== "") Preload(line.slice(0, MAX_LINE));
   PreloadGenEnd(errorFile(GetPlayerId(GetLocalPlayer())));
 }

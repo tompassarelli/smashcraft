@@ -10,6 +10,7 @@ import { captureReplaySnapshot } from "../../game/replay/snapshot";
 import { stateChecksum } from "../../game/replay/canonical";
 import { fighterAt, isActive, type Controls } from "../../game/sim/roster";
 import { floorMod } from "../../sim/intMath";
+import { INPUT_START_FILE, MELEE_READY_FILE, traceStartLine } from "../../runtime/gameFiles";
 import { writeLines } from "../fileio";
 import { type ShellState, activeRollback, localSlot } from "./state";
 import { views } from "./ui";
@@ -56,7 +57,7 @@ export function startInputTrace(s: ShellState): void {
   traceConfirmedState(s);
   traceSelectionState(s, "trace-start");
   const receiptStarted = traceSeconds(s.trace);
-  writeLines("wc3-melee-input-start.txt", [`TRACE START ${s.build.id}`]);
+  writeLines(INPUT_START_FILE, [traceStartLine(s.build.id)]);
   traceInput(s.trace, `trace-start receipt native-seconds ${R2S(traceSeconds(s.trace) - receiptStarted)}`);
 }
 
@@ -138,5 +139,5 @@ export function writeReadyMarker(s: ShellState): void {
   for (const slot of PARTICIPANT_SLOTS) {
     if (isActive(s.world, slot)) lines.push(`BINDINGS${slot} ${humanActive(s.game, slot) ? encodeBindings(s.participants[slot].bindings.bindings) : "BOT"}`);
   }
-  writeLines("wc3-melee-ready.txt", lines);
+  writeLines(MELEE_READY_FILE, lines);
 }

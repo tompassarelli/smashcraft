@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Effect, Exit } from "effect";
 import { expect, test } from "bun:test";
-import { runProcess, stageMap, verifyToolchain } from "../scripts/mapEffects";
+import { runProcess, stageMap, verifyToolchain } from "../scripts/waygate/mapBuild";
 import { composeScript, typescriptBase } from "../scripts/mapScript";
 import { fileIoAbility } from "../scripts/objectData";
 
