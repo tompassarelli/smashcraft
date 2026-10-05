@@ -61,9 +61,13 @@ export class ButtonClicks<T> {
   private readonly trigger = CreateTrigger();
   private readonly buttons: Button<T>[] = [];
 
-  constructor(name: string, handle: (target: T, clicker: player) => void) {
+  constructor(private readonly name: string, handle: (target: T, clicker: player) => void) {
     TriggerAddAction(this.trigger, trampoline(name));
-    on(name, () => {
+    this.bindHandler(handle);
+  }
+
+  bindHandler(handle: (target: T, clicker: player) => void): void {
+    on(this.name, () => {
       const id = GetHandleId(BlzGetTriggerFrame());
       const clicker = GetTriggerPlayer();
       for (const button of this.buttons) {
@@ -91,6 +95,11 @@ export function createSyncTrigger(name: string, prefix: string, senders: readonl
   const trigger = CreateTrigger();
   for (const sender of senders) BlzTriggerRegisterPlayerSyncEvent(trigger, Player(sender), prefix, false);
   TriggerAddAction(trigger, trampoline(name));
-  on(name, () => handle(GetPlayerId(GetTriggerPlayer()), BlzGetTriggerSyncData()));
+  bindSyncHandler(name, handle);
   return trigger;
+}
+
+/** Replace the code behind a retained trigger without creating or destroying it. */
+export function bindSyncHandler(name: string, handle: (sender: number, data: string) => void): void {
+  on(name, () => handle(GetPlayerId(GetTriggerPlayer()), BlzGetTriggerSyncData()));
 }

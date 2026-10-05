@@ -51,7 +51,12 @@ function playThroughReload(entry: Entry): Lockstep {
   clients.ticks(120);
   clients.press(0, T_KEY, CTRL);
   clients.ticks(330);
+  const nativeCallCount = clients.clients.map(client => client.log.length);
   clients.everywhere(() => entry.install());
+  for (const [index, client] of clients.clients.entries()) {
+    const installCalls = client.log.slice(nativeCallCount[index] ?? 0);
+    expect(installCalls.filter(call => /^(?:Create|BlzCreate|AddSpecialEffect|Destroy|BlzDestroy|Remove)\w+\(/.test(call))).toEqual([]);
+  }
   clients.ticks(120);
   return clients;
 }

@@ -1,6 +1,5 @@
-// The menus, HUD and renderers the shell drives. They are objects that keep
-// the code they were created with, so a hot reload destroys and recreates
-// them; the bindings and match they show live in the shell's state.
+// The menus, HUD and renderers the shell drives. A hot reload keeps their
+// native handles and mutable state, and binds their objects to the new code.
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../../game/input/participants";
 import { CombatEffects } from "../../game/render/combatEffects";
 import { FighterPoolPresentation } from "../../game/render/fighterPool";
@@ -11,13 +10,14 @@ import { ProjectilePresentation } from "../../game/render/projectilePresentation
 import { ShieldPresentation } from "../../game/render/shieldPresentation";
 import { SpecialEffects } from "../../game/render/specialEffects";
 import type { Character } from "../../game/sim/codes";
-import { fighterAt, isActive } from "../../game/sim/roster";
+import { isActive } from "../../game/sim/roster";
 import type { MenuControls } from "../../game/ui/frames";
 import { FighterHud, MatchClock } from "../../game/ui/matchHud";
 import { type SelectionActions, SelectionPanel } from "../../game/ui/selectionUi";
 import { type SettingsActions, SettingsPanel } from "../../game/ui/settingsUi";
 import { type StageActions, StagePanel } from "../../game/ui/stageUi";
 import type { ShellState } from "./state";
+import { bindPrototype } from "../rebind";
 
 /** A fighter's renderers for one match; the pool only in pooled presentation. */
 export interface FighterRenderers {
@@ -37,7 +37,7 @@ export interface UiObjects {
   readonly frost: FrostEffects;
   readonly special: SpecialEffects;
   readonly fighters: Slots<FighterRenderers | undefined>;
-  readonly sounds: ModelSoundSink;
+  sounds: ModelSoundSink;
 }
 
 /** What the panels ask the game to do; menus.ts implements them over the shell. */
@@ -84,20 +84,6 @@ function endFighterRenderers(renderers: FighterRenderers | undefined): void {
   renderers?.pool?.destroy();
 }
 
-function destroyUi(ui: UiObjects): void {
-  ui.clock.destroy();
-  for (const slot of PARTICIPANT_SLOTS) {
-    ui.huds[slot].destroy();
-    ui.selections[slot].destroy();
-    ui.settings[slot].destroy();
-    endFighterRenderers(ui.fighters[slot]);
-  }
-  ui.stage.destroy();
-  ui.combat.destroy();
-  ui.frost.destroy();
-  ui.special.destroy();
-}
-
 /**
  * Creates a fighter's shield and projectile renderers, and its pooled clip
  * models when pooled; true when the pool admitted the character.
@@ -123,24 +109,31 @@ export function layoutHuds(s: ShellState): void {
   active.forEach((slot, position) => ui.huds[slot].layout(position, active.length));
 }
 
-/** After a hot reload: the new code's objects replace the old, showing the same match. */
+/** Rebind retained UI and renderer handles to this bundle's methods and actions. */
 export function recreateUi(s: ShellState, actions: PanelActions): void {
-  const old = s.ui;
-  if (old === undefined) return;
-  const open = PARTICIPANT_SLOTS.filter(slot => old.settings[slot].isOpen());
-  destroyUi(old);
-  const ui = createUi(s, actions);
-  layoutHuds(s);
-  for (const slot of open) ui.settings[slot].show();
+  const ui = s.ui;
+  if (ui === undefined) return;
+  bindPrototype(ui.clock, MatchClock.prototype);
   for (const slot of PARTICIPANT_SLOTS) {
-    const renderers = old.fighters[slot];
-    if (renderers === undefined || !isActive(s.world, slot)) continue;
-    beginFighterRenderers(s, slot, fighterAt(s.world, slot).character, renderers.pool !== undefined);
+    bindPrototype(ui.huds[slot], FighterHud.prototype);
+    bindPrototype(ui.selections[slot], SelectionPanel.prototype);
+    ui.selections[slot].bindActions(actions.selection);
+    bindPrototype(ui.settings[slot], SettingsPanel.prototype);
+    ui.settings[slot].bindActions(actions.settings);
   }
-  if (s.session.paused) {
-    ui.combat.setPaused(true);
-    ui.special.setPaused(true);
-    for (const slot of PARTICIPANT_SLOTS) ui.fighters[slot]?.projectiles.setPaused(true);
+  bindPrototype(ui.stage, StagePanel.prototype);
+  ui.stage.bindActions(actions.stage);
+  bindPrototype(ui.combat, CombatEffects.prototype);
+  bindPrototype(ui.frost, FrostEffects.prototype);
+  bindPrototype(ui.special, SpecialEffects.prototype);
+  ui.special.bindNestedCode();
+  ui.sounds = modelSoundPresentation(s.origin);
+  for (const slot of PARTICIPANT_SLOTS) {
+    const renderers = ui.fighters[slot];
+    if (renderers === undefined) continue;
+    bindPrototype(renderers.shield, ShieldPresentation.prototype);
+    bindPrototype(renderers.projectiles, ProjectilePresentation.prototype);
+    if (renderers.pool !== undefined) bindPrototype(renderers.pool, FighterPoolPresentation.prototype);
   }
 }
 

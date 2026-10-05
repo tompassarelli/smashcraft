@@ -2,11 +2,12 @@
 // any player may press; dragging the stage chip is local cursor art until a
 // finished choice crosses the "stage-drop" sync event.
 import { f32 } from "../../sim/f32";
+import { bindPrototype } from "../../platform/rebind";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type MatchState, Phase, humanActive, practiceSelected } from "../match/rules";
 import { pointerX, pointerY } from "../menu/pointer";
 import { type StageTile, clearStageDrag, stageDrag, stageTileLeft, updateStageDrag } from "../menu/stageSelection";
-import { ButtonClicks, MENU_FONT, type MenuControls, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
+import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 
 /** What the stage panel asks the game to do; each call comes from a synchronized event. */
 export interface StageActions {
@@ -67,7 +68,7 @@ export class StagePanel {
   private lastRules: string | undefined;
 
   constructor(
-    private readonly actions: StageActions,
+    private actions: StageActions,
     controls: MenuControls,
   ) {
     const journal = controls === "journal";
@@ -114,6 +115,15 @@ export class StagePanel {
     });
     BlzFrameSetVisible(root, false);
     BlzFrameSetVisible(this.backdrop, false);
+  }
+
+  bindActions(actions: StageActions): void {
+    this.actions = actions;
+    bindPrototype(this.clicks, ButtonClicks.prototype);
+    this.clicks.bindHandler((button, clicker) => this.click(button, GetPlayerId(clicker)));
+    bindSyncHandler("ui.stage.drop", (sender, data) => {
+      if (data === "0" || data === "1") this.actions.selectStage(sender, data === "0" ? 0 : 1);
+    });
   }
 
   destroy(): void {

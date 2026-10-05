@@ -2,6 +2,7 @@
 // only the owner's client shows its own and reads its pointer, and a placed or
 // recalled chip crosses a player sync event before the game sees it.
 import { f32 } from "../../sim/f32";
+import { bindPrototype } from "../../platform/rebind";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS } from "../input/participants";
 import {
   type MatchState,
@@ -33,7 +34,7 @@ import {
   updateSelectionDrag,
 } from "../menu/selectionDrag";
 import { Character } from "../sim/codes";
-import { ButtonClicks, MENU_FONT, type MenuControls, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
+import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 
 /** What a participant's panel asks the game to do; each call comes from a synchronized event. */
 export interface SelectionActions {
@@ -114,7 +115,7 @@ export class SelectionPanel {
   private settingsOpen = false;
 
   constructor(
-    private readonly actions: SelectionActions,
+    private actions: SelectionActions,
     readonly participantId: number,
     private readonly controls: MenuControls,
   ) {
@@ -162,6 +163,16 @@ export class SelectionPanel {
     ];
     BlzFrameSetVisible(root, false);
     BlzFrameSetVisible(this.backdrop, false);
+  }
+
+  bindActions(actions: SelectionActions): void {
+    this.actions = actions;
+    bindPrototype(this.clicks, ButtonClicks.prototype);
+    this.clicks.bindHandler((button, clicker) => this.click(button, clicker));
+    const suffix = I2S(this.participantId);
+    bindSyncHandler(`ui.selection.${suffix}.drop`, (_, data) => this.acceptDrop(data));
+    bindSyncHandler(`ui.selection.${suffix}.cpuDrop`, (_, data) => this.acceptCpuDrop(data));
+    bindSyncHandler(`ui.selection.${suffix}.recall`, (_, data) => this.acceptRecall(data));
   }
 
   destroy(): void {

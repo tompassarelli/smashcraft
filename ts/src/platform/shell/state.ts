@@ -176,7 +176,7 @@ export interface ShellState {
   readonly status: StatusLine;
   readonly frames: StatusFrames;
   readonly stageDecks: effect[];
-  /** Menus, HUD and renderers; recreated by every hot reload. */
+  /** Menus, HUD and renderers; retained and rebound on hot reload. */
   ui: UiObjects | undefined;
   readonly sounds: ModelSoundCursor;
   readonly dev: DevSettings;

@@ -243,7 +243,7 @@ function withShell(handler: (s: ShellState) => void): () => void {
   };
 }
 
-/** Registers every shell callback; after a hot reload, also replaces the UI objects. */
+/** Registers every shell callback; after a hot reload, also rebinds retained UI objects. */
 export function installShell(): void {
   on(INIT, initialize);
   on(TICK, withShell(gameTick));
@@ -272,4 +272,3 @@ export function startShell(build: MapBuild, playback: RollbackPlayback): void {
   globalThis.__smashcraftShellStart = { build, playback };
   TimerStart(CreateTimer(), 0.0, false, trampoline(INIT));
 }
-
