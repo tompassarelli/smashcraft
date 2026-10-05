@@ -24,6 +24,10 @@
         "diagnostics": true,
         "includeSuggestionsInTsc": true,
         "ignoreEffectSuggestionsInTscExitCode": true
+      },
+      {
+        "name": "wisp/plugins/number-rules-service.cjs",
+        "project": "./tsconfig.game.json"
       }
     ],
     "types": [

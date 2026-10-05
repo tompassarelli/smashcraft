@@ -5,7 +5,7 @@
   "packageManager": "bun@1.3.13",
   "scripts": {
     "postinstall": "bun node_modules/@effect/tsgo/dist/effect-tsgo.cjs patch --typescript --typescript-package typescript-native",
-    "check": "bun node_modules/typescript-native/bin/tsc --build tsconfig.json tsconfig.game.json",
+    "check": "bun node_modules/typescript-native/bin/tsc --build tsconfig.json tsconfig.game.json && bun node_modules/wisp/scripts/numberRules.ts tsconfig.game.json",
     "test": "bun scripts/test.ts",
     "wisp": "bun scripts/wisp.ts",
     "update:wisp": "bun scripts/update-wisp.ts",
@@ -20,6 +20,6 @@
     "typescript": "6.0.2",
     "typescript-native": "npm:typescript@7.0.2",
     "typescript-to-lua": "1.37.1",
-    "wisp": "file:vendor/wisp-3e422abf986d9a14ab1d1aa6122ea23c2c829810.tgz"
+    "wisp": "file:vendor/wisp-4e958896dd55d5bdae02a5006139174dcae96675.tgz"
   }
 }
