@@ -1,17 +1,19 @@
 // Smashcraft's declared map imports and object data.
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { Effect, Schema } from "effect";
 import { MapBuild, MapBuildFailure, runProcess, type ArchiveEntry } from "waygate/scripts/waygate/mapBuild";
 import { UsageFailure } from "waygate/scripts/waygate/command";
+import { step } from "waygate/scripts/waygate/timings";
 import { STAGE_DECK_MODEL } from "../../src/game/assets/stageAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
+import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { buildProject, projectRoot as PROJECT } from "./project";
 const tryMapPromise = <A>(operation: string, path: string, run: () => PromiseLike<A>) => Effect.tryPromise({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
 const tryMapSync = <A>(operation: string, path: string, run: () => A) => Effect.try({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
-const NO_STAGE_DECK = "the map script names no stage deck model";
+const EMPTY_MODEL = "the map script names an empty model path";
 const BuildOptions = Schema.Struct({
   base: Schema.NonEmptyString,
   container: Schema.NonEmptyString,
@@ -52,40 +54,74 @@ const importLines = (path: string) =>
     Effect.map((text) => text.split(/\r?\n/).filter((line) => line.length > 0)),
   );
 
-/** Why the stage imports cannot supply the deck model the compiled script draws, if they cannot. */
-export function missingStageDeck(stageImports: readonly string[], deckModel: string): string | undefined {
-  if (deckModel === "") return NO_STAGE_DECK;
-  if (stageImports.some((file) => `war3mapImported\\${file}` === deckModel)) return undefined;
-  return `${deckModel} is not among the stage imports; package them with tools/stage/package.ts`;
+/**
+ * The generated models the compiled script draws: each family's import list
+ * under --assets must hold them, and its generator writes both.
+ */
+export const GENERATED_MODELS: readonly { readonly list: string; readonly generator: string; readonly models: readonly string[] }[] = [
+  { list: "stage-assets/imports.txt", generator: "tools/stage/package.ts", models: [STAGE_DECK_MODEL] },
+];
+
+/** The summon clip models the compiled script draws; the summon evidence lists their files. */
+export const SUMMON_MODELS = Array.from({ length: summonClipCount(SUMMON_BEAR) }, (_, index) => summonClip(SUMMON_BEAR, index).modelPath);
+
+/** Every imported model the compiled script names. */
+export const SCRIPT_MODELS: readonly string[] = [
+  ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE, DEMON_HUNTER_MODEL_FILE, ...SUMMON_MODELS,
+  ...GENERATED_MODELS.flatMap(({ models }) => models),
+];
+
+/** Why `imports` cannot supply every model the compiled script names, if they cannot. */
+export function missingModels(imports: readonly string[], models: readonly string[]): string | undefined {
+  if (models.includes("")) return EMPTY_MODEL;
+  const listed = new Set(imports.map((file) => `war3mapImported\\${file}`));
+  const missing = models.filter((model) => !listed.has(model));
+  return missing.length === 0 ? undefined : `${missing.join(", ")} not among the imports`;
 }
 
-/** A rebuild keeps every import, so the map must already carry the deck model the new script draws. */
-export const carriedStageDeck = (map: string, packager: string, deckModel: string = STAGE_DECK_MODEL) => Effect.scoped(Effect.gen(function*() {
-  if (deckModel === "") return yield* new MapBuildFailure({ operation: "check stage deck model", path: map, cause: NO_STAGE_DECK });
+const requireListed = (path: string, imports: readonly string[], models: readonly string[], remedy: string) => {
+  const missing = missingModels(imports, models);
+  return missing === undefined ? Effect.void : Effect.fail(new MapBuildFailure({ operation: "check script models", path, cause: `${missing}; ${remedy}` }));
+};
+
+/** A rebuild keeps every import, so the map must already carry each model the new script names. */
+export const carriedModels = (map: string, packager: string, models: readonly string[] = SCRIPT_MODELS) => Effect.scoped(Effect.gen(function*() {
+  if (models.includes("")) return yield* new MapBuildFailure({ operation: "check script models", path: map, cause: EMPTY_MODEL });
   const scratch = yield* Effect.acquireRelease(
-    tryMapSync("create scratch directory", tmpdir(), () => mkdtempSync(join(tmpdir(), "smashcraft-stage-deck."))),
+    tryMapSync("create scratch directory", tmpdir(), () => mkdtempSync(join(tmpdir(), "smashcraft-models."))),
     (directory) => Effect.sync(() => rmSync(directory, { recursive: true, force: true })),
   );
-  yield* runProcess("extract stage deck model", map, [packager, "extract", map, join(scratch, "deck.mdx"), deckModel]).pipe(
-    Effect.mapError((failure) => new MapBuildFailure({ operation: "check stage deck model", path: map, cause: `the map does not carry ${deckModel}; build it again (${failure.message})` })),
-  );
+  const failures = yield* Effect.forEach(models, (model, index) =>
+    Effect.match(runProcess("extract model", map, [packager, "extract", map, join(scratch, `${index}`), model]), {
+      onFailure: (failure) => [{ model, reason: failure.message }],
+      onSuccess: () => [],
+    }), { concurrency: 4 });
+  const missing = failures.flat();
+  const first = missing[0];
+  if (first === undefined) return;
+  return yield* new MapBuildFailure({ operation: "check script models", path: map,
+    cause: `the map does not carry ${missing.map(({ model }) => model).join(", ")}; build it again (${first.reason})` });
 }));
 
-/** Replaces only the map's script, after checking the map carries the stage deck model that script draws. */
+/** Replaces only the map's script, after checking the map carries every model that script names. */
 export const rebuildMap = (map: string) =>
-  carriedStageDeck(map, buildProject().packager).pipe(Effect.andThen(MapBuild.use((maps) => maps.rebuild(map))));
+  carriedModels(map, buildProject().packager).pipe(step("script models carried"), Effect.andThen(MapBuild.use((maps) => maps.rebuild(map))));
 
 const imported = (directory: string, file: string): ArchiveEntry => ({ entry: `war3mapImported\\${file}`, source: join(directory, file) });
 
 /** Every asset the map imports, with the file it must equal (build.sh's import list). */
 export const importedAssets = (assets: string, summon: string) => Effect.gen(function*() {
-  const stage = join(assets, "stage-assets");
+  const generated = yield* Effect.forEach(GENERATED_MODELS, ({ list, generator, models }) => Effect.gen(function*() {
+    const path = join(assets, list);
+    const files = yield* importLines(path);
+    yield* requireListed(path, files, models, `package them with ${generator}`);
+    return files.map((file) => imported(dirname(path), file));
+  }));
+  const evidencePath = join(summon, "summon-clips-evidence.json");
+  const evidence = yield* readJson(SummonEvidence, evidencePath);
+  const summonFiles = evidence.records.flatMap((record) => record.clips).map(({ filename }) => filename);
+  yield* requireListed(evidencePath, summonFiles, SUMMON_MODELS, "summonClipInfo.ts and the summon clips differ");
   const impact = join(assets, "impact-assets");
-  const stageList = join(stage, "imports.txt");
-  const stageImports = yield* importLines(stageList);
-  const missingDeck = missingStageDeck(stageImports, STAGE_DECK_MODEL);
-  if (missingDeck !== undefined) return yield* new MapBuildFailure({ operation: "check stage deck model", path: stageList, cause: missingDeck });
-  const evidence = yield* readJson(SummonEvidence, join(summon, "summon-clips-evidence.json"));
   const impactLists = yield* Effect.forEach(["imports.txt", "frost-imports.txt", "shield-imports.txt"], (list) => importLines(join(impact, list)));
   return [
     { entry: ARCHER_MODEL_FILE, source: join(assets, "animation-assets/ArcherFighter.mdx") },
@@ -93,9 +129,9 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     { entry: DEMON_HUNTER_MODEL_FILE, source: join(assets, "illidan-animation/DemonHunterFighter.mdx") },
     ...SELECTION_TEXTURES.map((texture) => imported(join(assets, "selection-assets"), `${texture}.tga`)),
     ...["SmashcraftHUD.fdf", "SmashcraftHUD.toc"].map((file) => imported(join(PROJECT, "tools/selection/art"), file)),
-    ...stageImports.map((file) => imported(stage, file)),
+    ...generated.flat(),
     ...impactLists.flat().map((file) => imported(impact, file)),
-    ...evidence.records.flatMap((record) => record.clips).map(({ filename }) => imported(join(summon, "imports/war3mapImported"), filename)),
+    ...summonFiles.map((filename) => imported(join(summon, "imports/war3mapImported"), filename)),
   ] satisfies ArchiveEntry[];
 });
 
