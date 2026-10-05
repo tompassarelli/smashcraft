@@ -13,7 +13,7 @@ export const PARRY_FLASH_FRAMES = 12;
 export const STATIC_AURA = 0;
 export const STATIC_WING_TRAIL = 1;
 export const STATIC_PARRY_FLASH = 2;
-export type StaticSpecial = typeof STATIC_AURA | typeof STATIC_WING_TRAIL | typeof STATIC_PARRY_FLASH;
+type StaticSpecial = typeof STATIC_AURA | typeof STATIC_WING_TRAIL | typeof STATIC_PARRY_FLASH;
 
 export interface StaticSpecialPose {
   visible: boolean;

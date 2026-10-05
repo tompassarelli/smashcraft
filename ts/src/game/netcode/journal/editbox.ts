@@ -13,7 +13,7 @@ export const EDITBOX_CAPACITY = 4096;
 const RECEIPT_TICKS = 6;
 
 /** The edit box's part in handing the keyboard to Warcraft's chat entry. */
-export type ChatPhase =
+type ChatPhase =
   /** The box has focus and receives controller text. */
   | "receiving"
   /** The player asked to chat; the box keeps receiving until the helper stops typing. */

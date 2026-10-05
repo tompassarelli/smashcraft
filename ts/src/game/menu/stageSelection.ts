@@ -6,13 +6,13 @@
 export type StageTile = 0 | 1;
 
 /** What the button did when it went down. */
-export type StageGesture =
+type StageGesture =
   /** Picked up the stage chip; it lands on the tile where the button comes up. */
   | { kind: "carry" }
   /** Pressed a stage tile away from the chip; coming up on the same tile chooses it. */
   | { kind: "click"; tile: StageTile };
 
-export interface StageDrag {
+interface StageDrag {
   /** The button state at the last update. */
   down: boolean;
   /** The gesture of the current press, if it is one. */

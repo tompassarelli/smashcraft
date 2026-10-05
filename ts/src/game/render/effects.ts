@@ -21,7 +21,7 @@ export const STOCK_MODELS = {
   hippogryph: "Units\\NightElf\\HippoGryph\\HippoGryph.mdx",
 } as const;
 
-export const HALF_TURN = f32(3.141592654);
+const HALF_TURN = f32(3.141592654);
 
 /** Models face +x at yaw 0; facing -1 turns them around. */
 export function facingYaw(facing: number): number {

@@ -22,7 +22,7 @@ export interface DevSettings {
   batch: BatchSize;
 }
 
-export function describeDevSettings({ rollback, delay, batch }: Readonly<DevSettings>): string {
+function describeDevSettings({ rollback, delay, batch }: Readonly<DevSettings>): string {
   return `dev: next match rb=${rollback} delay=${delay} batch=${batch}`;
 }
 

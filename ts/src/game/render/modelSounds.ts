@@ -44,7 +44,7 @@ export const ORIGINAL_MODEL_SOUNDS: ModelSoundCatalog = {
 };
 
 /** The clip a fighter shows: chosen by index or by original sequence name. */
-export interface SoundSelection {
+interface SoundSelection {
   epoch: number;
   frame: number;
   slot: number;

@@ -11,7 +11,7 @@ import type { GameFile, JourneyRecord, PublicationRecord, RigShape, Stopped } fr
 import { type Observer, type Pad, continueProcess, inject, monotonicNs, realtimeNs, stopProcess } from "./linux";
 import { SLOTS, type Slot } from "./reconcile";
 
-export interface LiveRigParts {
+interface LiveRigParts {
   readonly clients: readonly [Client, Client];
   /** Each client's CustomMapData folder. */
   readonly data: readonly [string, string];

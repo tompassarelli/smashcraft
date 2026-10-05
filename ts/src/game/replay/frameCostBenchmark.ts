@@ -11,7 +11,7 @@ import { copyReplayState, createReplaySnapshot } from "./snapshot";
 
 const FRAME_COUNT = 4096;
 
-export interface FrameCostBenchmarkResult {
+interface FrameCostBenchmarkResult {
   readonly frames: number;
   readonly totalSeconds: number;
   readonly meanSecondsPerFrame: number;

@@ -30,7 +30,7 @@ export interface AttackBuffer {
 }
 
 /** The Wurst Replay2 fields for one command buffer, including its consumed observation. */
-export interface AttackBufferCanonicalState {
+interface AttackBufferCanonicalState {
   graceFrames: number;
   style: number;
   facing: Direction;

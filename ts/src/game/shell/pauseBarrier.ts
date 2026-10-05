@@ -11,7 +11,7 @@ import { PARTICIPANT_SLOTS, type Slots, isParticipantSlot, participantActive } f
 
 export const CONTROL_ACK_PREFIX = "SC_JC";
 
-export interface BarrierRequest {
+interface BarrierRequest {
   /** The acknowledgment each helper owes this round. */
   readonly stage: ControlState;
   /** The common frame, once every human acknowledged this round. */
@@ -55,7 +55,7 @@ export function preparedFrame({ request }: Readonly<PauseBarrier>): number | und
   return request?.stage === "PREPARE" ? request.frame : undefined;
 }
 
-export interface ControlAck {
+interface ControlAck {
   readonly epoch: number;
   readonly slot: number;
   readonly sequence: number;
@@ -76,7 +76,7 @@ export function encodeControlAck({ epoch, slot, sequence, stage, frame }: Contro
   return `JC1${padDecimal(epoch, 10)}${slot}${padDecimal(sequence, 10)}${STAGE_CODES[stage]}${padDecimal(frame, 10)}`;
 }
 
-export function decodeControlAck(wire: string): ControlAck | undefined {
+function decodeControlAck(wire: string): ControlAck | undefined {
   if (wire.length !== 35 || !wire.startsWith("JC1")) return undefined;
   const epoch = parseDecimal(wire.substring(3, 13));
   const slot = parseDecimal(wire.substring(13, 14));
@@ -87,7 +87,7 @@ export function decodeControlAck(wire: string): ControlAck | undefined {
   return { epoch, slot, sequence, stage, frame };
 }
 
-export type BarrierReceipt = "ignored" | "recorded" | "complete" | { readonly failure: string };
+type BarrierReceipt = "ignored" | "recorded" | "complete" | { readonly failure: string };
 
 /**
  * Records a relayed acknowledgment from sender. Messages for another epoch,

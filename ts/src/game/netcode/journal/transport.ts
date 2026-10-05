@@ -24,7 +24,7 @@ export function decodeTransport(wire: string): readonly InputPacket[] | undefine
   return first !== undefined && second !== undefined && continues(first, second) ? [first, second] : undefined;
 }
 
-export interface TransportMessage {
+interface TransportMessage {
   readonly wire: string;
   readonly firstFrame: number;
   /** Input rows across both packets. */
