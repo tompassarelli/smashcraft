@@ -2,13 +2,16 @@
   "name": "smashcraft",
   "private": true,
   "type": "module",
+  "packageManager": "bun@1.3.13",
   "scripts": {
-    "check": "bun node_modules/typescript-native/bin/tsc -p tsconfig.json --noEmit && bun node_modules/typescript-native/bin/tsc -p tsconfig.game.json --noEmit",
+    "check": "bun node_modules/@effect/tsgo/dist/effect-tsgo.cjs patch --typescript --typescript-package typescript-native && bun node_modules/typescript-native/bin/tsc -p tsconfig.json --noEmit && bun node_modules/typescript-native/bin/tsc -p tsconfig.game.json --noEmit",
     "test": "bun test",
     "parity": "bun scripts/parity.ts"
   },
   "devDependencies": {
+    "@effect/tsgo": "0.48.0",
     "@types/bun": "1.4.2",
+    "effect": "4.0.1",
     "lua-types": "2.14.1",
     "source-map": "0.7.6",
     "typescript": "6.0.2",

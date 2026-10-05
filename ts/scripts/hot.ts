@@ -3,19 +3,22 @@
 // in every client. Versions continue from the newest manifest on disk, so the
 // tool and the match can each restart without losing track.
 // Usage: bun scripts/hot.ts --data DIR [--data DIR ...] [--watch]
-import { readdirSync, renameSync, rmSync, watch } from "node:fs";
+import { readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { Effect } from "effect";
 import { FILE_IO_ABILITY, PAYLOAD_FILE_BYTES, ackFile, errorFile, formatManifest, manifestFile, payloadFile, payloadKey } from "../src/runtime/hotFiles";
 import { checksum } from "../src/runtime/payload";
 import { mapCompiler, report } from "./compiler";
+import { acknowledgementVersion, forEachHotClient, renameHotFile, runHotWatch, validateDataDirectories, writeHotFile } from "./hotEffects";
 import { longBrackets } from "./lua";
 import { keepSourceMap, toTypeScript } from "./sourceMaps";
 
 const ACK_TIMEOUT_MS = 10_000;
 
 const args = process.argv.slice(2);
-const dataDirs = args.flatMap((arg, i) => (arg === "--data" && args[i + 1] !== undefined ? [args[i + 1]!] : []));
-if (dataDirs.length === 0) throw new Error("usage: bun scripts/hot.ts --data DIR [--data DIR ...] [--watch]");
+const dataDirs = await Effect.runPromise(validateDataDirectories(
+  args.flatMap((arg, i) => (arg === "--data" && args[i + 1] !== undefined ? [args[i + 1]!] : [])),
+));
 
 /** A Preload file whose execution stores one short line in the FileIO tooltip. */
 function preloadFile(line: string): string {
@@ -60,9 +63,11 @@ function removePayloadsExcept(dir: string, keep: readonly string[]): void {
 }
 
 /** Written whole: a reader sees the old file or the new one. */
-async function writeAtomically(path: string, text: string): Promise<void> {
-  await Bun.write(`${path}.next`, text);
-  renameSync(`${path}.next`, path);
+function writeAtomically(path: string, text: string) {
+  return Effect.gen(function*() {
+    yield* writeHotFile(`${path}.next`, text);
+    yield* renameHotFile(`${path}.next`, path);
+  });
 }
 
 const compile = mapCompiler("tsconfig.map.json");
@@ -84,12 +89,12 @@ async function publish(): Promise<void> {
   const payloadChecksum = checksum(bytes.length, (index) => bytes[index]!);
   keepSourceMap("build/map.lua", payloadKey(payloadChecksum));
   version++;
-  for (const dir of dataDirs) {
-    for (const [index, piece] of pieces.entries()) await Bun.write(join(dir, payloadFile(payloadChecksum, index)), payloadPreloadFile(piece));
+  await Effect.runPromise(forEachHotClient(dataDirs, (dir) => Effect.gen(function*() {
+    for (const [index, piece] of pieces.entries()) yield* writeHotFile(join(dir, payloadFile(payloadChecksum, index)), payloadPreloadFile(piece));
     // The manifest follows the payload: a client that reads it can read every payload file.
-    await writeAtomically(join(dir, manifestFile(version)), preloadFile(formatManifest({ version, files, checksum: payloadChecksum })));
-    removePayloadsExcept(dir, [payloadChecksum, previousChecksum]);
-  }
+    yield* writeAtomically(join(dir, manifestFile(version)), preloadFile(formatManifest({ version, files, checksum: payloadChecksum })));
+    yield* Effect.sync(() => removePayloadsExcept(dir, [payloadChecksum, previousChecksum]));
+  })));
   previousChecksum = payloadChecksum;
   const published = performance.now();
   const pending = new Set(dataDirs);
@@ -97,7 +102,7 @@ async function publish(): Promise<void> {
     for (const dir of [...pending]) {
       for (const slot of [0, 1, 2, 3]) {
         const file = Bun.file(join(dir, ackFile(slot)));
-        if ((await file.exists()) && Number(/applied (\d+)/.exec(await file.text())?.[1]) >= version) pending.delete(dir);
+        if ((await file.exists()) && (acknowledgementVersion(await file.text()) ?? 0) >= version) pending.delete(dir);
       }
     }
     await Bun.sleep(5);
@@ -116,11 +121,14 @@ async function request(): Promise<void> {
     return;
   }
   running = true;
-  do {
-    again = false;
-    await publish();
-  } while (again);
-  running = false;
+  try {
+    do {
+      again = false;
+      await publish();
+    } while (again);
+  } finally {
+    running = false;
+  }
 }
 
 /** Prints each new in-game error report with TypeScript lines, and how long after the game wrote it. */
@@ -146,10 +154,10 @@ async function checkErrors(announce: boolean): Promise<void> {
 await checkErrors(false);
 await request();
 if (!args.includes("--watch")) process.exit(0);
-setInterval(() => void checkErrors(true), 50);
 let debounce: ReturnType<typeof setTimeout> | undefined;
-watch("src", { recursive: true }, () => {
-  clearTimeout(debounce);
-  debounce = setTimeout(() => void request(), 10);
-});
 console.log("watching src/ for changes");
+await Effect.runPromise(runHotWatch(() => {
+  clearTimeout(debounce);
+  debounce = setTimeout(() => void request().catch((cause: unknown) => console.error(cause)), 10);
+}, () => void checkErrors(true).catch((cause: unknown) => console.error(cause))));
+clearTimeout(debounce);

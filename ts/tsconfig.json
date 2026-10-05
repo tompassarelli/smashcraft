@@ -12,6 +12,14 @@
     "noImplicitOverride": true,
     "noEmitOnError": true,
     "skipLibCheck": true,
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "diagnostics": true,
+        "includeSuggestionsInTsc": true,
+        "ignoreEffectSuggestionsInTscExitCode": true
+      }
+    ],
     "types": [
       "bun"
     ]
