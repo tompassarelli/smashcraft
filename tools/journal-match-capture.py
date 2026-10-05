@@ -362,6 +362,14 @@ def main():
                                     str(path.resolve())], check=True, capture_output=True, timeout=12)
                     text = subprocess.check_output(["tesseract", str(path), "stdout", "--psm", "11"],
                                                    text=True, stderr=subprocess.DEVNULL, timeout=10)
+                    # Gold native labels disappear against the animated scene
+                    # in unmasked OCR; preserve both observations.
+                    mask = path.with_name(path.stem + "-gold.png")
+                    subprocess.run(["magick", str(path), "-fx", "(r>0.667&&g>0.588)?0:1", str(mask)],
+                                   check=True, capture_output=True, timeout=10)
+                    text += "\n" + subprocess.check_output(
+                        ["tesseract", str(mask), "stdout", "--psm", "11"],
+                        text=True, stderr=subprocess.DEVNULL, timeout=10)
                     (path.with_suffix(".txt")).write_text(text)
                     observation = dict(label=label, capture=str(path.resolve()), text=text,
                                        helper_log_bytes=(args.out / f"helper-{slot}.log").stat().st_size,

@@ -5,6 +5,24 @@ import VocabularyIngress
 
 public constant int EDITBOX_JOURNAL_CAPACITY = 4096
 
+// Warcraft 3.0's chat entry has no registered frame name. Its two children
+// are the recipient label and editbox; only the editbox has one leaf child.
+// Cache the unique native subtree on every client before local visibility use.
+function nativeChatEntry() returns framehandle
+    framehandle found = null
+    for index = 0 to BlzFrameGetChildrenCount(GAME_UI) - 1
+        let candidate = BlzFrameGetChild(GAME_UI, index)
+        if BlzFrameGetName(candidate) == "" and BlzFrameGetChildrenCount(candidate) == 2
+            let label = BlzFrameGetChild(candidate, 0)
+            let entry = BlzFrameGetChild(candidate, 1)
+            if BlzFrameGetName(label) == "" and BlzFrameGetName(entry) == "" and BlzFrameGetChildrenCount(label) == 0 and BlzFrameGetChildrenCount(entry) == 1
+                let text = BlzFrameGetChild(entry, 0)
+                if BlzFrameGetName(text) == "" and BlzFrameGetChildrenCount(text) == 0
+                    if found != null
+                        return null
+                    found = candidate
+    return found
+
 // getText/setText run consecutively on the engine thread. Remove only the
 // admitted prefix; retain an incomplete suffix and later appended packets.
 public class EditboxJournalIngress
@@ -24,7 +42,7 @@ public class EditboxJournalIngress
     private int ackRevision = 0
 
     construct()
-        nativeChat = BlzGetFrameByName("ChatEditBar", 0)
+        nativeChat = nativeChatEntry()
         inputBox = createFrame("EDITBOX", "JournalControllerInput", GAME_UI, "EscMenuEditBoxTemplate", 969)
         inputBox.setAbsPoint(FRAMEPOINT_TOPLEFT, 0.04, 0.55)
         inputBox.setSize(0.72, 0.035)
