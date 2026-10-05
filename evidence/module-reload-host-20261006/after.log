@@ -1,0 +1,57 @@
+v2 232 ms | 0.231 s  v2 running in 2 client(s) (0.001 s) | 0.230 s  publish v2: 1 of 169 module(s), 19165 of 1253395 bytes, 8 file(s) (0.006 s) | client read 19239 bytes
+v3 223 ms | 0.222 s  v3 running in 2 client(s) (0.001 s) | 0.221 s  publish v3: 1 of 169 module(s), 19165 of 1253395 bytes, 8 file(s) (0.008 s) | client read 19239 bytes
+v4 183 ms | 0.182 s  v4 running in 2 client(s) (0.007 s) | 0.175 s  publish v4: 1 of 169 module(s), 19165 of 1253395 bytes, 8 file(s) (0.007 s) | client read 19239 bytes
+v5 207 ms | 0.206 s  v5 running in 2 client(s) (0.024 s) | 0.182 s  publish v5: 1 of 169 module(s), 19164 of 1253394 bytes, 8 file(s) (0.006 s) | client read 19238 bytes
+v6 164 ms | 0.163 s  v6 running in 2 client(s) (0.001 s) | 0.162 s  publish v6: 1 of 169 module(s), 19163 of 1253393 bytes, 8 file(s) (0.006 s) | client read 19237 bytes
+v7 180 ms | 0.179 s  v7 running in 2 client(s) (0.001 s) | 0.178 s  publish v7: 1 of 169 module(s), 19165 of 1253395 bytes, 8 file(s) (0.007 s) | client read 19239 bytes
+v8 177 ms | 0.176 s  v8 running in 2 client(s) (0.006 s) | 0.170 s  publish v8: 1 of 169 module(s), 19165 of 1253395 bytes, 8 file(s) (0.007 s) | client read 19239 bytes
+v9 185 ms | 0.184 s  v9 running in 2 client(s) (0.024 s) | 0.160 s  publish v9: 1 of 169 module(s), 19164 of 1253394 bytes, 8 file(s) (0.007 s) | client read 19238 bytes
+v10 158 ms | 0.158 s  v10 running in 2 client(s) (0.001 s) | 0.157 s  publish v10: 1 of 169 module(s), 19165 of 1253395 bytes, 8 file(s) (0.006 s) | client read 19239 bytes
+v11 163 ms | 0.162 s  v11 running in 2 client(s) (0.007 s) | 0.155 s  publish v11: 1 of 169 module(s), 19166 of 1253396 bytes, 8 file(s) (0.007 s) | client read 19240 bytes
+median save -> both acks 181 ms (n=10, min 158, max 232)
+   6.816 s  compile (6.815 s)
+   6.886 s  publish v1: 169 of 169 module(s), 1253387 of 1253387 bytes, 7 file(s) (0.037 s)
+   6.893 s  v1 running in 2 client(s) (0.007 s)
+   6.894 s  reload (6.894 s)
+   0.221 s  compile (0.209 s)
+   0.230 s  publish v2: 1 of 169 module(s), 19165 of 1253395 bytes, 8 file(s) (0.006 s)
+   0.231 s  v2 running in 2 client(s) (0.001 s)
+   0.231 s  reload (0.231 s)
+   0.211 s  compile (0.193 s)
+   0.221 s  publish v3: 1 of 169 module(s), 19165 of 1253395 bytes, 8 file(s) (0.008 s)
+   0.222 s  v3 running in 2 client(s) (0.001 s)
+   0.222 s  reload (0.222 s)
+   0.166 s  compile (0.155 s)
+   0.175 s  publish v4: 1 of 169 module(s), 19165 of 1253395 bytes, 8 file(s) (0.007 s)
+   0.182 s  v4 running in 2 client(s) (0.007 s)
+   0.182 s  reload (0.182 s)
+   0.173 s  compile (0.163 s)
+   0.182 s  publish v5: 1 of 169 module(s), 19164 of 1253394 bytes, 8 file(s) (0.006 s)
+   0.206 s  v5 running in 2 client(s) (0.024 s)
+   0.206 s  reload (0.206 s)
+   0.154 s  compile (0.135 s)
+   0.162 s  publish v6: 1 of 169 module(s), 19163 of 1253393 bytes, 8 file(s) (0.006 s)
+   0.163 s  v6 running in 2 client(s) (0.001 s)
+   0.163 s  reload (0.163 s)
+   0.168 s  compile (0.157 s)
+   0.178 s  publish v7: 1 of 169 module(s), 19165 of 1253395 bytes, 8 file(s) (0.007 s)
+   0.179 s  v7 running in 2 client(s) (0.001 s)
+   0.179 s  reload (0.179 s)
+   0.161 s  compile (0.151 s)
+   0.170 s  publish v8: 1 of 169 module(s), 19165 of 1253395 bytes, 8 file(s) (0.007 s)
+   0.176 s  v8 running in 2 client(s) (0.006 s)
+   0.176 s  reload (0.176 s)
+   0.151 s  compile (0.139 s)
+   0.160 s  publish v9: 1 of 169 module(s), 19164 of 1253394 bytes, 8 file(s) (0.007 s)
+   0.184 s  v9 running in 2 client(s) (0.024 s)
+   0.184 s  reload (0.184 s)
+   0.147 s  compile (0.137 s)
+   0.157 s  publish v10: 1 of 169 module(s), 19165 of 1253395 bytes, 8 file(s) (0.006 s)
+   0.158 s  v10 running in 2 client(s) (0.001 s)
+   0.158 s  reload (0.158 s)
+   0.146 s  compile (0.135 s)
+   0.155 s  publish v11: 1 of 169 module(s), 19166 of 1253396 bytes, 8 file(s) (0.007 s)
+   0.162 s  v11 running in 2 client(s) (0.007 s)
+   0.162 s  reload (0.162 s)
+   0.004 s  reload interrupted (0.004 s)
+  11.792 s  hot (11.792 s)

@@ -1,0 +1,56 @@
+v2 391 ms | 0.390 s  v2 running in 2 client(s) (0.031 s) | 0.359 s  publish v2: 1230249 bytes in 7 file(s) (0.004 s) | client read 1230769 bytes
+v3 358 ms | 0.357 s  v3 running in 2 client(s) (0.008 s) | 0.349 s  publish v3: 1230249 bytes in 7 file(s) (0.005 s) | client read 1230769 bytes
+v4 385 ms | 0.384 s  v4 running in 2 client(s) (0.012 s) | 0.372 s  publish v4: 1230249 bytes in 7 file(s) (0.005 s) | client read 1230769 bytes
+v5 410 ms | 0.409 s  v5 running in 2 client(s) (0.001 s) | 0.408 s  publish v5: 1230249 bytes in 7 file(s) (0.008 s) | client read 1230769 bytes
+v6 405 ms | 0.404 s  v6 running in 2 client(s) (0.013 s) | 0.391 s  publish v6: 1230249 bytes in 7 file(s) (0.009 s) | client read 1230769 bytes
+v7 393 ms | 0.391 s  v7 running in 2 client(s) (0.010 s) | 0.381 s  publish v7: 1230249 bytes in 7 file(s) (0.006 s) | client read 1230769 bytes
+v8 362 ms | 0.361 s  v8 running in 2 client(s) (0.012 s) | 0.349 s  publish v8: 1230249 bytes in 7 file(s) (0.004 s) | client read 1230769 bytes
+v9 321 ms | 0.320 s  v9 running in 2 client(s) (0.026 s) | 0.293 s  publish v9: 1230249 bytes in 7 file(s) (0.006 s) | client read 1230769 bytes
+v10 304 ms | 0.303 s  v10 running in 2 client(s) (0.028 s) | 0.275 s  publish v10: 1230249 bytes in 7 file(s) (0.004 s) | client read 1230769 bytes
+v11 300 ms | 0.300 s  v11 running in 2 client(s) (0.026 s) | 0.273 s  publish v11: 1230250 bytes in 7 file(s) (0.004 s) | client read 1230770 bytes
+median save -> both acks 374 ms (n=10, min 300, max 410)
+   7.067 s  compile (7.066 s)
+   7.076 s  publish v1: 1230242 bytes in 7 file(s) (0.006 s)
+   7.088 s  v1 running in 2 client(s) (0.012 s)
+   7.088 s  reload (7.088 s)
+   0.353 s  compile (0.336 s)
+   0.359 s  publish v2: 1230249 bytes in 7 file(s) (0.004 s)
+   0.390 s  v2 running in 2 client(s) (0.031 s)
+   0.390 s  reload (0.390 s)
+   0.342 s  compile (0.331 s)
+   0.349 s  publish v3: 1230249 bytes in 7 file(s) (0.005 s)
+   0.357 s  v3 running in 2 client(s) (0.008 s)
+   0.357 s  reload (0.357 s)
+   0.365 s  compile (0.354 s)
+   0.372 s  publish v4: 1230249 bytes in 7 file(s) (0.005 s)
+   0.384 s  v4 running in 2 client(s) (0.012 s)
+   0.384 s  reload (0.384 s)
+   0.398 s  compile (0.385 s)
+   0.408 s  publish v5: 1230249 bytes in 7 file(s) (0.008 s)
+   0.409 s  v5 running in 2 client(s) (0.001 s)
+   0.409 s  reload (0.409 s)
+   0.380 s  compile (0.368 s)
+   0.391 s  publish v6: 1230249 bytes in 7 file(s) (0.009 s)
+   0.404 s  v6 running in 2 client(s) (0.013 s)
+   0.404 s  reload (0.404 s)
+   0.374 s  compile (0.353 s)
+   0.381 s  publish v7: 1230249 bytes in 7 file(s) (0.006 s)
+   0.391 s  v7 running in 2 client(s) (0.010 s)
+   0.392 s  reload (0.392 s)
+   0.342 s  compile (0.331 s)
+   0.349 s  publish v8: 1230249 bytes in 7 file(s) (0.004 s)
+   0.361 s  v8 running in 2 client(s) (0.012 s)
+   0.361 s  reload (0.361 s)
+   0.286 s  compile (0.275 s)
+   0.293 s  publish v9: 1230249 bytes in 7 file(s) (0.006 s)
+   0.320 s  v9 running in 2 client(s) (0.026 s)
+   0.320 s  reload (0.320 s)
+   0.270 s  compile (0.258 s)
+   0.275 s  publish v10: 1230249 bytes in 7 file(s) (0.004 s)
+   0.303 s  v10 running in 2 client(s) (0.028 s)
+   0.303 s  reload (0.303 s)
+   0.268 s  compile (0.249 s)
+   0.273 s  publish v11: 1230250 bytes in 7 file(s) (0.004 s)
+   0.300 s  v11 running in 2 client(s) (0.026 s)
+   0.300 s  reload (0.300 s)
+  13.753 s  hot (13.753 s)
