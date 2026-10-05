@@ -4,11 +4,11 @@ import ReplayHistory
 
 @Test function devCommandsSetNextMatchWindowAndDelay()
 	let settings = new DevSettings(24, 0, 2)
-	settings.apply("-dev rb 64").assertEquals("dev: next match rb=64 delay=0 batch=2")
-	settings.apply("-dev delay 2").assertEquals("dev: next match rb=64 delay=2 batch=2")
-	settings.apply("-dev batch 1").assertEquals("dev: next match rb=64 delay=2 batch=1")
-	settings.apply("-dev show").assertEquals("dev: next match rb=64 delay=2 batch=1")
-	settings.rollback.assertEquals(64)
+	settings.apply("-dev rb 12").assertEquals("dev: next match rb=12 delay=0 batch=2")
+	settings.apply("-dev delay 2").assertEquals("dev: next match rb=12 delay=2 batch=2")
+	settings.apply("-dev batch 1").assertEquals("dev: next match rb=12 delay=2 batch=1")
+	settings.apply("-dev show").assertEquals("dev: next match rb=12 delay=2 batch=1")
+	settings.rollback.assertEquals(12)
 	settings.delay.assertEquals(2)
 	settings.batch.assertEquals(1)
 

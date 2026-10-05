@@ -6,8 +6,8 @@ import Simulation
 import MatchRules
 import CommandBuffer
 
-public constant int REPLAY_HISTORY_CAPACITY = 256
-public constant int REPLAY_MAX_CORRECTION_FRAMES = 128
+public constant int REPLAY_HISTORY_CAPACITY = 64
+public constant int REPLAY_MAX_CORRECTION_FRAMES = 24
 public constant int REPLAY_CORRECTION_REJECTED = -1
 public constant int REPLAY_CORRECTION_UNCHANGED = 0
 
