@@ -11,6 +11,7 @@ import { STAGE_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, setParticipants } from "../src/game/match/rules";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
+import { STOCK_MODELS } from "../src/game/render/effects";
 import { IMPACT_DUST, IMPACTS_PER_KIND, impactLifetime } from "../src/game/presentation/impactState";
 import { Character } from "../src/game/sim/codes";
 import { install as installDevelopment, start as startDevelopment } from "../src/platform/devMain";
@@ -87,7 +88,7 @@ test("the two shipped defects fail the scene check from the match's first report
  * stayed in view over 180 frames and failed the rematch of #26's clean-folders
  * capture (240 frames) and its headless run (687).
  */
-test("a dust slot reused while shown is a new stay each use, and an effect left in view still fails", () => {
+test("a dust slot reused while shown is a new stay each use; a standing spark and a collapsed missile still fail", () => {
   const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
   clients.start();
   clients.frames(30);
@@ -134,12 +135,22 @@ test("a dust slot reused while shown is a new stay each use, and an effect left 
       }
     });
   }
-  client.run(() => trampoline("scene.report")());
+  client.run(() => {
+    // And 05266a3's defect: a collapsed missile waiting at the floor, where the camera sees its smoke.
+    const { origin } = shell();
+    const missile = AddSpecialEffect(STOCK_MODELS.gyroCopterMissile, origin.x, origin.y);
+    BlzSetSpecialEffectScale(missile, 0.0);
+    BlzSetSpecialEffectPosition(missile, origin.x, origin.y, origin.z);
+    trampoline("scene.report")();
+  });
   // A dust slot stayed in view across uses for longer than a hit spark may stay;
-  // each use was a stay of its own, and only the standing spark fails.
+  // each use was a stay of its own, and only the standing spark and the collapsed missile fail.
   expect(longestReused).toBeGreaterThan(seconds(3));
   const report = sceneReport(client);
   expect(report.models.find(({ model }) => model === reportedModel(IMPACT_DUST_MODEL))?.longest).toBe(impactLifetime(IMPACT_DUST));
-  expect(sceneProblems(report, SMASHCRAFT_SCENE).map(({ seen }) => seen)).toEqual(["a hit spark stayed in view for 5.00 s; it should be gone within 3.00 s"]);
+  expect(sceneProblems(report, SMASHCRAFT_SCENE).map(({ seen }) => seen)).toEqual([
+    "a hit spark stayed in view for 5.00 s; it should be gone within 3.00 s",
+    "1 hidden projectile in view still show particles",
+  ]);
   expect(client.errors).toEqual([]);
 });
