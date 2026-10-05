@@ -39,8 +39,8 @@ export interface FighterPose {
   /** A landing keeps the rate its lag gave it on entry. */
   landingAnimationRate: number;
   readonly motion: IllidanMotion;
-  /** The selected model sequence, or -1 when clipName names the clip. */
-  clipIndex: number;
+  /** The selected model sequence, or undefined when clipName names the clip. */
+  clipIndex: number | undefined;
   clipName: string;
   clipTime: number;
   rate: number;
@@ -51,7 +51,7 @@ export interface FighterPose {
 export function createFighterPose(): FighterPose {
   return {
     animation: "", jumpAnimationRemaining: 0, doubleJumpAnimation: false, landingAnimationRate: 1.0,
-    motion: createIllidanMotion(), clipIndex: -1, clipName: "stand", clipTime: 0.0, rate: 1.0, selectionSerial: 0,
+    motion: createIllidanMotion(), clipIndex: undefined, clipName: "stand", clipTime: 0.0, rate: 1.0, selectionSerial: 0,
   };
 }
 
@@ -61,7 +61,7 @@ export function clearFighterPose(pose: FighterPose): void {
   pose.doubleJumpAnimation = false;
   pose.landingAnimationRate = 1.0;
   clearIllidanMotion(pose.motion);
-  pose.clipIndex = -1;
+  pose.clipIndex = undefined;
   pose.clipName = "stand";
   pose.clipTime = 0.0;
   pose.rate = 1.0;
@@ -105,7 +105,7 @@ export function selectFighterClipIndex(pose: FighterPose, index: number): void {
 }
 
 export function selectFighterClipName(pose: FighterPose, name: string): void {
-  pose.clipIndex = -1;
+  pose.clipIndex = undefined;
   pose.clipName = name;
   pose.clipTime = 0.0;
   pose.selectionSerial++;

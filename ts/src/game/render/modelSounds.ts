@@ -146,7 +146,7 @@ export function confirmModelSounds(cursor: ModelSoundCursor, epoch: number, fram
   next.slot = slot;
   next.character = fighter.character;
   next.selectionSerial = pose.selectionSerial;
-  next.clipIndex = pose.clipIndex >= 0 ? pose.clipIndex : catalog.clipNamed(fighter.character, pose.clipName);
+  next.clipIndex = pose.clipIndex ?? catalog.clipNamed(fighter.character, pose.clipName);
   const changed = state.lastFrame === undefined || shown.character !== next.character || shown.selectionSerial !== next.selectionSerial || shown.clipIndex !== next.clipIndex;
   const x = fighter.motion.x;
   const z = fighter.motion.z;
