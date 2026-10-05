@@ -7,6 +7,7 @@ import { IntegrityFailure } from "./evidence";
 import { ABS_X, BTN_SOUTH, BTN_START, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
 import { PULSE_HOLD_MILLIS, STALL_MILLIS, type Pulse, type Send, type StallTarget, integritySchedule, pulseSends } from "./schedule";
+import { INPUT_TRACE_FILE, devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalMenuFile, responsePageFile } from "../../src/runtime/gameFiles";
 
 /** A game file's text and modification time. */
 export interface GameFile {
@@ -105,7 +106,7 @@ const RESULTS = /wins|rematch/i;
 const PAUSED = /PAUSED.*Press.*Start.*resume|Paused.*press.*Start.*resume/i;
 const CHAT_OPEN = /(?:All|Allies)\s*:/i;
 const TWO_HUMANS = "connected=3 human-fighters=3 computers=0 fighters=3";
-const TRACE = "wc3-melee-input-trace.txt";
+const TRACE = INPUT_TRACE_FILE;
 
 const stocks = (count: number) => new RegExp(`${count} Stock`, "i");
 const signature = (humans: number, computers: number) => `connected=3 human-fighters=${humans} computers=${computers} fighters=${humans + computers}`;
@@ -119,8 +120,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
 
   const complete = (file: GameFile | undefined): file is GameFile =>
     file !== undefined && file.mtimeNs >= rig.startedNs && file.text.trimEnd().endsWith("endfunction");
-  const menuName = (client: Slot) => `smashcraft-journal-menu-${build}-s${client}.txt`;
-  const controlName = (state: string, epoch: number, client: Slot) => `smashcraft-journal-${state}-${build}-e${epoch}-s${client}.txt`;
+  const menuName = (client: Slot) => journalMenuFile(build, client);
+  const controlName = (state: "start" | "end", epoch: number, client: Slot) => journalLifecycleFile(build, epoch, client, state);
   const menus = Effect.forEach(SLOTS, (client) => rig.file(client, menuName(client)));
   const menusShow = (text: string) => menus.pipe(Effect.map((files) => files.every((file) => complete(file) && file.text.includes(text))));
   const boundaries = (name: (client: Slot) => string) => Effect.forEach(SLOTS, (client) => rig.boundary(client, name(client)));
@@ -240,7 +241,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   /** A synchronized player chat command; both clients' receipts must show the value. */
   const devCommand = (epoch: number, command: string, expected: string) =>
     Effect.gen(function*() {
-      const name = (client: Slot) => `smashcraft-dev-${build}-p${client}.txt`;
+      const name = (client: Slot) => devCommandReceiptFile(build, client);
       const before = (yield* Effect.forEach(SLOTS, (client) => rig.file(client, name(client)))).map((file) => file?.text ?? "");
       yield* rig.key(0, "Return");
       yield* rig.waitText(0, CHAT_OPEN);
@@ -297,7 +298,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const committed = (state: string) =>
         Effect.forEach(SLOTS, (client) =>
           Effect.gen(function*() {
-            const names = yield* rig.files(client, `smashcraft-journal-control-${build}-e${epoch}-s${client}-n*.txt`);
+            const names = yield* rig.files(client, journalControlFile(build, epoch, client, "*"));
             const files = yield* Effect.forEach(names, (name) => rig.file(client, name).pipe(Effect.map((file) => ({ name, file }))));
             const matching = files.filter(({ file }) => complete(file) && file.text.includes(` state=${state} `));
             return matching.length === 1 ? matching[0]!.name : undefined;
@@ -349,7 +350,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.key(0, "ctrl+h");
       for (const client of SLOTS) {
         yield* rig.until(`epoch ${epoch}: response export incomplete`, Effect.gen(function*() {
-          const names = yield* rig.files(client, `smashcraft-response-p${client}-run*-page*.txt`);
+          const names = yield* rig.files(client, responsePageFile(client, "*", "*"));
           const pages = (yield* Effect.forEach(names, (name) => rig.file(client, name))).filter((file) => complete(file) && file.mtimeNs >= afterNs);
           const header = pages[0]?.text;
           if (header === undefined) return false;

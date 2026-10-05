@@ -2,7 +2,7 @@
 // harness, which parse them: their names and lines are a protocol.
 import type { DevSettings } from "./devSettings";
 import type { JournalIngress } from "./build";
-import { devCommandReceiptFile } from "../../runtime/gameFiles";
+import { devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalReadyFile, journalMenuFile, journalTransportReadyFile, journalFailureFile } from "../../runtime/gameFiles";
 
 export interface PreloadFile {
   readonly name: string;
@@ -24,13 +24,13 @@ function controlLine({ build, epoch, slot }: JournalIdentity, sequence: number, 
 
 export function controlFile(identity: JournalIdentity, sequence: number, state: ControlRequest, frame: number): PreloadFile {
   const { build, epoch, slot } = identity;
-  return { name: `smashcraft-journal-control-${build}-e${epoch}-s${slot}-n${sequence}.txt`, lines: [controlLine(identity, sequence, state, frame)] };
+  return { name: journalControlFile(build, epoch, slot, sequence), lines: [controlLine(identity, sequence, state, frame)] };
 }
 
 /** Match start and end: the helper starts and stops journaling an epoch. */
 export function lifecycleFile(identity: JournalIdentity, kind: "start" | "end", frame: number): PreloadFile {
   const { build, epoch, slot } = identity;
-  return { name: `smashcraft-journal-${kind}-${build}-e${epoch}-s${slot}.txt`, lines: [controlLine(identity, 0, kind === "start" ? "START" : "END", frame)] };
+  return { name: journalLifecycleFile(build, epoch, slot, kind), lines: [controlLine(identity, 0, kind === "start" ? "START" : "END", frame)] };
 }
 
 /** The helper's reply that it has stopped writing an ended epoch; it holds "Q". */
@@ -53,7 +53,7 @@ export interface JournalSettings {
 export function readyFile(identity: JournalIdentity, { inputProfile, ingress, delay, rollback }: JournalSettings): PreloadFile {
   const { build, epoch, slot } = identity;
   return {
-    name: `smashcraft-journal-ready-${build}-e${epoch}-p${slot}.txt`,
+    name: journalReadyFile(build, epoch, slot),
     lines: [
       `SMASHCRAFT JOURNAL v=1 build=${build} epoch=${epoch} slot=${slot}`,
       `input=${inputProfile} delay=${delay} rollback=${rollback} first_frame=${1 + delay}`,
@@ -78,7 +78,7 @@ export interface MenuRoster {
 export function menuFile(identity: JournalIdentity, phase: MenuPhase, roster: MenuRoster): PreloadFile {
   const { build, epoch, slot } = identity;
   return {
-    name: `smashcraft-journal-menu-${build}-s${slot}.txt`,
+    name: journalMenuFile(build, slot),
     lines: [
       `SMASHCRAFT JOURNAL MENU v=1 build=${build} epoch=${epoch} slot=${slot} phase=${phase}`,
       `connected=${roster.connected} human-fighters=${roster.humanFighters} computers=${roster.computers} fighters=${roster.fighters}`,
@@ -89,14 +89,14 @@ export function menuFile(identity: JournalIdentity, phase: MenuPhase, roster: Me
 /** Every human's helper is ready, before any journal read. */
 export function transportReadyFile({ build, epoch, slot }: JournalIdentity, receivedMask: number): PreloadFile {
   return {
-    name: `smashcraft-journal-transport-ready-${build}-e${epoch}-p${slot}.txt`,
+    name: journalTransportReadyFile(build, epoch, slot),
     lines: [`build=${build} epoch=${epoch} slot=${slot} received-mask=${receivedMask} before-journal-reads=yes`],
   };
 }
 
 export function failureFile({ build, epoch, slot }: JournalIdentity, reason: string, sequence: number, frame: number): PreloadFile {
   return {
-    name: `smashcraft-journal-failure-${build}-e${epoch}-p${slot}.txt`,
+    name: journalFailureFile(build, epoch, slot),
     lines: [`build=${build} epoch=${epoch} slot=${slot}`, `reason=${reason} sequence=${sequence} frame=${frame}`],
   };
 }

@@ -9,6 +9,7 @@ import { f32 } from "waygate/src/sim/f32";
 import { floorDiv, floorMod } from "waygate/src/sim/intMath";
 import { trampoline } from "waygate/src/platform/dispatch";
 import { writeLines } from "waygate/src/platform/fileio";
+import { edgeStampFile, responsePageFile } from "../../runtime/gameFiles";
 
 const ROW_LIMIT = 7200;
 const PAGE_ROWS = 150;
@@ -261,7 +262,7 @@ function stampEdge(probe: ResponseProbe, stage: "poll" | "present"): void {
   const row = currentRow(probe);
   if (!probe.recording || !probe.edgeStamps || probe.exporting || row === undefined || probe.row === undefined) return;
   const slot = GetPlayerId(GetLocalPlayer());
-  writeLines(`smashcraft-edge-p${slot}-run${probe.run}-row${probe.row}-${stage}.txt`, [
+  writeLines(edgeStampFile(slot, probe.run, probe.row, stage), [
     `EDGE v=1 build=${probe.build} local=${slot} run=${probe.run} row=${probe.row} stage=${stage} held=${row.held ?? -1} pressed=${row.pressed ?? -1} released=${row.released ?? -1} active=${BlzIsLocalClientActive() ? 1 : 0} native_ms=${R2S(nowMs(probe))}`,
   ]);
 }
@@ -353,7 +354,7 @@ export function exportProbePage(probe: ResponseProbe): void {
     const age = stamp.receiveMs === undefined || stamp.sendMs === undefined ? -1.0 : stamp.receiveMs - stamp.sendMs;
     lines.push(`D ${stamp.epoch ?? -1} ${stamp.frame} ${R2S(stamp.sendMs ?? -1)} ${R2S(stamp.receiveMs ?? -1)} ${R2S(age)}`);
   }
-  writeLines(`smashcraft-response-p${slot}-run${probe.run}-page${probe.page}.txt`, lines);
+  writeLines(responsePageFile(slot, probe.run, probe.page), lines);
   probe.page++;
   if (probe.page * PAGE_ROWS >= Math.max(probe.integrity.length, probe.rows, probe.transportOrder.length)) {
     probe.exporting = false;

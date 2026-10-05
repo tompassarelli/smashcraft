@@ -1,8 +1,10 @@
 // Reads a capture directory into the reconciler's input and writes its tables.
 // Every file the capture driver or the game wrote is decoded once, here.
-import { readFileSync, readdirSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { Effect, Schema } from "effect";
+import type { GameFileKind } from "waygate/scripts/waygate/boundary";
+import { INPUT_TRACE_FILE, JournalControl, InputTrace, ResponsePage, responsePageFile } from "../waygate/boundary";
 import type { Injection, KernelEvent, SourceEdge } from "./linuxInput";
 import {
   type CaptureEvidence, type CaptureMetadata, type ClientExport, type EpochPair, type IntegrityResult, type JourneyEvent,
@@ -126,6 +128,12 @@ const journeyEvent = (path: string) => (raw: unknown): Effect.Effect<readonly Jo
       : event === "integrity-slot-change" || event === "four-fighter-setup"
       ? yield* decode(ModeChange, path)(raw)
       : yield* decode(Boundary, path)(raw);
+    if ("publications" in decoded) {
+      yield* Effect.forEach(decoded.publications, (publication, slot) =>
+        JournalControl.decode(`${path}: ${event} slot ${slot}`, publication.contents).pipe(
+          Effect.mapError((cause) => new IntegrityFailure({ operation: "decode game receipt", path, cause })),
+        ));
+    }
     return [{ epoch: undefined, ...decoded }];
   });
 
@@ -148,27 +156,33 @@ export const readMetadata = (root: string) =>
 
 /** The latest export run's response pages, in page order, and the native trace. */
 const clientExport = (root: string, epoch: number, client: number) =>
-  tryIntegrity("read native export", join(root, `epoch-${epoch}`), (): ClientExport => {
+  Effect.gen(function*() {
     const directory = join(root, `epoch-${epoch}`);
-    let names: string[];
-    try {
-      names = readdirSync(directory);
-    } catch {
-      names = [];
-    }
-    const pageGlob = new Bun.Glob(`${client}-smashcraft-response-p${client}-run*-page*.txt`);
+    const names = yield* tryIntegrity("list native export", directory, () => {
+      try { return readdirSync(directory); }
+      catch (error) {
+        if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+        throw error;
+      }
+    });
+    const pageGlob = new Bun.Glob(`${client}-${responsePageFile(client, "*", "*")}`);
     const pages = names.filter((name) => pageGlob.match(name)).flatMap((name) => {
       const run = /-run(\d+)-/.exec(name)?.[1];
       const page = /-page(\d+)/.exec(name)?.[1];
       return run === undefined || page === undefined ? [] : [{ name, run: Number(run), page: Number(page) }];
     });
     const latest = Math.max(...pages.map((page) => page.run));
-    const traceName = `${client}-wc3-melee-input-trace.txt`;
-    const text = (name: string) => readFileSync(join(directory, name), "utf8");
+    const traceName = `${client}-${INPUT_TRACE_FILE}`;
+    const text = <A>(name: string, kind: GameFileKind<A>) => Effect.gen(function*() {
+      const path = join(directory, name);
+      const contents = yield* readText(path);
+      yield* kind.decode(path, contents).pipe(Effect.mapError((cause) => new IntegrityFailure({ operation: "decode native export", path, cause })));
+      return contents;
+    });
     return {
-      pages: pages.filter((page) => page.run === latest).sort((a, b) => a.page - b.page).map((page) => text(page.name)),
-      trace: names.includes(traceName) ? text(traceName) : undefined,
-    };
+      pages: yield* Effect.forEach(pages.filter((page) => page.run === latest).sort((a, b) => a.page - b.page), (page) => text(page.name, ResponsePage)),
+      trace: names.includes(traceName) ? yield* text(traceName, InputTrace) : undefined,
+    } satisfies ClientExport;
   });
 
 export const readEvidence = (root: string, metadata: CaptureMetadata) =>
