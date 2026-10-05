@@ -252,11 +252,20 @@ sed -i 's/^function main()/function baseMain()/; s/^function config()/function b
 sed -i 's/^RunInitializationTriggers()/-- Suppressed default melee initialization for the platform fighter./' "$map_script"
 sed -i 's/^function main()/function wurstMain()/; s/^function config()/function wurstConfig()/' "$compiled_script"
 cat "$compiled_script" >> "$map_script"
+# Optional TypeScriptToLua bundle (smashcraft:ts). A function wrapper keeps the
+# bundle's trailing return inside it; main() starts the module after Wurst.
+if [[ -n ${WC3_TS_BUNDLE:-} ]]; then
+    [[ -s "$WC3_TS_BUNDLE" ]] || { printf 'WC3_TS_BUNDLE is not a nonempty file: %s\n' "$WC3_TS_BUNDLE" >&2; exit 2; }
+    { printf '\nsmashcraftTs = (function(...)\n'; cat "$WC3_TS_BUNDLE"; printf '\nend)()\n'; } >> "$map_script"
+fi
 cat >> "$map_script" <<'LUA'
 
 function main()
     baseMain()
     wurstMain()
+    if smashcraftTs ~= nil then
+        smashcraftTs.start()
+    end
 end
 
 function config()

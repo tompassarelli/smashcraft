@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": [
+      "ESNext"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noEmitOnError": true,
+    "skipLibCheck": true,
+    "types": [
+      "lua-types/5.3"
+    ],
+    "rootDir": "src",
+    "outDir": "build"
+  },
+  "include": [
+    "src/sim/**/*.ts",
+    "src/parity/corpus.ts",
+    "src/parity/lua-entry.ts"
+  ],
+  "exclude": [
+    "src/**/*.test.ts"
+  ],
+  "tstl": {
+    "luaTarget": "5.3",
+    "luaBundle": "parity.lua",
+    "luaBundleEntry": "src/parity/lua-entry.ts",
+    "noImplicitSelf": true,
+    "noHeader": true,
+    "luaPlugins": [
+      {
+        "name": "./plugins/warcraft-numbers.ts"
+      }
+    ]
+  }
+}
