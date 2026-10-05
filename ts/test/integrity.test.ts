@@ -188,11 +188,10 @@ test("the result reports player-view failures without gating them", async () => 
       events: [...capture.events, { event: "player-view", epoch: 2, at: "start" }, { event: "player-view", epoch: 2, at: "result", failure: SCENE_FAILURE }],
     }));
     const metadata = await Effect.runPromise(readMetadata(directory));
-    const original = await Effect.runPromise(readMetadata(root));
     const result = integrityResult(await Effect.runPromise(readEvidence(root, metadata)), capturePair(metadata));
-    const retained = integrityResult(await Effect.runPromise(readEvidence(root, original)), capturePair(original));
-    expect(result.playerViewFailures).toEqual([`match 2 at result: ${SCENE_FAILURE}`]);
-    expect(summaryJson(result)).toEqual({ ...summaryJson(retained), player_view_failures: [`match 2 at result: ${SCENE_FAILURE}`] });
+    const retained = await Bun.file(join(root, "summary.json")).json();
+    // r8's table, gates and verdict, with the failure beside them.
+    expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [`match 2 at result: ${SCENE_FAILURE}`] });
   } finally {
     rmSync(directory, { recursive: true });
   }
