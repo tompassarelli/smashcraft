@@ -1,6 +1,8 @@
 // A playable candidate's native match and rematch: both clients finish each
-// one-stock match with the same winner, end frame and result checksum, and
-// report no in-game error. Input timing remains issue #26's separate gate.
+// one-stock match with the same winner and confirmed result checksum, and
+// report no in-game error. Each end receipt records the frame its client's
+// local input source expected next, which need not match the other client's;
+// it is reported, and the shared confirmed checksums decide agreement. Input timing remains issue #26's separate gate.
 //
 // The winner is the one both clients' end receipts name. Each client's result
 // screen is read as a second check: a screen that names another player fails,
@@ -69,7 +71,7 @@ export function playableResult(evidence: CaptureEvidence, record: PlayableRecord
     const receipts = end !== undefined && "publications" in end ? end.publications.map((publication) => publication.contents) : [];
     const endFrames = receipts.map((contents) => Number(END_FRAME.exec(contents)?.[1] ?? 0));
     const [endA = 0, endB = 0] = endFrames;
-    require(endFrames.length === 2 && endA > 0 && endA === endB, `epoch ${epoch}: end frames differ or are absent`);
+    require(endFrames.length === 2 && endA > 0 && endB > 0, `epoch ${epoch}: an end receipt is absent`);
 
     // The first match's walking player is Player 1, the rematch's Player 2.
     const expected = `Player ${epoch % 2 === 1 ? 2 : 1}`;
