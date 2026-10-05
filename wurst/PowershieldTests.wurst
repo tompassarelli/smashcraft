@@ -158,12 +158,12 @@ import ImpactEvents
 	first.projectileNewlyReflected[2] = true
 	snapshot.capture(world, game, controls, runtime)
 	first.shieldReflectFrames = 0
+	actual.capture(world, game, controls, runtime)
+	snapshot.firstDifference(actual).assertEquals("fighter[0].shieldReflectFrames")
 	first.shieldGeometry = authoredShieldGeometry()
 	first.projectileDamageMultiplier[2] = 1
 	first.projectileVisualFamily[2] = 1
 	first.projectileNewlyReflected[2] = false
-	actual.capture(world, game, controls, runtime)
-	snapshot.firstDifference(actual).assertEquals("fighter[0].shieldReflectFrames")
 	snapshot.restore(world, game, controls, runtime)
 	first.shieldTriggerWasActive.assertTrue()
 	first.shieldTriggerAge.assertEquals(1)
