@@ -132,7 +132,8 @@ export const words = (client: Client, ink: Ink = "light") =>
     });
   });
 
-const focus = (client: Client) =>
+/** Gives the Warcraft window compositor and X11 focus. */
+export const focus = (client: Client) =>
   Effect.gen(function*() {
     yield* run(client.name, "focus Warcraft", [client.tools.wlrctl, "toplevel", "focus", "title:Warcraft III"], client.wayland);
     yield* run(client.name, "activate Warcraft window", [client.tools.xdotool, "windowactivate", "--sync", client.window], client.x11);
@@ -145,10 +146,20 @@ export const keys = (client: Client, ...names: string[]) =>
     yield* run(client.name, `press ${names.join(" ")}`, [client.tools.xdotool, "key", "--clearmodifiers", ...names], client.x11);
   });
 
-export const typeText = (client: Client, value: string) =>
+/** Types `value`, which may start with "-"; `delayMillis` spaces the keys for text fields that drop fast input. */
+export const typeText = (client: Client, value: string, delayMillis?: number) =>
   Effect.gen(function*() {
     yield* focus(client);
-    yield* run(client.name, "type text", [client.tools.xdotool, "type", "--clearmodifiers", value], client.x11);
+    const delay = delayMillis === undefined ? [] : ["--delay", String(delayMillis)];
+    yield* run(client.name, "type text", [client.tools.xdotool, "type", "--clearmodifiers", ...delay, "--", value], client.x11);
+  });
+
+/** The Warcraft process that owns the client's window (its _NET_WM_PID). */
+export const windowPid = (client: Client) =>
+  Effect.gen(function*() {
+    const pid = Number(text(yield* run(client.name, "read window process", [client.tools.xdotool, "getwindowpid", client.window], client.x11)).trim());
+    if (!Number.isInteger(pid) || pid <= 0) return yield* new DesktopFailure({ operation: "read window process", client: client.name, cause: `no process for window ${client.window}` });
+    return pid;
   });
 
 function pointer(client: Client) {
