@@ -24,7 +24,7 @@ import JournalInputSource
                     decoder.copyRecord(record, row).assertTrue()
                     vocabularyProbeRow(sender, decoder.firstFrameNumber() + record, expected).assertTrue()
                     row.sameAs(expected).assertTrue()
-                journal.sent().assertTrue()
+                journal.submitted().assertTrue()
                 if arm mod 3 != 0
                     println("VOCABULARY_CORPUS " + I2S(sender) + " " + I2S(arm) + " " + I2S(seq) + " " + wire)
     println("VOCABULARY_ALPHABET " + INPUT_ALPHABET)
