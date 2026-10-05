@@ -1,0 +1,22 @@
+// Reads text that a host tool wrote into CustomMapData as a Preload file. The
+// file is JASS: each line stores one chunk in a tooltip level of the FileIO
+// ability, which Preloader executes and the map reads back. Local to this
+// client; never use the result in synchronized code without a sync message.
+import { CHUNKS_PER_FILE } from "../runtime/hotFiles";
+
+/** The FileIO ability ('$wsl') the map defines for this channel. */
+const FILE_IO_ABILITY = 0x2477736c;
+const EMPTY = " ";
+
+export function readChunks(filename: string): string[] {
+  for (let level = 0; level < CHUNKS_PER_FILE; level++) BlzSetAbilityTooltip(FILE_IO_ABILITY, EMPTY, level);
+  Preloader(filename);
+  const chunks: string[] = [];
+  for (let level = 0; level < CHUNKS_PER_FILE; level++) {
+    const chunk = BlzGetAbilityTooltip(FILE_IO_ABILITY, level);
+    if (chunk === EMPTY) break;
+    chunks.push(chunk);
+    BlzSetAbilityTooltip(FILE_IO_ABILITY, EMPTY, level);
+  }
+  return chunks;
+}

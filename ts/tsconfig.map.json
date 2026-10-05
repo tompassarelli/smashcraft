@@ -19,16 +19,19 @@
   },
   "include": [
     "src/sim/**/*.ts",
-    "src/parity/corpus.ts",
-    "src/map/main.ts"
+    "src/runtime/*.ts",
+    "src/natives/*.d.ts",
+    "src/platform/*.ts"
   ],
   "exclude": [
-    "src/**/*.test.ts"
+    "src/**/*.test.ts",
+    "src/**/*.tests.ts",
+    "src/runtime/testing.ts"
   ],
   "tstl": {
     "luaTarget": "5.3",
     "luaBundle": "map.lua",
-    "luaBundleEntry": "src/map/main.ts",
+    "luaBundleEntry": "src/platform/main.ts",
     "noImplicitSelf": true,
     "noHeader": true,
     "luaPlugins": [

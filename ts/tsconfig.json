@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["ESNext"],
+    "lib": [
+      "ESNext"
+    ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "strict": true,
@@ -10,8 +12,17 @@
     "noImplicitOverride": true,
     "noEmitOnError": true,
     "skipLibCheck": true,
-    "types": ["bun"]
+    "types": [
+      "bun"
+    ]
   },
-  "include": ["src/**/*.ts", "scripts/**/*.ts"],
-  "exclude": ["src/parity/lua-entry.ts", "src/map/**"]
+  "include": [
+    "src/**/*.ts",
+    "scripts/**/*.ts"
+  ],
+  "exclude": [
+    "src/platform/**",
+    "src/natives/**",
+    "src/parity/lua-entry.ts"
+  ]
 }

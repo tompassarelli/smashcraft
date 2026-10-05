@@ -76,3 +76,5 @@ for (const path of [commonPath, blizzardPath]) {
 }
 await Bun.write(outPath, `${out.join("\n")}\n`);
 console.log(`${declaredTypes.size} handle types, ${declaredValues.size} functions and globals`);
+
+export {};

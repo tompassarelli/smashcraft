@@ -6,3 +6,5 @@ const compile = Bun.spawnSync(["bun", "--bun", "node_modules/typescript-to-lua/d
 if (compile.exitCode !== 0) process.exit(compile.exitCode ?? 1);
 const run = Bun.spawnSync([process.env.LUA ?? "lua", "build/lua-tests/tests.lua"], { stdout: "inherit", stderr: "inherit" });
 process.exit(run.exitCode ?? 1);
+
+export {};

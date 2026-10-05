@@ -43,7 +43,9 @@ function integerOperator(node: ts.CallExpression, checker: ts.TypeChecker): tstl
 function isIdentity(node: ts.CallExpression, checker: ts.TypeChecker): boolean {
   if (node.arguments.length !== 1) return false;
   // Math.fround is binary32 rounding, which Warcraft's numbers already are.
-  if (ts.isPropertyAccessExpression(node.expression) && node.expression.getText() === "Math.fround") return true;
+  // Matched structurally: calls TSTL synthesizes, as for optional chains, have no source text.
+  const callee = node.expression;
+  if (ts.isPropertyAccessExpression(callee) && ts.isIdentifier(callee.expression) && callee.expression.text === "Math" && callee.name.text === "fround") return true;
   if (!ts.isIdentifier(node.expression) || node.expression.text !== "f32") return false;
   let symbol = checker.getSymbolAtLocation(node.expression);
   if (symbol !== undefined && symbol.flags & ts.SymbolFlags.Alias) symbol = checker.getAliasedSymbol(symbol);

@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["ESNext"],
+    "lib": [
+      "ESNext"
+    ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "strict": true,
@@ -10,8 +12,18 @@
     "noEmitOnError": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["lua-types/5.3"]
+    "types": [
+      "lua-types/5.3"
+    ]
   },
-  "include": ["src/natives/*.d.ts", "src/runtime/*.ts", "src/sim/*.ts", "src/game/**/*.ts"],
-  "exclude": ["src/sim/*.test.ts"]
+  "include": [
+    "src/natives/*.d.ts",
+    "src/runtime/*.ts",
+    "src/sim/*.ts",
+    "src/game/**/*.ts",
+    "src/platform/*.ts"
+  ],
+  "exclude": [
+    "src/sim/*.test.ts"
+  ]
 }
