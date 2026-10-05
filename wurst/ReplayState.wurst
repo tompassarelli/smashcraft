@@ -45,6 +45,9 @@ function copyFighter(FighterState source, FighterState destination, FighterRoste
 	destination.positionDeltaZ = source.positionDeltaZ
 	destination.vx = source.vx
 	destination.vz = source.vz
+	destination.motionX = source.motionX
+	destination.motionZ = source.motionZ
+	destination.motionVelocityZ = source.motionVelocityZ
 	destination.knockbackX = source.knockbackX
 	destination.knockbackZ = source.knockbackZ
 	destination.groundKnockbackX = source.groundKnockbackX
@@ -281,6 +284,12 @@ function fighterDifference(FighterState expected, FighterState actual, FighterRo
 		return "vx"
 	if expected.vz != actual.vz
 		return "vz"
+	if expected.motionX != actual.motionX
+		return "motionX"
+	if expected.motionZ != actual.motionZ
+		return "motionZ"
+	if expected.motionVelocityZ != actual.motionVelocityZ
+		return "motionVelocityZ"
 	if expected.knockbackX != actual.knockbackX
 		return "knockbackX"
 	if expected.knockbackZ != actual.knockbackZ
@@ -947,6 +956,12 @@ function canonicalFighter(CanonicalWriter writer, string prefix, FighterState fi
 	canonicalRealField(writer, prefix + "." + "z", fighter.z)
 	canonicalRealField(writer, prefix + "." + "vx", fighter.vx)
 	canonicalRealField(writer, prefix + "." + "vz", fighter.vz)
+	canonicalRealField(writer, prefix + ".motionX.original", fighter.motionX.original)
+	canonicalRealField(writer, prefix + ".motionX.published", fighter.motionX.published)
+	canonicalRealField(writer, prefix + ".motionZ.original", fighter.motionZ.original)
+	canonicalRealField(writer, prefix + ".motionZ.published", fighter.motionZ.published)
+	canonicalRealField(writer, prefix + ".motionVelocityZ.original", fighter.motionVelocityZ.original)
+	canonicalRealField(writer, prefix + ".motionVelocityZ.published", fighter.motionVelocityZ.published)
 	canonicalRealField(writer, prefix + "." + "knockbackX", fighter.knockbackX)
 	canonicalRealField(writer, prefix + "." + "knockbackZ", fighter.knockbackZ)
 	canonicalRealField(writer, prefix + "." + "damage", fighter.damage)

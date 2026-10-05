@@ -169,3 +169,54 @@ frame 6's stored world velocity `-7.1399993896484375`, versus the direct sum
 an independently maintained trajectory in original units. Repeated scaling
 to six world units and back still loses information, and the complete native
 precision criterion remains open.
+
+## Original-unit motion accumulation — 5 October 2026
+
+Position accumulation and gravity-driven vertical velocity now retain their
+binary32 values in original units between integration steps. World X/Z and
+vertical velocity remain available at the intentional six-unit scale. An
+intervening world-coordinate write is imported at the next integration;
+unchanged projected coordinates are not divided back into the accumulator.
+Landing, solid-surface contact and stock reset establish new motion origins.
+Snapshots copy the retained values and their last published coordinates, and
+both first-difference reporting and canonical replay state include them.
+
+The exact ten-position recorded Falco fall is the trajectory oracle. The
+native fall fixture now supplies its recorded initial position through the
+original-unit setter and checks each retained position as well as the existing
+world-coordinate comparison. Its recorded values and contact/grounding checks
+are unchanged. Native0037's direct addition of stored world operands is not
+the original-unit oracle; frame 6's projected velocity need not change when
+the original trajectory is retained correctly.
+
+Two authored aerial-dodge checks previously accumulated their expected
+positions by repeatedly dividing projected coordinates by six. They now
+accumulate in original units, with force, decay, action-clock assertions and
+tolerances unchanged. The independent 29-step binary32 recurrence starts at
+Z=50 and decays the launch velocity by 0.8999999761581421 each tick. Its upward
+endpoint is 68.79904174804688, published as 412.79425048828125 in binary32 world
+coordinates; the previous repeated-conversion endpoint was
+412.7943115234375. These are authored arithmetic expectations, not new native
+or original-game observations.
+
+This repair does not recover information lost before a scaled tuning value or
+authored velocity enters the accumulator. For example, binary32 scaling of
+terminal speed 3.0999999046325684 to six world units yields
+18.599998474121094; converting that stored value back gives
+3.0999996662139893. Ground acceleration, launch/recoil decay and authored
+action calculations still have their existing world-valued interfaces.
+Native execution of the repaired trajectory and those remaining ingress and
+scalar boundaries are not established by source checks.
+
+Validation: `bash ~/code/wc3-melee/worktrees/physics-scale-20261005/test.sh PhysicsTests 90`
+passed 71/71 tests with zero compiler errors and nine warnings. This includes
+the ten exact recorded positions, adoption of world-coordinate edits, reset,
+and replay restored after six fall steps; changing one retained position ULP
+is visible to first-difference and canonical-state comparison. The initial
+69/71 run exposed the two old aerial-dodge position expectations above; both
+pass with original-unit expectations and unchanged tolerances. Logs are
+~/code/wc3-melee/worktrees/physics-scale-20261005/build/wurst-tests/canonical-motion.log
+and
+~/code/wc3-melee/worktrees/physics-scale-20261005/build/wurst-tests/canonical-motion-repaired.log.
+The locked compiler and standard library are unchanged. No map build or native
+client was run for this repair.

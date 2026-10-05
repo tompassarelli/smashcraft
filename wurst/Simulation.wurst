@@ -9,6 +9,53 @@ import TechInput
 
 public constant real WORLD_UNITS_PER_MELEE_UNIT = 6
 
+// Original-unit accumulation survives the rounded world-coordinate projection.
+// The published value identifies an intervening world-coordinate write.
+public tuple meleeMotionValue(real original, real published)
+
+function originalMotionValue(real original) returns meleeMotionValue
+	return meleeMotionValue(original, original * WORLD_UNITS_PER_MELEE_UNIT)
+
+function worldMotionValue(real world) returns meleeMotionValue
+	return meleeMotionValue(divideFloat32(world, WORLD_UNITS_PER_MELEE_UNIT), world)
+
+function retainedMotionValue(meleeMotionValue retained, real world) returns meleeMotionValue
+	return retained.published == world ? retained : worldMotionValue(world)
+
+public function setMeleePosition(FighterState f, real originalX, real originalZ)
+	f.motionX = originalMotionValue(originalX.roundToFloat32())
+	f.motionZ = originalMotionValue(originalZ.roundToFloat32())
+	f.x = f.motionX.published
+	f.z = f.motionZ.published
+
+public function setMeleeVerticalVelocity(FighterState f, real originalVelocity)
+	f.motionVelocityZ = originalMotionValue(originalVelocity.roundToFloat32())
+	f.vz = f.motionVelocityZ.published
+
+function moveMeleeX(FighterState f, real worldDisplacement)
+	if worldDisplacement == 0
+		return
+	let position = retainedMotionValue(f.motionX, f.x)
+	f.motionX = originalMotionValue(addFloat32(position.original, divideFloat32(worldDisplacement, WORLD_UNITS_PER_MELEE_UNIT)))
+	f.x = f.motionX.published
+
+function moveMeleeZ(FighterState f, real originalDisplacement)
+	if originalDisplacement == 0
+		return
+	let position = retainedMotionValue(f.motionZ, f.z)
+	f.motionZ = originalMotionValue(addFloat32(position.original, originalDisplacement))
+	f.z = f.motionZ.published
+
+function applyMeleeGravity(FighterState f)
+	let velocity = retainedMotionValue(f.motionVelocityZ, f.vz)
+	let gravity = divideFloat32(f.physics.gravity, WORLD_UNITS_PER_MELEE_UNIT)
+	let terminal = divideFloat32(f.physics.terminalSpeed, WORLD_UNITS_PER_MELEE_UNIT)
+	setMeleeVerticalVelocity(f, max(-terminal, subtractFloat32(velocity.original, gravity)))
+
+function moveMeleeVerticalVelocity(FighterState f)
+	f.motionVelocityZ = retainedMotionValue(f.motionVelocityZ, f.vz)
+	moveMeleeZ(f, f.motionVelocityZ.original)
+
 function roundMeleeWorldValue(real value) returns real
 	return divideFloat32(value, WORLD_UNITS_PER_MELEE_UNIT) * WORLD_UNITS_PER_MELEE_UNIT
 
@@ -468,6 +515,9 @@ public class FighterState
 	real positionDeltaZ = 0
 	real vx
 	real vz
+	meleeMotionValue motionX = meleeMotionValue(0, 0)
+	meleeMotionValue motionZ = meleeMotionValue(0, 0)
+	meleeMotionValue motionVelocityZ = meleeMotionValue(0, 0)
 	real knockbackX
 	real knockbackZ
 	real groundKnockbackX = 0
@@ -2225,14 +2275,16 @@ function advanceShieldBreak(FighterState f, int stage, InputSnapshot input)
 	f.shieldBreakFrame++
 	if f.shieldBreakState == SHIELD_BREAK_AIR
 		let oldZ = f.z
-		f.vz = max(-f.physics.terminalSpeed, addMeleeWorldValues(f.vz, -f.physics.gravity))
-		f.z = addMeleeWorldValues(f.z, f.vz)
+		applyMeleeGravity(f)
+		moveMeleeVerticalVelocity(f)
 		let landing = landingAlongShift(f, stage, f.x, oldZ, f.x, f.z)
 		if landing >= 0
 			f.z = surfaceZ(stage, landing)
+			f.motionZ = worldMotionValue(f.z)
 			f.surface = landing
 			f.grounded = true
 			f.vz = 0
+			f.motionVelocityZ = meleeMotionValue(0, 0)
 			f.jumps = 2
 			f.shieldBreakState = SHIELD_BREAK_LAND
 			f.shieldBreakFrame = 0
@@ -2335,6 +2387,8 @@ function finishLanding(FighterState f, int stage, InputSnapshot input, int landi
 	f.surface = landing
 	f.z = surfaceZ(stage, landing)
 	f.vz = 0
+	f.motionZ = worldMotionValue(f.z)
+	f.motionVelocityZ = meleeMotionValue(0, 0)
 	f.knockbackZ = 0
 	if not wasGrounded and f.groundKnockbackX == 0
 		f.groundKnockbackX = max(-MAX_GROUNDED_KNOCKBACK_ON_LANDING,
@@ -2416,8 +2470,10 @@ function resolveSolidSurfaceContact(FighterState f, int stage, int index, real o
 	let coordinate = solidSurfaceCoordinate(stage, index)
 	if solidSurfaceKind(stage, index) == SURFACE_WALL
 		f.x = coordinate
+		f.motionX = worldMotionValue(f.x)
 	else
 		f.z = coordinate
+		f.motionZ = worldMotionValue(f.z)
 	f.surfaceContactSerial++
 	f.surfaceContactX = contactX
 	f.surfaceContactZ = contactZ
@@ -3692,6 +3748,9 @@ public function reset(FighterState f, real startX)
 	f.jumpIsDouble = false
 	f.x = startX
 	f.z = 280
+	f.motionX = worldMotionValue(f.x)
+	f.motionZ = worldMotionValue(f.z)
+	f.motionVelocityZ = meleeMotionValue(0, 0)
 	f.positionDeltaX = 0
 	f.positionDeltaZ = 0
 	f.vx = 0
@@ -4054,14 +4113,14 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 			f.knockbackX = 0
 			f.groundKnockbackX = 0
 	else if not f.grounded
-		f.x = addMeleeWorldValues(f.x, f.vx)
-		f.x = addMeleeWorldValues(f.x, f.knockbackX)
-		f.x = addMeleeWorldValues(f.x, f.shieldRecoilX)
+		moveMeleeX(f, f.vx)
+		moveMeleeX(f, f.knockbackX)
+		moveMeleeX(f, f.shieldRecoilX)
 	else
 		let groundMovement = addMeleeWorldValues(f.vx + dashEntryDisplacementAdjustment, f.shieldPushbackX)
-		f.x = addMeleeWorldValues(f.x, groundMovement)
-		f.x = addMeleeWorldValues(f.x, f.knockbackX)
-		f.x = addMeleeWorldValues(f.x, f.shieldRecoilX)
+		moveMeleeX(f, groundMovement)
+		moveMeleeX(f, f.knockbackX)
+		moveMeleeX(f, f.shieldRecoilX)
 	if isGroundDodging(f)
 		f.vz = 0
 		f.z = surfaceZ(stage, max(0, f.surface))
@@ -4069,17 +4128,16 @@ public function advanceFighterMotion(FighterState f, int stage, InputSnapshot in
 		f.vz = 0
 		f.z = surfaceZ(stage, max(0, f.surface))
 	else if (not dodgeActive or f.grounded) and not groundTakeoff
-		let gravity = f.physics.gravity
 		if not f.grounded and not f.fastFalling and downHeld and f.fastFallInputAge < FAST_FALL_INPUT_WINDOW and input.direction == 0 and f.downState == DOWN_NONE and f.hitstun <= 0 and f.vz < 0
 			f.fastFalling = true
 			f.fastFallInputAge = FAST_FALL_INPUT_WINDOW
 		if f.fastFalling
 			f.vz = -f.physics.fastFallSpeed
 		else
-			f.vz = max(-f.physics.terminalSpeed, addMeleeWorldValues(f.vz, -gravity))
-	f.z = addMeleeWorldValues(f.z, f.vz)
-	f.z = addMeleeWorldValues(f.z, f.knockbackZ)
-	f.z = addMeleeWorldValues(f.z, f.shieldRecoilZ)
+			applyMeleeGravity(f)
+	moveMeleeVerticalVelocity(f)
+	moveMeleeZ(f, divideFloat32(f.knockbackZ, WORLD_UNITS_PER_MELEE_UNIT))
+	moveMeleeZ(f, divideFloat32(f.shieldRecoilZ, WORLD_UNITS_PER_MELEE_UNIT))
 	resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input)
 	var landing = -1
 	if totalVelocityZ(f) <= 0

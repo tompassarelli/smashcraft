@@ -20,12 +20,12 @@ const lines = [
     `        fighter.physics.terminalSpeed = ${terminalSpeed} * 6`,
     '        fighter.grounded = false',
     '        fighter.surface = -1',
-    `        fighter.z = ${recording.initial.y} * 6`,
-    `        fighter.vz = ${recording.initialSelfVelocityY}.`,
+    `        setMeleePosition(fighter, -60., ${recording.initial.y})`,
+    `        setMeleeVerticalVelocity(fighter, ${recording.initialSelfVelocityY}.)`,
 ];
 for (const sample of recording.samples) {
     lines.push('        advance(fighter, 0, input, 0)',
-        `        if fighter.grounded or fighter.x != -360 or fighter.z != ${sample.y} * 6`,
+        `        if fighter.grounded or fighter.x != -360 or fighter.z != ${sample.y} * 6 or fighter.motionZ.original != ${sample.y}`,
         `            failures++`,
         `            BJDebugMsg("RECORDED_FALL_FRAME_${sample.frame}_FAIL")`,
         `            BJDebugMsg("FALL_HOST=" + I2S(host) + " FRAME=${sample.frame} Z=" + R2SW(fighter.z, 0, 12) + " EXPECTED=" + R2SW(${sample.y} * 6, 0, 12) + " VZ=" + R2SW(fighter.vz, 0, 12))`);
