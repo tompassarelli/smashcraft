@@ -57,7 +57,8 @@ try {
   if (fullCompile.exitCode !== 0) throw new Error(new TextDecoder().decode(fullCompile.stderr));
   if (incrementalOutput === undefined || !same(incrementalOutput, bytes())) throw new Error("incremental bundle differs from full TSTL compile");
 
-  const signatureEdit = currentSource.replace(
+  const validSource = currentSource;
+  const signatureEdit = validSource.replace(
     "export function traceParticipant(s: ShellState, slot: number, entry: string): void {",
     "export function traceParticipant(s: ShellState, slot: number, entry: string, requiredProbe: number): void {",
   );
@@ -68,6 +69,22 @@ try {
   if (!signatureDiagnostics.some((diagnostic) => diagnostic.code === 2554 && diagnostic.file?.fileName.endsWith("/platform/shell/view.ts"))) {
     throw new Error("changed exported signature did not report the dependent call-site error");
   }
+
+  // This is valid TypeScript but cannot emit a declaration. Both the TSTL
+  // preflight and TypeScript's emit gate must retain that failure between edits.
+  currentSource = validSource + "\nexport const compilerDeclarationProbe = class { private value = 1; };\n";
+  writeFileSync(source, currentSource);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const declarationDiagnostics = incremental();
+    if (!declarationDiagnostics.some((diagnostic) => diagnostic.code === 4094 && diagnostic.file?.fileName === source)) {
+      throw new Error("incremental declaration checking lost the exported private-member error");
+    }
+    if (!same(incrementalOutput, bytes())) throw new Error("a failed compile changed the published bundle");
+  }
+  currentSource = validSource;
+  writeFileSync(source, currentSource);
+  compile(incremental);
+  if (!same(incrementalOutput, bytes())) throw new Error("fixing a declaration error did not restore the full-compile output");
 } finally {
   if (readFileSync(source, "utf8") === currentSource && currentSource !== original) {
     writeFileSync(source, original);
@@ -79,3 +96,4 @@ try {
 }
 
 console.log(`edited compile ms: ${timings.map((time) => time.toFixed(0)).join(", ")}`);
+console.log("bundle and source map equal full TSTL; dependent signature error rejected; declaration error retained and recovery passed");

@@ -76,7 +76,7 @@ export function mapCompiler(configPath: string): () => readonly ts.Diagnostic[] 
   const absolute = resolve(configPath);
   const transpiler = new IncrementalTranspiler();
   const sources = new Map<string, CachedSource>();
-  let builder: ts.SemanticDiagnosticsBuilderProgram | undefined;
+  let builder: ts.EmitAndSemanticDiagnosticsBuilderProgram | undefined;
   let signaturesPrimed = false;
   return () => {
     const started = performance.now();
@@ -85,7 +85,7 @@ export function mapCompiler(configPath: string): () => readonly ts.Diagnostic[] 
     if (config.errors.length > 0) return config.errors;
     config.options.declaration = true;
     const host = cachingHost(config.options, sources);
-    builder = ts.createSemanticDiagnosticsBuilderProgram(config.fileNames, config.options, host, builder);
+    builder = ts.createEmitAndSemanticDiagnosticsBuilderProgram(config.fileNames, config.options, host, builder);
     const program = builder.getProgram();
     const builderDone = performance.now();
     const global = [...program.getOptionsDiagnostics(), ...program.getGlobalDiagnostics()];
@@ -109,9 +109,29 @@ export function mapCompiler(configPath: string): () => readonly ts.Diagnostic[] 
     }
     const checkDone = performance.now();
     if (diagnostics.length > 0) return diagnostics;
-    const result = transpiler.compile(program, affected);
-    if (process.env.COMPILER_TIMINGS !== undefined) console.log(`config+builder ${(builderDone - started).toFixed(1)} ms, semantic diagnostics ${(checkDone - builderDone).toFixed(1)} ms`);
-    return result;
+    // Both TSTL and TypeScript's emit gate request whole-program declaration
+    // diagnostics. Route those through the builder's dependency-aware cache.
+    // Its per-file requests still use the program's checker; re-entry also
+    // handles an option change that makes the whole program affected.
+    const declarationDiagnostics = program.getDeclarationDiagnostics;
+    const incrementalDeclarations = builder.getDeclarationDiagnostics;
+    let checkingDeclarations = false;
+    program.getDeclarationDiagnostics = (file, cancellationToken) => {
+      if (file !== undefined || checkingDeclarations) return declarationDiagnostics(file, cancellationToken);
+      checkingDeclarations = true;
+      try {
+        return incrementalDeclarations(undefined, cancellationToken);
+      } finally {
+        checkingDeclarations = false;
+      }
+    };
+    try {
+      const result = transpiler.compile(program, affected);
+      if (process.env.COMPILER_TIMINGS !== undefined) console.log(`config+builder ${(builderDone - started).toFixed(1)} ms, semantic diagnostics ${(checkDone - builderDone).toFixed(1)} ms`);
+      return result;
+    } finally {
+      program.getDeclarationDiagnostics = declarationDiagnostics;
+    }
   };
 }
 
