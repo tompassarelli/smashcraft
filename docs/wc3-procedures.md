@@ -37,6 +37,10 @@ Validate a recipe without opening a display or sending input:
 tools/wc3-procedure --validate match-running export-ui-service
 ```
 
+`tools/test-wc3-procedure.sh` runs the runner against a stub `xdotool` and a
+scratch run directory; it checks the batched chain and that a mismatched state
+label or another focused window is refused.
+
 Recipe files in `tools/wc3-procedures/*.chain` support `tap KEY MS`,
 `hold KEY MS`, `chord KEY+KEY MS`, and `wait MS`. Each file starts with exactly
 one `# caller-state LABEL` matching the state label passed on the command line.

@@ -110,7 +110,9 @@ successful host check does not establish that a library can compile to Lua.
 Effect stays on the host. The installed package has no Lua module for TSTL to
 resolve, and compiling Effect 4.0.1's source with TSTL 1.37.1 crashes the
 compiler; past that, Effect's core creates BigInt values at module load, which
-TSTL's Lua library lacks. The map also has no suspended work for fibers to
+TSTL's Lua library lacks. From smashcraft:ts/,
+`bun test/compatibility/probe-effect-tstl.ts` reproduces the resolution failure
+and the compiler crash. The map also has no suspended work for fibers to
 own: one frame timer advances explicit state, callbacks rebind by name after
 hot reload, and rollback snapshots hold all gameplay state
 ([waygate#1](https://github.com/tompassarelli/waygate/issues/1)).
