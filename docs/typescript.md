@@ -45,7 +45,7 @@ Map Lua has 32-bit integers that wrap silently and binary32 numbers whose raw
 
 ### Effect on the host
 
-Warcraft Live's Bun tools use Effect for asynchronous orchestration: typed
+Waygate's Bun tools use Effect for asynchronous orchestration: typed
 failures, boundary decoding with Schema, bounded client publication and scoped
 resource ownership. The hot-reload entrypoint is smashcraft:ts/scripts/hot.ts;
 its Effect operations live in smashcraft:ts/scripts/hotEffects.ts. Publish each

@@ -43,9 +43,9 @@ investigation.
 - Use the declared project development shell when available. Preserve pinned
   dependencies; do not repeat ad hoc environment setup as the normal loop.
 
-## TypeScript and Warcraft Live
+## TypeScript and Waygate
 
-Effect is the preferred foundation for Warcraft Live's TypeScript tooling.
+Effect is the preferred foundation for Waygate's TypeScript tooling.
 Read smashcraft:.agents/skills/effect/SKILL.md for Effect work and for the
 weekly dependency/source update. The upstream repository is vendored at
 smashcraft:repos/effect/ as read-only reference material: read its LLMS.md,
@@ -53,8 +53,9 @@ implementation and tests before choosing APIs. Import installed packages,
 never the subtree. Upstream development instructions apply to upstream work,
 not to Smashcraft's package manager, language or build commands.
 
-smashcraft:ts/ is the TypeScript side, and Warcraft Live is its development
-loop. Read warcraft-typescript-development-distilled before changing TypeScript
+smashcraft:ts/ is the TypeScript side, built on Waygate: the framework and
+development loop for Warcraft maps in TypeScript. Read
+warcraft-typescript-development-distilled before changing TypeScript
 or code in a running game, and smashcraft:docs/typescript.md before writing map
 code. From smashcraft:ts/:
 - Logic: `bun test`, plus `LUA=<32-bit lua> bun scripts/lua-tests.ts` for the
@@ -65,6 +66,12 @@ code. From smashcraft:ts/:
 - Map: `../build-typescript.sh BASE_MAP ASSET_CONTAINER` builds a map whose only
   project code is TypeScript (no Wurst compile); `bun scripts/map.ts rebuild
   MAP.w3x` replaces only the script of a map that it or build.sh packaged.
+- Fresh match: `bun scripts/fresh.ts MAP.w3x` takes both signed-in clients from
+  wherever they are to character selection in a new Battle.net game of MAP.
+  `bun scripts/warcraft.ts look|read|click|keys CLIENT ...` reads and drives
+  one client. Session values live in ~/.local/state/smashcraft/clients.json.
+- Tapes: `LUA=<32-bit lua> bun scripts/tapes.ts` replays the acceptance tapes in
+  compiled Wurst Lua, Bun and 32-bit Lua and reports divergent frames.
 
 ## Verify the changed behavior
 
