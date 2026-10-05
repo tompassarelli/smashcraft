@@ -3,7 +3,7 @@
 import { Effect, Layer } from "effect";
 import { type Command, UsageFailure } from "waygate/scripts/waygate/command";
 import { MapBuild } from "waygate/scripts/waygate/mapBuild";
-import { decodeBuildOptions, importedAssets } from "../mapInputs";
+import { decodeBuildOptions, importedAssets, rebuildMap } from "../mapInputs";
 import { buildProject, gameFilesLayer, profileOption, sourceErrorsLayer } from "../project";
 import { SMASHCRAFT_MAP } from "../../mapInfo";
 import { fighterUnits, fileIoAbility } from "../../objectData";
@@ -33,5 +33,5 @@ export const rebuild: Command = (args) => Effect.gen(function*() {
   const options = yield* profileOptions(args);
   const [map, ...rest] = options.args;
   if (map === undefined || rest.length > 0) return yield* new UsageFailure({ problem: "rebuild takes one map" });
-  return yield* MapBuild.use((maps) => maps.rebuild(map)).pipe(Effect.provide(options.services));
+  return yield* rebuildMap(map).pipe(Effect.provide(options.services));
 });

@@ -238,6 +238,15 @@ object data, description and header, and fails unless every other base-map file
 and every declared import equals its source. Imports the build does not declare
 are carried along unverified.
 
+The stage deck model is authored in smashcraft:tools/stage/package.ts. Running
+it writes the model, its palette and their import list to
+smashcraft:build/stage-assets/ and the model's content-addressed import path to
+smashcraft:ts/src/game/assets/stageAssetInfo.ts, which the map compiles. The
+build fails unless the `--assets` directory's stage-assets/imports.txt holds the
+model that path names, then verifies the archive carries it. `rebuild` and
+`fresh --rebuild` keep the map's imports, so they fail unless the map already
+carries that model; build the map again after changing the deck.
+
 The build first checks the running Bun and the declared and installed packages
 against smashcraft:typescript-toolchain.lock.
 

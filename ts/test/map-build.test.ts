@@ -4,6 +4,8 @@ import { expect, test } from "bun:test";
 import { verifyToolchain } from "waygate/scripts/waygate/mapBuild";
 import { composeScript, typescriptBase } from "waygate/scripts/mapScript";
 import { fileIoAbility } from "../scripts/objectData";
+import { missingStageDeck } from "../scripts/waygate/mapInputs";
+import { STAGE_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 
 const project = join(import.meta.dir, "../..");
 const baseMapScript = "function main()\nInitBlizzard()\nRunInitializationTriggers()\nend\n\nfunction config()\nSetPlayers(1)\nend\n";
@@ -22,6 +24,14 @@ test("a TypeScript-only map starts the TypeScript entry with its own config, bef
     expect(script).toContain("function config()\n    mapConfig()\nend");
   }
   expect(() => composeScript(base, undefined, "smashcraftTs")).toThrow();
+});
+
+test("every match-running map draws its stage with a packaged content-addressed deck model", () => {
+  expect(STAGE_DECK_MODEL).toMatch(/^war3mapImported\\StageDeck-[0-9a-f]{64}\.mdx$/);
+  const deck = STAGE_DECK_MODEL.slice("war3mapImported\\".length);
+  expect(missingStageDeck([deck, "StagePalette-0.tga"], STAGE_DECK_MODEL)).toBeUndefined();
+  expect(missingStageDeck([deck], "")).toBe("the map script names no stage deck model");
+  expect(missingStageDeck(["StageDeck-0.mdx", "StagePalette-0.tga"], STAGE_DECK_MODEL)).toContain("is not among the stage imports");
 });
 
 test("the FileIO ability retains the recorded war3map.w3a bytes", () => {
