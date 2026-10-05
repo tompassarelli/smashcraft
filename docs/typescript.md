@@ -80,8 +80,9 @@ a source defect, named as such.
 From smashcraft:ts/:
 
 - `bun test`: host tests (sub-second for a module).
-- `bun --bun node_modules/typescript/bin/tsc -p tsconfig.game.json`: type-check
-  the game.
+- `bun run check`: type-check the host tools and the game with TypeScript 7
+  (about 0.3 s). TypeScriptToLua needs the compiler API that only TypeScript
+  6.0 has, so it compiles with 6.0 and the two report the same errors.
 - `LUA=<32-bit lua> bun scripts/parity.ts`: emitted Lua against Bun on the
   numeric corpus.
 - `bun scripts/wurst2ts.ts OUT_DIR WURST_FILE...`: the deterministic first pass

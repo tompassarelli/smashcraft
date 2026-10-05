@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "tsc --noEmit -p tsconfig.json",
+    "check": "bun node_modules/typescript-native/bin/tsc -p tsconfig.json --noEmit && bun node_modules/typescript-native/bin/tsc -p tsconfig.game.json --noEmit",
     "test": "bun test",
     "parity": "bun scripts/parity.ts"
   },
@@ -11,6 +11,7 @@
     "@types/bun": "1.4.2",
     "lua-types": "2.14.1",
     "typescript": "6.0.2",
+    "typescript-native": "npm:typescript@7.0.2",
     "typescript-to-lua": "1.37.1"
   }
 }
