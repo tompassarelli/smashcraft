@@ -1,6 +1,7 @@
 // Smashcraft's selection, developer-command and input-trace records.
 import { Effect, Schema } from "effect";
 import { preloadRecord, Count, Seconds, type GameFileKind } from "waygate/scripts/waygate/boundary";
+import { MAX_BATCH } from "../../src/game/netcode/journal/transport";
 import * as files from "../../src/runtime/gameFiles";
 export * from "../../src/runtime/gameFiles";
 
@@ -32,7 +33,7 @@ export const DevCommandReceipt = preloadRecord(
     epoch: Count,
     rollback: Count.check(Schema.isGreaterThanOrEqualTo(1)),
     delay: Count,
-    batch: Count.check(Schema.isGreaterThanOrEqualTo(1)).check(Schema.isLessThanOrEqualTo(2)),
+    batch: Count.check(Schema.isGreaterThanOrEqualTo(1)).check(Schema.isLessThanOrEqualTo(MAX_BATCH)),
   }),
 );
 

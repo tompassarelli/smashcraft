@@ -64,7 +64,7 @@ export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
   if (journal !== undefined) {
     const slot = localSlot();
     journal.failed = false;
-    journal.outgoing.clear();
+    journal.outgoing.begin(rollback.epoch, rollback.delay + 1);
     journal.readyMask = 0;
     journal.startSent = false;
     journal.lifecycle = new MatchLifecycle(rollback.epoch, s.game.humanMask);
@@ -213,7 +213,7 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
   if (journal !== undefined) {
     journal.outgoing.tick();
     if (!s.session.paused) serviceJournalInput(s, rollback, journal);
-    flushTransport(s, rollback, journal, rollback.batch === 1 || s.session.paused || journal.barrier.request !== undefined);
+    flushTransport(s, rollback, journal);
   } else if (keyboard !== undefined) captureKeyboard(s, rollback, keyboard);
   if (s.session.paused || (journal?.editbox !== undefined && journal.lifecycle?.started() !== true)) return;
   const stopAt = journal === undefined ? undefined : agreedFrame(journal.barrier);
@@ -287,7 +287,7 @@ function receivePacket(s: ShellState, rollback: Rollback, sender: number, packet
   } else trace.window.rejected++;
 }
 
-/** A synchronized input message: helper lifecycle, or one or two packets of a sender's rows. */
+/** A synchronized input message: helper lifecycle, or a run of one sender's consecutive rows. */
 export function receiveInput(s: ShellState): void {
   const rollback = s.rollback;
   s.trace.rawSyncEvents++;

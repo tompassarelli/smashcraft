@@ -18,13 +18,13 @@ import { InputBatch } from "../../game/netcode/inputBatch";
 import type { KeyboardMailbox } from "../../game/netcode/journal/keyboard";
 import type { MatchLifecycle } from "../../game/netcode/journal/lifecycle";
 import type { JournalInputSource } from "../../game/netcode/journal/source";
-import { TransportBatch } from "../../game/netcode/journal/transport";
+import { DEFAULT_BATCH, OutgoingInput } from "../../game/netcode/journal/transport";
 import { ShadowInputSchedule } from "../../game/netcode/shadowSchedule";
 import type { WorldOrigin } from "../../game/render/effects";
 import { type ModelSoundCursor, ORIGINAL_MODEL_SOUNDS, createModelSoundCursor } from "../../game/render/modelSounds";
 import { type ReplayState, createReplaySnapshot } from "../../game/replay/snapshot";
 import { type JournalIngress, type MapBuild, type ShadowInputMode, isShadow } from "../../game/shell/build";
-import type { BatchSize, DevSettings } from "../../game/shell/devSettings";
+import type { DevSettings } from "../../game/shell/devSettings";
 import type { MenuPhase } from "../../game/shell/journalFiles";
 import { type PauseBarrier, pauseBarrier } from "../../game/shell/pauseBarrier";
 import type { RollbackPlayback, SpeculativeMatch } from "../../game/shell/playback";
@@ -102,7 +102,7 @@ export interface Journal {
   /** Opened per epoch. */
   source: JournalInputSource | undefined;
   failed: boolean;
-  readonly outgoing: TransportBatch;
+  readonly outgoing: OutgoingInput;
   /** Humans whose helper is ready this epoch. */
   readyMask: number;
   startSent: boolean;
@@ -129,7 +129,8 @@ export interface Rollback {
   /** Settings fixed for the running epoch. */
   delay: FixedDelay;
   window: number;
-  batch: BatchSize;
+  /** Callbacks per synchronized input message. */
+  batch: number;
   readonly schedule: ShadowInputSchedule;
   readonly playback: RollbackPlayback;
   readonly speculative: SpeculativeMatch;
@@ -230,7 +231,7 @@ function speculativeRoster(): Roster {
 
 function journal(ingress: JournalIngress, editbox: EditboxIngress | undefined): Journal {
   return {
-    ingress, source: undefined, failed: false, outgoing: new TransportBatch(), readyMask: 0, startSent: false, lifecycle: undefined,
+    ingress, source: undefined, failed: false, outgoing: new OutgoingInput(), readyMask: 0, startSent: false, lifecycle: undefined,
     endSent: false, endReceived: false, quiescent: false, chatRequested: [false, false, false, false], chatSerial: [0, 0, 0, 0],
     barrier: pauseBarrier(), menuPhase: undefined, menuTicks: 0, editbox, mailbox: undefined,
   };
@@ -238,7 +239,7 @@ function journal(ingress: JournalIngress, editbox: EditboxIngress | undefined): 
 
 function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: EditboxIngress | undefined): Rollback {
   return {
-    mode, active: false, epoch: 0, delay: mode.delay, window: mode.rollback, batch: 2,
+    mode, active: false, epoch: 0, delay: mode.delay, window: mode.rollback, batch: DEFAULT_BATCH,
     schedule: new ShadowInputSchedule(), playback,
     speculative: { world: speculativeRoster(), game: createMatchState(), controls: bufferedControls(), runtime: createReplayRuntimeState() },
     seed: createReplaySnapshot(), accepted: participantInputs(), sendFailed: false,
@@ -272,7 +273,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
     participants: [participant(0, persistence), participant(1, persistence), participant(2, persistence), participant(3, persistence)],
     status: { text: "", seconds: 0.0 }, frames: setup.frames, stageDecks: [], ui: undefined,
     sounds: createModelSoundCursor(ORIGINAL_MODEL_SOUNDS),
-    dev: { rollback: isShadow(input) ? input.rollback : 6, delay: isShadow(input) ? input.delay : 3, batch: 2 }, devReceipts: 0,
+    dev: { rollback: isShadow(input) ? input.rollback : 6, delay: isShadow(input) ? input.delay : 3, batch: DEFAULT_BATCH }, devReceipts: 0,
     trace: inputTrace(build.responseProbe ? 2048 : 256),
     probe: build.responseProbe ? createResponseProbe(build.id) : undefined,
     rollback: isShadow(input) ? rollback(input, setup.playback, setup.editbox) : undefined,

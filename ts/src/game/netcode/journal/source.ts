@@ -22,8 +22,8 @@ const INVALID: JournalRead = { kind: "invalid" };
 
 /**
  * One local player's journal for one epoch. The cursor moves only after the
- * caller has admitted every row of a ready packet and sent that same packet
- * over the synchronized channel.
+ * caller has admitted every row of a ready packet and queued those rows for
+ * the synchronized channel.
  */
 export class JournalInputSource {
   private sequence = 1;
@@ -79,7 +79,7 @@ export class JournalInputSource {
     return { kind: "ready", packet };
   }
 
-  /** Advances past the ready packet once it is admitted and sent. */
+  /** Advances past the ready packet once its rows are admitted and queued to send. */
   sent(): boolean {
     if (this.ready === undefined) return false;
     this.sequence += this.ready.rows.length;

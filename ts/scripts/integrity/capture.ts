@@ -7,6 +7,7 @@ import { parseArgs } from "node:util";
 import type { Subprocess } from "bun";
 import { Effect, Exit, Option } from "effect";
 import { at } from "waygate/src/runtime/lookup";
+import { DEFAULT_BATCH } from "../../src/game/netcode/journal/transport";
 import { clientState } from "../waygate/project";
 import { type Client, type DesktopFailure, focus, loadClients, windowPid } from "waygate/scripts/warcraft/desktop";
 import { IntegrityFailure, tryIntegrity, tryIntegrityPromise } from "./evidence";
@@ -38,10 +39,10 @@ function wholeNumber(text: string, option: string): number {
   return Number(text);
 }
 
-/** RB or RB:BATCH entries; the batch defaults to 2. */
+/** RB or RB:BATCH entries: rollback window and callbacks per input message, by default the map's. */
 export function parseSweep(text: string): readonly (readonly [window: number, batch: number])[] {
   return text.split(",").map((entry) => {
-    const [window = "", batch = ""] = `${entry}:2`.split(":");
+    const [window = "", batch = ""] = `${entry}:${DEFAULT_BATCH}`.split(":");
     return [wholeNumber(window, "--sweep"), wholeNumber(batch, "--sweep")] as const;
   });
 }
