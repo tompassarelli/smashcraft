@@ -93,9 +93,13 @@ compiler API, while the host checker uses TypeScript 7 with Effect tsgo. A
 project `bun install` patches the native checker through the postinstall
 script; ordinary checks reuse that binary without rerunning the patcher. A
 successful host check does not establish that a library can compile to Lua.
-The installed Effect package currently has no Lua module for TSTL to resolve;
-keep Effect imports on the host until an actual emitted-Lua check supports a
-change to that boundary.
+Effect stays on the host. The installed package has no Lua module for TSTL to
+resolve, and compiling Effect 4.0.1's source with TSTL 1.37.1 crashes the
+compiler; past that, Effect's core creates BigInt values at module load, which
+TSTL's Lua library lacks. The map also has no suspended work for fibers to
+own: one frame timer advances explicit state, callbacks rebind by name after
+hot reload, and rollback snapshots hold all gameplay state
+([waygate#1](https://github.com/tompassarelli/waygate/issues/1)).
 
 For APIs, read smashcraft:repos/effect/LLMS.md and its version-matched source
 and tests. Application imports resolve installed packages, not vendor paths.

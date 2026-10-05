@@ -2,10 +2,11 @@
 // client and its text synchronized to every client before anyone uses it;
 // saving writes the owner's file. The file format is FileIO's (fileio.ts), so
 // files the Wurst map saved still load.
-import type { BindingLoadResult, BindingPersistence } from "../../game/ui/bindingSettings";
+import type { BindingPersistence } from "../../game/ui/bindingSettings";
 import { PARTICIPANT_SLOTS } from "../../game/input/participants";
 import { trampoline } from "waygate/src/platform/dispatch";
 import { readChunks, writeChunks } from "waygate/src/platform/fileio";
+import { departPlayerFiles, enqueuePlayerFile, receivePlayerFileChunk, type PlayerFileQueue } from "./playerFileQueue";
 
 export const PLAYER_FILE_RECEIVED = "shell.playerFileReceived";
 const MORE_PREFIX = "SC_FL";
@@ -14,29 +15,17 @@ const LAST_PREFIX = "SC_FE";
 const CHUNK = 200;
 const BINDINGS_FILE = "MeleePrototypeBindings.pld";
 
-interface PendingLoad {
-  readonly owner: number;
-  readonly complete: (result: BindingLoadResult) => void;
-  received: string;
-}
-
-interface PlayerFiles {
-  /** Every client requests the same loads in the same order; one synchronizes at a time. */
-  readonly queue: PendingLoad[];
-}
-
 declare global {
-  var __smashcraftPlayerFiles: PlayerFiles | undefined;
+  var __smashcraftPlayerFiles: PlayerFileQueue | undefined;
 }
 
-function files(): PlayerFiles {
+function files(): PlayerFileQueue {
   return (globalThis.__smashcraftPlayerFiles ??= { queue: [] });
 }
 
 /** The owner's client sends the first queued file. */
-function sendNext(): void {
-  const next = files().queue[0];
-  if (next === undefined || GetLocalPlayer() !== Player(next.owner)) return;
+function sendFile(owner: number): void {
+  if (GetLocalPlayer() !== Player(owner)) return;
   const text = readChunks(BINDINGS_FILE).join("");
   let offset = 0;
   while (text.length - offset > CHUNK) {
@@ -48,14 +37,11 @@ function sendNext(): void {
 
 /** A chunk of the first queued file arrived on this client. */
 export function playerFileReceived(): void {
-  const { queue } = files();
-  const pending = queue[0];
-  if (pending === undefined || GetPlayerId(GetTriggerPlayer()) !== pending.owner) return;
-  pending.received += BlzGetTriggerSyncData();
-  if (BlzGetTriggerSyncPrefix() !== LAST_PREFIX) return;
-  queue.shift();
-  pending.complete(pending.received === "" ? { kind: "empty" } : { kind: "loaded", encoded: pending.received });
-  sendNext();
+  receivePlayerFileChunk(files(), GetPlayerId(GetTriggerPlayer()), BlzGetTriggerSyncData(), BlzGetTriggerSyncPrefix() === LAST_PREFIX, sendFile);
+}
+
+export function playerFilesOwnerLeft(owner: number): void {
+  departPlayerFiles(files(), owner, sendFile);
 }
 
 /** Registers the synchronized receipt once; its handler is registered by name at every install. */
@@ -80,9 +66,7 @@ export const bindingFiles: BindingPersistence = {
       complete({ kind: "unavailable" });
       return;
     }
-    const { queue } = files();
-    queue.push({ owner, complete, received: "" });
-    if (queue.length === 1) sendNext();
+    enqueuePlayerFile(files(), owner, complete, sendFile);
   },
   save(owner, encoded) {
     if (GetLocalPlayer() === Player(owner)) writeChunks(BINDINGS_FILE, chunks(encoded));
