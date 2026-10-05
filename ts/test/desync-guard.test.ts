@@ -55,7 +55,7 @@ function playThroughReload(entry: Entry): Lockstep {
   clients.everywhere(() => entry.install());
   for (const [index, client] of clients.clients.entries()) {
     const installCalls = client.log.slice(nativeCallCount[index] ?? 0);
-    expect(installCalls.filter(call => /^(?:Create|BlzCreate|AddSpecialEffect|Destroy|BlzDestroy|Remove)\w+\(/.test(call))).toEqual([]);
+    expect(installCalls.filter(({ name }) => /^(?:Create|BlzCreate|AddSpecialEffect|Destroy|BlzDestroy|Remove)\w+$/.test(name))).toEqual([]);
   }
   clients.ticks(120);
   return clients;

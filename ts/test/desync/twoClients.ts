@@ -94,6 +94,11 @@ export interface SyncMessage {
   readonly data: string;
 }
 
+interface NativeCall {
+  readonly name: string;
+  readonly args: readonly unknown[];
+}
+
 const TICK_SECONDS = 1 / 60;
 
 /** The client whose code is running. */
@@ -126,9 +131,9 @@ export function installNatives(): () => void {
 
 /** One client: its natives, its handles, its share of the shell's globals and its call log. */
 export class Client {
-  readonly log: string[] = [];
+  readonly log: NativeCall[] = [];
   /** Allowed local-only calls, kept to explain a difference. */
-  readonly localLog: string[] = [];
+  readonly localLog: NativeCall[] = [];
   readonly errors: string[] = [];
   readonly files = new Map<string, string[]>();
   readonly natives: Record<string, unknown> = {};
@@ -215,8 +220,8 @@ export class Client {
     for (const { name, returns } of NATIVES) {
       const behave = special[name] ?? (name.startsWith("Convert") ? (value: unknown) => value : this.defaultNative(returns, handle));
       this.natives[name] = (...args: unknown[]) => {
-        if (ALLOWED_LOCAL[name] === undefined) this.log.push(`${name}(${args.map(describe).join(", ")})`);
-        else this.localLog.push(`${name}(${args.map(describe).join(", ")})`);
+        if (ALLOWED_LOCAL[name] === undefined) this.log.push({ name, args });
+        else this.localLog.push({ name, args });
         return (behave as (...values: unknown[]) => unknown)(...args);
       };
     }
@@ -282,7 +287,10 @@ export class Client {
   step(): void {
     this.run(() => {
       this.tick++;
-      for (const timer of [...this.timers]) {
+      const timerCount = this.timers.length;
+      for (let index = 0; index < timerCount; index++) {
+        const timer = this.timers[index];
+        if (timer === undefined) continue;
         if (!timer.running || timer.dueTick > this.tick || timer.callback === undefined) continue;
         if (timer.periodTicks > 0) timer.dueTick += timer.periodTicks;
         else timer.running = false;
@@ -321,6 +329,23 @@ function describe(value: unknown): string {
   if (typeof value === "function") return "fn";
   if (typeof value === "object" && value !== null && "id" in value) return `${(value as Handle).kind}#${(value as Handle).id}`;
   return typeof value === "string" ? JSON.stringify(value) : String(value);
+}
+
+function describeCall(name: string, args: readonly unknown[]): string {
+  let call = `${name}(`;
+  for (let index = 0; index < args.length; index++) {
+    if (index > 0) call += ", ";
+    call += describe(args[index]);
+  }
+  return `${call})`;
+}
+
+function sameCall(left: NativeCall, right: NativeCall): boolean {
+  if (left.name !== right.name || left.args.length !== right.args.length) return false;
+  for (let index = 0; index < left.args.length; index++) {
+    if (describe(left.args[index]) !== describe(right.args[index])) return false;
+  }
+  return true;
 }
 
 /** The clients and the synchronized channel between them. */
@@ -375,8 +400,10 @@ export class Lockstep {
     for (const other of others) {
       const length = Math.max(first.log.length, other.log.length);
       for (let index = 0; index < length; index++) {
-        if (first.log[index] === other.log[index]) continue;
-        const context = (log: readonly string[]) => log.slice(Math.max(0, index - 4), index + 2).join("\n    ");
+        const firstCall = first.log[index];
+        const otherCall = other.log[index];
+        if (firstCall !== undefined && otherCall !== undefined && sameCall(firstCall, otherCall)) continue;
+        const context = (log: readonly NativeCall[]) => log.slice(Math.max(0, index - 4), index + 2).map(call => describeCall(call.name, call.args)).join("\n    ");
         return `call ${index} differs between slot ${first.slot} and slot ${other.slot}:\n  slot ${first.slot}:\n    ${context(first.log)}\n  slot ${other.slot}:\n    ${context(other.log)}`;
       }
     }
