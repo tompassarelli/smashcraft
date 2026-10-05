@@ -38,12 +38,25 @@ The wider backlog also includes full physics/VFX/balance, alternate hosting,
 three/four-player play and ten human matches. A playable Linux checkpoint is
 therefore delivered while the whole project is incomplete.
 
+**Production move export delivered, 08:12 (`5b19ad7`):** 42 normal moves and
+nine charged variants now produce 1,797 queryable rows from the owning combat
+functions. Timing, contact geometry, damage, shield/hitlag values and sampled
+movement/landing transitions are available without duplicating tuning authority.
+The focused production check passed and the generated snapshot matched. This
+completes the production export portion of #12; reference joins, contextual
+matchup comparisons and measured tuning remain. See wc3-melee:docs/move-data.md.
+
 **Latest failed boundary: chat opening.** Enter opens native chat at character
 selection, but the automated run did not observe it opening during controller
 gameplay. The fixture stopped before chat-period controls; no recovery pass is
 claimed. Exact candidate, retained failure and next owning seam:
 wc3-melee:docs/controller-chat-native-20261005/README.md. This remains #18/#26
 work and does not invalidate the completed release checks above.
+An unreleased repair now requests shared pause, drains controller output and
+hands focus to native chat. Its first candidate reached paused native chat;
+masked OCR confirmed the label missed by the initial capture reader. The next
+candidate fixes native chat-frame discovery so closing chat can restore input.
+Build success is established; the full closing/resume journey is still pending.
 
 ## The specific answers and their owners
 
