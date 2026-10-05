@@ -58,7 +58,7 @@ development loop for Warcraft maps in TypeScript. Read
 warcraft-typescript-development-distilled before changing TypeScript
 or code in a running game, and smashcraft:docs/typescript.md before writing map
 code. From smashcraft:ts/:
-- Logic: `bun test`, plus `LUA=<32-bit lua> bun scripts/lua-tests.ts` for the
+- Logic: `bun run test`, plus `LUA=<32-bit lua> bun scripts/lua-tests.ts` for the
   emitted Lua. `bun run check` type-checks.
 - Running game: `bun waygate hot --data <client A CustomMapData> --data <client
   B CustomMapData> --watch` hot-reloads every save into both clients and prints

@@ -17,9 +17,9 @@ interface FunctionParts {
   readonly body: ts.ConciseBody | ts.Block | undefined;
 }
 
-function functionParts(node: ts.Node): FunctionParts | undefined {
+function functionParts(node: ts.Node, source: ts.SourceFile): FunctionParts | undefined {
   if (ts.isFunctionDeclaration(node) || ts.isMethodDeclaration(node)) {
-    return { name: node.name?.getText() ?? "", parameters: node.parameters, body: node.body };
+    return { name: node.name?.getText(source) ?? "", parameters: node.parameters, body: node.body };
   }
   if (ts.isVariableDeclaration(node) && node.initializer !== undefined && ts.isIdentifier(node.name)
     && (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))) {
@@ -28,7 +28,7 @@ function functionParts(node: ts.Node): FunctionParts | undefined {
   if ((ts.isPropertyAssignment(node) || ts.isPropertyDeclaration(node))
     && node.initializer !== undefined
     && (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))) {
-    return { name: node.name.getText(), parameters: node.initializer.parameters, body: node.initializer.body };
+    return { name: node.name.getText(source), parameters: node.initializer.parameters, body: node.initializer.body };
   }
   return undefined;
 }
@@ -64,19 +64,21 @@ test("map source follows the TypeScript shapes required by #35", () => {
   for (const path of mapSources) {
     const file = join(root, path);
     const text = ts.sys.readFile(file) ?? "";
-    const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+    const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
     const addAt = (start: number, shape: string): void => {
       const { line } = source.getLineAndCharacterOfPosition(start);
       violations.push({ file: relative(root, file), line: line + 1, shape });
     };
     const add = (node: ts.Node, shape: string): void => addAt(node.getStart(source), shape);
 
-    const scanner = ts.createScanner(ts.ScriptTarget.Latest, false, ts.LanguageVariant.Standard, text);
-    for (let token = scanner.scan(); token !== ts.SyntaxKind.EndOfFileToken; token = scanner.scan()) {
-      if ((token === ts.SyntaxKind.SingleLineCommentTrivia || token === ts.SyntaxKind.MultiLineCommentTrivia)
-        && scanner.getTokenText().includes("TODO(wurst2ts)")) {
-        counts.converterTodoMarkers++;
-        addAt(scanner.getTokenPos(), "converter TODO marker");
+    if (text.includes("TODO(wurst2ts)")) {
+      const scanner = ts.createScanner(ts.ScriptTarget.Latest, false, ts.LanguageVariant.Standard, text);
+      for (let token = scanner.scan(); token !== ts.SyntaxKind.EndOfFileToken; token = scanner.scan()) {
+        if ((token === ts.SyntaxKind.SingleLineCommentTrivia || token === ts.SyntaxKind.MultiLineCommentTrivia)
+          && scanner.getTokenText().includes("TODO(wurst2ts)")) {
+          counts.converterTodoMarkers++;
+          addAt(scanner.getTokenPos(), "converter TODO marker");
+        }
       }
     }
 
@@ -106,7 +108,7 @@ test("map source follows the TypeScript shapes required by #35", () => {
         }
       }
 
-      const parts = functionParts(node);
+      const parts = functionParts(node, source);
       if (parts !== undefined && /^(assign|set[A-Z])/.test(parts.name) && parts.parameters.length >= 4) {
         const valueNames = new Set(parts.parameters.flatMap((parameter) =>
           ts.isIdentifier(parameter.name) ? [parameter.name.text] : []));

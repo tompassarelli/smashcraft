@@ -343,7 +343,12 @@ function describeCall(name: string, args: readonly unknown[]): string {
 function sameCall(left: NativeCall, right: NativeCall): boolean {
   if (left.name !== right.name || left.args.length !== right.args.length) return false;
   for (let index = 0; index < left.args.length; index++) {
-    if (describe(left.args[index]) !== describe(right.args[index])) return false;
+    const leftArg = left.args[index];
+    const rightArg = right.args[index];
+    // Equal primitive arguments need no diagnostic string allocation. Handles
+    // and callbacks keep the guard's client-independent representation.
+    if (leftArg === rightArg) continue;
+    if (describe(leftArg) !== describe(rightArg)) return false;
   }
   return true;
 }
