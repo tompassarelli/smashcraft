@@ -2,6 +2,7 @@
 // reload calls the new bundle's install(), which registers every handler
 // again, so the reloader and error reporting reload too.
 import { CURRENT_BUILD } from "../game/shell/currentBuild";
+import type { MapBuild } from "../game/shell/build";
 import { replayHistoryPlayback } from "../game/shell/rollbackPlayback";
 import { configureRuntime } from "waygate/src/runtime/config";
 import { installDispatch } from "waygate/src/platform/dispatch";
@@ -17,8 +18,13 @@ export function install(this: void): void {
   installHotReload();
 }
 
-export function start(this: void): void {
+/** Both native input profiles share the same shell and reload lifecycle. */
+export function startBuild(this: void, build: MapBuild): void {
   install();
-  startShell(CURRENT_BUILD, replayHistoryPlayback());
+  startShell(build, replayHistoryPlayback());
   startHotReload(0, GetPlayerId(GetLocalPlayer()));
+}
+
+export function start(this: void): void {
+  startBuild(CURRENT_BUILD);
 }

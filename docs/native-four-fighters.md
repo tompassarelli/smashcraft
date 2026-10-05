@@ -10,10 +10,17 @@ Use two signed-in private clients at fighter selection, with connected players
 in slots A/B and slots C/D empty. The desktop driver's client records must name
 the retained windows. Start no other controller helper on those clients during
 capture. The map must use normal combat, journal/editbox input, and the response
-probe, as declared by `INTEGRITY_BUILD` in
-smashcraft:ts/src/game/shell/currentBuild.ts. The checked-in development build
-uses keyboard input and cannot produce these receipts. Match `--build` to the
-actual map's build ID, not its display name.
+probe. Build with `bun waygate build --profile integrity` and the normal private
+map inputs, or rebuild an already packaged private candidate with:
+
+```sh
+bun waygate rebuild /absolute/path/to/candidate.w3x --profile integrity
+```
+
+This selects `INTEGRITY_BUILD` in smashcraft:ts/src/game/shell/currentBuild.ts,
+with build ID `typescript-integrity`. The default development profile uses
+keyboard input and cannot produce these receipts. Match `--build` to the actual
+map's build ID, not its display name.
 
 From smashcraft:ts/, with the matching helper binary and private-compositor
 app IDs:
@@ -33,9 +40,11 @@ a separate client-state file. A fresh map begins at epoch 1; a chained capture
 must supply its next odd epoch. The output directory must not already exist.
 
 The journey selects two CPUs through the slot tags, selects the fighters and
-stage, sets the normal match timer to one minute, and sends four attack taps per
-player. The CPUs continue normal combat until stocks or the timer end the
-match. Between matches, slot C cycles CPU → empty → player → CPU. Both matches
+stage, sets one stock for both matches and the normal match timer to one minute,
+and sends four attack taps per player. The CPUs continue normal combat until stocks or the timer end the
+match. The named #26 integrity workload separately retains its required longer
+settings for the all-binding edge sample. Between matches, slot C cycles
+CPU → empty → player → CPU. Both matches
 retain two players and two CPUs. After the rematch result, the journey returns
 to fighter selection and empties C/D. Results are archived before leaving each
 match; a longer match also gets a stationary result trace.

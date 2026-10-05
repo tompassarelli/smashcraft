@@ -8,12 +8,12 @@ export const ts = join(import.meta.dir, "../..");
 export const projectRoot = join(ts, "..");
 export const clientState = join(homedir(), ".local/state/smashcraft/clients.json");
 export const sourceMapDirectory = join(ts, "build/source-maps");
-export const buildProject = (profile: "main" | "physics-probe" | "frame-cost" = "main"): BuildProject => ({
+export const buildProject = (profile: "main" | "integrity" | "physics-probe" | "frame-cost" = "main"): BuildProject => ({
   projectRoot,
   configPath: join(ts, profile === "main" ? "tsconfig.map.json" : `tsconfig.${profile}.json`),
   bundlePath: join(ts, profile === "main" ? "build/map.lua" : `build/${profile}.lua`),
   compileInputs: [join(ts, "src"), join(ts, "node_modules/waygate/src"), join(ts, "node_modules/waygate/plugins"),
-    join(ts, "tsconfig.map.json"), join(ts, "tsconfig.physics-probe.json"), join(ts, "tsconfig.frame-cost.json"), join(ts, "tsconfig.json")],
+    join(ts, "tsconfig.map.json"), join(ts, "tsconfig.integrity.json"), join(ts, "tsconfig.physics-probe.json"), join(ts, "tsconfig.frame-cost.json"), join(ts, "tsconfig.json")],
   packager: join(projectRoot, "build/tools/map-pack"),
   toolchainLockPath: join(projectRoot, "typescript-toolchain.lock"),
   packageDirectory: ts,

@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.map.json",
+  "include": [
+    "node_modules/waygate/src/natives/warcraft.d.ts",
+    "src/platform/integrityMain.ts"
+  ],
+  "exclude": [],
+  "tstl": {
+    "luaBundle": "integrity.lua",
+    "luaBundleEntry": "src/platform/integrityMain.ts"
+  }
+}

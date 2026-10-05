@@ -385,8 +385,13 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   const match = (epoch: number) =>
     Effect.gen(function*() {
       const odd = epoch % 2 === 1;
-      if (!fourFighters && !odd) yield* setStocks(1675, [2, 3]);
-      if (!fourFighters && epoch > firstEpoch && odd) yield* setStocks(1380, [2, 1]);
+      if (matchOnly) yield* reduceStocks;
+      // #26's named integrity workload keeps three stocks in its rematch so
+      // the complete edge sample finishes before ordinary stock loss.
+      else {
+        if (!fourFighters && !odd) yield* setStocks(1675, [2, 3]);
+        if (!fourFighters && epoch > firstEpoch && odd) yield* setStocks(1380, [2, 1]);
+      }
       const commanded = sweep[(epoch - firstEpoch) / 2];
       if (odd && commanded !== undefined) {
         const [window, batch] = commanded;
@@ -455,7 +460,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     if (fourFighters) yield* fourFighterSetup;
     yield* controllerSelect;
     if (matchOnly) yield* oneMinute;
-    if (!fourFighters) yield* reduceStocks;
+    if (!matchOnly && !fourFighters) yield* reduceStocks;
     for (const epoch of epochs) yield* match(epoch);
     yield* menuPhase("RESULT");
     yield* tap(0, "results-only");

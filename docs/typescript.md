@@ -213,6 +213,15 @@ are carried along unverified.
 The build first checks the running Bun and the declared and installed packages
 against smashcraft:typescript-toolchain.lock.
 
+`bun waygate build --profile integrity` packages normal gameplay with the
+persistent helper's journal/editbox input, predicted fighter presentation and
+native response export. Rebuild it with
+`bun waygate rebuild MAP.w3x --profile integrity`. Its build ID is
+`typescript-integrity`, as declared in smashcraft:ts/src/game/shell/currentBuild.ts;
+the entry in smashcraft:ts/src/platform/integrityMain.ts shares the normal shell
+and reload lifecycle. Use this profile for native input-integrity and
+four-fighter match/rematch captures.
+
 `bun waygate build --profile physics-probe` selects the production numerical
 fixture map instead of the playable entry; the remaining build arguments are
 the same. Rebuild it with `bun waygate rebuild MAP.w3x --profile physics-probe`.

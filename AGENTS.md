@@ -102,6 +102,11 @@ work. Include all mutable gameplay state in deterministic snapshots/replay.
 
 ## Native testing and UI
 
+Automated native match/rematch tests use one stock by default. A named workload
+may use more stocks or a longer timer only when its required sample needs it;
+record that reason beside the test (for example, #26's all-binding edge sample).
+Keep ordinary combat completion intact; do not force a win to shorten a test.
+
 Read warcraft3-development-distilled and its off-monitor dependency before
 controlling the game. Default automation off-monitor; use the primary display
 for a requested hands-on trial. Preserve authenticated clients across map

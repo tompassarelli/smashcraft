@@ -29,7 +29,8 @@
     "src/**/*.tests.ts",
     "src/platform/airCutoffProbe.ts",
     "src/platform/physicsProbeMain.ts",
-    "src/platform/frameCostMain.ts"
+    "src/platform/frameCostMain.ts",
+    "src/platform/integrityMain.ts"
   ],
   "tstl": {
     "luaTarget": "5.3",

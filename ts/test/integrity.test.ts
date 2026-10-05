@@ -53,7 +53,7 @@ const NOW = 10 ** 15;
 const CLIENTS = "ab";
 
 /** A Rig that records what the journey does, in the retired Python driver's trace format, and finds every wait satisfied. */
-function recordingRig(file: (client: Slot, name: string) => string) {
+function recordingRig(file: (client: Slot, name: string) => string, screenText = "1 Stock") {
   const trace: string[] = [];
   const events: JourneyRecord[] = [];
   const log = (line: string) => Effect.sync(() => void trace.push(line));
@@ -80,7 +80,7 @@ function recordingRig(file: (client: Slot, name: string) => string) {
     boundary: (_client, name) => Effect.succeed(publication(name)),
     stop: (target) => log(`stop ${target.kind}-${target.slot}`).pipe(Effect.as({ target, pid: 1 })),
     resume: ({ target }) => log(`continue ${target.kind}-${target.slot}`),
-    waitText: (client, pattern) => log(`ui ${CLIENTS[client]} wait ${pattern.source}`).pipe(Effect.as("1 Stock")),
+    waitText: (client, pattern) => log(`ui ${CLIENTS[client]} wait ${pattern.source}`).pipe(Effect.as(screenText)),
     click: (client, x, y) => log(`ui ${CLIENTS[client]} click ${x} ${y}`),
     key: (client, key) => log(`key ${CLIENTS[client]} ${key}`),
     type: (client, text) => log(`type ${CLIENTS[client]} ${text}`),
@@ -149,11 +149,14 @@ test("sweep and four-fighter journeys command and record what the reconciler exp
 });
 
 test("#17's normal timed journey reaches both results without integrity stalls or forced stock loss", async () => {
-  const four = recordingRig(gameFiles);
+  const four = recordingRig(gameFiles, "3 Stock · 7:00");
   await Effect.runPromise(journey(four.rig, { ...R8, fourFighters: true, workload: "match" }).run);
   expect(four.trace.some((line) => line.startsWith("stop "))).toBe(false);
   expect(four.trace.some((line) => line.includes("stock-loss") || line.includes("-integrity-"))).toBe(false);
   expect(four.trace).toContain("ui b wait 1:00");
+  expect(four.trace.filter((line) => line === "ui b click 1380 155")).toHaveLength(4);
+  expect(four.trace.filter((line) => line === "ui b wait [1-9] Stock")).toHaveLength(2);
+  expect(four.trace).not.toContain("ui b click 1675 155");
   expect(four.events.filter((event) => event.event === "start" || event.event === "end").map((event) => [event.event, event.epoch])).toEqual([["start", 1], ["end", 1], ["start", 2], ["end", 2]]);
   expect(four.events.filter((event) => event.event === "integrity-slot-change")).toHaveLength(1);
 });
