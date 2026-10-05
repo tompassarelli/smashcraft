@@ -1,0 +1,51 @@
+// What a packaged map was built for: its identity, input path, presentation
+// and developer scenario. The packaging step chooses these, as build.sh wrote
+// BuildInfo for the Wurst map; the shell reads them and never changes them.
+import type { FixedDelay } from "../netcode/fixedSchedule";
+
+/** How the helper hands journal text to the map. */
+export type JournalIngress = "files" | "keyboard" | "editbox";
+
+/** Rollback input: a fixed delay D and a rollback window R, both for every epoch. */
+export interface ShadowSettings {
+  readonly delay: FixedDelay;
+  readonly rollback: number;
+}
+
+/** Where each client's synchronized input comes from. */
+export type InputMode =
+  /** Key events adapted on the game callback; no synchronized input rows. */
+  | { readonly kind: "callback" }
+  /** Keys polled on the callback into rollback rows; pairedSends sends two rows per message. */
+  | ({ readonly kind: "keyboard"; readonly pairedSends: boolean } & ShadowSettings)
+  /** Rows the companion helper journals for their original frames. */
+  | ({ readonly kind: "journal"; readonly ingress: JournalIngress } & ShadowSettings);
+
+export type ShadowInputMode = Exclude<InputMode, { kind: "callback" }>;
+
+/** native: the fighter unit animates; pool: clip models, from confirmed or predicted state. */
+export type PresentationProfile = "native" | "pool-confirmed" | "pool-predicted";
+
+export type Scenario = "normal" | "knockdown" | "tech" | "shield-break" | "ledge" | "parry" | "spike" | "ko";
+
+export interface MapBuild {
+  /** Names every file the map and the helper exchange. */
+  readonly id: string;
+  /** The input profile's build name, as traces print it. */
+  readonly inputProfile: string;
+  readonly input: InputMode;
+  readonly presentation: PresentationProfile;
+  readonly scenario: Scenario;
+  readonly responseProbe: boolean;
+  readonly devConsole: boolean;
+  /** Generated asset paths. */
+  readonly stageDeckModel: string;
+}
+
+export const isShadow = (input: InputMode): input is ShadowInputMode => input.kind !== "callback";
+
+export function journalIngress(build: Readonly<MapBuild>): JournalIngress | undefined {
+  return build.input.kind === "journal" ? build.input.ingress : undefined;
+}
+
+export const usesPool = (build: Readonly<MapBuild>): boolean => build.presentation !== "native";
