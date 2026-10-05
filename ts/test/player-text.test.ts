@@ -111,7 +111,7 @@ class FrameView {
 }
 
 /** Frames the helper waits before walking its player off the stage. */
-const WALK_AFTER = 30;
+const WALK_AFTER = 10;
 
 /**
  * The companion helper of one client, as wc3-journal --follow-matches serves
@@ -218,7 +218,7 @@ test("the playable build shows players no developer text through selection, a ma
   expect(phases()).toEqual([Phase.match, Phase.match]);
   for (let frame = 0; frame < 1200 && !phases().every((phase) => phase === Phase.result); frame++) frames(1);
   expect(phases()).toEqual([Phase.result, Phase.result]);
-  frames(60);
+  frames(15);
 
   // Predicted presentation draws each client's own prediction, so only the confirmed match must agree.
   expect(clients.clients.map((client) => {
@@ -228,6 +228,8 @@ test("the playable build shows players no developer text through selection, a ma
     });
     return winner;
   })).toEqual([1, 1]);
+  // Both clients' end receipts name the winner the result screen shows, for the playable result gate.
+  expect(clients.clients.map((client) => client.files.get(journalLifecycleFile(PLAYABLE_BUILD.id, 1, client.slot, "end"))?.[0]?.split(" ").at(-1))).toEqual(["winner=P2", "winner=P2"]);
   expect(shown.has("Player 2 wins!")).toBe(true);
   for (const client of clients.clients) expect(client.errors).toEqual([]);
   expect([...shown].filter((text) => developerText(text).length > 0)).toEqual([]);

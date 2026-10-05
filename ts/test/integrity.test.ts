@@ -81,6 +81,7 @@ function recordingRig(file: (client: Slot, name: string) => string, screenText =
     stop: (target) => log(`stop ${target.kind}-${target.slot}`).pipe(Effect.as({ target, pid: 1 })),
     resume: ({ target }) => log(`continue ${target.kind}-${target.slot}`),
     waitText: (client, pattern) => log(`ui ${CLIENTS[client]} wait ${pattern.source}`).pipe(Effect.as(screenText)),
+    readText: (client, { x, y, width, height }) => log(`ui ${CLIENTS[client]} read ${x},${y} ${width}x${height}`).pipe(Effect.as(screenText)),
     click: (client, x, y) => log(`ui ${CLIENTS[client]} click ${x} ${y}`),
     key: (client, key) => log(`key ${CLIENTS[client]} ${key}`),
     type: (client, text) => log(`type ${CLIENTS[client]} ${text}`),
@@ -178,6 +179,12 @@ test("a playable journey plays one-stock matches that end when Player 1, then Pl
   expect(playable.trace.some((line) => line.startsWith("stop ") || line.includes("-integrity-") || line.includes("ui a click"))).toBe(false);
   expect(playable.events.filter((event) => event.event !== "menu").map((event) => [event.event, "epoch" in event ? event.epoch : undefined]))
     .toEqual([["start", 1], ["end", 1], ["results", 1], ["start", 2], ["end", 2], ["results", 2]]);
+  // Each result screen is read whole, then its announcement alone.
+  expect(playable.trace.filter((line) => line.startsWith("ui ") && / (?:wait wins|read )/.test(line))).toEqual([
+    "ui a wait wins|rematch", "ui b wait wins|rematch", "ui a read 944,312 1008x168", "ui b read 944,312 1008x168",
+    "ui a wait wins|rematch", "ui b wait wins|rematch", "ui a read 944,312 1008x168", "ui b read 944,312 1008x168",
+  ]);
+  for (const event of playable.events) if (event.event === "results") expect(event.notices).toEqual(["3 Stock Player 2 wins!", "3 Stock Player 2 wins!"]);
 });
 
 test("capture arguments select the matches the Python driver numbered", () => {

@@ -1,5 +1,5 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
-import { controlFile, devReceiptFile, lifecycleFile, menuFile } from "./journalFiles";
+import { controlFile, devReceiptFile, endFile, menuFile, startFile } from "./journalFiles";
 
 const identity = { build: "playable-0042", epoch: 2, slot: 1 };
 
@@ -7,9 +7,13 @@ test("helper-facing journal files keep the names and lines the helper parses", (
   const control = controlFile(identity, 3, "PAUSE_COMMIT", 417);
   assertEquals(control.name, "smashcraft-journal-control-playable-0042-e2-s1-n3.txt");
   assertEquals(control.lines.join("\n"), "SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0042 epoch=2 slot=1 sequence=3 state=PAUSE_COMMIT frame=417");
-  const end = lifecycleFile(identity, "end", 900);
+  const start = startFile(identity, 1);
+  assertEquals(start.name, "smashcraft-journal-start-playable-0042-e2-s1.txt");
+  assertEquals(start.lines.join("\n"), "SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0042 epoch=2 slot=1 sequence=0 state=START frame=1");
+  const end = endFile(identity, 900, 0);
   assertEquals(end.name, "smashcraft-journal-end-playable-0042-e2-s1.txt");
-  assertEquals(end.lines.join("\n"), "SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0042 epoch=2 slot=1 sequence=0 state=END frame=900");
+  assertEquals(end.lines.join("\n"), "SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0042 epoch=2 slot=1 sequence=0 state=END frame=900 winner=P1");
+  assertEquals(endFile(identity, 900, undefined).lines.join("\n"), "SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0042 epoch=2 slot=1 sequence=0 state=END frame=900 winner=none");
   const menu = menuFile(identity, "STAGE", { connected: 3, humanFighters: 3, computers: 4, fighters: 7 });
   assertEquals(menu.name, "smashcraft-journal-menu-playable-0042-s1.txt");
   assertEquals(menu.lines.join("\n"), "SMASHCRAFT JOURNAL MENU v=1 build=playable-0042 epoch=2 slot=1 phase=STAGE\nconnected=3 human-fighters=3 computers=4 fighters=7");

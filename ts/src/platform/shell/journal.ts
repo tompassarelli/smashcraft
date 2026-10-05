@@ -10,7 +10,7 @@ import { Capture } from "../../game/netcode/capture";
 import { TEXT_WINDOW } from "../../game/netcode/journal/text";
 import { readVocabularyPacket } from "../../game/netcode/journal/vocabulary";
 import { FUTURE_LIMIT } from "../../game/netcode/ledger";
-import { type JournalIdentity, type MenuPhase, failureFile, lifecycleFile, menuFile, quiescentFile, transportReadyFile } from "../../game/shell/journalFiles";
+import { type JournalIdentity, type MenuPhase, endFile, failureFile, menuFile, quiescentFile, startFile, transportReadyFile } from "../../game/shell/journalFiles";
 import { readChunk, writeLines } from "wisp/src/platform/fileio";
 import { pollMailbox, releaseMessage } from "../keyboardJournal";
 import { startInputTrace } from "./diagnostics";
@@ -227,7 +227,7 @@ export function receiveLifecycle(s: ShellState, rollback: Rollback, journal: Jou
   traceInput(s.trace, `journal transport start received sender ${sender}`);
   if (journal.readyMask !== s.game.humanMask) return true;
   const identity = journalIdentity(s, rollback.epoch);
-  if (journal.ingress === "editbox") writeJournalFile(lifecycleFile(identity, "start", 1 + rollback.delay));
+  if (journal.ingress === "editbox") writeJournalFile(startFile(identity, 1 + rollback.delay));
   writeJournalFile(transportReadyFile(identity, journal.readyMask));
   return true;
 }
@@ -262,7 +262,7 @@ export function serviceJournalEnd(s: ShellState, rollback: Rollback, journal: Jo
   if (editbox === undefined) return;
   const identity = journalIdentity(s, rollback.epoch);
   if (!journal.endSent) {
-    writeJournalFile(lifecycleFile(identity, "end", journal.source?.expectedFrame() ?? 0));
+    writeJournalFile(endFile(identity, journal.source?.expectedFrame() ?? 0, s.game.winner));
     journal.endSent = true;
     journal.barrier.request = undefined;
   }
