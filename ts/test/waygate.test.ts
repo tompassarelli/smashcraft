@@ -144,7 +144,7 @@ test("fresh-match flow drives two fake clients and waits on the Effect clock for
     remove: () => Effect.void,
     installMap: () => Effect.void,
   });
-  const fakeClients = Clients.of({
+  const fakeClients: typeof Clients.Service = Clients.of({
     all: clients,
     read: (client, region) => Effect.gen(function*() {
       if (client.name === "a" && hostedAt !== undefined && (yield* Clock.currentTimeMillis) >= hostedAt) states.set("a", "lobby");
@@ -195,6 +195,14 @@ test("fresh-match flow drives two fake clients and waits on the Effect clock for
       }
     }),
     typeText: (_client, value) => Effect.sync(() => messages.push(value)),
+    batch: (client, actions) => Effect.forEach(actions, (action) => {
+      switch (action.kind) {
+        case "click": return fakeClients.click(client, action.x, action.y);
+        case "keys": return fakeClients.keys(client, ...action.keys);
+        case "text": return fakeClients.typeText(client, action.text);
+        case "wait": return Effect.sleep(action.millis);
+      }
+    }, { discard: true }),
   });
   const services = Layer.merge(Layer.succeed(Clients, fakeClients), Layer.succeed(GameFiles, gameFiles));
   const program = Effect.gen(function*() {

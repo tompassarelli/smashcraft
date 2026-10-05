@@ -13,7 +13,7 @@
         "typescript": "6.0.2",
         "typescript-native": "npm:typescript@7.0.2",
         "typescript-to-lua": "1.37.1",
-        "waygate": "file:vendor/waygate-c15f5acb851835db81cd91ed50a56dd6a57fbd80.tgz",
+        "waygate": "file:vendor/waygate-87ac365ec15c6defd7bfba91425287a8b49e8e83.tgz",
       },
     },
   },
@@ -118,6 +118,6 @@
 
     "undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
 
-    "waygate": ["waygate@vendor/waygate-c15f5acb851835db81cd91ed50a56dd6a57fbd80.tgz", { "dependencies": { "effect": "4.0.1", "source-map": "0.7.6", "typescript": "6.0.2", "typescript-to-lua": "1.37.1" } }, "sha512-velo05jVs5e/qBhfdHGTTQYrDggpWtn8M+wEurxZfbTZmEXShsttBdNbzIX1sEkgQGpkfDUYzhJ9nMr/XMoA8g=="],
+    "waygate": ["waygate@vendor/waygate-87ac365ec15c6defd7bfba91425287a8b49e8e83.tgz", { "dependencies": { "effect": "4.0.1", "source-map": "0.7.6", "typescript": "6.0.2", "typescript-to-lua": "1.37.1" } }, "sha512-Y/3WUz/trmpC6wMMRPGsjldsF4F721ppyDHwtybf0ftX3ByYqxuDyZhLWXEY4aEsDbtEmcHnwk8YBULCP5xVAg=="],
   }
 }

@@ -91,17 +91,22 @@ export const freshMatch = (map: string) => Effect.gen(function*() {
     yield* waitForText(client, "create game", /REATE\s*GAME/i, CREATE_TITLE, "light", 10);
     yield* click(client, FIRST_MAP);
     yield* waitForText(client, "map selected", /SMASHCRAFT/i, MAP_TITLE, "light", 5);
-    yield* click(client, GAME_NAME);
-    yield* clients.keys(client, "ctrl+a");
-    yield* clients.typeText(client, game);
-    yield* click(client, CREATE);
+    yield* clients.batch(client, [
+      { kind: "click", ...GAME_NAME },
+      { kind: "keys", keys: ["ctrl+a"] },
+      { kind: "text", text: game },
+      { kind: "click", ...CREATE },
+    ]);
     yield* waitForText(client, "lobby", LOBBY_READY, LOBBY, "light", 20);
   }).pipe(step(`${client.name} hosting "${game}"`));
 
+  const prepareJoin = (client: Client) => clients.batch(client, [
+    { kind: "click", ...JOIN_NAME },
+    { kind: "keys", keys: ["ctrl+a"] },
+    { kind: "text", text: game },
+  ]).pipe(step(`${client.name} join name prepared`));
+
   const joinByName = (client: Client) => Effect.gen(function*() {
-    yield* click(client, JOIN_NAME);
-    yield* clients.keys(client, "ctrl+a");
-    yield* clients.typeText(client, game);
     yield* click(client, JOIN);
     yield* waitForText(client, "joined lobby", LOBBY_READY, LOBBY, "light", 20);
   }).pipe(step(`${client.name} asked to join`));
@@ -123,7 +128,7 @@ export const freshMatch = (map: string) => Effect.gen(function*() {
   });
 
   yield* Effect.all([install, ...clients.all.map(leave)], { concurrency: "unbounded", discard: true });
-  yield* host(first);
+  yield* Effect.all([host(first), ...others.map(prepareJoin)], { concurrency: clients.all.length, discard: true });
   yield* Effect.forEach(others, joinByName, { discard: true });
   yield* waitForText(first, "all players", new RegExp(`PLAYERS\\s*:?\\s*${clients.all.length}\\s*/\\s*4`, "i"), LOBBY, "light", 60).pipe(step("everyone in the lobby"));
   const start = yield* Clock.currentTimeMillis;
@@ -148,9 +153,11 @@ export const startQuickMatch = Effect.gen(function*() {
     Effect.flatMap((old) => old === undefined ? Effect.void : files.remove(path)),
   ), { concurrency: "unbounded", discard: true }).pipe(step("clear old quick-match receipts"));
 
-  yield* clients.keys(host, "Return");
-  yield* clients.typeText(host, QUICK_MATCH_COMMAND);
-  yield* clients.keys(host, "Return").pipe(step("send -dev quick"));
+  yield* clients.batch(host, [
+    { kind: "keys", keys: ["Return"] },
+    { kind: "text", text: QUICK_MATCH_COMMAND },
+    { kind: "keys", keys: ["Return"] },
+  ]).pipe(step("send -dev quick"));
 
   const waitReceipt = ({ client, path, slot }: typeof receipts[number]) => Effect.gen(function*() {
     let problem: MalformedGameFile | undefined;
