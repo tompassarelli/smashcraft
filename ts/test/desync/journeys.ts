@@ -20,7 +20,7 @@ export interface Entry {
 /** The map entry with another build, as packaging would choose it. */
 export function entryFor(build: MapBuild): Entry {
   const reinstall = () => {
-    configureRuntime({ filePrefix: "smashcraft", globalPrefix: "__smashcraft", announcePrefix: "SC_HR", readyPrefix: "SC_HRR" });
+    configureRuntime({ filePrefix: "smashcraft", globalPrefix: "__smashcraft", readyPrefix: "SC_HRR" });
     installDispatch();
     installShell();
     installObjectData();
@@ -31,7 +31,7 @@ export function entryFor(build: MapBuild): Entry {
     start: () => {
       reinstall();
       startShell(build, replayHistoryPlayback());
-      startHotReload(0, GetPlayerId(GetLocalPlayer()));
+      startHotReload();
     },
   };
 }
