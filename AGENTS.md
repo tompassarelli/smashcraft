@@ -5,57 +5,27 @@ Read wc3-melee:wurst-toolchain.lock and wc3-melee:wurst.build before changing
 patch, compiler, standard library or target. The lock is authoritative; a newer
 upstream article does not update it.
 
-## Input guarantee lookup — questions have durable owners
+## Issues define the scope — finish them
 
-Use wc3-melee:docs/netplay-status.md and the owning issue's current body for
-Smashcraft performance questions. Reuse evidence already established for the
-unchanged candidate; inspect raw traces and comments when the question needs
-new detail or a relevant change or counterexample challenges the verdict.
-A repeated status question needs the current answer, not a fresh investigation
-or duplicate issue.
+Roadmap [#16](https://github.com/tompassarelli/smashcraft/issues/16) lists the
+open work in order. Each issue's **Done when** and **Not required** lists are its
+complete scope, and its "Rules for whoever picks this up" govern the work.
 
-| User's question | Acceptance issue |
-| --- | --- |
-| Which original simulation frame owns my press? Can delayed delivery move it by 3–5 frames or change confirmed combat? | [#25](https://github.com/tompassarelli/smashcraft/issues/25) |
-| Can a short tap or release be lost, duplicated, reordered or stuck during a hitch? | [#26](https://github.com/tompassarelli/smashcraft/issues/26) |
-| Does local action start on the first eligible tick? What visible delay, jitter, pacing and correction should I expect? | [#27](https://github.com/tompassarelli/smashcraft/issues/27) |
+- Close an issue when its boxes pass, with one short comment (build, result,
+  link). Don't add boxes or keep it open for guarantees it doesn't list.
+- A problem that doesn't block a box goes in a new `priority:later` issue, not
+  into the current one.
+- Don't re-run a passing check unless the code it covers changed.
+- Boxes marked (Tom) need Tom: prepare everything, ask once, keep working on
+  other boxes. Never build automated stand-ins for a human playtest.
+- After two failed fixes on the same box, or about a day without progress, stop
+  and tell Tom what fails, one recommended fix and its cost.
+- Keep each issue's Status section to 5 lines, edited in place, with at most
+  one line of residual risk. Comment only to close or to ask Tom for a decision.
 
-These issues refine #17's integrated acceptance under roadmap #16; they do not
-replace the existing implementation lane, #18 controller/platform work,
-#19 hosting comparison, or #17's consolidated full-match acceptance.
-
-Answer with the verdict, issue link, and material limitation. Include the exact
-build and evidence detail when they change the answer or are requested; link
-the existing record instead of reproducing it in every update.
-Distinguish measured support, code-only support,
-failed counterexamples, blocked/unverified work and inference. Say “solved in
-#N” only when its accepted result supports the exact claim and later changes have
-not invalidated it. **#21 closed a timeboxed HOLD decision; input guarantees
-remain open.** Closed investigations, merged PRs and passing unit tests do not
-by themselves establish native acceptance.
-
-Keep physical capture, helper dequeue, map admission, original frame assignment,
-local simulation, visible response, remote delivery and final confirmation
-separate. A 60 Hz loop, own-echo timing, retained helper events or matching final
-checksums cannot alone prove first-frame physical response or zero lost gameplay
-inputs. Keep intentional delay, tick quantization and designed action startup
-separate from unexplained jitter. Preserve the advisory status of the 33/50/83 ms
-planning targets documented in #17/#20.
-
-Keep the current decision in the issue body; add a comment only for a material
-new result or decision, not routine activity. Reuse the canonical theme/claim
-issue and roadmap #16. Closed issues marked consolidated are transfers of scope,
-not completed engineering; their destination owns every unfinished requirement.
-Keep bounded completed claims #28–#30 closed absent a relevant change or concrete
-counterexample. This reporting procedure does not trigger an audit for unrelated
-asset or balance edits.
-
-For a material new result, update the owning issue's verdict and link the
-reproduction/evidence record. Keep candidate identity, stimulus, sample size
-and limitations with that record; do not duplicate them across comments and
-documents. Preserve failed/superseded findings with dates. Close only for an
-accepted result or an explicit documented disposition; do not silently convert
-investigation completion into success.
+Answer "what can we claim about input timing?" from #26's integrity table, or
+its Status until the table exists. A status question never starts a new
+investigation.
 
 ## Source and workflow
 
