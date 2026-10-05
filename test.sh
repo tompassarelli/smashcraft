@@ -11,6 +11,7 @@ test_timeout=${2:-90}
 mkdir -p "$project_dir/_build" "$project_dir/build/wurst-tests"
 cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/common.j" "$project_dir/_build/common.j"
 cp "$compiler_checkout/de.peeeq.wurstscript/src/main/resources/blizzard.j" "$project_dir/_build/blizzard.j"
+printf 'package BuildInfo\npublic constant string BUILD_ID = "headless-tests"\npublic constant boolean RESPONSE_SERVICE_PROBE = false\n' > "$project_dir/_build/TestBuildInfo.wurst"
 
 test_measure_args=()
 if [[ "${WC3_TEST_MEASURE:-0}" == 1 ]]; then
@@ -24,6 +25,8 @@ exec "$java" -Xmx2048m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     -out "$project_dir/build/wurst-tests/test.lua" \
     "$project_dir/_build/common.j" \
     "$project_dir/_build/blizzard.j" \
+    "$project_dir/_build/TestBuildInfo.wurst" \
+    "$project_dir/wurst/ResponseServiceProbe.wurst" \
     "$project_dir/wurst/Simulation.wurst" \
     "$project_dir/wurst/TechInput.wurst" \
     "$project_dir/wurst/TechInputTests.wurst" \
