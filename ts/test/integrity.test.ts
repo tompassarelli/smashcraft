@@ -1,8 +1,10 @@
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Effect } from "effect";
 import { expect, test } from "bun:test";
 import { captureEpochs, parseCaptureArguments, parseSweep } from "../scripts/integrity/capture";
-import { kernelLine, producerLine, readEvidence, readMetadata } from "../scripts/integrity/evidence";
+import { IntegrityFailure, kernelLine, producerLine, readEvidence, readMetadata } from "../scripts/integrity/evidence";
 import { type JourneyOptions, type JourneyRecord, type PublicationRecord, type RigShape, journey } from "../scripts/integrity/journey";
 import { ABS_X, EV_ABS, PAD_BUTTONS, decodeEvents, edgePacket, padCapabilities, padSetup } from "../scripts/integrity/linuxInput";
 import { type Slot, capturePair, integrityResult, integrityTable, summaryJson } from "../scripts/integrity/reconcile";
@@ -33,9 +35,9 @@ test("the r8 capture reconciles to #26's measured table", async () => {
   ]);
   expect(result.gates).toEqual({ edges: true, expectedFrame: true, localStart: false, checksums: true });
   expect(result.failures).toEqual([]);
-  // The retained summary predates the rollback-limit and four-fighter fields.
+  // The retained summary predates the rollback-limit, four-fighter and player-view fields.
   const retained = await Bun.file(join(evidence("r8"), "summary.json")).json();
-  expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false });
+  expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [] });
 });
 
 test("the r7 capture reconciles to its retained failing summary", async () => {
@@ -46,7 +48,7 @@ test("the r7 capture reconciles to its retained failing summary", async () => {
     "| Edges applied at expected frame, both clients | 1291/1296 (99.6141975308642%) |",
   ]);
   const retained = await Bun.file(join(evidence("r7"), "summary.json")).json();
-  expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false });
+  expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [] });
 });
 
 const NOW = 10 ** 15;
@@ -132,7 +134,68 @@ test("the journey sends r8's pad edges in r8's order, then returns to fighter se
   ]);
   const capture = await Bun.file(join(root, "capture.json")).json() as { events: { event: string; phase?: string }[] };
   const name = (event: { event: string; phase?: string }) => event.event + (event.phase === undefined ? "" : ` ${event.phase}`);
-  expect(events.map((event) => name(event))).toEqual([...capture.events.map(name), "menu RESULT", "menu CHARACTER"]);
+  // r8 predates the player-view records.
+  expect(events.filter((event) => event.event !== "player-view").map((event) => name(event))).toEqual([...capture.events.map(name), "menu RESULT", "menu CHARACTER"]);
+  expect(events.flatMap((event) => (event.event === "player-view" ? [[event.epoch, event.at, event.failure]] : []))).toEqual([
+    [1, "start", undefined], [1, "result", undefined], [2, "start", undefined], [2, "result", undefined],
+  ]);
+});
+
+const SCENE_FAILURE = "check player view in match 2 failed for DIR: a, b: a player would see\n  - a: a hit spark stayed in view for 4.00 s";
+
+/** The recording rig, with every player view of the rematch failing, as the clean-folders capture's result check did. */
+function failingViewRig(screenText?: string) {
+  const recording = recordingRig(gameFiles, screenText);
+  const rig: RigShape = {
+    ...recording.rig,
+    playerView: (epoch, checks) => epoch === 2
+      ? Effect.fail(new IntegrityFailure({ operation: "check player view in match 2", path: "DIR", cause: "a, b: a player would see\n  - a: a hit spark stayed in view for 4.00 s" }))
+      : recording.rig.playerView(epoch, checks),
+  };
+  return { ...recording, rig };
+}
+
+test("an input-integrity capture records a failed player view and does everything else a passing one does", async () => {
+  const passing = recordingRig(gameFiles);
+  await Effect.runPromise(journey(passing.rig, R8).run);
+  const failing = failingViewRig();
+  await Effect.runPromise(journey(failing.rig, R8).run);
+  // Both matches' pages are exported and archived, and the journey returns to fighter selection.
+  const steps = (trace: readonly string[]) => trace.filter((line) => !line.startsWith("view "));
+  expect(steps(failing.trace)).toEqual(steps(passing.trace));
+  expect(failing.trace.filter((line) => line === "key a ctrl+h")).toHaveLength(2);
+  const views = (events: readonly JourneyRecord[]) => events.flatMap((event) => (event.event === "player-view" ? [[event.epoch, event.at, event.failure]] : []));
+  expect(views(failing.events)).toEqual([[1, "start", undefined], [1, "result", undefined], [2, "start", SCENE_FAILURE], [2, "result", SCENE_FAILURE]]);
+  expect(failing.events.filter((event) => event.event !== "player-view")).toEqual(passing.events.filter((event) => event.event !== "player-view"));
+});
+
+test("#17 and playable journeys still stop at a failed player view", async () => {
+  for (const [workload, screen] of [["match", "3 Stock · 7:00"], ["playable", "3 Stock Player 2 wins!"]] as const) {
+    const { rig, events } = failingViewRig(screen);
+    const exit = await Effect.runPromiseExit(journey(rig, { ...R8, fourFighters: workload === "match", workload }).run);
+    expect(exit._tag).toBe("Failure");
+    expect(events.some((event) => event.event === "player-view" || (event.event === "end" && event.epoch === 2))).toBe(false);
+  }
+});
+
+test("the result reports player-view failures without gating them", async () => {
+  const root = evidence("r8");
+  const capture = await Bun.file(join(root, "capture.json")).json() as { events: unknown[] };
+  const directory = mkdtempSync(join(tmpdir(), "integrity-view-"));
+  try {
+    await Bun.write(join(directory, "capture.json"), JSON.stringify({
+      ...capture,
+      events: [...capture.events, { event: "player-view", epoch: 2, at: "start" }, { event: "player-view", epoch: 2, at: "result", failure: SCENE_FAILURE }],
+    }));
+    const metadata = await Effect.runPromise(readMetadata(directory));
+    const original = await Effect.runPromise(readMetadata(root));
+    const result = integrityResult(await Effect.runPromise(readEvidence(root, metadata)), capturePair(metadata));
+    const retained = integrityResult(await Effect.runPromise(readEvidence(root, original)), capturePair(original));
+    expect(result.playerViewFailures).toEqual([`match 2 at result: ${SCENE_FAILURE}`]);
+    expect(summaryJson(result)).toEqual({ ...summaryJson(retained), player_view_failures: [`match 2 at result: ${SCENE_FAILURE}`] });
+  } finally {
+    rmSync(directory, { recursive: true });
+  }
 });
 
 test("sweep and four-fighter journeys command and record what the reconciler expects", async () => {

@@ -55,7 +55,12 @@ export type JourneyRecord =
   }
   | { readonly event: "integrity-slot-change" | "four-fighter-setup"; readonly epoch: number; readonly changes: readonly ModeReceipt[] }
   | { readonly event: "dev-config"; readonly epoch: number; readonly command: string; readonly publications: readonly PublicationRecord[] }
-  | { readonly event: "results"; readonly epoch: number; readonly texts: readonly string[]; readonly notices?: readonly string[] };
+  | { readonly event: "results"; readonly epoch: number; readonly texts: readonly string[]; readonly notices?: readonly string[] }
+  /** What an input-integrity capture's player-view check found; `failure` is undefined when it passed. */
+  | { readonly event: "player-view"; readonly epoch: number; readonly at: PlayerViewMoment; readonly failure: string | undefined };
+
+/** When a match's player view is checked: after its start, and at its result. */
+type PlayerViewMoment = "start" | "result";
 
 export interface Stopped {
   readonly target: StallTarget;
@@ -166,6 +171,22 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.sleep(120);
       yield* send(slot, button(code, 0), phase);
     });
+
+  /**
+   * #17 and playable runs fail on what a player sees. An input-integrity
+   * capture records it and goes on, so its own gates decide the result and
+   * every match still exports its pages.
+   */
+  const playerView = (epoch: number, at: PlayerViewMoment, checks: { readonly frame: boolean; readonly scene: boolean }) =>
+    matchOnly || playable
+      ? rig.playerView(epoch, checks)
+      : rig.playerView(epoch, checks).pipe(
+        Effect.as<string | undefined>(undefined),
+        Effect.catch((failure) => Effect.succeed(failure.message)),
+        Effect.tap((failure) => rig.record({ event: "player-view", epoch, at, failure })),
+        Effect.tap((failure) => failure === undefined ? Effect.void : rig.progress(`Epoch ${epoch}: player view at ${at} failed, recorded: ${failure}`)),
+        Effect.asVoid,
+      );
 
   const menuPhase = (phase: string) =>
     Effect.gen(function*() {
@@ -430,7 +451,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.sleep(Math.max(0, (deadline - (yield* rig.monotonicNs)) / 1_000_000));
       yield* rig.sleep(700);
       // The playable build starts no scene recorder.
-      yield* rig.playerView(epoch, { frame: true, scene: !playable });
+      yield* playerView(epoch, "start", { frame: true, scene: !playable });
       if (matchOnly || playable) {
         for (let attack = 0; attack < 4; attack++) {
           for (const slot of SLOTS) yield* tap(slot, `match-${epoch}-combat`);
@@ -450,7 +471,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.until(`epoch ${epoch}: helpers did not quiesce`, Effect.forEach(SLOTS, rig.helperLog).pipe(Effect.map((logs) => logs.every((log) => quiescent.test(log)))));
       yield* rig.record({ event: "end", epoch, publications: yield* boundaries(end), observed_monotonic_ns: yield* rig.monotonicNs });
       // At the result every stay in view is complete; the screen no longer shows the arena.
-      if (!playable) yield* rig.playerView(epoch, { frame: false, scene: true });
+      if (!playable) yield* playerView(epoch, "result", { frame: false, scene: true });
       const results = yield* both((client) => rig.waitText(client, RESULTS));
       if (playable) {
         // The playable build has no response probe: its results are the

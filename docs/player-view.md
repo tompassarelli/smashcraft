@@ -74,7 +74,12 @@ other model.
   check both at each match start, about one second in, saving frames to
   `OUT/player-view-EPOCH/CLIENT.ppm`, and the scene again at each result,
   when every stay in view has ended. The playable journey's build has no
-  recorder, so it gets the frame only.
+  recorder, so it gets the frame only. The four-fighter and playable journeys
+  stop at a failed check. The #26 input-integrity capture records each
+  check's result in capture.json (`player-view` events) and goes on, so every
+  match still exports its response pages; `bun wisp parity result` lists the
+  failures beside the integrity table and in summary.json
+  (`player_view_failures`), and only the integrity gates decide its exit.
 - `bun wisp view scene DATA_DIR...` checks each client's latest report, with
   render visibility, and
   `bun wisp view frame FRAME.ppm...` measures frames, from captures or

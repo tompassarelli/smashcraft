@@ -92,8 +92,14 @@ const ModeChange = Schema.Struct({
   epoch: Schema.optionalKey(Schema.Int),
   changes: Schema.Array(SlotMode),
 });
+const PlayerView = Schema.Struct({
+  event: Schema.Literal("player-view"),
+  epoch: Schema.Int,
+  at: Schema.Literals(["start", "result"]),
+  failure: Schema.optionalKey(Schema.String),
+});
 const EventName = Schema.Struct({ event: Schema.String });
-const READ_EVENTS = new Set(["start", "end", "integrity-resume", "integrity-stall", "integrity-pause", "integrity-slot-change", "four-fighter-setup"]);
+const READ_EVENTS = new Set(["start", "end", "integrity-resume", "integrity-stall", "integrity-pause", "integrity-slot-change", "four-fighter-setup", "player-view"]);
 
 const CaptureFile = Schema.Struct({
   scope: Schema.String,
@@ -122,6 +128,10 @@ const journeyEvent = (path: string) => (raw: unknown): Effect.Effect<readonly Jo
   Effect.gen(function*() {
     const { event } = yield* decode(EventName, path)(raw);
     if (!READ_EVENTS.has(event)) return [];
+    if (event === "player-view") {
+      const { epoch, at, failure } = yield* decode(PlayerView, path)(raw);
+      return [{ event, epoch, at, failure }];
+    }
     const decoded = event === "integrity-stall"
       ? yield* decode(Stall, path)(raw)
       : event === "integrity-pause"
@@ -208,6 +218,7 @@ const writeResult = (root: string, result: IntegrityResult, tag: string) =>
     yield* tryIntegrityPromise("write table", root, () => Bun.write(join(root, `integrity-table${suffix}.md`), `${table.join("\n")}\n`));
     yield* Effect.sync(() => {
       console.log(table.join("\n"));
+      for (const failure of result.playerViewFailures) console.log(`Player view (reported, not gated): ${failure}`);
       console.log(JSON.stringify({ passed: result.passed, gates: summaryJson(result).gates, evidence_failures: result.failures }, undefined, 2));
     });
   });

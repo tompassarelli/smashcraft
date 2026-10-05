@@ -37,7 +37,8 @@ export type JourneyEvent =
   | { readonly event: "start" | "end" | "integrity-resume"; readonly epoch: number; readonly publications: readonly [Publication, Publication] }
   | { readonly event: "integrity-stall"; readonly epoch: number; readonly kind: string; readonly verifiedStoppedState: boolean; readonly stoppedNs: number; readonly continuedNs: number }
   | { readonly event: "integrity-pause"; readonly epoch: number | undefined }
-  | { readonly event: "integrity-slot-change" | "four-fighter-setup"; readonly epoch: number | undefined; readonly changes: readonly SlotMode[] };
+  | { readonly event: "integrity-slot-change" | "four-fighter-setup"; readonly epoch: number | undefined; readonly changes: readonly SlotMode[] }
+  | { readonly event: "player-view"; readonly epoch: number; readonly at: string; readonly failure: string | undefined };
 
 export interface CaptureMetadata {
   readonly scope: string;
@@ -101,6 +102,8 @@ export interface IntegrityResult {
   /** Keyed "epoch-E-client-C", in export order. */
   readonly checksums: ReadonlyMap<string, Endpoint>;
   readonly gates: { readonly edges: boolean; readonly expectedFrame: boolean; readonly localStart: boolean; readonly checksums: boolean };
+  /** What the capture's player-view checks found wrong, by match and moment; reported, never gated. */
+  readonly playerViewFailures: readonly string[];
   readonly failures: readonly string[];
   readonly passed: boolean;
 }
@@ -485,6 +488,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
     sameFrameTaps,
     checksums: endpoints,
     gates,
+    playerViewFailures: journey.flatMap((event) => (event.event === "player-view" && event.failure !== undefined ? [`match ${event.epoch} at ${event.at}: ${event.failure}`] : [])),
     failures,
     passed: Object.values(gates).every(Boolean) && failures.length === 0,
   };
@@ -581,6 +585,7 @@ export function summaryJson(r: IntegrityResult) {
     same_frame_5ms_taps: r.sameFrameTaps,
     final_checksums: Object.fromEntries(r.checksums),
     gates: { edges: r.gates.edges, expected_frame: r.gates.expectedFrame, local_start: r.gates.localStart, checksums: r.gates.checksums },
+    player_view_failures: r.playerViewFailures,
     evidence_failures: r.failures,
     passed: r.passed,
   };
