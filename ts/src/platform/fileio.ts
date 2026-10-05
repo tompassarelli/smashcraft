@@ -1,7 +1,7 @@
-// Reads text that a host tool wrote into CustomMapData as a Preload file. The
-// file is JASS: each line stores one chunk in a tooltip level of the FileIO
-// ability, which Preloader executes and the map reads back. Local to this
-// client; never use the result in synchronized code without a sync message.
+// Text exchanged with host tools through Preload files in CustomMapData. A
+// file a tool wrote is JASS: each line stores one chunk in a tooltip level of
+// the FileIO ability, which Preloader executes and the map reads back. Local to
+// this client; never use a result in synchronized code without a sync message.
 import { CHUNKS_PER_FILE } from "../runtime/hotFiles";
 
 /** The FileIO ability ('$wsl') the map defines for this channel. */
@@ -19,4 +19,21 @@ export function readChunks(filename: string): string[] {
     BlzSetAbilityTooltip(FILE_IO_ABILITY, EMPTY, level);
   }
   return chunks;
+}
+
+/** The text of a file holding one chunk; undefined while it is missing or empty. Touches only the first level, for polling. */
+export function readChunk(filename: string): string | undefined {
+  BlzSetAbilityTooltip(FILE_IO_ABILITY, EMPTY, 0);
+  Preloader(filename);
+  const chunk = BlzGetAbilityTooltip(FILE_IO_ABILITY, 0);
+  BlzSetAbilityTooltip(FILE_IO_ABILITY, EMPTY, 0);
+  return chunk === EMPTY || chunk === "" ? undefined : chunk;
+}
+
+/** Writes a one-line file for a host tool to poll. */
+export function writeLine(filename: string, line: string): void {
+  PreloadGenClear();
+  PreloadGenStart();
+  Preload(line);
+  PreloadGenEnd(filename);
 }
