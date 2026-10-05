@@ -9,6 +9,13 @@ import { type InputRow, emptyInput } from "./inputRow";
 export type ParticipantInputs = readonly [InputRow, InputRow, InputRow, InputRow];
 
 export const PARTICIPANT_CAPACITY: ParticipantInputs["length"] = 4;
+export const PARTICIPANT_SLOTS = [0, 1, 2, 3] as const;
+export type ParticipantSlot = (typeof PARTICIPANT_SLOTS)[number];
+export type Slots<T> = [T, T, T, T];
+
+export function isParticipantSlot(slot: number): slot is ParticipantSlot {
+  return slot === 0 || slot === 1 || slot === 2 || slot === 3;
+}
 
 export function participantInputs(): ParticipantInputs {
   return [emptyInput(), emptyInput(), emptyInput(), emptyInput()];
