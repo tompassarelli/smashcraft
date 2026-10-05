@@ -1,0 +1,49 @@
+{
+  "build": "playable-0045",
+  "helper_sha256": "d78e70838306ae55adfc59928277f6019ae64648f06461b9f59bfc54cb7ecce3",
+  "epochs": [
+    1,
+    2
+  ],
+  "matches": [
+    {
+      "epoch": 1,
+      "winners": [
+        "Player 2",
+        "Player 2"
+      ],
+      "end_frames": [
+        273,
+        273
+      ],
+      "result_checksums": [
+        {
+          "frame": 263,
+          "checksum": "771580:781223\""
+        }
+      ]
+    },
+    {
+      "epoch": 2,
+      "winners": [
+        "Player 1",
+        null
+      ],
+      "end_frames": [
+        285,
+        285
+      ],
+      "result_checksums": [
+        {
+          "frame": 276,
+          "checksum": "783381:730897\""
+        }
+      ]
+    }
+  ],
+  "error_reports": [],
+  "failures": [
+    "epoch 2: result screens do not both name Player 1"
+  ],
+  "passed": false
+}

@@ -41,8 +41,9 @@ The stage screen's stock and time settings use the mouse.
 ## Developer build
 
 The profile shares the native four-fighter acceptance map's combat and
-controller path, with build ID `playable-0045`. The developer display and
-response recording are off. Built from ts/ with the private inputs:
+controller path, with build ID `playable-0045`. The `-dev` chat commands,
+hot reload and response recording are off; the "Developer test" status line
+still shows during a match and at results. Built from ts/ with the private inputs:
 
 ```sh
 bun wisp build --profile playable --base ~/.local/share/smashcraft-build-inputs/physics-base.w3m \
