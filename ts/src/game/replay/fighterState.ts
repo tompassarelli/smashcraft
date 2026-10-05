@@ -1,32 +1,31 @@
-import { createFighter, type Fighter } from "../sim/fighter";
-import { PARTICIPANT_CAPACITY } from "../input/participants";
+import { participantActive } from "../input/participants";
+import type { Fighter } from "../sim/fighter";
 
 function requiredAt<T>(values: readonly T[], index: number): T {
   const value = values[index];
-  if (value === undefined) throw new Error(`replay state is missing slot ${index}`);
+  if (value === undefined) throw new Error(`replay fighter state is missing entry ${index}`);
   return value;
 }
 
-/** Create detached mutable state for a replay slot while retaining authored tuning values. */
-export function cloneFighterState(source: Fighter): Fighter {
-  const copy = createFighter(source.character, source.motion.x, source.facing);
-  copyFighterState(copy, source);
-  return copy;
-}
-
-/** Field-by-field copy; replay rows never retain aliases to live simulation state. */
-export function copyFighterState(target: Fighter, source: Readonly<Fighter>): void {
+/**
+ * Copies every field into existing storage, so a replay row never aliases live
+ * mutable records. Tuning records are immutable values and are shared. A
+ * reference to a slot outside activeMask becomes absent, as Wurst's roster
+ * remap drops a fighter the source world doesn't seat.
+ */
+export function copyFighterState(target: Fighter, source: Readonly<Fighter>, activeMask: number): void {
+  const retain = (slot: number | undefined) => (slot !== undefined && participantActive(activeMask, slot) ? slot : undefined);
   target.character = source.character;
-  target.tuning = {
-    physics: { ...source.tuning.physics },
-    surface: { ...source.tuning.surface },
-    ground: { ...source.tuning.ground },
-    dashGrab: { ...source.tuning.dashGrab },
-    shield: { ...source.tuning.shield },
-    tech: { ...source.tuning.tech },
-    shieldBreak: { ...source.tuning.shieldBreak },
-  };
   target.facing = source.facing;
+  const tuning = target.tuning;
+  const sourceTuning = source.tuning;
+  tuning.physics = sourceTuning.physics;
+  tuning.surface = sourceTuning.surface;
+  tuning.ground = sourceTuning.ground;
+  tuning.dashGrab = sourceTuning.dashGrab;
+  tuning.shield = sourceTuning.shield;
+  tuning.tech = sourceTuning.tech;
+  tuning.shieldBreak = sourceTuning.shieldBreak;
 
   const motion = target.motion;
   const sourceMotion = source.motion;
@@ -128,16 +127,19 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>): vo
   attack.smashCharging = sourceAttack.smashCharging;
   attack.smashChargeFrames = sourceAttack.smashChargeFrames;
   attack.smashChargeAllowed = sourceAttack.smashChargeAllowed;
-  for (let i = 0; i < target.hits.entries.length; i++) {
-    const to = requiredAt(target.hits.entries, i);
-    const from = requiredAt(source.hits.entries, i);
-    to.attacker = from.attacker;
+
+  const hits = target.hits;
+  const sourceHits = source.hits;
+  for (let i = 0; i < hits.entries.length; i++) {
+    const to = requiredAt(hits.entries, i);
+    const from = requiredAt(sourceHits.entries, i);
+    to.attacker = retain(from.attacker);
     to.attackSerial = from.attackSerial;
     to.window = from.window;
   }
-  target.hits.lastAttacker = source.hits.lastAttacker;
-  target.hits.lastAttackSerial = source.hits.lastAttackSerial;
-  target.hits.lastWindow = source.hits.lastWindow;
+  hits.lastAttacker = retain(sourceHits.lastAttacker);
+  hits.lastAttackSerial = sourceHits.lastAttackSerial;
+  hits.lastWindow = sourceHits.lastWindow;
 
   const visuals = target.visuals;
   const sourceVisuals = source.visuals;
@@ -159,7 +161,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>): vo
   for (let i = 0; i < special.cooldowns.length; i++) special.cooldowns[i] = requiredAt(sourceSpecial.cooldowns, i);
   special.direction = sourceSpecial.direction;
   special.hit = sourceSpecial.hit;
-  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) special.hitTargets[i] = sourceSpecial.hitTargets[i];
+  for (let i = 0; i < special.hitTargets.length; i++) special.hitTargets[i] = retain(sourceSpecial.hitTargets[i]);
 
   for (let i = 0; i < target.projectiles.length; i++) {
     const to = requiredAt(target.projectiles, i);
@@ -254,8 +256,8 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>): vo
   grab.serial = sourceGrab.serial;
   grab.mashX = sourceGrab.mashX;
   grab.mashZ = sourceGrab.mashZ;
-  grab.owner = sourceGrab.owner;
-  grab.target = sourceGrab.target;
+  grab.owner = retain(sourceGrab.owner);
+  grab.target = retain(sourceGrab.target);
   const ledge = target.ledge;
   const sourceLedge = source.ledge;
   ledge.state = sourceLedge.state;

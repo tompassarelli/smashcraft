@@ -1,21 +1,23 @@
-import { imod } from "../../sim/intMath";
-import { PARTICIPANT_CAPACITY, participantActive } from "../input/participants";
-import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
-import { SPECIAL_ACTION_CAPACITY } from "../sim/codes";
+// Replay2, Wurst ReplayState's canonical tape of gameplay state. Labels,
+// order and number formats are a cross-runtime contract: a tape compares
+// these strings and checksums between Wurst's Lua, Bun and 32-bit Lua.
 import { attackBufferCanonicalState } from "../input/attackBuffer";
-import { PARTICIPANT_SLOTS } from "../input/participants";
-import { fighterAt } from "../sim/roster";
-import type { ReplaySnapshot } from "./snapshot";
+import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS, participantActive } from "../input/participants";
+import { floorMod } from "../../sim/intMath";
+import { SPECIAL_ACTION_CAPACITY } from "../sim/codes";
+import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
+import { fighterAt, isActive } from "../sim/roster";
+import type { ReplayState } from "./snapshot";
 
 function requiredAt<T>(values: readonly T[], index: number): T {
   const value = values[index];
-  if (value === undefined) throw new Error(`replay state is missing slot ${index}`);
+  if (value === undefined) throw new Error(`replay state is missing entry ${index}`);
   return value;
 }
 
 const REPLAY_CHECKSUM_MODULUS = 1_000_003;
 
-/** Exact finite binary representation used by Wurst ReplayState's canonical tape. */
+/** Exact finite binary representation: sign, binary exponent and 52 fraction bits as two 26-bit integers. */
 export function canonicalReal(value: number): string {
   if (value !== value) return "nan";
   const negative = value < 0;
@@ -53,21 +55,18 @@ export function canonicalReal(value: number): string {
   return `${negative ? "-" : "+"}${exponent}:${high}:${low}`;
 }
 
-/** Two polynomial lanes over canonical printable ASCII, matching Wurst and Lua32. */
-export function canonicalChecksum(text: string): string {
-  let first = 0;
-  let second = 0;
-  for (let index = 0; index < text.length; index++) {
-    const byte = text.charCodeAt(index);
-    if (byte < 32 || byte > 126) return "invalid-ascii";
-    first = imod(first * 257 + byte + 1, REPLAY_CHECKSUM_MODULUS);
-    second = imod(second * 263 + byte + 1, REPLAY_CHECKSUM_MODULUS);
-  }
-  return `${first}:${second}`;
+/**
+ * Wurst's I2S. Lua prints an integral float as "3.0", so the value is floored
+ * to Lua's integer type first; a fraction, which no Wurst int can hold, keeps
+ * its exact real form so a tape comparison still reports it.
+ */
+function integerText(value: number): string {
+  const whole = Math.floor(value);
+  return whole === value ? `${whole}` : canonicalReal(value);
 }
 
 export function canonicalInt(name: string, value: number): string {
-  return `|${name}=${value}`;
+  return `|${name}=${integerText(value)}`;
 }
 
 export function canonicalBoolean(name: string, value: boolean): string {
@@ -78,15 +77,52 @@ export function canonicalRealField(name: string, value: number): string {
   return `|${name}=${canonicalReal(value)}`;
 }
 
-/** Serialize every fighter field in the same order and with the same labels as Wurst ReplayState. */
-export function canonicalFighterState(prefix: string, fighter: Readonly<Fighter>, participantMask: number): string {
-  let text = "";
-  const int = (name: string, value: number) => { text += canonicalInt(`${prefix}.${name}`, value); };
-  const bool = (name: string, value: boolean) => { text += canonicalBoolean(`${prefix}.${name}`, value); };
-  const real = (name: string, value: number) => { text += canonicalRealField(`${prefix}.${name}`, value); };
-  const reference = (name: string, slot: number | undefined) => {
-    int(name, slot === undefined ? -1 : participantActive(participantMask, slot) ? slot : -2);
-  };
+/** Wurst's slotOf: -1 for no fighter, -2 for a fighter the roster doesn't seat. */
+export function canonicalSlot(slot: number | undefined, participantMask: number): number {
+  if (slot === undefined) return -1;
+  return participantActive(participantMask, slot) ? slot : -2;
+}
+
+/** Two polynomial lanes over printable ASCII; the largest intermediate stays below 2^28 in both runtimes. */
+interface ChecksumLanes {
+  valid: boolean;
+  first: number;
+  second: number;
+}
+
+function foldChecksum(lanes: ChecksumLanes, fragment: string): void {
+  if (!lanes.valid) return;
+  let { first, second } = lanes;
+  for (let index = 0; index < fragment.length; index++) {
+    const byte = fragment.charCodeAt(index);
+    if (byte < 32 || byte > 126) {
+      lanes.valid = false;
+      return;
+    }
+    // Both operands are nonnegative, where floorMod equals Wurst's mod.
+    first = floorMod(first * 257 + byte + 1, REPLAY_CHECKSUM_MODULUS);
+    second = floorMod(second * 263 + byte + 1, REPLAY_CHECKSUM_MODULUS);
+  }
+  lanes.first = first;
+  lanes.second = second;
+}
+
+const checksumText = ({ valid, first, second }: Readonly<ChecksumLanes>): string => (valid ? `${first}:${second}` : "invalid-ascii");
+
+export function canonicalChecksum(text: string): string {
+  const lanes: ChecksumLanes = { valid: true, first: 0, second: 0 };
+  foldChecksum(lanes, text);
+  return checksumText(lanes);
+}
+
+/** Receives canonical fragments in tape order. */
+type Emit = (fragment: string) => void;
+
+function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, participantMask: number): void {
+  const int = (name: string, value: number) => emit(canonicalInt(`${prefix}.${name}`, value));
+  const bool = (name: string, value: boolean) => emit(canonicalBoolean(`${prefix}.${name}`, value));
+  const real = (name: string, value: number) => emit(canonicalRealField(`${prefix}.${name}`, value));
+  const reference = (name: string, slot: number | undefined) => int(name, canonicalSlot(slot, participantMask));
   const t = fighter.tuning;
   const m = fighter.motion;
   const g = fighter.ground;
@@ -328,234 +364,17 @@ export function canonicalFighterState(prefix: string, fighter: Readonly<Fighter>
   real("surfacePhysics.passiveCeilingSpeed", t.surface.passiveCeilingSpeed);
   real("surfacePhysics.wallJumpMinimumApproach", t.surface.wallJumpMinimumApproach);
   bool("surfacePhysics.canWallJump", t.surface.canWallJump);
-  return text;
 }
 
-type DifferenceValue = number | boolean | undefined;
-
-function firstDifferentValue(fields: ReadonlyArray<readonly [string, DifferenceValue, DifferenceValue]>): string | undefined {
-  for (const [name, expected, actual] of fields) if (expected !== actual) return name;
-  return undefined;
-}
-
-function slotReference(value: number | undefined, mask: number): number {
-  return value === undefined ? -1 : participantActive(mask, value) ? value : -2;
-}
-
-/** First differing field in Wurst ReplayState's diagnostic order. */
-export function firstFighterDifference(expected: Readonly<Fighter>, actual: Readonly<Fighter>, expectedMask: number, actualMask: number): string | undefined {
-  const fields: [string, DifferenceValue, DifferenceValue][] = [];
-  const add = (name: string, left: DifferenceValue, right: DifferenceValue) => { fields.push([name, left, right]); };
-  const e = expected;
-  const a = actual;
-  const et = e.tuning;
-  const at = a.tuning;
-  add("character", e.character, a.character);
-  for (const key of ["weight", "gravity", "terminalSpeed", "fastFallSpeed", "airAcceleration", "airSpeed", "airFriction", "airCap", "traction", "dashSpeed", "runSpeed", "walkSpeed", "jumpSquatFrames", "fullJumpSpeed", "shortJumpSpeed", "aerialJumpSpeed", "jumpMomentum", "jumpHorizontalSpeed", "jumpHorizontalCap", "aerialJumpHorizontalSpeed", "shieldBreakSpeed", "walkAccelerationMultiplier", "walkAccelerationBase", "groundAccelerationMultiplier", "groundAccelerationBase", "groundSpeedCap"] as const) add("physics", et.physics[key], at.physics[key]);
-  for (const key of ["passiveWallSpeed", "wallJumpHorizontalSpeed", "wallJumpVerticalSpeed", "passiveCeilingSpeed", "wallJumpMinimumApproach", "canWallJump"] as const) add("surfacePhysics", et.surface[key], at.surface[key]);
-  add("ceilingTechImpulseFrame", et.tech.ceilingImpulseFrame, at.tech.ceilingImpulseFrame);
-  add("ceilingTechAnimationEndFrame", et.tech.ceilingAnimationEndFrame, at.tech.ceilingAnimationEndFrame);
-  add("wallTechAnimationEndFrame", et.tech.wallAnimationEndFrame, at.tech.wallAnimationEndFrame);
-  add("wallJumpTechAnimationEndFrame", et.tech.wallJumpAnimationEndFrame, at.tech.wallJumpAnimationEndFrame);
-  add("facing", e.facing, a.facing);
-  add("lastAerialTapDirection", e.motion.lastAerialTapDirection, a.motion.lastAerialTapDirection);
-  add("dashFrame", e.ground.dashFrame, a.ground.dashFrame);
-  add("dashDirection", e.ground.dashDirection, a.ground.dashDirection);
-  for (const key of ["dashRunEnableFrame", "turnRunFacingCommandFrame", "turnRunAnimationEndFrame", "runBrakeTurnCommandEndFrame", "runBrakeAnimationEndFrame", "runBrakeMaximumFrames"] as const) add("groundRules", et.ground[key], at.ground[key]);
-  for (const key of ["startupFrames", "activeFrames", "totalFrames"] as const) add("dashGrabTiming", et.dashGrab[key], at.dashGrab[key]);
-  add("dashGrabWindow", e.ground.dashGrabWindow, a.ground.dashGrabWindow);
-  add("dashGrabAttack", e.attack.dashGrab, a.attack.dashGrab);
-  add("groundAction", e.ground.action, a.ground.action);
-  add("groundActionFrame", e.ground.actionFrame, a.ground.actionFrame);
-  add("groundRunBrakeFramesRemaining", e.ground.runBrakeFramesRemaining, a.ground.runBrakeFramesRemaining);
-  add("groundTurnRunEntryFacing", e.ground.turnRunEntryFacing, a.ground.turnRunEntryFacing);
-  add("groundTurnRunFacingCommandLatched", e.ground.turnRunFacingCommandLatched, a.ground.turnRunFacingCommandLatched);
-  add("groundTurnRunPausePending", e.ground.turnRunPausePending, a.ground.turnRunPausePending);
-  add("x", e.motion.x, a.motion.x);
-  add("z", e.motion.z, a.motion.z);
-  add("positionDeltaX", e.motion.deltaX, a.motion.deltaX);
-  add("positionDeltaZ", e.motion.deltaZ, a.motion.deltaZ);
-  add("vx", e.motion.vx, a.motion.vx);
-  add("vz", e.motion.vz, a.motion.vz);
-  if (e.motion.meleeX.original !== a.motion.meleeX.original || e.motion.meleeX.published !== a.motion.meleeX.published) add("motionX", 1, 0);
-  if (e.motion.meleeZ.original !== a.motion.meleeZ.original || e.motion.meleeZ.published !== a.motion.meleeZ.published) add("motionZ", 1, 0);
-  if (e.motion.meleeVelocityZ.original !== a.motion.meleeVelocityZ.original || e.motion.meleeVelocityZ.published !== a.motion.meleeVelocityZ.published) add("motionVelocityZ", 1, 0);
-  add("knockbackX", e.launch.knockbackX, a.launch.knockbackX);
-  add("knockbackZ", e.launch.knockbackZ, a.launch.knockbackZ);
-  add("groundKnockbackX", e.launch.groundKnockbackX, a.launch.groundKnockbackX);
-  add("knockbackAgeFrames", e.launch.knockbackAge ?? -1, a.launch.knockbackAge ?? -1);
-  add("damageLevel", e.launch.damageLevel, a.launch.damageLevel);
-  add("shieldPushbackX", e.shield.pushbackX, a.shield.pushbackX);
-  add("shieldRecoilX", e.shield.recoilX, a.shield.recoilX);
-  add("shieldRecoilZ", e.shield.recoilZ, a.shield.recoilZ);
-  add("shieldDrainResumePending", e.shield.drainResumePending, a.shield.drainResumePending);
-  add("damage", e.status.damage, a.status.damage);
-  add("grabVisualSerial", e.visuals.grab, a.visuals.grab);
-  add("throwVisualSerial", e.visuals.throw, a.visuals.throw);
-  add("hitVisualSerial", e.visuals.hit, a.visuals.hit);
-  add("hitVisualElectric", e.visuals.hitElectric, a.visuals.hitElectric);
-  add("shieldVisualSerial", e.visuals.shield, a.visuals.shield);
-  add("shieldReflectVisualSerial", e.visuals.shieldReflect, a.visuals.shieldReflect);
-  add("stocks", e.status.stocks, a.status.stocks);
-  add("hitstun", e.launch.hitstun, a.launch.hitstun);
-  add("hitlag", e.launch.hitlag, a.launch.hitlag);
-  add("diPending", e.launch.diPending, a.launch.diPending);
-  add("diLaunchSpeed", e.launch.diLaunchSpeed, a.launch.diLaunchSpeed);
-  add("diSerial", e.launch.diSerial, a.launch.diSerial);
-  add("diAngleDegrees", e.launch.diAngleDegrees, a.launch.diAngleDegrees);
-  add("sdiWasGrounded", e.launch.sdiWasGrounded, a.launch.sdiWasGrounded);
-  add("sdiLaunchesUpward", e.launch.sdiLaunchesUpward, a.launch.sdiLaunchesUpward);
-  add("sdiSerial", e.launch.sdiSerial, a.launch.sdiSerial);
-  add("asdiSerial", e.launch.asdiSerial, a.launch.asdiSerial);
-  add("cooldown", e.attack.cooldown, a.attack.cooldown);
-  add("attackStyle", e.attack.style, a.attack.style);
-  add("attackFrame", e.attack.frame, a.attack.frame);
-  add("attackDuration", e.attack.duration, a.attack.duration);
-  add("attackSerial", e.attack.serial, a.attack.serial);
-  add("attackHit", e.attack.hit, a.attack.hit);
-  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`hitAttackers[${i}]`, slotReference(requiredAt(e.hits.entries, i).attacker, expectedMask), slotReference(requiredAt(a.hits.entries, i).attacker, actualMask));
-  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`hitSerials[${i}]`, requiredAt(e.hits.entries, i).attackSerial, requiredAt(a.hits.entries, i).attackSerial);
-  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`hitWindows[${i}]`, requiredAt(e.hits.entries, i).window, requiredAt(a.hits.entries, i).window);
-  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`specialHitTargets[${i}]`, slotReference(e.special.hitTargets[i], expectedMask), slotReference(a.special.hitTargets[i], actualMask));
-  add("lastHitAttacker", slotReference(e.hits.lastAttacker, expectedMask), slotReference(a.hits.lastAttacker, actualMask));
-  add("lastHitAttackSerial", e.hits.lastAttackSerial, a.hits.lastAttackSerial);
-  add("lastHitWindow", e.hits.lastWindow, a.hits.lastWindow);
-  add("smashCharging", e.attack.smashCharging, a.attack.smashCharging);
-  add("smashChargeFrames", e.attack.smashChargeFrames, a.attack.smashChargeFrames);
-  add("smashChargeAllowed", e.attack.smashChargeAllowed, a.attack.smashChargeAllowed);
-  for (const key of ["life", "x", "z", "direction", "kind", "damageMultiplier", "visualFamily", "newlyReflected", "velocityX", "velocityZ", "serial"] as const) {
-    const label = `projectile${key.slice(0, 1).toUpperCase()}${key.slice(1)}`;
-    for (let i = 0; i < PROJECTILE_CAPACITY; i++) add(`${label}[${i}]`, requiredAt(e.projectiles, i)[key], requiredAt(a.projectiles, i)[key]);
-  }
-  add("parrySerial", e.visuals.parry, a.visuals.parry);
-  add("specialAction", e.special.action, a.special.action);
-  add("specialFrame", e.special.frame, a.special.frame);
-  add("specialDuration", e.special.duration, a.special.duration);
-  add("specialLockFrames", e.special.lockFrames, a.special.lockFrames);
-  add("specialFall", e.special.fall, a.special.fall);
-  for (let i = 0; i < SPECIAL_ACTION_CAPACITY; i++) add(`specialCooldowns[${i}]`, requiredAt(e.special.cooldowns, i), requiredAt(a.special.cooldowns, i));
-  add("specialDirection", e.special.direction, a.special.direction);
-  add("specialHit", e.special.hit, a.special.hit);
-  add("bearLife", e.bear.life, a.bear.life);
-  add("bearX", e.bear.x, a.bear.x);
-  add("bearZ", e.bear.z, a.bear.z);
-  add("bearVelocityX", e.bear.velocityX, a.bear.velocityX);
-  add("bearVelocityZ", e.bear.velocityZ, a.bear.velocityZ);
-  add("bearSwipeCooldown", e.bear.swipeCooldown, a.bear.swipeCooldown);
-  add("bearHitSerial", e.bear.hitSerial, a.bear.hitSerial);
-  add("bearSurface", e.bear.surface, a.bear.surface);
-  add("hippogryphLife", e.hippogryph.life, a.hippogryph.life);
-  add("hippogryphX", e.hippogryph.x, a.hippogryph.x);
-  add("hippogryphZ", e.hippogryph.z, a.hippogryph.z);
-  add("hippogryphVelocityX", e.hippogryph.velocityX, a.hippogryph.velocityX);
-  add("hippogryphVelocityZ", e.hippogryph.velocityZ, a.hippogryph.velocityZ);
-  add("hippogryphKind", e.hippogryph.kind, a.hippogryph.kind);
-  add("freezeTrapLife", e.freezeTrap.life, a.freezeTrap.life);
-  add("freezeTrapArming", e.freezeTrap.arming, a.freezeTrap.arming);
-  add("freezeTrapX", e.freezeTrap.x, a.freezeTrap.x);
-  add("freezeTrapZ", e.freezeTrap.z, a.freezeTrap.z);
-  add("freezeTrapSurface", e.freezeTrap.surface, a.freezeTrap.surface);
-  add("freezeTrapSerial", e.freezeTrap.serial, a.freezeTrap.serial);
-  add("frozenFrames", e.status.frozenFrames, a.status.frozenFrames);
-  add("freezeTrapCooldown", e.freezeTrap.cooldown, a.freezeTrap.cooldown);
-  add("out", e.status.out, a.status.out);
-  add("respawn", e.status.respawn, a.status.respawn);
-  add("shield", e.shield.raised, a.shield.raised);
-  add("shieldTriggerWasActive", e.shield.triggerWasActive, a.shield.triggerWasActive);
-  add("shieldTriggerAge", e.shield.triggerAge, a.shield.triggerAge);
-  add("shieldReflectFrames", e.shield.reflectFrames, a.shield.reflectFrames);
-  add("shieldPerfectFrames", e.shield.perfectFrames, a.shield.perfectFrames);
-  add("shieldPerfectActionFrames", e.shield.perfectActionFrames, a.shield.perfectActionFrames);
-  for (const key of ["centerX", "centerZ", "radius"] as const) add("shieldGeometry", et.shield[key], at.shield[key]);
-  add("shieldStrength", e.shield.strength, a.shield.strength);
-  add("shieldEnergy", e.shield.energy, a.shield.energy);
-  add("shieldStun", e.shield.stun, a.shield.stun);
-  add("shieldHeldFrames", e.shield.heldFrames, a.shield.heldFrames);
-  add("shieldReleaseLag", e.shield.releaseLag, a.shield.releaseLag);
-  add("shieldBreakState", e.shield.breakState, a.shield.breakState);
-  add("shieldBreakFrame", e.shield.breakFrame, a.shield.breakFrame);
-  add("shieldBreakSerial", e.shield.breakSerial, a.shield.breakSerial);
-  add("shieldBreakDownFrames", et.shieldBreak.landFrames, at.shieldBreak.landFrames);
-  add("shieldBreakStandFrames", et.shieldBreak.standFrames, at.shieldBreak.standFrames);
-  add("shieldBreakRemaining", e.shield.breakRemaining, a.shield.breakRemaining);
-  add("crouching", e.motion.crouching, a.motion.crouching);
-  add("fastFallDownHeld", e.motion.fastFallDownHeld, a.motion.fastFallDownHeld);
-  add("fastFallInputAge", e.motion.fastFallInputAge, a.motion.fastFallInputAge);
-  add("previousHorizontalDirection", e.motion.previousHorizontalDirection, a.motion.previousHorizontalDirection);
-  add("jumpInputAge", e.jump.inputAge, a.jump.inputAge);
-  add("fastFalling", e.motion.fastFalling, a.motion.fastFalling);
-  add("grounded", e.motion.grounded, a.motion.grounded);
-  add("fastFalling", e.motion.fastFalling, a.motion.fastFalling);
-  add("crouching", e.motion.crouching, a.motion.crouching);
-  add("jumps", e.jump.remaining, a.jump.remaining);
-  add("jumpSerial", e.jump.serial, a.jump.serial);
-  add("jumpIsDouble", e.jump.isDouble, a.jump.isDouble);
-  add("jumpSquat", e.jump.squat, a.jump.squat);
-  add("jumpDodgeQueued", e.jump.dodgeQueued, a.jump.dodgeQueued);
-  add("jumpDodgeX", e.jump.dodgeX, a.jump.dodgeX);
-  add("jumpDodgeZ", e.jump.dodgeZ, a.jump.dodgeZ);
-  add("jumpHeld", e.jump.held, a.jump.held);
-  add("dropTime", e.motion.dropTime, a.motion.dropTime);
-  add("invincible", e.status.invincible, a.status.invincible);
-  add("surface", e.motion.surface, a.motion.surface);
-  add("surfaceRecoveryState", e.surfaceRecovery.state, a.surfaceRecovery.state);
-  add("surfaceRecoveryFrame", e.surfaceRecovery.frame, a.surfaceRecovery.frame);
-  add("surfaceRecoveryVelocityApplied", e.surfaceRecovery.velocityApplied, a.surfaceRecovery.velocityApplied);
-  add("surfaceWallJumpQueued", e.surfaceRecovery.wallJumpQueued, a.surfaceRecovery.wallJumpQueued);
-  add("surfaceReflectCooldown", e.surfaceRecovery.reflectCooldown, a.surfaceRecovery.reflectCooldown);
-  add("lastReflectedSurface", e.surfaceRecovery.lastReflectedSurface, a.surfaceRecovery.lastReflectedSurface);
-  add("surfaceContactSerial", e.surfaceRecovery.contactSerial, a.surfaceRecovery.contactSerial);
-  add("surfaceContactKind", e.surfaceRecovery.contactKind, a.surfaceRecovery.contactKind);
-  add("surfaceContactApproachSpeed", e.surfaceRecovery.contactApproachSpeed, a.surfaceRecovery.contactApproachSpeed);
-  add("surfaceContactX", e.surfaceRecovery.contactX, a.surfaceRecovery.contactX);
-  add("surfaceContactZ", e.surfaceRecovery.contactZ, a.surfaceRecovery.contactZ);
-  add("surfaceContactNormalX", e.surfaceRecovery.contactNormalX, a.surfaceRecovery.contactNormalX);
-  add("surfaceContactNormalZ", e.surfaceRecovery.contactNormalZ, a.surfaceRecovery.contactNormalZ);
-  add("airDodgeTime", e.dodge.airMotionFrames, a.dodge.airMotionFrames);
-  add("landingLag", e.landing.lag, a.landing.lag);
-  add("lCancelWindow", e.landing.lCancelWindow, a.landing.lCancelWindow);
-  add("lCancelSerial", e.landing.lCancelSerial, a.landing.lCancelSerial);
-  add("airDodging", e.dodge.airDodging, a.dodge.airDodging);
-  add("airDodgeFrame", e.dodge.airFrame, a.dodge.airFrame);
-  add("groundDodgeFrame", e.dodge.groundFrame, a.dodge.groundFrame);
-  add("groundDodgeDirection", e.dodge.groundDirection, a.dodge.groundDirection);
-  add("groundDodgeEntryFacing", e.dodge.groundEntryFacing, a.dodge.groundEntryFacing);
-  add("downState", e.down.state, a.down.state);
-  add("downFrame", e.down.frame, a.down.frame);
-  add("downDirection", e.down.direction, a.down.direction);
-  add("downWaitRemaining", e.down.waitRemaining, a.down.waitRemaining);
-  add("downFaceUp", e.down.faceUp, a.down.faceUp);
-  add("techWindow", e.tech.window, a.tech.window);
-  add("techPressAge", e.tech.pressAge, a.tech.pressAge);
-  add("techPreviousPressAge", e.tech.previousPressAge, a.tech.previousPressAge);
-  add("techAccumulatedPress", e.tech.accumulatedPress, a.tech.accumulatedPress);
-  add("grabbedFrames", e.grab.grabbedFrames, a.grab.grabbedFrames);
-  add("grabAction", e.grab.action, a.grab.action);
-  add("grabFrame", e.grab.frame, a.grab.frame);
-  add("grabSerial", e.grab.serial, a.grab.serial);
-  add("grabMashX", e.grab.mashX, a.grab.mashX);
-  add("grabMashZ", e.grab.mashZ, a.grab.mashZ);
-  add("grabOwner", slotReference(e.grab.owner, expectedMask), slotReference(a.grab.owner, actualMask));
-  add("grabTarget", slotReference(e.grab.target, expectedMask), slotReference(a.grab.target, actualMask));
-  add("ledgeState", e.ledge.state, a.ledge.state);
-  add("ledgeSide", e.ledge.side, a.ledge.side);
-  add("ledgeFrame", e.ledge.frame, a.ledge.frame);
-  add("ledgeSerial", e.ledge.serial, a.ledge.serial);
-  add("ledgeIntangible", e.ledge.intangible, a.ledge.intangible);
-  add("ledgeRegrab", e.ledge.regrab, a.ledge.regrab);
-  return firstDifferentValue(fields);
-}
-
-/** Replay2's full gameplay tape; labels, slot order, and fragments match Wurst ReplayState. */
-export function canonicalReplayState(snapshot: Readonly<ReplaySnapshot>): string {
-  const { world, match, controls, runtime } = snapshot;
-  let text = "SmashcraftReplay2";
-  const int = (name: string, value: number) => { text += canonicalInt(name, value); };
-  const bool = (name: string, value: boolean) => { text += canonicalBoolean(name, value); };
+function writeState(emit: Emit, state: Readonly<ReplayState>): void {
+  const { world, match, controls, runtime } = state;
+  const int = (name: string, value: number) => emit(canonicalInt(name, value));
+  const bool = (name: string, value: boolean) => emit(canonicalBoolean(name, value));
+  emit("SmashcraftReplay2");
   int("participantMask", world.mask);
   for (const slot of PARTICIPANT_SLOTS) {
-    if (!participantActive(world.mask, slot)) continue;
-    text += canonicalFighterState(`fighter[${slot}]`, fighterAt(world, slot), world.mask);
+    if (!isActive(world, slot)) continue;
+    writeFighter(emit, `fighter[${slot}]`, fighterAt(world, slot), world.mask);
     const command = attackBufferCanonicalState(controls.commands[slot]);
     int(`commands[${slot}].windowFrames`, command.graceFrames);
     int(`commands[${slot}].style`, command.style);
@@ -586,14 +405,19 @@ export function canonicalReplayState(snapshot: Readonly<ReplaySnapshot>): string
   bool("match.timedOut", match.timedOut);
   bool("match.practice", match.practice);
   int("runtime.simulationFrame", runtime.simulationFrame);
-  for (const slot of PARTICIPANT_SLOTS) text += canonicalRealField(`runtime.botAttackDelays[${slot}]`, runtime.botAttackDelays[slot]);
-  return text;
+  for (const slot of PARTICIPANT_SLOTS) emit(canonicalRealField(`runtime.botAttackDelays[${slot}]`, runtime.botAttackDelays[slot]));
 }
 
-export function canonicalState(snapshot: Readonly<ReplaySnapshot>): string {
-  return canonicalReplayState(snapshot);
+/** The Replay2 text of a state; capture live state into a snapshot first, as Wurst does. */
+export function canonicalState(state: Readonly<ReplayState>): string {
+  const parts: string[] = [];
+  writeState(fragment => { parts.push(fragment); }, state);
+  return parts.join("");
 }
 
-export function checksum(snapshot: Readonly<ReplaySnapshot>): string {
-  return canonicalChecksum(canonicalReplayState(snapshot));
+/** canonicalChecksum(canonicalState(state)), folded fragment by fragment without building the text. */
+export function stateChecksum(state: Readonly<ReplayState>): string {
+  const lanes: ChecksumLanes = { valid: true, first: 0, second: 0 };
+  writeState(fragment => foldChecksum(lanes, fragment), state);
+  return checksumText(lanes);
 }
