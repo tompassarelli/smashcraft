@@ -66,8 +66,9 @@ code. From smashcraft:ts/:
 - Map commands: `bun waygate build --base BASE.w3m --container MAP.w3x --assets
   DIR --summon DIR --name NAME --out OUT.w3x` builds the TypeScript map;
   `bun waygate rebuild MAP.w3x` replaces only its script.
-- Fresh match: `bun waygate fresh MAP.w3x` takes both signed-in clients from
-  wherever they are to character selection in a new Battle.net game of MAP.
+- Fresh match: `bun waygate fresh MAP.w3x [--rebuild]` starts a new game, sends
+  `-dev quick`, and waits until every signed-in client writes its receipt.
+  `--rebuild` replaces the map script first.
 - Client driver: `bun waygate client look|read|click|keys CLIENT ...` reads and
   drives a client. Session values live in ~/.local/state/smashcraft/clients.json.
 - Tapes: set `LUA` to the 32-bit Lua executable, then run `bun waygate tapes` to

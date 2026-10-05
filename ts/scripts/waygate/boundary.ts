@@ -48,12 +48,15 @@ function lineFields(template: string, line: string): Record<string, string> | un
   const fields: Record<string, string> = {};
   for (const [index, part] of parts.entries()) {
     if (index >= words.length) break;
-    const name = FIELD.exec(part)?.[1];
+    const assignment = /^(\w+)=\{(\w+)\}$/.exec(part);
+    const name = assignment?.[2] ?? FIELD.exec(part)?.[1];
     if (name === undefined) {
       if (words[index] !== part) return undefined;
       continue;
     }
-    const value = index === parts.length - 1 ? words.slice(index).join(" ") : words[index];
+    const word = words[index] ?? "";
+    if (assignment !== null && !word.startsWith(`${assignment[1]}=`)) return undefined;
+    const value = index === parts.length - 1 ? words.slice(index).join(" ") : assignment === null ? word : word.slice(assignment[1]!.length + 1);
     if (value !== undefined && value !== "") fields[name] = value;
   }
   return fields;
@@ -129,6 +132,19 @@ export const MeleeReady = preloadRecord(
     fighters: Count,
     /** `BINDINGSn KEYS` or `BINDINGSn BOT` for each active slot n. */
     slotBindings: Schema.Array(Schema.String.check(Schema.isPattern(/^BINDINGS\d+ \S+$/))),
+  }),
+);
+
+/** smashcraft-dev-BUILD-pN.txt: confirmation a client handled a developer chat command. */
+export const DevCommandReceipt = preloadRecord(
+  { head: ["SMASHCRAFT DEV v=1 build={build} receipt={receipt} epoch={epoch} rb={rollback} delay={delay} batch={batch} "] },
+  Schema.Struct({
+    build: Schema.NonEmptyString,
+    receipt: Count.check(Schema.isGreaterThanOrEqualTo(1)),
+    epoch: Count,
+    rollback: Count.check(Schema.isGreaterThanOrEqualTo(1)),
+    delay: Count,
+    batch: Count.check(Schema.isGreaterThanOrEqualTo(1)).check(Schema.isLessThanOrEqualTo(2)),
   }),
 );
 
