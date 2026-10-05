@@ -6,6 +6,7 @@ import { Effect, Schema } from "effect";
 import { MapBuild, MapBuildFailure, runProcess, type ArchiveEntry } from "waygate/scripts/waygate/mapBuild";
 import { UsageFailure } from "waygate/scripts/waygate/command";
 import { step } from "waygate/scripts/waygate/timings";
+import * as impactModels from "../../src/game/assets/impactAssetInfo";
 import { STAGE_DECK_MODEL } from "../../src/game/assets/stageAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
@@ -60,6 +61,7 @@ const importLines = (path: string) =>
  */
 export const GENERATED_MODELS: readonly { readonly list: string; readonly generator: string; readonly models: readonly string[] }[] = [
   { list: "stage-assets/imports.txt", generator: "tools/stage/package.ts", models: [STAGE_DECK_MODEL] },
+  { list: "impact-assets/imports.txt", generator: "tools/effects/package.ts", models: Object.values(impactModels) },
 ];
 
 /** The summon clip models the compiled script draws; the summon evidence lists their files. */
@@ -122,7 +124,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
   const summonFiles = evidence.records.flatMap((record) => record.clips).map(({ filename }) => filename);
   yield* requireListed(evidencePath, summonFiles, SUMMON_MODELS, "summonClipInfo.ts and the summon clips differ");
   const impact = join(assets, "impact-assets");
-  const impactLists = yield* Effect.forEach(["imports.txt", "frost-imports.txt", "shield-imports.txt"], (list) => importLines(join(impact, list)));
+  const impactLists = yield* Effect.forEach(["frost-imports.txt", "shield-imports.txt"], (list) => importLines(join(impact, list)));
   return [
     { entry: ARCHER_MODEL_FILE, source: join(assets, "animation-assets/ArcherFighter.mdx") },
     { entry: RIFLEMAN_MODEL_FILE, source: join(assets, "animation-assets/RiflemanFighter.mdx") },
