@@ -359,6 +359,12 @@ function sameCall(left: NativeCall, right: NativeCall): boolean {
     // Equal primitive arguments need no diagnostic string allocation. Handles
     // and callbacks keep the guard's client-independent representation.
     if (leftArg === rightArg) continue;
+    if (typeof leftArg === "function" && typeof rightArg === "function") continue;
+    if (typeof leftArg === "object" && leftArg !== null && "id" in leftArg && "kind" in leftArg
+      && typeof rightArg === "object" && rightArg !== null && "id" in rightArg && "kind" in rightArg) {
+      if (leftArg.id !== rightArg.id || leftArg.kind !== rightArg.kind) return false;
+      continue;
+    }
     if (describe(leftArg) !== describe(rightArg)) return false;
   }
   return true;

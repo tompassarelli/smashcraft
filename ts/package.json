@@ -5,7 +5,7 @@
   "packageManager": "bun@1.3.13",
   "scripts": {
     "postinstall": "bun node_modules/@effect/tsgo/dist/effect-tsgo.cjs patch --typescript --typescript-package typescript-native",
-    "check": "bun node_modules/typescript-native/bin/tsc --build tsconfig.json tsconfig.game.json --noEmit",
+    "check": "bun node_modules/typescript-native/bin/tsc --build tsconfig.json tsconfig.game.json",
     "test": "bun scripts/test.ts",
     "waygate": "bun scripts/waygate.ts",
     "parity": "bun waygate parity numeric"
@@ -19,6 +19,6 @@
     "typescript": "6.0.2",
     "typescript-native": "npm:typescript@7.0.2",
     "typescript-to-lua": "1.37.1",
-    "waygate": "file:vendor/waygate-040766d6d260d4ccbaf676d1c6fd41811e495695.tgz"
+    "waygate": "file:vendor/waygate-b58b87cd289cdcaae058736a488547a89ac22896.tgz"
   }
 }

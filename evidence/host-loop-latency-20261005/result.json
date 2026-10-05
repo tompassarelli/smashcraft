@@ -1,0 +1,23 @@
+{
+  "sourceBase": "51e35471bcd9785b93ee6631844553e6a230e3e7",
+  "waygateRevision": "b58b87cd289cdcaae058736a488547a89ac22896",
+  "command": "bun scripts/ci.ts",
+  "bunVersion": "1.3.13",
+  "capacity": { "cpus": 6, "memoryMiB": 8192, "GOMAXPROCS": 6 },
+  "exitCode": 0,
+  "coldFullTypeCheckMs": 1618,
+  "sharedImplementationEditFullTypeCheckMs": 403,
+  "sharedImplementationEditLimitMs": 1000,
+  "invalidSharedSignature": { "elapsedMs": 1866, "exitCode": 1, "rejectedByHostAndGame": true },
+  "restoredFullTypeCheckMs": 1817,
+  "focusedLogicMs": 55,
+  "fakeClientReloadAndFreshProtocolMs": 284,
+  "fullSuiteMs": 1885,
+  "fullSuiteLimitMs": 2000,
+  "testFiles": 12,
+  "tests": 698,
+  "failures": 0,
+  "compilerEditedCompileMs": [498, 507, 433],
+  "compilerOutputEquality": true,
+  "compilerSignatureAndDeclarationErrorRetention": true
+}
