@@ -67,7 +67,14 @@ test("end receipts name the winner; a result screen may be unreadable but never 
 // 0.0.45's native match and rematch: smashcraft:evidence/playable-0045-native-20261006/capture.json
 // and, from the private raw capture, both clients' result traces in fixtures/playable-0045/.
 const EVIDENCE_0045 = join(import.meta.dir, "../../evidence/playable-0045-native-20261006/capture.json");
-const TRACES_0045 = join(import.meta.dir, "fixtures/playable-0045");
+const FIXTURES_0045 = "fixtures/playable-0045/";
+const TRACES_0045 = [
+  "fixtures/playable-0045/epoch-1/0-wc3-melee-input-trace.txt",
+  "fixtures/playable-0045/epoch-1/1-wc3-melee-input-trace.txt",
+  "fixtures/playable-0045/epoch-2/0-wc3-melee-input-trace.txt",
+  "fixtures/playable-0045/epoch-2/1-wc3-melee-input-trace.txt",
+];
+/** A trace's path in the capture directory. */
 const TRACE = (epoch: number, client: number) => `epoch-${epoch}/${client}-wc3-melee-input-trace.txt`;
 const roots: string[] = [];
 afterAll(() => {
@@ -81,7 +88,7 @@ interface RecordedCapture {
 /** The 0.0.45 capture as a capture directory, after `change` edits its capture.json and result traces. */
 function recorded0045(change: (capture: RecordedCapture, traces: Map<string, string>) => void = () => {}) {
   const capture = JSON.parse(readFileSync(EVIDENCE_0045, "utf8")) as RecordedCapture;
-  const traces = new Map([1, 2].flatMap((epoch) => [0, 1].map((client) => [TRACE(epoch, client), readFileSync(join(TRACES_0045, TRACE(epoch, client)), "utf8")] as const)));
+  const traces = new Map(TRACES_0045.map((fixture) => [fixture.slice(FIXTURES_0045.length), readFileSync(join(import.meta.dir, fixture), "utf8")] as const));
   change(capture, traces);
   const root = mkdtempSync(join(tmpdir(), "playable-0045-"));
   roots.push(root);
