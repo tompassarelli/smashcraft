@@ -1,13 +1,15 @@
 // Numeric Lua parity implementation used by the Waygate parity command.
 import { evaluateCase } from "../src/parity/corpus";
+import { at } from "waygate/src/runtime/lookup";
 
 // Lua's %a hex floats are exact: [-]0xH.HHHp[+-]D.
 function parseHexFloat(text: string): number {
   const match = /^(-?)0x([0-9a-f]+)(?:\.([0-9a-f]*))?p([+-]\d+)$/.exec(text);
   if (match === null) return NaN;
   const [, sign, whole, fractionDigits = "", exponent] = match;
-  let value = parseInt(whole!, 16);
-  for (let i = 0; i < fractionDigits.length; i++) value += parseInt(fractionDigits[i]!, 16) / 16 ** (i + 1);
+  if (whole === undefined || exponent === undefined) return NaN;
+  let value = parseInt(whole, 16);
+  for (let i = 0; i < fractionDigits.length; i++) value += parseInt(fractionDigits.charAt(i), 16) / 16 ** (i + 1);
   value *= 2 ** Number(exponent);
   return sign === "-" ? -value : value;
 }
@@ -50,8 +52,8 @@ export async function runNumericParity(supplied: readonly string[] = []): Promis
     const expected = evaluateCase(index);
     cases++;
     for (let field = 0; field < 8; field++) {
-      const actual = parseLuaNumber(fields[field + 1]!);
-      if (!sameValue(actual, expected[field]!)) {
+      const actual = parseLuaNumber(at(fields, field + 1));
+      if (!sameValue(actual, at(expected, field))) {
         mismatches++;
         perField[field] = (perField[field] ?? 0) + 1;
         if (mismatches <= 10) console.log(`case ${index} result ${field}: lua ${fields[field + 1]} host ${expected[field]}`);
