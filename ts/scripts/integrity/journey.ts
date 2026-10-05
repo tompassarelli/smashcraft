@@ -101,6 +101,8 @@ export interface JourneyOptions {
   readonly fourFighters: boolean;
   /** Rollback windows and transport batches, each commanded before its match. */
   readonly sweep: readonly (readonly [window: number, batch: number])[];
+  /** #17 uses normal timed combat; the default retains #26's complete input workload. */
+  readonly workload?: "match";
 }
 
 const CONTROLS = /CONTROLS/i;
@@ -117,6 +119,7 @@ const both = <A, E>(each: (client: Slot) => Effect.Effect<A, E>) => Effect.forEa
 /** The journey's steps over one Rig; `run` is the whole capture. */
 export function journey(rig: RigShape, options: JourneyOptions) {
   const { build, epochs, fourFighters, sweep } = options;
+  const matchOnly = options.workload === "match";
   const firstEpoch = epochs[0] ?? 1;
   const lastEpoch = epochs.at(-1) ?? firstEpoch;
 
@@ -229,6 +232,20 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.click(1, 1380, 155);
       count--;
       yield* rig.waitText(1, stocks(count));
+    }
+  });
+
+  /** A normal one-minute match bounds the CPU journey without changing combat rules. */
+  const oneMinute = Effect.gen(function*() {
+    const text = yield* rig.waitText(1, /(?:[0-9]+:00|No time limit)/i);
+    const shown = /([0-9]+):00/.exec(text)?.[1];
+    let minutes = shown === undefined ? 0 : Number(shown);
+    if (minutes > 10) return yield* failed("read match time", text);
+    while (minutes !== 1) {
+      yield* rig.click(1, 250, 900);
+      yield* rig.click(1, minutes === 0 ? 2110 : 1807, 155);
+      minutes += minutes === 0 ? 1 : -1;
+      yield* rig.waitText(1, new RegExp(`${minutes}:00`));
     }
   });
 
@@ -387,15 +404,24 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const deadline = Math.max(...started.map((publication) => publication.publication_monotonic_estimate_ns)) + 300_000_000;
       yield* rig.sleep(Math.max(0, (deadline - (yield* rig.monotonicNs)) / 1_000_000));
       yield* rig.sleep(700);
-      yield* integrity(epoch);
+      if (matchOnly) {
+        for (let attack = 0; attack < 4; attack++) {
+          for (const slot of SLOTS) yield* tap(slot, `match-${epoch}-combat`);
+          yield* rig.sleep(500);
+        }
+      } else yield* integrity(epoch);
 
       const stockLoss = `match-${epoch}-stock-loss`;
-      yield* send(0, { type: EV_ABS, code: ABS_X, value: -32768 }, stockLoss);
-      if (!odd) yield* send(1, { type: EV_ABS, code: ABS_X, value: 32767 }, stockLoss);
+      if (!matchOnly) {
+        yield* send(0, { type: EV_ABS, code: ABS_X, value: -32768 }, stockLoss);
+        if (!odd) yield* send(1, { type: EV_ABS, code: ABS_X, value: 32767 }, stockLoss);
+      }
       const end = (client: Slot) => controlName("end", epoch, client);
-      yield* rig.until(`epoch ${epoch}: result did not stop capture`, Effect.forEach(SLOTS, (client) => rig.file(client, end(client))).pipe(Effect.map((files) => files.every(complete))), 75);
-      yield* send(0, { type: EV_ABS, code: ABS_X, value: 0 }, stockLoss);
-      if (!odd) yield* send(1, { type: EV_ABS, code: ABS_X, value: 0 }, stockLoss);
+      yield* rig.until(`epoch ${epoch}: result did not stop capture`, Effect.forEach(SLOTS, (client) => rig.file(client, end(client))).pipe(Effect.map((files) => files.every(complete))), matchOnly ? 120 : 75);
+      if (!matchOnly) {
+        yield* send(0, { type: EV_ABS, code: ABS_X, value: 0 }, stockLoss);
+        if (!odd) yield* send(1, { type: EV_ABS, code: ABS_X, value: 0 }, stockLoss);
+      }
       const quiescent = new RegExp(`match_quiescent epoch=${epoch}(?:\\s|$)`);
       yield* rig.until(`epoch ${epoch}: helpers did not quiesce`, Effect.forEach(SLOTS, rig.helperLog).pipe(Effect.map((logs) => logs.every((log) => quiescent.test(log)))));
       yield* rig.record({ event: "end", epoch, publications: yield* boundaries(end), observed_monotonic_ns: yield* rig.monotonicNs });
@@ -422,12 +448,13 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         yield* (epoch + 1) % 2 === 0 ? slotChange(epoch + 1) : slotRestore;
         yield* controllerSelect;
       }
-      yield* rig.progress(`Epoch ${epoch}: game start, tap, stock loss and results observed`);
+      yield* rig.progress(`Epoch ${epoch}: ${matchOnly ? "four-fighter combat and results" : "game start, tap, stock loss and results"} observed`);
     });
 
   const run = Effect.gen(function*() {
     if (fourFighters) yield* fourFighterSetup;
     yield* controllerSelect;
+    if (matchOnly) yield* oneMinute;
     if (!fourFighters) yield* reduceStocks;
     for (const epoch of epochs) yield* match(epoch);
     yield* menuPhase("RESULT");

@@ -148,6 +148,16 @@ test("sweep and four-fighter journeys command and record what the reconciler exp
   expect(four.trace.some((line) => line.includes("Stock"))).toBe(false);
 });
 
+test("#17's normal timed journey reaches both results without integrity stalls or forced stock loss", async () => {
+  const four = recordingRig(gameFiles);
+  await Effect.runPromise(journey(four.rig, { ...R8, fourFighters: true, workload: "match" }).run);
+  expect(four.trace.some((line) => line.startsWith("stop "))).toBe(false);
+  expect(four.trace.some((line) => line.includes("stock-loss") || line.includes("-integrity-"))).toBe(false);
+  expect(four.trace).toContain("ui b wait 1:00");
+  expect(four.events.filter((event) => event.event === "start" || event.event === "end").map((event) => [event.event, event.epoch])).toEqual([["start", 1], ["end", 1], ["start", 2], ["end", 2]]);
+  expect(four.events.filter((event) => event.event === "integrity-slot-change")).toHaveLength(1);
+});
+
 test("capture arguments select the matches the Python driver numbered", () => {
   expect(parseSweep("24:2,24:1,16")).toEqual([[24, 2], [24, 1], [16, 2]]);
   expect(captureEpochs(0, 1)).toEqual([1, 2]);

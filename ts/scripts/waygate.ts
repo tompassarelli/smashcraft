@@ -15,6 +15,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   tapes: { usage: "tapes   (LUA=<32-bit lua>)", load: async () => (await import("./waygate/commands/tapes")).tapes },
   parity: { usage: "parity numeric [RESULT_FILE ...] | capture OPTIONS... | result CAPTURE_DIR", load: async () => (await import("./waygate/commands/parity")).parity },
   integrity: { usage: "integrity capture OPTIONS... | result CAPTURE_DIR", load: async () => (await import("./waygate/commands/parity")).integrity },
+  "four-fighters": { usage: "four-fighters capture OPTIONS... | result CAPTURE_DIR", load: async () => (await import("./waygate/commands/fourFighters")).fourFighters },
   client: { usage: "client look|read|click|keys CLIENT ...", load: async () => (await import("./waygate/commands/client")).client },
 };
 

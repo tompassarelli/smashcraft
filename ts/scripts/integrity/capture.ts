@@ -179,14 +179,16 @@ export const captureMatches = (options: CaptureOptions) =>
           build,
           clients: SLOTS.map((slot) => ({ name: clients[slot].name, data: data[slot], window: clients[slot].window, pid: gamePids[slot], app_id: appIds[slot] })),
         },
-        input_integrity: true,
+        input_integrity: options.workload !== "match",
         four_fighters: options.fourFighters,
         sweep: options.sweep.length > 0 ? options.sweep : null,
         epochs: options.epochs,
         helper_pids: helpers.map((helper) => helper.pid),
         events,
         helper_sha256: helperSha256,
-        scope: SCOPE,
+        scope: options.workload === "match"
+          ? "Same-host two-client native one-minute match/rematch with two players and two CPUs, slot change and final checksums; persistent Linux virtual-pad helpers."
+          : SCOPE,
       })));
     }));
 
