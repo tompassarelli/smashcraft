@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.map.json",
+  "include": [
+    "src/natives/*.d.ts",
+    "src/platform/frameCostMain.ts"
+  ],
+  "exclude": [],
+  "tstl": {
+    "luaBundle": "frame-cost.lua",
+    "luaBundleEntry": "src/platform/frameCostMain.ts"
+  }
+}

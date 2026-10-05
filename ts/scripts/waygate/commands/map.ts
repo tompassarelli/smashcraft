@@ -11,13 +11,14 @@ const ts = join(import.meta.dir, "../../..");
 const profiles = {
   main: MapBuild.layer,
   "physics-probe": MapBuild.layerFor(join(ts, "tsconfig.physics-probe.json"), join(ts, "build/physics-probe.lua")),
+  "frame-cost": MapBuild.layerFor(join(ts, "tsconfig.frame-cost.json"), join(ts, "build/frame-cost.lua")),
 } as const;
 
 const profileOptions = (args: readonly string[]) => Effect.gen(function*() {
   const index = args.indexOf("--profile");
   const profile = index < 0 ? "main" : args[index + 1];
-  if (profile !== "main" && profile !== "physics-probe") {
-    return yield* new UsageFailure({ problem: "--profile takes main or physics-probe" });
+  if (profile !== "main" && profile !== "physics-probe" && profile !== "frame-cost") {
+    return yield* new UsageFailure({ problem: "--profile takes main, physics-probe or frame-cost" });
   }
   const remaining = index < 0 ? [...args] : [...args.slice(0, index), ...args.slice(index + 2)];
   const services = profiles[profile].pipe(Layer.provideMerge(SourceErrors.layer), Layer.provide(GameFiles.layer));

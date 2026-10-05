@@ -28,7 +28,8 @@
     "src/**/*.test.ts",
     "src/**/*.tests.ts",
     "src/runtime/testing.ts",
-    "src/platform/physicsProbeMain.ts"
+    "src/platform/physicsProbeMain.ts",
+    "src/platform/frameCostMain.ts"
   ],
   "tstl": {
     "luaTarget": "5.3",
