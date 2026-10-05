@@ -1,6 +1,6 @@
 import { f32 } from "../../sim/f32";
 import type { Fighter } from "../sim/fighter";
-import type { Controls } from "../sim/roster";
+import type { Controls, Roster } from "../sim/roster";
 import { copyIllidanMotionInto, createIllidanMotion, type IllidanMotion } from "./illidanMotion";
 
 export const FRAME_SECONDS = f32(0.016666667);
@@ -68,6 +68,6 @@ export function selectFighterClipName(pose: FighterPose, name: string): void {
 }
 
 /** Advance the already-selected clip by one completed simulation frame. */
-export function advanceFighterPose(pose: FighterPose, _fighter: Readonly<Fighter>, _input: Readonly<Controls>, _wasOut: boolean, _jumped: boolean, _attacked: boolean, _hit: boolean): void {
+export function advanceFighterPose(pose: FighterPose, _fighter: Readonly<Fighter>, _world: Readonly<Roster>, _input: Readonly<Controls>, _wasOut: boolean, _jumped: boolean, _attacked: boolean, _hit: boolean): void {
   pose.clipTime = f32(pose.clipTime + f32(pose.rate * FRAME_SECONDS));
 }
