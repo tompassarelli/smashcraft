@@ -28,6 +28,10 @@ export const MAP_TITLE = { x: 1950, y: 150, width: 600, height: 60 };
 // The browser also has a PLAYERS column; only the lobby has this player count.
 export const LOBBY = { x: 1400, y: 185, width: 300, height: 50 };
 const LOBBY_READY = /PLAYERS\s*:?\s*\d+\s*\/\s*4/i;
+// Battle.net sometimes covers a guest's joined lobby with a password prompt,
+// though the game has no password. CANCEL closes it and leaves the guest in the lobby.
+export const PASSWORD_PROMPT = { x: 1000, y: 715, width: 560, height: 60 };
+const PROMPT_BUTTONS = /CANCEL[\s\S]*CONFIRM/i;
 
 // Controls, as frame positions.
 export const BACK = { x: 155, y: 1389 };
@@ -39,6 +43,7 @@ export const CREATE = { x: 2198, y: 1126 };
 export const JOIN_NAME = { x: 300, y: 1205 };
 export const JOIN = { x: 1295, y: 1213 };
 export const START = { x: 2195, y: 1127 };
+export const PASSWORD_CANCEL = { x: 1111, y: 745 };
 
 import { clientState, profileOption, sceneProfiles } from "../project";
 import { freshFrames, smashcraftPlayerView } from "../playerView";
@@ -118,7 +123,12 @@ export const freshMatch = (map: string, fromGame = false) => Effect.gen(function
 
   const joinByName = (client: Client) => Effect.gen(function*() {
     yield* click(client, JOIN);
-    yield* waitForText(client, "joined lobby", LOBBY_READY, LOBBY, "light", 20);
+    const lobbyOrPrompt = Effect.gen(function*() {
+      if (yield* read(client, LOBBY, "light", LOBBY_READY)) return true;
+      if (yield* read(client, PASSWORD_PROMPT, "light", PROMPT_BUTTONS)) yield* click(client, PASSWORD_CANCEL).pipe(step(`${client.name} password prompt cancelled`));
+      return undefined;
+    });
+    yield* waitFor(client, "joined lobby", 20, lobbyOrPrompt);
   }).pipe(step(`${client.name} asked to join`));
 
   /** Waits for a ready file written after `time`; a malformed one is read again until the wait ends. */
