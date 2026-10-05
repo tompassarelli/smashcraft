@@ -1,0 +1,21 @@
+# /home/tom/.local/share/smashcraft-build-inputs/rematch-saturation-20261006/capture
+## Local echo: median of per-second means (lowest-highest per-second mean), ms
+match 1 (epoch-1): A 85.1 (73.1-198.1), n=20 | B 68.9 (63.5-322.7), n=20
+match 2 (epoch-2): A 95.9 (86.2-113.6), n=20 | B 100.7 (85.5-118.0), n=20
+## Journal receipts vs game clock (ms later than at the first receipt; positive = behind real time)
+client A match 1: 227 receipts over 25.5 s, frames 6-1389
+  vs frame/60: max 2496, final 2484, quartiles 3/7/9
+  vs game send ms (sweepwall): max 275, final 51, quartiles 3/7/43
+  CPU % of this client's Warcraft over the match (1 s samples, n=25): median 84, max 207
+client A match 2: 219 receipts over 21.8 s, frames 4-1310
+  vs frame/60: max 40, final -2, quartiles 8/3/8
+  vs game send ms (sweepwall): max 110, final -30, quartiles -24/-28/-21
+  CPU % of this client's Warcraft over the match (1 s samples, n=22): median 92, max 126
+client B match 1: 229 receipts over 25.5 s, frames 6-1389
+  vs frame/60: max 2492, final 2485, quartiles 7/7/245
+  vs game send ms (sweepwall): max 312, final 52, quartiles 8/7/312
+  CPU % of this client's Warcraft over the match (1 s samples, n=25): median 138, max 233
+client B match 2: 219 receipts over 21.8 s, frames 2-1310
+  vs frame/60: max 17, final -35, quartiles -27/-25/-27
+  vs game send ms (sweepwall): max 21, final -30, quartiles -26/-23/-23
+  CPU % of this client's Warcraft over the match (1 s samples, n=22): median 109, max 173

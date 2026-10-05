@@ -1,0 +1,22 @@
+{"decision":"RESERVED","reason":"RUN","class":"heavy","requestedCpus":6,"requestedMemoryMiB":8192,"leasedCpuCeilings":18,"aggregateCpuLimit":18,"leasedMemoryMiB":24576,"cpuSomeAvg10":0.44,"memoryFullAvg10":0,"memoryAvailableMiB":64418,"reclaimed":0,"lease":"4bad56a0-ece0-444b-8697-b70d0cf7fa43","expiresAt":1791229349731}
+$ bun scripts/wisp.ts build --profile integrity --base "/home/tom/.local/share/smashcraft-build-inputs/physics-base.w3m" --container "/home/tom/.local/share/smashcraft-build-inputs/native-delivery-20261005/Smashcraft diagnostic four-fighters.w3x" --assets "/home/tom/.local/share/smashcraft-build-inputs/build-port-20261005" --summon "/home/tom/.local/share/smashcraft-build-inputs/build-port-20261005/summon-original-clips" --name "Smashcraft diagnostic rematch-saturation" --out "/home/tom/.local/share/smashcraft-build-inputs/rematch-saturation-20261006/Smashcraft diagnostic rematch-saturation.w3x"
+   0.044 s  verify toolchain (0.009 s)
+   0.677 s  compile map packager (0.633 s)
+   0.834 s  link Lua compiler (0.156 s)
+   1.462 s  load compiler (0.626 s)
+   1.484 s  read config (0.021 s)
+   2.300 s  create program (0.815 s)
+   3.737 s  type-check (1.437 s)
+   4.026 s  declaration signatures (0.289 s)
+   7.256 s  transpile (3.229 s)
+   7.504 s  bundle (0.248 s)
+   7.578 s  compile (6.742 s)
+   7.592 s  extract base script (0.012 s)
+   7.614 s  check script syntax (0.009 s)
+   7.644 s  extract base files (0.029 s)
+   7.644 s  generate (0.066 s)
+   7.717 s  package (0.072 s)
+   8.463 s  verify 304 entries (0.745 s)
+built /home/tom/.local/share/smashcraft-build-inputs/rematch-saturation-20261006/Smashcraft diagnostic rematch-saturation.w3x
+   8.488 s  build (8.488 s)
+{"decision":"RELEASED","lease":"4bad56a0-ece0-444b-8697-b70d0cf7fa43"}

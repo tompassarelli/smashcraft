@@ -1,0 +1,24 @@
+$ bun scripts/wisp.ts parity result "/home/tom/.local/share/smashcraft-build-inputs/rematch-saturation-20261006/capture"
+| Metric | Result |
+|---|---|
+| Edges injected per player | 648 / 648 |
+| Lost / duplicated / reordered / stuck edges | 0 / 0 / 0 / 0 |
+| Edges applied at expected frame, both clients | 1296/1296 (100.0%) |
+| Local start − capture, frames | 0 / 0 / 0 (n=198); missing first prediction 0 |
+| Opponent input lateness, frames: p50 / p95 / max | 7 / 12 / 23 (n=1391) |
+| Rollback depth, frames: p50 / p95 / max | 10 / 14 / 24 (n=336) |
+| Prediction stalls at 24-frame limit | 6; longest 21 callbacks |
+| Injected input → screen, ms | Not captured in this session |
+| Final checksums match | Yes |
+{
+  "passed": true,
+  "gates": {
+    "edges": true,
+    "expected_frame": true,
+    "local_start": true,
+    "checksums": true
+  },
+  "evidence_failures": []
+}
+   0.183 s  native input-integrity result (0.183 s)
+   0.184 s  parity (0.184 s)

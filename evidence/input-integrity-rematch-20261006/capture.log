@@ -1,0 +1,25 @@
+$ bun scripts/wisp.ts parity capture --helper "/home/tom/.local/share/smashcraft-build-inputs/playable-0045/wc3-journal-0.0.45" --build typescript-integrity --out "/home/tom/.local/share/smashcraft-build-inputs/rematch-saturation-20261006/capture" --app-id "a=steam_app_3516115571" --app-id "b=steam_app_3516115572" --first-epoch "1"
+b scene: frame 74: 1 stage deck piece drawn; 3 of 380 effects in view across 138 models
+a scene: frame 74: 1 stage deck piece drawn; 3 of 380 effects in view across 138 models
+b frame: arena sky present (98.4% of the top band is sky, needs 50%); stage in the stage band present (47 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/share/smashcraft-build-inputs/rematch-saturation-20261006/capture/player-view-1/b.ppm
+   8.882 s  b player view (0.630 s)
+a frame: arena sky present (92.8% of the top band is sky, needs 50%); stage in the stage band present (49 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/share/smashcraft-build-inputs/rematch-saturation-20261006/capture/player-view-1/a.ppm
+   8.970 s  a player view (0.723 s)
+a scene: frame 1385: 1 stage deck piece drawn; 2 of 380 effects in view across 138 models
+  33.205 s  a player view (0.243 s)
+b scene: frame 1385: 1 stage deck piece drawn; 2 of 380 effects in view across 138 models
+  33.245 s  b player view (0.282 s)
+Epoch 1: game start, tap, stock loss and results observed
+a scene: frame 1436: 1 stage deck piece drawn; 11 of 508 effects in view across 251 models
+b scene: frame 1436: 1 stage deck piece drawn; 11 of 508 effects in view across 251 models
+a frame: arena sky present (92.7% of the top band is sky, needs 50%); stage in the stage band present (49 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/share/smashcraft-build-inputs/rematch-saturation-20261006/capture/player-view-2/a.ppm
+  66.466 s  a player view (0.312 s)
+b frame: arena sky present (98.4% of the top band is sky, needs 50%); stage in the stage band present (47 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/share/smashcraft-build-inputs/rematch-saturation-20261006/capture/player-view-2/b.ppm
+  66.581 s  b player view (0.426 s)
+a scene: frame 2694: 1 stage deck piece drawn; 3 of 508 effects in view across 251 models
+  87.752 s  a player view (0.575 s)
+b scene: frame 2694: 1 stage deck piece drawn; 3 of 508 effects in view across 251 models
+  87.823 s  b player view (0.645 s)
+Epoch 2: game start, tap, stock loss and results observed
+ 112.493 s  native input-integrity capture (112.493 s)
+ 112.494 s  parity (112.494 s)
