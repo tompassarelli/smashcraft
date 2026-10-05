@@ -8,12 +8,14 @@ import { ReplayCorrections, ReplayHistory } from "../src/game/replay/history";
 import { Character } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
 import { projectileActive } from "../src/game/sim/projectiles";
-import { start } from "../src/platform/main";
+import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
+import { start, startBuild } from "../src/platform/main";
 import { applyFrame } from "../src/platform/shell/frame";
 import { startMatch } from "../src/platform/shell/matchStart";
 import { confirm } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
 import { pauseMatchPresentation, renderPersistentPresentation } from "../src/platform/shell/view";
+import { views } from "../src/platform/shell/ui";
 import { Client, Lockstep, installNatives } from "./desync/twoClients";
 
 const restoreNatives = installNatives();
@@ -221,6 +223,32 @@ test("quick match: a shot's missile and the idle missile pools stay out of the a
     expect(requestStart(s.game, 0)).toBe(true);
     startMatch(s);
     expect(hiddenInView(client)).toEqual([]);
+  });
+  expect(client.errors).toEqual([]);
+});
+
+test("pooled fighters: every clip but the presented one waits collapsed beneath the floor", () => {
+  const clients = new Lockstep([0, 1]);
+  clients.everywhere(() => startBuild(INTEGRITY_BUILD));
+  clients.ticks(30);
+  clients.chat(0, "-dev quick");
+  clients.ticks(60);
+  const client = clients.clients[0];
+  if (client === undefined) throw new Error("missing host client");
+  client.run(() => {
+    const s = shell();
+    expect(s.game.phase).toBe(Phase.match);
+    expect(hiddenInView(client)).toEqual([]);
+    for (const slot of [0, 1] as const) {
+      const pool = views(s).fighters[slot]?.pool;
+      if (pool === undefined) throw new Error(`slot ${slot} has no clip pool`);
+      expect(pool.admitted()).toBe(true);
+      // A different clip hides the shown one; hiding the pool hides the new one.
+      pool.present(fighterAt(s.world, slot), { ...s.runtime.poses[slot], clipIndex: 1 });
+      expect(hiddenInView(client)).toEqual([]);
+      pool.hide();
+      expect(hiddenInView(client)).toEqual([]);
+    }
   });
   expect(client.errors).toEqual([]);
 });

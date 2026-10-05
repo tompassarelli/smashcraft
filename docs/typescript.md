@@ -239,9 +239,21 @@ from smashcraft:tools/stage/package.ts. The build fails unless each family's
 import list under `--assets` holds every model its module names, and unless the
 summon evidence lists the clips smashcraft:ts/src/game/presentation/summonClipInfo.ts
 names; the archive check then verifies the map carries them. `rebuild` and
-`fresh --rebuild` keep the map's imports, so they fail unless the map already
-carries every imported model the new script names (`SCRIPT_MODELS`); build the
-map again after regenerating a model.
+`fresh --rebuild` keep the map's imports, so they fail unless the archive's file
+list names every imported model the new script names (`SCRIPT_MODELS`); build
+the map again after regenerating a model.
+
+Pooled fighters derive from the original fighter models.
+smashcraft:tools/animations/export-original-clips.ts reads them from
+`--assets PRIVATE_ASSETS`, writes one clip model per original sequence, each
+fighter's static light and their evidence to `--out` outside the checkout, and
+writes smashcraft:ts/src/game/assets/fighterOriginalClipInfo.ts; with
+`--metadata-only` it checks retained clips against the current sources and
+writes only the module. The build fails unless `--assets`'s
+original-clips-static-lights/original-clips-evidence.json lists every clip and
+light the module names. Hidden pooled clips wait collapsed on the ground beneath
+the floor, like every hidden effect, because alpha does not stop a model's
+particle emitters.
 
 The build first checks the running Bun and the declared and installed packages
 against smashcraft:typescript-toolchain.lock.

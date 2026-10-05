@@ -4,7 +4,7 @@ import { expect, test } from "bun:test";
 import { verifyToolchain } from "waygate/scripts/waygate/mapBuild";
 import { composeScript, typescriptBase } from "waygate/scripts/mapScript";
 import { fileIoAbility } from "../scripts/objectData";
-import { GENERATED_MODELS, SCRIPT_MODELS, missingModels } from "../scripts/waygate/mapInputs";
+import { GENERATED_MODELS, ORIGINAL_CLIP_MODELS, SCRIPT_MODELS, missingModels } from "../scripts/waygate/mapInputs";
 import { STAGE_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 
 const project = join(import.meta.dir, "../..");
@@ -38,6 +38,9 @@ test("a build refuses import lists that lack a model the script names", () => {
   expect(missingModels([deck, "StagePalette-0.tga"], [STAGE_DECK_MODEL])).toBeUndefined();
   expect(missingModels([deck], [STAGE_DECK_MODEL, ""])).toBe("the map script names an empty model path");
   expect(missingModels(["StageDeck-0.mdx", "StagePalette-0.tga"], [STAGE_DECK_MODEL])).toBe(`${STAGE_DECK_MODEL} not among the imports`);
+  const clipFiles = ORIGINAL_CLIP_MODELS.map((model) => model.slice("war3mapImported\\".length));
+  expect(missingModels(clipFiles, ORIGINAL_CLIP_MODELS)).toBeUndefined();
+  expect(missingModels(clipFiles.slice(4), ORIGINAL_CLIP_MODELS)).toMatch(/ and 1 more not among the imports$/);
 });
 
 test("the FileIO ability retains the recorded war3map.w3a bytes", () => {
