@@ -122,6 +122,13 @@ impl VirtualPad {
             .attach_virtual_joystick(desc)
             .map_err(|e| e.to_string())?;
         let joystick = joysticks.open(connection.id()).map_err(|e| e.to_string())?;
+        // A physical pad reports its resting state on connect, and SDL recenters
+        // each axis to its first report on disconnect. Report rest the same way.
+        for (axis, rest) in [0, 0, 0, 0, i16::MIN, i16::MIN].into_iter().enumerate() {
+            joystick
+                .set_virtual_axis(axis as u32, rest)
+                .map_err(|e| e.to_string())?;
+        }
         let (sender, commands) = mpsc::channel();
         std::thread::spawn(move || {
             for line in std::io::stdin().lock().lines() {
