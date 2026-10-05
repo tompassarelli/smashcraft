@@ -70,6 +70,7 @@ export const freshMatch = (map: string) => Effect.gen(function*() {
     if (yield* read(client, CUSTOM_GAMES, "light", /CREATE/i)) return;
     // Results, a lobby and Create Game all leave through the same Back button.
     if (!(yield* read(client, RESULTS, "gold", /RESULTS/i)) && !(yield* read(client, LOBBY, "light", /PLAYERS/i)) && !(yield* read(client, CREATE_TITLE, "light", /REATE\s*GAME/i))) {
+      yield* clients.keys(client, "Escape");
       yield* clients.keys(client, "F10");
       yield* waitForText(client, "game menu", /Game Menu/i, GAME_MENU, "gold", 5);
       yield* clients.keys(client, "e");
@@ -144,9 +145,9 @@ export const startQuickMatch = Effect.gen(function*() {
     Effect.flatMap((old) => old === undefined ? Effect.void : files.remove(path)),
   ), { concurrency: "unbounded", discard: true }).pipe(step("clear old quick-match receipts"));
 
-  yield* clients.keys(host, "enter");
+  yield* clients.keys(host, "Return");
   yield* clients.typeText(host, QUICK_MATCH_COMMAND);
-  yield* clients.keys(host, "enter").pipe(step("send -dev quick"));
+  yield* clients.keys(host, "Return").pipe(step("send -dev quick"));
 
   const waitReceipt = ({ client, path, slot }: typeof receipts[number]) => Effect.gen(function*() {
     let problem: MalformedGameFile | undefined;

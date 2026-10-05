@@ -132,6 +132,7 @@ test("fresh-match flow drives two fake clients and waits on the Effect clock for
   const states = new Map(clients.map(({ name }) => [name, "game"]));
   const selected = new Set<string>();
   const clicks: string[] = [];
+  const keyEvents: string[] = [];
   let readyAt: number | undefined;
   let quickAt: number | undefined;
   let chatSubmissions = 0;
@@ -180,11 +181,12 @@ test("fresh-match flow drives two fake clients and waits on the Effect clock for
       }
     }),
     keys: (client, ...names) => Effect.gen(function*() {
+      keyEvents.push(...names.map((name) => `${client.name}:${name}`));
       const state = states.get(client.name);
       if (names.includes("F10")) states.set(client.name, "menu");
       else if (names.includes("e") && state === "menu") states.set(client.name, "end-menu");
       else if (names.includes("q") && state === "end-menu") states.set(client.name, "results");
-      else if (names.includes("enter")) {
+      else if (names.includes("Return")) {
         chatSubmissions++;
         if (chatSubmissions === 2) quickAt = (yield* Clock.currentTimeMillis) + 100;
       }
@@ -208,6 +210,7 @@ test("fresh-match flow drives two fake clients and waits on the Effect clock for
   await Effect.runPromise(run);
   expect([...states.values()]).toEqual(["playing", "playing"]);
   expect(selected).toEqual(new Set(["a"]));
+  expect(keyEvents.indexOf("a:Escape")).toBeLessThan(keyEvents.indexOf("a:F10"));
   expect(clicks).toContain(`a:${START.x},${START.y}`);
   expect(messages.at(-1)).toBe("-dev quick");
   expect(chatSubmissions).toBe(2);

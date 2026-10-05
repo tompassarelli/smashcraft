@@ -208,7 +208,7 @@ const keys = (client: Desktop, ...names: string[]) =>
 const typeText = (client: Desktop, value: string) =>
   Effect.gen(function*() {
     yield* focus(client);
-    yield* run(client.name, "type text", [client.tools.xdotool, "type", "--clearmodifiers", value], client.x11);
+    yield* run(client.name, "type text", [client.tools.xdotool, "type", "--clearmodifiers", "--", value], client.x11);
   });
 
 function pointer(client: Desktop) {
