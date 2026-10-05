@@ -11,7 +11,7 @@ import { installShell, startShell } from "./shell/shell";
 import { installObjectData } from "./shell/objectData";
 
 export function install(this: void): void {
-  configureRuntime({ filePrefix: "smashcraft", globalPrefix: "__smashcraft", announcePrefix: "SC_HR", readyPrefix: "SC_HRR" });
+  configureRuntime({ filePrefix: "smashcraft", globalPrefix: "__smashcraft", readyPrefix: "SC_HRR" });
   installDispatch();
   installShell();
   installObjectData();
@@ -22,7 +22,7 @@ export function install(this: void): void {
 export function startBuild(this: void, build: MapBuild): void {
   install();
   startShell(build, replayHistoryPlayback());
-  startHotReload(0, GetPlayerId(GetLocalPlayer()));
+  startHotReload();
 }
 
 export function start(this: void): void {

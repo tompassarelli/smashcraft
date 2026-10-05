@@ -104,7 +104,7 @@ test("hot reload publishes payloads before manifests and waits for each fake cli
   expect(await Effect.runPromise(clocked)).toBe(1);
   for (const directory of directories) {
     const payload = events.findIndex((event) => event.startsWith(`payload:${directory}/`));
-    const manifest = events.findIndex((event) => event === `manifest:${directory}/smashcraft-hot-manifest-1.pld`);
+    const manifest = events.findIndex((event) => event === `manifest:${directory}/smashcraft-hot/manifest-1.pld`);
     const acknowledgementRead = events.findIndex((event) => event === `ack:${directory}/smashcraft-hot-ack-p0.txt`);
     expect(payload).toBeGreaterThanOrEqual(0);
     expect(manifest).toBeGreaterThan(payload);

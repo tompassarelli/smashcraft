@@ -82,9 +82,13 @@ ownership. `smashcraft:ts/scripts/wisp.ts` is the single CLI entrypoint;
 `bun wisp hot`, `build`, `rebuild`, `fresh`, `client`, `tapes` and `parity`
 are commands composed from shared GameFiles, Clients, MapBuild, HotReload and
 SourceErrors services. Each command prints its steps and elapsed time. Hot
-reload publishes every client's payload before its manifest. A failed or
-cancelled publication does not count as installed; client acknowledgements
-decide that result. Warcraft acknowledgement files contain a complete Preload
+reload publishes every client's payload before any manifest, into each
+client's `CustomMapData/smashcraft-hot` folder, which every client polls 32
+times a second ([Wisp hot reload](https://github.com/tompassarelli/wisp/blob/main/docs/hot-reload.md)).
+In `hot --watch`, each change's `vN running in 2 client(s)` line ends at the
+time from its save to both clients' acknowledgements. A failed or cancelled
+publication does not count as installed; client acknowledgements decide that
+result. Warcraft acknowledgement files contain a complete Preload
 function, including whitespace and line endings around the message.
 
 Map builds use staged outputs: interrupting a step stops its child process, a

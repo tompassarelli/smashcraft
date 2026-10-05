@@ -43,7 +43,7 @@ function report(): string[] {
     Preload: (text: string) => { lines.push(text); },
     PreloadGenEnd: () => {},
   });
-  configureRuntime({ filePrefix: "stackDemo", announcePrefix: "SD_HR", readyPrefix: "SD_HRR", globalPrefix: "__stackDemo" });
+  configureRuntime({ filePrefix: "stackDemo", readyPrefix: "SD_HRR", globalPrefix: "__stackDemo" });
   installDispatch();
   installStackDemo({ ...CURRENT_BUILD, devConsole: true });
   trampoline(STACK_DEMO_HANDLER)();
