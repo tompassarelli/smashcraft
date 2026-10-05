@@ -39,6 +39,12 @@ export interface MapBuild {
   /** The `-dev` chat commands and the developer status line; players of a playable build see neither. */
   readonly devConsole: boolean;
   /**
+   * Displays runtime error reports (`error in HANDLER: ...`: handler names, TypeScript
+   * lines, Lua messages) on screen. Reports reach the error file either way, which the
+   * development host and the capture gates read; players of a playable build see no report.
+   */
+  readonly errorsOnScreen: boolean;
+  /**
    * Polls CustomMapData for `bun wisp hot` bundles, 32 file lookups a second.
    * Under Wine a lookup that misses reads its whole folder, so a client with
    * no `smashcraft-hot` folder lists all of CustomMapData on every poll.

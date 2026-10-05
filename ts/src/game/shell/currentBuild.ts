@@ -12,6 +12,7 @@ export const INTEGRITY_BUILD: MapBuild = {
   scenario: "normal",
   responseProbe: true,
   devConsole: true,
+  errorsOnScreen: true,
   hotReload: true,
 };
 
@@ -20,6 +21,7 @@ export const PLAYABLE_BUILD: MapBuild = {
   id: "playable-0046",
   responseProbe: false,
   devConsole: false,
+  errorsOnScreen: false,
   hotReload: false,
 };
 
@@ -31,5 +33,6 @@ export const CURRENT_BUILD: MapBuild = {
   scenario: "normal",
   responseProbe: false,
   devConsole: true,
+  errorsOnScreen: true,
   hotReload: true,
 };
