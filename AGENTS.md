@@ -82,6 +82,9 @@ code. From smashcraft:ts/:
   the production numerical fixtures. Rebuild it with
   `bun waygate rebuild MAP.w3x --profile physics-probe`; see
   smashcraft:docs/native-physics-precision.md for the unchanged report gate.
+- Frame workload: `bun waygate build --profile frame-cost ...` runs the
+  isolated 4096-frame TypeScript executor and records its complete replay state.
+  smashcraft:ts/scripts/frameCost.ts reads recorded paired benchmark results.
 
 ## Verify the changed behavior
 

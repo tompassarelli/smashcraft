@@ -4,21 +4,17 @@ For executable contact, punish and follow-up comparisons under named conditions,
 see smashcraft:docs/move-comparisons.md.
 
 Run `~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/export.sh`
-(or the same command in the current owned checkout) to compile the pinned Wurst
-source and write smashcraft:build/move-export/moves.jsonl. It takes about ten
-seconds locally. Java/compiler/stdlib locations follow the existing project
-setup; the compiler artifact is checked against smashcraft:wurst-toolchain.lock.
-The Lua runtime comes from that lock. Set `MOVE_DATA_LUA` to an installed Lua 5.3
-executable to avoid the default Nix shell lookup. Apply the machine-capacity
-wrapper from the operating instructions when running the compiler.
+(or the same command in the current owned checkout) to run the pinned Bun
+toolchain over Smashcraft's TypeScript simulation and write
+smashcraft:build/move-export/moves.jsonl. The script reads timing, hit-region,
+capsule, contact-math and motion facts directly from the game modules; it does
+not import them into a second data table.
 
-smashcraft:tools/move-data/moves.jsonl is the queryable snapshot. `--check`
-checks actual jab contact resolution for all three fighters, character-specific
-down-air recovery and a real L-cancel landing transition, then recompiles
-production and compares the complete export against that snapshot;
-a production-value change fails until the changed data is inspected and the
-snapshot explicitly regenerated. The data is generated output, never tuning
-input. Do not edit numerical values in the snapshot.
+smashcraft:tools/move-data/moves.jsonl is the checked-in snapshot. `--check`
+regenerates the export and compares every row to that snapshot at 12-decimal
+numeric precision. A production-value change fails until it is inspected and
+the snapshot is explicitly regenerated. The snapshot is generated output,
+never tuning input. Do not edit numerical values in the snapshot.
 
 ```sh
 jq 'select(.kind == "move" and .character == 0 and .move == "down-air")' \
@@ -27,11 +23,10 @@ jq 'select(.kind == "contact" and .move == "forward-tilt" and .character == 1) |
   ~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/moves.jsonl
 ```
 
-The Wurst query seam is smashcraft:wurst/MoveData.wurst. It calls the owning
-production timing, hit-region and capsule functions. The emitter at
-smashcraft:tools/move-data/MoveDataExport.wurst serializes those results. The shell
-and Lua files only run the compiler/runtime and write its output; they neither
-parse gameplay source nor maintain combat values.
+The offline emitter is smashcraft:ts/scripts/moveData.ts. It calls the
+production timing, hit-region, capsule, knockback, shield and motion functions;
+smashcraft:tools/move-data/export.sh is a small Bun launcher. The generated
+facts are not game input and do not change the map build.
 
 Each JSONL row has `kind`: `context`, `move`, `contact`, or `motion`. The join key
 is `(character, style, chargeFrames)`. Character IDs are 0 Archer, 1 Rifleman,
@@ -47,8 +42,8 @@ early-to-late damage change is not itself permission to rehit.
 4 means first active contact at frame 4 (display frame 5). Timing excludes
 hitlag and charge pauses. Recovery uses the character-specific active duration;
 Archer down-air has a longer active interval than the other fighters. Smash
-contacts show charge 0 and maximum charge; Wurst callers can query arbitrary
-charge via `authoredHitRegion`. The full charge trajectory is not a motion row.
+contacts show charge 0 and maximum charge; callers can query arbitrary charge
+through `authoredHitRegion`. The full charge trajectory is not a motion row.
 
 Damage, knockback growth/base, raw launch vector and eligibility envelope are
 authored properties. `angleDegrees` is derived from that vector before facing,
@@ -57,10 +52,10 @@ necessarily unit length. `hitCapsule` is the actual facing-relative production
 contact geometry; the envelope is its authoring input, not an additional
 rectangle contact test. Hurt capsules are production's pose-independent
 approximation, not animation hurtboxes or a reference-game parity claim.
-Distances use simulation world units (six per Melee reference unit).
-Numbers use the native `R2SW` formatter at 12 fractional digits, following its
-binary32 fractional scaling. This is a readable numerical export, not an exact
-binary representation; the final decimal places can contain formatting error.
+Distances use simulation world units (six per Melee reference unit). JSON
+numbers retain the TypeScript host's round-trip decimal representation of the
+simulation values. Snapshot comparison rounds numeric values to 12 fractional
+digits, matching the precision of the earlier exporter.
 
 `derived` calls production math for one explicitly named context: pre-hit
 percent 0, victim weight 100, context scale 1, no crouch/electric modifier except
