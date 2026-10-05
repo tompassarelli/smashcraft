@@ -150,14 +150,30 @@ function startMatch()
 	if not history.beginEpoch(epoch, 1)
 		fail("history refused epoch " + I2S(epoch))
 
+function flagText(boolean value) returns string
+	return value ? "1" : "0"
+
+// Fighter presentation, which the replay checksum leaves out, in the canonical field form.
+function poseText() returns string
+	var text = ""
+	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+		if world.active(slot)
+			let pose = runtime.poses[slot]
+			let prefix = "|pose[" + I2S(slot) + "]."
+			text += prefix + "animation=" + pose.animation + prefix + "jumpAnimationRemaining=" + I2S(pose.jumpAnimationRemaining)
+			text += prefix + "doubleJumpAnimation=" + flagText(pose.doubleJumpAnimation) + prefix + "landingAnimationRate=" + canonicalReal(pose.landingAnimationRate)
+			text += prefix + "clipIndex=" + I2S(pose.clipIndex) + prefix + "clipName=" + pose.clipName + prefix + "clipTime=" + canonicalReal(pose.clipTime)
+			text += prefix + "rate=" + canonicalReal(pose.rate) + prefix + "selectionSerial=" + I2S(pose.selectionSerial)
+			text += prefix + "motion=" + I2S(pose.motion.motion) + prefix + "transitionRemaining=" + I2S(pose.motion.transitionRemaining)
+			text += prefix + "respawnRemaining=" + I2S(pose.motion.respawnRemaining) + prefix + "escapeRemaining=" + I2S(pose.motion.escapeRemaining)
+			text += prefix + "ledgeCatchRemaining=" + I2S(pose.motion.ledgeCatchRemaining) + prefix + "ledgeJump=" + flagText(pose.motion.ledgeJump)
+	return text
+
 // The canonical state text rather than its checksum: equal texts give equal checksums,
 // a difference names its field, and hashing in compiled Wurst would dominate the run.
 function emit(string operation, string result)
 	observed.capture(world, game, controls, runtime)
-	TapeOracleEmit(I2S(TapeOracleLineNumber()) + " " + operation + " " + result + " " + observed.canonicalState())
-
-function boolText(boolean value) returns string
-	return value ? "1" : "0"
+	TapeOracleEmit(I2S(TapeOracleLineNumber()) + " " + operation + " " + result + " " + observed.canonicalState() + poseText())
 
 function runFrame()
 	let number = TapeOracleInt()
@@ -195,7 +211,7 @@ function perform(string operation)
 		game.selectCharacter(slot, TapeOracleInt())
 		emit(operation, "-")
 	else if operation == "stage-select"
-		emit(operation, boolText(game.requestStageSelect(TapeOracleInt())))
+		emit(operation, flagText(game.requestStageSelect(TapeOracleInt())))
 	else if operation == "stage"
 		let slot = TapeOracleInt()
 		game.selectStage(slot, TapeOracleInt())
@@ -212,12 +228,12 @@ function perform(string operation)
 		let started = game.requestStart(TapeOracleInt())
 		if started
 			startMatch()
-		emit(operation, boolText(started))
+		emit(operation, flagText(started))
 	else if operation == "rematch"
 		let confirmed = game.confirmRematch(TapeOracleInt())
 		if confirmed
 			game.updateConnectedHumans(game.humanMask)
-		emit(operation, boolText(confirmed))
+		emit(operation, flagText(confirmed))
 	else
 		fail("unknown operation " + operation)
 

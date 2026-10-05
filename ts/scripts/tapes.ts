@@ -196,8 +196,8 @@ interface Run {
   readonly error: string | undefined;
 }
 
-function command(argv: string[], env: Record<string, string> = {}): { output: string; error: string | undefined } {
-  const result = Bun.spawnSync(argv, { env: { ...process.env, ...env }, stdout: "pipe", stderr: "pipe" });
+function command(argv: string[], cwd = ts): { output: string; error: string | undefined } {
+  const result = Bun.spawnSync(argv, { cwd, stdout: "pipe", stderr: "pipe" });
   const stderr = result.stderr.toString().trim();
   return { output: result.stdout.toString(), error: result.exitCode === 0 ? undefined : stderr || `exit ${result.exitCode}` };
 }
@@ -286,13 +286,14 @@ async function compileWurstLua(): Promise<number> {
   return cachedBuild(oracleLua, hash, () => {
     command(["mkdir", "-p", workspace]);
     command(["cp", join(project, "wurst.build"), join(project, "wurst_run.args"), workspace]);
-    // The JVM compile is heavy work, admitted by the machine's capacity helper.
+    // The JVM compile is heavy work, admitted by the machine's capacity helper. The compiler
+    // also writes compiled.lua.txt into its working directory.
     const capacity = join(dirname(command(["agents", "path", "machine-capacity-distilled"]).output.trim()), "scripts", "machine-capacity.mjs");
     const { output, error } = command([
       "bun", capacity, "run", "--class", "heavy", "--owner", process.env.CAPACITY_OWNER ?? "smashcraft/tapes", "--timeout-seconds", "900", "--",
       java, "-Xmx2048m", "-XX:ActiveProcessorCount=2", "-jar", compilerJar, "-lua", "-runcompiletimefunctions", "-stacktraces",
       "-workspaceroot", workspace, "-lib", stdlibPin, "-out", oracleLua, commonJ, blizzardJ, ...WURST_SOURCES,
-    ]);
+    ], workspace);
     return error ?? (/errors: [1-9]/.test(output) ? output : undefined);
   });
 }

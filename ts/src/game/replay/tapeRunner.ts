@@ -14,7 +14,8 @@ import { createReplayRuntimeState, resetPoses } from "../match/runtime";
 import { initializeMatchFighters, matchSpawnX } from "../match/step";
 import { createFighter } from "../sim/fighter";
 import { copyControls, createRoster, isActive, neutralControls } from "../sim/roster";
-import { canonicalState } from "./canonical";
+import type { FighterPose } from "../presentation/fighterPose";
+import { canonicalReal, canonicalState } from "./canonical";
 import { REPLAY_HISTORY_CAPACITY } from "./limits";
 import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot, type ReplaySnapshot } from "./snapshot";
 import { type TapeOperation, applyControls } from "./tape";
@@ -55,9 +56,23 @@ function retained(history: TapeHistory, frame: number): boolean {
   return frame >= history.nextFrame - history.count && frame < history.nextFrame && historySlot(history.rows, frame).frame === frame;
 }
 
+/** Fighter presentation, which the replay checksum leaves out, in the canonical field form. */
+function poseFields(slot: number, pose: Readonly<FighterPose>): string {
+  const p = `|pose[${slot}].`;
+  const { motion } = pose;
+  return `${p}animation=${pose.animation}${p}jumpAnimationRemaining=${pose.jumpAnimationRemaining}`
+    + `${p}doubleJumpAnimation=${pose.doubleJumpAnimation ? 1 : 0}${p}landingAnimationRate=${canonicalReal(pose.landingAnimationRate)}`
+    + `${p}clipIndex=${pose.clipIndex}${p}clipName=${pose.clipName}${p}clipTime=${canonicalReal(pose.clipTime)}`
+    + `${p}rate=${canonicalReal(pose.rate)}${p}selectionSerial=${pose.selectionSerial}`
+    + `${p}motion=${motion.motion}${p}transitionRemaining=${motion.transitionRemaining}`
+    + `${p}respawnRemaining=${motion.respawnRemaining}${p}escapeRemaining=${motion.escapeRemaining}`
+    + `${p}ledgeCatchRemaining=${motion.ledgeCatchRemaining}${p}ledgeJump=${motion.ledgeJump ? 1 : 0}`;
+}
+
 /**
  * Runs every operation in order, stopping at the first one the rules or history
- * refuse. Emits "LINE OPERATION RESULT CANONICAL-STATE" for every operation but input.
+ * refuse. Emits "LINE OPERATION RESULT CANONICAL-STATE" for every operation but
+ * input, the canonical replay state followed by each fighter's pose.
  */
 export function runTape(operations: readonly TapeOperation[], emit: (record: string) => void): TapeResult {
   const game = createMatchState();
@@ -73,7 +88,9 @@ export function runTape(operations: readonly TapeOperation[], emit: (record: str
 
   const record = (line: number, operation: string, result: string) => {
     captureReplaySnapshot(observed, world, game, controls, runtime);
-    emit(`${line} ${operation} ${result} ${canonicalState(observed)}`);
+    let poses = "";
+    for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot)) poses += poseFields(slot, runtime.poses[slot]);
+    emit(`${line} ${operation} ${result} ${canonicalState(observed)}${poses}`);
   };
 
   // The pure part of starting a match in the game: fresh fighters, runtime and history epoch.
