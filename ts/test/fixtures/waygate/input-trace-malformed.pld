@@ -1,0 +1,7 @@
+function PreloadFiles takes nothing returns nothing
+call PreloadStart()
+call Preload( "confirmed frame 301 state 8821" )
+call Preload( "dropped many" )
+call Preload( "300 4.996 end" )
+call PreloadEnd( 0.0 )
+endfunction

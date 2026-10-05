@@ -4,7 +4,7 @@
 // Composing appends the TypeScript bundle and the main() and config() that
 // start them, so `scripts/map.ts rebuild` replaces only the bundle.
 import { readFileSync } from "node:fs";
-import { payloadKey } from "../src/runtime/hotFiles";
+import { payloadKey } from "../src/runtime/gameFiles";
 import { checksum } from "../src/runtime/payload";
 import { longBrackets } from "./lua";
 import { keepSourceMap } from "./sourceMaps";

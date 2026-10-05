@@ -60,18 +60,21 @@ or code in a running game, and smashcraft:docs/typescript.md before writing map
 code. From smashcraft:ts/:
 - Logic: `bun test`, plus `LUA=<32-bit lua> bun scripts/lua-tests.ts` for the
   emitted Lua. `bun run check` type-checks.
-- Running game: `bun scripts/hot.ts --data <CustomMapData> ... --watch`
-  hot-reloads every save into both clients and prints in-game errors with
-  TypeScript lines.
-- Map: `../build-typescript.sh BASE_MAP ASSET_CONTAINER` builds a map whose only
-  project code is TypeScript (no Wurst compile); `bun scripts/map.ts rebuild
-  MAP.w3x` replaces only the script of a map that it or build.sh packaged.
-- Fresh match: `bun scripts/fresh.ts MAP.w3x` takes both signed-in clients from
+- Running game: `bun waygate hot --data <client A CustomMapData> --data <client
+  B CustomMapData> --watch` hot-reloads every save into both clients and prints
+  in-game errors with TypeScript lines.
+- Map commands: `bun waygate build --base BASE.w3m --container MAP.w3x --assets
+  DIR --summon DIR --name NAME --out OUT.w3x` builds the TypeScript map;
+  `bun waygate rebuild MAP.w3x` replaces only its script.
+- Fresh match: `bun waygate fresh MAP.w3x` takes both signed-in clients from
   wherever they are to character selection in a new Battle.net game of MAP.
-  `bun scripts/warcraft.ts look|read|click|keys CLIENT ...` reads and drives
-  one client. Session values live in ~/.local/state/smashcraft/clients.json.
-- Tapes: `LUA=<32-bit lua> bun scripts/tapes.ts` replays the acceptance tapes in
-  compiled Wurst Lua, Bun and 32-bit Lua and reports divergent frames.
+- Client driver: `bun waygate client look|read|click|keys CLIENT ...` reads and
+  drives a client. Session values live in ~/.local/state/smashcraft/clients.json.
+- Tapes: set `LUA` to the 32-bit Lua executable, then run `bun waygate tapes` to
+  compare replay results across compiled Wurst Lua, Bun and Lua32.
+- Parity: `bun waygate parity numeric` compares the numeric corpus with Lua32;
+  `bun waygate parity capture ...` runs native input-integrity capture and
+  `bun waygate parity result DIR` reconciles its output.
 
 ## Verify the changed behavior
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# TypeScript-only map build: no Wurst compile. smashcraft:ts/scripts/mapBuild.ts
+# TypeScript-only map build: no Wurst compile. `waygate build` (smashcraft:ts/scripts/waygate/mapBuild.ts)
 # does the work; this script supplies build.sh's input layout and map-pack.
 set -euo pipefail
 
@@ -24,7 +24,7 @@ if [[ ! -x "$packager" ]]; then
 fi
 mkdir -p "$(dirname -- "$output")"
 
-exec "$bun" "$project_dir/ts/scripts/map.ts" build \
+exec "$bun" "$project_dir/ts/scripts/waygate.ts" build \
     --base "$(realpath -- "$1")" --container "$(realpath -- "$2")" \
     --assets "$project_dir/build" --summon "$private_assets/summon-original-clips" \
     --name "$map_name" --out "$output" --packager "$packager"

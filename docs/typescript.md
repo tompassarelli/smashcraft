@@ -45,20 +45,22 @@ Map Lua has 32-bit integers that wrap silently and binary32 numbers whose raw
 
 ### Effect on the host
 
-Waygate's Bun tools use Effect for asynchronous orchestration: typed
-failures, boundary decoding with Schema, bounded client publication and scoped
-resource ownership. The hot-reload entrypoint is smashcraft:ts/scripts/hot.ts;
-its Effect operations live in smashcraft:ts/scripts/hotEffects.ts. Publish each
-client's payload before its manifest. A failed or cancelled publication must
-not report successful game installation; the clients' acknowledgements decide
-that result. Warcraft acknowledgement files contain a complete Preload
+Waygate's host tools use Effect for asynchronous orchestration: typed failures,
+boundary decoding with Schema, bounded client publication and scoped resource
+ownership. `smashcraft:ts/scripts/waygate.ts` is the single CLI entrypoint;
+`bun waygate hot`, `build`, `rebuild`, `fresh`, `client`, `tapes` and `parity`
+are commands composed from shared GameFiles, Clients, MapBuild, HotReload and
+SourceErrors services. Each command prints its steps and elapsed time. Hot
+reload publishes every client's payload before its manifest. A failed or
+cancelled publication does not count as installed; client acknowledgements
+decide that result. Warcraft acknowledgement files contain a complete Preload
 function, including whitespace and line endings around the message.
 
-Map builds follow the same pattern: smashcraft:ts/scripts/mapBuild.ts runs
-the TypeScript-only build and the script rebuild with the operations in
-smashcraft:ts/scripts/mapEffects.ts. Interrupting a step stops its child
-process, a failed step leaves the previous map in place, and archive entries
-are verified four at a time.
+Map builds use staged outputs: interrupting a step stops its child process, a
+failed step leaves the previous map in place, and archive entries are verified
+four at a time. `waygate parity numeric` compares the numeric corpus against
+Lua32; `waygate parity capture` and `waygate parity result` run and reconcile
+the native issue #26 input-integrity check through the same CLI.
 
 Pure simulation, numeric operations, code transforms and binary-format
 encoders remain plain TypeScript. The TSTL map compiler uses TypeScript 6's
@@ -122,12 +124,13 @@ From smashcraft:ts/:
 - `bun run check`: type-check the host tools and the game with TypeScript 7
   (about 0.3 s). TypeScriptToLua needs the compiler API that only TypeScript
   6.0 has, so it compiles with 6.0 and the two report the same errors.
-- `LUA=<32-bit lua> bun scripts/parity.ts`: emitted Lua against Bun on the
-  numeric corpus.
+- `LUA=<32-bit lua> bun waygate parity numeric`: emitted Lua against Bun on
+  the numeric corpus.
 - `GAME_SOAK=1 bun test test/game.test.ts`: the long `*.soak.ts` scenarios,
   such as the 100000-frame replay tape, which the default suite leaves out.
   `GAME_SOAK=1` selects the same modules for `scripts/lua-tests.ts`.
-- `LUA=<32-bit lua> bun scripts/tapes.ts`: the replay acceptance tapes. It
+- Set `LUA=<32-bit lua>`, then run `bun waygate tapes` for replay acceptance
+  tapes. It
   records tapes covering every bound key, rollbacks, predictions corrected
   through the replay history and a rematch, replays them in Wurst's own Lua
   (smashcraft:tools/tape-oracle/), in Bun and in TypeScript's emitted Lua, and

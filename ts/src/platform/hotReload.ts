@@ -1,12 +1,12 @@
 // Development hot reload. The host client polls for the next manifest
-// scripts/hot.ts writes into CustomMapData and announces it in a synchronized
+// `waygate hot` writes into CustomMapData and announces it in a synchronized
 // message. Every client reads its own copy, verifies and loads it, and
 // broadcasts whether it is ready. When the last answer arrives, all clients
 // install the bundle on that same frame, or all refuse it, so a file problem
 // on one client can't split the simulations. Match state is untouched: it lives
 // in globals the new code reads. The reloader's own handlers are reinstalled
 // too, so it can reload itself.
-import { ackFile, manifestFile, parseManifest, payloadFile, payloadKey } from "../runtime/hotFiles";
+import { acknowledgementLine, ackFile, manifestFile, parseManifest, payloadFile, payloadKey } from "../runtime/gameFiles";
 import { checksum } from "../runtime/payload";
 import { floorDiv } from "../sim/intMath";
 import { on, trampoline } from "./dispatch";
@@ -146,7 +146,7 @@ function answered(): void {
   state.clock ??= startClock();
   PreloadGenClear();
   PreloadGenStart();
-  Preload(`applied ${version} at ${TimerGetElapsed(state.clock)}`);
+  Preload(acknowledgementLine(version, TimerGetElapsed(state.clock)));
   PreloadGenEnd(ackFile(state.localSlot));
   report(`hot reload ${version} applied`);
 }
