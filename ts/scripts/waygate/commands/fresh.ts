@@ -12,8 +12,8 @@ import type { MalformedGameFile } from "waygate/scripts/waygate/boundary";
 import { type Client, Clients, type DesktopFailure, waitFor, waitForText } from "waygate/scripts/waygate/clients";
 import { type Command, UsageFailure } from "waygate/scripts/waygate/command";
 import { GameFiles, dataDirectory, readGameFile } from "waygate/scripts/waygate/gameFiles";
-import { MapBuild } from "waygate/scripts/waygate/mapBuild";
 import { step } from "waygate/scripts/waygate/timings";
+import { rebuildMap } from "../mapInputs";
 
 // Regions of the 2560x1440 frame where each screen's identifying label appears.
 export const GAME_MENU = { x: 1100, y: 180, width: 420, height: 50 };
@@ -51,7 +51,7 @@ export const fresh: Command = (args) => Effect.gen(function*() {
   if (map === undefined || flags.some((flag) => flag !== "--rebuild" && flag !== "--from-game")) {
     return yield* new UsageFailure({ problem: "fresh takes MAP.w3x [--rebuild] [--from-game]" });
   }
-  if (flags.includes("--rebuild")) yield* MapBuild.use((maps) => maps.rebuild(map)).pipe(step("map rebuilt"));
+  if (flags.includes("--rebuild")) yield* rebuildMap(map).pipe(step("map rebuilt"));
   yield* freshMatch(map, flags.includes("--from-game"));
   yield* startQuickMatch.pipe(step("quick match and client receipts"));
 }).pipe(Effect.provide(commandServices));
