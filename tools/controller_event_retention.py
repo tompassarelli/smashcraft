@@ -71,7 +71,12 @@ class VirtualGamepad:
 
     def send(self, event_type, code, value, log_file, phase, label):
         before = monotonic_ns()
-        packet = struct.pack("@llHHi", 0, 0, event_type, code, value)
+        # uinput accepts CLOCK_MONOTONIC timestamps at input_event precision.
+        # Publish the edge and SYN_REPORT together, before logging can delay it.
+        injected = before // 1_000 * 1_000
+        seconds, microseconds = divmod(injected // 1_000, 1_000_000)
+        packet = (struct.pack("@llHHi", seconds, microseconds, event_type, code, value)
+                  + struct.pack("@llHHi", seconds, microseconds, EV_SYN, SYN_REPORT, 0))
         written = os.write(self.fd, packet)
         after = monotonic_ns()
         if written != len(packet):
@@ -84,6 +89,7 @@ class VirtualGamepad:
                     "type": event_type,
                     "code": code,
                     "value": value,
+                    "producer_injected_monotonic_ns": injected,
                     "producer_before_write_monotonic_ns": before,
                     "producer_after_write_monotonic_ns": after,
                 },
@@ -92,7 +98,6 @@ class VirtualGamepad:
             + "\n"
         )
         log_file.flush()
-        self.sync()
 
     def sync(self):
         packet = struct.pack("@llHHi", 0, 0, EV_SYN, SYN_REPORT, 0)

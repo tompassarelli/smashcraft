@@ -46,6 +46,17 @@ def integrity_result(root, metadata):
         return 0
 
     producer = json_lines(root / "producer.jsonl")
+    for slot in (0, 1):
+        sent = [e for e in producer if e["event"] == f"slot-{slot}"]
+        kernel = [e for e in json_lines(root / f"kernel-{slot}.jsonl") if e["type"] != 0]
+        require(len(sent) == len(kernel), f"slot {slot}: producer/kernel edge count differs")
+        for event, observed in zip(sent, kernel):
+            require((event["type"], event["code"], event["value"]) ==
+                    (observed["type"], observed["code"], observed["value"]),
+                    f"slot {slot}: producer/kernel source order differs")
+            if "producer_injected_monotonic_ns" in event:
+                require(event["producer_injected_monotonic_ns"] == observed["kernel_monotonic_ns"],
+                        f"slot {slot}: uinput did not preserve the producer timestamp")
     injected = [0, 0]
     losses = duplicates = reordered = stuck = correct = total = 0
     local_delays, opponent_lateness, rollback_depths, stall_lengths = [], [], [], []
@@ -126,8 +137,8 @@ def integrity_result(root, metadata):
                 kind, code, value = event["type"], event["code"], event["value"]
                 if kind == 1 and code == 0x13b:
                     continue
-                before = event["producer_before_write_monotonic_ns"]
-                after = event["producer_after_write_monotonic_ns"]
+                before = event.get("producer_injected_monotonic_ns", event["producer_before_write_monotonic_ns"])
+                after = before if "producer_injected_monotonic_ns" in event else event["producer_after_write_monotonic_ns"]
                 if before >= final_ns or before < segments[0][0]:
                     continue
                 anchor, first = max(segment for segment in segments if segment[0] <= before)
