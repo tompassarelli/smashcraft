@@ -4,6 +4,9 @@
 import { f32 } from "wisp/src/sim/f32";
 import { Character } from "../sim/codes";
 
+/** The arena floor stands this far above the ground at the world origin. */
+export const FLOOR_HEIGHT = 1800.0;
+
 /** The world point the simulation's origin maps to: stage center and floor height. */
 export interface WorldOrigin {
   readonly x: number;
@@ -29,8 +32,12 @@ export function facingYaw(facing: number): number {
 }
 
 
-/** Hidden effects stay allocated, transparent and collapsed until presented again. */
-export function hideEffect(model: effect): void {
-  BlzSetSpecialEffectAlpha(model, 0);
+/**
+ * Hidden effects stay allocated and collapsed, parked on the ground beneath
+ * the floor, until presented again. Alpha, scale and time scale do not stop a
+ * model's particle emitters, and the arena camera never sees that ground.
+ */
+export function hideEffect(model: effect, origin: Readonly<WorldOrigin>): void {
   BlzSetSpecialEffectScale(model, 0.0);
+  BlzSetSpecialEffectPosition(model, origin.x, origin.y, origin.z - FLOOR_HEIGHT);
 }

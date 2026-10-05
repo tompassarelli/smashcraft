@@ -77,7 +77,7 @@ export class SpecialEffects {
     for (const slot of this.slots) {
       resetImpactPresentationCursor(slot.cursor);
       slot.bear.hide();
-      for (const model of [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.parryFlash]) hideEffect(model);
+      for (const model of [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.parryFlash]) hideEffect(model, this.origin);
       slot.previousSpecial = SpecialAction.none;
       slot.previousSpecialFrame = 0;
       slot.previousHippogryphLife = 0;
@@ -111,12 +111,12 @@ export class SpecialEffects {
       else if (entered && action === SpecialAction.demonHunterManaBurn) BlzSetSpecialEffectTime(manaHand, 0.0);
       const burning = action === SpecialAction.demonHunterImmolate && frame >= DEMONHUNTER_IMMOLATE_STARTUP && frame < DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE;
       if (burning) this.show(felFlames, fighter, 0.0, 25.0, f32(1.15));
-      else hideEffect(felFlames);
+      else hideEffect(felFlames, this.origin);
       if (action === SpecialAction.demonHunterManaBurn && frame <= DEMONHUNTER_MANA_BURN_STARTUP) this.show(manaHand, fighter, fighter.facing * 45.0, 90.0, 0.75);
-      else hideEffect(manaHand);
+      else hideEffect(manaHand, this.origin);
     } else {
-      hideEffect(felFlames);
-      hideEffect(manaHand);
+      hideEffect(felFlames, this.origin);
+      hideEffect(manaHand, this.origin);
     }
     slot.previousSpecial = action;
     slot.previousSpecialFrame = frame;
@@ -124,7 +124,7 @@ export class SpecialEffects {
 
   private applyStatic(model: effect, pose: Readonly<StaticSpecialPose>): void {
     if (!pose.visible) {
-      hideEffect(model);
+      hideEffect(model, this.origin);
       return;
     }
     BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.front, this.origin.z + pose.z);
@@ -138,9 +138,9 @@ export class SpecialEffects {
     const effects = this.slots[slot];
     if (effects === undefined) return;
     if (fighter === undefined) {
-      hideEffect(effects.aura);
-      hideEffect(effects.wingTrail);
-      hideEffect(effects.parryFlash);
+      hideEffect(effects.aura, this.origin);
+      hideEffect(effects.wingTrail, this.origin);
+      hideEffect(effects.parryFlash, this.origin);
       return;
     }
     this.applyStatic(effects.aura, projectSpecialEffect(state, fighter, slot, STATIC_AURA));
@@ -166,7 +166,7 @@ export class SpecialEffects {
       BlzSetSpecialEffectAlpha(hippogryph, 255);
       if (effects.previousHippogryphLife === 0) BlzSetSpecialEffectAnimation(hippogryph, "walk");
     } else {
-      hideEffect(hippogryph);
+      hideEffect(hippogryph, this.origin);
     }
     effects.previousHippogryphLife = mount.life;
   }

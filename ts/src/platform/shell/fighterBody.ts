@@ -4,7 +4,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { ShieldBreak } from "../../game/sim/codes";
 import { fighterPoseFacing } from "../../game/sim/conditions";
 import type { Fighter } from "../../game/sim/fighter";
-import type { WorldOrigin } from "../../game/render/effects";
+import { FLOOR_HEIGHT, type WorldOrigin } from "../../game/render/effects";
 import type { FighterBody } from "./state";
 import { FIGHTER_OBJECTS } from "../../game/objectData";
 import { applyFighterObject } from "../objectData";
@@ -14,13 +14,11 @@ const CROW_FORM = 0x416d7266;
 /** Locust: no selection, no collision. */
 const LOCUST = 0x416c6f63;
 const DIZZY_MODEL = "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx";
-/** Fighters stand this far above the floor's height, which holds the stage decks. */
-export const FLY_HEIGHT = 1800.0;
 
 export function placeFighterBody(body: FighterBody, fighter: Readonly<Fighter>, origin: WorldOrigin): void {
   SetUnitX(body.unit, origin.x + fighter.motion.x);
   SetUnitY(body.unit, origin.y);
-  SetUnitFlyHeight(body.unit, FLY_HEIGHT + fighter.motion.z, 0.0);
+  SetUnitFlyHeight(body.unit, FLOOR_HEIGHT + fighter.motion.z, 0.0);
   BlzSetUnitFacingEx(body.unit, fighterPoseFacing(fighter) > 0 ? 0.0 : 180.0);
 }
 

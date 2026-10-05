@@ -63,9 +63,10 @@ function fighterModel(character: number): string {
 export class CombatEffects {
   private readonly impacts: effect[] = [];
   private readonly koBodies: effect[] = [];
-  private readonly x: number;
-  private readonly y: number;
-  private readonly z: number;
+  /** The impacts' plane, just in front of the fighters; hidden models park beneath it. */
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
 
   constructor(origin: WorldOrigin) {
     this.x = origin.x;
@@ -73,7 +74,7 @@ export class CombatEffects {
     this.z = origin.z;
     for (let i = 0; i < IMPACT_COUNT; i++) {
       const model = AddSpecialEffect(impactModel(floorDiv(i, IMPACTS_PER_KIND)), origin.x, origin.y);
-      hideEffect(model);
+      hideEffect(model, this);
       this.impacts.push(model);
     }
     for (let i = 0; i < KO_BODY_COUNT; i++) {
@@ -82,14 +83,14 @@ export class CombatEffects {
       BlzSetSpecialEffectAnimationBlendTime(model, 0.0);
       BlzSetSpecialEffectTimeScale(model, 0.0);
       BlzSetSpecialEffectTime(model, f32(0.1));
-      hideEffect(model);
+      hideEffect(model, this);
       this.koBodies.push(model);
     }
   }
 
   clear(): void {
-    for (const model of this.impacts) hideEffect(model);
-    for (const model of this.koBodies) hideEffect(model);
+    for (const model of this.impacts) hideEffect(model, this);
+    for (const model of this.koBodies) hideEffect(model, this);
   }
 
   /** KO impacts come from confirmed state, so a rollback never replays one; the rest from `state`. */
@@ -99,7 +100,7 @@ export class CombatEffects {
       if (model === undefined) continue;
       const pose = projectImpact(i >= STAR_KO_FIRST ? confirmed : state, i);
       if (!playing || !pose.visible) {
-        hideEffect(model);
+        hideEffect(model, this);
         continue;
       }
       const depth = floorDiv(i, IMPACTS_PER_KIND) === IMPACT_STAR_KO ? STAR_KO_DEPTH : 0.0;
@@ -113,7 +114,7 @@ export class CombatEffects {
       if (model === undefined) continue;
       const pose = projectKo(confirmed, STAR_KO_FIRST + floorDiv(i, 3));
       if (!playing || !pose.visible || pose.character !== floorMod(i, 3)) {
-        hideEffect(model);
+        hideEffect(model, this);
         continue;
       }
       BlzSetSpecialEffectPosition(model, this.x + pose.x, this.y + pose.y, this.z + pose.z);
