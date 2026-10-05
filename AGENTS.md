@@ -93,7 +93,8 @@ layout checks where supported, then verify native hit targets, keyboard-focus
 release, draw order and widescreen behavior. Keep local presentation separate
 from synchronized gameplay and create shared handles consistently.
 
-Publish playable pre-release maps as Smashcraft 0.0.N; increment only N.
+Don't publish releases, GitHub or otherwise, until Tom decides to release.
+Playable candidates are private builds named Smashcraft 0.0.N; increment only N.
 Internal diagnostics use distinct run IDs and names without advancing the
 player release counter. Always identify the current playable artifact separately
 from an experimental candidate; a diagnostic pass does not replace that release. Install one
