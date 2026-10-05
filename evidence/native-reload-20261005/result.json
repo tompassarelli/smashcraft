@@ -1,0 +1,403 @@
+{
+  "source": "c6a57a3",
+  "scope": "Two retained native Warcraft III clients, ten body edits to the full TypeScript map",
+  "samples": 10,
+  "checksumPairs": 60,
+  "sameApplyClocks": true,
+  "simulationAdvancedAcrossEveryEdit": true,
+  "minMs": 1217.705973,
+  "medianMs": 1426.0374274999995,
+  "maxMs": 1535.2142759999988,
+  "targetMs": 2000,
+  "passed": true,
+  "records": [
+    {
+      "sample": 1,
+      "version": 75,
+      "saveToReportMs": 1535.2142759999988,
+      "report": "   1.504 s  v75 running in 2 client(s) (0.779 s)",
+      "applyClock": "1.703125",
+      "frames": [
+        {
+          "frame": 1769,
+          "checksum": "200758:918735"
+        },
+        {
+          "frame": 1828,
+          "checksum": "27840:398937"
+        },
+        {
+          "frame": 1888,
+          "checksum": "257391:713398",
+          "marker": "reload-trial-1"
+        },
+        {
+          "frame": 1948,
+          "checksum": "436763:120922",
+          "marker": "reload-trial-1"
+        },
+        {
+          "frame": 2008,
+          "checksum": "270831:282995",
+          "marker": "reload-trial-1"
+        },
+        {
+          "frame": 2068,
+          "checksum": "500382:597456",
+          "marker": "reload-trial-1"
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": 76,
+      "saveToReportMs": 1395.333009,
+      "report": "   1.360 s  v76 running in 2 client(s) (0.644 s)",
+      "applyClock": "6.671875",
+      "frames": [
+        {
+          "frame": 2076,
+          "checksum": "334062:628555",
+          "marker": "reload-trial-1"
+        },
+        {
+          "frame": 2135,
+          "checksum": "161144:108757",
+          "marker": "reload-trial-1"
+        },
+        {
+          "frame": 2195,
+          "checksum": "390695:423218",
+          "marker": "reload-trial-2"
+        },
+        {
+          "frame": 2255,
+          "checksum": "19404:552482",
+          "marker": "reload-trial-2"
+        },
+        {
+          "frame": 2315,
+          "checksum": "198776:960009",
+          "marker": "reload-trial-2"
+        },
+        {
+          "frame": 2375,
+          "checksum": "428327:274467",
+          "marker": "reload-trial-2"
+        }
+      ]
+    },
+    {
+      "sample": 3,
+      "version": 77,
+      "saveToReportMs": 1471.981990999997,
+      "report": "   1.449 s  v77 running in 2 client(s) (0.744 s)",
+      "applyClock": "11.89844",
+      "frames": [
+        {
+          "frame": 2383,
+          "checksum": "262007:305566",
+          "marker": "reload-trial-2"
+        },
+        {
+          "frame": 2442,
+          "checksum": "89089:785771",
+          "marker": "reload-trial-2"
+        },
+        {
+          "frame": 2502,
+          "checksum": "268461:193295",
+          "marker": "reload-trial-3"
+        },
+        {
+          "frame": 2562,
+          "checksum": "498012:507756",
+          "marker": "reload-trial-3"
+        },
+        {
+          "frame": 2622,
+          "checksum": "677384:915283",
+          "marker": "reload-trial-3"
+        },
+        {
+          "frame": 2682,
+          "checksum": "906935:229741",
+          "marker": "reload-trial-3"
+        }
+      ]
+    },
+    {
+      "sample": 4,
+      "version": 78,
+      "saveToReportMs": 1333.2599090000003,
+      "report": "   1.316 s  v78 running in 2 client(s) (0.667 s)",
+      "applyClock": "16.92188",
+      "frames": [
+        {
+          "frame": 2692,
+          "checksum": "445192:115484",
+          "marker": "reload-trial-3"
+        },
+        {
+          "frame": 2751,
+          "checksum": "272274:595689",
+          "marker": "reload-trial-3"
+        },
+        {
+          "frame": 2811,
+          "checksum": "451646:3213",
+          "marker": "reload-trial-4"
+        },
+        {
+          "frame": 2871,
+          "checksum": "681197:317674",
+          "marker": "reload-trial-4"
+        },
+        {
+          "frame": 2931,
+          "checksum": "860569:725201",
+          "marker": "reload-trial-4"
+        },
+        {
+          "frame": 2991,
+          "checksum": "90117:39659",
+          "marker": "reload-trial-4"
+        }
+      ]
+    },
+    {
+      "sample": 5,
+      "version": 79,
+      "saveToReportMs": 1217.705973,
+      "report": "   1.203 s  v79 running in 2 client(s) (0.576 s)",
+      "applyClock": "21.91406",
+      "frames": [
+        {
+          "frame": 3000,
+          "checksum": "647432:305299",
+          "marker": "reload-trial-4"
+        },
+        {
+          "frame": 3059,
+          "checksum": "742499:620311",
+          "marker": "reload-trial-4"
+        },
+        {
+          "frame": 3119,
+          "checksum": "921871:27835",
+          "marker": "reload-trial-5"
+        },
+        {
+          "frame": 3179,
+          "checksum": "151419:342296",
+          "marker": "reload-trial-5"
+        },
+        {
+          "frame": 3239,
+          "checksum": "780131:471560",
+          "marker": "reload-trial-5"
+        },
+        {
+          "frame": 3299,
+          "checksum": "9679:786021",
+          "marker": "reload-trial-5"
+        }
+      ]
+    },
+    {
+      "sample": 6,
+      "version": 80,
+      "saveToReportMs": 1313.5421549999955,
+      "report": "   1.296 s  v80 running in 2 client(s) (0.590 s)",
+      "applyClock": "27.14062",
+      "frames": [
+        {
+          "frame": 3310,
+          "checksum": "108699:166261",
+          "marker": "reload-trial-5"
+        },
+        {
+          "frame": 3369,
+          "checksum": "727311:79288",
+          "marker": "reload-trial-5"
+        },
+        {
+          "frame": 3429,
+          "checksum": "906683:486815",
+          "marker": "reload-trial-6"
+        },
+        {
+          "frame": 3489,
+          "checksum": "136231:801276",
+          "marker": "reload-trial-6"
+        },
+        {
+          "frame": 3549,
+          "checksum": "315603:208800",
+          "marker": "reload-trial-6"
+        },
+        {
+          "frame": 3609,
+          "checksum": "494975:616327",
+          "marker": "reload-trial-6"
+        }
+      ]
+    },
+    {
+      "sample": 7,
+      "version": 81,
+      "saveToReportMs": 1477.5392869999996,
+      "report": "   1.449 s  v81 running in 2 client(s) (0.692 s)",
+      "applyClock": "32.4375",
+      "frames": [
+        {
+          "frame": 3619,
+          "checksum": "33232:502070",
+          "marker": "reload-trial-6"
+        },
+        {
+          "frame": 3678,
+          "checksum": "910496:889209",
+          "marker": "reload-trial-6"
+        },
+        {
+          "frame": 3738,
+          "checksum": "89865:296733",
+          "marker": "reload-trial-7"
+        },
+        {
+          "frame": 3798,
+          "checksum": "319416:611194",
+          "marker": "reload-trial-7"
+        },
+        {
+          "frame": 3858,
+          "checksum": "498788:18718",
+          "marker": "reload-trial-7"
+        },
+        {
+          "frame": 3918,
+          "checksum": "678160:426245",
+          "marker": "reload-trial-7"
+        }
+      ]
+    },
+    {
+      "sample": 8,
+      "version": 82,
+      "saveToReportMs": 1493.0193280000021,
+      "report": "   1.472 s  v82 running in 2 client(s) (0.746 s)",
+      "applyClock": "37.63281",
+      "frames": [
+        {
+          "frame": 3928,
+          "checksum": "216417:311988",
+          "marker": "reload-trial-7"
+        },
+        {
+          "frame": 3987,
+          "checksum": "93678:699127",
+          "marker": "reload-trial-7"
+        },
+        {
+          "frame": 4047,
+          "checksum": "927749:861200",
+          "marker": "reload-trial-8"
+        },
+        {
+          "frame": 4107,
+          "checksum": "107118:268724",
+          "marker": "reload-trial-8"
+        },
+        {
+          "frame": 4167,
+          "checksum": "336669:583185",
+          "marker": "reload-trial-8"
+        },
+        {
+          "frame": 4227,
+          "checksum": "965381:712449",
+          "marker": "reload-trial-8"
+        }
+      ]
+    },
+    {
+      "sample": 9,
+      "version": 83,
+      "saveToReportMs": 1395.938006000004,
+      "report": "   1.363 s  v83 running in 2 client(s) (0.708 s)",
+      "applyClock": "42.67969",
+      "frames": [
+        {
+          "frame": 4237,
+          "checksum": "503638:598192",
+          "marker": "reload-trial-8"
+        },
+        {
+          "frame": 4296,
+          "checksum": "380899:985331",
+          "marker": "reload-trial-8"
+        },
+        {
+          "frame": 4356,
+          "checksum": "560271:392855",
+          "marker": "reload-trial-9"
+        },
+        {
+          "frame": 4416,
+          "checksum": "739643:800382",
+          "marker": "reload-trial-9"
+        },
+        {
+          "frame": 4476,
+          "checksum": "969194:114840",
+          "marker": "reload-trial-9"
+        },
+        {
+          "frame": 4536,
+          "checksum": "148563:522367",
+          "marker": "reload-trial-9"
+        }
+      ]
+    },
+    {
+      "sample": 10,
+      "version": 84,
+      "saveToReportMs": 1456.136848999995,
+      "report": "   1.437 s  v84 running in 2 client(s) (0.807 s)",
+      "applyClock": "47.90625",
+      "frames": [
+        {
+          "frame": 4547,
+          "checksum": "39110:335432",
+          "marker": "reload-trial-9"
+        },
+        {
+          "frame": 4606,
+          "checksum": "866195:815637",
+          "marker": "reload-trial-9"
+        },
+        {
+          "frame": 4666,
+          "checksum": "95743:130095",
+          "marker": "reload-trial-10"
+        },
+        {
+          "frame": 4726,
+          "checksum": "275115:537622",
+          "marker": "reload-trial-10"
+        },
+        {
+          "frame": 4786,
+          "checksum": "504666:852083",
+          "marker": "reload-trial-10"
+        },
+        {
+          "frame": 4846,
+          "checksum": "684038:259607",
+          "marker": "reload-trial-10"
+        }
+      ]
+    }
+  ]
+}
