@@ -3,8 +3,8 @@
 // part of Waygate's traced Effect program.
 import { Effect } from "effect";
 import { runNumericParity } from "../../parity";
-import { captureMatches, parseCaptureArguments } from "../../integrity/capture";
-import { IntegrityFailure, reconcileCapture, tryIntegrity } from "../../integrity/evidence";
+import { captureMatches, parseCaptureArguments, reconcileCapture } from "../../integrity";
+import { IntegrityFailure } from "../../integrity/evidence";
 import { type Command, UsageFailure, describeCause } from "../command";
 import { step } from "../timings";
 

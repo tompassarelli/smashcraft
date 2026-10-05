@@ -1,7 +1,4 @@
-// Compiles the corpus with TypeScriptToLua, runs it in Lua 5.3, and compares
-// every result bit for bit with the same corpus evaluated by Bun.
-// Usage: LUA=lua32 bun scripts/parity.ts [result-file...]  (Warcraft uses 32-bit Lua numbers)
-// Result files (Lua output or Warcraft Preload files) skip compiling and running Lua.
+// Numeric Lua parity implementation used by the Waygate parity command.
 import { evaluateCase } from "../src/parity/corpus";
 
 // Lua's %a hex floats are exact: [-]0xH.HHHp[+-]D.
@@ -65,5 +62,3 @@ export async function runNumericParity(supplied: readonly string[] = []): Promis
   console.log(`${cases} cases, ${cases * 8} results, ${mismatches} mismatches`);
   return cases > 0 && mismatches === 0;
 }
-
-if (import.meta.main) process.exitCode = await runNumericParity(Bun.argv.slice(2)) ? 0 : 1;
