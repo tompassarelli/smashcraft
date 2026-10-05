@@ -19,6 +19,6 @@
     "typescript": "6.0.2",
     "typescript-native": "npm:typescript@7.0.2",
     "typescript-to-lua": "1.37.1",
-    "waygate": "file:vendor/waygate-040766d6d260d4ccbaf676d1c6fd41811e495695.tgz"
+    "waygate": "file:vendor/waygate-c15f5acb851835db81cd91ed50a56dd6a57fbd80.tgz"
   }
 }
