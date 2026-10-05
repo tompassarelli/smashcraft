@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # Operating-system boundary: inspect one retained Battle.net process's TCP sockets.
-[[ $# == 1 && $1 =~ ^[1-9][0-9]*$ ]] || { echo 'Usage: wc3-melee:tools/wc3-auth-transport LAUNCHER_PID' >&2; exit 2; }
+[[ $# == 1 && $1 =~ ^[1-9][0-9]*$ ]] || { echo 'Usage: smashcraft:tools/wc3-auth-transport LAUNCHER_PID' >&2; exit 2; }
 launcher_pid=$1
 [[ -r /proc/$launcher_pid/comm ]] || { echo 'launcher-missing'; exit 1; }
 [[ $(</proc/$launcher_pid/comm) == CrBrowserMain ]] || { echo 'unexpected-process'; exit 1; }

@@ -4,7 +4,7 @@ import { resolve, join } from 'node:path';
 
 const [build, sourceSlotText, output] = process.argv.slice(2);
 if (!build || !/^[A-Za-z0-9._-]+$/.test(build) || !/^[0-3]$/.test(sourceSlotText ?? '') || !output) {
-    throw new Error('Usage: bun wc3-melee:tools/netcode-probe/generate-preloader-source-fixtures.mjs BUILD_ID SOURCE_SLOT OUTPUT_DIRECTORY');
+    throw new Error('Usage: bun smashcraft:tools/netcode-probe/generate-preloader-source-fixtures.mjs BUILD_ID SOURCE_SLOT OUTPUT_DIRECTORY');
 }
 const directory = resolve(output);
 await mkdir(directory, { recursive: true });

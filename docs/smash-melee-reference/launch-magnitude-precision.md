@@ -4,7 +4,7 @@ The production ordinary/fixed launch calculations now match 50 independent
 NTSC 1.02 scalar outputs exactly in emitted Lua. Before the repair, 34 of those
 50 comparisons failed. A further 150 comparisons match the original crouch,
 charge, and sequential crouch-plus-charge arithmetic. All existing groups in
-wc3-melee:tools/physics-probe/check-numerical-precision.sh also passed after the
+smashcraft:tools/physics-probe/check-numerical-precision.sh also passed after the
 repair; compilation reported zero errors and zero warnings.
 
 The launch arithmetic uses binary32 input and operation rounding, the rounded
@@ -16,7 +16,7 @@ unchanged. No stale-move penalty or freshness bonus is introduced.
 
 ## Independent executable observations
 
-wc3-melee:tools/physics-probe/observe-retail-launch.mjs is an independently
+smashcraft:tools/physics-probe/observe-retail-launch.mjs is an independently
 authored foreign executable loader. It executes the complete scalar routine
 at `0x80079AB0..0x80079C6C` and the complete context routine at
 `0x8008D930..0x8008DA48` under QEMU PPC750. Neither routine is patched.
@@ -42,9 +42,9 @@ outside repository trees under
 ~/.local/share/smashcraft-melee-reference/launch-magnitude-runner and
 ~/.local/share/smashcraft-melee-reference/ntsc-1.02.
 
-wc3-melee:docs/smash-melee-reference/retail-launch-magnitude.json retains input
+smashcraft:docs/smash-melee-reference/retail-launch-magnitude.json retains input
 values and independently observed output bits. The fixture generator
-wc3-melee:tools/physics-probe/generate-launch-magnitude-probe.mjs emits exact
+smashcraft:tools/physics-probe/generate-launch-magnitude-probe.mjs emits exact
 assertions against production functions; it contains no replacement formula.
 
 ## Boundaries

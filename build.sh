@@ -4,7 +4,7 @@ set -euo pipefail
 project_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 map_version=$(cat "$project_dir/map-version")
 [[ "$map_version" =~ ^0\.0\.(0|[1-9][0-9]*)$ ]] || {
-    echo 'wc3-melee:map-version must contain a version of the form 0.0.N (no leading zeroes).' >&2
+    echo 'smashcraft:map-version must contain a version of the form 0.0.N (no leading zeroes).' >&2
     exit 2
 }
 map_name="Smashcraft $map_version"
@@ -38,12 +38,12 @@ if [[ $# -ne 1 || ! -f "$1" ]]; then
 fi
 base_map=$(realpath -- "$1")
 if [[ ! -s "$fighter_assets/ArcherFighter.mdx" || ! -s "$fighter_assets/RiflemanFighter.mdx" || ! -s "$fighter_assets/FighterAssetInfo.wurst" ]]; then
-    printf 'Authored fighter assets are missing. Follow wc3-melee:docs/fighter-animation-work.md to build them.\n' >&2
+    printf 'Authored fighter assets are missing. Follow smashcraft:docs/fighter-animation-work.md to build them.\n' >&2
     exit 1
 fi
 for texture in "${selection_textures[@]}"; do
     [[ -s "$selection_assets/$texture.tga" ]] || {
-        printf 'Missing selection art: %s. Run wc3-melee:tools/selection/build-art.sh and wc3-melee:tools/animations/build-portraits.sh.\n' "$texture" >&2
+        printf 'Missing selection art: %s. Run smashcraft:tools/selection/build-art.sh and smashcraft:tools/animations/build-portraits.sh.\n' "$texture" >&2
         exit 1
     }
 done
@@ -80,7 +80,7 @@ if [[ "$presentation" != native ]]; then
     [[ -s "$original_clips/wurst/FighterOriginalClipInfo.wurst" ]] || { echo 'Export original clips before building pool presentation.' >&2; exit 1; }
     while IFS=$'\t' read -r source expected_hash; do
         [[ $(sha256sum "$project_dir/$source" | cut -d ' ' -f1) == "$expected_hash" ]] || {
-            printf 'Original clips are stale for wc3-melee:%s. Export them again.\n' "$source" >&2
+            printf 'Original clips are stale for smashcraft:%s. Export them again.\n' "$source" >&2
             exit 1
         }
     done < <(jq -r '.records[] | [.source, .sourceSha256] | @tsv' "$original_clips/original-clips-evidence.json")
@@ -123,7 +123,7 @@ done
 ln -s "$stdlib_checkout" "$work_dir/_build/dependencies/wurststdlib"
 cp "$project_dir/wurst.build" "$work_dir/wurst.build"
 [[ $(rg -c '^  name: ' "$work_dir/wurst.build") == 1 ]] || {
-    echo 'Expected one buildMapData name in wc3-melee:wurst.build.' >&2
+    echo 'Expected one buildMapData name in smashcraft:wurst.build.' >&2
     exit 1
 }
 sed -i "s/^  name: .*/  name: $map_name/" "$work_dir/wurst.build"

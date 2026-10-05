@@ -6,7 +6,7 @@ compiler="$project_dir/toolchain/wurstscript.jar"
 stdlib=/home/tom/code/wurst-stdlib/pins/4dfc8a0474bd
 packager="$project_dir/build/tools/map-pack"
 if [[ $# -lt 1 || $# -gt 2 || ! -f "$1" ]]; then
-    echo 'Usage: wc3-melee:tools/netcode-probe/build-frame-tagged-history.sh PRIVATE_BASE_MAP [0.0.N]' >&2
+    echo 'Usage: smashcraft:tools/netcode-probe/build-frame-tagged-history.sh PRIVATE_BASE_MAP [0.0.N]' >&2
     exit 2
 fi
 base_map=$(realpath -- "$1")

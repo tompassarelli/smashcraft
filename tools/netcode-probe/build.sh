@@ -5,7 +5,7 @@ compiler="$project_dir/toolchain/wurstscript.jar"
 stdlib=/home/tom/code/wurst-stdlib/pins/4dfc8a0474bd
 packager="$project_dir/build/tools/map-pack"
 if [[ $# -lt 1 || $# -gt 2 || ! -f "$1" ]]; then
-    echo 'Usage: wc3-melee:tools/netcode-probe/build.sh BASE_MAP [1|2|scheduled|scheduled-5|pose|pose-controlled|pose-timeline|fighter-playback]' >&2
+    echo 'Usage: smashcraft:tools/netcode-probe/build.sh BASE_MAP [1|2|scheduled|scheduled-5|pose|pose-controlled|pose-timeline|fighter-playback]' >&2
     exit 2
 fi
 base_map=$(realpath -- "$1")

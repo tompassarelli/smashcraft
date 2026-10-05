@@ -55,7 +55,7 @@ porting Captain Falcon. It does not identify the disc revision or independently
 extract the grounded common multiplier at +0x200. Floor collision epsilon is
 normalized; only horizontal displacement is compared.
 
-wc3-melee:docs/smash-melee-reference/slippi-ntsc-floor-recovery.json retains
+smashcraft:docs/smash-melee-reference/slippi-ntsc-floor-recovery.json retains
 post-impact in-place tech frames 203–210 and missed-tech frames 955–958 from
 the same recording. Both skids retain horizontal knockback and subtract the
 actor's traction before displacement; the tech reaches zero without reversing.

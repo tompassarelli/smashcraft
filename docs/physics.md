@@ -393,7 +393,7 @@ they were preserved. Native r5 gameplay has not been observed.
 ## Physics integration — 2026-10-03
 
 The physics changes were reconciled with public `main` in
-~/code/wc3-melee/worktrees/melee-physics-public, retaining its two-fighter
+~/code/smashcraft/worktrees/melee-physics-public, retaining its two-fighter
 interfaces. The aggregate passed **402/402** tests with zero compiler errors
 (smashcraft:build/physics-public.log). The focused snapshot test then passed
 **1/1**, including nonzero crouch and roll-entry-facing restoration
@@ -453,7 +453,7 @@ initialization and resulting displacement therefore remain unverified by this
 trace.
 
 The next acceptance sequence and GitHub dependencies are in
-wc3-melee:evidence/melee-foundation-roadmap.md. The factual frame-data intake at
+smashcraft:evidence/melee-foundation-roadmap.md. The factual frame-data intake at
 smashcraft:references/melee-frame-data/README.md supports move research; it is
 not a physics oracle, does not establish game revision, and supplies no hitbox
 geometry. Its raw `gravity` field means fast-fall speed and `stun` means
@@ -501,7 +501,7 @@ vector DI, fractional shieldstun boundaries and shield-break contact/freeze/
 first movement. These are numerical and behavioral tests, not an independent
 game-execution oracle or a claim of full Melee parity.
 `bash test.sh combat` passed 11/11 with zero compiler errors; evidence is
-wc3-melee:build/combat-tests.log. Existing airborne DI tests now explicitly
+smashcraft:build/combat-tests.log. Existing airborne DI tests now explicitly
 initialize an airborne fighter; their rotation and speed assertions are intact.
 
 Remaining combat gaps require verified common data: the cross-frame launch
@@ -516,13 +516,13 @@ values were guessed, and these gaps remain open.
 ## Current correction checkpoint — 2026-10-01
 
 The integrated suite passes 402/402 in
-wc3-melee:build/physics-aggregate.log. The normal map builds and installs as
-`illidan-physics-complete`; build evidence is wc3-melee:build/physics-map.log.
+smashcraft:build/physics-aggregate.log. The normal map builds and installs as
+`illidan-physics-complete`; build evidence is smashcraft:build/physics-map.log.
 Native entry showed that build ID, Archer versus Rifleman, and working jump,
 aerial attack and pause controls. The trace records the accepted ground
 jump at frame 63 and aerial attack at frame 91, with zero dropped rows:
-wc3-melee:build/physics-native-controls-trace.txt. The final paused capture is
-wc3-melee:build/illidan-native/physics-controls-accepted.png. This short native
+smashcraft:build/physics-native-controls-trace.txt. The final paused capture is
+smashcraft:build/illidan-native/physics-controls-accepted.png. This short native
 check does not measure every collision frame or prove the numerical formulas.
 The corrections below retain the owner's shared dodge durations, 18-degree
 digital wavedash, neutral-horizontal fast-fall and deliberate lack of staling.
@@ -548,7 +548,7 @@ truncated pre-frame percent plus the fractional temporary total while attack
 power belongs to the individual hit. These are factual mechanics only: the
 Wurst collection and resolution implementation is independently authored.
 
-wc3-melee:wurst/MatchStep.wurst now opens one synchronous contact batch before
+smashcraft:wurst/MatchStep.wurst now opens one synchronous contact batch before
 grab actions and resolves it after melee, specials, summons and projectiles.
 Every current damage path participates: throws, pummel, ordinary attacks,
 Illidan's direct special, bear swipes, hippogryph strikes, flinching lasers,
@@ -574,7 +574,7 @@ adds no persistent snapshot fields. Standalone pair operations also collect
 and resolve a complete batch when called outside the match step.
 
 The integrated `bash test.sh Tests` run passes 423/423 with zero compiler
-errors; evidence is wc3-melee:build/two-clients/contact-batch-aggregate.log.
+errors; evidence is smashcraft:build/two-clients/contact-batch-aggregate.log.
 Six new tests exercise reversed collection order and fractional pre-hit
 percent, mixed projectile kinds, shield depletion, direct-special trades,
 both summons, throw/pummel damage, and exact match-step snapshot restoration.
@@ -592,7 +592,7 @@ owner's intentional mechanics remain intact.
 
 ## Roll-facing correction — 2026-10-02
 
-The pinned libmelee empirical data in wc3-melee:build/ref-libmelee-framedata.csv
+The pinned libmelee empirical data in smashcraft:build/ref-libmelee-framedata.csv
 matches SHA256 8e0d811290b511902076c0011db1a0116356a7ddaa68dfa369ea4f5dcdc93777
 at revision ef679270ff95f0d42339dcdf1608282a35023349. Fox (character 1) and
 Falco (22), forward roll (action 233), first report `facing_changed=True` on
@@ -611,7 +611,7 @@ completion-time turn and 128-unit travel. Durations and intangibility stay
 unchanged for all fighters, and backward rolls/spot dodges retain facing.
 
 The focused `bash test.sh rollFacing` run passes 5/5 with zero compiler errors;
-evidence is wc3-melee:build/two-clients/roll-facing-tests.log. It exercises both
+evidence is smashcraft:build/two-clients/roll-facing-tests.log. It exercises both
 facings, frame 19/20, hitlag freeze, snapshot restore across the turn, canonical
 state sensitivity, travel totals, platform clamps, and unchanged backward/spot
 orientation. These numerical checks do not prove native clip playback. This
@@ -712,7 +712,7 @@ using complete attribute arrays near the start of the public Fox/Falco DAT
 JSON at https://melee.theshoemaker.de/dat-dumps/Fox.json and
 https://melee.theshoemaker.de/dat-dumps/Falco.json. The cached downloads are
 partial files, not complete valid JSON documents. The current complete intake
-is recorded in wc3-melee:docs/smash-melee-reference/physics-parameters.json; the
+is recorded in smashcraft:docs/smash-melee-reference/physics-parameters.json; the
 publisher does not identify its disc revision. Ground takeoff scales prior
 self velocity, adds held-direction momentum, then caps it. Aerial jump replaces
 horizontal self velocity, including zero for neutral input. Countersteering
@@ -848,7 +848,7 @@ The focused `initialDash` simulation filter passes 6/6 tests, the under-target
 acceleration/cap check passes 1/1, and the aggregate suite passes 430/430. The
 independent recorded-dash comparison passes on both host identities and the
 perturbed-input case fails at the expected first frame. The aggregate output is
-wc3-melee:build/wurst-tests/shared-dash-full.log. Native dash-dance feel and
+smashcraft:build/wurst-tests/shared-dash-full.log. Native dash-dance feel and
 keyboard delivery timing have not been validated for this change.
 
 A later S/F short-tap report exposed an adapter loss: a press and release
@@ -1096,8 +1096,8 @@ The `SimulationTests` filter passes 146/146 tests, including nine added
 resolution tests for overlap priority, mirrored launch, early/late effects,
 frame/geometry boundaries, per-target contact memory, shield contact, re-hit
 windows and trades. The compiler reports zero errors and warnings. Evidence:
-wc3-melee:build/wurst-tests/hit-regions-20260930-final.log. Integration passed
-211/211 tests in wc3-melee:build/wurst-tests/hit-regions-integrated.log. Map build
+smashcraft:build/wurst-tests/hit-regions-20260930-final.log. Integration passed
+211/211 tests in smashcraft:build/wurst-tests/hit-regions-integrated.log. Map build
 `hit-regions` succeeded with the four existing warnings and was installed;
 the running client has not loaded it and native combat feel is unverified.
 
@@ -1212,7 +1212,7 @@ target airborne. Shield SDI is not implemented. Native held ASDI and tapped
 SDI were observed in build 003040. Native callback tracing subsequently showed
 short press/release pairs delivered together in roughly 100 ms batches. Retaining
 the pulse fixes loss between simulation ticks; it does not remove that engine
-delivery latency. See wc3-melee:evidence/development-plan.md for the recorded input sequences.
+delivery latency. See smashcraft:evidence/development-plan.md for the recorded input sequences.
 
 ## Separated launch velocity
 
@@ -1252,7 +1252,7 @@ Neutral/directional dodge force now uses retail common +0x338 =
 with +0x33C = 0.8999999761581421 decay. Retail motion state 236 selects
 submotion/animation 44, ACTION_EscapeAir_figatree. The verified Fox, Falco and
 Captain Falcon scripts write command variable zero to one at animation frame
-30, recorded in wc3-melee:docs/smash-melee-reference/retail-escapeair-events.json.
+30, recorded in smashcraft:docs/smash-melee-reference/retail-escapeair-events.json.
 The simulation applies decay for 29 moving ticks and ordinary gravity plus
 air drift from tick 30. The 49-frame animation cap remains sourced to the
 version-unidentified frame table; this change does not establish full
@@ -1288,7 +1288,7 @@ restore/replay through the boundary using the factual Falco rig. The original
 roster and approved 18-degree horizontal convenience are unchanged.
 The focused dodge filter passed 32/32 with zero compiler errors and one
 existing unused-import warning; evidence is
-wc3-melee:build/retail-dodge-switch-tests.log. The long-displacement expectations
+smashcraft:build/retail-dodge-switch-tests.log. The long-displacement expectations
 use independently calculated binary32 accumulation, matching the pinned Wurst
 interpreter arithmetic; tolerances were retained. Native trajectory comparison
 and the full animation-end transition remain outside this result.
@@ -1333,7 +1333,7 @@ including landing. Fox full/short vertical launch attributes are
 4.099999904632568 / 1.899999976158142. Aerial launch is the full-jump attribute
 times 1.2000000476837158 for Fox or 0.9399999976158142 for Falco. These values
 come from the complete published DAT JSON intake in
-wc3-melee:docs/smash-melee-reference/physics-parameters.json. The publisher's
+smashcraft:docs/smash-melee-reference/physics-parameters.json. The publisher's
 game revision is unidentified, so these are not certified NTSC 1.02 values.
 
 Behavioral facts from melee:src/melee/ft/kinds/ftCommon/ftCo_Jump.c,
@@ -1402,12 +1402,12 @@ air-dodge displacement expectations were corrected for the extracted force;
 the neutral vector remains zero and the original roster attributes are unchanged.
 Focused filters passed retailAerial 5/5, dodge 30/30, and fast 9/9 with zero
 compiler errors and the existing unused-import warning. Evidence is
-wc3-melee:build/retail-aerial-tests.log, wc3-melee:build/retail-dodge-tests.log,
-and wc3-melee:build/retail-fastfall-tests.log. These checks do not establish
+smashcraft:build/retail-aerial-tests.log, smashcraft:build/retail-dodge-tests.log,
+and smashcraft:build/retail-fastfall-tests.log. These checks do not establish
 native behavior. The EscapeAir switch timing was subsequently corrected
 using the command facts and callback trace described above.
 Retail values and private file identity are recorded in
-wc3-melee:docs/smash-melee-reference/physics-parameters.json. These are numerical
+smashcraft:docs/smash-melee-reference/physics-parameters.json. These are numerical
 and behavioral facts; no decompiled implementation was copied or translated.
 
 ## Raw movement parameter precision
@@ -1505,8 +1505,8 @@ fighters. The factual tables at https://www.ssbwiki.com/Falco_(SSBM)/Neutral_aer
 (revision 1930482) and https://www.ssbwiki.com/Falco_(SSBM)/Back_aerial
 (revision 1651640), retrieved 2026-09-30, report clean contact on frames 4–7,
 late contact on 8–31 / 8–19, and interruption on 42 / 38. Cached pages are
-wc3-melee:build/multiplayer-setup/falco-neutral-air.html and
-wc3-melee:build/multiplayer-setup/falco-back-air.html. Only these factual numbers
+smashcraft:build/multiplayer-setup/falco-neutral-air.html and
+smashcraft:build/multiplayer-setup/falco-back-air.html. Only these factual numbers
 are used; no article prose or decompiled implementation is copied.
 
 The start tick is attackFrame 0, corresponding to reference frame 1. Thus both
@@ -1568,7 +1568,7 @@ with no library implementation copied or translated. Signed reversals are
 preserved. These are empirical paths, not binary-exact Melee parity. Get-up
 paths depend on face-up/down and forward/backward action. Actual displacement,
 both facings, stage-edge clamping, hitlag and replay are covered by
-wc3-melee:wurst/PhysicsTests.wurst.
+smashcraft:wurst/PhysicsTests.wurst.
 
 While holding shield, a fresh left/right press requests a roll; a fresh down
 press requests a spot dodge. Input callbacks collect edges and the frame step
@@ -1587,7 +1587,7 @@ are provisional rather than a Melee parity claim.
 
 Roll lasts 31 frames and is intangible on frames 4–19 inclusive. Archer and
 Rifleman use character/action-specific per-frame translation samples from
-wc3-melee:wurst/RollTravel.wurst, clamped to the platform edge. Ordinary roll
+smashcraft:wurst/RollTravel.wurst, clamped to the platform edge. Ordinary roll
 totals are approximately 201.6 and 231 world units respectively. Illidan keeps
 the original 8-unit travel on frames 4–19 (128 units). Spot dodge lasts 22 frames and is intangible on frames
 2–15 inclusive. The start tick is frame 1. Archer/Rifleman forward rolls reverse
@@ -1599,7 +1599,7 @@ pause in hitlag. The owner's common frame-data profile specifies spot dodge
 22 / protection 2–15, both rolls 31 / protection 4–19, and air dodge 49 /
 protection 4–29 with 10 landing frames for every character. Air dodge retains
 its existing helpless fall until landing after its animation completes.
-Both fighters have authored ground-dodge clips. See wc3-melee:docs/fighter-animation-work.md
+Both fighters have authored ground-dodge clips. See smashcraft:docs/fighter-animation-work.md
 for playback and art limits.
 
 ## Knockdown reference observations
@@ -1654,7 +1654,7 @@ twelve-frame green/white floor burst plus thirty-two-frame spreading dust for
 missed techs. The latter stays at the landing point as the fighter recovers.
 These are original procedural models based on the owner's visual direction;
 their display lifetimes do not alter hitlag, tech windows, or recovery timing.
-wc3-melee:wurst/ImpactEvents.wurst derives one frame's cues from numerical
+smashcraft:wurst/ImpactEvents.wurst derives one frame's cues from numerical
 before/after state, including both fighters in a trade. The live adapter uses
 40 preallocated effects and presents each completed frame once; headless
 replay creates no effects. Reconciliation of changed speculative journals is
@@ -1685,7 +1685,7 @@ horizontal input relative to facing. Those data field offsets are not timing
 values. No decompiled implementation is copied.
 
 The Melee section of https://www.ssbwiki.com/Tech, retrieved 2026-09-29 and
-cached at ~/code/wc3-melee/worktrees/test-loop/build/ref-Tech.html, reports a
+cached at ~/code/smashcraft/worktrees/test-loop/build/ref-Tech.html, reports a
 20-frame digital shield-press window and a 40-frame interval between presses.
 A repeated press inside that interval cancels the current opportunity. Grounded
 shield presses also count. Pressing before the last hitlag frame leaves one
@@ -1717,7 +1717,7 @@ used by the map. Wall/ceiling techs and SDI/ASDI collision are not implemented.
 ## L-cancel
 
 The factual reference https://www.ssbwiki.com/L-canceling (cached at
-~/code/wc3-melee/worktrees/test-loop/build/ref-L-canceling.html) describes a
+~/code/smashcraft/worktrees/test-loop/build/ref-L-canceling.html) describes a
 seven-frame Shield/Grab input window, landing lag halved and rounded down,
 and inputs retained during hitlag. Digital Shield also feeds tech timing;
 L-cancel itself is independent of the tech lockout. No source text or outside
@@ -1740,7 +1740,7 @@ Melee smash attacks can be charged for up to 60 frames while holding attack.
 SmashWiki reports a Melee maximum damage multiplier of 1.3671× (the 1.4× figure
 is the rounded general-series value). Source: https://www.ssbwiki.com/Charge,
 retrieved 2026-09-29 and cached at
-`~/code/wc3-melee/worktrees/test-loop/build/ref-Charge.html`. The local
+`~/code/smashcraft/worktrees/test-loop/build/ref-Charge.html`. The local
 reference's smash-charge data path in `melee:src/melee/ft/ftaction.c` and
 `melee:src/melee/ft/ft_0DF0.c` confirms that duration and multiplier are
 separate inputs and that damage grows with charge progress; the local
@@ -1787,7 +1787,7 @@ and the Warcraft spell shell are presentation choices, not reference parameters.
 ## Shield-break recovery
 
 Shield depletion from holding guard, melee contact, and projectile contact now
-uses one independently authored forced sequence in wc3-melee:wurst/Simulation.wurst:
+uses one independently authored forced sequence in smashcraft:wurst/Simulation.wurst:
 upward pop, landing, standing up, then dizziness. It replaces the former
 40-frame hitstun placeholder. The factual reference is
 ~/code/resources/melee at revision 0296f009f32f710495979d30772d8332af2d411a,
@@ -1803,7 +1803,7 @@ copied or translated. The sequence is expressed in our existing fixed-tick
 simulation with our existing collision query.
 
 The factual page https://www.ssbwiki.com/Shield, already cached in
-wc3-melee:build/ref-Shield.txt, independently reports the pop/landing/stand/dizzy
+smashcraft:build/ref-Shield.txt, independently reports the pop/landing/stand/dizzy
 sequence, percent dependence, mashing, termination by flinching attacks, and
 30 HP after a Melee shield break. The cached page was consulted for facts only;
 no article prose is reused. It does not verify our timings or launch strength.
@@ -1960,7 +1960,7 @@ values 0–4), ledgeSide (-1 left, +1 right), ledgeFrame (0 on phase entry),
 and ledgeSerial (one increment per catch). InputSnapshot.ledgeVerticalPressed
 is a fresh Up (+1) or Down (-1) edge. The simulation reuses jumpPressed,
 getupDirectionPressed/getupDirection, airDodgePressed and getupAttackPressed
-for the other options. wc3-melee:wurst/MatchStep.wurst resolves pair catches
+for the other options. smashcraft:wurst/MatchStep.wurst resolves pair catches
 before advancing either fighter; standalone simulation consumers must do the
 same. Pure Wurst checks cover both characters and sides, eligibility, upper
 platform exclusion, contention/ownership, option timing and locks, attack
@@ -1968,9 +1968,9 @@ contact, protection expiry, regrab timing, hit/grab interruption and reset.
 They do not establish native animation alignment or Melee numerical parity.
 
 The hang dimensions now fit the measured reach of both fighter rigs.
-wc3-melee:tools/animations/ledges.py reads the simulation's hang offset, depth,
+smashcraft:tools/animations/ledges.py reads the simulation's hang offset, depth,
 mount duration, climb duration and climb inset directly when baking wrist
-contact. wc3-melee:wurst/FighterAssets.wurst fixes both model scales at one so
+contact. smashcraft:wurst/FighterAssets.wurst fixes both model scales at one so
 model coordinates and simulation world units agree. The animation adds no
 root travel. Packaged-model wrist checks establish contact at the hang point
 and through the first five climb ticks; native visual alignment remains a
@@ -2088,7 +2088,7 @@ Ordinary attack requests are cleared throughout both ends of the grab context,
 including its final tick. Special input cannot leak through on release.
 
 Contact/release and total frame counts are one-based and owned by
-wc3-melee:wurst/Simulation.wurst (`grabContactFrame`, `grabActionDuration`).
+smashcraft:wurst/Simulation.wurst (`grabContactFrame`, `grabActionDuration`).
 Pummel deals three damage once, without launch, and freezes both clips and the
 hold timer during its normal hitlag. The four throws each deal damage once at
 release and use the shared knockback/hitstun formula; throw DI uses the victim's
@@ -2105,7 +2105,7 @@ capture contract; successful capture now exits grab startup into the explicit
 hold action rather than retaining the whiff cooldown.
 
 Both fighters have pummel and four throw clips plus matched victim clips in
-wc3-melee:tools/animations/grab_animations.py. The animation boundary consumes
+smashcraft:tools/animations/grab_animations.py. The animation boundary consumes
 timing from Wurst; canonical pair state owns translation and release. Native
 pose alignment, real-button use and interruption readability require the
 installed-build check and are not proved by the numerical tests.
@@ -2158,8 +2158,8 @@ their active volumes overlap on the same tick; changing argument/slot order
 does not let the first hit cancel the second contact. The regression failed
 before this change and passes for both grounded and airborne mirror contacts.
 The focused character suite passes 12/12:
-wc3-melee:build/wurst-tests/illidan-trade-after-r2.log. Earlier failing evidence:
-wc3-melee:build/wurst-tests/illidan-trade-before.log.
+smashcraft:build/wurst-tests/illidan-trade-after-r2.log. Earlier failing evidence:
+smashcraft:build/wurst-tests/illidan-trade-before.log.
 
 ### Binary32 arithmetic boundary
 
@@ -2169,7 +2169,7 @@ rounds grounded knockback decay in Melee units and rounds shield-health updates
 to binary32. A generated-Lua production probe, not just the binary32 compiler
 interpreter, verifies the recorded first traction subtraction and regeneration
 from 20 to 20.06999969482422. Run
-`bash ~/code/wc3-melee/main/tools/physics-probe/check-numerical-precision.sh` from this checkout;
+`bash ~/code/smashcraft/main/tools/physics-probe/check-numerical-precision.sh` from this checkout;
 source is smashcraft:tools/physics-probe/NumericalPrecisionProbe.wurst.
 
 This is partial precision coverage. Other formulas and their PowerPC operation

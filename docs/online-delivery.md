@@ -25,8 +25,8 @@ retuning agreed mechanics. The previous cross-peer mailbox is shut down.
 Use maintained library APIs before copying or vendoring implementations.
 Slippi/Dolphin, XInput/GameInput, Steam Input and the C# Blizzard controller
 project inform the decision; they do not supply Warcraft rollback or continuous
-analog transport. See wc3-melee:docs/controller-prior-art.md and
-wc3-melee:docs/controller-platforms.md for source revisions, reuse boundaries
+analog transport. See smashcraft:docs/controller-prior-art.md and
+smashcraft:docs/controller-platforms.md for source revisions, reuse boundaries
 and platform-specific trials.
 
 ## Delivery sequence and acceptance

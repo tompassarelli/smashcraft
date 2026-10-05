@@ -268,7 +268,7 @@
       ]
     }
   ],
-  "test": "wc3-melee:wurst/RecoveryTests.wurst",
+  "test": "smashcraft:wurst/RecoveryTests.wurst",
   "scope": "Post-impact grounded residual horizontal knockback, with recorded traction on original host fighters 0 and 1 through production advance. Seven tech frames and three missed-tech frames; no new roster identity.",
   "limitations": [
     "NTSC flag does not identify disc revision or prove unmodified NTSC 1.02 gameplay.",

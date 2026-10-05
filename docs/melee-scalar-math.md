@@ -1,14 +1,14 @@
 # Melee scalar approximation
 
-`wc3-melee:wurst/MeleeScalarMath.wurst` supplies pure Wurst `meleeAtan2(y, x)`,
+`smashcraft:wurst/MeleeScalarMath.wurst` supplies pure Wurst `meleeAtan2(y, x)`,
 `meleeSin(angle)`, and `meleeCos(angle)`. Inputs and intermediate results use
 explicit binary32 rounding and the pinned standard library's fused multiply-add.
 The implementation is independently authored from numerical approximation facts
 and mathematical equations, without consulting or translating decompiled code.
 
 The numerical facts are recorded in
-`wc3-melee:docs/smash-melee-reference/retail-trig-coefficients.json` and
-`wc3-melee:docs/smash-melee-reference/retail-trig-scalars.json`. The source
+`smashcraft:docs/smash-melee-reference/retail-trig-coefficients.json` and
+`smashcraft:docs/smash-melee-reference/retail-trig-scalars.json`. The source
 executable SHA-1 is `08e0bf20134dfcb260699671004527b2d6bb1a45`; reference
 revision is `0296f009f32f710495979d30772d8332af2d411a`. No license for external
 implementation code has been established, and no such code is reused.
@@ -47,8 +47,8 @@ in actual generated Lua passed with compiler
 `9913e1bd300c2053637d756a11bae8c3c8ed568f` and standard library
 `bb1e0458db5a372ba2a6928112452785e435d01a`. Numeric equality here does not
 distinguish the sign of zero. The ignored worker harness is at
-`~/code/wc3-melee/worktrees/retail-trig-math/build/scalar-math/check.sh` and
-`~/code/wc3-melee/worktrees/retail-trig-math/build/scalar-math/run.lua`.
+`~/code/smashcraft/worktrees/retail-trig-math/build/scalar-math/check.sh` and
+`~/code/smashcraft/worktrees/retail-trig-math/build/scalar-math/run.lua`.
 
 The original scalar outputs were obtained under QEMU PPC750, not measured on
 GameCube hardware. These checks establish agreement on the recorded scalar

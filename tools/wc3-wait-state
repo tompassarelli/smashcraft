@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-[[ $# == 3 ]] || { echo 'Usage: wc3-melee:tools/wc3-wait-state RUN_DIR EXPECTED_STATE TIMEOUT_SECONDS' >&2; exit 2; }
+[[ $# == 3 ]] || { echo 'Usage: smashcraft:tools/wc3-wait-state RUN_DIR EXPECTED_STATE TIMEOUT_SECONDS' >&2; exit 2; }
 run_dir=$(realpath -- "$1")
 expected=$2
 budget=$3

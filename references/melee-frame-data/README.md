@@ -115,7 +115,7 @@ checks the three representative entries above. Expected duration: seconds.
 
 ```sh
 curl --fail --location 'https://raw.githubusercontent.com/mitchhit234/meleeWebProject/ec5155149faeed24b5e5781d7efe17387cc9ee3d/characters.db' --output /tmp/melee-fd-characters.db
-bun ~/code/wc3-melee/worktrees/melee-foundation-roadmap/references/melee-frame-data/intake.mjs /tmp/melee-fd-characters.db ~/code/wc3-melee/worktrees/melee-foundation-roadmap/references/melee-frame-data
+bun ~/code/smashcraft/worktrees/melee-foundation-roadmap/references/melee-frame-data/intake.mjs /tmp/melee-fd-characters.db ~/code/smashcraft/worktrees/melee-foundation-roadmap/references/melee-frame-data
 ```
 
 The script does not fetch live pages or claim fresh deployment parity. Updating

@@ -1,6 +1,6 @@
 # Fast menu observation
 
-`wc3-melee:tools/wc3-screen-state` classifies an existing disk capture of the
+`smashcraft:tools/wc3-screen-state` classifies an existing disk capture of the
 English Warcraft III 3.0.0.24268 menu at 2560×1440. It reads three compact text
 regions in one OCR pass and returns `main-menu`, `single-player`, `create-game`,
 `disconnected`, or `unknown`. Unknown and unsupported geometry return nonzero.
@@ -8,7 +8,7 @@ The disconnect label takes precedence over any underlying menu.
 
 ```sh
 nix shell nixpkgs#tesseract nixpkgs#imagemagick --command \
-  ~/code/wc3-melee/worktrees/wc3-screen-speed-20261003/tools/wc3-screen-state \
+  ~/code/smashcraft/worktrees/wc3-screen-speed-20261003/tools/wc3-screen-state \
   /absolute/path/to/fresh-capture.png
 ```
 
@@ -28,8 +28,8 @@ The `full` second argument provides the otherwise equivalent full-frame baseline
 
 ```sh
 nix shell nixpkgs#tesseract nixpkgs#imagemagick --command \
-  ~/code/wc3-melee/worktrees/wc3-screen-speed-20261003/tools/bench-wc3-screen-state \
-  ~/code/wc3-melee/worktrees/test-loop/build/two-clients/competitive-integrity-20261003/native-bridge-recovery
+  ~/code/smashcraft/worktrees/wc3-screen-speed-20261003/tools/bench-wc3-screen-state \
+  ~/code/smashcraft/worktrees/test-loop/build/two-clients/competitive-integrity-20261003/native-bridge-recovery
 ```
 
 The benchmark checks independently retained screen labels, alternates mode order,
@@ -60,7 +60,7 @@ The native map-entry boundary remains unresolved independently of this result.
 
 ## Wait for an observed menu
 
-`wc3-melee:tools/wc3-wait-state RUN_DIR EXPECTED_STATE TIMEOUT_SECONDS` replaces
+`smashcraft:tools/wc3-wait-state RUN_DIR EXPECTED_STATE TIMEOUT_SECONDS` replaces
 a guessed readiness sleep with periodic observation. It accepts the exact live
 private run directory, one of `main-menu`, `single-player`, `create-game`, and a
 1–120 second timeout. It resolves the canonical private-desktop launcher through
@@ -75,7 +75,7 @@ Captures remain in the private run's unique `wait-state.*` directory for review.
 
 ```sh
 nix shell nixpkgs#tesseract nixpkgs#imagemagick --command \
-  ~/code/wc3-melee/worktrees/wc3-screen-speed-20261003/tools/wc3-wait-state \
+  ~/code/smashcraft/worktrees/wc3-screen-speed-20261003/tools/wc3-wait-state \
   /run/user/1000/private-desktop.EXACT_RUN create-game 15
 ```
 
@@ -83,7 +83,7 @@ The nearest focused check is:
 
 ```sh
 nix shell nixpkgs#socat --command \
-  ~/code/wc3-melee/worktrees/wc3-screen-speed-20261003/tools/test-wc3-wait-state.sh
+  ~/code/smashcraft/worktrees/wc3-screen-speed-20261003/tools/test-wc3-wait-state.sh
 ```
 
 That fixture check passed for a main-menu → Create Game observation, immediate

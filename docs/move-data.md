@@ -1,18 +1,18 @@
 # Production move data
 
 For executable contact, punish and follow-up comparisons under named conditions,
-see wc3-melee:docs/move-comparisons.md.
+see smashcraft:docs/move-comparisons.md.
 
-Run `~/code/wc3-melee/worktrees/playable-integration-20261005/tools/move-data/export.sh`
+Run `~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/export.sh`
 (or the same command in the current owned checkout) to compile the pinned Wurst
-source and write wc3-melee:build/move-export/moves.jsonl. It takes about ten
+source and write smashcraft:build/move-export/moves.jsonl. It takes about ten
 seconds locally. Java/compiler/stdlib locations follow the existing project
-setup; the compiler artifact is checked against wc3-melee:wurst-toolchain.lock.
+setup; the compiler artifact is checked against smashcraft:wurst-toolchain.lock.
 The Lua runtime comes from that lock. Set `MOVE_DATA_LUA` to an installed Lua 5.3
 executable to avoid the default Nix shell lookup. Apply the machine-capacity
 wrapper from the operating instructions when running the compiler.
 
-wc3-melee:tools/move-data/moves.jsonl is the queryable snapshot. `--check`
+smashcraft:tools/move-data/moves.jsonl is the queryable snapshot. `--check`
 checks actual jab contact resolution for all three fighters, character-specific
 down-air recovery and a real L-cancel landing transition, then recompiles
 production and compares the complete export against that snapshot;
@@ -22,14 +22,14 @@ input. Do not edit numerical values in the snapshot.
 
 ```sh
 jq 'select(.kind == "move" and .character == 0 and .move == "down-air")' \
-  ~/code/wc3-melee/worktrees/playable-integration-20261005/tools/move-data/moves.jsonl
+  ~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/moves.jsonl
 jq 'select(.kind == "contact" and .move == "forward-tilt" and .character == 1) | {frame,region,damage,hitCapsule}' \
-  ~/code/wc3-melee/worktrees/playable-integration-20261005/tools/move-data/moves.jsonl
+  ~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/moves.jsonl
 ```
 
-The Wurst query seam is wc3-melee:wurst/MoveData.wurst. It calls the owning
+The Wurst query seam is smashcraft:wurst/MoveData.wurst. It calls the owning
 production timing, hit-region and capsule functions. The emitter at
-wc3-melee:tools/move-data/MoveDataExport.wurst serializes those results. The shell
+smashcraft:tools/move-data/MoveDataExport.wurst serializes those results. The shell
 and Lua files only run the compiler/runtime and write its output; they neither
 parse gameplay source nor maintain combat values.
 
@@ -81,9 +81,9 @@ L-cancel press. Ground moves report zero landing lag; the shared L-cancel window
 is not a ground-move property.
 
 Unrepresented autocancel windows and animation hurtboxes are explicitly `null`.
-wc3-melee:docs/move-reference-join.md records the factual action-family joins
+smashcraft:docs/move-reference-join.md records the factual action-family joins
 and bounded trade-off analysis; it establishes no fighter equivalence.
 Matchup-wide outcomes remain unknown; bounded reachable options are recorded
-separately in wc3-melee:docs/move-comparisons.md.
+separately in smashcraft:docs/move-comparisons.md.
 These are headless production observations, not native timing, physics-parity,
 matchup or balance acceptance. Issue #12 remains open for the remaining work.

@@ -4,7 +4,7 @@ import { resolve, join } from 'node:path';
 
 const [build, sourceSlot, corpusPath, output] = process.argv.slice(2);
 if (!/^[A-Za-z0-9._-]+$/.test(build ?? '') || !/^[0-3]$/.test(sourceSlot ?? '') || !corpusPath || !output) {
-    throw new Error('Usage: bun wc3-melee:tools/netcode-probe/generate-vocabulary-fixtures.mjs BUILD_ID SOURCE_SLOT CHECKED_CORPUS OUTPUT_DIRECTORY');
+    throw new Error('Usage: bun smashcraft:tools/netcode-probe/generate-vocabulary-fixtures.mjs BUILD_ID SOURCE_SLOT CHECKED_CORPUS OUTPUT_DIRECTORY');
 }
 const corpus = (await Bun.file(corpusPath).text()).trim().split('\n');
 const alphabet = corpus.find(line => line.startsWith('VOCABULARY_ALPHABET '))?.split(' ')[1];

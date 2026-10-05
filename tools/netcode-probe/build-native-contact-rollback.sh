@@ -8,8 +8,8 @@ map_name="Smashcraft $version"
 private_root=/home/tom/.local/share/smashcraft-build-inputs/native-contact-rollback-20261004
 mkdir -p "$private_root"
 build_dir=$(mktemp -d "$private_root/build.XXXXXX")
-compiler=/home/tom/code/wc3-melee/worktrees/production-netcode-integration-20261004/toolchain/wurstscript.jar
-packager=/home/tom/code/wc3-melee/worktrees/production-netcode-integration-20261004/build/tools/map-pack
+compiler=/home/tom/code/smashcraft/worktrees/production-netcode-integration-20261004/toolchain/wurstscript.jar
+packager=/home/tom/code/smashcraft/worktrees/production-netcode-integration-20261004/build/tools/map-pack
 stdlib=/home/tom/code/wurst-stdlib/pins/4dfc8a0474bd
 java=/home/tom/.wurst/wurst-runtime/bin/java
 [[ $(sha256sum "$compiler" | cut -d ' ' -f1) == 2ed2ee8cf563aedaef7e384b2e0c68f50a306144e99fa506b90935c62b64a18a ]]
@@ -26,8 +26,8 @@ done
 cp "$project_dir/tools/netcode-probe/NativeContactRollbackProbe.wurst" "$build_dir/wurst/"
 cp "$project_dir/tools/netcode-probe/FrameTaggedRecord.wurst" "$build_dir/wurst/"
 cp "$project_dir/tools/map-entry.j" "$build_dir/wurst/war3map.j"
-cp /home/tom/code/wc3-melee/worktrees/production-netcode-integration-20261004/build/animation-assets/FighterAssetInfo.wurst "$build_dir/wurst/"
-cp /home/tom/code/wc3-melee/worktrees/production-netcode-integration-20261004/build/illidan-animation/DemonHunterAssetInfo.wurst "$build_dir/wurst/"
+cp /home/tom/code/smashcraft/worktrees/production-netcode-integration-20261004/build/animation-assets/FighterAssetInfo.wurst "$build_dir/wurst/"
+cp /home/tom/code/smashcraft/worktrees/production-netcode-integration-20261004/build/illidan-animation/DemonHunterAssetInfo.wurst "$build_dir/wurst/"
 cp /home/tom/.local/share/smashcraft-build-inputs/production-netcode-20261004/summon-original-clips/wurst/SummonOriginalClipInfo.wurst "$build_dir/wurst/"
 ln -s "$stdlib" "$build_dir/_build/dependencies/wurststdlib"
 build_id="contact-rollback-20261004"

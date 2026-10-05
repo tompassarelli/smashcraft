@@ -1,7 +1,7 @@
 package MeleeScalarMath
 import Binary32
 
-// Numerical coefficients: wc3-melee:docs/smash-melee-reference/retail-trig-coefficients.json.
+// Numerical coefficients: smashcraft:docs/smash-melee-reference/retail-trig-coefficients.json.
 // Every rounding boundary is part of the approximation, including range reduction.
 constant PI = 3.1415927410125732
 constant HALF_PI = 1.5707963705062866

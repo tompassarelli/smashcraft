@@ -1,7 +1,7 @@
 # Smashcraft development
 
 Smashcraft is a Wurst-authored platform fighter compiled to Lua for Warcraft III.
-Read wc3-melee:wurst-toolchain.lock and wc3-melee:wurst.build before changing
+Read smashcraft:wurst-toolchain.lock and smashcraft:wurst.build before changing
 patch, compiler, standard library or target. The lock is authoritative; a newer
 upstream article does not update it.
 
@@ -29,13 +29,13 @@ investigation.
 
 ## Source and workflow
 
-- wc3-melee:wurst/ owns gameplay, deterministic state/replay, selection and UI.
-- wc3-melee:companion/ owns the Rust controller/helper boundary.
-- wc3-melee:tools/ owns build, native probes and automation.
-- wc3-melee:docs/ holds durable knowledge only: how systems work, design
+- smashcraft:wurst/ owns gameplay, deterministic state/replay, selection and UI.
+- smashcraft:companion/ owns the Rust controller/helper boundary.
+- smashcraft:tools/ owns build, native probes and automation.
+- smashcraft:docs/ holds durable knowledge only: how systems work, design
   decisions, reference data and procedures. Status, progress, plans and claim
   tables live in the owning issue. A dated trial's raw record goes in
-  wc3-melee:evidence/ and is never edited afterwards. When a trial teaches
+  smashcraft:evidence/ and is never edited afterwards. When a trial teaches
   something durable, add that fact to the relevant doc, with its build.
 - Use the declared project development shell when available. Preserve pinned
   dependencies; do not repeat ad hoc environment setup as the normal loop.
@@ -45,7 +45,7 @@ investigation.
 Run `./test.sh TEST_FILTER` for focused Wurst tests; `./test.sh` defaults to
 Tests. The optional second argument is the positive test timeout in seconds.
 Run `./build.sh /absolute/path/to/base.w3x` for map compilation/packaging. See
-wc3-melee:docs/development-loop.md for required local toolchain and base-map setup.
+smashcraft:docs/development-loop.md for required local toolchain and base-map setup.
 Use current project commands, not unverified `grill` substitutions.
 
 Pure simulation tests establish logical rules, not Warcraft callback timing,

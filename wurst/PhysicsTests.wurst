@@ -165,7 +165,7 @@ function retailCombatContact(FighterState owner, FighterState target, real knock
 	destroy saved
 	destroy state
 
-// Factual original-game inputs from wc3-melee:docs/smash-melee-reference/physics-parameters.json.
+// Factual original-game inputs from smashcraft:docs/smash-melee-reference/physics-parameters.json.
 // This fixture exercises the production engine without adding a roster character.
 function falcoReferencePhysics() returns fighterPhysics
 	return fighterPhysics(80, 0.17000000178813934 * 6,

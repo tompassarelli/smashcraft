@@ -1,6 +1,6 @@
 # Physics parameter sources
 
-wc3-melee:docs/smash-melee-reference/physics-parameters.json records 78 Fox/Falco
+smashcraft:docs/smash-melee-reference/physics-parameters.json records 78 Fox/Falco
 movement and recovery values, 14 common values reported by the decompile's
 annotations, and 74 selected retail common values across 28 gameplay groups.
 It also records nine additional common shield and wall-recovery fields and five

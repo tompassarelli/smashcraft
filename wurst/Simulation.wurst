@@ -332,7 +332,7 @@ public constant int DOWN_ATTACK_STARTUP_FRAMES = 16
 public constant int DOWN_ATTACK_ACTIVE_FRAMES = 3
 public constant real DOWN_ATTACK_DAMAGE = 7
 // Provisional get-up attack tuning: let the attacker regain control before
-// the opponent's first active wake-up attack. See wc3-melee:docs/physics.md.
+// the opponent's first active wake-up attack. See smashcraft:docs/physics.md.
 public constant real DOWN_ATTACK_BASE_KNOCKBACK = 75
 public constant int GRAB_HOLD_FRAMES = 76
 public constant real GRAB_HOLD_DISTANCE = 50
@@ -790,7 +790,7 @@ public tuple directionalInfluenceResult(real velocityX, real velocityZ, real ang
 
 // Launch components are in Melee units; stick components are normalized. The signed squared cross
 // product gives the rotation fraction; rounding and fused angle reconstruction
-// are checked against wc3-melee:docs/smash-melee-reference/retail-di-vector.json.
+// are checked against smashcraft:docs/smash-melee-reference/retail-di-vector.json.
 public function directionalInfluenceVector(real x, real z, real stickX, real stickZ) returns directionalInfluenceResult
 	let horizontal = x.roundToFloat32()
 	let vertical = z.roundToFloat32()

@@ -6,15 +6,15 @@ is **observation only**: no keyboard injection, window creation, or focus change
 
 ## Build and observe
 
-From the checkout's `wc3-melee:companion` directory, use Rust 1.96.1 (pinned in
-`wc3-melee:companion/rust-toolchain.toml`), a C/C++ compiler and CMake. Linux also
+From the checkout's `smashcraft:companion` directory, use Rust 1.96.1 (pinned in
+`smashcraft:companion/rust-toolchain.toml`), a C/C++ compiler and CMake. Linux also
 needs the libudev and libxkbcommon development libraries. Dependencies, including
 SDL 3.4.16 built statically through sdl3 0.20.0, are locked in
-`wc3-melee:companion/Cargo.lock`. Build output stays in
-`wc3-melee:companion/target`.
+`smashcraft:companion/Cargo.lock`. Build output stays in
+`smashcraft:companion/target`.
 
 ```sh
-cd ~/code/wc3-melee/worktrees/controller-core-20261003/companion
+cd ~/code/smashcraft/worktrees/controller-core-20261003/companion
 cargo test --locked --jobs 2
 cargo build --locked --jobs 2
 cargo run --locked -- --list
@@ -187,7 +187,7 @@ For the editbox map, start one helper **in character selection** and
 leave it running through results and rematches:
 
 ```sh
-~/code/wc3-melee/worktrees/playable-integration-20261005/companion/target/debug/wc3-journal \
+~/code/smashcraft/worktrees/playable-integration-20261005/companion/target/debug/wc3-journal \
   --follow-matches --build BUILD --slot 0 \
   --device /dev/input/eventN --out '/absolute/Warcraft III/CustomMapData' \
   --editbox-display :N --x11-window DECIMAL_ID --pid PID \
@@ -255,7 +255,7 @@ must become neutral before new gameplay, menu or pause inputs are accepted.
 `controller_disconnected` records detection; `controller_release frame=N`
 records its assigned release; `controller_reconnected source=...` identifies
 the recovered event path. Bounded native recovery is recorded in
-wc3-melee:evidence/controller-reconnect-native-20261005/README.md.
+smashcraft:evidence/controller-reconnect-native-20261005/README.md.
 
 The explicit `--ready-file PATH --epoch-monotonic-ns NS` mode remains for native
 diagnostic drivers. `--first-frame N` (default 1) and `--stop-frame N` belong to
@@ -293,7 +293,7 @@ Current evidence and remaining acceptance are in
 `roadmap #16`. The Linux journal path passed bounded tap/stall,
 focus and pause/resume trials. Automatic start/results/rematch with the same
 helpers passed two native match lifecycles; keyboard confirmed the menus.
-See `wc3-melee:evidence/match-lifecycle-native-20261005/README.md` for exact builds,
+See `smashcraft:evidence/match-lifecycle-native-20261005/README.md` for exact builds,
 failed attempts and limits. Physical controller-to-screen timing, cross-machine
 clock agreement, chat, physical reconnect and other-platform acceptance remain open.
 
@@ -304,7 +304,7 @@ requires `--x11-window DECIMAL_ID`, `--pid PID`, and exactly one foreground
 adapter: `--niri-window ID` or `--private-wlr-app-id ID`. The latter uses the
 selected private desktop's `XDG_RUNTIME_DIR` and `WAYLAND_DISPLAY`. These are
 the same process/window/compositor checks used by the mapper, implemented in
-wc3-melee:companion/src/focus.rs and wc3-melee:companion/src/wlr.rs. Missing or
+smashcraft:companion/src/focus.rs and smashcraft:companion/src/wlr.rs. Missing or
 failed target identity is an error; ordinary focus loss suspends keyboard output.
 
 Focus loss leaves assigned rows and queued I4/ACK1/JP1 records in order. A logical
@@ -334,7 +334,7 @@ focus switch cannot route its text to another application's window. This does
 not guarantee Warcraft consumes those events: the native focus trial retained
 zero sink events but exposed a missing-frame gap on return. Native acknowledgment
 and replay remain required before claiming focus-safe delivery; see
-wc3-melee:evidence/native-focus-20261005/README.md.
+smashcraft:evidence/native-focus-20261005/README.md.
 
 The editbox path holds no global transport keys; the legacy mailbox retains its existing signal state
 until eligible and gates its cleanup too, so unfocused teardown does not emit

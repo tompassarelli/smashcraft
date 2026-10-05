@@ -21,9 +21,9 @@ const real = value => {
 };
 const lines = ['package MoveReferenceInput', 'import MoveReference', '', 'init'];
 lines.push(`    BJDebugMsg(${row({kind:'context', schema:1,
-  productionInput:'wc3-melee:tools/move-data/moves.jsonl',
-  comparisonInput:'wc3-melee:tools/move-data/comparisons.jsonl',
-  referenceInput:'wc3-melee:references/melee-frame-data/records.jsonl',
+  productionInput:'smashcraft:tools/move-data/moves.jsonl',
+  comparisonInput:'smashcraft:tools/move-data/comparisons.jsonl',
+  referenceInput:'smashcraft:references/melee-frame-data/records.jsonl',
   productionContext:moves.find(r=>r.kind==='context'),
   comparisonContext:comparisons.find(r=>r.kind==='context'),
   join:'action family across distinct identities; never fighter equivalence',

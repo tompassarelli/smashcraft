@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-[[ $# == 1 && -d "$1" ]] || { echo 'Usage: wc3-melee:tools/bench-wc3-screen-state FIXTURE_DIR' >&2; exit 2; }
+[[ $# == 1 && -d "$1" ]] || { echo 'Usage: smashcraft:tools/bench-wc3-screen-state FIXTURE_DIR' >&2; exit 2; }
 fixture_dir=$1
 observer="$(dirname "$0")/wc3-screen-state"
 files=(a-before a-after-key a-after-custom-click a-relative-click)

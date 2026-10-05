@@ -81,7 +81,7 @@ If acquisition works but events never reach the map, investigate output, privile
 
 ## Source pins and reuse rights
 
-Reference downloads and API-page snapshots are under wc3-melee:build/two-clients/controller-reuse-20261003/sources. Documentation pages were retrieved on 3 October 2026 for API facts; examples were not copied. Source pins below are research evidence, not a dependency installation. The prior report retains exact pins/licenses for gilrs, evdev, hidapi, rusb, AntiMicroX and the mapping database.
+Reference downloads and API-page snapshots are under smashcraft:build/two-clients/controller-reuse-20261003/sources. Documentation pages were retrieved on 3 October 2026 for API facts; examples were not copied. Source pins below are research evidence, not a dependency installation. The prior report retains exact pins/licenses for gilrs, evdev, hidapi, rusb, AntiMicroX and the mapping database.
 
 | Source | Exact revision | Rights boundary |
 | --- | --- | --- |

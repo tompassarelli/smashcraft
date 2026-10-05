@@ -24,7 +24,7 @@ with the existing simulation fixtures, not native execution.
 Source checkpoint `7ef7639f180bce1ef74d7e35ba6167a69e41682c` built
 Smashcraft 0.0.15, build ID `physics-damage-landing`, with zero errors and
 six existing warnings (smashcraft:build/damage-landing-map.log). Candidate:
-~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.15.w3x.
+~/code/smashcraft/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.15.w3x.
 SHA256: `48f22d9415643d0834025d7fd29f0a04dabe34beed95a32f8f47880b17e8f558`.
 Deployment was disabled to preserve the concurrent input workstream's clients.
 This candidate has not been observed in Warcraft.
@@ -66,7 +66,7 @@ Source checkpoint `c3e0269de4e07cf89ec7759afab2aa56f5fd0a86` built
 Smashcraft 0.0.16 with build ID `physics-tumble-exit`, zero errors and six
 existing warnings (smashcraft:build/tumble-exit-map.log). It includes both
 digital tumble exit and weak-damage surface eligibility. Candidate:
-~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.16.w3x.
+~/code/smashcraft/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.16.w3x.
 SHA256: `0a435ea41c8260bbd4b5a6309c6d29d8e512909239ed23c6cd52553137c66115`.
 Deployment remains disabled while concurrent input work owns the clients;
 native observation is outstanding.
@@ -442,7 +442,7 @@ Native behavior remains unobserved.
 
 The integrated source checkpoint 058d8c5 built Smashcraft 0.0.8 with build ID
 melee-physics-r14, zero errors and six warnings. The local candidate is
-~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.8.w3x;
+~/code/smashcraft/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.8.w3x;
 SHA256 a18fb26577cb7a38b827b40f363f14710b2d2480946b8f7b07363dac48fcf25e.
 Build evidence: smashcraft:build/physics-map-r14.log. Deployment was disabled;
 this candidate has not been installed or observed natively. The concurrent
@@ -519,7 +519,7 @@ contact subtraction round their scalar results to binary32. The unchanged
 Lua production probe now reports GROUNDED_BINARY32_EXACT_PASS, and regeneration
 from 20 reports SHIELD_REGEN_BINARY32_EXACT_PASS (20.06999969482422).
 Evidence: smashcraft:build/binary32-lua-precision.log; compilation had zero
-errors/warnings. Reproduce with bash ~/code/wc3-melee/main/tools/physics-probe/check-numerical-precision.sh
+errors/warnings. Reproduce with bash ~/code/smashcraft/main/tools/physics-probe/check-numerical-precision.sh
 from the project checkout. The probe executes the generated production advance
 function with scalar dependency initialization and the compiler's existing
 native test fixture; it does not launch Warcraft or initialize the map UI.

@@ -1,20 +1,20 @@
 # Native input/transport probe
 
 Developer-only Phase 0 experiment. Contract and outstanding gates:
-wc3-melee:docs/netcode-proposal.md and
-wc3-melee:evidence/native-capability-report.md.
+smashcraft:docs/netcode-proposal.md and
+smashcraft:evidence/native-capability-report.md.
 
 Build each artifact through the pinned project compiler:
 
 ```bash
-bash ~/code/wc3-melee/worktrees/test-loop/tools/netcode-probe/build.sh \
+bash ~/code/smashcraft/worktrees/test-loop/tools/netcode-probe/build.sh \
   '/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps/Melee_Prototype_Base.w3m' 1
-bash ~/code/wc3-melee/worktrees/test-loop/tools/netcode-probe/build.sh \
+bash ~/code/smashcraft/worktrees/test-loop/tools/netcode-probe/build.sh \
   '/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps/Melee_Prototype_Base.w3m' 2
 ```
 
-Generated maps are wc3-melee:build/netcode-probe/Smashcraft_Input_Probe_1.w3x
-and wc3-melee:build/netcode-probe/Smashcraft_Input_Probe_2.w3x. The script does
+Generated maps are smashcraft:build/netcode-probe/Smashcraft_Input_Probe_1.w3x
+and smashcraft:build/netcode-probe/Smashcraft_Input_Probe_2.w3x. The script does
 not overwrite the installed gameplay map. It validates compiler/stdlib pins,
 compiles Wurst to Lua, retains the terrain initialization, omits melee victory
 triggers and verifies the packaged script. No fighter assets are needed.
@@ -64,7 +64,7 @@ Same-room Battle.net is not a LAN test. Keep per-client logs and exact runtime,
 graphics, game-speed, route and device settings with each observation.
 
 Build the separate pose probe with the same command and variant `pose` instead
-of `1` or `2`. Output: wc3-melee:build/netcode-probe/Smashcraft_Pose_Probe.w3x.
+of `1` or `2`. Output: smashcraft:build/netcode-probe/Smashcraft_Pose_Probe.w3x.
 It preallocates four stock Rifleman effects, then compares a naturally played
 and frozen Attack with seconds/milliseconds seeks and a live Walk reference.
 The displayed phases run automatically every 180 service callbacks. Phase 6
@@ -73,7 +73,7 @@ callback later. N restarts the sequence; Ctrl+R reloads the map.
 
 Inspect the actual pose and any embedded particles, not merely the displayed
 phase counter. Initial single-client findings and the unresolved clip-change
-recovery failure are in wc3-melee:evidence/native-capability-report.md. The per-client
+recovery failure are in smashcraft:evidence/native-capability-report.md. The per-client
 yaw difference is intentional for a future two-client local-mutation check;
 that check has not been performed. No input/pose probe establishes rollback
 feasibility or native unit prediction safety by itself.
@@ -82,7 +82,7 @@ Variant `fighter-playback` uses the current generated Archer model and the
 gameplay unit definition to isolate Up Tilt from combat. Supply the original
 terrain base map, as above, not an already wrapped gameplay map. Generated
 fighter metadata and the Archer MDX must already exist. Output:
-wc3-melee:build/netcode-probe/Smashcraft_Fighter_Playback_Probe.w3x.
+smashcraft:build/netcode-probe/Smashcraft_Fighter_Playback_Probe.w3x.
 The left unit runs at 1x and freezes after 15 callbacks; the middle runs at the
 gameplay rate and freezes after six; the right plays the whole clip at the
 gameplay rate. The cycle repeats after 180 callbacks. These freezes target
@@ -91,15 +91,15 @@ prove the native animation clock reached an exact phase. No combat or input
 automation runs in this probe.
 
 Variant `pose-controlled` builds
-wc3-melee:build/netcode-probe/Smashcraft_Controlled_Pose_Probe.w3x.
+smashcraft:build/netcode-probe/Smashcraft_Controlled_Pose_Probe.w3x.
 It uses original marker/ruler geometry with known Attack and Walk intervals;
 ten automatic phases test seconds, model-timeline offsets, clip switching and
 backward seeking. Details and observed results are recorded in
-wc3-melee:evidence/native-capability-report.md. It requires the existing animation-tool
+smashcraft:evidence/native-capability-report.md. It requires the existing animation-tool
 Bun dependency for MDL/MDX packaging, but no installed fighter assets.
 
 Variant `pose-timeline` builds
-wc3-melee:build/netcode-probe/Smashcraft_Timeline_Pose_Probe.w3x. The same known
+smashcraft:build/netcode-probe/Smashcraft_Timeline_Pose_Probe.w3x. The same known
 marker motions now occupy one nonlooping Stand interval (0..5000ms). Models
 remain frozen and selected once; phases seek between the two authored motion
 segments, revisit earlier times, repeat a pose every tick, and apply multiple
@@ -112,15 +112,15 @@ when interpreting native experiments.
 ## Scheduled gameplay diagnostic
 
 Variant `scheduled` builds
-wc3-melee:build/netcode-probe/Smashcraft_Scheduled_Input_Probe.w3x:
+smashcraft:build/netcode-probe/Smashcraft_Scheduled_Input_Probe.w3x:
 
 ```bash
-bash ~/code/wc3-melee/worktrees/test-loop/tools/netcode-probe/build.sh \
+bash ~/code/smashcraft/worktrees/test-loop/tools/netcode-probe/build.sh \
   '/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Maps/Melee_Prototype_Base.w3m' scheduled
 ```
 
 Variant `scheduled-5` builds the same source with D=5 instead of D=3, at
-wc3-melee:build/netcode-probe/Smashcraft_Scheduled_Input_Probe_5.w3x.
+smashcraft:build/netcode-probe/Smashcraft_Scheduled_Input_Probe_5.w3x.
 Use separate native sessions and retain each exported trace before the next
 run overwrites the diagnostic file. Neither variant changes combat tuning.
 

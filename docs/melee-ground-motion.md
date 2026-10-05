@@ -13,7 +13,7 @@ This change does not introduce stale-move penalties or freshness bonuses.
 
 ## Independent numeric evidence
 
-wc3-melee:docs/smash-melee-reference/retail-ground-motion.json contains 22
+smashcraft:docs/smash-melee-reference/retail-ground-motion.json contains 22
 composed arithmetic cases and four shield-entry store observations from the
 owner's NTSC 1.02 executable, SHA-1
 `08e0bf20134dfcb260699671004527b2d6bb1a45`.
@@ -52,9 +52,9 @@ the previous velocity, without claiming a newly verified contact magnitude.
 
 ## Production comparison
 
-wc3-melee:tools/physics-probe/generate-ground-motion-probe.mjs turns these
+smashcraft:tools/physics-probe/generate-ground-motion-probe.mjs turns these
 facts into assertions through production contact handling and movement.
-The existing wc3-melee:tools/physics-probe/check-numerical-precision.sh compiles
+The existing smashcraft:tools/physics-probe/check-numerical-precision.sh compiles
 those assertions with the locked Wurst compiler and runs the emitted Lua.
 Compiler and standard-library pins are unchanged.
 
@@ -63,8 +63,8 @@ values, two defender values, and all four shield-entry cases. The repaired
 comparison passes all 22 arithmetic cases (four values per case) and four
 entry cases, with zero compiler errors or warnings. All other existing
 numerical-probe result groups also passed in that same run. Local logs are
-wc3-melee:build/ground-motion-before.log and
-wc3-melee:build/ground-motion-after.log in the melee-ground-motion lane.
+smashcraft:build/ground-motion-before.log and
+smashcraft:build/ground-motion-after.log in the melee-ground-motion lane.
 
 This evidence covers ordinary flat-ground arithmetic and the entry overwrite.
 It does not establish native Warcraft timing, a complete original-game

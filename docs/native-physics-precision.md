@@ -16,7 +16,7 @@ a map or control a Warcraft client.
 
 The historical candidate is a one-player diagnostic map, Smashcraft 0.0.13,
 simulation source 98cb2dff36e204d4c2af287731f4116602320fe5:
-~/code/wc3-melee/worktrees/melee-physics-public/build/physics-probe/native.xTRUdu/Smashcraft 0.0.13.w3x.
+~/code/smashcraft/worktrees/melee-physics-public/build/physics-probe/native.xTRUdu/Smashcraft 0.0.13.w3x.
 SHA-256: a5ab1dd839cf3cda65052dd38de67c47298a611eb83e233a0b6cb4ef00709bc0.
 The build reports zero errors and four existing standard-library warnings;
 packaged Lua syntax and script roundtrip pass. The candidate includes the current
@@ -105,8 +105,8 @@ failures for frames -54 through -50, and SIGNED_ZERO_SIGN_1_angle_FAIL. Some
 fixture groups print PASS even after individual FAIL messages, so those banners
 do not establish passing groups. No arithmetic/native fidelity acceptance.
 
-Evidence: wc3-melee:evidence/native-physics-precision-20261004/native0033.txt and
-wc3-melee:evidence/native-physics-precision-20261004/native0033-screen.txt.
+Evidence: smashcraft:evidence/native-physics-precision-20261004/native0033.txt and
+smashcraft:evidence/native-physics-precision-20261004/native0033-screen.txt.
 The next diagnostic buffers results and starts/writes/closes its export together in the timer; native execution must verify retained individual results and truthful group verdicts,
 then separate fixture expectations from production/Lua32 arithmetic failures.
 A scoped child owns that repair and a 0.0.35 candidate; this root owns native
@@ -129,7 +129,7 @@ discrete DI mismatch count 15. These are comparison-case counts, not a whole-gam
 fidelity percentage.
 
 Full authored numerical evidence:
-wc3-melee:evidence/native-physics-precision-20261004/native0035.txt.
+smashcraft:evidence/native-physics-precision-20261004/native0035.txt.
 The reporting repair succeeds; production arithmetic acceptance fails.
 Local IEEE Lua32 reproduces a subset of failures from non-reversible world-unit
 scaling by six and back. The compiler repository also records Warcraft 3.0
@@ -151,21 +151,21 @@ authored fighter dimensions are preserved. No reference implementation was
 copied and no recorded expectation changed.
 
 The focused check compiled the production packages plus the output of
-wc3-melee:tools/physics-probe/generate-capsule-probe.mjs, then ran only
+smashcraft:tools/physics-probe/generate-capsule-probe.mjs, then ran only
 `init_CapsuleShieldPrecisionProbe` through the existing Lua test shim.
 All 508 classifications passed in Lua 5.3; compilation reported zero errors
 and zero warnings. It used compiler `6b129956f6e7cf9582510f26b99d305526bf3ded`,
 stdlib `e3714f629113ee682353c3244065fee3e7d9ae16`, and test shim
 `1f36fff43a4987bc133c676072ee396f15294aa0` from the unchanged lock. The local
 invocation and result are retained at
-~/code/wc3-melee/worktrees/physics-scale-20261005/build/physics-probe/check-capsule.sh
+~/code/smashcraft/worktrees/physics-scale-20261005/build/physics-probe/check-capsule.sh
 and
-~/code/wc3-melee/worktrees/physics-scale-20261005/build/physics-probe/capsule-compile.log.
+~/code/smashcraft/worktrees/physics-scale-20261005/build/physics-probe/capsule-compile.log.
 
 This is a bounded capsule/shield calculation repair. Native re-execution of
 the existing 508 authored comparisons remains required; the generated inputs
 are unchanged. It does not repair the separate motion representation gap:
-wc3-melee:evidence/native-physics-precision-20261004/native0037-analysis.json retains
+smashcraft:evidence/native-physics-precision-20261004/native0037-analysis.json retains
 frame 6's stored world velocity `-7.1399993896484375`, versus the direct sum
 `-7.139999866485596` of the same operands. That observation does not measure
 an independently maintained trajectory in original units. Repeated scaling
@@ -210,15 +210,15 @@ action calculations still have their existing world-valued interfaces.
 Native execution of the repaired trajectory and those remaining ingress and
 scalar boundaries are not established by source checks.
 
-Validation: `bash ~/code/wc3-melee/worktrees/physics-scale-20261005/test.sh PhysicsTests 90`
+Validation: `bash ~/code/smashcraft/worktrees/physics-scale-20261005/test.sh PhysicsTests 90`
 passed 71/71 tests with zero compiler errors and nine warnings. This includes
 the ten exact recorded positions, adoption of world-coordinate edits, reset,
 and replay restored after six fall steps; changing one retained position ULP
 is visible to first-difference and canonical-state comparison. The initial
 69/71 run exposed the two old aerial-dodge position expectations above; both
 pass with original-unit expectations and unchanged tolerances. Logs are
-~/code/wc3-melee/worktrees/physics-scale-20261005/build/wurst-tests/canonical-motion.log
+~/code/smashcraft/worktrees/physics-scale-20261005/build/wurst-tests/canonical-motion.log
 and
-~/code/wc3-melee/worktrees/physics-scale-20261005/build/wurst-tests/canonical-motion-repaired.log.
+~/code/smashcraft/worktrees/physics-scale-20261005/build/wurst-tests/canonical-motion-repaired.log.
 The locked compiler and standard library are unchanged. No map build or native
 client was run for this repair.

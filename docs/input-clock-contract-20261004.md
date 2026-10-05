@@ -5,11 +5,11 @@
 The supported playable checkpoint is the Linux evdev journal path in 0.0.41:
 kernel event capture → persistent helper → native text receiver → original-frame
 input ledger → local prediction and confirmed replay. Exact map/source/helper
-identities, configuration and startup are in wc3-melee:docs/playable-0041.md;
+identities, configuration and startup are in smashcraft:docs/playable-0041.md;
 the installed combat/rematch evidence is in
-wc3-melee:evidence/playable-0041-native-20261005/README.md. The retained native
+smashcraft:evidence/playable-0041-native-20261005/README.md. The retained native
 clients run Warcraft III 3.0.0.24268 on Linux/GE-Proton, identified in
-wc3-melee:evidence/native-capability-report.md. Later named diagnostics keep their
+smashcraft:evidence/native-capability-report.md. Later named diagnostics keep their
 own identities and do not silently replace this player release.
 
 The observation boundaries mean:
@@ -32,10 +32,10 @@ publication supplies the local segment origin; a new match gets a new epoch,
 and paused time is excluded by a new resume segment. The helper checks its
 realtime/monotonic relation and reports timestamp uncertainty. Neutral rearm
 deliberately suppresses held-through-pause/focus/epoch controls. The executable
-rule is `frame_at` in wc3-melee:companion/src/bin/journal.rs. Current native
+rule is `frame_at` in smashcraft:companion/src/bin/journal.rs. Current native
 start/rematch and delayed-resume evidence is retained in
-wc3-melee:evidence/match-lifecycle-native-20261005/README.md and
-wc3-melee:evidence/resume-clock-native-20261005/README.md.
+smashcraft:evidence/match-lifecycle-native-20261005/README.md and
+smashcraft:evidence/resume-clock-native-20261005/README.md.
 
 This defines the delivered local rule; it does not establish a common physical
 clock across machines. Local publication anchors differ, so an event near a
@@ -93,7 +93,7 @@ claims are historical exclusions, not gates in the current consolidated #26.
 
 ## Executable capture-time boundary rule
 
-wc3-melee:tools/netcode-probe/InputFrameOracle.wurst implements the experiment's
+smashcraft:tools/netcode-probe/InputFrameOracle.wurst implements the experiment's
 60 Hz half-open rule using externally supplied elapsed seconds plus nanoseconds
 and fixed delay. It preserves nanosecond precision without overflowing Warcraft's
 signed integers; negative elapsed values and an overflowing final frame fail.
@@ -106,7 +106,7 @@ than passing absolute SDL nanoseconds into Warcraft integer fields. This rule
 still requires a predeclared epoch, bounded clock alignment and a chosen pause
 policy before it can be a production contract.
 
-Run wc3-melee:tools/netcode-probe/test-frame-tagged-records.sh for the focused
+Run smashcraft:tools/netcode-probe/test-frame-tagged-records.sh for the focused
 tag-retention and capture-frame boundary tests. These tests establish arithmetic
 and retention logic; they do not prove live helper-to-map assignment.
 
@@ -121,7 +121,7 @@ The helper binary built successfully, enumerated the attached Xbox One S on
 /dev/input/event1, and completed a three-second observation-only idle run.
 That idle run contains no stimulus and proves neither physical latency nor tap
 preservation. Private runtime logs are in
-~/code/wc3-melee/worktrees/competitive-integrity-20261003/build/controller-event-history-20261004.
+~/code/smashcraft/worktrees/competitive-integrity-20261003/build/controller-event-history-20261004.
 
 Keyboard delivery still crosses Warcraft polling, so this is not the complete
 map ingress fix. Capture timestamps and helper dequeue/submission timestamps
@@ -129,7 +129,7 @@ have distinct epochs; no delay is calculated by subtracting them. The controlled
 Linux virtual-controller test is now complete: all ten edges survived each
 verified 250 ms helper stop, but the fresh helper compressed its first batch's
 capture intervals. A warmed helper preserved them. Exact results and raw logs:
-wc3-melee:evidence/controller-event-retention-20261004.md. The pinned library clock
+smashcraft:evidence/controller-event-retention-20261004.md. The pinned library clock
 conversion must be repaired and the same counterexample rechecked before cold
 capture timestamps are used for frame assignment. Live common-clock alignment,
 map delivery and presentation remain open.
@@ -149,4 +149,4 @@ The native 0.0.17 clock test observed B's delayed 100 ms timer interval followed
 by two 100 ms intervals arriving about 3 ms apart after a verified 250.637 ms
 process stop. A continued producing markers during B's stop. Neither recovery
 callback time nor an uncalibrated native timer supplies a continuous common
-capture epoch. See wc3-melee:evidence/native-clock-progress-result-20261004.md.
+capture epoch. See smashcraft:evidence/native-clock-progress-result-20261004.md.

@@ -5,7 +5,7 @@ the prototype's scripted restart. It uses the pinned Lua-targeting Wurst
 compiler, the normal terrain fixture, and the same two-slot map configuration.
 It imports no fighter assets, gameplay simulation, selection UI, or camera code.
 
-Build from ~/code/wc3-melee/worktrees/test-loop:
+Build from ~/code/smashcraft/worktrees/test-loop:
 
 ```sh
 bash tools/restart-probe/build.sh \
@@ -16,7 +16,7 @@ bash tools/restart-probe/build.sh \
 Variants are `plain` (timer and two developer chords), `bindings` (adds the
 standard-library saved-binding load/sync), and `keys` (also registers the
 prototype's 255 key-down/key-up pairs). The build writes
-~/code/wc3-melee/worktrees/test-loop/build/restart-probe/A_Restart_Probe.w3x;
+~/code/smashcraft/worktrees/test-loop/build/restart-probe/A_Restart_Probe.w3x;
 copy that exact map into the same prefix's Maps directory and select
 **A Restart Probe** from Single Player. Do not replace the playable prototype.
 
@@ -29,4 +29,4 @@ F10 → End Game → Restart Mission when a scripted failure is reproduced.
 
 The source deliberately retains the same direct restart call as the prototype;
 this is a diagnostic fixture, not a fix. Current observations are recorded in
-wc3-melee:evidence/development-plan.md.
+smashcraft:evidence/development-plan.md.

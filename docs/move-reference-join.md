@@ -1,24 +1,24 @@
 # Production and Melee reference comparisons
 
-wc3-melee:tools/move-data/reference-join.jsonl joins the existing production
+smashcraft:tools/move-data/reference-join.jsonl joins the existing production
 move export to the independently recorded Melee frame-data corpus by **action
 family**, keeping both identities. Archer, Rifleman and Demon Hunter are never
 equated with Fox, Marth or another Melee fighter. The result supports factual
 comparison, not a parity or balance claim.
 
-Run `~/code/wc3-melee/worktrees/playable-integration-20261005/tools/move-data/reference.sh`
+Run `~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/reference.sh`
 from the current owned checkout, with the machine-capacity wrapper used for
 the other exports. It needs Bun and Lua 5.3; `MOVE_DATA_BUN` and `MOVE_DATA_LUA`
 can select installed executables. Allow about 15 seconds. The command always
 runs the two focused Wurst tests and writes
-wc3-melee:build/move-reference/reference-join.jsonl. `--check` additionally
+smashcraft:build/move-reference/reference-join.jsonl. `--check` additionally
 compares it with the checked-in snapshot. It consumes existing exports and
 does not rerun the contact sweep or change gameplay.
 
 Wurst owns the family mapping, clock conversion, missing-record detection and
-trade-off rules in wc3-melee:tools/move-data/MoveReference.wurst. The Bun input
+trade-off rules in smashcraft:tools/move-data/MoveReference.wurst. The Bun input
 adapter only parses JSON and serializes its facts into typed Wurst inputs;
-generated input and compiler output stay under wc3-melee:build/move-reference/.
+generated input and compiler output stay under smashcraft:build/move-reference/.
 The Lua runner executes the locked compiler output and persists its rows.
 
 ## Join coverage and meanings
@@ -65,17 +65,17 @@ substituted. Excluded notes may contain conditions and multihit gaps.
 The reference has no established hit/hurtbox geometry, launch angle, knockback
 or hitstun data. The join deliberately does not invent corresponding fields.
 Production contact regions, damage/launch fields and motion samples remain
-queryable in wc3-melee:tools/move-data/moves.jsonl using
+queryable in smashcraft:tools/move-data/moves.jsonl using
 `(character, style, chargeFrames)`. A reported reference maximum/weak damage
 cannot be matched to an exact production hit region without additional evidence.
 The reference intake's scope and rights are recorded in
-wc3-melee:references/melee-frame-data/README.md; no authored source notes,
+smashcraft:references/melee-frame-data/README.md; no authored source notes,
 artwork or outside implementation are copied into this join.
 
 ## Bounded trade-off finding
 
 The 54 unordered fighter pairs reuse
-wc3-melee:tools/move-data/comparisons.jsonl. Pairing requires the same category,
+smashcraft:tools/move-data/comparisons.jsonl. Pairing requires the same category,
 spacing, starting percent and shield/body condition, with the same Rifleman
 defender and the export's fixed stage/contact/DI/landing conditions. Complete
 input rows are retained, including separation and hitlag. These are contact
@@ -126,7 +126,7 @@ gameplay tuning, native trial or before/after playable acceptance is claimed.
 
 ```sh
 jq 'select(.kind == "reference-join" and .declared.production.character == 0 and .declared.production.style == 0 and .declared.reference.character == "fox")' \
-  ~/code/wc3-melee/worktrees/playable-integration-20261005/tools/move-data/reference-join.jsonl
+  ~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/reference-join.jsonl
 jq 'select(.kind == "tradeoff" and .derived.verdict == "a-dominates-projection")' \
-  ~/code/wc3-melee/worktrees/playable-integration-20261005/tools/move-data/reference-join.jsonl
+  ~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/reference-join.jsonl
 ```

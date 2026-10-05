@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # Foreign OCR boundary: the English Warcraft 3.0 menu at 2560x1440.
-[[ $# -ge 1 && $# -le 2 ]] || { echo 'Usage: wc3-melee:tools/wc3-screen-state IMAGE [compact|full]' >&2; exit 2; }
+[[ $# -ge 1 && $# -le 2 ]] || { echo 'Usage: smashcraft:tools/wc3-screen-state IMAGE [compact|full]' >&2; exit 2; }
 input=$1
 mode=${2:-compact}
 [[ -f "$input" && ( "$mode" == compact || "$mode" == full ) ]] || exit 2

@@ -68,7 +68,7 @@ Keep intentional choices explicit:
 
 - No stale-move penalties or freshness bonuses. Discourage spam through move
   design, commitment, spacing, recovery and counterplay; see intentional
-  omissions in wc3-melee:README.md.
+  omissions in smashcraft:README.md.
 - Straight horizontal air dodge uses the agreed shallow downward direction
   for convenient wavedashing. Diagonal Down does not trigger fast-fall, and
   C-stick down-air does not inject movement Down or force fast-fall.
@@ -170,5 +170,5 @@ when its issue's Done-when boxes pass, and its Not-required list says what
 completion does not include. Report what passed, on which build, with one line
 of residual risk. Owner playtests decide feel; the agent prepares them and
 fixes what they find. Keep the public repository current. Mechanics and
-intentional differences live in wc3-melee:docs/physics.md, and the build loop
-in wc3-melee:docs/development-loop.md.
+intentional differences live in smashcraft:docs/physics.md, and the build loop
+in smashcraft:docs/development-loop.md.

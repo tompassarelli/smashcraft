@@ -60,4 +60,4 @@ A already had AutoLogin and RememberAccountName enabled. On scoped recovery of i
 
 ## Executable transport check
 
-Run `wc3-melee:tools/wc3-auth-transport LAUNCHER_PID` before Play/recovery. It inspects only the selected Battle.net browser process. It refused the still-stale B socket because its source address is absent. Syntax check passed. A source-present result is expressly not authenticated readiness; inspect current launcher auth events and a verified real main menu separately. This tool reads actual socket/address state; it does not estimate authentication from elapsed time, launch timestamps or an account label.
+Run `smashcraft:tools/wc3-auth-transport LAUNCHER_PID` before Play/recovery. It inspects only the selected Battle.net browser process. It refused the still-stale B socket because its source address is absent. Syntax check passed. A source-present result is expressly not authenticated readiness; inspect current launcher auth events and a verified real main menu separately. This tool reads actual socket/address state; it does not estimate authentication from elapsed time, launch timestamps or an account label.

@@ -1,18 +1,18 @@
 # Contextual contact comparisons
 
-Run `~/code/wc3-melee/worktrees/playable-integration-20261005/tools/move-data/compare.sh`
+Run `~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/compare.sh`
 from the current owned checkout. It compiles the locked Wurst source and writes
-wc3-melee:build/move-comparisons/comparisons.jsonl. Allow roughly two minutes for
+smashcraft:build/move-comparisons/comparisons.jsonl. Allow roughly two minutes for
 the bounded sweep. Use the machine-capacity wrapper for the compiler and set
 `MOVE_DATA_LUA` to an installed Lua 5.3 executable, or use its default Nix lookup.
 `--check` runs the focused category/follow-up tests and compares fresh output
-with wc3-melee:tools/move-data/comparisons.jsonl.
+with smashcraft:tools/move-data/comparisons.jsonl.
 
 The snapshot contains 54 contact contexts, 2,236 option trials and six category
 rule comparisons. It is generated output, never gameplay tuning input. Wurst
 owns the fixtures, production calls, classification and serialization at
-wc3-melee:wurst/MoveComparisons.wurst and
-wc3-melee:tools/move-data/MoveComparisonExport.wurst. The existing move export
+smashcraft:wurst/MoveComparisons.wurst and
+smashcraft:tools/move-data/MoveComparisonExport.wurst. The existing move export
 supplies move names and the declared timing/contact data for further joins.
 
 ## Conditions and clocks
@@ -106,17 +106,17 @@ fixture never infers one. There is no probability or reaction-time claim.
 
 ```sh
 jq 'select(.kind == "contact" and .character == 0 and .shielding)' \
-  ~/code/wc3-melee/worktrees/playable-integration-20261005/tools/move-data/comparisons.jsonl
+  ~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/comparisons.jsonl
 jq 'select(.kind == "option" and .character == 0 and .category == "late-aerial" and .percent == 60 and .spacing == 60 and .candidateStyle == 0 and .approach) | {delay,firstActive,firstContact,opponentReady,verdict}' \
-  ~/code/wc3-melee/worktrees/playable-integration-20261005/tools/move-data/comparisons.jsonl
+  ~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/comparisons.jsonl
 ```
 
 Join contact and option rows by `(character, defenderCharacter, category,
 spacing, percent, shielding)`. `actualStyle` records any production action
 substitution, including Demon Hunter's dash attack. Floating output has the
-same native-formatting limits as wc3-melee:docs/move-data.md. Other defenders,
+same native-formatting limits as smashcraft:docs/move-data.md. Other defenders,
 other moves/charges, analog shields and escape policies remain unmeasured.
 The factual action-family reference join and bounded trade-off analysis are
-recorded in wc3-melee:docs/move-reference-join.md. No Melee character is equated
+recorded in smashcraft:docs/move-reference-join.md. No Melee character is equated
 with an original Warcraft fighter. Native parity, balance tuning and playable
 before/after acceptance remain in issue #12.

@@ -49,7 +49,7 @@ colors and lifetime tuning are changeable and are not fixed test requirements.
 
 The common capture/throw, charge/ready and ledge cues reuse the authored shield,
 jump and tech effect models. Their ages and pool positions are replay state;
-projection does not advance them. The focused `wc3-melee:test.sh Impact` run passes
+projection does not advance them. The focused `smashcraft:test.sh Impact` run passes
 21/21, including accepted/rejected transitions, frozen grab/charge clocks,
 paused projection, snapshot replay and removal of corrected predicted cues.
 Native placement, visual timing, pause/resume and rollback appearance remain
@@ -100,16 +100,16 @@ parity rule above identifies the expected sequence. Repeat with opposite parity
 pause during flight/drop, resume, and start a new match while a body is visible.
 Side/bottom KOs should retain bursts. A final-stock match-ending KO should clear
 immediately. Numerical fixture: the focused tests in
-wc3-melee:wurst/ImpactStateTests.wurst place an airborne tumbling fighter at
+smashcraft:wurst/ImpactStateTests.wurst place an airborne tumbling fighter at
 z=761 with upward knockback TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 10. Build with
 `WC3_SCENARIO=ko` to apply that fixture to all active fighters at match start;
 Archer and Rifleman exercise opposite selection parity.
 
 Source check: 23/23 tests pass with the pinned compiler, zero errors and nine
-indentation and unused-code warnings. The wc3-melee:test.sh Impact source set was extended
-locally with wc3-melee:wurst/CombatEffects.wurst and generated ImpactAssetInfo to
+indentation and unused-code warnings. The smashcraft:test.sh Impact source set was extended
+locally with smashcraft:wurst/CombatEffects.wurst and generated ImpactAssetInfo to
 also typecheck the native renderer. Evidence:
-wc3-melee:build/ko-source-tests.log. This covers projection phases/lifetimes for
+smashcraft:build/ko-source-tests.log. This covers projection phases/lifetimes for
 all three fighter models, read-only repeated projection, pool reset, and a real
 accepted top KO through snapshot restore/re-execution without duplicate bodies.
 It does not establish native animation or camera acceptance.
@@ -137,5 +137,5 @@ Both native traces have the same six confirmed frame/checksum checkpoints,
 from frame 0 through 222. This supports this two-character fixture and one pause;
 it does not certify Illidan, terminal sparkle readability, camera extremes,
 final-stock interruption, match reset or native correction appearance.
-Raw numeric evidence: wc3-melee:evidence/ko-native-20261005/. Local video:
-wc3-melee:build/native-ko-capture-20261005/ko-pause.mp4.
+Raw numeric evidence: smashcraft:evidence/ko-native-20261005/. Local video:
+smashcraft:build/native-ko-capture-20261005/ko-pause.mp4.

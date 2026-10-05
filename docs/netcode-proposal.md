@@ -3,9 +3,9 @@
 Owner-supplied research and implementation brief, 30 September 2026. This is a
 condensed record of their decisions and acceptance requirements, not a claim
 that the cited APIs have passed native tests. The full gameplay goal remains in
-wc3-melee:docs/delivery-goal.md; existing gameplay, controls, visuals and animation requirements
-in wc3-melee:evidence/development-plan.md, wc3-melee:docs/physics.md and wc3-melee:docs/fighter-animation-work.md remain
-in scope. Native observations belong in wc3-melee:evidence/native-capability-report.md.
+smashcraft:docs/delivery-goal.md; existing gameplay, controls, visuals and animation requirements
+in smashcraft:evidence/development-plan.md, smashcraft:docs/physics.md and smashcraft:docs/fighter-animation-work.md remain
+in scope. Native observations belong in smashcraft:evidence/native-capability-report.md.
 
 ## Decision and sequence
 
