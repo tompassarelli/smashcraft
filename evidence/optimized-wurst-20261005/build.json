@@ -1,0 +1,43 @@
+{
+  "source": "ba88e6dfb80403a4678113643918c6af33120118",
+  "compiler": {
+    "revision": "6b129956f6e7cf9582510f26b99d305526bf3ded",
+    "sha256": "9495b1f3ad1f1baf53335934e9152874773e6c735b0e5db819b3e7f06c82ed15",
+    "license": "Apache-2.0"
+  },
+  "stdlib": {
+    "revision": "e3714f629113ee682353c3244065fee3e7d9ae16",
+    "license": "Apache-2.0"
+  },
+  "historicalBuildArgumentFile": [
+    "-runcompiletimefunctions",
+    "-injectobjects",
+    "-stacktraces",
+    "+opt",
+    "+inline",
+    "+localOptimizations"
+  ],
+  "explicitBuildFlags": [
+    "-build", "-dev", "-lua", "-noExtractMapScript", "-stacktraces",
+    "-inline", "-localOptimizations", "-opt", "-measure"
+  ],
+  "frozenInputFiles": 28,
+  "frozenInputBytesUnchanged": true,
+  "compileExitCode": 0,
+  "compileErrors": 0,
+  "compileWarnings": 1,
+  "warning": "ReplayState.wurst:8 unused String import",
+  "syntaxExitCode": 0,
+  "packagedScriptMatches": true,
+  "historicalOptimizedWurstBytes": 938588,
+  "explicitOptimizedWurstBytes": 938227,
+  "historicalPairedTypeScriptBytes": 661298,
+  "historicalTypeScriptToWurstSizeRatio": 0.7045668600067335,
+  "explicitTypeScriptToWurstSizeRatio": 0.7048379549938341,
+  "historicalMapSha256": "563eafb6a252a90b7d19c509146e6b7ac7e402e947ea638f70ad25c84e4521f3",
+  "explicitMapSha256": "e3d7cd7eb0dae0f16e206e60414f3b216c09ef5557fe627394777cd209c425b7",
+  "explicitOptimizedWurstSha256": "6fce4b4ba46efdf11b454357019320f753da33edfef37746cdf7cd3841051d2a",
+  "historicalPairedTypeScriptSha256": "e7b5d9084088d62a94156b849af3e5b453a8f477da2bec26fe3cef8774a3aeb4",
+  "explicitPackagedScriptBytes": 1602855,
+  "nativeRerunPerformed": false
+}
