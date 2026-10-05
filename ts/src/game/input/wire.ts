@@ -12,7 +12,7 @@ import { floorDiv, floorMod } from "../../sim/intMath";
 import { ALL_ACTIONS } from "./actions";
 import { type Direction, type InputRow, inputRow } from "./inputRow";
 
-const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
+export const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 
 /** The last frame number; one signed value stays free for the next-frame cursor. */
 export const INPUT_LAST_FRAME = 2147483646;
