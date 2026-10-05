@@ -1,0 +1,30 @@
+import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
+import { f32 } from "../../sim/f32";
+import { Character } from "../sim/codes";
+import { SHIELD_MAX, createFighter } from "../sim/fighter";
+import { projectedShield } from "./shieldPose";
+
+test("shield follows energy and hides on release, KO and result", () => {
+  const fighter = createFighter(Character.archer, 83.0, 1);
+  assertFalse(projectedShield(fighter, true).visible);
+  fighter.shield.raised = true;
+  fighter.motion.z = 27.0;
+  fighter.shield.energy = SHIELD_MAX;
+  const full = projectedShield(fighter, true);
+  assertTrue(full.visible);
+  assertEquals(full.x, 83.0);
+  assertEquals(full.z, 77.0);
+  assertEquals(full.scale, f32(1.2));
+  fighter.shield.energy = SHIELD_MAX / 2;
+  assertEquals(projectedShield(fighter, true).scale, f32(0.95));
+  fighter.shield.energy = 0.0;
+  assertEquals(projectedShield(fighter, true).scale, f32(0.7));
+  fighter.shield.raised = false;
+  assertFalse(projectedShield(fighter, true).visible);
+  fighter.shield.raised = true;
+  fighter.status.out = true;
+  assertFalse(projectedShield(fighter, true).visible);
+  fighter.status.out = false;
+  assertFalse(projectedShield(fighter, false).visible);
+  assertFalse(projectedShield(undefined, true).visible);
+});
