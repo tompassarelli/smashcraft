@@ -654,6 +654,27 @@ mod linux {
         first_frame: u32,
     }
 
+    fn frame_through(segment: FrameSegment, at_ns: u128) -> u32 {
+        if at_ns < segment.epoch_ns {
+            return segment.first_frame.saturating_sub(1);
+        }
+        ((((at_ns - segment.epoch_ns) * HZ / 1_000_000_000)
+            + u128::from(segment.first_frame)
+            - 1)
+            .min(LAST_FRAME as u128)) as u32
+    }
+
+    fn pause_seal_frontier(
+        segment: FrameSegment,
+        published_ns: u128,
+        requested_frame: u32,
+        assigned_through: u32,
+    ) -> u32 {
+        frame_through(segment, published_ns)
+            .max(requested_frame.saturating_sub(1))
+            .max(assigned_through)
+    }
+
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     enum ControlState {
         Started,
@@ -1528,6 +1549,47 @@ mod linux {
         };
         assert_eq!(frame_at(302_250_000_000, resumed).unwrap(), 76);
         assert_eq!(frame_at(302_000_000_000, resumed).unwrap(), before_pause);
+    }
+
+    #[test]
+    fn pause_seal_stops_at_a_fixed_frontier_while_output_catches_up() {
+        let segment = FrameSegment {
+            epoch_ns: 1_000_000_000,
+            first_frame: 1,
+        };
+        // The observed helper emitted frame 1159 while its live frontier had
+        // reached frame 1366. The request timestamp gives a finite seal point;
+        // output can drain to it without chasing the advancing clock.
+        let published_ns = segment.epoch_ns + (1_200u128 * 1_000_000_000 / HZ);
+        let seal = pause_seal_frontier(segment, published_ns, 1_205, 1_199);
+        assert_eq!(seal, 1_204);
+        let later_live_frontier =
+            frame_through(segment, published_ns + (167u128 * 1_000_000_000 / HZ));
+        assert_eq!(later_live_frontier, 1_366);
+        assert!(seal < later_live_frontier);
+        assert_eq!(pause_seal_frontier(segment, published_ns, 1_205, 1_199), seal);
+        assert_eq!(pause_seal_frontier(segment, published_ns, 1_205, 1_210), 1_210);
+    }
+
+    #[test]
+    fn pause_seal_keeps_post_request_events_queued() {
+        let published_ns = 20_000_000_000;
+        let mut input = PendingInput::default();
+        let before = timed_button(published_ns - 1, true);
+        let after = timed_button(published_ns + 1, false);
+        input.push(before, false, true).unwrap();
+        input.push(after, true, false).unwrap();
+
+        let Capture::Event(drained, ..) = input.pop(true, published_ns).unwrap().unwrap() else {
+            panic!("pre-publication input must be drained into its original frame");
+        };
+        assert_eq!(drained, before);
+        assert!(input.pop(true, published_ns).unwrap().is_none());
+
+        let Capture::Event(retained, ..) = input.pop(false, 0).unwrap().unwrap() else {
+            panic!("post-publication input must remain available after sealing");
+        };
+        assert_eq!(retained, after);
     }
 
     #[test]
@@ -3196,6 +3258,7 @@ mod linux {
         let mut prepared = false;
         let mut stop_capture = false;
         let mut pause_barrier = None::<u32>;
+        let mut pause_request_ns = None::<u128>;
         let mut pending = Vec::<String>::new();
         let running = Arc::new(AtomicBool::new(true));
         let signal_running = Arc::clone(&running);
@@ -3440,6 +3503,9 @@ mod linux {
             if let Some(publication) = command {
                 let command = publication.command;
                 if command.state == ControlState::PausePrepare && !paused {
+                    pause_request_ns.get_or_insert(
+                        publication.epoch_ns.saturating_add(publication.uncertainty_ns),
+                    );
                     pause_after_seal = Some(command);
                 } else if command.state == ControlState::PauseCommit && paused && prepared {
                     if command.requested_frame < next_frame {
@@ -3450,6 +3516,7 @@ mod linux {
                     }
                     paused = false;
                     prepared = false;
+                    pause_request_ns = None;
                     pause_barrier = Some(command.requested_frame);
                     segment = FrameSegment {
                         epoch_ns: now,
@@ -3510,11 +3577,17 @@ mod linux {
                     return Err("journal pause/resume commands are out of order".into());
                 }
             }
-            // Keep the existing bounded raw queue as the backlog while output
-            // has no credit. Event timestamps and the sealing cursor stay put;
-            // the sender below continues consuming receipts and draining output.
+            // During PREPARE, drain only events before the publication's
+            // uncertainty bound and freeze the output horizon there. This
+            // preserves earlier rows while the sender catches up to a finite
+            // seal; later input stays queued until the pause boundary is set.
             let output_ready = mailbox.as_ref().is_none_or(|sender| sender.queued.frame_credit());
-            while let Some(capture) = pending_input.pop_for_output(output_ready, paused || waiting_start, control_read.discard_before_ns)? {
+            let discard_before_ns = pause_request_ns.unwrap_or(control_read.discard_before_ns);
+            while let Some(capture) = pending_input.pop_for_output(
+                output_ready,
+                paused || waiting_start || pause_after_seal.is_some(),
+                discard_before_ns,
+            )? {
                 let (event, start_before, event_start_held) = match capture {
                     Capture::Event(event, before, after) => (event, before, after),
                     Capture::Disconnected(ns) => {
@@ -3574,14 +3647,15 @@ mod linux {
                 );
             }
             if !paused && !stop_capture && !waiting_ready && !waiting_start && now >= segment.epoch_ns {
-                let mut completed_through = (((now - segment.epoch_ns) * HZ / 1_000_000_000)
-                    + u128::from(segment.first_frame)
-                    - 1)
-                .min(LAST_FRAME as u128) as u32;
-                if pause_after_seal.is_some() {
-                    if let Some(last_assigned) = edges.keys().chain(snapshots.keys()).max() {
-                        completed_through = completed_through.max(*last_assigned);
-                    }
+                let mut completed_through = frame_through(segment, now);
+                if let (Some(command), Some(published_ns)) = (pause_after_seal.as_ref(), pause_request_ns) {
+                    let assigned_through = edges.keys().chain(snapshots.keys()).copied().max().unwrap_or(0);
+                    completed_through = completed_through.min(pause_seal_frontier(
+                        segment,
+                        published_ns,
+                        command.requested_frame,
+                        assigned_through,
+                    ));
                 }
                 if let Some(barrier) = pause_barrier {
                     completed_through = completed_through.min(barrier - 1);
@@ -3651,6 +3725,7 @@ mod linux {
                     }
                     paused = true;
                     prepared = true;
+                    pause_request_ns = None;
                     submit_control_ack(
                         &o.out,
                         &o.build,
