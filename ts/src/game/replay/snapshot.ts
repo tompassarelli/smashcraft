@@ -1,117 +1,57 @@
-import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { copyAttackBuffer } from "../input/attackBuffer";
-import { createFrameControls, type FrameControls } from "../match/controls";
-import { copyMatchState, createMatchState, type MatchState } from "../match/rules";
-import { copyReplayRuntimeState, createReplayRuntimeState, type ReplayRuntimeState } from "../match/runtime";
-import { createFighter, type Fighter } from "../sim/fighter";
+import { PARTICIPANT_SLOTS } from "../input/participants";
+import { type FrameControls, createFrameControls } from "../match/controls";
+import { type MatchState, copyMatchState, createMatchState } from "../match/rules";
+import { type ReplayRuntimeState, copyReplayRuntimeState, createReplayRuntimeState } from "../match/runtime";
+import { createFighter } from "../sim/fighter";
 import { type Roster, createRoster, fighterAt, isActive } from "../sim/roster";
 import { copyFighterState } from "./fighterState";
 
-/** Detached state immediately before one recorded frame executes. */
-export interface ReplaySnapshot {
+/**
+ * Everything a recorded frame reads and writes: the live match, or detached
+ * storage holding it at one frame boundary. Only the controls' command
+ * buffers carry state across frames; each row supplies the inputs.
+ */
+export interface ReplayState {
   readonly world: Roster;
   readonly match: MatchState;
   readonly controls: FrameControls;
   readonly runtime: ReplayRuntimeState;
 }
 
-function retainReference(slot: number | undefined, mask: number): number | undefined {
-  return slot !== undefined && participantActive(mask, slot) ? slot : undefined;
-}
-
-function remapFighterReferences(fighter: ReturnType<typeof fighterAt>, mask: number): void {
-  for (let index = 0; index < fighter.hits.entries.length; index++) {
-    const entry = fighter.hits.entries[index];
-    if (entry === undefined) throw new Error(`missing replay hit slot ${index}`);
-    entry.attacker = retainReference(entry.attacker, mask);
-  }
-  fighter.hits.lastAttacker = retainReference(fighter.hits.lastAttacker, mask);
-  for (let index = 0; index < PARTICIPANT_CAPACITY; index++) {
-    fighter.special.hitTargets[index] = retainReference(fighter.special.hitTargets[index], mask);
-  }
-  fighter.grab.owner = retainReference(fighter.grab.owner, mask);
-  fighter.grab.target = retainReference(fighter.grab.target, mask);
-}
-
-function copyReplayCommands(target: FrameControls, source: Readonly<FrameControls>): void {
-  for (const slot of PARTICIPANT_SLOTS) copyAttackBuffer(target.commands[slot], source.commands[slot]);
-}
-
-/** Allocate reusable snapshot storage; inactive fighters still have stable slots for references. */
-export function createReplaySnapshot(): ReplaySnapshot {
-  const fighters: Fighter[] = [
-    createFighter(0, 0.0, 1),
-    createFighter(1, 0.0, -1),
-    createFighter(2, 0.0, 1),
-    createFighter(0, 0.0, -1),
-  ];
+/** Detached storage with a fighter in every slot, so any participant mask can be captured into it. */
+export function createReplaySnapshot(): ReplayState {
   return {
-    world: createRoster(3, fighters),
+    world: createRoster(3, [createFighter(0, 0.0, 1), createFighter(1, 0.0, -1), createFighter(2, 0.0, 1), createFighter(0, 0.0, -1)]),
     match: createMatchState(),
     controls: createFrameControls(),
     runtime: createReplayRuntimeState(),
   };
 }
 
-/** Capture before the row executes, retaining no mutable aliases to live state. */
-export function captureReplaySnapshot(
-  snapshot: ReplaySnapshot,
-  world: Readonly<Roster>,
-  match: Readonly<MatchState>,
-  controls: Readonly<FrameControls>,
-  runtime: Readonly<ReplayRuntimeState>,
-): void {
-  snapshot.world.mask = world.mask;
+/**
+ * Captures (live into a snapshot) or restores (a snapshot into live state)
+ * the source's active slots into existing records. Slot references keep
+ * their numbers, so the target must seat its fighters in the same slots.
+ */
+export function copyReplayState(target: ReplayState, source: Readonly<ReplayState>): void {
+  const mask = source.world.mask;
+  target.world.mask = mask;
   for (const slot of PARTICIPANT_SLOTS) {
-    if (isActive(world, slot)) {
-      const fighter = fighterAt(snapshot.world, slot);
-      copyFighterState(fighter, fighterAt(world, slot));
-      remapFighterReferences(fighter, world.mask);
-    }
-  }
-  copyMatchState(snapshot.match, match);
-  copyReplayCommands(snapshot.controls, controls);
-  copyReplayRuntimeState(snapshot.runtime, runtime, world, snapshot.world);
-}
-
-/** Restore a detached before-frame snapshot into its live match slots. */
-export function restoreReplaySnapshot(
-  snapshot: Readonly<ReplaySnapshot>,
-  world: Roster,
-  match: MatchState,
-  controls: FrameControls,
-  runtime: ReplayRuntimeState,
-): void {
-  world.mask = snapshot.world.mask;
-  for (const slot of PARTICIPANT_SLOTS) {
-    if (isActive(snapshot.world, slot)) {
-      const fighter = fighterAt(world, slot);
-      copyFighterState(fighter, fighterAt(snapshot.world, slot));
-      remapFighterReferences(fighter, snapshot.world.mask);
-    }
-  }
-  copyMatchState(match, snapshot.match);
-  copyReplayCommands(controls, snapshot.controls);
-  copyReplayRuntimeState(runtime, snapshot.runtime, snapshot.world, world);
-}
-
-/** Copy a snapshot into existing storage without replacing any owned record. */
-export function copyReplaySnapshot(target: ReplaySnapshot, source: Readonly<ReplaySnapshot>): void {
-  target.world.mask = source.world.mask;
-  for (const slot of PARTICIPANT_SLOTS) {
-    if (isActive(source.world, slot)) {
-      const fighter = fighterAt(target.world, slot);
-      copyFighterState(fighter, fighterAt(source.world, slot));
-      remapFighterReferences(fighter, source.world.mask);
-    }
+    if (!isActive(source.world, slot)) continue;
+    copyFighterState(fighterAt(target.world, slot), fighterAt(source.world, slot), mask);
+    copyAttackBuffer(target.controls.commands[slot], source.controls.commands[slot]);
   }
   copyMatchState(target.match, source.match);
-  copyReplayCommands(target.controls, source.controls);
-  copyReplayRuntimeState(target.runtime, source.runtime, source.world, target.world);
+  copyReplayRuntimeState(target.runtime, source.runtime, source.world);
 }
 
-export function cloneReplaySnapshot(source: Readonly<ReplaySnapshot>): ReplaySnapshot {
-  const copy = createReplaySnapshot();
-  copyReplaySnapshot(copy, source);
-  return copy;
+/** copyReplayState from live state held in separate records. */
+export function captureReplaySnapshot(snapshot: ReplayState, world: Readonly<Roster>, match: Readonly<MatchState>, controls: Readonly<FrameControls>, runtime: Readonly<ReplayRuntimeState>): void {
+  copyReplayState(snapshot, { world, match, controls, runtime });
+}
+
+/** copyReplayState into live state held in separate records. */
+export function restoreReplaySnapshot(snapshot: Readonly<ReplayState>, world: Roster, match: MatchState, controls: FrameControls, runtime: ReplayRuntimeState): void {
+  copyReplayState({ world, match, controls, runtime }, snapshot);
 }

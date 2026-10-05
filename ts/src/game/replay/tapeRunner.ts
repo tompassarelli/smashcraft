@@ -1,60 +1,28 @@
-// Runs a decoded tape through match rules, recorded frame execution and
-// replay, printing the canonical replay state after each operation, as
-// smashcraft:tools/tape-oracle/TapeOracle.wurst does for the Wurst build.
-import { imod } from "../../sim/intMath";
+// Runs a decoded tape through match rules, recorded frame execution and the
+// replay history, printing the canonical replay state after each operation,
+// as smashcraft:tools/tape-oracle/TapeOracle.wurst does for the Wurst build.
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type FrameControls, createFrameControls } from "../match/controls";
-import { captureFrame, copyMatchFrameInput, createMatchFrameInput, executeMatchFrame, resetMatchFrameInput, type MatchFrameInput } from "../match/frameInput";
+import { captureFrame, createMatchFrameInput, executeMatchFrame, resetMatchFrameInput, type MatchFrameInput } from "../match/frameInput";
 import {
-  type MatchState, confirmRematch, createMatchState, fighterMask, requestStageSelect, requestStart, selectCharacter, selectStage,
+  confirmRematch, createMatchState, fighterMask, requestStageSelect, requestStart, selectCharacter, selectStage,
   setParticipants, setStocks, setTimeLimit, updateConnectedHumans,
 } from "../match/rules";
-import { type ReplayRuntimeState, createReplayRuntimeState, resetPoses } from "../match/runtime";
+import { createReplayRuntimeState, resetPoses } from "../match/runtime";
 import { initializeMatchFighters, matchSpawnX } from "../match/step";
 import { createFighter } from "../sim/fighter";
-import { type Roster, copyControls, createRoster, isActive, neutralControls } from "../sim/roster";
+import { copyControls, createRoster, isActive, neutralControls } from "../sim/roster";
 import type { FighterPose } from "../presentation/fighterPose";
 import { canonicalReal, canonicalState } from "./canonical";
-import { REPLAY_HISTORY_CAPACITY } from "./limits";
-import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot, type ReplaySnapshot } from "./snapshot";
+import { ReplayCorrections, ReplayHistory } from "./history";
+import { REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
+import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
 import { type TapeOperation, applyControls } from "./tape";
 
 export type TapeResult =
   | { readonly ok: true; readonly frames: number }
   | { readonly ok: false; readonly line: number; readonly message: string };
-
-/**
- * Before-frame snapshots and executed rows of the current epoch, kept the way
- * Wurst ReplayHistory keeps them. Stands in for the TypeScript ReplayHistory
- * until the replay layer provides one.
- */
-interface TapeHistory {
-  readonly snapshots: ReplaySnapshot[];
-  readonly rows: MatchFrameInput[];
-  nextFrame: number;
-  count: number;
-}
-
-function createTapeHistory(): TapeHistory {
-  const snapshots: ReplaySnapshot[] = [];
-  const rows: MatchFrameInput[] = [];
-  for (let index = 0; index < REPLAY_HISTORY_CAPACITY; index++) {
-    snapshots.push(createReplaySnapshot());
-    rows.push(createMatchFrameInput());
-  }
-  return { snapshots, rows, nextFrame: 1, count: 0 };
-}
-
-function historySlot<T>(values: readonly T[], frame: number): T {
-  const value = values[imod(frame, REPLAY_HISTORY_CAPACITY)];
-  if (value === undefined) throw new Error(`history has no slot for frame ${frame}`);
-  return value;
-}
-
-function retained(history: TapeHistory, frame: number): boolean {
-  return frame >= history.nextFrame - history.count && frame < history.nextFrame && historySlot(history.rows, frame).frame === frame;
-}
 
 /** Fighter presentation, which the replay checksum leaves out, in the canonical field form. */
 function poseFields(slot: number, pose: Readonly<FighterPose>): string {
@@ -71,40 +39,42 @@ function poseFields(slot: number, pose: Readonly<FighterPose>): string {
 
 /** One tape's match, inputs and history; a generator steps it one operation at a time. */
 export interface TapeSession {
-  readonly game: MatchState;
-  readonly world: Roster;
-  readonly controls: FrameControls;
-  readonly runtime: ReplayRuntimeState;
-  readonly history: TapeHistory;
-  readonly observed: ReplaySnapshot;
+  readonly live: ReplayState;
+  readonly history: ReplayHistory;
+  readonly corrections: ReplayCorrections;
+  readonly observed: ReplayState;
   readonly row: MatchFrameInput;
+  readonly correction: MatchFrameInput;
   readonly produced: FrameControls;
+  epoch: number;
 }
 
 export function createTapeSession(): TapeSession {
   return {
-    game: createMatchState(), world: createRoster(0), controls: createFrameControls(), runtime: createReplayRuntimeState(),
-    history: createTapeHistory(), observed: createReplaySnapshot(), row: createMatchFrameInput(), produced: createFrameControls(),
+    live: { world: createRoster(0), match: createMatchState(), controls: createFrameControls(), runtime: createReplayRuntimeState() },
+    history: new ReplayHistory(), corrections: new ReplayCorrections(), observed: createReplaySnapshot(),
+    row: createMatchFrameInput(), correction: createMatchFrameInput(), produced: createFrameControls(), epoch: 0,
   };
 }
 
 const NEUTRAL = neutralControls();
 
 /** The canonical replay state followed by each fighter's pose. */
-function recordState({ game, world, controls, runtime, observed }: TapeSession): string {
-  captureReplaySnapshot(observed, world, game, controls, runtime);
+function recordState({ live, observed }: TapeSession): string {
+  copyReplayState(observed, live);
   let poses = "";
-  for (const slot of PARTICIPANT_SLOTS) if (isActive(world, slot)) poses += poseFields(slot, runtime.poses[slot]);
+  for (const slot of PARTICIPANT_SLOTS) if (isActive(live.world, slot)) poses += poseFields(slot, live.runtime.poses[slot]);
   return `${canonicalState(observed)}${poses}`;
 }
 
 // The pure part of starting a match in the game: fresh fighters, runtime and history epoch.
-function startMatch({ game, world, controls, runtime, history }: TapeSession): void {
-  world.mask = fighterMask(game);
+function startMatch(session: TapeSession): boolean {
+  const { match, world, controls, runtime } = session.live;
+  world.mask = fighterMask(match);
   for (const slot of PARTICIPANT_SLOTS) {
     if (isActive(world, slot)) {
       const x = matchSpawnX(slot);
-      world.fighters[slot] = createFighter(game.characterChoices[slot], x, x < 0 ? 1 : -1);
+      world.fighters[slot] = createFighter(match.characterChoices[slot], x, x < 0 ? 1 : -1);
     }
     copyControls(controls.inputs[slot], NEUTRAL);
     clearAttackBuffer(controls.commands[slot]);
@@ -112,54 +82,58 @@ function startMatch({ game, world, controls, runtime, history }: TapeSession): v
   }
   runtime.simulationFrame = 0;
   resetPoses(runtime);
-  initializeMatchFighters(game, world);
-  history.nextFrame = 1;
-  history.count = 0;
-  for (const recorded of history.rows) resetMatchFrameInput(recorded);
+  initializeMatchFighters(match, world);
+  session.epoch++;
+  return session.history.beginEpoch(session.epoch, 1, REPLAY_MAX_CORRECTION_FRAMES) && session.corrections.beginEpoch(session.epoch);
 }
 
-function runFrame(session: TapeSession, frame: number): string | undefined {
-  const { game, world, controls, runtime, history, row, produced } = session;
-  if (!captureFrame(row, frame, world.mask, produced, runtime)) return `capture refused frame ${frame}`;
-  if (frame !== history.nextFrame || runtime.simulationFrame !== frame - 1) return `history refused frame ${frame}`;
-  captureReplaySnapshot(historySlot(history.snapshots, frame), world, game, controls, runtime);
-  copyMatchFrameInput(historySlot(history.rows, frame), row);
-  history.nextFrame++;
-  history.count = Math.min(history.count + 1, REPLAY_HISTORY_CAPACITY);
-  if (!executeMatchFrame(row, game, world, controls, runtime, frame)) return `execution refused frame ${frame}`;
+function clearProduced({ produced }: TapeSession): void {
   for (const slot of PARTICIPANT_SLOTS) {
     copyControls(produced.inputs[slot], NEUTRAL);
     clearAttackBuffer(produced.commands[slot]);
   }
+}
+
+function runFrame(session: TapeSession, frame: number, predicted: boolean): string | undefined {
+  const { live, history, row, produced, epoch } = session;
+  const { match, world, controls, runtime } = live;
+  if (!captureFrame(row, frame, world.mask, produced, runtime)) return `capture refused frame ${frame}`;
+  if (!(predicted ? history.saveSpeculative(epoch, row, live) : history.save(epoch, row, live))) return `history refused frame ${frame}`;
+  if (!executeMatchFrame(row, match, world, controls, runtime, frame)) return `execution refused frame ${frame}`;
+  clearProduced(session);
   return undefined;
 }
 
-function replay({ game, world, controls, runtime, history }: TapeSession, first: number, last: number): boolean {
-  if (first > last || last !== runtime.simulationFrame) return false;
-  for (let frame = first; frame <= last; frame++) if (!retained(history, frame)) return false;
-  restoreReplaySnapshot(historySlot(history.snapshots, first), world, game, controls, runtime);
-  for (let frame = first; frame <= last; frame++) {
-    if (!executeMatchFrame(historySlot(history.rows, frame), game, world, controls, runtime, frame)) return false;
-  }
-  return true;
+/** Replaces a frame with the inputs given since, as a one-row batch: the earliest replayed frame, "unchanged" or "rejected". */
+function correctFrame(session: TapeSession, frame: number): string {
+  const { live, history, corrections, correction, produced, epoch } = session;
+  resetMatchFrameInput(correction);
+  corrections.clear();
+  const captured = captureFrame(correction, frame, live.world.mask, produced, live.runtime) && corrections.add(correction);
+  clearProduced(session);
+  return captured ? `${history.correct(epoch, corrections, live)}` : "rejected";
 }
 
 const flag = (value: boolean) => (value ? "1" : "0");
 
 /** Performs one operation: its record's result field, or a refusal. */
 function perform(session: TapeSession, operation: TapeOperation): { result: string } | { refused: string } | undefined {
-  const { game, produced } = session;
+  const { live, history, produced, epoch } = session;
+  const game = live.match;
   switch (operation.kind) {
     case "input":
       applyControls(produced.inputs[operation.slot], operation.controls);
       for (const attack of operation.attacks) queueAttack(produced.commands[operation.slot], attack);
       return undefined;
-    case "frame": {
-      const refused = runFrame(session, operation.frame);
+    case "frame":
+    case "predict": {
+      const refused = runFrame(session, operation.frame, operation.kind === "predict");
       return refused === undefined ? { result: `${operation.frame}` } : { refused };
     }
+    case "correct":
+      return { result: correctFrame(session, operation.frame) };
     case "rollback":
-      return replay(session, operation.first, operation.last)
+      return operation.last === live.runtime.simulationFrame && history.replay(epoch, operation.first, operation.last, live)
         ? { result: `${operation.first}..${operation.last}` }
         : { refused: `history refused replay ${operation.first}..${operation.last}` };
     case "participants":
@@ -181,7 +155,7 @@ function perform(session: TapeSession, operation: TapeOperation): { result: stri
       return { result: flag(requestStageSelect(game, operation.slot)) };
     case "start": {
       const started = requestStart(game, operation.slot);
-      if (started) startMatch(session);
+      if (started && !startMatch(session)) return { refused: `history refused epoch ${session.epoch}` };
       return { result: flag(started) };
     }
     case "rematch": {
@@ -211,7 +185,7 @@ export function runTape(operations: readonly TapeOperation[], emit: (record: str
   for (const operation of operations) {
     const refused = performTapeOperation(session, operation, emit);
     if (refused !== undefined) return { ok: false, line: operation.line, message: refused };
-    if (operation.kind === "frame") frames++;
+    if (operation.kind === "frame" || operation.kind === "predict") frames++;
   }
   return { ok: true, frames };
 }

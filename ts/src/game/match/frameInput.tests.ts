@@ -5,7 +5,7 @@ import { type InputRow, emptyInput, inputRow, sameInput } from "../input/inputRo
 import { participantInputs } from "../input/participants";
 import { firstFighterPoseDifference } from "../presentation/fighterPose";
 import { firstImpactDifference } from "../presentation/impactState";
-import { firstFighterDifference } from "../replay/canonical";
+import { firstFighterDifference } from "../replay/difference";
 import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
 import { analogShieldStrength } from "../sim/shield";
 import { Character } from "../sim/codes";

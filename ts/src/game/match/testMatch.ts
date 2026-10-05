@@ -9,6 +9,7 @@ import { type FrameControls, createFrameControls } from "./controls";
 import { type MatchFrameInput, captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
 import { type MatchState, Phase, createMatchState, setHumanMask } from "./rules";
 import { type ReplayRuntimeState, createReplayRuntimeState } from "./runtime";
+import type { ReplayState } from "../replay/snapshot";
 
 export interface TestMatch {
   readonly world: Roster;
@@ -43,4 +44,9 @@ export function executeCaptured(match: TestMatch): void {
 export function executeNext(match: TestMatch): void {
   captureNext(match);
   executeCaptured(match);
+}
+
+/** The match as replay state, for history saves, replays and snapshots. */
+export function replayState({ world, game, inputs, runtime }: TestMatch): ReplayState {
+  return { world, match: game, controls: inputs, runtime };
 }

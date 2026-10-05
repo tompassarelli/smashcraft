@@ -100,6 +100,11 @@ adding pooling anywhere else.
 Engine callbacks (timers, triggers, frame events) go through the dispatch
 table, so hot reload can replace code without rebinding them.
 
+A closure made inside `for (let i = …)` sees the loop's final value in Lua:
+TypeScriptToLua keeps one variable for the whole loop instead of one per
+iteration. Copy the index into a `const` in the body, or take it as a
+`forEach` callback parameter.
+
 ## Tests
 
 `test(name, fn)` from `runtime/testing` registers a test that runs under Bun
@@ -119,10 +124,14 @@ From smashcraft:ts/:
   6.0 has, so it compiles with 6.0 and the two report the same errors.
 - `LUA=<32-bit lua> bun scripts/parity.ts`: emitted Lua against Bun on the
   numeric corpus.
+- `GAME_SOAK=1 bun test test/game.test.ts`: the long `*.soak.ts` scenarios,
+  such as the 100000-frame replay tape, which the default suite leaves out.
+  `GAME_SOAK=1` selects the same modules for `scripts/lua-tests.ts`.
 - `LUA=<32-bit lua> bun scripts/tapes.ts`: the replay acceptance tapes. It
-  records tapes covering every bound key, rollbacks and a rematch, replays them
-  in Wurst's own Lua (smashcraft:tools/tape-oracle/), in Bun and in TypeScript's
-  emitted Lua, and compares the canonical replay state and fighter poses after
+  records tapes covering every bound key, rollbacks, predictions corrected
+  through the replay history and a rematch, replays them in Wurst's own Lua
+  (smashcraft:tools/tape-oracle/), in Bun and in TypeScript's emitted Lua, and
+  compares the canonical replay state and fighter poses after
   every frame. It prints the first divergent frame and field. The Wurst side
   needs what smashcraft:test.sh needs: the locked compiler in
   smashcraft:toolchain/ and the generated asset info in smashcraft:build/.

@@ -4,16 +4,22 @@ import { f32 } from "../../sim/f32";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { Phase } from "../match/rules";
 import { resetPoses } from "../match/runtime";
-import { executeNext, testMatch } from "../match/testMatch";
+import { queueAttack } from "../input/attackBuffer";
+import { createFrameControls } from "../match/controls";
+import { captureFrame, createMatchFrameInput } from "../match/frameInput";
+import { captureNext, executeCaptured, executeNext, replayState, testMatch } from "../match/testMatch";
+import { stateChecksum } from "../replay/canonical";
+import { firstPoseDifference, firstStateDifference } from "../replay/difference";
+import { ReplayCorrections, ReplayHistory } from "../replay/history";
 import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
-import { Character, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, SpecialAction } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { DEMONHUNTER_PARRY_END, DEMONHUNTER_PARRY_START } from "../sim/hits";
 import { fighterAt, isActive } from "../sim/roster";
 import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_WING_STARTUP } from "../sim/specials";
 import { characterModelScale } from "./modelScale";
 import {
-  PARRY_FLASH_FRAMES, STATIC_AURA, STATIC_PARRY_FLASH, STATIC_WING_TRAIL, type SpecialEffectState, copySpecialEffectStateInto, createSpecialEffectState,
+  PARRY_FLASH_FRAMES, STATIC_AURA, STATIC_PARRY_FLASH, STATIC_WING_TRAIL, type SpecialEffectState, createSpecialEffectState,
   firstSpecialEffectDifference, projectSpecialEffect,
 } from "./specialEffectState";
 
@@ -75,14 +81,14 @@ test("the parry flash ages by executed frames, restores from a snapshot and proj
   assertEquals(match.runtime.specials.parryAge[3], 0);
   const snapshot = createReplaySnapshot();
   const projected = createReplaySnapshot();
-  const before = createSpecialEffectState();
   for (let age = 0; age <= PARRY_FLASH_FRAMES; age++) {
     captureReplaySnapshot(snapshot, match.world, match.game, match.inputs, match.runtime);
-    copySpecialEffectStateInto(before, match.runtime.specials);
     for (let repeat = 0; repeat <= 3; repeat++) {
       for (const kind of STATIC_KINDS) projectSpecialEffect(match.runtime.specials, f, 3, kind);
     }
-    assertEquals(firstSpecialEffectDifference(before, match.runtime.specials), undefined);
+    captureReplaySnapshot(projected, match.world, match.game, match.inputs, match.runtime);
+    assertEquals(firstStateDifference(snapshot, projected), undefined);
+    assertEquals(firstPoseDifference(snapshot, projected), undefined);
     const flash = projectSpecialEffect(match.runtime.specials, f, 3, STATIC_PARRY_FLASH);
     const progress = f32(age / 12.0);
     assertEquals(flash.visible, age < PARRY_FLASH_FRAMES);
@@ -98,11 +104,56 @@ test("the parry flash ages by executed frames, restores from a snapshot and proj
   restoreReplaySnapshot(snapshot, match.world, match.game, match.inputs, match.runtime);
   match.runtime.specials.parryAge[3] = 4;
   captureReplaySnapshot(projected, match.world, match.game, match.inputs, match.runtime);
-  assertEquals(firstSpecialEffectDifference(snapshot.runtime.specials, projected.runtime.specials), "slot[3].parryAge");
+  assertEquals(stateChecksum(snapshot), stateChecksum(projected));
+  assertEquals(firstPoseDifference(snapshot, projected), "specials.slot[3].parryAge");
   restoreReplaySnapshot(projected, match.world, match.game, match.inputs, match.runtime);
   assertEquals(match.runtime.specials.parryAge[3], 4);
   assertEquals(match.runtime.specials.parrySerial[3], 1);
   assertTrue(projectSpecialEffect(match.runtime.specials, fighterAt(match.world, 3), 3, STATIC_PARRY_FLASH).visible);
+});
+
+test("a late correction removes or restores a parry flash at its completed age", () => {
+  for (const initiallyParries of [0, 1]) {
+    const match = testMatch(9, Character.demonHunter);
+    const live = replayState(match);
+    const specials = match.runtime.specials;
+    const defender = fighterAt(match.world, 3);
+    const attacker = fighterAt(match.world, 0);
+    attacker.character = Character.archer;
+    // Wurst's parry scenario: the defender at -45 facing right, the jabbing attacker at 45 facing left.
+    defender.motion.x = -45.0;
+    defender.facing = 1;
+    attacker.motion.x = 45.0;
+    attacker.facing = -1;
+    const history = new ReplayHistory();
+    assertTrue(history.beginEpoch(91, 1, 12));
+    for (let frame = 1; frame <= 8; frame++) {
+      const input = match.inputs.inputs[3];
+      input.specialPressed = frame === 1;
+      input.specialX = frame === 1 ? initiallyParries : 0;
+      input.direction = frame === 1 ? initiallyParries : 0;
+      if (frame === 1) queueAttack(match.inputs.commands[0], { style: AttackStyle.jab, facing: -1, frame, mayCharge: false });
+      captureNext(match);
+      assertTrue(history.saveSpeculative(91, match.row, live));
+      executeCaptured(match);
+    }
+    assertEquals(projectSpecialEffect(specials, defender, 3, STATIC_PARRY_FLASH).visible, initiallyParries === 1);
+    if (initiallyParries === 1) assertEquals(specials.parryAge[3], 3);
+    const replacement = createFrameControls();
+    replacement.inputs[3].specialPressed = true;
+    replacement.inputs[3].specialX = 1 - initiallyParries;
+    replacement.inputs[3].direction = 1 - initiallyParries;
+    queueAttack(replacement.commands[0], { style: AttackStyle.jab, facing: -1, frame: 1, mayCharge: false });
+    const row = createMatchFrameInput();
+    assertTrue(captureFrame(row, 1, 9, replacement, match.runtime));
+    const corrections = new ReplayCorrections();
+    assertTrue(corrections.beginEpoch(91));
+    assertTrue(corrections.add(row));
+    assertEquals(history.correct(91, corrections, live), 1);
+    assertEquals(projectSpecialEffect(specials, defender, 3, STATIC_PARRY_FLASH).visible, initiallyParries === 0);
+    assertEquals(specials.parrySerial[3], 1 - initiallyParries);
+    assertEquals(specials.parryAge[3], initiallyParries === 0 ? 3 : PARRY_FLASH_FRAMES);
+  }
 });
 
 test("sparse and four-player parry flashes match whether projected or not, and reset", () => {

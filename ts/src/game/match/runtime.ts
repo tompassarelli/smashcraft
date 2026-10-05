@@ -39,7 +39,7 @@ export function resetPoses(runtime: ReplayRuntimeState): void {
 }
 
 /** Copies between worlds: poses of the source world's participants, with their slot references. */
-export function copyReplayRuntimeState(target: ReplayRuntimeState, source: Readonly<ReplayRuntimeState>, sourceWorld: Readonly<Roster>, _targetWorld: Readonly<Roster>): void {
+export function copyReplayRuntimeState(target: ReplayRuntimeState, source: Readonly<ReplayRuntimeState>, sourceWorld: Readonly<Roster>): void {
   target.simulationFrame = source.simulationFrame;
   copyImpactStateInto(target.impacts, source.impacts);
   copySpecialEffectStateInto(target.specials, source.specials);

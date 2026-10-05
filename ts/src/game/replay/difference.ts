@@ -1,0 +1,330 @@
+// The first field that differs between two replay states, by Wurst
+// ReplayState's diagnostic path and checked in its order, which is not the
+// canonical tape's order.
+import { attackBufferCanonicalState, type AttackBuffer } from "../input/attackBuffer";
+import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS } from "../input/participants";
+import { firstFighterPoseDifference } from "../presentation/fighterPose";
+import { firstImpactDifference } from "../presentation/impactState";
+import { firstSpecialEffectDifference } from "../presentation/specialEffectState";
+import { firstSummonDifference } from "../presentation/summonState";
+import { SPECIAL_ACTION_CAPACITY } from "../sim/codes";
+import { PROJECTILE_CAPACITY, type Fighter, type MeleeMotionValue, type Projectile } from "../sim/fighter";
+import { fighterAt, isActive } from "../sim/roster";
+import type { DashGrabRules, FighterPhysics, GroundMovementRules, ShieldGeometry, SurfaceRecoveryPhysics } from "../sim/tuning";
+import { at } from "../../runtime/lookup";
+import { canonicalSlot } from "./canonical";
+import type { ReplayState } from "./snapshot";
+
+type Value = number | boolean | undefined;
+
+// Wurst compares these tuples by value under one field name.
+const PHYSICS_KEYS = [
+  "weight", "gravity", "terminalSpeed", "fastFallSpeed", "airAcceleration", "airSpeed", "airFriction", "airCap", "traction",
+  "dashSpeed", "runSpeed", "walkSpeed", "jumpSquatFrames", "fullJumpSpeed", "shortJumpSpeed", "aerialJumpSpeed", "jumpMomentum",
+  "jumpHorizontalSpeed", "jumpHorizontalCap", "aerialJumpHorizontalSpeed", "shieldBreakSpeed", "walkAccelerationMultiplier",
+  "walkAccelerationBase", "groundAccelerationMultiplier", "groundAccelerationBase", "groundSpeedCap",
+] as const satisfies readonly (keyof FighterPhysics)[];
+const SURFACE_PHYSICS_KEYS = [
+  "passiveWallSpeed", "wallJumpHorizontalSpeed", "wallJumpVerticalSpeed", "passiveCeilingSpeed", "wallJumpMinimumApproach", "canWallJump",
+] as const satisfies readonly (keyof SurfaceRecoveryPhysics)[];
+const GROUND_RULE_KEYS = [
+  "dashRunEnableFrame", "turnRunFacingCommandFrame", "turnRunAnimationEndFrame", "runBrakeTurnCommandEndFrame", "runBrakeAnimationEndFrame", "runBrakeMaximumFrames",
+] as const satisfies readonly (keyof GroundMovementRules)[];
+const DASH_GRAB_KEYS = ["startupFrames", "activeFrames", "totalFrames"] as const satisfies readonly (keyof DashGrabRules)[];
+const SHIELD_GEOMETRY_KEYS = ["centerX", "centerZ", "radius"] as const satisfies readonly (keyof ShieldGeometry)[];
+const MELEE_VALUE_KEYS = ["original", "published"] as const satisfies readonly (keyof MeleeMotionValue)[];
+const PROJECTILE_FIELDS = [
+  ["projectileLife", "life"], ["projectileX", "x"], ["projectileZ", "z"], ["projectileDirection", "direction"],
+  ["projectileKind", "kind"], ["projectileDamageMultiplier", "damageMultiplier"], ["projectileVisualFamily", "visualFamily"],
+  ["projectileNewlyReflected", "newlyReflected"], ["projectileVelocityX", "velocityX"], ["projectileVelocityZ", "velocityZ"],
+  ["projectileSerial", "serial"],
+] as const satisfies readonly (readonly [string, keyof Projectile])[];
+
+/**
+ * Wurst's fighterDifference. A slot reference also differs when either side
+ * refers to a fighter its roster doesn't seat, as an identity check would.
+ */
+export function firstFighterDifference(expected: Readonly<Fighter>, actual: Readonly<Fighter>, expectedMask: number, actualMask: number): string | undefined {
+  let found: string | undefined;
+  const add = (name: string, left: Value, right: Value) => {
+    if (found === undefined && left !== right) found = name;
+  };
+  const record = <T>(name: string, left: T, right: T, keys: readonly (keyof T)[]) => {
+    if (found !== undefined || left === right) return;
+    for (const key of keys) {
+      if (left[key] !== right[key]) {
+        found = name;
+        return;
+      }
+    }
+  };
+  const reference = (name: string, left: number | undefined, right: number | undefined) => {
+    const leftSlot = canonicalSlot(left, expectedMask);
+    const rightSlot = canonicalSlot(right, actualMask);
+    if (found === undefined && (leftSlot !== rightSlot || leftSlot === -2 || rightSlot === -2)) found = name;
+  };
+  const e = expected;
+  const a = actual;
+  const expectedTuning = e.tuning;
+  const actualTuning = a.tuning;
+  add("character", e.character, a.character);
+  record("physics", expectedTuning.physics, actualTuning.physics, PHYSICS_KEYS);
+  record("surfacePhysics", expectedTuning.surface, actualTuning.surface, SURFACE_PHYSICS_KEYS);
+  add("ceilingTechImpulseFrame", expectedTuning.tech.ceilingImpulseFrame, actualTuning.tech.ceilingImpulseFrame);
+  add("ceilingTechAnimationEndFrame", expectedTuning.tech.ceilingAnimationEndFrame, actualTuning.tech.ceilingAnimationEndFrame);
+  add("wallTechAnimationEndFrame", expectedTuning.tech.wallAnimationEndFrame, actualTuning.tech.wallAnimationEndFrame);
+  add("wallJumpTechAnimationEndFrame", expectedTuning.tech.wallJumpAnimationEndFrame, actualTuning.tech.wallJumpAnimationEndFrame);
+  add("facing", e.facing, a.facing);
+  add("lastAerialTapDirection", e.motion.lastAerialTapDirection, a.motion.lastAerialTapDirection);
+  add("dashFrame", e.ground.dashFrame, a.ground.dashFrame);
+  add("dashDirection", e.ground.dashDirection, a.ground.dashDirection);
+  record("groundRules", expectedTuning.ground, actualTuning.ground, GROUND_RULE_KEYS);
+  record("dashGrabTiming", expectedTuning.dashGrab, actualTuning.dashGrab, DASH_GRAB_KEYS);
+  add("dashGrabWindow", e.ground.dashGrabWindow, a.ground.dashGrabWindow);
+  add("dashGrabAttack", e.attack.dashGrab, a.attack.dashGrab);
+  add("groundAction", e.ground.action, a.ground.action);
+  add("groundActionFrame", e.ground.actionFrame, a.ground.actionFrame);
+  add("groundRunBrakeFramesRemaining", e.ground.runBrakeFramesRemaining, a.ground.runBrakeFramesRemaining);
+  add("groundTurnRunEntryFacing", e.ground.turnRunEntryFacing, a.ground.turnRunEntryFacing);
+  add("groundTurnRunFacingCommandLatched", e.ground.turnRunFacingCommandLatched, a.ground.turnRunFacingCommandLatched);
+  add("groundTurnRunPausePending", e.ground.turnRunPausePending, a.ground.turnRunPausePending);
+  add("x", e.motion.x, a.motion.x);
+  add("z", e.motion.z, a.motion.z);
+  add("positionDeltaX", e.motion.deltaX, a.motion.deltaX);
+  add("positionDeltaZ", e.motion.deltaZ, a.motion.deltaZ);
+  add("vx", e.motion.vx, a.motion.vx);
+  add("vz", e.motion.vz, a.motion.vz);
+  record("motionX", e.motion.meleeX, a.motion.meleeX, MELEE_VALUE_KEYS);
+  record("motionZ", e.motion.meleeZ, a.motion.meleeZ, MELEE_VALUE_KEYS);
+  record("motionVelocityZ", e.motion.meleeVelocityZ, a.motion.meleeVelocityZ, MELEE_VALUE_KEYS);
+  add("knockbackX", e.launch.knockbackX, a.launch.knockbackX);
+  add("knockbackZ", e.launch.knockbackZ, a.launch.knockbackZ);
+  add("groundKnockbackX", e.launch.groundKnockbackX, a.launch.groundKnockbackX);
+  add("knockbackAgeFrames", e.launch.knockbackAge ?? -1, a.launch.knockbackAge ?? -1);
+  add("damageLevel", e.launch.damageLevel, a.launch.damageLevel);
+  add("shieldPushbackX", e.shield.pushbackX, a.shield.pushbackX);
+  add("shieldRecoilX", e.shield.recoilX, a.shield.recoilX);
+  add("shieldRecoilZ", e.shield.recoilZ, a.shield.recoilZ);
+  add("shieldDrainResumePending", e.shield.drainResumePending, a.shield.drainResumePending);
+  add("damage", e.status.damage, a.status.damage);
+  add("grabVisualSerial", e.visuals.grab, a.visuals.grab);
+  add("throwVisualSerial", e.visuals.throw, a.visuals.throw);
+  add("hitVisualSerial", e.visuals.hit, a.visuals.hit);
+  add("hitVisualElectric", e.visuals.hitElectric, a.visuals.hitElectric);
+  add("shieldVisualSerial", e.visuals.shield, a.visuals.shield);
+  add("shieldReflectVisualSerial", e.visuals.shieldReflect, a.visuals.shieldReflect);
+  add("stocks", e.status.stocks, a.status.stocks);
+  add("hitstun", e.launch.hitstun, a.launch.hitstun);
+  add("hitlag", e.launch.hitlag, a.launch.hitlag);
+  add("diPending", e.launch.diPending, a.launch.diPending);
+  add("diLaunchSpeed", e.launch.diLaunchSpeed, a.launch.diLaunchSpeed);
+  add("diSerial", e.launch.diSerial, a.launch.diSerial);
+  add("diAngleDegrees", e.launch.diAngleDegrees, a.launch.diAngleDegrees);
+  add("sdiWasGrounded", e.launch.sdiWasGrounded, a.launch.sdiWasGrounded);
+  add("sdiLaunchesUpward", e.launch.sdiLaunchesUpward, a.launch.sdiLaunchesUpward);
+  add("sdiSerial", e.launch.sdiSerial, a.launch.sdiSerial);
+  add("asdiSerial", e.launch.asdiSerial, a.launch.asdiSerial);
+  add("cooldown", e.attack.cooldown, a.attack.cooldown);
+  add("attackStyle", e.attack.style, a.attack.style);
+  add("attackFrame", e.attack.frame, a.attack.frame);
+  add("attackDuration", e.attack.duration, a.attack.duration);
+  add("attackSerial", e.attack.serial, a.attack.serial);
+  add("attackHit", e.attack.hit, a.attack.hit);
+  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) reference(`hitAttackers[${i}]`, at(e.hits.entries, i).attacker, at(a.hits.entries, i).attacker);
+  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`hitSerials[${i}]`, at(e.hits.entries, i).attackSerial, at(a.hits.entries, i).attackSerial);
+  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`hitWindows[${i}]`, at(e.hits.entries, i).window, at(a.hits.entries, i).window);
+  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) reference(`specialHitTargets[${i}]`, e.special.hitTargets[i], a.special.hitTargets[i]);
+  reference("lastHitAttacker", e.hits.lastAttacker, a.hits.lastAttacker);
+  add("lastHitAttackSerial", e.hits.lastAttackSerial, a.hits.lastAttackSerial);
+  add("lastHitWindow", e.hits.lastWindow, a.hits.lastWindow);
+  add("smashCharging", e.attack.smashCharging, a.attack.smashCharging);
+  add("smashChargeFrames", e.attack.smashChargeFrames, a.attack.smashChargeFrames);
+  add("smashChargeAllowed", e.attack.smashChargeAllowed, a.attack.smashChargeAllowed);
+  for (const [label, key] of PROJECTILE_FIELDS) {
+    for (let i = 0; i < PROJECTILE_CAPACITY; i++) add(`${label}[${i}]`, at(e.projectiles, i)[key], at(a.projectiles, i)[key]);
+  }
+  add("parrySerial", e.visuals.parry, a.visuals.parry);
+  add("specialAction", e.special.action, a.special.action);
+  add("specialFrame", e.special.frame, a.special.frame);
+  add("specialDuration", e.special.duration, a.special.duration);
+  add("specialLockFrames", e.special.lockFrames, a.special.lockFrames);
+  add("specialFall", e.special.fall, a.special.fall);
+  for (let i = 0; i < SPECIAL_ACTION_CAPACITY; i++) add(`specialCooldowns[${i}]`, at(e.special.cooldowns, i), at(a.special.cooldowns, i));
+  add("specialDirection", e.special.direction, a.special.direction);
+  add("specialHit", e.special.hit, a.special.hit);
+  add("bearLife", e.bear.life, a.bear.life);
+  add("bearX", e.bear.x, a.bear.x);
+  add("bearZ", e.bear.z, a.bear.z);
+  add("bearVelocityX", e.bear.velocityX, a.bear.velocityX);
+  add("bearVelocityZ", e.bear.velocityZ, a.bear.velocityZ);
+  add("bearSwipeCooldown", e.bear.swipeCooldown, a.bear.swipeCooldown);
+  add("bearHitSerial", e.bear.hitSerial, a.bear.hitSerial);
+  add("bearSurface", e.bear.surface, a.bear.surface);
+  add("hippogryphLife", e.hippogryph.life, a.hippogryph.life);
+  add("hippogryphX", e.hippogryph.x, a.hippogryph.x);
+  add("hippogryphZ", e.hippogryph.z, a.hippogryph.z);
+  add("hippogryphVelocityX", e.hippogryph.velocityX, a.hippogryph.velocityX);
+  add("hippogryphVelocityZ", e.hippogryph.velocityZ, a.hippogryph.velocityZ);
+  add("hippogryphKind", e.hippogryph.kind, a.hippogryph.kind);
+  add("freezeTrapLife", e.freezeTrap.life, a.freezeTrap.life);
+  add("freezeTrapArming", e.freezeTrap.arming, a.freezeTrap.arming);
+  add("freezeTrapX", e.freezeTrap.x, a.freezeTrap.x);
+  add("freezeTrapZ", e.freezeTrap.z, a.freezeTrap.z);
+  add("freezeTrapSurface", e.freezeTrap.surface, a.freezeTrap.surface);
+  add("freezeTrapSerial", e.freezeTrap.serial, a.freezeTrap.serial);
+  add("frozenFrames", e.status.frozenFrames, a.status.frozenFrames);
+  add("freezeTrapCooldown", e.freezeTrap.cooldown, a.freezeTrap.cooldown);
+  add("out", e.status.out, a.status.out);
+  add("respawn", e.status.respawn, a.status.respawn);
+  add("shield", e.shield.raised, a.shield.raised);
+  add("shieldTriggerWasActive", e.shield.triggerWasActive, a.shield.triggerWasActive);
+  add("shieldTriggerAge", e.shield.triggerAge, a.shield.triggerAge);
+  add("shieldReflectFrames", e.shield.reflectFrames, a.shield.reflectFrames);
+  add("shieldPerfectFrames", e.shield.perfectFrames, a.shield.perfectFrames);
+  add("shieldPerfectActionFrames", e.shield.perfectActionFrames, a.shield.perfectActionFrames);
+  record("shieldGeometry", expectedTuning.shield, actualTuning.shield, SHIELD_GEOMETRY_KEYS);
+  add("shieldStrength", e.shield.strength, a.shield.strength);
+  add("shieldEnergy", e.shield.energy, a.shield.energy);
+  add("shieldStun", e.shield.stun, a.shield.stun);
+  add("shieldHeldFrames", e.shield.heldFrames, a.shield.heldFrames);
+  add("shieldReleaseLag", e.shield.releaseLag, a.shield.releaseLag);
+  add("shieldBreakState", e.shield.breakState, a.shield.breakState);
+  add("shieldBreakFrame", e.shield.breakFrame, a.shield.breakFrame);
+  add("shieldBreakSerial", e.shield.breakSerial, a.shield.breakSerial);
+  add("shieldBreakDownFrames", expectedTuning.shieldBreak.landFrames, actualTuning.shieldBreak.landFrames);
+  add("shieldBreakStandFrames", expectedTuning.shieldBreak.standFrames, actualTuning.shieldBreak.standFrames);
+  add("shieldBreakRemaining", e.shield.breakRemaining, a.shield.breakRemaining);
+  add("crouching", e.motion.crouching, a.motion.crouching);
+  add("fastFallDownHeld", e.motion.fastFallDownHeld, a.motion.fastFallDownHeld);
+  add("fastFallInputAge", e.motion.fastFallInputAge, a.motion.fastFallInputAge);
+  add("previousHorizontalDirection", e.motion.previousHorizontalDirection, a.motion.previousHorizontalDirection);
+  add("jumpInputAge", e.jump.inputAge, a.jump.inputAge);
+  add("fastFalling", e.motion.fastFalling, a.motion.fastFalling);
+  add("grounded", e.motion.grounded, a.motion.grounded);
+  add("fastFalling", e.motion.fastFalling, a.motion.fastFalling);
+  add("crouching", e.motion.crouching, a.motion.crouching);
+  add("jumps", e.jump.remaining, a.jump.remaining);
+  add("jumpSerial", e.jump.serial, a.jump.serial);
+  add("jumpIsDouble", e.jump.isDouble, a.jump.isDouble);
+  add("jumpSquat", e.jump.squat, a.jump.squat);
+  add("jumpDodgeQueued", e.jump.dodgeQueued, a.jump.dodgeQueued);
+  add("jumpDodgeX", e.jump.dodgeX, a.jump.dodgeX);
+  add("jumpDodgeZ", e.jump.dodgeZ, a.jump.dodgeZ);
+  add("jumpHeld", e.jump.held, a.jump.held);
+  add("dropTime", e.motion.dropTime, a.motion.dropTime);
+  add("invincible", e.status.invincible, a.status.invincible);
+  add("surface", e.motion.surface, a.motion.surface);
+  add("surfaceRecoveryState", e.surfaceRecovery.state, a.surfaceRecovery.state);
+  add("surfaceRecoveryFrame", e.surfaceRecovery.frame, a.surfaceRecovery.frame);
+  add("surfaceRecoveryVelocityApplied", e.surfaceRecovery.velocityApplied, a.surfaceRecovery.velocityApplied);
+  add("surfaceWallJumpQueued", e.surfaceRecovery.wallJumpQueued, a.surfaceRecovery.wallJumpQueued);
+  add("surfaceReflectCooldown", e.surfaceRecovery.reflectCooldown, a.surfaceRecovery.reflectCooldown);
+  add("lastReflectedSurface", e.surfaceRecovery.lastReflectedSurface, a.surfaceRecovery.lastReflectedSurface);
+  add("surfaceContactSerial", e.surfaceRecovery.contactSerial, a.surfaceRecovery.contactSerial);
+  add("surfaceContactKind", e.surfaceRecovery.contactKind, a.surfaceRecovery.contactKind);
+  add("surfaceContactApproachSpeed", e.surfaceRecovery.contactApproachSpeed, a.surfaceRecovery.contactApproachSpeed);
+  add("surfaceContactX", e.surfaceRecovery.contactX, a.surfaceRecovery.contactX);
+  add("surfaceContactZ", e.surfaceRecovery.contactZ, a.surfaceRecovery.contactZ);
+  add("surfaceContactNormalX", e.surfaceRecovery.contactNormalX, a.surfaceRecovery.contactNormalX);
+  add("surfaceContactNormalZ", e.surfaceRecovery.contactNormalZ, a.surfaceRecovery.contactNormalZ);
+  add("airDodgeTime", e.dodge.airMotionFrames, a.dodge.airMotionFrames);
+  add("landingLag", e.landing.lag, a.landing.lag);
+  add("lCancelWindow", e.landing.lCancelWindow, a.landing.lCancelWindow);
+  add("lCancelSerial", e.landing.lCancelSerial, a.landing.lCancelSerial);
+  add("airDodging", e.dodge.airDodging, a.dodge.airDodging);
+  add("airDodgeFrame", e.dodge.airFrame, a.dodge.airFrame);
+  add("groundDodgeFrame", e.dodge.groundFrame, a.dodge.groundFrame);
+  add("groundDodgeDirection", e.dodge.groundDirection, a.dodge.groundDirection);
+  add("groundDodgeEntryFacing", e.dodge.groundEntryFacing, a.dodge.groundEntryFacing);
+  add("downState", e.down.state, a.down.state);
+  add("downFrame", e.down.frame, a.down.frame);
+  add("downDirection", e.down.direction, a.down.direction);
+  add("downWaitRemaining", e.down.waitRemaining, a.down.waitRemaining);
+  add("downFaceUp", e.down.faceUp, a.down.faceUp);
+  add("techWindow", e.tech.window, a.tech.window);
+  add("techPressAge", e.tech.pressAge, a.tech.pressAge);
+  add("techPreviousPressAge", e.tech.previousPressAge, a.tech.previousPressAge);
+  add("techAccumulatedPress", e.tech.accumulatedPress, a.tech.accumulatedPress);
+  add("grabbedFrames", e.grab.grabbedFrames, a.grab.grabbedFrames);
+  add("grabAction", e.grab.action, a.grab.action);
+  add("grabFrame", e.grab.frame, a.grab.frame);
+  add("grabSerial", e.grab.serial, a.grab.serial);
+  add("grabMashX", e.grab.mashX, a.grab.mashX);
+  add("grabMashZ", e.grab.mashZ, a.grab.mashZ);
+  reference("grabOwner", e.grab.owner, a.grab.owner);
+  reference("grabTarget", e.grab.target, a.grab.target);
+  add("ledgeState", e.ledge.state, a.ledge.state);
+  add("ledgeSide", e.ledge.side, a.ledge.side);
+  add("ledgeFrame", e.ledge.frame, a.ledge.frame);
+  add("ledgeSerial", e.ledge.serial, a.ledge.serial);
+  add("ledgeIntangible", e.ledge.intangible, a.ledge.intangible);
+  add("ledgeRegrab", e.ledge.regrab, a.ledge.regrab);
+  return found;
+}
+
+function firstCommandDifference(expected: Readonly<AttackBuffer>, actual: Readonly<AttackBuffer>): string | undefined {
+  const e = attackBufferCanonicalState(expected);
+  const a = attackBufferCanonicalState(actual);
+  if (e.graceFrames !== a.graceFrames) return "windowFrames";
+  if (e.style !== a.style) return "style";
+  if (e.facing !== a.facing) return "facing";
+  if (e.targetFrame !== a.targetFrame) return "targetFrame";
+  if (e.consumedFacing !== a.consumedFacing) return "consumedFacing";
+  if (e.mayCharge !== a.mayCharge) return "mayCharge";
+  if (e.consumedMayCharge !== a.consumedMayCharge) return "consumedMayCharge";
+  return undefined;
+}
+
+/** Wurst ReplaySnapshot.firstDifference: gameplay state only; firstPoseDifference covers presentation. */
+export function firstStateDifference(expected: Readonly<ReplayState>, actual: Readonly<ReplayState>): string | undefined {
+  if (expected.world.mask !== actual.world.mask) return "participantMask";
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (!isActive(expected.world, slot)) continue;
+    const fighter = firstFighterDifference(fighterAt(expected.world, slot), fighterAt(actual.world, slot), expected.world.mask, actual.world.mask);
+    if (fighter !== undefined) return `fighter[${slot}].${fighter}`;
+    const command = firstCommandDifference(expected.controls.commands[slot], actual.controls.commands[slot]);
+    if (command !== undefined) return `commands[${slot}].${command}`;
+  }
+  const e = expected.match;
+  const a = actual.match;
+  if (e.phase !== a.phase) return "match.phase";
+  if (e.stageChoice !== a.stageChoice) return "match.stageChoice";
+  if (e.winner !== a.winner) return "match.winner";
+  if (e.departedMask !== a.departedMask) return "match.departedMask";
+  if (e.interrupted !== a.interrupted) return "match.interrupted";
+  if (e.humanFighterMask !== a.humanFighterMask) return "match.humanFighterMask";
+  if (e.computerMask !== a.computerMask) return "match.computerMask";
+  if (e.humanMask !== a.humanMask) return "match.humanMask";
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (e.characterChoices[slot] !== a.characterChoices[slot]) return `match.slot${slot}.character`;
+    if (e.characterReadiness[slot] !== a.characterReadiness[slot]) return `match.slot${slot}.ready`;
+    if (e.rematchReadiness[slot] !== a.rematchReadiness[slot]) return `match.slot${slot}.rematch`;
+  }
+  if (e.humanCount !== a.humanCount) return "match.humanCount";
+  if (e.practice !== a.practice) return "match.practice";
+  if (e.stockCount !== a.stockCount) return "match.stockCount";
+  if (e.timeLimitMinutes !== a.timeLimitMinutes) return "match.timeLimitMinutes";
+  if (e.remainingFrames !== a.remainingFrames) return "match.remainingFrames";
+  if (e.timedOut !== a.timedOut) return "match.timedOut";
+  if (expected.runtime.simulationFrame !== actual.runtime.simulationFrame) return "runtime.simulationFrame";
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (expected.runtime.botAttackDelays[slot] !== actual.runtime.botAttackDelays[slot]) return `runtime.botAttackDelays[${slot}]`;
+  }
+  return undefined;
+}
+
+/** Wurst ReplaySnapshot.firstPoseDifference: presentation history, which the checksum leaves out. */
+export function firstPoseDifference(expected: Readonly<ReplayState>, actual: Readonly<ReplayState>): string | undefined {
+  if (expected.world.mask !== actual.world.mask) return "participantMask";
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (!isActive(expected.world, slot)) continue;
+    const pose = firstFighterPoseDifference(expected.runtime.poses[slot], actual.runtime.poses[slot], expected.world, actual.world);
+    if (pose !== undefined) return `pose[${slot}].${pose}`;
+  }
+  const impact = firstImpactDifference(expected.runtime.impacts, actual.runtime.impacts);
+  if (impact !== undefined) return `impacts.${impact}`;
+  const special = firstSpecialEffectDifference(expected.runtime.specials, actual.runtime.specials);
+  if (special !== undefined) return `specials.${special}`;
+  const summon = firstSummonDifference(expected.runtime.summons, actual.runtime.summons);
+  return summon === undefined ? undefined : `summons.${summon}`;
+}

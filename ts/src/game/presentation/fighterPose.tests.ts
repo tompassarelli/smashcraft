@@ -1,59 +1,53 @@
 import { assertEquals, assertGreaterThan, assertTrue, test } from "../../runtime/testing";
 import { createFrameControls } from "../match/controls";
-import { type MatchFrameInput, captureFrame, createMatchFrameInput, executeMatchFrame } from "../match/frameInput";
+import { captureFrame, createMatchFrameInput, executeMatchFrame } from "../match/frameInput";
 import { Phase, createMatchState } from "../match/rules";
 import { createReplayRuntimeState } from "../match/runtime";
-import { firstFighterDifference } from "../replay/canonical";
-import { cloneFighterState } from "../replay/fighterState";
-import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
+import { stateChecksum } from "../replay/canonical";
+import { firstPoseDifference, firstStateDifference } from "../replay/difference";
+import { ReplayHistory } from "../replay/history";
+import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "../replay/snapshot";
 import { AttackStyle, Character, GrabAction } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { attackDurationFramesForGrounding } from "../sim/moves";
 import { fighterAt, neutralControls } from "../sim/roster";
 import { soloWorld, testWorld } from "../sim/testWorld";
 import * as dh from "./demonHunterAssetInfo";
-import { advanceFighterPose, copyFighterPoseInto, createFighterPose, firstFighterPoseDifference } from "./fighterPose";
+import { advanceFighterPose, createFighterPose } from "./fighterPose";
 
 test("replaying rows from a restored frame reproduces each pose's selection and clock", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
-    const first = createFighter(character, -200.0, 1);
-    const second = createFighter(Character.rifleman, 200.0, -1);
-    const world = testWorld(first, second);
     const game = createMatchState();
     game.phase = Phase.match;
     game.timeLimitMinutes = 0;
-    const controls = createFrameControls();
+    const live: ReplayState = {
+      world: testWorld(createFighter(character, -200.0, 1), createFighter(Character.rifleman, 200.0, -1)),
+      match: game, controls: createFrameControls(), runtime: createReplayRuntimeState(),
+    };
     const captured = createFrameControls();
-    const runtime = createReplayRuntimeState();
-    const rows: MatchFrameInput[] = [];
-    const restart = createReplaySnapshot();
+    const row = createMatchFrameInput();
+    const history = new ReplayHistory();
+    const expected = createReplaySnapshot();
+    const actual = createReplaySnapshot();
+    assertTrue(history.beginEpoch(1, 1));
     for (let frame = 1; frame <= 24; frame++) {
       const input = captured.inputs[0];
       input.direction = frame < 12 ? 1 : -1;
       input.jumpPressed = frame === 4 || frame === 15;
       input.jumpHeld = frame < 10;
-      const row = createMatchFrameInput();
-      assertTrue(captureFrame(row, frame, 3, captured, runtime));
-      rows.push(row);
-      if (frame === 8) captureReplaySnapshot(restart, world, game, controls, runtime);
-      assertTrue(executeMatchFrame(row, game, world, controls, runtime, frame));
+      assertTrue(captureFrame(row, frame, 3, captured, live.runtime));
+      assertTrue(history.save(1, row, live));
+      assertTrue(executeMatchFrame(row, game, live.world, live.controls, live.runtime, frame));
     }
-    const expectedPoses = [createFighterPose(), createFighterPose()] as const;
-    copyFighterPoseInto(expectedPoses[0], runtime.poses[0], world);
-    copyFighterPoseInto(expectedPoses[1], runtime.poses[1], world);
-    const expectedFirst = cloneFighterState(first);
-    const expectedSecond = cloneFighterState(second);
-    restoreReplaySnapshot(restart, world, game, controls, runtime);
-    for (let frame = 8; frame <= 24; frame++) {
-      const row = rows[frame - 1];
-      assertTrue(row !== undefined && executeMatchFrame(row, game, world, controls, runtime, frame));
-    }
-    assertEquals(firstFighterDifference(expectedFirst, first, 3, 3), undefined);
-    assertEquals(firstFighterDifference(expectedSecond, second, 3, 3), undefined);
-    assertEquals(firstFighterPoseDifference(expectedPoses[0], runtime.poses[0], world, world), undefined);
-    assertEquals(firstFighterPoseDifference(expectedPoses[1], runtime.poses[1], world, world), undefined);
-    runtime.poses[0].clipTime += 1.0;
-    assertEquals(firstFighterPoseDifference(expectedPoses[0], runtime.poses[0], world, world), "clipTime");
+    copyReplayState(expected, live);
+    assertTrue(history.replay(1, 8, 24, live));
+    copyReplayState(actual, live);
+    assertEquals(firstStateDifference(expected, actual), undefined);
+    assertEquals(firstPoseDifference(expected, actual), undefined);
+    const gameplayChecksum = stateChecksum(actual);
+    actual.runtime.poses[0].clipTime += 1.0;
+    assertEquals(firstPoseDifference(expected, actual), "pose[0].clipTime");
+    assertEquals(stateChecksum(actual), gameplayChecksum);
   }
 });
 
