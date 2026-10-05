@@ -194,7 +194,7 @@ the base map's script plus the TSTL bundle, whose entry is
 smashcraft:ts/src/platform/main.ts. Bun generates the fighter units
 (war3map.w3u), FileIO's `$wsl` ability (war3map.w3a), the map description
 (war3map.w3i), the map header and the matching `config()` from
-smashcraft:ts/scripts/objectData.ts and smashcraft:ts/scripts/mapInfo.ts through
+smashcraft:ts/src/game/objectData.ts and smashcraft:ts/scripts/mapInfo.ts through
 Waygate's generic encoders. For the
 same base map, these files are generated deterministically from the declared
 TypeScript data and the packaged map inputs.

@@ -13,6 +13,7 @@ import { configureRuntime } from "waygate/src/runtime/config";
 import { installHotReload, startHotReload } from "waygate/src/platform/hotReload";
 import { install, start } from "../src/platform/main";
 import { installShell, startShell } from "../src/platform/shell/shell";
+import { installObjectData } from "../src/platform/shell/objectData";
 import { Lockstep, installNatives } from "./desync/twoClients";
 
 const restoreNatives = installNatives();
@@ -32,6 +33,7 @@ function entryFor(build: MapBuild): Entry {
     configureRuntime({ filePrefix: "smashcraft", globalPrefix: "__smashcraft", announcePrefix: "SC_HR", readyPrefix: "SC_HRR" });
     installDispatch();
     installShell();
+    installObjectData();
     installHotReload();
   };
   return {
@@ -58,6 +60,16 @@ function playThroughReload(entry: Entry): Lockstep {
   for (const [index, client] of clients.clients.entries()) {
     const installCalls = client.log.slice(nativeCallCount[index] ?? 0);
     expect(installCalls.filter(({ name }) => /^(?:Create|BlzCreate|AddSpecialEffect|Destroy|BlzDestroy|Remove)\w+$/.test(name))).toEqual([]);
+    // The same existing handles receive both the movement and combat fields.
+    const created = client.log.slice(0, nativeCallCount[index]).filter(({ name }) => name === "SetUnitMoveSpeed").map(({ args }) => args[0]);
+    const movement = installCalls.filter(({ name }) => name === "SetUnitMoveSpeed");
+    const combat = installCalls.filter(({ name }) => name === "BlzSetUnitAttackCooldown");
+    expect(movement.length).toBeGreaterThan(0);
+    expect(combat.map(({ args }) => args[0])).toEqual(movement.map(({ args }) => args[0]));
+    for (const { args } of movement) expect(created).toContain(args[0]);
+    const receipt = client.files.get(`smashcraft-object-data-p${client.slot}.txt`);
+    expect(receipt?.[0]).toMatch(/^object-data frame \d+ objects \d+:\d+ state /);
+    expect(receipt?.filter(line => line.includes(" speed 270 cooldown 1.5")).length).toBe(movement.length);
   }
   clients.ticks(120);
   return clients;

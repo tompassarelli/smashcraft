@@ -7,11 +7,13 @@ import { configureRuntime } from "waygate/src/runtime/config";
 import { installDispatch } from "waygate/src/platform/dispatch";
 import { installHotReload, startHotReload } from "waygate/src/platform/hotReload";
 import { installShell, startShell } from "./shell/shell";
+import { installObjectData } from "./shell/objectData";
 
 export function install(this: void): void {
   configureRuntime({ filePrefix: "smashcraft", globalPrefix: "__smashcraft", announcePrefix: "SC_HR", readyPrefix: "SC_HRR" });
   installDispatch();
   installShell();
+  installObjectData();
   installHotReload();
 }
 

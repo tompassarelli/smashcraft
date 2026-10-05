@@ -50,6 +50,11 @@ export const ALLOWED_LOCAL: Readonly<Record<string, string>> = {
 };
 
 type Handle = { readonly kind: string; readonly id: number };
+interface Unit extends Handle {
+  readonly unitId: number;
+  moveSpeed: number;
+  attackCooldown: number;
+}
 type Callback = () => void;
 
 interface Native {
@@ -155,6 +160,12 @@ export class Client {
       GetPlayerId: (p: number) => p,
       GetTriggerPlayer: () => this.event.player,
       GetHandleId: (h: unknown) => (typeof h === "object" && h !== null && "id" in h ? (h as Handle).id : h),
+      CreateUnit: (_owner: number, unitId: number): Unit => ({ ...handle("unit"), unitId, moveSpeed: 0, attackCooldown: 0 }),
+      GetUnitTypeId: (whichUnit: Unit) => whichUnit.unitId,
+      SetUnitMoveSpeed: (whichUnit: Unit, value: number) => { whichUnit.moveSpeed = value; },
+      GetUnitMoveSpeed: (whichUnit: Unit) => whichUnit.moveSpeed,
+      BlzSetUnitAttackCooldown: (whichUnit: Unit, value: number) => { whichUnit.attackCooldown = value; },
+      BlzGetUnitAttackCooldown: (whichUnit: Unit) => whichUnit.attackCooldown,
       GetPlayerController: (p: number) => (this.humans.includes(p) ? "MAP_CONTROL_USER" : "MAP_CONTROL_NONE"),
       GetPlayerSlotState: (p: number) => (this.humans.includes(p) ? "PLAYER_SLOT_STATE_PLAYING" : "PLAYER_SLOT_STATE_EMPTY"),
       BlzGetLocalClientWidth: () => screenWidth,

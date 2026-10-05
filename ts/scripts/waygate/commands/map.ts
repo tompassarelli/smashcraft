@@ -7,8 +7,6 @@ import { decodeBuildOptions, importedAssets } from "../mapInputs";
 import { buildProject, gameFilesLayer, sourceErrorsLayer } from "../project";
 import { SMASHCRAFT_MAP } from "../../mapInfo";
 import { fighterUnits, fileIoAbility } from "../../objectData";
-import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../../src/game/presentation/fighterAssetInfo";
-import { DEMON_HUNTER_MODEL_FILE } from "../../../src/game/presentation/demonHunterAssetInfo";
 
 const profiles = {
   main: MapBuild.layer(buildProject()),
@@ -34,7 +32,7 @@ export const build: Command = (args) => Effect.gen(function*() {
       const imports = yield* importedAssets(input.assets, input.summon);
       const { packager, assets, summon, ...map } = input;
       return yield* MapBuild.use((maps) => maps.build({ ...map, ...(packager === undefined ? {} : { packager }), declaration: SMASHCRAFT_MAP, imports, objectData: [
-        { entry: "war3map.w3u", contents: fighterUnits({ archer: ARCHER_MODEL_FILE, rifleman: RIFLEMAN_MODEL_FILE, demonHunter: DEMON_HUNTER_MODEL_FILE }) },
+        { entry: "war3map.w3u", contents: fighterUnits() },
         { entry: "war3map.w3a", contents: fileIoAbility() },
       ] }));
     })),

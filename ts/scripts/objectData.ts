@@ -1,6 +1,7 @@
 // Object data (war3map.w3u and war3map.w3a, format 2) for fighter units
 // and the channel ability that FileIO
 // (WurstStdlib2 e3714f629113, Apache-2.0) generates for '$wsl'.
+import { FILE_IO_OBJECT, FIGHTER_OBJECT_ORDER, FIGHTER_OBJECTS, type FighterObject } from "../src/game/objectData";
 
 type Value =
   | { readonly kind: "int"; readonly value: number }
@@ -16,7 +17,7 @@ interface Modification {
 
 interface ObjectDefinition {
   readonly base: string;
-  readonly id: string;
+  readonly id: number;
   readonly modifications: readonly Modification[];
 }
 
@@ -41,7 +42,8 @@ function encodeObjectData(definitions: readonly ObjectDefinition[], levels: bool
   int32(definitions.length);
   for (const definition of definitions) {
     id(definition.base);
-    id(definition.id);
+    scratch.setUint32(0, definition.id, false);
+    bytes.push(...new Uint8Array(scratch.buffer));
     int32(definition.modifications.length);
     for (const { field, value, level = 0 } of definition.modifications) {
       id(field);
@@ -64,47 +66,39 @@ function encodeObjectData(definitions: readonly ObjectDefinition[], levels: bool
   return Uint8Array.from(bytes);
 }
 
-export interface FighterModels {
-  readonly archer: string;
-  readonly rifleman: string;
-  readonly demonHunter: string;
-}
-
-function fighter(base: string, id: string, name: string, model: string): ObjectDefinition {
+function fighter(definition: FighterObject): ObjectDefinition {
   return {
-    base,
-    id,
+    base: definition.base,
+    id: definition.id,
     modifications: [
       WURST_MARKER,
-      { field: "unam", value: { kind: "string", value: name } },
-      { field: "umdl", value: { kind: "string", value: model } },
-      { field: "uver", value: { kind: "int", value: 0 } },
-      { field: "usca", value: { kind: "real", value: 1 } },
-      { field: "uble", value: { kind: "real", value: 0 } },
-      { field: "ussc", value: { kind: "real", value: 0 } },
+      { field: "unam", value: { kind: "string", value: definition.name } },
+      { field: "umdl", value: { kind: "string", value: definition.model } },
+      { field: "uver", value: { kind: "int", value: definition.artVersion } },
+      { field: "usca", value: { kind: "real", value: definition.scale } },
+      { field: "uble", value: { kind: "real", value: definition.blendTime } },
+      { field: "ussc", value: { kind: "real", value: definition.selectionScale } },
+      { field: "umvs", value: { kind: "int", value: definition.moveSpeed } },
+      { field: "ua1c", value: { kind: "real", value: definition.attackCooldown } },
     ],
   };
 }
 
 /** war3map.w3u: the three fighter unit types. */
-export function fighterUnits(models: FighterModels): Uint8Array {
-  return encodeObjectData([
-    fighter("earc", "mfar", "Archer", models.archer),
-    fighter("hrif", "mfrf", "Rifleman", models.rifleman),
-    fighter("earc", "mfdh", "Illidan", models.demonHunter),
-  ], false);
+export function fighterUnits(): Uint8Array {
+  return encodeObjectData(FIGHTER_OBJECT_ORDER.map(character => fighter(FIGHTER_OBJECTS[character])), false);
 }
 
 /** war3map.w3a: FileIO's channel ability, whose 64 tooltips carry file contents into the game. */
 export function fileIoAbility(): Uint8Array {
-  const levels = 64;
+  const { base, id, levels, tooltip } = FILE_IO_OBJECT;
   return encodeObjectData([{
-    base: "ANcl",
-    id: "$wsl",
+    base,
+    id,
     modifications: [
       WURST_MARKER,
       { field: "alev", value: { kind: "int", value: levels } },
-      ...Array.from({ length: levels }, (_, index): Modification => ({ field: "atp1", value: { kind: "string", value: " " }, level: index + 1 })),
+      ...Array.from({ length: levels }, (_, index): Modification => ({ field: "atp1", value: { kind: "string", value: tooltip }, level: index + 1 })),
     ],
   }], true);
 }

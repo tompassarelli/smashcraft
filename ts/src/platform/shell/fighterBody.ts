@@ -1,18 +1,14 @@
 // The unit each fighter animates when no pool presents it. Every client
 // creates the same units, as shared handles, at the same synchronized points.
 import { f32 } from "waygate/src/sim/f32";
-import { Character, ShieldBreak } from "../../game/sim/codes";
+import { ShieldBreak } from "../../game/sim/codes";
 import { fighterPoseFacing } from "../../game/sim/conditions";
 import type { Fighter } from "../../game/sim/fighter";
 import type { WorldOrigin } from "../../game/render/effects";
 import type { FighterBody } from "./state";
+import { FIGHTER_OBJECTS } from "../../game/objectData";
+import { applyFighterObject } from "../objectData";
 
-/** Object data the build generates: 'mfar', 'mfrf' and 'mfdh'. */
-const FIGHTER_UNITS: Readonly<Record<Character, number>> = {
-  [Character.archer]: 0x6d666172,
-  [Character.rifleman]: 0x6d667266,
-  [Character.demonHunter]: 0x6d666468,
-};
 /** Crow Form, added and removed so the unit's flying height can change. */
 const CROW_FORM = 0x416d7266;
 /** Locust: no selection, no collision. */
@@ -29,15 +25,15 @@ export function placeFighterBody(body: FighterBody, fighter: Readonly<Fighter>, 
 }
 
 export function createFighterBody(owner: player, fighter: Readonly<Fighter>, origin: WorldOrigin): FighterBody {
-  const unit = CreateUnit(owner, FIGHTER_UNITS[fighter.character], origin.x + fighter.motion.x, origin.y, fighter.facing > 0 ? 0.0 : 180.0);
+  const definition = FIGHTER_OBJECTS[fighter.character];
+  const unit = CreateUnit(owner, definition.id, origin.x + fighter.motion.x, origin.y, fighter.facing > 0 ? 0.0 : 180.0);
+  applyFighterObject(unit, definition);
   SetUnitInvulnerable(unit, true);
   SetUnitPathing(unit, false);
   UnitAddAbility(unit, CROW_FORM);
   UnitRemoveAbility(unit, CROW_FORM);
   UnitAddAbility(unit, LOCUST);
   PauseUnit(unit, true);
-  // A blended transition can hold the previous pose throughout hitlag.
-  SetUnitBlendTime(unit, 0.0);
   const body: FighterBody = { unit, dizzy: undefined, renderedSelection: 0 };
   placeFighterBody(body, fighter, origin);
   return body;
