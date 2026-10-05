@@ -20,6 +20,8 @@ const started = performance.now();
 const children = groups.filter((group) => group.length > 0).map((group) =>
   Bun.spawn([process.execPath, "test", ...group.map((file) => resolve(project, file))], {
     cwd: project,
+    // These short-lived workers cannot amortize the highest JIT tier's compile work.
+    env: { ...process.env, BUN_JSC_useFTLJIT: "false", BUN_JSC_numberOfDFGCompilerThreads: "1" },
     stdout: "inherit",
     stderr: "inherit",
   }));

@@ -11,9 +11,12 @@
     "exactOptionalPropertyTypes": true,
     "noEmitOnError": true,
     "incremental": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": ".",
+    "outDir": "build/typecheck-game",
     "tsBuildInfoFile": "build/typecheck-game.tsbuildinfo",
     "skipLibCheck": true,
-    "noEmit": true,
     "types": [
       "lua-types/5.3"
     ]

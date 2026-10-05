@@ -161,7 +161,9 @@ a source defect, named as such.
 
 From smashcraft:ts/:
 
-- `bun run test`: every host test file, in three isolated Bun workers. Use
+- `bun run test`: every host test file, in isolated Bun workers. The short-lived
+  workers keep the baseline and DFG JIT tiers; the highest tier's compile cost
+  exceeds its savings over this suite. Use
   `bun test test/game.test.ts -t NAME` for a focused result.
 - `bun run check`: type-check the host tools and the game with TypeScript 7.
   The compiler keeps separate host and game dependency caches in
@@ -169,7 +171,10 @@ From smashcraft:ts/:
   smashcraft:ts/build/typecheck-game.tsbuildinfo. It rechecks changed files and
   their affected dependents, preserving cached diagnostics for unchanged files,
   including Effect diagnostics. A first check after removing these caches does
-  all the work again. TypeScriptToLua needs the compiler API that only
+  all the work again. Declaration-only output in smashcraft:ts/build/typecheck-host/
+  and smashcraft:ts/build/typecheck-game/ records export signatures during that
+  first check, so implementation-only edits can stop at unchanged signatures.
+  TypeScriptToLua needs the compiler API that only
   TypeScript 6.0 has, so it compiles with 6.0 and the two report the same errors.
 - `bun scripts/typecheck-benchmark.ts`: CI's type-check latency gate. It reports
   a cold full check after removing both dependency caches, then changes the

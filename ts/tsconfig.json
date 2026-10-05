@@ -12,6 +12,10 @@
     "noImplicitOverride": true,
     "noEmitOnError": true,
     "incremental": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": ".",
+    "outDir": "build/typecheck-host",
     "tsBuildInfoFile": "build/typecheck-host.tsbuildinfo",
     "skipLibCheck": true,
     "plugins": [
