@@ -39,12 +39,12 @@ test("bothFightersCanGrabNormallyAndFromShieldWithAttackOrGrabKey", () => {
     const style = grabInput === 1 ? normalAttackStyle(0, 0, false, true) : AttackStyle.grab;
     queueAttack(commands, { style, facing: 0, frame: 1, mayCharge: false });
     stepMatch(game, testRoster(fighter, target), frameControls(input, otherInput, commands, otherCommands), 1);
-    for (let frame = 2; frame <= 8; frame++) {
-      stepMatch(game, testRoster(fighter, target), frameControls(input, otherInput, commands, otherCommands), frame);
-    }
     assertEquals(fighter.attack.style, AttackStyle.grab);
     assertFalse(fighter.shield.raised);
     assertEquals(fighter.shield.releaseLag, 0);
+    for (let frame = 2; frame <= 8; frame++) {
+      stepMatch(game, testRoster(fighter, target), frameControls(input, otherInput, commands, otherCommands), frame);
+    }
     assertGreaterThan(target.grab.grabbedFrames, 0);
   }
 });
