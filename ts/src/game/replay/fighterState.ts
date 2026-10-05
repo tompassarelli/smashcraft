@@ -1,0 +1,269 @@
+import { createFighter, type Fighter } from "../sim/fighter";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
+
+/** Create detached mutable state for a replay slot while retaining authored tuning values. */
+export function cloneFighterState(source: Fighter): Fighter {
+  const copy = createFighter(source.character, source.motion.x, source.facing);
+  copyFighterState(copy, source);
+  return copy;
+}
+
+/** Field-by-field copy; replay rows never retain aliases to live simulation state. */
+export function copyFighterState(target: Fighter, source: Readonly<Fighter>): void {
+  target.character = source.character;
+  target.tuning = {
+    physics: { ...source.tuning.physics },
+    surface: { ...source.tuning.surface },
+    ground: { ...source.tuning.ground },
+    dashGrab: { ...source.tuning.dashGrab },
+    shield: { ...source.tuning.shield },
+    tech: { ...source.tuning.tech },
+    shieldBreak: { ...source.tuning.shieldBreak },
+  };
+  target.facing = source.facing;
+
+  const motion = target.motion;
+  const sourceMotion = source.motion;
+  motion.x = sourceMotion.x;
+  motion.z = sourceMotion.z;
+  motion.deltaX = sourceMotion.deltaX;
+  motion.deltaZ = sourceMotion.deltaZ;
+  motion.vx = sourceMotion.vx;
+  motion.vz = sourceMotion.vz;
+  motion.meleeX.original = sourceMotion.meleeX.original;
+  motion.meleeX.published = sourceMotion.meleeX.published;
+  motion.meleeZ.original = sourceMotion.meleeZ.original;
+  motion.meleeZ.published = sourceMotion.meleeZ.published;
+  motion.meleeVelocityZ.original = sourceMotion.meleeVelocityZ.original;
+  motion.meleeVelocityZ.published = sourceMotion.meleeVelocityZ.published;
+  motion.grounded = sourceMotion.grounded;
+  motion.surface = sourceMotion.surface;
+  motion.crouching = sourceMotion.crouching;
+  motion.fastFalling = sourceMotion.fastFalling;
+  motion.fastFallDownHeld = sourceMotion.fastFallDownHeld;
+  motion.fastFallInputAge = sourceMotion.fastFallInputAge;
+  motion.dropTime = sourceMotion.dropTime;
+  motion.previousHorizontalDirection = sourceMotion.previousHorizontalDirection;
+  motion.lastAerialTapDirection = sourceMotion.lastAerialTapDirection;
+
+  const ground = target.ground;
+  const sourceGround = source.ground;
+  ground.dashFrame = sourceGround.dashFrame;
+  ground.dashDirection = sourceGround.dashDirection;
+  ground.action = sourceGround.action;
+  ground.actionFrame = sourceGround.actionFrame;
+  ground.runBrakeFramesRemaining = sourceGround.runBrakeFramesRemaining;
+  ground.turnRunEntryFacing = sourceGround.turnRunEntryFacing;
+  ground.turnRunFacingCommandLatched = sourceGround.turnRunFacingCommandLatched;
+  ground.turnRunPausePending = sourceGround.turnRunPausePending;
+  ground.dashGrabWindow = sourceGround.dashGrabWindow;
+
+  const jump = target.jump;
+  const sourceJump = source.jump;
+  jump.inputAge = sourceJump.inputAge;
+  jump.remaining = sourceJump.remaining;
+  jump.serial = sourceJump.serial;
+  jump.isDouble = sourceJump.isDouble;
+  jump.squat = sourceJump.squat;
+  jump.held = sourceJump.held;
+  jump.dodgeQueued = sourceJump.dodgeQueued;
+  jump.dodgeX = sourceJump.dodgeX;
+  jump.dodgeZ = sourceJump.dodgeZ;
+
+  const launch = target.launch;
+  const sourceLaunch = source.launch;
+  launch.knockbackX = sourceLaunch.knockbackX;
+  launch.knockbackZ = sourceLaunch.knockbackZ;
+  launch.groundKnockbackX = sourceLaunch.groundKnockbackX;
+  launch.knockbackAge = sourceLaunch.knockbackAge;
+  launch.damageLevel = sourceLaunch.damageLevel;
+  launch.hitstun = sourceLaunch.hitstun;
+  launch.hitlag = sourceLaunch.hitlag;
+  launch.diPending = sourceLaunch.diPending;
+  launch.diLaunchSpeed = sourceLaunch.diLaunchSpeed;
+  launch.diSerial = sourceLaunch.diSerial;
+  launch.diAngleDegrees = sourceLaunch.diAngleDegrees;
+  launch.sdiWasGrounded = sourceLaunch.sdiWasGrounded;
+  launch.sdiLaunchesUpward = sourceLaunch.sdiLaunchesUpward;
+  launch.sdiSerial = sourceLaunch.sdiSerial;
+  launch.asdiSerial = sourceLaunch.asdiSerial;
+
+  const shield = target.shield;
+  const sourceShield = source.shield;
+  shield.raised = sourceShield.raised;
+  shield.strength = sourceShield.strength;
+  shield.energy = sourceShield.energy;
+  shield.stun = sourceShield.stun;
+  shield.heldFrames = sourceShield.heldFrames;
+  shield.releaseLag = sourceShield.releaseLag;
+  shield.pushbackX = sourceShield.pushbackX;
+  shield.recoilX = sourceShield.recoilX;
+  shield.recoilZ = sourceShield.recoilZ;
+  shield.drainResumePending = sourceShield.drainResumePending;
+  shield.triggerWasActive = sourceShield.triggerWasActive;
+  shield.triggerAge = sourceShield.triggerAge;
+  shield.reflectFrames = sourceShield.reflectFrames;
+  shield.perfectFrames = sourceShield.perfectFrames;
+  shield.perfectActionFrames = sourceShield.perfectActionFrames;
+  shield.breakState = sourceShield.breakState;
+  shield.breakFrame = sourceShield.breakFrame;
+  shield.breakSerial = sourceShield.breakSerial;
+  shield.breakRemaining = sourceShield.breakRemaining;
+
+  const attack = target.attack;
+  const sourceAttack = source.attack;
+  attack.style = sourceAttack.style;
+  attack.frame = sourceAttack.frame;
+  attack.duration = sourceAttack.duration;
+  attack.serial = sourceAttack.serial;
+  attack.hit = sourceAttack.hit;
+  attack.dashGrab = sourceAttack.dashGrab;
+  attack.cooldown = sourceAttack.cooldown;
+  attack.smashCharging = sourceAttack.smashCharging;
+  attack.smashChargeFrames = sourceAttack.smashChargeFrames;
+  attack.smashChargeAllowed = sourceAttack.smashChargeAllowed;
+  for (let i = 0; i < target.hits.entries.length; i++) {
+    const to = target.hits.entries[i]!;
+    const from = source.hits.entries[i]!;
+    to.attacker = from.attacker;
+    to.attackSerial = from.attackSerial;
+    to.window = from.window;
+  }
+  target.hits.lastAttacker = source.hits.lastAttacker;
+  target.hits.lastAttackSerial = source.hits.lastAttackSerial;
+  target.hits.lastWindow = source.hits.lastWindow;
+
+  const visuals = target.visuals;
+  const sourceVisuals = source.visuals;
+  visuals.grab = sourceVisuals.grab;
+  visuals.throw = sourceVisuals.throw;
+  visuals.hit = sourceVisuals.hit;
+  visuals.hitElectric = sourceVisuals.hitElectric;
+  visuals.shield = sourceVisuals.shield;
+  visuals.shieldReflect = sourceVisuals.shieldReflect;
+  visuals.parry = sourceVisuals.parry;
+
+  const special = target.special;
+  const sourceSpecial = source.special;
+  special.action = sourceSpecial.action;
+  special.frame = sourceSpecial.frame;
+  special.duration = sourceSpecial.duration;
+  special.lockFrames = sourceSpecial.lockFrames;
+  special.fall = sourceSpecial.fall;
+  for (let i = 0; i < special.cooldowns.length; i++) special.cooldowns[i] = sourceSpecial.cooldowns[i]!;
+  special.direction = sourceSpecial.direction;
+  special.hit = sourceSpecial.hit;
+  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) special.hitTargets[i] = sourceSpecial.hitTargets[i];
+
+  for (let i = 0; i < target.projectiles.length; i++) {
+    const to = target.projectiles[i]!;
+    const from = source.projectiles[i]!;
+    to.life = from.life;
+    to.x = from.x;
+    to.z = from.z;
+    to.direction = from.direction;
+    to.kind = from.kind;
+    to.visualFamily = from.visualFamily;
+    to.velocityX = from.velocityX;
+    to.velocityZ = from.velocityZ;
+    to.serial = from.serial;
+    to.damageMultiplier = from.damageMultiplier;
+    to.newlyReflected = from.newlyReflected;
+  }
+
+  const bear = target.bear;
+  const sourceBear = source.bear;
+  bear.life = sourceBear.life;
+  bear.x = sourceBear.x;
+  bear.z = sourceBear.z;
+  bear.velocityX = sourceBear.velocityX;
+  bear.velocityZ = sourceBear.velocityZ;
+  bear.swipeCooldown = sourceBear.swipeCooldown;
+  bear.hitSerial = sourceBear.hitSerial;
+  bear.surface = sourceBear.surface;
+  const hippogryph = target.hippogryph;
+  const sourceHippogryph = source.hippogryph;
+  hippogryph.life = sourceHippogryph.life;
+  hippogryph.x = sourceHippogryph.x;
+  hippogryph.z = sourceHippogryph.z;
+  hippogryph.velocityX = sourceHippogryph.velocityX;
+  hippogryph.velocityZ = sourceHippogryph.velocityZ;
+  hippogryph.kind = sourceHippogryph.kind;
+  const trap = target.freezeTrap;
+  const sourceTrap = source.freezeTrap;
+  trap.life = sourceTrap.life;
+  trap.arming = sourceTrap.arming;
+  trap.x = sourceTrap.x;
+  trap.z = sourceTrap.z;
+  trap.surface = sourceTrap.surface;
+  trap.serial = sourceTrap.serial;
+  trap.cooldown = sourceTrap.cooldown;
+
+  const dodge = target.dodge;
+  const sourceDodge = source.dodge;
+  dodge.airDodging = sourceDodge.airDodging;
+  dodge.airFrame = sourceDodge.airFrame;
+  dodge.airMotionFrames = sourceDodge.airMotionFrames;
+  dodge.groundFrame = sourceDodge.groundFrame;
+  dodge.groundDirection = sourceDodge.groundDirection;
+  dodge.groundEntryFacing = sourceDodge.groundEntryFacing;
+  const landing = target.landing;
+  const sourceLanding = source.landing;
+  landing.lag = sourceLanding.lag;
+  landing.lCancelWindow = sourceLanding.lCancelWindow;
+  landing.lCancelSerial = sourceLanding.lCancelSerial;
+  const down = target.down;
+  const sourceDown = source.down;
+  down.state = sourceDown.state;
+  down.frame = sourceDown.frame;
+  down.direction = sourceDown.direction;
+  down.waitRemaining = sourceDown.waitRemaining;
+  down.faceUp = sourceDown.faceUp;
+  const tech = target.tech;
+  const sourceTech = source.tech;
+  tech.window = sourceTech.window;
+  tech.pressAge = sourceTech.pressAge;
+  tech.previousPressAge = sourceTech.previousPressAge;
+  tech.accumulatedPress = sourceTech.accumulatedPress;
+  const recovery = target.surfaceRecovery;
+  const sourceRecovery = source.surfaceRecovery;
+  recovery.state = sourceRecovery.state;
+  recovery.frame = sourceRecovery.frame;
+  recovery.velocityApplied = sourceRecovery.velocityApplied;
+  recovery.wallJumpQueued = sourceRecovery.wallJumpQueued;
+  recovery.reflectCooldown = sourceRecovery.reflectCooldown;
+  recovery.lastReflectedSurface = sourceRecovery.lastReflectedSurface;
+  recovery.contactSerial = sourceRecovery.contactSerial;
+  recovery.contactKind = sourceRecovery.contactKind;
+  recovery.contactApproachSpeed = sourceRecovery.contactApproachSpeed;
+  recovery.contactX = sourceRecovery.contactX;
+  recovery.contactZ = sourceRecovery.contactZ;
+  recovery.contactNormalX = sourceRecovery.contactNormalX;
+  recovery.contactNormalZ = sourceRecovery.contactNormalZ;
+  const grab = target.grab;
+  const sourceGrab = source.grab;
+  grab.grabbedFrames = sourceGrab.grabbedFrames;
+  grab.action = sourceGrab.action;
+  grab.frame = sourceGrab.frame;
+  grab.serial = sourceGrab.serial;
+  grab.mashX = sourceGrab.mashX;
+  grab.mashZ = sourceGrab.mashZ;
+  grab.owner = sourceGrab.owner;
+  grab.target = sourceGrab.target;
+  const ledge = target.ledge;
+  const sourceLedge = source.ledge;
+  ledge.state = sourceLedge.state;
+  ledge.side = sourceLedge.side;
+  ledge.frame = sourceLedge.frame;
+  ledge.serial = sourceLedge.serial;
+  ledge.intangible = sourceLedge.intangible;
+  ledge.regrab = sourceLedge.regrab;
+  const status = target.status;
+  const sourceStatus = source.status;
+  status.damage = sourceStatus.damage;
+  status.stocks = sourceStatus.stocks;
+  status.respawn = sourceStatus.respawn;
+  status.out = sourceStatus.out;
+  status.invincible = sourceStatus.invincible;
+  status.frozenFrames = sourceStatus.frozenFrames;
+}

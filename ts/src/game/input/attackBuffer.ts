@@ -22,16 +22,64 @@ export interface AttackCommand {
 export interface AttackBuffer {
   graceFrames: number;
   pending: AttackCommand | undefined;
+  /** Last queued request, retained because replay snapshots hash Wurst's last facing and target frame. */
+  previousRequest: AttackCommand | undefined;
+  /** Result of the most recent consume attempt. */
+  consumedFacing: Direction;
+  consumedMayCharge: boolean;
+}
+
+/** The Wurst Replay2 fields for one command buffer, including its consumed observation. */
+export interface AttackBufferCanonicalState {
+  graceFrames: number;
+  style: number;
+  facing: Direction;
+  targetFrame: number;
+  consumedFacing: Direction;
+  mayCharge: boolean;
+  consumedMayCharge: boolean;
 }
 
 export function attackBuffer(graceFrames: number): AttackBuffer {
-  return { graceFrames: Math.max(0, graceFrames), pending: undefined };
+  return { graceFrames: Math.max(0, graceFrames), pending: undefined, previousRequest: undefined, consumedFacing: 0, consumedMayCharge: false };
 }
 
-/** A field-by-field copy: Lua's Object.assign skips an undefined pending. */
+/** Explicitly reset both the queued request and its last-consume observation. */
+export function clearAttackBuffer(buffer: AttackBuffer): void {
+  buffer.pending = undefined;
+  buffer.previousRequest = undefined;
+  buffer.consumedFacing = 0;
+  buffer.consumedMayCharge = false;
+}
+
+export function attackBufferCanonicalState(buffer: Readonly<AttackBuffer>): AttackBufferCanonicalState {
+  const previous = buffer.previousRequest;
+  return {
+    graceFrames: buffer.graceFrames,
+    style: buffer.pending?.style ?? -1,
+    facing: previous?.facing ?? 0,
+    targetFrame: previous?.frame ?? -1,
+    consumedFacing: buffer.consumedFacing,
+    mayCharge: previous?.mayCharge ?? false,
+    consumedMayCharge: buffer.consumedMayCharge,
+  };
+}
+
+export function sameAttackBuffer(first: Readonly<AttackBuffer>, second: Readonly<AttackBuffer>): boolean {
+  const a = attackBufferCanonicalState(first);
+  const b = attackBufferCanonicalState(second);
+  return a.graceFrames === b.graceFrames && a.style === b.style && a.facing === b.facing
+    && a.targetFrame === b.targetFrame && a.consumedFacing === b.consumedFacing
+    && a.mayCharge === b.mayCharge && a.consumedMayCharge === b.consumedMayCharge;
+}
+
+/** A field-by-field copy: Lua's Object.assign skips undefined requests. */
 export function copyAttackBuffer(target: AttackBuffer, source: Readonly<AttackBuffer>): void {
   target.graceFrames = source.graceFrames;
   target.pending = source.pending;
+  target.previousRequest = source.previousRequest;
+  target.consumedFacing = source.consumedFacing;
+  target.consumedMayCharge = source.consumedMayCharge;
 }
 
 const GRAB = 5;
@@ -58,11 +106,14 @@ export function queueAttack(buffer: AttackBuffer, command: AttackCommand): void 
     const order = precedence(queued) - precedence(command);
     if (order > 0 || (order === 0 && queued.style > command.style)) return;
     if (queued.style === command.style && queued.mayCharge === command.mayCharge && queued.facing !== command.facing) {
-      buffer.pending = { ...queued, facing: 0 };
+      const neutral: AttackCommand = { ...queued, facing: 0 };
+      buffer.pending = neutral;
+      buffer.previousRequest = neutral;
       return;
     }
   }
   buffer.pending = command;
+  buffer.previousRequest = command;
 }
 
 /** Whether the queued attack's frame has come and its grace has not run out. */
@@ -75,13 +126,17 @@ export function hasPendingAttack({ graceFrames, pending }: Readonly<AttackBuffer
  * attack that waited past its grace is dropped.
  */
 export function takeAttack(buffer: AttackBuffer, frame: number, allowed: boolean): AttackCommand | undefined {
+  buffer.consumedFacing = 0;
+  buffer.consumedMayCharge = false;
   const command = buffer.pending;
   if (command === undefined || frame < command.frame) return undefined;
   if (!hasPendingAttack(buffer, frame)) {
-    buffer.pending = undefined;
+    clearAttackBuffer(buffer);
     return undefined;
   }
   if (!allowed) return undefined;
   buffer.pending = undefined;
+  buffer.consumedFacing = command.facing;
+  buffer.consumedMayCharge = command.mayCharge;
   return command;
 }
