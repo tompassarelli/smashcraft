@@ -1,0 +1,602 @@
+[
+  {
+    "sample": 1,
+    "version": 13,
+    "marker": "module-reload-1",
+    "saveWall": 1791225528617,
+    "wispStepS": 0.559,
+    "saveToReportMs": 567,
+    "runningLine": "0.559 s  v13 running in 2 client(s) (0.292 s)",
+    "publishLine": "0.266 s  publish v13: 1 of 169 module(s), 19185 of 1254461 bytes, 8 file(s) (0.006 s)",
+    "acks": [
+      {
+        "applied": 13,
+        "clock": "43.33594"
+      },
+      {
+        "applied": 13,
+        "clock": "43.33594"
+      }
+    ],
+    "equalPairs": "6/6",
+    "markerSeen": true,
+    "frames": [
+      {
+        "frame": 3350,
+        "checksumA": "181554:783429",
+        "checksumB": "181554:783429",
+        "marker": null
+      },
+      {
+        "frame": 3409,
+        "checksumA": "749987:789522",
+        "checksumB": "749987:789522",
+        "marker": "module-reload-1"
+      },
+      {
+        "frame": 3469,
+        "checksumA": "979538:103980",
+        "checksumB": "979538:103980",
+        "marker": "module-reload-1"
+      },
+      {
+        "frame": 3529,
+        "checksumA": "158907:511507",
+        "checksumB": "158907:511507",
+        "marker": "module-reload-1"
+      },
+      {
+        "frame": 3589,
+        "checksumA": "388458:825968",
+        "checksumB": "388458:825968",
+        "marker": "module-reload-1"
+      },
+      {
+        "frame": 3649,
+        "checksumA": "567830:233492",
+        "checksumB": "567830:233492",
+        "marker": "module-reload-1"
+      }
+    ]
+  },
+  {
+    "sample": 2,
+    "version": 14,
+    "marker": "module-reload-2",
+    "saveWall": 1791225534959,
+    "wispStepS": 0.444,
+    "saveToReportMs": 450,
+    "runningLine": "0.444 s  v14 running in 2 client(s) (0.233 s)",
+    "publishLine": "0.210 s  publish v14: 1 of 169 module(s), 19185 of 1254461 bytes, 8 file(s) (0.007 s)",
+    "acks": [
+      {
+        "applied": 14,
+        "clock": "49.55469"
+      },
+      {
+        "applied": 14,
+        "clock": "49.55469"
+      }
+    ],
+    "equalPairs": "6/6",
+    "markerSeen": true,
+    "frames": [
+      {
+        "frame": 3731,
+        "checksumA": "543665:879672",
+        "checksumB": "543665:879672",
+        "marker": "module-reload-1"
+      },
+      {
+        "frame": 3790,
+        "checksumA": "664209:128397",
+        "checksumB": "664209:128397",
+        "marker": "module-reload-2"
+      },
+      {
+        "frame": 3850,
+        "checksumA": "843581:535924",
+        "checksumB": "843581:535924",
+        "marker": "module-reload-2"
+      },
+      {
+        "frame": 3910,
+        "checksumA": "22950:943451",
+        "checksumB": "22950:943451",
+        "marker": "module-reload-2"
+      },
+      {
+        "frame": 3970,
+        "checksumA": "252501:257909",
+        "checksumB": "252501:257909",
+        "marker": "module-reload-2"
+      },
+      {
+        "frame": 4030,
+        "checksumA": "86569:419982",
+        "checksumB": "86569:419982",
+        "marker": "module-reload-2"
+      }
+    ]
+  },
+  {
+    "sample": 3,
+    "version": 15,
+    "marker": "module-reload-3",
+    "saveWall": 1791225541317,
+    "wispStepS": 0.437,
+    "saveToReportMs": 448,
+    "runningLine": "0.437 s  v15 running in 2 client(s) (0.242 s)",
+    "publishLine": "0.195 s  publish v15: 1 of 169 module(s), 19185 of 1254461 bytes, 8 file(s) (0.006 s)",
+    "acks": [
+      {
+        "applied": 15,
+        "clock": "55.90625"
+      },
+      {
+        "applied": 15,
+        "clock": "55.90625"
+      }
+    ],
+    "equalPairs": "6/6",
+    "markerSeen": true,
+    "frames": [
+      {
+        "frame": 4113,
+        "checksumA": "156042:519372",
+        "checksumB": "156042:519372",
+        "marker": "module-reload-2"
+      },
+      {
+        "frame": 4172,
+        "checksumA": "33303:906511",
+        "checksumB": "33303:906511",
+        "marker": "module-reload-3"
+      },
+      {
+        "frame": 4232,
+        "checksumA": "662015:35772",
+        "checksumB": "662015:35772",
+        "marker": "module-reload-3"
+      },
+      {
+        "frame": 4292,
+        "checksumA": "891566:350233",
+        "checksumB": "891566:350233",
+        "marker": "module-reload-3"
+      },
+      {
+        "frame": 4352,
+        "checksumA": "70935:757760",
+        "checksumB": "70935:757760",
+        "marker": "module-reload-3"
+      },
+      {
+        "frame": 4412,
+        "checksumA": "250307:165284",
+        "checksumB": "250307:165284",
+        "marker": "module-reload-3"
+      }
+    ]
+  },
+  {
+    "sample": 4,
+    "version": 16,
+    "marker": "module-reload-4",
+    "saveWall": 1791225547696,
+    "wispStepS": 0.394,
+    "saveToReportMs": 399,
+    "runningLine": "0.394 s  v16 running in 2 client(s) (0.225 s)",
+    "publishLine": "0.169 s  publish v16: 1 of 169 module(s), 19185 of 1254461 bytes, 8 file(s) (0.007 s)",
+    "acks": [
+      {
+        "applied": 16,
+        "clock": "62.25"
+      },
+      {
+        "applied": 16,
+        "clock": "62.25"
+      }
+    ],
+    "equalPairs": "6/6",
+    "markerSeen": true,
+    "frames": [
+      {
+        "frame": 4496,
+        "checksumA": "965532:960522",
+        "checksumB": "965532:960522",
+        "marker": "module-reload-3"
+      },
+      {
+        "frame": 4555,
+        "checksumA": "792614:440724",
+        "checksumB": "792614:440724",
+        "marker": "module-reload-4"
+      },
+      {
+        "frame": 4615,
+        "checksumA": "971986:848251",
+        "checksumB": "971986:848251",
+        "marker": "module-reload-4"
+      },
+      {
+        "frame": 4675,
+        "checksumA": "201534:162709",
+        "checksumB": "201534:162709",
+        "marker": "module-reload-4"
+      },
+      {
+        "frame": 4735,
+        "checksumA": "380906:570236",
+        "checksumB": "380906:570236",
+        "marker": "module-reload-4"
+      },
+      {
+        "frame": 4795,
+        "checksumA": "610457:884697",
+        "checksumB": "610457:884697",
+        "marker": "module-reload-4"
+      }
+    ]
+  },
+  {
+    "sample": 5,
+    "version": 17,
+    "marker": "module-reload-5",
+    "saveWall": 1791225554088,
+    "wispStepS": 0.418,
+    "saveToReportMs": 426,
+    "runningLine": "0.418 s  v17 running in 2 client(s) (0.262 s)",
+    "publishLine": "0.155 s  publish v17: 1 of 169 module(s), 19185 of 1254461 bytes, 8 file(s) (0.006 s)",
+    "acks": [
+      {
+        "applied": 17,
+        "clock": "68.64844"
+      },
+      {
+        "applied": 17,
+        "clock": "68.64844"
+      }
+    ],
+    "equalPairs": "6/6",
+    "markerSeen": true,
+    "frames": [
+      {
+        "frame": 4878,
+        "checksumA": "923213:845676",
+        "checksumB": "923213:845676",
+        "marker": "module-reload-4"
+      },
+      {
+        "frame": 4937,
+        "checksumA": "750295:325878",
+        "checksumB": "750295:325878",
+        "marker": "module-reload-5"
+      },
+      {
+        "frame": 4997,
+        "checksumA": "979846:640339",
+        "checksumB": "979846:640339",
+        "marker": "module-reload-5"
+      },
+      {
+        "frame": 5057,
+        "checksumA": "813914:802412",
+        "checksumB": "813914:802412",
+        "marker": "module-reload-5"
+      },
+      {
+        "frame": 5117,
+        "checksumA": "993286:209936",
+        "checksumB": "993286:209936",
+        "marker": "module-reload-5"
+      },
+      {
+        "frame": 5177,
+        "checksumA": "222834:524397",
+        "checksumB": "222834:524397",
+        "marker": "module-reload-5"
+      }
+    ]
+  },
+  {
+    "sample": 6,
+    "version": 18,
+    "marker": "module-reload-6",
+    "saveWall": 1791225560453,
+    "wispStepS": 0.426,
+    "saveToReportMs": 433,
+    "runningLine": "0.426 s  v18 running in 2 client(s) (0.253 s)",
+    "publishLine": "0.173 s  publish v18: 1 of 169 module(s), 19184 of 1254460 bytes, 8 file(s) (0.007 s)",
+    "acks": [
+      {
+        "applied": 18,
+        "clock": "75.01562"
+      },
+      {
+        "applied": 18,
+        "clock": "75.01562"
+      }
+    ],
+    "equalPairs": "6/6",
+    "markerSeen": true,
+    "frames": [
+      {
+        "frame": 5260,
+        "checksumA": "723614:498275",
+        "checksumB": "723614:498275",
+        "marker": "module-reload-5"
+      },
+      {
+        "frame": 5319,
+        "checksumA": "292044:504368",
+        "checksumB": "292044:504368",
+        "marker": "module-reload-6"
+      },
+      {
+        "frame": 5379,
+        "checksumA": "521595:818829",
+        "checksumB": "521595:818829",
+        "marker": "module-reload-6"
+      },
+      {
+        "frame": 5439,
+        "checksumA": "700967:226353",
+        "checksumB": "700967:226353",
+        "marker": "module-reload-6"
+      },
+      {
+        "frame": 5499,
+        "checksumA": "930518:540814",
+        "checksumB": "930518:540814",
+        "marker": "module-reload-6"
+      },
+      {
+        "frame": 5559,
+        "checksumA": "109887:948341",
+        "checksumB": "109887:948341",
+        "marker": "module-reload-6"
+      }
+    ]
+  },
+  {
+    "sample": 7,
+    "version": 19,
+    "marker": "module-reload-7",
+    "saveWall": 1791225566826,
+    "wispStepS": 0.453,
+    "saveToReportMs": 458,
+    "runningLine": "0.453 s  v19 running in 2 client(s) (0.279 s)",
+    "publishLine": "0.174 s  publish v19: 1 of 169 module(s), 19185 of 1254461 bytes, 8 file(s) (0.007 s)",
+    "acks": [
+      {
+        "applied": 19,
+        "clock": "81.41406"
+      },
+      {
+        "applied": 19,
+        "clock": "81.41406"
+      }
+    ],
+    "equalPairs": "6/6",
+    "markerSeen": true,
+    "frames": [
+      {
+        "frame": 5643,
+        "checksumA": "790302:449162",
+        "checksumB": "790302:449162",
+        "marker": "module-reload-6"
+      },
+      {
+        "frame": 5702,
+        "checksumA": "617384:929367",
+        "checksumB": "617384:929367",
+        "marker": "module-reload-7"
+      },
+      {
+        "frame": 5762,
+        "checksumA": "846935:243825",
+        "checksumB": "846935:243825",
+        "marker": "module-reload-7"
+      },
+      {
+        "frame": 5822,
+        "checksumA": "26304:651352",
+        "checksumB": "26304:651352",
+        "marker": "module-reload-7"
+      },
+      {
+        "frame": 5882,
+        "checksumA": "255855:965813",
+        "checksumB": "255855:965813",
+        "marker": "module-reload-7"
+      },
+      {
+        "frame": 5942,
+        "checksumA": "435227:373337",
+        "checksumB": "435227:373337",
+        "marker": "module-reload-7"
+      }
+    ]
+  },
+  {
+    "sample": 8,
+    "version": 20,
+    "marker": "module-reload-8",
+    "saveWall": 1791225573182,
+    "wispStepS": 0.395,
+    "saveToReportMs": 399,
+    "runningLine": "0.395 s  v20 running in 2 client(s) (0.245 s)",
+    "publishLine": "0.150 s  publish v20: 1 of 169 module(s), 19185 of 1254461 bytes, 8 file(s) (0.006 s)",
+    "acks": [
+      {
+        "applied": 20,
+        "clock": "87.71094"
+      },
+      {
+        "applied": 20,
+        "clock": "87.71094"
+      }
+    ],
+    "equalPairs": "6/6",
+    "markerSeen": true,
+    "frames": [
+      {
+        "frame": 6024,
+        "checksumA": "50389:161540",
+        "checksumB": "50389:161540",
+        "marker": "module-reload-7"
+      },
+      {
+        "frame": 6083,
+        "checksumA": "927653:548679",
+        "checksumB": "927653:548679",
+        "marker": "module-reload-8"
+      },
+      {
+        "frame": 6143,
+        "checksumA": "107022:956206",
+        "checksumB": "107022:956206",
+        "marker": "module-reload-8"
+      },
+      {
+        "frame": 6203,
+        "checksumA": "735734:85467",
+        "checksumB": "735734:85467",
+        "marker": "module-reload-8"
+      },
+      {
+        "frame": 6263,
+        "checksumA": "965285:399928",
+        "checksumB": "965285:399928",
+        "marker": "module-reload-8"
+      },
+      {
+        "frame": 6323,
+        "checksumA": "144654:807455",
+        "checksumB": "144654:807455",
+        "marker": "module-reload-8"
+      }
+    ]
+  },
+  {
+    "sample": 9,
+    "version": 21,
+    "marker": "module-reload-9",
+    "saveWall": 1791225579570,
+    "wispStepS": 0.402,
+    "saveToReportMs": 410,
+    "runningLine": "0.402 s  v21 running in 2 client(s) (0.250 s)",
+    "publishLine": "0.152 s  publish v21: 1 of 169 module(s), 19185 of 1254461 bytes, 8 file(s) (0.008 s)",
+    "acks": [
+      {
+        "applied": 21,
+        "clock": "94.10938"
+      },
+      {
+        "applied": 21,
+        "clock": "94.10938"
+      }
+    ],
+    "equalPairs": "6/6",
+    "markerSeen": true,
+    "frames": [
+      {
+        "frame": 6406,
+        "checksumA": "457410:768434",
+        "checksumB": "457410:768434",
+        "marker": "module-reload-8"
+      },
+      {
+        "frame": 6465,
+        "checksumA": "334671:155570",
+        "checksumB": "334671:155570",
+        "marker": "module-reload-9"
+      },
+      {
+        "frame": 6525,
+        "checksumA": "514043:563097",
+        "checksumB": "514043:563097",
+        "marker": "module-reload-9"
+      },
+      {
+        "frame": 6585,
+        "checksumA": "743594:877558",
+        "checksumB": "743594:877558",
+        "marker": "module-reload-9"
+      },
+      {
+        "frame": 6645,
+        "checksumA": "922966:285082",
+        "checksumB": "922966:285082",
+        "marker": "module-reload-9"
+      },
+      {
+        "frame": 6705,
+        "checksumA": "102335:692609",
+        "checksumB": "102335:692609",
+        "marker": "module-reload-9"
+      }
+    ]
+  },
+  {
+    "sample": 10,
+    "version": 22,
+    "marker": "module-reload-10",
+    "saveWall": 1791225585954,
+    "wispStepS": 0.454,
+    "saveToReportMs": 460,
+    "runningLine": "0.454 s  v22 running in 2 client(s) (0.304 s)",
+    "publishLine": "0.149 s  publish v22: 1 of 169 module(s), 19186 of 1254462 bytes, 8 file(s) (0.007 s)",
+    "acks": [
+      {
+        "applied": 22,
+        "clock": "100.5312"
+      },
+      {
+        "applied": 22,
+        "clock": "100.5312"
+      }
+    ],
+    "equalPairs": "6/6",
+    "markerSeen": true,
+    "frames": [
+      {
+        "frame": 6790,
+        "checksumA": "428499:889278",
+        "checksumB": "428499:889278",
+        "marker": "module-reload-9"
+      },
+      {
+        "frame": 6849,
+        "checksumA": "996932:895371",
+        "checksumB": "996932:895371",
+        "marker": "module-reload-10"
+      },
+      {
+        "frame": 6909,
+        "checksumA": "176301:302895",
+        "checksumB": "176301:302895",
+        "marker": "module-reload-10"
+      },
+      {
+        "frame": 6969,
+        "checksumA": "405852:617356",
+        "checksumB": "405852:617356",
+        "marker": "module-reload-10"
+      },
+      {
+        "frame": 7029,
+        "checksumA": "239920:779429",
+        "checksumB": "239920:779429",
+        "marker": "module-reload-10"
+      },
+      {
+        "frame": 7089,
+        "checksumA": "469471:93887",
+        "checksumB": "469471:93887",
+        "marker": "module-reload-10"
+      }
+    ]
+  }
+]

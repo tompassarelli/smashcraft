@@ -1,0 +1,30 @@
+$ bun scripts/wisp.ts fresh "/home/tom/.local/share/smashcraft-build-inputs/module-reload/Smashcraft diagnostic module-reload.w3x"
+   0.038 s  map installed (0.004 s)
+   1.018 s  b: input batch (3 actions) (0.071 s)
+   1.046 s  a: input batch (3 actions) (0.069 s)
+   1.755 s  b: input batch (3 actions) (0.230 s)
+   1.763 s  a: input batch (3 actions) (0.230 s)
+   5.001 s  b at Custom Games (4.960 s)
+   5.058 s  a at Custom Games (5.020 s)
+   5.420 s  b: input batch (3 actions) (0.313 s)
+   5.420 s  b join name prepared (0.359 s)
+   8.256 s  a: input batch (4 actions) (0.500 s)
+  11.661 s  a hosting "scdev muvldqwn" (6.602 s)
+  16.892 s  b asked to join (5.229 s)
+  17.100 s  everyone in the lobby (0.208 s)
+  27.253 s  every client at character selection (9.917 s)
+  27.256 s  clear old quick-match receipts (0.001 s)
+  27.394 s  a: input batch (3 actions) (0.100 s)
+  27.394 s  send -dev quick (0.137 s)
+  27.498 s  a quick-match receipt (0.104 s)
+  27.499 s  b quick-match receipt (0.103 s)
+-dev quick acknowledged by 2 client(s)
+  27.499 s  quick match and client receipts (0.245 s)
+a scene: frame 34: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+b scene: frame 34: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+a frame: arena sky present (92.9% of the top band is sky, needs 50%); stage in the stage band present (49 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/state/smashcraft/frames/a.ppm
+  28.319 s  a player view (0.818 s)
+b frame: arena sky present (98.5% of the top band is sky, needs 50%); stage in the stage band present (47 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/state/smashcraft/frames/b.ppm
+  28.390 s  b player view (0.887 s)
+  28.390 s  player view (0.891 s)
+  28.392 s  fresh (28.392 s)
