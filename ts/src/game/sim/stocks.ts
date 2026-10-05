@@ -69,7 +69,7 @@ export function checkBlastZone(world: Roster, slot: number): void {
 }
 
 /** Respawns a fighter above startX: airborne, invincible and with every action and link cleared. */
-export function reset(world: Roster, slot: number, startX: number): void {
+export function respawnFighter(world: Roster, slot: number, startX: number): void {
   const f = fighterAt(world, slot);
   const { motion, jump, launch, shield, attack, hits, special, dodge, landing, status, surfaceRecovery: recovery } = f;
   motion.fastFalling = false;

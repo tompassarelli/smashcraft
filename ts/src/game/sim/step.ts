@@ -61,7 +61,7 @@ import {
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence } from "./smashDirectionalInfluence";
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
-import { checkBlastZone, reset } from "./stocks";
+import { checkBlastZone, respawnFighter } from "./stocks";
 import { advanceSurfaceRecovery, resolveSolidSurfaceContacts } from "./surfaces";
 import { forwardRollTurnFrame, rollTravel } from "../physics/rollTravel";
 import { advanceTechInput, techContactWindow } from "../physics/techInput";
@@ -88,7 +88,7 @@ function advanceOut(world: Roster, slot: number, respawnX: number): boolean {
   if (!status.out) return false;
   if (status.stocks <= 0) return true;
   status.respawn--;
-  if (status.respawn <= 0) reset(world, slot, respawnX);
+  if (status.respawn <= 0) respawnFighter(world, slot, respawnX);
   return true;
 }
 

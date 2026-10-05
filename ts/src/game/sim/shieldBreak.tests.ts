@@ -11,7 +11,7 @@ import { attackStartupFrames, grabHoldFrames } from "./moves";
 import { updateProjectiles } from "./projectiles";
 import type { Controls } from "./roster";
 import { shieldBreakDizzyFrames } from "./shield";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, soloWorld, testBeginAttacks, testWorld } from "./testWorld";
 import { SHIELD_BREAK_LAND_FRAMES, SHIELD_BREAK_STAND_FRAMES } from "./tuning";
 
@@ -289,7 +289,7 @@ test("both fighters' basic projectiles interrupt a shield break", () => {
   }
 });
 
-test("stock loss and reset clear a shield-break recovery", () => {
+test("stock loss and respawning clear a shield-break recovery", () => {
   for (const state of BREAK_PHASES) {
     const fighter = shieldBreakTestFighter(Character.archer, 0.0);
     const input = controls();
@@ -309,7 +309,7 @@ test("stock loss and reset clear a shield-break recovery", () => {
     assertEquals(fighter.shield.energy, SHIELD_MAX);
     fighter.shield.breakState = state;
     fighter.shield.breakFrame = 10;
-    reset(soloWorld(fighter), 0, 0.0);
+    respawnFighter(soloWorld(fighter), 0, 0.0);
     assertEquals(fighter.shield.breakState, ShieldBreak.none);
     assertEquals(fighter.shield.breakFrame, 0);
   }

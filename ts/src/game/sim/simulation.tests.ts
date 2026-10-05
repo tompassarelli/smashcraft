@@ -15,7 +15,7 @@ import { SMASH_MAX_CHARGE_FRAMES, SMASH_MAX_DAMAGE_MULTIPLIER, attackActiveFrame
 import type { Controls, Roster } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
 import { advance } from "./step";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, soloWorld, testBeginAttacks, testWorld } from "./testWorld";
 import { authoredPhysics } from "./tuning";
 
@@ -451,7 +451,7 @@ test("an L-cancel doesn't shorten air dodge or empty landings and clears on stoc
   assertEquals(fighter.landing.lag, AIR_DODGE_LANDING_LAG);
   assertEquals(fighter.landing.lCancelSerial, 0);
   assertEquals(fighter.landing.lCancelWindow, 0);
-  reset(world, 0, 0.0);
+  respawnFighter(world, 0, 0.0);
   fighter.motion.grounded = false;
   landLCancelTest(fighter, input);
   assertEquals(fighter.landing.lag, 4);
@@ -461,7 +461,7 @@ test("an L-cancel doesn't shorten air dodge or empty landings and clears on stoc
   assertTrue(fighter.status.out);
   assertEquals(fighter.landing.lCancelWindow, 0);
   fighter.landing.lCancelSerial = 2;
-  reset(world, 0, 0.0);
+  respawnFighter(world, 0, 0.0);
   assertEquals(fighter.landing.lCancelWindow, 0);
   assertEquals(fighter.landing.lCancelSerial, 0);
 });
@@ -629,7 +629,7 @@ test("jump events follow the takeoff and an accepted air jump", () => {
     assertTrue(fighter.jump.isDouble);
     advance(world, 0, 0, input, 0.0);
     assertEquals(fighter.jump.serial, 2);
-    reset(world, 0, 0.0);
+    respawnFighter(world, 0, 0.0);
     assertEquals(fighter.jump.serial, 0);
     assertFalse(fighter.jump.isDouble);
   }

@@ -28,7 +28,7 @@ import type { Controls, Roster } from "./roster";
 import { digitalShieldDamage, digitalShieldPushback, digitalShieldRecoil, digitalShieldstunDuration, digitalShieldstunFrames } from "./shield";
 import { DEMONHUNTER_IMMOLATE_DURATION, DEMONHUNTER_IMMOLATE_STARTUP } from "./specials";
 import { advance } from "./step";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { advanceFreezeTraps } from "./summons";
 import { advanceSolo, controls, hitEffect, soloWorld, testBeginAttacks, testGrabFrame, testWorld, withPhysics } from "./testWorld";
 import { type FighterPhysics, INITIAL_DASH_FRAMES, authoredPhysics, melee } from "./tuning";
@@ -252,7 +252,7 @@ test("canonical motion preserves all ten recorded fall positions exactly", () =>
   }
 });
 
-test("canonical motion imports world edits and clears on reset", () => {
+test("canonical motion imports world edits and clears on respawn", () => {
   const f = createFighter(Character.rifleman, -360.0, 1);
   const world = soloWorld(f);
   const input = controls();
@@ -267,7 +267,7 @@ test("canonical motion imports world edits and clears on reset", () => {
   assertEquals(f.motion.meleeX.original, -49.0);
   assertEquals(f.motion.meleeZ.original, 9.829999923706055);
   assertEquals(f.motion.meleeVelocityZ.original, -0.17000000178813934);
-  reset(world, 0, -240.0);
+  respawnFighter(world, 0, -240.0);
   assertEquals(f.motion.meleeX.original, -40.0);
   assertEquals(f.motion.meleeZ.published, f.motion.z);
   assertEquals(f.motion.meleeVelocityZ.original, 0.0);
@@ -1635,7 +1635,7 @@ test("a forward roll turns on frame 20 while keeping its entry pose and travel",
       assertEquals(f.dodge.groundEntryFacing, 0);
       assertTrue(canAttack(f));
       startObservedRoll(f, input, 0, -entryFacing);
-      reset(world, 0, 0.0);
+      respawnFighter(world, 0, 0.0);
       assertEquals(f.dodge.groundEntryFacing, 0);
     }
   }
@@ -1650,7 +1650,7 @@ test("crouching clears on attacks, jumps and shields", () => {
   testBeginAttacks(world, AttackStyle.jab, undefined);
   assertFalse(f.motion.crouching);
   const standAgain = () => {
-    reset(world, 0, 0.0);
+    respawnFighter(world, 0, 0.0);
     f.motion.grounded = true;
     f.motion.z = 0.0;
     advance(world, 0, 0, input, 0.0);

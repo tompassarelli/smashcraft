@@ -9,7 +9,7 @@ import { LEDGE_CLIMB_FRAMES, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, resolve
 import { LEDGE_ATTACK_FRAMES, attackStartupFrames, grabHoldFrames } from "./moves";
 import type { Controls } from "./roster";
 import { surfaceLeft, surfaceZ } from "./stage";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, soloWorld, testBeginAttacks, testWorld } from "./testWorld";
 import { LEDGE_REGRAB_FRAMES } from "./transitions";
 import { authoredPhysics } from "./tuning";
@@ -232,7 +232,7 @@ test("a ledge attack has startup, an active window that hits once, and recovery"
   }
 });
 
-test("ledge hits and grabs interrupt, and a stock reset clears ledge ownership", () => {
+test("ledge hits and grabs interrupt, and a respawn clears ledge ownership", () => {
   for (const phase of LEDGE_PHASES) {
     for (let mode = 0; mode <= 2; mode++) {
       const fighter = ledgeTestFighter(Character.archer, -1);
@@ -262,7 +262,7 @@ test("ledge hits and grabs interrupt, and a stock reset clears ledge ownership",
         assertEquals(fighter.ledge.state, LedgeState.none);
         assertEquals(fighter.ledge.regrab, 0);
       }
-      reset(soloWorld(fighter), 0, 0.0);
+      respawnFighter(soloWorld(fighter), 0, 0.0);
       assertEquals(fighter.ledge.state, LedgeState.none);
       assertEquals(fighter.ledge.serial, 0);
       assertEquals(fighter.ledge.regrab, 0);

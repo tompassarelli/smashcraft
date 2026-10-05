@@ -16,7 +16,7 @@ import {
   shieldstunDuration,
 } from "./shield";
 import { advance } from "./step";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, soloWorld, testWorld } from "./testWorld";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 
@@ -132,7 +132,7 @@ test("a light shield enters, drains, changes pressure and keeps its minimum hold
   advanceSolo(f, 0, input, 0.0);
   assertFalse(f.shield.raised);
   assertEquals(f.shield.releaseLag, SHIELD_RELEASE_LAG_FRAMES);
-  reset(soloWorld(f), 0, 0.0);
+  respawnFighter(soloWorld(f), 0, 0.0);
   assertEquals(f.shield.strength, 1.0);
 });
 

@@ -9,7 +9,7 @@ import { GRAB_HOLD_FRAMES, attackStartupFrames, grabContactFrame } from "./moves
 import { updateProjectiles } from "./projectiles";
 import type { Roster } from "./roster";
 import { advance } from "./step";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { advanceFreezeTraps } from "./summons";
 import { controls, testBeginAttacks, testGrabFrame, testWorld } from "./testWorld";
 
@@ -64,10 +64,10 @@ test("only flinching projectiles release either end of a grab", () => {
   }
 });
 
-test("a reset releases reciprocal grab links", () => {
+test("a respawn releases reciprocal grab links", () => {
   for (const victim of [0, 1]) {
     const { world, owner, target } = grabbedPair();
-    reset(world, victim, 0.0);
+    respawnFighter(world, victim, 0.0);
     assertEquals(owner.grab.target, undefined);
     assertEquals(target.grab.owner, undefined);
     assertEquals(target.grab.grabbedFrames, 0);

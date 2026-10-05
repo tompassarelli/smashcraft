@@ -6,7 +6,7 @@ import { advanceSpecials } from "./specials";
 import { cancelSpecialState } from "./transitions";
 import { updateProjectiles } from "./projectiles";
 import { createRoster } from "./roster";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { testWorld } from "./testWorld";
 
 test("bearRunsWithoutSwipingUntilATargetEntersItsPath", () => {
@@ -47,7 +47,7 @@ test("summonedEntitiesSurviveActionInterruptionButNotStockReset", () => {
   owner.hippogryph.kind = HippogryphKind.mount;
   cancelSpecialState(owner);
   assertEquals(owner.hippogryph.life, 0);
-  reset(createRoster(1, [owner]), 0, -240.0);
+  respawnFighter(createRoster(1, [owner]), 0, -240.0);
   assertEquals(owner.bear.life, 0);
   assertEquals(owner.special.hit, false);
 });

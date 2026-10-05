@@ -21,7 +21,7 @@ import { simulationAirDodge } from "./jumpsAndDodges";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "./knockback";
 import { attackStartupFrames } from "./moves";
 import { surfaceRight, surfaceZ } from "./stage";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, soloWorld, testWorld } from "./testWorld";
 import { GROUND_TRACTION, authoredPhysics } from "./tuning";
 
@@ -352,11 +352,11 @@ test("a jump takes priority over a starting ground dodge", () => {
   assertEquals(fighter.jump.squat, authoredPhysics(Character.archer).jumpSquatFrames);
 });
 
-test("reset and getting hit clear the ground dodge state", () => {
+test("respawning and getting hit clear the ground dodge state", () => {
   const fighter = createFighter(Character.rifleman, 100.0, -1);
   fighter.dodge.groundFrame = 8;
   fighter.dodge.groundDirection = -1;
-  reset(soloWorld(fighter), 0, 0.0);
+  respawnFighter(soloWorld(fighter), 0, 0.0);
   assertEquals(fighter.dodge.groundFrame, 0);
   assertEquals(fighter.dodge.groundDirection, 0);
   fighter.dodge.groundFrame = 1;

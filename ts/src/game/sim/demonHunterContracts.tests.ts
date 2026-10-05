@@ -8,7 +8,7 @@ import { projectileCount, updateProjectiles } from "./projectiles";
 import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
 import { advanceSolo, controls, testWorld } from "./testWorld";
 import { simulationJump } from "./jumpsAndDodges";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { createRoster } from "./roster";
 import { canAttack } from "./conditions";
 import { resolveLedges } from "./ledge";
@@ -48,7 +48,7 @@ test("demonHunterSharesGrabGetupAndLedgeContactRules", () => {
       assertEquals(attacker.grab.target, 1);
       assertEquals(target.grab.owner, 0);
     } else assertGreaterThan(target.status.damage, 0.0);
-    reset(world, 0, 0.0);
+    respawnFighter(world, 0, 0.0);
   }
 });
 
@@ -214,7 +214,7 @@ test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules", () =>
     assertEquals(ledge.ledge.state, LedgeState.hang);
     assertFalse(ledge.special.fall);
     landing.special.fall = true;
-    reset(createRoster(1, [landing]), 0, 0.0);
+    respawnFighter(createRoster(1, [landing]), 0, 0.0);
     assertFalse(landing.special.fall);
   }
 });
@@ -272,7 +272,7 @@ test("hitInterruptsIllidanSpecialAndStockResetClearsSpecialState", () => {
   assertEquals(illidan.special.action, SpecialAction.none);
   assertFalse(illidan.special.hit);
   assertGreaterThan(illidan.special.cooldowns[SpecialAction.demonHunterImmolate]!, 0);
-  reset(createRoster(1, [illidan]), 0, 0.0);
+  respawnFighter(createRoster(1, [illidan]), 0, 0.0);
   assertEquals(illidan.special.action, SpecialAction.none);
   assertEquals(illidan.special.frame, 0);
   assertFalse(illidan.special.fall);

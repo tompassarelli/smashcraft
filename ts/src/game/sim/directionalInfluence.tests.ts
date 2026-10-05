@@ -12,7 +12,7 @@ import { attackStartupFrames, grabHoldFrames } from "./moves";
 import { totalVelocityX, totalVelocityZ } from "./motion";
 import { updateProjectiles } from "./projectiles";
 import { ASDI_DISTANCE, SDI_DISTANCE } from "./smashDirectionalInfluence";
-import { reset } from "./stocks";
+import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, seedTechWindow, soloWorld, testBeginAttacks, testWorld } from "./testWorld";
 import { authoredPhysics } from "./tuning";
 
@@ -259,7 +259,7 @@ test("hitlag freezes the launch vector, then release resumes self velocity and d
   assertNear(length(fighter.launch.knockbackX, fighter.launch.knockbackZ), 9.694000244140625, 0.0010000000474974513);
 });
 
-test("landing and floor techs preserve horizontal knockback while reset clears both components", () => {
+test("landing and floor techs preserve horizontal knockback while respawning clears both components", () => {
   const landed = createFighter(Character.archer, 0.0, 1);
   const input = controls();
   landed.motion.grounded = false;
@@ -272,7 +272,7 @@ test("landing and floor techs preserve horizontal knockback while reset clears b
   assertEquals(landed.motion.z, 0.0);
   assertEquals(landed.launch.knockbackZ, 0.0);
   assertGreaterThan(landed.launch.knockbackX, 0.0);
-  reset(soloWorld(landed), 0, 0.0);
+  respawnFighter(soloWorld(landed), 0, 0.0);
   assertEquals(landed.launch.knockbackX, 0.0);
   assertEquals(landed.launch.knockbackZ, 0.0);
   const teched = createFighter(Character.archer, 0.0, 1);
@@ -341,14 +341,14 @@ test("DI normalizes diagonal input and ignores parallel input", () => {
   assertEquals(parallel.launch.knockbackZ, 0.0);
 });
 
-test("the DI opportunity clears on reset, stock loss and hits without knockback", () => {
+test("the DI opportunity clears on respawn, stock loss and hits without knockback", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const world = soloWorld(fighter);
   fighter.launch.diPending = true;
   fighter.launch.diLaunchSpeed = 10.0;
   fighter.launch.diSerial = 2;
   fighter.launch.diAngleDegrees = 9.0;
-  reset(world, 0, 0.0);
+  respawnFighter(world, 0, 0.0);
   assertFalse(fighter.launch.diPending);
   assertEquals(fighter.launch.diLaunchSpeed, 0.0);
   assertEquals(fighter.launch.diSerial, 0);
