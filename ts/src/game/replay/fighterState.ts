@@ -74,6 +74,10 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   const sourceLaunch = source.launch;
   launch.knockbackX = sourceLaunch.knockbackX;
   launch.knockbackZ = sourceLaunch.knockbackZ;
+  launch.meleeKnockbackX.original = sourceLaunch.meleeKnockbackX.original;
+  launch.meleeKnockbackX.published = sourceLaunch.meleeKnockbackX.published;
+  launch.meleeKnockbackZ.original = sourceLaunch.meleeKnockbackZ.original;
+  launch.meleeKnockbackZ.published = sourceLaunch.meleeKnockbackZ.published;
   launch.groundKnockbackX = sourceLaunch.groundKnockbackX;
   launch.knockbackAge = sourceLaunch.knockbackAge;
   launch.damageLevel = sourceLaunch.damageLevel;
@@ -99,6 +103,10 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   shield.pushbackX = sourceShield.pushbackX;
   shield.recoilX = sourceShield.recoilX;
   shield.recoilZ = sourceShield.recoilZ;
+  shield.meleeRecoilX.original = sourceShield.meleeRecoilX.original;
+  shield.meleeRecoilX.published = sourceShield.meleeRecoilX.published;
+  shield.meleeRecoilZ.original = sourceShield.meleeRecoilZ.original;
+  shield.meleeRecoilZ.published = sourceShield.meleeRecoilZ.published;
   shield.drainResumePending = sourceShield.drainResumePending;
   shield.triggerWasActive = sourceShield.triggerWasActive;
   shield.triggerAge = sourceShield.triggerAge;

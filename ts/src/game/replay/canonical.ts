@@ -192,6 +192,10 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   real("motionVelocityZ.published", m.meleeVelocityZ.published);
   real("knockbackX", l.knockbackX);
   real("knockbackZ", l.knockbackZ);
+  real("motionKnockbackX.original", l.meleeKnockbackX.original);
+  real("motionKnockbackX.published", l.meleeKnockbackX.published);
+  real("motionKnockbackZ.original", l.meleeKnockbackZ.original);
+  real("motionKnockbackZ.published", l.meleeKnockbackZ.published);
   real("damage", st.damage);
   int("stocks", st.stocks);
   int("hitstun", l.hitstun);
@@ -333,6 +337,10 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   real("shieldPushbackX", s.pushbackX);
   real("shieldRecoilX", s.recoilX);
   real("shieldRecoilZ", s.recoilZ);
+  real("motionRecoilX.original", s.meleeRecoilX.original);
+  real("motionRecoilX.published", s.meleeRecoilX.published);
+  real("motionRecoilZ.original", s.meleeRecoilZ.original);
+  real("motionRecoilZ.published", s.meleeRecoilZ.published);
   bool("shieldDrainResumePending", s.drainResumePending);
   int("grabVisualSerial", v.grab);
   int("throwVisualSerial", v.throw);

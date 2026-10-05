@@ -99,12 +99,16 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   record("motionVelocityZ", e.motion.meleeVelocityZ, a.motion.meleeVelocityZ, MELEE_VALUE_KEYS);
   add("knockbackX", e.launch.knockbackX, a.launch.knockbackX);
   add("knockbackZ", e.launch.knockbackZ, a.launch.knockbackZ);
+  record("motionKnockbackX", e.launch.meleeKnockbackX, a.launch.meleeKnockbackX, MELEE_VALUE_KEYS);
+  record("motionKnockbackZ", e.launch.meleeKnockbackZ, a.launch.meleeKnockbackZ, MELEE_VALUE_KEYS);
   add("groundKnockbackX", e.launch.groundKnockbackX, a.launch.groundKnockbackX);
   add("knockbackAgeFrames", e.launch.knockbackAge ?? -1, a.launch.knockbackAge ?? -1);
   add("damageLevel", e.launch.damageLevel, a.launch.damageLevel);
   add("shieldPushbackX", e.shield.pushbackX, a.shield.pushbackX);
   add("shieldRecoilX", e.shield.recoilX, a.shield.recoilX);
   add("shieldRecoilZ", e.shield.recoilZ, a.shield.recoilZ);
+  record("motionRecoilX", e.shield.meleeRecoilX, a.shield.meleeRecoilX, MELEE_VALUE_KEYS);
+  record("motionRecoilZ", e.shield.meleeRecoilZ, a.shield.meleeRecoilZ, MELEE_VALUE_KEYS);
   add("shieldDrainResumePending", e.shield.drainResumePending, a.shield.drainResumePending);
   add("damage", e.status.damage, a.status.damage);
   add("grabVisualSerial", e.visuals.grab, a.visuals.grab);

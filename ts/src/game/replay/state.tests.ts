@@ -10,6 +10,8 @@ import { resolveAttacks } from "../sim/attacks";
 import { AttackStyle, Character, GroundAction, ShieldBreak } from "../sim/codes";
 import { type Fighter, PROJECTILE_CAPACITY, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, createFighter } from "../sim/fighter";
 import { attackStartupFrames } from "../sim/moves";
+import { setMeleeKnockback, setMeleeRecoil } from "../sim/motion";
+import { advance } from "../sim/step";
 import { fighterAt, neutralControls } from "../sim/roster";
 import { testWorld } from "../sim/testWorld";
 import {
@@ -35,6 +37,39 @@ function frameControls(firstCommands: AttackBuffer, secondCommands: AttackBuffer
 function liveState(first: Fighter, second: Fighter, match: MatchState, controls: FrameControls, runtime: ReplayRuntimeState): ReplayState {
   return { world: testWorld(first, second), match, controls, runtime };
 }
+
+test("rollback retains original launch and recoil across world rounding", () => {
+  const live = createReplaySnapshot();
+  const snapshot = createReplaySnapshot();
+  const after = createReplaySnapshot();
+  const fighter = fighterAt(live.world, 0);
+  fighter.motion.grounded = false;
+  fighter.motion.z = 300.0;
+  fighter.tuning.physics = { ...fighter.tuning.physics, gravity: 0.0 };
+  fighter.launch.hitstun = 5;
+  setMeleeKnockback(fighter, 0.050999965518713, 0.00005743650399381295);
+  setMeleeRecoil(fighter, 0.049999967217445374, 0.00005676596629200503);
+  const beforeChecksum = stateChecksum(live);
+  copyReplayState(snapshot, live);
+
+  advance(live.world, 0, 0, neutralControls(), 0.0);
+  copyReplayState(after, live);
+  copyReplayState(live, snapshot);
+  assertEquals(stateChecksum(live), beforeChecksum);
+  assertEquals(firstStateDifference(snapshot, live), undefined);
+  advance(live.world, 0, 0, neutralControls(), 0.0);
+  assertEquals(firstStateDifference(after, live), undefined);
+  assertEquals(stateChecksum(live), stateChecksum(after));
+
+  copyReplayState(live, snapshot);
+  fighter.launch.meleeKnockbackZ.original = 0.000057436507631791756;
+  assertEquals(firstStateDifference(snapshot, live), "fighter[0].motionKnockbackZ");
+  assertTrue(stateChecksum(live) !== beforeChecksum);
+  copyReplayState(live, snapshot);
+  fighter.shield.meleeRecoilZ.original = 0.000056765962654026225;
+  assertEquals(firstStateDifference(snapshot, live), "fighter[0].motionRecoilZ");
+  assertTrue(stateChecksum(live) !== beforeChecksum);
+});
 
 function projectile(fighter: Fighter, index: number) {
   const value = fighter.projectiles[index];

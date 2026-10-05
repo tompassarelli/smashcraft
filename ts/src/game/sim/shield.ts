@@ -7,7 +7,7 @@ import { f32 } from "../../sim/f32";
 import { ShieldBreak } from "./codes";
 import { type Fighter, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "./fighter";
 import { integerHitPower } from "./knockback";
-import { AIR_RECOIL_DECAY, AIR_RECOIL_SQUARED_CUTOFF, decayedAirMotion, roundMeleeWorldValue } from "./motion";
+import { AIR_RECOIL_DECAY, AIR_RECOIL_SQUARED_CUTOFF, decayedAirMotion, retainedOriginal, setMeleeRecoil } from "./motion";
 import type { Controls } from "./roster";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { squareRoot } from "./warcraftMath";
@@ -77,8 +77,13 @@ export function digitalShieldstunFrames(hitDamage: number): number {
 
 /** Defender pushback in world units; a perfect shield keeps the unreduced speed under the same cap. */
 export function shieldContactPushback(damage: number, strength: number, perfect: boolean): number {
+  return f32(shieldContactPushbackMelee(damage, strength, perfect) * WORLD_UNITS_PER_MELEE_UNIT);
+}
+
+/** The reference pushback before the world-unit conversion loses low bits. */
+export function shieldContactPushbackMelee(damage: number, strength: number, perfect: boolean): number {
   const speed = roundToFloat32(f32(shieldstunDuration(damage, strength) * SHIELD_PUSHBACK_BASE));
-  return f32(min(SHIELD_PUSHBACK_CAP, perfect ? speed : roundToFloat32(f32(speed * SHIELD_PUSHBACK_MULTIPLIER))) * WORLD_UNITS_PER_MELEE_UNIT);
+  return min(SHIELD_PUSHBACK_CAP, perfect ? speed : roundToFloat32(f32(speed * SHIELD_PUSHBACK_MULTIPLIER)));
 }
 
 export function shieldPushback(damage: number, strength: number): number {
@@ -131,26 +136,30 @@ export function clearShieldBreak(f: Fighter): void {
 export function decayShieldMotion(f: Fighter): void {
   const { shield } = f;
   if (f.motion.grounded) {
-    const defenderDecay = roundMeleeWorldValue(f.tuning.physics.traction);
-    const defenderSpeed = roundMeleeWorldValue(shield.pushbackX);
-    shield.pushbackX = roundMeleeWorldValue(defenderSpeed > 0 ? max(0.0, f32(defenderSpeed - defenderDecay)) : min(0.0, f32(defenderSpeed + defenderDecay)));
+    const defenderDecay = divideFloat32(f.tuning.physics.traction, WORLD_UNITS_PER_MELEE_UNIT);
+    const defenderSpeed = divideFloat32(shield.pushbackX, WORLD_UNITS_PER_MELEE_UNIT);
+    const pushback = defenderSpeed > 0 ? max(0.0, subtractFloat32(defenderSpeed, defenderDecay)) : min(0.0, addFloat32(defenderSpeed, defenderDecay));
+    shield.pushbackX = f32(pushback * WORLD_UNITS_PER_MELEE_UNIT);
     // The currently modeled ground is flat, so shield recoil has no vertical component there.
-    shield.recoilZ = 0.0;
-    const attackerDecay = roundMeleeWorldValue(f32(defenderDecay * SHIELD_RECOIL_GROUND_FRICTION_MULTIPLIER));
-    const attackerSpeed = roundMeleeWorldValue(shield.recoilX);
-    shield.recoilX = roundMeleeWorldValue(attackerSpeed > 0 ? max(0.0, f32(attackerSpeed - attackerDecay)) : min(0.0, f32(attackerSpeed + attackerDecay)));
+    const attackerDecay = multiplyFloat32(defenderDecay, SHIELD_RECOIL_GROUND_FRICTION_MULTIPLIER);
+    const attackerSpeed = retainedOriginal(shield.meleeRecoilX, shield.recoilX);
+    const recoil = attackerSpeed > 0 ? max(0.0, subtractFloat32(attackerSpeed, attackerDecay)) : min(0.0, addFloat32(attackerSpeed, attackerDecay));
+    setMeleeRecoil(f, recoil, 0.0);
     return;
   }
   shield.pushbackX = 0.0;
   if (shield.recoilX === 0 && shield.recoilZ === 0) return;
-  const decayed = decayedAirMotion(shield.recoilX, shield.recoilZ, AIR_RECOIL_DECAY, AIR_RECOIL_SQUARED_CUTOFF);
+  const decayed = decayedAirMotion(
+    retainedOriginal(shield.meleeRecoilX, shield.recoilX),
+    retainedOriginal(shield.meleeRecoilZ, shield.recoilZ),
+    AIR_RECOIL_DECAY, AIR_RECOIL_SQUARED_CUTOFF,
+  );
   if (decayed.belowCutoff) {
     // Retail cutoff clears vertical launch, retaining vertical recoil.
-    shield.recoilX = 0.0;
+    setMeleeRecoil(f, 0.0, retainedOriginal(shield.meleeRecoilZ, shield.recoilZ));
     f.launch.knockbackZ = 0.0;
   } else {
-    shield.recoilX = decayed.x;
-    shield.recoilZ = decayed.z;
+    setMeleeRecoil(f, decayed.x, decayed.z);
   }
 }
 

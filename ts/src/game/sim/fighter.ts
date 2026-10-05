@@ -95,6 +95,8 @@ export interface Jump {
 export interface Launch {
   knockbackX: number;
   knockbackZ: number;
+  meleeKnockbackX: MeleeMotionValue;
+  meleeKnockbackZ: MeleeMotionValue;
   groundKnockbackX: number;
   /** Frames since the last launch; merging only distinguishes ages below ten. */
   knockbackAge: number | undefined;
@@ -123,6 +125,8 @@ export interface Shield {
   pushbackX: number;
   recoilX: number;
   recoilZ: number;
+  meleeRecoilX: MeleeMotionValue;
+  meleeRecoilZ: MeleeMotionValue;
   drainResumePending: boolean;
   triggerWasActive: boolean;
   triggerAge: number;
@@ -409,6 +413,8 @@ export function createFighter(character: Character, startX: number, facing: numb
     launch: {
       knockbackX: 0.0,
       knockbackZ: 0.0,
+      meleeKnockbackX: { original: 0.0, published: 0.0 },
+      meleeKnockbackZ: { original: 0.0, published: 0.0 },
       groundKnockbackX: 0.0,
       knockbackAge: undefined,
       damageLevel: 0,
@@ -433,6 +439,8 @@ export function createFighter(character: Character, startX: number, facing: numb
       pushbackX: 0.0,
       recoilX: 0.0,
       recoilZ: 0.0,
+      meleeRecoilX: { original: 0.0, published: 0.0 },
+      meleeRecoilZ: { original: 0.0, published: 0.0 },
       drainResumePending: false,
       triggerWasActive: false,
       triggerAge: SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES,

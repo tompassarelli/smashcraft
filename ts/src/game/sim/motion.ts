@@ -26,7 +26,7 @@ export function clearMotionValue(value: MeleeMotionValue): void {
   value.published = 0.0;
 }
 
-function retainedOriginal(value: MeleeMotionValue, world: number): number {
+export function retainedOriginal(value: MeleeMotionValue, world: number): number {
   return value.published === world ? value.original : divideFloat32(world, WORLD_UNITS_PER_MELEE_UNIT);
 }
 
@@ -42,6 +42,22 @@ export function setMeleeVerticalVelocity(f: Fighter, originalVelocity: number): 
   const { motion } = f;
   setOriginal(motion.meleeVelocityZ, roundToFloat32(originalVelocity));
   motion.vz = motion.meleeVelocityZ.published;
+}
+
+export function setMeleeKnockback(f: Fighter, originalX: number, originalZ: number): void {
+  const { launch } = f;
+  setOriginal(launch.meleeKnockbackX, roundToFloat32(originalX));
+  setOriginal(launch.meleeKnockbackZ, roundToFloat32(originalZ));
+  launch.knockbackX = launch.meleeKnockbackX.published;
+  launch.knockbackZ = launch.meleeKnockbackZ.published;
+}
+
+export function setMeleeRecoil(f: Fighter, originalX: number, originalZ: number): void {
+  const { shield } = f;
+  setOriginal(shield.meleeRecoilX, roundToFloat32(originalX));
+  setOriginal(shield.meleeRecoilZ, roundToFloat32(originalZ));
+  shield.recoilX = shield.meleeRecoilX.published;
+  shield.recoilZ = shield.meleeRecoilZ.published;
 }
 
 export function moveMeleeX(f: Fighter, worldDisplacement: number): void {
@@ -128,10 +144,8 @@ export interface AirMotion {
 // Preallocated: rollback replays decay launch and recoil every airborne frame.
 const decayed: AirMotion = { x: 0.0, z: 0.0, belowCutoff: false };
 
-/** Decays a world-unit vector by a fixed Melee-unit amount along its own angle. Valid until the next call. */
-export function decayedAirMotion(worldX: number, worldZ: number, decay: number, squaredCutoff: number): Readonly<AirMotion> {
-  const horizontal = roundToFloat32(f32(worldX / WORLD_UNITS_PER_MELEE_UNIT));
-  const vertical = roundToFloat32(f32(worldZ / WORLD_UNITS_PER_MELEE_UNIT));
+/** Decays a Melee-unit vector along its own angle. Valid until the next call. */
+export function decayedAirMotion(horizontal: number, vertical: number, decay: number, squaredCutoff: number): Readonly<AirMotion> {
   const verticalSquare = roundToFloat32(f32(vertical * vertical));
   const speedSquare = fusedMultiplyAddFloat32(horizontal, horizontal, verticalSquare);
   if (speedSquare < squaredCutoff) {
@@ -141,8 +155,8 @@ export function decayedAirMotion(worldX: number, worldZ: number, decay: number, 
     return decayed;
   }
   const angle = meleeAtan2(vertical, horizontal);
-  decayed.x = f32(fusedMultiplyAddFloat32(-decay, meleeCos(angle), horizontal) * WORLD_UNITS_PER_MELEE_UNIT);
-  decayed.z = f32(fusedMultiplyAddFloat32(-decay, meleeSin(angle), vertical) * WORLD_UNITS_PER_MELEE_UNIT);
+  decayed.x = fusedMultiplyAddFloat32(-decay, meleeCos(angle), horizontal);
+  decayed.z = fusedMultiplyAddFloat32(-decay, meleeSin(angle), vertical);
   decayed.belowCutoff = false;
   return decayed;
 }

@@ -7,9 +7,9 @@ import { f32 } from "../../sim/f32";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { DamageLanding } from "./codes";
 import type { Fighter } from "./fighter";
-import { AIR_KNOCKBACK_DECAY, AIR_KNOCKBACK_SQUARED_CUTOFF, decayedAirMotion, roundMeleeWorldValue } from "./motion";
+import { AIR_KNOCKBACK_DECAY, AIR_KNOCKBACK_SQUARED_CUTOFF, decayedAirMotion, retainedOriginal, roundMeleeWorldValue, setMeleeKnockback } from "./motion";
 import type { Controls } from "./roster";
-import { WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
+import { melee } from "./tuning";
 import { atan2, squareRoot } from "./warcraftMath";
 
 const KNOCKBACK_LAUNCH_SCALE = melee(0.029999999329447746);
@@ -158,9 +158,12 @@ export function decayKnockback(f: Fighter): void {
     return;
   }
   launch.groundKnockbackX = 0.0;
-  const decayed = decayedAirMotion(launch.knockbackX, launch.knockbackZ, AIR_KNOCKBACK_DECAY, AIR_KNOCKBACK_SQUARED_CUTOFF);
-  launch.knockbackX = decayed.x;
-  launch.knockbackZ = decayed.z;
+  const decayed = decayedAirMotion(
+    retainedOriginal(launch.meleeKnockbackX, launch.knockbackX),
+    retainedOriginal(launch.meleeKnockbackZ, launch.knockbackZ),
+    AIR_KNOCKBACK_DECAY, AIR_KNOCKBACK_SQUARED_CUTOFF,
+  );
+  setMeleeKnockback(f, decayed.x, decayed.z);
 }
 
 export interface DirectionalInfluence {
@@ -217,13 +220,12 @@ export function applyDirectionalInfluence(target: Fighter, input: Readonly<Contr
   const inputX = input.diStickValid ? input.diStickX : f32(dx * inputScale);
   const inputZ = input.diStickValid ? input.diStickZ : f32(dz * inputScale);
   const result = directionalInfluenceVector(
-    divideFloat32(launch.knockbackX, WORLD_UNITS_PER_MELEE_UNIT),
-    divideFloat32(launch.knockbackZ, WORLD_UNITS_PER_MELEE_UNIT),
+    retainedOriginal(launch.meleeKnockbackX, launch.knockbackX),
+    retainedOriginal(launch.meleeKnockbackZ, launch.knockbackZ),
     inputX,
     inputZ,
   );
-  launch.knockbackX = f32(result.velocityX * WORLD_UNITS_PER_MELEE_UNIT);
-  launch.knockbackZ = f32(result.velocityZ * WORLD_UNITS_PER_MELEE_UNIT);
+  setMeleeKnockback(target, result.velocityX, result.velocityZ);
   if (result.angleRadians !== 0) {
     launch.diAngleDegrees = f32(result.angleRadians * RADIANS_TO_DEGREES);
     launch.diSerial++;
