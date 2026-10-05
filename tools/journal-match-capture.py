@@ -196,6 +196,12 @@ def main():
                 nonlocal first_selection
                 menu_phase("CHARACTER")
                 ui("a", "wait", "CONTROLS")
+                if args.input_integrity:
+                    for slot in range(2):
+                        menu_button(slot, BTN_SOUTH, "menu-character-select")
+                    menu_button(0, 0x13b, "menu-character-confirm")
+                    menu_phase("STAGE")
+                    return
                 # Move both cursors and return before selecting, then exercise
                 # recall/reselect on B. These are real pad events, not menu clicks.
                 for slot in range(2):
@@ -373,6 +379,11 @@ def main():
                     until(lambda: publications("PAUSE_COMMIT"), "integrity pause was not committed")
                     events.append(dict(event="integrity-pause", epoch=epoch,
                                        publications=[capture_boundary(p) for p in publications("PAUSE_COMMIT")]))
+                    until(lambda: all(re.search(r"control sequence=\d+ state=PAUSE frame=",
+                                      (args.out / f"helper-{slot}.log").read_text())
+                                      for slot in range(2)), "helpers did not reach integrity pause")
+                    for client in "ab":
+                        ui(client, "wait", r"PAUSED.*Press.*Start.*resume|Paused.*press.*Start.*resume")
                     menu_button(0, 0x13b, prefix + "resume")
                     until(lambda: publications("RESUME"), "integrity resume was not committed")
                     events.append(dict(event="integrity-resume", epoch=epoch,
@@ -630,18 +641,20 @@ def main():
                 controller_select()
 
             if args.input_integrity:
-                stock_text = ui("a", "wait", r"[1-9] Stock")
+                stock_text = ui("b", "wait", r"[1-9] Stock")
                 stocks = int(re.search(r"([1-9])\s+Stock", stock_text, re.I)[1])
                 while stocks > 1:
-                    ui("a", "click", 1380, 155)
+                    ui("b", "click", 250, 900)
+                    ui("b", "click", 1380, 155)
                     stocks -= 1
-                    ui("a", "wait", rf"{stocks} Stock")
+                    ui("b", "wait", rf"{stocks} Stock")
 
             for epoch in epochs:
                 if args.input_integrity and epoch == 2:
                     for stocks in (2, 3):
-                        ui("a", "click", 1675, 155)
-                        ui("a", "wait", rf"{stocks} Stock")
+                        ui("b", "click", 250, 900)
+                        ui("b", "click", 1675, 155)
+                        ui("b", "wait", rf"{stocks} Stock")
                 trace_after_wall = time.time_ns()
                 # Ctrl+G only enables the diagnostic trace; controller-menu mode
                 # uses no keyboard or mouse to choose, start, or rematch.
