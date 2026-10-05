@@ -1,0 +1,29 @@
+{
+  "build": "typescript-integrity",
+  "helper_sha256": "d78e70838306ae55adfc59928277f6019ae64648f06461b9f59bfc54cb7ecce3",
+  "epochs": [
+    1,
+    2
+  ],
+  "four_fighters": true,
+  "final_checksums": {
+    "epoch-1-client-0": {
+      "frame": 570,
+      "checksum": "796533:582101"
+    },
+    "epoch-1-client-1": {
+      "frame": 570,
+      "checksum": "796533:582101"
+    },
+    "epoch-2-client-0": {
+      "frame": 570,
+      "checksum": "796533:582101"
+    },
+    "epoch-2-client-1": {
+      "frame": 570,
+      "checksum": "796533:582101"
+    }
+  },
+  "failures": [],
+  "passed": true
+}

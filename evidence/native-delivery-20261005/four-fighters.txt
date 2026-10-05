@@ -1,0 +1,7 @@
+Observed 2026-10-05 22:59 Taipei, native Warcraft 3.0.0.24268 x86_64.
+PASS: two online human slots plus two CPUs finished a one-stock match and rematch with a slot-C change, using production normal combat. Matching final results: both clients, both epochs frame570 checksum796533:582101. Reconciler has zero failures. Capture86.768s, video86.867s.
+Map SHA2564c1c70ac88e841f342b36868709a57bddcbc33851b2653314e8f7bba763bcad2; buildtypescript-integrity; sourceb8f5e7f from416dce7 plus four-fighter profile/one-stock commits. Waygateb58b87cd289cdcaae058736a488547a89ac22896. HelperSHA256d78e70838306ae55adfc59928277f6019ae64648f06461b9f59bfc54cb7ecce3.
+Host-only capture correction3b53b30 skipped stale pre-capture response files before schema decoding; current complete files remain validated. Full capture and player-view recording remain private outside Git:
+~/.local/share/smashcraft-build-inputs/native-delivery-20261005/four-fighters-2/capture/
+~/.local/share/smashcraft-build-inputs/native-delivery-20261005/four-fighters-2/four-fighters-a.mkv
+Clients were returned to fighter selection with C/D empty; helpers and recorder reaped. Human controller playtest and Tom's effect review remain owner-gated. Prior0.0.41/.42 artifacts unchanged.
