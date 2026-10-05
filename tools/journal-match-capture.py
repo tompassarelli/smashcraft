@@ -336,7 +336,7 @@ def main():
                 before = [p.read_text() if p.exists() else "" for p in paths]
                 keys(0, "key", "Return")
                 ui("a", "wait", args.chat_open_pattern)
-                keys(0, "type", "--delay", "35", text)
+                keys(0, "type", "--delay", "35", "--", text)
                 keys(0, "key", "Return")
                 until(lambda: all(complete(p) and p.read_text() != old and expected in p.read_text()
                                   for p, old in zip(paths, before)), f"dev command not confirmed: {text}")
