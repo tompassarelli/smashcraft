@@ -133,6 +133,13 @@ second of game even in that 94,057-file CustomMapData; the first reload to a
 client that has seen no host can take up to 1 s longer. See Wisp's hot-reload
 docs, "What polling costs".
 
+The playable profile displays no runtime error text (`MapBuild.errorsOnScreen`,
+Wisp's `errorsOnScreen`): a failing handler's `error in HANDLER: ...` line names
+handlers, TypeScript lines and Lua messages, which players never read. Every
+profile still writes the report to `smashcraft-error-p<slot>.txt`, which
+`bun wisp hot --watch` and the playable capture gates read.
+smashcraft:ts/test/player-text.test.ts keeps both halves.
+
 Without the clients, `bun wisp headless [quick-match|desync] [--clients N]`
 plays the development build (src/platform/devMain.ts) in Wisp's headless
 runtime ([Wisp headless](https://github.com/tompassarelli/wisp/blob/main/docs/headless.md)):

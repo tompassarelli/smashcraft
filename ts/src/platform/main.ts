@@ -10,8 +10,9 @@ import { installHotReload, startHotReload } from "wisp/src/platform/hotReload";
 import { installShell, startShell } from "./shell/shell";
 import { installObjectData } from "./shell/objectData";
 
-export function install(this: void): void {
-  configureRuntime({ filePrefix: "smashcraft", globalPrefix: "__smashcraft", readyPrefix: "SC_HRR" });
+/** Each reload's install() configures the runtime again, so it names the build's error text too. */
+export function install(this: void, build: MapBuild = CURRENT_BUILD): void {
+  configureRuntime({ filePrefix: "smashcraft", globalPrefix: "__smashcraft", readyPrefix: "SC_HRR", errorsOnScreen: build.errorsOnScreen });
   installDispatch();
   installShell();
   installObjectData();
@@ -20,7 +21,7 @@ export function install(this: void): void {
 
 /** Both native input profiles share the same shell and reload lifecycle. */
 export function startBuild(this: void, build: MapBuild): void {
-  install();
+  install(build);
   startShell(build, replayHistoryPlayback());
   if (build.hotReload) startHotReload();
 }

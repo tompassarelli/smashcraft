@@ -4,10 +4,12 @@
 // types each player's journal into the edit box as the native helper does.
 // No text a frame shows and no message the map displays may contain what the
 // developer line prints; the development and integrity builds still show it.
+// Neither may it show a runtime error report, which the error file keeps.
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import type { Lockstep } from "wisp/src/headless/lockstep";
+import { on } from "wisp/src/platform/dispatch";
 import { Action, bit } from "../src/game/input/actions";
 import { inputRow } from "../src/game/input/inputRow";
 import { encodePacket, inputPacket } from "../src/game/input/wire";
@@ -235,20 +237,62 @@ test("the playable build shows players no developer text through selection, a ma
   expect([...shown].filter((text) => developerText(text).length > 0)).toEqual([]);
 });
 
-/** A quick match of `build`: the developer line it shows. */
-function developerLine(build: MapBuild): string | undefined {
+/** The shell's per-frame handler, which every frame of a started map runs (src/platform/shell/shell.ts). */
+const SHELL_TICK = "shell.tick";
+const DELIBERATE_FAILURE = "deliberate failure";
+const REPORT_TEXT = `error in ${SHELL_TICK}: Error: ${DELIBERATE_FAILURE}`;
+
+/** Makes the shell's per-frame handler fail in every client for three frames, recording what they show. */
+function failFrames(clients: Lockstep, views: readonly FrameView[], shown: Set<string>): void {
+  clients.everywhere(() => {
+    on(SHELL_TICK, () => {
+      throw new Error(DELIBERATE_FAILURE);
+    });
+  });
+  for (let frame = 0; frame < 3; frame++) {
+    clients.frames(1);
+    recordShown(clients, views, shown);
+  }
+}
+
+/** The first two lines of a client's error file: the report's heading and its message. */
+const errorReport = (client: HeadlessClient) => client.files.get(`smashcraft-error-p${client.slot}.txt`)?.slice(0, 2);
+const REPORT_LINES = [`error 1 in ${SHELL_TICK}`, `Error: ${DELIBERATE_FAILURE}`];
+
+test("a failing handler in the playable build shows players no error text, and each client still writes its error report", () => {
+  const clients = headless.clients({ install: installPlayable, start: startPlayable });
+  const shown = new Set<string>();
+  clients.start();
+  failFrames(clients, clients.clients.map((client) => new FrameView(client)), shown);
+  expect([...shown].filter((text) => text.includes(SHELL_TICK) || text.includes(DELIBERATE_FAILURE))).toEqual([]);
+  for (const client of clients.clients) {
+    expect(errorReport(client)).toEqual(REPORT_LINES);
+    expect(client.errors).toEqual([REPORT_TEXT]);
+  }
+});
+
+/** A quick match of `build`, then a failing handler: the developer line the first client showed, and everything both showed after it. */
+function quickMatchThenFailure(build: MapBuild) {
   const clients = headless.clients({ install, start: () => startBuild(build) });
   const view = new FrameView(clients.clients[0] as HeadlessClient);
   clients.start();
   clients.frames(30);
   clients.chat(0, "-dev quick");
   clients.frames(60);
-  return view.texts().find((text) => text.startsWith("Developer test: "));
+  const developerLine = view.texts().find((text) => text.startsWith("Developer test: "));
+  const shown = new Set<string>();
+  failFrames(clients, [view], shown);
+  return { clients, developerLine, shown: [...shown] };
 }
 
-test("development and integrity builds still show the developer line, with every term the playable build denies", () => {
-  expect(developerLine(CURRENT_BUILD)).toStartWith(`Developer test: ${CURRENT_BUILD.id} |`);
-  const integrity = developerLine(INTEGRITY_BUILD);
-  for (const term of [...DEVELOPER_LINE_TERMS, INTEGRITY_BUILD.id]) expect(integrity).toContain(term);
-  expect(integrity).toContain(`mode=${INTEGRITY_BUILD.inputProfile} ${INTEGRITY_BUILD.presentation}`);
+test("development and integrity builds still show the developer line, with every term the playable build denies, and a failing handler's error text", () => {
+  const development = quickMatchThenFailure(CURRENT_BUILD);
+  expect(development.developerLine).toStartWith(`Developer test: ${CURRENT_BUILD.id} |`);
+  const integrity = quickMatchThenFailure(INTEGRITY_BUILD);
+  for (const term of [...DEVELOPER_LINE_TERMS, INTEGRITY_BUILD.id]) expect(integrity.developerLine).toContain(term);
+  expect(integrity.developerLine).toContain(`mode=${INTEGRITY_BUILD.inputProfile} ${INTEGRITY_BUILD.presentation}`);
+  for (const { clients, shown } of [development, integrity]) {
+    expect(shown).toContain(REPORT_TEXT);
+    for (const client of clients.clients) expect(errorReport(client)).toEqual(REPORT_LINES);
+  }
 });

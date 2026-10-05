@@ -1,6 +1,9 @@
 import { PLAYABLE_BUILD } from "../game/shell/currentBuild";
-import { startBuild } from "./main";
-export { install } from "./main";
+import { install as installGame, startBuild } from "./main";
+
+export function install(this: void): void {
+  installGame(PLAYABLE_BUILD);
+}
 
 export function start(this: void): void {
   startBuild(PLAYABLE_BUILD);
