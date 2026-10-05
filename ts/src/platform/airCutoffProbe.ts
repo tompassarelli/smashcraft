@@ -1,5 +1,6 @@
 // Developer-only trace for the native AIR_CUTOFF_4 counterexample.
-import { fusedMultiplyAddFloat32, multiplyFloat32 } from "waygate/src/sim/binary32";
+import { fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
+import { f32 } from "waygate/src/sim/f32";
 import { Character } from "../game/sim/codes";
 import { createFighter } from "../game/sim/fighter";
 import { decayKnockback } from "../game/sim/knockback";
@@ -34,6 +35,9 @@ export function airCutoffTrace(): string[] {
   record("INPUT_Z", z);
   record("DECAY", AIR_KNOCKBACK_DECAY);
   record("CUTOFF", AIR_KNOCKBACK_SQUARED_CUTOFF);
+  const spacing = 3.725290298461914e-9;
+  record("RAW_PREVIOUS", roundToFloat32(f32(AIR_KNOCKBACK_DECAY - spacing)));
+  record("EXACT_PREVIOUS", subtractFloat32(AIR_KNOCKBACK_DECAY, spacing));
   const verticalSquare = multiplyFloat32(z, z);
   const speedSquare = fusedMultiplyAddFloat32(x, x, verticalSquare);
   record("VERTICAL_SQUARE", verticalSquare);

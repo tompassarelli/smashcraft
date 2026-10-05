@@ -122,7 +122,7 @@ function retailAirDecaySquaredCutoff(decay: number): number {
   // Both fixed retail decays lie in [1/32, 1/16), with binary32 spacing 2^-28.
   // Their squared rounding midpoints round upward; see the exact boundary corpus.
   const spacing = 3.725290298461914e-9;
-  const previous = roundToFloat32(f32(decay - spacing));
+  const previous = subtractFloat32(decay, spacing);
   return fusedMultiplyAddFloat32(decay, previous, f32(f32(spacing * spacing) * 0.25));
 }
 
