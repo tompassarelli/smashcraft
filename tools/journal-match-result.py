@@ -12,12 +12,262 @@ def json_lines(path):
     return [json.loads(line) for line in path.read_text().splitlines()]
 
 
+def integrity_result(root, metadata):
+    """Issue 26: producer-clock oracle, native application and first prediction."""
+    failures = []
+    def require(condition, message):
+        if not condition:
+            failures.append(message)
+        return condition
+
+    def distribution(values):
+        if not values:
+            return dict(n=0, p50=None, p95=None, max=None, distribution={})
+        ordered = sorted(values)
+        return dict(n=len(values), p50=ordered[(len(values) - 1) // 2],
+                    p95=ordered[(len(values) * 95 - 1) // 100], max=max(values),
+                    distribution=dict(sorted(Counter(values).items())))
+
+    def bits(mask):
+        return [1 << n for n in range(15) if mask & (1 << n)]
+
+    def source_mask(kind, code, value):
+        if not value:
+            return 0
+        if kind == 1:
+            return {0x130: 32, 0x131: 16, 0x133: 16, 0x134: 64,
+                    0x136: 16384, 0x137: 128}.get(code, 0)
+        if kind == 3:
+            if code == 0:
+                return 1 if value < 0 else 2
+            if code == 1:
+                return 24 if value < 0 else 4
+            return {2: 256, 5: 512}.get(code, 0)
+        return 0
+
+    producer = json_lines(root / "producer.jsonl")
+    injected = [0, 0]
+    losses = duplicates = reordered = stuck = correct = total = 0
+    local_delays, opponent_lateness, rollback_depths, stall_lengths = [], [], [], []
+    missing_local, illegal_presses, legal_presses = 0, 0, 0
+    native = {}
+    endpoints = {}
+    coverage = [set(), set()]
+    same_frame_taps = [0, 0]
+    for epoch in (1, 2):
+        for client in (0, 1):
+            pages = list((root / f"epoch-{epoch}").glob(
+                f"{client}-smashcraft-response-p{client}-run*-page*.txt"))
+            if not require(bool(pages), f"epoch {epoch} client {client}: response pages absent"):
+                continue
+            latest = max(int(re.search(r"-run(\d+)-", p.name)[1]) for p in pages)
+            pages = sorted((p for p in pages if f"-run{latest}-" in p.name),
+                           key=lambda p: int(re.search(r"-page(\d+)", p.name)[1]))
+            text = "\n".join(p.read_text() for p in pages)
+            header = pages[0].read_text()
+            retained = re.search(r"integrity retained=(\d+) dropped=(\d+)", header)
+            if not require(retained is not None, f"epoch {epoch} client {client}: integrity header absent"):
+                continue
+            require(int(retained[2]) == 0, f"epoch {epoch} client {client}: integrity rows dropped")
+            rows = [line.split() for line in re.findall(r'Preload\( "I ([^"\r\n]+)', text)]
+            require(len(rows) == int(retained[1]), f"epoch {epoch} client {client}: incomplete integrity export")
+            events = []
+            for row in rows:
+                serial, stage = int(row[0]), row[1]
+                if stage == "checksum":
+                    if int(row[2]) == epoch:
+                        endpoints[epoch, client] = (int(row[3]), row[4], int(row[5]))
+                    continue
+                values = list(map(int, row[2:]))
+                if not require(values and values[0] == epoch,
+                               f"epoch {epoch} client {client}: wrong trace epoch"):
+                    continue
+                events.append((serial, stage, values))
+                if stage == "rollback":
+                    rollback_depths.append(values[1])
+            native[epoch, client] = events
+            stalls = [serial for serial, stage, _ in events if stage == "stall"]
+            if stalls:
+                length = 1
+                for before, after in zip(stalls, stalls[1:]):
+                    if after == before + 1:
+                        length += 1
+                    else:
+                        stall_lengths.append(length)
+                        length = 1
+                stall_lengths.append(length)
+            trace = root / f"epoch-{epoch}" / f"{client}-wc3-melee-input-trace.txt"
+            require(trace.exists() and "journal input fail" not in trace.read_text(),
+                    f"epoch {epoch} client {client}: missing trace or journal failure")
+            # Final checksums are captured at export, after the result boundary,
+            # even when the ordinary 20-second trace ended earlier in the match.
+            require((epoch, client) in endpoints and endpoints[epoch, client][2] == 3,
+                    f"epoch {epoch} client {client}: final result checksum absent")
+        require(endpoints.get((epoch, 0)) is not None and
+                endpoints.get((epoch, 0)) == endpoints.get((epoch, 1)),
+                f"epoch {epoch}: final checksums differ")
+        boundary = next(e for e in metadata["events"] if e["event"] == "start" and e["epoch"] == epoch)
+        end = next(e for e in metadata["events"] if e["event"] == "end" and e["epoch"] == epoch)
+        for slot in (0, 1):
+            publications = [boundary["publications"][slot]]
+            publications += [e["publications"][slot] for e in metadata["events"]
+                             if e["event"] == "integrity-resume" and e["epoch"] == epoch]
+            segments = sorted((p["publication_monotonic_estimate_ns"],
+                               int(re.search(r"frame=(\d+)", p["contents"])[1])) for p in publications)
+            final_ns = end["publications"][slot]["publication_monotonic_estimate_ns"]
+            expected = Counter()
+            expected_held = {}
+            source_states = {}
+            source_edges = []
+            previous_down = {}
+            for event in producer:
+                if event["event"] != f"slot-{slot}" or not event["phase"].startswith(f"match-{epoch}-"):
+                    continue
+                kind, code, value = event["type"], event["code"], event["value"]
+                if kind == 1 and code == 0x13b:
+                    continue
+                before = event["producer_before_write_monotonic_ns"]
+                after = event["producer_after_write_monotonic_ns"]
+                if before >= final_ns or before < segments[0][0]:
+                    continue
+                anchor, first = max(segment for segment in segments if segment[0] <= before)
+                frame = first + (before - anchor) * 60 // 1_000_000_000
+                require(frame == first + (after - anchor) * 60 // 1_000_000_000,
+                        f"epoch {epoch} slot {slot}: injection crossed frame boundary at {before}")
+                old = 0
+                for mask in source_states.values():
+                    old |= mask
+                source_states[kind, code] = source_mask(kind, code, value)
+                held = 0
+                for mask in source_states.values():
+                    held |= mask
+                pressed, released = held & ~old, old & ~held
+                expected_held[frame] = held
+                edge_keys = [(frame, bit, 1) for bit in bits(pressed)] + [(frame, bit, 0) for bit in bits(released)]
+                expected.update(edge_keys)
+                measured = "-integrity-" in event["phase"]
+                if measured:
+                    injected[slot] += 1
+                    coverage[slot].add(event["phase"].split(":")[-1])
+                    require(bool(edge_keys), f"epoch {epoch} slot {slot}: source transition has no action edge")
+                    source_edges.append(edge_keys)
+                    if value:
+                        previous_down[kind, code] = (frame, before)
+                    elif (kind, code) in previous_down:
+                        down_frame, down_ns = previous_down.pop((kind, code))
+                        if frame == down_frame and 4_000_000 <= before - down_ns <= 12_000_000:
+                            same_frame_taps[slot] += 1
+            observed_clients = []
+            for client in (0, 1):
+                events = native.get((epoch, client), [])
+                observed = Counter()
+                frames = []
+                for serial, stage, values in events:
+                    if stage != "confirmed" or values[1] != slot:
+                        continue
+                    _, _, frame, held, pressed, released, _ = values
+                    frames.append(frame)
+                    observed.update((frame, bit, 1) for bit in bits(pressed))
+                    observed.update((frame, bit, 0) for bit in bits(released))
+                    if frame in expected_held and held != expected_held[frame]:
+                        stuck += 1
+                losses += sum((expected - observed).values())
+                duplicates += sum((observed - expected).values())
+                reordered += sum(b <= a for a, b in zip(frames, frames[1:]))
+                observed_clients.append(observed)
+                if client != slot:
+                    for _, stage, values in events:
+                        if stage == "receive" and values[1] == slot:
+                            opponent_lateness.extend([max(0, values[6] - 1 - values[2])] *
+                                                     (values[4].bit_count() + values[5].bit_count()))
+            for keys in source_edges:
+                total += 1
+                correct += bool(keys) and all(all(observed[key] == expected[key] == 1 for key in keys)
+                                             for observed in observed_clients)
+            local = native.get((epoch, slot), [])
+            captures = {v[2]: serial for serial, stage, v in local if stage == "capture" and v[1] == slot}
+            predicted = {v[2]: (serial, v[5]) for serial, stage, v in local if stage == "action" and v[1] == slot}
+            for _, stage, values in local:
+                if stage != "legal" or values[1] != slot:
+                    continue
+                _, _, frame, pressed, legal, started = values
+                legal_presses += legal.bit_count()
+                illegal_presses += (pressed & ~legal).bit_count()
+                require(started & legal == legal, f"epoch {epoch} slot {slot} frame {frame}: legal confirmed action failed")
+                if not legal:
+                    continue
+                prediction = predicted.get(frame)
+                if frame not in captures or prediction is None or prediction[1] & legal != legal:
+                    missing_local += legal.bit_count()
+                    continue
+                # The callback that FIRST executed prediction is compared to the
+                # admission callback. A later rollback replay never creates this row.
+                local_delays.extend([prediction[0] - captures[frame]] * legal.bit_count())
+    required_bindings = {"move-left", "move-right", "move-down", "jump-stick", "jump-b", "jump-y",
+                         "attack", "special", "shield-lt", "shield-rt", "grab", "walk"}
+    for slot in (0, 1):
+        require(injected[slot] >= 500, f"slot {slot}: fewer than 500 injected edges")
+        require(required_bindings <= coverage[slot], f"slot {slot}: missing binding coverage")
+        require(same_frame_taps[slot] > 0, f"slot {slot}: no observed same-frame 5 ms tap")
+    stalls = [e for e in metadata["events"] if e["event"] == "integrity-stall"]
+    require(sorted(e["kind"] for e in stalls) == ["game", "helper"], "required process stalls absent")
+    for event in stalls:
+        require(event["verified_stopped_state"] and 240_000_000 <=
+                event["continued_monotonic_ns"] - event["stopped_monotonic_ns"] <= 350_000_000,
+                f"{event['kind']} stall duration/state unproven")
+    require(any(e["event"] == "integrity-pause" for e in metadata["events"]) and
+            any(e["event"] == "integrity-resume" for e in metadata["events"]), "Start pause/resume absent")
+    change = next((e for e in metadata["events"] if e["event"] == "integrity-slot-change"), None)
+    require(change is not None and [(c["human_fighters"], c["computers"]) for c in change["changes"]] == [(7, 0), (3, 4)],
+            "rematch slot change absent")
+    gate_edges = losses == duplicates == reordered == stuck == 0
+    gate_frames = total > 0 and correct == total
+    gate_local = legal_presses > 0 and missing_local == 0 and bool(local_delays) and min(local_delays) >= 0 and max(local_delays) <= 1
+    gate_checksums = len(endpoints) == 4 and all(endpoints[e, 0] == endpoints[e, 1] for e in (1, 2))
+    result = dict(scope=metadata["scope"], build=metadata["settings"]["build"],
+                  helper_sha256=metadata["helper_sha256"], edges_injected_per_player=injected,
+                  lost=losses, duplicated=duplicates, reordered=reordered, stuck=stuck,
+                  expected_frame_both_clients=dict(correct=correct, total=total,
+                                                   percent=100 * correct / total if total else None),
+                  local_start_minus_capture_frames=distribution(local_delays),
+                  local_frame_basis="60 Hz service callbacks from map admission to first forward prediction; rollback replay excluded",
+                  legal_action_edges=legal_presses, illegal_action_edges=illegal_presses,
+                  legal_actions_missing_first_prediction=missing_local,
+                  opponent_input_lateness_frames=distribution(opponent_lateness),
+                  rollback_depth_frames=distribution(rollback_depths),
+                  prediction_stalls=dict(count=len(stall_lengths), longest_callbacks=max(stall_lengths, default=0)),
+                  injected_to_screen_ms=None, same_frame_5ms_taps=same_frame_taps,
+                  final_checksums={f"epoch-{e}-client-{c}": value for (e, c), value in endpoints.items()},
+                  gates=dict(edges=gate_edges, expected_frame=gate_frames,
+                             local_start=gate_local, checksums=gate_checksums), evidence_failures=failures)
+    result["passed"] = all(result["gates"].values()) and not failures
+    def brief(d):
+        return f"{d['p50']} / {d['p95']} / {d['max']} (n={d['n']})"
+    table = ["| Metric | Result |", "|---|---|",
+             f"| Edges injected per player | {injected[0]} / {injected[1]} |",
+             f"| Lost / duplicated / reordered / stuck edges | {losses} / {duplicates} / {reordered} / {stuck} |",
+             f"| Edges applied at expected frame, both clients | {correct}/{total} ({result['expected_frame_both_clients']['percent']}%) |",
+             f"| Local start − capture, frames | {brief(result['local_start_minus_capture_frames'])}; missing first prediction {missing_local} |",
+             f"| Opponent input lateness, frames: p50 / p95 / max | {brief(result['opponent_input_lateness_frames'])} |",
+             f"| Rollback depth, frames: p50 / p95 / max | {brief(result['rollback_depth_frames'])} |",
+             f"| Prediction stalls at 24-frame limit | {len(stall_lengths)}; longest {max(stall_lengths, default=0)} callbacks |",
+             "| Injected input → screen, ms | Not captured in this session |",
+             f"| Final checksums match | {'Yes' if gate_checksums else 'No'} |"]
+    (root / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
+    (root / "integrity-table.md").write_text("\n".join(table) + "\n")
+    print("\n".join(table))
+    print(json.dumps(dict(passed=result["passed"], gates=result["gates"], evidence_failures=failures), indent=2))
+    return 0 if result["passed"] else 1
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("capture", type=Path)
     args = parser.parse_args()
     root = args.capture
     metadata = json.loads((root / "capture.json").read_text())
+    if metadata.get("input_integrity"):
+        return integrity_result(root, metadata)
     reconnect = metadata.get("controller_reconnect", False)
     slot_modes = metadata.get("controller_slots", False)
     epochs = (1, 2, 3) if slot_modes else (1, 2)
@@ -192,4 +442,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
