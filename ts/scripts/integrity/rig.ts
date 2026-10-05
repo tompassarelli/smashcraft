@@ -82,7 +82,7 @@ export function liveRig(parts: LiveRigParts): RigShape {
     }).pipe(Effect.tap((stored) => {
       // A concurrent PreloadGenEnd write may still be incomplete. Completed
       // records enter the capture only after boundary decoding succeeds.
-      if (stored === undefined || !stored.text.trimEnd().endsWith("endfunction")) return Effect.void;
+      if (stored === undefined || stored.mtimeNs < startedNs || !stored.text.trimEnd().endsWith("endfunction")) return Effect.void;
       return decodeWrittenGameFile(name, join(data[client], name), stored.text).pipe(
         Effect.mapError((cause) => new IntegrityFailure({ operation: "decode game file", path: join(data[client], name), cause })),
       );
