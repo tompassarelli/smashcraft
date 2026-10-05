@@ -29,7 +29,7 @@ export function isCarrierKey(key: number): boolean {
   return CARRIER_KEYS.includes(key);
 }
 
-export interface KeyboardChunk {
+interface KeyboardChunk {
   readonly text: string;
   /** The message's last chunk. */
   readonly final: boolean;

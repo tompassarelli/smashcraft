@@ -30,7 +30,7 @@ export function resultMessage(game: Readonly<MatchState>): string {
   return game.timedOut ? "Time! Draw." : "Draw!";
 }
 
-export function rematchStatus(game: Readonly<MatchState>, start: StartControl): string {
+function rematchStatus(game: Readonly<MatchState>, start: StartControl): string {
   const present = PARTICIPANT_SLOTS.filter(slot => humanPresent(game, slot));
   const ready = present.filter(slot => game.rematchReadiness[slot]);
   return `${ready.length}/${present.length} ready. Press ${start === "Start" ? "A or Start" : "Y"} to choose your next match.`;

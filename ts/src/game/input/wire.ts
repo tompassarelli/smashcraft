@@ -18,9 +18,9 @@ export const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrs
 export const INPUT_LAST_FRAME = 2147483646;
 const MAX_EPOCH = 2147483647;
 export const HEADER_MIN_BYTES = 5;
-export const HEADER_MAX_BYTES = 17;
+const HEADER_MAX_BYTES = 17;
 export const RECORD_MIN_BYTES = 1;
-export const RECORD_MAX_BYTES = 21;
+const RECORD_MAX_BYTES = 21;
 export const PACKET_MAX_BYTES = HEADER_MAX_BYTES + 2 * RECORD_MAX_BYTES;
 
 export interface InputPacket {

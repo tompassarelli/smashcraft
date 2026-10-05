@@ -28,7 +28,7 @@ export interface BindingPersistence {
 }
 
 /** The key slot waiting for its next key press. */
-export interface BindingCapture {
+interface BindingCapture {
   readonly action: Action;
   readonly slot: KeySlot;
 }

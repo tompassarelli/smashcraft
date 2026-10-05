@@ -15,7 +15,7 @@ import { PAD_BUTTONS } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
 import { archiveFiles, liveRig } from "./rig";
 
-export interface CaptureOptions extends JourneyOptions {
+interface CaptureOptions extends JourneyOptions {
   /** The persistent controller helper binary. */
   readonly helper: string;
   readonly out: string;
@@ -25,7 +25,7 @@ export interface CaptureOptions extends JourneyOptions {
   readonly appIds: ReadonlyMap<string, string>;
 }
 
-export const CAPTURE_USAGE = "bun scripts/integrity.ts capture --helper BINARY --build BUILD --out DIR --app-id CLIENT=APP_ID --app-id CLIENT=APP_ID"
+const CAPTURE_USAGE = "bun scripts/integrity.ts capture --helper BINARY --build BUILD --out DIR --app-id CLIENT=APP_ID --app-id CLIENT=APP_ID"
   + " [--sweep RB[:BATCH],...] [--first-epoch N] [--four-fighters] [--clients FILE]";
 
 const SCOPE = "Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; "

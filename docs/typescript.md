@@ -108,6 +108,10 @@ procedure and cadence belong to smashcraft:.agents/skills/effect/SKILL.md.
 
 ### Game modules
 
+- Name each module for the specific data or responsibility it owns, and each
+  export for the value or operation its callers use. Avoid names inherited from
+  the source language or names that promise a feature the module does not have;
+  keep foreign names only at an actual foreign interface.
 - Simulation is data plus functions over data. Use a class only for an owner
   with identity and a lifecycle, such as a native handle or a presentation
   object, never as a namespace.
@@ -149,7 +153,7 @@ a source defect, named as such.
 
 From smashcraft:ts/:
 
-- `bun run test`: every host test file, in two isolated Bun workers. Use
+- `bun run test`: every host test file, in three isolated Bun workers. Use
   `bun test test/game.test.ts -t NAME` for a focused result.
 - `bun run check`: type-check the host tools and the game with TypeScript 7.
   The compiler keeps separate host and game dependency caches in

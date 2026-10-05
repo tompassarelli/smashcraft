@@ -14,7 +14,7 @@ const json = (value: unknown): string => JSON.stringify(value);
 const styleFor = (category: number): AttackStyle => category === 0 ? AttackStyle.forwardSmash : category === 1 ? AttackStyle.forwardTilt : AttackStyle.neutralAir;
 const categoryName = (category: number): string => category === 0 ? "smash" : category === 1 ? "normal" : "late-aerial";
 
-export interface ContactResult {
+interface ContactResult {
   connected: boolean; contactFrame: number; attackerReady: number; defenderReady: number; attackerLanding: number; shieldstun: number; hitstun: number;
   attackerHitlag: number; defenderHitlag: number; percentDamage: number; shieldDamage: number; separationAtAttackerReady: number;
   verticalAtAttackerReady: number; separationAtDefenderReady: number; verticalAtDefenderReady: number; defenderWeight: number;
@@ -111,7 +111,7 @@ export function categoryTradeoffViolation(smash: ContactResult, normal: ContactR
     && smash.shieldDamage > normal.shieldDamage && smash.attackerReady <= normal.attackerReady && smash.defenderReady >= normal.defenderReady;
 }
 
-export interface FollowupResult {
+interface FollowupResult {
   scheduledStart: number; actualStart: number; actualStyle: number; firstActive: number; firstContact: number; opponentReady: number;
   separationAtStart: number; verticalAtStart: number; separationAtFirstActive: number; verticalAtFirstActive: number;
   timingAllows: boolean; reachesBeforeAction: boolean;

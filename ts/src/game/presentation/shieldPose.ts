@@ -1,7 +1,7 @@
 import { f32 } from "waygate/src/sim/f32";
 import { SHIELD_MAX, type Fighter } from "../sim/fighter";
 
-export interface ShieldPose {
+interface ShieldPose {
   visible: boolean;
   x: number;
   z: number;

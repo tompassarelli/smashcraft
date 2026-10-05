@@ -19,7 +19,7 @@ import { REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
 import { type TapeOperation, applyControls } from "./tape";
 
-export type TapeResult =
+type TapeResult =
   | { readonly ok: true; readonly frames: number }
   | { readonly ok: false; readonly line: number; readonly message: string };
 

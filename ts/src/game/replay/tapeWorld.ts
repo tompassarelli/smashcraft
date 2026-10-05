@@ -16,7 +16,7 @@ import { firstStateDifference } from "./difference";
 import { ReplayHistory } from "./history";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
 
-export interface TapeWorldOptions {
+interface TapeWorldOptions {
   stocks: number;
   /** Connected humans in slots 0 upward, set before the match starts. */
   humans?: number;

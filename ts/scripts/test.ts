@@ -9,9 +9,14 @@ const files = [
   .sort();
 if (files.length === 0) throw new Error("No tests found");
 
-// Each Bun process isolates native stubs and registered game tests. Two
-// workers bound memory while independent test files run in parallel.
-const groups = [files.filter((_, index) => index % 2 === 0), files.filter((_, index) => index % 2 === 1)];
+// The game registry and native desync guard own independent global stubs and
+// most of the suite's work. Give each its own process; the third runs every
+// other discovered file, including new tests.
+const isolated = ["test/game.test.ts", "test/desync-guard.test.ts"];
+const groups = [
+  ...isolated.map((name) => files.filter((file) => file === name)),
+  files.filter((file) => !isolated.includes(file)),
+];
 const started = performance.now();
 const children = groups.filter((group) => group.length > 0).map((group) =>
   Bun.spawn([process.execPath, "test", ...group.map((file) => resolve(project, file))], {

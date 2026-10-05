@@ -10,16 +10,11 @@ import { encodePacket, inputPacket } from "../../input/wire";
 export const VOCABULARY_PROBE_EPOCH = 36;
 export const VOCABULARY_PROBE_SAMPLES = 300;
 
-/** Arms 0 to 2 offer two-row packets at 30 Hz, arms 3 to 5 one-row packets at 60 Hz. */
-export function vocabularyProbeRate(arm: number): number {
-  return arm < 3 ? 30 : 60;
-}
-
-export function vocabularyProbeRows(arm: number): 1 | 2 {
+function vocabularyProbeRows(arm: number): 1 | 2 {
   return arm < 3 ? 2 : 1;
 }
 
-export function vocabularyProbeFrame(arm: number, sequence: number): number {
+function vocabularyProbeFrame(arm: number, sequence: number): number {
   return sequence * vocabularyProbeRows(arm) + 1;
 }
 
@@ -32,7 +27,7 @@ function heldAt(sender: number, frame: number): number {
   return held;
 }
 
-export function vocabularyProbeRow(sender: number, frame: number): InputRow | undefined {
+function vocabularyProbeRow(sender: number, frame: number): InputRow | undefined {
   const held = heldAt(sender, frame);
   const previous = heldAt(sender, frame - 1);
   // A completed short jump tap keeps both edges with no held bit.

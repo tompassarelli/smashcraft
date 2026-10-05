@@ -1,5 +1,6 @@
 // Native CPU-clock boundary for the isolated 4096-frame workload.
 import { runFrameCostBenchmark } from "../game/replay/frameCostBenchmark";
+import { frameCostFile } from "../runtime/gameFiles";
 
 declare const os: { readonly clock: (this: void) => number };
 
@@ -18,7 +19,7 @@ export function start(source: string): void {
     for (let offset = 0; offset < result.finalState.length; offset += 200) {
       Preload(`state=${result.finalState.slice(offset, offset + 200)}`);
     }
-    PreloadGenEnd(`smashcraft-frame-cost-${source}-p${I2S(GetPlayerId(GetLocalPlayer()))}-typescript.txt`);
+    PreloadGenEnd(frameCostFile(source, GetPlayerId(GetLocalPlayer()), "typescript"));
     BJDebugMsg(`Benchmark: ${I2S(result.frames)} frames, ${R2SW(result.totalSeconds, 12, 6)} seconds`);
   });
 }

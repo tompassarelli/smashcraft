@@ -1,10 +1,10 @@
 // Linux evdev and uinput records for the virtual pads the integrity capture
 // drives. The layouts are the kernel's LP64 (x86-64, arm64) ABI.
 
-export const EV_SYN = 0;
+const EV_SYN = 0;
 export const EV_KEY = 1;
 export const EV_ABS = 3;
-export const SYN_REPORT = 0;
+const SYN_REPORT = 0;
 
 export const BTN_SOUTH = 0x130;
 export const BTN_EAST = 0x131;
@@ -17,8 +17,8 @@ export const BTN_START = 0x13b;
 export const ABS_X = 0;
 export const ABS_Y = 1;
 export const ABS_Z = 2;
-export const ABS_RX = 3;
-export const ABS_RY = 4;
+const ABS_RX = 3;
+const ABS_RY = 4;
 export const ABS_RZ = 5;
 
 /** One raw controller transition as the kernel reports it. */
@@ -32,9 +32,9 @@ function iow(number: number, size = 4): number {
   return ((1 << 30) | (size << 16) | (0x55 << 8) | number) >>> 0;
 }
 
-export const UI_SET_EVBIT = iow(100);
-export const UI_SET_KEYBIT = iow(101);
-export const UI_SET_ABSBIT = iow(103);
+const UI_SET_EVBIT = iow(100);
+const UI_SET_KEYBIT = iow(101);
+const UI_SET_ABSBIT = iow(103);
 export const UI_DEV_CREATE = 0x5501;
 export const UI_DEV_DESTROY = 0x5502;
 /** UI_GET_SYSNAME(80): the created device's sysfs name, such as input42. */
@@ -49,7 +49,7 @@ const ABS_CNT = 0x40;
 const PAD_NAME = "Smashcraft Event Retention Virtual Gamepad";
 /** Buttons of an integrity pad: A, B, Y, X, LB, RB and Start. */
 export const PAD_BUTTONS = [BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_TL, BTN_TR, BTN_START] as const;
-export const PAD_AXES = [ABS_X, ABS_Y, ABS_Z, ABS_RX, ABS_RY, ABS_RZ] as const;
+const PAD_AXES = [ABS_X, ABS_Y, ABS_Z, ABS_RX, ABS_RY, ABS_RZ] as const;
 
 /** The ioctl requests and arguments that declare a pad's capabilities, in order. */
 export function padCapabilities(buttons: readonly number[]): readonly (readonly [request: number, argument: number])[] {
