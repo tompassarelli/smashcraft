@@ -862,16 +862,16 @@ function tiltDamageAt(int style, int facing, real targetX, real targetZ) returns
 @Test function tiltsAreLighterAndRecoverSoonerThanSmashes()
 	for style = 6 to 8
 		damageFromOneAttack(style).assertLessThan(damageFromOneAttack(4))
-		attackRecoveryFrames(style, true).assertLessThan(attackRecoveryFrames(2, true))
-		attackRecoveryFrames(style, true).assertLessThan(attackRecoveryFrames(3, true))
-		attackRecoveryFrames(style, true).assertLessThan(attackRecoveryFrames(4, true))
+		attackRecoveryFrames(0, style, true).assertLessThan(attackRecoveryFrames(0, 2, true))
+		attackRecoveryFrames(0, style, true).assertLessThan(attackRecoveryFrames(0, 3, true))
+		attackRecoveryFrames(0, style, true).assertLessThan(attackRecoveryFrames(0, 4, true))
 
 @Test function angledForwardTiltsShareFlatForwardTiltTimingDamageAndRecovery()
 	for style = 9 to 10
 		attackStartupFrames(style).assertEquals(attackStartupFrames(6))
 		attackActiveFrames(style).assertEquals(attackActiveFrames(6))
 		attackDurationFrames(style).assertEquals(attackDurationFrames(6))
-		attackRecoveryFrames(style, true).assertEquals(attackRecoveryFrames(6, true))
+		attackRecoveryFrames(0, style, true).assertEquals(attackRecoveryFrames(0, 6, true))
 
 @Test function aerialNormalsHaveDistinctPhasesAndLandingLag()
 	for style = AERIAL_NEUTRAL_STYLE to AERIAL_DOWN_STYLE

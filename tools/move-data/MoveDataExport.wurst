@@ -1,0 +1,54 @@
+package MoveDataExport
+import MoveData
+import Simulation
+import MeleeContactGeometry
+
+function number(real value) returns string
+    return R2SW(value, 0, 12)
+
+function capsuleJson(meleeCapsule c) returns string
+    return "{\"x1\":" + number(c.x1) + ",\"z1\":" + number(c.z1) + ",\"x2\":" + number(c.x2) + ",\"z2\":" + number(c.z2) + ",\"radius\":" + number(c.radius) + "}"
+
+function identity(int character, int style, int charge) returns string
+    return "\"character\":" + I2S(character) + ",\"move\":\"" + normalMoveName(style) + "\",\"style\":" + I2S(style) + ",\"chargeFrames\":" + I2S(charge)
+
+function emitMove(int character, int style, int charge)
+    let timing = normalMoveTiming(character, style)
+    let key = identity(character, style, charge)
+    BJDebugMsg("{\"kind\":\"move\"," + key + ",\"startup\":" + I2S(timing.startup) + ",\"active\":" + I2S(timing.active) + ",\"recovery\":" + I2S(timing.recovery) + ",\"totalUnpaused\":" + I2S(timing.total) + ",\"landingLag\":" + I2S(attackLandingLag(style)) + ",\"observedLandingLag\":" + I2S(observedNormalLandingLag(character, style, false)) + ",\"observedLCancelLandingLag\":" + I2S(observedNormalLandingLag(character, style, true)) + ",\"lCancelWindow\":" + I2S(L_CANCEL_WINDOW_FRAMES) + ",\"chargeDamageMultiplier\":" + number(isSmashAttack(style) ? smashDamageMultiplier(charge) : 1.) + ",\"hurtCapsule\":" + capsuleJson(authoredFighterHurtCapsule(character)) + ",\"autocancelWindows\":null,\"animationHurtboxes\":null}")
+    for frame = 0 to timing.total - 1
+        for regionIndex = 0 to authoredHitRegionCount(style) - 1
+            let hit = authoredHitRegion(character, style, frame, charge, regionIndex)
+            if hit.window > 0
+                let data = hit.hitData
+                let kb = ordinaryHitKnockback(0, data.damage, 100, data.growth, data.base, 1)
+                BJDebugMsg("{\"kind\":\"contact\"," + key + ",\"frame\":" + I2S(frame) + ",\"region\":" + I2S(regionIndex) + ",\"window\":" + I2S(hit.window) + ",\"damage\":" + number(data.damage) + ",\"growth\":" + number(data.growth) + ",\"baseKnockback\":" + number(data.base) + ",\"launchX\":" + number(data.launchX) + ",\"launchZ\":" + number(data.launchZ) + ",\"angleDegrees\":" + number(Atan2(data.launchZ, data.launchX) * bj_RADTODEG) + ",\"electric\":" + (data.electric ? "true" : "false") + ",\"envelope\":[" + number(hit.minX) + "," + number(hit.maxX) + "," + number(hit.minZ) + "," + number(hit.maxZ) + "],\"hitCapsule\":" + capsuleJson(normalMoveCapsule(character, style, frame, charge, regionIndex)) + ",\"derived\":{\"knockback\":" + number(kb) + ",\"hitstun\":" + I2S(ordinaryHitstunFrames(kb)) + ",\"attackerHitlag\":" + I2S(ordinaryHitlagFrames(data.damage)) + ",\"victimHitlag\":" + I2S(victimHitlagFrames(data.damage, data.electric, false)) + ",\"digitalShieldDamage\":" + number(digitalShieldDamage(data.damage)) + ",\"digitalShieldstun\":" + I2S(digitalShieldstunFrames(data.damage)) + ",\"digitalShieldPushback\":" + number(digitalShieldPushback(data.damage)) + ",\"digitalShieldRecoil\":" + number(digitalShieldRecoil(data.damage)) + "}}")
+
+function emitMotion(int character, int style)
+    let fighter = new FighterState(character, 0, 1)
+    let world = new FighterRoster(1)
+    let input = new InputSnapshot()
+    world.fighters[0] = fighter
+    fighter.grounded = not isAerialAttack(style)
+    fighter.surface = fighter.grounded ? 0 : -1
+    fighter.z = fighter.grounded ? 0. : 700.
+    let startZ = fighter.z
+    beginFighterAttack(world, 0, style, false)
+    let total = normalMoveTiming(character, style).total
+    for elapsed = 0 to total
+        BJDebugMsg("{\"kind\":\"motion\"," + identity(character, style, 0) + ",\"elapsed\":" + I2S(elapsed) + ",\"attackFrame\":" + I2S(fighter.attackFrame) + ",\"attackStyle\":" + I2S(fighter.attackStyle) + ",\"phase\":" + I2S(attackPhase(fighter)) + ",\"x\":" + number(fighter.x) + ",\"zDisplacement\":" + number(fighter.z - startZ) + ",\"vx\":" + number(fighter.vx) + ",\"vz\":" + number(fighter.vz) + ",\"grounded\":" + (fighter.grounded ? "true" : "false") + ",\"canAttack\":" + (canAttack(fighter) ? "true" : "false") + "}")
+        if elapsed < total
+            advance(fighter, 0, input, 0)
+    destroy input
+    destroy world
+    destroy fighter
+
+init
+    BJDebugMsg("{\"kind\":\"context\",\"schema\":1,\"roster\":[\"Archer\",\"Rifleman\",\"Demon Hunter\"],\"units\":\"simulation world units; frames are zero-based attack ticks, excluding charge/hitlag pauses\",\"derivedContext\":{\"preHitPercent\":0,\"victimWeight\":100,\"contextScale\":1,\"shieldStrength\":1,\"crouching\":false,\"di\":\"none; launch vector is authored before DI\",\"simultaneousContacts\":false},\"motionContext\":{\"stage\":0,\"x\":0,\"groundStartZ\":0,\"aerialStartZ\":700,\"initialVelocity\":[0,0],\"facing\":1,\"input\":\"neutral\",\"contacts\":false,\"chargeFrames\":0},\"conditions\":{\"selection\":\"lowest contacting region index wins; body capsule intersection or shield intersection\",\"rehit\":\"one hit per attacker/attack serial/window; a higher window permits another hit\",\"smashCharge\":\"grounded held attack pauses before first active frame; endpoints exported\",\"start\":\"beginFighterAttack enforces grounding and canStartAttackStyle; motion fixture starts idle\",\"landing\":\"aerial landing cancels attack; no autocancel window represented\"},\"unknown\":[\"reference corpus mapping\",\"reachable punishments\",\"DI/contact/spacing dependent matchup outcomes\",\"animation-specific hurtboxes\",\"autocancel windows\"],\"maxChargeFrames\":" + I2S(SMASH_MAX_CHARGE_FRAMES) + "}")
+    for character = 0 to 2
+        for style = 0 to AERIAL_DOWN_STYLE
+            if exportedNormalMove(style)
+                emitMove(character, style, 0)
+                if isSmashAttack(style)
+                    emitMove(character, style, SMASH_MAX_CHARGE_FRAMES)
+                emitMotion(character, style)

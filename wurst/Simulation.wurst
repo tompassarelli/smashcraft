@@ -1348,7 +1348,7 @@ function attackDamage(int style) returns real
 		return 8
 	return 12
 
-function isSmashAttack(int style) returns boolean
+public function isSmashAttack(int style) returns boolean
 	return style >= 2 and style <= 4
 
 public function smashDamageMultiplier(int chargeFrames) returns real
@@ -1469,8 +1469,8 @@ public function attackDurationFramesForGrounding(int style, boolean grounded) re
 		return 38
 	return style == DOWN_ATTACK_STYLE ? DOWN_ATTACK_FRAMES : (style == 1 ? (grounded ? 24 : 15) : (style == 2 or style == 3 ? 42 : (style == 6 or style == 8 or style == 9 or style == 10 ? 28 : (style == 7 ? 29 : 36))))
 
-public function attackRecoveryFrames(int style, boolean grounded) returns int
-	return attackDurationFramesForGrounding(style, grounded) - attackStartupFrames(style) - attackActiveFrames(style)
+public function attackRecoveryFrames(int character, int style, boolean grounded) returns int
+	return attackDurationFramesForGrounding(style, grounded) - attackStartupFrames(style) - characterAttackActiveFrames(character, style)
 
 public function attackPhase(FighterState f) returns int
 	if f.attackStyle < 0
@@ -1695,7 +1695,7 @@ public function finishDamageContacts(FighterRoster world)
 	damageContactCount = 0
 	collectingDamageContacts = false
 
-tuple hitRegion(real minX, real maxX, real minZ, real maxZ, hitEffect hitData, int window)
+public tuple hitRegion(real minX, real maxX, real minZ, real maxZ, hitEffect hitData, int window)
 
 function noHitRegion() returns hitRegion
 	return hitRegion(0, 0, 0, 0, hitEffect(0, 0, 0, 0, 0, false), 0)
@@ -1717,7 +1717,7 @@ function meleeHitIntersectsShield(FighterState attacker, FighterState target, hi
 // Bounds are provisional facing-relative reach envelopes for the authored move.
 // Lower region indices win overlaps. Window zero means no authored contact;
 // increasing positive windows explicitly permit a later hit of the same target.
-function authoredHitRegion(int character, int style, int frame, int chargeFrames, int index) returns hitRegion
+public function authoredHitRegion(int character, int style, int frame, int chargeFrames, int index) returns hitRegion
 	if style < 0 or style == 1 or frame < attackStartupFrames(style) or frame >= attackStartupFrames(style) + characterAttackActiveFrames(character, style)
 		return noHitRegion()
 	// Character 2 has an explicit authored region for each shared ground/aerial
@@ -1799,6 +1799,9 @@ function authoredHitRegion(int character, int style, int frame, int chargeFrames
 	let verticalOffset = style == 9 ? 65. : (style == 10 ? -65. : 0.)
 	return hitRegion(style == DOWN_ATTACK_STYLE ? -attackReach(style) : 0, attackReach(style), verticalOffset - 130, verticalOffset + 130, hitData, 1)
 
+public function authoredHitRegionCount(int style) returns int
+	return style == 6 ? 2 : 1
+
 function selectHitRegion(FighterState attacker, FighterState target) returns hitRegion
 	if attacker.out or attacker.hitlag > 0 or target.out or isIntangible(target)
 		return noHitRegion()
@@ -1816,7 +1819,7 @@ function selectHitRegion(FighterState attacker, FighterState target) returns hit
 			localZ >= grab.minZ and localZ <= grab.maxZ
 			return grab
 		return noHitRegion()
-	for index = 0 to (attacker.attackStyle == 6 ? 1 : 0)
+	for index = 0 to authoredHitRegionCount(attacker.attackStyle) - 1
 		let hitBox = authoredHitRegion(attacker.character, attacker.attackStyle, attacker.attackFrame, attacker.smashChargeFrames, index)
 		let alreadyHit = alreadyHitRegion(attacker, target, hitBox.window)
 		let attackCapsule = regionAttackCapsule(attacker, hitBox)

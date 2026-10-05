@@ -1,0 +1,27 @@
+package MoveDataTests
+import Wurstunit
+import Simulation
+import MoveData
+
+// Exercise the query against real contact resolution, not generated JSON fields.
+@Test function normalMoveExportMatchesProductionContactAndCharacterRecovery()
+    for character = 0 to 2
+        let attacker = new FighterState(character, 0, 1)
+        let target = new FighterState(1, 60, -1)
+        let world = new FighterRoster(3)
+        world.fighters[0] = attacker
+        world.fighters[1] = target
+        beginFighterAttack(world, 0, 0, false)
+        attacker.attackFrame = attackStartupFrames(0)
+        let contact = authoredHitRegion(character, 0, attacker.attackFrame, 0, 0)
+        resolveAttacks(world)
+        target.damage.assertEquals(contact.hitData.damage)
+        target.damage.assertEquals(character == 2 ? 5. : 12.)
+        destroy world
+        destroy target
+        destroy attacker
+    normalMoveTiming(0, AERIAL_DOWN_STYLE).recovery.assertEquals(11)
+    normalMoveTiming(1, AERIAL_DOWN_STYLE).recovery.assertEquals(28)
+    normalMoveTiming(2, AERIAL_DOWN_STYLE).recovery.assertEquals(28)
+    observedNormalLandingLag(0, AERIAL_NEUTRAL_STYLE, false).assertEquals(10)
+    observedNormalLandingLag(0, AERIAL_NEUTRAL_STYLE, true).assertEquals(5)

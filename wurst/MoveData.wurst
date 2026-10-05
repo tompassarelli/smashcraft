@@ -1,0 +1,67 @@
+package MoveData
+import Simulation
+import MeleeContactGeometry
+
+// Action IDs are shared with Simulation; this names the exported normal moves.
+public function exportedNormalMove(int style) returns boolean
+    return style == 0 or isSmashAttack(style) or (style >= 6 and style <= 10) or isAerialAttack(style)
+
+public function normalMoveName(int style) returns string
+    if style == 0
+        return "jab"
+    if style == 2
+        return "up-smash"
+    if style == 3
+        return "down-smash"
+    if style == 4
+        return "forward-smash"
+    if style == 6
+        return "forward-tilt"
+    if style == 7
+        return "up-tilt"
+    if style == 8
+        return "down-tilt"
+    if style == 9
+        return "forward-tilt-up"
+    if style == 10
+        return "forward-tilt-down"
+    if style == AERIAL_NEUTRAL_STYLE
+        return "neutral-air"
+    if style == AERIAL_FORWARD_STYLE
+        return "forward-air"
+    if style == AERIAL_BACK_STYLE
+        return "back-air"
+    if style == AERIAL_UP_STYLE
+        return "up-air"
+    return "down-air"
+
+public tuple moveTiming(int startup, int active, int recovery, int total)
+
+public function normalMoveTiming(int character, int style) returns moveTiming
+    let startup = attackStartupFrames(style)
+    let active = characterAttackActiveFrames(character, style)
+    let total = attackDurationFramesForGrounding(style, not isAerialAttack(style))
+    return moveTiming(startup, active, attackRecoveryFrames(character, style, not isAerialAttack(style)), total)
+
+public function normalMoveCapsule(int character, int style, int frame, int charge, int regionIndex) returns meleeCapsule
+    let contact = authoredHitRegion(character, style, frame, charge, regionIndex)
+    return authoredAttackCapsule(style, contact.minX, contact.maxX, contact.minZ, contact.maxZ)
+
+// Read the actual landing transition instead of restating its L-cancel rule.
+public function observedNormalLandingLag(int character, int style, boolean cancel) returns int
+    if not isAerialAttack(style)
+        return 0
+    let fighter = new FighterState(character, 0, 1)
+    let input = new InputSnapshot()
+    fighter.grounded = false
+    fighter.z = 1
+    fighter.vz = -2
+    fighter.attackStyle = style
+    fighter.attackDuration = normalMoveTiming(character, style).total
+    fighter.cooldown = fighter.attackDuration
+    input.lCancelPressed = cancel
+    advance(fighter, 0, input, 0)
+    let result = fighter.landingLag
+    destroy input
+    destroy fighter
+    return result
