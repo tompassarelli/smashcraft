@@ -10,6 +10,8 @@ test("hot reload requires at least one non-empty client data directory", async (
 });
 
 test("hot reload accepts only a complete finite acknowledgement record", () => {
+  const nativeFile = 'function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( "applied 42 at 621.2031" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n';
+  expect(acknowledgementVersion(nativeFile)).toBe(42);
   expect(acknowledgementVersion('call Preload( "applied 12 at 0.375" )')).toBe(12);
   expect(acknowledgementVersion('call Preload( "applied -1 at 0.375" )')).toBeUndefined();
   expect(acknowledgementVersion('call Preload( "applied 12 at Infinity" )')).toBeUndefined();

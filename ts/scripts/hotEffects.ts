@@ -30,7 +30,7 @@ export const validateDataDirectories = (input: readonly string[]) =>
   );
 
 export function acknowledgementVersion(contents: string): number | undefined {
-  const match = /^call Preload\( "applied (\d+) at ([^"]+)" \)$/.exec(contents.trim());
+  const match = /^\s*call Preload\( "applied (\d+) at ([^"\r\n]+)" \)[\t ]*\r?$/m.exec(contents);
   if (match === null) return undefined;
   const decoded = Schema.decodeUnknownOption(Acknowledgement)({ version: match[1], elapsed: match[2] });
   return Option.isSome(decoded) ? decoded.value.version : undefined;
