@@ -152,9 +152,11 @@ export const captureMatches = (options: CaptureOptions) =>
         const pad = yield* openPad(PAD_BUTTONS);
         pads.push(pad);
         observers.push(yield* observeDevice(pad.device, join(out, `kernel-${slot}.jsonl`)));
+        // A playable candidate's helper runs exactly as its player guide starts it.
         helpers.push(yield* startHelper([
-          options.helper, "--device", pad.device, "--out", data[slot], "--follow-matches", "--build", build, "--slot", String(slot), "--trace",
+          options.helper, "--follow-matches", "--build", build, "--slot", String(slot), "--device", pad.device, "--out", data[slot],
           "--editbox-display", client.x11.DISPLAY ?? "", "--x11-window", client.window, "--pid", String(gamePids[slot]), "--private-wlr-app-id", appIds[slot],
+          ...(options.workload === "playable" ? [] : ["--trace"]),
         ], { ...Bun.env, ...client.x11, ...client.wayland }, join(out, `helper-${slot}.log`)));
       }
       const producerPath = join(out, "producer.jsonl");
@@ -181,8 +183,9 @@ export const captureMatches = (options: CaptureOptions) =>
           build,
           clients: SLOTS.map((slot) => ({ name: clients[slot].name, data: data[slot], window: clients[slot].window, pid: gamePids[slot], app_id: appIds[slot] })),
         },
-        input_integrity: options.workload !== "match",
+        input_integrity: options.workload === undefined,
         four_fighters: options.fourFighters,
+        playable: options.workload === "playable",
         sweep: options.sweep.length > 0 ? options.sweep : null,
         epochs: options.epochs,
         helper_pids: helpers.map((helper) => helper.pid),
@@ -190,6 +193,8 @@ export const captureMatches = (options: CaptureOptions) =>
         helper_sha256: helperSha256,
         scope: options.workload === "match"
           ? "Same-host two-client native one-minute match/rematch with two players and two CPUs, slot change and final checksums; persistent Linux virtual-pad helpers."
+          : options.workload === "playable"
+          ? "Same-host two-client native one-stock match/rematch of a playable candidate; each match ends when one player walks off; persistent Linux virtual-pad helpers started as the player guide describes."
           : SCOPE,
       })));
     }));
