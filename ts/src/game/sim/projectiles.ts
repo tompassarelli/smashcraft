@@ -10,7 +10,7 @@ import { type Fighter, PROJECTILE_CAPACITY, type Projectile } from "./fighter";
 import { emptyHitEffect } from "./hitRegions";
 import { demonHunterParryIsActive, resolveDemonHunterParry } from "./hits";
 import { attackDamage } from "./moves";
-import { INPUT_PARTICIPANT_CAPACITY } from "./participants";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { SHIELD_PROJECTILE_DAMAGE_MULTIPLIER, SHIELD_PROJECTILE_SPEED_MULTIPLIER, SHIELD_REFLECTOR_RADIUS_FACTOR, shieldCircleIntersects } from "./shield";
 
@@ -142,7 +142,7 @@ function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile,
   const highZ = f32(max(oldZ, projectile.z) + BLASTER_PROJECTILE_HALF_HEIGHT);
   let nearest: number | undefined;
   let distance = 0.0;
-  for (let targetSlot = 0; targetSlot < INPUT_PARTICIPANT_CAPACITY; targetSlot++) {
+  for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
     if (!isActive(world, targetSlot) || targetSlot === ownerSlot || targets.out[targetSlot] || targets.intangible[targetSlot]) continue;
     const target = fighterAt(world, targetSlot);
     const targetX = targets.x[targetSlot]!;
@@ -174,7 +174,7 @@ const selected = { reflector: false, shield: false };
  */
 export function updateProjectiles(world: Roster): void {
   const ownsBatch = openDamageContacts();
-  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
     const target = fighterAt(world, slot);
     targets.x[slot] = target.motion.x;
@@ -182,7 +182,7 @@ export function updateProjectiles(world: Roster): void {
     targets.out[slot] = target.status.out;
     targets.intangible[slot] = isIntangible(target);
   }
-  for (let ownerSlot = 0; ownerSlot < INPUT_PARTICIPANT_CAPACITY; ownerSlot++) {
+  for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;
     const owner = fighterAt(world, ownerSlot);
     for (const projectile of owner.projectiles) {
@@ -200,7 +200,7 @@ export function updateProjectiles(world: Roster): void {
       }
     }
   }
-  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
     for (const projectile of fighterAt(world, slot).projectiles) projectile.newlyReflected = false;
   }

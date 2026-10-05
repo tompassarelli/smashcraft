@@ -5,7 +5,7 @@ import { ContactKind, GrabAction } from "./codes";
 import { finishDamageContacts, openDamageContacts, queueDamageContact } from "./contacts";
 import { emptyHitEffect } from "./hitRegions";
 import { GRAB_HOLD_DISTANCE, grabActionDuration, grabContactFrame } from "./moves";
-import { INPUT_PARTICIPANT_CAPACITY } from "./participants";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./roster";
 import { beginGrabAction, clearGrabLinks } from "./transitions";
 
@@ -125,7 +125,7 @@ function advanceGrab(world: Roster, ownerSlot: number, ownerInput: Readonly<Cont
 /** Advances every grab; hitlag on either end, captured beforehand, pauses it. */
 export function advanceGrabs(world: Roster, controls: readonly Readonly<Controls>[]): void {
   const ownsBatch = openDamageContacts();
-  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
     const target = fighterAt(world, slot).grab.target;
     const heldSlot = target !== undefined && isActive(world, target) ? target : undefined;
@@ -138,7 +138,7 @@ export function advanceGrabs(world: Roster, controls: readonly Readonly<Controls
 }
 
 export function captureGrabPauses(world: Roster): void {
-  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     world.grabPaused[slot] = isActive(world, slot) && fighterAt(world, slot).launch.hitlag > 0;
   }
 }
@@ -149,7 +149,7 @@ export function captureGrabPauses(world: Roster): void {
  * contacts to anchor a newly caught pair.
  */
 export function resolveGrabs(world: Roster): void {
-  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (isActive(world, slot)) resolveHeldTarget(world, slot);
   }
 }

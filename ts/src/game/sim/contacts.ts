@@ -18,7 +18,7 @@ import {
   ordinaryHitstunFrames,
   victimHitlagFrames,
 } from "./knockback";
-import { INPUT_PARTICIPANT_CAPACITY } from "./participants";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import {
   SHIELD_BREAK_RESTORED_ENERGY,
@@ -267,7 +267,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
 
 /** Resolves every active target's contacts in slot order and closes the batch. */
 export function finishDamageContacts(world: Roster): void {
-  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (isActive(world, slot)) resolveDamageContacts(world, slot);
   }
   batch.count = 0;

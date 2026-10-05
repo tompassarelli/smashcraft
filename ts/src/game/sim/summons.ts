@@ -7,7 +7,7 @@ import { canAttack, isIntangible } from "./conditions";
 import type { Fighter } from "./fighter";
 import { applyAttackHit } from "./hits";
 import { DIAGONAL_UNIT } from "./knockback";
-import { INPUT_PARTICIPANT_CAPACITY } from "./participants";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
 import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, clearLedge, clearOwnedFreezeTrap } from "./transitions";
@@ -24,7 +24,7 @@ const BEAR_SWIPE = { damage: 6.0, growth: 90.0, base: 18.0, launchX: DIAGONAL_UN
 const HIPPOGRYPH_STRIKE = { damage: 8.0, growth: 100.0, base: 22.0, launchX: DIAGONAL_UNIT, launchZ: DIAGONAL_UNIT, electric: false } as const;
 
 export function specialAlreadyHit(owner: Fighter, targetSlot: number): boolean {
-  for (let entry = 0; entry < INPUT_PARTICIPANT_CAPACITY; entry++) {
+  for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) {
     if (owner.special.hitTargets[entry] === targetSlot) return true;
   }
   return false;
@@ -33,7 +33,7 @@ export function specialAlreadyHit(owner: Fighter, targetSlot: number): boolean {
 export function recordSpecialHit(owner: Fighter, targetSlot: number): void {
   owner.special.hit = true;
   const targets = owner.special.hitTargets;
-  for (let entry = 0; entry < INPUT_PARTICIPANT_CAPACITY; entry++) {
+  for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) {
     const recorded = targets[entry];
     if (recorded === undefined || recorded === targetSlot) {
       targets[entry] = targetSlot;
@@ -104,16 +104,16 @@ const trapScratch = { triggers: [false, false, false, false], freezes: [false, f
  */
 export function advanceFreezeTraps(world: Roster): void {
   const { triggers, freezes } = trapScratch;
-  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     triggers[slot] = false;
     freezes[slot] = false;
   }
-  for (let ownerSlot = 0; ownerSlot < INPUT_PARTICIPANT_CAPACITY; ownerSlot++) {
+  for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;
     const owner = fighterAt(world, ownerSlot);
     let nearest: number | undefined;
     let distance = 0.0;
-    for (let targetSlot = 0; targetSlot < INPUT_PARTICIPANT_CAPACITY; targetSlot++) {
+    for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
       if (!isActive(world, targetSlot) || targetSlot === ownerSlot) continue;
       const target = fighterAt(world, targetSlot);
       if (!trapCanContact(owner, target)) continue;
@@ -128,10 +128,10 @@ export function advanceFreezeTraps(world: Roster): void {
       freezes[nearest] = freezes[nearest]! || !fighterAt(world, nearest).shield.raised;
     }
   }
-  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (isActive(world, slot) && triggers[slot]) clearOwnedFreezeTrap(fighterAt(world, slot));
   }
-  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (isActive(world, slot) && freezes[slot]) freezeFromTrap(world, slot);
   }
 }
@@ -157,7 +157,7 @@ export function advanceBear(world: Roster, ownerSlot: number, stage: number): vo
   }
   if (bear.swipeCooldown <= 0) {
     let hit = false;
-    for (let targetSlot = 0; targetSlot < INPUT_PARTICIPANT_CAPACITY; targetSlot++) {
+    for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
       if (!isActive(world, targetSlot) || targetSlot === ownerSlot) continue;
       const target = fighterAt(world, targetSlot);
       if (target.status.out || isIntangible(target) || Math.abs(f32(target.motion.x - bear.x)) > 70 || Math.abs(f32(target.motion.z - bear.z)) > 100) continue;
@@ -185,7 +185,7 @@ export function advanceHippogryph(world: Roster, ownerSlot: number): void {
     const oldX = hippogryph.x;
     hippogryph.x = f32(hippogryph.x + hippogryph.velocityX);
     hippogryph.z = f32(hippogryph.z + hippogryph.velocityZ);
-    for (let targetSlot = 0; targetSlot < INPUT_PARTICIPANT_CAPACITY; targetSlot++) {
+    for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
       if (!isActive(world, targetSlot) || targetSlot === ownerSlot) continue;
       const target = fighterAt(world, targetSlot);
       if (hippogryph.kind !== HippogryphKind.strike || specialAlreadyHit(owner, targetSlot) || target.status.out || isIntangible(target)) continue;

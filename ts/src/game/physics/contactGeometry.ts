@@ -87,7 +87,7 @@ export function placeCapsule(target: Capsule, local: Readonly<Capsule>, originX:
  * region's reach. The move sets the strike's direction: a tall reach doesn't
  * make a jab a vertical strike.
  */
-export function attackCapsule(target: Capsule, style: number, reach: Reach): Capsule {
+export function attackCapsule(target: Capsule, style: number | undefined, reach: Reach): Capsule {
   const { minX, maxX, minZ, maxZ } = reach;
   if (style === 0) { // jab
     target.x1 = 0.0;

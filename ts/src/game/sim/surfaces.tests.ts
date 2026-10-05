@@ -1,3 +1,4 @@
+import { TECH_WINDOW_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../physics/techInput";
 // Solid stage surfaces, tumble rebounds, wall and ceiling techs, and the
 // decoded common recovery values.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "../../runtime/testing";
@@ -5,7 +6,7 @@ import { roundToFloat32 } from "../../sim/binary32";
 import { f32 } from "../../sim/f32";
 import { Character, DownState, SurfaceContact } from "./codes";
 import { WALL_TECH_STARTUP_FRAMES, canAttack, isIntangible } from "./conditions";
-import { DOWN_DAMAGE_RESET_THRESHOLD, DOWN_WAIT_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES, TECH_WINDOW_FRAMES } from "./down";
+import { DOWN_DAMAGE_RESET_THRESHOLD, DOWN_WAIT_FRAMES } from "./down";
 import { type Fighter, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, createFighter } from "./fighter";
 import { simulationAirDodge, simulationJump } from "./jumpsAndDodges";
 import { MAX_GROUNDED_KNOCKBACK_ON_LANDING } from "./knockback";

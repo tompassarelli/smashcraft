@@ -5,7 +5,7 @@
 export const TECH_WINDOW_FRAMES = 20;
 export const TECH_REPEAT_MINIMUM_AGE_FRAMES = 40;
 /** Ages saturate here; every age past the lockout means the same. */
-const AGE_LIMIT = 255;
+export const TECH_PRESS_AGE_LIMIT = 255;
 
 export interface TechInput {
   pressAge: number;
@@ -16,12 +16,12 @@ export interface TechInput {
 }
 
 export function emptyTechInput(): TechInput {
-  return { pressAge: AGE_LIMIT, previousPressAge: AGE_LIMIT, accumulatedPress: false };
+  return { pressAge: TECH_PRESS_AGE_LIMIT, previousPressAge: TECH_PRESS_AGE_LIMIT, accumulatedPress: false };
 }
 
 export function clearTechInput(state: TechInput): void {
-  state.pressAge = AGE_LIMIT;
-  state.previousPressAge = AGE_LIMIT;
+  state.pressAge = TECH_PRESS_AGE_LIMIT;
+  state.previousPressAge = TECH_PRESS_AGE_LIMIT;
   state.accumulatedPress = false;
 }
 
@@ -32,7 +32,7 @@ export function advanceTechInput(state: TechInput, freshPress: boolean, frozen: 
     state.previousPressAge = state.pressAge;
     state.pressAge = 0;
   } else {
-    state.pressAge = Math.min(AGE_LIMIT, state.pressAge + 1);
+    state.pressAge = Math.min(TECH_PRESS_AGE_LIMIT, state.pressAge + 1);
   }
   state.accumulatedPress = frozen && pressed;
 }

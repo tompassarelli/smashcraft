@@ -9,11 +9,11 @@ import type { Fighter } from "./fighter";
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, copyHitRegion, emptyHitRegion } from "./hitRegions";
 import { applyAttackHit } from "./hits";
 import { attackReach, isAerialAttack } from "./moves";
-import { INPUT_PARTICIPANT_CAPACITY } from "./participants";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { spawnProjectile } from "./projectiles";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
-import { authoredAttackCapsule, authoredFighterHurtCapsule, emptyCapsule, meleeCapsulesIntersect, mirrorMeleeCapsule } from "./temporaryContactGeometry";
+import { attackCapsule, hurtCapsule, emptyCapsule, capsulesIntersect, placeCapsule } from "../physics/contactGeometry";
 import { beginAttack } from "./transitions";
 
 const GRAB_REACH = attackReach(AttackStyle.grab);
@@ -28,11 +28,11 @@ const DASH_GRAB_REGION: Readonly<HitRegion> = {
 
 // Preallocated: hit selection builds these capsules for every pair every frame.
 const strikeCapsule = emptyCapsule();
-const hurtCapsule = emptyCapsule();
+const targetCapsule = emptyCapsule();
 
 function placeStrikeCapsule(attacker: Fighter, region: Readonly<HitRegion>): void {
-  authoredAttackCapsule(strikeCapsule, attacker.attack.style, region.minX, region.maxX, region.minZ, region.maxZ);
-  mirrorMeleeCapsule(strikeCapsule, attacker.motion.x, attacker.motion.z, attacker.facing);
+  attackCapsule(strikeCapsule, attacker.attack.style, region);
+  placeCapsule(strikeCapsule, strikeCapsule, attacker.motion.x, attacker.motion.z, attacker.facing);
 }
 
 /** Whether the region's strike path touches the target's raised shield. */
@@ -99,9 +99,8 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
     authoredHitRegion(out, attacker.character, attack.style, attack.frame, attack.smashChargeFrames, index);
     if (out.window <= 0 || alreadyHitRegion(attackerSlot, attacker, target, out.window)) continue;
     placeStrikeCapsule(attacker, out);
-    authoredFighterHurtCapsule(hurtCapsule, target.character);
-    mirrorMeleeCapsule(hurtCapsule, target.motion.x, target.motion.z, 1);
-    if (meleeCapsulesIntersect(strikeCapsule, hurtCapsule) || meleeHitIntersectsShield(attacker, target, out)) return;
+    placeCapsule(targetCapsule, hurtCapsule(target.character), target.motion.x, target.motion.z, 1);
+    if (capsulesIntersect(strikeCapsule, targetCapsule) || meleeHitIntersectsShield(attacker, target, out)) return;
   }
   copyHitRegion(out, NO_HIT_REGION);
 }
@@ -123,7 +122,7 @@ export function beginFighterAttack(world: Roster, slot: number, style: AttackSty
 
 // Preallocated per participant and per pair: rollback replays resolve attacks every frame.
 const scratch = {
-  contacts: Array.from({ length: INPUT_PARTICIPANT_CAPACITY * INPUT_PARTICIPANT_CAPACITY }, () => emptyHitRegion()),
+  contacts: Array.from({ length: PARTICIPANT_CAPACITY * PARTICIPANT_CAPACITY }, () => emptyHitRegion()),
   styles: [] as (AttackStyle | undefined)[],
   shots: [false, false, false, false],
   facings: [0, 0, 0, 0],
@@ -133,14 +132,14 @@ const scratch = {
 };
 
 function contactBetween(source: number, target: number): HitRegion {
-  return scratch.contacts[source * INPUT_PARTICIPANT_CAPACITY + target]!;
+  return scratch.contacts[source * PARTICIPANT_CAPACITY + target]!;
 }
 
 /** Resolves every active attack's contacts for the frame. */
 export function resolveAttacks(world: Roster): void {
   const ownsBatch = openDamageContacts();
   const { styles, shots, facings, clashed, choices, grabbed } = scratch;
-  for (let source = 0; source < INPUT_PARTICIPANT_CAPACITY; source++) {
+  for (let source = 0; source < PARTICIPANT_CAPACITY; source++) {
     if (!isActive(world, source)) continue;
     const f = fighterAt(world, source);
     styles[source] = f.attack.style;
@@ -149,15 +148,15 @@ export function resolveAttacks(world: Roster): void {
     clashed[source] = false;
     choices[source] = undefined;
     grabbed[source] = false;
-    for (let target = 0; target < INPUT_PARTICIPANT_CAPACITY; target++) {
+    for (let target = 0; target < PARTICIPANT_CAPACITY; target++) {
       if (isActive(world, target) && target !== source) selectHitRegion(world, source, target, contactBetween(source, target));
     }
   }
   // Mutual catches clash; competing catches choose the nearest available victim,
   // then slot order. Every fighter can belong to at most one grab link.
-  for (let source = 0; source < INPUT_PARTICIPANT_CAPACITY; source++) {
+  for (let source = 0; source < PARTICIPANT_CAPACITY; source++) {
     if (!isActive(world, source) || styles[source] !== AttackStyle.grab) continue;
-    for (let target = 0; target < INPUT_PARTICIPANT_CAPACITY; target++) {
+    for (let target = 0; target < PARTICIPANT_CAPACITY; target++) {
       if (!isActive(world, target) || target === source || styles[target] !== AttackStyle.grab) continue;
       const forward = contactBetween(source, target);
       if (forward.window > 0 && contactBetween(target, source).window > 0) {
@@ -167,12 +166,12 @@ export function resolveAttacks(world: Roster): void {
       }
     }
   }
-  for (let source = 0; source < INPUT_PARTICIPANT_CAPACITY; source++) {
+  for (let source = 0; source < PARTICIPANT_CAPACITY; source++) {
     if (!isActive(world, source) || styles[source] !== AttackStyle.grab || clashed[source] || grabbed[source]) continue;
     const sourceX = fighterAt(world, source).motion.x;
     let best: number | undefined;
     let distance = 0.0;
-    for (let target = 0; target < INPUT_PARTICIPANT_CAPACITY; target++) {
+    for (let target = 0; target < PARTICIPANT_CAPACITY; target++) {
       if (!isActive(world, target) || target === source || grabbed[target] || choices[target] !== undefined) continue;
       const victim = fighterAt(world, target);
       const candidate = Math.abs(f32(victim.motion.x - sourceX));
@@ -187,7 +186,7 @@ export function resolveAttacks(world: Roster): void {
       grabbed[best] = true;
     }
   }
-  for (let source = 0; source < INPUT_PARTICIPANT_CAPACITY; source++) {
+  for (let source = 0; source < PARTICIPANT_CAPACITY; source++) {
     const target = choices[source];
     if (!isActive(world, source) || target === undefined) continue;
     const contact = contactBetween(source, target);
@@ -196,7 +195,7 @@ export function resolveAttacks(world: Roster): void {
     recordHitRegion(source, attacker, victim, contact);
     applyAttackHit(world, source, target, AttackStyle.grab, facings[source]!, contact.effect, true, meleeHitIntersectsShield(attacker, victim, contact));
   }
-  for (let source = 0; source < INPUT_PARTICIPANT_CAPACITY; source++) {
+  for (let source = 0; source < PARTICIPANT_CAPACITY; source++) {
     if (!isActive(world, source) || grabbed[source]) continue;
     const f = fighterAt(world, source);
     const style = styles[source];
@@ -206,7 +205,7 @@ export function resolveAttacks(world: Roster): void {
       continue;
     }
     if (style === undefined || style === AttackStyle.grab) continue;
-    for (let target = 0; target < INPUT_PARTICIPANT_CAPACITY; target++) {
+    for (let target = 0; target < PARTICIPANT_CAPACITY; target++) {
       if (!isActive(world, target) || target === source) continue;
       const contact = contactBetween(source, target);
       if (contact.window <= 0) continue;

@@ -1,9 +1,9 @@
+import { TECH_WINDOW_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../physics/techInput";
 // Test fixtures only: rosters and controls for simulation tests. Every rule
 // still runs through the production functions.
 import { beginFighterAttack, resolveAttacks } from "./attacks";
 import { AttackStyle } from "./codes";
 import { beginDamageContacts, finishDamageContacts } from "./contacts";
-import { TECH_REPEAT_MINIMUM_AGE_FRAMES, TECH_WINDOW_FRAMES } from "./down";
 import type { Fighter } from "./fighter";
 import { advanceGrabs } from "./grabs";
 import type { HitEffect } from "./hitRegions";

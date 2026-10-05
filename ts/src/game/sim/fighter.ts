@@ -2,6 +2,7 @@
 // fighters are participant slots, so a rollback snapshot is a field-by-field
 // copy and code can be replaced while state is kept. Replay checksums write
 // an absent slot or surface as -1 at that boundary.
+import { type TechInput, emptyTechInput } from "../physics/techInput";
 import {
   type AttackStyle,
   Character,
@@ -16,7 +17,7 @@ import {
   SpecialAction,
   SurfaceContact,
 } from "./codes";
-import { INPUT_PARTICIPANT_CAPACITY } from "./participants";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type FighterTuning, authoredTuning } from "./tuning";
 
 export const PROJECTILE_CAPACITY = 16;
@@ -27,7 +28,6 @@ export const FAST_FALL_INPUT_WINDOW = 4;
 export const WALL_TECH_JUMP_INPUT_WINDOW_FRAMES = 20;
 export const STARTING_STOCKS = 3;
 /** A tech press age that is never inside a window; the input driver saturates at 255. */
-export const TECH_PRESS_AGE_LIMIT = 255;
 
 /**
  * A position or velocity kept in Melee units alongside its rounded world value.
@@ -262,11 +262,8 @@ export interface Down {
 }
 
 /** Tech input ages; they continue through frozen input frames. */
-export interface Tech {
+export interface Tech extends TechInput {
   window: number;
-  pressAge: number;
-  previousPressAge: number;
-  accumulatedPress: boolean;
 }
 
 /** Wall and ceiling contacts and the techs that recover from them. */
@@ -460,7 +457,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       smashChargeAllowed: false,
     },
     hits: {
-      entries: repeat(INPUT_PARTICIPANT_CAPACITY, () => ({ attacker: undefined, attackSerial: 0, window: 0 })),
+      entries: repeat(PARTICIPANT_CAPACITY, () => ({ attacker: undefined, attackSerial: 0, window: 0 })),
       lastAttacker: undefined,
       lastAttackSerial: undefined,
       lastWindow: 0,
@@ -475,7 +472,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       cooldowns: repeat(SPECIAL_ACTION_CAPACITY, () => 0),
       direction: 0,
       hit: false,
-      hitTargets: repeat<number | undefined>(INPUT_PARTICIPANT_CAPACITY, () => undefined),
+      hitTargets: repeat<number | undefined>(PARTICIPANT_CAPACITY, () => undefined),
     },
     projectiles: repeat(PROJECTILE_CAPACITY, () => emptyProjectile()),
     bear: { life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, swipeCooldown: 0, hitSerial: 0, surface: undefined },
@@ -484,7 +481,7 @@ export function createFighter(character: Character, startX: number, facing: numb
     dodge: { airDodging: false, airFrame: 0, airMotionFrames: 0, groundFrame: 0, groundDirection: 0, groundEntryFacing: 0 },
     landing: { lag: 0, lCancelWindow: 0, lCancelSerial: 0 },
     down: { state: DownState.none, frame: 0, direction: 0, waitRemaining: 0, faceUp: true },
-    tech: { window: 0, pressAge: TECH_PRESS_AGE_LIMIT, previousPressAge: TECH_PRESS_AGE_LIMIT, accumulatedPress: false },
+    tech: { ...emptyTechInput(), window: 0 },
     surfaceRecovery: {
       state: SurfaceContact.none,
       frame: 0,

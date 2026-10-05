@@ -5,14 +5,14 @@ import { f32 } from "../../sim/f32";
 import { idiv } from "../../sim/intMath";
 import { Character, DamageLanding, DownState } from "./codes";
 import { isFloorTeching, isTumbling } from "./conditions";
-import { type Fighter, TECH_PRESS_AGE_LIMIT } from "./fighter";
+import { type Fighter } from "./fighter";
 import { clearDash } from "./groundMovement";
 import { MAX_GROUNDED_KNOCKBACK_ON_LANDING, airborneDamageLandingReaction, decayKnockback } from "./knockback";
 import { attackLandingLag, isAerialAttack } from "./moves";
 import { clearMotionValue, setWorldMotionValue, totalVelocityX } from "./motion";
 import type { Controls } from "./roster";
 import { surfaceCount, surfaceLeft, surfaceRight, surfaceZ } from "./stage";
-import { rollTravelSample } from "./temporaryRollTravel";
+import { rollTravel } from "../physics/rollTravel";
 import { beginDownState, cancelAttack, clearDownState } from "./transitions";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { squareRoot } from "./warcraftMath";
@@ -22,8 +22,6 @@ export const EMPTY_LANDING_LAG = 4;
 export const GROUND_ROLL_SPEED = 8.0;
 export const GROUND_ROLL_MOVE_START = 4;
 export const GROUND_ROLL_MOVE_END = 19;
-export const TECH_WINDOW_FRAMES = 20;
-export const TECH_REPEAT_MINIMUM_AGE_FRAMES = 40;
 export const TECH_IN_PLACE_FRAMES = 26;
 export const TECH_ROLL_FRAMES = 40;
 export const DOWN_BOUND_FRAMES = 26;
@@ -34,20 +32,6 @@ export const DOWN_DAMAGE_FRAMES = 13;
 /** Weaker hits on a lying fighter jab-reset instead of launching. */
 export const DOWN_DAMAGE_RESET_THRESHOLD = 7.0;
 
-// Temporary until TechInput lands: its advanceTechInput and
-// techInputContactWindow, applied to the fighter's tech record. NTSC 1.02
-// input-driver observations; ages continue through frozen input frames.
-export function advanceTechInput(f: Fighter, freshPress: boolean, frozen: boolean): void {
-  const { tech } = f;
-  const pressed = freshPress || (frozen && tech.accumulatedPress);
-  const priorAge = pressed ? tech.pressAge : tech.previousPressAge;
-  tech.pressAge = pressed ? 0 : min(TECH_PRESS_AGE_LIMIT, tech.pressAge + 1);
-  tech.previousPressAge = priorAge;
-  tech.accumulatedPress = frozen && pressed;
-  const eligible = tech.pressAge < TECH_WINDOW_FRAMES && tech.previousPressAge >= TECH_REPEAT_MINIMUM_AGE_FRAMES;
-  tech.window = eligible ? TECH_WINDOW_FRAMES - tech.pressAge : 0;
-}
-
 /** Moves a getup or tech roll along its recorded travel, kept on its deck. */
 export function applyDownRollTravel(f: Fighter, stage: number): void {
   const { down, motion } = f;
@@ -56,8 +40,8 @@ export function applyDownRollTravel(f: Fighter, stage: number): void {
   if (f.character === Character.demonHunter) {
     if (down.frame >= GROUND_ROLL_MOVE_START && down.frame <= GROUND_ROLL_MOVE_END) distance = GROUND_ROLL_SPEED;
   } else {
-    const profile = down.state === DownState.techRoll ? 6 : down.faceUp ? 2 : 4;
-    distance = rollTravelSample(f.character, profile + (down.direction === f.facing ? 0 : 1), down.frame);
+    const kind = down.state === DownState.techRoll ? "tech" : down.faceUp ? "faceUpGetup" : "faceDownGetup";
+    distance = rollTravel(f.character, kind, down.direction === f.facing ? "forward" : "back", down.frame);
   }
   const deck = motion.surface ?? 0;
   motion.x = max(surfaceLeft(stage, deck), min(surfaceRight(stage, deck), f32(motion.x + f32(down.direction * distance))));

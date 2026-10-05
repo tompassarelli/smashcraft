@@ -2,11 +2,10 @@
 // melee/framedata.csv, SHA256 8e0d811290b511902076c0011db1a0116356a7ddaa68dfa369ea4f5dcdc93777.
 // Numerical data only; no LGPL library helper implementation is incorporated.
 import { f32 } from "../../sim/f32";
+import { WORLD_UNITS_PER_MELEE_UNIT } from "../sim/tuning";
 
 export type RollKind = "roll" | "faceUpGetup" | "faceDownGetup" | "tech";
 export type RollDirection = "forward" | "back";
-
-const WORLD_UNITS_PER_MELEE_UNIT = 6.0;
 
 /**
  * Signed travel along the roll's direction in Melee units, one sample per

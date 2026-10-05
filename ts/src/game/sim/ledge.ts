@@ -7,7 +7,7 @@ import type { Fighter } from "./fighter";
 import { clearDash } from "./groundMovement";
 import { LEDGE_ATTACK_FRAMES } from "./moves";
 import { totalVelocityZ } from "./motion";
-import { INPUT_PARTICIPANT_CAPACITY } from "./participants";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
 import { checkBlastZone } from "./stocks";
@@ -87,7 +87,7 @@ export function resolveLedges(world: Roster, stage: number, controls: readonly R
     let best: number | undefined;
     let distance = 0.0;
     let tied = false;
-    for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+    for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
       if (!isActive(world, slot)) continue;
       const f = fighterAt(world, slot);
       occupied = occupied || (f.ledge.state !== LedgeState.none && f.ledge.side === side);

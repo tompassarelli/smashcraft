@@ -12,7 +12,7 @@ import { type HitRegion, NO_HIT_REGION } from "./hitRegions";
 import { applyAttackHit } from "./hits";
 import { meleeHitIntersectsShield } from "./attacks";
 import { observeActionDecision } from "./observations";
-import { INPUT_PARTICIPANT_CAPACITY } from "./participants";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { BLASTER_PROJECTILE_LIFETIME, BLASTER_PROJECTILE_SPEED, spawnArcherArrow, spawnProjectileMotion } from "./projectiles";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
@@ -42,7 +42,7 @@ const SPECIAL_ACTION_BIT = 64;
 function startSpecialAction(owner: Fighter, action: SpecialAction, duration: number, direction: number): void {
   const { special, attack } = owner;
   if (action === SpecialAction.archerDisengage || action === SpecialAction.demonHunterImmolate) {
-    for (let entry = 0; entry < INPUT_PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
+    for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   }
   owner.surfaceRecovery.state = SurfaceContact.none;
   owner.surfaceRecovery.frame = 0;
@@ -310,7 +310,7 @@ function demonHunterSpecialContact(owner: Fighter, targetSlot: number, target: F
 
 // Preallocated per participant and per pair: rollback replays advance specials every frame.
 const specialScratch = {
-  contacts: Array.from({ length: INPUT_PARTICIPANT_CAPACITY * INPUT_PARTICIPANT_CAPACITY }, (): Readonly<HitRegion> => NO_HIT_REGION),
+  contacts: Array.from({ length: PARTICIPANT_CAPACITY * PARTICIPANT_CAPACITY }, (): Readonly<HitRegion> => NO_HIT_REGION),
   facings: [0, 0, 0, 0],
 };
 
@@ -318,31 +318,31 @@ const specialScratch = {
 export function advanceSpecials(world: Roster, stage: number): void {
   const ownsBatch = openDamageContacts();
   const { contacts, facings } = specialScratch;
-  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (isActive(world, slot)) advanceSpecialAction(fighterAt(world, slot));
   }
-  for (let ownerSlot = 0; ownerSlot < INPUT_PARTICIPANT_CAPACITY; ownerSlot++) {
+  for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;
     const owner = fighterAt(world, ownerSlot);
     facings[ownerSlot] = owner.facing;
-    for (let targetSlot = 0; targetSlot < INPUT_PARTICIPANT_CAPACITY; targetSlot++) {
+    for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
       if (!isActive(world, targetSlot) || targetSlot === ownerSlot) continue;
-      contacts[ownerSlot * INPUT_PARTICIPANT_CAPACITY + targetSlot] = demonHunterSpecialContact(owner, targetSlot, fighterAt(world, targetSlot));
+      contacts[ownerSlot * PARTICIPANT_CAPACITY + targetSlot] = demonHunterSpecialContact(owner, targetSlot, fighterAt(world, targetSlot));
     }
   }
-  for (let ownerSlot = 0; ownerSlot < INPUT_PARTICIPANT_CAPACITY; ownerSlot++) {
+  for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;
     const owner = fighterAt(world, ownerSlot);
-    for (let targetSlot = 0; targetSlot < INPUT_PARTICIPANT_CAPACITY; targetSlot++) {
+    for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
       if (!isActive(world, targetSlot) || targetSlot === ownerSlot) continue;
-      const contact = contacts[ownerSlot * INPUT_PARTICIPANT_CAPACITY + targetSlot]!;
+      const contact = contacts[ownerSlot * PARTICIPANT_CAPACITY + targetSlot]!;
       if (contact.window <= 0) continue;
       const target = fighterAt(world, targetSlot);
       recordSpecialHit(owner, targetSlot);
       applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, facings[ownerSlot]!, contact.effect, true, meleeHitIntersectsShield(owner, target, contact));
     }
   }
-  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
     advanceBear(world, slot, stage);
     advanceHippogryph(world, slot);

@@ -5,7 +5,7 @@ import { FAST_FALL_INPUT_WINDOW, SHIELD_MAX, SHIELD_POWERSHIELD_INPUT_WINDOW_FRA
 import { clearDash } from "./groundMovement";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "./knockback";
 import { clearMotionValue, setWorldMotionValue } from "./motion";
-import { INPUT_PARTICIPANT_CAPACITY } from "./participants";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt } from "./roster";
 import { clearShieldBreak } from "./shield";
 import {
@@ -89,7 +89,7 @@ export function reset(world: Roster, slot: number, startX: number): void {
   hits.lastAttacker = undefined;
   hits.lastAttackSerial = undefined;
   hits.lastWindow = 0;
-  for (let entry = 0; entry < INPUT_PARTICIPANT_CAPACITY; entry++) {
+  for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) {
     const record = hits.entries[entry]!;
     record.attacker = undefined;
     record.attackSerial = 0;

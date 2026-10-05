@@ -1,7 +1,7 @@
 import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
 import { Character, DownState, GroundAction, ProjectileKind, SPECIAL_ACTION_CAPACITY, ShieldBreak } from "./codes";
 import { PROJECTILE_CAPACITY, createFighter } from "./fighter";
-import { INPUT_PARTICIPANT_CAPACITY } from "./participants";
+import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { createRoster, fighterAt, isActive } from "./roster";
 import { AUTHORED_DASH_GRAB_RULES, AUTHORED_PHYSICS, authoredPhysics } from "./tuning";
 
@@ -44,7 +44,7 @@ test("a created fighter has the Wurst constructor's initial state", () => {
     assertEquals(projectile.kind, ProjectileKind.blaster);
     assertEquals(projectile.visualFamily, Character.archer);
   }
-  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     assertEquals(f.hits.entries[slot]?.attacker, undefined);
     assertEquals(f.special.hitTargets[slot], undefined);
   }

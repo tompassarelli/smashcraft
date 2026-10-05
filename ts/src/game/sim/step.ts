@@ -24,7 +24,6 @@ import {
   TECH_IN_PLACE_FRAMES,
   TECH_ROLL_FRAMES,
   advanceDownState,
-  advanceTechInput,
   finishLanding,
   resolveDownGroundContact,
 } from "./down";
@@ -62,7 +61,8 @@ import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
 import { checkBlastZone, reset } from "./stocks";
 import { advanceSurfaceRecovery, resolveSolidSurfaceContacts } from "./surfaces";
-import { forwardRollTurnFrame, rollTravelSample } from "./temporaryRollTravel";
+import { forwardRollTurnFrame, rollTravel } from "../physics/rollTravel";
+import { advanceTechInput, techContactWindow } from "../physics/techInput";
 import { clearDownState, clearOwnedFreezeTrap } from "./transitions";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 
@@ -184,7 +184,7 @@ function advanceGroundDodge(f: Fighter, groundDodgeStarted: boolean): void {
   const turnFrame = forwardRollTurnFrame(f.character);
   if (isForwardGroundRoll(f) && dodge.groundFrame === turnFrame) f.facing = -dodge.groundEntryFacing;
   if (dodge.groundFrame > dodgeFrames) {
-    if (isForwardGroundRoll(f) && turnFrame === 0) f.facing = -dodge.groundEntryFacing;
+    if (isForwardGroundRoll(f) && turnFrame === undefined) f.facing = -dodge.groundEntryFacing;
     dodge.groundFrame = 0;
     dodge.groundDirection = 0;
     dodge.groundEntryFacing = 0;
@@ -298,7 +298,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   // Expiry resumes this frame, including input gates and state countdowns.
   const hitlagBefore = launch.hitlag;
   launch.hitlag = max(0, launch.hitlag - 1);
-  advanceTechInput(f, input.techPressed, launch.hitlag > 0);
+  advanceTechInput(f.tech, input.techPressed, launch.hitlag > 0);
+  f.tech.window = techContactWindow(f.tech);
   if (launch.hitlag <= 0) {
     ageKnockback(f);
     f.ledge.regrab = max(0, f.ledge.regrab - 1);
@@ -430,7 +431,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       const moving = dodge.groundFrame >= GROUND_ROLL_MOVE_START && dodge.groundFrame <= GROUND_ROLL_MOVE_END;
       motion.vx = moving ? f32(GROUND_ROLL_SPEED * dodge.groundDirection) : 0.0;
     } else {
-      motion.vx = f32(dodge.groundDirection * rollTravelSample(f.character, isForwardGroundRoll(f) ? 0 : 1, dodge.groundFrame));
+      motion.vx = f32(dodge.groundDirection * rollTravel(f.character, "roll", isForwardGroundRoll(f) ? "forward" : "back", dodge.groundFrame));
     }
   } else if (isGroundDodging(f)) {
     motion.vx = 0.0;

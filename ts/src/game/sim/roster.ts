@@ -1,7 +1,7 @@
 // The fighters of a match by participant slot, and the controls each slot
 // supplies for one frame.
 import type { Fighter } from "./fighter";
-import { INPUT_PARTICIPANT_CAPACITY, participantIsActive } from "./participants";
+import { PARTICIPANT_CAPACITY, participantActive } from "../input/participants";
 
 /** Slot identities are stable for a match epoch, including sparse rosters. */
 export interface Roster {
@@ -16,13 +16,13 @@ export interface Roster {
 export function createRoster(mask: number, fighters: readonly Fighter[] = []): Roster {
   return {
     mask,
-    grabPaused: Array.from({ length: INPUT_PARTICIPANT_CAPACITY }, () => false),
-    fighters: Array.from({ length: INPUT_PARTICIPANT_CAPACITY }, (_, slot) => fighters[slot]),
+    grabPaused: Array.from({ length: PARTICIPANT_CAPACITY }, () => false),
+    fighters: Array.from({ length: PARTICIPANT_CAPACITY }, (_, slot) => fighters[slot]),
   };
 }
 
 export function isActive(roster: Roster, slot: number): boolean {
-  return participantIsActive(roster.mask, slot);
+  return participantActive(roster.mask, slot);
 }
 
 /** The fighter in a slot that must be occupied: an active slot, or a slot that fighter state refers to. */
