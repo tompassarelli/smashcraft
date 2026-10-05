@@ -1,18 +1,30 @@
 # Native arithmetic comparison
 
-smashcraft:tools/physics-probe/build-native-precision.sh packages the production
-Simulation, RollTravel and MeleeScalarMath sources with the existing numerical
-comparison fixtures. It uses the locked compiler and standard library and
-rejects uncommitted changes to those three simulation packages. Authored generated fixture sources remain inside the owning worktree’s build
-directory. Map intermediates and candidates remain in private build storage
-outside the repository, alongside the private terrain input.
+The TypeScript diagnostic uses the same production simulation fixtures as the
+Bun and Lua32 checks: smashcraft:ts/src/game/sim/physicsPrecisionState.tests.ts,
+smashcraft:ts/src/game/sim/physicsPrecisionScalar.tests.ts and
+smashcraft:ts/src/game/sim/physicsPrecisionMotion.tests.ts.
+Its entry is smashcraft:ts/src/platform/physicsProbeMain.ts, selected by
+smashcraft:ts/tsconfig.physics-probe.json. The report's `SOURCE` value is the
+compiled bundle key passed by the packaged map's entry.
 
-Run the builder through the machine-capacity helper with the private terrain
-map and a distinct run ID (lowercase letters, digits and hyphens) as its arguments.
-It emits `Smashcraft diagnostic RUN_ID.w3x` without advancing the playable release
-version. The builder
-includes the four-player simulation's input dependencies. It does not install
-a map or control a Warcraft client.
+From smashcraft:ts/, build with `bun waygate build --profile physics-probe`
+and the normal `--base`, `--container`, `--assets`, `--summon`, `--name` and
+`--out` arguments documented in smashcraft:docs/typescript.md. Use a distinct
+`Smashcraft diagnostic RUN_ID` name and a private output directory outside the
+checkout. `bun waygate rebuild MAP.w3x --profile physics-probe` replaces only
+that diagnostic's script. Neither command installs a map or controls a client.
+
+For the headless fixtures, run
+`GAME_TESTS=physicsPrecision bun test test/game.test.ts`, then
+`LUA=<32-bit lua> bun scripts/lua-tests.ts`. Reference disagreements remain
+failed tests and failed native groups; they must not be turned into passing
+reports by changing the fixture. The required native report is still all
+sixteen groups, the three zero mismatch counts, `MESSAGES 19`, and
+`NATIVE_PHYSICS_COMPLETED` from a fresh observed load of the selected candidate.
+
+The following Wurst candidate records and measurements describe their recorded
+revisions. Their source paths and builders are historical.
 
 The historical candidate is a one-player diagnostic map, Smashcraft 0.0.13,
 simulation source 98cb2dff36e204d4c2af287731f4116602320fe5:

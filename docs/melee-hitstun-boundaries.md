@@ -14,10 +14,10 @@ observations; this pass does not establish a duration defect or require a
 formula change. The fixture compares those observable results, rather than
 requiring an unobservable intermediate value.
 
-The emitted-Lua check reports HITSTUN_BOUNDARIES_EXACT_PASS for all 23 cases,
-with zero compiler errors or warnings. It runs through
-smashcraft:tools/physics-probe/check-numerical-precision.sh. The native builder
-includes the same group; native execution of this addition remains unobserved.
+The historical emitted-Lua check reported HITSTUN_BOUNDARIES_EXACT_PASS for all
+23 cases, with zero compiler errors or warnings. The same production comparisons
+now live in smashcraft:ts/src/game/sim/physicsPrecisionScalar.tests.ts and the
+native profile documented in smashcraft:docs/native-physics-precision.md.
 
 This is a selected arithmetic-block observation under QEMU PPC750, with a
 synthetic common-table pointer supplying independently verified constants.

@@ -35,7 +35,7 @@ Dated trial records live in [evidence](../evidence/README.md).
 ## Building and testing
 
 - [Development setup and loop](development-loop.md): build, reload and test workflow.
-- [Wurst toolchain](wurst-toolchain.md): compiler, standard library and engine boundaries.
+- [TypeScript workflow](typescript.md): source rules, build and test commands.
 - [Fighter animation work](fighter-animation-work.md): asset authoring and native pose checks.
 - [Warcraft procedures](wc3-procedures.md), [screen states](wc3-screen-state.md) and [authentication](warcraft-authentication.md).
 

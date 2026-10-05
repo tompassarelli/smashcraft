@@ -176,8 +176,9 @@ Evidence: `smashcraft:evidence/native-journal-packet-comparison-20261004/fileio0
 
 ## What the actual pinned libraries do
 
-The map is Wurst compiled to Lua for Warcraft III 3.0. Its exact compiler and
-standard-library identities are declared in `smashcraft:wurst-toolchain.lock`:
+The historical map used for these library observations was Wurst compiled to
+Lua for Warcraft III 3.0. Its recorded compiler and standard-library identities
+were declared in that revision's `smashcraft:wurst-toolchain.lock`:
 compiler `9913e1bd300c2053637d756a11bae8c3c8ed568f`, standard library
 `bb1e0458db5a372ba2a6928112452785e435d01a`.
 

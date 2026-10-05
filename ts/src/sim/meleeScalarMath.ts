@@ -1,6 +1,6 @@
 import { at } from "../runtime/lookup";
-// Melee's binary32 atan2/sin/cos approximations, ported from
-// smashcraft:wurst/MeleeScalarMath.wurst. Coefficients come from
+// Melee's independently authored binary32 atan2/sin/cos approximations.
+// Coefficients come from
 // smashcraft:docs/smash-melee-reference/retail-trig-coefficients.json. Every
 // rounding boundary is part of the approximation, including range reduction.
 import {

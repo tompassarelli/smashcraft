@@ -1,6 +1,5 @@
-// The build this map runs. Packaging replaces this file with the build it
-// packages, as build.sh wrote BuildInfo.wurst. The checked-in value is the
-// development loop's: key events, unit animation, and the dev console for
+// The build this map runs. The checked-in value is the development loop's:
+// key events, unit animation, and the dev console for
 // `-dev quick`. Native integrity runs (#26) use INTEGRITY_BUILD with the
 // companion helper.
 import type { MapBuild } from "./build";

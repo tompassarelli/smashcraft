@@ -1,6 +1,5 @@
-// Object data (war3map.w3u and war3map.w3a, format 2) for the objects that the
-// Wurst build creates at compile time: the fighter units of FighterAssets.wurst
-// and the channel ability that the pinned standard library's FileIO
+// Object data (war3map.w3u and war3map.w3a, format 2) for fighter units
+// and the channel ability that FileIO
 // (WurstStdlib2 e3714f629113, Apache-2.0) generates for '$wsl'.
 
 type Value =

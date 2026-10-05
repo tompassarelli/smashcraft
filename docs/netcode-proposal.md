@@ -9,7 +9,7 @@ in scope. Native observations belong in smashcraft:evidence/native-capability-re
 
 ## Decision and sequence
 
-Keep one deterministic Wurst fighting simulation, independent of transport and
+Keep one deterministic TypeScript fighting simulation, independent of transport and
 rendering. Evaluate a stock Warcraft III 3.0 backend first, using genuinely
 early local polling if demonstrated, direct native sync, and numerical replay.
 Preserve the playable baseline and combat tuning during infrastructure work.
@@ -32,7 +32,7 @@ low-latency bridge; pad-to-key mapping alone is not such a bridge.
 Start at 60 logical ticks/second with D=3 and compare R=0 against R=6. Also
 compare hybrid D=2/R=6 and fixed D=5/R=0 against the unmodified synchronized-key
 baseline. Initially retain 64 snapshots and a larger bounded input history,
-subject to actual Wurst/Lua array and memory bounds. D is fixed for a match
+subject to actual Warcraft Lua array and memory bounds. D is fixed for a match
 epoch; offline training uses the same intentional delay. These are experiments,
 not proven optimal settings or measured client limits.
 
@@ -44,8 +44,8 @@ and binary; test whether polling precedes synchronized dispatch under actual
 network delay. BlzTriggerRegisterPlayerKeyEvent is the synchronized baseline;
 GetLocalPlayer around its handler does not undo prior delivery latency.
 
-Use dedicated direct BlzSendSyncData traffic, not one Wurst SyncSimple transfer
-per frame. Register receive events with fromServer=false and identify senders
+Use dedicated direct BlzSendSyncData traffic, not one aggregated transfer per
+frame. Register receive events with fromServer=false and identify senders
 from GetTriggerPlayer. Probe sustained 60 sends/second/competitor below 200 ASCII
 bytes and exact two-frame batches at 30 sends/second. Record false send returns,
 ordering, duplicates, queue growth and service age. Batching is not free: it can
@@ -125,7 +125,7 @@ accepted rows only. R>0 chooses accepted, then pending own, then conservative
 remote prediction; prediction retains holds/axes and creates no press/release
 edge. Maintain a separate confirmed simulation, capped at F−1 even if future
 inputs have already arrived. Preallocate divergent numerical storage; avoid local
-Wurst allocation/freeing through allocators shared with common objects.
+allocation/freeing through allocators shared with common objects.
 
 ## Protocol and rollback
 

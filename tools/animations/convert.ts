@@ -1,4 +1,4 @@
-// Foreign asset-format boundary; gameplay remains authored in Wurst.
+// Foreign asset-format boundary; gameplay remains authored in TypeScript.
 import { decodeBLP, getBLPImageData, parseMDX, generateMDL } from "war3-model";
 import { PNG } from "pngjs";
 

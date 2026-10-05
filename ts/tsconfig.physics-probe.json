@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.map.json",
+  "include": [
+    "src/natives/*.d.ts",
+    "src/platform/physicsProbeMain.ts"
+  ],
+  "exclude": [],
+  "tstl": {
+    "luaBundle": "physics-probe.lua",
+    "luaBundleEntry": "src/platform/physicsProbeMain.ts"
+  }
+}

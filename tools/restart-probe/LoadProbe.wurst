@@ -1,8 +1,0 @@
-package LoadProbe
-import SaveLoadData
-
-init
-    Player(0).loadData("MeleePrototypeBindings") (status, data) ->
-        DisplayTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "Saved-binding load completed: " + status)
-        if data != null
-            destroy data

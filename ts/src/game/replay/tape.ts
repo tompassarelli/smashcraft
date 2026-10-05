@@ -1,6 +1,5 @@
 // Recorded input tapes, the acceptance oracle's shared format. Bun and 32-bit
-// Lua decode them here; smashcraft:tools/tape-oracle/run.lua serves the same
-// text to the Wurst-compiled oracle (smashcraft:tools/tape-oracle/TapeOracle.wurst).
+// Lua decode and execute the same operations.
 //
 // One operation per line, words separated by spaces, `#` comments:
 //   participants HUMANS COMPUTERS | character SLOT CHOICE | stage-select SLOT

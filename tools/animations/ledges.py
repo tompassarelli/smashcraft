@@ -7,12 +7,12 @@ from mathutils import Matrix, Quaternion, Vector
 
 
 def ledge_dimensions():
-    source = (Path(__file__).resolve().parents[2] / 'wurst/Simulation.wurst').read_text()
+    source = (Path(__file__).resolve().parents[2] / 'ts/src/game/sim/ledge.ts').read_text()
     dimensions = {}
     for name in ('LEDGE_HANG_OUTSET', 'LEDGE_HANG_DEPTH', 'LEDGE_MOUNT_FRAMES', 'LEDGE_CLIMB_FRAMES', 'LEDGE_CLIMB_INSET'):
-        match = re.search(r'^public constant (?:real|int) ' + name + r' = ([0-9.]+)$', source, re.M)
+        match = re.search(r'^export const ' + name + r' = ([0-9.]+);$', source, re.M)
         if match is None:
-            raise RuntimeError(f'Expected a numeric Wurst ledge dimension: {name}')
+            raise RuntimeError(f'Expected a numeric TypeScript ledge dimension: {name}')
         dimensions[name] = float(match[1])
     return dimensions
 

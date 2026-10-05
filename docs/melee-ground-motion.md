@@ -52,13 +52,13 @@ the previous velocity, without claiming a newly verified contact magnitude.
 
 ## Production comparison
 
-smashcraft:tools/physics-probe/generate-ground-motion-probe.mjs turns these
-facts into assertions through production contact handling and movement.
-The existing smashcraft:tools/physics-probe/check-numerical-precision.sh compiles
-those assertions with the locked Wurst compiler and runs the emitted Lua.
-Compiler and standard-library pins are unchanged.
+smashcraft:ts/src/game/sim/physicsPrecisionMotion.tests.ts checks these facts
+through production contact handling and movement. From smashcraft:ts/, run
+`GAME_TESTS=physicsPrecisionMotion bun test test/game.test.ts` for the focused
+checks and `LUA=<32-bit lua> bun scripts/lua-tests.ts` for the emitted Lua.
+The native profile is documented in smashcraft:docs/native-physics-precision.md.
 
-The pre-fix comparison reported 30 mismatches: 14 positions, ten recoil
+The historical Wurst pre-fix comparison reported 30 mismatches: 14 positions, ten recoil
 values, two defender values, and all four shield-entry cases. The repaired
 comparison passes all 22 arithmetic cases (four values per case) and four
 entry cases, with zero compiler errors or warnings. All other existing

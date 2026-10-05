@@ -1,12 +1,9 @@
 # Smashcraft development
 
-Smashcraft is a platform fighter for Warcraft III, compiled to Lua. It is moving
-from Wurst to TypeScript ([#35](https://github.com/tompassarelli/smashcraft/issues/35)).
-Until the port finishes, both run in one map. Read smashcraft:wurst-toolchain.lock
-and smashcraft:wurst.build before changing the Wurst patch, compiler, standard
-library or target. The lock is authoritative; a newer upstream article does not
-update it. smashcraft:typescript-toolchain.lock pins Bun, both TypeScript
-versions, TypeScriptToLua and Effect; the TypeScript map build checks it.
+Smashcraft is a platform fighter for Warcraft III, written in TypeScript and
+compiled to Lua with TypeScriptToLua. Waygate and Bun are the supported build,
+test and development tools. `smashcraft:typescript-toolchain.lock` pins Bun,
+TypeScript, TypeScriptToLua and Effect; the map build checks it.
 
 ## Issues define the scope — finish them
 
@@ -32,7 +29,7 @@ investigation.
 
 ## Source and workflow
 
-- smashcraft:wurst/ owns gameplay, deterministic state/replay, selection and UI.
+- smashcraft:ts/src/ owns gameplay, deterministic state/replay, selection and UI.
 - smashcraft:companion/ owns the Rust controller/helper boundary.
 - smashcraft:tools/ owns build, native probes and automation.
 - smashcraft:docs/ holds durable knowledge only: how systems work, design
@@ -72,18 +69,22 @@ code. From smashcraft:ts/:
 - Client driver: `bun waygate client look|read|click|keys CLIENT ...` reads and
   drives a client. Session values live in ~/.local/state/smashcraft/clients.json.
 - Tapes: set `LUA` to the 32-bit Lua executable, then run `bun waygate tapes` to
-  compare replay results across compiled Wurst Lua, Bun and Lua32.
+  compare replay results across Bun and Lua32.
 - Parity: `bun waygate parity numeric` compares the numeric corpus with Lua32;
   `bun waygate parity capture ...` runs native input-integrity capture and
   `bun waygate parity result DIR` reconciles its output.
+- Physics diagnostic: `bun waygate build --profile physics-probe ...` selects
+  the production numerical fixtures. Rebuild it with
+  `bun waygate rebuild MAP.w3x --profile physics-probe`; see
+  smashcraft:docs/native-physics-precision.md for the unchanged report gate.
 
 ## Verify the changed behavior
 
-Run `./test.sh TEST_FILTER` for focused Wurst tests; `./test.sh` defaults to
-Tests. The optional second argument is the positive test timeout in seconds.
-Run `./build.sh /absolute/path/to/base.w3x` for map compilation/packaging. See
-smashcraft:docs/development-loop.md for required local toolchain and base-map setup.
-Use current project commands, not unverified `grill` substitutions.
+From smashcraft:ts/, use `bun test test/game.test.ts` for focused game tests,
+`bun run check` for host and map type-checking, and
+`LUA=<32-bit lua> bun scripts/lua-tests.ts` for emitted-Lua tests. Use
+`bun waygate build ...` to build a map. See smashcraft:docs/development-loop.md
+for the local toolchain and base-map setup.
 
 Pure simulation tests establish logical rules, not Warcraft callback timing,
 physical-controller latency, UI focus or online fairness. For those claims,
@@ -100,11 +101,11 @@ iterations. Never direct-launch Warcraft as assumed authentication recovery.
 Keep A/B in separate prefixes and use distinct online accounts. Credentials
 belong in the encrypted machine configuration, never this repository or logs.
 
-For changed custom UI, inspect resolved standard-library/components and consider
-Wurst Table Layout before raw positioning or click overlays. Run headless
-layout checks where supported, then verify native hit targets, keyboard-focus
-release, draw order and widescreen behavior. Keep local presentation separate
-from synchronized gameplay and create shared handles consistently.
+For changed custom UI, inspect the resolved Warcraft frame components before
+raw positioning or click overlays. Run headless layout checks where supported,
+then verify native hit targets, keyboard-focus release, draw order and
+widescreen behavior. Keep local presentation separate from synchronized
+gameplay and create shared handles consistently.
 
 Don't publish releases, GitHub or otherwise, until Tom decides to release.
 Playable candidates are private builds named Smashcraft 0.0.N; increment only N.

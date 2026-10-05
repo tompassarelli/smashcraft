@@ -1,8 +1,6 @@
 // The map description (war3map.w3i), the map file header and the Lua config()
 // that declares the same players, all derived from Smashcraft's map
-// declaration. This reproduces what Wurst's buildMapData
-// (smashcraft:wurst.build) writes through wc3libs for the base map's W3I
-// format 39; the base map's terrain, camera and environment settings pass
+// declaration. The base map's terrain, camera and environment settings pass
 // through unchanged.
 import { longBrackets } from "./lua";
 
@@ -211,7 +209,7 @@ export function encodeMapInfo(info: MapInfo): Uint8Array {
 /**
  * The base map's description with the declared name, players and forces. A
  * declared slot that the base map already has keeps its start location, race
- * skin and priorities, as Wurst's buildMapData does.
+ * skin and priorities declared by the map configuration.
  */
 export function declareMap(base: MapInfo, name: string, map: MapDeclaration): MapInfo {
   return {
@@ -263,8 +261,8 @@ function luaReal(value: number): string {
 }
 
 /**
- * `function mapConfig()`: what Wurst's generated config() does for this
- * description (wc3libs' config, InitCustomPlayerSlots, InitCustomTeams and
+ * `function mapConfig()`: the Lua config generated for this
+ * description (InitCustomPlayerSlots, InitCustomTeams and
  * InitAllyPriorities).
  */
 export function mapConfig(info: MapInfo): string {

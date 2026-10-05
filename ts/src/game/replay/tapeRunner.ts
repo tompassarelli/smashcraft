@@ -1,6 +1,5 @@
 // Runs a decoded tape through match rules, recorded frame execution and the
-// replay history, printing the canonical replay state after each operation,
-// as smashcraft:tools/tape-oracle/TapeOracle.wurst does for the Wurst build.
+// replay history, printing the canonical replay state after each operation.
 import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type FrameControls, createFrameControls } from "../match/controls";

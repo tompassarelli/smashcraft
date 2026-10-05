@@ -9,8 +9,8 @@ import { step, timingsLayer } from "./waygate/timings";
 /** Each command loads on demand, so it loads only the modules it uses. */
 const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Promise<Command> }> = {
   hot: { usage: "hot --data DIR [--data DIR ...] [--watch]", load: async () => (await import("./waygate/commands/hot")).hot },
-  build: { usage: "build --base BASE.w3m --container MAP.w3x --assets DIR --summon DIR --name NAME --out OUT.w3x [--packager PATH]", load: async () => (await import("./waygate/commands/map")).build },
-  rebuild: { usage: "rebuild MAP.w3x", load: async () => (await import("./waygate/commands/map")).rebuild },
+  build: { usage: "build --base BASE.w3m --container MAP.w3x --assets DIR --summon DIR --name NAME --out OUT.w3x [--packager PATH] [--profile main|physics-probe]", load: async () => (await import("./waygate/commands/map")).build },
+  rebuild: { usage: "rebuild MAP.w3x [--profile main|physics-probe]", load: async () => (await import("./waygate/commands/map")).rebuild },
   fresh: { usage: "fresh MAP.w3x [--rebuild]", load: async () => (await import("./waygate/commands/fresh")).fresh },
   tapes: { usage: "tapes   (LUA=<32-bit lua>)", load: async () => (await import("./waygate/commands/tapes")).tapes },
   parity: { usage: "parity numeric [RESULT_FILE ...] | capture OPTIONS... | result CAPTURE_DIR", load: async () => (await import("./waygate/commands/parity")).parity },

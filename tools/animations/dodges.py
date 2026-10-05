@@ -26,7 +26,7 @@ base = ready_pose(rig)
 bone_names = {bone.name for bone in rig.data.bones}
 
 # Archer's source model animates a separate arrow geoset along the Arrow bone.
-# Gameplay shots are simulated and rendered by Wurst, so omit that travelling
+# Gameplay shots are simulated and rendered by the game, so omit that travelling
 # projectile geometry from the fighter while retaining the skeleton.
 arrow_geosets = []
 for mesh in (obj for obj in scene.objects if obj.type == "MESH"):

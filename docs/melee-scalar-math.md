@@ -1,10 +1,10 @@
 # Melee scalar approximation
 
-`smashcraft:wurst/MeleeScalarMath.wurst` supplies pure Wurst `meleeAtan2(y, x)`,
+`smashcraft:ts/src/sim/meleeScalarMath.ts` supplies `meleeAtan2(y, x)`,
 `meleeSin(angle)`, and `meleeCos(angle)`. Inputs and intermediate results use
-explicit binary32 rounding and the pinned standard library's fused multiply-add.
-The implementation is independently authored from numerical approximation facts
-and mathematical equations, without consulting or translating decompiled code.
+explicit binary32 rounding and fused multiply-add. The implementation is
+independently authored from numerical approximation facts and mathematical
+equations, without consulting or translating decompiled code.
 
 The numerical facts are recorded in
 `smashcraft:docs/smash-melee-reference/retail-trig-coefficients.json` and

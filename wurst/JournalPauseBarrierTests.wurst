@@ -1,6 +1,0 @@
-package JournalPauseBarrierTests
-import JournalPauseBarrier
-
-@Test function sharedPauseUsesTheHighestPreparedFrontier()
-	journalPauseBarrierFrame(60, 75, 61, 0).assertEquals(75)
-	journalPauseBarrierFrame(96, 96, 0, 0).assertEquals(96)

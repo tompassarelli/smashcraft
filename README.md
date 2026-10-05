@@ -25,9 +25,9 @@ From [smashcraft:ts/](ts/):
 
 - `bun test` runs the logic tests, and `LUA=<32-bit lua> bun scripts/lua-tests.ts`
   runs them in 32-bit Lua. `bun run check` type-checks.
-- `bun scripts/hot.ts --data <client CustomMapData> ... --watch` reloads every
+- `bun waygate hot --data <client CustomMapData> ... --watch` reloads every
   save into the running clients.
-- `../build-typescript.sh BASE_MAP ASSET_CONTAINER` builds the map.
+- `../build.sh BASE_MAP ASSET_CONTAINER` builds the map.
 
 [smashcraft:docs/typescript.md](docs/typescript.md) has the code rules and the
 full command list.

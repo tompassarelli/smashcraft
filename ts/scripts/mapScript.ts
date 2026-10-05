@@ -1,8 +1,6 @@
-// Map script (war3map.lua) assembly. A map keeps the script it was built from
-// next to it as MAP.base.lua: the base map's script and either Wurst's
-// compiled script (build.sh) or the TypeScript map's config (scripts/build.ts).
-// Composing appends the TypeScript bundle and the main() and config() that
-// start them, so `scripts/map.ts rebuild` replaces only the bundle.
+// Map script (war3map.lua) assembly. A map keeps the TypeScript base script it
+// was built from next to it as MAP.base.lua. Composing appends the compiled
+// bundle and the main() and config() that start it.
 import { readFileSync } from "node:fs";
 import { payloadKey } from "../src/runtime/gameFiles";
 import { checksum } from "../src/runtime/payload";
@@ -44,24 +42,21 @@ export function typescriptBase(baseMapScript: string, mapConfig: string): string
   return `${script.replace(initialization, "-- Suppressed default melee initialization for the platform fighter.")}\n${mapConfig}`;
 }
 
-/** The base, then the bundle, started after the base map's and Wurst's initialization. */
+/** The base, then the bundle, started after terrain initialization. */
 export function composeScript(base: string, bundle: Bundle | undefined): string {
-  const wurst = /^function wurstMain\(\)/m.test(base);
-  if (!wurst && !/^function mapConfig\(\)/m.test(base)) throw new Error("base script defines neither Wurst's entry points nor mapConfig()");
-  if (!wurst && bundle === undefined) throw new Error("a map without Wurst needs the TypeScript bundle");
-  let typescript = "";
-  if (bundle !== undefined) {
-    const [open, close] = longBrackets(bundle.text);
-    // Lua drops the newline right after an opening long bracket.
-    typescript = `\nsmashcraftTs = assert(load(${open}\n${bundle.text}${close}, "=map-${bundle.key}"))()\n`;
-  }
+  if (bundle === undefined) throw new Error("a map needs the TypeScript bundle");
+  if (!/^function mapConfig\(\)/m.test(base)) throw new Error("base script does not define mapConfig()");
+  const [open, close] = longBrackets(bundle.text);
+  // Lua drops the newline right after an opening long bracket.
+  const typescript = `\nsmashcraftTs = assert(load(${open}\n${bundle.text}${close}, "=map-${bundle.key}"))()\n`;
   return `${base}${typescript}
 function main()
     baseMain()
-${wurst ? "    wurstMain()\n" : ""}${bundle === undefined ? "" : "    smashcraftTs.start()\n"}end
+    smashcraftTs.start("${bundle.key}")
+end
 
 function config()
-    ${wurst ? "wurstConfig()" : "mapConfig()"}
+    mapConfig()
 end
 `;
 }

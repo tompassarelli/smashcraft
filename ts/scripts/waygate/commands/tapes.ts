@@ -1,12 +1,12 @@
 // `waygate tapes`, the replay acceptance oracle: recorded tapes must give
 // identical canonical replay states, hence identical checksums, after every
-// frame in Wurst's Lua, TypeScript under Bun and TypeScript under 32-bit Lua.
+// frame in TypeScript under Bun and TypeScript under 32-bit Lua.
 // Prints the totals, or each runtime pair's first divergent frame and field.
 // The tapes are recorded fresh each run by two scripted keyboard players
 // reacting to the TypeScript simulation; every runtime then replays the same
 // recorded rows. Environment: LUA, a LUA_32BITS lua.
 import "../../../test/host-natives";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import { Console, Effect, Schema } from "effect";
 import { adaptInput } from "../../../src/game/input/adapter";
 import { ACTION_COUNT, Action, bit } from "../../../src/game/input/actions";
@@ -21,7 +21,6 @@ import { type Command, UsageFailure, describeCause } from "../command";
 import { step } from "../timings";
 
 const ts = join(import.meta.dir, "../../..");
-const project = join(ts, "..");
 const build = join(ts, "build", "tapes");
 
 // ---------------------------------------------------------------- tapes
@@ -326,72 +325,11 @@ async function runLua(argv: string[], env: Record<string, string> = {}): Promise
 
 const runInLua = (file: string) => runLua([tapesLua], { TAPE_FILE: file });
 
-// The Wurst side compiles the oracle package with the game's own replay code,
-// using the locked compiler and the map build's flags, then runs that Lua in
-// 32-bit Lua with stubbed natives.
-const java = "/home/tom/.wurst/wurst-runtime/bin/java";
-const compilerJar = join(project, "toolchain", "wurstscript.jar");
-const oracleDir = join(project, "build", "tape-oracle");
-const oracleLua = join(oracleDir, "oracle.lua");
-const WURST_SOURCES = [
-  "wurst/Simulation.wurst", "wurst/TechInput.wurst", "wurst/MeleeContactGeometry.wurst", "wurst/MeleeScalarMath.wurst",
-  "wurst/RollTravel.wurst", "wurst/IllidanMotion.wurst", "build/animation-assets/FighterAssetInfo.wurst",
-  "build/illidan-animation/DemonHunterAssetInfo.wurst", "wurst/FighterPose.wurst", "wurst/DamagePose.wurst",
-  "build/summon-original-clips/wurst/SummonOriginalClipInfo.wurst", "wurst/SummonPose.wurst", "wurst/SummonState.wurst",
-  "wurst/SpecialEffectState.wurst", "wurst/ImpactEvents.wurst", "wurst/ImpactState.wurst", "wurst/MatchRules.wurst",
-  "wurst/MatchStep.wurst", "wurst/CommandBuffer.wurst", "wurst/CombatInput.wurst", "wurst/NetworkInput.wurst",
-  "wurst/InputAdapter.wurst", "wurst/ParticipantInputs.wurst", "wurst/KeyBindings.wurst", "wurst/BotRecovery.wurst",
-  "wurst/ReplayState.wurst", "wurst/ReplayHistory.wurst", "tools/tape-oracle/TapeOracle.wurst",
-].map(path => join(project, path));
-
-/** The locked Wurst compiler, standard library and Lua test runtime (smashcraft:wurst-toolchain.lock). */
-interface WurstToolchain {
-  readonly lockValue: (name: string) => string;
-  readonly compilerPin: string;
-  readonly stdlibPin: string;
-  readonly luaRuntime: string;
-}
-
-async function wurstToolchain(): Promise<WurstToolchain> {
-  const lock = await Bun.file(join(project, "wurst-toolchain.lock")).text();
-  const lockValue = (name: string) => new RegExp(`^${name} = "(.*)"$`, "m").exec(lock)?.[1] ?? "";
-  return {
-    lockValue,
-    compilerPin: `/home/tom/code/wurst-compiler/pins/${lockValue("compilerCommit")}`,
-    stdlibPin: `/home/tom/code/wurst-stdlib/pins/${lockValue("stdlibCommit").slice(0, 12)}`,
-    luaRuntime: `/home/tom/code/wurst-compiler/pins/${lockValue("luaTestRuntimeCommit")}/de.peeeq.wurstscript/src/test/resources/luaruntime`,
-  };
-}
-
-async function compileWurstLua({ lockValue, compilerPin, stdlibPin }: WurstToolchain): Promise<number> {
-  const jarHash = new Bun.CryptoHasher("sha256").update(await Bun.file(compilerJar).bytes()).digest("hex");
-  if (jarHash !== lockValue("compilerArtifactSha256")) throw new Error(`${compilerJar} does not match wurst-toolchain.lock`);
-  const commonJ = join(compilerPin, "de.peeeq.wurstscript/src/main/resources/common.j");
-  const blizzardJ = join(compilerPin, "de.peeeq.wurstscript/src/main/resources/blizzard.j");
-  const workspace = join(oracleDir, "workspace");
-  const hash = await inputsHash([commonJ, blizzardJ, ...WURST_SOURCES], `${jarHash} ${stdlibPin}`);
-  return cachedBuild(oracleLua, hash, () => {
-    command(["mkdir", "-p", workspace]);
-    command(["cp", join(project, "wurst.build"), join(project, "wurst_run.args"), workspace]);
-    // The JVM compile is heavy work, admitted by the machine's capacity helper. The compiler
-    // also writes compiled.lua.txt into its working directory.
-    const capacity = join(dirname(command(["agents", "path", "machine-capacity-distilled"]).output.trim()), "scripts", "machine-capacity.mjs");
-    const { output, error } = command([
-      "bun", capacity, "run", "--class", "heavy", "--owner", process.env.CAPACITY_OWNER ?? "smashcraft/tapes", "--timeout-seconds", "900", "--",
-      java, "-Xmx2048m", "-XX:ActiveProcessorCount=2", "-jar", compilerJar, "-lua", "-runcompiletimefunctions", "-stacktraces",
-      "-workspaceroot", workspace, "-lib", stdlibPin, "-out", oracleLua, commonJ, blizzardJ, ...WURST_SOURCES,
-    ], workspace);
-    return error ?? (/errors: [1-9]/.test(output) ? output : undefined);
-  });
-}
-
-const runInWurst = ({ luaRuntime }: WurstToolchain, file: string) => runLua([join(project, "tools", "tape-oracle", "run.lua"), oracleLua, luaRuntime, file]);
-
 // ---------------------------------------------------------------- comparison
 
-type RuntimeName = "wurst-lua" | "bun" | "ts-lua32";
-const RUNTIMES: readonly RuntimeName[] = ["wurst-lua", "bun", "ts-lua32"];
-const PAIRS: readonly (readonly [RuntimeName, RuntimeName])[] = [["wurst-lua", "bun"], ["wurst-lua", "ts-lua32"], ["bun", "ts-lua32"]];
+type RuntimeName = "bun" | "ts-lua32";
+const RUNTIMES: readonly RuntimeName[] = ["bun", "ts-lua32"];
+const PAIRS: readonly (readonly [RuntimeName, RuntimeName])[] = [["bun", "ts-lua32"]];
 
 /** Splits a record into its label ("LINE OPERATION RESULT") and its canonical fields. */
 function parseRecord(record: string | undefined): { label: string; fields: string[] } {
@@ -443,22 +381,19 @@ export const tapes: Command = (args) => Effect.gen(function*() {
     for (const { file, text } of recorded) await Bun.write(file, text);
     return recorded;
   }).pipe(step("record tapes"));
-  const toolchain = yield* attempt("read wurst-toolchain.lock", wurstToolchain);
-  yield* attempt("compile Wurst Lua", () => compileWurstLua(toolchain)).pipe(step("compile Wurst Lua"));
   yield* attempt("compile TypeScript Lua", compileTypeScriptLua).pipe(step("compile TypeScript Lua"));
-  // Every Lua process starts before the in-process Bun runs occupy this thread.
+  // Lua processes start before the in-process Bun runs occupy this thread.
   const replays = yield* Effect.all({
-    "wurst-lua": attempt("replay in Wurst Lua", () => Promise.all(tapes.map(({ file }) => runInWurst(toolchain, file)))).pipe(step("replay in wurst-lua")),
     "ts-lua32": attempt("replay in 32-bit Lua", () => Promise.all(tapes.map(({ file }) => runInLua(file)))).pipe(step("replay in ts-lua32")),
     "bun": attempt("replay in Bun", () => tapes.map(({ text }) => runInBun(text))).pipe(step("replay in bun")),
   }, { concurrency: "unbounded" });
   const runs = new Map(tapes.map(({ name }, index): [string, Record<RuntimeName, Run>] => {
     const byRuntime = (runtime: RuntimeName): Run => replays[runtime][index] ?? { records: [], error: "no run" };
-    return [name, { "wurst-lua": byRuntime("wurst-lua"), bun: byRuntime("bun"), "ts-lua32": byRuntime("ts-lua32") }];
+    return [name, { bun: byRuntime("bun"), "ts-lua32": byRuntime("ts-lua32") }];
   }));
 
-  const perTape = [...runs].map(([name, byRuntime]) => `${name} ${frameCount(byRuntime["wurst-lua"])}`);
-  const totalFrames = [...runs.values()].reduce((sum, byRuntime) => sum + frameCount(byRuntime["wurst-lua"]), 0);
+  const perTape = [...runs].map(([name, byRuntime]) => `${name} ${frameCount(byRuntime.bun)}`);
+  const totalFrames = [...runs.values()].reduce((sum, byRuntime) => sum + frameCount(byRuntime.bun), 0);
   yield* Console.log(`${runs.size} tapes, ${totalFrames} frames (${perTape.join(", ")})`);
 
   let failed = false;

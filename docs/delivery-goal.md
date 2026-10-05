@@ -1,6 +1,6 @@
 # Smashcraft delivery goal
 
-Deliver a complete, responsive, readable Warcraft III platform fighter in Wurst:
+Deliver a complete, responsive, readable Warcraft III platform fighter in TypeScript:
 first a fully playable Archer–Rifleman game, then playable Demon Hunter
 (Illidan), with a measured and justified multiplayer input architecture.
 Preserve the playable map, authored assets, and agreed custom mechanics while

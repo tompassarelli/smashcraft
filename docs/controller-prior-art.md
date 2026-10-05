@@ -2,7 +2,7 @@
 
 Use a Rust core with **SDL3 for controller discovery, normalization, hotplugging and supported device protocols**, **enigo for keyboard delivery**, and native platform APIs for foreground game identity. The companion must work on macOS, Windows and Linux. Keep Tauri outside the input delivery loop and retain the existing AntiMicroX profile as the observed digital baseline. The [cross-platform decision](controller-platforms.md) specifies the Windows, macOS and Linux output paths and required native trials. Use the C# project as a behavioral reference; SDL3 already supplies GameCube adapter handling.
 
-This recommendation concerns input acquisition and local key delivery. None of the inspected projects supplies a ready-made continuous-analog bridge into this Warcraft map. Reading an analog axis on Linux does not make it available to Wurst, and neither controller support nor Slippi reuse establishes Warcraft engine or multiplayer latency.
+This recommendation concerns input acquisition and local key delivery. None of the inspected projects supplies a ready-made continuous-analog bridge into this Warcraft map. Reading an analog axis on Linux does not make it available to the game simulation, and neither controller support nor Slippi reuse establishes Warcraft engine or multiplayer latency.
 
 ## What the cited projects actually do
 

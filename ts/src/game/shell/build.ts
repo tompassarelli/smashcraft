@@ -1,6 +1,5 @@
 // What a packaged map was built for: its identity, input path, presentation
-// and developer scenario. The packaging step chooses these, as build.sh wrote
-// BuildInfo for the Wurst map; the shell reads them and never changes them.
+// and developer scenario. The shell reads these settings and never changes them.
 import type { FixedDelay } from "../netcode/fixedSchedule";
 
 /** How the helper hands journal text to the map. */

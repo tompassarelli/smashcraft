@@ -18,21 +18,15 @@ test("the installed TypeScript toolchain matches typescript-toolchain.lock", asy
 test("a TypeScript-only map starts the TypeScript entry with its own config, before and after a rebuild", () => {
   const base = typescriptBase(baseMapScript, "function mapConfig()\n    SetPlayers(4)\nend\n");
   expect(base).not.toMatch(/^RunInitializationTriggers\(\)$/m);
-  for (const script of [composeScript(base, bundle), composeScript(base, { ...bundle, key: "3-4" })]) {
-    expect(script).toContain("function main()\n    baseMain()\n    smashcraftTs.start()\nend");
+  for (const candidate of [bundle, { ...bundle, key: "3-4" }]) {
+    const script = composeScript(base, candidate);
+    expect(script).toContain(`function main()\n    baseMain()\n    smashcraftTs.start("${candidate.key}")\nend`);
     expect(script).toContain("function config()\n    mapConfig()\nend");
-    expect(script).not.toContain("wurst");
   }
   expect(() => composeScript(base, undefined)).toThrow();
 });
 
-test("a Wurst map keeps starting Wurst, then the TypeScript bundle", () => {
-  const wurst = "function baseMain()\nend\nfunction wurstMain() \nend\nfunction wurstConfig() \nend\n";
-  expect(composeScript(wurst, bundle)).toContain("baseMain()\n    wurstMain()\n    smashcraftTs.start()\nend\n\nfunction config()\n    wurstConfig()\nend");
-  expect(composeScript(wurst, undefined)).not.toContain("smashcraftTs");
-});
-
-test("the FileIO ability equals the Wurst build's war3map.w3a", () => {
+test("the FileIO ability retains the recorded war3map.w3a bytes", () => {
   const hash = new Bun.CryptoHasher("sha256").update(fileIoAbility()).digest("hex");
   expect(hash).toBe("28b1c0200840165876f4feccaf5bb389a2261e7492ffb0269b23ba0cb569e994");
 });

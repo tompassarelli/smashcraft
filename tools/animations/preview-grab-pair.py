@@ -14,8 +14,8 @@ assets = project / 'build/animation-assets'
 sys.path.insert(0, str(project / 'tools/animations'))
 from grab_animations import timing
 
-source = (project / 'wurst/Simulation.wurst').read_text()
-distance = float(re.search(r'GRAB_HOLD_DISTANCE = ([\d.]+)', source)[1])
+source = (project / 'ts/src/game/sim/moves.ts').read_text()
+distance = float(re.search(r'^export const GRAB_HOLD_DISTANCE = ([\d.]+);$', source, re.M)[1])
 tag = os.environ.get('PAIR_TAG', 'current')
 frames = [('hold', 'Grab Hold', 'Grabbed', 0),
           ('windup', 'Pummel', 'Victim Pummel', timing('GRAB_PUMMEL')[0] // 2),

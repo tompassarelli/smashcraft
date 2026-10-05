@@ -27,8 +27,6 @@ import { step } from "./timings";
 const PROJECT = join(import.meta.dir, "../../..");
 const MAP_CONFIG = join(PROJECT, "ts/tsconfig.map.json");
 const MAP_BUNDLE = join(PROJECT, "ts/build/map.lua");
-/** Everything the map compile reads. */
-const COMPILE_INPUTS = ["src", "plugins", "tsconfig.map.json", "tsconfig.json"].map((input) => join(PROJECT, "ts", input));
 export const DEFAULT_PACKAGER = join(PROJECT, "build/tools/map-pack");
 
 export class MapBuildFailure extends Schema.TaggedError<MapBuildFailure>()("MapBuildFailure", {
@@ -82,37 +80,43 @@ export class MapBuild extends Context.Service<MapBuild, {
   /** Replaces only war3map.lua of a map built by build.sh or `build`. */
   readonly rebuild: (map: string, packager?: string) => Effect.Effect<void, BuildFailure>;
 }>()("waygate/MapBuild") {
-  static readonly layer = Layer.effect(MapBuild, Effect.gen(function*() {
-    const sourceErrors = yield* SourceErrors;
-    // The compiler API takes about 0.6 s to load, so it loads on the first compile.
-    let compiler: Promise<{ readonly run: ReturnType<CompilerModule["mapCompiler"]>; readonly report: CompilerModule["report"] }> | undefined;
-    const warmCompiler = () => (compiler ??= import("../compiler").then(({ mapCompiler, report }) => ({ run: mapCompiler(MAP_CONFIG), report })));
-    /** The compiled bundle on disk, its source map kept under its key. */
-    const compiled = Effect.gen(function*() {
-      const bytes = yield* tryMapPromise("read map bundle", MAP_BUNDLE, () => Bun.file(MAP_BUNDLE).bytes());
-      const bundleChecksum = checksum(bytes.length, (index) => bytes[index] ?? 0);
-      const key = payloadKey(bundleChecksum);
-      yield* sourceErrors.retain(MAP_BUNDLE, key);
-      return { text: new TextDecoder().decode(bytes), key, bytes, checksum: bundleChecksum } satisfies CompiledBundle;
-    });
-    const compile = Effect.gen(function*() {
-      const { run, report } = yield* tryMapPromise("load the map compiler", MAP_CONFIG, warmCompiler);
-      const diagnostics = yield* tryMapSync("compile map", MAP_CONFIG, run);
-      if (diagnostics.length > 0) return yield* new CompileFailure({ diagnostics: report(diagnostics) });
-      return yield* compiled;
-    }).pipe(step("compile"));
-    // `hot` compiles every save into the same bundle, so a map command usually finds it current.
-    const currentBundle = Effect.gen(function*() {
-      const age = yield* tryMapSync("check compiled bundle", MAP_BUNDLE, () => freshBundleAge(MAP_BUNDLE, COMPILE_INPUTS, Date.now()));
-      if (age === undefined) return yield* compile;
-      return yield* compiled.pipe(step(`script reused (compiled ${age.toFixed(0)} s ago)`));
-    });
-    return MapBuild.of({
-      compile,
-      build: (options) => buildTypescriptMap(options, currentBundle),
-      rebuild: (map, packager) => rebuildMap(map, currentBundle, packager),
-    });
-  }));
+  static readonly layer = MapBuild.layerFor(MAP_CONFIG, MAP_BUNDLE);
+
+  /** Creates the same compiler service for a separate diagnostic map profile and output bundle. */
+  static layerFor(configPath: string, bundlePath: string) {
+    const compileInputs = [join(PROJECT, "ts/src"), join(PROJECT, "ts/plugins"), configPath, MAP_CONFIG, join(PROJECT, "ts/tsconfig.json")];
+    return Layer.effect(MapBuild, Effect.gen(function*() {
+      const sourceErrors = yield* SourceErrors;
+      // The compiler API takes about 0.6 s to load, so it loads on the first compile.
+      let compiler: Promise<{ readonly run: ReturnType<CompilerModule["mapCompiler"]>; readonly report: CompilerModule["report"] }> | undefined;
+      const warmCompiler = () => (compiler ??= import("../compiler").then(({ mapCompiler, report }) => ({ run: mapCompiler(configPath), report })));
+      /** The compiled bundle on disk, its source map kept under its key. */
+      const compiled = Effect.gen(function*() {
+        const bytes = yield* tryMapPromise("read map bundle", bundlePath, () => Bun.file(bundlePath).bytes());
+        const bundleChecksum = checksum(bytes.length, (index) => bytes[index] ?? 0);
+        const key = payloadKey(bundleChecksum);
+        yield* sourceErrors.retain(bundlePath, key);
+        return { text: new TextDecoder().decode(bytes), key, bytes, checksum: bundleChecksum } satisfies CompiledBundle;
+      });
+      const compile = Effect.gen(function*() {
+        const { run, report } = yield* tryMapPromise("load the map compiler", configPath, warmCompiler);
+        const diagnostics = yield* tryMapSync("compile map", configPath, run);
+        if (diagnostics.length > 0) return yield* new CompileFailure({ diagnostics: report(diagnostics) });
+        return yield* compiled;
+      }).pipe(step("compile"));
+      // `hot` compiles every save into the same bundle, so a map command usually finds it current.
+      const currentBundle = Effect.gen(function*() {
+        const age = yield* tryMapSync("check compiled bundle", bundlePath, () => freshBundleAge(bundlePath, compileInputs, Date.now()));
+        if (age === undefined) return yield* compile;
+        return yield* compiled.pipe(step(`script reused (compiled ${age.toFixed(0)} s ago)`));
+      });
+      return MapBuild.of({
+        compile,
+        build: (options) => buildTypescriptMap(options, currentBundle),
+        rebuild: (map, packager) => rebuildMap(map, currentBundle, packager),
+      });
+    }));
+  }
 }
 
 /** The newest modification time under `path`: a file's own, or a directory's newest file's. */
@@ -371,7 +375,7 @@ const InstalledPackage = Schema.Struct({ version: Schema.String });
 
 /**
  * Checks Bun and the declared and installed TypeScript packages against
- * smashcraft:typescript-toolchain.lock, as build.sh checks the Wurst lock.
+ * smashcraft:typescript-toolchain.lock before compiling or packaging the map.
  */
 export const verifyToolchain = (lockPath: string, packageDirectory: string) => Effect.gen(function*() {
   const text = yield* tryMapPromise("read toolchain lock", lockPath, () => Bun.file(lockPath).text());

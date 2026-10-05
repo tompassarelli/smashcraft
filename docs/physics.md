@@ -1,5 +1,13 @@
 # Physics reference and implementation
 
+The live simulation is smashcraft:ts/src/game/sim/. The numerical fixture suites
+are smashcraft:ts/src/game/sim/physicsPrecisionState.tests.ts,
+smashcraft:ts/src/game/sim/physicsPrecisionScalar.tests.ts and
+smashcraft:ts/src/game/sim/physicsPrecisionMotion.tests.ts; their headless and
+native commands are in smashcraft:docs/native-physics-precision.md.
+Wurst source paths, compiler pins and test results below describe their
+recorded historical revisions.
+
 ## Analog shield pressure and hitlag observations — 2026-10-04
 
 The existing analog trigger bytes now preserve shield strength through input,
@@ -2163,14 +2171,13 @@ smashcraft:build/wurst-tests/illidan-trade-before.log.
 
 ### Binary32 arithmetic boundary
 
-The standard-library pin in smashcraft:wurst-toolchain.lock now includes the
-pure Wurst Binary32 package from the Tom-owned Apache-2.0 fork. The shared engine
+The historical standard-library pin included the pure Wurst Binary32 package
+from the Tom-owned Apache-2.0 fork. The shared engine
 rounds grounded knockback decay in Melee units and rounds shield-health updates
 to binary32. A generated-Lua production probe, not just the binary32 compiler
 interpreter, verifies the recorded first traction subtraction and regeneration
-from 20 to 20.06999969482422. Run
-`bash ~/code/smashcraft/main/tools/physics-probe/check-numerical-precision.sh` from this checkout;
-source is smashcraft:tools/physics-probe/NumericalPrecisionProbe.wurst.
+from 20 to 20.06999969482422. These production checks now live in
+smashcraft:ts/src/game/sim/physicsPrecisionState.tests.ts.
 
 This is partial precision coverage. Other formulas and their PowerPC operation
 ordering still require migration and comparison. The probe does not establish

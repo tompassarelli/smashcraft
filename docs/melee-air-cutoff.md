@@ -31,7 +31,7 @@ Let d be the binary32 decay, p its previous representable value, and
 M = (d+p)/2. A rounded speed is below d precisely on the lower side of M.
 For these two constants M² is not a binary32 value. The closest squared speeds
 on each side of M² remain on their respective sides even after the full error
-bound. The generator verifies this with exact integer cross-products:
+bound. The recorded boundary argument uses exact integer cross-products:
 
 - `below × (1+E)² < M²`
 - `above × (1-E)² > M²`
@@ -60,9 +60,11 @@ executed branch described below. This is not execution of the complete original 
 The error argument covers permissible hardware estimate variation separately;
 it does not claim that QEMU reproduces the Gekko estimate itself.
 
-smashcraft:tools/physics-probe/generate-air-cutoff-probe.mjs checks the bound and
-exact boundary inequalities, then generates production movement assertions from
-the corpus. The original eighteen-vector comparison passed before and after
+The historical smashcraft:tools/physics-probe/generate-air-cutoff-probe.mjs
+checked the bound and exact boundary inequalities, then generated production
+movement assertions from the corpus. The TypeScript checks now live in
+smashcraft:ts/src/game/sim/physicsPrecisionMotion.tests.ts. The original
+eighteen-vector comparison passed before and after
 the square-root replacement, with incorrectly composed vertical recoil values
 below the cutoff. That evidence established classification and nonzero decay,
 but did not establish the state stores performed by the cutoff branch.

@@ -1,6 +1,5 @@
-// The TypeScript presentation modules generated next to each model's Wurst
-// asset-info package: the imported model path and each authored clip's
-// sequence index and duration.
+// The TypeScript presentation modules generated from each model's authored
+// clips: the imported model path and each sequence index and duration.
 
 export interface ClipBinding {
   /** Constant-name fragment, such as GRAB_HOLD. */
@@ -16,7 +15,7 @@ export interface ModelAssetInfo {
   readonly clips: readonly ClipBinding[];
 }
 
-/** An exact binary32 value as a literal; anything else rounds through f32() like a Wurst real constant. */
+/** An exact binary32 value as a literal; other values round through f32(). */
 function seconds(value: number): string {
   const literal = Number.isInteger(value) ? value.toFixed(1) : String(value);
   return Math.fround(value) === value ? literal : `f32(${literal})`;

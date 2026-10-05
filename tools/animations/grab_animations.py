@@ -1,17 +1,19 @@
-"""Blender boundary: holder and captive poses for the Wurst grab actions."""
+"""Blender boundary: holder and captive poses for the game's grab actions."""
 from pathlib import Path
 import re
 
 
 def timing(action):
-    source = (Path(__file__).resolve().parents[2] / 'wurst/Simulation.wurst').read_text()
-    # Consume the small Wurst action table; fail if its representation changes.
+    source = (Path(__file__).resolve().parents[2] / 'ts/src/game/sim/moves.ts').read_text()
+    # Read the TypeScript action tables so authored clips follow gameplay timing.
     def value(function):
-        body = source.split('public function ' + function + '(int action) returns int\n', 1)[1].split('\nconstant ', 1)[0].split('\npublic ', 1)[0]
-        specific = re.search(r'\tif action == ' + action + r'\n\t\treturn (\d+)\n', body)
+        body = source.split('export function ' + function + '(action: GrabAction): number {', 1)[1].split('\n}', 1)[0]
+        parts = action.removeprefix('GRAB_').lower().split('_')
+        token = parts[0] + ''.join(part.title() for part in parts[1:])
+        specific = re.search(r'case GrabAction\.' + token + r':\s+return (\d+);', body)
         if specific:
             return int(specific[1])
-        return int(re.findall(r'^\treturn (\d+)$', body, re.M)[-1])
+        return int(re.search(r'default:\s+return (\d+);', body)[1])
     return value('grabContactFrame'), value('grabActionDuration')
 
 

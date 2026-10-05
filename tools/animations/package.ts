@@ -53,7 +53,6 @@ const clips = [
     ["LEDGE_HANG", "Ledge Hang"],
     ["LEDGE_CLIMB", "Ledge Climb"],
 ] as const;
-const declarations: string[] = [];
 const typescriptModels: ModelAssetInfo[] = [];
 for (const fighter of ["Archer", "Rifleman"]) {
     const prefix = fighter.toUpperCase();
@@ -70,14 +69,8 @@ for (const fighter of ["Archer", "Rifleman"]) {
     const modelHash = new Bun.CryptoHasher("sha256").update(new Uint8Array(modelBytes)).digest("hex");
     const modelPath = `war3mapImported\\${fighter}Fighter-${modelHash}.mdx`;
     await Bun.write(join(assetDirectory, `${fighter}Fighter.mdx`), modelBytes);
-    const constants = metadata.flatMap(([key, index, seconds]) => [
-        `public constant int ${prefix}_${key}_INDEX = ${index}`,
-        `public constant real ${prefix}_${key}_SECONDS = ${seconds.toFixed(6)}`,
-    ]);
-    declarations.push(`public constant string ${prefix}_MODEL_FILE = ${JSON.stringify(modelPath)}`, ...constants);
     typescriptModels.push({ prefix, modelPath, clips: metadata.map(([key, index, seconds]) => ({ key, index, seconds })) });
     console.log(`${fighter} model packaged:`, metadata.map(([key, index, seconds]) => `${key} ${index} ${seconds}s`).join("; "));
     console.log("Texture references:", model.Textures.map(texture => texture.Image));
 }
-await Bun.write(join(assetDirectory, "FighterAssetInfo.wurst"), `package FighterAssetInfo\n${declarations.join("\n")}\n`);
 await Bun.write(join(project, "ts/src/game/presentation/fighterAssetInfo.ts"), typescriptAssetInfo("tools/animations/package.ts", typescriptModels));

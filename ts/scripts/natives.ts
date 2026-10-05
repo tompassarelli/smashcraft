@@ -1,6 +1,5 @@
-// Generates TypeScript declarations for Warcraft's natives from the common.j
-// and blizzard.j of the pinned Wurst compiler (smashcraft:wurst-toolchain.lock),
-// which describe the patch the map targets.
+// Generates TypeScript declarations for Warcraft's natives from common.j and
+// blizzard.j files that describe the patch the map targets.
 // Usage: bun scripts/natives.ts COMMON_J BLIZZARD_J OUT_D_TS
 const [commonPath, blizzardPath, outPath] = process.argv.slice(2);
 if (commonPath === undefined || blizzardPath === undefined || outPath === undefined) {
