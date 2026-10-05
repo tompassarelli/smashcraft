@@ -3,8 +3,7 @@
 // canonical tape's order.
 import { attackBufferCanonicalState, type AttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS } from "../input/participants";
-import type { FighterPose } from "../presentation/fighterPose";
-import { firstIllidanMotionDifference } from "../presentation/illidanMotion";
+import { firstFighterPoseDifference } from "../presentation/fighterPose";
 import { firstImpactDifference } from "../presentation/impactState";
 import { firstSpecialEffectDifference } from "../presentation/specialEffectState";
 import { firstSummonDifference } from "../presentation/summonState";
@@ -12,14 +11,9 @@ import { SPECIAL_ACTION_CAPACITY } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter, type MeleeMotionValue, type Projectile } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import type { DashGrabRules, FighterPhysics, GroundMovementRules, ShieldGeometry, SurfaceRecoveryPhysics } from "../sim/tuning";
+import { at } from "../../runtime/lookup";
 import { canonicalSlot } from "./canonical";
 import type { ReplayState } from "./snapshot";
-
-function requiredAt<T>(values: readonly T[], index: number): T {
-  const value = values[index];
-  if (value === undefined) throw new Error(`replay state is missing entry ${index}`);
-  return value;
-}
 
 type Value = number | boolean | undefined;
 
@@ -71,21 +65,21 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   };
   const e = expected;
   const a = actual;
-  const et = e.tuning;
-  const at = a.tuning;
+  const expectedTuning = e.tuning;
+  const actualTuning = a.tuning;
   add("character", e.character, a.character);
-  record("physics", et.physics, at.physics, PHYSICS_KEYS);
-  record("surfacePhysics", et.surface, at.surface, SURFACE_PHYSICS_KEYS);
-  add("ceilingTechImpulseFrame", et.tech.ceilingImpulseFrame, at.tech.ceilingImpulseFrame);
-  add("ceilingTechAnimationEndFrame", et.tech.ceilingAnimationEndFrame, at.tech.ceilingAnimationEndFrame);
-  add("wallTechAnimationEndFrame", et.tech.wallAnimationEndFrame, at.tech.wallAnimationEndFrame);
-  add("wallJumpTechAnimationEndFrame", et.tech.wallJumpAnimationEndFrame, at.tech.wallJumpAnimationEndFrame);
+  record("physics", expectedTuning.physics, actualTuning.physics, PHYSICS_KEYS);
+  record("surfacePhysics", expectedTuning.surface, actualTuning.surface, SURFACE_PHYSICS_KEYS);
+  add("ceilingTechImpulseFrame", expectedTuning.tech.ceilingImpulseFrame, actualTuning.tech.ceilingImpulseFrame);
+  add("ceilingTechAnimationEndFrame", expectedTuning.tech.ceilingAnimationEndFrame, actualTuning.tech.ceilingAnimationEndFrame);
+  add("wallTechAnimationEndFrame", expectedTuning.tech.wallAnimationEndFrame, actualTuning.tech.wallAnimationEndFrame);
+  add("wallJumpTechAnimationEndFrame", expectedTuning.tech.wallJumpAnimationEndFrame, actualTuning.tech.wallJumpAnimationEndFrame);
   add("facing", e.facing, a.facing);
   add("lastAerialTapDirection", e.motion.lastAerialTapDirection, a.motion.lastAerialTapDirection);
   add("dashFrame", e.ground.dashFrame, a.ground.dashFrame);
   add("dashDirection", e.ground.dashDirection, a.ground.dashDirection);
-  record("groundRules", et.ground, at.ground, GROUND_RULE_KEYS);
-  record("dashGrabTiming", et.dashGrab, at.dashGrab, DASH_GRAB_KEYS);
+  record("groundRules", expectedTuning.ground, actualTuning.ground, GROUND_RULE_KEYS);
+  record("dashGrabTiming", expectedTuning.dashGrab, actualTuning.dashGrab, DASH_GRAB_KEYS);
   add("dashGrabWindow", e.ground.dashGrabWindow, a.ground.dashGrabWindow);
   add("dashGrabAttack", e.attack.dashGrab, a.attack.dashGrab);
   add("groundAction", e.ground.action, a.ground.action);
@@ -136,9 +130,9 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("attackDuration", e.attack.duration, a.attack.duration);
   add("attackSerial", e.attack.serial, a.attack.serial);
   add("attackHit", e.attack.hit, a.attack.hit);
-  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) reference(`hitAttackers[${i}]`, requiredAt(e.hits.entries, i).attacker, requiredAt(a.hits.entries, i).attacker);
-  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`hitSerials[${i}]`, requiredAt(e.hits.entries, i).attackSerial, requiredAt(a.hits.entries, i).attackSerial);
-  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`hitWindows[${i}]`, requiredAt(e.hits.entries, i).window, requiredAt(a.hits.entries, i).window);
+  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) reference(`hitAttackers[${i}]`, at(e.hits.entries, i).attacker, at(a.hits.entries, i).attacker);
+  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`hitSerials[${i}]`, at(e.hits.entries, i).attackSerial, at(a.hits.entries, i).attackSerial);
+  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) add(`hitWindows[${i}]`, at(e.hits.entries, i).window, at(a.hits.entries, i).window);
   for (let i = 0; i < PARTICIPANT_CAPACITY; i++) reference(`specialHitTargets[${i}]`, e.special.hitTargets[i], a.special.hitTargets[i]);
   reference("lastHitAttacker", e.hits.lastAttacker, a.hits.lastAttacker);
   add("lastHitAttackSerial", e.hits.lastAttackSerial, a.hits.lastAttackSerial);
@@ -147,7 +141,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("smashChargeFrames", e.attack.smashChargeFrames, a.attack.smashChargeFrames);
   add("smashChargeAllowed", e.attack.smashChargeAllowed, a.attack.smashChargeAllowed);
   for (const [label, key] of PROJECTILE_FIELDS) {
-    for (let i = 0; i < PROJECTILE_CAPACITY; i++) add(`${label}[${i}]`, requiredAt(e.projectiles, i)[key], requiredAt(a.projectiles, i)[key]);
+    for (let i = 0; i < PROJECTILE_CAPACITY; i++) add(`${label}[${i}]`, at(e.projectiles, i)[key], at(a.projectiles, i)[key]);
   }
   add("parrySerial", e.visuals.parry, a.visuals.parry);
   add("specialAction", e.special.action, a.special.action);
@@ -155,7 +149,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("specialDuration", e.special.duration, a.special.duration);
   add("specialLockFrames", e.special.lockFrames, a.special.lockFrames);
   add("specialFall", e.special.fall, a.special.fall);
-  for (let i = 0; i < SPECIAL_ACTION_CAPACITY; i++) add(`specialCooldowns[${i}]`, requiredAt(e.special.cooldowns, i), requiredAt(a.special.cooldowns, i));
+  for (let i = 0; i < SPECIAL_ACTION_CAPACITY; i++) add(`specialCooldowns[${i}]`, at(e.special.cooldowns, i), at(a.special.cooldowns, i));
   add("specialDirection", e.special.direction, a.special.direction);
   add("specialHit", e.special.hit, a.special.hit);
   add("bearLife", e.bear.life, a.bear.life);
@@ -188,7 +182,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("shieldReflectFrames", e.shield.reflectFrames, a.shield.reflectFrames);
   add("shieldPerfectFrames", e.shield.perfectFrames, a.shield.perfectFrames);
   add("shieldPerfectActionFrames", e.shield.perfectActionFrames, a.shield.perfectActionFrames);
-  record("shieldGeometry", et.shield, at.shield, SHIELD_GEOMETRY_KEYS);
+  record("shieldGeometry", expectedTuning.shield, actualTuning.shield, SHIELD_GEOMETRY_KEYS);
   add("shieldStrength", e.shield.strength, a.shield.strength);
   add("shieldEnergy", e.shield.energy, a.shield.energy);
   add("shieldStun", e.shield.stun, a.shield.stun);
@@ -197,8 +191,8 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("shieldBreakState", e.shield.breakState, a.shield.breakState);
   add("shieldBreakFrame", e.shield.breakFrame, a.shield.breakFrame);
   add("shieldBreakSerial", e.shield.breakSerial, a.shield.breakSerial);
-  add("shieldBreakDownFrames", et.shieldBreak.landFrames, at.shieldBreak.landFrames);
-  add("shieldBreakStandFrames", et.shieldBreak.standFrames, at.shieldBreak.standFrames);
+  add("shieldBreakDownFrames", expectedTuning.shieldBreak.landFrames, actualTuning.shieldBreak.landFrames);
+  add("shieldBreakStandFrames", expectedTuning.shieldBreak.standFrames, actualTuning.shieldBreak.standFrames);
   add("shieldBreakRemaining", e.shield.breakRemaining, a.shield.breakRemaining);
   add("crouching", e.motion.crouching, a.motion.crouching);
   add("fastFallDownHeld", e.motion.fastFallDownHeld, a.motion.fastFallDownHeld);
@@ -319,26 +313,12 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   return undefined;
 }
 
-/** Wurst FighterPose.firstDifference: the clip fields, then Illidan's motion history. */
-function firstFighterPoseDifference(expected: Readonly<FighterPose>, actual: Readonly<FighterPose>): string | undefined {
-  if (expected.animation !== actual.animation) return "animation";
-  if (expected.jumpAnimationRemaining !== actual.jumpAnimationRemaining) return "jumpAnimationRemaining";
-  if (expected.doubleJumpAnimation !== actual.doubleJumpAnimation) return "doubleJumpAnimation";
-  if (expected.landingAnimationRate !== actual.landingAnimationRate) return "landingAnimationRate";
-  if (expected.clipIndex !== actual.clipIndex) return "clipIndex";
-  if (expected.clipName !== actual.clipName) return "clipName";
-  if (expected.clipTime !== actual.clipTime) return "clipTime";
-  if (expected.rate !== actual.rate) return "rate";
-  if (expected.selectionSerial !== actual.selectionSerial) return "selectionSerial";
-  return firstIllidanMotionDifference(expected.motion, actual.motion);
-}
-
 /** Wurst ReplaySnapshot.firstPoseDifference: presentation history, which the checksum leaves out. */
 export function firstPoseDifference(expected: Readonly<ReplayState>, actual: Readonly<ReplayState>): string | undefined {
   if (expected.world.mask !== actual.world.mask) return "participantMask";
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(expected.world, slot)) continue;
-    const pose = firstFighterPoseDifference(expected.runtime.poses[slot], actual.runtime.poses[slot]);
+    const pose = firstFighterPoseDifference(expected.runtime.poses[slot], actual.runtime.poses[slot], expected.world, actual.world);
     if (pose !== undefined) return `pose[${slot}].${pose}`;
   }
   const impact = firstImpactDifference(expected.runtime.impacts, actual.runtime.impacts);

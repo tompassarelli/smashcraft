@@ -8,7 +8,7 @@ import { firstStateDifference } from "./difference";
 import { ReplayCorrections, ReplayHistory } from "./history";
 import { REPLAY_HISTORY_CAPACITY, REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
 import { copyReplayState, createReplaySnapshot } from "./snapshot";
-import { type TapeWorld, captureTape, createTapeWorld, executeTapeRow, runRecordedTape } from "./tape";
+import { type TapeWorld, captureTape, createTapeWorld, executeTapeRow, runRecordedTape } from "./tapeWorld";
 
 function frameControls(first: Controls, second: Controls, firstCommands: AttackBuffer, secondCommands: AttackBuffer): FrameControls {
   return { inputs: [first, second, neutralControls(), neutralControls()], commands: [firstCommands, secondCommands, attackBuffer(0), attackBuffer(0)] };

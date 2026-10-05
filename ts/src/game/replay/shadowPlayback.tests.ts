@@ -32,7 +32,7 @@ import { firstStateDifference } from "./difference";
 import { ReplayHistory } from "./history";
 import { shadowSpeculativeStepBudget, ShadowInputPlayback } from "./shadowPlayback";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
-import { type TapeWorld, captureTape, createTapeWorld } from "./tape";
+import { type TapeWorld, captureTape, createTapeWorld } from "./tapeWorld";
 
 const row = (fields: RowFields = {}) => assertDefined(inputRow(fields), "row");
 const NEUTRAL = row();

@@ -1,6 +1,5 @@
 import { PARTICIPANT_SLOTS, type Slots } from "../input/participants";
-import type { ImpactEvents } from "../presentation/impactEvents";
-import { createImpactEvents } from "../presentation/impactEvents";
+import { type ImpactEvents, createImpactEvents } from "../presentation/impactEvents";
 import { clearImpactState, copyImpactStateInto, createImpactState, type ImpactState } from "../presentation/impactState";
 import { clearSpecialEffectState, copySpecialEffectStateInto, createSpecialEffectState, type SpecialEffectState } from "../presentation/specialEffectState";
 import { clearSummonState, copySummonStateInto, createSummonState, type SummonState } from "../presentation/summonState";
@@ -8,12 +7,14 @@ import { clearFighterPose, copyFighterPoseInto, createFighterPose, type FighterP
 import type { Roster } from "../sim/roster";
 import { isActive } from "../sim/roster";
 
+/** Frame-owned pacing and presentation history; only pacing feeds the simulation. */
 export interface ReplayRuntimeState {
   simulationFrame: number;
   botAttackDelays: Slots<number>;
   impacts: ImpactState;
   specials: SpecialEffectState;
   summons: SummonState;
+  /** Scratch, overwritten before every step: no state crosses frames. */
   frameImpacts: Slots<ImpactEvents>;
   poses: Slots<FighterPose>;
 }
@@ -37,16 +38,14 @@ export function resetPoses(runtime: ReplayRuntimeState): void {
   for (const slot of PARTICIPANT_SLOTS) clearFighterPose(runtime.poses[slot]);
 }
 
-/** Replay copies state into retained records; frameImpacts are per-step scratch and stay local. */
-export function copyReplayRuntimeState(target: ReplayRuntimeState, source: Readonly<ReplayRuntimeState>, sourceWorld: Readonly<Roster>, targetWorld: Readonly<Roster>): void {
+/** Copies between worlds: poses of the source world's participants, with their slot references. */
+export function copyReplayRuntimeState(target: ReplayRuntimeState, source: Readonly<ReplayRuntimeState>, sourceWorld: Readonly<Roster>): void {
   target.simulationFrame = source.simulationFrame;
   copyImpactStateInto(target.impacts, source.impacts);
   copySpecialEffectStateInto(target.specials, source.specials);
   copySummonStateInto(target.summons, source.summons);
   for (const slot of PARTICIPANT_SLOTS) {
     target.botAttackDelays[slot] = source.botAttackDelays[slot];
-    if (isActive(sourceWorld, slot) && isActive(targetWorld, slot)) {
-      copyFighterPoseInto(target.poses[slot], source.poses[slot]);
-    }
+    if (isActive(sourceWorld, slot)) copyFighterPoseInto(target.poses[slot], source.poses[slot], sourceWorld);
   }
 }

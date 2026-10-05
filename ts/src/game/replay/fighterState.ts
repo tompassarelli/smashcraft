@@ -1,11 +1,6 @@
+import { at } from "../../runtime/lookup";
 import { participantActive } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
-
-function requiredAt<T>(values: readonly T[], index: number): T {
-  const value = values[index];
-  if (value === undefined) throw new Error(`replay fighter state is missing entry ${index}`);
-  return value;
-}
 
 /**
  * Copies every field into existing storage, so a replay row never aliases live
@@ -131,8 +126,8 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   const hits = target.hits;
   const sourceHits = source.hits;
   for (let i = 0; i < hits.entries.length; i++) {
-    const to = requiredAt(hits.entries, i);
-    const from = requiredAt(sourceHits.entries, i);
+    const to = at(hits.entries, i);
+    const from = at(sourceHits.entries, i);
     to.attacker = retain(from.attacker);
     to.attackSerial = from.attackSerial;
     to.window = from.window;
@@ -158,14 +153,14 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   special.duration = sourceSpecial.duration;
   special.lockFrames = sourceSpecial.lockFrames;
   special.fall = sourceSpecial.fall;
-  for (let i = 0; i < special.cooldowns.length; i++) special.cooldowns[i] = requiredAt(sourceSpecial.cooldowns, i);
+  for (let i = 0; i < special.cooldowns.length; i++) special.cooldowns[i] = at(sourceSpecial.cooldowns, i);
   special.direction = sourceSpecial.direction;
   special.hit = sourceSpecial.hit;
   for (let i = 0; i < special.hitTargets.length; i++) special.hitTargets[i] = retain(sourceSpecial.hitTargets[i]);
 
   for (let i = 0; i < target.projectiles.length; i++) {
-    const to = requiredAt(target.projectiles, i);
-    const from = requiredAt(source.projectiles, i);
+    const to = at(target.projectiles, i);
+    const from = at(source.projectiles, i);
     to.life = from.life;
     to.x = from.x;
     to.z = from.z;

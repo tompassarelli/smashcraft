@@ -1,6 +1,7 @@
 // Foreign model boundary: encode the authored MDL and expose its clip metadata.
 import { parseMDL, generateMDX } from "war3-model";
 import { join } from "node:path";
+import { type ModelAssetInfo, typescriptAssetInfo } from "./asset-info";
 
 const project = join(import.meta.dir, "../..");
 const assetDirectory = join(project, "build/animation-assets");
@@ -51,8 +52,9 @@ const clips = [
     ["GET_UP_ATTACK", "Get Up Attack"],
     ["LEDGE_HANG", "Ledge Hang"],
     ["LEDGE_CLIMB", "Ledge Climb"],
-];
+] as const;
 const declarations: string[] = [];
+const typescriptModels: ModelAssetInfo[] = [];
 for (const fighter of ["Archer", "Rifleman"]) {
     const prefix = fighter.toUpperCase();
     const model = parseMDL(await Bun.file(join(assetDirectory, `${fighter.toLowerCase()}-fighter.mdl`)).text());
@@ -62,7 +64,7 @@ for (const fighter of ["Archer", "Rifleman"]) {
         const sequence = model.Sequences[index];
         const seconds = (sequence.Interval[1] - sequence.Interval[0]) / 1000;
         if (!(seconds > 0)) throw new Error(`${name} sequence must have a positive duration`);
-        return [key, index, seconds];
+        return [key, index, seconds] as const;
     });
     const modelBytes = generateMDX(model);
     const modelHash = new Bun.CryptoHasher("sha256").update(new Uint8Array(modelBytes)).digest("hex");
@@ -73,7 +75,9 @@ for (const fighter of ["Archer", "Rifleman"]) {
         `public constant real ${prefix}_${key}_SECONDS = ${seconds.toFixed(6)}`,
     ]);
     declarations.push(`public constant string ${prefix}_MODEL_FILE = ${JSON.stringify(modelPath)}`, ...constants);
+    typescriptModels.push({ prefix, modelPath, clips: metadata.map(([key, index, seconds]) => ({ key, index, seconds })) });
     console.log(`${fighter} model packaged:`, metadata.map(([key, index, seconds]) => `${key} ${index} ${seconds}s`).join("; "));
     console.log("Texture references:", model.Textures.map(texture => texture.Image));
 }
 await Bun.write(join(assetDirectory, "FighterAssetInfo.wurst"), `package FighterAssetInfo\n${declarations.join("\n")}\n`);
+await Bun.write(join(project, "ts/src/game/presentation/fighterAssetInfo.ts"), typescriptAssetInfo("tools/animations/package.ts", typescriptModels));

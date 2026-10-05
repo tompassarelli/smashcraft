@@ -1,7 +1,7 @@
 // Long recorded tapes, outside the default suite. Run on demand:
 // GAME_SOAK=1 bun test test/game.test.ts, or GAME_SOAK=1 with scripts/lua-tests.ts.
 import { test } from "../../runtime/testing";
-import { runRecordedTape } from "./tape";
+import { runRecordedTape } from "./tapeWorld";
 
 test("a 4096-frame recorded tape matches its replayed run on every frame", () => {
   runRecordedTape(4096, 64, 99);

@@ -65,6 +65,7 @@ import { forwardRollTurnFrame, rollTravel } from "../physics/rollTravel";
 import { advanceTechInput, techContactWindow } from "../physics/techInput";
 import { clearDownState, clearOwnedFreezeTrap } from "./transitions";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
+import { at } from "../../runtime/lookup";
 
 const FAST_FALL_DOWN_THRESHOLD = 0.6625000238418579;
 const PLATFORM_DROP_FRAMES = 12;
@@ -134,7 +135,7 @@ function advanceActionClocks(f: Fighter, input: Readonly<Controls>): boolean {
   if (smashChargePaused) return true;
   attack.cooldown = max(0, attack.cooldown - 1);
   if (special.lockFrames > 0) special.lockFrames--;
-  for (let action = 1; action < special.cooldowns.length; action++) special.cooldowns[action] = max(0, special.cooldowns[action]! - 1);
+  for (let action = 1; action < special.cooldowns.length; action++) special.cooldowns[action] = max(0, at(special.cooldowns, action) - 1);
   if (attack.style !== undefined) {
     attack.frame++;
     if (attack.frame >= attack.duration) {

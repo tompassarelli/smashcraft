@@ -8,6 +8,7 @@ import { clearMotionValue, setWorldMotionValue } from "./motion";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt } from "./roster";
 import { clearShieldBreak } from "./shield";
+import { at } from "../../runtime/lookup";
 import {
   clearDownState,
   clearGrabLinks,
@@ -90,7 +91,7 @@ export function reset(world: Roster, slot: number, startX: number): void {
   hits.lastAttackSerial = undefined;
   hits.lastWindow = 0;
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) {
-    const record = hits.entries[entry]!;
+    const record = at(hits.entries, entry);
     record.attacker = undefined;
     record.attackSerial = 0;
     record.window = 0;

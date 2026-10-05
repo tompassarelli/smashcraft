@@ -43,5 +43,15 @@ export function copyReplayState(target: ReplayState, source: Readonly<ReplayStat
     copyAttackBuffer(target.controls.commands[slot], source.controls.commands[slot]);
   }
   copyMatchState(target.match, source.match);
-  copyReplayRuntimeState(target.runtime, source.runtime, source.world, target.world);
+  copyReplayRuntimeState(target.runtime, source.runtime, source.world);
+}
+
+/** copyReplayState from live state held in separate records. */
+export function captureReplaySnapshot(snapshot: ReplayState, world: Readonly<Roster>, match: Readonly<MatchState>, controls: Readonly<FrameControls>, runtime: Readonly<ReplayRuntimeState>): void {
+  copyReplayState(snapshot, { world, match, controls, runtime });
+}
+
+/** copyReplayState into live state held in separate records. */
+export function restoreReplaySnapshot(snapshot: Readonly<ReplayState>, world: Roster, match: MatchState, controls: FrameControls, runtime: ReplayRuntimeState): void {
+  copyReplayState({ world, match, controls, runtime }, snapshot);
 }

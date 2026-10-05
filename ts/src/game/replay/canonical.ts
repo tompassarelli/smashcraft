@@ -3,17 +3,12 @@
 // these strings and checksums between Wurst's Lua, Bun and 32-bit Lua.
 import { attackBufferCanonicalState } from "../input/attackBuffer";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS, participantActive } from "../input/participants";
+import { at } from "../../runtime/lookup";
 import { floorMod } from "../../sim/intMath";
 import { SPECIAL_ACTION_CAPACITY } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import type { ReplayState } from "./snapshot";
-
-function requiredAt<T>(values: readonly T[], index: number): T {
-  const value = values[index];
-  if (value === undefined) throw new Error(`replay state is missing entry ${index}`);
-  return value;
-}
 
 const REPLAY_CHECKSUM_MODULUS = 1_000_003;
 
@@ -215,9 +210,9 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("attackDuration", a.duration);
   int("attackSerial", a.serial);
   bool("attackHit", a.hit);
-  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) reference(`hitAttackers[${i}]`, requiredAt(fighter.hits.entries, i).attacker);
-  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`hitSerials[${i}]`, requiredAt(fighter.hits.entries, i).attackSerial);
-  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`hitWindows[${i}]`, requiredAt(fighter.hits.entries, i).window);
+  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) reference(`hitAttackers[${i}]`, at(fighter.hits.entries, i).attacker);
+  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`hitSerials[${i}]`, at(fighter.hits.entries, i).attackSerial);
+  for (let i = 0; i < PARTICIPANT_CAPACITY; i++) int(`hitWindows[${i}]`, at(fighter.hits.entries, i).window);
   for (let i = 0; i < PARTICIPANT_CAPACITY; i++) reference(`specialHitTargets[${i}]`, sp.hitTargets[i]);
   reference("lastHitAttacker", fighter.hits.lastAttacker);
   int("lastHitAttackSerial", fighter.hits.lastAttackSerial ?? -1);
@@ -225,24 +220,24 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   bool("smashCharging", a.smashCharging);
   int("smashChargeFrames", a.smashChargeFrames);
   bool("smashChargeAllowed", a.smashChargeAllowed);
-  for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileLife[${i}]`, requiredAt(fighter.projectiles, i).life);
-  for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileX[${i}]`, requiredAt(fighter.projectiles, i).x);
-  for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileZ[${i}]`, requiredAt(fighter.projectiles, i).z);
-  for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileDirection[${i}]`, requiredAt(fighter.projectiles, i).direction);
-  for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileKind[${i}]`, requiredAt(fighter.projectiles, i).kind);
-  for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileDamageMultiplier[${i}]`, requiredAt(fighter.projectiles, i).damageMultiplier);
-  for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileVisualFamily[${i}]`, requiredAt(fighter.projectiles, i).visualFamily);
-  for (let i = 0; i < PROJECTILE_CAPACITY; i++) bool(`projectileNewlyReflected[${i}]`, requiredAt(fighter.projectiles, i).newlyReflected);
-  for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileVelocityX[${i}]`, requiredAt(fighter.projectiles, i).velocityX);
-  for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileVelocityZ[${i}]`, requiredAt(fighter.projectiles, i).velocityZ);
-  for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileSerial[${i}]`, requiredAt(fighter.projectiles, i).serial);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileLife[${i}]`, at(fighter.projectiles, i).life);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileX[${i}]`, at(fighter.projectiles, i).x);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileZ[${i}]`, at(fighter.projectiles, i).z);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileDirection[${i}]`, at(fighter.projectiles, i).direction);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileKind[${i}]`, at(fighter.projectiles, i).kind);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileDamageMultiplier[${i}]`, at(fighter.projectiles, i).damageMultiplier);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileVisualFamily[${i}]`, at(fighter.projectiles, i).visualFamily);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) bool(`projectileNewlyReflected[${i}]`, at(fighter.projectiles, i).newlyReflected);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileVelocityX[${i}]`, at(fighter.projectiles, i).velocityX);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileVelocityZ[${i}]`, at(fighter.projectiles, i).velocityZ);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileSerial[${i}]`, at(fighter.projectiles, i).serial);
   int("parrySerial", v.parry);
   int("specialAction", sp.action);
   int("specialFrame", sp.frame);
   int("specialDuration", sp.duration);
   int("specialLockFrames", sp.lockFrames);
   bool("specialFall", sp.fall);
-  for (let i = 0; i < SPECIAL_ACTION_CAPACITY; i++) int(`specialCooldowns[${i}]`, requiredAt(sp.cooldowns, i));
+  for (let i = 0; i < SPECIAL_ACTION_CAPACITY; i++) int(`specialCooldowns[${i}]`, at(sp.cooldowns, i));
   int("specialDirection", sp.direction);
   bool("specialHit", sp.hit);
   int("bearLife", fighter.bear.life);

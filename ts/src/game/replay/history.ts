@@ -11,6 +11,7 @@ import {
   resetMatchFrameInput,
   sameMatchFrameInput,
 } from "../match/frameInput";
+import { at } from "../../runtime/lookup";
 import { floorMod } from "../../sim/intMath";
 import { REPLAY_HISTORY_CAPACITY, REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
@@ -19,12 +20,6 @@ import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snaps
 export type CorrectionResult = number | "unchanged" | "rejected";
 
 const repeat = <T>(count: number, make: () => T): T[] => Array.from({ length: count }, () => make());
-
-function requiredAt<T>(values: readonly T[], index: number): T {
-  const value = values[index];
-  if (value === undefined) throw new Error(`replay history is missing entry ${index}`);
-  return value;
-}
 
 /**
  * Detached replacement rows for frames already run. Adding a row copies it,
@@ -67,7 +62,7 @@ export class ReplayCorrections {
   }
 
   isSpeculative(index: number): boolean {
-    return index >= 0 && index < this.count && requiredAt(this.speculative, index);
+    return index >= 0 && index < this.count && at(this.speculative, index);
   }
 
   /** The row at index, valid until the batch changes. */
@@ -85,11 +80,11 @@ export class ReplayCorrections {
   private addRow(row: Readonly<MatchFrameInput>, predicted: boolean): boolean {
     if (this.current === undefined || row.frame === undefined || row.frame < 1) return false;
     for (let index = 0; index < this.count; index++) {
-      const held = requiredAt(this.rows, index);
+      const held = at(this.rows, index);
       if (held.frame === row.frame) return sameMatchFrameInput(held, row) && this.speculative[index] === predicted;
     }
     if (this.count === REPLAY_MAX_CORRECTION_FRAMES) return false;
-    copyMatchFrameInput(requiredAt(this.rows, this.count), row);
+    copyMatchFrameInput(at(this.rows, this.count), row);
     this.speculative[this.count] = predicted;
     this.count++;
     return true;
@@ -199,7 +194,7 @@ export class ReplayHistory {
       const row = corrections.row(index);
       if (row === undefined || row.frame === undefined || !this.speculativeAt(row.frame)) continue;
       const slot = this.slotOf(row.frame);
-      copyMatchFrameInput(requiredAt(this.inputs, slot), row);
+      copyMatchFrameInput(at(this.inputs, slot), row);
       this.speculative[slot] = corrections.isSpeculative(index);
     }
     this.advanceAuthoritative();
@@ -221,8 +216,8 @@ export class ReplayHistory {
     // The frame counter must not wrap into a different history.
     if (this.nextFrame > INPUT_LAST_FRAME) return false;
     const slot = this.slotOf(this.nextFrame);
-    copyReplayState(requiredAt(this.snapshots, slot), live);
-    copyMatchFrameInput(requiredAt(this.inputs, slot), row);
+    copyReplayState(at(this.snapshots, slot), live);
+    copyMatchFrameInput(at(this.inputs, slot), row);
     this.speculative[slot] = predicted;
     this.nextFrame++;
     this.count = Math.min(this.count + 1, REPLAY_HISTORY_CAPACITY);
@@ -245,14 +240,14 @@ export class ReplayHistory {
   }
 
   private inputAt(frame: number): MatchFrameInput {
-    return requiredAt(this.inputs, this.slotOf(frame));
+    return at(this.inputs, this.slotOf(frame));
   }
 
   private snapshotAt(frame: number): ReplayState {
-    return requiredAt(this.snapshots, this.slotOf(frame));
+    return at(this.snapshots, this.slotOf(frame));
   }
 
   private speculativeAt(frame: number): boolean {
-    return requiredAt(this.speculative, this.slotOf(frame));
+    return at(this.speculative, this.slotOf(frame));
   }
 }

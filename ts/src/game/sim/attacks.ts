@@ -15,6 +15,7 @@ import { type Roster, fighterAt, isActive } from "./roster";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
 import { attackCapsule, hurtCapsule, emptyCapsule, capsulesIntersect, placeCapsule } from "../physics/contactGeometry";
 import { beginAttack } from "./transitions";
+import { at } from "../../runtime/lookup";
 
 const GRAB_REACH = attackReach(AttackStyle.grab);
 const DASH_GRAB_REGION: Readonly<HitRegion> = {
@@ -132,7 +133,7 @@ const scratch = {
 };
 
 function contactBetween(source: number, target: number): HitRegion {
-  return scratch.contacts[source * PARTICIPANT_CAPACITY + target]!;
+  return at(scratch.contacts, source * PARTICIPANT_CAPACITY + target);
 }
 
 /** Resolves every active attack's contacts for the frame. */
@@ -193,7 +194,7 @@ export function resolveAttacks(world: Roster): void {
     const attacker = fighterAt(world, source);
     const victim = fighterAt(world, target);
     recordHitRegion(source, attacker, victim, contact);
-    applyAttackHit(world, source, target, AttackStyle.grab, facings[source]!, contact.effect, true, meleeHitIntersectsShield(attacker, victim, contact));
+    applyAttackHit(world, source, target, AttackStyle.grab, at(facings, source), contact.effect, true, meleeHitIntersectsShield(attacker, victim, contact));
   }
   for (let source = 0; source < PARTICIPANT_CAPACITY; source++) {
     if (!isActive(world, source) || grabbed[source]) continue;
@@ -211,7 +212,7 @@ export function resolveAttacks(world: Roster): void {
       if (contact.window <= 0) continue;
       const victim = fighterAt(world, target);
       recordHitRegion(source, f, victim, contact);
-      applyAttackHit(world, source, target, style, facings[source]!, contact.effect, true, meleeHitIntersectsShield(f, victim, contact));
+      applyAttackHit(world, source, target, style, at(facings, source), contact.effect, true, meleeHitIntersectsShield(f, victim, contact));
     }
   }
   if (ownsBatch) finishDamageContacts(world);

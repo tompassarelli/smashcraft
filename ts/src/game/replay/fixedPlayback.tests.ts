@@ -11,7 +11,7 @@ import { type FixedDelay, FixedInputSchedule } from "../netcode/fixedSchedule";
 import { fighterAt, neutralControls } from "../sim/roster";
 import { firstStateDifference } from "./difference";
 import { FixedInputPlayback } from "./fixedPlayback";
-import { type TapeWorld, captureTape, createTapeWorld, executeTapeRow } from "./tape";
+import { type TapeWorld, captureTape, createTapeWorld, executeTapeRow } from "./tapeWorld";
 
 const NEUTRAL = assertDefined(inputRow(), "neutral row");
 

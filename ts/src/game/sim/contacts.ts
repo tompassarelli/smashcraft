@@ -32,6 +32,7 @@ import {
 } from "./shield";
 import { beginShieldBreak } from "./shieldBreak";
 import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge } from "./transitions";
+import { at } from "../../runtime/lookup";
 
 /** One contact, with the source's and target's state sampled when it was collected. */
 interface DamageContact {
@@ -131,7 +132,7 @@ function applyAirborneShieldRecoil(source: Fighter, target: Fighter, contact: Re
 }
 
 function contactAt(index: number): DamageContact {
-  return batch.contacts[index]!;
+  return at(batch.contacts, index);
 }
 
 function resolveDamageContacts(world: Roster, slot: number): void {

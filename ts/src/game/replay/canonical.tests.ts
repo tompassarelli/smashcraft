@@ -4,7 +4,7 @@ import type { FrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput } from "../match/frameInput";
 import { neutralControls } from "../sim/roster";
 import { canonicalBoolean, canonicalChecksum, canonicalInt, canonicalReal, canonicalRealField, canonicalState, stateChecksum } from "./canonical";
-import { captureTape, createTapeWorld, executeTapeRow } from "./tape";
+import { captureTape, createTapeWorld, executeTapeRow } from "./tapeWorld";
 
 test("canonical real fields retain Wurst's exact binary representation", () => {
   assertEquals(canonicalReal(Number.NaN), "nan");
