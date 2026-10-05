@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { assertEquals, test } from "../runtime/testing";
 import { meleeAtan2, meleeCos, meleeSin } from "./meleeScalarMath";
 
 // Recorded from the retail routines (smashcraft:docs/melee-scalar-math.md).
@@ -31,15 +31,15 @@ const diAngles: [angle: number, cos: number, sin: number][] = [
 
 test("atan2, cos and sin reproduce the recorded retail values exactly", () => {
   for (const [y, x, angle, cos, sin] of vectors) {
-    expect(meleeAtan2(y, x)).toBe(angle);
-    expect(meleeCos(angle)).toBe(cos);
-    expect(meleeSin(angle)).toBe(sin);
+    assertEquals(meleeAtan2(y, x), angle);
+    assertEquals(meleeCos(angle), cos);
+    assertEquals(meleeSin(angle), sin);
   }
 });
 
 test("cos and sin are exact across the pi boundary DI angles reach", () => {
   for (const [angle, cos, sin] of diAngles) {
-    expect(meleeCos(angle)).toBe(cos);
-    expect(meleeSin(angle)).toBe(sin);
+    assertEquals(meleeCos(angle), cos);
+    assertEquals(meleeSin(angle), sin);
   }
 });

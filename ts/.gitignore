@@ -1,2 +1,5 @@
 build/
 node_modules/
+
+scaffold/
+test/lua/index.ts

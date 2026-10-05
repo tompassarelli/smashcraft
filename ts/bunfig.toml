@@ -1,0 +1,2 @@
+[test]
+preload = ["./test/host-natives.ts"]

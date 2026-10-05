@@ -6,6 +6,8 @@
 // - Math.floor(a / b) divides in binary32, losing bits above 2^24, and `%`
 //   floors in Lua but truncates in JavaScript. floorDiv and floorMod from
 //   src/sim/intMath.ts compile to Lua's exact integer `//` and `%`.
+// - f32(x) from src/sim/f32.ts and Math.fround(x) round to binary32 on the host
+//   and compile to x.
 import * as ts from "typescript";
 import * as tstl from "typescript-to-lua";
 import { LuaPrinter } from "typescript-to-lua";
@@ -37,6 +39,18 @@ function integerOperator(node: ts.CallExpression, checker: ts.TypeChecker): tstl
   return declaration !== undefined && declaration.getSourceFile().fileName.endsWith("/src/sim/intMath.ts") ? operator : undefined;
 }
 
+/** f32(x) and Math.fround(x): binary32 rounding the Lua runtime already performs. */
+function isIdentity(node: ts.CallExpression, checker: ts.TypeChecker): boolean {
+  if (node.arguments.length !== 1) return false;
+  // Math.fround is binary32 rounding, which Warcraft's numbers already are.
+  if (ts.isPropertyAccessExpression(node.expression) && node.expression.getText() === "Math.fround") return true;
+  if (!ts.isIdentifier(node.expression) || node.expression.text !== "f32") return false;
+  let symbol = checker.getSymbolAtLocation(node.expression);
+  if (symbol !== undefined && symbol.flags & ts.SymbolFlags.Alias) symbol = checker.getAliasedSymbol(symbol);
+  const declaration = symbol?.declarations?.[0];
+  return declaration !== undefined && declaration.getSourceFile().fileName.endsWith("/src/sim/f32.ts");
+}
+
 const plugin: tstl.Plugin = {
   visitors: {
     [ts.SyntaxKind.NumericLiteral]: (node, context) => {
@@ -46,6 +60,7 @@ const plugin: tstl.Plugin = {
       return result;
     },
     [ts.SyntaxKind.CallExpression]: (node, context) => {
+      if (isIdentity(node, context.checker)) return context.transformExpression(node.arguments[0]!);
       const operator = integerOperator(node, context.checker);
       if (operator === undefined) return context.superTransformExpression(node);
       const [left, right] = node.arguments;
