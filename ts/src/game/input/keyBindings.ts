@@ -1,4 +1,4 @@
-import { ACTION_COUNT, Action } from "./actions";
+import { ACTION_COUNT, ACTION_ORDER, Action } from "./actions";
 import { floorDiv } from "waygate/src/sim/intMath";
 
 export type KeySlot = 0 | 1;
@@ -66,7 +66,7 @@ export function keyFor({ keys }: Readonly<KeyBindings>, action: Action, slot: Ke
 
 export function actionFor({ keys }: Readonly<KeyBindings>, key: number): Action | undefined {
   const index = key === EMPTY ? -1 : keys.indexOf(key);
-  return index < 0 ? undefined : (floorDiv(index, 2) as Action);
+  return index < 0 ? undefined : ACTION_ORDER[floorDiv(index, 2)];
 }
 
 /** Fills or empties one slot; false for a reserved, out-of-range or already bound key. */

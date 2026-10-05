@@ -64,7 +64,7 @@ function emptyContact(): DamageContact {
 
 // Scratch for one synchronous step, never part of a saved world. Records are
 // reused across frames; the pool only grows past its largest batch so far.
-const batch = { contacts: [] as DamageContact[], count: 0, collecting: false };
+const batch: { contacts: DamageContact[]; count: number; collecting: boolean } = { contacts: [], count: 0, collecting: false };
 
 export function beginDamageContacts(): void {
   batch.count = 0;

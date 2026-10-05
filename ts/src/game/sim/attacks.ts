@@ -122,13 +122,21 @@ export function beginFighterAttack(world: Roster, slot: number, style: AttackSty
 }
 
 // Preallocated per participant and per pair: rollback replays resolve attacks every frame.
-const scratch = {
+const scratch: {
+  contacts: HitRegion[];
+  styles: (AttackStyle | undefined)[];
+  shots: boolean[];
+  facings: number[];
+  clashed: boolean[];
+  choices: (number | undefined)[];
+  grabbed: boolean[];
+} = {
   contacts: Array.from({ length: PARTICIPANT_CAPACITY * PARTICIPANT_CAPACITY }, () => emptyHitRegion()),
-  styles: [] as (AttackStyle | undefined)[],
+  styles: [],
   shots: [false, false, false, false],
   facings: [0, 0, 0, 0],
   clashed: [false, false, false, false],
-  choices: [] as (number | undefined)[],
+  choices: [],
   grabbed: [false, false, false, false],
 };
 

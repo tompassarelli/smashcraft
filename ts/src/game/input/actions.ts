@@ -23,7 +23,10 @@ export const Action = {
 
 export type Action = (typeof Action)[keyof typeof Action];
 
-export const ACTION_COUNT = 15;
+/** Actions in their input-mask and saved-key order, independent of Lua table iteration. */
+export const ACTION_ORDER: readonly Action[] = Object.values(Action).sort((left, right) => left - right);
+
+export const ACTION_COUNT = ACTION_ORDER.length;
 
 /** A mask with every action set. */
 export const ALL_ACTIONS = (1 << ACTION_COUNT) - 1;

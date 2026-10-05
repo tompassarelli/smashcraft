@@ -3,7 +3,7 @@
 // its own. Escape and captured keys arrive through the shell's key handling.
 import { f32 } from "waygate/src/sim/f32";
 import { bindPrototype } from "../../platform/rebind";
-import { ACTION_COUNT, type Action } from "../input/actions";
+import { ACTION_ORDER, type Action } from "../input/actions";
 import { ACTION_LABELS, type KeySlot, encodeBindings, keyFor, keyLabel } from "../input/keyBindings";
 import {
   type BindingSettings,
@@ -73,8 +73,7 @@ export class SettingsPanel {
       button(`MeleeSettingsClose${suffix}`, 424 + offset, 0.5, f32(0.065), f32(0.105), "Back", { kind: "close" }),
     ];
     const rows: ActionRow[] = [];
-    for (let index = 0; index < ACTION_COUNT; index++) {
-      const action = index as Action;
+    for (const action of ACTION_ORDER) {
       const y = f32(0.505) - action * f32(0.025);
       const label = text(`MeleeSettingsAction${suffix}${I2S(action)}`, 430 + offset + action, f32(0.18), y, f32(0.22), f32(0.025));
       const key = (slot: KeySlot, x: number): framehandle => {

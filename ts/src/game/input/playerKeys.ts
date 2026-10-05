@@ -1,4 +1,4 @@
-import { ACTION_COUNT, Action } from "./actions";
+import { ACTION_ORDER, Action } from "./actions";
 import { type DirectionalInput, clearDirections, directionOf, neutralDirections, updateDirections } from "./directionalInput";
 import type { Direction } from "./inputRow";
 import { KEY_SLOT_COUNT, type KeyBindings, actionFor, keyFor, slotIndex } from "./keyBindings";
@@ -37,8 +37,8 @@ export function actionHeld({ heldSlots }: Readonly<PlayerKeys>, action: Action):
 /** The held actions as an input mask. */
 export function heldActions({ heldSlots }: Readonly<PlayerKeys>): number {
   let mask = 0;
-  for (let action = 0; action < ACTION_COUNT; action++) {
-    if ((heldSlots & bothSlots(action as Action)) !== 0) mask |= 1 << action;
+  for (const action of ACTION_ORDER) {
+    if ((heldSlots & bothSlots(action)) !== 0) mask |= 1 << action;
   }
   return mask;
 }

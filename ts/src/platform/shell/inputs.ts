@@ -1,5 +1,5 @@
 // Who is playing, and the keys each player holds.
-import { ACTION_COUNT, type Action, bit } from "../../game/input/actions";
+import { ACTION_ORDER, bit } from "../../game/input/actions";
 import { clearAttackBuffer } from "../../game/input/attackBuffer";
 import { resetKeys } from "../../game/input/keyboardCapture";
 import { keyFor } from "../../game/input/keyBindings";
@@ -56,8 +56,7 @@ export function pollLocalKeys(s: Readonly<ShellState>): number {
   const { bindings } = s.participants[slot].bindings;
   const pressed = (key: number | undefined) => key !== undefined && BlzIsKeyPressed(ConvertOsKeyType(key));
   let held = 0;
-  for (let index = 0; index < ACTION_COUNT; index++) {
-    const action = index as Action;
+  for (const action of ACTION_ORDER) {
     if (pressed(keyFor(bindings, action, 0)) || pressed(keyFor(bindings, action, 1))) held |= bit(action);
   }
   return held;
