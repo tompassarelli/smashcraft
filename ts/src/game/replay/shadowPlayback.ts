@@ -71,7 +71,7 @@ export class ShadowInputPlayback {
    * Records and runs the next speculative frame from rows the service owner
    * already sampled and sent. It never polls, sends or touches presentation.
    */
-  advanceSpeculative(schedule: ShadowInputSchedule, epoch: number, localPlayer: number, live: ReplayState, history: ReplayHistory): boolean {
+  advanceSpeculative(schedule: ShadowInputSchedule, epoch: number, localPlayer: number, live: ReplayState, history: ReplayHistory, executed?: (frame: number, local: Readonly<InputRow>) => void): boolean {
     const { match, world, controls, runtime } = live;
     if (schedule.participantMask() !== match.humanMask || epoch !== this.current) return false;
     const frame = schedule.speculativeFrame();
@@ -82,6 +82,7 @@ export class ShadowInputPlayback {
     const saved = resolution === "speculative" ? history.saveSpeculative(epoch, this.row, live) : history.save(epoch, this.row, live);
     if (!saved || !executeMatchFrame(this.row, match, world, controls, runtime, frame)) return false;
     const local = this.inputs[localPlayer];
+    if (local !== undefined) executed?.(frame, local);
     if (local !== undefined) this.observer?.speculativeFrameRan(epoch, localPlayer, frame, local, schedule.speculativeFrame());
     return schedule.completeSpeculative(epoch, frame);
   }

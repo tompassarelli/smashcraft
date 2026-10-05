@@ -2,7 +2,7 @@
 // reload calls the new bundle's install(), which registers every handler
 // again, so the reloader and error reporting reload too.
 import { CURRENT_BUILD } from "../game/shell/currentBuild";
-import { uncorrectedPlayback } from "../game/shell/uncorrectedPlayback";
+import { replayHistoryPlayback } from "../game/shell/rollbackPlayback";
 import { installDispatch } from "./dispatch";
 import { installHotReload, startHotReload } from "./hotReload";
 import { installShell, startShell } from "./shell/shell";
@@ -15,6 +15,6 @@ export function install(this: void): void {
 
 export function start(this: void): void {
   install();
-  startShell(CURRENT_BUILD, uncorrectedPlayback());
+  startShell(CURRENT_BUILD, replayHistoryPlayback());
   startHotReload(0, GetPlayerId(GetLocalPlayer()));
 }
