@@ -1,15 +1,18 @@
-// `waygate fresh MAP.w3x`: takes the signed-in clients from wherever they are
-// in a Smashcraft game to character selection in a new Battle.net game of MAP.
+// `waygate fresh MAP.w3x`: starts a new Battle.net game, issues `-dev quick`
+// and waits for every client's receipt. `--rebuild` packages a warm script first.
 // The first client hosts; the others join by game name. The map signals
 // character selection by writing its ready file into each client's
 // CustomMapData.
 import { join } from "node:path";
-import { Clock, Effect, Layer } from "effect";
-import { MELEE_READY_FILE } from "../../../src/runtime/gameFiles";
-import { MeleeReady, type MalformedGameFile } from "../boundary";
+import { Clock, Console, Effect, Layer } from "effect";
+import { QUICK_MATCH_COMMAND } from "../../../src/game/shell/devSettings";
+import { devCommandReceiptFile, MELEE_READY_FILE } from "../../../src/runtime/gameFiles";
+import { DevCommandReceipt, MeleeReady, type MalformedGameFile } from "../boundary";
 import { type Client, Clients, type DesktopFailure, waitFor, waitForText } from "../clients";
 import { type Command, UsageFailure } from "../command";
 import { GameFiles, dataDirectory, readGameFile } from "../gameFiles";
+import { MapBuild } from "../mapBuild";
+import { SourceErrors } from "../sourceErrors";
 import { step } from "../timings";
 
 // Regions of the 2560x1440 frame where each screen's identifying label appears.
@@ -35,11 +38,21 @@ export const JOIN_NAME = { x: 300, y: 1205 };
 export const JOIN = { x: 1295, y: 1213 };
 export const START = { x: 2195, y: 1127 };
 
+const commandServices = MapBuild.layer.pipe(
+  Layer.provideMerge(SourceErrors.layer),
+  Layer.provideMerge(GameFiles.layer),
+  Layer.provideMerge(Clients.layer()),
+);
+
 export const fresh: Command = (args) => Effect.gen(function*() {
-  const [map, ...rest] = args;
-  if (map === undefined || rest.length > 0) return yield* new UsageFailure({ problem: "fresh takes one map" });
-  yield* freshMatch(map).pipe(Effect.provide(Layer.merge(Clients.layer(), GameFiles.layer)));
-});
+  const [map, ...flags] = args;
+  if (map === undefined || flags.some((flag) => flag !== "--rebuild")) {
+    return yield* new UsageFailure({ problem: "fresh takes MAP.w3x [--rebuild]" });
+  }
+  if (flags.includes("--rebuild")) yield* MapBuild.use((maps) => maps.rebuild(map)).pipe(step("map rebuilt"));
+  yield* freshMatch(map);
+  yield* startQuickMatch.pipe(step("quick match and client receipts"));
+}).pipe(Effect.provide(commandServices));
 
 /** The game in every client, at character selection. */
 export const freshMatch = (map: string) => Effect.gen(function*() {
@@ -111,5 +124,45 @@ export const freshMatch = (map: string) => Effect.gen(function*() {
   yield* waitForText(first, "all players", new RegExp(`${clients.all.length}/4`), LOBBY_COUNT, "light", 60).pipe(step("everyone in the lobby"));
   const start = yield* Clock.currentTimeMillis;
   yield* click(first, START);
-  yield* Effect.forEach(clients.all, (client) => readyAfter(client, start), { concurrency: "unbounded", discard: true }).pipe(step("every client at character selection"));
+  return yield* Effect.forEach(clients.all, (client) => readyAfter(client, start), { concurrency: "unbounded" }).pipe(step("every client at character selection"));
+});
+
+/** Starts the ordinary developer quick match and waits until every player's new receipt arrives. */
+export const startQuickMatch = Effect.gen(function*() {
+  const clients = yield* Clients;
+  const files = yield* GameFiles;
+  const [host] = clients.all;
+  const mapReady = yield* Effect.forEach(clients.all, (client) => {
+    const path = join(dataDirectory(client.documents), MELEE_READY_FILE);
+    return readGameFile(path, MeleeReady);
+  });
+  const build = mapReady[0]?.value.build;
+  if (host === undefined || build === undefined) return yield* new UsageFailure({ problem: "fresh quick match needs a ready game on every client" });
+
+  const receipts = clients.all.map((client, slot) => ({ client, path: join(dataDirectory(client.documents), devCommandReceiptFile(build, slot)), slot }));
+  yield* Effect.forEach(receipts, ({ path }) => files.read(path).pipe(
+    Effect.flatMap((old) => old === undefined ? Effect.void : files.remove(path)),
+  ), { concurrency: "unbounded", discard: true }).pipe(step("clear old quick-match receipts"));
+
+  yield* clients.keys(host, "enter");
+  yield* clients.typeText(host, QUICK_MATCH_COMMAND);
+  yield* clients.keys(host, "enter").pipe(step("send -dev quick"));
+
+  const waitReceipt = ({ client, path, slot }: typeof receipts[number]) => Effect.gen(function*() {
+    let problem: MalformedGameFile | undefined;
+    const observe = readGameFile(path, DevCommandReceipt).pipe(
+      Effect.map((file) => file?.value.build === build && file.value.receipt > 0 ? file.value : undefined),
+      Effect.catchTag("MalformedGameFile", (malformed) => Effect.sync(() => {
+        problem = malformed;
+        return undefined;
+      })),
+    );
+    const receipt = yield* waitFor(client, `-dev quick receipt for slot ${slot}`, 4, observe).pipe(
+      Effect.catchTag("DesktopFailure", (timeout): Effect.Effect<never, DesktopFailure | MalformedGameFile> =>
+        problem === undefined ? Effect.fail(timeout) : Effect.fail(problem)),
+    );
+    return receipt;
+  });
+  const received = yield* Effect.forEach(receipts, (receipt) => waitReceipt(receipt).pipe(step(`${receipt.client.name} quick-match receipt`)), { concurrency: "unbounded" });
+  yield* Console.log(`-dev quick acknowledged by ${received.length} client(s)`);
 });

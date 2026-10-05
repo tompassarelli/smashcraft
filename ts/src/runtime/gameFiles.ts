@@ -26,6 +26,8 @@ export const payloadKey = (payloadChecksum: string) => payloadChecksum.replace("
 export const payloadFile = (payloadChecksum: string, index: number) => `smashcraft-hot-${payloadKey(payloadChecksum)}-${index}.pld`;
 export const ackFile = (slot: number) => `smashcraft-hot-ack-p${slot}.txt`;
 export const errorFile = (slot: number) => `smashcraft-error-p${slot}.txt`;
+/** Acknowledges the synchronized developer command handled by one local player. */
+export const devCommandReceiptFile = (build: string, slot: number) => `smashcraft-dev-${build}-p${slot}.txt`;
 /** Written once the local player's bindings are ready at character selection, by the TypeScript shell and the Wurst map alike. */
 export const MELEE_READY_FILE = "wc3-melee-ready.txt";
 /** Written when the developer input trace starts. */

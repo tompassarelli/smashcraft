@@ -6,6 +6,7 @@ import { TestClock } from "effect/testing";
 import { expect, test } from "bun:test";
 import {
   Acknowledgement,
+  DevCommandReceipt,
   ErrorReport,
   InputTrace,
   InputTraceStart,
@@ -28,6 +29,7 @@ import {
   RESULTS,
   START,
   freshMatch,
+  startQuickMatch,
 } from "../scripts/waygate/commands/fresh";
 import { Clients, type Client } from "../scripts/waygate/clients";
 import { dataDirectory, GameFiles, type StoredFile } from "../scripts/waygate/gameFiles";
@@ -44,6 +46,8 @@ test("each game-written file kind decodes its native Preload fixture", async () 
     .toEqual({ count: 3, handler: "OnTrigger", lines: ["attempt to call nil value", "smashcraft-hot-101-24:42: in function 'OnTrigger'"] });
   expect(await Effect.runPromise(MeleeReady.decode("ready.txt", fixture("melee-ready.pld"))))
     .toEqual({ build: "ts-shell-r1", input: "input-v4", presentation: "pose-v6", scenario: "default", bindings: "standard", humans: 2, fighters: 2, slotBindings: ["BINDINGS0 HUMAN", "BINDINGS1 HUMAN"] });
+  expect(await Effect.runPromise(DevCommandReceipt.decode("dev.txt", fixture("dev-command-receipt.pld"))))
+    .toEqual({ build: "ts-shell-r1", receipt: 1, epoch: 0, rollback: 6, delay: 0, batch: 2 });
   expect(await Effect.runPromise(InputTraceStart.decode("trace-start.txt", fixture("input-trace-start.pld"))))
     .toEqual({ build: "ts-shell-r1" });
   expect(await Effect.runPromise(InputTrace.decode("trace.txt", fixture("input-trace.pld"))))
@@ -55,6 +59,7 @@ test("malformed fixtures report their file and typed field", async () => {
     ["ack-malformed.txt", Acknowledgement, "acknowledgement-malformed.pld", "version"],
     ["error-malformed.txt", ErrorReport, "error-report-malformed.pld", "count"],
     ["ready-malformed.txt", MeleeReady, "melee-ready-malformed.pld", "humans"],
+    ["dev-malformed.txt", DevCommandReceipt, "dev-command-receipt-malformed.pld", "receipt"],
     ["trace-start-malformed.txt", InputTraceStart, "input-trace-start-malformed.pld", "build"],
     ["trace-malformed.txt", InputTrace, "input-trace-malformed.pld", "dropped"],
   ] as const;
@@ -128,11 +133,17 @@ test("fresh-match flow drives two fake clients and waits on the Effect clock for
   const selected = new Set<string>();
   const clicks: string[] = [];
   let readyAt: number | undefined;
+  let quickAt: number | undefined;
+  let chatSubmissions = 0;
+  const messages: string[] = [];
   const gameFiles = GameFiles.of({
     read: (path): Effect.Effect<StoredFile | undefined> => Effect.gen(function*() {
       const now = yield* Clock.currentTimeMillis;
       if (readyAt !== undefined && now >= readyAt && clients.some(({ documents }) => path === `${dataDirectory(documents)}/wc3-melee-ready.txt`)) {
         return { text: fixture("melee-ready.pld"), modified: readyAt };
+      }
+      if (quickAt !== undefined && now >= quickAt && path.includes("smashcraft-dev-")) {
+        return { text: fixture("dev-command-receipt.pld"), modified: quickAt };
       }
       return undefined;
     }),
@@ -168,20 +179,29 @@ test("fresh-match flow drives two fake clients and waits on the Effect clock for
         for (const { name } of clients) states.set(name, "playing");
       }
     }),
-    keys: (client, ...names) => Effect.sync(() => {
+    keys: (client, ...names) => Effect.gen(function*() {
       const state = states.get(client.name);
       if (names.includes("F10")) states.set(client.name, "menu");
       else if (names.includes("e") && state === "menu") states.set(client.name, "end-menu");
       else if (names.includes("q") && state === "end-menu") states.set(client.name, "results");
+      else if (names.includes("enter")) {
+        chatSubmissions++;
+        if (chatSubmissions === 2) quickAt = (yield* Clock.currentTimeMillis) + 100;
+      }
     }),
-    typeText: () => Effect.void,
+    typeText: (_client, value) => Effect.sync(() => messages.push(value)),
   });
   const services = Layer.merge(Layer.succeed(Clients, fakeClients), Layer.succeed(GameFiles, gameFiles));
-  const program = freshMatch("/maps/test.w3x").pipe(Effect.provide(services));
+  const program = Effect.gen(function*() {
+    yield* freshMatch("/maps/test.w3x");
+    yield* startQuickMatch;
+  }).pipe(Effect.provide(services));
   const run = Effect.gen(function*() {
     const fiber = yield* Effect.forkChild(program);
-    yield* Effect.yieldNow;
-    yield* TestClock.adjust("2 seconds");
+    for (let advance = 0; advance < 20; advance++) {
+      yield* Effect.yieldNow;
+      yield* TestClock.adjust("250 millis");
+    }
     yield* Fiber.join(fiber);
   }).pipe(Effect.provide(TestClock.layer()));
 
@@ -189,6 +209,8 @@ test("fresh-match flow drives two fake clients and waits on the Effect clock for
   expect([...states.values()]).toEqual(["playing", "playing"]);
   expect(selected).toEqual(new Set(["a"]));
   expect(clicks).toContain(`a:${START.x},${START.y}`);
+  expect(messages.at(-1)).toBe("-dev quick");
+  expect(chatSubmissions).toBe(2);
 });
 
 test("hot reload requires distinct non-empty client data directories", async () => {
