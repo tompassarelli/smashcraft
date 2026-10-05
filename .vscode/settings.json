@@ -2,6 +2,9 @@
   "wurst.javaExecutable": "/home/tom/.wurst/wurst-runtime/bin/java",
   "wurst.wc3path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/Program Files (x86)/Warcraft III",
   "wurst.customMapDataPath": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",
-  "files.exclude": { "build": true },
-  "search.exclude": { "build": true, "toolchain": true }
+  "typescript.preferences.autoImportFileExcludePatterns": ["**/repos/**"],
+  "javascript.preferences.autoImportFileExcludePatterns": ["**/repos/**"],
+  "files.exclude": { "build": true, "repos/**": true },
+  "files.watcherExclude": { "**/repos/**": true },
+  "search.exclude": { "build": true, "toolchain": true, "repos/**": true }
 }

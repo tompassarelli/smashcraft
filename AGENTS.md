@@ -44,6 +44,14 @@ investigation.
 
 ## TypeScript and Warcraft Live
 
+Effect is the preferred foundation for Warcraft Live's TypeScript tooling.
+Read smashcraft:.agents/skills/effect/SKILL.md for Effect work and for the
+weekly dependency/source update. The upstream repository is vendored at
+smashcraft:repos/effect/ as read-only reference material: read its LLMS.md,
+implementation and tests before choosing APIs. Import installed packages,
+never the subtree. Upstream development instructions apply to upstream work,
+not to Smashcraft's package manager, language or build commands.
+
 smashcraft:ts/ is the TypeScript side, and Warcraft Live is its development
 loop. Read warcraft-typescript-development-distilled before changing TypeScript
 or code in a running game, and smashcraft:docs/typescript.md before writing map
