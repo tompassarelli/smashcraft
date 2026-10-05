@@ -2,7 +2,7 @@
 // Capture and reconciliation call the harness APIs directly so they remain
 // part of Waygate's traced Effect program.
 import { Effect } from "effect";
-import { runNumericParity } from "../../parity";
+import { runNumericParity } from "../../numericParity";
 import { captureMatches, parseCaptureArguments, reconcileCapture } from "../../integrity";
 import { IntegrityFailure } from "../../integrity/evidence";
 import { type Command, UsageFailure, describeCause } from "waygate/scripts/waygate/command";
