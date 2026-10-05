@@ -124,9 +124,14 @@ From smashcraft:ts/:
 
 - `bun run test`: every host test file, in two isolated Bun workers. Use
   `bun test test/game.test.ts -t NAME` for a focused result.
-- `bun run check`: type-check the host tools and the game with TypeScript 7
-  (about 0.3 s). TypeScriptToLua needs the compiler API that only TypeScript
-  6.0 has, so it compiles with 6.0 and the two report the same errors.
+- `bun run check`: type-check the host tools and the game with TypeScript 7.
+  The compiler keeps separate host and game dependency caches in
+  smashcraft:ts/build/typecheck-host.tsbuildinfo and
+  smashcraft:ts/build/typecheck-game.tsbuildinfo. It rechecks changed files and
+  their affected dependents, preserving cached diagnostics for unchanged files,
+  including Effect diagnostics. A first check after removing these caches does
+  all the work again. TypeScriptToLua needs the compiler API that only
+  TypeScript 6.0 has, so it compiles with 6.0 and the two report the same errors.
 - `LUA=<32-bit lua> bun waygate parity numeric`: emitted Lua against Bun on
   the numeric corpus.
 - `GAME_SOAK=1 bun test test/game.test.ts`: the long `*.soak.ts` scenarios,

@@ -5,7 +5,7 @@
   "packageManager": "bun@1.3.13",
   "scripts": {
     "postinstall": "bun node_modules/@effect/tsgo/dist/effect-tsgo.cjs patch --typescript --typescript-package typescript-native",
-    "check": "bun node_modules/typescript-native/bin/tsc -p tsconfig.json --noEmit && bun node_modules/typescript-native/bin/tsc -p tsconfig.game.json --noEmit",
+    "check": "bun node_modules/typescript-native/bin/tsc --build tsconfig.json tsconfig.game.json --noEmit",
     "test": "bun scripts/test.ts",
     "waygate": "bun scripts/waygate.ts",
     "parity": "bun waygate parity numeric"

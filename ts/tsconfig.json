@@ -11,6 +11,8 @@
     "exactOptionalPropertyTypes": true,
     "noImplicitOverride": true,
     "noEmitOnError": true,
+    "incremental": true,
+    "tsBuildInfoFile": "build/typecheck-host.tsbuildinfo",
     "skipLibCheck": true,
     "plugins": [
       {

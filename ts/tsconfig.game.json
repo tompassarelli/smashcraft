@@ -10,6 +10,8 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "noEmitOnError": true,
+    "incremental": true,
+    "tsBuildInfoFile": "build/typecheck-game.tsbuildinfo",
     "skipLibCheck": true,
     "noEmit": true,
     "types": [
