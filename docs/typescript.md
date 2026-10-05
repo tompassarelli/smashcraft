@@ -198,6 +198,15 @@ From smashcraft:ts/:
   first check, so implementation-only edits can stop at unchanged signatures.
   TypeScriptToLua needs the compiler API that only
   TypeScript 6.0 has, so it compiles with 6.0 and the two report the same errors.
+  The check then runs Wisp's number rules (TS9300: non-binary32 literals, `%`,
+  `>>>`, `Math.floor(a / b)`, `Math.random`, `Date`, `JSON`, `Intl` and type
+  escapes) over tsconfig.game.json through TypeScript 7's API, caching each
+  file's findings in smashcraft:ts/build/number-rules.json. The editor reports
+  the same errors through the `wisp/plugins/number-rules-service.cjs` entry in
+  smashcraft:ts/tsconfig.json, only when it runs the workspace TypeScript 6
+  language service (smashcraft:ts/node_modules/typescript/lib); TypeScript 7's
+  language server, which smashcraft:.vscode/settings.json selects, loads no
+  plugins.
 - `bun scripts/typecheck-benchmark.ts`: CI's type-check latency gate. It reports
   a cold full check after removing both dependency caches, then changes the
   implementation of the command-receipt filename function shared by host and game.

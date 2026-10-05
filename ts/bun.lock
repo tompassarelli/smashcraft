@@ -13,7 +13,7 @@
         "typescript": "6.0.2",
         "typescript-native": "npm:typescript@7.0.2",
         "typescript-to-lua": "1.37.1",
-        "wisp": "file:vendor/wisp-d72d686dad9b9c427fcdc7465a2c33c432cc71cd.tgz",
+        "wisp": "file:vendor/wisp-4e958896dd55d5bdae02a5006139174dcae96675.tgz",
       },
     },
   },
@@ -118,6 +118,6 @@
 
     "undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
 
-    "wisp": ["wisp@vendor/wisp-d72d686dad9b9c427fcdc7465a2c33c432cc71cd.tgz", { "dependencies": { "effect": "4.0.1", "source-map": "0.7.6", "typescript": "6.0.2", "typescript-to-lua": "1.37.1" } }, "sha512-53//gToIU8P21w+rxvruSBtl5CL7wMbvftfvlLl6rKsJTcBq41OQPW2o5bHiN8mECYkHPPfuoW0u0aCjEQYXsQ=="],
+    "wisp": ["wisp@vendor/wisp-4e958896dd55d5bdae02a5006139174dcae96675.tgz", { "dependencies": { "effect": "4.0.1", "source-map": "0.7.6", "typescript": "6.0.2", "typescript-native": "npm:typescript@7.0.2", "typescript-to-lua": "1.37.1" } }, "sha512-dTi+JycbR3M3BvpFPbyHNrsuo2PuMjSnsvEUnxCBHG9/7N896tjpVUZMjMNmGh2fGWqcAzm6dc+mbw1rUIiNtg=="],
   }
 }
