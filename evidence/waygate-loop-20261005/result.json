@@ -1,0 +1,19 @@
+{
+  "source": "e9be6ea",
+  "command": "bun scripts/ci.ts",
+  "capacity": { "cpus": 6, "memoryMiB": 8192 },
+  "exitCode": 0,
+  "coldFullTypeCheckMs": 1488,
+  "sharedImplementationEditFullTypeCheckMs": 805,
+  "invalidSharedSignature": { "elapsedMs": 749, "exitCode": 1, "rejectedByHostAndGame": true },
+  "restoredFullTypeCheckMs": 737,
+  "focusedLogicMs": 46,
+  "fullSuiteMs": 3080,
+  "tests": 680,
+  "assertions": 25113,
+  "failures": 0,
+  "compilerEditedCompileMs": [619, 553, 538],
+  "compilerOutputEquality": true,
+  "compilerSignatureAndDeclarationErrorRetention": true,
+  "fakeClientReloadAndFreshProtocol": true
+}
