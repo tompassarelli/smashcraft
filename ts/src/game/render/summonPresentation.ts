@@ -48,11 +48,9 @@ export class SummonPresentation {
   }
 
   destroy(): void {
-    for (const model of this.clips) {
-      hideEffect(model, this.origin);
-      DestroyEffect(model);
-    }
+    // Every clip but the shown one is already parked, where its death animation plays out of view.
+    this.hide();
+    for (const model of this.clips) DestroyEffect(model);
     this.clips.length = 0;
-    this.visible = undefined;
   }
 }

@@ -19,7 +19,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { Character, SpecialAction } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP } from "../sim/specials";
-import { STOCK_MODELS, type WorldOrigin, facingYaw, hideEffect } from "./effects";
+import { type ParkedFlags, STOCK_MODELS, type WorldOrigin, facingYaw, parkOnce } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
 import { SummonPresentation } from "./summonPresentation";
 import { bindPrototype } from "../../platform/rebind";
@@ -39,8 +39,18 @@ interface SpecialSlot {
   previousHippogryphLife: number;
 }
 
+/** A slot's effects in its parked flags, after six times the slot. */
+const HIPPOGRYPH = 0;
+const AURA = 1;
+const FEL_FLAMES = 2;
+const MANA_HAND = 3;
+const WING_TRAIL = 4;
+const PARRY_FLASH = 5;
+const SLOT_EFFECTS = 6;
+
 export class SpecialEffects {
   private readonly slots: readonly SpecialSlot[];
+  private parked: ParkedFlags | undefined;
   /** Effects sit just in front of the fighters. */
   private readonly front: number;
 
@@ -74,14 +84,23 @@ export class SpecialEffects {
   }
 
   clear(): void {
-    for (const slot of this.slots) {
+    this.slots.forEach((slot, index) => {
       resetImpactPresentationCursor(slot.cursor);
       slot.bear.hide();
-      for (const model of [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.parryFlash]) hideEffect(model, this.origin);
+      // In flag order.
+      [slot.hippogryph, slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.parryFlash].forEach((model, effect) => this.park(model, index, effect));
       slot.previousSpecial = SpecialAction.none;
       slot.previousSpecialFrame = 0;
       slot.previousHippogryphLife = 0;
-    }
+    });
+  }
+
+  private park(model: effect, slot: number, effect: number): void {
+    parkOnce(model, this.origin, (this.parked ??= []), SLOT_EFFECTS * slot + effect);
+  }
+
+  private placed(slot: number, effect: number): void {
+    (this.parked ??= [])[SLOT_EFFECTS * slot + effect] = false;
   }
 
   setPaused(paused: boolean): void {
@@ -94,7 +113,8 @@ export class SpecialEffects {
   }
 
   /** Shows a particle at an offset from the fighter, in its model's scale, frozen while the fighter is. */
-  private show(model: effect, fighter: Readonly<Fighter>, x: number, z: number, size: number): void {
+  private show(model: effect, slot: number, effect: number, fighter: Readonly<Fighter>, x: number, z: number, size: number): void {
+    this.placed(slot, effect);
     const scale = characterModelScale(fighter.character);
     BlzSetSpecialEffectPosition(model, this.origin.x + fighter.motion.x + x * scale, this.front, this.origin.z + fighter.motion.z + z * scale);
     BlzSetSpecialEffectScale(model, size * scale);
@@ -102,7 +122,7 @@ export class SpecialEffects {
     BlzSetSpecialEffectTimeScale(model, fighter.launch.hitlag > 0 || fighter.status.frozenFrames > 0 ? 0.0 : 1.0);
   }
 
-  private presentConfirmedParticles(fighter: Readonly<Fighter>, slot: SpecialSlot): void {
+  private presentConfirmedParticles(fighter: Readonly<Fighter>, slot: SpecialSlot, index: number): void {
     const { action, frame } = fighter.special;
     const entered = action !== slot.previousSpecial || frame < slot.previousSpecialFrame;
     const { felFlames, manaHand } = slot;
@@ -110,23 +130,24 @@ export class SpecialEffects {
       if (entered && action === SpecialAction.demonHunterImmolate) BlzSetSpecialEffectTime(felFlames, 0.0);
       else if (entered && action === SpecialAction.demonHunterManaBurn) BlzSetSpecialEffectTime(manaHand, 0.0);
       const burning = action === SpecialAction.demonHunterImmolate && frame >= DEMONHUNTER_IMMOLATE_STARTUP && frame < DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE;
-      if (burning) this.show(felFlames, fighter, 0.0, 25.0, f32(1.15));
-      else hideEffect(felFlames, this.origin);
-      if (action === SpecialAction.demonHunterManaBurn && frame <= DEMONHUNTER_MANA_BURN_STARTUP) this.show(manaHand, fighter, fighter.facing * 45.0, 90.0, 0.75);
-      else hideEffect(manaHand, this.origin);
+      if (burning) this.show(felFlames, index, FEL_FLAMES, fighter, 0.0, 25.0, f32(1.15));
+      else this.park(felFlames, index, FEL_FLAMES);
+      if (action === SpecialAction.demonHunterManaBurn && frame <= DEMONHUNTER_MANA_BURN_STARTUP) this.show(manaHand, index, MANA_HAND, fighter, fighter.facing * 45.0, 90.0, 0.75);
+      else this.park(manaHand, index, MANA_HAND);
     } else {
-      hideEffect(felFlames, this.origin);
-      hideEffect(manaHand, this.origin);
+      this.park(felFlames, index, FEL_FLAMES);
+      this.park(manaHand, index, MANA_HAND);
     }
     slot.previousSpecial = action;
     slot.previousSpecialFrame = frame;
   }
 
-  private applyStatic(model: effect, pose: Readonly<StaticSpecialPose>): void {
+  private applyStatic(model: effect, slot: number, effect: number, pose: Readonly<StaticSpecialPose>): void {
     if (!pose.visible) {
-      hideEffect(model, this.origin);
+      this.park(model, slot, effect);
       return;
     }
+    this.placed(slot, effect);
     BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.front, this.origin.z + pose.z);
     BlzSetSpecialEffectColor(model, pose.red, pose.green, pose.blue);
     BlzSetSpecialEffectScale(model, pose.scale);
@@ -138,14 +159,14 @@ export class SpecialEffects {
     const effects = this.slots[slot];
     if (effects === undefined) return;
     if (fighter === undefined) {
-      hideEffect(effects.aura, this.origin);
-      hideEffect(effects.wingTrail, this.origin);
-      hideEffect(effects.parryFlash, this.origin);
+      this.park(effects.aura, slot, AURA);
+      this.park(effects.wingTrail, slot, WING_TRAIL);
+      this.park(effects.parryFlash, slot, PARRY_FLASH);
       return;
     }
-    this.applyStatic(effects.aura, projectSpecialEffect(state, fighter, slot, STATIC_AURA));
-    this.applyStatic(effects.wingTrail, projectSpecialEffect(state, fighter, slot, STATIC_WING_TRAIL));
-    this.applyStatic(effects.parryFlash, projectSpecialEffect(state, fighter, slot, STATIC_PARRY_FLASH));
+    this.applyStatic(effects.aura, slot, AURA, projectSpecialEffect(state, fighter, slot, STATIC_AURA));
+    this.applyStatic(effects.wingTrail, slot, WING_TRAIL, projectSpecialEffect(state, fighter, slot, STATIC_WING_TRAIL));
+    this.applyStatic(effects.parryFlash, slot, PARRY_FLASH, projectSpecialEffect(state, fighter, slot, STATIC_PARRY_FLASH));
   }
 
   presentSummons(state: Readonly<SummonState>, fighter: Readonly<Fighter> | undefined, slot: number): void {
@@ -156,17 +177,18 @@ export class SpecialEffects {
   presentConfirmedAnimated(frame: number, fighter: Readonly<Fighter>, slot: number): void {
     const effects = this.slots[slot];
     if (effects === undefined || !consumeImpactFrame(effects.cursor, frame)) return;
-    this.presentConfirmedParticles(fighter, effects);
+    this.presentConfirmedParticles(fighter, effects, slot);
     const { hippogryph } = effects;
     const mount = fighter.hippogryph;
     if (mount.life > 0 && !fighter.status.out) {
+      this.placed(slot, HIPPOGRYPH);
       BlzSetSpecialEffectPosition(hippogryph, this.origin.x + mount.x, this.origin.y, this.origin.z + mount.z);
       BlzSetSpecialEffectYaw(hippogryph, facingYaw(mount.velocityX === 0 ? fighter.facing : mount.velocityX));
       BlzSetSpecialEffectScale(hippogryph, f32(0.7));
       BlzSetSpecialEffectAlpha(hippogryph, 255);
       if (effects.previousHippogryphLife === 0) BlzSetSpecialEffectAnimation(hippogryph, "walk");
     } else {
-      hideEffect(hippogryph, this.origin);
+      this.park(hippogryph, slot, HIPPOGRYPH);
     }
     effects.previousHippogryphLife = mount.life;
   }
