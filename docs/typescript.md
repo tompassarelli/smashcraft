@@ -244,14 +244,19 @@ object data, description and header, and fails unless every other base-map file
 and every declared import equals its source. Imports the build does not declare
 are carried along unverified.
 
-The stage deck model is authored in smashcraft:tools/stage/package.ts. Running
-it writes the model, its palette and their import list to
-smashcraft:build/stage-assets/ and the model's content-addressed import path to
-smashcraft:ts/src/game/assets/stageAssetInfo.ts, which the map compiles. The
-build fails unless the `--assets` directory's stage-assets/imports.txt holds the
-model that path names, then verifies the archive carries it. `rebuild` and
+Repository-authored models are generated: each generator writes the models,
+their textures and an import list under smashcraft:build/, and the models'
+content-addressed import paths to a checked-in module under
+smashcraft:ts/src/game/, which the map compiles. Regenerate instead of editing
+those modules. smashcraft:ts/scripts/waygate/mapInputs.ts lists each family
+(`GENERATED_MODELS`) with its import list and generator; the stage deck comes
+from smashcraft:tools/stage/package.ts. The build fails unless each family's
+import list under `--assets` holds every model its module names, and unless the
+summon evidence lists the clips smashcraft:ts/src/game/presentation/summonClipInfo.ts
+names; the archive check then verifies the map carries them. `rebuild` and
 `fresh --rebuild` keep the map's imports, so they fail unless the map already
-carries that model; build the map again after changing the deck.
+carries every imported model the new script names (`SCRIPT_MODELS`); build the
+map again after regenerating a model.
 
 The build first checks the running Bun and the declared and installed packages
 against smashcraft:typescript-toolchain.lock.
