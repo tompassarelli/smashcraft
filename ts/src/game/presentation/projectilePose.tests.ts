@@ -1,8 +1,8 @@
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { createFrameControls } from "../match/controls";
+import { createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { Phase, createMatchState } from "../match/rules";
-import { createReplayRuntimeState } from "../match/runtime";
 import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
 import { Character, ProjectileKind } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Projectile, createFighter } from "../sim/fighter";
@@ -37,7 +37,7 @@ test("a sparse restore replaces a speculative projectile and freeze state", () =
   const game = createMatchState();
   game.phase = Phase.match;
   const inputs = createFrameControls();
-  const runtime = createReplayRuntimeState();
+  const runtime = createPacingAndPresentation();
   const snapshot = createReplaySnapshot();
   const index = PROJECTILE_CAPACITY - 1;
   const last = projectileAt(fighter.projectiles, index);

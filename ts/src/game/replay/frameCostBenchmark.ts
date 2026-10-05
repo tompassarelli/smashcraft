@@ -2,8 +2,8 @@ import { floorMod } from "wisp/src/sim/intMath";
 import { attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { type FrameControls, createFrameControls } from "../match/controls";
 import { type MatchFrameInput, captureFrame, createMatchFrameInput, executeMatchFrame } from "../match/frameInput";
+import { createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { Phase, createMatchState } from "../match/rules";
-import { createReplayRuntimeState } from "../match/runtime";
 import { createFighter } from "../sim/fighter";
 import { createRoster } from "../sim/roster";
 import { canonicalState, stateChecksum } from "./canonical";
@@ -33,7 +33,7 @@ export function runFrameCostBenchmark(clock: () => number): FrameCostBenchmarkRe
   const controls = createFrameControls();
   controls.commands[0] = attackBuffer(4);
   controls.commands[1] = attackBuffer(4);
-  const live = { world: createRoster(3, [first, second]), match, controls, runtime: createReplayRuntimeState() };
+  const live = { world: createRoster(3, [first, second]), match, controls, runtime: createPacingAndPresentation() };
   const snapshot = createReplaySnapshot();
   copyReplayState(snapshot, live);
   const initialChecksum = stateChecksum(snapshot);

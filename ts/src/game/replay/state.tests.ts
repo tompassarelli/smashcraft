@@ -5,8 +5,8 @@ import { f32 } from "wisp/src/sim/f32";
 import { type AttackBuffer, attackBuffer, clearAttackBuffer, hasPendingAttack, queueAttack } from "../input/attackBuffer";
 import type { FrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame, resetMatchFrameInput } from "../match/frameInput";
+import { type PacingAndPresentation, createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { type MatchState, Phase, createMatchState, requestStageSelect, requestStart, selectCharacter } from "../match/rules";
-import { type ReplayRuntimeState, createReplayRuntimeState } from "../match/runtime";
 import { initializeMatchFighters, stepMatch } from "../match/step";
 import { resolveAttacks } from "../sim/attacks";
 import { AttackStyle, Character, GroundAction, ShieldBreak } from "../sim/codes";
@@ -36,7 +36,7 @@ function frameControls(firstCommands: AttackBuffer, secondCommands: AttackBuffer
 }
 
 /** Two fighters in slots 0 and 1 as live replay state. */
-function liveState(first: Fighter, second: Fighter, match: MatchState, controls: FrameControls, runtime: ReplayRuntimeState): ReplayState {
+function liveState(first: Fighter, second: Fighter, match: MatchState, controls: FrameControls, runtime: PacingAndPresentation): ReplayState {
   return { world: testWorld(first, second), match, controls, runtime };
 }
 
@@ -87,7 +87,7 @@ test("a practice match's mode is replay state that restores and differs", () => 
   const first = createFighter(Character.archer, -240.0, 1);
   const second = createFighter(Character.rifleman, 240.0, -1);
   initializeMatchFighters(game, testWorld(first, second));
-  const live = liveState(first, second, game, frameControls(attackBuffer(0), attackBuffer(0)), createReplayRuntimeState());
+  const live = liveState(first, second, game, frameControls(attackBuffer(0), attackBuffer(0)), createPacingAndPresentation());
   const snapshot = createReplaySnapshot();
   const actual = createReplaySnapshot();
   copyReplayState(snapshot, live);
@@ -103,7 +103,7 @@ test("a practice match's mode is replay state that restores and differs", () => 
 test("a rematch can reuse the first frame's row once it is reset", () => {
   const row = createMatchFrameInput();
   const controls = frameControls(attackBuffer(0), attackBuffer(0));
-  const runtime = createReplayRuntimeState();
+  const runtime = createPacingAndPresentation();
   assertTrue(captureFrame(row, 1, 3, controls, runtime));
   assertFalse(captureFrame(row, 1, 3, controls, runtime));
   resetMatchFrameInput(row);
@@ -116,7 +116,7 @@ test("capture and restore include combat references, projectiles and queued inpu
   const match = createMatchState();
   const firstCommands = attackBuffer(4);
   const secondCommands = attackBuffer(4);
-  const runtime = createReplayRuntimeState();
+  const runtime = createPacingAndPresentation();
   const live = liveState(first, second, match, frameControls(firstCommands, secondCommands), runtime);
   const snapshot = createReplaySnapshot();
   const actual = createReplaySnapshot();
@@ -305,7 +305,7 @@ test("restore and replay reproduce movement and the match clock", () => {
   const firstInput = neutralControls();
   const secondInput = neutralControls();
   const controls = frameControls(attackBuffer(0), attackBuffer(0), firstInput, secondInput);
-  const live = liveState(first, second, match, controls, createReplayRuntimeState());
+  const live = liveState(first, second, match, controls, createPacingAndPresentation());
   const snapshot = createReplaySnapshot();
   match.phase = Phase.match;
   copyReplayState(snapshot, live);
@@ -335,7 +335,7 @@ test("restoring into other fighters keeps the contact registry by slot", () => {
   const match = createMatchState();
   const commands = attackBuffer(0);
   const controls = frameControls(commands, attackBuffer(0));
-  const runtime = createReplayRuntimeState();
+  const runtime = createPacingAndPresentation();
   const snapshot = createReplaySnapshot();
   match.phase = Phase.match;
   queueAttack(commands, { style: AttackStyle.jab, facing: 0, frame: 1, mayCharge: false });
@@ -369,7 +369,7 @@ test("recorded rows replay an attack against a shield from independently restore
   const firstRequests = attackBuffer(0);
   const secondRequests = attackBuffer(0);
   const produced = frameControls(firstRequests, secondRequests, firstInput, secondInput);
-  const live = liveState(first, second, game, frameControls(attackBuffer(0), attackBuffer(0)), createReplayRuntimeState());
+  const live = liveState(first, second, game, frameControls(attackBuffer(0), attackBuffer(0)), createPacingAndPresentation());
   const before = createReplaySnapshot();
   const rows = Array.from({ length: 16 }, () => createMatchFrameInput());
   copyReplayState(before, live);
@@ -408,7 +408,7 @@ test("recorded rows replay an attack against a shield from independently restore
   recoveredGame.phase = Phase.result;
   const recoveredFirst = createFighter(Character.archer, 800.0, 1);
   const recoveredSecond = createFighter(Character.rifleman, -800.0, -1);
-  const recovered = liveState(recoveredFirst, recoveredSecond, recoveredGame, frameControls(attackBuffer(3), attackBuffer(3)), createReplayRuntimeState());
+  const recovered = liveState(recoveredFirst, recoveredSecond, recoveredGame, frameControls(attackBuffer(3), attackBuffer(3)), createPacingAndPresentation());
   copyReplayState(recovered, before);
   let replayMaximumShieldStun = 0;
   for (let frame = 1; frame <= 16; frame++) {
@@ -528,7 +528,7 @@ test("dash grab rules and the catch window are replay state", () => {
 test("every physics parameter survives capture and restore and participates in equality", () => {
   const first = createFighter(Character.archer, 0.0, 1);
   const second = createFighter(Character.rifleman, 100.0, -1);
-  const live = liveState(first, second, createMatchState(), frameControls(attackBuffer(0), attackBuffer(0)), createReplayRuntimeState());
+  const live = liveState(first, second, createMatchState(), frameControls(attackBuffer(0), attackBuffer(0)), createPacingAndPresentation());
   const expected = createReplaySnapshot();
   const actual = createReplaySnapshot();
   // Distinct from every roster default, so restore can't silently reinitialize tuning.

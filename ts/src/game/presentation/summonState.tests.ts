@@ -1,8 +1,8 @@
 import { assertEquals, assertFalse, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS } from "../input/participants";
+import { clearPresentationHistory } from "../match/pacingAndPresentation";
 import { Phase } from "../match/rules";
-import { resetPoses } from "../match/runtime";
 import { createFrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput } from "../match/frameInput";
 import { captureNext, executeCaptured, executeNext, replayState, testMatch } from "../match/testMatch";
@@ -109,7 +109,7 @@ test("a bear's clip restores backward from a snapshot and projects read-only", (
   assertEquals(firstPoseDifference(early, rendered), "summons.slot[3].clipTime");
   restoreReplaySnapshot(later, match.world, match.game, match.inputs, match.runtime);
   assertTrue(match.runtime.summons.bears[3].clipTime > earlyTime);
-  resetPoses(match.runtime);
+  clearPresentationHistory(match.runtime);
   assertFalse(projectBear(match.runtime.summons, fighterAt(match.world, 3), 3).visible);
 });
 

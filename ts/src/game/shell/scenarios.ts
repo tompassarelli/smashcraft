@@ -4,7 +4,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { type AttackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../input/participants";
 import type { FrameControls } from "../match/controls";
-import type { ReplayRuntimeState } from "../match/runtime";
+import type { PacingAndPresentation } from "../match/pacingAndPresentation";
 import { type MatchState, cpuSlot, firstHumanSlot, humanActive, selectCharacter, selectCpuCharacter } from "../match/rules";
 import { produceComputerInput } from "../match/step";
 import { AttackStyle, Character, DownState } from "../sim/codes";
@@ -132,7 +132,7 @@ export function produceScenarioComputerInput(
   scenario: Scenario,
   game: Readonly<MatchState>,
   world: Roster,
-  runtime: ReplayRuntimeState,
+  runtime: PacingAndPresentation,
   produced: FrameControls,
   slot: ParticipantSlot,
   frame: number,

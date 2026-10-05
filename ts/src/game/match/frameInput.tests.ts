@@ -15,7 +15,7 @@ import {
   captureFrame, captureNetworkFrame, copyExecutedInput, copyMatchFrameInput, copyNetworkRow, createMatchFrameInput,
   executeMatchFrame, hasNetworkRows, networkRowsMatch, replaceNetworkRows, resetMatchFrameInput, sameMatchFrameInput,
 } from "./frameInput";
-import { createReplayRuntimeState } from "./runtime";
+import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { type TestMatch, executeNext, testMatch } from "./testMatch";
 
 function row(fields: Parameters<typeof inputRow>[0]): InputRow {
@@ -34,7 +34,7 @@ function assertSameMatch(expected: TestMatch, actual: TestMatch): void {
 test("a row captures a frame once, for a valid participant mask, until it is reset", () => {
   const frame = createMatchFrameInput();
   const controls = createFrameControls();
-  const runtime = createReplayRuntimeState();
+  const runtime = createPacingAndPresentation();
   assertFalse(captureFrame(frame, -1, 3, controls, runtime));
   assertFalse(captureFrame(frame, 1, 0, controls, runtime));
   assertFalse(captureFrame(frame, 1, 16, controls, runtime));
@@ -66,7 +66,7 @@ test("a captured row is detached from the controls that produced it", () => {
 });
 
 test("rows differ by analog shield strength and match when recaptured alike", () => {
-  const runtime = createReplayRuntimeState();
+  const runtime = createPacingAndPresentation();
   const controls = createFrameControls();
   const before = createMatchFrameInput();
   const after = createMatchFrameInput();

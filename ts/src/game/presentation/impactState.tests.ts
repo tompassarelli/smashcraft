@@ -1,8 +1,8 @@
 import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../input/participants";
+import { clearPresentationHistory } from "../match/pacingAndPresentation";
 import { Phase } from "../match/rules";
-import { resetPoses } from "../match/runtime";
 import { createFrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput } from "../match/frameInput";
 import { type TestMatch, captureNext, executeCaptured, executeNext, replayState, testMatch } from "../match/testMatch";
@@ -193,7 +193,7 @@ test("pool reuse wraps each ring, and a result, a reset or a menu frame empties 
   assertEquals(match.game.phase, Phase.result);
   assertEquals(firstImpactDifference(match.runtime.impacts, empty), undefined);
   copyImpactStateInto(match.runtime.impacts, pool);
-  resetPoses(match.runtime);
+  clearPresentationHistory(match.runtime);
   assertEquals(firstImpactDifference(match.runtime.impacts, empty), undefined);
   copyImpactStateInto(match.runtime.impacts, pool);
   match.game.phase = Phase.characterMenu;

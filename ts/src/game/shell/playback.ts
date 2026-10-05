@@ -3,8 +3,8 @@
 // differ from what it ran. The replay code owns the history ring.
 import type { InputRow } from "../input/inputRow";
 import type { FrameControls } from "../match/controls";
+import type { PacingAndPresentation } from "../match/pacingAndPresentation";
 import type { MatchState } from "../match/rules";
-import type { ReplayRuntimeState } from "../match/runtime";
 import type { ShadowInputSchedule } from "../netcode/shadowSchedule";
 import type { Roster } from "../sim/roster";
 
@@ -19,7 +19,7 @@ export interface SpeculativeMatch {
   readonly world: Roster;
   readonly game: MatchState;
   readonly controls: FrameControls;
-  readonly runtime: ReplayRuntimeState;
+  readonly runtime: PacingAndPresentation;
 }
 
 export interface RollbackPlayback {

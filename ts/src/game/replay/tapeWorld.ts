@@ -6,8 +6,8 @@ import { floorMod } from "wisp/src/sim/intMath";
 import { attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { type FrameControls, createFrameControls } from "../match/controls";
 import { type MatchFrameInput, captureFrame, createMatchFrameInput, executeMatchFrame, resetMatchFrameInput } from "../match/frameInput";
+import { createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { Phase, createMatchState, setHumanCount } from "../match/rules";
-import { createReplayRuntimeState } from "../match/runtime";
 import { Character } from "../sim/codes";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { projectileCount } from "../sim/projectiles";
@@ -47,7 +47,7 @@ export function createTapeWorld({ stocks, humans = 1, first = createFighter(Char
   controls.commands[0] = attackBuffer(4);
   controls.commands[1] = attackBuffer(4);
   return {
-    live: { world: createRoster(3, [first, second]), match, controls, runtime: createReplayRuntimeState() },
+    live: { world: createRoster(3, [first, second]), match, controls, runtime: createPacingAndPresentation() },
     snapshot: createReplaySnapshot(),
   };
 }

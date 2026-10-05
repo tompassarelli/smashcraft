@@ -7,15 +7,15 @@ import { createFighter } from "../sim/fighter";
 import { type Roster, createRoster, isActive } from "../sim/roster";
 import { type FrameControls, createFrameControls } from "./controls";
 import { type MatchFrameInput, captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
+import { type PacingAndPresentation, createPacingAndPresentation } from "./pacingAndPresentation";
 import { type MatchState, Phase, createMatchState, setHumanMask } from "./rules";
-import { type ReplayRuntimeState, createReplayRuntimeState } from "./runtime";
 import type { ReplayState } from "../replay/snapshot";
 
 export interface TestMatch {
   readonly world: Roster;
   readonly game: MatchState;
   readonly inputs: FrameControls;
-  readonly runtime: ReplayRuntimeState;
+  readonly runtime: PacingAndPresentation;
   readonly row: MatchFrameInput;
 }
 
@@ -27,7 +27,7 @@ export function testMatch(mask: number, character: Character): TestMatch {
   setHumanMask(game, mask);
   game.phase = Phase.match;
   game.timeLimitMinutes = 0;
-  return { world, game, inputs: createFrameControls(), runtime: createReplayRuntimeState(), row: createMatchFrameInput() };
+  return { world, game, inputs: createFrameControls(), runtime: createPacingAndPresentation(), row: createMatchFrameInput() };
 }
 
 /** Captures the current inputs as the next frame's row. */

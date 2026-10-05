@@ -2,7 +2,7 @@ import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "
 import { type AttackBuffer, attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import type { FrameControls } from "../match/controls";
 import { type MatchFrameInput, captureFrame, copyMatchFrameInput, createMatchFrameInput, resetMatchFrameInput, sameMatchFrameInput } from "../match/frameInput";
-import { createReplayRuntimeState } from "../match/runtime";
+import { createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { type Controls, fighterAt, neutralControls } from "../sim/roster";
 import { firstStateDifference } from "./difference";
 import { ReplayCorrections, ReplayHistory } from "./history";
@@ -299,7 +299,7 @@ test("a correction batch copies its rows, bounds its storage and refuses conflic
   const input = neutralControls();
   const requests = attackBuffer(0);
   const controls = frameControls(input, input, requests, requests);
-  const runtime = createReplayRuntimeState();
+  const runtime = createPacingAndPresentation();
   assertFalse(corrections.add(row));
   for (let frame = 1; frame <= REPLAY_MAX_CORRECTION_FRAMES; frame++) {
     assertTrue(captureFrame(row, frame, 3, controls, runtime));

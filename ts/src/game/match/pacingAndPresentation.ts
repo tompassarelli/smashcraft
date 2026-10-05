@@ -7,8 +7,12 @@ import { clearFighterPose, copyFighterPoseInto, createFighterPose, type FighterP
 import type { Roster } from "../sim/roster";
 import { isActive } from "../sim/roster";
 
-/** Frame-owned pacing and presentation history; only pacing feeds the simulation. */
-export interface ReplayRuntimeState {
+/**
+ * What a match carries beside its world, game rules and controls: the frame pacing
+ * (simulationFrame, botAttackDelays) and the presentation history (impacts, special
+ * effects, summons, poses). Only the pacing feeds the simulation.
+ */
+export interface PacingAndPresentation {
   simulationFrame: number;
   botAttackDelays: Slots<number>;
   impacts: ImpactState;
@@ -19,7 +23,7 @@ export interface ReplayRuntimeState {
   poses: Slots<FighterPose>;
 }
 
-export function createReplayRuntimeState(): ReplayRuntimeState {
+export function createPacingAndPresentation(): PacingAndPresentation {
   return {
     simulationFrame: 0,
     botAttackDelays: [0.0, 0.0, 0.0, 0.0],
@@ -31,7 +35,8 @@ export function createReplayRuntimeState(): ReplayRuntimeState {
   };
 }
 
-export function resetPoses(runtime: ReplayRuntimeState): void {
+/** Clears the impact, special-effect, summon and pose history; the pacing and the per-frame scratch stay. */
+export function clearPresentationHistory(runtime: PacingAndPresentation): void {
   clearImpactState(runtime.impacts);
   clearSpecialEffectState(runtime.specials);
   clearSummonState(runtime.summons);
@@ -39,7 +44,7 @@ export function resetPoses(runtime: ReplayRuntimeState): void {
 }
 
 /** Copies between worlds: poses of the source world's participants, with their slot references. */
-export function copyReplayRuntimeState(target: ReplayRuntimeState, source: Readonly<ReplayRuntimeState>, sourceWorld: Readonly<Roster>): void {
+export function copyPacingAndPresentation(target: PacingAndPresentation, source: Readonly<PacingAndPresentation>, sourceWorld: Readonly<Roster>): void {
   target.simulationFrame = source.simulationFrame;
   copyImpactStateInto(target.impacts, source.impacts);
   copySpecialEffectStateInto(target.specials, source.specials);
