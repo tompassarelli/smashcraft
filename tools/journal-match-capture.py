@@ -99,6 +99,12 @@ def main():
     def complete(path):
         return path.exists() and path.stat().st_mtime_ns >= started_wall and path.read_text().rstrip().endswith("endfunction")
 
+    def complete_trace(path, after_wall):
+        if not complete(path) or path.stat().st_mtime_ns < after_wall:
+            return False
+        end = re.search(r"(\d+) [0-9.]+ end", path.read_text())
+        return end is not None and int(end[1]) >= 1200
+
     def control(state, epoch, slot):
         return data[slot] / f"smashcraft-journal-{state}-{args.build}-e{epoch}-s{slot}.txt"
 
@@ -370,7 +376,7 @@ def main():
                     text += "\n" + subprocess.check_output(
                         ["tesseract", str(mask), "stdout", "--psm", "11"],
                         text=True, stderr=subprocess.DEVNULL, timeout=10)
-                    if label == "marker":
+                    if label in ("marker", "stimulus"):
                         # Sparse full-screen OCR splits white chat text against
                         # the battlefield. Read the native entry as one line.
                         dimensions = subprocess.check_output(
@@ -390,9 +396,11 @@ def main():
                     journey["observations"].append(observation)
                     return text
 
+                observe("before")
+                # Native capture/OCR can outlast a full shield's energy. Keep
+                # that observation outside the hold whose release is checked.
                 send(slot, EV_ABS, ABS_Z, 32767, prefix + "shield")
                 time.sleep(.5)
-                observe("before")
                 journey["enter_monotonic_ns"] = time.monotonic_ns()
                 keys(slot, "key", "Return")
                 opened = False
@@ -488,8 +496,7 @@ def main():
                 ui("b", "wait", "wins|rematch")
                 for root in data:
                     trace = root / "wc3-melee-input-trace.txt"
-                    until(lambda: complete(trace) and trace.stat().st_mtime_ns >= trace_after_wall
-                          and re.search(r"1200 [0-9.]+ end", trace.read_text()) is not None,
+                    until(lambda: complete_trace(trace, trace_after_wall),
                           f"epoch {epoch}: trace did not complete", 30)
                 archive(epoch)
                 if args.combat_actions or args.controller_reconnect or args.controller_chat:
@@ -503,8 +510,7 @@ def main():
                         keys(0, "key", "ctrl+t")
                         for root in data:
                             trace = root / "wc3-melee-input-trace.txt"
-                            until(lambda: complete(trace) and trace.stat().st_mtime_ns >= final_after
-                                  and re.search(r"1200 [0-9.]+ end", trace.read_text()) is not None,
+                            until(lambda: complete_trace(trace, final_after),
                                   f"epoch {epoch}: result trace incomplete", 35)
                         archive(f"{epoch}-result")
                 check_helpers()

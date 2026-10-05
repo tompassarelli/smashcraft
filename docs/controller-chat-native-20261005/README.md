@@ -27,6 +27,32 @@ diagnostic map hash is `e48bd86dc10d20a4cef7523e32a2381efce85aef35bb25825a306a4a
 An earlier diagnostic traversed an ancestor with no exposed children; its
 two-frame output did not inspect `GAME_UI` and supplies no negative conclusion.
 
+## Observer repairs during acceptance
+
+The `chat-recovery` R2 journey completed two matches, but its pre-chat capture
+and OCR held shield from frame 61 until focus release at 299/318. Full-strength
+shield has 60 energy and drains 0.28 per active tick; it exhausted around frame
+276, before the intended release. That trial could not establish release of a
+live shield. The fixture now captures the initial screen before pressing shield.
+Both marker and stimulus images use the same single-line native-entry crop;
+R2's original OCR metadata remains preserved alongside retained-image reanalysis.
+
+R3 then observed the live shield and its release: 42/36 held samples and 45/48
+released samples on the two chatting clients. Its fixed 1,200-callback action
+trace, however, ended during the chat pause at confirmed frames 262/281. Fresh
+taps assigned to 310/329 occurred outside that recording. The missing action
+rows are therefore an observation gap, not proof of lost input. The trace now
+retains its original callback counter and wall clock while excluding shared
+pause duration from its finishing budget. Both native trace drivers accept the
+resulting longer callback count, still requiring a complete trace of at least
+1,200 callbacks. No attack assertion or gameplay rule was relaxed.
+
+The retained failed corpora are
+wc3-melee:build/native-controller-chat-recovery-r2-20261005 and
+wc3-melee:build/native-controller-chat-recovery-r3-20261005. The repaired trace
+candidate is `chat-trace-20261005`; its build passed with zero errors and the
+same 27 warnings. The helper and gameplay code are unchanged.
+
 ## Prior handoff failure
 
 The unreleased `chat-handoff-20261005` candidate (`50c6d9a`) established pause

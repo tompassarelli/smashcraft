@@ -162,6 +162,7 @@ StagePanel stagePanel = null
 
 timer inputTraceClock = null
 boolean inputTraceActive = false
+int inputTracePausedTicks = 0
 int shadowTraceRawSyncEvents = 0
 int journalTransportReadyMask = 0
 boolean journalTransportStartSent = false
@@ -332,6 +333,7 @@ function startInputTrace()
     if inputTraceClock == null
         inputTraceClock = CreateTimer()
     inputTraceTicks = 0
+    inputTracePausedTicks = 0
     inputTraceCount = 0
     inputTraceDropped = 0
     inputTraceLastAxes = 999
@@ -2064,6 +2066,10 @@ function traceTick()
     if not inputTraceActive
         return
     inputTraceTicks++
+    // Keep callback timestamps intact, but reserve the trace duration for
+    // active play so a chat pause cannot consume the post-resume observation.
+    if matchControls.isPaused()
+        inputTracePausedTicks++
     let localSlot = localParticipantSlot()
     let participant = participants[localSlot]
     let fighter = participant.fighter
@@ -2111,7 +2117,7 @@ function traceTick()
             shadowTraceLocalSends = 0
             shadowTraceSameTargetSkips = 0
             shadowTraceWindowBlocks = 0
-    if inputTraceTicks >= (RESPONSE_SERVICE_PROBE ? 1200 : (SHIELD_BREAK_SCENARIO or LEDGE_SCENARIO ? 600 : 300))
+    if inputTraceTicks - inputTracePausedTicks >= (RESPONSE_SERVICE_PROBE ? 1200 : (SHIELD_BREAK_SCENARIO or LEDGE_SCENARIO ? 600 : 300))
         finishInputTrace()
 
 function produceCpuInput(int slot, int frame)

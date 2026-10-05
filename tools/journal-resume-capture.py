@@ -67,6 +67,12 @@ def main():
     def complete(path):
         return path.exists() and path.read_text().rstrip().endswith("endfunction")
 
+    def complete_trace(path):
+        if not complete(path) or path.stat().st_mtime_ns <= started_wall:
+            return False
+        end = re.search(r"(\d+) [0-9.]+ end", path.read_text())
+        return end is not None and int(end[1]) >= 1200
+
     def stamp(path):
         before = time.monotonic_ns()
         realtime = time.time_ns()
@@ -176,8 +182,7 @@ def main():
         (args.out / "capture.json").write_text(json.dumps(metadata, indent=2) + "\n")
         for slot, root in enumerate(roots):
             trace = root / "wc3-melee-input-trace.txt"
-            until(lambda: complete(trace) and trace.stat().st_mtime_ns > started_wall
-                  and re.search(r"1200 [0-9.]+ end", trace.read_text()) is not None,
+            until(lambda: complete_trace(trace),
                   "native gameplay trace incomplete", 35)
             (args.out / f"{slot}-trace.txt").write_bytes(trace.read_bytes())
         print("Both helpers completed 600 frames; native traces retained", flush=True)
