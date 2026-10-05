@@ -1,9 +1,11 @@
 # Smashcraft development
 
-Smashcraft is a Wurst-authored platform fighter compiled to Lua for Warcraft III.
-Read smashcraft:wurst-toolchain.lock and smashcraft:wurst.build before changing
-patch, compiler, standard library or target. The lock is authoritative; a newer
-upstream article does not update it.
+Smashcraft is a platform fighter for Warcraft III, compiled to Lua. It is moving
+from Wurst to TypeScript ([#35](https://github.com/tompassarelli/smashcraft/issues/35)).
+Until the port finishes, both run in one map. Read smashcraft:wurst-toolchain.lock
+and smashcraft:wurst.build before changing the Wurst patch, compiler, standard
+library or target. The lock is authoritative; a newer upstream article does not
+update it.
 
 ## Issues define the scope — finish them
 
@@ -39,6 +41,20 @@ investigation.
   something durable, add that fact to the relevant doc, with its build.
 - Use the declared project development shell when available. Preserve pinned
   dependencies; do not repeat ad hoc environment setup as the normal loop.
+
+## TypeScript and Warcraft Live
+
+smashcraft:ts/ is the TypeScript side, and Warcraft Live is its development
+loop. Read warcraft-typescript-development-distilled before changing TypeScript
+or code in a running game, and smashcraft:docs/typescript.md before writing map
+code. From smashcraft:ts/:
+- Logic: `bun test`, plus `LUA=<32-bit lua> bun scripts/lua-tests.ts` for the
+  emitted Lua. `bun run check` type-checks.
+- Running game: `bun scripts/hot.ts --data <CustomMapData> ... --watch`
+  hot-reloads every save into both clients and prints in-game errors with
+  TypeScript lines.
+- Map: `bun scripts/map.ts rebuild MAP.w3x` replaces only the script of a map
+  that build.sh packaged.
 
 ## Verify the changed behavior
 
