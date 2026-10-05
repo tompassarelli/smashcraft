@@ -2808,35 +2808,37 @@ function applyProjectileHit(FighterState owner, FighterState target, int index, 
 
 public function capsuleCircleIntersects(real oldX, real oldZ, real newX, real newZ,
 		real capsuleRadius, real centerX, real centerZ, real circleRadius, real circleScale) returns boolean
-	let deltaX = (oldX - newX).roundToFloat32()
-	let deltaZ = (oldZ - newZ).roundToFloat32()
-	let lengthSquared = ((deltaX * deltaX).roundToFloat32() + (deltaZ * deltaZ).roundToFloat32()).roundToFloat32()
-	let endOffsetX = (newX - centerX).roundToFloat32()
-	let endOffsetZ = (newZ - centerZ).roundToFloat32()
-	let numerator = -fusedMultiplyAddFloat32(endOffsetX, deltaX, (endOffsetZ * deltaZ).roundToFloat32())
-	let projection = lengthSquared < 0.000009999999747378752 ? 0. : max(0., min(1., (numerator / lengthSquared).roundToFloat32()))
+	// Pass operands before arithmetic: native real operations can truncate bits
+	// that rounding an already-evaluated expression cannot recover.
+	let deltaX = subtractFloat32(oldX, newX)
+	let deltaZ = subtractFloat32(oldZ, newZ)
+	let lengthSquared = addFloat32(multiplyFloat32(deltaX, deltaX), multiplyFloat32(deltaZ, deltaZ))
+	let endOffsetX = subtractFloat32(newX, centerX)
+	let endOffsetZ = subtractFloat32(newZ, centerZ)
+	let numerator = -fusedMultiplyAddFloat32(endOffsetX, deltaX, multiplyFloat32(endOffsetZ, deltaZ))
+	let projection = lengthSquared < 0.000009999999747378752 ? 0. : max(0., min(1., divideFloat32(numerator, lengthSquared)))
 	let closestX = fusedMultiplyAddFloat32(projection, deltaX, newX)
 	let closestZ = fusedMultiplyAddFloat32(projection, deltaZ, newZ)
-	let offsetX = (centerX - closestX).roundToFloat32()
-	let offsetZ = (centerZ - closestZ).roundToFloat32()
-	let distanceSquared = fusedMultiplyAddFloat32(offsetX, offsetX, (offsetZ * offsetZ).roundToFloat32())
+	let offsetX = subtractFloat32(centerX, closestX)
+	let offsetZ = subtractFloat32(centerZ, closestZ)
+	let distanceSquared = fusedMultiplyAddFloat32(offsetX, offsetX, multiplyFloat32(offsetZ, offsetZ))
 	let distance = SquareRoot(distanceSquared).roundToFloat32()
 	if distance < 0.000009999999747378752
 		return true
-	let inverseScale = (1. / circleScale).roundToFloat32()
-	let inverseTranslateX = (-centerX * inverseScale).roundToFloat32()
-	let inverseTranslateZ = (-centerZ * inverseScale).roundToFloat32()
-	let localCenterX = ((centerX * inverseScale).roundToFloat32() + inverseTranslateX).roundToFloat32()
-	let localCenterZ = ((centerZ * inverseScale).roundToFloat32() + inverseTranslateZ).roundToFloat32()
-	let localClosestX = ((closestX * inverseScale).roundToFloat32() + inverseTranslateX).roundToFloat32()
-	let localClosestZ = ((closestZ * inverseScale).roundToFloat32() + inverseTranslateZ).roundToFloat32()
-	let localOffsetX = (localCenterX - localClosestX).roundToFloat32()
-	let localOffsetZ = (localCenterZ - localClosestZ).roundToFloat32()
+	let inverseScale = divideFloat32(1., circleScale)
+	let inverseTranslateX = multiplyFloat32(-centerX, inverseScale)
+	let inverseTranslateZ = multiplyFloat32(-centerZ, inverseScale)
+	let localCenterX = addFloat32(multiplyFloat32(centerX, inverseScale), inverseTranslateX)
+	let localCenterZ = addFloat32(multiplyFloat32(centerZ, inverseScale), inverseTranslateZ)
+	let localClosestX = addFloat32(multiplyFloat32(closestX, inverseScale), inverseTranslateX)
+	let localClosestZ = addFloat32(multiplyFloat32(closestZ, inverseScale), inverseTranslateZ)
+	let localOffsetX = subtractFloat32(localCenterX, localClosestX)
+	let localOffsetZ = subtractFloat32(localCenterZ, localClosestZ)
 	let localDistance = SquareRoot(fusedMultiplyAddFloat32(localOffsetX, localOffsetX,
-		(localOffsetZ * localOffsetZ).roundToFloat32())).roundToFloat32()
+		multiplyFloat32(localOffsetZ, localOffsetZ))).roundToFloat32()
 	// Radius conversion retains rounding even for an identity joint transform.
-	let convertedRadius = ((circleRadius * distance).roundToFloat32() / localDistance).roundToFloat32()
-	return distance <= (capsuleRadius + convertedRadius).roundToFloat32()
+	let convertedRadius = divideFloat32(multiplyFloat32(circleRadius, distance), localDistance)
+	return distance <= addFloat32(capsuleRadius, convertedRadius)
 
 function shieldCircleIntersects(FighterState target, real oldX, real oldZ, real newX, real newZ, real radiusFactor) returns boolean
 	let centerX = target.x + target.facing * target.shieldGeometry.centerX

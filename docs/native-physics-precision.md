@@ -135,3 +135,37 @@ arithmetic-result truncation rather than ordinary IEEE rounding; this explains
 why Lua64 and IEEE Lua32 checks cannot substitute for the native comparison.
 The exact production repair is still pending. No tests or comparison criteria
 have been weakened.
+
+## Capsule arithmetic repair — 5 October 2026
+
+The retained 0.0.35 export includes capsule/shield classification failures.
+The production `capsuleCircleIntersects` routine still evaluated subtraction,
+multiplication, addition and division before calling `roundToFloat32`. On the
+native runtime, that call cannot recover bits already lost by the operation.
+It now passes the operands separately to the pinned standard library's
+`subtractFloat32`, `multiplyFloat32`, `addFloat32` and `divideFloat32`. Existing
+fused operations, square-root calls, contact thresholds, transform order and
+authored fighter dimensions are preserved. No reference implementation was
+copied and no recorded expectation changed.
+
+The focused check compiled the production packages plus the output of
+wc3-melee:tools/physics-probe/generate-capsule-probe.mjs, then ran only
+`init_CapsuleShieldPrecisionProbe` through the existing Lua test shim.
+All 508 classifications passed in Lua 5.3; compilation reported zero errors
+and zero warnings. It used compiler `6b129956f6e7cf9582510f26b99d305526bf3ded`,
+stdlib `e3714f629113ee682353c3244065fee3e7d9ae16`, and test shim
+`1f36fff43a4987bc133c676072ee396f15294aa0` from the unchanged lock. The local
+invocation and result are retained at
+~/code/wc3-melee/worktrees/physics-scale-20261005/build/physics-probe/check-capsule.sh
+and
+~/code/wc3-melee/worktrees/physics-scale-20261005/build/physics-probe/capsule-compile.log.
+
+This is a bounded capsule/shield calculation repair. Native re-execution of
+the existing 508 authored comparisons remains required; the generated inputs
+are unchanged. It does not repair the separate motion representation gap:
+wc3-melee:docs/native-physics-precision-20261004/native0037-analysis.json retains
+frame 6's stored world velocity `-7.1399993896484375`, versus the direct sum
+`-7.139999866485596` of the same operands. That observation does not measure
+an independently maintained trajectory in original units. Repeated scaling
+to six world units and back still loses information, and the complete native
+precision criterion remains open.
