@@ -26,7 +26,7 @@ export class ShieldPresentation {
   }
 
   hide(): void {
-    hideEffect(this.model);
+    hideEffect(this.model, this.origin);
   }
 
   present(fighter: Readonly<Fighter> | undefined, playing: boolean): void {

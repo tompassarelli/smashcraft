@@ -24,16 +24,16 @@ export class FrostEffects {
 
   clear(): void {
     for (const { trap, ice } of this.slots) {
-      hideEffect(trap);
-      hideEffect(ice);
+      hideEffect(trap, this.origin);
+      hideEffect(ice, this.origin);
     }
   }
 
   hideSlot(slot: number): void {
     const frost = this.slots[slot];
     if (frost === undefined) return;
-    hideEffect(frost.trap);
-    hideEffect(frost.ice);
+    hideEffect(frost.trap, this.origin);
+    hideEffect(frost.ice, this.origin);
   }
 
   present(fighter: Readonly<Fighter>, slot: number): void {
@@ -47,14 +47,14 @@ export class FrostEffects {
       BlzSetSpecialEffectScale(frost.trap, 1.0);
       BlzSetSpecialEffectAlpha(frost.trap, trap.arming > 0 ? 100 : 255);
     } else {
-      hideEffect(frost.trap);
+      hideEffect(frost.trap, this.origin);
     }
     if (fighter.status.frozenFrames > 0 && !out) {
       BlzSetSpecialEffectPosition(frost.ice, x + fighter.motion.x, y, z + fighter.motion.z);
       BlzSetSpecialEffectScale(frost.ice, 1.0);
       BlzSetSpecialEffectAlpha(frost.ice, 255);
     } else {
-      hideEffect(frost.ice);
+      hideEffect(frost.ice, this.origin);
     }
   }
 

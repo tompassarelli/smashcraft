@@ -19,14 +19,14 @@ export class SummonPresentation {
       BlzSetSpecialEffectAnimationBlendTime(model, 0.0);
       BlzSetSpecialEffectAnimation(model, "Stand");
       BlzSetSpecialEffectTimeScale(model, 0.0);
-      hideEffect(model);
+      hideEffect(model, origin);
       this.clips.push(model);
     }
   }
 
   hide(): void {
     const shown = this.visible === undefined ? undefined : this.clips[this.visible];
-    if (shown !== undefined) hideEffect(shown);
+    if (shown !== undefined) hideEffect(shown, this.origin);
     this.visible = undefined;
   }
 
@@ -49,7 +49,7 @@ export class SummonPresentation {
 
   destroy(): void {
     for (const model of this.clips) {
-      hideEffect(model);
+      hideEffect(model, this.origin);
       DestroyEffect(model);
     }
     this.clips.length = 0;

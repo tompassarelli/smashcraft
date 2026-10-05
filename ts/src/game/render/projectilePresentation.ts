@@ -24,7 +24,6 @@ export class ProjectilePresentation {
     const path = projectileModel(character);
     for (let index = 0; index < PROJECTILE_CAPACITY; index++) {
       const model = AddSpecialEffect(path, origin.x, origin.y);
-      BlzSetSpecialEffectPosition(model, origin.x, origin.y, origin.z);
       this.models.push(model);
       this.visible.push(false);
     }
@@ -32,7 +31,7 @@ export class ProjectilePresentation {
   }
 
   private hide(model: effect): void {
-    hideEffect(model);
+    hideEffect(model, this.origin);
     BlzSetSpecialEffectTimeScale(model, 0.0);
   }
 
