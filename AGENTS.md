@@ -67,6 +67,12 @@ or code in a running game, and smashcraft:docs/typescript.md before writing map
 code. From smashcraft:ts/:
 - Logic: `bun run test`, plus `LUA=<32-bit lua> bun scripts/lua-tests.ts` for the
   emitted Lua. `bun run check` type-checks.
+- Every save: leave `bun wisp dev` running. It prints the saved files' type
+  errors, the tests the save can affect, the quick-match journey in two
+  simulated clients and the whole check, each timed from the save; add
+  `--data A --data B` to also hot-reload both clients as `hot --watch` does.
+  A test that reads project files at run time declares them in
+  smashcraft:ts/scripts/wisp/commands/dev.ts.
 - Running game: `bun wisp hot --data <client A CustomMapData> --data <client
   B CustomMapData> --watch` hot-reloads every save into both clients and prints
   in-game errors with TypeScript lines.
@@ -79,7 +85,7 @@ code. From smashcraft:ts/:
 - Client driver: `bun wisp client look|read|click|keys CLIENT ...` reads and
   drives a client. Session values live in ~/.local/state/smashcraft/clients.json.
 - Headless match: `bun wisp headless [quick-match|desync] [--clients N]` plays
-  the dev build's quick match in simulated clients in about 1.6 s and prints
+  the dev build's quick match in simulated clients in about a second and prints
   desyncs, error reports and scene problems.
 - Tapes: set `LUA` to the 32-bit Lua executable, then run `bun wisp tapes` to
   compare replay results across Bun and Lua32.

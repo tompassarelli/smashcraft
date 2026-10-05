@@ -144,7 +144,7 @@ Without the clients, `bun wisp headless [quick-match|desync] [--clients N]`
 plays the development build (src/platform/devMain.ts) in Wisp's headless
 runtime ([Wisp headless](https://github.com/tompassarelli/wisp/blob/main/docs/headless.md)):
 start, `-dev quick`, Ctrl+T, a hot reload through the map's reloader at frame
-480, 600 frames in all, in about 1.6 s. It prints each client's native calls
+480, 600 frames in all, in about a second. It prints each client's native calls
 and checksum, the first desync, a reload not running, error reports and what
 a player would see wrong in each client's scene report, and exits 1 on any.
 `desync` adds `-dev desync` typed by the second player, which it must report.
@@ -267,6 +267,15 @@ From smashcraft:ts/:
   workers keep the baseline and DFG JIT tiers; the highest tier's compile cost
   exceeds its savings over this suite. Use
   `bun test test/game.test.ts -t NAME` for a focused result.
+- `bun wisp dev [--data A --data B]`: the loop to keep running while changing
+  code ([Wisp dev loop](https://github.com/tompassarelli/wisp/blob/main/docs/dev.md)).
+  Each save prints the saved files' type errors, the affected tests, the
+  quick-match journey and the whole `bun run check`, each timed from the
+  save. smashcraft:ts/scripts/wisp/commands/dev.ts declares the tests: the Bun
+  test files, the registry modules game.test.ts runs, the files a test reads at
+  run time (a test that reads files without declaring them runs on every save)
+  and scripts/test.ts's isolated groups. Test processes share
+  smashcraft:ts/scripts/testWorkers.ts's engine settings with the full suite.
 - `bun run check`: type-check the host tools and the game with TypeScript 7.
   The compiler keeps separate host and game dependency caches in
   smashcraft:ts/build/typecheck-host.tsbuildinfo and

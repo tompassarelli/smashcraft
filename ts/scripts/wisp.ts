@@ -20,6 +20,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   client: { usage: "client look|read|click|keys CLIENT ...", load: async () => (await import("./wisp/commands/client")).client },
   view: { usage: "view scene DATA_DIR... | frame FRAME.ppm... | models --assets DIR --summon DIR --extractor CASC_EXTRACT --storage WARCRAFT_DIR", load: async () => (await import("./wisp/commands/view")).view },
   headless: { usage: "headless [quick-match|desync] [--clients N]", load: async () => (await import("./wisp/commands/headless")).headless },
+  dev: { usage: "dev [--data DIR --data DIR]", load: async () => (await import("./wisp/commands/dev")).dev },
 };
 
 const [name, ...args] = process.argv.slice(2);
