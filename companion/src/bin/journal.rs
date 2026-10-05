@@ -1965,6 +1965,50 @@ mod linux {
         }
     }
 
+    #[test]
+    fn journal_jump_sources_retain_hold_until_last_release() {
+        let mut ranges = [None; 6];
+        ranges[Abs::ABS_Y.0 as usize] = Some(evdev::AbsInfo::new(0, -32_767, 32_767, 0, 0, 0));
+        let sources = [
+            (evdev::EventType::KEY.0, Key::BTN_EAST.0, 1),
+            (evdev::EventType::KEY.0, Key::BTN_NORTH.0, 1),
+            (evdev::EventType::ABSOLUTE.0, Abs::ABS_Y.0, -32_767),
+        ];
+        for first in 0..sources.len() {
+            for second in 0..sources.len() {
+                if first == second {
+                    continue;
+                }
+                let mut state = State::default();
+                let mut edges = BTreeMap::new();
+                let mut snapshots = BTreeMap::new();
+                let segment = FrameSegment { epoch_ns: 0, first_frame: 1 };
+                for (step, (source, down)) in [(first, true), (second, true), (first, false), (second, false)].into_iter().enumerate() {
+                    let (kind, code, pressed_value) = sources[source];
+                    let ns = 20_000_000 * (step as u128 + 1);
+                    let event = libc::input_event {
+                        time: libc::timeval {
+                            tv_sec: 0,
+                            tv_usec: (ns / 1000) as _,
+                        },
+                        type_: kind,
+                        code,
+                        value: if down { pressed_value } else { 0 },
+                    }.into();
+                    apply_event(&ranges, &mut state, event, &mut edges, &mut snapshots, 1, segment, false).unwrap();
+                    let frame = frame_at(ns, segment).unwrap();
+                    assert_eq!(action_state(snapshots[&frame]) & JUMP != 0, step < 3,
+                        "sources {first}/{second}, step {step}");
+                    assert_eq!(edges[&frame].pressed & JUMP != 0, step == 0,
+                        "extra jump press for sources {first}/{second}, step {step}");
+                    assert_eq!(edges[&frame].released & JUMP != 0, step == 3,
+                        "premature jump release for sources {first}/{second}, step {step}");
+                }
+                assert_eq!(action_state(state), 0);
+            }
+        }
+    }
+
     struct FocusInput {
         eligible: bool,
         armed: bool,

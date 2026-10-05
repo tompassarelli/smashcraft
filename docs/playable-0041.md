@@ -54,6 +54,14 @@ needed. Discovery/launcher automation and other operating systems remain #18 wor
 
 ## Evidence and limits
 
+The Linux journal's focused `journal_jump_sources_retain_hold_until_last_release`
+test passes all six ordered pairs of B, Y and stick-up. It feeds the production
+event handler and checks captured frame states and edges: jump stays held when
+one source releases, with one press at the first source and one release at the
+last. Reproduce from wc3-melee:companion with `cargo test --locked --jobs 2
+--bin wc3-journal linux::journal_jump_sources_retain_hold_until_last_release
+-- --exact`. This is the shared-source correctness check for #18.
+
 The gameplay/helper implementation passed two native controller-menu lifecycles
 and two native combat/rematch sequences with virtual Linux pads. The combat
 sequence included attacks, specials, three jump sources, grab initiation,
