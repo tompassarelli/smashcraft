@@ -1,0 +1,293 @@
+// The native shell's state. Everything a running match needs lives in one
+// global record, so a hot reload keeps the match and the new bundle's code
+// works on it. Handles are owned by the record that destroys them; the UI and
+// renderer objects keep the code they were created with, so a reload
+// recreates them (ui.ts).
+import type { Action } from "../../game/input/actions";
+import { ATTACK_BUFFER_FRAMES, attackBuffer } from "../../game/input/attackBuffer";
+import { type KeyboardCapture, keyboardCapture } from "../../game/input/keyboardCapture";
+import { PARTICIPANT_SLOTS, type ParticipantInputs, type ParticipantSlot, type Slots, participantInputs } from "../../game/input/participants";
+import { type PlayerKeys, playerKeys } from "../../game/input/playerKeys";
+import { type FrameControls, type MatchControls, createFrameControls, createMatchControls } from "../../game/match/controls";
+import { type MatchFrameInput, createMatchFrameInput } from "../../game/match/frameInput";
+import { type MatchState, createMatchState } from "../../game/match/rules";
+import { type ReplayRuntimeState, createReplayRuntimeState } from "../../game/match/runtime";
+import { matchSpawnX } from "../../game/match/step";
+import type { FixedDelay } from "../../game/netcode/fixedSchedule";
+import { InputBatch } from "../../game/netcode/inputBatch";
+import type { KeyboardMailbox } from "../../game/netcode/journal/keyboard";
+import type { MatchLifecycle } from "../../game/netcode/journal/lifecycle";
+import type { JournalInputSource } from "../../game/netcode/journal/source";
+import { TransportBatch } from "../../game/netcode/journal/transport";
+import { ShadowInputSchedule } from "../../game/netcode/shadowSchedule";
+import type { WorldOrigin } from "../../game/render/effects";
+import { type ModelSoundCursor, ORIGINAL_MODEL_SOUNDS, createModelSoundCursor } from "../../game/render/modelSounds";
+import { type ReplaySnapshot, createReplaySnapshot } from "../../game/replay/snapshot";
+import { type JournalIngress, type MapBuild, type ShadowInputMode, isShadow } from "../../game/shell/build";
+import type { BatchSize, DevSettings } from "../../game/shell/devSettings";
+import type { MenuPhase } from "../../game/shell/journalFiles";
+import { type PauseBarrier, pauseBarrier } from "../../game/shell/pauseBarrier";
+import type { RollbackPlayback, SpeculativeMatch } from "../../game/shell/playback";
+import type { DownState, GrabAction, LedgeState, ShieldBreak, SpecialAction } from "../../game/sim/codes";
+import { createFighter } from "../../game/sim/fighter";
+import { type Roster, createRoster } from "../../game/sim/roster";
+import { type BindingPersistence, type BindingSettings, createBindingSettings } from "../../game/ui/bindingSettings";
+import type { EditboxIngress } from "../editboxJournal";
+import { type ResponseProbe, createResponseProbe } from "./responseProbe";
+import { type InputTrace, inputTrace } from "./trace";
+import type { UiObjects } from "./ui";
+
+/** The unit a fighter animates when no pool presents it, and its dizzy mark. */
+export interface FighterBody {
+  readonly unit: unit;
+  dizzy: effect | undefined;
+  /** The pose selection the unit last played. */
+  renderedSelection: number;
+}
+
+/** What a fighter was before a frame, compared after it to announce and trace changes. */
+export interface FrameObservation {
+  out: boolean;
+  holding: boolean;
+  actionable: boolean;
+  attack: number;
+  jump: number;
+  down: DownState;
+  lCancel: number;
+  shieldBreak: number;
+  breakState: ShieldBreak;
+  ledge: LedgeState;
+  special: SpecialAction;
+  grab: GrabAction;
+}
+
+export interface Participant {
+  readonly slot: ParticipantSlot;
+  /** Present while the slot has a fighter on the stage or in the preview. */
+  body: FighterBody | undefined;
+  /** The pool presents this match's fighter, and the unit stays hidden. */
+  pooled: boolean;
+  /** Keys from synchronized key events, for menus and callback matches. */
+  readonly keys: PlayerKeys;
+  /** The callback match's sampler of those keys. */
+  readonly capture: KeyboardCapture;
+  readonly bindings: BindingSettings;
+  appliedBindingRevision: number | undefined;
+  lastInputAction: Action | undefined;
+  /** The attack style the last callback-match press queued. */
+  lastNormalStyle: number | undefined;
+  readonly before: FrameObservation;
+}
+
+/** Stamps of the local rows waiting in a keyboard batch, for the trace. */
+export interface CaptureStamp {
+  traced: boolean;
+  callback: number;
+  seconds: number;
+}
+
+/** Keyboard rollback: the keys polled each callback, and the rows waiting to be sent. */
+export interface KeyboardRollback {
+  readonly capture: KeyboardCapture;
+  /** Built per epoch. */
+  outgoing: InputBatch;
+  lastTarget: number | undefined;
+  readonly stamps: [CaptureStamp, CaptureStamp];
+  readonly pairedSends: boolean;
+}
+
+/** Journal input: the helper's rows for this client, their transport and the barriers every human crosses. */
+export interface Journal {
+  readonly ingress: JournalIngress;
+  /** Opened per epoch. */
+  source: JournalInputSource | undefined;
+  failed: boolean;
+  readonly outgoing: TransportBatch;
+  /** Humans whose helper is ready this epoch. */
+  readyMask: number;
+  startSent: boolean;
+  lifecycle: MatchLifecycle | undefined;
+  endSent: boolean;
+  endReceived: boolean;
+  quiescent: boolean;
+  readonly chatRequested: Slots<boolean>;
+  readonly chatSerial: Slots<number>;
+  readonly barrier: PauseBarrier;
+  /** The menu phase last published to the helper; undefined before the first. */
+  menuPhase: MenuPhase | undefined;
+  menuTicks: number;
+  readonly editbox: EditboxIngress | undefined;
+  mailbox: KeyboardMailbox | undefined;
+}
+
+/** Rollback input: synchronized rows, the confirmed cursor, and a speculative match for presentation. */
+export interface Rollback {
+  readonly mode: ShadowInputMode;
+  /** False until an epoch starts, and after a player leaves it. */
+  active: boolean;
+  epoch: number;
+  /** Settings fixed for the running epoch. */
+  delay: FixedDelay;
+  window: number;
+  batch: BatchSize;
+  readonly schedule: ShadowInputSchedule;
+  readonly playback: RollbackPlayback;
+  readonly speculative: SpeculativeMatch;
+  readonly seed: ReplaySnapshot;
+  readonly accepted: ParticipantInputs;
+  sendFailed: boolean;
+  readonly keyboard: KeyboardRollback | undefined;
+  readonly journal: Journal | undefined;
+}
+
+export interface StatusFrames {
+  readonly help: framehandle;
+  readonly notice: framehandle;
+  readonly developer: framehandle;
+}
+
+export interface StatusLine {
+  text: string;
+  /** Seconds the text stays; long for messages that wait for the players. */
+  seconds: number;
+}
+
+/** Key triggers for every key, which exist only while keys drive menus or a callback match. */
+export interface KeyEvents {
+  down: trigger | undefined;
+  up: trigger | undefined;
+}
+
+export interface ShellState {
+  readonly build: MapBuild;
+  /** The world point the simulation's origin maps to: stage center and floor height. */
+  readonly origin: WorldOrigin;
+  readonly game: MatchState;
+  /** The confirmed match: the only state synchronized decisions read. */
+  readonly world: Roster;
+  readonly controls: FrameControls;
+  /** Callback matches adapt keys into these before a frame captures them. */
+  readonly produced: FrameControls;
+  readonly runtime: ReplayRuntimeState;
+  /** Pause and Start keys; outside replay state, so rollback never undoes a pause. */
+  readonly session: MatchControls;
+  readonly frameInput: MatchFrameInput;
+  readonly participants: Slots<Participant>;
+  readonly status: StatusLine;
+  readonly frames: StatusFrames;
+  readonly stageDecks: effect[];
+  /** Menus, HUD and renderers; recreated by every hot reload. */
+  ui: UiObjects | undefined;
+  readonly sounds: ModelSoundCursor;
+  readonly dev: DevSettings;
+  devReceipts: number;
+  readonly trace: InputTrace;
+  readonly probe: ResponseProbe | undefined;
+  readonly rollback: Rollback | undefined;
+  readonly keyEvents: KeyEvents;
+  readyMarkerWritten: boolean;
+  restartRequested: boolean;
+  /** Checksums capture the confirmed match here. */
+  readonly diagnostic: ReplaySnapshot;
+}
+
+declare global {
+  var __smashcraftShell: ShellState | undefined;
+}
+
+export function shellState(): ShellState | undefined {
+  return globalThis.__smashcraftShell;
+}
+
+export function shell(): ShellState {
+  const state = globalThis.__smashcraftShell;
+  if (state === undefined) throw new Error("shell used before start");
+  return state;
+}
+
+function observation(): FrameObservation {
+  return { out: false, holding: false, actionable: false, attack: 0, jump: 0, down: 0, lCancel: 0, shieldBreak: 0, breakState: 0, ledge: 0, special: 0, grab: 0 };
+}
+
+function participant(slot: ParticipantSlot, persistence: BindingPersistence): Participant {
+  return {
+    slot, body: undefined, pooled: false, keys: playerKeys(), capture: keyboardCapture(), bindings: createBindingSettings(slot, persistence),
+    appliedBindingRevision: undefined, lastInputAction: undefined, lastNormalStyle: undefined, before: observation(),
+  };
+}
+
+/** Match controls whose attack buffers keep a press for the buffered frames. */
+function bufferedControls(): FrameControls {
+  const controls = createFrameControls();
+  for (const slot of PARTICIPANT_SLOTS) controls.commands[slot] = attackBuffer(ATTACK_BUFFER_FRAMES);
+  return controls;
+}
+
+/** Four fighters in stable slots, which each epoch's seed overwrites before any frame runs. */
+function speculativeRoster(): Roster {
+  return createRoster(3, PARTICIPANT_SLOTS.map(slot => createFighter(slot === 3 ? 0 : slot, matchSpawnX(slot), slot === 0 || slot === 2 ? 1 : -1)));
+}
+
+function journal(ingress: JournalIngress, editbox: EditboxIngress | undefined): Journal {
+  return {
+    ingress, source: undefined, failed: false, outgoing: new TransportBatch(), readyMask: 0, startSent: false, lifecycle: undefined,
+    endSent: false, endReceived: false, quiescent: false, chatRequested: [false, false, false, false], chatSerial: [0, 0, 0, 0],
+    barrier: pauseBarrier(), menuPhase: undefined, menuTicks: 0, editbox, mailbox: undefined,
+  };
+}
+
+function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: EditboxIngress | undefined): Rollback {
+  return {
+    mode, active: false, epoch: 0, delay: mode.delay, window: mode.rollback, batch: 2,
+    schedule: new ShadowInputSchedule(), playback,
+    speculative: { world: speculativeRoster(), game: createMatchState(), controls: bufferedControls(), runtime: createReplayRuntimeState() },
+    seed: createReplaySnapshot(), accepted: participantInputs(), sendFailed: false,
+    keyboard: mode.kind === "keyboard"
+      ? {
+        capture: keyboardCapture(), outgoing: new InputBatch(0), lastTarget: undefined, pairedSends: mode.pairedSends,
+        stamps: [{ traced: false, callback: 0, seconds: 0.0 }, { traced: false, callback: 0, seconds: 0.0 }],
+      }
+      : undefined,
+    journal: mode.kind === "journal" ? journal(mode.ingress, editbox) : undefined,
+  };
+}
+
+export interface ShellSetup {
+  readonly origin: WorldOrigin;
+  readonly frames: StatusFrames;
+  readonly persistence: BindingPersistence;
+  readonly playback: RollbackPlayback;
+  /** The edit box, created on every client, when the build reads journal text from one. */
+  readonly editbox: EditboxIngress | undefined;
+}
+
+/** Builds the shell's record once, on every client, after the game UI exists. */
+export function createShellState(build: MapBuild, setup: ShellSetup): ShellState {
+  const { input } = build;
+  const { persistence } = setup;
+  const state: ShellState = {
+    build, origin: setup.origin, game: createMatchState(), world: createRoster(0), controls: bufferedControls(),
+    produced: createFrameControls(), runtime: createReplayRuntimeState(), session: createMatchControls(),
+    frameInput: createMatchFrameInput(),
+    participants: [participant(0, persistence), participant(1, persistence), participant(2, persistence), participant(3, persistence)],
+    status: { text: "", seconds: 0.0 }, frames: setup.frames, stageDecks: [], ui: undefined,
+    sounds: createModelSoundCursor(ORIGINAL_MODEL_SOUNDS),
+    dev: { rollback: isShadow(input) ? input.rollback : 6, delay: isShadow(input) ? input.delay : 3, batch: 2 }, devReceipts: 0,
+    trace: inputTrace(build.responseProbe ? 2048 : 256),
+    probe: build.responseProbe ? createResponseProbe(build.id) : undefined,
+    rollback: isShadow(input) ? rollback(input, setup.playback, setup.editbox) : undefined,
+    keyEvents: { down: undefined, up: undefined }, readyMarkerWritten: false, restartRequested: false,
+    diagnostic: createReplaySnapshot(),
+  };
+  globalThis.__smashcraftShell = state;
+  return state;
+}
+
+/** The rollback session while an epoch runs. */
+export function activeRollback(state: Readonly<ShellState>): Rollback | undefined {
+  return state.rollback?.active === true ? state.rollback : undefined;
+}
+
+export function localSlot(): number {
+  return GetPlayerId(GetLocalPlayer());
+}

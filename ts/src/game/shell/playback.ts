@@ -1,0 +1,42 @@
+// What the shell asks of rollback playback: the speculative world runs ahead
+// on local and predicted rows, and replays from history when accepted rows
+// differ from what it ran. The replay code owns the history ring.
+import type { InputRow } from "../input/inputRow";
+import type { FrameControls } from "../match/controls";
+import type { MatchState } from "../match/rules";
+import type { ReplayRuntimeState } from "../match/runtime";
+import type { ShadowInputSchedule } from "../netcode/shadowSchedule";
+import type { Roster } from "../sim/roster";
+
+/** The speculative world after a reconciliation: unchanged, replayed from a frame, or refused. */
+export type Reconciliation = "unchanged" | "rejected" | { readonly replayedFrom: number };
+
+/** Called after each speculative frame runs and before the schedule completes it, with the local row it used. */
+export type SpeculativeFrameObserver = (frame: number, local: Readonly<InputRow>) => void;
+
+/** The speculative match: the state presentation predicts from. */
+export interface SpeculativeMatch {
+  readonly world: Roster;
+  readonly game: MatchState;
+  readonly controls: FrameControls;
+  readonly runtime: ReplayRuntimeState;
+}
+
+export interface RollbackPlayback {
+  /** Starts an epoch whose history can correct `window` frames. */
+  beginEpoch(epoch: number, window: number): boolean;
+  /** Replays the speculative match from the first retained frame whose accepted rows differ from those it ran. */
+  reconcile(schedule: ShadowInputSchedule, epoch: number, localPlayer: number, match: SpeculativeMatch): Reconciliation;
+  /**
+   * Runs already-assigned speculative frames, at most `budget`, stopping
+   * before `stopBefore` when given. False when a frame could not run.
+   */
+  catchUp(schedule: ShadowInputSchedule, epoch: number, localPlayer: number, match: SpeculativeMatch, budget: number, stopBefore: number | undefined, executed: SpeculativeFrameObserver): boolean;
+}
+
+/**
+ * Speculative frames one callback may run. Keyboard sampling owns one new
+ * frame, and running farther would skip capture targets; journals already
+ * hold their original frames.
+ */
+export const speculativeBudget = (journal: boolean): number => (journal ? 6 : 1);

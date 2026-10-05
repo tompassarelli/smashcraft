@@ -29,8 +29,28 @@ export function readChunk(filename: string): string | undefined {
 
 /** Writes a one-line file for a host tool to poll. */
 export function writeLine(filename: string, line: string): void {
+  writeLines(filename, [line]);
+}
+
+/** Writes a file of Preload lines for a host tool to read. */
+export function writeLines(filename: string, lines: readonly string[]): void {
   PreloadGenClear();
   PreloadGenStart();
-  Preload(line);
+  for (const line of lines) Preload(line);
   PreloadGenEnd(filename);
+}
+
+/** FileIO chunks are spliced into JASS string literals, so these characters cannot be stored. */
+const UNSTORABLE = ["\\", "\"", "\n", "\r"] as const;
+
+/**
+ * Writes text the map reads back with readChunks: each line of the file sets
+ * one tooltip level of the FileIO ability. False, writing nothing, for text
+ * that does not fit or cannot be stored.
+ */
+export function writeChunks(filename: string, chunks: readonly string[]): boolean {
+  if (chunks.length >= CHUNKS_PER_FILE || chunks.some(chunk => UNSTORABLE.some(character => chunk.includes(character)))) return false;
+  const lines = chunks.map((chunk, level) => `" )\ncall BlzSetAbilityTooltip('$wsl', "${chunk}", ${level})\n//`);
+  writeLines(filename, [...lines, "\" )\nendfunction\nfunction a takes nothing returns nothing\n //"]);
+  return true;
 }

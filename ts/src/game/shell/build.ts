@@ -38,8 +38,6 @@ export interface MapBuild {
   readonly scenario: Scenario;
   readonly responseProbe: boolean;
   readonly devConsole: boolean;
-  /** Generated asset paths. */
-  readonly stageDeckModel: string;
 }
 
 export const isShadow = (input: InputMode): input is ShadowInputMode => input.kind !== "callback";

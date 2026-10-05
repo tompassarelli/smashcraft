@@ -1,0 +1,67 @@
+// The unit each fighter animates when no pool presents it. Every client
+// creates the same units, as shared handles, at the same synchronized points.
+import { f32 } from "../../sim/f32";
+import { Character, ShieldBreak } from "../../game/sim/codes";
+import { fighterPoseFacing } from "../../game/sim/conditions";
+import type { Fighter } from "../../game/sim/fighter";
+import type { WorldOrigin } from "../../game/render/effects";
+import type { FighterBody } from "./state";
+
+/** Object data the build generates: 'mfar', 'mfrf' and 'mfdh'. */
+const FIGHTER_UNITS: Readonly<Record<Character, number>> = {
+  [Character.archer]: 0x6d666172,
+  [Character.rifleman]: 0x6d667266,
+  [Character.demonHunter]: 0x6d666468,
+};
+/** Crow Form, added and removed so the unit's flying height can change. */
+const CROW_FORM = 0x416d7266;
+/** Locust: no selection, no collision. */
+const LOCUST = 0x416c6f63;
+const DIZZY_MODEL = "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx";
+/** Fighters stand this far above the floor's height, which holds the stage decks. */
+export const FLY_HEIGHT = 1800.0;
+
+export function placeFighterBody(body: FighterBody, fighter: Readonly<Fighter>, origin: WorldOrigin): void {
+  SetUnitX(body.unit, origin.x + fighter.motion.x);
+  SetUnitY(body.unit, origin.y);
+  SetUnitFlyHeight(body.unit, FLY_HEIGHT + fighter.motion.z, 0.0);
+  BlzSetUnitFacingEx(body.unit, fighterPoseFacing(fighter) > 0 ? 0.0 : 180.0);
+}
+
+export function createFighterBody(owner: player, fighter: Readonly<Fighter>, origin: WorldOrigin): FighterBody {
+  const unit = CreateUnit(owner, FIGHTER_UNITS[fighter.character], origin.x + fighter.motion.x, origin.y, fighter.facing > 0 ? 0.0 : 180.0);
+  SetUnitInvulnerable(unit, true);
+  SetUnitPathing(unit, false);
+  UnitAddAbility(unit, CROW_FORM);
+  UnitRemoveAbility(unit, CROW_FORM);
+  UnitAddAbility(unit, LOCUST);
+  PauseUnit(unit, true);
+  // A blended transition can hold the previous pose throughout hitlag.
+  SetUnitBlendTime(unit, 0.0);
+  const body: FighterBody = { unit, dizzy: undefined, renderedSelection: 0 };
+  placeFighterBody(body, fighter, origin);
+  return body;
+}
+
+export function clearDizzy(body: FighterBody): void {
+  if (body.dizzy === undefined) return;
+  BlzSetSpecialEffectScale(body.dizzy, 0.0);
+  DestroyEffect(body.dizzy);
+  body.dizzy = undefined;
+}
+
+/** The dizzy mark follows a shield-broken fighter while the match runs. */
+export function renderDizzy(body: FighterBody, fighter: Readonly<Fighter>, playing: boolean, origin: WorldOrigin): void {
+  if (fighter.shield.breakState !== ShieldBreak.dizzy || fighter.status.out || !playing) {
+    clearDizzy(body);
+    return;
+  }
+  const x = origin.x + fighter.motion.x;
+  body.dizzy ??= AddSpecialEffect(DIZZY_MODEL, x, origin.y);
+  BlzSetSpecialEffectPosition(body.dizzy, x, origin.y, f32(origin.z + fighter.motion.z + 115));
+}
+
+export function removeFighterBody(body: FighterBody): void {
+  clearDizzy(body);
+  RemoveUnit(body.unit);
+}
