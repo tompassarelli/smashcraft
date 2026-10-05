@@ -57,6 +57,8 @@ function, including whitespace and line endings around the message.
 Pure simulation, numeric operations, code transforms and binary-format
 encoders remain plain TypeScript. The TSTL map compiler uses TypeScript 6's
 compiler API, while the host checker uses TypeScript 7 with Effect tsgo. A
+project `bun install` patches the native checker through the postinstall
+script; ordinary checks reuse that binary without rerunning the patcher. A
 successful host check does not establish that a library can compile to Lua.
 The installed Effect package currently has no Lua module for TSTL to resolve;
 keep Effect imports on the host until an actual emitted-Lua check supports a

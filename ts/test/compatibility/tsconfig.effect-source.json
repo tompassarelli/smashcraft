@@ -1,5 +1,5 @@
 {
-  "include": ["effect-tstl.ts"],
+  "include": ["effect-source-tstl.ts"],
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["ESNext"],
@@ -11,17 +11,12 @@
     "allowImportingTsExtensions": true,
     "preserveSymlinks": true,
     "types": ["lua-types/5.3"],
-    "baseUrl": "../..",
-    "paths": {
-      "effect": ["test/compatibility/effect-source/Effect.ts"],
-      "effect/*": ["test/compatibility/effect-source/*"]
-    },
     "outDir": "../../build/effect-compatibility/source"
   },
   "tstl": {
     "luaTarget": "5.3",
     "luaBundle": "effect-source.lua",
-    "luaBundleEntry": "test/compatibility/effect-tstl.ts",
+    "luaBundleEntry": "test/compatibility/effect-source-tstl.ts",
     "noImplicitSelf": true,
     "noHeader": true
   }

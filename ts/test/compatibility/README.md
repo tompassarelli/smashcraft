@@ -1,6 +1,6 @@
 # Effect and TSTL probe
 
-Run from `ts/` with Bun installed:
+Run from smashcraft:ts/ with Bun installed:
 
 ```sh
 bun test/compatibility/probe-effect-tstl.ts
@@ -13,8 +13,8 @@ TypeScriptToLua 1.37.1, the published package path fails with:
 error TSTL: Could not resolve lua source files for require path 'effect' in file effect-tstl.ts.
 ```
 
-The probe then creates a temporary symlink and maps `effect` to the installed
-package's `src/Effect.ts`. That gets past package resolution, but TSTL exits
+The probe then creates a temporary symlink and imports the installed
+package's Effect module as a namespace. That gets past package resolution, but TSTL exits
 while transforming an Effect class:
 
 ```text
