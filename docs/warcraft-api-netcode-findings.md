@@ -300,6 +300,15 @@ name for new content. Hot reload numbers its manifests and names its chunk
 files by payload checksum. Evidence:
 smashcraft:evidence/warcraft-preloader-cache-20261005/README.md.
 
+## Ending a Battle.net game from script
+
+`EndGame(false)` called on every client on the same frame of a two-player
+Battle.net custom game (Warcraft 3.0.0.24268, 5 October) left both clients
+showing a black frame indefinitely. They were idle, ignored keys and Alt+Enter,
+and recovered only by closing the game and pressing Play in the still
+signed-in launcher. Leave a multiplayer game through the game menu
+(F10, E, Q) instead.
+
 ## Input and rollback claims we can make
 
 The actual Linux companion retained tested queued kernel events and original

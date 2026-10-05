@@ -1,6 +1,8 @@
+import { min, toInt } from "../../runtime/wurst";
 import { f32 } from "../../sim/f32";
 import { summonClip } from "./summonClipInfo";
 
+/** A native animation queue as data: the playing clip, its elapsed time and the clip queued after it. */
 export interface SummonPose {
   active: boolean;
   clipIndex: number | undefined;
@@ -26,11 +28,12 @@ export function selectSummonPose(pose: SummonPose, clip: number, next: number | 
   pose.clipTime = 0.0;
 }
 
+/** Plays forward; a finished clip hands its overflow to the queued clip, which then loops or holds its end. */
 export function advanceSummonPose(pose: SummonPose, summon: number, seconds: number): void {
   if (!pose.active || pose.clipIndex === undefined) return;
   pose.clipTime = f32(pose.clipTime + seconds);
-  const clip = summonClip(summon, pose.clipIndex);
-  const duration = f32(clip.endSeconds - clip.startSeconds);
+  const playing = summonClip(summon, pose.clipIndex);
+  const duration = f32(playing.endSeconds - playing.startSeconds);
   if (pose.queuedClip !== undefined && pose.clipTime >= duration) {
     pose.clipTime = f32(pose.clipTime - duration);
     pose.clipIndex = pose.queuedClip;
@@ -38,16 +41,9 @@ export function advanceSummonPose(pose: SummonPose, summon: number, seconds: num
   }
   const selected = summonClip(summon, pose.clipIndex);
   const selectedDuration = f32(selected.endSeconds - selected.startSeconds);
-  if (selectedDuration > 0.0) {
-    if (selected.looping) {
-      const loops = Math.trunc(f32(pose.clipTime / selectedDuration));
-      pose.clipTime = f32(pose.clipTime - f32(loops * selectedDuration));
-    } else pose.clipTime = Math.min(pose.clipTime, selectedDuration);
-  } else pose.clipTime = 0.0;
-}
-
-export function copySummonPose(source: Readonly<SummonPose>): SummonPose {
-  return { active: source.active, clipIndex: source.clipIndex, queuedClip: source.queuedClip, clipTime: source.clipTime };
+  if (selectedDuration <= 0.0) pose.clipTime = 0.0;
+  else if (selected.looping) pose.clipTime = f32(pose.clipTime - f32(toInt(f32(pose.clipTime / selectedDuration)) * selectedDuration));
+  else pose.clipTime = min(pose.clipTime, selectedDuration);
 }
 
 export function copySummonPoseInto(target: SummonPose, source: Readonly<SummonPose>): void {
