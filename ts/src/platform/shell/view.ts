@@ -10,7 +10,7 @@ import { Phase, remainingSeconds } from "../../game/match/rules";
 import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../game/presentation/arenaCamera";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import type { FighterPose } from "../../game/presentation/fighterPose";
-import { journalIngress } from "../../game/shell/build";
+import { type MapBuild, journalIngress } from "../../game/shell/build";
 import { type StartControl, fighterLabel, matchHelp } from "../../game/shell/messages";
 import { isIntangible } from "../../game/sim/conditions";
 import { type Roster, fighterAt, isActive } from "../../game/sim/roster";
@@ -44,11 +44,11 @@ function frameText(name: string, x: number, y: number, width: number, height: nu
   return frame;
 }
 
-export function createStatusFrames(): StatusFrames {
+export function createStatusFrames(build: Readonly<MapBuild>): StatusFrames {
   return {
     help: frameText("MeleeHelp", f32(0.06), f32(0.54), f32(0.58), f32(0.055), f32(0.01)),
     notice: frameText("MeleeNotice", f32(0.26), f32(0.47), f32(0.42), f32(0.07), f32(0.019)),
-    developer: frameText("MeleeDeveloper", f32(0.06), f32(0.012), f32(0.72), f32(0.01), f32(0.007)),
+    developer: build.devConsole ? frameText("MeleeDeveloper", f32(0.06), f32(0.012), f32(0.72), f32(0.01), f32(0.007)) : undefined,
   };
 }
 
@@ -216,13 +216,13 @@ export function renderUi(s: ShellState): void {
   const { help, notice, developer } = s.frames;
   BlzFrameSetVisible(help, showMatch);
   BlzFrameSetVisible(notice, showMatch);
-  BlzFrameSetVisible(developer, showMatch);
+  if (developer !== undefined) BlzFrameSetVisible(developer, showMatch);
   if (!selecting) {
     BlzFrameSetText(help, matchHelp(game, s.session.paused, startControl(s), localFighter, game.phase === Phase.match));
     BlzFrameSetText(notice, localFighter?.attack.smashCharging === true ? "Charging smash: release Attack to strike." : s.status.seconds > 0 ? s.status.text : "");
   }
   ui.stage.update(game);
-  if (local === undefined || localFighter === undefined) return;
+  if (developer === undefined || local === undefined || localFighter === undefined) return;
   const participant = s.participants[local];
   const rollback = activeRollback(s);
   const f = localFighter;
