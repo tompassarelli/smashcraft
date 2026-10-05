@@ -59,22 +59,22 @@ export const JournalControl = preloadRecord(
   Schema.Struct({ ...Identity, sequence: Count, state: Schema.Literals(["START", "END", "PAUSE", "PAUSE_COMMIT", "RESUME"]), frame: Count }),
 );
 
-export const JournalMenu = preloadRecord(
+const JournalMenu = preloadRecord(
   { head: ["SMASHCRAFT JOURNAL MENU v=1 build={build} epoch={epoch} slot={slot} phase={phase}", "connected={connected} human-fighters={humanFighters} computers={computers} fighters={fighters}"] },
   Schema.Struct({ ...Identity, phase: Schema.Literals(["CHARACTER", "STAGE", "RESULT", "BLOCKED"]), connected: Count, humanFighters: Count, computers: Count, fighters: Count }),
 );
 
-export const JournalReady = preloadRecord(
+const JournalReady = preloadRecord(
   { head: ["SMASHCRAFT JOURNAL v=1 build={build} epoch={epoch} slot={slot}", "input={input} delay={delay} rollback={rollback} first_frame={firstFrame}"], rest: "instructions" },
   Schema.Struct({ ...Identity, input: Schema.NonEmptyString, delay: Count, rollback: Count, firstFrame: Count, instructions: Schema.Array(Schema.NonEmptyString).check(Schema.isMinLength(4)) }),
 );
 
-export const JournalTransportReady = preloadRecord(
+const JournalTransportReady = preloadRecord(
   { head: ["build={build} epoch={epoch} slot={slot} received-mask={receivedMask} before-journal-reads=yes"] },
   Schema.Struct({ ...Identity, receivedMask: Count }),
 );
 
-export const JournalFailure = preloadRecord(
+const JournalFailure = preloadRecord(
   { head: ["build={build} epoch={epoch} slot={slot}", "reason={reason} sequence={sequence} frame={frame}"] },
   Schema.Struct({ ...Identity, reason: Schema.NonEmptyString, sequence: Count, frame: Count }),
 );
@@ -82,7 +82,7 @@ export const JournalFailure = preloadRecord(
 const integer = "[+-]?\\d+";
 const real = "[+-]?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?";
 /** Object fields read back from the retained native handles after a bundle install. */
-export const ObjectDataReceipt = preloadRecord(
+const ObjectDataReceipt = preloadRecord(
   { head: ["object-data frame {frame} objects {objects} state {state}"], rest: "units" },
   Schema.Struct({ frame: Count, objects: Schema.String.check(Schema.isPattern(/^\d+:\d+$/)), state: Schema.String.check(Schema.isPattern(/^\d+:\d+$/)),
     units: Schema.Array(Schema.String.check(Schema.isPattern(new RegExp(`^slot \\d+ unit \\d+ handle \\d+ speed ${real} cooldown ${real}$`)))) }),
@@ -105,7 +105,7 @@ export const ResponsePage = preloadRecord(
     sentFrames: Count, receivedFrames: Count, unmatchedReceipts: Count, transportDropped: Count, transportRetained: Count, lines: Schema.Array(ResponseLine) }),
 );
 
-export const EdgeStamp = preloadRecord(
+const EdgeStamp = preloadRecord(
   { head: ["EDGE v=1 build={build} local={slot} run={run} row={row} stage={stage} held={held} pressed={pressed} released={released} active={active} native_ms={nativeMs}"] },
   Schema.Struct({ build: Schema.NonEmptyString, slot: Count, run: Count, row: Count, stage: Schema.Literals(["poll", "present"]), held: Count, pressed: Count, released: Count, active: Count.check(Schema.isLessThanOrEqualTo(1)), nativeMs: Seconds }),
 );
@@ -117,12 +117,12 @@ export const FrameCost = preloadRecord(
 );
 
 const MaybeSeconds = Schema.Union([Seconds, Schema.Literal("n/a")]);
-export const FrameCostClock = preloadRecord(
+const FrameCostClock = preloadRecord(
   { head: ["frame-cost-clock os={os} os.clock={clock} os.delta={osDelta} timer.before={timerBefore} timer.after={timerAfter} timer.delta={timerDelta} work={work}"] },
   Schema.Struct({ os: Schema.Literals(["present", "missing"]), clock: Schema.Literals(["present", "missing"]), osDelta: MaybeSeconds, timerBefore: Seconds, timerAfter: Seconds, timerDelta: Seconds, work: Schema.FiniteFromString.check(Schema.isInt()) }),
 );
 
-export const PhysicsReport = preloadRecord(
+const PhysicsReport = preloadRecord(
   { head: ["SOURCE {source}"], rest: "lines", tail: ["MESSAGES {messages}", "{result}"] },
   Schema.Struct({ source: Schema.NonEmptyString, messages: Count, result: Schema.Literals(["NATIVE_PHYSICS_COMPLETED", "NATIVE_PHYSICS_FAIL"]), lines: Schema.Array(Schema.NonEmptyString) }),
 );
