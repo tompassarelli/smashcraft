@@ -94,6 +94,7 @@ mod linux {
         ready_file: Option<PathBuf>,
         mailbox_display: Option<String>,
         editbox_display: Option<String>,
+        text_out: Option<PathBuf>,
         trace: bool,
         follow_matches: bool,
         window: Option<u32>,
@@ -335,6 +336,83 @@ mod linux {
         Ok(Some(TextReceipt { received: counter(&number)?, consumed: counter(&consumed)?, revision: counter(&revision)?, chat, chat_state }))
     }
 
+    /// Where the helper types: the game's window, after its focus checks, or
+    /// a file a headless client reads, one line per typing.
+    enum Typist {
+        Window {
+            output: Enigo,
+            gate: crate::focus::Gate,
+            window: u32,
+        },
+        File(fs::File),
+    }
+
+    impl Typist {
+        fn window(display: &str, target: crate::focus::Target) -> Result<Self, String> {
+            let window = target.window;
+            let gate = crate::focus::Gate::new(target)?;
+            let settings = Settings {
+                x11_display: Some(display.to_owned()),
+                linux_delay: 0,
+                release_keys_when_dropped: false,
+                ..Settings::default()
+            };
+            let output = Enigo::new(&settings).map_err(|error| error.to_string())?;
+            Ok(Self::Window { output, gate, window })
+        }
+
+        fn file(path: &Path) -> Result<Self, String> {
+            OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(path)
+                .map(Self::File)
+                .map_err(|error| format!("open text output {}: {error}", path.display()))
+        }
+
+        /// A headless client has no window to lose focus.
+        fn eligible(&mut self) -> Result<bool, String> {
+            match self {
+                Self::Window { gate, .. } => gate.eligible(),
+                Self::File(_) => Ok(true),
+            }
+        }
+
+        fn text(&mut self, text: &str) -> io::Result<()> {
+            match self {
+                Self::Window { output, window, .. } => output
+                    .text_to_window(text, *window)
+                    .map_err(|error| io::Error::other(error.to_string())),
+                // One write per line, so a reader never sees half of one.
+                Self::File(file) => file.write_all(format!("{text}\n").as_bytes()),
+            }
+        }
+
+        fn key(&mut self, key: OutputKey, direction: Direction) -> io::Result<()> {
+            match self {
+                Self::Window { output, .. } => output
+                    .key(key, direction)
+                    .map_err(|error| io::Error::other(error.to_string())),
+                Self::File(_) => Err(io::Error::other(
+                    "text output types text only; chat and the keyboard mailbox need a game window",
+                )),
+            }
+        }
+    }
+
+    #[test]
+    fn text_output_appends_one_line_per_typing_and_types_no_keys() {
+        let path = env::temp_dir().join(format!("journal-text-out-{}", std::process::id()));
+        let _ = fs::remove_file(&path);
+        let mut typist = Typist::file(&path).unwrap();
+        assert!(typist.eligible().unwrap());
+        typist.text("@J1a;").unwrap();
+        typist.text("n").unwrap();
+        assert!(typist.key(OutputKey::Return, Direction::Press).is_err());
+        assert_eq!(fs::read_to_string(&path).unwrap(), "@J1a;\nn\n");
+        fs::remove_file(path).unwrap();
+    }
+
     const MAILBOX_CHUNK_BYTES: usize = 7;
     const MAILBOX_SIGNAL_COUNT: usize = 54;
 
@@ -343,13 +421,11 @@ mod linux {
         build: String,
         epoch: u32,
         slot: u32,
-        output: Enigo,
+        typist: Typist,
         owned: BTreeSet<usize>,
         queued: PendingOutput,
         text_window: TextWindow,
         text_receipt_at: Option<Instant>,
-        gate: crate::focus::Gate,
-        target_window: u32,
         lost_focus: bool,
         current: Option<String>,
         offset: usize,
@@ -371,32 +447,20 @@ mod linux {
             build: &str,
             epoch: u32,
             slot: u32,
-            display: &str,
             trace: bool,
             editbox: bool,
-            target: crate::focus::Target,
+            typist: Typist,
         ) -> Result<Self, String> {
-            let target_window = target.window;
-            let gate = crate::focus::Gate::new(target)?;
-            let settings = Settings {
-                x11_display: Some(display.to_owned()),
-                linux_delay: 0,
-                release_keys_when_dropped: false,
-                ..Settings::default()
-            };
-            let output = Enigo::new(&settings).map_err(|error| error.to_string())?;
             Ok(Self {
                 dir: dir.to_owned(),
                 build: build.to_owned(),
                 epoch,
                 slot,
-                output,
+                typist,
                 owned: BTreeSet::new(),
                 queued: PendingOutput::default(),
                 text_window: TextWindow::default(),
                 text_receipt_at: None,
-                gate,
-                target_window,
                 lost_focus: false,
                 current: None,
                 offset: 0,
@@ -433,7 +497,7 @@ mod linux {
         }
 
         fn eligible(&mut self) -> io::Result<bool> {
-            let eligible = self.gate.eligible().map_err(io::Error::other)?;
+            let eligible = self.typist.eligible().map_err(io::Error::other)?;
             self.lost_focus |= !eligible;
             Ok(eligible)
         }
@@ -504,9 +568,9 @@ mod linux {
                     if self.chat_quiet != self.chat || !self.is_idle() {
                         return Err(io::Error::other("native chat opened before sender quiescence"));
                     }
-                    self.output.key(OutputKey::Return, Direction::Press).map_err(|e| io::Error::other(e.to_string()))?;
+                    self.typist.key(OutputKey::Return, Direction::Press)?;
                     thread::sleep(Duration::from_millis(30));
-                    self.output.key(OutputKey::Return, Direction::Release).map_err(|e| io::Error::other(e.to_string()))?;
+                    self.typist.key(OutputKey::Return, Direction::Release)?;
                     self.chat_opened = self.chat;
                     eprintln!("chat_return epoch={} chat={} mono_ns={}", self.epoch, self.chat, monotonic_ns()?);
                 }
@@ -517,9 +581,7 @@ mod linux {
                     self.text_window.next(&self.queued, self.epoch, now)?
                 {
                     let started = Instant::now();
-                    self.output
-                        .text_to_window(&envelope, self.target_window)
-                        .map_err(|error| io::Error::other(error.to_string()))?;
+                    self.typist.text(&envelope)?;
                     self.text_window.sent(sequence, now);
                     if self.trace {
                         eprintln!(
@@ -618,16 +680,14 @@ mod linux {
             if !self.eligible()? {
                 return Ok(false);
             }
-            self.output
-                .key(
-                    mailbox_output_key(signal),
-                    if down {
-                        Direction::Press
-                    } else {
-                        Direction::Release
-                    },
-                )
-                .map_err(|error| io::Error::other(error.to_string()))?;
+            self.typist.key(
+                mailbox_output_key(signal),
+                if down {
+                    Direction::Press
+                } else {
+                    Direction::Release
+                },
+            )?;
             if down {
                 self.owned.insert(signal);
             } else {
@@ -701,6 +761,7 @@ mod linux {
          Start in character selection; stick left/right chooses, A selects, X backs, Start confirms. Follows matches and rematches.\n\
          Diagnostic only: wc3-journal --device /dev/input/eventN --out DIR --ready-file PATH --epoch-monotonic-ns NS [--mailbox-display :N | --editbox-display :N] [--first-frame N] [--stop-frame N] [--trace]\n\
          Keyboard output also requires --x11-window DECIMAL_ID --pid PID and exactly one of --niri-window ID / --private-wlr-app-id ID.\n\
+         Headless clients: --text-out FILE instead of --editbox-display appends each typing to FILE as one line, with no window or focus checks.\n\
          Assigns Linux kernel CLOCK_MONOTONIC input_event times to half-open 60 Hz frames. The capture segment starts at the explicit host monotonic epoch; first-frame defaults to 1."
     }
 
@@ -863,8 +924,8 @@ mod linux {
         if follow_matches && (values.contains_key("--ready-file") || values.contains_key("--epoch-monotonic-ns") || values.contains_key("--stop-frame") || values.contains_key("--first-frame")) {
             return Err("--follow-matches cannot use diagnostic ready/epoch/frame arguments".into());
         }
-        if follow_matches && !values.contains_key("--editbox-display") {
-            return Err("--follow-matches requires --editbox-display".into());
+        if follow_matches && !values.contains_key("--editbox-display") && !values.contains_key("--text-out") {
+            return Err("--follow-matches requires --editbox-display or --text-out".into());
         }
         let ready_file = values.get("--ready-file").map(PathBuf::from);
         let (build, epoch, slot, delay) = if follow_matches {
@@ -907,6 +968,7 @@ mod linux {
             ready_file,
             mailbox_display: values.get("--mailbox-display").cloned(),
             editbox_display: values.get("--editbox-display").cloned(),
+            text_out: values.get("--text-out").map(PathBuf::from),
             trace,
             follow_matches,
             window: values
@@ -3215,33 +3277,29 @@ mod linux {
             return Err("first-frame must be a valid positive capture-segment frame".into());
         }
         fs::create_dir_all(&o.out).map_err(|e| e.to_string())?;
-        if o.mailbox_display.is_some() && o.editbox_display.is_some() {
+        let ingresses = [o.mailbox_display.is_some(), o.editbox_display.is_some(), o.text_out.is_some()];
+        if ingresses.iter().filter(|selected| **selected).count() > 1 {
             return Err("select only one keyboard ingress".into());
         }
+        // Text output stands in for the edit box of a headless client.
+        let editbox = o.editbox_display.is_some() || o.text_out.is_some();
         if !o.follow_matches { clear_quiescent(&o.out, &o.build, o.epoch, o.slot)?; }
-        let mut mailbox = o
-            .editbox_display
-            .as_ref()
-            .or(o.mailbox_display.as_ref())
-            .as_deref()
-            .map(|display| {
-                MailboxSender::new(
-                    &o.out,
-                    &o.build,
-                    o.epoch,
-                    o.slot,
-                    display,
-                    o.trace,
-                    o.editbox_display.is_some(),
-                    crate::focus::Target {
-                        display: display.clone(),
-                        window: o.window.ok_or("keyboard output requires --x11-window")?,
-                        pid: o.pid.ok_or("keyboard output requires --pid")?,
-                        niri_window: o.niri_window,
-                        wlr_app_id: o.wlr_app_id.clone(),
-                    },
-                )
-            })
+        let typist = match (&o.text_out, o.editbox_display.as_ref().or(o.mailbox_display.as_ref())) {
+            (Some(path), _) => Some(Typist::file(path)?),
+            (None, Some(display)) => Some(Typist::window(
+                display,
+                crate::focus::Target {
+                    display: display.clone(),
+                    window: o.window.ok_or("keyboard output requires --x11-window")?,
+                    pid: o.pid.ok_or("keyboard output requires --pid")?,
+                    niri_window: o.niri_window,
+                    wlr_app_id: o.wlr_app_id.clone(),
+                },
+            )?),
+            (None, None) => None,
+        };
+        let mut mailbox = typist
+            .map(|typist| MailboxSender::new(&o.out, &o.build, o.epoch, o.slot, o.trace, editbox, typist))
             .transpose()?;
         let device =
             RawDevice::open(&o.device).map_err(|e| format!("open {}: {e}", o.device.display()))?;
@@ -3459,7 +3517,7 @@ mod linux {
                 let recovery_ready = recovery.ready;
                 recovery.observe(&capture_axes, event);
                 let start_before = start_held;
-                if o.editbox_display.is_some() {
+                if editbox {
                     if let Some(wire) = pause_request_wire(
                         &event,
                         &mut start_held,
@@ -3491,7 +3549,7 @@ mod linux {
                         let current = fresh_menu(&o.out, &o.build, o.epoch, o.slot, ready_after_ns, clock_ns(libc::CLOCK_REALTIME).map_err(|e| e.to_string())?)?;
                         let sender = mailbox.as_mut().expect("follow-matches editbox sender");
                         if current == menu_input.phase && sender.eligible().map_err(|e| e.to_string())? {
-                            sender.output.text_to_window(key, sender.target_window).map_err(|e| format!("menu tap: {e}"))?;
+                            sender.typist.text(key).map_err(|e| format!("menu tap: {e}"))?;
                             eprintln!("menu_emit epoch={} phase={:?} key={key} mono_ns={}", o.epoch, current, event_ns(&event)?);
                         } else {
                             menu_input.observe(None, focus_input.physical, start_held, focus_now);

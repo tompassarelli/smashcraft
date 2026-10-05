@@ -1,14 +1,23 @@
-// `wisp parity`: numeric Lua parity and issue #26 native capture/result.
+// `wisp parity`: numeric Lua parity and issue #26 native capture/result, or
+// its capture and result through the real helper into headless clients.
 // Capture and reconciliation call the harness APIs directly so they remain
 // part of Wisp's traced Effect program.
 import { Effect } from "effect";
 import { runNumericParity } from "../../numericParity";
 import { captureMatches, parseCaptureArguments } from "../../integrity/capture";
 import { IntegrityFailure, reconcileCapture } from "../../integrity/evidence";
+import { captureHeadless, parseHeadlessArguments } from "../../integrity/headless";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { step } from "wisp/scripts/wisp/timings";
 
-const usage = "parity numeric [RESULT_FILE ...] | parity capture CAPTURE_OPTIONS | parity result CAPTURE_DIR";
+const usage = "parity numeric [RESULT_FILE ...] | parity capture CAPTURE_OPTIONS | parity result CAPTURE_DIR | parity headless --helper BINARY --out DIR";
+
+const reconciled = (directory: string) =>
+  reconcileCapture(directory).pipe(
+    Effect.flatMap((passed) => passed
+      ? Effect.void
+      : Effect.fail(new IntegrityFailure({ operation: "reconcile input integrity", path: directory, cause: "the integrity table contains a failed gate" }))),
+  );
 
 export const parity: Command = ([mode, ...args]) => {
   switch (mode) {
@@ -33,17 +42,22 @@ export const parity: Command = ([mode, ...args]) => {
     case "result": {
       const [directory, ...rest] = args;
       if (directory === undefined || rest.length > 0) return Effect.fail(new UsageFailure({ problem: "parity result takes one capture directory" }));
-      return reconcileCapture(directory).pipe(
-        Effect.flatMap((passed) => passed
-          ? Effect.void
-          : Effect.fail(new IntegrityFailure({ operation: "reconcile input integrity", path: directory, cause: "the integrity table contains a failed gate" }))),
-        step("native input-integrity result"),
-      );
+      return reconciled(directory).pipe(step("native input-integrity result"));
     }
+    case "headless":
+      return Effect.try({
+        try: () => parseHeadlessArguments(args),
+        catch: (cause) => new IntegrityFailure({ operation: "parse headless arguments", path: "wisp parity headless", cause: describeCause(cause) }),
+      }).pipe(
+        Effect.flatMap((options) => captureHeadless(options).pipe(
+          step("headless input-integrity capture"),
+          Effect.andThen(reconciled(options.out).pipe(step("headless input-integrity result"))),
+        )),
+      );
     default:
       return Effect.fail(new UsageFailure({ problem: `parity requires numeric, capture or result; usage: wisp ${usage}` }));
   }
 };
 
 /** The input-integrity spelling remains convenient while all execution shares the Wisp entrypoint. */
-export const integrity: Command = ([mode, ...args]) => parity([mode === "capture" || mode === "result" ? mode : "", ...args]);
+export const integrity: Command = ([mode, ...args]) => parity([mode === "capture" || mode === "result" || mode === "headless" ? mode : "", ...args]);

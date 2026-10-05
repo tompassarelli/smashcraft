@@ -287,6 +287,14 @@ records its assigned release; `controller_reconnected source=...` identifies
 the recovered event path. Bounded native recovery is recorded in
 smashcraft:evidence/controller-reconnect-native-20261005/README.md.
 
+For Wisp's headless clients, `--text-out FILE` replaces `--editbox-display`
+and the focus arguments: every text the helper would type into the game's
+window (journal envelopes and menu keys) is appended to FILE as one line, and
+`--out` names the folder the headless client writes its files to. There is
+no window, so focus never suspends output; chat's Return key needs a game
+window and stops the helper. `bun wisp parity headless` starts it this way
+(smashcraft:docs/typescript.md).
+
 The explicit `--ready-file PATH --epoch-monotonic-ns NS` mode remains for native
 diagnostic drivers. `--first-frame N` (default 1) and `--stop-frame N` belong to
 that mode; it also accepts explicit build/epoch/slot/delay arguments. Its supplied
