@@ -16,7 +16,7 @@ export const INTEGRITY_BUILD: MapBuild = {
 
 export const PLAYABLE_BUILD: MapBuild = {
   ...INTEGRITY_BUILD,
-  id: "playable-0043",
+  id: "playable-0044",
   responseProbe: false,
   devConsole: false,
 };
