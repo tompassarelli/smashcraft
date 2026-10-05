@@ -1,6 +1,6 @@
 import { Effect, Exit } from "effect";
 import { expect, test } from "bun:test";
-import { acknowledgementVersion, forEachHotClient, validateDataDirectories } from "../scripts/hotEffects";
+import { acknowledgementVersion, forEachHotClient, runHotWatch, validateDataDirectories } from "../scripts/hotEffects";
 
 test("hot reload requires at least one non-empty client data directory", async () => {
   expect(await Effect.runPromise(validateDataDirectories(["/client/data"]))).toEqual(["/client/data"]);
@@ -28,4 +28,19 @@ test("hot reload publishes to at most two client directories at once", async () 
     active--;
   })));
   expect(maximum).toBe(2);
+});
+
+test("hot watch interrupts scoped poll work and closes its timer on shutdown", async () => {
+  let polls = 0;
+  await Effect.runPromise(runHotWatch(
+    Effect.void,
+    Effect.sync(() => {
+      polls++;
+    }),
+    Effect.sleep("125 millis"),
+  ));
+  const pollsAtShutdown = polls;
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  expect(pollsAtShutdown).toBeGreaterThan(0);
+  expect(polls).toBe(pollsAtShutdown);
 });

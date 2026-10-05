@@ -1,4 +1,10 @@
 {
+  "js/ts.experimental.useTsgo": true,
+  "js/ts.tsdk.path": "./ts/node_modules/typescript-native/bin",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "js/ts.tsdk.additionalLocations": [
+    "./ts/node_modules/typescript-native/bin"
+  ],
   "wurst.javaExecutable": "/home/tom/.wurst/wurst-runtime/bin/java",
   "wurst.wc3path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/Program Files (x86)/Warcraft III",
   "wurst.customMapDataPath": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData",

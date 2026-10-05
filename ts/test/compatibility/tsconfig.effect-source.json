@@ -1,0 +1,28 @@
+{
+  "include": ["effect-tstl.ts"],
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "preserveSymlinks": true,
+    "types": ["lua-types/5.3"],
+    "baseUrl": "../..",
+    "paths": {
+      "effect": ["test/compatibility/effect-source/Effect.ts"],
+      "effect/*": ["test/compatibility/effect-source/*"]
+    },
+    "outDir": "../../build/effect-compatibility/source"
+  },
+  "tstl": {
+    "luaTarget": "5.3",
+    "luaBundle": "effect-source.lua",
+    "luaBundleEntry": "test/compatibility/effect-tstl.ts",
+    "noImplicitSelf": true,
+    "noHeader": true
+  }
+}

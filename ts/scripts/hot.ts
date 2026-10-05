@@ -9,7 +9,7 @@ import { Effect } from "effect";
 import { FILE_IO_ABILITY, PAYLOAD_FILE_BYTES, ackFile, errorFile, formatManifest, manifestFile, payloadFile, payloadKey } from "../src/runtime/hotFiles";
 import { checksum } from "../src/runtime/payload";
 import { mapCompiler, report } from "./compiler";
-import { acknowledgementVersion, forEachHotClient, renameHotFile, runHotWatch, validateDataDirectories, writeHotFile } from "./hotEffects";
+import { acknowledgementVersion, forEachHotClient, HotToolFailure, renameHotFile, runHotWatch, tryHotPromise, tryHotSync, validateDataDirectories, writeHotFile } from "./hotEffects";
 import { longBrackets } from "./lua";
 import { keepSourceMap, toTypeScript } from "./sourceMaps";
 
@@ -71,29 +71,34 @@ function writeAtomically(path: string, text: string) {
 }
 
 const compile = mapCompiler("tsconfig.map.json");
-let version = Math.max(...dataDirs.map(latestVersion));
+const versions = await Effect.runPromise(Effect.forEach(dataDirs, (dir) =>
+  tryHotSync("read latest reload version", dir, () => latestVersion(dir)),
+  { concurrency: 2 },
+));
+let version = Math.max(...versions);
 // The previous payload stays until the next publish: a client may still be reading it.
 let previousChecksum = "";
 
-async function publish(): Promise<void> {
+const publish = Effect.fnUntraced(function*(): Effect.fn.Return<void, HotToolFailure> {
   const started = performance.now();
-  const diagnostics = compile();
+  const diagnostics = yield* tryHotSync("compile map", "tsconfig.map.json", compile);
   if (diagnostics.length > 0) {
-    console.error(report(diagnostics));
+    yield* Effect.sync(() => console.error(report(diagnostics)));
     return;
   }
   const compiled = performance.now();
-  const bytes = new Uint8Array(await Bun.file("build/map.lua").arrayBuffer());
+  const arrayBuffer = yield* tryHotPromise("read compiled map", "build/map.lua", () => Bun.file("build/map.lua").arrayBuffer());
+  const bytes = new Uint8Array(arrayBuffer);
   const pieces = payloadPieces(bytes);
   const files = pieces.length;
   const payloadChecksum = checksum(bytes.length, (index) => bytes[index]!);
-  keepSourceMap("build/map.lua", payloadKey(payloadChecksum));
+  yield* tryHotSync("retain TypeScript source map", "build/map.lua.map", () => keepSourceMap("build/map.lua", payloadKey(payloadChecksum)));
   version++;
-  await Effect.runPromise(forEachHotClient(dataDirs, (dir) => Effect.gen(function*() {
+  yield* Effect.uninterruptible(forEachHotClient(dataDirs, (dir) => Effect.gen(function*() {
     for (const [index, piece] of pieces.entries()) yield* writeHotFile(join(dir, payloadFile(payloadChecksum, index)), payloadPreloadFile(piece));
     // The manifest follows the payload: a client that reads it can read every payload file.
     yield* writeAtomically(join(dir, manifestFile(version)), preloadFile(formatManifest({ version, files, checksum: payloadChecksum })));
-    yield* Effect.sync(() => removePayloadsExcept(dir, [payloadChecksum, previousChecksum]));
+    yield* tryHotSync("remove old reload payloads", dir, () => removePayloadsExcept(dir, [payloadChecksum, previousChecksum]));
   })));
   previousChecksum = payloadChecksum;
   const published = performance.now();
@@ -101,63 +106,63 @@ async function publish(): Promise<void> {
   while (pending.size > 0 && performance.now() - published < ACK_TIMEOUT_MS) {
     for (const dir of [...pending]) {
       for (const slot of [0, 1, 2, 3]) {
-        const file = Bun.file(join(dir, ackFile(slot)));
-        if ((await file.exists()) && (acknowledgementVersion(await file.text()) ?? 0) >= version) pending.delete(dir);
+        const path = join(dir, ackFile(slot));
+        const file = Bun.file(path);
+        if (!(yield* tryHotPromise("check reload acknowledgement", path, () => file.exists()))) continue;
+        const contents = yield* tryHotPromise("read reload acknowledgement", path, () => file.text());
+        if ((acknowledgementVersion(contents) ?? 0) >= version) pending.delete(dir);
       }
     }
-    await Bun.sleep(5);
+    yield* Effect.sleep("5 millis");
   }
   const done = performance.now();
   const outcome = pending.size === 0 ? `running in ${dataDirs.length} client(s)` : `NOT acknowledged by ${[...pending].join(", ")}`;
-  console.log(`v${version}: compile ${(compiled - started).toFixed(0)} ms, publish ${(published - compiled).toFixed(0)} ms (${bytes.length} bytes, ${files} files), ${outcome} after ${(done - published).toFixed(0)} ms; total ${(done - started).toFixed(0)} ms`);
-}
+  yield* Effect.sync(() => console.log(`v${version}: compile ${(compiled - started).toFixed(0)} ms, publish ${(published - compiled).toFixed(0)} ms (${bytes.length} bytes, ${files} files), ${outcome} after ${(done - published).toFixed(0)} ms; total ${(done - started).toFixed(0)} ms`));
+});
 
 // One publish at a time; edits during a publish start one more afterwards.
 let running = false;
 let again = false;
-async function request(): Promise<void> {
+const request = Effect.suspend(() => {
   if (running) {
     again = true;
-    return;
+    return Effect.void;
   }
   running = true;
-  try {
+  return Effect.gen(function*() {
     do {
       again = false;
-      await publish();
+      yield* publish();
     } while (again);
-  } finally {
+  }).pipe(Effect.ensuring(Effect.sync(() => {
     running = false;
-  }
-}
+  })));
+});
 
 /** Prints each new in-game error report with TypeScript lines, and how long after the game wrote it. */
 const seenErrors = new Map<string, string>();
-async function checkErrors(announce: boolean): Promise<void> {
-  for (const dir of dataDirs) {
-    for (const slot of [0, 1, 2, 3]) {
-      const path = join(dir, errorFile(slot));
-      const file = Bun.file(path);
-      if (!(await file.exists())) continue;
-      const text = await file.text();
-      if (seenErrors.get(path) === text) continue;
-      seenErrors.set(path, text);
-      if (!announce) continue;
-      const lines = [...text.matchAll(/call Preload\( "(.*)" \)/g)].map((match) => match[1]!);
-      const mapped = await toTypeScript(lines.slice(1).join("\n"));
-      console.error(`p${slot} ${lines[0]} (${(Date.now() - file.lastModified).toFixed(0)} ms after the game wrote it)\n${mapped}`);
+function checkErrors(announce: boolean) {
+  return Effect.fnUntraced(function*(): Effect.fn.Return<void, HotToolFailure> {
+    for (const dir of dataDirs) {
+      for (const slot of [0, 1, 2, 3]) {
+        const path = join(dir, errorFile(slot));
+        const file = Bun.file(path);
+        if (!(yield* tryHotPromise("check in-game error report", path, () => file.exists()))) continue;
+        const text = yield* tryHotPromise("read in-game error report", path, () => file.text());
+        if (seenErrors.get(path) === text) continue;
+        seenErrors.set(path, text);
+        if (!announce) continue;
+        const lines = [...text.matchAll(/call Preload\( "(.*)" \)/g)].map((match) => match[1]!);
+        const mapped = yield* tryHotPromise("map in-game error to TypeScript", path, () => toTypeScript(lines.slice(1).join("\n")));
+        yield* Effect.sync(() => console.error(`p${slot} ${lines[0]} (${(Date.now() - file.lastModified).toFixed(0)} ms after the game wrote it)\n${mapped}`));
+      }
     }
-  }
+  });
 }
 
 // Reports from before this tool started are old news.
-await checkErrors(false);
-await request();
+await Effect.runPromise(checkErrors(false)());
+await Effect.runPromise(request);
 if (!args.includes("--watch")) process.exit(0);
-let debounce: ReturnType<typeof setTimeout> | undefined;
 console.log("watching src/ for changes");
-await Effect.runPromise(runHotWatch(() => {
-  clearTimeout(debounce);
-  debounce = setTimeout(() => void request().catch((cause: unknown) => console.error(cause)), 10);
-}, () => void checkErrors(true).catch((cause: unknown) => console.error(cause))));
-clearTimeout(debounce);
+await Effect.runPromise(runHotWatch(request, checkErrors(true)()));
