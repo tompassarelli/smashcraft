@@ -1,0 +1,8 @@
+{
+  "build": "chat-trace-20261005",
+  "source": "e068b9a",
+  "map_sha256": "727c1f64e12e8283199a25b3aa0b431fe4df5820fa557c01d94108e77988d5f1",
+  "helper_sha256": "50caffe74f19701b63c4528009ba0e11d999ea226757a8d8c174b6ea0fa00a32",
+  "raw_corpus": "wc3-melee:build/native-controller-chat-trace-r1-20261005",
+  "scope": "Two native clients on one host with persistent virtual Linux pads; unsent chat opened by each player across match/rematch. Playable 0.0.41 remains the preserved human-session checkpoint."
+}

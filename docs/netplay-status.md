@@ -67,14 +67,14 @@ three observed one-tick readiness differences do not establish a warranted
 roster adjustment; tuning and playable before/after acceptance remain open.
 See wc3-melee:docs/move-reference-join.md.
 
-**Native chat visibility repaired:** before/open/closed observations identified
-the actual native entry. The corrected candidate pauses and drains output,
-detects open chat and restores the receiver after Escape. Its next check stopped
-at an OCR marker-reading failure before chat-period controls; reading the retained
-image as one line recovered the complete marker. The observation step is now
-corrected. Full input suppression/resume/rematch remains pending in #18/#26.
-The diagnostic does not replace playable 0.0.41. Evidence and prior failures:
-wc3-melee:docs/controller-chat-native-20261005/README.md.
+**Native chat handoff accepted (`e068b9a`):** both clients passed shared pause,
+shield release, unsent native chat, suppressed controls, blocked resume while
+chatting, receiver restoration and neutral rearm across match/rematch. Fresh
+attacks applied exactly once at original frames 306/326; all 12 expected native
+attack applications and both final states matched. The unchanged reconciler
+passed after repairing two observer gaps (shield exhaustion during OCR and a
+trace ending during pause). This diagnostic does not replace playable 0.0.41.
+Exact candidate and evidence: wc3-melee:docs/controller-chat-native-20261005/README.md.
 
 ## The specific answers and their owners
 
@@ -91,7 +91,7 @@ wc3-melee:docs/resume-clock-native-20261005/README.md.
 | Does sampled, eligible shield input enter local prediction without waiting for sync? | Demonstrated: 12/12 presses in the capture callback on 0.0.40. Logical state, not physical pixels or all moves. | [#28, completed](https://github.com/tompassarelli/smashcraft/issues/28) |
 | Can late original-frame input repair the combat outcome? | Demonstrated for the native F5 shield corpus: damage 12 becomes 0, shieldstun 7, canonical and confirmed states agree. | [#29, completed](https://github.com/tompassarelli/smashcraft/issues/29) |
 | Have selection/GameCache beaten direct sync? | No in the corrected bounded 60 Hz comparison; direct sync is the selected baseline. | [#30, completed comparison](https://github.com/tompassarelli/smashcraft/issues/30) |
-| Can short inputs disappear or merge? | The 0.0.41 controller path has bounded tap/stall, focus, reconnect and rematch passes. The older 0.0.40 polling path can miss/coalesce inputs. Chat, physical reconnect and broader hardware acceptance remain open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
+| Can short inputs disappear or merge? | The 0.0.41 controller path has bounded tap/stall, focus, reconnect and rematch passes. The older 0.0.40 polling path can miss/coalesce inputs. The newer chat diagnostic also passes; physical reconnect and broader hardware acceptance remain open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
 | Is every acquired input assigned to its intended frame despite delayed service? | The path released in 0.0.41 preserves tested tap/stall frames and keeps a post-resume tap at frame 98 despite a 361 ms delayed resume read. Local publication anchors still differ; cross-machine alignment remains open. | [#25, partial](https://github.com/tompassarelli/smashcraft/issues/25) |
 | What physical response and 3–5-frame variation should a player expect? | Candidate B software shield response: 12/12 presses, median 67.95 ms, max 98.17 ms. The measured admission backlog is fixed: 13/13 retained edge rows predict in the same callback. Physical response remains unmeasured. | [#27, partial](https://github.com/tompassarelli/smashcraft/issues/27) |
 | Can two clients fight and rematch? | Installed 0.0.41 passes controller-only menus, damaging combat, shield overlap, pause and rematch with persistent helpers. Full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |

@@ -1,0 +1,329 @@
+{
+  "scope": "Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; controller-only game menus (keyboard diagnostic trace toggle); native unsent chat with deliberate controller suppression and neutral rearm; no physical or cross-machine alignment claim.",
+  "helper_sha256": "50caffe74f19701b63c4528009ba0e11d999ea226757a8d8c174b6ea0fa00a32",
+  "persistent_helper_pids": [
+    2208340,
+    2208359
+  ],
+  "matches": [
+    {
+      "epoch": 1,
+      "chat_slot": 0,
+      "policy": "chat uses shared pause; suppress chat-period actions; close chat before resume; neutral rearm; preserve fresh input frames",
+      "eligible_edges": [
+        {
+          "slot": 0,
+          "edges": [
+            {
+              "phase": "match-1-fresh",
+              "pressed": true,
+              "kernel_monotonic_ns": 573227147924000,
+              "original_frame": 19
+            },
+            {
+              "phase": "match-1-fresh",
+              "pressed": false,
+              "kernel_monotonic_ns": 573227153062000,
+              "original_frame": 19
+            },
+            {
+              "phase": "match-1-chat-fresh",
+              "pressed": true,
+              "kernel_monotonic_ns": 573247721048000,
+              "original_frame": 306
+            },
+            {
+              "phase": "match-1-chat-fresh",
+              "pressed": false,
+              "kernel_monotonic_ns": 573247726157000,
+              "original_frame": 306
+            }
+          ],
+          "published_frames": 843
+        },
+        {
+          "slot": 1,
+          "edges": [
+            {
+              "phase": "match-1-fresh",
+              "pressed": true,
+              "kernel_monotonic_ns": 573227153096000,
+              "original_frame": 19
+            },
+            {
+              "phase": "match-1-fresh",
+              "pressed": false,
+              "kernel_monotonic_ns": 573227158242000,
+              "original_frame": 19
+            }
+          ],
+          "published_frames": 843
+        }
+      ],
+      "deliberately_suppressed_edges": [
+        {
+          "phase": "shield-release",
+          "kernel_monotonic_ns": 573240428203000
+        },
+        {
+          "phase": "suppressed",
+          "kernel_monotonic_ns": 573240428230000
+        },
+        {
+          "phase": "suppressed",
+          "kernel_monotonic_ns": 573240433366000
+        },
+        {
+          "phase": "held-across-close",
+          "kernel_monotonic_ns": 573240433387000
+        },
+        {
+          "phase": "neutral",
+          "kernel_monotonic_ns": 573247520835000
+        }
+      ],
+      "pause_frame": 261,
+      "shield_release_frame": 258,
+      "confirmed_held_samples": 44,
+      "confirmed_released_samples": 57,
+      "confirmed_result": [
+        "832",
+        "504708:620050"
+      ],
+      "native_actions": [
+        {
+          "slot": 0,
+          "frame": 19
+        },
+        {
+          "slot": 0,
+          "frame": 306
+        },
+        {
+          "slot": 1,
+          "frame": 19
+        }
+      ],
+      "chat_evidence": [
+        {
+          "label": "before",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-1-before.png",
+          "text": "o\n\n[\n\nLI\n\ne\n\nP A\n\nA\n\nW\n\nAx\n\n0:0\n\n14\n\n!\n\ne\n\nOS5\n\nARCHER\n\nRIFLEMAN\n\n~\n\nF i\n\n> |\n\n7:00\n\n\u00a9) 1 iR\n\non\n\n[\n\nb\n\n8050\n\nL)\n\nWi\n\n?n\n\nSedans\n\no terdoefta2 1 x ,@8\n\n;1\n\ne groun\n\ndge.\n\n-\n\nPause: Start\n\no\n\n. o\n\n|-\n\n.\n\nL 4\n\n)\n\not\n\nS -\n\n\"B\n\n-M\n\nY]\n\n-\n\nb\n\n(A\n\nW\n\n4\"',\n\nPR\n\nAN\n\n\"\n\nEes /4\n\n0.0%\n\n<,\n\nS\n\n0%\n\nP1\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-~\n\n\u00a3\n\ne S\n\nDeveloper test: chat-trace-20261005 | player=1 | phase=2 | x=-240 z=0 | input=-1 mode=shadow-d0-r24 pool-ioreclictecl normal=-1 move=0\n",
+          "helper_log_bytes": 19892,
+          "before_monotonic_ns": 573227858349103,
+          "after_monotonic_ns": 573230466154194
+        },
+        {
+          "label": "open-0",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-1-open-0.png",
+          "text": "LI\n\ne\n\nP A\n\nA\n\nW\n\nAx\n\n0:0\n\n14\n\n!\n\ne\n\nW\n\nARCHER\n\nRIFLEMAN\n\n~\n\nF i\n\n> |\n\n6:57\n\n|\n\nStart: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\n\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.\n\nPause: Start\n\n[\n\no\n\n=\n\n. o\n\n.\n\n)\n\nL 4\n\nS -\n\not\n\nNl\n\n.\u2018-\n\nN\n\na\n\n-\n\nPareA\n\nW\n\nPN\n\n(A\n\n\u00e9'r\n\n%,\n\n\u2019G\n\n0.0%\n\ne /4\n\n0%\n\n-,\n\nS\n\nP1\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-~\n\no\n\n\u00a5\n\ns\n\ni\n\nDeveloper test: chat-trace-20261005 | player=1 | phase=2 | x=-240 z=0 | input=-1 mode=shadow-d0-r24 pool-ioreclictecl normal=-1 move=-1\n",
+          "helper_log_bytes": 25393,
+          "before_monotonic_ns": 573231030412528,
+          "after_monotonic_ns": 573233738983656
+        },
+        {
+          "label": "open-1",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-1-open-1.png",
+          "text": "i\n\nLI\n\ne\n\nP A\n\nW\n\n0:0\n\n14\n\n!\n\ne\n\nD5\n\nARCHER\n\nRIFLEMAN\n\ns\n\nfn\n\n> |\n\n6:56\n\nPAUSED \u2014 Press Start to resume.\n\nCombat Is frozen.\n\nChat \u2014 match paused\n\no\n\nPaused \u2014 press Start :o re:\n\n.\n\n|-\n\n. o\n\n.\n\n)\n\nL 4\n\nS -\n\not\n\nNl\n\n.\u2018-\n\nTo Allies: |\n\n-\n\nP\n\n\",\n\nPN\n\n(A\n\n\u00e9'r\n\nK\n\n\u2019G\n\n0.0%\n\n\u2014r\n\n0%\n\n<,\n\nS\n\nP1\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-~\n\nP\n\n\u00a5\n\ns\n\n%\n\nDeveloper test: chat-trace-20261005 | player=1 | phase=2 | x=-240 z=0 | input=-1 mode=shadow-d0-r24 pool-ioreclictecl normal=-1 move=-1\n",
+          "helper_log_bytes": 25393,
+          "before_monotonic_ns": 573233739208527,
+          "after_monotonic_ns": 573236362144330
+        },
+        {
+          "label": "marker",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-1-marker.png",
+          "text": "i\n\nLI\n\n)\n\nP A\n\nW\n\n0:0\n\n4\n\n!\n\ne\n\n7'()'\n\n2>\n\n)\n\nARCHER\n\nRIFLEMAN\n\ns\n\nfn\n\n> |\n\n6:56\n\nPAUSED \u2014 Press Start to resume.\n\nCombat Is frozen.\n\nChat \u2014 match paused\n\no\n\nPaused \u2014 press Start :o re:\n\n.\n\n|-\n\n. o\n\n.\n\n)\n\nL 4\n\nS -\n\not\n\nNl\n\n.\u2018-\n\n-\n\nPareA\n\nW\n\nPN\n\n(A\n\n\u00e9'r\n\nK\n\n\u2019G\n\n0.0%\n\ne /4\n\n0%\n\n<,\n\nS\n\nP1\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-~\n\nP\n\n\u00a5\n\ns\n\ni\n\nDeveloper test: chat-trace-20261005 | player=1 | phase=2 | x=-240 z=0 | input=-1 mode=shadow-d0-r24 pool-ioreclictecl normal=-1 move=-1\n\nITo Allies: UNSENTCHATPROBE |\n",
+          "helper_log_bytes": 25393,
+          "before_monotonic_ns": 573237010195344,
+          "after_monotonic_ns": 573240427974895
+        },
+        {
+          "label": "stimulus",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-1-stimulus.png",
+          "text": "i\n\nLI\n\n)\n\nP A\n\nW\n\n0:0\n\n4\n\n!\n\ne\n\n3l\n\n)\n\nARCHER\n\nRIFLEMAN\n\ns\n\nfn\n\n> |\n\n6:56\n\nPAUSED \u2014 Press Start to resume.\n\nCombat Is frozen.\n\nChat \u2014 match paused\n\no\n\nPaused \u2014 press Start :o re:\n\n.\n\n|-\n\n. o\n\n.\n\n)\n\nL 4\n\nS -\n\not\n\nNl\n\n.\u2018-\n\nfroAties:unsenTcHATIROBE ]\n\n-\n\nPareA\n\nW\n\nPN\n\n(A\n\n\u00e9'r\n\nK\n\n\u2019G\n\n0.0%\n\ne /4\n\n0%\n\n<,\n\nS\n\nP1\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-~\n\nP\n\n\u00a5\n\ns\n\ni\n\nDeveloper test: chat-trace-20261005 | player=1 | phase=2 | x=-240 z=0 | input=-1 mode=shadow-d0-r24 pool-ioreclictecl normal=-1 move=-1\n\nITo Allies: UNSENTCHATPROBE\n",
+          "helper_log_bytes": 25653,
+          "before_monotonic_ns": 573240553793313,
+          "after_monotonic_ns": 573243983786076
+        },
+        {
+          "label": "closed",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-1-closed.png",
+          "text": "sl\n\nLI\n\ne\n\nP A\n\nA\n\nW\n\nAx\n\n0:0\n\n14\n\n!\n\ne\n\nPE5 0 6\n\nARCHER\n\nRIFLEMAN\n\n~\n\nF i\n\n> |\n\n6:56\n\n|\n\nPAUSED \u2014 Press Start to resume.\n\n. Combat Is frozen.\n\nResume: Start\n\no\n\nPaused \u2014 press Start :o re:\n\n.\n\n=\n\n. o\n\n.\n\n)\n\nL 4\n\nS -\n\not\n\nNl\n\n.\u2018-\n\n-\n\nPareA\n\nW\n\nPN\n\n(A\n\n\u00e9'r\n\n%,\n\n\u2019G\n\n0.0%\n\ne /4\n\n0%\n\n-,\n\nS\n\nP1\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-~\n\no\n\n\u00a5\n\ns\n\ni\n\nDeveloper test: chat-trace-20261005 | player=1 | phase=2 | x=-240 z=0 | input=-1 mode=shadow-d0-r24 pool-ioreclictecl normal=-1 move=-1\n",
+          "helper_log_bytes": 28018,
+          "before_monotonic_ns": 573244135300591,
+          "after_monotonic_ns": 573246752572781
+        },
+        {
+          "label": "fresh",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-1-fresh.png",
+          "text": "oy\n\nLI\n\ne\n\nP A\n\nA\n\nW\n\nAx\n\n0:0\n\n14\n\n!\n\ne\n\n02D\u2019\n\nARCHER\n\nRIFLEMAN\n\n~\n\nF i\n\n> |\n\n6:55\n\n|\n\nStart: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\n\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.\n\nPause: Start\n\n[\n\no\n\n|-\n\n. o\n\n.\n\n)\n\nL 4\n\nS -\n\not\n\nNl\n\n.\u2018-\n\n-\n\nP\n\n\",\n\nPN\n\n(A\n\n\u00e9'r\n\nK\n\n\u2019G\n\n0.0%\n\n\u2014r\n\n0%\n\n<,\n\nS\n\nP1\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-~\n\nP\n\n\u00a5\n\ns\n\n%\n\nDeveloper test: chat-trace-20261005 | player=1 | phase=2 | x=-240 z=0 | input=-1 mode=shadow-d0-r24 pool-ioreclictecl normal=-1 move=0\n",
+          "helper_log_bytes": 49259,
+          "before_monotonic_ns": 573248426262045,
+          "after_monotonic_ns": 573251085909189
+        }
+      ]
+    },
+    {
+      "epoch": 2,
+      "chat_slot": 1,
+      "policy": "chat uses shared pause; suppress chat-period actions; close chat before resume; neutral rearm; preserve fresh input frames",
+      "eligible_edges": [
+        {
+          "slot": 0,
+          "edges": [
+            {
+              "phase": "match-2-fresh",
+              "pressed": true,
+              "kernel_monotonic_ns": 573278375046000,
+              "original_frame": 19
+            },
+            {
+              "phase": "match-2-fresh",
+              "pressed": false,
+              "kernel_monotonic_ns": 573278380256000,
+              "original_frame": 19
+            }
+          ],
+          "published_frames": 888
+        },
+        {
+          "slot": 1,
+          "edges": [
+            {
+              "phase": "match-2-fresh",
+              "pressed": true,
+              "kernel_monotonic_ns": 573278380367000,
+              "original_frame": 19
+            },
+            {
+              "phase": "match-2-fresh",
+              "pressed": false,
+              "kernel_monotonic_ns": 573278385548000,
+              "original_frame": 19
+            },
+            {
+              "phase": "match-2-chat-fresh",
+              "pressed": true,
+              "kernel_monotonic_ns": 573301088679000,
+              "original_frame": 326
+            },
+            {
+              "phase": "match-2-chat-fresh",
+              "pressed": false,
+              "kernel_monotonic_ns": 573301093778000,
+              "original_frame": 326
+            }
+          ],
+          "published_frames": 887
+        }
+      ],
+      "deliberately_suppressed_edges": [
+        {
+          "phase": "shield-release",
+          "kernel_monotonic_ns": 573292914048000
+        },
+        {
+          "phase": "suppressed",
+          "kernel_monotonic_ns": 573292914207000
+        },
+        {
+          "phase": "suppressed",
+          "kernel_monotonic_ns": 573292919328000
+        },
+        {
+          "phase": "held-across-close",
+          "kernel_monotonic_ns": 573292919442000
+        },
+        {
+          "phase": "neutral",
+          "kernel_monotonic_ns": 573300888413000
+        }
+      ],
+      "pause_frame": 277,
+      "shield_release_frame": 274,
+      "confirmed_held_samples": 36,
+      "confirmed_released_samples": 59,
+      "confirmed_result": [
+        "867",
+        "607490:597200"
+      ],
+      "native_actions": [
+        {
+          "slot": 0,
+          "frame": 19
+        },
+        {
+          "slot": 1,
+          "frame": 19
+        },
+        {
+          "slot": 1,
+          "frame": 326
+        }
+      ],
+      "chat_evidence": [
+        {
+          "label": "before",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-2-before.png",
+          "text": "\u2018a\n\nF\n\n27\n\n-\n\n\ufb01\ufb01\u2018 , -0.0%\u2014\n\nv 0.0%\n\n@\n\n-\n\nTl\n\n-\n\not\n\nARCHER\n\n\u201d\u2014\n\nRIFLEMAN\n\n=\n\n-\n\nkolcidtis\n\nDeveloper test:\n\n19161995.12519'\n\n2 | phase=2 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-\n\nnove=0\n\n\u00a2 S W s \u2014y\n\nFo Vs =\n\n-\n\n\\'\n\n7:00\n\nStart:\n\nI\n\n2. Tap\u00a5hield befordarhard 1ing to\n\nnto\n\nHold Shield on the ground, then tap Left/Right\n\n\\\n\n~lw\n\nPause: Start\n\nA\n\n-y\n\n[N\n\ny\n\nv\n\n/-4\n\n0.0%\n\nk3\n\n0.0%\n\nPt\n\nARCHER\n\n\u00a5\n\nRIFLEMAN\n\ns\n\ng\n\nFr\n\ne\n\nDeveloper test: chat-trace-20261005 | player=2 | phase=2 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=0\n",
+          "helper_log_bytes": 107228,
+          "before_monotonic_ns": 573279085672457,
+          "after_monotonic_ns": 573281948995879
+        },
+        {
+          "label": "open-0",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-2-open-0.png",
+          "text": "#\n\nL,\n\not\n\nN4\n\n-\n\n\u2014\n\n\u2014\n\nS 0.0%\n\no,\n\n\u2014\u2014\n\nT T T s\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-\n\not\n\n-\n\n-\n\n9 %\n\ne\n\nRS\n\n-\n\nCidrideid\n\n- -\n\ne, St\n\n~ Developer test: chat-trace-2026\n\n5 | player=2 | phase=2 | x=.\n\nP B e i L\n\n0 z=0 | input=-1 mode=sh:\n\n24\n\n-predicted normal:\n\n-\n\n\\'\n\n6:56\n\nStart:\n\nI\n\n2. Tap\u00a5hield befordarhard 1ing to\n\nnto\n\nHold Shield on the ground, then tap Left/Right\n\n\\\n\n~lw\n\nPause: Start\n\nA\n\n[N\n\ny\n\nv\n\n/-4\n\n0.0%\n\nk3\n\n0.0%\n\nPt\n\nARCHER\n\n\u00a5\n\nRIFLEMAN\n\ns\n\ng\n\nFr\n\ne\n\nDeveloper test: chat-trace-20261005 | player=2 | phase=2 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1\n",
+          "helper_log_bytes": 112755,
+          "before_monotonic_ns": 573282513355633,
+          "after_monotonic_ns": 573285398520846
+        },
+        {
+          "label": "open-1",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-2-open-1.png",
+          "text": "i,\n\not\n\nN4\n\n-\n\n\ufb01\ufb01\u2018 ,-0.0%-\u2014\n\n\u2014\n\n\u2014\n\nv 0.0%\n\no\n\n-\n\n\u2019ll\n\n-\n\not\n\nARCHER\n\n\u201d\u2014\n\n<]\n\nRIFLEMAN\n\n-\n\nCidrideid\n\n=\n\nDeveloper test: chat-trace- 261005, | player=2 | phase=2 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1\n\n-\n\nv\n\n~ - \u00a5\n\no\n\n6:56\n\nPAUSED ~\"Pre:\n\ns\n\nsktart to resu}.e. Coma;l\n\ne N\n\n1-\u2018\"'-$\n\ne~\n\nChat \u2014 match paused\n\nPaused \u2014 press Start to resume.\n\nA\n\n-\n\na4\n\nTo Allies: |\n\n[N\n\ny\n\nv\n\n/-4\n\n0.0%\n\nk3\n\n0.0%\n\nPt\n\nARCHER\n\n\u00a5\n\nRIFLEMAN\n\ns\n\ng\n\ne\n\nDeveloper test: chat-trace-ldl\ufb01loos | player=2 | phase=2 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1\n",
+          "helper_log_bytes": 112755,
+          "before_monotonic_ns": 573285398548888,
+          "after_monotonic_ns": 573288400907889
+        },
+        {
+          "label": "marker",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-2-marker.png",
+          "text": "\u2018a\n\ni\n\n-\n\nv 0.0%\n\nB\n\n\u2014\u2014\n\n\u2019ll\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-\n\nout\n\nk-\n\n-\n\n9 %\n\nAP\n\nQS\n\n=\n\n-\n\nCidrideid\n\n-\n\nDeveloper test: chat-trace-\n\nB T00ST] s e e T e 00 a0 e etk a2 el e el e\n\n-\n\ne\n\n-\n\nv\n\n\u201c\n\n|2\n\no\n\n6:56\n\nPAUSED ~\"Pre:\n\ns\n\nsktart to resu}.e. Coma;l\n\ne N\n\n1-\u2018\"'-$\n\ne~\n\nChat \u2014 match paused\n\nPaused \u2014 press Start to resume.\n\nA\n\n-\n\na4\n\nTo Allies: UNSENTCHATPROBE |\n\n[N\n\ny\n\nv\n\n/-4\n\n0.0%\n\nk3\n\n0.0%\n\nPt\n\nARCHER\n\n\u00a5\n\nRIFLEMAN\n\ns\n\ng\n\ne\n\nDeveloper test: chat-trace-ldl\ufb01loos | player=2 | phase=2 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1\n\nITo Allies: UNSENTCHATPROBE | |\n",
+          "helper_log_bytes": 112755,
+          "before_monotonic_ns": 573289048130284,
+          "after_monotonic_ns": 573292913868065
+        },
+        {
+          "label": "stimulus",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-2-stimulus.png",
+          "text": "\u2018a\n\ni\n\n-\n\nv 0.0%\n\nB\n\n\u2014\u2014\n\nR\n\n\u2019ll\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-\n\nout\n\nk-\n\n-\n\n9 %\n\nAP\n\nQS\n\n=\n\n-\n\nCidrideid\n\n-\n\nDeveloper test: chat-trace-\n\nB T00ST] s e e T e 00 a0 e etk a2 el e el e\n\n-\n\ne\n\n-\n\nv\n\n\u201c\n\n|2\n\no\n\n6:56\n\nPAUSED ~\"Pre:\n\ns\n\nsktart to resu}.e. Coma;l\n\ne N\n\n1-\u2018\"'-$\n\ne~\n\nChat \u2014 match paused\n\nPaused \u2014 press Start to resume.\n\nA\n\n-\n\na4\n\nTo Allies: UNSENTCHATPROBE |\n\n[N\n\ny\n\nv\n\n/-4\n\n0.0%\n\nk3\n\n0.0%\n\nPt\n\nARCHER\n\n\u00a5\n\nRIFLEMAN\n\ns\n\ng\n\ne\n\nDeveloper test: chat-trace-ldl\ufb01loos | player=2 | phase=2 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1\n\nITo Allies: UNSENTCHATPROBE | |\n",
+          "helper_log_bytes": 113015,
+          "before_monotonic_ns": 573293039970430,
+          "after_monotonic_ns": 573296867817216
+        },
+        {
+          "label": "closed",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-2-closed.png",
+          "text": "i,\n\n27\n\n-\n\n\ufb01\ufb01\u2018 ;-0.0%\u2014\n\nv 0.0%\n\n-\n\nTl\n\n-\n\not\n\nARCHER\n\n\u201d\u2014\n\nRIFLEMAN\n\n=\n\n-\n\nkolcidtis\n\nDeveloper test:\n\n19161995.12519'\n\n2 | phase=2 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-\n\nnove=-1\n\nWy W W ol \u2014\n\nFo Vs =\n\n-\n\ne\n\n-\n\nv\n\n\u201c\n\n|2\n\no\n\n6:56\n\nPAUSED ~\"Pre:\n\ns\n\nI\n\nsktart to resu}.e. Coma;l\n\ne N\n\n1-\u2018\"'-$\n\ne~\n\nResume: Start\n\nPaused \u2014 press Start to resume.\n\nA\n\n-\n\na4\n\n[N\n\ny\n\nv\n\n/-4\n\n0.0%\n\nk3\n\n0.0%\n\nPt\n\nARCHER\n\n\u00a5\n\nRIFLEMAN\n\ns\n\ng\n\ne\n\nDeveloper test: chat-trace-ldl\ufb01loos | player=2 | phase=2 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1\n",
+          "helper_log_bytes": 115712,
+          "before_monotonic_ns": 573297016311076,
+          "after_monotonic_ns": 573300054946460
+        },
+        {
+          "label": "fresh",
+          "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-trace-r1-20261005/chat-2-fresh.png",
+          "text": "\u2018a\n\n27\n\n-\n\n\ufb01\ufb01\u2018 , -0.0%\u2014\n\nv 0.0%\n\n-\n\nTl\n\n-\n\not\n\nARCHER\n\n\u201d\u2014\n\nRIFLEMAN\n\n=\n\n-\n\nkolcidtis\n\nDeveloper test:\n\n19161995.12519'\n\n2 | phase=2 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-\n\nnove=0\n\n\u00a2 S W s \u2014y\n\nFo Vs =\n\n-\n\n\\'\n\n6:54\n\nStart:\n\nI\n\n2. Tap\u00a5hield befordarhard 1ing to\n\nnto\n\nHold Shield on the ground, then tap Left/Right\n\n\\\n\n~lw\n\nPause: Start\n\nA\n\n-y\n\n[N\n\ny\n\nv\n\n/-4\n\n0.0%\n\nk3\n\n0.0%\n\nPt\n\nARCHER\n\n\u00a5\n\nRIFLEMAN\n\ns\n\ng\n\nFr\n\ne\n\nDeveloper test: chat-trace-20261005 | player=2 | phase=2 | x=240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=0\n",
+          "helper_log_bytes": 138684,
+          "before_monotonic_ns": 573301793942477,
+          "after_monotonic_ns": 573304718732751
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Same-host virtual Linux pads; no physical or cross-machine timing claim.",
+    "Native chat evidence uses retained compositor captures and OCR; no message is sent.",
+    "Transport absence is checked between verified marker and post-stimulus observations."
+  ]
+}

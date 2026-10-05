@@ -1,9 +1,49 @@
 # Native controller/chat check — 5 October 2026
 
-## Current repair result
+## Accepted result
 
-**Native chat visibility and return to the receiver are repaired; the full
-suppression/resume journey is still pending.** In `chat-visibility2-20261005`,
+**PASS: shared pause, native chat, controller suppression, neutral rearm and
+fresh original-frame input on both clients across a match and rematch.** The
+same persistent helpers handled both games. Chat opened for player 1 in the
+first match and player 2 in the second; an unsent marker remained intact while
+controller actions were suppressed, and Escape restored the receiver. The
+opponent could not resume while chat was open.
+
+| Observation | Match 1 / player 1 chats | Match 2 / player 2 chats |
+| --- | --- | --- |
+| Shared pause/resume frontier | 261 | 277 |
+| Shield neutralized before pause | 258 | 274 |
+| Confirmed shield-on / shield-off samples | 44 / 57 | 36 / 59 |
+| Fresh tap original and applied frame | 306 | 326 |
+| Final confirmed frame, both clients | 832 | 867 |
+| Final checksum, both clients | 504708:620050 | 607490:597200 |
+
+All six eligible attacks applied exactly once on each client: 12 applications,
+zero missing/extra/moved actions, no native input failure or trace drops. Both
+clients reached stationary matching results. Presses during chat and the button
+held through Escape/resume stayed suppressed until neutral; the subsequent
+fresh tap retained its independently calculated frame. The unchanged
+wc3-melee:tools/journal-chat-result.py assertions passed.
+
+Candidate source is `e068b9a`. Exact map/helper hashes are in
+wc3-melee:docs/controller-chat-native-20261005/candidate.json; the reconciled
+result and authored producer/kernel/helper/native records are under
+wc3-melee:docs/controller-chat-native-20261005/passed. Original compositor
+captures remain in wc3-melee:build/native-controller-chat-trace-r1-20261005;
+the retained metadata points to those images. No chat message was submitted.
+Reproduce from initial character selection with the matching candidate/helper,
+wc3-melee:tools/journal-match-capture.py `--controller-menus --controller-chat`,
+then wc3-melee:tools/journal-chat-result.py on the output directory.
+
+This accepts the bounded virtual-Linux-pad chat behavior, not physical timing,
+cross-machine clocks or Windows/macOS; playable 0.0.41 remains the preserved
+human-session checkpoint. Both helpers were reaped and authenticated clients
+were retained at the second results screen. No repeat is needed for this claim.
+
+## Native visibility repair
+
+The native visibility repair preceded the accepted journey above. In
+`chat-visibility2-20261005`,
 2,674 cached controls were observed before/open/closed on both clients. Only
 the chatting client's native subtree at `GAME_UI` child 290 changed visibility.
 Its unnamed two-child container has a label and a four-child editbox; the latter's
@@ -74,8 +114,8 @@ using observed chat UI as the independent reference.
 
 The failed journey, receipt, helper logs, OCR and exact hashes are retained in
 wc3-melee:docs/controller-chat-native-20261005/handoff-failure. Original captures
-remain at wc3-melee:build/native-controller-chat-handoff-r1-20261005. Both games
-remain signed in at the paused diagnostic match, with no helper running.
+remain at wc3-melee:build/native-controller-chat-handoff-r1-20261005. At that checkpoint both games
+remained signed in at the paused diagnostic match, with no helper running.
 Playable 0.0.41 and its accepted reconnect helper are unchanged and preserved.
 
 ## Original 0.0.41 failure
