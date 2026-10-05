@@ -9,53 +9,28 @@ import { Character } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
 import { projectileActive } from "../src/game/sim/projectiles";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
-import { start, startBuild } from "../src/platform/main";
+import { install, start, startBuild } from "../src/platform/main";
 import { applyFrame } from "../src/platform/shell/frame";
 import { startMatch } from "../src/platform/shell/matchStart";
 import { confirm } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
 import { pauseMatchPresentation, renderPersistentPresentation } from "../src/platform/shell/view";
 import { views } from "../src/platform/shell/ui";
-import { type Client, installNatives } from "./desync/simulatedClient";
-import { Lockstep } from "./desync/twoClients";
+import { installHeadless } from "wisp/scripts/wisp/headless";
+import type { EffectPose, HeadlessClient } from "wisp/src/headless/client";
+import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 
-const restoreNatives = installNatives();
-afterAll(restoreNatives);
+const headless = installHeadless(SMASHCRAFT_HEADLESS);
+afterAll(headless.restore);
 
-interface EffectPose {
-  alpha: number;
-  scale: number;
-  timeScale: number;
-  position: readonly unknown[];
-  /** Undefined while the effect stays at its creation point, on the ground. */
-  z: number | undefined;
-}
-
-/** Read the existing native-call trace; the host does not simulate Warcraft particles. */
-function effectPoses(client: Client): Map<unknown, EffectPose> {
-  const poses = new Map<unknown, EffectPose>();
-  for (const { name, args } of client.log) {
-    if (name === "DestroyEffect") {
-      poses.delete(args[0]);
-      continue;
-    }
-    if (!name.startsWith("BlzSetSpecialEffect")) continue;
-    const pose = poses.get(args[0]) ?? { alpha: 255, scale: 1, timeScale: 1, position: [], z: undefined };
-    poses.set(args[0], pose);
-    if (name === "BlzSetSpecialEffectAlpha") pose.alpha = Number(args[1]);
-    if (name === "BlzSetSpecialEffectScale") pose.scale = Number(args[1]);
-    if (name === "BlzSetSpecialEffectTimeScale") pose.timeScale = Number(args[1]);
-    if (name === "BlzSetSpecialEffectPosition") {
-      pose.position = args.slice(1);
-      pose.z = Number(args[3]);
-    }
-  }
-  return poses;
+/** The client's effects as it poses them; the host does not simulate Warcraft particles. */
+function effectPoses(client: HeadlessClient): Map<unknown, EffectPose> {
+  return new Map(client.effectPoses().map((pose) => [pose.handle, pose]));
 }
 
 const hidden = (pose: EffectPose) => pose.alpha === 0 || pose.scale === 0;
 
-function visible(client: Client, handles: ReadonlySet<unknown>): Map<unknown, EffectPose> {
+function visible(client: HeadlessClient, handles: ReadonlySet<unknown>): Map<unknown, EffectPose> {
   return new Map([...effectPoses(client)].filter(([handle, pose]) => handles.has(handle) && !hidden(pose)));
 }
 
@@ -64,15 +39,15 @@ function visible(client: Client, handles: ReadonlySet<unknown>): Map<unknown, Ef
  * time scale do not stop a model's particle emitters: the native four-fighter
  * match showed the rifleman's parked missiles smoking at the stage center.
  */
-function hiddenInView(client: Client): unknown[] {
+function hiddenInView(client: HeadlessClient): unknown[] {
   const ground = shell().origin.z - FLOOR_HEIGHT;
-  return [...effectPoses(client)].filter(([, pose]) => hidden(pose) && pose.z !== undefined && pose.z > ground).map(([handle]) => handle);
+  return [...effectPoses(client)].filter(([, pose]) => hidden(pose) && pose.z > ground).map(([handle]) => handle);
 }
 
 test("combat effects: rollback, pause/resume and rematch neither replay nor retain effects", () => {
-  const clients = new Lockstep([0, 1]);
-  clients.everywhere(start);
-  clients.ticks(30);
+  const clients = headless.clients({ start, install });
+  clients.start();
+  clients.frames(30);
   const client = clients.clients[0];
   if (client === undefined) throw new Error("missing host client");
   client.run(() => {
@@ -176,9 +151,9 @@ test("combat effects: rollback, pause/resume and rematch neither replay nor reta
 });
 
 test("quick match: a shot's missile and the idle missile pools stay out of the arena camera's view", () => {
-  const clients = new Lockstep([0, 1]);
-  clients.everywhere(start);
-  clients.ticks(30);
+  const clients = headless.clients({ start, install });
+  clients.start();
+  clients.frames(30);
   const client = clients.clients[0];
   if (client === undefined) throw new Error("missing host client");
   client.run(() => {
@@ -229,11 +204,11 @@ test("quick match: a shot's missile and the idle missile pools stay out of the a
 });
 
 test("pooled fighters: every clip but the presented one waits collapsed beneath the floor", () => {
-  const clients = new Lockstep([0, 1]);
-  clients.everywhere(() => startBuild(INTEGRITY_BUILD));
-  clients.ticks(30);
+  const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install });
+  clients.start();
+  clients.frames(30);
   clients.chat(0, "-dev quick");
-  clients.ticks(60);
+  clients.frames(60);
   const client = clients.clients[0];
   if (client === undefined) throw new Error("missing host client");
   client.run(() => {

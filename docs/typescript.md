@@ -115,6 +115,18 @@ typing player's client alone creates one timer, so the clients' handle
 counts diverge and Warcraft ends the game in a desync. The playable profile
 registers no `-dev` command.
 
+Without the clients, `bun wisp headless [quick-match|desync] [--clients N]`
+plays the development build (src/platform/devMain.ts) in Wisp's headless
+runtime ([Wisp headless](https://github.com/tompassarelli/wisp/blob/main/docs/headless.md)):
+start, `-dev quick`, Ctrl+T, a hot reload through the map's reloader at frame
+480, 600 frames in all, in about 1.6 s. It prints each client's native calls
+and checksum, the first desync, a reload not running, error reports and what
+a player would see wrong in each client's scene report, and exits 1 on any.
+`desync` adds `-dev desync` typed by the second player, which it must report.
+smashcraft:ts/scripts/wisp/headless.ts declares the natives Smashcraft calls
+on one client only; the desync guard, visual-lifecycle, player-view and
+stack-trace tests run their clients with the same declaration.
+
 Pure simulation, numeric operations, code transforms and binary-format
 encoders remain plain TypeScript. The TSTL map compiler uses TypeScript 6's
 compiler API, while the host checker uses TypeScript 7 with Effect tsgo. A

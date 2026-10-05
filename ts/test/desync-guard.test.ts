@@ -1,23 +1,26 @@
 // The desync guard: two simulated clients, local slot 0 and local slot 1,
 // run the map's TypeScript entry in lockstep through a match and a hot reload
-// mid-match, and must make the same native calls in the same order. Only the
-// local-only calls in test/desync/simulatedClient.ts ALLOWED_LOCAL may differ.
-// Host stubs stand in for Warcraft, so this finds code that branches on the
-// local client; it does not prove native behavior.
+// mid-match, and must make the same native calls in the same order. Only
+// local-only natives may differ: Wisp's own and those
+// scripts/wisp/headless.ts declares. Wisp's headless runtime stands in for
+// Warcraft, so this finds code that branches on the local client; it does not
+// prove native behavior.
 import { afterAll, expect, test } from "bun:test";
+import { installHeadless } from "wisp/scripts/wisp/headless";
+import type { MapEntry } from "wisp/src/headless/client";
+import type { Lockstep } from "wisp/src/headless/lockstep";
 import { CURRENT_BUILD, PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
 import { DESYNC_COMMAND } from "../src/game/shell/devSettings";
 import { install, start } from "../src/platform/main";
-import { installNatives } from "./desync/simulatedClient";
-import { Lockstep } from "./desync/twoClients";
-import { type Entry, entryFor, expectNoDivergence, playThroughReload } from "./desync/journeys";
+import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
+import { entryFor, expectNoDivergence, playThroughReload } from "./desync/journeys";
 
-const restoreNatives = installNatives();
-afterAll(restoreNatives);
+const headless = installHeadless(SMASHCRAFT_HEADLESS);
+afterAll(headless.restore);
 
 test("desync guard: both clients make the same native calls through a match and a hot reload", () => {
   expect(CURRENT_BUILD.devConsole).toBe(true);
-  const clients = playThroughReload({ start, install });
+  const clients = playThroughReload(headless, { start, install });
   expectNoDivergence(clients);
   for (const client of clients.clients) {
     expect(client.files.has("wc3-melee-ready.txt")).toBe(true);
@@ -28,12 +31,12 @@ test("desync guard: both clients make the same native calls through a match and 
 });
 
 /** Start, then slot 1 types the deliberate desync command. */
-function typeDesync(entry: Entry): Lockstep {
-  const clients = new Lockstep([0, 1]);
-  clients.everywhere(() => entry.start());
-  clients.ticks(1);
+function typeDesync(entry: MapEntry): Lockstep {
+  const clients = headless.clients(entry);
+  clients.start();
+  clients.frames(1);
   clients.chat(1, DESYNC_COMMAND);
-  clients.ticks(2);
+  clients.frames(2);
   return clients;
 }
 
