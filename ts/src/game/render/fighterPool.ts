@@ -15,7 +15,8 @@ import type { FighterPose } from "../presentation/fighterPose";
 import type { Character } from "../sim/codes";
 import { fighterPoseFacing, isIntangible } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
-import { type WorldOrigin, characterModelScale, facingYaw } from "./effects";
+import { type WorldOrigin, facingYaw } from "./effects";
+import { characterModelScale } from "../presentation/modelScale";
 
 export class FighterPoolPresentation {
   private readonly clips: effect[] = [];

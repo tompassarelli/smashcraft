@@ -4,7 +4,7 @@
 import { SHIELD_P1_MODEL, SHIELD_P2_MODEL, SHIELD_P3_MODEL, SHIELD_P4_MODEL } from "../assets/shieldAssetInfo";
 import type { Fighter } from "../sim/fighter";
 import { type WorldOrigin, hideEffect } from "./effects";
-import { projectedShield } from "./shieldPose";
+import { projectedShield } from "../presentation/shieldPose";
 
 function shieldModel(slot: number): string {
   return slot === 0 ? SHIELD_P1_MODEL : slot === 1 ? SHIELD_P2_MODEL : slot === 2 ? SHIELD_P3_MODEL : SHIELD_P4_MODEL;
