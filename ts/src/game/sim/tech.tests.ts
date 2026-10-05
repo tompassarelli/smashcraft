@@ -7,7 +7,7 @@ import { AttackStyle, Character, DownState } from "./codes";
 import { TECH_INTANGIBLE_FRAMES, TECH_ROLL_INTANGIBLE_FRAMES, canAttack, isFloorTeching, isIntangible } from "./conditions";
 import { TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "./down";
 import { type Fighter, createFighter } from "./fighter";
-import { simulationJump } from "./jumpsAndDodges";
+import { beginJump } from "./jumpsAndDodges";
 import { updateProjectiles } from "./projectiles";
 import type { Controls } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
@@ -113,7 +113,7 @@ test("Illidan's tech contact retains his original travel and protection frames",
       assertEquals(isIntangible(fighter), frame <= (direction === 0 ? TECH_INTANGIBLE_FRAMES : TECH_ROLL_INTANGIBLE_FRAMES));
       assertEquals(fighter.motion.x, f32(contactX + f32(f32(direction * 8.0) * max(0, min(frame, 19) - 3))));
       assertFalse(canAttack(fighter));
-      simulationJump(fighter, 0);
+      beginJump(fighter, 0);
       assertEquals(fighter.jump.squat, 0);
       assertEquals(fighter.jump.serial, 0);
       if (frame < duration) advanceSolo(fighter, 0, input, 0.0);

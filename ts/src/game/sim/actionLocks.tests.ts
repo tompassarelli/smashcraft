@@ -7,7 +7,7 @@ import { AttackStyle, Character } from "./codes";
 import { canAttack, canShieldGrab, canStartAttackStyle } from "./conditions";
 import { AIR_DODGE_LANDING_LAG } from "./down";
 import { type Fighter, createFighter } from "./fighter";
-import { simulationAirDodge } from "./jumpsAndDodges";
+import { beginAirDodge } from "./jumpsAndDodges";
 import { attackDurationFrames, attackStartupFrames } from "./moves";
 import { SHIELD_MIN_HOLD_FRAMES, SHIELD_RELEASE_LAG_FRAMES } from "./shield";
 import { advanceSolo, controls, setRecovery, testWorld } from "./testWorld";
@@ -84,7 +84,7 @@ test("an air dodge protects only frames four through twenty-nine", () => {
       const fighter = createFighter(character, 100.0, -1);
       fighter.motion.z = 300.0;
       fighter.motion.grounded = false;
-      simulationAirDodge(fighter, 0, 0);
+      beginAirDodge(fighter, 0, 0);
       const input = controls();
       for (let tick = 1; tick <= frame; tick++) advanceSolo(fighter, 0, input, -240.0);
       const attacker = createFighter(Character.archer, 0.0, 1);
@@ -101,7 +101,7 @@ test("a hit during dodge startup interrupts the dodge's movement", () => {
   const fighter = createFighter(Character.archer, 100.0, -1);
   fighter.motion.z = 300.0;
   fighter.motion.grounded = false;
-  simulationAirDodge(fighter, 1, 0);
+  beginAirDodge(fighter, 1, 0);
   const attacker = createFighter(Character.rifleman, 0.0, 1);
   attacker.motion.z = 300.0;
   attacker.attack.style = AttackStyle.jab;
@@ -117,7 +117,7 @@ test("landing ends dodge protection without removing respawn protection", () => 
   const fighter = createFighter(Character.archer, 100.0, -1);
   fighter.motion.z = 30.0;
   fighter.motion.grounded = false;
-  simulationAirDodge(fighter, 0, 0);
+  beginAirDodge(fighter, 0, 0);
   const input = controls();
   for (let frame = 1; frame <= 4; frame++) advanceSolo(fighter, 0, input, -240.0);
   fighter.motion.z = 1.0;

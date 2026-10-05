@@ -31,7 +31,7 @@ import {
 } from "./down";
 import { FAST_FALL_INPUT_WINDOW, type Fighter, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
 import { DASH_GUARD_EARLY_FRAMES, advanceGroundMovement, clearDash } from "./groundMovement";
-import { AIR_DODGE_ANIMATION_FRAMES, AIR_DODGE_DECAY, beginGroundDodge, canBeginGroundDodge, simulationAirDodge, simulationJump } from "./jumpsAndDodges";
+import { AIR_DODGE_ANIMATION_FRAMES, AIR_DODGE_DECAY, beginAirDodge, beginGroundDodge, beginJump, canBeginGroundDodge } from "./jumpsAndDodges";
 import { ageKnockback, applyDirectionalInfluence, decayKnockback } from "./knockback";
 import { advanceLedge } from "./ledge";
 import { DOWN_ATTACK_FRAMES, L_CANCEL_WINDOW_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, isSmashAttack } from "./moves";
@@ -172,7 +172,7 @@ function advanceJumpSquat(f: Fighter, input: Readonly<Controls>, squatBeforeInpu
   jump.isDouble = false;
   if (jump.dodgeQueued) {
     jump.dodgeQueued = false;
-    simulationAirDodge(f, jump.dodgeX, jump.dodgeZ);
+    beginAirDodge(f, jump.dodgeX, jump.dodgeZ);
     jump.dodgeX = 0;
     jump.dodgeZ = 0;
   }
@@ -358,7 +358,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   }
   if (launch.hitlag <= 0) launch.hitstun = max(0, launch.hitstun - 1);
   const squatBeforeInput = jump.squat;
-  if (input.jumpPressed && !wallJumped) simulationJump(f, input.direction);
+  if (input.jumpPressed && !wallJumped) beginJump(f, input.direction);
   if (jump.squat > 0 && launch.hitlag === 0 && (f.character === Character.demonHunter || squatBeforeInput !== 1)) jump.held = jump.held && input.jumpHeld;
   if (input.airDodgePressed) {
     if (motion.grounded && jump.squat > 0) {
@@ -366,7 +366,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       jump.dodgeX = input.dodgeX;
       jump.dodgeZ = input.dodgeZ;
     } else {
-      simulationAirDodge(f, input.dodgeX, input.dodgeZ);
+      beginAirDodge(f, input.dodgeX, input.dodgeZ);
     }
   }
   if (jump.dodgeQueued && (input.direction !== 0 || input.verticalDirection !== 0)) {

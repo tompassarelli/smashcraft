@@ -10,7 +10,7 @@ import { Character, DownState, SurfaceContact } from "./codes";
 import { WALL_TECH_STARTUP_FRAMES, canAttack, isIntangible } from "./conditions";
 import { DOWN_DAMAGE_RESET_THRESHOLD, DOWN_WAIT_FRAMES } from "./down";
 import { type Fighter, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, createFighter } from "./fighter";
-import { simulationAirDodge, simulationJump } from "./jumpsAndDodges";
+import { beginAirDodge, beginJump } from "./jumpsAndDodges";
 import { MAX_GROUNDED_KNOCKBACK_ON_LANDING } from "./knockback";
 import {
   solidSurfaceCoordinate,
@@ -226,8 +226,8 @@ test("a retail wall tech uses the separate original fighter surface profile", ()
   for (let tick = 1; tick <= WALL_TECH_STARTUP_FRAMES; tick++) {
     assertFalse(canAttack(fighter));
     const jumpsBefore = fighter.jump.remaining;
-    simulationJump(fighter, 1);
-    simulationAirDodge(fighter, 1, 0);
+    beginJump(fighter, 1);
+    beginAirDodge(fighter, 1, 0);
     assertEquals(fighter.jump.remaining, jumpsBefore);
     assertFalse(fighter.dodge.airDodging);
     advanceSolo(fighter, 1, input, 0.0);
@@ -252,7 +252,7 @@ test("a retail wall tech uses friction until an aerial action interrupts it", ()
   advanceSolo(fighter, 1, input, 0.0);
   assertNear(fighter.motion.vx, velocityBefore + fighter.tuning.physics.airFriction, 0.00009999999747378752);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.techWall);
-  simulationJump(fighter, 1);
+  beginJump(fighter, 1);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.none);
   const jumpVelocity = fighter.motion.vx;
   input.direction = -1;
@@ -438,8 +438,8 @@ test("a retail ceiling tech locks actions until its animation completes", () => 
   const jumps = fighter.jump.remaining;
   for (let frame = 1; frame <= 25; frame++) {
     assertFalse(canAttack(fighter));
-    simulationJump(fighter, 0);
-    simulationAirDodge(fighter, 0, -1);
+    beginJump(fighter, 0);
+    beginAirDodge(fighter, 0, -1);
     assertEquals(fighter.jump.remaining, jumps);
     assertFalse(fighter.dodge.airDodging);
     advanceSolo(fighter, 1, input, 0.0);
@@ -449,7 +449,7 @@ test("a retail ceiling tech locks actions until its animation completes", () => 
   advanceSolo(fighter, 1, input, 0.0);
   assertEquals(fighter.surfaceRecovery.state, SurfaceContact.none);
   assertTrue(canAttack(fighter));
-  simulationAirDodge(fighter, 0, -1);
+  beginAirDodge(fighter, 0, -1);
   assertTrue(fighter.dodge.airDodging);
 });
 

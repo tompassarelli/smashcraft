@@ -13,7 +13,7 @@ import { SPOT_DODGE_FRAMES, GROUND_ROLL_FRAMES, canAttack, fighterPoseFacing, is
 import { beginDamageContacts, finishDamageContacts, queueDamageContact } from "./contacts";
 import { type Fighter, createFighter } from "./fighter";
 import { resolveGrabs } from "./grabs";
-import { simulationAirDodge, simulationJump } from "./jumpsAndDodges";
+import { beginAirDodge, beginJump } from "./jumpsAndDodges";
 import {
   damageLevelForKnockback,
   fixedHitKnockback,
@@ -495,7 +495,7 @@ test("fast fall persists after release and aerial startup but clears on landing 
     f.motion.fastFalling = true;
     f.attack.cooldown = 0;
     f.landing.lag = 0;
-    simulationJump(f, 0);
+    beginJump(f, 0);
     assertFalse(f.motion.fastFalling);
     assertGreaterThan(f.motion.vz, 0.0);
   }
@@ -513,7 +513,7 @@ test("fast fall requires descending self velocity, and an air dodge clears it", 
   assertNear(f.motion.vz, -f32(0.38), f32(0.00001));
   advanceSolo(f, 0, input, 0.0);
   assertTrue(f.motion.fastFalling);
-  simulationAirDodge(f, 0, 0);
+  beginAirDodge(f, 0, 0);
   assertFalse(f.motion.fastFalling);
 });
 
@@ -1146,7 +1146,7 @@ test("a ground jump uses its takeoff input, and an air jump replaces horizontal 
   for (const character of [Character.archer, Character.rifleman]) {
     for (const direction of [-1, 0, 1]) {
       const f = createFighter(character, 0.0, 1);
-      simulationJump(f, -direction);
+      beginJump(f, -direction);
       f.jump.squat = 1;
       f.motion.vx = 4.0;
       advanceSolo(f, 0, controls({ direction, jumpHeld: true }), 0.0);
@@ -1154,12 +1154,12 @@ test("a ground jump uses its takeoff input, and an air jump replaces horizontal 
       assertNear(f.motion.vx, entry, f32(0.0001));
       assertNear(f.motion.x, entry, f32(0.0001));
       f.motion.vx = 13.0;
-      simulationJump(f, direction);
+      beginJump(f, direction);
       assertNear(f.motion.vx, direction * (character === Character.archer ? f32(5.4) : f32(5.64)), f32(0.0001));
     }
   }
   const capped = createFighter(Character.archer, 0.0, 1);
-  simulationJump(capped, 1);
+  beginJump(capped, 1);
   capped.jump.squat = 1;
   capped.motion.vx = 30.0;
   advanceSolo(capped, 0, controls({ direction: 1 }), 0.0);
@@ -1167,7 +1167,7 @@ test("a ground jump uses its takeoff input, and an air jump replaces horizontal 
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
   illidan.motion.grounded = false;
   illidan.motion.vx = 13.0;
-  simulationJump(illidan, -1);
+  beginJump(illidan, -1);
   assertEquals(illidan.motion.vx, 13.0);
 });
 
@@ -1499,7 +1499,7 @@ test("a retail aerial dodge uses the extracted force and decay for every digital
     for (const vertical of [-1, 0, 1]) {
       const f = airborneFalco();
       const input = controls();
-      simulationAirDodge(f, horizontal, vertical);
+      beginAirDodge(f, horizontal, vertical);
       const launchX = horizontal * (vertical === 0 ? f32(17.6896506589) : f32(13.1521857265));
       const launchZ = horizontal === 0 ? vertical * f32(18.5999994278) : vertical === 0 ? -f32(5.7477159186) : vertical * f32(13.1521857265);
       assertNear(f.motion.vx, launchX, f32(0.00001));
@@ -1657,7 +1657,7 @@ test("crouching clears on attacks, jumps and shields", () => {
     assertTrue(f.motion.crouching);
   };
   standAgain();
-  simulationJump(f, 1);
+  beginJump(f, 1);
   assertFalse(f.motion.crouching);
   standAgain();
   input.shield = true;

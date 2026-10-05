@@ -7,7 +7,7 @@ import { beginFighterAttack, resolveAttacks } from "./attacks";
 import { projectileCount, updateProjectiles } from "./projectiles";
 import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
 import { advanceSolo, controls, testWorld } from "./testWorld";
-import { simulationJump } from "./jumpsAndDodges";
+import { beginJump } from "./jumpsAndDodges";
 import { respawnFighter } from "./stocks";
 import { createRoster } from "./roster";
 import { canAttack } from "./conditions";

@@ -32,7 +32,7 @@ function lockedOut(f: Fighter): boolean {
 }
 
 /** Starts jump squat on the ground or a double jump in the air. */
-export function simulationJump(f: Fighter, horizontal: number): void {
+export function beginJump(f: Fighter, horizontal: number): void {
   const { motion, jump, shield } = f;
   if (lockedOut(f) || (shield.releaseLag > 0 && !motion.grounded) || f.dodge.airDodging || isGroundDodging(f) || jump.squat > 0 || jump.remaining <= 0) return;
   observeActionDecision(JUMP_BIT);
@@ -60,7 +60,7 @@ export function simulationJump(f: Fighter, horizontal: number): void {
 }
 
 /** An air dodge in a digital direction; horizontal dodges angle shallowly downward, explicit vertical input stays directional. */
-export function simulationAirDodge(f: Fighter, horizontal: number, vertical: number): void {
+export function beginAirDodge(f: Fighter, horizontal: number, vertical: number): void {
   const { motion, launch, dodge } = f;
   if (lockedOut(f) || motion.grounded || dodge.airDodging || dodge.airMotionFrames > 0) return;
   observeActionDecision(DODGE_BITS);
