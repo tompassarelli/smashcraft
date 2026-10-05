@@ -1,0 +1,9 @@
+$ bun scripts/wisp.ts fresh "/home/tom/.local/share/smashcraft-build-inputs/playable-0044/Smashcraft 0.0.44.w3x" --from-game --no-quick
+   0.034 s  map installed (0.002 s)
+   0.147 s  a: input batch (3 actions) (0.071 s)
+   0.150 s  b: input batch (3 actions) (0.071 s)
+   5.276 s  a at Custom Games failed (5.241 s)
+   5.277 s  b at Custom Games interrupted (5.240 s)
+   5.278 s  fresh failed (5.278 s)
+wait for game menu failed for a: not seen within 5 s
+error: script "wisp" exited with code 1

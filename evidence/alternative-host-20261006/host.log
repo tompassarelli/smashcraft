@@ -1,0 +1,2 @@
+2026/10/06 00:54:05.329946 hosting="SCLAN19" listen=192.168.110.55:6113 map="Smashcraft diagnostic ts-reload-retain-r1" bytes=38551776 sha1=93df44b24bc77cf4c15493de522e518c6ed15b9e xoro=03f7bc88 slots=4 version=10032 batch=25ms
+2026/10/06 00:54:05.330167 commands: start, slots, quit

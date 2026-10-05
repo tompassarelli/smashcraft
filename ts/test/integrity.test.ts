@@ -140,6 +140,8 @@ test("sweep and four-fighter journeys command and record what the reconciler exp
   expect(sweep.trace.filter((line) => line.startsWith("type "))).toEqual(["type a -dev batch 2", "type a -dev rb 24", "type a -dev batch 1", "type a -dev rb 24"]);
   expect(sweep.events.filter((event) => event.event === "integrity-slot-change").map((event) => event.epoch)).toEqual([4, 6]);
   expect(sweep.trace).toContain("until slot C was not restored to EMPTY");
+  expect(sweep.trace.filter((line) => line.startsWith("until dev command not confirmed"))).toHaveLength(4);
+  expect(sweep.trace.some((line) => line.includes("All|Allies"))).toBe(false);
 
   const four = recordingRig(gameFiles);
   await Effect.runPromise(journey(four.rig, { ...R8, fourFighters: true }).run);

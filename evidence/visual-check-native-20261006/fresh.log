@@ -1,0 +1,23 @@
+$ bun scripts/wisp.ts fresh "/home/tom/.local/share/smashcraft-build-inputs/native-owner-20261005/reload/Smashcraft diagnostic reload-speed.w3x"
+   0.053 s  map installed (0.018 s)
+   0.334 s  a at Custom Games (0.280 s)
+   0.560 s  b at Custom Games (0.503 s)
+   0.981 s  b join name prepared (0.417 s)
+   8.359 s  a hosting "scdev muvhtwzx" (7.799 s)
+  13.358 s  b asked to join (4.997 s)
+  13.594 s  everyone in the lobby (0.236 s)
+  24.636 s  every client at character selection (10.800 s)
+  24.639 s  clear old quick-match receipts (0.001 s)
+  24.783 s  send -dev quick (0.143 s)
+  25.091 s  a quick-match receipt (0.308 s)
+  25.143 s  b quick-match receipt (0.358 s)
+-dev quick acknowledged by 2 client(s)
+  25.143 s  quick match and client receipts (0.506 s)
+a scene: frame 51: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+b scene: frame 51: 1 stage deck piece drawn; 1 of 267 effects in view across 25 models
+a frame: arena sky present (92.9% of the top band is sky, needs 50%); stage in the stage band present (49 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/state/smashcraft/frames/a.ppm
+  26.166 s  a player view (1.021 s)
+b frame: arena sky present (98.5% of the top band is sky, needs 50%); stage in the stage band present (47 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/state/smashcraft/frames/b.ppm
+  26.253 s  b player view (1.106 s)
+  26.253 s  player view (1.110 s)
+  26.256 s  fresh (26.256 s)

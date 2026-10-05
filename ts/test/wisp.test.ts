@@ -21,6 +21,8 @@ import {
   JOIN_NAME,
   LOBBY,
   MAP_TITLE,
+  PASSWORD_CANCEL,
+  PASSWORD_PROMPT,
   RESULTS,
   START,
   freshMatch,
@@ -112,7 +114,7 @@ test("hot reload publishes payloads before manifests and waits for each fake cli
   }
 });
 
-test.each([false, true])("fresh-match flow drives two fake clients and waits on the Effect clock for both ready files (fromGame=%s)", async (fromGame) => {
+test.each([{ fromGame: false, prompt: false }, { fromGame: true, prompt: true }])("fresh-match flow drives two fake clients and waits on the Effect clock for both ready files (fromGame=$fromGame, password prompt=$prompt)", async ({ fromGame, prompt }) => {
   const clients: readonly [Client, Client] = [
     { name: "a", documents: "/a/Documents/Warcraft III" },
     { name: "b", documents: "/b/Documents/Warcraft III" },
@@ -148,7 +150,11 @@ test.each([false, true])("fresh-match flow drives two fake clients and waits on 
     all: clients,
     read: (client, region) => Effect.gen(function*() {
       if (client.name === "a" && hostedAt !== undefined && (yield* Clock.currentTimeMillis) >= hostedAt) states.set("a", "lobby");
-      if (client.name === "b" && joinedAt !== undefined && (yield* Clock.currentTimeMillis) >= joinedAt) states.set("b", "lobby");
+      if (client.name === "b" && joinedAt !== undefined && (yield* Clock.currentTimeMillis) >= joinedAt) {
+        // Battle.net's stray password prompt covers the lobby the guest has joined.
+        states.set("b", prompt ? "prompt" : "lobby");
+        joinedAt = undefined;
+      }
       const state = states.get(client.name);
       if (region === CUSTOM_GAMES) return state === "custom" ? "CREATE GAME" : "";
       if (region === RESULTS) return state === "results" ? "RESULTS" : "";
@@ -158,6 +164,7 @@ test.each([false, true])("fresh-match flow drives two fake clients and waits on 
       if (region === CREATE_TITLE) return state === "create" ? "REATE GAME" : "";
       if (region === GAME_MENU) return state === "menu" ? "Game Menu" : state === "end-menu" ? "End Game" : "";
       if (region === MAP_TITLE) return selected.has(client.name) ? "SMASHCRAFT" : "";
+      if (region === PASSWORD_PROMPT) return state === "prompt" ? "CANCEL CONFIRM" : "";
       return "";
     }),
     words: () => Effect.succeed([]),
@@ -167,6 +174,7 @@ test.each([false, true])("fresh-match flow drives two fake clients and waits on 
       if (x === BACK.x && y === BACK.y) states.set(client.name, "custom");
       if (x === CREATE_GAME.x && y === CREATE_GAME.y) states.set(client.name, "create");
       if (x === FIRST_MAP.x && y === FIRST_MAP.y) selected.add(client.name);
+      if (x === PASSWORD_CANCEL.x && y === PASSWORD_CANCEL.y && before === "prompt") states.set(client.name, "lobby");
       if (x === CREATE.x && y === CREATE.y && before === "create") {
         states.set(client.name, "hosting");
         hostedAt = (yield* Clock.currentTimeMillis) + 100;
@@ -225,4 +233,5 @@ test.each([false, true])("fresh-match flow drives two fake clients and waits on 
   expect(clicks).toContain(`a:${START.x},${START.y}`);
   expect(messages.at(-1)).toBe("-dev quick");
   expect(chatSubmissions).toBe(2);
+  expect(clicks.filter((click) => click === `b:${PASSWORD_CANCEL.x},${PASSWORD_CANCEL.y}`)).toHaveLength(prompt ? 1 : 0);
 });

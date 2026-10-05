@@ -1,0 +1,6 @@
+source=/dev/input/event2 name=Some("Smashcraft Event Retention Virtual Gamepad") clock=CLOCK_MONOTONIC epoch_ns=0 frame_rule=segment_frame+floor((t-segment_epoch)*60/1e9) first=1 delay=0 pause_policy=sequenced-map-control
+controller_identity=DeviceIdentity { id: InputId { bus_type: BUS_USB, vendor: 0x45e, product: 0x28e, version: 0x114 }, name: Some("Smashcraft Event Retention Virtual Gamepad"), phys: None, uniq: None } automatic_reconnect=false
+waiting_for_match build=playable-0044 slot=0 start_before=final-match-confirmation
+input_armed=true gameplay_armed=false mono_ns=627959699611262
+menu_emit epoch=0 phase=Some(Character) key=n mono_ns=627960814510000
+menu_emit epoch=0 phase=Some(Character) key=y mono_ns=627961056338000
