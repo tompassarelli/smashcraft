@@ -1,19 +1,17 @@
 # Contextual contact comparisons
 
 Run `~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/compare.sh`
-from the current owned checkout. It compiles the locked Wurst source and writes
-smashcraft:build/move-comparisons/comparisons.jsonl. Allow roughly two minutes for
-the bounded sweep. Use the machine-capacity wrapper for the compiler and set
-`MOVE_DATA_LUA` to an installed Lua 5.3 executable, or use its default Nix lookup.
-`--check` runs the focused category/follow-up tests and compares fresh output
-with smashcraft:tools/move-data/comparisons.jsonl.
+from the current owned checkout. It runs the pinned Bun TypeScript comparison
+fixtures and writes smashcraft:build/move-comparisons/comparisons.jsonl. Allow
+roughly two minutes for the bounded sweep. `--check` runs the focused
+category/follow-up tests and compares fresh output with
+smashcraft:tools/move-data/comparisons.jsonl at 12-decimal numeric precision.
 
 The snapshot contains 54 contact contexts, 2,236 option trials and six category
-rule comparisons. It is generated output, never gameplay tuning input. Wurst
-owns the fixtures, production calls, classification and serialization at
-smashcraft:wurst/MoveComparisons.wurst and
-smashcraft:tools/move-data/MoveComparisonExport.wurst. The existing move export
-supplies move names and the declared timing/contact data for further joins.
+rule comparisons. It is generated output, never gameplay tuning input. The
+fixtures use the TypeScript production simulation APIs for state, motion,
+contact resolution and actionability. The existing move export supplies move
+names and declared timing/contact facts for further joins.
 
 ## Conditions and clocks
 

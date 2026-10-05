@@ -7,19 +7,16 @@ equated with Fox, Marth or another Melee fighter. The result supports factual
 comparison, not a parity or balance claim.
 
 Run `~/code/smashcraft/worktrees/playable-integration-20261005/tools/move-data/reference.sh`
-from the current owned checkout, with the machine-capacity wrapper used for
-the other exports. It needs Bun and Lua 5.3; `MOVE_DATA_BUN` and `MOVE_DATA_LUA`
-can select installed executables. Allow about 15 seconds. The command always
-runs the two focused Wurst tests and writes
-smashcraft:build/move-reference/reference-join.jsonl. `--check` additionally
-compares it with the checked-in snapshot. It consumes existing exports and
-does not rerun the contact sweep or change gameplay.
+from the current owned checkout. It uses pinned Bun to join the existing move,
+comparison and Melee reference JSONL inputs and writes
+smashcraft:build/move-reference/reference-join.jsonl. `--check` compares it
+with the checked-in snapshot at 12-decimal numeric precision. It consumes the
+existing exports and does not rerun the contact sweep or change gameplay.
 
-Wurst owns the family mapping, clock conversion, missing-record detection and
-trade-off rules in smashcraft:tools/move-data/MoveReference.wurst. The Bun input
-adapter only parses JSON and serializes its facts into typed Wurst inputs;
-generated input and compiler output stay under smashcraft:build/move-reference/.
-The Lua runner executes the locked compiler output and persists its rows.
+The family mapping, clock conversion, missing-record detection and trade-off
+rules are implemented in smashcraft:ts/scripts/moveData.ts. The result retains
+the input facts and nulls for unsupported comparisons; it does not infer
+fighter equivalence or fill missing reference data.
 
 ## Join coverage and meanings
 
