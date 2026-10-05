@@ -7,7 +7,7 @@
 import { afterAll, expect, test } from "bun:test";
 import { CURRENT_BUILD, INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
 import type { MapBuild } from "../src/game/shell/build";
-import { uncorrectedPlayback } from "../src/game/shell/uncorrectedPlayback";
+import { replayHistoryPlayback } from "../src/game/shell/rollbackPlayback";
 import { installDispatch } from "../src/platform/dispatch";
 import { installHotReload, startHotReload } from "../src/platform/hotReload";
 import { install, start } from "../src/platform/main";
@@ -36,7 +36,7 @@ function entryFor(build: MapBuild): Entry {
     install: reinstall,
     start: () => {
       reinstall();
-      startShell(build, uncorrectedPlayback());
+      startShell(build, replayHistoryPlayback());
       startHotReload(0, GetPlayerId(GetLocalPlayer()));
     },
   };
