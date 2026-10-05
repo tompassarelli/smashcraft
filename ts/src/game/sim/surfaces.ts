@@ -19,10 +19,10 @@ import {
 import { clearDownState } from "./transitions";
 import { melee } from "./tuning";
 
-const SURFACE_REFLECT_SPEED_THRESHOLD = melee(1.0);
-const SURFACE_REFLECT_ATTENUATION = 0.800000011920929;
-const SURFACE_REFLECT_COOLDOWN_FRAMES = 3;
-const SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES = 14;
+export const SURFACE_REFLECT_SPEED_THRESHOLD = melee(1.0);
+export const SURFACE_REFLECT_ATTENUATION = 0.800000011920929;
+export const SURFACE_REFLECT_COOLDOWN_FRAMES = 3;
+export const SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES = 14;
 
 function surfaceSignedDistance(stage: number, index: number, x: number, z: number): number {
   if (solidSurfaceKind(stage, index) === SurfaceContact.wall) {
