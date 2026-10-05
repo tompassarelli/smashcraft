@@ -336,6 +336,26 @@ def main():
                 until(lambda: all(complete(p) and signature in p.read_text() for p in paths),
                       "slot C was not restored to EMPTY")
 
+            def restore_two_humans():
+                # Chained integrity runs start from two humans with slots C/D EMPTY.
+                # Tags cycle HMN -> CPU -> EMPTY -> HMN.
+                paths = [root / f"smashcraft-journal-menu-{args.build}-s{slot}.txt"
+                         for slot, root in enumerate(data)]
+                for bit, x in ((4, 1484), (8, 1904)):
+                    for _ in range(2):
+                        text = paths[0].read_text()
+                        humans = int(re.search(r"human-fighters=(\d+)", text)[1])
+                        cpus = int(re.search(r" computers=(\d+)", text)[1])
+                        if not (humans | cpus) & bit:
+                            break
+                        ui("a", "click", 2400, 200)
+                        ui("a", "click", x, 824)
+                        until(lambda: all(complete(p) and p.read_text() != text for p in paths[:1]),
+                              "slot tag click not observed")
+                signature = "connected=3 human-fighters=3 computers=0 fighters=3"
+                until(lambda: all(complete(p) and signature in p.read_text() for p in paths),
+                      "slots C/D were not restored to EMPTY")
+
             def dev_command(epoch, text, expected):
                 # Synchronized player chat; both clients' receipts must show the value.
                 paths = [root / f"smashcraft-dev-{args.build}-p{slot}.txt" for slot, root in enumerate(data)]
@@ -813,6 +833,13 @@ def main():
                         keys(0, "keydown", "y", "sleep", ".12", "keyup", "y")
                         ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
                 print(f"Epoch {epoch}: game start, tap, stock loss and results observed", flush=True)
+            if args.input_integrity:
+                menu_phase("RESULT")
+                tap(0, "results-only")
+                menu_button(1, 0x13b, "menu-results-confirm")
+                menu_phase("CHARACTER")
+                ui("a", "wait", "CONTROLS")
+                restore_two_humans()
         result = dict(settings=cfg, input_integrity=args.input_integrity, four_fighters=args.four_fighters,
                       sweep=args.sweep, epochs=list(epochs),
                       combat_actions=args.combat_actions, controller_reconnect=args.controller_reconnect,
