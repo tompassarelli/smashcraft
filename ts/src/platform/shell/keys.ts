@@ -7,7 +7,7 @@ import { type ParticipantSlot, isParticipantSlot } from "../../game/input/partic
 import { heldActions, keyDown, pressKey, releaseKey } from "../../game/input/playerKeys";
 import { startKeyDown, startKeyUp } from "../../game/match/controls";
 import { Phase, characterFor, firstHumanSlot, humanActive, leavePractice, recallCharacter, selectCharacter } from "../../game/match/rules";
-import { QUICK_MATCH_COMMAND, applyDevCommand } from "../../game/shell/devSettings";
+import { DESYNC_COMMAND, QUICK_MATCH_COMMAND, applyDevCommand } from "../../game/shell/devSettings";
 import { devReceiptFile } from "../../game/shell/journalFiles";
 import { pausedMessage } from "../../game/shell/messages";
 import { captureBinding } from "../../game/ui/bindingSettings";
@@ -196,6 +196,11 @@ export function onDevCommand(s: ShellState): void {
   } else if (message === "-dev frame-cost-clock") {
     receipt = "dev: frame cost clock probe";
     probeFrameCostClock();
+  } else if (message === DESYNC_COMMAND) {
+    const slot = GetPlayerId(GetTriggerPlayer());
+    receipt = `dev: desync from player ${slot + 1}'s client`;
+    // One more handle on one client: Warcraft's handle counter and tempest checksum diverge.
+    if (slot === GetPlayerId(GetLocalPlayer())) CreateTimer();
   } else receipt = applyDevCommand(s.dev, message);
   if (receipt === undefined) return;
   s.devReceipts++;

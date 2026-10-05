@@ -59,6 +59,9 @@ export function applyDevCommand(settings: DevSettings, message: string): string 
 /** Starts a match with no menu navigation, for the fresh-match loop. */
 export const QUICK_MATCH_COMMAND = "-dev quick";
 
+/** Desynchronizes the game on purpose, to check that the host names what diverged. */
+export const DESYNC_COMMAND = "-dev desync";
+
 /**
  * Readies every present human with their slot's default fighter and starts
  * a one-stock match on the default stage, from either menu. False, with no match

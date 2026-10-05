@@ -5,7 +5,8 @@
 // Host stubs stand in for Warcraft, so this finds code that branches on the
 // local client; it does not prove native behavior.
 import { afterAll, expect, test } from "bun:test";
-import { CURRENT_BUILD, INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
+import { CURRENT_BUILD, INTEGRITY_BUILD, PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
+import { DESYNC_COMMAND } from "../src/game/shell/devSettings";
 import type { MapBuild } from "../src/game/shell/build";
 import { replayHistoryPlayback } from "../src/game/shell/rollbackPlayback";
 import { installDispatch } from "waygate/src/platform/dispatch";
@@ -94,4 +95,34 @@ test("desync guard: both clients make the same native calls through a match and 
 
 test("desync guard: the journal integrity build makes the same native calls on every client", () => {
   expectNoDivergence(playThroughReload(entryFor(INTEGRITY_BUILD)));
+});
+
+/** Start, then slot 1 types the deliberate desync command. */
+function typeDesync(entry: Entry): Lockstep {
+  const clients = new Lockstep([0, 1]);
+  clients.everywhere(() => entry.start());
+  clients.ticks(1);
+  clients.chat(1, DESYNC_COMMAND);
+  clients.ticks(2);
+  return clients;
+}
+
+const devReceipts = (clients: Lockstep) => clients.clients.map(client => [...client.files.keys()].filter(name => name.startsWith("smashcraft-dev-")));
+
+test("-dev desync creates one more handle on the typing player's client and nothing else differs", () => {
+  const clients = typeDesync({ start, install });
+  for (const client of clients.clients) expect(client.errors).toEqual([]);
+  const [host, typist] = clients.clients.map(client => client.log.map(({ name }) => name));
+  const at = typist?.findIndex((name, index) => name !== host?.[index]) ?? -1;
+  expect(typist?.[at]).toBe("CreateTimer");
+  expect(typist?.slice(at + 1)).toEqual(host?.slice(at));
+  expect(clients.firstDivergence()).toBeDefined();
+  expect(devReceipts(clients).map(names => names.length)).toEqual([1, 1]);
+});
+
+test("the playable build ignores -dev desync", () => {
+  expect(PLAYABLE_BUILD.devConsole).toBe(false);
+  const clients = typeDesync(entryFor(PLAYABLE_BUILD));
+  expectNoDivergence(clients);
+  expect(devReceipts(clients)).toEqual([[], []]);
 });
