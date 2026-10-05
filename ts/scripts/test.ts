@@ -9,10 +9,9 @@ const files = [
   .sort();
 if (files.length === 0) throw new Error("No tests found");
 
-// The game registry and native desync guard own independent global stubs and
-// most of the suite's work. Give each its own process; the third runs every
-// other discovered file, including new tests.
-const isolated = ["test/game.test.ts", "test/desync-guard.test.ts"];
+// The game registry and native fixtures own independent global stubs.
+// Give each its own process; the last runs every other discovered file.
+const isolated = ["test/game.test.ts", "test/desync-guard.test.ts", "test/visual-lifecycle.test.ts"];
 const groups = [
   ...isolated.map((name) => files.filter((file) => file === name)),
   files.filter((file) => !isolated.includes(file)),
