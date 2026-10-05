@@ -1,0 +1,507 @@
+// A fighter's complete simulation state as plain data. References to other
+// fighters are participant slots, so a rollback snapshot is a field-by-field
+// copy and code can be replaced while state is kept. Replay checksums write
+// an absent slot or surface as -1 at that boundary.
+import {
+  type AttackStyle,
+  Character,
+  DownState,
+  GrabAction,
+  GroundAction,
+  HippogryphKind,
+  LedgeState,
+  ProjectileKind,
+  SPECIAL_ACTION_CAPACITY,
+  ShieldBreak,
+  SpecialAction,
+  SurfaceContact,
+} from "./codes";
+import { INPUT_PARTICIPANT_CAPACITY } from "./participants";
+import { type FighterTuning, authoredTuning } from "./tuning";
+
+export const PROJECTILE_CAPACITY = 16;
+export const SHIELD_MAX = 60.0;
+// Common NTSC 1.02 input counters; the shield geometry is Smashcraft's own.
+export const SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES = 2;
+export const FAST_FALL_INPUT_WINDOW = 4;
+export const WALL_TECH_JUMP_INPUT_WINDOW_FRAMES = 20;
+export const STARTING_STOCKS = 3;
+/** A tech press age that is never inside a window; the input driver saturates at 255. */
+export const TECH_PRESS_AGE_LIMIT = 255;
+
+/**
+ * A position or velocity kept in Melee units alongside its rounded world value.
+ * Original-unit accumulation survives the projection; a published value that no
+ * longer matches the world field identifies an intervening world write.
+ */
+export interface MeleeMotionValue {
+  original: number;
+  published: number;
+}
+
+export interface Motion {
+  x: number;
+  z: number;
+  /** The last completed movement step, sampled by synchronous contact resolution. */
+  deltaX: number;
+  deltaZ: number;
+  vx: number;
+  vz: number;
+  meleeX: MeleeMotionValue;
+  meleeZ: MeleeMotionValue;
+  meleeVelocityZ: MeleeMotionValue;
+  grounded: boolean;
+  /** The platform under a grounded fighter. */
+  surface: number | undefined;
+  crouching: boolean;
+  fastFalling: boolean;
+  fastFallDownHeld: boolean;
+  /** Input frames since down was pressed; ages past the window are equivalent. */
+  fastFallInputAge: number;
+  /** Frames left falling through pass-through platforms. */
+  dropTime: number;
+  previousHorizontalDirection: number;
+  /** The last air-steering direction; a neutral aerial special turns to it. */
+  lastAerialTapDirection: number;
+}
+
+export interface GroundMovement {
+  dashFrame: number;
+  dashDirection: number;
+  action: GroundAction;
+  actionFrame: number;
+  runBrakeFramesRemaining: number;
+  turnRunEntryFacing: number;
+  turnRunFacingCommandLatched: boolean;
+  turnRunPausePending: boolean;
+  /** Frames in which a late dash-to-guard entry still turns a grab into a dash grab. */
+  dashGrabWindow: number;
+}
+
+export interface Jump {
+  /** Input frames since jump was pressed, for wall-tech jumps. */
+  inputAge: number;
+  remaining: number;
+  serial: number;
+  isDouble: boolean;
+  squat: number;
+  held: boolean;
+  /** An air dodge pressed during jump squat, taken on the takeoff frame. */
+  dodgeQueued: boolean;
+  dodgeX: number;
+  dodgeZ: number;
+}
+
+export interface Launch {
+  knockbackX: number;
+  knockbackZ: number;
+  groundKnockbackX: number;
+  /** Frames since the last launch; merging only distinguishes ages below ten. */
+  knockbackAge: number | undefined;
+  damageLevel: number;
+  hitstun: number;
+  hitlag: number;
+  diPending: boolean;
+  diLaunchSpeed: number;
+  diSerial: number;
+  diAngleDegrees: number;
+  sdiWasGrounded: boolean;
+  sdiLaunchesUpward: boolean;
+  sdiSerial: number;
+  asdiSerial: number;
+}
+
+export interface Shield {
+  raised: boolean;
+  /** Analog pressure scale in [0, 1]; digital is 1. */
+  strength: number;
+  energy: number;
+  stun: number;
+  heldFrames: number;
+  releaseLag: number;
+  /** Shield contact motion, separate from launch velocity. */
+  pushbackX: number;
+  recoilX: number;
+  recoilZ: number;
+  drainResumePending: boolean;
+  triggerWasActive: boolean;
+  triggerAge: number;
+  reflectFrames: number;
+  perfectFrames: number;
+  perfectActionFrames: number;
+  breakState: ShieldBreak;
+  breakFrame: number;
+  breakSerial: number;
+  breakRemaining: number;
+}
+
+export interface Attack {
+  style: AttackStyle | undefined;
+  frame: number;
+  duration: number;
+  serial: number;
+  hit: boolean;
+  dashGrab: boolean;
+  /** Frames before any new action, set by attacks, specials and traps. */
+  cooldown: number;
+  smashCharging: boolean;
+  smashChargeFrames: number;
+  smashChargeAllowed: boolean;
+}
+
+/** One attacker's latest contact with this fighter; eligibility for that attack's later windows. */
+export interface HitEntry {
+  attacker: number | undefined;
+  attackSerial: number;
+  window: number;
+}
+
+export interface HitRegistry {
+  readonly entries: HitEntry[];
+  /** The latest contact, for diagnostics. */
+  lastAttacker: number | undefined;
+  lastAttackSerial: number | undefined;
+  lastWindow: number;
+}
+
+/** Presentation counters: each increment is one event to show. */
+export interface VisualSerials {
+  grab: number;
+  throw: number;
+  hit: number;
+  hitElectric: boolean;
+  shield: number;
+  shieldReflect: number;
+  parry: number;
+}
+
+export interface Special {
+  action: SpecialAction;
+  frame: number;
+  duration: number;
+  lockFrames: number;
+  /** Up-specials end in a helpless fall until landing or a ledge catch. */
+  fall: boolean;
+  /** Indexed by SpecialAction. */
+  readonly cooldowns: number[];
+  direction: number;
+  hit: boolean;
+  /** Targets this action has already struck. */
+  readonly hitTargets: (number | undefined)[];
+}
+
+export interface Projectile {
+  life: number;
+  x: number;
+  z: number;
+  direction: number;
+  kind: ProjectileKind;
+  visualFamily: Character;
+  velocityX: number;
+  velocityZ: number;
+  serial: number;
+  damageMultiplier: number;
+  /** Reflected this frame; it moves from the next frame. */
+  newlyReflected: boolean;
+}
+
+/** Summons keep their last values when they expire; snapshots and checksums include them. */
+export interface Bear {
+  life: number;
+  x: number;
+  z: number;
+  velocityX: number;
+  velocityZ: number;
+  swipeCooldown: number;
+  hitSerial: number;
+  surface: number | undefined;
+}
+
+export interface Hippogryph {
+  life: number;
+  x: number;
+  z: number;
+  velocityX: number;
+  velocityZ: number;
+  kind: HippogryphKind;
+}
+
+export interface FreezeTrap {
+  life: number;
+  arming: number;
+  x: number;
+  z: number;
+  surface: number | undefined;
+  serial: number;
+  /** The owner's frames before another trap. */
+  cooldown: number;
+}
+
+export interface Dodge {
+  airDodging: boolean;
+  airFrame: number;
+  /** Frames of decaying air dodge motion left. */
+  airMotionFrames: number;
+  groundFrame: number;
+  groundDirection: number;
+  groundEntryFacing: number;
+}
+
+export interface Landing {
+  lag: number;
+  lCancelWindow: number;
+  lCancelSerial: number;
+}
+
+export interface Down {
+  state: DownState;
+  frame: number;
+  direction: number;
+  waitRemaining: number;
+  faceUp: boolean;
+}
+
+/** Tech input ages; they continue through frozen input frames. */
+export interface Tech {
+  window: number;
+  pressAge: number;
+  previousPressAge: number;
+  accumulatedPress: boolean;
+}
+
+/** Wall and ceiling contacts and the techs that recover from them. */
+export interface SurfaceRecovery {
+  state: SurfaceContact;
+  frame: number;
+  velocityApplied: boolean;
+  wallJumpQueued: boolean;
+  reflectCooldown: number;
+  lastReflectedSurface: number | undefined;
+  contactSerial: number;
+  contactKind: SurfaceContact;
+  contactApproachSpeed: number;
+  contactX: number;
+  contactZ: number;
+  contactNormalX: number;
+  contactNormalZ: number;
+}
+
+export interface Grab {
+  /** Frames left before a held fighter breaks free. */
+  grabbedFrames: number;
+  action: GrabAction;
+  frame: number;
+  serial: number;
+  mashX: number;
+  mashZ: number;
+  owner: number | undefined;
+  target: number | undefined;
+}
+
+export interface Ledge {
+  state: LedgeState;
+  side: number;
+  frame: number;
+  serial: number;
+  intangible: number;
+  regrab: number;
+}
+
+export interface Status {
+  damage: number;
+  stocks: number;
+  respawn: number;
+  out: boolean;
+  invincible: number;
+  frozenFrames: number;
+}
+
+export interface Fighter {
+  character: Character;
+  tuning: FighterTuning;
+  facing: number;
+  readonly motion: Motion;
+  readonly ground: GroundMovement;
+  readonly jump: Jump;
+  readonly launch: Launch;
+  readonly shield: Shield;
+  readonly attack: Attack;
+  readonly hits: HitRegistry;
+  readonly visuals: VisualSerials;
+  readonly special: Special;
+  readonly projectiles: readonly Projectile[];
+  readonly bear: Bear;
+  readonly hippogryph: Hippogryph;
+  readonly freezeTrap: FreezeTrap;
+  readonly dodge: Dodge;
+  readonly landing: Landing;
+  readonly down: Down;
+  readonly tech: Tech;
+  readonly surfaceRecovery: SurfaceRecovery;
+  readonly grab: Grab;
+  readonly ledge: Ledge;
+  readonly status: Status;
+}
+
+const repeat = <T>(count: number, make: () => T): T[] => Array.from({ length: count }, () => make());
+
+function emptyProjectile(): Projectile {
+  return {
+    life: 0,
+    x: 0.0,
+    z: 0.0,
+    direction: 0,
+    kind: ProjectileKind.blaster,
+    visualFamily: Character.archer,
+    velocityX: 0.0,
+    velocityZ: 0.0,
+    serial: 0,
+    damageMultiplier: 1.0,
+    newlyReflected: false,
+  };
+}
+
+/** A fighter standing at startX with the Wurst constructor's initial state. */
+export function createFighter(character: Character, startX: number, facing: number): Fighter {
+  return {
+    character,
+    tuning: authoredTuning(character),
+    facing,
+    motion: {
+      x: startX,
+      z: 0.0,
+      deltaX: 0.0,
+      deltaZ: 0.0,
+      vx: 0.0,
+      vz: 0.0,
+      meleeX: { original: 0.0, published: 0.0 },
+      meleeZ: { original: 0.0, published: 0.0 },
+      meleeVelocityZ: { original: 0.0, published: 0.0 },
+      grounded: true,
+      surface: undefined,
+      crouching: false,
+      fastFalling: false,
+      fastFallDownHeld: false,
+      fastFallInputAge: FAST_FALL_INPUT_WINDOW,
+      dropTime: 0,
+      previousHorizontalDirection: 0,
+      lastAerialTapDirection: 0,
+    },
+    ground: {
+      dashFrame: 0,
+      dashDirection: 0,
+      action: GroundAction.none,
+      actionFrame: 0,
+      runBrakeFramesRemaining: 0,
+      turnRunEntryFacing: 0,
+      turnRunFacingCommandLatched: false,
+      turnRunPausePending: false,
+      dashGrabWindow: 0,
+    },
+    jump: {
+      inputAge: WALL_TECH_JUMP_INPUT_WINDOW_FRAMES,
+      remaining: 2,
+      serial: 0,
+      isDouble: false,
+      squat: 0,
+      held: false,
+      dodgeQueued: false,
+      dodgeX: 0,
+      dodgeZ: 0,
+    },
+    launch: {
+      knockbackX: 0.0,
+      knockbackZ: 0.0,
+      groundKnockbackX: 0.0,
+      knockbackAge: undefined,
+      damageLevel: 0,
+      hitstun: 0,
+      hitlag: 0,
+      diPending: false,
+      diLaunchSpeed: 0.0,
+      diSerial: 0,
+      diAngleDegrees: 0.0,
+      sdiWasGrounded: false,
+      sdiLaunchesUpward: false,
+      sdiSerial: 0,
+      asdiSerial: 0,
+    },
+    shield: {
+      raised: false,
+      strength: 1.0,
+      energy: SHIELD_MAX,
+      stun: 0,
+      heldFrames: 0,
+      releaseLag: 0,
+      pushbackX: 0.0,
+      recoilX: 0.0,
+      recoilZ: 0.0,
+      drainResumePending: false,
+      triggerWasActive: false,
+      triggerAge: SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES,
+      reflectFrames: 0,
+      perfectFrames: 0,
+      perfectActionFrames: 0,
+      breakState: ShieldBreak.none,
+      breakFrame: 0,
+      breakSerial: 0,
+      breakRemaining: 0.0,
+    },
+    attack: {
+      style: undefined,
+      frame: 0,
+      duration: 0,
+      serial: 0,
+      hit: false,
+      dashGrab: false,
+      cooldown: 0,
+      smashCharging: false,
+      smashChargeFrames: 0,
+      smashChargeAllowed: false,
+    },
+    hits: {
+      entries: repeat(INPUT_PARTICIPANT_CAPACITY, () => ({ attacker: undefined, attackSerial: 0, window: 0 })),
+      lastAttacker: undefined,
+      lastAttackSerial: undefined,
+      lastWindow: 0,
+    },
+    visuals: { grab: 0, throw: 0, hit: 0, hitElectric: false, shield: 0, shieldReflect: 0, parry: 0 },
+    special: {
+      action: SpecialAction.none,
+      frame: 0,
+      duration: 0,
+      lockFrames: 0,
+      fall: false,
+      cooldowns: repeat(SPECIAL_ACTION_CAPACITY, () => 0),
+      direction: 0,
+      hit: false,
+      hitTargets: repeat<number | undefined>(INPUT_PARTICIPANT_CAPACITY, () => undefined),
+    },
+    projectiles: repeat(PROJECTILE_CAPACITY, () => emptyProjectile()),
+    bear: { life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, swipeCooldown: 0, hitSerial: 0, surface: undefined },
+    hippogryph: { life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, kind: HippogryphKind.none },
+    freezeTrap: { life: 0, arming: 0, x: 0.0, z: 0.0, surface: undefined, serial: 0, cooldown: 0 },
+    dodge: { airDodging: false, airFrame: 0, airMotionFrames: 0, groundFrame: 0, groundDirection: 0, groundEntryFacing: 0 },
+    landing: { lag: 0, lCancelWindow: 0, lCancelSerial: 0 },
+    down: { state: DownState.none, frame: 0, direction: 0, waitRemaining: 0, faceUp: true },
+    tech: { window: 0, pressAge: TECH_PRESS_AGE_LIMIT, previousPressAge: TECH_PRESS_AGE_LIMIT, accumulatedPress: false },
+    surfaceRecovery: {
+      state: SurfaceContact.none,
+      frame: 0,
+      velocityApplied: false,
+      wallJumpQueued: false,
+      reflectCooldown: 0,
+      lastReflectedSurface: undefined,
+      contactSerial: 0,
+      contactKind: SurfaceContact.none,
+      contactApproachSpeed: 0.0,
+      contactX: 0.0,
+      contactZ: 0.0,
+      contactNormalX: 0.0,
+      contactNormalZ: 0.0,
+    },
+    grab: { grabbedFrames: 0, action: GrabAction.none, frame: 0, serial: 0, mashX: 0, mashZ: 0, owner: undefined, target: undefined },
+    ledge: { state: LedgeState.none, side: 0, frame: 0, serial: 0, intangible: 0, regrab: 0 },
+    status: { damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0 },
+  };
+}

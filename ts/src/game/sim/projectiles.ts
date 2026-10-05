@@ -1,0 +1,208 @@
+// Projectiles: spawning, flight, hits, shield blocks and reflections. Timing
+// and trajectories are first-pass character-special tuning.
+import { max, min } from "../../runtime/wurst";
+import { roundToFloat32 } from "../../sim/binary32";
+import { f32 } from "../../sim/f32";
+import { AttackStyle, ContactKind, ProjectileKind } from "./codes";
+import { isIntangible } from "./conditions";
+import { collectDamageContact, finishDamageContacts, openDamageContacts } from "./contacts";
+import { type Fighter, PROJECTILE_CAPACITY, type Projectile } from "./fighter";
+import { emptyHitEffect } from "./hitRegions";
+import { demonHunterParryIsActive, resolveDemonHunterParry } from "./hits";
+import { attackDamage } from "./moves";
+import { INPUT_PARTICIPANT_CAPACITY } from "./participants";
+import { type Roster, fighterAt, isActive } from "./roster";
+import { SHIELD_PROJECTILE_DAMAGE_MULTIPLIER, SHIELD_PROJECTILE_SPEED_MULTIPLIER, SHIELD_REFLECTOR_RADIUS_FACTOR, shieldCircleIntersects } from "./shield";
+
+export const BLASTER_PROJECTILE_SPEED = 36.0;
+export const BLASTER_PROJECTILE_LIFETIME = 60;
+export const BLASTER_PROJECTILE_HEIGHT = 75.0;
+export const BLASTER_PROJECTILE_HALF_HEIGHT = 36.0;
+export const BLASTER_PROJECTILE_RADIUS = 24.0;
+export const BLASTER_PROJECTILE_SPAWN_OFFSET = 35.0;
+/** Height of a target's body center above its position. */
+const TARGET_CENTER_HEIGHT = 45;
+
+export function projectileCount(f: Fighter): number {
+  let count = 0;
+  for (const projectile of f.projectiles) if (projectile.life > 0) count++;
+  return count;
+}
+
+export function projectileActive(f: Fighter, index: number): boolean {
+  return index >= 0 && index < PROJECTILE_CAPACITY && f.projectiles[index]!.life > 0;
+}
+
+/** Launches from the owner's hand in the first free slot; a full owner fires nothing. */
+export function spawnProjectileMotion(owner: Fighter, kind: ProjectileKind, velocityX: number, velocityZ: number, lifetime: number, serial: number): void {
+  for (const projectile of owner.projectiles) {
+    if (projectile.life > 0) continue;
+    const direction = velocityX < 0 ? -1 : 1;
+    projectile.direction = direction;
+    projectile.kind = kind;
+    projectile.visualFamily = owner.character;
+    projectile.velocityX = velocityX;
+    projectile.velocityZ = velocityZ;
+    projectile.serial = serial;
+    projectile.damageMultiplier = 1.0;
+    projectile.newlyReflected = false;
+    projectile.x = f32(owner.motion.x + f32(direction * BLASTER_PROJECTILE_SPAWN_OFFSET));
+    projectile.z = f32(owner.motion.z + BLASTER_PROJECTILE_HEIGHT);
+    projectile.life = lifetime;
+    return;
+  }
+}
+
+/** The Rifleman's attack shot. */
+export function spawnProjectile(owner: Fighter): void {
+  spawnProjectileMotion(owner, ProjectileKind.blaster, f32(owner.facing * BLASTER_PROJECTILE_SPEED), 0.0, BLASTER_PROJECTILE_LIFETIME, owner.attack.serial);
+}
+
+/** An arrow toward direction, or the owner's facing for zero. */
+export function spawnArcherArrow(owner: Fighter, direction: number, verticalSpeed: number, kind: ProjectileKind, serial: number): void {
+  const facing = direction === 0 ? owner.facing : direction > 0 ? 1 : -1;
+  spawnProjectileMotion(owner, kind, f32(facing * BLASTER_PROJECTILE_SPEED), verticalSpeed, kind === ProjectileKind.arrow ? 75 : 65, serial);
+}
+
+// Preallocated: collected contacts copy it, so one record serves every hit.
+const projectileHit = emptyHitEffect();
+
+function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number, projectile: Readonly<Projectile>, shieldContact: boolean): void {
+  const target = fighterAt(world, targetSlot);
+  if (demonHunterParryIsActive(target)) {
+    resolveDemonHunterParry(target, fighterAt(world, ownerSlot), -projectile.direction);
+    return;
+  }
+  const { kind } = projectile;
+  if (kind === ProjectileKind.blaster) {
+    projectileHit.damage = roundToFloat32(f32(attackDamage(AttackStyle.shot) * projectile.damageMultiplier));
+    projectileHit.growth = 0.0;
+    projectileHit.base = 0.0;
+    projectileHit.launchX = 0.0;
+    projectileHit.launchZ = 0.0;
+    collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.flinch, false, undefined, shieldContact);
+    return;
+  }
+  const damage = kind === ProjectileKind.fanArrow ? 4.0 : kind === ProjectileKind.recoil || kind === ProjectileKind.manaBurn ? 5.0 : 7.0;
+  const damageOnly = kind === ProjectileKind.arrow || kind === ProjectileKind.fanArrow;
+  projectileHit.damage = roundToFloat32(f32(damage * projectile.damageMultiplier));
+  projectileHit.growth = 85.0;
+  projectileHit.base = 16.0;
+  projectileHit.launchX = 0.800000011920929;
+  projectileHit.launchZ = kind === ProjectileKind.recoil ? -0.6000000238418579 : 0.6000000238418579;
+  collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction,
+    damageOnly ? ContactKind.damageOnly : ContactKind.launch, false, undefined, shieldContact);
+}
+
+/** Sends the projectile back from a reflecting shield, slower and weaker; false when the reflector has no free slot. */
+function reflectProjectile(target: Fighter, source: Projectile): boolean {
+  for (const reflected of target.projectiles) {
+    if (reflected.life > 0) continue;
+    reflected.x = source.x;
+    reflected.z = source.z;
+    reflected.velocityX = roundToFloat32(-f32(source.velocityX * SHIELD_PROJECTILE_SPEED_MULTIPLIER));
+    reflected.velocityZ = roundToFloat32(f32(source.velocityZ * SHIELD_PROJECTILE_SPEED_MULTIPLIER));
+    reflected.direction = reflected.velocityX < 0 ? -1 : 1;
+    reflected.kind = source.kind;
+    reflected.visualFamily = source.visualFamily;
+    reflected.serial = source.serial;
+    reflected.damageMultiplier = roundToFloat32(f32(source.damageMultiplier * SHIELD_PROJECTILE_DAMAGE_MULTIPLIER));
+    reflected.life = source.life;
+    reflected.newlyReflected = true;
+    source.life = 0;
+    target.visuals.shieldReflect++;
+    return true;
+  }
+  return false;
+}
+
+// Preallocated: target positions before any projectile resolves, sampled every frame.
+const targets = {
+  x: [0.0, 0.0, 0.0, 0.0],
+  z: [0.0, 0.0, 0.0, 0.0],
+  out: [false, false, false, false],
+  intangible: [false, false, false, false],
+};
+
+/** Flies one projectile and returns the slot of the target it reaches, or undefined. */
+function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile, hit: { reflector: boolean; shield: boolean }): number | undefined {
+  const oldX = projectile.x;
+  const oldZ = projectile.z;
+  let velocityX = projectile.velocityX;
+  const velocityZ = projectile.velocityZ;
+  if (projectile.kind === ProjectileKind.blaster && velocityX === 0) {
+    velocityX = f32(projectile.direction * BLASTER_PROJECTILE_SPEED);
+    projectile.velocityX = velocityX;
+  }
+  projectile.x = f32(oldX + velocityX);
+  projectile.z = f32(oldZ + velocityZ);
+  projectile.life--;
+  const direction = velocityX < 0 ? -1 : 1;
+  const lowZ = f32(min(oldZ, projectile.z) - BLASTER_PROJECTILE_HALF_HEIGHT);
+  const highZ = f32(max(oldZ, projectile.z) + BLASTER_PROJECTILE_HALF_HEIGHT);
+  let nearest: number | undefined;
+  let distance = 0.0;
+  for (let targetSlot = 0; targetSlot < INPUT_PARTICIPANT_CAPACITY; targetSlot++) {
+    if (!isActive(world, targetSlot) || targetSlot === ownerSlot || targets.out[targetSlot] || targets.intangible[targetSlot]) continue;
+    const target = fighterAt(world, targetSlot);
+    const targetX = targets.x[targetSlot]!;
+    const centerZ = f32(targets.z[targetSlot]! + TARGET_CENTER_HEIGHT);
+    const crossed = f32(f32(targetX - oldX) * direction) >= 0 && f32(f32(targetX - projectile.x) * direction) <= 0;
+    const near = Math.abs(f32(targetX - projectile.x)) <= BLASTER_PROJECTILE_RADIUS;
+    const height = centerZ >= lowZ && centerZ <= highZ;
+    const reflector = target.shield.reflectFrames > 0
+      && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, SHIELD_REFLECTOR_RADIUS_FACTOR);
+    const shieldContact = target.shield.raised && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0);
+    const candidate = Math.abs(f32(targetX - oldX));
+    if ((reflector || shieldContact || ((crossed || near) && height)) && (nearest === undefined || candidate < distance)) {
+      nearest = targetSlot;
+      distance = candidate;
+      hit.reflector = reflector;
+      hit.shield = shieldContact;
+    }
+  }
+  return nearest;
+}
+
+// Preallocated: rollback replays fly projectiles every frame.
+const selected = { reflector: false, shield: false };
+
+/**
+ * Advances every projectile against target positions sampled before any
+ * resolves. A projectile stops at the nearest target it reaches: a reflecting
+ * shield sends it back, anything else takes the hit.
+ */
+export function updateProjectiles(world: Roster): void {
+  const ownsBatch = openDamageContacts();
+  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+    if (!isActive(world, slot)) continue;
+    const target = fighterAt(world, slot);
+    targets.x[slot] = target.motion.x;
+    targets.z[slot] = target.motion.z;
+    targets.out[slot] = target.status.out;
+    targets.intangible[slot] = isIntangible(target);
+  }
+  for (let ownerSlot = 0; ownerSlot < INPUT_PARTICIPANT_CAPACITY; ownerSlot++) {
+    if (!isActive(world, ownerSlot)) continue;
+    const owner = fighterAt(world, ownerSlot);
+    for (const projectile of owner.projectiles) {
+      if (projectile.life <= 0 || projectile.newlyReflected) continue;
+      selected.reflector = false;
+      selected.shield = false;
+      const nearest = flyProjectile(world, ownerSlot, projectile, selected);
+      if (nearest !== undefined) {
+        if (!(selected.reflector && reflectProjectile(fighterAt(world, nearest), projectile))) {
+          applyProjectileHit(world, ownerSlot, nearest, projectile, selected.shield);
+        }
+        projectile.life = 0;
+      } else if (projectile.life <= 0) {
+        projectile.life = 0;
+      }
+    }
+  }
+  for (let slot = 0; slot < INPUT_PARTICIPANT_CAPACITY; slot++) {
+    if (!isActive(world, slot)) continue;
+    for (const projectile of fighterAt(world, slot).projectiles) projectile.newlyReflected = false;
+  }
+  if (ownsBatch) finishDamageContacts(world);
+}
