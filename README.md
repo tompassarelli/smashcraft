@@ -4,25 +4,33 @@
   <img src="tools/loading/art/SmashcraftCover.png" alt="Smashcraft cover art" width="100%">
 </p>
 
-Smashcraft is an in-development, Melee-inspired platform fighter for Warcraft
-III. Archer, Rifleman, and Illidan fight on floating stages with jumps, air
-dodges, shields, hitstun, knockback, and stocks.
+Smashcraft is an in-development platform fighter for Warcraft III, inspired by
+Super Smash Bros. Melee. Warcraft heroes fight on floating stages with jumps,
+air dodges, shields, hitstun, knockback and stocks, over rollback netcode.
 
 There is no public release yet. [Player guide](docs/player-guide.md) · status
 and next work: [roadmap #16](https://github.com/tompassarelli/smashcraft/issues/16).
 
 ## Build and test
 
-Gameplay is authored in Wurst and compiled to Lua for Warcraft III. The source
-tree does not include Warcraft III's models, textures, terrain map, compiler
-artifacts, or generated game map. Building requires the project's locally
-configured Warcraft III and toolchain.
+Smashcraft is written in TypeScript and runs on Waygate, its framework for
+Warcraft III maps. TypeScriptToLua compiles the game to Warcraft's Lua. Code
+changes reach running multiplayer clients without re-hosting, in-game errors
+point at TypeScript lines, and logic tests run in Bun and in 32-bit Lua. The
+source tree doesn't include Warcraft III's models, textures, terrain map or the
+generated game map; building needs a locally configured Warcraft III and the
+private assets.
 
-From the repository root, run [smashcraft:test.sh](test.sh) for headless
-simulation tests. Compile with [smashcraft:build.sh](build.sh), passing a
-Warcraft III terrain map as the required `.w3m` or `.w3x` argument. See
-[development setup](docs/development-loop.md) and
-[toolchain notes](docs/wurst-toolchain.md) for the full workflow.
+From [smashcraft:ts/](ts/):
+
+- `bun test` runs the logic tests, and `LUA=<32-bit lua> bun scripts/lua-tests.ts`
+  runs them in 32-bit Lua. `bun run check` type-checks.
+- `bun scripts/hot.ts --data <client CustomMapData> ... --watch` reloads every
+  save into the running clients.
+- `../build-typescript.sh BASE_MAP ASSET_CONTAINER` builds the map.
+
+[smashcraft:docs/typescript.md](docs/typescript.md) has the code rules and the
+full command list.
 
 ## Project notes
 
