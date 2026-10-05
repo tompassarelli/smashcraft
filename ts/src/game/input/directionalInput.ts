@@ -54,6 +54,6 @@ export function clearDirections(input: DirectionalInput): void {
   copyDirections(input, NEUTRAL);
 }
 
-export function copyDirections(target: DirectionalInput, source: Readonly<DirectionalInput>): void {
+function copyDirections(target: DirectionalInput, source: Readonly<DirectionalInput>): void {
   Object.assign(target, source);
 }

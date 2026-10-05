@@ -18,7 +18,7 @@ interface MutableReplayState {
 }
 
 /** Production rollback playback: the shell's private world is corrected from retained input rows. */
-export class ReplayHistoryPlayback implements RollbackPlayback {
+class ReplayHistoryPlayback implements RollbackPlayback {
   private readonly history = new ReplayHistory();
   private readonly playback = new ShadowInputPlayback();
   private state: MutableReplayState | undefined;

@@ -3,7 +3,7 @@ import type { Fighter } from "../sim/fighter";
 import { projectileActive } from "../sim/projectiles";
 import { atan2 } from "../sim/warcraftMath";
 
-export interface ProjectilePose {
+interface ProjectilePose {
   visible: boolean;
   x: number;
   z: number;

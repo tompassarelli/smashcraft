@@ -9,7 +9,7 @@ export const SLOTS = [0, 1] as const satisfies readonly Slot[];
 export type EpochPair = readonly [number, number];
 
 /** One edge the capture driver wrote to a pad (producer.jsonl). */
-export interface ProducerEdge extends SourceEdge {
+interface ProducerEdge extends SourceEdge {
   readonly phase: string;
   /** Which pad wrote it: "slot-0" or "slot-1". */
   readonly source: string;
@@ -64,7 +64,7 @@ export interface CaptureEvidence {
   readonly exports: ReadonlyMap<number, readonly [ClientExport, ClientExport]>;
 }
 
-export interface Distribution {
+interface Distribution {
   readonly n: number;
   readonly p50: number | undefined;
   readonly p95: number | undefined;
@@ -74,7 +74,7 @@ export interface Distribution {
 }
 
 /** The final confirmed frame, its checksum and its match phase. */
-export type Endpoint = readonly [frame: number, checksum: string, phase: number];
+type Endpoint = readonly [frame: number, checksum: string, phase: number];
 
 export interface IntegrityResult {
   readonly scope: string;
@@ -104,7 +104,7 @@ export interface IntegrityResult {
 }
 
 /** Thrown when an export row or receipt does not have the shape every capture writes. */
-export class MalformedEvidence extends Error {}
+class MalformedEvidence extends Error {}
 
 const REQUIRED_BINDINGS = ["move-left", "move-right", "move-down", "jump-stick", "jump-b", "jump-y", "attack", "special", "shield-lt", "shield-rt", "grab", "walk"] as const;
 const START_BUTTON = 0x13b;
@@ -147,7 +147,7 @@ function bits(mask: number): number[] {
  * The action bits a source holds after this edge: A attack, B/Y or stick-up
  * jump, X special, LB walk, RB grab, either trigger shield, stick move.
  */
-export function sourceMask({ type, code, value }: SourceEdge): number {
+function sourceMask({ type, code, value }: SourceEdge): number {
   if (value === 0) return 0;
   if (type === 1) return ({ 0x130: 32, 0x131: 16, 0x133: 16, 0x134: 64, 0x136: 16384, 0x137: 128 } as Record<number, number>)[code] ?? 0;
   if (type === 3) {
@@ -479,7 +479,7 @@ export function capturePair(metadata: CaptureMetadata): EpochPair {
   return [first, second];
 }
 
-export interface SweepEntry {
+interface SweepEntry {
   readonly pair: EpochPair;
   readonly window: number;
   readonly batch: number;

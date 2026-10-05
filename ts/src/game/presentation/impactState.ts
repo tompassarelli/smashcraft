@@ -6,15 +6,15 @@ import { DodgeCue, type ImpactEvents, ImpactLanding, JumpCue } from "./impactEve
 
 // Impact kinds. Each owns a ring of IMPACTS_PER_KIND pool slots, in kind order.
 export const IMPACT_HIT = 0;
-export const IMPACT_TECH = 1;
-export const IMPACT_MISSED_TECH = 2;
+const IMPACT_TECH = 1;
+const IMPACT_MISSED_TECH = 2;
 export const IMPACT_DUST = 3;
 export const IMPACT_DODGE = 4;
-export const IMPACT_ELECTRIC_HIT = 5;
-export const IMPACT_SHIELD_HIT = 6;
-export const IMPACT_AIR_JUMP = 7;
+const IMPACT_ELECTRIC_HIT = 5;
+const IMPACT_SHIELD_HIT = 6;
+const IMPACT_AIR_JUMP = 7;
 export const IMPACT_SIDE_KO = 8;
-export const IMPACT_RESPAWN = 9;
+const IMPACT_RESPAWN = 9;
 export const IMPACT_GRAB = 10;
 export const IMPACT_THROW = 11;
 export const IMPACT_CHARGE = 12;
@@ -34,7 +34,7 @@ export const KO_SCREEN_FRAMES = 100;
 const PI = f32(3.141592654);
 const HALF_PI = f32(1.570796327);
 
-export interface ImpactPose {
+interface ImpactPose {
   visible: boolean;
   alpha: number;
   scale: number;
@@ -44,7 +44,7 @@ export interface ImpactPose {
 }
 
 /** A top KO's flying body: a visual handle's transform, never a fighter. */
-export interface KoPose {
+interface KoPose {
   visible: boolean;
   character: Character;
   alpha: number;

@@ -1,5 +1,6 @@
 // Temporary native probe for deciding which clock measures work in Warcraft.
 // It is invoked only by the explicit development console command.
+import { frameCostClockFile } from "../../runtime/gameFiles";
 declare const os: { readonly clock?: () => number } | undefined;
 
 const WORK_ITERATIONS = 100000;
@@ -36,5 +37,5 @@ export function probeFrameCostClock(): void {
   PreloadGenClear();
   PreloadGenStart();
   Preload(message);
-  PreloadGenEnd(`smashcraft-frame-cost-clock-p${I2S(GetPlayerId(GetLocalPlayer()))}.txt`);
+  PreloadGenEnd(frameCostClockFile(GetPlayerId(GetLocalPlayer())));
 }

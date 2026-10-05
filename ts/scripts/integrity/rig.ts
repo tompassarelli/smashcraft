@@ -10,8 +10,9 @@ import { IntegrityFailure, producerLine, tryIntegrity } from "./evidence";
 import type { GameFile, JourneyRecord, PublicationRecord, RigShape, Stopped } from "./journey";
 import { type Observer, type Pad, continueProcess, inject, monotonicNs, realtimeNs, stopProcess } from "./linux";
 import { SLOTS, type Slot } from "./reconcile";
+import { INPUT_TRACE_FILE, responsePageFile, decodeWrittenGameFile } from "../waygate/boundary";
 
-export interface LiveRigParts {
+interface LiveRigParts {
   readonly clients: readonly [Client, Client];
   /** Each client's CustomMapData folder. */
   readonly data: readonly [string, string];
@@ -43,8 +44,8 @@ export const archiveFiles = (parts: Pick<LiveRigParts, "data" | "out" | "build" 
       const target = join(parts.out, `epoch-${label}`);
       mkdirSync(target, { recursive: true });
       const journal = new Bun.Glob(`smashcraft-journal-*${parts.build}*`);
-      const pages = new Bun.Glob("smashcraft-response-p*-run*-page*.txt");
-      const names = readdirSync(parts.data[client]).filter((name) => journal.match(name) || pages.match(name) || name === "wc3-melee-input-trace.txt");
+      const pages = new Bun.Glob(responsePageFile("*", "*", "*"));
+      const names = readdirSync(parts.data[client]).filter((name) => journal.match(name) || pages.match(name) || name === INPUT_TRACE_FILE);
       for (const name of names) {
         const source = join(parts.data[client], name);
         const stat = statSync(source, { bigint: true });
@@ -78,7 +79,14 @@ export function liveRig(parts: LiveRigParts): RigShape {
         if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
         throw error;
       }
-    });
+    }).pipe(Effect.tap((stored) => {
+      // A concurrent PreloadGenEnd write may still be incomplete. Completed
+      // records enter the capture only after boundary decoding succeeds.
+      if (stored === undefined || !stored.text.trimEnd().endsWith("endfunction")) return Effect.void;
+      return decodeWrittenGameFile(name, join(data[client], name), stored.text).pipe(
+        Effect.mapError((cause) => new IntegrityFailure({ operation: "decode game file", path: join(data[client], name), cause })),
+      );
+    }));
 
   return {
     send: ({ slot, edge, phase }) =>
@@ -124,7 +132,9 @@ export function liveRig(parts: LiveRigParts): RigShape {
           sample_monotonic_after_ns: after,
           publication_monotonic_estimate_ns: Number(stamp - wall) + Number((BigInt(before) + BigInt(after)) / 2n),
         };
-      }),
+      }).pipe(Effect.tap((publication) => decodeWrittenGameFile(name, publication.path, publication.contents).pipe(
+        Effect.mapError((cause) => new IntegrityFailure({ operation: "decode game receipt", path: publication.path, cause })),
+      ))),
     stop: (target) => {
       const pid = target.kind === "helper" ? parts.helpers[target.slot].pid : parts.gamePids[target.slot];
       return stopProcess(pid).pipe(Effect.as({ target, pid } satisfies Stopped));

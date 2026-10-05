@@ -1,6 +1,6 @@
-import { type AttackBuffer, attackBuffer, copyAttackBuffer } from "../input/attackBuffer";
+import { type AttackBuffer, attackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS, type Slots, isParticipantSlot } from "../input/participants";
-import { type Controls, copyControls, neutralControls } from "../sim/roster";
+import { type Controls, neutralControls } from "../sim/roster";
 import { Phase } from "./rules";
 
 /** Preallocated: rollback replays fill each participant's records every frame. */
@@ -16,20 +16,13 @@ export function createFrameControls(): FrameControls {
   };
 }
 
-export function copyFrameControls(target: FrameControls, source: Readonly<FrameControls>): void {
-  for (const slot of PARTICIPANT_SLOTS) {
-    copyControls(target.inputs[slot], source.inputs[slot]);
-    copyAttackBuffer(target.commands[slot], source.commands[slot]);
-  }
-}
-
 /** Session controls are outside replay state: rollback must not undo a pause. */
 export interface MatchControls {
   paused: boolean;
   readonly startHeld: Slots<boolean>;
 }
 
-export type StartAction = "confirm" | "togglePause" | undefined;
+type StartAction = "confirm" | "togglePause" | undefined;
 
 export function createMatchControls(): MatchControls {
   return { paused: false, startHeld: [false, false, false, false] };

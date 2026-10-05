@@ -10,10 +10,6 @@ export function toReal(value: number): number {
   return value + 0.0;
 }
 
-export function squared(value: number): number {
-  return value * value;
-}
-
 export function max(a: number, b: number): number {
   return a > b ? a : b;
 }

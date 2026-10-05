@@ -16,7 +16,7 @@ const CHECKSUM_ALPHABET = `${ALPHABET}|`;
 const PAYLOAD_START = 29;
 const LAST_SEQUENCE = 2147483647;
 
-export function textChecksum(text: string): number | undefined {
+function textChecksum(text: string): number | undefined {
   let checksum = 0;
   for (let i = 0; i < text.length; i++) {
     const symbol = CHECKSUM_ALPHABET.indexOf(text.charAt(i));

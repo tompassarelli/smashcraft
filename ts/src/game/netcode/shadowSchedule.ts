@@ -17,7 +17,7 @@ export const DEFAULT_ROLLBACK_WINDOW = 6;
 export const PENDING_CAPACITY = 256;
 
 /** Whether a resolved row used only accepted input, or local or predicted rows too. */
-export type Resolution = "accepted" | "speculative";
+type Resolution = "accepted" | "speculative";
 
 const NEUTRAL: Readonly<InputRow> = emptyInput();
 

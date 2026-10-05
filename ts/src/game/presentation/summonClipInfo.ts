@@ -1,6 +1,6 @@
 import { f32 } from "waygate/src/sim/f32";
 
-export interface SummonOriginalClip {
+interface SummonOriginalClip {
   valid: boolean;
   modelPath: string;
   startSeconds: number;
@@ -11,7 +11,7 @@ export interface SummonOriginalClip {
 export const SUMMON_BEAR = 0;
 export const SUMMON_BEAR_WALK = 0;
 export const SUMMON_BEAR_ATTACK = 1;
-export const SUMMON_CLIP_CAPACITY = 2;
+const SUMMON_CLIP_CAPACITY = 2;
 
 // Generated from original model intervals by wc3-melee:tools/animations/export-summon-clips.ts.
 const BEAR_CLIPS: readonly SummonOriginalClip[] = [

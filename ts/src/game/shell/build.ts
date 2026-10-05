@@ -6,13 +6,13 @@ import type { FixedDelay } from "../netcode/fixedSchedule";
 export type JournalIngress = "files" | "keyboard" | "editbox";
 
 /** Rollback input: a fixed delay D and a rollback window R, both for every epoch. */
-export interface ShadowSettings {
+interface ShadowSettings {
   readonly delay: FixedDelay;
   readonly rollback: number;
 }
 
 /** Where each client's synchronized input comes from. */
-export type InputMode =
+type InputMode =
   /** Key events adapted on the game callback; no synchronized input rows. */
   | { readonly kind: "callback" }
   /** Keys polled on the callback into rollback rows; pairedSends sends two rows per message. */
@@ -23,7 +23,7 @@ export type InputMode =
 export type ShadowInputMode = Exclude<InputMode, { kind: "callback" }>;
 
 /** native: the fighter unit animates; pool: clip models, from confirmed or predicted state. */
-export type PresentationProfile = "native" | "pool-confirmed" | "pool-predicted";
+type PresentationProfile = "native" | "pool-confirmed" | "pool-predicted";
 
 export type Scenario = "normal" | "knockdown" | "tech" | "shield-break" | "ledge" | "parry" | "spike" | "ko";
 

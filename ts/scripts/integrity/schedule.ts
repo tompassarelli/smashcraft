@@ -5,12 +5,12 @@
 import { ABS_RZ, ABS_X, ABS_Y, ABS_Z, BTN_EAST, BTN_NORTH, BTN_SOUTH, BTN_TL, BTN_TR, BTN_WEST, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import type { Slot } from "./reconcile";
 
-export interface Binding extends SourceEdge {
+interface Binding extends SourceEdge {
   readonly name: string;
 }
 
 /** The pressed edge of each binding. The reconciler derives action bits independently. */
-export const BINDINGS = [
+const BINDINGS = [
   { name: "move-left", type: EV_ABS, code: ABS_X, value: -32768 },
   { name: "move-right", type: EV_ABS, code: ABS_X, value: 32767 },
   { name: "move-down", type: EV_ABS, code: ABS_Y, value: 32767 },
@@ -39,7 +39,7 @@ export interface Pulse {
 /** The process a stall stops: slot 0's helper, or client B's game. */
 export type StallTarget = { readonly kind: "helper"; readonly slot: 0 } | { readonly kind: "game"; readonly slot: 1 };
 
-export type Step =
+type Step =
   | Pulse
   | { readonly kind: "sleep"; readonly millis: number }
   /** Stop the process, pulse while it is stopped, and continue it 250 ms after it stopped. */

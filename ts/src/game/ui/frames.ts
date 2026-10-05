@@ -39,7 +39,7 @@ export function coverScreen(frame: framehandle): void {
 }
 
 /** Gives the clicking player's keyboard back to the game: a focused button would swallow hotkeys. */
-export function releaseFocus(frame: framehandle, clicker: player): void {
+function releaseFocus(frame: framehandle, clicker: player): void {
   if (GetLocalPlayer() !== clicker) return;
   const enabled = BlzFrameGetEnable(frame);
   BlzFrameSetEnable(frame, !enabled);

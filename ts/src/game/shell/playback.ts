@@ -9,7 +9,7 @@ import type { ShadowInputSchedule } from "../netcode/shadowSchedule";
 import type { Roster } from "../sim/roster";
 
 /** The speculative world after a reconciliation: unchanged, replayed from a frame, or refused. */
-export type Reconciliation = "unchanged" | "rejected" | { readonly replayedFrom: number };
+type Reconciliation = "unchanged" | "rejected" | { readonly replayedFrom: number };
 
 /** Called after each speculative frame runs and before the schedule completes it, with the local row it used. */
 export type SpeculativeFrameObserver = (frame: number, local: Readonly<InputRow>) => void;

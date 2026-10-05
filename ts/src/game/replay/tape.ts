@@ -22,8 +22,8 @@ import { toReal } from "../../runtime/wurst";
 export const TAPE_HEADER = "smashcraft-tape 1";
 
 type FieldOf<V> = { [K in keyof Controls]-?: Controls[K] extends V ? K : never }[keyof Controls];
-export type FlagField = FieldOf<boolean>;
-export type NumberField = FieldOf<number>;
+type FlagField = FieldOf<boolean>;
+type NumberField = FieldOf<number>;
 
 const FLAG_FIELDS: Readonly<Record<FlagField, true>> = {
   diStickValid: true, sdiPulse: true, attackRequested: true, specialPressed: true, down: true, shield: true,
@@ -44,12 +44,12 @@ const NUMBER_FIELDS: Readonly<Record<NumberField, "int" | "real">> = {
 const isFlagField = (name: string): name is FlagField => name in FLAG_FIELDS;
 const isNumberField = (name: string): name is NumberField => name in NUMBER_FIELDS;
 
-export type ControlAssignment =
+type ControlAssignment =
   | { readonly kind: "flag"; readonly field: FlagField; readonly value: boolean }
   | { readonly kind: "number"; readonly field: NumberField; readonly value: number };
 
-export type MenuOperation = "character" | "stage" | "stocks" | "time";
-export type MenuRequest = "stage-select" | "start" | "rematch";
+type MenuOperation = "character" | "stage" | "stocks" | "time";
+type MenuRequest = "stage-select" | "start" | "rematch";
 
 export type TapeOperation =
   | { readonly kind: "input"; readonly line: number; readonly slot: ParticipantSlot; readonly controls: readonly ControlAssignment[]; readonly attacks: readonly AttackCommand[] }
@@ -59,7 +59,7 @@ export type TapeOperation =
   | { readonly kind: MenuOperation; readonly line: number; readonly slot: number; readonly value: number }
   | { readonly kind: MenuRequest; readonly line: number; readonly slot: number };
 
-export type Decoded<T> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly line: number; readonly message: string };
+type Decoded<T> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly line: number; readonly message: string };
 
 function parseInteger(word: string | undefined): number | undefined {
   if (word === undefined) return undefined;

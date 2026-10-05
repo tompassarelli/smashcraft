@@ -16,7 +16,7 @@ export interface KeyboardCapture {
 }
 
 /** A schedule that assigns local samples to frames, fixed or shadow. */
-export interface LocalSchedule {
+interface LocalSchedule {
   captureLocal(epoch: number, sample: Readonly<InputRow>): Capture;
 }
 
