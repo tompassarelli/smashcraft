@@ -18,7 +18,8 @@ public constant int SHADOW_TOO_FAR_AHEAD = 8
 public constant int SHADOW_INVALID_SAMPLE = 9
 
 public constant int SHADOW_DEFAULT_ROLLBACK_WINDOW = 6
-public constant int SHADOW_PENDING_CAPACITY = 256
+// Same bound as INPUT_LEDGER_CAPACITY: retained replay history plus future input.
+public constant int SHADOW_PENDING_CAPACITY = 512
 
 // The common accepted ledger owns synchronized rows and the confirmed cursor.
 // This class keeps speculative/local-only rows detached from that common state.
