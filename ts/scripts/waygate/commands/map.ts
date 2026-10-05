@@ -8,9 +8,10 @@ import { buildProject, gameFilesLayer, profileOption, sourceErrorsLayer } from "
 import { SMASHCRAFT_MAP } from "../../mapInfo";
 import { fighterUnits, fileIoAbility } from "../../objectData";
 
-const profileOptions = (args: readonly string[]) => Effect.gen(function*() {
+/** `--profile NAME` removed from the arguments, and that profile's map services. */
+export const profileOptions = (args: readonly string[]) => Effect.gen(function*() {
   const { profile, args: remaining } = yield* profileOption(args);
-  const services = MapBuild.layer(buildProject(profile)).pipe(Layer.provideMerge(sourceErrorsLayer), Layer.provide(gameFilesLayer));
+  const services = MapBuild.layer(buildProject(profile)).pipe(Layer.provideMerge(sourceErrorsLayer), Layer.provideMerge(gameFilesLayer));
   return { args: remaining, services };
 });
 

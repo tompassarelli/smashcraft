@@ -1,0 +1,14 @@
+[
+  {
+    "client": "a",
+    "path": "/home/tom/.local/share/smashcraft-build-inputs/native-owner-20261005/fresh-speed/run-02-video/a.mkv",
+    "spawned_ns": "1791214384561639629",
+    "first_bytes_ns": "1791214389677313742"
+  },
+  {
+    "client": "b",
+    "path": "/home/tom/.local/share/smashcraft-build-inputs/native-owner-20261005/fresh-speed/run-02-video/b.mkv",
+    "spawned_ns": "1791214384561955782",
+    "first_bytes_ns": "1791214389683237125"
+  }
+]

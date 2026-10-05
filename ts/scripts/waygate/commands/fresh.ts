@@ -38,23 +38,21 @@ export const JOIN_NAME = { x: 300, y: 1205 };
 export const JOIN = { x: 1295, y: 1213 };
 export const START = { x: 2195, y: 1127 };
 
-import { clientState, mapBuildLayer, gameFilesLayer, sourceErrorsLayer } from "../project";
-
-const commandServices = mapBuildLayer.pipe(
-  Layer.provideMerge(sourceErrorsLayer),
-  Layer.provideMerge(gameFilesLayer),
-  Layer.provideMerge(Clients.layer(clientState)),
-);
+import { clientState } from "../project";
+import { profileOptions } from "./map";
 
 export const fresh: Command = (args) => Effect.gen(function*() {
-  const [map, ...flags] = args;
+  const options = yield* profileOptions(args);
+  const [map, ...flags] = options.args;
   if (map === undefined || flags.some((flag) => flag !== "--rebuild" && flag !== "--from-game")) {
-    return yield* new UsageFailure({ problem: "fresh takes MAP.w3x [--rebuild] [--from-game]" });
+    return yield* new UsageFailure({ problem: "fresh takes MAP.w3x [--rebuild] [--from-game] [--profile PROFILE]" });
   }
-  if (flags.includes("--rebuild")) yield* rebuildMap(map).pipe(step("map rebuilt"));
-  yield* freshMatch(map, flags.includes("--from-game"));
-  yield* startQuickMatch.pipe(step("quick match and client receipts"));
-}).pipe(Effect.provide(commandServices));
+  yield* Effect.gen(function*() {
+    if (flags.includes("--rebuild")) yield* rebuildMap(map).pipe(step("map rebuilt"));
+    yield* freshMatch(map, flags.includes("--from-game"));
+    yield* startQuickMatch.pipe(step("quick match and client receipts"));
+  }).pipe(Effect.provide(options.services.pipe(Layer.provideMerge(Clients.layer(clientState)))));
+});
 
 /** The game in every client, at character selection. */
 export const freshMatch = (map: string, fromGame = false) => Effect.gen(function*() {
