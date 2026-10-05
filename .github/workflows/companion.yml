@@ -1,0 +1,51 @@
+name: Companion
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "companion/**"
+      - ".github/workflows/companion.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: companion-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  helper:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+        working-directory: companion
+    steps:
+      - uses: actions/checkout@v5
+      - name: Linux build libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y -q libudev-dev libxkbcommon-dev
+      - name: Pinned Rust toolchain
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: companion
+      - name: Unit tests
+        run: cargo test --locked
+      # Windows and macOS: the real helper, an SDL virtual pad and two stand-in
+      # windows in the runner's desktop session. Linux focus needs Niri or labwc.
+      - name: End-to-end helper test
+        if: runner.os != 'Linux'
+        run: cargo test --locked --features e2e --test e2e -- --nocapture
+      - name: Build stand-in
+        if: runner.os == 'Linux'
+        run: cargo build --locked --features e2e --bins

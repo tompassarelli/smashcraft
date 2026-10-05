@@ -1,17 +1,24 @@
-#![forbid(unsafe_code)]
+// Unsafe code is confined to the Windows/macOS foreground adapters in focus.rs.
+#![deny(unsafe_code)]
 mod focus;
 #[cfg(target_os = "linux")]
 mod wlr;
 
+use focus::Foreground;
 use sdl3::{
+    JoystickSubsystem,
     event::Event,
     gamepad::{Axis, Button, Gamepad},
-    joystick::JoystickId,
+    joystick::{
+        Joystick, JoystickId, JoystickType, VirtualJoystickConnection, VirtualJoystickDescription,
+    },
 };
 use std::{
+    io::BufRead,
     sync::{
         Arc,
         atomic::{AtomicBool, Ordering},
+        mpsc,
     },
     time::{Duration, Instant},
 };
@@ -32,6 +39,148 @@ struct Options {
     niri_window: Option<u64>,
     wlr_app_id: Option<String>,
     check_focus: bool,
+    virtual_pad: bool,
+}
+
+#[cfg(target_os = "linux")]
+const HELP: &str = "wc3-controller [--list] [--watch-seconds N] [--gamepad ID]\n\
+                    Observation only by default. Live output additionally requires:\n\
+                    --emit --display DISPLAY --x11-window DECIMAL_ID --pid PID --niri-window ID\n\
+                    Or --private-wlr-app-id ID in the isolated labwc test desktop instead of --niri-window.\n\
+                    --check-focus checks selected target without opening keyboard output. Windows/macOS refuse live output.";
+
+#[cfg(not(target_os = "linux"))]
+const HELP: &str = "wc3-controller [--list] [--watch-seconds N] [--gamepad ID]\n\
+                    Observation only by default. --emit sends keys only while Warcraft III is the\n\
+                    foreground application; add --pid PID to require one game process.\n\
+                    --check-focus checks the foreground game without opening keyboard output.\n\
+                    --virtual-pad (testing) replaces hardware with an SDL virtual gamepad driven by stdin.";
+
+#[cfg(target_os = "linux")]
+fn target(o: &Options) -> Result<focus::Target, String> {
+    Ok(focus::Target {
+        display: o.display.clone().ok_or("--emit requires --display")?,
+        window: o.window.ok_or("--emit requires --x11-window")?,
+        pid: o.pid.ok_or("--emit requires --pid")?,
+        niri_window: o.niri_window,
+        wlr_app_id: o.wlr_app_id.clone(),
+    })
+}
+
+#[cfg(not(target_os = "linux"))]
+fn target(o: &Options) -> Result<focus::Target, String> {
+    if o.display.is_some()
+        || o.window.is_some()
+        || o.niri_window.is_some()
+        || o.wlr_app_id.is_some()
+    {
+        return Err(
+            "--display, --x11-window, --niri-window and --private-wlr-app-id select Linux desktops"
+                .into(),
+        );
+    }
+    Ok(focus::Target { pid: o.pid })
+}
+
+// Ascending SDL enum order: SDL numbers a virtual gamepad's controls that way.
+const VIRTUAL_BUTTONS: [Button; 7] = [
+    Button::South,
+    Button::East,
+    Button::West,
+    Button::North,
+    Button::Start,
+    Button::LeftShoulder,
+    Button::RightShoulder,
+];
+const VIRTUAL_AXES: [Axis; 6] = [
+    Axis::LeftX,
+    Axis::LeftY,
+    Axis::RightX,
+    Axis::RightY,
+    Axis::TriggerLeft,
+    Axis::TriggerRight,
+];
+
+/// Test seam: an SDL virtual gamepad inside this process, so SDL's own gamepad
+/// event path carries scripted input exactly as it carries a physical pad's.
+/// Stdin lines use SDL's control names: `button a|b|x|y|start|leftshoulder|rightshoulder 0|1`,
+/// `axis leftx|lefty|rightx|righty|lefttrigger|righttrigger RAW` (raw joystick
+/// units; SDL maps triggers from -32768..32767 to 0..32767), `detach`, `quit`.
+struct VirtualPad {
+    attached: Option<(Joystick, VirtualJoystickConnection)>,
+    commands: mpsc::Receiver<String>,
+}
+
+impl VirtualPad {
+    fn attach(joysticks: &JoystickSubsystem) -> Result<Self, String> {
+        let desc = VirtualJoystickDescription::new()
+            .name("Smashcraft virtual pad")
+            .joystick_type(JoystickType::Gamepad)
+            .with_buttons(VIRTUAL_BUTTONS)
+            .with_axes(VIRTUAL_AXES);
+        let connection = joysticks
+            .attach_virtual_joystick(desc)
+            .map_err(|e| e.to_string())?;
+        let joystick = joysticks.open(connection.id()).map_err(|e| e.to_string())?;
+        let (sender, commands) = mpsc::channel();
+        std::thread::spawn(move || {
+            for line in std::io::stdin().lock().lines() {
+                let Ok(line) = line else { break };
+                if sender.send(line).is_err() {
+                    return;
+                }
+            }
+            let _ = sender.send("quit".into());
+        });
+        Ok(Self {
+            attached: Some((joystick, connection)),
+            commands,
+        })
+    }
+
+    /// Apply at most one command, so each state change reaches SDL's event
+    /// queue in its own pump rather than collapsing with the next one.
+    fn step(&mut self, running: &AtomicBool) -> Result<(), String> {
+        let Ok(line) = self.commands.try_recv() else {
+            return Ok(());
+        };
+        let words: Vec<_> = line.split_whitespace().collect();
+        match words.as_slice() {
+            ["quit"] => running.store(false, Ordering::Relaxed),
+            ["detach"] => {
+                // Close this extra handle before SDL_DetachVirtualJoystick runs.
+                if let Some((joystick, connection)) = self.attached.take() {
+                    drop(joystick);
+                    drop(connection);
+                }
+            }
+            ["button", name, value] => {
+                let button = VIRTUAL_BUTTONS
+                    .iter()
+                    .position(|button| button.string() == *name)
+                    .ok_or_else(|| format!("unknown virtual button {name}"))?;
+                if let Some((joystick, _)) = &self.attached {
+                    joystick
+                        .set_virtual_button(button as u32, *value == "1")
+                        .map_err(|e| e.to_string())?;
+                }
+            }
+            ["axis", name, value] => {
+                let axis = VIRTUAL_AXES
+                    .iter()
+                    .position(|axis| axis.string() == *name)
+                    .ok_or_else(|| format!("unknown virtual axis {name}"))?;
+                let value = value.parse().map_err(|_| "invalid virtual axis value")?;
+                if let Some((joystick, _)) = &self.attached {
+                    joystick
+                        .set_virtual_axis(axis as u32, value)
+                        .map_err(|e| e.to_string())?;
+                }
+            }
+            _ => return Err(format!("unknown virtual pad command {line:?}")),
+        }
+        Ok(())
+    }
 }
 
 fn options() -> Result<Options, String> {
@@ -40,18 +189,13 @@ fn options() -> Result<Options, String> {
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--help" | "-h" => {
-                println!(
-                    "wc3-controller [--list] [--watch-seconds N] [--gamepad ID]\n\
-                    Observation only by default. Live output additionally requires:\n\
-                    --emit --display DISPLAY --x11-window DECIMAL_ID --pid PID --niri-window ID\n\
-                    Or --private-wlr-app-id ID in the isolated labwc test desktop instead of --niri-window.\n\
-                    --check-focus checks selected target without opening keyboard output. Windows/macOS refuse live output."
-                );
+                println!("{HELP}");
                 std::process::exit(0);
             }
             "--list" => {}
             "--emit" => o.emit = true,
             "--check-focus" => o.check_focus = true,
+            "--virtual-pad" => o.virtual_pad = true,
             "--private-wlr-app-id" => {
                 o.wlr_app_id = Some(args.next().ok_or("missing private compositor app ID")?)
             }
@@ -187,24 +331,12 @@ fn run() -> Result<(), String> {
             if o.seconds.is_some() { eprintln!($($arg)*); } else { println!($($arg)*); }
         };
     }
-    #[cfg(target_os = "linux")]
     let mut gate = if o.emit || o.check_focus {
-        Some(focus::Gate::new(focus::Target {
-            display: o.display.clone().ok_or("--emit requires --display")?,
-            window: o.window.ok_or("--emit requires --x11-window")?,
-            pid: o.pid.ok_or("--emit requires --pid")?,
-            niri_window: o.niri_window,
-            wlr_app_id: o.wlr_app_id,
-        })?)
+        Some(focus::Gate::new(target(&o)?)?)
     } else {
         None
     };
-    #[cfg(not(target_os = "linux"))]
-    if o.emit || o.check_focus {
-        return Err("live output is unavailable until native foreground game identity is implemented on this OS".into());
-    }
 
-    #[cfg(target_os = "linux")]
     if o.check_focus {
         println!(
             "game-eligible={} (read-only; no keyboard backend opened)",
@@ -219,6 +351,13 @@ fn run() -> Result<(), String> {
     }
     let sdl = sdl3::init().map_err(|e| e.to_string())?;
     let gamepads = sdl.gamepad().map_err(|e| e.to_string())?;
+    let mut virtual_pad = if o.virtual_pad {
+        Some(VirtualPad::attach(
+            &sdl.joystick().map_err(|e| e.to_string())?,
+        )?)
+    } else {
+        None
+    };
     let mut events = sdl.event_pump().map_err(|e| e.to_string())?;
     events.pump_events();
     let ids = gamepads.gamepads().map_err(|e| e.to_string())?;
@@ -283,6 +422,9 @@ fn run() -> Result<(), String> {
         "# selected={id}; discarded_startup_events={startup_events}; release all mapped controls to arm; transitions are previews only unless --emit"
     );
     while running.load(Ordering::Relaxed) && start.elapsed() < Duration::from_secs(seconds) {
+        if let Some(virtual_pad) = &mut virtual_pad {
+            virtual_pad.step(&running)?;
+        }
         let dequeued: Vec<_> = events
             .poll_iter()
             .map(|event| {
@@ -294,7 +436,6 @@ fn run() -> Result<(), String> {
             })
             .collect();
         let mut eligible = true;
-        #[cfg(target_os = "linux")]
         if let Some(gate) = &mut gate {
             match gate.eligible() {
                 Ok(value) => {
@@ -310,8 +451,6 @@ fn run() -> Result<(), String> {
                 }
             }
         }
-        #[cfg(not(target_os = "linux"))]
-        let _ = (&mut eligible, &mut last_error);
         let recovering = last_eligibility == Some(false);
         if !eligible || recovering || !mapper.armed() {
             let release = if eligible && pad.connected() {
@@ -363,27 +502,18 @@ fn run() -> Result<(), String> {
                 let mut event_eligible = !suppression;
                 for transition in transitions {
                     if event_eligible {
-                        let still_eligible = {
-                            #[cfg(target_os = "linux")]
-                            {
-                                match &mut gate {
-                                    Some(gate) => match gate.eligible() {
-                                        Ok(value) => value,
-                                        Err(error) => {
-                                            if last_error.as_ref() != Some(&error) {
-                                                eprintln!("eligibility unavailable: {error}");
-                                            }
-                                            last_error = Some(error);
-                                            false
-                                        }
-                                    },
-                                    None => true,
+                        let still_eligible = match &mut gate {
+                            Some(gate) => match gate.eligible() {
+                                Ok(value) => value,
+                                Err(error) => {
+                                    if last_error.as_ref() != Some(&error) {
+                                        eprintln!("eligibility unavailable: {error}");
+                                    }
+                                    last_error = Some(error);
+                                    false
                                 }
-                            }
-                            #[cfg(not(target_os = "linux"))]
-                            {
-                                true
-                            }
+                            },
+                            None => true,
                         };
                         if !still_eligible {
                             event_eligible = false;
