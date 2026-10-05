@@ -101,6 +101,15 @@ lobby, Create Game and Custom Games screens. Both modes verify results and
 Custom Games after leaving, actual lobby player counts after hosting/joining,
 and fresh ready files after loading.
 
+`bun waygate hot --data A --data B --watch` also prints each native desync:
+its turn and every Warcraft engine value that differs, with both clients'
+values, from the Desync.txt each client writes (see Waygate's
+docs/hot-reload.md, "Desync reports"). To check that path, type
+`-dev desync` in a dev-console build (`main` or `integrity` profile): the
+typing player's client alone creates one timer, so the clients' handle
+counts diverge and Warcraft ends the game in a desync. The playable profile
+registers no `-dev` command.
+
 Pure simulation, numeric operations, code transforms and binary-format
 encoders remain plain TypeScript. The TSTL map compiler uses TypeScript 6's
 compiler API, while the host checker uses TypeScript 7 with Effect tsgo. A
