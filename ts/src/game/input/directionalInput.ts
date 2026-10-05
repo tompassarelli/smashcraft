@@ -1,4 +1,12 @@
+import { type Action, has } from "./actions";
 import type { Direction } from "./inputRow";
+
+/** 1 for only `positive` in the mask, -1 for only `negative`: opposite keys cancel. */
+export function directionOf(mask: number, positive: Action, negative: Action): Direction {
+  const toward = has(mask, positive);
+  if (toward === has(mask, negative)) return 0;
+  return toward ? 1 : -1;
+}
 
 /**
  * Keyboard directions read as a stick. Entering a new nonzero direction on
