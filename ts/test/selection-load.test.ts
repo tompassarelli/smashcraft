@@ -1,7 +1,7 @@
 // Native work per frame of the playable entry on two simulated clients, from
 // fighter selection through match start. Warcraft runs everything a callback
 // asks for before it draws, so these counts bound a frame's native cost: the
-// 0.0.44 candidate stalled at selection on 32 file lookups a second, and the
+// 0.0.45 candidate stalled at selection on 32 file lookups a second, and the
 // pooled fighter clips are hundreds of effects created on one frame.
 import { afterAll, expect, test } from "bun:test";
 import { originalClip, originalClipCount, originalLightPath } from "../src/game/assets/fighterOriginalClipInfo";
