@@ -8,7 +8,8 @@ import { start as startDevelopment } from "../src/platform/main";
 import { start as startPlayable } from "../src/platform/playableMain";
 import { STACK_DEMO_COMMAND, STACK_DEMO_HANDLER } from "../src/platform/stackDemo";
 import { start as startStackTrace } from "../src/platform/stackTraceMain";
-import { Lockstep, installNatives } from "./desync/twoClients";
+import { installNatives } from "./desync/simulatedClient";
+import { Lockstep } from "./desync/twoClients";
 
 const restoreNatives = installNatives();
 afterAll(restoreNatives);

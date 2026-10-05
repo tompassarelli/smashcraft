@@ -67,7 +67,7 @@ const readRecord = (root: string) =>
     if (!capture.playable) return yield* new IntegrityFailure({ operation: "reconcile playable", path, cause: "not a playable capture" });
     const results = new Map<number, readonly string[]>();
     for (const raw of capture.events) {
-      if ((raw as { readonly event?: unknown }).event !== "results") continue;
+      if (typeof raw !== "object" || raw === null || !("event" in raw) || raw.event !== "results") continue;
       const { epoch, texts } = yield* decode(ResultsEvent)(raw);
       results.set(epoch, texts);
     }
