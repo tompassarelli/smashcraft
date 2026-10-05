@@ -1,0 +1,17 @@
+{
+  "build": "chat-recovery-20261005",
+  "map_sha256": "bfefc52d286bcb2cea8f71ceb5c67ef983a3c5d84d970d52aadd986061bc1d0c",
+  "open_receipt": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT TEXT ACK v=1 build=chat-recovery-20261005 epoch=1 slot=0 received=157 consumed=157 revision=88 chat=1 chatState=3 chatFrame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+  "closed_receipt": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT TEXT ACK v=1 build=chat-recovery-20261005 epoch=1 slot=0 received=157 consumed=157 revision=1240 chat=1 chatState=0 chatFrame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+  "helper_states": [
+    "chat_state epoch=1 chat=1 state=1 mono_ns=571766382176343",
+    "chat_quiescent epoch=1 chat=1 mono_ns=571768468270635",
+    "chat_state epoch=1 chat=1 state=2 mono_ns=571769204677011",
+    "chat_return epoch=1 chat=1 mono_ns=571769235837250",
+    "chat_state epoch=1 chat=1 state=3 mono_ns=571769237472595",
+    "chat_state epoch=1 chat=1 state=0 mono_ns=571776986542260"
+  ],
+  "trial_failure": "Full-screen OCR split the unsent marker; chat-period controls were not reached.",
+  "retained_crop_observation": "ITo Allies: UNSENTCHATPROBE |",
+  "scope": "Native frame lookup and return to receiver observed; suppression/resume/rematch still unaccepted."
+}

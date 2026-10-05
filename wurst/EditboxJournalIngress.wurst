@@ -6,7 +6,7 @@ import VocabularyIngress
 public constant int EDITBOX_JOURNAL_CAPACITY = 4096
 
 // Warcraft 3.0's chat entry has no registered frame name. Its two children
-// are the recipient label and editbox; only the editbox has one leaf child.
+// are the recipient label and a four-child editbox whose first child has five leaves.
 // Cache the unique native subtree on every client before local visibility use.
 function nativeChatEntry() returns framehandle
     framehandle found = null
@@ -15,9 +15,9 @@ function nativeChatEntry() returns framehandle
         if BlzFrameGetName(candidate) == "" and BlzFrameGetChildrenCount(candidate) == 2
             let label = BlzFrameGetChild(candidate, 0)
             let entry = BlzFrameGetChild(candidate, 1)
-            if BlzFrameGetName(label) == "" and BlzFrameGetName(entry) == "" and BlzFrameGetChildrenCount(label) == 0 and BlzFrameGetChildrenCount(entry) == 1
+            if BlzFrameGetName(label) == "" and BlzFrameGetName(entry) == "" and BlzFrameGetChildrenCount(label) == 0 and BlzFrameGetChildrenCount(entry) == 4
                 let text = BlzFrameGetChild(entry, 0)
-                if BlzFrameGetName(text) == "" and BlzFrameGetChildrenCount(text) == 0
+                if BlzFrameGetName(text) == "" and BlzFrameGetChildrenCount(text) == 5
                     if found != null
                         return null
                     found = candidate

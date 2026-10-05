@@ -2,7 +2,33 @@
 
 ## Current repair result
 
-**Chat now opens after shared pause, but controller recovery still fails.**
+**Native chat visibility and return to the receiver are repaired; the full
+suppression/resume journey is still pending.** In `chat-visibility2-20261005`,
+2,674 cached controls were observed before/open/closed on both clients. Only
+the chatting client's native subtree at `GAME_UI` child 290 changed visibility.
+Its unnamed two-child container has a label and a four-child editbox; the latter's
+first child has five leaves. This signature was unique in the captured tree.
+The receiver caches that structure rather than relying on child index 290.
+
+The corrected `chat-recovery-20261005` map has SHA256
+`bfefc52d286bcb2cea8f71ceb5c67ef983a3c5d84d970d52aadd986061bc1d0c`.
+The existing native journey established shared pause at frame 309, drained
+157 records, observed chat and received `chatState=3`. Escape restored
+`chatState=0` and the receiver. The fixture stopped before chat-period controls
+because full-screen OCR split its marker; a single-line crop of the retained
+image reads the complete `UNSENTCHATPROBE`. That observation step is corrected
+without changing the map or weakening the exact marker check.
+
+Observed subtree, diagnostic source and gameplay receipts are retained under
+wc3-melee:docs/controller-chat-native-20261005/visibility. Full captures remain
+under wc3-melee:build/native-chat-visibility-r2-20261005 and
+wc3-melee:build/native-controller-chat-recovery-r1-20261005. The visibility
+diagnostic map hash is `e48bd86dc10d20a4cef7523e32a2381efce85aef35bb25825a306a4a5d967d55`.
+An earlier diagnostic traversed an ancestor with no exposed children; its
+two-frame output did not inspect `GAME_UI` and supplies no negative conclusion.
+
+## Prior handoff failure
+
 The unreleased `chat-handoff-20261005` candidate (`50c6d9a`) established pause
 frame 314 and drained all 160 records. The helper stopped output and pressed
 Return. Masked OCR independently read `To Allies:`. The map's selected unnamed

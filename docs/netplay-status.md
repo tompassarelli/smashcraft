@@ -12,6 +12,14 @@ physical response, cross-machine clock/fairness and broader acceptance remain.
 Exact older 0.0.40 is preserved with its known polling-loss limitation.
 Startup/artifacts: wc3-melee:docs/playable-0041.md.
 
+The two-client engineering checkpoint is complete. The first human session
+awaits Tom and another player: one fight plus rematch with the intended controls,
+reporting missed/extra actions, inconsistent timing or stuck controls. The agent
+prepares the session and repairs findings; more virtual-input runs cannot supply
+that human observation. Broader match and platform requirements stay with #17
+and #18. Keep the preserved 0.0.41 map/helper pair stable for this session;
+internal diagnostics do not supersede it.
+
 ## What shipped overnight, 5 October
 
 **Ten canonical issues remain open; none of those ten was closed overnight.**
@@ -43,23 +51,30 @@ nine charged variants now produce 1,797 queryable rows from the owning combat
 functions. Timing, contact geometry, damage, shield/hitlag values and sampled
 movement/landing transitions are available without duplicating tuning authority.
 The focused production check passed and the generated snapshot matched. This
-completes the production export portion of #12; reference joins, contextual
-matchup comparisons and measured tuning remain. See wc3-melee:docs/move-data.md.
+completes the production export portion of #12. See wc3-melee:docs/move-data.md.
 
-**Latest failed boundary: chat opening.** Enter opens native chat at character
-selection, but the automated run did not observe it opening during controller
-gameplay. The fixture stopped before chat-period controls; no recovery pass is
-claimed. Exact candidate, retained failure and next owning seam:
-wc3-melee:docs/controller-chat-native-20261005/README.md. This remains #18/#26
-work and does not invalidate the completed release checks above.
-An unreleased repair now requests shared pause, drains controller output and
-hands focus to native chat. Its first candidate reached paused native chat;
-masked OCR confirmed the label missed by the initial capture reader. The next
-candidate compiled but failed the native visibility boundary: OCR showed chat,
-while the selected unnamed frame remained invisible and the receipt stayed in
-state 2. Closing/rearming acceptance was not reached. The frame discovery is
-still wrong; this candidate is not a playable replacement. Details and raw
-evidence are in the existing chat record linked above.
+**Contextual move comparisons delivered (`055e320`):** 54 contact contexts,
+2,236 option trials and six category comparisons now demonstrate reachable
+punishment, a timing-and-reach follow-up interval, and detection of a deliberate
+category violation. Both focused tests passed and the regenerated snapshot
+matched. Four more #12 criteria are complete; reference joins, dominated-trade-off
+analysis and measured tuning remain. Exact scope: wc3-melee:docs/move-comparisons.md.
+
+**Factual reference joins delivered (`160b34d`):** 1,320 family comparisons,
+six explicit missing records and 54 bounded trade-off pairs now connect the
+production export to the factual Melee corpus. Two focused tests passed. The
+three observed one-tick readiness differences do not establish a warranted
+roster adjustment; tuning and playable before/after acceptance remain open.
+See wc3-melee:docs/move-reference-join.md.
+
+**Native chat visibility repaired:** before/open/closed observations identified
+the actual native entry. The corrected candidate pauses and drains output,
+detects open chat and restores the receiver after Escape. Its next check stopped
+at an OCR marker-reading failure before chat-period controls; reading the retained
+image as one line recovered the complete marker. The observation step is now
+corrected. Full input suppression/resume/rematch remains pending in #18/#26.
+The diagnostic does not replace playable 0.0.41. Evidence and prior failures:
+wc3-melee:docs/controller-chat-native-20261005/README.md.
 
 ## The specific answers and their owners
 

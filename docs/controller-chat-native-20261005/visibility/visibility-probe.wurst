@@ -1,0 +1,51 @@
+package ChatVisibilityProbe
+import Wurst
+import VocabularyIngress
+
+framehandle array observedFrames
+string array observedPaths
+int observedCount = 0
+int snapshot = 0
+hashtable observed = InitHashtable()
+timer probeTimer = CreateTimer()
+
+function cacheFrameTree(framehandle frame, string path, int depth)
+    if frame == null or LoadBoolean(observed, GetHandleId(frame), 0)
+        return
+    SaveBoolean(observed, GetHandleId(frame), 0, true)
+    observedFrames[observedCount] = frame
+    observedPaths[observedCount] = path
+    observedCount++
+    if depth < 6
+        for index = 0 to BlzFrameGetChildrenCount(frame) - 1
+            cacheFrameTree(BlzFrameGetChild(frame, index), path + "/" + I2S(index), depth + 1)
+
+function sampleChatVisibility()
+    if snapshot >= 3
+        PauseTimer(probeTimer)
+        return
+    if vocabularyReadTooltip("smashcraft-chat-visibility-v2-request-" + I2S(snapshot) + ".pld") != "Q"
+        return
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("CHAT VISIBILITY snapshot=" + I2S(snapshot) + " count=" + I2S(observedCount))
+    for index = 0 to observedCount - 1
+        let frame = observedFrames[index]
+        Preload(observedPaths[index] + " name=" + BlzFrameGetName(frame) + " visible=" + (BlzFrameIsVisible(frame) ? "1" : "0") + " width=" + R2SW(BlzFrameGetWidth(frame), 0, 6) + " height=" + R2SW(BlzFrameGetHeight(frame), 0, 6))
+    PreloadGenEnd("smashcraft-chat-visibility-v2-result-" + I2S(snapshot) + ".txt")
+    snapshot++
+
+function initializeChatVisibility()
+    cacheFrameTree(GAME_UI, "game-ui", 0)
+    var root = GAME_UI
+    for level = 0 to 5
+        let parent = BlzFrameGetParent(root)
+        if parent == null
+            break
+        root = parent
+    cacheFrameTree(root, "root", 0)
+    cacheFrameTree(BlzGetOriginFrame(ORIGIN_FRAME_CHAT_MSG, 0), "chat-origin", 0)
+    TimerStart(probeTimer, 0.25, true, function sampleChatVisibility)
+
+init
+    TimerStart(probeTimer, 1., false, function initializeChatVisibility)

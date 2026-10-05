@@ -370,6 +370,19 @@ def main():
                     text += "\n" + subprocess.check_output(
                         ["tesseract", str(mask), "stdout", "--psm", "11"],
                         text=True, stderr=subprocess.DEVNULL, timeout=10)
+                    if label == "marker":
+                        # Sparse full-screen OCR splits white chat text against
+                        # the battlefield. Read the native entry as one line.
+                        dimensions = subprocess.check_output(
+                            ["magick", "identify", "-format", "%w %h", str(path)], text=True).split()
+                        width, height = map(int, dimensions)
+                        crop = path.with_name(path.stem + "-entry.png")
+                        geometry = f"{width * 750 // 2560}x{height * 52 // 1440}+{width * 800 // 2560}+{height * 1065 // 1440}"
+                        subprocess.run(["magick", str(path), "-crop", geometry, "+repage",
+                                        "-resize", "300%", str(crop)], check=True, timeout=10)
+                        text += "\n" + subprocess.check_output(
+                            ["tesseract", str(crop), "stdout", "--psm", "7"],
+                            text=True, stderr=subprocess.DEVNULL, timeout=10)
                     (path.with_suffix(".txt")).write_text(text)
                     observation = dict(label=label, capture=str(path.resolve()), text=text,
                                        helper_log_bytes=(args.out / f"helper-{slot}.log").stat().st_size,

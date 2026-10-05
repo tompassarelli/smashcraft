@@ -1,0 +1,56 @@
+[
+  {
+    "slot": 0,
+    "path": "game-ui/290",
+    "snapshots": [
+      " visible=0 width=0.400000 height=0.030000",
+      " visible=1 width=0.400000 height=0.030000",
+      " visible=0 width=0.400000 height=0.030000"
+    ]
+  },
+  {
+    "slot": 0,
+    "path": "game-ui/290/0",
+    "snapshots": [
+      " visible=0 width=0.000000 height=0.000000",
+      " visible=1 width=0.051491 height=0.013000",
+      " visible=0 width=0.051491 height=0.013000"
+    ]
+  },
+  {
+    "slot": 0,
+    "path": "game-ui/290/1",
+    "snapshots": [
+      " visible=0 width=0.000000 height=0.000000",
+      " visible=1 width=0.000000 height=0.000000",
+      " visible=0 width=0.000000 height=0.000000"
+    ]
+  },
+  {
+    "slot": 0,
+    "path": "game-ui/290/1/0",
+    "snapshots": [
+      " visible=0 width=0.000000 height=0.000000",
+      " visible=1 width=0.000000 height=0.000000",
+      " visible=0 width=0.000000 height=0.000000"
+    ]
+  },
+  {
+    "slot": 0,
+    "path": "game-ui/290/1/0/0",
+    "snapshots": [
+      " visible=0 width=0.000000 height=0.000000",
+      " visible=1 width=0.000000 height=0.000000",
+      " visible=0 width=0.000000 height=0.000000"
+    ]
+  },
+  {
+    "slot": 0,
+    "path": "game-ui/290/1/0/1",
+    "snapshots": [
+      " visible=0 width=0.006732 height=0.013000",
+      " visible=1 width=0.006732 height=0.013000",
+      " visible=0 width=0.006732 height=0.013000"
+    ]
+  }
+]
