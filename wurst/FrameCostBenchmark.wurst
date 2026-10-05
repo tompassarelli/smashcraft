@@ -1,0 +1,83 @@
+package FrameCostBenchmark
+import MatchStep
+import MatchRules
+import Simulation
+import CommandBuffer
+import ReplayState
+
+@extern native smashcraftFrameCostClock() returns real
+@extern native smashcraftFrameCostEmit(string language, int frames, real totalSeconds, real meanSeconds, string initialChecksum, string finalChecksum, string finalState)
+@extern native smashcraftRunTypeScriptFrameCost()
+
+public function runWurstFrameCostBenchmark()
+    let first = new FighterState(0, 0, 1)
+    let second = new FighterState(1, 100, -1)
+    let game = new MatchState()
+    let runtime = new ReplayRuntimeState()
+    let fighters = new FighterRoster(3)
+    let controls = new FrameInputs()
+    let produced = new FrameInputs()
+    let snapshot = new ReplaySnapshot()
+    MatchFrameInput array[4096] rows
+    let firstRequests = new AttackBuffer(0)
+    let secondRequests = new AttackBuffer(0)
+
+    fighters.fighters[0] = first
+    fighters.fighters[1] = second
+    controls.commands[0] = new AttackBuffer(4)
+    controls.commands[1] = new AttackBuffer(4)
+    produced.commands[0] = firstRequests
+    produced.commands[1] = secondRequests
+    game.phase = MATCH
+    game.timeLimitMinutes = 0
+    game.stockCount = 99
+    first.stocks = 99
+    second.stocks = 99
+    snapshot.capture(fighters, game, controls, runtime)
+    let initialChecksum = snapshot.checksum()
+
+    for frame = 1 to 4096
+        let phase = frame mod 192
+        let firstInput = produced.inputs[0]
+        let secondInput = produced.inputs[1]
+        firstInput.direction = phase >= 96 and phase < 120 ? -1 : (phase >= 144 and phase < 168 ? 1 : 0)
+        secondInput.direction = -firstInput.direction
+        firstInput.jumpPressed = phase == 128
+        firstInput.jumpHeld = phase >= 128 and phase < 142
+        secondInput.shield = frame <= 16
+        secondInput.techPressed = phase == 60
+        secondInput.sdiPulse = phase mod 3 == 0
+        secondInput.sdiX = phase mod 2 == 0 ? 1 : -1
+        firstRequests.clear()
+        secondRequests.clear()
+        if frame == 1 or frame == 40
+            firstRequests.enqueue(0, 1, frame, false)
+        if phase >= 80 and phase mod 32 == 16
+            firstRequests.enqueue(1, 1, frame, false)
+        if phase == 160
+            secondRequests.enqueue(6, -1, frame, false)
+        if frame >= 3000 and frame < 3300
+            secondInput.direction = 1
+            secondRequests.clear()
+        rows[frame - 1] = new MatchFrameInput()
+        if not rows[frame - 1].capture(frame, 3, produced, runtime)
+            DisplayTextToPlayer(GetLocalPlayer(), 0, 0, "frame-cost Wurst setup failed at frame " + I2S(frame))
+            return
+
+    let started = smashcraftFrameCostClock()
+    for frame = 1 to 4096
+        if not rows[frame - 1].execute(game, fighters, controls, runtime, frame)
+            DisplayTextToPlayer(GetLocalPlayer(), 0, 0, "frame-cost Wurst execution failed at frame " + I2S(frame))
+            return
+    let elapsed = smashcraftFrameCostClock() - started
+
+    snapshot.capture(fighters, game, controls, runtime)
+    smashcraftFrameCostEmit("wurst", 4096, elapsed, elapsed / 4096, initialChecksum, snapshot.checksum(), snapshot.canonicalState())
+
+// No game shell runs in this map: the native callback owns just the paired workload.
+function runPairedBenchmark()
+    runWurstFrameCostBenchmark()
+    smashcraftRunTypeScriptFrameCost()
+
+init
+    TimerStart(CreateTimer(), 2., false, function runPairedBenchmark)

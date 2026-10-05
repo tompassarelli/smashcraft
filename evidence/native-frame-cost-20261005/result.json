@@ -1,0 +1,16 @@
+{
+  "frames": 4096,
+  "equalWorkload": true,
+  "wurst": {
+    "totalSeconds": 1.450195296,
+    "meanSeconds": 0.000354052,
+    "checksum": "391715:668934"
+  },
+  "typescript": {
+    "totalSeconds": 1.225585936,
+    "meanSeconds": 0.000299215,
+    "checksum": "391715:668934"
+  },
+  "ratio": 0.8451178536990649,
+  "removalGate": true
+}
