@@ -1,0 +1,19 @@
+# /home/tom/.local/share/smashcraft-build-inputs/integrity-clean-folders-20261006/capture
+## Local echo: median of per-second means (lowest-highest per-second mean), ms
+match 1 (epoch-1): A 132.7 (84.6-245.8), n=20 | B 133.7 (69.6-588.6), n=20
+match 2 (epoch-final): A 161.4 (102.6-1206.3), n=20 | B 148.6 (108.4-1226.1), n=20
+## Journal receipts vs game clock (ms later than at the first receipt; positive = behind real time)
+client A match 1: 231 receipts over 25.7 s, frames 6-1406
+  vs frame/60: max 2477, final 2396, quartiles 13/21/-11
+  vs game send ms (sweepwall): max 277, final 79, quartiles 13/4/39
+  CPU % of this client's Warcraft over the match (1 s samples, n=25): median 105, max 249
+client A match 2: 197 receipts over 26.7 s, frames 4-1370
+  vs frame/60: max 3911, final 3911, quartiles -13/8/1596
+  CPU % of this client's Warcraft over the match (1 s samples, n=26): median 93, max 156
+client B match 1: 229 receipts over 25.7 s, frames 6-1406
+  vs frame/60: max 2458, final 2394, quartiles -2/11/32
+  vs game send ms (sweepwall): max 333, final 78, quartiles -1/-5/15
+  CPU % of this client's Warcraft over the match (1 s samples, n=25): median 104, max 177
+client B match 2: 195 receipts over 26.9 s, frames 6-1370
+  vs frame/60: max 4182, final 4182, quartiles 11/-4/1217
+  CPU % of this client's Warcraft over the match (1 s samples, n=27): median 110, max 186

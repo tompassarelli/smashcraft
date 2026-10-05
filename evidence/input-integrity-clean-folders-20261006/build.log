@@ -1,0 +1,22 @@
+{"decision":"RESERVED","reason":"RUN","class":"heavy","requestedCpus":6,"requestedMemoryMiB":8192,"leasedCpuCeilings":12,"aggregateCpuLimit":18,"leasedMemoryMiB":16384,"cpuSomeAvg10":1.58,"memoryFullAvg10":0,"memoryAvailableMiB":64212,"reclaimed":0,"lease":"7d98942c-f510-4fb6-91d1-64489d095528","expiresAt":1791223207970}
+$ bun scripts/wisp.ts build --profile integrity --base "/home/tom/.local/share/smashcraft-build-inputs/physics-base.w3m" --container "/home/tom/.local/share/smashcraft-build-inputs/native-delivery-20261005/Smashcraft diagnostic four-fighters.w3x" --assets "/home/tom/.local/share/smashcraft-build-inputs/build-port-20261005" --summon "/home/tom/.local/share/smashcraft-build-inputs/build-port-20261005/summon-original-clips" --name "Smashcraft diagnostic clean-folders" --out "/home/tom/.local/share/smashcraft-build-inputs/integrity-clean-folders-20261006/Smashcraft diagnostic clean-folders.w3x"
+   0.033 s  verify toolchain (0.008 s)
+   0.540 s  compile map packager (0.506 s)
+   0.696 s  link Lua compiler (0.155 s)
+   1.389 s  load compiler (0.690 s)
+   1.412 s  read config (0.022 s)
+   2.434 s  create program (1.021 s)
+   4.403 s  type-check (1.968 s)
+   4.867 s  declaration signatures (0.463 s)
+   8.287 s  transpile (3.420 s)
+   8.579 s  bundle (0.291 s)
+   8.649 s  compile (7.950 s)
+   8.660 s  extract base script (0.009 s)
+   8.692 s  check script syntax (0.013 s)
+   8.726 s  extract base files (0.033 s)
+   8.726 s  generate (0.076 s)
+   8.805 s  package (0.078 s)
+   9.713 s  verify 304 entries (0.908 s)
+built /home/tom/.local/share/smashcraft-build-inputs/integrity-clean-folders-20261006/Smashcraft diagnostic clean-folders.w3x
+   9.747 s  build (9.747 s)
+{"decision":"RELEASED","lease":"7d98942c-f510-4fb6-91d1-64489d095528"}

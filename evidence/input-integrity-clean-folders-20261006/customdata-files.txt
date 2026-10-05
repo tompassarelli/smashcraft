@@ -1,0 +1,6 @@
+before the capture (01:45):
+a CustomMapData files (recursive): 71; top-level entries: 32
+b CustomMapData files (recursive): 63; top-level entries: 30
+after the capture:
+a CustomMapData files (recursive): 102; top-level entries: 62
+b CustomMapData files (recursive): 94; top-level entries: 60

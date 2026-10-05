@@ -1,0 +1,17 @@
+# /home/tom/.local/share/smashcraft-build-inputs/native-owner-20261005/sendcap/capture-b6
+## Local echo: median of per-second means (lowest-highest per-second mean), ms
+match 1 (epoch-1): A 148.0 (89.9-1284.0), n=20 | B 77.6 (65.8-298.9), n=20
+match 2 (epoch-2): A 151.2 (109.8-1632.0), n=20 | B 106.0 (76.3-229.4), n=20
+## Journal receipts vs game clock (ms later than at the first receipt; positive = behind real time)
+client A match 1: 229 receipts over 33.0 s, frames 6-1568
+  vs frame/60: max 7071, final 6998, quartiles 14/31/2498
+  vs game send ms (sweepwall): max 963, final 105, quartiles 91/92/774
+client A match 2: 199 receipts over 31.9 s, frames 8-1404
+  vs frame/60: max 8677, final 8677, quartiles 76/43/2875
+  vs game send ms (sweepwall): max 1055, final 903, quartiles 77/69/838
+client B match 1: 238 receipts over 33.0 s, frames 6-1568
+  vs frame/60: max 7015, final 6982, quartiles -2/-6/1230
+  vs game send ms (sweepwall): max 284, final -16, quartiles -2/-6/97
+client B match 2: 205 receipts over 31.0 s, frames 2-1404
+  vs frame/60: max 7631, final 7631, quartiles 4/-10/2216
+  vs game send ms (sweepwall): max 241, final 79, quartiles 41/-17/31

@@ -1,0 +1,5 @@
+$ bun scripts/wisp.ts parity result "/home/tom/.local/share/smashcraft-build-inputs/integrity-clean-folders-20261006/capture"
+   0.005 s  native input-integrity result failed (0.004 s)
+   0.005 s  parity failed (0.005 s)
+read failed for /home/tom/.local/share/smashcraft-build-inputs/integrity-clean-folders-20261006/capture/capture.json: ENOENT: no such file or directory, open '/home/tom/.local/share/smashcraft-build-inputs/integrity-clean-folders-20261006/capture/capture.json'
+error: script "wisp" exited with code 1

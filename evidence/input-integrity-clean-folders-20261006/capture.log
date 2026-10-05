@@ -1,0 +1,29 @@
+$ bun scripts/wisp.ts parity capture --helper "/home/tom/.local/share/smashcraft-build-inputs/playable-0045/wc3-journal-0.0.45" --build typescript-integrity --out "/home/tom/.local/share/smashcraft-build-inputs/integrity-clean-folders-20261006/capture" --app-id "a=steam_app_3516115571" --app-id "b=steam_app_3516115572" --first-epoch "1"
+b scene: frame 80: 1 stage deck piece drawn; 3 of 380 effects in view across 138 models
+a scene: frame 80: 1 stage deck piece drawn; 3 of 380 effects in view across 138 models
+b frame: arena sky present (98.4% of the top band is sky, needs 50%); stage in the stage band present (47 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/share/smashcraft-build-inputs/integrity-clean-folders-20261006/capture/player-view-1/b.ppm
+   9.156 s  b player view (0.728 s)
+a frame: arena sky present (92.8% of the top band is sky, needs 50%); stage in the stage band present (49 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/share/smashcraft-build-inputs/integrity-clean-folders-20261006/capture/player-view-1/a.ppm
+   9.255 s  a player view (0.831 s)
+a scene: frame 1397: 1 stage deck piece drawn; 2 of 380 effects in view across 138 models
+  33.472 s  a player view (0.100 s)
+b scene: frame 1397: 1 stage deck piece drawn; 2 of 380 effects in view across 138 models
+  33.514 s  b player view (0.140 s)
+Epoch 1: game start, tap, stock loss and results observed
+a scene: frame 1446: 1 stage deck piece drawn; 11 of 508 effects in view across 251 models
+a frame: arena sky present (92.7% of the top band is sky, needs 50%); stage in the stage band present (49 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/share/smashcraft-build-inputs/integrity-clean-folders-20261006/capture/player-view-2/a.ppm
+  66.210 s  a player view (0.273 s)
+b scene: frame 1476: 1 stage deck piece drawn; 10 of 508 effects in view across 251 models
+b frame: arena sky present (98.2% of the top band is sky, needs 50%); stage in the stage band present (47 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/share/smashcraft-build-inputs/integrity-clean-folders-20261006/capture/player-view-2/b.ppm
+  66.688 s  b player view (0.749 s)
+b scene: frame 2722: 1 stage deck piece drawn; 3 of 508 effects in view across 251 models
+  94.518 s  b player view (0.236 s)
+a scene: frame 2722: 1 stage deck piece drawn; 3 of 508 effects in view across 251 models
+  94.593 s  a player view (0.313 s)
+  94.698 s  native input-integrity capture failed (94.697 s)
+  94.698 s  parity failed (94.698 s)
+check player view in match 2 failed for /home/tom/.local/share/smashcraft-build-inputs/integrity-clean-folders-20261006/capture: a, b: a player would see
+  - a: a hit spark stayed in view for 4.00 s; it should be gone within 3.00 s (model war3mapImported/ImpactDust-203c5231debda1f1be87bee7ea942bb77b953c077731f33b78409144da9a3778.mdx: 240 frames without a break, lifetime 180; now 0 of 12 in view, 0 drawn)
+  - b: a hit spark stayed in view for 4.00 s; it should be gone within 3.00 s (model war3mapImported/ImpactDust-203c5231debda1f1be87bee7ea942bb77b953c077731f33b78409144da9a3778.mdx: 240 frames without a break, lifetime 180; now 0 of 12 in view, 0 drawn)
+  from /home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-scene-p0.txt, /home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-scene-p1.txt
+error: script "wisp" exited with code 1
