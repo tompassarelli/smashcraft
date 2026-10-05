@@ -101,8 +101,8 @@ mod linux {
         wlr_app_id: Option<String>,
     }
 
-    // At most four seconds of ordinary two-frame records, also bounded below
-    // the receiver's 4096-byte text capacity when draining a retained backlog.
+    // Bound the encoded send queue independently of the timestamped capture
+    // queue. Native receive/consume credit may lag capture without losing rows.
     const OUTPUT_RECORD_LIMIT: usize = 120;
     const OUTPUT_BYTE_LIMIT: usize = 2048;
 
@@ -113,6 +113,14 @@ mod linux {
     }
 
     impl PendingOutput {
+        fn frame_credit(&self) -> bool {
+            // A maximal I4 pair is 17 header + 2*21 row bytes. Leave a
+            // second record for the longest ACK1 control and both delimiters;
+            // pause must still be able to seal its final row and acknowledge.
+            self.records.len() + 2 <= OUTPUT_RECORD_LIMIT
+                && self.bytes + 59 + 32 + 2 <= OUTPUT_BYTE_LIMIT
+        }
+
         fn push(&mut self, wire: String) -> io::Result<()> {
             if self.records.len() >= OUTPUT_RECORD_LIMIT
                 || self.bytes + wire.len() + 1 > OUTPUT_BYTE_LIMIT
@@ -1314,6 +1322,13 @@ mod linux {
             Ok(())
         }
 
+        fn pop_for_output(&mut self, output_ready: bool, paused: bool, discard_before_ns: u128) -> Result<Option<Capture>, String> {
+            if !output_ready {
+                return Ok(None);
+            }
+            self.pop(paused, discard_before_ns)
+        }
+
         fn pop(&mut self, paused: bool, discard_before_ns: u128) -> Result<Option<Capture>, String> {
             if let Some(capture) = self.events.front() {
                 if !paused || capture.timestamp()? < discard_before_ns {
@@ -2197,6 +2212,54 @@ mod linux {
         bytes.push("a".repeat(OUTPUT_BYTE_LIMIT - 1)).unwrap();
         assert!(bytes.push("b".into()).is_err());
         assert_eq!(bytes.bytes, OUTPUT_BYTE_LIMIT);
+    }
+
+    #[test]
+    fn output_backpressure_retains_original_edges_until_consumed_credit_returns() {
+        let mut output = PendingOutput::default();
+        // Dense input fills bytes first; neutral input fills record count first.
+        for wire in ["I421100".to_owned(), "I4".to_owned() + &"0".repeat(57)] {
+            while output.frame_credit() {
+                output.push(wire.clone()).unwrap();
+            }
+            let retained_records = output.records.len();
+            let retained_bytes = output.bytes;
+            let mut input = PendingInput::default();
+            let down = timed_button(20_000_000, true);
+            let up = timed_button(25_000_000, false);
+            input.push(down, false, false).unwrap();
+            input.push(up, false, false).unwrap();
+            assert!(input.pop_for_output(output.frame_credit(), false, 0).unwrap().is_none());
+            assert_eq!(input.events.len(), 2);
+            assert_eq!(output.records.len(), retained_records);
+            assert_eq!(output.bytes, retained_bytes);
+            let mut window = TextWindow::default();
+            let now = Instant::now();
+            for sequence in 1..=16 {
+                assert_eq!(window.next(&output, 2, now).unwrap().unwrap().0, sequence);
+                window.sent(sequence, now);
+            }
+            window.receipt(&mut output, 16, 16, 1).unwrap();
+            assert!(output.frame_credit());
+            // Only regained credit permits sealing the final singleton and ACK.
+            output.push(encode_packet(2, 17, &["0".repeat(21)])).unwrap();
+            output.push("ACK1|2147483647|P|2147483646".into()).unwrap();
+            assert!(output.frame_credit());
+            let segment = FrameSegment { epoch_ns: 0, first_frame: 1 };
+            let mut state = State::default();
+            let mut edges = BTreeMap::new();
+            let mut snapshots = BTreeMap::new();
+            while let Some(capture) = input.pop_for_output(output.frame_credit(), false, 0).unwrap() {
+                let Capture::Event(event, ..) = capture else { panic!("unexpected boundary") };
+                apply_event(&[None; 6], &mut state, event, &mut edges, &mut snapshots, 1, segment, false).unwrap();
+            }
+            assert!(input.events.is_empty());
+            assert_eq!(edges.len(), 1);
+            assert_eq!(edges[&2].pressed, ATTACK);
+            assert_eq!(edges[&2].released, ATTACK);
+            assert_eq!(action_state(state), 0);
+            while output.pop().is_some() {}
+        }
     }
 
     #[test]
@@ -3447,7 +3510,11 @@ mod linux {
                     return Err("journal pause/resume commands are out of order".into());
                 }
             }
-            while let Some(capture) = pending_input.pop(paused || waiting_start, control_read.discard_before_ns)? {
+            // Keep the existing bounded raw queue as the backlog while output
+            // has no credit. Event timestamps and the sealing cursor stay put;
+            // the sender below continues consuming receipts and draining output.
+            let output_ready = mailbox.as_ref().is_none_or(|sender| sender.queued.frame_credit());
+            while let Some(capture) = pending_input.pop_for_output(output_ready, paused || waiting_start, control_read.discard_before_ns)? {
                 let (event, start_before, event_start_held) = match capture {
                     Capture::Event(event, before, after) => (event, before, after),
                     Capture::Disconnected(ns) => {
@@ -3519,7 +3586,9 @@ mod linux {
                 if let Some(barrier) = pause_barrier {
                     completed_through = completed_through.min(barrier - 1);
                 }
-                while next_frame <= completed_through {
+                while output_ready && next_frame <= completed_through
+                    && mailbox.as_ref().is_none_or(|sender| sender.queued.frame_credit())
+                {
                     if o.stop_frame.is_some_and(|stop| next_frame > stop) {
                         stop_capture = true;
                         break;
@@ -3566,7 +3635,7 @@ mod linux {
                     }
                     next_frame += 1;
                 }
-                if let Some(command) = pause_after_seal {
+                if let Some(command) = pause_after_seal.filter(|_| output_ready && next_frame > completed_through) {
                     if !pending.is_empty() {
                         submit_packet(
                             &o.out,
