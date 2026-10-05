@@ -90,5 +90,5 @@ wc3-melee:docs/controller-reconnect-native-20261005/README.md.
 This is a usable Linux checkpoint, not completed physical-latency, cross-machine
 clock/fairness, Windows/macOS, physical reconnect/chat, in-range grab/throw or ten-human-match
 acceptance. The exact older 0.0.40 keyboard-map artifact remains privately preserved.
-Current claims are owned by #25 (frames), #26 (retention), #27 (response), #17
-(integrated play) and #18 (controllers/platforms); see wc3-melee:docs/netplay-status.md.
+Current acceptance is owned by #26 (frames, retention and response), #17
+(integrated play), #18 (Linux controllers) and #34 (Windows/macOS); see wc3-melee:docs/netplay-status.md.

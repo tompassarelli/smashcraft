@@ -39,15 +39,16 @@ wc3-melee:docs/resume-clock-native-20261005/README.md.
 
 This defines the delivered local rule; it does not establish a common physical
 clock across machines. Local publication anchors differ, so an event near a
-tick boundary can fall into different local grids. #25 retains that alignment
-requirement; #26 owns loss/coalescing limits and #27 owns response timing. A
+tick boundary can fall into different local grids. The current #26 combines
+frame, retention and response acceptance; cross-machine alignment is explicitly
+outside its scope. A
 preserved frame or matching final state alone does not prove immediate physical
 response.
 
 ## Historical investigation
 
 The experiments below record the 4 October investigation. Current decisions
-belong to issue #25 and wc3-melee:docs/netplay-status.md. Historical experiment
+belong to issue #26 and wc3-melee:docs/netplay-status.md. Historical experiment
 gates do not prohibit publishing a checked checkpoint or playing the accepted
 0.0.40 build; they identify the stronger claims that remain unsupported.
 
@@ -88,7 +89,7 @@ contact test must replay the original F5 defense after delivery at F9 without
 retargeting it. Live clock alignment must bound offset/drift uncertainty,
 identify permitted boundary ambiguity, and define common pause/resume semantics.
 That experiment does not establish an end-to-end bound. Its unfinished clock
-claims remain owned by #25, independently of bounded delivery and playtesting.
+claims are historical exclusions, not gates in the current consolidated #26.
 
 ## Executable capture-time boundary rule
 

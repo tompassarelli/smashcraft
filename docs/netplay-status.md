@@ -247,53 +247,30 @@ wc3-melee:docs/warcraft-api-netcode-findings.md,
 wc3-melee:docs/native-playable-0040-evidence-20261004/ and
 wc3-melee:docs/keyboard-mailbox-20261004/README.md.
 
-## Reconciliation and consolidation of every GitHub issue
+## Current issue ownership after the 5 October cleanup
 
-No previously open umbrella issue met all its acceptance criteria. Completed
-subclaims are now visible. Eleven fragmented issues were consolidated on the
-owner's request; their requirements remain in the destination bodies and their
-original descriptions remain accessible. Those closures are not completion.
+GitHub's current **Done when** and **Not required** lists define completion.
+The cleanup merged #25/#27 into #26 and split Windows/macOS into #34; it did
+not turn the earlier bounded evidence into a completed integrity claim.
 
-| Issue | Disposition and actual remaining work |
+| Open issue | Remaining completion condition |
 | --- | --- |
-| #1 Soldat research | Consolidated into #16's deferred research; unfinished. |
-| #2 Physics/balance/VFX roadmap | Consolidated into the single roadmap #16, with work owned by #9/#12/#14. |
-| #3 Reference intake | Already completed; factual corpus, parameter sources and limitations retained. |
-| #4 Independent physics comparisons | Already completed; fixtures and perturbation detection exist. |
-| #5 Movement | Consolidated into #9; full reference trajectories and native movement acceptance remain. |
-| #6 Damage/knockback/DI | Consolidated into #9; scalar/DI work advanced, full contact/launch/native precision remain. |
-| #7 Shield behavior | Consolidated into #9; full displacement, actionable-frame and native contact cases remain. |
-| #8 Surface recovery | Consolidated into #9; tech input corrected, damage-state/contact/native recovery gaps remain. |
-| #9 Physics acceptance | Open; component passes do not close known world-scale precision and native fidelity gaps. |
-| #10 Queryable move data | Consolidated into #12; production export and reference joins remain. |
-| #11 Category balance rules | Consolidated into #12; contextual comparisons and violation check remain. |
-| #12 Move data/balance/tuning | Open; owns former #10/#11/#15 plus timing-and-reach analysis. |
-| #13 Effect event correctness | Consolidated into #14; full verified trigger/reference/lifecycle scope remains. |
-| #14 Visible effects | Partial; common grab/charge/ledge cues and star/screen KO implemented. Two-client KO observation and pause/resume pass recorded in wc3-melee:docs/ko-native-20261005/README.md; broader appearance/replay acceptance remains. |
-| #15 Measured roster tuning | Consolidated into #12; no completed before/after tuning plus playable evaluation. |
-| #16 Online roadmap | Open; original-frame input, human play, platforms, hosting and broader-player work remain. |
-| #17 Two-client integration | Partial: 0.0.41 controller combat/rematch and bounded agreement delivered; human play, response distribution and full feedback recovery remain. |
-| #18 Controller/companion | Partial: requested Linux control mappings and menu/combat/rematch path pass with virtual pads; analog range, physical and Windows/macOS acceptance remain. |
-| #19 Hosting/fairness | Open; alternative native-host admission and matched comparison not delivered. |
-| #20 2–4 players / ten matches | Consolidated into #17; the full requested match corpus remains required. |
-| #21 Timeboxed integrity decision | Already completed as a HOLD decision, not a positive readiness result. |
-| #25 Intended frames | Open; canonical owner for frame assignment, clock and pause semantics. |
-| #26 Input retention | Partial; bounded tap/stall, pause/focus, shield overlap, reconnect, combat/rematch and diagnostic chat passes are banked. Player-slot changes, rapid-repeat/axis boundaries, native loss/overflow, physical reconnect and broader hardware acceptance remain open; path/capacity limits are enumerated above. |
-| #27 Response/variation | Partial; candidate software shield response measured and admission-to-prediction delay repaired with native evidence. Broader action/physical scope remains. |
-| #28 After-capture shield prediction | Completed bounded evidence, registered during this review. |
-| #29 Native tagged defense rollback | Completed bounded evidence, registered during this review. |
-| #30 Transport comparison | Completed bounded evidence, registered during this review. |
-| #31 | Duplicate of #26, closed not planned; not a delivered fix. |
-| #32 | Duplicate of #25, closed not planned; not a delivered fix. |
-| #33 | Duplicate of #27, closed not planned; not a delivered measurement. |
+| #16 Roadmap | Tracks the ordered delivery below; not another verification gate. |
+| #26 Input integrity | One combined two-client run, at least 500 edges/player, the specified action/interrupt/rematch workload, its integrity table and passing gates. |
+| #17 Online play | Four fighters (two players + two CPUs), slot-changing rematch, #26, and three human matches with reported problems resolved or explicitly deferred by Tom. |
+| #18 Linux controller | Jump-source aggregation check, literal fresh-shell startup from the one-page instructions, and Tom's physical Xbox playtest. |
+| #9 Physics | Listed core mechanic fixtures, matching native arithmetic, and those fixes in the playable release. |
+| #14 Visuals | One lifecycle effect check and Tom's review of one recorded match; repair or explicitly defer reported problems. |
+| #12 Balance | After the human playtest, propose up to three evidence-backed adjustments; apply approved changes, or close if Tom approves none. |
+| #19 Hosting | After #26, one-day alternative-host admission/comparison; select the better demonstrated path or close as Battle.net for now. |
+| #34 Windows/macOS | Native acquisition, focused delivery and match/rematch on each OS; waits for actual machine access. |
 
-#22–#24 are pull requests, not missing issues. After consolidation: 30 historical
-issue records, **10 open work items**, six completed records, and fourteen
-duplicate/consolidation closures. The latter are not delivered engineering.
-Open items carry theme labels and now/next/later priorities; #16 is the one
-roadmap. The retention, Start pause and prediction catch-up checkpoints are banked;
-bounded focus and resume-service gaps are now repaired. Old comments remain evidence; the issue
-body owns current status.
+Completed evidence remains with #3/#4 (reference intake/comparisons), #21
+(the earlier HOLD decision), and #28–#30 (bounded prediction, rollback and
+transport results). #1/#2/#5–#8/#10/#11/#13/#15/#20 and #31–#33 were consolidated
+rather than completed engineering. #25/#27 are now also closed as consolidated
+into #26. #22–#24 are merged PRs. Historical issue bodies and comments preserve
+prior scope; they do not restore requirements excluded by the current lists.
 
 ## Source integration and branch cleanup
 
@@ -317,23 +294,17 @@ not additional remote releases. Use issue-scoped work lanes for future changes
 and finish each bounded checkpoint rather than retaining a permanent alternate
 delivery branch or making all research claims prerequisites for merging it.
 
-## The next rungs
+## The next delivery step
 
-1. **#26/#18: extend the now-playable controller path at its remaining seams.**
-   Tap/stall, bounded focus/pause and controller combat/rematch are banked. The
-   0.0.41 usable checkpoint and bounded reconnect repair are delivered. Chat,
-   physical reconnect/play, map reload and other
-   platforms remain; do not repeat the successful corpus merely for confidence.
-2. **#25: preserve the chosen frame contract.** Define active-match clock and
-   pause behavior, then compare independent expected/assigned/applied frames.
-   Do not turn a continuous-clock experiment into a silent product decision.
-3. **#27: extend the measured timing envelope to gameplay.** The shield baseline
-   and owning prediction repair are complete. Broader eligible actions and
-   physical hardware remain; keep intended buffering separate from extra delay.
-   Do not invent a universal ceiling or rigidly gate delivery on advisory
-   33/50/83 ms values.
+Extend the existing journal match fixture and reconciler for #26's one combined
+run: at least 500 input edges per player, every bound action, the specified
+stalls/pause/slot-changing rematch, independent expected frames and the requested
+integrity table. Close #26 when its two boxes pass; do not create separate
+stage-proof campaigns or add physical/common-clock gates.
 
-The already completed claims stay closed unless a relevant change or concrete
-regression reopens them. Playtesting the 0.0.41 Linux checkpoint is useful now. It is not
-a substitute for these specific technical claims, and broad platform/physics
-roadmaps must not prevent reporting progress on them.
+Then complete #17's four-fighter run and human session preparation, alongside
+#18's jump-source/startup checks. #9 retains the scoped physics lane. #12 waits
+for playtest feedback, #19 waits for #26, and #34 waits for actual OS access.
+Passing earlier scopes remain banked. The current playable artifact and exact
+startup remain wc3-melee:docs/playable-0041.md until a checked successor is
+explicitly promoted.
