@@ -2,7 +2,7 @@
 // Every file the capture driver or the game wrote is decoded once, here.
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
-import { Effect, Schema } from "effect";
+import { Effect, Predicate, Schema } from "effect";
 import type { GameFileKind } from "waygate/scripts/waygate/boundary";
 import { INPUT_TRACE_FILE, JournalControl, InputTrace, ResponsePage, responsePageFile } from "../waygate/boundary";
 import { at } from "waygate/src/runtime/lookup";
@@ -162,7 +162,7 @@ const clientExport = (root: string, epoch: number, client: number) =>
     const names = yield* tryIntegrity("list native export", directory, () => {
       try { return readdirSync(directory); }
       catch (error) {
-        if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+        if (Predicate.isObject(error) && error.code === "ENOENT") return [];
         throw error;
       }
     });

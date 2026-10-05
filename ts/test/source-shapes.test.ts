@@ -5,6 +5,18 @@ import ts from "typescript";
 const root = join(import.meta.dir, "..");
 const mapSources = [...new Bun.Glob("src/**/*.ts").scanSync(root)].sort();
 
+const parsed = new Map<string, { readonly text: string; readonly source: ts.SourceFile }>();
+/** Each audit reads the same files; parse each once. */
+function parse(path: string): { readonly text: string; readonly source: ts.SourceFile } {
+  const cached = parsed.get(path);
+  if (cached !== undefined) return cached;
+  const file = join(root, path);
+  const text = ts.sys.readFile(file) ?? "";
+  const result = { text, source: ts.createSourceFile(file, text, ts.ScriptTarget.Latest, false, ts.ScriptKind.TS) };
+  parsed.set(path, result);
+  return result;
+}
+
 interface SourceShapeViolation {
   readonly file: string;
   readonly line: number;
@@ -63,8 +75,7 @@ test("map source follows the TypeScript shapes required by #35", () => {
 
   for (const path of mapSources) {
     const file = join(root, path);
-    const text = ts.sys.readFile(file) ?? "";
-    const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
+    const { text, source } = parse(path);
     const addAt = (start: number, shape: string): void => {
       const { line } = source.getLineAndCharacterOfPosition(start);
       violations.push({ file: relative(root, file), line: line + 1, shape });
@@ -130,5 +141,31 @@ test("map source follows the TypeScript shapes required by #35", () => {
   }
 
   console.info(`source shape audit: ${JSON.stringify(counts)}`);
+  expect(violations).toEqual([]);
+});
+
+test("production TypeScript has no type escapes (#35, #38)", () => {
+  const production = [...new Bun.Glob("{src,scripts}/**/*.ts").scanSync(root)]
+    .filter((path) => !/\.(test|tests|soak)\.ts$/.test(path)).sort();
+  const violations: SourceShapeViolation[] = [];
+  const counts = { files: production.length, any: 0, nonNull: 0, assertions: 0, suppressions: 0 };
+  for (const path of production) {
+    const { text, source } = parse(path);
+    const add =(node: ts.Node, shape: keyof typeof counts): void => {
+      counts[shape]++;
+      violations.push({ file: path, line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1, shape });
+    };
+    if (/@ts-(ignore|expect-error|nocheck)/.test(text)) add(source, "suppressions");
+    const visit = (node: ts.Node): void => {
+      if (node.kind === ts.SyntaxKind.AnyKeyword) add(node, "any");
+      if (ts.isNonNullExpression(node)) add(node, "nonNull");
+      if (ts.isTypeAssertionExpression(node)) add(node, "assertions");
+      // `as const` narrows a literal; every other `as` overrides the checker.
+      if (ts.isAsExpression(node) && !(ts.isTypeReferenceNode(node.type) && node.type.typeName.getText(source) === "const")) add(node, "assertions");
+      ts.forEachChild(node, visit);
+    };
+    visit(source);
+  }
+  console.info(`type escape audit: ${JSON.stringify(counts)}`);
   expect(violations).toEqual([]);
 });
