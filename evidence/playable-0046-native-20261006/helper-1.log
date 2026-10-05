@@ -1,0 +1,24 @@
+source=/dev/input/event5 name=Some("Smashcraft Event Retention Virtual Gamepad") clock=CLOCK_MONOTONIC epoch_ns=0 frame_rule=segment_frame+floor((t-segment_epoch)*60/1e9) first=1 delay=0 pause_policy=sequenced-map-control
+controller_identity=DeviceIdentity { id: InputId { bus_type: BUS_USB, vendor: 0x45e, product: 0x28e, version: 0x114 }, name: Some("Smashcraft Event Retention Virtual Gamepad"), phys: None, uniq: None } automatic_reconnect=false
+waiting_for_match build=playable-0046 slot=1 start_before=final-match-confirmation
+input_armed=true gameplay_armed=false mono_ns=633657575895896
+menu_emit epoch=0 phase=Some(Character) key=n mono_ns=633658526304000
+match_ready epoch=1 neutral_rearm=required
+input_armed=true gameplay_armed=false mono_ns=633663943918429
+match_start epoch=1 epoch_ns=633664253198972 read_ns=633664253492667 uncertainty_ns=1100095
+input_armed=true gameplay_armed=true mono_ns=633664253471367
+match_end epoch=1 frontier=274 old_rows=drain terminal_rows=discard
+input_armed=true gameplay_armed=false mono_ns=633668820438623
+match_quiescent epoch=1
+waiting_for_match build=playable-0046 slot=1 after_epoch=1
+menu_emit epoch=1 phase=Some(Result) key=y mono_ns=633675070273000
+menu_emit epoch=1 phase=Some(Character) key=n mono_ns=633676225263000
+match_ready epoch=2 neutral_rearm=required
+input_armed=true gameplay_armed=false mono_ns=633677532972974
+match_start epoch=2 epoch_ns=633677732108230 read_ns=633677732733145 uncertainty_ns=1100090
+input_armed=true gameplay_armed=true mono_ns=633677732711404
+match_end epoch=2 frontier=288 old_rows=drain terminal_rows=discard
+input_armed=true gameplay_armed=false mono_ns=633682517930304
+match_quiescent epoch=2
+waiting_for_match build=playable-0046 slot=1 after_epoch=2
+menu_emit epoch=2 phase=Some(Result) key=y mono_ns=633689445357000

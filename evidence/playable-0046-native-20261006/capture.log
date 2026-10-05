@@ -1,0 +1,13 @@
+$ bun scripts/wisp.ts playable capture --helper "/home/tom/.local/share/smashcraft-build-inputs/playable-0046/wc3-journal-0.0.46" --build "playable-0046" --out "/home/tom/.local/share/smashcraft-build-inputs/playable-0046/capture" --app-id "a=steam_app_3516115571" --app-id "b=steam_app_3516115572" --first-epoch "1"
+a frame: arena sky present (92.7% of the top band is sky, needs 50%); stage in the stage band present (49 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/share/smashcraft-build-inputs/playable-0046/capture/player-view-1/a.ppm
+   8.515 s  a player view (0.184 s)
+b frame: arena sky present (98.2% of the top band is sky, needs 50%); stage in the stage band present (47 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/share/smashcraft-build-inputs/playable-0046/capture/player-view-1/b.ppm
+   8.590 s  b player view (0.258 s)
+Epoch 1: one-stock combat, stock loss and results observed
+a frame: arena sky present (92.7% of the top band is sky, needs 50%); stage in the stage band present (49 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/share/smashcraft-build-inputs/playable-0046/capture/player-view-2/a.ppm
+  21.965 s  a player view (0.147 s)
+b frame: arena sky present (98.2% of the top band is sky, needs 50%); stage in the stage band present (47 rows hold a deck-coloured run of at least 20% of the width, needs 15); /home/tom/.local/share/smashcraft-build-inputs/playable-0046/capture/player-view-2/b.ppm
+  22.036 s  b player view (0.217 s)
+Epoch 2: one-stock combat, stock loss and results observed
+  33.703 s  native playable match and rematch (33.703 s)
+  33.704 s  playable (33.704 s)

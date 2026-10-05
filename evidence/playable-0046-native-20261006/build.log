@@ -1,0 +1,22 @@
+{"decision":"RESERVED","reason":"RUN","class":"heavy","requestedCpus":6,"requestedMemoryMiB":8192,"leasedCpuCeilings":12,"aggregateCpuLimit":18,"leasedMemoryMiB":16384,"cpuSomeAvg10":0.97,"memoryFullAvg10":0,"memoryAvailableMiB":64641,"reclaimed":0,"lease":"15fc3fde-c2ce-4eb5-8a59-5ff29250efa0","expiresAt":1791224663284}
+$ bun scripts/wisp.ts build --profile playable --base "/home/tom/.local/share/smashcraft-build-inputs/physics-base.w3m" --container "/home/tom/.local/share/smashcraft-build-inputs/native-delivery-20261005/Smashcraft diagnostic four-fighters.w3x" --assets "/home/tom/.local/share/smashcraft-build-inputs/build-port-20261005" --summon "/home/tom/.local/share/smashcraft-build-inputs/build-port-20261005/summon-original-clips" --name "Smashcraft 0.0.46" --out "/home/tom/.local/share/smashcraft-build-inputs/playable-0046/Smashcraft 0.0.46.w3x"
+   0.035 s  verify toolchain (0.008 s)
+   0.776 s  compile map packager (0.740 s)
+   0.936 s  link Lua compiler (0.159 s)
+   1.479 s  load compiler (0.541 s)
+   1.502 s  read config (0.022 s)
+   2.262 s  create program (0.759 s)
+   4.090 s  type-check (1.826 s)
+   4.407 s  declaration signatures (0.317 s)
+   7.487 s  transpile (3.080 s)
+   7.728 s  bundle (0.240 s)
+   7.783 s  compile (6.845 s)
+   7.794 s  extract base script (0.010 s)
+   7.863 s  check script syntax (0.013 s)
+   7.903 s  extract base files (0.040 s)
+   7.904 s  generate (0.120 s)
+   7.986 s  package (0.081 s)
+   8.942 s  verify 304 entries (0.956 s)
+built /home/tom/.local/share/smashcraft-build-inputs/playable-0046/Smashcraft 0.0.46.w3x
+   8.970 s  build (8.970 s)
+{"decision":"RELEASED","lease":"15fc3fde-c2ce-4eb5-8a59-5ff29250efa0"}

@@ -1,0 +1,66 @@
+$ bun scripts/wisp.ts playable result "/home/tom/.local/share/smashcraft-build-inputs/playable-0046/capture"
+{
+  "build": "playable-0046",
+  "helper_sha256": "d78e70838306ae55adfc59928277f6019ae64648f06461b9f59bfc54cb7ecce3",
+  "epochs": [
+    1,
+    2
+  ],
+  "matches": [
+    {
+      "epoch": 1,
+      "winner": "Player 2",
+      "winner_source": "end receipts",
+      "receipt_winners": [
+        "Player 2",
+        "Player 2"
+      ],
+      "winners": [
+        "Player 2",
+        "Player 2"
+      ],
+      "end_frames": [
+        273,
+        273
+      ],
+      "result_checksums": [
+        {
+          "frame": 262,
+          "checksum": "252411:81243"
+        }
+      ]
+    },
+    {
+      "epoch": 2,
+      "winner": "Player 1",
+      "winner_source": "end receipts",
+      "receipt_winners": [
+        "Player 1",
+        "Player 1"
+      ],
+      "winners": [
+        "Player 1",
+        "Player 1"
+      ],
+      "end_frames": [
+        283,
+        285
+      ],
+      "result_checksums": [
+        {
+          "frame": 275,
+          "checksum": "264212:30917"
+        }
+      ]
+    }
+  ],
+  "error_reports": [],
+  "failures": [
+    "epoch 2: end frames differ or are absent"
+  ],
+  "passed": false
+}
+   0.040 s  native playable result failed (0.039 s)
+   0.041 s  playable failed (0.041 s)
+reconcile playable failed for /home/tom/.local/share/smashcraft-build-inputs/playable-0046/capture: the match/rematch gate failed
+error: script "wisp" exited with code 1

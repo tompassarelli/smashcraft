@@ -1,0 +1,28 @@
+source=/dev/input/event4 name=Some("Smashcraft Event Retention Virtual Gamepad") clock=CLOCK_MONOTONIC epoch_ns=0 frame_rule=segment_frame+floor((t-segment_epoch)*60/1e9) first=1 delay=0 pause_policy=sequenced-map-control
+controller_identity=DeviceIdentity { id: InputId { bus_type: BUS_USB, vendor: 0x45e, product: 0x28e, version: 0x114 }, name: Some("Smashcraft Event Retention Virtual Gamepad"), phys: None, uniq: None } automatic_reconnect=false
+waiting_for_match build=playable-0046 slot=0 start_before=final-match-confirmation
+input_armed=true gameplay_armed=false mono_ns=633657323440299
+menu_emit epoch=0 phase=Some(Character) key=n mono_ns=633658405437000
+menu_emit epoch=0 phase=Some(Character) key=y mono_ns=633658647333000
+menu_emit epoch=0 phase=Some(Stage) key=y mono_ns=633663850074000
+match_ready epoch=1 neutral_rearm=required
+input_armed=true gameplay_armed=false mono_ns=633663973181951
+match_start epoch=1 epoch_ns=633664255969410 read_ns=633664256380845 uncertainty_ns=1100091
+input_armed=true gameplay_armed=true mono_ns=633664256349657
+match_end epoch=1 frontier=275 old_rows=drain terminal_rows=discard
+input_armed=true gameplay_armed=false mono_ns=633668835663620
+match_quiescent epoch=1
+waiting_for_match build=playable-0046 slot=0 after_epoch=1
+menu_emit epoch=1 phase=Some(Result) key=n mono_ns=633675063915000
+menu_emit epoch=1 phase=Some(Character) key=n mono_ns=633676104063000
+menu_emit epoch=1 phase=Some(Character) key=y mono_ns=633676347540000
+menu_emit epoch=1 phase=Some(Stage) key=y mono_ns=633677414541000
+match_ready epoch=2 neutral_rearm=required
+input_armed=true gameplay_armed=false mono_ns=633677540565951
+match_start epoch=2 epoch_ns=633677744582166 read_ns=633677745567115 uncertainty_ns=1100095
+input_armed=true gameplay_armed=true mono_ns=633677745538792
+match_end epoch=2 frontier=286 old_rows=drain terminal_rows=discard
+input_armed=true gameplay_armed=false mono_ns=633682512887602
+match_quiescent epoch=2
+waiting_for_match build=playable-0046 slot=0 after_epoch=2
+menu_emit epoch=2 phase=Some(Result) key=n mono_ns=633689439435000
