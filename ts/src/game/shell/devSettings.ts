@@ -1,10 +1,16 @@
 // Developer chat commands ("-dev rb 12", "-dev delay 2", "-dev batch 1",
-// "-dev show") arrive as synchronized player-chat events. A match reads the
-// settings once at its start, so a command typed during a match applies from
-// the next match on every client. The receipts are read by the integrity
-// harness, so their spellings are a protocol.
+// "-dev show", "-dev quick") arrive as synchronized player-chat events. A
+// match reads the settings once at its start, so a command typed during a
+// match applies from the next match on every client; "-dev quick" starts one
+// at once. The receipts are read by the integrity harness, so their spellings
+// are a protocol.
 import { type FixedDelay, isFixedDelay } from "../netcode/fixedSchedule";
 import { parseDecimal } from "../netcode/journal/decimal";
+import { PARTICIPANT_SLOTS } from "../input/participants";
+import {
+  type MatchState, Phase, createMatchState, firstHumanSlot, humanFighterActive, humanPresent, requestStageSelect, requestStart, returnToCharacters,
+  selectCharacter, selectStage,
+} from "../match/rules";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
 
 /** Journal packets carried by one synchronized message. */
@@ -48,4 +54,25 @@ export function applyDevCommand(settings: DevSettings, message: string): string 
     return describeDevSettings(settings);
   }
   return undefined;
+}
+
+/** Starts a match with no menu navigation, for the fresh-match loop. */
+export const QUICK_MATCH_COMMAND = "-dev quick";
+
+/**
+ * Readies every present human with their slot's default fighter and starts
+ * the match on the default stage, from either menu. False, with no match
+ * started, when the menus could not start one.
+ */
+export function prepareQuickMatch(game: MatchState): boolean {
+  const first = firstHumanSlot(game);
+  if (first === undefined || (game.phase !== Phase.characterMenu && game.phase !== Phase.stageMenu)) return false;
+  returnToCharacters(game, first);
+  const defaults = createMatchState().characterChoices;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (humanFighterActive(game, slot) && humanPresent(game, slot)) selectCharacter(game, slot, defaults[slot]);
+  }
+  if (!requestStageSelect(game, first)) return false;
+  selectStage(game, first, createMatchState().stageChoice);
+  return requestStart(game, first);
 }

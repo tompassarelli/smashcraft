@@ -1,6 +1,8 @@
-import { assertEquals, test } from "../../runtime/testing";
+import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
+import { Phase, createMatchState, fighterMask, selectCharacter, setParticipants } from "../match/rules";
+import { Character } from "../sim/codes";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
-import { type DevSettings, applyDevCommand } from "./devSettings";
+import { type DevSettings, applyDevCommand, prepareQuickMatch } from "./devSettings";
 
 const settings = (): DevSettings => ({ rollback: 24, delay: 0, batch: 2 });
 
@@ -28,4 +30,23 @@ test("dev commands reject values the schedule cannot start", () => {
   assertEquals(dev.rollback, 24);
   assertEquals(dev.delay, 0);
   assertEquals(dev.batch, 2);
+});
+
+test("a quick match readies every present human's default fighter and starts on the default stage", () => {
+  for (const from of [Phase.characterMenu, Phase.stageMenu]) {
+    const game = createMatchState();
+    setParticipants(game, 0b011, 0b100);
+    selectCharacter(game, 0, Character.demonHunter);
+    game.stageChoice = 1;
+    game.phase = from;
+    assertTrue(prepareQuickMatch(game));
+    assertEquals(game.phase, Phase.match);
+    assertEquals(game.stageChoice, 0);
+    assertEquals(game.characterChoices[0], Character.archer);
+    assertEquals(game.characterChoices[1], Character.rifleman);
+    assertEquals(fighterMask(game), 0b111);
+  }
+  const playing = createMatchState();
+  playing.phase = Phase.match;
+  assertFalse(prepareQuickMatch(playing));
 });
