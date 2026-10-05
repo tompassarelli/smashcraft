@@ -1,7 +1,10 @@
 import { resolve } from "node:path";
 
 const project = resolve(import.meta.dir, "..");
-const files = [...new Bun.Glob("**/*{.test,_test,.spec,_spec}.{js,jsx,ts,tsx}").scanSync(project)]
+const files = [
+  ...new Bun.Glob("**/*{.test,_test,.spec,_spec}.{js,jsx,ts,tsx}").scanSync(project),
+  ...new Bun.Glob("scripts/**/*.tests.ts").scanSync(project),
+]
   .filter((file) => !file.split("/").some((part) => part === "node_modules" || part === ".git"))
   .sort();
 if (files.length === 0) throw new Error("No tests found");
