@@ -1,0 +1,339 @@
+{
+  "settings": {
+    "binary": "/home/tom/code/smashcraft/worktrees/headless-input-20261006/companion/target/debug/wc3-journal",
+    "out": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1",
+    "build": "typescript-integrity",
+    "clients": [
+      {
+        "name": "headless-0",
+        "data": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-0/CustomMapData"
+      },
+      {
+        "name": "headless-1",
+        "data": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-1/CustomMapData"
+      }
+    ],
+    "headless": {
+      "frames": 5963,
+      "calls": [
+        109493,
+        109493
+      ],
+      "checksums": [
+        "-172854991",
+        "1050203377"
+      ],
+      "divergence": "after frame 1695, call 41102 differs between slot 0 and slot 1:\n  slot 0:\n    Player(2)\n    Player(2)\n    Player(3)\n    Player(3)\n    PauseTimer(timer#123)\n    Player(0)\n  slot 1:\n    Player(2)\n    Player(2)\n    Player(3)\n    Player(3)\n    Player(0)\n    Player(0)"
+    }
+  },
+  "input_integrity": true,
+  "four_fighters": false,
+  "playable": false,
+  "sweep": null,
+  "epochs": [
+    1,
+    2
+  ],
+  "helper_pids": [
+    1100570,
+    1100612
+  ],
+  "events": [
+    {
+      "event": "menu",
+      "phase": "CHARACTER",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=0 slot=0 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=0 slot=1 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n"
+      ],
+      "observed_monotonic_ns": 634415941087366
+    },
+    {
+      "event": "menu",
+      "phase": "STAGE",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=0 slot=0 phase=STAGE\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=0 slot=1 phase=STAGE\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n"
+      ],
+      "observed_monotonic_ns": 634416314846092
+    },
+    {
+      "event": "start",
+      "epoch": 1,
+      "publications": [
+        {
+          "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-0/CustomMapData/smashcraft-journal-start-typescript-integrity-e1-s0.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=typescript-integrity epoch=1 slot=0 sequence=0 state=START frame=1\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+          "mtime_realtime_ns": 1791224570532936272,
+          "sample_monotonic_before_ns": 634416599122980,
+          "sample_realtime_ns": 1791224570550256160,
+          "sample_monotonic_after_ns": 634416599125786,
+          "publication_monotonic_estimate_ns": 634416581804495
+        },
+        {
+          "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-1/CustomMapData/smashcraft-journal-start-typescript-integrity-e1-s1.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=typescript-integrity epoch=1 slot=1 sequence=0 state=START frame=1\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+          "mtime_realtime_ns": 1791224570533936270,
+          "sample_monotonic_before_ns": 634416599780041,
+          "sample_realtime_ns": 1791224570550913963,
+          "sample_monotonic_after_ns": 634416599784650,
+          "publication_monotonic_estimate_ns": 634416582804652
+        }
+      ],
+      "observed_monotonic_ns": 634416600106393
+    },
+    {
+      "event": "integrity-stall",
+      "epoch": 1,
+      "kind": "helper",
+      "slot": 0,
+      "pid": 1100570,
+      "stopped_monotonic_ns": 634431567550217,
+      "continued_monotonic_ns": 634431872496575,
+      "verified_stopped_state": true
+    },
+    {
+      "event": "integrity-stall",
+      "epoch": 1,
+      "kind": "game",
+      "slot": 1,
+      "pid": 1100514,
+      "stopped_monotonic_ns": 634435105254235,
+      "continued_monotonic_ns": 634435356285469,
+      "verified_stopped_state": true
+    },
+    {
+      "event": "integrity-pause",
+      "epoch": 1,
+      "publications": [
+        {
+          "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-0/CustomMapData/smashcraft-journal-control-typescript-integrity-e1-s0-n2.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=typescript-integrity epoch=1 slot=0 sequence=2 state=PAUSE_COMMIT frame=1333\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+          "mtime_realtime_ns": 1791224592992884719,
+          "sample_monotonic_before_ns": 634439058226004,
+          "sample_realtime_ns": 1791224593009358583,
+          "sample_monotonic_after_ns": 634439058227878,
+          "publication_monotonic_estimate_ns": 634439041753077
+        },
+        {
+          "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-1/CustomMapData/smashcraft-journal-control-typescript-integrity-e1-s1-n2.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=typescript-integrity epoch=1 slot=1 sequence=2 state=PAUSE_COMMIT frame=1333\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+          "mtime_realtime_ns": 1791224592994884714,
+          "sample_monotonic_before_ns": 634439058624340,
+          "sample_realtime_ns": 1791224593009756979,
+          "sample_monotonic_after_ns": 634439058626284,
+          "publication_monotonic_estimate_ns": 634439043753047
+        }
+      ]
+    },
+    {
+      "event": "integrity-resume",
+      "epoch": 1,
+      "publications": [
+        {
+          "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-0/CustomMapData/smashcraft-journal-control-typescript-integrity-e1-s0-n3.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=typescript-integrity epoch=1 slot=0 sequence=3 state=RESUME frame=1333\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+          "mtime_realtime_ns": 1791224593240884151,
+          "sample_monotonic_before_ns": 634439322915835,
+          "sample_realtime_ns": 1791224593274047913,
+          "sample_monotonic_after_ns": 634439322916807,
+          "publication_monotonic_estimate_ns": 634439289752559
+        },
+        {
+          "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-1/CustomMapData/smashcraft-journal-control-typescript-integrity-e1-s1-n3.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=typescript-integrity epoch=1 slot=1 sequence=3 state=RESUME frame=1333\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+          "mtime_realtime_ns": 1791224593241889413,
+          "sample_monotonic_before_ns": 634439323061097,
+          "sample_realtime_ns": 1791224593274193205,
+          "sample_monotonic_after_ns": 634439323062079,
+          "publication_monotonic_estimate_ns": 634439290757796
+        }
+      ]
+    },
+    {
+      "event": "end",
+      "epoch": 1,
+      "publications": [
+        {
+          "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-0/CustomMapData/smashcraft-journal-end-typescript-integrity-e1-s0.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=typescript-integrity epoch=1 slot=0 sequence=0 state=END frame=1533\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+          "mtime_realtime_ns": 1791224596612876432,
+          "sample_monotonic_before_ns": 634442703718175,
+          "sample_realtime_ns": 1791224596654850604,
+          "sample_monotonic_after_ns": 634442703719828,
+          "publication_monotonic_estimate_ns": 634442661744829
+        },
+        {
+          "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-1/CustomMapData/smashcraft-journal-end-typescript-integrity-e1-s1.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=typescript-integrity epoch=1 slot=1 sequence=0 state=END frame=1533\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+          "mtime_realtime_ns": 1791224596613876430,
+          "sample_monotonic_before_ns": 634442704268947,
+          "sample_realtime_ns": 1791224596655401426,
+          "sample_monotonic_after_ns": 634442704270700,
+          "publication_monotonic_estimate_ns": 634442662744827
+        }
+      ],
+      "observed_monotonic_ns": 634442704552007
+    },
+    {
+      "event": "menu",
+      "phase": "RESULT",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=1 slot=0 phase=RESULT\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=1 slot=1 phase=RESULT\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n"
+      ],
+      "observed_monotonic_ns": 634464311919669
+    },
+    {
+      "event": "menu",
+      "phase": "CHARACTER",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=1 slot=0 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=1 slot=1 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n"
+      ],
+      "observed_monotonic_ns": 634464444601663
+    },
+    {
+      "event": "integrity-slot-change",
+      "epoch": 2,
+      "changes": [
+        {
+          "human_fighters": 7,
+          "computers": 0,
+          "publications": [
+            {
+              "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-0/CustomMapData/smashcraft-journal-menu-typescript-integrity-s0.txt",
+              "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=1 slot=0 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=7 computers=0 fighters=7\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+              "mtime_realtime_ns": 1791224618526826395,
+              "sample_monotonic_before_ns": 634464582601077,
+              "sample_realtime_ns": 1791224618533732964,
+              "sample_monotonic_after_ns": 634464582601708,
+              "publication_monotonic_estimate_ns": 634464575694823
+            },
+            {
+              "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-1/CustomMapData/smashcraft-journal-menu-typescript-integrity-s1.txt",
+              "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=1 slot=1 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=7 computers=0 fighters=7\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+              "mtime_realtime_ns": 1791224618527826392,
+              "sample_monotonic_before_ns": 634464582672070,
+              "sample_realtime_ns": 1791224618533804008,
+              "sample_monotonic_after_ns": 634464582672731,
+              "publication_monotonic_estimate_ns": 634464576694784
+            }
+          ]
+        },
+        {
+          "human_fighters": 3,
+          "computers": 4,
+          "publications": [
+            {
+              "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-0/CustomMapData/smashcraft-journal-menu-typescript-integrity-s0.txt",
+              "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=1 slot=0 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=4 fighters=7\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+              "mtime_realtime_ns": 1791224618775825827,
+              "sample_monotonic_before_ns": 634464842541724,
+              "sample_realtime_ns": 1791224618793673913,
+              "sample_monotonic_after_ns": 634464842542846,
+              "publication_monotonic_estimate_ns": 634464824694199
+            },
+            {
+              "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-1/CustomMapData/smashcraft-journal-menu-typescript-integrity-s1.txt",
+              "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=1 slot=1 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=4 fighters=7\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+              "mtime_realtime_ns": 1791224618776825825,
+              "sample_monotonic_before_ns": 634464842685424,
+              "sample_realtime_ns": 1791224618793817742,
+              "sample_monotonic_after_ns": 634464842686836,
+              "publication_monotonic_estimate_ns": 634464825694213
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "event": "menu",
+      "phase": "CHARACTER",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=1 slot=0 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=4 fighters=7\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=1 slot=1 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=4 fighters=7\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n"
+      ],
+      "observed_monotonic_ns": 634464843111532
+    },
+    {
+      "event": "menu",
+      "phase": "STAGE",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=1 slot=0 phase=STAGE\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=4 fighters=7\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=1 slot=1 phase=STAGE\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=4 fighters=7\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n"
+      ],
+      "observed_monotonic_ns": 634465209065326
+    },
+    {
+      "event": "start",
+      "epoch": 2,
+      "publications": [
+        {
+          "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-0/CustomMapData/smashcraft-journal-start-typescript-integrity-e2-s0.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=typescript-integrity epoch=2 slot=0 sequence=0 state=START frame=1\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+          "mtime_realtime_ns": 1791224619375824461,
+          "sample_monotonic_before_ns": 634465437541804,
+          "sample_realtime_ns": 1791224619388673772,
+          "sample_monotonic_after_ns": 634465437542555,
+          "publication_monotonic_estimate_ns": 634465424692868
+        },
+        {
+          "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-1/CustomMapData/smashcraft-journal-start-typescript-integrity-e2-s1.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=typescript-integrity epoch=2 slot=1 sequence=0 state=START frame=1\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+          "mtime_realtime_ns": 1791224619376824458,
+          "sample_monotonic_before_ns": 634465437728203,
+          "sample_realtime_ns": 1791224619388860261,
+          "sample_monotonic_after_ns": 634465437729005,
+          "publication_monotonic_estimate_ns": 634465425692801
+        }
+      ],
+      "observed_monotonic_ns": 634465437804847
+    },
+    {
+      "event": "end",
+      "epoch": 2,
+      "publications": [
+        {
+          "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-0/CustomMapData/smashcraft-journal-end-typescript-integrity-e2-s0.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=typescript-integrity epoch=2 slot=0 sequence=0 state=END frame=1679\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+          "mtime_realtime_ns": 1791224647395257889,
+          "sample_monotonic_before_ns": 634493485711541,
+          "sample_realtime_ns": 1791224647436843609,
+          "sample_monotonic_after_ns": 634493485712483,
+          "publication_monotonic_estimate_ns": 634493444126292
+        },
+        {
+          "path": "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/hl-final-1/client-1/CustomMapData/smashcraft-journal-end-typescript-integrity-e2-s1.txt",
+          "contents": "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=typescript-integrity epoch=2 slot=1 sequence=0 state=END frame=1679\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+          "mtime_realtime_ns": 1791224647396760797,
+          "sample_monotonic_before_ns": 634493486064422,
+          "sample_realtime_ns": 1791224647437196350,
+          "sample_monotonic_after_ns": 634493486065063,
+          "publication_monotonic_estimate_ns": 634493445629189
+        }
+      ],
+      "observed_monotonic_ns": 634493486134243
+    },
+    {
+      "event": "menu",
+      "phase": "RESULT",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=2 slot=0 phase=RESULT\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=4 fighters=7\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=2 slot=1 phase=RESULT\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=4 fighters=7\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n"
+      ],
+      "observed_monotonic_ns": 634515019169053
+    },
+    {
+      "event": "menu",
+      "phase": "CHARACTER",
+      "contents": [
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=2 slot=0 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=4 fighters=7\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n",
+        "function PreloadFiles takes nothing returns nothing\n\r\n\tcall PreloadStart()\r\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=typescript-integrity epoch=2 slot=1 phase=CHARACTER\" )\r\n\tcall Preload( \"connected=3 human-fighters=3 computers=4 fighters=7\" )\r\n\tcall PreloadEnd( 0.0 )\r\n\nendfunction\n\n\r\n"
+      ],
+      "observed_monotonic_ns": 634515154531791
+    }
+  ],
+  "helper_sha256": "b46d9e5163417a904f3b4fc0311abe777914952978181f87766ab3bfccbf4bf2",
+  "scope": "Same-process two-client headless start/result/rematch: Wisp's headless runtime runs the integrity build's TypeScript in real time (60 frames a second; sync messages arrive with Battle.net's measured latency, wisp:docs/network-model.md, no client lag); persistent Linux virtual-pad wc3-journal helpers type into each client's edit box (--text-out) and read its CustomMapData folder; issue 26 all-binding integrity run; no Warcraft engine, rendering, edit-box focus or network claim."
+}

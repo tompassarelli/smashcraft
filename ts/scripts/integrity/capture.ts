@@ -90,7 +90,7 @@ declare global {
 }
 
 /** JSON with 64-bit nanosecond times written as exact integers. */
-const json =(value: unknown) => `${JSON.stringify(value, (_key, item: unknown) => (typeof item === "bigint" ? JSON.rawJSON(String(item)) : item), 2)}\n`;
+export const json = (value: unknown) => `${JSON.stringify(value, (_key, item: unknown) => (typeof item === "bigint" ? JSON.rawJSON(String(item)) : item), 2)}\n`;
 
 const fromDesktop = (failure: DesktopFailure) => new IntegrityFailure({ operation: failure.operation, path: failure.client, cause: failure.cause });
 
@@ -116,7 +116,7 @@ const stopHelper = (helper: Subprocess) =>
   });
 
 /** A persistent helper following matches on one pad, logging to helper-SLOT.log, stopped with its scope. */
-const startHelper = (command: readonly string[], env: Record<string, string | undefined>, logPath: string) =>
+export const startHelper = (command: readonly string[], env: Record<string, string | undefined>, logPath: string) =>
   Effect.gen(function*() {
     const log = yield* Effect.acquireRelease(tryIntegrity("open helper log", logPath, () => openSync(logPath, "w")), (fd) => Effect.sync(() => closeSync(fd)));
     return yield* Effect.acquireRelease(

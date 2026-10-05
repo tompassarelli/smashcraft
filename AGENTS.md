@@ -85,7 +85,9 @@ code. From smashcraft:ts/:
   compare replay results across Bun and Lua32.
 - Parity: `bun wisp parity numeric` compares the numeric corpus with Lua32;
   `bun wisp parity capture ...` runs native input-integrity capture and
-  `bun wisp parity result DIR` reconciles its output.
+  `bun wisp parity result DIR` reconciles its output. `bun wisp parity
+  headless --helper BIN --out DIR` runs the same capture through the real
+  helper (built with `--text-out`) into headless clients, then reconciles it.
 - Physics diagnostic: `bun wisp build --profile physics-probe ...` selects
   the production numerical fixtures. Rebuild it with
   `bun wisp rebuild MAP.w3x --profile physics-probe`; see

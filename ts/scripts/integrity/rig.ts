@@ -1,6 +1,7 @@
 // The Rig on real clients: virtual pads and their observers, the persistent
 // helpers, both clients' CustomMapData folders, and their screens and input
-// through the desktop driver.
+// through the desktop driver. Headless clients (headless.ts) share everything
+// but the screens and the game process.
 import { appendFileSync, copyFileSync, mkdirSync, readFileSync, readdirSync, statSync, utimesSync, writeSync } from "node:fs";
 import { join } from "node:path";
 import type { Subprocess } from "bun";
@@ -10,28 +11,35 @@ import { Clients } from "wisp/scripts/wisp/clients";
 import { checkPlayerView } from "wisp/scripts/wisp/playerView";
 import { IntegrityFailure, producerLine, tryIntegrity } from "./evidence";
 import type { GameFile, JourneyRecord, PublicationRecord, RigShape, Stopped } from "./journey";
+import type { StallTarget } from "./schedule";
 import { type Observer, type Pad, continueProcess, inject, monotonicNs, realtimeNs, stopProcess } from "./linux";
 import { SLOTS, type Slot } from "./reconcile";
 import { INPUT_TRACE_FILE, responsePageFile, decodeWrittenGameFile } from "../wisp/boundary";
 import { smashcraftPlayerView } from "../wisp/playerView";
 import { gameFilesLayer } from "../wisp/project";
 
-interface LiveRigParts {
-  readonly clients: readonly [Client, Client];
-  /** The desktop driver's clients file the clients were loaded from. */
-  readonly clientsFile: string;
+/** What a capture drives the same way whatever runs the game. */
+interface FileRigParts {
   /** Each client's CustomMapData folder. */
   readonly data: readonly [string, string];
   readonly out: string;
   readonly build: string;
   readonly startedNs: bigint;
-  readonly gamePids: readonly [number, number];
   readonly pads: readonly [Pad, Pad];
   readonly observers: readonly Observer[];
   readonly helpers: readonly [Subprocess, Subprocess];
   /** producer.jsonl, open for writing. */
   readonly producerLog: number;
   readonly events: JourneyRecord[];
+  /** Why the game stopped, if it did; the capture fails at its next check. */
+  readonly gameFailure?: () => IntegrityFailure | undefined;
+}
+
+interface LiveRigParts extends FileRigParts {
+  readonly clients: readonly [Client, Client];
+  /** The desktop driver's clients file the clients were loaded from. */
+  readonly clientsFile: string;
+  readonly gamePids: readonly [number, number];
 }
 
 const UI_WAIT_SECONDS = 25;
@@ -44,7 +52,7 @@ const fromDesktop = (failure: DesktopFailure) => new IntegrityFailure({ operatio
  * pages, error reports and the input trace) from both clients into OUT/epoch-LABEL/, with
  * each name prefixed by its client's slot and with its times kept.
  */
-export const archiveFiles = (parts: Pick<LiveRigParts, "data" | "out" | "build" | "startedNs">, label: string) =>
+export const archiveFiles = (parts: Pick<FileRigParts, "data" | "out" | "build" | "startedNs">, label: string) =>
   Effect.forEach(SLOTS, (client) =>
     tryIntegrity("archive", parts.data[client], () => {
       const target = join(parts.out, `epoch-${label}`);
@@ -63,16 +71,40 @@ export const archiveFiles = (parts: Pick<LiveRigParts, "data" | "out" | "build" 
       }
     }), { concurrency: 2, discard: true });
 
-export function liveRig(parts: LiveRigParts): RigShape {
-  const { clients, data, out, startedNs } = parts;
+/** Reads of the realtime clock bracketed by the monotonic one; the tightest bracket wins. */
+const CLOCK_SAMPLES = 8;
+
+/**
+ * The realtime clock placed on the monotonic one: a busy thread can pause
+ * between the reads and widen the bracket, which offsets every edge's
+ * expected frame by up to half its width, so the narrowest of several is kept.
+ */
+function clockSample(): { readonly before: number; readonly wall: bigint; readonly after: number } {
+  let best = { before: 0, wall: 0n, after: Number.MAX_SAFE_INTEGER };
+  for (let sample = 0; sample < CLOCK_SAMPLES; sample++) {
+    const before = monotonicNs();
+    const wall = realtimeNs();
+    const after = monotonicNs();
+    if (after - before < best.after - best.before) best = { before, wall, after };
+  }
+  return best;
+}
+
+/** Appends a client's screen operation to ui.txt. */
+export const uiLogger = (out: string, names: readonly [string, string]) => {
   const uiLog = join(out, "ui.txt");
-  const logUi = (client: Slot, operation: string, detail: string) =>
-    tryIntegrity("log screen operation", uiLog, () => appendFileSync(uiLog, `${clients[client].name} ${operation} ${detail}\n`));
+  return (client: Slot, operation: string, detail: string) =>
+    tryIntegrity("log screen operation", uiLog, () => appendFileSync(uiLog, `${names[client]} ${operation} ${detail}\n`));
+};
+
+/** The pads, helpers, clocks, game files and journey record a capture shares whatever runs the game. */
+export function fileRig(parts: FileRigParts): Omit<RigShape, "stop" | "resume" | "waitText" | "click" | "key" | "type" | "playerView"> {
+  const { data, out, startedNs } = parts;
 
   const healthy = Effect.gen(function*() {
     const exited = parts.helpers.flatMap((helper, slot) => (helper.exitCode === null && helper.signalCode === null ? [] : [`${slot}: ${helper.exitCode ?? helper.signalCode}`]));
     if (exited.length > 0) return yield* new IntegrityFailure({ operation: "watch helpers", path: out, cause: `persistent helpers exited: ${exited.join(", ")}` });
-    const failure = parts.observers.map((observer) => observer.failure()).find((failure) => failure !== undefined);
+    const failure = parts.observers.map((observer) => observer.failure()).find((failure) => failure !== undefined) ?? parts.gameFailure?.();
     if (failure !== undefined) return yield* failure;
   });
 
@@ -126,9 +158,7 @@ export function liveRig(parts: LiveRigParts): RigShape {
     boundary: (client, name) =>
       tryIntegrity("read game receipt", join(data[client], name), (): PublicationRecord => {
         const path = join(data[client], name);
-        const before = monotonicNs();
-        const wall = realtimeNs();
-        const after = monotonicNs();
+        const { before, wall, after } = clockSample();
         const stamp = statSync(path, { bigint: true }).mtimeNs;
         return {
           path,
@@ -142,10 +172,26 @@ export function liveRig(parts: LiveRigParts): RigShape {
       }).pipe(Effect.tap((publication) => decodeWrittenGameFile(name, publication.path, publication.contents).pipe(
         Effect.mapError((cause) => new IntegrityFailure({ operation: "decode game receipt", path: publication.path, cause })),
       ))),
-    stop: (target) => {
-      const pid = target.kind === "helper" ? parts.helpers[target.slot].pid : parts.gamePids[target.slot];
-      return stopProcess(pid).pipe(Effect.as({ target, pid } satisfies Stopped));
-    },
+    archive: (label) => archiveFiles(parts, label),
+    record: (event) => Effect.sync(() => {
+      parts.events.push(event);
+    }),
+    progress: (message) => Effect.sync(() => console.log(message)),
+  };
+}
+
+/** Stops a slot's helper process, as both capture kinds stall it. */
+export const stopHelperProcess = (helpers: readonly [Subprocess, Subprocess], target: StallTarget & { readonly kind: "helper" }) =>
+  stopProcess(helpers[target.slot].pid).pipe(Effect.as({ target, pid: helpers[target.slot].pid } satisfies Stopped));
+
+export function liveRig(parts: LiveRigParts): RigShape {
+  const { clients, out } = parts;
+  const logUi = uiLogger(out, [clients[0].name, clients[1].name]);
+  return {
+    ...fileRig(parts),
+    stop: (target) => target.kind === "helper"
+      ? stopHelperProcess(parts.helpers, target)
+      : stopProcess(parts.gamePids[target.slot]).pipe(Effect.as({ target, pid: parts.gamePids[target.slot] } satisfies Stopped)),
     resume: ({ pid }) => continueProcess(pid),
     waitText: (client, pattern) =>
       Effect.gen(function*() {
@@ -164,14 +210,9 @@ export function liveRig(parts: LiveRigParts): RigShape {
     click: (client, x, y) => click(clients[client], x, y).pipe(Effect.mapError(fromDesktop), Effect.andThen(logUi(client, "click", `${x} ${y}`))),
     key: (client, key) => keys(clients[client], key).pipe(Effect.mapError(fromDesktop)),
     type: (client, text) => typeText(clients[client], text, 35).pipe(Effect.mapError(fromDesktop)),
-    archive: (label) => archiveFiles(parts, label),
     playerView: (epoch, checks) => Effect.suspend(() => checkPlayerView(smashcraftPlayerView(checks), Date.now(), join(out, `player-view-${epoch}`))).pipe(
       Effect.provide(Layer.merge(Clients.layer(parts.clientsFile), gameFilesLayer)),
       Effect.mapError((failure) => new IntegrityFailure({ operation: `check player view in match ${epoch}`, path: out, cause: failure.message })),
     ),
-    record: (event) => Effect.sync(() => {
-      parts.events.push(event);
-    }),
-    progress: (message) => Effect.sync(() => console.log(message)),
   };
 }

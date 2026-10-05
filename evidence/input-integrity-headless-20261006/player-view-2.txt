@@ -1,0 +1,2 @@
+headless-0 would see a hit spark stayed in view for 11.45 s; it should be gone within 3.00 s (model war3mapImported/ImpactDust-203c5231debda1f1be87bee7ea942bb77b953c077731f33b78409144da9a3778.mdx: 687 frames without a break, lifetime 180; now 0 of 12 in view, 0 drawn)
+headless-1 would see a hit spark stayed in view for 9.55 s; it should be gone within 3.00 s (model war3mapImported/ImpactDust-203c5231debda1f1be87bee7ea942bb77b953c077731f33b78409144da9a3778.mdx: 573 frames without a break, lifetime 180; now 0 of 12 in view, 0 drawn)

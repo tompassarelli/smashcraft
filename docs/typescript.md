@@ -137,6 +137,38 @@ smashcraft:ts/scripts/wisp/headless.ts declares the natives Smashcraft calls
 on one client only; the desync guard, visual-lifecycle, player-view and
 stack-trace tests run their clients with the same declaration.
 
+`bun wisp parity headless --helper BIN --out DIR` runs issue #26's capture
+without Warcraft (smashcraft:ts/scripts/integrity/headless.ts): the
+integrity build's TypeScript in two headless clients at 60 frames a second of
+wall time, with Battle.net's measured sync latency (Wisp's
+docs/network-model.md), the native capture's journey and reconciler, and the
+real input path. Each player has a uinput pad, a kernel observer and a
+persistent wc3-journal helper started with `--text-out FILE` instead of
+`--editbox-display`: the helper appends each typing to FILE, Wisp types it
+into that client's focused edit box (or, at menus, as key presses), and the
+helper reads the files the client writes in OUT/client-N/CustomMapData,
+written as Warcraft writes them. Build the helper from smashcraft:companion
+(`cargo build --locked --bin wc3-journal`). A game stall holds the clients
+(no frame runs and the match loses the time); a helper stall stops the
+helper process. Pad edges are written from their own thread
+(smashcraft:ts/scripts/integrity/padWorker.ts): an edge is stamped just
+before its write, and a pause between the two lets the helper publish that
+frame first and stop on the late edge; it did once while the edges were
+written from the thread that runs the clients. The pool-predicted presentation poses
+effects and frames the camera from each client's prediction, so those
+natives are local in this capture; a remaining difference in native calls
+is printed and kept in capture.json, and the scene report's findings in
+player-view-EPOCH.txt, since the confirmed checksums decide synchronization
+and what reaches the screen keeps its native check. One run takes about
+100 s.
+
+Every receipt boundary samples the realtime clock between two monotonic
+reads and keeps the tightest of eight brackets. Its midpoint places the
+receipt on the pads' clock, so half the bracket's width shifts every expected
+frame: a 31 µs bracket in a busy headless process put one edge 5 µs after a
+frame boundary on the other side of it (1295/1296), and the tightest of
+eight brackets is about 1 µs, as native captures measured with one.
+
 Pure simulation, numeric operations, code transforms and binary-format
 encoders remain plain TypeScript. The TSTL map compiler uses TypeScript 6's
 compiler API, while the host checker uses TypeScript 7 with Effect tsgo. A
