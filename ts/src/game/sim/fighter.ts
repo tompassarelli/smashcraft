@@ -1,3 +1,5 @@
+// Fighter-owned records, construction and copying stay together so every
+// mutable rollback field can be reviewed against the complete Fighter type.
 // A fighter's complete simulation state as plain data. References to other
 // fighters are participant slots, so a rollback snapshot is a field-by-field
 // copy and code can be replaced while state is kept. Replay checksums write

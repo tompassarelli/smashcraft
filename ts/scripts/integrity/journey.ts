@@ -1,3 +1,5 @@
+// The complete selection/match/rematch journey is one capture contract:
+// controller event order and publication times feed the retained integrity oracle.
 // The integrity capture's journey through two native clients: controller-only
 // fighter and stage selection, an instrumented match, the results screen, a
 // slot change, and the rematch. Everything it does to the clients goes through

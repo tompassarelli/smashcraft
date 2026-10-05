@@ -1,3 +1,5 @@
+// The large fixture set retains independent retail reference values across
+// arithmetic, motion and contact; each group must survive changes to production.
 // Retail physics references: NTSC 1.02 recordings and extracted parameters.
 import { floorMod } from "waygate/src/sim/intMath";
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";

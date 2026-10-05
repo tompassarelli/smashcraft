@@ -1,3 +1,5 @@
+// Keep the aggregate reconciliation together: every count uses the same
+// epoch anchors and matched source/native rows to produce one integrity result.
 // Issue #26's reconciler. From the capture driver's own clock and both clients'
 // native exports it counts lost, duplicated, reordered and stuck input edges,
 // checks that each edge landed on the frame its injection time implies, and

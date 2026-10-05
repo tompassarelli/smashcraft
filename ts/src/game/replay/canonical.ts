@@ -1,3 +1,5 @@
+// Keep the whole canonical record together: field order and spelling are
+// shared with the retained replay oracle, including fields from every slot.
 // Replay2, Wurst ReplayState's canonical tape of gameplay state. Labels,
 // order and number formats are a cross-runtime contract: a tape compares
 // these strings and checksums between Wurst's Lua, Bun and 32-bit Lua.

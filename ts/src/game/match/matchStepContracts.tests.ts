@@ -1,3 +1,5 @@
+// These contracts exercise ordering in the complete match executor: input,
+// shield, contact, landing, stocks and timeout can interact on one frame.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
 import { f32 } from "waygate/src/sim/f32";
 import { createFighter } from "../sim/fighter";

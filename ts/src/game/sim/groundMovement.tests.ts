@@ -1,3 +1,5 @@
+// Keep the recorded movement timelines together so entry, reversal and exit
+// use the same NTSC parameter fixtures and frame-count conventions.
 // Dash, run, turn-run and run-brake against the authored and NTSC timelines.
 import { assertEquals, assertFalse, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
 import { max, min } from "../../runtime/numbers";

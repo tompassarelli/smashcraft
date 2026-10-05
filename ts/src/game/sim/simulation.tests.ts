@@ -1,3 +1,5 @@
+// Keep these action transitions together: buffered inputs, contact windows
+// and landing can resolve on the same production frame.
 // Fighter rules: jumps, landings, L-cancels, smash charge, hit regions and
 // attack phases.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";

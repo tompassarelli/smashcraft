@@ -1,3 +1,5 @@
+// These cases share the same hitlag-to-launch timeline: pulses, automatic
+// smash DI and continuous DI must be checked at their common frame boundaries.
 // Smash DI, automatic smash DI, directional influence and launch decay.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
 import { roundToFloat32 } from "waygate/src/sim/binary32";

@@ -1,3 +1,5 @@
+// Floor, wall and ceiling contacts share the surface-recovery fixture and
+// executor; the same-frame transitions are checked together.
 import { TECH_WINDOW_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../physics/techInput";
 // Solid stage surfaces, tumble rebounds, wall and ceiling techs, and the
 // decoded common recovery values.

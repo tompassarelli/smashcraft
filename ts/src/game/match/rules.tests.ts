@@ -1,3 +1,5 @@
+// All match-phase transitions share this roster fixture, including sparse
+// humans, computers, selection, results and same-frame timeout decisions.
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
 import { imod } from "waygate/src/sim/intMath";
 import { createFighter } from "../sim/fighter";

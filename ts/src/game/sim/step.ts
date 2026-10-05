@@ -1,3 +1,5 @@
+// Keep the complete frame order together: a later phase reads the state
+// written by earlier phases, including contact and landing on the same tick.
 // One fighter's frame: timers, input transitions, steering, gravity, motion,
 // wall contacts and landing, in the order the retail engine applies them.
 <<<<<<< HEAD

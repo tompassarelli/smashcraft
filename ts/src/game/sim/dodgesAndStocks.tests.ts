@@ -1,3 +1,5 @@
+// Dodge intangibility, swept landing and blast-zone loss share the frame
+// executor; these contracts retain that interaction through recovery and stocks.
 // Air dodges, ground dodges and blast zones.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
 import { f32 } from "waygate/src/sim/f32";
