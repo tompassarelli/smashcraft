@@ -1,10 +1,12 @@
-# Smashcraft 0.0.46: Linux start guide
+# Smashcraft 0.0.46: start guide
 
 This is a private candidate. The preserved 0.0.41 and 0.0.42 maps remain separate.
 Use this map and its matching helper together:
 
 - Map: ~/.local/share/smashcraft-build-inputs/playable-0046/Smashcraft 0.0.46.w3x
-- Helper: ~/.local/share/smashcraft-build-inputs/playable-0046/wc3-journal-0.0.46
+- Helper (Linux): ~/.local/share/smashcraft-build-inputs/playable-0046/wc3-journal-0.0.46
+
+Windows and macOS use a different helper; see the section for them below.
 
 Put the map in each player's Warcraft III `Maps/00-Smashcraft` folder. Join the
 same custom game and start it. At fighter selection, start one helper for each
@@ -37,6 +39,52 @@ a different device or USB identity needs a fresh helper.
 | Pause/results | Start: pause/resume; A or Start at results: rematch |
 
 The stage screen's stock and time settings use the mouse.
+
+## Windows and macOS (verified in CI; not yet on a real Warcraft install)
+
+GitHub's Windows and macOS runners check this helper against a virtual pad and
+a stand-in window named like Warcraft III. Nobody has played a real match this
+way yet.
+
+On these systems the helper is `wc3-controller`. It types the layout above as
+ordinary Warcraft keys, and only while Warcraft III is the application in front.
+The map reads them with its standard QWERTY controls, so leave the F1 controls
+at their defaults. Either stick direction steps forward through fighters and
+stages; everything else matches the table.
+
+Build it once in the checkout's `companion` folder. You need Rust from rustup,
+CMake, and a C compiler: Visual Studio Build Tools on Windows, Xcode Command
+Line Tools on macOS.
+
+```sh
+cargo build --release --locked
+```
+
+Put the map in the Warcraft III `Maps/00-Smashcraft` folder, join the game,
+plug in the controller, then start the helper from `companion`.
+
+Windows (PowerShell):
+
+```powershell
+.\target\release\wc3-controller.exe --list
+.\target\release\wc3-controller.exe --emit --watch-seconds 14400
+```
+
+macOS: first allow your terminal app under System Settings > Privacy &
+Security > Accessibility (the first `--emit` run asks), then:
+
+```sh
+./target/release/wc3-controller --list
+./target/release/wc3-controller --emit --watch-seconds 14400
+```
+
+`--list` shows the connected controllers; with more than one, add
+`--gamepad ID`. The helper stops after `--watch-seconds` (14400 is four hours)
+or Ctrl-C. Switching to another window releases held keys; after you return,
+release all controls once before playing on. With Warcraft III in front,
+`--check-focus` should print `game-eligible=true`. If it prints `false`, the
+game's executable is not named `Warcraft III.exe` (Windows) or `Warcraft III`
+(macOS); report it.
 
 ## Developer build
 

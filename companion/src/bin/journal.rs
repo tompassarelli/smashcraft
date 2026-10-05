@@ -17,6 +17,7 @@ fn main() {
 mod linux {
     #![allow(unsafe_code)]
 
+    use crate::focus::Foreground;
     use enigo::{Direction, Enigo, Key as OutputKey, Keyboard, Settings};
     use evdev::{AbsoluteAxisCode as Abs, EventSummary, KeyCode as Key, raw_stream::RawDevice};
     use std::{
