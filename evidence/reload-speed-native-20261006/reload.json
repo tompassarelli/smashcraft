@@ -1,0 +1,391 @@
+[
+  {
+    "sample": 1,
+    "version": 2,
+    "saveToReportMs": 924.2614120000017,
+    "report": "   0.900 s  v2 running in 2 client(s) (0.499 s)",
+    "applyClock": "1.078125",
+    "frames": [
+      {
+        "frame": 1031,
+        "checksum": "911321:541887"
+      },
+      {
+        "frame": 1090,
+        "checksum": "31862:790615",
+        "marker": "reload-trial-1"
+      },
+      {
+        "frame": 1150,
+        "checksum": "211234:198139",
+        "marker": "reload-trial-1"
+      },
+      {
+        "frame": 1210,
+        "checksum": "839946:327403",
+        "marker": "reload-trial-1"
+      },
+      {
+        "frame": 1270,
+        "checksum": "69494:641864",
+        "marker": "reload-trial-1"
+      },
+      {
+        "frame": 1330,
+        "checksum": "248866:49388",
+        "marker": "reload-trial-1"
+      }
+    ]
+  },
+  {
+    "sample": 2,
+    "version": 3,
+    "saveToReportMs": 860.845217,
+    "report": "   0.858 s  v3 running in 2 client(s) (0.438 s)",
+    "applyClock": "6.179688",
+    "frames": [
+      {
+        "frame": 1338,
+        "checksum": "823897:606378",
+        "marker": "reload-trial-1"
+      },
+      {
+        "frame": 1397,
+        "checksum": "701158:993517",
+        "marker": "reload-trial-2"
+      },
+      {
+        "frame": 1457,
+        "checksum": "880530:401041",
+        "marker": "reload-trial-2"
+      },
+      {
+        "frame": 1517,
+        "checksum": "59899:808568",
+        "marker": "reload-trial-2"
+      },
+      {
+        "frame": 1577,
+        "checksum": "289450:123026",
+        "marker": "reload-trial-2"
+      },
+      {
+        "frame": 1637,
+        "checksum": "468822:530553",
+        "marker": "reload-trial-2"
+      }
+    ]
+  },
+  {
+    "sample": 3,
+    "version": 4,
+    "saveToReportMs": 861.9214840000022,
+    "report": "   0.850 s  v4 running in 2 client(s) (0.431 s)",
+    "applyClock": "11.27344",
+    "frames": [
+      {
+        "frame": 1646,
+        "checksum": "654792:488974",
+        "marker": "reload-trial-2"
+      },
+      {
+        "frame": 1705,
+        "checksum": "481874:969179",
+        "marker": "reload-trial-3"
+      },
+      {
+        "frame": 1765,
+        "checksum": "711425:283637",
+        "marker": "reload-trial-3"
+      },
+      {
+        "frame": 1825,
+        "checksum": "890797:691164",
+        "marker": "reload-trial-3"
+      },
+      {
+        "frame": 1885,
+        "checksum": "120345:5622",
+        "marker": "reload-trial-3"
+      },
+      {
+        "frame": 1945,
+        "checksum": "299717:413149",
+        "marker": "reload-trial-3"
+      }
+    ]
+  },
+  {
+    "sample": 4,
+    "version": 5,
+    "saveToReportMs": 861.9734720000015,
+    "report": "   0.861 s  v5 running in 2 client(s) (0.476 s)",
+    "applyClock": "16.45312",
+    "frames": [
+      {
+        "frame": 1955,
+        "checksum": "837977:298892",
+        "marker": "reload-trial-3"
+      },
+      {
+        "frame": 2014,
+        "checksum": "319755:533643",
+        "marker": "reload-trial-4"
+      },
+      {
+        "frame": 2074,
+        "checksum": "549306:848104",
+        "marker": "reload-trial-4"
+      },
+      {
+        "frame": 2134,
+        "checksum": "728678:255628",
+        "marker": "reload-trial-4"
+      },
+      {
+        "frame": 2194,
+        "checksum": "958229:570089",
+        "marker": "reload-trial-4"
+      },
+      {
+        "frame": 2254,
+        "checksum": "586938:699353",
+        "marker": "reload-trial-4"
+      }
+    ]
+  },
+  {
+    "sample": 5,
+    "version": 6,
+    "saveToReportMs": 928.8443210000005,
+    "report": "   0.925 s  v6 running in 2 client(s) (0.495 s)",
+    "applyClock": "21.625",
+    "frames": [
+      {
+        "frame": 2262,
+        "checksum": "420618:730452",
+        "marker": "reload-trial-4"
+      },
+      {
+        "frame": 2321,
+        "checksum": "247700:210654",
+        "marker": "reload-trial-5"
+      },
+      {
+        "frame": 2381,
+        "checksum": "477251:525115",
+        "marker": "reload-trial-5"
+      },
+      {
+        "frame": 2441,
+        "checksum": "656623:932642",
+        "marker": "reload-trial-5"
+      },
+      {
+        "frame": 2501,
+        "checksum": "835995:340166",
+        "marker": "reload-trial-5"
+      },
+      {
+        "frame": 2561,
+        "checksum": "65543:654627",
+        "marker": "reload-trial-5"
+      }
+    ]
+  },
+  {
+    "sample": 6,
+    "version": 7,
+    "saveToReportMs": 776.9076550000027,
+    "report": "   0.764 s  v7 running in 2 client(s) (0.474 s)",
+    "applyClock": "26.59375",
+    "frames": [
+      {
+        "frame": 2569,
+        "checksum": "883857:73203",
+        "marker": "reload-trial-5"
+      },
+      {
+        "frame": 2628,
+        "checksum": "710939:553408",
+        "marker": "reload-trial-6"
+      },
+      {
+        "frame": 2688,
+        "checksum": "940490:867869",
+        "marker": "reload-trial-6"
+      },
+      {
+        "frame": 2748,
+        "checksum": "119859:275393",
+        "marker": "reload-trial-6"
+      },
+      {
+        "frame": 2808,
+        "checksum": "299231:682920",
+        "marker": "reload-trial-6"
+      },
+      {
+        "frame": 2868,
+        "checksum": "528782:997381",
+        "marker": "reload-trial-6"
+      }
+    ]
+  },
+  {
+    "sample": 7,
+    "version": 8,
+    "saveToReportMs": 755.8794070000004,
+    "report": "   0.748 s  v8 running in 2 client(s) (0.471 s)",
+    "applyClock": "31.69531",
+    "frames": [
+      {
+        "frame": 2877,
+        "checksum": "714752:955802",
+        "marker": "reload-trial-6"
+      },
+      {
+        "frame": 2936,
+        "checksum": "541834:436004",
+        "marker": "reload-trial-7"
+      },
+      {
+        "frame": 2996,
+        "checksum": "771385:750465",
+        "marker": "reload-trial-7"
+      },
+      {
+        "frame": 3056,
+        "checksum": "605453:912538",
+        "marker": "reload-trial-7"
+      },
+      {
+        "frame": 3116,
+        "checksum": "784825:320062",
+        "marker": "reload-trial-7"
+      },
+      {
+        "frame": 3176,
+        "checksum": "14373:634523",
+        "marker": "reload-trial-7"
+      }
+    ]
+  },
+  {
+    "sample": 8,
+    "version": 9,
+    "saveToReportMs": 692.7235300000029,
+    "report": "   0.677 s  v9 running in 2 client(s) (0.418 s)",
+    "applyClock": "36.74219",
+    "frames": [
+      {
+        "frame": 3184,
+        "checksum": "848056:665622",
+        "marker": "reload-trial-7"
+      },
+      {
+        "frame": 3243,
+        "checksum": "124475:867564",
+        "marker": "reload-trial-8"
+      },
+      {
+        "frame": 3303,
+        "checksum": "303847:275088",
+        "marker": "reload-trial-8"
+      },
+      {
+        "frame": 3363,
+        "checksum": "533398:589549",
+        "marker": "reload-trial-8"
+      },
+      {
+        "frame": 3423,
+        "checksum": "712770:997076",
+        "marker": "reload-trial-8"
+      },
+      {
+        "frame": 3483,
+        "checksum": "942321:311534",
+        "marker": "reload-trial-8"
+      }
+    ]
+  },
+  {
+    "sample": 9,
+    "version": 10,
+    "saveToReportMs": 713.8800489999994,
+    "report": "   0.697 s  v10 running in 2 client(s) (0.450 s)",
+    "applyClock": "41.91406",
+    "frames": [
+      {
+        "frame": 3493,
+        "checksum": "480578:197277",
+        "marker": "reload-trial-8"
+      },
+      {
+        "frame": 3552,
+        "checksum": "307660:677482",
+        "marker": "reload-trial-9"
+      },
+      {
+        "frame": 3612,
+        "checksum": "487032:85006",
+        "marker": "reload-trial-9"
+      },
+      {
+        "frame": 3672,
+        "checksum": "716583:399467",
+        "marker": "reload-trial-9"
+      },
+      {
+        "frame": 3732,
+        "checksum": "895955:806994",
+        "marker": "reload-trial-9"
+      },
+      {
+        "frame": 3792,
+        "checksum": "125503:121452",
+        "marker": "reload-trial-9"
+      }
+    ]
+  },
+  {
+    "sample": 10,
+    "version": 11,
+    "saveToReportMs": 839.9043880000027,
+    "report": "   0.832 s  v11 running in 2 client(s) (0.510 s)",
+    "applyClock": "47.17969",
+    "frames": [
+      {
+        "frame": 3802,
+        "checksum": "613584:100261",
+        "marker": "reload-trial-9"
+      },
+      {
+        "frame": 3861,
+        "checksum": "490845:487400",
+        "marker": "reload-trial-10"
+      },
+      {
+        "frame": 3921,
+        "checksum": "670217:894927",
+        "marker": "reload-trial-10"
+      },
+      {
+        "frame": 3981,
+        "checksum": "899768:209385",
+        "marker": "reload-trial-10"
+      },
+      {
+        "frame": 4041,
+        "checksum": "733836:371458",
+        "marker": "reload-trial-10"
+      },
+      {
+        "frame": 4101,
+        "checksum": "913208:778985",
+        "marker": "reload-trial-10"
+      }
+    ]
+  }
+]
