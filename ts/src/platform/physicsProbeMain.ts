@@ -4,6 +4,7 @@ import { AssertionFailure, registeredTests } from "waygate/src/runtime/testing";
 import "../game/sim/physicsPrecisionState.tests";
 import "../game/sim/physicsPrecisionScalar.tests";
 import "../game/sim/physicsPrecisionMotion.tests";
+import { airCutoffTrace } from "./airCutoffProbe";
 
 const GROUPS = [
   "GROUNDED_BINARY32_EXACT_PASS",
@@ -61,7 +62,12 @@ function runProbe(source: string): void {
       }
     }
     if (groupFailures === 0) message(passMessage);
-    else message(`${group}_FAIL`);
+    else {
+      message(`${group}_FAIL`);
+      if (group === "AIR_CUTOFF_BINARY32_EXACT") {
+        for (const line of airCutoffTrace()) message(line);
+      }
+    }
   }
 
   // The legacy report includes these two per-corpus diagnostics in addition

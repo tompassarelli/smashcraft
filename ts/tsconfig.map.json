@@ -27,6 +27,7 @@
   "exclude": [
     "src/**/*.test.ts",
     "src/**/*.tests.ts",
+    "src/platform/airCutoffProbe.ts",
     "src/platform/physicsProbeMain.ts",
     "src/platform/frameCostMain.ts"
   ],
