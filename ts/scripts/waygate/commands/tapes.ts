@@ -360,7 +360,7 @@ function describeDivergence(a: string | undefined, b: string | undefined, names:
 // ---------------------------------------------------------------- command
 
 /** The runtimes disagree, one stopped, or the check couldn't run. */
-export class TapesFailure extends Schema.TaggedError<TapesFailure>()("TapesFailure", {
+class TapesFailure extends Schema.TaggedError<TapesFailure>()("TapesFailure", {
   problem: Schema.String,
 }) {
   override get message(): string {

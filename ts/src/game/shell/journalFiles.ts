@@ -4,7 +4,7 @@ import type { DevSettings } from "./devSettings";
 import type { JournalIngress } from "./build";
 import { devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalReadyFile, journalMenuFile, journalTransportReadyFile, journalFailureFile } from "../../runtime/gameFiles";
 
-export interface PreloadFile {
+interface PreloadFile {
   readonly name: string;
   readonly lines: readonly string[];
 }
@@ -16,7 +16,7 @@ export interface JournalIdentity {
 }
 
 /** What the map asks the helper to do: request a pause, commit it at the prepared frame, or resume. */
-export type ControlRequest = "PAUSE" | "PAUSE_COMMIT" | "RESUME";
+type ControlRequest = "PAUSE" | "PAUSE_COMMIT" | "RESUME";
 
 function controlLine({ build, epoch, slot }: JournalIdentity, sequence: number, state: string, frame: number): string {
   return `SMASHCRAFT JOURNAL CONTROL v=1 build=${build} epoch=${epoch} slot=${slot} sequence=${sequence} state=${state} frame=${frame}`;
@@ -42,7 +42,7 @@ const TRANSPORT_DESCRIPTIONS: Readonly<Record<JournalIngress, string>> = {
   files: "transport=SC_GP; files are immutable; absent next filename is retried; sequence advances after local capture and successful submission",
 };
 
-export interface JournalSettings {
+interface JournalSettings {
   readonly inputProfile: string;
   readonly ingress: JournalIngress;
   readonly delay: number;
@@ -67,7 +67,7 @@ export function readyFile(identity: JournalIdentity, { inputProfile, ingress, de
 
 export type MenuPhase = "CHARACTER" | "STAGE" | "RESULT" | "BLOCKED";
 
-export interface MenuRoster {
+interface MenuRoster {
   readonly connected: number;
   readonly humanFighters: number;
   readonly computers: number;

@@ -32,7 +32,7 @@ export const BACK = { x: 155, y: 1389 };
 export const CREATE_GAME = { x: 1510, y: 1201 };
 /** The first map of the Smashcraft folder; Warcraft keeps the open folder for the session. */
 export const FIRST_MAP = { x: 1190, y: 366 };
-export const GAME_NAME = { x: 400, y: 340 };
+const GAME_NAME = { x: 400, y: 340 };
 export const CREATE = { x: 2198, y: 1126 };
 export const JOIN_NAME = { x: 300, y: 1205 };
 export const JOIN = { x: 1295, y: 1213 };

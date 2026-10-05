@@ -17,7 +17,7 @@ const BuildOptions = Schema.Struct({
   out: Schema.String.check(Schema.isPattern(/\.w3x$/)),
   packager: Schema.optional(Schema.NonEmptyString),
 });
-export type BuildOptions = typeof BuildOptions.Type;
+type BuildOptions = typeof BuildOptions.Type;
 
 
 /** Options from `--name value` pairs. */

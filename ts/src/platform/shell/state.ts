@@ -61,7 +61,7 @@ export interface FrameObservation {
   grab: GrabAction;
 }
 
-export interface Participant {
+interface Participant {
   readonly slot: ParticipantSlot;
   /** Present while the slot has a fighter on the stage or in the preview. */
   body: FighterBody | undefined;
@@ -80,7 +80,7 @@ export interface Participant {
 }
 
 /** Stamps of the local rows waiting in a keyboard batch, for the trace. */
-export interface CaptureStamp {
+interface CaptureStamp {
   traced: boolean;
   callback: number;
   seconds: number;
@@ -146,14 +146,14 @@ export interface StatusFrames {
   readonly developer: framehandle;
 }
 
-export interface StatusLine {
+interface StatusLine {
   text: string;
   /** Seconds the text stays; long for messages that wait for the players. */
   seconds: number;
 }
 
 /** Key triggers for every key, which exist only while keys drive menus or a callback match. */
-export interface KeyEvents {
+interface KeyEvents {
   down: trigger | undefined;
   up: trigger | undefined;
 }
@@ -252,7 +252,7 @@ function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: Ed
   };
 }
 
-export interface ShellSetup {
+interface ShellSetup {
   readonly origin: WorldOrigin;
   readonly frames: StatusFrames;
   readonly persistence: BindingPersistence;
