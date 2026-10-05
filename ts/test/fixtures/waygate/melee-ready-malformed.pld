@@ -1,0 +1,11 @@
+function PreloadFiles takes nothing returns nothing
+call PreloadStart()
+call Preload( "BUILD ts-shell-r1" )
+call Preload( "INPUT input-v4 PRESENTATION pose-v6" )
+call Preload( "SCENARIO default" )
+call Preload( "BINDINGS standard" )
+call Preload( "HUMANS two FIGHTERS 2" )
+call Preload( "BINDINGS0 HUMAN" )
+call Preload( "BINDINGS1 HUMAN" )
+call PreloadEnd( 0.0 )
+endfunction

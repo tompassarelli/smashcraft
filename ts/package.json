@@ -8,7 +8,7 @@
     "check": "bun node_modules/typescript-native/bin/tsc -p tsconfig.json --noEmit && bun node_modules/typescript-native/bin/tsc -p tsconfig.game.json --noEmit",
     "test": "bun test",
     "waygate": "bun scripts/waygate.ts",
-    "parity": "bun scripts/parity.ts"
+    "parity": "bun waygate parity numeric"
   },
   "devDependencies": {
     "@effect/tsgo": "0.48.0",
