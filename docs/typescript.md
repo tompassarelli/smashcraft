@@ -18,14 +18,22 @@ smashcraft:ts/scripts/waygate/mapInputs.ts, project paths and naming in
 smashcraft:ts/scripts/waygate/project.ts, and game-specific commands, assets,
 replay corpora and native acceptance journeys.
 
-After publishing a Waygate change, run the following from smashcraft:ts/:
+To update to Waygate's current published `main`, run from smashcraft:ts/:
 
 ```sh
-bun scripts/update-waygate.ts /absolute/path/to/waygate/checkout FULL_COMMIT
+bun run update:waygate
 ```
 
-The updater packages that exact source revision and records the archive and
-pin. Generated dependency output belongs in smashcraft:ts/vendor/; maintained
+The updater fetches private Waygate `main` using Git's configured credentials,
+resolves its commit, generates the Lua modules and declarations needed by TSTL,
+and updates the archive, smashcraft:ts/waygate.lock, package metadata and Bun
+lockfile. An already-generated archive for that commit is reused. There is no
+manual SHA or archive-name selection. The dependency stays at that resolved
+commit until the next update; `bun install` does not follow the branch.
+Compiler versions remain separately pinned in smashcraft:typescript-toolchain.lock.
+To select an exact source revision explicitly, use
+`bun run update:waygate /absolute/path/to/waygate/checkout FULL_COMMIT`.
+Generated dependency output belongs in smashcraft:ts/vendor/; maintained
 framework implementations belong only in Waygate. Commit the new pin,
 package metadata, Bun lockfile and generated archive together after checking
 the affected consumer commands.

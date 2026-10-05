@@ -7,7 +7,8 @@ TypeScript, TypeScriptToLua and Effect; the map build checks it. Waygate is
 maintained in its own repository. smashcraft:ts/waygate.lock records the exact
 source revision; Bun installs its generated archive from smashcraft:ts/vendor/.
 Change framework code in an owned Waygate lane, publish it, and update the
-consumer pin with smashcraft:ts/scripts/update-waygate.ts. Never edit the
+consumer pin with `bun run update:waygate` from smashcraft:ts/ (fetches the
+current published `main` and records its resolved commit). Never edit the
 installed dependency or add a local framework copy.
 
 Before adding tooling or diagnostics, consult Waygate's feature index at
