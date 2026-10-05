@@ -1,5 +1,5 @@
 import { f32 } from "../../sim/f32";
-import { type AttackBuffer, hasPendingAttack, queueAttack, takeAttack } from "../input/attackBuffer";
+import { type AttackBuffer, clearAttackBuffer, hasPendingAttack, queueAttack, takeAttack } from "../input/attackBuffer";
 import { attackStyleForGrounding } from "../input/combat";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/participants";
 import { beginFighterAttack, resolveAttacks } from "../sim/attacks";
@@ -49,7 +49,7 @@ export function matchSpawnX(slot: number): number {
 export function produceComputerInput(game: Readonly<MatchState>, world: Roster, runtime: { botAttackDelays: Slots<number> }, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer): void {
   const fighter = fighterAt(world, slot);
   copyControls(input, COMPUTER_NEUTRAL);
-  commands.pending = undefined;
+  clearAttackBuffer(commands);
   if (fighter.status.out) return;
   let targetSlot: ParticipantSlot | undefined;
   let distance = 0.0;
@@ -94,7 +94,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     beforeOut[slot] = f.status.out;
     hadDashGrabWindow[slot] = f.ground.dashGrabWindow > 0 && f.status.frozenFrames === 0 && f.launch.hitlag <= 1;
     wasGrabbed[slot] = inGrabContext(f);
-    if (wasGrabbed[slot]) controls.commands[slot].pending = undefined;
+    if (wasGrabbed[slot]) clearAttackBuffer(controls.commands[slot]);
     controls.inputs[slot].attackRequested = hasPendingAttack(controls.commands[slot], frame) && f.status.frozenFrames === 0;
   }
   resolveLedges(world, game.stageChoice, controls.inputs);
@@ -121,7 +121,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);
     const commands = controls.commands[slot];
-    if (f.status.frozenFrames > 0) commands.pending = undefined;
+    if (f.status.frozenFrames > 0) clearAttackBuffer(commands);
     const command = takeAttack(commands, frame, canStartAttackStyle(f, requestedStyle(commands.pending?.style)));
     const dashGrabInput = f.motion.grounded && f.ground.dashFrame > 0 && f.tuning.dashGrab.startupFrames > 0 && command?.style === AttackStyle.grab;
     const catchDash = f.ground.dashGrabWindow > 0 && command?.style === AttackStyle.grab && f.tuning.dashGrab.startupFrames > 0;
@@ -144,7 +144,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);
-    if (inGrabContext(f)) controls.commands[slot].pending = undefined;
+    if (inGrabContext(f)) clearAttackBuffer(controls.commands[slot]);
     if (game.practice && f.status.out && !beforeOut[slot]) {
       f.status.stocks = game.stockCount;
       f.status.respawn = 60;
