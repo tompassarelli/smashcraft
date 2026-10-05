@@ -1,0 +1,111 @@
+1
+
+S
+
+LI
+
+e
+
+P A
+
+W
+
+0:0
+
+14
+
+!
+
+e
+
+S
+
+ARCHER
+
+RIFLEMAN
+
+s
+
+fn
+
+U
+
+6:55
+
+PAUSED — Press Start to resume.
+
+Combat Is frozen.
+
+Chat — match paused
+
+o
+
+Paused — press Start :o re:
+
+.
+
+|-
+
+. o
+
+.
+
+)
+
+L 4
+
+S -
+
+ot
+
+Nl
+
+.‘-
+
+To Allies: |
+
+-
+
+P
+
+",
+
+PN
+
+(A
+
+é'r
+
+K
+
+’G
+
+0.0%
+
+—r
+
+0.0%
+
+<,
+
+S
+
+P1
+
+ARCHER
+
+RIFLEMAN
+
+-
+
+-~
+
+P
+
+¥
+
+s
+
+%
+
+Developer test: chat-handoff-20261005 | player=1 | phase=2 | x=-240 z=0 | input=-1 mode=shadow-d0-r24 po;)l-predicted normal=-1 move=-1

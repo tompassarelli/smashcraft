@@ -1,0 +1,9 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "SMASHCRAFT TEXT ACK v=1 build=chat-handoff-20261005 epoch=1 slot=0 received=160 consumed=160 revision=78 chat=1 chatState=2 chatFrame=1" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

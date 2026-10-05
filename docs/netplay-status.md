@@ -55,8 +55,11 @@ work and does not invalidate the completed release checks above.
 An unreleased repair now requests shared pause, drains controller output and
 hands focus to native chat. Its first candidate reached paused native chat;
 masked OCR confirmed the label missed by the initial capture reader. The next
-candidate fixes native chat-frame discovery so closing chat can restore input.
-Build success is established; the full closing/resume journey is still pending.
+candidate compiled but failed the native visibility boundary: OCR showed chat,
+while the selected unnamed frame remained invisible and the receipt stayed in
+state 2. Closing/rearming acceptance was not reached. The frame discovery is
+still wrong; this candidate is not a playable replacement. Details and raw
+evidence are in the existing chat record linked above.
 
 ## The specific answers and their owners
 

@@ -1,0 +1,12 @@
+{
+  "source": "50c6d9a",
+  "build": "chat-handoff-20261005",
+  "map_sha256": "ee5b1ded468b947e0d34a2ea5f323ca59faffb03b474f3b50aadb317eb402f5b",
+  "helper_sha256": "50caffe74f19701b63c4528009ba0e11d999ea226757a8d8c174b6ea0fa00a32",
+  "verdict": "FAIL: native chat visible in masked OCR; map visibility remains state 2",
+  "pause_frame": 314,
+  "received": 160,
+  "consumed": 160,
+  "chat_message_sent": false,
+  "helpers_reaped": true
+}

@@ -1,0 +1,116 @@
+[
+  {
+    "event": "menu",
+    "phase": "CHARACTER",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=chat-handoff-20261005 epoch=0 slot=0 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=chat-handoff-20261005 epoch=0 slot=1 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 569270517796099
+  },
+  {
+    "event": "menu",
+    "phase": "STAGE",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=chat-handoff-20261005 epoch=0 slot=0 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=chat-handoff-20261005 epoch=0 slot=1 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 569275333812445
+  },
+  {
+    "event": "menu",
+    "phase": "CHARACTER",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=chat-handoff-20261005 epoch=0 slot=0 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=chat-handoff-20261005 epoch=0 slot=1 phase=CHARACTER\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 569278226844232
+  },
+  {
+    "event": "menu",
+    "phase": "STAGE",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=chat-handoff-20261005 epoch=0 slot=0 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=chat-handoff-20261005 epoch=0 slot=1 phase=STAGE\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 569280621856287
+  },
+  {
+    "event": "start",
+    "epoch": 1,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-chat-handoff-20261005-e1-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=chat-handoff-20261005 epoch=1 slot=0 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791159437503258897,
+        "sample_monotonic_before_ns": 569283559958297,
+        "sample_realtime_ns": 1791159437511091377,
+        "sample_monotonic_after_ns": 569283559960070,
+        "publication_monotonic_estimate_ns": 569283552126703
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-chat-handoff-20261005-e1-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=chat-handoff-20261005 epoch=1 slot=1 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791159437495739385,
+        "sample_monotonic_before_ns": 569283559994535,
+        "sample_realtime_ns": 1791159437511126462,
+        "sample_monotonic_after_ns": 569283559995096,
+        "publication_monotonic_estimate_ns": 569283544607738
+      }
+    ],
+    "observed_monotonic_ns": 569283560035361
+  },
+  {
+    "event": "chat",
+    "epoch": 1,
+    "slot": 0,
+    "marker": "UNSENTCHATPROBE",
+    "open_pattern": "(?:All|Allies)\\s*:",
+    "observations": [
+      {
+        "label": "before",
+        "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-handoff-r1-20261005/chat-1-before.png",
+        "text": "LI\n\ne\n\nP A\n\nA\n\nW\n\nAx\n\n0:0\n\n14\n\n!\n\ne\n\n&\n\nARCHER\n\nRIFLEMAN\n\n~\n\nT i\n\nU\n\n6:59\n\n|\n\nStart: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\n\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.\n\nPause: Start\n\n[\n\no\n\n|-\n\n. o\n\n.\n\n)\n\nL 4\n\nS -\n\not\n\nNl\n\n.\u2018-\n\n-\n\nA\n\n-\n\nPareA\n\nW\n\nPN\n\n(A\n\n\u00e9'r\n\nK\n\n\u2019G\n\n0.0%\n\ne /4\n\n0%\n\n<,\n\nS\n\nP1\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-~\n\nP\n\n\u00a5\n\ns\n\ni\n\nDeveloper test: chat-handoff-20261005 | player=1 | phase=2\n\n| x=-240 z=0 | input=- 1 mode=shadow-d0-r24 po;)l-predicted normal=-1 move=-1\n",
+        "helper_log_bytes": 23506,
+        "before_monotonic_ns": 569285063209399,
+        "after_monotonic_ns": 569287687755570
+      },
+      {
+        "label": "open-0",
+        "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-handoff-r1-20261005/chat-1-open-0.png",
+        "text": "\"\n\nLI\n\ne\n\nP A\n\nA\n\nW\n\nAx\n\n0:0\n\n14\n\n!\n\ne\n\nB0\n\nARCHER\n\nRIFLEMAN\n\n~\n\nT i\n\nU\n\n6:58\n\n|\n\nStart: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\n\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.\n\nPause: Start\n\no\n\n=\n\n. o\n\n.\n\n)\n\nL 4\n\nS -\n\not\n\nNl\n\n.\u2018-\n\n~\n\n-\n\nPareA\n\nW\n\nPN\n\n(A\n\n\u00e9'r\n\n%,\n\n\u2019G\n\n0.0%\n\ne /4\n\n0%\n\n-,\n\nS\n\nP1\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-~\n\no\n\n\u00a5\n\ns\n\ni\n\nDeveloper test: chat-handoff-20261005 | player=1 | phase=2 | x=-240 z=0 | input=-1 mode=shadow-d0-r24 po;)l-predicted normal=-1 move=-1\n",
+        "helper_log_bytes": 32339,
+        "before_monotonic_ns": 569287751825567,
+        "after_monotonic_ns": 569290343258510
+      },
+      {
+        "label": "open-1",
+        "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-handoff-r1-20261005/chat-1-open-1.png",
+        "text": "1\n\nS\n\nLI\n\ne\n\nP A\n\nA\n\nW\n\nAx\n\n0:0\n\n14\n\n!\n\ne\n\no165 54 D\n\nARCHER\n\nRIFLEMAN\n\n~\n\nTl\n\nU\n\n6:56\n\n|\n\nStart: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\n\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.\n\nOpening chat...\n\nPlayer 1's shield broke!\n\no\n\n.\n\n.\n\n=\n\n. o\n\n.\n\n)\n\nL 4\n\not\n\nNl\n\n.\u2018-\n\n-\n\nPareA\n\nW\n\nPN\n\n(A\n\n\u00e9'r\n\n%,\n\n\u2019G\n\n0.0%\n\ne /4\n\n0%\n\n-,\n\nS\n\nP1\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-~\n\no\n\n\u00a5\n\ns\n\ni\n\nDeveloper test: chat-handoff-20261005 | player=1 | phase=2 | x=-240 z=97 | input=- 1 mode=shadow-d0-r24 pgo]-predicted normal=-1 move=-1\n",
+        "helper_log_bytes": 32780,
+        "before_monotonic_ns": 569290343462713,
+        "after_monotonic_ns": 569293039214457
+      },
+      {
+        "label": "open-2",
+        "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-handoff-r1-20261005/chat-1-open-2.png",
+        "text": "1\n\nS\n\nLI\n\ne\n\nP A\n\nW\n\n0:0\n\n14\n\n!\n\ne\n\nS\n\nARCHER\n\nRIFLEMAN\n\ns\n\nfn\n\nU\n\n6:55\n\nPAUSED \u2014 Press Start to resume.\n\nCombat Is frozen.\n\nChat \u2014 match paused\n\no\n\nPaused \u2014 press Start :o re:\n\n.\n\n|-\n\n. o\n\n.\n\n)\n\nL 4\n\nS -\n\not\n\nNl\n\n.\u2018-\n\nTo Allies: |\n\n-\n\nP\n\n\",\n\nPN\n\n(A\n\n\u00e9'r\n\nK\n\n\u2019G\n\n0.0%\n\n\u2014r\n\n0.0%\n\n<,\n\nS\n\nP1\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-~\n\nP\n\n\u00a5\n\ns\n\n%\n\nDeveloper test: chat-handoff-20261005 | player=1 | phase=2 | x=-240 z=0 | input=-1 mode=shadow-d0-r24 po;)l-predicted normal=-1 move=-1\n",
+        "helper_log_bytes": 32780,
+        "before_monotonic_ns": 569293039257117,
+        "after_monotonic_ns": 569295671765415
+      },
+      {
+        "label": "closed",
+        "capture": "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/build/native-controller-chat-handoff-r1-20261005/chat-1-closed.png",
+        "text": "1\n\nS\n\nLI\n\ne\n\nP A\n\nA\n\nW\n\nAx\n\n0:0\n\n14\n\n!\n\ne\n\nDD\n\n9/\n\nARCHER\n\nRIFLEMAN\n\n~\n\nT i\n\nU\n\n6:55\n\nPAUSED \u2014 Press Start to resume. Combat Is frozen.\n\nChat \u2014 match paused\n\no\n\nPaused \u2014 press Start :o re:\n\n.\n\n|-\n\n. o\n\n.\n\n)\n\nL 4\n\nS -\n\not\n\nNl\n\n.\u2018-\n\n-\n\nP\n\n\",\n\nPN\n\n(A\n\n\u00e9'r\n\nK\n\n\u2019G\n\n0.0%\n\n\u2014r\n\n0%\n\n<,\n\nS\n\nP1\n\nARCHER\n\nRIFLEMAN\n\n-\n\n-~\n\nP\n\n\u00a5\n\ns\n\n%\n\nDeveloper test: chat-handoff-20261005 | player=1 | phase=2 | x=-240 z=0 | input=-1 mode=shadow-d0-r24 po;)l-predicted normal=-1 move=-1\n",
+        "helper_log_bytes": 32780,
+        "before_monotonic_ns": 569325753389986,
+        "after_monotonic_ns": 569328376248819
+      }
+    ],
+    "policy": "chat uses shared pause; suppress chat-period actions; close chat before resume; neutral rearm; preserve fresh input frames",
+    "enter_monotonic_ns": 569287687762192,
+    "opened_monotonic_ns": 569295671789050,
+    "escape_monotonic_ns": 569325689129241
+  }
+]

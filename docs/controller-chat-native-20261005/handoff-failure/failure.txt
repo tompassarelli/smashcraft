@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/tools/journal-match-capture.py", line 551, in <module>
+    main()
+    ~~~~^^
+  File "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/tools/journal-match-capture.py", line 463, in main
+    chat(epoch)
+    ~~~~^^^^^^^
+  File "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/tools/journal-match-capture.py", line 397, in chat
+    until(lambda: chat_receipt(3), "native chat visibility was not observed by the map")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/tools/journal-match-capture.py", line 84, in until
+    raise RuntimeError(why)
+RuntimeError: native chat visibility was not observed by the map

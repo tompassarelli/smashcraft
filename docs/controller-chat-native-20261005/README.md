@@ -1,5 +1,33 @@
 # Native controller/chat check — 5 October 2026
 
+## Current repair result
+
+**Chat now opens after shared pause, but controller recovery still fails.**
+The unreleased `chat-handoff-20261005` candidate (`50c6d9a`) established pause
+frame 314 and drained all 160 records. The helper stopped output and pressed
+Return. Masked OCR independently read `To Allies:`. The map's selected unnamed
+frame nevertheless remained invisible, leaving receipt `chatState=2` instead
+of 3. The fixture failed before typing or chat-period controls, then pressed
+Escape and reaped both helpers. No chat message was submitted. No closing,
+neutral rearm, resume or rematch acceptance is claimed for this repair.
+
+The earlier `chat-pause-20261005` candidate also opened paused chat, but its
+unmasked OCR missed the gold label and `ChatEditBar` lookup returned null.
+Reprocessing the retained capture established opening. A native frame-tree
+inspection then found unnamed controls; selecting one by its two-child shape
+returned a handle but did not identify the actual chat entry. Do not repeat
+that structural guess or treat a non-null handle as proof. The next owning
+step is a before/open/closed visibility comparison of cached native controls,
+using observed chat UI as the independent reference.
+
+The failed journey, receipt, helper logs, OCR and exact hashes are retained in
+wc3-melee:docs/controller-chat-native-20261005/handoff-failure. Original captures
+remain at wc3-melee:build/native-controller-chat-handoff-r1-20261005. Both games
+remain signed in at the paused diagnostic match, with no helper running.
+Playable 0.0.41 and its accepted reconnect helper are unchanged and preserved.
+
+## Original 0.0.41 failure
+
 **FAIL at chat opening; chat-period input behavior was not reached.** The
 unchanged playable 0.0.41 and reconnect helper completed controller selection
 and started the two-client match. With controller gameplay active, Enter did
