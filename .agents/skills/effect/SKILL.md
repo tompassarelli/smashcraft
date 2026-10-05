@@ -1,8 +1,6 @@
 ---
 name: effect
-description: >-
-Develop Smashcraft and Warcraft Live with Effect, or maintain their Effect
-dependency and vendored source. Includes the weekly source-update policy.
+description: Develop Smashcraft and Warcraft Live with Effect, or maintain their Effect dependency and vendored source. Includes the weekly source-update policy.
 ---
 
 # Effect in Smashcraft
