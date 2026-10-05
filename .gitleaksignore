@@ -1,0 +1,16 @@
+# Verified public Effect 4.0.1 fixtures/documentation, upstream 460272d30457f4697d8b8c52cad41caccbcace08.
+# Fingerprints apply only to the immutable squash commit, not future source or whole paths.
+# Documentation uses an obvious sequential dummy value and localhost header example.
+124a287071103d53f7efac022bb8564e732786da:packages/effect/src/Config.ts:generic-api-key:1411
+124a287071103d53f7efac022bb8564e732786da:packages/effect/HTTPAPI.md:curl-auth-header:1047
+# Import identifier SigningDerivationLabelV1 is incorrectly classified as a key.
+124a287071103d53f7efac022bb8564e732786da:packages/effect/test/eventlog/EventLogIdentityDerivation.test.ts:generic-api-key:6
+# RFC 6455's public sample nonce in raw localhost WebSocket handshake tests.
+124a287071103d53f7efac022bb8564e732786da:packages/platform/bun/test/BunHttpServer.test.ts:generic-api-key:40
+124a287071103d53f7efac022bb8564e732786da:packages/platform/bun/test/BunHttpServer.test.ts:generic-api-key:87
+124a287071103d53f7efac022bb8564e732786da:packages/platform/node/test/NodeHttpServer.test.ts:generic-api-key:1030
+124a287071103d53f7efac022bb8564e732786da:packages/platform/node/test/NodeHttpServer.test.ts:generic-api-key:1078
+# Public TLS test keys; certificates name only localhost/127.0.0.1, used by Socket tests.
+# NodeSocket.test.ts includes the fixture-generation command; Deno uses Effect Test CA.
+124a287071103d53f7efac022bb8564e732786da:packages/platform/deno/test/fixtures/tls/key.pem:private-key:1
+124a287071103d53f7efac022bb8564e732786da:packages/platform/node/test/fixtures/tls/key.pem:private-key:1
