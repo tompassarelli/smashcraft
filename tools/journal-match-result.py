@@ -19,6 +19,8 @@ def main():
     root = args.capture
     metadata = json.loads((root / "capture.json").read_text())
     reconnect = metadata.get("controller_reconnect", False)
+    slot_modes = metadata.get("controller_slots", False)
+    epochs = (1, 2, 3) if slot_modes else (1, 2)
     producer = json_lines(root / "producer.jsonl")
     result = dict(scope=metadata["scope"], helper_sha256=metadata["helper_sha256"],
                   persistent_helper_pids=metadata["helper_pids"], matches=[])
@@ -41,13 +43,29 @@ def main():
         stimuli[slot] = list(zip(produced, kernel))
         logs[slot] = (root / f"helper-{slot}.log").read_text()
         for marker in ("ready", "start", "end", "quiescent"):
-            assert re.findall(r"match_" + marker + r" epoch=(\d+)", logs[slot]) == ["1", "2"], \
+            assert re.findall(r"match_" + marker + r" epoch=(\d+)", logs[slot]) == [str(epoch) for epoch in epochs], \
                 f"slot {slot}: unexpected lifecycle {marker}"
 
-    for epoch in (1, 2):
+    for epoch in epochs:
         boundary = next(event for event in metadata["events"]
                         if event["event"] == "start" and event["epoch"] == epoch)
         match = dict(epoch=epoch, players=[], native_clients=[])
+        human_fighters, computers = ((1, 2) if epoch == 1 else (1, 4) if epoch == 2 else (3, 0)) if slot_modes else (3, 0)
+        if slot_modes:
+            modes = [event for event in metadata["events"]
+                     if event["event"] == "slot-mode" and event["epoch"] == epoch]
+            expected_modes = {1: [(3, 0), (1, 2)],
+                              2: [(1, 2), (1, 0), (5, 0), (1, 4)],
+                              3: [(1, 4), (1, 0), (3, 0)]}[epoch]
+            assert [(e["human_fighters"], e["computers"]) for e in modes] == expected_modes
+            for mode in modes:
+                signature = (f"connected=3 human-fighters={mode['human_fighters']} "
+                             f"computers={mode['computers']} fighters={mode['human_fighters'] + mode['computers']}")
+                assert len(mode["publications"]) == 2
+                assert all("phase=CHARACTER" in p["contents"] and signature in p["contents"]
+                           for p in mode["publications"]), "slot change was not observed on both clients"
+            match["slot_modes"] = dict(connected=3, human_fighters=human_fighters, computers=computers,
+                                       restored_human=epoch == 3)
         expected_actions = []
         for slot in range(2):
             section = logs[slot].split(f"match_start epoch={epoch} ", 1)[1].split(
@@ -72,9 +90,24 @@ def main():
                 assert (pressed if sent["value"] else released) & 32, "attack transition missing"
                 edges.append(dict(pressed=bool(sent["value"]), kernel_monotonic_ns=timestamp,
                                   expected_frame=expected_frame, assigned_frame=frame))
-                if sent["value"]:
+                if sent["value"] and human_fighters & (1 << slot):
                     expected_actions.append((slot, frame))
             assert len(edges) == (4 if reconnect and slot == epoch - 1 else 2)
+            if slot_modes and slot == 1:
+                held = [(sent, event) for sent, event in stimuli[slot]
+                        if sent["phase"] == f"match-{epoch}-slot-held-entry"]
+                neutral = [(sent, event) for sent, event in stimuli[slot]
+                           if sent["phase"] == f"match-{epoch}-slot-neutral"]
+                assert len(held) == len(neutral) == 1
+                held_ns = held[0][1]["kernel_monotonic_ns"]
+                neutral_ns = neutral[0][1]["kernel_monotonic_ns"]
+                assert held[0][0]["value"] == 1 and neutral[0][0]["value"] == 0
+                assert held_ns < anchor < neutral_ns < edges[0]["kernel_monotonic_ns"], "hold did not straddle START"
+                assert not re.search(r"(?m)^event mono_ns=" + str(held_ns) + r" ", logs[slot]), "entry hold was admitted"
+                assert f"suppressed mono_ns={held_ns} " in logs[slot], "entry hold suppression absent"
+                assert all(not (pressed & 32) for timestamp, (_, pressed, _) in assigned.items()
+                           if timestamp < neutral_ns), "held entry produced an attack before neutral"
+                match["slot_modes"]["held_entry_suppressed"] = True
             rows = [int(frame) for frame in re.findall(r"published_frame=(\d+)", section)]
             assert rows and rows == list(range(first, rows[-1] + 1)), "capture frame gap or duplicate"
             match["players"].append(dict(slot=slot, anchor_monotonic_ns=anchor,
@@ -85,16 +118,22 @@ def main():
             trace = (root / f"epoch-{epoch}" / f"{client}-wc3-melee-input-trace.txt").read_text()
             actions = Counter((int(slot), int(frame)) for slot, frame in re.findall(
                 r"participant (\d+) frame (\d+) phase \d+ applied attack ", trace))
-            assert actions == Counter(expected_actions), f"epoch {epoch} client {client}: actions {actions}"
+            human_actions = Counter({key: count for key, count in actions.items() if human_fighters & (1 << key[0])})
+            assert human_actions == Counter(expected_actions), f"epoch {epoch} client {client}: actions {actions}"
             assert "journal input fail" not in trace
             assert re.findall(r"dropped (\d+)", trace) == ["0"]
             final_path = root / f"epoch-{epoch}-result" / f"{client}-wc3-melee-input-trace.txt"
             final_trace = final_path.read_text() if final_path.exists() else trace
             states = re.findall(r"confirmed frame (\d+) state ([\d:]+)", final_trace)
             assert states, "missing confirmed endpoint"
-            if reconnect:
+            if reconnect or slot_modes:
                 assert re.search(r"(?:participant|humans) \d+ frame \d+ phase 3", final_trace), "missing actual result"
                 assert len(states) >= 2 and states[-1] == states[-2], "result not stationary"
+            if slot_modes:
+                expected = f"connected 3 human-fighters {human_fighters} computers {computers} fighters {human_fighters + computers}"
+                assert expected in trace, "native trace did not retain selected ownership"
+                if epoch == 2:
+                    assert not any(slot == 1 for slot, _ in actions), "EMPTY player applied an attack"
             endpoints.append(states[-1])
             match["native_clients"].append(dict(client=client, confirmed_frame=int(states[-1][0]),
                                                 confirmed_checksum=states[-1][1],
@@ -137,6 +176,9 @@ def main():
     result.update(native_attack_applications=sum(len(client["actions"]) for match in result["matches"]
                                                 for client in match["native_clients"]), native_trace_drops=0,
                   unexplained_frame_retargets=0, extra_result_screen_actions=0)
+    if slot_modes:
+        result["inactive_controller_policy"] = "Retain connected-player frame stream; CPU/EMPTY fighter ignores it; rearm neutral at next epoch"
+        result["slot_journey"] = "B HMN→CPU→EMPTY→HMN; temporary slot C CPU supplies opponent while B is EMPTY"
     (root / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
 

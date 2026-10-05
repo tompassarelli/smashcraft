@@ -38,6 +38,8 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--ui-driver", type=Path, default=Path("/tmp/sc-ui.py"))
     parser.add_argument("--controller-menus", action="store_true")
+    parser.add_argument("--controller-slots", action="store_true",
+                        help="play CPU, EMPTY and restored HMN slots across three persistent-helper matches")
     parser.add_argument("--combat-actions", action="store_true",
                         help="exercise the full controller layout and export combat/shield evidence")
     parser.add_argument("--controller-reconnect", action="store_true",
@@ -55,6 +57,9 @@ def main():
         parser.error("--controller-reconnect requires --controller-menus without --combat-actions")
     if args.controller_chat and (not args.controller_menus or args.combat_actions or args.controller_reconnect):
         parser.error("--controller-chat requires --controller-menus without combat/reconnect")
+    if args.controller_slots and (not args.controller_menus or args.combat_actions or args.controller_reconnect or args.controller_chat):
+        parser.error("--controller-slots requires --controller-menus without combat/reconnect/chat")
+    epochs = (1, 2, 3) if args.controller_slots else (1, 2)
     cfg = json.loads(args.session.read_text())["args"]
     cfg["build"] = args.build
     args.out.mkdir(parents=True, exist_ok=False)
@@ -214,6 +219,58 @@ def main():
                 menu_button(0, 0x13b, "menu-character-return")
                 menu_phase("STAGE")
                 ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
+
+            def slot_selection(epoch):
+                menu_phase("CHARACTER")
+                ui("a", "wait", "CONTROLS")
+
+                def masks(humans, computers):
+                    expected = f"connected=3 human-fighters={humans} computers={computers} fighters={humans + computers}"
+                    paths = [root / f"smashcraft-journal-menu-{args.build}-s{slot}.txt"
+                             for slot, root in enumerate(data)]
+                    until(lambda: all(complete(p) and "phase=CHARACTER" in p.read_text()
+                                      and expected in p.read_text() for p in paths),
+                          f"slot mode not observed on both clients: {expected}")
+                    events.append(dict(event="slot-mode", epoch=epoch, human_fighters=humans,
+                                       computers=computers, connected=3,
+                                       publications=[capture_boundary(p) for p in paths]))
+
+                # Native tags use WC3's centered 4:3 coordinate space on the
+                # retained 2560x1440 desktop. The UI driver verifies pointer delivery;
+                # the synchronized menu receipts verify the actual mode change.
+                if epoch == 1:
+                    masks(3, 0)
+                    ui("b", "click", 1064, 824)
+                    masks(1, 2)
+                elif epoch == 2:
+                    masks(1, 2)
+                    ui("b", "click", 1064, 824)
+                    masks(1, 0)
+                    ui("a", "click", 1484, 824)
+                    masks(5, 0)
+                    ui("a", "click", 1484, 824)
+                    masks(1, 4)
+                else:
+                    masks(1, 4)
+                    ui("a", "click", 1484, 824)
+                    masks(1, 0)
+                    ui("b", "click", 1064, 824)
+                    masks(3, 0)
+                for slot in ((0, 1) if epoch == 3 else (0,)):
+                    menu_button(slot, BTN_SOUTH, f"slot-{epoch}-character-select")
+                # An already-held Attack at epoch entry must not become a fresh
+                # action, including after the player's HMN fighter is restored.
+                send(1, EV_KEY, BTN_SOUTH, 1, f"match-{epoch}-slot-held-entry")
+                time.sleep(.2)
+                time.sleep(.3)
+                menu_button(0, 0x13b, f"slot-{epoch}-character-confirm")
+                menu_phase("STAGE")
+                stock_text = ui("a", "wait", r"[1-9] Stock")
+                stocks = int(re.search(r"([1-9])\s+Stock", stock_text, re.I)[1])
+                while stocks > 1:
+                    ui("a", "click", 1380, 155)
+                    stocks -= 1
+                    ui("a", "wait", rf"{stocks} Stock")
 
             def combat(epoch):
                 prefix = f"match-{epoch}-combat-"
@@ -454,10 +511,12 @@ def main():
                 time.sleep(.7)
                 observe("fresh")
 
-            if args.controller_menus:
+            if args.controller_slots:
+                slot_selection(1)
+            elif args.controller_menus:
                 controller_select()
 
-            for epoch in (1, 2):
+            for epoch in epochs:
                 trace_after_wall = time.time_ns()
                 # Ctrl+G only enables the diagnostic trace; controller-menu mode
                 # uses no keyboard or mouse to choose, start, or rematch.
@@ -473,6 +532,10 @@ def main():
                                    observed_monotonic_ns=time.monotonic_ns()))
                 deadline = max(p["publication_monotonic_estimate_ns"] for p in boundaries) + 300_000_000
                 time.sleep(max(0, (deadline - time.monotonic_ns()) / 1e9))
+                if args.controller_slots:
+                    time.sleep(.2)
+                    send(1, EV_KEY, BTN_SOUTH, 0, f"match-{epoch}-slot-neutral")
+                    time.sleep(.2)
                 for slot in range(2):
                     tap(slot, f"match-{epoch}-fresh")
                 time.sleep(.7)
@@ -499,9 +562,10 @@ def main():
                     until(lambda: complete_trace(trace, trace_after_wall),
                           f"epoch {epoch}: trace did not complete", 30)
                 archive(epoch)
-                if args.combat_actions or args.controller_reconnect or args.controller_chat:
-                    export_response(epoch)
-                    archive(epoch)
+                if args.combat_actions or args.controller_reconnect or args.controller_chat or args.controller_slots:
+                    if not args.controller_slots:
+                        export_response(epoch)
+                        archive(epoch)
                     # Combat can outlast the first trace. Keep it intact and
                     # capture a stationary result endpoint only when necessary.
                     if not all(re.search(r"participant \d+ frame \d+ phase 3 ",
@@ -514,13 +578,16 @@ def main():
                                   f"epoch {epoch}: result trace incomplete", 35)
                         archive(f"{epoch}-result")
                 check_helpers()
-                if epoch == 1:
+                if epoch != epochs[-1]:
                     # A results-screen tap must not become a new-match action.
                     if args.controller_menus:
                         menu_phase("RESULT")
                         tap(0, "results-only")
                         menu_button(1, 0x13b, "menu-results-confirm")
-                        controller_select()
+                        if args.controller_slots:
+                            slot_selection(epoch + 1)
+                        else:
+                            controller_select()
                     else:
                         tap(0, "results-only")
                         for slot in range(2):
@@ -532,16 +599,18 @@ def main():
                         ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
                 print(f"Epoch {epoch}: game start, tap, stock loss and results observed", flush=True)
         result = dict(settings=cfg, combat_actions=args.combat_actions, controller_reconnect=args.controller_reconnect,
-                      controller_chat=args.controller_chat,
+                      controller_chat=args.controller_chat, controller_slots=args.controller_slots,
                       helper_pids=[p.pid for p in helpers], events=events,
                       helper_sha256=hashlib.sha256(Path(cfg["binary"]).read_bytes()).hexdigest(),
                       scope="Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; "
-                            + ("controller-only game menus (keyboard diagnostic trace toggle); " if args.controller_menus
+                            + ("controller game navigation (keyboard diagnostic trace toggle); " if args.controller_menus
                                else "keyboard menu confirmation; ")
                             + ("ordinary combat and controller layout; " if args.combat_actions else "")
                             + ("controller removal/recreation and neutral rearm; " if args.controller_reconnect else "")
                             + ("native unsent chat with deliberate controller suppression and neutral rearm; "
                                if args.controller_chat else "")
+                            + ("B fighter CPU, EMPTY and restored HMN across three epochs; native slot-tag clicks; "
+                               if args.controller_slots else "")
                             + "no physical or cross-machine alignment claim.")
         (args.out / "capture.json").write_text(json.dumps(result, indent=2) + "\n")
     finally:
