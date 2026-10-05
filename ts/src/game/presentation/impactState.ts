@@ -1,8 +1,20 @@
-import { floorDiv, floorMod } from "../../sim/intMath";
+import { max, min, toInt } from "../../runtime/wurst";
 import { f32 } from "../../sim/f32";
-import type { ImpactEvents } from "./impactEvents";
+import { idiv, imod } from "../../sim/intMath";
+import { type Character, SurfaceContact } from "../sim/codes";
+import { DodgeCue, type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
 
-export const IMPACTS_PER_KIND = 8;
+// Impact kinds. Each owns a ring of IMPACTS_PER_KIND pool slots, in kind order.
+export const IMPACT_HIT = 0;
+export const IMPACT_TECH = 1;
+export const IMPACT_MISSED_TECH = 2;
+export const IMPACT_DUST = 3;
+export const IMPACT_DODGE = 4;
+export const IMPACT_ELECTRIC_HIT = 5;
+export const IMPACT_SHIELD_HIT = 6;
+export const IMPACT_AIR_JUMP = 7;
+export const IMPACT_SIDE_KO = 8;
+export const IMPACT_RESPAWN = 9;
 export const IMPACT_GRAB = 10;
 export const IMPACT_THROW = 11;
 export const IMPACT_CHARGE = 12;
@@ -11,11 +23,16 @@ export const IMPACT_LEDGE_CATCH = 14;
 export const IMPACT_LEDGE_RECOVERY = 15;
 export const IMPACT_STAR_KO = 16;
 export const IMPACT_SCREEN_KO = 17;
+
+export const IMPACTS_PER_KIND = 8;
 export const IMPACT_KIND_COUNT = 18;
+export const IMPACT_COUNT = IMPACTS_PER_KIND * IMPACT_KIND_COUNT;
 export const KO_STAR_FLIGHT_FRAMES = 90;
 export const KO_STAR_FRAMES = 108;
 export const KO_SCREEN_FRAMES = 100;
-export const IMPACT_COUNT = IMPACTS_PER_KIND * IMPACT_KIND_COUNT;
+
+const PI = f32(3.141592654);
+const HALF_PI = f32(1.570796327);
 
 export interface ImpactPose {
   visible: boolean;
@@ -26,9 +43,10 @@ export interface ImpactPose {
   pitch: number;
 }
 
+/** A top KO's flying body: a visual handle's transform, never a fighter. */
 export interface KoPose {
   visible: boolean;
-  character: number;
+  character: Character;
   alpha: number;
   scale: number;
   x: number;
@@ -39,50 +57,58 @@ export interface KoPose {
   roll: number;
 }
 
+/**
+ * A pool of impacts by slot, as parallel arrays. Ages count executed frames
+ * from emission; -1 marks a free slot, keeping each array dense in Lua.
+ * Projection reads the pool without advancing time or consuming events.
+ */
 export interface ImpactState {
-  ages: number[];
-  nextSlot: number[];
-  originX: number[];
-  originZ: number[];
-  drift: number[];
-  driftZ: number[];
-  pitch: number[];
-  character: number[];
-  strength: number[];
+  readonly ages: number[];
+  readonly nextSlot: number[];
+  readonly originX: number[];
+  readonly originZ: number[];
+  readonly drift: number[];
+  readonly driftZ: number[];
+  readonly pitch: number[];
+  readonly character: Character[];
+  readonly strength: number[];
 }
+
+const filled = <T>(length: number, value: T): T[] => Array.from({ length }, () => value);
 
 export function createImpactState(): ImpactState {
   return {
-    ages: Array.from({ length: IMPACT_COUNT }, () => -1),
-    nextSlot: Array.from({ length: IMPACT_KIND_COUNT }, () => 0),
-    originX: Array.from({ length: IMPACT_COUNT }, () => 0.0),
-    originZ: Array.from({ length: IMPACT_COUNT }, () => 0.0),
-    drift: Array.from({ length: IMPACT_COUNT }, () => 0),
-    driftZ: Array.from({ length: IMPACT_COUNT }, () => 0.0),
-    pitch: Array.from({ length: IMPACT_COUNT }, () => 0.0),
-    character: Array.from({ length: IMPACT_COUNT }, () => 0),
-    strength: Array.from({ length: IMPACT_COUNT }, () => 0.0),
+    ages: filled(IMPACT_COUNT, -1),
+    nextSlot: filled(IMPACT_KIND_COUNT, 0),
+    originX: filled(IMPACT_COUNT, 0.0),
+    originZ: filled(IMPACT_COUNT, 0.0),
+    drift: filled(IMPACT_COUNT, 0),
+    driftZ: filled(IMPACT_COUNT, 0.0),
+    pitch: filled(IMPACT_COUNT, 0.0),
+    character: filled<Character>(IMPACT_COUNT, 0),
+    strength: filled(IMPACT_COUNT, 0.0),
   };
 }
 
-export function copyImpactState(source: Readonly<ImpactState>): ImpactState {
-  const target = createImpactState();
-  copyImpactStateInto(target, source);
-  return target;
+/** An element of a pool array; indexes come from the pool's own bounds. */
+function at<T>(values: readonly T[], index: number): T {
+  const value = values[index];
+  if (value === undefined) throw new Error(`impact slot ${index} outside the pool`);
+  return value;
 }
 
 export function copyImpactStateInto(target: ImpactState, source: Readonly<ImpactState>): void {
   for (let i = 0; i < IMPACT_COUNT; i++) {
-    target.ages[i] = source.ages[i] ?? -1;
-    target.originX[i] = source.originX[i] ?? 0.0;
-    target.originZ[i] = source.originZ[i] ?? 0.0;
-    target.drift[i] = source.drift[i] ?? 0;
-    target.driftZ[i] = source.driftZ[i] ?? 0.0;
-    target.pitch[i] = source.pitch[i] ?? 0.0;
-    target.character[i] = source.character[i] ?? 0;
-    target.strength[i] = source.strength[i] ?? 0.0;
+    target.character[i] = at(source.character, i);
+    target.ages[i] = at(source.ages, i);
+    target.originX[i] = at(source.originX, i);
+    target.originZ[i] = at(source.originZ, i);
+    target.drift[i] = at(source.drift, i);
+    target.driftZ[i] = at(source.driftZ, i);
+    target.pitch[i] = at(source.pitch, i);
+    target.strength[i] = at(source.strength, i);
   }
-  for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) target.nextSlot[kind] = source.nextSlot[kind] ?? 0;
+  for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) target.nextSlot[kind] = at(source.nextSlot, kind);
 }
 
 export function firstImpactDifference(expected: Readonly<ImpactState>, actual: Readonly<ImpactState>): string | undefined {
@@ -117,28 +143,35 @@ export function clearImpactState(state: ImpactState): void {
   for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) state.nextSlot[kind] = 0;
 }
 
-export function advanceImpacts(state: ImpactState): void {
-  for (let i = 0; i < IMPACT_COUNT; i++) {
-    if ((state.ages[i] ?? -1) >= 0) {
-      const age = (state.ages[i] ?? -1) + 1;
-      state.ages[i] = age >= impactLifetime(floorDiv(i, IMPACTS_PER_KIND)) ? -1 : age;
-    }
+/** Frames an impact of this kind stays in the pool. */
+export function impactLifetime(kind: number): number {
+  switch (kind) {
+    case IMPACT_STAR_KO: return KO_STAR_FRAMES;
+    case IMPACT_SCREEN_KO: return KO_SCREEN_FRAMES;
+    case IMPACT_HIT:
+    case IMPACT_ELECTRIC_HIT:
+    case IMPACT_SHIELD_HIT: return 9;
+    case IMPACT_TECH: return 15;
+    case IMPACT_DUST: return 32;
+    case IMPACT_SIDE_KO: return 24;
+    default: return 12;
   }
 }
 
-export function impactLifetime(kind: number): number {
-  if (kind === IMPACT_STAR_KO) return KO_STAR_FRAMES;
-  if (kind === IMPACT_SCREEN_KO) return KO_SCREEN_FRAMES;
-  if (kind === 0 || kind === 5 || kind === 6) return 9;
-  if (kind === 1) return 15;
-  if (kind === 3) return 32;
-  if (kind === 8) return 24;
-  return 12;
+/** Ages every live impact by one executed frame. */
+export function advanceImpacts(state: ImpactState): void {
+  for (let i = 0; i < IMPACT_COUNT; i++) {
+    const age = at(state.ages, i);
+    if (age < 0) continue;
+    state.ages[i] = age + 1 >= impactLifetime(idiv(i, IMPACTS_PER_KIND)) ? -1 : age + 1;
+  }
 }
 
+/** Takes the kind's next ring slot, replacing whatever it held. */
 function spawn(state: ImpactState, kind: number, x: number, z: number, direction: number, size: number): number {
-  const slot = kind * IMPACTS_PER_KIND + (state.nextSlot[kind] ?? 0);
-  state.nextSlot[kind] = floorMod((state.nextSlot[kind] ?? 0) + 1, IMPACTS_PER_KIND);
+  const next = at(state.nextSlot, kind);
+  const slot = kind * IMPACTS_PER_KIND + next;
+  state.nextSlot[kind] = imod(next + 1, IMPACTS_PER_KIND);
   state.ages[slot] = 0;
   state.originX[slot] = x;
   state.originZ[slot] = z;
@@ -149,97 +182,111 @@ function spawn(state: ImpactState, kind: number, x: number, z: number, direction
   return slot;
 }
 
+/** A flash at a wall or ceiling contact, drifting along its inward normal. */
 function surfaceFlash(state: ImpactState, kind: number, events: Readonly<ImpactEvents>): void {
-  const slot = spawn(state, kind, events.contactX, events.contactZ, Math.trunc(events.normalX), f32(0.8));
-  state.pitch[slot] = events.normalX === 0 ? 0.0 : f32(1.570796327);
+  const slot = spawn(state, kind, events.contactX, events.contactZ, toInt(events.normalX), f32(0.8));
+  state.pitch[slot] = events.normalX === 0.0 ? 0.0 : HALF_PI;
   state.driftZ[slot] = events.normalZ;
 }
 
+/** Emits one fighter's cues for an executed frame; `frame` paces running dust and picks a top KO's cinematic. */
 export function emitImpacts(state: ImpactState, events: Readonly<ImpactEvents>, frame: number): void {
-  const emit = (kind: number, x: number, z: number, direction: number, size: number): number => spawn(state, kind, x, z, direction, size);
-  if (events.grab) emit(IMPACT_GRAB, events.x, f32(events.z + 50.0), 0, f32(0.65));
-  if (events.throwRelease) emit(IMPACT_THROW, events.x, f32(events.z + 50.0), 0, f32(1.1));
-  if (events.charge) emit(IMPACT_CHARGE, events.x, f32(events.z + 50.0), 0, 0.5);
-  if (events.ready) emit(IMPACT_READY, events.x, f32(events.z + 65.0), 0, f32(0.9));
-  if (events.ledgeCatch) emit(IMPACT_LEDGE_CATCH, events.ledgeX, events.ledgeZ, 0, f32(0.6));
-  if (events.ledgeRecovery) emit(IMPACT_LEDGE_RECOVERY, events.ledgeX, events.ledgeZ, 0, f32(0.8));
-  if (events.hit) emit(events.electric ? 5 : 0, events.x, f32(events.z + 50.0), 0, 1.0);
-  if (events.shieldHit) emit(6, events.x, f32(events.z + 50.0), 0, 1.0);
-  if (events.shieldBreak) emit(6, events.x, f32(events.z + 50.0), 0, 2.0);
-  if (events.landing === 1) emit(1, events.x, f32(events.z + 3.0), 0, 1.0);
-  else if (events.landing === 2) {
-    emit(2, events.x, f32(events.z + 2.0), 0, 1.0);
-    emit(3, f32(events.x - 15.0), f32(events.z + 3.0), -1, 1.0);
-    emit(3, f32(events.x + 15.0), f32(events.z + 3.0), 1, 1.0);
+  const { x, z } = events;
+  if (events.grab) spawn(state, IMPACT_GRAB, x, f32(z + 50.0), 0, f32(0.65));
+  if (events.throwRelease) spawn(state, IMPACT_THROW, x, f32(z + 50.0), 0, f32(1.1));
+  if (events.charge) spawn(state, IMPACT_CHARGE, x, f32(z + 50.0), 0, 0.5);
+  if (events.ready) spawn(state, IMPACT_READY, x, f32(z + 65.0), 0, f32(0.9));
+  if (events.ledgeCatch) spawn(state, IMPACT_LEDGE_CATCH, events.ledgeX, events.ledgeZ, 0, f32(0.6));
+  if (events.ledgeRecovery) spawn(state, IMPACT_LEDGE_RECOVERY, events.ledgeX, events.ledgeZ, 0, f32(0.8));
+  if (events.hit) spawn(state, events.electric ? IMPACT_ELECTRIC_HIT : IMPACT_HIT, x, f32(z + 50.0), 0, 1.0);
+  if (events.shieldHit) spawn(state, IMPACT_SHIELD_HIT, x, f32(z + 50.0), 0, 1.0);
+  if (events.shieldBreak) spawn(state, IMPACT_SHIELD_HIT, x, f32(z + 50.0), 0, 2.0);
+  if (events.landing === ImpactLanding.tech) spawn(state, IMPACT_TECH, x, f32(z + 3.0), 0, 1.0);
+  else if (events.landing === ImpactLanding.missedTech) {
+    spawn(state, IMPACT_MISSED_TECH, x, f32(z + 2.0), 0, 1.0);
+    spawn(state, IMPACT_DUST, f32(x - 15.0), f32(z + 3.0), -1, 1.0);
+    spawn(state, IMPACT_DUST, f32(x + 15.0), f32(z + 3.0), 1, 1.0);
   }
-  if (events.surface === 3 || events.surface === 4) surfaceFlash(state, 1, events);
+  if (events.surface === SurfaceContact.techWall || events.surface === SurfaceContact.techCeiling) surfaceFlash(state, IMPACT_TECH, events);
   else if (events.surfaceMissedTech) {
-    surfaceFlash(state, 2, events);
-    surfaceFlash(state, 3, events);
+    surfaceFlash(state, IMPACT_MISSED_TECH, events);
+    surfaceFlash(state, IMPACT_DUST, events);
   }
   if (events.ordinaryLanding) {
-    emit(3, f32(events.x - 12.0), f32(events.z + 2.0), -1, f32(0.7));
-    emit(3, f32(events.x + 12.0), f32(events.z + 2.0), 1, f32(0.7));
+    spawn(state, IMPACT_DUST, f32(x - 12.0), f32(z + 2.0), -1, f32(0.7));
+    spawn(state, IMPACT_DUST, f32(x + 12.0), f32(z + 2.0), 1, f32(0.7));
   }
-  if (events.jump === 1) {
-    emit(3, f32(events.jumpOriginX - 12.0), f32(events.jumpOriginZ + 2.0), -1, f32(0.7));
-    emit(3, f32(events.jumpOriginX + 12.0), f32(events.jumpOriginZ + 2.0), 1, f32(0.7));
-  } else if (events.jump === 2 || events.jump === 3) emit(7, events.jumpOriginX, f32(events.jumpOriginZ - 5.0), 0, 1.0);
-  if (events.airDodge) emit(4, events.x, f32(events.z + 50.0), 0, f32(0.6));
-  if (events.movementDust || events.dodgeTrail || (events.runningDust && floorMod(frame, 8) === 0)) {
-    emit(3, f32(events.x - events.direction * 12.0), f32(events.z + 2.0), -events.direction, f32(0.45));
+  if (events.jump === JumpCue.ground) {
+    spawn(state, IMPACT_DUST, f32(events.jumpOriginX - 12.0), f32(events.jumpOriginZ + 2.0), -1, f32(0.7));
+    spawn(state, IMPACT_DUST, f32(events.jumpOriginX + 12.0), f32(events.jumpOriginZ + 2.0), 1, f32(0.7));
+  } else if (events.jump === JumpCue.double || events.jump === JumpCue.air) {
+    spawn(state, IMPACT_AIR_JUMP, events.jumpOriginX, f32(events.jumpOriginZ - 5.0), 0, 1.0);
   }
-  if (events.launchTrail) emit(3, events.x, f32(events.z + 45.0), 0, f32(0.6));
+  if (events.airDodge) spawn(state, IMPACT_DODGE, x, f32(z + 50.0), 0, f32(0.6));
+  if (events.movementDust || events.dodgeTrail || (events.runningDust && imod(frame, 8) === 0)) {
+    spawn(state, IMPACT_DUST, f32(x - events.direction * 12), f32(z + 2.0), -events.direction, f32(0.45));
+  }
+  if (events.launchTrail) spawn(state, IMPACT_DUST, x, f32(z + 45.0), 0, f32(0.6));
   if (events.koDirectionX === 0 && events.koDirectionZ > 0) {
-    const kind = floorMod(frame + events.character, 2) === 0 ? IMPACT_STAR_KO : IMPACT_SCREEN_KO;
-    const slot = emit(kind, f32(events.x * f32(0.45)), Math.min(events.z, 480.0), events.facing, 1.0);
+    // Presentation policy only: no random state, stock or respawn mutation.
+    const kind = imod(frame + events.character, 2) === 0 ? IMPACT_STAR_KO : IMPACT_SCREEN_KO;
+    const slot = spawn(state, kind, f32(x * f32(0.45)), min(z, 480.0), events.facing, 1.0);
     state.character[slot] = events.character;
   } else if (events.koDirectionX !== 0 || events.koDirectionZ !== 0) {
-    const slot = emit(8, events.x, f32(events.z + 35.0), events.koDirectionX, 2.0);
+    const slot = spawn(state, IMPACT_SIDE_KO, x, f32(z + 35.0), events.koDirectionX, 2.0);
     state.driftZ[slot] = events.koDirectionZ * 2.0;
   }
-  if (events.respawn) emit(9, events.x, f32(events.z + 50.0), 0, f32(1.3));
-  if (events.dodge === 1) {
-    emit(3, f32(events.x - 8.0), f32(events.z + 2.0), -1, f32(0.65));
-    emit(3, f32(events.x + 8.0), f32(events.z + 2.0), 1, f32(0.65));
-  } else if (events.dodge === 2) {
-    emit(4, events.x, f32(events.z + 12.0), 0, 1.0);
-    emit(3, f32(events.x - events.direction * 15.0), f32(events.z + 2.0), -events.direction, f32(0.55));
+  if (events.respawn) spawn(state, IMPACT_RESPAWN, x, f32(z + 50.0), 0, f32(1.3));
+  if (events.dodge === DodgeCue.spot) {
+    spawn(state, IMPACT_DUST, f32(x - 8.0), f32(z + 2.0), -1, f32(0.65));
+    spawn(state, IMPACT_DUST, f32(x + 8.0), f32(z + 2.0), 1, f32(0.65));
+  } else if (events.dodge === DodgeCue.roll) {
+    spawn(state, IMPACT_DODGE, x, f32(z + 12.0), 0, 1.0);
+    spawn(state, IMPACT_DUST, f32(x - events.direction * 15), f32(z + 2.0), -events.direction, f32(0.55));
   }
 }
+
+/** How far an impact has drifted at the given velocity. */
+const travel = (velocity: number, age: number): number => f32(f32(velocity * age) * f32(1.3));
 
 function hiddenImpact(): ImpactPose {
   return { visible: false, alpha: 0, scale: 0.0, x: 0.0, z: 0.0, pitch: 0.0 };
 }
 
+/** An impact slot's transform. KO slots show only a star KO's closing sparkle. */
 export function projectImpact(state: Readonly<ImpactState>, i: number): ImpactPose {
-  const age = state.ages[i];
-  if (i < 0 || i >= IMPACT_COUNT || age === undefined || age < 0) return hiddenImpact();
-  const kind = floorDiv(i, IMPACTS_PER_KIND);
-  if (kind === IMPACT_SCREEN_KO || (kind === IMPACT_STAR_KO && age < KO_STAR_FLIGHT_FRAMES)) return hiddenImpact();
+  if (i < 0 || i >= IMPACT_COUNT) return hiddenImpact();
+  const age = at(state.ages, i);
+  const kind = idiv(i, IMPACTS_PER_KIND);
+  if (age < 0 || kind === IMPACT_SCREEN_KO || (kind === IMPACT_STAR_KO && age < KO_STAR_FLIGHT_FRAMES)) return hiddenImpact();
+  const originX = at(state.originX, i);
+  const originZ = at(state.originZ, i);
+  const drift = at(state.drift, i);
   if (kind === IMPACT_STAR_KO) {
-    const sparkleProgress = f32(f32((age - KO_STAR_FLIGHT_FRAMES) * 1.0) / (KO_STAR_FRAMES - KO_STAR_FLIGHT_FRAMES));
+    const sparkle = f32(f32((age - KO_STAR_FLIGHT_FRAMES) * 1.0) / (KO_STAR_FRAMES - KO_STAR_FLIGHT_FRAMES));
     return {
       visible: true,
-      alpha: Math.trunc(255 * f32(1.0 - sparkleProgress)),
-      scale: f32(f32(0.6) + sparkleProgress),
-      x: f32((state.originX[i] ?? 0) + (state.drift[i] ?? 0) * 75.0),
-      z: f32((state.originZ[i] ?? 0) + 180.0),
+      alpha: toInt(f32(255 * f32(1.0 - sparkle))),
+      scale: f32(f32(0.6) + sparkle),
+      x: f32(originX + drift * 75),
+      z: f32(originZ + 180.0),
       pitch: 0.0,
     };
   }
+  const strength = at(state.strength, i);
   const progress = f32(f32(age * 1.0) / impactLifetime(kind));
-  const strength = state.strength[i] ?? 0.0;
-  const scale = kind === 3 ? f32(0.75 + f32(progress * f32(1.1))) : kind === 2 ? f32(f32(0.7) + f32(progress * 0.5)) : f32(1.0 + f32(progress * 0.25));
+  let scale = f32(1.0 + f32(progress * 0.25));
+  if (kind === IMPACT_DUST) scale = f32(0.75 + f32(progress * f32(1.1)));
+  else if (kind === IMPACT_MISSED_TECH) scale = f32(f32(0.7) + f32(progress * 0.5));
   const fade = f32(1.0 - progress);
-  const baseAlpha = kind === 3 ? f32(220.0 * strength) : 255.0;
+  const opacity = kind === IMPACT_DUST ? f32(220 * strength) : 255.0;
   return {
     visible: true,
-    alpha: Math.trunc(f32(f32(baseAlpha * fade) * fade)),
+    alpha: toInt(f32(f32(opacity * fade) * fade)),
     scale: f32(scale * strength),
-    x: f32((state.originX[i] ?? 0) + f32((state.drift[i] ?? 0) * f32(age * f32(1.3)))),
-    z: f32((state.originZ[i] ?? 0) + f32((state.driftZ[i] ?? 0) * f32(age * f32(1.3))) + (kind === 3 ? f32(progress * 9.0) : 0.0)),
-    pitch: state.pitch[i] ?? 0.0,
+    x: f32(originX + travel(drift, age)),
+    z: f32(f32(originZ + travel(at(state.driftZ, i), age)) + (kind === IMPACT_DUST ? f32(progress * 9) : 0.0)),
+    pitch: at(state.pitch, i),
   };
 }
 
@@ -247,40 +294,49 @@ function hiddenKo(): KoPose {
   return { visible: false, character: 0, alpha: 0, scale: 0.0, x: 0.0, y: 0.0, z: 0.0, pitch: 0.0, yaw: 0.0, roll: 0.0 };
 }
 
+/**
+ * A top KO's body: a star KO flies away and spins, a screen KO hits the
+ * camera and drops. Pure transforms of the age, so they freeze with the
+ * confirmed frame clock.
+ */
 export function projectKo(state: Readonly<ImpactState>, i: number): KoPose {
-  const age = state.ages[i];
-  if (i < IMPACT_STAR_KO * IMPACTS_PER_KIND || i >= IMPACT_COUNT || age === undefined || age < 0) return hiddenKo();
-  const direction = state.drift[i] ?? 0;
-  const yaw = direction > 0 ? 0.0 : f32(3.141592654);
-  if (floorDiv(i, IMPACTS_PER_KIND) === IMPACT_STAR_KO) {
+  if (i < IMPACT_STAR_KO * IMPACTS_PER_KIND || i >= IMPACT_COUNT) return hiddenKo();
+  const age = at(state.ages, i);
+  if (age < 0) return hiddenKo();
+  const drift = at(state.drift, i);
+  const originX = at(state.originX, i);
+  const originZ = at(state.originZ, i);
+  const character = at(state.character, i);
+  const yaw = drift > 0 ? 0.0 : PI;
+  if (idiv(i, IMPACTS_PER_KIND) === IMPACT_STAR_KO) {
     if (age >= KO_STAR_FLIGHT_FRAMES) return hiddenKo();
     const t = f32(f32(age * 1.0) / KO_STAR_FLIGHT_FRAMES);
-    const fade = f32(1.0 - t);
+    const remaining = f32(1.0 - t);
     return {
       visible: true,
-      character: state.character[i] ?? 0,
+      character,
       alpha: 255,
-      scale: f32(fade * fade),
-      x: f32((state.originX[i] ?? 0) + f32(direction * f32(75.0 * t))),
-      y: f32(1400.0 * t),
-      z: f32((state.originZ[i] ?? 0) + f32(180.0 * t)),
-      pitch: f32(direction * f32(t * f32(18.84955592))),
+      scale: f32(remaining * remaining),
+      x: f32(originX + f32((drift * 75) * t)),
+      y: f32(1400 * t),
+      z: f32(originZ + f32(180 * t)),
+      pitch: f32(f32(drift * t) * f32(18.84955592)),
       yaw,
       roll: f32(t * f32(12.56637061)),
     };
   }
-  const flight = Math.min(1.0, f32(age / 24.0));
-  const drop = Math.max(0.0, f32((age - 48) / 52.0));
+  const flight = min(1.0, f32(age / 24.0));
+  const drop = max(0.0, f32((age - 48) / 52.0));
   return {
     visible: true,
-    character: state.character[i] ?? 0,
-    alpha: Math.trunc(255.0 * f32(1.0 - drop)),
+    character,
+    alpha: toInt(f32(255 * f32(1.0 - drop))),
     scale: f32(1.0 + f32(flight * f32(1.7))),
-    x: f32((state.originX[i] ?? 0) + f32(direction * f32(110.0 * flight))),
-    y: f32(-550.0 * flight),
-    z: f32((state.originZ[i] ?? 0) - f32(140.0 * flight) - f32(900.0 * f32(drop * drop))),
-    pitch: f32(direction * (f32(flight * f32(6.283185307)) + f32(drop * f32(9.424777961)))),
+    x: f32(originX + f32((drift * 110) * flight)),
+    y: f32(-550 * flight),
+    z: f32(f32(originZ - f32(140 * flight)) - f32(f32(900 * drop) * drop)),
+    pitch: f32(drift * f32(f32(flight * f32(6.283185307)) + f32(drop * f32(9.424777961)))),
     yaw,
-    roll: f32(flight * f32(1.570796327)),
+    roll: f32(flight * HALF_PI),
   };
 }
