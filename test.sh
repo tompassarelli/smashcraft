@@ -118,6 +118,8 @@ exec "$java" -Xmx2048m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/wurst/InputLedgerTests.wurst" \
     "$project_dir/wurst/FixedInputSchedule.wurst" \
     "$project_dir/wurst/FixedInputScheduleTests.wurst" \
+    "$project_dir/wurst/DevConsole.wurst" \
+    "$project_dir/wurst/DevConsoleTests.wurst" \
     "$project_dir/wurst/FixedInputPlayback.wurst" \
     "$project_dir/wurst/FixedInputPlaybackTests.wurst" \
     "$project_dir/wurst/ShadowInputSchedule.wurst" \

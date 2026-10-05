@@ -1,0 +1,39 @@
+package DevConsole
+import ReplayHistory
+import FixedInputSchedule
+
+// Developer chat commands arrive as synchronized player-chat events. A match
+// reads these values once at its start, so a command typed during a match
+// applies from the next match on every client.
+public class DevSettings
+    int rollback
+    int delay
+
+    construct(int rollback, int delay)
+        this.rollback = rollback
+        this.delay = delay
+
+    // Returns the confirmation for a recognized command, or "" otherwise.
+    function apply(string message) returns string
+        if message == "-dev show"
+            return describe()
+        if message.startsWith("-dev rb ")
+            let value = devCommandInt(message.substring(8))
+            if value < 1 or value > REPLAY_MAX_CORRECTION_FRAMES
+                return "dev: rb must be 1-" + I2S(REPLAY_MAX_CORRECTION_FRAMES)
+            rollback = value
+            return describe()
+        if message.startsWith("-dev delay ")
+            let value = devCommandInt(message.substring(11))
+            if fixedCaptureTarget(1, value) == 0
+                return "dev: delay must be 0, 1, 2, 3 or 5"
+            delay = value
+            return describe()
+        return ""
+
+    function describe() returns string
+        return "dev: next match rb=" + I2S(rollback) + " delay=" + I2S(delay)
+
+function devCommandInt(string text) returns int
+    let value = S2I(text)
+    return I2S(value) == text ? value : -1

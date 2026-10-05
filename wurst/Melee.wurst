@@ -53,6 +53,7 @@ import JournalMatchLifecycle
 import FileIO
 import NativePreloadProbe
 import NativeTransportProbe
+import DevConsole
 
 constant int SHADOW_CONFIRMED_CATCHUP_LIMIT = 6
 constant int JOURNAL_PACKETS_PER_CALLBACK = 1
@@ -87,6 +88,10 @@ ReplayRuntimeState replayRuntime = new ReplayRuntimeState()
 ReplaySnapshot diagnosticSnapshot = new ReplaySnapshot()
 boolean shadowInputActive = false
 int shadowInputEpoch = 0
+DevSettings devSettings = new DevSettings(SHADOW_INPUT_ROLLBACK, SHADOW_INPUT_DELAY)
+int shadowEpochDelay = SHADOW_INPUT_DELAY
+int shadowEpochRollback = SHADOW_INPUT_ROLLBACK
+int devReceipts = 0
 int shadowLastCaptureTarget = 0
 boolean shadowLocalSendFailed = false
 boolean journalInputFailed = false
@@ -1275,7 +1280,7 @@ function receiveShadowInput()
             traceInput("journal transport start received sender " + I2S(sender))
             if journalTransportReadyMask == matchState.humanMask
                 if JOURNAL_EDITBOX_INGRESS
-                    writeJournalLifecycle("START", "start", 1 + SHADOW_INPUT_DELAY)
+                    writeJournalLifecycle("START", "start", 1 + shadowEpochDelay)
                 PreloadGenClear()
                 PreloadGenStart()
                 Preload("build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(GetPlayerId(GetLocalPlayer())) + " received-mask=" + I2S(journalTransportReadyMask) + " before-journal-reads=yes")
@@ -1441,7 +1446,9 @@ function onTransportIsolationStart()
 
 function beginShadowEpoch() returns boolean
     shadowInputEpoch++
-    if not shadowSchedule.beginEpoch(shadowInputEpoch, SHADOW_INPUT_DELAY, SHADOW_INPUT_ROLLBACK, matchState.humanMask)
+    shadowEpochDelay = devSettings.delay
+    shadowEpochRollback = devSettings.rollback
+    if not shadowSchedule.beginEpoch(shadowInputEpoch, shadowEpochDelay, shadowEpochRollback, matchState.humanMask)
         return false
     if not shadowPlayback.beginEpoch(shadowInputEpoch)
         return false
@@ -1486,7 +1493,7 @@ function beginShadowEpoch() returns boolean
 		journalControlAckStateBySlot[slot] = 0
     if JOURNAL_INPUT_SOURCE
         let localSlot = GetPlayerId(GetLocalPlayer())
-        if not journalInput.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot, SHADOW_INPUT_DELAY)
+        if not journalInput.beginEpoch(BUILD_ID, shadowInputEpoch, localSlot, shadowEpochDelay)
             failJournalInput("epoch could not be initialized")
         if JOURNAL_EDITBOX_INGRESS
             // Text focus can consume the release of the menu key that started combat.
@@ -1571,7 +1578,7 @@ function startMatch()
             PreloadGenClear()
             PreloadGenStart()
             Preload("SMASHCRAFT JOURNAL v=1 build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot))
-            Preload("input=" + INPUT_PROFILE + " delay=" + I2S(SHADOW_INPUT_DELAY) + " rollback=" + I2S(SHADOW_INPUT_ROLLBACK) + " first_frame=" + I2S(1 + SHADOW_INPUT_DELAY))
+            Preload("input=" + INPUT_PROFILE + " delay=" + I2S(shadowEpochDelay) + " rollback=" + I2S(shadowEpochRollback) + " first_frame=" + I2S(1 + shadowEpochDelay))
             Preload("filename=smashcraft-journal-" + BUILD_ID + "-e" + I2S(shadowInputEpoch) + "-s" + I2S(slot) + "-n{SEQUENCE}.pld")
             Preload("packet=canonical I4; records=1 or 2 consecutive original frames; include neutral rows; no sparse events")
             Preload(JOURNAL_EDITBOX_INGRESS ? "transport=editbox-v1; semicolon-delimited I4; local poll and consumed-prefix drain; text-capacity=4096" : (JOURNAL_KEYBOARD_INGRESS ? "transport=keyboard-mailbox-v1; seven printable ASCII bytes per committed chunk; exact ACK before data is reused" : "transport=SC_GP; files are immutable; absent next filename is retried; sequence advances after local capture and successful submission"))
@@ -2339,6 +2346,24 @@ function initializeShadowInput()
 			if matchState.humanActive(slot)
 				BlzTriggerRegisterPlayerSyncEvent(journalControlSync, Player(slot), "SC_JC", false)
 		TriggerAddAction(journalControlSync, function receiveJournalControlAck)
+    if DEV_CONSOLE
+        let devChat = CreateTrigger()
+        for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
+            devChat.registerPlayerChatEvent(Player(slot), "-dev ", false)
+        TriggerAddAction(devChat, function receiveDevCommand)
+
+// Chat events reach every client at the same game time. The receipt lets
+// automation confirm both clients hold the setting before the next match.
+function receiveDevCommand()
+    let receipt = devSettings.apply(GetEventPlayerChatString())
+    if receipt == ""
+        return
+    devReceipts++
+    DisplayTextToPlayer(GetLocalPlayer(), 0, 0, receipt)
+    PreloadGenClear()
+    PreloadGenStart()
+    Preload("SMASHCRAFT DEV v=1 build=" + BUILD_ID + " receipt=" + I2S(devReceipts) + " epoch=" + I2S(shadowInputEpoch) + " rb=" + I2S(devSettings.rollback) + " delay=" + I2S(devSettings.delay) + " ")
+    PreloadGenEnd("smashcraft-dev-" + BUILD_ID + "-p" + I2S(GetPlayerId(GetLocalPlayer())) + ".txt")
 
 function initGame()
     DestroyTimer(GetExpiredTimer())

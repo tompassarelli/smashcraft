@@ -73,6 +73,8 @@ case "$input_profile" in shadow-d0-*) input_delay=0 ;; shadow-d1-*) input_delay=
 case "$input_profile" in *-r12) input_rollback=12 ;; *-r24) input_rollback=24 ;; *-r128) input_rollback=128 ;; esac
 response_probe=${WC3_RESPONSE_SERVICE_PROBE:-0}
 case "$response_probe" in 0|1) ;; *) echo 'WC3_RESPONSE_SERVICE_PROBE must be 0 or 1.' >&2; exit 2;; esac
+dev_console=${WC3_DEV_CONSOLE:-0}
+case "$dev_console" in 0|1) ;; *) echo 'WC3_DEV_CONSOLE must be 0 or 1.' >&2; exit 2;; esac
 presentation=${WC3_PRESENTATION:-native}
 case "$presentation" in native|pool-confirmed|pool-predicted) ;; *) echo 'WC3_PRESENTATION must be native, pool-confirmed or pool-predicted.' >&2; exit 2;; esac
 if [[ "$presentation" != native ]]; then
@@ -128,7 +130,7 @@ cp "$project_dir/wurst.build" "$work_dir/wurst.build"
 }
 sed -i "s/^  name: .*/  name: $map_name/" "$work_dir/wurst.build"
 cp "$project_dir/tools/map-entry.j" "$work_dir/wurst/war3map.j"
-for source in ConfirmedModelSounds ModelSoundPresentation FighterAssets Simulation TechInput MeleeContactGeometry MeleeScalarMath RollTravel IllidanMotion FighterPose BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput NetworkInput InputAdapter MatchStep ReplayState ReplayHistory KeyboardInputCapture InputProtocol InputBatch ParticipantInputs InputLedger FixedInputSchedule ShadowInputSchedule ShadowInputPlayback JournalInputSource JournalMatchLifecycle JournalPauseBarrier KeyboardJournalIngress JournalTextStream EditboxJournalIngress VocabularyIngress VocabularyProbeCorpus ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents ImpactState SpecialEffectState SummonPose SummonState SummonPresentation DamagePose CombatEffects FrostEffects ProjectilePose ProjectilePresentation ShieldPose ShieldPresentation SpecialEffects ResponseServiceProbe NativePreloadProbe NativeTransportProbe Melee; do
+for source in ConfirmedModelSounds ModelSoundPresentation FighterAssets Simulation TechInput MeleeContactGeometry MeleeScalarMath RollTravel IllidanMotion FighterPose BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput NetworkInput InputAdapter MatchStep ReplayState ReplayHistory KeyboardInputCapture InputProtocol InputBatch ParticipantInputs InputLedger FixedInputSchedule ShadowInputSchedule DevConsole ShadowInputPlayback JournalInputSource JournalMatchLifecycle JournalPauseBarrier KeyboardJournalIngress JournalTextStream EditboxJournalIngress VocabularyIngress VocabularyProbeCorpus ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents ImpactState SpecialEffectState SummonPose SummonState SummonPresentation DamagePose CombatEffects FrostEffects ProjectilePose ProjectilePresentation ShieldPose ShieldPresentation SpecialEffects ResponseServiceProbe NativePreloadProbe NativeTransportProbe Melee; do
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
 done
 cp "$project_dir/build/model-sounds/wurst/ModelSoundInfo.wurst" "$work_dir/wurst/ModelSoundInfo.wurst"
@@ -193,6 +195,7 @@ printf 'public constant boolean JOURNAL_INPUT_SOURCE = %s\n' "$([[ "$input_sourc
 printf 'public constant boolean JOURNAL_KEYBOARD_INGRESS = %s\n' "$([[ "$keyboard_journal_ingress" == keyboard ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
 printf 'public constant boolean JOURNAL_EDITBOX_INGRESS = %s\n' "$([[ "$keyboard_journal_ingress" == editbox ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
 printf 'public constant boolean RESPONSE_SERVICE_PROBE = %s\n' "$([[ "$response_probe" == 1 ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
+printf 'public constant boolean DEV_CONSOLE = %s\n' "$([[ "$dev_console" == 1 ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
 printf 'public constant boolean KO_SCENARIO = %s\n' "$([[ "$developer_scenario" == ko ]] && echo true || echo false)" >> "$work_dir/wurst/BuildInfo.wurst"
 cp "$work_dir/wurst/BuildInfo.wurst" "$build_output.BuildInfo.wurst"
 if [[ "$build_output" == "$project_dir/build/wurst-map/$map_filename" ]]; then
