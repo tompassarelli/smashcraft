@@ -10,6 +10,10 @@ Change framework code in an owned Waygate lane, publish it, and update the
 consumer pin with smashcraft:ts/scripts/update-waygate.ts. Never edit the
 installed dependency or add a local framework copy.
 
+Before adding tooling or diagnostics, consult Waygate's feature index at
+smashcraft:ts/node_modules/waygate/docs/index.md (source: waygate:docs/index.md).
+It includes opt-in features such as TypeScript call stacks and their costs.
+
 ## Issues define the scope — finish them
 
 Roadmap [#16](https://github.com/tompassarelli/smashcraft/issues/16) lists the
