@@ -300,7 +300,8 @@ def sweep_result(root, metadata):
             "|---|---|---|---|---|---|---|---|---|"]
     passed = True
     for index, window in enumerate(metadata["sweep"]):
-        pair = (2 * index + 1, 2 * index + 2)
+        first = metadata.get("epochs", [1])[0]
+        pair = (first + 2 * index, first + 2 * index + 1)
         print(f"## R{window}: epochs {pair}")
         r = integrity_result(root, metadata, pair, f"rb{window}", window)
         passed = passed and r["passed"]
@@ -325,7 +326,7 @@ def main():
     if metadata.get("sweep"):
         return sweep_result(root, metadata)
     if metadata.get("input_integrity"):
-        return 0 if integrity_result(root, metadata)["passed"] else 1
+        return 0 if integrity_result(root, metadata, tuple(metadata.get("epochs", (1, 2))))["passed"] else 1
     reconnect = metadata.get("controller_reconnect", False)
     slot_modes = metadata.get("controller_slots", False)
     epochs = (1, 2, 3) if slot_modes else (1, 2)

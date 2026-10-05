@@ -42,6 +42,8 @@ def main():
                         help="run the issue 26 all-binding 500-edge-per-player match/rematch test")
     parser.add_argument("--sweep", type=lambda text: [int(v) for v in text.split(",")], default=None,
                         help="rollback windows; each runs one integrity match and rematch after a -dev rb chat command")
+    parser.add_argument("--first-epoch", type=int, default=1,
+                        help="first map match number when continuing an already loaded session (odd for integrity runs)")
     parser.add_argument("--four-fighters", action="store_true",
                         help="include issue 17's two humans and two CPUs in the integrity journey")
     parser.add_argument("--controller-slots", action="store_true",
@@ -72,7 +74,10 @@ def main():
         parser.error("--four-fighters requires --input-integrity")
     if args.sweep and (not args.input_integrity or args.four_fighters):
         parser.error("--sweep requires --input-integrity without --four-fighters")
+    if args.first_epoch < 1 or (args.input_integrity and args.first_epoch % 2 == 0):
+        parser.error("--first-epoch must be positive, and odd for integrity runs")
     epochs = (1, 2, 3) if args.controller_slots else tuple(range(1, 2 * len(args.sweep) + 1)) if args.sweep else (1, 2)
+    epochs = tuple(epoch + args.first_epoch - 1 for epoch in epochs)
     cfg = json.loads(args.session.read_text())["args"]
     cfg["build"] = args.build
     args.out.mkdir(parents=True, exist_ok=False)
@@ -358,7 +363,7 @@ def main():
                           "four-fighter setup absent on one client")
                     receipts.append(dict(human_fighters=humans, computers=cpus,
                                          publications=[capture_boundary(p) for p in paths]))
-                events.append(dict(event="four-fighter-setup", epoch=1, changes=receipts))
+                events.append(dict(event="four-fighter-setup", epoch=epochs[0], changes=receipts))
 
             def integrity(epoch):
                 prefix = f"match-{epoch}-integrity-"
@@ -708,13 +713,13 @@ def main():
                         ui("b", "click", 250, 900)
                         ui("b", "click", 1675, 155)
                         ui("b", "wait", rf"{stocks} Stock")
-                if args.input_integrity and not args.four_fighters and epoch > 1 and epoch % 2 == 1:
+                if args.input_integrity and not args.four_fighters and epoch > epochs[0] and epoch % 2 == 1:
                     for stocks in (2, 1):
                         ui("b", "click", 250, 900)
                         ui("b", "click", 1380, 155)
                         ui("b", "wait", rf"{stocks} Stock")
                 if args.sweep and epoch % 2 == 1:
-                    window = args.sweep[epoch // 2]
+                    window = args.sweep[(epoch - epochs[0]) // 2]
                     dev_command(epoch, f"-dev rb {window}", f" rb={window} ")
                 trace_after_wall = time.time_ns()
                 # Ctrl+G only enables the diagnostic trace; controller-menu mode
@@ -807,7 +812,7 @@ def main():
                         ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
                 print(f"Epoch {epoch}: game start, tap, stock loss and results observed", flush=True)
         result = dict(settings=cfg, input_integrity=args.input_integrity, four_fighters=args.four_fighters,
-                      sweep=args.sweep,
+                      sweep=args.sweep, epochs=list(epochs),
                       combat_actions=args.combat_actions, controller_reconnect=args.controller_reconnect,
                       controller_chat=args.controller_chat, controller_slots=args.controller_slots,
                       helper_pids=[p.pid for p in helpers], events=events,
