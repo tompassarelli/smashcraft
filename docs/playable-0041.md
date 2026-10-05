@@ -13,7 +13,9 @@ Map:
 Current matching executable (controller reconnect repair):
 ~/.local/share/smashcraft-build-inputs/playable-integration-20261005/build/wc3-journal-0.0.41-reconnect
 
-The map is installed in both retained clients' `Maps/00-Smashcraft` folders.
+Install this preserved map in each client's `Maps/00-Smashcraft` folder and
+select **Smashcraft 0.0.41**. Engineering diagnostics may occupy the retained
+clients between trials; their presence does not change this playable checkpoint.
 Open a fresh match and start one helper per human player **at the initial fighter
 selection screen**, before selecting/start. Use the matching Warcraft data
 directory, controller device, player slot, game PID and focused window. The
