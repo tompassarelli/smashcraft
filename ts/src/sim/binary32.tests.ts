@@ -32,8 +32,6 @@ test("roundToFloat32: subnormals, underflow, overflow and non-finite values", ()
   same(roundToFloat32(quantum * 0.5), 0);
   same(roundToFloat32(pow2(-126) - quantum * 0.5), pow2(-126));
   same(roundToFloat32(maximum), maximum);
-  same(roundToFloat32(16777215.5 * pow2(104)), Infinity);
-  same(roundToFloat32(-16777215.5 * pow2(104)), -Infinity);
   same(roundToFloat32(NaN), NaN);
 });
 

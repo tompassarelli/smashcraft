@@ -2,6 +2,7 @@
 // (32-bit integers, binary32 numbers). Inputs are exact binary32 values built
 // from integer steps below 2^31; no bitwise operators.
 import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, subtractFloat32 } from "../sim/binary32";
+import { floorMod } from "../sim/intMath";
 import { meleeAtan2, meleeCos, meleeSin } from "../sim/meleeScalarMath";
 
 function powerOfTwo(exponent: number): number {
@@ -12,27 +13,27 @@ function powerOfTwo(exponent: number): number {
 
 /** Linear congruential step modulo 2^24; every product stays below 2^31. */
 function step(state: number): number {
-  return (state * 101 + 7919) % 16777216;
+  return floorMod(state * 101 + 7919, 16777216);
 }
 
 /** An exact binary32 value with exponent in [-30, 29] and a random sign. */
 function operand(seed: number): number {
-  const first = step(seed % 16777216);
+  const first = step(floorMod(seed, 16777216));
   const second = step(first);
   const third = step(second);
-  const significand = 8388608 + (first % 8388608);
-  const exponent = (second % 60) - 30;
-  const sign = third % 2 === 0 ? -1.0 : 1.0;
+  const significand = 8388608 + floorMod(first, 8388608);
+  const exponent = floorMod(second, 60) - 30;
+  const sign = floorMod(third, 2) === 0 ? -1.0 : 1.0;
   return sign * significand * powerOfTwo(exponent - 23);
 }
 
 /** An exact binary32 angle with magnitude below 4. */
 function angleFor(seed: number): number {
-  const first = step(seed % 16777216);
+  const first = step(floorMod(seed, 16777216));
   const second = step(first);
-  const significand = 8388608 + (first % 8388608);
-  const sign = second % 2 === 0 ? -1.0 : 1.0;
-  return sign * significand * powerOfTwo((second % 8) - 29);
+  const significand = 8388608 + floorMod(first, 8388608);
+  const sign = floorMod(second, 2) === 0 ? -1.0 : 1.0;
+  return sign * significand * powerOfTwo(floorMod(second, 8) - 29);
 }
 
 /** Eight results per case: +, -, *, /, fma, atan2, cos, sin. */

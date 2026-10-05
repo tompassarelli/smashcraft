@@ -27,3 +27,10 @@ describe("operations match the binary64 oracle on random binary32 operands", () 
     }
   });
 });
+
+// Host only: the midpoint between the largest binary32 value and 2^128 is a
+// binary64 input that Warcraft numbers can't hold.
+test("roundToFloat32: the overflow midpoint rounds to infinity", () => {
+  same(roundToFloat32(16777215.5 * 2 ** 104), Infinity);
+  same(roundToFloat32(-16777215.5 * 2 ** 104), -Infinity);
+});
