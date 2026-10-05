@@ -40,6 +40,8 @@ def main():
     parser.add_argument("--controller-menus", action="store_true")
     parser.add_argument("--input-integrity", action="store_true",
                         help="run the issue 26 all-binding 500-edge-per-player match/rematch test")
+    parser.add_argument("--four-fighters", action="store_true",
+                        help="include issue 17's two humans and two CPUs in the integrity journey")
     parser.add_argument("--controller-slots", action="store_true",
                         help="play CPU, EMPTY and restored HMN slots across three persistent-helper matches")
     parser.add_argument("--combat-actions", action="store_true",
@@ -64,6 +66,8 @@ def main():
     if args.input_integrity and (not args.controller_menus or any((args.combat_actions, args.controller_slots,
             args.controller_reconnect, args.controller_chat))):
         parser.error("--input-integrity requires --controller-menus without other scenarios")
+    if args.four_fighters and not args.input_integrity:
+        parser.error("--four-fighters requires --input-integrity")
     epochs = (1, 2, 3) if args.controller_slots else (1, 2)
     cfg = json.loads(args.session.read_text())["args"]
     cfg["build"] = args.build
@@ -299,7 +303,8 @@ def main():
                 paths = [root / f"smashcraft-journal-menu-{args.build}-s{slot}.txt"
                          for slot, root in enumerate(data)]
                 receipts = []
-                for humans, cpus in ((7, 0), (3, 4)):
+                expected = ((3, 8), (7, 8), (3, 12)) if args.four_fighters else ((7, 0), (3, 4))
+                for humans, cpus in expected:
                     ui("a", "click", 2400, 200)
                     ui("a", "click", 1484, 824)
                     signature = f"connected=3 human-fighters={humans} computers={cpus} fighters={humans + cpus}"
@@ -308,6 +313,23 @@ def main():
                     receipts.append(dict(human_fighters=humans, computers=cpus,
                                          publications=[capture_boundary(p) for p in paths]))
                 events.append(dict(event="integrity-slot-change", epoch=2, changes=receipts))
+
+            def four_fighter_setup():
+                menu_phase("CHARACTER")
+                ui("a", "wait", "CONTROLS")
+                paths = [root / f"smashcraft-journal-menu-{args.build}-s{slot}.txt"
+                         for slot, root in enumerate(data)]
+                receipts = []
+                for x, humans, cpus in ((1484, 7, 0), (1484, 3, 4),
+                                       (1904, 11, 4), (1904, 3, 12)):
+                    ui("a", "click", 2400, 200)
+                    ui("a", "click", x, 824)
+                    signature = f"connected=3 human-fighters={humans} computers={cpus} fighters={humans + cpus}"
+                    until(lambda: all(complete(p) and signature in p.read_text() for p in paths),
+                          "four-fighter setup absent on one client")
+                    receipts.append(dict(human_fighters=humans, computers=cpus,
+                                         publications=[capture_boundary(p) for p in paths]))
+                events.append(dict(event="four-fighter-setup", epoch=1, changes=receipts))
 
             def integrity(epoch):
                 prefix = f"match-{epoch}-integrity-"
@@ -638,9 +660,11 @@ def main():
             if args.controller_slots:
                 slot_selection(1)
             elif args.controller_menus:
+                if args.four_fighters:
+                    four_fighter_setup()
                 controller_select()
 
-            if args.input_integrity:
+            if args.input_integrity and not args.four_fighters:
                 stock_text = ui("b", "wait", r"[1-9] Stock")
                 stocks = int(re.search(r"([1-9])\s+Stock", stock_text, re.I)[1])
                 while stocks > 1:
@@ -650,7 +674,7 @@ def main():
                     ui("b", "wait", rf"{stocks} Stock")
 
             for epoch in epochs:
-                if args.input_integrity and epoch == 2:
+                if args.input_integrity and not args.four_fighters and epoch == 2:
                     for stocks in (2, 3):
                         ui("b", "click", 250, 900)
                         ui("b", "click", 1675, 155)
@@ -745,7 +769,8 @@ def main():
                         keys(0, "keydown", "y", "sleep", ".12", "keyup", "y")
                         ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
                 print(f"Epoch {epoch}: game start, tap, stock loss and results observed", flush=True)
-        result = dict(settings=cfg, input_integrity=args.input_integrity, combat_actions=args.combat_actions, controller_reconnect=args.controller_reconnect,
+        result = dict(settings=cfg, input_integrity=args.input_integrity, four_fighters=args.four_fighters,
+                      combat_actions=args.combat_actions, controller_reconnect=args.controller_reconnect,
                       controller_chat=args.controller_chat, controller_slots=args.controller_slots,
                       helper_pids=[p.pid for p in helpers], events=events,
                       helper_sha256=hashlib.sha256(Path(cfg["binary"]).read_bytes()).hexdigest(),
