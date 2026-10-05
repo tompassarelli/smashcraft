@@ -110,18 +110,24 @@ function at<T>(values: readonly T[], index: number): T {
   return value;
 }
 
+/**
+ * Every snapshot save and every replayed frame copies the whole pool, so
+ * each array is copied in its own loop without a call per element.
+ */
+function copyPool<T>(target: T[], source: readonly T[], count: number, fallback: T): void {
+  for (let i = 0; i < count; i++) target[i] = source[i] ?? fallback;
+}
+
 export function copyImpactStateInto(target: ImpactState, source: Readonly<ImpactState>): void {
-  for (let i = 0; i < IMPACT_COUNT; i++) {
-    target.character[i] = at(source.character, i);
-    target.ages[i] = source.ages[i];
-    target.originX[i] = at(source.originX, i);
-    target.originZ[i] = at(source.originZ, i);
-    target.drift[i] = at(source.drift, i);
-    target.driftZ[i] = at(source.driftZ, i);
-    target.pitch[i] = at(source.pitch, i);
-    target.strength[i] = at(source.strength, i);
-  }
-  for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) target.nextSlot[kind] = at(source.nextSlot, kind);
+  for (let i = 0; i < IMPACT_COUNT; i++) target.ages[i] = source.ages[i];
+  copyPool(target.character, source.character, IMPACT_COUNT, 0);
+  copyPool(target.originX, source.originX, IMPACT_COUNT, 0.0);
+  copyPool(target.originZ, source.originZ, IMPACT_COUNT, 0.0);
+  copyPool(target.drift, source.drift, IMPACT_COUNT, 0);
+  copyPool(target.driftZ, source.driftZ, IMPACT_COUNT, 0.0);
+  copyPool(target.pitch, source.pitch, IMPACT_COUNT, 0.0);
+  copyPool(target.strength, source.strength, IMPACT_COUNT, 0.0);
+  copyPool(target.nextSlot, source.nextSlot, IMPACT_KIND_COUNT, 0);
 }
 
 export function firstImpactDifference(expected: Readonly<ImpactState>, actual: Readonly<ImpactState>): string | undefined {

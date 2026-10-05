@@ -136,6 +136,11 @@ export class ReplayHistory {
     return this.nextFrame - 1;
   }
 
+  /** The first frame a correction may still change: every recorded frame before it is authoritative. */
+  firstCorrectableFrame(): number {
+    return this.authoritativeThrough + 1;
+  }
+
   copyInputRow(epoch: number, frame: number, target: MatchFrameInput): boolean {
     if (!this.contains(epoch, frame)) return false;
     copyMatchFrameInput(target, this.inputAt(frame));

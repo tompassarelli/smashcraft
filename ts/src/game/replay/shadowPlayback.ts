@@ -109,7 +109,10 @@ export class ShadowInputPlayback {
     if (schedule.participantMask() !== match.humanMask || epoch !== this.current || schedule.epoch() !== epoch || !humanActive(match, localPlayer)) return "rejected";
     const { actual, correctionRow, corrections } = this;
     corrections.clear();
-    const firstFrame = Math.max(history.firstRetainedFrame(), schedule.firstAcceptedFrame());
+    // Frames before the first correctable one are authoritative and never
+    // change. This playback records only network rows of every human, so
+    // the latest of them alone gives each slot its prediction basis.
+    const firstFrame = Math.max(history.firstRetainedFrame(), schedule.firstAcceptedFrame(), history.firstCorrectableFrame() - 1);
     const lastFrame = history.lastRecordedFrame();
     for (const row of actual) copyInput(row, NEUTRAL);
     for (let frame = firstFrame; frame <= lastFrame; frame++) {

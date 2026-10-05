@@ -17,7 +17,7 @@ const isolated = [
   ["test/desync-guard.test.ts", "test/desync-guard-integrity.test.ts"],
   ["test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/selection-load.test.ts", "test/player-text.test.ts"],
   // source-shapes only reads files, so it fills the short group and the groups finish together.
-  ["test/stack-trace.test.ts", "test/source-shapes.test.ts"],
+  ["test/stack-trace.test.ts", "test/source-shapes.test.ts", "test/rematch-load.test.ts"],
 ];
 const groups: { readonly files: readonly string[] }[] = [
   ...isolated.map((names) => ({ files: files.filter((file) => names.includes(file)) })),

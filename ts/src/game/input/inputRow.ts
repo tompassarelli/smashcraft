@@ -88,10 +88,25 @@ export function inputRow(fields: RowFields = {}): InputRow | undefined {
   return isInputRow(row) ? row : undefined;
 }
 
-const NEUTRAL: Readonly<InputRow> = emptyInput();
-
+/** Field by field: rollback copies rows every frame, and Lua's Object.assign allocates. */
 export function copyInput(target: InputRow, source: Readonly<InputRow>): void {
-  Object.assign(target, source);
+  target.held = source.held;
+  target.pressed = source.pressed;
+  target.released = source.released;
+  target.axisX = source.axisX;
+  target.axisZ = source.axisZ;
+  target.triggerLeft = source.triggerLeft;
+  target.triggerRight = source.triggerRight;
+  target.specialX = source.specialX;
+  target.specialZ = source.specialZ;
+  target.dodgeX = source.dodgeX;
+  target.dodgeZ = source.dodgeZ;
+  target.sdi = source.sdi;
+  target.sdiX = source.sdiX;
+  target.sdiZ = source.sdiZ;
+  target.ledgeVertical = source.ledgeVertical;
+  target.throwX = source.throwX;
+  target.throwZ = source.throwZ;
 }
 
 export function sameInput(a: Readonly<InputRow>, b: Readonly<InputRow>): boolean {
@@ -105,11 +120,21 @@ export function sameInput(a: Readonly<InputRow>, b: Readonly<InputRow>): boolean
  * be the source. No allocation: rollback replays predict every frame.
  */
 export function predictInto(target: InputRow, source: Readonly<InputRow>): void {
-  const { held, axisX, axisZ, triggerLeft, triggerRight } = source;
-  Object.assign(target, NEUTRAL);
-  target.held = held;
-  target.axisX = axisX;
-  target.axisZ = axisZ;
-  target.triggerLeft = triggerLeft;
-  target.triggerRight = triggerRight;
+  target.held = source.held;
+  target.axisX = source.axisX;
+  target.axisZ = source.axisZ;
+  target.triggerLeft = source.triggerLeft;
+  target.triggerRight = source.triggerRight;
+  target.pressed = 0;
+  target.released = 0;
+  target.specialX = 0;
+  target.specialZ = 0;
+  target.dodgeX = 0;
+  target.dodgeZ = 0;
+  target.sdi = false;
+  target.sdiX = 0;
+  target.sdiZ = 0;
+  target.ledgeVertical = 0;
+  target.throwX = 0;
+  target.throwZ = 0;
 }

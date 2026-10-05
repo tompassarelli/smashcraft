@@ -122,8 +122,48 @@ export function neutralControls(): Controls {
   };
 }
 
+/** Field by field: rollback copies these for every fighter on every replayed frame, and Lua's Object.assign allocates. */
 export function copyControls(target: Controls, source: Readonly<Controls>): void {
-  Object.assign(target, source);
+  target.direction = source.direction;
+  target.verticalDirection = source.verticalDirection;
+  target.diStickValid = source.diStickValid;
+  target.diStickX = source.diStickX;
+  target.diStickZ = source.diStickZ;
+  target.sdiPulse = source.sdiPulse;
+  target.sdiX = source.sdiX;
+  target.sdiZ = source.sdiZ;
+  target.cStickX = source.cStickX;
+  target.cStickZ = source.cStickZ;
+  target.attackRequested = source.attackRequested;
+  target.specialPressed = source.specialPressed;
+  target.specialX = source.specialX;
+  target.specialZ = source.specialZ;
+  target.down = source.down;
+  target.shield = source.shield;
+  target.shieldPressed = source.shieldPressed;
+  target.shieldTriggerActive = source.shieldTriggerActive;
+  target.shieldStrength = source.shieldStrength;
+  target.jumpPressed = source.jumpPressed;
+  target.airDodgePressed = source.airDodgePressed;
+  target.techPressed = source.techPressed;
+  target.mashPressed = source.mashPressed;
+  target.attackPressed = source.attackPressed;
+  target.grabMashPressed = source.grabMashPressed;
+  target.grabThrowX = source.grabThrowX;
+  target.grabThrowZ = source.grabThrowZ;
+  target.lCancelPressed = source.lCancelPressed;
+  target.groundDodgePressed = source.groundDodgePressed;
+  target.groundDodgeDirection = source.groundDodgeDirection;
+  target.getupAttackPressed = source.getupAttackPressed;
+  target.ledgeVerticalPressed = source.ledgeVerticalPressed;
+  target.getupStandPressed = source.getupStandPressed;
+  target.getupDirectionPressed = source.getupDirectionPressed;
+  target.getupDirection = source.getupDirection;
+  target.dodgeX = source.dodgeX;
+  target.dodgeZ = source.dodgeZ;
+  target.jumpHeld = source.jumpHeld;
+  target.walking = source.walking;
+  target.attackHeld = source.attackHeld;
 }
 
 /** A frame's controls for a slot the roster has active. */

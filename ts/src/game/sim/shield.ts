@@ -44,6 +44,9 @@ export function analogShieldActive(pressure: number): boolean {
 
 /** Pressure past the threshold, scaled to [0, 1]. */
 export function analogShieldStrength(pressure: number): number {
+  // Below the threshold the scaled value is negative, so the result is 0.
+  // Most rows have no pressure, and each exact operation costs Lua hundreds of instructions.
+  if (!analogShieldActive(pressure)) return 0.0;
   const normalized = divideFloat32(pressure, 255.0);
   return max(0.0, divideFloat32(subtractFloat32(normalized, SHIELD_TRIGGER_THRESHOLD), subtractFloat32(1.0, SHIELD_TRIGGER_THRESHOLD)));
 }

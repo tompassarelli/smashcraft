@@ -229,7 +229,11 @@ each frame of a rollback replay, reuses preallocated records instead of
 creating them: a ring of rows, a scratch record per participant. Keep that
 shape deliberately and say so in one comment
 (`// Preallocated: rollback replays run this every frame.`). Measure before
-adding pooling anywhere else.
+adding pooling anywhere else. A reused record is still copied field by field
+on those paths: TypeScriptToLua's `Object.assign` packs its arguments into a
+new table and walks the source with `pairs` on every call, and in the
+integrity build's rematch the input and control copies made with it were an
+eighth of the match's Lua work (Lua32, 6 October 2026).
 
 Engine callbacks (timers, triggers, frame events) go through the dispatch
 table, so hot reload can replace code without rebinding them.
