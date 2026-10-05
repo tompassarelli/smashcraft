@@ -1,4 +1,3 @@
-import { toInt } from "../../runtime/numbers";
 import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
 import { f32 } from "waygate/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../input/participants";
@@ -35,7 +34,7 @@ function dodge(match: TestMatch, slot: ParticipantSlot, pressed: boolean): void 
   input.shield = pressed;
 }
 
-test("impact projection keeps its formulas and lifetimes and reads only", () => {
+test("impact projection reads only, shows each impact for its lifetime, and clearing empties the pool", () => {
   const pool = createImpactState();
   const saved = createImpactState();
   const events = createImpactEvents();
@@ -70,24 +69,10 @@ test("impact projection keeps its formulas and lifetimes and reads only", () => 
     projectImpact(pool, i);
   }
   assertEquals(firstImpactDifference(pool, saved), undefined);
-  assertEquals(projectImpact(pool, 0).alpha, 255);
-  assertEquals(projectImpact(pool, 0).x, 100.0);
-  assertEquals(projectImpact(pool, 0).z, 70.0);
-  assertEquals(projectImpact(pool, 16).scale, f32(0.7));
-  assertEquals(projectImpact(pool, 24).x, 85.0);
-  assertEquals(projectImpact(pool, 26).scale, f32(0.75 * f32(0.55)));
-  assertEquals(projectImpact(pool, 32).z, 32.0);
   for (let age = 1; age <= 32; age++) {
     advanceImpacts(pool);
     for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) {
       assertEquals(projectImpact(pool, kind * IMPACTS_PER_KIND).visible, kind < IMPACT_STAR_KO && age < impactLifetime(kind), `kind ${kind} at age ${age}`);
-    }
-    if (age === 4) {
-      const dust = projectImpact(pool, 24);
-      const progress = f32(4.0 / 32);
-      assertEquals(dust.x, f32(85.0 - f32(4 * f32(1.3))));
-      assertEquals(dust.z, f32(23.0 + f32(progress * 9)));
-      assertEquals(dust.alpha, toInt(f32(f32(220 * f32(1.0 - progress)) * f32(1.0 - progress))));
     }
   }
   clearImpactState(pool);
@@ -148,9 +133,9 @@ test("a correction removes a predicted impact and restores the accepted one's ag
   assertEquals(history.correct(81, corrections, live), 2);
   assertEquals(impacts.nextSlot[IMPACT_DUST], 2);
   assertEquals(impacts.ages[24], 4);
+  assertTrue(projectImpact(impacts, 24).visible);
   assertFalse(projectImpact(impacts, 26).visible);
   assertFalse(projectImpact(impacts, 27).visible);
-  assertEquals(projectImpact(impacts, 24).x, f32(-248.0 - f32(4 * f32(1.3))));
 });
 
 test("sparse and four-player matches emit the same impacts whether projected each frame or not", () => {

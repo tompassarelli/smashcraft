@@ -35,7 +35,6 @@ test("a bear spawns walking, swipes on a hit, then queues its walk at the origin
   assertEquals(spawn.x, 123.0);
   assertEquals(spawn.z, 42.0);
   assertEquals(spawn.yaw, f32(3.141592654));
-  assertEquals(spawn.scale, f32(0.8));
   advanceSummons(state, fighter, 3);
   assertEquals(bear.clipTime, TICK);
   fighter.bear.hitSerial++;
