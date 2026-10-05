@@ -25,7 +25,7 @@ import {
 import { KEY_DOWN, KEY_UP, Key, registerKey, removeKeyEvents, syncKeyEvents } from "./keyEvents";
 import { onDevCommand, onDeveloperRestart, onDeveloperTrace, onKeyDown, onKeyUp, onProbeExport, onProbeStart } from "./keys";
 import { panelActions } from "./menus";
-import { PLAYER_FILE_RECEIVED, bindingFiles, playerFileReceived, startPlayerFiles } from "./playerFiles";
+import { PLAYER_FILE_RECEIVED, bindingFiles, playerFileReceived, playerFilesOwnerLeft, startPlayerFiles } from "./playerFiles";
 import { makePreview } from "./preview";
 import { PROBE_EXPORT, exportProbePage, probeBegin, probePresent } from "./responseProbe";
 import { receiveInput, rollbackTick } from "./rollback";
@@ -113,6 +113,7 @@ function gameTick(s: ShellState): void {
 
 function playerLeft(s: ShellState): void {
   const slot = GetPlayerId(GetTriggerPlayer());
+  playerFilesOwnerLeft(slot);
   if (!humanPresent(s.game, slot)) return;
   const wasMatch = s.game.phase === Phase.match;
   participantLeft(s.game, slot, s.world);
