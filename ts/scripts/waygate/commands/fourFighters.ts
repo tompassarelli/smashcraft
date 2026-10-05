@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { type Command, UsageFailure, describeCause } from "waygate/scripts/waygate/command";
 import { step } from "waygate/scripts/waygate/timings";
-import { captureMatches, parseCaptureArguments } from "../../integrity";
+import { captureMatches, parseCaptureArguments } from "../../integrity/capture";
 import { IntegrityFailure } from "../../integrity/evidence";
 import { reconcileFourFighters } from "../../fourFighters";
 
