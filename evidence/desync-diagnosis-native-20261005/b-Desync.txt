@@ -1,0 +1,92 @@
+<Application>Warcraft III
+<Exception.ProjectId>264
+<Exception.JiraProjectId>19202
+<Exception.JiraProjectKey>WAR3
+<Exception.BuildNumber>24268
+<Exception.Platform>Windows
+<Exception.DesktopOS>Win
+<BlizzardError.AffectsVersions>War III 3.0.0
+<BlizzardError.FixVersions>War III 3.0.X
+<BlizzardError.Source>Blizzard Error Report
+<BlizzardError.Language>English
+<Exception.IssueType>Exception
+<Exception.Priority>1
+<Process.Name>\Device\HarddiskVolume1\Program Files (x86)\Warcraft III\_retail_\x86_64\Warcraft III.exe
+<Process.Parent.Name>\Device\HarddiskVolume1\Program Files (x86)\Battle.net\Battle.net.exe
+<Process.Grandparent.Name>\Device\HarddiskVolume1\Program Files (x86)\Battle.net\Battle.net Launcher.exe
+<Process.CommandLine>"C:\Program Files (x86)\Warcraft III\_retail_\x86_64\Warcraft III.exe" -launch -uid w3
+<Mem.PhysicalUsed>2552 MB
+<Mem.VirtualUsed>2552 MB
+<Mem.Committed>1981 MB
+<Mem.PhysicalAvailable>62441 MB
+<Mem.VirtualAvailable>134215176 MB
+<Mem.PageAvailable>224067 MB
+
+<Exception.Summary:>
+Network desync on turn 02822 in game W3-F874B0D5-A34F-614F-0B5C-A661F0DC1B2EF861DB13
+<:Exception.Summary>
+<Exception.Assertion:>
+War3 build 7000
+War3 next presence tag 03115 next birth tag 04451
+War3 tempest checksum 7014b3c8
+War3 cheat checksum 00000000
+War3 combat checksum 00000000
+War3 net checksum c21a1098
+War3 rand checksum 50ced180
+War3 unit checksum 00000000
+War3 game checksum d37238c5
+War3 item checksum 00000000
+War3 destructable checksum 00000000
+War3 upgrade checksum 4fa10e21
+War3 witness checksum 00000000
+War3 world checksum 00000000
+War3 custom unit checksum 571c6fc3
+War3 custom item checksum 122689ac
+War3 custom destructable checksum 76ef2c00
+War3 custom doodad checksum 00000000
+War3 custom ability checksum 2b68e0a5
+War3 custom upgrade checksum c9396c3c
+War3 custom misc checksum 00000000
+
+<:Exception.Assertion>
+<Exception.HashBlock:>
+Network desync on turn 02822 in game W3-F874B0D5-A34F-614F-0B5C-A661F0DC1B2EF861DB13
+<:Exception.HashBlock>
+
+<Definition> SD
+<Teen> 0
+<Map> <GameDocumentRoot>/Maps/00-Smashcraft/Smashcraft diagnostic desync.w3x
+<PlayerCount> 2
+<PlayerAICount> 0
+<GameType> Custom
+<MapHash> e15d115cb1e232126173fb69a84db16ffa511066
+<Race> Undead
+<NetProvider> BNET
+
+<GxApi>Direct3D11
+<GPU.name>AMD Radeon 890M Graphics (RADV STRIX1)
+<GPU.vendor>AMD
+<GPU.driverVersion>0x00230000869f270f
+<GPU.vendorId>0x1002
+<GPU.deviceId>0x150e
+<GPU.subsystemVendorId>0x0000
+<GPU.subsystemId>0x0000
+<GPU.revisionId>0x00
+<GPU.type>Integrated
+<GPU.luid>00000000000003f2
+<GPU.index>0
+<GPU.vram>0 MB
+
+<SoundEngineProvider> FMOD4
+
+SoundDevices: 1
+
+Selected:
+SoundDevice: 
+SoundDevice_Manufacturer: The Wine Project
+SoundDevice_Error: 
+SoundDevice_Status: 3
+SoundDevice_LastError: 0
+
+SoundDrivers: 0
+

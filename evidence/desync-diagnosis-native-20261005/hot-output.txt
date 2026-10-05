@@ -1,0 +1,10 @@
+$ bun scripts/waygate.ts hot --data "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData" --data "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData" --watch
+   9.207 s  compile (9.206 s)
+   9.363 s  publish v102: 1148808 bytes in 6 file(s) (0.153 s)
+  10.477 s  v102 running in 2 client(s) (1.113 s)
+  10.477 s  reload (10.477 s)
+watching /home/tom/code/smashcraft/worktrees/native-owner-20261005/ts/src for changes
+Warcraft desync on turn 2822, diverged: next presence tag (client 0: 03098, client 1: 03115), next birth tag (client 0: 04452, client 1: 04451), tempest checksum (client 0: 724c2484, client 1: 7014b3c8); 8 ms after the game wrote its report
+/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/Errors/2026-10-05 16.50.48 e7c84c60/Desync.txt
+/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/Errors/2026-10-05 16.50.48 e666f740/Desync.txt
+  54.667 s  hot (54.667 s)
