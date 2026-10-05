@@ -128,6 +128,9 @@ test.each([{ fromGame: false, prompt: false }, { fromGame: true, prompt: true }]
   let joinedAt: number | undefined;
   let hostedAt: number | undefined;
   let chatSubmissions = 0;
+  // Files the host had written when it started the match.
+  const written: string[] = [];
+  let writtenAtStart: string[] | undefined;
   const messages: string[] = [];
   const gameFiles = GameFiles.of({
     read: (path): Effect.Effect<StoredFile | undefined> => Effect.gen(function*() {
@@ -140,7 +143,9 @@ test.each([{ fromGame: false, prompt: false }, { fromGame: true, prompt: true }]
       }
       return undefined;
     }),
-    write: () => Effect.void,
+    write: (path) => Effect.sync(() => {
+      written.push(path);
+    }),
     replace: () => Effect.void,
     list: () => Effect.succeed([]),
     remove: () => Effect.void,
@@ -184,6 +189,7 @@ test.each([{ fromGame: false, prompt: false }, { fromGame: true, prompt: true }]
         joinedAt = (yield* Clock.currentTimeMillis) + 100;
       }
       if (x === START.x && y === START.y && before === "lobby") {
+        writtenAtStart = [...written];
         expect(states.get("b")).toBe("lobby");
         hostedAt = undefined;
         joinedAt = undefined;
@@ -231,6 +237,8 @@ test.each([{ fromGame: false, prompt: false }, { fromGame: true, prompt: true }]
   expect(selected).toEqual(new Set(["a"]));
   expect(keyEvents.indexOf("a:Escape")).toBeLessThan(keyEvents.indexOf("a:F10"));
   expect(clicks).toContain(`a:${START.x},${START.y}`);
+  // Each client's hot folder holds its marker before the match starts.
+  expect(writtenAtStart).toEqual(clients.map(({ documents }) => `${dataDirectory(documents)}/smashcraft-hot/host.pld`));
   expect(messages.at(-1)).toBe("-dev quick");
   expect(chatSubmissions).toBe(2);
   expect(clicks.filter((click) => click === `b:${PASSWORD_CANCEL.x},${PASSWORD_CANCEL.y}`)).toHaveLength(prompt ? 1 : 0);

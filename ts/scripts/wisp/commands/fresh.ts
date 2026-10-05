@@ -13,7 +13,7 @@ import { DevCommandReceipt, MeleeReady } from "../boundary";
 import type { MalformedGameFile } from "wisp/scripts/wisp/boundary";
 import { type Client, Clients, type DesktopFailure, waitFor, waitForText } from "wisp/scripts/wisp/clients";
 import { type Command, UsageFailure } from "wisp/scripts/wisp/command";
-import { GameFiles, dataDirectory, readGameFile } from "wisp/scripts/wisp/gameFiles";
+import { GameFiles, dataDirectory, prepareHotFolders, readGameFile } from "wisp/scripts/wisp/gameFiles";
 import { checkPlayerView } from "wisp/scripts/wisp/playerView";
 import { step } from "wisp/scripts/wisp/timings";
 import { rebuildMap } from "../mapInputs";
@@ -102,7 +102,11 @@ export const freshMatch = (map: string, fromGame = false) => Effect.gen(function
     yield* waitForText(client, "custom games", /CREATE/i, CUSTOM_GAMES, "light", 15);
   }).pipe(step(`${client.name} at Custom Games`));
 
-  const install = Effect.forEach(clients.all, (client) => files.installMap(client.documents, map), { discard: true }).pipe(step("map installed"));
+  // The hot folder exists before the match does: a map without it reads all of CustomMapData to look for a reload.
+  const install = Effect.gen(function*() {
+    yield* prepareHotFolders(clients.all.map((client) => dataDirectory(client.documents)), "smashcraft");
+    yield* Effect.forEach(clients.all, (client) => files.installMap(client.documents, map), { discard: true });
+  }).pipe(step("map installed"));
 
   const host = (client: Client) => Effect.gen(function*() {
     yield* click(client, CREATE_GAME);

@@ -125,6 +125,14 @@ second of game, and both clients nearly stopped at fighter selection.
 smashcraft:ts/test/selection-load.test.ts keeps file reads and effect
 creation out of the playable entry's selection frames.
 
+The profiles that do poll can't stall alike: `bun wisp fresh` and `bun wisp hot`
+create each client's `smashcraft-hot` folder with Wisp's host marker before a
+match starts or a reload publishes, and a map that has seen neither the marker
+nor a manifest looks for them twice a second, at most 70 ms of lookups per
+second of game even in that 94,057-file CustomMapData; the first reload to a
+client that has seen no host can take up to 1 s longer. See Wisp's hot-reload
+docs, "What polling costs".
+
 Without the clients, `bun wisp headless [quick-match|desync] [--clients N]`
 plays the development build (src/platform/devMain.ts) in Wisp's headless
 runtime ([Wisp headless](https://github.com/tompassarelli/wisp/blob/main/docs/headless.md)):
