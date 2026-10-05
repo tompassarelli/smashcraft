@@ -224,6 +224,12 @@ def main():
                 menu_phase("CHARACTER")
                 ui("a", "wait", "CONTROLS")
 
+                def mode_button(client, x):
+                    # Establish mouse focus on the inert widescreen margin before
+                    # a mode-changing click; the receipts below decide delivery.
+                    ui(client, "click", 2400, 200)
+                    ui(client, "click", x, 824)
+
                 def masks(humans, computers):
                     expected = f"connected=3 human-fighters={humans} computers={computers} fighters={humans + computers}"
                     paths = [root / f"smashcraft-journal-menu-{args.build}-s{slot}.txt"
@@ -240,21 +246,21 @@ def main():
                 # the synchronized menu receipts verify the actual mode change.
                 if epoch == 1:
                     masks(3, 0)
-                    ui("b", "click", 1064, 824)
+                    mode_button("b", 1064)
                     masks(1, 2)
                 elif epoch == 2:
                     masks(1, 2)
-                    ui("b", "click", 1064, 824)
+                    mode_button("b", 1064)
                     masks(1, 0)
-                    ui("a", "click", 1484, 824)
+                    mode_button("a", 1484)
                     masks(5, 0)
-                    ui("a", "click", 1484, 824)
+                    mode_button("a", 1484)
                     masks(1, 4)
                 else:
                     masks(1, 4)
-                    ui("a", "click", 1484, 824)
+                    mode_button("a", 1484)
                     masks(1, 0)
-                    ui("b", "click", 1064, 824)
+                    mode_button("b", 1064)
                     masks(3, 0)
                 for slot in ((0, 1) if epoch == 3 else (0,)):
                     menu_button(slot, BTN_SOUTH, f"slot-{epoch}-character-select")
