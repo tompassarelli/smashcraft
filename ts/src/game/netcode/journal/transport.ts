@@ -1,77 +1,82 @@
-// Journal packets cross the synchronized channel one or two per message. Two
-// contiguous packets of one epoch travel as "B4" + first + "|" + second; a
-// lone packet travels as itself. Either way every original row and its frame
-// survive unchanged.
-import { type InputPacket, decodePacket } from "../../input/wire";
+// A journal's admitted rows cross the synchronized channel in rate-capped I5
+// messages (wire.ts): at most one per `batch` callbacks, each carrying every
+// admitted frame not yet sent that fits. One message per callback or two
+// saturated Battle.net's synchronized channel (#26 r8). Keyboard rollback
+// still sends one I4 packet per message.
+import type { InputRow } from "../../input/inputRow";
+import { type InputMessage, type InputPacket, MESSAGE_MAX_FRAMES, decodeInputMessage, decodePacket, encodeInputMessage } from "../../input/wire";
+import { FrameRing } from "../frameRing";
 
-const PAIR_PREFIX = "B4";
+/** Callbacks per input message by default: 10 messages a second at 60 callbacks a second. */
+export const DEFAULT_BATCH = 6;
+/** The most callbacks a developer may batch into one message. */
+export const MAX_BATCH = 12;
 
-/** Whether `second` continues `first` directly within one epoch. */
-function continues(first: InputPacket, second: InputPacket): boolean {
-  return second.epoch === first.epoch && second.firstFrame === first.firstFrame + first.rows.length;
-}
-
-/** The packets of one synchronized message, or undefined unless all are canonical and contiguous. */
+/** The packets of one synchronized input message, or undefined unless it is canonical. */
 export function decodeTransport(wire: string): readonly InputPacket[] | undefined {
-  if (!wire.startsWith(PAIR_PREFIX)) {
-    const packet = decodePacket(wire);
-    return packet === undefined ? undefined : [packet];
-  }
-  const split = wire.indexOf("|");
-  if (split < 0) return undefined;
-  const first = decodePacket(wire.substring(PAIR_PREFIX.length, split));
-  const second = decodePacket(wire.substring(split + 1));
-  return first !== undefined && second !== undefined && continues(first, second) ? [first, second] : undefined;
-}
-
-interface TransportMessage {
-  readonly wire: string;
-  readonly firstFrame: number;
-  /** Input rows across both packets. */
-  readonly rows: number;
-}
-
-interface Queued {
-  readonly wire: string;
-  readonly packet: InputPacket;
+  if (wire.startsWith("I5")) return decodeInputMessage(wire);
+  const packet = decodePacket(wire);
+  return packet === undefined ? undefined : [packet];
 }
 
 /**
- * Outgoing journal packets awaiting one send. A lone packet waits two input
- * callbacks for a partner unless the caller flushes, as at a pause or the end.
+ * Local frames admitted in order and not yet sent. A message is due once
+ * `batch` callbacks have passed since the last one. Holds cost no bytes, and
+ * even rows whose every group changes fit 8 to a message, so at the default
+ * batch a backlog drains faster than 60 frames a second arrive.
  */
-export class TransportBatch {
-  private queued: Queued[] = [];
-  private age = 0;
+export class OutgoingInput {
+  // Preallocated: holds the unsent frames, which the future limit bounds.
+  private readonly rows = new FrameRing(MESSAGE_MAX_FRAMES);
+  private epoch = 0;
+  private nextUnsent = 1;
+  private admitted = 0;
+  private idle = MAX_BATCH;
 
-  append(wire: string): boolean {
-    const [first] = this.queued;
-    const packet = decodePacket(wire);
-    if (this.queued.length === 2 || packet === undefined || (first !== undefined && !continues(first.packet, packet))) return false;
-    if (first === undefined) this.age = 0;
-    this.queued.push({ wire, packet });
+  /** Starts an epoch whose first row is firstFrame; its first message may go at once. */
+  begin(epoch: number, firstFrame: number): void {
+    this.rows.clear();
+    this.epoch = epoch;
+    this.nextUnsent = firstFrame;
+    this.admitted = firstFrame - 1;
+    this.idle = MAX_BATCH;
+  }
+
+  /** Queues the next frame's row; false unless it follows the last admitted frame and fits. */
+  admit(frame: number, row: Readonly<InputRow>): boolean {
+    if (frame !== this.admitted + 1 || !this.rows.vacant(frame)) return false;
+    this.rows.store(frame, row);
+    this.admitted = frame;
     return true;
   }
 
   /** Call once per input callback. */
   tick(): void {
-    if (this.queued.length > 0) this.age++;
+    if (this.idle < MAX_BATCH) this.idle++;
   }
 
-  /** The message to send now, if the batch is due. */
-  ready(flush: boolean): TransportMessage | undefined {
-    const [first, second] = this.queued;
-    if (first === undefined || !(flush || second !== undefined || this.age >= 2)) return undefined;
-    return {
-      wire: second === undefined ? first.wire : `${PAIR_PREFIX}${first.wire}|${second.wire}`,
-      firstFrame: first.packet.firstFrame,
-      rows: first.packet.rows.length + (second?.packet.rows.length ?? 0),
-    };
+  /** Admitted frames not yet sent. */
+  pending(): number {
+    return this.admitted - this.nextUnsent + 1;
   }
 
-  /** Clear only after a successful send. */
-  clear(): void {
-    this.queued = [];
-    this.age = 0;
+  /** The message to send now: due after `batch` callbacks, from the first unsent frame. */
+  ready(batch: number): InputMessage | undefined {
+    if (this.idle < batch || this.nextUnsent > this.admitted) return undefined;
+    return encodeInputMessage(this.epoch, this.nextUnsent, this.admitted, frame => this.row(frame));
+  }
+
+  /** Forgets the frames of a message that was sent. */
+  sent(message: InputMessage): void {
+    for (let frame = message.firstFrame; frame <= message.lastFrame; frame++) this.rows.release(frame);
+    this.nextUnsent = message.lastFrame + 1;
+    this.idle = 0;
+  }
+
+  /** admit stored every frame from nextUnsent through admitted. */
+  private row(frame: number): Readonly<InputRow> {
+    const row = this.rows.row(frame);
+    if (row === undefined) throw new Error(`admitted input for frame ${frame} is missing`);
+    return row;
   }
 }

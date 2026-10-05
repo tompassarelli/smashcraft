@@ -162,11 +162,11 @@ test("#17's normal timed journey reaches both results without integrity stalls o
 });
 
 test("capture arguments select the matches the Python driver numbered", () => {
-  expect(parseSweep("24:2,24:1,16")).toEqual([[24, 2], [24, 1], [16, 2]]);
+  expect(parseSweep("24:2,24:1,16")).toEqual([[24, 2], [24, 1], [16, 6]]);
   expect(captureEpochs(0, 1)).toEqual([1, 2]);
   expect(captureEpochs(2, 3)).toEqual([3, 4, 5, 6]);
   const base = ["--helper", "h", "--build", "b", "--out", "o", "--app-id", "a=x", "--app-id", "b=y"];
-  expect(parseCaptureArguments([...base, "--sweep", "24", "--first-epoch", "5"])).toMatchObject({ epochs: [5, 6], sweep: [[24, 2]], appIds: new Map([["a", "x"], ["b", "y"]]) });
+  expect(parseCaptureArguments([...base, "--sweep", "24", "--first-epoch", "5"])).toMatchObject({ epochs: [5, 6], sweep: [[24, 6]], appIds: new Map([["a", "x"], ["b", "y"]]) });
   expect(() => parseCaptureArguments([...base, "--first-epoch", "2"])).toThrow();
   expect(() => parseCaptureArguments([...base, "--sweep", "24", "--four-fighters"])).toThrow();
   expect(() => parseCaptureArguments([...base, "--controller-chat"])).toThrow();

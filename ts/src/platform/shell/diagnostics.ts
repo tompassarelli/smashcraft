@@ -117,7 +117,7 @@ export function traceTick(s: ShellState): void {
       const { schedule } = rollback;
       closeTraceWindow(trace, {
         known: schedule.knownThrough(), confirmed: schedule.nextConfirmedFrame() - 1, rollback: schedule.rollbackFrames(),
-        speculative: schedule.speculativeFrame(), target: schedule.captureTarget(), batchPending: rollback.keyboard?.outgoing.size() ?? 0,
+        speculative: schedule.speculativeFrame(), target: schedule.captureTarget(), batchPending: rollback.keyboard?.outgoing.size() ?? rollback.journal?.outgoing.pending() ?? 0,
       }, rollback.journal?.readyMask ?? 0);
     }
   }

@@ -1,6 +1,6 @@
 // The I4 input packet: one or two consecutive frames of one participant's
-// controls. The companion helper writes it and every client re-sends it through
-// synchronized messages, so its exact text is a protocol.
+// controls. The companion helper writes it, so its exact text is a protocol.
+// The I5 message below carries a journal's rows between clients.
 //
 // "I4" | record count (1 or 2) | epoch varint | first-frame varint | records.
 // Varints carry 5 payload bits per character, least significant first; the
@@ -10,7 +10,7 @@
 // the receive event, not the packet.
 import { floorDiv, floorMod } from "waygate/src/sim/intMath";
 import { ALL_ACTIONS } from "./actions";
-import { type Direction, type InputRow, inputRow } from "./inputRow";
+import { type Direction, type InputRow, emptyInput, inputRow, predictInto, sameInput } from "./inputRow";
 
 export const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 
@@ -202,4 +202,112 @@ export function decodePacket(wire: string): InputPacket | undefined {
     rows.push(row);
   }
   return reader.atEnd() ? inputPacket(epoch, firstFrame, rows) : undefined;
+}
+
+// ---------------------------------------------------------------- I5 messages
+
+// One sender's consecutive frames in one synchronized message. Only rows that
+// differ from holding the row before them are spelled out:
+//
+// "I5" | epoch varint | first-frame varint | frame-count varint | first record
+//      | { hold-count varint | record }
+//
+// The first frame's record is always present, so each message decodes alone.
+// A hold count says how many frames repeat the previous record as a hold
+// (held buttons, stick and triggers kept; edges, press vectors and throw taps
+// dropped, as predictInto does) before the next record. Frames after the last
+// record, up to the frame count, are holds too. A record equal to the hold it
+// would replace is never spelled, so every run of rows has one spelling.
+
+/**
+ * Data bytes in one message. Warcraft limits a synchronized message's prefix
+ * and data together to about 255 bytes (jassbot BlzSendSyncData); 200 leaves
+ * room for the prefix and still carries 8 frames whose every group changes.
+ */
+export const MESSAGE_MAX_BYTES = 200;
+/** Frames in one message; the ledger's future limit bounds a sender's unsent frames to this. */
+export const MESSAGE_MAX_FRAMES = 64;
+
+export interface InputMessage {
+  readonly wire: string;
+  readonly firstFrame: number;
+  readonly lastFrame: number;
+}
+
+// Comparison scratch; never returned.
+const HOLD: InputRow = emptyInput();
+
+/** Whether row is exactly the hold of previous. */
+function holds(row: Readonly<InputRow>, previous: Readonly<InputRow>): boolean {
+  predictInto(HOLD, previous);
+  return sameInput(row, HOLD);
+}
+
+function holdOf(previous: Readonly<InputRow>): InputRow {
+  const row = emptyInput();
+  predictInto(row, previous);
+  return row;
+}
+
+/**
+ * Spells frames firstFrame through at most lastFrame of one sender as one
+ * message: as many as fit MESSAGE_MAX_BYTES and MESSAGE_MAX_FRAMES, at least
+ * the first. rowAt supplies each frame's row.
+ */
+export function encodeInputMessage(epoch: number, firstFrame: number, lastFrame: number, rowAt: (frame: number) => Readonly<InputRow>): InputMessage {
+  const head = `I5${varint(epoch)}${varint(firstFrame)}`;
+  let previous = rowAt(firstFrame);
+  let body = encodeRecord(previous);
+  let skipped = 0;
+  let last = firstFrame;
+  const fits = (frames: number, extra: number) => head.length + varint(frames).length + body.length + extra <= MESSAGE_MAX_BYTES;
+  for (let frame = firstFrame + 1; frame <= lastFrame && frame - firstFrame < MESSAGE_MAX_FRAMES; frame++) {
+    const row = rowAt(frame);
+    const frames = frame - firstFrame + 1;
+    if (holds(row, previous)) {
+      if (!fits(frames, 0)) break;
+      skipped++;
+    } else {
+      const record = varint(skipped) + encodeRecord(row);
+      if (!fits(frames, record.length)) break;
+      body += record;
+      skipped = 0;
+      previous = row;
+    }
+    last = frame;
+  }
+  return { wire: `${head}${varint(last - firstFrame + 1)}${body}`, firstFrame, lastFrame: last };
+}
+
+/**
+ * Every frame of one canonical I5 message, in order, as packets of one or two
+ * rows; undefined for any malformed, non-canonical or out-of-range text.
+ */
+export function decodeInputMessage(wire: string): InputPacket[] | undefined {
+  if (wire.length > MESSAGE_MAX_BYTES || !wire.startsWith("I5")) return undefined;
+  const reader = new Reader(wire, 2);
+  const epoch = reader.varint(MAX_EPOCH);
+  const firstFrame = reader.varint(INPUT_LAST_FRAME);
+  const count = reader.varint(MESSAGE_MAX_FRAMES);
+  if (epoch === undefined || firstFrame === undefined || count === undefined || count < 1 || firstFrame > INPUT_LAST_FRAME - (count - 1)) return undefined;
+  let previous = decodeRecord(reader);
+  if (previous === undefined) return undefined;
+  const rows: InputRow[] = [previous];
+  while (!reader.atEnd()) {
+    const skipped = reader.varint(MESSAGE_MAX_FRAMES);
+    if (skipped === undefined || rows.length + skipped >= count) return undefined;
+    for (let i = 0; i < skipped; i++) rows.push(holdOf(previous));
+    const row = decodeRecord(reader);
+    if (row === undefined || holds(row, previous)) return undefined;
+    rows.push(row);
+    previous = row;
+  }
+  while (rows.length < count) rows.push(holdOf(previous));
+  const packets: InputPacket[] = [];
+  for (let index = 0; index < count; index += 2) {
+    const packet = inputPacket(epoch, firstFrame + index, rows.slice(index, index + 2));
+    if (packet === undefined) return undefined;
+    packets.push(packet);
+  }
+  return packets;
 }

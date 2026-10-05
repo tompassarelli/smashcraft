@@ -1,6 +1,7 @@
 import { assertEquals, assertFalse, assertTrue, test } from "waygate/src/runtime/testing";
 import { Phase, createMatchState, fighterMask, selectCharacter, setParticipants } from "../match/rules";
 import { Character } from "../sim/codes";
+import { MAX_BATCH } from "../netcode/journal/transport";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
 import { type DevSettings, applyDevCommand, prepareQuickMatch } from "./devSettings";
 
@@ -24,7 +25,9 @@ test("dev commands reject values the schedule cannot start", () => {
   assertEquals(applyDevCommand(dev, `-dev rb ${REPLAY_MAX_CORRECTION_FRAMES + 1}`), rollbackRange);
   assertEquals(applyDevCommand(dev, "-dev rb 64x"), rollbackRange);
   assertEquals(applyDevCommand(dev, "-dev delay 4"), "dev: delay must be 0, 1, 2, 3 or 5");
-  assertEquals(applyDevCommand(dev, "-dev batch 3"), "dev: batch must be 1 or 2");
+  const batchRange = `dev: batch must be 1-${MAX_BATCH}`;
+  assertEquals(applyDevCommand(dev, "-dev batch 0"), batchRange);
+  assertEquals(applyDevCommand(dev, `-dev batch ${MAX_BATCH + 1}`), batchRange);
   assertEquals(applyDevCommand(dev, "-dev nothing"), undefined);
   assertEquals(applyDevCommand(dev, "hello -dev rb 64"), undefined);
   assertEquals(dev.rollback, 24);

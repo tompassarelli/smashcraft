@@ -4,7 +4,7 @@
 // human's helper acknowledges. Ingress is edit box text, keyboard carrier
 // keys or published files.
 import { isParticipantSlot } from "../../game/input/participants";
-import { INPUT_LAST_FRAME, packetSizeInRange } from "../../game/input/wire";
+import { INPUT_LAST_FRAME } from "../../game/input/wire";
 import { Phase, fighterMask, humanActive } from "../../game/match/rules";
 import { Capture } from "../../game/netcode/capture";
 import { padDecimal } from "../../game/netcode/journal/decimal";
@@ -163,10 +163,10 @@ export function commitPauseAtFrame(s: ShellState, rollback: Rollback, journal: J
   journal.barrier.request = undefined;
 }
 
-/** Sends queued packets once a pair is ready, a lone packet has waited, or flush is set. */
-export function flushTransport(s: ShellState, rollback: Rollback, journal: Journal, flush: boolean): void {
+/** Sends the admitted rows not yet sent, at most one message per batch of callbacks, pauses included. */
+export function flushTransport(s: ShellState, rollback: Rollback, journal: Journal): void {
   if (journal.failed) return;
-  const message = journal.outgoing.ready(flush);
+  const message = journal.outgoing.ready(rollback.batch);
   if (message === undefined) return;
   const started = probeClockMs(s.probe);
   const sent = BlzSendSyncData(INPUT_PREFIX, message.wire);
@@ -176,16 +176,17 @@ export function flushTransport(s: ShellState, rollback: Rollback, journal: Journ
     failJournal(s, rollback, journal, "synchronized input submission failed");
     return;
   }
-  for (let row = 0; row < message.rows; row++) probeTransportSend(s.probe, rollback.epoch, message.firstFrame + row);
+  const { firstFrame, lastFrame } = message;
+  for (let frame = firstFrame; frame <= lastFrame; frame++) probeTransportSend(s.probe, rollback.epoch, frame);
   if (s.trace.active) {
     const { window } = s.trace;
     window.localSends++;
-    window.sentRows += message.rows;
-    if (message.rows === 1) window.singletons++;
-    for (let row = 0; row < message.rows; row++) recordSend(s.trace, rollback.epoch, message.firstFrame + row);
-    traceInput(s.trace, `journal sent frame ${message.firstFrame} count ${message.rows}`);
+    window.sentRows += lastFrame - firstFrame + 1;
+    if (lastFrame === firstFrame) window.singletons++;
+    for (let frame = firstFrame; frame <= lastFrame; frame++) recordSend(s.trace, rollback.epoch, frame);
+    traceInput(s.trace, `journal sent frame ${firstFrame} count ${lastFrame - firstFrame + 1} bytes ${message.wire.length}`);
   }
-  journal.outgoing.clear();
+  journal.outgoing.sent(message);
 }
 
 /** Before the match starts, relays the helper's readiness; an explicit-clock producer is ready with its first row. */
@@ -272,14 +273,12 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
       probeInput(s.probe, "capture", rollback.epoch, slot, frame, row.held, row.pressed, row.released, schedule.speculativeFrame());
       if (s.trace.active) s.trace.window.localCaptures++;
     }
-    if (!packetSizeInRange(wire.length, packet.rows.length)) {
-      rollback.sendFailed = true;
-      failJournal(s, rollback, journal, "synchronized input submission failed");
-      return;
-    }
-    if (!journal.outgoing.append(wire)) {
-      failJournal(s, rollback, journal, "controller input could not be queued");
-      return;
+    for (let index = 0; index < packet.rows.length; index++) {
+      const row = packet.rows[index];
+      if (row === undefined || !journal.outgoing.admit(packet.firstFrame + index, row)) {
+        failJournal(s, rollback, journal, "controller input could not be queued");
+        return;
+      }
     }
     if (!source.sent()) {
       rollback.sendFailed = true;

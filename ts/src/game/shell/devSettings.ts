@@ -1,4 +1,4 @@
-// Developer chat commands ("-dev rb 12", "-dev delay 2", "-dev batch 1",
+// Developer chat commands ("-dev rb 12", "-dev delay 2", "-dev batch 6",
 // "-dev show", "-dev quick") arrive as synchronized player-chat events. A
 // match reads the settings once at its start, so a command typed during a
 // match applies from the next match on every client; "-dev quick" starts one
@@ -6,6 +6,7 @@
 // are a protocol.
 import { type FixedDelay, isFixedDelay } from "../netcode/fixedSchedule";
 import { parseDecimal } from "../netcode/journal/decimal";
+import { MAX_BATCH } from "../netcode/journal/transport";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import {
   type MatchState, Phase, createMatchState, firstHumanSlot, humanFighterActive, humanPresent, requestStageSelect, requestStart, returnToCharacters,
@@ -13,13 +14,11 @@ import {
 } from "../match/rules";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "../replay/limits";
 
-/** Journal packets carried by one synchronized message. */
-export type BatchSize = 1 | 2;
-
 export interface DevSettings {
   rollback: number;
   delay: FixedDelay;
-  batch: BatchSize;
+  /** Callbacks per synchronized input message, 1 to MAX_BATCH. */
+  batch: number;
 }
 
 function describeDevSettings({ rollback, delay, batch }: Readonly<DevSettings>): string {
@@ -49,7 +48,7 @@ export function applyDevCommand(settings: DevSettings, message: string): string 
   }
   if (message.startsWith("-dev batch ")) {
     const value = commandInteger(message.substring(11));
-    if (value !== 1 && value !== 2) return "dev: batch must be 1 or 2";
+    if (value === undefined || value < 1 || value > MAX_BATCH) return `dev: batch must be 1-${MAX_BATCH}`;
     settings.batch = value;
     return describeDevSettings(settings);
   }

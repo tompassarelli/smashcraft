@@ -336,6 +336,33 @@ change delivery and jitter; equalization deliberately delays faster paths.
 Neither fixes uncaptured events or wrong frame assignment. A native matched
 hosting comparison remains unproved.
 
+## Synchronized input transport
+
+Each client sends its journal's admitted rows in at most one `SC_GP` message
+per 6 callbacks (10 a second at 60 callbacks a second). A message carries
+every admitted frame not yet sent, in order, as an I5 message
+(smashcraft:ts/src/game/input/wire.ts): the first frame's row, then only rows
+that differ from holding the row before them, each after a count of held
+frames. A hold keeps held buttons, stick and triggers and drops edges, press
+vectors and throw taps, exactly as remote prediction does, so holds cost no
+bytes and never cause a rollback. Receivers expand every frame and accept
+them through the unchanged ledger.
+
+Warcraft limits a synchronized message's prefix and data together to about
+255 bytes ([BlzSendSyncData](https://lep.nrw/jassbot/doc/BlzSendSyncData)).
+Messages stop at 200 data bytes, which still carries 8 frames whose every
+field changes, so a backlog after a stall drains faster than 60 frames a
+second arrive. `-dev batch N` selects N callbacks per message (1–12) for the
+next match; the integrity capture's `--sweep RB:BATCH` commands it.
+
+Why: on 0.0.42 r8, both players' echo stayed at about 110–150 ms with sparse
+input at 15 paired I4 messages a second, then grew to 1–2 seconds once input
+was dense and never drained; at 30 messages a second it grew within 3 seconds.
+91% of late local starts were prediction stalled at the 24-frame window waiting
+for those rows. Replayed through both senders headlessly, r8's recorded rows
+cost 15 messages and 358–458 bytes a second paired, and 10 messages and
+150–166 bytes a second as I5.
+
 ## Native 0.0.29 short transport comparison
 
 Same two retained clients, slots 0/2, exact 0.0.29 artifact cited above.
