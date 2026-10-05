@@ -1,5 +1,51 @@
 # Input clock contract and historical experiments
 
+## Current delivered path — 5 October 2026
+
+The supported playable checkpoint is the Linux evdev journal path in 0.0.41:
+kernel event capture → persistent helper → native text receiver → original-frame
+input ledger → local prediction and confirmed replay. Exact map/source/helper
+identities, configuration and startup are in wc3-melee:docs/playable-0041.md;
+the installed combat/rematch evidence is in
+wc3-melee:docs/playable-0041-native-20261005/README.md. The retained native
+clients run Warcraft III 3.0.0.24268 on Linux/GE-Proton, identified in
+wc3-melee:docs/native-capability-report.md. Later named diagnostics keep their
+own identities and do not silently replace this player release.
+
+The observation boundaries mean:
+
+| Boundary | What it records |
+| --- | --- |
+| Physical actuation | A player's button/stick movement; timing before the OS reports it is not measured by the current virtual-pad corpora. |
+| OS capture | The evdev event's kernel CLOCK_MONOTONIC timestamp. |
+| Helper dequeue | When the helper reads that event; a delayed read does not replace its kernel timestamp. |
+| Assigned frame | The original logical frame calculated from that timestamp and the active local START/RESUME segment. |
+| Map admission | When the native receiver accepts the row; receipt time is not its frame number. |
+| Local prediction | Execution of an available local row without waiting for its network echo, subject to pause and rollback limits. |
+| Confirmed replay | Re-execution of the frame-assigned inputs after the participating senders' records arrive; this determines shared combat. |
+| Visible response | The rendered change, observed separately from the simulation state or transport echo. |
+
+For an active segment the helper uses
+`frame = first_frame + floor((event_ns - epoch_ns) * 60 / 1_000_000_000)`.
+The released profile has no added fixed input-delay frames (D=0). START/RESUME
+publication supplies the local segment origin; a new match gets a new epoch,
+and paused time is excluded by a new resume segment. The helper checks its
+realtime/monotonic relation and reports timestamp uncertainty. Neutral rearm
+deliberately suppresses held-through-pause/focus/epoch controls. The executable
+rule is `frame_at` in wc3-melee:companion/src/bin/journal.rs. Current native
+start/rematch and delayed-resume evidence is retained in
+wc3-melee:docs/match-lifecycle-native-20261005/README.md and
+wc3-melee:docs/resume-clock-native-20261005/README.md.
+
+This defines the delivered local rule; it does not establish a common physical
+clock across machines. Local publication anchors differ, so an event near a
+tick boundary can fall into different local grids. #25 retains that alignment
+requirement; #26 owns loss/coalescing limits and #27 owns response timing. A
+preserved frame or matching final state alone does not prove immediate physical
+response.
+
+## Historical investigation
+
 The experiments below record the 4 October investigation. Current decisions
 belong to issue #25 and wc3-melee:docs/netplay-status.md. Historical experiment
 gates do not prohibit publishing a checked checkpoint or playing the accepted
