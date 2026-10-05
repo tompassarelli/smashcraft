@@ -62,6 +62,7 @@ def integrity_result(root, metadata):
     local_delays, opponent_lateness, rollback_depths, stall_lengths = [], [], [], []
     missing_local, illegal_presses, legal_presses = 0, 0, 0
     native = {}
+    rollback_limits = set()
     endpoints = {}
     coverage = [set(), set()]
     same_frame_taps = [0, 0]
@@ -110,6 +111,8 @@ def integrity_result(root, metadata):
             trace = root / f"epoch-{epoch}" / f"{client}-wc3-melee-input-trace.txt"
             require(trace.exists() and "journal input fail" not in trace.read_text(),
                     f"epoch {epoch} client {client}: missing trace or journal failure")
+            if trace.exists():
+                rollback_limits.update(map(int, re.findall(r"common K \d+ confirmed \d+ R (\d+)", trace.read_text())))
             # Final checksums are captured at export, after the result boundary,
             # even when the ordinary 20-second trace ended earlier in the match.
             require((epoch, client) in endpoints and endpoints[epoch, client][2] == 3,
@@ -246,7 +249,10 @@ def integrity_result(root, metadata):
     gate_frames = total > 0 and correct == total
     gate_local = legal_presses > 0 and missing_local == 0 and bool(local_delays) and min(local_delays) >= 0 and max(local_delays) <= 1
     gate_checksums = len(endpoints) == 4 and all(endpoints[e, 0] == endpoints[e, 1] for e in (1, 2))
+    require(len(rollback_limits) == 1, "native rollback limit absent or inconsistent")
+    rollback_limit = next(iter(rollback_limits), None)
     result = dict(scope=metadata["scope"], build=metadata["settings"]["build"],
+                  rollback_limit_frames=rollback_limit,
                   four_fighters=four_fighters,
                   helper_sha256=metadata["helper_sha256"], edges_injected_per_player=injected,
                   lost=losses, duplicated=duplicates, reordered=reordered, stuck=stuck,
@@ -273,7 +279,7 @@ def integrity_result(root, metadata):
              f"| Local start − capture, frames | {brief(result['local_start_minus_capture_frames'])}; missing first prediction {missing_local} |",
              f"| Opponent input lateness, frames: p50 / p95 / max | {brief(result['opponent_input_lateness_frames'])} |",
              f"| Rollback depth, frames: p50 / p95 / max | {brief(result['rollback_depth_frames'])} |",
-             f"| Prediction stalls at 24-frame limit | {len(stall_lengths)}; longest {max(stall_lengths, default=0)} callbacks |",
+             f"| Prediction stalls at {rollback_limit}-frame limit | {len(stall_lengths)}; longest {max(stall_lengths, default=0)} callbacks |",
              "| Injected input → screen, ms | Not captured in this session |",
              f"| Final checksums match | {'Yes' if gate_checksums else 'No'} |"]
     (root / "summary.json").write_text(json.dumps(result, indent=2) + "\n")

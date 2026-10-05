@@ -55,7 +55,7 @@ build_id=${WC3_BUILD_ID:-$(date +%s)}
 developer_scenario=${WC3_SCENARIO:-normal}
 case "$developer_scenario" in normal|knockdown|tech|shield-break|ledge|parry|spike|ko) ;; *) echo 'Unknown WC3_SCENARIO.' >&2; exit 2;; esac
 input_profile=${WC3_INPUT_PROFILE:-callback}
-case "$input_profile" in callback|shadow-d3|shadow-d3-batch2|shadow-d3-r12|shadow-d0-r12|shadow-d1-r12|shadow-d0-r24) ;; *) echo 'Unknown WC3_INPUT_PROFILE.' >&2; exit 2;; esac
+case "$input_profile" in callback|shadow-d3|shadow-d3-batch2|shadow-d3-r12|shadow-d0-r12|shadow-d1-r12|shadow-d0-r24|shadow-d0-r128) ;; *) echo 'Unknown WC3_INPUT_PROFILE.' >&2; exit 2;; esac
 input_source=${WC3_INPUT_SOURCE:-keyboard}
 case "$input_source" in keyboard|journal) ;; *) echo 'WC3_INPUT_SOURCE must be keyboard or journal.' >&2; exit 2;; esac
 keyboard_journal_ingress=${WC3_JOURNAL_INGRESS:-files}
@@ -70,13 +70,13 @@ input_rollback=6
 shadow_input=false
 [[ "$input_profile" == callback ]] || shadow_input=true
 case "$input_profile" in shadow-d0-*) input_delay=0 ;; shadow-d1-*) input_delay=1 ;; esac
-case "$input_profile" in *-r12) input_rollback=12 ;; *-r24) input_rollback=24 ;; esac
+case "$input_profile" in *-r12) input_rollback=12 ;; *-r24) input_rollback=24 ;; *-r128) input_rollback=128 ;; esac
 response_probe=${WC3_RESPONSE_SERVICE_PROBE:-0}
 case "$response_probe" in 0|1) ;; *) echo 'WC3_RESPONSE_SERVICE_PROBE must be 0 or 1.' >&2; exit 2;; esac
 presentation=${WC3_PRESENTATION:-native}
 case "$presentation" in native|pool-confirmed|pool-predicted) ;; *) echo 'WC3_PRESENTATION must be native, pool-confirmed or pool-predicted.' >&2; exit 2;; esac
 if [[ "$presentation" != native ]]; then
-    [[ "$input_profile" == shadow-d*-r12 || "$input_profile" == shadow-d0-r24 ]] || { echo 'Pool presentation requires an R12 or R24 shadow input profile.' >&2; exit 2; }
+    [[ "$input_profile" == shadow-d*-r12 || "$input_profile" == shadow-d0-r24 || "$input_profile" == shadow-d0-r128 ]] || { echo 'Pool presentation requires an R12, R24 or R128 shadow input profile.' >&2; exit 2; }
     [[ -s "$original_clips/wurst/FighterOriginalClipInfo.wurst" ]] || { echo 'Export original clips before building pool presentation.' >&2; exit 1; }
     while IFS=$'\t' read -r source expected_hash; do
         [[ $(sha256sum "$project_dir/$source" | cut -d ' ' -f1) == "$expected_hash" ]] || {
@@ -128,7 +128,7 @@ cp "$project_dir/wurst.build" "$work_dir/wurst.build"
 }
 sed -i "s/^  name: .*/  name: $map_name/" "$work_dir/wurst.build"
 cp "$project_dir/tools/map-entry.j" "$work_dir/wurst/war3map.j"
-for source in ConfirmedModelSounds ModelSoundPresentation FighterAssets Simulation TechInput MeleeContactGeometry MeleeScalarMath RollTravel IllidanMotion FighterPose BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput NetworkInput InputAdapter MatchStep ReplayState ReplayHistory KeyboardInputCapture InputProtocol InputBatch ParticipantInputs InputLedger FixedInputSchedule ShadowInputSchedule ShadowInputPlayback JournalInputSource JournalTransportBatch JournalMatchLifecycle JournalPauseBarrier KeyboardJournalIngress JournalTextStream EditboxJournalIngress VocabularyIngress VocabularyProbeCorpus ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents ImpactState SpecialEffectState SummonPose SummonState SummonPresentation DamagePose CombatEffects FrostEffects ProjectilePose ProjectilePresentation ShieldPose ShieldPresentation SpecialEffects ResponseServiceProbe NativePreloadProbe NativeTransportProbe Melee; do
+for source in ConfirmedModelSounds ModelSoundPresentation FighterAssets Simulation TechInput MeleeContactGeometry MeleeScalarMath RollTravel IllidanMotion FighterPose BotRecovery DirectionalInput MatchRules MatchControls MatchHUD CommandBuffer CombatInput NetworkInput InputAdapter MatchStep ReplayState ReplayHistory KeyboardInputCapture InputProtocol InputBatch ParticipantInputs InputLedger FixedInputSchedule ShadowInputSchedule ShadowInputPlayback JournalInputSource JournalMatchLifecycle JournalPauseBarrier KeyboardJournalIngress JournalTextStream EditboxJournalIngress VocabularyIngress VocabularyProbeCorpus ParryScenario SpikeScenario KeyBindings PlayerInputState BindingSettings SettingsUI SelectionDrag SelectionUI StageSelection StageUI ImpactEvents ImpactState SpecialEffectState SummonPose SummonState SummonPresentation DamagePose CombatEffects FrostEffects ProjectilePose ProjectilePresentation ShieldPose ShieldPresentation SpecialEffects ResponseServiceProbe NativePreloadProbe NativeTransportProbe Melee; do
     cp "$project_dir/wurst/$source.wurst" "$work_dir/wurst/$source.wurst"
 done
 cp "$project_dir/build/model-sounds/wurst/ModelSoundInfo.wurst" "$work_dir/wurst/ModelSoundInfo.wurst"

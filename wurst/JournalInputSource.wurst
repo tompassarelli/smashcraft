@@ -9,8 +9,8 @@ public constant int JOURNAL_READY = 1
 public constant int JOURNAL_INVALID = 2
 
 // One immutable symbol-file set carries a canonical I4 packet with one or two records.
-// The cursor changes only after its caller admits every row and transfers the
-// same packet to the bounded synchronized-transport batch.
+// The cursor changes only after its caller admits every row and sends that same
+// packet over the synchronized input channel.
 public class JournalInputSource
 	private string build = ""
 	private int epoch = -1
@@ -107,7 +107,7 @@ public class JournalInputSource
 	function packetFrame() returns int
 		return packet.firstFrameNumber()
 
-	function submitted() returns boolean
+	function sent() returns boolean
 		if not validated
 			return false
 		sequence += packet.recordCount()

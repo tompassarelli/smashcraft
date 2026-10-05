@@ -169,7 +169,7 @@ function validRecords(int sender, int arm, int seq, string value) returns boolea
     for row = 0 to journal.recordCount() - 1
         if not journal.copyRow(row, decodedRow) or not vocabularyProbeRow(sender, journal.packetFrame() + row, expectedRow) or not decodedRow.sameAs(expectedRow)
             return false
-    return journal.submitted()
+    return journal.sent()
 
 public function nativePreloadProbeActive() returns boolean
     return active
