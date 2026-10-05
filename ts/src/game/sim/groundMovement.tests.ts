@@ -38,16 +38,16 @@ test("an initial dash's entry transitions toward the actor's run speed", () => {
       const fighter = createFighter(character, 0.0, -direction);
       const input = controls({ direction });
       advanceSolo(fighter, 0, input, 0.0);
-      assertNear(fighter.motion.vx, 11.4 * direction, 0.001);
-      let expectedSpeed = 11.4;
+      assertNear(fighter.motion.vx, f32(11.4) * direction, f32(0.001));
+      let expectedSpeed = f32(11.4);
       for (let tick = 2; tick <= 10; tick++) {
         advanceSolo(fighter, 0, input, 0.0);
-        expectedSpeed = character === Character.archer ? min(13.2, expectedSpeed + 0.72) : max(9.0, expectedSpeed - GROUND_TRACTION);
-        assertNear(fighter.motion.vx, expectedSpeed * direction, 0.001);
+        expectedSpeed = character === Character.archer ? min(f32(13.2), expectedSpeed + f32(0.72)) : max(9.0, expectedSpeed - GROUND_TRACTION);
+        assertNear(fighter.motion.vx, expectedSpeed * direction, f32(0.001));
         assertEquals(fighter.facing, direction);
       }
       advanceSolo(fighter, 0, input, 0.0);
-      assertNear(fighter.motion.vx, (character === Character.archer ? 13.2 : 9.0) * direction, 0.001);
+      assertNear(fighter.motion.vx, (character === Character.archer ? f32(13.2) : 9.0) * direction, f32(0.001));
       assertEquals(fighter.ground.dashFrame, INITIAL_DASH_FRAMES + 1);
     }
   }
@@ -222,17 +222,17 @@ test("an initial dash reversal restarts the window, including across neutral", (
     for (let tick = 1; tick <= 8; tick++) advanceSolo(fighter, 0, input, 0.0);
     input.direction = 0;
     advanceSolo(fighter, 0, input, 0.0);
-    assertNear(fighter.motion.vx, (character === Character.archer ? 13.2 : 9.0) - GROUND_TRACTION, 0.001);
+    assertNear(fighter.motion.vx, (character === Character.archer ? f32(13.2) : 9.0) - GROUND_TRACTION, f32(0.001));
     assertEquals(fighter.ground.dashFrame, 9);
     input.direction = -1;
     advanceSolo(fighter, 0, input, 0.0);
-    assertNear(fighter.motion.vx, -11.4, 0.001);
+    assertNear(fighter.motion.vx, -f32(11.4), f32(0.001));
     assertEquals(fighter.facing, -1);
     assertEquals(fighter.ground.dashFrame, 1);
     for (let tick = 1; tick <= 6; tick++) {
       input.direction = -input.direction;
       advanceSolo(fighter, 0, input, 0.0);
-      assertNear(fighter.motion.vx, 11.4 * input.direction, 0.001);
+      assertNear(fighter.motion.vx, f32(11.4) * input.direction, f32(0.001));
       assertEquals(fighter.ground.dashFrame, 1);
     }
   }
@@ -245,10 +245,10 @@ test("a run turn uses the character's dash acceleration before changing facing",
       const input = controls({ direction: firstDirection });
       for (let tick = 1; tick <= 11; tick++) advanceSolo(fighter, 0, input, 0.0);
       input.direction = -firstDirection;
-      const speed = character === Character.archer ? 13.2 : 9.0;
+      const speed = character === Character.archer ? f32(13.2) : 9.0;
       for (let tick = 1; tick <= 4; tick++) {
         advanceSolo(fighter, 0, input, 0.0);
-        assertNear(fighter.motion.vx, firstDirection * (speed - 0.72 * tick), 0.001);
+        assertNear(fighter.motion.vx, firstDirection * (speed - f32(0.72) * tick), f32(0.001));
         assertEquals(fighter.facing, firstDirection);
       }
       for (let tick = 5; tick <= 19; tick++) advanceSolo(fighter, 0, input, 0.0);
@@ -268,7 +268,7 @@ test("an initial dash's expiration prevents a late instant reversal", () => {
     assertEquals(fighter.ground.action, GroundAction.run);
     input.direction = -1;
     advanceSolo(fighter, 0, input, 0.0);
-    assertNear(fighter.motion.vx, character === Character.archer ? 12.48 : 8.28, 0.001);
+    assertNear(fighter.motion.vx, character === Character.archer ? f32(12.48) : f32(8.28), f32(0.001));
     assertEquals(fighter.facing, 1);
   }
 });
@@ -283,13 +283,13 @@ test("under-target ground velocity uses the actor's acceleration and run cap", (
   fighter.ground.actionFrame = 1;
   withPhysics(fighter, { runSpeed: melee(2.5) });
   advanceSolo(fighter, 0, input, 0.0);
-  assertNear(fighter.motion.vx, 1.12 * 6, 0.0001);
+  assertNear(fighter.motion.vx, f32(1.12) * 6, f32(0.0001));
   for (let tick = 1; tick <= 12; tick++) advanceSolo(fighter, 0, input, 0.0);
-  assertNear(fighter.motion.vx, 12.668, 0.0001);
+  assertNear(fighter.motion.vx, f32(12.668), f32(0.0001));
   withPhysics(fighter, { runSpeed: melee(4.0) });
   fighter.motion.vx = f32(melee(3.0) + 0.20000000298023224);
   advanceSolo(fighter, 0, input, 0.0);
-  assertNear(fighter.motion.vx, 3.0 * 6, 0.0001);
+  assertNear(fighter.motion.vx, 3.0 * 6, f32(0.0001));
 });
 
 test("a neutral stop after an initial dash allows a fresh dash", () => {
@@ -298,11 +298,11 @@ test("a neutral stop after an initial dash allows a fresh dash", () => {
   advanceSolo(fighter, 0, input, 0.0);
   input.direction = 0;
   for (let tick = 1; tick <= 24; tick++) advanceSolo(fighter, 0, input, 0.0);
-  assertNear(fighter.motion.vx, 0.0, 0.001);
+  assertNear(fighter.motion.vx, 0.0, f32(0.001));
   assertEquals(fighter.ground.dashFrame, 0);
   input.direction = 1;
   advanceSolo(fighter, 0, input, 0.0);
-  assertNear(fighter.motion.vx, 11.4, 0.001);
+  assertNear(fighter.motion.vx, f32(11.4), f32(0.001));
   assertEquals(fighter.ground.dashFrame, 1);
 });
 
@@ -313,12 +313,12 @@ test("hitlag freezes an initial dash, then a reversal resumes", () => {
   fighter.launch.hitlag = 2;
   input.direction = -1;
   advanceSolo(fighter, 0, input, 0.0);
-  assertNear(fighter.motion.x, 100.0, 0.001);
+  assertNear(fighter.motion.x, 100.0, f32(0.001));
   assertEquals(fighter.ground.dashFrame, 1);
   assertEquals(fighter.ground.action, GroundAction.dash);
   assertEquals(fighter.ground.actionFrame, 1);
   advanceSolo(fighter, 0, input, 0.0);
-  assertNear(fighter.motion.vx, -11.4, 0.001);
+  assertNear(fighter.motion.vx, -f32(11.4), f32(0.001));
   assertEquals(fighter.ground.dashFrame, 1);
   fighter.launch.hitstun = 3;
   advanceSolo(fighter, 0, input, 0.0);
@@ -401,7 +401,7 @@ test("one press consumes one jump", () => {
   assertTrue(fighter.motion.grounded);
   advanceSolo(fighter, 0, input, -240.0);
   assertEquals(fighter.jump.squat, 0);
-  assertNear(fighter.motion.vz, 22.08, 0.01);
+  assertNear(fighter.motion.vz, f32(22.08), f32(0.01));
   advanceSolo(fighter, 0, input, -240.0);
   assertEquals(fighter.jump.remaining, 1);
 });
@@ -418,7 +418,7 @@ test("hitlag freezes position until it expires", () => {
   advanceSolo(fighter, 0, input, -240.0);
   assertEquals(fighter.launch.hitlag, 0);
   assertEquals(fighter.motion.x, 25.0);
-  assertNear(fighter.motion.vx, INITIAL_DASH_SPEED, 0.001);
+  assertNear(fighter.motion.vx, INITIAL_DASH_SPEED, f32(0.001));
   advanceSolo(fighter, 0, input, -240.0);
   assertTrue(fighter.motion.x > 25.0);
 });

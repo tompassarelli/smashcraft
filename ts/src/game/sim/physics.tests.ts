@@ -1,4 +1,5 @@
 // Retail physics references: NTSC 1.02 recordings and extracted parameters.
+import { floorMod } from "../../sim/intMath";
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "../../runtime/testing";
 import { max } from "../../runtime/wurst";
 import { addFloat32, divideFloat32 } from "../../sim/binary32";
@@ -53,7 +54,7 @@ test("retail combat stacking starts on the tenth moving frame and freezes in hit
     target.motion.z = 300.0;
     retailCombatContact(world, 100.0, 1.0, 0.0);
     assertEquals(target.launch.knockbackAge, 0);
-    assertNear(target.launch.knockbackX, 17.9999995977, 0.000001);
+    assertNear(target.launch.knockbackX, f32(17.9999995977), f32(0.000001));
     for (let frozenFrame = 1; frozenFrame <= 3; frozenFrame++) {
       advance(world, 1, 0, input, 0.0);
       assertEquals(target.launch.knockbackAge, 0);
@@ -65,7 +66,7 @@ test("retail combat stacking starts on the tenth moving frame and freezes in hit
     }
     const residual = target.launch.knockbackX;
     retailCombatContact(world, 20.0, 1.0, 0.0);
-    if (age === 9) assertNear(target.launch.knockbackX, 3.5999999195, 0.000001);
+    if (age === 9) assertNear(target.launch.knockbackX, f32(3.5999999195), f32(0.000001));
     else assertEquals(target.launch.knockbackX, residual);
     assertEquals(target.launch.knockbackAge, 0);
     assertEquals(target.launch.hitstun, 8);
@@ -86,19 +87,19 @@ test("retail combat stacking merges each axis once after strongest contact selec
   queueDamageContact(world, 0, 1, hitEffect(5.0, 0.0, 20.0, 1.0, 0.0), 1, ContactKind.launch, false, undefined);
   finishDamageContacts(world);
   assertEquals(target.status.damage, 10.0);
-  assertNear(target.launch.knockbackX, 7.2000002414, 0.000001);
-  assertNear(target.launch.knockbackZ, 5.3999996781, 0.000001);
+  assertNear(target.launch.knockbackX, f32(7.2000002414), f32(0.000001));
+  assertNear(target.launch.knockbackZ, f32(5.3999996781), f32(0.000001));
   assertEquals(target.launch.damageLevel, 3);
   assertEquals(target.launch.hitstun, 40);
   // A weaker same-direction axis is retained; an incoming zero cannot erase it.
   target.launch.knockbackAge = 10;
   retailCombatContact(world, 20.0, 0.0, 1.0);
-  assertNear(target.launch.knockbackX, 7.2000002414, 0.000001);
-  assertNear(target.launch.knockbackZ, 5.3999996781, 0.000001);
+  assertNear(target.launch.knockbackX, f32(7.2000002414), f32(0.000001));
+  assertNear(target.launch.knockbackZ, f32(5.3999996781), f32(0.000001));
   target.launch.knockbackAge = 10;
   retailCombatContact(world, 100.0, -1.0, -1.0);
-  assertNear(target.launch.knockbackX, -10.7999993563, 0.000001);
-  assertNear(target.launch.knockbackZ, -12.5999999196, 0.000001);
+  assertNear(target.launch.knockbackX, -f32(10.7999993563), f32(0.000001));
+  assertNear(target.launch.knockbackZ, -f32(12.5999999196), f32(0.000001));
 });
 
 test("retail combat ground tangent uses the new contact, then traction rather than air decay", () => {
@@ -113,10 +114,10 @@ test("retail combat ground tangent uses the new contact, then traction rather th
     retailCombatContact(world, 20.0, f32(facing * 1.0), -1.0);
     assertTrue(target.motion.grounded);
     assertEquals(target.launch.knockbackX, f32(facing * 30.0));
-    assertNear(target.launch.groundKnockbackX, facing * 3.5999999195, 0.000001);
+    assertNear(target.launch.groundKnockbackX, facing * f32(3.5999999195), f32(0.000001));
     for (let frame = 1; frame <= 4; frame++) advance(world, 1, 0, input, 0.0);
-    assertNear(target.motion.x, facing * 3.1199999195, 0.000001);
-    assertNear(target.launch.knockbackX, facing * 3.1199999195, 0.000001);
+    assertNear(target.motion.x, facing * f32(3.1199999195), f32(0.000001));
+    assertNear(target.launch.knockbackX, facing * f32(3.1199999195), f32(0.000001));
     assertEquals(target.launch.knockbackZ, 0.0);
     assertEquals(target.launch.damageLevel, 0);
     for (let frame = 1; frame <= 7; frame++) advance(world, 1, 0, input, 0.0);
@@ -154,9 +155,9 @@ test("retail combat ground bounce uses a ten-degree threshold and four-fifths ve
       assertEquals(target.launch.damageLevel, 3);
       assertEquals(target.down.state, DownState.tumble);
       // Expected multiplication results include the test interpreter's float32 rounding.
-      assertNear(target.launch.knockbackX, steep ? 17.6692886353 : 17.7783908844, 0.000001);
-      const expectedZ = steep ? (grounded ? 2.7476495125 : -3.43456184) : -2.8158203078;
-      assertNear(target.launch.knockbackZ, expectedZ, 0.000001);
+      assertNear(target.launch.knockbackX, steep ? f32(17.6692886353) : f32(17.7783908844), f32(0.000001));
+      const expectedZ = steep ? (grounded ? f32(2.7476495125) : -f32(3.43456184)) : -f32(2.8158203078);
+      assertNear(target.launch.knockbackZ, expectedZ, f32(0.000001));
     }
   }
 });
@@ -339,9 +340,9 @@ test("retail walk uses character acceleration and the common taper", () => {
   for (const host of [Character.archer, Character.rifleman]) {
     const f = falcoRig(host, 0.0, 1);
     const input = controls({ direction: 1, walking: true });
-    for (const expected of [1.8, 2.5071428, 3.1385202, 3.7022507]) {
+    for (const expected of [f32(1.8), f32(2.5071428), f32(3.1385202), f32(3.7022507)]) {
       advanceSolo(f, 0, input, 0.0);
-      assertNear(f.motion.vx, expected, 0.00001);
+      assertNear(f.motion.vx, expected, f32(0.00001));
     }
   }
 });
@@ -354,14 +355,14 @@ test("retail run tapers below target and brakes overspeed by character friction"
   belowTarget.ground.dashDirection = 1;
   belowTarget.ground.action = GroundAction.run;
   advanceSolo(belowTarget, 0, input, 0.0);
-  assertNear(belowTarget.motion.vx, 5.5152, 0.00001);
+  assertNear(belowTarget.motion.vx, f32(5.5152), f32(0.00001));
   const overspeed = falcoRig(Character.archer, 100.0, 1);
   overspeed.motion.vx = melee(1.899999976158142);
   overspeed.ground.dashFrame = INITIAL_DASH_FRAMES + 1;
   overspeed.ground.dashDirection = 1;
   overspeed.ground.action = GroundAction.run;
   advanceSolo(overspeed, 0, input, 0.0);
-  assertNear(overspeed.motion.vx, 1.82 * 6, 0.00001);
+  assertNear(overspeed.motion.vx, f32(1.82) * 6, f32(0.00001));
 });
 
 test("a retail run turn preserves facing until ground velocity crosses", () => {
@@ -373,10 +374,10 @@ test("a retail run turn preserves facing until ground velocity crosses", () => {
   f.ground.turnRunEntryFacing = 1;
   const input = controls({ direction: -1 });
   for (let tick = 1; tick <= 9; tick++) advanceSolo(f, 0, input, 0.0);
-  assertNear(f.motion.vx, -0.48, 0.00001);
+  assertNear(f.motion.vx, -f32(0.48), f32(0.00001));
   assertEquals(f.facing, 1);
   advanceSolo(f, 0, input, 0.0);
-  assertNear(f.motion.vx, -1.2, 0.00001);
+  assertNear(f.motion.vx, -f32(1.2), f32(0.00001));
   assertEquals(f.facing, -1);
   assertEquals(f.ground.action, GroundAction.turnRun);
 });
@@ -398,8 +399,8 @@ test("grounded knockback matches the recorded first released displacement", () =
     f.launch.knockbackX = melee(0.7562744617462158);
     f.launch.hitstun = 10;
     advanceSolo(f, 0, input, 0.0);
-    assertNear(f.launch.knockbackX, 0.6762744784355164 * 6, 0.00001);
-    assertNear(f.motion.x, -10.87250804901123 * 6, 0.0001);
+    assertNear(f.launch.knockbackX, 0.6762744784355164 * 6, f32(0.00001));
+    assertNear(f.motion.x, -10.87250804901123 * 6, f32(0.0001));
     assertEquals(f.launch.hitstun, 9);
     assertTrue(f.motion.grounded);
   }
@@ -477,12 +478,12 @@ test("fast fall persists after release and aerial startup but clears on landing 
     input.down = false;
     input.direction = 1;
     advance(world, 0, 0, input, 0.0);
-    const fastFallSpeed = character === Character.archer ? -20.40000057220459 : -21.0;
-    assertNear(f.motion.vz, fastFallSpeed, 0.000001);
+    const fastFallSpeed = character === Character.archer ? -f32(20.40000057220459) : -21.0;
+    assertNear(f.motion.vz, fastFallSpeed, f32(0.000001));
     testBeginAttacks(world, AttackStyle.neutralAir, undefined);
     advance(world, 0, 0, input, 0.0);
     assertTrue(f.motion.fastFalling);
-    assertNear(f.motion.vz, fastFallSpeed, 0.000001);
+    assertNear(f.motion.vz, fastFallSpeed, f32(0.000001));
     f.motion.z = 1.0;
     advance(world, 0, 0, input, 0.0);
     assertTrue(f.motion.grounded);
@@ -507,7 +508,7 @@ test("fast fall requires descending self velocity, and an air dodge clears it", 
   f.launch.knockbackZ = -5.0;
   advanceSolo(f, 0, input, 0.0);
   assertFalse(f.motion.fastFalling);
-  assertNear(f.motion.vz, -0.38, 0.00001);
+  assertNear(f.motion.vz, -f32(0.38), f32(0.00001));
   advanceSolo(f, 0, input, 0.0);
   assertTrue(f.motion.fastFalling);
   simulationAirDodge(f, 0, 0);
@@ -541,7 +542,7 @@ test("the combat ground contact threshold keeps low downward hits on the floor",
       assertEquals(target.status.damage, 105.0 + aboveThreshold);
       assertEquals(target.launch.hitlag, 4);
       assertEquals(target.launch.hitstun, 31 + aboveThreshold);
-      assertNear(target.launch.knockbackX, aboveThreshold === 0 ? 11.5044 : 11.57104, 0.0001);
+      assertNear(target.launch.knockbackX, aboveThreshold === 0 ? f32(11.5044) : f32(11.57104), f32(0.0001));
       assertEquals(target.motion.grounded, !airborne && aboveThreshold === 0);
       assertEquals(target.down.state, aboveThreshold === 0 ? DownState.none : DownState.tumble);
       if (!airborne && aboveThreshold === 0) {
@@ -552,7 +553,7 @@ test("the combat ground contact threshold keeps low downward hits on the floor",
           assertEquals(target.motion.x, 100.0);
           assertEquals(target.motion.z, 0.0);
           assertEquals(target.launch.hitstun, 31);
-          assertNear(target.launch.knockbackX, 11.5044, 0.0001);
+          assertNear(target.launch.knockbackX, f32(11.5044), f32(0.0001));
           assertTrue(target.motion.grounded);
         }
         assertEquals(target.launch.diSerial, 0);
@@ -565,7 +566,7 @@ test("the combat ground contact threshold keeps low downward hits on the floor",
         assertTrue(canAttack(target));
         assertEquals(target.landing.lag, 0);
       } else {
-        assertNear(target.launch.knockbackZ, aboveThreshold === 0 ? -8.6283 : airborne ? -8.67828 : 6.942624, 0.0001);
+        assertNear(target.launch.knockbackZ, aboveThreshold === 0 ? -f32(8.6283) : airborne ? -f32(8.67828) : f32(6.942624), f32(0.0001));
       }
     }
   }
@@ -580,23 +581,23 @@ test("combat DI uses the actual launch magnitude for authored non-unit direction
   target.launch.diPending = true;
   target.launch.hitlag = 1;
   advanceSolo(target, 0, controls({ verticalDirection: 1 }), 0.0);
-  assertNear(target.launch.diAngleDegrees, 18.0, 0.0001);
-  assertNear(target.launch.knockbackX, 7.31742804, 0.0001);
-  assertNear(target.launch.knockbackZ, 2.37757675, 0.0001);
+  assertNear(target.launch.diAngleDegrees, 18.0, f32(0.0001));
+  assertNear(target.launch.knockbackX, f32(7.31742804), f32(0.0001));
+  assertNear(target.launch.knockbackZ, f32(2.37757675), f32(0.0001));
   assertFalse(target.launch.diPending);
 });
 
 test("combat shield damage uses integer power before the shieldstun calculation", () => {
-  assertNear(digitalShieldstunDuration(4.0), 3.8, 0.0001);
-  assertNear(digitalShieldstunDuration(4.989999771118164), 3.8, 0.0001);
+  assertNear(digitalShieldstunDuration(4.0), f32(3.8), f32(0.0001));
+  assertNear(digitalShieldstunDuration(4.989999771118164), f32(3.8), f32(0.0001));
   assertEquals(digitalShieldstunFrames(4.0), 3);
   assertEquals(digitalShieldstunFrames(4.989999771118164), 3);
   assertEquals(digitalShieldstunFrames(5.0), 4);
   assertEquals(digitalShieldstunFrames(8.989999771118164), 5);
-  assertNear(digitalShieldDamage(4.0), 2.8, 0.0001);
-  assertNear(digitalShieldPushback(4.0), 0.45600005984306335 * 6, 0.0001);
-  assertNear(digitalShieldPushback(1000.0), 2 * 6, 0.0001);
-  assertNear(digitalShieldRecoil(4.0), 0.3 * 6, 0.0001);
+  assertNear(digitalShieldDamage(4.0), f32(2.8), f32(0.0001));
+  assertNear(digitalShieldPushback(4.0), 0.45600005984306335 * 6, f32(0.0001));
+  assertNear(digitalShieldPushback(1000.0), 2 * 6, f32(0.0001));
+  assertNear(digitalShieldRecoil(4.0), f32(0.3) * 6, f32(0.0001));
 });
 
 test("retail shield damage scales the accumulated contacts once", () => {
@@ -653,18 +654,18 @@ test("a recorded NTSC digital shield contact matches paired pushback and grounde
       beginDamageContacts();
       queueDamageContact(world, 0, 1, hitEffect(4.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.flinch, true, undefined);
       finishDamageContacts(world);
-      assertNear(target.shield.energy, 40.82003402709961, 0.0001);
+      assertNear(target.shield.energy, 40.82003402709961, f32(0.0001));
       assertEquals(target.shield.stun, 3);
       assertEquals(target.launch.hitlag, 4);
       assertEquals(source.launch.hitlag, 4);
-      assertNear(target.shield.pushbackX, 0.45600005984306335 * 6, 0.0001);
-      assertNear(source.shield.recoilX, -0.3 * 6, 0.0001);
+      assertNear(target.shield.pushbackX, 0.45600005984306335 * 6, f32(0.0001));
+      assertNear(source.shield.recoilX, -f32(0.3) * 6, f32(0.0001));
       for (let frame = 1; frame <= 9; frame++) {
         advanceBoth(world, sourceInput, targetInput);
-        assertNear(source.motion.x, recordedShieldAttackerPosition(frame) * 6, 0.001);
-        assertNear(target.motion.x, recordedShieldDefenderPosition(frame) * 6, 0.001);
+        assertNear(source.motion.x, recordedShieldAttackerPosition(frame) * 6, f32(0.001));
+        assertNear(target.motion.x, recordedShieldDefenderPosition(frame) * 6, f32(0.001));
         assertEquals(target.launch.hitlag, max(0, 4 - frame));
-        assertNear(target.shield.energy, frame <= 7 ? 40.82003402709961 : 40.82003402709961 - 0.28 * (frame - 7), 0.0001);
+        assertNear(target.shield.energy, frame <= 7 ? 40.82003402709961 : 40.82003402709961 - f32(0.28) * (frame - 7), f32(0.0001));
       }
     }
   }
@@ -690,8 +691,8 @@ test("detached and airborne contacts don't invent attacker ground recoil", () =>
     beginDamageContacts();
     queueDamageContact(world, 0, 1, hitEffect(4.0, 0.0, 0.0, 0.0, 0.0), facing, ContactKind.flinch, true, undefined);
     finishDamageContacts(world);
-    assertNear(target.shield.pushbackX, facing * 0.45600005984306335 * 6, 0.0001);
-    assertNear(source.shield.recoilX, -facing * 0.3 * 6, 0.0001);
+    assertNear(target.shield.pushbackX, facing * 0.45600005984306335 * 6, f32(0.0001));
+    assertNear(source.shield.recoilX, -facing * f32(0.3) * 6, f32(0.0001));
   }
 });
 
@@ -703,13 +704,13 @@ test("a later clean hit replaces the remaining shield recoil", () => {
   beginDamageContacts();
   queueDamageContact(world, 0, 1, hitEffect(4.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.flinch, true, undefined);
   finishDamageContacts(world);
-  assertNear(attacker.shield.recoilX, -0.3 * 6, 0.0001);
+  assertNear(attacker.shield.recoilX, -f32(0.3) * 6, f32(0.0001));
   defender.shield.raised = false;
   beginDamageContacts();
   queueDamageContact(world, 1, 0, hitEffect(5.0, 0.0, 20.0, 1.0, 0.0), -1, ContactKind.launch, false, undefined);
   finishDamageContacts(world);
   assertEquals(attacker.shield.recoilX, 0.0);
-  assertNear(attacker.launch.knockbackX, -3.6, 0.0001);
+  assertNear(attacker.launch.knockbackX, -f32(3.6), f32(0.0001));
 });
 
 test("the recorded shield contact detects a perturbed recoil on its first release frame", () => {
@@ -725,10 +726,10 @@ test("the recorded shield contact detects a perturbed recoil on its first releas
   source.shield.recoilX = f32(source.shield.recoilX + melee(0.05999999865889549));
   for (let frame = 1; frame <= 3; frame++) {
     advanceBoth(world, sourceInput, targetInput);
-    assertNear(source.motion.x, 38.56430435180664 * 6, 0.001);
+    assertNear(source.motion.x, 38.56430435180664 * 6, f32(0.001));
   }
   advanceBoth(world, sourceInput, targetInput);
-  assertNear(source.motion.x - recordedShieldAttackerPosition(4) * 6, 0.06 * 6, 0.001);
+  assertNear(source.motion.x - recordedShieldAttackerPosition(4) * 6, f32(0.06) * 6, f32(0.001));
 });
 
 test("airborne shield recoil decays as a separate vector without changing self velocity", () => {
@@ -749,20 +750,20 @@ test("airborne shield recoil decays as a separate vector without changing self v
     advanceSolo(control, 0, input, 0.0);
   };
   step();
-  assertNear(withRecoil.motion.x - control.motion.x, 0.0, 0.0001);
-  assertNear(withRecoil.motion.z - control.motion.z, 0.0, 0.0001);
+  assertNear(withRecoil.motion.x - control.motion.x, 0.0, f32(0.0001));
+  assertNear(withRecoil.motion.z - control.motion.z, 0.0, f32(0.0001));
   assertEquals(withRecoil.shield.recoilX, -3.0);
   assertEquals(withRecoil.shield.recoilZ, 4.0);
   step();
-  assertNear(withRecoil.motion.x - control.motion.x, -2.82, 0.0001);
-  assertNear(withRecoil.motion.z - control.motion.z, 3.76, 0.0001);
-  assertNear(withRecoil.shield.recoilX, -2.82, 0.0001);
-  assertNear(withRecoil.shield.recoilZ, 3.76, 0.0001);
-  assertNear(withRecoil.motion.vz, control.motion.vz, 0.0001);
+  assertNear(withRecoil.motion.x - control.motion.x, -f32(2.82), f32(0.0001));
+  assertNear(withRecoil.motion.z - control.motion.z, f32(3.76), f32(0.0001));
+  assertNear(withRecoil.shield.recoilX, -f32(2.82), f32(0.0001));
+  assertNear(withRecoil.shield.recoilZ, f32(3.76), f32(0.0001));
+  assertNear(withRecoil.motion.vz, control.motion.vz, f32(0.0001));
   step();
-  assertNear(withRecoil.motion.x - control.motion.x, -5.46, 0.0001);
-  assertNear(withRecoil.motion.z - control.motion.z, 7.28, 0.0001);
-  assertNear(withRecoil.motion.vz, control.motion.vz, 0.0001);
+  assertNear(withRecoil.motion.x - control.motion.x, -f32(5.46), f32(0.0001));
+  assertNear(withRecoil.motion.z - control.motion.z, f32(7.28), f32(0.0001));
+  assertNear(withRecoil.motion.vz, control.motion.vz, f32(0.0001));
 });
 
 function prepareAirborneShieldPair(attacker: Fighter, defender: Fighter): void {
@@ -788,16 +789,16 @@ test("an airborne shield contact initializes stacked, weight-scaled relative rec
   defender.motion.vx = 3.0;
   defender.motion.vz = 0.0;
   advanceBoth(world, controls(), controls());
-  assertNear(attacker.motion.deltaX, 2.0, 0.0001);
-  assertNear(defender.motion.deltaX, 3.0, 0.0001);
+  assertNear(attacker.motion.deltaX, 2.0, f32(0.0001));
+  assertNear(defender.motion.deltaX, 3.0, f32(0.0001));
   beginDamageContacts();
   queueDamageContact(world, 0, 1, hitEffect(4.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.flinch, true, undefined);
   queueDamageContact(world, 0, 1, hitEffect(4.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.flinch, true, undefined);
   finishDamageContacts(world);
   // Same-sign horizontal motion subtracts the attacker's step; sub-1 weight ratio is .5.
   // Two contacts stack additively before any subsequent-frame decay.
-  assertNear(attacker.shield.recoilX, 2 * (3 - 2) * 0.125, 0.0001);
-  assertNear(attacker.shield.recoilZ, 0.0, 0.0001);
+  assertNear(attacker.shield.recoilX, 2 * (3 - 2) * 0.125, f32(0.0001));
+  assertNear(attacker.shield.recoilZ, 0.0, f32(0.0001));
 
   const oppositeAttacker = createFighter(Character.archer, 0.0, 1);
   const oppositeDefender = createFighter(Character.rifleman, 100.0, -1);
@@ -810,14 +811,14 @@ test("an airborne shield contact initializes stacked, weight-scaled relative rec
   oppositeAttacker.motion.vz = 2.0;
   oppositeDefender.motion.vz = -1.0;
   advanceBoth(opposite, controls(), controls());
-  assertNear(oppositeAttacker.motion.deltaX, -2.0, 0.0001);
-  assertNear(oppositeDefender.motion.deltaX, 3.0, 0.0001);
+  assertNear(oppositeAttacker.motion.deltaX, -2.0, f32(0.0001));
+  assertNear(oppositeDefender.motion.deltaX, 3.0, f32(0.0001));
   beginDamageContacts();
   queueDamageContact(opposite, 0, 1, hitEffect(4.0, 0.0, 0.0, 0.0, 0.0), 1, ContactKind.flinch, true, undefined);
   finishDamageContacts(opposite);
   // Opposite-sign motion uses only defender movement; heavier defender clamps ratio to 1.
-  assertNear(oppositeAttacker.shield.recoilX, 3 * 0.25, 0.0001);
-  assertNear(oppositeAttacker.shield.recoilZ, oppositeDefender.motion.deltaZ * 0.25, 0.0001);
+  assertNear(oppositeAttacker.shield.recoilX, 3 * 0.25, f32(0.0001));
+  assertNear(oppositeAttacker.shield.recoilZ, oppositeDefender.motion.deltaZ * 0.25, f32(0.0001));
 });
 
 test("shield recoil transitions from an air vector to a ground tangent and back", () => {
@@ -828,7 +829,7 @@ test("shield recoil transitions from an air vector to a ground tangent and back"
   fighter.motion.grounded = true;
   advanceSolo(fighter, 0, input, 0.0);
   assertEquals(fighter.shield.recoilZ, 0.0);
-  assertNear(fighter.shield.recoilX, -2 + fighter.tuning.physics.traction * 1.1, 0.0001);
+  assertNear(fighter.shield.recoilX, -2 + fighter.tuning.physics.traction * f32(1.1), f32(0.0001));
   fighter.motion.grounded = false;
   fighter.launch.hitstun = 10;
   const beforeX = fighter.shield.recoilX;
@@ -836,7 +837,7 @@ test("shield recoil transitions from an air vector to a ground tangent and back"
   advanceSolo(fighter, 0, input, 0.0);
   const recoilLength = Math.sqrt(fighter.shield.recoilX * fighter.shield.recoilX + fighter.shield.recoilZ * fighter.shield.recoilZ);
   const beforeLength = Math.sqrt(beforeX * beforeX + 1);
-  assertNear(recoilLength - (beforeLength - 0.3), 0.0, 0.0001);
+  assertNear(recoilLength - (beforeLength - f32(0.3)), 0.0, f32(0.0001));
 });
 
 test("a combat shield break uses the character's launch attribute after the contact freeze", () => {
@@ -852,14 +853,14 @@ test("a combat shield break uses the character's launch attribute after the cont
     resolveAttacks(world);
     assertEquals(target.shield.breakState, ShieldBreak.air);
     assertEquals(target.launch.hitlag, 7);
-    const launch = character === Character.demonHunter ? 24.0 : 19.7999997139;
-    assertNear(target.motion.vz, launch, 0.0001);
+    const launch = character === Character.demonHunter ? 24.0 : f32(19.7999997139);
+    assertNear(target.motion.vz, launch, f32(0.0001));
     for (let frame = 1; frame <= 6; frame++) {
       advance(world, 1, 0, controls(), 0.0);
       assertEquals(target.motion.z, 0.0);
     }
     advance(world, 1, 0, controls(), 0.0);
-    assertNear(target.motion.z, launch - authoredPhysics(character).gravity, 0.0001);
+    assertNear(target.motion.z, launch - authoredPhysics(character).gravity, f32(0.0001));
   }
 });
 
@@ -885,11 +886,11 @@ test("a contact batch collects all damage before choosing a launch, in either tr
     }
     assertEquals(target.status.damage, 10.899999618530273);
     finishDamageContacts(world);
-    assertNear(target.status.damage, 37.9, 0.0001);
+    assertNear(target.status.damage, f32(37.9), f32(0.0001));
     // floor(10.9)+27=37 percent, jab power 12, weight 80, crouch 2/3.
     // The later downward recoil and zero-launch laser cannot replace the jab.
-    assertNear(target.launch.diLaunchSpeed, 9.3946666667, 0.0001);
-    assertNear(target.launch.knockbackX, 9.3946666667 * 0.70710678, 0.0001);
+    assertNear(target.launch.diLaunchSpeed, f32(9.3946666667), f32(0.0001));
+    assertNear(target.launch.knockbackX, f32(9.3946666667) * f32(0.70710678), f32(0.0001));
     assertGreaterThan(target.launch.knockbackZ, 0.0);
     assertEquals(target.launch.hitstun, 20);
     assertEquals(target.launch.hitlag, 4);
@@ -948,7 +949,7 @@ test("contact-batch special trades survive melee, and summons use total damage",
   finishDamageContacts(world);
   assertEquals(first.status.damage, 7.0);
   assertEquals(second.status.damage, 26.0);
-  assertNear(second.launch.diLaunchSpeed, 11.936, 0.0001);
+  assertNear(second.launch.diLaunchSpeed, f32(11.936), f32(0.0001));
   assertEquals(first.bear.hitSerial, 1);
   assertTrue(first.special.hit);
   assertTrue(second.special.hit);
@@ -982,8 +983,8 @@ test("a contact batch's throws and pummels include detached damage", () => {
       assertEquals(target.launch.hitlag, 4);
     } else {
       assertEquals(target.grab.owner, undefined);
-      assertNear(target.launch.knockbackX, 11.6028 * 0.866025, 0.0001);
-      assertNear(target.launch.knockbackZ, 11.6028 * 0.5, 0.0001);
+      assertNear(target.launch.knockbackX, f32(11.6028) * f32(0.866025), f32(0.0001));
+      assertNear(target.launch.knockbackZ, f32(11.6028) * 0.5, f32(0.0001));
       assertFalse(target.launch.diPending);
       assertEquals(target.launch.hitstun, 25);
       assertEquals(target.launch.hitlag, 0);
@@ -1012,14 +1013,14 @@ test("a contact-batch throw release leaves the ground before trap contact", () =
 });
 
 const OBSERVED_ROLL_TOTALS: readonly (readonly [number, number])[] = [
-  [201.6000022884, 230.9999999994],
-  [201.5999794008, 231.0000228876],
-  [201.5902462016, 230.9888775942],
-  [200.7657279972, 230.044052124],
-  [201.5999822604, 230.9999313354],
-  [201.6276168816, 231.031665801],
-  [233.4956817624, 245.5145874036],
-  [223.503147126, 255.9339351672],
+  [f32(201.6000022884), f32(230.9999999994)],
+  [f32(201.5999794008), f32(231.0000228876)],
+  [f32(201.5902462016), f32(230.9888775942)],
+  [f32(200.7657279972), f32(230.044052124)],
+  [f32(201.5999822604), f32(230.9999313354)],
+  [f32(201.6276168816), f32(231.031665801)],
+  [f32(233.4956817624), f32(245.5145874036)],
+  [f32(223.503147126), f32(255.9339351672)],
 ];
 
 function observedRollTotal(character: Character, profile: number): number {
@@ -1071,7 +1072,7 @@ test("backward rolls and spot dodges keep their orientation", () => {
           assertFalse(isForwardGroundRoll(f));
         }
         const travel = character === Character.demonHunter ? 128.0 : observedRollTotal(character, 1);
-        assertNear(f.motion.x, spot ? 0.0 : -entryFacing * travel, 0.0001);
+        assertNear(f.motion.x, spot ? 0.0 : -entryFacing * travel, f32(0.0001));
         advanceSolo(f, 0, input, 0.0);
         assertEquals(f.facing, entryFacing);
         assertEquals(f.dodge.groundEntryFacing, 0);
@@ -1085,8 +1086,8 @@ test("knockback caps before motion modifiers, and fixed power ignores percent", 
   assertEquals(ordinaryHitKnockback(999.0, 100.0, 80.0, 1000.0, 500.0, 1.0), 2500.0);
   assertEquals(ordinaryHitKnockback(999.0, 100.0, 80.0, 1000.0, 500.0, twoThirds), f32(2500.0 * twoThirds));
   assertEquals(ordinaryHitKnockback(999.0, 100.0, 80.0, 1000.0, 500.0, 1.2000000476837158), 3000.0);
-  assertNear(fixedHitKnockback(20, 80.0, 100.0, 20.0, 1.0), 55.1111111, 0.0001);
-  assertNear(fixedHitKnockback(20, 75.0, 100.0, 20.0, 1.0), 55.6, 0.0001);
+  assertNear(fixedHitKnockback(20, 80.0, 100.0, 20.0, 1.0), f32(55.1111111), f32(0.0001));
+  assertNear(fixedHitKnockback(20, 75.0, 100.0, 20.0, 1.0), f32(55.6), f32(0.0001));
   assertEquals(fixedHitKnockback(1000, 80.0, 1000.0, 500.0, 1.2000000476837158), 3000.0);
   assertEquals(victimHitlagFrames(8.989999771118164, true, true), 4);
   assertEquals(victimHitlagFrames(8.989999771118164, true, false), 7);
@@ -1110,7 +1111,7 @@ test("crouch and charge are sampled before a hit interrupts the action", () => {
     attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
     resolveAttacks(world);
     assertEquals(victim.status.damage, 12.0);
-    assertNear(victim.launch.diLaunchSpeed, 9.192 * (context === 1 ? 2.0 / 3.0 : context === 2 ? 1.2 : 1.0), 0.0001);
+    assertNear(victim.launch.diLaunchSpeed, f32(9.192) * (context === 1 ? 2.0 / 3.0 : context === 2 ? f32(1.2) : 1.0), f32(0.0001));
     assertEquals(victim.launch.hitlag, context === 1 ? 4 : 7);
     assertEquals(attacker.launch.hitlag, 7);
     assertFalse(victim.motion.crouching);
@@ -1127,11 +1128,11 @@ test("air drift preserves opposed overspeed and brakes in the same direction", (
       f.motion.z = 200.0;
       f.motion.vx = f32(12.0 * direction);
       advanceSolo(f, 0, input, 0.0);
-      assertNear(f.motion.vx, (character === Character.archer ? 11.52 : 11.58) * direction, 0.0001);
-      assertNear(f.motion.x, f.motion.vx, 0.0001);
+      assertNear(f.motion.vx, (character === Character.archer ? f32(11.52) : f32(11.58)) * direction, f32(0.0001));
+      assertNear(f.motion.x, f.motion.vx, f32(0.0001));
       input.direction = direction;
       advanceSolo(f, 0, input, 0.0);
-      assertNear(f.motion.vx, (character === Character.archer ? 11.4 : 11.46) * direction, 0.0001);
+      assertNear(f.motion.vx, (character === Character.archer ? f32(11.4) : f32(11.46)) * direction, f32(0.0001));
       f.motion.vx = f32(40.0 * direction);
       advanceSolo(f, 0, input, 0.0);
       assertEquals(f.motion.vx, f32((character === Character.archer ? 18.0 : 24.0) * direction));
@@ -1147,12 +1148,12 @@ test("a ground jump uses its takeoff input, and an air jump replaces horizontal 
       f.jump.squat = 1;
       f.motion.vx = 4.0;
       advanceSolo(f, 0, controls({ direction, jumpHeld: true }), 0.0);
-      const entry = (character === Character.archer ? 3.32 : 4.0) + direction * (character === Character.archer ? 4.32 : 4.2);
-      assertNear(f.motion.vx, entry, 0.0001);
-      assertNear(f.motion.x, entry, 0.0001);
+      const entry = (character === Character.archer ? f32(3.32) : 4.0) + direction * (character === Character.archer ? f32(4.32) : f32(4.2));
+      assertNear(f.motion.vx, entry, f32(0.0001));
+      assertNear(f.motion.x, entry, f32(0.0001));
       f.motion.vx = 13.0;
       simulationJump(f, direction);
-      assertNear(f.motion.vx, direction * (character === Character.archer ? 5.4 : 5.64), 0.0001);
+      assertNear(f.motion.vx, direction * (character === Character.archer ? f32(5.4) : f32(5.64)), f32(0.0001));
     }
   }
   const capped = createFighter(Character.archer, 0.0, 1);
@@ -1160,7 +1161,7 @@ test("a ground jump uses its takeoff input, and an air jump replaces horizontal 
   capped.jump.squat = 1;
   capped.motion.vx = 30.0;
   advanceSolo(capped, 0, controls({ direction: 1 }), 0.0);
-  assertNear(capped.motion.vx, 10.2, 0.0001);
+  assertNear(capped.motion.vx, f32(10.2), f32(0.0001));
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
   illidan.motion.grounded = false;
   illidan.motion.vx = 13.0;
@@ -1172,7 +1173,7 @@ test("sampled roll paths clamp at both stage edges without discarding reversals"
   for (const character of [Character.archer, Character.rifleman]) {
     for (let profile = 0; profile <= 7; profile++) {
       for (const direction of [-1, 1]) {
-        const f = createFighter(character, f32(590.0 * direction), profile % 2 === 0 ? direction : -direction);
+        const f = createFighter(character, f32(590.0 * direction), floorMod(profile, 2) === 0 ? direction : -direction);
         const input = controls();
         startObservedRoll(f, input, profile, direction);
         let touchedEdge = Math.abs(f.motion.x) === 600;
@@ -1204,19 +1205,19 @@ test("a ground jump's entry preserves its launch, then applies gravity and drift
         assertEquals(f.jump.serial, 0);
       }
       advanceSolo(f, 0, input, 0.0);
-      const launch = character === Character.archer ? (full ? 22.08 : 12.6) : full ? 24.6 : 11.4;
-      const horizontal = character === Character.archer ? 4.32 : 4.2;
+      const launch = character === Character.archer ? (full ? f32(22.08) : f32(12.6)) : full ? f32(24.6) : f32(11.4);
+      const horizontal = character === Character.archer ? f32(4.32) : f32(4.2);
       assertFalse(f.motion.grounded);
       assertEquals(f.jump.serial, 1);
-      assertNear(f.motion.vz, launch, 0.00001);
-      assertNear(f.motion.z, launch, 0.00001);
-      assertNear(f.motion.vx, horizontal, 0.00001);
-      assertNear(f.motion.x, horizontal, 0.00001);
+      assertNear(f.motion.vz, launch, f32(0.00001));
+      assertNear(f.motion.z, launch, f32(0.00001));
+      assertNear(f.motion.vx, horizontal, f32(0.00001));
+      assertNear(f.motion.x, horizontal, f32(0.00001));
       advanceSolo(f, 0, input, 0.0);
-      const gravity = character === Character.archer ? 1.38 : 1.02;
-      assertNear(f.motion.vz, launch - gravity, 0.00001);
-      assertNear(f.motion.z, 2 * launch - gravity, 0.00001);
-      assertNear(f.motion.vx, character === Character.archer ? 4.8 : 4.62, 0.00001);
+      const gravity = character === Character.archer ? f32(1.38) : f32(1.02);
+      assertNear(f.motion.vz, launch - gravity, f32(0.00001));
+      assertNear(f.motion.z, 2 * launch - gravity, f32(0.00001));
+      assertNear(f.motion.vx, character === Character.archer ? f32(4.8) : f32(4.62), f32(0.00001));
     }
   }
 });
@@ -1229,9 +1230,9 @@ test("an aerial jump's entry applies gravity immediately", () => {
     f.motion.vz = -10.0;
     f.jump.remaining = 1;
     advanceSolo(f, 0, controls({ jumpPressed: true, direction: 1 }), 0.0);
-    assertNear(f.motion.vz, character === Character.archer ? 25.116 : 22.104, 0.00001);
-    assertNear(f.motion.z, character === Character.archer ? 125.11599731445312 : 122.10399627685547, 0.00001);
-    assertNear(f.motion.vx, character === Character.archer ? 5.28 : 5.52, 0.00001);
+    assertNear(f.motion.vz, character === Character.archer ? f32(25.116) : f32(22.104), f32(0.00001));
+    assertNear(f.motion.z, character === Character.archer ? 125.11599731445312 : 122.10399627685547, f32(0.00001));
+    assertNear(f.motion.vx, character === Character.archer ? f32(5.28) : f32(5.52), f32(0.00001));
     assertEquals(f.jump.remaining, 0);
     assertTrue(f.jump.isDouble);
   }
@@ -1254,7 +1255,7 @@ test("releasing jump on the takeoff frame keeps a full jump, and hitlag doesn't 
     }
     input.jumpHeld = false;
     advanceSolo(f, 0, input, 0.0);
-    assertNear(f.motion.vz, character === Character.archer ? 22.08 : 24.6, 0.00001);
+    assertNear(f.motion.vz, character === Character.archer ? f32(22.08) : f32(24.6), f32(0.00001));
   }
 });
 
@@ -1274,7 +1275,7 @@ test("an electric contact preserves the attacker's and victim's pause boundaries
         finishDamageContacts(world);
         const pause = electric ? (crouching ? 4 : 7) : crouching ? 3 : 5;
         const stun = crouching ? 13 : 20;
-        assertNear(target.status.damage, 8.99, 0.00001);
+        assertNear(target.status.damage, f32(8.99), f32(0.00001));
         assertEquals(target.launch.hitlag, pause);
         assertEquals(target.launch.hitstun, stun);
         assertFalse(target.motion.crouching);
@@ -1339,7 +1340,7 @@ test("an electric contact batch uses the strongest launch's effect and the large
       }
       finishDamageContacts(world);
       assertEquals(target.status.damage, 15.0);
-      assertNear(target.launch.knockbackX, 10.8, 0.00001);
+      assertNear(target.launch.knockbackX, f32(10.8), f32(0.00001));
       assertEquals(target.launch.hitlag, electricWinner ? 10 : 7);
       assertEquals(owner.launch.hitlag, 7);
     }
@@ -1413,7 +1414,7 @@ test("the same character uses its assigned weight for an actual damage contact",
     resolveAttacks(world);
     assertEquals(target.status.damage, 12.0);
     // Jab at 12 percent: ((12/10 + 12*12/20)*200/(weight+100)*1.4+18)+20.
-    assertNear(target.launch.diLaunchSpeed, weight === 50.0 ? 9.6624 : 8.53344, 0.00001);
+    assertNear(target.launch.diLaunchSpeed, weight === 50.0 ? f32(9.6624) : f32(8.53344), f32(0.00001));
   }
 });
 
@@ -1472,7 +1473,7 @@ test("a retail aerial fast-fall input ages during hitlag through its expiry fram
     }
     advanceSolo(f, 0, input, 0.0);
     assertEquals(f.motion.fastFalling, freeze === 4);
-    assertNear(f.motion.vz, freeze === 4 ? -21.0 : -2.020000010728836, 0.000001);
+    assertNear(f.motion.vz, freeze === 4 ? -21.0 : -f32(2.020000010728836), f32(0.000001));
   }
 });
 
@@ -1497,10 +1498,10 @@ test("a retail aerial dodge uses the extracted force and decay for every digital
       const f = airborneFalco();
       const input = controls();
       simulationAirDodge(f, horizontal, vertical);
-      const launchX = horizontal * (vertical === 0 ? 17.6896506589 : 13.1521857265);
-      const launchZ = horizontal === 0 ? vertical * 18.5999994278 : vertical === 0 ? -5.7477159186 : vertical * 13.1521857265;
-      assertNear(f.motion.vx, launchX, 0.00001);
-      assertNear(f.motion.vz, launchZ, 0.00001);
+      const launchX = horizontal * (vertical === 0 ? f32(17.6896506589) : f32(13.1521857265));
+      const launchZ = horizontal === 0 ? vertical * f32(18.5999994278) : vertical === 0 ? -f32(5.7477159186) : vertical * f32(13.1521857265);
+      assertNear(f.motion.vx, launchX, f32(0.00001));
+      assertNear(f.motion.vz, launchZ, f32(0.00001));
       // The launch check above permits approximate native trig; the decay
       // and position checks start from that actual launch velocity.
       let expectedX = f.motion.vx;
@@ -1513,22 +1514,22 @@ test("a retail aerial dodge uses the extracted force and decay for every digital
         positionX = addFloat32(positionX, divideFloat32(expectedX, 6.0));
         positionZ = addFloat32(positionZ, divideFloat32(expectedZ, 6.0));
         advanceSolo(f, 0, input, 0.0);
-        assertNear(f.motion.vx, expectedX, 0.00001);
-        assertNear(f.motion.vz, expectedZ, 0.00001);
-        assertNear(f.motion.x, melee(positionX), 0.00001);
-        assertNear(f.motion.z, melee(positionZ), 0.00001);
+        assertNear(f.motion.vx, expectedX, f32(0.00001));
+        assertNear(f.motion.vz, expectedZ, f32(0.00001));
+        assertNear(f.motion.x, melee(positionX), f32(0.00001));
+        assertNear(f.motion.z, melee(positionZ), f32(0.00001));
       }
       f.launch.hitlag = 3;
       for (let frame = 1; frame <= 2; frame++) {
         advanceSolo(f, 0, input, 0.0);
         assertEquals(f.dodge.airFrame, 3);
-        assertNear(f.motion.x, melee(positionX), 0.00001);
-        assertNear(f.motion.z, melee(positionZ), 0.00001);
+        assertNear(f.motion.x, melee(positionX), f32(0.00001));
+        assertNear(f.motion.z, melee(positionZ), f32(0.00001));
       }
       advanceSolo(f, 0, input, 0.0);
       assertEquals(f.dodge.airFrame, 4);
-      assertNear(f.motion.vx, expectedX * 0.8999999761581421, 0.00001);
-      assertNear(f.motion.vz, expectedZ * 0.8999999761581421, 0.00001);
+      assertNear(f.motion.vx, expectedX * 0.8999999761581421, f32(0.00001));
+      assertNear(f.motion.vz, expectedZ * 0.8999999761581421, f32(0.00001));
     }
   }
 });
@@ -1549,19 +1550,19 @@ test("a retail aerial dodge resumes gravity and drift on tick thirty", () => {
       const beforeZ = mode === 0 ? 50.0 : mode === 1 ? 68.79904174804688 : 31.20094871520996;
       const beforeVX = mode === 0 ? 0.0 : 0.6194844245910645;
       const beforeVZ = mode === 0 ? 0.0 : f32(directionZ * 0.6194844245910645);
-      assertNear(f.motion.x, melee(beforeX), 0.00001);
-      assertNear(f.motion.z, melee(beforeZ), 0.00001);
-      assertNear(f.motion.vx, beforeVX, 0.00001);
-      assertNear(f.motion.vz, beforeVZ, 0.00001);
+      assertNear(f.motion.x, melee(beforeX), f32(0.00001));
+      assertNear(f.motion.z, melee(beforeZ), f32(0.00001));
+      assertNear(f.motion.vx, beforeVX, f32(0.00001));
+      assertNear(f.motion.vz, beforeVZ, f32(0.00001));
       assertEquals(f.dodge.airMotionFrames, 0);
       advanceSolo(f, 0, input, 0.0);
       const nextVX = steer === 0 ? max(0.0, f32(beforeVX - 0.11999999731779099)) : f32(beforeVX + f32(steer * 0.42000001668930054));
       const nextVZ = f32(beforeVZ - 1.0199999809265137);
       assertEquals(f.dodge.airFrame, 30);
-      assertNear(f.motion.vx, nextVX, 0.00001);
-      assertNear(f.motion.vz, nextVZ, 0.00001);
-      assertNear(f.motion.x, melee(addFloat32(beforeX, divideFloat32(nextVX, 6.0))), 0.00001);
-      assertNear(f.motion.z, melee(addFloat32(beforeZ, divideFloat32(nextVZ, 6.0))), 0.00001);
+      assertNear(f.motion.vx, nextVX, f32(0.00001));
+      assertNear(f.motion.vz, nextVZ, f32(0.00001));
+      assertNear(f.motion.x, melee(addFloat32(beforeX, divideFloat32(nextVX, 6.0))), f32(0.00001));
+      assertNear(f.motion.z, melee(addFloat32(beforeZ, divideFloat32(nextVZ, 6.0))), f32(0.00001));
       assertTrue(f.dodge.airDodging);
       assertFalse(canAttack(f));
     }
@@ -1589,8 +1590,8 @@ test("a retail aerial dodge's switch boundary freezes in hitlag", () => {
   }
   advanceSolo(f, 0, input, 0.0);
   assertEquals(f.dodge.airFrame, 30);
-  assertNear(f.motion.x, 0.4200000018, 0.00001);
-  assertNear(f.motion.z, 298.9800109863281, 0.00001);
+  assertNear(f.motion.x, f32(0.4200000018), f32(0.00001));
+  assertNear(f.motion.z, 298.9800109863281, f32(0.00001));
 });
 
 test("a forward roll turns on frame 20 while keeping its entry pose and travel", () => {
@@ -1616,15 +1617,15 @@ test("a forward roll turns on frame 20 while keeping its entry pose and travel",
       assertEquals(f.facing, character === Character.demonHunter ? entryFacing : -entryFacing);
       assertEquals(fighterPoseFacing(f), entryFacing);
       assertTrue(isForwardGroundRoll(f));
-      const travel20 = character === Character.archer ? 9.6163101198 : character === Character.rifleman ? 11.0186805726 : 0.0;
-      assertNear(f.motion.x - before, entryFacing * travel20, 0.0001);
+      const travel20 = character === Character.archer ? f32(9.6163101198) : character === Character.rifleman ? f32(11.0186805726) : 0.0;
+      assertNear(f.motion.x - before, entryFacing * travel20, f32(0.0001));
       for (let frame = 21; frame <= 31; frame++) {
         advance(world, 0, 0, input, 0.0);
         assertEquals(fighterPoseFacing(f), entryFacing);
         assertTrue(isForwardGroundRoll(f));
       }
       const total = character === Character.demonHunter ? 128.0 : observedRollTotal(character, 0);
-      assertNear(f.motion.x, entryFacing * total, 0.0001);
+      assertNear(f.motion.x, entryFacing * total, f32(0.0001));
       assertFalse(canAttack(f));
       advance(world, 0, 0, input, 0.0);
       assertEquals(f.facing, -entryFacing);
@@ -1668,7 +1669,7 @@ test("sampled rolls move through their actual entry, a freeze and recovery", () 
       for (const facing of [-1, 1]) {
         const f = createFighter(character, 0.0, facing);
         const input = controls();
-        const direction = profile % 2 === 0 ? facing : -facing;
+        const direction = floorMod(profile, 2) === 0 ? facing : -facing;
         const duration = profile < 2 ? 31 : profile < 6 ? 35 : 40;
         startObservedRoll(f, input, profile, direction);
         if (profile < 2) assertEquals(f.motion.x, 0.0);
@@ -1677,8 +1678,8 @@ test("sampled rolls move through their actual entry, a freeze and recovery", () 
           advanceSolo(f, 0, input, 0.0);
           if (profile < 2 && frame === 6) assertEquals(f.motion.x, 0.0);
           if (profile < 2 && frame === 9) {
-            const ninth = profile === 0 ? (character === Character.archer ? 69.12 : 79.2) : character === Character.archer ? 23.04 : 26.4;
-            assertNear(f.motion.x, direction * ninth, 0.0001);
+            const ninth = profile === 0 ? (character === Character.archer ? f32(69.12) : f32(79.2)) : character === Character.archer ? f32(23.04) : f32(26.4);
+            assertNear(f.motion.x, direction * ninth, f32(0.0001));
           }
         }
         const frozenX = f.motion.x;
@@ -1692,7 +1693,7 @@ test("sampled rolls move through their actual entry, a freeze and recovery", () 
           advanceSolo(f, 0, input, 0.0);
           if (profile >= 6 && frame === 40) assertEquals(f.motion.x, before);
         }
-        assertNear(f.motion.x, direction * observedRollTotal(character, profile), 0.0001);
+        assertNear(f.motion.x, direction * observedRollTotal(character, profile), f32(0.0001));
         assertFalse(canAttack(f));
         advanceSolo(f, 0, input, 0.0);
         assertTrue(canAttack(f));

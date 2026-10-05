@@ -91,7 +91,7 @@ test("a floor recovery's entry preserves residual horizontal knockback", () => {
       advanceSolo(fighter, 0, controls({ techPressed: recovery > 0, direction: recovery === 2 ? -1 : 0 }), 0.0);
       assertTrue(fighter.motion.grounded);
       assertEquals(fighter.down.state, recovery === 0 ? DownState.bound : recovery === 1 ? DownState.tech : DownState.techRoll);
-      assertNear(fighter.launch.knockbackX, (-0.5 + 0.051) * 6, 0.00001);
+      assertNear(fighter.launch.knockbackX, (-0.5 + f32(0.051)) * 6, f32(0.00001));
     }
   }
 });

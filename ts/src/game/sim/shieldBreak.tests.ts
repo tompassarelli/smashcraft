@@ -1,6 +1,7 @@
 // Shield break: the launch, landing, standing and dizzy phases and what ends them.
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "../../runtime/testing";
 import { max, toInt } from "../../runtime/wurst";
+import { f32 } from "../../sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, DownState, ShieldBreak } from "./codes";
 import { canAttack, isIntangible } from "./conditions";
@@ -88,7 +89,7 @@ test("a shield break's dizzy expiry allows a jump on its completion tick", () =>
     advanceSolo(fighter, 0, input, 0.0);
     assertEquals(fighter.shield.breakState, ShieldBreak.none);
     assertEquals(fighter.jump.squat, fighter.tuning.physics.jumpSquatFrames);
-    assertNear(fighter.shield.energy, 30.07, 0.0001);
+    assertNear(fighter.shield.energy, f32(30.07), f32(0.0001));
   }
 });
 
@@ -98,7 +99,7 @@ test("shield-break hitlag keeps regeneration and blast-zone checks active", () =
   fighter.launch.hitlag = 3;
   advanceSolo(fighter, 0, input, 0.0);
   assertEquals(fighter.shield.breakFrame, 0);
-  assertNear(fighter.shield.energy, 0.14, 0.0001);
+  assertNear(fighter.shield.energy, f32(0.14), f32(0.0001));
   fighter.motion.x = 921.0;
   advanceSolo(fighter, 0, input, 0.0);
   assertTrue(fighter.status.out);
@@ -168,7 +169,7 @@ test("the forced shield-break sequence rejects actions and techs for both charac
     }
     advanceSolo(fighter, 0, input, 0.0);
     assertEquals(fighter.shield.breakState, ShieldBreak.dizzy);
-    assertNear(fighter.shield.energy, 30.07, 0.0001);
+    assertNear(fighter.shield.energy, f32(30.07), f32(0.0001));
     const dizzyTicks = toInt(fighter.shield.breakRemaining);
     for (let tick = 1; tick <= dizzyTicks - 1; tick++) {
       simulationJump(fighter, 0);
@@ -176,7 +177,7 @@ test("the forced shield-break sequence rejects actions and techs for both charac
       testBeginAttacks(world, AttackStyle.grab, undefined);
       advanceSolo(fighter, 0, input, 0.0);
       assertEquals(fighter.shield.breakState, ShieldBreak.dizzy);
-      assertNear(fighter.shield.energy, 30.07, 0.0001);
+      assertNear(fighter.shield.energy, f32(30.07), f32(0.0001));
       assertEquals(fighter.attack.style, undefined);
       assertEquals(fighter.dodge.groundFrame, 0);
       assertEquals(fighter.jump.squat, 0);
@@ -187,7 +188,7 @@ test("the forced shield-break sequence rejects actions and techs for both charac
     assertEquals(fighter.shield.breakState, ShieldBreak.none);
     assertEquals(fighter.shield.breakFrame, 0);
     assertEquals(fighter.shield.breakSerial, 1);
-    assertNear(fighter.shield.energy, 30.07, 0.0001);
+    assertNear(fighter.shield.energy, f32(30.07), f32(0.0001));
     assertEquals(fighter.jump.squat, fighter.tuning.physics.jumpSquatFrames);
     assertFalse(canAttack(fighter));
     assertEquals(fighter.status.invincible, 0);
@@ -203,24 +204,24 @@ test("dizzy length follows percent, and fresh mash edges shorten its exact tick 
     for (let tick = 1; tick <= expected; tick++) {
       input.mashPressed = mode === 2 || (mode === 1 && tick === 1);
       advanceSolo(fighter, 0, input, 0.0);
-      assertNear(fighter.shield.energy, 30.07, 0.0001);
+      assertNear(fighter.shield.energy, f32(30.07), f32(0.0001));
       assertEquals(fighter.shield.breakState, tick === expected ? ShieldBreak.none : ShieldBreak.dizzy);
     }
     input.mashPressed = false;
     advanceSolo(fighter, 0, input, 0.0);
-    assertNear(fighter.shield.energy, 30.14, 0.0001);
+    assertNear(fighter.shield.energy, f32(30.14), f32(0.0001));
   }
   assertEquals(shieldBreakDizzyFrames(100.0), 390.0);
-  assertNear(shieldBreakDizzyFrames(100.25), 389.75, 0.0001);
+  assertNear(shieldBreakDizzyFrames(100.25), 389.75, f32(0.0001));
   assertEquals(shieldBreakDizzyFrames(400.0), 90.0);
   assertEquals(shieldBreakDizzyFrames(1000.0), 90.0);
   const fractional = shieldBreakTestFighter(Character.archer, 100.25);
   const fractionalInput = controls();
   dizzyShieldBreakTest(fractional, fractionalInput);
-  assertNear(fractional.shield.breakRemaining, 389.75, 0.0001);
+  assertNear(fractional.shield.breakRemaining, 389.75, f32(0.0001));
   fractionalInput.mashPressed = true;
   advanceSolo(fractional, 0, fractionalInput, 0.0);
-  assertNear(fractional.shield.breakRemaining, 385.75, 0.0001);
+  assertNear(fractional.shield.breakRemaining, 385.75, f32(0.0001));
 });
 
 test("shield-break hitlag freezes its motion, phase and mash", () => {
@@ -284,7 +285,7 @@ test("both fighters' basic projectiles interrupt a shield break", () => {
     assertEquals(fighter.status.damage, 3.0);
     assertEquals(fighter.shield.breakState, ShieldBreak.none);
     assertEquals(fighter.launch.hitstun, 11);
-    assertNear(fighter.shield.energy, 30.07, 0.0001);
+    assertNear(fighter.shield.energy, f32(30.07), f32(0.0001));
   }
 });
 
