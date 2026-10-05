@@ -98,7 +98,7 @@ export const uiLogger = (out: string, names: readonly [string, string]) => {
 };
 
 /** The pads, helpers, clocks, game files and journey record a capture shares whatever runs the game. */
-export function fileRig(parts: FileRigParts): Omit<RigShape, "stop" | "resume" | "waitText" | "click" | "key" | "type" | "playerView"> {
+export function fileRig(parts: FileRigParts): Omit<RigShape, "stop" | "resume" | "waitText" | "readText" | "click" | "key" | "type" | "playerView"> {
   const { data, out, startedNs } = parts;
 
   const healthy = Effect.gen(function*() {

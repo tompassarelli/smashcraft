@@ -218,6 +218,11 @@ export const captureHeadless = (options: HeadlessCaptureOptions) =>
               yield* Effect.sleep(POLL_MILLIS);
             }
           }),
+        // The headless screen is the client's whole shown text; a region narrows nothing.
+        readText: (client, region) =>
+          Effect.sync(() => screen(client)).pipe(
+            Effect.tap((text) => logUi(client, "read", `${region.x},${region.y} ${region.width}x${region.height}\n${text}`)),
+          ),
         click: (client, x, y) =>
           Effect.suspend(() => {
             const [uiX, uiY] = uiPoint(x, y);
