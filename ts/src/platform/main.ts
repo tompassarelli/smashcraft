@@ -22,7 +22,7 @@ export function install(this: void): void {
 export function startBuild(this: void, build: MapBuild): void {
   install();
   startShell(build, replayHistoryPlayback());
-  startHotReload();
+  if (build.hotReload) startHotReload();
 }
 
 export function start(this: void): void {

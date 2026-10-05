@@ -115,6 +115,16 @@ typing player's client alone creates one timer, so the clients' handle
 counts diverge and Warcraft ends the game in a desync. The playable profile
 registers no `-dev` command.
 
+The playable profile does not poll for hot reloads either (`MapBuild.hotReload`).
+Under Wine a lookup of a missing file reads its whole folder, and a client
+without a `smashcraft-hot` folder pays that for all of CustomMapData on every
+poll. Candidate 0.0.44 (`a5a0315`) polled 32 times a second while client A's
+CustomMapData held 94,057 files and no `smashcraft-hot` folder. Listing them
+takes 32–35 ms on this host, so the polls asked for about 1 s of lookups per
+second of game, and both clients nearly stopped at fighter selection.
+smashcraft:ts/test/selection-load.test.ts keeps file reads and effect
+creation out of the playable entry's selection frames.
+
 Pure simulation, numeric operations, code transforms and binary-format
 encoders remain plain TypeScript. The TSTL map compiler uses TypeScript 6's
 compiler API, while the host checker uses TypeScript 7 with Effect tsgo. A

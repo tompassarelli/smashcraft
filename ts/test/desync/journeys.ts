@@ -1,12 +1,7 @@
 // Two-client journeys shared by the desync guard's test files.
 import { expect } from "bun:test";
 import type { MapBuild } from "../../src/game/shell/build";
-import { replayHistoryPlayback } from "../../src/game/shell/rollbackPlayback";
-import { installDispatch } from "wisp/src/platform/dispatch";
-import { configureRuntime } from "wisp/src/runtime/config";
-import { installHotReload, startHotReload } from "wisp/src/platform/hotReload";
-import { installShell, startShell } from "../../src/platform/shell/shell";
-import { installObjectData } from "../../src/platform/shell/objectData";
+import { install, startBuild } from "../../src/platform/main";
 import { Lockstep } from "./twoClients";
 
 const CTRL = 2;
@@ -19,21 +14,7 @@ export interface Entry {
 
 /** The map entry with another build, as packaging would choose it. */
 export function entryFor(build: MapBuild): Entry {
-  const reinstall = () => {
-    configureRuntime({ filePrefix: "smashcraft", globalPrefix: "__smashcraft", readyPrefix: "SC_HRR" });
-    installDispatch();
-    installShell();
-    installObjectData();
-    installHotReload();
-  };
-  return {
-    install: reinstall,
-    start: () => {
-      reinstall();
-      startShell(build, replayHistoryPlayback());
-      startHotReload();
-    },
-  };
+  return { install, start: () => startBuild(build) };
 }
 
 /** Start, -dev quick, a traced match, a hot reload mid-match, more match. */

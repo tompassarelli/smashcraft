@@ -37,6 +37,12 @@ export interface MapBuild {
   readonly scenario: Scenario;
   readonly responseProbe: boolean;
   readonly devConsole: boolean;
+  /**
+   * Polls CustomMapData for `bun wisp hot` bundles, 32 file lookups a second.
+   * Under Wine a lookup that misses reads its whole folder, so a client with
+   * no `smashcraft-hot` folder lists all of CustomMapData on every poll.
+   */
+  readonly hotReload: boolean;
 }
 
 export const isShadow = (input: InputMode): input is ShadowInputMode => input.kind !== "callback";
