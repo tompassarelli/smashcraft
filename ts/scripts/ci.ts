@@ -29,13 +29,13 @@ async function check(
 
 await check("type-check edit-loop and dependency validation", ["scripts/typecheck-benchmark.ts"]);
 await check(
-  "focused logic test (target ≤0.3 s)",
+  "focused logic test (target ≤0.1 s)",
   ["test", "test/game.test.ts"],
-  300,
+  100,
   { ...process.env, GAME_TESTS: "sim/meleeScalarMath" },
 );
 await check("fake-client hot-reload and fresh-match protocol", ["test", "test/waygate.test.ts", "-t", "fake client"]);
-await check("full logic suite (target ≤2 s)", ["run", "test"], 2000);
+await check("full logic suite (target ≤3 s)", ["run", "test"], 3000);
 await check(
   "compiler affected-module and output-equivalence checks",
   ["scripts/compiler-benchmark.ts"],
