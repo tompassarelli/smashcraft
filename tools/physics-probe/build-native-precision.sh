@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 project_dir=$(cd -- "$(dirname -- "$0")/../.." && pwd)
-base_map=$(realpath -- "${1:?Usage: build-native-precision.sh PRIVATE_BASE_MAP.w3m COORDINATED_VERSION}")
-map_version=${2:?Supply the version agreed with concurrent map developers.}
-[[ "$map_version" =~ ^0\.0\.[1-9][0-9]*$ ]] || { echo 'Version must be 0.0.N with positive N.' >&2; exit 2; }
+base_map=$(realpath -- "${1:?Usage: build-native-precision.sh PRIVATE_BASE_MAP.w3m RUN_ID}")
+run_id=${2:?Supply a distinct diagnostic run ID.}
+[[ "$run_id" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo 'Run ID must use lowercase letters, digits and hyphens.' >&2; exit 2; }
 compiler="$project_dir/toolchain/wurstscript.jar"
 stdlib=/home/tom/code/wurst-stdlib/pins/e3714f629113
 packager="$project_dir/build/tools/map-pack"
@@ -46,7 +46,7 @@ done
 printf 'package NativePhysicsSource\npublic constant string PHYSICS_SOURCE = "%s"\n' "$source_commit" > "$build_dir/wurst/NativePhysicsSource.wurst"
 cp "$project_dir/tools/map-entry.j" "$build_dir/wurst/war3map.j"
 ln -s "$stdlib" "$build_dir/_build/dependencies/wurststdlib"
-map_name="Smashcraft $map_version"
+map_name="Smashcraft diagnostic $run_id"
 cat > "$build_dir/wurst.build" <<YAML
 projectName: $map_name
 wc3Patch: v3.0

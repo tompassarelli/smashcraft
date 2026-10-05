@@ -8,7 +8,9 @@ directory. Map intermediates and candidates remain in private build storage
 outside the repository, alongside the private terrain input.
 
 Run the builder through the machine-capacity helper with the private terrain
-map and an explicitly coordinated version (0.0.N) as its arguments. The builder
+map and a distinct run ID (lowercase letters, digits and hyphens) as its arguments.
+It emits `Smashcraft diagnostic RUN_ID.w3x` without advancing the playable release
+version. The builder
 includes the four-player simulation's input dependencies. It does not install
 a map or control a Warcraft client.
 
