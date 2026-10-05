@@ -1,0 +1,131 @@
+// Linux evdev and uinput records for the virtual pads the integrity capture
+// drives. The layouts are the kernel's LP64 (x86-64, arm64) ABI.
+
+export const EV_SYN = 0;
+export const EV_KEY = 1;
+export const EV_ABS = 3;
+export const SYN_REPORT = 0;
+
+export const BTN_SOUTH = 0x130;
+export const BTN_EAST = 0x131;
+export const BTN_NORTH = 0x133;
+export const BTN_WEST = 0x134;
+export const BTN_TL = 0x136;
+export const BTN_TR = 0x137;
+export const BTN_START = 0x13b;
+
+export const ABS_X = 0;
+export const ABS_Y = 1;
+export const ABS_Z = 2;
+export const ABS_RX = 3;
+export const ABS_RY = 4;
+export const ABS_RZ = 5;
+
+/** One raw controller transition as the kernel reports it. */
+export interface SourceEdge {
+  readonly type: number;
+  readonly code: number;
+  readonly value: number;
+}
+
+function iow(number: number, size = 4): number {
+  return ((1 << 30) | (size << 16) | (0x55 << 8) | number) >>> 0;
+}
+
+export const UI_SET_EVBIT = iow(100);
+export const UI_SET_KEYBIT = iow(101);
+export const UI_SET_ABSBIT = iow(103);
+export const UI_DEV_CREATE = 0x5501;
+export const UI_DEV_DESTROY = 0x5502;
+/** UI_GET_SYSNAME(80): the created device's sysfs name, such as input42. */
+export const UI_GET_SYSNAME = ((2 << 30) | (80 << 16) | (0x55 << 8) | 44) >>> 0;
+export const EVIOCSCLOCKID = 0x400445a0;
+export const CLOCK_REALTIME = 0;
+export const CLOCK_MONOTONIC = 1;
+
+/** struct input_event: timeval (two longs), type, code, value. */
+export const INPUT_EVENT_BYTES = 24;
+const ABS_CNT = 0x40;
+const PAD_NAME = "Smashcraft Event Retention Virtual Gamepad";
+/** Buttons of an integrity pad: A, B, Y, X, LB, RB and Start. */
+export const PAD_BUTTONS = [BTN_SOUTH, BTN_EAST, BTN_NORTH, BTN_WEST, BTN_TL, BTN_TR, BTN_START] as const;
+export const PAD_AXES = [ABS_X, ABS_Y, ABS_Z, ABS_RX, ABS_RY, ABS_RZ] as const;
+
+/** The ioctl requests and arguments that declare a pad's capabilities, in order. */
+export function padCapabilities(buttons: readonly number[]): readonly (readonly [request: number, argument: number])[] {
+  return [
+    [UI_SET_EVBIT, EV_KEY],
+    [UI_SET_EVBIT, EV_ABS],
+    ...buttons.map((button) => [UI_SET_KEYBIT, button] as const),
+    ...PAD_AXES.map((axis) => [UI_SET_ABSBIT, axis] as const),
+  ];
+}
+
+/**
+ * struct uinput_user_dev for an Xbox 360 pad (USB 045e:028e v0114): name,
+ * input_id, ff_effects_max, then absmax, absmin, absfuzz and absflat.
+ */
+export function padSetup(): Uint8Array {
+  const bytes = new Uint8Array(80 + 8 + 4 + ABS_CNT * 4 * 4);
+  bytes.set(new TextEncoder().encode(PAD_NAME));
+  const view = new DataView(bytes.buffer);
+  view.setUint16(80, 0x03, true);
+  view.setUint16(82, 0x045e, true);
+  view.setUint16(84, 0x028e, true);
+  view.setUint16(86, 0x0114, true);
+  const range = (table: number, axis: number, value: number) => view.setInt32(92 + (table * ABS_CNT + axis) * 4, value, true);
+  for (const axis of [ABS_X, ABS_Y, ABS_RX, ABS_RY]) {
+    range(0, axis, 32767);
+    range(1, axis, -32768);
+  }
+  for (const axis of [ABS_Z, ABS_RZ]) range(0, axis, 32767);
+  return bytes;
+}
+
+/**
+ * An edge and its SYN_REPORT, both stamped with `monotonicNs` truncated to
+ * microseconds: uinput keeps a supplied CLOCK_MONOTONIC time at input_event
+ * precision, so the kernel reports exactly the producer's stamp.
+ */
+export function edgePacket(monotonicNs: number, edge: SourceEdge): Uint8Array {
+  const micros = BigInt(monotonicNs) / 1000n;
+  const bytes = new Uint8Array(INPUT_EVENT_BYTES * 2);
+  const view = new DataView(bytes.buffer);
+  const write = (offset: number, { type, code, value }: SourceEdge) => {
+    view.setBigInt64(offset, micros / 1_000_000n, true);
+    view.setBigInt64(offset + 8, micros % 1_000_000n, true);
+    view.setUint16(offset + 16, type, true);
+    view.setUint16(offset + 18, code, true);
+    view.setInt32(offset + 20, value, true);
+  };
+  write(0, edge);
+  write(INPUT_EVENT_BYTES, { type: EV_SYN, code: SYN_REPORT, value: 0 });
+  return bytes;
+}
+
+/** When an edge was written, on CLOCK_MONOTONIC. */
+export interface Injection {
+  /** The time stamped into the edge, truncated to microseconds. */
+  readonly injectedNs: number;
+  readonly beforeNs: number;
+  readonly afterNs: number;
+}
+
+export interface KernelEvent extends SourceEdge {
+  readonly kernelNs: number;
+}
+
+/** The whole input_event records in `bytes`. */
+export function decodeEvents(bytes: Uint8Array): readonly KernelEvent[] {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const events: KernelEvent[] = [];
+  for (let offset = 0; offset + INPUT_EVENT_BYTES <= bytes.byteLength; offset += INPUT_EVENT_BYTES) {
+    events.push({
+      kernelNs: Number(view.getBigInt64(offset, true)) * 1_000_000_000 + Number(view.getBigInt64(offset + 8, true)) * 1000,
+      type: view.getUint16(offset + 16, true),
+      code: view.getUint16(offset + 18, true),
+      value: view.getInt32(offset + 20, true),
+    });
+  }
+  return events;
+}
