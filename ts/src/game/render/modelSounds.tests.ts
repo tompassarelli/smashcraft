@@ -4,7 +4,14 @@ import type { FighterOriginalClip } from "../assets/fighterOriginalClipInfo";
 import type { ModelSoundCue } from "../assets/modelSoundInfo";
 import { PARTICIPANT_SLOTS, participantActive } from "../input/participants";
 import { type FighterPose, createFighterPose, selectFighterClipIndex, selectFighterClipName } from "../presentation/fighterPose";
+import { createFrameControls } from "../match/controls";
+import { captureFrame, createMatchFrameInput, executeMatchFrame } from "../match/frameInput";
+import { Phase, createMatchState, setHumanMask } from "../match/rules";
+import { createReplayRuntimeState } from "../match/runtime";
+import { ReplayCorrections, ReplayHistory } from "../replay/history";
+import type { ReplayState } from "../replay/snapshot";
 import { Character } from "../sim/codes";
+import { createRoster, fighterAt } from "../sim/roster";
 import { createFighter } from "../sim/fighter";
 import {
   type ModelSoundCatalog,
@@ -200,6 +207,58 @@ test("sound out selection plays once and a hidden loop does not continue", () =>
   pose.clipTime = 3.0;
   assertTrue(confirmModelSounds(sounds, 9, 2, 0, fighter, pose, record.sink));
   assertEquals(record.count, 1);
+});
+
+test("sound from speculative and corrected numerical rollback never dispatches; confirmation does once", () => {
+  const game = createMatchState();
+  setHumanMask(game, 9);
+  game.phase = Phase.match;
+  game.timeLimitMinutes = 0;
+  const live: ReplayState = { world: createRoster(9), match: game, controls: createFrameControls(), runtime: createReplayRuntimeState() };
+  const { world, runtime } = live;
+  const history = new ReplayHistory();
+  const row = createMatchFrameInput();
+  const sounds = createModelSoundCursor(ORIGINALS);
+  const record = soundRecording();
+  assertTrue(beginModelSoundEpoch(sounds, 11));
+  assertTrue(history.beginEpoch(11, 1, 12));
+  const confirmActive = (frame: number) => PARTICIPANT_SLOTS.filter(slot => participantActive(world.mask, slot))
+    .map(slot => confirmModelSounds(sounds, 11, frame, slot, fighterAt(world, slot), runtime.poses[slot], record.sink));
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (!participantActive(world.mask, slot)) continue;
+    const fighter = createFighter(Character.rifleman, -200.0 + slot * 150.0, 1);
+    // Gameplay stays frozen while the authored clip clock is about to cross a
+    // real rifle cue on the first completed frame.
+    fighter.status.frozenFrames = 60;
+    world.fighters[slot] = fighter;
+    selectIndex(runtime.poses[slot], 5).clipTime = f32(0.16);
+  }
+  for (const confirmed of confirmActive(0)) assertTrue(confirmed);
+  for (let frame = 1; frame <= 4; frame++) {
+    assertTrue(captureFrame(row, frame, 9, live.controls, runtime));
+    assertTrue(history.saveSpeculative(11, row, live));
+    assertTrue(executeMatchFrame(row, game, world, live.controls, runtime, frame));
+  }
+  assertEquals(record.count, 0);
+  const replacement = createFrameControls();
+  replacement.inputs[3].direction = -1;
+  assertTrue(captureFrame(row, 1, 9, replacement, runtime));
+  const corrections = new ReplayCorrections();
+  assertTrue(corrections.beginEpoch(11));
+  assertTrue(corrections.add(row));
+  assertEquals(history.correct(11, corrections, live), 1);
+  assertEquals(record.count, 0);
+  assertTrue(history.replay(11, 1, 4, live));
+  assertEquals(record.count, 0);
+  // The confirmed copy consumes each saved completed frame once.
+  for (let frame = 1; frame <= 4; frame++) {
+    assertTrue(history.replay(11, frame, frame, live));
+    for (const confirmed of confirmActive(frame)) assertTrue(confirmed);
+    for (const confirmed of confirmActive(frame)) assertFalse(confirmed);
+  }
+  assertEquals(record.count, 2);
+  assertTrue(history.replay(11, 1, 4, live));
+  assertEquals(record.count, 2);
 });
 
 test("sound hidden unchanged selection stops but a new out clip keeps delayed cues", () => {
