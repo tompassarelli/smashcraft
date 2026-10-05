@@ -1,11 +1,14 @@
 // Foreign model boundary: encode Illidan and verify authored sequence bindings.
 import {parseMDL,generateMDX,parseMDX} from 'war3-model';
 import {join} from 'node:path';
+import {typescriptAssetInfo} from './asset-info';
 const out=join(import.meta.dir,'../../build/illidan-animation');
 const model=parseMDL(await Bun.file(join(out,'demonhunter-fighter.mdl')).text());
-const clips=await Bun.file(join(out,'clips.json')).json();
+interface Clip { name: string; seconds: number }
+interface Binding extends Clip { index: number }
+const clips=await Bun.file(join(out,'clips.json')).json() as Clip[];
 const ensure=(ok:unknown,message:string)=>{if(!ok)throw new Error(message)};
-const bindings=clips.map((clip:any)=>{
+const bindings: Binding[] = clips.map((clip)=>{
  const index=model.Sequences.findIndex(s=>s.Name===clip.name);ensure(index>=0,`Missing ${clip.name}`);
  const s=model.Sequences[index];const seconds=(s.Interval[1]-s.Interval[0])/1000;
  ensure(Math.abs(seconds-clip.seconds)<.003,`Wrong duration ${clip.name}: ${seconds}/${clip.seconds}`);
@@ -39,12 +42,12 @@ await Bun.write(join(out,'DemonHunterFighter.mdx'),bytes);
 await Bun.write(join(out,'bindings.json'),JSON.stringify(bindings,null,2));
 const hash=new Bun.CryptoHasher('sha256').update(new Uint8Array(bytes)).digest('hex');
 const modelPath=`war3mapImported\\DemonHunterFighter-${hash}.mdx`;
-const declarations=bindings.flatMap((binding:any)=>{
- const key=binding.name.toUpperCase().replace(/[^A-Z0-9]+/g,'_');
- return [`public constant int DEMON_HUNTER_${key}_INDEX = ${binding.index}`,
-  `public constant real DEMON_HUNTER_${key}_SECONDS = ${binding.seconds.toFixed(6)}`];
-});
+const clipKeys=bindings.map((binding)=>({key:binding.name.toUpperCase().replace(/[^A-Z0-9]+/g,'_'),index:binding.index,seconds:binding.seconds}));
+const declarations=clipKeys.flatMap(({key,index,seconds})=>[`public constant int DEMON_HUNTER_${key}_INDEX = ${index}`,
+ `public constant real DEMON_HUNTER_${key}_SECONDS = ${seconds.toFixed(6)}`]);
 await Bun.write(join(out,'DemonHunterAssetInfo.wurst'),
  `package DemonHunterAssetInfo\npublic constant string DEMON_HUNTER_MODEL_FILE = ${JSON.stringify(modelPath)}\n${declarations.join('\n')}\n`);
+await Bun.write(join(import.meta.dir,'../../ts/src/game/presentation/demonHunterAssetInfo.ts'),
+ typescriptAssetInfo('tools/animations/package-illidan.ts',[{prefix:'DEMON_HUNTER',modelPath,clips:clipKeys}]));
 console.log('ILLIDAN_PACKAGE_PASS',bindings.length,'authored clips',model.Sequences.length,'total sequences',bytes.byteLength,'bytes');
 console.log('TEXTURES',JSON.stringify(model.Textures));

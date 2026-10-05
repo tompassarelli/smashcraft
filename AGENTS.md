@@ -5,7 +5,8 @@ from Wurst to TypeScript ([#35](https://github.com/tompassarelli/smashcraft/issu
 Until the port finishes, both run in one map. Read smashcraft:wurst-toolchain.lock
 and smashcraft:wurst.build before changing the Wurst patch, compiler, standard
 library or target. The lock is authoritative; a newer upstream article does not
-update it.
+update it. smashcraft:typescript-toolchain.lock pins Bun, both TypeScript
+versions, TypeScriptToLua and Effect; the TypeScript map build checks it.
 
 ## Issues define the scope — finish them
 
@@ -61,8 +62,9 @@ code. From smashcraft:ts/:
 - Running game: `bun scripts/hot.ts --data <CustomMapData> ... --watch`
   hot-reloads every save into both clients and prints in-game errors with
   TypeScript lines.
-- Map: `bun scripts/map.ts rebuild MAP.w3x` replaces only the script of a map
-  that build.sh packaged.
+- Map: `../build-typescript.sh BASE_MAP ASSET_CONTAINER` builds a map whose only
+  project code is TypeScript (no Wurst compile); `bun scripts/map.ts rebuild
+  MAP.w3x` replaces only the script of a map that it or build.sh packaged.
 
 ## Verify the changed behavior
 
