@@ -27,7 +27,7 @@ interface Publication {
   readonly estimateNs: number;
 }
 
-interface SlotMode {
+export interface SlotMode {
   readonly humanFighters: number;
   readonly computers: number;
 }
