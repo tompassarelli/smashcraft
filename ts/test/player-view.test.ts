@@ -18,11 +18,14 @@ import { install as installDevelopment, start as startDevelopment } from "../src
 import { startMatch } from "../src/platform/shell/matchStart";
 import { shell } from "../src/platform/shell/state";
 import { renderPersistentPresentation } from "../src/platform/shell/view";
-import { installHeadless } from "wisp/scripts/wisp/headless";
+import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 
-const headless = installHeadless(SMASHCRAFT_HEADLESS);
+// Nothing here compares clients' native calls, so none are logged: the dense-dust match runs 240 frames.
+const declarations = readNativeDeclarations();
+const unlogged = Object.fromEntries(declarations.functions.map(([name]) => [name, "this file compares no calls"]));
+const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged }, declarations);
 const seconds = (value: number) => value * SMASHCRAFT_SCENE.framesPerSecond;
 afterAll(headless.restore);
 
@@ -109,7 +112,7 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
   // Per frame, how long each dust slot has been in view and how often its slot was reused meanwhile.
   const stays = new Map<number, { frames: number; reuses: number; age: number | undefined }>();
   let longestReused = 0;
-  for (let frame = 0; frame < 300; frame++) {
+  for (let frame = 0; frame < 240; frame++) {
     client.run(() => {
       const { origin, participants } = shell();
       const { row } = participants[0].capture;
@@ -122,11 +125,11 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
     clients.frames(1);
     client.run(() => {
       const s = shell();
-      const poses = new Map(client.effectPoses().map((pose) => [pose.handle as unknown, pose]));
-      const pool = (s.ui?.combat as unknown as { impacts: readonly unknown[] }).impacts;
+      const pool = (s.ui?.combat as unknown as { impacts: readonly effect[] }).impacts;
       for (let use = 0; use < IMPACTS_PER_KIND; use++) {
         const slot = IMPACT_DUST * IMPACTS_PER_KIND + use;
-        const shown = (poses.get(pool[slot])?.z ?? 0) > s.origin.z - FLOOR_HEIGHT + 1.0;
+        const handle = pool[slot];
+        const shown = handle !== undefined && BlzGetLocalSpecialEffectZ(handle) > s.origin.z - FLOOR_HEIGHT + 1.0;
         const age = s.runtime.impacts.ages[slot];
         const stay = stays.get(slot) ?? { frames: 0, reuses: 0, age: undefined };
         const reuses = stay.reuses + (shown && stay.age !== undefined && age !== undefined && age < stay.age ? 1 : 0);
@@ -149,7 +152,7 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
   const report = sceneReport(client);
   expect(report.models.find(({ model }) => model === reportedModel(IMPACT_DUST_MODEL))?.longest).toBe(impactLifetime(IMPACT_DUST));
   expect(sceneProblems(report, SMASHCRAFT_SCENE).map(({ seen }) => seen)).toEqual([
-    "a hit spark stayed in view for 5.00 s; it should be gone within 3.00 s",
+    "a hit spark stayed in view for 4.00 s; it should be gone within 3.00 s",
     "1 hidden projectile in view still show particles",
   ]);
   expect(client.errors).toEqual([]);

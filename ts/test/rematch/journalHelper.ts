@@ -8,11 +8,9 @@ import { Action, bit } from "../../src/game/input/actions";
 import { type InputRow, inputRow } from "../../src/game/input/inputRow";
 import { encodePacket, inputPacket } from "../../src/game/input/wire";
 import { TEXT_WINDOW, textEnvelope } from "../../src/game/netcode/journal/text";
-import { INTEGRITY_BUILD } from "../../src/game/shell/currentBuild";
 import { quiescentFile } from "../../src/game/shell/journalFiles";
 import { journalLifecycleFile, journalReadyFile } from "../../src/runtime/gameFiles";
 
-const BUILD = INTEGRITY_BUILD.id;
 
 /** #26's twelve bindings as the actions each press reports, then attack and special together. */
 const PULSES: readonly number[] = [
@@ -68,6 +66,9 @@ export class JournalHelpers {
   private readonly helpers = new Map<number, Helper>();
   workload: Workload = { denseCycles: 0, walkers: [] };
 
+  /** build: the map build whose journal files the helpers follow. */
+  constructor(private readonly build: string) {}
+
   private helper(slot: number): Helper {
     let helper = this.helpers.get(slot);
     if (helper === undefined) {
@@ -96,19 +97,19 @@ export class JournalHelpers {
     for (const client of clients.clients) {
       const helper = this.helper(client.slot);
       const next = helper.epoch + 1;
-      if ((helper.state === "idle" || helper.state === "ended") && client.files.has(journalReadyFile(BUILD, next, client.slot))) {
+      if ((helper.state === "idle" || helper.state === "ended") && client.files.has(journalReadyFile(this.build, next, client.slot))) {
         Object.assign(helper, { epoch: next, sequence: 0, text: "", state: "ready" });
         helper.queue.length = 0;
         helper.queue.push(`JR1${next}`);
       }
       const { epoch } = helper;
-      if (helper.state === "ready" && client.files.has(journalLifecycleFile(BUILD, epoch, client.slot, "start"))) {
+      if (helper.state === "ready" && client.files.has(journalLifecycleFile(this.build, epoch, client.slot, "start"))) {
         Object.assign(helper, { state: "journaling", journaled: 0, started: clients.frame });
       }
-      if (helper.state === "journaling" && client.files.has(journalLifecycleFile(BUILD, epoch, client.slot, "end"))) {
+      if (helper.state === "journaling" && client.files.has(journalLifecycleFile(this.build, epoch, client.slot, "end"))) {
         helper.state = "ended";
         helper.queue.push(`JE1${epoch}`);
-        client.published.set(quiescentFile({ build: BUILD, epoch, slot: client.slot }), ["Q"]);
+        client.published.set(quiescentFile({ build: this.build, epoch, slot: client.slot }), ["Q"]);
       }
       while (helper.state === "journaling" && helper.journaled <= clients.frame - helper.started) {
         helper.journaled++;
@@ -116,7 +117,7 @@ export class JournalHelpers {
         if (packet === undefined) throw new Error("no packet");
         helper.queue.push(encodePacket(packet));
       }
-      const receipt = client.files.get(`smashcraft-journal-text-ack-${BUILD}-e${epoch}-p${client.slot}.txt`)?.join("") ?? "";
+      const receipt = client.files.get(`smashcraft-journal-text-ack-${this.build}-e${epoch}-p${client.slot}.txt`)?.join("") ?? "";
       const consumed = Number(/ consumed=(\d+)/.exec(receipt)?.[1] ?? 0);
       for (let payload = helper.queue.shift(); payload !== undefined; payload = helper.queue.shift()) {
         if (helper.sequence >= consumed + TEXT_WINDOW) {
