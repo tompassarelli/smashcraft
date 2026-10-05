@@ -48,16 +48,16 @@ const commandServices = mapBuildLayer.pipe(
 
 export const fresh: Command = (args) => Effect.gen(function*() {
   const [map, ...flags] = args;
-  if (map === undefined || flags.some((flag) => flag !== "--rebuild")) {
-    return yield* new UsageFailure({ problem: "fresh takes MAP.w3x [--rebuild]" });
+  if (map === undefined || flags.some((flag) => flag !== "--rebuild" && flag !== "--from-game")) {
+    return yield* new UsageFailure({ problem: "fresh takes MAP.w3x [--rebuild] [--from-game]" });
   }
   if (flags.includes("--rebuild")) yield* MapBuild.use((maps) => maps.rebuild(map)).pipe(step("map rebuilt"));
-  yield* freshMatch(map);
+  yield* freshMatch(map, flags.includes("--from-game"));
   yield* startQuickMatch.pipe(step("quick match and client receipts"));
 }).pipe(Effect.provide(commandServices));
 
 /** The game in every client, at character selection. */
-export const freshMatch = (map: string) => Effect.gen(function*() {
+export const freshMatch = (map: string, fromGame = false) => Effect.gen(function*() {
   const clients = yield* Clients;
   const files = yield* GameFiles;
   const [first, ...others] = clients.all;
@@ -69,15 +69,21 @@ export const freshMatch = (map: string) => Effect.gen(function*() {
 
   /** From a running game, its score screen, a lobby, Create Game or Custom Games, to Custom Games. */
   const leave = (client: Client) => Effect.gen(function*() {
-    if (yield* read(client, CUSTOM_GAMES, "light", /CREATE/i)) return;
+    if (!fromGame && (yield* read(client, CUSTOM_GAMES, "light", /CREATE/i))) return;
     // Results, a lobby and Create Game all leave through the same Back button.
-    if (!(yield* read(client, RESULTS, "gold", /RESULTS/i)) && !(yield* read(client, LOBBY, "light", LOBBY_READY)) && !(yield* read(client, CREATE_TITLE, "light", /REATE\s*GAME/i))) {
-      yield* clients.keys(client, "Escape");
-      yield* clients.keys(client, "F10");
+    if (fromGame || (!(yield* read(client, RESULTS, "gold", /RESULTS/i)) && !(yield* read(client, LOBBY, "light", LOBBY_READY)) && !(yield* read(client, CREATE_TITLE, "light", /REATE\s*GAME/i)))) {
+      yield* clients.batch(client, [
+        { kind: "keys", keys: ["Escape"] },
+        { kind: "wait", millis: 40 },
+        { kind: "keys", keys: ["F10"] },
+      ]);
       yield* waitForText(client, "game menu", /Game Menu/i, GAME_MENU, "gold", 5);
-      yield* clients.keys(client, "e");
-      yield* waitForText(client, "end game options", /End Game/i, GAME_MENU, "gold", 5);
-      yield* clients.keys(client, "q");
+      yield* clients.batch(client, [
+        { kind: "keys", keys: ["e"] },
+        // The submenu has no event signal; allow its measured animation before Q.
+        { kind: "wait", millis: 200 },
+        { kind: "keys", keys: ["q"] },
+      ]);
       yield* waitForText(client, "match results", /RESULTS/i, RESULTS, "gold", 10);
     }
     yield* click(client, BACK);

@@ -112,7 +112,7 @@ test("hot reload publishes payloads before manifests and waits for each fake cli
   }
 });
 
-test("fresh-match flow drives two fake clients and waits on the Effect clock for both ready files", async () => {
+test.each([false, true])("fresh-match flow drives two fake clients and waits on the Effect clock for both ready files (fromGame=%s)", async (fromGame) => {
   const clients: readonly [Client, Client] = [
     { name: "a", documents: "/a/Documents/Warcraft III" },
     { name: "b", documents: "/b/Documents/Warcraft III" },
@@ -206,7 +206,7 @@ test("fresh-match flow drives two fake clients and waits on the Effect clock for
   });
   const services = Layer.merge(Layer.succeed(Clients, fakeClients), Layer.succeed(GameFiles, gameFiles));
   const program = Effect.gen(function*() {
-    yield* freshMatch("/maps/test.w3x");
+    yield* freshMatch("/maps/test.w3x", fromGame);
     yield* startQuickMatch;
   }).pipe(Effect.provide(services));
   const run = Effect.gen(function*() {
