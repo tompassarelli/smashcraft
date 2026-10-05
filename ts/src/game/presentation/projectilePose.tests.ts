@@ -1,0 +1,88 @@
+import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
+import { f32 } from "../../sim/f32";
+import { createFrameControls } from "../match/controls";
+import { Phase, createMatchState } from "../match/rules";
+import { createReplayRuntimeState } from "../match/runtime";
+import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
+import { Character, ProjectileKind } from "../sim/codes";
+import { PROJECTILE_CAPACITY, type Projectile, createFighter } from "../sim/fighter";
+import { createRoster } from "../sim/roster";
+import { projectedProjectile } from "./projectilePose";
+
+function projectileAt(projectiles: readonly Projectile[], index: number): Projectile {
+  const projectile = projectiles[index];
+  if (projectile === undefined) throw new Error(`no projectile slot ${index}`);
+  return projectile;
+}
+
+test("projection hides expired, out and non-playing projectiles", () => {
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
+  assertFalse(projectedProjectile(fighter, 0, true).visible);
+  projectileAt(fighter.projectiles, 0).life = 20;
+  assertTrue(projectedProjectile(fighter, 0, true).visible);
+  assertFalse(projectedProjectile(fighter, 0, false).visible);
+  fighter.status.out = true;
+  assertFalse(projectedProjectile(fighter, 0, true).visible);
+  assertFalse(projectedProjectile(undefined, 0, true).visible);
+  fighter.status.out = false;
+  assertFalse(projectedProjectile(fighter, -1, true).visible);
+  assertFalse(projectedProjectile(fighter, PROJECTILE_CAPACITY, true).visible);
+});
+
+test("a sparse restore replaces a speculative projectile and freeze state", () => {
+  const world = createRoster(9);
+  world.fighters[0] = createFighter(Character.archer, -100.0, 1);
+  const fighter = createFighter(Character.demonHunter, 100.0, -1);
+  world.fighters[3] = fighter;
+  const game = createMatchState();
+  game.phase = Phase.match;
+  const inputs = createFrameControls();
+  const runtime = createReplayRuntimeState();
+  const snapshot = createReplaySnapshot();
+  const index = PROJECTILE_CAPACITY - 1;
+  const last = projectileAt(fighter.projectiles, index);
+  const first = projectileAt(fighter.projectiles, 0);
+  last.life = 12;
+  last.x = 73.0;
+  last.z = 92.0;
+  last.velocityX = -30.0;
+  last.velocityZ = 10.0;
+  last.kind = ProjectileKind.manaBurn;
+  last.serial = 7;
+  fighter.freezeTrap.life = 25;
+  fighter.freezeTrap.arming = 4;
+  fighter.freezeTrap.x = 81.0;
+  fighter.freezeTrap.z = 3.0;
+  fighter.status.frozenFrames = 11;
+  captureReplaySnapshot(snapshot, world, game, inputs, runtime);
+  const before = projectedProjectile(fighter, index, true);
+  last.life = 0;
+  last.x = 999.0;
+  last.velocityX = 30.0;
+  last.serial = 8;
+  first.life = 40;
+  fighter.freezeTrap.life = 0;
+  fighter.freezeTrap.arming = 0;
+  fighter.freezeTrap.x = 999.0;
+  fighter.status.frozenFrames = 0;
+  assertFalse(projectedProjectile(fighter, index, true).visible);
+  assertTrue(projectedProjectile(fighter, 0, true).visible);
+  restoreReplaySnapshot(snapshot, world, game, inputs, runtime);
+  const restored = projectedProjectile(fighter, index, true);
+  assertTrue(restored.visible);
+  assertEquals(restored.x, before.x);
+  assertEquals(restored.z, before.z);
+  assertEquals(restored.yaw, before.yaw);
+  assertEquals(restored.pitch, before.pitch);
+  assertEquals(restored.yaw, f32(3.141592654));
+  assertTrue(restored.pitch < 0.0);
+  assertFalse(projectedProjectile(fighter, 0, true).visible);
+  assertEquals(last.serial, 7);
+  assertEquals(last.kind, ProjectileKind.manaBurn);
+  assertEquals(fighter.freezeTrap.life, 25);
+  assertEquals(fighter.freezeTrap.arming, 4);
+  assertEquals(fighter.freezeTrap.x, 81.0);
+  assertEquals(fighter.freezeTrap.z, 3.0);
+  assertEquals(fighter.status.frozenFrames, 11);
+  assertEquals(world.mask, 9);
+});
