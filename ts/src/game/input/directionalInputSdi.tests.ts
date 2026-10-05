@@ -1,0 +1,31 @@
+import { assertEquals, test } from "../../runtime/testing";
+import { createFighter } from "../sim/fighter";
+import { Character } from "../sim/codes";
+import { advanceSolo, controls } from "../sim/testWorld";
+import { clearPulse, neutralDirections, updateDirections } from "./directionalInput";
+
+test("pulseOutsideVictimHitlagExpiresBeforeFutureHit", () => {
+  const direction = neutralDirections();
+  const fighter = createFighter(Character.archer, 0.0, 1);
+  const input = controls();
+  updateDirections(direction, 1, 0);
+  updateDirections(direction, 0, 0);
+  input.sdiPulse = direction.pulseX !== 0 || direction.pulseZ !== 0;
+  input.sdiX = direction.pulseX;
+  input.sdiZ = direction.pulseZ;
+  advanceSolo(fighter, 0, input, -240.0);
+  assertEquals(fighter.launch.sdiSerial, 0);
+  clearPulse(direction);
+  fighter.motion.grounded = false;
+  fighter.motion.x = 300.0;
+  fighter.motion.z = 400.0;
+  fighter.launch.hitlag = 3;
+  fighter.launch.diPending = true;
+  fighter.launch.diLaunchSpeed = 10.0;
+  input.sdiPulse = direction.pulseX !== 0 || direction.pulseZ !== 0;
+  input.sdiX = direction.pulseX;
+  input.sdiZ = direction.pulseZ;
+  advanceSolo(fighter, 0, input, -240.0);
+  assertEquals(fighter.motion.x, 300.0);
+  assertEquals(fighter.launch.sdiSerial, 0);
+});
