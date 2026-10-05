@@ -144,7 +144,8 @@ export function meleeSin(angle: number): number {
   }
   const square = multiplyFloat32(residual, residual);
   if (sine !== 0) return multiplyFloat32(sine, evenPolynomial(square));
-  return roundToFloat32(cosine * residual * oddPolynomial(square));
+  // Multiplying by cosine (+-1) is exact; Warcraft rounds the raw product differently.
+  return multiplyFloat32(cosine * residual, oddPolynomial(square));
 }
 
 /** Binary32 cosine for finite angles in [-float32(pi), float32(pi)]. */
@@ -159,5 +160,5 @@ export function meleeCos(angle: number): number {
   }
   const square = multiplyFloat32(residual, residual);
   if (cosine !== 0) return multiplyFloat32(cosine, evenPolynomial(square));
-  return roundToFloat32(-sine * residual * oddPolynomial(square));
+  return multiplyFloat32(-sine * residual, oddPolynomial(square));
 }

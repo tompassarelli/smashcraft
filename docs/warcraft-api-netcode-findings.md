@@ -269,6 +269,26 @@ the local terrain height feeding fighter collision/combat or native unit height.
 It does not establish complete cross-platform determinism, and it does not
 explain the measured file-backed queue growth.
 
+## Lua numbers in the game
+
+Warcraft's map Lua uses 32-bit integers (`math.maxinteger` is 2147483647) and
+binary32 numbers. Integer arithmetic wraps silently past 2^31. Host Lua,
+JavaScript and the Wurst test interpreter differ from it: stock Lua and
+JavaScript use 64-bit integers and binary64 numbers.
+
+Its float arithmetic is not consistently IEEE round-to-nearest. Division and
+decimal parsing round to nearest, but multiplication and addition can land one
+ulp toward zero, and `1 + 3 * 2^-24` returns exactly 1. The exact rounding
+model is unknown. Synchronized simulation therefore uses only exact operations:
+integer arithmetic below 2^31 (division as Lua `//`), scaling by powers of two,
+and the Binary32 helpers, whose integer-limb implementation matches host
+results bit for bit in the game. A raw float product in Melee sine/cosine
+differed by one ulp in 150 of 600 results until it used `multiplyFloat32`.
+No host test reproduces the game's raw float results.
+
+`string.pack`, `load` and `math.type` are available to map code. Evidence:
+smashcraft:evidence/warcraft-lua-numbers-20261005/README.md.
+
 ## Input and rollback claims we can make
 
 The actual Linux companion retained tested queued kernel events and original

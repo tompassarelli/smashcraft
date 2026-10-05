@@ -118,7 +118,8 @@ public function meleeSin(real angle) returns real
     let square = multiplyFloat32(residual, residual)
     if sine != 0.
         return multiplyFloat32(sine, evenPolynomial(square))
-    return (cosine * residual * oddPolynomial(square)).roundToFloat32()
+    // Multiplying by cosine (+-1) is exact; Warcraft rounds the raw product differently.
+    return multiplyFloat32(cosine * residual, oddPolynomial(square))
 
 /** Binary32 cosine for finite angles in [-float32(pi), float32(pi)]. */
 public function meleeCos(real angle) returns real
@@ -132,4 +133,4 @@ public function meleeCos(real angle) returns real
     let square = multiplyFloat32(residual, residual)
     if cosine != 0.
         return multiplyFloat32(cosine, evenPolynomial(square))
-    return (-sine * residual * oddPolynomial(square)).roundToFloat32()
+    return multiplyFloat32(-sine * residual, oddPolynomial(square))
