@@ -115,7 +115,8 @@ Join contact and option rows by `(character, defenderCharacter, category,
 spacing, percent, shielding)`. `actualStyle` records any production action
 substitution, including Demon Hunter's dash attack. Floating output has the
 same native-formatting limits as wc3-melee:docs/move-data.md. Other defenders,
-other moves/charges, analog shields, escape policies and reference-corpus joins
-remain unmeasured. No Melee character is equated with an original Warcraft
-fighter. Native parity, balance tuning and playable before/after acceptance
-remain in issue #12.
+other moves/charges, analog shields and escape policies remain unmeasured.
+The factual action-family reference join and bounded trade-off analysis are
+recorded in wc3-melee:docs/move-reference-join.md. No Melee character is equated
+with an original Warcraft fighter. Native parity, balance tuning and playable
+before/after acceptance remain in issue #12.

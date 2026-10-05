@@ -80,7 +80,10 @@ by advancing an aerial from z=1, vz=-2 onto stage 0, with and without a fresh
 L-cancel press. Ground moves report zero landing lag; the shared L-cancel window
 is not a ground-move property.
 
-Unrepresented autocancel windows and animation hurtboxes are explicitly `null`;
-reference mappings, matchup outcomes and reachable punishments remain unknown.
+Unrepresented autocancel windows and animation hurtboxes are explicitly `null`.
+wc3-melee:docs/move-reference-join.md records the factual action-family joins
+and bounded trade-off analysis; it establishes no fighter equivalence.
+Matchup-wide outcomes remain unknown; bounded reachable options are recorded
+separately in wc3-melee:docs/move-comparisons.md.
 These are headless production observations, not native timing, physics-parity,
 matchup or balance acceptance. Issue #12 remains open for the remaining work.
