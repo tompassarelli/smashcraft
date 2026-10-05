@@ -76,6 +76,49 @@ passed after repairing two observer gaps (shield exhaustion during OCR and a
 trace ending during pause). This diagnostic does not replace playable 0.0.41.
 Exact candidate and evidence: wc3-melee:docs/controller-chat-native-20261005/README.md.
 
+## Input paths and retention limits (#26)
+
+These paths have different observation boundaries. A passing event-capture
+check does not establish fighter application. The current player release is
+0.0.41; the later chat diagnostic is identified separately above.
+
+| Path | Observation and accepted scope | Remaining limit |
+| --- | --- | --- |
+| Linux evdev journal → native receiver → shared simulation | Kernel monotonic event timestamps, helper rows and native action traces; bounded 5 ms taps, ~250 ms helper/game stops, 500 ms focus loss, pause/resume, overlapping shields and combat/rematch pass in the linked corpora. | Virtual devices, same host; no physical minimum pulse or universal interruption bound established. Player-slot changes remain unfinished. |
+| Linux journal reconnect | Original identity, neutral release/rearm and fresh frame-181 tap observed on both slots. | Same virtual pad at a new event node; physical/different-port recovery and automatic map reload unverified. |
+| Linux journal native chat | Diagnostic e068b9a: unsent chat, shared pause, suppression, neutral rearm and fresh frame-306/326 actions observed across rematch. | No submitted message or physical/platform claim; this diagnostic does not replace 0.0.41. |
+| SDL companion capture/digital keyboard mapping | Event-capture and mapping/focus checks exist; the warm Linux capture retained recorded edges. | Cold SDL capture timestamps compressed the first batch. Mapping and event retention do not prove original-frame native consumption. |
+| In-map keyboard polling | Samples held keys and accumulates detected press/release bits until capture. | A pulse wholly between polls is undetectable; repeated transitions coalesce. Historical native polling-loss counterexample remains. |
+| Windows/macOS companion | Common mapping source exists. | Foreground adapters reject emission; native builds, input retention and physical play are unverified. |
+
+The journal's configured capacities are **source facts**, not measured maximum
+safe interruption times: pending output is bounded by 120 records **and** 2,048
+bytes including delimiters; the text receive window is 16 records, and the
+native editbox capacity is 4,096 characters. At the ordinary two-frame record
+rate, 120 records correspond to about four seconds, but record size and control
+traffic can reach a bound earlier. Unpublished-control capture has a separate
+65,536-event cap. The input ledger retains 256 frame slots and accepts at most
+64 frames ahead of consumption; the current journal profile permits 24 frames
+of rollback. None of these capacities promises recovery after an arbitrary
+stall or kernel queue loss.
+
+The helper reports and stops on output-capacity exhaustion, kernel
+`SYN_DROPPED`, or an event older than its already-published cursor; it does not
+overwrite pending output or silently move that event to a later frame. The
+receiver rejects conflicting/out-of-window text records. Source checks cover
+parts of this response; the requested independently injected native
+loss/overflow acceptance remains open.
+
+There is also a remaining representation limit: journal rows retain pressed
+and released **bit sets** plus final analog state per original frame. A single
+down/up pulse survives in one row, but repeated presses of the same action
+within that frame have no multiplicity field, and an analog excursion/return
+is not a complete sub-frame history. Production source is
+wc3-melee:companion/src/bin/journal.rs (`apply_event`/`encode_row`) and
+wc3-melee:wurst/KeyboardInputCapture.wurst. Rapid-repeat/axis-boundary acceptance
+must resolve this limitation rather than interpreting a retained kernel log
+as proof that every transition reached the fighter.
+
 ## The specific answers and their owners
 
 **Resume service-delay defect delivered:** helper B read RESUME 361 ms after its
@@ -212,7 +255,7 @@ original descriptions remain accessible. Those closures are not completion.
 | #20 2–4 players / ten matches | Consolidated into #17; the full requested match corpus remains required. |
 | #21 Timeboxed integrity decision | Already completed as a HOLD decision, not a positive readiness result. |
 | #25 Intended frames | Open; canonical owner for frame assignment, clock and pause semantics. |
-| #26 Input retention | Partial; 0.0.41 and its repaired helper have bounded tap/stall, pause/focus, shield overlap, reconnect and combat/rematch passes. Chat, physical reconnect and broader hardware acceptance remain open; preserved 0.0.40 retains its polling limitation. |
+| #26 Input retention | Partial; bounded tap/stall, pause/focus, shield overlap, reconnect, combat/rematch and diagnostic chat passes are banked. Player-slot changes, rapid-repeat/axis boundaries, native loss/overflow, physical reconnect and broader hardware acceptance remain open; path/capacity limits are enumerated above. |
 | #27 Response/variation | Partial; candidate software shield response measured and admission-to-prediction delay repaired with native evidence. Broader action/physical scope remains. |
 | #28 After-capture shield prediction | Completed bounded evidence, registered during this review. |
 | #29 Native tagged defense rollback | Completed bounded evidence, registered during this review. |
