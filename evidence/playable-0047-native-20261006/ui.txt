@@ -1,0 +1,1087 @@
+a wait CONTROLS
+A
+
+Ny
+
+7
+
+4y
+
+)
+
+;"
+
+-an
+
+HMN
+
+HMN
+
+'[ EMPTY J. '[ EMPTY J.
+
+@
+
+@
+
+Choose fighter
+
+Choose fighter
+
+P3
+
+P4
+
+Smashcraft vs
+
+-4 T
+
+o v
+
+AN
+
+2
+
+=
+
+2
+
+-~
+
+~
+
+ARCHER
+
+RIFLEMAN
+
+ILLIDAN
+
+EMPTY
+
+EMPTY
+
+7\
+
+7N\
+
+\Pl
+
+\PZ
+
+Choose fighter
+
+Choose fighter
+
+P3
+
+P4
+
+h U~ A (i
+
+”' Select [A “
+
+I‘ il CONTROLS [F1] ’I
+
+b wait [1-9] Stock
+3 Stock - 7:00
+
+| STAGE SELECT
+
+|
+
+|
+
+STOCK
+
+=)
+
+)
+
+TIME
+
+=
+
+CHOOSE A STAGE
+
+=
+
+Sky Deck
+
+Three Bridges
+
+Click a stage or mwe the stick.
+
+Any gl
+
+tart: start -
+
+yercan
+
+Sky Deck
+
+One open platform
+
+Room to fight, nowhere to hide.
+
+%
+
+BACK [X]
+
+START MATCH [A]
+
+i
+
+3 Stock - 7:00
+
+| STAGE SELECT
+
+STOCK
+
+TIME
+
+CHOOSE A STAGE
+
+— —
+
+)
+
+———— | 7
+
+Sky Deck
+
+Three Bridges
+
+Click a stage or move the stick.
+
+Any player can choose.
+
+A or Start: start - X: back
+
+Sky Deck
+
+One open platform.
+
+Room to light, nowhere to hide.
+
+.
+
+=
+
+et et i,
+
+)
+
+BACK [X]
+
+START MATCH [A]
+
+b click 250 900
+b click 1380 155
+b wait 2 Stock
+2 Stock - 7:00
+
+| STAGE SELECT
+
+STOCK
+
+2!
+
+ﬁ TIME
+
++ U
+
+5]
+
+CHOOSE A STAGE
+
+_— T
+
+=
+
+Sky Deck
+
+Three Bridges
+
+Any
+
+Click a stage or move the stick.
+
+layer can choose.
+
+Aor
+
+tart: start -
+
+: b
+
+Sky Deck
+
+One open platform
+
+Room to fight, nowhere to hide
+
+BACK [X]
+
+START MATCH [A]
+
+N
+
+e
+
+=
+
+J
+
+2 Stock - 7:00
+
+—
+
+| STAGE SELECT
+
+~
+
+STOCK
+
+TIME
+
+.
+
+—/—'
+
+(]
+
+CHOOSE A STAGE
+
+— —
+
+)
+
+———— | 7
+
+Sky Deck
+
+Three Bridges
+
+Click a stage or move the stick.
+
+Any player can choose.
+
+A or Start: start - X: back
+
+Sky Deck
+
+One open platform.
+
+Room to light, nowhere to hide.
+
+=
+
+et et i,
+
+BACK [X]
+
+START MATCH [A]
+
+b click 250 900
+b click 1380 155
+b wait 1 Stock
+1 Stock - 7:00
+
+| STAGE SELECT
+
+STOCK
+
+2!
+
+ﬁ TIME
+
++ U
+
+5]
+
+CHOOSE A STAGE
+
+_— T
+
+=
+
+Sky Deck
+
+Three Bridges
+
+Any
+
+Click a stage or move the stick.
+
+layer can choose.
+
+Aor
+
+tart: start -
+
+: b
+
+Sky Deck
+
+One open platform
+
+Room to fight, nowhere to hide
+
+BACK [X]
+
+START MATCH [A]
+
+N
+
+e
+
+=
+
+J
+
+I Stock « 7:00
+
+—
+
+| STAGE SELECT
+
+~
+
+STOCK
+
+TIME
+
+.
+
+—/—'
+
+(]
+
+CHOOSE A STAGE
+
+— —
+
+)
+
+———— | 7
+
+Sky Deck
+
+Three Bridges
+
+Click a stage or move the stick.
+
+Any player can choose.
+
+A or Start: start - X: back
+
+Sky Deck
+
+One open platform.
+
+Room to light, nowhere to hide.
+
+=
+
+et et i,
+
+BACK [X]
+
+START MATCH [A]
+
+b wait wins|rematch
+A
+
+N
+
+o
+
+lvA—O.-O-A—
+
+e e
+
+= = & > x =
+
+-0.0
+
+(o I
+
+ARCHER
+
+S
+
+RIFLEMAN
+
+-
+
+-
+
+v
+
+“
+
+6:56
+
+0/2 redtly. PrestW or Start to Mvose y&; rx h
+
+s \"'A‘ﬂ\
+
+Ty
+
+-
+
+Player 2 wins!
+
+e~
+
+e
+
+A
+
+~
+
+0.0%
+
+£%, 0.0%
+
+Pt
+
+ARCHER
+
+¥
+
+RIFLEMAN
+
+a wait wins|rematch
+FR7 X
+
+‘.__-
+
+4
+
+0:0%
+
+\\
+
+"= -0.0%:—
+
+‘_)I
+
+ARCHER
+
+-—e
+
+RIFLEMAN
+
+6:56
+
+0/2 ready. Press A or Start to choose your next match.
+
+-
+
+Player 2 wins!
+
+o
+
+.
+
+.o
+
+.
+
+[ 4
+
+|.
+
+S -
+
+al
+
+.
+
+-
+
+b
+
+W
+
+é'r
+
+(A
+
+PR
+
+—~
+
+% o
+
+—r
+
+0.0%
+
+0.0%
+
+-,
+
+S
+
+P1
+
+ARCHER
+
+X
+
+RIFLEMAN
+
+-
+
+-~
+
+£
+
+b read 944,312 1008x168
+Player Z wins! ‘
+
+Player 2 wins!
+-
+
+a read 944,312 1008x168
+Player 2 wins!
+. s
+h.‘“.‘
+
+Player 2 wins! ﬂ_’
+.
+- .
+
+a wait CONTROLS
+A
+
+Ny
+
+e
+
+—
+
+£
+
+e
+
+;A
+
+8
+
+& -l
+
+®
+
+HMN
+
+HMN
+
+'[ EMPTY J. '[ EMPTY J.
+
+- .14
+
+o8
+
+4’§A
+
+B
+
+o ——
+
+4y
+
+=,
+
+e P ~
+
+€ 9
+
+ARCHER
+
+RIFLEMAN
+
+P1
+
+P2
+
+P3
+
+P4
+
+ress Start
+
+Smashcraft vs
+
+-4 T
+
+AN
+
+él
+
+[ XY
+
+i
+
+PR
+
+%
+
+12
+
+J
+
+7\
+
+s 3 P2
+
+7-\
+
+\Pl
+
+A
+
+ARCHER
+
+RIFLEMAN
+
+ILLIDAN
+
+EMPTY
+
+EMPTY
+
+&s\
+
+4‘" I-\
+
+Iz "—*‘l
+
+‘r’
+
+\J
+
+e
+
+“~-
+
+ARCHER
+
+RIFLEMAN
+
+e 000 -
+
+Pl
+
+P2
+
+P3
+
+P4
+
+I( il Press Start “
+
+I‘ il CONTROLS [F1] ’I
+
+b wait [1-9] Stock
+1 Stock - 7:00
+
+| STAGE SELECT
+
+STOCK
+
+2!
+
+ﬁ TIME
+
++ U
+
+5]
+
+CHOOSE A STAGE
+
+_— T
+
+=
+
+Sky Deck
+
+Three Bridges
+
+Any
+
+Click a stage or move the stick.
+
+layer can choose.
+
+Aor
+
+tart: start -
+
+: b
+
+Sky Deck
+
+One open platform
+
+Room to fight, nowhere to hide
+
+BACK [X]
+
+START MATCH [A]
+
+N
+
+e
+
+=
+
+J
+
+I Stock « 7:00
+
+—
+
+| STAGE SELECT
+
+~
+
+STOCK
+
+TIME
+
+.
+
+—/—'
+
+(]
+
+CHOOSE A STAGE
+
+— —
+
+)
+
+———— | 7
+
+Sky Deck
+
+Three Bridges
+
+Click a stage or move the stick.
+
+Any player can choose.
+
+A or Start: start - X: back
+
+Sky Deck
+
+One open platform.
+
+Room to light, nowhere to hide.
+
+=
+
+et et i,
+
+BACK [X]
+
+START MATCH [A]
+
+b wait wins|rematch
+e
+
+N
+
+o
+
+lvA—O.-O-A—
+
+-0.0
+
+(o I
+
+S =
+
+ARCHER
+
+S
+
+RIFLEMAN
+
+-
+
+-
+
+v
+
+“
+
+6:56
+
+0/2 redtly. PrestW or Start to Mvose y&; rx h
+
+s \"'A‘ﬂ\
+
+Ty
+
+-
+
+Player | wins!
+
+e~
+
+e
+
+A
+
+£%
+
+0.0%
+
+120~y
+
+0.0%
+
+Pt
+
+ARCHER
+
+¥ ¥
+
+-~
+
+RIFLEMAN
+
+a wait wins|rematch
+FR7 X
+
+‘.__-
+
+4
+
+0:0%
+
+\\
+
+=2 -0.0%:—
+
+‘_)I
+
+ARCHER
+
+_ TWE
+
+RIFLEMAN
+
+6:56
+
+0/2 ready. Press A or Start to choose your next match.
+
+-
+
+Player 1 wins!
+
+o
+
+.
+
+.
+
+L -
+
+.
+
+vr
+
+ll
+
+S -
+
+al
+
+‘B
+
+-
+
+b
+
+W
+
+4"',
+
+(A
+
+PR
+
+—~
+
+% o
+
+—r
+
+0.0%
+
+0%
+
+-,
+
+S
+
+P1
+
+ARCHER
+
+RIFLEMAN
+
+-
+
+-~
+
+b read 944,312 1008x168
+Player I wins! ‘
+
+Player | wins!
+-
+
+a read 944,312 1008x168
+Player 1 wins!
+. s
+h...‘“m
+
+Player 1 wins! ﬂ_’
+.
+- .
+
+a wait CONTROLS
+A
+
+Ny
+
+e
+
+—
+
+£
+
+e
+
+;A
+
+8
+
+& -l
+
+®
+
+HMN
+
+HMN
+
+'[ EMPTY J. '[ EMPTY J.
+
+- .14
+
+o8
+
+4’§A
+
+B
+
+o ——
+
+4y
+
+=,
+
+e P ~
+
+€ 9
+
+ARCHER
+
+RIFLEMAN
+
+P1
+
+P2
+
+P3
+
+P4
+
+ress Start
+
+Smashcraft vs
+
+-4 T
+
+AN
+
+él
+
+[ XY
+
+i
+
+PR
+
+%
+
+12
+
+J
+
+7\
+
+s 3 P2
+
+7-\
+
+\Pl
+
+A
+
+ARCHER
+
+RIFLEMAN
+
+ILLIDAN
+
+EMPTY
+
+EMPTY
+
+&s\
+
+4‘" I-\
+
+Iz "—*‘l
+
+‘r’
+
+\J
+
+e
+
+“~-
+
+ARCHER
+
+RIFLEMAN
+
+e 000 -
+
+Pl
+
+P2
+
+P3
+
+P4
+
+I( il Press Start “
+
+I‘ il CONTROLS [F1] ’I
+

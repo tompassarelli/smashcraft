@@ -114,7 +114,7 @@ and `bun wisp playable result DIR`.
 
 The result gate takes each match's winner from the end receipts both clients
 write (`smashcraft-journal-end-BUILD-eN-sS.txt`, `winner=P1` to `P4` or
-`none`, from 0.0.47). It also reads each client's result announcement on its
+`none`, from 0.0.46). It also reads each client's result announcement on its
 own; a screen that names another player fails the gate, a screen the reader
 cannot make out does not. The reader's "|", "l" or "I" in "Player 1 wins!"
 counts as 1. A capture whose receipts name no winner, such as 0.0.45's, takes
