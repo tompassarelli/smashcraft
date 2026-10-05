@@ -12,8 +12,11 @@ export const CHUNK_LENGTH = 200;
 // other content: manifests are numbered by a version that only rises and are never
 // removed, and chunk files are named by their payload's checksum.
 export const manifestFile = (version: number) => `smashcraft-hot-manifest-${version}.pld`;
-export const chunkFile = (payloadChecksum: string, index: number) => `smashcraft-hot-${payloadChecksum.replace(":", "-")}-${index}.pld`;
+/** Names a bundle in file names and as its Lua chunk name, which error positions carry. */
+export const payloadKey = (payloadChecksum: string) => payloadChecksum.replace(":", "-");
+export const chunkFile = (payloadChecksum: string, index: number) => `smashcraft-hot-${payloadKey(payloadChecksum)}-${index}.pld`;
 export const ackFile = (slot: number) => `smashcraft-hot-ack-p${slot}.txt`;
+export const errorFile = (slot: number) => `smashcraft-error-p${slot}.txt`;
 
 export interface Manifest {
   version: number;

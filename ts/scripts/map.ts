@@ -6,13 +6,32 @@
 //        bun scripts/map.ts rebuild MAP.w3x
 import { copyFileSync, renameSync } from "node:fs";
 import { join } from "node:path";
+import { payloadKey } from "../src/runtime/hotFiles";
+import { checksum } from "../src/runtime/payload";
+import { keepSourceMap } from "./sourceMaps";
 
 const packager = join(import.meta.dir, "../../build/tools/map-pack");
 
-/** The base map's and Wurst's script, then the bundle, started after Wurst. */
-function compose(base: string, bundle: string | undefined): string {
-  // A function wrapper keeps the bundle's trailing return inside it.
-  const typescript = bundle === undefined ? "" : `\nsmashcraftTs = (function(...)\n${bundle}\nend)()\n`;
+/** A Lua long string holding text verbatim; the newline after its opening bracket is dropped. */
+function longString(text: string): string {
+  let level = "";
+  while (text.includes(`]${level}]`)) level += "=";
+  return `[${level}[\n${text}]${level}]`;
+}
+
+/**
+ * The base map's and Wurst's script, then the bundle, started after Wurst. The
+ * bundle loads as chunk `map-KEY`, like hot reloads, so its error positions
+ * are bundle lines that scripts/sourceMaps.ts maps to TypeScript.
+ */
+async function compose(base: string, bundlePath: string | undefined): Promise<string> {
+  let typescript = "";
+  if (bundlePath !== undefined) {
+    const bytes = new Uint8Array(await Bun.file(bundlePath).arrayBuffer());
+    const key = payloadKey(checksum([...bytes]));
+    keepSourceMap(bundlePath, key);
+    typescript = `\nsmashcraftTs = assert(load(${longString(new TextDecoder().decode(bytes))}, "=map-${key}"))()\n`;
+  }
   return `${base}${typescript}
 function main()
     baseMain()
@@ -43,8 +62,7 @@ async function rebuild(map: string): Promise<void> {
     process.exit(1);
   }
   const compiled = performance.now();
-  const bundle = await Bun.file(join(import.meta.dir, "../build/map.lua")).text();
-  const script = compose(await Bun.file(`${map}.base.lua`).text(), bundle);
+  const script = await compose(await Bun.file(`${map}.base.lua`).text(), join(import.meta.dir, "../build/map.lua"));
   const scriptPath = `${map}.lua`;
   await Bun.write(scriptPath, script);
   const next = `${map}.next`;
@@ -61,8 +79,7 @@ async function rebuild(map: string): Promise<void> {
 const [command, ...rest] = process.argv.slice(2);
 if (command === "compose" && rest.length >= 2) {
   const [basePath, outPath, bundlePath] = rest as [string, string, string | undefined];
-  const bundle = bundlePath === undefined || bundlePath === "" ? undefined : await Bun.file(bundlePath).text();
-  await Bun.write(outPath, compose(await Bun.file(basePath).text(), bundle));
+  await Bun.write(outPath, await compose(await Bun.file(basePath).text(), bundlePath === "" ? undefined : bundlePath));
 } else if (command === "rebuild" && rest.length === 1) {
   await rebuild(rest[0]!);
 } else {

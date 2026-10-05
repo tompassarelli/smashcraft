@@ -6,7 +6,7 @@
 // on one client can't split the simulations. Match state is untouched: it lives
 // in globals the new code reads. The reloader's own handlers are reinstalled
 // too, so it can reload itself.
-import { ackFile, chunkFile, manifestFile, parseManifest } from "../runtime/hotFiles";
+import { ackFile, chunkFile, manifestFile, parseManifest, payloadKey } from "../runtime/hotFiles";
 import { checksum, decodeBase64 } from "../runtime/payload";
 import { floorDiv } from "../sim/intMath";
 import { on, trampoline } from "./dispatch";
@@ -118,9 +118,11 @@ function loadLocal(text: string): { version: number; bundle: Reloadable | string
   for (let index = 0; index < files; index++) encoded.push(...readChunks(chunkFile(expected, index)));
   const bytes = decodeBase64(encoded.join(""));
   if (bytes === undefined || checksum(bytes) !== expected) return { version, bundle: "payload missing or damaged" };
-  const [chunk, error] = load(bytesToText(bytes), `=hot-${expected}`);
+  const [chunk, error] = load(bytesToText(bytes), `=hot-${payloadKey(expected)}`);
   if (chunk === undefined) return { version, bundle: error ?? "load failed" };
-  const module = chunk();
+  // A bundle that fails while loading is refused like a damaged one, so every client still answers.
+  const [ran, module] = pcall(chunk);
+  if (!ran) return { version, bundle: `failed while loading: ${String(module)}` };
   return { version, bundle: isReloadable(module) ? module : "bundle exports no install()" };
 }
 

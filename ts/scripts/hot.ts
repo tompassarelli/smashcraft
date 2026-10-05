@@ -5,9 +5,10 @@
 // Usage: bun scripts/hot.ts --data DIR [--data DIR ...] [--watch]
 import { readdirSync, renameSync, rmSync, watch } from "node:fs";
 import { join } from "node:path";
-import { CHUNK_LENGTH, CHUNKS_PER_FILE, ackFile, chunkFile, formatManifest, manifestFile } from "../src/runtime/hotFiles";
+import { CHUNK_LENGTH, CHUNKS_PER_FILE, ackFile, chunkFile, errorFile, formatManifest, manifestFile, payloadKey } from "../src/runtime/hotFiles";
 import { checksum, encodeBase64 } from "../src/runtime/payload";
 import { mapCompiler, report } from "./compiler";
+import { keepSourceMap, toTypeScript } from "./sourceMaps";
 
 const ACK_TIMEOUT_MS = 10_000;
 
@@ -59,6 +60,7 @@ async function publish(): Promise<void> {
   const chunks = Array.from({ length: Math.ceil(encoded.length / CHUNK_LENGTH) }, (_, i) => encoded.slice(i * CHUNK_LENGTH, (i + 1) * CHUNK_LENGTH));
   const files = Math.ceil(chunks.length / CHUNKS_PER_FILE);
   const payloadChecksum = checksum(bytes);
+  keepSourceMap("build/map.lua", payloadKey(payloadChecksum));
   version++;
   for (const dir of dataDirs) {
     for (let index = 0; index < files; index++) {
@@ -101,6 +103,28 @@ async function request(): Promise<void> {
   running = false;
 }
 
+/** Prints each new in-game error report with TypeScript lines, and how long after the game wrote it. */
+const seenErrors = new Map<string, string>();
+async function checkErrors(announce: boolean): Promise<void> {
+  for (const dir of dataDirs) {
+    for (const slot of [0, 1, 2, 3]) {
+      const path = join(dir, errorFile(slot));
+      const file = Bun.file(path);
+      if (!(await file.exists())) continue;
+      const text = await file.text();
+      if (seenErrors.get(path) === text) continue;
+      seenErrors.set(path, text);
+      if (!announce) continue;
+      const lines = [...text.matchAll(/call Preload\( "(.*)" \)/g)].map((match) => match[1]!);
+      const mapped = await toTypeScript(lines.slice(1).join("\n"));
+      console.error(`p${slot} ${lines[0]} (${(Date.now() - file.lastModified).toFixed(0)} ms after the game wrote it)\n${mapped}`);
+    }
+  }
+}
+
+// Reports from before this tool started are old news.
+await checkErrors(false);
+setInterval(() => void checkErrors(true), 50);
 await request();
 if (args.includes("--watch")) {
   let timer: ReturnType<typeof setTimeout> | undefined;

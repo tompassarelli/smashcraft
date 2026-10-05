@@ -15,7 +15,8 @@
       "lua-types/5.3"
     ],
     "rootDir": "src",
-    "outDir": "build"
+    "outDir": "build",
+    "sourceMap": true
   },
   "include": [
     "src/sim/**/*.ts",

@@ -1,7 +1,7 @@
 // Development entry for the hot-reload demonstration (#36): a ticking counter
 // whose state survives reloads while the reported value comes from whichever
 // code is installed. Started once by the map's main(); reloads call install().
-import { on, trampoline } from "./dispatch";
+import { installDispatch, on, trampoline } from "./dispatch";
 import { installHotReload, startHotReload } from "./hotReload";
 
 interface DemoState {
@@ -27,6 +27,7 @@ function tick(): void {
 }
 
 export function install(this: void): void {
+  installDispatch();
   on("demo.tick", tick);
   installHotReload();
 }
