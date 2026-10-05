@@ -234,3 +234,15 @@ and
 ~/code/smashcraft/worktrees/physics-scale-20261005/build/wurst-tests/canonical-motion-repaired.log.
 The locked compiler and standard library are unchanged. No map build or native
 client was run for this repair.
+
+## Air cutoff predecessor precision
+
+The fixed airborne decays have binary32 spacing `2^-28`. Their squared cutoff
+is formed from the decay and its preceding binary32 value. Compute that
+predecessor with `subtractFloat32(decay, spacing)`: rounding a previously
+evaluated native subtraction can lose the step and raise the squared cutoff
+by one binary32 value. For launch decay, the intended cutoff is
+`11171209 * 2^-32`; a vector exactly at it retains the small fused residual.
+The native counterexample and repaired fixture results are preserved in
+smashcraft:evidence/native-physics-repair-20261005/README.md, tested at source
+`fb3632e15bb3555d6415101476c53e8021ef7425`.
