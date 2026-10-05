@@ -1,31 +1,28 @@
 // Two-client journeys shared by the desync guard's test files.
 import { expect } from "bun:test";
+import type { HeadlessRuntime } from "wisp/scripts/wisp/headless";
+import type { MapEntry } from "wisp/src/headless/client";
+import type { Lockstep } from "wisp/src/headless/lockstep";
 import type { MapBuild } from "../../src/game/shell/build";
 import { install, startBuild } from "../../src/platform/main";
-import { Lockstep } from "./twoClients";
 
 const CTRL = 2;
 const T_KEY = 0x54;
 
-export interface Entry {
-  start(): void;
-  install(): void;
-}
-
 /** The map entry with another build, as packaging would choose it. */
-export function entryFor(build: MapBuild): Entry {
+export function entryFor(build: MapBuild): MapEntry {
   return { install, start: () => startBuild(build) };
 }
 
-/** Start, -dev quick, a traced match, a hot reload mid-match, more match. */
-export function playThroughReload(entry: Entry): Lockstep {
-  const clients = new Lockstep([0, 1]);
-  clients.everywhere(() => entry.start());
-  clients.ticks(30);
+/** Start, -dev quick, a traced match, install() mid-match on every client on one frame, more match. */
+export function playThroughReload(headless: HeadlessRuntime, entry: MapEntry): Lockstep {
+  const clients = headless.clients(entry);
+  clients.start();
+  clients.frames(30);
   clients.chat(0, "-dev quick");
-  clients.ticks(120);
+  clients.frames(120);
   clients.press(0, T_KEY, CTRL);
-  clients.ticks(330);
+  clients.frames(330);
   const nativeCallCount = clients.clients.map(client => client.log.length);
   clients.everywhere(() => entry.install());
   for (const [index, client] of clients.clients.entries()) {
@@ -42,7 +39,7 @@ export function playThroughReload(entry: Entry): Lockstep {
     expect(receipt?.[0]).toMatch(/^object-data frame \d+ objects \d+:\d+ state /);
     expect(receipt?.filter(line => line.includes(" speed 270 cooldown 1.5")).length).toBe(movement.length);
   }
-  clients.ticks(120);
+  clients.frames(120);
   return clients;
 }
 

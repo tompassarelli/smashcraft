@@ -78,6 +78,9 @@ code. From smashcraft:ts/:
   `--rebuild` replaces the map script first.
 - Client driver: `bun wisp client look|read|click|keys CLIENT ...` reads and
   drives a client. Session values live in ~/.local/state/smashcraft/clients.json.
+- Headless match: `bun wisp headless [quick-match|desync] [--clients N]` plays
+  the dev build's quick match in simulated clients in about 1.6 s and prints
+  desyncs, error reports and scene problems.
 - Tapes: set `LUA` to the 32-bit Lua executable, then run `bun wisp tapes` to
   compare replay results across Bun and Lua32.
 - Parity: `bun wisp parity numeric` compares the numeric corpus with Lua32;

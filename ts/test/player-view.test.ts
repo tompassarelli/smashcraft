@@ -9,27 +9,28 @@ import { SMASHCRAFT_SCENE } from "../scripts/wisp/playerView";
 import { STAGE_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { requestStageSelect, requestStart, selectCharacter } from "../src/game/match/rules";
 import { Character } from "../src/game/sim/codes";
-import { start as startDevelopment } from "../src/platform/devMain";
+import { install as installDevelopment, start as startDevelopment } from "../src/platform/devMain";
 import { startMatch } from "../src/platform/shell/matchStart";
 import { shell } from "../src/platform/shell/state";
 import { renderPersistentPresentation } from "../src/platform/shell/view";
-import { type Client, installNatives } from "./desync/simulatedClient";
-import { Lockstep } from "./desync/twoClients";
+import { installHeadless } from "wisp/scripts/wisp/headless";
+import type { HeadlessClient } from "wisp/src/headless/client";
+import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 
-const restoreNatives = installNatives();
-afterAll(restoreNatives);
+const headless = installHeadless(SMASHCRAFT_HEADLESS);
+afterAll(headless.restore);
 
 /** The client's latest scene report, from the lines it wrote. */
-function sceneReport(client: Client): SceneReport {
+function sceneReport(client: HeadlessClient): SceneReport {
   const read = readSceneLines(client.files.get(sceneFile(client.slot, "smashcraft")) ?? []);
   if ("problem" in read) throw new Error(`scene report line ${read.line}: ${read.problem}`);
   return read;
 }
 
 test("development build: a match's scene report shows the stage and declares every effect the match creates", () => {
-  const clients = new Lockstep([0, 1]);
-  clients.everywhere(startDevelopment);
-  clients.ticks(30);
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
+  clients.start();
+  clients.frames(30);
   const client = clients.clients[0];
   if (client === undefined) throw new Error("missing host client");
   client.run(() => {
