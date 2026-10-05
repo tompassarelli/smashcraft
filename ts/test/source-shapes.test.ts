@@ -1,9 +1,13 @@
 import { expect, test } from "bun:test";
 import { relative, join } from "node:path";
 import ts from "typescript";
+import { savedFiles } from "wisp/scripts/wisp/devResult";
 
 const root = join(import.meta.dir, "..");
-const mapSources = [...new Bun.Glob("src/**/*.ts").scanSync(root)].sort();
+const saved = savedFiles();
+/** Each audit checks every file on its own, so under `bun wisp dev` it checks only the saved ones. */
+const audited = (paths: readonly string[]) => (saved === undefined ? paths : paths.filter((path) => saved.includes(join(root, path))));
+const mapSources = audited([...new Bun.Glob("src/**/*.ts").scanSync(root)].sort());
 
 const parsed = new Map<string, { readonly text: string; readonly source: ts.SourceFile }>();
 /** Each audit reads the same files; parse each once. */
@@ -145,8 +149,8 @@ test("map source follows the TypeScript shapes required by #35", () => {
 });
 
 test("production TypeScript has no type escapes (#35, #38)", () => {
-  const production = [...new Bun.Glob("{src,scripts}/**/*.ts").scanSync(root)]
-    .filter((path) => !/\.(test|tests|soak)\.ts$/.test(path)).sort();
+  const production = audited([...new Bun.Glob("{src,scripts}/**/*.ts").scanSync(root)]
+    .filter((path) => !/\.(test|tests|soak)\.ts$/.test(path)).sort());
   const violations: SourceShapeViolation[] = [];
   const counts = { files: production.length, any: 0, nonNull: 0, assertions: 0, suppressions: 0 };
   for (const path of production) {

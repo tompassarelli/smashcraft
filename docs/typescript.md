@@ -269,13 +269,17 @@ From smashcraft:ts/:
   `bun test test/game.test.ts -t NAME` for a focused result.
 - `bun wisp dev [--data A --data B]`: the loop to keep running while changing
   code ([Wisp dev loop](https://github.com/tompassarelli/wisp/blob/main/docs/dev.md)).
-  Each save prints the saved files' type errors, the affected tests, the
-  quick-match journey and the whole `bun run check`, each timed from the
-  save. smashcraft:ts/scripts/wisp/commands/dev.ts declares the tests: the Bun
-  test files, the registry modules game.test.ts runs, the files a test reads at
-  run time (a test that reads files without declaring them runs on every save)
-  and scripts/test.ts's isolated groups. Test processes share
-  smashcraft:ts/scripts/testWorkers.ts's engine settings with the full suite.
+  Each save prints the saved files' type errors, the affected unit tests, the
+  journeys (the quick match plus the affected tests that play simulated
+  clients: the desync guard, the visual and player-view group, stack-trace
+  and rematch-load) and the whole `bun run check`, each timed from the save.
+  smashcraft:ts/scripts/wisp/commands/dev.ts declares the tests: the Bun test
+  files, the registry modules game.test.ts runs, the files a test reads at run
+  time (a test that reads files without declaring them runs on every save),
+  the journey tests and scripts/test.ts's isolated groups. Under `wisp dev`
+  the source-shape audit checks only the saved files; `bun run test` and CI
+  check every file. Test processes share smashcraft:ts/scripts/testWorkers.ts's
+  engine settings with the full suite.
 - `bun run check`: type-check the host tools and the game with TypeScript 7.
   The compiler keeps separate host and game dependency caches in
   smashcraft:ts/build/typecheck-host.tsbuildinfo and

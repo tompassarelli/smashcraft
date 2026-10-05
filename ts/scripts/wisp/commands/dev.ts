@@ -7,7 +7,7 @@ import { type DevProject, makeDev } from "wisp/scripts/wisp/commands/dev";
 import { ISOLATED_TEST_GROUPS, TEST_WORKER_ENV } from "../../testWorkers";
 import { buildProject, sourceMapDirectory, tsDirectory } from "../project";
 
-export const SMASHCRAFT_DEV: DevProject = {
+const SMASHCRAFT_DEV: DevProject = {
   root: tsDirectory,
   sources: ["src", "scripts", "test"],
   typeCheck: { projects: ["tsconfig.json", "tsconfig.game.json"], command: [process.execPath, "run", "check"] },
@@ -26,6 +26,15 @@ export const SMASHCRAFT_DEV: DevProject = {
       // Only the temporary directories it creates.
       "test/tape-process.test.ts": [],
     },
+    // Played in simulated clients: reported with the quick-match journey.
+    journeys: [
+      "test/desync-guard.test.ts", "test/desync-guard-integrity.test.ts",
+      "test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/selection-load.test.ts", "test/player-text.test.ts",
+      "test/stack-trace.test.ts", "test/rematch-load.test.ts",
+    ],
+    perFile: ["test/source-shapes.test.ts"],
+    // The audit parses with the TypeScript compiler, a third of a second to load.
+    warm: { "test/source-shapes.test.ts": ["typescript"] },
     isolated: ISOLATED_TEST_GROUPS,
     env: TEST_WORKER_ENV,
   },
