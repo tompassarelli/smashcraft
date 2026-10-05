@@ -20,7 +20,6 @@ import {
   JOIN,
   JOIN_NAME,
   LOBBY,
-  LOBBY_COUNT,
   MAP_TITLE,
   RESULTS,
   START,
@@ -125,6 +124,7 @@ test("fresh-match flow drives two fake clients and waits on the Effect clock for
   let readyAt: number | undefined;
   let quickAt: number | undefined;
   let joinedAt: number | undefined;
+  let hostedAt: number | undefined;
   let chatSubmissions = 0;
   const messages: string[] = [];
   const gameFiles = GameFiles.of({
@@ -147,16 +147,17 @@ test("fresh-match flow drives two fake clients and waits on the Effect clock for
   const fakeClients = Clients.of({
     all: clients,
     read: (client, region) => Effect.gen(function*() {
+      if (client.name === "a" && hostedAt !== undefined && (yield* Clock.currentTimeMillis) >= hostedAt) states.set("a", "lobby");
       if (client.name === "b" && joinedAt !== undefined && (yield* Clock.currentTimeMillis) >= joinedAt) states.set("b", "lobby");
       const state = states.get(client.name);
       if (region === CUSTOM_GAMES) return state === "custom" ? "CREATE GAME" : "";
       if (region === RESULTS) return state === "results" ? "RESULTS" : "";
-      if (region === LOBBY) return state === "lobby" ? "PLAYERS" : "";
+      // A browser column can say PLAYERS while hosting/joining has not completed.
+      // The lobby count can already include a computer before B arrives.
+      if (region === LOBBY) return state === "lobby" ? "PLAYERS: 2/4" : "PLAYERS";
       if (region === CREATE_TITLE) return state === "create" ? "REATE GAME" : "";
       if (region === GAME_MENU) return state === "menu" ? "Game Menu" : state === "end-menu" ? "End Game" : "";
       if (region === MAP_TITLE) return selected.has(client.name) ? "SMASHCRAFT" : "";
-      // The host's player count includes the default computer before B joins.
-      if (region === LOBBY_COUNT) return states.get("a") === "lobby" ? "2/4" : "";
       return "";
     }),
     words: () => Effect.succeed([]),
@@ -166,10 +167,17 @@ test("fresh-match flow drives two fake clients and waits on the Effect clock for
       if (x === BACK.x && y === BACK.y) states.set(client.name, "custom");
       if (x === CREATE_GAME.x && y === CREATE_GAME.y) states.set(client.name, "create");
       if (x === FIRST_MAP.x && y === FIRST_MAP.y) selected.add(client.name);
-      if (x === CREATE.x && y === CREATE.y && before === "create") states.set(client.name, "lobby");
-      if (x === JOIN.x && y === JOIN.y) joinedAt = (yield* Clock.currentTimeMillis) + 100;
+      if (x === CREATE.x && y === CREATE.y && before === "create") {
+        states.set(client.name, "hosting");
+        hostedAt = (yield* Clock.currentTimeMillis) + 100;
+      }
+      if (x === JOIN.x && y === JOIN.y) {
+        expect(states.get("a")).toBe("lobby");
+        joinedAt = (yield* Clock.currentTimeMillis) + 100;
+      }
       if (x === START.x && y === START.y && before === "lobby") {
         expect(states.get("b")).toBe("lobby");
+        hostedAt = undefined;
         joinedAt = undefined;
         readyAt = (yield* Clock.currentTimeMillis) + 100;
         for (const { name } of clients) states.set(name, "playing");

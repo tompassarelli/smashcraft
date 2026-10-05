@@ -23,9 +23,9 @@ export const CUSTOM_GAMES = { x: 1440, y: 1180, width: 340, height: 60 };
 // Read as "REATE GAME": the stylised first letter is not recognized.
 export const CREATE_TITLE = { x: 150, y: 160, width: 300, height: 50 };
 export const MAP_TITLE = { x: 1950, y: 150, width: 600, height: 60 };
-export const LOBBY = { x: 80, y: 290, width: 220, height: 50 };
-// Shows "PLAYERS: N/4" once a second player is in the lobby.
-export const LOBBY_COUNT = { x: 1480, y: 185, width: 220, height: 50 };
+// The browser also has a PLAYERS column; only the lobby has this player count.
+export const LOBBY = { x: 1480, y: 185, width: 220, height: 50 };
+const LOBBY_READY = /PLAYERS\s*:?\s*\d+\s*\/\s*4/i;
 
 // Controls, as frame positions.
 export const BACK = { x: 155, y: 1389 };
@@ -71,7 +71,7 @@ export const freshMatch = (map: string) => Effect.gen(function*() {
   const leave = (client: Client) => Effect.gen(function*() {
     if (yield* read(client, CUSTOM_GAMES, "light", /CREATE/i)) return;
     // Results, a lobby and Create Game all leave through the same Back button.
-    if (!(yield* read(client, RESULTS, "gold", /RESULTS/i)) && !(yield* read(client, LOBBY, "light", /PLAYERS/i)) && !(yield* read(client, CREATE_TITLE, "light", /REATE\s*GAME/i))) {
+    if (!(yield* read(client, RESULTS, "gold", /RESULTS/i)) && !(yield* read(client, LOBBY, "light", LOBBY_READY)) && !(yield* read(client, CREATE_TITLE, "light", /REATE\s*GAME/i))) {
       yield* clients.keys(client, "Escape");
       yield* clients.keys(client, "F10");
       yield* waitForText(client, "game menu", /Game Menu/i, GAME_MENU, "gold", 5);
@@ -95,7 +95,7 @@ export const freshMatch = (map: string) => Effect.gen(function*() {
     yield* clients.keys(client, "ctrl+a");
     yield* clients.typeText(client, game);
     yield* click(client, CREATE);
-    yield* waitForText(client, "lobby", /PLAYERS/i, LOBBY, "light", 20);
+    yield* waitForText(client, "lobby", LOBBY_READY, LOBBY, "light", 20);
   }).pipe(step(`${client.name} hosting "${game}"`));
 
   const joinByName = (client: Client) => Effect.gen(function*() {
@@ -103,7 +103,7 @@ export const freshMatch = (map: string) => Effect.gen(function*() {
     yield* clients.keys(client, "ctrl+a");
     yield* clients.typeText(client, game);
     yield* click(client, JOIN);
-    yield* waitForText(client, "joined lobby", /PLAYERS/i, LOBBY, "light", 20);
+    yield* waitForText(client, "joined lobby", LOBBY_READY, LOBBY, "light", 20);
   }).pipe(step(`${client.name} asked to join`));
 
   /** Waits for a ready file written after `time`; a malformed one is read again until the wait ends. */
@@ -125,7 +125,7 @@ export const freshMatch = (map: string) => Effect.gen(function*() {
   yield* Effect.all([install, ...clients.all.map(leave)], { concurrency: "unbounded", discard: true });
   yield* host(first);
   yield* Effect.forEach(others, joinByName, { discard: true });
-  yield* waitForText(first, "all players", new RegExp(`${clients.all.length}/4`), LOBBY_COUNT, "light", 60).pipe(step("everyone in the lobby"));
+  yield* waitForText(first, "all players", new RegExp(`PLAYERS\\s*:?\\s*${clients.all.length}\\s*/\\s*4`, "i"), LOBBY, "light", 60).pipe(step("everyone in the lobby"));
   const start = yield* Clock.currentTimeMillis;
   yield* click(first, START);
   return yield* Effect.forEach(clients.all, (client) => readyAfter(client, start), { concurrency: "unbounded" }).pipe(step("every client at character selection"));
