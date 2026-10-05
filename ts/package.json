@@ -18,6 +18,7 @@
     "source-map": "0.7.6",
     "typescript": "6.0.2",
     "typescript-native": "npm:typescript@7.0.2",
-    "typescript-to-lua": "1.37.1"
+    "typescript-to-lua": "1.37.1",
+    "waygate": "file:vendor/waygate-b3780cb6aa16de8e2840f0c0af9687ec0a0fa8c8.tgz"
   }
 }

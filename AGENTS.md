@@ -3,7 +3,12 @@
 Smashcraft is a platform fighter for Warcraft III, written in TypeScript and
 compiled to Lua with TypeScriptToLua. Waygate and Bun are the supported build,
 test and development tools. `smashcraft:typescript-toolchain.lock` pins Bun,
-TypeScript, TypeScriptToLua and Effect; the map build checks it.
+TypeScript, TypeScriptToLua and Effect; the map build checks it. Waygate is
+maintained in its own repository. smashcraft:ts/waygate.lock records the exact
+source revision; Bun installs its generated archive from smashcraft:ts/vendor/.
+Change framework code in an owned Waygate lane, publish it, and update the
+consumer pin with smashcraft:ts/scripts/update-waygate.ts. Never edit the
+installed dependency or add a local framework copy.
 
 ## Issues define the scope — finish them
 

@@ -13,8 +13,10 @@ and next work: [roadmap #16](https://github.com/tompassarelli/smashcraft/issues/
 
 ## Build and test
 
-Smashcraft is written in TypeScript and runs on Waygate, its framework for
-Warcraft III maps. TypeScriptToLua compiles the game to Warcraft's Lua. Code
+Smashcraft is written in TypeScript and runs on [Waygate](https://github.com/tompassarelli/waygate),
+the framework for Warcraft III maps. smashcraft:ts/waygate.lock pins its source
+revision; `bun install --frozen-lockfile` installs the generated package from
+the checkout. TypeScriptToLua compiles the game to Warcraft's Lua. Code
 changes reach running multiplayer clients without re-hosting, in-game errors
 point at TypeScript lines, and logic tests run in Bun and in 32-bit Lua. The
 source tree doesn't include Warcraft III's models, textures, terrain map or the

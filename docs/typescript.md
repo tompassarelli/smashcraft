@@ -6,12 +6,36 @@ checked by tests and recorded tapes
 (smashcraft:docs/warcraft-api-netcode-findings.md#lua-numbers-in-the-game
 explains why three runtimes are compared).
 
+Waygate is maintained in its own repository. smashcraft:ts/waygate.lock records
+the immutable source revision and generated archive consumed by Bun. A clean
+checkout needs only `bun install --frozen-lockfile` from smashcraft:ts/;
+installing this dependency requires no private GitHub credentials.
+
+Waygate owns compilation, numeric helpers and guards, reload and error
+reporting, host services, and archive packaging. Smashcraft owns the map
+declaration in smashcraft:ts/scripts/mapInfo.ts, imports and object data in
+smashcraft:ts/scripts/waygate/mapInputs.ts, project paths and naming in
+smashcraft:ts/scripts/waygate/project.ts, and game-specific commands, assets,
+replay corpora and native acceptance journeys.
+
+After publishing a Waygate change, run the following from smashcraft:ts/:
+
+```sh
+bun scripts/update-waygate.ts /absolute/path/to/waygate/checkout FULL_COMMIT
+```
+
+The updater packages that exact source revision and records the archive and
+pin. Generated dependency output belongs in smashcraft:ts/vendor/; maintained
+framework implementations belong only in Waygate. Commit the new pin,
+package metadata, Bun lockfile and generated archive together after checking
+the affected consumer commands.
+
 ## The runtime decides the numbers
 
 Map Lua has 32-bit integers that wrap silently and binary32 numbers whose raw
 `+` and `*` don't round to nearest. Bun computes in binary64. So:
 
-- Integers: `idiv`, `imod`, `floorDiv` and `floorMod` from `sim/intMath`. Never
+- Integers: `idiv`, `imod`, `floorDiv` and `floorMod` from `waygate/src/sim/intMath`. Never
   `Math.floor(a / b)` or `%` on integers: the first loses bits above 2^24 in
   Warcraft, the second floors in Lua and truncates in JavaScript.
 - Bitwise `&`, `|`, `^` and `<<` are exact on 32-bit values in both runtimes;
@@ -19,7 +43,7 @@ Map Lua has 32-bit integers that wrap silently and binary32 numbers whose raw
   `floorDiv`: TypeScriptToLua rejects `>>`, and its `>>>` masks with
   4294967295, which a 32-bit Lua integer can't hold.
 - Reals in synchronized code: wrap each real `+ - * /` in `f32()` (host
-  rounding, free in Lua), or use the exact `sim/binary32` helpers where the value
+  rounding, free in Lua), or use the exact `waygate/src/sim/binary32` helpers where the value
   must match Melee or the game bit for bit.
 - Decimal literals are exact binary32 values (`0.10000000149011612`, not `0.1`)
   and keep a decimal point (`2.0`) so they stay Lua floats.
@@ -110,7 +134,7 @@ iteration. Copy the index into a `const` in the body, or take it as a
 
 ## Tests
 
-`test(name, fn)` from `runtime/testing` registers a test that runs under Bun
+`test(name, fn)` from `waygate/src/runtime/testing` registers a test that runs under Bun
 and in 32-bit Lua. Keep a test only for a contract: a Melee reference value, a
 gameplay or netcode invariant, a reproduced defect. A test that restates the
 implementation or pins an incidental constant is deleted, not ported. Never
@@ -133,9 +157,10 @@ From smashcraft:ts/:
   TypeScript 6.0 has, so it compiles with 6.0 and the two report the same errors.
 - `bun scripts/typecheck-benchmark.ts`: CI's type-check latency gate. It reports
   a cold full check after removing both dependency caches, then changes the
-  implementation of the manifest file-name function shared by host and game.
+  implementation of the command-receipt filename function shared by host and game.
   The full check after that edit must finish within 1000 ms. It also changes
-  the exported argument type and requires errors at both consumers, then
+  the exported argument type and requires errors in the fresh-match command
+  and the game's receipt writer, then
   restores the source in `finally` and checks it again. Cold startup has no
   latency gate; every check still fails CI on unexpected compiler errors.
 - `LUA=<32-bit lua> bun waygate parity numeric`: emitted Lua against Bun on
@@ -165,7 +190,8 @@ the base map's script plus the TSTL bundle, whose entry is
 smashcraft:ts/src/platform/main.ts. Bun generates the fighter units
 (war3map.w3u), FileIO's `$wsl` ability (war3map.w3a), the map description
 (war3map.w3i), the map header and the matching `config()` from
-smashcraft:ts/scripts/objectData.ts and smashcraft:ts/scripts/mapInfo.ts. For the
+smashcraft:ts/scripts/objectData.ts and smashcraft:ts/scripts/mapInfo.ts through
+Waygate's generic encoders. For the
 same base map, these files are generated deterministically from the declared
 TypeScript data and the packaged map inputs.
 
