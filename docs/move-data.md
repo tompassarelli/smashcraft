@@ -1,5 +1,8 @@
 # Production move data
 
+For executable contact, punish and follow-up comparisons under named conditions,
+see wc3-melee:docs/move-comparisons.md.
+
 Run `~/code/wc3-melee/worktrees/playable-integration-20261005/tools/move-data/export.sh`
 (or the same command in the current owned checkout) to compile the pinned Wurst
 source and write wc3-melee:build/move-export/moves.jsonl. It takes about ten

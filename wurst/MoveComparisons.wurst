@@ -1,0 +1,203 @@
+package MoveComparisons
+import Simulation
+
+public constant int COMPARISON_HORIZON = 96
+
+public function comparisonStyle(int category) returns int
+    return category == 0 ? 4 : (category == 1 ? 6 : AERIAL_NEUTRAL_STYLE)
+
+public function comparisonCategory(int category) returns string
+    return category == 0 ? "smash" : (category == 1 ? "normal" : "late-aerial")
+
+// Contact-state fixtures, not a claim that the preceding approach is safe.
+public class ContactComparisonRig
+    FighterRoster world = new FighterRoster(3)
+    FighterState attacker
+    FighterState defender
+    InputSnapshot attackInput = new InputSnapshot()
+    InputSnapshot defendInput = new InputSnapshot()
+    boolean cancelIssued = false
+    boolean connected
+    int contactFrame
+    int initialShieldstun
+    int initialHitstun
+    int attackerHitlag
+    int defenderHitlag
+    real percentDamage
+    real shieldDamage
+
+    construct(int character, int category, real spacing, real percent, boolean shielding, boolean mutant)
+        attacker = new FighterState(character, 0, 1)
+        defender = new FighterState(1, spacing, -1)
+        world.fighters[0] = attacker
+        world.fighters[1] = defender
+        defender.damage = percent
+        defender.shield = shielding
+        defender.shieldHeldFrames = 20
+        let style = comparisonStyle(category)
+        attacker.grounded = not isAerialAttack(style)
+        attacker.surface = attacker.grounded ? 0 : -1
+        attacker.z = attacker.grounded ? 0. : 20.
+        attacker.vz = attacker.grounded ? 0. : -2.
+        beginFighterAttack(world, 0, style, false)
+        contactFrame = category == 2 ? 20 : attackStartupFrames(style)
+        attacker.attackFrame = contactFrame
+        attacker.cooldown = attacker.attackDuration - contactFrame
+        resolveAttacks(world)
+        connected = defender.lastHitAttacker == attacker
+        initialShieldstun = defender.shieldStun
+        initialHitstun = defender.hitstun
+        attackerHitlag = attacker.hitlag
+        defenderHitlag = defender.hitlag
+        percentDamage = defender.damage - percent
+        shieldDamage = SHIELD_MAX - defender.shieldEnergy
+        // Deliberately overpowered recovery fixture; production data is untouched.
+        if mutant and connected
+            attacker.cooldown = 1
+            attacker.attackDuration = attacker.attackFrame + 1
+
+    function motion()
+        attackInput.lCancelPressed = false
+        if not cancelIssued and not attacker.grounded and attacker.hitlag <= 1
+            attackInput.lCancelPressed = true
+            cancelIssued = true
+        advanceFighterMotion(attacker, 0, attackInput, 0)
+        advanceFighterMotion(defender, 0, defendInput, 0)
+
+    function contacts()
+        beginDamageContacts()
+        resolveAttacks(world)
+        regenerateShield(attacker)
+        regenerateShield(defender)
+        finishDamageContacts(world)
+
+    ondestroy
+        destroy attackInput
+        destroy defendInput
+        destroy attacker
+        destroy defender
+        destroy world
+
+public class ContactComparison
+    boolean connected = false
+    int contactFrame = -1
+    int attackerReady = -1
+    int defenderReady = -1
+    int attackerLanding = -1
+    int shieldstun = 0
+    int hitstun = 0
+    int attackerHitlag = 0
+    int defenderHitlag = 0
+    real percentDamage = 0
+    real shieldDamage = 0
+    real separationAtAttackerReady = 0
+    real verticalAtAttackerReady = 0
+    real separationAtDefenderReady = 0
+    real verticalAtDefenderReady = 0
+    real defenderWeight = 0
+
+public function compareContact(int character, int category, real spacing, real percent,
+        boolean shielding, boolean mutant) returns ContactComparison
+    let rig = new ContactComparisonRig(character, category, spacing, percent, shielding, mutant)
+    let result = new ContactComparison()
+    result.connected = rig.connected
+    result.contactFrame = rig.contactFrame
+    result.shieldstun = rig.initialShieldstun
+    result.hitstun = rig.initialHitstun
+    result.attackerHitlag = rig.attackerHitlag
+    result.defenderHitlag = rig.defenderHitlag
+    result.percentDamage = rig.percentDamage
+    result.shieldDamage = rig.shieldDamage
+    result.defenderWeight = rig.defender.physics.weight
+    for tick = 0 to COMPARISON_HORIZON
+        if tick > 0
+            rig.motion()
+            rig.contacts()
+        if result.attackerLanding < 0 and rig.attacker.grounded
+            result.attackerLanding = tick
+        if result.attackerReady < 0 and canAttack(rig.attacker)
+            result.attackerReady = tick
+            result.separationAtAttackerReady = rig.defender.x - rig.attacker.x
+            result.verticalAtAttackerReady = rig.defender.z - rig.attacker.z
+        if result.defenderReady < 0 and canAttack(rig.defender)
+            result.defenderReady = tick
+            result.separationAtDefenderReady = rig.defender.x - rig.attacker.x
+            result.verticalAtDefenderReady = rig.defender.z - rig.attacker.z
+    destroy rig
+    return result
+
+// Named local policy: more shield damage must cost either later attacker
+// recovery or an earlier defender response in the same contact-state context.
+// This is an explicit category constraint, not a universal balance theorem.
+public function categoryTradeoffViolation(ContactComparison smash, ContactComparison normal) returns boolean
+    return smash.connected and normal.connected and smash.attackerReady >= 0 and normal.attackerReady >= 0 and
+        smash.defenderReady >= 0 and normal.defenderReady >= 0 and smash.shieldDamage > normal.shieldDamage and
+        smash.attackerReady <= normal.attackerReady and smash.defenderReady >= normal.defenderReady
+
+public class FollowupComparison
+    int scheduledStart = -1
+    int actualStart = -1
+    int actualStyle = -1
+    int firstActive = -1
+    int firstContact = -1
+    int opponentReady = -1
+    real separationAtStart = 0
+    real verticalAtStart = 0
+    real separationAtFirstActive = 0
+    real verticalAtFirstActive = 0
+    boolean timingAllows = false
+    boolean reachesBeforeAction = false
+
+// A selected grounded normal is attempted once at baseline-ready + delay.
+// Approach, when selected, uses actual movement inputs during the delay only.
+public function compareFollowup(int character, int category, real spacing, real percent,
+        boolean shielding, int candidateStyle, int delay, boolean approach,
+        ContactComparison baseline) returns FollowupComparison
+    let result = new FollowupComparison()
+    let ready = shielding ? baseline.defenderReady : baseline.attackerReady
+    result.opponentReady = shielding ? baseline.attackerReady : baseline.defenderReady
+    if not baseline.connected or ready < 0
+        return result
+    let rig = new ContactComparisonRig(character, category, spacing, percent, shielding, false)
+    let actor = shielding ? rig.defender : rig.attacker
+    let target = shielding ? rig.attacker : rig.defender
+    let controls = shielding ? rig.defendInput : rig.attackInput
+    result.scheduledStart = ready + delay
+    var serial = -1
+    for tick = 1 to COMPARISON_HORIZON
+        controls.direction = approach and tick >= ready and tick < result.scheduledStart ? (target.x > actor.x ? 1 : -1) : 0
+        rig.motion()
+        if tick == result.scheduledStart
+            result.separationAtStart = target.x - actor.x
+            result.verticalAtStart = target.z - actor.z
+            let oldSerial = actor.attackSerial
+            actor.facing = target.x >= actor.x ? 1 : -1
+            beginFighterAttack(rig.world, shielding ? 1 : 0, candidateStyle, false)
+            if actor.attackSerial != oldSerial
+                serial = actor.attackSerial
+                result.actualStart = tick
+                result.actualStyle = actor.attackStyle
+        if serial >= 0 and actor.attackSerial == serial and attackPhase(actor) == ATTACK_ACTIVE and result.firstActive < 0
+            result.firstActive = tick
+            result.separationAtFirstActive = target.x - actor.x
+            result.verticalAtFirstActive = target.z - actor.z
+            result.timingAllows = result.opponentReady >= 0 and tick < result.opponentReady
+        rig.contacts()
+        if serial >= 0 and target.lastHitAttacker == actor and target.lastHitAttackSerial == serial and result.firstContact < 0
+            result.firstContact = tick
+            result.reachesBeforeAction = result.opponentReady >= 0 and tick < result.opponentReady
+    destroy rig
+    return result
+
+public function followupVerdict(FollowupComparison result, boolean shielding, boolean approach) returns string
+    if result.actualStart < 0
+        return "ground-normal-unavailable"
+    if result.opponentReady < 0
+        return "opponent-recovery-unobserved"
+    if result.reachesBeforeAction
+        return shielding ? "bounded-punish" : "bounded-true-link"
+    if result.timingAllows
+        return "timing-window-but-reach-miss"
+    if result.firstContact >= 0
+        return approach ? "chase-after-actionable" : "escapable-pressure"
+    return "no-contact"
