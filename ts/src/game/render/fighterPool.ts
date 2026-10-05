@@ -83,7 +83,7 @@ export class FighterPoolPresentation {
 
   present(fighter: Readonly<Fighter>, pose: Readonly<FighterPose>): void {
     if (this.clips.length === 0) return;
-    const index = pose.clipIndex >= 0 ? pose.clipIndex : originalClipNamed(this.character, pose.clipName);
+    const index = pose.clipIndex ?? originalClipNamed(this.character, pose.clipName);
     const model = index === undefined ? undefined : this.clips[index];
     const clip = index === undefined ? undefined : originalClip(this.character, index);
     if (fighter.status.out || index === undefined || model === undefined || clip === undefined) {

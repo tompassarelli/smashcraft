@@ -59,11 +59,11 @@ export interface KoPose {
 
 /**
  * A pool of impacts by slot, as parallel arrays. Ages count executed frames
- * from emission; -1 marks a free slot, keeping each array dense in Lua.
+ * from emission; undefined marks a free slot, keeping each array dense in Lua.
  * Projection reads the pool without advancing time or consuming events.
  */
 export interface ImpactState {
-  readonly ages: number[];
+  readonly ages: (number | undefined)[];
   readonly nextSlot: number[];
   readonly originX: number[];
   readonly originZ: number[];
@@ -78,7 +78,7 @@ const filled = <T>(length: number, value: T): T[] => Array.from({ length }, () =
 
 export function createImpactState(): ImpactState {
   return {
-    ages: filled(IMPACT_COUNT, -1),
+    ages: filled<number | undefined>(IMPACT_COUNT, undefined),
     nextSlot: filled(IMPACT_KIND_COUNT, 0),
     originX: filled(IMPACT_COUNT, 0.0),
     originZ: filled(IMPACT_COUNT, 0.0),
@@ -100,7 +100,7 @@ function at<T>(values: readonly T[], index: number): T {
 export function copyImpactStateInto(target: ImpactState, source: Readonly<ImpactState>): void {
   for (let i = 0; i < IMPACT_COUNT; i++) {
     target.character[i] = at(source.character, i);
-    target.ages[i] = at(source.ages, i);
+    target.ages[i] = source.ages[i];
     target.originX[i] = at(source.originX, i);
     target.originZ[i] = at(source.originZ, i);
     target.drift[i] = at(source.drift, i);
@@ -132,7 +132,7 @@ export function firstImpactDifference(expected: Readonly<ImpactState>, actual: R
 export function clearImpactState(state: ImpactState): void {
   for (let i = 0; i < IMPACT_COUNT; i++) {
     state.character[i] = 0;
-    state.ages[i] = -1;
+    state.ages[i] = undefined;
     state.originX[i] = 0.0;
     state.originZ[i] = 0.0;
     state.drift[i] = 0;
@@ -161,9 +161,9 @@ export function impactLifetime(kind: number): number {
 /** Ages every live impact by one executed frame. */
 export function advanceImpacts(state: ImpactState): void {
   for (let i = 0; i < IMPACT_COUNT; i++) {
-    const age = at(state.ages, i);
-    if (age < 0) continue;
-    state.ages[i] = age + 1 >= impactLifetime(idiv(i, IMPACTS_PER_KIND)) ? -1 : age + 1;
+    const age = state.ages[i];
+    if (age === undefined) continue;
+    state.ages[i] = age + 1 >= impactLifetime(idiv(i, IMPACTS_PER_KIND)) ? undefined : age + 1;
   }
 }
 
@@ -256,9 +256,9 @@ function hiddenImpact(): ImpactPose {
 /** An impact slot's transform. KO slots show only a star KO's closing sparkle. */
 export function projectImpact(state: Readonly<ImpactState>, i: number): ImpactPose {
   if (i < 0 || i >= IMPACT_COUNT) return hiddenImpact();
-  const age = at(state.ages, i);
+  const age = state.ages[i];
   const kind = idiv(i, IMPACTS_PER_KIND);
-  if (age < 0 || kind === IMPACT_SCREEN_KO || (kind === IMPACT_STAR_KO && age < KO_STAR_FLIGHT_FRAMES)) return hiddenImpact();
+  if (age === undefined || kind === IMPACT_SCREEN_KO || (kind === IMPACT_STAR_KO && age < KO_STAR_FLIGHT_FRAMES)) return hiddenImpact();
   const originX = at(state.originX, i);
   const originZ = at(state.originZ, i);
   const drift = at(state.drift, i);
@@ -301,8 +301,8 @@ function hiddenKo(): KoPose {
  */
 export function projectKo(state: Readonly<ImpactState>, i: number): KoPose {
   if (i < IMPACT_STAR_KO * IMPACTS_PER_KIND || i >= IMPACT_COUNT) return hiddenKo();
-  const age = at(state.ages, i);
-  if (age < 0) return hiddenKo();
+  const age = state.ages[i];
+  if (age === undefined) return hiddenKo();
   const drift = at(state.drift, i);
   const originX = at(state.originX, i);
   const originZ = at(state.originZ, i);

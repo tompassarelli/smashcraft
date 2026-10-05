@@ -21,25 +21,25 @@ export const PROBE_EXPORT = "probe.exportPage";
 /** One game callback's service. -1 is "not recorded" in the page format. */
 interface ServiceRow {
   entryMs: number;
-  pollMs: number;
-  captureMs: number;
-  advanceMs: number;
-  presentMs: number;
+  pollMs: number | undefined;
+  captureMs: number | undefined;
+  advanceMs: number | undefined;
+  presentMs: number | undefined;
   frameBefore: number;
-  frameAfter: number;
+  frameAfter: number | undefined;
   speculativeBefore: number;
-  speculativeAfter: number;
+  speculativeAfter: number | undefined;
   known: number;
-  target: number;
-  held: number;
-  pressed: number;
-  released: number;
-  captureResult: number;
+  target: number | undefined;
+  held: number | undefined;
+  pressed: number | undefined;
+  released: number | undefined;
+  captureResult: number | undefined;
   phase: number;
-  confirmedShield: number;
-  predictedShield: number;
-  poseSerial: number;
-  correction: number;
+  confirmedShield: number | undefined;
+  predictedShield: number | undefined;
+  poseSerial: number | undefined;
+  correction: number | undefined;
   fileReadMs: number;
   fileReads: number;
   fileBytes: number;
@@ -48,10 +48,10 @@ interface ServiceRow {
 }
 
 interface TransportStamp {
-  epoch: number;
+  epoch: number | undefined;
   frame: number;
-  sendMs: number;
-  receiveMs: number;
+  sendMs: number | undefined;
+  receiveMs: number | undefined;
 }
 
 export interface ResponseProbe {
@@ -97,7 +97,7 @@ function serviceRow(): ServiceRow {
   };
 }
 
-const vacantStamp = (): TransportStamp => ({ epoch: -1, frame: 0, sendMs: -1.0, receiveMs: -1.0 });
+const vacantStamp = (): TransportStamp => ({ epoch: undefined, frame: 0, sendMs: undefined, receiveMs: undefined });
 
 /** Creates the probe's timers, marker and every row before measurement, so recording only overwrites. */
 export function createResponseProbe(build: string): ResponseProbe {
@@ -187,21 +187,21 @@ export function probeBegin(probe: ResponseProbe | undefined, frame: number, spec
   row.speculativeBefore = speculative;
   row.known = known;
   row.phase = phase;
-  row.pollMs = -1.0;
-  row.captureMs = -1.0;
-  row.advanceMs = -1.0;
-  row.presentMs = -1.0;
-  row.frameAfter = -1;
-  row.speculativeAfter = -1;
-  row.target = -1;
-  row.held = -1;
-  row.pressed = -1;
-  row.released = -1;
-  row.captureResult = -1;
-  row.confirmedShield = -1;
-  row.predictedShield = -1;
-  row.poseSerial = -1;
-  row.correction = -1;
+  row.pollMs = undefined;
+  row.captureMs = undefined;
+  row.advanceMs = undefined;
+  row.presentMs = undefined;
+  row.frameAfter = undefined;
+  row.speculativeAfter = undefined;
+  row.target = undefined;
+  row.held = undefined;
+  row.pressed = undefined;
+  row.released = undefined;
+  row.captureResult = undefined;
+  row.confirmedShield = undefined;
+  row.predictedShield = undefined;
+  row.poseSerial = undefined;
+  row.correction = undefined;
   row.fileReadMs = 0.0;
   row.fileReads = 0;
   row.fileBytes = 0;
@@ -237,7 +237,7 @@ export function probeTransportSend(probe: ResponseProbe | undefined, epoch: numb
   stamp.epoch = epoch;
   stamp.frame = frame;
   stamp.sendMs = nowMs(probe);
-  stamp.receiveMs = -1.0;
+  stamp.receiveMs = undefined;
   probe.transportSent++;
   if (probe.transportOrder.length < TRANSPORT_LIMIT) probe.transportOrder.push(index);
   else probe.transportDropped++;
@@ -246,11 +246,11 @@ export function probeTransportSend(probe: ResponseProbe | undefined, epoch: numb
 export function probeTransportReceive(probe: ResponseProbe | undefined, epoch: number, frame: number): void {
   if (!probeRecording(probe)) return;
   const stamp = probe.transport[floorMod(frame, TRANSPORT_LIMIT)];
-  if (stamp === undefined || stamp.epoch !== epoch || stamp.frame !== frame || stamp.sendMs < 0) {
+  if (stamp === undefined || stamp.epoch !== epoch || stamp.frame !== frame || stamp.sendMs === undefined) {
     probe.transportUnmatched++;
     return;
   }
-  if (stamp.receiveMs < 0) {
+  if (stamp.receiveMs === undefined) {
     stamp.receiveMs = nowMs(probe);
     probe.transportReceived++;
   }
@@ -262,7 +262,7 @@ function stampEdge(probe: ResponseProbe, stage: "poll" | "present"): void {
   if (!probe.recording || !probe.edgeStamps || probe.exporting || row === undefined || probe.row === undefined) return;
   const slot = GetPlayerId(GetLocalPlayer());
   writeLines(`smashcraft-edge-p${slot}-run${probe.run}-row${probe.row}-${stage}.txt`, [
-    `EDGE v=1 build=${probe.build} local=${slot} run=${probe.run} row=${probe.row} stage=${stage} held=${row.held} pressed=${row.pressed} released=${row.released} active=${BlzIsLocalClientActive() ? 1 : 0} native_ms=${R2S(nowMs(probe))}`,
+    `EDGE v=1 build=${probe.build} local=${slot} run=${probe.run} row=${probe.row} stage=${stage} held=${row.held ?? -1} pressed=${row.pressed ?? -1} released=${row.released ?? -1} active=${BlzIsLocalClientActive() ? 1 : 0} native_ms=${R2S(nowMs(probe))}`,
   ]);
 }
 
@@ -343,15 +343,15 @@ export function exportProbePage(probe: ResponseProbe): void {
   for (let index = first; index < Math.min(probe.rows, last); index++) {
     const r = probe.service[index];
     if (r === undefined) continue;
-    lines.push(`A ${index} ${R2S(r.entryMs)} ${R2S(r.pollMs)} ${R2S(r.captureMs)} ${R2S(r.advanceMs)} ${R2S(r.presentMs)} ${r.frameBefore} ${r.frameAfter} ${r.speculativeBefore} ${r.speculativeAfter} ${r.known} ${r.target}`);
-    lines.push(`B ${index} ${r.held} ${r.pressed} ${r.released} ${r.captureResult} ${r.phase} ${r.confirmedShield} ${r.predictedShield} ${r.poseSerial} ${r.correction}`);
+    lines.push(`A ${index} ${R2S(r.entryMs)} ${R2S(r.pollMs ?? -1)} ${R2S(r.captureMs ?? -1)} ${R2S(r.advanceMs ?? -1)} ${R2S(r.presentMs ?? -1)} ${r.frameBefore} ${r.frameAfter ?? -1} ${r.speculativeBefore} ${r.speculativeAfter ?? -1} ${r.known} ${r.target ?? -1}`);
+    lines.push(`B ${index} ${r.held ?? -1} ${r.pressed ?? -1} ${r.released ?? -1} ${r.captureResult ?? -1} ${r.phase} ${r.confirmedShield ?? -1} ${r.predictedShield ?? -1} ${r.poseSerial ?? -1} ${r.correction ?? -1}`);
     lines.push(`C ${index} ${r.fileReads} ${r.fileBytes} ${R2S(r.fileReadMs)} ${r.sendCalls} ${R2S(r.sendCallMs)}`);
   }
   for (const index of probe.transportOrder.slice(first, last)) {
     const stamp = probe.transport[index];
     if (stamp === undefined) continue;
-    const age = stamp.receiveMs >= 0 ? stamp.receiveMs - stamp.sendMs : -1.0;
-    lines.push(`D ${stamp.epoch} ${stamp.frame} ${R2S(stamp.sendMs)} ${R2S(stamp.receiveMs)} ${R2S(age)}`);
+    const age = stamp.receiveMs === undefined || stamp.sendMs === undefined ? -1.0 : stamp.receiveMs - stamp.sendMs;
+    lines.push(`D ${stamp.epoch ?? -1} ${stamp.frame} ${R2S(stamp.sendMs ?? -1)} ${R2S(stamp.receiveMs ?? -1)} ${R2S(age)}`);
   }
   writeLines(`smashcraft-response-p${slot}-run${probe.run}-page${probe.page}.txt`, lines);
   probe.page++;

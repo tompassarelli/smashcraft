@@ -30,7 +30,7 @@ function poseFields(slot: number, pose: Readonly<FighterPose>): string {
   const { motion } = pose;
   return `${p}animation=${pose.animation}${p}jumpAnimationRemaining=${pose.jumpAnimationRemaining}`
     + `${p}doubleJumpAnimation=${pose.doubleJumpAnimation ? 1 : 0}${p}landingAnimationRate=${canonicalReal(pose.landingAnimationRate)}`
-    + `${p}clipIndex=${pose.clipIndex}${p}clipName=${pose.clipName}${p}clipTime=${canonicalReal(pose.clipTime)}`
+    + `${p}clipIndex=${pose.clipIndex ?? -1}${p}clipName=${pose.clipName}${p}clipTime=${canonicalReal(pose.clipTime)}`
     + `${p}rate=${canonicalReal(pose.rate)}${p}selectionSerial=${pose.selectionSerial}`
     + `${p}motion=${motion.motion}${p}transitionRemaining=${motion.transitionRemaining}`
     + `${p}respawnRemaining=${motion.respawnRemaining}${p}escapeRemaining=${motion.escapeRemaining}`

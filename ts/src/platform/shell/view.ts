@@ -93,7 +93,7 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   if (pooled) ShowUnit(body.unit, false);
   if (body.renderedSelection !== pose.selectionSerial) {
     if (!pooled) {
-      if (pose.clipIndex >= 0) SetUnitAnimationByIndex(body.unit, pose.clipIndex);
+      if (pose.clipIndex !== undefined) SetUnitAnimationByIndex(body.unit, pose.clipIndex);
       else SetUnitAnimation(body.unit, pose.clipName);
     }
     body.renderedSelection = pose.selectionSerial;
