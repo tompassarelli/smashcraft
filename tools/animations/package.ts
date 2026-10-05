@@ -4,7 +4,9 @@ import { join } from "node:path";
 import { type ModelAssetInfo, typescriptAssetInfo } from "./asset-info";
 
 const project = join(import.meta.dir, "../..");
-const assetDirectory = join(project, "build/animation-assets");
+// For metadata changes, pass the authored asset directory and --metadata-only.
+const assetDirectory = process.argv[2] ?? join(project, "build/animation-assets");
+const metadataOnly = process.argv[3] === "--metadata-only";
 
 const clips = [
     ["GRAB", "Grab"],
@@ -65,11 +67,15 @@ for (const fighter of ["Archer", "Rifleman"]) {
         if (!(seconds > 0)) throw new Error(`${name} sequence must have a positive duration`);
         return [key, index, seconds] as const;
     });
-    const modelBytes = generateMDX(model);
+    const modelBytes = metadataOnly
+        ? await Bun.file(join(assetDirectory, `${fighter}Fighter.mdx`)).arrayBuffer()
+        : generateMDX(model);
     const modelHash = new Bun.CryptoHasher("sha256").update(new Uint8Array(modelBytes)).digest("hex");
     const modelPath = `war3mapImported\\${fighter}Fighter-${modelHash}.mdx`;
-    await Bun.write(join(assetDirectory, `${fighter}Fighter.mdx`), modelBytes);
-    typescriptModels.push({ prefix, modelPath, clips: metadata.map(([key, index, seconds]) => ({ key, index, seconds })) });
+    if (!metadataOnly) await Bun.write(join(assetDirectory, `${fighter}Fighter.mdx`), modelBytes);
+    typescriptModels.push({ prefix, modelPath, clips: metadata
+        .filter(([key]) => fighter !== "Archer" || key !== "SPECIAL_NEUTRAL_AIR")
+        .map(([key, index, seconds]) => ({ key, index, seconds })) });
     console.log(`${fighter} model packaged:`, metadata.map(([key, index, seconds]) => `${key} ${index} ${seconds}s`).join("; "));
     console.log("Texture references:", model.Textures.map(texture => texture.Image));
 }

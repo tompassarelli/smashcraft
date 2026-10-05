@@ -1,11 +1,12 @@
 // The TypeScript presentation modules generated from each model's authored
 // clips: the imported model path and each sequence index and duration.
 
-export interface ClipBinding {
+interface ClipBinding {
   /** Constant-name fragment, such as GRAB_HOLD. */
   readonly key: string;
   readonly index: number;
-  readonly seconds: number;
+  /** Present when presentation code owns this clip's clock. */
+  readonly seconds?: number;
 }
 
 export interface ModelAssetInfo {
@@ -30,7 +31,8 @@ export function typescriptAssetInfo(generator: string, models: readonly ModelAss
   for (const { prefix, modelPath, clips } of models) {
     lines.push(`export const ${prefix}_MODEL_FILE = ${JSON.stringify(modelPath)};`);
     for (const clip of clips) {
-      lines.push(`export const ${prefix}_${clip.key}_INDEX = ${clip.index};`, `export const ${prefix}_${clip.key}_SECONDS = ${seconds(clip.seconds)};`);
+      lines.push(`export const ${prefix}_${clip.key}_INDEX = ${clip.index};`);
+      if (clip.seconds !== undefined) lines.push(`export const ${prefix}_${clip.key}_SECONDS = ${seconds(clip.seconds)};`);
     }
   }
   return `${lines.join("\n")}\n`;
