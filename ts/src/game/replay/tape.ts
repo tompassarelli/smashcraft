@@ -8,6 +8,8 @@
 //   input SLOT FIELD=VALUE... attack=STYLE,FACING,FRAME,CHARGE...
 //   frame N              capture the inputs given since the last frame, save, execute
 //   rollback FIRST LAST  replay FIRST..LAST (LAST is the current frame) from history
+//   predict N            as frame, but saved as a prediction a later correction may replace
+//   correct N            replace frame N with the inputs given since, and replay from it
 // Input fields are Controls fields; flags are 0 or 1. Every operation except
 // input prints one record: "LINE OPERATION RESULT CANONICAL-STATE".
 import { parseDecimal } from "../netcode/journal/decimal";
@@ -52,7 +54,7 @@ export type MenuRequest = "stage-select" | "start" | "rematch";
 
 export type TapeOperation =
   | { readonly kind: "input"; readonly line: number; readonly slot: ParticipantSlot; readonly controls: readonly ControlAssignment[]; readonly attacks: readonly AttackCommand[] }
-  | { readonly kind: "frame"; readonly line: number; readonly frame: number }
+  | { readonly kind: "frame" | "predict" | "correct"; readonly line: number; readonly frame: number }
   | { readonly kind: "rollback"; readonly line: number; readonly first: number; readonly last: number }
   | { readonly kind: "participants"; readonly line: number; readonly humans: number; readonly computers: number }
   | { readonly kind: MenuOperation; readonly line: number; readonly slot: number; readonly value: number }
@@ -140,7 +142,9 @@ function decodeLine(line: number, text: string): Decoded<TapeOperation> | undefi
       if (first === undefined || !isParticipantSlot(first)) return fail("input takes a participant slot");
       return decodeInput(line, first, rest.slice(1));
     case "frame":
-      return single ? { ok: true, value: { kind: "frame", line, frame: first } } : fail("frame takes a frame number");
+    case "predict":
+    case "correct":
+      return single ? { ok: true, value: { kind: operation, line, frame: first } } : fail(`${operation} takes a frame number`);
     case "rollback":
       return pair ? { ok: true, value: { kind: "rollback", line, first, last: second } } : fail("rollback takes FIRST LAST");
     case "participants":

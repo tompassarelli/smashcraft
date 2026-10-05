@@ -60,6 +60,11 @@ interface MatchScript {
   readonly approaches: readonly [readonly Approach[], readonly Approach[]];
   /** Replay `[first, last]` after frame `last`. */
   readonly rollbacks: readonly (readonly [number, number])[];
+  /**
+   * Run `[first, last]` as predictions that slot 1 is idle, then correct each
+   * frame with the inputs actually recorded, oldest first, after frame `last`.
+   */
+  readonly predictions?: readonly (readonly [number, number])[];
 }
 
 const NEUTRAL = Object.entries(neutralControls());
@@ -94,10 +99,12 @@ function playMatch(script: MatchScript, session: TapeSession, play: (...lines: s
     approaches: script.approaches[slot].map(([at, within]) => ({ at, within, done: false })), holds: script.holds[slot],
   }));
   const rollbacks = new Map(script.rollbacks.map(([first, last]) => [last, first]));
+  /** Recorded input lines of the predicted frames still to correct. */
+  const actual: string[][] = [];
   for (let frame = 1; frame <= script.frames; frame++) {
     const inputs = players.map(player => {
-      const self = fighterAt(session.world, player.slot);
-      const dx = fighterAt(session.world, 1 - player.slot).motion.x - self.motion.x;
+      const self = fighterAt(session.live.world, player.slot);
+      const dx = fighterAt(session.live.world, 1 - player.slot).motion.x - self.motion.x;
       const toward = dx < 0 ? LEFT : RIGHT;
       const resolve = (source: string) => source === TOWARD ? toward : source === AWAY ? (toward === LEFT ? RIGHT : LEFT) : source;
       const held = new Set<string>();
@@ -126,7 +133,14 @@ function playMatch(script: MatchScript, session: TapeSession, play: (...lines: s
       return `input ${player.slot} ${formatControls(player.controls, player.attacks)}`.trimEnd();
     });
     const first = rollbacks.get(frame);
-    play(...inputs, `frame ${frame}`, ...(first === undefined ? [] : [`rollback ${first} ${frame}`]));
+    const prediction = script.predictions?.find(([from, to]) => frame >= from && frame <= to);
+    if (prediction === undefined) play(...inputs, `frame ${frame}`);
+    else {
+      actual.push(inputs);
+      play(...inputs.slice(0, 1), "input 1", `predict ${frame}`);
+      if (frame === prediction[1]) actual.splice(0).forEach((recorded, index) => play(...recorded, `correct ${prediction[0] + index}`));
+    }
+    if (first !== undefined) play(`rollback ${first} ${frame}`);
   }
 }
 
@@ -134,11 +148,17 @@ function playMatch(script: MatchScript, session: TapeSession, play: (...lines: s
 function recordTape(title: string, scripts: readonly MatchScript[], pressed: Set<string>[] = []): string {
   const session = createTapeSession();
   const lines = [TAPE_HEADER, `# ${title}`];
+  let replayedCorrections = 0;
+  const checkCorrection = (record: string) => {
+    const result = record.split(" ", 3)[2];
+    if (result === "rejected") throw new Error(`${title}: the history rejected a correction`);
+    if (result !== "unchanged") replayedCorrections++;
+  };
   const play = (...added: string[]) => {
     const decoded = decodeTape([TAPE_HEADER, ...added].join("\n"));
     if (!decoded.ok) throw new Error(`generated "${added[decoded.line - 2]}": ${decoded.message}`);
     for (const operation of decoded.value) {
-      const refused = performTapeOperation(session, operation);
+      const refused = performTapeOperation(session, operation, operation.kind === "correct" ? checkCorrection : undefined);
       if (refused !== undefined) throw new Error(`${title}: ${refused}`);
     }
     lines.push(...added);
@@ -149,6 +169,7 @@ function recordTape(title: string, scripts: readonly MatchScript[], pressed: Set
     play(...menuLines(script));
     playMatch(script, session, play, pressed);
   });
+  if (scripts.some(script => (script.predictions?.length ?? 0) > 0) && replayedCorrections === 0) throw new Error(`${title}: no correction changed a prediction`);
   return [...lines, ""].join("\n");
 }
 
@@ -198,6 +219,7 @@ const ROLLBACK: MatchScript = {
     [[10, 45], [40, 45], [70, 45], [100, 45], [130, 45], [160, 45], [190, 45]],
   ],
   rollbacks: [...every(60, 90, 1, 1), ...every(97, 130, 7, 6), [73, 136], [157, 220]],
+  predictions: [[24, 45], [140, 151], [196, 214]],
 };
 
 /** A one-stock match ends when the Rifleman runs off the stage; one replay crosses the end. */
@@ -409,7 +431,9 @@ for (const { name, text, wurst, lua32 } of started) {
   runs.set(name, { "wurst-lua": await wurst, bun, "ts-lua32": await lua32 });
 }
 
-const frameCount = (run: Run) => run.records.filter(record => record.split(" ", 2)[1] === "frame").length;
+/** Executed frames, run on recorded or on predicted rows. */
+const isFrame = (operation: string | undefined) => operation === "frame" || operation === "predict";
+const frameCount = (run: Run) => run.records.filter(record => isFrame(record.split(" ", 2)[1])).length;
 const perTape = [...runs].map(([name, byRuntime]) => `${name} ${frameCount(byRuntime["wurst-lua"])}`);
 const totalFrames = [...runs.values()].reduce((sum, byRuntime) => sum + frameCount(byRuntime["wurst-lua"]), 0);
 console.log(`${runs.size} tapes, ${totalFrames} frames (${perTape.join(", ")})`);
@@ -438,7 +462,7 @@ for (const pair of PAIRS) {
     for (let index = 0; index < Math.max(a.length, b.length); index++) {
       if (a[index] === b[index]) continue;
       const { label } = parseRecord(a[index] ?? b[index]);
-      if (label.split(" ")[1] === "frame") divergentFrames++;
+      if (isFrame(label.split(" ")[1])) divergentFrames++;
       else divergentOther++;
       first ??= `${name} line ${label}: ${describeDivergence(a[index], b[index], pair)}`;
     }

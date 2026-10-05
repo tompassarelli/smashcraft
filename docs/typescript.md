@@ -45,7 +45,7 @@ Map Lua has 32-bit integers that wrap silently and binary32 numbers whose raw
 
 ### Effect on the host
 
-Waygate's Bun tools use Effect for asynchronous orchestration: typed
+Warcraft Live's Bun tools use Effect for asynchronous orchestration: typed
 failures, boundary decoding with Schema, bounded client publication and scoped
 resource ownership. The hot-reload entrypoint is smashcraft:ts/scripts/hot.ts;
 its Effect operations live in smashcraft:ts/scripts/hotEffects.ts. Publish each
@@ -128,9 +128,10 @@ From smashcraft:ts/:
   such as the 100000-frame replay tape, which the default suite leaves out.
   `GAME_SOAK=1` selects the same modules for `scripts/lua-tests.ts`.
 - `LUA=<32-bit lua> bun scripts/tapes.ts`: the replay acceptance tapes. It
-  records tapes covering every bound key, rollbacks and a rematch, replays them
-  in Wurst's own Lua (smashcraft:tools/tape-oracle/), in Bun and in TypeScript's
-  emitted Lua, and compares the canonical replay state and fighter poses after
+  records tapes covering every bound key, rollbacks, predictions corrected
+  through the replay history and a rematch, replays them in Wurst's own Lua
+  (smashcraft:tools/tape-oracle/), in Bun and in TypeScript's emitted Lua, and
+  compares the canonical replay state and fighter poses after
   every frame. It prints the first divergent frame and field. The Wurst side
   needs what smashcraft:test.sh needs: the locked compiler in
   smashcraft:toolchain/ and the generated asset info in smashcraft:build/.

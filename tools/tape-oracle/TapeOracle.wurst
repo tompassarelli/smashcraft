@@ -21,8 +21,10 @@ FighterRoster world
 FrameInputs controls
 ReplayRuntimeState runtime
 ReplayHistory history
+ReplayCorrections corrections
 ReplaySnapshot observed
 MatchFrameInput row
+MatchFrameInput correction
 FrameInputs produced
 InputSnapshot neutral
 int epoch = 0
@@ -144,7 +146,7 @@ function startMatch()
 	runtime.simulationFrame = 0
 	runtime.resetPoses()
 	initializeMatchFighters(game, world)
-	if not history.beginEpoch(epoch, 1)
+	if not history.beginEpochWithCorrections(epoch, 1, REPLAY_MAX_CORRECTION_FRAMES) or not corrections.beginEpoch(epoch)
 		TapeOracleFail("history refused epoch " + I2S(epoch))
 
 function flagText(boolean value) returns string
@@ -172,18 +174,39 @@ function emit(string operation, string result)
 	observed.capture(world, game, controls, runtime)
 	TapeOracleEmit(I2S(TapeOracleLineNumber()) + " " + operation + " " + result + " " + observed.canonicalState() + poseText())
 
-function runFrame()
-	let number = TapeOracleInt()
-	if not row.capture(number, world.mask, produced, runtime)
-		TapeOracleFail("capture refused frame " + I2S(number))
-	if not history.save(epoch, row, world, game, controls, runtime)
-		TapeOracleFail("history refused frame " + I2S(number))
-	if not row.execute(game, world, controls, runtime, number)
-		TapeOracleFail("execution refused frame " + I2S(number))
-	emit("frame", I2S(number))
+function clearProduced()
 	for slot = 0 to INPUT_PARTICIPANT_CAPACITY - 1
 		neutral.copyTo(produced.inputs[slot])
 		produced.commands[slot].clear()
+
+// A predicted frame is saved as a row a later correction may replace.
+function runFrame(string operation, boolean predicted)
+	let number = TapeOracleInt()
+	if not row.capture(number, world.mask, produced, runtime)
+		TapeOracleFail("capture refused frame " + I2S(number))
+	let saved = predicted ? history.saveSpeculative(epoch, row, world, game, controls, runtime) : history.save(epoch, row, world, game, controls, runtime)
+	if not saved
+		TapeOracleFail("history refused frame " + I2S(number))
+	if not row.execute(game, world, controls, runtime, number)
+		TapeOracleFail("execution refused frame " + I2S(number))
+	emit(operation, I2S(number))
+	clearProduced()
+
+function correctionText(int result) returns string
+	if result == REPLAY_CORRECTION_REJECTED
+		return "rejected"
+	return result == REPLAY_CORRECTION_UNCHANGED ? "unchanged" : I2S(result)
+
+// Replaces a frame with the inputs given since, as a one-row batch.
+function runCorrection()
+	let number = TapeOracleInt()
+	correction.reset()
+	corrections.clear()
+	var result = REPLAY_CORRECTION_REJECTED
+	if correction.capture(number, world.mask, produced, runtime) and corrections.add(correction)
+		result = history.correct(epoch, corrections, world, game, controls, runtime)
+	clearProduced()
+	emit("correct", correctionText(result))
 
 function runRollback()
 	let first = TapeOracleInt()
@@ -196,7 +219,11 @@ function perform(string operation)
 	if operation == "input"
 		readInput()
 	else if operation == "frame"
-		runFrame()
+		runFrame(operation, false)
+	else if operation == "predict"
+		runFrame(operation, true)
+	else if operation == "correct"
+		runCorrection()
 	else if operation == "rollback"
 		runRollback()
 	else if operation == "participants"
@@ -240,8 +267,10 @@ init
 	controls = new FrameInputs()
 	runtime = new ReplayRuntimeState()
 	history = new ReplayHistory()
+	corrections = new ReplayCorrections()
 	observed = new ReplaySnapshot()
 	row = new MatchFrameInput()
+	correction = new MatchFrameInput()
 	produced = new FrameInputs()
 	neutral = new InputSnapshot()
 	while TapeOracleNextLine()
