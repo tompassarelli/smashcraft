@@ -21,6 +21,49 @@ can load them, and the longest a player should see one stay in view. The stage
 needs one drawn deck. A model the declaration doesn't list fails the check as
 soon as it is in view, so a new model needs a kind before it ships.
 
+## Hidden effects a player still sees
+
+The scene check also applies Wisp's render visibility (wisp:docs/player-view.md):
+it fails on a named model that is empty, unknown or draws nothing, on a
+collapsed effect in view whose model keeps emitting particles, on a parked
+effect whose mesh or particles reach the arena camera's frame, and on an
+effect destroyed in view whose death animation emits. It reads:
+
+- **Model facts**: smashcraft:ts/scripts/wisp/modelFacts.ts, generated for
+  every model a kind names. Imported models are read from the build's
+  `--assets` inputs, stock models from the game's archives in the classic
+  graphics the clients draw: the smoke in the four-fighter recording is the
+  classic GyroCopterMissile's `BlizParticle02` (05266a3). After a model
+  changes, or a kind names a new one, regenerate the table; a missing entry
+  fails the check:
+
+  ```sh
+  # The CascLib extractor, as smashcraft:tools/animations/extract.sh builds it:
+  nix shell nixpkgs#gcc --command g++ -O2 -I CASCLIB/src tools/animations/casc-extract.cpp CASCLIB/build/libcasc.a -pthread -o build/animation-assets/casc-extract
+  cd ts && bun wisp view models --assets ASSETS --summon ASSETS/summon-original-clips \
+    --extractor ../build/animation-assets/casc-extract --storage "WARCRAFT_III_DIR"
+  ```
+
+  Only numbers are kept: geosets, triangles, lights, boxes, and each
+  emitter's rate, lifespan, reach and when it runs. Model files stay in the
+  private inputs and the game's install.
+- **Arena cameras**: the camera smashcraft:ts/src/game/presentation/arenaCamera.ts
+  frames for every span of live fighters inside the blast zones, in quarters
+  of each zone, at the clients' 16:9. Warcraft spreads the 70-degree field of
+  view across the frame's width: in the 1280x720 four-fighter recording,
+  world x 0 sat at screen x 283 with the camera 592 to its right, where 70
+  degrees across the width predicts 274 and 70 degrees down its height 434.
+  Its lowest ray falls about 31.5 degrees.
+- **Parking**: `hideEffect` parks hidden effects on the ground beneath the
+  stage center, FLOOR_HEIGHT below the floor, where they are created.
+
+With the models of the 0.0.44 inputs, everything a parked effect can draw
+stays out of all 225 framings. The margin is how much higher the parking
+place could be: about 95 units for Illidan's flames (ImmolationTarget, whose
+particles rise and spread from 150 units up), about 290 for the hippogryph's
+death spray and the GyroCopterMissile's death bursts, and over 400 for every
+other model.
+
 ## Where it runs
 
 - `bun wisp fresh MAP.w3x` checks every client after the quick match's
@@ -32,7 +75,8 @@ soon as it is in view, so a new model needs a kind before it ships.
   `OUT/player-view-EPOCH/CLIENT.ppm`, and the scene again at each result,
   when every stay in view has ended. The playable journey's build has no
   recorder, so it gets the frame only.
-- `bun wisp view scene DATA_DIR...` checks each client's latest report and
+- `bun wisp view scene DATA_DIR...` checks each client's latest report, with
+  render visibility, and
   `bun wisp view frame FRAME.ppm...` measures frames, from captures or
   recordings, with the same expectations.
 

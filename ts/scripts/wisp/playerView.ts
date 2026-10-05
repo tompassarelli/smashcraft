@@ -1,11 +1,13 @@
 // What a player must see in a Smashcraft match (wisp:docs/player-view.md):
 // each kind of effect the map draws, with its models and the longest a player
-// should see one, and the stage in its band of the arena camera's frame.
+// should see one, what those models draw and where the arena camera looks,
+// and the stage in its band of the arena camera's frame.
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { type FrameFeature, colorRows, pixelShare } from "wisp/scripts/wisp/frameProbe";
 import type { PlayerViewExpectations } from "wisp/scripts/wisp/playerView";
 import type { SceneExpectations } from "wisp/scripts/wisp/scene";
+import type { CameraView } from "wisp/scripts/wisp/visibility";
 import { originalClip, originalClipCount, originalLightPath } from "../../src/game/assets/fighterOriginalClipInfo";
 import { FROST_ICE_MODEL, FROST_TRAP_MODEL } from "../../src/game/assets/frostAssetInfo";
 import {
@@ -17,8 +19,11 @@ import { STAGE_DECK_MODEL } from "../../src/game/assets/stageAssetInfo";
 import { STAGE_PALETTE } from "../../src/game/assets/stagePalette";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
+import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../src/game/presentation/arenaCamera";
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { Character } from "../../src/game/sim/codes";
+import { BLAST_ZONE_BOTTOM, BLAST_ZONE_SIDE, BLAST_ZONE_TOP } from "../../src/game/sim/stocks";
+import { MODEL_FACTS } from "./modelFacts";
 
 const FRAMES_PER_SECOND = 60;
 const seconds = (value: number) => value * FRAMES_PER_SECOND;
@@ -28,8 +33,28 @@ const range = (count: number) => Array.from({ length: count }, (_, index) => ind
 /** Each pooled fighter's clip models and its light, which follow the fighter all match. */
 const fighterModels = CHARACTERS.flatMap((character) => [
   ...range(originalClipCount(character)).flatMap((index) => originalClip(character, index)?.modelPath ?? []),
-  ...(originalLightPath(character) ?? []),
+  ...[originalLightPath(character) ?? []].flat(),
 ]);
+
+/** Every value from `low` to `high` in quarters, each paired with every one at or above it. */
+const spans = (low: number, high: number) => {
+  const steps = range(5).map((step) => low + ((high - low) * step) / 4);
+  return steps.flatMap((from, index) => steps.slice(index).map((to) => [from, to] as const));
+};
+
+/**
+ * The arena camera on every span of live fighters inside the blast zones, in
+ * quarters of each zone, in arena coordinates: the stage center at floor
+ * height. Warcraft spreads the field of view across the frame's width: in the
+ * 1280x720 four-fighter recording, world x 0 sat at screen x 283 with the
+ * camera 592 to its right (05266a3), where 70 degrees across the width
+ * predicts 274 and 70 degrees down its height 434. The clients run 16:9.
+ */
+const ARENA_CAMERAS: readonly CameraView[] = spans(-BLAST_ZONE_SIDE, BLAST_ZONE_SIDE).flatMap(([left, right]) =>
+  spans(BLAST_ZONE_BOTTOM, BLAST_ZONE_TOP).map(([bottom, top]) => {
+    const { x, z, distance } = arenaFraming(left, right, bottom, top);
+    return { target: [x, 0, z], distance, angleOfAttack: ARENA_CAMERA.angleOfAttack, rotation: ARENA_CAMERA.rotation, fieldOfView: ARENA_CAMERA.fieldOfView, aspect: 16 / 9, farZ: ARENA_CAMERA.farZ };
+  }));
 
 /**
  * Lifetimes are what a player should see, not what the code that hides an
@@ -39,6 +64,8 @@ const fighterModels = CHARACTERS.flatMap((character) => [
 export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: number } = {
   framesPerSecond: FRAMES_PER_SECOND,
   stage: { kind: "stage deck", pieces: 1 },
+  // hideEffect parks hidden effects on the ground beneath the stage center, where they are created.
+  visibility: { models: MODEL_FACTS, cameras: ARENA_CAMERAS, parking: [[0, 0, -FLOOR_HEIGHT]] },
   // Half a second into the match the decks are drawn and the camera has framed the fighters.
   settledFrame: 30,
   kinds: [

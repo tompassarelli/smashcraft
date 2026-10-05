@@ -7,7 +7,7 @@ import { clearPulse } from "../../game/input/directionalInput";
 import { startKeyUp } from "../../game/match/controls";
 import { Phase, humanActive, humanPresent, participantLeft, setParticipants, updateConnectedHumans } from "../../game/match/rules";
 import { FRAME_SECONDS } from "../../game/presentation/fighterPose";
-import { FLOOR_HEIGHT } from "../../game/render/effects";
+import { FLOOR_HEIGHT } from "../../game/presentation/arenaCamera";
 import { type MapBuild, journalIngress } from "../../game/shell/build";
 import { pausing } from "../../game/shell/pauseBarrier";
 import type { RollbackPlayback } from "../../game/shell/playback";
