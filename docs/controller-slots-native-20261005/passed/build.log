@@ -1,0 +1,68 @@
+{"decision":"RESERVED","reason":"RUN","class":"heavy","requestedCpus":6,"requestedMemoryMiB":8192,"leasedCpuCeilings":12,"aggregateCpuLimit":18,"leasedMemoryMiB":17920,"cpuSomeAvg10":0.43,"memoryFullAvg10":0,"memoryAvailableMiB":63363,"reclaimed":0,"lease":"02b45931-5693-414d-a2ee-2ce45a522ddb","expiresAt":1791164688229}
+Stage deck: 4 geosets; MDX roundtrip bounds x=[-50,50], z=[-54,0]; StageDeck-48ca8b3ca98aa77d741926a42ad589a5f8b1df78e68f565c285ccadd6bc2c27c.mdx
+SOURCE_TEXTURES_PRESERVED 9
+ILLIDAN_PACKAGE_PASS 88 authored clips 110 total sequences 7722979 bytes
+TEXTURES [{"Image":"Textures\\Black32.blp","Flags":3},{"Image":"Textures\\Dust5ABlack.blp","Flags":3},{"Image":"Textures\\HeroDemonHunter.blp","Flags":3},{"Image":"Textures\\HeroDemonHunter.blp","Flags":3},{"Image":"","ReplaceableId":2,"Flags":3},{"Image":"Textures\\Shadow.blp","Flags":3},{"Image":"","ReplaceableId":1,"Flags":3},{"Image":"Textures\\Zap1.blp","Flags":3},{"Image":"","ReplaceableId":2,"Flags":3},{"Image":"Textures\\Clouds8x8Mod.blp","Flags":3},{"Image":"Textures\\Clouds8x8FadeWhite.blp","Flags":3}]
+10 original impact models: MDX roundtrip geometry passed; static poses, adapter-driven fade/expansion.
+Original trap/ice models: packaged geometry and vertical bounds passed.
+No extract map script enabled - not extracting.
+war3map.j exists at wurst root.
+compilation finished (errors: 0, warnings: 27)
+Build succeeded. Output file: </home/tom/.local/share/smashcraft-build-inputs/playable-integration-20261005/build/work.kL9Kuc/_build/Smashcraft.w3x>
+compilation finished (errors: 0, warnings: 27)
+Warning in File ClosureFrames.wurst:29:
+ Annotation compilerintrinsic is not defined.
+Warning in File ClosureFrames.wurst:32:
+ Annotation compilerintrinsic is not defined.
+Warning in File ClosureFrames.wurst:35:
+ Annotation compilerintrinsic is not defined.
+Warning in File KeyedMap.wurst:49:
+ The variable map is never read. If intentional, prefix with "_" to suppress this warning.
+Warning in File KeyedMap.wurst:49:
+ The variable value is never read. If intentional, prefix with "_" to suppress this warning.
+Warning in File KeyedMap.wurst:55:
+ The variable map is never read. If intentional, prefix with "_" to suppress this warning.
+Warning in File KeyedMap.wurst:55:
+ The variable key is never read. If intentional, prefix with "_" to suppress this warning.
+Warning in File RegisterEvents.wurst:198:
+ Annotation compilerintrinsic is not defined.
+Warning in File RegisterEvents.wurst:201:
+ Annotation compilerintrinsic is not defined.
+Warning in File MatchHUD.wurst:67:
+ Field 'stockIcons' has no explicit initializer and is not definitely assigned by every constructor; this access may observe its default value. Initialize it explicitly in every construction path.
+Warning in File SettingsUI.wurst:67:
+ Field 'labels' has no explicit initializer and is not definitely assigned by every constructor; this access may observe its default value. Initialize it explicitly in every construction path.
+Warning in File SettingsUI.wurst:70:
+ Field 'keyButtons' has no explicit initializer and is not definitely assigned by every constructor; this access may observe its default value. Initialize it explicitly in every construction path.
+Warning in File SelectionUI.wurst:103:
+ Field 'tags' has no explicit initializer and is not definitely assigned by every constructor; this access may observe its default value. Initialize it explicitly in every construction path.
+Warning in File SelectionUI.wurst:114:
+ Field 'chips' has no explicit initializer and is not definitely assigned by every constructor; this access may observe its default value. Initialize it explicitly in every construction path.
+Warning in File ProjectilePresentation.wurst:25:
+ Field 'models' has no explicit initializer and is not definitely assigned by every constructor; this access may observe its default value. Initialize it explicitly in every construction path.
+Warning in File SpecialEffects.wurst:44:
+ Field 'demonHunterAuras' has no explicit initializer and is not definitely assigned by every constructor; this access may observe its default value. Initialize it explicitly in every construction path.
+Warning in File SpecialEffects.wurst:45:
+ Field 'wingTrails' has no explicit initializer and is not definitely assigned by every constructor; this access may observe its default value. Initialize it explicitly in every construction path.
+Warning in File SpecialEffects.wurst:46:
+ Field 'parryFlashes' has no explicit initializer and is not definitely assigned by every constructor; this access may observe its default value. Initialize it explicitly in every construction path.
+Warning in File SpecialEffects.wurst:47:
+ Field 'hippogryphs' has no explicit initializer and is not definitely assigned by every constructor; this access may observe its default value. Initialize it explicitly in every construction path.
+Warning in File Melee.wurst:727:
+ The assignment to local variable wire is never read.
+Warning in File Melee.wurst:1337:
+ The assignment to local variable wire is never read.
+Warning in File ReplayState.wurst:8:
+ The import String can be removed, because it is already included in Wurst.
+Warning in File ReplayHistory.wurst:7:
+ The import CommandBuffer is never used
+Warning in File ShadowInputPlayback.wurst:9:
+ The import CommandBuffer is never used
+Warning in File Melee.wurst:10:
+ The import CombatInput is never used
+Warning in File Melee.wurst:41:
+ The import BotRecovery is never used
+Warning in File CodeList.wurst:2:
+ The import Trigger can be removed, because it is already included in Wurst.
+Built /home/tom/.local/share/smashcraft-build-inputs/playable-integration-20261005/build/Smashcraft diagnostic slot-lifecycle-20261005.w3x
+{"decision":"RELEASED","lease":"02b45931-5693-414d-a2ee-2ce45a522ddb"}

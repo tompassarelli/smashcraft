@@ -1,0 +1,22 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":12,"aggregateCpuLimit":18,"leasedMemoryMiB":17920,"cpuSomeAvg10":0.83,"memoryFullAvg10":0,"memoryAvailableMiB":62958,"reclaimed":0,"lease":"cf5ac4cd-0e82-4066-b1eb-2c5471134bf4","expiresAt":1791165317526}
+Traceback (most recent call last):
+  File "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/tools/journal-match-capture.py", line 639, in <module>
+    main()
+    ~~~~^^
+  File "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/tools/journal-match-capture.py", line 588, in main
+    slot_selection(epoch + 1)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/tools/journal-match-capture.py", line 250, in slot_selection
+    masks(5, 0)
+    ~~~~~^^^^^^
+  File "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/tools/journal-match-capture.py", line 231, in masks
+    until(lambda: all(complete(p) and "phase=CHARACTER" in p.read_text()
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                      and expected in p.read_text() for p in paths),
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          f"slot mode not observed on both clients: {expected}")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tom/code/wc3-melee/worktrees/playable-integration-20261005/tools/journal-match-capture.py", line 89, in until
+    raise RuntimeError(why)
+RuntimeError: slot mode not observed on both clients: connected=3 human-fighters=5 computers=0 fighters=5
+{"decision":"RELEASED","lease":"cf5ac4cd-0e82-4066-b1eb-2c5471134bf4"}

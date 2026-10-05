@@ -4,26 +4,29 @@ Updated 5 October 2026, Taipei time. The historical review covers 2–4 October;
 the later checkpoints below include new native evidence from 5 October. GitHub
 holds current issue state; linked records retain the exact measurement scope.
 
-**Playable Linux controller checkpoint: 0.0.41. Full input guarantees remain open.**
+**Playable Linux controller checkpoint: 0.0.41. Combined input acceptance is #26.**
 The map and its matching helper passed controller-only menus, a damaging combat
 sequence, shield overlap, pause, results and rematch in both native clients.
 Frame capture, retention and local prediction have bounded passing evidence;
-physical response, cross-machine clock/fairness and broader acceptance remain.
+the new combined 500-edge-per-player run has not yet been completed.
 Exact older 0.0.40 is preserved with its known polling-loss limitation.
 Startup/artifacts: wc3-melee:docs/playable-0041.md.
 
 The two-client engineering checkpoint is complete. The first human session
-awaits Tom and another player: one fight plus rematch with the intended controls,
+awaits Tom and another player: three matches with rematches and intended controls,
 reporting missed/extra actions, inconsistent timing or stuck controls. The agent
 prepares the session and repairs findings; more virtual-input runs cannot supply
-that human observation. Broader match and platform requirements stay with #17
-and #18. Keep the preserved 0.0.41 map/helper pair stable for this session;
+that human observation. #17 owns four-fighter and human play, #18 Linux startup
+and jump-source aggregation, and #34 native Windows/macOS access. The current
+GitHub **Done when** and **Not required** lists govern completion; #25 and #27
+are folded into #26. Physical timing and cross-machine clock alignment are
+outside that combined run. Keep the preserved 0.0.41 map/helper pair stable;
 internal diagnostics do not supersede it.
 
 ## What shipped overnight, 5 October
 
-**Ten canonical issues remain open; none of those ten was closed overnight.**
-They are broad project acceptance buckets, not ten remaining bug fixes. The
+**At the overnight review, ten canonical issues remained open.** The later
+issue cleanup folded #25/#27 into #26 and separated Windows/macOS as #34. The
 rows below are delivered engineering increments, not additional issue closures.
 Times are recorded commit times in Taipei. Passing scopes stay banked.
 
@@ -42,9 +45,10 @@ The controller evidence uses virtual Linux pads and two clients on one machine.
 The response sample measures software stimulus to compositor appearance, not
 physical button-to-pixel latency. Local START/RESUME anchors still differ;
 physical hardware, common cross-machine clocks and Windows/macOS are unfinished.
-The wider backlog also includes full physics/VFX/balance, alternate hosting,
-three/four-player play and ten human matches. A playable Linux checkpoint is
-therefore delivered while the whole project is incomplete.
+The current backlog also includes the scoped physics/VFX/balance work, alternate
+hosting after #26, a four-fighter run and three human matches under #17. The older
+ten-match and additional human-account campaign is no longer an acceptance gate.
+A playable Linux checkpoint is delivered while the project remains incomplete.
 
 **Production move export delivered, 08:12 (`5b19ad7`):** 42 normal moves and
 nine charged variants now produce 1,797 queryable rows from the owning combat
@@ -76,6 +80,25 @@ passed after repairing two observer gaps (shield exhaustion during OCR and a
 trace ending during pause). This diagnostic does not replace playable 0.0.41.
 Exact candidate and evidence: wc3-melee:docs/controller-chat-native-20261005/README.md.
 
+**Connected player-slot lifecycle accepted:** player 2 changed from human to
+CPU, EMPTY and back to human across three matches with persistent helpers.
+Both clients agreed on all attack histories and final states; all eight expected
+human attack applications retained their original frames. Held menu input stayed
+out of gameplay until neutral rearm. The receiver now services every connected
+sender even when its fighter is CPU or EMPTY. This completes #26's bounded
+virtual-Linux-pad slot criterion. Exact candidate, retained fixture failure and
+passing corpus: wc3-melee:docs/controller-slots-native-20261005/README.md.
+
+**Physics precision repairs integrated:** capsule/shield calculations now pass
+operands to the pinned binary32 helpers before arithmetic; all 508 focused
+classifications pass. Position accumulation and gravity-driven vertical velocity
+now retain original units across world projection, with snapshot/checksum state
+preserved; 71/71 focused physics tests pass, including recorded ten-frame fall
+and mid-fall restoration. Native physics re-execution and precision lost at
+other scaled-input boundaries remain #9 work. These repairs are not included in
+the slot diagnostic or preserved playable 0.0.41. Evidence and scope:
+wc3-melee:docs/native-physics-precision.md.
+
 ## Input paths and retention limits (#26)
 
 These paths have different observation boundaries. A passing event-capture
@@ -84,7 +107,7 @@ check does not establish fighter application. The current player release is
 
 | Path | Observation and accepted scope | Remaining limit |
 | --- | --- | --- |
-| Linux evdev journal → native receiver → shared simulation | Kernel monotonic event timestamps, helper rows and native action traces; bounded 5 ms taps, ~250 ms helper/game stops, 500 ms focus loss, pause/resume, overlapping shields and combat/rematch pass in the linked corpora. | Virtual devices, same host; no physical minimum pulse or universal interruption bound established. Player-slot changes remain unfinished. |
+| Linux evdev journal → native receiver → shared simulation | Kernel monotonic event timestamps, helper rows and native action traces; bounded 5 ms taps, ~250 ms helper/game stops, 500 ms focus loss, pause/resume, overlapping shields and combat/rematch pass in the linked corpora. The named slot diagnostic also passes CPU/EMPTY/restored-human changes with persistent senders. | Virtual devices, same host; no physical minimum pulse or universal interruption bound established. Departures and broader player counts remain separate requirements. |
 | Linux journal reconnect | Original identity, neutral release/rearm and fresh frame-181 tap observed on both slots. | Same virtual pad at a new event node; physical/different-port recovery and automatic map reload unverified. |
 | Linux journal native chat | Diagnostic e068b9a: unsent chat, shared pause, suppression, neutral rearm and fresh frame-306/326 actions observed across rematch. | No submitted message or physical/platform claim; this diagnostic does not replace 0.0.41. |
 | SDL companion capture/digital keyboard mapping | Event-capture and mapping/focus checks exist; the warm Linux capture retained recorded edges. | Cold SDL capture timestamps compressed the first batch. Mapping and event retention do not prove original-frame native consumption. |
@@ -135,8 +158,8 @@ wc3-melee:docs/resume-clock-native-20261005/README.md.
 | Can late original-frame input repair the combat outcome? | Demonstrated for the native F5 shield corpus: damage 12 becomes 0, shieldstun 7, canonical and confirmed states agree. | [#29, completed](https://github.com/tompassarelli/smashcraft/issues/29) |
 | Have selection/GameCache beaten direct sync? | No in the corrected bounded 60 Hz comparison; direct sync is the selected baseline. | [#30, completed comparison](https://github.com/tompassarelli/smashcraft/issues/30) |
 | Can short inputs disappear or merge? | The 0.0.41 controller path has bounded tap/stall, focus, reconnect and rematch passes. The older 0.0.40 polling path can miss/coalesce inputs. The newer chat diagnostic also passes; physical reconnect and broader hardware acceptance remain open. | [#26, partial](https://github.com/tompassarelli/smashcraft/issues/26) |
-| Is every acquired input assigned to its intended frame despite delayed service? | The path released in 0.0.41 preserves tested tap/stall frames and keeps a post-resume tap at frame 98 despite a 361 ms delayed resume read. Local publication anchors still differ; cross-machine alignment remains open. | [#25, partial](https://github.com/tompassarelli/smashcraft/issues/25) |
-| What physical response and 3–5-frame variation should a player expect? | Candidate B software shield response: 12/12 presses, median 67.95 ms, max 98.17 ms. The measured admission backlog is fixed: 13/13 retained edge rows predict in the same callback. Physical response remains unmeasured. | [#27, partial](https://github.com/tompassarelli/smashcraft/issues/27) |
+| Is every acquired input assigned to its intended frame despite delayed service? | The path released in 0.0.41 preserves tested tap/stall frames and keeps a post-resume tap at frame 98 despite a 361 ms delayed resume read. Local publication anchors still differ; cross-machine alignment remains open. | [#26, active](https://github.com/tompassarelli/smashcraft/issues/26) |
+| What physical response and 3–5-frame variation should a player expect? | Candidate B software shield response: 12/12 presses, median 67.95 ms, max 98.17 ms. The measured admission backlog is fixed: 13/13 retained edge rows predict in the same callback. Physical response remains unmeasured. | [#26, active](https://github.com/tompassarelli/smashcraft/issues/26) |
 | Can two clients fight and rematch? | Installed 0.0.41 passes controller-only menus, damaging combat, shield overlap, pause and rematch with persistent helpers. Full human-play and feedback acceptance remain open. | [#17, partial](https://github.com/tompassarelli/smashcraft/issues/17) |
 
 Issues #28–#30 were created during this review to record already completed,

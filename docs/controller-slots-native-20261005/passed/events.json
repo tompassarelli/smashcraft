@@ -1,0 +1,467 @@
+[
+  {
+    "event": "menu",
+    "phase": "CHARACTER",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=0 slot=0 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=0 slot=1 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 575078277958572
+  },
+  {
+    "event": "slot-mode",
+    "epoch": 1,
+    "human_fighters": 3,
+    "computers": 0,
+    "connected": 3,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=0 slot=0 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165237429379864,
+        "sample_monotonic_before_ns": 575083699653288,
+        "sample_realtime_ns": 1791165237650785857,
+        "sample_monotonic_after_ns": 575083699654631,
+        "publication_monotonic_estimate_ns": 575083478247966
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=0 slot=1 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165237429379864,
+        "sample_monotonic_before_ns": 575083699679387,
+        "sample_realtime_ns": 1791165237650811265,
+        "sample_monotonic_after_ns": 575083699679898,
+        "publication_monotonic_estimate_ns": 575083478248241
+      }
+    ]
+  },
+  {
+    "event": "slot-mode",
+    "epoch": 1,
+    "human_fighters": 1,
+    "computers": 2,
+    "connected": 3,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=0 slot=0 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=2 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165238435378495,
+        "sample_monotonic_before_ns": 575084488678603,
+        "sample_realtime_ns": 1791165238439811252,
+        "sample_monotonic_after_ns": 575084488679876,
+        "publication_monotonic_estimate_ns": 575084484246482
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=0 slot=1 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=2 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165238434378497,
+        "sample_monotonic_before_ns": 575084488705013,
+        "sample_realtime_ns": 1791165238439836810,
+        "sample_monotonic_after_ns": 575084488705343,
+        "publication_monotonic_estimate_ns": 575084483246865
+      }
+    ]
+  },
+  {
+    "event": "menu",
+    "phase": "STAGE",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=0 slot=0 phase=STAGE\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=2 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=0 slot=1 phase=STAGE\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=2 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 575085230178078
+  },
+  {
+    "event": "start",
+    "epoch": 1,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-slot-lifecycle-20261005-e1-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=slot-lifecycle-20261005 epoch=1 slot=0 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165266760007770,
+        "sample_monotonic_before_ns": 575112815137167,
+        "sample_realtime_ns": 1791165266766269696,
+        "sample_monotonic_after_ns": 575112815138369,
+        "publication_monotonic_estimate_ns": 575112808875842
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-slot-lifecycle-20261005-e1-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=slot-lifecycle-20261005 epoch=1 slot=1 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165266745419420,
+        "sample_monotonic_before_ns": 575112815161473,
+        "sample_realtime_ns": 1791165266766293180,
+        "sample_monotonic_after_ns": 575112815161713,
+        "publication_monotonic_estimate_ns": 575112794287833
+      }
+    ],
+    "observed_monotonic_ns": 575112815179106
+  },
+  {
+    "event": "end",
+    "epoch": 1,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-slot-lifecycle-20261005-e1-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=slot-lifecycle-20261005 epoch=1 slot=0 sequence=0 state=END frame=153\" )\n\tcall PreloadEnd( 0.1 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165269410336244,
+        "sample_monotonic_before_ns": 575115532089024,
+        "sample_realtime_ns": 1791165269483222104,
+        "sample_monotonic_after_ns": 575115532090907,
+        "publication_monotonic_estimate_ns": 575115459204105
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-slot-lifecycle-20261005-e1-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=slot-lifecycle-20261005 epoch=1 slot=1 sequence=0 state=END frame=155\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165269412465536,
+        "sample_monotonic_before_ns": 575115532136443,
+        "sample_realtime_ns": 1791165269483268190,
+        "sample_monotonic_after_ns": 575115532136753,
+        "publication_monotonic_estimate_ns": 575115461333944
+      }
+    ],
+    "observed_monotonic_ns": 575115532167431
+  },
+  {
+    "event": "menu",
+    "phase": "RESULT",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=0 phase=RESULT\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=2 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=1 phase=RESULT\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=2 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 575133456311889
+  },
+  {
+    "event": "menu",
+    "phase": "CHARACTER",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=0 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=2 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=1 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=2 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 575133582489091
+  },
+  {
+    "event": "slot-mode",
+    "epoch": 2,
+    "human_fighters": 1,
+    "computers": 2,
+    "connected": 3,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=0 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=2 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165293261303589,
+        "sample_monotonic_before_ns": 575139401617235,
+        "sample_realtime_ns": 1791165293352750885,
+        "sample_monotonic_after_ns": 575139401619769,
+        "publication_monotonic_estimate_ns": 575139310171206
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=1 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=2 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165293253303599,
+        "sample_monotonic_before_ns": 575139401644666,
+        "sample_realtime_ns": 1791165293352776393,
+        "sample_monotonic_after_ns": 575139401644926,
+        "publication_monotonic_estimate_ns": 575139302172002
+      }
+    ]
+  },
+  {
+    "event": "slot-mode",
+    "epoch": 2,
+    "human_fighters": 1,
+    "computers": 0,
+    "connected": 3,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=0 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=0 fighters=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165294014302556,
+        "sample_monotonic_before_ns": 575140084706704,
+        "sample_realtime_ns": 1791165294035840836,
+        "sample_monotonic_after_ns": 575140084709669,
+        "publication_monotonic_estimate_ns": 575140063169906
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=1 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=0 fighters=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165294003302571,
+        "sample_monotonic_before_ns": 575140084737762,
+        "sample_realtime_ns": 1791165294035869459,
+        "sample_monotonic_after_ns": 575140084738002,
+        "publication_monotonic_estimate_ns": 575140052170994
+      }
+    ]
+  },
+  {
+    "event": "slot-mode",
+    "epoch": 2,
+    "human_fighters": 5,
+    "computers": 0,
+    "connected": 3,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=0 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=5 computers=0 fighters=5\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165294759301535,
+        "sample_monotonic_before_ns": 575140810917137,
+        "sample_realtime_ns": 1791165294762049806,
+        "sample_monotonic_after_ns": 575140810918480,
+        "publication_monotonic_estimate_ns": 575140808169537
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=1 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=5 computers=0 fighters=5\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165294754301541,
+        "sample_monotonic_before_ns": 575140810938057,
+        "sample_realtime_ns": 1791165294762069774,
+        "sample_monotonic_after_ns": 575140810938337,
+        "publication_monotonic_estimate_ns": 575140803169964
+      }
+    ]
+  },
+  {
+    "event": "slot-mode",
+    "epoch": 2,
+    "human_fighters": 1,
+    "computers": 4,
+    "connected": 3,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=0 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=4 fighters=5\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165295260300847,
+        "sample_monotonic_before_ns": 575141325535149,
+        "sample_realtime_ns": 1791165295276667788,
+        "sample_monotonic_after_ns": 575141325536431,
+        "publication_monotonic_estimate_ns": 575141309168849
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=1 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=4 fighters=5\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165295260300847,
+        "sample_monotonic_before_ns": 575141325566388,
+        "sample_realtime_ns": 1791165295276698175,
+        "sample_monotonic_after_ns": 575141325566748,
+        "publication_monotonic_estimate_ns": 575141309169240
+      }
+    ]
+  },
+  {
+    "event": "menu",
+    "phase": "STAGE",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=0 phase=STAGE\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=4 fighters=5\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=1 slot=1 phase=STAGE\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=4 fighters=5\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 575142067227367
+  },
+  {
+    "event": "start",
+    "epoch": 2,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-slot-lifecycle-20261005-e2-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=slot-lifecycle-20261005 epoch=2 slot=0 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165303329741377,
+        "sample_monotonic_before_ns": 575149418234703,
+        "sample_realtime_ns": 1791165303369367151,
+        "sample_monotonic_after_ns": 575149418235845,
+        "publication_monotonic_estimate_ns": 575149378609500
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-slot-lifecycle-20261005-e2-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=slot-lifecycle-20261005 epoch=2 slot=1 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165303351545892,
+        "sample_monotonic_before_ns": 575149418258297,
+        "sample_realtime_ns": 1791165303369390024,
+        "sample_monotonic_after_ns": 575149418258547,
+        "publication_monotonic_estimate_ns": 575149400414290
+      }
+    ],
+    "observed_monotonic_ns": 575149418276802
+  },
+  {
+    "event": "end",
+    "epoch": 2,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-slot-lifecycle-20261005-e2-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=slot-lifecycle-20261005 epoch=2 slot=0 sequence=0 state=END frame=141\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165305785517570,
+        "sample_monotonic_before_ns": 575151900488628,
+        "sample_realtime_ns": 1791165305851621477,
+        "sample_monotonic_after_ns": 575151900490161,
+        "publication_monotonic_estimate_ns": 575151834385487
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-slot-lifecycle-20261005-e2-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=slot-lifecycle-20261005 epoch=2 slot=1 sequence=0 state=END frame=141\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165305792512659,
+        "sample_monotonic_before_ns": 575151900525667,
+        "sample_realtime_ns": 1791165305851657364,
+        "sample_monotonic_after_ns": 575151900525908,
+        "publication_monotonic_estimate_ns": 575151841381082
+      }
+    ],
+    "observed_monotonic_ns": 575151900547358
+  },
+  {
+    "event": "menu",
+    "phase": "RESULT",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=2 slot=0 phase=RESULT\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=4 fighters=5\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=2 slot=1 phase=RESULT\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=4 fighters=5\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 575169982269263
+  },
+  {
+    "event": "menu",
+    "phase": "CHARACTER",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=2 slot=0 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=4 fighters=5\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=2 slot=1 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=4 fighters=5\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 575170128541385
+  },
+  {
+    "event": "slot-mode",
+    "epoch": 3,
+    "human_fighters": 1,
+    "computers": 4,
+    "connected": 3,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=2 slot=0 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=4 fighters=5\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165330069253002,
+        "sample_monotonic_before_ns": 575176283789895,
+        "sample_realtime_ns": 1791165330234922503,
+        "sample_monotonic_after_ns": 575176283791337,
+        "publication_monotonic_estimate_ns": 575176118121115
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=2 slot=1 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=4 fighters=5\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165330059253016,
+        "sample_monotonic_before_ns": 575176283814781,
+        "sample_realtime_ns": 1791165330234946508,
+        "sample_monotonic_after_ns": 575176283815042,
+        "publication_monotonic_estimate_ns": 575176108121419
+      }
+    ]
+  },
+  {
+    "event": "slot-mode",
+    "epoch": 3,
+    "human_fighters": 1,
+    "computers": 0,
+    "connected": 3,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=2 slot=0 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=0 fighters=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165330825251960,
+        "sample_monotonic_before_ns": 575176876541305,
+        "sample_realtime_ns": 1791165330827673844,
+        "sample_monotonic_after_ns": 575176876542557,
+        "publication_monotonic_estimate_ns": 575176874120047
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=2 slot=1 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=1 computers=0 fighters=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165330809251982,
+        "sample_monotonic_before_ns": 575176876563587,
+        "sample_realtime_ns": 1791165330827695294,
+        "sample_monotonic_after_ns": 575176876563827,
+        "publication_monotonic_estimate_ns": 575176858120395
+      }
+    ]
+  },
+  {
+    "event": "slot-mode",
+    "epoch": 3,
+    "human_fighters": 3,
+    "computers": 0,
+    "connected": 3,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=2 slot=0 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165331587250910,
+        "sample_monotonic_before_ns": 575177646148425,
+        "sample_realtime_ns": 1791165331597280883,
+        "sample_monotonic_after_ns": 575177646149457,
+        "publication_monotonic_estimate_ns": 575177636118968
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-menu-slot-lifecycle-20261005-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=2 slot=1 phase=CHARACTER\" )\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165331580250920,
+        "sample_monotonic_before_ns": 575177646169634,
+        "sample_realtime_ns": 1791165331597301362,
+        "sample_monotonic_after_ns": 575177646169895,
+        "publication_monotonic_estimate_ns": 575177629119322
+      }
+    ]
+  },
+  {
+    "event": "menu",
+    "phase": "STAGE",
+    "contents": [
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=2 slot=0 phase=STAGE\" )\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+      "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=2 slot=1 phase=STAGE\" )\n\tcall Preload( \"connected=3 human-fighters=3 computers=0 fighters=3\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n"
+    ],
+    "observed_monotonic_ns": 575178528104781
+  },
+  {
+    "event": "start",
+    "epoch": 3,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-slot-lifecycle-20261005-e3-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=slot-lifecycle-20261005 epoch=3 slot=0 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165339305882310,
+        "sample_monotonic_before_ns": 575185365028325,
+        "sample_realtime_ns": 1791165339316160924,
+        "sample_monotonic_after_ns": 575185365029597,
+        "publication_monotonic_estimate_ns": 575185354750347
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-start-slot-lifecycle-20261005-e3-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=slot-lifecycle-20261005 epoch=3 slot=1 sequence=0 state=START frame=1\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165339299240281,
+        "sample_monotonic_before_ns": 575185365054113,
+        "sample_realtime_ns": 1791165339316185820,
+        "sample_monotonic_after_ns": 575185365054364,
+        "publication_monotonic_estimate_ns": 575185348108699
+      }
+    ],
+    "observed_monotonic_ns": 575185365070524
+  },
+  {
+    "event": "end",
+    "epoch": 3,
+    "publications": [
+      {
+        "path": "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-slot-lifecycle-20261005-e3-s0.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=slot-lifecycle-20261005 epoch=3 slot=0 sequence=0 state=END frame=153\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165341928236656,
+        "sample_monotonic_before_ns": 575188037424846,
+        "sample_realtime_ns": 1791165341988557765,
+        "sample_monotonic_after_ns": 575188037426429,
+        "publication_monotonic_estimate_ns": 575187977104528
+      },
+      {
+        "path": "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData/smashcraft-journal-end-slot-lifecycle-20261005-e3-s1.txt",
+        "contents": "function PreloadFiles takes nothing returns nothing\n\n\tcall PreloadStart()\n\tcall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=slot-lifecycle-20261005 epoch=3 slot=1 sequence=0 state=END frame=153\" )\n\tcall PreloadEnd( 0.0 )\n\nendfunction\n\n\n",
+        "mtime_realtime_ns": 1791165341929539478,
+        "sample_monotonic_before_ns": 575188037469820,
+        "sample_realtime_ns": 1791165341988601518,
+        "sample_monotonic_after_ns": 575188037470061,
+        "publication_monotonic_estimate_ns": 575187978407900
+      }
+    ],
+    "observed_monotonic_ns": 575188037499346
+  }
+]

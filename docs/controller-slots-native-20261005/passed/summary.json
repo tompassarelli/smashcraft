@@ -1,0 +1,252 @@
+{
+  "scope": "Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; controller game navigation (keyboard diagnostic trace toggle); B fighter CPU, EMPTY and restored HMN across three epochs; native slot-tag clicks; no physical or cross-machine alignment claim.",
+  "helper_sha256": "50caffe74f19701b63c4528009ba0e11d999ea226757a8d8c174b6ea0fa00a32",
+  "persistent_helper_pids": [
+    2286056,
+    2286087
+  ],
+  "matches": [
+    {
+      "epoch": 1,
+      "players": [
+        {
+          "slot": 0,
+          "anchor_monotonic_ns": 575112808875842,
+          "helper_anchor_difference_ns": 231,
+          "published_frames": 158,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 575113509542000,
+              "expected_frame": 43,
+              "assigned_frame": 43
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 575113514697000,
+              "expected_frame": 43,
+              "assigned_frame": 43
+            }
+          ]
+        },
+        {
+          "slot": 1,
+          "anchor_monotonic_ns": 575112794287833,
+          "helper_anchor_difference_ns": -166,
+          "published_frames": 159,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 575113514825000,
+              "expected_frame": 44,
+              "assigned_frame": 44
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 575113519975000,
+              "expected_frame": 44,
+              "assigned_frame": 44
+            }
+          ]
+        }
+      ],
+      "native_clients": [
+        {
+          "client": 0,
+          "confirmed_frame": 143,
+          "confirmed_checksum": "294511:550560",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 43
+            }
+          ]
+        },
+        {
+          "client": 1,
+          "confirmed_frame": 143,
+          "confirmed_checksum": "294511:550560",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 43
+            }
+          ]
+        }
+      ],
+      "slot_modes": {
+        "connected": 3,
+        "human_fighters": 1,
+        "computers": 2,
+        "restored_human": false,
+        "held_entry_suppressed": true
+      }
+    },
+    {
+      "epoch": 2,
+      "players": [
+        {
+          "slot": 0,
+          "anchor_monotonic_ns": 575149378609500,
+          "helper_anchor_difference_ns": 180,
+          "published_frames": 147,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 575150100900000,
+              "expected_frame": 44,
+              "assigned_frame": 44
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 575150106097000,
+              "expected_frame": 44,
+              "assigned_frame": 44
+            }
+          ]
+        },
+        {
+          "slot": 1,
+          "anchor_monotonic_ns": 575149400414290,
+          "helper_anchor_difference_ns": -151,
+          "published_frames": 146,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 575150106284000,
+              "expected_frame": 43,
+              "assigned_frame": 43
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 575150111416000,
+              "expected_frame": 43,
+              "assigned_frame": 43
+            }
+          ]
+        }
+      ],
+      "native_clients": [
+        {
+          "client": 0,
+          "confirmed_frame": 130,
+          "confirmed_checksum": "549291:197683",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 44
+            }
+          ]
+        },
+        {
+          "client": 1,
+          "confirmed_frame": 130,
+          "confirmed_checksum": "549291:197683",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 44
+            }
+          ]
+        }
+      ],
+      "slot_modes": {
+        "connected": 3,
+        "human_fighters": 1,
+        "computers": 4,
+        "restored_human": false,
+        "held_entry_suppressed": true
+      }
+    },
+    {
+      "epoch": 3,
+      "players": [
+        {
+          "slot": 0,
+          "anchor_monotonic_ns": 575185354750347,
+          "helper_anchor_difference_ns": 266,
+          "published_frames": 157,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 575186055293000,
+              "expected_frame": 43,
+              "assigned_frame": 43
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 575186060398000,
+              "expected_frame": 43,
+              "assigned_frame": 43
+            }
+          ]
+        },
+        {
+          "slot": 1,
+          "anchor_monotonic_ns": 575185348108699,
+          "helper_anchor_difference_ns": -171,
+          "published_frames": 157,
+          "tap_edges": [
+            {
+              "pressed": true,
+              "kernel_monotonic_ns": 575186060466000,
+              "expected_frame": 43,
+              "assigned_frame": 43
+            },
+            {
+              "pressed": false,
+              "kernel_monotonic_ns": 575186065656000,
+              "expected_frame": 44,
+              "assigned_frame": 44
+            }
+          ]
+        }
+      ],
+      "native_clients": [
+        {
+          "client": 0,
+          "confirmed_frame": 141,
+          "confirmed_checksum": "526826:534527",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 43
+            },
+            {
+              "slot": 1,
+              "frame": 43
+            }
+          ]
+        },
+        {
+          "client": 1,
+          "confirmed_frame": 141,
+          "confirmed_checksum": "526826:534527",
+          "actions": [
+            {
+              "slot": 0,
+              "frame": 43
+            },
+            {
+              "slot": 1,
+              "frame": 43
+            }
+          ]
+        }
+      ],
+      "slot_modes": {
+        "connected": 3,
+        "human_fighters": 3,
+        "computers": 0,
+        "restored_human": true,
+        "held_entry_suppressed": true
+      }
+    }
+  ],
+  "native_attack_applications": 8,
+  "native_trace_drops": 0,
+  "unexplained_frame_retargets": 0,
+  "extra_result_screen_actions": 0,
+  "inactive_controller_policy": "Retain connected-player frame stream; CPU/EMPTY fighter ignores it; rearm neutral at next epoch",
+  "slot_journey": "B HMN\u2192CPU\u2192EMPTY\u2192HMN; temporary slot C CPU supplies opponent while B is EMPTY"
+}

@@ -1,0 +1,10 @@
+{
+  "build": "slot-lifecycle-20261005",
+  "map_source": "e86380a",
+  "equivalent_gameplay_source": "d928d53",
+  "map_sha256": "a54167b6f18ccb838fb34a4166e9f0a22f8339fa408bfd3a57e50d4472988ef7",
+  "helper_sha256": "50caffe74f19701b63c4528009ba0e11d999ea226757a8d8c174b6ea0fa00a32",
+  "capture_driver_source": "a942b65",
+  "raw_corpus": "wc3-melee:build/native-controller-slots-r2-20261005",
+  "scope": "Three native matches on the retained Warcraft 3.0.0.24268 Linux/GE-Proton clients; same-host virtual Linux pads; persistent connected senders during CPU/EMPTY/restored-HMN slot changes."
+}

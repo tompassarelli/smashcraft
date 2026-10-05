@@ -1,0 +1,5 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":12,"aggregateCpuLimit":18,"leasedMemoryMiB":17920,"cpuSomeAvg10":2.02,"memoryFullAvg10":0,"memoryAvailableMiB":62681,"reclaimed":0,"lease":"b6a41953-58a6-4583-afc7-cdc5632ef27d","expiresAt":1791165716585}
+Epoch 1: game start, tap, stock loss and results observed
+Epoch 2: game start, tap, stock loss and results observed
+Epoch 3: game start, tap, stock loss and results observed
+{"decision":"RELEASED","lease":"b6a41953-58a6-4583-afc7-cdc5632ef27d"}

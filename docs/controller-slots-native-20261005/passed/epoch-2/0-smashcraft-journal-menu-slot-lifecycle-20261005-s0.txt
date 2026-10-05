@@ -1,0 +1,10 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "SMASHCRAFT JOURNAL MENU v=1 build=slot-lifecycle-20261005 epoch=2 slot=0 phase=RESULT" )
+	call Preload( "connected=3 human-fighters=1 computers=4 fighters=5" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

@@ -1,0 +1,9 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "build=slot-lifecycle-20261005 epoch=1 slot=1 received-mask=3 before-journal-reads=yes" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

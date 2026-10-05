@@ -104,7 +104,11 @@ def main():
                 assert held[0][0]["value"] == 1 and neutral[0][0]["value"] == 0
                 assert held_ns < anchor < neutral_ns < edges[0]["kernel_monotonic_ns"], "hold did not straddle START"
                 assert not re.search(r"(?m)^event mono_ns=" + str(held_ns) + r" ", logs[slot]), "entry hold was admitted"
-                assert f"suppressed mono_ns={held_ns} " in logs[slot], "entry hold suppression absent"
+                # A is a valid CHARACTER-menu action before START. Account for
+                # that route, then independently require no gameplay admission.
+                assert (f"menu_emit epoch={epoch - 1} phase=Some(Character) key=n mono_ns={held_ns}"
+                        in logs[slot]), "entry hold was not accounted for in the character menu"
+                assert f"suppressed mono_ns={neutral_ns} " in section, "entry release bypassed neutral rearm"
                 assert all(not (pressed & 32) for timestamp, (_, pressed, _) in assigned.items()
                            if timestamp < neutral_ns), "held entry produced an attack before neutral"
                 match["slot_modes"]["held_entry_suppressed"] = True
@@ -114,12 +118,15 @@ def main():
                                          helper_anchor_difference_ns=helper_anchor - anchor,
                                          published_frames=len(rows), tap_edges=edges))
         endpoints = []
+        all_client_actions = []
         for client in range(2):
             trace = (root / f"epoch-{epoch}" / f"{client}-wc3-melee-input-trace.txt").read_text()
             actions = Counter((int(slot), int(frame)) for slot, frame in re.findall(
                 r"participant (\d+) frame (\d+) phase \d+ applied attack ", trace))
             human_actions = Counter({key: count for key, count in actions.items() if human_fighters & (1 << key[0])})
             assert human_actions == Counter(expected_actions), f"epoch {epoch} client {client}: actions {actions}"
+            assert all((human_fighters | computers) & (1 << slot) for slot, _ in actions), "inactive fighter applied an attack"
+            all_client_actions.append(actions)
             assert "journal input fail" not in trace
             assert re.findall(r"dropped (\d+)", trace) == ["0"]
             final_path = root / f"epoch-{epoch}-result" / f"{client}-wc3-melee-input-trace.txt"
@@ -139,6 +146,7 @@ def main():
                                                 confirmed_checksum=states[-1][1],
                                                 actions=[dict(slot=s, frame=f) for s, f in expected_actions]))
         assert endpoints[0] == endpoints[1], f"epoch {epoch}: confirmed states differ"
+        assert all_client_actions[0] == all_client_actions[1], f"epoch {epoch}: native attack histories differ"
         if reconnect:
             slot = epoch - 1
             journey = next(event for event in metadata["events"]
