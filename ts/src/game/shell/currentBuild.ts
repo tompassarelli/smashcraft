@@ -14,6 +14,13 @@ export const INTEGRITY_BUILD: MapBuild = {
   devConsole: true,
 };
 
+export const PLAYABLE_BUILD: MapBuild = {
+  ...INTEGRITY_BUILD,
+  id: "playable-0043",
+  responseProbe: false,
+  devConsole: false,
+};
+
 export const CURRENT_BUILD: MapBuild = {
   id: "typescript-dev",
   inputProfile: "callback",

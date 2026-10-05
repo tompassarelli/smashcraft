@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.map.json",
+  "include": [
+    "node_modules/waygate/src/natives/warcraft.d.ts",
+    "src/platform/playableMain.ts"
+  ],
+  "exclude": [],
+  "tstl": {
+    "luaBundle": "playable.lua",
+    "luaBundleEntry": "src/platform/playableMain.ts"
+  }
+}
