@@ -1,5 +1,5 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
-import { type AttackBuffer, type AttackCommand, attackBuffer, queueAttack, takeAttack } from "./attackBuffer";
+import { attackBufferCanonicalState, clearAttackBuffer, copyAttackBuffer, type AttackBuffer, type AttackCommand, attackBuffer, queueAttack, takeAttack } from "./attackBuffer";
 import type { Direction } from "./inputRow";
 
 const attack = (style: number, facing: Direction, frame: number, mayCharge = false): AttackCommand => ({ style, facing, frame, mayCharge });
@@ -97,6 +97,50 @@ test("grace frames hold an attack through recovery until they run out", () => {
   assertEquals(taken.facing, -1);
   queueAttack(buffer, attack(0, 0, 20));
   assertEquals(takeAttack(buffer, 24, true), undefined);
+});
+
+test("Replay2 command fields retain a consumed request and reset on expiry or clear", () => {
+  const buffer = attackBuffer(3);
+  queueAttack(buffer, attack(4, -1, 10, true));
+  assertEquals(attackBufferCanonicalState(buffer).style, 4);
+  assertEquals(attackBufferCanonicalState(buffer).facing, -1);
+  assertEquals(attackBufferCanonicalState(buffer).targetFrame, 10);
+  assertFalse(attackBufferCanonicalState(buffer).consumedMayCharge);
+
+  assertEquals(takeAttack(buffer, 10, false), undefined);
+  assertEquals(attackBufferCanonicalState(buffer).style, 4);
+  assertEquals(attackBufferCanonicalState(buffer).consumedFacing, 0);
+  const taken = take(buffer, 10);
+  assertEquals(taken.facing, -1);
+  assertEquals(attackBufferCanonicalState(buffer).style, -1);
+  assertEquals(attackBufferCanonicalState(buffer).facing, -1);
+  assertEquals(attackBufferCanonicalState(buffer).targetFrame, 10);
+  assertEquals(attackBufferCanonicalState(buffer).consumedFacing, -1);
+  assertTrue(attackBufferCanonicalState(buffer).consumedMayCharge);
+
+  const copied = attackBuffer(0);
+  copyAttackBuffer(copied, buffer);
+  assertEquals(attackBufferCanonicalState(copied).targetFrame, 10);
+  assertEquals(attackBufferCanonicalState(copied).consumedFacing, -1);
+  assertTrue(attackBufferCanonicalState(copied).consumedMayCharge);
+
+  assertEquals(takeAttack(buffer, 11, true), undefined);
+  assertEquals(attackBufferCanonicalState(buffer).facing, -1);
+  assertEquals(attackBufferCanonicalState(buffer).targetFrame, 10);
+  assertEquals(attackBufferCanonicalState(buffer).consumedFacing, 0);
+  assertFalse(attackBufferCanonicalState(buffer).consumedMayCharge);
+
+  queueAttack(buffer, attack(0, 1, 20));
+  assertEquals(takeAttack(buffer, 24, true), undefined);
+  assertEquals(attackBufferCanonicalState(buffer).style, -1);
+  assertEquals(attackBufferCanonicalState(buffer).facing, 0);
+  assertEquals(attackBufferCanonicalState(buffer).targetFrame, -1);
+
+  queueAttack(buffer, attack(1, 1, 30));
+  clearAttackBuffer(buffer);
+  assertEquals(attackBufferCanonicalState(buffer).style, -1);
+  assertEquals(attackBufferCanonicalState(buffer).targetFrame, -1);
+  assertEquals(attackBufferCanonicalState(buffer).consumedFacing, 0);
 });
 
 test("angled tilts reach their frame and yield to C-stick smashes", () => {

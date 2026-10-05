@@ -5,7 +5,7 @@ import type { Controls } from "../sim/roster";
 import { analogShieldActive, analogShieldStrength } from "../sim/shield";
 import { squareRoot } from "../sim/warcraftMath";
 import { Action, has, maskOf } from "./actions";
-import { type AttackBuffer, queueAttack } from "./attackBuffer";
+import { type AttackBuffer, clearAttackBuffer, queueAttack } from "./attackBuffer";
 import { groundDodgeIntent, normalAttackStyle } from "./combat";
 import type { Direction, InputRow } from "./inputRow";
 
@@ -31,7 +31,7 @@ function movementAxis(row: Readonly<InputRow>, negative: Action, positive: Actio
 /** Fills reused frame scratch; the caller records the requests beside this exact row for replay. */
 export function adaptInput(row: Readonly<InputRow>, fighter: Readonly<Fighter>, frame: number, destination: Controls, attacks: AttackBuffer): void {
   const { held, pressed } = row;
-  attacks.pending = undefined;
+  clearAttackBuffer(attacks);
   destination.attackRequested = false;
   destination.direction = movementAxis(row, Action.moveLeft, Action.moveRight, row.axisX);
   destination.verticalDirection = movementAxis(row, Action.moveDown, Action.moveUp, row.axisZ);
