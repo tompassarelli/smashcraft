@@ -14,7 +14,7 @@ import { endFighter, layoutHuds, views } from "./ui";
 const NEUTRAL = neutralControls();
 
 /** Removes every fighter's unit and renderers and ends their effects. */
-export function removeFighters(s: ShellState): void {
+function removeFighters(s: ShellState): void {
   for (const slot of PARTICIPANT_SLOTS) {
     const participant = s.participants[slot];
     endFighter(s, slot);

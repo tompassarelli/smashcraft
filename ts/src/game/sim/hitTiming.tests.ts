@@ -1,5 +1,5 @@
 import { assertEquals, assertGreaterThan, assertTrue, test } from "waygate/src/runtime/testing";
-import { max } from "../../runtime/wurst";
+import { max } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, ProjectileKind } from "./codes";

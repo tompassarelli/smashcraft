@@ -17,7 +17,7 @@ import type { Direction } from "../input/inputRow";
 import { type ParticipantSlot, isParticipantSlot } from "../input/participants";
 import type { Controls } from "../sim/roster";
 import { f32 } from "waygate/src/sim/f32";
-import { toReal } from "../../runtime/wurst";
+import { toReal } from "../../runtime/numbers";
 
 export const TAPE_HEADER = "smashcraft-tape 1";
 

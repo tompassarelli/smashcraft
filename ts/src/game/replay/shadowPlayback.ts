@@ -28,7 +28,7 @@ export function shadowSpeculativeStepBudget(originalFramesRetained: boolean): nu
 }
 
 /** Observes each speculative frame after it runs; the native response probe implements it. */
-export interface SpeculativeFrameObserver {
+interface SpeculativeFrameObserver {
   speculativeFrameRan(epoch: number, localPlayer: number, frame: number, local: Readonly<InputRow>, frontier: number): void;
 }
 

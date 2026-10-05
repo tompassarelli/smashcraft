@@ -12,7 +12,7 @@ import { join } from "node:path";
  * Natives a client may call differently from the others: they read or show
  * local state and create, destroy or change nothing synchronized.
  */
-export const ALLOWED_LOCAL: Readonly<Record<string, string>> = {
+const ALLOWED_LOCAL: Readonly<Record<string, string>> = {
   GetLocalPlayer: "identifies the client; every local branch starts here",
   BlzSendSyncData: "only the sending client calls it; its message reaches every client as an event",
   BlzGetLocalClientWidth: "local screen size, for layout",
@@ -93,7 +93,7 @@ type Registration =
   | { kind: "chat"; trigger: Trigger; player: number; text: string; exact: boolean }
   | { kind: "key"; trigger: Trigger; player: number; key: number; meta: number; down: boolean };
 
-export interface SyncMessage {
+interface SyncMessage {
   readonly sender: number;
   readonly prefix: string;
   readonly data: string;
@@ -135,7 +135,7 @@ export function installNatives(): () => void {
 }
 
 /** One client: its natives, its handles, its share of the shell's globals and its call log. */
-export class Client {
+class Client {
   readonly log: NativeCall[] = [];
   /** Allowed local-only calls, kept to explain a difference. */
   readonly localLog: NativeCall[] = [];

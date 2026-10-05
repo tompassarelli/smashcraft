@@ -6,7 +6,7 @@ import { f32 } from "waygate/src/sim/f32";
 import { at } from "waygate/src/runtime/lookup";
 
 /** A segment swept by a radius. */
-export interface Capsule {
+interface Capsule {
   x1: number;
   z1: number;
   x2: number;
@@ -15,7 +15,7 @@ export interface Capsule {
 }
 
 /** An authored hit region's reach, relative to a fighter facing right. */
-export interface Reach {
+interface Reach {
   readonly minX: number;
   readonly maxX: number;
   readonly minZ: number;

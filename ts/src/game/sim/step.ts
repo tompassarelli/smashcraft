@@ -1,7 +1,15 @@
 // One fighter's frame: timers, input transitions, steering, gravity, motion,
 // wall contacts and landing, in the order the retail engine applies them.
+<<<<<<< HEAD
 import { max, min } from "../../runtime/wurst";
 import { divideFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
+||||||| parent of 6ec679b (Name numeric helpers for their runtime responsibility)
+import { max, min } from "../../runtime/wurst";
+import { divideFloat32, roundToFloat32 } from "waygate/src/sim/binary32";
+=======
+import { max, min } from "../../runtime/numbers";
+import { divideFloat32, roundToFloat32 } from "waygate/src/sim/binary32";
+>>>>>>> 6ec679b (Name numeric helpers for their runtime responsibility)
 import { f32 } from "waygate/src/sim/f32";
 import { Character, DownState, GroundAction, LedgeState, ShieldBreak, SpecialAction, SurfaceContact } from "./codes";
 import {

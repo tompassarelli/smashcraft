@@ -20,7 +20,7 @@ import type { ShellState } from "./state";
 import { bindPrototype } from "../rebind";
 
 /** A fighter's renderers for one match; the pool only in pooled presentation. */
-export interface FighterRenderers {
+interface FighterRenderers {
   readonly character: Character;
   readonly shield: ShieldPresentation;
   readonly projectiles: ProjectilePresentation;

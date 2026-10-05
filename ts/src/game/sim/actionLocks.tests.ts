@@ -1,7 +1,7 @@
 // What blocks and releases actions: shield hold and release, shield grabs,
 // jump squat, dodge protection and attack recovery.
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
-import { max } from "../../runtime/wurst";
+import { max } from "../../runtime/numbers";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character } from "./codes";
 import { canAttack, canShieldGrab, canStartAttackStyle } from "./conditions";

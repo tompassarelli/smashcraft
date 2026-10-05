@@ -1,7 +1,7 @@
 // Fighter motion in Melee units. Positions and vertical velocity accumulate in
 // original units and publish rounded world values; air drift, launch decay and
 // platform landings use the same arithmetic as the retail engine.
-import { max, min } from "../../runtime/wurst";
+import { max, min } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
 import { f32 } from "waygate/src/sim/f32";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
@@ -128,14 +128,14 @@ function retailAirDecaySquaredCutoff(decay: number): number {
 
 const KNOCKBACK_DECAY_PER_FRAME = 0.050999999046325684;
 // Common-data value x3E8 from the cited NTSC 1.02 extraction; values are Melee units.
-export const AIR_SHIELD_RECOIL_DECAY = multiplyFloat32(0.05000000074505806, WORLD_UNITS_PER_MELEE_UNIT);
+const AIR_SHIELD_RECOIL_DECAY = multiplyFloat32(0.05000000074505806, WORLD_UNITS_PER_MELEE_UNIT);
 export const AIR_KNOCKBACK_DECAY = roundToFloat32(KNOCKBACK_DECAY_PER_FRAME);
 export const AIR_RECOIL_DECAY = divideFloat32(AIR_SHIELD_RECOIL_DECAY, WORLD_UNITS_PER_MELEE_UNIT);
 export const AIR_KNOCKBACK_SQUARED_CUTOFF = retailAirDecaySquaredCutoff(AIR_KNOCKBACK_DECAY);
 export const AIR_RECOIL_SQUARED_CUTOFF = retailAirDecaySquaredCutoff(AIR_RECOIL_DECAY);
 
 /** One frame of airborne decay; belowCutoff means the motion stopped instead. */
-export interface AirMotion {
+interface AirMotion {
   x: number;
   z: number;
   belowCutoff: boolean;

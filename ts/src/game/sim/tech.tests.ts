@@ -1,7 +1,7 @@
 import { TECH_WINDOW_FRAMES, TECH_PRESS_AGE_LIMIT } from "../physics/techInput";
 // Floor techs: the NTSC tech input window, repeat lockout, travel and protection.
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "waygate/src/runtime/testing";
-import { max, min } from "../../runtime/wurst";
+import { max, min } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character, DownState } from "./codes";
 import { TECH_INTANGIBLE_FRAMES, TECH_ROLL_INTANGIBLE_FRAMES, canAttack, isFloorTeching, isIntangible } from "./conditions";

@@ -26,7 +26,7 @@ export const SHIELD_MAX = 60.0;
 export const SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES = 2;
 export const FAST_FALL_INPUT_WINDOW = 4;
 export const WALL_TECH_JUMP_INPUT_WINDOW_FRAMES = 20;
-export const STARTING_STOCKS = 3;
+const STARTING_STOCKS = 3;
 /** A tech press age that is never inside a window; the input driver saturates at 255. */
 
 /**
@@ -39,7 +39,7 @@ export interface MeleeMotionValue {
   published: number;
 }
 
-export interface Motion {
+interface Motion {
   x: number;
   z: number;
   /** The last completed movement step, sampled by synchronous contact resolution. */
@@ -65,7 +65,7 @@ export interface Motion {
   lastAerialTapDirection: number;
 }
 
-export interface GroundMovement {
+interface GroundMovement {
   dashFrame: number;
   dashDirection: number;
   action: GroundAction;
@@ -78,7 +78,7 @@ export interface GroundMovement {
   dashGrabWindow: number;
 }
 
-export interface Jump {
+interface Jump {
   /** Input frames since jump was pressed, for wall-tech jumps. */
   inputAge: number;
   remaining: number;
@@ -92,7 +92,7 @@ export interface Jump {
   dodgeZ: number;
 }
 
-export interface Launch {
+interface Launch {
   knockbackX: number;
   knockbackZ: number;
   meleeKnockbackX: MeleeMotionValue;
@@ -113,7 +113,7 @@ export interface Launch {
   asdiSerial: number;
 }
 
-export interface Shield {
+interface Shield {
   raised: boolean;
   /** Analog pressure scale in [0, 1]; digital is 1. */
   strength: number;
@@ -139,7 +139,7 @@ export interface Shield {
   breakRemaining: number;
 }
 
-export interface Attack {
+interface Attack {
   style: AttackStyle | undefined;
   frame: number;
   duration: number;
@@ -154,13 +154,13 @@ export interface Attack {
 }
 
 /** One attacker's latest contact with this fighter; eligibility for that attack's later windows. */
-export interface HitEntry {
+interface HitEntry {
   attacker: number | undefined;
   attackSerial: number;
   window: number;
 }
 
-export interface HitRegistry {
+interface HitRegistry {
   readonly entries: HitEntry[];
   /** The latest contact, for diagnostics. */
   lastAttacker: number | undefined;
@@ -169,7 +169,7 @@ export interface HitRegistry {
 }
 
 /** Presentation counters: each increment is one event to show. */
-export interface VisualSerials {
+interface VisualSerials {
   grab: number;
   throw: number;
   hit: number;
@@ -179,7 +179,7 @@ export interface VisualSerials {
   parry: number;
 }
 
-export interface Special {
+interface Special {
   action: SpecialAction;
   frame: number;
   duration: number;
@@ -210,7 +210,7 @@ export interface Projectile {
 }
 
 /** Summons keep their last values when they expire; snapshots and checksums include them. */
-export interface Bear {
+interface Bear {
   life: number;
   x: number;
   z: number;
@@ -221,7 +221,7 @@ export interface Bear {
   surface: number | undefined;
 }
 
-export interface Hippogryph {
+interface Hippogryph {
   life: number;
   x: number;
   z: number;
@@ -230,7 +230,7 @@ export interface Hippogryph {
   kind: HippogryphKind;
 }
 
-export interface FreezeTrap {
+interface FreezeTrap {
   life: number;
   arming: number;
   x: number;
@@ -241,7 +241,7 @@ export interface FreezeTrap {
   cooldown: number;
 }
 
-export interface Dodge {
+interface Dodge {
   airDodging: boolean;
   airFrame: number;
   /** Frames of decaying air dodge motion left. */
@@ -251,13 +251,13 @@ export interface Dodge {
   groundEntryFacing: number;
 }
 
-export interface Landing {
+interface Landing {
   lag: number;
   lCancelWindow: number;
   lCancelSerial: number;
 }
 
-export interface Down {
+interface Down {
   state: DownState;
   frame: number;
   direction: number;
@@ -266,12 +266,12 @@ export interface Down {
 }
 
 /** Tech input ages; they continue through frozen input frames. */
-export interface Tech extends TechInput {
+interface Tech extends TechInput {
   window: number;
 }
 
 /** Wall and ceiling contacts and the techs that recover from them. */
-export interface SurfaceRecovery {
+interface SurfaceRecovery {
   state: SurfaceContact;
   frame: number;
   velocityApplied: boolean;
@@ -287,7 +287,7 @@ export interface SurfaceRecovery {
   contactNormalZ: number;
 }
 
-export interface Grab {
+interface Grab {
   /** Frames left before a held fighter breaks free. */
   grabbedFrames: number;
   action: GrabAction;
@@ -299,7 +299,7 @@ export interface Grab {
   target: number | undefined;
 }
 
-export interface Ledge {
+interface Ledge {
   state: LedgeState;
   side: number;
   frame: number;
@@ -308,7 +308,7 @@ export interface Ledge {
   regrab: number;
 }
 
-export interface Status {
+interface Status {
   damage: number;
   stocks: number;
   respawn: number;

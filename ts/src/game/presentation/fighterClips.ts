@@ -16,7 +16,7 @@ export type CharacterClips = readonly [archer: Clip, rifleman: Clip, demonHunter
 const clip = (index: number, seconds: number): Clip => ({ index, seconds });
 
 const JAB: CharacterClips = [clip(assets.ARCHER_JAB_INDEX, assets.ARCHER_JAB_SECONDS), clip(assets.RIFLEMAN_JAB_INDEX, assets.RIFLEMAN_JAB_SECONDS), clip(dh.DEMON_HUNTER_ATTACK_JAB_INDEX, dh.DEMON_HUNTER_ATTACK_JAB_SECONDS)];
-export const GRAB: CharacterClips = [clip(assets.ARCHER_GRAB_INDEX, assets.ARCHER_GRAB_SECONDS), clip(assets.RIFLEMAN_GRAB_INDEX, assets.RIFLEMAN_GRAB_SECONDS), clip(dh.DEMON_HUNTER_GRAB_INDEX, dh.DEMON_HUNTER_GRAB_SECONDS)];
+const GRAB: CharacterClips = [clip(assets.ARCHER_GRAB_INDEX, assets.ARCHER_GRAB_SECONDS), clip(assets.RIFLEMAN_GRAB_INDEX, assets.RIFLEMAN_GRAB_SECONDS), clip(dh.DEMON_HUNTER_GRAB_INDEX, dh.DEMON_HUNTER_GRAB_SECONDS)];
 const FORWARD_TILT: CharacterClips = [clip(assets.ARCHER_FORWARD_TILT_INDEX, assets.ARCHER_FORWARD_TILT_SECONDS), clip(assets.RIFLEMAN_FORWARD_TILT_INDEX, assets.RIFLEMAN_FORWARD_TILT_SECONDS), clip(dh.DEMON_HUNTER_FORWARD_TILT_INDEX, dh.DEMON_HUNTER_FORWARD_TILT_SECONDS)];
 const UP_TILT: CharacterClips = [clip(assets.ARCHER_UP_TILT_INDEX, assets.ARCHER_UP_TILT_SECONDS), clip(assets.RIFLEMAN_UP_TILT_INDEX, assets.RIFLEMAN_UP_TILT_SECONDS), clip(dh.DEMON_HUNTER_UP_TILT_INDEX, dh.DEMON_HUNTER_UP_TILT_SECONDS)];
 const DOWN_TILT: CharacterClips = [clip(assets.ARCHER_DOWN_TILT_INDEX, assets.ARCHER_DOWN_TILT_SECONDS), clip(assets.RIFLEMAN_DOWN_TILT_INDEX, assets.RIFLEMAN_DOWN_TILT_SECONDS), clip(dh.DEMON_HUNTER_DOWN_TILT_INDEX, dh.DEMON_HUNTER_DOWN_TILT_SECONDS)];

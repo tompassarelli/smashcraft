@@ -1,6 +1,6 @@
 // Applying a selected hit: Demon Hunter parries, grab catches, and damage
 // contacts for everything else.
-import { max } from "../../runtime/wurst";
+import { max } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character, ContactKind, GrabAction, SpecialAction } from "./codes";
 import { collectDamageContact } from "./contacts";

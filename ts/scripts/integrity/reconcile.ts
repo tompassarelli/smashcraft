@@ -20,12 +20,12 @@ interface ProducerEdge extends SourceEdge {
 }
 
 /** A game file's content and the monotonic time it was published. */
-export interface Publication {
+interface Publication {
   readonly contents: string;
   readonly estimateNs: number;
 }
 
-export interface SlotMode {
+interface SlotMode {
   readonly humanFighters: number;
   readonly computers: number;
 }

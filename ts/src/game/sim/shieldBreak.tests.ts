@@ -1,6 +1,6 @@
 // Shield break: the launch, landing, standing and dizzy phases and what ends them.
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
-import { max, toInt } from "../../runtime/wurst";
+import { max, toInt } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, DownState, ShieldBreak } from "./codes";

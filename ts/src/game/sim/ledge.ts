@@ -1,5 +1,5 @@
 // Ledge catches and the options from a hang: jump, climb, drop, roll and attack.
-import { max, min } from "../../runtime/wurst";
+import { max, min } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, DownState, LedgeState } from "./codes";
 import { canAttack, isTumbling } from "./conditions";
@@ -16,13 +16,13 @@ import { beginAttack, cancelAttack, clearDownState, clearTechInput, leaveLedge }
 export const LEDGE_CLIMB_FRAMES = 25;
 export const LEDGE_ROLL_FRAMES = 36;
 export const LEDGE_INTANGIBLE_FRAMES = 30;
-export const LEDGE_GRAB_WIDTH = 54.0;
-export const LEDGE_GRAB_BELOW = 90.0;
-export const LEDGE_GRAB_ABOVE = 12.0;
+const LEDGE_GRAB_WIDTH = 54.0;
+const LEDGE_GRAB_BELOW = 90.0;
+const LEDGE_GRAB_ABOVE = 12.0;
 export const LEDGE_HANG_OUTSET = 24.0;
 export const LEDGE_HANG_DEPTH = 90.0;
-export const LEDGE_MOUNT_FRAMES = 12;
-export const LEDGE_CLIMB_INSET = 24.0;
+const LEDGE_MOUNT_FRAMES = 12;
+const LEDGE_CLIMB_INSET = 24.0;
 
 function ledgeX(stage: number, side: number): number {
   return side < 0 ? surfaceLeft(stage, 0) : surfaceRight(stage, 0);

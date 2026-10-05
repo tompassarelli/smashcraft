@@ -28,7 +28,7 @@ export function confirmedChecksum(s: ShellState): string {
   return stateChecksum(s.diagnostic);
 }
 
-export function traceConfirmedState(s: ShellState): void {
+function traceConfirmedState(s: ShellState): void {
   const first = firstHumanSlot(s.game);
   if (first === undefined || s.participants[first].body === undefined) return;
   const started = traceSeconds(s.trace);

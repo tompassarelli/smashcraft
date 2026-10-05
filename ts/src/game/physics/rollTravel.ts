@@ -4,8 +4,8 @@
 import { f32 } from "waygate/src/sim/f32";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../sim/tuning";
 
-export type RollKind = "roll" | "faceUpGetup" | "faceDownGetup" | "tech";
-export type RollDirection = "forward" | "back";
+type RollKind = "roll" | "faceUpGetup" | "faceDownGetup" | "tech";
+type RollDirection = "forward" | "back";
 
 /**
  * Signed travel along the roll's direction in Melee units, one sample per

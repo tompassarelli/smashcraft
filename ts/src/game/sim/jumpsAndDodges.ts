@@ -1,5 +1,5 @@
 // Starting jumps, air dodges and ground dodges.
-import { max } from "../../runtime/wurst";
+import { max } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { Character, DownState, LedgeState, ShieldBreak, SurfaceContact } from "./codes";
 import { inGrabContext, inSurfaceTechStartup, isGroundDodging, isTumbling } from "./conditions";
@@ -10,10 +10,10 @@ import { observeActionDecision, observeActionStart } from "./observations";
 import { clearDownState } from "./transitions";
 import { melee } from "./tuning";
 
-export const AIR_DODGE_SPEED = melee(3.0999999046325684);
+const AIR_DODGE_SPEED = melee(3.0999999046325684);
 export const AIR_DODGE_DECAY = 0.8999999761581421;
 // EscapeAir processes animation frame one before entry physics; frame 30 resumes air physics.
-export const AIR_DODGE_DECAY_FRAMES = 29;
+const AIR_DODGE_DECAY_FRAMES = 29;
 export const AIR_DODGE_ANIMATION_FRAMES = 49;
 // Cos and Sin of 18 * bj_DEGTORAD, as the Wurst interpreter evaluates them in binary32.
 const SHALLOW_DODGE_COS = 0.9510565996170044;

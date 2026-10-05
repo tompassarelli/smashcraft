@@ -1,7 +1,7 @@
 // Launch strength, hitlag, hitstun and directional influence. The scalar
 // formulas reproduce NTSC 1.02 binary32 arithmetic; see
 // smashcraft:docs/melee-hitlag-scalars.md and melee-hitstun-boundaries.md.
-import { max, min, toInt, toReal } from "../../runtime/wurst";
+import { max, min, toInt, toReal } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, fusedMultiplyAddFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
 import { f32 } from "waygate/src/sim/f32";
 import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
@@ -166,7 +166,7 @@ export function decayKnockback(f: Fighter): void {
   setMeleeKnockback(f, decayed.x, decayed.z);
 }
 
-export interface DirectionalInfluence {
+interface DirectionalInfluence {
   velocityX: number;
   velocityZ: number;
   angleRadians: number;

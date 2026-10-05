@@ -1,4 +1,4 @@
-import { min, toInt } from "../../runtime/wurst";
+import { min, toInt } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { summonClip } from "./summonClipInfo";
 

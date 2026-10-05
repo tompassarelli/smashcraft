@@ -1,6 +1,6 @@
 // Wall and ceiling contacts: stopping against solid faces, tumble rebounds,
 // and the wall and ceiling techs that recover from them.
-import { max } from "../../runtime/wurst";
+import { max } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { SurfaceContact } from "./codes";
 import { WALL_TECH_STARTUP_FRAMES, isTumbling } from "./conditions";

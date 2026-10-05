@@ -1,5 +1,5 @@
 // Holding a grabbed fighter: mash-out escapes, pummels and throws.
-import { max, min } from "../../runtime/wurst";
+import { max, min } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { ContactKind, GrabAction } from "./codes";
 import { finishDamageContacts, openDamageContacts, queueDamageContact } from "./contacts";

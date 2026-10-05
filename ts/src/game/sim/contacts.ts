@@ -1,7 +1,7 @@
 // Damage contacts: every contact of a frame is collected against the same
 // pre-hit state, then each target resolves its contacts together. The
 // strongest launch wins; blocked contacts drain and push the shield instead.
-import { max, min, toInt } from "../../runtime/wurst";
+import { max, min, toInt } from "../../runtime/numbers";
 import { addFloat32, divideFloat32, multiplyFloat32, roundToFloat32, subtractFloat32 } from "waygate/src/sim/binary32";
 import { ContactKind, DownState } from "./codes";
 import { isDownDamageState } from "./conditions";

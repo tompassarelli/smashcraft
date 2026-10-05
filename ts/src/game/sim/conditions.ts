@@ -6,13 +6,13 @@ import { attackStartupFrames, characterAttackActiveFrames } from "./moves";
 
 export const GROUND_ROLL_FRAMES = 31;
 export const GROUND_ROLL_INTANGIBLE_START = 4;
-export const GROUND_ROLL_INTANGIBLE_END = 19;
+const GROUND_ROLL_INTANGIBLE_END = 19;
 export const SPOT_DODGE_FRAMES = 22;
 export const SPOT_DODGE_INTANGIBLE_START = 2;
 export const SPOT_DODGE_INTANGIBLE_END = 15;
 // EscapeAir processes animation frame one before entry physics; frame 30 resumes air physics.
-export const AIR_DODGE_INTANGIBLE_START = 4;
-export const AIR_DODGE_INTANGIBLE_END = 29;
+const AIR_DODGE_INTANGIBLE_START = 4;
+const AIR_DODGE_INTANGIBLE_END = 29;
 export const DOWN_RECOVERY_INTANGIBLE_FRAMES = 20;
 export const DOWN_ROLL_INTANGIBLE_FRAMES_BACK_UP = 23;
 export const DOWN_ROLL_INTANGIBLE_FRAMES_BACK_DOWN = 20;

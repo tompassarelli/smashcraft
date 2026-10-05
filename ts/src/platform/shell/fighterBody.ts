@@ -39,7 +39,7 @@ export function createFighterBody(owner: player, fighter: Readonly<Fighter>, ori
   return body;
 }
 
-export function clearDizzy(body: FighterBody): void {
+function clearDizzy(body: FighterBody): void {
   if (body.dizzy === undefined) return;
   BlzSetSpecialEffectScale(body.dizzy, 0.0);
   DestroyEffect(body.dizzy);

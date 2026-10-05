@@ -1,6 +1,6 @@
 // Attack timing, damage and reach for every action ID. Frame counts are
 // provisional authored values unless a constant names its Melee source.
-import { max, min, toInt } from "../../runtime/wurst";
+import { max, min, toInt } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character, GrabAction } from "./codes";
 
@@ -14,7 +14,7 @@ export const DOWN_ATTACK_DAMAGE = 7.0;
 // Provisional get-up attack tuning: let the attacker regain control before
 // the opponent's first active wake-up attack. See smashcraft:docs/physics.md.
 export const DOWN_ATTACK_BASE_KNOCKBACK = 75.0;
-export const ARCHER_DOWN_ACTIVE_FRAMES = 20;
+const ARCHER_DOWN_ACTIVE_FRAMES = 20;
 export const L_CANCEL_WINDOW_FRAMES = 7;
 
 const AERIAL_LANDING_LAG = {

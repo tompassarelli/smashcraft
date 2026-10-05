@@ -1,6 +1,6 @@
 // Projectiles: spawning, flight, hits, shield blocks and reflections. Timing
 // and trajectories are first-pass character-special tuning.
-import { max, min } from "../../runtime/wurst";
+import { max, min } from "../../runtime/numbers";
 import { roundToFloat32 } from "waygate/src/sim/binary32";
 import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, ContactKind, ProjectileKind } from "./codes";
@@ -17,10 +17,10 @@ import { at } from "waygate/src/runtime/lookup";
 
 export const BLASTER_PROJECTILE_SPEED = 36.0;
 export const BLASTER_PROJECTILE_LIFETIME = 60;
-export const BLASTER_PROJECTILE_HEIGHT = 75.0;
-export const BLASTER_PROJECTILE_HALF_HEIGHT = 36.0;
-export const BLASTER_PROJECTILE_RADIUS = 24.0;
-export const BLASTER_PROJECTILE_SPAWN_OFFSET = 35.0;
+const BLASTER_PROJECTILE_HEIGHT = 75.0;
+const BLASTER_PROJECTILE_HALF_HEIGHT = 36.0;
+const BLASTER_PROJECTILE_RADIUS = 24.0;
+const BLASTER_PROJECTILE_SPAWN_OFFSET = 35.0;
 /** Height of a target's body center above its position. */
 const TARGET_CENTER_HEIGHT = 45;
 

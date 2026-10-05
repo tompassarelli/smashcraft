@@ -1,5 +1,5 @@
 // Landing, knockdowns, floor techs and getting up.
-import { max, min } from "../../runtime/wurst";
+import { max, min } from "../../runtime/numbers";
 import { roundToFloat32 } from "waygate/src/sim/binary32";
 import { f32 } from "waygate/src/sim/f32";
 import { idiv } from "waygate/src/sim/intMath";
@@ -18,7 +18,7 @@ import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { squareRoot } from "./warcraftMath";
 
 export const AIR_DODGE_LANDING_LAG = 10;
-export const EMPTY_LANDING_LAG = 4;
+const EMPTY_LANDING_LAG = 4;
 export const GROUND_ROLL_SPEED = 8.0;
 export const GROUND_ROLL_MOVE_START = 4;
 export const GROUND_ROLL_MOVE_END = 19;
@@ -33,7 +33,7 @@ export const DOWN_DAMAGE_FRAMES = 13;
 export const DOWN_DAMAGE_RESET_THRESHOLD = 7.0;
 
 /** Moves a getup or tech roll along its recorded travel, kept on its deck. */
-export function applyDownRollTravel(f: Fighter, stage: number): void {
+function applyDownRollTravel(f: Fighter, stage: number): void {
   const { down, motion } = f;
   if (down.state !== DownState.roll && down.state !== DownState.techRoll) return;
   let distance = 0.0;

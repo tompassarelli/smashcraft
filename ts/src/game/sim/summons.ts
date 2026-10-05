@@ -1,6 +1,6 @@
 // Summons that act on their own: the Rifleman's bear and freeze trap, and the
 // Archer's hippogryph.
-import { max } from "../../runtime/wurst";
+import { max } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character, HippogryphKind, SpecialAction } from "./codes";
 import { canAttack, isIntangible } from "./conditions";
@@ -13,12 +13,12 @@ import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
 import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, clearLedge, clearOwnedFreezeTrap } from "./transitions";
 
 export const RIFLEMAN_BEAR_LIFETIME = 100;
-export const RIFLEMAN_BEAR_SWIPE_INTERVAL = 18;
-export const FREEZE_TRAP_ARMING_FRAMES = 20;
-export const FREEZE_TRAP_LIFETIME_FRAMES = 1800;
-export const FREEZE_TRAP_FREEZE_FRAMES = 300;
-export const FREEZE_TRAP_COOLDOWN_FRAMES = 90;
-export const FREEZE_TRAP_TRIGGER_RADIUS = 42.0;
+const RIFLEMAN_BEAR_SWIPE_INTERVAL = 18;
+const FREEZE_TRAP_ARMING_FRAMES = 20;
+const FREEZE_TRAP_LIFETIME_FRAMES = 1800;
+const FREEZE_TRAP_FREEZE_FRAMES = 300;
+const FREEZE_TRAP_COOLDOWN_FRAMES = 90;
+const FREEZE_TRAP_TRIGGER_RADIUS = 42.0;
 
 const BEAR_SWIPE = { damage: 6.0, growth: 90.0, base: 18.0, launchX: DIAGONAL_UNIT, launchZ: 0.3499999940395355, electric: false } as const;
 const HIPPOGRYPH_STRIKE = { damage: 8.0, growth: 100.0, base: 22.0, launchX: DIAGONAL_UNIT, launchZ: DIAGONAL_UNIT, electric: false } as const;

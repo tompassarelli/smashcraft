@@ -1,7 +1,7 @@
 // Retail physics references: NTSC 1.02 recordings and extracted parameters.
 import { floorMod } from "waygate/src/sim/intMath";
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
-import { max } from "../../runtime/wurst";
+import { max } from "../../runtime/numbers";
 import { addFloat32, divideFloat32 } from "waygate/src/sim/binary32";
 import { f32 } from "waygate/src/sim/f32";
 import { advanceSpecials } from "./specials";

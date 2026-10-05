@@ -1,6 +1,6 @@
 // Dash, run, turn-run and run-brake against the authored and NTSC timelines.
 import { assertEquals, assertFalse, assertLessThan, assertNear, assertTrue, test } from "waygate/src/runtime/testing";
-import { max, min } from "../../runtime/wurst";
+import { max, min } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character, GroundAction } from "./codes";
 import { type Fighter, createFighter } from "./fighter";

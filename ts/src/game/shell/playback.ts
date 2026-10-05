@@ -12,7 +12,7 @@ import type { Roster } from "../sim/roster";
 type Reconciliation = "unchanged" | "rejected" | { readonly replayedFrom: number };
 
 /** Called after each speculative frame runs and before the schedule completes it, with the local row it used. */
-export type SpeculativeFrameObserver = (frame: number, local: Readonly<InputRow>) => void;
+type SpeculativeFrameObserver = (frame: number, local: Readonly<InputRow>) => void;
 
 /** The speculative match: the state presentation predicts from. */
 export interface SpeculativeMatch {

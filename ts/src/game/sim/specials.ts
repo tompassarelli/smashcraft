@@ -1,7 +1,7 @@
 // Character specials: choosing and starting them, their per-frame timelines,
 // and Demon Hunter's Immolation contact. First-pass timing and trajectories;
 // gameplay tuning remains provisional.
-import { max } from "../../runtime/wurst";
+import { max } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { AttackStyle, Character, HippogryphKind, ProjectileKind, SPECIAL_ACTION_CAPACITY, SpecialAction, SurfaceContact } from "./codes";
 import { canAttack, isIntangible } from "./conditions";
@@ -20,18 +20,18 @@ import { RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHi
 import { at } from "waygate/src/runtime/lookup";
 
 export const DEMONHUNTER_MANA_BURN_STARTUP = 8;
-export const DEMONHUNTER_MANA_BURN_RECOVERY = 25;
-export const DEMONHUNTER_PARRY_DURATION = 22;
+const DEMONHUNTER_MANA_BURN_RECOVERY = 25;
+const DEMONHUNTER_PARRY_DURATION = 22;
 export const DEMONHUNTER_WING_STARTUP = 3;
 export const DEMONHUNTER_WING_DURATION = 28;
 export const DEMONHUNTER_IMMOLATE_STARTUP = 4;
 export const DEMONHUNTER_IMMOLATE_ACTIVE = 4;
 export const DEMONHUNTER_IMMOLATE_DURATION = 27;
-export const ARCHER_MULTISHOT_WINDUP_FRAMES = 12;
-export const ARCHER_DISENGAGE_FRAMES = 30;
-export const ARCHER_RECOVERY_FRAMES = 24;
-export const RIFLEMAN_RECOVERY_STARTUP_FRAMES = 4;
-export const RIFLEMAN_RECOVERY_PROTECTION_END = 24;
+const ARCHER_MULTISHOT_WINDUP_FRAMES = 12;
+const ARCHER_DISENGAGE_FRAMES = 30;
+const ARCHER_RECOVERY_FRAMES = 24;
+const RIFLEMAN_RECOVERY_STARTUP_FRAMES = 4;
+const RIFLEMAN_RECOVERY_PROTECTION_END = 24;
 const MULTISHOT_FRAMES = 34;
 const RIFLEMAN_RECOVERY_FRAMES = 34;
 const BEAR_SUMMON_FRAMES = 18;

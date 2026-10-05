@@ -12,7 +12,7 @@ const ECHO_CAPACITY = 256;
 const ECHO_BIN_LIMITS = [3, 6, 9, 12, 18] as const;
 
 /** Capture-to-send waits of batched local rows. */
-export interface WaitSpread {
+interface WaitSpread {
   samples: number;
   sumCallbacks: number;
   maxCallbacks: number;
@@ -21,7 +21,7 @@ export interface WaitSpread {
 }
 
 /** Local send-to-echo ages: how long the synchronized channel took to return this client's own rows. */
-export interface EchoSpread {
+interface EchoSpread {
   samples: number;
   minCallbacks: number;
   maxCallbacks: number;
@@ -35,7 +35,7 @@ export interface EchoSpread {
 }
 
 /** Counts summarized and reset once a second of trace. */
-export interface TraceWindow {
+interface TraceWindow {
   readonly accepted: Slots<number>;
   readonly receivedRows: Slots<number>;
   readonly keyDown: Slots<number>;
@@ -206,7 +206,7 @@ export function traceParticipantWindow(trace: InputTrace, slot: ParticipantSlot)
   traceInput(trace, `participant ${slot} received-packets ${w.accepted[slot]} received-rows ${w.receivedRows[slot]} key-down ${w.keyDown[slot]} key-up ${w.keyUp[slot]}`);
 }
 
-export interface ScheduleSummary {
+interface ScheduleSummary {
   readonly known: number;
   readonly confirmed: number;
   readonly rollback: number;

@@ -1,7 +1,7 @@
 // Grounded steering: walk, dash, run, turn-run and run-brake, with the actor's
 // command timeline in tuning.ground. Coefficients come from the locally
 // identified NTSC 1.02 PlCo.dat.
-import { max, min } from "../../runtime/wurst";
+import { max, min } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { GroundAction } from "./codes";
 import type { Fighter } from "./fighter";
@@ -102,7 +102,7 @@ function advanceActionClock(f: Fighter, direction: number): void {
 }
 
 /** Ground velocity toward a target: friction above it, acceleration below it, capped either way. */
-export function groundMovementVelocity(velocity: number, acceleration: number, targetVelocity: number, friction: number, speedCap: number): number {
+function groundMovementVelocity(velocity: number, acceleration: number, targetVelocity: number, friction: number, speedCap: number): number {
   const targetDirection = targetVelocity > 0 ? 1 : targetVelocity < 0 ? -1 : 0;
   const currentDirection = velocity > 0 ? 1 : velocity < 0 ? -1 : 0;
   if (currentDirection === targetDirection && Math.abs(velocity) >= Math.abs(targetVelocity)) {

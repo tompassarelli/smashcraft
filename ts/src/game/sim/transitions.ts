@@ -2,7 +2,7 @@
 // states, and ending or interrupting actions. Grab links are the only state
 // that spans fighters, so clearing them takes the roster.
 import { clearTechInput as clearTechInputState } from "../physics/techInput";
-import { max } from "../../runtime/wurst";
+import { max } from "../../runtime/numbers";
 import { AttackStyle, DASH_GRAB_REQUEST, DownState, GrabAction, HippogryphKind, LedgeState, ProjectileKind, SpecialAction, SurfaceContact } from "./codes";
 import { isTumbling } from "./conditions";
 import { type Fighter, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "./fighter";

@@ -77,14 +77,14 @@ export interface ShieldGeometry {
 }
 
 /** Surface tech animation timing; NTSC Fox/Falco push off on frame 14, Captain Falcon on 11. */
-export interface TechTiming {
+interface TechTiming {
   readonly ceilingImpulseFrame: number;
   readonly ceilingAnimationEndFrame: number;
   readonly wallAnimationEndFrame: number;
   readonly wallJumpAnimationEndFrame: number;
 }
 
-export interface ShieldBreakTiming {
+interface ShieldBreakTiming {
   readonly landFrames: number;
   readonly standFrames: number;
 }
@@ -203,7 +203,7 @@ export function authoredPhysics(character: Character): FighterPhysics {
   }
 }
 
-export const NO_SURFACE_RECOVERY_PHYSICS: SurfaceRecoveryPhysics = {
+const NO_SURFACE_RECOVERY_PHYSICS: SurfaceRecoveryPhysics = {
   passiveWallSpeed: 0.0,
   wallJumpHorizontalSpeed: 0.0,
   wallJumpVerticalSpeed: 0.0,
@@ -253,10 +253,9 @@ export const AUTHORED_DASH_GRAB_RULES: DashGrabRules = {
 };
 
 export const NTSC_FOX_DASH_GRAB_RULES: DashGrabRules = { startupFrames: 10, activeFrames: 2, totalFrames: 40 };
-export const NTSC_FALCO_DASH_GRAB_RULES: DashGrabRules = NTSC_FOX_DASH_GRAB_RULES;
 export const NTSC_CAPTAIN_FALCON_DASH_GRAB_RULES: DashGrabRules = { startupFrames: 9, activeFrames: 2, totalFrames: 40 };
 
-export const AUTHORED_SHIELD_GEOMETRY: ShieldGeometry = { centerX: 0.0, centerZ: 45.0, radius: 60.0 };
+const AUTHORED_SHIELD_GEOMETRY: ShieldGeometry = { centerX: 0.0, centerZ: 45.0, radius: 60.0 };
 
 export const AUTHORED_TECH_TIMING: TechTiming = {
   ceilingImpulseFrame: 14,

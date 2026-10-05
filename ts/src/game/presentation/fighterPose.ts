@@ -1,4 +1,4 @@
-import { max, min } from "../../runtime/wurst";
+import { max, min } from "../../runtime/numbers";
 import { f32 } from "waygate/src/sim/f32";
 import { AttackPhase, AttackStyle, Character, DownState, GrabAction, LedgeState, ShieldBreak, SpecialAction } from "../sim/codes";
 import { GROUND_ROLL_FRAMES, SPOT_DODGE_FRAMES, attackPhase, inGrabContext, isForwardGroundRoll, isGroundDodging } from "../sim/conditions";

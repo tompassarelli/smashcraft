@@ -1,11 +1,11 @@
-// Wurst standard-library conversions the ported game uses.
+// Numeric conversions and scalar bounds shared by simulation and replay.
 
-/** Wurst `real.toInt()` (R2I): truncation toward zero. */
+/** Native R2I semantics: truncate toward zero. */
 export function toInt(value: number): number {
   return value < 0 ? Math.ceil(value) : Math.floor(value);
 }
 
-/** Wurst `int.toReal()`. Adding 0.0 makes a Lua integer a float. */
+/** Adding 0.0 makes a Lua integer a float, matching native I2R. */
 export function toReal(value: number): number {
   return value + 0.0;
 }

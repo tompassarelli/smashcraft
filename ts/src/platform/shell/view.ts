@@ -51,7 +51,7 @@ export function createStatusFrames(): StatusFrames {
   };
 }
 
-export function clearStageDecks(s: ShellState): void {
+function clearStageDecks(s: ShellState): void {
   for (const deck of s.stageDecks) {
     BlzSetSpecialEffectScale(deck, 0.0);
     DestroyEffect(deck);

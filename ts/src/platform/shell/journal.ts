@@ -32,7 +32,7 @@ export const CHAT_CLOSED_PREFIX = "SC_JH";
 const PACKETS_PER_CALLBACK = 1;
 
 /** The rollback session while a journal epoch runs. */
-export interface JournalEpoch {
+interface JournalEpoch {
   readonly rollback: Rollback;
   readonly journal: Journal;
 }
