@@ -31,7 +31,8 @@ import {
 import { Clients, type Client } from "wisp/scripts/wisp/clients";
 import { dataDirectory, GameFiles, type StoredFile } from "wisp/scripts/wisp/gameFiles";
 import { HotReload } from "wisp/scripts/wisp/hotReload";
-import { MapBuild, type CompiledBundle } from "wisp/scripts/wisp/mapBuild";
+import { MapBuild } from "wisp/scripts/wisp/mapBuild";
+import { SourceErrors } from "wisp/scripts/wisp/sourceErrors";
 
 const fixture = (name: string) => readFileSync(join(import.meta.dir, "fixtures/wisp", name), "utf8");
 
@@ -86,9 +87,10 @@ test("hot reload publishes payloads before manifests and waits for each fake cli
     remove: () => Effect.void,
     installMap: () => Effect.void,
   });
-  const bundle = { text: "bundle", bytes: new TextEncoder().encode("bundle"), checksum: "6:abc" } satisfies CompiledBundle;
-  const mapBuild = MapBuild.of({ compile: Effect.succeed(bundle), build: () => Effect.void, rebuild: () => Effect.void });
-  const dependencies = Layer.merge(Layer.succeed(GameFiles, files), Layer.succeed(MapBuild, mapBuild));
+  const modules = { entry: "main", modules: [{ name: "main", code: "return {}", sourceMap: () => "{}" }] };
+  const mapBuild = MapBuild.of({ compile: Effect.succeed(modules), build: () => Effect.void, rebuild: () => Effect.void });
+  const sourceErrors = SourceErrors.of({ retain: () => Effect.void, retainModule: () => Effect.void, changed: () => Effect.succeed([]) });
+  const dependencies = Layer.mergeAll(Layer.succeed(GameFiles, files), Layer.succeed(MapBuild, mapBuild), Layer.succeed(SourceErrors, sourceErrors));
   const hotLayer = HotReload.layer(directories, "smashcraft").pipe(Layer.provide(dependencies));
   const program = Effect.gen(function*() {
     const hot = yield* HotReload;
