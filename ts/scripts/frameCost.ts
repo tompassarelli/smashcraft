@@ -4,7 +4,7 @@ import { join, resolve } from "node:path";
 import { Effect } from "effect";
 import { canonicalChecksum } from "../src/game/replay/canonical";
 import { mapCompiler, report } from "./compiler";
-import { verifyToolchain } from "./mapEffects";
+import { verifyToolchain } from "./waygate/mapBuild";
 import { composeScript, loadBundle } from "./mapScript";
 
 const project = resolve(import.meta.dir, "../..");
