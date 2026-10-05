@@ -125,5 +125,9 @@ effect happens to do, with room for a pool slot reused while shown: three
 seconds for hit sparks, KO bodies, hippogryph, bear and Illidan's flames;
 four for projectiles; six for an ice shell; ten for the dizzy mark; 31 for
 an unsprung freeze trap; 75 for a shield bubble, which the lightest press
-drains in about 72 s. Positions are read every half second, so a stay is
-known to half a second.
+drains in about 72 s. A stay starts when the game places an effect in view
+and ends when `hideEffect` parks it, at that frame. The impact pools reuse a
+slot for the next hit or dust while the last may still show; the pool parks
+the slot first, so each use is a stay of its own. Dense play with three
+fighters keeps a dust slot in view for about 4 s across more than a dozen
+uses, each at most its 32 frames.

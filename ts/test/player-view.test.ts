@@ -6,8 +6,12 @@ import { trampoline } from "wisp/src/platform/dispatch";
 import { reportedModel, sceneFile } from "wisp/src/runtime/scene";
 import { type SceneReport, readSceneLines, sceneProblems } from "wisp/scripts/wisp/scene";
 import { SMASHCRAFT_SCENE } from "../scripts/wisp/playerView";
+import { IMPACT_DUST_MODEL, IMPACT_HIT_MODEL } from "../src/game/assets/impactAssetInfo";
 import { STAGE_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
-import { requestStageSelect, requestStart, selectCharacter } from "../src/game/match/rules";
+import { Action, bit } from "../src/game/input/actions";
+import { requestStageSelect, requestStart, selectCharacter, setParticipants } from "../src/game/match/rules";
+import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
+import { IMPACT_DUST, IMPACTS_PER_KIND, impactLifetime } from "../src/game/presentation/impactState";
 import { Character } from "../src/game/sim/codes";
 import { install as installDevelopment, start as startDevelopment } from "../src/platform/devMain";
 import { startMatch } from "../src/platform/shell/matchStart";
@@ -18,6 +22,7 @@ import type { HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
+const seconds = (value: number) => value * SMASHCRAFT_SCENE.framesPerSecond;
 afterAll(headless.restore);
 
 /** The client's latest scene report, from the lines it wrote. */
@@ -73,4 +78,68 @@ test("the two shipped defects fail the scene check from the match's first report
     "invisible stage deck: 1 effects were created with no model, 1 of them meant to be drawn now",
     "nothing where a stage deck should be: the game names no model for it",
   ]);
+});
+
+/**
+ * Dense play's dust: an archer jumping every 10 frames while running back and
+ * forth, with two computers chasing it, takes the eight-slot dust pool's next
+ * slot before the last dust in it fades. Counted as one stay, a reused slot
+ * stayed in view over 180 frames and failed the rematch of #26's clean-folders
+ * capture (240 frames) and its headless run (687).
+ */
+test("a dust slot reused while shown is a new stay each use, and an effect left in view still fails", () => {
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+  clients.start();
+  clients.frames(30);
+  const client = clients.clients[0];
+  if (client === undefined) throw new Error("missing client");
+  // A hit spark left standing at the stage center, moved in view but never parked: the defect the check is for.
+  let lingering: effect | undefined;
+  client.run(() => {
+    const s = shell();
+    setParticipants(s.game, 1, 6);
+    selectCharacter(s.game, 0, Character.archer);
+    expect(requestStageSelect(s.game, 0)).toBe(true);
+    expect(requestStart(s.game, 0)).toBe(true);
+    startMatch(s);
+    s.game.timeLimitMinutes = 0;
+    lingering = AddSpecialEffect(IMPACT_HIT_MODEL, s.origin.x, s.origin.y);
+  });
+  // Per frame, how long each dust slot has been in view and how often its slot was reused meanwhile.
+  const stays = new Map<number, { frames: number; reuses: number; age: number | undefined }>();
+  let longestReused = 0;
+  for (let frame = 0; frame < 300; frame++) {
+    client.run(() => {
+      const { origin, participants } = shell();
+      const { row } = participants[0].capture;
+      const direction = Math.floor(frame / 40) % 2 === 0 ? Action.moveLeft : Action.moveRight;
+      row.held = bit(direction);
+      row.pressed = (frame % 10 === 0 ? bit(Action.jump) : 0) | (frame % 40 === 0 ? bit(direction) : 0);
+      row.axisX = direction === Action.moveLeft ? -127 : 127;
+      if (lingering !== undefined && frame % 60 === 0) BlzSetSpecialEffectPosition(lingering, origin.x + frame, origin.y, origin.z);
+    });
+    clients.frames(1);
+    client.run(() => {
+      const s = shell();
+      const poses = new Map(client.effectPoses().map((pose) => [pose.handle as unknown, pose]));
+      const pool = (s.ui?.combat as unknown as { impacts: readonly unknown[] }).impacts;
+      for (let use = 0; use < IMPACTS_PER_KIND; use++) {
+        const slot = IMPACT_DUST * IMPACTS_PER_KIND + use;
+        const shown = (poses.get(pool[slot])?.z ?? 0) > s.origin.z - FLOOR_HEIGHT + 1.0;
+        const age = s.runtime.impacts.ages[slot];
+        const stay = stays.get(slot) ?? { frames: 0, reuses: 0, age: undefined };
+        const reuses = stay.reuses + (shown && stay.age !== undefined && age !== undefined && age < stay.age ? 1 : 0);
+        stays.set(slot, shown ? { frames: stay.frames + 1, reuses, age } : { frames: 0, reuses: 0, age: undefined });
+        if (shown && reuses > 0) longestReused = Math.max(longestReused, stay.frames + 1);
+      }
+    });
+  }
+  client.run(() => trampoline("scene.report")());
+  // A dust slot stayed in view across uses for longer than a hit spark may stay;
+  // each use was a stay of its own, and only the standing spark fails.
+  expect(longestReused).toBeGreaterThan(seconds(3));
+  const report = sceneReport(client);
+  expect(report.models.find(({ model }) => model === reportedModel(IMPACT_DUST_MODEL))?.longest).toBe(impactLifetime(IMPACT_DUST));
+  expect(sceneProblems(report, SMASHCRAFT_SCENE).map(({ seen }) => seen)).toEqual(["a hit spark stayed in view for 5.00 s; it should be gone within 3.00 s"]);
+  expect(client.errors).toEqual([]);
 });

@@ -63,6 +63,8 @@ function fighterModel(character: number): string {
 export class CombatEffects {
   private readonly impacts: effect[] = [];
   private readonly koBodies: effect[] = [];
+  /** Each impact slot's age when last shown; created on first use, so a pool retained across a reload gains it. */
+  private shownAges: (number | undefined)[] | undefined;
   /** The impacts' plane, just in front of the fighters; hidden models park beneath it. */
   readonly x: number;
   readonly y: number;
@@ -91,18 +93,28 @@ export class CombatEffects {
   clear(): void {
     for (const model of this.impacts) hideEffect(model, this);
     for (const model of this.koBodies) hideEffect(model, this);
+    this.shownAges = undefined;
   }
 
   /** KO impacts come from confirmed state, so a rollback never replays one; the rest from `state`. */
   present(state: Readonly<ImpactState>, confirmed: Readonly<ImpactState>, playing: boolean): void {
+    const shownAges = (this.shownAges ??= []);
     for (let i = 0; i < this.impacts.length; i++) {
       const model = this.impacts[i];
       if (model === undefined) continue;
-      const pose = projectImpact(i >= STAR_KO_FIRST ? confirmed : state, i);
+      const source = i >= STAR_KO_FIRST ? confirmed : state;
+      const pose = projectImpact(source, i);
+      const age = source.ages[i];
       if (!playing || !pose.visible) {
         hideEffect(model, this);
+        shownAges[i] = undefined;
         continue;
       }
+      // The slot's next impact took it while the last one still showed: park it
+      // first, as a new effect would start there. The callback draws only its final pose.
+      const last = shownAges[i];
+      if (last !== undefined && age !== undefined && age < last) hideEffect(model, this);
+      shownAges[i] = age;
       const depth = floorDiv(i, IMPACTS_PER_KIND) === IMPACT_STAR_KO ? STAR_KO_DEPTH : 0.0;
       BlzSetSpecialEffectAlpha(model, pose.alpha);
       BlzSetSpecialEffectScale(model, pose.scale);

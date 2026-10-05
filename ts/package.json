@@ -20,6 +20,6 @@
     "typescript": "6.0.2",
     "typescript-native": "npm:typescript@7.0.2",
     "typescript-to-lua": "1.37.1",
-    "wisp": "file:vendor/wisp-ca4c1cdcc20b5ed4c2927c197af60727860c1edb.tgz"
+    "wisp": "file:vendor/wisp-e222aef175518ac17e9ffdd64d72b83945454b22.tgz"
   }
 }
