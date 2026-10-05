@@ -1,54 +1,6 @@
 # Warcraft API and netcode findings
 
-Updated 5 October 2026. **Low-latency competitive readiness remains unproved.**
-This file records the reusable findings and the next decisions they support.
-Detailed run evidence remains in the linked reports. The original two-hour
-deadline was 08:38:38 Taipei on 4 October; it was missed and has not reset.
-
-## Current deciding evidence
-
-Current claim owners and the consolidated delivery state:
-wc3-melee:docs/netplay-status.md. #26 owns the known polling-loss failure;
-#25 owns intended-frame assignment and #27 response/variation. #28–#30 preserve
-completed bounded results. The current playable Linux controller checkpoint is
-0.0.41; exact 0.0.40 is preserved.
-
-**Controller/chat boundary:** the 0.0.41 native fixture did not observe chat
-opening with Enter during controller gameplay; native chat did open at initial
-character selection. The test stopped before chat-period input, preserving the
-failed boundary rather than claiming a suppression/recovery pass. The receiver
-holds a custom editbox's focus and the helper checks whole-window focus only;
-exact native event ordering remains to be isolated. Evidence:
-wc3-melee:docs/controller-chat-native-20261005/README.md.
-
-**Linux controller reconnect:** an updated helper now survives removal and
-reopens the uniquely matching device without resetting the match or frame
-origin. Both players passed a native removal/reconnect journey with virtual
-pads: neutral release at frame 93, fresh 5 ms tap applied once at original frame
-181 on both clients, no input from a different pad at the old event number, and
-matching result states. The first attempt failed because opening/closing all
-evdev devices stalled discovery for 275–310 ms per scan. Kernel identity lookup
-before opening the matching device reduced scans to 0.86–1.66 ms; the repeated
-native journey passed with unchanged queue/frame rules. Exact scope and retained
-failure: wc3-melee:docs/controller-reconnect-native-20261005/README.md.
-
-**5 October progress:** the editbox journal path now retains the tested 5 ms
-inputs through helper/game stalls and window-focus loss, follows pause/resume
-and match publications, and completes controller-only menus/results/rematch.
-The latest two-client, two-match controller-menu journey applied every tested
-tap once at original frame 19 and ended in matching state without restarting
-helpers. This replaces the earlier failed ingress attempts as the current
-implementation direction. It does not establish physical response or a common
-cross-machine frame clock. The remaining three claims stay in #25–#27.
-Current evidence: wc3-melee:docs/controller-menus-native-20261005/README.md and
-the linked earlier tap/stall, response and lifecycle records in the status page.
-
-**Installed 0.0.41 delivery:** the matching release map/helper passed two native
-combat/rematch sequences. Both clients agreed on recorded combat and final
-states; overlapping triggers retained shield and controller pause/resume worked.
-Startup/artifacts: wc3-melee:docs/playable-0041.md. Exact release evidence:
-wc3-melee:docs/playable-0041-native-20261005/README.md. This advances playable
-controller delivery without claiming physical latency or cross-machine fairness.
+Reusable Warcraft API and netcode findings from Smashcraft trials, each with the build it was observed on. Status and open decisions live in roadmap [#16](https://github.com/tompassarelli/smashcraft/issues/16); raw trial records live in wc3-melee:evidence/. General Warcraft guidance is in the warcraft3-development-distilled skill and its api-gotchas reference.
 
 ## Earlier rejected ingress paths — 4 October
 
@@ -56,7 +8,7 @@ The serial keyboard/file-ACK replacement is rejected: native five-second trials
 confirmed only 36–50 frames, with median ACK waits of 81–92 ms. Its first
 original-frame tap does not establish usable throughput. Removing synchronized
 carrier-key registration did not fix the delay. Evidence:
-wc3-melee:docs/keyboard-mailbox-20261004/README.md.
+wc3-melee:evidence/keyboard-mailbox-20261004/README.md.
 
 The earlier bounded one-packet read check showed delayed delivery rather than a
 permanently dead receiver: both clients received the packet and fixed markers,
@@ -64,7 +16,7 @@ confirming frame2, with own-receipt ages801.025/817.627ms. Sending on the next
 callback did not avoid the delay. Adding the normal preload start/end calls
 also failed to repair it (631.836/698.486ms). The same compiled Lua map was used
 for both checks; this does not establish eventual delivery for native JASS59.
-Evidence: wc3-melee:docs/journal-read-boundary-20261004/README.md. Its proposed
+Evidence: wc3-melee:evidence/journal-read-boundary-20261004/README.md. Its proposed
 keyboard-state replacement subsequently failed the native throughput trials
 above; it is not the selected playable input path.
 
@@ -86,7 +38,7 @@ checksum/rollback test and allowed59 to complete both pre-read ready messages.
 helper stop), but both native clients sent32 packets/64rows and received none
 in the trace; confirmation remained0. Reject59 as the gameplay replacement.
 Keep the exact counterexample for the owning post-read delivery repair.
-Evidence is in wc3-melee:docs/journal0059-evidence-20261004/; controller
+Evidence is in wc3-melee:evidence/journal0059-evidence-20261004/; controller
 latency, original-frame application and pause/stall guarantees are not proven.
 No alternative has beaten the delivered direct-sync baseline.
 
@@ -119,8 +71,8 @@ simulation frames differ; the exports do not prove paired terminal checksums.
 The result narrows the slow behavior to populated-file integration under these
 conditions. It does not yet identify which operation inside that path causes it.
 
-Evidence: `wc3-melee:docs/native-journal-packet-comparison-20261004/isolation0024/`.
-Details: `wc3-melee:docs/native-companion-landing-result-20261004.md`.
+Evidence: `wc3-melee:evidence/native-journal-packet-comparison-20261004/isolation0024/`.
+Details: `wc3-melee:evidence/native-companion-landing-result-20261004.md`.
 
 Earlier 0.0.23 missing-file trials delivered all 60 messages/arm/client with
 about 91–111 ms mean echo. Repeated missing-file reads alone did not reproduce
@@ -157,7 +109,7 @@ contents and longer sustained runs remain deciding tests; do not diagnose
 Preloader, tooltip updates or an engine limit from these observations alone.
 No physical response, paired checksum or 60 Hz claim follows from this probe.
 
-Evidence: `wc3-melee:docs/native-journal-packet-comparison-20261004/fileio0028/`.
+Evidence: `wc3-melee:evidence/native-journal-packet-comparison-20261004/fileio0028/`.
 
 ## Longer changing-content reproduction on 0.0.28
 
@@ -181,14 +133,14 @@ content from duration or diagnostic-driver behavior. The next discriminator
 uses 300 changing values and a shared 30 Hz driver for generated, tooltip-only
 and fresh-file arms.
 
-Evidence: `wc3-melee:docs/native-journal-packet-comparison-20261004/isolation0028/`.
+Evidence: `wc3-melee:evidence/native-journal-packet-comparison-20261004/isolation0028/`.
 
 The 0.0.28 order ready receipts identify existing owned Footmen and enabled
 selection, but immediate selected flags were zero. Native details later showed
 a Footman. Neither a held Stop hotkey nor a real UI right-click produced an
 exact-carrier receipt. Selection/command UI usability remains unproved; this
 is a harness boundary, not a native-order latency or reliability verdict.
-Evidence: `wc3-melee:docs/native-journal-packet-comparison-20261004/order0028/`.
+Evidence: `wc3-melee:evidence/native-journal-packet-comparison-20261004/order0028/`.
 
 ## Matched changing-content discriminator on 0.0.29
 
@@ -220,7 +172,7 @@ trial. Native displayed read duration remains zero and does not measure wall
 blocking. These are sequential game-clock own-echo measurements; no physical
 response or full competitive acceptance follows.
 
-Evidence: `wc3-melee:docs/native-journal-packet-comparison-20261004/fileio0029/`.
+Evidence: `wc3-melee:evidence/native-journal-packet-comparison-20261004/fileio0029/`.
 
 ## What the actual pinned libraries do
 
@@ -264,7 +216,7 @@ Small-value tests cannot establish general 32-bit throughput.
 The 0.0.24 order probe wrote paired ready receipts, but the first real Stop
 attempt produced no order receipts. Selection/hotkey/command usability remains
 unproved; this is not evidence that native orders are slow or unreliable.
-Evidence: `wc3-melee:docs/native-journal-packet-comparison-20261004/order0024/`.
+Evidence: `wc3-melee:evidence/native-journal-packet-comparison-20261004/order0024/`.
 
 ## Historical claims and their limits
 
@@ -343,27 +295,6 @@ change delivery and jitter; equalization deliberately delays faster paths.
 Neither fixes uncaptured events or wrong frame assignment. A native matched
 hosting comparison remains unproved.
 
-## Immediate open decisions
-
-1. Repair the content-sensitive populated-Preloader boundary. The matched
-   0.0.31 test reproduces delay with both FileIO and direct Preloader changing
-   content, while the same-duration constant-content FileIO arm stays fast.
-   Wrapper overhead and run duration alone are insufficient explanations.
-   The internal cause and a fast changing-input file path remain unresolved.
-2. Repair minimum signed integer emission at the compiler owner, then rebuild
-   and re-run the direct-sync integrity comparison before ranking transports.
-   Native-order crash remains unresolved and that trial is deferred. Sustained
-   rates and selection interference under gameplay remain unproved.
-3. Verify the repaired actual capture-to-fight path and physical responsiveness.
-   Full human/player/platform/controller, presentation/audio, clock fairness and
-   hosting acceptance remain open. Peer reports combined Wurst checks 635/635;
-   component checks do not establish native acceptance.
-
-Reusable development guidance is published in
-`nixos-config:dotfiles/agents/skills/warcraft3-development-distilled/SKILL.md`
-and its `nixos-config:dotfiles/agents/skills/warcraft3-development-distilled/references/api-gotchas.md`
-reference. This project file owns Smashcraft-specific observations.
-
 ## Native 0.0.29 short transport comparison
 
 Same two retained clients, slots 0/2, exact 0.0.29 artifact cited above.
@@ -397,7 +328,7 @@ one second at 60 Hz; these trials do not prove sustained capacity, fairness or
 a faster physical input path. No superior transport is established yet.
 
 Raw exports and host collection evidence:
-wc3-melee:docs/native-journal-packet-comparison-20261004/transports0029/.
+wc3-melee:evidence/native-journal-packet-comparison-20261004/transports0029/.
 
 ## Native 0.0.29 order-command failure
 
@@ -412,7 +343,7 @@ B: 0x6FFFEF321043). This
 association does not establish the exact cause or receipt timing. Native-order
 transport remains unproved. Crash reports, dumps and replay remain private;
 authored observation and numerical ready/selection exports are retained in
-wc3-melee:docs/native-journal-packet-comparison-20261004/order0029/.
+wc3-melee:evidence/native-journal-packet-comparison-20261004/order0029/.
 
 ## Matched direct-Preloader and constant-content comparison on 0.0.31
 
@@ -450,7 +381,7 @@ OS scheduling cause, or repair. Sequential arm order remains a limitation.
 Native read durations display zero and do not measure blocking wall time.
 Own-echo ages are game-clock measurements, not physical button-to-pixel latency.
 
-Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/fileio0031/.
+Evidence: wc3-melee:evidence/native-journal-packet-comparison-20261004/fileio0031/.
 
 ## Direct-sync serialization diagnostic on 0.0.31
 
@@ -487,7 +418,7 @@ protocol integrity. These one/two-second injection windows do not establish
 sustained capacity, harmless selection interaction, fairness or physical response.
 No alternative beats the direct-sync baseline on established usable evidence.
 
-Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/transports0031/.
+Evidence: wc3-melee:evidence/native-journal-packet-comparison-20261004/transports0031/.
 
 
 ## Minimum-integer compiler repair activated
@@ -537,7 +468,7 @@ No alternative has demonstrated a reliably faster path. These measurements
 are transport echoes, not physical controller-to-screen response. The collector
 captured all twelve receipts over 32.541 host seconds; it was started before
 the trigger, so that span includes setup. Evidence:
-wc3-melee:docs/native-journal-packet-comparison-20261004/transports0032/.
+wc3-melee:evidence/native-journal-packet-comparison-20261004/transports0032/.
 
 Next diagnostic separates changing preload script execution from the origin of
 the value sent on the wire. Full responsive companion-to-fight acceptance remains
@@ -550,7 +481,7 @@ Candidate source4640a03, SHA256805fd31e96f35f1eff3bec65cb92a9db3a3370cc09e680a83
 zero build errors18warnings. Same two clients in one match, slots0/1 mask3,
 spare slots closed. Fresh4800 fixtures,128bytes each, source-slot0. All five
 arms send changing22-byte envelopes through the same receiver at30Hz,300/client.
-Arm definitions: wc3-melee:docs/preloader-source-discriminator.md.
+Arm definitions: wc3-melee:evidence/preloader-source-discriminator.md.
 
 | Arm | A mean / maximum | B mean / maximum |
 | --- | ---: | ---: |
@@ -577,7 +508,7 @@ that a vocabulary decoder will sustain controller throughput. Sequential order,
 one tested build/topology,and own-echo timing remain limits. No physical latency
 or full gameplay acceptance follows.
 
-Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/fileio0034/.
+Evidence: wc3-melee:evidence/native-journal-packet-comparison-20261004/fileio0034/.
 
 
 ## Vocabulary startup attempt: 0.0.36
@@ -591,7 +522,7 @@ This supplies no vocabulary throughput or latency result. The exact transition
 cause remains unresolved. Candidate0.0.38 adds probe-local request, synchronized
 entry, completed-reset markers and an F5 developer-exit marker before testing
 the same six arms. These startup writes precede the timed arms.
-Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/vocabulary0036/.
+Evidence: wc3-melee:evidence/native-journal-packet-comparison-20261004/vocabulary0036/.
 
 ## Parallel physics and VFX checkpoint
 
@@ -607,8 +538,8 @@ is not a separately maintained normalized trajectory comparison. The native
 This establishes a scale-conversion defect and native arithmetic difference,
 without assigning all broad native35 mismatches to either. Explicit nearest
 operations accepting operands before arithmetic are being repaired upstream.
-Evidence: wc3-melee:docs/native-physics-precision-20261004/native0037.txt and
-wc3-melee:docs/native-physics-precision-20261004/native0037-analysis.json.
+Evidence: wc3-melee:evidence/native-physics-precision-20261004/native0037.txt and
+wc3-melee:evidence/native-physics-precision-20261004/native0037-analysis.json.
 
 Upstream test-harness R2SW formatting repair `0fe2efc959049b4ede2b86c66ae61c130eb04b55`
 is published; focused execution passed1/1 with zero skips. The diagnostic
@@ -632,12 +563,12 @@ timeout and heavy directory scans are retained as confounds; the collector now
 checks exact expected paths. Do not integrate a live vocabulary writer on this
 evidence. Existing separate-prefix transport control now distinguishes the
 SC_GP receive boundary from general synchronization failure.
-Evidence: wc3-melee:docs/native-journal-packet-comparison-20261004/vocabulary0038/.
+Evidence: wc3-melee:evidence/native-journal-packet-comparison-20261004/vocabulary0038/.
 
 The operator clarified that intended input frames and responsive viable play
 are primary. Physical33/50/83ms percentiles guide measurement; they are not
 rigid substitutes for input correctness or playable acceptance. Comprehensive
-current state: wc3-melee:docs/smashcraft-delivery-state-20261004.md. Upstream
+current state: wc3-melee:evidence/smashcraft-delivery-state-20261004.md. Upstream
 Binary32 explicit operand repair e3714f629113ee682353c3244065fee3e7d9ae16
 passed15/15 and is published; consumer/native integration remains pending.
 
@@ -664,8 +595,8 @@ claimed. No additional transport survey blocks this usable candidate.
 Map SHA256 13f0ba7f6a78eff1c7f71e14f2c398ebeb38c6f24b06aad9b2540f4f7eaa1f17,
 source fa681100fc429735720325bf479f5bcd6944f25d plus map-version 0.0.40.
 Build settings and usable instructions:
-wc3-melee:docs/smashcraft-delivery-state-20261004.md. Raw traces:
-wc3-melee:docs/native-playable-0040-evidence-20261004/.
+wc3-melee:evidence/smashcraft-delivery-state-20261004.md. Raw traces:
+wc3-melee:evidence/native-playable-0040-evidence-20261004/.
 Binary32 consumer migration is integrated and focused 22/22 passed; world-scale
 representation and full native physics fidelity remain separate open work.
 
@@ -680,14 +611,14 @@ physical event capture, actual raster presentation, or hardware-to-pixel latency
 The initial rapid-repeat sequence overlapped 15-frame shield-release recovery
 and is excluded from per-press timing conclusions. Clean native-game-clock
 probe data and host XTEST submission brackets are retained separately at
-wc3-melee:docs/native-playable-0040-evidence-20261004/response/.
+wc3-melee:evidence/native-playable-0040-evidence-20261004/response/.
 
 The current SDL3/EventMapper/enigo companion also completed a native virtual-pad
 trial: movement and all three 100 ms attack presses appeared at both clients,
 with six matching confirmed checkpoints. Private foreground eligibility was
 observed before emission. This establishes the software mapper/game seam under
 the tested conditions, not physical hardware timing or short-stall retention.
-Evidence: wc3-melee:docs/native-playable-0040-evidence-20261004/controller-mapper/.
+Evidence: wc3-melee:evidence/native-playable-0040-evidence-20261004/controller-mapper/.
 
 ## Journal pause publication boundary
 
@@ -698,7 +629,7 @@ for the preload function's closing line before parsing; the focused partial-writ
 regression and helper build passed. Final native pause/resume remains open.
 The digital mapper and its responsive native 0.0.40 result remain separate.
 Exact candidate, failure limits and recovery state:
-wc3-melee:docs/journal-pause-checkpoint-20261004.md.
+wc3-melee:evidence/journal-pause-checkpoint-20261004.md.
 
 The corrected native retry retained both edges of a roughly 5.1 ms virtual-pad
 tap at original frame 19 in both helpers. They published through frame 2130
@@ -708,7 +639,7 @@ produced complete PAUSE requests on both clients at journal cursor 65 after
 the helpers were reaped. The driver never exercised resume or its planned
 helper stall. This remains an unfinished native integration check; helper
 edge retention does not establish intended-frame gameplay application.
-Evidence: wc3-melee:docs/journal-pause0041-evidence-20261004/.
+Evidence: wc3-melee:evidence/journal-pause0041-evidence-20261004/.
 
 
 ## Native 0.0.42 journal decision
@@ -727,8 +658,8 @@ usable native journal ingress or original-frame gameplay application.
 Keep 0.0.40 as the playable keyboard/digital-mapper candidate. Do not reopen the
 transport survey or treat this incomplete analog-file experiment as evidence
 that its responsive digital input path regressed. Details and bounded logs:
-wc3-melee:docs/journal-pause-checkpoint-20261004.md and
-wc3-melee:docs/journal0042-evidence-20261004/.
+wc3-melee:evidence/journal-pause-checkpoint-20261004.md and
+wc3-melee:evidence/journal0042-evidence-20261004/.
 
 ## Native43: callbacks progress, confirmation does not
 
@@ -746,8 +677,8 @@ A subsequent generated-packet probe had no local-request receipt, so it gives
 no sync-performance verdict. Both signed-in clients then left normally and
 the playable 0.0.40 artifact was restored. The experiment remains unfinished;
 no general transport survey or repeated green checks block usable delivery.
-Details: wc3-melee:docs/journal-pause-checkpoint-20261004.md.
-Evidence: wc3-melee:docs/journal0043-evidence-20261004/.
+Details: wc3-melee:evidence/journal-pause-checkpoint-20261004.md.
+Evidence: wc3-melee:evidence/journal0043-evidence-20261004/.
 
 ### Journal44/45 integration checkpoint (4 October 2026)
 
@@ -759,7 +690,7 @@ tap captured during a 250 ms helper stop did not reach gameplay in either
 This establishes working startup and one original-frame application, while
 sustained journal input remains unusable. It does not change the playable40
 digital mapper verdict. Detailed results and exact artifact hashes:
-wc3-melee:docs/journal-pause-checkpoint-20261004.md.
+wc3-melee:evidence/journal-pause-checkpoint-20261004.md.
 
 The next selected repair uses identical script text for every present file and
 encodes packet bits by file presence, preserving ready-last atomic publication.
@@ -774,7 +705,7 @@ reads. Helpers retainedtap19 andtap97 through a249.893ms stop. Both native
 traces then receivedzero production packets across300callbacks; confirmation
 stayed0. Both taps were unapplied. The failed source representation was retired
 and archived privately, with bounded evidence retained at
-wc3-melee:docs/journal0046-evidence-20261004/.
+wc3-melee:evidence/journal0046-evidence-20261004/.
 
 Direct sync with the delivered keyboard/digital mapper remains the usable
 choice. Original-frame short-tap/stall retention through FileIO is not delivered.
@@ -820,7 +751,7 @@ The experimental JASS source and raw failure records are retained privately at
 The published Lua source and exact compiler artifact were restored. Exact
 playable40 is reinstalled on both clients; its recovery journey is recorded
 separately. The general compiler metadata fix remains in its owned compiler
-branch. Native evidence: wc3-melee:docs/journal0049-evidence-20261004/.
+branch. Native evidence: wc3-melee:evidence/journal0049-evidence-20261004/.
 
 Artifact49 SHA256:
 `d8fcbb8d614188b3047a87985711b6ee04fe372d4eba5cb816ea2313a5a06383`.
@@ -839,7 +770,7 @@ The generated JASS also exposed an owning lifecycle defect: destroying Fighter
 did not clear its removed unit reference. Candidate51 moves unit removal and
 reference clearing into Fighter's destructor. This is a concrete resource repair;
 its causal relationship to the desync is unproved pending the native check.
-Evidence: wc3-melee:docs/journal0050-evidence-20261004/.
+Evidence: wc3-melee:evidence/journal0050-evidence-20261004/.
 
 Candidate51 compiled and initialized on both clients, but reproduced the
 disconnect immediately after A's selection, at native turn1281. Presence
@@ -847,7 +778,7 @@ tags3792 matched; birth tags5125/5127 differed again. Clearing the Fighter unit
 reference therefore does not close this desync. No helpers started and there is
 no controller-performance verdict. The candidate and source patch are archived
 privately; the published Lua source and exact compiler artifact are restored.
-Evidence: wc3-melee:docs/journal0051-evidence-20261004/.
+Evidence: wc3-melee:evidence/journal0051-evidence-20261004/.
 
 ## Keyboard journal bridge: first native result
 
@@ -857,7 +788,7 @@ after5 native seconds. The helper retained later taps across helper/game stops;
 their application was not observed in that trace. This replacement is rejected
 for throughput pending the owning companion-emission repair. Source checks
 passed but did not establish native speed. See
-wc3-melee:docs/keyboard-mailbox-20261004/README.md.
+wc3-melee:evidence/keyboard-mailbox-20261004/README.md.
 
 The timed native repeat measured about2.75ms median local emission but81–92ms
 median acknowledgment waits. Excluding all carrier keys from synchronized
@@ -888,4 +819,4 @@ physical response timing, complete pause/focus lifecycle, hardware/platform
 coverage or all original-frame guarantees. Playable 0.0.40 remains separate.
 The source pins, exact artifact identities, corpus, failed attempt, final
 reconciliation and raw logs are in
-wc3-melee:docs/editbox-ingress-native-20261005/README.md.
+wc3-melee:evidence/editbox-ingress-native-20261005/README.md.

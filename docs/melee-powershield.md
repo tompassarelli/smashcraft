@@ -259,6 +259,6 @@ emitted-Lua precision groups. The playable map built from source `c0d092a`
 disabled. Evidence: `smashcraft:build/powershield-map-integration.log`.
 That historical map occupied ~/code/wc3-melee/worktrees/melee-physics-public/build/wurst-map/Smashcraft 0.0.12.w3x
 and has since been replaced by the DI-integrated candidate documented in
-`smashcraft:docs/melee-foundation-roadmap.md`.
+`smashcraft:evidence/melee-foundation-roadmap.md`.
 SHA-256: `c402c3e231cc29350ba28350ab176587eddac4fc816c52eb57f71bd30785ec0b`.
 It has not been installed or observed natively.

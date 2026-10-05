@@ -137,5 +137,5 @@ Both native traces have the same six confirmed frame/checksum checkpoints,
 from frame 0 through 222. This supports this two-character fixture and one pause;
 it does not certify Illidan, terminal sparkle readability, camera extremes,
 final-stock interruption, match reset or native correction appearance.
-Raw numeric evidence: wc3-melee:docs/ko-native-20261005/. Local video:
+Raw numeric evidence: wc3-melee:evidence/ko-native-20261005/. Local video:
 wc3-melee:build/native-ko-capture-20261005/ko-pause.mp4.

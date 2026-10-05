@@ -255,7 +255,7 @@ must become neutral before new gameplay, menu or pause inputs are accepted.
 `controller_disconnected` records detection; `controller_release frame=N`
 records its assigned release; `controller_reconnected source=...` identifies
 the recovered event path. Bounded native recovery is recorded in
-wc3-melee:docs/controller-reconnect-native-20261005/README.md.
+wc3-melee:evidence/controller-reconnect-native-20261005/README.md.
 
 The explicit `--ready-file PATH --epoch-monotonic-ns NS` mode remains for native
 diagnostic drivers. `--first-frame N` (default 1) and `--stop-frame N` belong to
@@ -290,10 +290,10 @@ On kernel SYN_DROPPED or an event for an already-published frame, acquisition
 stops with a diagnostic instead of inventing input or moving its original frame.
 
 Current evidence and remaining acceptance are in
-`wc3-melee:docs/netplay-status.md`. The Linux journal path passed bounded tap/stall,
+`roadmap #16`. The Linux journal path passed bounded tap/stall,
 focus and pause/resume trials. Automatic start/results/rematch with the same
 helpers passed two native match lifecycles; keyboard confirmed the menus.
-See `wc3-melee:docs/match-lifecycle-native-20261005/README.md` for exact builds,
+See `wc3-melee:evidence/match-lifecycle-native-20261005/README.md` for exact builds,
 failed attempts and limits. Physical controller-to-screen timing, cross-machine
 clock agreement, chat, physical reconnect and other-platform acceptance remain open.
 
@@ -334,7 +334,7 @@ focus switch cannot route its text to another application's window. This does
 not guarantee Warcraft consumes those events: the native focus trial retained
 zero sink events but exposed a missing-frame gap on return. Native acknowledgment
 and replay remain required before claiming focus-safe delivery; see
-wc3-melee:docs/native-focus-20261005/README.md.
+wc3-melee:evidence/native-focus-20261005/README.md.
 
 The editbox path holds no global transport keys; the legacy mailbox retains its existing signal state
 until eligible and gates its cleanup too, so unfocused teardown does not emit

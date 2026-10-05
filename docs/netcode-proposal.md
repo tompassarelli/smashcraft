@@ -4,8 +4,8 @@ Owner-supplied research and implementation brief, 30 September 2026. This is a
 condensed record of their decisions and acceptance requirements, not a claim
 that the cited APIs have passed native tests. The full gameplay goal remains in
 wc3-melee:docs/delivery-goal.md; existing gameplay, controls, visuals and animation requirements
-in wc3-melee:docs/development-plan.md, wc3-melee:docs/physics.md and wc3-melee:docs/fighter-animation-work.md remain
-in scope. Native observations belong in wc3-melee:docs/native-capability-report.md.
+in wc3-melee:evidence/development-plan.md, wc3-melee:docs/physics.md and wc3-melee:docs/fighter-animation-work.md remain
+in scope. Native observations belong in wc3-melee:evidence/native-capability-report.md.
 
 ## Decision and sequence
 
@@ -155,46 +155,13 @@ frames, smooth bodies through ledges/hitboxes, or mask a native capability gap.
 
 ## Acceptance and comparison
 
-Gate A: two actual clients, external physical input/video timing, independent
-keys; polling versus synchronized callback versus sync receipt. Exercise holds,
-releases, repeats, modifiers, simultaneous keys/rollover, menus/chat, focus loss,
-minimization, controller injection and disconnect/reconnect where supported.
-
-Gate B: sustained native traffic with normal effects and other map systems;
-real controlled network delay/jitter/asymmetry/burst loss/reordering/outage and
-CPU stalls, separately from application fault injection. Measure actual pacing
-and outer-engine stalls, not just callback counters.
-
-Gate C: canonical offline tape versus fixed/hybrid playback; at least 100,000
-frames per principal scenario initially. Test delayed/reordered/duplicated and
-missing-then-recovered rows, batches, malformed packets, epochs, counter/ring wrap,
-focus/controller release and correction depths. Compare every confirmed checksum
-and report the first differing field. Exercise supported native runtime/builds,
-not only headless Wurst. Include trades, hitlag/DI, shields, techs, ledges,
-projectiles, traps, bear multihits, forms, KOs/respawns and final results as those
-mechanics exist. No replay side effects or local/shared allocator contamination.
-
-Gate D: forced pose/effect corrections through startup/active/recovery, ledges,
-shield contact, hitlag, techs, recoil, traps, bear swipes, projectile lifecycle,
-KO and transformations. No uncorrectable phase error, repeated impact effect,
-material body/collision mismatch, leak or native desync.
-
-Gate E: same builds/moves/stages/players/network traces for the baseline and all
-profiles; offline delay parity; blind comparisons when practical. Exercise
-short-hop aerials, shield punishes, edgeguards, DI and trap/bear pressure. Swap
-slots, machines and network conditions; test observers, rematches, long sessions,
-mixed refresh rates and an overloaded client. Record readability and control
-return as well as response time.
-
-Hard requirements: no unexplained confirmed mismatch, silently dropped/reassigned
-input, unbounded queues/pools/history, duplicate fresh presses, or slot-dependent
-schedule. Fixed and hybrid agree without corrections when all rows arrive in D.
-Measure per-side p50/p95/p99 physical response, callback bursts, correction depth,
-stalls and CPU cost. Investigate p95 corrections >2 frames and p99 >4; these are
-proposed quality targets, not perceptual laws. Initially budget netcode plus
-worst-case replay around 25% of 16.67 ms on supported minimum hardware, subject
-to real profiling. Constant maximum-window corrections do not pass merely
-because the session survives.
+Acceptance is the **Done when** list of the owning issue: input integrity
+[#26](https://github.com/tompassarelli/smashcraft/issues/26) for frame assignment,
+retention and response; online play
+[#17](https://github.com/tompassarelli/smashcraft/issues/17) for matches and the
+human playtest. Hosting comparisons are
+[#19](https://github.com/tompassarelli/smashcraft/issues/19). Response figures are
+reported against advisory targets, not gated.
 
 The fairness promise is an equal measured schedule for conforming clients in a
 documented connection envelope. Equal logical frames do not prove identical

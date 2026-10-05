@@ -7,9 +7,9 @@ kernel event capture → persistent helper → native text receiver → original
 input ledger → local prediction and confirmed replay. Exact map/source/helper
 identities, configuration and startup are in wc3-melee:docs/playable-0041.md;
 the installed combat/rematch evidence is in
-wc3-melee:docs/playable-0041-native-20261005/README.md. The retained native
+wc3-melee:evidence/playable-0041-native-20261005/README.md. The retained native
 clients run Warcraft III 3.0.0.24268 on Linux/GE-Proton, identified in
-wc3-melee:docs/native-capability-report.md. Later named diagnostics keep their
+wc3-melee:evidence/native-capability-report.md. Later named diagnostics keep their
 own identities and do not silently replace this player release.
 
 The observation boundaries mean:
@@ -34,8 +34,8 @@ realtime/monotonic relation and reports timestamp uncertainty. Neutral rearm
 deliberately suppresses held-through-pause/focus/epoch controls. The executable
 rule is `frame_at` in wc3-melee:companion/src/bin/journal.rs. Current native
 start/rematch and delayed-resume evidence is retained in
-wc3-melee:docs/match-lifecycle-native-20261005/README.md and
-wc3-melee:docs/resume-clock-native-20261005/README.md.
+wc3-melee:evidence/match-lifecycle-native-20261005/README.md and
+wc3-melee:evidence/resume-clock-native-20261005/README.md.
 
 This defines the delivered local rule; it does not establish a common physical
 clock across machines. Local publication anchors differ, so an event near a
@@ -48,7 +48,7 @@ response.
 ## Historical investigation
 
 The experiments below record the 4 October investigation. Current decisions
-belong to issue #26 and wc3-melee:docs/netplay-status.md. Historical experiment
+belong to issue #26 and roadmap #16. Historical experiment
 gates do not prohibit publishing a checked checkpoint or playing the accepted
 0.0.40 build; they identify the stronger claims that remain unsupported.
 
@@ -129,7 +129,7 @@ have distinct epochs; no delay is calculated by subtracting them. The controlled
 Linux virtual-controller test is now complete: all ten edges survived each
 verified 250 ms helper stop, but the fresh helper compressed its first batch's
 capture intervals. A warmed helper preserved them. Exact results and raw logs:
-wc3-melee:docs/controller-event-retention-20261004.md. The pinned library clock
+wc3-melee:evidence/controller-event-retention-20261004.md. The pinned library clock
 conversion must be repaired and the same counterexample rechecked before cold
 capture timestamps are used for frame assignment. Live common-clock alignment,
 map delivery and presentation remain open.
@@ -149,4 +149,4 @@ The native 0.0.17 clock test observed B's delayed 100 ms timer interval followed
 by two 100 ms intervals arriving about 3 ms apart after a verified 250.637 ms
 process stop. A continued producing markers during B's stop. Neither recovery
 callback time nor an uncalibrated native timer supplies a continuous common
-capture epoch. See wc3-melee:docs/native-clock-progress-result-20261004.md.
+capture epoch. See wc3-melee:evidence/native-clock-progress-result-20261004.md.

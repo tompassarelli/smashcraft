@@ -691,7 +691,7 @@ original event tracks. No root translation keys occur within dodge intervals;
 gameplay displacement remains solely in Wurst. Generated metadata selects
 forward index 7, backward index 6, and spot index 8 in this model, without
 hard-coding those numbers into gameplay source. Pose renders establish mesh
-deformation; client evidence is recorded separately in wc3-melee:docs/development-plan.md.
+deformation; client evidence is recorded separately in wc3-melee:evidence/development-plan.md.
 
 The roll authoring axis was corrected after a game-aligned MDX → MDL → Blender
 roundtrip render: root X turned the silhouette edge-on, while root Z produced
@@ -747,7 +747,7 @@ show distinct level, upward and downward arm positions; evidence is under
 ~/code/wc3-melee/worktrees/test-loop/build/animation-probe/tilt-roundtrip-poses.
 These are first-pass animations, not finished Melee-quality motion. Rifleman
 still uses its stock attack animation. Native playback evidence and the tested
-build are recorded in wc3-melee:docs/development-plan.md.
+build are recorded in wc3-melee:evidence/development-plan.md.
 
 ## Archer knockdown and get-up
 
@@ -849,7 +849,7 @@ The final Rifleman model hash is
 Exported checks cover twelve non-looping clips, absent root translation keys,
 retained stock Attack, and custom visibility. Exported pose renders and native
 build 063805 both show the corrected directional tilts. Native observation and
-recording paths are in wc3-melee:docs/development-plan.md.
+recording paths are in wc3-melee:evidence/development-plan.md.
 
 ## Dedicated ledge hang and climb
 
@@ -965,7 +965,7 @@ fidelity follows from the passing source-preservation check.
 Native integration: isolated build replay-aerial-isolated executes jump,
 double jump and neutral aerial for both fighters. Screenshots at aerial frames
 8/11 show Archer's bow and Rifleman's rifle retained; input traces confirm
-style 12. Evidence and limits are in wc3-melee:docs/native-capability-report.md.
+style 12. Evidence and limits are in wc3-melee:evidence/native-capability-report.md.
 All five aerials per fighter compile/package, but this native check covers
 neutral aerial only, outside its active frames. Frame-perfect contact/hurtbox
 alignment and remaining clips need further validation.

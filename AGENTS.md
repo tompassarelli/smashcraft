@@ -32,7 +32,11 @@ investigation.
 - wc3-melee:wurst/ owns gameplay, deterministic state/replay, selection and UI.
 - wc3-melee:companion/ owns the Rust controller/helper boundary.
 - wc3-melee:tools/ owns build, native probes and automation.
-- wc3-melee:docs/ retains design decisions, measurements and known limitations.
+- wc3-melee:docs/ holds durable knowledge only: how systems work, design
+  decisions, reference data and procedures. Status, progress, plans and claim
+  tables live in the owning issue. A dated trial's raw record goes in
+  wc3-melee:evidence/ and is never edited afterwards. When a trial teaches
+  something durable, add that fact to the relevant doc, with its build.
 - Use the declared project development shell when available. Preserve pinned
   dependencies; do not repeat ad hoc environment setup as the normal loop.
 

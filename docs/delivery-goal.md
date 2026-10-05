@@ -9,12 +9,11 @@ not have to research basic rules or repeatedly discover omissions.
 
 ## Delivery order
 
-The 2026-10-03 sequencing request is tracked in
-wc3-melee:docs/melee-foundation-roadmap.md: independently verify the shared Melee
-physics foundation before asserting move-category balance or tuning matchups.
-Visual cues proceed as their owning mechanics are verified. This refines the
-shared-combat work below; it does not close character, controls or multiplayer
-work, or silently revoke approved custom mechanics.
+Roadmap [#16](https://github.com/tompassarelli/smashcraft/issues/16) orders the
+current work. The standing product sequence: verify the shared Melee physics
+foundation before asserting move-category balance or tuning matchups, and add
+visual cues as their owning mechanics are verified. Approved custom mechanics
+stay.
 
 1. Finish shared combat and recovery as connected, reference-grounded systems,
    starting with knockdown, techs, jab resets and getup options. Complete the
@@ -155,39 +154,21 @@ useful off-screen indicators. Verify the Space camera fix through real use.
 
 ## Prove multiplayer
 
-Follow wc3-melee:docs/netcode-proposal.md and the user's implementation
-brief. Keep one deterministic, snapshot-capable simulation with immutable
-per-frame inputs, stable interaction order, complete gameplay state and replay
-without native side effects. Finish scheduled input, shared frame advancement,
-confirmed results and separation of local presentation from combat.
-
-Compare 60 Hz D=3/R=0 and D=3/R=6, plus the proposed D=2 and D=5 profiles.
-Use dedicated bounded native sync transport where native gates justify it;
-do not merely add a queue after synchronized key callbacks. Retain fixed delay
-and the current baseline. Introduce shadow rollback before visible prediction.
-
-Arrange two actual clients; a VM is a candidate to evaluate, not a proven
-measurement setup. New paid resources/accounts require owner authorization.
-Measure early polling, transport capacity/age, engine stalls, animation-phase
-restoration, effects/audio reconciliation, responsiveness and slot fairness.
-Run the specified replay/fault scenarios and two-client tests: no confirmed
-mismatches, silently rewritten inputs or unbounded storage. Adopt a default
-from measured responsiveness and readable corrections, not the algorithm name.
-Do not claim equal physical latency or working multiplayer from headless tests.
-A Rust bridge or engine extension requires a demonstrated missing capability
-and a real supported interface; it is not an assumed fallback.
+Keep one deterministic, snapshot-capable simulation with immutable per-frame
+inputs, stable interaction order, complete gameplay state and replay without
+native side effects. Local presentation stays separate from combat.
+Multiplayer acceptance is the **Done when** list of input integrity
+[#26](https://github.com/tompassarelli/smashcraft/issues/26) and online play
+[#17](https://github.com/tompassarelli/smashcraft/issues/17). Headless tests do
+not prove working multiplayer or physical latency.
 
 ## Completion and reporting
 
-Keep the public repository current. Use wc3-melee:docs/development-loop.md for installed and
-observed build/evidence, wc3-melee:docs/physics.md for mechanics and intentional
-differences, and existing development/animation documents for remaining work.
-This goal sets current priorities over older development notes.
-
-Report implemented, source-tested, installed, native-verified and untested
-separately. A compiled move, generated clip or green test is not delivery.
-A system is complete only when its agreed connected behavior works in the
-installed map through real controls, both fighters/facings and relevant mirror,
-interruption, stock/reset and replay cases. Multiplayer additionally requires
-real two-client evidence. The full goal remains open until every agreed part
-is delivered or the owner explicitly changes its scope.
+Each part of this goal is tracked by a GitHub issue under roadmap
+[#16](https://github.com/tompassarelli/smashcraft/issues/16). A part is complete
+when its issue's Done-when boxes pass, and its Not-required list says what
+completion does not include. Report what passed, on which build, with one line
+of residual risk. Owner playtests decide feel; the agent prepares them and
+fixes what they find. Keep the public repository current. Mechanics and
+intentional differences live in wc3-melee:docs/physics.md, and the build loop
+in wc3-melee:docs/development-loop.md.

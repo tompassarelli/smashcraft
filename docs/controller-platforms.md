@@ -1,6 +1,6 @@
 # Cross-platform companion: reuse decision
 
-Implementation and native acceptance are tracked in [#18](https://github.com/tompassarelli/smashcraft/issues/18), within wc3-melee:docs/online-delivery.md and roadmap [#16](https://github.com/tompassarelli/smashcraft/issues/16). The owner accepted this direction; native platform and continuous analog checks remain open.
+Implementation is tracked in [#18](https://github.com/tompassarelli/smashcraft/issues/18) (Linux) and [#34](https://github.com/tompassarelli/smashcraft/issues/34) (Windows/macOS) under roadmap [#16](https://github.com/tompassarelli/smashcraft/issues/16). The owner accepted this direction.
 
 3 October 2026. This extends the [controller input research](controller-prior-art.md) for **macOS, Windows and Linux**. The recommendation is **Rust + SDL3 acquisition, enigo keyboard delivery, and small native adapters for foreground identity and launch discovery**. Tauri remains an optional settings/launcher UI. This revises the earlier Linux-only output recommendation: start with enigo's existing X11 backend instead of independently assembling XTest calls, while keeping XTest as the same underlying mechanism.
 

@@ -581,7 +581,7 @@ Disconnect → results Back → Create → Start Game recovered 093439 in the sa
 client and produced a complete new trace. Failed and recovered evidence are
 kept separately under wc3-melee:build/loop/20260930-093439-reload.
 
-The 2026-09-30 comparison in wc3-melee:docs/development-plan.md did not reproduce the
+The 2026-09-30 comparison in wc3-melee:evidence/development-plan.md did not reproduce the
 stall using short key presses, atomic replacement, changed map revision, or
 the exact early-trace loop. That command took 28.627s and still accepted a
 selection change after another 30s. These are successful samples, not a root

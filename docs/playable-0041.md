@@ -67,7 +67,7 @@ and two native combat/rematch sequences with virtual Linux pads. The combat
 sequence included attacks, specials, three jump sources, grab initiation,
 overlapping shield triggers, a damaging exchange and controller pause/resume.
 Both clients agreed on recorded combat outcomes and final states. The scope and
-raw data are in wc3-melee:docs/controller-combat-native-20261005/README.md.
+raw data are in wc3-melee:evidence/controller-combat-native-20261005/README.md.
 
 The release changes version/build identity and stage help from that tested
 implementation. Source `d12a2bf`; Wurst/Lua compiler
@@ -80,7 +80,7 @@ The **installed release bytes and frozen matching helper also passed** the
 existing two-client combat/rematch check: 52 matching combat records per match,
 final frame 914/checksum `933725:107908` and frame 918/checksum `10392:907822`,
 confirmed shield overlap and no extra rematch attack. Exact release evidence:
-wc3-melee:docs/playable-0041-native-20261005/README.md.
+wc3-melee:evidence/playable-0041-native-20261005/README.md.
 
 Map SHA256: `25493bacd040fc08b380df0589f31631055f9032fd84671c0c5d9f639200a533`.
 Original helper SHA256: `14440ca6999a2f805f50aa2e0ef835189fcceec0075ead786cc82d3c78fe7d6c`.
@@ -93,10 +93,10 @@ With the unchanged 0.0.41 map, both clients passed a two-match disconnect/reconn
 journey: shield released, a different pad was ignored, held-on-return input
 stayed suppressed, and fresh 5 ms taps applied once at their original frame.
 Exact result and the repaired slow-discovery failure:
-wc3-melee:docs/controller-reconnect-native-20261005/README.md.
+wc3-melee:evidence/controller-reconnect-native-20261005/README.md.
 
 This is a usable Linux checkpoint, not completed physical-latency, cross-machine
 clock/fairness, Windows/macOS, physical reconnect/chat, in-range grab/throw or ten-human-match
 acceptance. The exact older 0.0.40 keyboard-map artifact remains privately preserved.
 Current acceptance is owned by #26 (frames, retention and response), #17
-(integrated play), #18 (Linux controllers) and #34 (Windows/macOS); see wc3-melee:docs/netplay-status.md.
+(integrated play), #18 (Linux controllers) and #34 (Windows/macOS); see roadmap #16.

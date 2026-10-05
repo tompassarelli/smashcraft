@@ -179,4 +179,4 @@ explicit filter matching no tests is an error. The separate 100,000-frame record
 input oracle needs the longer limit. These are headless replay checks, not
 native multiplayer measurements. Use the shared capacity runner for sustained
 local work. Latest observations and limitations are recorded in
-wc3-melee:docs/native-capability-report.md.
+wc3-melee:evidence/native-capability-report.md.

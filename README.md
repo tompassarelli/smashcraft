@@ -13,12 +13,8 @@ dodges, shields, hitstun, knockback, and stocks.
 · [Player guide](docs/player-guide.md)
 
 The downloadable map is an earlier snapshot. The current local Linux controller
-checkpoint is [Smashcraft 0.0.41](https://github.com/tompassarelli/smashcraft/blob/main/docs/playable-0041.md).
-Two-client tests demonstrate local prediction, bounded rollback correction,
-retained controller inputs and controller-driven combat/rematches. Physical
-response and cross-machine timing remain open; the
-[current claims and evidence](https://github.com/tompassarelli/smashcraft/blob/main/docs/netplay-status.md)
-state their exact scope.
+build is described in [docs/playable-0041.md](docs/playable-0041.md). Status
+and next work: [roadmap #16](https://github.com/tompassarelli/smashcraft/issues/16).
 
 ## Build and test
 
@@ -43,11 +39,9 @@ wc3-melee:docs/playable-0041.md. Install one current map in Warcraft's flat
 `Maps/00-Smashcraft` folder; retain old maps privately outside the map browser.
 
 - [Gameplay and controls](docs/player-guide.md)
-- [Delivery goal and current sequence](docs/delivery-goal.md)
+- [Delivery goal](docs/delivery-goal.md)
 - [Physics references and implementation](docs/physics.md)
 - [Fighter animation authoring and validation](docs/fighter-animation-work.md)
-- [Development plan and history](docs/development-plan.md)
-- [Netcode proposal](docs/netcode-proposal.md)
-- [Native capability and test evidence](docs/native-capability-report.md)
+- [Netcode design](docs/netcode-proposal.md)
 - [Gameplay design decisions](docs/gameplay-design.md)
-- [Documentation index](docs/README.md)
+- [Documentation index](docs/README.md) · [Trial evidence records](evidence/README.md)

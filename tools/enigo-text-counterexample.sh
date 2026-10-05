@@ -3,7 +3,7 @@ set -euo pipefail
 lane=$(cd -- "$(dirname -- "$0")/.." && pwd)
 out="$lane/build/enigo-text-counterexample"
 mkdir -p "$out"
-cp "$lane/docs/enigo-text-counterexample-20261005/packets.txt" "$out/packets.txt"
+cp "$lane/evidence/enigo-text-counterexample-20261005/packets.txt" "$out/packets.txt"
 tr -d '\n' < "$out/packets.txt" > "$out/expected.txt"
 printf '\n' >> "$out/expected.txt"
 Xvfb -displayfd 3 -screen 0 800x600x24 -nolisten tcp 3>"$out/display.txt" >"$out/xserver.log" 2>&1 &

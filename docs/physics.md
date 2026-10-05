@@ -453,7 +453,7 @@ initialization and resulting displacement therefore remain unverified by this
 trace.
 
 The next acceptance sequence and GitHub dependencies are in
-wc3-melee:docs/melee-foundation-roadmap.md. The factual frame-data intake at
+wc3-melee:evidence/melee-foundation-roadmap.md. The factual frame-data intake at
 smashcraft:references/melee-frame-data/README.md supports move research; it is
 not a physics oracle, does not establish game revision, and supplies no hitbox
 geometry. Its raw `gravity` field means fast-fall speed and `stun` means
@@ -1212,7 +1212,7 @@ target airborne. Shield SDI is not implemented. Native held ASDI and tapped
 SDI were observed in build 003040. Native callback tracing subsequently showed
 short press/release pairs delivered together in roughly 100 ms batches. Retaining
 the pulse fixes loss between simulation ticks; it does not remove that engine
-delivery latency. See wc3-melee:docs/development-plan.md for the recorded input sequences.
+delivery latency. See wc3-melee:evidence/development-plan.md for the recorded input sequences.
 
 ## Separated launch velocity
 

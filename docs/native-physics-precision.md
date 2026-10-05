@@ -103,8 +103,8 @@ failures for frames -54 through -50, and SIGNED_ZERO_SIGN_1_angle_FAIL. Some
 fixture groups print PASS even after individual FAIL messages, so those banners
 do not establish passing groups. No arithmetic/native fidelity acceptance.
 
-Evidence: wc3-melee:docs/native-physics-precision-20261004/native0033.txt and
-wc3-melee:docs/native-physics-precision-20261004/native0033-screen.txt.
+Evidence: wc3-melee:evidence/native-physics-precision-20261004/native0033.txt and
+wc3-melee:evidence/native-physics-precision-20261004/native0033-screen.txt.
 The next diagnostic buffers results and starts/writes/closes its export together in the timer; native execution must verify retained individual results and truthful group verdicts,
 then separate fixture expectations from production/Lua32 arithmetic failures.
 A scoped child owns that repair and a 0.0.35 candidate; this root owns native
@@ -127,7 +127,7 @@ discrete DI mismatch count 15. These are comparison-case counts, not a whole-gam
 fidelity percentage.
 
 Full authored numerical evidence:
-wc3-melee:docs/native-physics-precision-20261004/native0035.txt.
+wc3-melee:evidence/native-physics-precision-20261004/native0035.txt.
 The reporting repair succeeds; production arithmetic acceptance fails.
 Local IEEE Lua32 reproduces a subset of failures from non-reversible world-unit
 scaling by six and back. The compiler repository also records Warcraft 3.0
@@ -163,7 +163,7 @@ and
 This is a bounded capsule/shield calculation repair. Native re-execution of
 the existing 508 authored comparisons remains required; the generated inputs
 are unchanged. It does not repair the separate motion representation gap:
-wc3-melee:docs/native-physics-precision-20261004/native0037-analysis.json retains
+wc3-melee:evidence/native-physics-precision-20261004/native0037-analysis.json retains
 frame 6's stored world velocity `-7.1399993896484375`, versus the direct sum
 `-7.139999866485596` of the same operands. That observation does not measure
 an independently maintained trajectory in original units. Repeated scaling
