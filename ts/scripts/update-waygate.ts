@@ -51,4 +51,8 @@ await Bun.write(resolve(project, "waygate.lock"), `${JSON.stringify({
   archive,
 }, null, 2)}\n`);
 run([process.execPath, "install"]);
+// Git history retains earlier archives; the tree keeps only the recorded package.
+for (const old of new Bun.Glob("vendor/waygate-*.tgz").scanSync(project)) {
+  if (old !== archive) rmSync(resolve(project, old));
+}
 console.log(`Waygate ${revision} installed from ${archive}`);
