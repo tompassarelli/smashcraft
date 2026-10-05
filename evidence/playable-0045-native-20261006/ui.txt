@@ -1,0 +1,1167 @@
+a wait CONTROLS
+A
+
+Ny
+
+7
+
+4y
+
+)
+
+;"
+
+-an
+
+HMN
+
+HMN
+
+'[ EMPTY J. '[ EMPTY J.
+
+@
+
+@
+
+Choose fighter
+
+Choose fighter
+
+P3
+
+P4
+
+Smashcraft vs
+
+-4 T
+
+o v
+
+AN
+
+2
+
+=
+
+2
+
+-~
+
+~
+
+ARCHER
+
+RIFLEMAN
+
+ILLIDAN
+
+EMPTY
+
+EMPTY
+
+7\
+
+7N\
+
+\Pl
+
+\PZ
+
+Choose fighter
+
+Choose fighter
+
+P3
+
+P4
+
+h U~ A (i
+
+”' Select [A “
+
+I‘ il CONTROLS [F1] ’I
+
+b wait [1-9] Stock
+3 Stock - 7:00
+
+| STAGE SELECT
+
+|
+
+|
+
+STOCK
+
+=)
+
+)
+
+TIME
+
+=
+
+CHOOSE A STAGE
+
+=
+
+Sky Deck
+
+Three Bridges
+
+Click a stage or mwe the stick.
+
+Any gl
+
+tart: start -
+
+yercan
+
+Sky Deck
+
+One open platform
+
+Room to fight, nowhere to hide.
+
+%
+
+BACK [X]
+
+START MATCH [A]
+
+i
+
+3 Stock - 7:00
+
+| STAGE SELECT
+
+STOCK
+
+TIME
+
+CHOOSE A STAGE
+
+— —
+
+)
+
+———— | 7
+
+Sky Deck
+
+Three Bridges
+
+Click a stage or move the stick.
+
+Any player can choose.
+
+A or Start: start - X: back
+
+Sky Deck
+
+One open platform.
+
+Room to light, nowhere to hide.
+
+.
+
+=
+
+et et i,
+
+)
+
+BACK [X]
+
+START MATCH [A]
+
+b click 250 900
+b click 1380 155
+b wait 2 Stock
+2 Stock - 7:00
+
+| STAGE SELECT
+
+STOCK
+
+2!
+
+ﬁ TIME
+
++ U
+
+5]
+
+CHOOSE A STAGE
+
+_— T
+
+=
+
+Sky Deck
+
+Three Bridges
+
+Any
+
+Click a stage or move the stick.
+
+layer can choose.
+
+Aor
+
+tart: start -
+
+: b
+
+Sky Deck
+
+One open platform
+
+Room to fight, nowhere to hide
+
+BACK [X]
+
+START MATCH [A]
+
+N
+
+e
+
+=
+
+J
+
+2 Stock - 7:00
+
+—
+
+| STAGE SELECT
+
+~
+
+STOCK
+
+TIME
+
+.
+
+—/—'
+
+(]
+
+CHOOSE A STAGE
+
+— —
+
+)
+
+———— | 7
+
+Sky Deck
+
+Three Bridges
+
+Click a stage or move the stick.
+
+Any player can choose.
+
+A or Start: start - X: back
+
+Sky Deck
+
+One open platform.
+
+Room to light, nowhere to hide.
+
+=
+
+et et i,
+
+BACK [X]
+
+START MATCH [A]
+
+b click 250 900
+b click 1380 155
+b wait 1 Stock
+1 Stock - 7:00
+
+| STAGE SELECT
+
+STOCK
+
+2!
+
+ﬁ TIME
+
++ U
+
+5]
+
+CHOOSE A STAGE
+
+_— T
+
+=
+
+Sky Deck
+
+Three Bridges
+
+Any
+
+Click a stage or move the stick.
+
+layer can choose.
+
+Aor
+
+tart: start -
+
+: b
+
+Sky Deck
+
+One open platform
+
+Room to fight, nowhere to hide
+
+BACK [X]
+
+START MATCH [A]
+
+N
+
+e
+
+=
+
+J
+
+I Stock « 7:00
+
+—
+
+| STAGE SELECT
+
+~
+
+STOCK
+
+TIME
+
+.
+
+—/—'
+
+(]
+
+CHOOSE A STAGE
+
+— —
+
+)
+
+———— | 7
+
+Sky Deck
+
+Three Bridges
+
+Click a stage or move the stick.
+
+Any player can choose.
+
+A or Start: start - X: back
+
+Sky Deck
+
+One open platform.
+
+Room to light, nowhere to hide.
+
+=
+
+et et i,
+
+BACK [X]
+
+START MATCH [A]
+
+b wait wins|rematch
+3
+
+LI
+
+1 %200
+
+0o
+
+o
+
+-0.0
+
+0o
+
+ARCHER
+
+=
+
+RIFLEMAN
+
+-
+
+“
+
+\'
+
+6:56
+
+\.V
+
+I
+
+0/2 redtly. PrestW or Start to Mvose y&r next
+
+~“
+
+~Sr
+
+Pause: Start
+
+Player 2 wins!
+
+A
+
+~
+
+[N
+
+y
+
+v
+
+135
+
+0.0%
+
+k3
+
+0.0%
+
+Pt
+
+ARCHER
+
+RIFLEMAN
+
+-p
+
+-~
+
+Developer test: playable-0045 | player=2 | phase=3 | x=240 z=0 | input=- 1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1 attack-frame=0
+
+a wait wins|rematch
+IR
+
+_
+
+47
+
+L o —— =
+
+A\
+
+6
+
+—»
+
+w
+
+0.0
+
+/
+
+=
+
+"=
+
+&
+
+» -0:09
+
+%
+
+3
+
+‘_)I
+
+ARCHER
+
+RIFLEMAN
+
+Pt
+
+L
+
+£
+
+(13
+
+Developer test: playable—0§4§‘i player=1 | phase=3 | x:
+
+-929 z=-393 | inpu
+
+mod
+
+adow-
+
+4 pool-predict:
+
+orm.
+
+oV
+
+<
+
+6:56
+
+|
+
+0/2 ready. Press A or Start to choose your next match.
+
+Pause: Start
+
+Player 2 wins!
+
+o
+
+.
+
+|-
+
+.o
+
+.
+
+3}
+
+S -
+
+al
+
+.
+
+-
+
+PareA
+
+W
+
+PN
+
+(A
+
+é'r
+
+2,
+
+’G
+
+0.0%
+
+—r
+
+0%
+
+-,
+
+S
+
+P1
+
+ARCHER
+
+RIFLEMAN
+
+-
+
+-~
+
+Developer test: playable-0045 | player=1 | phase=3
+
+| x=-929 z=-393 | input=-1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1
+
+a wait CONTROLS
+A
+
+Ny
+
+e
+
+—
+
+£
+
+e
+
+;A
+
+8
+
+& -l
+
+®
+
+HMN
+
+HMN
+
+'[ EMPTY J. '[ EMPTY J.
+
+- .14
+
+o8
+
+4’§A
+
+B
+
+o ——
+
+4y
+
+=,
+
+e P ~
+
+€ 9
+
+ARCHER
+
+RIFLEMAN
+
+P1
+
+P2
+
+P3
+
+P4
+
+ress Start
+
+Smashcraft vs
+
+-4 T
+
+AN
+
+él
+
+[ XY
+
+i
+
+PR
+
+%
+
+12
+
+J
+
+7\
+
+s 3 P2
+
+7-\
+
+\Pl
+
+A
+
+ARCHER
+
+RIFLEMAN
+
+ILLIDAN
+
+EMPTY
+
+EMPTY
+
+&s\
+
+4‘" I-\
+
+Iz "—*‘l
+
+‘r’
+
+\J
+
+e
+
+“~-
+
+ARCHER
+
+RIFLEMAN
+
+e 000 -
+
+Pl
+
+P2
+
+P3
+
+P4
+
+I( il Press Start “
+
+I‘ il CONTROLS [F1] ’I
+
+b wait [1-9] Stock
+1 Stock - 7:00
+
+| STAGE SELECT
+
+STOCK
+
+2!
+
+ﬁ TIME
+
++ U
+
+5]
+
+CHOOSE A STAGE
+
+_— T
+
+=
+
+Sky Deck
+
+Three Bridges
+
+Any
+
+Click a stage or move the stick.
+
+layer can choose.
+
+Aor
+
+tart: start -
+
+: b
+
+Sky Deck
+
+One open platform
+
+Room to fight, nowhere to hide
+
+BACK [X]
+
+START MATCH [A]
+
+N
+
+e
+
+=
+
+J
+
+I Stock « 7:00
+
+—
+
+| STAGE SELECT
+
+~
+
+STOCK
+
+TIME
+
+.
+
+—/—'
+
+(]
+
+CHOOSE A STAGE
+
+— —
+
+)
+
+———— | 7
+
+Sky Deck
+
+Three Bridges
+
+Click a stage or move the stick.
+
+Any player can choose.
+
+A or Start: start - X: back
+
+Sky Deck
+
+One open platform.
+
+Room to light, nowhere to hide.
+
+=
+
+et et i,
+
+BACK [X]
+
+START MATCH [A]
+
+b wait wins|rematch
+B
+
+LI
+
+F) vh—g-.-g-é—
+
+o
+
+-0.0
+
+(o I
+
+js
+
+ARCHER
+
+-
+
+RIFLEMAN
+
+-
+
+e
+
+“
+
+\A
+
+o
+
+6:56
+
+TeS:
+
+next
+
+N ¥
+
+I
+
+0/2 redtly. ™
+
+h or Start tohloose y&;
+
+L 2N
+
+\;‘ﬂ'—\
+
+e~
+
+Pause: Start
+
+Player | wins!
+
+A
+
+[N
+
+y
+
+v
+
+135
+
+0.0%
+
+k3
+
+0.0%
+
+Pt
+
+ARCHER
+
+RIFLEMAN
+
+-p
+
+-~
+
+Developer test: playable-0045 | player=2 | phase=3 | x=824 z=-434 | input=- 1 mode=shadow-d0-r24 pool-predicted normal=-1 move=-1{
+
+a wait wins|rematch
+IR
+
+~
+
+47
+
+L o —— =
+
+A\
+
+6
+
+—s
+
+w
+
+0.0
+
+/
+
+—
+
+DAY
+
+&
+
+» -0:09
+
+%
+
+3
+
+‘_)I
+
+ARCHER
+
+=
+
+RIFLEMAN
+
+et
+
+- -
+
+-
+
+Developer test: playable‘OOl;S | player=1 '}»pt;q'sg 3 | x=-2402z=0 | i
+
+=-1 mode=shadow
+
+;r2‘4 pool-predicted
+
+rmal=-1 move=-1 att.
+
+me
+
+6:56
+
+0/2 ready. Press A or Start to choose your next match.
+
+Player 1 wins!
+
+o
+
+.
+
+L -
+
+o
+
+.
+
+)
+
+S -
+
+al
+
+‘B
+
+N
+
+-
+
+PareA
+
+W
+
+PN
+
+(A
+
+é'r
+
+2,
+
+’G
+
+0.0%
+
+iy /4
+
+0%
+
+3
+
+S
+
+P1
+
+ARCHER
+
+RIFLEMAN
+
+-
+
+-~
+
+Developer test: playable-0045 | player=1 | phase=3
+
+| x=-240 z=0 | input=-1 mode=shadow-d0-r24 pool-predicted normal=- 1 move=-1 attack-frame=0
+
+a wait CONTROLS
+A
+
+Ny
+
+e
+
+—
+
+£
+
+e
+
+;A
+
+8
+
+& -l
+
+®
+
+HMN
+
+HMN
+
+'[ EMPTY J. '[ EMPTY J.
+
+- .14
+
+o8
+
+4’§A
+
+B
+
+o ——
+
+4y
+
+=,
+
+e P ~
+
+€ 9
+
+ARCHER
+
+RIFLEMAN
+
+P1
+
+P2
+
+P3
+
+P4
+
+ress Start
+
+Smashcraft vs
+
+-4 T
+
+AN
+
+él
+
+[ XY
+
+i
+
+PR
+
+%
+
+12
+
+J
+
+7\
+
+s 3 P2
+
+7-\
+
+\Pl
+
+A
+
+ARCHER
+
+RIFLEMAN
+
+ILLIDAN
+
+EMPTY
+
+EMPTY
+
+&s\
+
+4‘" I-\
+
+Iz "—*‘l
+
+‘r’
+
+\J
+
+e
+
+“~-
+
+ARCHER
+
+RIFLEMAN
+
+e 000 -
+
+Pl
+
+P2
+
+P3
+
+P4
+
+I( il Press Start “
+
+I‘ il CONTROLS [F1] ’I
+

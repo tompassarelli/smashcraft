@@ -1,0 +1,9 @@
+# Changed pixels between consecutive recorded frames (1280x720, 4 fps; threshold |dRGB|>60), video t = start + (i-1)/4 s
+## client a, epoch 1, start 18.5 s
+f002.ppm 0;f003.ppm 705210;f004.ppm 924;f005.ppm 1257;f006.ppm 2043;f007.ppm 3078;f008.ppm 3795;f009.ppm 2959;f010.ppm 4777;f011.ppm 1253;f012.ppm 1569;f013.ppm 1428;f014.ppm 2521;f015.ppm 957;f016.ppm 3194;f017.ppm 2149;f018.ppm 8629;f019.ppm 12368;f020.ppm 49601;f021.ppm 31360;f022.ppm 76039;f023.ppm 184;f024.ppm 0;f025.ppm 0;f026.ppm 0;
+## client b, epoch 1, start 18.5 s
+f002.ppm 0;f003.ppm 723601;f004.ppm 905;f005.ppm 999;f006.ppm 1769;f007.ppm 2912;f008.ppm 4157;f009.ppm 611;f010.ppm 2340;f011.ppm 1355;f012.ppm 1566;f013.ppm 1400;f014.ppm 3508;f015.ppm 1705;f016.ppm 3324;f017.ppm 2108;f018.ppm 9756;f019.ppm 14034;f020.ppm 52000;f021.ppm 33448;f022.ppm 86986;f023.ppm 265;f024.ppm 0;f025.ppm 0;f026.ppm 0;
+## client a, epoch 2, start 31.5 s
+f002.ppm 0;f003.ppm 0;f004.ppm 0;f005.ppm 705109;f006.ppm 967;f007.ppm 980;f008.ppm 509;f009.ppm 1090;f010.ppm 1991;f011.ppm 1809;f012.ppm 1258;f013.ppm 1567;f014.ppm 1473;f015.ppm 2537;f016.ppm 1065;f017.ppm 2371;f018.ppm 1394;f019.ppm 7360;f020.ppm 11089;f021.ppm 25913;f022.ppm 36105;f023.ppm 22878;f024.ppm 69911;f025.ppm 0;f026.ppm 0;f027.ppm 0;f028.ppm 0;f029.ppm 0;f030.ppm 0;f031.ppm 0;f032.ppm 0;f033.ppm 0;f034.ppm 0;f035.ppm 0;f036.ppm 0;
+## client b, epoch 2, start 31.5 s
+f002.ppm 0;f003.ppm 0;f004.ppm 0;f005.ppm 722571;f006.ppm 924;f007.ppm 841;f008.ppm 469;f009.ppm 940;f010.ppm 1712;f011.ppm 1779;f012.ppm 1321;f013.ppm 1607;f014.ppm 1494;f015.ppm 2682;f016.ppm 1002;f017.ppm 2524;f018.ppm 1430;f019.ppm 7569;f020.ppm 11665;f021.ppm 24075;f022.ppm 36381;f023.ppm 23173;f024.ppm 79083;f025.ppm 0;f026.ppm 0;f027.ppm 0;f028.ppm 0;f029.ppm 0;f030.ppm 0;f031.ppm 0;f032.ppm 0;f033.ppm 0;f034.ppm 0;f035.ppm 0;f036.ppm 0;
