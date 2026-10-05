@@ -6,13 +6,16 @@ import { Effect, Schema } from "effect";
 import { MapBuild, MapBuildFailure, runProcess, type ArchiveEntry } from "wisp/scripts/wisp/mapBuild";
 import { UsageFailure } from "wisp/scripts/wisp/command";
 import { step } from "wisp/scripts/wisp/timings";
+import { type FighterOriginalClip, originalClip, originalClipCount, originalLightPath } from "../../src/game/assets/fighterOriginalClipInfo";
 import * as frostModels from "../../src/game/assets/frostAssetInfo";
 import * as impactModels from "../../src/game/assets/impactAssetInfo";
+import { type ModelSoundCue, fighterSoundCue, fighterSoundCueCount, modelSoundLabel } from "../../src/game/assets/modelSoundInfo";
 import * as shieldModels from "../../src/game/assets/shieldAssetInfo";
 import { STAGE_DECK_MODEL } from "../../src/game/assets/stageAssetInfo";
 import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunterAssetInfo";
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
+import { Character } from "../../src/game/sim/codes";
 import { buildProject, projectRoot as PROJECT } from "./project";
 const tryMapPromise = <A>(operation: string, path: string, run: () => PromiseLike<A>) => Effect.tryPromise({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
 const tryMapSync = <A>(operation: string, path: string, run: () => A) => Effect.try({ try: run, catch: (cause) => new MapBuildFailure({ operation, path, cause }) });
@@ -20,7 +23,7 @@ const EMPTY_MODEL = "the map script names an empty model path";
 const BuildOptions = Schema.Struct({
   base: Schema.NonEmptyString,
   container: Schema.NonEmptyString,
-  /** Holds animation-assets, illidan-animation, selection-assets, stage-assets and impact-assets. */
+  /** Holds animation-assets, illidan-animation, selection-assets, stage-assets, impact-assets and original-clips-static-lights. */
   assets: Schema.NonEmptyString,
   summon: Schema.NonEmptyString,
   name: Schema.String.check(Schema.isPattern(/^[\x20-\x7e]{1,200}$/)),
@@ -52,6 +55,13 @@ const SummonEvidence = Schema.Struct({
   records: Schema.Array(Schema.Struct({ clips: Schema.Array(Schema.Struct({ filename: Schema.String })) })),
 });
 
+const OriginalClipEvidence = Schema.Struct({
+  records: Schema.Array(Schema.Struct({
+    light: Schema.NullOr(Schema.Struct({ filename: Schema.String })),
+    clips: Schema.Array(Schema.Struct({ filename: Schema.String })),
+  })),
+});
+
 const importLines = (path: string) =>
   tryMapPromise("read import list", path, () => Bun.file(path).text()).pipe(
     Effect.map((text) => text.split(/\r?\n/).filter((line) => line.length > 0)),
@@ -71,42 +81,86 @@ export const GENERATED_MODELS: readonly { readonly list: string; readonly genera
 /** The summon clip models the compiled script draws; the summon evidence lists their files. */
 export const SUMMON_MODELS = Array.from({ length: summonClipCount(SUMMON_BEAR) }, (_, index) => summonClip(SUMMON_BEAR, index).modelPath);
 
+/**
+ * The pooled fighters' clip and light models the compiled script draws; the
+ * original clip export's evidence lists their files.
+ */
+export const ORIGINAL_CLIP_MODELS = Object.values(Character).flatMap((character) => {
+  const light = originalLightPath(character);
+  const clips = Array.from({ length: originalClipCount(character) }, (_, index) => originalClip(character, index)?.modelPath ?? "");
+  return light === undefined ? clips : [...clips, light];
+});
+
 /** Every imported model the compiled script names. */
 export const SCRIPT_MODELS: readonly string[] = [
-  ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE, DEMON_HUNTER_MODEL_FILE, ...SUMMON_MODELS,
+  ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE, DEMON_HUNTER_MODEL_FILE, ...SUMMON_MODELS, ...ORIGINAL_CLIP_MODELS,
   ...GENERATED_MODELS.flatMap(({ models }) => models),
 ];
+
+/** The model sound table and the clips its cues are keyed to. */
+export interface SoundTable {
+  readonly cueCount: (character: number) => number;
+  readonly cue: (character: number, ordinal: number) => ModelSoundCue | undefined;
+  readonly label: (soundIndex: number) => string | undefined;
+  readonly clip: (character: number, sequenceIndex: number) => FighterOriginalClip | undefined;
+}
+
+export const MODEL_SOUND_TABLE: SoundTable = { cueCount: fighterSoundCueCount, cue: fighterSoundCue, label: modelSoundLabel, clip: originalClip };
+
+/**
+ * Why the model sound table names a cue no sound can play, if it does. Cues
+ * name the game's stock sound labels, which the map does not import.
+ */
+export function soundTableProblem(table: SoundTable): string | undefined {
+  for (const character of Object.values(Character)) {
+    for (let ordinal = 0; ordinal < table.cueCount(character); ordinal++) {
+      const cue = table.cue(character, ordinal);
+      if (cue === undefined) return `character ${character} sound cue ${ordinal} is missing`;
+      const label = table.label(cue.soundIndex);
+      if (label === undefined || label === "") return `character ${character} sound cue ${ordinal} names no sound label`;
+      if (table.clip(character, cue.sequenceIndex) === undefined) {
+        return `character ${character} sound cue ${ordinal} keys sequence ${cue.sequenceIndex}, which has no clip`;
+      }
+    }
+  }
+  return undefined;
+}
 
 /** Why `imports` cannot supply every model the compiled script names, if they cannot. */
 export function missingModels(imports: readonly string[], models: readonly string[]): string | undefined {
   if (models.includes("")) return EMPTY_MODEL;
   const listed = new Set(imports.map((file) => `war3mapImported\\${file}`));
   const missing = models.filter((model) => !listed.has(model));
-  return missing.length === 0 ? undefined : `${missing.join(", ")} not among the imports`;
+  return missing.length === 0 ? undefined : `${some(missing)} not among the imports`;
 }
+
+/** The first few of `models`, and how many more. */
+const some = (models: readonly string[]) => `${models.slice(0, 3).join(", ")}${models.length > 3 ? ` and ${models.length - 3} more` : ""}`;
 
 const requireListed = (path: string, imports: readonly string[], models: readonly string[], remedy: string) => {
   const missing = missingModels(imports, models);
   return missing === undefined ? Effect.void : Effect.fail(new MapBuildFailure({ operation: "check script models", path, cause: `${missing}; ${remedy}` }));
 };
 
-/** A rebuild keeps every import, so the map must already carry each model the new script names. */
+/**
+ * A rebuild keeps every import, so the map must already carry each model the
+ * new script names. The build verified their contents; this reads the
+ * archive's file list once, whose names Warcraft matches without case.
+ */
 export const carriedModels = (map: string, packager: string, models: readonly string[] = SCRIPT_MODELS) => Effect.scoped(Effect.gen(function*() {
   if (models.includes("")) return yield* new MapBuildFailure({ operation: "check script models", path: map, cause: EMPTY_MODEL });
   const scratch = yield* Effect.acquireRelease(
     tryMapSync("create scratch directory", tmpdir(), () => mkdtempSync(join(tmpdir(), "smashcraft-models."))),
     (directory) => Effect.sync(() => rmSync(directory, { recursive: true, force: true })),
   );
-  const failures = yield* Effect.forEach(models, (model, index) =>
-    Effect.match(runProcess("extract model", map, [packager, "extract", map, join(scratch, `${index}`), model]), {
-      onFailure: (failure) => [{ model, reason: failure.message }],
-      onSuccess: () => [],
-    }), { concurrency: 4 });
-  const missing = failures.flat();
-  const first = missing[0];
-  if (first === undefined) return;
-  return yield* new MapBuildFailure({ operation: "check script models", path: map,
-    cause: `the map does not carry ${missing.map(({ model }) => model).join(", ")}; build it again (${first.reason})` });
+  const listPath = join(scratch, "listfile");
+  yield* runProcess("extract the archive's file list", map, [packager, "extract", map, listPath, "(listfile)"]);
+  const text = yield* tryMapPromise("read the archive's file list", listPath, () => Bun.file(listPath).text());
+  const carried = new Set(text.split(/\r?\n/).map((name) => name.toLowerCase()));
+  const missing = models.filter((model) => !carried.has(model.toLowerCase()));
+  if (missing.length > 0) {
+    return yield* new MapBuildFailure({ operation: "check script models", path: map, cause: `the map does not carry ${some(missing)}; build it again` });
+  }
 }));
 
 /** Replaces only the map's script, after checking the map carries every model that script names. */
@@ -127,6 +181,15 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
   const evidence = yield* readJson(SummonEvidence, evidencePath);
   const summonFiles = evidence.records.flatMap((record) => record.clips).map(({ filename }) => filename);
   yield* requireListed(evidencePath, summonFiles, SUMMON_MODELS, "summonClipInfo.ts and the summon clips differ");
+  const clipDirectory = join(assets, "original-clips-static-lights");
+  const clipEvidencePath = join(clipDirectory, "original-clips-evidence.json");
+  const clipEvidence = yield* readJson(OriginalClipEvidence, clipEvidencePath);
+  const clipFiles = clipEvidence.records.flatMap((record) => [...record.clips.map(({ filename }) => filename), ...(record.light === null ? [] : [record.light.filename])]);
+  yield* requireListed(clipEvidencePath, clipFiles, ORIGINAL_CLIP_MODELS, "export them with tools/animations/export-original-clips.ts");
+  const soundProblem = soundTableProblem(MODEL_SOUND_TABLE);
+  if (soundProblem !== undefined) {
+    return yield* new MapBuildFailure({ operation: "check model sounds", path: "ts/src/game/assets/modelSoundInfo.ts", cause: `${soundProblem}; export them with tools/animations/export-model-sounds.ts` });
+  }
   return [
     { entry: ARCHER_MODEL_FILE, source: join(assets, "animation-assets/ArcherFighter.mdx") },
     { entry: RIFLEMAN_MODEL_FILE, source: join(assets, "animation-assets/RiflemanFighter.mdx") },
@@ -135,6 +198,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     ...["SmashcraftHUD.fdf", "SmashcraftHUD.toc"].map((file) => imported(join(PROJECT, "tools/selection/art"), file)),
     ...generated.flat(),
     ...summonFiles.map((filename) => imported(join(summon, "imports/war3mapImported"), filename)),
+    ...clipFiles.map((filename) => imported(join(clipDirectory, "imports/war3mapImported"), filename)),
   ] satisfies ArchiveEntry[];
 });
 

@@ -15,7 +15,7 @@ import type { FighterPose } from "../presentation/fighterPose";
 import type { Character } from "../sim/codes";
 import { fighterPoseFacing, isIntangible } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
-import { type WorldOrigin, facingYaw } from "./effects";
+import { type WorldOrigin, facingYaw, hideEffect } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
 
 export class FighterPoolPresentation {
@@ -49,13 +49,11 @@ export class FighterPoolPresentation {
       const clip = originalClip(character, index);
       if (clip === undefined) break;
       const model = AddSpecialEffect(clip.modelPath, x, y);
-      BlzSetSpecialEffectPosition(model, x, y, z);
-      BlzSetSpecialEffectScale(model, this.scale);
       BlzSetSpecialEffectColorByPlayer(model, Player(participant));
       BlzSetSpecialEffectAnimationBlendTime(model, 0.0);
       BlzSetSpecialEffectAnimation(model, "Stand");
       BlzSetSpecialEffectTimeScale(model, 0.0);
-      BlzSetSpecialEffectAlpha(model, 0);
+      hideEffect(model, origin);
       this.clips.push(model);
     }
   }
@@ -73,7 +71,7 @@ export class FighterPoolPresentation {
 
   hide(): void {
     const shown = this.visible === undefined ? undefined : this.clips[this.visible];
-    if (shown !== undefined) BlzSetSpecialEffectAlpha(shown, 0);
+    if (shown !== undefined) hideEffect(shown, this.origin);
     this.visible = undefined;
     if (this.light !== undefined && this.lightVisible) {
       this.suppress(this.light);
@@ -93,7 +91,7 @@ export class FighterPoolPresentation {
     }
     if (this.visible !== index) {
       const shown = this.visible === undefined ? undefined : this.clips[this.visible];
-      if (shown !== undefined) BlzSetSpecialEffectAlpha(shown, 0);
+      if (shown !== undefined) hideEffect(shown, this.origin);
       this.visible = index;
     }
     const duration = clip.endSeconds - clip.startSeconds;
@@ -136,8 +134,7 @@ export class FighterPoolPresentation {
       DestroyEffect(this.light);
     }
     for (const model of this.clips) {
-      BlzSetSpecialEffectAlpha(model, 0);
-      BlzSetSpecialEffectScale(model, 0.0);
+      hideEffect(model, this.origin);
       DestroyEffect(model);
     }
     this.clips.length = 0;

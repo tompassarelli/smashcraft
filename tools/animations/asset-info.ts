@@ -17,7 +17,7 @@ export interface ModelAssetInfo {
 }
 
 /** An exact binary32 value as a literal; other values round through f32(). */
-function seconds(value: number): string {
+export function seconds(value: number): string {
   const literal = Number.isInteger(value) ? value.toFixed(1) : String(value);
   return Math.fround(value) === value ? literal : `f32(${literal})`;
 }
