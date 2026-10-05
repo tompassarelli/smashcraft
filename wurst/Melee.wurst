@@ -2182,8 +2182,8 @@ function publishJournalMenu()
     let name = phase == CHARACTER_MENU ? "CHARACTER" : (phase == STAGE_MENU ? "STAGE" : (phase == RESULT ? "RESULT" : "BLOCKED"))
     PreloadGenClear()
     PreloadGenStart()
-    Preload("SMASHCRAFT JOURNAL MENU v=1 build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot) + " phase=" + name
-        + " connected=" + I2S(matchState.humanMask) + " human-fighters=" + I2S(matchState.humanFighterMask)
+    Preload("SMASHCRAFT JOURNAL MENU v=1 build=" + BUILD_ID + " epoch=" + I2S(shadowInputEpoch) + " slot=" + I2S(slot) + " phase=" + name)
+    Preload("connected=" + I2S(matchState.humanMask) + " human-fighters=" + I2S(matchState.humanFighterMask)
         + " computers=" + I2S(matchState.computerMask) + " fighters=" + I2S(matchState.fighterMask()))
     PreloadGenEnd("smashcraft-journal-menu-" + BUILD_ID + "-s" + I2S(slot) + ".txt")
 
