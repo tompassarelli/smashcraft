@@ -1,0 +1,9 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "SMASHCRAFT JOURNAL CONTROL v=1 build=playable-0042 epoch=1 slot=1 sequence=2 state=PAUSE_COMMIT frame=1213" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

@@ -1,0 +1,180 @@
+{
+  "scope": "Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; controller game navigation (keyboard diagnostic trace toggle); issue 26 all-binding integrity run; no physical or cross-machine alignment claim.",
+  "build": "playable-0042",
+  "helper_sha256": "98b9f82bbda47aac870d8a5e4d5c37172bf40be91d647c79eb10c0629bd22055",
+  "edges_injected_per_player": [
+    648,
+    648
+  ],
+  "lost": 10,
+  "duplicated": 10,
+  "reordered": 0,
+  "stuck": 2,
+  "expected_frame_both_clients": {
+    "correct": 1291,
+    "total": 1296,
+    "percent": 99.6141975308642
+  },
+  "local_start_minus_capture_frames": {
+    "n": 196,
+    "p50": 0,
+    "p95": 86,
+    "max": 92,
+    "distribution": {
+      "0": 98,
+      "1": 3,
+      "3": 1,
+      "5": 1,
+      "18": 1,
+      "30": 4,
+      "31": 1,
+      "32": 1,
+      "33": 2,
+      "34": 1,
+      "35": 3,
+      "36": 1,
+      "37": 2,
+      "38": 4,
+      "39": 2,
+      "40": 3,
+      "41": 4,
+      "42": 5,
+      "43": 2,
+      "44": 2,
+      "45": 5,
+      "46": 3,
+      "47": 3,
+      "48": 3,
+      "49": 1,
+      "50": 1,
+      "51": 2,
+      "52": 4,
+      "53": 1,
+      "55": 1,
+      "57": 1,
+      "58": 1,
+      "61": 1,
+      "62": 2,
+      "63": 1,
+      "64": 2,
+      "65": 3,
+      "66": 1,
+      "68": 1,
+      "75": 2,
+      "76": 1,
+      "79": 1,
+      "81": 2,
+      "83": 1,
+      "86": 3,
+      "87": 1,
+      "89": 2,
+      "90": 2,
+      "91": 2,
+      "92": 1
+    }
+  },
+  "local_frame_basis": "60 Hz service callbacks from map admission to first forward prediction; rollback replay excluded",
+  "legal_action_edges": 196,
+  "illegal_action_edges": 501,
+  "legal_actions_missing_first_prediction": 0,
+  "opponent_input_lateness_frames": {
+    "n": 1391,
+    "p50": 7,
+    "p95": 20,
+    "max": 23,
+    "distribution": {
+      "0": 507,
+      "1": 17,
+      "2": 11,
+      "3": 19,
+      "4": 26,
+      "5": 23,
+      "6": 58,
+      "7": 39,
+      "8": 51,
+      "9": 76,
+      "10": 49,
+      "11": 53,
+      "12": 89,
+      "13": 42,
+      "14": 38,
+      "15": 66,
+      "16": 41,
+      "17": 40,
+      "18": 23,
+      "19": 35,
+      "20": 23,
+      "21": 21,
+      "22": 20,
+      "23": 24
+    }
+  },
+  "rollback_depth_frames": {
+    "n": 192,
+    "p50": 13,
+    "p95": 24,
+    "max": 24,
+    "distribution": {
+      "4": 1,
+      "5": 5,
+      "6": 5,
+      "7": 10,
+      "8": 12,
+      "9": 7,
+      "10": 26,
+      "11": 10,
+      "12": 16,
+      "13": 18,
+      "14": 8,
+      "15": 2,
+      "16": 18,
+      "17": 5,
+      "18": 7,
+      "19": 1,
+      "20": 8,
+      "21": 2,
+      "22": 6,
+      "23": 10,
+      "24": 15
+    }
+  },
+  "prediction_stalls": {
+    "count": 134,
+    "longest_callbacks": 51
+  },
+  "injected_to_screen_ms": null,
+  "same_frame_5ms_taps": [
+    224,
+    221
+  ],
+  "final_checksums": {
+    "epoch-1-client-0": [
+      1405,
+      "372747:547668",
+      3
+    ],
+    "epoch-1-client-1": [
+      1405,
+      "372747:547668",
+      3
+    ],
+    "epoch-2-client-0": [
+      1351,
+      "939665:499933",
+      3
+    ],
+    "epoch-2-client-1": [
+      1351,
+      "939665:499933",
+      3
+    ]
+  },
+  "gates": {
+    "edges": false,
+    "expected_frame": false,
+    "local_start": false,
+    "checksums": true
+  },
+  "evidence_failures": [],
+  "passed": false
+}
