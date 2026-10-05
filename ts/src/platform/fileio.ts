@@ -2,10 +2,7 @@
 // file a tool wrote is JASS: each line stores one chunk in a tooltip level of
 // the FileIO ability, which Preloader executes and the map reads back. Local to
 // this client; never use a result in synchronized code without a sync message.
-import { CHUNKS_PER_FILE } from "../runtime/hotFiles";
-
-/** The FileIO ability ('$wsl') the map defines for this channel. */
-const FILE_IO_ABILITY = 0x2477736c;
+import { CHUNKS_PER_FILE, FILE_IO_ABILITY } from "../runtime/hotFiles";
 const EMPTY = " ";
 
 export function readChunks(filename: string): string[] {

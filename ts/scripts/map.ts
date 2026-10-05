@@ -8,16 +8,11 @@ import { copyFileSync, renameSync } from "node:fs";
 import { join } from "node:path";
 import { payloadKey } from "../src/runtime/hotFiles";
 import { checksum } from "../src/runtime/payload";
+import { longBrackets } from "./lua";
 import { keepSourceMap } from "./sourceMaps";
 
 const packager = join(import.meta.dir, "../../build/tools/map-pack");
 
-/** A Lua long string holding text verbatim; the newline after its opening bracket is dropped. */
-function longString(text: string): string {
-  let level = "";
-  while (text.includes(`]${level}]`)) level += "=";
-  return `[${level}[\n${text}]${level}]`;
-}
 
 /**
  * The base map's and Wurst's script, then the bundle, started after Wurst. The
@@ -28,9 +23,12 @@ async function compose(base: string, bundlePath: string | undefined): Promise<st
   let typescript = "";
   if (bundlePath !== undefined) {
     const bytes = new Uint8Array(await Bun.file(bundlePath).arrayBuffer());
-    const key = payloadKey(checksum([...bytes]));
+    const key = payloadKey(checksum(bytes.length, (index) => bytes[index] ?? 0));
     keepSourceMap(bundlePath, key);
-    typescript = `\nsmashcraftTs = assert(load(${longString(new TextDecoder().decode(bytes))}, "=map-${key}"))()\n`;
+    const text = new TextDecoder().decode(bytes);
+    const [open, close] = longBrackets(text);
+    // Lua drops the newline right after an opening long bracket.
+    typescript = `\nsmashcraftTs = assert(load(${open}\n${text}${close}, "=map-${key}"))()\n`;
   }
   return `${base}${typescript}
 function main()

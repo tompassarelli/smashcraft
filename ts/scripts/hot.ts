@@ -5,9 +5,10 @@
 // Usage: bun scripts/hot.ts --data DIR [--data DIR ...] [--watch]
 import { readdirSync, renameSync, rmSync, watch } from "node:fs";
 import { join } from "node:path";
-import { CHUNK_LENGTH, CHUNKS_PER_FILE, ackFile, chunkFile, errorFile, formatManifest, manifestFile, payloadKey } from "../src/runtime/hotFiles";
-import { checksum, encodeBase64 } from "../src/runtime/payload";
+import { FILE_IO_ABILITY, PAYLOAD_FILE_BYTES, ackFile, errorFile, formatManifest, manifestFile, payloadFile, payloadKey } from "../src/runtime/hotFiles";
+import { checksum } from "../src/runtime/payload";
 import { mapCompiler, report } from "./compiler";
+import { longBrackets } from "./lua";
 import { keepSourceMap, toTypeScript } from "./sourceMaps";
 
 const ACK_TIMEOUT_MS = 10_000;
@@ -16,10 +17,32 @@ const args = process.argv.slice(2);
 const dataDirs = args.flatMap((arg, i) => (arg === "--data" && args[i + 1] !== undefined ? [args[i + 1]!] : []));
 if (dataDirs.length === 0) throw new Error("usage: bun scripts/hot.ts --data DIR [--data DIR ...] [--watch]");
 
-/** A Preload file whose execution stores each chunk in a FileIO tooltip level. */
-function preloadFile(chunks: readonly string[]): string {
-  const lines = chunks.map((chunk, level) => `call BlzSetAbilityTooltip('$wsl', "${chunk}", ${level})`);
-  return ["function PreloadFiles takes nothing returns nothing", ...lines, "endfunction", ""].join("\n");
+/** A Preload file whose execution stores one short line in the FileIO tooltip. */
+function preloadFile(line: string): string {
+  return `function PreloadFiles takes nothing returns nothing\ncall BlzSetAbilityTooltip('$wsl', "${line}", 0)\nendfunction\n`;
+}
+
+/**
+ * A Preload file of raw Lua (Warcraft passes a usercode block through) that
+ * stores the bytes verbatim in one tooltip, with no encoding to undo in game.
+ */
+function payloadPreloadFile(bytes: Uint8Array): Blob {
+  const [open, close] = longBrackets(new TextDecoder().decode(bytes));
+  // Lua drops the newline right after an opening long bracket.
+  return new Blob([`//!beginusercode\nBlzSetAbilityTooltip(${FILE_IO_ABILITY}, ${open}\n`, bytes, `${close}, 0)\n//!endusercode\n`]);
+}
+
+/** Pieces of at most PAYLOAD_FILE_BYTES, cut before an ASCII byte so no character is split. */
+function payloadPieces(bytes: Uint8Array): Uint8Array[] {
+  const pieces: Uint8Array[] = [];
+  let start = 0;
+  while (start < bytes.length) {
+    let end = Math.min(start + PAYLOAD_FILE_BYTES, bytes.length);
+    while (end < bytes.length && bytes[end]! >= 0x80) end--;
+    pieces.push(bytes.subarray(start, end));
+    start = end;
+  }
+  return pieces;
 }
 
 function latestVersion(dir: string): number {
@@ -27,9 +50,9 @@ function latestVersion(dir: string): number {
   return Math.max(0, ...versions.filter((version) => version !== undefined).map(Number));
 }
 
-/** Chunk files of other payloads than these; manifests stay, as the map relies on them. */
-function removeChunksExcept(dir: string, keep: readonly string[]): void {
-  const kept = new Set(keep.map((key) => chunkFile(key, 0).replace(/-0\.pld$/, "")));
+/** Payload files of other bundles than these; manifests stay, as the map relies on them. */
+function removePayloadsExcept(dir: string, keep: readonly string[]): void {
+  const kept = new Set(keep.map((key) => payloadFile(key, 0).replace(/-0\.pld$/, "")));
   for (const name of readdirSync(dir)) {
     const payload = /^(smashcraft-hot-\d+-\d+)-\d+\.pld$/.exec(name)?.[1];
     if (payload !== undefined && !kept.has(payload)) rmSync(join(dir, name));
@@ -55,20 +78,17 @@ async function publish(): Promise<void> {
     return;
   }
   const compiled = performance.now();
-  const bytes = [...new Uint8Array(await Bun.file("build/map.lua").arrayBuffer())];
-  const encoded = encodeBase64(bytes);
-  const chunks = Array.from({ length: Math.ceil(encoded.length / CHUNK_LENGTH) }, (_, i) => encoded.slice(i * CHUNK_LENGTH, (i + 1) * CHUNK_LENGTH));
-  const files = Math.ceil(chunks.length / CHUNKS_PER_FILE);
-  const payloadChecksum = checksum(bytes);
+  const bytes = new Uint8Array(await Bun.file("build/map.lua").arrayBuffer());
+  const pieces = payloadPieces(bytes);
+  const files = pieces.length;
+  const payloadChecksum = checksum(bytes.length, (index) => bytes[index]!);
   keepSourceMap("build/map.lua", payloadKey(payloadChecksum));
   version++;
   for (const dir of dataDirs) {
-    for (let index = 0; index < files; index++) {
-      await Bun.write(join(dir, chunkFile(payloadChecksum, index)), preloadFile(chunks.slice(index * CHUNKS_PER_FILE, (index + 1) * CHUNKS_PER_FILE)));
-    }
-    // The manifest follows the chunks: a client that reads it can read every chunk file.
-    await writeAtomically(join(dir, manifestFile(version)), preloadFile([formatManifest({ version, files, checksum: payloadChecksum })]));
-    removeChunksExcept(dir, [payloadChecksum, previousChecksum]);
+    for (const [index, piece] of pieces.entries()) await Bun.write(join(dir, payloadFile(payloadChecksum, index)), payloadPreloadFile(piece));
+    // The manifest follows the payload: a client that reads it can read every payload file.
+    await writeAtomically(join(dir, manifestFile(version)), preloadFile(formatManifest({ version, files, checksum: payloadChecksum })));
+    removePayloadsExcept(dir, [payloadChecksum, previousChecksum]);
   }
   previousChecksum = payloadChecksum;
   const published = performance.now();
@@ -124,13 +144,12 @@ async function checkErrors(announce: boolean): Promise<void> {
 
 // Reports from before this tool started are old news.
 await checkErrors(false);
-setInterval(() => void checkErrors(true), 50);
 await request();
-if (args.includes("--watch")) {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  watch("src", { recursive: true }, () => {
-    clearTimeout(timer);
-    timer = setTimeout(() => void request(), 10);
-  });
-  console.log("watching src/ for changes");
-}
+if (!args.includes("--watch")) process.exit(0);
+setInterval(() => void checkErrors(true), 50);
+let debounce: ReturnType<typeof setTimeout> | undefined;
+watch("src", { recursive: true }, () => {
+  clearTimeout(debounce);
+  debounce = setTimeout(() => void request(), 10);
+});
+console.log("watching src/ for changes");

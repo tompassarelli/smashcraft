@@ -6,11 +6,11 @@
 // on one client can't split the simulations. Match state is untouched: it lives
 // in globals the new code reads. The reloader's own handlers are reinstalled
 // too, so it can reload itself.
-import { ackFile, chunkFile, manifestFile, parseManifest, payloadKey } from "../runtime/hotFiles";
-import { checksum, decodeBase64 } from "../runtime/payload";
+import { ackFile, manifestFile, parseManifest, payloadFile, payloadKey } from "../runtime/hotFiles";
+import { checksum } from "../runtime/payload";
 import { floorDiv } from "../sim/intMath";
 import { on, trampoline } from "./dispatch";
-import { readChunks } from "./fileio";
+import { readChunk } from "./fileio";
 
 const ANNOUNCE = "SC_HR";
 const READY = "SC_HRR";
@@ -54,14 +54,7 @@ function isReloadable(value: unknown): value is Reloadable {
   return typeof value === "object" && value !== null && "install" in value && typeof value.install === "function";
 }
 
-function bytesToText(bytes: readonly number[]): string {
-  const parts: string[] = [];
-  // string.char takes a bounded argument list; convert in slices.
-  for (let i = 0; i < bytes.length; i += 4096) parts.push(string.char(...bytes.slice(i, i + 4096)));
-  return parts.join("");
-}
-
-const manifestExists = (version: number) => readChunks(manifestFile(version)).length > 0;
+const manifestExists = (version: number) => readChunk(manifestFile(version)) !== undefined;
 
 /**
  * The newest version published before this match. Manifests are never removed
@@ -103,22 +96,22 @@ function report(text: string): void {
 function poll(): void {
   const state = hot();
   if (state.localSlot !== state.hostSlot) return;
-  const text = readChunks(manifestFile(state.announced + 1))[0];
+  const text = readChunk(manifestFile(state.announced + 1));
   if (text === undefined) return;
   state.announced++;
   BlzSendSyncData(ANNOUNCE, text);
 }
 
 /** This client's copy of an announced bundle, loaded but not run, or why it failed. */
-function loadLocal(text: string): { version: number; bundle: Reloadable | string } | undefined {
-  const manifest = parseManifest(text);
+function loadLocal(announcement: string): { version: number; bundle: Reloadable | string } | undefined {
+  const manifest = parseManifest(announcement);
   if (manifest === undefined) return undefined;
   const { version, files, checksum: expected } = manifest;
-  const encoded: string[] = [];
-  for (let index = 0; index < files; index++) encoded.push(...readChunks(chunkFile(expected, index)));
-  const bytes = decodeBase64(encoded.join(""));
-  if (bytes === undefined || checksum(bytes) !== expected) return { version, bundle: "payload missing or damaged" };
-  const [chunk, error] = load(bytesToText(bytes), `=hot-${payloadKey(expected)}`);
+  const parts: string[] = [];
+  for (let index = 0; index < files; index++) parts.push(readChunk(payloadFile(expected, index)) ?? "");
+  const text = parts.join("");
+  if (checksum(text.length, (index) => string.byte(text, index + 1)) !== expected) return { version, bundle: "payload missing or damaged" };
+  const [chunk, error] = load(text, `=hot-${payloadKey(expected)}`);
   if (chunk === undefined) return { version, bundle: error ?? "load failed" };
   // A bundle that fails while loading is refused like a damaged one, so every client still answers.
   const [ran, module] = pcall(chunk);
