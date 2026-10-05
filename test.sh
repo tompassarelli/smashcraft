@@ -27,6 +27,8 @@ exec "$java" -Xmx2048m -XX:ActiveProcessorCount=2 -jar "$compiler_jar" \
     "$project_dir/wurst/Simulation.wurst" \
     "$project_dir/wurst/TechInput.wurst" \
     "$project_dir/wurst/TechInputTests.wurst" \
+    "$project_dir/wurst/PowershieldTests.wurst" \
+    "$project_dir/wurst/MeleeContactTests.wurst" \
     "$project_dir/wurst/MeleeContactGeometry.wurst" \
     "$project_dir/wurst/WorldTestSupport.wurst" \
     "$project_dir/wurst/FourPlayerWorldTests.wurst" \

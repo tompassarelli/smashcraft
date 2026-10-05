@@ -1,9 +1,10 @@
 package MeleeContactTests
 import Simulation
+import WorldTestSupport
 
 function prepareJab(FighterState attacker, FighterState target, int facing)
 	attacker.facing = facing
-	beginAttackPair(attacker, target, 0, -1, false, false)
+	testBeginAttacks(testWorld(attacker, target), 0, -1, false, false)
 	attacker.attackFrame = attackStartupFrames(0)
 
 @Test function meleeCapsuleBlocksAndDamagesShieldOnlyWhenItsCircleIsReached()
@@ -11,7 +12,7 @@ function prepareJab(FighterState attacker, FighterState target, int facing)
 	let shielded = new FighterState(1, 70, -1)
 	shielded.shield = true
 	prepareJab(attacker, shielded, 1)
-	resolveAttackPair(attacker, shielded)
+	resolveAttacks(testWorld(attacker, shielded))
 	shielded.damage.assertEquals(0.)
 	(shielded.shieldEnergy < SHIELD_MAX).assertTrue()
 	shielded.shieldStun.assertGreaterThan(0)
@@ -24,7 +25,7 @@ function prepareJab(FighterState attacker, FighterState target, int facing)
 	defender.shield = true
 	defender.shieldEnergy = 0
 	prepareJab(attacker, defender, 1)
-	resolveAttackPair(attacker, defender)
+	resolveAttacks(testWorld(attacker, defender))
 	defender.damage.assertGreaterThan(0.)
 	defender.shieldStun.assertEquals(0)
 	defender.hitstun.assertGreaterThan(0)
@@ -38,7 +39,7 @@ function prepareJab(FighterState attacker, FighterState target, int facing)
 			let defender = new FighterState(1, direction * 110., -direction)
 			defender.shield = true
 			prepareJab(attacker, defender, direction)
-			resolveAttackPair(attacker, defender)
+			resolveAttacks(testWorld(attacker, defender))
 			defender.damage.assertEquals(0.)
 			(defender.shieldEnergy < SHIELD_MAX).assertTrue()
 			destroy attacker
@@ -47,10 +48,10 @@ function prepareJab(FighterState attacker, FighterState target, int facing)
 @Test function meleeCapsuleTradesQueueBothContactsBeforeEitherHitResolves()
 	let first = new FighterState(0, -35, 1)
 	let second = new FighterState(1, 35, -1)
-	beginAttackPair(first, second, 0, 0, false, false)
+	testBeginAttacks(testWorld(first, second), 0, 0, false, false)
 	first.attackFrame = attackStartupFrames(0)
 	second.attackFrame = attackStartupFrames(0)
-	resolveAttackPair(first, second)
+	resolveAttacks(testWorld(first, second))
 	first.damage.assertGreaterThan(0.)
 	second.damage.assertGreaterThan(0.)
 	first.hitstun.assertGreaterThan(0)

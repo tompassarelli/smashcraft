@@ -106,6 +106,12 @@ function copyFighter(FighterState source, FighterState destination, FighterRoste
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		destination.projectileKind[i] = source.projectileKind[i]
 	for i = 0 to PROJECTILE_CAPACITY - 1
+		destination.projectileDamageMultiplier[i] = source.projectileDamageMultiplier[i]
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		destination.projectileVisualFamily[i] = source.projectileVisualFamily[i]
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		destination.projectileNewlyReflected[i] = source.projectileNewlyReflected[i]
+	for i = 0 to PROJECTILE_CAPACITY - 1
 		destination.projectileVelocityX[i] = source.projectileVelocityX[i]
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		destination.projectileVelocityZ[i] = source.projectileVelocityZ[i]
@@ -395,6 +401,15 @@ function fighterDifference(FighterState expected, FighterState actual, FighterRo
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		if expected.projectileKind[i] != actual.projectileKind[i]
 			return "projectileKind[" + I2S(i) + "]"
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		if expected.projectileDamageMultiplier[i] != actual.projectileDamageMultiplier[i]
+			return "projectileDamageMultiplier[" + I2S(i) + "]"
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		if expected.projectileVisualFamily[i] != actual.projectileVisualFamily[i]
+			return "projectileVisualFamily[" + I2S(i) + "]"
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		if expected.projectileNewlyReflected[i] != actual.projectileNewlyReflected[i]
+			return "projectileNewlyReflected[" + I2S(i) + "]"
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		if expected.projectileVelocityX[i] != actual.projectileVelocityX[i]
 			return "projectileVelocityX[" + I2S(i) + "]"
@@ -1006,6 +1021,12 @@ function canonicalFighter(CanonicalWriter writer, string prefix, FighterState fi
 		canonicalInt(writer, prefix + "." + "projectileDirection[" + I2S(i) + "]", fighter.projectileDirection[i])
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		canonicalInt(writer, prefix + "." + "projectileKind[" + I2S(i) + "]", fighter.projectileKind[i])
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		canonicalRealField(writer, prefix + "." + "projectileDamageMultiplier[" + I2S(i) + "]", fighter.projectileDamageMultiplier[i])
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		canonicalInt(writer, prefix + "." + "projectileVisualFamily[" + I2S(i) + "]", fighter.projectileVisualFamily[i])
+	for i = 0 to PROJECTILE_CAPACITY - 1
+		canonicalBoolean(writer, prefix + "." + "projectileNewlyReflected[" + I2S(i) + "]", fighter.projectileNewlyReflected[i])
 	for i = 0 to PROJECTILE_CAPACITY - 1
 		canonicalRealField(writer, prefix + "." + "projectileVelocityX[" + I2S(i) + "]", fighter.projectileVelocityX[i])
 	for i = 0 to PROJECTILE_CAPACITY - 1

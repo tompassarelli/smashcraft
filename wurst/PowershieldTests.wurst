@@ -1,5 +1,6 @@
 package PowershieldTests
 import Simulation
+import WorldTestSupport
 import ReplayState
 import CommandBuffer
 import MatchRules
@@ -20,7 +21,7 @@ import ImpactEvents
 		shooter.projectileLife[0] = 3
 		shooter.projectileDamageMultiplier[0] = 1
 		let energy = defender.shieldEnergy
-		updateProjectilePair(shooter, defender)
+		updateProjectiles(testWorld(shooter, defender))
 		projectileActive(shooter, 0).assertFalse()
 		if scenario == 0
 			(defender.damage > 0).assertTrue()
@@ -102,7 +103,7 @@ import ImpactEvents
 	defender.shieldGeometry = fighterShieldGeometry(0, 45, 60)
 	let events = new ImpactEvents()
 	events.before(defender)
-	updateProjectilePair(shooter, defender)
+	updateProjectiles(testWorld(shooter, defender))
 	events.after(defender)
 	projectileActive(shooter, 0).assertFalse()
 	projectileActive(defender, 0).assertTrue()
@@ -119,7 +120,7 @@ import ImpactEvents
 	destroy events
 	defender.shield = false
 	defender.shieldReflectFrames = 0
-	updateProjectilePair(shooter, defender)
+	updateProjectiles(testWorld(shooter, defender))
 	let baselineShooter = new FighterState(0, -30, 1)
 	let baselineDefender = new FighterState(1, 0, -1)
 	baselineShooter.projectileX[0] = -50
@@ -127,7 +128,7 @@ import ImpactEvents
 	baselineShooter.projectileVelocityX[0] = 60
 	baselineShooter.projectileKind[0] = PROJECTILE_BLASTER
 	baselineShooter.projectileLife[0] = 3
-	updateProjectilePair(baselineShooter, baselineDefender)
+	updateProjectiles(testWorld(baselineShooter, baselineDefender))
 	(shooter.damage * 2).assertEquals(baselineDefender.damage)
 	destroy baselineDefender
 	destroy baselineShooter
@@ -140,6 +141,8 @@ import ImpactEvents
 	let game = new MatchState()
 	let commands = new AttackBuffer(0)
 	let otherCommands = new AttackBuffer(0)
+	let world = testWorld(first, second)
+	let controls = testCommands(commands, otherCommands)
 	let runtime = new ReplayRuntimeState()
 	let snapshot = new ReplaySnapshot()
 	let actual = new ReplaySnapshot()
@@ -153,15 +156,15 @@ import ImpactEvents
 	first.projectileVisualFamily[2] = 0
 	first.projectileDamageMultiplier[2] = 0.5
 	first.projectileNewlyReflected[2] = true
-	snapshot.capture(first, second, game, commands, otherCommands, runtime)
+	snapshot.capture(world, game, controls, runtime)
 	first.shieldReflectFrames = 0
 	first.shieldGeometry = authoredShieldGeometry()
 	first.projectileDamageMultiplier[2] = 1
 	first.projectileVisualFamily[2] = 1
 	first.projectileNewlyReflected[2] = false
-	actual.capture(first, second, game, commands, otherCommands, runtime)
-	snapshot.firstDifference(actual).assertEquals("first.shieldReflectFrames")
-	snapshot.restore(first, second, game, commands, otherCommands, runtime)
+	actual.capture(world, game, controls, runtime)
+	snapshot.firstDifference(actual).assertEquals("fighter[0].shieldReflectFrames")
+	snapshot.restore(world, game, controls, runtime)
 	first.shieldTriggerWasActive.assertTrue()
 	first.shieldTriggerAge.assertEquals(1)
 	first.shieldReflectFrames.assertEquals(1)
@@ -173,13 +176,30 @@ import ImpactEvents
 	first.projectileDamageMultiplier[2].assertEquals(0.5)
 	first.projectileVisualFamily[2].assertEquals(0)
 	first.projectileNewlyReflected[2].assertTrue()
+	actual.capture(world, game, controls, runtime)
+	snapshot.checksum().assertEquals(actual.checksum())
+	first.projectileDamageMultiplier[2] = 1
+	actual.capture(world, game, controls, runtime)
+	snapshot.firstDifference(actual).assertEquals("fighter[0].projectileDamageMultiplier[2]")
+	(snapshot.checksum() != actual.checksum()).assertTrue()
+	first.projectileDamageMultiplier[2] = 0.5
+	first.projectileVisualFamily[2] = 1
+	actual.capture(world, game, controls, runtime)
+	snapshot.firstDifference(actual).assertEquals("fighter[0].projectileVisualFamily[2]")
+	(snapshot.checksum() != actual.checksum()).assertTrue()
+	first.projectileVisualFamily[2] = 0
+	first.projectileNewlyReflected[2] = false
+	actual.capture(world, game, controls, runtime)
+	snapshot.firstDifference(actual).assertEquals("fighter[0].projectileNewlyReflected[2]")
+	(snapshot.checksum() != actual.checksum()).assertTrue()
+	first.projectileNewlyReflected[2] = true
 	first.shieldPerfectFrames = 2
-	actual.capture(first, second, game, commands, otherCommands, runtime)
-	snapshot.firstDifference(actual).assertEquals("first.shieldPerfectFrames")
+	actual.capture(world, game, controls, runtime)
+	snapshot.firstDifference(actual).assertEquals("fighter[0].shieldPerfectFrames")
 	first.shieldPerfectFrames = 3
 	first.shieldPerfectActionFrames = 3
-	actual.capture(first, second, game, commands, otherCommands, runtime)
-	snapshot.firstDifference(actual).assertEquals("first.shieldPerfectActionFrames")
+	actual.capture(world, game, controls, runtime)
+	snapshot.firstDifference(actual).assertEquals("fighter[0].shieldPerfectActionFrames")
 	destroy actual
 	destroy snapshot
 	destroy runtime
@@ -204,7 +224,7 @@ import ImpactEvents
 	target.shieldPerfectFrames = 1
 	beginDamageContacts()
 	queueDamageContact(attacker, target, hitEffect(10, 100, 20, 1, 1, false), 1, CONTACT_LAUNCH, true, null)
-	finishDamageContacts(attacker, target)
+	finishDamageContacts(testWorld(attacker, target))
 	target.damage.assertEquals(0.)
 	target.shieldEnergy.assertEquals(60.)
 	target.shieldStun.assertEquals(6)
@@ -214,7 +234,7 @@ import ImpactEvents
 	target.shieldPerfectFrames = 0
 	beginDamageContacts()
 	queueDamageContact(attacker, target, hitEffect(10, 100, 20, 1, 1, false), 1, CONTACT_LAUNCH, true, null)
-	finishDamageContacts(attacker, target)
+	finishDamageContacts(testWorld(attacker, target))
 	target.shieldEnergy.assertEquals(53.)
 	target.shieldPushbackX.assertEquals(0.7800000905990601 * WORLD_UNITS_PER_MELEE_UNIT)
 	target.shieldReflectVisualSerial.assertEquals(1)
@@ -234,7 +254,7 @@ import ImpactEvents
 		target.shieldPerfectFrames = 1
 		beginDamageContacts()
 		queueDamageContact(attacker, target, hitEffect(10, 100, 20, 1, 1, false), 1, CONTACT_LAUNCH, true, null)
-		finishDamageContacts(attacker, target)
+		finishDamageContacts(testWorld(attacker, target))
 		target.shieldPerfectActionFrames.assertEquals(4)
 		input.shield = true
 		while target.hitlag > 0 or target.shieldStun > 0
@@ -250,7 +270,7 @@ import ImpactEvents
 		target.shieldReleaseLag.assertEquals(SHIELD_RELEASE_LAG_FRAMES)
 		canAttack(target).assertEquals(heldTicks < 4)
 		if heldTicks < 4
-			beginAttackPair(target, attacker, 0, -1, true, false)
+			testBeginAttacks(testWorld(target, attacker), 0, -1, true, false)
 			target.attackStyle.assertEquals(0)
 			target.shieldReleaseLag.assertEquals(0)
 			target.shieldPerfectActionFrames.assertEquals(0)
