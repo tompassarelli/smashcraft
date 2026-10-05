@@ -69,7 +69,7 @@ export const GENERATED_MODELS: readonly { readonly list: string; readonly genera
 ];
 
 /** The summon clip models the compiled script draws; the summon evidence lists their files. */
-export const SUMMON_MODELS = Array.from({ length: summonClipCount(SUMMON_BEAR) }, (_, index) => summonClip(SUMMON_BEAR, index).modelPath);
+const SUMMON_MODELS = Array.from({ length: summonClipCount(SUMMON_BEAR) }, (_, index) => summonClip(SUMMON_BEAR, index).modelPath);
 
 /** Every imported model the compiled script names. */
 export const SCRIPT_MODELS: readonly string[] = [
@@ -91,7 +91,7 @@ const requireListed = (path: string, imports: readonly string[], models: readonl
 };
 
 /** A rebuild keeps every import, so the map must already carry each model the new script names. */
-export const carriedModels = (map: string, packager: string, models: readonly string[] = SCRIPT_MODELS) => Effect.scoped(Effect.gen(function*() {
+const carriedModels = (map: string, packager: string, models: readonly string[] = SCRIPT_MODELS) => Effect.scoped(Effect.gen(function*() {
   if (models.includes("")) return yield* new MapBuildFailure({ operation: "check script models", path: map, cause: EMPTY_MODEL });
   const scratch = yield* Effect.acquireRelease(
     tryMapSync("create scratch directory", tmpdir(), () => mkdtempSync(join(tmpdir(), "smashcraft-models."))),

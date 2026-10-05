@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { homedir } from "node:os";
 import { Effect } from "effect";
 import { UsageFailure } from "wisp/scripts/wisp/command";
-import { MapBuild, type BuildProject } from "wisp/scripts/wisp/mapBuild";
+import type { BuildProject } from "wisp/scripts/wisp/mapBuild";
 import { GameFiles } from "wisp/scripts/wisp/gameFiles";
 import { SourceErrors } from "wisp/scripts/wisp/sourceErrors";
 
@@ -12,9 +12,17 @@ export const clientState = join(homedir(), ".local/state/smashcraft/clients.json
 export const sourceMapDirectory = join(tsDirectory, "build/source-maps");
 
 /** Every compile of the map: normal gameplay, and each diagnostic with its own entry and TypeScriptToLua configuration. */
-export const profiles = ["main", "integrity", "playable", "physics-probe", "frame-cost", "stack-trace"] as const;
-export type Profile = (typeof profiles)[number];
-const profileConfig = (profile: Profile) => join(tsDirectory, profile === "main" ? "tsconfig.map.json" : `tsconfig.${profile}.json`);
+const profiles = ["main", "integrity", "playable", "physics-probe", "frame-cost", "stack-trace"] as const;
+type Profile = (typeof profiles)[number];
+const profileConfigs: Readonly<Record<Profile, string>> = {
+  main: "tsconfig.map.json",
+  integrity: "tsconfig.integrity.json",
+  playable: "tsconfig.playable.json",
+  "physics-probe": "tsconfig.physics-probe.json",
+  "frame-cost": "tsconfig.frame-cost.json",
+  "stack-trace": "tsconfig.stack-trace.json",
+};
+const profileConfig = (profile: Profile) => join(tsDirectory, profileConfigs[profile]);
 
 export const buildProject = (profile: Profile = "main"): BuildProject => ({
   projectRoot,
@@ -37,6 +45,5 @@ export const profileOption = (args: readonly string[]) => Effect.gen(function*()
   return { profile, args: index < 0 ? [...args] : [...args.slice(0, index), ...args.slice(index + 2)] };
 });
 
-export const mapBuildLayer = MapBuild.layer(buildProject());
 export const gameFilesLayer = GameFiles.layer({ mapFolder: "Maps/00-Smashcraft", replacedMaps: "smashcraft-replaced-maps" });
 export const sourceErrorsLayer = SourceErrors.layer({ sourceMapDirectory, filePrefix: "smashcraft" });
