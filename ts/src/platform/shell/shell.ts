@@ -19,10 +19,11 @@ import { EDITBOX_ENTER, EditboxIngress } from "../editboxJournal";
 import { localParticipantSlot, traceTick, writeReadyMarker } from "./diagnostics";
 import { callbackMatchTick } from "./frame";
 import { clearAllInputs, clearParticipantInputs, currentComputerMask, currentHumanMask } from "./inputs";
+import { INPUT_PREFIX, journalEpoch, publishMenu, serviceJournalEnd } from "./journal";
 import {
-  CHAT_CLOSED_PREFIX, INPUT_PREFIX, PAUSE_REQUEST_PREFIX, chatClosedEvent, chatEntered, commitPauseAtFrame, journalEpoch, pauseRequestEvent,
-  publishMenu, receiveControlAckEvent, sendPauseCommit, serviceChat, serviceControlAck, serviceJournalEnd, servicePauseRequest,
-} from "./journal";
+  CHAT_CLOSED_PREFIX, PAUSE_REQUEST_PREFIX, chatClosedEvent, chatEntered, commitPauseAtFrame, pauseRequestEvent,
+  receiveControlAckEvent, sendPauseCommit, serviceChat, serviceControlAck, servicePauseRequest,
+} from "./journalPause";
 import { KEY_DOWN, KEY_UP, Key, registerKey, removeKeyEvents, syncKeyEvents } from "./keyEvents";
 import { onDevCommand, onDeveloperRestart, onDeveloperTrace, onKeyDown, onKeyUp, onProbeExport, onProbeStart } from "./keys";
 import { panelActions } from "./menus";
