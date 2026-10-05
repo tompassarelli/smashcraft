@@ -1270,7 +1270,7 @@ mod linux {
             == (b.dev(), b.ino(), b.len(), b.mtime(), b.mtime_nsec(), b.ctime(), b.ctime_nsec())
     }
 
-    fn read_control(path: &Path, clock: ControlClock) -> Result<ControlRead, String> {
+    fn read_control(path: &Path, clock: ControlClock, published_after_ns: u128) -> Result<ControlRead, String> {
         let before_ns = monotonic_ns().map_err(|e| e.to_string())?;
         let current = ControlClock::sample(clock.timestamp_resolution_ns).map_err(|e| e.to_string())?;
         clock.validate(current)?;
@@ -1300,9 +1300,16 @@ mod linux {
         if let Some(command) = control_if_complete(&contents)? {
             let modified = after.modified().map_err(|e| e.to_string())?
                 .duration_since(UNIX_EPOCH).map_err(|e| e.to_string())?.as_nanos();
+            let epoch_ns = clock.publication(modified, read_ns)?;
+            // A fresh game reuses build/epoch/sequence filenames. A complete
+            // control from before this match's READY is absent for this match.
+            if epoch_ns <= published_after_ns {
+                result.discard_before_ns = before_ns.saturating_sub(clock.uncertainty() + current.uncertainty_ns);
+                return Ok(result);
+            }
             result.publication = Some(PublishedControl {
                 command,
-                epoch_ns: clock.publication(modified, read_ns)?,
+                epoch_ns,
                 read_ns,
                 uncertainty_ns: clock.uncertainty() + current.uncertainty_ns,
             });
@@ -1487,6 +1494,41 @@ mod linux {
     }
 
     #[test]
+    fn control_reader_ignores_an_earlier_game_reusing_the_same_identity() {
+        let dir = env::temp_dir().join(format!("control-freshness-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let path = control_path(&dir, "test", 1, 0, 1);
+        let clock = ControlClock::new(&dir).unwrap();
+        let ready_ns = monotonic_ns().unwrap() - 2_000_000_000;
+        let prefix = "function PreloadFiles takes nothing returns nothing\ncall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=test epoch=1 slot=0 sequence=1 state=PAUSE frame=1205\" )\n";
+        fs::write(&path, format!("{prefix}endfunction\n")).unwrap();
+        let old_time = UNIX_EPOCH + Duration::from_nanos((ready_ns as i128 + clock.offset_ns - 1_000_000_000) as u64);
+        fs::File::open(&path).unwrap().set_times(fs::FileTimes::new().set_modified(old_time)).unwrap();
+        let old = read_control(&path, clock, ready_ns).unwrap();
+        assert!(old.publication.is_none(), "the earlier game's PAUSE must not pause frame 1");
+        assert!(old.discard_before_ns >= ready_ns);
+
+        let mut queue = PendingInput::default();
+        let down = timed_button(ready_ns + 500_000_000, true);
+        queue.push(down, false, false).unwrap();
+        let Some(Capture::Event(event, ..)) = queue.pop_for_output(true, false, old.discard_before_ns).unwrap() else {
+            panic!("current match input must still drain at its original timestamp");
+        };
+        assert_eq!(event, down);
+
+        fs::write(&path, prefix).unwrap();
+        let incomplete = read_control(&path, clock, ready_ns).unwrap();
+        assert!(incomplete.publication.is_none());
+        assert_eq!(incomplete.discard_before_ns, 0);
+        OpenOptions::new().append(true).open(&path).unwrap().write_all(b"endfunction\n").unwrap();
+        let current = read_control(&path, clock, ready_ns).unwrap().publication.unwrap();
+        assert!(current.epoch_ns > ready_ns);
+        assert_eq!(current.command, parse_control(&format!("{prefix}endfunction\n")).unwrap());
+        fs::remove_file(path).unwrap();
+        fs::remove_dir(dir).unwrap();
+    }
+
+    #[test]
     fn keyboard_mailbox_preserves_ascii_chunks_and_uses_nonconflicting_vks() {
         let mut codes = BTreeSet::new();
         for signal in 0..MAILBOX_SIGNAL_COUNT {
@@ -1650,12 +1692,12 @@ mod linux {
         queue.push(held, false, false).unwrap();
         let prefix = "function PreloadFiles takes nothing returns nothing\ncall Preload( \"SMASHCRAFT JOURNAL CONTROL v=1 build=test epoch=1 slot=0 sequence=3 state=RESUME frame=91\" )\n";
         fs::write(&path, prefix).unwrap();
-        let incomplete = read_control(&path, clock).unwrap();
+        let incomplete = read_control(&path, clock, 0).unwrap();
         assert!(incomplete.publication.is_none());
         assert!(queue.pop(true, incomplete.discard_before_ns).unwrap().is_none());
         thread::sleep(Duration::from_millis(5));
         OpenOptions::new().append(true).open(&path).unwrap().write_all(b"endfunction\n").unwrap();
-        let original = read_control(&path, clock).unwrap().publication.unwrap();
+        let original = read_control(&path, clock, 0).unwrap().publication.unwrap();
         thread::sleep(Duration::from_millis(20));
         queue.push(timed_button(monotonic_ns().unwrap(), false), false, false).unwrap();
         thread::sleep(Duration::from_millis(20));
@@ -1667,7 +1709,7 @@ mod linux {
         // The already-drained events remain queued while the helper cannot
         // service the completed command.
         thread::sleep(Duration::from_millis(80));
-        let delayed = read_control(&path, clock).unwrap().publication.unwrap();
+        let delayed = read_control(&path, clock, 0).unwrap().publication.unwrap();
         assert_eq!(original.epoch_ns, delayed.epoch_ns);
         assert!(delayed.read_ns - delayed.epoch_ns >= 100_000_000);
         assert!(delayed.uncertainty_ns < 10_000_000);
@@ -3460,9 +3502,9 @@ mod linux {
             }
             let mut start_discard_before_ns = 0;
             if waiting_start {
-                let publication = read_control(&lifecycle_path(&o.out, &o.build, o.epoch, o.slot, "start"), control_clock)?;
+                let publication = read_control(&lifecycle_path(&o.out, &o.build, o.epoch, o.slot, "start"), control_clock, ready_publication_ns)?;
                 start_discard_before_ns = publication.discard_before_ns;
-                if let Some(start) = publication.publication.filter(|p| p.epoch_ns > ready_publication_ns) {
+                if let Some(start) = publication.publication {
                     validate_lifecycle(&start.command, &o, ControlState::Started)?;
                     segment = FrameSegment { epoch_ns: start.epoch_ns, first_frame: next_frame };
                     waiting_start = false;
@@ -3470,8 +3512,8 @@ mod linux {
                 }
             }
             if !waiting_ready && !ended {
-                let publication = read_control(&lifecycle_path(&o.out, &o.build, o.epoch, o.slot, "end"), control_clock)?;
-                if let Some(end) = publication.publication.filter(|p| p.epoch_ns > ready_publication_ns) {
+                let publication = read_control(&lifecycle_path(&o.out, &o.build, o.epoch, o.slot, "end"), control_clock, ready_publication_ns)?;
+                if let Some(end) = publication.publication {
                     validate_lifecycle(&end.command, &o, ControlState::Ended)?;
                     ended = true;
                     stop_capture = true;
@@ -3489,7 +3531,7 @@ mod linux {
             let command_path = control_path(&o.out, &o.build, o.epoch, o.slot, control_sequence);
             let control_read = if waiting_ready || waiting_start || ended {
                 ControlRead { publication: None, discard_before_ns: start_discard_before_ns }
-            } else { read_control(&command_path, control_clock)? };
+            } else { read_control(&command_path, control_clock, ready_publication_ns)? };
             let command = control_read.publication;
             if let Some(publication) = command.as_ref() {
                 let command = &publication.command;
