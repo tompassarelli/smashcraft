@@ -5,7 +5,7 @@ import { Character } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { f32 } from "../../sim/f32";
 import { STOCK_MODELS, type WorldOrigin, hideEffect } from "./effects";
-import { projectedProjectile } from "./projectilePose";
+import { projectedProjectile } from "../presentation/projectilePose";
 
 function projectileModel(character: Character): string {
   return character === Character.demonHunter ? STOCK_MODELS.manaFlareMissile : character === Character.archer ? STOCK_MODELS.arrowMissile : STOCK_MODELS.gyroCopterMissile;

@@ -31,7 +31,8 @@ import {
 import { f32 } from "../../sim/f32";
 import { floorDiv, floorMod } from "../../sim/intMath";
 import { Character } from "../sim/codes";
-import { type WorldOrigin, characterModelScale, hideEffect } from "./effects";
+import { type WorldOrigin, hideEffect } from "./effects";
+import { characterModelScale } from "../presentation/modelScale";
 
 /** A KO body per star-KO impact and character, so any fighter can fly off as itself. */
 const KO_BODY_COUNT = IMPACTS_PER_KIND * 2 * 3;

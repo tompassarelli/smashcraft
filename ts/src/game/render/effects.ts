@@ -28,10 +28,6 @@ export function facingYaw(facing: number): number {
   return facing > 0 ? 0.0 : HALF_TURN;
 }
 
-/** Illidan's model is authored larger than the other fighters'. */
-export function characterModelScale(character: number): number {
-  return character === Character.demonHunter ? f32(0.8) : 1.0;
-}
 
 /** Hidden effects stay allocated, transparent and collapsed until presented again. */
 export function hideEffect(model: effect): void {

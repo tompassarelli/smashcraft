@@ -1,33 +1,160 @@
+import { toInt } from "../../runtime/wurst";
 import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
 import { f32 } from "../../sim/f32";
+import { PARTICIPANT_SLOTS } from "../input/participants";
+import { Phase } from "../match/rules";
+import { resetPoses } from "../match/runtime";
+import { executeNext, testMatch } from "../match/testMatch";
+import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
 import { Character, SpecialAction } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
-import { advanceSpecialEffect, createSpecialEffectState, firstSpecialEffectDifference, projectSpecialEffect, PARRY_FLASH_FRAMES, STATIC_PARRY_FLASH } from "./specialEffectState";
+import { DEMONHUNTER_PARRY_END, DEMONHUNTER_PARRY_START } from "../sim/hits";
+import { fighterAt, isActive } from "../sim/roster";
+import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_WING_STARTUP } from "../sim/specials";
+import { characterModelScale } from "./modelScale";
+import {
+  PARRY_FLASH_FRAMES, STATIC_AURA, STATIC_PARRY_FLASH, STATIC_WING_TRAIL, type SpecialEffectState, copySpecialEffectStateInto, createSpecialEffectState,
+  firstSpecialEffectDifference, projectSpecialEffect,
+} from "./specialEffectState";
 
-test("parry flash advances on executed frames and projects without consuming state", () => {
-  const fighter = createFighter(Character.demonHunter, -240.0, 1);
+const SCALE = characterModelScale(Character.demonHunter);
+const STATIC_KINDS = [STATIC_AURA, STATIC_WING_TRAIL, STATIC_PARRY_FLASH] as const;
+
+test("static special windows and transforms follow the selected fighter", () => {
   const state = createSpecialEffectState();
-  fighter.visuals.parry = 1;
-  advanceSpecialEffect(state, fighter, 3);
-  assertEquals(state.parryAge[3], 0);
-  const saved = { parryAge: state.parryAge.slice(), parrySerial: state.parrySerial.slice() };
-  const flash = projectSpecialEffect(state, fighter, 3, STATIC_PARRY_FLASH);
-  assertTrue(flash.visible);
-  assertEquals(flash.alpha, 255);
-  assertEquals(flash.x, -240.0 + 35.0 * f32(0.8));
-  assertEquals(firstSpecialEffectDifference(saved, state), undefined);
-  for (let age = 1; age <= PARRY_FLASH_FRAMES; age++) advanceSpecialEffect(state, fighter, 3);
-  assertFalse(projectSpecialEffect(state, fighter, 3, STATIC_PARRY_FLASH).visible);
+  const f = createFighter(Character.demonHunter, 123.0, -1);
+  f.motion.z = 42.0;
+  f.special.action = SpecialAction.demonHunterImmolate;
+  f.special.frame = DEMONHUNTER_IMMOLATE_STARTUP - 1;
+  assertFalse(projectSpecialEffect(state, f, 3, STATIC_AURA).visible);
+  f.special.frame++;
+  const aura = projectSpecialEffect(state, f, 3, STATIC_AURA);
+  assertTrue(aura.visible);
+  assertEquals(aura.x, 123.0);
+  assertEquals(aura.z, f32(42.0 + f32(50 * SCALE)));
+  assertEquals(aura.scale, f32(f32(1.4) * SCALE));
+  assertEquals(aura.alpha, 230);
+  assertEquals(aura.red, 85);
+  assertEquals(aura.green, 255);
+  assertEquals(aura.blue, 100);
+  f.special.frame = DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE;
+  assertFalse(projectSpecialEffect(state, f, 3, STATIC_AURA).visible);
+  f.special.action = SpecialAction.demonHunterParryStep;
+  for (let frame = DEMONHUNTER_PARRY_START - 1; frame <= DEMONHUNTER_PARRY_END + 1; frame++) {
+    f.special.frame = frame;
+    assertEquals(projectSpecialEffect(state, f, 3, STATIC_AURA).visible, frame >= DEMONHUNTER_PARRY_START && frame <= DEMONHUNTER_PARRY_END);
+  }
+  f.special.frame = DEMONHUNTER_PARRY_START;
+  const parry = projectSpecialEffect(state, f, 3, STATIC_AURA);
+  assertEquals(parry.scale, f32(f32(0.85) * SCALE));
+  assertEquals(parry.red, 150);
+  assertEquals(parry.blue, 255);
+  f.special.action = SpecialAction.demonHunterWingAscent;
+  f.special.frame = DEMONHUNTER_WING_STARTUP - 1;
+  assertFalse(projectSpecialEffect(state, f, 3, STATIC_WING_TRAIL).visible);
+  f.special.frame++;
+  const wing = projectSpecialEffect(state, f, 3, STATIC_WING_TRAIL);
+  assertTrue(wing.visible);
+  assertEquals(wing.x, 123.0);
+  assertEquals(wing.z, f32(42.0 + f32(8 * SCALE)));
+  assertEquals(wing.scale, f32(0.75 * SCALE));
+  assertEquals(wing.alpha, 180);
+  assertEquals(wing.red, 95);
+  assertEquals(wing.green, 255);
+  assertEquals(wing.blue, 125);
+  f.special.action = SpecialAction.none;
+  assertFalse(projectSpecialEffect(state, f, 3, STATIC_WING_TRAIL).visible);
+  assertFalse(projectSpecialEffect(state, undefined, 1, STATIC_PARRY_FLASH).visible);
 });
 
-test("out fighters clear parry presentation history", () => {
-  const fighter = createFighter(Character.demonHunter, 0.0, 1);
-  const state = createSpecialEffectState();
-  fighter.visuals.parry = 1;
-  advanceSpecialEffect(state, fighter, 0);
-  fighter.status.out = true;
-  advanceSpecialEffect(state, fighter, 0);
-  assertEquals(state.parryAge[0], PARRY_FLASH_FRAMES);
-  assertFalse(projectSpecialEffect(state, fighter, 0, STATIC_PARRY_FLASH).visible);
-  assertEquals(SpecialAction.demonHunterParryStep, 10);
+test("the parry flash ages by executed frames, restores from a snapshot and projects read-only", () => {
+  const match = testMatch(9, Character.demonHunter);
+  const f = fighterAt(match.world, 3);
+  f.visuals.parry = 1;
+  executeNext(match);
+  assertEquals(match.runtime.specials.parryAge[3], 0);
+  const snapshot = createReplaySnapshot();
+  const projected = createReplaySnapshot();
+  const before = createSpecialEffectState();
+  for (let age = 0; age <= PARRY_FLASH_FRAMES; age++) {
+    captureReplaySnapshot(snapshot, match.world, match.game, match.inputs, match.runtime);
+    copySpecialEffectStateInto(before, match.runtime.specials);
+    for (let repeat = 0; repeat <= 3; repeat++) {
+      for (const kind of STATIC_KINDS) projectSpecialEffect(match.runtime.specials, f, 3, kind);
+    }
+    assertEquals(firstSpecialEffectDifference(before, match.runtime.specials), undefined);
+    const flash = projectSpecialEffect(match.runtime.specials, f, 3, STATIC_PARRY_FLASH);
+    const progress = f32(age / 12.0);
+    assertEquals(flash.visible, age < PARRY_FLASH_FRAMES);
+    assertEquals(flash.alpha, toInt(f32(255 * f32(1.0 - progress))));
+    assertEquals(flash.scale, f32(f32(f32(0.8) + f32(progress * f32(0.7))) * SCALE));
+    assertEquals(flash.x, f32(f.motion.x + f32(f32(f.facing * 35.0) * SCALE)));
+    assertEquals(flash.z, f32(f.motion.z + f32(80 * SCALE)));
+    assertEquals(flash.red, 160);
+    assertEquals(flash.green, 255);
+    assertEquals(flash.blue, 210);
+    executeNext(match);
+  }
+  restoreReplaySnapshot(snapshot, match.world, match.game, match.inputs, match.runtime);
+  match.runtime.specials.parryAge[3] = 4;
+  captureReplaySnapshot(projected, match.world, match.game, match.inputs, match.runtime);
+  assertEquals(firstSpecialEffectDifference(snapshot.runtime.specials, projected.runtime.specials), "slot[3].parryAge");
+  restoreReplaySnapshot(projected, match.world, match.game, match.inputs, match.runtime);
+  assertEquals(match.runtime.specials.parryAge[3], 4);
+  assertEquals(match.runtime.specials.parrySerial[3], 1);
+  assertTrue(projectSpecialEffect(match.runtime.specials, fighterAt(match.world, 3), 3, STATIC_PARRY_FLASH).visible);
+});
+
+test("sparse and four-player parry flashes match whether projected or not, and reset", () => {
+  for (const mask of [9, 15]) {
+    const sequential = testMatch(mask, Character.demonHunter);
+    const catchup = testMatch(mask, Character.demonHunter);
+    for (let frame = 1; frame <= 8; frame++) {
+      for (const slot of PARTICIPANT_SLOTS) {
+        if (!isActive(sequential.world, slot) || frame !== slot + 1) continue;
+        fighterAt(sequential.world, slot).visuals.parry++;
+        fighterAt(catchup.world, slot).visuals.parry++;
+      }
+      executeNext(sequential);
+      executeNext(catchup);
+      for (const slot of PARTICIPANT_SLOTS) {
+        if (!isActive(sequential.world, slot)) continue;
+        for (const kind of STATIC_KINDS) {
+          projectSpecialEffect(sequential.runtime.specials, fighterAt(sequential.world, slot), slot, kind);
+          projectSpecialEffect(sequential.runtime.specials, fighterAt(sequential.world, slot), slot, kind);
+        }
+      }
+    }
+    const specials: SpecialEffectState = sequential.runtime.specials;
+    assertEquals(firstSpecialEffectDifference(specials, catchup.runtime.specials), undefined);
+    for (const slot of PARTICIPANT_SLOTS) {
+      if (isActive(sequential.world, slot)) {
+        assertEquals(specials.parryAge[slot], 7 - slot);
+        const flash = projectSpecialEffect(specials, fighterAt(sequential.world, slot), slot, STATIC_PARRY_FLASH);
+        assertTrue(flash.visible);
+        assertEquals(flash.x, f32(f32(-240.0 + slot * 150.0) + f32(35 * SCALE)));
+      } else {
+        assertEquals(specials.parrySerial[slot], 0);
+        assertEquals(specials.parryAge[slot], PARRY_FLASH_FRAMES);
+      }
+    }
+    const last = fighterAt(sequential.world, 3);
+    last.status.out = true;
+    last.status.respawn = 60;
+    executeNext(sequential);
+    assertFalse(projectSpecialEffect(specials, last, 3, STATIC_PARRY_FLASH).visible);
+    assertEquals(specials.parryAge[3], PARRY_FLASH_FRAMES);
+    catchup.game.timeLimitMinutes = 1;
+    catchup.game.remainingFrames = 1;
+    executeNext(catchup);
+    assertEquals(catchup.game.phase, Phase.result);
+    const empty = createSpecialEffectState();
+    assertEquals(firstSpecialEffectDifference(catchup.runtime.specials, empty), undefined);
+    resetPoses(sequential.runtime);
+    assertEquals(firstSpecialEffectDifference(specials, empty), undefined);
+    sequential.game.phase = Phase.characterMenu;
+    specials.parryAge[0] = 1;
+    executeNext(sequential);
+    assertEquals(firstSpecialEffectDifference(specials, empty), undefined);
+  }
 });

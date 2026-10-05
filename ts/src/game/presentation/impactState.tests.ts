@@ -1,38 +1,304 @@
+import { toInt } from "../../runtime/wurst";
 import { assertEquals, assertFalse, assertTrue, test } from "../../runtime/testing";
-import { copyImpactState, createImpactState, emitImpacts, firstImpactDifference, IMPACT_COUNT, projectImpact, advanceImpacts } from "./impactState";
-import { createImpactEvents } from "./impactEvents";
+import { f32 } from "../../sim/f32";
+import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../input/participants";
+import { Phase } from "../match/rules";
+import { resetPoses } from "../match/runtime";
+import { type TestMatch, captureNext, executeCaptured, executeNext, testMatch } from "../match/testMatch";
+import { firstFighterDifference } from "../replay/canonical";
+import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
+import { beginFighterAttack } from "../sim/attacks";
+import { AttackStyle, Character, DownState, GrabAction } from "../sim/codes";
+import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "../sim/knockback";
+import { attackStartupFrames, grabContactFrame } from "../sim/moves";
+import { fighterAt, isActive } from "../sim/roster";
+import { firstFighterPoseDifference } from "./fighterPose";
+import { DodgeCue, ImpactLanding, JumpCue, createImpactEvents } from "./impactEvents";
+import {
+  IMPACTS_PER_KIND, IMPACT_COUNT, IMPACT_DODGE, IMPACT_DUST, IMPACT_GRAB, IMPACT_HIT, IMPACT_KIND_COUNT, IMPACT_SCREEN_KO, IMPACT_SIDE_KO, IMPACT_STAR_KO, IMPACT_THROW, KO_SCREEN_FRAMES, KO_STAR_FLIGHT_FRAMES, KO_STAR_FRAMES,
+  advanceImpacts, clearImpactState, copyImpactStateInto, createImpactState, emitImpacts, firstImpactDifference, impactLifetime, projectImpact, projectKo,
+} from "./impactState";
 
-function emptyEvents() {
-  return createImpactEvents();
+function projectAll(match: TestMatch): void {
+  for (let i = 0; i < IMPACT_COUNT; i++) projectImpact(match.runtime.impacts, i);
 }
-test("impact pool projection is read only and expires on its source lifetime", () => {
-  const state = createImpactState();
-  const events = emptyEvents();
-  events.hit = true;
+
+/** Presses a spot dodge, or releases it. */
+function dodge(match: TestMatch, slot: ParticipantSlot, pressed: boolean): void {
+  const input = match.inputs.inputs[slot];
+  input.groundDodgePressed = pressed;
+  input.groundDodgeDirection = 0;
+  input.shield = pressed;
+}
+
+test("impact projection keeps its formulas and lifetimes and reads only", () => {
+  const pool = createImpactState();
+  const saved = createImpactState();
+  const events = createImpactEvents();
   events.x = 100.0;
   events.z = 20.0;
-  events.landing = 1;
-  emitImpacts(state, events, 0);
-  const saved = copyImpactState(state);
-  const first = projectImpact(state, 0);
-  assertTrue(first.visible);
-  assertEquals(first.alpha, 255);
-  assertEquals(first.x, 100.0);
-  assertEquals(first.z, 70.0);
-  projectImpact(state, 0);
-  assertEquals(firstImpactDifference(saved, state), undefined);
-  for (let age = 0; age < 9; age++) advanceImpacts(state);
-  assertFalse(projectImpact(state, 0).visible);
-  assertEquals(state.ages.length, IMPACT_COUNT);
+  events.hit = true;
+  events.landing = ImpactLanding.tech;
+  emitImpacts(pool, events, 0);
+  events.hit = false;
+  events.landing = ImpactLanding.missedTech;
+  events.dodge = DodgeCue.roll;
+  events.direction = -1;
+  emitImpacts(pool, events, 0);
+  events.hit = true;
+  events.electric = true;
+  events.shieldHit = true;
+  events.jump = JumpCue.double;
+  events.koDirectionX = 1;
+  events.respawn = true;
+  events.grab = true;
+  events.throwRelease = true;
+  events.charge = true;
+  events.ready = true;
+  events.ledgeCatch = true;
+  events.ledgeRecovery = true;
+  events.landing = ImpactLanding.none;
+  events.dodge = DodgeCue.none;
+  emitImpacts(pool, events, 0);
+  copyImpactStateInto(saved, pool);
+  for (let i = 0; i < IMPACT_COUNT; i++) {
+    projectImpact(pool, i);
+    projectImpact(pool, i);
+  }
+  assertEquals(firstImpactDifference(pool, saved), undefined);
+  assertEquals(projectImpact(pool, 0).alpha, 255);
+  assertEquals(projectImpact(pool, 0).x, 100.0);
+  assertEquals(projectImpact(pool, 0).z, 70.0);
+  assertEquals(projectImpact(pool, 16).scale, f32(0.7));
+  assertEquals(projectImpact(pool, 24).x, 85.0);
+  assertEquals(projectImpact(pool, 26).scale, f32(0.75 * f32(0.55)));
+  assertEquals(projectImpact(pool, 32).z, 32.0);
+  for (let age = 1; age <= 32; age++) {
+    advanceImpacts(pool);
+    for (let kind = 0; kind < IMPACT_KIND_COUNT; kind++) {
+      assertEquals(projectImpact(pool, kind * IMPACTS_PER_KIND).visible, kind < IMPACT_STAR_KO && age < impactLifetime(kind), `kind ${kind} at age ${age}`);
+    }
+    if (age === 4) {
+      const dust = projectImpact(pool, 24);
+      const progress = f32(4.0 / 32);
+      assertEquals(dust.x, f32(85.0 - f32(4 * f32(1.3))));
+      assertEquals(dust.z, f32(23.0 + f32(progress * 9)));
+      assertEquals(dust.alpha, toInt(f32(f32(220 * f32(1.0 - progress)) * f32(1.0 - progress))));
+    }
+  }
+  clearImpactState(pool);
+  assertEquals(firstImpactDifference(pool, createImpactState()), undefined);
 });
 
-test("impact snapshots copy pool arrays and preserve ring pointers", () => {
-  const state = createImpactState();
-  const events = emptyEvents();
-  events.dodge = 1;
-  emitImpacts(state, events, 0);
-  const saved = copyImpactState(state);
-  state.nextSlot[3] = 7;
-  assertEquals(firstImpactDifference(saved, state), "nextSlot[3]");
-  assertEquals(saved.nextSlot[3], 2);
+test("a snapshot restores the impact pool and its ring pointers", () => {
+  const match = testMatch(9, Character.archer);
+  const events = createImpactEvents();
+  events.dodge = DodgeCue.spot;
+  events.x = 77.0;
+  emitImpacts(match.runtime.impacts, events, 0);
+  for (let frame = 1; frame <= 5; frame++) advanceImpacts(match.runtime.impacts);
+  const saved = createReplaySnapshot();
+  captureReplaySnapshot(saved, match.world, match.game, match.inputs, match.runtime);
+  const dust = projectImpact(match.runtime.impacts, 24);
+  events.dodge = DodgeCue.roll;
+  events.direction = -1;
+  emitImpacts(match.runtime.impacts, events, 0);
+  assertTrue(firstImpactDifference(saved.runtime.impacts, match.runtime.impacts) !== undefined);
+  restoreReplaySnapshot(saved, match.world, match.game, match.inputs, match.runtime);
+  assertEquals(firstImpactDifference(saved.runtime.impacts, match.runtime.impacts), undefined);
+  const restored = projectImpact(match.runtime.impacts, 24);
+  assertEquals(restored.x, dust.x);
+  assertEquals(restored.z, dust.z);
+  assertEquals(restored.alpha, dust.alpha);
+  assertFalse(projectImpact(match.runtime.impacts, 32).visible);
+  assertEquals(match.runtime.impacts.nextSlot[IMPACT_DUST], 2);
+  assertEquals(match.runtime.impacts.nextSlot[IMPACT_DODGE], 0);
+  assertEquals(match.runtime.impacts.ages[24], 5);
+});
+
+test("sparse and four-player matches emit the same impacts whether projected each frame or not", () => {
+  for (const mask of [9, 15]) {
+    const sequential = testMatch(mask, Character.archer);
+    const catchup = testMatch(mask, Character.archer);
+    for (let frame = 1; frame <= 8; frame++) {
+      for (const slot of PARTICIPANT_SLOTS) {
+        if (!isActive(sequential.world, slot)) continue;
+        dodge(sequential, slot, frame === 1);
+        dodge(catchup, slot, frame === 1);
+      }
+      executeNext(sequential);
+      projectAll(sequential);
+      projectAll(sequential);
+      executeNext(catchup);
+    }
+    assertEquals(firstImpactDifference(sequential.runtime.impacts, catchup.runtime.impacts), undefined);
+    for (let i = 0; i < IMPACT_COUNT; i++) {
+      const a = projectImpact(sequential.runtime.impacts, i);
+      const b = projectImpact(catchup.runtime.impacts, i);
+      assertEquals(a.visible, b.visible);
+      assertEquals(a.x, b.x);
+      assertEquals(a.alpha, b.alpha);
+    }
+    let index = 24;
+    for (const slot of PARTICIPANT_SLOTS) {
+      if (!isActive(sequential.world, slot)) continue;
+      assertEquals(sequential.runtime.impacts.originX[index], -248.0 + slot * 150.0);
+      assertEquals(sequential.runtime.impacts.originX[index + 1], -232.0 + slot * 150.0);
+      assertEquals(sequential.runtime.impacts.ages[index], 7);
+      index += 2;
+    }
+  }
+});
+
+test("pool reuse wraps each ring, and a result, a reset or a menu frame empties it", () => {
+  const pool = createImpactState();
+  const events = createImpactEvents();
+  events.hit = true;
+  for (let i = 0; i <= 9; i++) {
+    events.x = i * 10.0;
+    emitImpacts(pool, events, 0);
+  }
+  assertEquals(pool.nextSlot[IMPACT_HIT], 2);
+  assertEquals(pool.originX[0], 80.0);
+  assertEquals(pool.originX[1], 90.0);
+  assertEquals(pool.originX[2], 20.0);
+  const match = testMatch(15, Character.archer);
+  const empty = createImpactState();
+  copyImpactStateInto(match.runtime.impacts, pool);
+  match.game.timeLimitMinutes = 1;
+  match.game.remainingFrames = 1;
+  executeNext(match);
+  assertEquals(match.game.phase, Phase.result);
+  assertEquals(firstImpactDifference(match.runtime.impacts, empty), undefined);
+  copyImpactStateInto(match.runtime.impacts, pool);
+  resetPoses(match.runtime);
+  assertEquals(firstImpactDifference(match.runtime.impacts, empty), undefined);
+  copyImpactStateInto(match.runtime.impacts, pool);
+  match.game.phase = Phase.characterMenu;
+  executeNext(match);
+  assertEquals(firstImpactDifference(match.runtime.impacts, empty), undefined);
+});
+
+test("replaying from a snapshot restores accepted grab and throw cues, and projection consumes none", () => {
+  const match = testMatch(3, Character.archer);
+  const owner = fighterAt(match.world, 0);
+  const target = fighterAt(match.world, 1);
+  owner.motion.x = 0.0;
+  owner.motion.surface = 0;
+  target.motion.x = 90.0;
+  target.motion.surface = 0;
+  beginFighterAttack(match.world, 0, AttackStyle.grab, false);
+  owner.attack.frame = attackStartupFrames(AttackStyle.grab) - 1;
+  const before = createReplaySnapshot();
+  const accepted = createReplaySnapshot();
+  const replayed = createReplaySnapshot();
+  captureReplaySnapshot(before, match.world, match.game, match.inputs, match.runtime);
+  const grabAndThrow = () => {
+    executeNext(match);
+    match.inputs.inputs[0].grabThrowX = 1;
+    executeNext(match);
+    match.inputs.inputs[0].grabThrowX = 0;
+    for (let tick = 2; tick <= grabContactFrame(GrabAction.throwForward); tick++) executeNext(match);
+  };
+  grabAndThrow();
+  assertEquals(target.visuals.grab, 1);
+  assertEquals(target.visuals.throw, 1);
+  assertEquals(match.runtime.impacts.nextSlot[IMPACT_GRAB], 1);
+  assertEquals(match.runtime.impacts.nextSlot[IMPACT_THROW], 1);
+  captureReplaySnapshot(accepted, match.world, match.game, match.inputs, match.runtime);
+  // Paused presentation projects repeatedly without consuming or aging a cue.
+  for (let tick = 1; tick <= 20; tick++) projectAll(match);
+  assertEquals(firstImpactDifference(accepted.runtime.impacts, match.runtime.impacts), undefined);
+  restoreReplaySnapshot(before, match.world, match.game, match.inputs, match.runtime);
+  grabAndThrow();
+  captureReplaySnapshot(replayed, match.world, match.game, match.inputs, match.runtime);
+  for (const slot of [0, 1] as const) {
+    assertEquals(firstFighterDifference(fighterAt(accepted.world, slot), fighterAt(replayed.world, slot), 3, 3), undefined);
+    assertEquals(firstFighterPoseDifference(accepted.runtime.poses[slot], replayed.runtime.poses[slot], accepted.world, replayed.world), undefined);
+  }
+  assertEquals(firstImpactDifference(accepted.runtime.impacts, replayed.runtime.impacts), undefined);
+});
+
+test("top KO cinematics have distinct flight, sparkle and drop", () => {
+  const events = createImpactEvents();
+  events.koDirectionZ = 1;
+  events.x = 200.0;
+  events.z = 770.0;
+  events.facing = -1;
+  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+    events.character = character;
+    const pool = createImpactState();
+    emitImpacts(pool, events, character);
+    emitImpacts(pool, events, character + 1);
+    const star = IMPACT_STAR_KO * IMPACTS_PER_KIND;
+    const screen = IMPACT_SCREEN_KO * IMPACTS_PER_KIND;
+    assertEquals(pool.nextSlot[IMPACT_SIDE_KO], 0);
+    assertEquals(projectKo(pool, star).character, character);
+    assertEquals(projectKo(pool, screen).character, character);
+    assertEquals(projectKo(pool, star).x, 90.0);
+    assertEquals(projectKo(pool, star).z, 480.0);
+    const saved = createImpactState();
+    copyImpactStateInto(saved, pool);
+    for (let tick = 1; tick <= 20; tick++) {
+      projectKo(pool, star);
+      projectKo(pool, screen);
+    }
+    assertEquals(firstImpactDifference(pool, saved), undefined);
+    for (let age = 1; age <= KO_STAR_FRAMES; age++) {
+      advanceImpacts(pool);
+      if (age === 24) {
+        const a = projectKo(pool, star);
+        const b = projectKo(pool, screen);
+        assertTrue(a.scale < 1.0 && a.y > 0.0 && a.pitch !== 0.0 && a.roll !== 0.0);
+        assertTrue(b.scale > 1.0 && b.y < 0.0 && b.pitch !== 0.0);
+      }
+      if (age === 75) assertTrue(projectKo(pool, screen).z < 200.0);
+      if (age === KO_STAR_FLIGHT_FRAMES) {
+        assertFalse(projectKo(pool, star).visible);
+        assertTrue(projectImpact(pool, star).visible);
+      }
+      if (age === KO_SCREEN_FRAMES) assertFalse(projectKo(pool, screen).visible);
+    }
+    assertFalse(projectImpact(pool, star).visible);
+    copyImpactStateInto(pool, saved);
+    assertEquals(firstImpactDifference(pool, saved), undefined);
+    clearImpactState(pool);
+    assertFalse(projectKo(pool, star).visible);
+    assertFalse(projectKo(pool, screen).visible);
+    assertFalse(projectImpact(pool, star).visible);
+  }
+});
+
+test("replaying a confirmed top KO restores one body and the same stocks", () => {
+  const match = testMatch(3, Character.archer);
+  const fighter = fighterAt(match.world, 0);
+  fighter.motion.z = 761.0;
+  fighter.motion.grounded = false;
+  fighter.launch.knockbackZ = f32(TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 10.0);
+  fighter.down.state = DownState.tumble;
+  fighter.down.frame = 1;
+  const before = createReplaySnapshot();
+  const after = createReplaySnapshot();
+  const replayed = createReplaySnapshot();
+  const koBodies = () => (match.runtime.impacts.nextSlot[IMPACT_STAR_KO] ?? 0) + (match.runtime.impacts.nextSlot[IMPACT_SCREEN_KO] ?? 0);
+  captureReplaySnapshot(before, match.world, match.game, match.inputs, match.runtime);
+  executeNext(match);
+  assertTrue(fighter.status.out);
+  assertEquals(koBodies(), 1);
+  for (let frame = 1; frame <= 8; frame++) executeNext(match);
+  assertEquals(koBodies(), 1);
+  captureReplaySnapshot(after, match.world, match.game, match.inputs, match.runtime);
+  restoreReplaySnapshot(before, match.world, match.game, match.inputs, match.runtime);
+  for (let frame = 0; frame <= 8; frame++) {
+    captureNext(match);
+    executeCaptured(match);
+  }
+  captureReplaySnapshot(replayed, match.world, match.game, match.inputs, match.runtime);
+  assertEquals(firstFighterDifference(fighterAt(after.world, 0), fighterAt(replayed.world, 0), 3, 3), undefined);
+  assertEquals(after.match.remainingFrames, replayed.match.remainingFrames);
+  assertEquals(firstImpactDifference(after.runtime.impacts, replayed.runtime.impacts), undefined);
+  assertEquals(firstFighterPoseDifference(after.runtime.poses[0], replayed.runtime.poses[0], after.world, replayed.world), undefined);
+  restoreReplaySnapshot(before, match.world, match.game, match.inputs, match.runtime);
+  assertFalse(projectKo(match.runtime.impacts, IMPACT_SCREEN_KO * IMPACTS_PER_KIND).visible);
+  assertFalse(projectKo(match.runtime.impacts, IMPACT_STAR_KO * IMPACTS_PER_KIND).visible);
 });

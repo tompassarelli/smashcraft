@@ -19,7 +19,8 @@ import { f32 } from "../../sim/f32";
 import { Character, SpecialAction } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, DEMONHUNTER_MANA_BURN_STARTUP } from "../sim/specials";
-import { STOCK_MODELS, type WorldOrigin, characterModelScale, facingYaw, hideEffect } from "./effects";
+import { STOCK_MODELS, type WorldOrigin, facingYaw, hideEffect } from "./effects";
+import { characterModelScale } from "../presentation/modelScale";
 import { SummonPresentation } from "./summonPresentation";
 
 interface SpecialSlot {
