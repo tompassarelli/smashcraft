@@ -1,13 +1,13 @@
-// Development hot reload. The host client probes CustomMapData for the next
-// manifest written by scripts/hot.ts and announces it in a synchronized
+// Development hot reload. The host client polls the manifest scripts/hot.ts
+// writes into CustomMapData and announces each newer version in a synchronized
 // message; every client then reads its own copy, checks the checksum, loads the
 // bundle and installs it on that same frame, so simulations stay in lockstep.
-// Match state is untouched: it lives in globals the new code reads.
-import { ackFile, chunkFile, manifestFile } from "../runtime/hotFiles";
+// Match state is untouched: it lives in globals the new code reads. The
+// reloader's own handlers are reinstalled too, so it can reload itself.
+import { MANIFEST_FILE, ackFile, chunkFile, parseManifest } from "../runtime/hotFiles";
 import { checksum, decodeBase64 } from "../runtime/payload";
 import { on, trampoline } from "./dispatch";
 import { readChunks } from "./fileio";
-
 
 const PREFIX = "SC_HR";
 const POLL_SECONDS = 0.25;
@@ -45,13 +45,20 @@ function bytesToText(bytes: readonly number[]): string {
   return parts.join("");
 }
 
+function publishedVersion(): number {
+  const text = readChunks(MANIFEST_FILE)[0];
+  return (text === undefined ? undefined : parseManifest(text))?.version ?? 0;
+}
+
 function poll(): void {
   const state = hot();
   if (state.localSlot !== state.hostSlot) return;
-  const manifest = readChunks(manifestFile(state.announced + 1))[0];
-  if (manifest === undefined) return;
-  state.announced++;
-  BlzSendSyncData(PREFIX, manifest);
+  const text = readChunks(MANIFEST_FILE)[0];
+  if (text === undefined) return;
+  const manifest = parseManifest(text);
+  if (manifest === undefined || manifest.version <= state.announced) return;
+  state.announced = manifest.version;
+  BlzSendSyncData(PREFIX, text);
 }
 
 function report(text: string): void {
@@ -60,10 +67,9 @@ function report(text: string): void {
 
 function apply(): void {
   const state = hot();
-  const [versionText, filesText, expected] = BlzGetTriggerSyncData().split(" ");
-  const version = Number(versionText);
-  const files = Number(filesText);
-  if (!(version > state.applied) || !(files > 0) || expected === undefined) return;
+  const manifest = parseManifest(BlzGetTriggerSyncData());
+  if (manifest === undefined || manifest.version <= state.applied) return;
+  const { version, files, checksum: expected } = manifest;
   const encoded: string[] = [];
   for (let index = 0; index < files; index++) encoded.push(...readChunks(chunkFile(version, index)));
   const bytes = decodeBase64(encoded.join(""));
@@ -91,11 +97,17 @@ function apply(): void {
   report(`hot reload ${version} applied`);
 }
 
-/** Starts probing for new bundles; the host slot announces them. */
-export function startHotReload(hostSlot: number, localSlot: number): void {
-  globalThis.__smashcraftHot = { announced: 0, applied: 0, hostSlot, localSlot };
+/** Registers the reloader's handlers; a reloaded bundle calls this again. */
+export function installHotReload(): void {
   on("hotReload.poll", poll);
   on("hotReload.apply", apply);
+}
+
+/** Starts polling for new bundles; the host slot announces them. */
+export function startHotReload(hostSlot: number, localSlot: number): void {
+  // A manifest left from an earlier session is the baseline, not a reload.
+  globalThis.__smashcraftHot = { announced: publishedVersion(), applied: 0, hostSlot, localSlot };
+  installHotReload();
   const sync = CreateTrigger();
   for (let slot = 0; slot < 4; slot++) BlzTriggerRegisterPlayerSyncEvent(sync, Player(slot), PREFIX, false);
   TriggerAddAction(sync, trampoline("hotReload.apply"));

@@ -2,7 +2,7 @@
 // whose state survives reloads while the reported value comes from whichever
 // code is installed. Started once by the map's main(); reloads call install().
 import { on, trampoline } from "./dispatch";
-import { startHotReload } from "./hotReload";
+import { installHotReload, startHotReload } from "./hotReload";
 
 interface DemoState {
   ticks: number;
@@ -28,6 +28,7 @@ function tick(): void {
 
 export function install(this: void): void {
   on("demo.tick", tick);
+  installHotReload();
 }
 
 export function start(this: void): void {

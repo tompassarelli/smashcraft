@@ -252,26 +252,10 @@ sed -i 's/^function main()/function baseMain()/; s/^function config()/function b
 sed -i 's/^RunInitializationTriggers()/-- Suppressed default melee initialization for the platform fighter./' "$map_script"
 sed -i 's/^function main()/function wurstMain()/; s/^function config()/function wurstConfig()/' "$compiled_script"
 cat "$compiled_script" >> "$map_script"
-# Optional TypeScriptToLua bundle (smashcraft:ts). A function wrapper keeps the
-# bundle's trailing return inside it; main() starts the module after Wurst.
-if [[ -n ${WC3_TS_BUNDLE:-} ]]; then
-    [[ -s "$WC3_TS_BUNDLE" ]] || { printf 'WC3_TS_BUNDLE is not a nonempty file: %s\n' "$WC3_TS_BUNDLE" >&2; exit 2; }
-    { printf '\nsmashcraftTs = (function(...)\n'; cat "$WC3_TS_BUNDLE"; printf '\nend)()\n'; } >> "$map_script"
-fi
-cat >> "$map_script" <<'LUA'
-
-function main()
-    baseMain()
-    wurstMain()
-    if smashcraftTs ~= nil then
-        smashcraftTs.start()
-    end
-end
-
-function config()
-    wurstConfig()
-end
-LUA
+# smashcraft:ts/scripts/map.ts appends the optional TypeScriptToLua bundle and
+# main(); the fast TypeScript rebuild reuses the base script kept with the map.
+cp "$map_script" "$work_dir/base.lua"
+nix shell nixpkgs#bun --command bun "$project_dir/ts/scripts/map.ts" compose "$work_dir/base.lua" "$map_script" "${WC3_TS_BUNDLE:-}"
 
 nix shell nixpkgs#lua5_3 --command luac -p "$map_script"
 output_next="$build_output.next"
@@ -304,6 +288,7 @@ done
 "$packager" extract "$output_next" "$work_dir/verified.lua"
 cmp "$map_script" "$work_dir/verified.lua"
 mv "$output_next" "$build_output"
+cp "$work_dir/base.lua" "$build_output.base.lua"
 
 if [[ ${WC3_DEPLOY_MAP:-0} == 1 ]]; then
     mkdir -p "$maps_dir"
