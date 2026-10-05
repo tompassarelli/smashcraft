@@ -24,7 +24,7 @@ export const CUSTOM_GAMES = { x: 1440, y: 1180, width: 340, height: 60 };
 export const CREATE_TITLE = { x: 150, y: 160, width: 300, height: 50 };
 export const MAP_TITLE = { x: 1950, y: 150, width: 600, height: 60 };
 // The browser also has a PLAYERS column; only the lobby has this player count.
-export const LOBBY = { x: 1480, y: 185, width: 220, height: 50 };
+export const LOBBY = { x: 1400, y: 185, width: 300, height: 50 };
 const LOBBY_READY = /PLAYERS\s*:?\s*\d+\s*\/\s*4/i;
 
 // Controls, as frame positions.
