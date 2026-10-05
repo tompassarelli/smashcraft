@@ -24,7 +24,7 @@ import {
   RESULTS,
   START,
   freshMatch,
-  startQuickMatch,
+  sendQuickMatchCommand,
 } from "../scripts/wisp/commands/fresh";
 import { Clients, type Client } from "wisp/scripts/wisp/clients";
 import { dataDirectory, GameFiles, type StoredFile } from "wisp/scripts/wisp/gameFiles";
@@ -207,7 +207,7 @@ test.each([false, true])("fresh-match flow drives two fake clients and waits on 
   const services = Layer.merge(Layer.succeed(Clients, fakeClients), Layer.succeed(GameFiles, gameFiles));
   const program = Effect.gen(function*() {
     yield* freshMatch("/maps/test.w3x", fromGame);
-    yield* startQuickMatch;
+    yield* sendQuickMatchCommand;
   }).pipe(Effect.provide(services));
   const run = Effect.gen(function*() {
     const fiber = yield* Effect.forkChild(program);
