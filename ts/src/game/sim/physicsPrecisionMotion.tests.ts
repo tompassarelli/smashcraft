@@ -3,7 +3,7 @@ import { Character, ContactKind } from "./codes";
 import { beginDamageContacts, finishDamageContacts, queueDamageContact } from "./contacts";
 import { createFighter } from "./fighter";
 import { controls, hitEffect, soloWorld, testWorld } from "./testWorld";
-import { advance } from "./step";
+import { advanceFighter } from "./step";
 import { setMeleeKnockback, setMeleePosition, setMeleeRecoil, setMeleeVerticalVelocity, totalVelocityX } from "./motion";
 import { melee } from "./tuning";
 
@@ -26,7 +26,7 @@ test("#9 RECORDED_FALL_TEN_FRAMES_BINARY32_EXACT_PASS", () => {
     setMeleeVerticalVelocity(f, 0.0);
     const world = soloWorld(f);
     for (const position of positions) {
-      advance(world, 0, 0, controls(), 0.0);
+      advanceFighter(world, 0, 0, controls(), 0.0);
       assertEquals(f.motion.meleeZ.original, position);
       assertEquals(f.motion.z, melee(position));
       assertEquals(f.motion.grounded, false);
@@ -78,7 +78,7 @@ test("#9 AIR_DECREMENT_BINARY32_EXACT_PASS", () => {
       } else {
         setMeleeKnockback(f, x, z);
       }
-      advance(soloWorld(f), 0, 0, controls(), 0.0);
+      advanceFighter(soloWorld(f), 0, 0, controls(), 0.0);
       assertEquals(recoil ? f.shield.recoilX : f.launch.knockbackX, melee(afterX));
       assertEquals(recoil ? f.shield.recoilZ : f.launch.knockbackZ, melee(afterZ));
       assertEquals(f.motion.x, melee(afterPosition), `AIR_POSITION_${recoil ? "RECOIL" : "LAUNCH"}_${index}`);
@@ -119,7 +119,7 @@ test("#9 AIR_CUTOFF_BINARY32_EXACT_PASS", () => {
     } else {
       setMeleeRecoil(f, x, z);
     }
-    advance(soloWorld(f), 0, 0, controls(), 0.0);
+    advanceFighter(soloWorld(f), 0, 0, controls(), 0.0);
     const isLaunch = decay === 0.050999999046325684;
     assertEquals(isLaunch ? f.launch.knockbackX : f.shield.recoilX, melee(afterX), `AIR_CUTOFF_${index}_X`);
     assertEquals(isLaunch ? f.launch.knockbackZ : f.shield.recoilZ, melee(afterZ), `AIR_CUTOFF_${index}_Z`);
@@ -143,8 +143,8 @@ test("#9 AIR_CUTOFF_BINARY32_EXACT_PASS", () => {
       setMeleeKnockback(f, launchX, launchZ);
     }
     setMeleeRecoil(fighter, recoilX, recoilZ);
-    advance(soloWorld(fighter), 0, 0, controls(), 0.0);
-    advance(soloWorld(control), 0, 0, controls(), 0.0);
+    advanceFighter(soloWorld(fighter), 0, 0, controls(), 0.0);
+    advanceFighter(soloWorld(control), 0, 0, controls(), 0.0);
     assertEquals(fighter.launch.knockbackZ, melee(afterLaunchZ), `AIR_RECOIL_CUTOFF_LAUNCH_${index}_Z`);
     assertEquals(fighter.launch.knockbackX, control.launch.knockbackX, `AIR_RECOIL_CUTOFF_LAUNCH_${index}_X`);
     assertEquals(fighter.shield.recoilX, melee(afterRecoilX), `AIR_RECOIL_CUTOFF_STATE_${index}_X`);
@@ -188,7 +188,7 @@ test("#9 GROUND_MOTION_BINARY32_EXACT_PASS", () => {
     f.launch.knockbackX = melee(launch);
     f.shield.pushbackX = melee(pushback);
     f.shield.recoilX = melee(recoil);
-    advance(soloWorld(f), 0, 0, controls(), 0.0);
+    advanceFighter(soloWorld(f), 0, 0, controls(), 0.0);
     assertEquals(f.motion.x, melee(afterPosition), `GROUND_MOTION_${index}_${kind}_POSITION`);
     assertEquals(f.launch.knockbackX, melee(afterLaunch), `GROUND_MOTION_${index}_${kind}_LAUNCH`);
     assertEquals(f.shield.pushbackX, melee(afterPushback), `GROUND_MOTION_${index}_${kind}_PUSHBACK`);

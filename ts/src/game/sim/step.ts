@@ -77,7 +77,7 @@ const LATE_DASH_GUARD_GRAB_WINDOW = 3;
 const GUARD_BITS = 768;
 const STEERING_BITS = 16399;
 
-export function advance(world: Roster, slot: number, stage: number, input: Readonly<Controls>, respawnX: number): void {
+export function advanceFighter(world: Roster, slot: number, stage: number, input: Readonly<Controls>, respawnX: number): void {
   advanceFighterMotion(world, slot, stage, input, respawnX);
   regenerateShield(fighterAt(world, slot));
 }

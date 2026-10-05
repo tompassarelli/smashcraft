@@ -19,7 +19,7 @@ import { attackStartupFrames } from "./moves";
 import { updateProjectiles } from "./projectiles";
 import type { Roster } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
-import { advance } from "./step";
+import { advanceFighter } from "./step";
 import { advanceSolo, controls, testBeginAttacks, testWorld } from "./testWorld";
 import { AUTHORED_PHYSICS, type FighterPhysics, melee } from "./tuning";
 
@@ -175,16 +175,16 @@ test("hitlag freezes down damage, then hitstun returns it to a timed down wait",
   assertEquals(target.down.state, DownState.damage);
   const damageFrame = target.down.frame;
   for (let tick = 1; tick <= 3; tick++) {
-    advance(world, 1, 0, input, -240.0);
+    advanceFighter(world, 1, 0, input, -240.0);
     assertEquals(target.down.frame, damageFrame);
     assertTrue(target.motion.grounded);
   }
-  while (target.down.state === DownState.damage) advance(world, 1, 0, input, -240.0);
+  while (target.down.state === DownState.damage) advanceFighter(world, 1, 0, input, -240.0);
   assertEquals(target.down.state, DownState.wait);
   assertEquals(target.down.waitRemaining, target.launch.hitstun);
   assertGreaterThan(target.down.waitRemaining, 0);
   const remaining = target.down.waitRemaining;
-  for (let tick = 1; tick <= remaining; tick++) advance(world, 1, 0, input, -240.0);
+  for (let tick = 1; tick <= remaining; tick++) advanceFighter(world, 1, 0, input, -240.0);
   assertEquals(target.down.state, DownState.stand);
 });
 
@@ -210,13 +210,13 @@ test("down damage's completion checks get-up input without waiting another tick"
     const input = controls();
     target.status.damage = 80.0;
     weakRecoveryHit(world, 1, attacker, target);
-    while (target.launch.hitlag > 1) advance(world, 1, 0, input, -240.0);
+    while (target.launch.hitlag > 1) advanceFighter(world, 1, 0, input, -240.0);
     for (let tick = 1; tick <= DOWN_DAMAGE_FRAMES - 1; tick++) {
-      advance(world, 1, 0, input, -240.0);
+      advanceFighter(world, 1, 0, input, -240.0);
       assertEquals(target.down.state, DownState.damage);
     }
     input.getupAttackPressed = true;
-    advance(world, 1, 0, input, -240.0);
+    advanceFighter(world, 1, 0, input, -240.0);
     assertEquals(target.down.state, DownState.attack);
   }
 });

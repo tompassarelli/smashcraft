@@ -27,7 +27,7 @@ import { projectileCount, updateProjectiles } from "./projectiles";
 import type { Controls, Roster } from "./roster";
 import { digitalShieldDamage, digitalShieldPushback, digitalShieldRecoil, digitalShieldstunDuration, digitalShieldstunFrames } from "./shield";
 import { DEMONHUNTER_IMMOLATE_DURATION, DEMONHUNTER_IMMOLATE_STARTUP } from "./specials";
-import { advance } from "./step";
+import { advanceFighter } from "./step";
 import { respawnFighter } from "./stocks";
 import { advanceFreezeTraps } from "./summons";
 import { advanceSolo, controls, hitEffect, soloWorld, testBeginAttacks, testGrabFrame, testWorld, withPhysics } from "./testWorld";
@@ -58,12 +58,12 @@ test("retail combat stacking starts on the tenth moving frame and freezes in hit
     assertEquals(target.launch.knockbackAge, 0);
     assertNear(target.launch.knockbackX, f32(17.9999995977), f32(0.000001));
     for (let frozenFrame = 1; frozenFrame <= 3; frozenFrame++) {
-      advance(world, 1, 0, input, 0.0);
+      advanceFighter(world, 1, 0, input, 0.0);
       assertEquals(target.launch.knockbackAge, 0);
       assertEquals(target.motion.x, -100.0);
     }
     for (let movingFrame = 1; movingFrame <= age; movingFrame++) {
-      advance(world, 1, 0, input, 0.0);
+      advanceFighter(world, 1, 0, input, 0.0);
       assertEquals(target.launch.knockbackAge, movingFrame);
     }
     const residual = target.launch.knockbackX;
@@ -117,12 +117,12 @@ test("retail combat ground tangent uses the new contact, then traction rather th
     assertTrue(target.motion.grounded);
     assertEquals(target.launch.knockbackX, f32(facing * 30.0));
     assertNear(target.launch.groundKnockbackX, facing * f32(3.5999999195), f32(0.000001));
-    for (let frame = 1; frame <= 4; frame++) advance(world, 1, 0, input, 0.0);
+    for (let frame = 1; frame <= 4; frame++) advanceFighter(world, 1, 0, input, 0.0);
     assertNear(target.motion.x, facing * f32(3.1199999195), f32(0.000001));
     assertNear(target.launch.knockbackX, facing * f32(3.1199999195), f32(0.000001));
     assertEquals(target.launch.knockbackZ, 0.0);
     assertEquals(target.launch.damageLevel, 0);
-    for (let frame = 1; frame <= 7; frame++) advance(world, 1, 0, input, 0.0);
+    for (let frame = 1; frame <= 7; frame++) advanceFighter(world, 1, 0, input, 0.0);
     assertEquals(target.launch.knockbackX, 0.0);
     assertEquals(target.launch.groundKnockbackX, 0.0);
   }
@@ -257,13 +257,13 @@ test("canonical motion imports world edits and clears on respawn", () => {
   const world = soloWorld(f);
   const input = controls();
   prepareCanonicalFall(f);
-  advance(world, 0, 0, input, 0.0);
+  advanceFighter(world, 0, 0, input, 0.0);
   f.motion.x = -300.0;
   f.motion.z = 60.0;
   f.motion.vx = 6.0;
   f.motion.vz = 0.0;
   withPhysics(f, { airFriction: 0.0 });
-  advance(world, 0, 0, input, 0.0);
+  advanceFighter(world, 0, 0, input, 0.0);
   assertEquals(f.motion.meleeX.original, -49.0);
   assertEquals(f.motion.meleeZ.original, 9.829999923706055);
   assertEquals(f.motion.meleeVelocityZ.original, -0.17000000178813934);
@@ -475,19 +475,19 @@ test("fast fall persists after release and aerial startup but clears on landing 
     f.motion.grounded = false;
     f.motion.z = 300.0;
     f.motion.vz = -1.0;
-    advance(world, 0, 0, input, 0.0);
+    advanceFighter(world, 0, 0, input, 0.0);
     assertTrue(f.motion.fastFalling);
     input.down = false;
     input.direction = 1;
-    advance(world, 0, 0, input, 0.0);
+    advanceFighter(world, 0, 0, input, 0.0);
     const fastFallSpeed = character === Character.archer ? -f32(20.40000057220459) : -21.0;
     assertNear(f.motion.vz, fastFallSpeed, f32(0.000001));
     testBeginAttacks(world, AttackStyle.neutralAir, undefined);
-    advance(world, 0, 0, input, 0.0);
+    advanceFighter(world, 0, 0, input, 0.0);
     assertTrue(f.motion.fastFalling);
     assertNear(f.motion.vz, fastFallSpeed, f32(0.000001));
     f.motion.z = 1.0;
-    advance(world, 0, 0, input, 0.0);
+    advanceFighter(world, 0, 0, input, 0.0);
     assertTrue(f.motion.grounded);
     assertFalse(f.motion.fastFalling);
     f.motion.grounded = false;
@@ -551,7 +551,7 @@ test("the combat ground contact threshold keeps low downward hits on the floor",
         assertEquals(target.launch.knockbackZ, 0.0);
         input.verticalDirection = 1;
         for (let frame = 1; frame <= 3; frame++) {
-          advance(world, 1, 0, input, 0.0);
+          advanceFighter(world, 1, 0, input, 0.0);
           assertEquals(target.motion.x, 100.0);
           assertEquals(target.motion.z, 0.0);
           assertEquals(target.launch.hitstun, 31);
@@ -561,10 +561,10 @@ test("the combat ground contact threshold keeps low downward hits on the floor",
         assertEquals(target.launch.diSerial, 0);
         input.verticalDirection = 0;
         for (let frame = 1; frame <= 30; frame++) {
-          advance(world, 1, 0, input, 0.0);
+          advanceFighter(world, 1, 0, input, 0.0);
           assertFalse(canAttack(target));
         }
-        advance(world, 1, 0, input, 0.0);
+        advanceFighter(world, 1, 0, input, 0.0);
         assertTrue(canAttack(target));
         assertEquals(target.landing.lag, 0);
       } else {
@@ -634,8 +634,8 @@ function recordedShieldDefenderPosition(frame: number): number {
 
 /** One frame for slots 0 and 1, in slot order. */
 function advanceBoth(world: Roster, first: Readonly<Controls>, second: Readonly<Controls>): void {
-  advance(world, 0, 0, first, 0.0);
-  advance(world, 1, 0, second, 0.0);
+  advanceFighter(world, 0, 0, first, 0.0);
+  advanceFighter(world, 1, 0, second, 0.0);
 }
 
 test("a recorded NTSC digital shield contact matches paired pushback and grounded recoil", () => {
@@ -858,10 +858,10 @@ test("a combat shield break uses the character's launch attribute after the cont
     const launch = character === Character.demonHunter ? 24.0 : f32(19.7999997139);
     assertNear(target.motion.vz, launch, f32(0.0001));
     for (let frame = 1; frame <= 6; frame++) {
-      advance(world, 1, 0, controls(), 0.0);
+      advanceFighter(world, 1, 0, controls(), 0.0);
       assertEquals(target.motion.z, 0.0);
     }
-    advance(world, 1, 0, controls(), 0.0);
+    advanceFighter(world, 1, 0, controls(), 0.0);
     assertNear(target.motion.z, launch - authoredPhysics(character).gravity, f32(0.0001));
   }
 });
@@ -1103,7 +1103,7 @@ test("crouch and charge are sampled before a hit interrupts the action", () => {
     const attacker = createFighter(Character.archer, 0.0, 1);
     const victim = createFighter(Character.rifleman, 100.0, -1);
     const world = testWorld(attacker, victim);
-    advance(world, 1, 0, controls({ down: context === 1 }), 0.0);
+    advanceFighter(world, 1, 0, controls({ down: context === 1 }), 0.0);
     assertEquals(victim.motion.crouching, context === 1);
     if (context === 2) {
       testBeginAttacks(testWorld(victim, attacker), AttackStyle.upSmash, undefined, true, false);
@@ -1284,20 +1284,20 @@ test("an electric contact preserves the attacker's and victim's pause boundaries
         assertEquals(owner.launch.hitlag, direct ? 5 : 0);
         assertEquals(canAttack(owner), !direct);
         for (let frame = 1; frame <= pause - 1; frame++) {
-          advance(world, 1, 0, input, 0.0);
+          advanceFighter(world, 1, 0, input, 0.0);
           assertEquals(target.launch.hitlag, pause - frame);
           assertEquals(target.launch.hitstun, stun);
           assertEquals(target.motion.x, 100.0);
           assertFalse(canAttack(target));
         }
         for (let frame = 1; frame <= stun - 1; frame++) {
-          advance(world, 1, 0, input, 0.0);
+          advanceFighter(world, 1, 0, input, 0.0);
           assertFalse(canAttack(target));
         }
-        advance(world, 1, 0, input, 0.0);
+        advanceFighter(world, 1, 0, input, 0.0);
         assertTrue(canAttack(target));
         for (let frame = 1; frame <= 5; frame++) {
-          advance(world, 0, 0, input, 0.0);
+          advanceFighter(world, 0, 0, input, 0.0);
           assertEquals(canAttack(owner), !direct || frame === 5);
         }
       }
@@ -1320,10 +1320,10 @@ test("an electric contact on a shield uses the ordinary freeze before shieldstun
     assertEquals(target.shield.stun, 5);
     assertEquals(owner.launch.hitlag, direct ? 5 : 0);
     for (let frame = 1; frame <= 4; frame++) {
-      advance(world, 1, 0, input, 0.0);
+      advanceFighter(world, 1, 0, input, 0.0);
       assertEquals(target.shield.stun, 5);
     }
-    advance(world, 1, 0, input, 0.0);
+    advanceFighter(world, 1, 0, input, 0.0);
     assertEquals(target.shield.stun, 4);
   }
 });
@@ -1603,18 +1603,18 @@ test("a forward roll turns on frame 20 while keeping its entry pose and travel",
       const world = soloWorld(f);
       const input = controls();
       startObservedRoll(f, input, 0, entryFacing);
-      for (let frame = 2; frame <= 19; frame++) advance(world, 0, 0, input, 0.0);
+      for (let frame = 2; frame <= 19; frame++) advanceFighter(world, 0, 0, input, 0.0);
       assertEquals(f.facing, entryFacing);
       assertEquals(f.dodge.groundEntryFacing, entryFacing);
       assertEquals(fighterPoseFacing(f), entryFacing);
       assertTrue(isForwardGroundRoll(f));
       f.launch.hitlag = 2;
-      advance(world, 0, 0, input, 0.0);
+      advanceFighter(world, 0, 0, input, 0.0);
       assertEquals(f.launch.hitlag, 1);
       assertEquals(f.dodge.groundFrame, 19);
       assertEquals(f.facing, entryFacing);
       const before = f.motion.x;
-      advance(world, 0, 0, input, 0.0);
+      advanceFighter(world, 0, 0, input, 0.0);
       assertEquals(f.dodge.groundFrame, 20);
       assertEquals(f.facing, character === Character.demonHunter ? entryFacing : -entryFacing);
       assertEquals(fighterPoseFacing(f), entryFacing);
@@ -1622,14 +1622,14 @@ test("a forward roll turns on frame 20 while keeping its entry pose and travel",
       const travel20 = character === Character.archer ? f32(9.6163101198) : character === Character.rifleman ? f32(11.0186805726) : 0.0;
       assertNear(f.motion.x - before, entryFacing * travel20, f32(0.0001));
       for (let frame = 21; frame <= 31; frame++) {
-        advance(world, 0, 0, input, 0.0);
+        advanceFighter(world, 0, 0, input, 0.0);
         assertEquals(fighterPoseFacing(f), entryFacing);
         assertTrue(isForwardGroundRoll(f));
       }
       const total = character === Character.demonHunter ? 128.0 : observedRollTotal(character, 0);
       assertNear(f.motion.x, entryFacing * total, f32(0.0001));
       assertFalse(canAttack(f));
-      advance(world, 0, 0, input, 0.0);
+      advanceFighter(world, 0, 0, input, 0.0);
       assertEquals(f.facing, -entryFacing);
       assertEquals(fighterPoseFacing(f), -entryFacing);
       assertEquals(f.dodge.groundEntryFacing, 0);
@@ -1645,7 +1645,7 @@ test("crouching clears on attacks, jumps and shields", () => {
   const f = createFighter(Character.archer, 0.0, 1);
   const world = testWorld(f, createFighter(Character.rifleman, 0.0, -1));
   const input = controls({ down: true });
-  advance(world, 0, 0, input, 0.0);
+  advanceFighter(world, 0, 0, input, 0.0);
   assertTrue(f.motion.crouching);
   testBeginAttacks(world, AttackStyle.jab, undefined);
   assertFalse(f.motion.crouching);
@@ -1653,7 +1653,7 @@ test("crouching clears on attacks, jumps and shields", () => {
     respawnFighter(world, 0, 0.0);
     f.motion.grounded = true;
     f.motion.z = 0.0;
-    advance(world, 0, 0, input, 0.0);
+    advanceFighter(world, 0, 0, input, 0.0);
     assertTrue(f.motion.crouching);
   };
   standAgain();
@@ -1661,7 +1661,7 @@ test("crouching clears on attacks, jumps and shields", () => {
   assertFalse(f.motion.crouching);
   standAgain();
   input.shield = true;
-  advance(world, 0, 0, input, 0.0);
+  advanceFighter(world, 0, 0, input, 0.0);
   assertFalse(f.motion.crouching);
 });
 

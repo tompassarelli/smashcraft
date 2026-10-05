@@ -19,7 +19,7 @@ import {
 } from "./moves";
 import { projectileCount, updateProjectiles } from "./projectiles";
 import type { Roster } from "./roster";
-import { advance } from "./step";
+import { advanceFighter } from "./step";
 import { advanceSolo, controls, resolveStartedAttack, testBeginAttacks, testWorld } from "./testWorld";
 
 const AERIALS = [AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir] as const;
@@ -176,7 +176,7 @@ test("the aerial lingering clock starts at zero and unlocks on the reference fra
       assertEquals(attacker.attack.frame, frame);
       assertEquals(attackPhase(attacker), frame < 3 ? AttackPhase.startup : frame <= lastActiveIndex ? AttackPhase.active : AttackPhase.recovery);
       assertFalse(canAttack(attacker));
-      advance(world, 0, 0, input, -240.0);
+      advanceFighter(world, 0, 0, input, -240.0);
     }
     assertEquals(attackPhase(attacker), AttackPhase.none);
     assertTrue(canAttack(attacker));
@@ -198,10 +198,10 @@ test("an aerial's lingering transition retains its single hit through freeze and
     const strongDamage = style === AttackStyle.neutralAir ? 7.0 : 8.0;
     assertEquals(target.status.damage, strongDamage);
     for (let tick = 1; tick <= ordinaryHitlagFrames(strongDamage) - 1; tick++) {
-      advance(world, 0, 0, input, -240.0);
+      advanceFighter(world, 0, 0, input, -240.0);
       assertEquals(attacker.attack.frame, 6);
     }
-    advance(world, 0, 0, input, -240.0);
+    advanceFighter(world, 0, 0, input, -240.0);
     assertEquals(attacker.attack.frame, 7);
     target.motion.x = 1000.0;
     resolveAttacks(world);
@@ -275,7 +275,7 @@ test("landing cancels an aerial's active window and applies move-specific lag", 
     fighter.motion.vz = -2.0;
     testBeginAttacks(world, style, undefined);
     fighter.attack.frame = attackStartupFrames(style);
-    advance(world, 0, 0, controls(), -240.0);
+    advanceFighter(world, 0, 0, controls(), -240.0);
     assertTrue(fighter.motion.grounded);
     assertEquals(fighter.attack.style, undefined);
     assertFalse(fighter.attack.hit);
@@ -303,7 +303,7 @@ test("a C-stick down air preserves normal aerial momentum for both fighters", ()
       assertEquals(fighter.motion.vz, falling.motion.vz);
       assertEquals(fighter.launch.knockbackZ, falling.launch.knockbackZ);
       for (let frame = 1; frame <= 26; frame++) {
-        advance(world, 0, 0, input, 0.0);
+        advanceFighter(world, 0, 0, input, 0.0);
         advanceSolo(falling, 0, neutralInput, 0.0);
         assertNear(fighter.motion.vz, falling.motion.vz, 0.00009999999747378752);
         assertNear(fighter.motion.z, falling.motion.z, 0.00009999999747378752);

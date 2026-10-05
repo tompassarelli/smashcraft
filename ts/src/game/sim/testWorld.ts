@@ -11,7 +11,7 @@ import { attackActiveFrames, attackDurationFramesForGrounding, attackStartupFram
 import { updateProjectiles } from "./projectiles";
 import type { FighterPhysics } from "./tuning";
 import { type Controls, type Roster, createRoster, neutralControls } from "./roster";
-import { advance } from "./step";
+import { advanceFighter } from "./step";
 
 /** Two fighters in slots 0 and 1 of a two-participant roster. */
 export function testWorld(first: Fighter, second: Fighter): Roster {
@@ -55,7 +55,7 @@ export function controls(fields: Partial<Controls> = {}): Controls {
 
 /** Advances a fighter alone on the stage for one frame, regenerating its shield. */
 export function advanceSolo(fighter: Fighter, stage: number, input: Readonly<Controls>, respawnX: number): void {
-  advance(soloWorld(fighter), 0, stage, input, respawnX);
+  advanceFighter(soloWorld(fighter), 0, stage, input, respawnX);
 }
 
 export function testBeginAttacks(world: Roster, firstStyle: AttackStyle | undefined, secondStyle: AttackStyle | undefined, firstCharge = false, secondCharge = false): void {
@@ -68,7 +68,7 @@ export function resolveStartedAttack(world: Roster, style: AttackStyle): void {
   const input = controls();
   testBeginAttacks(world, style, undefined);
   for (let frame = 1; frame <= attackStartupFrames(style); frame++) {
-    advance(world, 0, 0, input, -240.0);
+    advanceFighter(world, 0, 0, input, -240.0);
     resolveAttacks(world);
     updateProjectiles(world);
   }

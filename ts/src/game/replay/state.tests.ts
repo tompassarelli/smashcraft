@@ -13,7 +13,7 @@ import { AttackStyle, Character, GroundAction, ShieldBreak } from "../sim/codes"
 import { type Fighter, PROJECTILE_CAPACITY, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, createFighter } from "../sim/fighter";
 import { attackStartupFrames } from "../sim/moves";
 import { setMeleeKnockback, setMeleeRecoil } from "../sim/motion";
-import { advance } from "../sim/step";
+import { advanceFighter } from "../sim/step";
 import { fighterAt, neutralControls } from "../sim/roster";
 import { testWorld } from "../sim/testWorld";
 import {
@@ -54,12 +54,12 @@ test("rollback retains original launch and recoil across world rounding", () => 
   const beforeChecksum = stateChecksum(live);
   copyReplayState(snapshot, live);
 
-  advance(live.world, 0, 0, neutralControls(), 0.0);
+  advanceFighter(live.world, 0, 0, neutralControls(), 0.0);
   copyReplayState(after, live);
   copyReplayState(live, snapshot);
   assertEquals(stateChecksum(live), beforeChecksum);
   assertEquals(firstStateDifference(snapshot, live), undefined);
-  advance(live.world, 0, 0, neutralControls(), 0.0);
+  advanceFighter(live.world, 0, 0, neutralControls(), 0.0);
   assertEquals(firstStateDifference(after, live), undefined);
   assertEquals(stateChecksum(live), stateChecksum(after));
 

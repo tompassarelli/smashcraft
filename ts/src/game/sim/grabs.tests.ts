@@ -8,7 +8,7 @@ import { resolveGrabs } from "./grabs";
 import { GRAB_HOLD_FRAMES, attackStartupFrames, grabContactFrame } from "./moves";
 import { updateProjectiles } from "./projectiles";
 import type { Roster } from "./roster";
-import { advance } from "./step";
+import { advanceFighter } from "./step";
 import { respawnFighter } from "./stocks";
 import { advanceFreezeTraps } from "./summons";
 import { controls, testBeginAttacks, testGrabFrame, testWorld } from "./testWorld";
@@ -142,7 +142,7 @@ test("stock loss clears a capture and post-throw recovery immediately", () => {
       assertEquals(owner.grab.action, GrabAction.throwUp);
     }
     owner.motion.x = 921.0;
-    advance(world, 0, 0, input, -240.0);
+    advanceFighter(world, 0, 0, input, -240.0);
     assertEquals(owner.status.out, true);
     assertEquals(owner.grab.action, GrabAction.none);
     assertEquals(owner.grab.frame, 0);

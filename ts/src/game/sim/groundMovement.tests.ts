@@ -6,7 +6,7 @@ import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GroundAction } from "./codes";
 import { type Fighter, createFighter } from "./fighter";
-import { advance } from "./step";
+import { advanceFighter } from "./step";
 import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, testBeginAttacks, testWorld, withPhysics } from "./testWorld";
 import {
@@ -332,22 +332,22 @@ test("an initial dash clears on a jump, shield, attack and respawn", () => {
     const fighter = createFighter(Character.archer, 0.0, 1);
     const world = testWorld(fighter, createFighter(Character.rifleman, 300.0, -1));
     const input = controls({ direction: 1 });
-    advance(world, 0, 0, input, 0.0);
+    advanceFighter(world, 0, 0, input, 0.0);
     if (interruption === 0) {
       input.jumpPressed = true;
       input.jumpHeld = true;
-      advance(world, 0, 0, input, 0.0);
+      advanceFighter(world, 0, 0, input, 0.0);
       assertEquals(fighter.jump.squat, 3);
     } else if (interruption === 1) {
       input.shield = true;
-      advance(world, 0, 0, input, 0.0);
+      advanceFighter(world, 0, 0, input, 0.0);
       assertTrue(fighter.shield.raised);
     } else if (interruption === 2) {
       testBeginAttacks(world, AttackStyle.jab, undefined);
       assertEquals(fighter.attack.style, AttackStyle.jab);
     } else {
       fighter.motion.x = 930.0;
-      advance(world, 0, 0, input, 0.0);
+      advanceFighter(world, 0, 0, input, 0.0);
       assertTrue(fighter.status.out);
       assertEquals(fighter.ground.dashFrame, 0);
       respawnFighter(world, 0, 0.0);
@@ -375,12 +375,12 @@ test("the shot's recovery uses its grounding at attack start", () => {
   const input = controls();
   let groundedTicks = 0;
   while (grounded.attack.style !== undefined) {
-    advance(groundedWorld, 0, 0, input, -240.0);
+    advanceFighter(groundedWorld, 0, 0, input, -240.0);
     groundedTicks++;
   }
   let airborneTicks = 0;
   while (airborne.attack.style !== undefined) {
-    advance(airborneWorld, 0, 0, input, -240.0);
+    advanceFighter(airborneWorld, 0, 0, input, -240.0);
     airborneTicks++;
   }
   assertEquals(groundedTicks, 24);

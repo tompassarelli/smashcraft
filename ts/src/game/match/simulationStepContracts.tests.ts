@@ -10,7 +10,7 @@ import { attackPhase, canAttack } from "../sim/conditions";
 import { attackActiveFrames, attackDurationFrames, attackStartupFrames, grabHoldFrames, GRAB_HOLD_FRAMES } from "../sim/moves";
 import { projectileCount } from "../sim/projectiles";
 import { totalVelocityX, totalVelocityZ } from "../sim/motion";
-import { advance } from "../sim/step";
+import { advanceFighter } from "../sim/step";
 
 function testRoster(first: Fighter, second: Fighter) { return createRoster(3, [first, second]); }
 function frameControls(first: Controls, second: Controls, firstCommands: ReturnType<typeof attackBuffer>, secondCommands: ReturnType<typeof attackBuffer>): FrameControls {
@@ -157,7 +157,7 @@ test("shieldstunKeepsTheFighterShieldingAndBlocksActions", () => {
   input.shield = false;
   input.jumpPressed = true;
   input.direction = 1;
-  advance(testRoster(target, attacker), 0, 0, input, -240);
+  advanceFighter(testRoster(target, attacker), 0, 0, input, -240);
   assertTrue(target.shield.raised);
   assertEquals(target.shield.stun, stun);
   assertEquals(target.jump.squat, 0);

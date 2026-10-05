@@ -5,7 +5,7 @@ import { Character } from "../game/sim/codes";
 import { createFighter } from "../game/sim/fighter";
 import { decayKnockback } from "../game/sim/knockback";
 import { AIR_KNOCKBACK_DECAY, AIR_KNOCKBACK_SQUARED_CUTOFF, decayedAirMotion, setMeleeKnockback } from "../game/sim/motion";
-import { advance } from "../game/sim/step";
+import { advanceFighter } from "../game/sim/step";
 import { controls, soloWorld } from "../game/sim/testWorld";
 import { meleeAtan2, meleeCos, meleeSin } from "../sim/meleeScalarMath";
 
@@ -66,7 +66,7 @@ export function airCutoffTrace(): string[] {
   record("DECAYED_X", fighter.launch.meleeKnockbackX.original);
   record("DECAYED_Z", fighter.launch.meleeKnockbackZ.original);
   setMeleeKnockback(fighter, x, z);
-  advance(soloWorld(fighter), 0, 0, controls(), 0.0);
+  advanceFighter(soloWorld(fighter), 0, 0, controls(), 0.0);
   record("FRAME_ORIGINAL_X", fighter.launch.meleeKnockbackX.original);
   record("FRAME_ORIGINAL_Z", fighter.launch.meleeKnockbackZ.original);
   record("FRAME_WORLD_X", fighter.launch.knockbackX);
