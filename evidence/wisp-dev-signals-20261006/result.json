@@ -1,0 +1,655 @@
+{
+ "smashcraft": "f3b3d39 + this lane (journey tests and per-file audit declared in ts/scripts/wisp/commands/dev.ts)",
+ "wisp": {
+  "before": "e222aef",
+  "after": "88b9c10 (measured on its code before the docs-only amend)"
+ },
+ "capacity": {
+  "class": "heavy",
+  "cpus": 6,
+  "memoryMiB": 8192
+ },
+ "edits": [
+  {
+   "file": "src/game/sim/step.ts",
+   "label": "private function",
+   "append": "\nfunction devLoopEdit(): number {\n  return 1;\n}\nvoid devLoopEdit;\n"
+  },
+  {
+   "file": "src/game/sim/fighter.ts",
+   "label": "exported constant",
+   "append": "\nexport const DEV_LOOP_EDIT = 1;\n"
+  },
+  {
+   "file": "src/game/match/rules.ts",
+   "label": "private function",
+   "append": "\nfunction devLoopEdit(): number {\n  return 1;\n}\nvoid devLoopEdit;\n"
+  },
+  {
+   "file": "src/game/presentation/impactState.ts",
+   "label": "exported constant",
+   "append": "\nexport const DEV_LOOP_EDIT = 1;\n"
+  },
+  {
+   "file": "src/game/replay/canonical.ts",
+   "label": "private function",
+   "append": "\nfunction devLoopEdit(): number {\n  return 1;\n}\nvoid devLoopEdit;\n"
+  },
+  {
+   "file": "src/game/input/adapter.ts",
+   "label": "exported constant",
+   "append": "\nexport const DEV_LOOP_EDIT = 1;\n"
+  },
+  {
+   "file": "src/game/netcode/fixedSchedule.ts",
+   "label": "private function",
+   "append": "\nfunction devLoopEdit(): number {\n  return 1;\n}\nvoid devLoopEdit;\n"
+  },
+  {
+   "file": "src/game/render/effects.ts",
+   "label": "exported constant",
+   "append": "\nexport const DEV_LOOP_EDIT = 1;\n"
+  },
+  {
+   "file": "src/game/sim/attacks.ts",
+   "label": "private function",
+   "append": "\nfunction devLoopEdit(): number {\n  return 1;\n}\nvoid devLoopEdit;\n"
+  },
+  {
+   "file": "src/game/menu/selectionDrag.ts",
+   "label": "exported constant",
+   "append": "\nexport const DEV_LOOP_EDIT = 1;\n"
+  }
+ ],
+ "before": {
+  "note": "Smashcraft 607a640 with Wisp e222aef: each command run on its own after the edit, in order: bun run check, bun run test, bun wisp headless",
+  "samples": [
+   {
+    "label": "private function",
+    "file": "src/game/sim/step.ts",
+    "check": {
+     "seconds": 1.852300468,
+     "exit": 0
+    },
+    "test": {
+     "seconds": 2.2745327129999997,
+     "exit": 0
+    },
+    "headless": {
+     "seconds": 1.7351729529999993,
+     "exit": 0
+    }
+   },
+   {
+    "label": "exported constant",
+    "file": "src/game/sim/fighter.ts",
+    "check": {
+     "seconds": 1.7521560580000004,
+     "exit": 0
+    },
+    "test": {
+     "seconds": 2.728617335000001,
+     "exit": 0
+    },
+    "headless": {
+     "seconds": 1.8574355149999993,
+     "exit": 0
+    }
+   },
+   {
+    "label": "private function",
+    "file": "src/game/match/rules.ts",
+    "check": {
+     "seconds": 0.4585513350000001,
+     "exit": 0
+    },
+    "test": {
+     "seconds": 2.3072013410000016,
+     "exit": 0
+    },
+    "headless": {
+     "seconds": 1.9814761190000028,
+     "exit": 0
+    }
+   },
+   {
+    "label": "exported constant",
+    "file": "src/game/presentation/impactState.ts",
+    "check": {
+     "seconds": 0.8309444060000023,
+     "exit": 0
+    },
+    "test": {
+     "seconds": 2.929687772000001,
+     "exit": 0
+    },
+    "headless": {
+     "seconds": 1.8247666659999995,
+     "exit": 0
+    }
+   },
+   {
+    "label": "private function",
+    "file": "src/game/replay/canonical.ts",
+    "check": {
+     "seconds": 0.469686528000002,
+     "exit": 0
+    },
+    "test": {
+     "seconds": 2.701319055,
+     "exit": 0
+    },
+    "headless": {
+     "seconds": 1.9154162400000023,
+     "exit": 0
+    }
+   },
+   {
+    "label": "exported constant",
+    "file": "src/game/input/adapter.ts",
+    "check": {
+     "seconds": 0.7332868970000018,
+     "exit": 0
+    },
+    "test": {
+     "seconds": 2.430412751,
+     "exit": 0
+    },
+    "headless": {
+     "seconds": 1.9408378220000013,
+     "exit": 0
+    }
+   },
+   {
+    "label": "private function",
+    "file": "src/game/netcode/fixedSchedule.ts",
+    "check": {
+     "seconds": 0.46021185700000206,
+     "exit": 0
+    },
+    "test": {
+     "seconds": 2.4519764730000024,
+     "exit": 0
+    },
+    "headless": {
+     "seconds": 1.9461695869999966,
+     "exit": 0
+    }
+   },
+   {
+    "label": "exported constant",
+    "file": "src/game/render/effects.ts",
+    "check": {
+     "seconds": 0.5224211089999954,
+     "exit": 0
+    },
+    "test": {
+     "seconds": 2.436810433999999,
+     "exit": 0
+    },
+    "headless": {
+     "seconds": 1.8859370609999968,
+     "exit": 0
+    }
+   },
+   {
+    "label": "private function",
+    "file": "src/game/sim/attacks.ts",
+    "check": {
+     "seconds": 0.48479700299999967,
+     "exit": 0
+    },
+    "test": {
+     "seconds": 2.6246538569999975,
+     "exit": 0
+    },
+    "headless": {
+     "seconds": 1.7447737909999996,
+     "exit": 0
+    }
+   },
+   {
+    "label": "exported constant",
+    "file": "src/game/menu/selectionDrag.ts",
+    "check": {
+     "seconds": 0.6729470200000068,
+     "exit": 0
+    },
+    "test": {
+     "seconds": 2.4753295890000007,
+     "exit": 0
+    },
+    "headless": {
+     "seconds": 1.7381700220000058,
+     "exit": 0
+    }
+   }
+  ],
+  "medianSeconds": {
+   "check": 0.598,
+   "test": 2.464,
+   "headless": 1.872
+  }
+ },
+ "after": {
+  "note": "bun wisp dev running; seconds from the harness writing the file to each line arriving. tests = unit tests line, journey = journeys line",
+  "samples": [
+   {
+    "label": "private function",
+    "file": "src/game/sim/step.ts",
+    "finished": true,
+    "typesFile": 0.143,
+    "tests": 0.801,
+    "journey": 2.291,
+    "typesProject": 2.781,
+    "printed": {
+     "typesFile": 0.141,
+     "tests": 0.799,
+     "journey": 2.29,
+     "typesProject": 2.779
+    },
+    "failures": [],
+    "testsLine": "0.799 s  unit tests: 492 passed (51 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "typesLine": "0.141 s  types: no errors in src/game/sim/step.ts",
+    "journeyLine": "2.290 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)"
+   },
+   {
+    "label": "exported constant",
+    "file": "src/game/sim/fighter.ts",
+    "finished": true,
+    "typesFile": 0.053,
+    "tests": 1.133,
+    "journey": 2.579,
+    "typesProject": 4.561,
+    "printed": {
+     "typesFile": 0.051,
+     "tests": 1.132,
+     "journey": 2.577,
+     "typesProject": 4.56
+    },
+    "failures": [],
+    "testsLine": "1.132 s  unit tests: 559 passed (60 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "typesLine": "0.051 s  types: no errors in src/game/sim/fighter.ts",
+    "journeyLine": "2.577 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)"
+   },
+   {
+    "label": "private function",
+    "file": "src/game/match/rules.ts",
+    "finished": true,
+    "typesFile": 0.06,
+    "tests": 0.787,
+    "journey": 2.137,
+    "typesProject": 2.594,
+    "printed": {
+     "typesFile": 0.058,
+     "tests": 0.785,
+     "journey": 2.136,
+     "typesProject": 2.592
+    },
+    "failures": [],
+    "testsLine": "0.785 s  unit tests: 167 passed (26 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "typesLine": "0.058 s  types: no errors in src/game/match/rules.ts",
+    "journeyLine": "2.136 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)"
+   },
+   {
+    "label": "exported constant",
+    "file": "src/game/presentation/impactState.ts",
+    "finished": true,
+    "typesFile": 0.06,
+    "tests": 0.633,
+    "journey": 2.025,
+    "typesProject": 2.793,
+    "printed": {
+     "typesFile": 0.059,
+     "tests": 0.633,
+     "journey": 2.025,
+     "typesProject": 2.793
+    },
+    "failures": [],
+    "testsLine": "0.633 s  unit tests: 86 passed (18 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "typesLine": "0.059 s  types: no errors in src/game/presentation/impactState.ts",
+    "journeyLine": "2.025 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)"
+   },
+   {
+    "label": "private function",
+    "file": "src/game/replay/canonical.ts",
+    "finished": true,
+    "typesFile": 0.073,
+    "tests": 0.631,
+    "journey": 2.01,
+    "typesProject": 2.467,
+    "printed": {
+     "typesFile": 0.071,
+     "tests": 0.63,
+     "journey": 2.009,
+     "typesProject": 2.465
+    },
+    "failures": [],
+    "testsLine": "0.630 s  unit tests: 74 passed (15 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "typesLine": "0.071 s  types: no errors in src/game/replay/canonical.ts",
+    "journeyLine": "2.009 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)"
+   },
+   {
+    "label": "exported constant",
+    "file": "src/game/input/adapter.ts",
+    "finished": true,
+    "typesFile": 0.053,
+    "tests": 0.647,
+    "journey": 2.076,
+    "typesProject": 2.794,
+    "printed": {
+     "typesFile": 0.053,
+     "tests": 0.646,
+     "journey": 2.076,
+     "typesProject": 2.793
+    },
+    "failures": [],
+    "testsLine": "0.646 s  unit tests: 87 passed (16 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "typesLine": "0.053 s  types: no errors in src/game/input/adapter.ts",
+    "journeyLine": "2.076 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)"
+   },
+   {
+    "label": "private function",
+    "file": "src/game/netcode/fixedSchedule.ts",
+    "finished": true,
+    "typesFile": 0.04,
+    "tests": 0.525,
+    "journey": 1.928,
+    "typesProject": 2.363,
+    "printed": {
+     "typesFile": 0.039,
+     "tests": 0.525,
+     "journey": 1.928,
+     "typesProject": 2.362
+    },
+    "failures": [],
+    "testsLine": "0.525 s  unit tests: 57 passed (11 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "typesLine": "0.039 s  types: no errors in src/game/netcode/fixedSchedule.ts",
+    "journeyLine": "1.928 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)"
+   },
+   {
+    "label": "exported constant",
+    "file": "src/game/render/effects.ts",
+    "finished": true,
+    "typesFile": 0.027,
+    "tests": 0.061,
+    "journey": 1.571,
+    "typesProject": 2.06,
+    "printed": {
+     "typesFile": 0.026,
+     "tests": 0.059,
+     "journey": 1.57,
+     "typesProject": 2.059
+    },
+    "failures": [],
+    "testsLine": "0.059 s  unit tests: 2 passed (1 test file of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "typesLine": "0.026 s  types: no errors in src/game/render/effects.ts",
+    "journeyLine": "1.570 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)"
+   },
+   {
+    "label": "private function",
+    "file": "src/game/sim/attacks.ts",
+    "finished": true,
+    "typesFile": 0.059,
+    "tests": 0.809,
+    "journey": 2.252,
+    "typesProject": 2.712,
+    "printed": {
+     "typesFile": 0.059,
+     "tests": 0.808,
+     "journey": 2.251,
+     "typesProject": 2.712
+    },
+    "failures": [],
+    "testsLine": "0.808 s  unit tests: 499 passed (54 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "typesLine": "0.059 s  types: no errors in src/game/sim/attacks.ts",
+    "journeyLine": "2.251 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)"
+   },
+   {
+    "label": "exported constant",
+    "file": "src/game/menu/selectionDrag.ts",
+    "finished": true,
+    "typesFile": 0.033,
+    "tests": 0.069,
+    "journey": 1.548,
+    "typesProject": 2.234,
+    "printed": {
+     "typesFile": 0.033,
+     "tests": 0.068,
+     "journey": 1.547,
+     "typesProject": 2.234
+    },
+    "failures": [],
+    "testsLine": "0.068 s  unit tests: 13 passed (2 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "typesLine": "0.033 s  types: no errors in src/game/menu/selectionDrag.ts",
+    "journeyLine": "1.547 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)"
+   }
+  ],
+  "medianSeconds": {
+   "types": 0.056,
+   "unitTests": 0.64,
+   "journeys": 2.05,
+   "wholeCheck": 2.653
+  }
+ },
+ "mutations": {
+  "note": "selected = test files wisp dev selects (journey tests included); failing = test files and registry modules that fail when every test runs on its own; missed = failing but not selected",
+  "fullSuite": [
+   {
+    "module": "src/game/sim/step.ts",
+    "mutation": "a fighter with no stocks left is still in the match",
+    "selected": 59,
+    "of": 99,
+    "full": null,
+    "failing": [
+     "src/game/match/matchStepContracts.tests.ts",
+     "src/game/sim/dodgesAndStocks.tests.ts"
+    ],
+    "missed": []
+   },
+   {
+    "module": "src/game/sim/knockback.ts",
+    "mutation": "the hit-strength band moves by one",
+    "selected": 66,
+    "of": 99,
+    "full": null,
+    "failing": [
+     "src/game/sim/physics.tests.ts",
+     "src/game/sim/physicsPrecisionScalar.tests.ts"
+    ],
+    "missed": []
+   },
+   {
+    "module": "src/game/match/rules.ts",
+    "mutation": "four human players are no longer accepted",
+    "selected": 34,
+    "of": 99,
+    "full": null,
+    "failing": [
+     "src/game/match/rules.tests.ts"
+    ],
+    "missed": []
+   },
+   {
+    "module": "src/game/presentation/impactState.ts",
+    "mutation": "impacts age twice as fast",
+    "selected": 26,
+    "of": 99,
+    "full": null,
+    "failing": [
+     "src/game/presentation/impactState.tests.ts",
+     "test/player-view.test.ts"
+    ],
+    "missed": []
+   },
+   {
+    "module": "src/game/sim/attacks.ts",
+    "mutation": "a grab reaches no one in front of the grabber",
+    "selected": 62,
+    "of": 99,
+    "full": null,
+    "failing": [
+     "src/game/match/matchStepContracts.tests.ts"
+    ],
+    "missed": []
+   },
+   {
+    "module": "src/game/netcode/fixedSchedule.ts",
+    "mutation": "inputs land one frame late",
+    "selected": 19,
+    "of": 99,
+    "full": null,
+    "failing": [
+     "src/game/input/keyboardCapture.tests.ts",
+     "src/game/netcode/fixedSchedule.tests.ts",
+     "src/game/netcode/inputBatch.tests.ts",
+     "src/game/netcode/shadowSchedule.tests.ts",
+     "src/game/replay/shadowPlayback.tests.ts"
+    ],
+    "missed": []
+   },
+   {
+    "module": "src/game/input/adapter.ts",
+    "mutation": "an axis reads its keys backwards",
+    "selected": 24,
+    "of": 99,
+    "full": null,
+    "failing": [
+     "src/game/input/adapter.tests.ts"
+    ],
+    "missed": []
+   },
+   {
+    "module": "src/game/menu/selectionDrag.ts",
+    "mutation": "the middle selection column picks the third character",
+    "selected": 10,
+    "of": 99,
+    "full": null,
+    "failing": [
+     "src/game/menu/selectionDrag.tests.ts"
+    ],
+    "missed": []
+   },
+   {
+    "module": "src/game/sim/motion.ts",
+    "mutation": "gravity pulls half as hard",
+    "selected": 66,
+    "of": 99,
+    "full": null,
+    "failing": [
+     "scripts/moveComparisons.tests.ts",
+     "src/game/sim/actionLocks.tests.ts",
+     "src/game/sim/directionalInfluence.tests.ts",
+     "src/game/sim/dodgesAndStocks.tests.ts",
+     "src/game/sim/knockdown.tests.ts",
+     "src/game/sim/physics.tests.ts",
+     "src/game/sim/physicsPrecisionMotion.tests.ts",
+     "src/game/sim/surfaces.tests.ts",
+     "test/player-view.test.ts"
+    ],
+    "missed": []
+   },
+   {
+    "module": "src/game/replay/canonical.ts",
+    "mutation": "canonical replay text prints every whole number as a real",
+    "selected": 23,
+    "of": 99,
+    "full": null,
+    "failing": [
+     "src/game/replay/canonical.tests.ts"
+    ],
+    "missed": []
+   }
+  ],
+  "devLoop": [
+   {
+    "file": "src/game/sim/step.ts",
+    "label": "a fighter with no stocks left is still in the match",
+    "unitTests": 0.788,
+    "unitTestsLine": "0.786 s  unit tests: 2 failures, 490 passed (51 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "journeysLine": "2.198 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)",
+    "firstFailure": "0.690 s  FAIL src/game/match/matchStepContracts.tests.ts > practiceMatchMovesJumpsAttacksAndRespawnsWithoutOpponent: expected 0, actual 1"
+   },
+   {
+    "file": "src/game/sim/knockback.ts",
+    "label": "the hit-strength band moves by one",
+    "unitTests": 1.135,
+    "unitTestsLine": "1.134 s  unit tests: 2 failures, 530 passed (58 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "journeysLine": "2.548 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)",
+    "firstFailure": "0.785 s  FAIL src/game/sim/physics.tests.ts > retail combat damage levels use all three unrounded scaled thresholds: expected 2, actual 1"
+   },
+   {
+    "file": "src/game/match/rules.ts",
+    "label": "four human players are no longer accepted",
+    "unitTests": 0.749,
+    "unitTestsLine": "0.749 s  unit tests: 1 failure, 166 passed (26 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "journeysLine": "2.176 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)",
+    "firstFailure": "0.749 s  FAIL src/game/match/rules.tests.ts > everyHumanMustChooseAndConfirmForThreeAndFourPlayerMatches: expected 4, actual 1"
+   },
+   {
+    "file": "src/game/presentation/impactState.ts",
+    "label": "impacts age twice as fast",
+    "unitTests": 0.627,
+    "unitTestsLine": "0.627 s  unit tests: 5 failures, 81 passed (18 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "journeysLine": "2.050 s  journeys: quick-match passed; 17 journey tests: 1 failure, 16 passed (8 test files of 99 affected)",
+    "firstFailure": "0.566 s  FAIL src/game/presentation/impactState.tests.ts > impact projection reads only, shows each impact for its lifetime, and clearing empties the pool: kind 0 at age 5: expected true, actual false"
+   },
+   {
+    "file": "src/game/sim/attacks.ts",
+    "label": "a grab reaches no one in front of the grabber",
+    "unitTests": 0.843,
+    "unitTestsLine": "0.842 s  unit tests: 2 failures, 497 passed (54 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "journeysLine": "2.338 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)",
+    "firstFailure": "0.771 s  FAIL src/game/match/matchStepContracts.tests.ts > dashGrabUsesTestActorTimingAndWindowIsReplayable: expected more than 0, actual 0"
+   },
+   {
+    "file": "src/game/netcode/fixedSchedule.ts",
+    "label": "inputs land one frame late",
+    "unitTests": 0.396,
+    "unitTestsLine": "0.395 s  unit tests: 25 failures, 32 passed (11 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "journeysLine": "1.775 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)",
+    "firstFailure": "0.217 s  FAIL src/game/replay/shadowPlayback.tests.ts > an admitted shield reaches the fighter within the catch-up budget and pause frontier: expected 5, actual 6"
+   },
+   {
+    "file": "src/game/input/adapter.ts",
+    "label": "an axis reads its keys backwards",
+    "unitTests": 0.635,
+    "unitTestsLine": "0.635 s  unit tests: 2 failures, 85 passed (16 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "journeysLine": "2.037 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)",
+    "firstFailure": "0.604 s  FAIL src/game/input/adapter.tests.ts > digital taps become movement without confusing C-stick down: expected -1, actual 1"
+   },
+   {
+    "file": "src/game/menu/selectionDrag.ts",
+    "label": "the middle selection column picks the third character",
+    "unitTests": 0.069,
+    "unitTestsLine": "0.069 s  unit tests: 2 failures, 11 passed (2 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "journeysLine": "1.566 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)",
+    "firstFailure": "0.030 s  FAIL src/game/menu/selectionDrag.tests.ts > a placed chip can be dragged to another tile: placed tile: expected 1, actual 2"
+   },
+   {
+    "file": "src/game/sim/motion.ts",
+    "label": "gravity pulls half as hard",
+    "unitTests": 1.159,
+    "unitTestsLine": "1.158 s  unit tests: 24 failures, 508 passed (58 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "journeysLine": "2.578 s  journeys: quick-match passed; 17 journey tests: 1 failure, 16 passed (8 test files of 99 affected)",
+    "firstFailure": "0.828 s  FAIL src/game/sim/dodgesAndStocks.tests.ts > diagonal down doesn't trigger a fast fall, but straight down does: expected -2.3799999952316284 within 0.0010000000474974513, actual -1.690000057220459"
+   },
+   {
+    "file": "src/game/replay/canonical.ts",
+    "label": "canonical replay text prints every whole number as a real",
+    "unitTests": 0.699,
+    "unitTestsLine": "0.699 s  unit tests: 2 failures, 72 passed (15 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "journeysLine": "2.145 s  journeys: quick-match passed; 17 journey tests: 17 passed (8 test files of 99 affected)",
+    "firstFailure": "0.596 s  FAIL src/game/replay/canonical.tests.ts > canonical fragments and checksums match Wurst's ASCII tape form: expected |frame=17, actual |frame=+4:4194304:0"
+   },
+   {
+    "file": "scripts/moveComparisons.ts",
+    "label": "unrelated: a private helper in a move-data script",
+    "unitTests": 0.238,
+    "unitTestsLine": "0.237 s  unit tests: 8 passed (4 test files of 99 affected; test/source-shapes.test.ts checked only the saved files)",
+    "journeysLine": "0.646 s  journeys: quick-match passed",
+    "firstFailure": null
+   }
+  ]
+ }
+}
