@@ -1,0 +1,5 @@
+$ bun scripts/waygate.ts rebuild "/home/tom/.local/share/smashcraft-build-inputs/native-owner-20261005/stack-trace/Smashcraft diagnostic stack-trace.w3x" --profile stack-trace
+   7.544 s  compile (7.523 s)
+   7.706 s  package and verify (0.113 s)
+rebuilt /home/tom/.local/share/smashcraft-build-inputs/native-owner-20261005/stack-trace/Smashcraft diagnostic stack-trace.w3x
+   7.709 s  rebuild (7.709 s)

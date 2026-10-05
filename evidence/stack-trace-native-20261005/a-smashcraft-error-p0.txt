@@ -1,0 +1,14 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "error 1 in stackDemo.command" )
+	call Preload( "Error: stack demo failure: -dev stack-demo" )
+	call Preload( "src/platform/stackDemo.ts:12: in failInnermost" )
+	call Preload( "src/platform/stackDemo.ts:16: in runMiddle" )
+	call Preload( "src/platform/stackDemo.ts:20: in runOuter" )
+	call Preload( "src/platform/stackDemo.ts:24: in stackDemoCommand" )
+	call PreloadEnd( 0.0 )
+
+endfunction
+
+

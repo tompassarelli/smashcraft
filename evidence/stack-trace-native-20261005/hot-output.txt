@@ -1,0 +1,19 @@
+$ bun scripts/waygate.ts hot --profile stack-trace --data "/home/tom/.local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData" --data "/home/tom/.local/share/wc3-melee/client-b/pfx/drive_c/users/steamuser/Documents/Warcraft III/CustomMapData" --watch
+   8.337 s  compile (8.337 s)
+   8.531 s  publish v101: 2547258 bytes in 13 file(s) (0.191 s)
+  10.692 s  v101 running in 2 client(s) (2.161 s)
+  10.692 s  reload (10.692 s)
+watching /home/tom/code/smashcraft/worktrees/native-owner-20261005/ts/src for changes
+p0 error 1 in stackDemo.command (21 ms after the game wrote it)
+Error: stack demo failure: -dev stack-demo
+src/platform/stackDemo.ts:12: in failInnermost
+src/platform/stackDemo.ts:16: in runMiddle
+src/platform/stackDemo.ts:20: in runOuter
+src/platform/stackDemo.ts:24: in stackDemoCommand
+p1 error 1 in stackDemo.command (29 ms after the game wrote it)
+Error: stack demo failure: -dev stack-demo
+src/platform/stackDemo.ts:12: in failInnermost
+src/platform/stackDemo.ts:16: in runMiddle
+src/platform/stackDemo.ts:20: in runOuter
+src/platform/stackDemo.ts:24: in stackDemoCommand
+  54.602 s  hot (54.602 s)
