@@ -53,7 +53,8 @@ export type JourneyRecord =
     readonly verified_stopped_state: true;
   }
   | { readonly event: "integrity-slot-change" | "four-fighter-setup"; readonly epoch: number; readonly changes: readonly ModeReceipt[] }
-  | { readonly event: "dev-config"; readonly epoch: number; readonly command: string; readonly publications: readonly PublicationRecord[] };
+  | { readonly event: "dev-config"; readonly epoch: number; readonly command: string; readonly publications: readonly PublicationRecord[] }
+  | { readonly event: "results"; readonly epoch: number; readonly texts: readonly string[] };
 
 export interface Stopped {
   readonly target: StallTarget;
@@ -101,8 +102,12 @@ export interface JourneyOptions {
   readonly fourFighters: boolean;
   /** Rollback windows and transport batches, each commanded before its match. */
   readonly sweep: readonly (readonly [window: number, batch: number])[];
-  /** #17 uses normal timed combat; the default retains #26's complete input workload. */
-  readonly workload?: "match";
+  /**
+   * #17 uses normal timed combat; a playable candidate plays one-stock
+   * matches that end when a player walks off; the default retains #26's
+   * complete input workload.
+   */
+  readonly workload?: "match" | "playable";
 }
 
 const CONTROLS = /CONTROLS/i;
@@ -111,6 +116,9 @@ const PAUSED = /PAUSED.*Press.*Start.*resume|Paused.*press.*Start.*resume/i;
 const CHAT_OPEN = /(?:All|Allies)\s*:/i;
 const TWO_HUMANS = "connected=3 human-fighters=3 computers=0 fighters=3";
 const TRACE = INPUT_TRACE_FILE;
+/** Callbacks an input trace records: with the response probe, and in every other normal build. */
+const PROBE_TRACE_TICKS = 1200;
+const PLAYABLE_TRACE_TICKS = 300;
 
 const stocks = (count: number) => new RegExp(`${count} Stock`, "i");
 const signature = (humans: number, computers: number) => `connected=3 human-fighters=${humans} computers=${computers} fighters=${humans + computers}`;
@@ -120,6 +128,7 @@ const both = <A, E>(each: (client: Slot) => Effect.Effect<A, E>) => Effect.forEa
 export function journey(rig: RigShape, options: JourneyOptions) {
   const { build, epochs, fourFighters, sweep } = options;
   const matchOnly = options.workload === "match";
+  const playable = options.workload === "playable";
   const firstEpoch = epochs[0] ?? 1;
   const lastEpoch = epochs.at(-1) ?? firstEpoch;
 
@@ -356,11 +365,11 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       }
     }, { discard: true });
 
-  const traceComplete = (client: Slot, afterNs: bigint) =>
+  const traceComplete = (client: Slot, afterNs: bigint, ticks = PROBE_TRACE_TICKS) =>
     rig.file(client, TRACE).pipe(Effect.map((file) => {
       if (!complete(file) || file.mtimeNs < afterNs) return false;
       const end = /(\d+) [0-9.]+ end/.exec(file.text);
-      return end !== null && Number(end[1]) >= 1200;
+      return end !== null && Number(end[1]) >= ticks;
     }));
 
   /** Ctrl+H exports every client's response pages; each page holds 150 rows. */
@@ -385,7 +394,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   const match = (epoch: number) =>
     Effect.gen(function*() {
       const odd = epoch % 2 === 1;
-      if (matchOnly) yield* reduceStocks;
+      if (matchOnly || playable) yield* reduceStocks;
       // #26's named integrity workload keeps three stocks in its rematch so
       // the complete edge sample finishes before ordinary stock loss.
       else {
@@ -400,7 +409,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       }
       const traceAfterNs = yield* rig.realtimeNs;
       // Ctrl+G only enables the diagnostic trace; the pads choose, start and rematch.
-      yield* rig.key(0, "ctrl+g");
+      if (!playable) yield* rig.key(0, "ctrl+g");
       yield* menuButton(0, BTN_START, `menu-match-${epoch}-start`);
       const start = (client: Slot) => controlName("start", epoch, client);
       yield* rig.until(`epoch ${epoch}: game-controlled start absent`, Effect.forEach(SLOTS, (client) => rig.file(client, start(client))).pipe(Effect.map((files) => files.every(complete))));
@@ -409,7 +418,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const deadline = Math.max(...started.map((publication) => publication.publication_monotonic_estimate_ns)) + 300_000_000;
       yield* rig.sleep(Math.max(0, (deadline - (yield* rig.monotonicNs)) / 1_000_000));
       yield* rig.sleep(700);
-      if (matchOnly) {
+      if (matchOnly || playable) {
         for (let attack = 0; attack < 4; attack++) {
           for (const slot of SLOTS) yield* tap(slot, `match-${epoch}-combat`);
           yield* rig.sleep(500);
@@ -417,32 +426,39 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       } else yield* integrity(epoch);
 
       const stockLoss = `match-${epoch}-stock-loss`;
-      if (!matchOnly) {
-        yield* send(0, { type: EV_ABS, code: ABS_X, value: -32768 }, stockLoss);
-        if (!odd) yield* send(1, { type: EV_ABS, code: ABS_X, value: 32767 }, stockLoss);
-      }
+      // Each player walks off their own side. A playable one-stock match loses
+      // Player 1's stock, its rematch Player 2's.
+      const walkers: readonly Slot[] = matchOnly ? [] : playable ? [odd ? 0 : 1] : odd ? [0] : [0, 1];
+      for (const slot of walkers) yield* send(slot, { type: EV_ABS, code: ABS_X, value: slot === 0 ? -32768 : 32767 }, stockLoss);
       const end = (client: Slot) => controlName("end", epoch, client);
       yield* rig.until(`epoch ${epoch}: result did not stop capture`, Effect.forEach(SLOTS, (client) => rig.file(client, end(client))).pipe(Effect.map((files) => files.every(complete))), matchOnly ? 120 : 75);
-      if (!matchOnly) {
-        yield* send(0, { type: EV_ABS, code: ABS_X, value: 0 }, stockLoss);
-        if (!odd) yield* send(1, { type: EV_ABS, code: ABS_X, value: 0 }, stockLoss);
-      }
+      for (const slot of walkers) yield* send(slot, { type: EV_ABS, code: ABS_X, value: 0 }, stockLoss);
       const quiescent = new RegExp(`match_quiescent epoch=${epoch}(?:\\s|$)`);
       yield* rig.until(`epoch ${epoch}: helpers did not quiesce`, Effect.forEach(SLOTS, rig.helperLog).pipe(Effect.map((logs) => logs.every((log) => quiescent.test(log)))));
       yield* rig.record({ event: "end", epoch, publications: yield* boundaries(end), observed_monotonic_ns: yield* rig.monotonicNs });
-      yield* both((client) => rig.waitText(client, RESULTS));
-      for (const client of SLOTS) yield* rig.until(`epoch ${epoch}: trace did not complete`, traceComplete(client, traceAfterNs), 30);
-      yield* rig.archive(String(epoch));
-      yield* exportResponse(epoch, traceAfterNs);
-      yield* rig.archive(String(epoch));
-      // A match can outlast the first trace. Keep it intact and capture a
-      // stationary result endpoint only when necessary.
-      const traces = yield* Effect.forEach(SLOTS, (client) => rig.file(client, TRACE));
-      if (!traces.every((trace) => /participant \d+ frame \d+ phase 3 /.test(trace?.text ?? ""))) {
-        const finalAfterNs = yield* rig.realtimeNs;
+      const results = yield* both((client) => rig.waitText(client, RESULTS));
+      if (playable) {
+        // The playable build has no response probe: its results are the
+        // result screens and a stationary confirmed-checksum trace.
+        yield* rig.record({ event: "results", epoch, texts: results });
+        const resultAfterNs = yield* rig.realtimeNs;
         yield* rig.key(0, "ctrl+t");
-        for (const client of SLOTS) yield* rig.until(`epoch ${epoch}: result trace incomplete`, traceComplete(client, finalAfterNs), 35);
-        yield* rig.archive(`${epoch}-result`);
+        for (const client of SLOTS) yield* rig.until(`epoch ${epoch}: result trace incomplete`, traceComplete(client, resultAfterNs, PLAYABLE_TRACE_TICKS), 35);
+        yield* rig.archive(String(epoch));
+      } else {
+        for (const client of SLOTS) yield* rig.until(`epoch ${epoch}: trace did not complete`, traceComplete(client, traceAfterNs), 30);
+        yield* rig.archive(String(epoch));
+        yield* exportResponse(epoch, traceAfterNs);
+        yield* rig.archive(String(epoch));
+        // A match can outlast the first trace. Keep it intact and capture a
+        // stationary result endpoint only when necessary.
+        const traces = yield* Effect.forEach(SLOTS, (client) => rig.file(client, TRACE));
+        if (!traces.every((trace) => /participant \d+ frame \d+ phase 3 /.test(trace?.text ?? ""))) {
+          const finalAfterNs = yield* rig.realtimeNs;
+          yield* rig.key(0, "ctrl+t");
+          for (const client of SLOTS) yield* rig.until(`epoch ${epoch}: result trace incomplete`, traceComplete(client, finalAfterNs), 35);
+          yield* rig.archive(`${epoch}-result`);
+        }
       }
       yield* rig.healthy;
       if (epoch !== lastEpoch) {
@@ -450,17 +466,17 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         yield* menuPhase("RESULT");
         yield* tap(0, "results-only");
         yield* menuButton(1, BTN_START, "menu-results-confirm");
-        yield* (epoch + 1) % 2 === 0 ? slotChange(epoch + 1) : slotRestore;
+        if (!playable) yield* (epoch + 1) % 2 === 0 ? slotChange(epoch + 1) : slotRestore;
         yield* controllerSelect;
       }
-      yield* rig.progress(`Epoch ${epoch}: ${matchOnly ? "four-fighter combat and results" : "game start, tap, stock loss and results"} observed`);
+      yield* rig.progress(`Epoch ${epoch}: ${matchOnly ? "four-fighter combat and results" : playable ? "one-stock combat, stock loss and results" : "game start, tap, stock loss and results"} observed`);
     });
 
   const run = Effect.gen(function*() {
     if (fourFighters) yield* fourFighterSetup;
     yield* controllerSelect;
     if (matchOnly) yield* oneMinute;
-    if (!matchOnly && !fourFighters) yield* reduceStocks;
+    if (!matchOnly && !playable && !fourFighters) yield* reduceStocks;
     for (const epoch of epochs) yield* match(epoch);
     yield* menuPhase("RESULT");
     yield* tap(0, "results-only");

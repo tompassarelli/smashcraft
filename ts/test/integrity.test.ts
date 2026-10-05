@@ -161,6 +161,22 @@ test("#17's normal timed journey reaches both results without integrity stalls o
   expect(four.events.filter((event) => event.event === "integrity-slot-change")).toHaveLength(1);
 });
 
+test("a playable journey plays one-stock matches that end when Player 1, then Player 2, walks off", async () => {
+  const playable = recordingRig(gameFiles, "3 Stock Player 2 wins!");
+  await Effect.runPromise(journey(playable.rig, { ...R8, workload: "playable" }).run);
+  const sends = playable.trace.filter((line) => line.startsWith("send "));
+  expect(sends.filter((line) => line.includes("stock-loss"))).toEqual([
+    `send 0 ${EV_ABS} ${ABS_X} -32768 match-1-stock-loss`, `send 0 ${EV_ABS} ${ABS_X} 0 match-1-stock-loss`,
+    `send 1 ${EV_ABS} ${ABS_X} 32767 match-2-stock-loss`, `send 1 ${EV_ABS} ${ABS_X} 0 match-2-stock-loss`,
+  ]);
+  expect(sends.filter((line) => line.includes("-combat"))).toHaveLength(32);
+  expect(playable.trace.filter((line) => line === "ui b click 1380 155")).toHaveLength(4);
+  expect(playable.trace.filter((line) => line.startsWith("key "))).toEqual(["key a ctrl+t", "key a ctrl+t"]);
+  expect(playable.trace.some((line) => line.startsWith("stop ") || line.includes("-integrity-") || line.includes("ui a click"))).toBe(false);
+  expect(playable.events.filter((event) => event.event !== "menu").map((event) => [event.event, "epoch" in event ? event.epoch : undefined]))
+    .toEqual([["start", 1], ["end", 1], ["results", 1], ["start", 2], ["end", 2], ["results", 2]]);
+});
+
 test("capture arguments select the matches the Python driver numbered", () => {
   expect(parseSweep("24:2,24:1,16")).toEqual([[24, 2], [24, 1], [16, 2]]);
   expect(captureEpochs(0, 1)).toEqual([1, 2]);

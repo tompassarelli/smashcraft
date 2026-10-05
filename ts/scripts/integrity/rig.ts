@@ -35,7 +35,7 @@ const fromDesktop = (failure: DesktopFailure) => new IntegrityFailure({ operatio
 
 /**
  * Copies the files this capture's game wrote (journal receipts, response
- * pages and the input trace) from both clients into OUT/epoch-LABEL/, with
+ * pages, error reports and the input trace) from both clients into OUT/epoch-LABEL/, with
  * each name prefixed by its client's slot and with its times kept.
  */
 export const archiveFiles = (parts: Pick<LiveRigParts, "data" | "out" | "build" | "startedNs">, label: string) =>
@@ -45,7 +45,8 @@ export const archiveFiles = (parts: Pick<LiveRigParts, "data" | "out" | "build" 
       mkdirSync(target, { recursive: true });
       const journal = new Bun.Glob(`smashcraft-journal-*${parts.build}*`);
       const pages = new Bun.Glob(responsePageFile("*", "*", "*"));
-      const names = readdirSync(parts.data[client]).filter((name) => journal.match(name) || pages.match(name) || name === INPUT_TRACE_FILE);
+      const errors = new Bun.Glob("smashcraft-error-p*.txt");
+      const names = readdirSync(parts.data[client]).filter((name) => journal.match(name) || pages.match(name) || errors.match(name) || name === INPUT_TRACE_FILE);
       for (const name of names) {
         const source = join(parts.data[client], name);
         const stat = statSync(source, { bigint: true });
