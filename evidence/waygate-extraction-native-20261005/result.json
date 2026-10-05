@@ -1,0 +1,56 @@
+{
+  "source": "cd6f7a86090740275adedee2beb68aad547fb107",
+  "waygateRevision": "dd4812f264e5518006438cebdc3f05fa0f424468",
+  "clients": 2,
+  "fresh": {
+    "exitCode": 0,
+    "rebuildCompileMs": 7458,
+    "totalMs": 28233,
+    "quickMatchReceipts": 2
+  },
+  "reload": {
+    "exitCode": 0,
+    "samples": 1,
+    "matchingChecksumPairs": 6,
+    "retainedAdvancingSimulation": true,
+    "measurements": [
+      {
+        "sample": 1,
+        "version": 86,
+        "saveToReportMs": 1682.7366460000012,
+        "report": "   1.649 s  v86 running in 2 client(s) (0.740 s)",
+        "applyClock": "1.929688",
+        "frames": [
+          {
+            "frame": 2692,
+            "checksum": "459676:791137"
+          },
+          {
+            "frame": 2751,
+            "checksum": "286758:271339"
+          },
+          {
+            "frame": 2811,
+            "checksum": "466130:678866",
+            "marker": "reload-trial-1"
+          },
+          {
+            "frame": 2871,
+            "checksum": "695681:993327",
+            "marker": "reload-trial-1"
+          },
+          {
+            "frame": 2931,
+            "checksum": "875053:400851",
+            "marker": "reload-trial-1"
+          },
+          {
+            "frame": 2991,
+            "checksum": "104601:715312",
+            "marker": "reload-trial-1"
+          }
+        ]
+      }
+    ]
+  }
+}
