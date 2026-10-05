@@ -202,6 +202,10 @@ From smashcraft:ts/:
   rematch, then compares canonical replay state and fighter poses after every
   frame in Bun and emitted Lua32. It reports the first divergent frame and
   field; the TypeScript Lua compile is cached by input hash.
+- `bun scripts/unused-code.ts`: lists exports no other module uses,
+  smashcraft:ts/ files nothing imports or names, and smashcraft:tools/ files no
+  live document or source names, and exits 1 if any remain. Map bundle entries'
+  exports count as used; references from smashcraft:evidence/ do not. About 10 s.
 
 ## Build the map
 
