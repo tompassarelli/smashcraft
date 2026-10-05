@@ -43,6 +43,32 @@ Map Lua has 32-bit integers that wrap silently and binary32 numbers whose raw
 
 ## Shape the code
 
+### Effect on the host
+
+Warcraft Live's Bun tools use Effect for asynchronous orchestration: typed
+failures, boundary decoding with Schema, bounded client publication and scoped
+resource ownership. The hot-reload entrypoint is smashcraft:ts/scripts/hot.ts;
+its Effect operations live in smashcraft:ts/scripts/hotEffects.ts. Publish each
+client's payload before its manifest. A failed or cancelled publication must
+not report successful game installation; the clients' acknowledgements decide
+that result. Warcraft acknowledgement files contain a complete Preload
+function, including whitespace and line endings around the message.
+
+Pure simulation, numeric operations, code transforms and binary-format
+encoders remain plain TypeScript. The TSTL map compiler uses TypeScript 6's
+compiler API, while the host checker uses TypeScript 7 with Effect tsgo. A
+successful host check does not establish that a library can compile to Lua.
+The installed Effect package currently has no Lua module for TSTL to resolve;
+keep Effect imports on the host until an actual emitted-Lua check supports a
+change to that boundary.
+
+For APIs, read smashcraft:repos/effect/LLMS.md and its version-matched source
+and tests. Application imports resolve installed packages, not vendor paths.
+The exact reference identity is smashcraft:repos/effect.json; its update
+procedure and cadence belong to smashcraft:.agents/skills/effect/SKILL.md.
+
+### Game modules
+
 - Simulation is data plus functions over data. Use a class only for an owner
   with identity and a lifecycle, such as a native handle or a presentation
   object, never as a namespace.
