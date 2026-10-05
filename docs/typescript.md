@@ -94,6 +94,11 @@ adding pooling anywhere else.
 Engine callbacks (timers, triggers, frame events) go through the dispatch
 table, so hot reload can replace code without rebinding them.
 
+A closure made inside `for (let i = …)` sees the loop's final value in Lua:
+TypeScriptToLua keeps one variable for the whole loop instead of one per
+iteration. Copy the index into a `const` in the body, or take it as a
+`forEach` callback parameter.
+
 ## Tests
 
 `test(name, fn)` from `runtime/testing` registers a test that runs under Bun
@@ -113,5 +118,8 @@ From smashcraft:ts/:
   6.0 has, so it compiles with 6.0 and the two report the same errors.
 - `LUA=<32-bit lua> bun scripts/parity.ts`: emitted Lua against Bun on the
   numeric corpus.
+- `GAME_SOAK=1 bun test test/game.test.ts`: the long `*.soak.ts` scenarios,
+  such as the 100000-frame replay tape, which the default suite leaves out.
+  `GAME_SOAK=1` selects the same modules for `scripts/lua-tests.ts`.
 - `bun scripts/wurst2ts.ts OUT_DIR WURST_FILE...`: the deterministic first pass
   of a port. Its output is scaffolding to rewrite, not the result.
