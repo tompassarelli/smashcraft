@@ -1,0 +1,22 @@
+{
+  "source": "0303bb7",
+  "command": "bun evidence/wurst-capabilities-20261005/language-service.ts",
+  "exitCode": 0,
+  "compiler": "6.0.2",
+  "fixtureFiles": 2,
+  "definition": {
+    "count": 1,
+    "file": "fighter.ts",
+    "start": 16
+  },
+  "references": 4,
+  "rename": {
+    "locations": 4,
+    "files": 2
+  },
+  "invalidAssignment": {
+    "diagnostics": 1,
+    "code": 2322
+  },
+  "renamedAndRepairedDiagnostics": 0
+}
