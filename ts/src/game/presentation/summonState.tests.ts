@@ -54,7 +54,7 @@ test("a bear spawns walking, swipes on a hit, then queues its walk at the origin
   const walk = summonClip(SUMMON_BEAR, SUMMON_BEAR_WALK);
   const walkDuration = f32(walk.endSeconds - walk.startSeconds);
   advanceSummonPose(bear, SUMMON_BEAR, f32(walkDuration * 3.0));
-  assertLessThan(Math.abs(bear.clipTime - f32(elapsed - attackDuration)), 0.00001);
+  assertLessThan(Math.abs(bear.clipTime - f32(elapsed - attackDuration)), f32(0.00001));
   fighter.bear.hitSerial++;
   advanceSummons(state, fighter, 3);
   advanceSummons(state, fighter, 3);
@@ -133,7 +133,7 @@ test("sparse and four-slot bears match whether projected or not, and end with th
     for (const slot of PARTICIPANT_SLOTS) {
       assertEquals(summons.bears[slot].active, isActive(sequential.world, slot));
       if (!isActive(sequential.world, slot)) continue;
-      assertLessThan(Math.abs(summons.bears[slot].clipTime - (7 - slot) / 60.0), 0.00001);
+      assertLessThan(Math.abs(summons.bears[slot].clipTime - (7 - slot) / 60.0), f32(0.00001));
       assertEquals(projectBear(summons, fighterAt(sequential.world, slot), slot).x, -240.0 + slot * 150.0);
     }
     const last = fighterAt(sequential.world, 3);

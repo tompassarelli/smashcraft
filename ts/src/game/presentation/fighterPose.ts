@@ -243,8 +243,8 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     return rate;
   }
   if (illidan) {
-    const actionRate = selectIllidanAction(pose, f);
-    if (actionRate !== undefined) return actionRate;
+    const illidanRate = selectIllidanAction(pose, f);
+    if (illidanRate !== undefined) return illidanRate;
   }
   if (pose.jumpAnimationRemaining > 0) {
     playIndex(pose, "jump", (pose.doubleJumpAnimation ? clips.DOUBLE_JUMP : clips.JUMP)[character].index);
