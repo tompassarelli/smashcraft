@@ -1,11 +1,11 @@
 // Development hot reload (#36): compiles the map bundle and hands it to running
 // clients through CustomMapData, then reports how long the change took to run
-// in every client. Versions continue from the manifest already on disk, so the
+// in every client. Versions continue from the newest manifest on disk, so the
 // tool and the match can each restart without losing track.
 // Usage: bun scripts/hot.ts --data DIR [--data DIR ...] [--watch]
 import { readdirSync, renameSync, rmSync, watch } from "node:fs";
 import { join } from "node:path";
-import { CHUNK_LENGTH, CHUNKS_PER_FILE, MANIFEST_FILE, ackFile, chunkFile, formatManifest, parseManifest } from "../src/runtime/hotFiles";
+import { CHUNK_LENGTH, CHUNKS_PER_FILE, ackFile, chunkFile, formatManifest, manifestFile } from "../src/runtime/hotFiles";
 import { checksum, encodeBase64 } from "../src/runtime/payload";
 import { mapCompiler, report } from "./compiler";
 
@@ -21,23 +21,30 @@ function preloadFile(chunks: readonly string[]): string {
   return ["function PreloadFiles takes nothing returns nothing", ...lines, "endfunction", ""].join("\n");
 }
 
-async function publishedVersion(dir: string): Promise<number> {
-  const file = Bun.file(join(dir, MANIFEST_FILE));
-  if (!(await file.exists())) return 0;
-  const line = /BlzSetAbilityTooltip\('\$wsl', "([^"]*)", 0\)/.exec(await file.text());
-  return (line === null ? undefined : parseManifest(line[1]!))?.version ?? 0;
+function latestVersion(dir: string): number {
+  const versions = readdirSync(dir).map((name) => /^smashcraft-hot-manifest-(\d+)\.pld$/.exec(name)?.[1]);
+  return Math.max(0, ...versions.filter((version) => version !== undefined).map(Number));
 }
 
-/** Chunk files older than the previous version; a client may still be reading that one. */
-function removeStaleChunks(dir: string, version: number): void {
+/** Chunk files of other payloads than these; manifests stay, as the map relies on them. */
+function removeChunksExcept(dir: string, keep: readonly string[]): void {
+  const kept = new Set(keep.map((key) => chunkFile(key, 0).replace(/-0\.pld$/, "")));
   for (const name of readdirSync(dir)) {
-    const match = /^smashcraft-hot-(\d+)-\d+\.pld$/.exec(name);
-    if (match !== null && Number(match[1]) < version - 1) rmSync(join(dir, name));
+    const payload = /^(smashcraft-hot-\d+-\d+)-\d+\.pld$/.exec(name)?.[1];
+    if (payload !== undefined && !kept.has(payload)) rmSync(join(dir, name));
   }
 }
 
+/** Written whole: a reader sees the old file or the new one. */
+async function writeAtomically(path: string, text: string): Promise<void> {
+  await Bun.write(`${path}.next`, text);
+  renameSync(`${path}.next`, path);
+}
+
 const compile = mapCompiler("tsconfig.map.json");
-let version = Math.max(...(await Promise.all(dataDirs.map(publishedVersion))));
+let version = Math.max(...dataDirs.map(latestVersion));
+// The previous payload stays until the next publish: a client may still be reading it.
+let previousChecksum = "";
 
 async function publish(): Promise<void> {
   const started = performance.now();
@@ -51,24 +58,24 @@ async function publish(): Promise<void> {
   const encoded = encodeBase64(bytes);
   const chunks = Array.from({ length: Math.ceil(encoded.length / CHUNK_LENGTH) }, (_, i) => encoded.slice(i * CHUNK_LENGTH, (i + 1) * CHUNK_LENGTH));
   const files = Math.ceil(chunks.length / CHUNKS_PER_FILE);
+  const payloadChecksum = checksum(bytes);
   version++;
   for (const dir of dataDirs) {
     for (let index = 0; index < files; index++) {
-      await Bun.write(join(dir, chunkFile(version, index)), preloadFile(chunks.slice(index * CHUNKS_PER_FILE, (index + 1) * CHUNKS_PER_FILE)));
+      await Bun.write(join(dir, chunkFile(payloadChecksum, index)), preloadFile(chunks.slice(index * CHUNKS_PER_FILE, (index + 1) * CHUNKS_PER_FILE)));
     }
-    // The manifest goes last and whole: a client that reads it can read every chunk file.
-    const manifest = join(dir, MANIFEST_FILE);
-    await Bun.write(`${manifest}.next`, preloadFile([formatManifest({ version, files, checksum: checksum(bytes) })]));
-    renameSync(`${manifest}.next`, manifest);
-    removeStaleChunks(dir, version);
+    // The manifest follows the chunks: a client that reads it can read every chunk file.
+    await writeAtomically(join(dir, manifestFile(version)), preloadFile([formatManifest({ version, files, checksum: payloadChecksum })]));
+    removeChunksExcept(dir, [payloadChecksum, previousChecksum]);
   }
+  previousChecksum = payloadChecksum;
   const published = performance.now();
   const pending = new Set(dataDirs);
   while (pending.size > 0 && performance.now() - published < ACK_TIMEOUT_MS) {
     for (const dir of [...pending]) {
       for (const slot of [0, 1, 2, 3]) {
         const file = Bun.file(join(dir, ackFile(slot)));
-        if ((await file.exists()) && (await file.text()).includes(`applied ${version}"`)) pending.delete(dir);
+        if ((await file.exists()) && Number(/applied (\d+)/.exec(await file.text())?.[1]) >= version) pending.delete(dir);
       }
     }
     await Bun.sleep(5);

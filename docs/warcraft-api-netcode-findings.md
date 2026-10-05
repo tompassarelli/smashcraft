@@ -289,6 +289,17 @@ No host test reproduces the game's raw float results.
 `string.pack`, `load` and `math.type` are available to map code. Evidence:
 smashcraft:evidence/warcraft-lua-numbers-20261005/README.md.
 
+## Preloader reads in the game
+
+`Preloader` checks on every call whether the file exists, but runs the content
+it first read from a path for the rest of the session. Rewriting, or deleting
+and re-creating, a file under a name the map has already read returns the old
+content. A path that was missing when probed is read once it appears. Anything
+the map reads more than once from a host-written file therefore needs a new
+name for new content. Hot reload numbers its manifests and names its chunk
+files by payload checksum. Evidence:
+smashcraft:evidence/warcraft-preloader-cache-20261005/README.md.
+
 ## Input and rollback claims we can make
 
 The actual Linux companion retained tested queued kernel events and original

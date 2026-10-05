@@ -6,9 +6,13 @@ export const CHUNKS_PER_FILE = 64;
 /** Characters per chunk; a generated Preload line stays short. */
 export const CHUNK_LENGTH = 200;
 
-/** One manifest whose version only rises, so neither side restarting loses track. */
-export const MANIFEST_FILE = "smashcraft-hot-manifest.pld";
-export const chunkFile = (version: number, index: number) => `smashcraft-hot-${version}-${index}.pld`;
+// Preloader checks whether a file exists on every call but runs the content it
+// first read from that path for the rest of the session
+// (smashcraft:docs/warcraft-api-netcode-findings.md). So no name is reused for
+// other content: manifests are numbered by a version that only rises and are never
+// removed, and chunk files are named by their payload's checksum.
+export const manifestFile = (version: number) => `smashcraft-hot-manifest-${version}.pld`;
+export const chunkFile = (payloadChecksum: string, index: number) => `smashcraft-hot-${payloadChecksum.replace(":", "-")}-${index}.pld`;
 export const ackFile = (slot: number) => `smashcraft-hot-ack-p${slot}.txt`;
 
 export interface Manifest {
