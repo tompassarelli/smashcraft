@@ -12,9 +12,10 @@ def json_lines(path):
     return [json.loads(line) for line in path.read_text().splitlines()]
 
 
-def integrity_result(root, metadata):
+def integrity_result(root, metadata, pair=(1, 2), tag="", window=None):
     """Issue 26: producer-clock oracle, native application and first prediction."""
     failures = []
+    journey = [e for e in metadata["events"] if e.get("epoch") in pair or "epoch" not in e]
     def require(condition, message):
         if not condition:
             failures.append(message)
@@ -66,7 +67,7 @@ def integrity_result(root, metadata):
     endpoints = {}
     coverage = [set(), set()]
     same_frame_taps = [0, 0]
-    for epoch in (1, 2):
+    for epoch in pair:
         for client in (0, 1):
             pages = list((root / f"epoch-{epoch}").glob(
                 f"{client}-smashcraft-response-p{client}-run*-page*.txt"))
@@ -120,11 +121,11 @@ def integrity_result(root, metadata):
         require(endpoints.get((epoch, 0)) is not None and
                 endpoints.get((epoch, 0)) == endpoints.get((epoch, 1)),
                 f"epoch {epoch}: final checksums differ")
-        boundary = next(e for e in metadata["events"] if e["event"] == "start" and e["epoch"] == epoch)
-        end = next(e for e in metadata["events"] if e["event"] == "end" and e["epoch"] == epoch)
+        boundary = next(e for e in journey if e["event"] == "start" and e["epoch"] == epoch)
+        end = next(e for e in journey if e["event"] == "end" and e["epoch"] == epoch)
         for slot in (0, 1):
             publications = [boundary["publications"][slot]]
-            publications += [e["publications"][slot] for e in metadata["events"]
+            publications += [e["publications"][slot] for e in journey
                              if e["event"] == "integrity-resume" and e["epoch"] == epoch]
             segments = sorted((p["publication_monotonic_estimate_ns"],
                                int(re.search(r"frame=(\d+)", p["contents"])[1])) for p in publications)
@@ -223,24 +224,24 @@ def integrity_result(root, metadata):
         require(injected[slot] >= 500, f"slot {slot}: fewer than 500 injected edges")
         require(required_bindings <= coverage[slot], f"slot {slot}: missing binding coverage")
         require(same_frame_taps[slot] > 0, f"slot {slot}: no observed same-frame 5 ms tap")
-    stalls = [e for e in metadata["events"] if e["event"] == "integrity-stall"]
+    stalls = [e for e in journey if e["event"] == "integrity-stall"]
     require(sorted(e["kind"] for e in stalls) == ["game", "helper"], "required process stalls absent")
     for event in stalls:
         require(event["verified_stopped_state"] and 240_000_000 <=
                 event["continued_monotonic_ns"] - event["stopped_monotonic_ns"] <= 350_000_000,
                 f"{event['kind']} stall duration/state unproven")
-    require(any(e["event"] == "integrity-pause" for e in metadata["events"]) and
-            any(e["event"] == "integrity-resume" for e in metadata["events"]), "Start pause/resume absent")
-    change = next((e for e in metadata["events"] if e["event"] == "integrity-slot-change"), None)
+    require(any(e["event"] == "integrity-pause" for e in journey) and
+            any(e["event"] == "integrity-resume" for e in journey), "Start pause/resume absent")
+    change = next((e for e in journey if e["event"] == "integrity-slot-change"), None)
     four_fighters = metadata.get("four_fighters", False)
     expected_modes = [(3, 8), (7, 8), (3, 12)] if four_fighters else [(7, 0), (3, 4)]
     require(change is not None and [(c["human_fighters"], c["computers"]) for c in change["changes"]] == expected_modes,
             "rematch slot change absent")
     if four_fighters:
-        setup = next((e for e in metadata["events"] if e["event"] == "four-fighter-setup"), None)
+        setup = next((e for e in journey if e["event"] == "four-fighter-setup"), None)
         require(setup is not None and [(c["human_fighters"], c["computers"]) for c in setup["changes"]]
                 == [(7, 0), (3, 4), (11, 4), (3, 12)], "two-human two-CPU setup absent")
-        for epoch in (1, 2):
+        for epoch in pair:
             for client in (0, 1):
                 trace = root / f"epoch-{epoch}" / f"{client}-wc3-melee-input-trace.txt"
                 require(trace.exists() and "connected 3 human-fighters 3 computers 12 fighters 15" in trace.read_text(),
@@ -248,9 +249,11 @@ def integrity_result(root, metadata):
     gate_edges = losses == duplicates == reordered == stuck == 0
     gate_frames = total > 0 and correct == total
     gate_local = legal_presses > 0 and missing_local == 0 and bool(local_delays) and min(local_delays) >= 0 and max(local_delays) <= 1
-    gate_checksums = len(endpoints) == 4 and all(endpoints[e, 0] == endpoints[e, 1] for e in (1, 2))
+    gate_checksums = len(endpoints) == 4 and all(endpoints[e, 0] == endpoints[e, 1] for e in pair)
     require(len(rollback_limits) == 1, "native rollback limit absent or inconsistent")
     rollback_limit = next(iter(rollback_limits), None)
+    if window is not None:
+        require(rollback_limit == window, f"native rollback limit {rollback_limit} is not the commanded {window}")
     result = dict(scope=metadata["scope"], build=metadata["settings"]["build"],
                   rollback_limit_frames=rollback_limit,
                   four_fighters=four_fighters,
@@ -282,11 +285,35 @@ def integrity_result(root, metadata):
              f"| Prediction stalls at {rollback_limit}-frame limit | {len(stall_lengths)}; longest {max(stall_lengths, default=0)} callbacks |",
              "| Injected input → screen, ms | Not captured in this session |",
              f"| Final checksums match | {'Yes' if gate_checksums else 'No'} |"]
-    (root / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
-    (root / "integrity-table.md").write_text("\n".join(table) + "\n")
+    suffix = f"-{tag}" if tag else ""
+    (root / f"summary{suffix}.json").write_text(json.dumps(result, indent=2) + "\n")
+    (root / f"integrity-table{suffix}.md").write_text("\n".join(table) + "\n")
     print("\n".join(table))
     print(json.dumps(dict(passed=result["passed"], gates=result["gates"], evidence_failures=failures), indent=2))
-    return 0 if result["passed"] else 1
+    return result
+
+
+def sweep_result(root, metadata):
+    """One #26 table per commanded rollback window, from one loaded session."""
+    rows = ["| Window | Edges lost/dup/reord/stuck | Expected frame | Local start p50/p95/max | "
+            "Opponent lateness p50/p95/max | Rollback depth p50/p95/max | Stalls (longest) | Checksums | Passed |",
+            "|---|---|---|---|---|---|---|---|---|"]
+    passed = True
+    for index, window in enumerate(metadata["sweep"]):
+        pair = (2 * index + 1, 2 * index + 2)
+        print(f"## R{window}: epochs {pair}")
+        r = integrity_result(root, metadata, pair, f"rb{window}", window)
+        passed = passed and r["passed"]
+        def brief(d):
+            return f"{d['p50']} / {d['p95']} / {d['max']}"
+        rows.append(f"| R{window} | {r['lost']}/{r['duplicated']}/{r['reordered']}/{r['stuck']} | "
+                    f"{r['expected_frame_both_clients']['percent']}% | {brief(r['local_start_minus_capture_frames'])} | "
+                    f"{brief(r['opponent_input_lateness_frames'])} | {brief(r['rollback_depth_frames'])} | "
+                    f"{r['prediction_stalls']['count']} ({r['prediction_stalls']['longest_callbacks']}) | "
+                    f"{'Yes' if r['gates']['checksums'] else 'No'} | {'Yes' if r['passed'] else 'No'} |")
+    (root / "sweep-table.md").write_text("\n".join(rows) + "\n")
+    print("\n".join(rows))
+    return 0 if passed else 1
 
 
 def main():
@@ -295,8 +322,10 @@ def main():
     args = parser.parse_args()
     root = args.capture
     metadata = json.loads((root / "capture.json").read_text())
+    if metadata.get("sweep"):
+        return sweep_result(root, metadata)
     if metadata.get("input_integrity"):
-        return integrity_result(root, metadata)
+        return 0 if integrity_result(root, metadata)["passed"] else 1
     reconnect = metadata.get("controller_reconnect", False)
     slot_modes = metadata.get("controller_slots", False)
     epochs = (1, 2, 3) if slot_modes else (1, 2)

@@ -40,6 +40,8 @@ def main():
     parser.add_argument("--controller-menus", action="store_true")
     parser.add_argument("--input-integrity", action="store_true",
                         help="run the issue 26 all-binding 500-edge-per-player match/rematch test")
+    parser.add_argument("--sweep", type=lambda text: [int(v) for v in text.split(",")], default=None,
+                        help="rollback windows; each runs one integrity match and rematch after a -dev rb chat command")
     parser.add_argument("--four-fighters", action="store_true",
                         help="include issue 17's two humans and two CPUs in the integrity journey")
     parser.add_argument("--controller-slots", action="store_true",
@@ -68,7 +70,9 @@ def main():
         parser.error("--input-integrity requires --controller-menus without other scenarios")
     if args.four_fighters and not args.input_integrity:
         parser.error("--four-fighters requires --input-integrity")
-    epochs = (1, 2, 3) if args.controller_slots else (1, 2)
+    if args.sweep and (not args.input_integrity or args.four_fighters):
+        parser.error("--sweep requires --input-integrity without --four-fighters")
+    epochs = (1, 2, 3) if args.controller_slots else tuple(range(1, 2 * len(args.sweep) + 1)) if args.sweep else (1, 2)
     cfg = json.loads(args.session.read_text())["args"]
     cfg["build"] = args.build
     args.out.mkdir(parents=True, exist_ok=False)
@@ -295,7 +299,7 @@ def main():
                     stocks -= 1
                     ui("a", "wait", rf"{stocks} Stock")
 
-            def integrity_slot_change():
+            def integrity_slot_change(epoch):
                 # Exercise the existing slot-mode UI while retaining both human
                 # fighters for the rematch's measured controller stream.
                 menu_phase("CHARACTER")
@@ -312,7 +316,32 @@ def main():
                           "integrity rematch slot change absent")
                     receipts.append(dict(human_fighters=humans, computers=cpus,
                                          publications=[capture_boundary(p) for p in paths]))
-                events.append(dict(event="integrity-slot-change", epoch=2, changes=receipts))
+                events.append(dict(event="integrity-slot-change", epoch=epoch, changes=receipts))
+
+            def integrity_slot_restore():
+                # The rematch left slot C as CPU; one tag click returns it to EMPTY.
+                menu_phase("CHARACTER")
+                ui("a", "wait", "CONTROLS")
+                paths = [root / f"smashcraft-journal-menu-{args.build}-s{slot}.txt"
+                         for slot, root in enumerate(data)]
+                ui("a", "click", 2400, 200)
+                ui("a", "click", 1484, 824)
+                signature = "connected=3 human-fighters=3 computers=0 fighters=3"
+                until(lambda: all(complete(p) and signature in p.read_text() for p in paths),
+                      "slot C was not restored to EMPTY")
+
+            def dev_command(epoch, text, expected):
+                # Synchronized player chat; both clients' receipts must show the value.
+                paths = [root / f"smashcraft-dev-{args.build}-p{slot}.txt" for slot, root in enumerate(data)]
+                before = [p.read_text() if p.exists() else "" for p in paths]
+                keys(0, "key", "Return")
+                ui("a", "wait", args.chat_open_pattern)
+                keys(0, "type", "--delay", "35", text)
+                keys(0, "key", "Return")
+                until(lambda: all(complete(p) and p.read_text() != old and expected in p.read_text()
+                                  for p, old in zip(paths, before)), f"dev command not confirmed: {text}")
+                events.append(dict(event="dev-config", epoch=epoch, command=text,
+                                   publications=[capture_boundary(p) for p in paths]))
 
             def four_fighter_setup():
                 menu_phase("CHARACTER")
@@ -367,7 +396,7 @@ def main():
                     for binding in bindings:
                         pulse([binding], f"repeat-{cycle}")
                     pulse([bindings[6], bindings[7]], f"simultaneous-{cycle}")
-                    if epoch == 1 and cycle in (3, 6):
+                    if epoch % 2 == 1 and cycle in (3, 6):
                         kind = "helper" if cycle == 3 else "game"
                         slot = 0 if kind == "helper" else 1
                         pid = helpers[slot].pid if kind == "helper" else int(cfg["pid_b"])
@@ -386,7 +415,7 @@ def main():
                                            continued_monotonic_ns=continued,
                                            verified_stopped_state=True))
                         time.sleep(.6)
-                if epoch == 1:
+                if epoch % 2 == 1:
                     menu_button(0, 0x13b, prefix + "pause")
                     def publications(state):
                         found = []
@@ -674,11 +703,19 @@ def main():
                     ui("b", "wait", rf"{stocks} Stock")
 
             for epoch in epochs:
-                if args.input_integrity and not args.four_fighters and epoch == 2:
+                if args.input_integrity and not args.four_fighters and epoch % 2 == 0:
                     for stocks in (2, 3):
                         ui("b", "click", 250, 900)
                         ui("b", "click", 1675, 155)
                         ui("b", "wait", rf"{stocks} Stock")
+                if args.input_integrity and not args.four_fighters and epoch > 1 and epoch % 2 == 1:
+                    for stocks in (2, 1):
+                        ui("b", "click", 250, 900)
+                        ui("b", "click", 1380, 155)
+                        ui("b", "wait", rf"{stocks} Stock")
+                if args.sweep and epoch % 2 == 1:
+                    window = args.sweep[epoch // 2]
+                    dev_command(epoch, f"-dev rb {window}", f" rb={window} ")
                 trace_after_wall = time.time_ns()
                 # Ctrl+G only enables the diagnostic trace; controller-menu mode
                 # uses no keyboard or mouse to choose, start, or rematch.
@@ -711,12 +748,12 @@ def main():
                 if args.controller_chat:
                     chat(epoch)
                 send(0, EV_ABS, ABS_X, -32768, f"match-{epoch}-stock-loss")
-                if args.input_integrity and epoch == 2:
+                if args.input_integrity and epoch % 2 == 0:
                     send(1, EV_ABS, ABS_X, 32767, f"match-{epoch}-stock-loss")
                 ends = [control("end", epoch, slot) for slot in range(2)]
                 until(lambda: all(complete(p) for p in ends), f"epoch {epoch}: result did not stop capture", 75 if args.input_integrity else 40)
                 send(0, EV_ABS, ABS_X, 0, f"match-{epoch}-stock-loss")
-                if args.input_integrity and epoch == 2:
+                if args.input_integrity and epoch % 2 == 0:
                     send(1, EV_ABS, ABS_X, 0, f"match-{epoch}-stock-loss")
                 until(lambda: all(re.search(r"match_quiescent epoch=" + str(epoch) + r"(?:\s|$)",
                                             (args.out / f"helper-{slot}.log").read_text())
@@ -757,7 +794,7 @@ def main():
                             slot_selection(epoch + 1)
                         else:
                             if args.input_integrity:
-                                integrity_slot_change()
+                                integrity_slot_change(epoch + 1) if (epoch + 1) % 2 == 0 else integrity_slot_restore()
                             controller_select()
                     else:
                         tap(0, "results-only")
@@ -770,6 +807,7 @@ def main():
                         ui("a", "wait", r"STAGE|Sky.*Deck|Three.*Bridges")
                 print(f"Epoch {epoch}: game start, tap, stock loss and results observed", flush=True)
         result = dict(settings=cfg, input_integrity=args.input_integrity, four_fighters=args.four_fighters,
+                      sweep=args.sweep,
                       combat_actions=args.combat_actions, controller_reconnect=args.controller_reconnect,
                       controller_chat=args.controller_chat, controller_slots=args.controller_slots,
                       helper_pids=[p.pid for p in helpers], events=events,
