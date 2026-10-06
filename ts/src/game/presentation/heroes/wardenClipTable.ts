@@ -6,7 +6,7 @@ const c = WARDEN_CLIPS;
 
 export const WARDEN_CLIP_TABLE: HeroClipTable = {
   ...c,
-  forwardTiltUp: c.forwardTilt, forwardTiltDown: c.forwardTilt,
+  forwardTiltUp: c.forwardTilt, forwardTiltDown: c.forwardTilt, smashCharge: c.forwardSmash,
   ledgeRoll: c.roll, rollForward: c.roll, rollBackward: c.roll, downDamage: c.knockdown,
   victimPummel: c.grabbed, victimThrowForward: c.damageAir, victimThrowBack: c.damageAir,
   victimThrowUp: c.damageAir, victimThrowDown: c.knockdown,

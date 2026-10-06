@@ -7,16 +7,22 @@ import { stateChecksum } from "../replay/canonical";
 import { firstPoseDifference, firstStateDifference } from "../replay/difference";
 import { ReplayHistory } from "../replay/history";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "../replay/snapshot";
-import { AttackStyle, Character, GrabAction, SpecialAction } from "../sim/codes";
+import { AttackStyle, Character, GrabAction, PlatformMove, SpecialAction } from "../sim/codes";
 import { HERO_ROSTER } from "../sim/heroes/registry";
 import { FOLLOW_UP_FORM, SpecialForm } from "../sim/heroSpecials";
-import { createFighter } from "../sim/fighter";
+import { type Fighter, createFighter } from "../sim/fighter";
+import { surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
+import { advanceFighter } from "../sim/step";
+import { bodyTop } from "../sim/surfaces";
+import { melee } from "../sim/tuning";
+import { f32 } from "wisp/src/sim/f32";
+import * as assets from "./fighterAssetInfo";
+import { platformClip, specialClip } from "./fighterClips";
 import { attackDurationFramesForGrounding } from "../sim/moves";
-import { fighterAt, neutralControls } from "../sim/roster";
+import { type Controls, fighterAt, neutralControls } from "../sim/roster";
 import { soloWorld, testWorld } from "../sim/testWorld";
 import * as dh from "./demonHunterAssetInfo";
-import { specialClip } from "./fighterClips";
-import { advanceFighterPose, createFighterPose } from "./fighterPose";
+import { FRAME_SECONDS, advanceFighterPose, createFighterPose } from "./fighterPose";
 
 test("replaying rows from a restored frame reproduces each pose's selection and clock", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
@@ -169,6 +175,49 @@ test("an attack restart and a smash release keep their authored clips", () => {
   assertEquals(pose.clipTime, 0.0);
 });
 
+test("platform ascent, descent and wraps play each fighter's platform clip over the move", () => {
+  const fighters = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
+  const deckZ = surfaceZ(1, 1, 0);
+  const centre = f32(f32(surfaceLeft(1, 1, 0) + surfaceRight(1, 1, 0)) / 2);
+  for (const character of fighters) {
+    const rising = createFighter(character, centre, 1);
+    rising.motion.grounded = false;
+    rising.motion.z = f32(f32(deckZ - melee(bodyTop(character))) - 0.5);
+    rising.motion.vz = 12.0;
+    const standing = createFighter(character, centre, 1);
+    standing.motion.surface = 1;
+    standing.motion.z = deckZ;
+    const wrapping = createFighter(character, centre, 1);
+    wrapping.motion.grounded = false;
+    wrapping.motion.z = rising.motion.z;
+    wrapping.motion.vz = 12.0;
+    const runs: readonly [Fighter, readonly Controls[]][] = [
+      [rising, []],
+      [standing, [{ ...neutralControls(), down: true, verticalDirection: -1 }]],
+      [wrapping, [neutralControls(), { ...neutralControls(), direction: -1 }, { ...neutralControls(), down: true, verticalDirection: -1 }, { ...neutralControls(), direction: 1 }]],
+    ];
+    for (const [f, inputs] of runs) {
+      const world = soloWorld(f);
+      const pose = createFighterPose();
+      const seen = new Set<number>();
+      for (let frame = 0; frame < 16; frame++) {
+        advanceFighter(world, 0, 1, inputs[frame] ?? neutralControls(), 0.0);
+        advanceFighterPose(pose, f, world, neutralControls(), false, false, false, false);
+        if (f.platform.move === PlatformMove.none) continue;
+        seen.add(f.platform.move);
+        const clip = platformClip(character, f.platform.move);
+        assertEquals(pose.clipIndex, clip.index);
+        // The whole clip plays over the move's jump squat.
+        assertEquals(pose.rate, f32(clip.seconds / f32(f.platform.duration * FRAME_SECONDS)));
+      }
+      assertGreaterThan(seen.size, 0);
+    }
+  }
+  // Each original fighter's platform clips are its packaged ledge climb, hang and roll.
+  assertEquals(platformClip(Character.archer, PlatformMove.ascent).index, assets.ARCHER_LEDGE_CLIMB_INDEX);
+  assertEquals(platformClip(Character.rifleman, PlatformMove.descent).index, assets.RIFLEMAN_LEDGE_HANG_INDEX);
+  assertEquals(platformClip(Character.demonHunter, PlatformMove.wrapOver).index, dh.DEMON_HUNTER_LEDGE_ROLL_INDEX);
+});
 
 test("a hero special's follow-up plays its own follow-up clip, or the special's, from the start", () => {
   for (const hero of HERO_ROSTER) {
