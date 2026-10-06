@@ -301,6 +301,22 @@ const UTHER: MatchScript = {
   predictions: [[140, 152], [440, 452]],
 };
 
+/** Warden's Shadow Strike and its poison, Pursuit Lunge, Fan of Knives, an aimed Blink and her blade normals and a throw against the Archer, replayed across each. */
+const WARDEN: MatchScript = {
+  characters: [Character.warden, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 540,
+  holds: [[
+    [20, 2, SPECIAL], [80, 4, TOWARD], [81, 2, SPECIAL], [150, 4, DOWN], [151, 2, SPECIAL], [220, 3, JUMP],
+    [232, 4, UP], [233, 2, SPECIAL], [236, 6, TOWARD], [320, 2, ATTACK], [340, 8, DOWN], [342, 2, ATTACK],
+    [370, 2, GRAB], [374, 4, AWAY], [420, 2, C_RIGHT], [450, 3, JUMP], [456, 2, C_DOWN], [490, 2, C_UP],
+  ], [
+    [40, 2, ATTACK], [100, 12, SHIELD_LEFT], [170, 2, ATTACK], [260, 2, ATTACK], [300, 2, GRAB],
+    [400, 10, SHIELD_RIGHT], [470, 2, ATTACK],
+  ]],
+  approaches: [[[300, 45], [360, 45]], [[1, 60], [130, 60], [200, 45], [280, 45], [380, 45]]],
+  rollbacks: [[24, 50], [84, 112], [154, 190], [236, 270], [372, 400], [452, 480]],
+  predictions: [[150, 162], [340, 352]],
+};
+
 /** Records the acceptance tapes by name, and checks they press every bound source. */
 export function generateTapes(): Map<string, string> {
   const pressed = [new Set<string>(), new Set<string>()];
@@ -323,6 +339,7 @@ export function generateTapes(): Map<string, string> {
     ["computer", recordTape("A player against the computer on the raised decks, with replays.", [COMPUTER])],
     ["lich", recordTape("Lich's specials, free recovery and normals against the Archer, with replays.", [LICH])],
     ["mountain-king", recordTape("Mountain King's specials, free Thunder Leap, normals and a throw against the Archer, with replays.", [MOUNTAIN_KING])],
+    ["warden", recordTape("Warden's specials with poison and an aimed Blink, normals and a throw against the Archer, with replays.", [WARDEN])],
     ["uther", recordTape("Uther's specials, guard, free recovery and normals against the Archer, with replays.", [UTHER])],
     ["moving-platforms", recordTape("Moving decks, jumping, dropping through, predictions and rollback over complete path cycles.", [{
       characters: [Character.archer, Character.rifleman], stage: 3, stocks: 3, minutes: 0, frames: 620,
