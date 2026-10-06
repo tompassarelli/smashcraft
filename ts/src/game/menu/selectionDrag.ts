@@ -2,11 +2,12 @@
 // the bottom and a chip that sits on its card until placed on a roster tile.
 // Coordinates are UI frame units (pointer.ts). The state belongs to the local
 // cursor: a placement crosses a player sync event before it changes a fighter.
+import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_CAPACITY, participantActive } from "../input/participants";
+import { type RosterGrid, type RosterTile, cellRect, tileAt } from "./selectionGrid";
 
-/** Roster tiles left to right; a tile's number is the fighter it chooses. */
-export type RosterTile = 0 | 1 | 2;
+export type { RosterTile };
 
 export interface RosterChip {
   /** The roster tile the slot chose. */
@@ -17,6 +18,8 @@ export interface RosterChip {
 
 /** The panel as this player sees it this frame. */
 export interface Roster {
+  /** The fighter grid drawn this frame. */
+  grid: RosterGrid;
   /** Slots whose chips this player may move: their own fighter and computers they may choose for. */
   selectable: number;
   /** One chip per participant slot. */
@@ -40,23 +43,14 @@ export interface Placement {
   readonly tile: RosterTile;
 }
 
-export function rosterTile(x: number, y: number): RosterTile | undefined {
-  if (y < 0.2919999957084656 || y > 0.42399999499320984) return undefined;
-  if (x >= 0.25999999046325684 && x <= 0.3720000088214874) return 0;
-  if (x >= 0.4399999976158142 && x <= 0.5519999861717224) return 1;
-  if (x >= 0.6200000047683716 && x <= 0.7319999933242798) return 2;
-  return undefined;
+/** The left edge of a placed chip; slots share a cell in two columns. */
+export function chipX(grid: RosterGrid, slot: number, choice: number): number {
+  return cellRect(grid, choice).left + (f32(0.012) + floorMod(slot, 2) * f32(0.051)) * grid.scale;
 }
 
-/** The left edge of a placed chip; slots share a tile in two columns. */
-export function chipX(slot: number, choice: number): number {
-  const tileLeft = choice === 0 ? 0.2720000147819519 : choice === 1 ? 0.4519999921321869 : 0.6320000290870667;
-  return tileLeft + floorMod(slot, 2) * 0.050999999046325684;
-}
-
-/** The top edge of a placed chip; slots share a tile in two rows. */
-export function chipY(slot: number): number {
-  return slot < 2 ? 0.3659999966621399 : 0.32600000500679016;
+/** The top edge of a placed chip; slots share a cell in two rows. */
+export function chipY(grid: RosterGrid, slot: number, choice: number): number {
+  return cellRect(grid, choice).top - (slot < 2 ? f32(0.05) : f32(0.088)) * grid.scale;
 }
 
 export function cardX(slot: number): number {
@@ -64,9 +58,9 @@ export function cardX(slot: number): number {
 }
 
 /** Chips are 0.04 square; a press within 0.02 of the center picks one up. */
-function onChip(slot: number, choice: number, x: number, y: number): boolean {
-  const dx = x - (chipX(slot, choice) + 0.019999999552965164);
-  const dy = y - (chipY(slot) - 0.019999999552965164);
+function onChip(grid: RosterGrid, slot: number, choice: number, x: number, y: number): boolean {
+  const dx = x - (chipX(grid, slot, choice) + 0.019999999552965164);
+  const dy = y - (chipY(grid, slot, choice) - 0.019999999552965164);
   return dx * dx + dy * dy <= 0.00039999998989515007;
 }
 
@@ -97,12 +91,12 @@ export function clearSelectionDrag(drag: SelectionDrag): void {
  * chip's (the last slot wins where chips overlap), then the held chip when the
  * press is on a tile. Picking up a chip also holds it.
  */
-function pickUp(drag: SelectionDrag, { selectable, chips }: Readonly<Roster>, x: number, y: number): number | undefined {
+function pickUp(drag: SelectionDrag, { grid, selectable, chips }: Readonly<Roster>, x: number, y: number): number | undefined {
   let picked = cardSlot(x, y, selectable);
   if (picked === undefined) {
     for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
       const chip = chips[slot];
-      if (chip?.placed === true && participantActive(selectable, slot) && onChip(slot, chip.choice, x, y)) picked = slot;
+      if (chip?.placed === true && participantActive(selectable, slot) && onChip(grid, slot, chip.choice, x, y)) picked = slot;
     }
   }
   if (picked !== undefined) drag.held = picked;
@@ -114,7 +108,7 @@ export function updateSelectionDrag(drag: SelectionDrag, roster: Readonly<Roster
   // A chip that stopped being selectable leaves the hand.
   if (drag.held !== undefined && !participantActive(roster.selectable, drag.held)) drag.held = undefined;
   if (drag.dragging !== undefined && !participantActive(roster.selectable, drag.dragging)) drag.dragging = undefined;
-  drag.hover = rosterTile(x, y);
+  drag.hover = tileAt(roster.grid, x, y);
   let placement: Placement | undefined;
   if (down && !drag.down) {
     drag.dragging = pickUp(drag, roster, x, y);

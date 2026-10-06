@@ -19,7 +19,7 @@ import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
 import { RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
-import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction } from "./heroSpecialRules";
+import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, stopHeroMotionAtBodies } from "./heroSpecialRules";
 
 export const DEMONHUNTER_MANA_BURN_STARTUP = 8;
 const DEMONHUNTER_MANA_BURN_RECOVERY = 25;
@@ -363,7 +363,9 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
   const ownsBatch = openDamageContacts();
   const { contacts, facings } = specialScratch;
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
-    if (isActive(world, slot)) advanceSpecialAction(fighterAt(world, slot), stage, inputs?.[slot]);
+    if (!isActive(world, slot)) continue;
+    advanceSpecialAction(fighterAt(world, slot), stage, inputs?.[slot]);
+    stopHeroMotionAtBodies(world, slot);
   }
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;

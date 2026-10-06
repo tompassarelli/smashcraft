@@ -50,8 +50,13 @@ acts again on N+1. It may author:
   life, radius, `activeFrom` (the spawn frame is age one), effect,
   `reflectable`, `limit`, `cancelOnInterrupt`, `backOffsetX` (used when
   the special is pressed toward the back, which then keeps the facing) and
-  `needsLineOfSight` (not placed through solid stage surfaces); a cast that would exceed a limit or the three-projectile
-  cap fails before spending;
+  `needsLineOfSight` (not placed through solid stage surfaces); a cast that
+  would exceed a limit or the three-projectile cap fails before spending; in a
+  match a hero projectile ends on a wall, an underside or a solid deck's top,
+  and passes through pass decks;
+- `hurt`: body poses over the special's frames (`hurtPose`, 1-based), which
+  `sim/hurtboxes.ts` uses instead of the standing body while they cover the
+  current special frame;
 - `intangible` and `armor` windows (armor takes one hit's reaction up to its
   damage; the damage applies and throws ignore it). A `shell` armor is
   armed once on its first frame, lasts through its last even after the

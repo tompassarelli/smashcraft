@@ -250,6 +250,22 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real(`motion[${index}].driftSpeed`, segment.driftSpeed ?? 0.0);
     int(`motion[${index}].offsetsGravity`, segment.offsetsGravity === true ? 1 : 0);
   }
+  const poses = move.hurt ?? [];
+  for (let index = 0; index < poses.length; index++) {
+    const pose = at(poses, index);
+    int(`hurt[${index}].first`, pose.firstFrame);
+    int(`hurt[${index}].last`, pose.lastFrame);
+    for (let part = 0; part < pose.parts.length; part++) {
+      const p = at(pose.parts, part);
+      const name = `hurt[${index}].part[${part}]`;
+      real(`${name}.x1`, p.x1);
+      real(`${name}.z1`, p.z1);
+      real(`${name}.x2`, p.x2);
+      real(`${name}.z2`, p.z2);
+      real(`${name}.radius`, p.radius);
+      int(`${name}.state`, p.state ?? HurtState.normal);
+    }
+  }
   const projectiles = move.projectiles ?? [];
   for (let index = 0; index < projectiles.length; index++) result += specialProjectileCanonical(at(projectiles, index), `${name}.projectile[${index}]`);
   const regions = move.regions ?? [];
