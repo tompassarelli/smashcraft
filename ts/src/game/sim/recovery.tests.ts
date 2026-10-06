@@ -298,12 +298,12 @@ test("a floor recovery skid leaves the platform without keeping the grounded pos
       for (const direction of [-1, 1]) {
         for (let recovery = 0; recovery <= 2; recovery++) {
           const deck = stage === 0 ? 0 : 1;
-          const edge = direction < 0 ? surfaceLeft(stage, deck) : surfaceRight(stage, deck);
+          const edge = direction < 0 ? surfaceLeft(stage, deck, 0) : surfaceRight(stage, deck, 0);
           const fighter = createFighter(host, f32(edge - direction * 30), direction);
           fighter.tuning.physics = FLOOR_RECOVERY_REFERENCE_PHYSICS;
           fighter.motion.grounded = false;
           fighter.motion.surface = undefined;
-          fighter.motion.z = f32(surfaceZ(stage, deck) + 1);
+          fighter.motion.z = f32(surfaceZ(stage, deck, 0) + 1);
           fighter.motion.vz = -2.0;
           fighter.launch.knockbackX = f32(direction * 18.0);
           fighter.down.state = DownState.tumble;

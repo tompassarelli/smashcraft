@@ -120,12 +120,12 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
     input.mashPressed = floorMod(frame, 2) === 0;
     return;
   }
-  if (chooseRecoveryInput(fighter, stage, input, target)) return;
+  if (chooseRecoveryInput(fighter, stage, game.matchFrame, input, target)) return;
   if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < smashChargeGoal(fighter);
   if (target === undefined) return;
   if (chooseDefense(fighter, target, stage, input)) return;
   const plan = planFor(fighter, slot, frame);
-  if (delay <= 0 && chooseAttack(fighter, target, stage, frame, plan === Plan.range, input, commands)) {
+  if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plan === Plan.range, input, commands)) {
     runtime.botAttackDelays[slot] = f32(f32(6 + botChoice(frame, fighter.attack.serial, 18)) * TICK);
     if (!fighter.motion.grounded) steerInAir(fighter, stage, target.motion.x, input);
     return;

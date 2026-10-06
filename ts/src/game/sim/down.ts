@@ -41,7 +41,7 @@ const GETUP_STICK_ANGLE = 0.8726646304130554;
 const TECH_ROLL_STICK_X = 0.20000000298023224;
 
 /** Moves a getup or tech roll along its recorded travel, kept on its deck. */
-function applyDownRollTravel(f: Fighter, stage: number): void {
+function applyDownRollTravel(f: Fighter, stage: number, matchFrame: number): void {
   const { down, motion } = f;
   if (down.state !== DownState.roll && down.state !== DownState.techRoll) return;
   let distance = 0.0;
@@ -52,7 +52,7 @@ function applyDownRollTravel(f: Fighter, stage: number): void {
     distance = rollTravel(f.character, kind, down.direction === f.facing ? "forward" : "back", down.frame);
   }
   const deck = motion.surface ?? 0;
-  motion.x = max(surfaceLeft(stage, deck), min(surfaceRight(stage, deck), f32(motion.x + f32(down.direction * distance))));
+  motion.x = max(surfaceLeft(stage, deck, matchFrame), min(surfaceRight(stage, deck, matchFrame), f32(motion.x + f32(down.direction * distance))));
 }
 
 /** Airborne hitstun landings below the retail speed thresholds keep or end the stun instead of knocking down. */
@@ -64,7 +64,7 @@ function damageLandingReaction(f: Fighter): DamageLanding {
 }
 
 /** Lands on a deck: landing lag, floor techs and knockdowns. ASDI landings end hitstun without lag. */
-export function finishLanding(f: Fighter, stage: number, input: Readonly<Controls>, landing: number, fromAsdi: boolean): void {
+export function finishLanding(f: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>, landing: number, fromAsdi: boolean): void {
   const { motion, launch, landing: landingState, dodge } = f;
   motion.fastFalling = false;
   const wasGrounded = motion.grounded;
@@ -84,7 +84,7 @@ export function finishLanding(f: Fighter, stage: number, input: Readonly<Control
   }
   motion.grounded = true;
   motion.surface = landing;
-  motion.z = surfaceZ(stage, landing);
+  motion.z = surfaceZ(stage, landing, matchFrame);
   motion.vz = 0.0;
   setWorldMotionValue(motion.meleeZ, motion.z);
   clearMotionValue(motion.meleeVelocityZ);
@@ -104,7 +104,7 @@ export function finishLanding(f: Fighter, stage: number, input: Readonly<Control
       const techDirection = Math.abs(x) < TECH_ROLL_STICK_X ? 0 : x < 0 ? -1 : 1;
       f.tech.window = 0;
       beginDownState(f, techDirection === 0 ? DownState.tech : DownState.techRoll, techDirection);
-      applyDownRollTravel(f, stage);
+      applyDownRollTravel(f, stage, matchFrame);
     } else {
       beginDownState(f, DownState.bound, launchDirection);
     }
@@ -158,21 +158,21 @@ function startDownStand(f: Fighter): void {
 }
 
 /** Keeps a downed fighter on its deck; running off the edge ends the down state airborne. */
-export function resolveDownGroundContact(f: Fighter, stage: number): void {
+export function resolveDownGroundContact(f: Fighter, stage: number, matchFrame: number): void {
   const { motion, down } = f;
   let deck = motion.surface;
   if (deck === undefined || deck >= surfaceCount(stage)) {
     for (let i = 0; i < surfaceCount(stage); i++) {
-      if (motion.z === surfaceZ(stage, i) && motion.x >= surfaceLeft(stage, i) && motion.x <= surfaceRight(stage, i)) deck = i;
+      if (motion.z === surfaceZ(stage, i, matchFrame) && motion.x >= surfaceLeft(stage, i, matchFrame) && motion.x <= surfaceRight(stage, i, matchFrame)) deck = i;
     }
   }
   if (deck !== undefined && deck < surfaceCount(stage)) {
     if (down.state === DownState.roll || down.state === DownState.techRoll || down.state === DownState.attack) {
-      motion.x = max(surfaceLeft(stage, deck), min(surfaceRight(stage, deck), motion.x));
+      motion.x = max(surfaceLeft(stage, deck, matchFrame), min(surfaceRight(stage, deck, matchFrame), motion.x));
     }
-    if (motion.x >= surfaceLeft(stage, deck) && motion.x <= surfaceRight(stage, deck)) {
+    if (motion.x >= surfaceLeft(stage, deck, matchFrame) && motion.x <= surfaceRight(stage, deck, matchFrame)) {
       motion.surface = deck;
-      motion.z = surfaceZ(stage, deck);
+      motion.z = surfaceZ(stage, deck, matchFrame);
       return;
     }
   }
@@ -187,13 +187,13 @@ export function resolveDownGroundContact(f: Fighter, stage: number): void {
   clearDash(f);
 }
 
-function standOnDeck(f: Fighter, stage: number): void {
+function standOnDeck(f: Fighter, stage: number, matchFrame: number): void {
   f.motion.grounded = true;
-  f.motion.z = surfaceZ(stage, f.motion.surface ?? 0);
+  f.motion.z = surfaceZ(stage, f.motion.surface ?? 0, matchFrame);
 }
 
 /** One frame of a down state; true when it consumed the fighter's movement for the frame. */
-export function advanceDownState(f: Fighter, stage: number, input: Readonly<Controls>): boolean {
+export function advanceDownState(f: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>): boolean {
   const { down, motion, launch } = f;
   const leavingBound = down.state === DownState.bound && down.frame >= DOWN_BOUND_FRAMES;
   const leavingDamage = down.state === DownState.damage && down.frame >= DOWN_DAMAGE_FRAMES;
@@ -208,7 +208,7 @@ export function advanceDownState(f: Fighter, stage: number, input: Readonly<Cont
   }
   if (isFloorTeching(f)) {
     down.frame++;
-    applyDownRollTravel(f, stage);
+    applyDownRollTravel(f, stage, matchFrame);
     return true;
   }
   // Bound and damage fall through into the wait they start.
@@ -216,7 +216,7 @@ export function advanceDownState(f: Fighter, stage: number, input: Readonly<Cont
     if (down.frame < DOWN_BOUND_FRAMES) {
       if (input.getupAttackPressed) down.attackQueued = true;
       down.frame++;
-      standOnDeck(f, stage);
+      standOnDeck(f, stage, matchFrame);
       return true;
     }
     // Melee's bound ends on a get-up attack pressed during it, then a held roll, before the wait reads this frame.
@@ -224,14 +224,14 @@ export function advanceDownState(f: Fighter, stage: number, input: Readonly<Cont
     const roll = downRollDirection(input);
     startDownWait(f, DOWN_WAIT_FRAMES);
     if (attackQueued || roll !== 0) {
-      standOnDeck(f, stage);
+      standOnDeck(f, stage, matchFrame);
       beginDownState(f, attackQueued ? DownState.attack : DownState.roll, attackQueued ? 0 : roll);
-      applyDownRollTravel(f, stage);
+      applyDownRollTravel(f, stage, matchFrame);
       return true;
     }
   }
   if (down.state === DownState.damage) {
-    standOnDeck(f, stage);
+    standOnDeck(f, stage, matchFrame);
     motion.vz = 0.0;
     launch.knockbackZ = 0.0;
     if (down.frame >= DOWN_DAMAGE_FRAMES) {
@@ -246,7 +246,7 @@ export function advanceDownState(f: Fighter, stage: number, input: Readonly<Cont
     }
   }
   if (down.state === DownState.wait) {
-    standOnDeck(f, stage);
+    standOnDeck(f, stage, matchFrame);
     if (!leavingBound && !leavingDamage) {
       down.waitRemaining = max(0, down.waitRemaining - 1);
       down.frame++;
@@ -259,19 +259,19 @@ export function advanceDownState(f: Fighter, stage: number, input: Readonly<Cont
     if (input.getupAttackPressed || input.cStickUpFlick) beginDownState(f, DownState.attack, 0);
     else if (roll !== 0) beginDownState(f, DownState.roll, roll);
     else if (standRequested(input)) startDownStand(f);
-    applyDownRollTravel(f, stage);
+    applyDownRollTravel(f, stage, matchFrame);
     return true;
   }
   if (down.state === DownState.stand || down.state === DownState.attack) {
-    standOnDeck(f, stage);
+    standOnDeck(f, stage, matchFrame);
     down.frame++;
     return true;
   }
   if (down.state === DownState.roll) {
-    standOnDeck(f, stage);
+    standOnDeck(f, stage, matchFrame);
     down.frame++;
-    applyDownRollTravel(f, stage);
-    standOnDeck(f, stage);
+    applyDownRollTravel(f, stage, matchFrame);
+    standOnDeck(f, stage, matchFrame);
     return true;
   }
   return false;

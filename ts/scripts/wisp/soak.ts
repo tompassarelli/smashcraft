@@ -6,6 +6,8 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { defineSoak } from "wisp/scripts/wisp/soak";
+import { WARCRAFT_COST, nativeFrameCost } from "wisp/src/headless/nativeCost";
+import { TYPED_AHEAD_CHARACTERS } from "../../src/game/netcode/journal/text";
 import { SOAK_CONTROLLER } from "../../test/soak/controller";
 import { PREDICTED_HEADLESS } from "./headless";
 import { SMASHCRAFT_SCENE } from "./playerView";
@@ -17,10 +19,13 @@ export default defineSoak({
   scene: SMASHCRAFT_SCENE,
   roster: {
     fighters: ["archer", "rifleman", "illidan"],
-    stages: ["sky-deck", "three-bridges"],
+    stages: ["sky-deck", "three-bridges", "drifting-deck", "patterned-decks"],
     policies: [["fuzz", "cpu"], ["fuzz", "fuzz"], ["cpu", "cpu"], ["cpu", "fuzz"], ["fuzz", "absent"], ["absent", "fuzz"]],
   },
   controller: SOAK_CONTROLLER,
+  // The helper types at most TYPED_AHEAD_CHARACTERS at once by design (#48): Warcraft's stall for that many is
+  // the bound, and only more, such as a burst of whole records, is a typing finding.
+  limits: { typingMs: nativeFrameCost(WARCRAFT_COST, { instructions: 0, natives: 0, allocatedKb: 0, typedCharacters: TYPED_AHEAD_CHARACTERS }).typingUs / 1000 },
   // A one-minute, one-stock match and its result, with room for the stalls the fuzzer makes.
   frames: 80 * 60,
   // The nightly run: every pair on every stage, eleven times over.

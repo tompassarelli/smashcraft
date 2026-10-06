@@ -67,7 +67,7 @@ export function observeLandingLag(character: Character, style: AttackStyle): num
   fighter.attack.duration = attackDurationFramesForGrounding(style, false);
   fighter.attack.cooldown = fighter.attack.duration;
   const world = createRoster(1, [fighter]);
-  advanceFighterMotion(world, 0, 0, neutralControls(), 0);
+  advanceFighterMotion(world, 0, 0, 0, neutralControls(), 0);
   return fighter.landing.lag;
 }
 
@@ -116,7 +116,7 @@ function emitMoves(): void {
         attackStyle: fighter.attack.style ?? -1, phase: fighter.attack.style === undefined ? 0 : fighter.attack.frame < startup ? 1 : fighter.attack.frame < startup + active ? 2 : 3,
         x: fighter.motion.x, zDisplacement: fighter.motion.z - startZ, vx: fighter.motion.vx, vz: fighter.motion.vz,
         grounded: fighter.motion.grounded, canAttack: canAttack(fighter) }));
-      if (elapsed < total) advanceFighterMotion(world, 0, 0, neutralControls(), 0);
+      if (elapsed < total) advanceFighterMotion(world, 0, 0, 0, neutralControls(), 0);
     }
   }
 }

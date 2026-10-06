@@ -12,7 +12,7 @@ import type { Fighter } from "./fighter";
 import { contactKnockback, installDamageLaunch, ordinaryHitstunFrames } from "./knockback";
 import { setWorldMotionValue } from "./motion";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
-import { CANNON_TEST_STAGE, WIND_TEST_STAGE, surfaceLeft, surfaceRight, surfaceZ } from "./stage";
+import { CANNON_TEST_STAGE, WIND_TEST_STAGE, mainDeckLeft, mainDeckRight, mainDeckZ } from "./stage";
 import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge } from "./transitions";
 import { melee } from "./tuning";
 
@@ -63,19 +63,19 @@ export function framesUntilWind(frame: number): number {
   return cycle >= WIND_CALM_FRAMES + WIND_CUE_FRAMES ? 0 : WIND_CALM_FRAMES + WIND_CUE_FRAMES - cycle;
 }
 
-const stageCenter = (stage: number) => f32(f32(surfaceLeft(stage, 0) + surfaceRight(stage, 0)) / 2);
+const stageCenter = (stage: number) => f32(f32(mainDeckLeft(stage) + mainDeckRight(stage)) / 2);
 
 /** The lower x bound of a gust blowing `direction`; positions strictly inside the box are pushed. */
 export function windLeft(stage: number, direction: -1 | 1): number {
-  return direction > 0 ? f32(stageCenter(stage) - WIND_INNER_EDGE_RIGHT) : f32(surfaceLeft(stage, 0) + WIND_OUTER_INSET_LEFT);
+  return direction > 0 ? f32(stageCenter(stage) - WIND_INNER_EDGE_RIGHT) : f32(mainDeckLeft(stage) + WIND_OUTER_INSET_LEFT);
 }
 
 export function windRight(stage: number, direction: -1 | 1): number {
-  return direction > 0 ? f32(surfaceRight(stage, 0) - WIND_OUTER_INSET_RIGHT) : f32(stageCenter(stage) + WIND_INNER_EDGE_LEFT);
+  return direction > 0 ? f32(mainDeckRight(stage) - WIND_OUTER_INSET_RIGHT) : f32(stageCenter(stage) + WIND_INNER_EDGE_LEFT);
 }
 
-export const windBottom = (stage: number): number => f32(surfaceZ(stage, 0) + WIND_BOTTOM);
-export const windTop = (stage: number): number => f32(surfaceZ(stage, 0) + WIND_TOP);
+export const windBottom = (stage: number): number => f32(mainDeckZ(stage) + WIND_BOTTOM);
+export const windTop = (stage: number): number => f32(mainDeckZ(stage) + WIND_TOP);
 
 export const hasWind = (stage: number): boolean => stage === WIND_TEST_STAGE;
 

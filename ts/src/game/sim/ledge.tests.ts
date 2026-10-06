@@ -40,9 +40,9 @@ function catchTestLedge(fighter: Fighter, input: Readonly<Controls>): void {
  */
 function catchesAfterMovement(character: Character, side: number, outsideBefore: number, belowBefore: number, outside: number, below: number): boolean {
   const fighter = ledgeTestFighter(character, side);
-  const edge = side < 0 ? surfaceLeft(0, 0) : surfaceRight(0, 0);
+  const edge = side < 0 ? surfaceLeft(0, 0, 0) : surfaceRight(0, 0, 0);
   fighter.motion.x = f32(edge + f32(side * outside));
-  fighter.motion.z = f32(surfaceZ(0, 0) - below);
+  fighter.motion.z = f32(surfaceZ(0, 0, 0) - below);
   fighter.motion.deltaX = f32(side * f32(outside - outsideBefore));
   fighter.motion.deltaZ = f32(belowBefore - below);
   catchTestLedge(fighter, controls());
@@ -220,8 +220,8 @@ test("only a full down passes ledges; a slight downward tilt still catches", () 
 
 test("upper platform ledges can't be caught", () => {
   const fighter = ledgeTestFighter(Character.rifleman, -1);
-  fighter.motion.x = f32(surfaceLeft(1, 1) - 20);
-  fighter.motion.z = f32(surfaceZ(1, 1) - 30);
+  fighter.motion.x = f32(surfaceLeft(1, 1, 0) - 20);
+  fighter.motion.z = f32(surfaceZ(1, 1, 0) - 30);
   const input = controls();
   resolveLedges(testWorld(fighter, createFighter(Character.archer, 0.0, 1)), 1, [input, input]);
   assertEquals(fighter.ledge.state, LedgeState.none);
@@ -388,6 +388,12 @@ test("ledge hits and grabs interrupt, and a respawn clears ledge ownership", () 
         testBeginAttacks(world, style, undefined);
         attacker.attack.frame = attackStartupFrames(style);
         resolveAttacks(world);
+        if (mode === 1 && phase === LedgeState.hang) {
+          assertEquals(fighter.ledge.state, LedgeState.hang);
+          assertEquals(fighter.grab.grabbedFrames, 0);
+          respawnFighter(soloWorld(fighter), 0, 0.0);
+          continue;
+        }
         assertEquals(fighter.ledge.state, LedgeState.none);
         assertEquals(fighter.ledge.side, 0);
         assertEquals(fighter.ledge.frame, 0);
@@ -433,7 +439,7 @@ test("the ledge release regrab cooldown expires after thirty unfrozen ticks", ()
   assertEquals(fighter.ledge.serial, 2);
 });
 
-test("ledge protection blocks strikes and grabs until it expires", () => {
+test("ledge protection blocks strikes until it expires, and a grab never catches the hang", () => {
   for (const style of [AttackStyle.downSmash, AttackStyle.grab]) {
     const fighter = ledgeTestFighter(Character.archer, -1);
     const attacker = createFighter(Character.rifleman, -570.0, -1);
@@ -449,8 +455,12 @@ test("ledge protection blocks strikes and grabs until it expires", () => {
     assertEquals(fighter.grab.grabbedFrames, 0);
     for (let tick = 1; tick <= LEDGE_INTANGIBLE_FRAMES; tick++) advanceSolo(fighter, 0, input, 0.0);
     resolveAttacks(world);
-    assertEquals(fighter.ledge.state, LedgeState.none);
-    if (style === AttackStyle.downSmash) assertGreaterThan(fighter.status.damage, 0.0);
-    else assertEquals(fighter.grab.grabbedFrames, grabHoldFrames(fighter.status.damage));
+    if (style === AttackStyle.downSmash) {
+      assertEquals(fighter.ledge.state, LedgeState.none);
+      assertGreaterThan(fighter.status.damage, 0.0);
+    } else {
+      assertEquals(fighter.ledge.state, LedgeState.hang);
+      assertEquals(fighter.grab.grabbedFrames, 0);
+    }
   }
 });

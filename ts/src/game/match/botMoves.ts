@@ -235,10 +235,10 @@ function perform(f: Readonly<Fighter>, target: Readonly<Fighter>, option: number
  * distance, and enters it in input and commands. `ranged` lets a decision
  * with nothing in reach but a special take it. False when it chose nothing.
  */
-export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer): boolean {
+export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer): boolean {
   if (!canAttack(f) && !(f.shield.raised && f.motion.grounded)) return false;
   // A ground attack stops the steering: its slide must end on the deck.
-  if (f.motion.grounded && !slideStaysOnDeck(f, stage)) return false;
+  if (f.motion.grounded && !slideStaysOnDeck(f, stage, matchFrame)) return false;
   let count = 0;
   if (canAttack(f) || f.shield.raised) {
     if (f.motion.grounded) {

@@ -1,5 +1,26 @@
 # Physics reference and implementation
 
+## Moving platforms
+
+Smashcraft's moving decks follow closed paths of timed linear legs, including
+stationary legs for waits. The match frame chooses a binary32 pose directly;
+rollback and prediction use that same frame, with no accumulated stage timer.
+The main deck stays fixed. Hidden test stages 3 and 4 provide a Smashville-style
+back-and-forth platform and independent loop/lift patterns.
+
+Grounded fighters ride their floor before their own motion, including hitlag,
+as Melee's `Fighter_procUpdate` adds `mpGetSpeed` to grounded position
+(melee:src/melee/ft/fighter.c). Grounded traps and bears ride the same way,
+following grounded items in melee:src/melee/it/item.c. Landing remaps the
+previous endpoint by the floor's displacement (`mpCheckFloorRemap` in
+melee:src/melee/mp/mplib.c); an already carried fighter is not shifted twice.
+Down presses retain Melee's pass-through gate, and floor tech recovery rides
+the platform. Moving raised platforms have no ledge: Melee's Stadium platform
+line 0 and Icicle Mountain lines 0–2 have `LINE_FLAG_PLATFORM` without
+`LINE_FLAG_LEDGE` (GrSt.dat/GrIz.dat). Main-deck ledges retain their usual catch
+rules. Path dimensions and schedules are authored here; they are inspired by
+Ultimate's layouts, without claiming Ultimate's exact timing.
+
 The live simulation is smashcraft:ts/src/game/sim/. The numerical fixture suites
 are smashcraft:ts/src/game/sim/physicsPrecisionState.tests.ts,
 smashcraft:ts/src/game/sim/physicsPrecisionScalar.tests.ts and
@@ -1899,7 +1920,20 @@ least 2 units a side. Smashcraft fighters use that 2-unit half-width
 (`BODY_HALF_WIDTH`, smashcraft:ts/src/game/sim/surfaces.ts), so a fighter
 stopped against the wall below a ledge stands 12 world units outside it, and
 its ledge catch box (which adds the same half-width) still holds the ledge.
-Undersides stop the feet. A wall moves the fighter but not its own velocity,
+Undersides and other ceilings stop the fighter's top: Melee's airborne ECB
+top, the highest of the six ECB bones its fighter data lists (ftData x44),
+which falls and jumps load with no pad (`mpColl_LoadECB_JObj`). In each
+reference model's bind pose (PlFxNr.dat, PlFcNr.dat, PlCaNr.dat, read by
+~/.local/share/smashcraft-melee-reference/ecb-top-facts.ts) times its
+`model_scaling` (+0x8C) that is Fox's 11.625 x 0.96 = 11.16 for Archer,
+Falco's 12.5 x 1.1 = 13.75 for Rifleman and Captain Falcon's 19.36 x 0.97 =
+18.78 for Illidan, Melee units (`bodyTop`, smashcraft:ts/src/game/sim/surfaces.ts).
+The contact, and the ceiling tech or bounce that starts from it, is on the
+ceiling; the fighter stands its top below it. The animation moves Melee's
+bones, so its ECB top changes from frame to frame; Smashcraft keeps the bind
+pose's. Under the main deck's underside the bottom blast zone (-420) leaves
+Archer 20.7 world units and Rifleman 5.2, and Illidan none: his position
+would be past it (#80 lowers it to Final Destination's). A wall moves the fighter but not its own velocity,
 as Melee's airborne collision only moves the position (`ft_800835B0`,
 melee:src/melee/ft/ft_081B.c): launch velocity into the wall stops, or a
 tumbling launch rebounds at 0.8, and a fighter that rises past the wall's top
@@ -2146,6 +2180,15 @@ melee:src/melee/ft/ft_081B.c. Only facts and values are used.
   travel), and never during the regrab lock.
 - **Which ledge.** Only the ledge ahead of the fighter's facing. A catch turns
   the fighter toward the stage.
+- **Grabs.** A fighter hanging on the ledge can't be caught by a standing, dash
+  or shield grab, intangible or not. The hang gives the hanger
+  `x1A6A = 511` (`ftCliffCommon_80081370`, `ftCo_8009A804`), every catch gives
+  its grabber `x1A68 = 1` (`ftCo_800D8C54` in
+  melee:src/melee/ft/kinds/ftCommon/ftCo_Catch.c), and `ftColl_80078A2C`
+  (melee:src/melee/ft/ftcoll.c) skips a victim whose two masks share a bit.
+  `Fighter_ChangeMotionState` clears the mask, so climbs, rolls, ledge attacks
+  and drops are catchable again. `hangsOnLedge` in
+  smashcraft:ts/src/game/sim/ledge.ts applies it.
 - **The box.** Each fighter's ledge snap x, y and height (ftData x44
   +0x10/+0x14/+0x18, melee:src/melee/ft/types.h `ftData_x44_t`) place it: the
   ledge vertex must lie strictly beyond the fighter's position and strictly

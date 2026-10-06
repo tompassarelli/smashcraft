@@ -24,7 +24,15 @@ export interface MatchState {
   winner: ParticipantSlot | undefined;
   stockCount: number;
   timeLimitMinutes: number;
+  /** Knockouts and the clock never end the match; a player leaves it from the pause. */
+  endless: boolean;
+  /** After a result, the same fighters play again on the same stage once rematchCountdown runs out. */
+  automaticRematch: boolean;
+  /** Frames until the automatic rematch starts; 0 while none counts down. */
+  rematchCountdown: number;
   remainingFrames: number;
+  /** Frames this match has run; moving decks follow their paths by it. */
+  matchFrame: number;
   timedOut: boolean;
   practice: boolean;
 }
@@ -34,8 +42,8 @@ export function createMatchState(): MatchState {
     phase: Phase.characterMenu, characterChoices: [0, 1, 2, 0],
     characterReadiness: [false, false, false, false], rematchReadiness: [false, false, false, false],
     departedMask: 0, interrupted: false, humanMask: 1, humanFighterMask: 1, humanCount: 1, computerMask: 0,
-    stageChoice: 0, winner: undefined, stockCount: 3, timeLimitMinutes: 7,
-    remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, timedOut: false, practice: false,
+    stageChoice: 0, winner: undefined, stockCount: 3, timeLimitMinutes: 7, endless: false, automaticRematch: false, rematchCountdown: 0,
+    remainingFrames: 7 * 60 * MATCH_TICKS_PER_SECOND, matchFrame: 0, timedOut: false, practice: false,
   };
 }
 
@@ -124,7 +132,11 @@ export function copyMatchState(target: MatchState, source: Readonly<MatchState>)
   target.winner = source.winner;
   target.stockCount = source.stockCount;
   target.timeLimitMinutes = source.timeLimitMinutes;
+  target.endless = source.endless;
+  target.automaticRematch = source.automaticRematch;
+  target.rematchCountdown = source.rematchCountdown;
   target.remainingFrames = source.remainingFrames;
+  target.matchFrame = source.matchFrame;
   target.timedOut = source.timedOut;
   target.practice = source.practice;
   for (const slot of PARTICIPANT_SLOTS) {
@@ -186,32 +198,84 @@ export function returnToCharacters(game: MatchState, slot: number): void {
   if (game.phase === Phase.stageMenu && humanActive(game, slot)) game.phase = Phase.characterMenu;
 }
 
+/** Any player sets the match rules at fighter selection. */
+const settingRules = (game: Readonly<MatchState>, slot: number): boolean => game.phase === Phase.characterMenu && humanActive(game, slot);
+
 export function setStocks(game: MatchState, slot: number, count: number): void {
-  if (game.phase === Phase.stageMenu && humanActive(game, slot) && count >= 1 && count <= 9) game.stockCount = count;
+  if (settingRules(game, slot) && count >= 1 && count <= 9) game.stockCount = count;
 }
 
 export function setTimeLimit(game: MatchState, slot: number, minutes: number): void {
-  if (game.phase === Phase.stageMenu && humanActive(game, slot) && minutes >= 0 && minutes <= 10) game.timeLimitMinutes = minutes;
+  if (settingRules(game, slot) && minutes >= 0 && minutes <= 10) game.timeLimitMinutes = minutes;
 }
+
+export function setEndless(game: MatchState, slot: number, endless: boolean): void {
+  if (settingRules(game, slot)) game.endless = endless;
+}
+
+export function setAutomaticRematch(game: MatchState, slot: number, automatic: boolean): void {
+  if (settingRules(game, slot)) game.automaticRematch = automatic;
+}
+
+/** Whether the match clock runs: practice and endless matches have none. */
+export const timedMatch = (game: Readonly<MatchState>): boolean => !game.practice && !game.endless && game.timeLimitMinutes > 0;
 
 export const remainingSeconds = (game: Readonly<MatchState>): number => floorDiv(game.remainingFrames + MATCH_TICKS_PER_SECOND - 1, MATCH_TICKS_PER_SECOND);
 
-export function requestStart(game: MatchState, slot: number): boolean {
-  if (game.phase !== Phase.stageMenu || !humanActive(game, slot) || !allCharactersReady(game)) return false;
+function beginMatch(game: MatchState): void {
   game.winner = undefined;
   game.interrupted = false;
   game.departedMask = 0;
   game.timedOut = false;
+  game.rematchCountdown = 0;
   game.practice = practiceSelected(game);
-  game.remainingFrames = game.practice ? 0 : game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND;
+  game.remainingFrames = timedMatch(game) ? game.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND : 0;
+  game.matchFrame = 0;
   game.phase = Phase.match;
+}
+
+export function requestStart(game: MatchState, slot: number): boolean {
+  if (game.phase !== Phase.stageMenu || !humanActive(game, slot) || !allCharactersReady(game)) return false;
+  beginMatch(game);
   return true;
 }
 
-export function leavePractice(game: MatchState, slot: number): boolean {
-  if (game.phase !== Phase.match || !game.practice || slot !== firstHumanSlot(game)) return false;
+/**
+ * Leaving from the pause: the first human ends practice, and any player here
+ * ends an endless match. Both return to fighter selection.
+ */
+export function leaveMatch(game: MatchState, slot: number): boolean {
+  if (game.phase !== Phase.match || !(game.practice ? slot === firstHumanSlot(game) : game.endless && humanPresent(game, slot))) return false;
   game.phase = Phase.characterMenu;
   game.practice = false;
+  return true;
+}
+
+/** Seconds a result shows before the automatic rematch starts. */
+export const REMATCH_COUNTDOWN_SECONDS = 5;
+
+/** At a result, the automatic rematch counts down `seconds`; none after a player left. */
+export function beginRematchCountdown(game: MatchState, seconds: number): void {
+  game.rematchCountdown = game.phase === Phase.result && game.automaticRematch && !game.interrupted ? seconds * MATCH_TICKS_PER_SECOND : 0;
+}
+
+/** Any player's press during the countdown stops the automatic rematch; true when one was counting. */
+export function cancelRematchCountdown(game: MatchState, slot: number): boolean {
+  if (game.phase !== Phase.result || game.rematchCountdown === 0 || !humanPresent(game, slot)) return false;
+  game.rematchCountdown = 0;
+  return true;
+}
+
+/**
+ * One callback of the countdown. When it runs out, the same fighters play
+ * again on the same stage with the same rules; true when that match starts.
+ */
+export function tickRematchCountdown(game: MatchState): boolean {
+  if (game.phase !== Phase.result || game.rematchCountdown === 0) return false;
+  game.rematchCountdown--;
+  if (game.rematchCountdown > 0 || !allCharactersReady(game)) return false;
+  game.rematchReadiness.fill(false);
+  beginMatch(game);
   return true;
 }
 
@@ -228,6 +292,7 @@ export function participantLeft(game: MatchState, slot: number, world: Roster): 
   if (!isParticipantSlot(slot) || !humanPresent(game, slot)) return;
   game.departedMask += 1 << slot;
   game.rematchReadiness[slot] = false;
+  game.rematchCountdown = 0;
   if (game.phase !== Phase.match) return;
   game.interrupted = true;
   game.timedOut = false;
@@ -255,11 +320,11 @@ function resolveRemaining(game: MatchState, world: Roster): void {
 }
 
 export function resolveStocks(game: MatchState, world: Roster): void {
-  if (game.phase === Phase.match && !game.practice) resolveRemaining(game, world);
+  if (game.phase === Phase.match && !game.practice && !game.endless) resolveRemaining(game, world);
 }
 
 export function advanceClock(game: MatchState, world: Roster): void {
-  if (game.phase !== Phase.match || game.practice || game.timeLimitMinutes === 0) return;
+  if (game.phase !== Phase.match || !timedMatch(game)) return;
   game.remainingFrames--;
   if (game.remainingFrames > 0) return;
   game.remainingFrames = 0;

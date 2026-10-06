@@ -53,6 +53,7 @@ type MenuOperation = "character" | "stage" | "stocks" | "time";
 type MenuRequest = "stage-select" | "start" | "rematch";
 
 export type TapeOperation =
+  | { readonly kind: "test-stage"; readonly line: number; readonly stage: number }
   | { readonly kind: "input"; readonly line: number; readonly slot: ParticipantSlot; readonly controls: readonly ControlAssignment[]; readonly attacks: readonly AttackCommand[] }
   | { readonly kind: "frame" | "predict" | "correct"; readonly line: number; readonly frame: number }
   | { readonly kind: "rollback"; readonly line: number; readonly first: number; readonly last: number }
@@ -138,6 +139,8 @@ function decodeLine(line: number, text: string): Decoded<TapeOperation> | undefi
   const pair = rest.length === 2 && first !== undefined && second !== undefined;
   const single = rest.length === 1 && first !== undefined;
   switch (operation) {
+    case "test-stage":
+      return single ? { ok: true, value: { kind: "test-stage", line, stage: first } } : fail("test-stage takes a stage number");
     case "input":
       if (first === undefined || !isParticipantSlot(first)) return fail("input takes a participant slot");
       return decodeInput(line, first, rest.slice(1));

@@ -11,7 +11,7 @@ import type { InputPacket } from "../../game/input/wire";
 import { type FrameControls, type MatchControls, createBufferedFrameControls, createFrameControls, createMatchControls } from "../../game/match/controls";
 import { type MatchFrameInput, createMatchFrameInput } from "../../game/match/frameInput";
 import { type PacingAndPresentation, createPacingAndPresentation } from "../../game/match/pacingAndPresentation";
-import { type MatchState, createMatchState } from "../../game/match/rules";
+import { type MatchState, REMATCH_COUNTDOWN_SECONDS, createMatchState } from "../../game/match/rules";
 import { matchSpawnX } from "../../game/match/step";
 import type { FixedDelay } from "../../game/netcode/fixedSchedule";
 import { InputBatch } from "../../game/netcode/inputBatch";
@@ -158,6 +158,12 @@ export interface Rollback {
   stalled: number;
   /** Humans every client names while the match waits for their input; 0 while it runs. */
   waitingFor: number;
+  /**
+   * Since prediction last stopped at a remote row R frames behind it, it hasn't
+   * yet run every local row: the response probe reports presses captured then
+   * apart (#60).
+   */
+  predictionHeld: boolean;
 }
 
 export interface StatusFrames {
@@ -278,7 +284,7 @@ function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: Ed
       }
       : undefined,
     journal: mode.kind === "journal" ? journal(mode.ingress, editbox) : undefined,
-    stalled: 0, waitingFor: 0,
+    stalled: 0, waitingFor: 0, predictionHeld: false,
   };
 }
 
@@ -302,7 +308,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
     participants: [participant(0, persistence), participant(1, persistence), participant(2, persistence), participant(3, persistence)],
     status: { text: "", seconds: 0.0 }, frames: setup.frames, stageDecks: [], ui: undefined,
     sounds: createModelSoundCursor(ORIGINAL_MODEL_SOUNDS),
-    dev: { rollback: isShadow(input) ? input.rollback : 6, delay: isShadow(input) ? input.delay : 3, batch: DEFAULT_BATCH }, devReceipts: 0,
+    dev: { rollback: isShadow(input) ? input.rollback : 6, delay: isShadow(input) ? input.delay : 3, batch: DEFAULT_BATCH, rematchSeconds: REMATCH_COUNTDOWN_SECONDS }, devReceipts: 0,
     trace: inputTrace(build.responseProbe ? 2048 : 256),
     probe: build.responseProbe ? createResponseProbe(build.id) : undefined,
     rollback: isShadow(input) ? rollback(input, setup.playback, setup.editbox) : undefined,
