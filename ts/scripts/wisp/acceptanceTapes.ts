@@ -55,6 +55,8 @@ interface MatchScript {
    * frame with the inputs actually recorded, oldest first, after frame `last`.
    */
   readonly predictions?: readonly (readonly [number, number])[];
+  /** Slot 1 is the game's computer, which plays from the match in each runtime: the tape gives it no input. */
+  readonly computer?: boolean;
 }
 
 const NEUTRAL = Object.entries(neutralControls());
@@ -84,7 +86,7 @@ function menuLines(script: MatchScript): string[] {
  * rows are what every runtime replays.
  */
 function playMatch(script: MatchScript, session: TapeSession, play: (...lines: string[]) => void, pressed: Set<string>[]): void {
-  const players = ([0, 1] as const).map(slot => ({
+  const players = (script.computer === true ? [0] as const : [0, 1] as const).map(slot => ({
     slot, capture: keyboardCapture(), controls: neutralControls(), attacks: attackBuffer(0), held: new Set<string>(),
     approaches: script.approaches[slot].map(([at, within]) => ({ at, within, done: false })), holds: script.holds[slot],
   }));
@@ -153,7 +155,7 @@ function recordTape(title: string, scripts: readonly MatchScript[], pressed: Set
     }
     lines.push(...added);
   };
-  play("participants 3 0");
+  play(scripts.some(script => script.computer === true) ? "participants 1 2" : "participants 3 0");
   scripts.forEach((script, index) => {
     if (index > 0) play("rematch 0", "rematch 1");
     play(...menuLines(script));
@@ -233,13 +235,30 @@ const SECOND_MATCH: MatchScript = {
   rollbacks: [[30, 34], [77, 140]],
 };
 
-/** Records the three acceptance tapes by name, and checks they press every bound source. */
+/**
+ * A player against the computer on the raised decks, with replays that reach
+ * back over the computer's choices: each runtime makes them from the match.
+ */
+const COMPUTER: MatchScript = {
+  characters: [Character.archer, Character.rifleman], stage: 1, stocks: 3, minutes: 0, frames: 900, computer: true,
+  holds: [[
+    [30, 2, ATTACK], [60, 3, JUMP], [64, 2, ATTACK], [100, 20, SHIELD_LEFT], [140, 2, SPECIAL], [180, 2, GRAB],
+    [220, 8, TOWARD], [224, 2, C_RIGHT], [300, 3, JUMP], [303, 3, JUMP_ALT], [310, 2, ATTACK], [360, 30, SHIELD_RIGHT],
+    [420, 2, C_DOWN], [470, 12, AWAY], [500, 2, SPECIAL], [560, 2, ATTACK], [600, 6, DOWN], [640, 2, C_UP],
+    [700, 24, SHIELD_LEFT], [760, 3, JUMP], [764, 2, ATTACK], [820, 2, GRAB], [860, 2, SPECIAL],
+  ], []],
+  approaches: [[[1, 60], [150, 60], [250, 45], [400, 60], [540, 45], [680, 60], [800, 45]], []],
+  rollbacks: [...every(120, 840, 120, 8), [837, 900]],
+};
+
+/** Records the acceptance tapes by name, and checks they press every bound source. */
 export function generateTapes(): Map<string, string> {
   const pressed = [new Set<string>(), new Set<string>()];
   const tapes = new Map([
     ["actions", recordTape("Every bound source pressed by both players, with short replays.", [ACTIONS], pressed)],
     ["rollback", recordTape("Combat replayed from one frame up to the whole retained history.", [ROLLBACK])],
     ["rematch", recordTape("A one-stock match ends, both players confirm the rematch, a new match runs.", [FIRST_MATCH, SECOND_MATCH])],
+    ["computer", recordTape("A player against the computer on the raised decks, with replays.", [COMPUTER])],
   ]);
   pressed.forEach((sources, slot) => {
     const missing = [...SOURCES.keys()].filter(source => !sources.has(source));

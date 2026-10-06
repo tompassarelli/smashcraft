@@ -1,0 +1,6 @@
+$ bun scripts/wisp.ts soak --policy cpu --matches "540" --seed "2" --minutes "20" --out "SCRATCH/soak-main-before"
+smashcraft soak: 540 matches in 4 workers, at most 20 min, seed 2; repro files in SCRATCH/soak-main-before
+ 141.373 s  540 matches (141.351 s)
+540 matches, 586,195 frames (164.0 game minutes) in 141.4 s with 4 workers (4 started): 70x real time, 742.2 s CPU
+costliest client frame 25.7 ms; no findings
+ 141.375 s  soak (141.375 s)

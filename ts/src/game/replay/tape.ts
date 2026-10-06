@@ -5,7 +5,8 @@
 //   participants HUMANS COMPUTERS | character SLOT CHOICE | stage-select SLOT
 //   stage SLOT CHOICE | stocks SLOT COUNT | time SLOT MINUTES | start SLOT | rematch SLOT
 //   input SLOT FIELD=VALUE... attack=STYLE,FACING,FRAME,CHARGE...
-//   frame N              capture the inputs given since the last frame, save, execute
+//   frame N              capture the inputs given since the last frame and the
+//                        computers' choices from the match, save, execute
 //   rollback FIRST LAST  replay FIRST..LAST (LAST is the current frame) from history
 //   predict N            as frame, but saved as a prediction a later correction may replace
 //   correct N            replace frame N with the inputs given since, and replay from it

@@ -6,7 +6,7 @@ import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../input/participants";
 import type { FrameControls } from "../match/controls";
 import type { PacingAndPresentation } from "../match/pacingAndPresentation";
 import { type MatchState, cpuSlot, firstHumanSlot, humanActive, selectCharacter, selectCpuCharacter } from "../match/rules";
-import { produceComputerInput } from "../match/step";
+import { produceComputerInput } from "../match/botPlay";
 import { AttackStyle, Character, DownState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "../sim/knockback";
