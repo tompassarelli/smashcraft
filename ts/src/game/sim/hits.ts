@@ -7,6 +7,7 @@ import { canBeGrabbed } from "./conditions";
 import { collectDamageContact } from "./contacts";
 import type { Fighter } from "./fighter";
 import { clearDash } from "./groundMovement";
+import type { AppliedStatus } from "./heroStatus";
 import type { HitEffect } from "./hitRegions";
 import { GRAB_HOLD_FRAMES } from "./moves";
 import { type Roster, fighterAt } from "./roster";
@@ -86,7 +87,7 @@ function catchTarget(world: Roster, attackerSlot: number, targetSlot: number): v
 /** Applies a selected strike: a parry turns it back, an eligible grab catches. */
 export function applyAttackHit(
   world: Roster, attackerSlot: number, targetSlot: number, style: AttackStyle, facing: number,
-  effect: Readonly<HitEffect>, directContact: boolean, shieldContact: boolean,
+  effect: Readonly<HitEffect>, directContact: boolean, shieldContact: boolean, status?: Readonly<AppliedStatus>,
 ): void {
   const target = fighterAt(world, targetSlot);
   if (demonHunterParryIsActive(target)) {
@@ -97,5 +98,5 @@ export function applyAttackHit(
     if (canBeGrabbed(target)) catchTarget(world, attackerSlot, targetSlot);
     return;
   }
-  collectDamageContact(world, attackerSlot, targetSlot, effect, facing, ContactKind.launch, directContact, undefined, shieldContact);
+  collectDamageContact(world, attackerSlot, targetSlot, effect, facing, ContactKind.launch, directContact, undefined, shieldContact, status);
 }

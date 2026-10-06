@@ -23,7 +23,7 @@ import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
 import { HIPPOGRYPH_DIVE_ARRIVAL, HIPPOGRYPH_DIVE_OVERSHOOT, RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
-import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
+import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
 
 export const DEMONHUNTER_MANA_BURN_STARTUP = 8;
 const DEMONHUNTER_MANA_BURN_RECOVERY = 25;
@@ -268,11 +268,11 @@ const heroRefusal = { manaShort: false };
  * Starts an expansion hero's special through its authored kit. A press it
  * cannot afford starts nothing and counts one refusal for presentation.
  */
-function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>): boolean {
+function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>, world: Roster | undefined): boolean {
   const specials = owner.tuning.specials;
   const { special } = owner;
   if (specials === undefined || special.lockFrames > 0 || special.action !== SpecialAction.none || !canAttack(owner)) return false;
-  const chosen = chooseHeroSpecial(owner, specials, input, heroRefusal);
+  const chosen = chooseHeroSpecial(owner, specials, input, heroRefusal, world);
   if (chosen === undefined) {
     if (heroRefusal.manaShort) owner.visuals.manaDenied++;
     return false;
@@ -291,11 +291,11 @@ function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>): boo
 }
 
 /** Starts the special the input asks for if it may; a neutral aerial special turns to the last air steering. */
-export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>): boolean {
+export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: number, input: Readonly<Controls>, world?: Roster): boolean {
   steerHeroSpecial(owner, input);
   if (owner.tuning.specials !== undefined && isHeroSpecialAction(owner.special.action)) return followUpHeroSpecial(owner, input);
   if (!input.specialPressed) return false;
-  if (owner.tuning.specials !== undefined) return startHeroFighterSpecial(owner, input);
+  if (owner.tuning.specials !== undefined) return startHeroFighterSpecial(owner, input, world);
   const requested = requestedSpecial(owner, input);
   if (!specialCanStart(owner, requested)) return false;
   observeActionDecision(SPECIAL_ACTION_BIT);
@@ -504,7 +504,7 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
       const target = fighterAt(world, targetSlot);
       recordSpecialHit(owner, targetSlot);
       applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, at(facings, ownerSlot), heroContactEffect(contact, target), true,
-        contact.strike === undefined ? meleeHitIntersectsShield(owner, target, contact) : heroStrikeMeetsShield(owner, target, contact));
+        contact.strike === undefined ? meleeHitIntersectsShield(owner, target, contact) : heroStrikeMeetsShield(owner, target, contact), runningHeroSpecial(owner)?.strikeStatus);
     }
   }
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {

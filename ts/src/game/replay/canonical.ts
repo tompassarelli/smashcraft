@@ -246,13 +246,14 @@ export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | u
   for (let slot = 0; slot < kits.length; slot++) {
     const kit = at(kits, slot);
     if (kit.recallWhile !== undefined) result.push(canonicalInt(`${prefix}.kit[${slot}].recallWhile`, kit.recallWhile === "armor" ? 2 : 1));
-    const forms = [kit.ground, kit.air, kit.free, kit.recall];
-    for (let form = 0; form < 4; form++) {
+    const forms = [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special];
+    for (let form = 0; form < forms.length; form++) {
       const move = forms[form];
       if (move === undefined) continue;
       const name = `${prefix}.kit[${slot}].form[${form}]`;
       result.push(specialMoveCanonical(move, name));
     }
+    if (kit.marked !== undefined) result.push(canonicalRealField(`${prefix}.kit[${slot}].markedRange`, kit.marked.range));
   }
   return result.join("");
 }
@@ -286,6 +287,12 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   if (move.placement !== undefined) result.push(specialPlacementCanonical(move.placement, `${name}.placement`));
   if (move.recall === true) int("recall", 1);
   if (move.recallsProjectiles === true) int("recallsProjectiles", 1);
+  if (move.strikeStatus !== undefined) {
+    int("strikeStatus.kind", move.strikeStatus.kind);
+    int("strikeStatus.frames", move.strikeStatus.frames);
+    int("strikeStatus.every", move.strikeStatus.tick?.every ?? 0);
+    real("strikeStatus.damage", move.strikeStatus.tick?.damage ?? 0.0);
+  }
   if (move.guard !== undefined) {
     int("guard.first", move.guard.first);
     int("guard.last", move.guard.last);
@@ -304,6 +311,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real(`motion[${index}].driftSpeed`, segment.driftSpeed ?? 0.0);
     if (segment.stopsAtShield === true) int(`motion[${index}].stopsAtShield`, 1);
     if (segment.relocate !== undefined) int(`motion[${index}].relocate`, segment.relocate);
+    if (segment.relocateReach !== undefined) real(`motion[${index}].relocateReach`, segment.relocateReach);
     if (segment.stopsAtBody === true) int(`motion[${index}].stopsAtBody`, 1);
   }
   const grab = move.commandGrab;
@@ -884,7 +892,7 @@ export function prepareKitDigests(): void {
     const specials = hero.specials;
     if (specials === undefined) continue;
     for (const kit of [specials.neutral, specials.side, specials.up, specials.down]) {
-      for (const form of [kit.ground, kit.air, kit.free, kit.recall, ...(kit.ground.followUps ?? []).map(branch => branch.special), ...(kit.air?.followUps ?? []).map(branch => branch.special)]) {
+      for (const form of [kit.ground, kit.air, kit.free, kit.recall, kit.marked?.special, ...(kit.ground.followUps ?? []).map(branch => branch.special), ...(kit.air?.followUps ?? []).map(branch => branch.special)]) {
         kitDigestField("placedSpec", form?.placement, PLACEMENT_DIGESTS, placedSpecCanonical);
       }
     }

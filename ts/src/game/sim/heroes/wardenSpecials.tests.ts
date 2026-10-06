@@ -8,6 +8,7 @@ import { isIntangible } from "../conditions";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
+import { SpecialForm } from "../heroSpecials";
 import { advanceHeroStatus, regenerateMana } from "../heroSpecialRules";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
@@ -25,7 +26,7 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
   const inputs = [first, second];
   for (let slot = 0; slot < 2; slot++) advanceFighter(world, slot, 0, inputs[slot] ?? controls(), slot === 0 ? -240.0 : 240.0);
   beginDamageContacts();
-  for (let slot = 0; slot < 2; slot++) startFighterSpecial(world.fighters[slot]!, 0, 0, inputs[slot] ?? controls());
+  for (let slot = 0; slot < 2; slot++) startFighterSpecial(world.fighters[slot]!, 0, 0, inputs[slot] ?? controls(), world);
   atContacts?.();
   resolveAttacks(world);
   advanceSpecials(world, 0, 0);
@@ -279,7 +280,7 @@ test("Blink cannot start from an attack's recovery", () => {
   }
 });
 
-test("Shadow Strike poisons a body hit for three 1-damage ticks over 90 frames without flinching, refreshed not stacked", () => {
+test("Shadow Strike marks a body hit: poison for three 1-damage ticks over 180 frames without flinching, refreshed not stacked", () => {
   const { world, warden, target } = pair(0.0, 260.0);
   frame(world, neutralB);
   let hitFrame = 0;
@@ -291,7 +292,7 @@ test("Shadow Strike poisons a body hit for three 1-damage ticks over 90 frames w
   assertEquals(target.status.damage, 5.0);
   assertEquals(target.status.poisonFrames > 0, true);
   const ticks: number[] = [];
-  for (let f = 1; f <= 100; f++) {
+  for (let f = 1; f <= 190; f++) {
     const before = target.status.damage;
     frame(world);
     if (target.status.damage !== before) {
@@ -302,8 +303,8 @@ test("Shadow Strike poisons a body hit for three 1-damage ticks over 90 frames w
   }
   assertEquals(target.status.damage, 8.0);
   assertEquals(ticks.length, 3);
-  assertEquals(ticks[1]! - ticks[0]!, 30);
-  assertEquals(ticks[2]! - ticks[1]!, 30);
+  assertEquals(ticks[1]! - ticks[0]!, 60);
+  assertEquals(ticks[2]! - ticks[1]!, 60);
   assertEquals(target.status.poisonFrames, 0);
   assertEquals(warden.status.damage, 0.0);
 });
@@ -315,4 +316,77 @@ test("a shielded Shadow Strike applies no poison", () => {
   for (let f = 2; f <= 60; f++) frame(world, controls(), guard);
   assertEquals(target.status.damage, 0.0);
   assertEquals(target.status.poisonFrames, 0);
+});
+
+const run = (world: Roster, frames: number, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls()) => {
+  for (let f = 0; f < frames; f++) frame(world, first, second);
+};
+
+test("Fan of Knives marks every body it hits, and never through a shield", () => {
+  const open = pair(0.0, 60.0);
+  frame(open.world, downB);
+  run(open.world, 12);
+  assertEquals(open.target.status.damage, 7.0);
+  assertGreaterThan(open.target.status.poisonFrames, 150);
+  const guarded = pair(0.0, 60.0);
+  const guard = controls({ shield: true });
+  frame(guarded.world, downB, guard);
+  run(guarded.world, 12, controls(), guard);
+  assertEquals(guarded.target.status.poisonFrames, 0);
+});
+
+/** Warden marks the target with Shadow Strike from 200 away, then both stand still until she acts. */
+function marked(facing = 1): { world: Roster; warden: Fighter; target: Fighter } {
+  const match = pair(0.0, f32(200.0 * facing), facing);
+  frame(match.world, neutralB);
+  run(match.world, 50);
+  assertGreaterThan(match.target.status.poisonFrames, 0);
+  assertEquals(match.warden.special.action, SpecialAction.none);
+  return match;
+}
+
+test("Shadow Pursuit: side special against a marked target in reach appears behind it on f15, slashes for 10 and spends the mark", () => {
+  for (const facing of [1, -1]) {
+    const { world, warden, target } = marked(facing);
+    const mana = warden.mana.points;
+    const before = target.status.damage;
+    frame(world, sideB(facing));
+    assertEquals(warden.mana.points, mana - 15);
+    run(world, 13);
+    assertGreaterThan(f32(f32(target.motion.x - warden.motion.x) * facing), 100.0);
+    run(world, 1);
+    assertGreaterThan(f32(f32(warden.motion.x - target.motion.x) * facing), 0.0);
+    assertEquals(warden.facing, -facing);
+    assertEquals(target.status.poisonFrames, 0);
+    run(world, 5);
+    assertEquals(f32(target.status.damage - before), 10.0);
+  }
+});
+
+test("Without a mark in reach, side special is Pursuit Lunge", () => {
+  const plain = pair(0.0, 1500.0);
+  frame(plain.world, sideB(1));
+  run(plain.world, 14);
+  assertGreaterThan(plain.warden.motion.x, f32(H * f32(0.9)));
+  const far = marked();
+  far.target.motion.x = f32(far.warden.motion.x + f32(H * f32(2.7)));
+  frame(far.world, sideB(1));
+  assertEquals(far.warden.special.form, SpecialForm.ground);
+  run(far.world, 14);
+  assertGreaterThan(far.warden.motion.x, f32(H * f32(0.9)));
+  assertGreaterThan(far.target.status.poisonFrames, 0);
+});
+
+test("Shadow Pursuit counterplay: a shield blocks the slash, and the spent mark allows no second pursuit", () => {
+  const { world, warden, target } = marked();
+  const before = target.status.damage;
+  const guard = controls({ shield: true });
+  frame(world, sideB(1), guard);
+  run(world, 30, controls(), guard);
+  assertEquals(target.status.damage, before);
+  assertEquals(target.status.poisonFrames, 0);
+  run(world, 20);
+  frame(world, sideB(target.motion.x > warden.motion.x ? 1 : -1));
+  assertEquals(warden.special.action, SpecialAction.heroSide);
+  assertEquals(warden.special.form, SpecialForm.ground);
 });

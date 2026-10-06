@@ -44,6 +44,22 @@ function ownedCount(f: Readonly<Fighter>, spec: Readonly<SpecialProjectile> | un
   return count;
 }
 
+/** The nearest marked (poisoned) opponent of the fighter within `range` on both axes, if any. */
+export function markedTarget(world: Roster, f: Readonly<Fighter>, range: number): Fighter | undefined {
+  let nearest: Fighter | undefined;
+  let distance = 0.0;
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
+    if (!isActive(world, slot)) continue;
+    const other = fighterAt(world, slot);
+    if (other === f || other.status.out || other.status.poisonFrames <= 0) continue;
+    const dx = Math.abs(f32(other.motion.x - f.motion.x));
+    if (dx > range || Math.abs(f32(other.motion.z - f.motion.z)) > range || (nearest !== undefined && dx >= distance)) continue;
+    nearest = other;
+    distance = dx;
+  }
+  return nearest;
+}
+
 /** Turns every outbound returning projectile of the fighter back toward it now. */
 function recallProjectiles(f: Fighter): void {
   for (const projectile of f.projectiles) {
@@ -85,13 +101,14 @@ const choice: HeroSpecialChoice = { slot: SpecialSlot.neutral, form: SpecialForm
  * the air, already used this airtime, or past an entity limit. Below the full
  * cost, a kit with a free form chooses it; one without refuses (`manaShort`).
  */
-export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<FighterSpecials>, input: Readonly<Controls>, out: { manaShort: boolean }): HeroSpecialChoice | undefined {
+export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<FighterSpecials>, input: Readonly<Controls>, out: { manaShort: boolean }, world?: Roster): HeroSpecialChoice | undefined {
   out.manaShort = false;
   const slot = requestedSlot(input);
   const kit = specialKit(specials, slot);
   const airborne = !f.motion.grounded;
   const recalls = kit.recall !== undefined && recallHolds(f, kit);
-  let form: SpecialForm = recalls ? SpecialForm.recall : airborne && kit.air !== undefined ? SpecialForm.air : SpecialForm.ground;
+  const marks = kit.marked !== undefined && world !== undefined && markedTarget(world, f, kit.marked.range) !== undefined;
+  let form: SpecialForm = recalls ? SpecialForm.recall : marks ? SpecialForm.marked : airborne && kit.air !== undefined ? SpecialForm.air : SpecialForm.ground;
   let move = specialForm(kit, form);
   if (move.groundOnly === true && airborne) return undefined;
   if (move.armor?.shell === true && f.status.armorFrames > 0) return undefined;
@@ -509,9 +526,13 @@ export function stopHeroMotionAtBodies(world: Roster, slot: number): void {
   }
 }
 
+/** How far behind a marked target's body a relocation puts the fighter. */
+const BEHIND_MARK = 60.0;
+
 /**
  * On the first frame of a relocating motion window, moves the fighter at
- * once: onto its placed object, which is spent, facing the object's way.
+ * once: onto its placed object, which is spent, facing the object's way, or
+ * just behind its nearest marked target in reach, facing it.
  * It then falls from rest, so a spot on the deck lands it at once.
  */
 export function relocateHeroSpecial(world: Roster, slot: number): void {
@@ -527,6 +548,15 @@ export function relocateHeroSpecial(world: Roster, slot: number): void {
       f.motion.z = placed.z;
       f.facing = placed.direction;
       placed.life = 0;
+    } else {
+      // Just behind the marked target, facing it; the mark is spent.
+      const target = markedTarget(world, f, segment.relocateReach ?? 0.0);
+      if (target === undefined) return;
+      const back = target.facing < 0 ? 1 : -1;
+      f.motion.x = f32(target.motion.x + f32(back * BEHIND_MARK));
+      f.motion.z = target.motion.z;
+      f.facing = -back;
+      target.status.poisonFrames = 0;
     }
     f.motion.vx = 0.0;
     f.motion.vz = 0.0;

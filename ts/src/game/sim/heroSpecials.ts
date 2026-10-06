@@ -13,13 +13,13 @@ export const SpecialSlot = { neutral: 0, side: 1, up: 2, down: 3 } as const;
 export type SpecialSlot = (typeof SpecialSlot)[keyof typeof SpecialSlot];
 
 /** Which authored form of a special is running; captured on entry. */
-export const SpecialForm = { ground: 0, air: 1, free: 2, recall: 3 } as const;
+export const SpecialForm = { ground: 0, air: 1, free: 2, recall: 3, marked: 4 } as const;
 export type SpecialForm = (typeof SpecialForm)[keyof typeof SpecialForm];
 /**
  * A running follow-up records its base form plus this offset times one more
  * than its index in `followUps`, past every base form.
  */
-export const FOLLOW_UP_FORM = 4;
+export const FOLLOW_UP_FORM = 5;
 
 /** The fresh press that takes a follow-up branch. */
 export const FollowUpInput = { special: 0, attack: 1, shield: 2 } as const;
@@ -67,6 +67,8 @@ export interface SpecialMotion extends FrameWindow {
    * object (which is spent), or just behind its marked target.
    */
   readonly relocate?: Relocation | undefined;
+  /** How far away a marked target may be for `Relocation.behindMark`; past it the fighter stays put. */
+  readonly relocateReach?: number | undefined;
 }
 
 /**
@@ -204,6 +206,8 @@ export interface AuthoredSpecial {
   /** Entering it turns the fighter's returning projectiles back toward it at once. */
   readonly recallsProjectiles?: boolean | undefined;
   readonly commandGrab?: CommandGrab | undefined;
+  /** Applied by each of its strikes that reaches a body, never through a shield (sim/heroStatus.ts). */
+  readonly strikeStatus?: AppliedStatus | undefined;
   /**
    * Branches after the press: the first whose `window` (brief frames) holds
    * the next frame and whose input was freshly pressed replaces the rest of
@@ -248,6 +252,11 @@ export interface SpecialKit {
    * (Frost Nova's burst), or the fighter's armor shell holding (Dark Ritual).
    */
   readonly recallWhile?: "projectile" | "armor" | undefined;
+  /**
+   * Chosen instead of the ground and air forms while an opponent within
+   * `range` is marked: poisoned (Warden's Shadow Pursuit).
+   */
+  readonly marked?: { readonly special: AuthoredSpecial; readonly range: number } | undefined;
 }
 
 export interface ManaProfile {
@@ -281,6 +290,7 @@ export function specialForm(kit: Readonly<SpecialKit>, form: number): AuthoredSp
   }
   if (form === SpecialForm.free) return kit.free ?? kit.ground;
   if (form === SpecialForm.recall) return kit.recall ?? kit.ground;
+  if (form === SpecialForm.marked) return kit.marked?.special ?? kit.ground;
   return form === SpecialForm.air ? kit.air ?? kit.ground : kit.ground;
 }
 

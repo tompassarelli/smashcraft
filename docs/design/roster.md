@@ -266,10 +266,10 @@ Standing grab 8/2/25, reach 0.50H. Pummel: helmet headbutt.
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Shadow Strike:** one slow thrown blade; 5 impact damage, POKE at 35 degrees, plus 3 damage over 90 frames in three 1-damage ticks. Speed 0.11H/frame, life 30, radius 0.13H. Reflectable; poison never flinches and does not stack. | Spawn f16, end f37; 5 mana |
-| Side B | **Pursuit Lunge:** 1.0H dash slash, 10 damage, EDGE at 35 degrees. Hold up/down on entry for a shallow +20/−20 degree air trajectory; no late steering. Air use once per airtime and ends helpless. No invulnerability. | f11–14 active, R26; 15 mana |
+| Neutral B | **Shadow Strike:** one slow thrown blade; 5 impact damage, POKE at 35 degrees, plus 3 damage over 180 frames in three 1-damage ticks; the poison is the **mark** for Shadow Pursuit (#126, smashcraft:docs/design/kit-review-1.md). Speed 0.11H/frame, life 30, radius 0.13H. Reflectable; poison never flinches and does not stack. | Spawn f16, end f37; 5 mana |
+| Side B | **Pursuit Lunge:** 1.0H dash slash, 10 damage, EDGE at 35 degrees. Against a marked opponent within 2.5H it is **Shadow Pursuit** (#126): a 14-frame tell, then on f15 she appears just behind the target facing it, spending the mark, and slashes f18–20 for 10, EDGE at 35 degrees; ends f40; no intangibility. Hold up/down on entry for a shallow +20/−20 degree air trajectory; no late steering. Air use once per airtime and ends helpless. No invulnerability. | f11–14 active, R26; 15 mana |
 | Up B | **Blink:** choose one of eight directions from held input at entry, travel up to 1.7H; f1–7 vulnerable, f8–10 intangible, endpoint vulnerable from f11. No hitbox. Sweep against terrain and stop at the last legal position, never cross solid stage. Free version is upward-only 1.1H, no intangibility. | Displacement f9; f11–30 endpoint recovery then helpless; 20 mana |
-| Down B | **Fan of Knives:** a single radial attack reaching 0.85H around Warden for 7 damage, POKE at 45 degrees outward. Knives are short-lived hit volumes attached to this move, not eight independent full-range projectiles. No invulnerability, reflect, or cancel. | f9–11 active, R27; 18 mana |
+| Down B | **Fan of Knives:** a single radial attack reaching 0.85H around Warden for 7 damage, POKE at 45 degrees outward; every body it hits is marked as Shadow Strike marks (#126). Knives are short-lived hit volumes attached to this move, not eight independent full-range projectiles. No invulnerability, reflect, or cancel. | f9–11 active, R27; 18 mana |
 
 ### Grab and throws
 
@@ -293,6 +293,7 @@ Standing grab 6/2/22, reach 0.48H. Pummel: elbow to the ribs.
 - Warden's arm reaches each blade's hand from two frames before the strike to four after, in held poses; only the blades are disjoint. Heel Blade's leg is exposed on frames 5-13.
 - Pursuit Cut and Pursuit Lunge stop dead after their travel instead of sliding on. Pursuit Lunge's 20-degree air tilt reads the stick held through frame 4.
 - Blink reads its eight directions from the stick held through frame 8, because an up special is always entered holding up. A grounded endpoint keeps the full recovery to frame 30, and a displacement into the stage stops at its body or lands on the deck.
+- Shadow Pursuit is the side kit's `marked` form, chosen while a poisoned opponent is within 2.5H; its move to the target's back is a `relocate` motion that also spends the poison. Fan of Knives applies the poison through `strikeStatus`.
 - Shadow Strike's poison is its own status slot beside sleep-like conditions: it never replaces or blocks one, ignores immunity groups and refreshes rather than stacks.
 - Presentation uses the stock Warden model. It has twelve sequences and no hit, jump, roll or ledge animations: blade swings play Attack - 1 and Attack - 2, overhead strikes Spell Slam, rising strikes and Fan of Knives Spell, Shadow Strike Spell Throw, and Blink, spot dodge and air dodge Dissipate. Knockdowns and tumbles play Death.
 - Spirit of Vengeance is not implemented; ultimates stay off in competitive play.

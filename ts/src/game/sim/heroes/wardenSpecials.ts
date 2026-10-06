@@ -2,7 +2,7 @@
 // specials), in the brief's frame numbering. Starting values, not balance.
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT, heroRegion, type MoveRegion, type StrikeCapsule } from "../heroMoves";
-import { ROSTER_MANA, frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
+import { ROSTER_MANA, Relocation, frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
 import { HeroStatusGroup, HeroStatusKind } from "../codes";
 import type { AppliedStatus } from "../heroStatus";
 import { wardenHit } from "./wardenMoves";
@@ -11,9 +11,11 @@ const H = HERO_REFERENCE_HEIGHT;
 const KNIFE_RADIUS = 7.0;
 const blade = (x1: number, z1: number, x2: number, z2: number, radius = KNIFE_RADIUS): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 
-// Shadow Strike: one slow reflectable blade whose body hit poisons for three
-// 1-damage ticks over 90 frames, without flinch; a new hit refreshes it.
-const POISON: AppliedStatus = { kind: HeroStatusKind.poison, frames: 90, group: HeroStatusGroup.sleep, immunityFrames: 0, tick: { every: 30, damage: 1.0 } };
+// The mark (#126, smashcraft:docs/design/kit-review-1.md): Shadow Strike's and
+// Fan of Knives' body hits poison for three 1-damage ticks over 180 frames,
+// without flinch; a new hit refreshes it. While it lasts the target is marked
+// for Shadow Pursuit.
+const POISON: AppliedStatus = { kind: HeroStatusKind.poison, frames: 180, group: HeroStatusGroup.sleep, immunityFrames: 0, tick: { every: 60, damage: 1.0 } };
 const SHADOW_STRIKE: AuthoredSpecial = {
   cost: 5,
   endFrame: 37,
@@ -32,6 +34,17 @@ const PURSUIT_LUNGE: AuthoredSpecial = {
   cost: 15, endFrame: 40, regions: lungeRegions(),
   motion: [{ ...frames(5, 14), velocityX: LUNGE_SPEED, velocityZ: 0.0 }, { ...frames(15, 15), velocityX: 0.0, velocityZ: 0.0 }],
 };
+// Shadow Pursuit (#126): against a marked opponent within 2.5H, a 14-frame tell
+// (the mark flares), then on f15 she appears just behind the target facing
+// it, spending the mark, and slashes f18-20; ends f40. No intangibility.
+const PURSUIT_REACH = f32(H * f32(2.5));
+const SHADOW_PURSUIT: AuthoredSpecial = {
+  cost: 15,
+  endFrame: 40,
+  motion: [{ ...frames(15, 15), velocityX: 0.0, velocityZ: 0.0, relocate: Relocation.behindMark, relocateReach: PURSUIT_REACH }],
+  regions: [heroRegion(18, 20, blade(16.0, 48.0, f32(f32(H * f32(0.80)) - KNIFE_RADIUS), 44.0), wardenHit(10.0, "EDGE", 35))],
+};
+
 // Up or down held through entry tilts the air dash 20 degrees; no later steering.
 const LUNGE_TILT = { x: f32(0.939692621), z: f32(0.342020143) };
 const PURSUIT_LUNGE_AIR: AuthoredSpecial = {
@@ -70,12 +83,12 @@ const fanRegions = (): readonly MoveRegion[] => {
     heroRegion(9, 11, blade(-12.0, f32(FAN_CENTER - 12.0), -FAN_DIAGONAL, f32(FAN_CENTER - FAN_DIAGONAL)), back),
   ];
 };
-const FAN_OF_KNIVES: AuthoredSpecial = { cost: 18, endFrame: 38, regions: fanRegions() };
+const FAN_OF_KNIVES: AuthoredSpecial = { cost: 18, endFrame: 38, regions: fanRegions(), strikeStatus: POISON };
 
 export const WARDEN_SPECIALS: FighterSpecials = {
   mana: ROSTER_MANA,
   neutral: { ground: SHADOW_STRIKE },
-  side: { ground: PURSUIT_LUNGE, air: PURSUIT_LUNGE_AIR },
+  side: { ground: PURSUIT_LUNGE, air: PURSUIT_LUNGE_AIR, marked: { special: SHADOW_PURSUIT, range: PURSUIT_REACH } },
   up: { ground: BLINK, free: BLINK_FREE },
   down: { ground: FAN_OF_KNIVES },
 };
