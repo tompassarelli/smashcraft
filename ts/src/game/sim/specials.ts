@@ -35,6 +35,19 @@ export const DEMONHUNTER_MANA_BURN_HEIGHT = 45.0;
 const DEMONHUNTER_PARRY_DURATION = 22;
 export const DEMONHUNTER_WING_STARTUP = 3;
 export const DEMONHUNTER_WING_DURATION = 28;
+// The glide out of Wing Ascent (#128): a jump in frames 16-28 spreads the
+// wings; the stick pitches the line; an attack slashes and ends it helpless.
+export const DEMONHUNTER_GLIDE_FIRST = 16;
+export const DEMONHUNTER_GLIDE_FRAMES = 90;
+export const DEMONHUNTER_GLIDE_FORM = 1;
+export const DEMONHUNTER_GLIDE_SLASH_FORM = 2;
+const DEMONHUNTER_GLIDE_SLASH_FRAMES = 20;
+const DEMONHUNTER_GLIDE_SLASH_FIRST = 4;
+const DEMONHUNTER_GLIDE_SLASH_LAST = 7;
+const DEMONHUNTER_GLIDE_LANDING_LAG = 10;
+const GLIDE_LEVEL = { speed: 9.0, sink: 1.5 };
+const GLIDE_HIGH = { speed: 7.0, sink: 0.5 };
+const GLIDE_DIVE = { speed: 11.0, sink: 4.0 };
 export const DEMONHUNTER_IMMOLATE_STARTUP = 4;
 export const DEMONHUNTER_IMMOLATE_ACTIVE = 4;
 export const DEMONHUNTER_IMMOLATE_DURATION = 27;
@@ -64,8 +77,21 @@ const ARCHER_DIVE_FRAMES = 16;
 export const ARCHER_DIVE_LAUNCH_FRAME = 6;
 const ARCHER_CALL_FORM = 0;
 const ARCHER_DIVE_FORM = 1;
+// Rifleman's recoil shot (up special, #127, smashcraft:docs/design/kit-review-1.md):
+// the stick held through frame 4 picks where he flies: up (neutral, up or
+// down), diagonally up (a side, with or without up) or level (down and a
+// side); the shot fires the opposite way. One second shot on a special press
+// in frames 12-24 picks a new route the same way.
 const RIFLEMAN_RECOVERY_STARTUP_FRAMES = 4;
-const RIFLEMAN_RECOVERY_PROTECTION_END = 24;
+export const RIFLEMAN_RECOVERY_PROTECTION_END = 10;
+const RIFLEMAN_RECOIL_SPEED = 30.0;
+const RIFLEMAN_RECOIL_SHOT_SPEED = 28.0;
+export const RIFLEMAN_SECOND_SHOT_FIRST = 12;
+export const RIFLEMAN_SECOND_SHOT_LAST = 24;
+const RIFLEMAN_SECOND_SHOT_SPEED = 22.0;
+const RIFLEMAN_SECOND_SHOT_FORM = 1;
+/** Diagonal aims keep the authored speed. */
+const AIM_DIAGONAL = 0.7071067690849304;
 const ARCHER_HOMING_FRAMES = 34;
 const RIFLEMAN_RECOVERY_FRAMES = 34;
 /** The bear appears this many frames into the cast, past the reaction floor in docs/gameplay-design.md (#69). */
@@ -210,6 +236,7 @@ function startRiflemanSpecial(owner: Fighter, stage: number, matchFrame: number,
   if (action === SpecialAction.riflemanRecovery) {
     if (!motion.grounded) owner.jump.remaining = 0;
     startSpecialAction(owner, action, RIFLEMAN_RECOVERY_FRAMES, moveX);
+    special.form = 0;
     special.cooldowns[action] = 90;
     return true;
   }
@@ -223,6 +250,91 @@ function startRiflemanSpecial(owner: Fighter, stage: number, matchFrame: number,
   startSpecialAction(owner, action, motion.grounded ? RIFLEMAN_BLASTER_GROUND_FRAMES : RIFLEMAN_BLASTER_AIR_FRAMES, moveX);
   special.cooldowns[action] = 8;
   return true;
+}
+
+/**
+ * Flies the Rifleman the way the stick picks at `speed` and fires the recoil
+ * shot the opposite way: no side is straight up, a side is diagonally up, and
+ * down with a side is level.
+ */
+function fireRecoil(owner: Fighter, side: number, vertical: number, speed: number, serial: number): void {
+  const x = side < 0 ? -1 : side > 0 ? 1 : 0;
+  const z = x !== 0 && vertical < 0 ? 0 : 1;
+  const scale = x !== 0 && z !== 0 ? AIM_DIAGONAL : 1.0;
+  spawnProjectileMotion(owner, ProjectileKind.recoil, f32(f32(-x * RIFLEMAN_RECOIL_SHOT_SPEED) * scale), f32(f32(-z * RIFLEMAN_RECOIL_SHOT_SPEED) * scale), 8, serial);
+  owner.motion.vx = f32(f32(x * speed) * scale);
+  owner.motion.vz = f32(f32(z * speed) * scale);
+}
+
+/**
+ * The recoil shot's second shot: a special press in frames 12-24, once, flies
+ * him the way the held stick picks at the second shot's speed.
+ */
+function secondRecoilShot(owner: Fighter, input: Readonly<Controls>): boolean {
+  const { special } = owner;
+  const next = special.frame + 1;
+  if (special.form === RIFLEMAN_SECOND_SHOT_FORM || next < RIFLEMAN_SECOND_SHOT_FIRST || next > RIFLEMAN_SECOND_SHOT_LAST || owner.launch.hitlag > 0) return false;
+  const side = input.specialX !== 0 ? input.specialX : input.direction;
+  const vertical = input.specialZ !== 0 ? input.specialZ : input.verticalDirection;
+  fireRecoil(owner, side, vertical, RIFLEMAN_SECOND_SHOT_SPEED, owner.attack.serial + 1);
+  special.form = RIFLEMAN_SECOND_SHOT_FORM;
+  return true;
+}
+
+/**
+ * Runs before the jump input: Immolate from its first active frame (as
+ * Melee's reflector from frame 4) ends so the jump starts this frame; Wing
+ * Ascent in frames 16-28 turns into the glide instead; an attack during the
+ * glide becomes the wing slash.
+ */
+export function demonHunterJumpOrGlideCancel(owner: Fighter, input: Readonly<Controls>): void {
+  const { special } = owner;
+  if (owner.character !== Character.demonHunter || owner.launch.hitlag > 0) return;
+  if (input.jumpPressed && special.action === SpecialAction.demonHunterImmolate && special.frame >= DEMONHUNTER_IMMOLATE_STARTUP) {
+    special.action = SpecialAction.none;
+    special.frame = 0;
+    special.lockFrames = 0;
+    owner.attack.cooldown = 0;
+    return;
+  }
+  if (special.action !== SpecialAction.demonHunterWingAscent) return;
+  if (input.jumpPressed && special.form === 0 && special.frame >= DEMONHUNTER_GLIDE_FIRST - 1 && special.frame < DEMONHUNTER_WING_DURATION) {
+    startGlidePhase(owner, DEMONHUNTER_GLIDE_FORM, DEMONHUNTER_GLIDE_FRAMES);
+  } else if (input.attackPressed && special.form === DEMONHUNTER_GLIDE_FORM) {
+    startGlidePhase(owner, DEMONHUNTER_GLIDE_SLASH_FORM, DEMONHUNTER_GLIDE_SLASH_FRAMES);
+    for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
+  }
+}
+
+function startGlidePhase(owner: Fighter, form: number, frames: number): void {
+  const { special } = owner;
+  special.form = form;
+  special.frame = 0;
+  special.duration = frames;
+  special.lockFrames = frames;
+  owner.attack.cooldown = max(owner.attack.cooldown, frames);
+}
+
+/** Whether Illidan's glide (or its slash) sets his velocity this frame. */
+export function demonHunterGliding(f: Readonly<Fighter>): boolean {
+  return f.special.action === SpecialAction.demonHunterWingAscent && f.special.form !== 0;
+}
+
+/** One glide frame: forward along the facing, pitched by the held stick. */
+function glide(owner: Fighter, input: Readonly<Controls> | undefined): void {
+  const { motion, special } = owner;
+  if (motion.grounded) {
+    special.action = SpecialAction.none;
+    special.frame = 0;
+    special.lockFrames = 0;
+    owner.attack.cooldown = 0;
+    owner.landing.lag = max(owner.landing.lag, DEMONHUNTER_GLIDE_LANDING_LAG);
+    return;
+  }
+  const pitch = input?.verticalDirection ?? 0;
+  const line = special.form === DEMONHUNTER_GLIDE_SLASH_FORM || pitch === 0 ? GLIDE_LEVEL : pitch > 0 ? GLIDE_HIGH : GLIDE_DIVE;
+  motion.vx = f32(owner.facing * line.speed);
+  motion.vz = -line.sink;
 }
 
 /** The cast completes: the bear appears ahead of the Rifleman and runs the way he cast it. */
@@ -308,6 +420,7 @@ export function startFighterSpecial(owner: Fighter, stage: number, matchFrame: n
   if (owner.tuning.specials !== undefined && isHeroSpecialAction(owner.special.action)) return followUpHeroSpecial(owner, input);
   if (!input.specialPressed) return false;
   if (owner.tuning.specials !== undefined) return startHeroFighterSpecial(owner, input, world);
+  if (owner.character === Character.rifleman && owner.special.action === SpecialAction.riflemanRecovery) return secondRecoilShot(owner, input);
   const requested = requestedSpecial(owner, input);
   if (!specialCanStart(owner, requested)) return false;
   observeActionDecision(SPECIAL_ACTION_BIT);
@@ -412,16 +525,23 @@ function advanceSpecialAction(owner: Fighter, stage: number, matchFrame: number,
   }
   if (special.action === SpecialAction.riflemanRecovery) {
     if (special.frame === RIFLEMAN_RECOVERY_STARTUP_FRAMES) {
-      spawnProjectileMotion(owner, ProjectileKind.recoil, f32(owner.facing * 2.0), -28.0, 8, shotSerial);
-      motion.vx = f32(special.direction * 8.0);
-      motion.vz = 30.0;
+      const side = input?.direction ?? 0;
+      if (side === 0) {
+        // Straight up on a shot straight down, as the recovery always flew: the side pressed drifts him.
+        spawnProjectileMotion(owner, ProjectileKind.recoil, f32(owner.facing * 2.0), -RIFLEMAN_RECOIL_SHOT_SPEED, 8, shotSerial);
+        motion.vx = f32(special.direction * 8.0);
+        motion.vz = RIFLEMAN_RECOIL_SPEED;
+      } else {
+        fireRecoil(owner, side, input?.verticalDirection ?? 0, RIFLEMAN_RECOIL_SPEED, shotSerial);
+      }
       launchUpward(owner);
     }
     if (special.frame >= RIFLEMAN_RECOVERY_STARTUP_FRAMES && special.frame <= RIFLEMAN_RECOVERY_PROTECTION_END) {
       owner.status.invincible = max(owner.status.invincible, 2);
     }
   }
-  if (special.action === SpecialAction.demonHunterWingAscent && special.frame === DEMONHUNTER_WING_STARTUP) {
+  if (special.action === SpecialAction.demonHunterWingAscent && special.form !== 0) glide(owner, input);
+  if (special.action === SpecialAction.demonHunterWingAscent && special.form === 0 && special.frame === DEMONHUNTER_WING_STARTUP) {
     motion.vz = 30.0;
     motion.vx = f32(special.direction * 5.0);
     launchUpward(owner);
@@ -465,8 +585,25 @@ const IMMOLATE_AIR: Readonly<HitRegion> = {
 export const immolationRegion = (grounded: boolean): Readonly<HitRegion> => (grounded ? IMMOLATE_GROUND : IMMOLATE_AIR);
 
 /** Immolation strikes each target inside its grounded or aerial region once during its active frames. */
+const GLIDE_SLASH: Readonly<HitRegion> = {
+  minX: 0.0, maxX: 120.0, minZ: -20.0, maxZ: 110.0,
+  effect: { damage: 8.0, growth: 100.0, base: 24.0, launchX: 0.7071067690849304, launchZ: 0.7071067690849304, electric: false },
+  window: 1,
+};
+
+/** The glide's wing slash strikes each target in front of Illidan once on its frames 4-7. */
+function glideSlashContact(owner: Fighter, targetSlot: number, target: Fighter): Readonly<HitRegion> {
+  const { special } = owner;
+  if (special.frame < DEMONHUNTER_GLIDE_SLASH_FIRST || special.frame > DEMONHUNTER_GLIDE_SLASH_LAST) return NO_HIT_REGION;
+  if (specialAlreadyHit(owner, targetSlot) || target.status.out || isIntangible(target)) return NO_HIT_REGION;
+  const localX = f32(f32(target.motion.x - owner.motion.x) * owner.facing);
+  const localZ = f32(target.motion.z - owner.motion.z);
+  return localX >= GLIDE_SLASH.minX && localX <= GLIDE_SLASH.maxX && localZ >= GLIDE_SLASH.minZ && localZ <= GLIDE_SLASH.maxZ ? GLIDE_SLASH : NO_HIT_REGION;
+}
+
 function demonHunterSpecialContact(owner: Fighter, targetSlot: number, target: Fighter): Readonly<HitRegion> {
   const { special } = owner;
+  if (owner.character === Character.demonHunter && special.action === SpecialAction.demonHunterWingAscent && special.form === DEMONHUNTER_GLIDE_SLASH_FORM) return glideSlashContact(owner, targetSlot, target);
   if (owner.character !== Character.demonHunter || special.action !== SpecialAction.demonHunterImmolate) return NO_HIT_REGION;
   if (specialAlreadyHit(owner, targetSlot) || special.frame < DEMONHUNTER_IMMOLATE_STARTUP) return NO_HIT_REGION;
   if (special.frame >= DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE || target.status.out || isIntangible(target)) return NO_HIT_REGION;

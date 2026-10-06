@@ -99,7 +99,8 @@ export function projectSpecialEffect(state: Readonly<SpecialEffectState>, fighte
   }
   if (kind === STATIC_WING_TRAIL) {
     return {
-      visible: special.action === SpecialAction.demonHunterWingAscent && special.frame >= DEMONHUNTER_WING_STARTUP,
+      // The glide (form 1, its slash 2) keeps the wings spread from its first frame.
+      visible: special.action === SpecialAction.demonHunterWingAscent && (special.frame >= DEMONHUNTER_WING_STARTUP || special.form !== 0),
       x: motion.x,
       z: f32(motion.z + f32(8 * scale)),
       scale: f32(0.75 * scale),

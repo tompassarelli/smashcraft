@@ -39,6 +39,7 @@ import {
 } from "./fighter";
 import { DASH_GUARD_EARLY_FRAMES, advanceGroundMovement, clearDash } from "./groundMovement";
 import { heroMotionHolds } from "./heroSpecialRules";
+import { demonHunterGliding, demonHunterJumpOrGlideCancel } from "./specials";
 import { AIR_DODGE_ANIMATION_FRAMES, AIR_DODGE_DECAY, beginAirDodge, beginGroundDodge, beginJump, canBeginGroundDodge } from "./jumpsAndDodges";
 import { ageKnockback, applyDirectionalInfluence, decayKnockback } from "./knockback";
 import { advanceLedge } from "./ledge";
@@ -434,6 +435,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (launch.hitlag <= 0) launch.hitstun = max(0, launch.hitstun - 1);
   if (launch.hitstun === 0) launch.throwHitstun = false;
   const squatBeforeInput = jump.squat;
+  if (input.jumpPressed || input.attackPressed) demonHunterJumpOrGlideCancel(f, input);
   if ((input.jumpPressed || parryOption === ParryBuffer.jump) && !wallJumped) beginJump(f, input.direction);
   if (jump.squat > 0 && launch.hitlag === 0 && (f.character === Character.demonHunter || squatBeforeInput !== 1)) jump.held = jump.held && input.jumpHeld;
   if (input.airDodgePressed) {
@@ -497,8 +499,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     motion.vx = max(-physics.airSpeed, min(physics.airSpeed, motion.vx));
   }
   let dashEntryDisplacementAdjustment = 0.0;
-  // Archer's hippogryph ride sets her velocity each frame (specials.ts).
-  const authoredMotion = heroMotionHolds(f) || f.special.action === SpecialAction.archerRecovery;
+  // Archer's hippogryph ride and Illidan's glide set the velocity each frame (specials.ts).
+  const authoredMotion = heroMotionHolds(f) || f.special.action === SpecialAction.archerRecovery || demonHunterGliding(f);
   const canSteer = !authoredMotion && down.state === DownState.none && launch.hitstun <= 0 && (!dodge.airDodging || !dodgeActive) && !isGroundDodging(f)
     && shield.releaseLag <= 0 && f.landing.lag <= 0 && shield.stun <= 0 && jump.squat <= 0 && !smashChargePaused
     && (!motion.grounded || attack.cooldown <= 0) && f.surfaceRecovery.state !== SurfaceContact.techWall;

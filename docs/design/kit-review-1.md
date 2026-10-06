@@ -247,14 +247,14 @@ recovery depend on the opponent's position on stage and skip the edge-guard.
 
 ### Up B: Recoil Shot, aimed and two-stage (picked)
 
-Cooldown as now. The stick held through frame 4 aims the shot in one of
-eight directions (neutral or up: straight down, as now); on frame 4 he fires
-the recoil shot that way and flies the opposite way at 30 a frame. He is
-intangible on frames 4–10 (was 4–24).
+Cooldown as now. The stick held through frame 4 picks where he flies, at 30
+a frame: straight up with no side (as now), diagonally up with a side, level
+with down and a side. On frame 4 the recoil shot fires the opposite way. The
+stick picks the flight rather than the shot, so holding toward the stage
+always heads home. He is intangible on frames 4–10 (was 4–24).
 
-**Second shot:** special on frames 12–24 fires again in the newly held
-direction (neutral: straight down) and flies him the opposite way at 22 a
-frame; he is then helpless at the action's end, as he is without it. Each
+**Second shot:** special on frames 12–24 fires again, the newly held stick
+picking the flight the same way, at 22 a frame; he is then helpless at the action's end, as he is without it. Each
 shot is a real projectile, so the gun is also the edge-guard answer: shoot
 down-back into the fighter waiting at the ledge.
 

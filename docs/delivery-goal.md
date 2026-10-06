@@ -107,15 +107,19 @@ Rifleman: recognizable Warcraft-style bullet; running/swiping bear;
 neutral-special bullet impact must briefly flinch the victim, like Falco's
 laser, distinctly from Archer's damage-only arrows;
 five-second freezing trap with visible ice entombment and defined release rules;
-downward-shot upward recovery with early protection ending before the apex.
+aimed recoil-shot recovery: the stick picks up, diagonally up or level and the
+shot fires the opposite way, with one second shot to change route and early
+protection ending at frame 10 (#127, smashcraft:docs/design/kit-review-1.md).
 Finish readable kicks with cape clearance and canonical blue portraits with
 the gun fully visible. Repair material/import causes rather than recoloring
 around an unresolved asset defect.
 
 Demon Hunter: neutral-special Mana Burn; side-special evasion/parry;
-up-special visible animated wings and quick rising recovery; down-special
-Immolate with shine-like horizontal ground knockback and downward air spike.
-A short post-recovery glide remains tentative. Do not infer mana-drain,
+up-special visible animated wings and quick rising recovery, with a jump in
+its frames 16-28 starting a glide pitched by the stick and a wing slash out of
+it; down-special Immolate with shine-like horizontal ground knockback and
+downward air spike, jump-cancellable from its first active frame (#128,
+smashcraft:docs/design/kit-review-1.md). Do not infer mana-drain,
 reflection, exact parry rules or final tuning from move names alone. Deliver
 his full normals, aerials, grabs/throws, shared actions, effects, portraits,
 selection and replay coverage, not just his specials or model.
