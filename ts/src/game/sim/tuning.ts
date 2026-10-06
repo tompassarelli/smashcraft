@@ -205,20 +205,20 @@ export function authoredPhysics(character: Character): FighterPhysics {
 }
 
 /**
- * Wall-tech push-off and wall jumps from each fighter's Melee reference:
- * ftCo_DatAttrs +0x100 passivewall_vel_x, +0x104/+0x108 wall jump launch and
- * +0x148 wall_jump_min_approach_speed in the owner's GALE01 revision 2
- * PlFx.dat (Archer = Fox), PlFc.dat (Rifleman = Falco) and PlCa.dat
- * (Illidan = Captain Falcon), all of whom wall jump (can_walljump in
- * ftFx_Init_OnLoad, ftFc_Init_OnLoad, ftCa_Init_OnLoad). Ceiling techs keep
- * no sideways impulse.
+ * Wall-tech push-off, wall jumps and the ceiling tech's sideways impulse from
+ * each fighter's Melee reference: ftCo_DatAttrs +0x100 passivewall_vel_x,
+ * +0x104/+0x108 wall jump launch, +0x10C passiveceil_vel_x and +0x148
+ * wall_jump_min_approach_speed in the owner's GALE01 revision 2 PlFx.dat
+ * (Archer = Fox), PlFc.dat (Rifleman = Falco) and PlCa.dat (Illidan =
+ * Captain Falcon), all of whom wall jump (can_walljump in ftFx_Init_OnLoad,
+ * ftFc_Init_OnLoad, ftCa_Init_OnLoad).
  */
 const AUTHORED_SURFACE_RECOVERY: { readonly [name in keyof typeof Character]: SurfaceRecoveryPhysics } = {
   archer: {
     passiveWallSpeed: melee(0.5),
     wallJumpHorizontalSpeed: melee(1.399999976158142),
     wallJumpVerticalSpeed: melee(3.299999952316284),
-    passiveCeilingSpeed: 0.0,
+    passiveCeilingSpeed: melee(0.699999988079071),
     wallJumpMinimumApproach: melee(0.5),
     canWallJump: true,
   },
@@ -226,7 +226,7 @@ const AUTHORED_SURFACE_RECOVERY: { readonly [name in keyof typeof Character]: Su
     passiveWallSpeed: melee(0.5),
     wallJumpHorizontalSpeed: melee(1.2999999523162842),
     wallJumpVerticalSpeed: melee(3.5999999046325684),
-    passiveCeilingSpeed: 0.0,
+    passiveCeilingSpeed: melee(0.699999988079071),
     wallJumpMinimumApproach: melee(0.5),
     canWallJump: true,
   },
@@ -234,7 +234,7 @@ const AUTHORED_SURFACE_RECOVERY: { readonly [name in keyof typeof Character]: Su
     passiveWallSpeed: melee(0.5),
     wallJumpHorizontalSpeed: melee(1.399999976158142),
     wallJumpVerticalSpeed: melee(3.0999999046325684),
-    passiveCeilingSpeed: 0.0,
+    passiveCeilingSpeed: melee(2.0),
     wallJumpMinimumApproach: melee(0.5),
     canWallJump: true,
   },
@@ -302,6 +302,8 @@ export const AUTHORED_TECH_TIMING: TechTiming = {
   wallAnimationEndFrame: 26,
   wallJumpAnimationEndFrame: 40,
 };
+/** Illidan's ceiling tech is Captain Falcon's: its impulse event comes on frame 11 (retail-ceiling-tech-events.json). */
+const CAPTAIN_FALCON_TECH_TIMING: TechTiming = { ...AUTHORED_TECH_TIMING, ceilingImpulseFrame: 11 };
 
 export const SHIELD_BREAK_LAND_FRAMES = 12;
 export const SHIELD_BREAK_STAND_FRAMES = 30;
@@ -323,7 +325,7 @@ export function authoredTuning(character: Character): FighterTuning {
     ground: AUTHORED_GROUND_MOVEMENT_RULES,
     dashGrab: AUTHORED_DASH_GRAB_RULES,
     shield: AUTHORED_SHIELD_GEOMETRY,
-    tech: AUTHORED_TECH_TIMING,
+    tech: character === Character.demonHunter ? CAPTAIN_FALCON_TECH_TIMING : AUTHORED_TECH_TIMING,
     shieldBreak: AUTHORED_SHIELD_BREAK_TIMING,
   };
 }

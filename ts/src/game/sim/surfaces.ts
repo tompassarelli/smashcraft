@@ -8,6 +8,7 @@ import { type Fighter, WALL_JUMP_FLICK_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAME
 import { setWorldMotionValue, totalVelocityX, totalVelocityZ } from "./motion";
 import type { Controls } from "./roster";
 import { MAIN_DECK_BODY_SURFACES, type SolidSurface, solidSurfaceAt, solidSurfaceCount, surfaceZ } from "./stage";
+import { stickX } from "./stick";
 import { clearDownState } from "./transitions";
 import { melee } from "./tuning";
 
@@ -299,8 +300,9 @@ export function advanceSurfaceRecovery(f: Fighter, input: Readonly<Controls>): b
   const timing = f.tuning.tech;
   if (recovery.state === SurfaceContact.techCeiling) {
     recovery.frame++;
+    // The animation's throw-flag event sets sideways speed from the stick times passiveceil_vel_x (ftCo_PassiveCeil.c ftCo_PassiveCeil_Anim).
     if (recovery.frame === timing.ceilingImpulseFrame && !recovery.velocityApplied) {
-      motion.vx = f32(input.direction * physics.passiveCeilingSpeed);
+      motion.vx = f32(stickX(input) * physics.passiveCeilingSpeed);
       recovery.velocityApplied = true;
     }
     if (recovery.frame >= timing.ceilingAnimationEndFrame) {

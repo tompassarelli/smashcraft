@@ -79,6 +79,7 @@ export function playtest({ build, map, helper, computerSlot, inputDevices }: Pla
     shortcut: { appId: 3775098022, name: "Warcraft III (Battle.net)" },
     map,
     gameName: "Smashcraft",
+    debugDirectory: join(homedir(), ".local/state/smashcraft/play-debug"),
     started: (game, since) => until(LOAD_SECONDS, menu(game).pipe(Effect.map((file) => (file !== undefined && file.modified > since && file.value.phase === "CHARACTER" ? true : undefined))),
       `Smashcraft didn't reach fighter selection within ${LOAD_SECONDS} s (no new ${name})`),
     opponent: (game) => Effect.gen(function*() {
