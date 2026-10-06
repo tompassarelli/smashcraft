@@ -332,9 +332,14 @@ interface SurfaceRecovery {
 }
 
 interface Grab {
-  pummels?: number | undefined;
+  /** Pummels this hold has started. */
+  pummels: number;
   /** Frames left before a held fighter breaks free. */
   grabbedFrames: number;
+  /** Frames a held fighter has been held, which bound how soon mashing frees it. */
+  heldFrames: number;
+  /** A throw pressed during the pummel, which starts when the pummel ends. */
+  queuedThrow: GrabAction;
   action: GrabAction;
   frame: number;
   serial: number;
@@ -630,7 +635,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       contactNormalX: 0.0,
       contactNormalZ: 0.0,
     },
-    grab: { grabbedFrames: 0, action: GrabAction.none, frame: 0, serial: 0, mashX: 0, mashZ: 0, owner: undefined, target: undefined },
+    grab: { pummels: 0, grabbedFrames: 0, heldFrames: 0, queuedThrow: GrabAction.none, action: GrabAction.none, frame: 0, serial: 0, mashX: 0, mashZ: 0, owner: undefined, target: undefined },
     ledge: { state: LedgeState.none, side: 0, frame: 0, serial: 0, intangible: 0, regrab: 0 },
     platform: {
       move: PlatformMove.none, frame: 0, duration: 0, deck: undefined, fromX: 0.0, toX: 0.0, fromZ: 0.0, toZ: 0.0, rise: 0.0,

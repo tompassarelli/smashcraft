@@ -46,9 +46,12 @@ saved" appears. The match goes on undisturbed.
 The Custom preset uses W/R to move, I/9 to jump, Space to aim up, E to
 fast-fall or climb down through platforms, Q/8 to shield or air-dodge, O to grab, N
 to attack, and U for a special. Shield + N or O grabs. While holding an
-opponent, tap N to pummel or a movement/C-stick direction to throw forward,
-backward, up, or down. Mash action buttons and alternate movement directions
-to escape a grab; holding one button does not count as mashing.
+opponent, tap N to pummel once or a movement/C-stick direction to throw forward,
+backward, up, or down; after the pummel, throw or the opponent goes free. Mash
+action buttons and alternate movement directions to escape a grab; holding one
+button does not count as mashing. The bar above a held fighter drains as the
+hold runs out and faster with mashing; the mark on it shows when a pummel would
+land.
 
 Attacks buffer for six frames, including through jump squat. Hold P to walk;
 P with E crouches on a platform instead of climbing down. Jumping into a

@@ -15,7 +15,7 @@ import { SHIELD_RELEASE_LAG_FRAMES } from "../sim/shield";
 import { INITIAL_DASH_FRAMES, SHIELD_BREAK_LAND_FRAMES, SHIELD_BREAK_STAND_FRAMES, authoredPhysics } from "../sim/tuning";
 import { DamagePose, damagePose } from "./damagePose";
 import * as dh from "./demonHunterAssetInfo";
-import type { HeroClip, HeroPose } from "../sim/heroes/hero";
+import type { HeroClip, HeroClipTable, HeroPose } from "../sim/heroes/hero";
 import * as clips from "./fighterClips";
 import {
   ESCAPE_FRAMES, IllidanLocomotion, LEDGE_CATCH_FRAMES, RESPAWN_FRAMES, TRANSITION_FRAMES, type IllidanMotion,
@@ -149,8 +149,9 @@ export function advanceFighterPose(
     pose.motion.respawnRemaining = 0;
   }
   if (fighter.status.out) {
-    if (fighter.character === Character.demonHunter && !wasOut) {
-      selectFighterClipIndex(pose, dh.DEMON_HUNTER_KO_INDEX);
+    const ko = fighter.character === Character.demonHunter ? dh.DEMON_HUNTER_KO_INDEX : clips.characterClips(fighter.character).ko?.index;
+    if (ko !== undefined && !wasOut) {
+      selectFighterClipIndex(pose, ko);
       pose.rate = 1.0;
       pose.animation = "ko";
     }
@@ -191,6 +192,7 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
   const rate = actionRate(pose, f, phase, reaction);
   const { character } = f;
   const illidan = character === Character.demonHunter;
+  const table = clips.characterClips(character);
   if (inGrabContext(f)) return selectGrabClip(pose, f, world);
   if (f.ledge.state !== LedgeState.none) {
     const catching = illidan && f.ledge.state === LedgeState.hang && pose.motion.ledgeCatchRemaining > 0;
@@ -211,6 +213,7 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
       if (f.shield.breakState === ShieldBreak.land) selectFighterClipIndex(pose, clips.clipFor(character, "knockdown").index);
       else if (f.shield.breakState === ShieldBreak.stand) selectFighterClipIndex(pose, clips.clipFor(character, "getUp").index);
       else if (illidan) selectFighterClipIndex(pose, dh.DEMON_HUNTER_SHIELD_BREAK_INDEX);
+      else if (table.dizzy !== undefined) selectFighterClipIndex(pose, table.dizzy.index);
       else selectFighterClipName(pose, "stand hit");
       pose.animation = key;
     }
@@ -251,10 +254,8 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     playIndex(pose, `special${f.special.action}`, fighterSpecialClip(f).index);
     return rate;
   }
-  if (illidan) {
-    const illidanRate = selectIllidanAction(pose, f);
-    if (illidanRate !== undefined) return illidanRate;
-  }
+  const stateRate = illidan ? selectIllidanAction(pose, f) : selectTableAction(pose, f, table);
+  if (stateRate !== undefined) return stateRate;
   if (pose.jumpAnimationRemaining > 0) {
     playIndex(pose, "jump", clips.clipFor(character, pose.doubleJumpAnimation ? "doubleJump" : "jump").index);
     return rate;
@@ -268,9 +269,14 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     playIndex(pose, `motion${motion}`, locomotionClipIndex(motion));
     return locomotionRate(f, motion);
   }
+  const moving = tableLocomotion(table, pose.motion.motion);
+  if (moving !== undefined) {
+    playIndex(pose, `motion${pose.motion.motion}`, moving.index);
+    return pose.motion.motion === IllidanLocomotion.run ? locomotionRate(f, pose.motion.motion) : tableLocomotionRate(moving, pose.motion.motion);
+  }
   const walking = f.motion.grounded && Math.abs(totalVelocityX(f)) > f32(0.1);
   // A table that maps locomotion plays it by index; the originals play named clips.
-  const locomotion = clips.characterClips(character)[walking ? "walk" : "idle"];
+  const locomotion = table[walking ? "walk" : "idle"];
   if (locomotion === undefined) playName(pose, walking ? "walk" : "stand", walking ? "walk" : "stand");
   else playIndex(pose, walking ? "walk" : "stand", locomotion.index);
   return walking ? min(f32(1.4), max(f32(0.2), f32(Math.abs(f.motion.vx) / f.tuning.physics.runSpeed))) : rate;
@@ -294,6 +300,58 @@ function selectGrabClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly
   // Both sides play at the holder clip's rate.
   const poses = clips.grabActionPoses(action);
   return poses === undefined ? 0.0 : clipRate(clips.clipFor(f.character, poses.holder).seconds, grabActionDuration(action, f.tuning.moves));
+}
+
+/**
+ * The states only Illidan has code of his own for, played from any table that
+ * maps them: air dodges, landings, shielding and smash charges. The original
+ * tables map none of these.
+ */
+function selectTableAction(pose: FighterPose, f: Readonly<Fighter>, table: Readonly<HeroClipTable>): number | undefined {
+  const { dodge, motion, landing, shield, attack } = f;
+  if (dodge.airDodging && table.airDodge !== undefined) {
+    playIndex(pose, "air-dodge", table.airDodge.index);
+    return clipRate(table.airDodge.seconds, AIR_DODGE_ANIMATION_FRAMES);
+  }
+  if (motion.grounded && landing.lag > 0 && table.landing !== undefined) {
+    if (pose.animation !== "landing") {
+      selectFighterClipIndex(pose, table.landing.index);
+      pose.landingAnimationRate = clipRate(table.landing.seconds, landing.lag);
+      pose.animation = "landing";
+    }
+    return pose.landingAnimationRate;
+  }
+  if ((shield.raised || shield.releaseLag > 0) && table.shield !== undefined) {
+    playIndex(pose, "shield", table.shield.index);
+    return 1.0;
+  }
+  const { style } = attack;
+  if (attack.smashCharging && table.smashCharge !== undefined) {
+    playIndex(pose, "smash-charge", table.smashCharge.index);
+    return 0.0;
+  }
+  // A released charge replays the smash's own clip over the rest of the attack.
+  const release = clips.ownAttackClip(f.character, style);
+  if (style !== undefined && release !== undefined && (pose.animation === "smash-charge" || pose.animation === "smash-release")) {
+    if (pose.animation === "smash-charge") {
+      selectFighterClipIndex(pose, release.index);
+      pose.animation = "smash-release";
+    }
+    return clipRate(release.seconds, attack.duration - attackStartupFrames(style, f.tuning.moves));
+  }
+  return undefined;
+}
+
+/** A table's locomotion clip for Illidan's locomotion states; undefined where it maps none. */
+function tableLocomotion(table: Readonly<HeroClipTable>, motion: IllidanLocomotion): HeroClip | undefined {
+  switch (motion) {
+    case IllidanLocomotion.dash: return table.dash;
+    case IllidanLocomotion.run: return table.run;
+    case IllidanLocomotion.crouch: return table.crouch;
+    case IllidanLocomotion.fall:
+    case IllidanLocomotion.fastFall: return table.fall;
+    default: return undefined;
+  }
 }
 
 /** Illidan's own clips for dodges, landings, shielding, smash charges, respawns and ledge jumps. */
@@ -472,6 +530,13 @@ function locomotionClipIndex(motion: IllidanLocomotion): number {
     case IllidanLocomotion.fall: return dh.DEMON_HUNTER_FALL_INDEX;
     default: return dh.DEMON_HUNTER_COMBAT_IDLE_INDEX;
   }
+}
+
+/** A table's dash and crouch play over Illidan's frames for them; its fall holds. */
+function tableLocomotionRate(clip: HeroClip, motion: IllidanLocomotion): number {
+  if (motion === IllidanLocomotion.dash) return clipRate(clip.seconds, INITIAL_DASH_FRAMES);
+  if (motion === IllidanLocomotion.crouch) return clipRate(clip.seconds, CROUCH_CLIP_FRAMES);
+  return 0.0;
 }
 
 /** Walking and running follow ground speed, never slower than a fifth of the clip. */

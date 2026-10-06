@@ -5,9 +5,11 @@ import { createRoster, copyControls, neutralControls, type Controls } from "../s
 import { attackBuffer, queueAttack } from "../input/attackBuffer";
 import { createFrameControls, type FrameControls } from "./controls";
 import { Phase, createMatchState, setParticipants, recallCharacter, cpuSlot, selectCharacter, selectCpuCharacter, requestStageSelect, requestStart } from "./rules";
+import { floorMod } from "wisp/src/sim/intMath";
 import { stepMatch } from "./step";
+import { HERO_ROSTER } from "../sim/heroes/registry";
 import { attackPhase, canAttack } from "../sim/conditions";
-import { attackActiveFrames, attackDurationFrames, attackStartupFrames, grabHoldFrames, GRAB_HOLD_FRAMES } from "../sim/moves";
+import { attackActiveFrames, attackDurationFrames, attackStartupFrames, GRAB_HOLD_FRAMES } from "../sim/moves";
 import { projectileCount } from "../sim/projectiles";
 import { totalVelocityX, totalVelocityZ } from "../sim/motion";
 import { advanceFighter } from "../sim/step";
@@ -137,7 +139,7 @@ test("shieldGrabStartsDirectlyFromActiveGuardAndCanCatchShieldingTarget", () => 
   for (let frame = 2; frame <= attackStartupFrames(5) + 1; frame++) {
     stepMatch(game, testRoster(attacker, target), frameControls(attackerInput, targetInput, attackerCommands, targetCommands), frame);
   }
-  assertEquals(target.grab.grabbedFrames, grabHoldFrames(target.status.damage));
+  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES);
   assertFalse(target.shield.raised);
 });
 
@@ -296,7 +298,7 @@ test("successfulGrabHasPriorityOverSimultaneousStrikeInEitherOrder", () => {
   assertEquals(strikerA.status.damage, 0.0);
   assertEquals(grabberB.status.damage, grabberA.status.damage);
   assertEquals(strikerB.status.damage, strikerA.status.damage);
-  assertEquals(strikerA.grab.grabbedFrames, grabHoldFrames(strikerA.status.damage));
+  assertEquals(strikerA.grab.grabbedFrames, GRAB_HOLD_FRAMES);
   assertEquals(strikerB.grab.grabbedFrames, strikerA.grab.grabbedFrames);
   assertEquals(grabberA.attack.cooldown, 0);
   assertEquals(grabberA.grab.action, GrabAction.hold);
@@ -317,7 +319,7 @@ test("grabBreaksShieldButHasShortReachAndTimedRelease", () => {
   const attackerCommands = attackBuffer(0);
   const targetCommands = attackBuffer(0);
   runToAttackActive(game, attacker, target, attackerInput, targetInput, attackerCommands, targetCommands, 5, 1);
-  assertEquals(target.grab.grabbedFrames, grabHoldFrames(target.status.damage));
+  assertEquals(target.grab.grabbedFrames, GRAB_HOLD_FRAMES);
   assertFalse(target.shield.raised);
   for (let frame = attackStartupFrames(5) + 2; frame <= attackStartupFrames(5) + 1 + GRAB_HOLD_FRAMES; frame++) {
     // Keep slot identities stable; source Wurst rosters resolve grab links by fighter identity.
@@ -350,4 +352,41 @@ test("grabBreaksShieldButHasShortReachAndTimedRelease", () => {
   runToAttackActive(outGame, outAttacker, outTarget, attackerInput, targetInput, outCommands, outTargetCommands, 5, 1);
   assertEquals(outTarget.grab.grabbedFrames, 0);
 
+});
+
+test("a grab's release, by mashing or after the pummel, leaves the grabber no head start", () => {
+  const characters = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
+  for (const character of characters) {
+    for (const release of ["mash", "pummel"] as const) {
+      const game = testMatch();
+      const owner = createFighter(character, 0, 1);
+      const target = createFighter(Character.rifleman, 50, -1);
+      const ownerInput = neutralControls();
+      const targetInput = neutralControls();
+      const ownerCommands = attackBuffer(0);
+      const targetCommands = attackBuffer(0);
+      const step = (frame: number) => stepMatch(game, testRoster(owner, target), frameControls(ownerInput, targetInput, ownerCommands, targetCommands), frame);
+      queueAttack(ownerCommands, { style: AttackStyle.grab, facing: 0, frame: 1, mayCharge: false });
+      let frame = 1;
+      for (; frame <= 30 && target.grab.owner === undefined; frame++) step(frame);
+      const label = `${character} ${release}`;
+      assertEquals(target.grab.owner, 0, label);
+      for (let held = 1; held <= 120 && target.grab.owner !== undefined; held++, frame++) {
+        ownerInput.attackPressed = release === "pummel" && held === 1;
+        targetInput.grabMashPressed = release === "mash" && floorMod(held, 2) === 1;
+        step(frame);
+      }
+      ownerInput.attackPressed = false;
+      targetInput.grabMashPressed = false;
+      assertEquals(target.grab.owner, undefined, label);
+      let ownerFree: number | undefined;
+      let targetFree: number | undefined;
+      for (let after = 1; after <= 40 && (ownerFree === undefined || targetFree === undefined); after++, frame++) {
+        if (ownerFree === undefined && canAttack(owner) && owner.grab.action === GrabAction.none) ownerFree = after;
+        if (targetFree === undefined && canAttack(target)) targetFree = after;
+        step(frame);
+      }
+      assertEquals(ownerFree !== undefined && targetFree !== undefined && ownerFree >= targetFree, true, `${label}: grabber acts after ${ownerFree}, victim after ${targetFree}`);
+    }
+  }
 });
