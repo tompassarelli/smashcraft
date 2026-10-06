@@ -15,6 +15,7 @@ import { modelSoundPresentation } from "../../game/render/modelSoundPresentation
 import type { ModelSoundSink } from "../../game/render/modelSounds";
 import { ProjectilePresentation } from "../../game/render/projectilePresentation";
 import { ShieldPresentation } from "../../game/render/shieldPresentation";
+import { PassivePresentation } from "../../game/render/passivePresentation";
 import { SpecialEffects } from "../../game/render/specialEffects";
 import type { Character } from "../../game/sim/codes";
 import { isActive } from "../../game/sim/roster";
@@ -23,6 +24,7 @@ import { FighterHud, MatchClock, plateManaSlot } from "../../game/ui/matchHud";
 import { TrainingReadout } from "../../game/ui/trainingReadout";
 import { HitAreaPresentation } from "../../game/render/hitAreaPresentation";
 import { EscapeMeter } from "../../game/ui/escapeMeter";
+import { PassivePips } from "../../game/ui/passivePips";
 import { OffscreenBubble } from "../../game/ui/offscreenBubble";
 import { ManaBar } from "../../game/ui/manaBar";
 import { OVERHEAD_MANA_BORDER, OVERHEAD_MANA_HEIGHT } from "../../game/presentation/manaBar";
@@ -44,6 +46,8 @@ interface FighterRenderers {
   readonly agency: AgencyMarker;
   /** Training's hit areas, when that match shows them. */
   readonly hitAreas: HitAreaPresentation | undefined;
+  /** Its passive's ready and proc effects; a renderer from a bundle before passives has none until rebound. */
+  passive?: PassivePresentation | undefined;
 }
 
 export interface UiObjects {
@@ -54,6 +58,8 @@ export interface UiObjects {
   readonly escapeMeters: Slots<EscapeMeter>;
   /** Each fighter's mana bar over its head and on its HUD plate; created on reload by a bundle that predates them. */
   manaBars: Slots<ManaBars>;
+  /** Each fighter's passive pips, above its overhead mana bar. */
+  passivePips: Slots<PassivePips>;
   readonly selections: Slots<SelectionPanel>;
   readonly settings: Slots<SettingsPanel>;
   readonly stage: StagePanel;
@@ -109,6 +115,7 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
     bubbles: each(slot => new OffscreenBubble(slot)),
     escapeMeters: each(slot => new EscapeMeter(slot)),
     manaBars: each(createManaBars),
+    passivePips: each(slot => new PassivePips(slot)),
     stage: new StagePanel(actions.stage, controls),
     selections: each(slot => new SelectionPanel(actions.selection, slot, controls)),
     settings: each(slot => new SettingsPanel(s.participants[slot].bindings, actions.settings, slot)),
@@ -132,6 +139,7 @@ function endFighterRenderers(renderers: FighterRenderers | undefined): void {
   renderers?.pool?.destroy();
   renderers?.agency.destroy();
   renderers?.hitAreas?.destroy();
+  renderers?.passive?.destroy();
 }
 
 /**
@@ -144,6 +152,7 @@ export function beginFighterRenderers(s: ShellState, slot: ParticipantSlot, char
   const pool = pooled ? new FighterPoolPresentation(character, slot, s.origin) : undefined;
   ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), cues: new SpecialCueEffects(character, s.origin), pool, agency: new AgencyMarker(s.origin),
     hitAreas: s.game.training && s.game.trainer.showHitAreas ? new HitAreaPresentation(s.origin) : undefined,
+    passive: new PassivePresentation(character, s.origin),
   };
   return pool?.admitted() === true;
 }
@@ -194,6 +203,9 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
     bindPrototype(ui.manaBars[slot].overhead, ManaBar.prototype);
     bindPrototype(ui.manaBars[slot].hud, ManaBar.prototype);
   }
+  const retainedPips: { readonly passivePips?: Slots<PassivePips> } = ui;
+  if (retainedPips.passivePips === undefined) ui.passivePips = each(slot => new PassivePips(slot));
+  else for (const slot of PARTICIPANT_SLOTS) bindPrototype(ui.passivePips[slot], PassivePips.prototype);
   // A bundle from before the match presentation left none to rebind.
   const retained: { readonly match?: MatchPresentation } = ui;
   if (retained.match === undefined) ui.match = new MatchPresentation(s.origin);
@@ -211,6 +223,8 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
     bindPrototype(renderers.agency, AgencyMarker.prototype);
     bindPrototype(renderers.agency.forecast, FighterAgencyForecast.prototype);
     if (renderers.hitAreas !== undefined) bindPrototype(renderers.hitAreas, HitAreaPresentation.prototype);
+    if (renderers.passive === undefined) renderers.passive = new PassivePresentation(renderers.character, s.origin);
+    else bindPrototype(renderers.passive, PassivePresentation.prototype);
   }
 }
 

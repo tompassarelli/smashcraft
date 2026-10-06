@@ -265,7 +265,7 @@ const widen = (window: { first: number; last: number }, first: number, last: num
  * releases, grabs, guards or is armored or intangible, from the first to the
  * last; startup is everything before.
  */
-export function heroCueWindows(move: Readonly<AuthoredSpecial>, minimumActive = ACTIVE_CUE_FRAMES): CueWindows {
+export function heroCueWindows(move: Readonly<AuthoredSpecial>): CueWindows {
   // Past any action's last frame, and a 32-bit integer in Lua.
   const active = { first: 1000000, last: 0 };
   // Regions count zero-based attack frames: special frame N strikes with region frame N - 1.
@@ -282,7 +282,7 @@ export function heroCueWindows(move: Readonly<AuthoredSpecial>, minimumActive = 
   if (move.armor !== undefined) widen(active, move.armor.first, move.armor.shell === true ? move.armor.first : move.armor.last);
   if (active.last === 0) widen(active, 1, 1);
   const first = Math.max(1, active.first);
-  return { startup: { first: 1, last: Math.max(1, first - 1) }, active: { first, last: Math.min(move.endFrame, Math.max(active.last, first + minimumActive - 1)) } };
+  return { startup: { first: 1, last: Math.max(1, first - 1) }, active: { first, last: Math.min(move.endFrame, Math.max(active.last, first + ACTIVE_CUE_FRAMES - 1)) } };
 }
 
 /** The frame an original special releases or starts its effect, by action. */

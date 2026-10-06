@@ -6,7 +6,7 @@
 // a lunge stuns it. Every value is fighter state, so rollback restores it.
 import { f32 } from "wisp/src/sim/f32";
 import { max, min } from "../../runtime/numbers";
-import { AttackStyle } from "./codes";
+import { AttackStyle, HitOrigin } from "./codes";
 import { inGrabContext, isIntangible } from "./conditions";
 import type { Fighter } from "./fighter";
 import { CompanionMode, type SpecialCompanion } from "./heroSpecials";
@@ -53,7 +53,7 @@ function biteOpponents(world: Roster, ownerSlot: number, partner: Readonly<Speci
     const shielded = target.shield.raised && shieldCircleIntersects(target, bite.x1, bite.z1, bite.x2, bite.z2, 1.0, bite.radius);
     if (!shielded && strikeHurtContact(bite, target) !== HurtContact.hit) continue;
     placed.bitten |= bit;
-    applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, placed.direction, partner.biteEffect, false, shielded);
+    applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, placed.direction, partner.biteEffect, false, shielded, undefined, HitOrigin.summon);
   }
 }
 

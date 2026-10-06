@@ -279,5 +279,5 @@ export const SHADOW_HUNTER_GROUND: GroundKit = {
 export function strikeClip(clip: { readonly index: number }, strike: number, kit: GroundKit, style: AttackStyle, frame?: number): HeroClip {
   const move = kit.normals[style];
   const before = frame === undefined ? move?.startupFrames ?? 1 : frame - 1;
-  return { index: clip.index, seconds: f32(f32(strike * (move?.totalFrames ?? 1)) / Math.max(1, before)), aligned: true };
+  return { index: clip.index, seconds: f32(f32(strike * (move?.totalFrames ?? 1)) / Math.max(1, before)) };
 }

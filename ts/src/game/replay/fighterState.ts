@@ -208,6 +208,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
     to.serial = from.serial;
     to.damageMultiplier = from.damageMultiplier;
     to.newlyReflected = from.newlyReflected;
+    to.longRifle = from.longRifle;
     to.spec = from.spec;
   }
 
@@ -361,6 +362,16 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   const sourceMana = source.mana;
   mana.points = sourceMana.points;
   mana.progress = sourceMana.progress;
+
+  const passive = target.passive;
+  const sourcePassive = source.passive;
+  passive.stacks = sourcePassive.stacks;
+  passive.window = sourcePassive.window;
+  passive.serial = sourcePassive.serial;
+  passive.spent = sourcePassive.spent;
+  passive.used = sourcePassive.used;
+  passive.lastKey = sourcePassive.lastKey;
+  passive.lastTarget = sourcePassive.lastTarget;
 
   const placed = target.placed;
   const sourcePlaced = source.placed;

@@ -120,6 +120,8 @@ export interface SpecialProjectile {
   readonly status?: AppliedStatus | undefined;
   /** Removed when the owner's special is interrupted before it becomes active (Frost Nova's marker). */
   readonly cancelOnInterrupt?: boolean | undefined;
+  /** Its body hits feed the owner's passive (Shadow Hunter's glaive and ward shots, sim/passives.ts). */
+  readonly feedsPassive?: boolean | undefined;
   /** A returning projectile's hit on its way back (`returns`); its outbound `effect` when absent. */
   readonly returnEffect?: Readonly<HitEffect> | undefined;
   /** Damage percent a returning projectile restores when it reaches its owner, within the per-stock heal cap. */

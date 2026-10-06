@@ -2,7 +2,7 @@
 // Archer's hippogryph.
 import { max } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, Character, HippogryphKind, SpecialAction } from "./codes";
+import { AttackStyle, Character, HippogryphKind, HitOrigin, SpecialAction } from "./codes";
 import { canAttack, isIntangible } from "./conditions";
 import type { Fighter } from "./fighter";
 import { applyAttackHit } from "./hits";
@@ -173,7 +173,7 @@ export function advanceBear(world: Roster, ownerSlot: number, stage: number, mat
       const target = fighterAt(world, targetSlot);
       if (target.status.out || isIntangible(target) || Math.abs(f32(target.motion.x - bear.x)) > 70 || Math.abs(f32(target.motion.z - bear.z)) > 100) continue;
       hit = true;
-      applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, bear.velocityX < 0 ? -1 : 1, BEAR_SWIPE, false, target.shield.raised);
+      applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, bear.velocityX < 0 ? -1 : 1, BEAR_SWIPE, false, target.shield.raised, undefined, HitOrigin.summon);
     }
     if (hit) {
       bear.swipeCooldown = RIFLEMAN_BEAR_SWIPE_INTERVAL;
@@ -199,7 +199,7 @@ function hippogryphContacts(world: Roster, ownerSlot: number, oldX: number): voi
     const crossedTarget = f32(f32(target.motion.x - oldX) * direction) >= 0 && f32(f32(target.motion.x - hippogryph.x) * direction) <= 0;
     if ((crossedTarget || Math.abs(f32(target.motion.x - hippogryph.x)) <= 60) && Math.abs(f32(target.motion.z - hippogryph.z)) <= 100) {
       recordSpecialHit(owner, targetSlot);
-      applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, direction, hippogryphEffect(hippogryph.kind), false, target.shield.raised);
+      applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, direction, hippogryphEffect(hippogryph.kind), false, target.shield.raised, undefined, HitOrigin.summon);
     }
   }
 }

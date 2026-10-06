@@ -210,6 +210,7 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
   int("reflectable", spec.reflectable ? 1 : 0);
   int("limit", spec.limit);
   int("cancelOnInterrupt", spec.cancelOnInterrupt === true ? 1 : 0);
+  if (spec.feedsPassive === true) int("feedsPassive", 1);
   if (spec.returnEffect !== undefined) result.push(hitEffectCanonical(spec.returnEffect, `${prefix}.returnEffect`));
   if (spec.catchHeal !== undefined) {
     real("catchHeal.heal", spec.catchHeal.heal);
@@ -631,6 +632,16 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) real(`projectileVelocityZ[${i}]`, at(fighter.projectiles, i).velocityZ);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) int(`projectileSerial[${i}]`, at(fighter.projectiles, i).serial);
   int("manaDrainedSerial", v.manaDrained);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) if (at(fighter.projectiles, i).longRifle) int(`projectileLongRifle[${i}]`, 1);
+  // Passive state (#148) is written only where it differs from a fresh fighter's.
+  const ps = fighter.passive;
+  if (ps.stacks !== 0) int("passiveStacks", ps.stacks);
+  if (ps.window !== 0) int("passiveWindow", ps.window);
+  if (ps.serial !== 0) int("passiveSerial", ps.serial);
+  if (ps.spent !== 0) real("passiveSpent", ps.spent);
+  if (ps.used) int("passiveUsed", 1);
+  if (ps.lastKey !== -1) int("passiveLastKey", ps.lastKey);
+  if (ps.lastTarget !== -1) int("passiveLastTarget", ps.lastTarget);
   int("specialAction", sp.action);
   int("specialFrame", sp.frame);
   int("specialDuration", sp.duration);

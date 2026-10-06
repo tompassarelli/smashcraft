@@ -104,7 +104,7 @@ export const json = (value: unknown) => `${JSON.stringify(value, (_key, item: un
 const fromDesktop = (failure: DesktopFailure) => new IntegrityFailure({ operation: failure.operation, path: failure.client, cause: failure.cause });
 
 /** The client's game process, checked by name, with its window focused for the helper's focus gate. */
-export const gameProcess = (client: Client, checkDisplay: boolean) =>
+const gameProcess = (client: Client, checkDisplay: boolean) =>
   Effect.gen(function*() {
     const pid = yield* windowPid(client).pipe(Effect.mapError(fromDesktop));
     const name = yield* tryIntegrity("read game process name", `/proc/${pid}/comm`, () => readFileSync(`/proc/${pid}/comm`, "utf8"));

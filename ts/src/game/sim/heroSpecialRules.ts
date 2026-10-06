@@ -245,6 +245,7 @@ export function spawnHeroProjectileAt(owner: Fighter, spec: Readonly<SpecialProj
     projectile.serial = serial;
     projectile.damageMultiplier = 1.0;
     projectile.newlyReflected = false;
+    projectile.longRifle = false;
     projectile.life = spec.life;
     return;
   }

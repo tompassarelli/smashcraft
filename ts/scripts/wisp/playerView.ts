@@ -28,6 +28,7 @@ import { allProjectileModels } from "../../src/game/presentation/projectileArt";
 import { ELEMENTS, elementLook } from "../../src/game/presentation/elementLooks";
 import { allCueModels } from "../../src/game/presentation/specialCues";
 import { allAttackCueModels } from "../../src/game/presentation/attackCues";
+import { PASSIVE_MODELS } from "../../src/game/presentation/passiveLook";
 import { Character } from "../../src/game/sim/codes";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
@@ -117,6 +118,9 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
     { name: "bear", lifetime: seconds(3), models: range(summonClipCount(SUMMON_BEAR)).map((index) => summonClip(SUMMON_BEAR, index).modelPath) },
     // A shield break stuns for at most about eight seconds.
     { name: "dizzy mark", lifetime: seconds(10), models: ["Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx"] },
+    // A ready passive stays until it is spent (presentation/passiveLook.ts); a proc shows half a second.
+    { name: "passive ready", models: [PASSIVE_MODELS.trueshot, PASSIVE_MODELS.frostArmor, PASSIVE_MODELS.devotion, PASSIVE_MODELS.voodoo] },
+    { name: "passive proc", lifetime: seconds(2), models: [PASSIVE_MODELS.bash, PASSIVE_MODELS.blink, PASSIVE_MODELS.vampiric, PASSIVE_MODELS.critical, PASSIVE_MODELS.longRifle, PASSIVE_MODELS.cleave, PASSIVE_MODELS.packHunt] },
   ],
 };
 

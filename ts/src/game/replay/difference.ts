@@ -39,7 +39,7 @@ const PROJECTILE_FIELDS = [
   ["projectileLife", "life"], ["projectileX", "x"], ["projectileZ", "z"], ["projectileDirection", "direction"],
   ["projectileKind", "kind"], ["projectileDamageMultiplier", "damageMultiplier"], ["projectileVisualFamily", "visualFamily"],
   ["projectileNewlyReflected", "newlyReflected"], ["projectileVelocityX", "velocityX"], ["projectileVelocityZ", "velocityZ"],
-  ["projectileSerial", "serial"],
+  ["projectileSerial", "serial"], ["projectileLongRifle", "longRifle"],
 ] as const satisfies readonly (readonly [string, keyof Projectile])[];
 
 /**
@@ -219,6 +219,13 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("specialGuarded", e.special.guarded, a.special.guarded);
   add("guardHealed", e.status.guardHealed, a.status.guardHealed);
   add("divineFrames", e.status.divineFrames, a.status.divineFrames);
+  add("passiveStacks", e.passive.stacks, a.passive.stacks);
+  add("passiveWindow", e.passive.window, a.passive.window);
+  add("passiveSerial", e.passive.serial, a.passive.serial);
+  add("passiveSpent", e.passive.spent, a.passive.spent);
+  add("passiveUsed", e.passive.used, a.passive.used);
+  add("passiveLastKey", e.passive.lastKey, a.passive.lastKey);
+  add("passiveLastTarget", e.passive.lastTarget, a.passive.lastTarget);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) add(`projectileSpec[${i}]`, at(e.projectiles, i).spec === at(a.projectiles, i).spec, true);
   add("placedLife", e.placed.life, a.placed.life);
   add("placedAge", e.placed.age, a.placed.age);

@@ -20,9 +20,6 @@ import * as dh from "./demonHunterAssetInfo";
 import type { HeroClip, HeroClipTable, HeroPose } from "../sim/heroes/hero";
 import * as clips from "./fighterClips";
 import { HERO_STRIKE_MOMENTS } from "./heroStrikeMomentInfo";
-import { SPECIAL_KEY } from "./heroStrikeMomentKeys";
-import { heroCueWindows } from "./specialCues";
-import { runningHeroSpecial } from "../sim/heroSpecialRules";
 import {
   ESCAPE_FRAMES, IllidanLocomotion, LEDGE_CATCH_FRAMES, RESPAWN_FRAMES, TRANSITION_FRAMES, type IllidanMotion,
   advanceIllidanMotion, clearIllidanMotion, copyIllidanMotion, createIllidanMotion, firstIllidanMotionDifference,
@@ -467,7 +464,7 @@ function actionRate(pose: Readonly<FighterPose>, f: Readonly<Fighter>, phase: At
   if (reaction !== DamagePose.none) return clipRate(clips.clipFor(character, damageClipPose(reaction)).seconds, REACTION_CLIP_FRAMES);
   if (f.special.fall) return 0.0;
   if (isGroundDodging(f)) return clipRate(groundDodgeClip(f).seconds, f.dodge.groundDirection === 0 ? SPOT_DODGE_FRAMES : GROUND_ROLL_FRAMES);
-  if (f.special.action !== SpecialAction.none && f.launch.hitstun === 0) return specialRate(f);
+  if (f.special.action !== SpecialAction.none && f.launch.hitstun === 0) return clipRate(fighterSpecialClip(f).seconds, f.special.duration);
   if (pose.jumpAnimationRemaining > 0) {
     return pose.doubleJumpAnimation
       ? clipRate(clips.clipFor(character, "doubleJump").seconds, DOUBLE_JUMP_CLIP_FRAMES)
@@ -490,7 +487,7 @@ const strikeSkip = (strike: number, startup: number): number => max(0.0, f32(str
 /** Where a hero swing's clip starts, so a long wind-up still strikes on the first active frame; 0 plays it from its start. */
 export function strikeStart(character: number, style: number, clip: Readonly<HeroClip>, startup: number): number {
   const moment = HERO_STRIKE_MOMENTS[character]?.[style];
-  return moment === undefined || clip.aligned === true || moment.clip !== clip.index || moment.seconds < EARLIEST_STRIKE || startup <= 0 ? 0.0 : strikeSkip(moment.seconds, startup);
+  return moment === undefined || moment.clip !== clip.index || moment.seconds < EARLIEST_STRIKE || startup <= 0 ? 0.0 : strikeSkip(moment.seconds, startup);
 }
 
 /**
@@ -503,7 +500,7 @@ export function strikeStart(character: number, style: number, clip: Readonly<Her
 export function strikeAlignedRate(character: number, style: number, clip: Readonly<HeroClip>, startup: number, active: number, duration: number, phase: AttackPhase): number | undefined {
   const moment = HERO_STRIKE_MOMENTS[character]?.[style];
   const recovery = duration - startup - active;
-  if (moment === undefined || clip.aligned === true || moment.clip !== clip.index || moment.seconds < EARLIEST_STRIKE || startup <= 0 || active <= 0 || recovery <= 0) return undefined;
+  if (moment === undefined || moment.clip !== clip.index || moment.seconds < EARLIEST_STRIKE || startup <= 0 || active <= 0 || recovery <= 0) return undefined;
   const bounded = (seconds: number, frames: number): number => min(FASTEST_SWING, max(SLOWEST_SWING, f32(seconds / f32(frames * FRAME_SECONDS))));
   const skip = strikeSkip(moment.seconds, startup);
   const windUp = bounded(f32(moment.seconds - skip), startup);
@@ -628,21 +625,4 @@ function locomotionRate(f: Readonly<Fighter>, motion: IllidanLocomotion): number
     case IllidanLocomotion.run: return max(f32(0.2), f32(Math.abs(f.motion.vx) / f.tuning.physics.runSpeed));
     default: return 1.0;
   }
-}
-
-/**
- * A special's clip rate: a hero special's measured strike (heroStrikeMomentInfo.ts)
- * lands on its first active frame, as a swing's does; other specials and
- * follow-ups play their clip evenly over the action.
- */
-function specialRate(f: Readonly<Fighter>): number {
-  const clip = fighterSpecialClip(f);
-  const even = clipRate(clip.seconds, f.special.duration);
-  const { action, frame } = f.special;
-  const move = playsFollowUpPose(f) ? undefined : runningHeroSpecial(f);
-  if (move === undefined) return even;
-  const { active } = heroCueWindows(move, 1);
-  const phase = frame < active.first ? AttackPhase.startup : frame <= active.last ? AttackPhase.active : AttackPhase.recovery;
-  const slot = action - SpecialAction.heroNeutral;
-  return strikeAlignedRate(f.character, SPECIAL_KEY + slot, clip, active.first - 1, active.last - active.first + 1, f.special.duration, phase) ?? even;
 }

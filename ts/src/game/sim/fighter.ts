@@ -256,6 +256,8 @@ export interface Projectile {
   damageMultiplier: number;
   /** Reflected this frame; it moves from the next frame. */
   newlyReflected: boolean;
+  /** Rifleman's Long Rifle shot (sim/passives.ts): it launches where the blaster flinches. */
+  longRifle: boolean;
   /** A hero projectile's authored record; immutable and shared like tuning. */
   spec: SpecialProjectile | undefined;
 }
@@ -457,6 +459,23 @@ interface Mana {
   progress: number;
 }
 
+/** The fighter's one passive (sim/passives.ts, #148). */
+interface Passive {
+  /** Counted events toward the proc. */
+  stacks: number;
+  /** Frames before the stacks clear; 0 when the passive keeps them. */
+  window: number;
+  /** Counts procs, so presentation plays each once. */
+  serial: number;
+  /** Per-stock budget used: Vampiric Aura's healed percent. */
+  spent: number;
+  /** Warden's restore taken this airtime. */
+  used: boolean;
+  /** The attack last counted and its other fighter, so a multi-hit move counts once (-1: none). */
+  lastKey: number;
+  lastTarget: number;
+}
+
 /** A hero's one placed object (sim/placedObjects.ts); `life` 0 when none stands. */
 interface PlacedObject {
   life: number;
@@ -515,6 +534,7 @@ export interface Fighter {
   readonly status: Status;
   readonly mana: Mana;
   readonly placed: PlacedObject;
+  readonly passive: Passive;
 }
 
 const repeat = <T>(count: number, make: () => T): T[] => Array.from({ length: count }, () => make());
@@ -532,6 +552,7 @@ function emptyProjectile(): Projectile {
     serial: 0,
     damageMultiplier: 1.0,
     newlyReflected: false,
+    longRifle: false,
     spec: undefined,
   };
 }
@@ -713,5 +734,6 @@ export function createFighter(character: Character, startX: number, facing: numb
     status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, armorChills: false, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0, 0, 0], guardHealed: 0.0, divineFrames: 0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0 },
     mana: { points: ROSTER_MANA.max, progress: 0 },
     placed: { life: 0, age: 0, x: 0.0, z: 0.0, direction: 1, durability: 0.0, serial: 0, spec: undefined, struck: repeat<number | undefined>(PARTICIPANT_CAPACITY, () => undefined), specialStruck: 0, mode: 0, modeFrame: 0, apart: 0, bitten: 0, surface: undefined },
+    passive: { stacks: 0, window: 0, serial: 0, spent: 0.0, used: false, lastKey: -1, lastTarget: -1 },
   };
 }

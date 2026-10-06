@@ -18,6 +18,7 @@ import { type Roster, fighterAt, isActive } from "./roster";
 import { SHIELD_PROJECTILE_DAMAGE_MULTIPLIER, SHIELD_PROJECTILE_SPEED_MULTIPLIER, grantParry, shieldCircleIntersects } from "./shield";
 import { at } from "wisp/src/runtime/lookup";
 import { solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
+import { LONG_RIFLE_LIFE, longRifleShot, projectileOrigin } from "./passives";
 
 const BLASTER_PROJECTILE_SPEED = 36.0;
 const BLASTER_PROJECTILE_LIFETIME = 60;
@@ -52,7 +53,7 @@ export function projectileActive(f: Fighter, index: number): boolean {
 
 /** Launches from the owner's hand in the first free slot, `height` above its feet; a full owner fires nothing. */
 export function spawnProjectileMotion(owner: Fighter, kind: ProjectileKind, velocityX: number, velocityZ: number, lifetime: number, serial: number,
-  damageMultiplier = 1.0, height = BLASTER_PROJECTILE_HEIGHT): void {
+  damageMultiplier = 1.0, height = BLASTER_PROJECTILE_HEIGHT): Projectile | undefined {
   for (const projectile of owner.projectiles) {
     if (projectile.life > 0) continue;
     const direction = velocityX < 0 ? -1 : 1;
@@ -64,11 +65,13 @@ export function spawnProjectileMotion(owner: Fighter, kind: ProjectileKind, velo
     projectile.serial = serial;
     projectile.damageMultiplier = damageMultiplier;
     projectile.newlyReflected = false;
+    projectile.longRifle = false;
     projectile.x = f32(owner.motion.x + f32(direction * BLASTER_PROJECTILE_SPAWN_OFFSET));
     projectile.z = f32(owner.motion.z + height);
     projectile.life = lifetime;
-    return;
+    return projectile;
   }
+  return undefined;
 }
 
 /**
@@ -77,8 +80,13 @@ export function spawnProjectileMotion(owner: Fighter, kind: ProjectileKind, velo
  * standing body and a full shield (#117).
  */
 export function spawnBlasterShot(owner: Fighter, serial: number, grounded: boolean): void {
-  spawnProjectileMotion(owner, ProjectileKind.blaster, f32(owner.facing * BLASTER_PROJECTILE_SPEED), 0.0, BLASTER_PROJECTILE_LIFETIME, serial,
+  const shot = spawnProjectileMotion(owner, ProjectileKind.blaster, f32(owner.facing * BLASTER_PROJECTILE_SPEED), 0.0, BLASTER_PROJECTILE_LIFETIME, serial,
     grounded ? RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER : 1.0, grounded ? BLASTER_PROJECTILE_HEIGHT : BLASTER_AIR_SHOT_HEIGHT);
+  // Long Rifles counts the shots that leave the barrel; every fourth flies farther and launches.
+  if (shot !== undefined && longRifleShot(owner)) {
+    shot.longRifle = true;
+    shot.life = LONG_RIFLE_LIFE;
+  }
 }
 
 /** The Rifleman's attack shot. */
@@ -139,23 +147,24 @@ export function projectileDamage(projectile: Readonly<Projectile>): number {
 function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number, projectile: Readonly<Projectile>, shieldContact: boolean): void {
   const target = fighterAt(world, targetSlot);
   const { spec } = projectile;
+  const origin = projectileOrigin(fighterAt(world, ownerSlot), projectile);
   if (projectile.kind === ProjectileKind.hero && spec !== undefined) {
     copyHitEffect(projectileHit, heroProjectileEffect(projectile, spec));
     projectileHit.damage = projectileDamage(projectile);
-    collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.launch, false, undefined, shieldContact, spec.status);
+    collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.launch, false, undefined, shieldContact, spec.status, origin);
     return;
   }
   const { kind } = projectile;
   projectileHit.element = kind === ProjectileKind.manaBurn ? HitElement.electric : HitElement.normal;
   projectileHit.carry = undefined;
-  if (kind === ProjectileKind.blaster || kind === ProjectileKind.manaBurn) {
+  if ((kind === ProjectileKind.blaster && !projectile.longRifle) || kind === ProjectileKind.manaBurn) {
     projectileHit.damage = projectileDamage(projectile);
     projectileHit.growth = 0.0;
     projectileHit.base = 0.0;
     projectileHit.launchX = 0.0;
     projectileHit.launchZ = 0.0;
     collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.flinch, false, undefined, shieldContact,
-      kind === ProjectileKind.manaBurn ? MANA_BURN_STUN : undefined);
+      kind === ProjectileKind.manaBurn ? MANA_BURN_STUN : undefined, origin);
     return;
   }
   const damageOnly = kind === ProjectileKind.arrow || kind === ProjectileKind.homingArrow;
@@ -165,7 +174,7 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
   projectileHit.launchX = 0.800000011920929;
   projectileHit.launchZ = kind === ProjectileKind.recoil ? -0.6000000238418579 : 0.6000000238418579;
   collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction,
-    damageOnly ? ContactKind.damageOnly : ContactKind.launch, false, undefined, shieldContact);
+    damageOnly ? ContactKind.damageOnly : ContactKind.launch, false, undefined, shieldContact, undefined, origin);
 }
 
 /** Sends the projectile back from a reflecting shield, slower and weaker; false when the reflector has no free slot. */
@@ -184,6 +193,7 @@ function reflectProjectile(target: Fighter, source: Projectile): boolean {
     reflected.damageMultiplier = roundToFloat32(f32(source.damageMultiplier * SHIELD_PROJECTILE_DAMAGE_MULTIPLIER));
     reflected.life = source.life;
     reflected.newlyReflected = true;
+    reflected.longRifle = false;
     source.life = 0;
     target.visuals.shieldReflect++;
     target.visuals.shieldElectric = source.kind === ProjectileKind.manaBurn;
