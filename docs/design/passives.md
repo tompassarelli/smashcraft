@@ -83,8 +83,8 @@ when built). Each fighter's section names only its differences.
    They are dim while charging. In the ready state they are lit and the
    fighter carries the stock Warcraft effect named below; the proc plays its
    stock effect once, keyed by the proc serial so replay never duplicates
-   it. Effect paths are proposals: the legibility lane (#144) confirms each
-   against the game data.
+   it. Every path below exists in the game data (checked by the #144
+   legibility lane); the per-special cues of #144 stay off these models.
 7. **Mana is separate.** Passives neither spend nor grant mana. The mana
    gained from a hit (smashcraft:docs/design/mana.md, when it lands) is the
    hit's ordinary gain, proc or not.
@@ -95,7 +95,7 @@ when built). Each fighter's section names only its differences.
 | --- | --- | --- | --- | --- |
 | Blademaster | Critical Strike | 3 landed sword hits, 180-frame window | 4th sword hit: ×1.5 damage, at most +6 | Shield the glowing blade; whiffs don't spend it |
 | Mountain King | Bash | 2 landed hits, 120-frame window | 3rd hit: +10 hitstun frames | Get out after two hits, or shield the third |
-| Warden | Blink | 1 Blink pip | An aerial body hit in the air restores her up special once per airtime | Shield her off-stage aerials; edge-guard when the pip is dark |
+| Warden | Blink | 1 pip, once per airtime | An aerial body hit in the air restores one aerial jump | Shield her off-stage aerials; edge-guard when the pip is dark |
 | Archer | Trueshot Aura | 2 landed arrows, 240-frame window | 3rd arrow: double damage, still no hitstun | Shield or jump the glowing arrow; arrows still don't stop an approach |
 | Rifleman | Long Rifles | 3 blaster shots fired | 4th shot: 1.5× range, a POKE launch instead of the flinch | Count to four; shield or jump the Long Rifle shot |
 | Illidan | none: his attacks drain mana on hit | (Illidan lane) | | |
@@ -138,7 +138,7 @@ hitstun, not a separate stun, so it uses no status immunity group and
 cannot stack with Storm Bolt's or Mana Burn's statuses.
 
 **Shows.** Two pips. Ready: lightning on the hammer head (proposed
-`Abilities\Spells\Human\Thunderclap\ThunderclapTarget.mdl`, already in the
+`Abilities\Spells\Human\Thunderclap\ThunderclapTarget.mdx`, already in the
 repository, is the Warcraft stun stars for the proc). Proc: the stun stars
 over the target for the extra frames.
 
@@ -152,21 +152,28 @@ his air drift or reach.
 
 ## Warden: Blink
 
-**Rule.** When one of her aerials lands a body hit while she is airborne,
-her up special (Blink) is restored for this airtime, once per airtime. The
-pip is lit while Blink is available in the air.
+**Rule.** The first time in an airtime that one of her aerials lands a body
+hit while she is airborne, she gets back one aerial jump (up to her
+maximum). That happens once per airtime, and landing, a ledge catch or a
+new stock renews it. The pip is lit while the restore is still available
+this airtime.
 
-**Shows.** One pip: lit while she has Blink, dark once it is spent. Proc:
-`Abilities\Spells\NightElf\Blink\BlinkTarget.mdl` at her feet (already in
-the repository).
+Her Blink (up special) and Shadow Pursuit both end helpless, so restoring
+Blink itself would give her nothing. The jump is what keeps an off-stage
+chase going, and Blink stays her last resort, as Warcraft's Blink is the
+escape after the hunt.
+
+**Shows.** One pip: lit while the restore is available, dark once she has
+used it. Proc: `Abilities\Spells\NightElf\Blink\BlinkTarget.mdx` at her feet
+(the legibility lane's per-special cues use only BlinkCaster).
 
 **Counterplay.** Shield her off-stage aerials or stay out of them, and the
-restore never comes. When the pip is dark she has no Blink left, so that is
-the moment to edge-guard her. Blink's endpoint stays punishable.
+jump never comes back. Once the pip is dark she has spent her extra jump,
+so that is the moment to edge-guard her. Blink's endpoint stays punishable.
 
 **Why.** Her gameplan is edge pressure: "she spends her jump first and Blinks
 last". The passive pays the hunter who chases off-stage and lands the hit,
-and the pip tells the edge-guarder exactly when she is out of Blink.
+and the pip tells the edge-guarder exactly when she is out of extra jumps.
 
 ## Archer: Trueshot Aura
 
@@ -177,8 +184,8 @@ Arrows still deal no hitstun, hitlag or knockback (Tom's owner correction,
 smashcraft:docs/gameplay-design.md "Archer's arrows"), so this is chip, not
 a wall. The pips clear.
 
-**Shows.** Two pips. Ready: `Abilities\Spells\NightElf\TrueshotAura\TrueshotAura.mdl`
-at her feet (proposed). Proc: a brighter arrow impact.
+**Shows.** Two pips. Ready: `Abilities\Spells\NightElf\TrueshotAura\TrueshotAura.mdx`
+at her feet. Proc: a brighter arrow impact.
 
 **Counterplay.** Shield or jump the glowing arrow, which spends it. Her
 arrows never stop an approach, so running through the chip is still
@@ -226,8 +233,8 @@ the existing Chill status (75 frames at 60% top ground and air speed, its
 immunity group and 120 frames of immunity). The pips clear. The hit still
 lands in full. This is the striker's slow, not armor.
 
-**Shows.** Two pips. Ready: `Abilities\Spells\Undead\FrostArmor\FrostArmorTarget.mdl`
-on Lich (proposed). Proc: the Chill effect on the striker.
+**Shows.** Two pips. Ready: `Abilities\Spells\Undead\FrostArmor\FrostArmorTarget.mdx`
+on Lich. Proc: the Chill effect on the striker.
 
 **Counterplay.** Grabs, throws and projectiles add nothing. Space the third
 hit out past the window, or make the third hit a kill move so the slow comes
@@ -247,8 +254,8 @@ him has knockback ×0.80. The pips clear. Throws ignore it and leave it in
 place, as armor ignores grabs. A non-launching hit (a flinch, damage-only
 arrows) does not spend it.
 
-**Shows.** Three pips. Ready: `Abilities\Spells\Human\DevotionAura\DevotionAura.mdl`
-under him (proposed). Proc: a gold flash as he is launched.
+**Shows.** Three pips. Ready: `Abilities\Spells\Human\DevotionAura\DevotionAura.mdx`
+under him. Proc: a gold flash as he is launched.
 
 **Counterplay.** Grab him, since grabs beat his shield anyway. Or spend it
 on purpose with a weak launching hit (a jab) before the kill move. The pips
@@ -267,8 +274,8 @@ third heals him **2%**, at most 8% a stock. Vampiric Pounce's bite keeps its
 own 4% heal and 12% cap. The pips clear.
 
 **Shows.** Two pips. Ready: red light on his claws. Proc:
-`Abilities\Spells\Undead\VampiricAura\VampiricAuraTarget.mdl` on him
-(proposed).
+`Abilities\Spells\Undead\VampiricAura\VampiricAuraTarget.mdx` on him
+.
 
 **Counterplay.** Projectiles and shields give no pips. Shield his close
 pressure and space him out. The cap is visible: when four procs have healed
@@ -290,8 +297,8 @@ voodoo pip, up to 2, and refreshes a 240-frame window. His next melee hit
 that lands spends the pips: **+2% per pip**. A blocked melee hit spends them
 with no bonus.
 
-**Shows.** Two pips. Lit: `Abilities\Spells\Orc\Voodoo\VoodooAura.mdl` on his
-hands (proposed). Proc: a voodoo flash on the target.
+**Shows.** Two pips. Lit: `Abilities\Spells\Orc\Voodoo\VoodooAura.mdx` on his
+hands. Proc: a voodoo flash on the target.
 
 **Counterplay.** Break the ward (12 durability), shield the shots and the
 glaive (no pips), and shield or whiff-punish his normals while the pips are
@@ -313,7 +320,7 @@ same hit at its base damage, Warcraft's splash), which breaks a ward, an
 image or a skeleton beside them. The pips clear.
 
 **Shows.** Two pips. Ready: a fel glow on the cleaver. Proc:
-`Abilities\Spells\Other\Cleave\CleaveDamageTarget.mdl` (already in the
+`Abilities\Spells\Other\Cleave\CleaveDamageTarget.mdx` (already in the
 repository) on everything struck.
 
 **Counterplay.** It is the one passive that counts shielded contacts,
@@ -338,7 +345,7 @@ deals **+3%**. One proc per pair: the window closes on the proc.
 
 **Shows.** One pip: lit for the 40 frames after the first hit of a possible
 pair, so both players see the window. Proc: the bear's roar
-(`Abilities\Spells\NightElf\BattleRoar\RoarCaster.mdl`, proposed) on the
+(`Abilities\Spells\NightElf\BattleRoar\RoarCaster.mdx`) on the
 bear.
 
 **Counterplay.** Don't stand between Beastmaster and his bear. Break the bear
@@ -364,11 +371,11 @@ state, so the computer reads it directly:
   stop attacking Uther's shield at two blocks; edge-guard Warden when her
   Blink pip is dark; don't stand between Beastmaster and his bear.
 
-## What the legibility lane shows
+## Presentation
 
-For #144: one pip row above each fighter's mana bar (2–3 pips, 1 for
-Warden and Beastmaster). The ready-state effect is attached to the fighter;
-the proc effect plays once per proc serial. Proposed stock effects are
-named per fighter above. The lane confirms the paths and the hierarchy:
-the proc is louder than the ready state, and the ready state is louder than
-charging pips.
+One pip row sits above each fighter's mana bar: 3 pips for Blademaster,
+Rifleman and Uther, 1 for Warden and Beastmaster, 2 for everyone else. The
+ready-state effect is attached to the fighter, and the proc effect plays
+once per proc serial. Hierarchy: the proc is louder than the ready state,
+and the ready state is louder than the charging pips. Blademaster's crit is
+a text tag, not a model.
