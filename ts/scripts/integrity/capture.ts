@@ -13,7 +13,7 @@ import { type Client, type DesktopFailure, focus, loadClients, windowPid } from 
 import { IntegrityFailure, tryIntegrity, tryIntegrityPromise } from "./evidence";
 import { type JourneyOptions, type JourneyRecord, Rig, runJourney } from "./journey";
 import { type Observer, type Pad, observeDevice, openPad, realtimeNs } from "./linux";
-import { PAD_BUTTONS } from "./linuxInput";
+import { BTN_SELECT, PAD_BUTTONS } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
 import { archiveFiles, liveRig } from "./rig";
 
@@ -28,7 +28,7 @@ interface CaptureOptions extends JourneyOptions {
 }
 
 const CAPTURE_USAGE = "bun scripts/integrity.ts capture --helper BINARY --build BUILD --out DIR --app-id CLIENT=APP_ID --app-id CLIENT=APP_ID"
-  + " [--sweep RB[:BATCH],...] [--first-epoch N] [--four-fighters] [--clients FILE]";
+  + " [--sweep RB[:BATCH],...] [--first-epoch N] [--four-fighters] [--bot [--bot-four] [--pad49]] [--clients FILE]";
 
 const SCOPE = "Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; "
   + "controller game navigation (keyboard diagnostic trace toggle); issue 26 all-binding integrity run; "
@@ -63,6 +63,9 @@ export function parseCaptureArguments(args: readonly string[]): CaptureOptions {
       sweep: { type: "string" },
       "first-epoch": { type: "string" },
       "four-fighters": { type: "boolean" },
+      bot: { type: "boolean" },
+      "bot-four": { type: "boolean" },
+      "pad49": { type: "boolean" },
       clients: { type: "string" },
     },
     strict: true,
@@ -79,7 +82,9 @@ export function parseCaptureArguments(args: readonly string[]): CaptureOptions {
   const firstEpoch = wholeNumber(values["first-epoch"] ?? "1", "--first-epoch");
   if (sweep.length > 0 && fourFighters) throw new Error("--sweep requires two fighters, not --four-fighters");
   if (firstEpoch < 1 || firstEpoch % 2 === 0) throw new Error("--first-epoch must be positive and odd");
-  return { helper, build, out, clients: values.clients, appIds, sweep, fourFighters, epochs: captureEpochs(sweep.length, firstEpoch) };
+  if (values.bot === true && (sweep.length > 0 || fourFighters)) throw new Error("--bot takes neither --sweep nor --four-fighters");
+  if ((values["bot-four"] === true || values.pad49 === true) && values.bot !== true) throw new Error("--bot-four and --pad49 need --bot");
+  return { helper, build, out, clients: values.clients, appIds, sweep, fourFighters, epochs: captureEpochs(sweep.length, firstEpoch), ...(values.bot === true ? { workload: "bot" as const, botFour: values["bot-four"] === true, pad49: values.pad49 === true } : {}) };
 }
 
 declare global {
@@ -95,11 +100,18 @@ export const json = (value: unknown) => `${JSON.stringify(value, (_key, item: un
 const fromDesktop = (failure: DesktopFailure) => new IntegrityFailure({ operation: failure.operation, path: failure.client, cause: failure.cause });
 
 /** The client's game process, checked by name, with its window focused for the helper's focus gate. */
-const gameProcess = (client: Client) =>
+const gameProcess = (client: Client, checkDisplay: boolean) =>
   Effect.gen(function*() {
     const pid = yield* windowPid(client).pipe(Effect.mapError(fromDesktop));
     const name = yield* tryIntegrity("read game process name", `/proc/${pid}/comm`, () => readFileSync(`/proc/${pid}/comm`, "utf8"));
     if (!name.includes("Warcraft")) return yield* new IntegrityFailure({ operation: "find game process", path: client.name, cause: `window process ${pid} is ${name.trim()}` });
+    // A bot session stops this process: it must be the one running on the client's own display.
+    if (checkDisplay) {
+      const display = yield* tryIntegrity("read game process display", `/proc/${pid}/environ`, () =>
+        readFileSync(`/proc/${pid}/environ`, "utf8").split("\0").find((entry) => entry.startsWith("DISPLAY="))?.slice("DISPLAY=".length));
+      if (display === undefined || display !== client.x11.DISPLAY) return yield* new IntegrityFailure({ operation: "find game process", path: client.name, cause: `process ${pid} runs on DISPLAY ${display ?? "unset"}, not ${client.x11.DISPLAY ?? "unset"}` });
+      console.log(`client ${client.name}: Warcraft III pid ${pid} on DISPLAY ${display}`);
+    }
     yield* focus(client).pipe(Effect.mapError(fromDesktop));
     return pid;
   });
@@ -143,13 +155,14 @@ export const captureMatches = (options: CaptureOptions) =>
     const events: JourneyRecord[] = [];
 
     const run = Effect.scoped(Effect.gen(function*() {
-      const gamePids = yield* Effect.forEach(clients, gameProcess);
+      const gamePids = yield* Effect.forEach(clients, (client) => gameProcess(client, options.workload === "bot"));
       const pads: Pad[] = [];
       const observers: Observer[] = [];
       const helpers: Subprocess[] = [];
       for (const slot of SLOTS) {
         const client = clients[slot];
-        const pad = yield* openPad(PAD_BUTTONS);
+        // A bot session's pads also hold View, which asks the helper for a moment.
+        const pad = yield* openPad(options.workload === "bot" ? [...PAD_BUTTONS, BTN_SELECT] : PAD_BUTTONS);
         pads.push(pad);
         observers.push(yield* observeDevice(pad.device, join(out, `kernel-${slot}.jsonl`)));
         // A playable candidate's helper runs exactly as its player guide starts it.
@@ -188,6 +201,7 @@ export const captureMatches = (options: CaptureOptions) =>
         pad_layout: options.padLayout ?? "xpad",
         four_fighters: options.fourFighters,
         playable: options.workload === "playable",
+        bot: options.workload === "bot",
         sweep: options.sweep.length > 0 ? options.sweep : null,
         epochs: options.epochs,
         helper_pids: helpers.map((helper) => helper.pid),
@@ -195,6 +209,8 @@ export const captureMatches = (options: CaptureOptions) =>
         helper_sha256: helperSha256,
         scope: options.workload === "match"
           ? "Same-host two-client native one-minute match/rematch with two players and two CPUs, slot change and final checksums; persistent Linux virtual-pad helpers."
+          : options.workload === "bot"
+          ? "Same-host two-client native match/rematch: two players on virtual pads through persistent helpers and a computer Demon Hunter, one-minute timer, three 2 s stops of client B's game a match and a View-held moment request on both pads."
           : options.workload === "playable"
           ? "Same-host two-client native one-stock match/rematch of a playable candidate; each match ends when one player walks off; persistent Linux virtual-pad helpers started as the player guide describes."
           : SCOPE,

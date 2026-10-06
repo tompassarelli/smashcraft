@@ -15,6 +15,8 @@ export const BTN_Y = 0x134;
 export const BTN_TL = 0x136;
 export const BTN_TR = 0x137;
 export const BTN_START = 0x13b;
+// View (Back): held a second, the helper asks the map to save a moment.
+export const BTN_SELECT = 0x13a;
 
 export const ABS_X = 0;
 export const ABS_Y = 1;
