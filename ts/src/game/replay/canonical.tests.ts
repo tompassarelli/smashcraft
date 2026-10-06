@@ -3,7 +3,7 @@ import { attackBuffer, queueAttack } from "../input/attackBuffer";
 import type { FrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput } from "../match/frameInput";
 import { neutralControls } from "../sim/roster";
-import { canonicalBoolean, canonicalChecksum, canonicalInt, canonicalReal, canonicalRealField, canonicalState, stateChecksum } from "./canonical";
+import { beginStateChecksum, canonicalBoolean, canonicalChecksum, canonicalInt, canonicalReal, canonicalRealField, canonicalState, foldStateChecksum, stateChecksum } from "./canonical";
 import { captureTape, createTapeWorld, executeTapeRow } from "./tapeWorld";
 
 test("canonical real fields retain Wurst's exact binary representation", () => {
@@ -49,6 +49,13 @@ test("a played state's checksum folds exactly its canonical text, in which every
   const snapshot = captureTape(tape);
   const text = canonicalState(snapshot);
   assertEquals(stateChecksum(snapshot), canonicalChecksum(text));
+  // The input trace folds the captured text a slice a callback (#48).
+  const fold = beginStateChecksum(snapshot);
+  let slices = 1;
+  let folded = foldStateChecksum(fold, 1000);
+  for (; folded === undefined; slices++) folded = foldStateChecksum(fold, 1000);
+  assertEquals(folded, stateChecksum(snapshot));
+  assertTrue(slices > 1);
   let fields = 0;
   for (const field of text.split("|")) {
     const value = field.split("=")[1];

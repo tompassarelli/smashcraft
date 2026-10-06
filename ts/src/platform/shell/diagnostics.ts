@@ -7,14 +7,14 @@ import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/partic
 import { directionX, directionZ } from "../../game/input/playerKeys";
 import { characterFor, characterReady, computerActive, fighterMask, firstHumanSlot, humanActive, humanFighterActive } from "../../game/match/rules";
 import { captureReplaySnapshot } from "../../game/replay/snapshot";
-import { stateChecksum } from "../../game/replay/canonical";
+import { beginStateChecksum, foldStateChecksum, stateChecksum } from "../../game/replay/canonical";
 import { fighterAt, isActive, type Controls } from "../../game/sim/roster";
-import { floorMod } from "wisp/src/sim/intMath";
+import { floorMod, idiv } from "wisp/src/sim/intMath";
 import { INPUT_START_FILE, MELEE_READY_FILE, traceStartLine } from "../../runtime/gameFiles";
 import { writeLines } from "wisp/src/platform/fileio";
 import { type ShellState, activeRollback, localSlot } from "./state";
 import { views } from "./ui";
-import { beginInputTrace, closeTraceWindow, finishInputTrace, traceInput, traceParticipantWindow, traceSeconds } from "./trace";
+import { type InputTrace, beginInputTrace, closeTraceWindow, finishInputTrace, traceInput, traceParticipantWindow, traceSeconds } from "./trace";
 
 const bit = (value: boolean) => (value ? "1" : "0");
 
@@ -28,14 +28,33 @@ export function confirmedChecksum(s: ShellState): string {
   return stateChecksum(s.diagnostic);
 }
 
+/**
+ * Callbacks a confirmed-state checksum is folded over. Folding a four-fighter
+ * state's canonical text in one callback cost about 2.4 million Lua
+ * instructions, the worst frame of `bun wisp perf bot-four` (#48).
+ */
+const CHECKSUM_FOLD_CALLBACKS = 45;
+
+/** Captures the confirmed state's canonical text; foldConfirmedState writes its checksum over the next callbacks. */
 function traceConfirmedState(s: ShellState): void {
   const first = firstHumanSlot(s.game);
   if (first === undefined || s.participants[first].body === undefined) return;
+  foldConfirmedState(s.trace, true);
   const started = traceSeconds(s.trace);
-  const state = confirmedChecksum(s);
-  const elapsed = traceSeconds(s.trace) - started;
-  traceInput(s.trace, `confirmed frame ${s.runtime.simulationFrame} state ${state}`);
-  traceInput(s.trace, `checksum native-seconds ${R2S(elapsed)}`);
+  captureReplaySnapshot(s.diagnostic, s.world, s.game, s.controls, s.runtime);
+  const fold = beginStateChecksum(s.diagnostic);
+  traceInput(s.trace, `checksum capture native-seconds ${R2S(traceSeconds(s.trace) - started)}`);
+  s.trace.checksum = { frame: s.runtime.simulationFrame, fold, slice: idiv(fold.text.length + CHECKSUM_FOLD_CALLBACKS - 1, CHECKSUM_FOLD_CALLBACKS) };
+}
+
+/** Folds the pending confirmed-state checksum's next slice, or all of it, and writes its line once folded. */
+function foldConfirmedState(trace: InputTrace, all: boolean): void {
+  const pending = trace.checksum;
+  if (pending === undefined) return;
+  const state = foldStateChecksum(pending.fold, all ? pending.fold.text.length : pending.slice);
+  if (state === undefined) return;
+  trace.checksum = undefined;
+  traceInput(trace, `confirmed frame ${pending.frame} state ${state}`);
 }
 
 export function traceSelectionState(s: ShellState, reason: string): void {
@@ -88,6 +107,7 @@ export function traceTick(s: ShellState): void {
   trace.ticks++;
   // Callback timestamps stay intact, but a chat pause cannot use up the post-resume observation.
   if (s.session.paused) trace.pausedTicks++;
+  foldConfirmedState(trace, false);
   const local = localParticipantSlot(s);
   if (local !== undefined && s.participants[local].body !== undefined && isActive(s.world, local)) {
     const { keys } = s.participants[local];
@@ -105,7 +125,8 @@ export function traceTick(s: ShellState): void {
     }
   }
   if (floorMod(trace.ticks, 60) === 0) {
-    traceConfirmedState(s);
+    // A capture the trace would end before folding is skipped rather than folded in one callback.
+    if (trace.ticks - trace.pausedTicks + CHECKSUM_FOLD_CALLBACKS < traceLength(s)) traceConfirmedState(s);
     const rollback = activeRollback(s);
     if (rollback !== undefined) {
       for (const slot of PARTICIPANT_SLOTS) {
@@ -121,7 +142,10 @@ export function traceTick(s: ShellState): void {
       }, rollback.journal?.readyMask ?? 0);
     }
   }
-  if (trace.ticks - trace.pausedTicks >= traceLength(s)) finishInputTrace(trace);
+  if (trace.ticks - trace.pausedTicks >= traceLength(s)) {
+    foldConfirmedState(trace, true);
+    finishInputTrace(trace);
+  }
 }
 
 /** Written once the local bindings are ready: probe scripts wait for it before driving keys. */

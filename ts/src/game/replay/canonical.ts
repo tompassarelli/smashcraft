@@ -361,10 +361,15 @@ interface ChecksumLanes {
 }
 
 function foldChecksum(lanes: ChecksumLanes, fragment: string): void {
+  foldChecksumRange(lanes, fragment, 0, fragment.length);
+}
+
+/** Folds text's characters from index start up to, not including, end. */
+function foldChecksumRange(lanes: ChecksumLanes, text: string, start: number, end: number): void {
   if (!lanes.valid) return;
   let { first, second } = lanes;
-  for (let index = 0; index < fragment.length; index++) {
-    const byte = fragment.charCodeAt(index);
+  for (let index = start; index < end; index++) {
+    const byte = text.charCodeAt(index);
     if (byte < 32 || byte > 126) {
       lanes.valid = false;
       return;
@@ -820,6 +825,26 @@ export function stateChecksum(state: Readonly<ReplayState>): string {
   const lanes: ChecksumLanes = { valid: true, first: 0, second: 0 };
   writeState(fragment => foldChecksum(lanes, fragment), state);
   return checksumText(lanes);
+}
+
+/** A state's checksum folded a slice at a time, so no one callback folds the whole text. */
+export interface StateChecksumFold {
+  readonly text: string;
+  position: number;
+  readonly lanes: ChecksumLanes;
+}
+
+/** Captures the state's canonical text now; foldStateChecksum folds it later, after the state has moved on. */
+export function beginStateChecksum(state: Readonly<ReplayState>): StateChecksumFold {
+  return { text: canonicalState(state), position: 0, lanes: { valid: true, first: 0, second: 0 } };
+}
+
+/** Folds up to `characters` more of the text; once all of it is folded, the captured state's stateChecksum. */
+export function foldStateChecksum(fold: StateChecksumFold, characters: number): string | undefined {
+  const end = Math.min(fold.text.length, fold.position + characters);
+  foldChecksumRange(fold.lanes, fold.text, fold.position, end);
+  fold.position = end;
+  return end === fold.text.length ? checksumText(fold.lanes) : undefined;
 }
 
 /** Folds every registered hero kit's digest; map load calls it before any match frame. */

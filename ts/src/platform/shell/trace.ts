@@ -7,6 +7,7 @@ import { INPUT_TRACE_FILE, traceEndLines } from "../../runtime/gameFiles";
 import { floorMod } from "wisp/src/sim/intMath";
 import type { ParticipantSlot, Slots } from "../../game/input/participants";
 import { writeLines } from "wisp/src/platform/fileio";
+import type { StateChecksumFold } from "../../game/replay/canonical";
 
 const ECHO_CAPACITY = 256;
 const ECHO_BIN_LIMITS = [3, 6, 9, 12, 18] as const;
@@ -85,6 +86,8 @@ export interface InputTrace {
   window: TraceWindow;
   readonly echoes: EchoSend[];
   echoPending: number;
+  /** The confirmed state captured at a checksum tick, folded a slice a callback until its line is written. */
+  checksum: { readonly frame: number; readonly fold: StateChecksumFold; readonly slice: number } | undefined;
 }
 
 function traceWindow(): TraceWindow {
@@ -105,6 +108,7 @@ export function inputTrace(capacity: number): InputTrace {
     lastAxes: undefined, lastDodge: undefined, lastLandingLag: undefined, rawSyncEvents: 0, window: traceWindow(),
     echoes: Array.from({ length: ECHO_CAPACITY }, () => ({ epoch: -1, frame: undefined, callback: 0, seconds: 0.0 })),
     echoPending: 0,
+    checksum: undefined,
   };
 }
 
@@ -137,6 +141,7 @@ export function beginInputTrace(trace: InputTrace): void {
   trace.lastDodge = undefined;
   trace.lastLandingLag = undefined;
   trace.rawSyncEvents = 0;
+  trace.checksum = undefined;
   trace.window = traceWindow();
   clearEchoRing(trace);
   trace.active = true;

@@ -9,7 +9,7 @@ const source = resolve(project, "src/platform/shell/diagnostics.ts");
 const bundle = resolve(project, "build/map.lua");
 const sourceMap = `${bundle}.map`;
 const original = readFileSync(source, "utf8");
-const needle = '`confirmed frame ${s.runtime.simulationFrame} state ${state}`';
+const needle = '`confirmed frame ${pending.frame} state ${state}`';
 if (!original.includes(needle)) throw new Error("trace statement changed; inspect it before benchmarking");
 
 function compile(run: () => readonly import("typescript").Diagnostic[]): void {
