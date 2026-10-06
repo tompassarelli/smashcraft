@@ -293,6 +293,8 @@ Standing grab 6/2/22, reach 0.48H. Pummel: elbow to the ribs.
 - Presentation uses the stock Warden model. It has twelve sequences and no hit, jump, roll or ledge animations: blade swings play Attack - 1 and Attack - 2, overhead strikes Spell Slam, rising strikes and Fan of Knives Spell, Shadow Strike Spell Throw, and Blink, spot dodge and air dodge Dissipate. Knockdowns and tumbles play Death.
 - Spirit of Vengeance is not implemented; ultimates stay off in competitive play.
 
+**Gameplan** (smashcraft:ts/src/game/sim/heroes/wardenGameplan.ts, #105): she keeps 0.7-1.4H, just past her blades, and spaces with Crescent Slice, Pursuer and Pursuit Lunge; she runs in with dash attack, lunge and grab or jumps in with aerials, and never camps at long range. Up tilt, down tilt, up air and the up and down throws start her strings; Heel Blade, Judgment Edge, Moon Arc and the low outward Pursuer and Twin Crescent finish. She spends her jump before Blink, so its punishable endpoint is her last resort, and stays out from under a target.
+
 ## Pandaren Brewmaster
 
 **Identity:** a staff-and-body heavyweight with expressive drunken movement and a brew-then-fire combination. Drunken Brawler becomes a timed evasive move rather than random dodging. He is fun at close range without copying Mountain King’s stun and hammer game.
@@ -412,6 +414,8 @@ the tables:
   Stand Channel; hit reactions use the Stand - 3 sway and knockdowns Death.
 - Knockback classes use provisional growth/base values, not the
   displacement-calibrated bands.
+
+**Gameplan** (smashcraft:ts/src/game/sim/heroes/lichGameplan.ts, #105): he keeps 1.5-2.4H, where Frost Nova's marker lands on the target and Frost Shard still flies, and never runs in: he advances behind his shots and covers a run-in with Ice Spear. A threat close by he mostly answers by backing out to range. Frost Nova, down tilt, up tilt and the down throw start his strings; Ice Spear, Bone Spike and a late Frost Nova finish. He jumps before Spectral Ascent, aims for the ledge, and stays off the edge, out of close range and out from under a target.
 
 ## Uther
 
