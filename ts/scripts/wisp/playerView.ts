@@ -105,6 +105,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
         "Abilities\\Weapons\\Arrow\\ArrowMissile.mdx",
         "Abilities\\Weapons\\GyroCopter\\GyroCopterMissile.mdx",
         "Abilities\\Spells\\Human\\ManaFlare\\ManaFlareMissile.mdx",
+        ...HERO_ROSTER.map(({ presentation }) => presentation.projectileModel),
       ],
     },
     { name: "hippogryph", lifetime: seconds(3), models: ["Units\\NightElf\\HippoGryph\\HippoGryph.mdx"] },
