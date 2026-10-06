@@ -9,14 +9,15 @@
 // copied from the given CustomMapData folders into CAPTURE_DIR/moments, and
 // every moment there replays headlessly in two simulated clients of this
 // source, as `bun wisp repro` does, to the checksum Warcraft recorded
-// (moment_replays). Run it from the source the captured build was made from.
+// (moment_replays). A --bot-four or --bot-perf rematch's overlay readings are
+// reduced to frame_cost_overlay. Run it from the source the captured build was made from.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Effect } from "effect";
 import { describeCause } from "wisp/scripts/wisp/command";
 import { readRepro, replayInClients, reproReport } from "wisp/scripts/wisp/commands/repro";
 import { SMASHCRAFT_HEADLESS } from "../wisp/headless";
-import { readEvents, readGamePids } from "./botFiles";
+import { frameCostOverlay, readEvents, readGamePids } from "./botFiles";
 
 interface Receipt {
   readonly ns: number;
@@ -175,6 +176,8 @@ const summary = {
   trials_passed: `${trials.filter((trial) => trial.passed).length}/${trials.length}`,
   matches,
   moments,
+  // A --bot-four or --bot-perf rematch: client A's frame-cost overlay, read every 2 s.
+  frame_cost_overlay: frameCostOverlay(events),
   moment_replays_passed: `${momentReplays.filter(({ passed }) => passed).length}/${momentReplays.length}`,
   moment_replays: momentReplays,
   moment_requests: events.filter((event) => event.event === "bot-moment").map((event) => ({

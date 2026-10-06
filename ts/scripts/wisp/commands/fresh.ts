@@ -51,6 +51,9 @@ import { clientState, profileOption, sceneProfiles } from "../project";
 import { freshFrames, smashcraftPlayerView } from "../playerView";
 import { profileOptions } from "./map";
 
+/** Six random letters and digits, as `wisp menus host` chooses. */
+const gamePassword = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), (byte) => (byte % 36).toString(36)).join("");
+
 export const fresh: Command = (args) => Effect.gen(function*() {
   const options = yield* profileOptions(args);
   const { profile } = yield* profileOption(args);
@@ -77,6 +80,10 @@ export const freshMatch = (map: string, fromGame = false) => Effect.scoped(Effec
   const game = `scdev ${(yield* Clock.currentTimeMillis).toString(36)}`;
   const connections = yield* Effect.forEach(clients.all, (client) => reportedMenus(client.menuReportPort), { concurrency: clients.all.length });
   const menus = new Map(clients.all.map((client, index) => [client.name, connections[index]]));
+  // A page join of a game without a password lands the guest in Battle.net's
+  // password prompt; a private game joined with its password does not. A
+  // client driven by clicks types no password, so its game stays public.
+  const password = connections.every((socket) => socket !== undefined) ? gamePassword() : "";
 
   const read = (client: Client, region: typeof RESULTS, ink: "light" | "gold", pattern: RegExp) =>
     clients.read(client, region, ink).pipe(Effect.map((text) => pattern.test(text)));
@@ -119,7 +126,7 @@ export const freshMatch = (map: string, fromGame = false) => Effect.scoped(Effec
   const host = (client: Client) => Effect.gen(function*() {
     const socket = menus.get(client.name);
     if (socket !== undefined) {
-      yield* hostLobby(socket, { folder: "00-Smashcraft", file: basename(map), gameName: game, password: "" });
+      yield* hostLobby(socket, { folder: "00-Smashcraft", file: basename(map), gameName: game, password });
       return;
     }
     yield* click(client, CREATE_GAME);
@@ -144,7 +151,7 @@ export const freshMatch = (map: string, fromGame = false) => Effect.scoped(Effec
   const joinByName = (client: Client) => Effect.gen(function*() {
     const socket = menus.get(client.name);
     if (socket !== undefined) {
-      yield* joinLobby(socket, game, "");
+      yield* joinLobby(socket, game, password);
       return;
     }
     yield* click(client, JOIN);

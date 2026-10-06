@@ -20,7 +20,7 @@ import { CANNON_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, MAIN_DECK_BODY
 import { CANNON_Z, cannonX } from "../src/game/sim/stageHazards";
 import { bodyTop } from "../src/game/sim/surfaces";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
-import { type Scene, airborne, fighter, frame, framesUntil, scene, solo, tumbling } from "./frameScene";
+import { type Scene, airborne, fighter, frame, frameRows, framesUntil, scene, solo, tumbling } from "./frameScene";
 import { ATTACK_BUFFER_FRAMES } from "../src/game/input/attackBuffer";
 import { TECH_WINDOW_FRAMES, TECH_REPEAT_MINIMUM_AGE_FRAMES } from "../src/game/physics/techInput";
 import { SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "../src/game/sim/fighter";
@@ -1225,6 +1225,52 @@ const windowBound = (name: string, lower: number, upper: number, actual: (charac
   },
 });
 
+// ------------------------------------------------------------------ smash DI
+
+/**
+ * An airborne fighter seeded in 20 frames of hitlag with a fresh stick that
+ * alternates left and right on each of the 19 frames before release, then
+ * neutral; returns the horizontal travel (Melee units) and the largest one-frame shift.
+ */
+function sdiMash(character: Character): { readonly travel: number; readonly step: number } {
+  const s = solo(0, character);
+  const f = fighter(s);
+  airborne(f, 0.0, 400.0);
+  f.launch.hitlag = 20;
+  f.launch.diPending = true;
+  let travel = 0.0;
+  let step = 0.0;
+  for (let n = 0; n < 20; n++) {
+    const x = f.motion.x;
+    const right = n % 2 === 0;
+    frameRows(s, [n < 19 ? [right ? Action.moveRight : Action.moveLeft] : []], (row, slot) => {
+      if (slot !== 0 || n >= 19) return;
+      row.sdi = true;
+      row.sdiX = right ? 1 : -1;
+    });
+    const moved = melee(Math.abs(f.motion.x - x));
+    travel += moved;
+    step = Math.max(step, moved);
+  }
+  return { travel, step };
+}
+
+const SDI_RULE = "a stick at least 0.70 from centre that newly moved within 4 frames shifts the fighter by PlCo +0x4B0 = 6 units on each hitlag frame (ftCo_Damage_OnEveryHitlag), and ASDI shifts 3 once on release (ftCo_Damage_OnExitHitlag): smashcraft:docs/design/melee/defense.md#influence-on-knockback";
+const SDI_DEPARTURE = "SDI: bounded travel, at most 9 units of SDI and 12 with ASDI per hit, 24 per string, in steps of at most 3 per frame (owner-authorized default 2026-10-06, #70)";
+
+const SMASH_DI: readonly Scenario[] = [
+  {
+    area: "smash DI", name: "travel from 19 alternating fresh pulses in 20 frames of hitlag",
+    cite: SDI_RULE, departure: SDI_DEPARTURE,
+    run: (c) => ({ expected: 19 * 6, actual: sdiMash(c).travel, tolerance: 0.001 }),
+  },
+  {
+    area: "smash DI", name: "largest one-frame SDI shift",
+    cite: SDI_RULE, departure: SDI_DEPARTURE,
+    run: (c) => ({ expected: 6, actual: sdiMash(c).step, tolerance: 0.001 }),
+  },
+];
+
 const EXECUTION_BOUNDS: readonly Scenario[] = [
   windowBound("tech", 11, 20, () => TECH_WINDOW_FRAMES),
   windowBound("tech lockout", 20, 40, () => TECH_REPEAT_MINIMUM_AGE_FRAMES),
@@ -1237,7 +1283,7 @@ const EXECUTION_BOUNDS: readonly Scenario[] = [
 ];
 
 const SCENARIOS: readonly Scenario[] = [
-  ...JUMPS, ...GROUND, ...FAST_FALL, ...LANDING, ...TECHS, ...GETUPS, ...KNOCKBACK, ...PLATFORMS, ...SURFACES, ...SHIELD_AND_DODGES, ...LEDGES, ...EXECUTION_BOUNDS,
+  ...JUMPS, ...GROUND, ...FAST_FALL, ...LANDING, ...TECHS, ...GETUPS, ...KNOCKBACK, ...PLATFORMS, ...SURFACES, ...SHIELD_AND_DODGES, ...LEDGES, ...SMASH_DI, ...EXECUTION_BOUNDS,
   ...[59, 60, 120].map((frames): Scenario => ({
     area: "offscreen", name: `magnifier damage after ${frames} consecutive frames`,
     cite: "Fighter_procAnim, PlCo +0x7AC=60, +0x7B0=150, +0x7B4=1; ftLib_UpdateScreenVisibility; canonical 16:9 match view (#80)",

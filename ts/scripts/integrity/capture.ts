@@ -11,13 +11,15 @@ import { DEFAULT_BATCH } from "../../src/game/netcode/journal/transport";
 import { clientState } from "../wisp/project";
 import { type Client, type DesktopFailure, focus, loadClients, windowPid } from "wisp/scripts/warcraft/desktop";
 import { IntegrityFailure, tryIntegrity, tryIntegrityPromise } from "./evidence";
-import { type JourneyOptions, type JourneyRecord, Rig, runJourney } from "./journey";
+import { type JourneyOptions, type JourneyRecord, Rig, nextMatchEpoch, runJourney } from "./journey";
 import { type Observer, type Pad, observeDevice, openPad, realtimeNs } from "./linux";
 import { BTN_SELECT, PAD_BUTTONS } from "./linuxInput";
 import { SLOTS, type Slot } from "./reconcile";
 import { archiveFiles, liveRig } from "./rig";
 
-interface CaptureOptions extends JourneyOptions {
+interface CaptureOptions extends Omit<JourneyOptions, "epochs"> {
+  /** The matches to capture; undefined plays the game's next match and its rematch, read from its menu receipts. */
+  readonly epochs: readonly number[] | undefined;
   /** The persistent controller helper binary. */
   readonly helper: string;
   readonly out: string;
@@ -80,12 +82,12 @@ export function parseCaptureArguments(args: readonly string[]): CaptureOptions {
   }));
   const sweep = values.sweep === undefined ? [] : parseSweep(values.sweep);
   const fourFighters = values["four-fighters"] ?? false;
-  const firstEpoch = wholeNumber(values["first-epoch"] ?? "1", "--first-epoch");
+  const firstEpoch = values["first-epoch"] === undefined ? undefined : wholeNumber(values["first-epoch"], "--first-epoch");
   if (sweep.length > 0 && fourFighters) throw new Error("--sweep requires two fighters, not --four-fighters");
-  if (firstEpoch < 1 || firstEpoch % 2 === 0) throw new Error("--first-epoch must be positive and odd");
+  if (firstEpoch !== undefined && (firstEpoch < 1 || firstEpoch % 2 === 0)) throw new Error("--first-epoch must be positive and odd");
   if (values.bot === true && (sweep.length > 0 || fourFighters)) throw new Error("--bot takes neither --sweep nor --four-fighters");
   if ((values["bot-four"] === true || values["bot-perf"] === true || values.pad49 === true) && values.bot !== true) throw new Error("--bot-four, --bot-perf and --pad49 need --bot");
-  return { helper, build, out, clients: values.clients, appIds, sweep, fourFighters, epochs: captureEpochs(sweep.length, firstEpoch), ...(values.bot === true ? { workload: "bot" as const, botFour: values["bot-four"] === true, botPerf: values["bot-perf"] === true, pad49: values.pad49 === true } : {}) };
+  return { helper, build, out, clients: values.clients, appIds, sweep, fourFighters, epochs: firstEpoch === undefined ? undefined : captureEpochs(sweep.length, firstEpoch), ...(values.bot === true ? { workload: "bot" as const, botFour: values["bot-four"] === true, botPerf: values["bot-perf"] === true, pad49: values.pad49 === true } : {}) };
 }
 
 declare global {
@@ -189,7 +191,8 @@ export const captureMatches = (options: CaptureOptions) =>
         producerLog,
         events,
       });
-      yield* runJourney(options).pipe(Effect.provideService(Rig, rig));
+      const epochs = options.epochs ?? captureEpochs(options.sweep.length, yield* nextMatchEpoch(build).pipe(Effect.provideService(Rig, rig)));
+      yield* runJourney({ ...options, epochs }).pipe(Effect.provideService(Rig, rig));
       const helperSha256 = new Bun.CryptoHasher("sha256").update(yield* tryIntegrityPromise("hash helper", options.helper, () => Bun.file(options.helper).bytes())).digest("hex");
       yield* tryIntegrity("write capture.json", out, () => writeFileSync(join(out, "capture.json"), json({
         settings: {
@@ -204,7 +207,7 @@ export const captureMatches = (options: CaptureOptions) =>
         playable: options.workload === "playable",
         bot: options.workload === "bot",
         sweep: options.sweep.length > 0 ? options.sweep : null,
-        epochs: options.epochs,
+        epochs,
         helper_pids: helpers.map((helper) => helper.pid),
         events,
         helper_sha256: helperSha256,

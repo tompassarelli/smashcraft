@@ -37,8 +37,10 @@ The session has a match and a rematch:
   (development and integrity builds only).
 - `--bot-perf` does the same with the three fighters of `--bot`, so a
   session measures both the matches `bun wisp perf bot` and `perf bot-four`
-  predict. Read the overlay's median / p95 / max on a quiet machine: the
-  meter's clock is likely wall time, so other work on the host inflates it.
+  predict. In either, the capture reads A's overlay from its screen every
+  2 s through the rematch (a `perf-overlay` event each, one 120-frame
+  window). Run it on a quiet machine: the meter's clock is likely wall
+  time, so other work on the host inflates it.
 - `--pad49` opens the first match with #49's script on slot 0, and that
   match has no stalls. The script: resting and drifted sticks, X, Y, down at
   0.650 and 0.670 of full tilt, and a held right.
@@ -49,12 +51,26 @@ first map, and Warcraft keeps the open folder for the session. Fresh moves
 every other map in that folder to `smashcraft-replaced-maps`. Client A's
 prefix also holds Tom's playtest map, so copy it back after a session.
 
+When every client has a menu page, `bun wisp fresh` hosts a private game
+with a random password and joins it with that password: a page join of a
+game without one left the guest in Battle.net's password prompt. A client
+without a page is driven by clicks, and its game stays public.
+
 ```sh
 bun wisp parity capture --bot [--bot-four | --bot-perf] [--pad49] \
   --helper /absolute/path/to/wc3-journal --build BUILD_ID \
   --out /absolute/path/to/new-capture \
-  --app-id a=GAME_APP_ID_A --app-id b=GAME_APP_ID_B --first-epoch 1
+  --app-id a=GAME_APP_ID_A --app-id b=GAME_APP_ID_B
 ```
+
+Every capture, `--bot` or not, starts from two humans: it reads slots C
+and D from A's menu receipt and clicks their tags (HMN → CPU → EMPTY) until
+both are EMPTY, so the computers a Battle.net lobby adds are cleared before
+`--bot` adds its own. It then plays the game's next match and its rematch.
+The next match is one past the `epoch=` both clients' menu receipts name
+(the last match begun, 0 in a new game); a capture can't start at a
+rematch, so it stops there before any input and asks for a new game.
+`--first-epoch N` names the first match instead.
 
 ## Reading a capture
 
@@ -97,6 +113,70 @@ clock beyond the last frame its client consumed. It is read at the helper's
 edit-box receipts, about every 200 ms. One moment replays alone with
 `bun wisp repro FILE`. A playable build writes no input trace, so only
 integrity and development builds give confirmed states.
+
+## One session for the native gates
+
+One run of each capture below, from smashcraft:ts/ of the checkout the
+map's script is built from, answers every native check these captures
+feed. The checkers replay moments in this source, so build and check from
+the same checkout. Run each `botResult.ts` before the next capture: it
+copies every moment its clients saved since its capture began.
+
+```sh
+export LUA=/path/to/32-bit/lua
+S=~/.local/share/smashcraft-build-inputs/SESSION   # a new private folder
+HELPER=/absolute/path/to/wc3-journal               # release build of this checkout's companion/
+MAP="$S/Smashcraft integrity.w3x"                  # copy of an integrity map and its .w3x.base.lua
+UNDERSIDE=/absolute/path/to/underside.w3x          # a dev map whose scenario is underside (#57)
+A_DATA="$(jq -r '.clients[0].documents' ~/.local/state/smashcraft/clients.json)/CustomMapData"
+B_DATA="$(jq -r '.clients[1].documents' ~/.local/state/smashcraft/clients.json)/CustomMapData"
+CAPTURE=(--helper "$HELPER" --build typescript-integrity --app-id a=GAME_APP_ID_A --app-id b=GAME_APP_ID_B)
+
+# Four fighters: three 2 s stops of B in match 1; overlay read through the rematch; four moments a client.
+bun wisp fresh "$MAP" --rebuild --profile integrity --no-quick
+bun wisp parity capture --bot --bot-four "${CAPTURE[@]}" --out "$S/bot-four"
+bun scripts/integrity/botResult.ts "$S/bot-four" "$A_DATA" "$B_DATA"
+bun scripts/integrity/botInputs.ts "$S/bot-four" > "$S/bot-four/bot-inputs.json"
+
+# Three fighters, the same.
+bun wisp fresh "$MAP" --no-quick
+bun wisp parity capture --bot --bot-perf "${CAPTURE[@]}" --out "$S/bot-perf"
+bun scripts/integrity/botResult.ts "$S/bot-perf" "$A_DATA" "$B_DATA"
+bun scripts/integrity/botInputs.ts "$S/bot-perf" > "$S/bot-perf/bot-inputs.json"
+
+# #26's all-action workload: grab, walk and stick moves; three fighters in the rematch.
+bun wisp fresh "$MAP" --no-quick
+bun wisp parity capture "${CAPTURE[@]}" --out "$S/integrity"
+bun wisp parity result "$S/integrity"
+
+# Presses over all three captures (exits 1 when the gate fails).
+bun scripts/integrity/pressResult.ts "$S/press-result.json" "$S/integrity" "$S/bot-four" "$S/bot-perf"
+
+# Headless predictions of the two bot matches, from this source.
+bun wisp perf bot --out "$S/perf-bot.json"
+bun wisp perf bot-four --out "$S/perf-bot-four.json"
+
+# One saved moment replayed alone, to the checksum Warcraft recorded.
+bun wisp repro "$(ls "$S"/bot-four/moments/*.txt | head -1)"
+
+# The deck's underside: frames land in ~/.local/state/smashcraft/frames/.
+bun wisp fresh "$UNDERSIDE"
+```
+
+What answers each check:
+
+| Check | Where |
+| --- | --- |
+| Saved moments replay to Warcraft's checksum | `moment_replays_passed` in both `bot-result.json`s; a PASS or FAIL line per moment |
+| 2 s stop recovers within 1 s | `bot-four/bot-result.json` `trials_passed` (three trials, match 1); `bot-perf`'s for the three-fighter build |
+| Clients agree | `matches[].confirmed_frames_differing` empty, equal final checksums |
+| Steady-state frame cost, four fighters | `bot-four/bot-result.json` `frame_cost_overlay`: median of window medians, median and worst p95, worst frame, windows holding a frame over 16.7 ms |
+| Frame cost, three fighters | `bot-perf/bot-result.json` `frame_cost_overlay` |
+| Predicted against native cost | `perf-bot-four.json` and `perf-bot.json` p50 / p95 against `frame_cost_overlay.lua_ms` `median_of_medians` / `median_p95` of the matching capture |
+| Scripted presses against helper rows | `bot-inputs.json` |
+| Every press on its frame, local start | `press-result.json` `gate` and `passed`: at least 1000 presses, every action (the integrity workload brings grab and moves, the bot sessions dashes and C-stick) |
+| #26's table | `parity result`'s output for `$S/integrity` |
+| What players see | `player-view-EPOCH/` frames in each capture; the underside run's frames |
 
 ## Integrity workload stocks
 

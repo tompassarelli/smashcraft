@@ -33,9 +33,8 @@ Owner decisions, 6 Oct 2026 (#62):
 
 ## Bounded SDI
 
-Reversible default selected under the owner's authorization, 6 Oct 2026 (#70).
-The selected rule is a design; gameplay still uses the existing SDI until
-the infrastructure gate in #61 closes and #70's implementation passes its checks.
+Reversible default selected under the owner's authorization, 6 Oct 2026 (#70),
+and implemented in smashcraft:ts/src/game/sim/smashDirectionalInfluence.ts.
 
 SDI should change where a hit leaves the defender, with a useful escape choice
 in multi-hits, without rewarding ever more inputs with unbounded travel. Count
@@ -46,8 +45,12 @@ All distances below are Melee units; one is six world units.
 - **Per uninterrupted string:** at most 24 units total across SDI and ASDI.
   A new contact renews the hit allowance, never the string allowance. A string
   ends after one complete tick in which the defender can act, or on stock loss,
-  respawn or match reset. Hitlag, hitstun, grabs and scripted holds keep it open;
+  respawn or match reset. Hitlag, hitstun, grabs and scripted holds (freeze
+  traps, the stage cannon, knockdown bounce and jab-reset damage) keep it open;
   a gap between multi-hits while the defender is still held does not renew it.
+  The tick that ends hitstun is the first actionable tick, so a hit landing at
+  its end still continues the string; the string renews at the start of the
+  next tick.
 - **Smoothing:** each fresh pulse requests up to the existing 6-unit travel,
   spent in ordered steps of at most 3 units per tick while hitlag remains.
   Reserve up to 3 units of the remaining string allowance for that hit's ASDI
@@ -71,23 +74,23 @@ no repeat pulses. No extra delay is added before the first smoothed step.
 
 At these defaults, a two-frame freeze permits 3 SDI plus 3 ASDI units; a
 four-frame or longer freeze can spend the full 12. Two fully spent hits exhaust
-the 24-unit string budget. These are consequences of the proposed rule, not
-measurements of an implemented change. The numerical defaults are ordinary
-tuning values and can be revised together without altering the rule.
+the 24-unit string budget. The numerical defaults are ordinary tuning values
+and can be revised together without altering the rule.
 
-The implementation must carry spent allowances and pending travel through
-snapshots, replay and rollback. Its focused acceptance cases are single-hit
-and three-hit travel bounds (including alternating and diagonal directions),
-the 3-unit per-tick limit, reservation expiry, a real actionable reset versus
-held multi-hit gaps, and the existing ASDI contact/DI cases. Add oracle fixtures
-that name the SDI deviation; the existing oracle does not exercise this rule.
-Native feel remains a later playtest of the implemented candidate.
+Each fighter's launch state carries the travel charged this hit and this
+string and at most two queued requests (a full pulse and the rest of the hit's
+SDI, the most the defaults admit), in Melee units, through snapshots, replay
+and rollback. smashcraft:ts/src/game/sim/smashDirectionalInfluence.tests.ts
+replays the ten teleport fixtures through the production step: the 20-frame
+cases now travel 72 world units (12 Melee units) instead of 702, the three-hit
+strings 144 instead of 378 and 2,106, and no tick moves more than 18. The
+oracle's "smash DI" rows report Melee's 114 units and 6-unit shifts beside our
+9 and 3 under the SDI departure. Native feel remains a later playtest.
 
 The factual baseline is [Melee's defense](design/melee/defense.md#influence-on-knockback)
 and [SDI teleports](design/melee/techniques.md#sdi-teleports). The current
-production simulation's bounded measurements at build 89abaf3c are retained in
-smashcraft:evidence/sdi-design-20261006.json; #70 owns their report and the
-implementation dependency.
+unbounded simulation's measurements at build 89abaf3c are retained in
+smashcraft:evidence/sdi-design-20261006.json.
 
 ## Combo structure
 
@@ -156,7 +159,7 @@ checks that every oracle departure names a row here.
 | Stale moves and freshness bonuses | Repeats among the last 9 connected moves deal less damage and knockback | Ultimate keeps the 9-move queue, adds a freshness bonus, counts shield hits and weakens the knockback effect ([SmashWiki](https://www.ssbwiki.com/Stale-move_negation)) | None: a repeat deals the same damage and knockback | An over-engineered attempt at move diversity; diversity comes by construction, from move design | decisions 4 and 6 Oct |
 | Tap-jump | Stick up jumps, always | Optional from Brawl onward ("Stick Jump" in Ultimate; [SmashWiki](https://www.ssbwiki.com/Tap_jump)) | Removed: stick-up and Space are just "up"; jump is its own button | Jump is its own button (owner, 6 Oct) | #49 |
 | Stick deadzone | Each stick axis reads zero within 0.28 of centre, after a radial clamp | not covered here | Melee's deadzone applies to every controller; the value and its decompilation citation are in smashcraft:companion/README.md | A resting or drifting stick reads neutral | #49 |
-| SDI | Each fresh stick movement during hitlag moves the fighter 6 units, as often as every frame ([case study](design/melee/defense.md#influence-on-knockback)) | Weakened in later games ([SmashWiki](https://www.ssbwiki.com/Smash_directional_influence)) | Selected design, awaiting implementation after #61: SDI + ASDI travel capped at 12 units per hit and 24 per uninterrupted string, in steps of at most 3 per tick ([bounded SDI](#bounded-sdi)) | Keep displacement choices useful while bounding visible jumps and repeated-hit travel | #70 |
+| SDI | Each fresh stick movement during hitlag moves the fighter 6 units, as often as every frame ([case study](design/melee/defense.md#influence-on-knockback)) | Weakened in later games ([SmashWiki](https://www.ssbwiki.com/Smash_directional_influence)) | SDI + ASDI travel capped at 12 units per hit (at most 9 SDI) and 24 per uninterrupted string, in steps of at most 3 per tick ([bounded SDI](#bounded-sdi)) | Keep displacement choices useful while bounding visible jumps and repeated-hit travel | #70 |
 | Horizontal air dodge | The dodge goes where the stick points | – | A horizontal-only digital air dodge angles 18° below horizontal, mirrored, by default and with no toggle | Owner-selected control (30 Sep); the shallow angle keeps horizontal momentum into the landing | – |
 | Fast fall | A fresh stick down, diagonals included | – | Down with neutral horizontal input only; down-left and down-right keep drifting | Owner-selected control, 30 Sep | – |
 | Dodge timing | Per fighter | – | One shared profile: spot dodge 22 frames, intangible 2–15; rolls 31, intangible 4–19; air dodge 49, intangible 4–29, landing 10 | Owner's common frame-data profile | – |
