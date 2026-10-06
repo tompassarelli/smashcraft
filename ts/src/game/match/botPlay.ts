@@ -147,6 +147,11 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
     if (fighter.launch.diPending) input.direction = fighter.motion.x < 0 ? 1 : -1;
     return;
   }
+  if (fighter.status.frozenFrames > 0) {
+    // A human-paced mash, 10 presses a second, so a trap still rewards Rifleman.
+    input.grabMashPressed = floorMod(frame, 6) === 0;
+    return;
+  }
   if (fighter.grab.owner !== undefined) {
     input.grabMashPressed = floorMod(frame, 2) === 0;
     input.direction = floorMod(frame, 4) < 2 ? 1 : -1;

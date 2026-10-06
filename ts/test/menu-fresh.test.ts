@@ -35,7 +35,7 @@ test.each([[true, false], [false, true], [true, true]])("fresh uses each client'
           const { message, payload } = JSON.parse(String(data)) as { message: string; payload?: Record<string, unknown> };
           commands.push(`${name}:${message}`);
           const tell = (messageType: string, payload: unknown) => socket.send(JSON.stringify({ messageType, payload }));
-          if (message === "GetMapList") tell("MapList", { mapList: { maps: [{ filename: "test.w3x", filepath: "C:/Maps/00-Smashcraft/", isFolder: false }] } });
+          if (message === "GetMapList") tell("MapList", { mapList: { maps: [{ filename: "test.w3x", filepath: "C:/Maps/00-Smashcraft/tests/", isFolder: false }] } });
           if (message === "CreateLobby") {
             passwords.host = payload?.["password"];
             passwords.privateGame = payload?.["privateGame"];

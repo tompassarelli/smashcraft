@@ -2,14 +2,14 @@
 /** Each selectable stage's deck models in its palette: the raised decks' slab, which the map scales to each deck, and the main deck, drawn from its collision outline in arena units. */
 export const STAGE_DECK_MODELS: Readonly<Record<number, { readonly slab: string; readonly main: string }>> = {
   0: { slab: "war3mapImported\\StageDeck-48ca8b3ca98aa77d741926a42ad589a5f8b1df78e68f565c285ccadd6bc2c27c.mdx", main: "war3mapImported\\StageMainDeck-043d3ab8ff1b03b9c0288e9f38951e8a2a383379d0020e3898cf16a351ca71ae.mdx" },
-  2: { slab: "war3mapImported\\StageDeck-029b5712b96d5a74852da005f1a19819d7c7e9b02c08e81b94460f72add6f6cb.mdx", main: "war3mapImported\\StageMainDeck-acaf225d1dd6db1774f0860f2f4803332e4722045cfe2773add43619d1060308.mdx" },
-  10: { slab: "war3mapImported\\StageDeck-2a2cd3f498816588907ae09e492924a90900dd43f460c5298b625285b9784077.mdx", main: "war3mapImported\\StageMainDeck-2681f99df947898810ff15e5a56524b60b384915eee665248b976ff5f91364b2.mdx" },
-  11: { slab: "war3mapImported\\StageDeck-cc09ab6cbed06cb9861b9bd15993d1d692224f59f9ef1271dd736eb0185593c3.mdx", main: "war3mapImported\\StageMainDeck-2f6547f0da94ac2cb52bd6a7971bc4cd6131fc09a73b23b2d5f305ae2366f800.mdx" },
-  3: { slab: "war3mapImported\\StageDeck-e8050527bc56d4dda4c74071e8d226282fadade90fe30469efd5bf941d663df1.mdx", main: "war3mapImported\\StageMainDeck-f6fa74d1c1295faede0b5b3d80b228a2b0a2a1912ecd6f41665c66d442fce3e7.mdx" },
-  4: { slab: "war3mapImported\\StageDeck-e5f7673d38b2984d5f43f7b497f96f7b500e898d45c56c8873624e77a3d332b7.mdx", main: "war3mapImported\\StageMainDeck-92ba5e23f698cfd6f8108df478e10cbb54bada858df4cbe3cc2e899c01189551.mdx" },
-  14: { slab: "war3mapImported\\StageDeck-6b36580e341f7f70e4b3aa21cbb69057126f6b1893da10c033e0831139f89f04.mdx", main: "war3mapImported\\StageMainDeck-d80607d15b8b7fea6d21862a24bbd0d59c2e78b7c83e3a0c3889a340b6c34eec.mdx" },
+  2: { slab: "war3mapImported\\StageDeck-029b5712b96d5a74852da005f1a19819d7c7e9b02c08e81b94460f72add6f6cb.mdx", main: "war3mapImported\\StageMainDeck-9683d43a417bb24de5ce8b26c594a6e9f79f5a8551e7af3b8b54eb60d4cb14a1.mdx" },
+  10: { slab: "war3mapImported\\StageDeck-2a2cd3f498816588907ae09e492924a90900dd43f460c5298b625285b9784077.mdx", main: "war3mapImported\\StageMainDeck-374a3878f588e6269a14726b3bc075dec5daf12e3d5eacc7f1cc7adadd03324b.mdx" },
+  11: { slab: "war3mapImported\\StageDeck-cc09ab6cbed06cb9861b9bd15993d1d692224f59f9ef1271dd736eb0185593c3.mdx", main: "war3mapImported\\StageMainDeck-cb9fa22e0eb2b956bc45257997fe4f72efb128f26a2a86c1d9a07218f48b39c9.mdx" },
+  3: { slab: "war3mapImported\\StageDeck-e8050527bc56d4dda4c74071e8d226282fadade90fe30469efd5bf941d663df1.mdx", main: "war3mapImported\\StageMainDeck-5c129cf8f4606902e7ac357442b815211525daa51e72c17e18d002faade76d96.mdx" },
+  4: { slab: "war3mapImported\\StageDeck-e5f7673d38b2984d5f43f7b497f96f7b500e898d45c56c8873624e77a3d332b7.mdx", main: "war3mapImported\\StageMainDeck-96a25459ed0ed7887e776a18ebdf797c95ad0e951f0674a5c0400be79a17ca42.mdx" },
+  14: { slab: "war3mapImported\\StageDeck-6b36580e341f7f70e4b3aa21cbb69057126f6b1893da10c033e0831139f89f04.mdx", main: "war3mapImported\\StageMainDeck-a458b4f3e84d4ff00856d259aed3c6d73e4883bf743cea8e92bf5252297364a0.mdx" },
   12: { slab: "war3mapImported\\StageDeck-a5385ace7085b3ab02c29566c4e8234fbf5a029560f49251cb84fad8e6b3f129.mdx", main: "war3mapImported\\StageMainDeck-aedb9836cf5ddf54b8f520d514add2f6c718e7608d27db6f49acb65ec8f8fc20.mdx" },
-  13: { slab: "war3mapImported\\StageDeck-d8845bd0c9c043cb18b8b1e4480bb112197019fb4ca5b7b25273ce503f1e63a9.mdx", main: "war3mapImported\\StageMainDeck-bda5228f89b225beb16e488d07af1a282c0a25514a129c3ea214799e33d3ea56.mdx" },
+  13: { slab: "war3mapImported\\StageDeck-d8845bd0c9c043cb18b8b1e4480bb112197019fb4ca5b7b25273ce503f1e63a9.mdx", main: "war3mapImported\\StageMainDeck-bc6293bb28debe8be5ae2a8128cb1e88f47628306d1800dc2611bc47cd6583d8.mdx" },
 };
 /** The neutral palette's slab. */
 export const STAGE_DECK_MODEL = "war3mapImported\\StageDeck-48ca8b3ca98aa77d741926a42ad589a5f8b1df78e68f565c285ccadd6bc2c27c.mdx";

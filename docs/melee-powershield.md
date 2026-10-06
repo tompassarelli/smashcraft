@@ -40,9 +40,17 @@ and full state-entry consumers, not a complete gameplay contact trace.
 
 Smashcraft fighters use an explicitly authored shield circle centered at local
 offset `(0, 45)` with base radius `60` world units. These are original
-Smashcraft tuning values, not copied Melee character geometry. Its current
+Smashcraft tuning values, not copied Melee character geometry. Melee's
 reflector radius is `base radius × shieldSizeMultiplier × 0.75`; `0.75` is the
-common reflector-size value at `+0x2A8`. Original joint-scaling and reflector
+common reflector-size value at `+0x2A8`. Smashcraft departs from it (#118):
+while the reflector is up, the whole shield circle reflects. With a separate
+0.75 circle checked in the same swept step, a projectile met the outer quarter
+of the bubble a frame before the reflector and was blocked, and projectiles
+flying at height 75 passed above the reflector of a fully pressed shield, so a
+timed press rarely reflected (smashcraft:ts/scripts/powershieldReflect.tests.ts
+measures every projectile on shield frames 1-3). The reflector state is sampled
+once per frame, so every projectile meeting the shield on a reflecting frame,
+such as a Multishot volley, reflects. Original joint-scaling and reflector
 creation routines now confirm the health/pressure dependence: they attach the
 reflector to the same uniformly scaled shield joint. Nineteen synthetic cases
 execute both complete routines without return patches. For unit base size and
@@ -72,7 +80,7 @@ before the existing body-contact predicate, after the reflector opportunity.
 Shield-only intersections can block a projectile; body intersections outside
 the shield apply body damage despite held guard. The selected blocked status
 is retained in the contact batch rather than inferred again from held guard.
-The swept path remains a point path, matching the existing reflector geometry;
+The swept path remains a point path for both shield and reflector;
 projectile sizes, capsule/matrix arithmetic and body geometry are not yet
 verified against complete retail contact execution. Melee coverage/pokes remain
 missing. Eight focused powershield checks pass, including one connected

@@ -5,7 +5,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type Slots } from "../input/participants";
 import { fighterAt, isActive, type Roster } from "./roster";
 import { stageBounds, type StageRegion } from "./stageBounds";
-import { MAIN_DECK_UNDERSIDE_Z } from "./stage";
+import { mainDeckUndersideZ } from "./stage";
 
 export const MATCH_CAMERA_ASPECT = 1.7777777910232544;
 const CAMERA_PITCH_COS = 0.9848077297210693;
@@ -142,8 +142,9 @@ export function advanceMatchCamera(camera: MatchCamera, world: Readonly<Roster>,
   const distance = clamp(Math.max(vertical, horizontal), 498.0, 6000.0);
   // Keep recovery space above the HUD, including the foreground underside
   // when a fighter is within 100 of it. Distant high subjects get a bubble.
-  const nearUnderside = lowest >= f32(MAIN_DECK_UNDERSIDE_Z - 100.0) && lowest <= f32(MAIN_DECK_UNDERSIDE_Z + 100.0);
-  const floorOfView = nearUnderside ? Math.min(lowest, f32(MAIN_DECK_UNDERSIDE_Z - 35.0)) : lowest;
+  const underside = mainDeckUndersideZ(stage);
+  const nearUnderside = lowest >= f32(underside - 100.0) && lowest <= f32(underside + 100.0);
+  const floorOfView = nearUnderside ? Math.min(lowest, f32(underside - 35.0)) : lowest;
   const hud = cameraReach(distance, f32(camera.tangent * 0.4399999976158142));
   const targetZ = Math.min(middleZ, f32(floorOfView + hud.below));
   // Camera_8002A768 limits the goal, not the eased view, so reaching a limit

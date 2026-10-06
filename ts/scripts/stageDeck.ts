@@ -6,7 +6,7 @@
 // against the collision lines without the model compiler.
 import { type DeckPalette, NEUTRAL_DECK_PALETTE } from "../src/game/assets/stagePalette";
 import { SurfaceContact } from "../src/game/sim/codes";
-import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt } from "../src/game/sim/stage";
+import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt, solidSurfaceCount } from "../src/game/sim/stage";
 
 type Vector3 = readonly [x: number, y: number, z: number];
 export type OutlinePoint = readonly [x: number, z: number];
@@ -124,6 +124,9 @@ function frontAndBack(outline: readonly OutlineLine[]): DeckFace[] {
   }
   return faces;
 }
+
+/** The stage whose outline draws `stage`'s main deck: its own, or stage 0's when its main deck has no body. */
+export const mainDeckOutlineStage = (stage: number): number => (solidSurfaceCount(stage) >= MAIN_DECK_BODY_SURFACES ? stage : 0);
 
 /** The main deck: its outline's front and back faces, and each outline line drawn through the depth facing out along its normal. */
 export function mainDeckFaces(stage: number): DeckFace[] {

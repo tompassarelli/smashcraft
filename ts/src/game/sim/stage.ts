@@ -321,47 +321,97 @@ const REFERENCE_RIGHT_SIDE: readonly ReferencePoint[] = [
   { x: 53.77360153198242, z: -54.258399963378906 },
   { x: 47.45600128173828, z: -55.38819885253906 },
 ];
-/** Reference lines from this point down are its underside; those above it are walls. */
+/**
+ * Each ranked stage's main-deck profile: its right side from the ledge down,
+ * as offsets from the ledge in Melee units; the left side mirrors it. Seven
+ * points each, so every main deck has the same line count: five walls, then
+ * an underside line to the level underside. Every line descends, so each
+ * height crosses the body once. Archetypes: smashcraft:docs/design/stages.md,
+ * "Main-deck topology".
+ */
+const DECK_PROFILES: Readonly<Record<number, readonly ReferencePoint[]>> = {
+  // Battlefield: a thin lip over a long taper to a narrow keel.
+  [FROZEN_THRONE_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -5.0 }, { x: -3.0, z: -9.0 }, { x: -12.0, z: -16.0 }, { x: -28.0, z: -26.0 }, { x: -46.0, z: -36.0 }, { x: -60.0, z: -40.0 }],
+  // Dream Land: a deep, rounded bowl, like a tree's root mass.
+  [WIND_TEST_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -8.0 }, { x: -2.0, z: -18.0 }, { x: -6.0, z: -30.0 }, { x: -14.0, z: -42.0 }, { x: -26.0, z: -52.0 }, { x: -40.0, z: -58.0 }],
+  // Pokemon Stadium: a flat lip, a step in, then a lower shell.
+  [CARRIED_TEST_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -7.0 }, { x: -8.0, z: -10.0 }, { x: -8.0, z: -24.0 }, { x: -12.0, z: -34.0 }, { x: -20.0, z: -40.0 }, { x: -30.0, z: -42.0 }],
+  // A floating spire: a thin rim undercut to a deep point.
+  [DRIFTING_DECK_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -4.0 }, { x: -10.0, z: -8.0 }, { x: -30.0, z: -14.0 }, { x: -48.0, z: -30.0 }, { x: -60.0, z: -50.0 }, { x: -66.0, z: -62.0 }],
+  // An inverted ziggurat: three steps in.
+  [PATTERNED_DECKS_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -9.0 }, { x: -7.0, z: -12.0 }, { x: -7.0, z: -22.0 }, { x: -15.0, z: -26.0 }, { x: -15.0, z: -38.0 }, { x: -26.0, z: -42.0 }],
+  // A heavy slab: tall straight walls and a broad, blunt base.
+  [HELLFIRE_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -14.0 }, { x: -2.0, z: -16.0 }, { x: -2.0, z: -40.0 }, { x: -6.0, z: -46.0 }, { x: -14.0, z: -50.0 }, { x: -22.0, z: -52.0 }],
+  // A temple: an even trapezoid taper.
+  [TIMED_TEST_STAGE]: [{ x: 0.0, z: 0.0 }, { x: 0.0, z: -6.0 }, { x: -4.0, z: -10.0 }, { x: -12.0, z: -20.0 }, { x: -22.0, z: -32.0 }, { x: -30.0, z: -44.0 }, { x: -36.0, z: -50.0 }],
+};
+
+/** Profile lines from this point down are its underside; those above it are walls. */
 const REFERENCE_UNDERSIDE_START = 5;
 
-/** A reference point on the main deck's `side`, as far from this deck's ledge as from Melee's. */
-function referenceX(side: number, point: ReferencePoint): number {
+/** The main deck's profile on `stage`: its own, or Final Destination's. */
+function deckProfile(stage: number): readonly ReferencePoint[] {
+  return DECK_PROFILES[stage] ?? REFERENCE_RIGHT_SIDE;
+}
+
+/** A profile point on the main deck's `side`, as far from this deck's ledge as from the profile's. */
+function referenceX(profile: readonly ReferencePoint[], side: number, point: ReferencePoint): number {
   const ledge = side < 0 ? MAIN_DECK_LEFT : MAIN_DECK_RIGHT;
-  return f32(ledge + f32(side * melee(f32(point.x - at(REFERENCE_RIGHT_SIDE, 0).x))));
+  return f32(ledge + f32(side * melee(f32(point.x - at(profile, 0).x))));
 }
 
 function referenceZ(point: ReferencePoint): number {
   return f32(MAIN_DECK_Z + melee(point.z));
 }
 
-function referenceLine(side: number, from: number, to: number): SolidSurface {
-  const start = at(REFERENCE_RIGHT_SIDE, from);
-  const end = at(REFERENCE_RIGHT_SIDE, to);
+function referenceLine(profile: readonly ReferencePoint[], side: number, from: number, to: number): SolidSurface {
+  const start = at(profile, from);
+  const end = at(profile, to);
   const kind = min(from, to) < REFERENCE_UNDERSIDE_START ? SurfaceContact.wall : SurfaceContact.ceiling;
-  return solidSurface(kind, referenceX(side, start), referenceZ(start), referenceX(side, end), referenceZ(end));
+  return solidSurface(kind, referenceX(profile, side, start), referenceZ(start), referenceX(profile, side, end), referenceZ(end));
 }
 
 /**
- * Every stage's main deck has the reference stage's side walls and underside,
- * in that order: right side, underside, left side. Each side keeps its lines'
- * offsets from its ledge; the level underside spans the wider deck between them.
+ * A main deck's side walls and underside, in that order: right side,
+ * underside, left side. Each side keeps its lines' offsets from its ledge;
+ * the level underside spans the deck between them.
  */
-function mainDeckBody(): SolidSurface[] {
-  const last = REFERENCE_RIGHT_SIDE.length - 1;
-  const bottom = at(REFERENCE_RIGHT_SIDE, last);
+function mainDeckBody(profile: readonly ReferencePoint[]): SolidSurface[] {
+  const last = profile.length - 1;
+  const bottom = at(profile, last);
   const surfaces: SolidSurface[] = [];
-  for (let i = 0; i < last; i++) surfaces.push(referenceLine(1, i, i + 1));
-  surfaces.push(solidSurface(SurfaceContact.ceiling, referenceX(1, bottom), referenceZ(bottom), referenceX(-1, bottom), referenceZ(bottom)));
-  for (let i = last; i > 0; i--) surfaces.push(referenceLine(-1, i, i - 1));
+  for (let i = 0; i < last; i++) surfaces.push(referenceLine(profile, 1, i, i + 1));
+  surfaces.push(solidSurface(SurfaceContact.ceiling, referenceX(profile, 1, bottom), referenceZ(bottom), referenceX(profile, -1, bottom), referenceZ(bottom)));
+  for (let i = last; i > 0; i--) surfaces.push(referenceLine(profile, -1, i, i - 1));
   return surfaces;
 }
 
-const MAIN_DECK_BODY = mainDeckBody();
+const MAIN_DECK_BODY = mainDeckBody(REFERENCE_RIGHT_SIDE);
+const PROFILED_BODIES: Readonly<Record<number, readonly SolidSurface[]>> = {
+  [FROZEN_THRONE_STAGE]: mainDeckBody(deckProfile(FROZEN_THRONE_STAGE)),
+  [WIND_TEST_STAGE]: mainDeckBody(deckProfile(WIND_TEST_STAGE)),
+  [CARRIED_TEST_STAGE]: mainDeckBody(deckProfile(CARRIED_TEST_STAGE)),
+  [DRIFTING_DECK_STAGE]: mainDeckBody(deckProfile(DRIFTING_DECK_STAGE)),
+  [PATTERNED_DECKS_STAGE]: mainDeckBody(deckProfile(PATTERNED_DECKS_STAGE)),
+  [HELLFIRE_STAGE]: mainDeckBody(deckProfile(HELLFIRE_STAGE)),
+  [TIMED_TEST_STAGE]: mainDeckBody(deckProfile(TIMED_TEST_STAGE)),
+};
 
-/** The height of the main deck's level underside, the lowest of its lines. */
+/** The main deck's walls and underside on `stage`. */
+function mainDeckBodyOf(stage: number): readonly SolidSurface[] {
+  return PROFILED_BODIES[stage] ?? MAIN_DECK_BODY;
+}
+
+/** The height of Final Destination's level underside, which stages 0, 1 and 5 keep. */
 export const MAIN_DECK_UNDERSIDE_Z = referenceZ(at(REFERENCE_RIGHT_SIDE, REFERENCE_RIGHT_SIDE.length - 1));
 
-/** The main deck's walls and underside lead every stage's solid surfaces. */
+/** The height of the main deck's level underside on `stage`, the lowest of its lines. */
+export function mainDeckUndersideZ(stage: number): number {
+  const profile = deckProfile(stage);
+  return referenceZ(at(profile, profile.length - 1));
+}
+
+/** The main deck's walls and underside lead every stage's solid surfaces; every profile has as many. */
 export const MAIN_DECK_BODY_SURFACES = MAIN_DECK_BODY.length;
 
 // The test stage's solid raised decks follow tools/stage/package.ts: two side
@@ -393,7 +443,7 @@ function solidSurfaces(stage: number): readonly SolidSurface[] {
   // Kongo Jungle 64 has a floor-only main deck (GrOk.dat coll_data).
   if (stage === CANNON_TEST_STAGE) return [];
   if (stage === SOLID_DECK_TEST_STAGE) return SOLID_DECK_TEST_SURFACES;
-  return surfaceCount(stage) > 0 ? MAIN_DECK_BODY : [];
+  return surfaceCount(stage) > 0 ? mainDeckBodyOf(stage) : [];
 }
 
 export function solidSurfaceCount(stage: number): number {

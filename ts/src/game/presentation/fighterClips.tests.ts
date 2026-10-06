@@ -28,6 +28,8 @@ test("the original fighters' tables play their packaged clips", () => {
   assertEquals(ownAttackClip(Character.demonHunter, AttackStyle.demonHunterDashAttack)?.index, dh.DEMON_HUNTER_DASH_ATTACK_INDEX);
   assertEquals(ownAttackClip(Character.archer, AttackStyle.forwardSmash), undefined);
   assertEquals(ownAttackClip(Character.rifleman, AttackStyle.dashAttack), undefined);
+  // Rifleman summons the bear with his model's stock cast (#111).
+  assertEquals(specialClip(Character.rifleman, SpecialAction.riflemanBear, true, false).index, assets.RIFLEMAN_SPELL_INDEX);
   // Originals keep their named stand and walk clips.
   assertEquals(characterClips(Character.archer).idle, undefined);
   assertEquals(grabActionPoses(GrabAction.escape), undefined);

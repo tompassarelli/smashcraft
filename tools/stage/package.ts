@@ -2,7 +2,7 @@
 // ts/scripts/stageDeck.ts draws the main deck from them.
 import { parseMDL, generateMDX, parseMDX } from "../animations/node_modules/war3-model";
 import { join } from "node:path";
-import { STAGE_PALETTE_TEXTURE, mainDeckFaces, mainDeckMdl, mainDeckModelFile, paletteTexture } from "../../ts/scripts/stageDeck";
+import { STAGE_PALETTE_TEXTURE, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../../ts/scripts/stageDeck";
 import { STAGE_DECK_PALETTES } from "../../ts/src/game/assets/stagePalette";
 
 const output = join(import.meta.dir, "../../build/stage-assets");
@@ -60,12 +60,13 @@ const walkingFace = Array.from(decoded.Geosets[0].Vertices.slice(0, 12));
 if (JSON.stringify(walkingFace) !== JSON.stringify([-50,-60,0,50,-60,0,50,60,0,-50,60,0])) {
     throw new Error("deck walking face must span its complete collision plane");
 }
-// The main deck, in arena units at scale 1; its compiled vertices must be the outline's.
-const mainFaces = mainDeckFaces(0);
-const authored = mainFaces.flatMap(face => face.corners.flatMap(corner => corner.map(Math.fround)));
 const imports: string[] = [];
 const themed: string[] = [];
 for (const { stage, theme, palette } of STAGE_DECK_PALETTES) {
+    // Each stage's main deck, in arena units at scale 1, from its own outline; its compiled vertices must be the outline's.
+    // A stage whose main deck has no body (Blackrock's floor-only deck) draws the slab and keeps the reference outline.
+    const mainFaces = mainDeckFaces(mainDeckOutlineStage(stage));
+    const authored = mainFaces.flatMap(face => face.corners.flatMap(corner => corner.map(Math.fround)));
     const { bytes: texture, name: textureName } = paletteTexture(palette);
     const slab = slabMdl(textureName);
     const slabBytes = new Uint8Array(generateMDX(parseMDL(slab)));
@@ -97,7 +98,7 @@ export const STAGE_DECK_MODEL = ${JSON.stringify(`war3mapImported\\${imports[0]}
 /** The neutral palette's main deck. */
 export const STAGE_MAIN_DECK_MODEL = ${JSON.stringify(`war3mapImported\\${imports[1]}`)};
 `);
-console.log(`Stage decks: ${STAGE_DECK_PALETTES.length} palettes; slab bounds x=[-50,50], z=[-54,0]; main deck ${mainFaces.length} faces from the collision outline`);
+console.log(`Stage decks: ${STAGE_DECK_PALETTES.length} palettes; slab bounds x=[-50,50], z=[-54,0]; main decks from each stage's collision outline`);
 
 // Authored snow uses the game's texture; no game model or texture is imported.
 const snowExtent = 'MinimumExtent { -1600, -200, -1500 }, MaximumExtent { 1600, 200, 2800 }, BoundsRadius 3500,';

@@ -16,7 +16,6 @@ export const SHIELD_PERFECT_ACTIVE_FRAMES = 4;
 export const SHIELD_PERFECT_POST_CONTACT_FRAMES = 4;
 /** A red parry's window: the re-press in shieldstun must come on the next hit's contact frame or the one before. */
 export const SHIELD_RED_PARRY_FRAMES = 2;
-export const SHIELD_REFLECTOR_RADIUS_FACTOR = 0.75;
 export const SHIELD_PROJECTILE_DAMAGE_MULTIPLIER = 0.5;
 export const SHIELD_PROJECTILE_SPEED_MULTIPLIER = 0.699999988079071;
 export const SHIELD_BREAK_RESTORED_ENERGY = 30.0;

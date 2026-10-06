@@ -51,7 +51,8 @@ backward, up, or down; after the pummel, throw or the opponent goes free. Mash
 action buttons and alternate movement directions to escape a grab; holding one
 button does not count as mashing. The bar above a held fighter drains as the
 hold runs out and faster with mashing; the mark on it shows when a pummel would
-land.
+land. Mash and wiggle the same way to break out of Rifleman's frost trap
+sooner; its bar shows how long the ice has left.
 
 Attacks buffer for six frames, including through jump squat. Hold P to walk;
 P with E crouches on a platform instead of climbing down. Jumping into a

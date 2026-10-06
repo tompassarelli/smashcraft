@@ -58,6 +58,8 @@ interface Run extends PadMatch {
 /** Both airborne beside the right side, below the ledge's catch boxes; the victim faces the Archer outside it. */
 function startRun(victimCharacter: Character, percent: number): Run {
   const match = testMatch(3, Character.archer);
+  // Final Destination's reference walls, which these contracts measure against.
+  match.game.stageChoice = 0;
   const attacker = createFighter(Character.archer, 560.0, -1);
   const victim = createFighter(victimCharacter, 530.0, 1);
   victim.status.damage = percent;
@@ -174,6 +176,7 @@ test("up on the stick at a wall tech launches each fighter with its reference's 
 /** Below the right ledge, outside the side and facing away from it, drifting toward it at full air speed; the Archer stands on the stage. */
 function startDrift(character: Character): Run {
   const match = testMatch(3, Character.archer);
+  match.game.stageChoice = 0;
   const victim = createFighter(character, 520.0, 1);
   victim.motion.grounded = false;
   victim.motion.surface = undefined;
