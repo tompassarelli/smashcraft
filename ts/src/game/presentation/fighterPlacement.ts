@@ -26,7 +26,7 @@ const BODY_ENVELOPES: readonly BodyEnvelope[] = [
 
 export const fighterBodyEnvelope = (character: Character): Readonly<BodyEnvelope> => at(BODY_ENVELOPES, character);
 
-export interface FighterPlacement {
+interface FighterPlacement {
   x: number;
   z: number;
 }
