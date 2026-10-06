@@ -10,6 +10,7 @@ import type { Fighter } from "./fighter";
 import { attackDurationFramesForGrounding } from "./moves";
 import { HitElement, type HitEffect, type HitRegion, NO_HIT_REGION } from "./hitRegions";
 import { heroSpecialMove } from "./heroSpecials";
+import { advanceHeroCommandGrab } from "./heroCommandGrab";
 import { applyAttackHit } from "./hits";
 import { meleeHitIntersectsShield } from "./attacks";
 import { observeActionDecision } from "./observations";
@@ -19,7 +20,7 @@ import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { surfaceZ } from "./stage";
 import { RIFLEMAN_BEAR_LIFETIME, advanceBear, advanceHippogryph, recordSpecialHit, specialAlreadyHit, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
-import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
+import { advanceHeroSpecial, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
 
 export const DEMONHUNTER_MANA_BURN_STARTUP = 8;
 const DEMONHUNTER_MANA_BURN_RECOVERY = 25;
@@ -217,6 +218,7 @@ const heroRefusal = { manaShort: false };
 function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>): boolean {
   const specials = owner.tuning.specials;
   const { special } = owner;
+  if (isHeroSpecialAction(special.action)) return followUpHeroSpecial(owner, input);
   if (specials === undefined || special.lockFrames > 0 || special.action !== SpecialAction.none || !canAttack(owner)) return false;
   const chosen = chooseHeroSpecial(owner, specials, input, heroRefusal);
   if (chosen === undefined) {
@@ -363,10 +365,12 @@ const specialScratch = {
 export function advanceSpecials(world: Roster, stage: number, matchFrame: number, inputs?: readonly Readonly<Controls>[]): void {
   const ownsBatch = openDamageContacts();
   const { contacts, facings } = specialScratch;
+  resolveHeroGuards(world);
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
     advanceSpecialAction(fighterAt(world, slot), stage, inputs?.[slot]);
     stopHeroMotionAtBodies(world, slot);
+    advanceHeroCommandGrab(world, slot);
   }
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;

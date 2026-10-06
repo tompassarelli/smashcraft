@@ -174,7 +174,8 @@ Standing grab 7/2/22, reach 0.55H, one-handed collar catch. Pummel: pommel strik
 - Down air's tip spikes airborne targets only; it sends grounded targets at 55 degrees, as the shared notation directs.
 - Dash grab uses the shared rule (startup +3, recovery +8) on the standing grab's volumes.
 - Wind Cutter, Mirror Feint and Wind Walk Strike keep their grounded timing in the air; Wind Cutter and Mirror Feint end on landing with 20 frames of lag, and the airborne Wind Walk Strike is once per airtime and ends helpless.
-- Rising Blade's free form follows the full form's path at 1.4H ascent and 0.35H drift (the row's distance ratio) with no hit.
+- Rising Blade climbs evenly over f7-24 and stops at its peak on f25 (2.0H up, 0.5H forward), so the helpless fall starts from rest; its free form climbs 1.4H and drifts 0.35H (the row's distance ratio) with no hit.
+- Wind Walk Strike's dash stops before a raised shield or a body (`stopsAtBody`) and halts on the slash frame. Mirror Feint's back step stops at 0.5H; its slash replaces the rest of the feint on a second special press in f8-19 (`followUp`) and spends nothing more.
 - Presentation uses the stock Blademaster model. It has fourteen sequences and no hit, jump, roll or ledge animations: thrusts play Attack 2, cuts Attack, rising strikes Stand - 4, and spinning moves, rolls and the double jump the Bladestorm spin; hit reactions play the start of Death. Attack Slam is unused because its leap moves the body about 130 units away from the hurtbox.
 - Bladestorm is not implemented; ultimates stay off in competitive play.
 
@@ -223,6 +224,17 @@ Standing grab 8/2/25, reach 0.50H. Pummel: helmet headbutt.
 **Ultimate — Avatar:** f30 vulnerable transformation, R12, then 480 frames at weight multiplier 1.15 and damage multiplier 1.10. No permanent armor, immunity, heal, size change, or knockback cleanse. Existing knockback at activation is not retroactively recomputed. Visual stone overlay must preserve silhouette.
 
 **Required counterplay test:** blocked Storm Bolt must not guarantee a grab from its full travel distance; Thunder Clap cannot cover both a retreat and a jump without a read.
+
+**Implemented kit** (smashcraft:ts/src/game/sim/heroes/mountainKingMoves.ts, mountainKingSpecials.ts, presentation/heroes/mountainKingClips.ts). Every row above is implemented; nothing is omitted. Deliberate additions and choices where the table is silent:
+
+- Forward tilt also has up- and down-angled paths with the same timing and damage.
+- Hammer Drop's head and Double Boot launch grounded targets at 55 degrees (the shared grounded spike rule).
+- Air Thunder Clap reuses the ground form's 10 damage and 70-degree LAUNCH on its 0.55H under-hammer path.
+- Thunder Clap is a ground-level ring 30 units tall, so a jump clears it while it still covers both sides.
+- Thunder Leap puts half its exact rise into the f9-14 hit window and eases over f15-28 so it peaks at the listed height; the free form peaks at 1.3H with 0.5H drift.
+- Storm Rush stops at a raised shield or a body (shared `stopsAtBody`) and stops dead after its 1.2H dash; its lowered shoulder carries a hurt volume while it strikes.
+- Mountain King's hurt volumes add the arm, leg or boots behind each normal from late startup through early recovery; hammer and axe stay outside them.
+- The stock model has thirteen usable sequences and no jump, hit, dodge, ledge or grab clips: hits play the opening of Death, jumps and techs the opening of Stand - 3, ledge and grab holds a held Stand Ready.
 
 ## Warden
 
@@ -436,6 +448,36 @@ Standing grab 8/2/25, reach 0.55H. Pummel: hammer-hilt tap.
 
 **Required counterplay test:** Uther can be grabbed or baited during Divine Guard and punished afterward. Optimal healing cannot outpace plausible damage indefinitely because the stock cap is absolute.
 
+### Uther as built
+
+Source: smashcraft:ts/src/game/sim/heroes/utherMoves.ts (normals, grabs,
+throws, body), utherSpecials.ts and utherClips.ts. Every row above is
+implemented with its listed timing, damage, angle and reach; launch classes
+use provisional coefficients. Deliberate differences:
+
+- Unarmed strikes are limbs, not disjoints: the jab's gauntlet and the grab's
+  hand reach 0.55H and Rearward Boot reaches 0.8H behind, each with a matching
+  hurt part from late startup through early recovery. Shoulder of Justice
+  strikes with the torso and reaches 0.8H by travelling during startup.
+- Grab contact sits at hand height (about 24-56 above the feet), not at the
+  shins.
+- Crusader Rush in the air holds its height during the rush (no rise, no
+  fall) and lands with 20 frames of lag; Holy Bolt cast in the air does too.
+- Ascension travels on f8-28 and stops on f29, so its helpless fall starts
+  at the 1.9H (free form 1.3H) apex; both forms drift 0.45H.
+- Divine Guard's success is the special's `guard` window (docs/heroes.md): an
+  opponent's damaging strike or projectile overlapping Uther on f6-9 restores
+  3 percent once per guard, at most 8 a stock. Its intangibility still lets
+  the strike pass, so a strike active past f9 can hit him afterwards.
+
+Presentation uses the stock classic Paladin model, which has thirteen
+sequences and no punch, kick, jump, roll, ledge or grab clip. Hammer Sweep's
+path follows "Attack - 1" and Final Judgment's follows "Attack - 2"; the jab,
+grab, pummel and side special reuse "Attack - 1", so the drawn hammer swings
+while the gauntlet strikes. Down smash's back half and Rearward Boot have no
+matching clip ("Attack - 2" and "Stand Hit" play). utherClips.ts lists the
+sequence table and every pose's clip.
+
 ## Dreadlord
 
 **Identity:** a winged close-range fighter with strong grabs and deceptive aerial approaches. Bat imagery supports movement, but he cannot fly indefinitely. Sleep is a short skill shot, not unavoidable RTS crowd control.
@@ -481,6 +523,14 @@ Standing grab 7/3/26, reach 0.65H. Pummel: claw squeeze. No automatic lifesteal.
 **Ultimate — Infernal:** f30 cast places a clearly visible marker 1.2H ahead. An infernal lands at f60 for 14 damage, LAUNCH at 75 degrees, radius 0.8H, then stays as a stationary hazard for 180 frames. It performs exactly two telegraphed swipes at spawn+60 and spawn+120, each 10 damage, EDGE at 40 degrees, reach 0.8H, with 20 durability. No autonomous chasing, invulnerable summon, or instant full-stage hit. Dreadlord’s casting action ends f75.
 
 **Required counterplay test:** Sleep Orb from neutral must be jumpable or shieldable and cannot reset its own sleep chain. Night Pounce should lose to a preemptive attack and to a correctly spaced retreat.
+
+**As implemented (smashcraft:ts/src/game/sim/heroes/dreadlordMoves.ts, dreadlordSpecials.ts):** every row above is present; the departures are these.
+
+- Nothing Dreadlord swings is disjointed: each claw, wing, horn and elbow path is also his body, fully out from a frame before its first active frame to two after its last, drawn out and folded back through held 3-frame poses. His standing body adds folded wings behind the shoulders to the roster capsule.
+- Night Pounce's grounded approach stops at a body or shield and holds his height while it runs. The air version has no approach travel; it is the claw strike alone, once per airtime, ending helpless.
+- Bat Ascension steers with the live stick (`driftSpeed`): a full side held through the rise gives 0.8H (free form 0.3H), a neutral stick rises straight. His spread wings are part of his body throughout; it has no intangibility.
+- Sleep Orb's 2-damage hit stops his target's momentum like any hit; the sleep that follows leaves velocity and gravity alone and discards the sleeper's inputs.
+- Presentation uses the classic HeroDreadLord model's eleven usable sequences: claws on Attack - 1/2, wings and horns on Spell and Stand - 3, the low sweep and down air on Spell Slam, jumps and Bat Ascension on the Stand - 2 wing spread. Dissipate draws no body and is not used.
 
 ## Shadow Hunter
 

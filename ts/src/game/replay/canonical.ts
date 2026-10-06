@@ -12,6 +12,7 @@ import type { FighterMoves } from "../sim/heroMoves";
 import type { AuthoredSpecial, FighterSpecials, SpecialProjectile } from "../sim/heroSpecials";
 import type { HitEffect } from "../sim/hitRegions";
 import { type HurtPart, HurtState } from "../sim/hurtboxes";
+import { HERO_STATUS_GROUPS } from "../sim/codes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import type { ReplayState } from "./snapshot";
@@ -192,6 +193,12 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
   int("reflectable", spec.reflectable ? 1 : 0);
   int("limit", spec.limit);
   int("cancelOnInterrupt", spec.cancelOnInterrupt === true ? 1 : 0);
+  if (spec.status !== undefined) {
+    int("status.kind", spec.status.kind);
+    int("status.frames", spec.status.frames);
+    int("status.group", spec.status.group);
+    int("status.immunityFrames", spec.status.immunityFrames);
+  }
   real("backOffsetX", spec.backOffsetX ?? -1.0);
   int("needsLineOfSight", spec.needsLineOfSight === true ? 1 : 0);
   return result;
@@ -239,6 +246,12 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   int("armor.last", move.armor?.last ?? -1);
   real("armor.maxDamage", move.armor?.maxDamage ?? 0.0);
   int("armor.shell", move.armor?.shell === true ? 1 : 0);
+  if (move.guard !== undefined) {
+    int("guard.first", move.guard.first);
+    int("guard.last", move.guard.last);
+    real("guard.heal", move.guard.heal);
+    real("guard.healCapPerStock", move.guard.healCapPerStock);
+  }
   const motion = move.motion ?? [];
   for (let index = 0; index < motion.length; index++) {
     const segment = at(motion, index);
@@ -247,7 +260,22 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real(`motion[${index}].velocityX`, segment.velocityX);
     real(`motion[${index}].velocityZ`, segment.velocityZ);
     real(`motion[${index}].aimedSpeed`, segment.aimedSpeed ?? 0.0);
+    if (segment.stopsAtBody === true) int(`motion[${index}].stopsAtBody`, 1);
     real(`motion[${index}].driftSpeed`, segment.driftSpeed ?? 0.0);
+    if (segment.stopsAtBody === true) int(`motion[${index}].stopsAtBody`, 1);
+  }
+  const grab = move.commandGrab;
+  if (grab !== undefined) {
+    int("commandGrab.first", grab.first);
+    int("commandGrab.last", grab.last);
+    real("commandGrab.strike.x1", grab.strike.x1);
+    real("commandGrab.strike.z1", grab.strike.z1);
+    real("commandGrab.strike.x2", grab.strike.x2);
+    real("commandGrab.strike.z2", grab.strike.z2);
+    real("commandGrab.strike.radius", grab.strike.radius);
+    int("commandGrab.hold", grab.holdFrames);
+    int("commandGrab.recovery", grab.recovery);
+    result += hitEffectCanonical(grab.effect, `${name}.commandGrab.effect`);
   }
   const poses = move.hurt ?? [];
   for (let index = 0; index < poses.length; index++) {
@@ -287,6 +315,11 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     }
     result += hitEffectCanonical(region.hit.effect, `${name}.${part}.hit`);
     if (region.hit.groundedEffect !== undefined) result += hitEffectCanonical(region.hit.groundedEffect, `${name}.${part}.groundedHit`);
+  }
+  if (move.followUp !== undefined) {
+    int("followUp.first", move.followUp.window.first);
+    int("followUp.last", move.followUp.window.last);
+    result += specialMoveCanonical(move.followUp.special, `${name}.followUp`);
   }
   return result;
 }
@@ -639,8 +672,19 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     int("specialAimX", sp.aimX);
     int("specialAimZ", sp.aimZ);
     int("specialAirtimeUses", sp.airtimeUses);
+    if (sp.grabFrame !== 0) int("specialGrabFrame", sp.grabFrame);
     int("armorFrames", st.armorFrames);
     real("armorMaxDamage", st.armorMaxDamage);
+    int("specialGuarded", sp.guarded ? 1 : 0);
+    real("guardHealed", st.guardHealed);
+  }
+  // Any fighter can carry a hero status; it is written only while one or its immunity is live.
+  if (st.condition !== 0 || st.conditionImmunity.some(frames => frames !== 0)) {
+    int("condition", st.condition);
+    int("conditionFrames", st.conditionFrames);
+    int("conditionGroup", st.conditionGroup);
+    int("conditionImmunityFrames", st.conditionImmunityFrames);
+    for (let i = 0; i < HERO_STATUS_GROUPS; i++) int(`conditionImmunity[${i}]`, st.conditionImmunity[i] ?? 0);
   }
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) {
     const spec = at(fighter.projectiles, i).spec;

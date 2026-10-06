@@ -18,21 +18,26 @@ import {
   projectKo,
 } from "../presentation/impactState";
 import { f32 } from "wisp/src/sim/f32";
+import { at } from "wisp/src/runtime/lookup";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { impactAnimation, impactModel, presentImpactSounds } from "../presentation/hitPresentation";
 import type { ImpactEvents } from "../presentation/impactEvents";
 import { Character } from "../sim/codes";
+import { SELECTABLE_CHARACTERS, heroDefinition } from "../sim/heroes/registry";
 import { type ParkedFlags, type WorldOrigin, hideEffect, parkOnce } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
 
-/** A KO body per star-KO impact and character, so any fighter can fly off as itself. */
-const KO_BODY_COUNT = IMPACTS_PER_KIND * 2 * 3;
+/** A KO body per star-KO impact and selectable fighter, so any fighter can fly off as itself. */
+const KO_FIGHTERS = SELECTABLE_CHARACTERS.length;
+const KO_BODY_COUNT = IMPACTS_PER_KIND * 2 * KO_FIGHTERS;
 const STAR_KO_FIRST = IMPACT_STAR_KO * IMPACTS_PER_KIND;
 /** Star-KO sparkles play far behind the stage, against the sky. */
 const STAR_KO_DEPTH = 1400.0;
 
 
 function fighterModel(character: number): string {
+  const hero = heroDefinition(character);
+  if (hero !== undefined) return hero.presentation.model;
   return character === Character.archer ? ARCHER_MODEL_FILE : character === Character.rifleman ? RIFLEMAN_MODEL_FILE : DEMON_HUNTER_MODEL_FILE;
 }
 
@@ -62,7 +67,7 @@ export class CombatEffects {
       this.impacts.push(model);
     }
     for (let i = 0; i < KO_BODY_COUNT; i++) {
-      const model = AddSpecialEffect(fighterModel(floorMod(i, 3)), origin.x, origin.y);
+      const model = AddSpecialEffect(fighterModel(at(SELECTABLE_CHARACTERS, floorMod(i, KO_FIGHTERS))), origin.x, origin.y);
       BlzSetSpecialEffectAnimation(model, "stand hit");
       BlzSetSpecialEffectAnimationBlendTime(model, 0.0);
       BlzSetSpecialEffectTimeScale(model, 0.0);
@@ -131,9 +136,9 @@ export class CombatEffects {
     for (let i = 0; i < this.koBodies.length; i++) {
       const model = this.koBodies[i];
       if (model === undefined) continue;
-      const impact = STAR_KO_FIRST + floorDiv(i, 3);
+      const impact = STAR_KO_FIRST + floorDiv(i, KO_FIGHTERS);
       const pose = playing && confirmed.ages[impact] !== undefined ? projectKo(confirmed, impact) : undefined;
-      if (pose === undefined || !pose.visible || pose.character !== floorMod(i, 3)) {
+      if (pose === undefined || !pose.visible || pose.character !== at(SELECTABLE_CHARACTERS, floorMod(i, KO_FIGHTERS))) {
         parkOnce(model, this, parked, IMPACT_COUNT + i);
         continue;
       }

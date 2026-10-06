@@ -226,6 +226,10 @@ interface Special {
   aimZ: number;
   /** Hero specials used this airtime, one bit per SpecialSlot. */
   airtimeUses: number;
+  /** The special frame a hero command grab caught on; 0 before a catch. */
+  grabFrame: number;
+  /** This action's guard has already succeeded. */
+  guarded: boolean;
 }
 
 export interface Projectile {
@@ -414,6 +418,15 @@ interface Status {
   /** Frames of hero armor left, and the largest hit it absorbs. */
   armorFrames: number;
   armorMaxDamage: number;
+  /** A hero status (HeroStatusKind), its frames left, its immunity group and the immunity it grants on ending. */
+  condition: number;
+  conditionFrames: number;
+  conditionGroup: number;
+  conditionImmunityFrames: number;
+  /** Frames of immunity left per HeroStatusGroup. */
+  readonly conditionImmunity: number[];
+  /** Damage percent hero guards restored this stock. */
+  guardHealed: number;
 }
 
 /** The roster resource; fighters without hero specials keep zero. */
@@ -607,6 +620,8 @@ export function createFighter(character: Character, startX: number, facing: numb
       aimX: 0,
       aimZ: 0,
       airtimeUses: 0,
+      grabFrame: 0,
+      guarded: false,
     },
     projectiles: repeat(PROJECTILE_CAPACITY, () => emptyProjectile()),
     bear: { life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, swipeCooldown: 0, hitSerial: 0, surface: undefined },
@@ -642,7 +657,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       stand: false, shield: false, wrapLeft: 0, wrapLeftAge: 0, wrapRight: 0, wrapRightAge: 0, dodgeQueued: false, dodgeX: 0, dodgeZ: 0, specialQueued: false, specialX: 0, specialZ: 0,
     },
     cannon: { held: undefined, firing: undefined, cooldown: 0 },
-    status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0 },
+    status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0], guardHealed: 0.0 },
     mana: { points: tuning.specials?.mana.max ?? 0, sinceSpend: tuning.specials?.mana.regenDelayFrames ?? 0, progress: 0 },
   };
 }

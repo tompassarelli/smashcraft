@@ -7,16 +7,17 @@ import { stateChecksum } from "../replay/canonical";
 import { firstPoseDifference, firstStateDifference } from "../replay/difference";
 import { ReplayHistory } from "../replay/history";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "../replay/snapshot";
-import { AttackStyle, Character, GrabAction, PlatformMove } from "../sim/codes";
-import { type Fighter, createFighter } from "../sim/fighter";
+import { AttackStyle, Character, GrabAction, PlatformMove, SpecialAction } from "../sim/codes";
 import { HERO_ROSTER } from "../sim/heroes/registry";
+import { FOLLOW_UP_FORM, SpecialForm } from "../sim/heroSpecials";
+import { type Fighter, createFighter } from "../sim/fighter";
 import { surfaceLeft, surfaceRight, surfaceZ } from "../sim/stage";
 import { advanceFighter } from "../sim/step";
 import { bodyTop } from "../sim/surfaces";
 import { melee } from "../sim/tuning";
 import { f32 } from "wisp/src/sim/f32";
 import * as assets from "./fighterAssetInfo";
-import { platformClip } from "./fighterClips";
+import { platformClip, specialClip } from "./fighterClips";
 import { attackDurationFramesForGrounding } from "../sim/moves";
 import { type Controls, fighterAt, neutralControls } from "../sim/roster";
 import { soloWorld, testWorld } from "../sim/testWorld";
@@ -174,7 +175,6 @@ test("an attack restart and a smash release keep their authored clips", () => {
   assertEquals(pose.clipTime, 0.0);
 });
 
-
 test("platform ascent, descent and wraps play each fighter's platform clip over the move", () => {
   const fighters = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
   const deckZ = surfaceZ(1, 1, 0);
@@ -217,4 +217,28 @@ test("platform ascent, descent and wraps play each fighter's platform clip over 
   assertEquals(platformClip(Character.archer, PlatformMove.ascent).index, assets.ARCHER_LEDGE_CLIMB_INDEX);
   assertEquals(platformClip(Character.rifleman, PlatformMove.descent).index, assets.RIFLEMAN_LEDGE_HANG_INDEX);
   assertEquals(platformClip(Character.demonHunter, PlatformMove.wrapOver).index, dh.DEMON_HUNTER_LEDGE_ROLL_INDEX);
+});
+
+test("a hero special's follow-up plays its own follow-up clip, or the special's, from the start", () => {
+  for (const hero of HERO_ROSTER) {
+    const f = createFighter(hero.character, 0.0, 1);
+    const world = soloWorld(f);
+    const input = neutralControls();
+    const pose = createFighterPose();
+    f.special.action = SpecialAction.heroDown;
+    f.special.form = SpecialForm.ground;
+    f.special.frame = 8;
+    f.special.duration = 24;
+    advanceFighterPose(pose, f, world, input, false, false, false, false);
+    const base = specialClip(hero.character, SpecialAction.heroDown, true, false);
+    assertEquals(pose.clipIndex, base.index);
+    const selected = pose.selectionSerial;
+    f.special.form = SpecialForm.ground + FOLLOW_UP_FORM;
+    f.special.frame = 1;
+    f.special.duration = 37;
+    advanceFighterPose(pose, f, world, input, false, false, false, false);
+    assertEquals(pose.selectionSerial, selected + 1);
+    assertEquals(pose.clipTime, 0.0);
+    assertEquals(pose.clipIndex, (hero.presentation.clips.downSpecialFollowUp ?? base).index);
+  }
 });
