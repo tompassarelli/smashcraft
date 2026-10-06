@@ -21,7 +21,6 @@ import { type MapBuild, type Scenario, isScenario, isShadow } from "../shell/bui
 import { produceScenarioComputerInput } from "../shell/scenarios";
 import type { Fighter } from "../sim/fighter";
 import { type Roster, createRoster, fighterAt, isActive } from "../sim/roster";
-import { authoredTuning } from "../sim/tuning";
 import { stateChecksum } from "./canonical";
 import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot } from "./snapshot";
 
@@ -161,21 +160,16 @@ function checksumOf(scratch: ReplayState, state: Readonly<ReplayState>): string 
 }
 
 /**
- * A fighter as a snapshot saves it. Its authored kit (moves and specials) is
- * saved as `authoredKit` and restored from the character: kit tables key
- * normals and poses by action number, which the record text cannot tell from
- * a Lua array, so written out they would come back shifted by one in Lua.
+ * The fields a snapshot holds that are keyed by action number (a kit's normals,
+ * throws and attack poses), which the record text keeps by key; recordTokens
+ * throws naming any other integer-keyed field.
  */
-function savedFighter(fighter: Fighter): object {
-  const authored = authoredTuning(fighter.character);
-  if (fighter.tuning.moves !== authored.moves || fighter.tuning.specials !== authored.specials) return fighter;
-  return { ...fighter, authoredKit: true, tuning: { ...fighter.tuning, moves: undefined, specials: undefined } };
-}
+const KEYED_BY_ACTION = ["attacks", "normals", "throws"];
 
 /** What a snapshot saves: the active fighters, the match, the command buffers and the pacing and presentation. */
 function savedView(state: Readonly<ReplayState>): object {
-  const fighters: object[] = [];
-  for (const slot of PARTICIPANT_SLOTS) if (isActive(state.world, slot)) fighters[slot] = savedFighter(fighterAt(state.world, slot));
+  const fighters: (Fighter | undefined)[] = [];
+  for (const slot of PARTICIPANT_SLOTS) if (isActive(state.world, slot)) fighters[slot] = fighterAt(state.world, slot);
   return { mask: state.world.mask, fighters, match: state.match, commands: state.controls.commands, runtime: state.runtime };
 }
 
@@ -292,7 +286,7 @@ export function continueMomentSave(recorder: MomentRecorder, scratch: ReplayStat
     if (recorder.snapshotFrames[index] === frame) save.lines.push(`checkpoint ${frame} ${checksumOf(scratch, at(recorder.snapshots, index))}`);
   } else {
     recorder.save = undefined;
-    const state = recordTokens(savedView(recorder.saveStart));
+    const state = recordTokens(savedView(recorder.saveStart), KEYED_BY_ACTION);
     if (state === undefined) return undefined;
     return { lines: [...save.lines, ...section("state", state), ...save.rows], frame: save.last, checksum: save.checksum };
   }
@@ -342,11 +336,6 @@ function savedState(record: Readonly<Record<string, unknown>>): ReplayState | un
     if (!isActive(world, slot)) continue;
     const fighter = fighters[slot];
     if (!isFighter(fighter)) return undefined;
-    if ("authoredKit" in fighter && fighter.authoredKit === true) {
-      const authored = authoredTuning(fighter.character);
-      fighter.tuning.moves = authored.moves;
-      fighter.tuning.specials = authored.specials;
-    }
     world.fighters[slot] = fighter;
   }
   return { world, match, controls: { inputs: createFrameControls().inputs, commands }, runtime };
