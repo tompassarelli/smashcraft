@@ -84,6 +84,8 @@ export interface CommandGrab extends FrameWindow {
   readonly holdFrames: number;
   readonly effect: Readonly<HitEffect>;
   readonly recovery: number;
+  /** Damage percent the release restores to the grabber, within the per-stock heal cap (Vampiric Pounce's bite). */
+  readonly heal?: { readonly heal: number; readonly capPerStock: number } | undefined;
 }
 
 /**

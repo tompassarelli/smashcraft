@@ -306,8 +306,8 @@ const SHADOW_HUNTER: MatchScript = {
 };
 
 /**
- * Dreadlord's Carrion Swarm hits, a Sleep Orb meets a shield and a second one
- * sleeps the Archer, Night Pounce catches and bites, a second whiffs, the free
+ * Dreadlord's Carrion Swarm hits, a Sleep meets a shield and a second one
+ * sleeps the Archer, Vampiric Pounce catches and bites, a second whiffs, the free
  * Bat Ascension rises on the 5 mana left, then normals and a grab and throw.
  */
 const DREADLORD: MatchScript = {

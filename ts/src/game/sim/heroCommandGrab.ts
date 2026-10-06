@@ -1,6 +1,7 @@
 // A hero special's command grab (heroSpecials.ts CommandGrab): catch through
 // the shared grab link, hold, then release as a throw. Every value it changes
 // is fighter state, so rollback restores it with the fighters.
+import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { emptyCapsule, placeCapsule } from "../physics/contactGeometry";
 import { ContactKind } from "./codes";
@@ -89,6 +90,13 @@ export function advanceHeroCommandGrab(world: Roster, slot: number): void {
   clearGrabLinks(world, slot);
   const target = fighterAt(world, targetSlot);
   queueDamageContact(world, slot, targetSlot, grab.effect, owner.facing, ContactKind.throw, true, undefined);
+  const heal = grab.heal;
+  if (heal !== undefined) {
+    const { status } = owner;
+    const restored = min(min(heal.heal, max(0.0, f32(heal.capPerStock - status.guardHealed))), max(0.0, status.damage));
+    status.damage = f32(status.damage - restored);
+    status.guardHealed = f32(status.guardHealed + restored);
+  }
   target.motion.grounded = false;
   target.motion.surface = undefined;
 }

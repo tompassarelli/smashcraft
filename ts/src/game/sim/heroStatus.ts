@@ -5,6 +5,7 @@
 import { max, min, toInt } from "../../runtime/numbers";
 import { addFloat32, roundToFloat32 } from "wisp/src/sim/binary32";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
+import { advanceMash, clearMash } from "./mash";
 import type { Fighter } from "./fighter";
 import { type AttackBuffer, clearAttackBuffer } from "../input/attackBuffer";
 import { type Controls, copyControls, neutralControls } from "./roster";
@@ -20,10 +21,13 @@ interface StatusRules {
   readonly blocksSpecials: boolean;
   /** The next damaging hit ends it. */
   readonly endsOnDamage: boolean;
+  /** The fighter mashes out with the grab and freeze rule (sim/mash.ts), never before this many frames. */
+  readonly mashMinimum?: number | undefined;
 }
 
 const RULES: { readonly [kind: number]: StatusRules | undefined } = {
-  [HeroStatusKind.sleep]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true },
+  // Sleep (#132): mashed out as a freeze is, never before frame 24.
+  [HeroStatusKind.sleep]: { blocksActions: true, blocksSpecials: true, endsOnDamage: true, mashMinimum: 24 },
   [HeroStatusKind.hex]: { blocksActions: false, blocksSpecials: true, endsOnDamage: false },
   // Chill only lowers top speeds (sim/chill.ts).
   [HeroStatusKind.chill]: { blocksActions: false, blocksSpecials: false, endsOnDamage: false },
@@ -40,6 +44,8 @@ export interface AppliedStatus {
   readonly immunityFrames: number;
   /** Poison's damage: `damage` every `every` frames of its `frames`, with no hitlag, hitstun or knockback. */
   readonly tick?: { readonly every: number; readonly damage: number } | undefined;
+  /** Its frames instead when it reaches an airborne fighter (Sleep: an offstage hit is an opening, not a KO). */
+  readonly airFrames?: number | undefined;
   /** `frames` more for every `percent` of damage after the hit, in whole steps, up to `max` frames in all. */
   readonly scaling?: { readonly frames: number; readonly percent: number; readonly max: number } | undefined;
 }
@@ -72,7 +78,8 @@ export function applyHeroStatus(f: Fighter, status: Readonly<AppliedStatus>): vo
   }
   if (state.out || (state.conditionImmunity[status.group] ?? 0) > 0) return;
   state.condition = status.kind;
-  state.conditionFrames = heroStatusFrames(status, state.damage);
+  state.conditionFrames = status.airFrames !== undefined && !f.motion.grounded ? status.airFrames : heroStatusFrames(status, state.damage);
+  if (RULES[status.kind]?.mashMinimum !== undefined) clearMash(f.grab);
   state.conditionGroup = status.group;
   state.conditionImmunityFrames = status.immunityFrames;
   // A status that stops every action also stops the one in progress.
@@ -127,10 +134,15 @@ export function clearHeroStatus(f: Fighter): void {
 
 const NEUTRAL = neutralControls();
 
-/** Removes the frame's inputs a status forbids, before anything reads them. */
-export function maskHeroStatusControls(f: Readonly<Fighter>, input: Controls, commands: AttackBuffer): void {
+/**
+ * Removes the frame's inputs a status forbids, before anything reads them. A
+ * mashable status first counts the frame's mash inputs; the status countdown
+ * later this frame takes its one frame off.
+ */
+export function maskHeroStatusControls(f: Fighter, input: Controls, commands: AttackBuffer): void {
   const active = rules(f);
   if (active === undefined) return;
+  if (active.mashMinimum !== undefined) f.status.conditionFrames = advanceMash(f.grab, input, f.status.conditionFrames, active.mashMinimum) + 1;
   if (active.blocksActions) {
     copyControls(input, NEUTRAL);
     clearAttackBuffer(commands);

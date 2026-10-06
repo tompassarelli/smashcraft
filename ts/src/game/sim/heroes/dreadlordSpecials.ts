@@ -23,31 +23,48 @@ const CARRION_SWARM: AuthoredSpecial = {
   }],
 };
 
-// Down B, Sleep Orb: a slow orb whose body hit sleeps the target for 20 frames,
-// then leaves it immune to sleep for 180; a shield stops it.
+// Down B, Sleep (#132, docs/design/kit-review-2.md): a slow orb whose body hit
+// sleeps a grounded target 70 frames, an airborne one 24. The sleeper mashes
+// out (never before frame 24, sim/heroStatus.ts), any damaging hit wakes it,
+// and then it is immune to sleep for 240; a shield stops it.
 const SLEEP_ORB: AuthoredSpecial = {
   cost: 25,
   endFrame: 58,
   projectiles: [{
-    spawnFrame: 26, offsetX: 40.0, offsetZ: 60.0, velocityX: h(f32(0.06)), velocityZ: 0.0, life: 35, radius: h(f32(0.18)),
+    spawnFrame: 26, offsetX: 40.0, offsetZ: 60.0, velocityX: h(f32(0.06)), velocityZ: 0.0, life: 50, radius: h(f32(0.18)),
     effect: { damage: 2.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false, element: HitElement.normal },
     reflectable: true, limit: 1,
-    status: { kind: HeroStatusKind.sleep, frames: 20, group: HeroStatusGroup.sleep, immunityFrames: 180 },
+    status: { kind: HeroStatusKind.sleep, frames: 70, airFrames: 24, group: HeroStatusGroup.sleep, immunityFrames: 240 },
   }],
 };
 
-// Side B, Night Pounce. Grounded: a 0.8H approach that stops at a body or
-// shield, then a 0.45H command grab on frames 17-19; a catch bites and
-// releases 16 frames later, then recovers for 28. Airborne: a claw strike,
-// once per airtime, ending helpless.
+// Side B, Vampiric Pounce (#132). Grounded: a 0.8H approach that stops at a
+// body or shield, then a 0.45H command grab on frames 17-19; a catch bites and
+// releases 16 frames later, healing him 4% (at most 12 a stock), then
+// recovers for 28. Side special again on approach frames 3-12 feints: a free
+// bat-hop 0.7H back over its frames 1-10, ending on frame 18. Airborne: a claw
+// strike, once per airtime, ending helpless.
 const POUNCE_GRAB: StrikeCapsule = { x1: 14.0, z1: 40.0, x2: f32(h(f32(0.45)) - 12.0), z2: 40.0, radius: 12.0 };
 const POUNCE_BITE = dreadlordHit(9.0, "EDGE", 40);
 const POUNCE_CLAW = [heroRegion(17, 19, { x1: 18.0, z1: 46.0, x2: f32(h(f32(0.8)) - 10.0), z2: 40.0, radius: 10.0 }, POUNCE_BITE)];
+/** The feint's hop spreads his wings, which stay his body. */
+const SPREAD_WINGS_FEINT = [hurtPose(1, 18, [
+  ...DREADLORD_STAND,
+  hurtPart(-14.0, 85.0, -60.0, 125.0, 16.0),
+  hurtPart(14.0, 85.0, 44.0, 125.0, 14.0),
+])];
+const POUNCE_FEINT: AuthoredSpecial = {
+  cost: 0,
+  endFrame: 18,
+  motion: [{ ...frames(1, 10), velocityX: -perFrame(h(f32(0.7)), 10), velocityZ: 0.0 }, { ...frames(11, 11), velocityX: 0.0, velocityZ: 0.0 }],
+  hurt: SPREAD_WINGS_FEINT,
+};
 const NIGHT_POUNCE: AuthoredSpecial = {
   cost: 20,
   endFrame: 53,
   motion: [{ ...frames(1, 16), velocityX: perFrame(h(f32(0.8)), 16), velocityZ: 0.0, stopsAtBody: true }],
-  commandGrab: { ...frames(17, 19), strike: POUNCE_GRAB, holdFrames: 16, effect: POUNCE_BITE, recovery: 28 },
+  commandGrab: { ...frames(17, 19), strike: POUNCE_GRAB, holdFrames: 16, effect: POUNCE_BITE, recovery: 28, heal: { heal: 4.0, capPerStock: 12.0 } },
+  followUps: [{ window: frames(3, 12), special: POUNCE_FEINT }],
   hurt: dreadlordLimbPoses([heroRegion(17, 19, POUNCE_GRAB, POUNCE_BITE)], 53, 1),
 };
 const NIGHT_POUNCE_AIR: AuthoredSpecial = {

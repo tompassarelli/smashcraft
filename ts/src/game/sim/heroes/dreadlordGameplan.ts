@@ -6,8 +6,8 @@ import { type FighterGameplan, GameplanSpecial, GameplanThrow } from "../gamepla
 /**
  * Dreadlord's gameplan: air movement, grabs and close pressure. He closes in
  * the air (best air speed of the roster) with Batwing Turn and Talon Reach,
- * or runs in to a grab or Night Pounce, and stays close: he has no safe
- * long-range approach and his large body loses a spacing war. Sleep Orb
+ * or runs in to a grab or Vampiric Pounce, and stays close: he has no safe
+ * long-range approach and his large body loses a spacing war. Sleep
  * sets up a charged smash; throws start his juggles; Wing Backhand and the
  * smashes kill.
  */

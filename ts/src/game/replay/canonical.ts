@@ -203,6 +203,7 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
   if (spec.status !== undefined) {
     int("status.kind", spec.status.kind);
     int("status.frames", spec.status.frames);
+    if (spec.status.airFrames !== undefined) int("status.airFrames", spec.status.airFrames);
     int("status.group", spec.status.group);
     int("status.immunityFrames", spec.status.immunityFrames);
     if (spec.status.tick !== undefined) {
@@ -332,6 +333,10 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real("commandGrab.strike.radius", grab.strike.radius);
     int("commandGrab.hold", grab.holdFrames);
     int("commandGrab.recovery", grab.recovery);
+    if (grab.heal !== undefined) {
+      real("commandGrab.heal", grab.heal.heal);
+      real("commandGrab.healCapPerStock", grab.heal.capPerStock);
+    }
     result.push(hitEffectCanonical(grab.effect, `${name}.commandGrab.effect`));
   }
   const poses = move.hurt ?? [];

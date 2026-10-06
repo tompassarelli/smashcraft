@@ -52,7 +52,7 @@ export const DREADLORD_CLIP_TABLE: HeroClipTable = {
   throwForward: s.attack2, throwBack: s.attack1, throwUp: s.spell, throwDown: s.spellSlam,
   victimPummel: s.standReady, victimThrowForward: s.standReady, victimThrowBack: s.standReady,
   victimThrowUp: s.standReady, victimThrowDown: s.death,
-  // Carrion Swarm and Sleep are his casting spell; Night Pounce a claw lunge; Bat Ascension a wing spread.
+  // Carrion Swarm and Sleep are his casting spell; Vampiric Pounce a claw lunge; Bat Ascension a wing spread.
   neutralSpecial: s.spell, sideSpecial: s.attack2, upSpecial: s.wingStretch, downSpecial: s.spell,
   neutralSpecialAir: s.spell, sideSpecialAir: s.attack2, upSpecialAir: s.wingStretch, downSpecialAir: s.spell,
 };
