@@ -10,7 +10,7 @@ export const ISOLATED_TEST_GROUPS: readonly (readonly string[])[] = [
   ["test/desync-guard.test.ts", "test/desync-guard-integrity.test.ts", "test/input-stall.test.ts"],
   ["test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/selection-load.test.ts", "test/player-text.test.ts", "test/stack-trace.test.ts"],
   // source-shapes only reads files; the groups are balanced by measured CPU, so the last two finish together.
-  ["test/missing-input.test.ts", "test/source-shapes.test.ts"],
+  ["test/missing-input.test.ts", "test/lag-recovery.test.ts", "test/source-shapes.test.ts"],
   ["test/tune.test.ts", "test/repro.test.ts"],
 ];
 

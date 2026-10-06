@@ -74,12 +74,11 @@ export function advanceSpecialEffect(state: SpecialEffectState, fighter: Readonl
   state.parrySerial[slot] = parrySerial;
 }
 
-function hiddenSpecial(): StaticSpecialPose {
-  return { visible: false, x: 0.0, z: 0.0, scale: 0.0, alpha: 0, red: 0, green: 0, blue: 0 };
-}
+// Shared and never changed: renderers project every pooled effect on every callback.
+const HIDDEN: Readonly<StaticSpecialPose> = { visible: false, x: 0.0, z: 0.0, scale: 0.0, alpha: 0, red: 0, green: 0, blue: 0 };
 
-export function projectSpecialEffect(state: Readonly<SpecialEffectState>, fighter: Readonly<Fighter> | undefined, slot: number, kind: StaticSpecial): StaticSpecialPose {
-  if (fighter === undefined || fighter.character !== Character.demonHunter || fighter.status.out) return hiddenSpecial();
+export function projectSpecialEffect(state: Readonly<SpecialEffectState>, fighter: Readonly<Fighter> | undefined, slot: number, kind: StaticSpecial): Readonly<StaticSpecialPose> {
+  if (fighter === undefined || fighter.character !== Character.demonHunter || fighter.status.out) return HIDDEN;
   const scale = characterModelScale(fighter.character);
   const { special, motion } = fighter;
   if (kind === STATIC_AURA) {

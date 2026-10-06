@@ -5,6 +5,7 @@ import { participantInputs } from "../input/participants";
 import { INPUT_LAST_FRAME, inputPacket } from "../input/wire";
 import { Capture } from "./capture";
 import { FixedInputSchedule, fixedCaptureTarget, isFixedDelay } from "./fixedSchedule";
+import { FUTURE_LIMIT } from "./ledger";
 
 const row = (fields: RowFields = {}) => assertDefined(inputRow(fields), "row");
 const packet = (epoch: number, firstFrame: number, ...rows: InputRow[]) => assertDefined(inputPacket(epoch, firstFrame, rows), "packet");
@@ -127,22 +128,22 @@ test("the future bound moves on completion, not on receipt or read", () => {
   const schedule = new FixedInputSchedule();
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(1, 2, 3));
-  for (let frame = 3; frame <= 64; frame++) {
+  for (let frame = 3; frame <= FUTURE_LIMIT; frame++) {
     assertEquals(schedule.acceptSynchronized(0, packet(1, frame, NEUTRAL)), "accepted");
     assertEquals(schedule.acceptSynchronized(1, packet(1, frame, NEUTRAL)), "accepted");
   }
-  assertEquals(schedule.knownThrough(), 64);
+  assertEquals(schedule.knownThrough(), FUTURE_LIMIT);
   assertEquals(schedule.confirmedThrough(), 0);
   assertEquals(schedule.nextFrame(), 1);
-  const straddling = packet(1, 64, NEUTRAL, NEUTRAL);
+  const straddling = packet(1, FUTURE_LIMIT, NEUTRAL, NEUTRAL);
   assertEquals(schedule.acceptSynchronized(0, straddling), "tooFarAhead");
-  assertEquals(schedule.accepted(1, 0, 65), undefined);
+  assertEquals(schedule.accepted(1, 0, FUTURE_LIMIT + 1), undefined);
   assertTrue(schedule.readNext(1, inputs));
   assertEquals(schedule.acceptSynchronized(0, straddling), "tooFarAhead");
   assertTrue(schedule.complete(1, 1));
   assertEquals(schedule.acceptSynchronized(0, straddling), "accepted");
   assertEquals(schedule.acceptSynchronized(1, straddling), "accepted");
-  assertEquals(schedule.knownThrough(), 65);
+  assertEquals(schedule.knownThrough(), FUTURE_LIMIT + 1);
   assertEquals(schedule.confirmedThrough(), 1);
 });
 
