@@ -138,7 +138,7 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
 
 // The roster body (width 1.10, height 1.15 of the reference capsule) plus the
 // folded wings behind the shoulders: Dreadlord's large target.
-const TORSO = hurtPart(0.0, 4.0, 0.0, 103.0, 26.4);
+const TORSO = hurtPart(0.0, 4.0, 0.0, 103.0, f32(26.4));
 const FOLDED_WINGS = hurtPart(-18.0, 70.0, -30.0, 135.0, 16.0);
 const STAND: readonly HurtPart[] = [TORSO, FOLDED_WINGS];
 /** Frames the attacking limb or wing is drawn out before and after its strike. */
