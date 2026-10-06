@@ -1,7 +1,9 @@
 // The companion helper as headless clients need it: per client, the journal
-// text it types into the integrity build's edit box (readiness, one I4 row
-// per frame, the end marker) and its quiescence file. Like the real helper it
-// types at most TEXT_WINDOW records past what the map's receipt has consumed.
+// text it types into the integrity build's edit box (readiness, I4 records of
+// one or, as wc3-journal sends them, two rows, the end marker) and its
+// quiescence file. Like the real helper it assigns rows by its own clock, which
+// keeps running while the game stalls, and types at most TEXT_WINDOW records
+// past what the map's receipt has consumed.
 import type { HeadlessClient, NativeBehaviors } from "wisp/src/headless/client";
 import type { Lockstep } from "wisp/src/headless/lockstep";
 import { Action, bit } from "../../src/game/input/actions";
@@ -41,7 +43,8 @@ const DIRECTIONS = bit(Action.moveLeft) | bit(Action.moveRight) | bit(Action.mov
 
 const tapFrames = (workload: Workload) => workload.denseCycles * PULSES.length * 3;
 
-function rowFor(slot: number, frame: number, workload: Workload): InputRow {
+/** The row a slot's helper journals for a frame of the workload. */
+export function rowFor(slot: number, frame: number, workload: Workload): InputRow {
   const taps = tapFrames(workload);
   const direction = workload.walkers.includes(slot) ? bit(slot === 0 ? Action.moveLeft : Action.moveRight) : 0;
   const pulse = frame <= taps && frame % 3 === 1 ? PULSES[((frame - 1) / 3) % PULSES.length] ?? 0 : 0;
@@ -58,7 +61,10 @@ interface Helper {
   sequence: number;
   state: "idle" | "ready" | "journaling" | "ended";
   readonly queue: string[];
+  /** Rows journaled this match, and the ones not yet sent as a record. */
   journaled: number;
+  readonly pending: InputRow[];
+  /** The helper clock's reading when the match started. */
   started: number;
 }
 
@@ -66,13 +72,13 @@ export class JournalHelpers {
   private readonly helpers = new Map<number, Helper>();
   workload: Workload = { denseCycles: 0, walkers: [] };
 
-  /** build: the map build whose journal files the helpers follow. */
-  constructor(private readonly build: string) {}
+  /** build: the map build whose journal files the helpers follow; rowsPerRecord: 1, or 2 as wc3-journal sends them. */
+  constructor(private readonly build: string, private readonly rowsPerRecord: 1 | 2 = 1) {}
 
   private helper(slot: number): Helper {
     let helper = this.helpers.get(slot);
     if (helper === undefined) {
-      helper = { box: undefined, text: "", epoch: 0, sequence: 0, state: "idle", queue: [], journaled: 0, started: 0 };
+      helper = { box: undefined, text: "", epoch: 0, sequence: 0, state: "idle", queue: [], journaled: 0, pending: [], started: 0 };
       this.helpers.set(slot, helper);
     }
     return helper;
@@ -92,8 +98,17 @@ export class JournalHelpers {
     };
   }
 
-  /** One frame of every helper, after the clients ran it. */
-  service(clients: Lockstep): void {
+  /** The last frame a slot's helper has journaled by `now`, while it journals a match. */
+  frameAt(slot: number, now: number): number {
+    const helper = this.helper(slot);
+    return helper.state === "journaling" ? now - helper.started + 1 : 0;
+  }
+
+  /**
+   * One frame of every helper by their clock `now`, after the clients ran
+   * theirs. The text typed for a `held` slot's stopped game waits.
+   */
+  service(clients: Lockstep, now = clients.frame, held: ReadonlySet<number> = new Set()): void {
     for (const client of clients.clients) {
       const helper = this.helper(client.slot);
       const next = helper.epoch + 1;
@@ -104,19 +119,21 @@ export class JournalHelpers {
       }
       const { epoch } = helper;
       if (helper.state === "ready" && client.files.has(journalLifecycleFile(this.build, epoch, client.slot, "start"))) {
-        Object.assign(helper, { state: "journaling", journaled: 0, started: clients.frame });
+        Object.assign(helper, { state: "journaling", journaled: 0, started: now });
+        helper.pending.length = 0;
       }
       if (helper.state === "journaling" && client.files.has(journalLifecycleFile(this.build, epoch, client.slot, "end"))) {
+        if (helper.pending.length > 0) this.send(helper, helper.journaled - helper.pending.length + 1);
         helper.state = "ended";
         helper.queue.push(`JE1${epoch}`);
         client.published.set(quiescentFile({ build: this.build, epoch, slot: client.slot }), ["Q"]);
       }
-      while (helper.state === "journaling" && helper.journaled <= clients.frame - helper.started) {
+      while (helper.state === "journaling" && helper.journaled < this.frameAt(client.slot, now)) {
         helper.journaled++;
-        const packet = inputPacket(epoch, helper.journaled, [rowFor(client.slot, helper.journaled, this.workload)]);
-        if (packet === undefined) throw new Error("no packet");
-        helper.queue.push(encodePacket(packet));
+        helper.pending.push(rowFor(client.slot, helper.journaled, this.workload));
+        if (helper.pending.length === this.rowsPerRecord) this.send(helper, helper.journaled - helper.pending.length + 1);
       }
+      if (held.has(client.slot)) continue;
       const receipt = client.files.get(`smashcraft-journal-text-ack-${this.build}-e${epoch}-p${client.slot}.txt`)?.join("") ?? "";
       const consumed = Number(/ consumed=(\d+)/.exec(receipt)?.[1] ?? 0);
       for (let payload = helper.queue.shift(); payload !== undefined; payload = helper.queue.shift()) {
@@ -128,5 +145,12 @@ export class JournalHelpers {
         helper.text += textEnvelope(epoch, helper.sequence, payload) ?? "";
       }
     }
+  }
+
+  private send(helper: Helper, firstFrame: number): void {
+    const packet = inputPacket(helper.epoch, firstFrame, helper.pending);
+    if (packet === undefined) throw new Error("no packet");
+    helper.queue.push(encodePacket(packet));
+    helper.pending.length = 0;
   }
 }

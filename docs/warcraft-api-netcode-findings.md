@@ -363,6 +363,62 @@ for those rows. Replayed through both senders headlessly, r8's recorded rows
 cost 15 messages and 358–458 bytes a second paired, and 10 messages and
 150–166 bytes a second as I5.
 
+## Catching up after a stall
+
+The companion helper assigns each row by its own clock, `segment_frame +
+floor((t − epoch)·60/1e9)`, so it keeps journaling 60 frames a second whatever
+the game does. Each 60 Hz callback admits the local journal's rows, runs
+confirmed frames on accepted rows, reconciles, and runs speculative frames on
+local rows and predictions (smashcraft:ts/src/platform/shell/rollback.ts).
+When the game loses time — a stall, or a game clock behind real time, as
+saturated clients showed (wisp:docs/network-model.md) — the helper is ahead
+by the lost time, and only running more than one frame a callback brings the
+simulation back to real time.
+
+Until #48, admission took one journal record a callback, and wc3-journal sends
+two rows a record: catching up ran at most two frames a callback, one more
+than real time adds. In two headless clients of the playable build with
+Battle.net's measured latency, a 2 s stall took 2 s to recover; a game
+that runs fewer than 30 callbacks a second never recovers, and its inputs
+reach the screen later and later until the helper's 120-record output queue
+fills (4 s), then stay that late, the lasting slowdown the 0.0.47 playtest
+reported (#48).
+
+Since #48, `CATCH_UP_FRAMES` (smashcraft:ts/src/game/shell/playback.ts) bounds
+every callback alike: at most 6 admitted rows, 6 confirmed and 6 speculative
+frames, the confirmed and speculative limits it had before. A sender may admit
+`FUTURE_LIMIT` = 128 frames past its confirmed frame (64 before): while catching
+up at 6 frames a callback, the rows between admission and confirmation (a
+message every 6 callbacks, then the echo) exceeded 64 and held admission.
+smashcraft:ts/test/lag-recovery.test.ts stalls both games, then one, for 2 s
+in a two-client playable match with a computer fighter and #26's dense taps:
+both clients are back to their pre-stall lag within 47 callbacks (0.78 s),
+no callback runs more than 6 frames of any kind, every confirmed frame ran
+the rows its helpers journaled for it, and the confirmed checksums are equal.
+Over seeds 7, 11, 13 and 17 and three stall times the recovery took
+0.70–0.85 s; with 4 frames a callback, up to 1.07 s.
+
+The helpers' frames are never moved: re-anchoring a stalled player's clock
+would put rows on frames other than the ones #26's integrity check expects
+from the input's own timestamps, and needs a map-to-helper protocol. Catching
+up changes only how many frames a client runs in a callback; confirmed state
+depends only on the accepted rows, so clients stay identical.
+
+What a callback costs, Lua32 on the development host (the playable bundle in
+Wisp's headless runtime, 6 October 2026; Warcraft ran the 4096-frame
+workload about 1.17 times slower than this host's Lua32): in a solo match
+against a computer Rifleman, a steady callback takes 1.4 ms at p50, one that
+confirms a 6-frame message 3.4 ms, and a catch-up callback 2.8 ms at p50 and
+7.6 ms at p95; with four fighters including the computer Illidan, 2.2, 12.0
+and 6.8 ms, p95 up to 26 ms. Catching up costs no more than confirming a
+message already did: the 6-frame confirmed limit was the steady worst case
+before #48 too.
+
+Throughput limits catching up too. Holds cost no bytes, but a message carries
+only 8 frames whose every field changes: with such input on every frame, 10
+messages a second carry 80 frames a second, and a 2 s backlog of it takes
+about 6 s to drain.
+
 ## Native 0.0.29 short transport comparison
 
 Same two retained clients, slots 0/2, exact 0.0.29 artifact cited above.

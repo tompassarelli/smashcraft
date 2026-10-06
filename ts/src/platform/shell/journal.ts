@@ -11,6 +11,7 @@ import { TEXT_WINDOW } from "../../game/netcode/journal/text";
 import { readVocabularyPacket } from "../../game/netcode/journal/vocabulary";
 import { FUTURE_LIMIT } from "../../game/netcode/ledger";
 import { type JournalIdentity, type MenuPhase, endFile, failureFile, menuFile, quiescentFile, startFile, transportReadyFile } from "../../game/shell/journalFiles";
+import { CATCH_UP_FRAMES } from "../../game/shell/playback";
 import { readChunk, writeLines } from "wisp/src/platform/fileio";
 import { pollMailbox, releaseMessage } from "../keyboardJournal";
 import { startInputTrace } from "./diagnostics";
@@ -22,9 +23,6 @@ import { LASTING, setStatus } from "./view";
 
 /** Synchronized prefix of input rows and helper readiness. */
 export const INPUT_PREFIX = "SC_GP";
-
-/** Journal packets admitted per callback. */
-const PACKETS_PER_CALLBACK = 1;
 
 /** The rollback session while a journal epoch runs. */
 interface JournalEpoch {
@@ -167,7 +165,7 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
   // or empty: frame input selects that behavior, and every sender must advance.
   if (source === undefined || !isParticipantSlot(slot) || !humanActive(s.game, slot)) return;
   const { schedule } = rollback;
-  for (let read = 0; read < PACKETS_PER_CALLBACK; read++) {
+  for (let admitted = 0; admitted < CATCH_UP_FRAMES; ) {
     const latest = Math.min(INPUT_LAST_FRAME, schedule.nextConfirmedFrame() - 1 + FUTURE_LIMIT);
     if (source.expectedFrame() > latest) return;
     const wire = nextPacketText(s, rollback, journal);
@@ -210,6 +208,7 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
     if (editbox) {
       if (!consumeEditbox(s, rollback, journal)) return;
     } else if (journal.mailbox !== undefined) releaseMessage(journal.mailbox);
+    admitted += packet.rows.length;
   }
 }
 
