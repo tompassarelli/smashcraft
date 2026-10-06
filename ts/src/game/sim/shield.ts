@@ -226,11 +226,12 @@ export function capsuleCircleIntersects(
 }
 
 /** Whether a projectile's step crosses the target's shield circle, scaled by radiusFactor. */
-export function shieldCircleIntersects(target: Fighter, oldX: number, oldZ: number, newX: number, newZ: number, radiusFactor: number): boolean {
+/** Whether a projectile path, swept by `projectileRadius`, meets the target's shield bubble. */
+export function shieldCircleIntersects(target: Fighter, oldX: number, oldZ: number, newX: number, newZ: number, radiusFactor: number, projectileRadius = 0.0): boolean {
   const geometry = target.tuning.shield;
   const centerX = addFloat32(target.motion.x, multiplyFloat32(target.facing, geometry.centerX));
   const centerZ = addFloat32(target.motion.z, geometry.centerZ);
   const radius = multiplyFloat32(geometry.radius, radiusFactor);
   const scale = shieldSizeMultiplier(target.shield.energy, target.shield.strength);
-  return capsuleCircleIntersects(oldX, oldZ, newX, newZ, 0.0, centerX, centerZ, radius, scale);
+  return capsuleCircleIntersects(oldX, oldZ, newX, newZ, projectileRadius, centerX, centerZ, radius, scale);
 }

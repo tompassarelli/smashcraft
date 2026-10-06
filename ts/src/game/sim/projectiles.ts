@@ -203,9 +203,10 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
     const crossed = f32(f32(targetX - oldX) * direction) >= 0 && f32(f32(targetX - projectile.x) * direction) <= 0;
     const near = Math.abs(f32(targetX - projectile.x)) <= reach;
     const height = f32(max(oldZ, projectile.z) + reach) >= f32(targetZ + body.z1) && f32(min(oldZ, projectile.z) - reach) <= f32(targetZ + body.z2);
+    // The shield takes the projectile at the same widened reach as the body, so a broad one never passes a raised shield.
     const reflector = spec.reflectable && target.shield.reflectFrames > 0
-      && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, SHIELD_REFLECTOR_RADIUS_FACTOR);
-    const shieldContact = target.shield.raised && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0);
+      && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, SHIELD_REFLECTOR_RADIUS_FACTOR, spec.radius);
+    const shieldContact = target.shield.raised && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0, spec.radius);
     const candidate = Math.abs(f32(targetX - oldX));
     if ((reflector || shieldContact || ((crossed || near) && height)) && (nearest === undefined || candidate < distance)) {
       nearest = targetSlot;
