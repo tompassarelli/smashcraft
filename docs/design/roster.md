@@ -970,7 +970,7 @@ path while she holds the ledge.
 **Identity:** a gunner who holds ground. He is slow on the ground (run 9.00)
 and late off it (5-frame jump squat), but floaty, heavier than Archer (80) and
 harder-hitting: his down tilt deals 10. The blaster shoots with hitstun from
-range, but each shot holds him 32 frames on the ground and 20 in the air,
+range, but a grounded shot leaves on frame 9 and holds him until frame 39, and a short-hop shot (#117) costs a landing,
 so his wall costs a commitment his slow body can't cover. The bear walks ahead as cover. The freezing trap guards the gap in
 front of him and sets up a smash. **Weakness:** he can't chase, and in close
 his slow start loses scrambles.
