@@ -22,6 +22,7 @@ import {
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type FighterTuning, authoredTuning } from "./tuning";
 import { HitElement } from "./hitRegions";
+import type { SpecialProjectile } from "./heroSpecials";
 
 export const PROJECTILE_CAPACITY = 16;
 export const SHIELD_MAX = 60.0;
@@ -202,6 +203,8 @@ interface VisualSerials {
   shield: number;
   shieldReflect: number;
   parry: number;
+  /** Hero specials refused for want of mana, once per press. */
+  manaDenied: number;
 }
 
 interface Special {
@@ -217,6 +220,13 @@ interface Special {
   hit: boolean;
   /** Targets this action has already struck. */
   readonly hitTargets: (number | undefined)[];
+  /** A hero special's authored form (SpecialForm), captured on entry. */
+  form: number;
+  /** The stick on entry, world-relative: -1, 0 or 1 on each axis. */
+  aimX: number;
+  aimZ: number;
+  /** Hero specials used this airtime, one bit per SpecialSlot. */
+  airtimeUses: number;
 }
 
 export interface Projectile {
@@ -232,6 +242,8 @@ export interface Projectile {
   damageMultiplier: number;
   /** Reflected this frame; it moves from the next frame. */
   newlyReflected: boolean;
+  /** A hero projectile's authored record; immutable and shared like tuning. */
+  spec: SpecialProjectile | undefined;
 }
 
 /** Summons keep their last values when they expire; snapshots and checksums include them. */
@@ -362,6 +374,18 @@ interface Status {
   frozenFrames: number;
   /** Frames until another trap may catch a fighter after its ice breaks. */
   freezeImmunityFrames: number;
+  /** Frames of hero armor left, and the largest hit it absorbs. */
+  armorFrames: number;
+  armorMaxDamage: number;
+}
+
+/** The roster resource; fighters without hero specials keep zero. */
+interface Mana {
+  points: number;
+  /** Frames since the last spend, saturating at the regeneration delay. */
+  sinceSpend: number;
+  /** Eligible frames toward the next point. */
+  progress: number;
 }
 
 export interface Fighter {
@@ -390,6 +414,7 @@ export interface Fighter {
   readonly ledge: Ledge;
   readonly cannon: StageCannon;
   readonly status: Status;
+  readonly mana: Mana;
 }
 
 const repeat = <T>(count: number, make: () => T): T[] => Array.from({ length: count }, () => make());
@@ -407,14 +432,16 @@ function emptyProjectile(): Projectile {
     serial: 0,
     damageMultiplier: 1.0,
     newlyReflected: false,
+    spec: undefined,
   };
 }
 
 /** A fighter standing at startX with the Wurst constructor's initial state. */
 export function createFighter(character: Character, startX: number, facing: number): Fighter {
+  const tuning = authoredTuning(character);
   return {
     character,
-    tuning: authoredTuning(character),
+    tuning,
     facing,
     motion: {
       x: startX,
@@ -528,7 +555,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       lastAttackSerial: undefined,
       lastWindow: 0,
     },
-    visuals: { grab: 0, throw: 0, hit: 0, hitElectric: false, hitElement: HitElement.normal, hitStrength: 0, hitPummel: false, shieldElectric: false, shield: 0, shieldReflect: 0, parry: 0 },
+    visuals: { grab: 0, throw: 0, hit: 0, hitElectric: false, hitElement: HitElement.normal, hitStrength: 0, hitPummel: false, shieldElectric: false, shield: 0, shieldReflect: 0, parry: 0, manaDenied: 0 },
     special: {
       action: SpecialAction.none,
       frame: 0,
@@ -539,6 +566,10 @@ export function createFighter(character: Character, startX: number, facing: numb
       direction: 0,
       hit: false,
       hitTargets: repeat<number | undefined>(PARTICIPANT_CAPACITY, () => undefined),
+      form: 0,
+      aimX: 0,
+      aimZ: 0,
+      airtimeUses: 0,
     },
     projectiles: repeat(PROJECTILE_CAPACITY, () => emptyProjectile()),
     bear: { life: 0, x: 0.0, z: 0.0, velocityX: 0.0, velocityZ: 0.0, swipeCooldown: 0, hitSerial: 0, surface: undefined },
@@ -570,6 +601,7 @@ export function createFighter(character: Character, startX: number, facing: numb
     grab: { grabbedFrames: 0, action: GrabAction.none, frame: 0, serial: 0, mashX: 0, mashZ: 0, owner: undefined, target: undefined },
     ledge: { state: LedgeState.none, side: 0, frame: 0, serial: 0, intangible: 0, regrab: 0 },
     cannon: { held: undefined, firing: undefined, cooldown: 0 },
-    status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0 },
+    status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0 },
+    mana: { points: tuning.specials?.mana.max ?? 0, sinceSpend: tuning.specials?.mana.regenDelayFrames ?? 0, progress: 0 },
   };
 }

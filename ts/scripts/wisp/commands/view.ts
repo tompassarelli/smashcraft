@@ -3,7 +3,7 @@
 // apply the expectations fresh and the native gates use (../playerView.ts)
 // and fail with what a player would see wrong. `wisp view models ...`
 // rewrites the model facts those expectations read.
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Console, Effect } from "effect";
@@ -19,6 +19,9 @@ import { describeScene, sceneProblems } from "wisp/scripts/wisp/scene";
 import { importedAssets } from "../mapInputs";
 import { gameFilesLayer } from "../project";
 import { SMASHCRAFT_FRAME, SMASHCRAFT_SCENE } from "../playerView";
+import { CHARACTER_NAMES, STYLE_NAMES, loadDrawnModel, sampleAttack, sampleState, sheet } from "../hurtboxView";
+import { AttackPhase, AttackStyle, Character } from "../../../src/game/sim/codes";
+import { AUTHORED_SAMPLE_STYLES } from "../../../src/game/sim/hurtboxes";
 
 const scenes = (directories: readonly string[]) => Effect.forEach(directories, (directory) => Effect.gen(function*() {
   const reports = yield* Effect.forEach(FILE_SLOT_NUMBERS, (slot) => {
@@ -102,8 +105,44 @@ const models = (args: readonly string[]) => Effect.scoped(Effect.gen(function*()
   yield* Console.log(`${named.length} models, ${named.filter((model) => !imports.has(model.toLowerCase())).length} from the game's archives: ${MODEL_TABLE}`);
 }));
 
+const AERIALS: readonly AttackStyle[] = [AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir];
+
+/**
+ * Writes side-view sheets of every shipped fighter's hurt volumes over its
+ * drawn pose: the standing and crouching bodies, each sampled move facing
+ * right, and its first active frames facing left (smashcraft:docs/hurtboxes.md).
+ */
+const hurtboxes = (args: readonly string[]) => Effect.gen(function*() {
+  const options = Object.fromEntries(args.flatMap((arg, index) => (arg.startsWith("--") && args[index + 1] !== undefined ? [[arg.slice(2), args[index + 1]]] : [])));
+  const { assets, out } = options;
+  if (assets === undefined || out === undefined || args.length !== 4) return yield* new UsageFailure({ problem: "view hurtboxes takes --assets DIR --out DIR" });
+  yield* Effect.tryPromise({
+    try: async () => {
+      mkdirSync(out, { recursive: true });
+      for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+        const model = await loadDrawnModel(assets, character);
+        const name = CHARACTER_NAMES[character] ?? `${character}`;
+        const sheets = [sheet(`${name} stand-crouch`, model, [sampleState(character, false), sampleState(character, true), sampleState(character, false, -1), sampleState(character, true, -1)], 4)];
+        const mirrored = [];
+        for (const style of AUTHORED_SAMPLE_STYLES) {
+          const aerial = AERIALS.includes(style);
+          sheets.push(sheet(`${name} ${STYLE_NAMES[style] ?? style}`, model, sampleAttack(character, style, 1, aerial)));
+          mirrored.push(...sampleAttack(character, style, -1, aerial).filter((frame) => frame.phase === AttackPhase.active).slice(0, 1));
+        }
+        sheets.push(sheet(`${name} first-active-left`, model, mirrored, mirrored.length));
+        for (const result of sheets) {
+          await Bun.write(join(out, `${result.name.replaceAll(" ", "-")}.png`), result.png);
+          for (const line of result.lines) console.log(line);
+        }
+      }
+    },
+    catch: (cause) => new MapBuildFailure({ operation: "draw hurt volumes", path: out, cause }),
+  });
+});
+
 export const view: Command = ([mode, ...paths]) => {
   if (mode === "models") return models(paths);
+  if (mode === "hurtboxes") return hurtboxes(paths);
   if (paths.length === 0) return Effect.fail(new UsageFailure({ problem: "view takes scene DATA_DIR..., frame FRAME.ppm... or models --assets DIR ..." }));
   if (mode === "scene") return scenes(paths);
   if (mode === "frame") return frames(paths);

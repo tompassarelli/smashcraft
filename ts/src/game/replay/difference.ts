@@ -12,7 +12,7 @@ import { PROJECTILE_CAPACITY, type Fighter, type MeleeMotionValue, type Projecti
 import { fighterAt, isActive } from "../sim/roster";
 import type { DashGrabRules, FighterPhysics, GroundMovementRules, ShieldGeometry, SurfaceRecoveryPhysics } from "../sim/tuning";
 import { at } from "wisp/src/runtime/lookup";
-import { canonicalSlot, fighterMovesCanonical } from "./canonical";
+import { canonicalSlot, fighterMovesCanonical, fighterSpecialsCanonical } from "./canonical";
 import type { ReplayState } from "./snapshot";
 
 type Value = number | boolean | undefined;
@@ -68,6 +68,8 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   const expectedTuning = e.tuning;
   const actualTuning = a.tuning;
   if (expectedTuning.moves !== actualTuning.moves && fighterMovesCanonical(expectedTuning.moves) !== fighterMovesCanonical(actualTuning.moves)) found = "moves";
+  if (found === undefined && expectedTuning.specials !== actualTuning.specials
+    && fighterSpecialsCanonical(expectedTuning.specials) !== fighterSpecialsCanonical(actualTuning.specials)) found = "specials";
   add("character", e.character, a.character);
   record("physics", expectedTuning.physics, actualTuning.physics, PHYSICS_KEYS);
   record("surfacePhysics", expectedTuning.surface, actualTuning.surface, SURFACE_PHYSICS_KEYS);
@@ -193,6 +195,17 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("frozenFrames", e.status.frozenFrames, a.status.frozenFrames);
   add("offscreenFrames", e.status.offscreenFrames, a.status.offscreenFrames);
   add("freezeImmunityFrames", e.status.freezeImmunityFrames, a.status.freezeImmunityFrames);
+  add("armorFrames", e.status.armorFrames, a.status.armorFrames);
+  add("armorMaxDamage", e.status.armorMaxDamage, a.status.armorMaxDamage);
+  add("manaPoints", e.mana.points, a.mana.points);
+  add("manaSinceSpend", e.mana.sinceSpend, a.mana.sinceSpend);
+  add("manaProgress", e.mana.progress, a.mana.progress);
+  add("manaDeniedSerial", e.visuals.manaDenied, a.visuals.manaDenied);
+  add("specialForm", e.special.form, a.special.form);
+  add("specialAimX", e.special.aimX, a.special.aimX);
+  add("specialAimZ", e.special.aimZ, a.special.aimZ);
+  add("specialAirtimeUses", e.special.airtimeUses, a.special.airtimeUses);
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) add(`projectileSpec[${i}]`, at(e.projectiles, i).spec === at(a.projectiles, i).spec, true);
   add("freezeTrapCooldown", e.freezeTrap.cooldown, a.freezeTrap.cooldown);
   add("out", e.status.out, a.status.out);
   add("respawn", e.status.respawn, a.status.respawn);

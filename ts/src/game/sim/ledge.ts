@@ -47,6 +47,8 @@ const CAPTAIN_FALCON_LEDGE_SNAP: LedgeSnap = { x: 9.0, y: 17.0, height: 11.0 };
 
 export function ledgeSnap(character: Character): LedgeSnap {
   switch (character) {
+    // Expansion heroes catch with the reference fighter's reach.
+    default:
     case Character.archer:
       return FOX_LEDGE_SNAP;
     case Character.rifleman:
@@ -72,6 +74,8 @@ const DEMON_HUNTER_CATCH_BOX = catchBox(CAPTAIN_FALCON_LEDGE_SNAP);
 
 export function ledgeCatchBox(character: Character): LedgeCatchBox {
   switch (character) {
+    // Expansion heroes catch with the reference fighter's reach.
+    default:
     case Character.archer:
       return ARCHER_CATCH_BOX;
     case Character.rifleman:

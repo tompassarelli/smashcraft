@@ -1,3 +1,4 @@
+import { isSelectableCharacter } from "../sim/heroes/registry";
 import { selectableStage } from "../menu/stageCatalog";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { type MatchCamera, createMatchCamera, copyMatchCamera } from "../sim/matchCamera";
@@ -160,13 +161,13 @@ export function characterReady(game: Readonly<MatchState>, slot: number): boolea
 }
 
 export function selectCharacter(game: MatchState, slot: number, choice: number): void {
-  if (game.phase !== Phase.characterMenu || !isParticipantSlot(slot) || !humanPresent(game, slot) || !humanFighterActive(game, slot) || (choice !== 0 && choice !== 1 && choice !== 2)) return;
+  if (game.phase !== Phase.characterMenu || !isParticipantSlot(slot) || !humanPresent(game, slot) || !humanFighterActive(game, slot) || !isSelectableCharacter(choice)) return;
   game.characterChoices[slot] = choice;
   game.characterReadiness[slot] = true;
 }
 
 export function selectCpuCharacter(game: MatchState, actor: number, slot: number, choice: number): void {
-  if (game.phase !== Phase.characterMenu || !isParticipantSlot(slot) || !canChooseComputer(game, actor, slot) || (choice !== 0 && choice !== 1 && choice !== 2)) return;
+  if (game.phase !== Phase.characterMenu || !isParticipantSlot(slot) || !canChooseComputer(game, actor, slot) || !isSelectableCharacter(choice)) return;
   game.characterChoices[slot] = choice;
   game.characterReadiness[slot] = true;
 }

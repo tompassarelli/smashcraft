@@ -7,7 +7,8 @@ import { AttackStyle, ContactKind, ProjectileKind } from "./codes";
 import { isIntangible } from "./conditions";
 import { collectDamageContact, finishDamageContacts, openDamageContacts } from "./contacts";
 import { type Fighter, PROJECTILE_CAPACITY, type Projectile } from "./fighter";
-import { HitElement, emptyHitEffect } from "./hitRegions";
+import { HitElement, copyHitEffect, emptyHitEffect } from "./hitRegions";
+import { hurtCapsule } from "../physics/contactGeometry";
 import { demonHunterParryIsActive, resolveDemonHunterParry } from "./hits";
 import { attackDamage } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
@@ -74,6 +75,13 @@ function applyProjectileHit(world: Roster, ownerSlot: number, targetSlot: number
     resolveDemonHunterParry(target, fighterAt(world, ownerSlot), -projectile.direction);
     return;
   }
+  const { spec } = projectile;
+  if (projectile.kind === ProjectileKind.hero && spec !== undefined) {
+    copyHitEffect(projectileHit, spec.effect);
+    projectileHit.damage = roundToFloat32(f32(spec.effect.damage * projectile.damageMultiplier));
+    collectDamageContact(world, ownerSlot, targetSlot, projectileHit, projectile.direction, ContactKind.launch, false, undefined, shieldContact);
+    return;
+  }
   const { kind } = projectile;
   projectileHit.element = kind === ProjectileKind.manaBurn ? HitElement.electric : HitElement.normal;
   if (kind === ProjectileKind.blaster) {
@@ -106,6 +114,7 @@ function reflectProjectile(target: Fighter, source: Projectile): boolean {
     reflected.velocityZ = roundToFloat32(f32(source.velocityZ * SHIELD_PROJECTILE_SPEED_MULTIPLIER));
     reflected.direction = reflected.velocityX < 0 ? -1 : 1;
     reflected.kind = source.kind;
+    reflected.spec = source.spec;
     reflected.visualFamily = source.visualFamily;
     reflected.serial = source.serial;
     reflected.damageMultiplier = roundToFloat32(f32(source.damageMultiplier * SHIELD_PROJECTILE_DAMAGE_MULTIPLIER));
@@ -167,6 +176,46 @@ function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile,
   return nearest;
 }
 
+/**
+ * Flies a hero projectile, swept from its old position against each target's
+ * standing body widened by its radius. It reaches nothing before its age
+ * reaches `activeFrom`; a non-reflectable one meets a reflector as a shield.
+ */
+function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Projectile, hit: { reflector: boolean; shield: boolean }): number | undefined {
+  const spec = projectile.spec;
+  const oldX = projectile.x;
+  const oldZ = projectile.z;
+  projectile.x = f32(oldX + projectile.velocityX);
+  projectile.z = f32(oldZ + projectile.velocityZ);
+  projectile.life--;
+  if (spec === undefined || spec.life - projectile.life <= (spec.activeFrom ?? 0) - 1) return undefined;
+  const direction = projectile.velocityX < 0 ? -1 : projectile.velocityX > 0 ? 1 : projectile.direction;
+  let nearest: number | undefined;
+  let distance = 0.0;
+  for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
+    if (!isActive(world, targetSlot) || targetSlot === ownerSlot || targets.out[targetSlot] || targets.intangible[targetSlot]) continue;
+    const target = fighterAt(world, targetSlot);
+    const body = hurtCapsule(target.character);
+    const targetX = at(targets.x, targetSlot);
+    const targetZ = at(targets.z, targetSlot);
+    const reach = f32(spec.radius + body.radius);
+    const crossed = f32(f32(targetX - oldX) * direction) >= 0 && f32(f32(targetX - projectile.x) * direction) <= 0;
+    const near = Math.abs(f32(targetX - projectile.x)) <= reach;
+    const height = f32(max(oldZ, projectile.z) + reach) >= f32(targetZ + body.z1) && f32(min(oldZ, projectile.z) - reach) <= f32(targetZ + body.z2);
+    const reflector = spec.reflectable && target.shield.reflectFrames > 0
+      && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, SHIELD_REFLECTOR_RADIUS_FACTOR);
+    const shieldContact = target.shield.raised && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0);
+    const candidate = Math.abs(f32(targetX - oldX));
+    if ((reflector || shieldContact || ((crossed || near) && height)) && (nearest === undefined || candidate < distance)) {
+      nearest = targetSlot;
+      distance = candidate;
+      hit.reflector = reflector;
+      hit.shield = shieldContact;
+    }
+  }
+  return nearest;
+}
+
 // Preallocated: rollback replays fly projectiles every frame.
 const selected = { reflector: false, shield: false };
 
@@ -192,7 +241,7 @@ export function updateProjectiles(world: Roster): void {
       if (projectile.life <= 0 || projectile.newlyReflected) continue;
       selected.reflector = false;
       selected.shield = false;
-      const nearest = flyProjectile(world, ownerSlot, projectile, selected);
+      const nearest = projectile.kind === ProjectileKind.hero ? flyHeroProjectile(world, ownerSlot, projectile, selected) : flyProjectile(world, ownerSlot, projectile, selected);
       if (nearest !== undefined) {
         if (!(selected.reflector && reflectProjectile(fighterAt(world, nearest), projectile))) {
           applyProjectileHit(world, ownerSlot, nearest, projectile, selected.shield);

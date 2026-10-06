@@ -9,6 +9,7 @@ import { at } from "wisp/src/runtime/lookup";
 import { floorMod } from "wisp/src/sim/intMath";
 import { AttackStyle, GrabAction, SPECIAL_ACTION_CAPACITY } from "../sim/codes";
 import type { FighterMoves } from "../sim/heroMoves";
+import type { AuthoredSpecial, FighterSpecials, SpecialProjectile } from "../sim/heroSpecials";
 import type { HitEffect } from "../sim/hitRegions";
 import { type HurtPart, HurtState } from "../sim/hurtboxes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
@@ -172,6 +173,104 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
 }
 
 /** Wurst's slotOf: -1 for no fighter, -2 for a fighter the roster doesn't seat. */
+/** An authored hero projectile, field by field. */
+function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: string): string {
+  let result = "";
+  const int = (name: string, value: number) => { result += canonicalInt(`${prefix}.${name}`, value); };
+  const real = (name: string, value: number) => { result += canonicalRealField(`${prefix}.${name}`, value); };
+  int("spawnFrame", spec.spawnFrame);
+  real("offsetX", spec.offsetX);
+  real("offsetZ", spec.offsetZ);
+  real("velocityX", spec.velocityX);
+  real("velocityZ", spec.velocityZ);
+  real("upVelocityX", spec.upVelocityX ?? 0.0);
+  real("upVelocityZ", spec.upVelocityZ ?? 0.0);
+  int("life", spec.life);
+  real("radius", spec.radius);
+  int("activeFrom", spec.activeFrom ?? 0);
+  result += hitEffectCanonical(spec.effect, `${prefix}.effect`);
+  int("reflectable", spec.reflectable ? 1 : 0);
+  int("limit", spec.limit);
+  int("cancelOnInterrupt", spec.cancelOnInterrupt === true ? 1 : 0);
+  return result;
+}
+
+function hitEffectCanonical(hit: Readonly<HitEffect>, prefix: string): string {
+  return canonicalRealField(`${prefix}.damage`, hit.damage) + canonicalRealField(`${prefix}.growth`, hit.growth)
+    + canonicalRealField(`${prefix}.base`, hit.base) + canonicalRealField(`${prefix}.launchX`, hit.launchX)
+    + canonicalRealField(`${prefix}.launchZ`, hit.launchZ) + canonicalInt(`${prefix}.electric`, hit.electric ? 1 : 0)
+    + canonicalInt(`${prefix}.element`, hit.element ?? 0);
+}
+
+/** A hero's authored specials; empty for fighters without them. */
+export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | undefined, prefix = "specials"): string {
+  if (specials === undefined) return "";
+  let result = canonicalInt(`${prefix}.mana.max`, specials.mana.max) + canonicalInt(`${prefix}.mana.delay`, specials.mana.regenDelayFrames)
+    + canonicalInt(`${prefix}.mana.framesPerPoint`, specials.mana.framesPerPoint);
+  const kits = [specials.neutral, specials.side, specials.up, specials.down];
+  for (let slot = 0; slot < kits.length; slot++) {
+    const kit = at(kits, slot);
+    const forms = [kit.ground, kit.air, kit.free];
+    for (let form = 0; form < 3; form++) {
+      const move = forms[form];
+      if (move === undefined) continue;
+      const name = `${prefix}.kit[${slot}].form[${form}]`;
+      result += specialMoveCanonical(move, name);
+    }
+  }
+  return result;
+}
+
+function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): string {
+  let result = "";
+  const int = (field: string, value: number) => { result += canonicalInt(`${name}.${field}`, value); };
+  const real = (field: string, value: number) => { result += canonicalRealField(`${name}.${field}`, value); };
+  int("cost", move.cost);
+  int("end", move.endFrame);
+  int("groundOnly", move.groundOnly === true ? 1 : 0);
+  int("oncePerAirtime", move.oncePerAirtime === true ? 1 : 0);
+  int("helpless", move.helpless === true ? 1 : 0);
+  int("landingLag", move.landingLag ?? -1);
+  int("intangible.first", move.intangible?.first ?? -1);
+  int("intangible.last", move.intangible?.last ?? -1);
+  int("armor.first", move.armor?.first ?? -1);
+  int("armor.last", move.armor?.last ?? -1);
+  real("armor.maxDamage", move.armor?.maxDamage ?? 0.0);
+  const motion = move.motion ?? [];
+  for (let index = 0; index < motion.length; index++) {
+    const segment = at(motion, index);
+    int(`motion[${index}].first`, segment.first);
+    int(`motion[${index}].last`, segment.last);
+    real(`motion[${index}].velocityX`, segment.velocityX);
+    real(`motion[${index}].velocityZ`, segment.velocityZ);
+    real(`motion[${index}].aimedSpeed`, segment.aimedSpeed ?? 0.0);
+  }
+  const projectiles = move.projectiles ?? [];
+  for (let index = 0; index < projectiles.length; index++) result += specialProjectileCanonical(at(projectiles, index), `${name}.projectile[${index}]`);
+  const regions = move.regions ?? [];
+  for (let index = 0; index < regions.length; index++) {
+    const region = at(regions, index);
+    const part = `region[${index}]`;
+    int(`${part}.first`, region.firstFrame);
+    int(`${part}.last`, region.lastFrame);
+    real(`${part}.minX`, region.hit.minX);
+    real(`${part}.maxX`, region.hit.maxX);
+    real(`${part}.minZ`, region.hit.minZ);
+    real(`${part}.maxZ`, region.hit.maxZ);
+    const { strike } = region.hit;
+    if (strike !== undefined) {
+      real(`${part}.strike.x1`, strike.x1);
+      real(`${part}.strike.z1`, strike.z1);
+      real(`${part}.strike.x2`, strike.x2);
+      real(`${part}.strike.z2`, strike.z2);
+      real(`${part}.strike.radius`, strike.radius);
+    }
+    result += hitEffectCanonical(region.hit.effect, `${name}.${part}.hit`);
+    if (region.hit.groundedEffect !== undefined) result += hitEffectCanonical(region.hit.groundedEffect, `${name}.${part}.groundedHit`);
+  }
+  return result;
+}
+
 export function canonicalSlot(slot: number | undefined, participantMask: number): number {
   if (slot === undefined) return -1;
   return participantActive(participantMask, slot) ? slot : -2;
@@ -485,6 +584,25 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   real("surfacePhysics.passiveCeilingSpeed", t.surface.passiveCeilingSpeed);
   real("surfacePhysics.wallJumpMinimumApproach", t.surface.wallJumpMinimumApproach);
   bool("surfacePhysics.canWallJump", t.surface.canWallJump);
+  // Hero state is written only where a hero kit or hero projectile exists, so
+  // the original fighters' canonical text is unchanged.
+  emit(fighterSpecialsCanonical(t.specials, `${prefix}.specials`));
+  if (t.specials !== undefined) {
+    int("manaPoints", fighter.mana.points);
+    int("manaSinceSpend", fighter.mana.sinceSpend);
+    int("manaProgress", fighter.mana.progress);
+    int("manaDeniedSerial", v.manaDenied);
+    int("specialForm", sp.form);
+    int("specialAimX", sp.aimX);
+    int("specialAimZ", sp.aimZ);
+    int("specialAirtimeUses", sp.airtimeUses);
+    int("armorFrames", st.armorFrames);
+    real("armorMaxDamage", st.armorMaxDamage);
+  }
+  for (let i = 0; i < PROJECTILE_CAPACITY; i++) {
+    const spec = at(fighter.projectiles, i).spec;
+    if (spec !== undefined) emit(specialProjectileCanonical(spec, `${prefix}.projectileSpec[${i}]`));
+  }
 }
 
 function writeState(emit: Emit, state: Readonly<ReplayState>): void {
