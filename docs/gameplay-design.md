@@ -210,12 +210,13 @@ The 540-match `--policy cpu` soak checks this behaviour: departures,
 self-destructs, time-outs and the moves that landed
 (smashcraft:ts/scripts/soakOutcomes.ts summarizes them).
 
-## Open questions for the owner
+## Execution and reaction windows (#69)
 
-Proposed lower and upper bounds for each execution and reaction window type.
-They are proposals, not decisions; the evidence for each is in
-[execution windows](design/execution-windows.md). Accepted bounds move up into
-this document as decisions and become oracle or interaction-graph checks.
+Adopted 6 Oct 2026 under the owner's instruction to carry out the proposed
+recommendations. These are delegated design choices, not quotations from the
+owner. Evidence and its limitations are in
+[execution windows](design/execution-windows.md). Bounds are design constraints,
+not claims that these timings guarantee human reaction on every setup.
 
 | Window type | Lower | Upper | Today |
 |---|---|---|---|
@@ -231,6 +232,25 @@ this document as decisions and become oracle or interaction-graph checks.
 | Ledge regrab lock | 30 | 60 | 30 |
 | Any required precision input with no aid | 3 | n/a | L-cancel removed |
 
+The reaction figures are authoring targets: at least 15 frames from the first
+visible cue for one response, about 25 for four choices. The latter is a chosen
+budget, not a measured Hick coefficient or a hard maximum on readable cues.
+Required links and unaided precision inputs need at least 3 accepted frames;
+there is no mandatory one-frame input in ordinary play. Optional optimizations
+may be tighter. A powershield is such an optional reward, not required defence.
+Longer delays need a stated gameplay reason rather than automatic rejection.
+The 20-frame tech-lockout floor and 60-frame regrab ceiling are chosen bounds,
+not empirical limits.
+
+The oracle checks the shipped tech, lockout, attack buffer, jump squat and
+short-hop release, parry, powershield and ledge windows against these ranges.
+Interaction timing checks apply the reaction, required-link and precision
+rules to authored situations. No current move is designated a required link
+or guaranteed reaction option; the graph's existence of a punish is not a
+claim that a human can react to it.
+
+## Open questions for the owner
+
 Mechanic-level questions drawn from other games (parry, air dodge, rage, short-hop input, ledge rules and others) are listed at the end of [modern platform fighters](design/modern-platform-fighters.md). Questions raised by fighting-game and platform-fighter design language (hurtbox extension, disjoints, counter hits, shield geometry, whiff penalties, DI strength, launchers and others) are listed at the end of [fighting games](design/fighting-games.md) and [platform fighters](design/platform-fighters.md).
 
 Stage questions (the flat stage, moving platforms, hazards, blast zones and the stage list) are at the end of [stages](design/stages.md#open-design-questions-for-the-owner).
@@ -244,12 +264,11 @@ recovery or an earlier defender response
 (smashcraft:docs/move-comparisons.md). Whether it is a design rule for
 Smashcraft's moves is open.
 
-### Legible locked states (#68)
+## Legible locked states (#68)
 
 No false agency asks that a fighter who can't get out knows it. The agency
 analysis (smashcraft:docs/typescript.md, "Victim agency") sorts every frame
-a fighter is under the other's control into three states, and the open
-questions are how each state shows and exactly when it starts and ends.
+a fighter is under the other's control into three states.
 
 - **Locked, nothing matters**: no input changes anything. Measured on 6
   October: a grab thrown at once (5 to 51 frames from the grab until the
@@ -276,29 +295,24 @@ and in Training Mode a blue glow while intangible and green while invincible;
 from Brawl on, a stunned fighter plays a recovery animation as its stun ends
 ([SmashWiki, stun](https://www.ssbwiki.com/Stun); [SmashWiki, Training Mode](https://www.ssbwiki.com/Training_Mode)).
 
-Questions, each with options:
+Adopted 6 Oct 2026 under the owner's blanket authorization to carry out the
+recommendations; these are delegated choices, not quoted owner answers:
 
-1. Which states show: (a) all three; (b) the two locked states, "can act"
-   being the unmarked default; (c) only the moment control returns.
-2. How: (a) a tint or outline on the locked fighter, one for "nothing
-   matters" and another for "only DI"; (b) an effect on the fighter, such as
-   a ring or chains, that breaks when control returns; (c) a sound as a lock
-   begins or as control returns; (d) a hit counter that counts only hits the
-   victim couldn't act between, shown to both players; (e) in practice only,
-   a frame meter of the victim's three states as the analysis computes them.
-3. Who sees it: both players, or only the locked one.
-4. When "locked" ends: (a) on the first frame a button would change the
-   outcome, which is up to 6 frames (buffer) or 20 (tech) before the fighter
-   moves; (b) on the first frame the fighter can start an action, with the
-   tech window as its own cue; (c) as (b) without a tech cue.
-5. The DI-only frames last 1-9 frames: show them (a) frame by frame, (b) for
-   the whole hitlag, or (c) not apart from "nothing matters".
-6. What computes it in a match: the analysis replays some thirty inputs per
-   frame and is a test-time check. A live signal would follow a rule over the
-   fighter's state (hitlag, hitstun, a hold, a freeze, a forced stand, the
-   tech window) that the sweep checks against the analysis. (a) Accept such a
-   rule; (b) precompute each move's stretch from the sweep; (c) leave live
-   signals out and give only the practice meter.
+- Mark the two locked states; "you can act" is the unmarked default.
+- Use distinct fighter tints or outlines for "nothing matters" and "only DI".
+  Both players see the same distinction. Choose the final colours during the
+  visual implementation so they remain readable on every fighter.
+- Remove the locked signal on the first frame an input can change the outcome,
+  including a buffered button or a tech press before movement resumes.
+- Show DI-only frames accurately, including the one-frame throw release;
+  do not stretch the signal across frames where DI no longer changes anything.
+- Compute the live signal with a cheap rule over current fighter state
+  (hitlag, hitstun, grab, freeze, forced stand, buffer and tech eligibility).
+  Validate it against the existing replay-based agency analysis before shipping.
+
+Implementing and observing these signals is a separate follow-up to #68's
+completed detector and design proposal. The analysis is the validation oracle,
+not a thirty-input replay workload to run for every fighter during a match.
 
 Two measured patterns already run against the principle and are filed for
 a decision: the Rifleman's trap can freeze a fighter again as each freeze
