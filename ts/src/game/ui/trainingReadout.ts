@@ -4,6 +4,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { type TrainingState, copyTrainingState, createTrainingState } from "../match/trainingState";
 import { trainingReadout } from "../shell/messages";
 import { MENU_FONT, createText, gameUi, placeTopLeft } from "./frames";
+import { TRAINING_READOUT_BOX } from "./hudLayout";
 
 export class TrainingReadout {
   private readonly label: framehandle;
@@ -13,8 +14,8 @@ export class TrainingReadout {
 
   constructor() {
     this.label = createText("TrainingReadout", gameUi(), 891);
-    placeTopLeft(this.label, f32(0.02), f32(0.55));
-    BlzFrameSetSize(this.label, f32(0.4), f32(0.06));
+    placeTopLeft(this.label, TRAINING_READOUT_BOX.left, TRAINING_READOUT_BOX.top);
+    BlzFrameSetSize(this.label, TRAINING_READOUT_BOX.width, TRAINING_READOUT_BOX.height);
     BlzFrameSetFont(this.label, MENU_FONT, f32(0.011), 1);
     BlzFrameSetTextAlignment(this.label, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT);
     BlzFrameSetEnable(this.label, false);

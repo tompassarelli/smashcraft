@@ -2,6 +2,7 @@
 // and the camera. Everything here is presentation; with predicted
 // presentation, persistent visuals follow the speculative match and event
 // effects, audio, results and HUD follow the confirmed one.
+import { MATCH_HELP_BOX, MATCH_NOTICE_BOX } from "../../game/ui/hudLayout";
 import { CryDecision, createCryGate, cryStandIn, gateCry } from "../../game/presentation/hurtVoice";
 import { deckModel } from "../../game/presentation/stagePreload";
 import { f32 } from "wisp/src/sim/f32";
@@ -61,8 +62,8 @@ function frameText(name: string, x: number, y: number, width: number, height: nu
 
 export function createStatusFrames(build: Readonly<MapBuild>): StatusFrames {
   return {
-    help: frameText("MeleeHelp", f32(0.06), f32(0.54), f32(0.58), f32(0.055), f32(0.01)),
-    notice: frameText("MeleeNotice", f32(0.26), f32(0.47), f32(0.42), f32(0.07), f32(0.019)),
+    help: frameText("MeleeHelp", MATCH_HELP_BOX.left, MATCH_HELP_BOX.top, MATCH_HELP_BOX.width, MATCH_HELP_BOX.height, f32(0.01)),
+    notice: frameText("MeleeNotice", MATCH_NOTICE_BOX.left, MATCH_NOTICE_BOX.top, MATCH_NOTICE_BOX.width, MATCH_NOTICE_BOX.height, f32(0.019)),
     developer: build.devConsole ? frameText("MeleeDeveloper", f32(0.06), f32(0.012), f32(0.72), f32(0.01), f32(0.007)) : undefined,
   };
 }
