@@ -63,12 +63,32 @@ export function nextSelectableCharacter(current: number | undefined, direction: 
   return SELECTABLE_CHARACTERS[floorMod(index + direction, count)] ?? Character.archer;
 }
 
-const ORIGINAL_ART = ["Archer", "Rifleman", "DemonHunter"] as const;
+/**
+ * The fighters with rendered portraits (tools/selection/render-fighters.ts);
+ * the map imports each one's tile and card. A fighter missing here shows its
+ * Warcraft command icon.
+ */
+export const RENDERED_FIGHTERS: readonly Character[] = [
+  Character.archer, Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing, Character.warden,
+  Character.lich, Character.uther, Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster,
+];
 
-/** The fighter's portrait texture: a hero's own, or an original fighter's imported tile or portrait art. */
+/** The name a fighter's rendered portraits are filed under: "MountainKing". */
+export const fighterRenderName = (character: number): string => fighterName(character).split(" ").join("");
+
+/** The fighter's portrait texture: its rendered grid tile or card, or its hero's command icon. */
 export function fighterPortrait(character: number, tile: boolean): string {
-  const hero = heroDefinition(character);
-  return hero === undefined ? `war3mapImported\\${ORIGINAL_ART[character] ?? "Archer"}${tile ? "Tile" : "Portrait"}.tga` : hero.presentation.portrait;
+  for (const rendered of RENDERED_FIGHTERS) {
+    if (rendered === character) return `war3mapImported\\Fighter${tile ? "Tile" : "Card"}${fighterRenderName(character)}.tga`;
+  }
+  return fighterIcon(character);
+}
+
+const ORIGINAL_ICONS = ["BTNArcher", "BTNRifleman", "BTNHeroDemonHunter"] as const;
+
+/** The fighter's Warcraft command icon. */
+export function fighterIcon(character: number): string {
+  return heroDefinition(character)?.presentation.portrait ?? `ReplaceableTextures\\CommandButtons\\${ORIGINAL_ICONS[character] ?? "BTNArcher"}.blp`;
 }
 
 const ORIGINAL_SLUGS = ["archer", "rifleman", "illidan"] as const;

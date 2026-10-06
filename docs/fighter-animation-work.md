@@ -665,11 +665,12 @@ Blender step as `blender --background --python-exit-code 1 --python FILE`:
 5. `bun tools/animations/package-illidan.ts` encodes the model and regenerates
    smashcraft:ts/src/game/presentation/demonHunterAssetInfo.ts.
 
-smashcraft:tools/animations/build-portraits.sh renders the Archer and Rifleman
-portraits and tiles, and smashcraft:tools/selection/build-art.sh renders the
-selection and HUD textures from smashcraft:tools/selection/art/. Both write
-smashcraft:build/selection-assets/, which the map build imports from its
-`--assets` directory.
+smashcraft:tools/selection/render-fighters.ts renders every fighter's grid tile
+and card portrait into `ASSETS/fighter-renders/`
+(smashcraft:docs/design/fighter-portraits.md), and
+smashcraft:tools/selection/build-art.sh renders the selection and HUD textures
+from smashcraft:tools/selection/art/ into smashcraft:build/selection-assets/.
+The map build imports both from its `--assets` directory.
 
 ## Build and play the first authored jab
 

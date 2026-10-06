@@ -4,6 +4,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { createBackdrop, createText, consoleUi, MENU_FONT } from "./frames";
 import { Character } from "../sim/codes";
 import { fighterPortrait } from "../sim/heroes/registry";
+import { OFFSCREEN_PORTRAIT } from "./portraitFrames";
 
 function bubblePosition(column: number, row: number): { readonly column: number; readonly row: number; readonly arrow: string } {
   const dx = column - 0.5;
@@ -26,7 +27,7 @@ export class OffscreenBubble {
     const parent = consoleUi();
     this.portrait = createBackdrop(`OffscreenPortrait${I2S(slot)}`, parent, 920 + slot * 2);
     this.arrow = createText(`OffscreenArrow${I2S(slot)}`, parent, 921 + slot * 2);
-    BlzFrameSetSize(this.portrait, f32(0.046), f32(0.046));
+    BlzFrameSetSize(this.portrait, OFFSCREEN_PORTRAIT, OFFSCREEN_PORTRAIT);
     BlzFrameSetSize(this.arrow, f32(0.027), f32(0.027));
     BlzFrameSetFont(this.arrow, MENU_FONT, f32(0.021), 0);
     for (const frame of [this.portrait, this.arrow]) {
@@ -45,7 +46,7 @@ export class OffscreenBubble {
     if (!visible) return;
     if (this.character !== character) {
       this.character = character;
-      BlzFrameSetTexture(this.portrait, fighterPortrait(character, false), 0, true);
+      BlzFrameSetTexture(this.portrait, fighterPortrait(character, true), 0, true);
     }
     const position = bubblePosition(column, row);
     const x = f32(0.4) + (position.column - 0.5) * aspect * f32(0.6);

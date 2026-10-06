@@ -4,6 +4,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { idiv, imod } from "wisp/src/sim/intMath";
 import { Character } from "../sim/codes";
 import { fighterName, fighterPortrait } from "../sim/heroes/registry";
+import { HUD_PORTRAIT } from "./portraitFrames";
 import { MENU_FONT, createBackdrop, createText, gameUi, placeTopLeft } from "./frames";
 
 const STOCK_ICONS = 9;
@@ -77,7 +78,7 @@ export class FighterHud {
     BlzFrameSetTexture(this.plate, `war3mapImported\\MatchHUD${suffix}.tga`, 0, true);
     BlzFrameSetEnable(this.plate, false);
     this.portrait = createBackdrop(`FighterHUDPortrait${suffix}`, parent, context + 1);
-    BlzFrameSetSize(this.portrait, f32(0.117), f32(0.117));
+    BlzFrameSetSize(this.portrait, HUD_PORTRAIT, HUD_PORTRAIT);
     BlzFrameSetEnable(this.portrait, false);
     this.damage = BlzCreateFrame("SmashcraftDamage", parent, 0, context + 2);
     BlzFrameSetTextAlignment(this.damage, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT);

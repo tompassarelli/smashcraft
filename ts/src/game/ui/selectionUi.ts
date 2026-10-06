@@ -43,6 +43,7 @@ import {
   partnerTechSetting, stockSetting, timeSetting, trainingSetting, trainingSpeedSetting,
 } from "../shell/messages";
 import { Character } from "../sim/codes";
+import { CARD_PORTRAIT, TILE_PORTRAIT_SLOT, tilePortrait } from "./portraitFrames";
 import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
 
 /** What a participant's panel asks the game to do; each call comes from a synchronized event. */
@@ -188,7 +189,9 @@ export class SelectionPanel {
       const y = f32(top);
       const name = `${suffix}_${I2S(choice)}`;
       art(root, `MeleeTile${name}`, "war3mapImported\\SelectionTileFrame.tga", x, y, f32(grid.cellWidth), f32(grid.cellHeight));
-      art(root, `MeleeTilePortrait${name}`, portraitTexture(SELECTABLE_CHARACTERS[choice], true), x + f32(0.0125) * scale, y - f32(0.013) * scale, f32(0.087) * scale, f32(0.087) * scale);
+      const portrait = tilePortrait(scale);
+      const inset = (TILE_PORTRAIT_SLOT * scale - portrait) / 2;
+      art(root, `MeleeTilePortrait${name}`, portraitTexture(SELECTABLE_CHARACTERS[choice], true), x + f32(0.0125) * scale + inset, y - f32(0.013) * scale - inset, portrait, portrait);
       BlzFrameSetText(label(root, `MeleeTileName${name}`, x + f32(0.004) * scale, y - f32(0.108) * scale, f32(0.103) * scale, f32(0.018) * scale, f32(0.011) * scale), nameText(SELECTABLE_CHARACTERS[choice]));
     }
     this.cards = PARTICIPANT_SLOTS.map((slot) => {
@@ -199,7 +202,7 @@ export class SelectionPanel {
       const mode = this.clicks.add(hotspot(root, x + f32(0.014), f32(0.27), f32(0.132), f32(0.027)), { kind: "mode", slot });
       BlzFrameSetLevel(mode, 1);
       BlzFrameSetLevel(tag, 2);
-      const portrait = art(root, `MeleePortrait${name}`, portraitTexture(Character.archer, false), x + f32(0.019), f32(0.245), f32(0.122), f32(0.122));
+      const portrait = art(root, `MeleePortrait${name}`, portraitTexture(Character.archer, false), x + (f32(0.16) - CARD_PORTRAIT) / 2, f32(0.245), CARD_PORTRAIT, CARD_PORTRAIT);
       const name_ = label(root, `MeleeName${name}`, x + f32(0.008), f32(0.116), f32(0.144), f32(0.02), f32(0.014));
       const status = label(root, `MeleeStatus${name}`, x + f32(0.014), f32(0.093), f32(0.132), f32(0.014), f32(0.011));
       const chip = art(root, `MeleeChip${name}`, `war3mapImported\\SelectionChipP${I2S(slot + 1)}.tga`, x + f32(0.06), f32(0.2), f32(0.04), f32(0.04));
