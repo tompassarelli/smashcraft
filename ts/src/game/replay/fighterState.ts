@@ -321,6 +321,9 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   status.conditionGroup = sourceStatus.conditionGroup;
   status.conditionImmunityFrames = sourceStatus.conditionImmunityFrames;
   for (let i = 0; i < HERO_STATUS_GROUPS; i++) status.conditionImmunity[i] = sourceStatus.conditionImmunity[i] ?? 0;
+  status.poisonFrames = sourceStatus.poisonFrames;
+  status.poisonEvery = sourceStatus.poisonEvery;
+  status.poisonDamage = sourceStatus.poisonDamage;
 
   const mana = target.mana;
   const sourceMana = source.mana;

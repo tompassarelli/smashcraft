@@ -278,3 +278,41 @@ test("Blink cannot start from an attack's recovery", () => {
     assertEquals(warden.mana.points, 100);
   }
 });
+
+test("Shadow Strike poisons a body hit for three 1-damage ticks over 90 frames without flinching, refreshed not stacked", () => {
+  const { world, warden, target } = pair(0.0, 260.0);
+  frame(world, neutralB);
+  let hitFrame = 0;
+  for (let f = 2; f <= 60 && hitFrame === 0; f++) {
+    frame(world);
+    if (target.status.damage > 0.0) hitFrame = f;
+  }
+  assertGreaterThan(hitFrame, 0);
+  assertEquals(target.status.damage, 5.0);
+  assertEquals(target.status.poisonFrames > 0, true);
+  const ticks: number[] = [];
+  for (let f = 1; f <= 100; f++) {
+    const before = target.status.damage;
+    frame(world);
+    if (target.status.damage !== before) {
+      ticks.push(f);
+      // A tick changes damage only: no new hitstun or hitlag.
+      assertEquals(target.launch.hitlag, 0);
+    }
+  }
+  assertEquals(target.status.damage, 8.0);
+  assertEquals(ticks.length, 3);
+  assertEquals(ticks[1]! - ticks[0]!, 30);
+  assertEquals(ticks[2]! - ticks[1]!, 30);
+  assertEquals(target.status.poisonFrames, 0);
+  assertEquals(warden.status.damage, 0.0);
+});
+
+test("a shielded Shadow Strike applies no poison", () => {
+  const { world, target } = pair(0.0, 260.0);
+  const guard = controls({ shield: true });
+  frame(world, neutralB, guard);
+  for (let f = 2; f <= 60; f++) frame(world, controls(), guard);
+  assertEquals(target.status.damage, 0.0);
+  assertEquals(target.status.poisonFrames, 0);
+});

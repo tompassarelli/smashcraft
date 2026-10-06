@@ -203,6 +203,9 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("conditionGroup", e.status.conditionGroup, a.status.conditionGroup);
   add("conditionImmunityFrames", e.status.conditionImmunityFrames, a.status.conditionImmunityFrames);
   for (let i = 0; i < HERO_STATUS_GROUPS; i++) add(`conditionImmunity[${i}]`, e.status.conditionImmunity[i] ?? 0, a.status.conditionImmunity[i] ?? 0);
+  add("poisonFrames", e.status.poisonFrames, a.status.poisonFrames);
+  add("poisonEvery", e.status.poisonEvery, a.status.poisonEvery);
+  add("poisonDamage", e.status.poisonDamage, a.status.poisonDamage);
   add("manaPoints", e.mana.points, a.mana.points);
   add("manaSinceSpend", e.mana.sinceSpend, a.mana.sinceSpend);
   add("manaProgress", e.mana.progress, a.mana.progress);
