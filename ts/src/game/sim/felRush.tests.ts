@@ -41,8 +41,8 @@ interface Duel {
    */
   drained: number;
   /** One match frame with these controls for Illidan and the target; returns the frame number. */
-  step(first?: Readonly<Controls>, second?: Readonly<Controls>): number;
-  run(frames: number, first?: Readonly<Controls>, second?: Readonly<Controls>): void;
+  readonly step: (this: void, first?: Readonly<Controls>, second?: Readonly<Controls>) => number;
+  readonly run: (this: void, frames: number, first?: Readonly<Controls>, second?: Readonly<Controls>) => void;
 }
 
 /** Illidan at 0 facing right and an Archer `gap` ahead facing him, both standing on the main deck. */
@@ -113,7 +113,7 @@ test("Fel Rush in the air: level through the rush, once per airtime, never helpl
   d.step(sideB(1));
   const height = d.illidan.motion.z;
   d.run(14);
-  assertTrue(Math.abs(f32(d.illidan.motion.z - height)) < 0.01);
+  assertTrue(Math.abs(f32(d.illidan.motion.z - height)) < f32(0.01));
   d.run(FEL_RUSH_FRAMES - 15 + 1 + 40);
   assertFalse(d.illidan.special.fall);
   if (!d.illidan.motion.grounded) {
