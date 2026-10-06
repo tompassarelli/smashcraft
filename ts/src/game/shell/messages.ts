@@ -58,3 +58,6 @@ export function matchHelp(game: Readonly<MatchState>, paused: boolean, start: St
   if (paused) return `PAUSED — Press ${start} to resume. Combat is frozen.`;
   return `${start}: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nHold Shield on the ground, then tap Left/Right to roll or Down to dodge.`;
 }
+
+/** Shown to the player who saved the last seconds of play for a bug report. */
+export const MOMENT_SAVED_MESSAGE = "Moment saved";

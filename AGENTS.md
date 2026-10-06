@@ -85,6 +85,9 @@ code. From smashcraft:ts/:
   `--rebuild` replaces the map script first.
 - Client driver: `bun wisp client look|read|click|keys CLIENT ...` reads and
   drives a client. Session values live in ~/.local/state/smashcraft/clients.json.
+- Repro: `bun wisp repro FILE [--test NAME]` replays a moment a player saved
+  with F8 (or View held on a controller) in simulated clients, to the checksum
+  the game recorded; `--test NAME` writes a test that replays it.
 - Headless match: `bun wisp headless [quick-match|desync] [--clients N]` plays
   the dev build's quick match in simulated clients in about a second and prints
   desyncs, error reports and scene problems.

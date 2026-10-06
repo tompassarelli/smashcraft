@@ -156,6 +156,39 @@ integrity and playable builds' predicted presentation local, for the
 integrity capture and the tests of a player whose controller input is
 missing (missing-input) or stops (input-stall).
 
+A player who sees something wrong saves the moment
+([Wisp repros](https://github.com/tompassarelli/wisp/blob/main/docs/repro.md)):
+F8 in every build, or View held for a second on a controller, which the
+companion helper types into the journal's edit box as `JM1` and the epoch. Every
+client keeps the last ten to twelve seconds of its confirmed match
+(smashcraft:ts/src/game/replay/moment.ts): a snapshot every 120 frames, six in
+all, and each human's input row for every frame since the oldest. The asking
+player's client alone saves the latest snapshot at least 600 frames back,
+every row since and the checksums of the end, the start and each later
+snapshot, as `smashcraft-repro-p<slot>-f<frame>-<n>.txt` in CustomMapData,
+then shows "Moment saved". The shell changes the confirmed match between
+frames only where a callback pause, a binding change or the match's end clears
+attack buffers, a player leaves, or practice ends: the record keeps the match
+as the last frame left it, so a moment ends there, and the next frame starts a
+new record.
+`bun wisp repro FILE` restores the snapshot and runs every row through the
+frame executor the build ran (rollback builds as stepConfirmed runs accepted
+rows, the development build as callbackMatchTick adapts keys and its
+scenario's computers choose) in two simulated clients, to the recorded
+checksum; `--test NAME` writes src/game/replay/repros/NAME.tests.ts, which
+replays it in Bun and 32-bit Lua. smashcraft:ts/test/repro.test.ts saves
+moments in headless development and playable matches, and
+smashcraft:ts/src/game/replay/moment.tests.ts round-trips them in Lua32.
+
+Measured in 32-bit Lua with two fighters (6 October 2026; Warcraft's own Lua
+ran the frame-cost workload at 299 µs a frame, evidence/native-frame-cost-20261005,
+and this interpreter ran the moment benchmark's match at 314 µs): keeping the
+record costs about 4 µs a frame, a snapshot 0.16–0.30 ms every 120 frames, and
+the larger heap about 10–15 µs a frame of collection. A save spreads its work
+over eight frames: 3.4 ms when it begins (copies of the snapshot and the
+match, and the rows), then one 6.5–8.6 ms step a frame (a checksum each, then
+the snapshot's text). The file is about 36 KB.
+
 `bun wisp parity headless --helper BIN --out DIR` runs issue #26's capture
 without Warcraft (smashcraft:ts/scripts/integrity/headless.ts): the
 integrity build's TypeScript in two headless clients at 60 frames a second of

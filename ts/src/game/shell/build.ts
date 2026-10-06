@@ -25,7 +25,11 @@ export type ShadowInputMode = Exclude<InputMode, { kind: "callback" }>;
 /** native: the fighter unit animates; pool: clip models, from confirmed or predicted state. */
 type PresentationProfile = "native" | "pool-confirmed" | "pool-predicted";
 
-export type Scenario = "normal" | "knockdown" | "tech" | "shield-break" | "ledge" | "parry" | "spike" | "ko";
+const SCENARIOS = ["normal", "knockdown", "tech", "shield-break", "ledge", "parry", "spike", "ko"] as const;
+
+export type Scenario = (typeof SCENARIOS)[number];
+
+export const isScenario = (name: string): name is Scenario => SCENARIOS.some(scenario => scenario === name);
 
 export interface MapBuild {
   /** Names every file the map and the helper exchange. */
