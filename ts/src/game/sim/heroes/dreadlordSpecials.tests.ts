@@ -171,11 +171,12 @@ function ascend(points: number, stickSide: number): { rise: number; across: numb
   owner.mana.points = points;
   const startX = owner.motion.x;
   const startZ = owner.motion.z;
+  // Steering starts with the rise on frame 9; each motion frame's velocity moves the next frame.
   const held = controls({ direction: stickSide });
-  frame(world, controls({ ...up, direction: stickSide }));
+  frame(world, up);
   let top = startZ;
-  for (let f = 2; f <= 32; f++) {
-    frame(world, held);
+  for (let f = 2; f <= 33; f++) {
+    frame(world, f >= 9 ? held : controls());
     top = Math.max(top, owner.motion.z);
   }
   return { rise: top - startZ, across: owner.motion.x - startX, owner };
