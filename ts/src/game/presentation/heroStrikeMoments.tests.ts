@@ -8,6 +8,9 @@ import { HERO_ROSTER } from "../sim/heroes/registry";
 import { FRAME_SECONDS, strikeAlignedRate } from "./fighterPose";
 import { attackPose, clipFor, ownAttackClip } from "./fighterClips";
 import { HERO_STRIKE_MOMENTS } from "./heroStrikeMomentInfo";
+import { SPECIAL_KEY } from "./heroStrikeMomentKeys";
+import { SPECIAL_SLOTS } from "./projectileArt";
+import { heroCueWindows } from "./specialCues";
 
 test("a measured hero swing reaches its strike on the first active frame", () => {
   let aligned = 0;
@@ -31,4 +34,24 @@ test("a measured hero swing reaches its strike on the first active frame", () =>
     }
   }
   assertTrue(aligned >= 60);
+});
+
+test("every measured hero special strikes on its first active frame", () => {
+  let aligned = 0;
+  for (const hero of HERO_ROSTER) {
+    const specials = hero.specials;
+    if (specials === undefined) continue;
+    SPECIAL_SLOTS.forEach((slot, index) => {
+      const moment = HERO_STRIKE_MOMENTS[hero.character]?.[SPECIAL_KEY + index];
+      if (moment === undefined) return;
+      const move = specials[slot].ground;
+      const { active } = heroCueWindows(move, 1);
+      const startup = active.first - 1;
+      const rate = strikeAlignedRate(hero.character, SPECIAL_KEY + index, clipFor(hero.character, `${slot}Special`), startup, active.last - active.first + 1, move.endFrame, AttackPhase.startup);
+      if (rate === undefined || rate <= f32(0.36) || rate >= f32(3.99)) return;
+      assertTrue(Math.abs(f32(rate * f32(startup * FRAME_SECONDS)) - moment.seconds) < f32(0.002));
+      aligned++;
+    });
+  }
+  assertTrue(aligned >= 10);
 });
