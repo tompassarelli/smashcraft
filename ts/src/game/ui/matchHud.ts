@@ -3,6 +3,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { idiv, imod } from "wisp/src/sim/intMath";
 import { Character } from "../sim/codes";
+import { fighterName, fighterPortrait } from "../sim/heroes/registry";
 import { MENU_FONT, createBackdrop, createText, gameUi, placeTopLeft } from "./frames";
 import { manaLabel, manaReadout } from "./manaReadout";
 
@@ -32,13 +33,6 @@ export class MatchClock {
   }
 }
 
-function fighterArt(character: number): string {
-  return character === Character.demonHunter ? "DemonHunter" : character === Character.archer ? "Archer" : "Rifleman";
-}
-
-function fighterTitle(character: number): string {
-  return character === Character.demonHunter ? "ILLIDAN" : character === Character.archer ? "ARCHER" : "RIFLEMAN";
-}
 
 /** Damage as Melee shows it, one decimal truncated, tinted by how close a KO is. */
 function damageText(damage: number): string {
@@ -143,10 +137,9 @@ export class FighterHud {
     }
     if (this.shownCharacter !== character) {
       this.shownCharacter = character;
-      const art = fighterArt(character);
-      BlzFrameSetTexture(this.portrait, `war3mapImported\\${art}Portrait.tga`, 0, true);
-      BlzFrameSetText(this.name, fighterTitle(character));
-      for (const icon of this.stocks) BlzFrameSetTexture(icon, `war3mapImported\\${art}Tile.tga`, 0, true);
+      BlzFrameSetTexture(this.portrait, fighterPortrait(character, false), 0, true);
+      BlzFrameSetText(this.name, fighterName(character).toUpperCase());
+      for (const icon of this.stocks) BlzFrameSetTexture(icon, fighterPortrait(character, true), 0, true);
     }
     const shownDamage = damageText(damage);
     if (this.shownDamage !== shownDamage) {

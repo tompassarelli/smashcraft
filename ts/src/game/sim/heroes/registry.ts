@@ -59,6 +59,14 @@ export function nextSelectableCharacter(current: number | undefined, direction: 
   return SELECTABLE_CHARACTERS[floorMod(index + direction, count)] ?? Character.archer;
 }
 
+const ORIGINAL_ART = ["Archer", "Rifleman", "DemonHunter"] as const;
+
+/** The fighter's portrait texture: a hero's own, or an original fighter's imported tile or portrait art. */
+export function fighterPortrait(character: number, tile: boolean): string {
+  const hero = heroDefinition(character);
+  return hero === undefined ? `war3mapImported\\${ORIGINAL_ART[character] ?? "Archer"}${tile ? "Tile" : "Portrait"}.tga` : hero.presentation.portrait;
+}
+
 const ORIGINAL_SLUGS = ["archer", "rifleman", "illidan"] as const;
 
 /** The fighter's name in commands and soak records: "archer", "illidan", "mountain-king". */

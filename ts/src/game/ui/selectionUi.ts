@@ -37,7 +37,7 @@ import {
   updateSelectionDrag,
 } from "../menu/selectionDrag";
 import { cellRect, rosterGrid } from "../menu/selectionGrid";
-import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
+import { SELECTABLE_CHARACTERS, fighterName, fighterPortrait } from "../sim/heroes/registry";
 import { automaticRematchSetting, endlessSetting, stockSetting, timeSetting } from "../shell/messages";
 import { Character } from "../sim/codes";
 import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
@@ -72,12 +72,8 @@ interface CardFrames {
 
 const CARD_COLORS = ["Red", "Blue", "Yellow", "Green"] as const;
 
-function fighterArt(choice: number | undefined): string {
-  return choice === Character.demonHunter ? "DemonHunter" : choice === Character.archer ? "Archer" : "Rifleman";
-}
-
-const nameTexture = (choice: number | undefined) => `war3mapImported\\${fighterArt(choice)}Name.tga`;
-const portraitTexture = (choice: number | undefined, tile: boolean) => `war3mapImported\\${fighterArt(choice)}${tile ? "Tile" : "Portrait"}.tga`;
+const portraitTexture = (choice: number | undefined, tile: boolean) => fighterPortrait(choice ?? Character.archer, tile);
+const nameText = (choice: number | undefined) => fighterName(choice ?? Character.archer).toUpperCase();
 
 function art(parent: framehandle, name: string, texture: string, x: number, y: number, width: number, height: number): framehandle {
   const frame = createBackdrop(name, parent, 0);
@@ -164,7 +160,7 @@ export class SelectionPanel {
       const name = `${suffix}_${I2S(choice)}`;
       art(root, `MeleeTile${name}`, "war3mapImported\\SelectionTileFrame.tga", x, y, f32(grid.cellWidth), f32(grid.cellHeight));
       art(root, `MeleeTilePortrait${name}`, portraitTexture(SELECTABLE_CHARACTERS[choice], true), x + f32(0.0125) * scale, y - f32(0.013) * scale, f32(0.087) * scale, f32(0.087) * scale);
-      art(root, `MeleeTileName${name}`, nameTexture(SELECTABLE_CHARACTERS[choice]), x + f32(0.004) * scale, y - f32(0.108) * scale, f32(0.103) * scale, f32(0.018) * scale);
+      BlzFrameSetText(label(root, `MeleeTileName${name}`, x + f32(0.004) * scale, y - f32(0.108) * scale, f32(0.103) * scale, f32(0.018) * scale, f32(0.011) * scale), nameText(SELECTABLE_CHARACTERS[choice]));
     }
     this.cards = PARTICIPANT_SLOTS.map((slot) => {
       const x = cardX(slot);
@@ -175,11 +171,11 @@ export class SelectionPanel {
       BlzFrameSetLevel(mode, 1);
       BlzFrameSetLevel(tag, 2);
       const portrait = art(root, `MeleePortrait${name}`, portraitTexture(Character.archer, false), x + f32(0.019), f32(0.245), f32(0.122), f32(0.122));
-      const fighterName = art(root, `MeleeName${name}`, nameTexture(Character.archer), x + f32(0.008), f32(0.116), f32(0.144), f32(0.02));
+      const name_ = label(root, `MeleeName${name}`, x + f32(0.008), f32(0.116), f32(0.144), f32(0.02), f32(0.014));
       const status = label(root, `MeleeStatus${name}`, x + f32(0.014), f32(0.093), f32(0.132), f32(0.014), f32(0.011));
       const chip = art(root, `MeleeChip${name}`, `war3mapImported\\SelectionChipP${I2S(slot + 1)}.tga`, x + f32(0.06), f32(0.2), f32(0.04), f32(0.04));
       BlzFrameSetLevel(chip, 10);
-      return { card, tag, mode, portrait, name: fighterName, status, chip };
+      return { card, tag, mode, portrait, name: name_, status, chip };
     });
     art(root, `MeleeConfirmArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.071), f32(0.043), f32(0.235), f32(0.037));
     this.confirm = label(root, `MeleeConfirmLabel${suffix}`, f32(0.079), f32(0.039), f32(0.219), f32(0.028), f32(0.011));
@@ -346,7 +342,7 @@ export class SelectionPanel {
       BlzFrameSetText(frames.status, human && !humanPresent(game, slot) ? "No player" : active && !ready ? "Choose fighter" : `P${I2S(slot + 1)}`);
       if (ready) {
         BlzFrameSetTexture(frames.portrait, portraitTexture(choice, false), 0, true);
-        BlzFrameSetTexture(frames.name, nameTexture(choice), 0, true);
+        BlzFrameSetText(frames.name, nameText(choice));
       }
       BlzFrameSetVisible(frames.chip, active);
       BlzFrameSetTexture(frames.chip, `war3mapImported\\SelectionChip${human ? `P${I2S(slot + 1)}` : "CPU"}.tga`, 0, true);

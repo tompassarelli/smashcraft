@@ -3,6 +3,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { createBackdrop, createText, consoleUi, MENU_FONT } from "./frames";
 import { Character } from "../sim/codes";
+import { fighterPortrait } from "../sim/heroes/registry";
 
 function bubblePosition(column: number, row: number): { readonly column: number; readonly row: number; readonly arrow: string } {
   const dx = column - 0.5;
@@ -44,8 +45,7 @@ export class OffscreenBubble {
     if (!visible) return;
     if (this.character !== character) {
       this.character = character;
-      const art = character === Character.demonHunter ? "DemonHunter" : character === Character.archer ? "Archer" : "Rifleman";
-      BlzFrameSetTexture(this.portrait, `war3mapImported\\${art}Portrait.tga`, 0, true);
+      BlzFrameSetTexture(this.portrait, fighterPortrait(character, false), 0, true);
     }
     const position = bubblePosition(column, row);
     const x = f32(0.4) + (position.column - 0.5) * aspect * f32(0.6);

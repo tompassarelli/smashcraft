@@ -62,10 +62,8 @@ export function startMatch(s: ShellState, scenario: Scenario = s.build.scenario)
     const fighter = fighterAt(s.world, slot);
     participant.pooled = beginFighterRenderers(s, slot, fighter.character, pooled);
     if (!pooled || rollback === undefined) continue;
-    if (!participant.pooled) {
-      setStatus(s, "This fighter can't be played yet. Restart the match and choose another.", LASTING);
-      continue;
-    }
+    // A fighter without a clip pool is drawn by its unit body instead.
+    if (!participant.pooled) continue;
     if (participant.body !== undefined) {
       SetUnitTimeScale(participant.body.unit, 0.0);
       ShowUnit(participant.body.unit, false);
