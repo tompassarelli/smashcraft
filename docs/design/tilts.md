@@ -126,6 +126,8 @@ input is never wasted or surprising.
 | Edge poke | Reaches below the stage's lip. Hits a ledge-hanging or recovering fighter. | Shadow Hunter |
 | Slow space control | Creeping low frost at long range. Late, but long. | Lich |
 | Shared poke | The original table's even 45-degree poke. | Archer |
+| Edge semi-spike | Sends a fighter at the front low and outward. | Pit Lord |
+| Fixed pop-up | The same small pop at every percent. | Beastmaster |
 | Vertical pop-up | Sends the victim straight up at low percent. A combo starter. | Rifleman |
 
 ## Per fighter
@@ -231,6 +233,34 @@ ledge-hanging fighter's body is.
 | Up tilt | 7/5/19 | 7 | 0.80H, above | 80, 95/20 | | Glaive twirl overhead |
 | Down tilt | 7/2/16 | 5 | 1.15H, tip to −0.25H | 30, 70/22 | | Captain Falcon down tilt (an edge tool) |
 
+### Pit Lord: the super-heavy cleaver
+
+Everything is slow and long. His forward tilt falls from above his horns to
+the floor, so it is not angled. His down tilt, Front Hoof, is the edge
+semi-spike: it sends a fighter at his front low and outward, below the
+horizontal. His dash attack is the roster's strongest.
+
+| Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
+| --- | --- | --- | --- | --- | --- | --- |
+| Jab | 7/3/19 | 6 | 0.80H | 35, 75/18 | | Slow haft check |
+| Forward tilt | 13/4/29 | 14 | 1.40H | 35, 100/22 | no | Ganondorf-weight cleave (non-angled arc) |
+| Up tilt | 12/5/27 | 12 | 1.10H arc, up to 1.5H | 85, 95/20 | | Broad overhead arc |
+| Down tilt | 10/3/24 | 10 | 0.80H, below 0.20H | −20, 100/22 | | Captain Falcon down tilt (semi-spike) |
+
+### Beastmaster: axe and bear
+
+His forward tilt is a broad axe stroke, which angles (up 50, down 20). His
+down tilt pops the victim the same height at every percent (no knockback
+growth), so the bear's follow-up holds at any percent. His dash attack heaves
+the victim over his shoulder and behind him.
+
+| Normal | F/A/R | Damage | Reach | Launch | Angled | Inspired by |
+| --- | --- | --- | --- | --- | --- | --- |
+| Jab | 4/2/14 | 4 | 0.55H | 35, 75/18 | | Axe hilt |
+| Forward tilt | 10/3/23 | 11 | 1.10H | 35, 100/22 | up 50, down 20 | Broad axe |
+| Up tilt | 9/4/23 | 9 | 0.80H, up to 1.3H | 85, 95/20 | | Axe over the shoulder |
+| Down tilt | 8/3/22 | 7 | 0.80H, below 0.15H | 80, fixed 45 | | Melee Mario's set-knockback down angle |
+
 ### Archer: the original tables
 
 Archer keeps the shared tables' jab and tilts (smashcraft:ts/src/game/sim/moves.ts,
@@ -283,6 +313,8 @@ Each now has one role:
 | Lich | Hovering low glide | 10/6/22 | 0.80H | 8 | 25, 90/30 | Mewtwo dash attack (slow, lingering) |
 | Archer | Sliding kick, pops up | 6/4/20 | 0.75H | 8 | 70, 55/38 | Fox dash attack (into up air) |
 | Rifleman | Rifle lunge | 9/3/25 | 0.50H | 11 | 40, 95/22 | Falco dash attack |
+| Pit Lord | Kill charge, no armor | 15/6/34 | 0.30H | 16 | 40, 110/26 | Ganondorf and Bowser dash attacks |
+| Beastmaster | Heaves the victim behind him | 11/5/28 | 0.50H | 12 | 135, 95/20 | Ultimate's reverse-launch dash attacks |
 
 ## Animation
 

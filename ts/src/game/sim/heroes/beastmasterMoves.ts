@@ -34,6 +34,7 @@ const ANGLE = {
   70: { x: f32(0.342020143), z: f32(0.939692621) },
   80: { x: f32(0.173648178), z: f32(0.984807753) },
   85: { x: f32(0.087155743), z: f32(0.996194698) },
+  20: { x: f32(0.939692621), z: f32(0.342020143) },
   270: { x: 0.0, z: -1.0 },
 } as const;
 
@@ -73,7 +74,7 @@ const HALF_BOOT = limb(-12.0, 34.0, -45.0, 34.0, 11.0);
 const BEASTMASTER_BODY: FighterHurtboxes = {
   stand: [BODY],
   attacks: {
-    [AttackStyle.jab]: reaching(5, 2, limb(12.0, 60.0, 48.0, 56.0)),
+    [AttackStyle.jab]: reaching(4, 2, limb(12.0, 60.0, 48.0, 56.0)),
     [AttackStyle.forwardTilt]: reaching(10, 3, FORWARD_ARM),
     [AttackStyle.forwardTiltUp]: reaching(10, 3, limb(12.0, 70.0, 58.0, 88.0)),
     [AttackStyle.forwardTiltDown]: reaching(10, 3, limb(12.0, 58.0, 58.0, 38.0)),
@@ -113,14 +114,14 @@ export const BEASTMASTER_MOVES: FighterMoves = {
   hurtboxes: BEASTMASTER_BODY,
   normals: {
     // Axe Hilt: a short hit.
-    [AttackStyle.jab]: heroMove(5, 2, 15, 0, path(5, [
+    [AttackStyle.jab]: heroMove(4, 2, 14, 0, path(4, [
       capsule(18.0, 58.0, f32(S - 9.0), 56.0, 9.0),
       capsule(18.0, 56.0, f32(S - 9.0), 52.0, 9.0),
     ], hit(4.0, "POKE", 35, 1.0, HitElement.normal))),
     // Broad Axe: the axe head is the disjoint.
     [AttackStyle.forwardTilt]: heroMove(10, 3, 23, 0, chop(10, [75.0, 50.0, 28.0], L, hit(11.0, "EDGE", 35))),
-    [AttackStyle.forwardTiltUp]: heroMove(10, 3, 23, 0, chop(10, [115.0, 135.0, 150.0], L, hit(11.0, "EDGE", 35))),
-    [AttackStyle.forwardTiltDown]: heroMove(10, 3, 23, 0, chop(10, [10.0, -10.0, -30.0], L, hit(11.0, "EDGE", 35))),
+    [AttackStyle.forwardTiltUp]: heroMove(10, 3, 23, 0, chop(10, [115.0, 135.0, 150.0], L, hit(11.0, "EDGE", 50))),
+    [AttackStyle.forwardTiltDown]: heroMove(10, 3, 23, 0, chop(10, [10.0, -10.0, -30.0], L, hit(11.0, "EDGE", 20))),
     // Antler Lift: the axe rises above the shoulder.
     [AttackStyle.upTilt]: heroMove(9, 4, 23, 0, path(9, [
       capsule(25.0, 70.0, 55.0, 105.0),
@@ -128,20 +129,22 @@ export const BEASTMASTER_MOVES: FighterMoves = {
       capsule(0.0, 80.0, 0.0, f32(M + 45.0)),
       capsule(-15.0, 80.0, -28.0, f32(M + 35.0)),
     ], hit(9.0, "LAUNCH", 85))),
-    // Low Chop: a short axe sweep at the shins.
-    [AttackStyle.downTilt]: heroMove(8, 3, 20, 0, path(8, [
+    // Low Chop: a short axe sweep at the shins that pops the victim the same
+    // height at every percent (no growth), so the bear's follow-up holds.
+    [AttackStyle.downTilt]: heroMove(8, 3, 22, 0, path(8, [
       capsule(20.0, 16.0, f32(M - AXE_RADIUS), 14.0),
       capsule(20.0, 12.0, f32(M - AXE_RADIUS), 8.0),
       capsule(20.0, 10.0, f32(M - AXE_RADIUS), 4.0),
-    ], hit(7.0, "LINK", 65))),
-    // Hunter's Shoulder: the body advances 0.5H behind the shoulder.
+    ], { ...hit(7.0, "LINK", 80), growth: 0.0, base: 45.0 })),
+    // Hunter's Shoulder: the body advances 0.5H behind the shoulder and heaves
+    // the victim over it, launching it behind him: the chase turns toward his bear.
     [AttackStyle.dashAttack]: heroMove(11, 5, 28, 0, path(11, [
       capsule(10.0, 55.0, f32(M - 22.0), 60.0, 22.0),
       capsule(10.0, 55.0, f32(M - 22.0), 58.0, 22.0),
       capsule(10.0, 54.0, f32(M - 22.0), 56.0, 22.0),
       capsule(10.0, 52.0, f32(M - 24.0), 54.0, 20.0),
       capsule(10.0, 50.0, f32(M - 26.0), 52.0, 18.0),
-    ], hit(12.0, "LAUNCH", 45, 1.0, HitElement.normal)), f32(HERO_REFERENCE_HEIGHT * f32(0.5))),
+    ], hit(12.0, "LAUNCH", 45, -1.0, HitElement.normal)), f32(HERO_REFERENCE_HEIGHT * f32(0.5))),
     // Twin Axe Hew: both axes strike as one action.
     [AttackStyle.forwardSmash]: heroMove(21, 4, 36, 0, chop(21, [120.0, 85.0, 50.0, 20.0], L, hit(20.0, "KILL", 40))),
     // Hunting Horns: twin upward arcs.

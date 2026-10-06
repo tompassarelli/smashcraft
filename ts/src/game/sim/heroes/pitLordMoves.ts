@@ -37,6 +37,8 @@ const ANGLE = {
   80: { x: f32(0.173648178), z: f32(0.984807753) },
   85: { x: f32(0.087155743), z: f32(0.996194698) },
   270: { x: 0.0, z: -1.0 },
+  // Low and outward, below the horizontal: Front Hoof's semi-spike.
+  340: { x: f32(0.939692621), z: f32(-0.342020143) },
 } as const;
 
 export function hit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLE, facing = 1.0, element: HitElement = HitElement.slash): Readonly<HitEffect> {
@@ -80,8 +82,8 @@ const PIT_LORD_BODY: FighterHurtboxes = {
   attacks: {
     [AttackStyle.jab]: reaching(7, 3, limb(20.0, 70.0, 60.0, 65.0)),
     [AttackStyle.forwardTilt]: reaching(13, 4, FORWARD_ARMS),
-    [AttackStyle.forwardTiltUp]: reaching(13, 4, limb(20.0, 85.0, 70.0, 110.0)),
-    [AttackStyle.forwardTiltDown]: reaching(13, 4, limb(20.0, 70.0, 70.0, 45.0)),
+    [AttackStyle.forwardTiltUp]: reaching(13, 4, FORWARD_ARMS),
+    [AttackStyle.forwardTiltDown]: reaching(13, 4, FORWARD_ARMS),
     [AttackStyle.upTilt]: reaching(12, 5, RAISED_ARMS),
     [AttackStyle.downTilt]: reaching(10, 3, HOOF),
     [AttackStyle.dashAttack]: reaching(15, 6, limb(20.0, 50.0, 62.0, 60.0, 20.0)),
@@ -115,6 +117,8 @@ const PIT_LORD_BODY: FighterHurtboxes = {
 
 const NO_LAUNCH = { growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
+const CLEAVING_SWEEP = heroMove(13, 4, 29, 0, cleave(13, [150.0, 100.0, 50.0, 10.0], XL, hit(14.0, "EDGE", 35)));
+
 export const PIT_LORD_MOVES: FighterMoves = {
   dashAttack: AttackStyle.dashAttack,
   smashMaxChargeFrames: 45,
@@ -128,10 +132,12 @@ export const PIT_LORD_MOVES: FighterMoves = {
       capsule(30.0, 60.0, f32(M - 12.0), 58.0, 12.0),
       capsule(30.0, 56.0, f32(M - 16.0), 52.0, 12.0),
     ], hit(6.0, "POKE", 35, 1.0, HitElement.normal))),
-    // Cleaving Sweep: the main space claim; only the blade is disjoint.
-    [AttackStyle.forwardTilt]: heroMove(13, 4, 29, 0, cleave(13, [110.0, 80.0, 50.0, 25.0], XL, hit(14.0, "EDGE", 35))),
-    [AttackStyle.forwardTiltUp]: heroMove(13, 4, 29, 0, cleave(13, [150.0, 175.0, 195.0, 205.0], XL, hit(14.0, "EDGE", 35))),
-    [AttackStyle.forwardTiltDown]: heroMove(13, 4, 29, 0, cleave(13, [20.0, 0.0, -20.0, -35.0], XL, hit(14.0, "EDGE", 35))),
+    // Cleaving Sweep: the main space claim; only the blade is disjoint. It falls
+    // from over his horns to the floor, so every stick angle plays it
+    // (smashcraft:docs/design/tilts.md, Ultimate's angling rule).
+    [AttackStyle.forwardTilt]: CLEAVING_SWEEP,
+    [AttackStyle.forwardTiltUp]: CLEAVING_SWEEP,
+    [AttackStyle.forwardTiltDown]: CLEAVING_SWEEP,
     // Horn and Cleaver: a broad overhead arc whose low front is weak.
     [AttackStyle.upTilt]: heroMove(12, 5, 27, 0, path(12, [
       capsule(50.0, 110.0, 100.0, 150.0),
@@ -144,8 +150,9 @@ export const PIT_LORD_MOVES: FighterMoves = {
       capsule(30.0, 22.0, f32(M - 14.0), 14.0, 14.0),
       capsule(30.0, 18.0, f32(M - 14.0), 8.0, 14.0),
       capsule(30.0, 14.0, f32(M - 14.0), 4.0, 14.0),
-    ], hit(9.0, "LINK", 65, 1.0, HitElement.normal))),
-    // Demonic Bulk: a body charge with no armor.
+    // Front Hoof: a semi-spike that sends a fighter at the edge low and outward.
+    ], hit(10.0, "EDGE", 340, 1.0, HitElement.normal))),
+    // Demonic Bulk: a body charge with no armor, the roster's strongest dash attack.
     [AttackStyle.dashAttack]: heroMove(15, 6, 34, 0, path(15, [
       capsule(20.0, 60.0, f32(L - 30.0), 60.0, 30.0),
       capsule(20.0, 60.0, f32(L - 30.0), 58.0, 30.0),
@@ -153,7 +160,7 @@ export const PIT_LORD_MOVES: FighterMoves = {
       capsule(20.0, 56.0, f32(L - 32.0), 54.0, 28.0),
       capsule(20.0, 54.0, f32(L - 34.0), 52.0, 26.0),
       capsule(20.0, 52.0, f32(L - 36.0), 50.0, 24.0),
-    ], hit(16.0, "EDGE", 40, 1.0, HitElement.normal)), 40.0),
+    ], hit(16.0, "KILL", 40, 1.0, HitElement.normal)), 40.0),
     // Annihilating Cleave: the cleaver's head is the sweetspot; the inner blade is listed first only after it.
     [AttackStyle.forwardSmash]: heroMove(27, 4, 43, 0, [
       ...[150.0, 100.0, 50.0, 10.0].map((z, index) => heroRegion(27 + index, 27 + index,

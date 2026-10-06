@@ -15,6 +15,7 @@ import { attackDurationFramesForGrounding, attackStartupFrames, characterAttackA
 import { type Roster, copyControls, createRoster, fighterAt, neutralControls } from "../sim/roster";
 import { SHIELD_MIN_HOLD_FRAMES } from "../sim/shield";
 import { authoredTuning } from "../sim/tuning";
+import { ordinaryHitKnockback } from "../sim/knockback";
 import { controls } from "../sim/testWorld";
 import { type FrameControls, createBufferedFrameControls } from "./controls";
 import { type MatchState, Phase, createMatchState } from "./rules";
@@ -23,12 +24,13 @@ import { stepMatch } from "./step";
 /** Fighters whose ground normals tilts.md designs; Illidan's belong to his own kit. */
 const DESIGNED: readonly Character[] = [
   Character.archer, Character.rifleman, Character.blademaster, Character.mountainKing, Character.warden, Character.lich, Character.uther, Character.dreadlord, Character.shadowHunter,
+  Character.pitLord, Character.beastmaster,
 ];
 const GROUND = [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack] as const;
 /** Forward airs that outreach the forward tilt on purpose (tilts.md, "Reach versus aerials"). */
 const LONGER_AERIAL: readonly Character[] = [Character.lich, Character.dreadlord, Character.archer];
 /** Forward tilts that sweep vertical ground, so a diagonal input plays the plain tilt. */
-const UNANGLED: readonly Character[] = [Character.blademaster, Character.uther];
+const UNANGLED: readonly Character[] = [Character.blademaster, Character.uther, Character.pitLord];
 
 const movesOf = (character: Character): FighterMoves | undefined => authoredTuning(character).moves;
 
@@ -321,4 +323,66 @@ test("Archer's and Rifleman's dashing jab is a dash attack: her sliding kick pop
   assertGreaterThan(target(kick).status.damage, 0.0);
   assertTrue(rose);
   assertGreaterThan(forwardReach(Character.rifleman, AttackStyle.dashAttack), forwardReach(Character.archer, AttackStyle.dashAttack));
+});
+
+test("Pit Lord's down tilt sends an airborne fighter at his front low and outward, below the horizontal", () => {
+  const d = duel(Character.pitLord, 95.0);
+  const moves = movesOf(Character.pitLord);
+  const out = emptyHitRegion();
+  authoredHitRegion(out, Character.pitLord, AttackStyle.downTilt, attackStartupFrames(AttackStyle.downTilt, moves), 0, 0, moves);
+  assertGreaterThan(out.effect.launchX, 0.0);
+  assertLessThan(out.effect.launchZ, 0.0);
+  press(d, AttackStyle.downTilt);
+  // A fighter rising past his front just as the hoof lands.
+  while (attacker(d).attack.frame < attackStartupFrames(AttackStyle.downTilt, moves) - 1) step(d);
+  target(d).motion.z = 20.0;
+  target(d).motion.vz = 0.0;
+  target(d).motion.grounded = false;
+  target(d).motion.surface = undefined;
+  step(d);
+  assertGreaterThan(target(d).status.damage, 0.0);
+  assertLessThan(target(d).launch.knockbackZ, 0.0);
+  assertGreaterThan(target(d).launch.knockbackX, 0.0);
+});
+
+test("Pit Lord's dash attack launches hardest of every dash attack at 100%", () => {
+  const strongest = (character: Character): number => {
+    const moves = movesOf(character);
+    const out = emptyHitRegion();
+    let best = 0.0;
+    for (let frame = 0; frame < attackDurationFramesForGrounding(AttackStyle.dashAttack, true, moves); frame++) {
+      for (let index = 0; index < authoredHitRegionCount(AttackStyle.dashAttack, moves); index++) {
+        authoredHitRegion(out, character, AttackStyle.dashAttack, frame, 0, index, moves);
+        if (out.window > 0) best = Math.max(best, ordinaryHitKnockback(100.0, out.effect.damage, 100.0, out.effect.growth, out.effect.base, 1.0));
+      }
+    }
+    return best;
+  };
+  const pitLord = strongest(Character.pitLord);
+  for (const character of DESIGNED) if (character !== Character.pitLord) assertLessThan(strongest(character), pitLord);
+});
+
+test("Beastmaster's down tilt pops the victim the same height at 0% and at 100%", () => {
+  const pop = (percent: number): number => {
+    const d = duel(Character.beastmaster, 80.0, percent);
+    press(d, AttackStyle.downTilt);
+    let peak = 0.0;
+    for (let i = 0; i < 60; i++) {
+      step(d);
+      peak = Math.max(peak, target(d).motion.z);
+    }
+    assertGreaterThan(target(d).status.damage, percent);
+    return peak;
+  };
+  const low = pop(0.0);
+  assertGreaterThan(low, 10.0);
+  assertEquals(pop(100.0), low);
+});
+
+test("Beastmaster's dash attack heaves the victim behind him", () => {
+  const d = duel(Character.beastmaster, 70.0);
+  press(d, AttackStyle.dashAttack);
+  hitFrames(d, 20);
+  assertGreaterThan(target(d).status.damage, 0.0);
+  assertLessThan(target(d).launch.knockbackX * attacker(d).facing, 0.0);
 });

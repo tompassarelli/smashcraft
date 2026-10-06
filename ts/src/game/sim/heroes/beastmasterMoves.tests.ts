@@ -11,12 +11,12 @@ import { BEASTMASTER_MOVES } from "./beastmasterMoves";
 
 // Adopted F/A/R/L values from smashcraft:docs/design/roster.md, "Beastmaster".
 const NORMALS = [
-  [AttackStyle.jab, 5, 2, 15, 0],
+  [AttackStyle.jab, 4, 2, 14, 0],
   [AttackStyle.forwardTilt, 10, 3, 23, 0],
   [AttackStyle.forwardTiltUp, 10, 3, 23, 0],
   [AttackStyle.forwardTiltDown, 10, 3, 23, 0],
   [AttackStyle.upTilt, 9, 4, 23, 0],
-  [AttackStyle.downTilt, 8, 3, 20, 0],
+  [AttackStyle.downTilt, 8, 3, 22, 0],
   [AttackStyle.dashAttack, 11, 5, 28, 0],
   [AttackStyle.forwardSmash, 21, 4, 36, 0],
   [AttackStyle.upSmash, 18, 5, 33, 0],
