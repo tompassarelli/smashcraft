@@ -53,10 +53,11 @@ export const DREADLORD_CLIP_TABLE: HeroClipTable = {
   ledgeHang: s.standReady, ledgeClimb: s.spellSlam, ledgeRoll: s.walk, ledgeAttack: s.attack2,
   // Claws are the two attack swings; wings and horns the raised spell and rear-up; the slam is the low sweep.
   // Ground normals strike on their first active frame (smashcraft:docs/design/tilts.md): the claw
-  // rake angles up through the rear-up and down through the low slam; the wing stretch is the up tilt's arc.
+  // rake angles up through the rear-up and down through the low slam. The up tilt is the rear-up at its
+  // tallest (220 units at 1.06 s, against the wing stretch's 164).
   jab: ground(s.attack2, f32(0.76), AttackStyle.jab), forwardTilt: ground(s.attack1, f32(0.70), AttackStyle.forwardTilt),
   forwardTiltUp: ground(s.rearUp, f32(0.82), AttackStyle.forwardTiltUp), forwardTiltDown: ground(s.spellSlam, f32(0.38), AttackStyle.forwardTiltDown),
-  upTilt: ground(s.wingStretch, f32(1.38), AttackStyle.upTilt, 9), downTilt: ground(s.attack2, f32(0.76), AttackStyle.downTilt),
+  upTilt: ground(s.rearUp, f32(1.06), AttackStyle.upTilt, 9), downTilt: ground(s.attack2, f32(0.76), AttackStyle.downTilt),
   dashAttack: ground(s.attack1, f32(0.70), AttackStyle.dashAttack),
   forwardSmash: s.attack2, upSmash: s.rearUp, downSmash: s.spellSlam,
   neutralAir: s.spell, forwardAir: s.attack2, backAir: s.attack1, upAir: s.rearUp, downAir: s.spellSlam,
