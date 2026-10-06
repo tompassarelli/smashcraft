@@ -14,7 +14,8 @@ import { surfacePass } from "../sim/stage";
 import { type FighterGameplan, GameplanThrow } from "../sim/gameplan";
 import { SPACE_PLAN, gameplanGoal, gameplanOf, gameplanPlan, gameplanThrow, jumpsIn, keptGap, plansRanged, spacingAerialAt } from "./botGameplan";
 import { steerInAir, steerOnGround } from "./botFooting";
-import { botChoice, chooseAttack, smashChargeGoal } from "./botMoves";
+import { botChance, botChoice, chooseAttack, smashChargeGoal, useMatchSeed } from "./botMoves";
+import { type CpuSkill, cpuSkill } from "./cpuLevel";
 import { chooseDefense } from "./botDefense";
 import { chooseRecoveryInput } from "./botRecovery";
 import { pressHeroFollowUp } from "./botHeroKit";
@@ -133,8 +134,20 @@ function approachByGameplan(f: Readonly<Fighter>, target: Readonly<Fighter>, sta
   }
 }
 
-/** Correcting human movement also corrects every computer decision derived from it. */
+/**
+ * The computer in `slot` plays at its level under the match seed. Correcting
+ * human movement also corrects every computer decision derived from it.
+ */
 export function produceComputerInput(game: Readonly<MatchState>, world: Roster, runtime: { botAttackDelays: Slots<number> }, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer): void {
+  useMatchSeed(game.matchSeed);
+  decide(game, world, runtime, slot, frame, input, commands, cpuSkill(game.cpuLevels[slot]));
+  useMatchSeed(0);
+}
+
+/** Half a second: a computer that idles stands still this long. */
+const IDLE_FRAMES = 30;
+
+function decide(game: Readonly<MatchState>, world: Roster, runtime: { botAttackDelays: Slots<number> }, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer, skill: CpuSkill): void {
   const fighter = fighterAt(world, slot);
   copyControls(input, COMPUTER_NEUTRAL);
   clearAttackBuffer(commands);
@@ -147,16 +160,16 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
   const gameplan = gameplanOf(fighter.character);
   if (fighter.launch.hitlag > 0) {
     // Hitlag's last frame reads the stick for directional influence: in toward the middle.
-    if (fighter.launch.diPending) input.direction = fighter.motion.x < 0 ? 1 : -1;
+    if (fighter.launch.diPending && botChance(fighter.visuals.hit, fighter.character * 3 + 2, skill.diTenths, 10)) input.direction = fighter.motion.x < 0 ? 1 : -1;
     return;
   }
   if (fighter.status.frozenFrames > 0) {
     // A human-paced mash, 10 presses a second, so a trap still rewards Rifleman.
-    input.grabMashPressed = floorMod(frame, 6) === 0;
+    input.grabMashPressed = floorMod(frame, skill.freezeMashFrames) === 0;
     return;
   }
   if (fighter.grab.owner !== undefined) {
-    input.grabMashPressed = floorMod(frame, 2) === 0;
+    input.grabMashPressed = floorMod(frame, skill.grabMashFrames) === 0;
     input.direction = floorMod(frame, 4) < 2 ? 1 : -1;
     return;
   }
@@ -165,18 +178,20 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
     return;
   }
   if (fighter.shield.breakState !== ShieldBreak.none) {
-    input.mashPressed = floorMod(frame, 2) === 0;
+    input.mashPressed = floorMod(frame, skill.grabMashFrames) === 0;
     return;
   }
   if (target !== undefined && pressHeroFollowUp(fighter, target, input)) return;
-  if (chooseRecoveryInput(fighter, stage, game.matchFrame, input, target)) return;
+  if (chooseRecoveryInput(fighter, stage, game.matchFrame, input, target, skill)) return;
   if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < smashChargeGoal(fighter);
   if (target === undefined) return;
-  if (chooseDefense(fighter, target, stage, input)) return;
+  if (chooseDefense(fighter, target, stage, input, skill)) return;
+  // An idle stretch stands where it is: no approach, no attack.
+  if (botChance(floorDiv(frame, IDLE_FRAMES), slot * 17 + fighter.character, skill.idle, 100)) return;
   if (gameplan === undefined) {
     const plan = planFor(fighter, slot, frame);
-    if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plan === Plan.range, input, commands)) {
-      runtime.botAttackDelays[slot] = f32(f32(6 + botChoice(frame, fighter.attack.serial, 18)) * TICK);
+    if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plan === Plan.range, input, commands, slot, SPACE_PLAN, skill)) {
+      runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
       if (!fighter.motion.grounded) steerInAir(fighter, stage, target.motion.x, input);
       return;
     }
@@ -184,8 +199,8 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
     return;
   }
   const planIndex = gameplanPlan(gameplan, fighter, slot, frame, botChoice);
-  if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plansRanged(gameplan, planIndex), input, commands, slot, planIndex)) {
-    runtime.botAttackDelays[slot] = f32(f32(6 + botChoice(frame, fighter.attack.serial, 18)) * TICK);
+  if (delay <= 0 && chooseAttack(fighter, target, stage, game.matchFrame, frame, plansRanged(gameplan, planIndex), input, commands, slot, planIndex, skill)) {
+    runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     if (!fighter.motion.grounded) steerInAir(fighter, stage, gameplanGoal(gameplan, fighter, target, stage, 0.0), input);
     return;
   }

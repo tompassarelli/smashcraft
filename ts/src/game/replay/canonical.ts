@@ -832,6 +832,7 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
     int(`${prefix}.character`, match.characterChoices[slot]);
     bool(`${prefix}.ready`, match.characterReadiness[slot]);
     bool(`${prefix}.rematch`, match.rematchReadiness[slot]);
+    int(`${prefix}.cpuLevel`, match.cpuLevels[slot]);
   }
   int("match.stockCount", match.stockCount);
   int("match.timeLimitMinutes", match.timeLimitMinutes);
@@ -839,6 +840,7 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   bool("match.automaticRematch", match.automaticRematch);
   int("match.rematchCountdown", match.rematchCountdown);
   int("match.remainingFrames", match.remainingFrames);
+  int("match.matchSeed", match.matchSeed);
   int("match.matchFrame", match.matchFrame);
   bool("match.timedOut", match.timedOut);
   bool("match.practice", match.practice);

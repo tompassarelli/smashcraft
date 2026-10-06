@@ -25,6 +25,7 @@ Dated trial records live in [evidence](../evidence/README.md).
 - [Kit review 1](design/kit-review-1.md): Blademaster, Mountain King, Warden, Rifleman's recovery and Illidan scored for decisions, mixups, reads and counterplay, with redesigned specials, frame data and counterplay.
 - [Interaction graph](design/interaction-graph.md): for each situation, Smashcraft's options, what beats what by how many frames, and the punish windows, computed per fighter from its move data.
 - [Match flow](design/match-flow.md): match rules, endless play and automatic rematch, with Slippi and other platform-fighter prior art.
+- [Computer levels](design/cpu-levels.md): levels 1-9 (reaction, answers, pace, misplays, DI, tech, mashing, mixups) from Melee, Ultimate and fighting-game AI prior art, and the deterministic match seed.
 - [Delivery goal](delivery-goal.md): what the finished game contains.
 - [Current release](playable-0041.md): files, startup and controls for 0.0.41.
 

@@ -20,9 +20,12 @@ import { HeroSpecialUse, heroSpecialUse } from "./botHeroKit";
 import { SpecialSlot } from "../sim/heroSpecials";
 import { SPACE_PLAN, gameplanOf, moveWeight, spacedAt, toGameplanMove } from "./botGameplan";
 import type { FighterGameplan, GameplanMove } from "../sim/gameplan";
+import { type CpuSkill, FULL_SKILL } from "./cpuLevel";
 
 /** A prime whose square stays inside a 32-bit integer, so squaring is exact in Bun and Warcraft's Lua. */
 const HASH_PRIME = 46337;
+/** Seeds step their salt by this prime: far apart against the small numbers choices already add. */
+const SEED_STEP = 7919;
 
 /** Squares and folds a value below HASH_PRIME into another: nonlinear, so choices drawn from related numbers don't follow each other. */
 function scramble(value: number): number {
@@ -30,11 +33,26 @@ function scramble(value: number): number {
   return floorMod(square ^ floorDiv(square, 32), HASH_PRIME);
 }
 
-/** A deterministic choice in [0, count) from two whole numbers, alike in every runtime. */
+// The match seed's salt, set for the length of one computer's decision
+// (botPlay.ts produceComputerInput): botChoice reaches the gameplan's
+// choices as a callback, so the salt can't travel as an argument. 0 outside
+// a decision.
+let seedSalt = 0;
+
+/** Draws every following botChoice under the match seed; seed 0 draws as before seeds existed. */
+export function useMatchSeed(seed: number): void {
+  seedSalt = floorMod(floorMod(seed, HASH_PRIME) * SEED_STEP, HASH_PRIME);
+}
+
+/** A deterministic choice in [0, count) from two whole numbers and the match seed, alike in every runtime. */
 export function botChoice(first: number, second: number, count: number): number {
-  const mixed = scramble(floorMod(scramble(floorMod(first, HASH_PRIME)) + floorMod(second, HASH_PRIME), HASH_PRIME));
+  const mixed = scramble(floorMod(scramble(floorMod(first, HASH_PRIME)) + floorMod(second + seedSalt, HASH_PRIME), HASH_PRIME));
   return floorMod(floorDiv(scramble(mixed), 3), count);
 }
+
+/** Whether a draw of `numerator` in `denominator` comes up, by botChoice; always at or past the whole, never at 0. */
+export const botChance = (first: number, second: number, numerator: number, denominator: number): boolean =>
+  numerator >= denominator || (numerator > 0 && botChoice(first, second, denominator) < numerator);
 
 const GROUND_MOVES = [
   AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt,
@@ -51,6 +69,8 @@ const DOWN_SPECIAL = 33;
 /** A level shot strikes a target whose feet are between these heights above the shooter's. */
 const SHOT_LOW = -5.0;
 const SHOT_HIGH = 60.0;
+/** A misplayed move is thrown only at a target this close. */
+const MISPLAY_GAP = 350.0;
 /** Archer's Disengage hops him about this far back. */
 const DISENGAGE_ROOM = 420.0;
 
@@ -285,7 +305,7 @@ function weightedOption(gameplan: Readonly<FighterGameplan>, planIndex: number, 
  * distance, and enters it in input and commands. `ranged` lets a decision
  * with nothing in reach but a special take it. False when it chose nothing.
  */
-export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer, slot = -1, planIndex: number = SPACE_PLAN): boolean {
+export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, ranged: boolean, input: Controls, commands: AttackBuffer, slot = -1, planIndex: number = SPACE_PLAN, skill: CpuSkill = FULL_SKILL): boolean {
   const gameplan = gameplanOf(f.character);
   const gap = Math.abs(f32(target.motion.x - f.motion.x));
   if (!canAttack(f) && !(f.shield.raised && f.motion.grounded)) return false;
@@ -317,13 +337,19 @@ export function chooseAttack(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     }
   }
   const strikes = count;
+  // A misplay throws any normal near the target, in reach or not.
+  if (canAttack(f) && gap <= MISPLAY_GAP && botChance(frame, f.attack.serial * 11 + f.character + 5, skill.misplay, 100)) {
+    const moves = f.motion.grounded ? GROUND_MOVES : AERIALS;
+    perform(f, target, at(moves, botChoice(frame, f.attack.serial * 3 + f.character, moves.length)), frame, input, commands);
+    return true;
+  }
   if (canAttack(f)) count = addCloseSpecials(f, target, stage, count);
   const close = count;
   if (canAttack(f)) count = addShots(f, target, stage, count);
   if (count === 0 || (close === 0 && !ranged)) return false;
-  const grabbing = target.shield.raised && f.motion.grounded && strikes > 0 && at(options, strikes - 1) === AttackStyle.grab;
+  const grabbing = skill.grabsShields && target.shield.raised && f.motion.grounded && strikes > 0 && at(options, strikes - 1) === AttackStyle.grab;
   const option = grabbing ? AttackStyle.grab
-    : gameplan === undefined ? at(options, botChoice(frame, f.attack.serial * 7 + f.character, count))
+    : gameplan === undefined || !skill.gameplanWeights ? at(options, botChoice(frame, f.attack.serial * 7 + f.character, count))
     : weightedOption(gameplan, planIndex, f, slot, target, count, frame);
   perform(f, target, option, frame, input, commands);
   return true;

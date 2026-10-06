@@ -56,6 +56,7 @@ export function resultNotice(game: Readonly<MatchState>, result: string): string
 export const stockSetting = (count: number) => (count === 1 ? "1 Stock" : `${count} Stocks`);
 export const timeSetting = (minutes: number) => (minutes === 0 ? "No time limit" : `${minutes}:00`);
 export const endlessSetting = (endless: boolean) => `Endless: ${endless ? "On" : "Off"}`;
+export const cpuLevelSetting = (level: number) => `Level ${level}`;
 export const automaticRematchSetting = (automatic: boolean) => `Automatic rematch: ${automatic ? "On" : "Off"}`;
 export const trainingSetting = (training: boolean) => `Training: ${training ? "On" : "Off"}`;
 const BEHAVIOUR_NAMES = ["Stand", "Shield", "Crouch", "Jump", "Attack", "Fight"];

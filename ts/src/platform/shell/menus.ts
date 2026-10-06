@@ -5,7 +5,7 @@
 import { type ParticipantSlot, isParticipantSlot } from "../../game/input/participants";
 import {
   Phase, canChooseComputer, cancelRematchCountdown, characterFor, confirmRematch, cycleSlotMode, humanActive, recallCharacter,
-  requestStageSelect, requestStart, setAutomaticRematch, setEndless, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
+  requestStageSelect, requestStart, setAutomaticRematch, setCpuLevel, setEndless, setHitAreas, setPartnerDamage, setTraining, stepPartnerBehaviour,
   stepPartnerEscape, stepPartnerTech, stepTrainingSpeed, tickRematchCountdown,
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
 } from "../../game/match/rules";
@@ -13,7 +13,7 @@ import { PARTNER_DAMAGE_STEP } from "../../game/match/trainingState";
 import { prepareQuickMatch } from "../../game/shell/devSettings";
 import type { Scenario } from "../../game/shell/build";
 import type { Character } from "../../game/sim/codes";
-import { preparePlaytest } from "../../game/shell/playtest";
+import { type PlaytestRequest, preparePlaytest } from "../../game/shell/playtest";
 import { nextStage } from "../../game/menu/stageCatalog";
 import { nextSelectableCharacter } from "../../game/sim/heroes/registry";
 import { traceSelectionState } from "./diagnostics";
@@ -92,9 +92,9 @@ export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s
   }
 }
 
-/** A playtest request: computers in the slots of `computers`, then the match, past both menus. */
-export function startPlaytest(s: ShellState, computers: number): boolean {
-  if (!preparePlaytest(s.game, computers)) return false;
+/** A playtest request: its computers at its level, then the match, past both menus. */
+export function startPlaytest(s: ShellState, request: PlaytestRequest): boolean {
+  if (!preparePlaytest(s.game, request)) return false;
   for (const panel of views(s).settings) panel.close();
   startMatch(s);
   return true;
@@ -141,6 +141,9 @@ export function panelActions(): PanelActions {
       }),
       toggleEndless: participant => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) setEndless(s.game, slot, !s.game.endless);
+      }),
+      changeCpuLevel: (actor, computer, direction) => withSlot(actor, (s, slot) => {
+        if (controlsAvailable(s, slot) && isParticipantSlot(computer)) setCpuLevel(s.game, slot, computer, s.game.cpuLevels[computer] + direction);
       }),
       toggleAutomaticRematch: participant => withSlot(participant, (s, slot) => {
         if (controlsAvailable(s, slot)) setAutomaticRematch(s.game, slot, !s.game.automaticRematch);

@@ -3,10 +3,11 @@
 // the game's frame capture and execution as the tape runner plays them. Each
 // match is read from outside after every frame: moves started (attack serials
 // and special starts), hits and damage landed, stocks lost and the frames
-// since the loser last took a hit. The computer has no randomness, so each
-// setup is one sample; a variant shifts both spawn points sideways to start a
-// different match. Mirrors are left out of the field.
-// Usage (from ts/): bun scripts/cpuField.ts [--variants N | --per-pair N] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b,...]
+// since the loser last took a hit. The computer draws every choice under the
+// match seed, so each seed of a setup is another sample; a variant also
+// shifts both spawn points sideways. Both computers play at --levels (9,9 by
+// default). Mirrors are left out of the field.
+// Usage (from ts/): bun scripts/cpuField.ts [--variants N | --per-pair N] [--seeds N] [--levels A,B] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b,...] [--pairs a:b,c:d]
 import { writeFileSync } from "node:fs";
 import { f32 } from "wisp/src/sim/f32";
 import { parseArgs } from "node:util";
@@ -18,6 +19,7 @@ import { createPacingAndPresentation } from "../src/game/match/pacingAndPresenta
 import { MATCH_TICKS_PER_SECOND, Phase, createMatchState, setParticipants } from "../src/game/match/rules";
 import { initializeMatchFighters, matchSpawnX } from "../src/game/match/step";
 import { produceComputerInput } from "../src/game/match/botPlay";
+import { CPU_LEVEL_MAX, isCpuLevel } from "../src/game/match/cpuLevel";
 import { gameplanOf } from "../src/game/match/botGameplan";
 import { type GameplanMove, GameplanSpecial, GameplanThrow } from "../src/game/sim/gameplan";
 import { AttackStyle, type Character, LedgeState, SpecialAction } from "../src/game/sim/codes";
@@ -28,7 +30,7 @@ import { mainDeckLeft, mainDeckRight } from "../src/game/sim/stage";
 import soak from "./wisp/soak";
 
 /** The soak's stages by the game's stage numbers (test/soak/game.ts). */
-const FIELD_STAGES: Readonly<Record<string, number>> = {
+export const FIELD_STAGES: Readonly<Record<string, number>> = {
   "sky-deck": 0, "three-bridges": 1, "frozen-throne": 2, "drifting-deck": 3, "patterned-decks": 4,
   "wind": 10, "carried": 11, "cannon": 12, "timed-lift": 13, "hellfire": 14,
 };
@@ -80,9 +82,12 @@ interface SideRecord {
   readonly stockLosses: { readonly frame: number; readonly sinceHit: number | undefined; readonly selfDestruct: boolean }[];
 }
 
-interface MatchRecord {
+export interface MatchRecord {
   readonly stage: string;
   readonly variant: number;
+  readonly seed: number;
+  /** Each slot's computer level. */
+  readonly levels: readonly [number, number];
   readonly fighters: readonly [string, string];
   /** The winning slot, or null for a tie. */
   readonly winner: number | null;
@@ -96,9 +101,15 @@ export interface FieldOptions {
   readonly stocks?: number;
   readonly minutes?: number;
   readonly fighters?: readonly Character[];
+  /** Only these pairs of fighters, each in both orders, instead of every pair of `fighters`. */
+  readonly pairs?: readonly (readonly [Character, Character])[];
   readonly stages?: readonly string[];
-  /** Plays spawn variants, both orders on every stage, until each pair of fighters has this many matches (at most every variant). */
+  /** Plays spawn variants and seeds, both orders on every stage, until each pair of fighters has this many matches (at most every variant and seed). */
   readonly perPair?: number;
+  /** Match seeds each variant plays, from 0 (1 by default). */
+  readonly seeds?: number;
+  /** The computer levels slots 0 and 1 play (9 and 9 by default). */
+  readonly levels?: readonly [number, number];
 }
 
 interface Watch {
@@ -119,8 +130,8 @@ const watchOf = (f: Readonly<Fighter>): Watch => ({
 
 const NEUTRAL = neutralControls();
 
-/** One computer-against-computer match: slot 0 plays `a`, slot 1 plays `b`. */
-function playCpuMatch(a: Character, b: Character, stageName: string, variant: number, options: FieldOptions = {}): MatchRecord | undefined {
+/** One computer-against-computer match under `seed`: slot 0 plays `a`, slot 1 plays `b`. */
+export function playCpuMatch(a: Character, b: Character, stageName: string, variant: number, options: FieldOptions = {}, seed = 0): MatchRecord | undefined {
   const stage = FIELD_STAGES[stageName];
   if (stage === undefined) throw new Error(`no stage named ${stageName}`);
   const shift = SHIFTS[variant % SHIFTS.length] ?? 0.0;
@@ -132,6 +143,10 @@ function playCpuMatch(a: Character, b: Character, stageName: string, variant: nu
   match.characterChoices[0] = a;
   match.characterChoices[1] = b;
   match.stageChoice = stage;
+  const levels = options.levels ?? [CPU_LEVEL_MAX, CPU_LEVEL_MAX];
+  match.cpuLevels[0] = levels[0];
+  match.cpuLevels[1] = levels[1];
+  match.matchSeed = seed;
   match.stockCount = options.stocks ?? 3;
   match.timeLimitMinutes = options.minutes ?? 4;
   match.remainingFrames = match.timeLimitMinutes * 60 * MATCH_TICKS_PER_SECOND;
@@ -185,7 +200,7 @@ function playCpuMatch(a: Character, b: Character, stageName: string, variant: nu
     }
   }
   return {
-    stage: stageName, variant, fighters: [sides[0].fighter, sides[1].fighter],
+    stage: stageName, variant, seed, levels, fighters: [sides[0].fighter, sides[1].fighter],
     winner: match.winner === 0 || match.winner === 1 ? match.winner : null, timedOut: match.timedOut, frames: frame, sides,
   };
 }
@@ -200,18 +215,16 @@ function playCpuField(options: FieldOptions = {}, progress?: (done: number, tota
   const stages = options.stages ?? Object.keys(FIELD_STAGES);
   const perPair = options.perPair;
   const variants = perPair === undefined ? options.variants ?? 1 : SHIFTS.length;
-  const pairs = (fighters.length * (fighters.length - 1)) / 2;
-  const total = pairs * (perPair ?? 2 * stages.length * variants);
+  const seeds = options.seeds ?? 1;
+  const pairs = options.pairs ?? fighters.flatMap((a, first) => fighters.slice(first + 1).map((b) => [a, b] as const));
+  const total = pairs.length * (perPair ?? 2 * stages.length * variants * seeds);
   const records: MatchRecord[] = [];
   let done = 0;
-  for (let first = 0; first < fighters.length; first++) for (let second = first + 1; second < fighters.length; second++) {
-    const a = fighters[first];
-    const b = fighters[second];
-    if (a === undefined || b === undefined) continue;
+  for (const [a, b] of pairs) {
     let played = 0;
     for (let variant = 0; variant < variants && (perPair === undefined || played < perPair); variant++) {
-      for (const stage of stages) for (const [x, y] of [[a, b], [b, a]] as const) {
-        const record = playCpuMatch(x, y, stage, variant, options);
+      for (let seed = 0; seed < seeds && (perPair === undefined || played < perPair); seed++) for (const stage of stages) for (const [x, y] of [[a, b], [b, a]] as const) {
+        const record = playCpuMatch(x, y, stage, variant, options, seed);
         if (record !== undefined) {
           records.push(record);
           played++;
@@ -408,17 +421,27 @@ function fieldTable(summaries: readonly FighterSummary[]): string {
 if (import.meta.main) {
   const { values } = parseArgs({
     args: process.argv.slice(2),
-    options: { variants: { type: "string" }, "per-pair": { type: "string" }, stocks: { type: "string" }, minutes: { type: "string" }, json: { type: "string" }, fighters: { type: "string" } },
+    options: { variants: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, levels: { type: "string" }, stocks: { type: "string" }, minutes: { type: "string" }, json: { type: "string" }, fighters: { type: "string" }, pairs: { type: "string" } },
     strict: true,
   });
-  const fighters = values.fighters?.split(",").map((slug) => {
+  const fighterNamed = (slug: string) => {
     const character = selectableCharacterBySlug(slug);
     if (character === undefined) throw new Error(`no fighter named ${slug}`);
     return character;
+  };
+  const fighters = values.fighters?.split(",").map(fighterNamed);
+  const pairs = values.pairs?.split(",").map((pair) => {
+    const [a, b, extra] = pair.split(":");
+    if (a === undefined || b === undefined || extra !== undefined || a === b) throw new Error(`--pairs takes pairs of different fighters, like archer:rifleman; not ${pair}`);
+    return [fighterNamed(a), fighterNamed(b)] as const;
   });
+  const levels = values.levels?.split(",").map(Number);
+  if (levels !== undefined && (levels.length !== 2 || !levels.every(isCpuLevel))) throw new Error("--levels takes two levels from 1 to 9, like 9,5");
   const options: FieldOptions = {
-    variants: Number(values.variants ?? 1), stocks: Number(values.stocks ?? 3), minutes: Number(values.minutes ?? 4),
+    variants: Number(values.variants ?? 1), seeds: Number(values.seeds ?? 1), stocks: Number(values.stocks ?? 3), minutes: Number(values.minutes ?? 4),
+    ...(levels === undefined ? {} : { levels: [levels[0] ?? CPU_LEVEL_MAX, levels[1] ?? CPU_LEVEL_MAX] as const }),
     ...(fighters === undefined ? {} : { fighters }),
+    ...(pairs === undefined ? {} : { pairs }),
     ...(values["per-pair"] === undefined ? {} : { perPair: Number(values["per-pair"]) }),
   };
   const started = performance.now();
@@ -431,7 +454,7 @@ if (import.meta.main) {
     }
   });
   const summaries = summarizeField(records);
-  console.log(`${records.length} computer matches (${options.stocks} stocks, ${options.minutes}-minute clock, ${options.perPair === undefined ? `${options.variants} spawn variant(s) per ordered pair and stage` : `spawn variants until each pair has ${options.perPair} matches`}), ${((performance.now() - started) / 1000).toFixed(0)} s; win rate over decisive matches; a self-destruct is a stock lost with no hit taken since the fighter last stood on a deck or held the ledge; the fall-time column counts stocks lost over ${NO_HIT_FRAMES / MATCH_TICKS_PER_SECOND} s after the last hit.`);
+  console.log(`${records.length} computer matches (${options.stocks} stocks, ${options.minutes}-minute clock, ${options.perPair === undefined ? `${options.variants} spawn variant(s) of ${options.seeds} seed(s) per ordered pair and stage` : `spawn variants and ${options.seeds} seed(s) each until each pair has ${options.perPair} matches`}, computer levels ${(options.levels ?? [CPU_LEVEL_MAX, CPU_LEVEL_MAX]).join(" and ")}), ${((performance.now() - started) / 1000).toFixed(0)} s; win rate over decisive matches; a self-destruct is a stock lost with no hit taken since the fighter last stood on a deck or held the ledge; the fall-time column counts stocks lost over ${NO_HIT_FRAMES / MATCH_TICKS_PER_SECOND} s after the last hit.`);
   console.log("");
   console.log(fieldTable(summaries));
   if (values.json !== undefined) writeFileSync(values.json, `${JSON.stringify({ options, summaries, records }, null, 1)}\n`);

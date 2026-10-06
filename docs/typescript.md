@@ -560,15 +560,19 @@ From smashcraft:ts/:
   smashcraft:ts/ files nothing imports or names, and smashcraft:tools/ files no
   live document or source names, and exits 1 if any remain. Map bundle entries'
   exports count as used; references from smashcraft:evidence/ do not. About 10 s.
-- `bun scripts/cpuField.ts [--variants N | --per-pair N] [--stocks N]
-  [--minutes N] [--json FILE] [--fighters a,b]`: the computer against the
-  field (#105). `--per-pair N` plays spawn variants until every pair has at
-  least N matches (#105 box 3 uses 100); the matchup matrix shows each
-  win rate with its match count and counts the matchups inside 45-55%.
+- `bun scripts/cpuField.ts [--variants N | --per-pair N] [--seeds N]
+  [--levels A,B] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b]
+  [--pairs a:b,c:d]`: the computer against the field (#105); `--pairs`
+  plays only the listed pairs, both orders. `--per-pair N` plays spawn
+  variants and seeds until every pair has at least N matches (#105 box 3
+  uses 100); the matchup matrix shows each win rate with its match count
+  and counts the matchups inside 45-55%.
   Every ordered pair of different selectable fighters, both computers, on
   every soak stage, played in process through frame capture and execution
-  (3 stocks, 4-minute clock by default). The computer is deterministic, so
-  each setup is one sample; each variant shifts both spawn points sideways.
+  (3 stocks, 4-minute clock by default), both computers at `--levels`
+  (9,9 by default). Every computer choice draws under the match seed, so
+  each of `--seeds N` (1 by default) is another sample of a setup; each
+  variant also shifts both spawn points sideways.
   Per fighter it prints win rate over decisive matches against the field and
   each opponent, its self-destructs (stocks lost with no hit taken since it
   last stood on a deck or held the ledge, outside hitlag and hitstun), the
@@ -581,6 +585,13 @@ From smashcraft:ts/:
   stage (3 stocks, 4 minutes, about a second), counting a throw as the
   grab, any dash attack as `dashAttack` and angled forward tilts as the
   forward tilt.
+- `bun scripts/cpuLevels.ts [--matches N] [--reference L] [--stocks N]
+  [--minutes N]`: computer levels measured (smashcraft:docs/design/cpu-levels.md).
+  Each level 1-9 plays N (100) seeded matches against the reference level
+  (5), then level 9 plays N against level 1, cycling every ordered fighter
+  pair and soak stage, the measured level on alternating sides; prints each
+  row's wins, losses, ties and win rate and whether it rises with the level.
+  About 0.2 s a match.
 
 ## Build the map
 

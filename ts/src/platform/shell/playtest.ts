@@ -47,8 +47,8 @@ export function servicePlaytestRequest(s: ShellState): void {
 export function playtestRequested(s: ShellState): void {
   if (GetPlayerId(GetTriggerPlayer()) !== firstHumanSlot(s.game)) return;
   const line = BlzGetTriggerSyncData();
-  const computers = parsePlaytestRequest(line);
-  const started = computers !== undefined && startPlaytest(s, computers);
+  const request = parsePlaytestRequest(line);
+  const started = request !== undefined && startPlaytest(s, request);
   const slot = localSlot();
   if (isParticipantSlot(slot)) writeLine(playtestReceiptFile(slot), `${line} ${started ? "started" : "refused"}`);
 }

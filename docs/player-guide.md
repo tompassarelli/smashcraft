@@ -9,7 +9,10 @@ For solo practice, place only your own fighter chip and press Y, then choose
 a stage and press Y again. Leave the CPU chip unplaced. Practice has no timer
 or opponent, and falling off the stage respawns you without ending the session.
 Press Y to pause, then Escape to return to fighter selection. Place the CPU
-chip before starting when you want a bot match instead.
+chip before starting when you want a bot match instead. A CPU card shows its
+level, 1 to 9, with buttons to lower and raise it: level 1 barely fights back,
+level 9 plays its fighter the way a solid player would. The first player, or
+the player whose slot it is, sets it; it starts at 9.
 
 At fighter selection, any player can change Stocks, Time, Endless and
 Automatic rematch. No time limit removes the clock. Endless also removes

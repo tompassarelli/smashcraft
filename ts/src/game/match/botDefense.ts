@@ -16,6 +16,7 @@ import { heroStanceSlot } from "./botHeroKit";
 import { botChoice, moveReaches } from "./botMoves";
 import { defenseOption, gameplanOf } from "./botGameplan";
 import type { DefenseOption } from "../sim/gameplan";
+import { type CpuSkill, FULL_SKILL } from "./cpuLevel";
 
 /** A shield this weak is let go rather than broken. */
 const SHIELD_RESERVE = 20.0;
@@ -35,11 +36,12 @@ const Response = { none: 0, shield: 1, spotDodge: 2, roll: 3, parry: 4, stance: 
 type Response = (typeof Response)[keyof typeof Response];
 
 /** Frames until the target's current strike reaches f, or undefined when it won't. */
-function strikeComing(f: Readonly<Fighter>, target: Readonly<Fighter>): number | undefined {
+function strikeComing(f: Readonly<Fighter>, target: Readonly<Fighter>, reaction: number): number | undefined {
   const style = target.attack.style;
   if (style === undefined || style === AttackStyle.shot || style === AttackStyle.grab) return undefined;
   const startup = attackStartupFrames(style, target.tuning.moves);
   const { frame } = target.attack;
+  if (frame < reaction) return undefined;
   if (frame >= startup + characterAttackActiveFrames(target.character, style, target.tuning.moves)) return undefined;
   const frames = Math.max(0, startup - frame);
   if (frames > STRIKE_LOOKAHEAD) return undefined;
@@ -52,8 +54,8 @@ function strikeComing(f: Readonly<Fighter>, target: Readonly<Fighter>): number |
 const threat = { serial: 0, arrival: -1.0 };
 
 /** Finds a strike, a projectile flying at f, Immolation or the bear close by; false for none. */
-function findThreat(f: Readonly<Fighter>, target: Readonly<Fighter>): boolean {
-  const strikeFrames = strikeComing(f, target);
+function findThreat(f: Readonly<Fighter>, target: Readonly<Fighter>, reaction: number): boolean {
+  const strikeFrames = strikeComing(f, target, reaction);
   if (strikeFrames !== undefined) {
     threat.serial = target.attack.serial;
     threat.arrival = strikeFrames;
@@ -64,13 +66,14 @@ function findThreat(f: Readonly<Fighter>, target: Readonly<Fighter>): boolean {
     if (projectile.life <= 0) continue;
     const ahead = f32(f32(x - projectile.x) * projectile.direction);
     const speed = Math.abs(projectile.velocityX);
-    if (ahead < 0 || ahead > SHOT_SIGHT || Math.abs(f32(f32(z + 45.0) - projectile.z)) > 80) continue;
+    // A shot is seen once it has flown `reaction` frames into sight.
+    if (ahead < 0 || ahead > f32(SHOT_SIGHT - f32(speed * reaction)) || Math.abs(f32(f32(z + 45.0) - projectile.z)) > 80) continue;
     threat.serial = projectile.serial;
     threat.arrival = speed > 0 ? f32(ahead / speed) : -1.0;
     return true;
   }
   threat.arrival = -1.0;
-  const immolating = target.special.action === SpecialAction.demonHunterImmolate && target.special.frame < DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE;
+  const immolating = target.special.action === SpecialAction.demonHunterImmolate && target.special.frame >= reaction && target.special.frame < DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE;
   if (immolating && Math.abs(f32(x - target.motion.x)) <= 160 && Math.abs(f32(z - target.motion.z)) <= 170) {
     threat.serial = target.attack.serial;
     return true;
@@ -102,12 +105,12 @@ function plannedResponse(f: Readonly<Fighter>, planned: DefenseOption, parries: 
   }
 }
 
-function respond(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number): Response {
+function respond(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, defendTenths: number): Response {
   const choice = botChoice(threat.serial, f.visuals.hit * 5 + f.character, 10);
   const away = f.motion.x < target.motion.x ? -1 : 1;
   // A shield pushed back at the edge can slide off it: dodge there instead.
   const cornered = !safeAt(stage, f32(f.motion.x + f32(away * PUSHBACK_ROOM)), 0.0);
-  if (choice >= 7) return Response.none;
+  if (choice >= defendTenths) return Response.none;
   const parries = threat.arrival >= PARRY_FIRST && threat.arrival <= PARRY_LAST && safeAt(stage, f32(f.motion.x - f32(away * PARRY_ROOM)), 0.0);
   const gameplan = gameplanOf(f.character);
   const planned = gameplan === undefined ? undefined : defenseOption(gameplan, botChoice, threat.serial, f.visuals.hit * 7 + f.character);
@@ -125,16 +128,16 @@ function respond(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number)
  * true when that took this frame's input. A shield is held while the threat
  * lasts, then dropped for the caller's next move.
  */
-export function chooseDefense(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, input: Controls): boolean {
+export function chooseDefense(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, input: Controls, skill: CpuSkill = FULL_SKILL): boolean {
   if (!f.motion.grounded || target.status.out) return false;
-  if (!findThreat(f, target)) return false;
+  if (!findThreat(f, target, skill.reactionFrames)) return false;
   if (f.shield.raised) {
     input.shield = f.shield.energy > SHIELD_RESERVE;
     return input.shield;
   }
   if (!canAttack(f) || f.shield.energy <= SHIELD_RESERVE) return false;
   const away = f.motion.x < target.motion.x ? -1 : 1;
-  switch (respond(f, target, stage)) {
+  switch (respond(f, target, stage, skill.defendTenths)) {
     case Response.none:
       return false;
     case Response.parry:

@@ -1,4 +1,4 @@
-import { RULE_BUTTONS, RULE_HEIGHT, type RuleBox, type TrainingSetting } from "./ruleButtons";
+import { LEVEL_ROW_HEIGHT, RULE_BUTTONS, RULE_HEIGHT, type RuleBox, type TrainingSetting, cpuLevelBox } from "./ruleButtons";
 // The character panel of one participant. Every client builds all four panels;
 // only the owner's client shows its own and reads its pointer, and a placed or
 // recalled chip crosses a player sync event before the game sees it. Beside the
@@ -39,8 +39,8 @@ import {
 import { cellRect, rosterGrid } from "../menu/selectionGrid";
 import { SELECTABLE_CHARACTERS, fighterName, fighterPortrait } from "../sim/heroes/registry";
 import {
-  automaticRematchSetting, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting, partnerTechSetting,
-  stockSetting, timeSetting, trainingSetting, trainingSpeedSetting,
+  automaticRematchSetting, cpuLevelSetting, endlessSetting, hitAreasSetting, partnerBehaviourSetting, partnerDamageSetting, partnerEscapeSetting,
+  partnerTechSetting, stockSetting, timeSetting, trainingSetting, trainingSpeedSetting,
 } from "../shell/messages";
 import { Character } from "../sim/codes";
 import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
@@ -61,11 +61,12 @@ export interface SelectionActions {
   stepTraining(participantId: number, setting: TrainingSetting, direction: -1 | 1): void;
   toggleHitAreas(participantId: number): void;
   stepSpeed(participantId: number): void;
+  changeCpuLevel(actorId: number, cpuSlot: number, direction: -1 | 1): void;
 }
 
 type RuleButton = { kind: "stocks"; direction: -1 | 1 } | { kind: "time"; direction: -1 | 1 } | { kind: "endless" } | { kind: "automaticRematch" }
   | { kind: "training" } | { kind: "partner"; setting: TrainingSetting; direction: -1 | 1 } | { kind: "hitAreas" } | { kind: "speed" };
-type SelectionButton = { kind: "mode"; slot: number } | { kind: "start" } | { kind: "settings" } | RuleButton;
+type SelectionButton = { kind: "mode"; slot: number } | { kind: "level"; slot: number; direction: -1 | 1 } | { kind: "start" } | { kind: "settings" } | RuleButton;
 
 /** One participant slot's card along the bottom of the panel. */
 interface CardFrames {
@@ -76,6 +77,10 @@ interface CardFrames {
   readonly name: framehandle;
   readonly status: framehandle;
   readonly chip: framehandle;
+  /** A computer's level, between the buttons that lower and raise it. */
+  readonly level: framehandle;
+  readonly lower: framehandle;
+  readonly raise: framehandle;
 }
 
 const CARD_COLORS = ["Red", "Blue", "Yellow", "Green"] as const;
@@ -191,7 +196,20 @@ export class SelectionPanel {
       const status = label(root, `MeleeStatus${name}`, x + f32(0.014), f32(0.093), f32(0.132), f32(0.014), f32(0.011));
       const chip = art(root, `MeleeChip${name}`, `war3mapImported\\SelectionChipP${I2S(slot + 1)}.tga`, x + f32(0.06), f32(0.2), f32(0.04), f32(0.04));
       BlzFrameSetLevel(chip, 10);
-      return { card, tag, mode, portrait, name: name_, status, chip };
+      const levelButton = (direction: -1 | 1) => {
+        const box = cpuLevelBox(slot, direction);
+        const frame = BlzCreateFrame("ScriptDialogButton", root, 0, 0);
+        placeTopLeft(frame, box.x, box.y);
+        BlzFrameSetSize(frame, box.width, box.height);
+        BlzFrameSetText(frame, direction < 0 ? "−" : "+");
+        return this.clicks.add(frame, { kind: "level", slot, direction });
+      };
+      const lower = levelButton(-1);
+      const raise = levelButton(1);
+      const lowerBox = cpuLevelBox(slot, -1);
+      const levelX = lowerBox.x + lowerBox.width;
+      const level = label(root, `MeleeLevel${name}`, levelX, lowerBox.y, cpuLevelBox(slot, 1).x - levelX, LEVEL_ROW_HEIGHT, f32(0.011));
+      return { card, tag, mode, portrait, name: name_, status, chip, level, lower, raise };
     });
     art(root, `MeleeConfirmArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.071), f32(0.043), f32(0.235), f32(0.037));
     this.confirm = label(root, `MeleeConfirmLabel${suffix}`, f32(0.079), f32(0.039), f32(0.219), f32(0.028), f32(0.011));
@@ -279,6 +297,7 @@ export class SelectionPanel {
     else if (button.kind === "partner") this.actions.stepTraining(this.participantId, button.setting, button.direction);
     else if (button.kind === "hitAreas") this.actions.toggleHitAreas(this.participantId);
     else if (button.kind === "speed") this.actions.stepSpeed(this.participantId);
+    else if (button.kind === "level") this.actions.changeCpuLevel(this.participantId, button.slot, button.direction);
     else this.actions.toggleAutomaticRematch(this.participantId);
   }
 
@@ -386,6 +405,16 @@ export class SelectionPanel {
       if (ready) {
         BlzFrameSetTexture(frames.portrait, portraitTexture(choice, false), 0, true);
         BlzFrameSetText(frames.name, nameText(choice));
+      }
+      const computer = active && !human;
+      BlzFrameSetVisible(frames.level, computer);
+      BlzFrameSetVisible(frames.lower, computer);
+      BlzFrameSetVisible(frames.raise, computer);
+      if (computer) {
+        BlzFrameSetText(frames.level, cpuLevelSetting(game.cpuLevels[slot] ?? 0));
+        const choosing = canChooseComputer(game, participantId, slot);
+        BlzFrameSetEnable(frames.lower, choosing);
+        BlzFrameSetEnable(frames.raise, choosing);
       }
       BlzFrameSetVisible(frames.chip, active);
       BlzFrameSetTexture(frames.chip, `war3mapImported\\SelectionChip${human ? `P${I2S(slot + 1)}` : "CPU"}.tga`, 0, true);

@@ -31,6 +31,8 @@ interface Playtest {
   readonly helper: string;
   /** The computer's slot from 0; Tom's own is 0. */
   readonly computerSlot: number;
+  /** The computer's level, 1-9: 9 plays its fighter's gameplan at full strength. */
+  readonly computerLevel: number;
   /** Where the controller's stable device links are. */
   readonly inputDevices: string;
   /** The report port of the Wisp page installed on Tom's prefix; absent uses ordinary menu controls. */
@@ -44,6 +46,7 @@ const PLAYTEST_PREFIX = join(homedir(), ".local/share/Steam/steamapps/compatdata
 export const PLAYTEST: Omit<Playtest, "map" | "helper"> = {
   build: PLAYABLE_BUILD.id,
   computerSlot: 2,
+  computerLevel: 9,
   inputDevices: "/dev/input/by-id",
   // Tom's install is not a test client, so the clients file doesn't list it.
   menuReportPort: 47124,
@@ -66,14 +69,14 @@ const until = <A, R>(seconds: number, observe: Effect.Effect<A | undefined, Play
   }
 });
 
-export function playtest({ build, map, helper, computerSlot, inputDevices, menuReportPort }: Playtest): PlayDeclaration<GameFiles> {
+export function playtest({ build, map, helper, computerSlot, computerLevel, inputDevices, menuReportPort }: Playtest): PlayDeclaration<GameFiles> {
   const name = journalMenuFile(build, 0);
   /** The host's menu file; one being written reads as absent. */
   const menu = (game: PlayGame) => readGameFile(join(dataDirectory(game.documents), name), JournalMenu).pipe(
     Effect.catchTag("MalformedGameFile", () => Effect.succeed(undefined)),
     Effect.mapError(problem),
   );
-  const request = playtestRequest(1 << computerSlot);
+  const request = playtestRequest(1 << computerSlot, computerLevel);
   const files = (documents: string) => ({
     request: join(dataDirectory(documents), PLAYTEST_REQUEST_FILE),
     go: join(dataDirectory(documents), PLAYTEST_GO_FILE),
@@ -112,7 +115,7 @@ export function playtest({ build, map, helper, computerSlot, inputDevices, menuR
       // Later sessions of the map start at fighter selection as usual.
       for (const path of [requestFile, go]) if ((yield* gameFiles.read(path).pipe(Effect.mapError(problem))) !== undefined) yield* gameFiles.remove(path).pipe(Effect.mapError(problem));
       if (!answer.includes(`${request} started`)) return yield* new PlayProblem({ problem: `Smashcraft refused the playtest request "${request}": fighter selection had moved on or a human holds Player ${computerSlot + 1}` });
-      return `computer as Player ${computerSlot + 1}, match started`;
+      return `level ${computerLevel} computer as Player ${computerSlot + 1}, match started`;
     }),
     helper: {
       binary: helper,

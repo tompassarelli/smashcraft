@@ -1,4 +1,5 @@
 import { f32 } from "wisp/src/sim/f32";
+import { cardX } from "../menu/selectionDrag";
 
 /** A rules button's top-left corner and size in Warcraft's UI coordinates. */
 export interface RuleBox {
@@ -41,3 +42,18 @@ export const RULE_BUTTONS = {
 
 /** The partner choices training steps through. */
 export type TrainingSetting = "behaviour" | "escape" | "tech" | "damage";
+
+const LEVEL_STEP_WIDTH = f32(0.025);
+const LEVEL_ROW_Y = f32(0.072);
+export const LEVEL_ROW_HEIGHT = f32(0.022);
+
+/**
+ * A computer card's level buttons, under the card where pressing never
+ * picks up its chip (cardSlot): `-1` lowers the level, `1` raises it. The
+ * level reads between them.
+ */
+export function cpuLevelBox(slot: number, direction: -1 | 1): RuleBox {
+  const left = f32(cardX(slot));
+  const x = direction < 0 ? f32(left + f32(0.014)) : f32(left + f32(0.121));
+  return { x, y: LEVEL_ROW_Y, width: LEVEL_STEP_WIDTH, height: LEVEL_ROW_HEIGHT };
+}

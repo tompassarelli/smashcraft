@@ -393,6 +393,7 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
     if (e.characterChoices[slot] !== a.characterChoices[slot]) return `match.slot${slot}.character`;
     if (e.characterReadiness[slot] !== a.characterReadiness[slot]) return `match.slot${slot}.ready`;
     if (e.rematchReadiness[slot] !== a.rematchReadiness[slot]) return `match.slot${slot}.rematch`;
+    if (e.cpuLevels[slot] !== a.cpuLevels[slot]) return `match.slot${slot}.cpuLevel`;
   }
   if (e.humanCount !== a.humanCount) return "match.humanCount";
   if (e.practice !== a.practice) return "match.practice";
@@ -405,6 +406,7 @@ export function firstStateDifference(expected: Readonly<ReplayState>, actual: Re
   if (e.automaticRematch !== a.automaticRematch) return "match.automaticRematch";
   if (e.rematchCountdown !== a.rematchCountdown) return "match.rematchCountdown";
   if (e.remainingFrames !== a.remainingFrames) return "match.remainingFrames";
+  if (e.matchSeed !== a.matchSeed) return "match.matchSeed";
   if (e.matchFrame !== a.matchFrame) return "match.matchFrame";
   if (e.timedOut !== a.timedOut) return "match.timedOut";
   if (expected.runtime.simulationFrame !== actual.runtime.simulationFrame) return "runtime.simulationFrame";
