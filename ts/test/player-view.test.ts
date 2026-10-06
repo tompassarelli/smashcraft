@@ -313,6 +313,31 @@ test("development build: -dev perf shows the typing player what the match's fram
   expect(overlay(guest)).toEqual([]);
 });
 
+test("a downward offscreen portrait and arrow stay entirely above the HUD at every supported aspect", () => {
+  for (const aspect of [16 / 9, 16 / 10, 3 / 2]) {
+    const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+    clients.start();
+    clients.frames(30);
+    const client = clients.clients[0];
+    if (client === undefined) throw new Error("missing client");
+    clients.chat(0, "-dev camera");
+    client.run(() => {
+      const s = shell();
+      if (s.ui === undefined) throw new Error("missing match UI");
+      s.ui.bubbles[0].update(true, Character.archer, 0.5, 2, aspect);
+      for (const [name, context] of [["OffscreenPortrait0", 920], ["OffscreenArrow0", 921]] as const) {
+        const frame = client.frames.named(name, context);
+        if (frame === undefined) throw new Error(`missing ${name}`);
+        const point = frame.points.get(FRAMEPOINT_CENTER);
+        if (point === undefined) throw new Error(`missing ${name} position`);
+        expect(client.frames.shown(frame)).toBe(true);
+        expect(frame.enabled).toBe(false);
+        expect(point.y - frame.height / 2).toBeGreaterThanOrEqual(0.139);
+      }
+    });
+  }
+});
+
 test("every selectable stage keeps its camera inside the blast zones, shows every offscreen bubble and loses stocks outside the view at all supported aspects", () => {
   for (const stage of [0, 1, 2]) for (const aspect of [16 / 9, 16 / 10, 3 / 2]) {
     const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);

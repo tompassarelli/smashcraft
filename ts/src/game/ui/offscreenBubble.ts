@@ -11,7 +11,7 @@ function bubblePosition(column: number, row: number): { readonly column: number;
   const extent = Math.max(Math.abs(dx) / f32(252.6999969482422 / 640.0), Math.abs(dy) / f32(162.6999969482422 / 480.0));
   const scale = 1.0 / Math.max(1.0, extent);
   const arrow = Math.abs(dx) > Math.abs(dy) ? dx > 0 ? ">" : "<" : dy > 0 ? "v" : "^";
-  return { column: 0.5 + dx * scale, row: Math.min(f32(0.72), 0.5 + dy * scale), arrow };
+  return { column: 0.5 + dx * scale, row: Math.min(f32(0.69), 0.5 + dy * scale), arrow };
 }
 
 export class OffscreenBubble {
