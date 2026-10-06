@@ -18,7 +18,7 @@ import type { FighterPose } from "../../game/presentation/fighterPose";
 import { CANNON_MODEL, PLATFORM_CUE_FRAMES, framesUntilPlatformMoves, stageWarning } from "../../game/presentation/stageHazards";
 import { escapeMeterView, overheadAnchorZ, readEscapeMeter } from "../../game/presentation/escapeMeter";
 import { OVERHEAD_MANA_BORDER, OVERHEAD_MANA_HEIGHT, OVERHEAD_MANA_WIDTH, overheadManaLift } from "../../game/presentation/manaBar";
-import { PASSIVE_PIP_LIFT, type PassivePips, passivePipsView } from "../../game/ui/passivePips";
+import { NO_PIPS, PASSIVE_PIP_LIFT, type PassivePips } from "../../game/ui/passivePips";
 import { passivePips } from "../../game/sim/passives";
 import type { ManaBar } from "../../game/ui/manaBar";
 import type { Fighter } from "../../game/sim/fighter";
@@ -234,39 +234,22 @@ export function renderPersistentPresentation(s: ShellState): void {
 const meter = escapeMeterView();
 
 /** A fighter's overhead mana bar: over its head, stacked above its escape meter when that shows. */
-function presentOverheadMana(bar: ManaBar, fighter: Readonly<Fighter> | undefined, escapeShown: boolean, framing: Readonly<MatchCamera>, aspect: number): void {
+function presentOverheadMana(bar: ManaBar, pips: PassivePips, fighter: Readonly<Fighter> | undefined, escapeShown: boolean, framing: Readonly<MatchCamera>, aspect: number): void {
   if (fighter === undefined || fighter.status.out) {
     bar.update(false, fighter?.mana.points ?? 0, fighter?.visuals.manaDenied ?? 0, fighter?.visuals.manaDrained ?? 0);
+    pips.update(false, NO_PIPS, 0.0, 0.0);
     return;
   }
   const point = cameraPoint(framing, aspect, fighter.motion.x, overheadAnchorZ(fighter));
   const onScreen = point.column >= 0.0 && point.column <= 1.0 && point.row >= 0.0 && point.row <= 1.0;
   if (onScreen) {
     const centerX = f32(0.4) + (point.column - 0.5) * aspect * f32(0.6);
-    bar.place(centerX - OVERHEAD_MANA_WIDTH / 2.0, (1.0 - point.row) * f32(0.6) + overheadManaLift(escapeShown), OVERHEAD_MANA_WIDTH);
-  }
+    const manaY = (1.0 - point.row) * f32(0.6) + overheadManaLift(escapeShown);
+    bar.place(centerX - OVERHEAD_MANA_WIDTH / 2.0, manaY, OVERHEAD_MANA_WIDTH);
+    // The passive's pips sit just above the bar (#148).
+    pips.update(true, passivePips(fighter), centerX, manaY + OVERHEAD_MANA_HEIGHT / 2.0 + OVERHEAD_MANA_BORDER + PASSIVE_PIP_LIFT);
+  } else pips.update(false, NO_PIPS, 0.0, 0.0);
   bar.update(onScreen, fighter.mana.points, fighter.visuals.manaDenied, fighter.visuals.manaDrained);
-}
-
-// Preallocated scratch for each slot's passive pips.
-const pips = passivePipsView();
-
-/** A fighter's passive pips: a row just above its overhead mana bar. */
-function presentPassivePips(row: PassivePips, fighter: Readonly<Fighter> | undefined, escapeShown: boolean, framing: Readonly<MatchCamera>, aspect: number): void {
-  pips.shown = false;
-  if (fighter === undefined || fighter.status.out) {
-    row.update(pips, 0.0, 0.0);
-    return;
-  }
-  const point = cameraPoint(framing, aspect, fighter.motion.x, overheadAnchorZ(fighter));
-  const shown = passivePips(fighter);
-  pips.shown = point.column >= 0.0 && point.column <= 1.0 && point.row >= 0.0 && point.row <= 1.0;
-  pips.lit = shown.lit;
-  pips.of = shown.of;
-  pips.ready = shown.ready;
-  const centerX = f32(0.4) + (point.column - 0.5) * aspect * f32(0.6);
-  const manaY = (1.0 - point.row) * f32(0.6) + overheadManaLift(escapeShown);
-  row.update(pips, centerX, manaY + OVERHEAD_MANA_HEIGHT / 2.0 + OVERHEAD_MANA_BORDER + PASSIVE_PIP_LIFT);
 }
 
 /** Frames the live fighters of the presented match from the side. */
@@ -298,8 +281,7 @@ export function lockArenaCamera(s: ShellState): void {
     if (game.phase !== Phase.match) meter.shown = false;
     const meterPoint = cameraPoint(framing, aspect, meter.x, meter.z);
     views(s).escapeMeters[slot].update(meter, meterPoint.column, meterPoint.row, aspect);
-    presentOverheadMana(views(s).manaBars[slot].overhead, game.phase === Phase.match ? fighter : undefined, meter.shown, framing, aspect);
-    presentPassivePips(views(s).passivePips[slot], game.phase === Phase.match ? fighter : undefined, meter.shown, framing, aspect);
+    presentOverheadMana(views(s).manaBars[slot].overhead, views(s).passivePips[slot], game.phase === Phase.match ? fighter : undefined, meter.shown, framing, aspect);
   }
 }
 

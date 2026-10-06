@@ -243,12 +243,31 @@ export function longRifleShot(f: Fighter): boolean {
   return true;
 }
 
-/** Pips to draw and whether they show the ready state. */
-export function passivePips(f: Readonly<Fighter>): { readonly lit: number; readonly of: number; readonly ready: boolean } {
+interface PassivePipsState {
+  lit: number;
+  of: number;
+  ready: boolean;
+}
+
+// Presentation reads pips every rendered frame for every slot, so they are written into scratch, never allocated.
+const scratchPips: PassivePipsState = { lit: 0, of: 0, ready: false };
+
+/** Pips to draw and whether they show the ready state, written into `out` (by default a shared scratch read at once). */
+export function passivePips(f: Readonly<Fighter>, out: PassivePipsState = scratchPips): Readonly<PassivePipsState> {
   const spec = passiveSpec(f.character);
-  if (spec.kind === PassiveKind.blink) return { lit: f.passive.used ? 0 : 1, of: 1, ready: !f.passive.used };
-  if (spec.kind === PassiveKind.packHunt) return { lit: f.passive.window > 0 ? 1 : 0, of: 1, ready: f.passive.window > 0 };
-  return { lit: f.passive.stacks, of: spec.stacks, ready: spec.stacks > 0 && f.passive.stacks >= spec.stacks };
+  const { passive } = f;
+  if (spec.kind === PassiveKind.blink) {
+    out.lit = passive.used ? 0 : 1;
+    out.ready = !passive.used;
+  } else if (spec.kind === PassiveKind.packHunt) {
+    out.lit = passive.window > 0 ? 1 : 0;
+    out.ready = passive.window > 0;
+  } else {
+    out.lit = passive.stacks;
+    out.ready = spec.stacks > 0 && passive.stacks >= spec.stacks;
+  }
+  out.of = spec.stacks;
+  return out;
 }
 
 /** What a projectile's hit counts as: one its owner didn't fire (a reflection) counts for no passive. */

@@ -13,6 +13,8 @@ export class PassivePresentation {
   private readonly proc: effect | undefined;
   private readonly onVictim: boolean;
   private readyShown = false;
+  private readyX = 0.0;
+  private readyZ = 0.0;
   private readonly cursor: ProcCursor = { seen: -1 };
   private procLeft = 0;
   private procShown = false;
@@ -36,9 +38,14 @@ export class PassivePresentation {
     const { origin } = this;
     if (this.ready !== undefined) {
       if (passivePips(fighter).ready) {
+        if (!this.readyShown) BlzSetSpecialEffectScale(this.ready, 1.0);
+        // Only a moved fighter moves its effect: this runs every rendered frame.
+        if (!this.readyShown || fighter.motion.x !== this.readyX || fighter.motion.z !== this.readyZ) {
+          this.readyX = fighter.motion.x;
+          this.readyZ = fighter.motion.z;
+          BlzSetSpecialEffectPosition(this.ready, origin.x + fighter.motion.x, origin.y, origin.z + fighter.motion.z);
+        }
         this.readyShown = true;
-        BlzSetSpecialEffectScale(this.ready, 1.0);
-        BlzSetSpecialEffectPosition(this.ready, origin.x + fighter.motion.x, origin.y, origin.z + fighter.motion.z);
       } else this.hideReady();
     }
     if (newPassiveProc(this.cursor, fighter.passive.serial)) this.procLeft = PASSIVE_PROC_UPDATES;
