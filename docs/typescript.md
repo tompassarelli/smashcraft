@@ -224,7 +224,9 @@ the real input path instead (smashcraft:ts/test/soak/helper.ts): each player
 a uinput pad the fuzzer drives about once a second, read by a persistent
 wc3-journal helper built with `--text-out`, into headless clients in real
 time, with the same detectors. It needs /dev/uinput, as `bun wisp parity
-headless` does.
+headless` does. Its repro files keep what each helper typed and wrote, by
+frame, so `bun wisp soak --repro FILE` replays them without the helpers or
+pads; the pads' edges stay in the file as evidence.
 
 The development and integrity builds measure what each frame costs
 (smashcraft:ts/src/platform/frameMeter.ts, [Wisp frame cost](https://github.com/tompassarelli/wisp/blob/main/docs/frame-cost.md)):
