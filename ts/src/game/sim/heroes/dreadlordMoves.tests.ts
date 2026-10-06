@@ -250,14 +250,14 @@ test("Dreadlord's claws and wings are attached body: every strike is his limb on
       assertGreaterThan(pose.lastFrame - pose.firstFrame + 1, 2);
       assertGreaterThan(pose.firstFrame, previousLast);
       if (pose.firstFrame > previousLast + 1 && previousLast >= 0) {
-        assertLessThan(largestExtentStep(previous, stand), 60.0001);
+        assertLessThan(largestExtentStep(previous, stand), f32(60.0001));
         previous = stand;
       }
-      assertLessThan(largestExtentStep(previous, pose.parts), 60.0001);
+      assertLessThan(largestExtentStep(previous, pose.parts), f32(60.0001));
       previous = pose.parts;
       previousLast = pose.lastFrame;
     }
-    assertLessThan(largestExtentStep(previous, stand), 60.0001);
+    assertLessThan(largestExtentStep(previous, stand), f32(60.0001));
     assertLessThan(previousLast, move.totalFrames);
   }
 });

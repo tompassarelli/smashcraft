@@ -18,7 +18,7 @@ const CARRION_SWARM: AuthoredSpecial = {
   cost: 5,
   endFrame: 45,
   projectiles: [{
-    spawnFrame: 20, offsetX: 40.0, offsetZ: 60.0, velocityX: h(0.09), velocityZ: 0.0, life: 32, radius: h(0.25),
+    spawnFrame: 20, offsetX: 40.0, offsetZ: 60.0, velocityX: h(f32(0.09)), velocityZ: 0.0, life: 32, radius: h(f32(0.25)),
     effect: dreadlordHit(7.0, "POKE", 40), reflectable: true, limit: 1,
   }],
 };
@@ -29,7 +29,7 @@ const SLEEP_ORB: AuthoredSpecial = {
   cost: 25,
   endFrame: 58,
   projectiles: [{
-    spawnFrame: 26, offsetX: 40.0, offsetZ: 60.0, velocityX: h(0.06), velocityZ: 0.0, life: 35, radius: h(0.18),
+    spawnFrame: 26, offsetX: 40.0, offsetZ: 60.0, velocityX: h(f32(0.06)), velocityZ: 0.0, life: 35, radius: h(f32(0.18)),
     effect: { damage: 2.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false, element: HitElement.normal },
     reflectable: true, limit: 1,
     status: { kind: HeroStatusKind.sleep, frames: 20, group: HeroStatusGroup.sleep, immunityFrames: 180 },
@@ -40,13 +40,13 @@ const SLEEP_ORB: AuthoredSpecial = {
 // shield, then a 0.45H command grab on frames 17-19; a catch bites and
 // releases 16 frames later, then recovers for 28. Airborne: a claw strike,
 // once per airtime, ending helpless.
-const POUNCE_GRAB: StrikeCapsule = { x1: 14.0, z1: 40.0, x2: f32(h(0.45) - 12.0), z2: 40.0, radius: 12.0 };
+const POUNCE_GRAB: StrikeCapsule = { x1: 14.0, z1: 40.0, x2: f32(h(f32(0.45)) - 12.0), z2: 40.0, radius: 12.0 };
 const POUNCE_BITE = dreadlordHit(9.0, "EDGE", 40);
-const POUNCE_CLAW = [heroRegion(17, 19, { x1: 18.0, z1: 46.0, x2: f32(h(0.8) - 10.0), z2: 40.0, radius: 10.0 }, POUNCE_BITE)];
+const POUNCE_CLAW = [heroRegion(17, 19, { x1: 18.0, z1: 46.0, x2: f32(h(f32(0.8)) - 10.0), z2: 40.0, radius: 10.0 }, POUNCE_BITE)];
 const NIGHT_POUNCE: AuthoredSpecial = {
   cost: 20,
   endFrame: 53,
-  motion: [{ ...frames(1, 16), velocityX: perFrame(h(0.8), 16), velocityZ: 0.0, stopsAtBody: true }],
+  motion: [{ ...frames(1, 16), velocityX: perFrame(h(f32(0.8)), 16), velocityZ: 0.0, stopsAtBody: true }],
   commandGrab: { ...frames(17, 19), strike: POUNCE_GRAB, holdFrames: 16, effect: POUNCE_BITE, recovery: 28 },
   hurt: dreadlordLimbPoses([heroRegion(17, 19, POUNCE_GRAB, POUNCE_BITE)], 53, 1),
 };
@@ -83,6 +83,6 @@ export const DREADLORD_SPECIALS: FighterSpecials = {
   mana: ROSTER_MANA,
   neutral: { ground: CARRION_SWARM, air: { ...CARRION_SWARM, landingLag: AIR_LANDING_LAG } },
   side: { ground: NIGHT_POUNCE, air: NIGHT_POUNCE_AIR },
-  up: { ground: batAscension(15, 2.0, 0.8), free: batAscension(0, 1.4, 0.3) },
+  up: { ground: batAscension(15, 2.0, f32(0.8)), free: batAscension(0, f32(1.4), f32(0.3)) },
   down: { ground: SLEEP_ORB, air: { ...SLEEP_ORB, landingLag: AIR_LANDING_LAG } },
 };

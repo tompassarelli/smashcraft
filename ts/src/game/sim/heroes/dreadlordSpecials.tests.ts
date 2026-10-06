@@ -184,18 +184,18 @@ function ascend(points: number, stickSide: number): { rise: number; across: numb
 
 test("Bat Ascension rises 2.0H and steers up to 0.8H; below 15 mana the free form rises 1.4H and steers 0.3H", () => {
   const full = ascend(100, 1);
-  assertLessThan(Math.abs(full.rise - 2.0 * H), 0.12 * H);
-  assertLessThan(Math.abs(full.across - 0.8 * H), 0.1 * H);
+  assertLessThan(Math.abs(full.rise - f32(2.0) * H), f32(0.12) * H);
+  assertLessThan(Math.abs(full.across - f32(0.8) * H), f32(0.1) * H);
   assertTrue(full.owner.special.fall);
   assertEquals(full.owner.mana.points, 85);
   const straight = ascend(100, 0);
   assertLessThan(Math.abs(straight.across), 1.0);
   const back = ascend(100, -1);
-  assertLessThan(back.across, -0.7 * H);
+  assertLessThan(back.across, -f32(0.7) * H);
   const free = ascend(10, 1);
   assertEquals(free.owner.mana.points, 10);
-  assertLessThan(Math.abs(free.rise - 1.4 * H), 0.12 * H);
-  assertLessThan(Math.abs(free.across - 0.3 * H), 0.1 * H);
+  assertLessThan(Math.abs(free.rise - f32(1.4) * H), f32(0.12) * H);
+  assertLessThan(Math.abs(free.across - f32(0.3) * H), f32(0.1) * H);
   assertFalse(free.owner.status.invincible > 0);
 });
 
@@ -223,7 +223,7 @@ test("replaying Night Pounce from a restored snapshot reproduces both fighters",
 });
 
 test("Night Pounce loses to a jab thrown into its approach and whiffs on a retreat", () => {
-  const read = pair(f32(1.2 * H));
+  const read = pair(f32(f32(1.2) * H));
   frame(read.world, side);
   for (let f = 2; f <= 16; f++) {
     if (f === 11) beginFighterAttack(read.world, 1, AttackStyle.jab, false);
