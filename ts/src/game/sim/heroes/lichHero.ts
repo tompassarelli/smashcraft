@@ -24,6 +24,8 @@ const ATTACK = sequence(6, 1);
 const SPELL = sequence(7, f32(1.5));
 /** "Death", the model's only lying pose. */
 const DEATH = sequence(8, f32(1.667));
+/** "Dissipate", the spirit fading upward. */
+const DISSIPATE = sequence(9, 2);
 
 export const LICH_HERO: HeroDefinition = {
   character: Character.lich,
@@ -42,7 +44,8 @@ export const LICH_HERO: HeroDefinition = {
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroLich.blp",
     projectileModel: "Abilities\\Weapons\\LichMissile\\LichMissile.mdl",
     clips: {
-      idle: STAND_READY, walk: WALK,
+      idle: STAND_READY, walk: WALK, dash: WALK, run: WALK, crouch: CHANNEL, fall: STAND_READY, landing: STAND_READY,
+      shield: CHANNEL, airDodge: CHANNEL, smashCharge: CHANNEL, ko: DISSIPATE, dizzy: STAND_3,
       jab: ATTACK, grab: ATTACK, getUpAttack: ATTACK, ledgeAttack: ATTACK, backAir: ATTACK,
       forwardTilt: SPELL, forwardTiltUp: SPELL, forwardTiltDown: SPELL, upTilt: SPELL, downTilt: SPELL,
       forwardSmash: SPELL, upSmash: SPELL, downSmash: SPELL, dashAttack: SPELL,
