@@ -43,7 +43,8 @@ Ordinary flat-ground displacement now rounds self movement, launch and attacker
 recoil additions separately in that order. Digital defender and attacker ground
 decrements also round their operands, friction product and results. A shield
 contact replaces prior self ground speed rather than adding pushback to it.
-Original fighter tuning and the no-staling/no-freshness decision remain intact.
+Original fighter tuning is unchanged, and stale moves stay omitted
+(smashcraft:docs/gameplay-design.md).
 
 The independently observed corpus in
 smashcraft:docs/smash-melee-reference/retail-ground-motion.json contains 22
@@ -279,8 +280,9 @@ smashcraft:docs/smash-melee-reference/slippi-ntsc-shield-contact.json retains
 twelve original states around Sheik's jab against Jigglypuff's full digital
 shield on Final Destination, frames 10523–10534 of the public `air_dodge.slp`
 fixture. Both inputs are neutral horizontally. The retained numerical fields
-match the original parser output; the independent pasted frame-data entry
-reports four damage and three shieldstun frames for the jab.
+match the original parser output; the frame-data corpus
+(smashcraft:references/melee-frame-data/records.jsonl) reports four damage and
+three shieldstun frames for the jab.
 
 Contact frame 10525 reports four hitlag frames. Both actors remain stationary
 through 10528, then move on frame 10529 when hitlag reaches zero. The defender
@@ -310,19 +312,17 @@ cap behavior and airborne attacker recoil are outside this excerpt.
 
 ## Original fighter tuning and reference test rigs — 2026-10-03
 
-Melee physics verification concerns shared equations and state rules. It does
-not require Archer to be Fox or Rifleman to be Falco. The owner clarified that
-Smashcraft's fighters are original characters; any borrowed individual value,
-such as jump squat, is a separate design choice. Historical source mappings
-below describe prior work, not a continuing whole-character design requirement.
+Smashcraft's fighters are original characters, and Melee physics verification
+concerns shared equations and state rules (smashcraft:docs/gameplay-design.md,
+"Principles"). Historical source mappings below describe prior work.
 
 smashcraft:wurst/Simulation.wurst now gives each actor a `fighterPhysics` value
 with weight, gravity, terminal/fast-fall speeds, drift and friction/caps,
 ground speeds/traction, jump parameters and shield-break speed. Shared physics
 uses those actor parameters. Named Archer, Rifleman and Demon Hunter defaults
 preserve current numerical tuning; this separation makes no new balance choice.
-Character identity continues to select authored moves and presentation. Approved
-Illidan movement conveniences remain explicit behavior, and roll/move data are
+Character identity continues to select authored moves and presentation. Illidan's
+movement conveniences remain explicit behavior, and roll/move data are
 still their authored, separate mechanics.
 
 The Falco parameter rig exists only in smashcraft:wurst/PhysicsTests.wurst.
@@ -433,8 +433,9 @@ NTSC 1.02 reference identifies main DOL SHA1
 `c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41`; common +0x7D4, +0x3E8 and
 +0x3EC are now confirmed from that table. Published character dumps still lack
 disc-revision metadata, and other missing values are not filled by guesses.
-Owner-approved digital dodge/fast-fall conveniences, original Illidan tuning,
-custom parry behavior and lack of staling remain explicit gameplay choices.
+Illidan keeps his original tuning and custom parry; the digital dodge and
+fast-fall controls and the absence of stale moves are owner decisions in
+smashcraft:docs/gameplay-design.md.
 
 Airborne shield contact adds a per-axis relative-motion term scaled by
 `min(defender weight / attacker weight, 1) × hit_weight_mul`; common +0x7D4
@@ -485,7 +486,7 @@ adopt the still-unverified grounded friction multiplier or ground-bounce data.
 The existing 80-knockback tumble threshold remains the documented baseline.
 
 DI now normalizes against the actual launch vector instead of the pre-direction
-speed. Several custom attacks intentionally have nonunit direction vectors;
+speed. Several custom attacks have nonunit direction vectors;
 those directions no longer reduce the maximum DI rotation below 18 degrees.
 Their authored launch speeds and directions remain unchanged. The factual
 reference is the actual-vector normalization in the same damage module.
@@ -532,8 +533,9 @@ jump at frame 63 and aerial attack at frame 91, with zero dropped rows:
 smashcraft:build/physics-native-controls-trace.txt. The final paused capture is
 smashcraft:build/illidan-native/physics-controls-accepted.png. This short native
 check does not measure every collision frame or prove the numerical formulas.
-The corrections below retain the owner's shared dodge durations, 18-degree
-digital wavedash, neutral-horizontal fast-fall and deliberate lack of staling.
+The corrections below retain the shared dodge durations, the 18-degree digital
+wavedash, neutral-horizontal fast-fall and the absence of stale moves
+(smashcraft:docs/gameplay-design.md).
 Illidan retains original jump/drift tuning and 128-unit roll paths.
 
 Full Melee parity is not established. Archer/Rifleman forward-roll logical
@@ -596,7 +598,7 @@ this change has not been built into or installed as a map.
 This correction does not implement launch stacking across different frames,
 whose common-data time gate remains unverified. Ground launch/friction,
 bounce and shield pushback data gaps remain unchanged; fighter tuning and the
-owner's intentional mechanics remain intact.
+decisions in smashcraft:docs/gameplay-design.md are unchanged.
 
 ## Roll-facing correction — 2026-10-02
 
@@ -661,7 +663,7 @@ Fox/Falco DAT attributes, and aerial jumps multiply the full-jump attribute by
 the published aerial multiplier. The first ground-jump tick preserves launch
 velocity; subsequent ticks apply gravity. The six reference-table apex targets
 remain checked below. Digital direction input, simplified collision shapes and
-Warcraft animation remain deliberate differences.
+Warcraft animation differ from Melee.
 
 Minimum mechanics checks: press edges; short/full jump; air-jump budget; landing
 from above only; air-dodge landing momentum; shield drain/regeneration/break and
@@ -933,11 +935,9 @@ with zero compiler errors (smashcraft:build/physics-fractional-power.log).
 These checks establish the conversion and existing formula behavior, not
 independent NTSC 1.02 frame-trace or native-game parity.
 
-Smashcraft intentionally omits staling and freshness bonuses. The source-owned
-design
-decision is in smashcraft:docs/gameplay-design.md, “Stale moves and freshness
-bonuses,” reaffirmed by the owner on 2026-10-04. Do not add a
-staling queue or projectile staleness snapshots.
+Stale moves and freshness bonuses are omitted (smashcraft:docs/gameplay-design.md,
+“Stale moves and freshness bonuses”): there is no staling queue or projectile
+staleness snapshot.
 
 September 30 reference check: SmashWiki's Hitstun article identifies the
 unconditional subtraction of one frame with Ultimate, not Melee. The local
@@ -1149,7 +1149,8 @@ The extracted Sheik actions provide `DownBoundU/D` 26-frame clips,
 `DownDamageU/D` 14-frame clips, and `DownStandU/D` 30-frame clips. The
 frame-data records give Sheik 49 ticks for each get-up attack and 35 ticks for
 each directional get-up roll. Other characters' recorded action lengths vary
-by one or more ticks. Smashcraft uses the requested shared profile: 26 bound,
+by one or more ticks. Smashcraft uses one shared profile (smashcraft:docs/gameplay-design.md,
+"Controls"): 26 bound,
 13 down-damage, 30 stand, 49 get-up attack, and 35 get-up roll ticks. These
 shared values are action timing choices informed by the extracted data, not a
 claim that every Melee character shares them. The authored source starts clips
@@ -1259,10 +1260,8 @@ steer ordinary movement again when hitstun reaches zero. This keeps a downward
 launch above the ordinary terminal-fall cap. The additional gravity-based
 launch adjustment introduced in Brawl is not part of this Melee target.
 
-A new ordinary hit resets movement velocity and replaces the stored launch
-vector. This is a deliberate simplification: Melee can stack launches when
-hits are sufficiently separated in time and the fighter is airborne; the
-prototype does not track that history yet. Landing removes vertical launch
+A new ordinary hit resets movement velocity; how its launch combines with an
+earlier one is described in "Verified retail combat parameters" above. Landing removes vertical launch
 momentum and retains horizontal carry. A tumble landing that enters tech or
 knockdown recovery clears both launch components. Bounce momentum loss and
 Melee's low-knockback grounded launch rules remain unimplemented.
@@ -1316,7 +1315,8 @@ clock and resumes this boundary on expiry; existing snapshot fields already
 preserve the phase. Tests exercise neutral and both diagonal vertical
 directions, all three steering inputs, the exact 29/30 boundary, hitlag, and
 restore/replay through the boundary using the factual Falco rig. The original
-roster and approved 18-degree horizontal convenience are unchanged.
+roster and the 18-degree horizontal air dodge (smashcraft:docs/gameplay-design.md)
+are unchanged.
 The focused dodge filter passed 32/32 with zero compiler errors and one
 existing unused-import warning; evidence is
 smashcraft:build/retail-dodge-switch-tests.log. The long-displacement expectations
@@ -1411,7 +1411,8 @@ and the motion-state fast-fall preservation flag at revision
 0296f009f32f710495979d30772d8332af2d411a. Wurst implementation is independently
 authored; no decompiled implementation is copied or translated.
 
-The approved neutral-horizontal digital restriction remains. Retail common
+Fast fall needs neutral horizontal input (smashcraft:docs/gameplay-design.md,
+"Controls"). Retail common
 +0x88 = 0.6625000238418579 is the downward stick threshold and integer
 +0x8C = 4 requires input age strictly below four frames. Digital Down has
 magnitude one. The input tick has age zero; three further held ticks remain
@@ -1509,8 +1510,9 @@ window. Authored clips and move-specific damage, shapes and launch angles
 remain required. The blaster is now a moving projectile emitted during its
 active frame, rather than an instantaneous long-range hit check.
 
-The owner defines neutral N as jab, N plus direction as smash, and N plus
-direction while holding the walk modifier as tilt. C-stick bindings request
+Neutral N is jab, N plus direction smash, and N plus direction while holding
+the walk modifier tilt: the owner's input scheme (smashcraft:docs/gameplay-design.md,
+"Controls"). C-stick bindings request
 smashes directly. Walking uses the character baseline of 1.6/1.4 Melee units
 per frame (Archer/Rifleman), independently of run speed. Walking changes
 directly to the requested walk speed rather than modeling analog walk
@@ -1549,7 +1551,7 @@ it does not reproduce the reference's longer full animation lengths (49 / 39).
 Strong damage stays 7 / 8, while late damage is provisionally 5 for either move;
 ordinary knockback and hitlag use that lower damage. Both phases retain hit
 window 1, so a strong hit cannot rehit as weak after hitlag or target reentry.
-A missed strong phase can still connect late. Up aerial's intentional separate
+A missed strong phase can still connect late. Up aerial's separate
 finisher window remains unchanged. This is rough shared timing, not a claim of
 character-specific Fox/Falco parity; autocancel and current landing lag remain
 separate unfinished tuning.
@@ -1574,7 +1576,7 @@ fighter just because its endpoints lie on either side. Intangible or absent
 targets do not absorb a shot. Shields absorb it without freezing the distant
 shooter. Rifleman's neutral-special shot deals 3 damage, applies four frames
 of victim-only hitlag, then at least 11 frames of hitstun, interrupting an
-ordinary attack or special. This is the requested Falco-like brief flinch;
+ordinary attack or special. This is a brief flinch like Falco's laser;
 the 11-frame value is original provisional tuning, not verified Falco parity.
 Archer arrows instead follow the damage-only rules below.
 
@@ -1608,7 +1610,7 @@ resolves them against held shield state, so shield/direction callback order
 within that frame does not change the result. Holding direction cannot repeat
 rolls; pressing shield while direction was already held does not roll. Two
 opposite horizontal press edges cancel, and down takes priority if several
-directions arrive in one frame. These are deliberate digital-input rules.
+directions arrive in one frame. These are Smashcraft's digital-input rules.
 
 The local reference at melee:src/melee/ft/kinds/ftCommon/ftCo_Escape.c separates
 forward/backward roll relative to facing and changes facing through an
@@ -1627,7 +1629,8 @@ logical facing on frame 20; Illidan retains his completion-time turn. Backward
 rolls preserve facing. Neither move permits attacks, jumps, steering or shielding
 during its recovery. Jump takes priority over a simultaneous dodge request.
 Spot dodge does not drop through a platform. Intangibility and recovery clocks
-pause in hitlag. The owner's common frame-data profile specifies spot dodge
+pause in hitlag. Every character uses the owner's common dodge profile
+(smashcraft:docs/gameplay-design.md, "Deviations from Melee"): spot dodge
 22 / protection 2–15, both rolls 31 / protection 4–19, and air dodge 49 /
 protection 4–29 with 10 landing frames for every character. Air dodge retains
 its existing helpless fall until landing after its animation completes.
@@ -1676,7 +1679,7 @@ pause together during hitlag.
 All these recovery timings, threshold and hit shapes are provisional.
 Instant surface impact replaces a physical bounce; face-up/down
 variants, jab resets, and character-specific get-up data remain unfinished.
-Jump as stand-up input is a deliberate keyboard convenience. Both fighters
+Jump also stands a downed fighter up, for keyboards. Both fighters
 have authored recovery clips; get-up rolls reuse ordinary roll clips.
 
 Impact presentation uses three distinct cues: a nine-frame white contact
@@ -1789,7 +1792,8 @@ assigned frame. They execute once when the action becomes legal, or expire;
 this adds no delay to an already legal attack. During jump squat a C-stick
 command retains its direction and resolves against airborne state at takeoff,
 so an opposite-facing horizontal command begins back-air on the first airborne
-frame. The six-frame window is a Smashcraft control choice, not Melee parity.
+frame. Melee has no general input buffer; the window's size is an open question in
+smashcraft:docs/gameplay-design.md.
 
 A current queued attack takes priority over voluntary platform dropping during
 the movement step. Action recovery also blocks the drop, so holding Down cannot
@@ -1817,10 +1821,11 @@ the push-off and wall jumps), shield release and dodges, and ledge catches, one
 from against the wall.
 smashcraft:ts/scripts/meleeOracle.tests.ts runs the table in the test suite and
 fails on any mismatch not listed in its `KNOWN_MISMATCHES`, and on a listed row
-that now passes. A deliberate difference from Melee is reported as a departure
-that names its decision and still shows Melee's value; it fails the test only if
-it stops differing. L-cancelling is omitted (smashcraft:docs/gameplay-design.md),
-so the aerial landing lag without an L press is such a departure.
+that now passes. A difference from Melee recorded in the deviations table of
+smashcraft:docs/gameplay-design.md is reported as a departure under that row's
+name and still shows Melee's value; it fails the test only if it stops
+differing, and the test checks that every departure names a row of the table.
+The aerial landing lag without an L press is such a departure (L-cancelling).
 
 Character data compares only where a fighter borrows it: Archer's and
 Rifleman's movement, landing and action timings are Fox's and Falco's, and
@@ -2230,15 +2235,16 @@ measured Melee values.
 
 ## Default digital wavedash and fast-fall directions
 
-Owner-selected controls (2026-09-30): a horizontal-only air dodge uses an angle
+The owner's digital controls (smashcraft:docs/gameplay-design.md, "Controls"):
+a horizontal-only air dodge uses an angle
 of 18 degrees below horizontal for either fighter, mirrored for left/right.
 Its initial vector uses the retail 18.59999942779541-world-unit magnitude,
 approximately (+/-17.68965066, -5.74771592), before retail air-dodge decay. This is the default,
 with no modifier or toggle. Explicit up/down/diagonal input retains its
 previous direction and normalized speed; neutral retains zero initial velocity.
-The shallow choice helps preserve horizontal landing momentum, but a dodge
-started too high may still expire before reaching the ground. It is a control
-choice, not a claim of measured globally maximum wavedash distance.
+A dodge started too high may still expire before reaching the ground. The angle
+is not the one for Melee's longest wavedash
+(smashcraft:docs/design/melee/movement.md).
 
 Fast-fall now requires down with neutral horizontal input. Down-left/down-right
 continue air drift without selecting fast-fall speed. Shield dodges, DI, down
@@ -2257,8 +2263,8 @@ reset; replay snapshots include it.
 A fresh air-dodge/shield press during jump squat queues one air dodge at
 takeoff. Subsequent nonzero movement direction during that squat updates its
 direction; releasing the direction retains the last choice. Straight left or
-right uses the shared shallow downward angle, allowing the requested 8 then
-left/right sequence without a modifier. The dodge begins before the first
+right uses the shared shallow downward angle, allowing an 8 then
+left/right keyboard sequence without a modifier. The dodge begins before the first
 airborne physics step and uses the ordinary special landing lag. Interruption
 and reset clear the request. Queue and direction are included in snapshots.
 Both fighters and facings, late direction, interruption and snapshot handling
@@ -2346,8 +2352,8 @@ release and use the shared knockback/hitstun formula; throw DI uses the victim's
 input on that frame, without adding ordinary hitlag or SDI. Down throw visually
 slams to the floor and launches into an upward bounce. Character throw damage,
 angles, growth/base knockback, trajectories, action lengths and ten-frame escape
-recovery are original starting tuning, not extracted Sheik values. The existing
-simultaneous-grab clash remains an intentional alternative to port priority.
+recovery are original starting tuning, not extracted Sheik values. Simultaneous
+grabs clash; Melee resolves them by port priority.
 
 Holder/victim action, frame, serial, mash signs, timer and reciprocal links are
 copied and compared in snapshots. Damage, freeze, stock/reset interruptions clear
@@ -2363,13 +2369,14 @@ installed-build check and are not proved by the numerical tests.
 
 ### Archer arrows: damage without interruption
 
-Owner correction: normal/running arrows and multishot arrows add damage without
+Normal/running arrows and multishot arrows (an owner correction,
+smashcraft:docs/gameplay-design.md, "Fighters") add damage without
 hitstun, hitlag, knockback, DI setup or interruption of attacks, grabs, ledges or
 recovery. They do not erase a reaction already in progress. Shield hits retain
 shield-energy damage but add no shieldstun or hitlag; depleting shield energy
 still uses the shared shield-break rule. Unshielded damage still breaks the
 Rifleman trap's ice, as required by that mechanic. Rifleman's projectiles retain
-their separate hit behavior. This replaces the earlier arrow-stun request.
+their separate hit behavior.
 
 ## Demon Hunter combat prototype (original provisional tuning)
 
@@ -2478,4 +2485,5 @@ and their validity flag travel with frame snapshots and participate in replay
 input equality; directly constructed snapshots retain discrete direction fallback.
 No new persistent fighter state is introduced. Movement, SDI and tilt capture
 keep their existing input rules. Original Warcraft characters retain authored
-statistics; stale moves and freshness bonuses remain deliberately excluded.
+statistics; stale moves and freshness bonuses stay omitted
+(smashcraft:docs/gameplay-design.md).
