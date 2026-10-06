@@ -1,4 +1,5 @@
 import { f32 } from "wisp/src/sim/f32";
+import { floorDiv } from "wisp/src/sim/intMath";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
@@ -192,7 +193,7 @@ function limbPoses(move: AuthoredMove | undefined, reachEnd: boolean): readonly 
   const through = last + LIMB_HOLD_FRAMES;
   for (let poseStart = from; poseStart <= through; poseStart += LIMB_POSE_FRAMES) {
     const poseEnd = through - poseStart < 2 * LIMB_POSE_FRAMES ? through : poseStart + LIMB_POSE_FRAMES - 1;
-    const middle = Math.min(last, Math.max(first, Math.floor((poseStart + poseEnd) / 2)));
+    const middle = Math.min(last, Math.max(first, floorDiv(poseStart + poseEnd, 2)));
     const hand = handAt(move, middle, reachEnd);
     if (hand !== undefined) poses.push(hurtPose(poseStart, poseEnd, [WARDEN_BODY, hurtPart(0.0, SHOULDER_Z, hand.x, hand.z, LIMB_RADIUS)]));
     if (poseEnd === through) break;

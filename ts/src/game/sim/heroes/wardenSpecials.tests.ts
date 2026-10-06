@@ -16,6 +16,7 @@ import { advanceFighter } from "../step";
 import { controls } from "../testWorld";
 import { setWorldMotionValue } from "../motion";
 import { mainDeckRight } from "../stage";
+import { squareRoot } from "../warcraftMath";
 
 const H = HERO_REFERENCE_HEIGHT;
 
@@ -95,7 +96,7 @@ test("Pursuit Lunge travels 1.0H, slashes once for 10 at f11-14 and stops dead, 
     for (let f = 2; f <= 5; f++) frame(travel.world);
     const startX = travel.warden.motion.x;
     for (let f = 6; f <= 15; f++) frame(travel.world);
-    assertNear(f32((travel.warden.motion.x - startX) * facing), H, 0.01);
+    assertNear(f32((travel.warden.motion.x - startX) * facing), H, f32(0.01));
     const stopX = travel.warden.motion.x;
     for (let f = 16; f <= 40; f++) frame(travel.world);
     assertEquals(travel.warden.motion.x, stopX);
@@ -125,9 +126,9 @@ test("Pursuit Lunge in the air tilts 20 degrees only for a direction held throug
     return vz;
   };
   const tilt = f32(f32(H / 10.0) * f32(0.342020143));
-  assertNear(rise(1, 0), tilt, 0.01);
-  assertNear(rise(-1, 0), -tilt, 0.01);
-  assertNear(rise(0, 1), 0.0, 0.01);
+  assertNear(rise(1, 0), tilt, f32(0.01));
+  assertNear(rise(-1, 0), -tilt, f32(0.01));
+  assertNear(rise(0, 1), 0.0, f32(0.01));
 });
 
 test("Blink moves 1.7H in the held direction on f9, intangible only f8-10, then helpless", () => {
@@ -144,7 +145,7 @@ test("Blink moves 1.7H in the held direction on f9, intangible only f8-10, then 
     frame(world, hold(-x, -z), controls(), observe);
     const movedX = f32(warden.motion.x - beforeX);
     const movedZ = f32(warden.motion.z - beforeZ);
-    assertNear(f32(Math.sqrt(movedX * movedX + movedZ * movedZ)), f32(H * f32(1.7)), 0.5);
+    assertNear(squareRoot(f32(f32(movedX * movedX) + f32(movedZ * movedZ))), f32(H * f32(1.7)), 0.5);
     const aimZ = x === 0 && z === 0 ? 1 : z;
     assertTrue(movedX * x >= 0.0 && Math.abs(movedX) > 100.0 === (x !== 0));
     assertTrue(Math.abs(movedZ) > 100.0 === (aimZ !== 0) && movedZ * aimZ >= 0.0);
@@ -169,7 +170,7 @@ test("Blink's mana-free form rises 1.1H straight up without intangibility", () =
   const beforeZ = warden.motion.z;
   frame(world);
   assertEquals(warden.motion.x, beforeX);
-  assertNear(f32(warden.motion.z - beforeZ), f32(H * f32(1.1)), 0.01);
+  assertNear(f32(warden.motion.z - beforeZ), f32(H * f32(1.1)), f32(0.01));
 });
 
 test("Blink stops at the stage instead of crossing it, and a grounded endpoint stays punishable", () => {
