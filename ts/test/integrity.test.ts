@@ -8,6 +8,7 @@ import { IntegrityFailure, kernelLine, producerLine, readEvidence, readMetadata 
 import { type JourneyOptions, type JourneyRecord, type PublicationRecord, type RigShape, journey } from "../scripts/integrity/journey";
 import { ABS_X, EV_ABS, PAD_BUTTONS, decodeEvents, edgePacket, padCapabilities, padSetup } from "../scripts/integrity/linuxInput";
 import { type Slot, capturePair, integrityResult, integrityTable, summaryJson } from "../scripts/integrity/reconcile";
+import { integritySchedule } from "../scripts/integrity/schedule";
 
 const evidence = (run: string) => join(import.meta.dir, "../../evidence", `input-integrity-0042-${run}-20261005`);
 
@@ -100,7 +101,8 @@ function recordingRig(file: (client: Slot, name: string) => string, screenText =
 
 const gameFiles = (_client: Slot, name: string) =>
   name.includes("-menu-") ? "connected=3 human-fighters=3 computers=0 fighters=3\nendfunction\n" : " state=PAUSE_COMMIT  state=RESUME \nendfunction\n";
-const R8: JourneyOptions = { build: "playable-0042", epochs: [1, 2], fourFighters: false, sweep: [] };
+// r8 predates #49, so its pads follow the earlier layout.
+const R8: JourneyOptions = { build: "playable-0042", epochs: [1, 2], fourFighters: false, sweep: [], padLayout: "compass-tap-jump" };
 
 // Traces of the retired Python driver's integrity(epoch), run under recording stubs.
 const PYTHON_INTEGRITY = {
@@ -282,4 +284,12 @@ test("virtual pads are declared and fed exactly as the Python driver did", () =>
 test("kernel observations are logged in r8's format", async () => {
   const [first] = (await Bun.file(join(evidence("r8"), "kernel-0.jsonl")).text()).split("\n");
   expect(kernelLine({ kernelNs: 580467607853000, type: 1, code: 304, value: 1 })).toBe(`${first}\n`);
+});
+
+test("xpad pads press X for special, Y for jump, and stick-up only as up", () => {
+  const isolated = (layout: "xpad" | "compass-tap-jump") =>
+    Object.fromEntries(integritySchedule(1, layout).flatMap((step) => (step.kind === "pulse" && step.label === "isolated" ? step.group : [])).map(({ name, code }) => [name, code]));
+  expect(isolated("xpad")).toMatchObject({ special: 0x133, "jump-y": 0x134, "move-up": 1 });
+  expect(isolated("xpad")).not.toHaveProperty("jump-stick");
+  expect(isolated("compass-tap-jump")).toMatchObject({ special: 0x134, "jump-y": 0x133, "jump-stick": 1 });
 });

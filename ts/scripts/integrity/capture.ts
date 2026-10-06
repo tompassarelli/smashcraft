@@ -185,6 +185,7 @@ export const captureMatches = (options: CaptureOptions) =>
           clients: SLOTS.map((slot) => ({ name: clients[slot].name, data: data[slot], window: clients[slot].window, pid: gamePids[slot], app_id: appIds[slot] })),
         },
         input_integrity: options.workload === undefined,
+        pad_layout: options.padLayout ?? "xpad",
         four_fighters: options.fourFighters,
         playable: options.workload === "playable",
         sweep: options.sweep.length > 0 ? options.sweep : null,

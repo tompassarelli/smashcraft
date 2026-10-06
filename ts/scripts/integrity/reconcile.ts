@@ -5,6 +5,7 @@
 // checks that each edge landed on the frame its injection time implies, and
 // measures how late the local player and the opponent saw it.
 import type { KernelEvent, SourceEdge } from "./linuxInput";
+import type { PadLayout } from "./schedule";
 
 export type Slot = 0 | 1;
 export const SLOTS = [0, 1] as const satisfies readonly Slot[];
@@ -45,6 +46,7 @@ export interface CaptureMetadata {
   readonly build: string;
   readonly helperSha256: string;
   readonly inputIntegrity: boolean;
+  readonly padLayout: PadLayout;
   readonly fourFighters: boolean;
   /** Commanded rollback windows and transport batches, one match and rematch each. */
   readonly sweep: readonly (readonly [window: number, batch: number])[];
@@ -111,7 +113,8 @@ export interface IntegrityResult {
 /** Thrown when an export row or receipt does not have the shape every capture writes. */
 class MalformedEvidence extends Error {}
 
-const REQUIRED_BINDINGS = ["move-left", "move-right", "move-down", "jump-stick", "jump-b", "jump-y", "attack", "special", "shield-lt", "shield-rt", "grab", "walk"] as const;
+const requiredBindings = (layout: PadLayout) =>
+  ["move-left", "move-right", "move-down", layout === "xpad" ? "move-up" : "jump-stick", "jump-b", "jump-y", "attack", "special", "shield-lt", "shield-rt", "grab", "walk"];
 const START_BUTTON = 0x13b;
 const NS_PER_SECOND = 1_000_000_000;
 
@@ -149,18 +152,20 @@ function bits(mask: number): number[] {
 }
 
 /**
- * The action bits a source holds after this edge: A attack, B/Y or stick-up
- * jump, X special, LB walk, RB grab, either trigger shield, stick move.
+ * The action bits a source holds after this edge: A attack, B/Y jump, X
+ * special, LB walk, RB grab, either trigger shield, stick move. Under `xpad`
+ * stick-up is only up; `compass-tap-jump` swaps 0x133/0x134 and jumps on up.
  */
-function sourceMask({ type, code, value }: SourceEdge): number {
+function sourceMask({ type, code, value }: SourceEdge, layout: PadLayout): number {
   if (value === 0) return 0;
+  const xpad = layout === "xpad";
   if (type === 1) {
-    const buttons: Readonly<Record<number, number>> = { 0x130: 32, 0x131: 16, 0x133: 16, 0x134: 64, 0x136: 16384, 0x137: 128 };
+    const buttons: Readonly<Record<number, number>> = { 0x130: 32, 0x131: 16, 0x133: xpad ? 64 : 16, 0x134: xpad ? 16 : 64, 0x136: 16384, 0x137: 128 };
     return buttons[code] ?? 0;
   }
   if (type === 3) {
     if (code === 0) return value < 0 ? 1 : 2;
-    if (code === 1) return value < 0 ? 24 : 4;
+    if (code === 1) return value < 0 ? (xpad ? 8 : 24) : 4;
     const triggers: Readonly<Record<number, number>> = { 2: 256, 5: 512 };
     return triggers[code] ?? 0;
   }
@@ -347,7 +352,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         let old = 0;
         for (const mask of sourceStates.values()) old |= mask;
         const source = `${edge.type}:${edge.code}`;
-        sourceStates.set(source, sourceMask(edge));
+        sourceStates.set(source, sourceMask(edge, metadata.padLayout));
         let held = 0;
         for (const mask of sourceStates.values()) held |= mask;
         expectedHeld.set(frame, held);
@@ -431,7 +436,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
 
   for (const slot of SLOTS) {
     require(injected[slot] >= 500, `slot ${slot}: fewer than 500 injected edges`);
-    require(REQUIRED_BINDINGS.every((binding) => coverage[slot].has(binding)), `slot ${slot}: missing binding coverage`);
+    require(requiredBindings(metadata.padLayout).every((binding) => coverage[slot].has(binding)), `slot ${slot}: missing binding coverage`);
     require(sameFrameTaps[slot] > 0, `slot ${slot}: no observed same-frame 5 ms tap`);
   }
   const stalls = journey.flatMap((event) => (event.event === "integrity-stall" ? [event] : []));

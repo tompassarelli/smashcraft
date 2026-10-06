@@ -2,31 +2,39 @@
 // pressed and released within about 5 ms on both pads, isolated and in rapid
 // cycles, two buttons at once, and (in each odd match) a helper stall, a game
 // stall and a Start pause.
-import { ABS_RZ, ABS_X, ABS_Y, ABS_Z, BTN_EAST, BTN_NORTH, BTN_SOUTH, BTN_TL, BTN_TR, BTN_WEST, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
+import { ABS_RZ, ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_B, BTN_TL, BTN_TR, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import type { Slot } from "./reconcile";
 
 interface Binding extends SourceEdge {
   readonly name: string;
 }
 
-/** The pressed edge of each binding. The reconciler derives action bits independently. */
-const BINDINGS = [
-  { name: "move-left", type: EV_ABS, code: ABS_X, value: -32768 },
-  { name: "move-right", type: EV_ABS, code: ABS_X, value: 32767 },
-  { name: "move-down", type: EV_ABS, code: ABS_Y, value: 32767 },
-  { name: "jump-stick", type: EV_ABS, code: ABS_Y, value: -32768 },
-  { name: "jump-b", type: EV_KEY, code: BTN_EAST, value: 1 },
-  { name: "jump-y", type: EV_KEY, code: BTN_NORTH, value: 1 },
-  { name: "attack", type: EV_KEY, code: BTN_SOUTH, value: 1 },
-  { name: "special", type: EV_KEY, code: BTN_WEST, value: 1 },
-  { name: "shield-lt", type: EV_ABS, code: ABS_Z, value: 32767 },
-  { name: "shield-rt", type: EV_ABS, code: ABS_RZ, value: 32767 },
-  { name: "grab", type: EV_KEY, code: BTN_TR, value: 1 },
-  { name: "walk", type: EV_KEY, code: BTN_TL, value: 1 },
-] as const satisfies readonly Binding[];
+/**
+ * How the helper reads the pad's face buttons and stick-up. `xpad`: X (0x133)
+ * special and Y (0x134) jump, as the kernel's xpad driver reports them, and
+ * stick-up only up. `compass-tap-jump`: captures before #49 (r7, r8), whose
+ * helper read 0x133 as jump, 0x134 as special and stick-up as up and jump.
+ */
+export type PadLayout = "xpad" | "compass-tap-jump";
 
-const ATTACK = BINDINGS[6];
-const SPECIAL = BINDINGS[7];
+/** The pressed edge of each binding. The reconciler derives action bits independently. */
+function bindings(layout: PadLayout) {
+  const xpad = layout === "xpad";
+  return [
+    { name: "move-left", type: EV_ABS, code: ABS_X, value: -32768 },
+    { name: "move-right", type: EV_ABS, code: ABS_X, value: 32767 },
+    { name: "move-down", type: EV_ABS, code: ABS_Y, value: 32767 },
+    { name: xpad ? "move-up" : "jump-stick", type: EV_ABS, code: ABS_Y, value: -32768 },
+    { name: "jump-b", type: EV_KEY, code: BTN_B, value: 1 },
+    { name: "jump-y", type: EV_KEY, code: xpad ? BTN_Y : BTN_X, value: 1 },
+    { name: "attack", type: EV_KEY, code: BTN_A, value: 1 },
+    { name: "special", type: EV_KEY, code: xpad ? BTN_X : BTN_Y, value: 1 },
+    { name: "shield-lt", type: EV_ABS, code: ABS_Z, value: 32767 },
+    { name: "shield-rt", type: EV_ABS, code: ABS_RZ, value: 32767 },
+    { name: "grab", type: EV_KEY, code: BTN_TR, value: 1 },
+    { name: "walk", type: EV_KEY, code: BTN_TL, value: 1 },
+  ] as const satisfies readonly Binding[];
+}
 
 /** Press `group` on both pads, release it 5 ms later, then wait `settleMillis`. */
 export interface Pulse {
@@ -58,8 +66,11 @@ const sleep = (millis: number): Step => ({ kind: "sleep", millis });
  * One match's workload. Isolated presses give action decisions in settled
  * states; rapid cycles also cover legal rejection during cooldown.
  */
-export function integritySchedule(epoch: number): readonly Step[] {
+export function integritySchedule(epoch: number, layout: PadLayout): readonly Step[] {
   const odd = epoch % 2 === 1;
+  const BINDINGS = bindings(layout);
+  const ATTACK = BINDINGS[6];
+  const SPECIAL = BINDINGS[7];
   const steps: Step[] = [sleep(700), ...BINDINGS.map((binding) => pulse([binding], "isolated", 750))];
   for (let cycle = 0; cycle < 10; cycle++) {
     steps.push(...BINDINGS.map((binding) => pulse([binding], `repeat-${cycle}`)), pulse([ATTACK, SPECIAL], `simultaneous-${cycle}`));

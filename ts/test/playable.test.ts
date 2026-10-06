@@ -12,7 +12,7 @@ const boundary = (event: "start" | "end", epoch: number, frames: readonly [numbe
   ({ event, epoch, publications: [receipt(frames[0], winners[0]), receipt(frames[1], winners[1])] });
 const exported = (checksum = "123:456"): ClientExport => ({ trace: `confirmed frame 900 state ${checksum}\nconfirmed frame 960 state ${checksum}`, pages: [] });
 const capture = (events: readonly JourneyEvent[] = [boundary("start", 1), boundary("end", 1), boundary("start", 2), boundary("end", 2)]): CaptureEvidence => ({
-  metadata: { scope: "two native clients", build: "playable-test", helperSha256: "test", inputIntegrity: false, fourFighters: false, sweep: [], epochs: [1, 2], events },
+  metadata: { scope: "two native clients", build: "playable-test", helperSha256: "test", inputIntegrity: false, padLayout: "xpad", fourFighters: false, sweep: [], epochs: [1, 2], events },
   producer: [], kernel: [[], []], exports: new Map([[1, [exported(), exported()]], [2, [exported(), exported()]]]),
 });
 const record = (overrides: Partial<PlayableRecord> = {}): PlayableRecord => ({
