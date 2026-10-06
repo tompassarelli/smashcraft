@@ -110,12 +110,15 @@ export const pad: Command = (args) => Effect.gen(function*() {
       // Stick and trigger edges have no event line; the helper's frame rule places them.
       frame: edge.landed ?? ruleFrame(at(epochs, edge.slot), edge.injectedNs),
       confirmedBy: edge.landed === undefined ? "frame rule" : "helper event",
+      // The frame the write itself fell in: a late write is the producer's slip, not the helper's.
+      written: ruleFrame(at(epochs, edge.slot), edge.injectedNs),
     }));
     const stopped = final.flatMap((log, slot) => (/late kernel event|journal stopped/.test(log) ? [`helper ${slot}: ${/^wc3-journal: .*$/m.exec(log)?.[0] ?? "stopped"}`] : []));
     const off = results.filter((edge) => edge.frame !== edge.planned);
-    writeFileSync(join(out, "result.json"), json({ script: scriptPath, epochs_ns: epochs, edges: results, off_frame: off.length, helpers_stopped: stopped }));
-    for (const edge of results) console.log(`line ${edge.line} ${edge.slot === 0 ? "a" : "b"} planned ${edge.planned} landed ${edge.frame} (${edge.confirmedBy}): ${edge.text}`);
-    console.log(`${results.length} edges, ${off.length} off their frame${stopped.length > 0 ? `; ${stopped.join("; ")}` : ""}; ${join(out, "result.json")}`);
+    const lateWrites = off.filter((edge) => edge.written !== edge.planned).length;
+    writeFileSync(join(out, "result.json"), json({ script: scriptPath, epochs_ns: epochs, edges: results, off_frame: off.length, written_late: lateWrites, helpers_stopped: stopped }));
+    for (const edge of results) console.log(`line ${edge.line} ${edge.slot === 0 ? "a" : "b"} planned ${edge.planned} written ${edge.written} landed ${edge.frame} (${edge.confirmedBy}): ${edge.text}`);
+    console.log(`${results.length} edges, ${off.length} off their frame (${lateWrites} of them written late)${stopped.length > 0 ? `; ${stopped.join("; ")}` : ""}; ${join(out, "result.json")}`);
     if (off.length > 0 || stopped.length > 0) return yield* new IntegrityFailure({ operation: "replay pad script", path: out, cause: `${off.length} edges off their frame, ${stopped.length} helpers stopped` });
   }));
   return yield* onHealthyClients(run.pipe(step("pad script")), { retry: false });

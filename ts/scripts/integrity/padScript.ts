@@ -6,12 +6,12 @@
 //   FRAME   the match frame the edge is meant for (the helper's frame), or +N after the previous line
 //   CLIENT  a | b (pad slot 0 | 1)
 //   ACTION  press BUTTON | release BUTTON | tap BUTTON [FRAMES] | stick X Y | cstick X Y | shield AMOUNT | capture
-// BUTTON is A, B, X, Y, LB, RB, START or VIEW; X and Y run -1..1 with up positive;
+// BUTTON is A, B, X, Y, LB (or TL), RB (or TR), START or VIEW; X and Y run -1..1 with up positive;
 // AMOUNT runs 0..1. `capture` saves that client's whole frame. `#` starts a comment.
 import { ABS_RX, ABS_RY, ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_B, BTN_SELECT, BTN_START, BTN_TL, BTN_TR, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import type { Slot } from "./reconcile";
 
-export const PAD_SCRIPT_BUTTONS: Readonly<Record<string, number>> = { A: BTN_A, B: BTN_B, X: BTN_X, Y: BTN_Y, LB: BTN_TL, RB: BTN_TR, START: BTN_START, VIEW: BTN_SELECT };
+export const PAD_SCRIPT_BUTTONS: Readonly<Record<string, number>> = { A: BTN_A, B: BTN_B, X: BTN_X, Y: BTN_Y, LB: BTN_TL, RB: BTN_TR, TL: BTN_TL, TR: BTN_TR, START: BTN_START, VIEW: BTN_SELECT };
 
 export type PadStep =
   | { readonly kind: "edge"; readonly frame: number; readonly slot: Slot; readonly edges: readonly SourceEdge[]; readonly line: number; readonly text: string }
