@@ -391,6 +391,8 @@ export function matchupGate(summaries: readonly Pick<FighterSummary, "fighter" |
   let inside = 0, overlapping = 0, smallestPlayed = Number.POSITIVE_INFINITY;
   summaries.forEach((s, row) => {
     for (const name of names.slice(row + 1)) {
+      // A pair this run never played (a --pairs shard) is no matchup.
+      if ((s.played[name] ?? 0) === 0) continue;
       const rate = s.against[name] ?? Number.NaN;
       const n = s.decisive[name] ?? 0;
       smallestPlayed = Math.min(smallestPlayed, s.played[name] ?? 0);
@@ -491,6 +493,19 @@ function fieldTable(summaries: readonly FighterSummary[]): string {
   return lines.join("\n");
 }
 
+/** Whether a parsed --json file's records look like this script's match records. */
+function isMatchRecords(value: unknown): value is MatchRecord[] {
+  return Array.isArray(value) && value.every((record: unknown) => typeof record === "object" && record !== null && "fighters" in record && "sides" in record && "winner" in record);
+}
+
+/** The match records an earlier `--json` run wrote. */
+function shardRecords(file: string): MatchRecord[] {
+  const parsed: unknown = JSON.parse(readFileSync(file, "utf8"));
+  const records = typeof parsed === "object" && parsed !== null && "records" in parsed ? parsed.records : undefined;
+  if (!isMatchRecords(records)) throw new Error(`${file} holds no cpuField --json records`);
+  return records;
+}
+
 if (import.meta.main) {
   const { values } = parseArgs({
     args: process.argv.slice(2),
@@ -520,7 +535,7 @@ if (import.meta.main) {
   const started = performance.now();
   let reported = 0;
   // --merge a.json,b.json: summarize the records of earlier --json runs (shards of one field) instead of playing.
-  const merged = values.merge?.split(",").flatMap((file) => (JSON.parse(readFileSync(file, "utf8")) as { records: MatchRecord[] }).records);
+  const merged = values.merge?.split(",").flatMap(shardRecords);
   const records = merged ?? playCpuField(options, (done, total) => {
     const now = performance.now();
     if (now - reported > 10000 || done === total) {
