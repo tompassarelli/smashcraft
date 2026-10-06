@@ -21,6 +21,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   view: { usage: "view scene DATA_DIR... | frame FRAME.ppm... | models --assets DIR --summon DIR --extractor CASC_EXTRACT --storage WARCRAFT_DIR", load: async () => (await import("./wisp/commands/view")).view },
   headless: { usage: "headless [quick-match|desync] [--clients N]", load: async () => (await import("./wisp/commands/headless")).headless },
   dev: { usage: "dev [--data DIR --data DIR]", load: async () => (await import("./wisp/commands/dev")).dev },
+  tune: { usage: "tune --data DIR [--data DIR ...] [--port N] [--profile main|integrity|playable|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/tune")).tune },
 };
 
 const [name, ...args] = process.argv.slice(2);
