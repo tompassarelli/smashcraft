@@ -47,7 +47,9 @@ The session has a match and a rematch:
   session measures both the matches `bun wisp perf bot` and `perf bot-four`
   predict. In either, the capture reads A's overlay from its screen every
   2 s through the rematch (a `perf-overlay` event each, one 120-frame
-  window). Run it on a quiet machine: the meter's clock is likely wall
+  window). `bun wisp perf native RESULT RUN` then holds the headless
+  prediction of the same source to those readings (wisp:docs/frame-cost.md#checking-against-warcraft).
+  Run it on a quiet machine: the meter's clock is likely wall
   time, so other work on the host inflates it.
 - `--pad49` opens the first match with #49's script on slot 0, and that
   match has no stalls. The script: resting and drifted sticks, X, Y, down at
@@ -218,12 +220,15 @@ bun wisp fresh "$MAP" --rebuild --profile integrity --no-quick
 bun wisp parity capture --bot --bot-four "${CAPTURE[@]}" --out "$S/bot-four"
 bun scripts/integrity/botResult.ts "$S/bot-four" "$A_DATA" "$B_DATA"
 bun scripts/integrity/botInputs.ts "$S/bot-four" > "$S/bot-four/bot-inputs.json"
+# Predicted against native cost (wisp#19): fails unless median and p95 are within 20%.
+LUA=<32-bit lua> bun wisp perf native "$S/bot-four/bot-result.json" bot-four
 
 # Three fighters, the same.
 bun wisp fresh "$MAP" --no-quick
 bun wisp parity capture --bot --bot-perf "${CAPTURE[@]}" --out "$S/bot-perf"
 bun scripts/integrity/botResult.ts "$S/bot-perf" "$A_DATA" "$B_DATA"
 bun scripts/integrity/botInputs.ts "$S/bot-perf" > "$S/bot-perf/bot-inputs.json"
+LUA=<32-bit lua> bun wisp perf native "$S/bot-perf/bot-result.json" bot
 
 # #26's all-action workload: grab, walk and stick moves; three fighters in the rematch.
 bun wisp fresh "$MAP" --no-quick
