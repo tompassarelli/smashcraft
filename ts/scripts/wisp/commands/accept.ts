@@ -12,7 +12,6 @@ import { Clients } from "wisp/scripts/wisp/clients";
 import type { Command } from "wisp/scripts/wisp/command";
 import { makeAccept } from "wisp/scripts/wisp/commands/accept";
 import { step } from "wisp/scripts/wisp/timings";
-import { ClientWatch } from "wisp/scripts/wisp/watch";
 import { MAP_PROFILES, SMASHCRAFT_ACCEPT } from "../acceptChecks";
 import { rebuildMap } from "../mapInputs";
 import { clientState, gameFilesLayer } from "../project";
@@ -29,8 +28,9 @@ const clientNames = (): [string, ...string[]] => {
   }
 };
 
-// wisp watch's live client states (wisp#21) aren't in Wisp yet; a live run stops here with this line until they are.
-const watchLayer = Layer.effect(ClientWatch, Effect.fail(new AcceptFailure({ operation: "watch clients", problem: "this Wisp has no live `wisp watch` states yet (wisp#21); --dry-run works" })));
+// No ClientWatch yet: wisp watch's live states (wisp#21) aren't in Wisp, so the
+// quick-match receipts sendDevCommand waits for decide that each match runs.
+// Provide its layer here, and doctor as `prepare`, once they are.
 
 export const accept: Command = (args) => Effect.gen(function*() {
   const rebuilt = new Set<string>();
@@ -50,6 +50,6 @@ export const accept: Command = (args) => Effect.gen(function*() {
   const driver = liveAcceptDriver({
     start,
     receipt: (name) => name.startsWith("smashcraft-dev-") || name.startsWith("smashcraft-error-"),
-  }).pipe(Layer.provide(Layer.mergeAll(Clients.layer(clientState), gameFilesLayer, watchLayer)));
+  }).pipe(Layer.provide(Layer.mergeAll(Clients.layer(clientState), gameFilesLayer)));
   yield* makeAccept({ suite: SMASHCRAFT_ACCEPT, evidenceRoot: join(homedir(), ".local/state/smashcraft/accept"), driver, clients: clientNames() })(args);
 });
