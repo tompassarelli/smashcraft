@@ -25,7 +25,7 @@ export type ShadowInputMode = Exclude<InputMode, { kind: "callback" }>;
 /** native: the fighter unit animates; pool: clip models, from confirmed or predicted state. */
 type PresentationProfile = "native" | "pool-confirmed" | "pool-predicted";
 
-const SCENARIOS = ["normal", "knockdown", "tech", "shield-break", "ledge", "parry", "spike", "ko", "underside", "body-ceiling", "body-wall"] as const;
+const SCENARIOS = ["normal", "knockdown", "tech", "shield-break", "ledge", "parry", "spike", "ko", "underside", "body-ceiling", "body-wall", "agency-none", "agency-di", "agency-act", "agency-thaw"] as const;
 
 export type Scenario = (typeof SCENARIOS)[number];
 
