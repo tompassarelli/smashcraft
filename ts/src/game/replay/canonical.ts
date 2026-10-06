@@ -409,6 +409,7 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   bool("match.automaticRematch", match.automaticRematch);
   int("match.rematchCountdown", match.rematchCountdown);
   int("match.remainingFrames", match.remainingFrames);
+  int("match.matchFrame", match.matchFrame);
   bool("match.timedOut", match.timedOut);
   bool("match.practice", match.practice);
   int("runtime.simulationFrame", runtime.simulationFrame);

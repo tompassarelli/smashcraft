@@ -4,7 +4,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { Fighter } from "../sim/fighter";
 import type { Controls } from "../sim/roster";
-import { surfaceLeft, surfaceRight } from "../sim/stage";
+import { mainDeckLeft, mainDeckRight, surfaceLeft, surfaceRight } from "../sim/stage";
 
 /** How far inside the main deck's edges the computer keeps its resting point. */
 const EDGE_MARGIN = 40.0;
@@ -13,8 +13,8 @@ const WALK_RANGE = 120.0;
 /** Close enough to the goal to stop steering. */
 const ARRIVED = 12.0;
 
-const safeLeft = (stage: number): number => f32(surfaceLeft(stage, 0) + EDGE_MARGIN);
-const safeRight = (stage: number): number => f32(surfaceRight(stage, 0) - EDGE_MARGIN);
+const safeLeft = (stage: number): number => f32(mainDeckLeft(stage) + EDGE_MARGIN);
+const safeRight = (stage: number): number => f32(mainDeckRight(stage) - EDGE_MARGIN);
 
 /** Whether x lies between the deck's safe bounds, `inset` further in. */
 export function safeAt(stage: number, x: number, inset: number): boolean {
@@ -33,11 +33,11 @@ function restingX(x: number, vx: number, deceleration: number): number {
  * makes it, comes to rest on its deck: inside the main deck's safe bounds,
  * or on the raised deck it stands on.
  */
-export function slideStaysOnDeck(f: Readonly<Fighter>, stage: number): boolean {
+export function slideStaysOnDeck(f: Readonly<Fighter>, stage: number, matchFrame: number): boolean {
   const { x, vx, surface } = f.motion;
   const rest = restingX(x, vx, f.tuning.physics.traction);
   if (surface === undefined || surface === 0) return rest >= safeLeft(stage) && rest <= safeRight(stage);
-  return rest >= surfaceLeft(stage, surface) && rest <= surfaceRight(stage, surface);
+  return rest >= surfaceLeft(stage, surface, matchFrame) && rest <= surfaceRight(stage, surface, matchFrame);
 }
 
 const towardGoal = (stage: number, goal: number) => Math.min(safeRight(stage), Math.max(safeLeft(stage), goal));

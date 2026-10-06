@@ -68,7 +68,7 @@ import {
 } from "./shield";
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
 import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence } from "./smashDirectionalInfluence";
-import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
+import { surfaceCount, surfaceLeft, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
 import { stickX } from "./stick";
 import { checkBlastZone, respawnFighter } from "./stocks";
 import { advanceSurfaceRecovery, advanceWallJump, leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
@@ -90,8 +90,9 @@ const LATE_DASH_GUARD_GRAB_WINDOW = 3;
 const GUARD_BITS = 768;
 const STEERING_BITS = 16399;
 
-export function advanceFighter(world: Roster, slot: number, stage: number, input: Readonly<Controls>, respawnX: number): void {
-  advanceFighterMotion(world, slot, stage, input, respawnX);
+/** Advances one fighter's frame and regenerates its shield; `matchFrame` places moving decks, and a stage at rest needs none. */
+export function advanceFighter(world: Roster, slot: number, stage: number, input: Readonly<Controls>, respawnX: number, matchFrame = 0): void {
+  advanceFighterMotion(world, slot, stage, matchFrame, input, respawnX);
   regenerateShield(fighterAt(world, slot));
 }
 
@@ -248,13 +249,13 @@ function advanceGuard(f: Fighter, input: Readonly<Controls>, forcedShield: boole
 }
 
 /** Horizontal displacement for the frame, rounded per channel; dodge rolls stay on their deck. */
-function moveHorizontally(f: Fighter, stage: number, dashEntryDisplacementAdjustment: number): void {
+function moveHorizontally(f: Fighter, stage: number, matchFrame: number, dashEntryDisplacementAdjustment: number): void {
   const { motion, launch, shield, dodge } = f;
   if (isGroundDodging(f) && dodge.groundDirection !== 0) {
     const proposedX = f32(motion.x + totalVelocityX(f));
     const deck = motion.surface ?? 0;
-    const left = surfaceLeft(stage, deck);
-    const right = surfaceRight(stage, deck);
+    const left = surfaceLeft(stage, deck, matchFrame);
+    const right = surfaceRight(stage, deck, matchFrame);
     motion.x = max(left, min(right, proposedX));
     if ((dodge.groundDirection < 0 && motion.x === left) || (dodge.groundDirection > 0 && motion.x === right)) {
       motion.vx = 0.0;
@@ -272,34 +273,51 @@ function moveHorizontally(f: Fighter, stage: number, dashEntryDisplacementAdjust
   moveMeleeX(f, shield.recoilX);
 }
 
-/** The highest deck the frame's descent crossed within its span, if the fighter is not rising. */
-function landingDeck(f: Fighter, stage: number, oldX: number, oldZ: number): number | undefined {
+/**
+ * The highest deck the frame's descent crossed within its span, if the
+ * fighter is not rising toward it. A moving deck is met as it moves: the step
+ * starts where the fighter was relative to the deck a frame ago, as Melee's
+ * mpCheckFloorRemap moves the collision box's previous bottom with its line
+ * (melee:src/melee/mp/mplib.c), except on the deck that `carried` the
+ * fighter this frame, which already moved it along.
+ */
+function landingDeck(f: Fighter, stage: number, matchFrame: number, oldX: number, oldZ: number, carried: number | undefined): number | undefined {
   const { motion } = f;
-  if (totalVelocityZ(f) > 0) return undefined;
+  const rise = totalVelocityZ(f);
   let landing: number | undefined;
+  let landingZ = 0.0;
   for (let i = 0; i < surfaceCount(stage); i++) {
-    const platformZ = surfaceZ(stage, i);
-    if (!(oldZ >= platformZ && motion.z <= platformZ && !(surfacePass(stage, i) && motion.dropTime > 0))) continue;
-    const fraction = oldZ === motion.z ? 1.0 : f32(f32(oldZ - platformZ) / f32(oldZ - motion.z));
-    const crossingX = f32(oldX + f32(f32(motion.x - oldX) * fraction));
-    const left = surfaceLeft(stage, i);
-    const right = surfaceRight(stage, i);
+    const platformZ = surfaceZ(stage, i, matchFrame);
+    const follows = i !== carried && surfaceMoves(stage, i);
+    const fromX = follows ? f32(oldX + surfaceShiftX(stage, i, matchFrame)) : oldX;
+    const fromZ = follows ? f32(oldZ + surfaceShiftZ(stage, i, matchFrame)) : oldZ;
+    if ((follows ? f32(rise - surfaceShiftZ(stage, i, matchFrame)) : rise) > 0) continue;
+    if (!(fromZ >= platformZ && motion.z <= platformZ && !(surfacePass(stage, i) && motion.dropTime > 0))) continue;
+    const fraction = fromZ === motion.z ? 1.0 : f32(f32(fromZ - platformZ) / f32(fromZ - motion.z));
+    const crossingX = f32(fromX + f32(f32(motion.x - fromX) * fraction));
+    const left = surfaceLeft(stage, i, matchFrame);
+    const right = surfaceRight(stage, i, matchFrame);
     if (crossingX >= left && crossingX <= right && motion.x >= left && motion.x <= right) {
-      if (landing === undefined || platformZ > surfaceZ(stage, landing)) landing = i;
+      if (landing === undefined || platformZ > landingZ) {
+        landing = i;
+        landingZ = platformZ;
+      }
     }
   }
   return landing;
 }
 
 /** Advances one fighter's frame. The match step regenerates shields separately, after contact collection. */
-export function advanceFighterMotion(world: Roster, slot: number, stage: number, input: Readonly<Controls>, respawnX: number): void {
+export function advanceFighterMotion(world: Roster, slot: number, stage: number, matchFrame: number, input: Readonly<Controls>, respawnX: number): void {
   const f = fighterAt(world, slot);
   const { motion, launch, shield, attack, jump, dodge, down, status } = f;
   const physics = f.tuning.physics;
   motion.deltaX = 0.0;
   motion.deltaZ = 0.0;
   if (advanceOut(world, slot, respawnX)) return;
-  jump.inputAge = input.jumpPressed ? 0 : min(WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, jump.inputAge + 1);
+  // The deck this fighter stands on carried it before the frame began (carryOnMovingDecks).
+  const carried = motion.grounded ? motion.surface : undefined;
+  jump.inputAge =input.jumpPressed ? 0 : min(WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, jump.inputAge + 1);
   if (advanceFreeze(f)) {
     checkBlastZone(world, slot);
     return;
@@ -326,7 +344,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     advanceLedge(world, slot, stage, input);
     return;
   }
-  if (shield.breakState !== ShieldBreak.none && advanceShieldBreak(world, slot, stage, input)) return;
+  if (shield.breakState !== ShieldBreak.none && advanceShieldBreak(world, slot, stage, matchFrame, input)) return;
   // Only the guard present at the animation boundary drains; input may enter or leave guard later.
   if (launch.hitlag <= 0 && shield.raised && shieldDrainShouldResume(f, shield.stun > 0)) {
     if (input.shield) shield.strength = input.shieldStrength;
@@ -346,10 +364,10 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   const wallTechStartup = f.surfaceRecovery.state === SurfaceContact.techWall && f.surfaceRecovery.frame < WALL_TECH_STARTUP_FRAMES;
   if (hitlagBefore > 0 && launch.diPending) {
     if (launch.hitlag > 0) {
-      applySmashDirectionalInfluence(world, slot, stage, input);
+      applySmashDirectionalInfluence(world, slot, stage, matchFrame, input);
     } else if (!status.out) {
       applyDirectionalInfluence(f, input);
-      applyAutomaticSmashDirectionalInfluence(world, slot, stage, input);
+      applyAutomaticSmashDirectionalInfluence(world, slot, stage, matchFrame, input);
     }
   }
   if (status.out) return;
@@ -397,8 +415,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (status.out) return;
   const downOldX = motion.x;
   const downOldZ = motion.z;
-  if (advanceDownState(f, stage, input)) {
-    resolveDownGroundContact(f, stage);
+  if (advanceDownState(f, stage, matchFrame, input)) {
+    resolveDownGroundContact(f, stage, matchFrame);
     motion.deltaX = f32(motion.x - downOldX);
     motion.deltaZ = f32(motion.z - downOldZ);
     checkBlastZone(world, slot);
@@ -471,10 +489,10 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     motion.vx = f32(motion.vx * AIR_DODGE_DECAY);
     motion.vz = f32(motion.vz * AIR_DODGE_DECAY);
   }
-  moveHorizontally(f, stage, dashEntryDisplacementAdjustment);
+  moveHorizontally(f, stage, matchFrame, dashEntryDisplacementAdjustment);
   if (isGroundDodging(f) || (motion.grounded && jump.squat > 0)) {
     motion.vz = 0.0;
-    motion.z = surfaceZ(stage, motion.surface ?? 0);
+    motion.z = surfaceZ(stage, motion.surface ?? 0, matchFrame);
   } else if ((!dodgeActive || motion.grounded) && !groundTakeoff) {
     if (!motion.grounded && !motion.fastFalling && downHeld && motion.fastFallInputAge < FAST_FALL_INPUT_WINDOW && input.direction === 0
       && down.state === DownState.none && launch.hitstun <= 0 && motion.vz < 0) {
@@ -489,9 +507,9 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   moveMeleeZ(f, divideFloat32(shield.recoilZ, WORLD_UNITS_PER_MELEE_UNIT));
   const frameDeltaX = f32(motion.x - oldX);
   let wallSide = resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input);
-  const landing = landingDeck(f, stage, oldX, oldZ);
+  const landing = landingDeck(f, stage, matchFrame, oldX, oldZ, carried);
   if (landing !== undefined) {
-    finishLanding(f, stage, input, landing, false);
+    finishLanding(f, stage, matchFrame, input, landing, false);
   } else {
     // Moving into a wall that leans out puts the fighter inside the body
     // rather than across a face; moved back out, it is against that wall as

@@ -62,10 +62,10 @@ test("simultaneousImmolatesTradeInEitherSlotOrder", () => {
       left.motion.z = 400.0;
       right.motion.z = 400.0;
     }
-    assertTrue(startFighterSpecial(left, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
-    assertTrue(startFighterSpecial(right, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
+    assertTrue(startFighterSpecial(left, 0, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
+    assertTrue(startFighterSpecial(right, 0, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
     const world = reversed ? testWorld(right, left) : testWorld(left, right);
-    for (let tick = 1; tick <= DEMONHUNTER_IMMOLATE_STARTUP; tick++) advanceSpecials(world, 0);
+    for (let tick = 1; tick <= DEMONHUNTER_IMMOLATE_STARTUP; tick++) advanceSpecials(world, 0, 0);
     const damage = airborne ? 9.0 : 7.0;
     assertEquals(left.status.damage, damage);
     assertEquals(right.status.damage, damage);
@@ -79,14 +79,14 @@ test("immolateGroundShineMirrorsAndHitsOneTargetOnce", () => {
     const illidan = createFighter(Character.demonHunter, 0.0, facing);
     const target = createFighter(Character.archer, facing * 70.0, -facing);
     const world = testWorld(illidan, target);
-    assertTrue(startFighterSpecial(illidan, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
+    assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
     assertEquals(illidan.special.action, SpecialAction.demonHunterImmolate);
-    for (let tick = 1; tick <= DEMONHUNTER_IMMOLATE_STARTUP; tick++) advanceSpecials(world, 0);
+    for (let tick = 1; tick <= DEMONHUNTER_IMMOLATE_STARTUP; tick++) advanceSpecials(world, 0, 0);
     assertEquals(target.status.damage, 7.0);
     assertGreaterThan(target.launch.knockbackX * facing, 0.0);
     assertEquals(target.launch.knockbackZ, 0.0);
     const damage = target.status.damage;
-    for (let tick = 1; tick <= 3; tick++) advanceSpecials(world, 0);
+    for (let tick = 1; tick <= 3; tick++) advanceSpecials(world, 0, 0);
     assertEquals(target.status.damage, damage);
   }
 });
@@ -99,14 +99,14 @@ test("immolateAirSpecialSpikesAndUsesSingleContact", () => {
   target.motion.grounded = false;
   target.motion.z = 400.0;
   const world = testWorld(illidan, target);
-  assertTrue(startFighterSpecial(illidan, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
-  for (let tick = 1; tick <= DEMONHUNTER_IMMOLATE_STARTUP; tick++) advanceSpecials(world, 0);
+  assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
+  for (let tick = 1; tick <= DEMONHUNTER_IMMOLATE_STARTUP; tick++) advanceSpecials(world, 0, 0);
   assertEquals(target.status.damage, 9.0);
   assertLessThan(target.launch.knockbackX, 0.0);
   assertLessThan(target.launch.knockbackZ, 0.0);
   const hitlag = target.launch.hitlag;
   illidan.launch.hitlag = 0;
-  advanceSpecials(world, 0);
+  advanceSpecials(world, 0, 0);
   assertEquals(target.status.damage, 9.0);
   assertEquals(target.launch.hitlag, hitlag);
 });
@@ -115,9 +115,9 @@ test("manaBurnCreatesFlinchingProjectileWithoutAManaResource", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
   const target = createFighter(Character.archer, 500.0, -1);
   const world = testWorld(illidan, target);
-  assertTrue(startFighterSpecial(illidan, 0, controls({ specialPressed: true })));
+  assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true })));
   assertEquals(illidan.special.action, SpecialAction.demonHunterManaBurn);
-  for (let tick = 1; tick <= DEMONHUNTER_MANA_BURN_STARTUP; tick++) advanceSpecials(world, 0);
+  for (let tick = 1; tick <= DEMONHUNTER_MANA_BURN_STARTUP; tick++) advanceSpecials(world, 0, 0);
   assertEquals(projectileCount(illidan), 1);
   assertEquals(illidan.projectiles[0]!.kind, ProjectileKind.manaBurn);
   target.motion.x = illidan.projectiles[0]!.x + 20.0;
@@ -131,8 +131,8 @@ test("parryStepPunishesContactInItsWindowButDoesNotReflectShots", () => {
   const attacker = createFighter(Character.archer, 0.0, 1);
   const illidan = createFighter(Character.demonHunter, 90.0, -1);
   const world = testWorld(illidan, attacker);
-  assertTrue(startFighterSpecial(illidan, 0, controls({ specialPressed: true, direction: -1, specialX: -1 })));
-  for (let tick = 1; tick <= DEMONHUNTER_PARRY_START; tick++) advanceSpecials(world, 0);
+  assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true, direction: -1, specialX: -1 })));
+  for (let tick = 1; tick <= DEMONHUNTER_PARRY_START; tick++) advanceSpecials(world, 0, 0);
   beginFighterAttack(world, 1, AttackStyle.jab, false);
   attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
   resolveAttacks(world);
@@ -144,10 +144,10 @@ test("parryStepPunishesContactInItsWindowButDoesNotReflectShots", () => {
   const shooter = createFighter(Character.archer, 0.0, 1);
   const parrier = createFighter(Character.demonHunter, 160.0, -1);
   const shotWorld = testWorld(parrier, shooter);
-  assertTrue(startFighterSpecial(shooter, 0, controls({ specialPressed: true })));
-  assertTrue(startFighterSpecial(parrier, 0, controls({ specialPressed: true, direction: -1, specialX: -1 })));
+  assertTrue(startFighterSpecial(shooter, 0, 0, controls({ specialPressed: true })));
+  assertTrue(startFighterSpecial(parrier, 0, 0, controls({ specialPressed: true, direction: -1, specialX: -1 })));
   for (let tick = 1; tick <= DEMONHUNTER_PARRY_START; tick++) {
-    advanceSpecials(shotWorld, 0);
+    advanceSpecials(shotWorld, 0, 0);
     updateProjectiles(shotWorld);
   }
   assertEquals(projectileCount(shooter), 0);
@@ -162,12 +162,12 @@ test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules", () =>
     fighter.motion.grounded = false;
     fighter.motion.z = 500.0;
     fighter.jump.remaining = 1;
-    assertTrue(startFighterSpecial(fighter, 0, controls({ specialPressed: true, verticalDirection: 1, specialZ: 1 })));
+    assertTrue(startFighterSpecial(fighter, 0, 0, controls({ specialPressed: true, verticalDirection: 1, specialZ: 1 })));
     assertEquals(fighter.jump.remaining, 0);
     for (let frame = 1; frame <= 38; frame++) {
       fighter.attack.cooldown = Math.max(0, fighter.attack.cooldown - 1);
       fighter.special.lockFrames = Math.max(0, fighter.special.lockFrames - 1);
-      advanceSpecials(testWorld(fighter, target), 0);
+      advanceSpecials(testWorld(fighter, target), 0, 0);
     }
     assertEquals(fighter.special.action, SpecialAction.none);
     assertTrue(fighter.special.fall);
@@ -181,7 +181,7 @@ test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules", () =>
     assertEquals(fighter.jump.remaining, 0);
     beginFighterAttack(testWorld(fighter, target), 0, AttackStyle.neutralAir, false);
     assertEquals(fighter.attack.style, undefined);
-    assertFalse(startFighterSpecial(fighter, 0, controls({ specialPressed: true })));
+    assertFalse(startFighterSpecial(fighter, 0, 0, controls({ specialPressed: true })));
     fighter.launch.hitstun = 2;
     cancelSpecialState(fighter);
     assertFalse(fighter.special.fall);
@@ -262,8 +262,8 @@ test("hitInterruptsIllidanSpecialAndStockResetClearsSpecialState", () => {
   const illidan = createFighter(Character.demonHunter, 0.0, 1);
   const attacker = createFighter(Character.archer, 500.0, -1);
   const world = testWorld(illidan, attacker);
-  assertTrue(startFighterSpecial(illidan, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
-  for (let tick = 1; tick < DEMONHUNTER_IMMOLATE_STARTUP; tick++) advanceSpecials(world, 0);
+  assertTrue(startFighterSpecial(illidan, 0, 0, controls({ specialPressed: true, down: true, specialZ: -1 })));
+  for (let tick = 1; tick < DEMONHUNTER_IMMOLATE_STARTUP; tick++) advanceSpecials(world, 0, 0);
   attacker.motion.x = 60.0;
   const hitWorld = testWorld(attacker, illidan);
   beginFighterAttack(hitWorld, 0, AttackStyle.jab, false);

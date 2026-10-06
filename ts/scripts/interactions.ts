@@ -11,7 +11,7 @@ import { attackPhase, canAttack, canShieldGrab, isIntangible } from "../src/game
 import type { Fighter } from "../src/game/sim/fighter";
 import { LEDGE_INTANGIBLE_FRAMES } from "../src/game/sim/ledge";
 import { attackStartupFrames } from "../src/game/sim/moves";
-import { surfaceRight, surfaceZ } from "../src/game/sim/stage";
+import { mainDeckRight, mainDeckZ } from "../src/game/sim/stage";
 import { resetMatchFrameInput } from "../src/game/match/frameInput";
 import { type ReplayState, captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../src/game/replay/snapshot";
 import { type Placement, type Scene, airborne, fighter, frame, scene, tumbling } from "./frameScene";
@@ -883,7 +883,7 @@ function landingRows(entry: FighterEntry): StateRow[] {
   }));
 }
 
-const LEDGE_X = surfaceRight(0, 0);
+const LEDGE_X = mainDeckRight(0);
 /** The opponent waits this far inside the ledge, facing it. */
 const LEDGE_GUARD = 70.0;
 
@@ -891,7 +891,7 @@ function ledgeRows(entry: FighterEntry): StateRow[] {
   const sit: Situation = {
     placements: [{ character: entry.character, x: LEDGE_X + 30.0, facing: -1 }, { character: entry.character, x: LEDGE_X - LEDGE_GUARD, facing: 1 }],
     prepare: (hanger) => {
-      airborne(hanger, LEDGE_X + 30.0, surfaceZ(0, 0));
+      airborne(hanger, LEDGE_X + 30.0, mainDeckZ(0));
       hanger.jump.remaining = 1;
     },
     policies: [idle, idle],

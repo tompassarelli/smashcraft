@@ -40,9 +40,9 @@ function catchTestLedge(fighter: Fighter, input: Readonly<Controls>): void {
  */
 function catchesAfterMovement(character: Character, side: number, outsideBefore: number, belowBefore: number, outside: number, below: number): boolean {
   const fighter = ledgeTestFighter(character, side);
-  const edge = side < 0 ? surfaceLeft(0, 0) : surfaceRight(0, 0);
+  const edge = side < 0 ? surfaceLeft(0, 0, 0) : surfaceRight(0, 0, 0);
   fighter.motion.x = f32(edge + f32(side * outside));
-  fighter.motion.z = f32(surfaceZ(0, 0) - below);
+  fighter.motion.z = f32(surfaceZ(0, 0, 0) - below);
   fighter.motion.deltaX = f32(side * f32(outside - outsideBefore));
   fighter.motion.deltaZ = f32(belowBefore - below);
   catchTestLedge(fighter, controls());
@@ -220,8 +220,8 @@ test("only a full down passes ledges; a slight downward tilt still catches", () 
 
 test("upper platform ledges can't be caught", () => {
   const fighter = ledgeTestFighter(Character.rifleman, -1);
-  fighter.motion.x = f32(surfaceLeft(1, 1) - 20);
-  fighter.motion.z = f32(surfaceZ(1, 1) - 30);
+  fighter.motion.x = f32(surfaceLeft(1, 1, 0) - 20);
+  fighter.motion.z = f32(surfaceZ(1, 1, 0) - 30);
   const input = controls();
   resolveLedges(testWorld(fighter, createFighter(Character.archer, 0.0, 1)), 1, [input, input]);
   assertEquals(fighter.ledge.state, LedgeState.none);

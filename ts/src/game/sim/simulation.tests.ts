@@ -65,7 +65,7 @@ test("hitting a jump squat cancels its buffered air dodge", () => {
 test("leaving the floor without jumping leaves exactly one air jump", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (const side of [-1, 1]) {
-      const edge = side < 0 ? surfaceLeft(0, 0) : surfaceRight(0, 0);
+      const edge = side < 0 ? surfaceLeft(0, 0, 0) : surfaceRight(0, 0, 0);
       const fighter = createFighter(character, f32(edge - side), side);
       const input = controls({ direction: side });
       fighter.motion.surface = 0;
@@ -87,9 +87,9 @@ test("leaving the floor without jumping leaves exactly one air jump", () => {
 });
 
 test("dropping through a platform leaves exactly one air jump", () => {
-  const fighter = createFighter(Character.archer, f32(f32(surfaceLeft(1, 1) + surfaceRight(1, 1)) / 2), 1);
+  const fighter = createFighter(Character.archer, f32(f32(surfaceLeft(1, 1, 0) + surfaceRight(1, 1, 0)) / 2), 1);
   fighter.motion.surface = 1;
-  fighter.motion.z = surfaceZ(1, 1);
+  fighter.motion.z = surfaceZ(1, 1, 0);
   advanceSolo(fighter, 1, controls({ down: true }), 0.0);
   assertFalse(fighter.motion.grounded);
   assertEquals(fighter.jump.remaining, 1);

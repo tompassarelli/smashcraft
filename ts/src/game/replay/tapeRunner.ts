@@ -125,6 +125,9 @@ function perform(session: TapeSession, operation: TapeOperation): { result: stri
   const { live, history, produced, epoch } = session;
   const game = live.match;
   switch (operation.kind) {
+    case "test-stage":
+      game.stageChoice = operation.stage;
+      return { result: "-" };
     case "input":
       applyControls(produced.inputs[operation.slot], operation.controls);
       for (const attack of operation.attacks) queueAttack(produced.commands[operation.slot], attack);

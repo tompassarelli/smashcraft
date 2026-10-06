@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { MAIN_DECK_HALF_DEPTH, STAGE_PALETTE_TEXTURE, type DeckFace, type OutlinePoint, mainDeckFaces, mainDeckMdl, mainDeckModelFile } from "../scripts/stageDeck";
 import { MODEL_FACTS } from "../scripts/wisp/modelFacts";
 import { STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
-import { MAIN_DECK_BODY_SURFACES, solidSurfaceAt, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
+import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, solidSurfaceAt } from "../src/game/sim/stage";
 
 /** The stages a match can select; both draw the same main deck model. */
 const SHIPPED_STAGES = [0, 1];
@@ -11,9 +11,9 @@ const MAIN_DECK = mainDeckFaces(0);
 
 /** The main deck's collision corners on `stage`, from its left ledge along the walking line, then down its walls and underside, in model units. */
 function collisionCorners(stage: number): OutlinePoint[] {
-  const left = surfaceLeft(stage, 0);
-  const center = (left + surfaceRight(stage, 0)) / 2;
-  const floor = surfaceZ(stage, 0);
+  const left = mainDeckLeft(stage);
+  const center = (left + mainDeckRight(stage)) / 2;
+  const floor = mainDeckZ(stage);
   const corners: OutlinePoint[] = [[left - center, 0]];
   for (let index = 0; index < MAIN_DECK_BODY_SURFACES; index++) {
     const line = solidSurfaceAt(stage, index);
@@ -85,8 +85,8 @@ test("the main deck model's outline is the main deck's collision lines on every 
     // Each collision line is drawn through the deck's depth, facing out along its normal.
     for (let index = 0; index < MAIN_DECK_BODY_SURFACES; index++) {
       const line = solidSurfaceAt(stage, index);
-      const center = (surfaceLeft(stage, 0) + surfaceRight(stage, 0)) / 2;
-      const floor = surfaceZ(stage, 0);
+      const center = (mainDeckLeft(stage) + mainDeckRight(stage)) / 2;
+      const floor = mainDeckZ(stage);
       const front = [[line.startX - center, -MAIN_DECK_HALF_DEPTH, line.startZ - floor], [line.endX - center, -MAIN_DECK_HALF_DEPTH, line.endZ - floor]];
       const side = MAIN_DECK.find(({ corners: points }) => JSON.stringify(points.slice(0, 2)) === JSON.stringify(front));
       expect(side?.normal).toEqual([line.normalX, 0, line.normalZ]);

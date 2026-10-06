@@ -19,12 +19,12 @@ test("a standing grab from the stage cannot catch a fighter hanging on the ledge
   for (const character of ROSTER) {
     for (const side of [-1, 1]) {
       const match = testMatch(3, character);
-      const edge = side < 0 ? surfaceLeft(0, 0) : surfaceRight(0, 0);
+      const edge = side < 0 ? surfaceLeft(0, 0, 0) : surfaceRight(0, 0, 0);
       const grabber = createFighter(character, f32(edge - side * GRAB_DISTANCE), side);
       const hanger = createFighter(character, f32(edge + side * f32(ledgeCatchBox(character).reach - 6.0)), -side);
       hanger.motion.grounded = false;
       hanger.motion.surface = undefined;
-      hanger.motion.z = surfaceZ(0, 0);
+      hanger.motion.z = surfaceZ(0, 0, 0);
       hanger.jump.remaining = 1;
       match.world.fighters[0] = grabber;
       match.world.fighters[1] = hanger;
