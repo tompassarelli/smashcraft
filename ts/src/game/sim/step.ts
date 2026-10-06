@@ -104,11 +104,13 @@ function attackStartupTravel(world: Roster, slot: number): number {
   for (let targetSlot = 0; targetSlot < PARTICIPANT_CAPACITY; targetSlot++) {
     if (targetSlot === slot || !isActive(world, targetSlot)) continue;
     const target = fighterAt(world, targetSlot);
-    if (!target.shield.raised || target.status.out) continue;
+    if ((!target.shield.raised && !move.startupStopsAtBody) || target.status.out) continue;
     const geometry = target.tuning.shield;
-    const radius = f32(geometry.radius * shieldSizeMultiplier(target.shield.energy, target.shield.strength));
-    const centerX = f32(target.motion.x + f32(target.facing * geometry.centerX));
-    const centerZ = f32(target.motion.z + geometry.centerZ);
+    const body = hurtCapsule(target.character);
+    const radius = target.shield.raised
+      ? f32(geometry.radius * shieldSizeMultiplier(target.shield.energy, target.shield.strength)) : body.radius;
+    const centerX = target.shield.raised ? f32(target.motion.x + f32(target.facing * geometry.centerX)) : target.motion.x;
+    const centerZ = target.shield.raised ? f32(target.motion.z + geometry.centerZ) : f32(target.motion.z + f32(f32(body.z1 + body.z2) * 0.5));
     if (Math.abs(f32(centerZ - f32(f.motion.z + f.tuning.shield.centerZ))) > f32(radius + ownRadius)) continue;
     const ahead = f32(f32(centerX - f.motion.x) * f.facing);
     if (ahead <= 0.0) continue;

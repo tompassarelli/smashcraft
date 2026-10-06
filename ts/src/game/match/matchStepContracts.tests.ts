@@ -695,8 +695,8 @@ test("bothFinalStocksResolveAfterTheSameStep", () => {
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
   requestStageSelect(game, 0);
   requestStart(game, 0);
-  const first = createFighter(0, (stageBounds(0).blast.left - 1), 1);
-  const second = createFighter(1, (stageBounds(0).blast.right + 1), -1);
+  const first = createFighter(0, (stageBounds(game.stageChoice).blast.left - 1), 1);
+  const second = createFighter(1, (stageBounds(game.stageChoice).blast.right + 1), -1);
   first.status.stocks = 1;
   second.status.stocks = 1;
   const firstInput = neutralControls();
@@ -755,7 +755,7 @@ test("configuredStocksAndLastTickKnockoutPrecedeTimeout", () => {
   setStocks(game, 0, 1);
   requestStageSelect(game, 0);
   requestStart(game, 0);
-  const first = createFighter(0, (stageBounds(0).blast.left - 1), 1);
+  const first = createFighter(0, (stageBounds(game.stageChoice).blast.left - 1), 1);
   const second = createFighter(1, 240, -1);
   initializeMatchFighters(game, testRoster(first, second));
   assertEquals(first.status.stocks, 1);

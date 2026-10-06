@@ -77,6 +77,19 @@ function facingOffsetX(attacker: Readonly<Fighter>, target: Readonly<Fighter>): 
   return f32(f32(target.motion.x - attacker.motion.x) * attacker.facing);
 }
 
+function selectAuthoredGrabRegion(attacker: Fighter, target: Fighter, frame: number, out: HitRegion): void {
+  const moves = attacker.tuning.moves;
+  const localX = facingOffsetX(attacker, target);
+  placeCapsule(targetCapsule, hurtCapsule(target.character), target.motion.x, target.motion.z, 1);
+  for (let index = 0; index < authoredHitRegionCount(AttackStyle.grab, moves); index++) {
+    authoredHitRegion(out, attacker.character, AttackStyle.grab, frame, 0, index, moves);
+    if (out.window <= 0 || localX < 0 || localX > out.maxX) continue;
+    placeStrikeCapsule(attacker, out);
+    if (capsulesIntersect(strikeCapsule, targetCapsule)) return;
+  }
+  copyHitRegion(out, NO_HIT_REGION);
+}
+
 /** Writes the region of the attacker's current attack that reaches the target into out, or NO_HIT_REGION's values. */
 function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number, out: HitRegion): void {
   const attacker = fighterAt(world, attackerSlot);
@@ -89,11 +102,7 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
   if (attack.dashGrab) {
     const moves = attacker.tuning.moves;
     if (moves?.normals[AttackStyle.grab] !== undefined) {
-      authoredHitRegion(out, attacker.character, AttackStyle.grab, attack.frame - 3, 0, 0, moves);
-      placeStrikeCapsule(attacker, out);
-      placeCapsule(targetCapsule, hurtCapsule(target.character), target.motion.x, target.motion.z, 1);
-      const localX = facingOffsetX(attacker, target);
-      if (out.window <= 0 || localX < 0 || localX > out.maxX || !capsulesIntersect(strikeCapsule, targetCapsule)) copyHitRegion(out, NO_HIT_REGION);
+      selectAuthoredGrabRegion(attacker, target, attack.frame - 3, out);
       return;
     }
     const { startupFrames, activeFrames } = attacker.tuning.dashGrab;
@@ -109,10 +118,8 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
     const { hits } = target;
     const alreadyHit = hits.lastAttacker === attackerSlot && hits.lastAttackSerial === attack.serial && hits.lastWindow >= out.window;
     if (attacker.tuning.moves?.normals[AttackStyle.grab] !== undefined) {
-      placeStrikeCapsule(attacker, out);
-      placeCapsule(targetCapsule, hurtCapsule(target.character), target.motion.x, target.motion.z, 1);
-      const localX = facingOffsetX(attacker, target);
-      if (out.window <= 0 || alreadyHit || localX < 0 || localX > out.maxX || !capsulesIntersect(strikeCapsule, targetCapsule)) copyHitRegion(out, NO_HIT_REGION);
+      selectAuthoredGrabRegion(attacker, target, attack.frame, out);
+      if (alreadyHit) copyHitRegion(out, NO_HIT_REGION);
       return;
     }
     const localX = facingOffsetX(attacker, target);
