@@ -91,7 +91,8 @@ export const ensureService = (helper: string) => Effect.gen(function*() {
       child.once("spawn", () => {
         closeSync(output);
         child.unref();
-        resolve(child.pid!);
+        if (child.pid === undefined) reject(new Error("the controller service has no process id"));
+        else resolve(child.pid);
       });
     }),
     catch: (cause) => fail(`couldn't start the controller service: ${String(cause)}`),
