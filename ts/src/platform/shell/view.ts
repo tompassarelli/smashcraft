@@ -15,7 +15,11 @@ import { hitlagTint } from "../../game/presentation/hitPresentation";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import type { FighterPose } from "../../game/presentation/fighterPose";
 import { CANNON_MODEL, PLATFORM_CUE_FRAMES, framesUntilPlatformMoves, stageWarning } from "../../game/presentation/stageHazards";
-import { escapeMeterView, readEscapeMeter } from "../../game/presentation/escapeMeter";
+import { escapeMeterView, overheadAnchorZ, readEscapeMeter } from "../../game/presentation/escapeMeter";
+import { OVERHEAD_MANA_WIDTH, overheadManaLift } from "../../game/presentation/manaBar";
+import type { ManaBar } from "../../game/ui/manaBar";
+import type { Fighter } from "../../game/sim/fighter";
+import type { MatchCamera } from "../../game/sim/matchCamera";
 import { type MapBuild, journalIngress } from "../../game/shell/build";
 import { MOMENT_SAVED_MESSAGE, type StartControl, matchHelp, resultNotice, stockLossMessage, waitingMessage } from "../../game/shell/messages";
 import { isIntangible } from "../../game/sim/conditions";
@@ -225,6 +229,21 @@ export function renderPersistentPresentation(s: ShellState): void {
 // Preallocated scratch for each slot's escape meter.
 const meter = escapeMeterView();
 
+/** A fighter's overhead mana bar: over its head, stacked above its escape meter when that shows. */
+function presentOverheadMana(bar: ManaBar, fighter: Readonly<Fighter> | undefined, escapeShown: boolean, framing: Readonly<MatchCamera>, aspect: number): void {
+  if (fighter === undefined || fighter.status.out) {
+    bar.update(false, fighter?.mana.points ?? 0, fighter?.visuals.manaDenied ?? 0);
+    return;
+  }
+  const point = cameraPoint(framing, aspect, fighter.motion.x, overheadAnchorZ(fighter));
+  const onScreen = point.column >= 0.0 && point.column <= 1.0 && point.row >= 0.0 && point.row <= 1.0;
+  if (onScreen) {
+    const centerX = f32(0.4) + (point.column - 0.5) * aspect * f32(0.6);
+    bar.place(centerX - OVERHEAD_MANA_WIDTH / 2.0, (1.0 - point.row) * f32(0.6) + overheadManaLift(escapeShown), OVERHEAD_MANA_WIDTH);
+  }
+  bar.update(onScreen, fighter.mana.points, fighter.visuals.manaDenied);
+}
+
 /** Frames the live fighters of the presented match from the side. */
 export function lockArenaCamera(s: ShellState): void {
   const { world, game } = presentedMatch(s);
@@ -254,6 +273,7 @@ export function lockArenaCamera(s: ShellState): void {
     if (game.phase !== Phase.match) meter.shown = false;
     const meterPoint = cameraPoint(framing, aspect, meter.x, meter.z);
     views(s).escapeMeters[slot].update(meter, meterPoint.column, meterPoint.row, aspect);
+    presentOverheadMana(views(s).manaBars[slot].overhead, game.phase === Phase.match ? fighter : undefined, meter.shown, framing, aspect);
   }
 }
 
@@ -268,9 +288,12 @@ export function renderUi(s: ShellState): void {
   for (const slot of PARTICIPANT_SLOTS) {
     if (s.participants[slot].body !== undefined && isActive(s.world, slot)) {
       const fighter = fighterAt(s.world, slot);
-      ui.huds[slot].update(showMatch, fighter.character, fighter.status.damage, s.game.endless ? 0 : fighter.status.stocks,
-        fighter.tuning.specials === undefined ? undefined : fighter.mana.points, fighter.visuals.manaDenied);
-    } else ui.huds[slot].update(false, 0, 0.0, 0);
+      ui.huds[slot].update(showMatch, fighter.character, fighter.status.damage, s.game.endless ? 0 : fighter.status.stocks);
+      ui.manaBars[slot].hud.update(showMatch, fighter.mana.points, fighter.visuals.manaDenied);
+    } else {
+      ui.huds[slot].update(false, 0, 0.0, 0);
+      ui.manaBars[slot].hud.update(false, 0, 0);
+    }
     ui.selections[slot].update(game, ui.settings[slot].isOpen());
     ui.settings[slot].update();
   }

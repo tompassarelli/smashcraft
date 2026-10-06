@@ -5,7 +5,6 @@ import { idiv, imod } from "wisp/src/sim/intMath";
 import { Character } from "../sim/codes";
 import { fighterName, fighterPortrait } from "../sim/heroes/registry";
 import { MENU_FONT, createBackdrop, createText, gameUi, placeTopLeft } from "./frames";
-import { manaLabel, manaReadout } from "./manaReadout";
 
 const STOCK_ICONS = 9;
 
@@ -40,6 +39,19 @@ function damageText(damage: number): string {
   return `${tint}${I2S(R2I(damage))}.${I2S(imod(R2I(damage * 10), 10))}%|r`;
 }
 
+/** The left edge and width of the `position`-th of `count` evenly spaced plates. */
+function plateSpan(position: number, count: number): { readonly x: number; readonly width: number } {
+  const spacing = f32(0.76) / count;
+  const width = count > 2 ? f32(0.17) : 0.25;
+  return { x: f32(0.02) + spacing * (position + 0.5) - width / 2, width };
+}
+
+/** Where a plate's mana bar sits: over the damage, beside the portrait, as left edge, centre height and length. */
+export function plateManaSlot(position: number, count: number): { readonly left: number; readonly centerY: number; readonly width: number } {
+  const { x, width } = plateSpan(position, count);
+  return { left: x + width * f32(0.44), centerY: f32(0.148), width: width * f32(0.5) };
+}
+
 /** One fighter's plate: portrait, name, slot, damage and stock icons. */
 export class FighterHud {
   private readonly plate: framehandle;
@@ -47,10 +59,6 @@ export class FighterHud {
   private readonly damage: framehandle;
   private readonly name: framehandle;
   private readonly slotLabel: framehandle;
-  /** Above the plate: mana, or a moment's notice that a special lacked it. */
-  private readonly mana: framehandle;
-  private readonly manaState = manaReadout();
-  private shownMana: string | undefined;
   private readonly stocks: readonly framehandle[];
   /** The frames that show and hide with the plate; stock icons also follow the stock count. */
   private readonly body: readonly framehandle[];
@@ -83,10 +91,6 @@ export class FighterHud {
     BlzFrameSetFont(this.slotLabel, MENU_FONT, f32(0.008), 1);
     BlzFrameSetText(this.slotLabel, `P${I2S(slot + 1)}`);
     BlzFrameSetEnable(this.slotLabel, false);
-    this.mana = createText(`FighterHUDMana${suffix}`, parent, context + 5 + STOCK_ICONS);
-    BlzFrameSetFont(this.mana, MENU_FONT, f32(0.009), 1);
-    BlzFrameSetTextAlignment(this.mana, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER);
-    BlzFrameSetEnable(this.mana, false);
     const stocks: framehandle[] = [];
     for (let index = 0; index < STOCK_ICONS; index++) {
       const icon = createBackdrop(`FighterHUDStock${suffix}_${I2S(index)}`, parent, context + 5 + index);
@@ -95,7 +99,7 @@ export class FighterHud {
       stocks.push(icon);
     }
     this.stocks = stocks;
-    this.body = [this.plate, this.portrait, this.damage, this.name, this.slotLabel, this.mana];
+    this.body = [this.plate, this.portrait, this.damage, this.name, this.slotLabel];
     this.layout(slot, count);
     this.update(false, Character.archer, 0.0, 0);
   }
@@ -107,9 +111,7 @@ export class FighterHud {
 
   /** Places this plate `position`-th of `count` evenly spaced plates. */
   layout(position: number, count: number): void {
-    const spacing = f32(0.76) / count;
-    const width = count > 2 ? f32(0.17) : 0.25;
-    const x = f32(0.02) + spacing * (position + 0.5) - width / 2;
+    const { x, width } = plateSpan(position, count);
     placeTopLeft(this.plate, x, f32(0.084));
     BlzFrameSetSize(this.plate, width, f32(0.053));
     placeTopLeft(this.portrait, x - f32(0.02), f32(0.139));
@@ -119,18 +121,10 @@ export class FighterHud {
     placeTopLeft(this.name, x + width * f32(0.37), f32(0.052));
     BlzFrameSetSize(this.name, width * f32(0.6), f32(0.016));
     placeTopLeft(this.slotLabel, x + f32(0.004), f32(0.05));
-    placeTopLeft(this.mana, x, f32(0.155));
-    BlzFrameSetSize(this.mana, width, f32(0.014));
     this.stocks.forEach((icon, index) => placeTopLeft(icon, x + width * f32(0.38) + index * f32(0.013), f32(0.029)));
   }
 
-  /** `mana` is undefined for a fighter without it; `manaDenials` counts specials it could not afford. */
-  update(visible: boolean, character: Character, damage: number, stocks: number, mana?: number, manaDenials = 0): void {
-    const shownMana = manaLabel(this.manaState, mana, manaDenials);
-    if (this.shownMana !== shownMana) {
-      this.shownMana = shownMana;
-      BlzFrameSetText(this.mana, shownMana);
-    }
+  update(visible: boolean, character: Character, damage: number, stocks: number): void {
     if (this.shownVisible !== visible) {
       this.shownVisible = visible;
       for (const frame of this.body) BlzFrameSetVisible(frame, visible);

@@ -1,5 +1,6 @@
 // The menus, HUD and renderers the shell drives. A hot reload keeps their
 // native handles and mutable state, and binds their objects to the new code.
+import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../../game/input/participants";
 import { CombatEffects } from "../../game/render/combatEffects";
 import { FighterPoolPresentation } from "../../game/render/fighterPool";
@@ -18,11 +19,14 @@ import { SpecialEffects } from "../../game/render/specialEffects";
 import type { Character } from "../../game/sim/codes";
 import { isActive } from "../../game/sim/roster";
 import type { MenuControls } from "../../game/ui/frames";
-import { FighterHud, MatchClock } from "../../game/ui/matchHud";
+import { FighterHud, MatchClock, plateManaSlot } from "../../game/ui/matchHud";
 import { TrainingReadout } from "../../game/ui/trainingReadout";
 import { HitAreaPresentation } from "../../game/render/hitAreaPresentation";
 import { EscapeMeter } from "../../game/ui/escapeMeter";
 import { OffscreenBubble } from "../../game/ui/offscreenBubble";
+import { ManaBar } from "../../game/ui/manaBar";
+import { OVERHEAD_MANA_BORDER, OVERHEAD_MANA_HEIGHT } from "../../game/presentation/manaBar";
+import { consoleUi, gameUi } from "../../game/ui/frames";
 import { type SelectionActions, SelectionPanel } from "../../game/ui/selectionUi";
 import { type SettingsActions, SettingsPanel } from "../../game/ui/settingsUi";
 import { type StageActions, StagePanel } from "../../game/ui/stageUi";
@@ -48,6 +52,8 @@ export interface UiObjects {
   readonly huds: Slots<FighterHud>;
   readonly bubbles: Slots<OffscreenBubble>;
   readonly escapeMeters: Slots<EscapeMeter>;
+  /** Each fighter's mana bar over its head and on its HUD plate; created on reload by a bundle that predates them. */
+  manaBars: Slots<ManaBars>;
   readonly selections: Slots<SelectionPanel>;
   readonly settings: Slots<SettingsPanel>;
   readonly stage: StagePanel;
@@ -78,6 +84,17 @@ export function views(s: Readonly<ShellState>): UiObjects {
 
 const each = <T>(create: (slot: ParticipantSlot) => T): Slots<T> => [create(0), create(1), create(2), create(3)];
 
+export interface ManaBars {
+  readonly overhead: ManaBar;
+  readonly hud: ManaBar;
+}
+
+const createManaBars = (slot: ParticipantSlot): ManaBars => ({
+  // Like the escape meter, the overhead bar draws on the console backdrop, outside GameUI's central area.
+  overhead: new ManaBar("Overhead", slot, consoleUi(), 1200 + slot * 20, OVERHEAD_MANA_HEIGHT, OVERHEAD_MANA_BORDER),
+  hud: new ManaBar("Hud", slot, gameUi(), 1300 + slot * 20, f32(0.004), f32(0.001)),
+});
+
 function menuControls(s: Readonly<ShellState>): MenuControls {
   return s.build.input.kind === "journal" && s.build.input.ingress === "editbox" ? "journal" : "keyboard";
 }
@@ -91,6 +108,7 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
     huds: each(slot => new FighterHud(slot, 4)),
     bubbles: each(slot => new OffscreenBubble(slot)),
     escapeMeters: each(slot => new EscapeMeter(slot)),
+    manaBars: each(createManaBars),
     stage: new StagePanel(actions.stage, controls),
     selections: each(slot => new SelectionPanel(actions.selection, slot, controls)),
     settings: each(slot => new SettingsPanel(s.participants[slot].bindings, actions.settings, slot)),
@@ -140,7 +158,11 @@ export function endFighter(s: ShellState, slot: ParticipantSlot): void {
 export function layoutHuds(s: ShellState): void {
   const ui = views(s);
   const active = PARTICIPANT_SLOTS.filter(slot => isActive(s.world, slot));
-  active.forEach((slot, position) => ui.huds[slot].layout(position, active.length));
+  active.forEach((slot, position) => {
+    ui.huds[slot].layout(position, active.length);
+    const { left, centerY, width } = plateManaSlot(position, active.length);
+    ui.manaBars[slot].hud.place(left, centerY, width);
+  });
 }
 
 /** Rebind retained UI and renderer handles to this bundle's methods and actions. */
@@ -166,6 +188,12 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   bindPrototype(ui.special, SpecialEffects.prototype);
   ui.special.bindNestedCode();
   ui.sounds = modelSoundPresentation(s.origin);
+  const retainedBars: { readonly manaBars?: Slots<ManaBars> } = ui;
+  if (retainedBars.manaBars === undefined) ui.manaBars = each(createManaBars);
+  else for (const slot of PARTICIPANT_SLOTS) {
+    bindPrototype(ui.manaBars[slot].overhead, ManaBar.prototype);
+    bindPrototype(ui.manaBars[slot].hud, ManaBar.prototype);
+  }
   // A bundle from before the match presentation left none to rebind.
   const retained: { readonly match?: MatchPresentation } = ui;
   if (retained.match === undefined) ui.match = new MatchPresentation(s.origin);

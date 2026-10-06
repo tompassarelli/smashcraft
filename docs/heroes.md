@@ -142,18 +142,14 @@ added to `AuthoredSpecial` and executed here, with a focused test.
 
 ## Mana
 
-`ROSTER_MANA`: 100 mana, full on spawn and on each new stock. After 120
-frames without spending, a grounded, actionable fighter (not shielding,
-held, stunned or acting) regains a point every 10 such frames. A press the
-fighter cannot afford starts nothing and counts one `visuals.manaDenied`; an
-up special below its full cost takes its `free` form instead. Mana, its delay
-and remainder, the entry form and aim, airtime uses, armor and each hero
-projectile's record and the placed object are fighter state: rollback copies them, replay
-difference compares them, and the canonical replay text includes them for
-fighters with a hero kit. The original fighters keep their cooldowns and no
-mana. In a match each hero's HUD plate shows "Mana N" above it, and "Not
-enough mana" for about three quarters of a second after each refused press
-(`ui/manaReadout.ts`). There is no ultimate action, so ultimates stay off.
+Every fighter has the one mana resource (`sim/mana.ts`); its rules, numbers
+and bar are in smashcraft:docs/design/mana.md. A press the fighter cannot
+afford starts nothing and counts one `visuals.manaDenied`; an up special
+below its full cost takes its `free` form instead. The entry form and aim,
+airtime uses, armor, each hero projectile's record and the placed object are
+fighter state: rollback copies them, replay difference compares them, and the
+canonical replay text includes them for fighters with a hero kit (mana itself
+for every fighter). There is no ultimate action, so ultimates stay off.
 
 The shared contracts are in `ts/src/game/sim/heroSpecials.tests.ts`.
 

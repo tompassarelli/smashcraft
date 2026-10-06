@@ -2,9 +2,11 @@
 // (smashcraft:docs/gameplay-design.md, "Grab holds and pummels" and
 // "Rifleman's trap escape"): local presentation read from the simulation, the
 // same for every player.
+import { f32 } from "wisp/src/sim/f32";
 import { GrabAction } from "../sim/codes";
 import { fighterHurtboxes } from "../sim/hurtboxes";
 import { GRAB_HOLD_FRAMES, PUMMEL_CONTACT_FRAME, pummelLimit } from "../sim/moves";
+import type { Fighter } from "../sim/fighter";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { FREEZE_TRAP_FREEZE_FRAMES } from "../sim/summons";
 
@@ -12,6 +14,9 @@ import { FREEZE_TRAP_FREEZE_FRAMES } from "../sim/summons";
 export const ESCAPE_METER_SEGMENT_FRAMES = 10;
 /** World units between the held fighter's standing head and the meter. */
 const HEAD_CLEARANCE = 30.0;
+/** The meter's UI height and border; the mana bar stacks above it (presentation/manaBar.ts). */
+export const ESCAPE_METER_HEIGHT = f32(0.008);
+export const ESCAPE_METER_BORDER = f32(0.0015);
 
 export interface EscapeMeterView {
   shown: boolean;
@@ -55,10 +60,15 @@ export function readEscapeMeter(world: Readonly<Roster>, slot: number, view: Esc
       : grab.pummels < pummelLimit(tuning.moves) ? PUMMEL_CONTACT_FRAME : -1;
   }
   view.shown = true;
-  let top = 0.0;
-  for (const part of fighterHurtboxes(held).stand) top = Math.max(top, Math.max(part.z1, part.z2) + part.radius);
   view.x = held.motion.x;
-  view.z = held.motion.z + top + HEAD_CLEARANCE;
+  view.z = overheadAnchorZ(held);
+}
+
+/** The world height over a fighter's standing head where its overhead bars sit. */
+export function overheadAnchorZ(f: Readonly<Fighter>): number {
+  let top = 0.0;
+  for (const part of fighterHurtboxes(f).stand) top = Math.max(top, Math.max(part.z1, part.z2) + part.radius);
+  return f.motion.z + top + HEAD_CLEARANCE;
 }
 
 /** The bar's filled share, 0..1. */
