@@ -32,6 +32,8 @@ export interface RollbackPlayback {
    * before `stopBefore` when given. False when a frame could not run.
    */
   catchUp(schedule: ShadowInputSchedule, epoch: number, localPlayer: number, match: SpeculativeMatch, budget: number, stopBefore: number | undefined, executed: SpeculativeFrameObserver): boolean;
+  /** Every world the history holds, for a change a replay must not undo, such as authored tuning a reload changed. */
+  visitWorlds(visit: (world: Roster) => void): void;
 }
 
 /**

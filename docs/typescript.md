@@ -276,7 +276,7 @@ From smashcraft:ts/:
   Each save prints the saved files' type errors, the affected unit tests, the
   journeys (the quick match plus the affected tests that play simulated
   clients: the desync guard, the visual and player-view group, stack-trace,
-  rematch-load, missing-input and input-stall) and the whole `bun run check`,
+  rematch-load, missing-input, input-stall and tune) and the whole `bun run check`,
   each timed from the save.
   smashcraft:ts/scripts/wisp/commands/dev.ts declares the tests: the Bun test
   files, the registry modules game.test.ts runs, the files a test reads at run
@@ -285,6 +285,29 @@ From smashcraft:ts/:
   the source-shape audit checks only the saved files; `bun run test` and CI
   check every file. Test processes share smashcraft:ts/scripts/testWorkers.ts's
   engine settings with the full suite.
+- `bun wisp tune --data A --data B [--port N] [--profile main|integrity]`: a
+  panel at http://127.0.0.1:7341/ that changes, in the running match, the
+  values smashcraft:ts/scripts/wisp/tunables.ts declares: each fighter's run
+  speed, full and short jump speeds, gravity, fall and fast-fall speeds and
+  jump squat frames, and the ordinary hit's knockback growth, base knockback
+  and hitstun frames per knockback
+  ([Wisp live tuning](https://github.com/tompassarelli/wisp/blob/main/docs/tune.md)).
+  Each change is a hot reload, so run it instead of `hot --watch` or
+  `dev --data`, against a profile that polls for reloads (the playable
+  profile doesn't). Fighters carry their tuning records, so every `install()`
+  gives each fighter its authored tuning again
+  (smashcraft:ts/src/platform/shell/tuning.ts): in the confirmed match and,
+  under rollback, in the speculative match and every history snapshot, so a
+  correction can't bring the old value back. Keep writes the running value
+  into smashcraft:ts/src/game/sim/tuning.ts or knockback.ts and prints the
+  diff; Reset puts back the session's starting value in the match and the
+  source. smashcraft:ts/test/tune.test.ts applies tuned gravity in two
+  headless clients: both install it on the same frame, and from that frame
+  both matches change alike. The input helper's stick deadzone
+  (`STICK_DEADZONE`, smashcraft:companion/src/stick.rs) is compiled into the
+  helper, outside what a reload changes, so it is no tunable: rebuild and
+  restart the helper to change it. A match with tuned values can't be
+  replayed from its inputs alone.
 - `bun run check`: type-check the host tools and the game with TypeScript 7.
   The compiler keeps separate host and game dependency caches in
   smashcraft:ts/build/typecheck-host.tsbuildinfo and

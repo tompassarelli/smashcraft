@@ -11,6 +11,7 @@ export const ISOLATED_TEST_GROUPS: readonly (readonly string[])[] = [
   ["test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/selection-load.test.ts", "test/player-text.test.ts"],
   // source-shapes only reads files, so it fills the short group and the groups finish together.
   ["test/stack-trace.test.ts", "test/missing-input.test.ts", "test/source-shapes.test.ts"],
+  ["test/tune.test.ts"],
 ];
 
 /**

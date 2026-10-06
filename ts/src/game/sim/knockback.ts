@@ -19,8 +19,9 @@ const GROUND_KNOCKBACK_FRICTION_MULTIPLIER = 1.0;
 const GROUND_LAUNCH_BOUNCE_ANGLE = 0.1745329201221466;
 const GROUND_LAUNCH_REBOUND = 0.800000011920929;
 const RADIANS_TO_DEGREES = 57.295780181884766;
-export const ORDINARY_HIT_GROWTH_PERCENT = 100.0;
-export const ORDINARY_HIT_BASE_KNOCKBACK = 20.0;
+// Typed `number`, not their literals, so a tuned value (bun wisp tune) type-checks this module alone.
+export const ORDINARY_HIT_GROWTH_PERCENT: number = 100.0;
+export const ORDINARY_HIT_BASE_KNOCKBACK: number = 20.0;
 export const ORDINARY_HIT_CONTEXT_SCALE = 1.0;
 export const DIAGONAL_UNIT = 0.7071067690849304;
 /** NTSC 1.02 common +0x4F0; upward knockback, not ordinary jump velocity. */
