@@ -47,6 +47,9 @@ export class CameraFindings {
         if (frame === undefined || client.frames.shown(frame) !== needsBubble) findings.push({ detector: "offscreen-bubble", text: `Player ${slot + 1} ${name} ${needsBubble ? "missing outside the view" : "shown inside the view or out of play"}` });
         if (needsBubble && frame !== undefined) {
           const at = frame.points.get(FRAMEPOINT_CENTER);
+          // The native GameUI parent clips these frames to 4:3 even when
+          // the headless recorder retains their requested widescreen points.
+          if (frame.parent?.name !== "ConsoleUIBackdrop") findings.push({ detector: "offscreen-bubble", text: `Player ${slot + 1} ${name} cannot draw across the full screen` });
           if (frame.enabled || at === undefined || at.y - frame.height / 2 < 0.139 || at.y + frame.height / 2 > 0.6 || Math.abs(at.x - 0.4) + frame.width / 2 > aspect * 0.3) findings.push({ detector: "offscreen-bubble", text: `Player ${slot + 1} ${name} outside the safe view or takes input` });
         }
       }

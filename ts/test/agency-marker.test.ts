@@ -26,7 +26,21 @@ test("both clients show both locked markers on each fighter and remove them on c
         expect(shown.length).toBe(mode === "act" ? 0 : 2);
         if (mode !== "act") {
           const calls = client.log.slice(before[index]).filter(call => call.name === "BlzSetSpecialEffectColor");
-          expect(calls.some(call => call.args.slice(1).join(",") === (mode === "none" ? "255,100,40" : "80,255,150"))).toBe(true);
+          expect(calls.some(call => call.args.slice(1).join(",") === (mode === "none" ? "255,100,40" : "0,255,0"))).toBe(true);
+          for (const halo of shown) {
+            // A paused sample must hold a drawable Stand interval, facing the
+            // side camera above the floor rather than showing the aura edge-on.
+            expect(halo.timeScale).toBe(0);
+            const nativeCalls = client.log.filter(call => call.args[0] === halo.handle);
+            expect(nativeCalls.some(call => call.name === "BlzSetSpecialEffectAnimation" && call.args[1] === "Stand")).toBe(true);
+            expect(nativeCalls.some(call => call.name === "BlzSetSpecialEffectTime" && call.args[1] === 0.5)).toBe(true);
+            expect(nativeCalls.some(call => call.name === "BlzSetSpecialEffectRoll" && call.args[1] === Math.fround(Math.PI / 2))).toBe(true);
+            client.run(() => {
+              const s = shell();
+              expect(halo.y).toBe(s.origin.y + 40);
+              expect(halo.z).toBeGreaterThan(s.origin.z + 70);
+            });
+          }
         }
       }
     }

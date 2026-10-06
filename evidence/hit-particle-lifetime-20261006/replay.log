@@ -1,0 +1,13 @@
+{"decision":"RESERVED","reason":"RUN","class":"moderate","requestedCpus":2,"requestedMemoryMiB":2048,"leasedCpuCeilings":14,"aggregateCpuLimit":18,"leasedMemoryMiB":21504,"cpuSomeAvg10":6.75,"memoryFullAvg10":0,"memoryAvailableMiB":70229,"reclaimed":0,"lease":"781b494f-635e-43e7-afbb-06807428ce74","expiresAt":1791284753630}
+$ bun scripts/wisp.ts soak --repro "/home/tom/code/smashcraft/worktrees/hit-effects-20261006/evidence/camera-blastzones-20261006/match-72.json"
+   0.101 s  load map (0.075 s)
+   2.845 s  match 72: rifleman vs illidan on frozen-throne, fuzz/fuzz, seed 339370493 (2.743 s)
+match 72: rifleman vs illidan on frozen-throne, fuzz/fuzz, seed 339370493
+  scene after frame 25 (p0): would see what 2 effects of an undeclared model draw is unknown (model Abilities/Spells/Other/GeneralAuraTarget/GeneralAuraTarget.mdl has no facts)
+  scene after frame 25 (p1): would see what 2 effects of an undeclared model draw is unknown (model Abilities/Spells/Other/GeneralAuraTarget/GeneralAuraTarget.mdl has no facts)
+  1628 frames; native call checksums -1120438039 -1120438039, recorded 1123145431 1123145431
+  recovery typing stalls: none (budget 12.8 ms)
+   2.858 s  soak failed (2.858 s)
+2 findings replaying /home/tom/code/smashcraft/worktrees/hit-effects-20261006/evidence/camera-blastzones-20261006/match-72.json
+error: script "wisp" exited with code 1
+{"decision":"RELEASED","lease":"781b494f-635e-43e7-afbb-06807428ce74"}
