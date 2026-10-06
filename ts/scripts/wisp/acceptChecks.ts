@@ -141,6 +141,15 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "green body outlines on every fighter and the partner's shield, outlines on the fighters' plane; after an attack, the top-left readout (frames, advantage, combo) readable on both clients",
     },
+    {
+      id: "150-special-name",
+      closes: "smashcraft#150 box 5 (readout half)",
+      map: "training",
+      setup: [{ waitMs: 3000 }, { keys: ["u"] }, { waitMs: 1500 }],
+      capture: [{ kind: "frames", name: "readout", client: "a" }],
+      pass: [NO_IMPORT_FAILURES, NO_ERRORS],
+      look: "after the neutral special, the top-left readout's first line names it (for example 'Swift Arrow: 34 total'), not 'Attack' or 'Special'",
+    },
     ...heroes.map(({ name }): NativeCheck => ({
       id: `96-hero-${heroProfile(name).slice(5)}`,
       closes: "smashcraft#96 box 5",
