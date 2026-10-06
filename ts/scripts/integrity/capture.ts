@@ -28,7 +28,7 @@ interface CaptureOptions extends JourneyOptions {
 }
 
 const CAPTURE_USAGE = "bun scripts/integrity.ts capture --helper BINARY --build BUILD --out DIR --app-id CLIENT=APP_ID --app-id CLIENT=APP_ID"
-  + " [--sweep RB[:BATCH],...] [--first-epoch N] [--four-fighters] [--bot [--bot-four] [--pad49]] [--clients FILE]";
+  + " [--sweep RB[:BATCH],...] [--first-epoch N] [--four-fighters] [--bot [--bot-four] [--bot-perf] [--pad49]] [--clients FILE]";
 
 const SCOPE = "Same-host two-client native start/result/rematch with persistent Linux virtual-pad helpers; "
   + "controller game navigation (keyboard diagnostic trace toggle); issue 26 all-binding integrity run; "
@@ -65,6 +65,7 @@ export function parseCaptureArguments(args: readonly string[]): CaptureOptions {
       "four-fighters": { type: "boolean" },
       bot: { type: "boolean" },
       "bot-four": { type: "boolean" },
+      "bot-perf": { type: "boolean" },
       "pad49": { type: "boolean" },
       clients: { type: "string" },
     },
@@ -83,8 +84,8 @@ export function parseCaptureArguments(args: readonly string[]): CaptureOptions {
   if (sweep.length > 0 && fourFighters) throw new Error("--sweep requires two fighters, not --four-fighters");
   if (firstEpoch < 1 || firstEpoch % 2 === 0) throw new Error("--first-epoch must be positive and odd");
   if (values.bot === true && (sweep.length > 0 || fourFighters)) throw new Error("--bot takes neither --sweep nor --four-fighters");
-  if ((values["bot-four"] === true || values.pad49 === true) && values.bot !== true) throw new Error("--bot-four and --pad49 need --bot");
-  return { helper, build, out, clients: values.clients, appIds, sweep, fourFighters, epochs: captureEpochs(sweep.length, firstEpoch), ...(values.bot === true ? { workload: "bot" as const, botFour: values["bot-four"] === true, pad49: values.pad49 === true } : {}) };
+  if ((values["bot-four"] === true || values["bot-perf"] === true || values.pad49 === true) && values.bot !== true) throw new Error("--bot-four, --bot-perf and --pad49 need --bot");
+  return { helper, build, out, clients: values.clients, appIds, sweep, fourFighters, epochs: captureEpochs(sweep.length, firstEpoch), ...(values.bot === true ? { workload: "bot" as const, botFour: values["bot-four"] === true, botPerf: values["bot-perf"] === true, pad49: values.pad49 === true } : {}) };
 }
 
 declare global {

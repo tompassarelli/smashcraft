@@ -28,6 +28,9 @@ const SMASHCRAFT_DEV: DevProject = {
       // It copies src/, the tunables' files included, to load the map with tuned values.
       "test/tune.test.ts": ["src/**"],
       "test/repro.test.ts": [],
+      "scripts/meleeOracle.tests.ts": ["../docs/gameplay-design.md"],
+      // The case study's pages and the reference data its numbers come from.
+      "scripts/meleeCaseStudy.tests.ts": ["../docs/design/melee/**", "../references/melee-frame-data/**", "../docs/smash-melee-reference/retail-roster.json"],
     },
     // Played in simulated clients: reported with the quick-match journey.
     journeys: [

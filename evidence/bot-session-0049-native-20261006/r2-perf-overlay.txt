@@ -1,0 +1,68 @@
+epoch 2 started 15:01:29.799
+15:01:30.399 frame cost, last 120 frames, median /{npgx|Lua ms: 1.01 / 35.02 (clock step 1 msl)'|natives: 82 / 2939|catch-up frames: 0 / 4||Pause: Start|
+15:01:31.293 frame cost, last 120 frames, median /ymax|Lua ms: 3.01 / 35.02 (clock step 1 mg'15|natives: 145 / 2939|catch-up frames: 0 / 6||Pause: Start|
+15:01:32.179 frame cost, last 120 frames, median /ymgx|Lua ms: 6 / 30 (clock step 1 ms) .|natives: 165 / 2257|catch-up frames: 0 / 6||Pause: Start|
+15:01:33.087 frame cost, last 120 frames, median /gmax|Lua ms: 6 / 30 (clock step 1 ms) .|natives: 169 / 2257|catch-up frames: 0 / 6||Pause: Start|
+15:01:33.997 frame cost, last 120 frames, median /ymgx|Lua ms: 6 / 56.99 (clock step 1 ms)|natives: 163 / 2352|catch-up frames: 0 / 6||Pause: Start|
+15:01:34.835 frame cost, last 120 frames, median /ymax|Lua ms: 5 / 56.99 (clock step 1 ms)|natives: 162.50 / 2352|catch-up frames: 0 / 6||Pause: Start|
+15:01:35.710 frame cost, last 120 frames, median /ygax|Lua ms: 5.50 / 43.99 (clock step 1 ms)|natives: 165.50 / 2239|catch-up frames: 0 / 6||Pause: Start|
+15:01:36.584 frame cost, last 120 frames, median /ymax|Lua ms: 5 / 47 (clock step 1 ms) .|natives: 165 /2239|catch-up frames: 0 / 6||Pause: Start|
+15:01:37.457 frame cost, last 120 frames, median /ymax|Lua ms: 5 / 105 (clock step 1 ms) .|natives: 159 / 2191|catch-up frames: 0 / 6||Pause: Start|
+15:01:38.311 frame cost, last 120 frames, median /ymgx|Lua ms: 5 / 105 (clock step 1 ms) .|natives: 162.50 / 2189|catch-up frames: 0 / 6||Pause: Start|
+15:01:39.202 frame cost, last 120 frames, median /gmgx|Lua ms: 6 / 55.01 (clock step 1 ms)|natives: 172 / 2207|catch-up frames: 0 / 6||Pause: Start|
+15:01:40.069 frame cost, last 120 frames, median /ymgx|Lua ms: 6 / 55.01 (clock step 1 ms)|natives: 171 / 2338|catch-up frames: 0 / 6||Pause: Start|
+15:01:40.916 frame cost, last 120 frames, median jymax|Lua ms: 6 / 47.99 (clock step 1 ms)|natives: 168.50 / 2338|catch-up frames: 0 / 6||Pause: Start|
+15:01:41.819 frame cost, last 120 frames, median jymgx|Lua ms: 5 / 45.99 (clock step 1 ms)|natives: 171.50 / 2207|catch-up frames: 0 / 6||Pause: Start|
+15:01:42.741 frame cost, last 120 frames, median /ymgx|Lua ms: 6.01 / 36.99 (clock step 1 mg'14|natives: 166.50 / 2207|catch-up frames: 0 / 6||Pause: Start|
+15:01:43.608 frame cost, last 120 frames, median /gmgx|Lua ms: 6 / 35 (clock step 1 ms) .|natives: 155.50 / 2232|catch-up frames: 0 / 6||Pause: Start|
+15:01:44.535 frame cost, last 120 frames, median jymgx|Lua ms: 6 / 43 (clock step 1 ms) .|natives: 153.50 / 2232|catch-up frames: 0 / 6||Pause: Start|
+15:01:45.413 frame cost, last 120 frames, median jymax|Lua ms: 6 / 43 (clock step 1 ms) .|natives: 160 /2226|catch-up frames: 0 / 6||Pause: Start|
+15:01:46.253 frame cost, last 120 frames, median jymax|Lua ms: 5/ 39.99 (clock step 1 ms)|natives: 162 / 2203|catch-up frames: 0 / 6||Pause: Start|
+15:01:47.166 frame cost, last 120 frames, median jymax|Lua ms: 5 / 33 (clock step 1 ms) .|natives: 158.50 / 2203|catch-up frames: 0 / 6||Pause: Start|
+15:01:48.062 frame cost, last 120 frames, median jymgx|Lua ms: 5.01 / 33 (clock step 1 ms)|natives: 157 / 2203|catch-up frames: 0 / 6||Pause: Start|
+15:01:48.934 frame cost, last 120 frames, median / X|Lua ms: 6.01 / 62.99 (clock step 1 ms)’|natives: 159 / 2187|catch-up frames: 0 / 6||Pause: Start|
+15:01:49.776 frame cost, last 120 frames, median / X|Lua ms: 4.01 / 62.99 (clock step 1 ms)’|natives: 157 / 2201|catch-up frames: 0 / 6||Pause: Start|
+15:01:50.637 frame cost, last 120 frames, median jymx|Lua ms: 4 / 60.99 (clock step 1 ms)|natives: 152 / 2201|catch-up frames: 0 / 6||Pause: Start|
+15:01:51.484 frame cost, last 120 frames, median jymax|Lua ms: 4 / 37.99 (clock step 1 ms)|natives: 152 / 2352|catch-up frames: 0 / 6||Pause: Start|
+15:01:52.397 frame cost, last 120 frames, median /ymgx|Lua ms: 4.50 / 77.99 (clock step 1 mSB|natives: 155 /2352|catch-up frames: 0 / 6||Pause: Start|
+15:01:53.317 frame cost, last 120 frames, median /|Lua ms: 4.99 / 77.99 (clock step 1 ms)’|natives: 150 / 2233|catch-up frames: 0 / 6||Pause: Start|
+15:01:54.226 frame cost, last 120 frames, median /jymgx|Lua ms: 5 / 36.99 (clock step 1 ms)|natives: 150 / 2180|catch-up frames: 0 / 6||Pause: Start|
+15:01:55.227 frame cost, last 120 frames, median /ymax|Lua ms: 5.99 / 36.99 (clock step 1 mgB|natives: 153 / 2179|catch-up frames: 0 / 6||Pause: Start|
+15:01:56.285 frame cost, last 120 frames, median /ymax|Lua ms: 5.99 / 55.01 (clock step 1 mgB|natives: 157 / 2284|catch-up frames: 0 / 6||Pause: Start|
+15:01:57.204 frame cost, last 120 frames, median jymax|Lua ms: 4 / 58 (clock step 1 ms) .|natives: 155 /2284|catch-up frames: 0 / 6||Pause: Start|
+15:01:58.201 frame cost, last 120 frames, median jymax|Lua ms: 4 / 58 (clock step 1 ms) .|natives: 155/ 2196|catch-up frames: 0 / 6||Pause: Start|
+15:01:59.187 frame cost, last 120 frames, median jymgx|Lua ms: 4 / 98.01 (clock step 1 ms)|natives: 152 / 2196|catch-up frames: 0 / 6||Pause: Start|
+15:02:00.120 frame cost, last 120 frames, median jym@x|Lua ms: 4 / 98.01 (clock step 1 ms)|natives: 149 / 2279|catch-up frames: 0 / 6||Pause: Start|
+15:02:01.077 frame cost, last 120 frames, median jymax|Lua ms: 5 / 65.98 (clock step 1 ms)|natives: 152.50 / 2279|catch-up frames: 0 / 6||Pause: Start|
+15:02:01.980 frame cost, last 120 frames, median jymax|Lua ms: 5 / 78 (clock step 1 ms) .|natives: 160 / 2304|catch-up frames: 0 / 6||Pause: Start|
+15:02:02.906 frame cost, last 120 frames, median /gmax|Lua ms: 5.51 / 78 (clock step 1 ms)|natives: 163 / 2325|catch-up frames: 0 / 6||Pause: Start|
+15:02:03.941 frame cost, last 120 frames, median /|Lua ms: 6.01 / 47.97 (clock step 1 ms)’|natives: 163 / 2368|catch-up frames: 0 / 6||Pause: Start|
+15:02:04.991 frame cost, last 120 frames, median jymgx|Luams: 5/ 61.98 (clock step 1 ms)|natives: 156.50 / 2368|catch-up frames: 0 / 6||Pause: Start|
+15:02:05.974 frame cost, last 120 frames, median jymax|Luams: 5/ 61.98 (clock step 1 ms)|natives: 146 / 2162|catch-up frames: 0 / 6||Pause: Start|
+15:02:06.958 frame cost, last 120 frames, median /jymax|Lua ms: 3.51 / 70.98 (clock step 1 mg'12|natives: 144 / 2156|catch-up frames: 0 / 6||Pause: Start|
+15:02:07.848 frame cost, last 120 frames, median jymax|Lua ms: 4 / 70.98 (clock step 1 ms)|natives: 148.50 / 2156|catch-up frames: 0 / 6||Pause: Start|
+15:02:08.760 frame cost, last 120 frames, median jymax|Lua ms: 4 / 49.01 (clock step 1 ms)|natives: 153 / 2167|catch-up frames: 0 / 6||Pause: Start|
+15:02:09.683 frame cost, last 120 frames, median /grpax|Lua ms: 5 / 35.03 (clock step 1 ms)|natives: 152.50 / 2177|catch-up frames: 0 / 6||Pause: Start|
+15:02:10.615 frame cost, last 120 frames, median jymax|Lua ms: 4.99 / 43 (clock step 1 ms)|natives: 147 / 2177|catch-up frames: 0 / 6||Pause: Start|
+15:02:11.526 frame cost, last 120 frames, median /gnax|Lua ms: 5.49 / 43 (clock step 1 ms)|natives: 151.50/ 2313|catch-up frames: 0 / 6||Pause: Start|
+15:02:12.383 frame cost, last 120 frames, median /gngx|Lua ms: 5 / 44.01 (clock step 1 ms)|natives: 158 / 2343|catch-up frames: 0 / 6||Pause: Start|
+15:02:13.369 frame cost, last 120 frames, median /gngx|Lua ms: 4.49 / 47.97 (clock step 1 ms?ﬂ|natives: 156 / 2343|catch-up frames: 0 / 6||Pause: Start|
+15:02:14.261 frame cost, last 120 frames, median /gngx|Lua ms: 4 / 47.97 (clock step 1 ms)|natives: 140 /2318|catch-up frames: 0 / 6||Pause: Start|
+15:02:15.118 frame cost, last 120 frames, median /gnax|Lua ms: 4 / 44.01 (clock step 1 ms)|natives: 144 / 2167|catch-up frames: 0 / 6||Pause: Start|
+15:02:16.024 frame cost, last 120 frames, median /gnax|Lua ms: 4 / 37.99 (clock step 1 ms)|natives: 149 / 2312|catch-up frames: 0 / 6||Pause: Start|
+15:02:16.898 frame cost, last 120 frames, median /gnax|Lua ms: 5 / 40.01 (clock step 1 ms)|natives: 151 /2312|catch-up frames: 0 / 6||Pause: Start|
+15:02:17.806 frame cost, last 120 frames, median /gngx|Lua ms: 5 / 62.99 (clock step 1 ms)|natives: 157 / 2172|catch-up frames: 0 / 6||Pause: Start|
+15:02:18.666 frame cost, last 120 frames, median /gngx|Lua ms: 5 / 62.99 (clock step 1 ms)|natives: 158 / 2172|catch-up frames: 0 / 6||Pause: Start|
+15:02:19.602 frame cost, last 120 frames, median /gngx|Lua ms: 5 / 53.01 (clock step 1 ms)|natives: 157 / 2172|catch-up frames: 0 / 6||Pause: Start|
+15:02:20.457 frame cost, last 120 frames, median /gnx|Lua ms: 5 / 53.01 (clock step 1 ms)|natives: 151 / 2161|catch-up frames: 0 / 6||Pause: Start|
+15:02:21.332 frame cost, last 120 frames, median /ypax|Lua ms: 5 / 30 (clock step 1 ms) .|natives: 149 / 2161|catch-up frames: 0 / 6||Pause: Start|
+15:02:22.267 frame cost, last 120 frames, median /ypgx|Lua ms: 5/ 32.99 (clock step 1 ms)|natives: 149 / 2177|catch-up frames: 0 / 6||Pause: Start|
+15:02:23.124 frame cost, last 120 frames, median /|Lua ms: 5.49 / 32.99 (clock step 1 ms)|natives: 151 / 2177|catch-up frames: 0 / 6||Pause: Start|
+15:02:23.990 frame cost, last 120 frames, median /X|Lua ms: 5 / 57.01 (clock step 1 ms)|natives: 152 / 2177|catch-up frames: 0 / 6||Pause: Start|
+15:02:24.935 frame cost, last 120 frames, median /ypax|Lua ms: 5 / 57.01 (clock step 1 ms)|natives: 150.50 / 2169|catch-up frames: 0 / 6||Pause: Start|
+15:02:25.843 frame cost, last 120 frames, median /ypax|Luams: 5/ 22.98 (clock step 1 ms)|natives: 150.50 / 2177|catch-up frames: 0 / 6||Pause: Start|
+15:02:26.776 frame cost, last 120 frames, median /ypax|Lua ms: 5 / 44.01 (clock step 1 ms)|natives: 146 / 2181|catch-up frames: 0 / 6||Pause: Start|
+15:02:27.712 frame cost, last 120 frames, median /ypax|Lua ms: 5 / 44.01 (clock step 1 ms)|natives: 145 / 2181|catch-up frames: 0 / 6||Pause: Start|
+15:02:28.630 frame cost, last 120 frames, median /ypgx|Lua ms: 5/ 31.01 (clock step 1 ms)|natives: 145 / 2163|catch-up frames: 0 / 6||Pause: Start|
+15:02:29.472 frame cost, last 120 frames, median /gpax|Lua ms: 5/ 31.01 (clock step 1 ms)|natives: 143.50 / 2163|catch-up frames: 0 / 6||Pause: Start|
+epoch 2 ended 15:02:29.782

@@ -345,6 +345,17 @@ test("the archer's down air has one strong-to-weak window, and the rifleman's is
   assertEquals(attackPhase(rifleman), AttackPhase.recovery);
 });
 
+test("the rifleman's down tilt hits harder than the archer's on the same frames", () => {
+  const damageBy = (character: Character): number => {
+    const target = createFighter(Character.archer, 100.0, -1);
+    resolveStartedAttack(testWorld(createFighter(character, 0.0, 1), target), AttackStyle.downTilt);
+    return target.status.damage;
+  };
+  assertEquals(damageBy(Character.archer), 8.0);
+  assertEquals(damageBy(Character.rifleman), 10.0);
+  assertEquals(attackRecoveryFrames(Character.rifleman, AttackStyle.downTilt, true), attackRecoveryFrames(Character.archer, AttackStyle.downTilt, true));
+});
+
 test("common ground dodge frame data applies to both characters", () => {
   for (const character of [Character.archer, Character.rifleman]) {
     for (const direction of [-1, 0, 1]) {

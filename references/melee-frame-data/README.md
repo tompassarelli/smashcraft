@@ -1,7 +1,14 @@
 # Melee frame-data reference
 
-This is a factual research reference for Smashcraft, not a physics specification
-or an importable character definition. It contains 789 records: 502 attacks,
+Smashcraft's one corpus of Melee frame data: a factual research reference, not a
+physics specification or an importable character definition. It has two
+inputs, each with its own provenance: meleeframedata.com's database
+(`records.jsonl`, below) and libmelee's recorded per-frame table
+(`libmelee.jsonl`, under "libmelee hitbox positions and dodge travel").
+Physics parameters and retail observations are in
+smashcraft:docs/smash-melee-reference/README.md.
+
+The database intake contains 789 records: 502 attacks,
 52 grabs, 105 throws, 104 dodges, and 26 character-stat records. It covers all
 26 roster entries (counting Sheik and Zelda separately) plus one anomalous
 `_marth` throw row retained exactly as found. Do not treat that as a 27th fighter.
@@ -106,8 +113,7 @@ The source `_marth` row and missing values remain unresolved observations.
 
 ## Repeat the intake
 
-Run from any directory. Substitute the actual checkout path if different. The
-command downloads only the 104 KiB SQLite data file, never images or game assets.
+Run from the checkout's root. The command downloads only the 104 KiB SQLite data file, never images or game assets.
 Bun is needed; `nix shell nixpkgs#bun -c bun` can replace `bun` where unavailable.
 The tool checks the input hash before reading and refuses unreviewed nonnumeric
 field values. It regenerates records and coverage, then parses every line and
@@ -115,9 +121,59 @@ checks the three representative entries above. Expected duration: seconds.
 
 ```sh
 curl --fail --location 'https://raw.githubusercontent.com/mitchhit234/meleeWebProject/ec5155149faeed24b5e5781d7efe17387cc9ee3d/characters.db' --output /tmp/melee-fd-characters.db
-bun ~/code/smashcraft/worktrees/melee-foundation-roadmap/references/melee-frame-data/intake.mjs /tmp/melee-fd-characters.db ~/code/smashcraft/worktrees/melee-foundation-roadmap/references/melee-frame-data
+bun references/melee-frame-data/intake.mjs /tmp/melee-fd-characters.db references/melee-frame-data
 ```
 
 The script does not fetch live pages or claim fresh deployment parity. Updating
 the pinned revision requires rechecking source terms, column meanings, anomalies,
 and representative site values rather than merely replacing the checksum.
+
+## libmelee hitbox positions and dodge travel
+
+`smashcraft:references/melee-frame-data/libmelee.jsonl` reduces libmelee's
+recorded frame table to what meleeframedata.com's database lacks: where each
+normal attack's and grab's hitboxes are, frame by frame, and how far each ground
+dodge moves the fighter. It has 469 records, one per `(character, action)`,
+for the 26 fighters (Popo stands for the Ice Climbers; Nana is left out).
+
+Source: https://github.com/altf4/libmelee at revision
+`ef679270ff95f0d42339dcdf1608282a35023349`, file `melee/framedata.csv`, SHA-256
+`8e0d811290b511902076c0011db1a0116356a7ddaa68dfa369ea4f5dcdc93777`, the same
+file smashcraft:docs/physics.md cites for roll travel. libmelee is licensed
+LGPL-3.0; only factual numbers recorded from the game are kept, renamed to this
+corpus's identifiers, and no libmelee code is used. The table was recorded by
+libmelee's authors from the running game; its disc revision is not stated.
+
+Each record has:
+
+- `character`, `category` and `action`: the identifiers of `records.jsonl`
+  (`attacks` jab1, jab2, jab3, dattack, ftilt, utilt, dtilt, fsmash, usmash,
+  dsmash, nair, fair, bair, uair, dair; `grabs` standing_grab, dash_grab;
+  `dodges` forward_roll, back_roll, spot_dodge). Forward tilt and forward smash
+  are the unangled versions.
+- `source`: repository, revision, path, and libmelee's own character and
+  action numbers (the game's fighter kind and action state).
+- `frame_index_origin`: 1, as in libmelee; `recorded_frames`, the action's
+  recorded length; `first_iasa_frame` and `first_facing_changed_frame`, the
+  first frame libmelee marks interruptible or turned, or null.
+- `hitbox_frames`: each frame with an active hitbox, and for each hitbox its
+  `size` (radius) and `x`, `y` position relative to the fighter, in Melee
+  units, with `x` positive ahead of the fighter.
+- `locomotion_x`: for dodges, the fighter's horizontal movement on every frame;
+  null otherwise.
+
+Coverage is libmelee's: some fighters lack a dash attack or forward smash
+record, and up to four hitboxes per frame are recorded. Positions describe the
+recorded animation, not the full collision geometry; hurtboxes are not
+recorded. Representative checks: Fox's jab hitboxes are on frames 2 and 3, as
+in `records.jsonl`, and his forward roll turns on frame 20 of 31.
+
+Repeat the intake from the checkout's root (seconds):
+
+```sh
+curl --fail --location 'https://raw.githubusercontent.com/altf4/libmelee/ef679270ff95f0d42339dcdf1608282a35023349/melee/framedata.csv' --output /tmp/libmelee-framedata.csv
+bun references/melee-frame-data/libmelee-intake.ts /tmp/libmelee-framedata.csv references/melee-frame-data
+```
+
+The tool checks the input hash, refuses non-numeric values and frame gaps, and
+checks the two representative records.

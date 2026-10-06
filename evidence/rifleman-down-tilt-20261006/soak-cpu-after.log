@@ -1,0 +1,6 @@
+$ bun scripts/wisp.ts soak --policy cpu --matches "540" --seed "2" --minutes "20" --workers "4" --out "/tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/character-skill/after"
+smashcraft soak: 540 matches in 4 workers, at most 20 min, seed 2; repro files in /tmp/claude-1000/-home-tom-code-smashcraft/025c4a93-ad00-4198-9ec6-9ef9a1cccd8e/scratchpad/character-skill/after
+ 109.008 s  540 matches (108.989 s)
+540 matches, 376,267 frames (105.7 game minutes) in 109.0 s with 4 workers (4 started): 58x real time, 583.4 s CPU
+costliest client frame 30.8 ms; no findings
+ 109.011 s  soak (109.011 s)

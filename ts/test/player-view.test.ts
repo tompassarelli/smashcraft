@@ -170,6 +170,6 @@ test("development build: -dev perf shows the typing player what the match's fram
   const overlay = (client: HeadlessClient | undefined) => client?.frames.shownText().filter((text) => text.startsWith("frame cost")) ?? [];
   const [host, guest] = clients.clients;
   // Bun has no Lua clock and counts no natives; the frames are the shell's since its first tick, the match advancing one a frame.
-  expect(overlay(host)).toEqual(["frame cost, last 89 frames, median / max\nLua: no clock\nnatives: 0 / 0\ncatch-up frames: 1 / 1"]);
+  expect(overlay(host)).toEqual(["frame cost, last 89 frames, median / p95 / max\nLua: no clock\nnatives: 0 / 0 / 0\ncatch-up frames: 1 / 1 / 1"]);
   expect(overlay(guest)).toEqual([]);
 });

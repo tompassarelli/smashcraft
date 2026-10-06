@@ -245,14 +245,26 @@ pads; the pads' edges stay in the file as evidence.
 The development and integrity builds measure what each frame costs
 (smashcraft:ts/src/platform/frameMeter.ts, [Wisp frame cost](https://github.com/tompassarelli/wisp/blob/main/docs/frame-cost.md)):
 Lua time, native calls and the confirmed frames each 60 Hz callback caught up.
-`-dev perf` shows the player who types it the medians and maxima of the last
-120 frames. After each hot reload every client writes the 120 frames before
-and after it to `smashcraft-perf-p<slot>.txt`, and `bun wisp hot --watch` and
-`bun wisp dev --data` print the change and flag a rise over 20%. The playable
-entry never imports the meter. `LUA=<32-bit lua> bun wisp perf [--out FILE]`
-plays the headless quick match in 32-bit Lua and prints each client's Lua
-instructions, Lua time and native calls per frame; `bun wisp perf compare A B`
-fails when B's instructions or calls per frame exceed A's by more than 5%.
+`-dev perf` shows the player who types it the medians, 95th percentiles and
+maxima of the last 120 frames. After each hot reload every client writes the
+120 frames before and after it to `smashcraft-perf-p<slot>.txt`, and
+`bun wisp hot --watch` and `bun wisp dev --data` print the change and flag a
+rise over 20%. The playable entry never imports the meter.
+
+`LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four] [--frames N]`
+plays a run in 32-bit Lua and prints each client's Lua instructions, Lua
+time, native calls, allocation and typed text per frame, and the frame's
+predicted cost in Warcraft (p50, p95, worst; [Wisp's model](https://github.com/tompassarelli/wisp/blob/main/docs/frame-cost.md#predicted-native-cost)).
+quick-match is the development build's headless quick match; bot and
+bot-four are the native bot session's match with the integrity build:
+both players' helpers journal the session's pad beats, computer Illidan (and
+Archer), Battle.net's measured sync latency, counted from the match's first
+frame (smashcraft:ts/scripts/wisp/botMatch.ts). `bun wisp perf compare A B`
+fails when B's instructions, calls, allocation, predicted cost or worst
+typing stall rise beyond 5%; `bun wisp headless --cost` adds the quick
+match's prediction to a headless run. The model was fitted to 0.0.49's
+four-fighter overlay and predicts 0.0.48's median frame within 15%
+(smashcraft:evidence/headless-native-cost-20261006/README.md).
 On 2f29ab3 with Wisp 1fe6d71 the quick match's first client ran a median
 47,800 Lua instructions and 138 native calls a frame; the meter adds 2.0% to
 its mean instructions a frame, and the playable bundle is the same bytes as
@@ -456,15 +468,22 @@ From smashcraft:ts/:
   restores the source in `finally` and checks it again. Cold startup has no
   latency gate; every check still fails CI on unexpected compiler errors.
 - `LUA=<32-bit lua> bun wisp parity numeric`: emitted Lua against Bun on
-  the numeric corpus.
+  the numeric corpus, in that stock Lua32 and in one whose raw float `+ - *`
+  round toward zero (`TOWARD_ZERO_LUA`, or built in build/toward-zero-lua
+  with nix). The corpus includes `f32(a + b)`, `f32(a - b)` and `f32(a * b)`
+  as the compiler emits them.
 - `GAME_SOAK=1 bun test test/game.test.ts`: the long `*.soak.ts` scenarios,
   such as the 100000-frame replay tape, which the default suite leaves out.
   `GAME_SOAK=1` selects the same modules for `scripts/lua-tests.ts`.
 - Set `LUA=<32-bit lua>`, then run `bun wisp tapes` for replay acceptance
   tapes. It records cases for every bound action, corrected predictions and a
   rematch, then compares canonical replay state and fighter poses after every
-  frame in Bun and emitted Lua32. It reports the first divergent frame and
-  field; the TypeScript Lua compile is cached by input hash.
+  frame in Bun and emitted Lua32, in the stock Lua32 and the toward-zero one
+  parity uses: results equal in both rely on no raw float `+ - *`, whatever
+  Warcraft's exact rounding is (wisp:docs/headless.md, "Raw float rounding";
+  smashcraft:evidence/native-divergence-20261006/README.md). It reports the
+  first divergent frame and field; the TypeScript Lua compile is cached by
+  input hash.
 - `bun scripts/unused-code.ts`: lists exports no other module uses,
   smashcraft:ts/ files nothing imports or names, and smashcraft:tools/ files no
   live document or source names, and exits 1 if any remain. Map bundle entries'

@@ -90,15 +90,21 @@ code. From smashcraft:ts/:
   the game recorded; `--test NAME` writes a test that replays it.
 - Headless match: `bun wisp headless [quick-match|desync] [--clients N]` plays
   the dev build's quick match in simulated clients in about a second and prints
-  desyncs, error reports and scene problems.
+  desyncs, error reports and scene problems; `--cost` adds its predicted
+  Warcraft cost per frame.
+- Frame cost: `LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four]`
+  plays a run in 32-bit Lua and prints each client's predicted Warcraft cost
+  per frame (p50, p95, worst, typing stall); `bun wisp perf compare A B` fails
+  on a rise in predicted cost, allocation or typing stall.
 - Soak: `bun wisp soak` plays 200 headless matches, every fighter pair on
   every stage with fuzzed and computer players, in at most four workers
   (run it inside the capacity scope), and writes a repro file per finding;
   `bun wisp soak --repro FILE` replays one. `--helper BIN` plays through the
   real controller helper instead (needs /dev/uinput).
 - Tapes: set `LUA` to the 32-bit Lua executable, then run `bun wisp tapes` to
-  compare replay results across Bun and Lua32.
-- Parity: `bun wisp parity numeric` compares the numeric corpus with Lua32;
+  compare replay results across Bun, that Lua32 and a Lua32 whose raw float
+  `+ - *` round toward zero (`TOWARD_ZERO_LUA`, or built with nix on first use).
+- Parity: `bun wisp parity numeric` compares the numeric corpus with both Lua32s;
   `bun wisp parity capture ...` runs native input-integrity capture and
   `bun wisp parity result DIR` reconciles its output. `bun wisp parity
   headless --helper BIN --out DIR` runs the same capture through the real

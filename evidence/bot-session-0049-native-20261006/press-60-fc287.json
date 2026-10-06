@@ -1,0 +1,654 @@
+{
+  "claim": "#60: every press lands on its frame and shows on the presser's next local frame",
+  "captures": [
+    {
+      "directory": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "build": "typescript-integrity",
+      "epochs": [
+        1,
+        2
+      ],
+      "presses": [
+        191,
+        191
+      ],
+      "pressed_bindings": [
+        [
+          "attack",
+          "c-down",
+          "c-left",
+          "c-right",
+          "c-up",
+          "dash-left",
+          "dash-right",
+          "jump",
+          "shield",
+          "special"
+        ],
+        [
+          "attack",
+          "c-down",
+          "c-left",
+          "c-right",
+          "c-up",
+          "dash-left",
+          "dash-right",
+          "jump",
+          "shield",
+          "special"
+        ]
+      ],
+      "edges": [
+        382,
+        382
+      ],
+      "lost": 0,
+      "extra": 0,
+      "reordered": 0,
+      "stuck": 0,
+      "on_frame": {
+        "correct": 764,
+        "total": 764,
+        "percent": 100
+      },
+      "legal_presses": 57,
+      "local_start": {
+        "none": {
+          "n": 31,
+          "p50": 0,
+          "p95": 31,
+          "max": 66,
+          "counts": [
+            [
+              0,
+              27
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              16,
+              1
+            ],
+            [
+              31,
+              1
+            ],
+            [
+              66,
+              1
+            ]
+          ],
+          "missing_first_prediction": 23
+        },
+        "opponent": {
+          "n": 0,
+          "counts": [],
+          "missing_first_prediction": 1
+        },
+        "own": {
+          "n": 0,
+          "counts": [],
+          "missing_first_prediction": 2
+        }
+      },
+      "checksums_equal": true,
+      "mismatched_edges": [],
+      "reconciler_failures": [
+        "slot 0: fewer than 500 injected edges",
+        "slot 0: missing binding coverage",
+        "slot 1: fewer than 500 injected edges",
+        "slot 1: missing binding coverage",
+        "required process stalls absent",
+        "Start pause/resume absent",
+        "rematch slot change absent"
+      ]
+    },
+    {
+      "directory": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r3-r26",
+      "build": "typescript-integrity",
+      "epochs": [
+        1,
+        2
+      ],
+      "presses": [
+        324,
+        324
+      ],
+      "pressed_bindings": [
+        [
+          "attack",
+          "grab",
+          "jump-b",
+          "jump-y",
+          "move-down",
+          "move-left",
+          "move-right",
+          "move-up",
+          "shield-lt",
+          "shield-rt",
+          "special",
+          "walk"
+        ],
+        [
+          "attack",
+          "grab",
+          "jump-b",
+          "jump-y",
+          "move-down",
+          "move-left",
+          "move-right",
+          "move-up",
+          "shield-lt",
+          "shield-rt",
+          "special",
+          "walk"
+        ]
+      ],
+      "edges": [
+        648,
+        648
+      ],
+      "lost": 0,
+      "extra": 0,
+      "reordered": 0,
+      "stuck": 0,
+      "on_frame": {
+        "correct": 1296,
+        "total": 1296,
+        "percent": 100
+      },
+      "legal_presses": 203,
+      "local_start": {
+        "none": {
+          "n": 203,
+          "p50": 0,
+          "p95": 0,
+          "max": 5,
+          "counts": [
+            [
+              0,
+              202
+            ],
+            [
+              5,
+              1
+            ]
+          ],
+          "missing_first_prediction": 0
+        },
+        "opponent": {
+          "n": 0,
+          "counts": [],
+          "missing_first_prediction": 0
+        },
+        "own": {
+          "n": 0,
+          "counts": [],
+          "missing_first_prediction": 0
+        }
+      },
+      "checksums_equal": true,
+      "mismatched_edges": [],
+      "reconciler_failures": []
+    }
+  ],
+  "presses": 1030,
+  "missing_actions": [],
+  "lost": 0,
+  "extra": 0,
+  "on_frame": {
+    "correct": 2060,
+    "total": 2060,
+    "percent": 100
+  },
+  "local_start_callbacks": {
+    "all": {
+      "n": 234,
+      "p50": 0,
+      "p95": 0,
+      "max": 66,
+      "counts": [
+        [
+          0,
+          229
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          16,
+          1
+        ],
+        [
+          31,
+          1
+        ],
+        [
+          66,
+          1
+        ]
+      ]
+    },
+    "by_stall": {
+      "none": {
+        "n": 234,
+        "p50": 0,
+        "p95": 0,
+        "max": 66,
+        "counts": [
+          [
+            0,
+            229
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            5,
+            1
+          ],
+          [
+            16,
+            1
+          ],
+          [
+            31,
+            1
+          ],
+          [
+            66,
+            1
+          ]
+        ],
+        "missing_first_prediction": 23
+      },
+      "opponent": {
+        "n": 0,
+        "counts": [],
+        "missing_first_prediction": 1
+      },
+      "own": {
+        "n": 0,
+        "counts": [],
+        "missing_first_prediction": 2
+      }
+    },
+    "gated_within_1s_after_stop": {
+      "n": 26,
+      "p50": 0,
+      "p95": 31,
+      "max": 66,
+      "counts": [
+        [
+          0,
+          24
+        ],
+        [
+          31,
+          1
+        ],
+        [
+          66,
+          1
+        ]
+      ]
+    },
+    "gated_clear_of_stops": {
+      "n": 208,
+      "p50": 0,
+      "p95": 0,
+      "max": 16,
+      "counts": [
+        [
+          0,
+          205
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          16,
+          1
+        ]
+      ]
+    }
+  },
+  "gated_local_start": {
+    "n": 234,
+    "max": 66,
+    "missing_first_prediction": 24
+  },
+  "gated_shown_only_when_confirmed": {
+    "n": 24,
+    "p50": 14,
+    "p95": 34,
+    "max": 62,
+    "counts": [
+      [
+        9,
+        1
+      ],
+      [
+        10,
+        3
+      ],
+      [
+        11,
+        3
+      ],
+      [
+        12,
+        3
+      ],
+      [
+        13,
+        1
+      ],
+      [
+        14,
+        1
+      ],
+      [
+        15,
+        2
+      ],
+      [
+        17,
+        3
+      ],
+      [
+        21,
+        1
+      ],
+      [
+        24,
+        1
+      ],
+      [
+        25,
+        2
+      ],
+      [
+        28,
+        1
+      ],
+      [
+        34,
+        1
+      ],
+      [
+        62,
+        1
+      ]
+    ]
+  },
+  "worst_gated_presses": [
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 1,
+      "slot": 0,
+      "frame": 490,
+      "delay": 66,
+      "stall": "none",
+      "afterStall": 1
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 1,
+      "slot": 0,
+      "frame": 532,
+      "delay": 31,
+      "stall": "none",
+      "afterStall": 43
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 1,
+      "slot": 1,
+      "frame": 1044,
+      "delay": 16,
+      "stall": "none",
+      "afterStall": 72
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r3-r26",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 761,
+      "delay": 5,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 2194,
+      "delay": 4,
+      "stall": "none"
+    }
+  ],
+  "gated_without_first_prediction": [
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 1,
+      "slot": 0,
+      "frame": 1478,
+      "confirmedAfter": 62,
+      "stall": "opponent",
+      "afterStall": 506
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 1,
+      "slot": 0,
+      "frame": 1587,
+      "confirmedAfter": 10,
+      "stall": "none",
+      "afterStall": 109
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 1,
+      "slot": 0,
+      "frame": 2069,
+      "confirmedAfter": 12,
+      "stall": "none",
+      "afterStall": 591
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 1,
+      "slot": 0,
+      "frame": 2184,
+      "confirmedAfter": 15,
+      "stall": "none",
+      "afterStall": 706
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 1,
+      "slot": 0,
+      "frame": 2317,
+      "confirmedAfter": 9,
+      "stall": "none",
+      "afterStall": 839
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 1,
+      "slot": 0,
+      "frame": 2497,
+      "confirmedAfter": 14,
+      "stall": "none",
+      "afterStall": 1019
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 1,
+      "slot": 1,
+      "frame": 532,
+      "confirmedAfter": 24,
+      "stall": "none",
+      "afterStall": 42
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 1,
+      "slot": 1,
+      "frame": 1612,
+      "confirmedAfter": 10,
+      "stall": "none",
+      "afterStall": 133
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 0,
+      "frame": 939,
+      "confirmedAfter": 11,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 0,
+      "frame": 1228,
+      "confirmedAfter": 21,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 0,
+      "frame": 1433,
+      "confirmedAfter": 11,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 0,
+      "frame": 1879,
+      "confirmedAfter": 17,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 0,
+      "frame": 2139,
+      "confirmedAfter": 28,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 0,
+      "frame": 2272,
+      "confirmedAfter": 17,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 1120,
+      "confirmedAfter": 11,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 1705,
+      "confirmedAfter": 34,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 1747,
+      "confirmedAfter": 25,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 2248,
+      "confirmedAfter": 25,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 2272,
+      "confirmedAfter": 17,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 2411,
+      "confirmedAfter": 12,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 2507,
+      "confirmedAfter": 15,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 2562,
+      "confirmedAfter": 10,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 2586,
+      "confirmedAfter": 13,
+      "stall": "none"
+    },
+    {
+      "capture": "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4",
+      "epoch": 2,
+      "slot": 1,
+      "frame": 2766,
+      "confirmedAfter": 12,
+      "stall": "none"
+    }
+  ],
+  "gate": {
+    "presses": true,
+    "every_action": true,
+    "lost_extra": true,
+    "on_frame": true,
+    "local_start": false,
+    "checksums": true
+  },
+  "passed": false
+}

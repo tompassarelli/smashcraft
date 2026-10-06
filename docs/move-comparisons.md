@@ -65,21 +65,21 @@ starts at tick 31, contacts at 36, and precedes Demon Hunter's normal recovery
 at 37. Moving for one tick before a jab also contacts at 36. Those results do
 not cover alternative shield responses, defensive inputs or human reactions.
 
-The deliberate category rule is local and explicit: **in the same shield
-contact context, greater shield damage must cost later attacker recovery or
-an earlier defender response**. Production satisfies it in all six sampled
-comparisons. A fixture mutation sets only the smash's post-contact cooldown
-and remaining attack duration to one tick. The same comparison then rejects
+The comparison checks one local category rule: **in the same shield contact
+context, greater shield damage costs later attacker recovery or an earlier
+defender response**. No owner decision states it; whether it is a design rule
+is an open question in smashcraft:docs/gameplay-design.md. Production
+satisfies it in all six sampled comparisons. A fixture mutation sets only the
+smash's post-contact cooldown and remaining attack duration to one tick. The same comparison then rejects
 all six mutants; Archer's recovery becomes tick 9 while the normal remains 28,
 with the smash's greater shield damage retained. This does not edit production
 or establish a universal balance law.
 
-Late aerial pressure is an intentional exception to applying that ground-move
-rule indiscriminately: its checkpoint already spent 20 airborne attack frames,
-its sampled damage is lower, its landing lag matters, and it misses at
-the farther spacing. Counterplay outside the checkpoint includes contesting
-that approach or moving outside its contact geometry. These are options to
-investigate, not measured success rates. No generic balance score is assigned.
+The rule is not applied to late aerial pressure: its checkpoint already spent
+20 airborne attack frames, its sampled damage is lower, its landing lag
+matters, and it misses at the farther spacing. Counterplay outside the
+checkpoint includes contesting that approach or moving outside its contact
+geometry; these are not measured. No generic balance score is assigned.
 
 ## A follow-up interval needs reach as well as time
 
@@ -157,3 +157,24 @@ allows held a passive Archer for 25 resets in 600 frames from 30% and from
 100%. The game's computer never chooses a get-up option, so in
 computer-against-computer matches a jabbing Archer or Rifleman can hold a
 downed opponent until time runs out.
+
+## Rifleman down tilt, 6 October 2026 (#63)
+
+Rifleman's down tilt deals 10 damage; Archer's stays 8. Rifleman has Falco's
+slower ground movement and Archer Fox's faster one, and in Melee's corpus
+Falco's down tilt hits 13% and Fox's 10% on identical frames: the slower
+fighter of the pair hits harder. Rifleman keeps that ratio (8 × 1.3 ≈ 10).
+Timing, hit region, launch direction, growth and base are unchanged.
+
+| Rifleman down tilt, 0%, weight 100 | Before | After |
+| --- | ---: | ---: |
+| Damage | 8 | 10 |
+| Knockback | 43.60 | 46.40 |
+| Hitstun / hitlag | 17 / 5 | 18 / 6 |
+| Digital shield damage / shieldstun | 5.6 / 5 | 7 / 6 |
+
+The comparison fixtures don't sample down tilts, so their verdicts are
+unchanged. In the 540-match computer soak only Rifleman's matches changed;
+computer Rifleman beat the fuzzed player in 120 of 120 matches instead of
+118 (smashcraft:evidence/rifleman-down-tilt-20261006/). That is below what
+the soak resolves as a balance effect.

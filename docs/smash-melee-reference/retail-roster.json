@@ -1,0 +1,6225 @@
+{
+  "game": "Super Smash Bros. Melee NTSC 1.02 (GALE01, disc revision 2)",
+  "kind": "Independently read numeric fighter attributes, common values, animation lengths and selected subaction events",
+  "sources": {
+    "disc": {
+      "id": "GALE01",
+      "revision": 2,
+      "isoSha256": "0de05981a34156b9cedcef73c73d4244ac05cf6149ab3c9cfed917698819e464",
+      "executableSha1": "08e0bf20134dfcb260699671004527b2d6bb1a45",
+      "common": {
+        "file": "PlCo.dat",
+        "sha256": "63841336337eb5a7366b06ccc60ea4bd37c3604ab56e19939d78b9aa9cdd234c"
+      }
+    },
+    "decompile": {
+      "repository": "https://github.com/doldecomp/melee",
+      "revision": "0296f009f32f710495979d30772d8332af2d411a",
+      "license": "No gameplay implementation license established; layouts and field names only, no implementation copied or translated.",
+      "layouts": [
+        "src/melee/ft/types.h ftCo_DatAttrs, ftCommonData, ftData, Fighter_WaitAnimData",
+        "src/melee/lb/lbanim.h FigaTree.frames",
+        "src/melee/lb/lbcommand.c control commands",
+        "src/melee/ft/ftaction.c command lengths and handlers"
+      ]
+    }
+  },
+  "conventions": {
+    "attributes": {
+      "walk_accel_mul": "0x000",
+      "walk_accel_base": "0x004",
+      "walk_max_vel": "0x008",
+      "ground_friction": "0x018",
+      "dash_initial_velocity": "0x01C",
+      "dash_accel_mul": "0x020",
+      "dash_accel_base": "0x024",
+      "dash_max_velocity": "0x028",
+      "max_run_brake_frames": "0x030",
+      "ground_max_horizontal_velocity": "0x034",
+      "jump_startup_time": "0x038",
+      "jump_h_initial_velocity": "0x03C",
+      "jump_v_initial_velocity": "0x040",
+      "ground_to_air_jump_momentum_multiplier": "0x044",
+      "jump_h_max_velocity": "0x048",
+      "hop_v_initial_velocity": "0x04C",
+      "air_jump_v_multiplier": "0x050",
+      "air_jump_h_multiplier": "0x054",
+      "max_jumps": "0x058",
+      "gravity": "0x05C",
+      "terminal_velocity": "0x060",
+      "air_drift_stick_mul": "0x064",
+      "aerial_drift_base": "0x068",
+      "air_drift_max": "0x06C",
+      "aerial_friction": "0x070",
+      "fast_fall_velocity": "0x074",
+      "air_max_horizontal_velocity": "0x078",
+      "standing_turn_frames": "0x084",
+      "weight": "0x088",
+      "model_scaling": "0x08C",
+      "initial_shield_size": "0x090",
+      "shield_break_initial_velocity": "0x094",
+      "ledge_jump_horizontal_velocity": "0x0A8",
+      "ledge_jump_vertical_velocity": "0x0AC",
+      "normal_landing_lag": "0x0E4",
+      "landingairn_lag": "0x0E8",
+      "landingairf_lag": "0x0EC",
+      "landingairb_lag": "0x0F0",
+      "landingairhi_lag": "0x0F4",
+      "landingairlw_lag": "0x0F8",
+      "passivewall_vel_x": "0x100",
+      "wall_jump_horizontal_velocity": "0x104",
+      "wall_jump_vertical_velocity": "0x108",
+      "wall_jump_min_approach_speed": "0x148"
+    },
+    "units": "Melee units and logical frames (60 per second).",
+    "actions": "Keyed by ftCo_Submotion name; animation is the fighter's animation-table name, frames its FigaTree frame count.",
+    "events": "Command-stream frame is the animation timeline frame at which the command runs (timers add or set it). cmdVar: cmd_vars[index] = value (ftAction_80071820). throwFlagB3: facing flip flag read by ftCo_Escape_Anim. allowInterrupt: fp->allow_interrupt (ftAction_80071950). bodyState: fp->x1988 via ftColl_8007B62C, 0 normal, 1 invincible, 2 intangible. allHurtState: every hurt capsule's state (ftColl_8007B0C0). A backward goto ends the list (the stream repeats). Null events mean the stream uses a loop command, which is not followed.",
+    "iceClimbers": "Popo's files (PlPp) stand for ice_climbers."
+  },
+  "common": [
+    {
+      "offset": "0x000",
+      "name": "horizontal_stick_deadzone",
+      "value": 0.2800000011920929,
+      "bits": "0x3e8f5c29"
+    },
+    {
+      "offset": "0x004",
+      "name": "vertical_stick_deadzone",
+      "value": 0.2800000011920929,
+      "bits": "0x3e8f5c29"
+    },
+    {
+      "offset": "0x018",
+      "name": "shield_press_threshold",
+      "value": 0.25,
+      "bits": "0x3e800000"
+    },
+    {
+      "offset": "0x01C",
+      "name": "x1C",
+      "value": 40,
+      "bits": "0x00000028"
+    },
+    {
+      "offset": "0x03C",
+      "name": "dash_smash_stick_threshold",
+      "value": 0.800000011920929,
+      "bits": "0x3f4ccccd"
+    },
+    {
+      "offset": "0x040",
+      "name": "dash_smash_window",
+      "value": 2,
+      "bits": "0x00000002"
+    },
+    {
+      "offset": "0x044",
+      "name": "x44",
+      "value": 4,
+      "bits": "0x40800000"
+    },
+    {
+      "offset": "0x048",
+      "name": "x48",
+      "value": 3,
+      "bits": "0x40400000"
+    },
+    {
+      "offset": "0x04C",
+      "name": "x4C",
+      "value": 20,
+      "bits": "0x41a00000"
+    },
+    {
+      "offset": "0x054",
+      "name": "x54",
+      "value": 0.75,
+      "bits": "0x3f400000"
+    },
+    {
+      "offset": "0x060",
+      "name": "run_dash_turn_friction_multiplier",
+      "value": 1,
+      "bits": "0x3f800000"
+    },
+    {
+      "offset": "0x06C",
+      "name": "friction_when_above_walk_speed",
+      "value": 2,
+      "bits": "0x40000000"
+    },
+    {
+      "offset": "0x070",
+      "name": "tap_jump_threshold",
+      "value": 0.6625000238418579,
+      "bits": "0x3f29999a"
+    },
+    {
+      "offset": "0x074",
+      "name": "tap_jump_window",
+      "value": 4,
+      "bits": "0x00000004"
+    },
+    {
+      "offset": "0x088",
+      "name": "x88",
+      "value": 0.6625000238418579,
+      "bits": "0x3f29999a"
+    },
+    {
+      "offset": "0x08C",
+      "name": "x8C",
+      "value": 4,
+      "bits": "0x00000004"
+    },
+    {
+      "offset": "0x0E4",
+      "name": "xE4",
+      "value": 7,
+      "bits": "0x00000007"
+    },
+    {
+      "offset": "0x0E8",
+      "name": "xE8",
+      "value": 2,
+      "bits": "0x40000000"
+    },
+    {
+      "offset": "0x100",
+      "name": "x100",
+      "value": 0.029999999329447746,
+      "bits": "0x3cf5c28f"
+    },
+    {
+      "offset": "0x104",
+      "name": "kb_min",
+      "value": 0,
+      "bits": "0x00000000"
+    },
+    {
+      "offset": "0x108",
+      "name": "x108",
+      "value": 2500,
+      "bits": "0x451c4000"
+    },
+    {
+      "offset": "0x124",
+      "name": "kb_squat_mul",
+      "value": 0.6666666865348816,
+      "bits": "0x3f2aaaab"
+    },
+    {
+      "offset": "0x154",
+      "name": "x154",
+      "value": 0.4000000059604645,
+      "bits": "0x3ecccccd"
+    },
+    {
+      "offset": "0x158",
+      "name": "x158",
+      "value": 10,
+      "bits": "0x41200000"
+    },
+    {
+      "offset": "0x15C",
+      "name": "x15C",
+      "value": 21,
+      "bits": "0x41a80000"
+    },
+    {
+      "offset": "0x160",
+      "name": "x160",
+      "value": 32,
+      "bits": "0x42000000"
+    },
+    {
+      "offset": "0x194",
+      "name": "x194_unkHitLagFrames",
+      "value": 20,
+      "bits": "0x41a00000"
+    },
+    {
+      "offset": "0x198",
+      "name": "x198",
+      "value": 0.3333333432674408,
+      "bits": "0x3eaaaaab"
+    },
+    {
+      "offset": "0x19C",
+      "name": "x19C",
+      "value": 3,
+      "bits": "0x40400000"
+    },
+    {
+      "offset": "0x1A0",
+      "name": "x1A0",
+      "value": 0.6666666865348816,
+      "bits": "0x3f2aaaab"
+    },
+    {
+      "offset": "0x1A4",
+      "name": "x1A4",
+      "value": 1.5,
+      "bits": "0x3fc00000"
+    },
+    {
+      "offset": "0x1A8",
+      "name": "x1A8",
+      "value": 18,
+      "bits": "0x41900000"
+    },
+    {
+      "offset": "0x1E0",
+      "name": "x1E0",
+      "value": 5,
+      "bits": "0x40a00000"
+    },
+    {
+      "offset": "0x1E4",
+      "name": "x1E4",
+      "value": 0.5,
+      "bits": "0x3f000000"
+    },
+    {
+      "offset": "0x204",
+      "name": "x204_knockbackFrameDecay",
+      "value": 0.050999999046325684,
+      "bits": "0x3d50e560"
+    },
+    {
+      "offset": "0x250",
+      "name": "x250",
+      "value": 20,
+      "bits": "0x41a00000"
+    },
+    {
+      "offset": "0x254",
+      "name": "x254",
+      "value": 0.20000000298023224,
+      "bits": "0x3e4ccccd"
+    },
+    {
+      "offset": "0x260",
+      "name": "x260_startShieldHealth",
+      "value": 60,
+      "bits": "0x42700000"
+    },
+    {
+      "offset": "0x278",
+      "name": "x278",
+      "value": 0.14000000059604645,
+      "bits": "0x3e0f5c29"
+    },
+    {
+      "offset": "0x27C",
+      "name": "x27C",
+      "value": 0.07000000029802322,
+      "bits": "0x3d8f5c29"
+    },
+    {
+      "offset": "0x280",
+      "name": "x280_unkShieldHealth",
+      "value": 30,
+      "bits": "0x41f00000"
+    },
+    {
+      "offset": "0x284",
+      "name": "x284",
+      "value": 1,
+      "bits": "0x3f800000"
+    },
+    {
+      "offset": "0x288",
+      "name": "x288",
+      "value": 0,
+      "bits": "0x00000000"
+    },
+    {
+      "offset": "0x28C",
+      "name": "x28C",
+      "value": 1.5,
+      "bits": "0x3fc00000"
+    },
+    {
+      "offset": "0x290",
+      "name": "x290",
+      "value": 2,
+      "bits": "0x40000000"
+    },
+    {
+      "offset": "0x294",
+      "name": "x294",
+      "value": 0.20000000298023224,
+      "bits": "0x3e4ccccd"
+    },
+    {
+      "offset": "0x298",
+      "name": "x298",
+      "value": 2,
+      "bits": "0x40000000"
+    },
+    {
+      "offset": "0x2A0",
+      "name": "powershield_input_window",
+      "value": 2,
+      "bits": "0x00000002"
+    },
+    {
+      "offset": "0x2A4",
+      "name": "x2A4",
+      "value": 1,
+      "bits": "0x3f800000"
+    },
+    {
+      "offset": "0x2BC",
+      "name": "x2BC",
+      "value": 0.6000000238418579,
+      "bits": "0x3f19999a"
+    },
+    {
+      "offset": "0x2E4",
+      "name": "x2E4",
+      "value": 0.05000000074505806,
+      "bits": "0x3d4ccccd"
+    },
+    {
+      "offset": "0x2E8",
+      "name": "x2E8",
+      "value": 0.699999988079071,
+      "bits": "0x3f333333"
+    },
+    {
+      "offset": "0x314",
+      "name": "x314",
+      "value": -0.699999988079071,
+      "bits": "0xbf333333"
+    },
+    {
+      "offset": "0x318",
+      "name": "x318",
+      "value": 4,
+      "bits": "0x00000004"
+    },
+    {
+      "offset": "0x31C",
+      "name": "x31C",
+      "value": 0.699999988079071,
+      "bits": "0x3f333333"
+    },
+    {
+      "offset": "0x320",
+      "name": "x320",
+      "value": 4,
+      "bits": "0x00000004"
+    },
+    {
+      "offset": "0x32C",
+      "name": "escapeair_deadzone_x",
+      "value": 0.25,
+      "bits": "0x3e800000"
+    },
+    {
+      "offset": "0x330",
+      "name": "escapeair_deadzone_y",
+      "value": 0.25,
+      "bits": "0x3e800000"
+    },
+    {
+      "offset": "0x334",
+      "name": "x334",
+      "value": 3,
+      "bits": "0x00000003"
+    },
+    {
+      "offset": "0x338",
+      "name": "escapeair_force",
+      "value": 3.0999999046325684,
+      "bits": "0x40466666"
+    },
+    {
+      "offset": "0x33C",
+      "name": "escapeair_decay",
+      "value": 0.8999999761581421,
+      "bits": "0x3f666666"
+    },
+    {
+      "offset": "0x340",
+      "name": "x340",
+      "value": 0.6000000238418579,
+      "bits": "0x3f19999a"
+    },
+    {
+      "offset": "0x344",
+      "name": "x344",
+      "value": 10,
+      "bits": "0x41200000"
+    },
+    {
+      "offset": "0x354",
+      "name": "x354",
+      "value": 30,
+      "bits": "0x41f00000"
+    },
+    {
+      "offset": "0x358",
+      "name": "x358",
+      "value": 8,
+      "bits": "0x41000000"
+    },
+    {
+      "offset": "0x35C",
+      "name": "x35C",
+      "value": 9,
+      "bits": "0x41100000"
+    },
+    {
+      "offset": "0x360",
+      "name": "x360",
+      "value": 15,
+      "bits": "0x41700000"
+    },
+    {
+      "offset": "0x364",
+      "name": "x364",
+      "value": 4,
+      "bits": "0x40800000"
+    },
+    {
+      "offset": "0x368",
+      "name": "x368",
+      "value": 1.600000023841858,
+      "bits": "0x3fcccccd"
+    },
+    {
+      "offset": "0x3A4",
+      "name": "grab_timer_decrement",
+      "value": 1,
+      "bits": "0x3f800000"
+    },
+    {
+      "offset": "0x3A8",
+      "name": "x3A8",
+      "value": 6,
+      "bits": "0x40c00000"
+    },
+    {
+      "offset": "0x424",
+      "name": "x424",
+      "value": 220,
+      "bits": "0x435c0000"
+    },
+    {
+      "offset": "0x428",
+      "name": "x428",
+      "value": 7,
+      "bits": "0x00000007"
+    },
+    {
+      "offset": "0x3E0",
+      "name": "x3E0",
+      "value": 0.07000000029802322,
+      "bits": "0x3d8f5c29"
+    },
+    {
+      "offset": "0x3E4",
+      "name": "x3E4",
+      "value": 0.019999999552965164,
+      "bits": "0x3ca3d70a"
+    },
+    {
+      "offset": "0x3E8",
+      "name": "x3E8_shieldKnockbackFrameDecay",
+      "value": 0.05000000074505806,
+      "bits": "0x3d4ccccd"
+    },
+    {
+      "offset": "0x3EC",
+      "name": "x3EC_shieldGroundFrictionMultiplier",
+      "value": 1.100000023841858,
+      "bits": "0x3f8ccccd"
+    },
+    {
+      "offset": "0x498",
+      "name": "ledge_cooldown",
+      "value": 30,
+      "bits": "0x0000001e"
+    },
+    {
+      "offset": "0x4B0",
+      "name": "sdi_min_stick_mag",
+      "value": 0.699999988079071,
+      "bits": "0x3f333333"
+    },
+    {
+      "offset": "0x4B4",
+      "name": "sdi_stick_window",
+      "value": 4,
+      "bits": "0x00000004"
+    },
+    {
+      "offset": "0x4B8",
+      "name": "sdi_pos_scale",
+      "value": 6,
+      "bits": "0x40c00000"
+    },
+    {
+      "offset": "0x4BC",
+      "name": "x4BC",
+      "value": 3,
+      "bits": "0x40400000"
+    }
+  ],
+  "fighters": [
+    {
+      "id": "mario",
+      "kind": 0,
+      "file": "PlMr.dat",
+      "sha256": "929cdf08c31bc75156ccef05238f2b16dc4d0b187ed1bb4f0a628a2466fb7f7a",
+      "animationFile": "PlMrAJ.dat",
+      "animationSha256": "4bd9593e6f0d980b4441891b62ea84a08c099471d695a614974c67223ab5872f",
+      "attributes": {
+        "walk_accel_mul": 0.10000000149011612,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1.100000023841858,
+        "ground_friction": 0.05999999865889549,
+        "dash_initial_velocity": 1.5,
+        "dash_accel_mul": 0.05999999865889549,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.5,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 4,
+        "jump_h_initial_velocity": 1,
+        "jump_v_initial_velocity": 2.299999952316284,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.5,
+        "hop_v_initial_velocity": 1.399999976158142,
+        "air_jump_v_multiplier": 1,
+        "air_jump_h_multiplier": 0.8999999761581421,
+        "max_jumps": 2,
+        "gravity": 0.0949999988079071,
+        "terminal_velocity": 1.7000000476837158,
+        "air_drift_stick_mul": 0.02500000037252903,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.8600000143051147,
+        "aerial_friction": 0.01600000075995922,
+        "fast_fall_velocity": 2.299999952316284,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 100,
+        "model_scaling": 1.100000023841858,
+        "initial_shield_size": 10.75,
+        "shield_break_initial_velocity": 2.5,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.299999952316284,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 16,
+        "landingairf_lag": 21,
+        "landingairb_lag": 15,
+        "landingairhi_lag": 15,
+        "landingairlw_lag": 23,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.299999952316284,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyMario5K_Share_ACTION_TurnRun_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 18,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyMario5K_Share_ACTION_Dash_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyMario5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyMario5K_Share_ACTION_RunBrake_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyMario5K_Share_ACTION_Landing_figatree",
+          "frames": 29,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyMario5K_Share_ACTION_Landing_figatree",
+          "frames": 29,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyMario5K_Share_ACTION_Landing_figatree",
+          "frames": 29,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyMario5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyMario5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyMario5K_Share_ACTION_EscapeN_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyMario5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyMario5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyMario5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 49,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fox",
+      "kind": 1,
+      "file": "PlFx.dat",
+      "sha256": "846b075d3379de041ecfb5504f5442484c23783422a0851851c96489d697b690",
+      "animationFile": "PlFxAJ.dat",
+      "animationSha256": "a9f3865a0c085b321876543900625d7d54dfef5fe2438ea8068f6221073a6c7d",
+      "attributes": {
+        "walk_accel_mul": 0.20000000298023224,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1.600000023841858,
+        "ground_friction": 0.07999999821186066,
+        "dash_initial_velocity": 1.899999976158142,
+        "dash_accel_mul": 0.10000000149011612,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 2.200000047683716,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 3,
+        "jump_h_initial_velocity": 0.7200000286102295,
+        "jump_v_initial_velocity": 3.680000066757202,
+        "ground_to_air_jump_momentum_multiplier": 0.8299999833106995,
+        "jump_h_max_velocity": 1.7000000476837158,
+        "hop_v_initial_velocity": 2.0999999046325684,
+        "air_jump_v_multiplier": 1.2000000476837158,
+        "air_jump_h_multiplier": 0.8999999761581421,
+        "max_jumps": 2,
+        "gravity": 0.23000000417232513,
+        "terminal_velocity": 2.799999952316284,
+        "air_drift_stick_mul": 0.05999999865889549,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.8299999833106995,
+        "aerial_friction": 0.019999999552965164,
+        "fast_fall_velocity": 3.4000000953674316,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 75,
+        "model_scaling": 0.9599999785423279,
+        "initial_shield_size": 14.375,
+        "shield_break_initial_velocity": 3.299999952316284,
+        "ledge_jump_horizontal_velocity": 1.100000023841858,
+        "ledge_jump_vertical_velocity": 4,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 15,
+        "landingairf_lag": 22,
+        "landingairb_lag": 20,
+        "landingairhi_lag": 18,
+        "landingairlw_lag": 18,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.399999976158142,
+        "wall_jump_vertical_velocity": 3.299999952316284,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyFox5K_Share_ACTION_TurnRun_figatree",
+          "frames": 20,
+          "events": [
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyFox5K_Share_ACTION_Dash_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 12,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyFox5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyFox5K_Share_ACTION_RunBrake_figatree",
+          "frames": 18,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyFox5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyFox5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyFox5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyFox5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyFox5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyFox5K_Share_ACTION_EscapeN_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyFox5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyFox5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyFox5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "captain_falcon",
+      "kind": 2,
+      "file": "PlCa.dat",
+      "sha256": "4cf61a52737d464df9298fd15573345fb3b9a15c79ab47dce4fd2e3e707917af",
+      "animationFile": "PlCaAJ.dat",
+      "animationSha256": "a9a0ccc2382a2f02d5423675469719488540dd119a14577712c97348f70e1c1a",
+      "attributes": {
+        "walk_accel_mul": 0.15000000596046448,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 0.8500000238418579,
+        "ground_friction": 0.07999999821186066,
+        "dash_initial_velocity": 2,
+        "dash_accel_mul": 0.15000000596046448,
+        "dash_accel_base": 0.009999999776482582,
+        "dash_max_velocity": 2.299999952316284,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 4,
+        "jump_h_initial_velocity": 0.949999988079071,
+        "jump_v_initial_velocity": 3.0999999046325684,
+        "ground_to_air_jump_momentum_multiplier": 0.75,
+        "jump_h_max_velocity": 2.0999999046325684,
+        "hop_v_initial_velocity": 1.899999976158142,
+        "air_jump_v_multiplier": 0.8999999761581421,
+        "air_jump_h_multiplier": 0.8999999761581421,
+        "max_jumps": 2,
+        "gravity": 0.12999999523162842,
+        "terminal_velocity": 2.9000000953674316,
+        "air_drift_stick_mul": 0.03999999910593033,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 1.1200000047683716,
+        "aerial_friction": 0.009999999776482582,
+        "fast_fall_velocity": 3.5,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 6,
+        "weight": 104,
+        "model_scaling": 0.9700000286102295,
+        "initial_shield_size": 15,
+        "shield_break_initial_velocity": 2.700000047683716,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 3.299999952316284,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 15,
+        "landingairf_lag": 19,
+        "landingairb_lag": 18,
+        "landingairhi_lag": 15,
+        "landingairlw_lag": 24,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.399999976158142,
+        "wall_jump_vertical_velocity": 3.0999999046325684,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyCaptain5K_Share_ACTION_TurnRun_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyCaptain5K_Share_ACTION_Dash_figatree",
+          "frames": 29,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 16,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyCaptain5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyCaptain5K_Share_ACTION_RunBrake_figatree",
+          "frames": 28,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyCaptain5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyCaptain5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyCaptain5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyCaptain5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyCaptain5K_Share_ACTION_GuardOff_figatree",
+          "frames": 16,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyCaptain5K_Share_ACTION_EscapeN_figatree",
+          "frames": 33,
+          "events": [
+            {
+              "frame": 3,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 21,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 29,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyCaptain5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyCaptain5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyCaptain5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "donkey_kong",
+      "kind": 3,
+      "file": "PlDk.dat",
+      "sha256": "c6cd090eda7e96da6fbd6d5dd4296a91eab7cab99c5b007244b090f5de799d6f",
+      "animationFile": "PlDkAJ.dat",
+      "animationSha256": "320ad74918bd4f93c872b2cd396e730b2234ecaea96dbea3fdcf3287d8a636d6",
+      "attributes": {
+        "walk_accel_mul": 0.10000000149011612,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1.2000000476837158,
+        "ground_friction": 0.07999999821186066,
+        "dash_initial_velocity": 1.600000023841858,
+        "dash_accel_mul": 0.05000000074505806,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.600000023841858,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 5,
+        "jump_h_initial_velocity": 1,
+        "jump_v_initial_velocity": 2.700000047683716,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.600000023841858,
+        "hop_v_initial_velocity": 1.600000023841858,
+        "air_jump_v_multiplier": 0.9100000262260437,
+        "air_jump_h_multiplier": 1,
+        "max_jumps": 2,
+        "gravity": 0.10000000149011612,
+        "terminal_velocity": 2.4000000953674316,
+        "air_drift_stick_mul": 0.019999999552965164,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 1,
+        "aerial_friction": 0.019999999552965164,
+        "fast_fall_velocity": 2.9600000381469727,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 8,
+        "weight": 114,
+        "model_scaling": 1,
+        "initial_shield_size": 17.5,
+        "shield_break_initial_velocity": 2.5999999046325684,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.700000047683716,
+        "normal_landing_lag": 5,
+        "landingairn_lag": 20,
+        "landingairf_lag": 30,
+        "landingairb_lag": 15,
+        "landingairhi_lag": 25,
+        "landingairlw_lag": 31,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.700000047683716,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyDonkey5K_Share_ACTION_TurnRun_figatree",
+          "frames": 34,
+          "events": [
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyDonkey5K_Share_ACTION_Dash_figatree",
+          "frames": 31,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 16,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyDonkey5K_Share_ACTION_Run_figatree",
+          "frames": 38,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyDonkey5K_Share_ACTION_RunBrake_figatree",
+          "frames": 30,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyDonkey5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyDonkey5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyDonkey5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyDonkey5K_Share_ACTION_GuardOn_figatree",
+          "frames": 7,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyDonkey5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyDonkey5K_Share_ACTION_EscapeN_figatree",
+          "frames": 38,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 24,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 33,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyDonkey5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyDonkey5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyDonkey5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "kirby",
+      "kind": 4,
+      "file": "PlKb.dat",
+      "sha256": "bae86007bbdcdd6bea67ddc0309280c47f7e94557de0f7d5469b5c19d0755cd7",
+      "animationFile": "PlKbAJ.dat",
+      "animationSha256": "f4999598dd9e4ca5f3c028894e894358a4a7bf18aaddec80ebda7a35756e1214",
+      "attributes": {
+        "walk_accel_mul": 0.1599999964237213,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 0.8500000238418579,
+        "ground_friction": 0.07999999821186066,
+        "dash_initial_velocity": 1.399999976158142,
+        "dash_accel_mul": 0.07999999821186066,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.399999976158142,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 3,
+        "jump_h_initial_velocity": 0.8999999761581421,
+        "jump_v_initial_velocity": 2,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.399999976158142,
+        "hop_v_initial_velocity": 1.5,
+        "air_jump_v_multiplier": 0,
+        "air_jump_h_multiplier": 0,
+        "max_jumps": 6,
+        "gravity": 0.07999999821186066,
+        "terminal_velocity": 1.600000023841858,
+        "air_drift_stick_mul": 0.03999999910593033,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.7799999713897705,
+        "aerial_friction": 0.019999999552965164,
+        "fast_fall_velocity": 2,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 70,
+        "model_scaling": 0.9200000166893005,
+        "initial_shield_size": 14.699999809265137,
+        "shield_break_initial_velocity": 2.5,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 15,
+        "landingairf_lag": 20,
+        "landingairb_lag": 15,
+        "landingairhi_lag": 15,
+        "landingairlw_lag": 20,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyKirby5K_Share_ACTION_TurnRun_figatree",
+          "frames": 30,
+          "events": [
+            {
+              "frame": 27,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyKirby5K_Share_ACTION_Dash_figatree",
+          "frames": 24,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 13,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyKirby5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyKirby5K_Share_ACTION_RunBrake_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyKirby5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyKirby5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyKirby5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyKirby5K_Share_ACTION_GuardOn_figatree",
+          "frames": 7,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyKirby5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyKirby5K_Share_ACTION_EscapeN_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyKirby5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyKirby5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyKirby5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "bowser",
+      "kind": 5,
+      "file": "PlKp.dat",
+      "sha256": "a21afa0e015957170f48305fd9414c041955ccf6991ea1b18a6f9142e063d24d",
+      "animationFile": "PlKpAJ.dat",
+      "animationSha256": "bd1c49c324b987f8935efd23b2319c1c25627594878c94fc90de3346d60c0b71",
+      "attributes": {
+        "walk_accel_mul": 0.029999999329447746,
+        "walk_accel_base": 0.05000000074505806,
+        "walk_max_vel": 0.6499999761581421,
+        "ground_friction": 0.05999999865889549,
+        "dash_initial_velocity": 1,
+        "dash_accel_mul": 0.03999999910593033,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.5,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 8,
+        "jump_h_initial_velocity": 1,
+        "jump_v_initial_velocity": 2.799999952316284,
+        "ground_to_air_jump_momentum_multiplier": 0.8999999761581421,
+        "jump_h_max_velocity": 1,
+        "hop_v_initial_velocity": 1.600000023841858,
+        "air_jump_v_multiplier": 1,
+        "air_jump_h_multiplier": 0.8999999761581421,
+        "max_jumps": 2,
+        "gravity": 0.12999999523162842,
+        "terminal_velocity": 1.899999976158142,
+        "air_drift_stick_mul": 0.029999999329447746,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.800000011920929,
+        "aerial_friction": 0.009999999776482582,
+        "fast_fall_velocity": 2.4000000953674316,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 8,
+        "weight": 117,
+        "model_scaling": 0.6899999976158142,
+        "initial_shield_size": 31.25,
+        "shield_break_initial_velocity": 3.200000047683716,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.200000047683716,
+        "normal_landing_lag": 6,
+        "landingairn_lag": 30,
+        "landingairf_lag": 30,
+        "landingairb_lag": 35,
+        "landingairhi_lag": 30,
+        "landingairlw_lag": 40,
+        "passivewall_vel_x": 0.699999988079071,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.799999952316284,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyKoopa5K_Share_ACTION_TurnRun_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 12,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyKoopa5K_Share_ACTION_Dash_figatree",
+          "frames": 30,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyKoopa5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyKoopa5K_Share_ACTION_RunBrake_figatree",
+          "frames": 30,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyKoopa5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyKoopa5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyKoopa5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyKoopa5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyKoopa5K_Share_ACTION_GuardOff_figatree",
+          "frames": 16,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyKoopa5K_Share_ACTION_EscapeN_figatree",
+          "frames": 43,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 25,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 37,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyKoopa5K_Share_ACTION_EscapeF_figatree",
+          "frames": 40,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allHurtState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyKoopa5K_Share_ACTION_EscapeB_figatree",
+          "frames": 40,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allHurtState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyKoopa5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 3,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "link",
+      "kind": 6,
+      "file": "PlLk.dat",
+      "sha256": "9f7c804278054b2cc7dfe0c4b87d69bcf1511df9fd673190c2ce84cc68e76bc8",
+      "animationFile": "PlLkAJ.dat",
+      "animationSha256": "b2a89662a36b72b3dcf0421208f1122151fb05422c3d7de3c1f048703ab71088",
+      "attributes": {
+        "walk_accel_mul": 0.20000000298023224,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1.2000000476837158,
+        "ground_friction": 0.10000000149011612,
+        "dash_initial_velocity": 1.2999999523162842,
+        "dash_accel_mul": 0.10000000149011612,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.2999999523162842,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 6,
+        "jump_h_initial_velocity": 1,
+        "jump_v_initial_velocity": 2.5,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.2000000476837158,
+        "hop_v_initial_velocity": 1.5,
+        "air_jump_v_multiplier": 0.8799999952316284,
+        "air_jump_h_multiplier": 1,
+        "max_jumps": 2,
+        "gravity": 0.10999999940395355,
+        "terminal_velocity": 2.130000114440918,
+        "air_drift_stick_mul": 0.03999999910593033,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 1,
+        "aerial_friction": 0.004999999888241291,
+        "fast_fall_velocity": 3,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 6,
+        "weight": 104,
+        "model_scaling": 1.2200000286102295,
+        "initial_shield_size": 11.625,
+        "shield_break_initial_velocity": 2.700000047683716,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.5999999046325684,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 15,
+        "landingairf_lag": 15,
+        "landingairb_lag": 15,
+        "landingairhi_lag": 30,
+        "landingairlw_lag": 50,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.5999999046325684,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyLink5K_Share_ACTION_TurnRun_figatree",
+          "frames": 30,
+          "events": [
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyLink5K_Share_ACTION_Dash_figatree",
+          "frames": 31,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 13,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyLink5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyLink5K_Share_ACTION_RunBrake_figatree",
+          "frames": 25,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyLink5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyLink5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyLink5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyLink5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyLink5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyLink5K_Share_ACTION_EscapeN_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyLink5K_Share_ACTION_EscapeF_figatree",
+          "frames": 38,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyLink5K_Share_ACTION_EscapeB_figatree",
+          "frames": 38,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyLink5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sheik",
+      "kind": 7,
+      "file": "PlSk.dat",
+      "sha256": "b75ee373521c4deb97ea8863e4d07e37b589dc7756c9e375e750e2043075ce89",
+      "animationFile": "PlSkAJ.dat",
+      "animationSha256": "448f2a9d660da98c64812ca3ac0d1e20e7ce70a5f630f44b753a8aedef91477c",
+      "attributes": {
+        "walk_accel_mul": 0.20000000298023224,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1.2000000476837158,
+        "ground_friction": 0.07999999821186066,
+        "dash_initial_velocity": 1.7000000476837158,
+        "dash_accel_mul": 0.10000000149011612,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.7999999523162842,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 3,
+        "jump_h_initial_velocity": 0.800000011920929,
+        "jump_v_initial_velocity": 2.799999952316284,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.399999976158142,
+        "hop_v_initial_velocity": 2.140000104904175,
+        "air_jump_v_multiplier": 1.100000023841858,
+        "air_jump_h_multiplier": 1,
+        "max_jumps": 2,
+        "gravity": 0.11999999731779099,
+        "terminal_velocity": 2.130000114440918,
+        "air_drift_stick_mul": 0.03999999910593033,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.800000011920929,
+        "aerial_friction": 0.03999999910593033,
+        "fast_fall_velocity": 3,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 90,
+        "model_scaling": 1.399999976158142,
+        "initial_shield_size": 11.625,
+        "shield_break_initial_velocity": 3,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.799999952316284,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 16,
+        "landingairf_lag": 16,
+        "landingairb_lag": 16,
+        "landingairhi_lag": 24,
+        "landingairlw_lag": 20,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.399999976158142,
+        "wall_jump_vertical_velocity": 2.799999952316284,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlySeak5K_Share_ACTION_TurnRun_figatree",
+          "frames": 20,
+          "events": [
+            {
+              "frame": 19,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlySeak5K_Share_ACTION_Dash_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 8,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlySeak5K_Share_ACTION_Run_figatree",
+          "frames": 12,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlySeak5K_Share_ACTION_RunBrake_figatree",
+          "frames": 18,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlySeak5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlySeak5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlySeak5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlySeak5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlySeak5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlySeak5K_Share_ACTION_EscapeN_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 29,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlySeak5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlySeak5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlySeak5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ness",
+      "kind": 8,
+      "file": "PlNs.dat",
+      "sha256": "a190a1df18783d3ec2adbc44e6b63b395e75152e264f2f1d80843375a64a1070",
+      "animationFile": "PlNsAJ.dat",
+      "animationSha256": "ab9fc4150ee75572da14b412102e443658f01eac7e212ee5b26e231a31185737",
+      "attributes": {
+        "walk_accel_mul": 0.07999999821186066,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 0.8399999737739563,
+        "ground_friction": 0.05999999865889549,
+        "dash_initial_velocity": 1.2999999523162842,
+        "dash_accel_mul": 0.03999999910593033,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.399999976158142,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 4,
+        "jump_h_initial_velocity": 1,
+        "jump_v_initial_velocity": 2.5,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.2999999523162842,
+        "hop_v_initial_velocity": 1.5,
+        "air_jump_v_multiplier": 0.8500000238418579,
+        "air_jump_h_multiplier": 0.800000011920929,
+        "max_jumps": 2,
+        "gravity": 0.09000000357627869,
+        "terminal_velocity": 1.8300000429153442,
+        "air_drift_stick_mul": 0.03999999910593033,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.9300000071525574,
+        "aerial_friction": 0.029999999329447746,
+        "fast_fall_velocity": 2.200000047683716,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 94,
+        "model_scaling": 1,
+        "initial_shield_size": 13.75,
+        "shield_break_initial_velocity": 2.700000047683716,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.5,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 22,
+        "landingairf_lag": 18,
+        "landingairb_lag": 18,
+        "landingairhi_lag": 18,
+        "landingairlw_lag": 28,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.5,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyNess5K_Share_ACTION_TurnRun_figatree",
+          "frames": 25,
+          "events": [
+            {
+              "frame": 18,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyNess5K_Share_ACTION_Dash_figatree",
+          "frames": 26,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyNess5K_Share_ACTION_Run_figatree",
+          "frames": 16,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyNess5K_Share_ACTION_RunBrake_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyNess5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyNess5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyNess5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyNess5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyNess5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyNess5K_Share_ACTION_EscapeN_figatree",
+          "frames": 28,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 19,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 25,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyNess5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyNess5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyNess5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 49,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "peach",
+      "kind": 9,
+      "file": "PlPe.dat",
+      "sha256": "f1e42fd826e7af28683cbf587f32d9c3c249b492487d124f888f8a0073b07de8",
+      "animationFile": "PlPeAJ.dat",
+      "animationSha256": "fc1f888d05ebc52a48c06681e0b1a52dde3a9113a3910952444f1b72539218ef",
+      "attributes": {
+        "walk_accel_mul": 0.20000000298023224,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 0.8500000238418579,
+        "ground_friction": 0.10000000149011612,
+        "dash_initial_velocity": 1.2000000476837158,
+        "dash_accel_mul": 0.10000000149011612,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.2999999523162842,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 5,
+        "jump_h_initial_velocity": 0.699999988079071,
+        "jump_v_initial_velocity": 2.200000047683716,
+        "ground_to_air_jump_momentum_multiplier": 0.699999988079071,
+        "jump_h_max_velocity": 1.100000023841858,
+        "hop_v_initial_velocity": 1.600000023841858,
+        "air_jump_v_multiplier": 0.699999988079071,
+        "air_jump_h_multiplier": 0.8999999761581421,
+        "max_jumps": 2,
+        "gravity": 0.07999999821186066,
+        "terminal_velocity": 1.5,
+        "air_drift_stick_mul": 0.05999999865889549,
+        "aerial_drift_base": 0.009999999776482582,
+        "air_drift_max": 1.100000023841858,
+        "aerial_friction": 0.004999999888241291,
+        "fast_fall_velocity": 2,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 6,
+        "weight": 90,
+        "model_scaling": 1.149999976158142,
+        "initial_shield_size": 11.875,
+        "shield_break_initial_velocity": 2.5,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.200000047683716,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 17,
+        "landingairf_lag": 25,
+        "landingairb_lag": 15,
+        "landingairhi_lag": 15,
+        "landingairlw_lag": 15,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.200000047683716,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyPeach5K_Share_ACTION_TurnRun_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyPeach5K_Share_ACTION_Dash_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 16,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyPeach5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyPeach5K_Share_ACTION_RunBrake_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyPeach5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyPeach5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyPeach5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyPeach5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyPeach5K_Share_ACTION_GuardOff_figatree",
+          "frames": 14,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyPeach5K_Share_ACTION_EscapeN_figatree",
+          "frames": 28,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 19,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 25,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyPeach5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyPeach5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyPeach5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ice_climbers",
+      "kind": 10,
+      "file": "PlPp.dat",
+      "sha256": "5dd044b2ac5003f18dfca6e3a5197724f383419b4fc31bd4cb0a6205052507c0",
+      "animationFile": "PlPpAJ.dat",
+      "animationSha256": "353cf263457c03f4dc43e4d3dd560607d9e2e56a218ed33ff4141326ddd87635",
+      "attributes": {
+        "walk_accel_mul": 0.08500000089406967,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 0.949999988079071,
+        "ground_friction": 0.03500000014901161,
+        "dash_initial_velocity": 1.399999976158142,
+        "dash_accel_mul": 0.05000000074505806,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.399999976158142,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 3,
+        "jump_h_initial_velocity": 0.6000000238418579,
+        "jump_v_initial_velocity": 2.5999999046325684,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.399999976158142,
+        "hop_v_initial_velocity": 1.399999976158142,
+        "air_jump_v_multiplier": 1,
+        "air_jump_h_multiplier": 0.8999999761581421,
+        "max_jumps": 2,
+        "gravity": 0.10000000149011612,
+        "terminal_velocity": 1.600000023841858,
+        "air_drift_stick_mul": 0.027000000700354576,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.699999988079071,
+        "aerial_friction": 0.019999999552965164,
+        "fast_fall_velocity": 2,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 88,
+        "model_scaling": 1.149999976158142,
+        "initial_shield_size": 10.75,
+        "shield_break_initial_velocity": 2.5999999046325684,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.5999999046325684,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 20,
+        "landingairf_lag": 20,
+        "landingairb_lag": 20,
+        "landingairhi_lag": 32,
+        "landingairlw_lag": 25,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.5999999046325684,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyPopo5K_Share_ACTION_TurnRun_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 18,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyPopo5K_Share_ACTION_Dash_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyPopo5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyPopo5K_Share_ACTION_RunBrake_figatree",
+          "frames": 24,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyPopo5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyPopo5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyPopo5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyPopo5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyPopo5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyPopo5K_Share_ACTION_EscapeN_figatree",
+          "frames": 28,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 19,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 25,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyPopo5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyPopo5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyPopo5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 49,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "pikachu",
+      "kind": 12,
+      "file": "PlPk.dat",
+      "sha256": "4befcf5d68af080ad6a18364d126b62f852e3c7f0f3ee3070168aa156bda184b",
+      "animationFile": "PlPkAJ.dat",
+      "animationSha256": "1b0a8690a71e1927236c52ec3cfc2c32cf247f4aba3d3d882c9abbbe97ccd30c",
+      "attributes": {
+        "walk_accel_mul": 0.15000000596046448,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1.2400000095367432,
+        "ground_friction": 0.09000000357627869,
+        "dash_initial_velocity": 1.7999999523162842,
+        "dash_accel_mul": 0.07999999821186066,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.7999999523162842,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 3,
+        "jump_h_initial_velocity": 0.800000011920929,
+        "jump_v_initial_velocity": 2.5999999046325684,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.7999999523162842,
+        "hop_v_initial_velocity": 1.7000000476837158,
+        "air_jump_v_multiplier": 1,
+        "air_jump_h_multiplier": 0.800000011920929,
+        "max_jumps": 2,
+        "gravity": 0.10999999940395355,
+        "terminal_velocity": 1.899999976158142,
+        "air_drift_stick_mul": 0.029999999329447746,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.8500000238418579,
+        "aerial_friction": 0.009999999776482582,
+        "fast_fall_velocity": 2.700000047683716,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 80,
+        "model_scaling": 0.8999999761581421,
+        "initial_shield_size": 12,
+        "shield_break_initial_velocity": 2.6500000953674316,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.5999999046325684,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 15,
+        "landingairf_lag": 20,
+        "landingairb_lag": 30,
+        "landingairhi_lag": 26,
+        "landingairlw_lag": 40,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.5999999046325684,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyPikachu5K_Share_ACTION_TurnRun_figatree",
+          "frames": 20,
+          "events": [
+            {
+              "frame": 18,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyPikachu5K_Share_ACTION_Dash_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyPikachu5K_Share_ACTION_Run_figatree",
+          "frames": 14,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyPikachu5K_Share_ACTION_RunBrake_figatree",
+          "frames": 20,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyPikachu5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyPikachu5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyPikachu5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyPikachu5K_Share_ACTION_GuardOn_figatree",
+          "frames": 7,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyPikachu5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyPikachu5K_Share_ACTION_EscapeN_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyPikachu5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyPikachu5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyPikachu5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "samus",
+      "kind": 13,
+      "file": "PlSs.dat",
+      "sha256": "8fc0047354d551c8854e9834a3aad08e377f9855ab2572f47d0b41adbf347c22",
+      "animationFile": "PlSsAJ.dat",
+      "animationSha256": "1c64ba70c454d67282b2b0817cbfd24036cf4bb9dfc24765229e87b402d6be70",
+      "attributes": {
+        "walk_accel_mul": 0.30000001192092896,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1,
+        "ground_friction": 0.05999999865889549,
+        "dash_initial_velocity": 1.8600000143051147,
+        "dash_accel_mul": 0.10000000149011612,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.399999976158142,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 3,
+        "jump_h_initial_velocity": 1,
+        "jump_v_initial_velocity": 2.0999999046325684,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.2999999523162842,
+        "hop_v_initial_velocity": 1.7000000476837158,
+        "air_jump_v_multiplier": 0.8999999761581421,
+        "air_jump_h_multiplier": 0.8999999761581421,
+        "max_jumps": 2,
+        "gravity": 0.06599999964237213,
+        "terminal_velocity": 1.399999976158142,
+        "air_drift_stick_mul": 0.012500000186264515,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.8899999856948853,
+        "aerial_friction": 0.009999999776482582,
+        "fast_fall_velocity": 2.299999952316284,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 110,
+        "model_scaling": 0.8799999952316284,
+        "initial_shield_size": 16.25,
+        "shield_break_initial_velocity": 2.309999942779541,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.0999999046325684,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 15,
+        "landingairf_lag": 15,
+        "landingairb_lag": 15,
+        "landingairhi_lag": 15,
+        "landingairlw_lag": 15,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.0999999046325684,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlySamus5K_Share_ACTION_TurnRun_figatree",
+          "frames": 26,
+          "events": [
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlySamus5K_Share_ACTION_Dash_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlySamus5K_Share_ACTION_Run_figatree",
+          "frames": 25,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlySamus5K_Share_ACTION_RunBrake_figatree",
+          "frames": 21,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlySamus5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlySamus5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlySamus5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlySamus5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlySamus5K_Share_ACTION_GuardOff_figatree",
+          "frames": 16,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlySamus5K_Share_ACTION_EscapeN_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlySamus5K_Share_ACTION_EscapeF_figatree",
+          "frames": 45,
+          "events": [
+            {
+              "frame": 4,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 24,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 24,
+              "event": "throwFlagB3",
+              "value": 0
+            },
+            {
+              "frame": 31,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlySamus5K_Share_ACTION_EscapeB_figatree",
+          "frames": 45,
+          "events": [
+            {
+              "frame": 4,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 24,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 31,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlySamus5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "yoshi",
+      "kind": 14,
+      "file": "PlYs.dat",
+      "sha256": "95649bbf535503832190c9f34f400f27ad9c17523cebed88c1925bad1884f52b",
+      "animationFile": "PlYsAJ.dat",
+      "animationSha256": "3282abc5431952243958af60e1d06e5aac6e3c185e02e2433d0c247581c1b3fd",
+      "attributes": {
+        "walk_accel_mul": 0.1599999964237213,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1.149999976158142,
+        "ground_friction": 0.05999999865889549,
+        "dash_initial_velocity": 1.3300000429153442,
+        "dash_accel_mul": 0.07999999821186066,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.600000023841858,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 5,
+        "jump_h_initial_velocity": 0.9300000071525574,
+        "jump_v_initial_velocity": 2.5,
+        "ground_to_air_jump_momentum_multiplier": 0.699999988079071,
+        "jump_h_max_velocity": 1.5,
+        "hop_v_initial_velocity": 1.7999999523162842,
+        "air_jump_v_multiplier": 1.2999999523162842,
+        "air_jump_h_multiplier": 1.2000000476837158,
+        "max_jumps": 2,
+        "gravity": 0.09300000220537186,
+        "terminal_velocity": 1.9299999475479126,
+        "air_drift_stick_mul": 0.02800000086426735,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 1.2000000476837158,
+        "aerial_friction": 0.013000000268220901,
+        "fast_fall_velocity": 2.930000066757202,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 6,
+        "weight": 108,
+        "model_scaling": 1.0499999523162842,
+        "initial_shield_size": 6,
+        "shield_break_initial_velocity": 2.7200000286102295,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.299999952316284,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 15,
+        "landingairf_lag": 21,
+        "landingairb_lag": 15,
+        "landingairhi_lag": 19,
+        "landingairlw_lag": 26,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.299999952316284,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyYoshi5K_Share_ACTION_TurnRun_figatree",
+          "frames": 35,
+          "events": [
+            {
+              "frame": 34,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyYoshi5K_Share_ACTION_Dash_figatree",
+          "frames": 27,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyYoshi5K_Share_ACTION_Run_figatree",
+          "frames": 16,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyYoshi5K_Share_ACTION_RunBrake_figatree",
+          "frames": 28,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyYoshi5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyYoshi5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyYoshi5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyYoshi5K_Share_ACTION_GuardOn_figatree",
+          "frames": 7,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyYoshi5K_Share_ACTION_GuardOff_figatree",
+          "frames": 16,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyYoshi5K_Share_ACTION_EscapeN_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyYoshi5K_Share_ACTION_EscapeF_figatree",
+          "frames": 35,
+          "events": null
+        },
+        "EscapeB": {
+          "animation": "PlyYoshi5K_Share_ACTION_EscapeB_figatree",
+          "frames": 38,
+          "events": null
+        },
+        "EscapeAir": {
+          "animation": "PlyYoshi5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "jigglypuff",
+      "kind": 15,
+      "file": "PlPr.dat",
+      "sha256": "17ff81bf214584db3619fffffb97727925ad5f03ce37c80141dd1bff783fb42e",
+      "animationFile": "PlPrAJ.dat",
+      "animationSha256": "d1ff1d09ef1100ba91159b63e9a72b8a8a2c00ccdd784a58e1586c3b6007f666",
+      "attributes": {
+        "walk_accel_mul": 0.1599999964237213,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 0.699999988079071,
+        "ground_friction": 0.09000000357627869,
+        "dash_initial_velocity": 1.399999976158142,
+        "dash_accel_mul": 0.06499999761581421,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.100000023841858,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 5,
+        "jump_h_initial_velocity": 0.699999988079071,
+        "jump_v_initial_velocity": 1.600000023841858,
+        "ground_to_air_jump_momentum_multiplier": 1,
+        "jump_h_max_velocity": 1.350000023841858,
+        "hop_v_initial_velocity": 1.0499999523162842,
+        "air_jump_v_multiplier": 0,
+        "air_jump_h_multiplier": 0,
+        "max_jumps": 6,
+        "gravity": 0.06400000303983688,
+        "terminal_velocity": 1.2999999523162842,
+        "air_drift_stick_mul": 0.09000000357627869,
+        "aerial_drift_base": 0.1899999976158142,
+        "air_drift_max": 1.350000023841858,
+        "aerial_friction": 0.05000000074505806,
+        "fast_fall_velocity": 1.600000023841858,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 60,
+        "model_scaling": 0.9399999976158142,
+        "initial_shield_size": 13.125,
+        "shield_break_initial_velocity": 10,
+        "ledge_jump_horizontal_velocity": 1.100000023841858,
+        "ledge_jump_vertical_velocity": 1.7999999523162842,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 20,
+        "landingairf_lag": 20,
+        "landingairb_lag": 20,
+        "landingairhi_lag": 20,
+        "landingairlw_lag": 30,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 1.600000023841858,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyPurin5K_Share_ACTION_TurnRun_figatree",
+          "frames": 25,
+          "events": [
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyPurin5K_Share_ACTION_Dash_figatree",
+          "frames": 24,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 13,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyPurin5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyPurin5K_Share_ACTION_RunBrake_figatree",
+          "frames": 20,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyPurin5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyPurin5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyPurin5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyPurin5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyPurin5K_Share_ACTION_GuardOff_figatree",
+          "frames": 14,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyPurin5K_Share_ACTION_EscapeN_figatree",
+          "frames": 28,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 25,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyPurin5K_Share_ACTION_EscapeF_figatree",
+          "frames": 35,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 19,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 19,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyPurin5K_Share_ACTION_EscapeB_figatree",
+          "frames": 35,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyPurin5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mewtwo",
+      "kind": 16,
+      "file": "PlMt.dat",
+      "sha256": "c59ce7ec4f303f9b647a8f1205a1be8a4d6466a984649df2dd7f038e1db631ed",
+      "animationFile": "PlMtAJ.dat",
+      "animationSha256": "839288f618597c2b0024a1c598c7de90fe0126b3767a7814b9e12e709e1673dd",
+      "attributes": {
+        "walk_accel_mul": 0.30000001192092896,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1,
+        "ground_friction": 0.03999999910593033,
+        "dash_initial_velocity": 1.399999976158142,
+        "dash_accel_mul": 0,
+        "dash_accel_base": 0.10000000149011612,
+        "dash_max_velocity": 1.399999976158142,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 5,
+        "jump_h_initial_velocity": 0.8999999761581421,
+        "jump_v_initial_velocity": 2.299999952316284,
+        "ground_to_air_jump_momentum_multiplier": 0.699999988079071,
+        "jump_h_max_velocity": 1.399999976158142,
+        "hop_v_initial_velocity": 1.399999976158142,
+        "air_jump_v_multiplier": 1,
+        "air_jump_h_multiplier": 0.8999999761581421,
+        "max_jumps": 2,
+        "gravity": 0.0820000022649765,
+        "terminal_velocity": 1.5,
+        "air_drift_stick_mul": 0.029999999329447746,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 1.2000000476837158,
+        "aerial_friction": 0.01600000075995922,
+        "fast_fall_velocity": 2.299999952316284,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 85,
+        "model_scaling": 1,
+        "initial_shield_size": 16.25,
+        "shield_break_initial_velocity": 2.3499999046325684,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.299999952316284,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 26,
+        "landingairf_lag": 25,
+        "landingairb_lag": 28,
+        "landingairhi_lag": 20,
+        "landingairlw_lag": 28,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.299999952316284,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyMewtwo5K_Share_ACTION_TurnRun_figatree",
+          "frames": 36,
+          "events": [
+            {
+              "frame": 20,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyMewtwo5K_Share_ACTION_Dash_figatree",
+          "frames": 30,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 19,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyMewtwo5K_Share_ACTION_Run_figatree",
+          "frames": 60,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyMewtwo5K_Share_ACTION_RunBrake_figatree",
+          "frames": 20,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyMewtwo5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyMewtwo5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyMewtwo5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyMewtwo5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyMewtwo5K_Share_ACTION_GuardOff_figatree",
+          "frames": 16,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyMewtwo5K_Share_ACTION_EscapeN_figatree",
+          "frames": 38,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 22,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 29,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyMewtwo5K_Share_ACTION_EscapeF_figatree",
+          "frames": 38,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 22,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 22,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyMewtwo5K_Share_ACTION_EscapeB_figatree",
+          "frames": 38,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyMewtwo5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 40,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "luigi",
+      "kind": 17,
+      "file": "PlLg.dat",
+      "sha256": "bbd86022d8a43109c69194a2361fb83d9705fa7c9e1723615e06c1e20bf7f1aa",
+      "animationFile": "PlLgAJ.dat",
+      "animationSha256": "7b95e82a45c58eb689d3c793980516147a2bff54a7b9503ea34be0e7a7d5edd4",
+      "attributes": {
+        "walk_accel_mul": 0.10000000149011612,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1.100000023841858,
+        "ground_friction": 0.02500000037252903,
+        "dash_initial_velocity": 1.2999999523162842,
+        "dash_accel_mul": 0.05999999865889549,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.340000033378601,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 4,
+        "jump_h_initial_velocity": 0.800000011920929,
+        "jump_v_initial_velocity": 2.4000000953674316,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 0.75,
+        "hop_v_initial_velocity": 1.399999976158142,
+        "air_jump_v_multiplier": 0.8999999761581421,
+        "air_jump_h_multiplier": 0.8999999761581421,
+        "max_jumps": 2,
+        "gravity": 0.0689999982714653,
+        "terminal_velocity": 1.600000023841858,
+        "air_drift_stick_mul": 0.02500000037252903,
+        "aerial_drift_base": 0.014999999664723873,
+        "air_drift_max": 0.6800000071525574,
+        "aerial_friction": 0.009999999776482582,
+        "fast_fall_velocity": 2,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 100,
+        "model_scaling": 1.25,
+        "initial_shield_size": 10.75,
+        "shield_break_initial_velocity": 2.4000000953674316,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.0999999046325684,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 15,
+        "landingairf_lag": 25,
+        "landingairb_lag": 15,
+        "landingairhi_lag": 15,
+        "landingairlw_lag": 18,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.0999999046325684,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyMario5K_Share_ACTION_TurnRun_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 18,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyMario5K_Share_ACTION_Dash_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyMario5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyMario5K_Share_ACTION_RunBrake_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyMario5K_Share_ACTION_Landing_figatree",
+          "frames": 29,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyMario5K_Share_ACTION_Landing_figatree",
+          "frames": 29,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyMario5K_Share_ACTION_Landing_figatree",
+          "frames": 29,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyMario5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyMario5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyMario5K_Share_ACTION_EscapeN_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyMario5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyMario5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyMario5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 49,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "marth",
+      "kind": 18,
+      "file": "PlMs.dat",
+      "sha256": "0c4b7e49c8d18bfb3f5fd8c463d7c00b70292fa971b1ee94caf99548ba5b45b2",
+      "animationFile": "PlMsAJ.dat",
+      "animationSha256": "a9560b7fdfca328dd3deeb6e999edc7ea1e89abe837c3846afdd46972b2ca308",
+      "attributes": {
+        "walk_accel_mul": 0.15000000596046448,
+        "walk_accel_base": 0,
+        "walk_max_vel": 1.600000023841858,
+        "ground_friction": 0.05999999865889549,
+        "dash_initial_velocity": 1.5,
+        "dash_accel_mul": 0.05999999865889549,
+        "dash_accel_base": 0,
+        "dash_max_velocity": 1.7999999523162842,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 4,
+        "jump_h_initial_velocity": 1,
+        "jump_v_initial_velocity": 2.4000000953674316,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.2000000476837158,
+        "hop_v_initial_velocity": 1.5,
+        "air_jump_v_multiplier": 0.8799999952316284,
+        "air_jump_h_multiplier": 1,
+        "max_jumps": 2,
+        "gravity": 0.08500000089406967,
+        "terminal_velocity": 2.200000047683716,
+        "air_drift_stick_mul": 0.029999999329447746,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.8999999761581421,
+        "aerial_friction": 0.004999999888241291,
+        "fast_fall_velocity": 2.5,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 6,
+        "weight": 87,
+        "model_scaling": 1.149999976158142,
+        "initial_shield_size": 11.75,
+        "shield_break_initial_velocity": 2.5,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.4000000953674316,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 15,
+        "landingairf_lag": 15,
+        "landingairb_lag": 24,
+        "landingairhi_lag": 15,
+        "landingairlw_lag": 32,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.4000000953674316,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyMars5K_Share_ACTION_TurnRun_figatree",
+          "frames": 30,
+          "events": [
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyMars5K_Share_ACTION_Dash_figatree",
+          "frames": 28,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 16,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyMars5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyMars5K_Share_ACTION_RunBrake_figatree",
+          "frames": 26,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyMars5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyMars5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyMars5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyMars5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyMars5K_Share_ACTION_GuardOff_figatree",
+          "frames": 16,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyMars5K_Share_ACTION_EscapeN_figatree",
+          "frames": 28,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 19,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 25,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyMars5K_Share_ACTION_EscapeF_figatree",
+          "frames": 36,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 31,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyMars5K_Share_ACTION_EscapeB_figatree",
+          "frames": 36,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 24,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyMars5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "zelda",
+      "kind": 19,
+      "file": "PlZd.dat",
+      "sha256": "e523bb0fe551f64aa6ae5b3ae59cd1e62434baeded076d4a5e1ea993e122a79a",
+      "animationFile": "PlZdAJ.dat",
+      "animationSha256": "c01e3e509fc4daca840c2e38d8dc2158700c8e2dc8a3bb1523b24a260c14d3fa",
+      "attributes": {
+        "walk_accel_mul": 0.20000000298023224,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 0.699999988079071,
+        "ground_friction": 0.10000000149011612,
+        "dash_initial_velocity": 1.100000023841858,
+        "dash_accel_mul": 0.10000000149011612,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.100000023841858,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 6,
+        "jump_h_initial_velocity": 0.699999988079071,
+        "jump_v_initial_velocity": 2.0999999046325684,
+        "ground_to_air_jump_momentum_multiplier": 0.699999988079071,
+        "jump_h_max_velocity": 1.100000023841858,
+        "hop_v_initial_velocity": 1.600000023841858,
+        "air_jump_v_multiplier": 0.8600000143051147,
+        "air_jump_h_multiplier": 0.8999999761581421,
+        "max_jumps": 2,
+        "gravity": 0.0729999989271164,
+        "terminal_velocity": 1.399999976158142,
+        "air_drift_stick_mul": 0.03799999877810478,
+        "aerial_drift_base": 0.009999999776482582,
+        "air_drift_max": 0.949999988079071,
+        "aerial_friction": 0.004999999888241291,
+        "fast_fall_velocity": 1.850000023841858,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 6,
+        "weight": 90,
+        "model_scaling": 1.2599999904632568,
+        "initial_shield_size": 11.875,
+        "shield_break_initial_velocity": 2.4000000953674316,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.0999999046325684,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 18,
+        "landingairf_lag": 18,
+        "landingairb_lag": 18,
+        "landingairhi_lag": 25,
+        "landingairlw_lag": 24,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.0999999046325684,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyZelda5K_Share_ACTION_TurnRun_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyZelda5K_Share_ACTION_Dash_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 16,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyZelda5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyZelda5K_Share_ACTION_RunBrake_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyZelda5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyZelda5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyZelda5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyZelda5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyZelda5K_Share_ACTION_GuardOff_figatree",
+          "frames": 14,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyZelda5K_Share_ACTION_EscapeN_figatree",
+          "frames": 33,
+          "events": [
+            {
+              "frame": 3,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 21,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 29,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyZelda5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyZelda5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyZelda5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "young_link",
+      "kind": 20,
+      "file": "PlCl.dat",
+      "sha256": "8714518ba47b4fb3eb622ad2bf51e054ffc53d567dcb810971eb3546c5c29f32",
+      "animationFile": "PlClAJ.dat",
+      "animationSha256": "bebb0bec8cce4c559b9da1179008e10bbf17361a198988c9a1f4a3327724592b",
+      "attributes": {
+        "walk_accel_mul": 0.20000000298023224,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1.2000000476837158,
+        "ground_friction": 0.07999999821186066,
+        "dash_initial_velocity": 1.7999999523162842,
+        "dash_accel_mul": 0.10000000149011612,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.600000023841858,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 4,
+        "jump_h_initial_velocity": 1,
+        "jump_v_initial_velocity": 2.619999885559082,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.2000000476837158,
+        "hop_v_initial_velocity": 1.5,
+        "air_jump_v_multiplier": 0.8799999952316284,
+        "air_jump_h_multiplier": 1,
+        "max_jumps": 2,
+        "gravity": 0.10999999940395355,
+        "terminal_velocity": 2.130000114440918,
+        "air_drift_stick_mul": 0.03999999910593033,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 1,
+        "aerial_friction": 0.004999999888241291,
+        "fast_fall_velocity": 2.200000047683716,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 6,
+        "weight": 85,
+        "model_scaling": 0.9599999785423279,
+        "initial_shield_size": 11.625,
+        "shield_break_initial_velocity": 2.700000047683716,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.5999999046325684,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 15,
+        "landingairf_lag": 15,
+        "landingairb_lag": 15,
+        "landingairhi_lag": 30,
+        "landingairlw_lag": 50,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.5999999046325684,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyClink5K_Share_ACTION_TurnRun_figatree",
+          "frames": 30,
+          "events": [
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyClink5K_Share_ACTION_Dash_figatree",
+          "frames": 31,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 13,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyClink5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyClink5K_Share_ACTION_RunBrake_figatree",
+          "frames": 25,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyClink5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyClink5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyClink5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyClink5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyClink5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyClink5K_Share_ACTION_EscapeN_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyClink5K_Share_ACTION_EscapeF_figatree",
+          "frames": 38,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyClink5K_Share_ACTION_EscapeB_figatree",
+          "frames": 38,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyClink5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dr._mario",
+      "kind": 21,
+      "file": "PlDr.dat",
+      "sha256": "dbd729b1e038a6da6a90a732416aca164f5e55dc2ec7024555a6eaa0a926bb8c",
+      "animationFile": "PlDrAJ.dat",
+      "animationSha256": "f718e88d7d1188d4e55ce66111788d7db6c6fcaeaf2db7c728e2cca5aa0931b3",
+      "attributes": {
+        "walk_accel_mul": 0.10000000149011612,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1.100000023841858,
+        "ground_friction": 0.05999999865889549,
+        "dash_initial_velocity": 1.5,
+        "dash_accel_mul": 0.05999999865889549,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.5,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 4,
+        "jump_h_initial_velocity": 1,
+        "jump_v_initial_velocity": 2.299999952316284,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.5,
+        "hop_v_initial_velocity": 1.399999976158142,
+        "air_jump_v_multiplier": 1,
+        "air_jump_h_multiplier": 0.8999999761581421,
+        "max_jumps": 2,
+        "gravity": 0.0949999988079071,
+        "terminal_velocity": 1.7000000476837158,
+        "air_drift_stick_mul": 0.024000000208616257,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.8999999761581421,
+        "aerial_friction": 0.01600000075995922,
+        "fast_fall_velocity": 2.299999952316284,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 100,
+        "model_scaling": 1.100000023841858,
+        "initial_shield_size": 10.75,
+        "shield_break_initial_velocity": 2.5,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.299999952316284,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 18,
+        "landingairf_lag": 25,
+        "landingairb_lag": 18,
+        "landingairhi_lag": 18,
+        "landingairlw_lag": 24,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.299999952316284,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyDrmario5K_Share_ACTION_TurnRun_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 18,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyDrmario5K_Share_ACTION_Dash_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyDrmario5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyDrmario5K_Share_ACTION_RunBrake_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyDrmario5K_Share_ACTION_Landing_figatree",
+          "frames": 29,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyDrmario5K_Share_ACTION_Landing_figatree",
+          "frames": 29,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyDrmario5K_Share_ACTION_Landing_figatree",
+          "frames": 29,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyDrmario5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyDrmario5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyDrmario5K_Share_ACTION_EscapeN_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyDrmario5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyDrmario5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyDrmario5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 49,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "falco",
+      "kind": 22,
+      "file": "PlFc.dat",
+      "sha256": "c3c21545bff00fc1d0926f0fb3913cefedbbb7f4af1b928d2e73eed6cff5188c",
+      "animationFile": "PlFcAJ.dat",
+      "animationSha256": "42a018073edad4d88255c3c2c38709ba71337712a70f594656040bc62ba30960",
+      "attributes": {
+        "walk_accel_mul": 0.20000000298023224,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1.399999976158142,
+        "ground_friction": 0.07999999821186066,
+        "dash_initial_velocity": 1.899999976158142,
+        "dash_accel_mul": 0.10000000149011612,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.5,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 5,
+        "jump_h_initial_velocity": 0.699999988079071,
+        "jump_v_initial_velocity": 4.099999904632568,
+        "ground_to_air_jump_momentum_multiplier": 1,
+        "jump_h_max_velocity": 1.7000000476837158,
+        "hop_v_initial_velocity": 1.899999976158142,
+        "air_jump_v_multiplier": 0.9399999976158142,
+        "air_jump_h_multiplier": 0.9399999976158142,
+        "max_jumps": 2,
+        "gravity": 0.17000000178813934,
+        "terminal_velocity": 3.0999999046325684,
+        "air_drift_stick_mul": 0.05000000074505806,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.8299999833106995,
+        "aerial_friction": 0.019999999552965164,
+        "fast_fall_velocity": 3.5,
+        "air_max_horizontal_velocity": 4,
+        "standing_turn_frames": 4,
+        "weight": 80,
+        "model_scaling": 1.100000023841858,
+        "initial_shield_size": 12.5,
+        "shield_break_initial_velocity": 3.299999952316284,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 3.9000000953674316,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 15,
+        "landingairf_lag": 22,
+        "landingairb_lag": 20,
+        "landingairhi_lag": 18,
+        "landingairlw_lag": 18,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 3.5999999046325684,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyFalco5K_Share_ACTION_TurnRun_figatree",
+          "frames": 20,
+          "events": [
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyFalco5K_Share_ACTION_Dash_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 12,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyFalco5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyFalco5K_Share_ACTION_RunBrake_figatree",
+          "frames": 18,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyFalco5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyFalco5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyFalco5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyFalco5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyFalco5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyFalco5K_Share_ACTION_EscapeN_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyFalco5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyFalco5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyFalco5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "pichu",
+      "kind": 23,
+      "file": "PlPc.dat",
+      "sha256": "b4683893f3face7492dfbb1141c0f17e8cb8a4cb9599657a4a997c462119f169",
+      "animationFile": "PlPcAJ.dat",
+      "animationSha256": "62d4611039faba41fce2c938b9332d7a67b8c31ec24b91fa7901835ec198591d",
+      "attributes": {
+        "walk_accel_mul": 0.15000000596046448,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1.2400000095367432,
+        "ground_friction": 0.10000000149011612,
+        "dash_initial_velocity": 1.7999999523162842,
+        "dash_accel_mul": 0.07999999821186066,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.7200000286102295,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 3,
+        "jump_h_initial_velocity": 0.800000011920929,
+        "jump_v_initial_velocity": 2.5999999046325684,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.7999999523162842,
+        "hop_v_initial_velocity": 1.7000000476837158,
+        "air_jump_v_multiplier": 1,
+        "air_jump_h_multiplier": 0.800000011920929,
+        "max_jumps": 2,
+        "gravity": 0.10999999940395355,
+        "terminal_velocity": 1.899999976158142,
+        "air_drift_stick_mul": 0.029999999329447746,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.8500000238418579,
+        "aerial_friction": 0.009999999776482582,
+        "fast_fall_velocity": 2.5,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 55,
+        "model_scaling": 0.5,
+        "initial_shield_size": 24.299999237060547,
+        "shield_break_initial_velocity": 3.5,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.5999999046325684,
+        "normal_landing_lag": 2,
+        "landingairn_lag": 12,
+        "landingairf_lag": 15,
+        "landingairb_lag": 18,
+        "landingairhi_lag": 18,
+        "landingairlw_lag": 26,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.5999999046325684,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyPichu5K_Share_ACTION_TurnRun_figatree",
+          "frames": 20,
+          "events": [
+            {
+              "frame": 18,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyPichu5K_Share_ACTION_Dash_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyPichu5K_Share_ACTION_Run_figatree",
+          "frames": 14,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyPichu5K_Share_ACTION_RunBrake_figatree",
+          "frames": 20,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 11,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyPichu5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyPichu5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyPichu5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyPichu5K_Share_ACTION_GuardOn_figatree",
+          "frames": 7,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyPichu5K_Share_ACTION_GuardOff_figatree",
+          "frames": 15,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyPichu5K_Share_ACTION_EscapeN_figatree",
+          "frames": 23,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 16,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyPichu5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyPichu5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyPichu5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mr._game_&_watch",
+      "kind": 24,
+      "file": "PlGw.dat",
+      "sha256": "1c057a2882b7b42f3184b96ddf5221cae50e69652b00f6c78819c819804e0a1f",
+      "animationFile": "PlGwAJ.dat",
+      "animationSha256": "d6551ac7c65c061451a18f55a3e5b1cbc8e6e89c20d0faaa0f4578386148e986",
+      "attributes": {
+        "walk_accel_mul": 0.10000000149011612,
+        "walk_accel_base": 0.10000000149011612,
+        "walk_max_vel": 1.100000023841858,
+        "ground_friction": 0.05999999865889549,
+        "dash_initial_velocity": 1.5,
+        "dash_accel_mul": 0.05999999865889549,
+        "dash_accel_base": 0.019999999552965164,
+        "dash_max_velocity": 1.5,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 4,
+        "jump_h_initial_velocity": 1,
+        "jump_v_initial_velocity": 2.299999952316284,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.5,
+        "hop_v_initial_velocity": 1.399999976158142,
+        "air_jump_v_multiplier": 1,
+        "air_jump_h_multiplier": 0.8999999761581421,
+        "max_jumps": 2,
+        "gravity": 0.0949999988079071,
+        "terminal_velocity": 1.7000000476837158,
+        "air_drift_stick_mul": 0.029999999329447746,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 1,
+        "aerial_friction": 0.01600000075995922,
+        "fast_fall_velocity": 2.299999952316284,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 4,
+        "weight": 60,
+        "model_scaling": 1.0199999809265137,
+        "initial_shield_size": 10.75,
+        "shield_break_initial_velocity": 2.5999999046325684,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.799999952316284,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 15,
+        "landingairf_lag": 25,
+        "landingairb_lag": 18,
+        "landingairhi_lag": 15,
+        "landingairlw_lag": 20,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.299999952316284,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyGamewatch5K_Share_ACTION_TurnRun_figatree",
+          "frames": 18,
+          "events": [
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyGamewatch5K_Share_ACTION_Dash_figatree",
+          "frames": 18,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyGamewatch5K_Share_ACTION_Run_figatree",
+          "frames": 26,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyGamewatch5K_Share_ACTION_RunBrake_figatree",
+          "frames": 20,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 8,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            },
+            {
+              "frame": 14,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyGamewatch5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyGamewatch5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyGamewatch5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyGamewatch5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyGamewatch5K_Share_ACTION_GuardOff_figatree",
+          "frames": 16,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyGamewatch5K_Share_ACTION_EscapeN_figatree",
+          "frames": 33,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 13,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyGamewatch5K_Share_ACTION_EscapeF_figatree",
+          "frames": 36,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyGamewatch5K_Share_ACTION_EscapeB_figatree",
+          "frames": 36,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyGamewatch5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ganondorf",
+      "kind": 25,
+      "file": "PlGn.dat",
+      "sha256": "5e38291dae0e0cb70e1d337ea824081f5f9a19a592a2427c7525b3ef3f8f2388",
+      "animationFile": "PlGnAJ.dat",
+      "animationSha256": "a114e63dba362a50a07fd6663233c6d1b4db6c8b3a2660a7a4825eb90828335a",
+      "attributes": {
+        "walk_accel_mul": 0.07999999821186066,
+        "walk_accel_base": 0,
+        "walk_max_vel": 0.7300000190734863,
+        "ground_friction": 0.07000000029802322,
+        "dash_initial_velocity": 1.2999999523162842,
+        "dash_accel_mul": 0.07999999821186066,
+        "dash_accel_base": 0.009999999776482582,
+        "dash_max_velocity": 1.350000023841858,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 6,
+        "jump_h_initial_velocity": 0.8999999761581421,
+        "jump_v_initial_velocity": 2.5999999046325684,
+        "ground_to_air_jump_momentum_multiplier": 0.75,
+        "jump_h_max_velocity": 1.7999999523162842,
+        "hop_v_initial_velocity": 2,
+        "air_jump_v_multiplier": 0.949999988079071,
+        "air_jump_h_multiplier": 1,
+        "max_jumps": 2,
+        "gravity": 0.12999999523162842,
+        "terminal_velocity": 2,
+        "air_drift_stick_mul": 0.03999999910593033,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.7799999713897705,
+        "aerial_friction": 0.019999999552965164,
+        "fast_fall_velocity": 2.5999999046325684,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 7,
+        "weight": 109,
+        "model_scaling": 1.0800000429153442,
+        "initial_shield_size": 15,
+        "shield_break_initial_velocity": 3.4000000953674316,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 3.5,
+        "normal_landing_lag": 5,
+        "landingairn_lag": 25,
+        "landingairf_lag": 25,
+        "landingairb_lag": 25,
+        "landingairhi_lag": 25,
+        "landingairlw_lag": 35,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.5999999046325684,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyGanon5K_Share_ACTION_TurnRun_figatree",
+          "frames": 22,
+          "events": [
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyGanon5K_Share_ACTION_Dash_figatree",
+          "frames": 29,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 16,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyGanon5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyGanon5K_Share_ACTION_RunBrake_figatree",
+          "frames": 28,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyGanon5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyGanon5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyGanon5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyGanon5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyGanon5K_Share_ACTION_GuardOff_figatree",
+          "frames": 16,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyGanon5K_Share_ACTION_EscapeN_figatree",
+          "frames": 33,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 21,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 29,
+              "event": "allowInterrupt",
+              "value": 1
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyGanon5K_Share_ACTION_EscapeF_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyGanon5K_Share_ACTION_EscapeB_figatree",
+          "frames": 32,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyGanon5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "roy",
+      "kind": 26,
+      "file": "PlFe.dat",
+      "sha256": "5d8ec1eb2821e8700ee3ed8020d1b57ca5f857468dad3eddfc28bbc398169648",
+      "animationFile": "PlFeAJ.dat",
+      "animationSha256": "8c235de3cd367e91c4db74e902f7b064dc8f1a2e34bb8515006c19f8e13fbd99",
+      "attributes": {
+        "walk_accel_mul": 0.15000000596046448,
+        "walk_accel_base": 0,
+        "walk_max_vel": 1.2000000476837158,
+        "ground_friction": 0.05999999865889549,
+        "dash_initial_velocity": 1.399999976158142,
+        "dash_accel_mul": 0.07000000029802322,
+        "dash_accel_base": 0,
+        "dash_max_velocity": 1.6100000143051147,
+        "max_run_brake_frames": 30,
+        "ground_max_horizontal_velocity": 3,
+        "jump_startup_time": 5,
+        "jump_h_initial_velocity": 1,
+        "jump_v_initial_velocity": 2.5999999046325684,
+        "ground_to_air_jump_momentum_multiplier": 0.800000011920929,
+        "jump_h_max_velocity": 1.2000000476837158,
+        "hop_v_initial_velocity": 1.5,
+        "air_jump_v_multiplier": 0.8799999952316284,
+        "air_jump_h_multiplier": 1,
+        "max_jumps": 2,
+        "gravity": 0.11400000005960464,
+        "terminal_velocity": 2.4000000953674316,
+        "air_drift_stick_mul": 0.029999999329447746,
+        "aerial_drift_base": 0.019999999552965164,
+        "air_drift_max": 0.8999999761581421,
+        "aerial_friction": 0.004999999888241291,
+        "fast_fall_velocity": 2.9000000953674316,
+        "air_max_horizontal_velocity": 3,
+        "standing_turn_frames": 6,
+        "weight": 85,
+        "model_scaling": 1.0800000429153442,
+        "initial_shield_size": 11.75,
+        "shield_break_initial_velocity": 2.5,
+        "ledge_jump_horizontal_velocity": 1,
+        "ledge_jump_vertical_velocity": 2.4000000953674316,
+        "normal_landing_lag": 4,
+        "landingairn_lag": 20,
+        "landingairf_lag": 20,
+        "landingairb_lag": 24,
+        "landingairhi_lag": 18,
+        "landingairlw_lag": 32,
+        "passivewall_vel_x": 0.5,
+        "wall_jump_horizontal_velocity": 1.2999999523162842,
+        "wall_jump_vertical_velocity": 2.4000000953674316,
+        "wall_jump_min_approach_speed": 0.5
+      },
+      "actions": {
+        "TurnRun": {
+          "animation": "PlyEmblem5K_Share_ACTION_TurnRun_figatree",
+          "frames": 30,
+          "events": [
+            {
+              "frame": 9,
+              "event": "cmdVar",
+              "index": 1,
+              "value": 1
+            }
+          ]
+        },
+        "Dash": {
+          "animation": "PlyEmblem5K_Share_ACTION_Dash_figatree",
+          "frames": 28,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            },
+            {
+              "frame": 16,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        },
+        "Run": {
+          "animation": "PlyEmblem5K_Share_ACTION_Run_figatree",
+          "frames": 20,
+          "events": []
+        },
+        "RunBrake": {
+          "animation": "PlyEmblem5K_Share_ACTION_RunBrake_figatree",
+          "frames": 26,
+          "events": [
+            {
+              "frame": 0,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            },
+            {
+              "frame": 15,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 0
+            }
+          ]
+        },
+        "Kneebend": {
+          "animation": "PlyEmblem5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "Landing": {
+          "animation": "PlyEmblem5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "LandingFallSpecial": {
+          "animation": "PlyEmblem5K_Share_ACTION_Landing_figatree",
+          "frames": 30,
+          "events": []
+        },
+        "GuardOn": {
+          "animation": "PlyEmblem5K_Share_ACTION_GuardOn_figatree",
+          "frames": 8,
+          "events": []
+        },
+        "GuardOff": {
+          "animation": "PlyEmblem5K_Share_ACTION_GuardOff_figatree",
+          "frames": 16,
+          "events": []
+        },
+        "EscapeN": {
+          "animation": "PlyEmblem5K_Share_ACTION_EscapeN_figatree",
+          "frames": 28,
+          "events": [
+            {
+              "frame": 2,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 19,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeF": {
+          "animation": "PlyEmblem5K_Share_ACTION_EscapeF_figatree",
+          "frames": 36,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 20,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 20,
+              "event": "throwFlagB3",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeB": {
+          "animation": "PlyEmblem5K_Share_ACTION_EscapeB_figatree",
+          "frames": 36,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 24,
+              "event": "bodyState",
+              "value": 0
+            }
+          ]
+        },
+        "EscapeAir": {
+          "animation": "PlyEmblem5K_Share_ACTION_EscapeAir_figatree",
+          "frames": 50,
+          "events": [
+            {
+              "frame": 4,
+              "event": "bodyState",
+              "value": 2
+            },
+            {
+              "frame": 30,
+              "event": "bodyState",
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "event": "cmdVar",
+              "index": 0,
+              "value": 1
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

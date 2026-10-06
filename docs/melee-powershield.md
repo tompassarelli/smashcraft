@@ -50,7 +50,7 @@ health 60, strength 0 gives joint scale 1, strength 0.3 gives
 0.8725000619888306, and strength 1 gives 0.5750000476837158. The reflector's
 local radius stays 0.75. Doubling the base size doubles the joint scale.
 The original kind-14 branch keeps its base size independent of health/pressure;
-it is reference evidence, not a requirement to add that fighter to Smashcraft.
+it is reference evidence only (smashcraft:docs/gameplay-design.md, "Principles").
 See `smashcraft:docs/smash-melee-reference/retail-shield-joint.json` and
 `smashcraft:tools/physics-probe/observe-shield-joint.mjs`.
 Final collision matrices, joint animation/placement and guard-entry ordering

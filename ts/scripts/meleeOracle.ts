@@ -233,7 +233,7 @@ interface Scenario {
   readonly cite: string;
   /** The check for one fighter; undefined where the fighter has no Melee reference for this value. */
   readonly run: (character: Character) => Check | undefined;
-  /** A deliberate difference from Melee: the decision, its owner and date. */
+  /** A difference from Melee: its row in smashcraft:docs/gameplay-design.md's deviations table, then the decision, its owner and date. */
   readonly departure?: string;
 }
 
@@ -472,7 +472,7 @@ const LANDING: readonly Scenario[] = [
   {
     area: "landing", name: "neutral aerial landing lag with no L press",
     cite: L_CANCEL,
-    departure: "L-cancelling omitted, every aerial lands with the cancelled lag (owner decision 2026-10-06, #54, smashcraft:docs/gameplay-design.md)",
+    departure: "L-cancelling: removed, every aerial lands with the cancelled lag (owner decision 2026-10-06, #54)",
     run: (c) => ({ expected: NAIR_LAG, actual: landingLag(c, aerialFall) }),
   },
 ];
@@ -679,7 +679,7 @@ const KNOCKBACK: readonly Scenario[] = [
   {
     area: "knockback", name: "the same move landing 5 times in a row: hit 5 damage against hit 1",
     cite: STALE_MOVES,
-    departure: "Stale moves and freshness bonuses omitted (owner decision 2026-10-04, reaffirmed 2026-10-06; smashcraft:docs/gameplay-design.md)",
+    departure: "Stale moves and freshness bonuses: none (owner decision 2026-10-04, reaffirmed 2026-10-06)",
     run: (c) => {
       const hits = repeatedHits(c, 5);
       return { expected: "hit 5 deals less than hit 1", actual: hits.every((hit) => hit === hits[0]) ? `all 5 hits: ${hits[0]}` : `varies: ${hits.join("; ")}` };
@@ -1120,7 +1120,7 @@ function airDodgeFirstTravel(character: Character): number {
 const wavelandFall: Fall = { setup: (f) => airborne(f, 0.0, 6.0), held: (n) => (n === 1 ? [Action.moveDown, Action.leftTrigger] : []) };
 
 const DODGE_DATA = "Fox/Falco animation frames (retail-action-lengths.json, private PlFxAJ/PlFcAJ read)";
-const DODGE_INTANGIBLE = "Fox/Falco intangibility, melee-frame-data.json (meleeframedata.com extractor data)";
+const DODGE_INTANGIBLE = "Fox/Falco intangibility: body-state commands in retail-roster.json (EscapeN, EscapeF, EscapeAir), as references/melee-frame-data/records.jsonl reports for the ground dodges";
 
 const SHIELD_AND_DODGES: readonly Scenario[] = [
   {

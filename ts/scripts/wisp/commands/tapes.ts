@@ -1,10 +1,13 @@
 // `wisp tapes`, the replay acceptance oracle: recorded tapes must give
 // identical canonical replay states, hence identical checksums, after every
-// frame in TypeScript under Bun and TypeScript under 32-bit Lua.
+// frame in TypeScript under Bun and TypeScript under two 32-bit Luas: a
+// stock one, whose raw float + - * round to nearest, and one rounding them
+// toward zero (scripts/wisp/luaRuntimes.ts). Agreement in both shows no raw
+// float + - * leaked past the exact helpers.
 // Prints the totals, or each runtime pair's first divergent frame and field.
 // smashcraft:ts/scripts/wisp/acceptanceTapes.ts records the tapes fresh
 // each run; every runtime then replays the same recorded rows.
-// Environment: LUA, a LUA_32BITS lua.
+// Environment: LUA, a stock LUA_32BITS lua; TOWARD_ZERO_LUA, optional.
 import "../../../test/host-natives";
 import { join } from "node:path";
 import { Console, Effect, Schema } from "effect";
@@ -14,6 +17,7 @@ import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/com
 import { step } from "wisp/scripts/wisp/timings";
 import { captureProcess } from "wisp/scripts/wisp/mapBuild";
 import { generateTapes } from "../acceptanceTapes";
+import { luaRuntimes } from "../luaRuntimes";
 
 const ts = join(import.meta.dir, "../../..");
 const build = join(ts, "build", "tapes");
@@ -89,9 +93,9 @@ export const replayInLua = (files: readonly string[], executable = lua) =>
 
 // ---------------------------------------------------------------- comparison
 
-type RuntimeName = "bun" | "ts-lua32";
-const RUNTIMES: readonly RuntimeName[] = ["bun", "ts-lua32"];
-const PAIRS: readonly (readonly [RuntimeName, RuntimeName])[] = [["bun", "ts-lua32"]];
+type RuntimeName = "bun" | "ts-lua32" | "ts-lua32-toward-zero";
+const RUNTIMES: readonly RuntimeName[] = ["bun", "ts-lua32", "ts-lua32-toward-zero"];
+const PAIRS: readonly (readonly [RuntimeName, RuntimeName])[] = [["bun", "ts-lua32"], ["bun", "ts-lua32-toward-zero"]];
 
 /** Splits a record into its label ("LINE OPERATION RESULT") and its canonical fields. */
 function parseRecord(record: string | undefined): { label: string; fields: string[] } {
@@ -134,9 +138,7 @@ const frameCount = (run: Run) => run.records.filter(record => isFrame(record.spl
 
 export const tapes: Command = (args) => Effect.gen(function*() {
   if (args.length > 0) return yield* new UsageFailure({ problem: "tapes takes no arguments; set LUA to a 32-bit Lua" });
-  if (command([lua, "-e", "io.write(math.maxinteger)"]).output !== "2147483647") {
-    return yield* new TapesFailure({ problem: `LUA=${lua} is not a 32-bit Lua (LUA_32BITS); point LUA at one.` });
-  }
+  const luas = yield* luaRuntimes(ts).pipe(Effect.mapError((problem) => new TapesFailure({ problem })));
   const tapes = yield* attempt("record tapes", async () => {
     await Bun.$`mkdir -p ${build}`;
     const recorded = [...generateTapes()].map(([name, text]) => ({ name, text, file: join(build, `${name}.tape`) }));
@@ -145,13 +147,15 @@ export const tapes: Command = (args) => Effect.gen(function*() {
   }).pipe(step("record tapes"));
   yield* attempt("compile TypeScript Lua", compileTypeScriptLua).pipe(step("compile TypeScript Lua"));
   // Lua processes start before the in-process Bun runs occupy this thread.
+  const files = tapes.map(({ file }) => file);
   const replays = yield* Effect.all({
-    "ts-lua32": replayInLua(tapes.map(({ file }) => file)).pipe(step("replay in ts-lua32")),
+    "ts-lua32": replayInLua(files, luas.nearest).pipe(step("replay in ts-lua32")),
+    "ts-lua32-toward-zero": replayInLua(files, luas.towardZero).pipe(step("replay in ts-lua32-toward-zero")),
     "bun": attempt("replay in Bun", () => tapes.map(({ text }) => runInBun(text))).pipe(step("replay in bun")),
-  }, { concurrency: 2 });
+  }, { concurrency: 3 });
   const runs = new Map(tapes.map(({ name }, index): [string, Record<RuntimeName, Run>] => {
     const byRuntime = (runtime: RuntimeName): Run => replays[runtime][index] ?? { records: [], error: "no run" };
-    return [name, { bun: byRuntime("bun"), "ts-lua32": byRuntime("ts-lua32") }];
+    return [name, { bun: byRuntime("bun"), "ts-lua32": byRuntime("ts-lua32"), "ts-lua32-toward-zero": byRuntime("ts-lua32-toward-zero") }];
   }));
 
   const perTape = [...runs].map(([name, byRuntime]) => `${name} ${frameCount(byRuntime.bun)}`);
