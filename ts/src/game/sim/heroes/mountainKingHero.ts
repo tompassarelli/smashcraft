@@ -21,7 +21,6 @@ export const MOUNTAIN_KING_HERO: HeroDefinition = {
     scale: 1.0,
     objectId: 0x6d666d6b,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroMountainKing.blp",
-    projectileModel: "Abilities\\Spells\\Human\\StormBolt\\StormBoltMissile.mdl",
     clips: MOUNTAIN_KING_CLIPS,
     fallback: MOUNTAIN_KING_FALLBACK,
   },

@@ -23,6 +23,7 @@ const holyLight = (landingLag: number | undefined): AuthoredSpecial => ({
   cost: 10,
   endFrame: 44,
   projectiles: [{
+    model: "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltMissile.mdx",
     spawnFrame: 20,
     offsetX: 30.0,
     offsetZ: 62.0,

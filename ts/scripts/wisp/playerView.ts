@@ -24,6 +24,7 @@ import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentat
 import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../src/game/presentation/arenaCamera";
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
 import { CANNON_MODEL } from "../../src/game/presentation/stageHazards";
+import { allProjectileModels } from "../../src/game/presentation/projectileArt";
 import { Character } from "../../src/game/sim/codes";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
@@ -99,15 +100,11 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
     // A Serpent Ward stands at most 240 frames.
     { name: "placed ward", lifetime: seconds(5), models: ["Units\\Orc\\SerpentWard\\SerpentWard.mdx"] },
     { name: "agency marker", models: ["Abilities\\Spells\\Other\\GeneralAuraTarget\\GeneralAuraTarget.mdl"] },
-    // Stock game models (render/effects.ts STOCK_MODELS, shell/fighterBody.ts); the host can't load those modules' natives.
+    // Every move's stock missile (presentation/projectileArt.ts).
     {
-      name: "projectile", lifetime: seconds(4), models: [
-        "Abilities\\Weapons\\Arrow\\ArrowMissile.mdx",
-        "Abilities\\Weapons\\GyroCopter\\GyroCopterMissile.mdx",
-        "Abilities\\Spells\\Human\\ManaFlare\\ManaFlareMissile.mdx",
-        ...HERO_ROSTER.map(({ presentation }) => presentation.projectileModel),
-      ],
+      name: "projectile", lifetime: seconds(4), models: [...allProjectileModels()],
     },
+    // Stock game models (render/effects.ts STOCK_MODELS, shell/fighterBody.ts); the host can't load those modules' natives.
     { name: "hippogryph", lifetime: seconds(3), models: ["Units\\NightElf\\HippoGryph\\HippoGryph.mdx"] },
     { name: "Illidan's flames", lifetime: seconds(3), models: ["Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx", "Abilities\\Spells\\NightElf\\ManaBurn\\ManaBurnTarget.mdx"] },
     { name: "bear", lifetime: seconds(3), models: range(summonClipCount(SUMMON_BEAR)).map((index) => summonClip(SUMMON_BEAR, index).modelPath) },

@@ -71,6 +71,7 @@ const ring = (first: number, damage: number): readonly MoveRegion[] => [
 ];
 const WAVE_SPEED = heights(f32(0.10));
 const wave = (spawnFrame: number, sign: number): SpecialProjectile => ({
+  model: "Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdx",
   spawnFrame, offsetX: f32(sign * CLAP_REACH), offsetZ: 14.0, velocityX: f32(sign * WAVE_SPEED), velocityZ: 0.0, activeFrom: 6,
   life: 24, radius: 16.0, effect: hit(7.0, "LAUNCH", 75), reflectable: true, limit: 1,
 });
@@ -102,6 +103,7 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
       cost: 8,
       endFrame: 48,
       projectiles: [{
+        model: "Abilities\\Spells\\Human\\StormBolt\\StormBoltMissile.mdx",
         spawnFrame: 20, offsetX: 32.0, offsetZ: 56.0, velocityX: BOLT_SPEED, velocityZ: 0.0,
         life: 90, radius: BOLT_RADIUS, effect: STORM_BOLT, reflectable: true, limit: 1, returns: BOLT_RETURN,
       }],

@@ -20,6 +20,7 @@ const SHADOW_STRIKE: AuthoredSpecial = {
   cost: 5,
   endFrame: 37,
   projectiles: [{
+    model: "Abilities\\Spells\\NightElf\\ShadowStrike\\ShadowStrikeMissile.mdx",
     spawnFrame: 16, offsetX: 30.0, offsetZ: 50.0, velocityX: f32(H * f32(0.11)), velocityZ: 0.0,
     life: 30, radius: f32(H * f32(0.13)), effect: wardenHit(5.0, "POKE", 35), reflectable: true, limit: 1, status: POISON,
   }],

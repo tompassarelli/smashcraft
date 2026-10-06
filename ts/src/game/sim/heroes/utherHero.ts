@@ -21,7 +21,6 @@ export const UTHER_HERO: HeroDefinition = {
     scale: 1.0,
     objectId: 0x6d667574,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp",
-    projectileModel: "Abilities\\Weapons\\SpiritOfVengeanceMissile\\SpiritOfVengeanceMissile.mdl",
     clips: UTHER_CLIPS,
     fallback: UTHER_FALLBACK_CLIP,
   },

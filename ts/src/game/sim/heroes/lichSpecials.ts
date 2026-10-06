@@ -15,12 +15,14 @@ const AIR_LANDING_LAG = 20;
 
 /** Frost Nova's orb: slow, reflectable, chills a body it reaches. */
 const FROST_NOVA_ORB: SpecialProjectile = {
+  model: "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx",
   spawnFrame: 18, offsetX: h(f32(0.40)), offsetZ: CHEST, velocityX: h(f32(0.07)), velocityZ: 0.0,
   life: 80, radius: h(f32(0.16)), effect: hit(6.0, "POKE", 35), reflectable: true, limit: 1, status: CHILL,
 };
 
 /** The orb burst in place: it cracks for 6 frames, then strikes for 3; a zone, so never reflected. */
 const FROST_NOVA_BURST: SpecialProjectile = {
+  model: "Abilities\\Spells\\Undead\\FrostNova\\FrostNovaTarget.mdx",
   spawnFrame: 0, offsetX: 0.0, offsetZ: 0.0, velocityX: 0.0, velocityZ: 0.0,
   life: 9, activeFrom: 7, radius: h(f32(0.7)), effect: hit(10.0, "LAUNCH", 70), reflectable: false, limit: 1, status: CHILL,
 };
@@ -50,6 +52,7 @@ const frostNovaBurst = (landingLag: number | undefined): AuthoredSpecial => ({
  * frame 97. Interrupting Lich before the first strike removes both.
  */
 const decayStrike = (activeFrom: number, life: number, damage: number, kind: "POKE" | "LAUNCH", angle: 70 | 80): SpecialProjectile => ({
+  model: "Abilities\\Spells\\Undead\\DeathAndDecay\\DeathAndDecayTarget.mdx",
   spawnFrame: 8, offsetX: h(f32(1.5)), backOffsetX: h(f32(0.9)), offsetZ: CHEST, velocityX: 0.0, velocityZ: 0.0,
   life, activeFrom, radius: h(f32(0.75)), effect: hit(damage, kind, angle),
   reflectable: false, limit: 1, cancelOnInterrupt: true, needsLineOfSight: true,

@@ -1,22 +1,31 @@
-// One fighter's projectile models, one per projectile slot. Created and
-// destroyed only in the synchronized match lifecycle; projecting never
-// allocates handles. Particles the engine emits are not replay state.
+// One fighter's projectile models: a pool per stock missile its moves fire
+// (presentation/projectileArt.ts). Created and destroyed only in the
+// synchronized match lifecycle; projecting never allocates handles.
+// Particles the engine emits are not replay state.
 import { Character } from "../sim/codes";
-import { heroDefinition } from "../sim/heroes/registry";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
+import { heroDefinition } from "../sim/heroes/registry";
+import { HERO_PROJECTILE_CAP } from "../sim/heroSpecialRules";
 import { f32 } from "wisp/src/sim/f32";
-import { type ParkedFlags, STOCK_MODELS, type WorldOrigin, parkOnce } from "./effects";
+import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
+import { fighterProjectileModels, projectileModelOf } from "../presentation/projectileArt";
 import { projectedProjectile } from "../presentation/projectilePose";
 
-function projectileModel(character: Character): string {
-  const hero = heroDefinition(character);
-  if (hero !== undefined) return hero.presentation.projectileModel;
-  return character === Character.demonHunter ? STOCK_MODELS.manaFlareMissile : character === Character.archer ? STOCK_MODELS.arrowMissile : STOCK_MODELS.gyroCopterMissile;
+/** One missile model's effects. */
+interface Pool {
+  readonly path: string;
+  /** Global effect indices, into `models`. */
+  readonly effects: readonly number[];
 }
 
 export class ProjectilePresentation {
   private readonly models: effect[] = [];
   private readonly visible: boolean[] = [];
+  private readonly pools: Pool[] = [];
+  /** The effect each projectile slot draws with, or -1; kept while it flies, so a missile never jumps to another. */
+  private readonly assigned: number[] = [];
+  /** Effects drawn this presentation, by effect index; reused every frame. */
+  private readonly taken: boolean[] = [];
   private parked: ParkedFlags | undefined;
   private readonly scale: number;
 
@@ -24,13 +33,20 @@ export class ProjectilePresentation {
     character: Character,
     private readonly origin: WorldOrigin,
   ) {
+    const hero = heroDefinition(character) !== undefined;
     this.scale = character === Character.rifleman ? f32(0.65) : 1.0;
-    const path = projectileModel(character);
-    for (let index = 0; index < PROJECTILE_CAPACITY; index++) {
-      const model = AddSpecialEffect(path, origin.x, origin.y);
-      this.models.push(model);
-      this.visible.push(false);
-    }
+    fighterProjectileModels(character).forEach((path, index) => {
+      // A hero owns at most three projectiles; one more for a reflected one. The original fighters' main missile can fill every slot.
+      const size = hero ? HERO_PROJECTILE_CAP + 1 : index === 0 ? PROJECTILE_CAPACITY : 4;
+      const effects: number[] = [];
+      for (let slot = 0; slot < size; slot++) {
+        effects.push(this.models.length);
+        this.models.push(AddSpecialEffect(path, origin.x, origin.y));
+        this.visible.push(false);
+      }
+      this.pools.push({ path, effects });
+    });
+    for (let index = 0; index < PROJECTILE_CAPACITY; index++) this.assigned.push(-1);
     this.clear();
   }
 
@@ -47,26 +63,52 @@ export class ProjectilePresentation {
       this.visible[index] = false;
       this.hide(model, parked, index);
     }
+    for (let index = 0; index < this.assigned.length; index++) this.assigned[index] = -1;
+  }
+
+  /**
+   * The pool for a projectile's model: a foreign missile this fighter
+   * reflected draws with its first pool when it has none of that model.
+   */
+  private poolOf(fighter: Readonly<Fighter>, index: number): Pool | undefined {
+    const projectile = fighter.projectiles[index];
+    const path = projectile === undefined ? undefined : projectileModelOf(projectile);
+    return this.pools.find((pool) => pool.path === path) ?? this.pools[0];
+  }
+
+  /** The effect a visible projectile draws with: its kept one when still of its pool, else a free one. */
+  private effectFor(pool: Pool, index: number, taken: readonly boolean[]): number {
+    const kept = this.assigned[index] ?? -1;
+    if (kept >= 0 && pool.effects.includes(kept) && taken[kept] !== true) return kept;
+    for (const candidate of pool.effects) if (taken[candidate] !== true && !this.assigned.includes(candidate)) return candidate;
+    for (const candidate of pool.effects) if (taken[candidate] !== true) return candidate;
+    return -1;
   }
 
   present(fighter: Readonly<Fighter> | undefined, playing: boolean, paused: boolean): void {
     const parked = (this.parked ??= []);
-    for (let index = 0; index < this.models.length; index++) {
-      const model = this.models[index];
-      if (model === undefined) continue;
+    const taken = this.taken;
+    for (let index = 0; index < this.models.length; index++) taken[index] = false;
+    for (let index = 0; index < PROJECTILE_CAPACITY; index++) {
       const pose = projectedProjectile(fighter, index, playing);
-      this.visible[index] = pose.visible;
-      if (!pose.visible) {
-        this.hide(model, parked, index);
-        continue;
-      }
-      parked[index] = false;
+      const pool = fighter === undefined || !pose.visible ? undefined : this.poolOf(fighter, index);
+      const slot = pool === undefined ? -1 : this.effectFor(pool, index, taken);
+      this.assigned[index] = slot;
+      const model = this.models[slot];
+      if (model === undefined) continue;
+      taken[slot] = true;
+      parked[slot] = false;
       BlzSetSpecialEffectYaw(model, pose.yaw);
       BlzSetSpecialEffectPitch(model, pose.pitch);
       BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
       BlzSetSpecialEffectScale(model, this.scale);
       BlzSetSpecialEffectAlpha(model, 255);
       BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
+    }
+    for (let index = 0; index < this.models.length; index++) {
+      const model = this.models[index];
+      this.visible[index] = taken[index] === true;
+      if (model !== undefined && taken[index] !== true) this.hide(model, parked, index);
     }
   }
 
@@ -82,5 +124,6 @@ export class ProjectilePresentation {
     for (const model of this.models) DestroyEffect(model);
     this.models.length = 0;
     this.visible.length = 0;
+    this.pools.length = 0;
   }
 }

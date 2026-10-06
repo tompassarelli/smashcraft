@@ -22,7 +22,6 @@ export const WARDEN_HERO: HeroDefinition = {
     scale: 1.0,
     objectId: 0x6d667764,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroWarden.blp",
-    projectileModel: "Abilities\\Spells\\NightElf\\shadowstrike\\ShadowStrikeMissile.mdl",
     clips: WARDEN_CLIP_TABLE,
     fallback: WARDEN_CLIPS.idle,
   },

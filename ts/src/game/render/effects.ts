@@ -14,9 +14,7 @@ export interface WorldOrigin {
 
 /** Stock models from the game's own archives. */
 export const STOCK_MODELS = {
-  arrowMissile: "Abilities\\Weapons\\Arrow\\ArrowMissile.mdx",
   gyroCopterMissile: "Abilities\\Weapons\\GyroCopter\\GyroCopterMissile.mdx",
-  manaFlareMissile: "Abilities\\Spells\\Human\\ManaFlare\\ManaFlareMissile.mdx",
   immolationTarget: "Abilities\\Spells\\NightElf\\Immolation\\ImmolationTarget.mdx",
   manaBurnTarget: "Abilities\\Spells\\NightElf\\ManaBurn\\ManaBurnTarget.mdx",
   hippogryph: "Units\\NightElf\\HippoGryph\\HippoGryph.mdx",

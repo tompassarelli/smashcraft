@@ -18,6 +18,7 @@ const AIR_SPECIAL_LANDING_LAG = 20;
 const CAST_HEIGHT = h(f32(0.45));
 
 const SPIRIT_GLAIVE_SHOT: SpecialProjectile = {
+  model: "Abilities\\Weapons\\ShadowHunterMissile\\ShadowHunterMissile.mdx",
   spawnFrame: 18, offsetX: h(f32(0.35)), offsetZ: CAST_HEIGHT,
   velocityX: h(f32(0.12)), velocityZ: 0.0, life: 28, radius: h(f32(0.15)),
   effect: hit(6.0, "POKE", 35), reflectable: true, limit: 1,
@@ -49,6 +50,7 @@ const loaVault = (cost: number, riseVelocity: number, driftVelocity: number): Au
 const HEX: AppliedStatus = { kind: HeroStatusKind.hex, frames: 45, group: HeroStatusGroup.silence, immunityFrames: 180 };
 
 const HEX_ORB: SpecialProjectile = {
+  model: "Abilities\\Weapons\\WitchDoctorMissile\\WitchDoctorMissile.mdx",
   spawnFrame: 24, offsetX: h(f32(0.3)), offsetZ: CAST_HEIGHT,
   velocityX: h(f32(0.07)), velocityZ: 0.0, life: 18, radius: h(f32(0.18)),
   effect: hit(2.0, "POKE", 40, 1.0, HitElement.normal), reflectable: true, limit: 1, status: HEX,
@@ -68,6 +70,7 @@ const SERPENT_WARD: SpecialPlacement = {
   frame: 26, offsetX: h(f32(0.65)), radius: h(f32(0.18)), height: h(f32(0.6)),
   durability: 12.0, life: 240, fireAges: [45, 105, 165],
   shot: {
+    model: "Abilities\\Weapons\\SerpentWardMissile\\SerpentWardMissile.mdx",
     spawnFrame: 0, offsetX: h(f32(0.15)), offsetZ: h(f32(0.4)),
     velocityX: h(f32(0.10)), velocityZ: 0.0, life: 24, radius: h(f32(0.12)),
     effect: hit(4.0, "POKE", 35, 1.0, HitElement.normal), reflectable: true, limit: 3,

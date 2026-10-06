@@ -43,7 +43,6 @@ export const LICH_HERO: HeroDefinition = {
     scale: f32(0.8),
     objectId: 0x6d666c63,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNHeroLich.blp",
-    projectileModel: "Abilities\\Weapons\\LichMissile\\LichMissile.mdl",
     clips: {
       idle: STAND_READY, walk: WALK, dash: WALK, run: WALK, crouch: CHANNEL, fall: STAND_READY, landing: STAND_READY,
       shield: CHANNEL, airDodge: CHANNEL, smashCharge: CHANNEL, ko: DISSIPATE, dizzy: STAND_3,

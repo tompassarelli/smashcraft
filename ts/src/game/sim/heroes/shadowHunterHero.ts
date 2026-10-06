@@ -52,7 +52,6 @@ export const SHADOW_HUNTER_HERO: HeroDefinition = {
     scale: 1.0,
     objectId: 0x6d667368,
     portrait: "ReplaceableTextures\\CommandButtons\\BTNShadowHunter.blp",
-    projectileModel: "Abilities\\Weapons\\SpiritOfVengeanceMissile\\SpiritOfVengeanceMissile.mdl",
     clips: {
       idle: STAND_READY, walk: WALK, dash: WALK, run: WALK, crouch: STAND_READY, fall: STAND_READY, landing: STAND_READY,
       shield: STAND_READY, airDodge: STAND_HIT, smashCharge: STAND_READY, ko: DISSIPATE, dizzy: STAND_3,

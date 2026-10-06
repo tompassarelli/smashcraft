@@ -19,6 +19,7 @@ const windCutter: AuthoredSpecial = {
   endFrame: 40,
   hurt: [hurtPose(16, 24, LOW_CUT_ARM)],
   projectiles: [{
+    model: "Abilities\\Weapons\\WingedSerpentMissile\\WingedSerpentMissile.mdx",
     spawnFrame: 18,
     offsetX: 40.0,
     offsetZ: 45.0,

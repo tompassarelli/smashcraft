@@ -49,6 +49,11 @@ export interface SpecialMotion extends FrameWindow {
   readonly velocityX: number;
   readonly velocityZ: number;
   readonly aimedSpeed?: number | undefined;
+  /**
+   * Presentation only, never read by the simulation: the stock Warcraft
+   * missile it draws, its own spell's (presentation/projectileArt.ts).
+   */
+  readonly model?: string | undefined;
   readonly aimedTilt?: { readonly x: number; readonly z: number } | undefined;
   /**
    * Horizontal steering: the live stick's world-relative x, scaled to this
@@ -124,6 +129,11 @@ export interface SpecialProjectile {
   readonly backOffsetX?: number | undefined;
   /** Not placed when solid stage geometry lies between the owner's offsetZ height and the spawn point. */
   readonly needsLineOfSight?: boolean | undefined;
+  /**
+   * Presentation only, never read by the simulation: the stock Warcraft
+   * missile it draws, its own spell's (presentation/projectileArt.ts).
+   */
+  readonly model?: string | undefined;
   /**
    * From this age it flies back to its owner's body at `speed` a frame and
    * ends when it gets there (Storm Bolt's hammer); a hit on the way back
