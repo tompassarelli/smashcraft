@@ -66,9 +66,6 @@ Each is a fact about Melee that Smashcraft has not yet taken a position on.
 Decided items are in [gameplay design decisions](../../gameplay-design.md) and
 not repeated here.
 
-1. Character physics spread: Melee's cast spans the fall speeds, gravities and
-   air speeds in [Movement](movement.md#falling-and-air-control). How wide a
-   spread Smashcraft's fighters cover is open.
 2. Wavedash and waveland: they follow from the air dodge carrying momentum into
    the landing ([Techniques](techniques.md#wavedash-and-waveland)). Whether
    Smashcraft keeps that property is open.
@@ -90,8 +87,6 @@ not repeated here.
 8. Ledge play: regrab lock, ledge intangibility and edge-hogging
    ([Defence](defense.md#ledges)). Smashcraft's ledge rules follow Melee today;
    whether they stay is open.
-9. Weight against speed: Melee's heavy fighters are not uniformly slow
-   ([Archetypes](archetypes.md)). Which trade-offs Smashcraft's fighters embody is open.
 10. Crouch cancelling and ASDI down: low-percent hits on a crouching fighter
     lose knockback and hitlag ([Defence](defense.md#influence-on-knockback)).
     Whether Smashcraft keeps both is open.
