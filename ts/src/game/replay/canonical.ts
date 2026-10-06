@@ -104,6 +104,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
     int(`${name}.total`, move.totalFrames);
     int(`${name}.landingLag`, move.landingLag);
     real(`${name}.travel`, move.startupTravelX ?? 0.0);
+    int(`${name}.stopsAtBody`, move.startupStopsAtBody ? 1 : 0);
     int(`${name}.regions`, move.regions.length);
     for (let index = 0; index < move.regions.length; index++) {
       const region = at(move.regions, index);
