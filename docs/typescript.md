@@ -95,7 +95,8 @@ Map builds use staged outputs: interrupting a step stops its child process, a
 failed step leaves the previous map in place, and archive entries are verified
 four at a time. `wisp parity numeric` compares the numeric corpus against
 Lua32; `wisp parity capture` and `wisp parity result` run and reconcile
-the native issue #26 input-integrity check through the same CLI. `wisp fresh
+the native issue #26 input-integrity check through the same CLI; `wisp parity
+capture --bot` plays the native bot session (smashcraft:docs/native-bot-session.md). `wisp fresh
 MAP.w3x [--rebuild] [--from-game]` rebuilds the map script when requested,
 starts a new match, sends `-dev quick`, and waits for every client's typed
 receipt. Use `--from-game` when every client is already in a running map:
