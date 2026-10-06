@@ -14,6 +14,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   fresh: { usage: "fresh MAP.w3x [--rebuild] [--from-game] [--no-quick] [--profile main|integrity|playable|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/fresh")).fresh },
   tapes: { usage: "tapes   (LUA=<stock 32-bit lua>; TOWARD_ZERO_LUA=<32-bit lua rounding + - * toward zero>, else built with nix)", load: async () => (await import("./wisp/commands/tapes")).tapes },
   oracle: { usage: "oracle", load: async () => (await import("./wisp/commands/oracle")).oracle },
+  interactions: { usage: "interactions [--check | --move FIGHTER:MOVE]", load: async () => (await import("./wisp/commands/interactions")).interactions },
   parity: { usage: "parity numeric [RESULT_FILE ...] | capture OPTIONS... | result CAPTURE_DIR | headless --helper BINARY --out DIR", load: async () => (await import("./wisp/commands/parity")).parity },
   integrity: { usage: "integrity capture OPTIONS... | result CAPTURE_DIR | headless --helper BINARY --out DIR", load: async () => (await import("./wisp/commands/parity")).integrity },
   "four-fighters": { usage: "four-fighters capture OPTIONS... | result CAPTURE_DIR", load: async () => (await import("./wisp/commands/fourFighters")).fourFighters },

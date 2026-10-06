@@ -4,12 +4,11 @@
 // renderer objects keep the code they were created with, so a reload
 // recreates them (ui.ts).
 import type { Action } from "../../game/input/actions";
-import { ATTACK_BUFFER_FRAMES, attackBuffer } from "../../game/input/attackBuffer";
 import { type KeyboardCapture, keyboardCapture } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, type ParticipantInputs, type ParticipantSlot, type Slots, participantActive, participantInputs } from "../../game/input/participants";
 import { type PlayerKeys, playerKeys } from "../../game/input/playerKeys";
 import type { InputPacket } from "../../game/input/wire";
-import { type FrameControls, type MatchControls, createFrameControls, createMatchControls } from "../../game/match/controls";
+import { type FrameControls, type MatchControls, createBufferedFrameControls, createFrameControls, createMatchControls } from "../../game/match/controls";
 import { type MatchFrameInput, createMatchFrameInput } from "../../game/match/frameInput";
 import { type PacingAndPresentation, createPacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { type MatchState, createMatchState } from "../../game/match/rules";
@@ -250,13 +249,6 @@ function participant(slot: ParticipantSlot, persistence: BindingPersistence): Pa
   };
 }
 
-/** Match controls whose attack buffers keep a press for the buffered frames. */
-function bufferedControls(): FrameControls {
-  const controls = createFrameControls();
-  for (const slot of PARTICIPANT_SLOTS) controls.commands[slot] = attackBuffer(ATTACK_BUFFER_FRAMES);
-  return controls;
-}
-
 /** Four fighters in stable slots, which each epoch's seed overwrites before any frame runs. */
 function speculativeRoster(): Roster {
   return createRoster(3, PARTICIPANT_SLOTS.map(slot => createFighter(slot === 3 ? 0 : slot, matchSpawnX(slot), slot === 0 || slot === 2 ? 1 : -1)));
@@ -276,7 +268,7 @@ function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: Ed
   return {
     mode, active: false, epoch: 0, delay: mode.delay, window: mode.rollback, batch: DEFAULT_BATCH,
     schedule: new ShadowInputSchedule(), playback,
-    speculative: { world: speculativeRoster(), game: createMatchState(), controls: bufferedControls(), runtime: createPacingAndPresentation() },
+    speculative: { world: speculativeRoster(), game: createMatchState(), controls: createBufferedFrameControls(), runtime: createPacingAndPresentation() },
     seed: createReplaySnapshot(), accepted: participantInputs(), sendFailed: false,
     keyboard: mode.kind === "keyboard"
       ? {
@@ -303,7 +295,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
   const { input } = build;
   const { persistence } = setup;
   const state: ShellState = {
-    build, origin: setup.origin, game: createMatchState(), world: createRoster(0), controls: bufferedControls(),
+    build, origin: setup.origin, game: createMatchState(), world: createRoster(0), controls: createBufferedFrameControls(),
     produced: createFrameControls(), runtime: createPacingAndPresentation(), session: createMatchControls(),
     frameInput: createMatchFrameInput(),
     participants: [participant(0, persistence), participant(1, persistence), participant(2, persistence), participant(3, persistence)],
