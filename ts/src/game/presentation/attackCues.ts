@@ -36,9 +36,13 @@ export const ATTACK_CUES: { readonly [character: number]: { readonly [style: num
   },
   [Character.dreadlord]: {
     [AttackStyle.neutralAir]: [{ name: "Batwing Turn", fromActive: 0, cue: cue("Abilities\\Weapons\\BansheeMissile\\BansheeMissile.mdx", f32(1.2)) }],
+    // The dash passes through its target: a dark avenger streak marks the cross-up.
+    [AttackStyle.dashAttack]: [{ name: "Wing cross-up", fromActive: 0, cue: cue("Abilities\\Weapons\\AvengerMissile\\AvengerMissile.mdx", 1.0) }],
   },
   [Character.lich]: {
     [AttackStyle.neutralAir]: [{ name: "Frost Halo", fromActive: 0, cue: cue("Abilities\\Spells\\Undead\\FrostNova\\FrostNovaTarget.mdx", f32(0.45)) }],
+    // The lingering ice crown above his shoulders.
+    [AttackStyle.upTilt]: [{ name: "Ice crown", fromActive: 0, cue: cue("Abilities\\Spells\\Undead\\FreezingBreath\\FreezingBreathMissile.mdx", f32(0.8)) }],
   },
   [Character.demonHunter]: {
     // Eye Blast: the fel breath of the green dragon along the floor beam.
