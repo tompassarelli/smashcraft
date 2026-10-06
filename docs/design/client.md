@@ -80,15 +80,17 @@ need.
   page: an `index.html` in `_retail_\webui\` plus the `Allow Local Files`
   registry switch. That is the same mechanism Wisp's menu page uses
   (wisp:docs/driving-warcraft.md).
-- **flo** (Rust, MIT). Its parts are a controller, nodes around the world
-  (about 26), a worker on each player's machine, an observer and a replay
-  writer. The worker makes a remote flo node look like a LAN game to
-  Warcraft, so game traffic goes through flo instead of Battle.net.
-  W3Champions runs custom-map ladders this way (Legion TD, Castle Fight,
-  Survival Chaos), so custom maps over flo work. **Warcraft 3.0.0 (12 Sept
-  2026, the build Smashcraft's clients run) removed LAN from Reforged and
-  must stay online.** How flo works on 3.0 is not public. #19 found no LAN or
-  direct-connect path on these Battle.net clients either.
+- **flo** (Rust; the last public source is MPL-2.0, see "flo as a host"
+  below). Its parts are a controller, nodes around the world (about 26), a
+  worker on each player's machine, an observer and a replay writer. The
+  worker makes a remote flo node look like a LAN game to Warcraft, so game
+  traffic goes through flo instead of Battle.net. W3Champions runs
+  custom-map ladders this way (Legion TD, Castle Fight, Survival Chaos).
+  **Warcraft 3.0.0 (12 Sept 2026, the build Smashcraft's clients run)
+  removed LAN from Reforged's menus and must stay online**
+  ([patch notes](https://warcraft.wiki.gg/wiki/Warcraft_III/Patch_3.0.0)),
+  yet W3Champions still plays through flo on 3.0.0.24268 (below). #19 found
+  no LAN or direct-connect path on these Battle.net clients.
 - **W3MMD** ([Hive](https://www.hiveworkshop.com/threads/w3mmd.251087)).
   It is the custom-map statistics convention.
   - The map stores messages in an `MMD.Dat` game cache and synchronizes
@@ -112,6 +114,73 @@ need.
   (smashcraft:docs/warcraft-api-netcode-findings.md, "Preloader reads in the
   game").
 
+### flo as a host (#142, checked 7 Oct 2026)
+
+**Verdict: flo can't host a Smashcraft game for two clients without
+W3Champions.** It isn't a self-serve host. A Smashcraft game on flo needs
+W3Champions to add the map, or a self-hosted flo that would first have to
+rebuild the closed 3.0 support. Direct play stays on Battle.net password
+lobbies (Phase 4).
+
+- **How it hosts.** The controller creates a game (`CreateGame` or
+  `CreateGameAsBot`) on a node with a `Wc3Map` named by its path, SHA-1 and
+  checksum. The node relays the game. Each player's worker reads the map from
+  its own Warcraft install or `Documents\Warcraft III\Maps`. It then shows
+  the node to Warcraft as a local LAN game and proxies the connection
+  ([flo-grpc protos](https://github.com/w3champions/flo-grpc/tree/main/proto);
+  2022 worker source `crates/client`, `crates/lan`, `crates/w3storage` in the
+  [mirror](https://github.com/niceqwer55555/flo)).
+- **On 3.0.** W3Champions' current launcher (1.6.8 to 1.6.15,
+  [releases](https://github.com/w3champions/launcher-e-release/releases))
+  plays on 3.0.0.24268 through a "Native LAN" path. The launcher starts
+  Warcraft itself inside a kill-on-close job, and the game announces LAN
+  games by UDP broadcast to port 16000, where flo listens. The `csdk`
+  transport uses mDNS instead
+  ([w3champions-issues #57](https://github.com/w3champions/w3champions-issues/issues/57),
+  [#58](https://github.com/w3champions/w3champions-issues/issues/58)).
+  That launcher source is not public. It is also the direct launch #19
+  refused for the signed-in clients.
+- **Custom maps.** Any .w3x works at the protocol level, if every player
+  has a byte-identical file (the start check compares each player's map
+  SHA-1). flo doesn't send maps between players. On W3Champions only maps
+  that admins with the Maps permission register can be played, and the
+  launcher downloads them
+  ([MapsController](https://github.com/w3champions/website-backend/blob/master/W3ChampionsStatisticService/Maps/MapsController.cs)).
+  flo's own create-game page ([w3flo.com](https://w3flo.com/setup)) says it
+  is a developer tool that is no use without permissions.
+- **Map size.** flo has no limit of its own beyond W3GS's 32-bit size field,
+  since nothing is sent through the game. Battle.net's 256 MB cloud limit
+  ([Hive](https://www.hiveworkshop.com/threads/is-it-possible-to-host-map-above-the-256mb-limit.355073))
+  applies only to Battle.net hosting. Today's builds are about 78 MB, so
+  they fit both.
+- **What players need.**
+  - The W3Champions launcher (Windows or macOS). On Linux, Wine needs a
+    patch for #57 and a NAT rule for #58.
+  - A Battle.net account: sign-in is Blizzard OAuth, and flo players come
+    from `PlayerSourceBNet`.
+  - The current Reforged build. W3Champions followed 2.0.x (2.0.4 with
+    flo-worker 0.18.3, [#55](https://github.com/w3champions/w3champions-issues/issues/55))
+    and then 3.0.0.24268.
+- **Self-hosting.** It is not feasible as a short job.
+  - `github.com/w3champions/flo` returns 404. The last public source is a
+    mirror frozen in Feb 2022 (controller and node build on Linux with
+    PostgreSQL). Its worker targets 1.32-era clients (early 2022), has no 2.0 or 3.0
+    support, and needs a worker built for Windows or macOS.
+  - Only the gRPC definitions stay public, and they carry no licence file.
+- **Licence.** The mirror is MPL-2.0. Reuse is allowed with file-level
+  copyleft: modified flo files stay MPL-2.0 and their source is published.
+  The current flo has no licence available to us.
+- **What it would take.**
+  1. **W3Champions route.** Tom asks W3Champions to list Smashcraft as a
+     custom-game map, as Legion TD and Castle Fight are. That is an outside
+     commitment. Players would then install their launcher and lose
+     Smashcraft's own launch flow.
+  2. **Self-host route.** Revive the 2022 flo, add 2.0 and 3.0 W3GS
+     support, and rebuild the 3.0 LAN path (the launcher's direct launch
+     plus discovery). Count weeks, plus one always-on node, which is
+     billable (Tom).
+  3. Neither route is needed for #142's direct-play box.
+
 ### What fits Smashcraft
 
 | Feature | Fit | How |
@@ -124,7 +193,7 @@ need.
 | Unranked queue | Possible | Phase 4: needs a small server (Tom decides) |
 | Ranked, leaderboards, profiles website | Later | Needs accounts and servers; after unranked proves demand |
 | Live spectating | Yes, natively | Warcraft observer slots; streaming replays to the client later |
-| Own netplay transport (Slippi's peer to peer, flo) | No for now | Battle.net carries the game on 3.0; flo on 3.0 is unknown (#19, #142) |
+| Own netplay transport (Slippi's peer to peer, flo) | No for now | Battle.net carries the game on 3.0; flo needs W3Champions to list the map or a rebuilt 3.0 path ("flo as a host") |
 | W3MMD results in .w3g | Optional | Cheap at match end; makes wc3stats.com work. Not needed for the client |
 
 ## What Smashcraft already has
