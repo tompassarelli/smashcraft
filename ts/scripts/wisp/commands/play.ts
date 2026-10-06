@@ -121,7 +121,7 @@ export function playtest({ build, map, helper, computerSlot, inputDevices }: Pla
   };
 }
 
-const ClientTools = Schema.Struct({ tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, tesseract: Schema.String }) });
+const ClientTools = Schema.Struct({ tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, wlrctl: Schema.String, tesseract: Schema.String }) });
 
 /** The tool paths the clients file records; the commands on PATH without one. */
 function clientTools() {
