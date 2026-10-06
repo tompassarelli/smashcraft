@@ -137,9 +137,9 @@ export class FighterHud {
     }
     if (this.shownCharacter !== character) {
       this.shownCharacter = character;
-      BlzFrameSetTexture(this.portrait, fighterPortrait(character), 0, true);
+      BlzFrameSetTexture(this.portrait, fighterPortrait(character, false), 0, true);
       BlzFrameSetText(this.name, fighterName(character).toUpperCase());
-      for (const icon of this.stocks) BlzFrameSetTexture(icon, fighterPortrait(character), 0, true);
+      for (const icon of this.stocks) BlzFrameSetTexture(icon, fighterPortrait(character, true), 0, true);
     }
     const shownDamage = damageText(damage);
     if (this.shownDamage !== shownDamage) {

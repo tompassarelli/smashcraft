@@ -79,7 +79,7 @@ interface CardFrames {
 
 const CARD_COLORS = ["Red", "Blue", "Yellow", "Green"] as const;
 
-const portraitTexture = (choice: number | undefined) => fighterPortrait(choice ?? Character.archer);
+const portraitTexture = (choice: number | undefined, tile: boolean) => fighterPortrait(choice ?? Character.archer, tile);
 const nameText = (choice: number | undefined) => fighterName(choice ?? Character.archer).toUpperCase();
 
 function art(parent: framehandle, name: string, texture: string, x: number, y: number, width: number, height: number): framehandle {
@@ -173,7 +173,7 @@ export class SelectionPanel {
       const y = f32(top);
       const name = `${suffix}_${I2S(choice)}`;
       art(root, `MeleeTile${name}`, "war3mapImported\\SelectionTileFrame.tga", x, y, f32(grid.cellWidth), f32(grid.cellHeight));
-      art(root, `MeleeTilePortrait${name}`, portraitTexture(SELECTABLE_CHARACTERS[choice]), x + f32(0.0125) * scale, y - f32(0.013) * scale, f32(0.087) * scale, f32(0.087) * scale);
+      art(root, `MeleeTilePortrait${name}`, portraitTexture(SELECTABLE_CHARACTERS[choice], true), x + f32(0.0125) * scale, y - f32(0.013) * scale, f32(0.087) * scale, f32(0.087) * scale);
       BlzFrameSetText(label(root, `MeleeTileName${name}`, x + f32(0.004) * scale, y - f32(0.108) * scale, f32(0.103) * scale, f32(0.018) * scale, f32(0.011) * scale), nameText(SELECTABLE_CHARACTERS[choice]));
     }
     this.cards = PARTICIPANT_SLOTS.map((slot) => {
@@ -184,7 +184,7 @@ export class SelectionPanel {
       const mode = this.clicks.add(hotspot(root, x + f32(0.014), f32(0.27), f32(0.132), f32(0.027)), { kind: "mode", slot });
       BlzFrameSetLevel(mode, 1);
       BlzFrameSetLevel(tag, 2);
-      const portrait = art(root, `MeleePortrait${name}`, portraitTexture(Character.archer), x + f32(0.019), f32(0.245), f32(0.122), f32(0.122));
+      const portrait = art(root, `MeleePortrait${name}`, portraitTexture(Character.archer, false), x + f32(0.019), f32(0.245), f32(0.122), f32(0.122));
       const name_ = label(root, `MeleeName${name}`, x + f32(0.008), f32(0.116), f32(0.144), f32(0.02), f32(0.014));
       const status = label(root, `MeleeStatus${name}`, x + f32(0.014), f32(0.093), f32(0.132), f32(0.014), f32(0.011));
       const chip = art(root, `MeleeChip${name}`, `war3mapImported\\SelectionChipP${I2S(slot + 1)}.tga`, x + f32(0.06), f32(0.2), f32(0.04), f32(0.04));
@@ -380,7 +380,7 @@ export class SelectionPanel {
       BlzFrameSetVisible(frames.name, active && ready);
       BlzFrameSetText(frames.status, human && !humanPresent(game, slot) ? "No player" : active && !ready ? "Choose fighter" : `P${I2S(slot + 1)}`);
       if (ready) {
-        BlzFrameSetTexture(frames.portrait, portraitTexture(choice), 0, true);
+        BlzFrameSetTexture(frames.portrait, portraitTexture(choice, false), 0, true);
         BlzFrameSetText(frames.name, nameText(choice));
       }
       BlzFrameSetVisible(frames.chip, active);

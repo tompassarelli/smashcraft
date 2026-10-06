@@ -59,12 +59,12 @@ export function nextSelectableCharacter(current: number | undefined, direction: 
   return SELECTABLE_CHARACTERS[floorMod(index + direction, count)] ?? Character.archer;
 }
 
-const ORIGINAL_ICONS = ["Archer", "Rifleman", "HeroDemonHunter"] as const;
+const ORIGINAL_ART = ["Archer", "Rifleman", "DemonHunter"] as const;
 
-/** The fighter's Warcraft command-button icon: selection, HUD, stocks and the off-screen bubble all show it. */
-export function fighterPortrait(character: number): string {
+/** The fighter's portrait texture: a hero's own, or an original fighter's imported tile or portrait art. */
+export function fighterPortrait(character: number, tile: boolean): string {
   const hero = heroDefinition(character);
-  return hero === undefined ? `ReplaceableTextures\\CommandButtons\\BTN${ORIGINAL_ICONS[character] ?? "Archer"}.blp` : hero.presentation.portrait;
+  return hero === undefined ? `war3mapImported\\${ORIGINAL_ART[character] ?? "Archer"}${tile ? "Tile" : "Portrait"}.tga` : hero.presentation.portrait;
 }
 
 const ORIGINAL_SLUGS = ["archer", "rifleman", "illidan"] as const;
