@@ -10,7 +10,8 @@ import { isIntangible } from "../sim/conditions";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { contactKnockback, ordinaryHitstunFrames } from "../sim/knockback";
 import { fighterAt } from "../sim/roster";
-import { CANNON_TEST_STAGE, WIND_TEST_STAGE } from "../sim/stage";
+import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE, surfaceLeft, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "../sim/stage";
+import { PLATFORM_CUE_FRAMES, framesUntilPlatformMoves } from "../presentation/stageHazards";
 import {
   CANNON_BASE_KNOCKBACK, CANNON_HOLD_FRAMES, CANNON_RECATCH_FRAMES, CANNON_SHOT_FRAMES, CANNON_Z, WIND_BLOW_FRAMES, WIND_CALM_FRAMES,
   WIND_CUE_FRAMES, WIND_CYCLE_FRAMES, WIND_SPEED, WindPhase, cannonAim, cannonX, windDirection, windLeft, windPhase, windRight,
@@ -19,6 +20,33 @@ import { type Pad, type PadMatch, padMatch, playPads } from "./helperPads";
 import { testMatch } from "./testMatch";
 
 const NEUTRAL: Pad = {};
+
+test("controllers ride a complete carried loop and rising-sinking timetable; every departure is warned 30 frames ahead", () => {
+  for (const [stage, period] of [[CARRIED_TEST_STAGE, 920], [TIMED_TEST_STAGE, 420]] as const) {
+    const match = testMatch(3, Character.archer);
+    match.game.stageChoice = stage;
+    const fighter = fighterAt(match.world, 0);
+    fighter.motion.surface = 1;
+    fighter.motion.x = f32(f32(surfaceLeft(stage, 1, 0) + surfaceRight(stage, 1, 0)) / 2);
+    fighter.motion.z = surfaceZ(stage, 1, 0);
+    const run = padMatch(match, "carried-platform");
+    let departures = 0;
+    for (let frame = 1; frame <= period; frame++) {
+      const moving = surfaceShiftX(stage, 1, frame) !== 0 || surfaceShiftZ(stage, 1, frame) !== 0;
+      const wasMoving = surfaceShiftX(stage, 1, frame - 1) !== 0 || surfaceShiftZ(stage, 1, frame - 1) !== 0;
+      if (moving && !wasMoving) {
+        departures++;
+        assertEquals(framesUntilPlatformMoves(stage, frame - 1 - PLATFORM_CUE_FRAMES), PLATFORM_CUE_FRAMES);
+      }
+      playPads(run, NEUTRAL, NEUTRAL);
+      assertTrue(fighter.motion.grounded);
+      assertEquals(fighter.motion.surface, 1);
+      assertNear(fighter.motion.x, f32(f32(surfaceLeft(stage, 1, frame) + surfaceRight(stage, 1, frame)) / 2), 0.0010000000474974513);
+      assertEquals(fighter.motion.z, surfaceZ(stage, 1, frame));
+    }
+    assertEquals(departures, stage === CARRIED_TEST_STAGE ? 4 : 2);
+  }
+});
 
 function windMatch(): PadMatch {
   const match = testMatch(3, Character.archer);

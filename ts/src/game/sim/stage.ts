@@ -227,6 +227,18 @@ export function surfaceMoves(stage: number, index: number): boolean {
   return at(decks(stage), index).kind === "moving";
 }
 
+/** Frames left in a moving deck's authored wait; absent while it moves. */
+export function surfaceWaitFrames(stage: number, index: number, frame: number): number | undefined {
+  const deck = at(decks(stage), index);
+  if (deck.kind === "fixed") return undefined;
+  let t = floorMod(frame + deck.phase, deck.period);
+  for (const leg of deck.legs) {
+    if (t < leg.frames) return leg.stepX === 0 && leg.stepZ === 0 ? leg.frames - t : undefined;
+    t -= leg.frames;
+  }
+  return undefined;
+}
+
 /** How far deck `index` moved sideways from the frame before `frame`. */
 export function surfaceShiftX(stage: number, index: number, frame: number): number {
   const deck = at(decks(stage), index);

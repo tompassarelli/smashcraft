@@ -265,10 +265,12 @@ The pattern across hazard stages is that players drop a stage when its
 element is random (Fountain of Dreams survives, but is the most argued), when
 it kills or damages (Klaptrap, Arwings, cars), when it changes what wins
 (scrolling, circle camping), or when the stage's size breaks the band above.
-A wind, carried platform or cannon that runs on a published schedule, warns
-before it acts, never chooses by player position, and sits on a stage inside
-the legal size band removes the first two complaints; the layout decides the
-third and fourth.
+A wind, carried platform or cannon on a published schedule removes random
+timing; fixed advance warnings let players plan around it. It can still change
+recovery and permit camping, so layout, blast zones and safe routes decide
+whether it belongs in competitive play. Smashcraft's hidden hazard stages use
+those schedules and warnings (smashcraft:docs/stage-hazards.md); passing their
+determinism checks does not establish stage legality.
 
 ## Warcraft inspiration and built-in assets
 

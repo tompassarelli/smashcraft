@@ -41,6 +41,7 @@ const APPROACH_FRAMES = 40;
 const WALK_RANGE = 120;
 
 interface MatchScript {
+  readonly placement?: string;
   readonly characters: readonly [Character, Character];
   readonly stage: number;
   readonly stocks: number;
@@ -75,7 +76,7 @@ function formatControls(controls: Controls, attacks: AttackBuffer): string {
 function menuLines(script: MatchScript): string[] {
   return [
     `character 0 ${script.characters[0]}`, `character 1 ${script.characters[1]}`, `stocks 0 ${script.stocks}`, `time 0 ${script.minutes}`, "stage-select 0",
-    ...(script.stage > 1 ? [`test-stage ${script.stage}`] : [`stage 0 ${script.stage}`]), "start 0",
+    ...(script.stage > 1 ? [`test-stage ${script.stage}`] : [`stage 0 ${script.stage}`]), "start 0", ...(script.placement === undefined ? [] : [script.placement]),
   ];
 }
 
@@ -269,6 +270,17 @@ export function generateTapes(): Map<string, string> {
       holds: [[[1, 10, JUMP], [140, 3, DOWN], [220, 10, JUMP]], [[1, 10, JUMP], [100, 3, DOWN], [180, 10, JUMP]]],
       approaches: [[], []], rollbacks: [[147, 210], [437, 500]], predictions: [[240, 250]],
     }])],
+    ...[
+      ["wind", 10, 1900, undefined],
+      ["carried", 11, 940, "test-air 0 -420 125"],
+      ["cannon", 12, 650, "test-air 0 -760 -350"],
+      ["timed-lift", 13, 440, "test-air 0 -330 125"],
+    ].map(([name, stage, frames, placement]) => [String(name), recordTape(`Deterministic ${name} hazard, controller presses, corrected predictions and rollback.`, [{
+      characters: [Character.archer, Character.rifleman], stage: Number(stage), stocks: 3, minutes: 0, frames: Number(frames),
+      ...(typeof placement === "string" ? { placement } : {}),
+      holds: [[[30, 1, ATTACK], [300, 1, SPECIAL]], []], approaches: [[], []],
+      rollbacks: [[37, 100], [337, 400]], predictions: [[120, 130]],
+    }])] as const),
   ]);
   pressed.forEach((sources, slot) => {
     const missing = [...SOURCES.keys()].filter(source => !sources.has(source));

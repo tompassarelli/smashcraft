@@ -21,6 +21,7 @@ import { DEMON_HUNTER_MODEL_FILE } from "../../src/game/presentation/demonHunter
 import { ARCHER_MODEL_FILE, RIFLEMAN_MODEL_FILE } from "../../src/game/presentation/fighterAssetInfo";
 import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../src/game/presentation/arenaCamera";
 import { SUMMON_BEAR, summonClip, summonClipCount } from "../../src/game/presentation/summonClipInfo";
+import { CANNON_MODEL } from "../../src/game/presentation/stageHazards";
 import { Character } from "../../src/game/sim/codes";
 import { BLAST_ZONE_BOTTOM, BLAST_ZONE_SIDE, BLAST_ZONE_TOP } from "../../src/game/sim/stocks";
 import { MODEL_FACTS } from "./modelFacts";
@@ -70,6 +71,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
   settledFrame: 30,
   kinds: [
     { name: "stage deck", models: [STAGE_MAIN_DECK_MODEL, STAGE_DECK_MODEL] },
+    { name: "stage cannon", models: [CANNON_MODEL] },
     { name: "pooled fighter", models: fighterModels },
     // Sparks and dust last under half a second; a star-KO sparkle, about two.
     {

@@ -11,11 +11,12 @@ import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stag
 import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, setParticipants } from "../src/game/match/rules";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
+import { CANNON_MODEL } from "../src/game/presentation/stageHazards";
 import { STOCK_MODELS } from "../src/game/render/effects";
 import { IMPACT_DUST, IMPACTS_PER_KIND, impactLifetime } from "../src/game/presentation/impactState";
 import { Character, DownState, SurfaceContact } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
-import { DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
+import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, TIMED_TEST_STAGE, WIND_TEST_STAGE, DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { BLAST_ZONE_BOTTOM, BLAST_ZONE_SIDE, BLAST_ZONE_TOP } from "../src/game/sim/stocks";
 import { QUICK_MATCH_COMMAND } from "../src/game/shell/devSettings";
 import { initializeScenario } from "../src/game/shell/scenarios";
@@ -25,7 +26,7 @@ import { install as installDevelopment, start as startDevelopment } from "../src
 import { PERF_COMMAND } from "../src/platform/frameMeter";
 import { startMatch } from "../src/platform/shell/matchStart";
 import { shell } from "../src/platform/shell/state";
-import { drawStage, lockArenaCamera, renderPersistentPresentation } from "../src/platform/shell/view";
+import { drawStage, lockArenaCamera, renderPersistentPresentation, renderUi } from "../src/platform/shell/view";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
@@ -120,6 +121,45 @@ test("moving decks are visible and their effects follow the presented match fram
         expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);
         expect(report.models.find(({ model }) => model === reportedModel(STAGE_DECK_MODEL))).toMatchObject({ live: stage === DRIFTING_DECK_STAGE ? 1 : 2, drawn: stage === DRIFTING_DECK_STAGE ? 1 : 2 });
       }
+    });
+    expect(client.errors).toEqual([]);
+  }
+});
+
+test("every hazard stage shows its warning before acting and declares the cannon players see", () => {
+  for (const [stage, frame, warning] of [
+    [WIND_TEST_STAGE, 601, "Wind pushes right in 45 frames."],
+    [CARRIED_TEST_STAGE, 30, "Platform moves in 30 frames."],
+    [TIMED_TEST_STAGE, 60, "Platform moves in 30 frames."],
+    [CANNON_TEST_STAGE, 31, "Cannon fires in 10 frames."],
+  ] as const) {
+    const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+    clients.start();
+    clients.frames(30);
+    const client = clients.clients[0];
+    if (client === undefined) throw new Error("missing client");
+    client.run(() => {
+      const s = shell();
+      selectCharacter(s.game, 0, Character.archer);
+      selectCharacter(s.game, 1, Character.rifleman);
+      requestStageSelect(s.game, 0);
+      s.game.stageChoice = stage;
+      requestStart(s.game, 0);
+      startMatch(s);
+      s.game.matchFrame = frame;
+      s.status.seconds = 0;
+      if (stage === CANNON_TEST_STAGE) {
+        fighterAt(s.world, 0).cannon.held = 30;
+        fighterAt(s.world, 0).cannon.firing = 1;
+      }
+      renderPersistentPresentation(s);
+      renderUi(s);
+      lockArenaCamera(s);
+      expect(client.frames.shownText()).toContain(warning);
+      trampoline("scene.report")();
+      const report = sceneReport(client);
+      expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);
+      if (stage === CANNON_TEST_STAGE) expect(report.models.find(({ model }) => model === reportedModel(CANNON_MODEL))).toMatchObject({ live: 1, drawn: 1 });
     });
     expect(client.errors).toEqual([]);
   }
