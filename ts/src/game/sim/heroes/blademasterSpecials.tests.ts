@@ -8,6 +8,7 @@ import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus, regenerateMana } from "../heroSpecialRules";
+import { HurtContact, strikeHurtContact } from "../hurtboxes";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -117,4 +118,15 @@ test("Mirror Feint steps back 0.5H; a second press inside its window requests th
   for (let f = 2; f <= 24; f++) frame(missed.world);
   assertEquals(missed.owner.special.action, SpecialAction.none);
   assertEquals(missed.target.status.damage, 0.0);
+});
+
+test("Wind Walk Strike exposes the sword arm around its slash while the blade stays disjoint", () => {
+  const { world, owner } = match(900.0);
+  frame(world, press(1, 0));
+  const probe = (x: number, z: number) => strikeHurtContact({ x1: f32(owner.motion.x + x), z1: z, x2: f32(owner.motion.x + x), z2: z, radius: 4.0 }, owner);
+  for (let f = 2; f <= 17; f++) frame(world);
+  assertEquals(probe(46.0, 56.0), HurtContact.none);
+  frame(world);
+  assertEquals(probe(46.0, 56.0), HurtContact.hit);
+  assertEquals(probe(110.0, 50.0), HurtContact.none);
 });

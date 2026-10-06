@@ -3,7 +3,12 @@
 // entry tick is frame 1 and windows are inclusive.
 import { f32 } from "wisp/src/sim/f32";
 import { type AuthoredSpecial, type FighterSpecials, ROSTER_MANA, frames } from "../heroSpecials";
-import { BLADE_RADIUS, L, M, capsule, cut, hit, length, path } from "./blademasterMoves";
+import { hurtPose } from "../hurtboxes";
+import { BLADE_RADIUS, L, M, capsule, cut, hit, length, path, reach } from "./blademasterMoves";
+
+// The sword arm reaches toward each strike, from just before it into early
+// recovery, as the normals' bodies do; the blade past the hand stays disjoint.
+const LOW_CUT_ARM = reach(46.0, 56.0);
 
 // Non-mobility specials used in the air end on landing with the roster's default lag.
 const AIR_LANDING_LAG = 20;
@@ -12,6 +17,7 @@ const AIR_LANDING_LAG = 20;
 const windCutter: AuthoredSpecial = {
   cost: 0,
   endFrame: 40,
+  hurt: [hurtPose(16, 24, LOW_CUT_ARM)],
   projectiles: [{
     spawnFrame: 18,
     offsetX: 40.0,
@@ -31,7 +37,7 @@ const windWalkMotion = [{ ...frames(10, 19), velocityX: f32(length(f32(1.4)) / W
 const windWalkSlash = cut(20, [52.0, 45.0, 38.0], L, hit(11.0, "EDGE", 40));
 
 /** Wind Walk Strike: a visible 1.4H dash f10-19, then a slash f20-22 and 26 recovery; 18 mana. */
-const windWalkStrike: AuthoredSpecial = { cost: 18, endFrame: 48, motion: windWalkMotion, regions: windWalkSlash };
+const windWalkStrike: AuthoredSpecial = { cost: 18, endFrame: 48, motion: windWalkMotion, regions: windWalkSlash, hurt: [hurtPose(18, 26, LOW_CUT_ARM)] };
 /** In the air it travels once per airtime and ends helpless, even on hit. */
 const windWalkStrikeAir: AuthoredSpecial = { ...windWalkStrike, oncePerAirtime: true, helpless: true };
 
@@ -58,6 +64,7 @@ const risingBlade: AuthoredSpecial = {
     capsule(5.0, 60.0, 5.0, BLADE_TOP),
     capsule(0.0, 60.0, 0.0, BLADE_TOP),
   ], hit(9.0, "LAUNCH", 80)),
+  hurt: [hurtPose(5, 14, reach(18.0, 128.0))],
   oncePerAirtime: true,
   helpless: true,
 };
@@ -79,7 +86,7 @@ const FEINT_STEP_SPEED = f32(-17.0);
  * departure (f8-19). Frame 1 is the press tick; active 9 frames later for 3,
  * then 25 recovery; it spends nothing more.
  */
-const feintSlash: AuthoredSpecial = { cost: 0, endFrame: 37, motion: [{ ...frames(1, 1), velocityX: 0.0, velocityZ: 0.0 }], regions: cut(10, [52.0, 45.0, 38.0], L, hit(10.0, "EDGE", 40)) };
+const feintSlash: AuthoredSpecial = { cost: 0, endFrame: 37, hurt: [hurtPose(8, 16, LOW_CUT_ARM)], motion: [{ ...frames(1, 1), velocityX: 0.0, velocityZ: 0.0 }], regions: cut(10, [52.0, 45.0, 38.0], L, hit(10.0, "EDGE", 40)) };
 
 /**
  * Mirror Feint: a visible tell, then a 0.5H back step from f8, ending f24; 15

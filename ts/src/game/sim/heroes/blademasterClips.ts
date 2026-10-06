@@ -118,20 +118,5 @@ export const BLADEMASTER_CLIPS: { readonly [pose in HeroPose]: HeroClip } = {
   downSpecialAir: sequence("Stand - 4", f32(0.6)),
 };
 
-/** Poses outside the attack table: movement, guard and match moments. */
-export const BLADEMASTER_STATE_CLIPS = {
-  idle: COMBAT_STANCE,
-  walk: sequence("Walk"),
-  run: sequence("Walk"),
-  crouch: sequence("Stand cinematic", 2.0),
-  shield: COMBAT_STANCE,
-  fall: COMBAT_STANCE,
-  /** Mirror Feint's requested forward slash. */
-  feintSlash: sequence("Attack 2", aligned(THRUST, 10, 3, 25)),
-  victory: sequence("Stand Victory"),
-  defeat: sequence("Death"),
-  portrait: sequence("Portrait 1"),
-} as const;
-
 /** The idle a fighter without a mapped pose shows. */
 export const BLADEMASTER_FALLBACK_CLIP = COMBAT_STANCE;
