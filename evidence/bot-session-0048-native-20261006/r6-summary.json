@@ -1,0 +1,156 @@
+{
+  "build": "typescript-integrity",
+  "rollback_limit_frames": 24,
+  "four_fighters": false,
+  "helper_sha256": "cb3669c785c29065463c7ca5958479a7657169bef46e4e5d20029cc509515f7f",
+  "edges_injected_per_player": [
+    648,
+    648
+  ],
+  "lost": 0,
+  "duplicated": 0,
+  "reordered": 0,
+  "stuck": 0,
+  "expected_frame_both_clients": {
+    "correct": 1296,
+    "total": 1296,
+    "percent": 100
+  },
+  "local_start_minus_capture_frames": {
+    "n": 199,
+    "p50": 0,
+    "p95": 67,
+    "max": 118,
+    "distribution": {
+      "0": 169,
+      "27": 1,
+      "28": 1,
+      "30": 1,
+      "36": 2,
+      "37": 1,
+      "42": 1,
+      "45": 1,
+      "47": 1,
+      "48": 1,
+      "49": 1,
+      "51": 1,
+      "53": 1,
+      "54": 1,
+      "58": 2,
+      "63": 2,
+      "66": 2,
+      "67": 2,
+      "73": 1,
+      "81": 1,
+      "92": 2,
+      "104": 1,
+      "112": 1,
+      "118": 2
+    }
+  },
+  "local_frame_basis": "60 Hz service callbacks from map admission to first forward prediction; rollback replay excluded",
+  "legal_action_edges": 199,
+  "illegal_action_edges": 452,
+  "legal_actions_missing_first_prediction": 0,
+  "opponent_input_lateness_frames": {
+    "n": 1299,
+    "p50": 7,
+    "p95": 18,
+    "max": 23,
+    "distribution": {
+      "0": 62,
+      "1": 19,
+      "2": 44,
+      "3": 29,
+      "4": 127,
+      "5": 158,
+      "6": 153,
+      "7": 164,
+      "8": 159,
+      "9": 142,
+      "10": 43,
+      "11": 51,
+      "12": 13,
+      "13": 18,
+      "14": 14,
+      "15": 17,
+      "16": 10,
+      "17": 7,
+      "18": 19,
+      "19": 10,
+      "20": 8,
+      "21": 18,
+      "22": 9,
+      "23": 5
+    }
+  },
+  "rollback_depth_frames": {
+    "n": 295,
+    "p50": 9,
+    "p95": 22,
+    "max": 24,
+    "distribution": {
+      "3": 3,
+      "4": 1,
+      "5": 7,
+      "6": 19,
+      "7": 18,
+      "8": 52,
+      "9": 52,
+      "10": 71,
+      "11": 15,
+      "12": 22,
+      "13": 1,
+      "14": 6,
+      "15": 2,
+      "16": 3,
+      "18": 1,
+      "19": 2,
+      "20": 1,
+      "21": 2,
+      "22": 8,
+      "23": 5,
+      "24": 4
+    }
+  },
+  "prediction_stalls": {
+    "count": 96,
+    "longest_callbacks": 65
+  },
+  "injected_to_screen_ms": null,
+  "same_frame_5ms_taps": [
+    208,
+    197
+  ],
+  "final_checksums": {
+    "epoch-1-client-0": [
+      1665,
+      "264103:874330",
+      3
+    ],
+    "epoch-1-client-1": [
+      1665,
+      "264103:874330",
+      3
+    ],
+    "epoch-2-client-0": [
+      1408,
+      "25476:28451",
+      3
+    ],
+    "epoch-2-client-1": [
+      1408,
+      "25476:28451",
+      3
+    ]
+  },
+  "gates": {
+    "edges": true,
+    "expected_frame": true,
+    "local_start": false,
+    "checksums": true
+  },
+  "player_view_failures": [],
+  "evidence_failures": [],
+  "passed": false
+}

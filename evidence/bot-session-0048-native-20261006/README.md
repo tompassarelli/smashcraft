@@ -108,11 +108,43 @@ stopped by PID and A was relaunched through its launcher.
   replays moments saved 1 s and 25 s in exactly (headless-late-moment.txt).
   So the difference is between Warcraft's run and Bun's on the same rows.
 
-**#26 re-run, FAIL (no table).** `bun wisp parity capture` ran twice on the
-integrity build. Both times, P2 lost the first match's only stock (frames
-1221–1241, then 1167; winner P1 on both clients) before the workload's
-scheduled Start pause. The journey stopped with "integrity pause was not
-committed", so no capture.json was written.
+**#26 re-run, FAIL on local start (cause not separated from machine
+load).** The first two `bun wisp parity capture` runs on the integrity build
+produced no table:
+
+- Both times, P2 drifted off the stage on the first match's only stock, at
+  x 572 with 7% (frames 1221–1241, then 1167; winner P1 on both clients).
+- That was before the workload's scheduled Start pause, so the journey
+  stopped with "integrity pause was not committed".
+
+The workload now plays three stocks in every match (`35ba8147`;
+smashcraft:docs/native-bot-session.md). R6 is that workload on the same
+0.0.48 integrity build and helper. It completed both matches and produced
+the table (r6-integrity-table.md, r6-summary.json):
+
+| Metric | Result |
+| --- | --- |
+| Edges injected per player | 648 / 648 |
+| Lost / duplicated / reordered / stuck edges | 0 / 0 / 0 / 0 |
+| Edges applied at expected frame, both clients | 1296/1296 (100.0%) |
+| Local start − capture, frames p50 / p95 / max | 0 / 67 / 118 (n=199) — **gate fails** (needs ≤ 1) |
+| Opponent input lateness, frames p50 / p95 / max | 7 / 18 / 23 (n=1299) |
+| Rollback depth, frames p50 / p95 / max | 9 / 22 / 24 (n=295) |
+| Prediction stalls at 24-frame limit | 96; longest 65 callbacks |
+| Final checksums match | Yes (frames 1665 and 1408) |
+
+Gates: edges, expected frame and checksums pass; local start fails.
+
+All 30 late local starts are in the rematch, which has three fighters and no
+stalls. They range from 27 to 118 callbacks, on both clients. The first
+match, with its stalls and pause, had none (r6-late-local-starts.txt).
+607a640's run had 0/0/0, with 6 prediction stalls of at most 21 callbacks.
+
+R6 ran with the system load average near 20, because a soak's 4 workers
+were running in another lane. A rerun under an exclusive capacity lease was
+cancelled before it ran, so machine load and a 0.0.48 regression (#48's
+admission running ahead of prediction) are not yet told apart. #26 is
+re-run on 0.0.49.
 
 **wisp#15 box 3, FAIL.** F8 did not reach the map natively:
 
@@ -122,6 +154,8 @@ committed", so no capture.json was written.
 - One press during R1 on 0.0.48 saved nothing.
 
 View held on a pad (the helper's request) saved every moment above.
+Main has since moved the key to K (`216857c2`). Its native check moves to
+the 0.0.49 session.
 
 ## #17: what a human would report (R1, R2, R4: 3 matches and 3 rematches)
 
