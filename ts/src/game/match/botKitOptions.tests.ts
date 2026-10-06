@@ -4,6 +4,7 @@
 // matches start both fighters at a high percent, so launches send them off
 // the stage and the returns' options come up too.
 import { assertEquals, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { floorDiv } from "wisp/src/sim/intMath";
 import { clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { Character, HeroStatusKind, HippogryphKind, SpecialAction } from "../sim/codes";
@@ -39,7 +40,7 @@ type Counts = Record<string, number>;
 const count = (counts: Counts, option: string) => { counts[option] = (counts[option] ?? 0) + 1; };
 
 /** The option a hero action's form shows: a follow-up's index, the recall or the marked form. */
-const followUp = (f: Readonly<Fighter>): number => Math.floor(f.special.form / FOLLOW_UP_FORM) - 1;
+const followUp = (f: Readonly<Fighter>): number => floorDiv(f.special.form, FOLLOW_UP_FORM) - 1;
 
 /** Whether the fighter's grounded down special has a branch a shield press takes (Thunder Clap's Hold). */
 const dropsCharge = (f: Readonly<Fighter>): boolean => {
