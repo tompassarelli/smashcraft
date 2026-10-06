@@ -230,3 +230,15 @@ test("replaying Mountain King's specials from a restored snapshot reproduces eve
   assertEquals(firstFighterDifference(endOwner, owner, 3, 3), undefined);
   assertEquals(firstFighterDifference(endTarget, target, 3, 3), undefined);
 });
+
+test("Storm Rush stops at a raised shield or a body instead of carrying through it", () => {
+  for (const shielding of [true, false]) {
+    const { world, owner, target } = pair(f32(H * 1.0));
+    const guard = controls({ shield: shielding });
+    for (let f = 1; f <= 46; f++) {
+      frame(world, f === 1 ? side : controls(), guard);
+      assertLessThan(owner.motion.x, target.motion.x);
+    }
+    assertEquals(target.status.damage, shielding ? 0.0 : 12.0);
+  }
+});
