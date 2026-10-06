@@ -9,6 +9,10 @@ import * as assets from "./fighterAssetInfo";
 import { attackPose, characterClips, clipFor, grabActionPoses, ownAttackClip, specialClip } from "./fighterClips";
 import { WARDEN_MODEL_FILE, WARDEN_SEQUENCES } from "./heroes/wardenClips";
 import { characterModelScale } from "./modelScale";
+import { type FighterPose, advanceFighterPose, createFighterPose } from "./fighterPose";
+import { type Fighter, createFighter } from "../sim/fighter";
+import { neutralControls } from "../sim/roster";
+import { soloWorld } from "../sim/testWorld";
 
 test("the original fighters' tables play their packaged clips", () => {
   assertEquals(clipFor(Character.archer, "jab").index, assets.ARCHER_JAB_INDEX);
@@ -47,4 +51,36 @@ test("a hero plays its registered sequences and its fallback for any pose it lea
   assertEquals(FIGHTER_OBJECTS[warden].model, WARDEN_MODEL_FILE);
   assertEquals(FIGHTER_OBJECTS[warden].id, WARDEN_HERO.presentation.objectId);
   assertEquals(characterModelScale(warden), WARDEN_HERO.presentation.scale);
+});
+
+test("a hero table's state poses take over the states only Illidan has clips for", () => {
+  const s = WARDEN_SEQUENCES;
+  const step = (f: Fighter, pose: FighterPose, wasOut = false) => advanceFighterPose(pose, f, soloWorld(f), neutralControls(), wasOut, false, false, false);
+  const shielded = createFighter(Character.warden, 0.0, 1);
+  const pose = createFighterPose();
+  shielded.shield.raised = true;
+  step(shielded, pose);
+  assertEquals(pose.clipIndex, s.standChannel.index);
+  const dodging = createFighter(Character.warden, 0.0, 1);
+  dodging.motion.grounded = false;
+  dodging.dodge.airDodging = true;
+  const dodgePose = createFighterPose();
+  step(dodging, dodgePose);
+  assertEquals(dodgePose.clipIndex, s.dissipate.index);
+  const falling = createFighter(Character.warden, 0.0, 1);
+  falling.motion.grounded = false;
+  const fallPose = createFighterPose();
+  step(falling, fallPose);
+  assertEquals(fallPose.clipIndex, s.standReady.index);
+  assertEquals(fallPose.rate, 0.0);
+  falling.status.out = true;
+  step(falling, fallPose);
+  assertEquals(fallPose.clipIndex, s.death.index);
+  // The originals map none of these states, so a shielding archer keeps his named stand.
+  const archer = createFighter(Character.archer, 0.0, 1);
+  archer.shield.raised = true;
+  const archerPose = createFighterPose();
+  step(archer, archerPose);
+  assertEquals(archerPose.clipIndex, undefined);
+  assertEquals(archerPose.clipName, "stand");
 });

@@ -111,7 +111,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
     if (hadDashGrabWindow[slot] && f.ground.dashGrabWindow > 0 && !f.attack.dashGrab) f.ground.dashGrabWindow = Math.max(0, f.ground.dashGrabWindow - 1);
   }
   resolveAttacks(world);
-  advanceSpecials(world, stage, matchFrame);
+  advanceSpecials(world, stage, matchFrame, controls.inputs);
   updateProjectiles(world, stage, matchFrame);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;

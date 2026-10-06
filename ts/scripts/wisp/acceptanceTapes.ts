@@ -252,6 +252,22 @@ const COMPUTER: MatchScript = {
   rollbacks: [...every(120, 840, 120, 8), [837, 900]],
 };
 
+/** Lich's four specials, its free recovery and its frost normals near the Archer, replayed across each. */
+const LICH: MatchScript = {
+  characters: [Character.lich, Character.archer], stage: 0, stocks: 3, minutes: 0, frames: 480,
+  holds: [[
+    [20, 2, SPECIAL], [80, 4, TOWARD], [81, 2, SPECIAL], [150, 4, AWAY], [151, 2, SPECIAL], [220, 4, DOWN],
+    [221, 2, SPECIAL], [280, 3, JUMP], [292, 4, UP], [293, 2, SPECIAL], [360, 2, ATTACK], [380, 8, DOWN],
+    [382, 2, ATTACK], [400, 2, GRAB], [404, 4, TOWARD], [430, 2, C_RIGHT], [450, 3, JUMP], [456, 2, C_DOWN],
+  ], [
+    [40, 2, ATTACK], [100, 12, SHIELD_LEFT], [170, 2, ATTACK], [240, 2, ATTACK], [250, 2, ATTACK], [330, 2, GRAB],
+    [370, 10, SHIELD_RIGHT], [420, 2, ATTACK],
+  ]],
+  approaches: [[[340, 45]], [[1, 60], [130, 60], [200, 45], [310, 45], [410, 45]]],
+  rollbacks: [[24, 50], [84, 112], [228, 260], [296, 330], [452, 480]],
+  predictions: [[150, 162], [380, 392]],
+};
+
 /** Records the acceptance tapes by name, and checks they press every bound source. */
 export function generateTapes(): Map<string, string> {
   const pressed = [new Set<string>(), new Set<string>()];
@@ -272,6 +288,7 @@ export function generateTapes(): Map<string, string> {
       rollbacks: [...every(30, 470, 40, 8), [76, 100], [244, 290]], predictions: [[70, 86], [126, 140], [436, 450]],
     }])],
     ["computer", recordTape("A player against the computer on the raised decks, with replays.", [COMPUTER])],
+    ["lich", recordTape("Lich's specials, free recovery and normals against the Archer, with replays.", [LICH])],
     ["moving-platforms", recordTape("Moving decks, jumping, dropping through, predictions and rollback over complete path cycles.", [{
       characters: [Character.archer, Character.rifleman], stage: 3, stocks: 3, minutes: 0, frames: 620,
       holds: [[[1, 20, RIGHT, WALK], [30, 10, JUMP], [180, 3, DOWN], [240, 10, JUMP], [400, 10, JUMP]], [[1, 10, JUMP], [140, 3, DOWN], [300, 10, JUMP]]],

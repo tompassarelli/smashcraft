@@ -24,14 +24,24 @@ export interface FrameWindow {
 
 /**
  * Velocity the special sets on every frame of its window, in world units per
- * frame, facing-relative. Gravity and collision still apply to the next frame's
- * movement. With `aimedSpeed`, a stick held on entry (one of eight directions)
+ * frame, facing-relative. The next frame moves by exactly that velocity:
+ * no steering, drag, gravity or fall-speed cap, but stage collision still
+ * stops it. With `aimedSpeed`, a stick held on entry (one of eight directions)
  * replaces the authored direction at that speed; a neutral stick keeps it.
+ * With `aimedTilt`, an up or down aim instead turns the authored horizontal
+ * heading to that facing-relative unit direction (z for up, mirrored for
+ * down) at the same speed.
  */
 export interface SpecialMotion extends FrameWindow {
   readonly velocityX: number;
   readonly velocityZ: number;
   readonly aimedSpeed?: number | undefined;
+  readonly aimedTilt?: { readonly x: number; readonly z: number } | undefined;
+  /**
+   * Horizontal steering: the live stick's world-relative x, scaled to this
+   * many units per frame, is added to the authored velocity on each frame.
+   */
+  readonly driftSpeed?: number | undefined;
   /**
    * Forward travel ends just short of a raised shield or another fighter's body
    * instead of carrying into or through it (the roster's dash specials).
@@ -62,11 +72,24 @@ export interface SpecialProjectile {
   readonly limit: number;
   /** Removed when the owner's special is interrupted before it becomes active (Frost Nova's marker). */
   readonly cancelOnInterrupt?: boolean | undefined;
+  /**
+   * The offset used when the special was pressed toward the fighter's back;
+   * the fighter then keeps its facing instead of turning (Frost Nova's near placement).
+   */
+  readonly backOffsetX?: number | undefined;
+  /** Not placed when solid stage geometry lies between the owner's offsetZ height and the spawn point. */
+  readonly needsLineOfSight?: boolean | undefined;
 }
 
 export interface SpecialArmor extends FrameWindow {
   /** A hit of at most this damage applies its damage without its reaction; any hit consumes the armor. */
   readonly maxDamage: number;
+  /**
+   * A shell armed once on `first` that lasts through `last` even after the
+   * action ends; one hit consumes it, and the special cannot start while the
+   * fighter still has armor (Frost Armor).
+   */
+  readonly shell?: boolean | undefined;
 }
 
 export interface AuthoredSpecial {
@@ -88,6 +111,8 @@ export interface AuthoredSpecial {
   readonly helpless?: boolean | undefined;
   /** Landing during the action ends it with this landing lag; otherwise it continues on the ground. */
   readonly landingLag?: number | undefined;
+  /** Through this frame a held stick re-chooses the aim (eight directions); a neutral stick keeps the entry aim. */
+  readonly aimFrames?: number | undefined;
   /**
    * Bodies over brief frames (hurtPose(first, last, parts) with 1-based
    * frames); frames no pose covers use the standing body. Weapons stay out.

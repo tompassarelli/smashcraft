@@ -10,7 +10,7 @@
 // (Attack Slam leaps about 130 units, Dissipate rises) stay off poses whose
 // body the simulation keeps still, so the drawn body stays over its hurtbox.
 import { f32 } from "wisp/src/sim/f32";
-import type { HeroClip, HeroPose } from "./hero";
+import type { HeroClip, HeroPose, HeroStatePose } from "./hero";
 
 /** The model's sequences in index order, with their authored lengths in milliseconds. */
 export const BLADEMASTER_SEQUENCES = [
@@ -53,7 +53,7 @@ const COMBAT_STANCE = sequence("Stand Ready");
 const RECOIL = sequence("Death", f32(0.45));
 
 /** Every table pose; the stock model has no hit, jump, roll or ledge sequences, so those reuse the nearest readable one. */
-export const BLADEMASTER_CLIPS: { readonly [pose in HeroPose]: HeroClip } = {
+export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, HeroStatePose>]: HeroClip } = {
   idle: COMBAT_STANCE,
   walk: sequence("Walk"),
   jab: sequence("Attack 2", aligned(THRUST, 4, 2, 13)),
