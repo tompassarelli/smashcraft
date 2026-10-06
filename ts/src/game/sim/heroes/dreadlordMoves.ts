@@ -1,6 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import { HitElement, type HitEffect } from "../hitRegions";
 
 // smashcraft:docs/design/roster.md supplies timing, damage and outer reach.
@@ -63,12 +64,7 @@ function wingSweep(first: number, facing: number): readonly MoveRegion[] {
 
 const NO_LAUNCH = { growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
-export const DREADLORD_MOVES: FighterMoves = {
-  dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
-  smashMaxDamageMultiplier: 1.25,
-  maxPummels: 2,
-  normals: {
+const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
     [AttackStyle.jab]: heroMove(5, 2, 15, 0, rake(5, [46.0, 40.0], S, hit(4.0, "POKE", 35))),
     [AttackStyle.forwardTilt]: heroMove(9, 3, 22, 0, rake(9, [62.0, 46.0, 30.0], M, hit(10.0, "EDGE", 35))),
     [AttackStyle.forwardTiltUp]: heroMove(9, 3, 22, 0, rake(9, [95.0, 82.0, 70.0], M, hit(10.0, "EDGE", 35))),
@@ -138,7 +134,61 @@ export const DREADLORD_MOVES: FighterMoves = {
       capsule(14.0, 35.0, f32(GRAB - 12.0), 35.0, 12.0),
       capsule(14.0, 35.0, f32(GRAB - 12.0), 30.0, 12.0),
     ], { damage: 0.0, ...NO_LAUNCH })),
-  },
+};
+
+// The roster body (width 1.10, height 1.15 of the reference capsule) plus the
+// folded wings behind the shoulders: Dreadlord's large target.
+const TORSO = hurtPart(0.0, 4.0, 0.0, 103.0, 26.4);
+const FOLDED_WINGS = hurtPart(-18.0, 70.0, -30.0, 135.0, 16.0);
+const STAND: readonly HurtPart[] = [TORSO, FOLDED_WINGS];
+/** Frames the attacking limb or wing is drawn out before and after its strike. */
+const LIMB_LEAD = 2;
+const LIMB_TRAIL = 4;
+/** A touch thinner than the strike, so a mirrored limb-on-limb meeting trades rather than whiffs. */
+const LIMB_INSET = 2.0;
+
+/**
+ * Dreadlord carries no weapon, so nothing he swings is disjointed: every claw,
+ * wing, horn and elbow path is also his body from late startup through early
+ * recovery (roster "Weapon-only extensions can be disjointed").
+ */
+function attachedLimbs(move: Readonly<AuthoredMove>): readonly HurtPose[] {
+  let first = move.totalFrames;
+  let last = -1;
+  for (const region of move.regions) {
+    first = Math.min(first, region.firstFrame);
+    last = Math.max(last, region.lastFrame);
+  }
+  const poses: HurtPose[] = [];
+  for (let frame = Math.max(0, first - LIMB_LEAD); frame <= Math.min(move.totalFrames - 1, last + LIMB_TRAIL); frame++) {
+    const drawn = Math.min(Math.max(frame, first), last);
+    const parts: HurtPart[] = [...STAND];
+    for (const region of move.regions) {
+      const strike = region.hit.strike;
+      if (strike === undefined || drawn < region.firstFrame || drawn > region.lastFrame) continue;
+      parts.push(hurtPart(strike.x1, strike.z1, strike.x2, strike.z2, f32(strike.radius - LIMB_INSET)));
+    }
+    poses.push(hurtPose(frame, frame, parts));
+  }
+  return poses;
+}
+
+function attachedBodies(): FighterHurtboxes {
+  const attacks: { [style: number]: readonly HurtPose[] | undefined } = {};
+  for (let style = AttackStyle.jab; style <= AttackStyle.dashAttack; style++) {
+    const move = NORMALS[style];
+    if (move !== undefined) attacks[style] = attachedLimbs(move);
+  }
+  return { stand: STAND, attacks };
+}
+
+export const DREADLORD_MOVES: FighterMoves = {
+  dashAttack: AttackStyle.dashAttack,
+  smashMaxChargeFrames: 45,
+  smashMaxDamageMultiplier: 1.25,
+  maxPummels: 2,
+  normals: NORMALS,
+  hurtboxes: attachedBodies(),
   throws: {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 1.0, ...NO_LAUNCH } },
     [GrabAction.throwForward]: { contactFrame: 12, totalFrames: 32, effect: hit(8.0, "EDGE", 35) },

@@ -209,3 +209,51 @@ test("Dreadlord throws hold until the adopted release and launch once in both fa
     }
   }
 });
+
+/** Damage a Rifleman jab tip deals to a Dreadlord body posed at `style`/`frame`, with its limb pointing toward the jab. */
+function jabIntoDreadlord(style: AttackStyle | undefined, frame: number, gap: number, behind = false): number {
+  const attacker = createFighter(Character.rifleman, 0.0, 1);
+  const target = createFighter(Character.archer, gap, behind ? 1 : -1);
+  target.tuning.moves = DREADLORD_MOVES;
+  const world = testWorld(attacker, target);
+  beginFighterAttack(world, 0, AttackStyle.jab, false);
+  attacker.attack.frame = attackStartupFrames(AttackStyle.jab, attacker.tuning.moves);
+  target.attack.style = style;
+  target.attack.frame = frame;
+  resolveAttacks(world);
+  return target.status.damage;
+}
+
+test("Dreadlord's claws and wings are attached body: no strike of his is disjointed", () => {
+  for (const [style, first, active] of NORMAL_TIMINGS) {
+    const move = DREADLORD_MOVES.normals[style];
+    const hurt = DREADLORD_MOVES.hurtboxes?.attacks[style];
+    assertTrue(move !== undefined && hurt !== undefined);
+    if (move === undefined || hurt === undefined) continue;
+    for (const region of move.regions) {
+      const strike = region.hit.strike;
+      if (strike === undefined) continue;
+      const pose = hurt.find(candidate => candidate.firstFrame === region.firstFrame);
+      assertTrue(pose !== undefined);
+      if (pose === undefined) continue;
+      const limb = pose.parts.find(part => part.x2 === strike.x2 && part.z2 === strike.z2);
+      assertTrue(limb !== undefined);
+      if (limb !== undefined) assertEquals(limb.radius, f32(strike.radius - 2.0));
+    }
+    // Drawn out from two frames before the first active frame through four after the last.
+    assertEquals(hurt[0]?.firstFrame, first - 3);
+    assertEquals(hurt[hurt.length - 1]?.lastFrame, first + active + 2);
+  }
+});
+
+test("Dreadlord's extended arm and wing can be hit where his standing body cannot", () => {
+  // Rifleman's jab reaches past the standing body at this gap but not to it.
+  const gap = 150.0;
+  assertEquals(jabIntoDreadlord(undefined, 0, gap), 0.0);
+  assertGreaterThan(jabIntoDreadlord(AttackStyle.forwardTilt, 8, gap), 0.0);
+  assertGreaterThan(jabIntoDreadlord(AttackStyle.forwardAir, 9, gap), 0.0);
+  // Well after recovery begins the arm is folded back.
+  assertEquals(jabIntoDreadlord(AttackStyle.forwardTilt, 20, gap), 0.0);
+  // Back air exposes the wing behind him.
+  assertGreaterThan(jabIntoDreadlord(AttackStyle.backAir, 8, gap, true), 0.0);
+});
