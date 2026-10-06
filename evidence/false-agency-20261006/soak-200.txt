@@ -1,0 +1,184 @@
+smashcraft soak: 200 matches in 4 workers, at most 10 min, seed 1; repro files in SOAK_OUT
+match 10: rifleman vs illidan on sky-deck, fuzz/cpu, seed 384604742
+  cost after frame 214: 2 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 91, 29.3 ms then 28.3 ms, 27.8 ms of it taking typed text
+  repro: SOAK_OUT/match-10.json
+match 8: rifleman vs rifleman on sky-deck, fuzz/cpu, seed 1129173382
+  cost after frame 978: 1 client frame cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 379, 41.8 ms then 41.5 ms, 41.2 ms of it taking typed text
+  repro: SOAK_OUT/match-8.json
+match 24: rifleman vs archer on sky-deck, fuzz/fuzz, seed 1724576627
+  cost after frame 327: 9 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 235, 173.3 ms then 173.6 ms, 172.3 ms of it taking typed text
+  repro: SOAK_OUT/match-24.json
+match 19: archer vs archer on three-bridges, fuzz/fuzz, seed 2004080543
+  cost after frame 904: 2 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 370, 24.5 ms then 23.9 ms, 23.1 ms of it taking typed text
+  repro: SOAK_OUT/match-19.json
+match 26: rifleman vs rifleman on sky-deck, fuzz/fuzz, seed 707436660
+  cost after frame 555: 7 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 277, 122.8 ms then 123.0 ms, 122.5 ms of it taking typed text
+  repro: SOAK_OUT/match-26.json
+match 30: illidan vs archer on sky-deck, fuzz/fuzz, seed 1873651979
+  cost after frame 498: 1 client frame cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 124, 27.5 ms then 25.1 ms, 24.4 ms of it taking typed text
+  repro: SOAK_OUT/match-30.json
+match 32: illidan vs rifleman on sky-deck, fuzz/fuzz, seed 1324811574
+  cost after frame 666: 8 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 349, 127.3 ms then 127.2 ms, 126.5 ms of it taking typed text
+  repro: SOAK_OUT/match-32.json
+match 33: illidan vs rifleman on three-bridges, fuzz/fuzz, seed 63964541
+  cost after frame 1002: 4 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 343, 50.0 ms then 49.9 ms, 49.3 ms of it taking typed text
+  repro: SOAK_OUT/match-33.json
+match 35: illidan vs illidan on three-bridges, fuzz/fuzz, seed 1244615087
+  cost after frame 933: 3 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 221, 90.8 ms then 90.7 ms, 90.3 ms of it taking typed text
+  repro: SOAK_OUT/match-35.json
+match 29: rifleman vs illidan on three-bridges, fuzz/fuzz, seed 1262832694
+  cost after frame 2332: 15 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 1855, 124.5 ms then 124.4 ms, 123.5 ms of it taking typed text
+  repro: SOAK_OUT/match-29.json
+match 54: archer vs archer on sky-deck, cpu/fuzz, seed 1027835841
+  cost after frame 583: 7 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 349, 116.4 ms then 116.4 ms, 116.2 ms of it taking typed text
+  repro: SOAK_OUT/match-54.json
+match 60: rifleman vs archer on sky-deck, cpu/fuzz, seed 330961341
+  cost after frame 823: 5 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 46, 61.5 ms then 61.4 ms, 60.9 ms of it taking typed text
+  repro: SOAK_OUT/match-60.json
+match 57: archer vs rifleman on three-bridges, cpu/fuzz, seed 1769460406
+  cost after frame 938: 4 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 781, 59.7 ms then 59.3 ms, 58.8 ms of it taking typed text
+  repro: SOAK_OUT/match-57.json
+match 68: illidan vs rifleman on sky-deck, cpu/fuzz, seed 1897419522
+  cost after frame 532: 5 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 397, 51.5 ms then 51.4 ms, 51.2 ms of it taking typed text
+  repro: SOAK_OUT/match-68.json
+match 67: illidan vs archer on three-bridges, cpu/fuzz, seed 749574318
+  cost after frame 591: 3 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 439, 36.8 ms then 37.0 ms, 36.2 ms of it taking typed text
+  repro: SOAK_OUT/match-67.json
+match 63: rifleman vs rifleman on three-bridges, cpu/fuzz, seed 1438161918
+  cost after frame 1408: 4 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 217, 175.0 ms then 175.4 ms, 174.6 ms of it taking typed text
+  repro: SOAK_OUT/match-63.json
+match 75: archer vs rifleman on three-bridges, fuzz/absent, seed 286488288
+  cost after frame 1444: 6 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 655, 108.9 ms then 108.8 ms, 107.6 ms of it taking typed text
+  repro: SOAK_OUT/match-75.json
+match 78: rifleman vs archer on sky-deck, fuzz/absent, seed 819751902
+  cost after frame 2809: 12 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 763, 91.0 ms then 91.1 ms, 90.7 ms of it taking typed text
+  repro: SOAK_OUT/match-78.json
+match 83: rifleman vs illidan on three-bridges, fuzz/absent, seed 1591883013
+  cost after frame 1523: 9 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 679, 128.5 ms then 128.4 ms, 128.0 ms of it taking typed text
+  repro: SOAK_OUT/match-83.json
+match 79: rifleman vs archer on three-bridges, fuzz/absent, seed 710381820
+  cost after frame 2973: 6 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 799, 128.2 ms then 128.2 ms, 128.0 ms of it taking typed text
+  repro: SOAK_OUT/match-79.json
+match 84: illidan vs archer on sky-deck, fuzz/absent, seed 525063569
+  cost after frame 2439: 3 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 1723, 104.2 ms then 104.5 ms, 104.0 ms of it taking typed text
+  repro: SOAK_OUT/match-84.json
+match 85: illidan vs archer on three-bridges, fuzz/absent, seed 741537305
+  cost after frame 1909: 7 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 1021, 125.2 ms then 125.3 ms, 125.0 ms of it taking typed text
+  repro: SOAK_OUT/match-85.json
+match 87: illidan vs rifleman on three-bridges, fuzz/absent, seed 376693919
+  cost after frame 2044: 4 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 649, 78.1 ms then 78.1 ms, 77.6 ms of it taking typed text
+  repro: SOAK_OUT/match-87.json
+match 86: illidan vs rifleman on sky-deck, fuzz/absent, seed 489821459
+  cost after frame 3402: 9 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 3025, 125.9 ms then 125.5 ms, 123.5 ms of it taking typed text
+  repro: SOAK_OUT/match-86.json
+match 90: archer vs archer on sky-deck, absent/fuzz, seed 1283933991
+  cost after frame 1119: 9 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 221, 100.4 ms then 100.3 ms, 99.9 ms of it taking typed text
+  repro: SOAK_OUT/match-90.json
+match 92: archer vs rifleman on sky-deck, absent/fuzz, seed 1703605857
+  cost after frame 1942: 3 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 295, 95.6 ms then 95.5 ms, 94.2 ms of it taking typed text
+  repro: SOAK_OUT/match-92.json
+match 95: archer vs illidan on three-bridges, absent/fuzz, seed 1161707762
+  cost after frame 732: 2 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 403, 76.2 ms then 76.3 ms, 76.0 ms of it taking typed text
+  repro: SOAK_OUT/match-95.json
+match 94: archer vs illidan on sky-deck, absent/fuzz, seed 850191092
+  cost after frame 3073: 11 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 1975, 132.6 ms then 132.7 ms, 131.6 ms of it taking typed text
+  repro: SOAK_OUT/match-94.json
+match 96: rifleman vs archer on sky-deck, absent/fuzz, seed 1702389038
+  cost after frame 1158: 11 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 883, 132.3 ms then 131.9 ms, 131.6 ms of it taking typed text
+  repro: SOAK_OUT/match-96.json
+match 100: rifleman vs illidan on sky-deck, absent/fuzz, seed 537251398
+  cost after frame 1468: 7 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 1309, 150.3 ms then 150.3 ms, 150.2 ms of it taking typed text
+  repro: SOAK_OUT/match-100.json
+match 98: rifleman vs rifleman on sky-deck, absent/fuzz, seed 636013249
+  cost after frame 2536: 1 client frame cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 193, 77.5 ms then 77.5 ms, 76.8 ms of it taking typed text
+  repro: SOAK_OUT/match-98.json
+match 102: illidan vs archer on sky-deck, absent/fuzz, seed 381614118
+  cost after frame 1002: 5 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 799, 57.9 ms then 57.7 ms, 57.1 ms of it taking typed text
+  repro: SOAK_OUT/match-102.json
+match 104: illidan vs rifleman on sky-deck, absent/fuzz, seed 174530491
+  cost after frame 1218: 5 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 769, 144.3 ms then 144.4 ms, 144.2 ms of it taking typed text
+  repro: SOAK_OUT/match-104.json
+match 111: archer vs rifleman on three-bridges, fuzz/cpu, seed 955800050
+  cost after frame 854: 2 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 781, 48.7 ms then 49.0 ms, 48.4 ms of it taking typed text
+  repro: SOAK_OUT/match-111.json
+match 106: illidan vs illidan on sky-deck, absent/fuzz, seed 214631369
+  cost after frame 1695: 2 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 1111, 95.3 ms then 95.3 ms, 94.6 ms of it taking typed text
+  repro: SOAK_OUT/match-106.json
+match 117: rifleman vs rifleman on three-bridges, fuzz/cpu, seed 850411179
+  cost after frame 509: 5 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 145, 79.8 ms then 79.5 ms, 78.8 ms of it taking typed text
+  repro: SOAK_OUT/match-117.json
+match 121: illidan vs archer on three-bridges, fuzz/cpu, seed 745830564
+  cost after frame 220: 5 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 79, 79.4 ms then 79.4 ms, 79.2 ms of it taking typed text
+  repro: SOAK_OUT/match-121.json
+match 128: archer vs rifleman on sky-deck, fuzz/fuzz, seed 827195081
+  cost after frame 440: 3 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 361, 91.8 ms then 92.1 ms, 91.2 ms of it taking typed text
+  repro: SOAK_OUT/match-128.json
+match 107: illidan vs illidan on three-bridges, absent/fuzz, seed 1009699871
+  cost after frame 3255: 4 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 1909, 148.2 ms then 148.2 ms, 148.0 ms of it taking typed text
+  repro: SOAK_OUT/match-107.json
+match 127: archer vs archer on three-bridges, fuzz/fuzz, seed 1087038649
+  cost after frame 846: 15 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 361, 141.7 ms then 141.6 ms, 141.0 ms of it taking typed text
+  repro: SOAK_OUT/match-127.json
+match 133: rifleman vs archer on three-bridges, fuzz/fuzz, seed 633740156
+  cost after frame 624: 4 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 547, 81.9 ms then 82.0 ms, 81.6 ms of it taking typed text
+  repro: SOAK_OUT/match-133.json
+match 131: archer vs illidan on three-bridges, fuzz/fuzz, seed 139806467
+  cost after frame 1359: 6 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 451, 102.8 ms then 102.8 ms, 102.6 ms of it taking typed text
+  repro: SOAK_OUT/match-131.json
+match 135: rifleman vs rifleman on three-bridges, fuzz/fuzz, seed 1256828245
+  cost after frame 360: 1 client frame cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 278, 45.1 ms then 45.4 ms, 44.7 ms of it taking typed text
+  repro: SOAK_OUT/match-135.json
+match 130: archer vs illidan on sky-deck, fuzz/fuzz, seed 1410630633
+  cost after frame 2170: 6 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 955, 108.8 ms then 109.0 ms, 107.6 ms of it taking typed text
+  repro: SOAK_OUT/match-130.json
+match 140: illidan vs rifleman on sky-deck, fuzz/fuzz, seed 309504343
+  cost after frame 2106: 6 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 721, 123.4 ms then 123.3 ms, 123.0 ms of it taking typed text
+  repro: SOAK_OUT/match-140.json
+match 170: rifleman vs rifleman on sky-deck, cpu/fuzz, seed 224451631
+  cost after frame 691: 4 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 97, 119.9 ms then 120.1 ms, 119.6 ms of it taking typed text
+  repro: SOAK_OUT/match-170.json
+match 173: rifleman vs illidan on three-bridges, cpu/fuzz, seed 149451335
+  cost after frame 978: 11 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 535, 187.5 ms then 187.4 ms, 186.1 ms of it taking typed text
+  repro: SOAK_OUT/match-173.json
+match 183: archer vs rifleman on three-bridges, fuzz/absent, seed 1009688969
+  cost after frame 658: 4 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 595, 84.5 ms then 84.8 ms, 83.6 ms of it taking typed text
+  repro: SOAK_OUT/match-183.json
+match 182: archer vs rifleman on sky-deck, fuzz/absent, seed 872476466
+  cost after frame 1317: 5 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 259, 138.1 ms then 138.0 ms, 137.8 ms of it taking typed text
+  repro: SOAK_OUT/match-182.json
+match 188: rifleman vs rifleman on sky-deck, fuzz/absent, seed 1630583211
+  cost after frame 634: 6 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 565, 136.0 ms then 135.9 ms, 135.2 ms of it taking typed text
+  repro: SOAK_OUT/match-188.json
+match 184: archer vs illidan on sky-deck, fuzz/absent, seed 1554853934
+  cost after frame 1547: 3 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 511, 111.6 ms then 111.9 ms, 110.9 ms of it taking typed text
+  repro: SOAK_OUT/match-184.json
+match 189: rifleman vs rifleman on three-bridges, fuzz/absent, seed 311548337
+  cost after frame 1588: 2 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 325, 54.0 ms then 54.0 ms, 53.1 ms of it taking typed text
+  repro: SOAK_OUT/match-189.json
+match 190: rifleman vs illidan on sky-deck, fuzz/absent, seed 2069279033
+  cost after frame 2800: 3 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 1327, 81.7 ms then 81.4 ms, 80.8 ms of it taking typed text
+  repro: SOAK_OUT/match-190.json
+match 186: rifleman vs archer on sky-deck, fuzz/absent, seed 146904010
+  cost after frame 3774: 7 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 3451, 158.8 ms then 158.8 ms, 158.5 ms of it taking typed text
+  repro: SOAK_OUT/match-186.json
+match 192: illidan vs archer on sky-deck, fuzz/absent, seed 294761194
+  cost after frame 3390: 6 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 775, 102.1 ms then 102.1 ms, 100.8 ms of it taking typed text
+  repro: SOAK_OUT/match-192.json
+match 194: illidan vs rifleman on sky-deck, fuzz/absent, seed 511699934
+  cost after frame 1306: 3 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 463, 135.7 ms then 135.6 ms, 135.2 ms of it taking typed text
+  repro: SOAK_OUT/match-194.json
+match 199: archer vs archer on three-bridges, absent/fuzz, seed 1745343698
+  cost after frame 528: 4 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p1's frame 439, 111.8 ms then 111.7 ms, 111.4 ms of it taking typed text
+  repro: SOAK_OUT/match-199.json
+match 195: illidan vs rifleman on three-bridges, fuzz/absent, seed 2058089967
+  cost after frame 2047: 9 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 265, 115.6 ms then 116.2 ms, 114.7 ms of it taking typed text
+  repro: SOAK_OUT/match-195.json
+match 197: illidan vs illidan on three-bridges, fuzz/absent, seed 969912588
+  cost after frame 1404: 3 client frames cost more than 16.7 ms in the match and again in its replay; the worst, p0's frame 295, 78.2 ms then 78.5 ms, 77.2 ms of it taking typed text
+  repro: SOAK_OUT/match-197.json
+  75.827 s  200 matches (75.810 s)
+200 matches, 193,416 frames (55.0 game minutes) in 75.8 s with 4 workers (4 started): 44x real time, 407.3 s CPU
+costliest client frame 29.4 ms; 59 findings (cost) in 59 matches, repro files in SOAK_OUT
+  75.831 s  soak failed (75.831 s)
+59 findings in 59 matches
+error: script "wisp" exited with code 1

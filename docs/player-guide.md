@@ -11,6 +11,13 @@ or opponent, and falling off the stage respawns you without ending the session.
 Press Y to pause, then Escape to return to fighter selection. Place the CPU
 chip before starting when you want a bot match instead.
 
+At fighter selection, any player can change Stocks, Time, Endless and
+Automatic rematch. No time limit removes the clock. Endless also removes
+the stock limit; pause and press Escape to leave. Automatic rematch keeps
+the same fighters, stage and rules, with a visible five-second countdown
+after the result. A player can stop it with a menu control, then choose the
+next match. It starts off.
+
 ## Menus and controls
 
 Mouse buttons and W/R + N select a fighter or stage; U goes back. Drag a

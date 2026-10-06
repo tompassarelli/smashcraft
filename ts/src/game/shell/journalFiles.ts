@@ -115,9 +115,9 @@ export function failureFile({ build, epoch, slot }: JournalIdentity, reason: str
 }
 
 /** Confirms a dev command on this client, so automation knows every client holds it. */
-export function devReceiptFile({ build, epoch, slot }: JournalIdentity, receipt: number, { rollback, delay, batch }: Readonly<DevSettings>): PreloadFile {
+export function devReceiptFile({ build, epoch, slot }: JournalIdentity, receipt: number, { rollback, delay, batch, rematchSeconds }: Readonly<DevSettings>): PreloadFile {
   return {
     name: devCommandReceiptFile(build, slot),
-    lines: [`SMASHCRAFT DEV v=1 build=${build} receipt=${receipt} epoch=${epoch} rb=${rollback} delay=${delay} batch=${batch} `],
+    lines: [`SMASHCRAFT DEV v=1 build=${build} receipt=${receipt} epoch=${epoch} rb=${rollback} delay=${delay} batch=${batch} rematchSeconds=${rematchSeconds} `],
   };
 }

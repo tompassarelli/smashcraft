@@ -405,6 +405,9 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   }
   int("match.stockCount", match.stockCount);
   int("match.timeLimitMinutes", match.timeLimitMinutes);
+  bool("match.endless", match.endless);
+  bool("match.automaticRematch", match.automaticRematch);
+  int("match.rematchCountdown", match.rematchCountdown);
   int("match.remainingFrames", match.remainingFrames);
   bool("match.timedOut", match.timedOut);
   bool("match.practice", match.practice);

@@ -5,8 +5,10 @@ movement and recovery values, 14 common values reported by the decompile's
 annotations, and 78 selected retail common values across 29 gameplay groups.
 It also records fourteen additional common shield, wall-recovery and wall-jump
 fields, five retail wall-recovery attributes each for Fox, Falco and Captain
-Falcon, and Captain Falcon's air drift attributes. It remains a partial factual reference, not a complete
-common table or a simulation oracle.
+Falcon, Captain Falcon's air drift attributes, and each of the three
+fighters' airborne ECB top, read from its model's joint tree. It remains a
+partial factual reference, not a complete common table or a simulation
+oracle.
 
 On 2026-10-03, the complete public Fox and Falco DAT JSON documents were fetched
 from https://melee.theshoemaker.de/dat-dumps/Fox.json and

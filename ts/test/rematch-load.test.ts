@@ -37,22 +37,22 @@ const helpers = new JournalHelpers(PLAYABLE_BUILD.id);
 const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged }, declarations);
 afterAll(headless.restore);
 
-/** History rows each reconcile read, per call, and the corrections that replayed frames. */
+/** History rows each reconciliation read, per call, and the corrections that changed rows. */
 const rowsRead: number[] = [];
 let corrections = 0;
 const copyInputRow = ReplayHistory.prototype.copyInputRow;
-const reconcile = ShadowInputPlayback.prototype.reconcile;
+const amend = ShadowInputPlayback.prototype.amend;
 afterAll(() => {
   ReplayHistory.prototype.copyInputRow = copyInputRow;
-  ShadowInputPlayback.prototype.reconcile = reconcile;
+  ShadowInputPlayback.prototype.amend = amend;
 });
 ReplayHistory.prototype.copyInputRow = function (this: ReplayHistory, ...args: Parameters<typeof copyInputRow>) {
   rowsRead[rowsRead.length - 1]++;
   return copyInputRow.apply(this, args);
 };
-ShadowInputPlayback.prototype.reconcile = function (this: ShadowInputPlayback, ...args: Parameters<typeof reconcile>) {
+ShadowInputPlayback.prototype.amend = function (this: ShadowInputPlayback, ...args: Parameters<typeof amend>) {
   rowsRead.push(0);
-  const result = reconcile.apply(this, args);
+  const result = amend.apply(this, args);
   if (typeof result === "number") corrections++;
   return result;
 };
@@ -191,11 +191,11 @@ test("a match and its three-fighter rematch show each pooled fighter whole where
   const play = (workload: Workload) => {
     for (const slot of [0, 1]) clients.press(slot, Key.n);
     frames(5);
+    clients.everywhere(() => {
+      while (shell().game.stockCount > 1) panelActions().selection.changeStocks(1, -1);
+    });
     clients.press(0, Key.y);
     until("stage menu", () => phase() === Phase.stageMenu, 30);
-    clients.everywhere(() => {
-      while (shell().game.stockCount > 1) panelActions().stage.changeStocks(1, -1);
-    });
     helpers.workload = workload;
     clients.press(0, Key.y);
     until("match", () => phase() === Phase.match, 30);

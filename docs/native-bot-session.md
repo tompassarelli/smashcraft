@@ -13,9 +13,13 @@ The session has a match and a rematch:
 
 - Slot C becomes a computer Demon Hunter. `--bot-four` adds a computer
   Archer in slot D, for four fighters.
-- The match timer is one minute; matches use their normal stocks. The
-  match plays Sky Deck. Before the rematch, slot 0's stick switches the
-  stage screen to Three Bridges, so a session shows both stages.
+- On fighter selection, client B sets one stock and one minute, then turns
+  Automatic rematch on; both clients must show it. The match and its automatic
+  rematch play Sky Deck with the same fighters and settings, with no menu
+  presses between matches. A development/integrity build uses `-dev rematch 20`
+  so response export finishes during the visible countdown. The final result
+  cancels the countdown with Escape before collecting evidence. A playable
+  build uses its ordinary five-second countdown.
 - Both pads play a beat every 400 ms: 5 ms taps of A, Y and X, a 200 ms
   left-trigger shield, 300 ms full-tilt dashes right and left, and 100 ms
   full-tilt C-stick flicks right, up, left and down. Each edge's phase
@@ -29,7 +33,7 @@ The session has a match and a rematch:
 - On a development or integrity build, each match exports its response
   pages after its trace, so its presses can be reconciled like #26's.
 - `--bot-four` leaves the rematch undisturbed and types `-dev perf` into
-  client A before it, so the frame-cost overlay shows a four-fighter match
+  client A just after its automatic start, so the frame-cost overlay shows a four-fighter match
   (development and integrity builds only).
 - `--bot-perf` does the same with the three fighters of `--bot`, so a
   session measures both the matches `bun wisp perf bot` and `perf bot-four`
@@ -77,13 +81,16 @@ From smashcraft:ts/:
   counts presses, the actions they cover, lost and extra edges, and edges
   applied off their frame. It also gives each legal press's local start:
   callbacks from the presser's client capturing it to that client first
-  predicting it. Presses made while the presser's own game or helper was
-  stopped are reported apart from the gate. So are presses made while the
-  other player's was stopped, and presses in the second after a stop.
-  `worst_gated_presses` names the latest ones by capture, match, slot and
-  frame. A legal press whose first prediction didn't start its action has
-  no local start; `confirmedAfter` gives the callbacks until the confirmed
-  frame showed it.
+  predicting it. The gate leaves out presses made while the presser's own
+  game or helper was stopped, and presses the presser's client captured
+  while a remote row 24 frames behind held its prediction (the probe's
+  `held` rows); both are reported apart (`by_stall.own`,
+  `prediction_held`). Presses made while the other player's process was
+  stopped, and those in the second after a stop, are gated and also listed
+  apart. `worst_gated_presses` names the latest ones by capture, match, slot
+  and frame. A legal press whose first prediction didn't start its action
+  has no local start; `confirmedAfter` gives the callbacks until the
+  confirmed frame showed it. It exits 1 when the gate fails.
 
 Input delay here is how many frames a helper has journaled by its own
 clock beyond the last frame its client consumed. It is read at the helper's

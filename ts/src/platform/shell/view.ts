@@ -6,12 +6,12 @@ import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL } from "../../game/assets/stage
 import { f32 } from "wisp/src/sim/f32";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
 import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
-import { Phase, remainingSeconds } from "../../game/match/rules";
+import { Phase, remainingSeconds, timedMatch } from "../../game/match/rules";
 import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../game/presentation/arenaCamera";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import type { FighterPose } from "../../game/presentation/fighterPose";
 import { type MapBuild, journalIngress } from "../../game/shell/build";
-import { MOMENT_SAVED_MESSAGE, type StartControl, fighterLabel, matchHelp, waitingMessage } from "../../game/shell/messages";
+import { MOMENT_SAVED_MESSAGE, type StartControl, fighterLabel, matchHelp, resultNotice, waitingMessage } from "../../game/shell/messages";
 import { isIntangible } from "../../game/sim/conditions";
 import { type Roster, fighterAt, isActive } from "../../game/sim/roster";
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "../../game/sim/stage";
@@ -89,7 +89,7 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   if (wasOut && !fighter.status.out) ShowUnit(body.unit, true);
   else if (!wasOut && fighter.status.out) {
     ShowUnit(body.unit, false);
-    if (fighter.status.stocks > 0) announce(s, `${fighterLabel(s.game, slot)} lost a stock!`);
+    if (fighter.status.stocks > 0) announce(s, `${fighterLabel(s.game, slot)} ${s.game.endless ? "was knocked out" : "lost a stock"}!`);
   }
   const { pooled } = participant;
   if (pooled) ShowUnit(body.unit, false);
@@ -208,12 +208,12 @@ export function renderUi(s: ShellState): void {
   for (const slot of PARTICIPANT_SLOTS) {
     if (s.participants[slot].body !== undefined && isActive(s.world, slot)) {
       const fighter = fighterAt(s.world, slot);
-      ui.huds[slot].update(showMatch, fighter.character, fighter.status.damage, fighter.status.stocks);
+      ui.huds[slot].update(showMatch, fighter.character, fighter.status.damage, s.game.endless ? 0 : fighter.status.stocks);
     } else ui.huds[slot].update(false, 0, 0.0, 0);
     ui.selections[slot].update(game, ui.settings[slot].isOpen());
     ui.settings[slot].update();
   }
-  ui.clock.update(showMatch && game.timeLimitMinutes > 0, remainingSeconds(game));
+  ui.clock.update(showMatch && timedMatch(game), remainingSeconds(game));
   const { help, notice, developer } = s.frames;
   BlzFrameSetVisible(help, showMatch);
   BlzFrameSetVisible(notice, showMatch);
@@ -223,7 +223,7 @@ export function renderUi(s: ShellState): void {
     const waiting = game.phase === Phase.match ? activeRollback(s)?.waitingFor ?? 0 : 0;
     BlzFrameSetText(notice, waiting !== 0 ? waitingMessage(waiting)
       : localFighter?.attack.smashCharging === true ? "Charging smash: release Attack to strike."
-      : s.moment.notice > 0 ? MOMENT_SAVED_MESSAGE : s.status.seconds > 0 ? s.status.text : "");
+      : s.moment.notice > 0 ? MOMENT_SAVED_MESSAGE : resultNotice(game, s.status.seconds > 0 ? s.status.text : ""));
   }
   ui.stage.update(game);
   if (developer === undefined || local === undefined || localFighter === undefined) return;

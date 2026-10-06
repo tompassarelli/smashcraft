@@ -114,6 +114,11 @@ export class FixedInputSchedule {
     return this.ledger.receive(sender, wire);
   }
 
+  /** The last frame through which every row of `sender` is accepted. */
+  acceptedThrough(sender: number): number {
+    return this.ledger.acceptedThrough(sender);
+  }
+
   mayAdvance(): boolean {
     return this.current !== undefined && this.next <= INPUT_LAST_FRAME && this.next <= this.ledger.knownThrough();
   }
