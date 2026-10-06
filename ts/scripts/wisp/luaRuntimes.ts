@@ -8,11 +8,6 @@ import { join } from "node:path";
 import { Effect } from "effect";
 import { luaRounding, towardZeroLua } from "wisp/scripts/wisp/towardZeroLua";
 
-export interface LuaRuntimes {
-  readonly nearest: string;
-  readonly towardZero: string;
-}
-
 /** The stock and toward-zero Luas, each checked to round as named; fails with what is wrong. */
 export const luaRuntimes = (ts: string) => Effect.gen(function*() {
   const nearest = process.env.LUA ?? "lua";
@@ -22,5 +17,5 @@ export const luaRuntimes = (ts: string) => Effect.gen(function*() {
   const towardZero = given ?? (yield* towardZeroLua(join(ts, "build/toward-zero-lua")).pipe(Effect.mapError((failure) => failure.message)));
   const rounding = luaRounding(towardZero);
   if (rounding !== "toward-zero") return yield* Effect.fail(`TOWARD_ZERO_LUA=${towardZero}: ${rounding === "nearest" ? "it rounds to nearest" : rounding}`);
-  return { nearest, towardZero } satisfies LuaRuntimes;
+  return { nearest, towardZero };
 });
