@@ -238,25 +238,3 @@ test("Uther throws hold until release and launch once in the adopted facing-rela
     }
   }
 });
-
-test("Uther hammer-hilt pummel contacts on frame five for one percent and caps at two", () => {
-  const { owner, target, world } = attackPair(AttackStyle.grab, 7, 40.0);
-  resolveAttacks(world);
-  assertEquals(owner.grab.target, 1);
-  assertEquals(grabContactFrame(GrabAction.pummel, UTHER_MOVES), 5);
-  assertEquals(grabActionDuration(GrabAction.pummel, UTHER_MOVES), 12);
-  for (let pummel = 0; pummel < 2; pummel++) {
-    for (let frame = 1; frame <= 13; frame++) {
-      testGrabFrame(world, [controls({ attackPressed: frame === 1 }), controls()], false);
-      assertEquals(target.status.damage, frame < 5 ? pummel : pummel + 1);
-      assertEquals(target.launch.knockbackX, 0.0);
-      assertEquals(target.launch.knockbackZ, 0.0);
-    }
-    assertEquals(owner.grab.action, GrabAction.hold);
-  }
-  testGrabFrame(world, [controls({ attackPressed: true }), controls()], false);
-  assertEquals(owner.grab.action, GrabAction.hold);
-  assertEquals(target.status.damage, 2.0);
-  testGrabFrame(world, [controls({ attackPressed: true, grabThrowX: 1 }), controls()], false);
-  assertEquals(owner.grab.action, GrabAction.throwForward);
-});

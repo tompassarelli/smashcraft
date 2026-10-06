@@ -4,8 +4,9 @@ import { f32 } from "wisp/src/sim/f32";
 import { ContactKind, GrabAction } from "./codes";
 import { finishDamageContacts, openDamageContacts, queueDamageContact } from "./contacts";
 import { copyHitEffect, emptyHitEffect } from "./hitRegions";
-import { GRAB_HOLD_DISTANCE, grabActionDuration, grabContactFrame } from "./moves";
+import { GRAB_HOLD_DISTANCE, GRAB_HOLD_MINIMUM_FRAMES, GRAB_MASH_FRAMES, grabActionDuration, grabContactFrame, pummelLimit } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
+import type { Fighter } from "./fighter";
 import { type Controls, type Roster, controlsAt, fighterAt, isActive } from "./roster";
 import { beginGrabAction, clearGrabLinks } from "./transitions";
 
@@ -27,6 +28,7 @@ function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targ
   owner.grab.target = undefined;
   target.grab.owner = undefined;
   target.grab.grabbedFrames = 0;
+  target.grab.heldFrames = 0;
   target.grab.mashX = 0;
   target.grab.mashZ = 0;
   const up = action === GrabAction.throwUp;
@@ -88,6 +90,13 @@ function resolveHeldTarget(world: Roster, ownerSlot: number): void {
   target.launch.knockbackZ = 0.0;
 }
 
+/** The throw the grabber's input asks for, or none. */
+function requestedThrow(owner: Readonly<Fighter>, input: Readonly<Controls>): GrabAction {
+  if (input.grabThrowZ !== 0) return input.grabThrowZ > 0 ? GrabAction.throwUp : GrabAction.throwDown;
+  if (input.grabThrowX !== 0) return input.grabThrowX === owner.facing ? GrabAction.throwForward : GrabAction.throwBack;
+  return GrabAction.none;
+}
+
 function advanceGrab(world: Roster, ownerSlot: number, ownerInput: Readonly<Controls>, targetInput: Readonly<Controls>, paused: boolean): void {
   const owner = fighterAt(world, ownerSlot);
   const { grab } = owner;
@@ -101,23 +110,36 @@ function advanceGrab(world: Roster, ownerSlot: number, ownerInput: Readonly<Cont
     if (x !== held.mashX || z !== held.mashZ) contributions++;
     held.mashX = x;
     held.mashZ = z;
-    held.grabbedFrames = max(0, held.grabbedFrames - 1 - 6 * contributions);
+    held.heldFrames++;
+    held.grabbedFrames = max(0, max(GRAB_HOLD_MINIMUM_FRAMES - held.heldFrames, held.grabbedFrames - 1 - GRAB_MASH_FRAMES * contributions));
     if (held.grabbedFrames === 0) {
       escapeGrab(world, ownerSlot, targetSlot);
       return;
     }
   }
+  const throwAction = requestedThrow(owner, ownerInput);
   if (grab.action === GrabAction.hold) {
-    const pummelLimit = owner.tuning.moves?.maxPummels;
-    const throwRequested = ownerInput.grabThrowZ !== 0 || ownerInput.grabThrowX !== 0;
-    const mayPummel = pummelLimit === undefined || ((grab.pummels ?? 0) < pummelLimit && !throwRequested);
-    if (ownerInput.attackPressed && mayPummel) beginGrabAction(owner, GrabAction.pummel);
-    else if (ownerInput.grabThrowZ !== 0) beginGrabAction(owner, ownerInput.grabThrowZ > 0 ? GrabAction.throwUp : GrabAction.throwDown);
-    else if (ownerInput.grabThrowX !== 0) beginGrabAction(owner, ownerInput.grabThrowX === owner.facing ? GrabAction.throwForward : GrabAction.throwBack);
+    if (throwAction !== GrabAction.none) beginGrabAction(owner, throwAction);
+    else if (ownerInput.attackPressed && grab.pummels < pummelLimit(owner.tuning.moves)) {
+      grab.pummels++;
+      beginGrabAction(owner, GrabAction.pummel);
+    }
   } else if (grab.frame >= grabActionDuration(grab.action, owner.tuning.moves)) {
-    grab.action = targetSlot === undefined ? GrabAction.none : GrabAction.hold;
-    grab.frame = 0;
+    if (grab.action === GrabAction.pummel && targetSlot !== undefined) {
+      // After the one pummel the grabber throws, or the victim goes free.
+      const next = throwAction !== GrabAction.none ? throwAction : grab.queuedThrow;
+      grab.queuedThrow = GrabAction.none;
+      if (next === GrabAction.none) {
+        escapeGrab(world, ownerSlot, targetSlot);
+        return;
+      }
+      beginGrabAction(owner, next);
+    } else {
+      grab.action = targetSlot === undefined ? GrabAction.none : GrabAction.hold;
+      grab.frame = 0;
+    }
   } else {
+    if (grab.action === GrabAction.pummel && throwAction !== GrabAction.none) grab.queuedThrow = throwAction;
     grab.frame++;
   }
   if (targetSlot !== undefined && grab.action >= GrabAction.pummel && grab.action <= GrabAction.throwDown && grab.frame === grabContactFrame(grab.action, owner.tuning.moves)) {
@@ -125,7 +147,6 @@ function advanceGrab(world: Roster, ownerSlot: number, ownerInput: Readonly<Cont
     // A hold broken just now still delivers its contact, as a throw.
     if (grab.action === GrabAction.pummel) {
       const hit = owner.tuning.moves?.throws[GrabAction.pummel]?.effect ?? PUMMEL_HIT;
-      if (owner.tuning.moves?.maxPummels !== undefined) grab.pummels = (grab.pummels ?? 0) + 1;
       queueDamageContact(world, ownerSlot, targetSlot, hit, owner.facing, ContactKind.pummel, true, undefined);
     }
     else releaseThrow(world, ownerSlot, targetSlot, targetInput);

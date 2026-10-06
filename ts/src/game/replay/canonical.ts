@@ -541,7 +541,9 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("grabbedFrames", gr.grabbedFrames);
   int("grabAction", gr.action);
   int("grabFrame", gr.frame);
-  if (gr.pummels !== undefined) int("grabPummels", gr.pummels);
+  int("grabPummels", gr.pummels);
+  int("grabHeldFrames", gr.heldFrames);
+  int("grabQueuedThrow", gr.queuedThrow);
   int("grabSerial", gr.serial);
   int("grabMashX", gr.mashX);
   int("grabMashZ", gr.mashZ);

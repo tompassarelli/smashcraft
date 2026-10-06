@@ -8,7 +8,7 @@ import { collectDamageContact } from "./contacts";
 import type { Fighter } from "./fighter";
 import { clearDash } from "./groundMovement";
 import type { HitEffect } from "./hitRegions";
-import { grabHoldFrames } from "./moves";
+import { GRAB_HOLD_FRAMES } from "./moves";
 import { type Roster, fighterAt } from "./roster";
 import { beginGrabAction, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge } from "./transitions";
 
@@ -59,7 +59,8 @@ function catchTarget(world: Roster, attackerSlot: number, targetSlot: number): v
   clearGrabLinks(world, attackerSlot);
   clearGrabLinks(world, targetSlot);
   attacker.grab.target = targetSlot;
-  attacker.grab.pummels = attacker.tuning.moves?.maxPummels === undefined ? undefined : 0;
+  attacker.grab.pummels = 0;
+  attacker.grab.queuedThrow = GrabAction.none;
   target.grab.owner = attackerSlot;
   target.visuals.grab++;
   cancelAttack(attacker);
@@ -71,7 +72,8 @@ function catchTarget(world: Roster, attackerSlot: number, targetSlot: number): v
   interruptJumpOrDodge(target);
   clearDownState(target);
   cancelAttack(target);
-  target.grab.grabbedFrames = grabHoldFrames(target.status.damage);
+  target.grab.grabbedFrames = GRAB_HOLD_FRAMES;
+  target.grab.heldFrames = 0;
   target.launch.hitstun = 0;
   target.launch.throwHitstun = false;
   target.launch.hitlag = 0;
