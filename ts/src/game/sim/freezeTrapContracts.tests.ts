@@ -1,6 +1,6 @@
 import { stageBounds } from "./stageBounds";
 import { assertEquals, assertGreaterThan, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
-import { AttackStyle, Character } from "./codes";
+import { AttackStyle, Character, SpecialAction } from "./codes";
 import { canStartAttackStyle } from "./conditions";
 import { createFighter } from "./fighter";
 import { attackDurationFramesForGrounding, attackStartupFrames } from "./moves";
@@ -12,6 +12,44 @@ import { createRoster } from "./roster";
 import { f32 } from "wisp/src/sim/f32";
 import { executeNext, testMatch } from "../match/testMatch";
 import { fighterAt } from "./roster";
+import { startFighterSpecial } from "./specials";
+import { originalClipNamed } from "../assets/fighterOriginalClipInfo";
+
+test("Frost Trap plays its laying animation and releases Rifleman after twenty frames", () => {
+  const match = testMatch(3, Character.rifleman);
+  const owner = fighterAt(match.world, 0);
+  owner.motion.surface = 0;
+  assertTrue(startFighterSpecial(owner, 0, 0, controls({ specialPressed: true, specialZ: -1 })));
+  assertFalse(canStartAttackStyle(owner, AttackStyle.jab));
+  for (let frame = 1; frame < 20; frame++) {
+    executeNext(match);
+    assertEquals(owner.special.action, SpecialAction.riflemanTrap);
+    assertEquals(match.runtime.poses[0].clipIndex, originalClipNamed(Character.rifleman, "special down"));
+    if (frame > 1) assertGreaterThan(match.runtime.poses[0].clipTime, 0.0);
+    assertFalse(canStartAttackStyle(owner, AttackStyle.jab));
+  }
+  executeNext(match);
+  assertEquals(owner.special.action, SpecialAction.none);
+  assertTrue(canStartAttackStyle(owner, AttackStyle.jab));
+  assertGreaterThan(owner.freezeTrap.life, 0);
+  assertGreaterThan(owner.freezeTrap.cooldown, 0);
+  beginFighterAttack(match.world, 0, AttackStyle.jab, false);
+  assertEquals(owner.attack.style, AttackStyle.jab);
+});
+
+test("an unused Frost Trap expires after eight seconds and can be replaced", () => {
+  const match = testMatch(3, Character.rifleman);
+  const owner = fighterAt(match.world, 0);
+  owner.motion.surface = 0;
+  const lay = controls({ specialPressed: true, specialZ: -1 });
+  assertTrue(startFighterSpecial(owner, 0, 0, lay));
+  for (let frame = 1; frame < 480; frame++) executeNext(match);
+  assertGreaterThan(owner.freezeTrap.life, 0);
+  assertFalse(startFighterSpecial(owner, 0, 479, lay));
+  executeNext(match);
+  assertEquals(owner.freezeTrap.life, 0);
+  assertTrue(startFighterSpecial(owner, 0, 480, lay));
+});
 
 test("a jump chosen fifteen frames after thaw leaves before a waiting trap can refreeze any fighter", () => {
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {

@@ -15,7 +15,7 @@ import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, clear
 export const RIFLEMAN_BEAR_LIFETIME = 100;
 const RIFLEMAN_BEAR_SWIPE_INTERVAL = 18;
 const FREEZE_TRAP_ARMING_FRAMES = 20;
-const FREEZE_TRAP_LIFETIME_FRAMES = 1800;
+const FREEZE_TRAP_LIFETIME_FRAMES = 480;
 const FREEZE_TRAP_FREEZE_FRAMES = 300;
 const FREEZE_TRAP_COOLDOWN_FRAMES = 90;
 const FREEZE_TRAP_TRIGGER_RADIUS = 42.0;
@@ -57,7 +57,6 @@ export function startFreezeTrap(owner: Fighter, stage: number, matchFrame: numbe
   trap.arming = FREEZE_TRAP_ARMING_FRAMES;
   trap.serial++;
   trap.cooldown = FREEZE_TRAP_COOLDOWN_FRAMES;
-  owner.attack.cooldown = max(owner.attack.cooldown, FREEZE_TRAP_COOLDOWN_FRAMES);
   return true;
 }
 

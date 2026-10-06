@@ -2465,8 +2465,9 @@ The immunity timer is replay state and clears on stock loss and respawn.
 Down+B places one trap on Rifleman's current grounded surface. Placement is
 instant when the next simulation frame accepts the input; airborne placement,
 placement while shielded or action-locked, and a second live trap are ignored.
-The trap arms after 20 match frames, lasts up to 1,800 frames (30 seconds),
-and has a 90-frame placement cooldown. It triggers on an opposing grounded
+Rifleman plays a 20-frame laying action, then can move and attack again.
+The trap arms after 20 match frames, lasts up to 480 frames (8 seconds),
+and has a separate 90-frame placement cooldown. It triggers on an opposing grounded
 fighter on that same surface within 42 world units. These are provisional
 control and range values, not Melee or Warcraft measurements.
 
