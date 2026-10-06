@@ -5,8 +5,8 @@ import { addFloat32, subtractFloat32 } from "wisp/src/sim/binary32";
 import { f32 } from "wisp/src/sim/f32";
 import { copyFighterState } from "../replay/fighterState";
 import { firstFighterDifference } from "../replay/difference";
-import { AttackStyle, Character, PlatformMove } from "./codes";
-import { canAttack, canBeGrabbed, isIntangible } from "./conditions";
+import { AttackPhase, AttackStyle, Character, PlatformMove } from "./codes";
+import { attackPhase, canAttack, canBeGrabbed, isIntangible } from "./conditions";
 import { type Fighter, createFighter } from "./fighter";
 import { HERO_ROSTER } from "./heroes/registry";
 import { beginAirDodge } from "./jumpsAndDodges";
@@ -105,6 +105,28 @@ test("an ascent cancels an aerial's remaining recovery after it hits", () => {
     finishMove(f, controls());
     assertFalse(f.motion.grounded);
     assertTrue(canAttack(f));
+  }
+});
+
+test("an aerial in its startup or active frames carries on through the platform; the ascent begins as they end", () => {
+  for (const character of FIGHTERS) {
+    const f = risingUnder(character);
+    // Sustained, so the body still straddles the platform when the aerial's active frames end.
+    f.motion.z = f32(f32(DECK_Z - height(f)) + 1.0);
+    f.attack.style = AttackStyle.upAir;
+    f.attack.duration = attackDurationFramesForGrounding(AttackStyle.upAir, false, f.tuning.moves);
+    f.attack.frame = 1;
+    const input = controls({ jumpHeld: true });
+    let frames = 0;
+    while (attackPhase(f) === AttackPhase.startup || attackPhase(f) === AttackPhase.active) {
+      f.motion.vz = 5.0;
+      step(f, input);
+      frames++;
+      if (attackPhase(f) === AttackPhase.startup || attackPhase(f) === AttackPhase.active) assertEquals(f.platform.move, PlatformMove.none);
+    }
+    assertGreaterThan(frames, 1);
+    assertEquals(f.platform.move, PlatformMove.ascent);
+    assertEquals(f.attack.style, undefined);
   }
 });
 
