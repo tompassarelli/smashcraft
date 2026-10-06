@@ -75,9 +75,12 @@ first map, and Warcraft keeps the open folder for the session. Fresh moves
 every other map in that folder to `smashcraft-replaced-maps`. Client A's
 prefix also holds Tom's playtest map, so copy it back after a session.
 
-When every client has a menu page, `bun wisp fresh` hosts a private game
-with a random password and joins it with that password: a page join of a
-game without one left the guest in Battle.net's password prompt. A client
+When every client has a menu page, `bun wisp fresh` needs no menu preparation:
+it places each client from the watch, leaves a lobby, match or score screen
+through the page and Escape, hosts a private game with a random password,
+joins it with that password (a page join of a game without one left the guest
+in Battle.net's password prompt) and starts it 2 s after the lobby exists
+(an immediate start crashed Warcraft III 3.0, #119). A client
 without a page is driven by clicks, and its game stays public.
 
 ```sh
