@@ -32,6 +32,7 @@ export interface AuthoredMove {
   readonly regions: readonly MoveRegion[];
   /** Facing-relative displacement distributed across startup frames. */
   readonly startupTravelX?: number | undefined;
+  readonly startupStopsAtBody?: boolean | undefined;
 }
 
 export interface AuthoredThrow {
@@ -52,8 +53,8 @@ export interface FighterMoves {
 }
 
 /** The roster brief counts the entry tick as frame one; the simulation counts it as zero. */
-export function heroMove(firstActive: number, active: number, recovery: number, landingLag: number, regions: readonly MoveRegion[], startupTravelX?: number): AuthoredMove {
-  return { startupFrames: firstActive - 1, activeFrames: active, totalFrames: firstActive - 1 + active + recovery, landingLag, regions, startupTravelX };
+export function heroMove(firstActive: number, active: number, recovery: number, landingLag: number, regions: readonly MoveRegion[], startupTravelX?: number, startupStopsAtBody?: boolean): AuthoredMove {
+  return { startupFrames: firstActive - 1, activeFrames: active, totalFrames: firstActive - 1 + active + recovery, landingLag, regions, startupTravelX, startupStopsAtBody };
 }
 
 export function heroRegion(firstActive: number, lastActive: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>): MoveRegion {
