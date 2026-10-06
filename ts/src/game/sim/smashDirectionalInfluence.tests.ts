@@ -3,6 +3,7 @@
 // production-harness fixtures that measured the unbounded teleports (#70).
 import { assertEquals, assertFalse, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
+import { floorMod } from "wisp/src/sim/intMath";
 import { clearPulse, neutralDirections, pulsePending, updateDirections } from "../input/directionalInput";
 import { firstFighterDifference } from "../replay/difference";
 import { copyFighterState } from "../replay/fighterState";
@@ -76,8 +77,8 @@ function stick(mode: Mode, tick: number): readonly [number, number] {
   switch (mode) {
     case "reset-right":
     case "held": return [1, 0];
-    case "alternate": return [tick % 2 === 0 ? 1 : -1, 0];
-    case "wiggle": return [1, tick % 2 === 0 ? 0 : 1];
+    case "alternate": return [floorMod(tick, 2) === 0 ? 1 : -1, 0];
+    case "wiggle": return [1, floorMod(tick, 2) === 0 ? 0 : 1];
   }
 }
 
@@ -122,6 +123,7 @@ export function measureSdiFixture(fixture: SdiFixture): SdiMeasurement {
   };
 }
 
+const TOLERANCE = 0.0010000000474974513;
 const STEP = SDI_STEP_DISTANCE;
 const WIGGLE_NET_X = f32(f32(STEP + STEP) + f32(f32(DIAGONAL_UNIT * STEP) * 2.0));
 const WIGGLE_NET_Z = f32(f32(DIAGONAL_UNIT * STEP) * 2.0);
@@ -144,15 +146,15 @@ test("the ten teleport fixtures now stay within 72 world units per hit, 144 per 
   for (const fixture of SDI_FIXTURES) {
     const measured = measureSdiFixture(fixture);
     const [path, net, sdi, asdi] = EXPECTED[fixture.name] ?? [-1, -1, -1, -1];
-    assertEquals(Math.abs(measured.pathWorld - path) < 0.001, true, `${fixture.name} path ${measured.pathWorld}`);
-    assertEquals(Math.abs(measured.netWorld - net) < 0.001, true, `${fixture.name} net ${measured.netWorld}`);
+    assertEquals(Math.abs(measured.pathWorld - path) < TOLERANCE, true, `${fixture.name} path ${measured.pathWorld}`);
+    assertEquals(Math.abs(measured.netWorld - net) < TOLERANCE, true, `${fixture.name} net ${measured.netWorld}`);
     assertEquals(measured.sdi, sdi, `${fixture.name} SDI steps`);
     assertEquals(measured.asdi, asdi, `${fixture.name} ASDI shifts`);
-    assertEquals(measured.maxStepWorld <= STEP + 0.001, true, `${fixture.name} step`);
-    assertEquals(measured.pathWorld <= melee(STRING_TRAVEL) + 0.001, true, `${fixture.name} string`);
+    assertEquals(measured.maxStepWorld <= STEP + TOLERANCE, true, `${fixture.name} step`);
+    assertEquals(measured.pathWorld <= melee(STRING_TRAVEL) + TOLERANCE, true, `${fixture.name} string`);
     for (let hit = 0; hit < fixture.hits; hit++) {
       const hitPath = measured.steps.filter((step) => step.hit === hit).reduce((sum, step) => sum + Math.sqrt(step.dx * step.dx + step.dz * step.dz), 0.0);
-      assertEquals(hitPath <= melee(HIT_TRAVEL) + 0.001, true, `${fixture.name} hit ${hit}`);
+      assertEquals(hitPath <= melee(HIT_TRAVEL) + TOLERANCE, true, `${fixture.name} hit ${hit}`);
     }
     assertFalse(measured.out);
   }
@@ -170,8 +172,8 @@ test("a fresh pulse spends its 6 units as two 3-unit steps, and the hit admits a
   assertEquals(f.launch.sdiStepTravel, 0);
   // Only 3 of the hit's 9 SDI units remain for this diagonal pulse.
   pulse(1, 1);
-  assertNear(f.motion.x, f32(STEP + STEP) + STEP * DIAGONAL_UNIT, 0.001);
-  assertNear(f.motion.z, 400.0 + STEP * DIAGONAL_UNIT, 0.001);
+  assertNear(f.motion.x, f32(STEP + STEP) + STEP * DIAGONAL_UNIT, TOLERANCE);
+  assertNear(f.motion.z, 400.0 + STEP * DIAGONAL_UNIT, TOLERANCE);
   assertEquals(f.launch.sdiHitTravel, SDI_HIT_TRAVEL);
   const x = f.motion.x;
   pulse(-1, 0);
