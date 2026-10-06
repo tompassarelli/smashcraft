@@ -114,7 +114,7 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   }
   resolveAttacks(world);
   advanceSpecials(world, stage, matchFrame);
-  updateProjectiles(world);
+  updateProjectiles(world, stage, matchFrame);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);

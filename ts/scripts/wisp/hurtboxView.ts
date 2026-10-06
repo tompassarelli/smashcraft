@@ -109,6 +109,24 @@ export function sampleAttack(character: Character, style: AttackStyle, facing = 
 }
 
 /** The model's visible triangles flattened onto the stage plane, in world units around the fighter's origin. */
+interface SkinningState {
+  frame: number;
+  readonly nodes: readonly { readonly matrix: Float32Array }[];
+  readonly geosetAlpha: readonly number[];
+}
+
+// war3-model keeps its frame, posed node matrices and geoset alphas private; reach them through a checked guard.
+function isSkinningState(value: unknown): value is SkinningState {
+  if (typeof value !== "object" || value === null) return false;
+  return typeof Reflect.get(value, "frame") === "number" && Array.isArray(Reflect.get(value, "nodes")) && Array.isArray(Reflect.get(value, "geosetAlpha"));
+}
+
+function skinningState(renderer: ModelRenderer): SkinningState {
+  const data: unknown = Reflect.get(renderer, "rendererData");
+  if (!isSkinningState(data)) throw new Error("war3-model renderer has no posed skinning state");
+  return data;
+}
+
 export class DrawnModel {
   private readonly renderer: ModelRenderer;
   private readonly model: mdx.Model;
@@ -130,7 +148,7 @@ export class DrawnModel {
 
   /** Flat [x1, z1, x2, z2, x3, z3, ...] triangles of the pose at the clip's time. */
   triangles(sequence: number, seconds: number, facing: number): Float32Array {
-    const data = (this.renderer as unknown as { rendererData: { frame: number; nodes: { matrix: Float32Array }[]; geosetAlpha: number[] } }).rendererData;
+    const data = skinningState(this.renderer);
     this.renderer.setSequence(sequence);
     const interval = this.model.Sequences[sequence]?.Interval ?? [0, 0];
     data.frame = Math.min(interval[1] ?? 0, (interval[0] ?? 0) + seconds * 1000.0);
