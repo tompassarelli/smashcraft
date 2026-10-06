@@ -11,7 +11,7 @@ export const BLADEMASTER_HERO: HeroDefinition = {
   name: "Blademaster",
   purpose: "Grounded sword spacing and whiff punishment",
   weakness: "Exposed recoveries and weak ranged pressure",
-  complete: false,
+  complete: true,
   moves: BLADEMASTER_MOVES,
   specials: BLADEMASTER_SPECIALS,
   presentation: {
