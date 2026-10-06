@@ -80,7 +80,9 @@ export class FighterAgencyForecast {
           buttons = true;
           break;
         }
-        if (offset >= bufferFrames && this.fighter.motion.grounded) break;
+        // Past the buffer only a tumbling fighter's contact can tech, and motion
+        // alone never starts a tumble (only a hit does), so the answer is known.
+        if (offset >= bufferFrames && (this.fighter.motion.grounded || this.fighter.down.state !== DownState.tumble)) break;
       }
     } finally {
       observedActions.legal = legal;
