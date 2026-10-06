@@ -10,6 +10,7 @@ import { floorMod } from "wisp/src/sim/intMath";
 import { AttackStyle, GrabAction, SPECIAL_ACTION_CAPACITY } from "../sim/codes";
 import type { FighterMoves } from "../sim/heroMoves";
 import type { HitEffect } from "../sim/hitRegions";
+import { type HurtPart, HurtState } from "../sim/hurtboxes";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
 import { fighterAt, isActive } from "../sim/roster";
 import type { ReplayState } from "./snapshot";
@@ -135,6 +136,36 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
     int(`${name}.contact`, move.contactFrame);
     int(`${name}.total`, move.totalFrames);
     effect(name, move.effect);
+  }
+  const { hurtboxes } = moves;
+  if (hurtboxes === undefined) return result;
+  const parts = (name: string, list: readonly HurtPart[]) => {
+    int(`${name}.parts`, list.length);
+    for (let index = 0; index < list.length; index++) {
+      const part = at(list, index);
+      const prefix = `${name}.part[${index}]`;
+      real(`${prefix}.x1`, part.x1);
+      real(`${prefix}.z1`, part.z1);
+      real(`${prefix}.x2`, part.x2);
+      real(`${prefix}.z2`, part.z2);
+      real(`${prefix}.radius`, part.radius);
+      int(`${prefix}.state`, part.state ?? HurtState.normal);
+    }
+  };
+  parts("hurt.stand", hurtboxes.stand);
+  int("hurt.crouch", hurtboxes.crouch === undefined ? 0 : 1);
+  if (hurtboxes.crouch !== undefined) parts("hurt.crouch", hurtboxes.crouch);
+  for (let style = 0; style <= AttackStyle.dashAttack; style++) {
+    const poses = hurtboxes.attacks[style];
+    if (poses === undefined) continue;
+    const name = `hurt.attack[${style}]`;
+    int(`${name}.poses`, poses.length);
+    for (let index = 0; index < poses.length; index++) {
+      const pose = at(poses, index);
+      int(`${name}.pose[${index}].first`, pose.firstFrame);
+      int(`${name}.pose[${index}].last`, pose.lastFrame);
+      parts(`${name}.pose[${index}]`, pose.parts);
+    }
   }
   return result;
 }

@@ -14,7 +14,8 @@ import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { spawnProjectile } from "./projectiles";
 import { type Roster, fighterAt, isActive } from "./roster";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
-import { attackCapsule, hurtCapsule, emptyCapsule, capsulesIntersect, placeCapsule } from "../physics/contactGeometry";
+import { attackCapsule, emptyCapsule, placeCapsule } from "../physics/contactGeometry";
+import { HurtContact, grabTouchesBody, strikeHurtContact } from "./hurtboxes";
 import { beginAttack } from "./transitions";
 import { at } from "wisp/src/runtime/lookup";
 
@@ -30,7 +31,6 @@ const DASH_GRAB_REGION: Readonly<HitRegion> = {
 
 // Preallocated: hit selection builds these capsules for every pair every frame.
 const strikeCapsule = emptyCapsule();
-const targetCapsule = emptyCapsule();
 
 function placeStrikeCapsule(attacker: Fighter, region: Readonly<HitRegion>): void {
   attackCapsule(strikeCapsule, attacker.attack.style, region);
@@ -77,24 +77,27 @@ function facingOffsetX(attacker: Readonly<Fighter>, target: Readonly<Fighter>): 
   return f32(f32(target.motion.x - attacker.motion.x) * attacker.facing);
 }
 
-/** Writes the region of the attacker's current attack that reaches the target into out, or NO_HIT_REGION's values. */
-function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number, out: HitRegion): void {
+/**
+ * Writes the region of the attacker's current attack that reaches the target
+ * into out, or NO_HIT_REGION's values. True when that region touched only
+ * invincible body parts: the strike is spent on the target without effect.
+ */
+function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number, out: HitRegion): boolean {
   const attacker = fighterAt(world, attackerSlot);
   const target = fighterAt(world, targetSlot);
   copyHitRegion(out, NO_HIT_REGION);
-  if (attacker.status.out || attacker.launch.hitlag > 0 || target.status.out || isIntangible(target)) return;
+  if (attacker.status.out || attacker.launch.hitlag > 0 || target.status.out || isIntangible(target)) return false;
   const { attack } = attacker;
-  if (attack.style === AttackStyle.grab && !canBeGrabbed(target)) return;
+  if (attack.style === AttackStyle.grab && !canBeGrabbed(target)) return false;
   // Only grabs read the target's offset, so ordinary hits skip its exact arithmetic.
   if (attack.dashGrab) {
     const moves = attacker.tuning.moves;
     if (moves?.normals[AttackStyle.grab] !== undefined) {
       authoredHitRegion(out, attacker.character, AttackStyle.grab, attack.frame - 3, 0, 0, moves);
       placeStrikeCapsule(attacker, out);
-      placeCapsule(targetCapsule, hurtCapsule(target.character), target.motion.x, target.motion.z, 1);
       const localX = facingOffsetX(attacker, target);
-      if (out.window <= 0 || localX < 0 || localX > out.maxX || !capsulesIntersect(strikeCapsule, targetCapsule)) copyHitRegion(out, NO_HIT_REGION);
-      return;
+      if (out.window <= 0 || localX < 0 || localX > out.maxX || !grabTouchesBody(strikeCapsule, target)) copyHitRegion(out, NO_HIT_REGION);
+      return false;
     }
     const { startupFrames, activeFrames } = attacker.tuning.dashGrab;
     if (attack.frame >= startupFrames && attack.frame < startupFrames + activeFrames) {
@@ -102,7 +105,7 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
       const localZ = f32(target.motion.z - attacker.motion.z);
       if (localX >= 0 && localX <= GRAB_REACH && localZ >= -130 && localZ <= 130) copyHitRegion(out, DASH_GRAB_REGION);
     }
-    return;
+    return false;
   }
   if (attack.style === AttackStyle.grab) {
     authoredHitRegion(out, attacker.character, attack.style, attack.frame, attack.smashChargeFrames, 0, attacker.tuning.moves);
@@ -110,28 +113,29 @@ function selectHitRegion(world: Roster, attackerSlot: number, targetSlot: number
     const alreadyHit = hits.lastAttacker === attackerSlot && hits.lastAttackSerial === attack.serial && hits.lastWindow >= out.window;
     if (attacker.tuning.moves?.normals[AttackStyle.grab] !== undefined) {
       placeStrikeCapsule(attacker, out);
-      placeCapsule(targetCapsule, hurtCapsule(target.character), target.motion.x, target.motion.z, 1);
       const localX = facingOffsetX(attacker, target);
-      if (out.window <= 0 || alreadyHit || localX < 0 || localX > out.maxX || !capsulesIntersect(strikeCapsule, targetCapsule)) copyHitRegion(out, NO_HIT_REGION);
-      return;
+      if (out.window <= 0 || alreadyHit || localX < 0 || localX > out.maxX || !grabTouchesBody(strikeCapsule, target)) copyHitRegion(out, NO_HIT_REGION);
+      return false;
     }
     const localX = facingOffsetX(attacker, target);
     const localZ = f32(target.motion.z - attacker.motion.z);
     const inside = localX >= out.minX && localX <= out.maxX && localZ >= out.minZ && localZ <= out.maxZ;
     if (out.window <= 0 || alreadyHit || !inside) copyHitRegion(out, NO_HIT_REGION);
-    return;
+    return false;
   }
   for (let index = 0; index < authoredHitRegionCount(attack.style, attacker.tuning.moves); index++) {
     authoredHitRegion(out, attacker.character, attack.style, attack.frame, attack.smashChargeFrames, index, attacker.tuning.moves);
     if (out.window <= 0 || alreadyHitRegion(attackerSlot, attacker, target, out.window)) continue;
     placeStrikeCapsule(attacker, out);
-    placeCapsule(targetCapsule, hurtCapsule(target.character), target.motion.x, target.motion.z, 1);
-    if (capsulesIntersect(strikeCapsule, targetCapsule) || meleeHitIntersectsShield(attacker, target, out)) {
+    const body = strikeHurtContact(strikeCapsule, target);
+    if (body === HurtContact.hit || meleeHitIntersectsShield(attacker, target, out)) {
       if (target.motion.grounded && out.groundedEffect !== undefined) copyHitEffect(out.effect, out.groundedEffect);
-      return;
+      return false;
     }
+    if (body === HurtContact.invincible) return true;
   }
   copyHitRegion(out, NO_HIT_REGION);
+  return false;
 }
 
 /** Starts a requested action if the fighter may; a dashing Demon Hunter's jab is his dash attack. */
@@ -160,6 +164,8 @@ const scratch: {
   clashed: boolean[];
   choices: (number | undefined)[];
   grabbed: boolean[];
+  /** Per pair: the contact touched only invincible parts. */
+  spent: boolean[];
 } = {
   contacts: Array.from({ length: PARTICIPANT_CAPACITY * PARTICIPANT_CAPACITY }, () => emptyHitRegion()),
   styles: [],
@@ -168,6 +174,7 @@ const scratch: {
   clashed: [false, false, false, false],
   choices: [],
   grabbed: [false, false, false, false],
+  spent: Array.from({ length: PARTICIPANT_CAPACITY * PARTICIPANT_CAPACITY }, () => false),
 };
 
 function contactBetween(source: number, target: number): HitRegion {
@@ -177,7 +184,7 @@ function contactBetween(source: number, target: number): HitRegion {
 /** Resolves every active attack's contacts for the frame. */
 export function resolveAttacks(world: Roster): void {
   const ownsBatch = openDamageContacts();
-  const { styles, shots, facings, clashed, choices, grabbed } = scratch;
+  const { styles, shots, facings, clashed, choices, grabbed, spent } = scratch;
   for (let source = 0; source < PARTICIPANT_CAPACITY; source++) {
     if (!isActive(world, source)) continue;
     const f = fighterAt(world, source);
@@ -188,7 +195,7 @@ export function resolveAttacks(world: Roster): void {
     choices[source] = undefined;
     grabbed[source] = false;
     for (let target = 0; target < PARTICIPANT_CAPACITY; target++) {
-      if (isActive(world, target) && target !== source) selectHitRegion(world, source, target, contactBetween(source, target));
+      if (isActive(world, target) && target !== source) spent[source * PARTICIPANT_CAPACITY + target] = selectHitRegion(world, source, target, contactBetween(source, target));
     }
   }
   // Mutual catches clash; competing catches choose the nearest available victim,
@@ -250,6 +257,7 @@ export function resolveAttacks(world: Roster): void {
       if (contact.window <= 0) continue;
       const victim = fighterAt(world, target);
       recordHitRegion(source, f, victim, contact);
+      if (at(spent, source * PARTICIPANT_CAPACITY + target)) continue;
       applyAttackHit(world, source, target, style, at(facings, source), contact.effect, true, meleeHitIntersectsShield(f, victim, contact));
     }
   }
