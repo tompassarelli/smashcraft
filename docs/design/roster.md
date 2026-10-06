@@ -448,6 +448,36 @@ Standing grab 8/2/25, reach 0.55H. Pummel: hammer-hilt tap.
 
 **Required counterplay test:** Uther can be grabbed or baited during Divine Guard and punished afterward. Optimal healing cannot outpace plausible damage indefinitely because the stock cap is absolute.
 
+### Uther as built
+
+Source: smashcraft:ts/src/game/sim/heroes/utherMoves.ts (normals, grabs,
+throws, body), utherSpecials.ts and utherClips.ts. Every row above is
+implemented with its listed timing, damage, angle and reach; launch classes
+use provisional coefficients. Deliberate differences:
+
+- Unarmed strikes are limbs, not disjoints: the jab's gauntlet and the grab's
+  hand reach 0.55H and Rearward Boot reaches 0.8H behind, each with a matching
+  hurt part from late startup through early recovery. Shoulder of Justice
+  strikes with the torso and reaches 0.8H by travelling during startup.
+- Grab contact sits at hand height (about 24-56 above the feet), not at the
+  shins.
+- Crusader Rush in the air holds its height during the rush (no rise, no
+  fall) and lands with 20 frames of lag; Holy Bolt cast in the air does too.
+- Ascension travels on f8-28 and stops on f29, so its helpless fall starts
+  at the 1.9H (free form 1.3H) apex; both forms drift 0.45H.
+- Divine Guard's success is the special's `guard` window (docs/heroes.md): an
+  opponent's damaging strike or projectile overlapping Uther on f6-9 restores
+  3 percent once per guard, at most 8 a stock. Its intangibility still lets
+  the strike pass, so a strike active past f9 can hit him afterwards.
+
+Presentation uses the stock classic Paladin model, which has thirteen
+sequences and no punch, kick, jump, roll, ledge or grab clip. Hammer Sweep's
+path follows "Attack - 1" and Final Judgment's follows "Attack - 2"; the jab,
+grab, pummel and side special reuse "Attack - 1", so the drawn hammer swings
+while the gauntlet strikes. Down smash's back half and Rearward Boot have no
+matching clip ("Attack - 2" and "Stand Hit" play). utherClips.ts lists the
+sequence table and every pose's clip.
+
 ## Dreadlord
 
 **Identity:** a winged close-range fighter with strong grabs and deceptive aerial approaches. Bat imagery supports movement, but he cannot fly indefinitely. Sleep is a short skill shot, not unavoidable RTS crowd control.

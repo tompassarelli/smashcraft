@@ -78,6 +78,12 @@ acts again on N+1. It may author:
   followed up. The running form records it (base form + `FOLLOW_UP_FORM`), so
   rollback restores it, and it plays the `<slot>SpecialFollowUp` pose when the
   hero's clip table maps one (Mirror Feint's slash);
+- a `guard` window with `heal` and `healCapPerStock`: when an opponent's
+  damaging strike, hero special strike or projectile overlaps the fighter's
+  body during it, the action records one success and restores `heal` damage
+  percent, never more than `healCapPerStock` in a stock (`resolveHeroGuards`,
+  run before specials advance). It protects nothing itself; pair it with
+  `intangible`. The success and the stock's healing are fighter state;
 - `groundOnly`, `oncePerAirtime`, `helpless` and `landingLag`.
 
 ## Statuses
