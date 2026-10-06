@@ -6,6 +6,7 @@ import { hurtCapsule } from "../src/game/physics/contactGeometry";
 import { clipFor } from "../src/game/presentation/fighterClips";
 import { characterModelScale } from "../src/game/presentation/modelScale";
 import { Character } from "../src/game/sim/codes";
+import { HERO_ROSTER } from "../src/game/sim/heroes/registry";
 
 /**
  * Highest drawn point of each fighter's idle clip 0.1 s in, at model scale 1:
@@ -24,6 +25,7 @@ const IDLE_TOPS: readonly { readonly character: Character; readonly idleClip: nu
   { character: Character.uther, idleClip: 0, top: 111 },
   { character: Character.dreadlord, idleClip: 1, top: 161 },
   { character: Character.shadowHunter, idleClip: 7, top: 138 },
+  { character: Character.pitLord, idleClip: 2, top: 180 },
 ];
 
 /** The hurt capsule's top may sit at most a tenth above the drawn head. */
@@ -45,5 +47,6 @@ test("every fighter's drawn standing height meets its hurt capsule's top", () =>
     return [];
   });
   expect(off).toEqual([]);
-  expect(IDLE_TOPS.length).toBe(10);
+  // The original three and every registered hero.
+  expect(IDLE_TOPS.map(({ character }) => character).sort((a, b) => a - b)).toEqual([Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)].sort((a, b) => a - b));
 });

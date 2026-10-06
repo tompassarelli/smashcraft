@@ -9,10 +9,8 @@ import type { AuthoredSpecial } from "../sim/heroSpecials";
 import { SPECIAL_SLOTS } from "./projectileArt";
 import { HERO_BRANCH_CUES, HERO_CUES, ORIGINAL_CUES, fighterBranchCues, fighterMoveCues, heroCueWindows, specialCueState } from "./specialCues";
 
-const FIGHTERS: readonly Character[] = [
-  Character.archer, Character.rifleman, Character.demonHunter, Character.blademaster, Character.mountainKing,
-  Character.warden, Character.lich, Character.uther, Character.dreadlord, Character.shadowHunter,
-];
+/** The original three and every registered hero, so a new hero needs its cues. */
+const FIGHTERS: readonly Character[] = [Character.archer, Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map(({ character }) => character)];
 
 /** Every form a kit can run: grounded, airborne, free, recall, marked and each follow-up. */
 function forms(special: AuthoredSpecial | undefined, into: AuthoredSpecial[]): void {

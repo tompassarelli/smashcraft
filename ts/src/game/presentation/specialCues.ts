@@ -108,7 +108,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
   },
   [Character.dreadlord]: {
     neutral: { spell: "Carrion Swarm", startup: VAMPIRIC, active: cue("Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmDamage.mdx", "hand", f32(0.8)) },
-    side: { spell: "Night Pounce", startup: cue("Abilities\\Spells\\Other\\HowlOfTerror\\HowlCaster.mdx", "body", f32(0.4)), active: cue("Abilities\\Weapons\\Blood\\BloodImpact.mdx", "ahead", 1.0) },
+    side: { spell: "Night Pounce", startup: VAMPIRIC, active: cue("Abilities\\Weapons\\Blood\\BloodImpact.mdx", "ahead", 1.0) },
     up: { spell: "Bat Ascension", startup: VAMPIRIC, active: cue("Abilities\\Spells\\Undead\\DarkSummoning\\DarkSummonTarget.mdx", "body", f32(0.6)) },
     down: { spell: "Sleep", startup: VAMPIRIC, active: cue("Abilities\\Spells\\Undead\\Sleep\\SleepSpecialArt.mdx", "hand", f32(0.8)) },
   },
@@ -119,9 +119,9 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     down: { spell: "Hex", startup: VOODOO, active: cue("Abilities\\Spells\\Human\\Polymorph\\PolymorphTarget.mdx", "hand", f32(0.6)) },
   },
   [Character.pitLord]: {
-    neutral: { spell: "Fel Spit", startup: FEL, active: cue("Abilities\\Spells\\Undead\\DeathAndDecay\\DeathAndDecayTarget.mdx", "ahead", f32(0.4)) },
-    side: { spell: "Ruin Charge", startup: FEL, active: cue("Abilities\\Spells\\Other\\Cleave\\CleaveDamageTarget.mdx", "ahead", 1.0) },
-    up: { spell: "Abyssal Leap", startup: FEL, active: cue("Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx", "feet", f32(0.5)) },
+    neutral: { spell: "Fel Spit", startup: FEL, active: cue("Abilities\\Spells\\NightElf\\CorrosiveBreath\\ChimaeraAcidTargetArt.mdx", "hand", f32(0.6)) },
+    side: { spell: "Ruin Charge", startup: FEL, active: cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdx", "ahead", f32(0.8)) },
+    up: { spell: "Abyssal Leap", startup: FEL, active: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "feet", f32(0.6)) },
     down: { spell: "Howl of Terror", startup: FEL, active: cue("Abilities\\Spells\\Other\\HowlOfTerror\\HowlCaster.mdx", "body", f32(0.8)) },
   },
 };
