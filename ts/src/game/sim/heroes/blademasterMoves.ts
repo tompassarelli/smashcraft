@@ -1,17 +1,18 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule, HERO_REFERENCE_HEIGHT, heroMove, heroRegion } from "../heroMoves";
+import { type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule, HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion } from "../heroMoves";
+import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 import type { HitEffect } from "../hitRegions";
 
 // smashcraft:docs/design/roster.md uses Archer's standing outer capsule height.
-const H = HERO_REFERENCE_HEIGHT;
-const length = (heights: number) => f32(H * heights);
-const S = length(f32(0.55));
-const M = length(f32(0.80));
-const L = length(f32(1.10));
-const XL = length(f32(1.40));
+export const H = HERO_REFERENCE_HEIGHT;
+export const length = (heights: number) => f32(H * heights);
+export const S = length(f32(0.55));
+export const M = length(f32(0.80));
+export const L = length(f32(1.10));
+export const XL = length(f32(1.40));
 const TIP_LENGTH = length(f32(0.20));
-const BLADE_RADIUS = 6.0;
+export const BLADE_RADIUS = 6.0;
 
 // Provisional class hypotheses, consumed by the existing knockback formula;
 // the roster's displacement bands are calibration targets, not measured results.
@@ -32,28 +33,29 @@ const ANGLE = {
   55: { x: f32(0.573576436), z: f32(0.819152044) },
   65: { x: f32(0.422618262), z: f32(0.906307787) },
   75: { x: f32(0.258819045), z: f32(0.965925826) },
+  80: { x: f32(0.173648178), z: f32(0.984807753) },
   85: { x: f32(0.087155743), z: f32(0.996194698) },
   90: { x: 0.0, z: 1.0 },
   270: { x: 0.0, z: -1.0 },
 } as const;
 
-function hit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLE, facing = 1.0): Readonly<HitEffect> {
+export function hit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLE, facing = 1.0): Readonly<HitEffect> {
   const tuning = CLASS[kind];
   const direction = ANGLE[angle];
   return { damage, growth: tuning.growth, base: tuning.base, launchX: f32(direction.x * facing), launchZ: direction.z, electric: false, element: HitElement.slash };
 }
 
-function capsule(x1: number, z1: number, x2: number, z2: number, radius = BLADE_RADIUS): StrikeCapsule {
+export function capsule(x1: number, z1: number, x2: number, z2: number, radius = BLADE_RADIUS): StrikeCapsule {
   return { x1, z1, x2, z2, radius };
 }
 
 /** Each entry is one blade position, never the filled bounding box of an arc. */
-function path(firstFrame: number, strikes: readonly StrikeCapsule[], effect: Readonly<HitEffect>): readonly MoveRegion[] {
+export function path(firstFrame: number, strikes: readonly StrikeCapsule[], effect: Readonly<HitEffect>): readonly MoveRegion[] {
   return strikes.map((strike, index) => heroRegion(firstFrame + index, firstFrame + index, strike, effect));
 }
 
 /** Tip is ordered first so its reward wins an overlap with the inner blade. */
-function cut(firstFrame: number, tipHeights: readonly number[], reach: number, inner: Readonly<HitEffect>, tip?: Readonly<HitEffect>, facing = 1.0): readonly MoveRegion[] {
+export function cut(firstFrame: number, tipHeights: readonly number[], reach: number, inner: Readonly<HitEffect>, tip?: Readonly<HitEffect>, facing = 1.0): readonly MoveRegion[] {
   const regions: MoveRegion[] = [];
   const endX = f32(reach - BLADE_RADIUS);
   const boundary = f32(reach - TIP_LENGTH);
@@ -93,6 +95,41 @@ for (let frame = 13; frame <= 16; frame++) {
 function authoredThrow(releaseFrame: number, recovery: number, damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLE, facing = 1.0): AuthoredThrow {
   return { contactFrame: releaseFrame, totalFrames: releaseFrame + recovery, effect: hit(damage, kind, angle, facing) };
 }
+
+// The body is Archer's capsule at the roster's 1.05 height. The sword arm
+// reaches toward each strike from late startup into early recovery, so a
+// whiff is punishable at the hand; the blade past the hand is the disjoint.
+// Hand positions follow the stock model's Attack, Attack 2 and Stand - 4
+// sequences (blademasterClips.ts).
+const TORSO = hurtPart(0.0, 4.0, 0.0, f32(94.6), 24.0);
+const ARM_RADIUS = 9.0;
+const arm = (x1: number, z1: number, x2: number, z2: number): readonly HurtPart[] => [TORSO, hurtPart(x1, z1, x2, z2, ARM_RADIUS)];
+const SHOULDER_X = 6.0;
+const SHOULDER_Z = 90.0;
+const reach = (handX: number, handZ: number) => arm(SHOULDER_X, SHOULDER_Z, handX, handZ);
+
+const BODY: FighterHurtboxes = {
+  stand: [TORSO],
+  attacks: {
+    [AttackStyle.jab]: [heroHurtPose(2, 8, reach(46.0, 76.0))],
+    [AttackStyle.forwardTilt]: [heroHurtPose(6, 14, reach(48.0, 66.0))],
+    [AttackStyle.forwardTiltUp]: [heroHurtPose(6, 14, reach(46.0, 92.0))],
+    [AttackStyle.forwardTiltDown]: [heroHurtPose(6, 14, reach(46.0, 44.0))],
+    [AttackStyle.upTilt]: [heroHurtPose(5, 14, reach(14.0, 136.0))],
+    [AttackStyle.downTilt]: [heroHurtPose(5, 12, reach(44.0, 30.0))],
+    [AttackStyle.dashAttack]: [heroHurtPose(8, 16, reach(46.0, 56.0))],
+    // Smash charge holds the frame before the first active one, wound back.
+    [AttackStyle.forwardSmash]: [heroHurtPose(17, 23, reach(62.0, 76.0))],
+    [AttackStyle.upSmash]: [heroHurtPose(15, 21, reach(10.0, 140.0))],
+    [AttackStyle.downSmash]: [heroHurtPose(14, 16, reach(44.0, 26.0)), heroHurtPose(17, 22, reach(-44.0, 26.0))],
+    [AttackStyle.neutralAir]: [heroHurtPose(6, 13, reach(46.0, 86.0))],
+    [AttackStyle.forwardAir]: [heroHurtPose(8, 16, reach(46.0, 60.0))],
+    [AttackStyle.backAir]: [heroHurtPose(6, 14, reach(-46.0, 70.0))],
+    [AttackStyle.upAir]: [heroHurtPose(5, 11, reach(4.0, 140.0))],
+    [AttackStyle.downAir]: [heroHurtPose(11, 19, arm(0.0, 70.0, 4.0, 26.0))],
+    [AttackStyle.grab]: [heroHurtPose(5, 12, reach(50.0, 76.0))],
+  },
+};
 
 export const BLADEMASTER_MOVES: FighterMoves = {
   normals: {
@@ -155,4 +192,5 @@ export const BLADEMASTER_MOVES: FighterMoves = {
   smashMaxChargeFrames: 45,
   smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
+  hurtboxes: BODY,
 };

@@ -36,6 +36,8 @@ import {
   selectionDrag,
   updateSelectionDrag,
 } from "../menu/selectionDrag";
+import { cellRect, rosterGrid } from "../menu/selectionGrid";
+import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { automaticRematchSetting, endlessSetting, stockSetting, timeSetting } from "../shell/messages";
 import { Character } from "../sim/codes";
 import { ButtonClicks, MENU_FONT, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
@@ -105,7 +107,17 @@ function hotspot(parent: framehandle, x: number, y: number, width: number, heigh
   return frame;
 }
 
-const decodeTile = (data: string): RosterTile | undefined => (data === "0" ? 0 : data === "1" ? 1 : data === "2" ? 2 : undefined);
+/** Roster tiles are positions in the selectable fighters; a fighter chosen by tile is that character. */
+const characterOfTile = (tile: RosterTile): number => SELECTABLE_CHARACTERS[tile] ?? Character.archer;
+function tileOfCharacter(character: number): RosterTile {
+  for (let tile = 0; tile < SELECTABLE_CHARACTERS.length; tile++) if (SELECTABLE_CHARACTERS[tile] === character) return tile;
+  return 0;
+}
+
+const decodeTile = (data: string): RosterTile | undefined => {
+  const tile = S2I(data);
+  return I2S(tile) === data && tile >= 0 && tile < SELECTABLE_CHARACTERS.length ? tile : undefined;
+};
 const decodeSlot = (data: string): number | undefined => (data === "0" ? 0 : data === "1" ? 1 : data === "2" ? 2 : data === "3" ? 3 : undefined);
 
 export class SelectionPanel {
@@ -118,7 +130,7 @@ export class SelectionPanel {
   private readonly drag = selectionDrag();
   // Preallocated: the owner's client reads the pointer every rendered frame.
   private readonly chips: RosterChip[] = PARTICIPANT_SLOTS.map(() => ({ choice: 0, placed: false }));
-  private readonly roster: Roster = { selectable: 0, chips: this.chips };
+  private readonly roster: Roster = { grid: rosterGrid(SELECTABLE_CHARACTERS.length), selectable: 0, chips: this.chips };
   /** The match the panel last showed; synchronized events check choices against it. */
   private game: Readonly<MatchState> | undefined;
   private settingsOpen = false;
@@ -143,12 +155,16 @@ export class SelectionPanel {
     this.backdrop = createBackdrop(`MeleeSelectBackdrop${suffix}`, consoleUi(), 400 + participantId);
     BlzFrameSetTexture(this.backdrop, "war3mapImported\\SelectionBackdrop.tga", 0, false);
     coverScreen(this.backdrop);
-    for (let choice = 0; choice < 3; choice++) {
-      const x = f32(0.26) + choice * f32(0.18);
+    const grid = this.roster.grid;
+    const scale = f32(grid.scale);
+    for (let choice = 0; choice < grid.count; choice++) {
+      const { left, top } = cellRect(grid, choice);
+      const x = f32(left);
+      const y = f32(top);
       const name = `${suffix}_${I2S(choice)}`;
-      art(root, `MeleeTile${name}`, "war3mapImported\\SelectionTileFrame.tga", x, f32(0.424), f32(0.112), f32(0.132));
-      art(root, `MeleeTilePortrait${name}`, portraitTexture(choice, true), x + f32(0.0125), f32(0.411), f32(0.087), f32(0.087));
-      art(root, `MeleeTileName${name}`, nameTexture(choice), x + f32(0.004), f32(0.316), f32(0.103), f32(0.018));
+      art(root, `MeleeTile${name}`, "war3mapImported\\SelectionTileFrame.tga", x, y, f32(grid.cellWidth), f32(grid.cellHeight));
+      art(root, `MeleeTilePortrait${name}`, portraitTexture(SELECTABLE_CHARACTERS[choice], true), x + f32(0.0125) * scale, y - f32(0.013) * scale, f32(0.087) * scale, f32(0.087) * scale);
+      art(root, `MeleeTileName${name}`, nameTexture(SELECTABLE_CHARACTERS[choice]), x + f32(0.004) * scale, y - f32(0.108) * scale, f32(0.103) * scale, f32(0.018) * scale);
     }
     this.cards = PARTICIPANT_SLOTS.map((slot) => {
       const x = cardX(slot);
@@ -240,7 +256,7 @@ export class SelectionPanel {
 
   private acceptDrop(data: string): void {
     const tile = decodeTile(data);
-    if (this.choosing() !== undefined && tile !== undefined) this.actions.selectChoice(this.participantId, tile);
+    if (this.choosing() !== undefined && tile !== undefined) this.actions.selectChoice(this.participantId, characterOfTile(tile));
   }
 
   /** Data is the computer's slot digit, then the tile digit. */
@@ -249,7 +265,7 @@ export class SelectionPanel {
     if (game === undefined || data.length !== 2) return;
     const cpu = decodeSlot(data.charAt(0));
     const tile = decodeTile(data.charAt(1));
-    if (cpu !== undefined && tile !== undefined && canChooseComputer(game, this.participantId, cpu)) this.actions.selectCpuChoice(this.participantId, cpu, tile);
+    if (cpu !== undefined && tile !== undefined && canChooseComputer(game, this.participantId, cpu)) this.actions.selectCpuChoice(this.participantId, cpu, characterOfTile(tile));
   }
 
   private acceptRecall(data: string): void {
@@ -306,7 +322,7 @@ export class SelectionPanel {
       for (const slot of PARTICIPANT_SLOTS) {
         const chip = this.chips[slot];
         if (chip !== undefined) {
-          chip.choice = characterFor(game, slot) ?? Character.archer;
+          chip.choice = tileOfCharacter(characterFor(game, slot) ?? Character.archer);
           chip.placed = characterReady(game, slot);
         }
         if ((slot === participantId && humanFighterActive(game, slot)) || canChooseComputer(game, participantId, slot)) selectable |= 1 << slot;
@@ -335,11 +351,11 @@ export class SelectionPanel {
       BlzFrameSetVisible(frames.chip, active);
       BlzFrameSetTexture(frames.chip, `war3mapImported\\SelectionChip${human ? `P${I2S(slot + 1)}` : "CPU"}.tga`, 0, true);
       const carried = drag.dragging === slot || (!ready && drag.held === slot && drag.hover !== undefined);
-      const chipChoice = choice ?? Character.archer;
+      const chipChoice = tileOfCharacter(choice ?? Character.archer);
       placeTopLeft(
         frames.chip,
-        carried ? x - f32(0.02) : ready ? chipX(slot, chipChoice) : cardX(slot) + f32(0.06),
-        carried ? y + f32(0.02) : ready ? chipY(slot) : f32(0.2),
+        carried ? x - f32(0.02) : ready ? chipX(this.roster.grid, slot, chipChoice) : cardX(slot) + f32(0.06),
+        carried ? y + f32(0.02) : ready ? chipY(this.roster.grid, slot, chipChoice) : f32(0.2),
       );
     }
     BlzFrameSetText(this.confirm, this.confirmText(game));
