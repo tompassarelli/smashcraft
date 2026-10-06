@@ -1925,27 +1925,73 @@ pass-through platforms have no catchable ledges. The behavioral reference is
 melee:src/melee/ft/kinds/ftCommon/ftCo_CliffWait.c and the adjacent CliffClimb,
 CliffJump, CliffEscape and CliffAttack actions at the revision above. Their
 separate ledge options and quick/slow variants are factual context only. The
-local data field offsets do not establish actual timing or geometry values;
+local data field offsets do not establish the options' timing or geometry;
 none of that unlicensed implementation is copied or translated.
 
-This independently authored prototype samples catches before either fighter's
-movement on each match tick. An airborne, falling fighter must face inward
-and have its feet within 54 world units outside the endpoint and between
-90 units below and 12 above its height. Down suppresses catching. Existing
-attack/recovery, hitlag, hitstun, grabbed, dodge and shield-break locks suppress
-catching. A free ledge chooses the nearer eligible fighter by squared distance
-to the endpoint from the shared snapshot; exact ties catch neither. Existing
-owners retain the ledge throughout hanging and an ongoing climb/roll/attack.
-Both ledges resolve independently. These region, timing and contention rules
-are provisional choices, not measured Melee parameters.
+Catching follows Melee's cliff-catch check at the revision above:
+melee:src/melee/ft/ftcliffcommon.c (the catch, its facing turn and
+`ftCo_CliffCatch_Phys` placement), the ledge boxes `mpColl_80044164` and
+`mpColl_800443C4` in melee:src/melee/mp/mpcoll.c with their caller's falling
+and facing gates, and each action's collision callback in
+melee:src/melee/ft/ft_081B.c. Only facts and values are used.
+
+- **Who catches.** Falling and jumping fighters, helpless fall (after an
+  up-special, or once an air dodge's 49-frame animation ends), tumble once
+  hitstun ends, and fighters recovering from a tech or grab release. Aerial
+  attacks (AttackAir), air dodges (EscapeAir), hitstun (Damage/DamageFly),
+  shield-break flight, grabs and frozen fighters never catch. Melee's specials
+  choose per move; Smashcraft's original specials have no catch window.
+- **When.** Only after a frame whose movement went down (Melee compares the
+  frame's start and end heights), never while down is held (Melee: stick y at
+  or below minus common +0x480, 0.6600000262260437; Smashcraft's down is the
+  digital direction, which the helper raises at about a fifth of stick
+  travel), and never during the regrab lock.
+- **Which ledge.** Only the ledge ahead of the fighter's facing. A catch turns
+  the fighter toward the stage.
+- **The box.** Each fighter's ledge snap x, y and height (ftData x44
+  +0x10/+0x14/+0x18, melee:src/melee/ft/types.h `ftData_x44_t`) place it: the
+  ledge vertex must lie strictly beyond the fighter's position and strictly
+  less than its collision half-width plus snap x ahead, and strictly between
+  snap y minus and plus half the height above its feet. Both ranges sweep the
+  frame's start and end positions, so a fast fall can't pass through. Melee's
+  half-width is the animated airborne collision box, never under 2 units
+  (`mpColl_LoadECB_JObj`); Smashcraft fighters collide as points and use 2.
+
+| Fighter | Reference data | Snap x / y / height (Melee units) | Reach (world) | Ledge above feet (world) |
+| --- | --- | --- | --- | --- |
+| Archer | Fox, PlFx.dat | 11 / 13 / 9 | 78 | 51–105 |
+| Rifleman | Falco, PlFc.dat | 11 / 13 / 9 | 78 | 51–105 |
+| Illidan | Captain Falcon, PlCa.dat | 9 / 17 / 11 | 66 | 69–135 |
+
+The values were read from the owner's GALE01 revision 2 files (identities in
+smashcraft:docs/smash-melee-reference/physics-parameters.json) and convert at
+six world units per Melee unit. Illidan has no other adopted Melee profile;
+Captain Falcon, the corpus's third retail fighter, supplies only his box.
+
+smashcraft:ts/src/game/match/step.ts resolves catches at the start of each
+match tick, before any fighter moves, from each fighter's stored last movement
+(`motion.deltaX`/`deltaZ`), so both ledges resolve from one shared snapshot.
+A free ledge goes to the nearer eligible fighter by squared distance to the
+endpoint; exact ties catch neither. Owners keep the ledge through hanging and
+an ongoing climb/roll/attack. Melee catches inside the same frame's collision
+step and gives a contested ledge to whichever fighter it updates first.
 
 A catch anchors the feet 24 units outside and 90 below the endpoint, clears
-movement and launch velocity, and restores one air jump. It does not reset
-percent, shield energy, stocks or respawn protection. Catch protection lasts
-30 unfrozen ticks (including the catch tick); hanging afterward is vulnerable.
-Choosing an option never refreshes that protection. Jump, release, interruption
-and completed recovery remove it. Every departure starts a 30-unfrozen-tick
-regrab lock. Ordinary flinching damage and grabs interrupt the ledge action;
+movement and launch velocity, ends a helpless fall or air dodge, and restores
+one air jump. Melee anchors the fighter at the ledge vertex plus its
+CliffCatch animation's TransN offset, scaled by model scaling: Fox 4.8
+outside and 13.44 below on the catch frame, settling to 1.92 and 14.4 while
+hanging; Falco 5.5 and 15.4, then 2.2 and 16.5 (Melee units). Smashcraft's
+24/90 world units (4/15 Melee units) is that rule with an offset fitted to
+these fighters' rigs, which smashcraft:tools/animations/ledges.py bakes into
+the hang clips. A catch does not reset percent, shield energy, stocks or
+respawn protection. Catch protection lasts 30 unfrozen ticks (including the
+catch tick); hanging afterward is vulnerable. Choosing an option never
+refreshes that protection. Jump, release, interruption and completed recovery
+remove it. Release and interruption start a 30-unfrozen-tick regrab lock
+(Melee's common +0x498 ledge cooldown, 30, set by stick drops, the hang
+timeout and damage); a ledge jump and a completed climb, roll or attack don't.
+Ordinary flinching damage and grabs interrupt the ledge action;
 non-flinching lasers only add damage. Stock loss clears ledge ownership and
 protection; reset also clears the catch serial and regrab clock.
 
@@ -1968,12 +2014,16 @@ values 0–4), ledgeSide (-1 left, +1 right), ledgeFrame (0 on phase entry),
 and ledgeSerial (one increment per catch). InputSnapshot.ledgeVerticalPressed
 is a fresh Up (+1) or Down (-1) edge. The simulation reuses jumpPressed,
 getupDirectionPressed/getupDirection, airDodgePressed and getupAttackPressed
-for the other options. smashcraft:wurst/MatchStep.wurst resolves pair catches
-before advancing either fighter; standalone simulation consumers must do the
-same. Pure Wurst checks cover both characters and sides, eligibility, upper
-platform exclusion, contention/ownership, option timing and locks, attack
-contact, protection expiry, regrab timing, hit/grab interruption and reset.
-They do not establish native animation alignment or Melee numerical parity.
+for the other options. Standalone simulation consumers resolve pair catches
+before advancing either fighter, as the match step does.
+smashcraft:ts/src/game/sim/ledge.tests.ts covers every fighter and side, the
+reference boxes and their strict edges, the swept movement, eligibility,
+upper platform exclusion, contention/ownership, option timing and locks,
+attack contact, protection expiry, regrab timing, hit/grab interruption and
+reset. smashcraft:ts/src/game/match/ledgeCatchContracts.tests.ts plays
+recoveries through captured rows and the frame executor: falls beside the
+ledge and double jumps from below catch inside the box and fall past just
+outside it. None of these establish native animation alignment.
 
 The hang dimensions now fit the measured reach of both fighter rigs.
 smashcraft:tools/animations/ledges.py reads the simulation's hang offset, depth,

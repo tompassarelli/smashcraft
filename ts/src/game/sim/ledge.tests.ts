@@ -2,13 +2,14 @@
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
-import { AttackPhase, AttackStyle, Character, LedgeState, ShieldBreak } from "./codes";
+import { AttackPhase, AttackStyle, Character, DownState, LedgeState, ShieldBreak, SpecialAction } from "./codes";
 import { attackPhase, canAttack, isIntangible } from "./conditions";
 import { type Fighter, createFighter } from "./fighter";
-import { LEDGE_CLIMB_FRAMES, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, resolveLedges } from "./ledge";
+import { AIR_DODGE_ANIMATION_FRAMES } from "./jumpsAndDodges";
+import { LEDGE_CATCH_BODY_HALF_WIDTH, LEDGE_CLIMB_FRAMES, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, ledgeCatchBox, ledgeSnap, resolveLedges } from "./ledge";
 import { LEDGE_ATTACK_FRAMES, attackStartupFrames, grabHoldFrames } from "./moves";
 import type { Controls } from "./roster";
-import { surfaceLeft, surfaceZ } from "./stage";
+import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
 import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, soloWorld, testBeginAttacks, testWorld } from "./testWorld";
 import { LEDGE_REGRAB_FRAMES } from "./transitions";
@@ -16,12 +17,13 @@ import { authoredPhysics } from "./tuning";
 
 const LEDGE_PHASES = [LedgeState.hang, LedgeState.climb, LedgeState.roll, LedgeState.attack] as const;
 
-/** A fighter falling beside a main-deck ledge, facing the stage. */
+/** A fighter beside a main-deck ledge, facing the stage, whose last movement fell into every fighter's catch box. */
 function ledgeTestFighter(character: Character, side: number): Fighter {
   const fighter = createFighter(character, f32(side * 620.0), -side);
   fighter.motion.grounded = false;
-  fighter.motion.z = -30.0;
+  fighter.motion.z = -80.0;
   fighter.motion.vz = -2.0;
+  fighter.motion.deltaZ = -2.0;
   fighter.jump.remaining = 0;
   return fighter;
 }
@@ -30,8 +32,129 @@ function catchTestLedge(fighter: Fighter, input: Readonly<Controls>): void {
   resolveLedges(testWorld(fighter, createFighter(Character.rifleman, 0.0, 1)), 0, [input, controls()]);
 }
 
-test("a ledge catch on either side restores one air jump for both characters", () => {
-  for (const character of [Character.archer, Character.rifleman]) {
+/**
+ * Whether a fighter of `character` facing the `side` ledge catches it after a
+ * movement from (outsideBefore, belowBefore) to (outside, below), measured
+ * outward from and down from the ledge.
+ */
+function catchesAfterMovement(character: Character, side: number, outsideBefore: number, belowBefore: number, outside: number, below: number): boolean {
+  const fighter = ledgeTestFighter(character, side);
+  const edge = side < 0 ? surfaceLeft(0, 0) : surfaceRight(0, 0);
+  fighter.motion.x = f32(edge + f32(side * outside));
+  fighter.motion.z = f32(surfaceZ(0, 0) - below);
+  fighter.motion.deltaX = f32(side * f32(outside - outsideBefore));
+  fighter.motion.deltaZ = f32(belowBefore - below);
+  catchTestLedge(fighter, controls());
+  return fighter.ledge.state === LedgeState.hang;
+}
+
+test("each fighter catches with its reference fighter's NTSC 1.02 ledge snap data", () => {
+  // ftData x44 +0x10/+0x14/+0x18 (melee:src/melee/ft/types.h ftData_x44_t), read
+  // by melee:src/melee/ft/ft_081B.c into the box of melee:src/melee/mp/mpcoll.c.
+  // PlFx.dat (Fox) and PlFc.dat (Falco): 11, 13, 9. PlCa.dat (Captain Falcon): 9, 17, 11.
+  const references = [
+    [Character.archer, 11.0, 13.0, 9.0],
+    [Character.rifleman, 11.0, 13.0, 9.0],
+    [Character.demonHunter, 9.0, 17.0, 11.0],
+  ] as const;
+  for (const [character, x, y, height] of references) {
+    const snap = ledgeSnap(character);
+    assertEquals(snap.x, x);
+    assertEquals(snap.y, y);
+    assertEquals(snap.height, height);
+    // Reach adds Melee's 2-unit minimum airborne collision half-width; six world units per Melee unit.
+    const box = ledgeCatchBox(character);
+    assertEquals(LEDGE_CATCH_BODY_HALF_WIDTH, 2.0);
+    assertEquals(box.reach, f32(f32(x + 2.0) * 6.0));
+    assertEquals(box.lowest, f32(f32(y - f32(height * 0.5)) * 6.0));
+    assertEquals(box.highest, f32(f32(y + f32(height * 0.5)) * 6.0));
+  }
+  assertEquals(ledgeCatchBox(Character.archer).reach, 78.0);
+  assertEquals(ledgeCatchBox(Character.archer).lowest, 51.0);
+  assertEquals(ledgeCatchBox(Character.archer).highest, 105.0);
+  assertEquals(ledgeCatchBox(Character.demonHunter).reach, 66.0);
+  assertEquals(ledgeCatchBox(Character.demonHunter).lowest, 69.0);
+  assertEquals(ledgeCatchBox(Character.demonHunter).highest, 135.0);
+});
+
+test("the catch box's edges are strict for every fighter and side", () => {
+  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+    const { reach, lowest, highest } = ledgeCatchBox(character);
+    const middle = f32(f32(lowest + highest) * 0.5);
+    for (const side of [-1, 1]) {
+      // Ahead of the fighter: strictly beyond the ledge and strictly within reach.
+      assertTrue(catchesAfterMovement(character, side, f32(reach - 1.0), f32(middle - 1.0), f32(reach - 1.0), middle));
+      assertFalse(catchesAfterMovement(character, side, reach, f32(middle - 1.0), reach, middle));
+      assertTrue(catchesAfterMovement(character, side, 1.0, f32(middle - 1.0), 1.0, middle));
+      assertFalse(catchesAfterMovement(character, side, 0.0, f32(middle - 1.0), 0.0, middle));
+      // Below it: strictly between the lowest and highest ledge heights above the feet.
+      assertFalse(catchesAfterMovement(character, side, 20.0, f32(lowest - 2.0), 20.0, lowest));
+      assertTrue(catchesAfterMovement(character, side, 20.0, f32(lowest - 1.0), 20.0, f32(lowest + 1.0)));
+      assertFalse(catchesAfterMovement(character, side, 20.0, highest, 20.0, f32(highest + 2.0)));
+      assertTrue(catchesAfterMovement(character, side, 20.0, f32(highest - 1.0), 20.0, f32(highest + 1.0)));
+    }
+  }
+});
+
+test("the catch box sweeps the frame's movement, and only a downward movement catches", () => {
+  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+    const { reach, lowest, highest } = ledgeCatchBox(character);
+    const middle = f32(f32(lowest + highest) * 0.5);
+    for (const side of [-1, 1]) {
+      // A fall through the whole window in one frame, and a drift out of reach, still catch.
+      assertTrue(catchesAfterMovement(character, side, 20.0, f32(lowest - 10.0), 20.0, f32(highest + 10.0)));
+      assertTrue(catchesAfterMovement(character, side, f32(reach - 1.0), f32(middle - 1.0), f32(reach + 10.0), middle));
+      assertFalse(catchesAfterMovement(character, side, f32(reach + 10.0), f32(middle - 1.0), f32(reach + 10.0), middle));
+      // Rising or level movement never catches, even inside the box.
+      assertFalse(catchesAfterMovement(character, side, 20.0, f32(middle + 1.0), 20.0, middle));
+      assertFalse(catchesAfterMovement(character, side, 20.0, middle, 20.0, middle));
+    }
+  }
+});
+
+test("falling, helpless and tumbling fighters catch; aerials, specials, air dodges and hitstun don't", () => {
+  const upSpecials = [SpecialAction.archerRecovery, SpecialAction.riflemanRecovery, SpecialAction.demonHunterWingAscent] as const;
+  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
+    const states: readonly (readonly [boolean, (f: Fighter) => void])[] = [
+      [true, () => undefined],
+      [true, (f) => (f.special.fall = true)],
+      [true, (f) => (f.down.state = DownState.tumble)],
+      [true, (f) => {
+        f.dodge.airDodging = true;
+        f.dodge.airFrame = AIR_DODGE_ANIMATION_FRAMES;
+      }],
+      [false, (f) => {
+        f.dodge.airDodging = true;
+        f.dodge.airFrame = AIR_DODGE_ANIMATION_FRAMES - 1;
+      }],
+      [false, (f) => {
+        f.attack.style = AttackStyle.neutralAir;
+        f.attack.cooldown = 1;
+      }],
+      [false, (f) => {
+        f.special.action = upSpecials[character];
+        f.special.lockFrames = 1;
+      }],
+      [false, (f) => {
+        f.down.state = DownState.tumble;
+        f.launch.hitstun = 1;
+      }],
+    ];
+    for (const [catches, enter] of states) {
+      const fighter = ledgeTestFighter(character, -1);
+      enter(fighter);
+      catchTestLedge(fighter, controls());
+      assertEquals(fighter.ledge.state, catches ? LedgeState.hang : LedgeState.none);
+      if (catches) {
+        assertFalse(fighter.dodge.airDodging);
+        assertFalse(fighter.special.fall);
+      }
+    }
+  }
+});
+
+test("a ledge catch on either side restores one air jump for every fighter", () => {
+  for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     for (const side of [-1, 1]) {
       const fighter = ledgeTestFighter(character, side);
       fighter.status.damage = 75.0;
@@ -42,8 +165,11 @@ test("a ledge catch on either side restores one air jump for both characters", (
       assertEquals(fighter.ledge.side, side);
       assertEquals(fighter.ledge.frame, 0);
       assertEquals(fighter.ledge.serial, 1);
+      assertEquals(fighter.facing, -side);
       assertEquals(fighter.motion.x, f32(side * 624.0));
       assertEquals(fighter.motion.z, -90.0);
+      assertEquals(fighter.motion.vx, 0.0);
+      assertEquals(fighter.motion.vz, 0.0);
       assertEquals(fighter.jump.remaining, 1);
       assertEquals(fighter.launch.knockbackX, 0.0);
       assertEquals(fighter.status.damage, 75.0);
@@ -56,7 +182,8 @@ test("a ledge catch on either side restores one air jump for both characters", (
 
 test("ledge eligibility rejects locks, wrong facing and positions outside the region", () => {
   const rejections: ((fighter: Fighter, input: Controls) => void)[] = [
-    (f) => (f.motion.vz = 1.0),
+    (f) => (f.motion.deltaZ = 1.0),
+    (f) => (f.motion.deltaZ = 0.0),
     (f) => (f.facing = -1),
     (_, input) => (input.down = true),
     (f) => (f.launch.hitstun = 1),
@@ -66,8 +193,8 @@ test("ledge eligibility rejects locks, wrong facing and positions outside the re
     (f) => (f.shield.breakState = ShieldBreak.air),
     (f) => (f.grab.grabbedFrames = 1),
     (f) => (f.ledge.regrab = 1),
-    (f) => (f.motion.x = -655.0),
-    (f) => (f.motion.z = -91.0),
+    (f) => (f.motion.x = -700.0),
+    (f) => (f.motion.z = -140.0),
     (f) => (f.motion.z = 13.0),
     (f) => (f.motion.x = -599.0),
   ];
@@ -100,7 +227,7 @@ test("ledge contention uses distance, not argument order, and the owner hogs", (
     assertEquals(far.ledge.state, LedgeState.none);
     near.ledge.intangible = 0;
     far.motion.x = -601.0;
-    far.motion.z = -1.0;
+    far.motion.z = -80.0;
     resolveLedges(testWorld(far, near), 0, [input, input]);
     assertEquals(far.ledge.state, LedgeState.none);
   }
@@ -137,7 +264,8 @@ test("ledge options honor priority, locks and exact recovery durations", () => {
         advanceSolo(fighter, 0, input, 0.0);
         if (option === 0 || option === 2 || option === 4) {
           assertEquals(fighter.ledge.state, LedgeState.none);
-          assertEquals(fighter.ledge.regrab, LEDGE_REGRAB_FRAMES);
+          // Letting go starts the regrab lock; a ledge jump doesn't.
+          assertEquals(fighter.ledge.regrab, option === 0 ? 0 : LEDGE_REGRAB_FRAMES);
           assertFalse(isIntangible(fighter));
           assertEquals(fighter.jump.remaining, 1);
           if (option === 0) {
@@ -171,6 +299,7 @@ test("ledge options honor priority, locks and exact recovery durations", () => {
         assertEquals(fighter.motion.x, f32(side * (option === 5 ? 460.0 : option === 6 ? 536.0 : 576.0)));
         assertEquals(fighter.attack.style, undefined);
         assertEquals(fighter.jump.remaining, 2);
+        assertEquals(fighter.ledge.regrab, 0);
       }
     }
   }
@@ -280,8 +409,9 @@ test("the ledge release regrab cooldown expires after thirty unfrozen ticks", ()
   input.ledgeVerticalPressed = 0;
   for (let tick = 1; tick <= LEDGE_REGRAB_FRAMES; tick++) {
     fighter.motion.x = -620.0;
-    fighter.motion.z = -30.0;
+    fighter.motion.z = -80.0;
     fighter.motion.vz = -2.0;
+    fighter.motion.deltaZ = -2.0;
     catchTestLedge(fighter, input);
     assertEquals(fighter.ledge.state, LedgeState.none);
     advanceSolo(fighter, 0, input, 0.0);
