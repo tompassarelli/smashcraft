@@ -108,7 +108,7 @@ test("the bear walks after him 0.8H behind at 0.035H a frame and never leaves it
   assertGreaterThan(owner.placed.x, -2000.0);
 });
 
-test("Bear Command lunges the bear 0.9H for an 11 bite once, and a second command refuses while it lunges", () => {
+test("Bear Command lunges the bear 1.2H for a 14 bite once, and a second command refuses while it lunges", () => {
   for (const facing of [1, -1]) {
     const { world, owner, target } = withBear(f32(H * f32(1.4)), facing);
     owner.facing = facing;
@@ -122,10 +122,10 @@ test("Bear Command lunges the bear 0.9H for an 11 bite once, and a second comman
     frame(world, controls({ specialPressed: true, specialX: facing }));
     assertEquals(owner.mana.points >= spent, true);
     for (let f = 0; f < 40 && target.status.damage === 0.0; f++) frame(world);
-    assertEquals(target.status.damage, 11.0);
+    assertEquals(target.status.damage, 14.0);
     assertGreaterThan(f32(target.launch.knockbackX * facing), 0.0);
     run(world, 60);
-    assertEquals(target.status.damage, 11.0);
+    assertEquals(target.status.damage, 14.0);
     assertEquals(owner.placed.mode, CompanionMode.follow);
     assertTrue(Math.abs(f32(owner.placed.x - start)) > 0.0);
   }
@@ -186,7 +186,7 @@ test("without a bear: Throwing Axe is free, Quillbeast Dart costs 3, and Hawk Li
   frame(axe.world, neutral);
   assertEquals(axe.owner.mana.points, 100);
   for (let f = 0; f < 40 && axe.target.status.damage === 0.0; f++) frame(axe.world);
-  assertEquals(axe.target.status.damage, 7.0);
+  assertEquals(axe.target.status.damage, 9.0);
   const dart = pair(f32(H * 1.5));
   frame(dart.world, down);
   assertEquals(dart.owner.special.action, SpecialAction.heroDown);
@@ -223,7 +223,7 @@ test("rollback restores the bear mid-lunge", () => {
   const expectedTarget = createFighter(Character.archer, 0.0, 1);
   copyFighterState(expectedOwner, owner, 3);
   copyFighterState(expectedTarget, target, 3);
-  assertEquals(target.status.damage, 11.0);
+  assertEquals(target.status.damage, 14.0);
   copyFighterState(owner, savedOwner, 3);
   copyFighterState(target, savedTarget, 3);
   run(world, 20);

@@ -138,7 +138,7 @@ function placeWard(world: Roster): void {
   for (let f = 2; f <= 26; f++) frame(world);
 }
 
-test("Serpent Ward is ground-only, costs 20, stands 0.65H ahead from frame 26 and fires straight at ages 45, 105 and 165", () => {
+test("Serpent Ward is ground-only, costs 20, stands 0.65H ahead from frame 26 and fires straight at ages 45, 85, 125, 165 and 205", () => {
   const { world, owner, target } = pair(300.0);
   owner.motion.grounded = false;
   owner.motion.z = 200.0;
@@ -165,7 +165,7 @@ test("Serpent Ward is ground-only, costs 20, stands 0.65H ahead from frame 26 an
     wasFlying = flying;
     if (age === 239) assertGreaterThan(owner.placed.life, 0);
   }
-  assertEquals(fired.join(","), "45,105,165");
+  assertEquals(fired.join(","), "45,85,125,165,205");
   assertEquals(owner.placed.life, 0);
   assertGreaterThan(target.status.damage, 0.0);
 });

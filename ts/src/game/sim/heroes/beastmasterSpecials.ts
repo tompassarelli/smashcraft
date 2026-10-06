@@ -20,25 +20,25 @@ const CAST_HEIGHT = h(f32(0.5));
 export const THROWING_AXE: SpecialProjectile = {
   spawnFrame: 20, offsetX: h(f32(0.35)), offsetZ: CAST_HEIGHT,
   velocityX: h(f32(0.11)), velocityZ: 0.0, life: 28, radius: h(f32(0.17)),
-  effect: hit(7.0, "POKE", 40), reflectable: true, limit: 1,
+  effect: hit(9.0, "POKE", 40), reflectable: true, limit: 1,
   model: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
 };
 const throwingAxe = (air: boolean): AuthoredSpecial => ({
-  cost: 0, endFrame: 44, projectiles: [THROWING_AXE],
+  cost: 0, endFrame: 36, projectiles: [THROWING_AXE],
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });
 
 /**
  * The bear: follows 0.8H behind him at 0.035H a frame on its own deck, lunges
- * 0.9H only on his order (16 frames of warning, a 4-frame bite, 30 of
+ * 1.2H only on his order (12 frames of warning, a 4-frame bite, 30 of
  * recovery), is stunned 18 frames by a hit mid-lunge, and leaves after 120
  * frames more than 6H from him.
  */
 export const BEAR: SpecialCompanion = {
   followSpeed: h(f32(0.035)), followBehind: h(f32(0.8)), returnSpeed: h(f32(0.06)),
-  lungeStartup: 12, lungeActive: 4, lungeRecovery: 30, lungeTravel: h(f32(0.9)),
+  lungeStartup: 12, lungeActive: 4, lungeRecovery: 30, lungeTravel: h(f32(1.2)),
   bite: capsule(15.0, 30.0, f32(h(f32(0.45)) - 20.0), 40.0, 20.0),
-  biteEffect: hit(11.0, "EDGE", 40, 1.0, HitElement.normal),
+  biteEffect: hit(14.0, "EDGE", 40, 1.0, HitElement.normal),
   stunFrames: 18, leash: h(6.0), leashFrames: 120,
 };
 

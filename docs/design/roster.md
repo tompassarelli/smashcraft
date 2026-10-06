@@ -110,7 +110,7 @@ Weight is relative to the current reference fighter at 1.00. Run and air speed a
 | Brewmaster | 1.13 | 0.98 | 0.90 | 1.20 | 1.10 |
 | Lich | 0.85 | 0.90 | 0.95 | 0.90 | 1.05 |
 | Uther | 1.10 | 0.92 | 0.88 | 1.08 | 1.02 |
-| Dreadlord | 1.04 | 1.00 | 1.12 | 1.10 | 1.15 |
+| Dreadlord | 1.14 | 1.00 | 1.22 | 1.10 | 1.15 |
 | Shadow Hunter | 0.94 | 1.04 | 1.00 | 0.92 | 1.08 |
 | Pit Lord | 1.28 | 0.80 | 0.70 | 1.65 | 1.35 |
 | Tinker | 1.05 | 0.94 | 0.86 | 1.20 | 0.95 |
@@ -519,7 +519,7 @@ sequence table and every pose's clip.
 | Forward smash — Twin Talons | 18/4/34 | 18 | L, 40, KILL | Two claws act as a single hit |
 | Up smash — Night Ascendant | 16/5/31 | 16 | L, 85, KILL | Wings and claws overhead |
 | Down smash — Wing Sweep | 15/6/32 | 14 | L, 25, EDGE | Broad front/rear body attack |
-| Neutral air — Batwing Turn | 7/10/19; L14 | 2 + 2 + 5 | M, 50, POKE | Three wing beats ([multi-hit](aerials.md)); wide, tradeable |
+| Neutral air — Batwing Turn | 7/10/19; L14 | 3 + 3 + 7 | M, 50, POKE | Three wing beats ([multi-hit](aerials.md)); wide, tradeable |
 | Forward air — Talon Reach | 10/4/24; L15 | 14 | L, 40, EDGE | Forward reach at cost of exposing arm |
 | Back air — Wing Backhand | 9/4/25; L15 | 15 | L, 35, KILL | Wing hurtbox extends too |
 | Up air — Horn Lift | 7/3/21; L12 | 8 | M, 85, LAUNCH | Short upward head attack |
@@ -530,9 +530,9 @@ sequence table and every pose's clip.
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
 | Neutral B | **Carrion Swarm:** a short bat cloud moving at 0.09H/frame for 32 frames, radius 0.25H. One hit for 7 damage, POKE at 40 degrees. Reflectable as one projectile, one cloud active. | Spawn f20, end f45; 5 mana |
-| Side B | **Vampiric Pounce** (#132, [kit review 2](kit-review-2.md#dreadlord-132)): grounded command grab with 0.8H approach; grab reach 0.45H. On catch, automatic bite-and-release at catch+16 frames, 9 damage, EDGE at 40 degrees, then 28 recovery. No heal, no carrying, shared regrab protection applies. Air version is a claw attack for 9 damage, not a grab, and ends helpless. | Catch/strike f17–19; whiff R34; 20 mana | The bite heals Dreadlord 4 percent, at most 12 a stock. **Feint:** side B again on approach frames 3–12 cancels into a free backward bat-hop, 0.7H over its frames 1–10, ending f18. |
+| Side B | **Vampiric Pounce** (#132, [kit review 2](kit-review-2.md#dreadlord-132)): grounded command grab with 0.8H approach; grab reach 0.45H. On catch, automatic bite-and-release at catch+16 frames, 13 damage, EDGE at 40 degrees, then 28 recovery. No heal, no carrying, shared regrab protection applies. Air version is a claw attack for 13 damage, not a grab, and ends helpless. | Catch/strike f17–19; whiff R34; 20 mana | The bite heals Dreadlord 4 percent, at most 12 a stock. **Feint:** side B again on approach frames 3–12 cancels into a free backward bat-hop, 0.7H over its frames 1–10, ending f18. |
 | Up B | **Bat Ascension:** steerable rising curve up to 2.0H high and 0.8H across, no hitbox. Visible bat-body hurtbox throughout; no intangibility. Free version 1.4H height and 0.3H across. | Movement f9–32, then helpless; 15 mana |
-| Down B | **Sleep** (#132): visibly slow projectile, speed 0.06H/frame, life 50, radius 0.18H, one active and reflectable. Body hit deals 2 damage and 70 frames of sleep (24 if the target is airborne); the sleeper keeps velocity/gravity, cannot act, mashes out with the grab and freeze rule (8 frames a press or new stick direction, never before frame 24) and wakes on the next damaging hit. Then 240-frame sleep immunity. Shield blocks it. No bonus damage on waking. | Spawn f26, end f58; 25 mana |
+| Down B | **Sleep** (#132): visibly slow projectile, speed 0.06H/frame, life 50, radius 0.18H, one active and reflectable. Body hit deals 2 damage and 100 frames of sleep (24 if the target is airborne); the sleeper keeps velocity/gravity, cannot act, mashes out with the grab and freeze rule (8 frames a press or new stick direction, never before frame 24) and wakes on the next damaging hit. Then 240-frame sleep immunity. Shield blocks it. No bonus damage on waking. | Spawn f26, end f58; 25 mana |
 
 ### Grab and throws
 
@@ -584,7 +584,7 @@ Standing grab 7/3/26, reach 0.65H. Pummel: claw squeeze. No automatic lifesteal.
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
 | Neutral B | **Spirit Glaive** (#133, [kit review 2](kit-review-2.md#shadow-hunter-133)): a returning glaive, speed 0.12H/frame out for 22 frames, then back toward Shadow Hunter at the same speed; life 70, radius 0.15H, one active, reflectable (a reflected glaive flies straight). Outbound 6 damage, POKE at 35 degrees; returning 5 damage, POKE toward him. Caught, it ends. | Spawn f18, end f40; 0 mana |
-| Side B | **Serpent Ward:** ground-only placement 0.65H ahead; one ward, 12 durability, 240-frame life. It fires straight in its placement-facing direction at age 45, 105, and 165, never auto-aiming. Shots: 4 damage, POKE at 35 degrees, speed 0.10H/frame, life 24, radius 0.12H, reflectable. Recasting with a ward active recalls it after the same vulnerable animation, costs 0, and grants no refund. | Ward appears f26, action ends f52; initial cast 20 mana |
+| Side B | **Serpent Ward:** ground-only placement 0.65H ahead; one ward, 20 durability, 240-frame life. It fires straight in its placement-facing direction at age 45, 85, 125, 165 and 205, never auto-aiming. Shots: 6 damage, POKE at 35 degrees, speed 0.10H/frame, life 36, radius 0.12H, reflectable. Recasting with a ward active recalls it after the same vulnerable animation, costs 0, and grants no refund. | Ward appears f26, action ends f52; initial cast 20 mana |
 | Up B | **Loa Vault:** a spirit-assisted arc 2.0H high and 0.6H lateral, no hitbox or intangibility. Free version 1.4H and 0.3H lateral. | Movement f8–30, then helpless; 15 mana |
 | Down B | **Hex** (#133): short visible orb, speed 0.07H/frame, life 26, radius 0.18H. 2 damage, POKE at 40 degrees. For 50 frames the target cannot attack, grab or start neutral, side or down specials, but keeps movement, jump, shield, dodges, DI and up special (recovery). It mashes out with the grab and freeze rule, never before frame 20. No hurtbox change. 240-frame hex immunity after it ends. Reflectable; one active. | Spawn f24, end f53; 25 mana |
 
@@ -857,8 +857,8 @@ Standing grab 9/2/27, reach 0.65H, short tail coil. No dragging or moving hold. 
 
 | Input | Proposed move and behavior | Timing and cost |
 | --- | --- | --- |
-| Neutral B | **Throwing Axe:** straight thrown axe, 7 damage, POKE at 40 degrees, speed 0.11H/frame, life 28, radius 0.17H, one active and reflectable. No boomerang return. | Spawn f20, end f44; 0 mana |
-| Side B | **Bear Command:** without a bear, ground-only summon at 0.6H ahead, 30 durability and 600-frame life. With a bear, issue a lunge in owner-facing direction: travel 0.9H, bite for 11 damage, EDGE at 40 degrees. Owner commits to command animation; commands fail while bear is attacking or stunned. Bear cannot attack during owner hitstun and does not auto-counter a combo. | Summon f30, end f56, cost 25. Command end f24, cost 8; bear startup 12, active 4, recovery 30 |
+| Neutral B | **Throwing Axe:** straight thrown axe, 9 damage, POKE at 40 degrees, speed 0.11H/frame, life 28, radius 0.17H, one active and reflectable. No boomerang return. | Spawn f20, end f36; 0 mana |
+| Side B | **Bear Command:** without a bear, ground-only summon at 0.6H ahead, 30 durability and 600-frame life. With a bear, issue a lunge in owner-facing direction: travel 1.2H, bite for 14 damage, EDGE at 40 degrees. Owner commits to command animation; commands fail while bear is attacking or stunned. Bear cannot attack during owner hitstun and does not auto-counter a combo. | Summon f30, end f56, cost 25. Command end f24, cost 8; bear startup 12, active 4, recovery 30 |
 | Up B | **Hawk Lift:** a cosmetic hawk lifts Beastmaster 2.0H with 0.5H drift. No independent hawk AI or attack. Free version 1.4H. | Lift f10–32, then helpless; 15 mana |
 | Down B | **Bear Recall or Quilbeast Dart:** with a bear, recalls it along the ground toward the owner at 0.06H/frame, cancelling only its idle/follow state; no teleport, attack, invulnerability, or durability reset. Without a bear, throw one short quill at speed 0.14H/frame, life 20, radius 0.10H; 4 damage, POKE at 35 degrees, reflectable. | Recall action 20 frames, 0 mana. Dart spawn f18, end f40, 3 mana |
 
@@ -889,7 +889,7 @@ use provisional coefficients. Deliberate differences:
 
 - The bear is his placed object with a `companion` record. Side special
   summons it (25 mana, ground only). While it stands, side special is Bear
-  Command (8 mana): the bear lunges the way he faces after 16 frames of
+  Command (8 mana): the bear lunges the way he faces after 12 frames of
   warning, with a 4-frame bite. Down special is Bear Recall (free), and the
   Quillbeast Dart only when no bear stands. A lunge order refuses, spending
   nothing, while the bear is lunging or stunned.
@@ -1173,6 +1173,26 @@ smashcraft:evidence/balance-105-20261007/.
 
 Matchups: 5 of 66 inside 45-55% before, 10 after; 95% intervals
 overlapping the band 13 → 19; median distance from 50% 33.5 → 22 points.
+
+Pass 2, same field (after pass 1 → after pass 2):
+
+| Fighter | Lever (identity) | After pass 1 | After pass 2 |
+| --- | --- | --- | --- |
+| Shadow Hunter | totem placement: Serpent Ward fires 5 shots of 6 (ages 45-205, was 3 of 4), shot life 24→36, ward durability 12→20; launch growth +10 | 26%, 2% | 40%, 2% |
+| Beastmaster | bear coordination: lunge travel 0.9H→1.2H, bite 11→14; Throwing Axe 7→9, end f44→f36 | 32%, 6% | 48%, 6% |
+| Dreadlord | air movement and close pressure: air speed 1.12→1.22, weight 1.04→1.14, Batwing Turn 3+3+7 (was 2+2+5), Sleep 70→100 frames, Vampiric Pounce 9→13 | 27%, 2% | 39%, 3% |
+| Pit Lord | his KILL and EDGE classes lose some growth (KILL 110→100, base 26→24; EDGE 100→95) | 71%, 4% | 65%, 4% |
+| Archer | arrows can't stop an approach: homing arrow 6→4; her computer now counts both arrows as Trueshot's cashing moves (it already counted the plain arrow) | 85%, 1% | 74%, 1% (her row alone, 100 a pair, after the rest of pass 2) |
+| Rifleman, Illidan, Blademaster, Mountain King, Warden, Lich, Uther | unchanged | 56, 46, 52, 50, 52, 48, 55% | 52, 42, 49, 43, 48, 43, 51% |
+
+Matchups after pass 2 (before the Archer change): 13 of 66 inside 45-55%,
+27 intervals overlapping the band, median distance from 50% 17 points.
+
+Pit Lord's rate barely moves with his own recovery: Annihilating Cleave
+4 frames slower and 7 longer, or Ruin Charge 10 frames longer with less
+armor, each left him at 70% in row probes. The computer answers threats
+but never times an attack into an opponent's recovery, so a slow swing
+costs nothing against it; his CPU rate measures that gap as much as his kit.
 
 ## Implementation details for the overnight agent
 

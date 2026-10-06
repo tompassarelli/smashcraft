@@ -41,9 +41,9 @@ const DIRECTION = {
 } as const;
 
 const BATWING_DRAG: readonly Strike[] = [
-  [capsule(16.0, 30.0, f32(M - WING_RADIUS), 50.0, WING_RADIUS), linkAt(2.0, 28.0, 100)],
-  [capsule(0.0, 65.0, 0.0, f32(M - WING_RADIUS), WING_RADIUS), linkAt(2.0, 28.0, 90)],
-  [capsule(-16.0, 30.0, -f32(M - WING_RADIUS), 50.0, WING_RADIUS), linkAt(2.0, 28.0, 80)],
+  [capsule(16.0, 30.0, f32(M - WING_RADIUS), 50.0, WING_RADIUS), linkAt(3.0, 28.0, 100)],
+  [capsule(0.0, 65.0, 0.0, f32(M - WING_RADIUS), WING_RADIUS), linkAt(3.0, 28.0, 90)],
+  [capsule(-16.0, 30.0, -f32(M - WING_RADIUS), 50.0, WING_RADIUS), linkAt(3.0, 28.0, 80)],
 ];
 
 export function dreadlordHit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof DIRECTION, facing = 1.0, element: HitElement = HitElement.slash): Readonly<HitEffect> {
@@ -95,9 +95,9 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
       { first: 7, last: 8, strikes: BATWING_DRAG },
       { first: 10, last: 11, strikes: BATWING_DRAG },
       { first: 14, last: 16, strikes: [
-        [capsule(16.0, 30.0, f32(M - WING_RADIUS), 45.0, WING_RADIUS), dreadlordHit(5.0, "POKE", 50)],
-        [capsule(0.0, 65.0, 0.0, f32(M - WING_RADIUS), WING_RADIUS), dreadlordHit(5.0, "POKE", 50)],
-        [capsule(-16.0, 30.0, -f32(M - WING_RADIUS), 45.0, WING_RADIUS), dreadlordHit(5.0, "POKE", 50, -1.0)],
+        [capsule(16.0, 30.0, f32(M - WING_RADIUS), 45.0, WING_RADIUS), dreadlordHit(7.0, "POKE", 50)],
+        [capsule(0.0, 65.0, 0.0, f32(M - WING_RADIUS), WING_RADIUS), dreadlordHit(7.0, "POKE", 50)],
+        [capsule(-16.0, 30.0, -f32(M - WING_RADIUS), 45.0, WING_RADIUS), dreadlordHit(7.0, "POKE", 50, -1.0)],
       ] },
     ])),
     [AttackStyle.forwardAir]: heroMove(10, 4, 24, 15, rake(10, [64.0, 52.0, 40.0, 28.0], L, dreadlordHit(14.0, "EDGE", 40))),
