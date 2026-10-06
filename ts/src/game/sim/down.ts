@@ -114,8 +114,8 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
     launch.throwHitstun = false;
     beginDownState(f, DownState.bound, totalVelocityX(f) < 0 ? -1 : 1);
   } else if (damageLanding === DamageLanding.normal) {
-    launch.hitstun = 0;
-    launch.throwHitstun = false;
+    // A gentle landing cannot end a throw's regrab protection early.
+    if (!launch.throwHitstun) launch.hitstun = 0;
     landingState.lag = max(landingState.lag, EMPTY_LANDING_LAG);
   } else if (fromAsdi) {
     launch.hitstun = 0;
