@@ -3,7 +3,7 @@ import { hurtCapsule } from "../../physics/contactGeometry";
 import { Character } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
 import { hurtPart, hurtPose } from "../hurtboxes";
-import { type FighterSpecials, ROSTER_MANA, frames } from "../heroSpecials";
+import { type FighterSpecials, type SpecialMotion, ROSTER_MANA, frames } from "../heroSpecials";
 import { MEDIUM, SHORT, capsule, hit } from "./mountainKingMoves";
 
 // smashcraft:docs/design/roster.md "Mountain King": costs, frames, damage,
@@ -17,27 +17,25 @@ const BOLT_SPEED = heights(0.12);
 const BOLT_RADIUS = heights(0.18);
 const STORM_BOLT = hit(7.0, "LAUNCH", 65);
 
-// Storm Rush: 1.2H of shoulder travel over its six active frames.
+// Storm Rush: 1.2H of shoulder travel over its six active frames, then a dead stop.
 const RUSH_FRAMES = 6;
 const RUSH_SPEED = f32(heights(1.2) / RUSH_FRAMES);
 const STORM_RUSH = hit(12.0, "EDGE", 35);
+const RUSH: readonly SpecialMotion[] = [{ ...frames(13, 18), velocityX: RUSH_SPEED, velocityZ: 0.0, stopsAtBody: true }, { ...frames(19, 19), velocityX: 0.0, velocityZ: 0.0 }];
 const RUSH_BODY = capsule(0.0, 14.0, 12.0, 60.0, 26.0);
 // The lowered shoulder is body, so it carries its own hurt volume while it strikes.
 const RUSH_HURT = [hurtPose(13, 18, [hurtCapsule(Character.mountainKing), hurtPart(RUSH_BODY.x1, RUSH_BODY.z1, RUSH_BODY.x2, RUSH_BODY.z2, RUSH_BODY.radius)])];
 
-// Thunder Leap: rise over f9-28 (20 frames), front-loaded into the hit window.
-// Full form 1.8H up and 0.7H forward; the free form 1.3H up, no attack.
-const LEAP_FAST = 6;
-const LEAP_SLOW = 14;
-const leapRise = (total: number) => {
-  const fast = f32(f32(total * 0.5) / LEAP_FAST);
-  const slow = f32(f32(total * 0.5) / LEAP_SLOW);
-  return { fast, slow };
+// Thunder Leap: exact rise over f9-28 (20 frames), half of it in the f9-14 hit
+// window, then easing so the peak stays at the listed height. Full form 1.8H up
+// and 0.7H forward; the free form 1.3H up and 0.5H forward, no attack.
+const leap = (rise: number, drift: number): SpecialMotion[] => {
+  const segment = (first: number, last: number, share: number): SpecialMotion =>
+    ({ ...frames(first, last), velocityX: f32(f32(drift * share) / (last - first + 1)), velocityZ: f32(f32(rise * share) / (last - first + 1)) });
+  return [segment(9, 14, 0.5), segment(15, 24, 0.46), segment(25, 28, 0.04)];
 };
-const FULL_RISE = leapRise(heights(1.8));
-const FREE_RISE = leapRise(heights(1.3));
-const LEAP_DRIFT = f32(heights(0.7) / (LEAP_FAST + LEAP_SLOW));
-const FREE_DRIFT = f32(heights(0.5) / (LEAP_FAST + LEAP_SLOW));
+const FULL_LEAP = leap(heights(1.8), heights(0.7));
+const FREE_LEAP = leap(heights(1.3), heights(0.5));
 const THUNDER_LEAP = hit(8.0, "LAUNCH", 80);
 const LEAP_HAMMER = capsule(10.0, 60.0, 30.0, f32(MEDIUM + 20.0), 16.0);
 
@@ -67,14 +65,14 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
       endFrame: 46,
       regions: [heroRegion(13, 18, RUSH_BODY, STORM_RUSH)],
       hurt: RUSH_HURT,
-      motion: [{ ...frames(13, 18), velocityX: RUSH_SPEED, velocityZ: 0.0, stopsAtBody: true }],
+      motion: RUSH,
     },
     air: {
       cost: 18,
       endFrame: 46,
       regions: [heroRegion(13, 18, RUSH_BODY, STORM_RUSH)],
       hurt: RUSH_HURT,
-      motion: [{ ...frames(13, 18), velocityX: RUSH_SPEED, velocityZ: 0.0, stopsAtBody: true }],
+      motion: RUSH,
       oncePerAirtime: true,
       helpless: true,
     },
@@ -84,20 +82,14 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
       cost: 15,
       endFrame: 28,
       regions: [heroRegion(9, 14, LEAP_HAMMER, THUNDER_LEAP)],
-      motion: [
-        { ...frames(9, 14), velocityX: LEAP_DRIFT, velocityZ: FULL_RISE.fast },
-        { ...frames(15, 28), velocityX: LEAP_DRIFT, velocityZ: FULL_RISE.slow },
-      ],
+      motion: FULL_LEAP,
       oncePerAirtime: true,
       helpless: true,
     },
     free: {
       cost: 0,
       endFrame: 28,
-      motion: [
-        { ...frames(9, 14), velocityX: FREE_DRIFT, velocityZ: FREE_RISE.fast },
-        { ...frames(15, 28), velocityX: FREE_DRIFT, velocityZ: FREE_RISE.slow },
-      ],
+      motion: FREE_LEAP,
       oncePerAirtime: true,
       helpless: true,
     },
