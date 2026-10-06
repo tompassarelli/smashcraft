@@ -227,6 +227,8 @@ interface Special {
   aimZ: number;
   /** Hero specials used this airtime, one bit per SpecialSlot. */
   airtimeUses: number;
+  /** The special frame a hero command grab caught on; 0 before a catch. */
+  grabFrame: number;
   /** This action's guard has already succeeded. */
   guarded: boolean;
 }
@@ -590,6 +592,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       aimX: 0,
       aimZ: 0,
       airtimeUses: 0,
+      grabFrame: 0,
       guarded: false,
     },
     projectiles: repeat(PROJECTILE_CAPACITY, () => emptyProjectile()),

@@ -214,6 +214,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("specialAimX", e.special.aimX, a.special.aimX);
   add("specialAimZ", e.special.aimZ, a.special.aimZ);
   add("specialAirtimeUses", e.special.airtimeUses, a.special.airtimeUses);
+  add("specialGrabFrame", e.special.grabFrame, a.special.grabFrame);
   add("specialGuarded", e.special.guarded, a.special.guarded);
   add("guardHealed", e.status.guardHealed, a.status.guardHealed);
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) add(`projectileSpec[${i}]`, at(e.projectiles, i).spec === at(a.projectiles, i).spec, true);

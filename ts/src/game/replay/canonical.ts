@@ -268,6 +268,19 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real(`motion[${index}].driftSpeed`, segment.driftSpeed ?? 0.0);
     if (segment.stopsAtBody === true) int(`motion[${index}].stopsAtBody`, 1);
   }
+  const grab = move.commandGrab;
+  if (grab !== undefined) {
+    int("commandGrab.first", grab.first);
+    int("commandGrab.last", grab.last);
+    real("commandGrab.strike.x1", grab.strike.x1);
+    real("commandGrab.strike.z1", grab.strike.z1);
+    real("commandGrab.strike.x2", grab.strike.x2);
+    real("commandGrab.strike.z2", grab.strike.z2);
+    real("commandGrab.strike.radius", grab.strike.radius);
+    int("commandGrab.hold", grab.holdFrames);
+    int("commandGrab.recovery", grab.recovery);
+    result += hitEffectCanonical(grab.effect, `${name}.commandGrab.effect`);
+  }
   const poses = move.hurt ?? [];
   for (let index = 0; index < poses.length; index++) {
     const pose = at(poses, index);
@@ -642,6 +655,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
     int("specialAimX", sp.aimX);
     int("specialAimZ", sp.aimZ);
     int("specialAirtimeUses", sp.airtimeUses);
+    if (sp.grabFrame !== 0) int("specialGrabFrame", sp.grabFrame);
     int("armorFrames", st.armorFrames);
     real("armorMaxDamage", st.armorMaxDamage);
     int("specialGuarded", sp.guarded ? 1 : 0);

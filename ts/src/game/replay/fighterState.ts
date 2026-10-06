@@ -188,6 +188,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   special.aimX = sourceSpecial.aimX;
   special.aimZ = sourceSpecial.aimZ;
   special.airtimeUses = sourceSpecial.airtimeUses;
+  special.grabFrame = sourceSpecial.grabFrame;
   special.guarded = sourceSpecial.guarded;
 
   for (let i = 0; i < target.projectiles.length; i++) {
