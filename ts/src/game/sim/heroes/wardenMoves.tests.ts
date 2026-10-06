@@ -9,7 +9,8 @@ import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hi
 import { attackLandingLag, attackRecoveryFrames, attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { advanceFighter } from "../step";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
-import { WARDEN_MOVES } from "./wardenMoves";
+import { HurtContact, fighterHurtParts, strikeHurtContact } from "../hurtboxes";
+import { WARDEN_BODY, WARDEN_MOVES } from "./wardenMoves";
 
 const NORMALS = [
   [AttackStyle.jab, 3, 2, 13, 0],
@@ -214,6 +215,67 @@ test("Warden throws hold through adopted release then launch once in both facing
       else assertGreaterThan(f32(target.launch.knockbackX * facing), 0.0);
       testGrabFrame(world, [input, controls()], false);
       assertEquals(target.status.damage, damage);
+    }
+  }
+});
+
+test("Warden's blades are disjoint while the arm and Heel Blade leg stay hittable", () => {
+  const probe = (target: ReturnType<typeof createFighter>, x: number, z: number) =>
+    strikeHurtContact({ x1: x, z1: z, x2: x, z2: z, radius: 1.0 }, target);
+  for (const facing of [-1, 1]) {
+    const warden = createFighter(Character.archer, 0.0, facing);
+    warden.tuning.moves = WARDEN_MOVES;
+    // At rest the hand is inside the body.
+    assertEquals(probe(warden, f32(26.0 * facing), 70.0), HurtContact.none);
+    for (const style of [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown,
+      AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.forwardSmash, AttackStyle.downSmash, AttackStyle.forwardAir]) {
+      const move = WARDEN_MOVES.normals[style];
+      assertTrue(move !== undefined);
+      if (move === undefined) continue;
+      warden.attack.style = style;
+      for (const region of move.regions) {
+        warden.attack.frame = region.firstFrame;
+        // The arm reaches its hand; the farthest blade end of the frame is the disjoint tip.
+        const arm = fighterHurtParts(warden)[1];
+        assertTrue(arm !== undefined);
+        if (arm === undefined) continue;
+        const reach = f32(f32(Math.abs(arm.x2) + arm.radius) - 1.0);
+        assertGreaterThan(reach, WARDEN_BODY.radius);
+        let tip = { x: 0.0, z: 0.0 };
+        for (const other of move.regions) {
+          const strike = other.hit.strike;
+          if (strike === undefined || other.firstFrame > region.firstFrame || other.lastFrame < region.firstFrame) continue;
+          for (const end of [{ x: strike.x1, z: strike.z1 }, { x: strike.x2, z: strike.z2 }]) {
+            if (Math.abs(end.x) > Math.abs(tip.x)) tip = end;
+          }
+        }
+        assertEquals(probe(warden, f32(tip.x * facing), tip.z), HurtContact.none);
+        assertEquals(probe(warden, f32((arm.x2 < 0.0 ? -reach : reach) * facing), arm.z2), HurtContact.hit);
+      }
+    }
+    warden.attack.style = AttackStyle.backAir;
+    warden.attack.frame = 4;
+    assertEquals(probe(warden, f32(-30.0 * facing), 40.0), HurtContact.hit);
+    warden.attack.frame = 13;
+    assertEquals(probe(warden, f32(-30.0 * facing), 40.0), HurtContact.none);
+    warden.attack.style = AttackStyle.grab;
+    warden.attack.frame = 5;
+    assertEquals(probe(warden, f32(50.0 * facing), 47.0), HurtContact.hit);
+  }
+});
+
+test("Warden's attack bodies are held at least 3 frames, never overlap and end within the move", () => {
+  for (let style = 0; style <= AttackStyle.dashAttack; style++) {
+    const move = WARDEN_MOVES.normals[style];
+    const poses = WARDEN_MOVES.hurtboxes?.attacks[style];
+    if (move === undefined) continue;
+    assertTrue(poses !== undefined && poses.length > 0);
+    let previousEnd = -1;
+    for (const pose of poses ?? []) {
+      assertGreaterThan(pose.lastFrame - pose.firstFrame + 1, 2);
+      assertGreaterThan(pose.firstFrame, previousEnd);
+      assertLessThan(pose.lastFrame, move.totalFrames);
+      previousEnd = pose.lastFrame;
     }
   }
 });

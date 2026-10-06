@@ -252,7 +252,8 @@ export function renderUi(s: ShellState): void {
   for (const slot of PARTICIPANT_SLOTS) {
     if (s.participants[slot].body !== undefined && isActive(s.world, slot)) {
       const fighter = fighterAt(s.world, slot);
-      ui.huds[slot].update(showMatch, fighter.character, fighter.status.damage, s.game.endless ? 0 : fighter.status.stocks);
+      ui.huds[slot].update(showMatch, fighter.character, fighter.status.damage, s.game.endless ? 0 : fighter.status.stocks,
+        fighter.tuning.specials === undefined ? undefined : fighter.mana.points, fighter.visuals.manaDenied);
     } else ui.huds[slot].update(false, 0, 0.0, 0);
     ui.selections[slot].update(game, ui.settings[slot].isOpen());
     ui.settings[slot].update();

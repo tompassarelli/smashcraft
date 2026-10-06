@@ -35,7 +35,11 @@ takes the roster brief's frames, counting the entry tick as frame one like
 without `hurtboxes` keeps its character's standing capsule in every state.
 The shipped fighters' bodies live in the same file's `CHARACTER_HURTBOXES`.
 
-Rules for authored bodies:
+Rules for authored bodies (the measurable ones, held poses of at least 3
+frames, steps of at most 60 units, connected parts and protection on the
+striking limb, are in smashcraft:docs/gameplay-design.md, "Legible
+hurtboxes", and smashcraft:ts/src/game/sim/hurtboxLegibility.tests.ts checks
+them on every fighter and registered hero):
 
 - Weapons stay outside the body: only limbs and torso extend, so a weapon's
   reach past the arm is the move's disjoint.

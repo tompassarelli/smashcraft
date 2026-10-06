@@ -5,6 +5,7 @@ import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction } fr
 import { attackPhase } from "../conditions";
 import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
+import { fighterHurtParts } from "../hurtboxes";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../hitRegions";
 import { attackLandingLag, attackRecoveryFrames, attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack, smashDamageMultiplier } from "../moves";
 import { controls, testGrabFrame, testWorld } from "../testWorld";
@@ -259,5 +260,49 @@ test("Lich throws release once on their adopted frames with facing-relative dire
       testGrabFrame(world, [input, controls()], false);
       assertEquals(target.status.damage, damage);
     }
+  }
+});
+
+test("Lich's casting arm extends the body while the conjured frost beyond the hand stays disjoint", () => {
+  // A rifleman jab (slot 0) against Lich's forward smash on its first active frame.
+  const challenge = (x: number, lichFrame: number): number => {
+    const attacker = createFighter(Character.rifleman, 0.0, 1);
+    const lich = createFighter(Character.archer, x, -1);
+    lich.tuning.moves = LICH_MOVES;
+    const world = testWorld(attacker, lich);
+    beginFighterAttack(world, 0, AttackStyle.jab, false);
+    attacker.attack.frame = attackStartupFrames(AttackStyle.jab);
+    lich.attack.style = AttackStyle.forwardSmash;
+    lich.attack.frame = lichFrame;
+    lich.attack.duration = 60;
+    resolveAttacks(world);
+    return lich.status.damage;
+  };
+  const standing = (): number => {
+    for (let x = 60.0; x < 400.0; x += 2.0) if (challenge(x, 40) === 0.0) return x;
+    return 400.0;
+  };
+  const extended = (): number => {
+    for (let x = 60.0; x < 400.0; x += 2.0) if (challenge(x, 21) === 0.0) return x;
+    return 400.0;
+  };
+  // The arm adds reach for the challenger, but far less than the spear's XL tip.
+  assertGreaterThan(extended(), standing());
+  assertLessThan(f32(extended() - standing()), f32(HERO_REFERENCE_HEIGHT * f32(0.5)));
+  assertEquals(fighterHurtParts(createFighter(Character.archer, 0.0, 1)).length, 1);
+  const lich = createFighter(Character.archer, 0.0, 1);
+  lich.tuning.moves = LICH_MOVES;
+  for (const style of [AttackStyle.forwardTilt, AttackStyle.forwardSmash, AttackStyle.forwardAir, AttackStyle.grab]) {
+    lich.attack.style = style;
+    lich.attack.frame = attackStartupFrames(style, LICH_MOVES);
+    let bodyFront = 0.0;
+    for (const part of fighterHurtParts(lich)) bodyFront = Math.max(bodyFront, part.x1 + part.radius, part.x2 + part.radius);
+    const out = emptyHitRegion();
+    let strikeFront = 0.0;
+    for (let index = 0; index < authoredHitRegionCount(style, LICH_MOVES); index++) {
+      authoredHitRegion(out, lich.character, style, lich.attack.frame, 0, index, LICH_MOVES);
+      if (out.window > 0) strikeFront = Math.max(strikeFront, out.maxX);
+    }
+    assertGreaterThan(strikeFront, f32(bodyFront + 10.0));
   }
 });
