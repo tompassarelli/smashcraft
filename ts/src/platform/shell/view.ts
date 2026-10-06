@@ -2,6 +2,7 @@
 // and the camera. Everything here is presentation; with predicted
 // presentation, persistent visuals follow the speculative match and event
 // effects, audio, results and HUD follow the confirmed one.
+import { CryDecision, createCryGate, cryStandIn, gateCry } from "../../game/presentation/hurtVoice";
 import { deckModel } from "../../game/presentation/stagePreload";
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
@@ -113,7 +114,13 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   if (pooled) ShowUnit(body.unit, false);
   if (body.renderedSelection !== pose.selectionSerial) {
     if (!pooled) {
-      if (pose.clipIndex !== undefined) SetUnitAnimationByIndex(body.unit, pose.clipIndex);
+      // Starting a hero's Death sequence plays its death cry: only strong hits and knockouts may.
+      const cry = gateCry(body.cry ??= createCryGate(), s.runtime.simulationFrame, fighter, pose.clipIndex, pose.clipName);
+      const standIn = cry === CryDecision.standIn ? cryStandIn(fighter.character) : undefined;
+      if (standIn !== undefined) SetUnitAnimationByIndex(body.unit, standIn);
+      else if (cry === CryDecision.keep) {
+        // The cry clip already showing carries on.
+      } else if (pose.clipIndex !== undefined) SetUnitAnimationByIndex(body.unit, pose.clipIndex);
       else SetUnitAnimation(body.unit, pose.clipName);
     }
     body.renderedSelection = pose.selectionSerial;

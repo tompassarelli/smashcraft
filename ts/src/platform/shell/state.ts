@@ -3,6 +3,7 @@
 // works on it. Handles are owned by the record that destroys them; the UI and
 // renderer objects keep the code they were created with, so a reload
 // recreates them (ui.ts).
+import type { CryGate } from "../../game/presentation/hurtVoice";
 import type { Action } from "../../game/input/actions";
 import { type KeyboardCapture, keyboardCapture } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, type ParticipantInputs, type ParticipantSlot, type Slots, participantActive, participantInputs } from "../../game/input/participants";
@@ -45,6 +46,8 @@ export interface FighterBody {
   dizzy: effect | undefined;
   /** The pose selection the unit last played. */
   renderedSelection: number;
+  /** When its hero may cry out; created on first use, so a body retained across a reload gains it. */
+  cry?: CryGate;
 }
 
 /** What a fighter was before a frame, compared after it to announce and trace changes. */
