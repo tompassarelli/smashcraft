@@ -6,7 +6,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 
 /** A segment swept by a radius. */
-interface Capsule {
+export interface Capsule {
   x1: number;
   z1: number;
   x2: number;
