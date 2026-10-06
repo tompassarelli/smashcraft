@@ -45,6 +45,7 @@ import { DOWN_ATTACK_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, isSma
 import {
   addMeleeWorldValues,
   airDriftVelocity,
+  ceilingImpulseDriftVelocity,
   applyMeleeGravity,
   moveMeleeVerticalVelocity,
   moveMeleeX,
@@ -437,7 +438,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       if (advanceGroundMovement(f, direction, input.walking)) dashEntryDisplacementAdjustment = f32(previousGroundVelocity - motion.vx);
     } else if (direction !== 0 && !groundTakeoff) {
       // Air steering changes velocity, not facing; back aerials rely on a stable orientation.
-      motion.vx = airDriftVelocity(f, motion.vx, direction);
+      const ceilingImpulse = f.surfaceRecovery.state === SurfaceContact.techCeiling && f.surfaceRecovery.frame === f.tuning.tech.ceilingImpulseFrame;
+      motion.vx = ceilingImpulse ? ceilingImpulseDriftVelocity(f, motion.vx, direction) : airDriftVelocity(f, motion.vx, direction);
     }
   }
   if (isGroundDodging(f) && dodge.groundDirection !== 0) {

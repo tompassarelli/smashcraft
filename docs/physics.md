@@ -1945,9 +1945,15 @@ Falco and 11 for Captain Falcon
 (smashcraft:docs/smash-melee-reference/retail-ceiling-tech-events.json), the
 fighter's sideways speed becomes the stick's horizontal value times its
 reference's `passiveceil_vel_x` (+0x10C, `ftCo_PassiveCeil_Anim`), and it
-stops being intangible. Illidan's authored air drift caps his speed at his
-0.88 air cap on that same frame, so with the stick held his 2.0 impulse ends
-at 0.88.
+stops being intangible. That frame's drift follows Melee's
+`ftCommon_CalcSelfAccel_AccelToVelClampedFrom` (melee:src/melee/ft/ftcommon.c)
+for every fighter: toward the stick it adds the acceleration up to the air
+speed, and above it subtracts the air friction instead, no lower than the air
+speed and no higher than +0x078 `air_max_horizontal_velocity` (Captain
+Falcon's 3 for Illidan). Captain Falcon's own drift turns his 2.0 into 1.99,
+so Illidan's authored immediate drift cap does not apply on that frame: with
+his own friction his 2.0 becomes 1.98. From the next frame his ordinary drift,
+capped at 0.88, applies again.
 
 A wall jump follows `ftWallJump_8008169C` (melee:src/melee/ft/ftwalljump.c).
 After the frame's collision, a fighter that is falling, jumping, tumbling
