@@ -163,6 +163,14 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   launch.sdiLaunchesUpward = false;
   launch.sdiSerial = 0;
   launch.asdiSerial = 0;
+  launch.sdiHitTravel = 0;
+  launch.sdiStringTravel = 0;
+  launch.sdiStepX = 0;
+  launch.sdiStepZ = 0;
+  launch.sdiStepTravel = 0;
+  launch.sdiNextX = 0;
+  launch.sdiNextZ = 0;
+  launch.sdiNextTravel = 0;
   shield.stun = 0;
   attack.style = undefined;
   attack.frame = 0;

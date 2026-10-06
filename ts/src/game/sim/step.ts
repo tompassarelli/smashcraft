@@ -70,7 +70,7 @@ import {
   shieldSizeMultiplier,
 } from "./shield";
 import { advanceShieldBreak, beginShieldBreak } from "./shieldBreak";
-import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence } from "./smashDirectionalInfluence";
+import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence, discardPendingSmashDirectionalInfluence, renewSmashDirectionalInfluenceString } from "./smashDirectionalInfluence";
 import { surfaceCount, surfaceLeft, surfaceMoves, surfacePass, surfaceRight, surfaceShiftX, surfaceShiftZ, surfaceZ } from "./stage";
 import { inStageCannon, windPush } from "./stageHazards";
 import { stickX } from "./stick";
@@ -344,6 +344,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   motion.deltaX = 0.0;
   motion.deltaZ = 0.0;
   if (advanceOut(world, slot, respawnX)) return;
+  renewSmashDirectionalInfluenceString(f);
   if (inStageCannon(f)) return;
   // The deck this fighter stands on carried it before the frame began (carryOnMovingDecks).
   const carried = motion.grounded ? motion.surface : undefined;
@@ -395,9 +396,12 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (hitlagBefore > 0 && launch.diPending) {
     if (launch.hitlag > 0) {
       applySmashDirectionalInfluence(world, slot, stage, matchFrame, input);
-    } else if (!status.out) {
-      applyDirectionalInfluence(f, input);
-      applyAutomaticSmashDirectionalInfluence(world, slot, stage, matchFrame, input);
+    } else {
+      discardPendingSmashDirectionalInfluence(launch);
+      if (!status.out) {
+        applyDirectionalInfluence(f, input);
+        applyAutomaticSmashDirectionalInfluence(world, slot, stage, matchFrame, input);
+      }
     }
   }
   if (status.out) return;

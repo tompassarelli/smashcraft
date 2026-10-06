@@ -95,6 +95,14 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   launch.sdiLaunchesUpward = sourceLaunch.sdiLaunchesUpward;
   launch.sdiSerial = sourceLaunch.sdiSerial;
   launch.asdiSerial = sourceLaunch.asdiSerial;
+  launch.sdiHitTravel = sourceLaunch.sdiHitTravel;
+  launch.sdiStringTravel = sourceLaunch.sdiStringTravel;
+  launch.sdiStepX = sourceLaunch.sdiStepX;
+  launch.sdiStepZ = sourceLaunch.sdiStepZ;
+  launch.sdiStepTravel = sourceLaunch.sdiStepTravel;
+  launch.sdiNextX = sourceLaunch.sdiNextX;
+  launch.sdiNextZ = sourceLaunch.sdiNextZ;
+  launch.sdiNextTravel = sourceLaunch.sdiNextTravel;
 
   const shield = target.shield;
   const sourceShield = source.shield;
