@@ -1,3 +1,4 @@
+import { RULE_BUTTONS, RULE_HEIGHT, type RuleBox } from "./ruleButtons";
 // The character panel of one participant. Every client builds all four panels;
 // only the owner's client shows its own and reads its pointer, and a placed or
 // recalled chip crosses a player sync event before the game sees it. Beside the
@@ -55,33 +56,6 @@ export interface SelectionActions {
 
 type RuleButton = { kind: "stocks"; direction: -1 | 1 } | { kind: "time"; direction: -1 | 1 } | { kind: "endless" } | { kind: "automaticRematch" };
 type SelectionButton = { kind: "mode"; slot: number } | { kind: "start" } | { kind: "settings" } | RuleButton;
-
-/** A rules button's top-left corner and size in Warcraft's UI coordinates. */
-interface RuleBox {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-}
-
-const STEP_WIDTH = f32(0.03);
-const RULE_HEIGHT = f32(0.027);
-const stepBox = (x: number, y: number): RuleBox => ({ x, y, width: STEP_WIDTH, height: RULE_HEIGHT });
-const toggleBox = (y: number): RuleBox => ({ x: f32(0.03), y, width: f32(0.22), height: RULE_HEIGHT });
-
-/**
- * The match rules beside the roster, which every player sees and any player
- * changes. The native capture journey clicks their centers
- * (smashcraft:ts/scripts/integrity/journey.ts).
- */
-export const RULE_BUTTONS = {
-  fewerStocks: stepBox(f32(0.03), f32(0.428)),
-  moreStocks: stepBox(f32(0.22), f32(0.428)),
-  lessTime: stepBox(f32(0.03), f32(0.394)),
-  moreTime: stepBox(f32(0.22), f32(0.394)),
-  endless: toggleBox(f32(0.36)),
-  automaticRematch: toggleBox(f32(0.326)),
-} as const;
 
 /** One participant slot's card along the bottom of the panel. */
 interface CardFrames {

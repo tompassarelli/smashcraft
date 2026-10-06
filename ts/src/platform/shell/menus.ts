@@ -41,8 +41,7 @@ export function confirm(s: ShellState, slot: ParticipantSlot): void {
   } else if (game.phase === Phase.stageMenu) {
     if (requestStart(game, slot)) startMatch(s);
   } else if (game.phase === Phase.result) {
-    // The press that stops the automatic rematch also chooses the next match.
-    cancelRematchCountdown(game, slot);
+    if (cancelRematchCountdown(game, slot)) return;
     if (!confirmRematch(game, slot)) return;
     updateConnectedHumans(game, currentHumanMask(game.departedMask));
     setStatus(s, "", 0.0);
@@ -152,4 +151,3 @@ export function panelActions(): PanelActions {
     },
   };
 }
-

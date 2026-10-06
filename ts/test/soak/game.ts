@@ -166,15 +166,15 @@ export function beginMatch(clients: Lockstep, match: SoakMatch, frame: () => voi
   });
   const chosen = readIn(host, () => shell().game.characterChoices.slice(0, fighters.length));
   if (chosen.join() !== fighters.join()) throw new Error(`fighters ${chosen.join()} chosen, not ${fighters.join()}`);
-  clients.press(0, Key.y);
-  until("stage selection", () => readIn(host, () => shell().game.phase) === Phase.stageMenu);
   clients.everywhere(() => {
     const { game } = shell();
-    const { stage: actions } = panelActions();
-    actions.selectStage(0, stage);
+    const { selection: actions } = panelActions();
     while (game.stockCount > STOCKS) actions.changeStocks(0, -1);
     while (game.timeLimitMinutes > MINUTES) actions.changeTime(0, -1);
   });
+  clients.press(0, Key.y);
+  until("stage selection", () => readIn(host, () => shell().game.phase) === Phase.stageMenu);
+  clients.everywhere(() => panelActions().stage.selectStage(0, stage));
   clients.press(0, Key.y);
   until("the match", () => readIn(host, () => shell().game.phase) === Phase.match);
 }

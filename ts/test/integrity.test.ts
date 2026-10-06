@@ -123,8 +123,8 @@ test("each match's integrity workload sends, waits, stalls and pauses as the Pyt
 test("the integrity workload raises one stock to three before its first match and changes it no more", async () => {
   const { rig, trace } = recordingRig(gameFiles, "1 Stock");
   await Effect.runPromise(journey(rig, R8).run);
-  expect(trace.filter((line) => line.startsWith("ui b click ") && line.endsWith(" 155"))).toEqual(["ui b click 1675 155", "ui b click 1675 155"]);
-  expect(trace.indexOf("ui b click 1675 155")).toBeLessThan(trace.findIndex((line) => line.includes("menu-match-1-start")));
+  expect(trace.filter((line) => line.startsWith("ui b click ") && line.endsWith(" 445"))).toEqual(["ui b click 884 445", "ui b click 884 445"]);
+  expect(trace.indexOf("ui b click 884 445")).toBeLessThan(trace.findIndex((line) => line.includes("menu-match-1-start")));
 });
 
 test("the journey sends r8's pad edges in r8's order, then returns to fighter selection", async () => {
@@ -229,9 +229,9 @@ test("#17's normal timed journey reaches both results without integrity stalls o
   expect(four.trace.some((line) => line.startsWith("stop "))).toBe(false);
   expect(four.trace.some((line) => line.includes("stock-loss") || line.includes("-integrity-"))).toBe(false);
   expect(four.trace).toContain("ui b wait 1:00");
-  expect(four.trace.filter((line) => line === "ui b click 1380 155")).toHaveLength(4);
+  expect(four.trace.filter((line) => line === "ui b click 428 445")).toHaveLength(4);
   expect(four.trace.filter((line) => line === "ui b wait [1-9] Stock")).toHaveLength(2);
-  expect(four.trace).not.toContain("ui b click 1675 155");
+  expect(four.trace).not.toContain("ui b click 884 445");
   expect(four.events.filter((event) => event.event === "start" || event.event === "end").map((event) => [event.event, event.epoch])).toEqual([["start", 1], ["end", 1], ["start", 2], ["end", 2]]);
   expect(four.events.filter((event) => event.event === "integrity-slot-change")).toHaveLength(1);
 });
@@ -245,7 +245,7 @@ test("a playable journey plays one-stock matches that end when Player 1, then Pl
     `send 1 ${EV_ABS} ${ABS_X} 32767 match-2-stock-loss`, `send 1 ${EV_ABS} ${ABS_X} 0 match-2-stock-loss`,
   ]);
   expect(sends.filter((line) => line.includes("-combat"))).toHaveLength(32);
-  expect(playable.trace.filter((line) => line === "ui b click 1380 155")).toHaveLength(4);
+  expect(playable.trace.filter((line) => line === "ui b click 428 445")).toHaveLength(4);
   expect(playable.trace.filter((line) => line.startsWith("key "))).toEqual(["key a ctrl+t", "key a ctrl+t"]);
   expect(playable.trace.some((line) => line.startsWith("stop ") || line.includes("-integrity-") || line.includes("ui a click"))).toBe(false);
   expect(playable.events.filter((event) => event.event !== "menu").map((event) => [event.event, "epoch" in event ? event.epoch : undefined]))
@@ -299,4 +299,16 @@ test("xpad pads press X for special, Y for jump, and stick-up only as up", () =>
   expect(isolated("xpad")).toMatchObject({ special: 0x133, "jump-y": 0x134, "move-up": 1 });
   expect(isolated("xpad")).not.toHaveProperty("jump-stick");
   expect(isolated("compass-tap-jump")).toMatchObject({ special: 0x134, "jump-y": 0x133, "jump-stick": 1 });
+});
+
+ test("bot sessions enable automatic rematch and wait for the second game without selection or a Start press", async () => {
+  const bot = recordingRig(gameFiles, "3 Stock 7:00 Automatic rematch: Off Player 2 wins!");
+  await Effect.runPromise(journey(bot.rig, { ...R8, build: "typescript-integrity", workload: "bot" }).run);
+  expect(bot.trace).toContain("type a -dev rematch 20");
+  expect(bot.trace).toContain("ui b click 656 690");
+  expect(bot.trace.some(line => line.includes("menu-match-2-start") || line.includes("menu-match-2-stage"))).toBe(false);
+  const firstEnd = bot.trace.indexOf("event end");
+  const secondStart = bot.trace.indexOf("event start", bot.trace.indexOf("event start") + 1);
+  expect(bot.trace.slice(firstEnd, secondStart).some(line => line.includes("menu-results-confirm") || line.includes("menu-character"))).toBe(false);
+  expect(bot.events.filter(event => event.event === "start" || event.event === "end").map(event => [event.event, event.epoch])).toEqual([["start", 1], ["end", 1], ["start", 2], ["end", 2]]);
 });

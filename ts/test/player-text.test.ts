@@ -207,14 +207,13 @@ test("the playable build shows players no developer text through selection, a ma
   frames(30);
   for (const slot of [0, 1]) clients.press(slot, Key.n);
   frames(10);
+  clients.everywhere(() => {
+    panelActions().selection.changeStocks(0, -1);
+    panelActions().selection.changeStocks(0, -1);
+  });
   clients.press(0, Key.y);
   frames(10);
   expect(phases()).toEqual([Phase.stageMenu, Phase.stageMenu]);
-  clients.everywhere(() => {
-    const { stage } = panelActions();
-    stage.changeStocks(0, -1);
-    stage.changeStocks(0, -1);
-  });
   frames(10);
   clients.press(0, Key.y);
   expect(phases()).toEqual([Phase.match, Phase.match]);

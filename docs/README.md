@@ -18,6 +18,7 @@ Dated trial records live in [evidence](../evidence/README.md).
 - [Modern platform-fighter mechanics](design/modern-platform-fighters.md): sourced inventory of mechanics later games added or changed relative to Melee.
 - [Execution and reaction windows](design/execution-windows.md): windows other games use, human limits, and proposed bounds.
 - [Interaction graph](design/interaction-graph.md): for each situation, Smashcraft's options, what beats what by how many frames, and the punish windows, computed per fighter from its move data.
+- [Match flow](design/match-flow.md): match rules, endless play and automatic rematch, with Slippi and other platform-fighter prior art.
 - [Delivery goal](delivery-goal.md): what the finished game contains.
 - [Current release](playable-0041.md): files, startup and controls for 0.0.41.
 

@@ -13,9 +13,13 @@ The session has a match and a rematch:
 
 - Slot C becomes a computer Demon Hunter. `--bot-four` adds a computer
   Archer in slot D, for four fighters.
-- The match timer is one minute; matches use their normal stocks. The
-  match plays Sky Deck. Before the rematch, slot 0's stick switches the
-  stage screen to Three Bridges, so a session shows both stages.
+- On fighter selection, client B sets one stock and one minute, then turns
+  Automatic rematch on; both clients must show it. The match and its automatic
+  rematch play Sky Deck with the same fighters and settings, with no menu
+  presses between matches. A development/integrity build uses `-dev rematch 20`
+  so response export finishes during the visible countdown. The final result
+  cancels the countdown with Escape before collecting evidence. A playable
+  build uses its ordinary five-second countdown.
 - Both pads play a beat every 400 ms: 5 ms taps of A, Y and X, a 200 ms
   left-trigger shield, 300 ms full-tilt dashes right and left, and 100 ms
   full-tilt C-stick flicks right, up, left and down. Each edge's phase
@@ -29,7 +33,7 @@ The session has a match and a rematch:
 - On a development or integrity build, each match exports its response
   pages after its trace, so its presses can be reconciled like #26's.
 - `--bot-four` leaves the rematch undisturbed and types `-dev perf` into
-  client A before it, so the frame-cost overlay shows a four-fighter match
+  client A during its countdown, so the frame-cost overlay shows a four-fighter match
   (development and integrity builds only).
 - `--bot-perf` does the same with the three fighters of `--bot`, so a
   session measures both the matches `bun wisp perf bot` and `perf bot-four`

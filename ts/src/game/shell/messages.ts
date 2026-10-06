@@ -34,7 +34,7 @@ export function resultMessage(game: Readonly<MatchState>): string {
 const confirmControl = (start: StartControl) => (start === "Start" ? "A or Start" : "Y");
 
 function rematchStatus(game: Readonly<MatchState>, start: StartControl): string {
-  if (game.rematchCountdown > 0) return `Press ${confirmControl(start)} to stop the rematch and choose your next match.`;
+  if (game.rematchCountdown > 0) return "Press any button to stop the rematch.";
   const present = PARTICIPANT_SLOTS.filter(slot => humanPresent(game, slot));
   const ready = present.filter(slot => game.rematchReadiness[slot]);
   return `${ready.length}/${present.length} ready. Press ${confirmControl(start)} to choose your next match.`;
