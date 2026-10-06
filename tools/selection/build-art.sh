@@ -40,7 +40,7 @@ for slot in 0 1 2 3; do
         2) color='#e7bf32';;
         3) color='#35a75b';;
     esac
-    sed "s/PLAYER_COLOR/$color/g" "$source_dir/MatchHUD.svg" > "$output_dir/MatchHUD$slot.svg"
-    magick -background none "$output_dir/MatchHUD$slot.svg" -depth 8 "TGA:$output_dir/MatchHUD$slot.tga"
+    sed "s/PLAYER_COLOR/$color/g" "$source_dir/HudPlate.svg" > "$output_dir/HudPlate$slot.svg"
+    magick -background none "$output_dir/HudPlate$slot.svg" -depth 8 "TGA:$output_dir/HudPlate$slot.tga"
 done
 magick identify "$output_dir"/*.tga

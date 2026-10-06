@@ -87,7 +87,7 @@ interface CardFrames {
 
 const CARD_COLORS = ["Red", "Blue", "Yellow", "Green"] as const;
 
-const portraitTexture = (choice: number | undefined, tile: boolean) => fighterPortrait(choice ?? Character.archer, tile);
+const portraitTexture = (choice: number | undefined, tile: boolean) => fighterPortrait(choice ?? Character.archer, tile ? "Tile" : "Card");
 const nameText = (choice: number | undefined) => fighterName(choice ?? Character.archer).toUpperCase();
 
 function art(parent: framehandle, name: string, texture: string, x: number, y: number, width: number, height: number): framehandle {

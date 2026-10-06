@@ -23,8 +23,8 @@ test("roster tile portraits never stretch the tile render past its pixels, for a
 test("every rendered fighter shows its render; any other fighter shows its command icon", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const rendered = RENDERED_FIGHTERS.includes(character);
-    const card = fighterPortrait(character, false);
+    const card = fighterPortrait(character, "Card");
     assertTrue(rendered ? card.startsWith("war3mapImported\\FighterCard") : card === fighterIcon(character));
-    assertTrue(!rendered || fighterPortrait(character, true).startsWith("war3mapImported\\FighterTile"));
+    assertTrue(!rendered || fighterPortrait(character, "Tile").startsWith("war3mapImported\\FighterTile"));
   }
 });

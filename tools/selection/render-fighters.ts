@@ -1,6 +1,6 @@
 // Renders every fighter in RENDERED_FIGHTERS from the model the game draws, with
 // one camera direction, lighting and background for all of them, into the grid
-// tile and card textures the map imports (fighterPortrait). Models and textures
+// tile, card, HUD bust and stock icon textures the map imports (fighterPortrait). Models and textures
 // come from the installed game and the generated fighter assets; the renders
 // stay outside the repository.
 // Usage: bun tools/selection/render-fighters.ts --extract CASC_EXTRACT --assets ASSETS [--storage WARCRAFT_DIR] [--only NAME,...] [--reuse]
@@ -11,6 +11,7 @@ import { dirname, join, resolve } from 'node:path';
 import { Character } from '../../ts/src/game/sim/codes';
 import { RENDERED_FIGHTERS, fighterRenderName, heroDefinition } from '../../ts/src/game/sim/heroes/registry';
 import { CARD_TEXTURE_PX, TILE_TEXTURE_PX } from '../../ts/src/game/ui/portraitFrames';
+import { STOCK_ICON_PX } from '../../ts/src/game/ui/plateLayout';
 
 const option = (name: string) => { const index = process.argv.indexOf(name); return index < 0 ? undefined : process.argv[index + 1]; };
 const extract = option('--extract');
@@ -36,6 +37,13 @@ const ORIGINAL_MODELS: { readonly [character: number]: string | undefined } = {
 /** Behind every grid tile, so the tiles read as one set. */
 const TILE_BACKGROUND = ['-size', `${TILE_TEXTURE_PX}x${TILE_TEXTURE_PX}`, 'radial-gradient:#3a5378-#0c1422'];
 const TEAM_TEXTURES = ['ReplaceableTextures\\TeamColor\\TeamColor00.blp', 'ReplaceableTextures\\TeamGlow\\TeamGlow00.blp'];
+
+/** Fades the bust out at its bottom and sides, where the crop cuts through the fighter. */
+const BUST_FADE = 'min(min(1, (1 - j / h) / 0.3), min(i / (w * 0.1), (w - i) / (w * 0.1)))';
+/** A round, soft-edged head for the stock icons. */
+const STOCK_FADE = 'max(0, min(1, (0.5 - hypot(i / w - 0.5, j / h - 0.5)) / 0.1))';
+/** Multiplies the image's alpha by `mask`, an fx expression over the pixel position. */
+const fadeAlpha = (mask: string) => ['(', '+clone', '-alpha', 'extract', '(', '+clone', '-fx', mask, ')', '-compose', 'multiply', '-composite', ')', '-compose', 'CopyOpacity', '-composite'];
 
 function run(command: string[]): string {
   const result = Bun.spawnSync(command, { stdout: 'pipe', stderr: 'pipe' });
@@ -147,10 +155,20 @@ for (const character of RENDERED_FIGHTERS) {
   const headX = head ? Number(head[1]) : 512;
   const headY = head ? Number(head[2]) : silhouetteTop + silhouetteHeight / 5;
   // Head to waist whatever the fighter's build: the crop follows the head's height above the feet.
-  const crop = Math.round(Math.max(256, Math.min(1024, 0.8 * (silhouetteBottom - headY))));
+  // A crouching fighter (Shadow Hunter) keeps at least half its height in frame.
+  const crop = Math.round(Math.max(256, 0.55 * silhouetteHeight, Math.min(1024, 0.8 * (silhouetteBottom - headY))));
   const left = Math.max(0, Math.min(1024 - crop, Math.round(headX - crop / 2)));
   const cropTop = Math.max(0, Math.min(1024 - crop, Math.round(headY - crop * 0.38)));
   const tile = join(output, `FighterTile${name}.tga`);
   run(['magick', ...TILE_BACKGROUND, '(', raw, '-crop', `${crop}x${crop}+${left}+${cropTop}`, '+repage', '-resize', `${TILE_TEXTURE_PX}x${TILE_TEXTURE_PX}`, ')', '-composite', '-alpha', 'off', '-depth', '8', '-compress', 'none', tile]);
-  console.log(`${name}: ${pose ?? '?'}; head ${head ? `${head[1]},${head[2]}` : 'none'}; ${card}, ${tile}`);
+  // The HUD bust: the tile's crop on a clear background, breaking out of the plate.
+  const bust = join(output, `FighterBust${name}.tga`);
+  run(['magick', raw, '-crop', `${crop}x${crop}+${left}+${cropTop}`, '+repage', '-resize', `${TILE_TEXTURE_PX}x${TILE_TEXTURE_PX}`, ...fadeAlpha(BUST_FADE), '-depth', '8', '-compress', 'none', bust]);
+  // The stock icon: the head alone.
+  const head64 = Math.round(Math.max(64, Math.min(1024, 0.3 * (silhouetteBottom - headY))));
+  const stockLeft = Math.max(0, Math.min(1024 - head64, Math.round(headX - head64 / 2)));
+  const stockTop = Math.max(0, Math.min(1024 - head64, Math.round(headY - head64 * 0.62)));
+  const stock = join(output, `FighterStock${name}.tga`);
+  run(['magick', raw, '-crop', `${head64}x${head64}+${stockLeft}+${stockTop}`, '+repage', '-resize', `${STOCK_ICON_PX}x${STOCK_ICON_PX}`, ...fadeAlpha(STOCK_FADE), '-depth', '8', '-compress', 'none', stock]);
+  console.log(`${name}: ${pose ?? '?'}; head ${head ? `${head[1]},${head[2]}` : 'none'}; ${card}, ${tile}, ${bust}, ${stock}`);
 }

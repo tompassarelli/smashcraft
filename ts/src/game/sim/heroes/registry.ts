@@ -76,10 +76,18 @@ export const RENDERED_FIGHTERS: readonly Character[] = [
 /** The name a fighter's rendered portraits are filed under: "MountainKing". */
 export const fighterRenderName = (character: number): string => fighterName(character).split(" ").join("");
 
-/** The fighter's portrait texture: its rendered grid tile or card, or its hero's command icon. */
-export function fighterPortrait(character: number, tile: boolean): string {
+/**
+ * A fighter's rendered portraits: the grid tile (head and shoulders on the shared
+ * background), the card (full body), the HUD bust (head and shoulders, clear
+ * background) and the stock icon (head).
+ */
+export type PortraitKind = "Tile" | "Card" | "Bust" | "Stock";
+export const PORTRAIT_KINDS: readonly PortraitKind[] = ["Tile", "Card", "Bust", "Stock"];
+
+/** The fighter's portrait texture of `kind`, or its hero's command icon. */
+export function fighterPortrait(character: number, kind: PortraitKind): string {
   for (const rendered of RENDERED_FIGHTERS) {
-    if (rendered === character) return `war3mapImported\\Fighter${tile ? "Tile" : "Card"}${fighterRenderName(character)}.tga`;
+    if (rendered === character) return `war3mapImported\\Fighter${kind}${fighterRenderName(character)}.tga`;
   }
   return fighterIcon(character);
 }

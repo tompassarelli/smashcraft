@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="200" viewBox="0 0 800 200">
- <defs><linearGradient id="tone" x2="0" y2="1"><stop stop-color="PLAYER_COLOR"/><stop offset="1" stop-color="#111620"/></linearGradient></defs>
- <path d="M45 8H796L758 185H5Z" fill="#05080d" fill-opacity=".8"/>
- <path d="M40 0H800L774 92H18Z" fill="url(#tone)"/>
- <path d="M27 92H774L750 180H5Z" fill="#10141c" fill-opacity=".96"/>
- <path d="M27 92H774" stroke="#eee" stroke-opacity=".8" stroke-width="4"/>
- <path d="M5 180H750L746 194H0Z" fill="PLAYER_COLOR"/>
-</svg>

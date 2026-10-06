@@ -6,8 +6,8 @@ test("every selectable fighter shows its own portrait, tile and name", () => {
   const tiles = new Set<string>();
   const names = new Set<string>();
   for (const character of SELECTABLE_CHARACTERS) {
-    portraits.add(fighterPortrait(character, false));
-    tiles.add(fighterPortrait(character, true));
+    portraits.add(fighterPortrait(character, "Card"));
+    tiles.add(fighterPortrait(character, "Tile"));
     names.add(fighterName(character));
   }
   assertEquals(portraits.size, SELECTABLE_CHARACTERS.length);

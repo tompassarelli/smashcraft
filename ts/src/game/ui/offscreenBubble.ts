@@ -46,7 +46,7 @@ export class OffscreenBubble {
     if (!visible) return;
     if (this.character !== character) {
       this.character = character;
-      BlzFrameSetTexture(this.portrait, fighterPortrait(character, true), 0, true);
+      BlzFrameSetTexture(this.portrait, fighterPortrait(character, "Tile"), 0, true);
     }
     const position = bubblePosition(column, row);
     const x = f32(0.4) + (position.column - 0.5) * aspect * f32(0.6);

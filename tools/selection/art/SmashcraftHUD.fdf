@@ -1,6 +1,6 @@
 Frame "TEXT" "SmashcraftDamage" {
     DecorateFileNames,
-    FrameFont "MasterFont", 0.043, "OUTLINE",
+    FrameFont "MasterFont", 0.036, "OUTLINE",
     FontColor 1.0 1.0 1.0 1.0,
     FontShadowColor 0.0 0.0 0.0 1.0,
     FontShadowOffset 0.002 -0.002,

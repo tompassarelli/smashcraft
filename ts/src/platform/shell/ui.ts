@@ -27,6 +27,8 @@ import { EscapeMeter } from "../../game/ui/escapeMeter";
 import { PassivePips } from "../../game/ui/passivePips";
 import { OffscreenBubble } from "../../game/ui/offscreenBubble";
 import { ManaBar } from "../../game/ui/manaBar";
+import { MANA_BAR_HEIGHT_PX } from "../../game/ui/plateLayout";
+import { unitsForPixels } from "../../game/ui/portraitFrames";
 import { OVERHEAD_MANA_BORDER, OVERHEAD_MANA_HEIGHT } from "../../game/presentation/manaBar";
 import { consoleUi, gameUi } from "../../game/ui/frames";
 import { type SelectionActions, SelectionPanel } from "../../game/ui/selectionUi";
@@ -98,7 +100,8 @@ export interface ManaBars {
 const createManaBars = (slot: ParticipantSlot): ManaBars => ({
   // Like the escape meter, the overhead bar draws on the console backdrop, outside GameUI's central area.
   overhead: new ManaBar("Overhead", slot, consoleUi(), 1200 + slot * 20, OVERHEAD_MANA_HEIGHT, OVERHEAD_MANA_BORDER),
-  hud: new ManaBar("Hud", slot, gameUi(), 1300 + slot * 20, f32(0.004), f32(0.001)),
+  // The plate art draws the bar's track (plateLayout.ts).
+  hud: new ManaBar("Hud", slot, gameUi(), 1300 + slot * 20, unitsForPixels(MANA_BAR_HEIGHT_PX), 0.0),
 });
 
 function menuControls(s: Readonly<ShellState>): MenuControls {
