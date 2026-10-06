@@ -6,7 +6,7 @@ import { clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { stateChecksum } from "../replay/canonical";
 import { firstStateDifference } from "../replay/difference";
-import { AttackStyle, Character, DownState } from "../sim/codes";
+import { AttackStyle, Character, DownState, SpecialAction } from "../sim/codes";
 import { attackActive, attackStartup } from "../sim/conditions";
 import { createFighter } from "../sim/fighter";
 import { attackStartupFrames } from "../sim/moves";
@@ -305,6 +305,26 @@ test("hitAreasListTheBodyAndTheActiveStrikesContactUses", () => {
   const target = createFighter(Character.rifleman, f32((expected.x1 + expected.x2) / 2.0), -1);
   target.motion.z = player.motion.z;
   assertEquals(strikeHurtContact(expected, target), HurtContact.hit);
+});
+
+test("readoutNamesTheSpecialAndTheNamedFormItBranchesInto", () => {
+  const match = trainingMatch(PartnerBehaviour.stand, 200.0, Character.mountainKing);
+  const { game } = match;
+  for (let i = 0; i < 12; i++) match.step();
+  const press = (input: Controls) => {
+    input.specialPressed = true;
+    input.specialZ = 1;
+  };
+  match.step(press);
+  assertEquals(game.trainer.moveSpecial, SpecialAction.heroUp);
+  assertEquals(trainingReadout(game.trainer).split("\n")[0], `Thunder Leap: ${game.trainer.moveTotal} total`);
+  for (let i = 0; i < 16; i++) match.step();
+  match.step(press);
+  assertEquals(trainingReadout(game.trainer).split("\n")[0]?.split(":")[0], "Hammerfall");
+  // A normal afterwards is named by its input again.
+  match.until(() => canAct(match.player), 200);
+  match.jab();
+  assertEquals(trainingReadout(game.trainer).split(":")[0], "Jab");
 });
 
 test("readoutText", () => {

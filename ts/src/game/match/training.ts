@@ -8,7 +8,7 @@ import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import type { Direction } from "../input/inputRow";
 import { PARTICIPANT_SLOTS, type Slots, participantActive } from "../input/participants";
 import { copyFighterState } from "../replay/fighterState";
-import { AttackStyle, Character, DownState } from "../sim/codes";
+import { AttackStyle, Character, DownState, SpecialAction } from "../sim/codes";
 import { attackActive, attackStartup, canAttack, canShieldGrab, isTumbling } from "../sim/conditions";
 import { type Fighter, createFighter } from "../sim/fighter";
 import { type Controls, type Roster, createRoster, fighterAt, isActive, neutralControls } from "../sim/roster";
@@ -47,6 +47,8 @@ const beforeHit: Slots<number> = [0, 0, 0, 0];
 const beforeShield: Slots<number> = [0, 0, 0, 0];
 const beforeDamage: Slots<number> = [0.0, 0.0, 0.0, 0.0];
 const beforeOut: Slots<boolean> = [false, false, false, false];
+const beforeSpecial: Slots<number> = [0, 0, 0, 0];
+const beforeForm: Slots<number> = [0, 0, 0, 0];
 
 export function captureTrainingBefore(world: Roster): void {
   for (const slot of PARTICIPANT_SLOTS) {
@@ -57,6 +59,8 @@ export function captureTrainingBefore(world: Roster): void {
     beforeShield[slot] = f.visuals.shield;
     beforeDamage[slot] = f.status.damage;
     beforeOut[slot] = f.status.out;
+    beforeSpecial[slot] = f.special.action;
+    beforeForm[slot] = f.special.form;
   }
 }
 
@@ -74,8 +78,19 @@ export function advanceTrainingReadout(state: TrainingState, world: Roster, play
     const f = fighterAt(world, slot);
     if (participantActive(computerMask, slot) && beforeOut[slot] && !f.status.out) f.status.damage = f32(state.damage);
     const style = f.attack.style;
-    if (participantActive(playerMask, slot) && f.attack.serial !== beforeSerial[slot] && style !== undefined) {
+    const { special } = f;
+    if (participantActive(playerMask, slot) && special.action !== SpecialAction.none && (special.action !== beforeSpecial[slot] || special.form !== beforeForm[slot])) {
+      state.moveStyle = -1;
+      state.moveSpecial = special.action;
+      state.moveForm = special.form;
+      state.moveCharacter = f.character;
+      state.moveSlot = slot;
+      state.moveStartup = 0;
+      state.moveActive = 0;
+      state.moveTotal = special.duration;
+    } else if (participantActive(playerMask, slot) && f.attack.serial !== beforeSerial[slot] && style !== undefined) {
       state.moveStyle = style;
+      state.moveSpecial = -1;
       state.moveSlot = slot;
       state.moveStartup = attackStartup(f, style) + 1;
       state.moveActive = attackActive(f, style);

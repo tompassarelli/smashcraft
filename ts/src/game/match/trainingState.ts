@@ -65,6 +65,10 @@ export interface TrainingState {
   showHitAreas: boolean;
   /** The last move a player's fighter started: its style (-1 none), first active frame, active frames and total length. */
   moveStyle: number;
+  /** Or the last special it started or branched into: its SpecialAction (-1 none), form and fighter. */
+  moveSpecial: number;
+  moveForm: number;
+  moveCharacter: number;
   moveSlot: number;
   moveStartup: number;
   moveActive: number;
@@ -91,14 +95,14 @@ export function createTrainingState(): TrainingState {
   return {
     speed: 1, speedPhase: 0, latches: [emptyLatchedPresses(), emptyLatchedPresses(), emptyLatchedPresses(), emptyLatchedPresses()],
     behaviour: PartnerBehaviour.stand, escape: PartnerEscape.none, tech: PartnerTech.none, damage: 0, showHitAreas: false,
-    moveStyle: -1, moveSlot: -1, moveStartup: 0, moveActive: 0, moveTotal: 0,
+    moveStyle: -1, moveSpecial: -1, moveForm: 0, moveCharacter: 0, moveSlot: -1, moveStartup: 0, moveActive: 0, moveTotal: 0,
     measureFrames: -1, measureAttacker: -1, measureDefender: -1, measureKind: Advantage.none, attackerReady: -1, defenderReady: -1,
     advantage: 0, advantageKind: Advantage.none, comboDefender: -1, comboOpen: false, comboHits: 0, comboDamage: 0.0,
   };
 }
 
 const INT_FIELDS = [
-  "speed", "speedPhase", "behaviour", "escape", "tech", "damage", "moveStyle", "moveSlot", "moveStartup", "moveActive", "moveTotal",
+  "speed", "speedPhase", "behaviour", "escape", "tech", "damage", "moveStyle", "moveSpecial", "moveForm", "moveCharacter", "moveSlot", "moveStartup", "moveActive", "moveTotal",
   "measureFrames", "measureAttacker", "measureDefender", "measureKind", "attackerReady", "defenderReady",
   "advantage", "advantageKind", "comboDefender", "comboHits",
 ] as const;
@@ -113,6 +117,9 @@ export function copyTrainingState(target: TrainingState, source: Readonly<Traini
   target.damage = source.damage;
   target.showHitAreas = source.showHitAreas;
   target.moveStyle = source.moveStyle;
+  target.moveSpecial = source.moveSpecial;
+  target.moveForm = source.moveForm;
+  target.moveCharacter = source.moveCharacter;
   target.moveSlot = source.moveSlot;
   target.moveStartup = source.moveStartup;
   target.moveActive = source.moveActive;
@@ -154,6 +161,9 @@ export function clearTrainingReadout(state: TrainingState): void {
   state.speedPhase = 0;
   for (const slot of PARTICIPANT_SLOTS) for (const key of LATCH_FIELDS) state.latches[slot][key] = 0;
   state.moveStyle = -1;
+  state.moveSpecial = -1;
+  state.moveForm = 0;
+  state.moveCharacter = 0;
   state.moveSlot = -1;
   state.moveStartup = 0;
   state.moveActive = 0;

@@ -5,6 +5,7 @@ import { floorDiv } from "wisp/src/sim/intMath";
 import { MATCH_TICKS_PER_SECOND, type MatchState, humanFighterActive, humanPresent, keepsStocks, practiceSelected } from "../match/rules";
 import { AttackStyle, DownState, LedgeState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
+import { normalName, specialName } from "../sim/moveNames";
 
 /** The control that starts, pauses and resumes: a controller's Start, or Y on a keyboard. */
 export type StartControl = "Start" | "Y";
@@ -103,18 +104,13 @@ export function matchHelp(game: Readonly<MatchState>, paused: boolean, start: St
 /** Shown to the player who saved the last seconds of play for a bug report. */
 export const MOMENT_SAVED_MESSAGE = "Moment saved";
 
-/** Move names by AttackStyle code, as players call them. */
-const MOVE_NAMES = [
-  "Jab", "Shot", "Up smash", "Down smash", "Forward smash", "Grab", "Forward tilt", "Up tilt", "Down tilt", "Forward tilt (up)",
-  "Forward tilt (down)", "Get-up attack", "Neutral air", "Forward air", "Back air", "Up air", "Down air", "Ledge attack", "Dash attack", "Dash attack",
-];
-
 const signed = (value: number) => (value > 0 ? `+${value}` : `${value}`);
 
 /** Training's readout: the last move's frames, the advantage after the last hit or shielded hit, and the combo. */
 export function trainingReadout(state: Readonly<TrainingState>): string {
   const lines: string[] = [];
-  if (state.moveStyle >= 0) lines.push(`${MOVE_NAMES[state.moveStyle] ?? "Attack"}: hits on frame ${state.moveStartup} · ${state.moveActive} active · ${state.moveTotal} total`);
+  if (state.moveSpecial >= 0) lines.push(`${specialName(state.moveCharacter, state.moveSpecial, state.moveForm)}: ${state.moveTotal} total`);
+  else if (state.moveStyle >= 0) lines.push(`${normalName(state.moveStyle)}: hits on frame ${state.moveStartup} · ${state.moveActive} active · ${state.moveTotal} total`);
   if (state.advantageKind !== Advantage.none) lines.push(`${signed(state.advantage)} on ${state.advantageKind === Advantage.shield ? "shield" : "hit"}`);
   if (state.comboHits > 0) lines.push(`Combo: ${state.comboHits} ${state.comboHits === 1 ? "hit" : "hits"} · ${Math.floor(state.comboDamage)}%`);
   return lines.join("\n");

@@ -29,7 +29,8 @@ export class TrainingReadout {
     BlzFrameSetVisible(this.label, visible);
     if (!visible) return;
     const last = this.shown;
-    if (this.built && last.moveStyle === state.moveStyle && last.moveStartup === state.moveStartup && last.moveActive === state.moveActive
+    if (this.built && last.moveStyle === state.moveStyle && last.moveSpecial === state.moveSpecial && last.moveForm === state.moveForm
+      && last.moveCharacter === state.moveCharacter && last.moveStartup === state.moveStartup && last.moveActive === state.moveActive
       && last.moveTotal === state.moveTotal && last.advantageKind === state.advantageKind && last.advantage === state.advantage
       && last.comboHits === state.comboHits && last.comboDamage === state.comboDamage) return;
     copyTrainingState(last, state);
