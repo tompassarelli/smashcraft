@@ -6,7 +6,8 @@ import { trampoline } from "wisp/src/platform/dispatch";
 import { reportedModel, sceneFile } from "wisp/src/runtime/scene";
 import { type SceneReport, readSceneLines, sceneProblems } from "wisp/scripts/wisp/scene";
 import { SMASHCRAFT_SCENE } from "../scripts/wisp/playerView";
-import { IMPACT_DUST_MODEL, IMPACT_HIT_MODEL } from "../src/game/assets/impactAssetInfo";
+import { IMPACT_HIT_MODEL } from "../src/game/assets/impactAssetInfo";
+import { impactModel } from "../src/game/presentation/hitPresentation";
 import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, setParticipants } from "../src/game/match/rules";
@@ -312,7 +313,7 @@ test("a dust slot reused while shown is a new stay each use; a standing spark an
   // each use was a stay of its own, and only the standing spark and the collapsed missile fail.
   expect(longestReused).toBeGreaterThan(seconds(3));
   const report = sceneReport(client);
-  expect(report.models.find(({ model }) => model === reportedModel(IMPACT_DUST_MODEL))?.longest).toBe(impactLifetime(IMPACT_DUST));
+  expect(report.models.find(({ model }) => model === reportedModel(impactModel(IMPACT_DUST)))?.longest).toBe(impactLifetime(IMPACT_DUST));
   expect(sceneProblems(report, SMASHCRAFT_SCENE).map(({ seen }) => seen)).toEqual([
     "a hit spark stayed in view for 4.00 s; it should be gone within 3.00 s",
     "1 hidden projectile in view still show particles",

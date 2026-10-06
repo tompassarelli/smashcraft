@@ -352,6 +352,10 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("throwVisualSerial", v.throw);
   int("hitVisualSerial", v.hit);
   bool("hitVisualElectric", v.hitElectric);
+  int("hitVisualElement", v.hitElement);
+  int("hitVisualStrength", v.hitStrength);
+  bool("hitVisualPummel", v.hitPummel);
+  bool("shieldVisualElectric", v.shieldElectric);
   int("shieldVisualSerial", v.shield);
   bool("fastFallDownHeld", m.fastFallDownHeld);
   int("fastFallInputAge", m.fastFallInputAge);

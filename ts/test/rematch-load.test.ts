@@ -1,3 +1,4 @@
+import { hitlagShake } from "../src/game/presentation/hitPresentation";
 // A match, slot change and three-fighter rematch in two simulated clients of
 // the playable build, whose journal input and rollback the integrity build
 // shares without its diagnostics, with each helper typing #26's dense taps
@@ -146,7 +147,7 @@ function shownClipProblems(client: HeadlessClient, parkedBelow: number, seen: Ma
         continue;
       }
       seen.set(character, (seen.get(character) ?? 0) + 1);
-      const place = [s.origin.x + motion.x, s.origin.y, s.origin.z + motion.z];
+      const place = [s.origin.x + motion.x + hitlagShake(fighterAt(world, slot)), s.origin.y, s.origin.z + motion.z];
       if (pose.x !== place[0] || pose.y !== place[1] || pose.z !== place[2]) problems.push(`slot ${slot} clip at ${pose.x} ${pose.y} ${pose.z}, fighter at ${place.join(" ")}`);
       if (pose.scale !== characterModelScale(character) || (pose.alpha !== 255 && pose.alpha !== 140)) problems.push(`slot ${slot} clip scale ${pose.scale} alpha ${pose.alpha}`);
       const mesh = MODEL_FACTS[pose.model];

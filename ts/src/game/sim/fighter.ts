@@ -21,6 +21,7 @@ import {
 } from "./codes";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type FighterTuning, authoredTuning } from "./tuning";
+import { HitElement } from "./hitRegions";
 
 export const PROJECTILE_CAPACITY = 16;
 export const SHIELD_MAX = 60.0;
@@ -185,6 +186,10 @@ interface VisualSerials {
   throw: number;
   hit: number;
   hitElectric: boolean;
+  hitElement: HitElement;
+  hitStrength: number;
+  hitPummel: boolean;
+  shieldElectric: boolean;
   shield: number;
   shieldReflect: number;
   parry: number;
@@ -504,7 +509,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       lastAttackSerial: undefined,
       lastWindow: 0,
     },
-    visuals: { grab: 0, throw: 0, hit: 0, hitElectric: false, shield: 0, shieldReflect: 0, parry: 0 },
+    visuals: { grab: 0, throw: 0, hit: 0, hitElectric: false, hitElement: HitElement.normal, hitStrength: 0, hitPummel: false, shieldElectric: false, shield: 0, shieldReflect: 0, parry: 0 },
     special: {
       action: SpecialAction.none,
       frame: 0,

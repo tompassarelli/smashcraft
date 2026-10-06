@@ -2,6 +2,7 @@ import { max, min, toInt } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { idiv, imod } from "wisp/src/sim/intMath";
 import { type Character, SurfaceContact } from "../sim/codes";
+import { HitElement } from "../sim/hitRegions";
 import { DodgeCue, type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
 
 // Impact kinds. Each owns a ring of IMPACTS_PER_KIND pool slots, in kind order.
@@ -23,9 +24,14 @@ export const IMPACT_LEDGE_CATCH = 14;
 export const IMPACT_LEDGE_RECOVERY = 15;
 export const IMPACT_STAR_KO = 16;
 export const IMPACT_SCREEN_KO = 17;
+export const IMPACT_FIRE_HIT = 18;
+export const IMPACT_SLASH_HIT = 19;
+export const IMPACT_ICE_HIT = 20;
+export const IMPACT_ELECTRIC_SHIELD = 21;
+export const IMPACT_PUMMEL = 22;
 
 export const IMPACTS_PER_KIND = 8;
-export const IMPACT_KIND_COUNT = 18;
+export const IMPACT_KIND_COUNT = 23;
 export const IMPACT_COUNT = IMPACTS_PER_KIND * IMPACT_KIND_COUNT;
 export const KO_STAR_FLIGHT_FRAMES = 90;
 export const KO_STAR_FRAMES = 108;
@@ -173,6 +179,11 @@ export function impactLifetime(kind: number): number {
     case IMPACT_SCREEN_KO: return KO_SCREEN_FRAMES;
     case IMPACT_HIT:
     case IMPACT_ELECTRIC_HIT:
+    case IMPACT_FIRE_HIT:
+    case IMPACT_SLASH_HIT:
+    case IMPACT_ICE_HIT:
+    case IMPACT_ELECTRIC_SHIELD:
+    case IMPACT_PUMMEL:
     case IMPACT_SHIELD_HIT: return 9;
     case IMPACT_TECH: return 15;
     case IMPACT_DUST: return 32;
@@ -222,8 +233,13 @@ export function emitImpacts(state: ImpactState, events: Readonly<ImpactEvents>, 
   if (events.ready) spawn(state, IMPACT_READY, x, f32(z + 65.0), 0, f32(0.9));
   if (events.ledgeCatch) spawn(state, IMPACT_LEDGE_CATCH, events.ledgeX, events.ledgeZ, 0, f32(0.6));
   if (events.ledgeRecovery) spawn(state, IMPACT_LEDGE_RECOVERY, events.ledgeX, events.ledgeZ, 0, f32(0.8));
-  if (events.hit) spawn(state, events.electric ? IMPACT_ELECTRIC_HIT : IMPACT_HIT, x, f32(z + 50.0), 0, 1.0);
-  if (events.shieldHit) spawn(state, IMPACT_SHIELD_HIT, x, f32(z + 50.0), 0, 1.0);
+  if (events.hit) {
+    const kind = events.pummel ? IMPACT_PUMMEL : events.element === HitElement.fire ? IMPACT_FIRE_HIT
+      : events.element === HitElement.slash ? IMPACT_SLASH_HIT : events.element === HitElement.ice ? IMPACT_ICE_HIT
+      : events.electric || events.element === HitElement.electric ? IMPACT_ELECTRIC_HIT : IMPACT_HIT;
+    spawn(state, kind, x, f32(z + 50.0), 0, f32(0.75 + f32(events.strength * 0.25)));
+  }
+  if (events.shieldHit || events.shieldReflect) spawn(state, events.shieldElectric ? IMPACT_ELECTRIC_SHIELD : IMPACT_SHIELD_HIT, x, f32(z + 50.0), 0, events.shieldReflect ? 1.5 : 1.0);
   if (events.shieldBreak) spawn(state, IMPACT_SHIELD_HIT, x, f32(z + 50.0), 0, 2.0);
   if (events.landing === ImpactLanding.tech) spawn(state, IMPACT_TECH, x, f32(z + 3.0), 0, 1.0);
   else if (events.landing === ImpactLanding.missedTech) {
