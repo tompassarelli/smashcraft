@@ -1876,8 +1876,14 @@ Destination's, at six world units per Melee unit. Smashcraft's deck is 200 Melee
 Destination's 171.13, so the level underside spans the wider deck between the
 sides: in world units the walls drop straight from each ledge (x ±600) to z -63,
 slope in to x ±481.4 at z -122.7, and meet the underside at z -332.33,
-which spans x ±371.3. The drawn deck model (smashcraft:tools/stage/package.ts)
-is still the 54-unit slab and does not show the body below it.
+which spans x ±371.3. The main deck's model is drawn from these lines on
+every stage: smashcraft:ts/scripts/stageDeck.ts extrudes the walking line,
+walls and underside 60 units to each side of the fighters' plane, and
+smashcraft:tools/stage/package.ts writes it at arena scale, named after its
+MDL text. smashcraft:ts/test/stage-model.test.ts checks that the shipped
+model is the one drawn from the current lines, that its front faces' outline
+is those lines on both shipped stages, and that its model facts' bounds reach
+each wall and the underside. Stage 1's raised decks keep the scaled slab.
 
 A fighter meets a wall with its flank: Melee's ECB side touches the wall, and
 `mpColl_LoadECB_JObj` (melee:src/melee/mp/mpcoll.c) keeps an airborne ECB at
