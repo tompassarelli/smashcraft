@@ -288,8 +288,9 @@ test("ledge cues follow an accepted catch and its options, at the actual lip", (
     const world = testWorld(fighter, other);
     const events = createImpactEvents();
     fighter.motion.grounded = false;
-    fighter.motion.z = -30.0;
+    fighter.motion.z = -80.0;
     fighter.motion.vz = -2.0;
+    fighter.motion.deltaZ = -2.0;
     input.down = true;
     journal(events, fighter, () => resolveLedges(world, 0, controls));
     assertFalse(events.ledgeCatch);

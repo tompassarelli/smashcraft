@@ -116,8 +116,9 @@ test("fourFightersArbitrateBothLedgesByDistance", () => {
     const fighter = world.fighters[slot]!;
     const side = slot < 2 ? -1 : 1;
     fighter.motion.x = side * (imod(slot, 2) === 0 ? 630.0 : 620.0);
-    fighter.motion.z = -30.0;
+    fighter.motion.z = -80.0;
     fighter.motion.vz = -2.0;
+    fighter.motion.deltaZ = -2.0;
     fighter.motion.grounded = false;
     fighter.facing = -side;
   }
