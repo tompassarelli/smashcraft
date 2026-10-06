@@ -7,8 +7,6 @@ import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 /** A fighter's cell: its number is the fighter it chooses. */
 export type RosterTile = number;
 
-/** Fighters a player can choose. */
-export const SELECTABLE_FIGHTERS = 3;
 
 /** One cell at full size; the frame art's own proportions. */
 const CELL_WIDTH = f32(0.112);

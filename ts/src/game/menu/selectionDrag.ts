@@ -2,6 +2,7 @@
 // the bottom and a chip that sits on its card until placed on a roster tile.
 // Coordinates are UI frame units (pointer.ts). The state belongs to the local
 // cursor: a placement crosses a player sync event before it changes a fighter.
+import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_CAPACITY, participantActive } from "../input/participants";
 import { type RosterGrid, type RosterTile, cellRect, tileAt } from "./selectionGrid";
@@ -44,12 +45,12 @@ export interface Placement {
 
 /** The left edge of a placed chip; slots share a cell in two columns. */
 export function chipX(grid: RosterGrid, slot: number, choice: number): number {
-  return cellRect(grid, choice).left + (0.012 + floorMod(slot, 2) * 0.051) * grid.scale;
+  return cellRect(grid, choice).left + (f32(0.012) + floorMod(slot, 2) * f32(0.051)) * grid.scale;
 }
 
 /** The top edge of a placed chip; slots share a cell in two rows. */
 export function chipY(grid: RosterGrid, slot: number, choice: number): number {
-  return cellRect(grid, choice).top - (slot < 2 ? 0.05 : 0.088) * grid.scale;
+  return cellRect(grid, choice).top - (slot < 2 ? f32(0.05) : f32(0.088)) * grid.scale;
 }
 
 export function cardX(slot: number): number {
