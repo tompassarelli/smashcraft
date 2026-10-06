@@ -51,7 +51,8 @@ export function measureDrawnReach(model: DrawnModel, character: Character, style
   const peak = reaches.findIndex((reach) => reach >= most - PEAK);
   return {
     clip: first.clip,
-    swing: most - Math.min(...reaches),
+    // A frame that draws nothing (no clip, or every geoset hidden) has no reach and does not count.
+    swing: most - Math.min(...reaches.filter(Number.isFinite)),
     peakFrame: frames[peak]?.frame ?? -1,
     firstActive: first.frame,
     lastActive: active.at(-1)?.frame ?? first.frame,
