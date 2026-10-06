@@ -12,13 +12,20 @@ export interface HeroClip {
 }
 
 /**
+ * States with no shared clip: a table that leaves one out keeps the original
+ * fighters' pose for that state instead of playing its fallback.
+ */
+export type HeroStatePose = "dash" | "run" | "crouch" | "fall" | "landing" | "shield" | "airDodge" | "smashCharge" | "ko" | "dizzy";
+
+/**
  * Every pose that selects a clip by table (presentation/fighterClips.ts); the
  * original fighters fill the same table. Poses a hero leaves unmapped play its
- * `fallback` clip. `idle` and `walk` play by index where a table maps them,
- * and as the model's named stand and walk otherwise.
+ * `fallback` clip, except HeroStatePose. `idle` and `walk` play by index where
+ * a table maps them, and as the model's named stand and walk otherwise.
  */
 export type HeroPose =
   | "idle" | "walk"
+  | HeroStatePose
   | "jab" | "grab" | "forwardTilt" | "upTilt" | "downTilt" | "forwardTiltUp" | "forwardTiltDown"
   | "forwardSmash" | "upSmash" | "downSmash" | "dashAttack"
   | "neutralAir" | "forwardAir" | "backAir" | "upAir" | "downAir" | "getUpAttack"
