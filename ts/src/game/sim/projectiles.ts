@@ -14,7 +14,7 @@ import { demonHunterParryIsActive, resolveDemonHunterParry } from "./hits";
 import { attackDamage } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { type Roster, fighterAt, isActive } from "./roster";
-import { SHIELD_PROJECTILE_DAMAGE_MULTIPLIER, SHIELD_PROJECTILE_SPEED_MULTIPLIER, SHIELD_REFLECTOR_RADIUS_FACTOR, grantParry, shieldCircleIntersects } from "./shield";
+import { SHIELD_PROJECTILE_DAMAGE_MULTIPLIER, SHIELD_PROJECTILE_SPEED_MULTIPLIER, grantParry, shieldCircleIntersects } from "./shield";
 import { at } from "wisp/src/runtime/lookup";
 import { solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
 
@@ -162,6 +162,8 @@ const targets = {
   z: [0.0, 0.0, 0.0, 0.0],
   out: [false, false, false, false],
   intangible: [false, false, false, false],
+  // Sampled before any projectile resolves: a reflection spends the window, but every projectile meeting the shield that frame reflects.
+  reflecting: [false, false, false, false],
 };
 
 /**
@@ -227,11 +229,10 @@ function flyProjectile(world: Roster, ownerSlot: number, projectile: Projectile,
     const crossed = f32(f32(targetX - oldX) * direction) >= 0 && f32(f32(targetX - projectile.x) * direction) <= 0;
     const near = Math.abs(f32(targetX - projectile.x)) <= BLASTER_PROJECTILE_RADIUS;
     const height = centerZ >= lowZ && centerZ <= highZ;
-    const reflector = target.shield.reflectFrames > 0
-      && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, SHIELD_REFLECTOR_RADIUS_FACTOR);
     const shieldContact = target.shield.raised && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0);
+    const reflector = shieldContact && at(targets.reflecting, targetSlot);
     const candidate = Math.abs(f32(targetX - oldX));
-    if ((reflector || shieldContact || ((crossed || near) && height)) && (nearest === undefined || candidate < distance)) {
+    if ((shieldContact || ((crossed || near) && height)) && (nearest === undefined || candidate < distance)) {
       nearest = targetSlot;
       distance = candidate;
       hit.reflector = reflector;
@@ -268,11 +269,10 @@ function flyHeroProjectile(world: Roster, ownerSlot: number, projectile: Project
     const near = Math.abs(f32(targetX - projectile.x)) <= reach;
     const height = f32(max(oldZ, projectile.z) + reach) >= f32(targetZ + body.z1) && f32(min(oldZ, projectile.z) - reach) <= f32(targetZ + body.z2);
     // The shield takes the projectile at the same widened reach as the body, so a broad one never passes a raised shield.
-    const reflector = spec.reflectable && target.shield.reflectFrames > 0
-      && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, SHIELD_REFLECTOR_RADIUS_FACTOR, spec.radius);
     const shieldContact = target.shield.raised && shieldCircleIntersects(target, oldX, oldZ, projectile.x, projectile.z, 1.0, spec.radius);
+    const reflector = spec.reflectable && shieldContact && at(targets.reflecting, targetSlot);
     const candidate = Math.abs(f32(targetX - oldX));
-    if ((reflector || shieldContact || ((crossed || near) && height)) && (nearest === undefined || candidate < distance)) {
+    if ((shieldContact || ((crossed || near) && height)) && (nearest === undefined || candidate < distance)) {
       nearest = targetSlot;
       distance = candidate;
       hit.reflector = reflector;
@@ -332,6 +332,7 @@ export function updateProjectiles(world: Roster, stage?: number, matchFrame = 0)
     targets.z[slot] = target.motion.z;
     targets.out[slot] = target.status.out;
     targets.intangible[slot] = isIntangible(target);
+    targets.reflecting[slot] = target.shield.reflectFrames > 0;
   }
   for (let ownerSlot = 0; ownerSlot < PARTICIPANT_CAPACITY; ownerSlot++) {
     if (!isActive(world, ownerSlot)) continue;
