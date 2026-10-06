@@ -28,7 +28,7 @@ const inputs = join(homedir(), ".local/share/smashcraft-build-inputs/playable-00
 
 export const PLAYTEST: Playtest = {
   build: "playable-0047",
-  map: { folder: "00-Smashcraft", file: "Smashcraft 0.0.47.w3x", title: "Smashcraft 0.0.47" },
+  map: { folder: "00-Smashcraft", file: "Smashcraft 0.0.47.w3x", title: "Smashcraft 0.0.47", source: join(inputs, "Smashcraft 0.0.47.w3x") },
   helper: join(inputs, "wc3-journal-0.0.47-fix1"),
   computerSlot: 2,
   inputDevices: "/dev/input/by-id",

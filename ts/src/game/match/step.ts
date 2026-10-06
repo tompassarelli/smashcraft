@@ -1,7 +1,6 @@
-import { f32 } from "wisp/src/sim/f32";
-import { type AttackBuffer, clearAttackBuffer, hasPendingAttack, queueAttack, takeAttack } from "../input/attackBuffer";
+import { clearAttackBuffer, hasPendingAttack, takeAttack } from "../input/attackBuffer";
 import { attackStyleForGrounding } from "../input/combat";
-import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../input/participants";
+import { PARTICIPANT_SLOTS, type Slots } from "../input/participants";
 import { beginFighterAttack, resolveAttacks } from "../sim/attacks";
 import { AttackStyle, DASH_GRAB_REQUEST } from "../sim/codes";
 import { canStartAttackStyle, inGrabContext } from "../sim/conditions";
@@ -10,15 +9,13 @@ import { advanceGrabs, captureGrabPauses, resolveGrabs } from "../sim/grabs";
 import { resolveLedges } from "../sim/ledge";
 import { observedActions, resetObservedActions } from "../sim/observations";
 import { updateProjectiles } from "../sim/projectiles";
-import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "../sim/roster";
+import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { regenerateShield } from "../sim/shield";
 import { advanceSpecials, startFighterSpecial } from "../sim/specials";
-import { surfaceLeft, surfaceRight } from "../sim/stage";
 import { advanceFighterMotion } from "../sim/step";
 import { advanceFreezeTraps } from "../sim/summons";
-import { chooseRecoveryInput } from "./botRecovery";
 import type { FrameControls } from "./controls";
-import { MATCH_TICKS_PER_SECOND, type MatchState, Phase, advanceClock, humanFighterActive, resolveStocks } from "./rules";
+import { type MatchState, Phase, advanceClock, humanFighterActive, resolveStocks } from "./rules";
 
 export const observedFrameLegalActions: Slots<number> = [0, 0, 0, 0];
 export const observedFrameStartedActions: Slots<number> = [0, 0, 0, 0];
@@ -27,7 +24,6 @@ export const observedFrameStartedActions: Slots<number> = [0, 0, 0, 0];
 const hadDashGrabWindow: Slots<boolean> = [false, false, false, false];
 const wasGrabbed: Slots<boolean> = [false, false, false, false];
 const beforeOut: Slots<boolean> = [false, false, false, false];
-const COMPUTER_NEUTRAL = neutralControls();
 
 export function initializeMatchFighters(game: Readonly<MatchState>, world: Roster): void {
   for (const slot of PARTICIPANT_SLOTS) {
@@ -43,37 +39,6 @@ export function matchSpawnX(slot: number): number {
   if (slot === 0) return -240.0;
   if (slot === 1) return 240.0;
   return slot === 2 ? -80.0 : 80.0;
-}
-
-/** Correcting human movement also corrects every computer decision derived from it. */
-export function produceComputerInput(game: Readonly<MatchState>, world: Roster, runtime: { botAttackDelays: Slots<number> }, slot: ParticipantSlot, frame: number, input: Controls, commands: AttackBuffer): void {
-  const fighter = fighterAt(world, slot);
-  copyControls(input, COMPUTER_NEUTRAL);
-  clearAttackBuffer(commands);
-  if (fighter.status.out) return;
-  let targetSlot: ParticipantSlot | undefined;
-  let distance = 0.0;
-  for (const candidate of PARTICIPANT_SLOTS) {
-    if (!isActive(world, candidate) || candidate === slot) continue;
-    const target = fighterAt(world, candidate);
-    if (target.status.out || target.status.stocks <= 0) continue;
-    const gap = Math.abs(f32(target.motion.x - fighter.motion.x));
-    if (targetSlot === undefined || gap < distance) { targetSlot = candidate; distance = gap; }
-  }
-  const recovering = chooseRecoveryInput(fighter, game.stageChoice, input);
-  runtime.botAttackDelays[slot] = f32(runtime.botAttackDelays[slot] - f32(1.0 / MATCH_TICKS_PER_SECOND));
-  if (targetSlot === undefined || recovering) return;
-  const target = fighterAt(world, targetSlot);
-  const chaseX = Math.min(f32(surfaceRight(game.stageChoice, 0) - 40), Math.max(f32(surfaceLeft(game.stageChoice, 0) + 40), target.motion.x));
-  if (Math.abs(f32(chaseX - fighter.motion.x)) > 95) input.direction = chaseX > fighter.motion.x ? 1 : -1;
-  if (fighter.motion.grounded && target.motion.z > f32(fighter.motion.z + 130)) {
-    input.jumpPressed = true;
-    input.jumpHeld = true;
-  }
-  if (distance < 135 && runtime.botAttackDelays[slot] <= 0) {
-    queueAttack(commands, { style: AttackStyle.jab, facing: target.motion.x >= fighter.motion.x ? 1 : -1, frame, mayCharge: false });
-    runtime.botAttackDelays[slot] = f32(0.35);
-  }
 }
 
 /** Command buffers admit the eleven ground request codes. */

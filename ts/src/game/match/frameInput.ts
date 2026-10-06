@@ -11,7 +11,8 @@ import { type Controls, type Roster, copyControls, fighterAt, isActive, sameCont
 import { type FrameControls, createFrameControls } from "./controls";
 import type { PacingAndPresentation } from "./pacingAndPresentation";
 import { type MatchState, Phase, computerActive } from "./rules";
-import { produceComputerInput, stepMatch } from "./step";
+import { produceComputerInput } from "./botPlay";
+import { stepMatch } from "./step";
 
 /** Detached source rows. Every execution adapts again from the world being replayed. */
 export interface MatchFrameInput {
