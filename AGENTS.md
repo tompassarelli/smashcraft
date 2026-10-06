@@ -104,8 +104,11 @@ code. From smashcraft:ts/:
 - Menus: `bun wisp menus host|join|start|leave` drives lobbies through Wisp's
   menu page instead of clicks (`install RETAIL_DIR --port N` once per prefix,
   with the account owner's agreement; smashcraft:docs/wisp.md, "Menu control").
-- Playtest: `bun wisp play` goes from Tom's desktop to a match against a
-  computer with the controller helper (smashcraft:docs/playable-0047.md).
+- Playtest: `bun wisp play` builds current main with its current controller
+  helper and goes from Tom's desktop to a match against a computer
+  (smashcraft:docs/play.md). Experiments use `fresh`, captures or `accept`,
+  with maps under Maps/00-Smashcraft/tests; play preserves two prior versions
+  beside the latest correctly titled build and archives the rest under older/.
 - Live tuning: `bun wisp tune --data A --data B` serves a panel that changes
   the values smashcraft:ts/scripts/wisp/tunables.ts declares in the running
   match and writes kept ones back (smashcraft:docs/typescript.md).

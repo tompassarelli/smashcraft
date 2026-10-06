@@ -17,6 +17,11 @@ import { playtestRequest } from "../../../src/game/shell/playtest";
 import { JournalMenu, PLAYTEST_GO_FILE, PLAYTEST_REQUEST_FILE, journalMenuFile, playtestReceiptFile } from "../boundary";
 import { clientState, gameFilesLayer } from "../project";
 import { smashcraftWatch } from "../doctor";
+import { currentPlaytest } from "../currentPlaytest";
+import { installLatest } from "../mapLibrary";
+import type { Command } from "wisp/scripts/wisp/command";
+import { PLAYABLE_BUILD } from "../../../src/game/shell/currentBuild";
+import type { PlayTools } from "wisp/scripts/wisp/playHost";
 
 interface Playtest {
   /** The map build's ID: its journal files and the helper's --build. */
@@ -34,18 +39,14 @@ interface Playtest {
 
 const inputs = join(homedir(), ".local/share/smashcraft-build-inputs");
 
-/**
- * The first map that takes playtest requests: a diagnostic build of the
- * playable profile from wisp-play-20261006 (build ID playable-0047, so the
- * 0.0.47 helper fits). Candidates built from main after it take them too.
- */
+/** Journal identity of the current playable profile; map and helper resolve from main at invocation. */
 export const PLAYTEST: Playtest = {
-  build: "playable-0047",
+  build: PLAYABLE_BUILD.id,
   map: {
-    folder: "00-Smashcraft", file: "Smashcraft wisp-play diagnostic.w3x", title: "Smashcraft wisp-play diagnostic",
-    source: join(inputs, "wisp-play-20261006/Smashcraft wisp-play diagnostic.w3x"),
+    folder: "00-Smashcraft", file: "Smashcraft latest.w3x", title: "Smashcraft latest",
+    source: join(inputs, "play-current/Smashcraft latest.w3x"),
   },
-  helper: join(inputs, "playable-0047/wc3-journal-0.0.47-fix1"),
+  helper: join(inputs, "play-current/wc3-journal"),
   computerSlot: 2,
   inputDevices: "/dev/input/by-id",
 };
@@ -140,18 +141,19 @@ export function playtest({ build, map, helper, computerSlot, inputDevices, menuR
 }
 
 const ClientSettings = Schema.Struct({
-  tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, wlrctl: Schema.String, tesseract: Schema.String }),
+  tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, wlrctl: Schema.String, tesseract: Schema.String, nsenter: Schema.optional(Schema.String) }),
   clients: Schema.Array(Schema.Struct({ documents: Schema.String, menuReportPort: Schema.optional(Schema.Int) })),
 });
 
 /** The tool paths the clients file records; the commands on PATH without one. */
-function clientSettings(): { readonly tools: Partial<typeof ClientSettings.Type["tools"]>; readonly menuReportPort?: number } {
+function clientSettings(): { readonly tools: Partial<PlayTools>; readonly menuReportPort?: number } {
   try {
     const decoded = Schema.decodeUnknownOption(ClientSettings)(JSON.parse(readFileSync(clientState, "utf8")));
     if (Option.isNone(decoded)) return { tools: {} };
     const prefix = playtest(PLAYTEST).prefix;
     const menuReportPort = decoded.value.clients.find((client) => client.documents === documentsFolder(prefix))?.menuReportPort;
-    return { tools: decoded.value.tools, ...(menuReportPort === undefined ? {} : { menuReportPort }) };
+    const { nsenter, ...tools } = decoded.value.tools;
+    return { tools: { ...tools, ...(nsenter === undefined ? {} : { nsenter }) }, ...(menuReportPort === undefined ? {} : { menuReportPort }) };
   } catch {
     return { tools: {} };
   }
@@ -159,4 +161,9 @@ function clientSettings(): { readonly tools: Partial<typeof ClientSettings.Type[
 
 const settings = clientSettings();
 // Doctor checks the prefix before play and once after a failure (wisp:docs/doctor.md).
-export const play = makePlay(playtest({ ...PLAYTEST, ...(settings.menuReportPort === undefined ? {} : { menuReportPort: settings.menuReportPort }) }), gameFilesLayer, settings.tools, smashcraftWatch());
+export const play: Command = (args) => Effect.gen(function*() {
+  const current = yield* currentPlaytest;
+  const declaration = playtest({ ...PLAYTEST, ...current, ...(settings.menuReportPort === undefined ? {} : { menuReportPort: settings.menuReportPort }) });
+  yield* Effect.try({ try: () => installLatest(documentsFolder(declaration.prefix), current.map.source), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
+  return yield* makePlay(declaration, gameFilesLayer, settings.tools, smashcraftWatch())(args);
+});

@@ -131,7 +131,7 @@ export const freshMatch = (map: string, fromGame = false) => Effect.scoped(Effec
   const host = (client: Client) => Effect.gen(function*() {
     const socket = menus.get(client.name);
     if (socket !== undefined) {
-      yield* hostLobby(socket, { folder: "00-Smashcraft", file: basename(map), gameName: game, password });
+      yield* hostLobby(socket, { folder: "00-Smashcraft/tests", file: basename(map), gameName: game, password });
       return;
     }
     yield* click(client, CREATE_GAME);
