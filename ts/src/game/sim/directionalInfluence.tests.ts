@@ -109,7 +109,7 @@ test("one frame of hitlag allows ASDI but can't produce SDI", () => {
 });
 
 test("an ASDI shift into the blast zone costs exactly one stock", () => {
-  const fighter = createFighter(Character.archer, 910.0, 1);
+  const fighter = createFighter(Character.archer, f32(stageBounds(0).blast.right - 10.0), 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 400.0;
   fighter.launch.hitlag = 1;
