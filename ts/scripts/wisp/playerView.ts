@@ -1,3 +1,5 @@
+import { impactModel } from "../../src/game/presentation/hitPresentation";
+import { IMPACT_KIND_COUNT } from "../../src/game/presentation/impactState";
 // What a player must see in a Smashcraft match (wisp:docs/player-view.md):
 // each kind of effect the map draws, with its models and the longest a player
 // should see one, what those models draw and where the arena camera looks,
@@ -64,8 +66,8 @@ const ARENA_CAMERAS: readonly CameraView[] = spans(-BLAST_ZONE_SIDE, BLAST_ZONE_
 export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: number } = {
   framesPerSecond: FRAMES_PER_SECOND,
   stage: { kind: "stage deck", pieces: 1 },
-  // hideEffect parks hidden effects on the ground beneath the stage center, where they are created.
-  visibility: { models: MODEL_FACTS, cameras: ARENA_CAMERAS, parking: [[0, 0, -FLOOR_HEIGHT]] },
+  // hideEffect keeps even tall stock emitters below every arena camera.
+  visibility: { models: MODEL_FACTS, cameras: ARENA_CAMERAS, parking: [[0, 0, -FLOOR_HEIGHT - 4096]] },
   // Half a second into the match the decks are drawn and the camera has framed the fighters.
   settledFrame: 30,
   kinds: [
@@ -76,6 +78,7 @@ export const SMASHCRAFT_SCENE: SceneExpectations & { readonly settledFrame: numb
       name: "hit spark", lifetime: seconds(3), models: [
         IMPACT_HIT_MODEL, IMPACT_TECH_MODEL, IMPACT_MISS_MODEL, IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL,
         IMPACT_ELECTRIC_MODEL, IMPACT_SHIELD_MODEL, IMPACT_JUMP_MODEL, IMPACT_KO_MODEL, IMPACT_RESPAWN_MODEL,
+        ...Array.from({ length: IMPACT_KIND_COUNT }, (_, kind) => impactModel(kind)),
       ],
     },
     // A star KO flies the fighter off for under two seconds.

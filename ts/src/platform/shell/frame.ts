@@ -97,6 +97,7 @@ export function applyFrame(s: ShellState): void {
     if (participant.pooled && !confirmModelSounds(s.sounds, rollback?.epoch ?? 0, runtime.simulationFrame, slot, fighter, runtime.poses[slot], ui.sounds)) {
       traceInput(s.trace, `model sound rejected confirmed frame ${runtime.simulationFrame} slot ${slot}`);
     }
+    ui.combat.presentConfirmed(runtime.simulationFrame, slot, runtime.frameImpacts[slot]);
     renderFighter(s, slot, runtime.poses[slot], participant.before.out);
     ui.special.presentConfirmedAnimated(runtime.simulationFrame, fighter, slot);
   }

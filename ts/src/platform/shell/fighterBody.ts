@@ -1,5 +1,6 @@
 // The unit each fighter animates when no pool presents it. Every client
 // creates the same units, as shared handles, at the same synchronized points.
+import { hitlagShake } from "../../game/presentation/hitPresentation";
 import { f32 } from "wisp/src/sim/f32";
 import { ShieldBreak } from "../../game/sim/codes";
 import { fighterPoseFacing } from "../../game/sim/conditions";
@@ -17,7 +18,7 @@ const LOCUST = 0x416c6f63;
 const DIZZY_MODEL = "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx";
 
 export function placeFighterBody(body: FighterBody, fighter: Readonly<Fighter>, origin: WorldOrigin): void {
-  SetUnitX(body.unit, origin.x + fighter.motion.x);
+  SetUnitX(body.unit, origin.x + fighter.motion.x + hitlagShake(fighter));
   SetUnitY(body.unit, origin.y);
   SetUnitFlyHeight(body.unit, FLOOR_HEIGHT + fighter.motion.z, 0.0);
   BlzSetUnitFacingEx(body.unit, fighterPoseFacing(fighter) > 0 ? 0.0 : 180.0);

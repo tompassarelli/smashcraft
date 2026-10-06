@@ -1,3 +1,6 @@
+import { HIT_PRESENTATION_CASES } from "../../game/shell/hitPresentationCases";
+import { createImpactEvents } from "../../game/presentation/impactEvents";
+import { emitImpacts } from "../../game/presentation/impactState";
 // Synchronized key and chat events: menu keys, Start, settings capture,
 // callback-match input, developer chords and dev console commands.
 import { Action } from "../../game/input/actions";
@@ -198,6 +201,17 @@ export function onDevCommand(s: ShellState): void {
   if (message === QUICK_MATCH_COMMAND) {
     receipt = "dev: quick match";
     startQuickMatch(s);
+  } else if (message.startsWith("-dev effects ")) {
+    const index = S2I(message.slice(13));
+    const scenario = HIT_PRESENTATION_CASES[index];
+    if (scenario === undefined || s.game.phase !== Phase.match) return;
+    const events = { ...createImpactEvents(), ...scenario.cue };
+    events.x = 0.0;
+    const ui = views(s);
+    emitImpacts(s.runtime.impacts, events, 8);
+    ui.combat.presentConfirmed(s.devReceipts + 1, 4, events);
+    ui.combat.present(s.runtime.impacts, s.runtime.impacts, true);
+    receipt = `dev: effects ${index} ${scenario.model} ${scenario.sound}`;
   } else if (message === "-dev frame-cost-clock") {
     receipt = "dev: frame cost clock probe";
     probeFrameCostClock();

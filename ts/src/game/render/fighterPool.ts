@@ -16,6 +16,7 @@ import type { Character } from "../sim/codes";
 import { fighterPoseFacing, isIntangible } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { type WorldOrigin, facingYaw, hideEffect } from "./effects";
+import { hitlagShake, hitlagTint } from "../presentation/hitPresentation";
 import { characterModelScale } from "../presentation/modelScale";
 
 export class FighterPoolPresentation {
@@ -99,7 +100,7 @@ export class FighterPoolPresentation {
     if (duration <= 0.0) seconds = 0.0;
     else if (clip.looping) seconds -= I2R(R2I(seconds / duration)) * duration;
     else if (seconds > duration) seconds = duration;
-    const x = this.origin.x + fighter.motion.x;
+    const x = this.origin.x + fighter.motion.x + hitlagShake(fighter);
     const y = this.origin.y;
     const z = this.origin.z + fighter.motion.z;
     const yaw = facingYaw(fighterPoseFacing(fighter));
@@ -119,6 +120,10 @@ export class FighterPoolPresentation {
     }
     if (fighter.status.frozenFrames > 0) {
       BlzSetSpecialEffectColor(model, 155, 210, 255);
+      BlzSetSpecialEffectAlpha(model, 255);
+    } else if (hitlagTint(fighter) !== undefined) {
+      const tint = hitlagTint(fighter);
+      if (tint !== undefined) BlzSetSpecialEffectColor(model, tint.red, tint.green, tint.blue);
       BlzSetSpecialEffectAlpha(model, 255);
     } else {
       const shielded = fighter.shield.raised;

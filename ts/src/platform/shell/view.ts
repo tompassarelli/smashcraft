@@ -8,6 +8,7 @@ import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/partic
 import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { Phase, remainingSeconds } from "../../game/match/rules";
 import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../game/presentation/arenaCamera";
+import { hitlagTint } from "../../game/presentation/hitPresentation";
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import type { FighterPose } from "../../game/presentation/fighterPose";
 import { type MapBuild, journalIngress } from "../../game/shell/build";
@@ -109,7 +110,10 @@ export function renderFighter(s: ShellState, slot: ParticipantSlot, pose: Readon
   if (fighter.status.out) return;
   placeFighterBody(body, fighter, s.origin);
   if (fighter.status.frozenFrames > 0) SetUnitVertexColor(body.unit, 155, 210, 255, 255);
-  else {
+  else if (hitlagTint(fighter) !== undefined) {
+    const tint = hitlagTint(fighter);
+    if (tint !== undefined) SetUnitVertexColor(body.unit, tint.red, tint.green, tint.blue, 255);
+  } else {
     const shielded = fighter.shield.raised;
     SetUnitVertexColor(body.unit, shielded ? 100 : 255, shielded ? 160 : 255, 255, isIntangible(fighter) ? 140 : 255);
   }

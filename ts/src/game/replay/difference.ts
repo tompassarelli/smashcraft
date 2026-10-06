@@ -115,6 +115,10 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("throwVisualSerial", e.visuals.throw, a.visuals.throw);
   add("hitVisualSerial", e.visuals.hit, a.visuals.hit);
   add("hitVisualElectric", e.visuals.hitElectric, a.visuals.hitElectric);
+  add("hitVisualElement", e.visuals.hitElement, a.visuals.hitElement);
+  add("hitVisualStrength", e.visuals.hitStrength, a.visuals.hitStrength);
+  add("hitVisualPummel", e.visuals.hitPummel, a.visuals.hitPummel);
+  add("shieldVisualElectric", e.visuals.shieldElectric, a.visuals.shieldElectric);
   add("shieldVisualSerial", e.visuals.shield, a.visuals.shield);
   add("shieldReflectVisualSerial", e.visuals.shieldReflect, a.visuals.shieldReflect);
   add("stocks", e.status.stocks, a.status.stocks);

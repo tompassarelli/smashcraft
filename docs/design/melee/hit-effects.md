@@ -84,3 +84,110 @@ Subaction commands dispatch on `opcode - 10`: 10 spawns an effect (ID, bone,
 offset, range), 11 a hitbox, 15 and 16 clear one or all hitboxes, 17 plays a
 sound (behaviour 0–6 picks the voice channel), 18 plays a random smash-charge
 sound from the fighter's table.
+
+## Common values, colour and vibration
+
+Privately read NTSC 1.02 PlCo.dat (SHA-1
+`c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41`); the original file remains outside
+repositories. The normal strong-spark threshold is **180 knockback**, and
+both severity-extra random denominators are **4**. Electric vibration's
+multiplier is **1.5**. The model-shift duration is
+`1.2999999523162842 × hitlag + 0`, converted to an integer
+(melee:src/melee/ft/kinds/ftCommon/ftCo_DamageFall.c).
+
+The shift tables have separate airborne, grounded and electric shapes. Their
+numerical offsets in Melee units are: airborne `(0,-3), (0,-1.5), (0,3),
+(0,1.5)`; grounded `(-3,0), (-1.5,0), (3,0), (1.5,0)`, rotated along the
+floor normal; electric `(0,-0.6600000262260437), (0.5,0.1599999964237213),
+(0,5), (0.1599999964237213,0), (0,0)`. Facing mirrors x. The state initializer
+excludes Cape, Disable, Nap, Sleep and DamageIce.
+
+Damage selects colour-script 4 for ordinary/slash, 11 + reaction tier for
+fire, 15 + tier for electric, 31 + tier for ice and 35 + tier for dark
+(melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c). Script 4 blends white RGBA
+`255,255,255,170` toward `255,255,255,20`; ice script 31 blends
+`0,0,255,128` toward `255,255,255,128`. Fire's script repeat counts are
+4/8/16, blending `255,240,120,170` toward `220,110,30,150`. Electric blends
+`0,0,148,90` toward `255,255,255,70`, with an inner repeat of 2 and outer
+repeats of 4/8/12. Those are colour programs, including shared
+subroutines and effect commands, rather than one constant tint or the
+fighter's stock colour. These selected numerical facts do not reproduce the
+original programs, textures, models or sound banks.
+
+## Shield, recovery, ledge and KO events
+
+| Event | Effect IDs | Sound IDs and timing | Source |
+| --- | --- | --- | --- |
+| Shield appears / contact | 1047 shield; 1052 at contact; 1049 shield reaction | appearance 110; contact uses the shield reaction, not the ordinary element spark | melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c; melee:src/melee/ft/ftcoll.c |
+| Electric shield contact | Same 1052 contact / 1049 reaction | element is retained on shield contact; the common shield-contact spark does not switch to 1001 | same |
+| Powershield contact | 27, colour-script 118 | 104 | melee:src/melee/ft/ftcoll.c |
+| Floor tumble impact / missed tech | 1031, replaceable by floor material | 9/10/11/12 by speed × weight, thresholds 180 and 140; the decompiled middle two comparisons both use 140, so 11 is unreachable in this routine; camera quake | melee:src/melee/ft/kinds/ftCommon/ftCo_DownBound.c |
+| Floor tech, in place or roll | 1053; colour-script 120; action script may also emit 1011 | 3 plus fighter recovery voice at its sound-table offset 0x24, at entry | melee:src/melee/ft/kinds/ftCommon/ftCo_Passive.c; ftCo_PassiveStand.c |
+| Wall / ceiling tech | 1053 at contact, colour-script 120 | 3 plus recovery voice; delayed wall-jump branch uses 8 | melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c; ftCo_PassiveCeil.c |
+| Ledge catch | 1052 at the actual ledge lip | 4 plus fighter ledge voice at sound-table offset 0x28 | melee:src/melee/ft/ftcliffcommon.c |
+| Side/bottom/top blast KO | 1067 or 1068, player-coloured | left 136, right 137, top/bottom 97; fighter death voices at offsets 0x4 and 0x8, large quake | melee:src/melee/ft/ft_0D31.c |
+| Star KO end | 1069 | 131 when the body vanishes | same |
+| Screen KO | 1087 camera impact | fighter voice and delayed death sequencing; distinct from the blast-line spark | melee:src/melee/ft/ft_0D4D.c |
+
+## Movement and grab action timelines
+
+Selected Fox, Falco and Captain Falcon NTSC 1.02 action commands were read
+privately with the command widths and field meanings from
+melee:src/melee/ft/ftaction.c and melee:src/melee/lb/types.h. Values below are
+encoded animation-frame positions; action speed can change their game-frame
+position. Loop/goto/subroutine controls are not expanded into a full match.
+They describe event vocabulary, not Smashcraft's fighter frame data.
+
+| Event | Selected facts |
+| --- | --- |
+| Walk | Fox's slow walk floor-footstep command 54 at frames 10/35, middle 4/20, fast 7/22. Each animation loops; walking is not a fixed global sound clock. |
+| Run | Fox/Falco footstep command 54 at 3/13; run dust 1022 at 8/20. Captain Falcon's dust is at 10/20. |
+| Dash | Selected three fighters emit sound 0 at frame 0 and dust 1023 at 4; common Dash entry also plays 280. Dash is a distinct start cue, not a run footstep. |
+| Braking | Selected three emit sound 5 and skid effect 1025 at frame 0; common RunBrake also plays 281. |
+| Ground jump | Common takeoff sound 282 plus fighter jump voice (offset 0x10). Fox/Falco animation sound 74 at 0 and effect 1026 at 2; Captain Falcon both at 2. |
+| Aerial jump | Common sound 283; selected Fox/Falco sound 74 and effect 1027 at 0; Captain Falcon at 2. |
+| Landing | Selected normal and aerial landings use material landing command 55 at frame 0; fallback sound 70. |
+| Grab | Selected catches emit 1024 at 0 and sound 527 on the active catch (Fox/Falco standing 6, dash 11; Captain Falcon dash 10). Catch element itself produces no ordinary hit spark. |
+| Pummel | Fox CatchAttack contact at frame 4: normal element, sound kind 1, severity 0, therefore sound 91. The spark comes from contact, not an extra generic pummel spawn command. |
+| Throw | Fox forward at 11 and back at 9 emit 1300, 1011, 1021; up at 8 emits 1300; down at 16 emits 1030, 1300 and sound 9. Throw damage installs its element, contact position and launch separately. |
+| Ledge recovery | Fox quick climb: dust 1022 and sound 401 at 27, sound 401 at 29. Quick attack: effect 1011 at 18, sound 165 and effect 1021 at 25. Quick roll: 1031 at 30. Ledge-jump's second phase emits 1023 at 0. These vary by fighter and slow/quick action. |
+| Knockdown follow-through | Selected normal bounce plays sound 13 at 22. Get-up/roll commands add dust 1024/1025/1031; those are distinct from the initial common floor impact. |
+
+## Smashcraft's Warcraft presentation
+
+The mapping lives in smashcraft:ts/src/game/presentation/hitPresentation.ts.
+Every model and sound is a stock Warcraft asset; this mapping imports no
+Melee asset. Effects use the existing pooled handles; audio consumes confirmed
+frames and never runs from a rollback replay. Tint and vibration change only
+the presented body. The bounded, authored choices below are Smashcraft's style,
+not claims that Warcraft renders Melee's artwork or exact animation programs.
+
+| Event | Warcraft effect | Stock sound label |
+| --- | --- | --- |
+| Ordinary hit / pummel | Stampede missile impact | StampedeHit; pummel uses higher, quieter Defend |
+| Fire hit | Incinerate / Fire Lord explosion | Fireball |
+| Electric hit / electric shield | Bolt impact | LightningBolt |
+| Slash hit | Cleave target | RelentlessCleave |
+| Ice / freeze begins | Frost Nova target | FrostNova |
+| Shield / powershield | Defend caster | Defend, powershield higher |
+| Missed floor/wall/ceiling tech | War Stomp impact and dust | Warstomp |
+| Successful tech | Dispel Magic target | DispelMagic |
+| Grab | Defend flash | EntanglingRoots |
+| Throw release | Blink target | BlinkTarget |
+| Ledge catch / recovery | Dispel Magic / Blink | quiet BlinkTarget |
+| Ground jump / aerial jump | dust / Blink | quiet BlinkTarget |
+| Walk / run / dash / ordinary landing | Impale target dust | DeepFootstep / DeepFootstep2; distinct volume and pitch |
+| Blast KO / star close / respawn | Thunder Clap / Dispel Magic / Resurrection | ThunderClap for KO; original fighter death cues remain |
+
+Inspection command in developer builds: `-dev quick`, then `-dev effects N`.
+The numbered cases are declared in
+smashcraft:ts/src/game/shell/hitPresentationCases.ts; the command changes only
+presentation. It gives native capture an exact event list, while the matching
+headless test checks the effect pose, sound dispatch, and rejection of repeat
+or older confirmed frames. A fresh map start is required after changing the
+pool's model families; hot reload keeps existing handles and their models.
+
+Stock sound names were resolved from Warcraft's AnimSounds.slk. The stock model
+sequences were inspected too: War Stomp, Bolt, Thunder Clap and Resurrection
+use Stand; the remaining mapped models use Birth. These names are Warcraft
+metadata, not inferred spell-display names.
