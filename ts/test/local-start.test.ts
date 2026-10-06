@@ -5,7 +5,9 @@
 // legal press must start in its presser's first prediction, at most a callback
 // after the map captured it. Presses captured while a remote row R frames
 // behind held prediction back, and those B's helper journaled while B's game
-// was stopped, are left out, as #60 leaves them out.
+// was stopped, are left out, as #60 leaves them out, and so are presses whose
+// prediction entered their frame in a world a remote row it had not yet
+// received had already changed (a remote hit it could not foresee).
 import { afterAll, expect, test } from "bun:test";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import { type SyncLatency, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -16,6 +18,7 @@ import { Phase } from "../src/game/match/rules";
 import { observedFrameLegalActions, observedFrameStartedActions } from "../src/game/match/step";
 import { ShadowInputSchedule } from "../src/game/netcode/shadowSchedule";
 import { Character } from "../src/game/sim/codes";
+import type { Roster } from "../src/game/sim/roster";
 import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
 import { install, startBuild } from "../src/platform/main";
 import { confirmedChecksum } from "../src/platform/shell/diagnostics";
@@ -107,11 +110,28 @@ interface Press {
   readonly capture: number;
   /** Prediction was held back by a remote row R frames behind it, or hadn't yet run every local row since. */
   readonly held: boolean;
+  /**
+   * The prediction entered the press's frame in a different world than the confirmed
+   * run did: a remote row it had not yet received had already changed the match.
+   */
+  remote?: boolean;
+  /** The predicted world entering the press's frame. */
+  entering?: string;
   predicted?: number;
   started?: number;
   legal?: number;
 }
 const presses = new Map<string, Press>();
+/** Each client's world after a frame, as its latest prediction and its confirmed run left it. */
+const predictedWorlds = new Map<string, string>();
+const confirmedWorlds = new Map<string, string>();
+/** The fighters' state a press's start depends on; a coarse digest only ever reports fewer worlds apart. */
+function worldDigest(world: Readonly<Roster> | undefined): string {
+  return (world?.fighters ?? []).map((f) => f === undefined ? "-" : [
+    f.motion.x, f.motion.z, f.motion.vx, f.motion.vz, f.status.damage, f.attack.style ?? -1, f.attack.frame, f.attack.cooldown,
+    f.launch.hitstun, f.launch.hitlag, f.landing.lag, f.shield.raised, f.shield.stun, f.jump.squat, f.down.state, f.special.action, f.special.frame,
+  ].join(",")).join("/");
+}
 const wrongRows: string[] = [];
 const captureLocalAt = ShadowInputSchedule.prototype.captureLocalAt;
 const completeSpeculative = ShadowInputSchedule.prototype.completeSpeculative;
@@ -130,13 +150,19 @@ ShadowInputSchedule.prototype.completeSpeculative = function (this: ShadowInputS
   if (press !== undefined && press.predicted === undefined) {
     press.predicted = callbacks[slot] ?? 0;
     press.started = press.pressed & (observedFrameStartedActions[slot as 0] ?? 0);
+    press.entering = predictedWorlds.get(`${slot} ${frame - 1}`);
   }
+  predictedWorlds.set(`${slot} ${frame}`, worldDigest(shell().rollback?.speculative.world));
   return completeSpeculative.call(this, epoch, frame);
 };
 ShadowInputSchedule.prototype.completeConfirmed = function (this: ShadowInputSchedule, epoch: number, frame: number) {
   const slot = local();
   const press = presses.get(`${slot} ${frame}`);
-  if (press !== undefined) press.legal = press.pressed & (observedFrameLegalActions[slot as 0] ?? 0);
+  if (press !== undefined) {
+    press.legal = press.pressed & (observedFrameLegalActions[slot as 0] ?? 0);
+    press.remote = press.entering !== undefined && press.entering !== confirmedWorlds.get(`${slot} ${frame - 1}`);
+  }
+  confirmedWorlds.set(`${slot} ${frame}`, worldDigest(shell().world));
   return completeConfirmed.call(this, epoch, frame);
 };
 ShadowInputSchedule.prototype.readConfirmed = function (this: ShadowInputSchedule, epoch: number, inputs: ParticipantInputs) {
@@ -246,13 +272,15 @@ test("#60: every local press starts in the presser's next prediction unless a re
     ownStalls.push([from, helpers.journaled(1) ?? 0]);
   }
   const own = (press: Press) => press.slot === 1 && ownStalls.some(([from, to]) => press.frame > from && press.frame <= to);
-  const steadyLegal = () => [...presses.values()].filter((press) => (press.legal ?? 0) !== 0 && !own(press) && !press.held).length;
+  const steadyLegal = () => [...presses.values()].filter((press) => (press.legal ?? 0) !== 0 && !own(press) && !press.held && press.remote !== true).length;
   until(`${GATED_PRESSES} steady-play legal presses`, () => steadyLegal() >= GATED_PRESSES, MATCH_FRAMES);
   until("every press confirmed", () => [...presses.values()].every((press) => press.legal !== undefined), 120);
 
   const legal = [...presses.values()].filter((press) => (press.legal ?? 0) !== 0);
   const rows = legal.map((press) => ({ ...press, own: own(press), late: (press.predicted ?? Infinity) - press.capture, mispredicted: ((press.started ?? 0) & (press.legal ?? 0)) !== press.legal }));
-  const gated = rows.filter((press) => !press.own && !press.held);
+  // A press whose prediction entered its frame in a world a late remote row had already changed is reported apart too:
+  // its start answers to that row, not to the local press's latency.
+  const gated = rows.filter((press) => !press.own && !press.held && press.remote !== true);
   expect(gated.length).toBeGreaterThanOrEqual(GATED_PRESSES);
   expect(gated.filter((press) => press.late > 1 || press.mispredicted)).toEqual([]);
   // A's presses while B's game was stopped wait for B's rows, and are reported apart.
