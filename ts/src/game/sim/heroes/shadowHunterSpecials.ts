@@ -14,11 +14,11 @@ const h = (multiple: number): number => f32(H * f32(multiple));
 /** Non-mobility specials used in the air end on landing with this lag (roster "Action defaults"). */
 const AIR_SPECIAL_LANDING_LAG = 20;
 /** Chest height of the drawn throw release. */
-const CAST_HEIGHT = h(0.45);
+const CAST_HEIGHT = h(f32(0.45));
 
 const SPIRIT_GLAIVE_SHOT: SpecialProjectile = {
-  spawnFrame: 18, offsetX: h(0.35), offsetZ: CAST_HEIGHT,
-  velocityX: h(0.12), velocityZ: 0.0, life: 28, radius: h(0.15),
+  spawnFrame: 18, offsetX: h(f32(0.35)), offsetZ: CAST_HEIGHT,
+  velocityX: h(f32(0.12)), velocityZ: 0.0, life: 28, radius: h(f32(0.15)),
   effect: hit(6.0, "POKE", 35), reflectable: true, limit: 1,
 };
 
@@ -41,8 +41,8 @@ const loaVault = (cost: number, riseVelocity: number, driftVelocity: number): Au
 
 /** Hex's orb; its status is HEX below. */
 const HEX_ORB: SpecialProjectile = {
-  spawnFrame: 24, offsetX: h(0.3), offsetZ: CAST_HEIGHT,
-  velocityX: h(0.07), velocityZ: 0.0, life: 18, radius: h(0.18),
+  spawnFrame: 24, offsetX: h(f32(0.3)), offsetZ: CAST_HEIGHT,
+  velocityX: h(f32(0.07)), velocityZ: 0.0, life: 18, radius: h(f32(0.18)),
   effect: hit(2.0, "POKE", 40, 1.0, HitElement.normal), reflectable: true, limit: 1,
 };
 
@@ -57,11 +57,11 @@ const hex = (air: boolean): AuthoredSpecial => ({
  * drawn size, struck by any opponent's normal, hero special or projectile.
  */
 const SERPENT_WARD: SpecialPlacement = {
-  frame: 26, offsetX: h(0.65), radius: h(0.18), height: h(0.6),
+  frame: 26, offsetX: h(f32(0.65)), radius: h(f32(0.18)), height: h(f32(0.6)),
   durability: 12.0, life: 240, fireAges: [45, 105, 165],
   shot: {
-    spawnFrame: 0, offsetX: h(0.15), offsetZ: h(0.4),
-    velocityX: h(0.10), velocityZ: 0.0, life: 24, radius: h(0.12),
+    spawnFrame: 0, offsetX: h(f32(0.15)), offsetZ: h(f32(0.4)),
+    velocityX: h(f32(0.10)), velocityZ: 0.0, life: 24, radius: h(f32(0.12)),
     effect: hit(4.0, "POKE", 35, 1.0, HitElement.normal), reflectable: true, limit: 3,
   },
 };
@@ -78,6 +78,6 @@ export const SHADOW_HUNTER_SPECIALS: FighterSpecials = {
   mana: ROSTER_MANA,
   neutral: { ground: spiritGlaive(false), air: spiritGlaive(true) },
   side: { ground: SERPENT_WARD_CAST, recall: SERPENT_WARD_RECALL },
-  up: { ground: loaVault(15, 0.1014, 0.0283), free: loaVault(0, 0.0741, 0.0146) },
+  up: { ground: loaVault(15, f32(0.1014), f32(0.0283)), free: loaVault(0, f32(0.0741), f32(0.0146)) },
   down: { ground: hex(false), air: hex(true) },
 };

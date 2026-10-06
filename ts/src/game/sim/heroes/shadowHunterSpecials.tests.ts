@@ -35,8 +35,8 @@ function frame(world: Roster, first: Readonly<Controls> = controls(), second: Re
 }
 
 function pair(gap: number, facing = 1): { world: Roster; owner: Fighter; target: Fighter } {
-  const owner = createFighter(Character.shadowHunter, -gap * 0.5 * facing, facing);
-  const target = createFighter(Character.archer, gap * 0.5 * facing, -facing);
+  const owner = createFighter(Character.shadowHunter, -gap * f32(0.5) * facing, facing);
+  const target = createFighter(Character.archer, gap * f32(0.5) * facing, -facing);
   const world = createRoster(3, [owner, target]);
   for (let i = 0; i < 3; i++) frame(world);
   return { world, owner, target };
@@ -47,10 +47,10 @@ const up = controls({ specialPressed: true, specialZ: 1 });
 
 const side = controls({ specialPressed: true, specialX: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
-const near = (value: number, expected: number) => Math.abs(value - expected) <= 0.05;
+const near = (value: number, expected: number) => Math.abs(value - expected) <= f32(0.05);
 
 test("Loa Vault reaches its listed rise and drift, and its free form spends nothing", () => {
-  for (const [points, rise, drift, spent] of [[100, 2.0, 0.6, 15], [14, 1.4, 0.3, 0]] as const) {
+  for (const [points, rise, drift, spent] of [[100, 2.0, f32(0.6), 15], [14, f32(1.4), f32(0.3), 0]] as const) {
     const { world, owner } = pair(900.0);
     owner.mana.points = points;
     const x0 = owner.motion.x;
@@ -117,7 +117,7 @@ test("Serpent Ward is ground-only, costs 20, stands 0.65H ahead from frame 26 an
   // The appearance frame is its age 1; it stands 240 frames.
   assertEquals(owner.placed.age, 1);
   assertEquals(owner.placed.life, 239);
-  assertTrue(near((owner.placed.x - owner.motion.x) / HERO_REFERENCE_HEIGHT, 0.65));
+  assertTrue(near((owner.placed.x - owner.motion.x) / HERO_REFERENCE_HEIGHT, f32(0.65)));
   const fired: number[] = [];
   let wasFlying = 0;
   for (let age = 2; age <= 240; age++) {

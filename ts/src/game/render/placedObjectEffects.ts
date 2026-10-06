@@ -45,7 +45,8 @@ export class PlacedObjectEffects {
     BlzSetSpecialEffectYaw(model, placed.direction > 0 ? 0.0 : f32(3.14159274));
     BlzSetSpecialEffectScale(model, f32(spec.height / MODEL_HEIGHT));
     // A damaged ward fades toward half opacity as its durability runs out.
-    BlzSetSpecialEffectAlpha(model, 128 + Math.floor(127 * Math.max(0.0, placed.durability) / spec.durability));
+    const left = f32(Math.max(0.0, placed.durability) / spec.durability);
+    BlzSetSpecialEffectAlpha(model, 128 + Math.floor(f32(127.0 * left)));
   }
 
   destroy(): void {
