@@ -1,0 +1,211 @@
+{
+ "source": "smashcraft:evidence/bot-session-0048-native-20261006/r2-perf-overlay.txt, windows in the match (median natives >= 100)",
+ "clockStepMs": 1.1,
+ "windows": [
+  {
+   "median": 1.1,
+   "max": 44.92,
+   "natives": 131
+  },
+  {
+   "median": 3.91,
+   "max": 65.92,
+   "natives": 154
+  },
+  {
+   "median": 4.03,
+   "max": 43.09,
+   "natives": 157
+  },
+  {
+   "median": 4.03,
+   "max": 27.1,
+   "natives": 155.5
+  },
+  {
+   "median": 4.03,
+   "max": 39.06,
+   "natives": 153
+  },
+  {
+   "median": 3.05,
+   "max": 31.01,
+   "natives": 129
+  },
+  {
+   "median": 3.48,
+   "max": 29.05,
+   "natives": 133.5
+  },
+  {
+   "median": 4.03,
+   "max": 41.99,
+   "natives": 155.5
+  },
+  {
+   "median": 3.91,
+   "max": 41.99,
+   "natives": 158
+  },
+  {
+   "median": 3.97,
+   "max": 45.04,
+   "natives": 153.5
+  },
+  {
+   "median": 3.48,
+   "max": 45.04,
+   "natives": 163
+  },
+  {
+   "median": 3.05,
+   "max": 53.1,
+   "natives": 153
+  },
+  {
+   "median": 4.03,
+   "max": 30.03,
+   "natives": 147.5
+  },
+  {
+   "median": 4.03,
+   "max": 49.93,
+   "natives": 159.5
+  },
+  {
+   "median": 3.97,
+   "max": 19.17,
+   "natives": 153
+  },
+  {
+   "median": 3.05,
+   "max": 45.04,
+   "natives": 152
+  },
+  {
+   "median": 3.05,
+   "max": 23.93,
+   "natives": 146
+  },
+  {
+   "median": 4.03,
+   "max": 34.91,
+   "natives": 143.5
+  },
+  {
+   "median": 4.03,
+   "max": 34.91,
+   "natives": 151
+  },
+  {
+   "median": 4.94,
+   "max": 24.9,
+   "natives": 153.5
+  },
+  {
+   "median": 4.03,
+   "max": 18.07,
+   "natives": 153
+  },
+  {
+   "median": 4.03,
+   "max": 37.96,
+   "natives": 151
+  },
+  {
+   "median": 4.03,
+   "max": 22.95,
+   "natives": 152.5
+  },
+  {
+   "median": 4.46,
+   "max": 31.01,
+   "natives": 151
+  },
+  {
+   "median": 4.03,
+   "max": 26,
+   "natives": 151
+  },
+  {
+   "median": 4.03,
+   "max": 26,
+   "natives": 147
+  },
+  {
+   "median": 4.94,
+   "max": 34.91,
+   "natives": 145
+  },
+  {
+   "median": 4.46,
+   "max": 26,
+   "natives": 141
+  },
+  {
+   "median": 4.03,
+   "max": 47,
+   "natives": 136
+  },
+  {
+   "median": 4.03,
+   "max": 47,
+   "natives": 138
+  },
+  {
+   "median": 4.03,
+   "max": 26,
+   "natives": 129
+  },
+  {
+   "median": 0.98,
+   "max": 34.18,
+   "natives": 127
+  },
+  {
+   "median": 0.98,
+   "max": 10.99,
+   "natives": 131
+  },
+  {
+   "median": 1.95,
+   "max": 8.06,
+   "natives": 131
+  },
+  {
+   "median": 1.95,
+   "max": 9.03,
+   "natives": 130
+  },
+  {
+   "median": 1.1,
+   "max": 8.06,
+   "natives": 127
+  },
+  {
+   "median": 1.1,
+   "max": 28.08,
+   "natives": 127
+  },
+  {
+   "median": 1.1,
+   "max": 29.05,
+   "natives": 127
+  },
+  {
+   "median": 1.04,
+   "max": 35.16,
+   "natives": 127
+  },
+  {
+   "median": 0.98,
+   "max": 10.01,
+   "natives": 127
+  },
+  {
+   "median": 0.98,
+   "max": 9.03,
+   "natives": 127
+  }
+ ]
+}

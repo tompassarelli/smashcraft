@@ -1,0 +1,45 @@
+current WARCRAFT_COST: native call 2 µs, collector 2 µs/KB
+0049: 62 native windows, 57 predicted; ms per frame, median of windows, native -> predicted
+  median 5.00 -> 5.00 (+0%)
+  p95 not in the readings: the overlay that took them showed none
+  max 47.97 -> 51.00 (+6%)
+  FAIL: median within 20%; p95 unchecked
+0048: 41 native windows, 57 predicted; ms per frame, median of windows, native -> predicted
+  median 3.97 -> 4.40 (+11%)
+  p95 not in the readings: the overlay that took them showed none
+  max 31.01 -> 49.50 (+60%)
+  FAIL: median within 20%; p95 unchecked
+fitted to both: native call 0 µs, collector 0 µs/KB
+0049: 62 native windows, 57 predicted; ms per frame, median of windows, native -> predicted
+  median 5.00 -> 5.00 (+0%)
+  p95 not in the readings: the overlay that took them showed none
+  max 47.97 -> 49.00 (+2%)
+  FAIL: median within 20%; p95 unchecked
+0048: 41 native windows, 57 predicted; ms per frame, median of windows, native -> predicted
+  median 3.97 -> 4.40 (+11%)
+  p95 not in the readings: the overlay that took them showed none
+  max 31.01 -> 48.40 (+56%)
+  FAIL: median within 20%; p95 unchecked
+held out 0049, fitted to the other: native call 0 µs, collector 0 µs/KB
+0049: 62 native windows, 57 predicted; ms per frame, median of windows, native -> predicted
+  median 5.00 -> 5.00 (+0%)
+  p95 not in the readings: the overlay that took them showed none
+  max 47.97 -> 49.00 (+2%)
+  FAIL: median within 20%; p95 unchecked
+held out 0048, fitted to the other: native call 0 µs, collector 0 µs/KB
+0048: 41 native windows, 57 predicted; ms per frame, median of windows, native -> predicted
+  median 3.97 -> 4.40 (+11%)
+  p95 not in the readings: the overlay that took them showed none
+  max 31.01 -> 48.40 (+56%)
+  FAIL: median within 20%; p95 unchecked
+fitted to first halves: native call 1 µs, collector 0 µs/KB
+0049 second half: 31 native windows, 27 predicted; ms per frame, median of windows, native -> predicted
+  median 5.00 -> 5.00 (+0%)
+  p95 not in the readings: the overlay that took them showed none
+  max 47.97 -> 40.00 (-17%)
+  FAIL: median within 20%; p95 unchecked
+0048 second half: 21 native windows, 27 predicted; ms per frame, median of windows, native -> predicted
+  median 4.03 -> 4.40 (+9%)
+  p95 not in the readings: the overlay that took them showed none
+  max 26.00 -> 40.70 (+57%)
+  FAIL: median within 20%; p95 unchecked
