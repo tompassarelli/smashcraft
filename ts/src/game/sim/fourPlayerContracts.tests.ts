@@ -136,7 +136,7 @@ test("freezeTrapChoosesNearestEligibleFighterOnce", () => {
   owner.motion.x = 0.0;
   owner.motion.surface = 0;
   for (let slot = 0; slot < 3; slot++) world.fighters[slot]!.motion.surface = 0;
-  assertTrue(startFreezeTrap(owner, 0));
+  assertTrue(startFreezeTrap(owner, 0, 0));
   owner.freezeTrap.arming = 0;
   world.fighters[0]!.motion.x = 30.0;
   world.fighters[1]!.motion.x = 10.0;

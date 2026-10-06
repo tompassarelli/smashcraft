@@ -13,7 +13,6 @@ import { originalClip, originalClipCount } from "../../src/game/assets/fighterOr
 import { Action, bit } from "../../src/game/input/actions";
 import { type InputRow, emptyInput, inputRow } from "../../src/game/input/inputRow";
 import { PARTICIPANT_SLOTS } from "../../src/game/input/participants";
-import type { StageTile } from "../../src/game/menu/stageSelection";
 import { MATCH_TICKS_PER_SECOND, Phase } from "../../src/game/match/rules";
 import { PLAYABLE_BUILD } from "../../src/game/shell/currentBuild";
 import { AttackStyle, Character, DownState, GrabAction, HippogryphKind, ProjectileKind, SpecialAction } from "../../src/game/sim/codes";
@@ -31,7 +30,7 @@ import { SOAK_BUTTONS, STICK_DEAD_ZONE } from "./controller";
 
 const CHARACTERS: Readonly<Record<string, Character>> = { archer: Character.archer, rifleman: Character.rifleman, illidan: Character.demonHunter };
 const NAMES: Readonly<Record<number, string>> = { [Character.archer]: "Archer", [Character.rifleman]: "Rifleman", [Character.demonHunter]: "Illidan" };
-const STAGES: Readonly<Record<string, StageTile>> = { "sky-deck": 0, "three-bridges": 1 };
+const STAGES: Readonly<Record<string, number>> = { "sky-deck": 0, "three-bridges": 1, "drifting-deck": 3, "patterned-decks": 4 };
 const FRAME_MS = 1000 / 60;
 /** A one-stock match with a one-minute clock: each ends by a KO or by time. */
 const STOCKS = 1;
@@ -128,7 +127,7 @@ function readIn<T>(client: HeadlessClient, body: () => T): T {
 }
 
 /** A match's fighters and stage as the game numbers them. */
-function matchChoices(match: SoakMatch): { readonly fighters: readonly Character[]; readonly stage: StageTile } {
+function matchChoices(match: SoakMatch): { readonly fighters: readonly Character[]; readonly stage: number } {
   const fighters = match.fighters.map((name) => {
     const character = CHARACTERS[name];
     if (character === undefined) throw new Error(`no fighter named ${name}`);
@@ -171,7 +170,8 @@ export function beginMatch(clients: Lockstep, match: SoakMatch, frame: () => voi
   clients.everywhere(() => {
     const { game } = shell();
     const { stage: actions } = panelActions();
-    actions.selectStage(0, stage);
+    if (stage === 0 || stage === 1) actions.selectStage(0, stage);
+    else game.stageChoice = stage;
     while (game.stockCount > STOCKS) actions.changeStocks(0, -1);
     while (game.timeLimitMinutes > MINUTES) actions.changeTime(0, -1);
   });

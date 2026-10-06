@@ -33,11 +33,11 @@ function restingX(x: number, vx: number, deceleration: number): number {
  * makes it, comes to rest on its deck: inside the main deck's safe bounds,
  * or on the raised deck it stands on.
  */
-export function slideStaysOnDeck(f: Readonly<Fighter>, stage: number): boolean {
+export function slideStaysOnDeck(f: Readonly<Fighter>, stage: number, matchFrame: number): boolean {
   const { x, vx, surface } = f.motion;
   const rest = restingX(x, vx, f.tuning.physics.traction);
   if (surface === undefined || surface === 0) return rest >= safeLeft(stage) && rest <= safeRight(stage);
-  return rest >= surfaceLeft(stage, surface) && rest <= surfaceRight(stage, surface);
+  return rest >= surfaceLeft(stage, surface, matchFrame) && rest <= surfaceRight(stage, surface, matchFrame);
 }
 
 const towardGoal = (stage: number, goal: number) => Math.min(safeRight(stage), Math.max(safeLeft(stage), goal));

@@ -301,7 +301,7 @@ test("a backward roll keeps facing, and a roll can't leave its platform", () => 
   advanceSolo(fighter, 0, input, -240.0);
   input.groundDodgePressed = false;
   for (let frame = 2; frame <= GROUND_ROLL_FRAMES + 5; frame++) advanceSolo(fighter, 0, input, -240.0);
-  assertEquals(fighter.motion.x, surfaceRight(0, 0));
+  assertEquals(fighter.motion.x, surfaceRight(0, 0, 0));
   assertTrue(fighter.motion.grounded);
   assertEquals(fighter.facing, -1);
 });
@@ -336,11 +336,11 @@ test("a ground dodge rejects hitlag, shieldstun, landing lag and unshielded pres
 test("a spot dodge doesn't drop through a pass-through platform", () => {
   const fighter = createFighter(Character.archer, -200.0, 1);
   fighter.motion.surface = 1;
-  fighter.motion.z = surfaceZ(1, 1);
+  fighter.motion.z = surfaceZ(1, 1, 0);
   advanceSolo(fighter, 1, controls({ shield: true, down: true, groundDodgePressed: true, groundDodgeDirection: 0 }), -240.0);
   assertTrue(fighter.motion.grounded);
   assertEquals(fighter.motion.surface, 1);
-  assertEquals(fighter.motion.z, surfaceZ(1, 1));
+  assertEquals(fighter.motion.z, surfaceZ(1, 1, 0));
   assertEquals(fighter.dodge.groundFrame, 1);
 });
 

@@ -7,7 +7,7 @@ import { reportedModel, sceneFile } from "wisp/src/runtime/scene";
 import { type SceneReport, readSceneLines, sceneProblems } from "wisp/scripts/wisp/scene";
 import { SMASHCRAFT_SCENE } from "../scripts/wisp/playerView";
 import { IMPACT_DUST_MODEL, IMPACT_HIT_MODEL } from "../src/game/assets/impactAssetInfo";
-import { STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
+import { STAGE_DECK_MODEL, STAGE_MAIN_DECK_MODEL } from "../src/game/assets/stageAssetInfo";
 import { Action, bit } from "../src/game/input/actions";
 import { requestStageSelect, requestStart, selectCharacter, setParticipants } from "../src/game/match/rules";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
@@ -15,7 +15,7 @@ import { STOCK_MODELS } from "../src/game/render/effects";
 import { IMPACT_DUST, IMPACTS_PER_KIND, impactLifetime } from "../src/game/presentation/impactState";
 import { Character, SurfaceContact } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
-import { MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt } from "../src/game/sim/stage";
+import { DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE, MAIN_DECK_BODY_SURFACES, MAIN_DECK_UNDERSIDE_Z, solidSurfaceAt, surfaceLeft, surfaceRight, surfaceZ } from "../src/game/sim/stage";
 import { BLAST_ZONE_BOTTOM, BLAST_ZONE_SIDE, BLAST_ZONE_TOP } from "../src/game/sim/stocks";
 import { QUICK_MATCH_COMMAND } from "../src/game/shell/devSettings";
 import { initializeScenario } from "../src/game/shell/scenarios";
@@ -23,7 +23,7 @@ import { install as installDevelopment, start as startDevelopment } from "../src
 import { PERF_COMMAND } from "../src/platform/frameMeter";
 import { startMatch } from "../src/platform/shell/matchStart";
 import { shell } from "../src/platform/shell/state";
-import { lockArenaCamera, renderPersistentPresentation } from "../src/platform/shell/view";
+import { drawStage, lockArenaCamera, renderPersistentPresentation } from "../src/platform/shell/view";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
@@ -85,6 +85,42 @@ test("development build: a match's scene report shows the stage and declares eve
   expect(report.effects).toBeGreaterThan(200);
   expect(report.models.find(({ model }) => model === reportedModel(STAGE_MAIN_DECK_MODEL))).toMatchObject({ live: 1, inView: 1, drawn: 1 });
   expect(client.errors).toEqual([]);
+});
+
+test("moving decks are visible and their effects follow the presented match frame", () => {
+  for (const stage of [DRIFTING_DECK_STAGE, PATTERNED_DECKS_STAGE]) {
+    const clients = headless.clients({ start: startDevelopment, install: installDevelopment }, [0]);
+    clients.start();
+    clients.frames(30);
+    const client = clients.clients[0];
+    if (client === undefined) throw new Error("missing client");
+    client.run(() => {
+      const s = shell();
+      selectCharacter(s.game, 0, Character.archer);
+      selectCharacter(s.game, 1, Character.rifleman);
+      requestStageSelect(s.game, 0);
+      s.game.stageChoice = stage;
+      requestStart(s.game, 0);
+      startMatch(s);
+      drawStage(s);
+      for (const frame of [0, 100, 210, 420, 600]) {
+        s.game.matchFrame = frame;
+        renderPersistentPresentation(s);
+        lockArenaCamera(s);
+        for (let deck = 1; deck < s.stageDecks.length; deck++) {
+          const effect = s.stageDecks[deck];
+          if (effect === undefined) throw new Error("missing deck");
+          expect(BlzGetLocalSpecialEffectX(effect)).toBe(s.origin.x + (surfaceLeft(stage, deck, frame) + surfaceRight(stage, deck, frame)) / 2);
+          expect(BlzGetLocalSpecialEffectZ(effect)).toBe(s.origin.z + surfaceZ(stage, deck, frame));
+        }
+        trampoline("scene.report")();
+        const report = sceneReport(client);
+        expect(sceneProblems(report, SMASHCRAFT_SCENE)).toEqual([]);
+        expect(report.models.find(({ model }) => model === reportedModel(STAGE_DECK_MODEL))).toMatchObject({ live: stage === DRIFTING_DECK_STAGE ? 1 : 2, drawn: stage === DRIFTING_DECK_STAGE ? 1 : 2 });
+      }
+    });
+    expect(client.errors).toEqual([]);
+  }
 });
 
 test("the two shipped defects fail the scene check from the match's first report", () => {

@@ -102,13 +102,13 @@ function chooseGetUp(f: Readonly<Fighter>, input: Controls, target: Readonly<Fig
  * its window, in place or rolling toward the middle; one landing in three it
  * misses the tech, as players do, and gets up from the floor instead.
  */
-function techLanding(f: Readonly<Fighter>, stage: number, input: Controls): void {
+function techLanding(f: Readonly<Fighter>, stage: number, matchFrame: number, input: Controls): void {
   const { motion } = f;
   if (f.down.state !== DownState.tumble || motion.grounded || motion.deltaZ >= 0 || botChoice(f.visuals.hit + toInt(f.status.damage), f.character * 5 + 1, 3) === 0) return;
   const lead = f32(f32(-motion.deltaZ) * TECH_LEAD_FRAMES);
   for (let deck = 0; deck < surfaceCount(stage); deck++) {
-    const height = f32(motion.z - surfaceZ(stage, deck));
-    if (height < 0 || height > lead || motion.x < surfaceLeft(stage, deck) || motion.x > surfaceRight(stage, deck)) continue;
+    const height = f32(motion.z - surfaceZ(stage, deck, matchFrame));
+    if (height < 0 || height > lead || motion.x < surfaceLeft(stage, deck, matchFrame) || motion.x > surfaceRight(stage, deck, matchFrame)) continue;
     input.direction = botChoice(f.visuals.hit, f.character, 2) === 0 ? 0 : motion.x < 0 ? 1 : -1;
     input.techPressed = f.tech.pressAge >= TECH_REPEAT_MINIMUM_AGE_FRAMES;
     return;
@@ -141,7 +141,7 @@ function aimsForLedge(f: Readonly<Fighter>, side: number, target: Readonly<Fight
  * Produces ordinary frame inputs: recovery never moves a fighter directly.
  * True when getting back to the stage, or onto its feet, took the frame.
  */
-export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, input: Controls, target?: Readonly<Fighter>): boolean {
+export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, matchFrame: number, input: Controls, target?: Readonly<Fighter>): boolean {
   input.specialPressed = false;
   input.specialX = 0;
   input.specialZ = 0;
@@ -153,7 +153,7 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, i
     return true;
   }
   if (chooseGetUp(fighter, input, target)) return true;
-  techLanding(fighter, stage, input);
+  techLanding(fighter, stage, matchFrame, input);
   const left = mainDeckLeft(stage);
   const right = mainDeckRight(stage);
   const floor = mainDeckZ(stage);

@@ -96,7 +96,7 @@ const NEUTRAL = (): Pad => ({});
 function assertMetSide(victim: Fighter): void {
   const { contactX, contactNormalX } = victim.surfaceRecovery;
   assertGreaterThan(contactNormalX, 0.0);
-  assertLessThan(contactX, surfaceRight(0, 0));
+  assertLessThan(contactX, surfaceRight(0, 0, 0));
 }
 
 test("a launch into the main deck's side bounces off it without a press", () => {
@@ -248,7 +248,7 @@ test("a ceiling tech moves each fighter sideways by its reference's impulse on i
     launch(run, (frame) => ({ trigger: frame === missed.free }), { cy: 1.0 });
     const { victim } = run;
     assertEquals(victim.surfaceRecovery.contactKind, SurfaceContact.techCeiling);
-    assertLessThan(victim.motion.z, surfaceZ(SOLID_DECK_TEST_STAGE, 1));
+    assertLessThan(victim.motion.z, surfaceZ(SOLID_DECK_TEST_STAGE, 1, 0));
     const reference = referenceWall(character);
     for (let frame = 1; frame < reference.ceilingFrame; frame++) {
       playPads(run, {}, {});

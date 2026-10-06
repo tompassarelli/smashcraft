@@ -16,7 +16,7 @@ import { isIntangible } from "../src/game/sim/conditions";
 import { beginDamageContacts, collectDamageContact, finishDamageContacts } from "../src/game/sim/contacts";
 import { type Fighter, createFighter } from "../src/game/sim/fighter";
 import { uncancelledLandingLag } from "../src/game/sim/moves";
-import { SOLID_DECK_TEST_STAGE, mainDeckRight, mainDeckZ, surfaceZ } from "../src/game/sim/stage";
+import { DRIFTING_DECK_STAGE, SOLID_DECK_TEST_STAGE, mainDeckRight, mainDeckZ, surfaceZ } from "../src/game/sim/stage";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
 import { type Scene, airborne, fighter, frame, framesUntil, scene, solo, tumbling } from "./frameScene";
 
@@ -621,6 +621,24 @@ const PLATFORM_LINES = "platforms are floor lines flagged LINE_FLAG_PLATFORM: mp
 const PLATFORM_PASS = "Pass needs stick y <= -PlCo +0x464 (0.66) reached under PlCo +0x468 = 6 frames ago on a platform: melee:src/melee/ft/kinds/ftCommon/ftCo_Pass.c:26 ftCo_80099F1C; mpColl skips that platform";
 
 const PLATFORMS: readonly Scenario[] = [
+  { area: "platform", name: "grounded fighter rides a moving floor in hitlag", cite: "Fighter_procUpdate adds mpGetSpeed's floor-line displacement while grounded, before its hitlag return (melee:src/melee/ft/fighter.c)", run: (c) => {
+    const s = solo(DRIFTING_DECK_STAGE, c, 0.0);
+    const f = fighter(s);
+    f.motion.surface = 1;
+    f.motion.z = surfaceZ(DRIFTING_DECK_STAGE, 1, 0);
+    f.launch.hitlag = 10;
+    frame(s, []);
+    return { expected: "2.5", actual: String(f.motion.x) };
+  } },
+  { area: "platform", name: "fresh down on a moving platform", cite: PLATFORM_PASS, run: (c) => {
+    const s = solo(DRIFTING_DECK_STAGE, c, 0.0);
+    const f = fighter(s);
+    f.motion.surface = 1;
+    f.motion.z = surfaceZ(DRIFTING_DECK_STAGE, 1, 0);
+    frame(s, []);
+    for (let n = 1; n <= 90; n++) frame(s, [Action.moveDown]);
+    return { expected: "main deck", actual: standing(f) };
+  } },
   { area: "platform", name: "full hop from under a raised deck", cite: PLATFORM_LINES, run: (c) => ({ expected: "raised deck", actual: fullHopUnderDeck(c) }) },
   { area: "platform", name: "down pressed on a raised deck", cite: PLATFORM_PASS, run: (c) => ({ expected: "main deck", actual: downOnDeck(c) }) },
   { area: "platform", name: "falling onto a raised deck holding down: landing", cite: `${PLATFORM_LINES}; airborne collision has no stick test (melee:src/melee/ft/ft_081B.c)`, run: (c) => ({ expected: "raised deck", actual: landHoldingDown(c, 0) }) },
