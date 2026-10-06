@@ -214,3 +214,18 @@ test("Fan of Knives strikes front and back once each for 7 at 45 degrees outward
     }
   }
 });
+
+test("Shadow Strike is reflected by a powershield back at Warden, owned by the reflector", () => {
+  const { world, warden, target } = pair(0.0, 300.0);
+  frame(world, neutralB);
+  let reflected = false;
+  for (let f = 2; f <= 60 && !reflected; f++) {
+    target.shield.raised = true;
+    target.shield.reflectFrames = 2;
+    frame(world);
+    reflected = target.projectiles.some(p => p.life > 0 && p.kind === ProjectileKind.hero && p.velocityX < 0.0);
+  }
+  assertTrue(reflected);
+  assertEquals(target.status.damage, 0.0);
+  assertFalse(warden.projectiles.some(p => p.life > 0));
+});
