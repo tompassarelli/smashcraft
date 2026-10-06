@@ -3,6 +3,7 @@
 // import this module, so their bundles carry none of it.
 import { installSceneReport, startSceneReport } from "wisp/src/platform/scene";
 import { FLOOR_HEIGHT } from "../game/presentation/arenaCamera";
+import { HERO_ROSTER } from "../game/sim/heroes/registry";
 import { shellState } from "./shell/state";
 
 export { installSceneReport };
@@ -17,5 +18,7 @@ export function startMatchSceneReport(): void {
       const s = shellState();
       return s !== undefined && z < s.origin.z - FLOOR_HEIGHT + 1.0;
     },
+    // Heroes draw with their fighter unit (shell/fighterBody.ts), the original fighters with effects.
+    unitModel: (unitType) => HERO_ROSTER.find(({ presentation }) => presentation.objectId === unitType)?.presentation.model,
   });
 }

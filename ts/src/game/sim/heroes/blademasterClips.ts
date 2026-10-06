@@ -10,7 +10,7 @@
 // (Attack Slam leaps about 130 units, Dissipate rises) stay off poses whose
 // body the simulation keeps still, so the drawn body stays over its hurtbox.
 import { f32 } from "wisp/src/sim/f32";
-import type { HeroClip, HeroPose, HeroStatePose } from "./hero";
+import type { HeroClip, HeroFollowUpPose, HeroPose } from "./hero";
 
 /** The model's sequences in index order, with their authored lengths in milliseconds. */
 export const BLADEMASTER_SEQUENCES = [
@@ -47,15 +47,26 @@ const SPIN_TURN = f32(0.433); // Attack Walk Stand Spin: one level full turn, lo
 
 /** Clip seconds that put `strike` on the first active frame of a brief F/A/R move. */
 const aligned = (strike: number, firstActive: number, active: number, recovery: number) =>
-  f32(strike * (firstActive - 1 + active + recovery) / (firstActive - 1));
+  f32(f32(strike * (firstActive - 1 + active + recovery)) / (firstActive - 1));
 
 const COMBAT_STANCE = sequence("Stand Ready");
 const RECOIL = sequence("Death", f32(0.45));
 
 /** Every table pose; the stock model has no hit, jump, roll or ledge sequences, so those reuse the nearest readable one. */
-export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, HeroStatePose>]: HeroClip } = {
+export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, Exclude<HeroFollowUpPose, "downSpecialFollowUp" | "downSpecialFollowUpAir">>]: HeroClip } = {
   idle: COMBAT_STANCE,
   walk: sequence("Walk"),
+  dash: sequence("Walk"),
+  run: sequence("Walk"),
+  // The only kneel (Stand cinematic) stands back up within its loop, so crouch keeps the stance.
+  crouch: COMBAT_STANCE,
+  fall: COMBAT_STANCE,
+  landing: COMBAT_STANCE,
+  shield: COMBAT_STANCE,
+  airDodge: sequence("Attack Walk Stand Spin"),
+  smashCharge: COMBAT_STANCE,
+  ko: sequence("Death"),
+  dizzy: sequence("Stand - 2"),
   jab: sequence("Attack 2", aligned(THRUST, 4, 2, 13)),
   grab: sequence("Attack 2", aligned(THRUST, 7, 2, 22)),
   forwardTilt: sequence("Attack", aligned(CUT, 8, 3, 19)),
@@ -116,22 +127,10 @@ export const BLADEMASTER_CLIPS: { readonly [pose in Exclude<HeroPose, HeroStateP
   // Mirror Feint's tell: the blade lifts before the back step (f8).
   downSpecial: sequence("Stand - 4", f32(0.6)),
   downSpecialAir: sequence("Stand - 4", f32(0.6)),
+  // Mirror Feint's real slash: the thrust lands on its first active frame (f10).
+  downSpecialFollowUp: sequence("Attack 2", aligned(THRUST, 10, 3, 25)),
+  downSpecialFollowUpAir: sequence("Attack 2", aligned(THRUST, 10, 3, 25)),
 };
-
-/** Poses outside the attack table: movement, guard and match moments. */
-export const BLADEMASTER_STATE_CLIPS = {
-  idle: COMBAT_STANCE,
-  walk: sequence("Walk"),
-  run: sequence("Walk"),
-  crouch: sequence("Stand cinematic", 2.0),
-  shield: COMBAT_STANCE,
-  fall: COMBAT_STANCE,
-  /** Mirror Feint's requested forward slash. */
-  feintSlash: sequence("Attack 2", aligned(THRUST, 10, 3, 25)),
-  victory: sequence("Stand Victory"),
-  defeat: sequence("Death"),
-  portrait: sequence("Portrait 1"),
-} as const;
 
 /** The idle a fighter without a mapped pose shows. */
 export const BLADEMASTER_FALLBACK_CLIP = COMBAT_STANCE;

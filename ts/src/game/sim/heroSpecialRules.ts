@@ -6,15 +6,16 @@
 import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
-import { ProjectileKind, SpecialAction } from "./codes";
+import { advanceHeroConditions } from "./heroStatus";
+import { AttackStyle, ProjectileKind, SpecialAction } from "./codes";
 import { canAttack, inGrabContext, isIntangible } from "./conditions";
 import type { Fighter } from "./fighter";
-import { type FighterSpecials, type AuthoredSpecial, type SpecialProjectile, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
-import { type HitRegion, NO_HIT_REGION } from "./hitRegions";
-import { type Controls, type Roster, fighterAt } from "./roster";
+import { type FighterSpecials, type AuthoredSpecial, type SpecialGuard, type SpecialProjectile, FOLLOW_UP_FORM, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
+import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
+import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { travelBeforeBodies } from "./travelStop";
 import { capsuleCircleIntersects, shieldSizeMultiplier } from "./shield";
-import { emptyCapsule, placeCapsule } from "../physics/contactGeometry";
+import { attackCapsule, emptyCapsule, placeCapsule } from "../physics/contactGeometry";
 import { HurtContact, strikeHurtContact } from "./hurtboxes";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { solidSurfaceAt, solidSurfaceCount } from "./stage";
@@ -116,13 +117,14 @@ export function regenerateMana(f: Fighter): void {
   }
 }
 
-/** A new stock starts with full mana and its airtime uses restored. */
+/** A new stock starts with full mana, its airtime uses restored and no guard healing spent. */
 export function refillMana(f: Fighter): void {
   const profile = f.tuning.specials?.mana;
   f.mana.points = profile?.max ?? 0;
   f.mana.sinceSpend = profile?.regenDelayFrames ?? 0;
   f.mana.progress = 0;
   f.special.airtimeUses = 0;
+  f.status.guardHealed = 0.0;
 }
 
 /** While the running form's `aimFrames` last, a held stick re-chooses its aim. */
@@ -147,6 +149,7 @@ export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>
   special.aimZ = aimZ < 0 ? -1 : aimZ > 0 ? 1 : 0;
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;
+  special.guarded = false;
   if (move.cost > 0) {
     mana.points = max(0, mana.points - move.cost);
     mana.sinceSpend = 0;
@@ -337,9 +340,78 @@ export function heroSpecialContact(owner: Readonly<Fighter>, target: Readonly<Fi
   return NO_HIT_REGION;
 }
 
+// Preallocated: guards test every opponent's strikes every frame, replays included.
+const guardRegion = emptyHitRegion();
+const guardStrike = emptyCapsule();
+/** Original projectiles carry no radius of their own; the blaster's is the largest. */
+const ORIGINAL_PROJECTILE_RADIUS = 24.0;
+
+/** Whether the attacker's damaging melee, hero special strike or projectile overlaps the target's body now. */
+function threatensBody(attacker: Readonly<Fighter>, target: Readonly<Fighter>): boolean {
+  if (attacker.status.out) return false;
+  const { attack } = attacker;
+  if (attack.style !== undefined && attack.style !== AttackStyle.grab) {
+    const moves = attacker.tuning.moves;
+    for (let index = 0; index < authoredHitRegionCount(attack.style, moves); index++) {
+      authoredHitRegion(guardRegion, attacker.character, attack.style, attack.frame, attack.smashChargeFrames, index, moves);
+      if (guardRegion.window <= 0 || guardRegion.effect.damage <= 0) continue;
+      attackCapsule(guardStrike, attack.style, guardRegion);
+      placeCapsule(guardStrike, guardStrike, attacker.motion.x, attacker.motion.z, attacker.facing);
+      if (strikeHurtContact(guardStrike, target) !== HurtContact.none) return true;
+    }
+  }
+  // Before this frame's special advance, the frame about to resolve is one past the counter.
+  const special = runningHeroSpecial(attacker);
+  for (const region of special?.regions ?? []) {
+    const strike = region.hit.strike;
+    if (strike === undefined || attacker.special.frame < region.firstFrame || attacker.special.frame > region.lastFrame || region.hit.effect.damage <= 0) continue;
+    placeCapsule(guardStrike, strike, attacker.motion.x, attacker.motion.z, attacker.facing);
+    if (strikeHurtContact(guardStrike, target) !== HurtContact.none) return true;
+  }
+  for (const projectile of attacker.projectiles) {
+    if (projectile.life <= 0) continue;
+    guardStrike.x1 = projectile.x;
+    guardStrike.z1 = projectile.z;
+    guardStrike.x2 = f32(projectile.x + projectile.velocityX);
+    guardStrike.z2 = f32(projectile.z + projectile.velocityZ);
+    guardStrike.radius = projectile.spec?.radius ?? ORIGINAL_PROJECTILE_RADIUS;
+    if (strikeHurtContact(guardStrike, target) !== HurtContact.none) return true;
+  }
+  return false;
+}
+
+function guardSucceeds(f: Fighter, guard: Readonly<SpecialGuard>): void {
+  const { status } = f;
+  f.special.guarded = true;
+  const heal = min(min(guard.heal, max(0.0, f32(guard.healCapPerStock - status.guardHealed))), max(0.0, status.damage));
+  status.damage = f32(status.damage - heal);
+  status.guardHealed = f32(status.guardHealed + heal);
+}
+
+/**
+ * Runs before this frame's specials advance, after melee selection: a guard
+ * whose window covers the frame being resolved succeeds once when any
+ * opponent's damaging strike or projectile overlaps the guarding body, though
+ * its intangibility lets that strike pass.
+ */
+export function resolveHeroGuards(world: Roster): void {
+  for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
+    if (!isActive(world, slot)) continue;
+    const f = fighterAt(world, slot);
+    const guard = runningHeroSpecial(f)?.guard;
+    if (guard === undefined || f.special.guarded || !inWindow(guard, f.special.frame + 1)) continue;
+    for (let other = 0; other < PARTICIPANT_CAPACITY; other++) {
+      if (other === slot || !isActive(world, other) || !threatensBody(fighterAt(world, other), f)) continue;
+      guardSucceeds(f, guard);
+      break;
+    }
+  }
+}
+
 /** One frame of a fighter's hero armor, hitlag included. */
 export function advanceHeroStatus(f: Fighter): void {
   if (f.status.armorFrames > 0) f.status.armorFrames--;
+  advanceHeroConditions(f);
 }
 
 /** Whether a special action is off cooldown; hero actions have none and spend mana when they start. */
@@ -363,4 +435,34 @@ export function stopHeroMotionAtBodies(world: Roster, slot: number): void {
     f.motion.vx = f32(f.facing * travelBeforeBodies(world, slot, forward, true));
     return;
   }
+}
+
+/**
+ * A second special press inside the running form's follow-up window replaces
+ * the rest of the action with the follow-up; true when it did. The press tick
+ * is the follow-up's frame 1, as an entry is.
+ */
+export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): boolean {
+  const { special, mana } = f;
+  const followUp = runningHeroSpecial(f)?.followUp;
+  if (followUp === undefined || special.form >= FOLLOW_UP_FORM || f.launch.hitlag > 0 || f.launch.hitstun > 0) return false;
+  if (!inWindow(followUp.window, special.frame + 1)) return false;
+  const next = followUp.special;
+  if (next.cost > mana.points) {
+    f.visuals.manaDenied++;
+    return false;
+  }
+  special.form += FOLLOW_UP_FORM;
+  special.frame = 0;
+  special.duration = next.endFrame;
+  special.lockFrames = next.endFrame;
+  for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
+  special.hit = false;
+  if (next.cost > 0) {
+    mana.points = max(0, mana.points - next.cost);
+    mana.sinceSpend = 0;
+    mana.progress = 0;
+  }
+  applyWindows(f, next, 0);
+  return true;
 }

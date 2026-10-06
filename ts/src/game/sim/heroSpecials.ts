@@ -4,6 +4,7 @@
 // windows are inclusive, and "end fN" means the fighter acts again on N+1.
 import type { MoveRegion } from "./heroMoves";
 import type { HitEffect } from "./hitRegions";
+import type { AppliedStatus } from "./heroStatus";
 import type { HurtPose } from "./hurtboxes";
 
 /** The four special inputs, in SpecialAction.heroNeutral order. */
@@ -13,6 +14,8 @@ export type SpecialSlot = (typeof SpecialSlot)[keyof typeof SpecialSlot];
 /** Which authored form of a special is running; captured on entry. */
 export const SpecialForm = { ground: 0, air: 1, free: 2 } as const;
 export type SpecialForm = (typeof SpecialForm)[keyof typeof SpecialForm];
+/** A running follow-up records its base form plus this offset. */
+export const FOLLOW_UP_FORM = 3;
 
 /** Brief frames, inclusive. */
 export interface FrameWindow {
@@ -68,6 +71,8 @@ export interface SpecialProjectile {
   readonly reflectable: boolean;
   /** Owned at once; a cast beyond it fails before spending mana. */
   readonly limit: number;
+  /** Applied by a body hit, never through a shield (sim/heroStatus.ts). */
+  readonly status?: AppliedStatus | undefined;
   /** Removed when the owner's special is interrupted before it becomes active (Frost Nova's marker). */
   readonly cancelOnInterrupt?: boolean | undefined;
   /**
@@ -90,6 +95,17 @@ export interface SpecialArmor extends FrameWindow {
   readonly shell?: boolean | undefined;
 }
 
+/**
+ * A guard: when an opponent's damaging strike or projectile overlaps the
+ * fighter's body during the window, the action records one success and
+ * restores `heal` damage percent, never more than `healCapPerStock` in a
+ * stock. It protects nothing by itself; pair it with an intangible window.
+ */
+export interface SpecialGuard extends FrameWindow {
+  readonly heal: number;
+  readonly healCapPerStock: number;
+}
+
 export interface AuthoredSpecial {
   /** Mana spent once, on entry. */
   readonly cost: number;
@@ -101,6 +117,7 @@ export interface AuthoredSpecial {
   readonly projectiles?: readonly SpecialProjectile[] | undefined;
   readonly intangible?: FrameWindow | undefined;
   readonly armor?: SpecialArmor | undefined;
+  readonly guard?: SpecialGuard | undefined;
   /** Does not start in the air and spends nothing there. */
   readonly groundOnly?: boolean | undefined;
   /** Once per airtime; landing or a new stock restores it, a ledge catch does not. */
@@ -116,6 +133,17 @@ export interface AuthoredSpecial {
    * frames); frames no pose covers use the standing body. Weapons stay out.
    */
   readonly hurt?: readonly HurtPose[] | undefined;
+  /**
+   * A second special press inside `window` (brief frames) replaces the rest of
+   * this action with `special`, whose frame 1 is the press tick. It spends
+   * `special.cost` and is captured once; it cannot itself be followed up.
+   */
+  readonly followUp?: SpecialFollowUp | undefined;
+}
+
+export interface SpecialFollowUp {
+  readonly window: FrameWindow;
+  readonly special: AuthoredSpecial;
 }
 
 /** One special input: its grounded form, its airborne form and its zero-mana form. */
@@ -155,6 +183,10 @@ export function specialKit(specials: Readonly<FighterSpecials>, slot: number): S
 
 /** The form a running special uses. */
 export function specialForm(kit: Readonly<SpecialKit>, form: number): AuthoredSpecial {
+  if (form >= FOLLOW_UP_FORM) {
+    const base = specialForm(kit, form - FOLLOW_UP_FORM);
+    return base.followUp?.special ?? base;
+  }
   if (form === SpecialForm.free) return kit.free ?? kit.ground;
   return form === SpecialForm.air ? kit.air ?? kit.ground : kit.ground;
 }

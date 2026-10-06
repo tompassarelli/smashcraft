@@ -32,6 +32,7 @@ import { beginShieldBreak } from "./shieldBreak";
 import { beginSmashDirectionalInfluenceHit } from "./smashDirectionalInfluence";
 import { beginDownDamage, cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, interruptJumpOrDodge, thawFighter } from "./transitions";
 import { at } from "wisp/src/runtime/lookup";
+import { type AppliedStatus, applyHeroStatus, damageEndsHeroStatus } from "./heroStatus";
 
 /** One contact, with the source's and target's state sampled when it was collected. */
 interface DamageContact {
@@ -52,13 +53,15 @@ interface DamageContact {
   down: boolean;
   smashCharging: boolean;
   throwInput: Readonly<Controls> | undefined;
+  /** A hero status the contact applies if it reaches the body. */
+  status: Readonly<AppliedStatus> | undefined;
 }
 
 function emptyContact(): DamageContact {
   return {
     source: 0, target: 0, effect: emptyHitEffect(), facing: 0, kind: ContactKind.launch, direct: false, blocked: false,
     crouching: false, grounded: false, sourceGrounded: false, sourceDeltaX: 0.0, sourceDeltaZ: 0.0, targetDeltaX: 0.0,
-    targetDeltaZ: 0.0, down: false, smashCharging: false, throwInput: undefined,
+    targetDeltaZ: 0.0, down: false, smashCharging: false, throwInput: undefined, status: undefined,
   };
 }
 
@@ -82,6 +85,7 @@ export function openDamageContacts(): boolean {
 export function collectDamageContact(
   world: Roster, sourceSlot: number, targetSlot: number, effect: Readonly<HitEffect>, facing: number,
   kind: ContactKind, direct: boolean, throwInput: Readonly<Controls> | undefined, shieldContact: boolean,
+  status?: Readonly<AppliedStatus>,
 ): void {
   const source = fighterAt(world, sourceSlot);
   const target = fighterAt(world, targetSlot);
@@ -109,6 +113,7 @@ export function collectDamageContact(
   contact.down = isDownDamageState(target);
   contact.smashCharging = target.attack.smashCharging;
   contact.throwInput = throwInput;
+  contact.status = status;
 }
 
 /** Adds a contact that the target's raised shield blocks. */
@@ -183,7 +188,10 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     }
     if (contact.kind === ContactKind.throw) target.visuals.throw++;
     visualContact ??= index;
-    if (damage > 0 && contact.kind !== ContactKind.pummel) thawFighter(target);
+    if (damage > 0 && contact.kind !== ContactKind.pummel) {
+      thawFighter(target);
+      damageEndsHeroStatus(target);
+    }
     if (contact.kind !== ContactKind.damageOnly && contact.kind !== ContactKind.throw) {
       hitlagDamage = max(hitlagDamage, damage);
       hurtContact ??= index;
@@ -281,10 +289,20 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   }
 }
 
+/** Statuses from contacts that reached the body, after that frame's damage could end an earlier one. */
+function applyContactStatuses(world: Roster, slot: number): void {
+  for (let index = 0; index < batch.count; index++) {
+    const contact = contactAt(index);
+    if (contact.target === slot && !contact.blocked && contact.status !== undefined) applyHeroStatus(fighterAt(world, slot), contact.status);
+  }
+}
+
 /** Resolves every active target's contacts in slot order and closes the batch. */
 export function finishDamageContacts(world: Roster): void {
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
-    if (isActive(world, slot)) resolveDamageContacts(world, slot);
+    if (!isActive(world, slot)) continue;
+    resolveDamageContacts(world, slot);
+    applyContactStatuses(world, slot);
   }
   batch.count = 0;
   batch.collecting = false;
