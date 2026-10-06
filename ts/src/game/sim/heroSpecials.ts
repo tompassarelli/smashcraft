@@ -13,6 +13,8 @@ export type SpecialSlot = (typeof SpecialSlot)[keyof typeof SpecialSlot];
 /** Which authored form of a special is running; captured on entry. */
 export const SpecialForm = { ground: 0, air: 1, free: 2 } as const;
 export type SpecialForm = (typeof SpecialForm)[keyof typeof SpecialForm];
+/** A running follow-up records its base form plus this offset. */
+export const FOLLOW_UP_FORM = 3;
 
 /** Brief frames, inclusive. */
 export interface FrameWindow {
@@ -91,6 +93,17 @@ export interface AuthoredSpecial {
    * frames); frames no pose covers use the standing body. Weapons stay out.
    */
   readonly hurt?: readonly HurtPose[] | undefined;
+  /**
+   * A second special press inside `window` (brief frames) replaces the rest of
+   * this action with `special`, whose frame 1 is the press tick. It spends
+   * `special.cost` and is captured once; it cannot itself be followed up.
+   */
+  readonly followUp?: SpecialFollowUp | undefined;
+}
+
+export interface SpecialFollowUp {
+  readonly window: FrameWindow;
+  readonly special: AuthoredSpecial;
 }
 
 /** One special input: its grounded form, its airborne form and its zero-mana form. */
@@ -130,6 +143,10 @@ export function specialKit(specials: Readonly<FighterSpecials>, slot: number): S
 
 /** The form a running special uses. */
 export function specialForm(kit: Readonly<SpecialKit>, form: number): AuthoredSpecial {
+  if (form >= FOLLOW_UP_FORM) {
+    const base = specialForm(kit, form - FOLLOW_UP_FORM);
+    return base.followUp?.special ?? base;
+  }
   if (form === SpecialForm.free) return kit.free ?? kit.ground;
   return form === SpecialForm.air ? kit.air ?? kit.ground : kit.ground;
 }

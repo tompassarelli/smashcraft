@@ -244,6 +244,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real(`motion[${index}].velocityX`, segment.velocityX);
     real(`motion[${index}].velocityZ`, segment.velocityZ);
     real(`motion[${index}].aimedSpeed`, segment.aimedSpeed ?? 0.0);
+    if (segment.stopsAtBody === true) int(`motion[${index}].stopsAtBody`, 1);
   }
   const poses = move.hurt ?? [];
   for (let index = 0; index < poses.length; index++) {
@@ -283,6 +284,11 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     }
     result += hitEffectCanonical(region.hit.effect, `${name}.${part}.hit`);
     if (region.hit.groundedEffect !== undefined) result += hitEffectCanonical(region.hit.groundedEffect, `${name}.${part}.groundedHit`);
+  }
+  if (move.followUp !== undefined) {
+    int("followUp.first", move.followUp.window.first);
+    int("followUp.last", move.followUp.window.last);
+    result += specialMoveCanonical(move.followUp.special, `${name}.followUp`);
   }
   return result;
 }
