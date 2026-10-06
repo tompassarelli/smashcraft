@@ -398,6 +398,32 @@ the rows its helpers journaled for it, and the confirmed checksums are equal.
 Over seeds 7, 11, 13 and 17 and three stall times the recovery took
 0.70–0.85 s; with 4 frames a callback, up to 1.07 s.
 
+The helper's rows reach the map as text typed into its edit box, and
+Warcraft takes that text at a cost that grows with how much it takes at once.
+In 0.0.48's native bot session (smashcraft:evidence/bot-session-0048-native-20261006/),
+after each 2 s stop of client B its helper typed the 16 records its window
+allowed, 608 characters, in one go: B's receipts then came about 280 ms apart
+instead of 100, each time with all 16 records, and the helper's clock stayed
+15–25 frames ahead of what B consumed for 5 s (40 s with four fighters).
+Catching up faster made it worse: B consumed records sooner, which opened
+the helper's window 16 at a time. The same bursts, 13 records and more, came
+30 times on each client in that session's #26 rematch, which had no stop: the
+loaded host put the helpers behind, and the late local starts and prediction
+stalls followed. The pre-#48 map took at most two rows a callback, so the
+helper typed at most about six records at once.
+
+So the helper types at most 256 characters past the record the map's receipt
+says arrived, and while a record waits untyped, the next row packets join it
+with `|` (at most `RECORD_PACKETS`, 16): a backlog costs 5–8 characters a
+frame instead of 19 (smashcraft:companion/README.md). The map admits a joined
+record's rows within the same per-callback budget, over as many callbacks as
+it takes. smashcraft:ts/test/lag-recovery.test.ts charges each frame's typed
+text as Warcraft's stop, 0.00003 frames per character squared, with the
+callbacks Warcraft owes then caught up 10 a frame: the old typing never
+recovers from a 2 s stall there and needs 0.8 s after a 0.5 s one, with late
+local starts; with these limits a 2 s stall takes 21 callbacks, and after
+#26's 250 ms stall every press starts within a callback of its capture.
+
 A player on the keyboard fallback (#46) has no helper: the map polls their
 keys once a callback, so their clock counts callbacks and loses the stalled
 time with the game, while another player's helper journals on. The
@@ -433,6 +459,19 @@ confirming a message takes more than a frame at p95, as it did before #48
 humans' rollback corrections are half of that match's Lua time, and Wisp's
 exact binary32 arithmetic, knockback decay above all, about a sixth; that
 arithmetic also allocates at least half of what a solo match does.
+
+The worst callbacks were the collector's: Lua's incremental collector works
+in proportion to what a callback allocates, so its sweep landed on the
+callbacks that confirm or replay, which allocated the most. In that build a
+four-fighter callback confirming a message allocated 571 KB at p50 and
+1.65 MB at p95, and callbacks in which the collector freed memory were the
+slowest of the run. Since Wisp 880e4e8 binary32 allocates nothing for a
+normal result, and replay copies only what it must
+(smashcraft:docs/typescript.md); the same callbacks allocate 18 and 26 KB,
+a solo match 8.8 KB a callback instead of 45, and a callback in which the
+collector freed memory is no slower than the others. Measured interleaved
+with the build before on the same busy host, four fighters' confirming
+callbacks fell 41% at p95 and catching up 42%.
 
 Throughput limits catching up too. Holds cost no bytes, but a message carries
 only 8 frames whose every field changes: with such input on every frame, 10

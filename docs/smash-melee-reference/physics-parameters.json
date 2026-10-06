@@ -393,7 +393,50 @@
         "priorPublisherAttributeRootMatchesRetail": true,
         "verifiedAttributeCount": 39,
         "mismatches": []
-      }
+      },
+      "wallRecoveryAttributes": [
+        {
+          "offset": "0x100",
+          "field": "passivewall_vel_x",
+          "type": "float32",
+          "value": 0.5,
+          "bits": "0x3f000000",
+          "units": "Melee units/frame"
+        },
+        {
+          "offset": "0x104",
+          "field": "wall_jump_horizontal_velocity",
+          "type": "float32",
+          "value": 1.399999976158142,
+          "bits": "0x3fb33333",
+          "units": "Melee units/frame"
+        },
+        {
+          "offset": "0x108",
+          "field": "wall_jump_vertical_velocity",
+          "type": "float32",
+          "value": 3.299999952316284,
+          "bits": "0x40533333",
+          "units": "Melee units/frame"
+        },
+        {
+          "offset": "0x10C",
+          "field": "passiveceil_vel_x",
+          "type": "float32",
+          "value": 0.699999988079071,
+          "bits": "0x3f333333",
+          "units": "Melee units/frame"
+        },
+        {
+          "offset": "0x148",
+          "field": "wall_jump_min_approach_speed",
+          "type": "float32",
+          "value": 0.5,
+          "bits": "0x3f000000",
+          "units": "Melee units/frame"
+        }
+      ],
+      "wallRecoverySource": "Read from the retail DAT named in retailVerification; melee:src/melee/ft/kinds/ftFox/ftfox.c ftFx_Init_OnLoad sets can_walljump, which melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C requires."
     },
     "Falco": {
       "sourceUrl": "https://melee.theshoemaker.de/dat-dumps/Falco.json",
@@ -767,7 +810,50 @@
         "priorPublisherAttributeRootMatchesRetail": true,
         "verifiedAttributeCount": 39,
         "mismatches": []
-      }
+      },
+      "wallRecoveryAttributes": [
+        {
+          "offset": "0x100",
+          "field": "passivewall_vel_x",
+          "type": "float32",
+          "value": 0.5,
+          "bits": "0x3f000000",
+          "units": "Melee units/frame"
+        },
+        {
+          "offset": "0x104",
+          "field": "wall_jump_horizontal_velocity",
+          "type": "float32",
+          "value": 1.2999999523162842,
+          "bits": "0x3fa66666",
+          "units": "Melee units/frame"
+        },
+        {
+          "offset": "0x108",
+          "field": "wall_jump_vertical_velocity",
+          "type": "float32",
+          "value": 3.5999999046325684,
+          "bits": "0x40666666",
+          "units": "Melee units/frame"
+        },
+        {
+          "offset": "0x10C",
+          "field": "passiveceil_vel_x",
+          "type": "float32",
+          "value": 0.699999988079071,
+          "bits": "0x3f333333",
+          "units": "Melee units/frame"
+        },
+        {
+          "offset": "0x148",
+          "field": "wall_jump_min_approach_speed",
+          "type": "float32",
+          "value": 0.5,
+          "bits": "0x3f000000",
+          "units": "Melee units/frame"
+        }
+      ],
+      "wallRecoverySource": "Read from the retail DAT named in retailVerification; melee:src/melee/ft/kinds/ftFalco/ftfalco.c ftFc_Init_OnLoad sets can_walljump, which melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C requires."
     }
   },
   "common": {
@@ -1041,6 +1127,60 @@
             "type": "float32",
             "value": 3,
             "bits": "0x40400000"
+          }
+        ]
+      },
+      {
+        "mechanic": "wall jump input window, stick flick, hang and repeated-jump rise",
+        "offsets": [
+          "0x768",
+          "0x76C",
+          "0x770",
+          "0x774",
+          "0x778"
+        ],
+        "units": "see each value",
+        "source": "melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C; melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c ftCo_PassiveWall_Anim",
+        "values": [
+          {
+            "offset": "0x768",
+            "field": "x768",
+            "type": "float32",
+            "value": 130,
+            "bits": "0x43020000",
+            "units": "frames after meeting the wall faster than the minimum approach speed"
+          },
+          {
+            "offset": "0x76C",
+            "field": "x76C",
+            "type": "float32",
+            "value": 0.800000011920929,
+            "bits": "0x3f4ccccd",
+            "units": "stick units away from the wall"
+          },
+          {
+            "offset": "0x770",
+            "field": "x770",
+            "type": "float32",
+            "value": 3,
+            "bits": "0x40400000",
+            "units": "frames since the stick crossed the horizontal smash deadzone"
+          },
+          {
+            "offset": "0x774",
+            "field": "x774",
+            "type": "int32",
+            "value": 5,
+            "bits": "0x00000005",
+            "units": "frames of hang before the launch"
+          },
+          {
+            "offset": "0x778",
+            "field": "passive_wall_vel_y_base",
+            "type": "float32",
+            "value": 0.9750000238418579,
+            "bits": "0x3f79999a",
+            "units": "rise multiplier per earlier wall jump since landing"
           }
         ]
       }
@@ -2018,7 +2158,51 @@
           "bits": "0x3f000000",
           "units": "Melee units/frame"
         }
-      ]
+      ],
+      "wallRecoverySource": "Read from the retail DAT named in this check; melee:src/melee/ft/kinds/ftCaptain/ftcaptain.c ftCa_Init_OnLoad sets can_walljump, which melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C requires.",
+      "airDriftAttributes": [
+        {
+          "offset": "0x064",
+          "field": "air_drift_stick_mul",
+          "type": "float32",
+          "value": 0.03999999910593033,
+          "bits": "0x3d23d70a",
+          "units": "Melee units/frame per stick unit"
+        },
+        {
+          "offset": "0x068",
+          "field": "aerial_drift_base",
+          "type": "float32",
+          "value": 0.019999999552965164,
+          "bits": "0x3ca3d70a",
+          "units": "Melee units/frame"
+        },
+        {
+          "offset": "0x06C",
+          "field": "air_drift_max",
+          "type": "float32",
+          "value": 1.1200000047683716,
+          "bits": "0x3f8f5c29",
+          "units": "Melee units/frame"
+        },
+        {
+          "offset": "0x070",
+          "field": "aerial_friction",
+          "type": "float32",
+          "value": 0.009999999776482582,
+          "bits": "0x3c23d70a",
+          "units": "Melee units/frame"
+        },
+        {
+          "offset": "0x078",
+          "field": "air_max_horizontal_velocity",
+          "type": "float32",
+          "value": 3,
+          "bits": "0x40400000",
+          "units": "Melee units/frame"
+        }
+      ],
+      "airDriftSource": "Read from this check's retail DAT; melee:src/melee/ft/ftcommon.c ftCommon_CalcSelfAccel_DriftFrom and ftCommon_CalcSelfAccel_AccelToVelClampedFrom use them, the last capping drift at +0x078."
     },
     {
       "character": "Jigglypuff",

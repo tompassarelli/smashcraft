@@ -1,8 +1,12 @@
 // Local input recorded by the companion helper as a journal: a sequence of
 // immutable canonical I4 packets of one or two rows, each tagged with the
-// frame its row belongs to. The file names and the control acknowledgment
-// text are written by the helper, so their spellings are a protocol.
+// frame its row belongs to. A helper behind its clock joins consecutive
+// packets with "|" into one record (at most RECORD_PACKETS), so its backlog
+// costs fewer characters to type. The file names and the control
+// acknowledgment text are written by the helper, so their spellings are a
+// protocol.
 import { PARTICIPANT_CAPACITY } from "../../input/participants";
+import type { InputRow } from "../../input/inputRow";
 import { type InputPacket, decodePacket } from "../../input/wire";
 import { FUTURE_LIMIT } from "../ledger";
 import { parseDecimal } from "./decimal";
@@ -17,6 +21,9 @@ export type JournalRead =
 /** Control states the helper acknowledges. */
 export type ControlState = "PREPARE" | "PAUSE" | "RESUME";
 
+/** Packets one record may join. */
+export const RECORD_PACKETS = 16;
+
 const WAIT: JournalRead = { kind: "wait" };
 const INVALID: JournalRead = { kind: "invalid" };
 
@@ -30,6 +37,8 @@ export class JournalInputSource {
   private controlSequence = 1;
   private ready: InputPacket | undefined;
   private buffered: string | undefined;
+  /** Rows of the buffered record already admitted: a joined record may take several callbacks. */
+  private taken = 0;
 
   private constructor(
     readonly build: string,
@@ -58,21 +67,24 @@ export class JournalInputSource {
     return `smashcraft-journal-${this.build}-e${this.epoch}-s${this.slot}-n${this.expectedFrame()}`;
   }
 
-  /** The last packet read and not yet sent, so a waiting packet needs no second read. */
+  /** The last packet read and not yet sent in full, so a waiting packet needs no second read. */
   bufferedPacket(): string | undefined {
     return this.buffered;
   }
 
   /**
-   * Reads the next packet. A packet whose rows reach past
-   * latestAdmissibleFrame waits, buffered.
+   * Reads the next packet, or packets joined with "|", as one packet of their
+   * rows not yet sent. A packet whose rows reach past latestAdmissibleFrame
+   * waits, buffered.
    */
   read(wire: string, latestAdmissibleFrame: number): JournalRead {
     this.ready = undefined;
+    if (wire !== this.buffered) this.taken = 0;
     this.buffered = undefined;
     if (wire === "") return WAIT;
-    const packet = decodePacket(wire);
-    const read = packet === undefined ? INVALID : this.offer(packet, latestAdmissibleFrame);
+    const packet = wire.includes("|") ? decodePackets(wire) : decodePacket(wire);
+    const rest = packet === undefined || this.taken === 0 ? packet : { epoch: packet.epoch, firstFrame: packet.firstFrame + this.taken, rows: packet.rows.slice(this.taken) };
+    const read = rest === undefined ? INVALID : this.offer(rest, latestAdmissibleFrame);
     if (read !== INVALID) this.buffered = wire;
     return read;
   }
@@ -86,12 +98,21 @@ export class JournalInputSource {
     return { kind: "ready", packet };
   }
 
-  /** Advances past the ready packet once its rows are admitted and queued to send. */
-  sent(): boolean {
-    if (this.ready === undefined) return false;
-    this.sequence += this.ready.rows.length;
+  /**
+   * Advances past the first `rows` of the ready packet, all of them by
+   * default, once they are admitted and queued to send. The rest of a record
+   * is read again from its next row.
+   */
+  sent(rows = this.ready?.rows.length ?? 0): boolean {
+    const ready = this.ready;
+    if (ready === undefined || rows < 1 || rows > ready.rows.length) return false;
+    this.sequence += rows;
     this.ready = undefined;
-    this.buffered = undefined;
+    if (rows < ready.rows.length) this.taken += rows;
+    else {
+      this.taken = 0;
+      this.buffered = undefined;
+    }
     return true;
   }
 
@@ -116,4 +137,19 @@ export class JournalInputSource {
     this.controlSequence++;
     return frame;
   }
+}
+
+/** Consecutive packets of one epoch joined with "|", as one packet of their rows; undefined unless canonical. */
+function decodePackets(wire: string): InputPacket | undefined {
+  const parts = wire.split("|");
+  if (parts.length > RECORD_PACKETS) return undefined;
+  let joined: { epoch: number; firstFrame: number; rows: InputRow[] } | undefined;
+  for (const part of parts) {
+    const packet = decodePacket(part);
+    if (packet === undefined) return undefined;
+    if (joined === undefined) joined = { epoch: packet.epoch, firstFrame: packet.firstFrame, rows: [...packet.rows] };
+    else if (packet.epoch !== joined.epoch || packet.firstFrame !== joined.firstFrame + joined.rows.length) return undefined;
+    else joined.rows.push(...packet.rows);
+  }
+  return joined;
 }

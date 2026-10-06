@@ -21,7 +21,7 @@ mod linux {
     #![allow(unsafe_code)]
 
     use crate::focus::Foreground;
-    use crate::stick::{melee_stick, stick_down};
+    use crate::stick::{c_stick, melee_stick, stick_down};
     use enigo::{Direction, Enigo, Key as OutputKey, Keyboard, Settings};
     use evdev::{AbsoluteAxisCode as Abs, EventSummary, KeyCode as Key, raw_stream::RawDevice};
     use std::{
@@ -140,6 +140,23 @@ mod linux {
             Ok(())
         }
 
+        /// Joins an I4 packet to the last record, as the map reads packets joined with '|'.
+        fn join_last(&mut self, wire: &str) -> io::Result<()> {
+            if self.bytes + wire.len() + 1 > OUTPUT_BYTE_LIMIT {
+                return Err(io::Error::other(
+                    "journal output queue capacity exceeded (120 records / 2048 bytes); no queued record overwritten; helper stopped",
+                ));
+            }
+            let last = self
+                .records
+                .back_mut()
+                .ok_or_else(|| io::Error::other("no record to join"))?;
+            last.push('|');
+            last.push_str(wire);
+            self.bytes += wire.len() + 1;
+            Ok(())
+        }
+
         fn pop(&mut self) -> Option<String> {
             let wire = self.records.pop_front()?;
             self.bytes -= wire.len() + 1;
@@ -153,6 +170,15 @@ mod linux {
 
     const TEXT_WINDOW: usize = 16;
     const TEXT_RETRY: Duration = Duration::from_millis(250);
+    /// Packets one record may join (the map's RECORD_PACKETS).
+    const RECORD_PACKETS: usize = 16;
+    /// Envelope characters around a record's payload: "@J1", epoch, sequence, checksum, '|' and ';'.
+    const ENVELOPE_BYTES: usize = 30;
+    // Warcraft takes typed text into the edit box at a cost that grows with
+    // how much it takes at once: in 0.0.48's native bot session, 16 records
+    // typed after a 2 s stop held the client about 180 ms, and input stayed
+    // late for 5 s. Type at most this much past what a receipt says arrived.
+    const TYPED_AHEAD_BYTES: usize = 256;
 
     #[derive(Default)]
     struct TextWindow {
@@ -165,9 +191,16 @@ mod linux {
         recovery_through: u32,
         receipt_revision: u32,
         retried_revision: u32,
+        /// Bytes typed past the receipt's received record that stop typing; none without a bound.
+        typed_ahead: Option<usize>,
     }
 
     impl TextWindow {
+        /// The window a client's edit box gets: typing stays within TYPED_AHEAD_BYTES past receipt.
+        fn bounded() -> Self {
+            Self { typed_ahead: Some(TYPED_AHEAD_BYTES), ..Self::default() }
+        }
+
         fn receipt(&mut self, queue: &mut PendingOutput, received: u32, consumed: u32, revision: u32) -> io::Result<()> {
             if received > self.highest_sent || consumed > received {
                 return Err(io::Error::other("native text receipt acknowledges an unsent or unreceived record"));
@@ -247,6 +280,12 @@ mod linux {
                 return Err(io::Error::other("text record sequence exhausted"));
             }
             let index = (sequence - self.consumed - 1) as usize;
+            let ahead: usize = (self.received.max(self.consumed) + 1..sequence)
+                .map(|typed| ENVELOPE_BYTES + queue.records[(typed - self.consumed - 1) as usize].len())
+                .sum();
+            if self.typed_ahead.is_some_and(|bound| ahead > 0 && ahead + ENVELOPE_BYTES + queue.records[index].len() > bound) {
+                return Ok(None);
+            }
             Ok(Some((
                 sequence,
                 text_envelope(epoch, sequence, &queue.records[index])?,
@@ -470,7 +509,7 @@ mod linux {
                 typist,
                 owned: BTreeSet::new(),
                 queued: PendingOutput::default(),
-                text_window: TextWindow::default(),
+                text_window: TextWindow::bounded(),
                 text_receipt_at: None,
                 focus: FocusGrace::default(),
                 current: None,
@@ -503,6 +542,20 @@ mod linux {
                 return Err(io::Error::other(
                     "controller record contains an unsupported character",
                 ));
+            }
+            if self.editbox && wire.starts_with("I4") {
+                // A packet joins the last record while nothing of it is typed:
+                // a backlog then costs fewer characters to type.
+                let last = self.queued.records.len();
+                let untyped = last > 0
+                    && self.text_window.consumed as usize + last > self.text_window.highest_sent as usize;
+                if untyped
+                    && self.queued.records.back().is_some_and(|record| {
+                        record.starts_with("I4") && record.split('|').count() < RECORD_PACKETS
+                    })
+                {
+                    return self.queued.join_last(&wire);
+                }
             }
             self.queued.push(wire)
         }
@@ -1942,17 +1995,17 @@ mod linux {
         if y < 0 {
             held |= MOVE_UP;
         }
-        let (cx, cy) = melee_stick(s.cx, s.cy);
-        if cx < -11_000 {
+        let (cx, cy) = c_stick(s.cx, s.cy);
+        if cx < 0 {
             held |= SMASH_LEFT;
         }
-        if cx > 11_000 {
+        if cx > 0 {
             held |= SMASH_RIGHT;
         }
-        if cy < -11_000 {
+        if cy < 0 {
             held |= SMASH_UP;
         }
-        if cy > 11_000 {
+        if cy > 0 {
             held |= SMASH_DOWN;
         }
         if s.lt > 4_000 {
@@ -2297,6 +2350,18 @@ mod linux {
     }
 
     #[test]
+    fn c_stick_presses_only_at_melees_smash_flick_thresholds() {
+        let held = |cx, cy| action_state(State { cx, cy, ..State::default() });
+        assert_eq!(held(16_384, 0), 0);
+        assert_eq!(held(22_937, 0), 0);
+        assert_eq!(held(26_500, 0), SMASH_RIGHT);
+        assert_eq!(held(-26_500, 0), SMASH_LEFT);
+        assert_eq!(held(0, -19_660), 0);
+        assert_eq!(held(0, -22_937), SMASH_UP);
+        assert_eq!(held(0, 22_937), SMASH_DOWN);
+    }
+
+    #[test]
     fn stick_down_is_reported_only_at_melees_strong_threshold() {
         let mut ranges = [None; 6];
         ranges[Abs::ABS_Y.0 as usize] = Some(evdev::AbsInfo::new(0, -32_768, 32_767, 16, 128, 0));
@@ -2601,6 +2666,44 @@ mod linux {
         assert_eq!(snapshots[&3], State::default());
         assert_eq!(state, State::default());
         assert_eq!(frame_at(100_000_000, segment).unwrap(), 7);
+    }
+
+    #[test]
+    fn a_backlog_joins_untyped_packets_and_typing_stays_within_its_bytes_past_receipt() {
+        let path = env::temp_dir().join(format!("journal-join-{}", std::process::id()));
+        let _ = fs::remove_file(&path);
+        let mut sender = MailboxSender::new(&env::temp_dir(), "join", 3, 0, false, true, Typist::file(&path).unwrap()).unwrap();
+        let packet = |first: u32| {
+            let row = encode_row(State::default(), 0, Edges::default());
+            encode_packet(3, first, &[row.clone(), row])
+        };
+        // Steady play: each packet is typed before the next arrives, so none joins.
+        let now = Instant::now();
+        sender.enqueue(packet(1)).unwrap();
+        let (sequence, _) = sender.text_window.next(&sender.queued, 3, now).unwrap().unwrap();
+        sender.text_window.sent(sequence, now);
+        sender.enqueue(packet(3)).unwrap();
+        assert_eq!(sender.queued.records.len(), 2);
+        // A stall: nothing typed, so every packet joins the untyped record, at most RECORD_PACKETS to a record.
+        for first in (5..5 + 2 * 2 * RECORD_PACKETS as u32).step_by(2) {
+            sender.enqueue(packet(first)).unwrap();
+        }
+        assert_eq!(sender.queued.records.len(), 4);
+        assert_eq!(sender.queued.records[1].split('|').count(), RECORD_PACKETS);
+        assert_eq!(sender.queued.records[3], packet(5 + 2 * 2 * (RECORD_PACKETS as u32 - 1) + 2));
+        // A control acknowledgment is never joined, and nothing joins it.
+        sender.enqueue("ACK1|1|PREPARE|200".into()).unwrap();
+        sender.enqueue(packet(200)).unwrap();
+        assert_eq!(sender.queued.records.len(), 6);
+        // Record 1 was typed; records 2 and 3 are 16 packets each, more than TYPED_AHEAD_BYTES together.
+        let (second, _) = sender.text_window.next(&sender.queued, 3, now).unwrap().unwrap();
+        sender.text_window.sent(second, now);
+        assert!(ENVELOPE_BYTES + sender.queued.records[1].len() <= TYPED_AHEAD_BYTES);
+        assert!(sender.text_window.next(&sender.queued, 3, now).unwrap().is_none());
+        // Once the receipt has the typed ones, the next goes out.
+        sender.text_window.receipt(&mut sender.queued, 2, 1, 1).unwrap();
+        assert_eq!(sender.text_window.next(&sender.queued, 3, now).unwrap().unwrap().0, 3);
+        fs::remove_file(path).unwrap();
     }
 
     #[test]
@@ -3750,7 +3853,7 @@ mod linux {
                     focus_input.gameplay_armed = false;
                     let sender = mailbox.as_mut().expect("follow-matches editbox sender");
                     sender.epoch = epoch;
-                    sender.text_window = TextWindow::default();
+                    sender.text_window = TextWindow::bounded();
                     sender.chat = 0;
                     sender.chat_state = 0;
                     sender.chat_quiet = 0;

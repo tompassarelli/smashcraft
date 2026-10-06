@@ -1,0 +1,142 @@
+[
+  {
+    "epoch": 1,
+    "slot": 0,
+    "rows": 2096,
+    "buttons": [
+      {
+        "button": "attack",
+        "script_presses": 17,
+        "rows_with_press": 17,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "jump",
+        "script_presses": 10,
+        "rows_with_press": 10,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "special",
+        "script_presses": 9,
+        "rows_with_press": 9,
+        "missed": 0,
+        "extra": 0
+      }
+    ],
+    "held_in_last_row": 0,
+    "input_delay_frames": {
+      "n": 349,
+      "p50": 3,
+      "p95": 5,
+      "max": 11
+    }
+  },
+  {
+    "epoch": 2,
+    "slot": 0,
+    "rows": 2972,
+    "buttons": [
+      {
+        "button": "attack",
+        "script_presses": 51,
+        "rows_with_press": 51,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "jump",
+        "script_presses": 25,
+        "rows_with_press": 25,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "special",
+        "script_presses": 25,
+        "rows_with_press": 25,
+        "missed": 0,
+        "extra": 0
+      }
+    ],
+    "held_in_last_row": 0,
+    "input_delay_frames": {
+      "n": 331,
+      "p50": 3,
+      "p95": 5,
+      "max": 12
+    }
+  },
+  {
+    "epoch": 1,
+    "slot": 1,
+    "rows": 2098,
+    "buttons": [
+      {
+        "button": "attack",
+        "script_presses": 17,
+        "rows_with_press": 17,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "jump",
+        "script_presses": 9,
+        "rows_with_press": 9,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "special",
+        "script_presses": 8,
+        "rows_with_press": 8,
+        "missed": 0,
+        "extra": 0
+      }
+    ],
+    "held_in_last_row": 0,
+    "input_delay_frames": {
+      "n": 349,
+      "p50": 3,
+      "p95": 4,
+      "max": 8
+    }
+  },
+  {
+    "epoch": 2,
+    "slot": 1,
+    "rows": 2972,
+    "buttons": [
+      {
+        "button": "attack",
+        "script_presses": 51,
+        "rows_with_press": 51,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "jump",
+        "script_presses": 25,
+        "rows_with_press": 25,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "special",
+        "script_presses": 25,
+        "rows_with_press": 25,
+        "missed": 0,
+        "extra": 0
+      }
+    ],
+    "held_in_last_row": 0,
+    "input_delay_frames": {
+      "n": 333,
+      "p50": 4,
+      "p95": 25,
+      "max": 30
+    }
+  }
+]

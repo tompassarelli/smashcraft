@@ -29,7 +29,14 @@ import {
   finishLanding,
   resolveDownGroundContact,
 } from "./down";
-import { FAST_FALL_INPUT_WINDOW, type Fighter, PLATFORM_DROP_INPUT_WINDOW, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES } from "./fighter";
+import {
+  FAST_FALL_INPUT_WINDOW,
+  type Fighter,
+  PLATFORM_DROP_INPUT_WINDOW,
+  SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES,
+  WALL_JUMP_FLICK_FRAMES,
+  WALL_TECH_JUMP_INPUT_WINDOW_FRAMES,
+} from "./fighter";
 import { DASH_GUARD_EARLY_FRAMES, advanceGroundMovement, clearDash } from "./groundMovement";
 import { AIR_DODGE_ANIMATION_FRAMES, AIR_DODGE_DECAY, beginAirDodge, beginGroundDodge, beginJump, canBeginGroundDodge } from "./jumpsAndDodges";
 import { ageKnockback, applyDirectionalInfluence, decayKnockback } from "./knockback";
@@ -38,6 +45,7 @@ import { DOWN_ATTACK_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackStartupFrames, isSma
 import {
   addMeleeWorldValues,
   airDriftVelocity,
+  ceilingImpulseDriftVelocity,
   applyMeleeGravity,
   moveMeleeVerticalVelocity,
   moveMeleeX,
@@ -63,7 +71,7 @@ import { applyAutomaticSmashDirectionalInfluence, applySmashDirectionalInfluence
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
 import { stickX } from "./stick";
 import { checkBlastZone, respawnFighter } from "./stocks";
-import { advanceSurfaceRecovery, resolveSolidSurfaceContacts } from "./surfaces";
+import { advanceSurfaceRecovery, advanceWallJump, leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
 import { forwardRollTurnFrame, rollTravel } from "../physics/rollTravel";
 import { advanceTechInput, techContactWindow } from "../physics/techInput";
 import { clearDownState, clearOwnedFreezeTrap } from "./transitions";
@@ -303,6 +311,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   const horizontalStick = stickX(input);
   const stickSide = horizontalStick >= STICK_SMASH_DEADZONE_X ? 1 : horizontalStick <= -STICK_SMASH_DEADZONE_X ? -1 : 0;
   const tumbleExitFlick = stickSide !== 0 && stickSide !== motion.previousStickSide && Math.abs(horizontalStick) >= TUMBLE_EXIT_STICK_X;
+  motion.stickSideAge = stickSide === 0 ? WALL_JUMP_FLICK_FRAMES : stickSide === motion.previousStickSide ? min(WALL_JUMP_FLICK_FRAMES, motion.stickSideAge + 1) : 0;
   motion.previousStickSide = stickSide;
   // Expiry resumes this frame, including input gates and state countdowns.
   const hitlagBefore = launch.hitlag;
@@ -429,7 +438,8 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       if (advanceGroundMovement(f, direction, input.walking)) dashEntryDisplacementAdjustment = f32(previousGroundVelocity - motion.vx);
     } else if (direction !== 0 && !groundTakeoff) {
       // Air steering changes velocity, not facing; back aerials rely on a stable orientation.
-      motion.vx = airDriftVelocity(f, motion.vx, direction);
+      const ceilingImpulse = f.surfaceRecovery.state === SurfaceContact.techCeiling && f.surfaceRecovery.frame === f.tuning.tech.ceilingImpulseFrame;
+      motion.vx = ceilingImpulse ? ceilingImpulseDriftVelocity(f, motion.vx, direction) : airDriftVelocity(f, motion.vx, direction);
     }
   }
   if (isGroundDodging(f) && dodge.groundDirection !== 0) {
@@ -477,17 +487,28 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   moveMeleeVerticalVelocity(f);
   moveMeleeZ(f, divideFloat32(launch.knockbackZ, WORLD_UNITS_PER_MELEE_UNIT));
   moveMeleeZ(f, divideFloat32(shield.recoilZ, WORLD_UNITS_PER_MELEE_UNIT));
-  resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input);
+  const frameDeltaX = f32(motion.x - oldX);
+  let wallSide = resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input);
   const landing = landingDeck(f, stage, oldX, oldZ);
   if (landing !== undefined) {
     finishLanding(f, stage, input, landing, false);
   } else {
+    // Moving into a wall that leans out puts the fighter inside the body
+    // rather than across a face; moved back out, it is against that wall as
+    // Melee's collision reports it. One leaving a ledge's corner is not.
+    const bodySide = leaveMainDeckBody(f, stage);
+    if (wallSide === 0 && f32(bodySide * frameDeltaX) > 0) wallSide = bodySide;
     if (motion.grounded) jump.remaining = min(jump.remaining, 1);
     motion.grounded = false;
     motion.surface = undefined;
     clearDash(f);
   }
-  if (!motion.grounded) motion.crouching = false;
+  if (motion.grounded) {
+    f.surfaceRecovery.wallJumpsUsed = 0;
+  } else {
+    motion.crouching = false;
+    advanceWallJump(f, wallSide, frameDeltaX, horizontalStick);
+  }
   checkBlastZone(world, slot);
   motion.deltaX = f32(motion.x - oldX);
   motion.deltaZ = f32(motion.z - oldZ);

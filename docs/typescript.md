@@ -95,7 +95,8 @@ Map builds use staged outputs: interrupting a step stops its child process, a
 failed step leaves the previous map in place, and archive entries are verified
 four at a time. `wisp parity numeric` compares the numeric corpus against
 Lua32; `wisp parity capture` and `wisp parity result` run and reconcile
-the native issue #26 input-integrity check through the same CLI. `wisp fresh
+the native issue #26 input-integrity check through the same CLI; `wisp parity
+capture --bot` plays the native bot session (smashcraft:docs/native-bot-session.md). `wisp fresh
 MAP.w3x [--rebuild] [--from-game]` rebuilds the map script when requested,
 starts a new match, sends `-dev quick`, and waits for every client's typed
 receipt. Use `--from-game` when every client is already in a running map:
@@ -158,8 +159,10 @@ missing (missing-input) or stops (input-stall).
 
 A player who sees something wrong saves the moment
 ([Wisp repros](https://github.com/tompassarelli/wisp/blob/main/docs/repro.md)):
-F8 in every build, or View held for a second on a controller, which the
-companion helper types into the journal's edit box as `JM1` and the epoch. Every
+K in every build, or View held for a second on a controller, which the
+companion helper types into the journal's edit box as `JM1` and the epoch. K is
+registered as Y is; F8, registered the same way, never reached the map's handler
+in the development build or 0.0.48 (6 October 2026), while View did. Every
 client keeps the last ten to twelve seconds of its confirmed match
 (smashcraft:ts/src/game/replay/moment.ts): a snapshot every 120 frames, six in
 all, and each human's input row for every frame since the oldest. The asking
@@ -229,7 +232,9 @@ the real input path instead (smashcraft:ts/test/soak/helper.ts): each player
 a uinput pad the fuzzer drives about once a second, read by a persistent
 wc3-journal helper built with `--text-out`, into headless clients in real
 time, with the same detectors. It needs /dev/uinput, as `bun wisp parity
-headless` does.
+headless` does. Its repro files keep what each helper typed and wrote, by
+frame, so `bun wisp soak --repro FILE` replays them without the helpers or
+pads; the pads' edges stay in the file as evidence.
 
 The development and integrity builds measure what each frame costs
 (smashcraft:ts/src/platform/frameMeter.ts, [Wisp frame cost](https://github.com/tompassarelli/wisp/blob/main/docs/frame-cost.md)):
@@ -335,6 +340,13 @@ new table for each hidden pose was 82 of a solo match callback's 87 KB of
 Lua allocation when it ran no frame, and 82 of 137 KB on average (Lua32,
 6 October 2026). Lua's collector works in proportion to what is
 allocated, in steps that land on whichever callback allocates next.
+Rollback runs each frame several times (confirmed, predicted, replayed), so
+per-frame copies stay to what a replay needs: a network row's controls are
+execution scratch that executeMatchFrame writes before reading, so
+copyMatchFrameInput leaves them out; a free impact slot holds the empty
+pool's values, so copying the pool skips slots free in both; and
+decayedAirMotion keeps recent results by input, since 87% of a four-fighter
+match's airborne decays repeat one already computed (#48).
 
 Native calls cost Warcraft more than Lua does. A renderer parks a pooled
 effect once, when it stops showing it, and keeps a flag per effect so it does
@@ -479,15 +491,18 @@ build packages into a copy of a fully packaged private map, the asset
 container. This is a mitigation: the build replaces the container's script,
 object data, description and header, and fails unless every other base-map file
 and every declared import equals its source. Imports the build does not declare
-are carried along unverified.
+are carried along unverified. A newly declared import goes into a copy of the
+container with the packager, from the repository root:
+`build/tools/map-pack replace CONTAINER.w3x FILE 'war3mapImported\NAME'`.
 
 Repository-authored models are generated: each generator writes the models,
 their textures and an import list under smashcraft:build/, and the models'
 content-addressed import paths to a checked-in module under
 smashcraft:ts/src/game/, which the map compiles. Regenerate instead of editing
 those modules. smashcraft:ts/scripts/wisp/mapInputs.ts lists each family
-(`GENERATED_MODELS`) with its import list and generator; the stage deck comes
-from smashcraft:tools/stage/package.ts. The build fails unless each family's
+(`GENERATED_MODELS`) with its import list and generator; the stage decks come
+from smashcraft:tools/stage/package.ts, which draws the main deck from its
+collision lines. The build fails unless each family's
 import list under `--assets` holds every model its module names, and unless the
 summon evidence lists the clips smashcraft:ts/src/game/presentation/summonClipInfo.ts
 names; the archive check then verifies the map carries them. `rebuild` and

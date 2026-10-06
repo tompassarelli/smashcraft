@@ -8,7 +8,7 @@ import { meleeAtan2, meleeCos, meleeSin } from "../../sim/meleeScalarMath";
 import { Character } from "./codes";
 import type { Fighter, MeleeMotionValue } from "./fighter";
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
-import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
+import { WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
 
 function setOriginal(value: MeleeMotionValue, original: number): void {
   value.original = original;
@@ -109,13 +109,40 @@ export function totalVelocityZ(f: Fighter): number {
   return f32(f32(f.motion.vz + f.launch.knockbackZ) + f.shield.recoilZ);
 }
 
-export function airDriftVelocity(f: Fighter, velocity: number, direction: number): number {
-  const { airSpeed: target, airAcceleration: acceleration, airCap, airFriction } = f.tuning.physics;
-  // Illidan retains his authored immediate drift cap.
-  if (f.character === Character.demonHunter) return max(-airCap, min(airCap, f32(velocity + f32(direction * acceleration))));
+/**
+ * Melee's air drift with the stick held (ftCommon_CalcSelfAccel_DriftFrom,
+ * ftCommon_CalcSelfAccel_AccelToVelClampedFrom in melee:src/melee/ft/ftcommon.c):
+ * toward the stick it gains its acceleration up to the air speed; above the
+ * air speed it loses its air friction instead, never below the air speed,
+ * and never past `cap` (ftCo_DatAttrs +0x078 air_max_horizontal_velocity).
+ */
+function retailAirDriftVelocity(f: Fighter, velocity: number, direction: number, cap: number): number {
+  const { airSpeed: target, airAcceleration: acceleration, airFriction } = f.tuning.physics;
   const alongInput = f32(velocity * direction);
   const next = alongInput > target ? max(target, f32(alongInput - airFriction)) : min(target, f32(alongInput + acceleration));
-  return f32(max(-airCap, min(airCap, next)) * direction);
+  return f32(max(-cap, min(cap, next)) * direction);
+}
+
+export function airDriftVelocity(f: Fighter, velocity: number, direction: number): number {
+  const { airAcceleration: acceleration, airCap } = f.tuning.physics;
+  // Illidan retains his authored immediate drift cap.
+  if (f.character === Character.demonHunter) return max(-airCap, min(airCap, f32(velocity + f32(direction * acceleration))));
+  return retailAirDriftVelocity(f, velocity, direction, airCap);
+}
+
+/** Captain Falcon's ftCo_DatAttrs +0x078 air_max_horizontal_velocity, 3.0 (retail PlCa.dat). */
+const CAPTAIN_FALCON_AIR_MAX_HORIZONTAL_VELOCITY = melee(3.0);
+
+/**
+ * The drift on a ceiling tech's impulse frame, after the impulse
+ * (ftCo_PassiveCeil_Phys runs ft_80084DB0's drift): Melee's rule for every
+ * fighter. Illidan's Captain Falcon impulse of 2.0 loses a frame of his air
+ * friction there instead of meeting his authored cap; the rule's cap is
+ * Captain Falcon's.
+ */
+export function ceilingImpulseDriftVelocity(f: Fighter, velocity: number, direction: number): number {
+  if (f.character !== Character.demonHunter) return airDriftVelocity(f, velocity, direction);
+  return retailAirDriftVelocity(f, velocity, direction, CAPTAIN_FALCON_AIR_MAX_HORIZONTAL_VELOCITY);
 }
 
 function retailAirDecaySquaredCutoff(decay: number): number {
@@ -144,8 +171,28 @@ interface AirMotion {
 // Preallocated: rollback replays decay launch and recoil every airborne frame.
 const decayed: AirMotion = { x: 0.0, z: 0.0, belowCutoff: false };
 
+// The confirmed match, prediction and every replay decay the same vectors
+// again, and one decay is some forty exact binary32 operations, so recent
+// results are kept by their horizontal input. A pure function's cache: what
+// it holds never changes a result.
+const DECAY_MEMO_LIMIT = 512;
+let decayMemoSize = 0;
+let decayMemoVertical: Record<number, number> = {};
+let decayMemoDecay: Record<number, number> = {};
+let decayMemoCutoff: Record<number, number> = {};
+let decayMemoX: Record<number, number> = {};
+let decayMemoZ: Record<number, number> = {};
+
 /** Decays a Melee-unit vector along its own angle. Valid until the next call. */
 export function decayedAirMotion(horizontal: number, vertical: number, decay: number, squaredCutoff: number): Readonly<AirMotion> {
+  // Zeros would lose their sign as keys, and NaN can't be one.
+  const memoized = horizontal !== 0 && vertical !== 0 && horizontal === horizontal;
+  if (memoized && decayMemoVertical[horizontal] === vertical && decayMemoDecay[horizontal] === decay && decayMemoCutoff[horizontal] === squaredCutoff) {
+    decayed.x = decayMemoX[horizontal] ?? 0.0;
+    decayed.z = decayMemoZ[horizontal] ?? 0.0;
+    decayed.belowCutoff = false;
+    return decayed;
+  }
   const verticalSquare = multiplyFloat32(vertical, vertical);
   const speedSquare = fusedMultiplyAddFloat32(horizontal, horizontal, verticalSquare);
   if (speedSquare < squaredCutoff) {
@@ -158,6 +205,22 @@ export function decayedAirMotion(horizontal: number, vertical: number, decay: nu
   decayed.x = fusedMultiplyAddFloat32(-decay, meleeCos(angle), horizontal);
   decayed.z = fusedMultiplyAddFloat32(-decay, meleeSin(angle), vertical);
   decayed.belowCutoff = false;
+  if (memoized) {
+    if (decayMemoSize === DECAY_MEMO_LIMIT) {
+      decayMemoSize = 0;
+      decayMemoVertical = {};
+      decayMemoDecay = {};
+      decayMemoCutoff = {};
+      decayMemoX = {};
+      decayMemoZ = {};
+    }
+    if (decayMemoVertical[horizontal] === undefined) decayMemoSize++;
+    decayMemoVertical[horizontal] = vertical;
+    decayMemoDecay[horizontal] = decay;
+    decayMemoCutoff[horizontal] = squaredCutoff;
+    decayMemoX[horizontal] = decayed.x;
+    decayMemoZ[horizontal] = decayed.z;
+  }
   return decayed;
 }
 

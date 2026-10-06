@@ -1,0 +1,226 @@
+[
+  {
+    "epoch": 1,
+    "slot": 0,
+    "rows": 1780,
+    "buttons": [
+      {
+        "button": "attack",
+        "script_presses": 7,
+        "rows_with_press": 7,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "jump",
+        "script_presses": 7,
+        "rows_with_press": 7,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "special",
+        "script_presses": 7,
+        "rows_with_press": 7,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "shield",
+        "script_presses": 7,
+        "rows_with_press": 7,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-right",
+        "script_presses": 7,
+        "rows_with_press": 7,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-left",
+        "script_presses": 7,
+        "rows_with_press": 7,
+        "missed": 0,
+        "extra": 0
+      }
+    ],
+    "held_in_last_row": 0,
+    "input_delay_frames": {
+      "n": 132,
+      "p50": 3,
+      "p95": 5,
+      "max": 5
+    }
+  },
+  {
+    "epoch": 2,
+    "slot": 0,
+    "rows": 2052,
+    "buttons": [
+      {
+        "button": "attack",
+        "script_presses": 8,
+        "rows_with_press": 8,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "jump",
+        "script_presses": 8,
+        "rows_with_press": 8,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "special",
+        "script_presses": 8,
+        "rows_with_press": 8,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "shield",
+        "script_presses": 8,
+        "rows_with_press": 8,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-right",
+        "script_presses": 8,
+        "rows_with_press": 8,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-left",
+        "script_presses": 8,
+        "rows_with_press": 8,
+        "missed": 0,
+        "extra": 0
+      }
+    ],
+    "held_in_last_row": 0,
+    "input_delay_frames": {
+      "n": 178,
+      "p50": 3,
+      "p95": 5,
+      "max": 10
+    }
+  },
+  {
+    "epoch": 1,
+    "slot": 1,
+    "rows": 1780,
+    "buttons": [
+      {
+        "button": "attack",
+        "script_presses": 7,
+        "rows_with_press": 7,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "jump",
+        "script_presses": 7,
+        "rows_with_press": 7,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "special",
+        "script_presses": 7,
+        "rows_with_press": 7,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "shield",
+        "script_presses": 7,
+        "rows_with_press": 7,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-right",
+        "script_presses": 7,
+        "rows_with_press": 7,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-left",
+        "script_presses": 7,
+        "rows_with_press": 7,
+        "missed": 0,
+        "extra": 0
+      }
+    ],
+    "held_in_last_row": 0,
+    "input_delay_frames": {
+      "n": 140,
+      "p50": 4,
+      "p95": 23,
+      "max": 26
+    }
+  },
+  {
+    "epoch": 2,
+    "slot": 1,
+    "rows": 2052,
+    "buttons": [
+      {
+        "button": "attack",
+        "script_presses": 8,
+        "rows_with_press": 8,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "jump",
+        "script_presses": 8,
+        "rows_with_press": 8,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "special",
+        "script_presses": 8,
+        "rows_with_press": 8,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "shield",
+        "script_presses": 8,
+        "rows_with_press": 8,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-right",
+        "script_presses": 8,
+        "rows_with_press": 8,
+        "missed": 0,
+        "extra": 0
+      },
+      {
+        "button": "dash-left",
+        "script_presses": 8,
+        "rows_with_press": 8,
+        "missed": 0,
+        "extra": 0
+      }
+    ],
+    "held_in_last_row": 0,
+    "input_delay_frames": {
+      "n": 184,
+      "p50": 4,
+      "p95": 26,
+      "max": 45
+    }
+  }
+]

@@ -30,7 +30,7 @@ const FLAG_FIELDS: Readonly<Record<FlagField, true>> = {
   diStickValid: true, sdiPulse: true, attackRequested: true, specialPressed: true, down: true, shield: true,
   shieldPressed: true, shieldTriggerActive: true, jumpPressed: true, airDodgePressed: true, techPressed: true,
   mashPressed: true, attackPressed: true, grabMashPressed: true, groundDodgePressed: true,
-  getupAttackPressed: true, getupStandPressed: true, getupDirectionPressed: true, jumpHeld: true, walking: true,
+  getupAttackPressed: true, getupStandPressed: true, getupDirectionPressed: true, cStickUpFlick: true, jumpHeld: true, walking: true,
   attackHeld: true,
 };
 
@@ -38,7 +38,7 @@ const FLAG_FIELDS: Readonly<Record<FlagField, true>> = {
 const NUMBER_FIELDS: Readonly<Record<NumberField, "int" | "real">> = {
   direction: "int", verticalDirection: "int", diStickX: "real", diStickZ: "real", sdiX: "int", sdiZ: "int",
   cStickX: "int", cStickZ: "int", specialX: "int", specialZ: "int", shieldStrength: "real", grabThrowX: "int",
-  grabThrowZ: "int", groundDodgeDirection: "int", ledgeVerticalPressed: "int", getupDirection: "int",
+  grabThrowZ: "int", groundDodgeDirection: "int", ledgeVerticalPressed: "int", getupDirection: "int", cStickSideFlick: "int",
   dodgeX: "int", dodgeZ: "int",
 };
 

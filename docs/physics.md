@@ -1131,8 +1131,13 @@ common values are in smashcraft:docs/smash-melee-reference/physics-parameters.js
   than +0x020 = 50 degrees above horizontal (roll forward or back relative to
   facing), and the stick at least +0x244 = 0.2 up at 50 degrees or more, or an
   L/R press (stand).
-- A C-stick up or sideways flick also strikes or rolls in Melee; the
-  simulation reads only the left stick for these.
+- A C-stick flick does the same on the frame it crosses its threshold:
+  `ftCo_800984D4` and `ftCo_80098400` attack on an up crossing of +0x7F4 =
+  0.6625 (`ftCo_800DF644` in melee:src/melee/ft/ft_0DF1.c), and
+  `ftCo_Down_CheckInput` rolls on a sideways crossing of +0x248 within the
+  roll angle (`ftCo_800DF678`), preferring it to the left stick. The roll is
+  forward or back by the flick's side. The C-stick is digital here, so a press
+  of its smash direction is the crossing; held through the wait it does nothing.
 - Smashcraft also stands on Jump and treats a sideways press released within
   its input row as a roll, for keyboards.
 
@@ -1738,8 +1743,10 @@ contact chooses the roll when the stick is at least +0x254 = 0.2 sideways
 (`ftCo_80098928`); its movement is clamped to the current platform.
 A tech clears impact hitstun and consumes its input window. Early-hitlag versus
 last-hitlag inputs, repeated/grounded presses, window/lockout boundaries,
-recovery actions, interruption and reset are tested in the same Wurst simulation
-used by the map. Wall/ceiling techs and SDI/ASDI collision are not implemented.
+recovery actions, interruption and reset are tested in the simulation the map
+runs. Wall and ceiling techs are in "Wall and ceiling techs and wall jumps"
+below; SDI and ASDI shifts meet the main deck's walls and underside as other
+movement does (smashcraft:ts/src/game/sim/smashDirectionalInfluence.ts).
 
 ## Aerial landing lag
 
@@ -1804,8 +1811,10 @@ outcome beside the value cited from the decompilation and the retail reference
 corpus, with the constant and source path for each scenario, then the counts
 per area. The scenarios are in smashcraft:ts/scripts/meleeOracle.ts: jump squat
 and hop heights, dash/run/walk speeds, fast-fall, landing lag, floor techs,
-get-up options and timings, the tumble threshold, pass-through platforms, wall
-and ceiling techs, shield release and dodges, and ledge catches.
+get-up options and timings, the tumble threshold, pass-through platforms, the
+main deck's walls and underside (where launches meet them, the techs off them,
+the push-off and wall jumps), shield release and dodges, and ledge catches, one
+from against the wall.
 smashcraft:ts/scripts/meleeOracle.tests.ts runs the table in the test suite and
 fails on any mismatch not listed in its `KNOWN_MISMATCHES`, and on a listed row
 that now passes. A deliberate difference from Melee is reported as a departure
@@ -1816,7 +1825,8 @@ so the aerial landing lag without an L press is such a departure.
 Character data compares only where a fighter borrows it: Archer's and
 Rifleman's movement, landing and action timings are Fox's and Falco's, and
 Illidan's are original, so those rows read n/a for him; Illidan's ledge catch
-box is Captain Falcon's. Common rules (input windows, tech gates,
+box and wall data are Captain Falcon's, as Archer's and Rifleman's are Fox's
+and Falco's. Common rules (input windows, tech gates,
 knockback, platforms, ledge boxes) apply to all three. Where Smashcraft
 authors a value, such as ground acceleration or aerial landing lag, the
 scenario checks Melee's rule applied to it, not the value.
@@ -1833,10 +1843,137 @@ wall or ceiling tech. In Melee a platform is a floor line flagged
 the ECB bottom descends, `mpCheckCeiling` scans ceiling-kind lines only, and
 `mpJointUpdateDynamics` disables a platform line that is not floor-kind;
 `mpColl_80044628_Floor` (melee:src/melee/mp/mpcoll.c) skips the platform being
-dropped through. On the playable stages the only solid face is the main deck's
-underside (z -54, x within ±528). Wall and ceiling contact tests use
-`SOLID_DECK_TEST_STAGE` (smashcraft:ts/src/game/sim/stage.ts), stage 1's layout
-with solid raised decks, which no match can select.
+dropped through. The main deck's walls and underside are below.
+
+## Main deck walls and underside
+
+Every stage's main deck has Final Destination's side walls and underside.
+Final Destination is the reference because stage 0 is its layout, one flat
+deck, and stage 1 keeps the same main deck. The lines come from its
+`coll_data` (melee:src/melee/mp/types.h `MapCollData`, `MapLine`; loaded by
+`mpLibLoad` in melee:src/melee/mp/mplib.c) in the owner's GALE01 revision 2
+GrNLa.dat (611125 bytes, SHA-1 fa607d7bb7dd4072d2d3968e1e31fd458bc397f8),
+whose `grGroundParam` scale (`Ground_801C0498`) is 1. The private reader is
+~/.local/share/smashcraft-melee-reference/stage-collision-facts.ts; only the
+numbers below are kept.
+
+Below its floor (ledge vertices at x ±85.5657, y 0) each side is five
+wall lines and a short sloped underside, in Melee units:
+
+| Line | Kind | From | To |
+| --- | --- | --- | --- |
+| 9 | right wall | (85.5657, 0) | (85.5657, -10.5) |
+| 10 | right wall | (85.5657, -10.5) | (65.7993, -20.4538) |
+| 7 | right wall | (65.7993, -20.4538) | (65.8374, -31.3443) |
+| 8 | right wall | (65.8374, -31.3443) | (61.4195, -47.3663) |
+| 6 | right wall | (61.4195, -47.3663) | (53.7736, -54.2584) |
+| 5 | ceiling | (53.7736, -54.2584) | (47.4560, -55.3882) |
+| 4 | ceiling | (47.4560, -55.3882) | (-47.4560, -55.3882) |
+
+Lines 3, 15, 14, 12, 13 and 11 mirror lines 5, 6, 8, 7, 10 and 9 on the left.
+The face kinds are Melee's: line 10 slopes in under the ledge but is a wall,
+so a launch into it can wall tech. smashcraft:ts/src/game/sim/stage.ts keeps
+each side's lines as far from its own ledge as they are from Final
+Destination's, at six world units per Melee unit. Smashcraft's deck is 200 Melee units wide to Final
+Destination's 171.13, so the level underside spans the wider deck between the
+sides: in world units the walls drop straight from each ledge (x ±600) to z -63,
+slope in to x ±481.4 at z -122.7, and meet the underside at z -332.33,
+which spans x ±371.3. The main deck's model is drawn from these lines on
+every stage: smashcraft:ts/scripts/stageDeck.ts extrudes the walking line,
+walls and underside 60 units to each side of the fighters' plane, and
+smashcraft:tools/stage/package.ts writes it at arena scale, named after its
+MDL text. smashcraft:ts/test/stage-model.test.ts checks that the shipped
+model is the one drawn from the current lines, that its front faces' outline
+is those lines on both shipped stages, and that its model facts' bounds reach
+each wall and the underside. Stage 1's raised decks keep the scaled slab.
+
+A fighter meets a wall with its flank: Melee's ECB side touches the wall, and
+`mpColl_LoadECB_JObj` (melee:src/melee/mp/mpcoll.c) keeps an airborne ECB at
+least 2 units a side. Smashcraft fighters use that 2-unit half-width
+(`BODY_HALF_WIDTH`, smashcraft:ts/src/game/sim/surfaces.ts), so a fighter
+stopped against the wall below a ledge stands 12 world units outside it, and
+its ledge catch box (which adds the same half-width) still holds the ledge.
+Undersides stop the feet. A wall moves the fighter but not its own velocity,
+as Melee's airborne collision only moves the position (`ft_800835B0`,
+melee:src/melee/ft/ft_081B.c): launch velocity into the wall stops, or a
+tumbling launch rebounds at 0.8, and a fighter that rises past the wall's top
+carries on over the stage. An underside stops a rise. A fighter that slips past
+a ledge's corner within its half-width of the wall, as when running off the
+ledge, is moved out sideways to its flank, as Melee's ECB slides off the
+corner. A wall tech pushes off along the facing it turns to, away from even a
+sloped wall (`ftCo_PassiveWall_Anim`); see "Wall and ceiling techs and wall jumps" below.
+
+Ledge actions don't collide with the body; Melee's cliff actions run their own
+collision (`ftCo_CliffClimb_Coll`). Climbs, rolls and ledge attacks pass through
+it onto the floor. A ledge jump starts beside the wall below the ledge, slides
+up its face and carries its inward speed onto the stage. Wall and ceiling
+contact tests on raised decks use `SOLID_DECK_TEST_STAGE`
+(smashcraft:ts/src/game/sim/stage.ts), stage 1's layout with solid raised
+decks, which no match can select.
+smashcraft:ts/src/game/sim/surfaces.tests.ts checks the geometry against the
+table, smashcraft:ts/src/game/match/wallTechInputContracts.tests.ts launches
+each fighter into the side through helper journal rows and techs off it, and
+the oracle's wall/ceiling and ledge rows check where launches meet the side and
+underside, the techs off them and a catch from against the wall.
+
+## Wall and ceiling techs and wall jumps
+
+A wall tech holds the fighter on the wall for five frames (PlCo +0x760), then
+pushes it off away from the wall at its reference's `passivewall_vel_x`
+(ftCo_DatAttrs +0x100), or, when jump was pressed in the last 20 frames or
+the stick is up (`ftCo_800C1E0C`), launches its reference's wall jump (+0x104
+sideways, +0x108 up), then air friction and gravity act as usual
+(melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveWall.c). Each fighter takes
+these from its Melee reference, read from the owner's GALE01 revision 2 DATs
+(smashcraft:docs/smash-melee-reference/physics-parameters.json), in Melee
+units a frame:
+
+| Fighter | Reference | Push-off | Wall jump sideways | Wall jump up | Minimum approach | Ceiling impulse (frame) |
+| --- | --- | --- | --- | --- | --- | --- |
+| Archer | Fox | 0.5 | 1.4 | 3.3 | 0.5 | 0.7 (14) |
+| Rifleman | Falco | 0.5 | 1.3 | 3.6 | 0.5 | 0.7 (14) |
+| Illidan | Captain Falcon | 0.5 | 1.4 | 3.1 | 0.5 | 2.0 (11) |
+
+All three references wall jump (`ftFx_Init_OnLoad`, `ftFc_Init_OnLoad` and
+`ftCa_Init_OnLoad` set `can_walljump`); a fighter whose tuning lacks
+`canWallJump` never wall jumps.
+
+A ceiling tech (`ftCo_800C23FC`, melee:src/melee/ft/kinds/ftCommon/ftCo_PassiveCeil.c)
+stops the fighter's motion and has no hang: gravity and air drift go on
+(`ft_80084DB0`). On its animation's throw-flag event, frame 14 for Fox and
+Falco and 11 for Captain Falcon
+(smashcraft:docs/smash-melee-reference/retail-ceiling-tech-events.json), the
+fighter's sideways speed becomes the stick's horizontal value times its
+reference's `passiveceil_vel_x` (+0x10C, `ftCo_PassiveCeil_Anim`), and it
+stops being intangible. That frame's drift follows Melee's
+`ftCommon_CalcSelfAccel_AccelToVelClampedFrom` (melee:src/melee/ft/ftcommon.c)
+for every fighter: toward the stick it adds the acceleration up to the air
+speed, and above it subtracts the air friction instead, no lower than the air
+speed and no higher than +0x078 `air_max_horizontal_velocity` (Captain
+Falcon's 3 for Illidan). Captain Falcon's own drift turns his 2.0 into 1.99,
+so Illidan's authored immediate drift cap does not apply on that frame: with
+his own friction his 2.0 becomes 1.98. From the next frame his ordinary drift,
+capped at 0.88, applies again.
+
+A wall jump follows `ftWallJump_8008169C` (melee:src/melee/ft/ftwalljump.c).
+After the frame's collision, a fighter that is falling, jumping, tumbling
+past hitstun, or in a wall or ceiling recovery past its hang checks it;
+aerials, specials, air dodges, special fall and hitstun don't. Meeting a wall
+faster sideways than the minimum approach speed opens a 130-frame window
+(PlCo +0x768) while the fighter stays against that wall, and pushing the
+stick at least 0.8 away from it (+0x76C) within 3 frames of the stick leaving
+the horizontal smash deadzone (+0x770) starts the jump. It enters the wall
+tech's state (`ftCo_800C1E64`): motion stops, the fighter turns away, it is
+protected for 14 frames, hangs 5 (+0x774), then launches as above. Each
+earlier wall jump since the fighter last stood on the ground scales the rise
+by 0.975 (+0x778). A fighter moved out of the deck's body (see above) counts
+as against that wall, as Melee's collision leaves it touching.
+
+smashcraft:ts/src/game/match/wallTechInputContracts.tests.ts checks the
+push-off, the wall tech's jump, a drift-and-flick wall jump and the ceiling
+tech's impulse for each fighter through helper journal rows, and the oracle's
+wall/ceiling rows compare the hang, launch speeds, rises and the ceiling
+impulse's frame and speed with the reference values.
 
 ## Shield presentation boundary
 
@@ -2010,7 +2147,8 @@ melee:src/melee/ft/ft_081B.c. Only facts and values are used.
   snap y minus and plus half the height above its feet. Both ranges sweep the
   frame's start and end positions, so a fast fall can't pass through. Melee's
   half-width is the animated airborne collision box, never under 2 units
-  (`mpColl_LoadECB_JObj`); Smashcraft fighters collide as points and use 2.
+  (`mpColl_LoadECB_JObj`); Smashcraft fighters use 2, the flank they also meet
+  walls with (see "Main deck walls and underside").
 
 | Fighter | Reference data | Snap x / y / height (Melee units) | Reach (world) | Ledge above feet (world) |
 | --- | --- | --- | --- | --- |

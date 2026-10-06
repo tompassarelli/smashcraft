@@ -202,6 +202,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("fastFallDownHeld", e.motion.fastFallDownHeld, a.motion.fastFallDownHeld);
   add("fastFallInputAge", e.motion.fastFallInputAge, a.motion.fastFallInputAge);
   add("previousStickSide", e.motion.previousStickSide, a.motion.previousStickSide);
+  add("stickSideAge", e.motion.stickSideAge, a.motion.stickSideAge);
   add("jumpInputAge", e.jump.inputAge, a.jump.inputAge);
   add("fastFalling", e.motion.fastFalling, a.motion.fastFalling);
   add("grounded", e.motion.grounded, a.motion.grounded);
@@ -222,6 +223,10 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("surfaceRecoveryFrame", e.surfaceRecovery.frame, a.surfaceRecovery.frame);
   add("surfaceRecoveryVelocityApplied", e.surfaceRecovery.velocityApplied, a.surfaceRecovery.velocityApplied);
   add("surfaceWallJumpQueued", e.surfaceRecovery.wallJumpQueued, a.surfaceRecovery.wallJumpQueued);
+  add("surfaceWallJumpRepeat", e.surfaceRecovery.wallJumpRepeat, a.surfaceRecovery.wallJumpRepeat);
+  add("surfaceWallJumpAge", e.surfaceRecovery.wallJumpAge, a.surfaceRecovery.wallJumpAge);
+  add("surfaceWallJumpSide", e.surfaceRecovery.wallJumpSide, a.surfaceRecovery.wallJumpSide);
+  add("surfaceWallJumpsUsed", e.surfaceRecovery.wallJumpsUsed, a.surfaceRecovery.wallJumpsUsed);
   add("surfaceReflectCooldown", e.surfaceRecovery.reflectCooldown, a.surfaceRecovery.reflectCooldown);
   add("lastReflectedSurface", e.surfaceRecovery.lastReflectedSurface, a.surfaceRecovery.lastReflectedSurface);
   add("surfaceContactSerial", e.surfaceRecovery.contactSerial, a.surfaceRecovery.contactSerial);

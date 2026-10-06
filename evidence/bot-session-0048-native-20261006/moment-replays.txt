@@ -1,0 +1,70 @@
+== smashcraft-repro-p0-f1854-2.repro.log
+smashcraft-repro-p0-f1854-2.txt: build playable-0047, frame 1854, checksum 750981:804582
+p0: ran 654 frames to checksum 334867:643889
+p0: frame 1320 replays to checksum 85101:244422; the game recorded 541477:318237
+p1: ran 654 frames to checksum 334867:643889
+p1: frame 1320 replays to checksum 85101:244422; the game recorded 541477:318237
+the replay doesn't land on the recorded checksum 750981:804582 at frame 1854
+== smashcraft-repro-p0-f1862-1.repro.log
+smashcraft-repro-p0-f1862-1.txt: build playable-0047, frame 1862, checksum 14760:637232
+p0: ran 662 frames to checksum 901437:594764
+p0: frame 1320 replays to checksum 23472:592439; the game recorded 618717:866000
+p1: ran 662 frames to checksum 901437:594764
+p1: frame 1320 replays to checksum 23472:592439; the game recorded 618717:866000
+the replay doesn't land on the recorded checksum 14760:637232 at frame 1862
+== smashcraft-repro-p1-f1858-2.repro.log
+smashcraft-repro-p1-f1858-2.txt: build playable-0047, frame 1858, checksum 257676:572448
+p0: ran 658 frames to checksum 47114:380594
+p0: frame 1320 replays to checksum 85101:244422; the game recorded 541477:318237
+p1: ran 658 frames to checksum 47114:380594
+p1: frame 1320 replays to checksum 85101:244422; the game recorded 541477:318237
+the replay doesn't land on the recorded checksum 257676:572448 at frame 1858
+== smashcraft-repro-p1-f1862-1.repro.log
+smashcraft-repro-p1-f1862-1.txt: build playable-0047, frame 1862, checksum 14760:637232
+p0: ran 662 frames to checksum 901437:594764
+p0: frame 1320 replays to checksum 23472:592439; the game recorded 618717:866000
+p1: ran 662 frames to checksum 901437:594764
+p1: frame 1320 replays to checksum 23472:592439; the game recorded 618717:866000
+the replay doesn't land on the recorded checksum 14760:637232 at frame 1862
+== smashcraft-repro-p0-f1850-1.repro.log
+smashcraft-repro-p0-f1850-1.txt: build typescript-integrity, frame 1850, checksum 729813:81916
+p0: ran 650 frames to checksum 815427:347799
+p0: frame 1320 replays to checksum 715240:543224; the game recorded 9664:158774
+p1: ran 650 frames to checksum 815427:347799
+p1: frame 1320 replays to checksum 715240:543224; the game recorded 9664:158774
+the replay doesn't land on the recorded checksum 729813:81916 at frame 1850
+== smashcraft-repro-p0-f1864-2.repro.log
+smashcraft-repro-p0-f1864-2.txt: build typescript-integrity, frame 1864, checksum 772616:916364
+p0: ran 664 frames to checksum 934719:940705
+p0: frame 1320 replays to checksum 501579:687291; the game recorded 978837:679987
+p1: ran 664 frames to checksum 934719:940705
+p1: frame 1320 replays to checksum 501579:687291; the game recorded 978837:679987
+the replay doesn't land on the recorded checksum 772616:916364 at frame 1864
+== smashcraft-repro-p1-f1850-1.repro.log
+smashcraft-repro-p1-f1850-1.txt: build typescript-integrity, frame 1850, checksum 729813:81916
+p0: ran 650 frames to checksum 815427:347799
+p0: frame 1320 replays to checksum 715240:543224; the game recorded 9664:158774
+p1: ran 650 frames to checksum 815427:347799
+p1: frame 1320 replays to checksum 715240:543224; the game recorded 9664:158774
+the replay doesn't land on the recorded checksum 729813:81916 at frame 1850
+== smashcraft-repro-p1-f1870-2.repro.log
+smashcraft-repro-p1-f1870-2.txt: build typescript-integrity, frame 1870, checksum 506855:55209
+p0: ran 670 frames to checksum 445228:316519
+p0: frame 1320 replays to checksum 501579:687291; the game recorded 978837:679987
+p1: ran 670 frames to checksum 445228:316519
+p1: frame 1320 replays to checksum 501579:687291; the game recorded 978837:679987
+the replay doesn't land on the recorded checksum 506855:55209 at frame 1870
+== smashcraft-repro-p0-f1848-1.repro.log
+smashcraft-repro-p0-f1848-1.txt: build playable-0047, frame 1848, checksum 814914:473482
+p0: ran 648 frames to checksum 545932:238809
+p0: frame 1320 replays to checksum 943562:633353; the game recorded 688303:285346
+p1: ran 648 frames to checksum 545932:238809
+p1: frame 1320 replays to checksum 943562:633353; the game recorded 688303:285346
+the replay doesn't land on the recorded checksum 814914:473482 at frame 1848
+== smashcraft-repro-p1-f1848-1.repro.log
+smashcraft-repro-p1-f1848-1.txt: build playable-0047, frame 1848, checksum 814914:473482
+p0: ran 648 frames to checksum 545932:238809
+p0: frame 1320 replays to checksum 943562:633353; the game recorded 688303:285346
+p1: ran 648 frames to checksum 545932:238809
+p1: frame 1320 replays to checksum 943562:633353; the game recorded 688303:285346
+the replay doesn't land on the recorded checksum 814914:473482 at frame 1848

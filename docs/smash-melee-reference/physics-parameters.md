@@ -3,9 +3,10 @@
 smashcraft:docs/smash-melee-reference/physics-parameters.json records 78 Fox/Falco
 movement and recovery values, 14 common values reported by the decompile's
 annotations, and 78 selected retail common values across 29 gameplay groups.
-It also records nine additional common shield and wall-recovery fields and five
-Captain Falcon wall-recovery attributes. It remains a partial factual
-reference, not a complete common table or a simulation oracle.
+It also records fourteen additional common shield, wall-recovery and wall-jump
+fields, five retail wall-recovery attributes each for Fox, Falco and Captain
+Falcon, and Captain Falcon's air drift attributes. It remains a partial factual reference, not a complete
+common table or a simulation oracle.
 
 On 2026-10-03, the complete public Fox and Falco DAT JSON documents were fetched
 from https://melee.theshoemaker.de/dat-dumps/Fox.json and
@@ -59,6 +60,10 @@ float32 bit patterns or integer values, known units and use-site path.
 Previously reported common annotations were also checked against the retail
 file. All 39 selected Fox and 39 Falco attributes match the retail DAT values;
 Captain Falcon, Jigglypuff and Sheik traction was independently read from their
-retail DATs. This confirms these files' revision and values, not full engine
-behavior. No engine test or native-game trajectory was run by this data-intake
+retail DATs. Fox's, Falco's and Captain Falcon's wall push-off, wall-jump
+launch, ceiling-tech impulse and minimum approach speed (+0x100, +0x104, +0x108,
++0x10C, +0x148) were read from the same retail DATs; all three set
+can_walljump when they load (ftFx_Init_OnLoad, ftFc_Init_OnLoad,
+ftCa_Init_OnLoad). This confirms these files' revision and values, not full
+engine behavior. No engine test or native-game trajectory was run by this data-intake
 task.

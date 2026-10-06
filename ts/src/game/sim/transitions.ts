@@ -19,6 +19,7 @@ export function clearSurfaceRecovery(f: Fighter): void {
   recovery.frame = 0;
   recovery.velocityApplied = false;
   recovery.wallJumpQueued = false;
+  recovery.wallJumpRepeat = 0;
 }
 
 export function clearDownState(f: Fighter): void {

@@ -26,7 +26,7 @@ export const PACKET_MAX_BYTES = HEADER_MAX_BYTES + 2 * RECORD_MAX_BYTES;
 export interface InputPacket {
   epoch: number;
   firstFrame: number;
-  /** One or two consecutive frames, starting at firstFrame. */
+  /** Consecutive frames from firstFrame: one or two on the wire; a journal record that joins packets carries more. */
   rows: readonly InputRow[];
 }
 

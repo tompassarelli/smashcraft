@@ -62,7 +62,6 @@ export function captureNetworkFrame(row: MatchFrameInput, frame: number, source:
   row.networkMask = senderMask;
   for (const slot of PARTICIPANT_SLOTS) if (participantActive(senderMask, slot)) copyInput(row.network[slot], source[slot]);
   row.source = "network";
-  refreshNetworkAdaptation(row, world, frame);
   return true;
 }
 
@@ -85,21 +84,15 @@ export function replaceNetworkRows(row: MatchFrameInput, source: ParticipantInpu
   return true;
 }
 
-export function refreshNetworkAdaptation(row: MatchFrameInput, world: Roster, frame: number): boolean {
-  if (row.source !== "network" || row.frame !== frame || row.mask !== world.mask) return false;
-  for (const slot of PARTICIPANT_SLOTS) {
-    if (isActive(world, slot) && participantActive(row.networkMask, slot)) adaptInput(row.network[slot], fighterAt(world, slot), frame, row.values.inputs[slot], row.values.commands[slot]);
-  }
-  return true;
-}
-
+/** A network row's values are execution scratch: executeMatchFrame writes every active slot's before reading it, so they aren't copied. */
 export function copyMatchFrameInput(target: MatchFrameInput, source: Readonly<MatchFrameInput>): void {
   target.frame = source.frame;
   target.mask = source.mask;
   target.networkMask = source.networkMask;
   target.source = source.source;
+  const adapted = source.source !== "network";
   for (const slot of PARTICIPANT_SLOTS) {
-    if (participantActive(source.mask, slot)) {
+    if (adapted && participantActive(source.mask, slot)) {
       copyControls(target.values.inputs[slot], source.values.inputs[slot]);
       copyAttackBuffer(target.values.commands[slot], source.values.commands[slot]);
     }

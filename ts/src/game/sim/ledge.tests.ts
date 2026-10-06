@@ -6,10 +6,11 @@ import { AttackPhase, AttackStyle, Character, DownState, LedgeState, ShieldBreak
 import { attackPhase, canAttack, isIntangible } from "./conditions";
 import { type Fighter, createFighter } from "./fighter";
 import { AIR_DODGE_ANIMATION_FRAMES } from "./jumpsAndDodges";
-import { LEDGE_CATCH_BODY_HALF_WIDTH, LEDGE_CLIMB_FRAMES, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, ledgeCatchBox, ledgeSnap, resolveLedges } from "./ledge";
+import { LEDGE_CLIMB_FRAMES, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, ledgeCatchBox, ledgeSnap, resolveLedges } from "./ledge";
 import { LEDGE_ATTACK_FRAMES, attackStartupFrames, grabHoldFrames } from "./moves";
 import type { Controls } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
+import { BODY_HALF_WIDTH } from "./surfaces";
 import { respawnFighter } from "./stocks";
 import { advanceSolo, controls, soloWorld, testBeginAttacks, testWorld } from "./testWorld";
 import { LEDGE_REGRAB_FRAMES } from "./transitions";
@@ -64,7 +65,7 @@ test("each fighter catches with its reference fighter's NTSC 1.02 ledge snap dat
     assertEquals(snap.height, height);
     // Reach adds Melee's 2-unit minimum airborne collision half-width; six world units per Melee unit.
     const box = ledgeCatchBox(character);
-    assertEquals(LEDGE_CATCH_BODY_HALF_WIDTH, 2.0);
+    assertEquals(BODY_HALF_WIDTH, 2.0);
     assertEquals(box.reach, f32(f32(x + 2.0) * 6.0));
     assertEquals(box.lowest, f32(f32(y - f32(height * 0.5)) * 6.0));
     assertEquals(box.highest, f32(f32(y + f32(height * 0.5)) * 6.0));

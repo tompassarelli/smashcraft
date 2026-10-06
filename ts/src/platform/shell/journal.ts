@@ -228,7 +228,8 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
   const { schedule } = rollback;
   const keyboard = playsOnKeyboard(journal, slot);
   if (keyboard) sampleKeyboard(s, rollback, journal);
-  // Rows behind their clock, a helper's or a keyboard's after a stall, catch up within the callback budget.
+  // Rows behind their clock, a helper's or a keyboard's after a stall, catch up within the callback budget;
+  // a helper's record that joins several packets may take more than one callback.
   for (let admitted = 0; admitted < CATCH_UP_FRAMES; ) {
     const latest = Math.min(INPUT_LAST_FRAME, schedule.nextConfirmedFrame() - 1 + FUTURE_LIMIT);
     if (source.expectedFrame() > latest) return;
@@ -252,8 +253,9 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
       return;
     }
     const { packet } = result;
+    const rows = Math.min(packet.rows.length, CATCH_UP_FRAMES - admitted);
     if (s.build.responseProbe && source.sequenceNumber() === 1 && !s.trace.active) startInputTrace(s);
-    for (let index = 0; index < packet.rows.length; index++) {
+    for (let index = 0; index < rows; index++) {
       const row = packet.rows[index];
       if (row === undefined) return;
       const frame = packet.firstFrame + index;
@@ -268,23 +270,24 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
       probeInput(s.probe, "capture", rollback.epoch, slot, frame, row.held, row.pressed, row.released, schedule.speculativeFrame());
       if (s.trace.active) s.trace.window.localCaptures++;
     }
-    for (let index = 0; index < packet.rows.length; index++) {
+    for (let index = 0; index < rows; index++) {
       const row = packet.rows[index];
       if (row === undefined || !journal.outgoing.admit(packet.firstFrame + index, row)) {
         failJournal(s, rollback, journal, "controller input could not be queued");
         return;
       }
     }
-    if (!source.sent()) {
+    if (!source.sent(rows)) {
       rollback.sendFailed = true;
       failJournal(s, rollback, journal, "journal cursor could not advance after send");
       return;
     }
+    admitted += rows;
+    if (rows < packet.rows.length) return;
     if (keyboard) commitEdges(journal.keys);
     else if (editbox) {
       if (!consumeEditbox(s, rollback, journal)) return;
     } else if (journal.mailbox !== undefined) releaseMessage(journal.mailbox);
-    admitted += packet.rows.length;
   }
 }
 

@@ -79,6 +79,7 @@ export function playtest({ build, map, helper, computerSlot, inputDevices }: Pla
     shortcut: { appId: 3775098022, name: "Warcraft III (Battle.net)" },
     map,
     gameName: "Smashcraft",
+    debugDirectory: join(homedir(), ".local/state/smashcraft/play-debug"),
     started: (game, since) => until(LOAD_SECONDS, menu(game).pipe(Effect.map((file) => (file !== undefined && file.modified > since && file.value.phase === "CHARACTER" ? true : undefined))),
       `Smashcraft didn't reach fighter selection within ${LOAD_SECONDS} s (no new ${name})`),
     opponent: (game) => Effect.gen(function*() {
@@ -121,7 +122,7 @@ export function playtest({ build, map, helper, computerSlot, inputDevices }: Pla
   };
 }
 
-const ClientTools = Schema.Struct({ tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, tesseract: Schema.String }) });
+const ClientTools = Schema.Struct({ tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, wlrctl: Schema.String, tesseract: Schema.String }) });
 
 /** The tool paths the clients file records; the commands on PATH without one. */
 function clientTools() {

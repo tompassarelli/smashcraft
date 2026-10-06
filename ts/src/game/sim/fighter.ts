@@ -30,6 +30,8 @@ export const FAST_FALL_INPUT_WINDOW = 4;
 /** PlCo +0x468: a platform drop needs down pressed fewer input frames ago than this. */
 export const PLATFORM_DROP_INPUT_WINDOW = 6;
 export const WALL_TECH_JUMP_INPUT_WINDOW_FRAMES = 20;
+/** PlCo +0x770: a wall jump needs the stick to have crossed the horizontal smash deadzone fewer input frames ago than this. */
+export const WALL_JUMP_FLICK_FRAMES = 3;
 const STARTING_STOCKS = 3;
 /** A tech press age that is never inside a window; the input driver saturates at 255. */
 
@@ -66,6 +68,8 @@ interface Motion {
   dropTime: number;
   /** The side of Melee's horizontal smash deadzone the stick was past on the previous input frame: -1, 0 or 1. */
   previousStickSide: number;
+  /** Input frames since the stick crossed that deadzone to its current side (Melee's stick-x timer); ages past the wall-jump flick window are equivalent. */
+  stickSideAge: number;
   /** The last air-steering direction; a neutral aerial special turns to it. */
   lastAerialTapDirection: number;
 }
@@ -281,6 +285,14 @@ interface SurfaceRecovery {
   frame: number;
   velocityApplied: boolean;
   wallJumpQueued: boolean;
+  /** Earlier wall jumps since landing when this one began; each lowers its rise. */
+  wallJumpRepeat: number;
+  /** Frames since the fighter met a wall on wallJumpSide fast enough to wall jump off it, while it stays against it. */
+  wallJumpAge: number | undefined;
+  /** The side of the fighter that wall is on: -1 left, 1 right. */
+  wallJumpSide: number;
+  /** Wall jumps since the fighter last stood on the ground. */
+  wallJumpsUsed: number;
   reflectCooldown: number;
   lastReflectedSurface: number | undefined;
   contactSerial: number;
@@ -391,6 +403,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       fastFallInputAge: PLATFORM_DROP_INPUT_WINDOW,
       dropTime: 0,
       previousStickSide: 0,
+      stickSideAge: WALL_JUMP_FLICK_FRAMES,
       lastAerialTapDirection: 0,
     },
     ground: {
@@ -500,6 +513,10 @@ export function createFighter(character: Character, startX: number, facing: numb
       frame: 0,
       velocityApplied: false,
       wallJumpQueued: false,
+      wallJumpRepeat: 0,
+      wallJumpAge: undefined,
+      wallJumpSide: 0,
+      wallJumpsUsed: 0,
       reflectCooldown: 0,
       lastReflectedSurface: undefined,
       contactSerial: 0,

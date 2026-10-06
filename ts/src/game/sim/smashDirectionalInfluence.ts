@@ -6,7 +6,7 @@ import { DIAGONAL_UNIT } from "./knockback";
 import { landingAlongShift } from "./motion";
 import { type Controls, type Roster, fighterAt } from "./roster";
 import { checkBlastZone } from "./stocks";
-import { resolveSolidSurfaceContacts } from "./surfaces";
+import { leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
 import { melee } from "./tuning";
 
 export const SDI_DISTANCE = melee(6.0);
@@ -41,6 +41,7 @@ function applyHitlagShift(
   motion.z = newZ;
   resolveSolidSurfaceContacts(f, stage, oldX, oldZ, input);
   if (landing !== undefined) finishLanding(f, stage, input, landing, fromAsdi);
+  else leaveMainDeckBody(f, stage);
   if (motion.x !== oldX || motion.z !== oldZ) {
     if (fromAsdi) launch.asdiSerial++;
     else launch.sdiSerial++;

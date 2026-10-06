@@ -256,4 +256,5 @@ export const MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
   "war3mapImported\\ShieldP3-bdb7fec231882f2026bc007f4b3ca51f7219404428e3c343d6c73b583df141c3.mdx": {"geosets":2,"triangles":3968,"lights":0,"bounds":{"min":[-72,-72,-72],"max":[72,72,72]},"emitters":[]},
   "war3mapImported\\ShieldP4-0f6afe67f46efb19213ea283f57c12a8f13a264f9660903d3e1a451a095dd2a2.mdx": {"geosets":2,"triangles":3968,"lights":0,"bounds":{"min":[-72,-72,-72],"max":[72,72,72]},"emitters":[]},
   "war3mapImported\\StageDeck-48ca8b3ca98aa77d741926a42ad589a5f8b1df78e68f565c285ccadd6bc2c27c.mdx": {"geosets":4,"triangles":48,"lights":0,"bounds":{"min":[-50,-60,-54],"max":[50,60,0]},"emitters":[]},
+  "war3mapImported\\StageMainDeck-043d3ab8ff1b03b9c0288e9f38951e8a2a383379d0020e3898cf16a351ca71ae.mdx": {"geosets":1,"triangles":60,"lights":0,"bounds":{"min":[-600,-60,-332.329],"max":[600,60,0]},"emitters":[]},
 };

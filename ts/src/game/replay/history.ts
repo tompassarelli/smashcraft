@@ -7,8 +7,6 @@ import {
   copyMatchFrameInput,
   createMatchFrameInput,
   executeMatchFrame,
-  hasNetworkRows,
-  refreshNetworkAdaptation,
   resetMatchFrameInput,
   sameMatchFrameInput,
 } from "../match/frameInput";
@@ -237,9 +235,7 @@ export class ReplayHistory {
   }
 
   private executeRecorded(frame: number, live: ReplayState): boolean {
-    const row = this.inputAt(frame);
-    if (hasNetworkRows(row) && !refreshNetworkAdaptation(row, live.world, frame)) return false;
-    return executeMatchFrame(row, live.match, live.world, live.controls, live.runtime, frame);
+    return executeMatchFrame(this.inputAt(frame), live.match, live.world, live.controls, live.runtime, frame);
   }
 
   private advanceAuthoritative(): void {

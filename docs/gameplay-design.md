@@ -24,6 +24,11 @@ accepted scope, not a fidelity defect or a deferred implementation task.
 Independent Melee comparisons must state that this modifier is omitted; all
 other shared formula requirements remain open until verified.
 
+Reaffirmed by the owner 2026-10-06: stale moves are an over-engineered attempt
+to create move diversity. Diversity should come by construction, from move
+design (how each move's hitboxes, startup, recovery and rewards work), not from
+a bolted-on physics rule that rescales damage behind the player's back.
+
 ## Computer opponent
 
 The computer (smashcraft:ts/src/game/match/botPlay.ts and its bot*.ts
