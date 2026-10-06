@@ -45,8 +45,22 @@ jobs:
         run: |
           if [ "$RUNNER_OS" = Linux ]; then export TMPDIR=/dev/shm; fi
           cargo test --locked
-      # Windows and macOS: the real helper, an SDL virtual pad and two stand-in
-      # windows in the runner's desktop session. Linux focus needs Niri or labwc.
+      # End-to-end: a scripted pad drives the real helper binary, which must type
+      # every #18 action, in order and nothing else, into a focused stand-in
+      # "Warcraft III" window and nothing into a second window; any lost, extra or
+      # misordered key fails the job. Linux focus needs Niri or labwc.
+      # Simulated layer:
+      # - Windows: only the pad is simulated: a ViGEmBus virtual DualShock 4 (a USB
+      #   HID device; the Xbox 360 target needs xusb22.sys, absent on Windows
+      #   Server). The helper reads it through its normal SDL hardware path.
+      # - macOS: virtual HID devices need an Apple-restricted entitlement, so the
+      #   helper's --virtual-pad (an SDL virtual gamepad inside the helper)
+      #   replaces device acquisition. Mapping, focus gating and key output are real.
+      - name: Install ViGEmBus virtual pad driver
+        if: runner.os == 'Windows'
+        run: |
+          choco install vigembus --version 1.22.0 -y --no-progress
+          sc.exe query ViGEmBus
       - name: End-to-end helper test
         if: runner.os != 'Linux'
         run: cargo test --locked --features e2e --test e2e -- --nocapture
