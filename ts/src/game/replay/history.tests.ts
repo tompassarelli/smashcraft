@@ -1,7 +1,7 @@
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { type AttackBuffer, attackBuffer, clearAttackBuffer, queueAttack } from "../input/attackBuffer";
 import type { FrameControls } from "../match/controls";
-import { type MatchFrameInput, captureFrame, copyMatchFrameInput, createMatchFrameInput, resetMatchFrameInput, sameMatchFrameInput } from "../match/frameInput";
+import { type MatchFrameInput, captureFrame, copyMatchFrameInput, createMatchFrameInput, resetMatchFrameInput, restoreMatchFrame, sameMatchFrameInput } from "../match/frameInput";
 import { createPacingAndPresentation } from "../match/pacingAndPresentation";
 import { type Controls, fighterAt, neutralControls } from "../sim/roster";
 import { firstStateDifference } from "./difference";
@@ -324,4 +324,42 @@ test("a correction batch copies its rows, bounds its storage and refuses conflic
   corrections.clear();
   assertTrue(corrections.add(row));
   assertEquals(corrections.size(), 1);
+});
+
+test("a confirmed frame takes history's state after it only when history ran the same row from a corrected state", () => {
+  const speculative = createTapeWorld({ stocks: 99 });
+  const confirmed = createTapeWorld({ stocks: 99 });
+  const restored = createTapeWorld({ stocks: 99 });
+  const history = new ReplayHistory();
+  assertTrue(history.beginEpoch(1, 1, REPLAY_MAX_CORRECTION_FRAMES));
+  const requests = attackBuffer(0);
+  const still = frameControls(neutralControls(), neutralControls(), requests, requests);
+  const walking = frameControls({ ...neutralControls(), direction: 1 }, neutralControls(), requests, requests);
+  const row = createMatchFrameInput();
+  // Frames 1-3 authoritative; frame 4 predicted walking but confirmed still; 5-6 predicted still.
+  for (let frame = 1; frame <= 6; frame++) {
+    assertTrue(captureFrame(row, frame, 3, frame === 4 ? walking : still, speculative.live.runtime));
+    assertTrue(frame <= 3 ? history.save(1, row, speculative.live) : history.saveSpeculative(1, row, speculative.live));
+    execute(speculative, row);
+  }
+  const confirmedRow = createMatchFrameInput();
+  const restoredRow = createMatchFrameInput();
+  for (let frame = 1; frame <= 5; frame++) {
+    assertTrue(captureFrame(confirmedRow, frame, 3, still, confirmed.live.runtime));
+    assertTrue(captureFrame(restoredRow, frame, 3, still, restored.live.runtime));
+    const after = history.stateAfter(1, frame, confirmedRow);
+    execute(confirmed, confirmedRow);
+    if (frame >= 4) {
+      // Frame 4 ran another row; frame 5 ran from the state it left.
+      assertEquals(after, undefined);
+      execute(restored, restoredRow);
+      continue;
+    }
+    if (after === undefined) throw new Error(`frame ${frame} has no state after it`);
+    assertEquals(firstStateDifference(captureTape(confirmed), after), undefined);
+    const { match, world, controls, runtime } = restored.live;
+    assertTrue(restoreMatchFrame(restoredRow, match, world, controls, runtime, frame, after));
+    assertEquals(tapeDifference(confirmed, restored), undefined);
+  }
+  assertEquals(history.stateAfter(1, 6, confirmedRow), undefined);
 });

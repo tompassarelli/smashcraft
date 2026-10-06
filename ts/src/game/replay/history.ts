@@ -106,6 +106,8 @@ export class ReplayHistory {
   private repairPositioned = false;
   private correctionWindow = 0;
   private authoritativeThrough = 0;
+  /** Every row through this frame is authoritative or matched a confirmed row in stateAfter. */
+  private matchedThrough = 0;
   private current: number | undefined;
   private nextFrame = 1;
   private count = 0;
@@ -119,6 +121,7 @@ export class ReplayHistory {
     this.count = 0;
     this.correctionWindow = correctionWindow;
     this.authoritativeThrough = firstFrame - 1;
+    this.matchedThrough = firstFrame - 1;
     this.repairNext = undefined;
     this.repairPositioned = false;
     for (const row of this.inputs) resetMatchFrameInput(row);
@@ -266,6 +269,21 @@ export class ReplayHistory {
     return frame - start;
   }
 
+
+  /**
+   * The state after `frame` when history ran it on a row equal to `row` from
+   * a corrected state before it: every earlier row authoritative or already
+   * matched here, no repair pending. Running `row` from the state before
+   * `frame` would reach it. Otherwise undefined.
+   */
+  stateAfter(epoch: number, frame: number, row: Readonly<MatchFrameInput>): Readonly<ReplayState> | undefined {
+    if (!this.contains(epoch, frame) || !this.contains(epoch, frame + 1)) return undefined;
+    if (Math.max(this.authoritativeThrough, this.matchedThrough) < frame - 1) return undefined;
+    if (this.repairNext !== undefined && this.repairNext <= frame + 1) return undefined;
+    if (!sameMatchFrameInput(this.inputAt(frame), row)) return undefined;
+    this.matchedThrough = Math.max(this.matchedThrough, frame);
+    return this.snapshotAt(frame + 1);
+  }
 
   private saveRow(epoch: number, row: Readonly<MatchFrameInput>, predicted: boolean, live: Readonly<ReplayState>): boolean {
     if (this.current === undefined || epoch !== this.current || row.mask !== live.world.mask) return false;

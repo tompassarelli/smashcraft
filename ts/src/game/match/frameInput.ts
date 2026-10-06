@@ -12,8 +12,9 @@ import { type FrameControls, createFrameControls } from "./controls";
 import type { PacingAndPresentation } from "./pacingAndPresentation";
 import { type MatchState, Phase, computerActive } from "./rules";
 import { produceComputerInput } from "./botPlay";
-import { stepMatch } from "./step";
+import { observedFrameLegalActions, observedFrameStartedActions, stepMatch } from "./step";
 import { latchPresses, releasePresses } from "./training";
+import { type ReplayState, copyReplayState } from "../replay/snapshot";
 
 /** Detached source rows. Every execution adapts again from the world being replayed. */
 export interface MatchFrameInput {
@@ -127,7 +128,8 @@ const beforeAttack: Slots<number> = [0, 0, 0, 0];
 const beforeDamage: Slots<number> = [0.0, 0.0, 0.0, 0.0];
 const beforeShield: Slots<number> = [0.0, 0.0, 0.0, 0.0];
 
-export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number): boolean {
+/** The frame's controls from its row and the world before it, and each fighter's state before it for impact events and poses. */
+function prepareMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number): boolean {
   if (row.frame !== frame || frame !== runtime.simulationFrame + 1 || row.mask !== world.mask) return false;
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
@@ -147,6 +149,11 @@ export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world:
     beforeDamage[slot] = f.status.damage;
     beforeShield[slot] = f.shield.energy;
   }
+  return true;
+}
+
+export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number): boolean {
+  if (!prepareMatchFrame(row, game, world, controls, runtime, frame)) return false;
   if (game.phase === Phase.match && game.training) {
     // Slow motion: the match runs on the last of every `speed` input frames, with the presses made on the ones it skips.
     const trainer = game.trainer;
@@ -164,6 +171,10 @@ export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world:
   }
   advanceImpacts(runtime.impacts);
   stepMatch(game, world, row.scratch, frame);
+  for (const slot of PARTICIPANT_SLOTS) {
+    runtime.observedLegal[slot] = observedFrameLegalActions[slot];
+    runtime.observedStarted[slot] = observedFrameStartedActions[slot];
+  }
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) { advanceSummons(runtime.summons, undefined, slot); continue; }
     const f = fighterAt(world, slot);
@@ -183,4 +194,24 @@ export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world:
   }
   runtime.simulationFrame = frame;
   return true;
+}
+
+/**
+ * As executeMatchFrame, for a frame a replay history already ran on the same
+ * row from the same state: `after` is its state after the frame. The row's
+ * controls and the frame's impact events are found as an execution finds
+ * them; the step itself is copied instead of run. Training's slow motion
+ * edits the row's presses, so a training frame runs.
+ */
+export function restoreMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number, after: Readonly<ReplayState>): boolean {
+  if (game.training) return executeMatchFrame(row, game, world, controls, runtime, frame);
+  if (!prepareMatchFrame(row, game, world, controls, runtime, frame)) return false;
+  copyReplayState({ world, match: game, controls, runtime }, after);
+  for (const slot of PARTICIPANT_SLOTS) {
+    // The step's observations, as running it would leave them.
+    observedFrameLegalActions[slot] = runtime.observedLegal[slot];
+    observedFrameStartedActions[slot] = runtime.observedStarted[slot];
+    if (isActive(world, slot)) finishImpactEventsAfter(runtime.frameImpacts[slot], fighterAt(world, slot));
+  }
+  return runtime.simulationFrame === frame;
 }

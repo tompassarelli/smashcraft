@@ -21,6 +21,9 @@ export interface PacingAndPresentation {
   /** Scratch, overwritten before every step: no state crosses frames. */
   frameImpacts: Slots<ImpactEvents>;
   poses: Slots<FighterPose>;
+  /** The step that reached this state: each fighter's legal and started actions (observedFrameLegalActions, observedFrameStartedActions). */
+  readonly observedLegal: Slots<number>;
+  readonly observedStarted: Slots<number>;
 }
 
 export function createPacingAndPresentation(): PacingAndPresentation {
@@ -32,6 +35,8 @@ export function createPacingAndPresentation(): PacingAndPresentation {
     summons: createSummonState(),
     frameImpacts: [createImpactEvents(), createImpactEvents(), createImpactEvents(), createImpactEvents()],
     poses: [createFighterPose(), createFighterPose(), createFighterPose(), createFighterPose()],
+    observedLegal: [0, 0, 0, 0],
+    observedStarted: [0, 0, 0, 0],
   };
 }
 
@@ -51,6 +56,8 @@ export function copyPacingAndPresentation(target: PacingAndPresentation, source:
   copySummonStateInto(target.summons, source.summons);
   for (const slot of PARTICIPANT_SLOTS) {
     target.botAttackDelays[slot] = source.botAttackDelays[slot];
+    target.observedLegal[slot] = source.observedLegal[slot];
+    target.observedStarted[slot] = source.observedStarted[slot];
     if (isActive(sourceWorld, slot)) copyFighterPoseInto(target.poses[slot], source.poses[slot], sourceWorld);
   }
 }

@@ -4,7 +4,9 @@
 import type { InputRow } from "../input/inputRow";
 import type { FrameControls } from "../match/controls";
 import type { PacingAndPresentation } from "../match/pacingAndPresentation";
+import type { MatchFrameInput } from "../match/frameInput";
 import type { MatchState } from "../match/rules";
+import type { ReplayState } from "../replay/snapshot";
 import type { ShadowInputSchedule } from "../netcode/shadowSchedule";
 import type { Roster } from "../sim/roster";
 
@@ -41,6 +43,12 @@ export interface RollbackPlayback {
    * before `stopBefore` when given. False when a frame could not run.
    */
   catchUp(schedule: ShadowInputSchedule, epoch: number, localPlayer: number, match: SpeculativeMatch, budget: number, stopBefore: number | undefined, executed: SpeculativeFrameObserver): boolean;
+  /**
+   * The state after confirmed `frame` when the speculative match already ran
+   * it on this same authoritative row and its history holds the result
+   * corrected, so the confirmed match may take it instead of running the frame.
+   */
+  confirmedState(epoch: number, frame: number, row: Readonly<MatchFrameInput>): Readonly<ReplayState> | undefined;
   /** Every world the history holds, for a change a replay must not undo, such as authored tuning a reload changed. */
   visitWorlds(visit: (world: Roster) => void): void;
 }

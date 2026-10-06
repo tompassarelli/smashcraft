@@ -5,7 +5,7 @@ import { hasPendingAttack, clearAttackBuffer } from "../../game/input/attackBuff
 import { adaptInput } from "../../game/input/adapter";
 import { commitEdges } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, type ParticipantSlot, participantActive } from "../../game/input/participants";
-import { captureFrame, copyExecutedInput, executeMatchFrame, hasNetworkRows } from "../../game/match/frameInput";
+import { captureFrame, copyExecutedInput, executeMatchFrame, hasNetworkRows, restoreMatchFrame } from "../../game/match/frameInput";
 import { beginMomentFrame, keepMomentEnd, momentFrameRan, recordMomentRow } from "../../game/replay/moment";
 import { Phase, beginRematchCountdown, computerActive, humanFighterActive } from "../../game/match/rules";
 import { resultMessage, aerialName, fighterLabel } from "../../game/shell/messages";
@@ -22,6 +22,7 @@ import { confirmModelSounds } from "../../game/render/modelSounds";
 import { type FrameObservation, type ShellState, activeRollback } from "./state";
 import { clearMatchEffects, views } from "./ui";
 import { traceInput } from "./trace";
+import { probeRecording } from "./responseProbe";
 import { MatchCue } from "../../game/presentation/matchAudio";
 import { resultsView } from "../../game/presentation/matchCues";
 import { RESULTS_DELAY_FRAMES } from "../../game/render/matchPresentation";
@@ -90,12 +91,15 @@ export function applyFrame(s: ShellState): void {
   const { recorder } = s.moment;
   beginMomentFrame(recorder, frame, world, s.game, s.controls, runtime);
   views(s).match.observe(s.game, world);
-  if (!executeMatchFrame(s.frameInput, s.game, world, s.controls, runtime, frame)) return;
+  // The speculative match usually ran this frame on this row already. The
+  // response probe and the integrity trace read the step's own observations.
+  const rollback = activeRollback(s);
+  const ran = rollback !== undefined && !s.trace.active && !probeRecording(s.probe) ? rollback.playback.confirmedState(rollback.epoch, frame, s.frameInput) : undefined;
+  if (!(ran === undefined ? executeMatchFrame(s.frameInput, s.game, world, s.controls, runtime, frame) : restoreMatchFrame(s.frameInput, s.game, world, s.controls, runtime, frame, ran))) return;
   if (hasNetworkRows(s.frameInput)) {
     for (const slot of PARTICIPANT_SLOTS) if (participantActive(s.frameInput.networkMask, slot)) recordMomentRow(recorder, frame, slot, s.frameInput.network[slot]);
   }
   momentFrameRan(recorder, frame);
-  const rollback = activeRollback(s);
   const ui = views(s);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
