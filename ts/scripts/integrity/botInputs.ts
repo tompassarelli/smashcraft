@@ -60,9 +60,13 @@ const report = [0, 1].flatMap((slot) => {
     const emit = /^editbox_emit sequence=(\d+) .*envelope=@J\d+\|([^;]+);/.exec(line);
     if (emit !== null) {
       frameOf.set(Number(emit[1]), published);
-      const packet = emit[2]?.startsWith("I4") === true ? decodePacket(emit[2]) : undefined;
       const rows = current.rows;
-      packet?.rows.forEach((row, index) => rows.set(packet.firstFrame + index, row));
+      // A backlog is typed as several records joined by "|" in one envelope.
+      for (const record of (emit[2] ?? "").split("|")) {
+        if (!record.startsWith("I4")) continue;
+        const packet = decodePacket(record);
+        packet?.rows.forEach((row, index) => rows.set(packet.firstFrame + index, row));
+      }
       continue;
     }
     const receipt = /^editbox_receipt monotonic_ns=(\d+) received=\d+ consumed=(\d+)/.exec(line);

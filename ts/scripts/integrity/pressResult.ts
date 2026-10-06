@@ -102,7 +102,8 @@ const summary = {
   gated_local_start: { n: gatedDelays.length, max: gatedMax, missing_first_prediction: gatedMissing },
   // Gated presses whose first prediction did not start the action: callbacks from capture until the confirmed frame did.
   gated_shown_only_when_confirmed: distribution(gated.flatMap((start) => (start.confirmedAfter === undefined ? [] : [start.confirmedAfter]))),
-  worst_gated_presses: [...gated].sort((a, b) => (b.delay ?? Infinity) - (a.delay ?? Infinity)).slice(0, 20),
+  worst_gated_presses: gated.filter((start) => start.delay !== undefined && start.delay > 1).sort((a, b) => (b.delay ?? 0) - (a.delay ?? 0)),
+  gated_without_first_prediction: gated.filter((start) => start.delay === undefined),
   gate,
   passed: Object.values(gate).every(Boolean),
 };
