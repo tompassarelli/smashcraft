@@ -4,7 +4,8 @@
 import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
 import { type Capsule, capsulesIntersect, emptyCapsule, hurtCapsule, placeCapsule } from "../physics/contactGeometry";
-import { AttackStyle, Character } from "./codes";
+import { AttackStyle, Character, SpecialAction } from "./codes";
+import { specialForm, specialKit } from "./heroSpecials";
 import { fighterPoseFacing } from "./conditions";
 import type { Fighter } from "./fighter";
 import { attackStartupFrames, characterAttackActiveFrames } from "./moves";
@@ -125,9 +126,25 @@ function defaultHurtboxes(character: Character): Readonly<FighterHurtboxes> {
   return set;
 }
 
+/**
+ * A running hero special's authored body on its current special frame (the
+ * roster brief's numbering, entry frame 1); undefined outside its poses.
+ */
+function specialHurtParts(f: Readonly<Fighter>): readonly HurtPart[] | undefined {
+  const specials = f.tuning.specials;
+  const { action, frame, form } = f.special;
+  if (specials === undefined || action < SpecialAction.heroNeutral || action > SpecialAction.heroDown) return undefined;
+  const poses = specialForm(specialKit(specials, action - SpecialAction.heroNeutral), form).hurt;
+  if (poses === undefined) return undefined;
+  for (const pose of poses) if (frame >= pose.firstFrame && frame <= pose.lastFrame) return pose.parts;
+  return undefined;
+}
+
 /** The fighter's facing-relative body parts on its current frame. */
 export function fighterHurtParts(f: Readonly<Fighter>): readonly HurtPart[] {
   const set = fighterHurtboxes(f);
+  const special = specialHurtParts(f);
+  if (special !== undefined) return special;
   const style = f.attack.style;
   if (style !== undefined) {
     const poses = set.attacks[style];
