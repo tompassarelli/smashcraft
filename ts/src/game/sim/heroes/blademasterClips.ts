@@ -47,7 +47,7 @@ const SPIN_TURN = f32(0.433); // Attack Walk Stand Spin: one level full turn, lo
 
 /** Clip seconds that put `strike` on the first active frame of a brief F/A/R move. */
 const aligned = (strike: number, firstActive: number, active: number, recovery: number) =>
-  f32(strike * (firstActive - 1 + active + recovery) / (firstActive - 1));
+  f32(f32(strike * (firstActive - 1 + active + recovery)) / (firstActive - 1));
 
 const COMBAT_STANCE = sequence("Stand Ready");
 const RECOIL = sequence("Death", f32(0.45));
