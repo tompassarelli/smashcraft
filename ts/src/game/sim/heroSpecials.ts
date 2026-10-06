@@ -29,6 +29,11 @@ export interface SpecialMotion extends FrameWindow {
   readonly velocityX: number;
   readonly velocityZ: number;
   readonly aimedSpeed?: number | undefined;
+  /**
+   * Forward travel ends just short of a raised shield or another fighter's body
+   * instead of carrying into or through it (the roster's dash specials).
+   */
+  readonly stopsAtBody?: boolean | undefined;
 }
 
 /**
