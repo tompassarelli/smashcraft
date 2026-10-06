@@ -114,17 +114,14 @@ test("the catch box sweeps the frame's movement, and only a downward movement ca
   }
 });
 
-test("falling, helpless and tumbling fighters catch; aerials, specials, air dodges and hitstun don't", () => {
+test("falling, helpless, post-dodge and tumbling fighters catch; aerials, specials, air dodges and hitstun don't", () => {
   const upSpecials = [SpecialAction.archerRecovery, SpecialAction.riflemanRecovery, SpecialAction.demonHunterWingAscent] as const;
   for (const character of [Character.archer, Character.rifleman, Character.demonHunter]) {
     const states: readonly (readonly [boolean, (f: Fighter) => void])[] = [
       [true, () => undefined],
       [true, (f) => (f.special.fall = true)],
       [true, (f) => (f.down.state = DownState.tumble)],
-      [true, (f) => {
-        f.dodge.airDodging = true;
-        f.dodge.airFrame = AIR_DODGE_ANIMATION_FRAMES;
-      }],
+      [true, (f) => (f.dodge.airUsed = true)],
       [false, (f) => {
         f.dodge.airDodging = true;
         f.dodge.airFrame = AIR_DODGE_ANIMATION_FRAMES - 1;
@@ -149,6 +146,7 @@ test("falling, helpless and tumbling fighters catch; aerials, specials, air dodg
       assertEquals(fighter.ledge.state, catches ? LedgeState.hang : LedgeState.none);
       if (catches) {
         assertFalse(fighter.dodge.airDodging);
+        assertFalse(fighter.dodge.airUsed);
         assertFalse(fighter.special.fall);
       }
     }

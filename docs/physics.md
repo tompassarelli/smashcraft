@@ -1654,8 +1654,9 @@ Spot dodge does not drop through a platform. Intangibility and recovery clocks
 pause in hitlag. Every character uses the owner's common dodge profile
 (smashcraft:docs/gameplay-design.md, "Deviations from Melee"): spot dodge
 22 / protection 2–15, both rolls 31 / protection 4–19, and air dodge 49 /
-protection 4–29 with 10 landing frames for every character. Air dodge retains
-its existing helpless fall until landing after its animation completes.
+protection 4–29 with 10 landing frames for every character. Air dodge is
+available once per airtime and ends actionable after its 49-frame animation;
+landing, a ledge catch or a hit refreshes it (#100).
 Both fighters have authored ground-dodge clips. See smashcraft:docs/fighter-animation-work.md
 for playback and art limits.
 
@@ -2277,8 +2278,8 @@ melee:src/melee/ft/ftcliffcommon.c (the catch, its facing turn and
 and facing gates, and each action's collision callback in
 melee:src/melee/ft/ft_081B.c. Only facts and values are used.
 
-- **Who catches.** Falling and jumping fighters, helpless fall (after an
-  up-special, or once an air dodge's 49-frame animation ends), tumble once
+- **Who catches.** Falling and jumping fighters, helpless fall after an
+  up-special, fighters whose air dodge's 49-frame animation has ended, tumble once
   hitstun ends, and fighters recovering from a tech or grab release. Aerial
   attacks (AttackAir), air dodges (EscapeAir), hitstun (Damage/DamageFly),
   shield-break flight, grabs and frozen fighters never catch. Melee's specials

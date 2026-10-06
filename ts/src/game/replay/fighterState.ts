@@ -237,6 +237,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   const sourceDodge = source.dodge;
   dodge.airDodging = sourceDodge.airDodging;
   dodge.airFrame = sourceDodge.airFrame;
+  dodge.airUsed = sourceDodge.airUsed;
   dodge.airMotionFrames = sourceDodge.airMotionFrames;
   dodge.groundFrame = sourceDodge.groundFrame;
   dodge.groundDirection = sourceDodge.groundDirection;

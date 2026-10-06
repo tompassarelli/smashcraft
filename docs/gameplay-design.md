@@ -30,6 +30,12 @@ Owner decisions, 6 Oct 2026 (#62):
 - **Non-interactive execution is dubious** (6 Oct, #54; see "L-cancelling" below).
 - **Short true combos, devastating combos through reads** (6 Oct, #83; see
   "Combo structure" below).
+- **Deviations start from Ultimate and Rivals of Aether 2** (6 Oct). When a
+  Melee mechanic feels worse than it should and we deviate from it, look first
+  at Smash Ultimate's and Rivals of Aether 2's values; proposals cite both
+  (where they exist) and recommend one as the starting point. Tom tunes from
+  there. First application: shield release lag, 15 → 11 frames, Ultimate's
+  value (#100).
 
 ## Bounded SDI
 
@@ -162,6 +168,8 @@ checks that every oracle departure names a row here.
 | SDI | Each fresh stick movement during hitlag moves the fighter 6 units, as often as every frame ([case study](design/melee/defense.md#influence-on-knockback)) | Weakened in later games ([SmashWiki](https://www.ssbwiki.com/Smash_directional_influence)) | SDI + ASDI travel capped at 12 units per hit (at most 9 SDI) and 24 per uninterrupted string, in steps of at most 3 per tick ([bounded SDI](#bounded-sdi)) | Keep displacement choices useful while bounding visible jumps and repeated-hit travel | #70 |
 | Horizontal air dodge | The dodge goes where the stick points | – | A horizontal-only digital air dodge angles 18° below horizontal, mirrored, by default and with no toggle | Owner-selected control (30 Sep); the shallow angle keeps horizontal momentum into the landing | – |
 | Fast fall | A fresh stick down, diagonals included | – | Down with neutral horizontal input only; down-left and down-right keep drifting | Owner-selected control, 30 Sep | – |
+| Air dodge | Directional; ends in helpless fall (FallSpecial) until landing | Ultimate: one directional air dodge per airtime, no helpless fall, refreshed on landing, ledge grab and being hit ([SmashWiki](https://www.ssbwiki.com/Air_dodge)). Rivals of Aether 2: the dodge ends in an ordinary fall ([workshop](https://rivals2.com/workshop/?p=389)) | Once per airtime, ending actionable; refreshed on landing, ledge catch and being hit; spends no jump. Direction, momentum and the wavedash/waveland through landing are unchanged | Owner decision, 6 Oct: the air dodge works as in Smash | #100 |
+| Shield release lag | 15 frames (GuardOff) | Ultimate: 11 frames | 11 frames; the 8-frame minimum hold and direct shield grab/jump bypass are unchanged | Owner decision, 6 Oct: Melee's lag makes dropping shield almost never worth it; dropping shield should be a real alternative to jumping into an aerial or rolling out of shield. Ultimate's value is the starting point; tune if it still goes unused | #100 |
 | Dodge timing | Per fighter | – | One shared profile: spot dodge 22 frames, intangible 2–15; rolls 31, intangible 4–19; air dodge 49, intangible 4–29, landing 10 | Owner's common frame-data profile | – |
 
 ## Controls
@@ -491,7 +499,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 | Whiff penalties | No global extra miss-only recovery or landing-lag multiplier. Author commitment and recovery per move. | Counterplay should follow the same visible move phases whether the strike connects or misses. |
 | Ground moves on shield | Close committed moves should have reachable punishment; spaced pokes may be safe. In the same shield-contact context, greater shield damage costs later attacker recovery or an earlier defender response. | Adopts smashcraft:docs/move-comparisons.md's measured category rule without changing its gate; it is not a global damage-to-lag formula. |
 | Aerials on shield | Preserve late-contact, immediate-landing and fade-back safety; close advancing aerials can be punished. | The existing graph distinguishes close down air from spaced forward air. Do not make all aerials uniformly safe or unsafe. |
-| Shield release and out-of-shield actions | Retain 15-frame normal release lag and the 8-frame minimum shield hold. Direct shield grab and jump bypass release lag when otherwise legal; jump into aerials, rolls and spot dodges remain available. Add no instant grounded up-smash cancel. | Keeps the actual authored defence choices and their current timing; shieldstun and other action locks still apply. |
+| Shield release and out-of-shield actions | Owner decision (6 Oct, #100): 11-frame release lag, Ultimate's value, with the 8-frame minimum shield hold. Direct shield grab and jump bypass release lag when otherwise legal; jump into aerials, rolls and spot dodges remain available. Add no instant grounded up-smash cancel. | Melee's 15 frames make dropping shield almost never worth it; dropping shield should be a real alternative to jumping into an aerial or rolling out of shield. Tune later if it is still never used. Shieldstun and other action locks still apply. |
 | Platform shield drop | Keep the current fresh-Down platform drop when ordinary movement is legal. Add no dedicated analog-threshold shield-drop technique; shielded fighters use their existing jump, dodge or release choices. | Retains supported input behaviour instead of adding a precision stick-threshold requirement. |
 | Cross-ups | Coverage follows each move's authored front/back regions and legal facing change. No automatic tracking or universal behind-the-fighter hit extension. | A cross-up changes which responses reach; the answer comes from the move, not hidden target tracking. |
 | Powershield and dedicated parry | Keep raise-timed powershield and its projectile reflection, with the accepted 2-frame window. Keep Illidan's authored parry; add no universal parry button or release-timed replacement. | Retains two existing defensive identities without adding another shared input. |
@@ -500,7 +508,7 @@ The descriptive basis is [fighting-game language](design/fighting-games.md),
 
 | Question | Adopted default | Reason |
 |---|---|---|
-| Air dodge | Keep the current directional, helpless air dodge and shared frame profile. Do not add an airtime recharge; its existing action lock prevents repeated free dodges. | Preserves wavedash movement and the recovery commitment already authored. |
+| Air dodge | Owner decision (6 Oct, #100): one directional air dodge per airtime with the shared frame profile. It ends actionable, not in helpless fall, and spends no jump; landing, catching a ledge and being hit refresh it. | Works as in Smash; once per airtime still prevents repeated free dodges, and wavedash movement is unchanged. |
 | Wavedash and waveland | Keep air-dodge momentum through landing and the 10-frame dodge landing lag, including the owner-selected shallow digital angle. | An interactive movement option, unlike the removed L-cancel chore. |
 | Offstage air-dodge buffering | Do not add a general held-input air-dodge buffer. Retain fresh dodge presses and the deliberate dodge press queued during jump squat; a fresh offstage press still works when legal. | Avoid accidental automatic dodges while preserving explicit player commands. |
 | Short hop and jump squat | Keep release-during-squat short hops, without a jump+attack macro or a new mandatory binding. Jump squat remains per fighter within #69's 3–5 frames: Archer 3, Rifleman 5, Illidan 4. | Preserves current controls and physical differences inside the accepted execution bounds. |

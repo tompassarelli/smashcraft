@@ -1107,16 +1107,29 @@ function airDodgeFirstTravel(character: Character): number {
   return melee(f.motion.deltaZ);
 }
 
+/** Whether an attack pressed on frame 55, after a frame-1 air dodge's 49-frame animation, starts before landing. */
+function actsAfterAirDodge(character: Character): boolean {
+  const s = solo(0, character);
+  const f = fighter(s);
+  airborne(f, 0.0, 2000.0);
+  for (let n = 1; n <= 55; n++) frame(s, n === 1 ? [Action.leftTrigger] : n === 55 ? [Action.attack] : []);
+  return !f.motion.grounded && f.attack.serial > 0;
+}
+
 /** A straight-down air dodge just above the main deck. */
 const wavelandFall: Fall = { setup: (f) => airborne(f, 0.0, 6.0), held: (n) => (n === 1 ? [Action.moveDown, Action.leftTrigger] : []) };
 
 const DODGE_DATA = "Fox/Falco animation frames (retail-action-lengths.json, private PlFxAJ/PlFcAJ read)";
 const DODGE_INTANGIBLE = "Fox/Falco intangibility: body-state commands in retail-roster.json (EscapeN, EscapeF, EscapeAir), as references/melee-frame-data/records.jsonl reports for the ground dodges";
 
+const SHIELD_RELEASE_DEPARTURE = "Shield release lag: 11 frames, Ultimate's value (owner decision 2026-10-06, #100)";
+const AIR_DODGE_DEPARTURE = "Air dodge: once per airtime, ends actionable, refreshed on landing, ledge catch and being hit (owner decision 2026-10-06, #100)";
+
 const SHIELD_AND_DODGES: readonly Scenario[] = [
   {
     area: "shield/dodge", name: "shield release: frames until an attack starts",
     cite: `${DODGE_DATA} GuardOff 15, entered without an extra step: melee:src/melee/ft/kinds/ftCommon/ftCo_Guard.c:587 ftCo_80092C54`,
+    departure: SHIELD_RELEASE_DEPARTURE,
     run: (c) => forReference(c, () => ({ expected: 15, actual: shieldReleaseLag(c) })),
   },
   {
@@ -1136,6 +1149,12 @@ const SHIELD_AND_DODGES: readonly Scenario[] = [
     area: "shield/dodge", name: "air dodge first-frame travel (Melee units)",
     cite: "PlCo +0x338 = 3.1 force x +0x33C = 0.9 decay before the first move: melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c",
     run: (c) => ({ expected: f32(3.0999999046325684 * 0.8999999761581421), actual: airDodgeFirstTravel(c), tolerance: 0.0001 }),
+  },
+  {
+    area: "shield/dodge", name: "air dodge ends in helpless fall: no attack before landing",
+    cite: "EscapeAir ends in FallSpecial, which allows no action until landing: melee:src/melee/ft/kinds/ftCommon/ftCo_EscapeAir.c",
+    departure: AIR_DODGE_DEPARTURE,
+    run: (c) => ({ expected: false, actual: actsAfterAirDodge(c) }),
   },
   {
     area: "shield/dodge", name: "waveland landing lag (frames to act)",

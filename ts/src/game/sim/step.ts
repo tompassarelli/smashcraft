@@ -463,6 +463,10 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   shield.stun = max(0, shield.stun - 1);
   status.invincible = max(0, status.invincible - 1);
   if (dodge.airDodging) dodge.airFrame = min(AIR_DODGE_ANIMATION_FRAMES, dodge.airFrame + 1);
+  if (dodge.airDodging && dodge.airFrame >= AIR_DODGE_ANIMATION_FRAMES) {
+    dodge.airDodging = false;
+    dodge.airFrame = 0;
+  }
   motion.dropTime = max(0, motion.dropTime - 1);
   const dodgeActive = dodge.airMotionFrames > 0;
   dodge.airMotionFrames = max(0, dodge.airMotionFrames - 1);

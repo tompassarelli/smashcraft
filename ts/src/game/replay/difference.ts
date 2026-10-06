@@ -269,6 +269,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("landingLag", e.landing.lag, a.landing.lag);
   add("airDodging", e.dodge.airDodging, a.dodge.airDodging);
   add("airDodgeFrame", e.dodge.airFrame, a.dodge.airFrame);
+  add("airDodgeUsed", e.dodge.airUsed, a.dodge.airUsed);
   add("groundDodgeFrame", e.dodge.groundFrame, a.dodge.groundFrame);
   add("groundDodgeDirection", e.dodge.groundDirection, a.dodge.groundDirection);
   add("groundDodgeEntryFacing", e.dodge.groundEntryFacing, a.dodge.groundEntryFacing);

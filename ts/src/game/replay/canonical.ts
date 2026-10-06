@@ -505,6 +505,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   int("landingLag", fighter.landing.lag);
   bool("airDodging", fighter.dodge.airDodging);
   int("airDodgeFrame", fighter.dodge.airFrame);
+  bool("airDodgeUsed", fighter.dodge.airUsed);
   int("groundDodgeFrame", fighter.dodge.groundFrame);
   int("groundDodgeDirection", fighter.dodge.groundDirection);
   int("groundDodgeEntryFacing", fighter.dodge.groundEntryFacing);
