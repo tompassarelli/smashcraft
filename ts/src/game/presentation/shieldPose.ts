@@ -8,9 +8,12 @@ interface ShieldPose {
   scale: number;
 }
 
+// Shared and never changed: renderers project every pooled effect on every callback.
+const HIDDEN: Readonly<ShieldPose> = { visible: false, x: 0.0, z: 0.0, scale: 0.0 };
+
 /** A raised shield's bubble, shrinking with its energy; hidden outside play. */
-export function projectedShield(fighter: Readonly<Fighter> | undefined, playing: boolean): ShieldPose {
-  if (!playing || fighter === undefined || fighter.status.out || !fighter.shield.raised) return { visible: false, x: 0.0, z: 0.0, scale: 0.0 };
+export function projectedShield(fighter: Readonly<Fighter> | undefined, playing: boolean): Readonly<ShieldPose> {
+  if (!playing || fighter === undefined || fighter.status.out || !fighter.shield.raised) return HIDDEN;
   return {
     visible: true,
     x: fighter.motion.x,

@@ -406,13 +406,22 @@ depends only on the accepted rows, so clients stay identical.
 
 What a callback costs, Lua32 on the development host (the playable bundle in
 Wisp's headless runtime, 6 October 2026; Warcraft ran the 4096-frame
-workload about 1.17 times slower than this host's Lua32): in a solo match
-against a computer Rifleman, a steady callback takes 1.4 ms at p50, one that
-confirms a 6-frame message 3.4 ms, and a catch-up callback 2.8 ms at p50 and
-7.6 ms at p95; with four fighters including the computer Illidan, 2.2, 12.0
-and 6.8 ms, p95 up to 26 ms. Catching up costs no more than confirming a
-message already did: the 6-frame confirmed limit was the steady worst case
-before #48 too.
+workload about 1.17 times slower than this host's Lua32):
+
+| Callback | Solo vs a computer Rifleman: p50 / p95 ms, native calls | Four fighters with the computer Illidan |
+| --- | --- | --- |
+| No frame | 0.41 / 0.54, 106 | 0.73 / 1.38, 131 |
+| Predicts 2 frames | 1.39 / 1.88, 114 | 2.44 / 9.49, 142 |
+| Confirms a 6-frame message | 3.28 / 4.74, 189 | 12.2 / 21.6, 285 |
+| Catching up after a 2 s stall | 2.74 / 8.20, 140 | 6.81 / 25.8, 222 |
+
+In a solo match a catch-up callback stays within half a 16.7 ms frame at p95
+(8.2 ms, about 9.6 ms in Warcraft by that ratio). With four fighters,
+confirming a message takes more than a frame at p95, as it did before #48
+(19.5–21.6 ms between runs), and catching up does too (25.8 ms): two
+humans' rollback corrections are half of that match's Lua time, and Wisp's
+exact binary32 arithmetic, knockback decay above all, about a sixth; that
+arithmetic also allocates at least half of what a solo match does.
 
 Throughput limits catching up too. Holds cost no bytes, but a message carries
 only 8 frames whose every field changes: with such input on every frame, 10
