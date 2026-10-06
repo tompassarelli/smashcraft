@@ -370,6 +370,8 @@ spread("spotFrames", dodgeRows.flatMap((d) => { const t = field(d.spot, "total")
 
 const GROUND = ["jab1", "ftilt", "utilt", "dtilt", "dattack", "fsmash", "usmash", "dsmash"] as const;
 const AERIALS = ["nair", "fair", "bair", "uair", "dair"] as const;
+const isGround = (action: string): boolean => GROUND.some((g) => g === action);
+const isAerial = (action: string): boolean => AERIALS.some((a) => a === action);
 const MOVE_NAMES: Readonly<Record<string, string>> = {
   jab1: "Jab", ftilt: "Forward tilt", utilt: "Up tilt", dtilt: "Down tilt", dattack: "Dash attack", fsmash: "Forward smash",
   usmash: "Up smash", dsmash: "Down smash", nair: "Neutral air", fair: "Forward air", bair: "Back air", uair: "Up air", dair: "Down air",
@@ -407,7 +409,7 @@ interface Attack {
 const attacks: Attack[] = fighters.flatMap((f) => [...GROUND, ...AERIALS].map((action) => {
   const r = frameRecord(f.id, "attacks", action);
   const s = field(r, "start"), e = field(r, "end"), a = actionable(r), stun = field(r, "stun");
-  const aerial = (AERIALS as readonly string[]).includes(action);
+  const aerial = isAerial(action);
   const landing = field(r, "land_lag"), cancelled = field(r, "cancel_lag");
   // Contact on frame c: the defender acts on c + shieldstun + 1, the attacker on its actionable frame.
   const ground = (c: number | null) => (stun === null || c === null || a === null ? null : c + stun + 1 - a);
@@ -540,7 +542,7 @@ tables.set("aerialSpacing", table(
   ["Fighter", "Aerial", "Late, L-cancelled", "Late, not cancelled", "First active frame of a fast-fallen short hop", "Reach", "Pushback slide", "Fade: landing slide at air speed"],
   ["l", "l", "r", "r", "r", "r", "r", "r"],
   movement.map((m) => {
-    const best = top(attacks.filter((a) => a.id === m.f.id && (AERIALS as readonly string[]).includes(a.action)), bestOnShield, 1, true)[0];
+    const best = top(attacks.filter((a) => a.id === m.f.id && isAerial(a.action)), bestOnShield, 1, true)[0];
     if (best === undefined || best.startup === null || best.cancelled === null || best.shieldstun === null) return [name(m.f.id), "–", "–", "–", "–", "–", "–", "–"];
     // Aerial input on the takeoff frame of a short hop fast-fallen at once: contact on frame `startup`, landing on `airtime`.
     const landing = m.shortFastFall.airtime;
@@ -611,8 +613,8 @@ const profiles: Profile[] = movement.map((m) => {
   return {
     f: m.f, weight: attribute(m.f, "weight"), run: attribute(m.f, "dash_max_velocity"), air: attribute(m.f, "air_drift_max"),
     fall: attribute(m.f, "terminal_velocity"), gravity: attribute(m.f, "gravity"),
-    groundStartup: Math.min(...defined(own.filter((a) => (GROUND as readonly string[]).includes(a.action)).map((a) => a.startup))),
-    bestAerial: top(own.filter((a) => (AERIALS as readonly string[]).includes(a.action)), bestOnShield, 1, true)[0]?.onShield ?? null,
+    groundStartup: Math.min(...defined(own.filter((a) => isGround(a.action)).map((a) => a.startup))),
+    bestAerial: top(own.filter((a) => isAerial(a.action)), bestOnShield, 1, true)[0]?.onShield ?? null,
     oos: outOfShield.find((o) => o.f.id === m.f.id)?.fastest ?? 0,
   };
 });
