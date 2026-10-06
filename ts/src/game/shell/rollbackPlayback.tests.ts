@@ -56,7 +56,14 @@ test("shell rollback replaces a predicted remote row and reports executed local 
   });
   if (typeof corrected === "string") throw new Error(`expected a correction from frame 1, got ${corrected}`);
   assertEquals(corrected.replayedFrom, 1);
+  // The rows changed; the speculative match runs them once repaired, a budget of frames a callback.
+  assertFalse(fighterAt(live.world, remote).shield.raised);
+  const match = { world: live.world, game: live.match, controls: live.controls, runtime: live.runtime };
+  assertEquals(playback.repair(epoch, match, 3), 3);
+  assertFalse(fighterAt(live.world, remote).shield.raised);
+  assertEquals(playback.repair(epoch, match, 3), 1);
   assertTrue(fighterAt(live.world, remote).shield.raised);
+  assertEquals(playback.repair(epoch, match, 3), 0);
   assertEquals(live.runtime.simulationFrame, 4);
 });
 

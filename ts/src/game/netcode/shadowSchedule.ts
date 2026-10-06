@@ -33,6 +33,7 @@ export class ShadowInputSchedule {
   private nextConfirmed = 1;
   private preparedSpeculative: number | undefined;
   private preparedConfirmed: number | undefined;
+  private acceptedCount = 0;
 
   /** D and R hold for the whole epoch; the replay history bounds R. */
   beginEpoch(epoch: number, delay: FixedDelay, window: number, participants: number): boolean {
@@ -153,11 +154,21 @@ export class ShadowInputSchedule {
   }
 
   acceptSynchronized(sender: number, packet: InputPacket): Receipt {
-    return this.schedule.acceptSynchronized(sender, packet);
+    return this.counted(this.schedule.acceptSynchronized(sender, packet));
   }
 
   receiveSynchronized(sender: number, wire: string): Receipt {
-    return this.schedule.receiveSynchronized(sender, wire);
+    return this.counted(this.schedule.receiveSynchronized(sender, wire));
+  }
+
+  /** Packets accepted so far: the rows speculative frames ran can differ from accepted rows only after it changes. */
+  acceptedPackets(): number {
+    return this.acceptedCount;
+  }
+
+  private counted(receipt: Receipt): Receipt {
+    if (receipt === "accepted") this.acceptedCount++;
+    return receipt;
   }
 
   /** F may run while it is within R frames past K. */
