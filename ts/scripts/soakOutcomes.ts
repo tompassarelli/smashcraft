@@ -217,9 +217,18 @@ function computerTables(outcomes: readonly Outcome[], roster: readonly string[])
 if (import.meta.main) {
   const files = process.argv.slice(2);
   if (files.length === 0) throw new Error("usage: bun scripts/soakOutcomes.ts FILE...");
-  const outcomes = (await Promise.all(files.map((file) => Bun.file(file).text())))
+  const read = (await Promise.all(files.map((file) => Bun.file(file).text())))
     .flatMap((text) => text.split("\n").filter((line) => line.trim() !== "").map((line) => readOutcome(line)));
-  console.log(`${outcomes.length} results read; A is the first fighter (the computer in cpu vs fuzz). KO % counts stocks lost within ${KO_CREDIT_FRAMES / FRAMES_PER_SECOND} s of a hit.`);
+  // The soak plays a match again to confirm a costly frame, and that replay
+  // writes the same result a second time: count each match once.
+  const matchKeys = new Set<string>();
+  const outcomes = read.filter(({ index, seed }) => {
+    const key = `${index}:${seed}`;
+    if (matchKeys.has(key)) return false;
+    matchKeys.add(key);
+    return true;
+  });
+  console.log(`${outcomes.length} results read (${read.length - outcomes.length} replayed results left out); A is the first fighter (the computer in cpu vs fuzz). KO % counts stocks lost within ${KO_CREDIT_FRAMES / FRAMES_PER_SECOND} s of a hit.`);
   const played = playedMatches(outcomes);
   console.log(table(summarize(distinctMatches(played), soak.roster.fighters)));
   console.log(computerTables(played, soak.roster.fighters));

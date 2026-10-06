@@ -37,6 +37,8 @@ export interface SlotMode {
 export type JourneyEvent =
   | { readonly event: "start" | "end" | "integrity-resume"; readonly epoch: number; readonly publications: readonly [Publication, Publication] }
   | { readonly event: "integrity-stall"; readonly epoch: number; readonly kind: string; readonly verifiedStoppedState: boolean; readonly stoppedNs: number; readonly continuedNs: number }
+  /** A bot session's 2 s stop of client B's game (#48). */
+  | { readonly event: "bot-stall"; readonly epoch: number; readonly slot: number; readonly stoppedNs: number; readonly continuedNs: number }
   | { readonly event: "integrity-pause"; readonly epoch: number | undefined }
   | { readonly event: "integrity-slot-change" | "four-fighter-setup"; readonly epoch: number | undefined; readonly changes: readonly SlotMode[] }
   | { readonly event: "player-view"; readonly epoch: number; readonly at: string; readonly failure: string | undefined };
@@ -81,6 +83,27 @@ interface Distribution {
 /** The final confirmed frame, its checksum and its match phase. */
 type Endpoint = readonly [frame: number, checksum: string, phase: number];
 
+/** Whose process a capture had stopped (game or helper) when a press was made: neither, the other player's, or the presser's own. */
+export type StallSide = "none" | "opponent" | "own";
+
+/**
+ * One legal press's local start: callbacks from the presser's client
+ * capturing it to that client first predicting it. `delay` is undefined when
+ * the client recorded no capture for it, or its first prediction did not
+ * start the action.
+ */
+export interface LocalStart {
+  readonly epoch: number;
+  readonly slot: Slot;
+  readonly frame: number;
+  readonly delay: number | undefined;
+  readonly stall: StallSide;
+  /** Frames since the latest earlier stop of either player's process ended, when one had. */
+  readonly afterStall: number | undefined;
+  /** When the first prediction did not start the action: callbacks from capture to the confirmed frame that did. */
+  readonly confirmedAfter: number | undefined;
+}
+
 export interface IntegrityResult {
   readonly scope: string;
   readonly build: string;
@@ -89,11 +112,18 @@ export interface IntegrityResult {
   readonly helperSha256: string;
   readonly injected: readonly [number, number];
   readonly lost: number;
+  /** Each lost or extra edge, for diagnosis: "epoch E slot S client C: lost|extra FRAME:BIT:PRESSED". */
+  readonly mismatchedEdges: readonly string[];
   readonly duplicated: number;
   readonly reordered: number;
   readonly stuck: number;
   readonly expectedFrame: { readonly correct: number; readonly total: number; readonly percent: number | undefined };
   readonly localStart: Distribution;
+  /** Each legal press's local start, with whether a process of its own or the other player was stopped when it was pressed. */
+  readonly localStarts: readonly LocalStart[];
+  /** Workload presses (edges that turn a source on) per slot, and the bindings they pressed. */
+  readonly presses: readonly [number, number];
+  readonly pressedBindings: readonly [readonly string[], readonly string[]];
   readonly legalActionEdges: number;
   readonly illegalActionEdges: number;
   readonly legalActionsMissingFirstPrediction: number;
@@ -153,7 +183,7 @@ function bits(mask: number): number[] {
 
 /**
  * The action bits a source holds after this edge: A attack, B/Y jump, X
- * special, LB walk, RB grab, either trigger shield, stick move. Under `xpad`
+ * special, LB walk, RB grab, either trigger shield, stick move, C-stick smash. Under `xpad`
  * stick-up is only up; `compass-tap-jump` swaps 0x133/0x134 and jumps on up.
  */
 function sourceMask({ type, code, value }: SourceEdge, layout: PadLayout): number {
@@ -166,13 +196,15 @@ function sourceMask({ type, code, value }: SourceEdge, layout: PadLayout): numbe
   if (type === 3) {
     if (code === 0) return value < 0 ? 1 : 2;
     if (code === 1) return value < 0 ? (xpad ? 8 : 24) : 4;
+    if (code === 3) return value < 0 ? 1024 : 2048;
+    if (code === 4) return value < 0 ? 4096 : 8192;
     const triggers: Readonly<Record<number, number>> = { 2: 256, 5: 512 };
     return triggers[code] ?? 0;
   }
   return 0;
 }
 
-function distribution(values: readonly number[]): Distribution {
+export function distribution(values: readonly number[]): Distribution {
   if (values.length === 0) return { n: 0, p50: undefined, p95: undefined, max: undefined, counts: [] };
   const ordered = [...values].sort((a, b) => a - b);
   const counts = new Map<number, number>();
@@ -200,9 +232,13 @@ class EdgeCounts {
   }
   /** Total count by which this multiset exceeds `other`. */
   excess(other: EdgeCounts): number {
-    let total = 0;
-    for (const [key, count] of this.counts) total += Math.max(0, count - other.get(key));
-    return total;
+    return this.excessKeys(other).length;
+  }
+  /** Each key by which this multiset exceeds `other`, once per extra count. */
+  excessKeys(other: EdgeCounts): string[] {
+    const keys: string[] = [];
+    for (const [key, count] of this.counts) for (let extra = count - other.get(key); extra > 0; extra--) keys.push(key);
+    return keys;
   }
 }
 
@@ -258,8 +294,12 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
   }
 
   const injected: [number, number] = [0, 0];
+  const presses: [number, number] = [0, 0];
   let lost = 0, duplicated = 0, reordered = 0, stuck = 0, correct = 0, total = 0;
   const localDelays: number[] = [], opponentLateness: number[] = [], rollbackDepths: number[] = [], stallLengths: number[] = [];
+  const localStarts: LocalStart[] = [];
+  /** Lost and extra edges as "epoch E slot S client C: lost|extra FRAME:BIT:PRESSED". */
+  const mismatchedEdges: string[] = [];
   let missingLocal = 0, illegalPresses = 0, legalPresses = 0;
   const native = new Map<string, NativeRow[]>();
   const rollbackLimits = new Set<number>();
@@ -335,20 +375,40 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
       const firstSegment = segments[0];
       if (firstSegment === undefined) throw new MalformedEvidence(`epoch ${epoch} slot ${slot}: start segment absent`);
       const finalNs = end.publications[slot].estimateNs;
+      const finalFrame = endpoints.get(clientKey(epoch, slot))?.[0] ?? Number.MAX_SAFE_INTEGER;
       const expected = new EdgeCounts();
       const expectedHeld = new Map<number, number>();
       const sourceStates = new Map<string, number>();
       const sourceEdges: string[][] = [];
       const previousDown = new Map<string, readonly [frame: number, ns: number]>();
+      /** The frame this slot's client gave a monotonic time: the latest start or resume receipt at or before it, then 60 a second. */
+      const frameAt = (ns: number) => {
+        const [anchor, first] = segments.filter((segment) => segment[0] <= ns).reduce((a, b) => (compareSegments(a, b) >= 0 ? a : b));
+        return first + floorDiv((ns - anchor) * 60, NS_PER_SECOND);
+      };
+      // Frames during which a capture had stopped a process, and whether it was this slot's own.
+      const stopped = journey.flatMap((event) => {
+        if ((event.event !== "integrity-stall" && event.event !== "bot-stall") || event.epoch !== epoch || event.stoppedNs < firstSegment[0]) return [];
+        const stalledSlot = event.event === "bot-stall" ? event.slot : event.kind === "helper" ? 0 : 1;
+        return [{ from: frameAt(event.stoppedNs), to: frameAt(event.continuedNs), side: stalledSlot === slot ? "own" as const : "opponent" as const }];
+      });
+      const stallSide = (frame: number): StallSide =>
+        stopped.some((window) => window.side === "own" && frame >= window.from && frame <= window.to) ? "own"
+        : stopped.some((window) => frame >= window.from && frame <= window.to) ? "opponent" : "none";
+      const afterStall = (frame: number) => {
+        const ended = stopped.filter((window) => window.to < frame).map((window) => frame - window.to);
+        return ended.length === 0 ? undefined : Math.min(...ended);
+      };
       for (const edge of producer) {
-        if (edge.source !== `slot-${slot}` || !edge.phase.startsWith(`match-${epoch}-`)) continue;
+        if (edge.source !== `slot-${slot}` || !(edge.phase.startsWith(`match-${epoch}-`) || edge.phase.startsWith(`bot-${epoch}-`))) continue;
         if (edge.type === 1 && edge.code === START_BUTTON) continue;
         const before = edge.injectedNs ?? edge.beforeNs;
         const after = edge.injectedNs ?? edge.afterNs;
         if (before >= finalNs || before < firstSegment[0]) continue;
-        const [anchor, first] = segments.filter((segment) => segment[0] <= before).reduce((a, b) => (compareSegments(a, b) >= 0 ? a : b));
-        const frame = first + floorDiv((before - anchor) * 60, NS_PER_SECOND);
-        require(frame === first + floorDiv((after - anchor) * 60, NS_PER_SECOND), `epoch ${epoch} slot ${slot}: injection crossed frame boundary at ${before}`);
+        const frame = frameAt(before);
+        require(frame === frameAt(after), `epoch ${epoch} slot ${slot}: injection crossed frame boundary at ${before}`);
+        // A bot's pads play until the end receipt appears, after the match's last simulated frame.
+        if (frame > finalFrame) continue;
         let old = 0;
         for (const mask of sourceStates.values()) old |= mask;
         const source = `${edge.type}:${edge.code}`;
@@ -358,8 +418,9 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         expectedHeld.set(frame, held);
         const edgeKeys = frameEdges(frame, held & ~old, old & ~held);
         for (const key of edgeKeys) expected.add(key);
-        if (!edge.phase.includes("-integrity-")) continue;
+        if (!edge.phase.includes("-integrity-") && !edge.phase.startsWith(`bot-${epoch}-beat:`)) continue;
         injected[slot]++;
+        if (edge.value !== 0) presses[slot]++;
         coverage[slot].add(edge.phase.slice(edge.phase.lastIndexOf(":") + 1));
         require(edgeKeys.length > 0, `epoch ${epoch} slot ${slot}: source transition has no action edge`);
         sourceEdges.push(edgeKeys);
@@ -387,6 +448,8 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
           const expectedMask = expectedHeld.get(frame);
           if (expectedMask !== undefined && held !== expectedMask) stuck++;
         }
+        for (const key of expected.excessKeys(observed)) mismatchedEdges.push(`epoch ${epoch} slot ${slot} client ${client}: lost ${key}`);
+        for (const key of observed.excessKeys(expected)) mismatchedEdges.push(`epoch ${epoch} slot ${slot} client ${client}: extra ${key}`);
         lost += expected.excess(observed);
         duplicated += observed.excess(expected);
         for (let i = 1; i < frames.length; i++) if (at(frames, i, what) <= at(frames, i - 1, what)) reordered++;
@@ -413,7 +476,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         if (stage === "capture" && values[1] === slot) captures.set(at(values, 2, what), serial);
         if (stage === "action" && values[1] === slot) predicted.set(at(values, 2, what), [serial, at(values, 5, what)]);
       }
-      for (const { stage, values } of local) {
+      for (const { serial, stage, values } of local) {
         if (stage !== "legal" || values[1] !== slot) continue;
         if (values.length !== 6) throw new MalformedEvidence(`${what}: ${values.length} fields`);
         const frame = at(values, 2, what), pressed = at(values, 3, what), legal = at(values, 4, what), started = at(values, 5, what);
@@ -423,13 +486,20 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         if (legal === 0) continue;
         const prediction = predicted.get(frame);
         const capture = captures.get(frame);
+        const stall = stallSide(frame);
         if (capture === undefined || prediction === undefined || (prediction[1] & legal) !== legal) {
           missingLocal += popcount(legal);
+          // A first prediction that did not start the action shows it only once the confirmed frame replays it.
+          const confirmedAfter = capture === undefined ? undefined : serial - capture;
+          for (let i = popcount(legal); i > 0; i--) localStarts.push({ epoch, slot, frame, delay: undefined, confirmedAfter, stall, afterStall: afterStall(frame) });
           continue;
         }
         // The callback that FIRST executed prediction is compared to the
         // admission callback. A later rollback replay never creates this row.
-        for (let i = popcount(legal); i > 0; i--) localDelays.push(prediction[0] - capture);
+        for (let i = popcount(legal); i > 0; i--) {
+          localDelays.push(prediction[0] - capture);
+          localStarts.push({ epoch, slot, frame, delay: prediction[0] - capture, confirmedAfter: undefined, stall, afterStall: afterStall(frame) });
+        }
       }
     }
   }
@@ -484,6 +554,10 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
     stuck,
     expectedFrame: { correct, total, percent: total > 0 ? (100 * correct) / total : undefined },
     localStart: distribution(localDelays),
+    localStarts,
+    mismatchedEdges,
+    presses,
+    pressedBindings: [[...coverage[0]].sort(), [...coverage[1]].sort()],
     legalActionEdges: legalPresses,
     illegalActionEdges: illegalPresses,
     legalActionsMissingFirstPrediction: missingLocal,

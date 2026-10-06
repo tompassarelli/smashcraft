@@ -1,0 +1,112 @@
+=== smashcraft-repro-p0-f1850-4.txt
+$ bun scripts/wisp.ts repro "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p0-f1850-4.txt"
+   0.008 s  read repro (0.006 s)
+   0.052 s  load replay (0.043 s)
+   0.466 s  replay in 2 clients (0.414 s)
+smashcraft-repro-p0-f1850-4.txt: build typescript-integrity, frame 1850, checksum 93347:92201
+p0: ran 650 frames to checksum 265065:686283
+p0: frame 1680 replays to checksum 433223:405847; the game recorded 668158:421027
+p1: ran 650 frames to checksum 265065:686283
+p1: frame 1680 replays to checksum 433223:405847; the game recorded 668158:421027
+the replay doesn't land on the recorded checksum 93347:92201 at frame 1850
+   0.471 s  repro failed (0.471 s)
+/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p0-f1850-4.txt: the replay doesn't reproduce the moment
+error: script "wisp" exited with code 1
+exit=1
+=== smashcraft-repro-p0-f1866-2.txt
+$ bun scripts/wisp.ts repro "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p0-f1866-2.txt"
+   0.009 s  read repro (0.007 s)
+   0.043 s  load replay (0.033 s)
+   0.352 s  replay in 2 clients (0.308 s)
+smashcraft-repro-p0-f1866-2.txt: build typescript-integrity, frame 1866, checksum 364824:545325
+p0: ran 666 frames to checksum 364824:545325
+p1: ran 666 frames to checksum 364824:545325
+every client lands on the recorded checksum 364824:545325 at frame 1866
+   0.352 s  repro (0.352 s)
+exit=0
+=== smashcraft-repro-p0-f774-3.txt
+$ bun scripts/wisp.ts repro "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p0-f774-3.txt"
+   0.008 s  read repro (0.005 s)
+   0.050 s  load replay (0.042 s)
+   0.386 s  replay in 2 clients (0.336 s)
+smashcraft-repro-p0-f774-3.txt: build typescript-integrity, frame 774, checksum 725851:285853
+p0: ran 654 frames to checksum 702536:681126
+p0: frame 480 replays to checksum 891909:435295; the game recorded 974224:982736
+p1: ran 654 frames to checksum 702536:681126
+p1: frame 480 replays to checksum 891909:435295; the game recorded 974224:982736
+the replay doesn't land on the recorded checksum 725851:285853 at frame 774
+   0.389 s  repro failed (0.389 s)
+/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p0-f774-3.txt: the replay doesn't reproduce the moment
+error: script "wisp" exited with code 1
+exit=1
+=== smashcraft-repro-p0-f778-1.txt
+$ bun scripts/wisp.ts repro "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p0-f778-1.txt"
+   0.010 s  read repro (0.007 s)
+   0.045 s  load replay (0.035 s)
+   0.314 s  replay in 2 clients (0.269 s)
+smashcraft-repro-p0-f778-1.txt: build typescript-integrity, frame 778, checksum 459901:544383
+p0: ran 658 frames to checksum 505596:387424
+p0: frame 360 replays to checksum 72634:20206; the game recorded 378:31837
+p1: ran 658 frames to checksum 505596:387424
+p1: frame 360 replays to checksum 72634:20206; the game recorded 378:31837
+the replay doesn't land on the recorded checksum 459901:544383 at frame 778
+   0.317 s  repro failed (0.317 s)
+/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p0-f778-1.txt: the replay doesn't reproduce the moment
+error: script "wisp" exited with code 1
+exit=1
+=== smashcraft-repro-p1-f1850-4.txt
+$ bun scripts/wisp.ts repro "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p1-f1850-4.txt"
+   0.008 s  read repro (0.005 s)
+   0.046 s  load replay (0.037 s)
+   0.373 s  replay in 2 clients (0.327 s)
+smashcraft-repro-p1-f1850-4.txt: build typescript-integrity, frame 1850, checksum 93347:92201
+p0: ran 650 frames to checksum 265065:686283
+p0: frame 1680 replays to checksum 433223:405847; the game recorded 668158:421027
+p1: ran 650 frames to checksum 265065:686283
+p1: frame 1680 replays to checksum 433223:405847; the game recorded 668158:421027
+the replay doesn't land on the recorded checksum 93347:92201 at frame 1850
+   0.377 s  repro failed (0.377 s)
+/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p1-f1850-4.txt: the replay doesn't reproduce the moment
+error: script "wisp" exited with code 1
+exit=1
+=== smashcraft-repro-p1-f1866-2.txt
+$ bun scripts/wisp.ts repro "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p1-f1866-2.txt"
+   0.009 s  read repro (0.006 s)
+   0.048 s  load replay (0.038 s)
+   0.426 s  replay in 2 clients (0.378 s)
+smashcraft-repro-p1-f1866-2.txt: build typescript-integrity, frame 1866, checksum 364824:545325
+p0: ran 666 frames to checksum 364824:545325
+p1: ran 666 frames to checksum 364824:545325
+every client lands on the recorded checksum 364824:545325 at frame 1866
+   0.428 s  repro (0.428 s)
+exit=0
+=== smashcraft-repro-p1-f774-3.txt
+$ bun scripts/wisp.ts repro "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p1-f774-3.txt"
+   0.008 s  read repro (0.006 s)
+   0.042 s  load replay (0.032 s)
+   0.380 s  replay in 2 clients (0.338 s)
+smashcraft-repro-p1-f774-3.txt: build typescript-integrity, frame 774, checksum 725851:285853
+p0: ran 654 frames to checksum 702536:681126
+p0: frame 480 replays to checksum 891909:435295; the game recorded 974224:982736
+p1: ran 654 frames to checksum 702536:681126
+p1: frame 480 replays to checksum 891909:435295; the game recorded 974224:982736
+the replay doesn't land on the recorded checksum 725851:285853 at frame 774
+   0.383 s  repro failed (0.383 s)
+/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p1-f774-3.txt: the replay doesn't reproduce the moment
+error: script "wisp" exited with code 1
+exit=1
+=== smashcraft-repro-p1-f778-1.txt
+$ bun scripts/wisp.ts repro "/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p1-f778-1.txt"
+   0.011 s  read repro (0.008 s)
+   0.052 s  load replay (0.040 s)
+   0.371 s  replay in 2 clients (0.319 s)
+smashcraft-repro-p1-f778-1.txt: build typescript-integrity, frame 778, checksum 459901:544383
+p0: ran 658 frames to checksum 505596:387424
+p0: frame 360 replays to checksum 72634:20206; the game recorded 378:31837
+p1: ran 658 frames to checksum 505596:387424
+p1: frame 360 replays to checksum 72634:20206; the game recorded 378:31837
+the replay doesn't land on the recorded checksum 459901:544383 at frame 778
+   0.375 s  repro failed (0.375 s)
+/home/tom/.local/share/smashcraft-build-inputs/playable-0049/r2-bot4/moments/smashcraft-repro-p1-f778-1.txt: the replay doesn't reproduce the moment
+error: script "wisp" exited with code 1
+exit=1

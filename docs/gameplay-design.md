@@ -91,3 +91,26 @@ Owner decision 2026-10-06 (#54): **remove L-cancelling**. This omission is
 accepted scope, not a fidelity defect or a deferred implementation task.
 Independent Melee comparisons, including `bun wisp oracle`, must state that
 L-cancelling is omitted.
+
+## Open questions for the owner
+
+Proposed lower and upper bounds for each execution and reaction window type.
+They are proposals, not decisions; the evidence for each is in
+[execution windows](design/execution-windows.md). Accepted bounds move up into
+this document as decisions and become oracle or interaction-graph checks.
+
+| Window type | Lower | Upper | Today |
+|---|---|---|---|
+| Reaction-based option (responder must see a cue, then act) | 15 frames from the cue, for one option | about 25 at four options | not measured |
+| Tech (defensive press before contact) | 11 | 20 | 20 |
+| Tech lockout between presses | 20 | 40 | 40 |
+| Input buffer | 4 | 10 | 6 |
+| Offensive link or follow-up | 3 | none beyond the move's own timing | no required links |
+| Jump squat; short-hop release window | 3 | 5 | 3 and 5 |
+| Parry active window | 6 | 10 | 6 |
+| Powershield input window | 2 | 4 | 2 |
+| Ledge intangibility | 30 | 37 | 30 |
+| Ledge regrab lock | 30 | 60 | 30 |
+| Any required precision input with no aid | 3 | n/a | L-cancel removed |
+
+Mechanic-level questions drawn from other games (parry, air dodge, rage, short-hop input, ledge rules and others) are listed at the end of [modern platform fighters](design/modern-platform-fighters.md). Questions raised by fighting-game and platform-fighter design language (hurtbox extension, disjoints, counter hits, shield geometry, whiff penalties, DI strength, launchers and others) are listed at the end of [fighting games](design/fighting-games.md) and [platform fighters](design/platform-fighters.md).
