@@ -11,7 +11,7 @@ import { AttackStyle, Character, DownState } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "../sim/knockback";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "../sim/roster";
-import { surfaceLeft, surfaceRight } from "../sim/stage";
+import { MAIN_DECK_UNDERSIDE_Z, surfaceLeft, surfaceRight } from "../sim/stage";
 import type { Scenario } from "./build";
 
 /** A 90-unit gap puts an ordinary Archer jab in range with or without Parry Step. */
@@ -65,6 +65,9 @@ function opponentSlot(game: Readonly<MatchState>, world: Roster, first: Particip
   return cpuSlot(game) ?? PARTICIPANT_SLOTS.find(slot => isActive(world, slot) && slot !== first);
 }
 
+/** Ten seconds, long enough for fresh's frame at frame 30 and a few looks after it. */
+const UNDERSIDE_FROZEN_FRAMES = 600;
+
 /** Stages the scenario on a freshly initialized match. */
 export function initializeScenario(scenario: Scenario, game: Readonly<MatchState>, world: Roster): void {
   const firstSlot = firstHumanSlot(game);
@@ -115,6 +118,15 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
       first.jump.remaining = 0;
       second.motion.x = 350.0;
       return;
+    case "underside":
+      // Frozen in the air beside the main deck's lower right corner, level with its underside, for native captures of both.
+      first.motion.x = 520.0;
+      first.motion.z = MAIN_DECK_UNDERSIDE_Z;
+      first.motion.grounded = false;
+      first.motion.surface = undefined;
+      first.status.frozenFrames = UNDERSIDE_FROZEN_FRAMES;
+      second.motion.x = 350.0;
+      return;
     case "normal":
       return;
   }
@@ -122,7 +134,7 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
 
 /** Staged scenarios keep the computer passive, except the parry scenario's answering jab. */
 const COMPUTER_PLAYS: Readonly<Record<Scenario, boolean>> = {
-  normal: true, ko: true, knockdown: false, tech: false, "shield-break": false, ledge: false, parry: false, spike: false,
+  normal: true, ko: true, knockdown: false, tech: false, "shield-break": false, ledge: false, parry: false, spike: false, underside: false,
 };
 
 const NEUTRAL = neutralControls();
