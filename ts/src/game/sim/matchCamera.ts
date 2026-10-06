@@ -8,8 +8,8 @@ import { stageBounds, type StageRegion } from "./stageBounds";
 import { MAIN_DECK_UNDERSIDE_Z } from "./stage";
 
 export const MATCH_CAMERA_ASPECT = 1.7777777910232544;
-export const CAMERA_PITCH_COS = 0.9848077297210693;
-export const CAMERA_PITCH_SIN = 0.1736481785774231;
+const CAMERA_PITCH_COS = 0.9848077297210693;
+const CAMERA_PITCH_SIN = 0.1736481785774231;
 // tan(30°/2) and tan(38°/2), the camera's authored field-of-view endpoints.
 const NARROW = 0.2679491937160492;
 const WIDE = 0.3443276286125183;
@@ -57,7 +57,7 @@ const ease = (current: number, target: number, rate: number): number => f32(curr
 const extent = (current: number, target: number): number => f32(current + clamp(f32(target - current), -3.0, 3.0));
 
 /** The extreme vertical rays where the camera meets the fighters' plane. */
-export function cameraReach(distance: number, tangent: number): { readonly above: number; readonly below: number } {
+function cameraReach(distance: number, tangent: number): { readonly above: number; readonly below: number } {
   const span = f32(distance * tangent);
   const tilt = f32(tangent * CAMERA_PITCH_SIN);
   return { above: f32(span / f32(CAMERA_PITCH_COS + tilt)), below: f32(span / f32(CAMERA_PITCH_COS - tilt)) };

@@ -4,7 +4,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { createBackdrop, createText, gameUi, MENU_FONT } from "./frames";
 import { Character } from "../sim/codes";
 
-export function bubblePosition(column: number, row: number): { readonly column: number; readonly row: number; readonly arrow: string } {
+function bubblePosition(column: number, row: number): { readonly column: number; readonly row: number; readonly arrow: string } {
   const dx = column - 0.5;
   const dy = row - 0.5;
   // ifmagnify.c's 252.7/640 by 162.7/480 inset; bottom stays above our HUD.
