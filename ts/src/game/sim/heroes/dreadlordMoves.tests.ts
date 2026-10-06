@@ -1,7 +1,7 @@
 import { assertEquals, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction } from "../codes";
+import { AttackPhase, AttackStyle, Character, DASH_GRAB_REQUEST, GrabAction, HitElement } from "../codes";
 import { attackPhase } from "../conditions";
 import { createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
@@ -282,4 +282,22 @@ test("Dreadlord's extended arm and wing can be hit where his standing body canno
   assertEquals(jabIntoDreadlord(AttackStyle.forwardTilt, 20, gap), 0.0);
   // Back air exposes the wing behind him.
   assertGreaterThan(jabIntoDreadlord(AttackStyle.backAir, 8, gap, true), 0.0);
+});
+
+test("an original fighter's throw after Dreadlord's shows its own hit element, not his claws'", () => {
+  const throwOnce = (moves: typeof DREADLORD_MOVES | undefined) => {
+    const { owner, target, world } = attackPair(AttackStyle.grab, 6, 50.0);
+    owner.tuning.moves = moves;
+    resolveAttacks(world);
+    if (moves === undefined) {
+      owner.grab.target = 1;
+      target.grab.owner = 0;
+      target.grab.grabbedFrames = 200;
+    }
+    const input = controls({ grabThrowX: 1 });
+    for (let tick = 0; tick < 40 && target.grab.owner !== undefined; tick++) testGrabFrame(world, [input, controls()], false);
+    return target.visuals.hitElement;
+  };
+  assertEquals(throwOnce(DREADLORD_MOVES), HitElement.slash);
+  assertEquals(throwOnce(undefined), HitElement.normal);
 });
