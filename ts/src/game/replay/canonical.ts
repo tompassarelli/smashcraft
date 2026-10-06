@@ -82,9 +82,9 @@ export function canonicalRealField(name: string, value: number): string {
 /** Authored move values travel with tuning; absent profiles leave retained tapes unchanged. */
 export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = "moves"): string {
   if (moves === undefined) return "";
-  let result = canonicalInt(`${prefix}.dashAttack`, moves.dashAttack);
-  const int = (name: string, value: number) => { result += canonicalInt(`${prefix}.${name}`, value); };
-  const real = (name: string, value: number) => { result += canonicalRealField(`${prefix}.${name}`, value); };
+  const result: string[] = [canonicalInt(`${prefix}.dashAttack`, moves.dashAttack)];
+  const int = (name: string, value: number) => { result.push(canonicalInt(`${prefix}.${name}`, value)); };
+  const real = (name: string, value: number) => { result.push(canonicalRealField(`${prefix}.${name}`, value)); };
   const effect = (name: string, hit: Readonly<HitEffect>) => {
     real(`${name}.damage`, hit.damage);
     real(`${name}.growth`, hit.growth);
@@ -141,7 +141,7 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
     effect(name, move.effect);
   }
   const { hurtboxes } = moves;
-  if (hurtboxes === undefined) return result;
+  if (hurtboxes === undefined) return result.join("");
   const parts = (name: string, list: readonly HurtPart[]) => {
     int(`${name}.parts`, list.length);
     for (let index = 0; index < list.length; index++) {
@@ -170,15 +170,15 @@ export function fighterMovesCanonical(moves: FighterMoves | undefined, prefix = 
       parts(`${name}.pose[${index}]`, pose.parts);
     }
   }
-  return result;
+  return result.join("");
 }
 
 /** Wurst's slotOf: -1 for no fighter, -2 for a fighter the roster doesn't seat. */
 /** An authored hero projectile, field by field. */
 function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: string): string {
-  let result = "";
-  const int = (name: string, value: number) => { result += canonicalInt(`${prefix}.${name}`, value); };
-  const real = (name: string, value: number) => { result += canonicalRealField(`${prefix}.${name}`, value); };
+  const result: string[] = [];
+  const int = (name: string, value: number) => { result.push(canonicalInt(`${prefix}.${name}`, value)); };
+  const real = (name: string, value: number) => { result.push(canonicalRealField(`${prefix}.${name}`, value)); };
   int("spawnFrame", spec.spawnFrame);
   real("offsetX", spec.offsetX);
   real("offsetZ", spec.offsetZ);
@@ -189,7 +189,7 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
   int("life", spec.life);
   real("radius", spec.radius);
   int("activeFrom", spec.activeFrom ?? 0);
-  result += hitEffectCanonical(spec.effect, `${prefix}.effect`);
+  result.push(hitEffectCanonical(spec.effect, `${prefix}.effect`));
   int("reflectable", spec.reflectable ? 1 : 0);
   int("limit", spec.limit);
   int("cancelOnInterrupt", spec.cancelOnInterrupt === true ? 1 : 0);
@@ -205,7 +205,7 @@ function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, prefix: s
   }
   real("backOffsetX", spec.backOffsetX ?? -1.0);
   int("needsLineOfSight", spec.needsLineOfSight === true ? 1 : 0);
-  return result;
+  return result.join("");
 }
 
 /** An authored placed object, field by field. */
@@ -227,8 +227,8 @@ function hitEffectCanonical(hit: Readonly<HitEffect>, prefix: string): string {
 /** A hero's authored specials; empty for fighters without them. */
 export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | undefined, prefix = "specials"): string {
   if (specials === undefined) return "";
-  let result = canonicalInt(`${prefix}.mana.max`, specials.mana.max) + canonicalInt(`${prefix}.mana.delay`, specials.mana.regenDelayFrames)
-    + canonicalInt(`${prefix}.mana.framesPerPoint`, specials.mana.framesPerPoint);
+  const result: string[] = [canonicalInt(`${prefix}.mana.max`, specials.mana.max) + canonicalInt(`${prefix}.mana.delay`, specials.mana.regenDelayFrames)
+    + canonicalInt(`${prefix}.mana.framesPerPoint`, specials.mana.framesPerPoint)];
   const kits = [specials.neutral, specials.side, specials.up, specials.down];
   for (let slot = 0; slot < kits.length; slot++) {
     const kit = at(kits, slot);
@@ -237,16 +237,16 @@ export function fighterSpecialsCanonical(specials: Readonly<FighterSpecials> | u
       const move = forms[form];
       if (move === undefined) continue;
       const name = `${prefix}.kit[${slot}].form[${form}]`;
-      result += specialMoveCanonical(move, name);
+      result.push(specialMoveCanonical(move, name));
     }
   }
-  return result;
+  return result.join("");
 }
 
 function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): string {
-  let result = "";
-  const int = (field: string, value: number) => { result += canonicalInt(`${name}.${field}`, value); };
-  const real = (field: string, value: number) => { result += canonicalRealField(`${name}.${field}`, value); };
+  const result: string[] = [];
+  const int = (field: string, value: number) => { result.push(canonicalInt(`${name}.${field}`, value)); };
+  const real = (field: string, value: number) => { result.push(canonicalRealField(`${name}.${field}`, value)); };
   int("cost", move.cost);
   int("end", move.endFrame);
   int("groundOnly", move.groundOnly === true ? 1 : 0);
@@ -291,7 +291,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real("commandGrab.strike.radius", grab.strike.radius);
     int("commandGrab.hold", grab.holdFrames);
     int("commandGrab.recovery", grab.recovery);
-    result += hitEffectCanonical(grab.effect, `${name}.commandGrab.effect`);
+    result.push(hitEffectCanonical(grab.effect, `${name}.commandGrab.effect`));
   }
   const poses = move.hurt ?? [];
   for (let index = 0; index < poses.length; index++) {
@@ -310,7 +310,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     }
   }
   const projectiles = move.projectiles ?? [];
-  for (let index = 0; index < projectiles.length; index++) result += specialProjectileCanonical(at(projectiles, index), `${name}.projectile[${index}]`);
+  for (let index = 0; index < projectiles.length; index++) result.push(specialProjectileCanonical(at(projectiles, index), `${name}.projectile[${index}]`));
   const regions = move.regions ?? [];
   for (let index = 0; index < regions.length; index++) {
     const region = at(regions, index);
@@ -329,15 +329,15 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
       real(`${part}.strike.z2`, strike.z2);
       real(`${part}.strike.radius`, strike.radius);
     }
-    result += hitEffectCanonical(region.hit.effect, `${name}.${part}.hit`);
-    if (region.hit.groundedEffect !== undefined) result += hitEffectCanonical(region.hit.groundedEffect, `${name}.${part}.groundedHit`);
+    result.push(hitEffectCanonical(region.hit.effect, `${name}.${part}.hit`));
+    if (region.hit.groundedEffect !== undefined) result.push(hitEffectCanonical(region.hit.groundedEffect, `${name}.${part}.groundedHit`));
   }
   if (move.followUp !== undefined) {
     int("followUp.first", move.followUp.window.first);
     int("followUp.last", move.followUp.window.last);
-    result += specialMoveCanonical(move.followUp.special, `${name}.followUp`);
+    result.push(specialMoveCanonical(move.followUp.special, `${name}.followUp`));
   }
-  return result;
+  return result.join("");
 }
 
 export function canonicalSlot(slot: number | undefined, participantMask: number): number {
@@ -380,6 +380,22 @@ export function canonicalChecksum(text: string): string {
 /** Receives canonical fragments in tape order. */
 type Emit = (fragment: string) => void;
 
+// A kit is immutable, so its canonical text is folded once per kit object and
+// a state writes that digest. Writing the whole text into every checksum built
+// about 116 MB of Lua strings per checksum for one hero (perf bot-blademaster).
+const MOVES_DIGESTS = new Map<Readonly<FighterMoves>, string>();
+const SPECIALS_DIGESTS = new Map<Readonly<FighterSpecials>, string>();
+
+function kitDigestField<K>(name: string, kit: K | undefined, digests: Map<K, string>, text: (kit: K) => string): string {
+  if (kit === undefined) return "";
+  let digest = digests.get(kit);
+  if (digest === undefined) {
+    digest = canonicalChecksum(text(kit));
+    digests.set(kit, digest);
+  }
+  return `|${name}.digest=${digest}`;
+}
+
 function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, participantMask: number): void {
   const int = (name: string, value: number) => emit(canonicalInt(`${prefix}.${name}`, value));
   const bool = (name: string, value: boolean) => emit(canonicalBoolean(`${prefix}.${name}`, value));
@@ -421,7 +437,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   bool("groundTurnRunFacingCommandLatched", g.turnRunFacingCommandLatched);
   bool("groundTurnRunPausePending", g.turnRunPausePending);
   int("character", fighter.character);
-  emit(fighterMovesCanonical(t.moves, `${prefix}.moves`));
+  emit(kitDigestField(`${prefix}.moves`, t.moves, MOVES_DIGESTS, fighterMovesCanonical));
 
   real("physics.weight", t.physics.weight);
   real("physics.gravity", t.physics.gravity);
@@ -679,7 +695,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   bool("surfacePhysics.canWallJump", t.surface.canWallJump);
   // Hero state is written only where a hero kit or hero projectile exists, so
   // the original fighters' canonical text is unchanged.
-  emit(fighterSpecialsCanonical(t.specials, `${prefix}.specials`));
+  emit(kitDigestField(`${prefix}.specials`, t.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical));
   if (t.specials !== undefined) {
     int("manaPoints", fighter.mana.points);
     int("manaSinceSpend", fighter.mana.sinceSpend);

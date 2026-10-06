@@ -46,10 +46,11 @@ const windWalkStrike: AuthoredSpecial = { cost: 18, endFrame: 48, motion: windWa
 const windWalkStrikeAir: AuthoredSpecial = { ...windWalkStrike, oncePerAirtime: true, helpless: true };
 
 // Rising Blade climbs evenly over f7-24 and stops at the top on f25, so the
-// row's travel is its peak; the helpless fall starts from rest.
+// row's travel is its peak; the helpless fall starts from rest. Its lateral
+// travel follows the held stick, so it can drift back toward the stage.
 const RISE_FRAMES = 18;
 const rise = (ascent: number, drift: number) => [
-  { ...frames(7, 24), velocityX: f32(length(drift) / RISE_FRAMES), velocityZ: f32(length(ascent) / RISE_FRAMES) },
+  { ...frames(7, 24), velocityX: 0.0, velocityZ: f32(length(ascent) / RISE_FRAMES), driftSpeed: f32(length(drift) / RISE_FRAMES) },
   { ...frames(25, 25), velocityX: 0.0, velocityZ: 0.0 },
 ];
 const BLADE_TOP = f32(M - BLADE_RADIUS);
