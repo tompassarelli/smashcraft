@@ -31,6 +31,10 @@ import { LASTING, setStatus } from "./view";
 
 /** Confirmed frames one callback may catch up. */
 const CONFIRMED_CATCHUP_LIMIT = 6;
+/** Callbacks without a new predicted frame before every client names the players a running match waits for. */
+const STALL_NOTICE_CALLBACKS = 20;
+/** At the start every helper's readiness crosses the network first; the 0.0.47 capture's clients started 0.43 s after Start. */
+const START_NOTICE_CALLBACKS = 45;
 const NEUTRAL: Readonly<InputRow> = emptyInput();
 
 const failControls = (s: ShellState) => setStatus(s, "Controls stopped responding. Restart the match.", LASTING);
@@ -46,6 +50,8 @@ export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
   if (!rollback.playback.beginEpoch(rollback.epoch, schedule.rollbackFrames())) return false;
   resetEchoRing(s.trace);
   rollback.sendFailed = false;
+  rollback.stalled = 0;
+  rollback.waitingFor = 0;
   speculative.world.mask = s.world.mask;
   captureReplaySnapshot(rollback.seed, s.world, s.game, s.controls, s.runtime);
   restoreReplaySnapshot(rollback.seed, speculative.world, speculative.game, speculative.controls, speculative.runtime);
@@ -66,6 +72,11 @@ export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
     journal.failed = false;
     journal.outgoing.begin(rollback.epoch, rollback.delay + 1);
     journal.readyMask = 0;
+    journal.keyboardMask = 0;
+    journal.readyWait = 0;
+    journal.keyClock = rollback.delay;
+    journal.keyStop = undefined;
+    journal.keyAnswered = undefined;
     journal.startSent = false;
     journal.lifecycle = new MatchLifecycle(rollback.epoch, s.game.humanMask);
     journal.endSent = false;
@@ -202,12 +213,19 @@ function observeSpeculativeFrame(frame: number, local: Readonly<InputRow>): void
   if (local.pressed !== 0) probeIntegrity(s.probe, `action ${epoch} ${slot} ${frame} ${local.pressed} ${local.pressed & observedFrameLegalActions[slot]} ${local.pressed & observedFrameStartedActions[slot]}`);
 }
 
+/** Counts the callbacks the match has waited for the players in `waiting`, and names them once it has waited `notice`. */
+function noteWaiting(rollback: Rollback, waiting: number, notice: number): void {
+  rollback.stalled = waiting === 0 ? 0 : rollback.stalled + 1;
+  rollback.waitingFor = rollback.stalled >= notice ? waiting : 0;
+}
+
 /** One game callback of a rollback match: local input, confirmed catch-up, reconciliation and prediction. */
 export function rollbackTick(s: ShellState, rollback: Rollback): void {
   const { schedule, epoch, keyboard, journal, speculative } = rollback;
   const { trace, probe } = s;
   if (s.game.phase !== Phase.match) {
     if (keyboard !== undefined) sendBatch(s, rollback, keyboard);
+    noteWaiting(rollback, 0, 0);
     return;
   }
   if (journal !== undefined) {
@@ -215,7 +233,14 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     if (!s.session.paused) serviceJournalInput(s, rollback, journal);
     flushTransport(s, rollback, journal);
   } else if (keyboard !== undefined) captureKeyboard(s, rollback, keyboard);
-  if (s.session.paused || (journal?.editbox !== undefined && journal.lifecycle?.started() !== true)) return;
+  if (s.session.paused) {
+    noteWaiting(rollback, 0, 0);
+    return;
+  }
+  if (journal?.editbox !== undefined && journal.lifecycle?.started() !== true) {
+    noteWaiting(rollback, s.game.humanMask & ~journal.readyMask, START_NOTICE_CALLBACKS);
+    return;
+  }
   const stopAt = journal === undefined ? undefined : agreedFrame(journal.barrier);
   let steps = 0;
   while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && steps < CONFIRMED_CATCHUP_LIMIT && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
@@ -257,7 +282,10 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
       else if (blocked) trace.window.windowBlocks++;
     }
     if (blocked) probeIntegrity(probe, `stall ${epoch} ${before} ${schedule.knownThrough()}`);
-  }
+    // A pause round holds every helper's rows on purpose.
+    const holding = stopAt !== undefined || journal?.barrier.request !== undefined;
+    noteWaiting(rollback, after > before || holding ? 0 : schedule.awaitedSlots(), STALL_NOTICE_CALLBACKS);
+  } else noteWaiting(rollback, 0, 0);
   probeAdvance(probe, s.runtime.simulationFrame, schedule.speculativeFrame(), correction);
 }
 

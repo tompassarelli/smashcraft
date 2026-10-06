@@ -28,7 +28,7 @@ const declarations = readNativeDeclarations();
 // Desyncs are the desync guard's to find; unlogged natives keep these frames fast.
 const unlogged = Object.fromEntries(declarations.functions.map(([name]) => [name, "this test counts the calls it checks"]));
 const helpers = new JournalHelpers(PLAYABLE_BUILD.id);
-const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged, natives: (client) => helpers.natives(client) }, declarations);
+const headless = installHeadless({ ...SMASHCRAFT_HEADLESS, localNatives: unlogged }, declarations);
 afterAll(headless.restore);
 
 /** History rows each reconcile read, per call, and the corrections that replayed frames. */

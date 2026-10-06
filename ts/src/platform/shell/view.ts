@@ -11,13 +11,13 @@ import { ARENA_CAMERA, FLOOR_HEIGHT, arenaFraming } from "../../game/presentatio
 import { DamagePose, damagePose } from "../../game/presentation/damagePose";
 import type { FighterPose } from "../../game/presentation/fighterPose";
 import { type MapBuild, journalIngress } from "../../game/shell/build";
-import { type StartControl, fighterLabel, matchHelp } from "../../game/shell/messages";
+import { type StartControl, fighterLabel, matchHelp, waitingMessage } from "../../game/shell/messages";
 import { isIntangible } from "../../game/sim/conditions";
 import { type Roster, fighterAt, isActive } from "../../game/sim/roster";
 import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "../../game/sim/stage";
 import { localParticipantSlot, traceParticipant } from "./diagnostics";
 import { placeFighterBody, renderDizzy } from "./fighterBody";
-import { type ShellState, type StatusFrames, activeRollback } from "./state";
+import { type ShellState, type StatusFrames, activeRollback, localSlot, playsOnKeyboard } from "./state";
 import { pauseEffects, views } from "./ui";
 
 /** Text that waits for the players stays this long. */
@@ -33,7 +33,8 @@ export function announce(s: ShellState, text: string): void {
   setStatus(s, text, 2.0);
 }
 
-export const startControl = (s: Readonly<ShellState>): StartControl => (journalIngress(s.build) === "editbox" ? "Start" : "Y");
+export const startControl = (s: Readonly<ShellState>): StartControl =>
+  (journalIngress(s.build) === "editbox" && !playsOnKeyboard(s.rollback?.journal, localSlot()) ? "Start" : "Y");
 
 function frameText(name: string, x: number, y: number, width: number, height: number, size: number): framehandle {
   const frame = BlzCreateFrameByType("TEXT", name, BlzGetOriginFrame(ORIGIN_FRAME_GAME_UI, 0), "", 0);
@@ -219,7 +220,9 @@ export function renderUi(s: ShellState): void {
   if (developer !== undefined) BlzFrameSetVisible(developer, showMatch);
   if (!selecting) {
     BlzFrameSetText(help, matchHelp(game, s.session.paused, startControl(s), localFighter, game.phase === Phase.match));
-    BlzFrameSetText(notice, localFighter?.attack.smashCharging === true ? "Charging smash: release Attack to strike." : s.status.seconds > 0 ? s.status.text : "");
+    const waiting = game.phase === Phase.match ? activeRollback(s)?.waitingFor ?? 0 : 0;
+    BlzFrameSetText(notice, waiting !== 0 ? waitingMessage(waiting)
+      : localFighter?.attack.smashCharging === true ? "Charging smash: release Attack to strike." : s.status.seconds > 0 ? s.status.text : "");
   }
   ui.stage.update(game);
   if (developer === undefined || local === undefined || localFighter === undefined) return;

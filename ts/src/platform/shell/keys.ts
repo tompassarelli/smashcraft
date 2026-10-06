@@ -21,20 +21,21 @@ import { Key } from "./keyEvents";
 import { back, choose, confirm, openSettingsScreen, startQuickMatch } from "./menus";
 import { makePreview } from "./preview";
 import { exportProbe, probeIntegrity, probeRecording, startProbe } from "./responseProbe";
-import { type ShellState, activeRollback } from "./state";
+import { type ShellState, activeRollback, playsOnKeyboard } from "./state";
 import { views } from "./ui";
 import { LASTING, pauseMatchPresentation, setStatus } from "./view";
 
-/** Keys the journal's carriers or edit box own, which the map must not read as controls. */
-function journalOwnsKey(s: ShellState, key: number): boolean {
+/** Keys the journal's carriers or edit box own, which the map must not read as the player's controls. */
+function journalOwnsKey(s: ShellState, slot: ParticipantSlot, key: number): boolean {
   const epoch = journalEpoch(s);
   if (epoch === undefined) return false;
   const { journal } = epoch;
   if (journal.ingress === "keyboard") return isCarrierKey(key);
   if (journal.ingress !== "editbox") return false;
-  // The edit box owns typing until the ended epoch is quiescent, and Start during a match.
+  // The edit box owns typing until the ended epoch is quiescent, and Start during
+  // a match, unless the player plays the match on the keyboard: then Y is Start.
   if (s.game.phase !== Phase.match) return journal.lifecycle?.quiescent() !== true;
-  return key === Key.y;
+  return key === Key.y && !playsOnKeyboard(journal, slot);
 }
 
 /** Start: confirms in menus; in a match, pauses at once, or through the helpers' barrier for a journal. */
@@ -74,7 +75,7 @@ function journalMenuKey(s: ShellState, slot: ParticipantSlot, key: number): bool
 function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
   if (!humanActive(s.game, slot)) return;
   const key = GetHandleId(BlzGetTriggerPlayerKey());
-  if (journalOwnsKey(s, key)) return;
+  if (journalOwnsKey(s, slot, key)) return;
   if (s.trace.active) s.trace.window.keyDown[slot]++;
   traceParticipant(s, slot, `received down ${key}`);
   const participant = s.participants[slot];
@@ -133,7 +134,7 @@ function participantKeyUp(s: ShellState, slot: ParticipantSlot): void {
     startKeyUp(s.session, slot);
     return;
   }
-  if (journalOwnsKey(s, key)) return;
+  if (journalOwnsKey(s, slot, key)) return;
   if (s.trace.active) s.trace.window.keyUp[slot]++;
   traceParticipant(s, slot, `received up ${key}`);
   const participant = s.participants[slot];

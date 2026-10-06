@@ -40,6 +40,21 @@ a different device or USB identity needs a fresh helper.
 
 The stage screen's stock and time settings use the mouse.
 
+## Without a helper
+
+A player whose helper isn't running when a match starts plays that match on
+the keyboard. For two seconds every screen shows "Waiting for Player N"; then
+the match begins and that player's screen shows "No controller found: use the
+keyboard." They play with the controls chosen with F1 at fighter selection
+(QWERTY unless changed; see the [player guide](player-guide.md)) and pause with
+Y. Untouched, their fighter stands still. A helper started during a match
+takes over from the next match. While a player's helper runs, their keyboard
+does not control their fighter.
+
+If a player's controller input stops during a match, every screen shows
+"Waiting for Player N" and the match goes on when the input returns. A helper
+that was closed during a match cannot rejoin it.
+
 ## Windows and macOS (verified in CI; not yet on a real Warcraft install)
 
 GitHub's Windows and macOS runners check this helper against a virtual pad and

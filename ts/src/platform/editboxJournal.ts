@@ -95,6 +95,11 @@ export class EditboxIngress {
     return this.session?.failure;
   }
 
+  /** Whether Warcraft's chat entry is open on this client. */
+  chatOpen(): boolean {
+    return this.chat !== undefined && BlzFrameIsVisible(this.chat);
+  }
+
   /** The local player's latest chat request this epoch. */
   chatSerial(): number | undefined {
     return this.session?.chatSerial;

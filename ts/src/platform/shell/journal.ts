@@ -1,22 +1,27 @@
 // Journal input: the companion helper records each local player's controller
 // rows for their original frames, the map admits them and relays them to
 // every client. Ingress is edit box text, keyboard carrier keys or published
-// files. This module admits and sends rows and follows the helper's lifecycle,
-// menus and end of match; journalPause.ts runs the pause rounds and chat.
+// files. A player whose edit box helper never reports ready plays the match on
+// the keyboard, and the map journals their keys the same way. This module
+// admits and sends rows and follows the helper's lifecycle, menus and end of
+// match; journalPause.ts runs the pause rounds and chat.
+import { commitEdges, resetKeys, sampleKeys } from "../../game/input/keyboardCapture";
 import { isParticipantSlot } from "../../game/input/participants";
-import { INPUT_LAST_FRAME } from "../../game/input/wire";
+import { INPUT_LAST_FRAME, type InputPacket } from "../../game/input/wire";
 import { Phase, fighterMask, humanActive } from "../../game/match/rules";
 import { Capture } from "../../game/netcode/capture";
+import type { JournalInputSource, JournalRead } from "../../game/netcode/journal/source";
 import { TEXT_WINDOW } from "../../game/netcode/journal/text";
 import { readVocabularyPacket } from "../../game/netcode/journal/vocabulary";
 import { FUTURE_LIMIT } from "../../game/netcode/ledger";
 import { type JournalIdentity, type MenuPhase, endFile, failureFile, menuFile, quiescentFile, startFile, transportReadyFile } from "../../game/shell/journalFiles";
+import { KEYBOARD_FALLBACK_MESSAGE } from "../../game/shell/messages";
 import { readChunk, writeLines } from "wisp/src/platform/fileio";
 import { pollMailbox, releaseMessage } from "../keyboardJournal";
 import { startInputTrace } from "./diagnostics";
-import { controlsAvailable } from "./inputs";
+import { controlsAvailable, pollLocalKeys } from "./inputs";
 import { probeClockMs, probeFileRead, probeInput, probePoll, probeSendFinished, probeTransportSend } from "./responseProbe";
-import { type Journal, type Rollback, type ShellState, localSlot } from "./state";
+import { type Journal, type Rollback, type ShellState, localSlot, playsOnKeyboard } from "./state";
 import { recordSend, traceInput } from "./trace";
 import { LASTING, setStatus } from "./view";
 
@@ -25,6 +30,19 @@ export const INPUT_PREFIX = "SC_GP";
 
 /** Journal packets admitted per callback. */
 const PACKETS_PER_CALLBACK = 1;
+
+/**
+ * Callbacks after a match starts before a human whose helper has not reported
+ * ready plays it on the keyboard. In the 0.0.47 capture the helper took the
+ * match 0.13 s after its Start press and every client started at 0.43 s.
+ */
+const HELPER_READY_CALLBACKS = 120;
+
+/** Keyboard rows admitted per callback: a keyboard behind its clock, as after another player's stall, catches up. */
+const KEYBOARD_ROWS_PER_CALLBACK = 6;
+
+/** How long a player who plays on the keyboard sees why, in seconds. */
+const KEYBOARD_NOTICE_SECONDS = 4.0;
 
 /** The rollback session while a journal epoch runs. */
 interface JournalEpoch {
@@ -111,12 +129,33 @@ export function flushTransport(s: ShellState, rollback: Rollback, journal: Journ
   journal.outgoing.sent(message);
 }
 
+/**
+ * A human whose helper never reported ready plays the match on the keyboard:
+ * every client learns it from "K4", and the edit box lets go of the keyboard.
+ */
+function startKeyboard(s: ShellState, rollback: Rollback, journal: Journal): void {
+  if (!BlzSendSyncData(INPUT_PREFIX, `K4${rollback.epoch}`)) {
+    failJournal(s, rollback, journal, "keyboard readiness could not be synchronized");
+    return;
+  }
+  journal.startSent = true;
+  journal.editbox?.endEpoch();
+  resetKeys(journal.keys, pollLocalKeys(s));
+  traceInput(s.trace, `journal helper not ready after ${journal.readyWait} callbacks; keyboard input`);
+  setStatus(s, KEYBOARD_FALLBACK_MESSAGE, KEYBOARD_NOTICE_SECONDS);
+}
+
 /** Before the match starts, relays the helper's readiness; an explicit-clock producer is ready with its first row. */
 function serviceReadiness(s: ShellState, rollback: Rollback, journal: Journal): void {
+  if (journal.startSent) return;
+  journal.readyWait++;
   const wire = peekEditbox(s, rollback, journal);
   if (wire === undefined) return;
   const ready = wire === `JR1${rollback.epoch}`;
-  if (journal.startSent || !(ready || wire.startsWith("I4"))) return;
+  if (!(ready || wire.startsWith("I4"))) {
+    if (journal.readyWait >= HELPER_READY_CALLBACKS) startKeyboard(s, rollback, journal);
+    return;
+  }
   if (!BlzSendSyncData(INPUT_PREFIX, `J4${rollback.epoch}`)) {
     failJournal(s, rollback, journal, "controller readiness could not be synchronized");
     return;
@@ -149,7 +188,28 @@ function nextPacketText(s: ShellState, rollback: Rollback, journal: Journal): st
   }
 }
 
-/** Admits the local helper's next packet at its original frames and queues it for every client. */
+/**
+ * Polls the local keyboard once per running callback and advances its clock,
+ * which a pause holds: from a prepared pause the rows stop before keyStop.
+ */
+function sampleKeyboard(s: ShellState, journal: Journal): void {
+  if (journal.keyStop === undefined) journal.keyClock++;
+  // Typing into Warcraft's chat entry is not play.
+  const chatting = journal.editbox?.chatOpen() === true;
+  sampleKeys(journal.keys, chatting ? 0 : pollLocalKeys(s));
+}
+
+/** The local keyboard's row for the next frame, once its clock has reached that frame. */
+function keyboardPacket(rollback: Rollback, journal: Journal, source: JournalInputSource): InputPacket | undefined {
+  const frame = source.expectedFrame();
+  if (frame > (journal.keyStop === undefined ? journal.keyClock : journal.keyStop - 1)) return undefined;
+  const packet = journal.keyPacket;
+  packet.epoch = rollback.epoch;
+  packet.firstFrame = frame;
+  return packet;
+}
+
+/** Admits the local helper's or keyboard's next rows at their original frames and queues them for every client. */
 export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: Journal): void {
   if (journal.failed) return;
   const { source } = journal;
@@ -167,15 +227,28 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
   // or empty: frame input selects that behavior, and every sender must advance.
   if (source === undefined || !isParticipantSlot(slot) || !humanActive(s.game, slot)) return;
   const { schedule } = rollback;
-  for (let read = 0; read < PACKETS_PER_CALLBACK; read++) {
+  const keyboard = playsOnKeyboard(journal, slot);
+  if (keyboard) sampleKeyboard(s, journal);
+  for (let read = 0; read < (keyboard ? KEYBOARD_ROWS_PER_CALLBACK : PACKETS_PER_CALLBACK); read++) {
     const latest = Math.min(INPUT_LAST_FRAME, schedule.nextConfirmedFrame() - 1 + FUTURE_LIMIT);
     if (source.expectedFrame() > latest) return;
-    const wire = nextPacketText(s, rollback, journal);
-    if (wire === undefined || wire === "") return;
-    const result = source.read(wire, latest);
+    let result: JournalRead;
+    if (keyboard) {
+      const packet = keyboardPacket(rollback, journal, source);
+      if (packet === undefined) return;
+      result = source.offer(packet, latest);
+    } else {
+      const wire = nextPacketText(s, rollback, journal);
+      if (wire === undefined || wire === "") return;
+      result = source.read(wire, latest);
+      if (result.kind === "invalid") {
+        failJournal(s, rollback, journal, `invalid or noncontiguous I4 row: ${wire}`);
+        return;
+      }
+    }
     if (result.kind === "wait") return;
     if (result.kind === "invalid") {
-      failJournal(s, rollback, journal, `invalid or noncontiguous I4 row: ${wire}`);
+      failJournal(s, rollback, journal, "keyboard row out of order");
       return;
     }
     const { packet } = result;
@@ -207,27 +280,35 @@ export function serviceJournalInput(s: ShellState, rollback: Rollback, journal: 
       failJournal(s, rollback, journal, "journal cursor could not advance after send");
       return;
     }
-    if (editbox) {
+    if (keyboard) commitEdges(journal.keys);
+    else if (editbox) {
       if (!consumeEditbox(s, rollback, journal)) return;
     } else if (journal.mailbox !== undefined) releaseMessage(journal.mailbox);
   }
 }
 
-/** A helper reported ready ("J4") or stopped ("E4") for this epoch. Returns false for any other message. */
+/**
+ * A helper reported ready ("J4"), a player without one will play on the
+ * keyboard ("K4"), or a helper stopped ("E4"), for this epoch. Returns false
+ * for any other message.
+ */
 export function receiveLifecycle(s: ShellState, rollback: Rollback, journal: Journal, sender: number, wire: string): boolean {
   if (wire === `E4${rollback.epoch}`) {
     journal.lifecycle?.stopped(rollback.epoch, sender);
     return true;
   }
-  if (wire !== `J4${rollback.epoch}`) return false;
+  const keyboard = wire === `K4${rollback.epoch}`;
+  if (!keyboard && wire !== `J4${rollback.epoch}`) return false;
   const bit = 1 << sender;
   if (!humanActive(s.game, sender) || (journal.readyMask & bit) !== 0) return true;
   journal.readyMask |= bit;
+  if (keyboard) journal.keyboardMask |= bit;
   journal.lifecycle?.ready(rollback.epoch, sender);
   traceInput(s.trace, `journal transport start received sender ${sender}`);
   if (journal.readyMask !== s.game.humanMask) return true;
   const identity = journalIdentity(s, rollback.epoch);
-  if (journal.ingress === "editbox") writeJournalFile(startFile(identity, 1 + rollback.delay));
+  // A helper that reports ready late waits for the next match; the keyboard plays this one.
+  if (journal.ingress === "editbox" && !playsOnKeyboard(journal, localSlot())) writeJournalFile(startFile(identity, 1 + rollback.delay));
   writeJournalFile(transportReadyFile(identity, journal.readyMask));
   return true;
 }
@@ -267,7 +348,7 @@ export function serviceJournalEnd(s: ShellState, rollback: Rollback, journal: Jo
     journal.barrier.request = undefined;
   }
   if (journal.quiescent) return;
-  if (journal.endReceived && readChunk(quiescentFile(identity)) === "Q") {
+  if (playsOnKeyboard(journal, localSlot()) || (journal.endReceived && readChunk(quiescentFile(identity)) === "Q")) {
     if (!BlzSendSyncData(INPUT_PREFIX, `E4${rollback.epoch}`)) {
       failJournal(s, rollback, journal, "controller stop could not be synchronized");
       return;

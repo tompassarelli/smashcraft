@@ -32,6 +32,7 @@ const SMASHCRAFT_LOCAL_NATIVES = {
   R2I: "pure conversion",
   I2R: "pure conversion",
   S2I: "pure conversion",
+  ConvertOsKeyType: "pure conversion, for the local keys the keyboard polls",
 };
 
 export const SMASHCRAFT_HEADLESS: HeadlessMap = {
@@ -39,3 +40,21 @@ export const SMASHCRAFT_HEADLESS: HeadlessMap = {
   globalPrefixes: ["__smashcraft"],
   localNatives: SMASHCRAFT_LOCAL_NATIVES,
 };
+
+/**
+ * The integrity and playable builds' pool-predicted presentation poses
+ * existing effects and frames the camera from each client's own prediction,
+ * which differs between clients until inputs confirm; creating and
+ * destroying effects stays synchronized.
+ */
+const PREDICTED_PRESENTATION: Readonly<Record<string, string>> = {
+  ...Object.fromEntries([
+    "BlzSetSpecialEffectAlpha", "BlzSetSpecialEffectAnimation", "BlzSetSpecialEffectAnimationBlendTime", "BlzSetSpecialEffectColor",
+    "BlzSetSpecialEffectColorByPlayer", "BlzSetSpecialEffectMatrixScale", "BlzSetSpecialEffectPitch", "BlzSetSpecialEffectPosition",
+    "BlzSetSpecialEffectRoll", "BlzSetSpecialEffectScale", "BlzSetSpecialEffectTime", "BlzSetSpecialEffectTimeScale", "BlzSetSpecialEffectYaw",
+  ].map((name) => [name, "poses an existing effect from this client's prediction"])),
+  ...Object.fromEntries(["SetCameraBounds", "SetCameraField", "SetCameraPosition"].map((name) => [name, "frames this client's camera on its predicted fighters"])),
+};
+
+/** Smashcraft's map with predicted presentation, whose confirmed state and handle lifetimes still match on every client. */
+export const PREDICTED_HEADLESS: HeadlessMap = { ...SMASHCRAFT_HEADLESS, localNatives: { ...SMASHCRAFT_LOCAL_NATIVES, ...PREDICTED_PRESENTATION } };

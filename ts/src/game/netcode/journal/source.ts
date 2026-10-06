@@ -72,8 +72,15 @@ export class JournalInputSource {
     this.buffered = undefined;
     if (wire === "") return WAIT;
     const packet = decodePacket(wire);
-    if (packet === undefined || packet.epoch !== this.epoch || packet.firstFrame !== this.expectedFrame()) return INVALID;
-    this.buffered = wire;
+    const read = packet === undefined ? INVALID : this.offer(packet, latestAdmissibleFrame);
+    if (read !== INVALID) this.buffered = wire;
+    return read;
+  }
+
+  /** As read, for a packet the map made itself, such as a keyboard row. */
+  offer(packet: InputPacket, latestAdmissibleFrame: number): JournalRead {
+    this.ready = undefined;
+    if (packet.epoch !== this.epoch || packet.firstFrame !== this.expectedFrame()) return INVALID;
     if (packet.firstFrame + packet.rows.length - 1 > latestAdmissibleFrame) return WAIT;
     this.ready = packet;
     return { kind: "ready", packet };
