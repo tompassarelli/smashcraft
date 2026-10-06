@@ -7,7 +7,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { HeroClipTable } from "../../sim/heroes/hero";
 
-export const DREADLORD_MODEL_FILE = "Units\\Undead\\HeroDreadLord\\HeroDreadLord.mdx";
+export const DREADLORD_MODEL_FILE = "units\\undead\\HeroDreadLord\\HeroDreadLord.mdl";
 
 interface StockClip {
   readonly index: number;
