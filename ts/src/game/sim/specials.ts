@@ -155,6 +155,8 @@ function startSpecialAction(owner: Fighter, action: SpecialAction, duration: num
   owner.motion.crouching = false;
   special.action = action;
   special.frame = 0;
+  // Every special starts in its plain form; a glide or Chaos Strike's form must not carry into the next special.
+  special.form = 0;
   special.duration = duration;
   special.lockFrames = duration;
   special.direction = direction < 0 ? -1 : direction > 0 ? 1 : 0;

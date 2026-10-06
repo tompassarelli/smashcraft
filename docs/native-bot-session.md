@@ -219,7 +219,9 @@ it checks three things:
 - The confirmed fighter lines in the traces are equal: specials, attacks,
   jumps, hits and recoveries, each with its frame.
 - Each `#! expect CLIENT FRAME TEXT`, `#! absent CLIENT FROM-TO TEXT` and
-  `#! scene CLIENT MODEL` line in the script holds on both sides.
+  `#! scene CLIENT MODEL` line in the script holds on both sides. A
+  `#! chat TEXT` line names the command that starts the match when `--chat`
+  gives none.
 
 A press that never landed natively fails all three. Fighter lines include
 each damage change and each change of a special's form (a glide, a Chaos

@@ -10,6 +10,7 @@
 //   #! expect CLIENT FRAME TEXT    a line for that fighter on that frame starts with TEXT
 //   #! absent CLIENT FROM-TO TEXT  no line for that fighter in those frames starts with TEXT
 //   #! scene CLIENT MODEL         that client's scene report had an effect whose model path contains MODEL in view
+//   #! chat TEXT                  the developer command that starts the match, when --chat gives none
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
@@ -91,7 +92,7 @@ export function parseExpectations(script: string): readonly Expectation[] {
   script.split("\n").forEach((raw, index) => {
     const match = /^\s*#!\s*(expect|absent)\s+([ab])\s+(\d+)(?:-(\d+))?\s+(.+?)\s*$/.exec(raw);
     if (match === null) {
-      if (/^\s*#!/.test(raw) && !/^\s*#!\s*scene\s/.test(raw)) throw new Error(`pad script line ${index + 1}: a #! line is "#! expect CLIENT FRAME TEXT", "#! absent CLIENT FROM-TO TEXT" or "#! scene CLIENT MODEL"`);
+      if (/^\s*#!/.test(raw) && !/^\s*#!\s*(scene|chat)\s/.test(raw)) throw new Error(`pad script line ${index + 1}: a #! line is "#! expect CLIENT FRAME TEXT", "#! absent CLIENT FROM-TO TEXT", "#! scene CLIENT MODEL" or "#! chat TEXT"`);
       return;
     }
     const from = Number(match[3]);
@@ -216,4 +217,9 @@ export function compareRuns(nativeDir: string, headlessDir: string, script: stri
   lines.push(...problems.map((problem) => `FAIL ${problem}`));
   lines.push(problems.length === 0 ? "PASS: native run equals the headless run of the same script" : `FAIL: ${problems.length} problem${problems.length === 1 ? "" : "s"}`);
   return { passed: problems.length === 0, lines };
+}
+
+/** The script's `#! chat TEXT` line: the developer command that starts its match, such as `-dev quick hero rifleman`. */
+export function scriptChat(script: string): string | undefined {
+  return /^\s*#!\s*chat\s+(.+?)\s*$/m.exec(script)?.[1];
 }

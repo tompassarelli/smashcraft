@@ -29,7 +29,7 @@ import { IntegrityFailure, producerLine, tryIntegrity } from "../../integrity/ev
 import { loadEntry } from "../../integrity/headless";
 import { type Pad, inject, monotonicNs, openPad } from "../../integrity/linux";
 import { BTN_SELECT, PAD_BUTTONS } from "../../integrity/linuxInput";
-import { REPRO_NAME, TRACE_FILE, compareRuns } from "../../integrity/padParity";
+import { REPRO_NAME, TRACE_FILE, compareRuns, scriptChat } from "../../integrity/padParity";
 import type { Schedule, ScheduleReply, ScheduledEdge } from "../../integrity/padScheduleWorker";
 import { type PadStep, type SentEdge, frameWriteNs, landEdges, matchStart, parsePadScript, ruleFrame } from "../../integrity/padScript";
 import { SLOTS } from "../../integrity/reconcile";
@@ -298,7 +298,7 @@ export const pad: Command = (args) => Effect.gen(function*() {
   if (compare !== undefined && !isHeadless) return yield* new UsageFailure({ problem: "--compare NATIVE_DIR goes with --headless" });
   const script = yield* Effect.try({ try: () => readFileSync(scriptPath, "utf8"), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
   const steps = yield* Effect.try({ try: () => parsePadScript(script), catch: (cause) => new UsageFailure({ problem: describeCause(cause) }) });
-  const options: PadOptions = { scriptPath, steps, helper, build, out, chat };
+  const options: PadOptions = { scriptPath, steps, helper, build, out, chat: chat ?? scriptChat(script) };
   if (!isHeadless) {
     const appIds = new Map<string, string>();
     for (const entry of parsed.values["app-id"] ?? []) {

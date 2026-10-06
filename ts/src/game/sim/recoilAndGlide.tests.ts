@@ -218,3 +218,19 @@ test("Wing Ascent glide: an attack slashes for 8 and ends helpless; running out 
   assertEquals(out.owner.special.action, SpecialAction.none);
   assertTrue(out.owner.special.fall);
 });
+
+test("A special starts in its plain form: after a glide slash, Immolate still jump-cancels", () => {
+  const { world, owner } = airborne(Character.demonHunter, 300.0);
+  frame(world, upB);
+  run(world, 14);
+  frame(world, jump);
+  run(world, 2);
+  frame(world, controls({ attackPressed: true }));
+  for (let f = 0; f < 240 && !(owner.motion.grounded && owner.special.action === SpecialAction.none && owner.landing.lag === 0); f++) frame(world);
+  run(world, 30);
+  frame(world, downB);
+  assertEquals(owner.special.form, 0);
+  run(world, 4);
+  frame(world, jump);
+  assertEquals(owner.special.action, SpecialAction.none);
+});
