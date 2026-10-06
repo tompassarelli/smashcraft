@@ -323,7 +323,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   const carried = motion.grounded ? motion.surface : undefined;
   jump.inputAge =input.jumpPressed ? 0 : min(WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, jump.inputAge + 1);
   if (advanceFreeze(f)) {
-    checkBlastZone(world, slot);
+    checkBlastZone(world, slot, stage);
     return;
   }
   // Direction freshness is input time, including hitlag; ages beyond the window are equivalent.
@@ -356,7 +356,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     if (shield.energy < 0) {
       shield.energy = 0.0;
       beginShieldBreak(world, slot);
-      checkBlastZone(world, slot);
+      checkBlastZone(world, slot, stage);
       return;
     }
   }
@@ -377,7 +377,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (status.out) return;
   if (wallTechStartup || inGrabContext(f)) {
     if (launch.hitlag <= 0) status.invincible = max(0, status.invincible - 1);
-    checkBlastZone(world, slot);
+    checkBlastZone(world, slot, stage);
     return;
   }
   let groundDodgeStarted = false;
@@ -387,7 +387,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     smashChargePaused = advanceActionClocks(f, input);
   }
   if (f.grab.target !== undefined) {
-    checkBlastZone(world, slot);
+    checkBlastZone(world, slot, stage);
     return;
   }
   if (launch.hitlag <= 0) launch.hitstun = max(0, launch.hitstun - 1);
@@ -416,7 +416,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
   if (launch.hitlag > 0) return;
   advanceShieldInputClocks(f, input);
   advanceGroundDodge(f, groundDodgeStarted);
-  checkBlastZone(world, slot);
+  checkBlastZone(world, slot, stage);
   if (status.out) return;
   const downOldX = motion.x;
   const downOldZ = motion.z;
@@ -424,7 +424,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     resolveDownGroundContact(f, stage, matchFrame);
     motion.deltaX = f32(motion.x - downOldX);
     motion.deltaZ = f32(motion.z - downOldZ);
-    checkBlastZone(world, slot);
+    checkBlastZone(world, slot, stage);
     return;
   }
   const forcedShield = shield.raised && shield.stun > 0;
@@ -534,7 +534,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
     motion.crouching = false;
     advanceWallJump(f, wallSide, frameDeltaX, horizontalStick);
   }
-  checkBlastZone(world, slot);
+  checkBlastZone(world, slot, stage);
   motion.deltaX = f32(motion.x - oldX);
   motion.deltaZ = f32(motion.z - oldZ);
 }

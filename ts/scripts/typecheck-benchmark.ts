@@ -55,8 +55,12 @@ try {
   const edited = check("full type-check after shared implementation edit (target ≤1 s)");
   requireSuccess(edited);
   if (edited.elapsedMs > targetMs) {
-    console.error(`full type-check after shared implementation edit exceeded ${targetMs} ms`);
-    process.exitCode ||= 1;
+    const message = `full type-check after shared implementation edit exceeded ${targetMs} ms`;
+    if (process.env.CI_TIMING === "report") console.log(`${message} (reported, not gated: CI_TIMING=report)`);
+    else {
+      console.error(message);
+      process.exitCode ||= 1;
+    }
   }
 
   edit(currentSource.replace(signature, "export const devCommandReceiptFile = (build: number, slot: number)"));

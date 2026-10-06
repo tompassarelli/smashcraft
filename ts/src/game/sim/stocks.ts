@@ -19,19 +19,18 @@ import {
   clearTech,
 } from "./transitions";
 
-export const BLAST_ZONE_SIDE = 920.0;
-export const BLAST_ZONE_BOTTOM = -420.0;
-export const BLAST_ZONE_TOP = 760.0;
+import { stageBounds } from "./stageBounds";
 const RESPAWN_FRAMES = 60;
 const RESPAWN_HEIGHT = 280.0;
 const RESPAWN_INVINCIBLE_FRAMES = 90;
 
 /** Takes a stock from a fighter past a blast zone. The top zone needs a strong upward launch, a frozen or grounded fighter. */
-export function checkBlastZone(world: Roster, slot: number): void {
+export function checkBlastZone(world: Roster, slot: number, stage: number = 0): void {
   const f = fighterAt(world, slot);
   const { motion, launch, attack, dodge, status } = f;
   const topEligible = motion.grounded || status.frozenFrames > 0 || launch.knockbackZ > TOP_KO_MINIMUM_UPWARD_KNOCKBACK;
-  if (!(motion.x < -BLAST_ZONE_SIDE || motion.x > BLAST_ZONE_SIDE || motion.z < BLAST_ZONE_BOTTOM || (motion.z > BLAST_ZONE_TOP && topEligible))) return;
+  const { blast } = stageBounds(stage);
+  if (!(motion.x < blast.left || motion.x > blast.right || motion.z < blast.bottom || (motion.z > blast.top && topEligible))) return;
   motion.crouching = false;
   clearGrabLinks(world, slot);
   clearDash(f);
@@ -150,6 +149,7 @@ export function respawnFighter(world: Roster, slot: number, startX: number): voi
   shield.perfectFrames = 0;
   shield.perfectActionFrames = 0;
   status.damage = 0.0;
+  status.offscreenFrames = 0;
   launch.knockbackAge = undefined;
   launch.damageLevel = 0;
   launch.hitstun = 0;

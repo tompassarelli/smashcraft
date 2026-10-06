@@ -12,6 +12,7 @@ import type { Fighter } from "../sim/fighter";
 import { TOP_KO_MINIMUM_UPWARD_KNOCKBACK } from "../sim/knockback";
 import { type Controls, type Roster, copyControls, fighterAt, isActive, neutralControls } from "../sim/roster";
 import { MAIN_DECK_UNDERSIDE_Z, mainDeckLeft, mainDeckRight } from "../sim/stage";
+import { stageBounds } from "../sim/stageBounds";
 import { BODY_HALF_WIDTH, bodyTop } from "../sim/surfaces";
 import { melee } from "../sim/tuning";
 import type { Scenario } from "./build";
@@ -90,7 +91,7 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
       for (const slot of PARTICIPANT_SLOTS) {
         if (!isActive(world, slot)) continue;
         const fighter = fighterAt(world, slot);
-        fighter.motion.z = 761.0;
+        fighter.motion.z = f32(stageBounds(game.stageChoice).blast.top + 1.0);
         fighter.motion.grounded = false;
         fighter.launch.knockbackZ = f32(TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 10);
         fighter.down.state = DownState.tumble;
@@ -129,6 +130,20 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
       first.status.frozenFrames = UNDERSIDE_FROZEN_FRAMES;
       second.motion.x = 350.0;
       return;
+    case "camera":
+      // Three seconds in the magnifier, then the retained launch crosses the
+      // side KO plane. One stock, ordinary movement and stock completion.
+      first.motion.x = f32(stageBounds(game.stageChoice).camera.right + 20.0);
+      first.motion.z = 300.0;
+      first.motion.grounded = false;
+      first.motion.surface = undefined;
+      first.status.frozenFrames = 180;
+      first.launch.knockbackX = 36.0;
+      first.launch.knockbackAge = 0;
+      first.launch.hitstun = 180;
+      first.down.state = DownState.tumble;
+      second.motion.x = 0.0;
+      return;
     case "body-ceiling":
     case "body-wall":
       for (const slot of PARTICIPANT_SLOTS) {
@@ -153,7 +168,7 @@ export function initializeScenario(scenario: Scenario, game: Readonly<MatchState
 
 /** Staged scenarios keep the computer passive, except the parry scenario's answering jab. */
 const COMPUTER_PLAYS: Readonly<Record<Scenario, boolean>> = {
-  normal: true, ko: true, knockdown: false, tech: false, "shield-break": false, ledge: false, parry: false, spike: false, underside: false,
+  normal: true, ko: true, knockdown: false, tech: false, "shield-break": false, ledge: false, parry: false, spike: false, underside: false, camera: false,
   "body-ceiling": false, "body-wall": false,
 };
 

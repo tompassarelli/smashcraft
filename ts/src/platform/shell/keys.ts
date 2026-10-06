@@ -203,7 +203,10 @@ export function onDevCommand(s: ShellState): void {
   const message = GetEventPlayerChatString();
   let receipt: string | undefined;
   const quickStage = quickMatchStage(message);
-  if (quickStage !== undefined) {
+  if (message === "-dev camera") {
+    receipt = "dev: camera match";
+    startQuickMatch(s, 0, "camera");
+  } else if (quickStage !== undefined) {
     receipt = "dev: quick match";
     startQuickMatch(s, quickStage);
   } else if (message.startsWith("-dev effects ")) {

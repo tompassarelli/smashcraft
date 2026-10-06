@@ -9,6 +9,7 @@ import {
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setStocks, setTimeLimit, updateConnectedHumans,
 } from "../../game/match/rules";
 import { prepareQuickMatch } from "../../game/shell/devSettings";
+import type { Scenario } from "../../game/shell/build";
 import { preparePlaytest } from "../../game/shell/playtest";
 import { nextStage } from "../../game/menu/stageCatalog";
 import { floorMod } from "wisp/src/sim/intMath";
@@ -81,10 +82,10 @@ export function openSettingsScreen(s: ShellState, slot: ParticipantSlot): void {
 }
 
 /** `-dev quick`: every human's default fighter on the default stage, past both menus. */
-export function startQuickMatch(s: ShellState, stage = 0): void {
+export function startQuickMatch(s: ShellState, stage = 0, scenario: Scenario = s.build.scenario): void {
   if (prepareQuickMatch(s.game, stage)) {
     for (const panel of views(s).settings) panel.close();
-    startMatch(s);
+    startMatch(s, scenario);
   }
 }
 

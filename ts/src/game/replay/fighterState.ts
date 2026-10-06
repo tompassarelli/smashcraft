@@ -287,6 +287,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   const status = target.status;
   const sourceStatus = source.status;
   status.damage = sourceStatus.damage;
+  status.offscreenFrames = sourceStatus.offscreenFrames;
   status.stocks = sourceStatus.stocks;
   status.respawn = sourceStatus.respawn;
   status.out = sourceStatus.out;

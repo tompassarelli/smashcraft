@@ -30,6 +30,7 @@ import { shell } from "../../src/platform/shell/state";
 import { LockWatch, type RecordedRows } from "../../scripts/lockWatch";
 import { JournalHelpers } from "../rematch/journalHelper";
 import { SOAK_BUTTONS, STICK_DEAD_ZONE } from "./controller";
+import { CameraFindings } from "../cameraFindings";
 
 const CHARACTERS: Readonly<Record<string, Character>> = { archer: Character.archer, rifleman: Character.rifleman, illidan: Character.demonHunter };
 const NAMES: Readonly<Record<number, string>> = { [Character.archer]: "Archer", [Character.rifleman]: "Rifleman", [Character.demonHunter]: "Illidan" };
@@ -241,11 +242,13 @@ const recordedRows: RecordedRows = (frame, slot) => {
 /** The lock-loop detector (scripts/lockWatch.ts) on the host client's confirmed match: each loop a fighter can't act out of. */
 function lockLoops(): Pick<SoakDriver, "findings"> {
   const watch = new LockWatch();
+  const camera = new CameraFindings();
   return {
     findings: (client) => {
-      if (client.slot !== 0) return [];
+      const cameraProblems = camera.observe(client);
+      if (client.slot !== 0) return cameraProblems;
       const s = shell();
-      return watch.advance({ world: s.world, match: s.game, controls: s.controls, runtime: s.runtime }, recordedRows).map((text) => ({ detector: "lock-loop", text }));
+      return [...cameraProblems, ...watch.advance({ world: s.world, match: s.game, controls: s.controls, runtime: s.runtime }, recordedRows).map((text) => ({ detector: "lock-loop", text }))];
     },
   };
 }

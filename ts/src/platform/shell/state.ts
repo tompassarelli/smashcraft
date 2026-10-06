@@ -13,6 +13,7 @@ import { type MatchFrameInput, createMatchFrameInput } from "../../game/match/fr
 import { type PacingAndPresentation, createPacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { type MatchState, REMATCH_COUNTDOWN_SECONDS, createMatchState } from "../../game/match/rules";
 import { matchSpawnX } from "../../game/match/step";
+import { createMatchCamera, type MatchCamera } from "../../game/sim/matchCamera";
 import type { FixedDelay } from "../../game/netcode/fixedSchedule";
 import { InputBatch } from "../../game/netcode/inputBatch";
 import type { KeyboardMailbox } from "../../game/netcode/journal/keyboard";
@@ -197,6 +198,7 @@ interface KeyEvents {
 }
 
 export interface ShellState {
+  readonly camera: MatchCamera;
   readonly build: MapBuild;
   /** The world point the simulation's origin maps to: stage center and floor height. */
   readonly origin: WorldOrigin;
@@ -304,6 +306,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
   const { input } = build;
   const { persistence } = setup;
   const state: ShellState = {
+    camera: createMatchCamera(),
     build, origin: setup.origin, game: createMatchState(), world: createRoster(0), controls: createBufferedFrameControls(),
     produced: createFrameControls(), runtime: createPacingAndPresentation(), session: createMatchControls(),
     frameInput: createMatchFrameInput(),

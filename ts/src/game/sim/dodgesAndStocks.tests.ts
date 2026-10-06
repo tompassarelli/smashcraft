@@ -1,3 +1,4 @@
+import { stageBounds } from "./stageBounds";
 // Dodge intangibility, swept landing and blast-zone loss share the frame
 // executor; these contracts retain that interaction through recovery and stocks.
 // Air dodges, ground dodges and blast zones.
@@ -386,7 +387,7 @@ test("crossing a platform from below doesn't land", () => {
 });
 
 test("a blast zone removes exactly one stock", () => {
-  const fighter = createFighter(Character.archer, 918.0, 1);
+  const fighter = createFighter(Character.archer, (stageBounds(0).blast.right - 2.0), 1);
   fighter.motion.vx = 100.0;
   const input = controls({ direction: 1 });
   const step = () => advanceSolo(fighter, 0, input, -240.0);
@@ -396,11 +397,11 @@ test("a blast zone removes exactly one stock", () => {
   for (let ticks = 0; ticks < 130; ticks++) step();
   assertEquals(fighter.status.stocks, 2);
   assertFalse(fighter.status.out);
-  fighter.motion.x = 920.0009765625;
+  fighter.motion.x = (stageBounds(0).blast.right + 0.0009765625);
   step();
   assertEquals(fighter.status.stocks, 1);
   while (fighter.status.respawn > 0) step();
-  fighter.motion.x = 920.0009765625;
+  fighter.motion.x = (stageBounds(0).blast.right + 0.0009765625);
   step();
   assertEquals(fighter.status.stocks, 0);
   assertTrue(fighter.status.out);
@@ -413,7 +414,7 @@ test("the top blast zone requires launch knockback rather than jump speed", () =
   for (const mode of [0, 1, 2]) {
     const fighter = createFighter(Character.archer, 0.0, 1);
     fighter.motion.grounded = false;
-    fighter.motion.z = 761.0;
+    fighter.motion.z = (stageBounds(0).blast.top + 1.0);
     fighter.motion.vz = 30.0;
     fighter.launch.knockbackZ = mode === 0 ? 0.0 : mode === 1 ? TOP_KO_MINIMUM_UPWARD_KNOCKBACK : f32(TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 0.0010000000474974513);
     advanceSolo(fighter, 0, controls(), 0.0);
@@ -425,7 +426,7 @@ test("the top blast zone requires launch knockback rather than jump speed", () =
 test("the top blast zone boundary doesn't consume a stock until crossed", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   fighter.motion.grounded = false;
-  fighter.motion.z = 760.0;
+  fighter.motion.z = stageBounds(0).blast.top;
   fighter.motion.vz = -50.0;
   fighter.launch.knockbackZ = f32(TOP_KO_MINIMUM_UPWARD_KNOCKBACK + 1);
   advanceSolo(fighter, 0, controls(), 0.0);
@@ -435,13 +436,13 @@ test("the top blast zone boundary doesn't consume a stock until crossed", () => 
 
 test("the side blast zone boundaries require a strict crossing", () => {
   for (const direction of [-1, 1]) {
-    const fighter = createFighter(Character.archer, f32(direction * 920.0), direction);
+    const fighter = createFighter(Character.archer, f32(direction * stageBounds(0).blast.right), direction);
     const input = controls();
     fighter.motion.grounded = false;
     fighter.motion.z = 400.0;
     advanceSolo(fighter, 0, input, 0.0);
     assertFalse(fighter.status.out);
-    fighter.motion.x = f32(direction * 920.0009765625);
+    fighter.motion.x = f32(direction * (stageBounds(0).blast.right + 0.0009765625));
     advanceSolo(fighter, 0, input, 0.0);
     assertTrue(fighter.status.out);
     assertEquals(fighter.status.stocks, 2);
@@ -452,11 +453,11 @@ test("the bottom blast zone boundary requires a strict crossing", () => {
   const fighter = createFighter(Character.archer, 0.0, 1);
   const input = controls();
   fighter.motion.grounded = false;
-  fighter.motion.z = -420.0;
+  fighter.motion.z = stageBounds(0).blast.bottom;
   fighter.motion.vz = 50.0;
   advanceSolo(fighter, 0, input, 0.0);
   assertFalse(fighter.status.out);
-  fighter.motion.z = -420.0010070800781;
+  fighter.motion.z = (stageBounds(0).blast.bottom - 0.0009765625);
   advanceSolo(fighter, 0, input, 0.0);
   assertTrue(fighter.status.out);
   assertEquals(fighter.status.stocks, 2);

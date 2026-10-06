@@ -1,3 +1,4 @@
+import { stageBounds } from "./stageBounds";
 // Keep these action transitions together: buffered inputs, contact windows
 // and landing can resolve on the same production frame.
 // Fighter rules: jumps, landings, smash charge, hit regions and
@@ -526,7 +527,7 @@ test("smash charge stops when the fighter leaves the ground and clears on interr
   const stockWorld = testWorld(stockFighter, stockTarget);
   const stockInput = controls();
   prepareSmashCharge(stockWorld, stockFighter, stockTarget, stockInput, AttackStyle.upSmash);
-  stockFighter.motion.x = 920.0009765625;
+  stockFighter.motion.x = (stageBounds(0).blast.right + 0.0009765625);
   stockInput.attackHeld = false;
   advanceFighter(stockWorld, 0, 0, stockInput, -240.0);
   assertTrue(stockFighter.status.out);

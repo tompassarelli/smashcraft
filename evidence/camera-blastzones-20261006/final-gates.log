@@ -1,0 +1,11 @@
+{"decision":"RESERVED","reason":"RUN","class":"heavy","requestedCpus":6,"requestedMemoryMiB":8192,"leasedCpuCeilings":20,"aggregateCpuLimit":18,"leasedMemoryMiB":34304,"cpuSomeAvg10":14.21,"memoryFullAvg10":0,"memoryAvailableMiB":67427,"reclaimed":0,"lease":"693f9f06-e4c8-42c1-a3fe-a0c8896f9716","expiresAt":1791281825286}
+check exit 0
+unused exit 0
+test exit 0
+lua exit 0
+tapes exit 0
+parity exit 0
+oracle exit 0
+ci exit 0
+soak exit 1
+{"decision":"RELEASED","lease":"693f9f06-e4c8-42c1-a3fe-a0c8896f9716"}
